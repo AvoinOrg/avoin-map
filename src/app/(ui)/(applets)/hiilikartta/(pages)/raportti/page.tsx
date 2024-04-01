@@ -183,7 +183,7 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
         }
       }
     }
-  }, [searchParams, allPlanConfs, externalPlanConfs])
+  }, [searchParams, allPlanConfs, externalPlanConfs, globalState])
 
   const handlePlanSelectClick = (
     event: React.SyntheticEvent<Element, Event>,
