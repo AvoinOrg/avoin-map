@@ -116,7 +116,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
       setPlanConfsToFetch(filteredPlanConfs)
 
-      updateGlobalState(GlobalState.FETCHING)
+      if (filteredPlanConfs.length > 0) {
+        updateGlobalState(GlobalState.FETCHING)
+      } else {
+        updateGlobalState(GlobalState.IDLE)
+      }
     }
 
     if (session?.user?.id && planConfStatsQuery.data) {
