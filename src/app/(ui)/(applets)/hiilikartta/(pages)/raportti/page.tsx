@@ -24,6 +24,8 @@ import CarbonMapGraph from 'applets/hiilikartta/components/CarbonMapGraph'
 import CarbonLineChart from 'applets/hiilikartta/components/CarbonLineChart'
 import CarbonOverviewGraph from 'applets/hiilikartta/components/CarbonOverviewGraph'
 import ClipboardCopyWrapper from '#/components/common/ClipboardCopyWrapper'
+import { LoadingSpinner } from '#/components/Loading'
+import { useUIStore } from '#/common/store'
 
 const MAX_WIDTH = '1000px'
 
@@ -36,6 +38,7 @@ enum ErrorState {
 const Page = ({ params }: { params: { planIdSlug: string } }) => {
   const searchParams = useSearchParams()
   const globalState = useStore(useAppletStore, (state) => state.globalState)
+  const notify = useUIStore((state) => state.notify)
   const router = useRouter()
   const pathName = usePathname()
   const { t } = useTranslate('hiilikartta')
@@ -44,6 +47,10 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
   const addedExtPlanConfIds = useRef<string[]>([])
 
   const allPlanConfs = useStore(useAppletStore, (state) => state.planConfs)
+  const placeholderPlanConfs = useStore(
+    useAppletStore,
+    (state) => state.placeholderPlanConfs
+  )
   const externalPlanConfs = useStore(
     useAppletStore,
     (state) => state.externalPlanConfs
@@ -55,7 +62,7 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
   const [planConfs, setPlanConfs] = useState<PlanConfWithReportData[]>([])
   const [prevPageId, setPrevPageId] = useState<string>()
   const [errorState, setErrorState] = useState<ErrorState>()
-  const [isLoaded, setIsLoaded] = useState(true)
+  const [isLoaded, setIsLoaded] = useState(false)
   const [featureYears, setFeatureYears] = useState<string[]>([])
 
   const planConfSelectOptions = useMemo(() => {
@@ -82,6 +89,7 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
     if (
       allPlanConfs != null &&
       externalPlanConfs != null &&
+      placeholderPlanConfs != null &&
       globalState === GlobalState.IDLE
     ) {
       const paramPlanIds = searchParams.get('planIds')
@@ -104,6 +112,9 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
           const foundExtPlanConfId = Object.keys(externalPlanConfs).find(
             (planConfId) => externalPlanConfs[planConfId].serverId === id
           )
+          const foundPhPlanConfId = Object.keys(placeholderPlanConfs).find(
+            (planConfId) => placeholderPlanConfs[planConfId].serverId === id
+          )
 
           if (foundPlanConfId != null) {
             if (allPlanConfs[foundPlanConfId].reportData != null) {
@@ -111,16 +122,52 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
                 allPlanConfs[foundPlanConfId] as PlanConfWithReportData
               )
             } else {
-              // TODO: add error notification popup
+              notify({
+                message: `${t(
+                  'report.error.no_report_data_found_for_plan_with_id'
+                )} ${id}`,
+                variant: 'error',
+              })
               setErrorState(ErrorState.NO_DATA)
             }
           } else if (foundExtPlanConfId != null) {
-            if (externalPlanConfs[foundExtPlanConfId].reportData != null) {
-              paramPlanConfs.push(
-                externalPlanConfs[foundExtPlanConfId] as PlanConfWithReportData
-              )
+            if (externalPlanConfs[id].status === FetchStatus.FETCHED) {
+              if (externalPlanConfs[foundExtPlanConfId].reportData != null) {
+                paramPlanConfs.push(
+                  externalPlanConfs[
+                    foundExtPlanConfId
+                  ] as PlanConfWithReportData
+                )
+              } else {
+                notify({
+                  message: `${t(
+                    'report.error.no_report_data_found_for_plan_with_id'
+                  )} ${id}`,
+                  variant: 'error',
+                })
+                setErrorState(ErrorState.NO_DATA)
+              }
             } else if (externalPlanConfs[id].status === FetchStatus.ERRORED) {
-              // TODO: add error notification popup
+              notify({
+                message: `${t(
+                  'report.error.unable_to_find_plan_with_id'
+                )} ${id}`,
+                variant: 'error',
+              })
+              setErrorState(ErrorState.NO_DATA)
+            }
+          } else if (foundPhPlanConfId != null) {
+            if (
+              placeholderPlanConfs[foundPhPlanConfId].status != null &&
+              placeholderPlanConfs[foundPhPlanConfId].status ===
+                FetchStatus.ERRORED
+            ) {
+              notify({
+                message: `${t(
+                  'report.error.unable_to_find_plan_with_id'
+                )} ${id}`,
+                variant: 'error',
+              })
               setErrorState(ErrorState.NO_DATA)
             }
           } else if (!addedExtPlanConfIds.current.includes(id)) {
@@ -153,8 +200,17 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
 
         if (!isLoaded) {
           let newLoaded = true
+
           for (const id of ids) {
-            if (allPlanConfs[id] != null || externalPlanConfs[id] != null) {
+            if (
+              Object.keys(allPlanConfs).find(
+                (key) => allPlanConfs[key].serverId !== id
+              ) == null &&
+              Object.keys(placeholderPlanConfs).find(
+                (key) => placeholderPlanConfs[key].serverId !== id
+              ) == null &&
+              externalPlanConfs[id] == null
+            ) {
               newLoaded = false
               break
             }
@@ -410,6 +466,18 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
           </ClipboardCopyWrapper>
         </Row>
       </Section>
+      {!isLoaded && (
+        <Box
+          sx={{
+            mt: 18,
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'center',
+          }}
+        >
+          <LoadingSpinner sx={{ height: '3rem' }}></LoadingSpinner>
+        </Box>
+      )}
       {isLoaded && planConfs.length > 0 && featureYears.length > 0 && (
         <Col sx={{ maxWidth: MAX_WIDTH, p: 3 }}>
           <Section>
