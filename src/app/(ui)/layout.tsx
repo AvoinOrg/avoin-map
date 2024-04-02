@@ -84,14 +84,14 @@ const Layout = ({
   }, [session])
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={theme}>
-        {/* <UserStateProvider> */}
-        <CssBaseline>
-          <TolgeeProvider
-            tolgee={tolgee}
-            fallback="" // loading fallback
-          >
+    <TolgeeProvider
+      tolgee={tolgee}
+      fallback="" // loading fallback
+    >
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={theme}>
+          {/* <UserStateProvider> */}
+          <CssBaseline>
             <NotificationProvider>
               <Map>
                 {/* <UserModal /> */}
@@ -112,11 +112,11 @@ const Layout = ({
                 <ConfirmationDialog></ConfirmationDialog>
               </Map>
             </NotificationProvider>
-          </TolgeeProvider>
-        </CssBaseline>
-        {/* </UserStateProvider> */}
-      </ThemeProvider>
-    </QueryClientProvider>
+          </CssBaseline>
+          {/* </UserStateProvider> */}
+        </ThemeProvider>
+      </QueryClientProvider>
+    </TolgeeProvider>
   )
 }
 
