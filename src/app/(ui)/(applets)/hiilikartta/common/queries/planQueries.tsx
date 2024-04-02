@@ -1,16 +1,13 @@
 import { FetchStatus } from '#/common/types/general'
-import {
-  QueryKey,
-  useQueries,
-  UseQueryOptions,
-  UseQueryResult,
-} from '@tanstack/react-query'
 import axios from 'axios'
 import { FeatureCollection } from 'geojson'
 import { area as turfArea } from '@turf/turf'
+import { useTranslate } from '@tolgee/react'
+import { useSession } from 'next-auth/react'
+
+import { useUIStore } from '#/common/store'
 
 import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
-
 import {
   CalculationState,
   PlaceholderPlanConf,
@@ -19,7 +16,6 @@ import {
   ReportData,
 } from '../types'
 import { processCalcQueryToReportData } from '../utils'
-import { useSession } from 'next-auth/react'
 
 const API_URL = process.env.NEXT_PUBLIC_HIILIKARTTA_API_URL
 
@@ -29,6 +25,8 @@ export const planQueries = (
   placeholderPlanConfs = placeholderPlanConfs || []
 
   const { data: session } = useSession()
+  const notify = useUIStore((state) => state.notify)
+  const { t } = useTranslate('hiilikartta')
   const updatePlaceholderPlanConf =
     useAppletStore.getState().updatePlaceholderPlanConf
   const deletePlaceholderPlanConf =
@@ -117,11 +115,27 @@ export const planQueries = (
               const newPlanConf = await addPlanConf(planConf)
               return newPlanConf
             }
-          } catch (e) {
+          } catch (e: any) {
             console.error(e)
             updatePlaceholderPlanConf(placeholderPlanConf.id, {
               status: FetchStatus.ERRORED,
             })
+            if (e.response?.status === 401) {
+              notify({
+                message: `${t('notifications.authorized_to_fetch_plan')} ${
+                  placeholderPlanConf.id
+                }`,
+                variant: 'error',
+              })
+            }
+            if (e.response?.status === 404) {
+              notify({
+                message: `${t('notifications.plan_not_found')} ${
+                  placeholderPlanConf.id
+                }`,
+                variant: 'error',
+              })
+            }
           }
         }
         return null
