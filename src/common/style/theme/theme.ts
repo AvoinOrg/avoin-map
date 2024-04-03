@@ -252,15 +252,19 @@ const components = {
   MuiCssBaseline: {
     styleOverrides: {
       '*': {
-        scrollbarWidth: 'thin',
-        scrollbarColor: `${palette.neutral.dark} ${palette.neutral.main}`,
-        '&::-webkit-scrollbar': {
-          width: SCROLLBAR_WIDTH_REM + 'rem',
+        '@supports selector(::-webkit-scrollbar)': {
+          '&::-webkit-scrollbar': {
+            width: SCROLLBAR_WIDTH_REM + 'rem',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: palette.neutral.main,
+            borderRadius: '7px !important',
+            boxShadow: '0px 4px 4px 0px rgba(159, 159, 159, 0.25)', // Added box-shadow
+          },
         },
-        '&::-webkit-scrollbar-thumb': {
-          backgroundColor: palette.neutral.main,
-          borderRadius: '7px',
-          boxShadow: '0px 4px 4px 0px rgba(159, 159, 159, 0.25)', // Added box-shadow
+        '@supports not selector(::-webkit-scrollbar)': {
+          scrollbarWidth: 'thin',
+          scrollbarColor: `${palette.neutral.main} transparent`,
         },
         boxSizing: 'border-box',
         borderCollapse: 'collapse',
