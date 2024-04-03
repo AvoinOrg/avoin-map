@@ -44,6 +44,7 @@ const SidebarContentBox = ({
       sx={{
         direction: 'rtl',
         overflowY: 'scroll',
+        height: "100%",
         ...sx,
         width: boxWidth !== null ? `${boxWidth}px` : sx.width,
       }}
