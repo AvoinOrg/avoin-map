@@ -63,6 +63,7 @@ const nextConfig = {
       }),
       new webpack.DefinePlugin({
         'process.env.NEXT_PUBLIC_URL': JSON.stringify(process.env.URL),
+        'process.env.URL': "hiilikartta.avoin.org",
       }),
       new CopyPlugin({
         patterns: [
