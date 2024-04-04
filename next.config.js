@@ -42,6 +42,9 @@ const nextConfig = {
   //   localeDetection: true,
   //   defaultLocale: 'en',
   // },
+  env: {
+    NEXT_PUBLIC_DOMAIN: 'hiilidomain222.avoin.org',
+  },
   webpack: (
     config,
     { buildId, dev, isServer, defaultLoaders, nextRuntime, webpack }
@@ -56,6 +59,10 @@ const nextConfig = {
     //     stdio: 'inherit',
     //   })
     // }
+    config.env = {
+      ...config.env,
+      DOMAIN: 'hiilidomain.avoin.org',
+    }
 
     config.plugins = config.plugins.concat([
       new webpack.ProvidePlugin({
@@ -63,7 +70,7 @@ const nextConfig = {
       }),
       new webpack.DefinePlugin({
         'process.env.NEXT_PUBLIC_URL': JSON.stringify(process.env.URL),
-        'process.env.URL': "hiilikartta.avoin.org",
+        'process.env.URL': 'hiilikartta.avoin.org',
       }),
       new CopyPlugin({
         patterns: [
