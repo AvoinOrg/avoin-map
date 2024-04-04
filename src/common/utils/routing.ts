@@ -214,3 +214,36 @@ export const getRoutesForPath = (path: string, routeTree: RouteTree) => {
   }
   return routes
 }
+
+export const getBaseUrl = () => {
+  let baseUrl = ''
+  if (process.env.URL != null) {
+    baseUrl = `${process.env.URL}`
+  } else if (process.env.DOMAIN != null) {
+    baseUrl = `${process.env.DOMAIN}`
+  } else if (process.env.REACT_APP_URL != null) {
+    baseUrl = `${process.env.REACT_APP_URL}`
+  } else if (process.env.REACT_APP_DOMAIN != null) {
+    baseUrl = `${process.env.REACT_APP_DOMAIN}`
+  } else if (process.env.NEXT_PUBLIC_URL != null) {
+    baseUrl = `${process.env.NEXT_PUBLIC_URL}`
+  } else if (process.env.NEXT_PUBLIC_DOMAIN != null) {
+    baseUrl = `${process.env.NEXT_PUBLIC_DOMAIN}`
+  } else if (process.env.VERCEL_URL != null) {
+    baseUrl = `${process.env.VERCEL_URL}`
+  } else if (process.env.VERCEL_DOMAIN != null) {
+    baseUrl = `${process.env.VERCEL_DOMAIN}`
+  } else {
+    baseUrl = `${window.location.protocol}//${window.location.host}`
+  }
+
+  if (!baseUrl.startsWith('https://') && !baseUrl.startsWith('http://')) {
+    if (baseUrl.includes('localhost')) {
+      baseUrl = `http://${baseUrl}`
+    } else {
+      baseUrl = `https://${baseUrl}`
+    }
+  }
+
+  return baseUrl
+}

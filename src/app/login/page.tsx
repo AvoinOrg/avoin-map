@@ -1,6 +1,8 @@
 'use client'
 
 import { signIn } from 'next-auth/react'
+
+import { getBaseUrl } from '#/common/utils/routing'
 // import Image from 'next/image'
 import { useEffect } from 'react'
 // import { useQuery } from 'react-query'
@@ -18,7 +20,7 @@ import { useEffect } from 'react'
 
 export default function Login() {
   signIn('zitadel', {
-    callbackUrl: `${window.location.protocol}//${window.location.host}/login/callback`,
+    callbackUrl: `${getBaseUrl()}/login/callback`,
   })
   // useEffect(() => {}, [])
 
