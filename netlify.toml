@@ -1,2 +1,2 @@
 [build]
-  command = "NEXT_PUBLIC_URL"=$URL yarn run build-hiilikartta"
+  command = "NEXT_PUBLIC_URL=$URL yarn run build-hiilikartta"
