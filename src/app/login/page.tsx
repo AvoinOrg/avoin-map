@@ -18,7 +18,7 @@ import { useEffect } from 'react'
 
 export default function Login() {
   signIn('zitadel', {
-    callbackUrl: 'http://localhost:3000/login/callback',
+    callbackUrl: `${window.location.protocol}//${window.location.host}/login/callback`,
   })
   // useEffect(() => {}, [])
 
