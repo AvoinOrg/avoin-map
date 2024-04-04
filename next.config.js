@@ -4,7 +4,9 @@ const CopyPlugin = require('copy-webpack-plugin')
 
 const getNextAuthUrl = () => {
   let baseUrl = ''
-  if (process.env.URL != null) {
+  if (process.env.NEXTAUTH_URL != null) {
+    baseUrl = `${process.env.NEXTAUTH_URL}`
+  } else if (process.env.URL != null) {
     baseUrl = `${process.env.URL}`
   } else if (process.env.DOMAIN != null) {
     baseUrl = `${process.env.DOMAIN}`
@@ -20,8 +22,6 @@ const getNextAuthUrl = () => {
     baseUrl = `${process.env.VERCEL_URL}`
   } else if (process.env.VERCEL_DOMAIN != null) {
     baseUrl = `${process.env.VERCEL_DOMAIN}`
-  } else if (process.env.NEXTAUTH_URL != null) {
-    baseUrl = `${process.env.NEXTAUTH_URL}`
   } else {
     const port = process.env.DEV_PORT || 3000
     baseUrl = `http://localhost:${port}`
