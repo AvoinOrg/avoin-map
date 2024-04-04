@@ -61,6 +61,9 @@ const nextConfig = {
       new webpack.ProvidePlugin({
         Buffer: ['buffer', 'Buffer'],
       }),
+      new webpack.DefinePlugin({
+        'process.env.NEXT_PUBLIC_URL': JSON.stringify(process.env.URL),
+      }),
       new CopyPlugin({
         patterns: [
           {
