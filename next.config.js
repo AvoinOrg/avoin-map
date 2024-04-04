@@ -2,6 +2,42 @@ const path = require('path')
 const CopyPlugin = require('copy-webpack-plugin')
 // const { execSync } = require('child_process')
 
+const getNextAuthUrl = () => {
+  let baseUrl = ''
+  if (process.env.URL != null) {
+    baseUrl = `${process.env.URL}`
+  } else if (process.env.DOMAIN != null) {
+    baseUrl = `${process.env.DOMAIN}`
+  } else if (process.env.REACT_APP_URL != null) {
+    baseUrl = `${process.env.REACT_APP_URL}`
+  } else if (process.env.REACT_APP_DOMAIN != null) {
+    baseUrl = `${process.env.REACT_APP_DOMAIN}`
+  } else if (process.env.NEXT_PUBLIC_URL != null) {
+    baseUrl = `${process.env.NEXT_PUBLIC_URL}`
+  } else if (process.env.NEXT_PUBLIC_DOMAIN != null) {
+    baseUrl = `${process.env.NEXT_PUBLIC_DOMAIN}`
+  } else if (process.env.VERCEL_URL != null) {
+    baseUrl = `${process.env.VERCEL_URL}`
+  } else if (process.env.VERCEL_DOMAIN != null) {
+    baseUrl = `${process.env.VERCEL_DOMAIN}`
+  } else if (process.env.NEXTAUTH_URL != null) {
+    baseUrl = `${process.env.NEXTAUTH_URL}`
+  } else {
+    const port = process.env.DEV_PORT || 3000
+    baseUrl = `http://localhost:${port}`
+  }
+
+  if (!baseUrl.startsWith('https://') && !baseUrl.startsWith('http://')) {
+    if (baseUrl.includes('localhost')) {
+      baseUrl = `http://${baseUrl}`
+    } else {
+      baseUrl = `https://${baseUrl}`
+    }
+  }
+
+  return baseUrl
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   swcMinify: true,
@@ -43,7 +79,7 @@ const nextConfig = {
   //   defaultLocale: 'en',
   // },
   env: {
-    NEXT_PUBLIC_DOMAIN: 'hiilidomain222.avoin.org',
+    NEXTAUTH_URL: getNextAuthUrl(),
   },
   webpack: (
     config,
@@ -59,18 +95,10 @@ const nextConfig = {
     //     stdio: 'inherit',
     //   })
     // }
-    config.env = {
-      ...config.env,
-      DOMAIN: 'hiilidomain.avoin.org',
-    }
 
     config.plugins = config.plugins.concat([
       new webpack.ProvidePlugin({
         Buffer: ['buffer', 'Buffer'],
-      }),
-      new webpack.DefinePlugin({
-        'process.env.NEXT_PUBLIC_URL': JSON.stringify(process.env.URL),
-        'process.env.URL': 'hiilikartta.avoin.org',
       }),
       new CopyPlugin({
         patterns: [
