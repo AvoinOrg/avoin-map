@@ -6,6 +6,7 @@ type Props = {
   children: React.ReactNode
   modalBody: React.ReactNode
   sx?: SxProps<Theme>
+  textContainerSx?: SxProps<Theme>
 }
 
 const ClickableModal = ({ modalBody, children, sx }: Props) => {
@@ -32,19 +33,32 @@ const ClickableModal = ({ modalBody, children, sx }: Props) => {
         onClose={handleClose}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
+        sx={{ border: 'none', outline: 'none' }}
       >
         <Box
-          sx={{
-            position: 'absolute' as const,
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            maxWidth: '100vw',
-            overflow: 'auto',
-            bgcolor: 'background.paper',
-            boxShadow: 24,
-            p: 4,
-          }}
+          sx={[
+            {
+              position: 'absolute' as const,
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: {
+                xs: '100%',
+                md: '800px',
+              },
+              maxHeight: {
+                xs: '100vh',
+                md: '80vh',
+              },
+              overflow: 'auto',
+              bgcolor: 'background.paper',
+              boxShadow: 24,
+              p: 4,
+              border: 'none',
+              outline: 'none',
+            },
+            ...(Array.isArray(sx) ? sx : [sx]),
+          ]}
         >
           <IconButton
             aria-label="close"
