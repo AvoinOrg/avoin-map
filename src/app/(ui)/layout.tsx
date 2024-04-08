@@ -10,9 +10,9 @@ import {
   Tolgee,
   DevTools,
   TolgeeProvider,
-  FormatSimple,
   TreeTranslationsData,
 } from '@tolgee/react'
+import { FormatIcu } from '@tolgee/format-icu'
 import { QueryClientProvider } from '@tanstack/react-query'
 
 import theme from '#/common/style/theme'
@@ -46,7 +46,7 @@ const loadTranslation = async (
 
 const tolgee = Tolgee()
   .use(DevTools())
-  .use(FormatSimple())
+  .use(FormatIcu())
   .init({
     language: 'en',
     defaultNs: 'avoin-map',
