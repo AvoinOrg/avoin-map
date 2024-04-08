@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Box, SelectChangeEvent, ToggleButton, Typography } from '@mui/material'
 import { cloneDeep } from 'lodash-es'
-import { T, useTranslate } from '@tolgee/react'
+import { useTranslate } from '@tolgee/react'
 import { styled } from '@mui/material/styles'
 
 import DropDownSelect from '#/components/common/DropDownSelect'
@@ -100,7 +100,7 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
             display: 'inline',
           })}
         >
-          <T keyName="report.map_graph.title" ns={'hiilikartta'}></T>
+          <TText keyName="report.map_graph.title" ns={'hiilikartta'}></TText>
         </Typography>
       </Box>
       <Box
@@ -122,10 +122,10 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
           selected={calcType === 'total'}
           onChange={handleCalcTypeChange}
         >
-          <T
+          <TText
             ns="hiilikartta"
             keyName={'report.map_graph.calc_select_total'}
-          ></T>
+          ></TText>
         </StyledToggleButton>
         <StyledToggleButton
           value="bio"
@@ -138,7 +138,10 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
           selected={calcType === 'bio'}
           onChange={handleCalcTypeChange}
         >
-          <T ns="hiilikartta" keyName={'report.map_graph.calc_select_bio'}></T>
+          <TText
+            ns="hiilikartta"
+            keyName={'report.map_graph.calc_select_bio'}
+          ></TText>
         </StyledToggleButton>
         <StyledToggleButton
           value="ground"
@@ -147,10 +150,10 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
           selected={calcType === 'ground'}
           onChange={handleCalcTypeChange}
         >
-          <T
+          <TText
             ns="hiilikartta"
             keyName={'report.map_graph.calc_select_ground'}
-          ></T>
+          ></TText>
         </StyledToggleButton>
       </Box>
       <Box
@@ -175,10 +178,10 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
             mr: { xs: 0, sm: '3rem' },
           }}
         >
-          <T
+          <TText
             ns="hiilikartta"
             keyName={'report.map_graph.select_zoning_type'}
-          ></T>
+          ></TText>
         </Typography>
         <DropDownSelect
           options={areaTypeOptions}

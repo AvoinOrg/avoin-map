@@ -7,7 +7,6 @@ import {
   Typography,
   SelectChangeEvent,
 } from '@mui/material'
-import { T } from '@tolgee/react'
 
 import { pp } from '#/common/utils/general'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
@@ -42,10 +41,10 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
                 display: 'inline',
               })}
             >
-              <T
+              <TText
                 keyName="report.overview_graph.impact_on_carbon_stock"
                 ns={'hiilikartta'}
-              ></T>{' '}
+              ></TText>{' '}
             </Typography>
             {/* <Info
               sx={{
@@ -63,7 +62,10 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
                 display: 'inline',
               })}
             >
-              <T keyName="report.overview_graph.on_year" ns={'hiilikartta'}></T>{' '}
+              <TText
+                keyName="report.overview_graph.on_year"
+                ns={'hiilikartta'}
+              ></TText>{' '}
             </Typography>
             <DropDownSelectMinimal
               options={featureYears.map((featureYear) => ({
@@ -112,7 +114,10 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
             >
               <Col>
                 <Typography typography={'h8'}>
-                  <T keyName="report.overview_graph.plan" ns="hiilikartta"></T>
+                  <TText
+                    keyName="report.overview_graph.plan"
+                    ns="hiilikartta"
+                  ></TText>
                 </Typography>
                 <Typography
                   typography={'h7'}
@@ -126,16 +131,16 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
                   {planConf?.name}
                 </Typography>
                 <Typography typography={'h5'} sx={{ mt: 2 }}>
-                  <T
+                  <TText
                     keyName="report.overview_graph.carbon_stock_decreases"
                     ns="hiilikartta"
-                  ></T>
+                  ></TText>
                 </Typography>
                 <Typography mt={4} typography={'h5'}>
-                  <T
+                  <TText
                     keyName="report.overview_graph.carbon_eqv_unit"
                     ns="hiilikartta"
-                  ></T>
+                  ></TText>
                 </Typography>
                 <Typography mt={1} typography={'h1'}>
                   {pp(
@@ -149,10 +154,10 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
                   )}
                 </Typography>
                 <Typography mt={3} typography={'h5'}>
-                  <T
+                  <TText
                     keyName="report.overview_graph.carbon_eqv_unit_hectare"
                     ns="hiilikartta"
-                  ></T>
+                  ></TText>
                 </Typography>
                 <Typography mt={1} typography={'h1'}>
                   {pp(
