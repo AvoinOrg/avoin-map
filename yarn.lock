@@ -2971,30 +2971,37 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tolgee/core@npm:5.15.0":
-  version: 5.15.0
-  resolution: "@tolgee/core@npm:5.15.0"
-  checksum: 3f63fede16e5046ba7f7c8d11241781fe4013d0b8f204d10961de2da97d08e6e7a0ea36a40c27511cf2d088e74b6327b1f4e7240516bc2fa4c0a40b0338e57c8
+"@tolgee/core@npm:5.23.0":
+  version: 5.23.0
+  resolution: "@tolgee/core@npm:5.23.0"
+  checksum: aaf063f4398fb07e14de0795e07c44155b846ba936d53fca01f618e039439d4be5f4089117e26b088a73efcebc7f98a00c28168b3ffdd5e578f123845db4c687
   languageName: node
   linkType: hard
 
-"@tolgee/react@npm:^5.15.0":
-  version: 5.15.0
-  resolution: "@tolgee/react@npm:5.15.0"
+"@tolgee/format-icu@npm:^5.23.0":
+  version: 5.23.0
+  resolution: "@tolgee/format-icu@npm:5.23.0"
+  checksum: 7eb99148da909693e43205f415ce0c1c28f209a91c20757a221b4acac9d6a490ea9aecfd9c228341d3fa7a3f595b0d66bf0887f2b1a970dea8035aac45e64e0a
+  languageName: node
+  linkType: hard
+
+"@tolgee/react@npm:^5.23.0":
+  version: 5.23.0
+  resolution: "@tolgee/react@npm:5.23.0"
   dependencies:
-    "@tolgee/web": 5.15.0
+    "@tolgee/web": 5.23.0
   peerDependencies:
     react: ^16.14.0 || ^17.0.1 || ^18.1.0
-  checksum: e7729f79f01223bf17a3343c7c2204e4ab838e21e881e6d62526600283b84180057a36461b34f23ecc259645ddff00489bb3ac0876051d3e099ccf6ec8d1b05e
+  checksum: 30a2257ac2e83a946b0d40c35e0bd2501ce1315108b1dfe81330756aed2d56dcc441a3572d4142384c6b030695ad676c192349e09ec9d9469f1a689f6a64dbaa
   languageName: node
   linkType: hard
 
-"@tolgee/web@npm:5.15.0":
-  version: 5.15.0
-  resolution: "@tolgee/web@npm:5.15.0"
+"@tolgee/web@npm:5.23.0":
+  version: 5.23.0
+  resolution: "@tolgee/web@npm:5.23.0"
   dependencies:
-    "@tolgee/core": 5.15.0
-  checksum: ea1a69f985346874f64b364b9fe99704085e5b31a0252024709162da7fb880978d6edb5563eb79bd3292b95399c65cd1b8475f8f9108a87f0da5b2b1e9bdcbfe
+    "@tolgee/core": 5.23.0
+  checksum: 8f8b9b56cfeb774d7ce691b7051ef9df7161196d7a760bf1ced5b7eb5b2e22c298347adb968e1cb3b83575c0aaaa42e1b60b9a05e71a8805729024f9c6c75a30
   languageName: node
   linkType: hard
 
@@ -6988,7 +6995,8 @@ __metadata:
     "@tanstack/react-query": rc
     "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^14.0.0
-    "@tolgee/react": ^5.15.0
+    "@tolgee/format-icu": ^5.23.0
+    "@tolgee/react": ^5.23.0
     "@turf/boolean-valid": ^6.5.0
     "@turf/boolean-within": ^6.5.0
     "@turf/helpers": ^6.5.0
