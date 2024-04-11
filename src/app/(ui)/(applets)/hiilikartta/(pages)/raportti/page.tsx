@@ -204,10 +204,10 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
           for (const id of ids) {
             if (
               Object.keys(allPlanConfs).find(
-                (key) => allPlanConfs[key].serverId !== id
+                (key) => allPlanConfs[key].serverId === id
               ) == null &&
               Object.keys(placeholderPlanConfs).find(
-                (key) => placeholderPlanConfs[key].serverId !== id
+                (key) => placeholderPlanConfs[key].serverId === id
               ) == null &&
               externalPlanConfs[id] == null
             ) {
