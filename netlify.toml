@@ -3,3 +3,9 @@
   to = "https://test.map.avoin.org/hiilikartta"
   status = 200
   force = true
+
+[[redirects]]
+  from = "https://test2.map.avoin.org/*"
+  to = "https://test.map.avoin.org/hiilikartta/:splat"
+  status = 200
+  force = true
