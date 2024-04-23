@@ -81,6 +81,20 @@ const nextConfig = {
   env: {
     NEXTAUTH_URL: getNextAuthUrl(),
   },
+  rewrites: async () => {
+    return {
+      beforeFiles: [
+        // These rewrites are checked after headers/redirects
+        // and before all files including _next/public files which
+        // allows overriding page files
+        {
+          source: '/:path*',
+          destination: '/hiilikartta/:path*',
+          has: [{ type: 'query', key: 'overrideMe' }],
+        },
+      ],
+    }
+  },
   webpack: (
     config,
     { buildId, dev, isServer, defaultLoaders, nextRuntime, webpack }

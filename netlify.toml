@@ -1,4 +1,0 @@
-[[redirects]]
-  from = "/*"
-  to = "/subapp/:splat"
-  status = 200
