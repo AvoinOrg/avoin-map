@@ -90,7 +90,6 @@ const nextConfig = {
         {
           source: '/:path*',
           destination: '/hiilikartta/:path*',
-          has: [{ type: 'query', key: 'overrideMe' }],
         },
       ],
     }
