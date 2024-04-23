@@ -1,4 +1,4 @@
 [[redirects]]
   from = "/*"
-  to = "/subapp/:splat"
+  to = "/hiilikartta/:splat"
   status = 200
