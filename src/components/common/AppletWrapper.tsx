@@ -14,6 +14,7 @@ const AppletWrapper = ({
   children,
   mapContext,
   localizationNamespace,
+  subPath,
   defaultLanguage,
   SidebarHeaderElement,
   sx,
@@ -21,6 +22,7 @@ const AppletWrapper = ({
   children: React.ReactNode
   mapContext: MapContext
   localizationNamespace?: string
+  subPath?: string
   defaultLanguage?: string
   SidebarHeaderElement?: React.JSX.Element
   sx?: any
@@ -31,6 +33,9 @@ const AppletWrapper = ({
   const stateMapContext = useMapStore((state) => state.mapContext)
   const setSidebarHeaderElement = useUIStore(
     (state) => state.setSidebarHeaderElement
+  )
+  const setIsBaseDomainForApplet = useUIStore(
+    (state) => state.setIsBaseDomainForApplet
   )
 
   useEffect(() => {
@@ -57,10 +62,20 @@ const AppletWrapper = ({
   }, [setSidebarHeaderElement, SidebarHeaderElement])
 
   useEffect(() => {
+    let appletPath = subPath
+    if (subPath == null && mapContext != null) {
+      appletPath = mapContext
+    }
+    const path = window.location.pathname
+    // Split the path into segments based on "/"
+    const segments = path.split('/').filter(Boolean) // filter(Boolean) removes any empty strings from the array
+    setIsBaseDomainForApplet(segments[0] !== appletPath)
+
     setMapContext(mapContext)
 
     return () => {
       tolgee.removeActiveNs(localizationNamespace)
+      setIsBaseDomainForApplet(false)
     }
   }, [])
 
