@@ -4,6 +4,10 @@ import NextLink, { LinkProps as NextLinkProps } from 'next/link'
 
 type LinkProps = MuiLinkProps & NextLinkProps
 
+/**
+ * A basic link. Do not use with applets that have their own domain,
+ * use MutableLink instead.
+ */
 const Link = ({ sx, children, ...props }: LinkProps) => {
   return (
     <MuiLink
