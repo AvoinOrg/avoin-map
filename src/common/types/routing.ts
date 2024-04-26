@@ -3,6 +3,7 @@ import { ReadonlyURLSearchParams } from 'next/navigation'
 export type RouteObject = {
   name: string
   path: string
+  isAppletRoot?: boolean
 }
 
 export type RouteTree = {
