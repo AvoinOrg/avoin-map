@@ -18,7 +18,7 @@ export const useGetRoute = (
 
   let removeStepsFromRoot = 0
 
-  if (routeTree.isAppletRoot && isBaseDomainForApplet) {
+  if (routeTree._conf.isAppletRoot && isBaseDomainForApplet) {
     removeStepsFromRoot = 1
   }
 
