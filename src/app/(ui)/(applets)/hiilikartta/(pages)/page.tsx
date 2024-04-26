@@ -15,6 +15,7 @@ import { SIDEBAR_WIDTH_REM } from '../common/constants'
 import { useAppletStore } from '../state/appletStore'
 import { GlobalState, PlanConf, PlanConfState } from '../common/types'
 import { LoadingSpinner } from '#/components/Loading'
+import MutableLink from '#/components/common/MutableLink'
 
 const Page = () => {
   const planConfs = useStore(useAppletStore, (state) => state.planConfs)
@@ -39,11 +40,11 @@ const Page = () => {
 
   return (
     <SidebarContentBox sx={{ width: SIDEBAR_WIDTH_REM + 'rem' }}>
-      <Link href={getRoute(routeTree.create, routeTree)}>
+      <MutableLink route={routeTree.create} routeTree={routeTree}>
         <Box sx={{ typography: 'h2', textAlign: 'start', mt: 5 }}>
           <T keyName={'sidebar.main.add_new'} ns="hiilikartta"></T>
         </Box>
-      </Link>
+      </MutableLink>
 
       {globalState !== GlobalState.IDLE && (
         <Box
@@ -61,7 +62,11 @@ const Page = () => {
       )}
 
       {filteredPlanConfs.length > 0 && globalState === GlobalState.IDLE && (
-        <Link href={getRoute(routeTree.plans, routeTree)} sx={{ mt: 18 }}>
+        <MutableLink
+          route={routeTree.plans}
+          routeTree={routeTree}
+          sx={{ mt: 18 }}
+        >
           <Folder
             sx={{
               color: 'neutral.lighter',
@@ -75,7 +80,7 @@ const Page = () => {
               <T keyName={'sidebar.my_plans.title'} ns={'hiilikartta'}></T>
             </Typography>
           </Folder>
-        </Link>
+        </MutableLink>
       )}
     </SidebarContentBox>
   )
