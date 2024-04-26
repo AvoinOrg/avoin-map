@@ -9,6 +9,7 @@ export const routeTree: RouteTree = {
   _conf: {
     path: basePath,
     name: 'Etusivu',
+    isAppletRoot: true,
   },
   create: {
     _conf: {
