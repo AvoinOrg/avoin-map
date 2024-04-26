@@ -20,6 +20,7 @@ interface Vars {
   isLoginModalOpen: boolean
   sidebarWidth: number | undefined
   confirmationDialogOptions: InternalConfirmationDialogOptions
+  isBaseDomainForApplet: boolean
 }
 
 interface Actions {
@@ -42,6 +43,7 @@ interface Actions {
   triggerConfirmationDialog: (
     options: ConfirmationDialogOptions
   ) => Promise<void>
+  setIsBaseDomainForApplet: (value: boolean) => void
 }
 
 type State = Vars & Actions
@@ -58,6 +60,7 @@ export const useUIStore = create<State>()(
       notifications: {},
       sidebarWidth: undefined,
       confirmationDialogOptions: { id: null },
+      isBaseDomainForApplet: false,
     }
     const actions: Actions = {
       setIsSidebarOpen: (value) => set({ isSidebarOpen: value }),
@@ -119,6 +122,8 @@ export const useUIStore = create<State>()(
           state.confirmationDialogOptions = newOptions
         })
       },
+      setIsBaseDomainForApplet: (value) =>
+        set({ isBaseDomainForApplet: value }),
     }
 
     return { ...vars, ...actions }
