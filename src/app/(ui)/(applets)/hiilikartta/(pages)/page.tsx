@@ -2,20 +2,18 @@
 
 import React, { useMemo } from 'react'
 import { Box, Typography } from '@mui/material'
-import Link from '#/components/common/Link'
 import { T } from '@tolgee/react'
 
-import { getRoute } from '#/common/utils/routing'
 import Folder from '#/components/common/Folder'
 import { SidebarContentBox } from '#/components/Sidebar'
 import useStore from '#/common/hooks/useStore'
+import MutableLink from '#/components/common/MutableLink'
 
 import { routeTree } from 'applets/hiilikartta/common/routes'
 import { SIDEBAR_WIDTH_REM } from '../common/constants'
 import { useAppletStore } from '../state/appletStore'
 import { GlobalState, PlanConf, PlanConfState } from '../common/types'
 import { LoadingSpinner } from '#/components/Loading'
-import MutableLink from '#/components/common/MutableLink'
 
 const Page = () => {
   const planConfs = useStore(useAppletStore, (state) => state.planConfs)
