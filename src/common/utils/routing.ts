@@ -1,4 +1,6 @@
 import { ReadonlyURLSearchParams } from 'next/navigation'
+
+import { useUIStore } from '../store'
 import { RouteTree, RouteObject, Params } from '../types/routing'
 
 const toQueryString = (queryParams: Params['queryParams']): string => {
