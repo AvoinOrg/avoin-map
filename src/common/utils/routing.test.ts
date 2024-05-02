@@ -1,6 +1,6 @@
 import { RouteTree } from '../types/routing'
 import { getRoute, getRouteParent, getRoutesForPath } from './routing'
-import { cloneDeep } from 'lodash'
+import { cloneDeep } from 'lodash-es'
 
 describe('routing utils', () => {
   const routeTree: RouteTree = {
