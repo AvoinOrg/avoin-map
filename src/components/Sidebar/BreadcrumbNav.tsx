@@ -3,9 +3,9 @@ import { usePathname } from 'next/navigation'
 import { Box, Typography } from '@mui/material'
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 
-import Link from '#/components/common/Link'
+import MutableLink from '#/components/common/MutableLink'
 import { getRoutesForPath } from '#/common/utils/routing'
-import { RouteTree } from '#/common/types/routing'
+import { RouteForLinks, RouteTree } from '#/common/types/routing'
 
 interface Props {
   routeTree: RouteTree
@@ -16,8 +16,12 @@ const BreadcrumbNav = ({ routeTree }: Props) => {
 
   const routes = getRoutesForPath(pathname, routeTree)
 
-  const RouteElement = ({ route, name }: { route: string; name: string }) => (
-    <Link href={route} sx={{ color: 'inherit' }}>
+  const RouteElement = ({ route }: { route: RouteForLinks }) => (
+    <MutableLink
+      route={route.routeTree}
+      routeTree={routeTree}
+      sx={{ color: 'inherit' }}
+    >
       <Typography
         sx={(theme) => ({
           display: 'inline-block',
@@ -26,9 +30,9 @@ const BreadcrumbNav = ({ routeTree }: Props) => {
           textTransform: 'uppercase',
         })}
       >
-        {name}
+        {route.name}
       </Typography>
-    </Link>
+    </MutableLink>
   )
 
   const RouteElementInert = ({ name }: { name: string }) => (
@@ -59,7 +63,10 @@ const BreadcrumbNav = ({ routeTree }: Props) => {
         <Box
           sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}
         >
-          <Link href={routes[routes.length - 2].path}>
+          <MutableLink
+            route={routes[routes.length - 2].routeTree}
+            routeTree={routeTree}
+          >
             <ArrowBackIosNewIcon
               sx={(theme) => ({
                 float: 'left',
@@ -69,7 +76,7 @@ const BreadcrumbNav = ({ routeTree }: Props) => {
                 '&:hover': { color: theme.palette.neutral.main },
               })}
             ></ArrowBackIosNewIcon>
-          </Link>
+          </MutableLink>
           <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
             {routes.map((route) => {
               if (route === routes[routes.length - 1]) {
@@ -89,10 +96,7 @@ const BreadcrumbNav = ({ routeTree }: Props) => {
                   })}
                   key={route.path}
                 >
-                  <RouteElement
-                    route={route.path}
-                    name={route.name}
-                  ></RouteElement>
+                  <RouteElement route={route}></RouteElement>
                   <Typography
                     sx={(theme) => ({
                       display: 'inline-block',
@@ -117,9 +121,9 @@ const BreadcrumbNav = ({ routeTree }: Props) => {
     //     return (
     //       <React.Fragment key={breadcrumb}>
     //         {!isLast ? (
-    //           <Link href={breadcrumbPath}>
+    //           <MutableLink href={breadcrumbPath}>
     //             <a>{breadcrumb}</a>
-    //           </Link>
+    //           </MutableLink>
     //         ) : (
     //           <span>{breadcrumb}</span>
     //         )}
