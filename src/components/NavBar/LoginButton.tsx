@@ -10,7 +10,7 @@ const LoginButton = () => {
   return (
     <Button
       sx={{ color: 'neutral.lighter', typography: 'h3' }}
-      onClick={() => openWindow('/login')}
+      onClick={() => openWindow('/adds/login')}
     >
       <T keyName="navbar.profile.sign_in" />
     </Button>
