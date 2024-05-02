@@ -1,7 +1,7 @@
 import { ReadonlyURLSearchParams } from 'next/navigation'
 
 import { useUIStore } from '../store'
-import { RouteTree, RouteObject, Params } from '../types/routing'
+import { RouteTree, RouteObject, Params, RouteForLinks } from '../types/routing'
 
 const toQueryString = (queryParams: Params['queryParams']): string => {
   if (!queryParams) {
@@ -170,7 +170,10 @@ export const getRouteParent = (
   return path
 }
 
-export const getRoutesForPath = (path: string, routeTree: RouteTree) => {
+export const getRoutesForPath = (
+  path: string,
+  routeTree: RouteTree
+): RouteForLinks[] => {
   const pathWithoutQuery = path.split('?')[0]
   const subPaths = pathWithoutQuery
     .toLowerCase()
@@ -179,7 +182,9 @@ export const getRoutesForPath = (path: string, routeTree: RouteTree) => {
 
   // ensure that the basePath only has a starting slash
   const basePath = '/' + routeTree._conf.path.replace(/^\/|\/$/g, '')
-  const routes = [{ name: routeTree._conf.name, path: basePath }]
+  const routes = [
+    { name: routeTree._conf.name, path: basePath, routeTree: routeTree },
+  ]
 
   if (basePath === '/' + subPaths[0]) {
     subPaths.shift()
@@ -201,7 +206,11 @@ export const getRoutesForPath = (path: string, routeTree: RouteTree) => {
         if (child._conf.path === subPath) {
           currentPath += `/${subPath}`
 
-          routes.push({ name: child._conf.name, path: currentPath })
+          routes.push({
+            name: child._conf.name,
+            path: currentPath,
+            routeTree: child,
+          })
           currentRouteTree = child
           foundChild = true
           i++
@@ -225,7 +234,11 @@ export const getRoutesForPath = (path: string, routeTree: RouteTree) => {
               i++
             }
 
-            routes.push({ name: child._conf.name, path: currentPath })
+            routes.push({
+              name: child._conf.name,
+              path: currentPath,
+              routeTree: child,
+            })
             currentRouteTree = child
             foundChild = true
             break
@@ -241,7 +254,11 @@ export const getRoutesForPath = (path: string, routeTree: RouteTree) => {
       ) {
         currentPath += `/${subPath}`
 
-        routes.push({ name: child._conf.name, path: currentPath })
+        routes.push({
+          name: child._conf.name,
+          path: currentPath,
+          routeTree: child,
+        })
         currentRouteTree = child
         foundChild = true
         i++
