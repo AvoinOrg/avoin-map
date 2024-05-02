@@ -20,7 +20,7 @@ import { useEffect } from 'react'
 
 export default function Login() {
   signIn('zitadel', {
-    callbackUrl: `${getBaseUrl()}/login/callback`,
+    callbackUrl: `${getBaseUrl()}/adds/login/callback`,
   })
   // useEffect(() => {}, [])
 
