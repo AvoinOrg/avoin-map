@@ -3,7 +3,6 @@
 import { fillOpacity, roundToSignificantDigitsExpr } from '#/common/utils/map'
 import { LayerGroupId, LayerConf, ExtendedMbStyle } from '#/common/types/map'
 import { layerOptions } from './constants'
-import _ from 'lodash'
 
 import Popup from './Popup'
 
