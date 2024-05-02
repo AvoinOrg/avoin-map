@@ -6,9 +6,8 @@ import { Box, Typography } from '@mui/material'
 import { T } from '@tolgee/react'
 
 import useStore from '#/common/hooks/useStore'
-import { getRoute } from '#/common/utils/routing'
 import { SidebarContentBox } from '#/components/Sidebar'
-import Link from '#/components/common/Link'
+import MutableLink from '#/components/common/MutableLink'
 
 import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
 import { routeTree } from 'applets/hiilikartta/common/routes'
@@ -52,12 +51,10 @@ const Page = () => {
             {filteredPlanConfs.map((planConf) => {
               return (
                 <Box sx={{ mb: 2 }} key={planConf.id}>
-                  <Link
-                    href={getRoute(routeTree.plans.plan, routeTree, {
-                      routeParams: {
-                        planId: planConf.id,
-                      },
-                    })}
+                  <MutableLink
+                    route={routeTree.plans.plan}
+                    routeTree={routeTree}
+                    params={{ routeParams: { planId: planConf.id } }}
                     sx={{
                       display: 'flex',
                       color: 'inherit',
@@ -65,7 +62,7 @@ const Page = () => {
                     }}
                   >
                     <PlanFolder planConf={planConf} height={120} />
-                  </Link>
+                  </MutableLink>
                 </Box>
               )
             })}
