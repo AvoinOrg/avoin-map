@@ -2,7 +2,7 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react'
 
 import useStore from '#/common/hooks/useStore'
-import Link from '#/components/common/Link'
+import MutableLink from '#/components/common/MutableLink'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import { map, isEqual, sortBy } from 'lodash-es'
 import { styled, SxProps } from '@mui/system'
@@ -325,13 +325,11 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
           >
             <T keyName={'report.header.title'} ns={'hiilikartta'}></T>
           </Typography>
-          <Link
-            href={
-              prevPageId != null
-                ? getRoute(routeTree.plans.plan, routeTree, {
-                    routeParams: { planId: prevPageId },
-                  })
-                : getRoute(routeTree, routeTree)
+          <MutableLink
+            route={prevPageId != null ? routeTree.plans.plan : routeTree}
+            routeTree={routeTree}
+            params={
+              prevPageId != null ? { routeParams: { planId: prevPageId } } : {}
             }
           >
             <Typography
@@ -345,7 +343,7 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
                 <T keyName={'report.header.close'} ns={'hiilikartta'}></T>
               </u>
             </Typography>
-          </Link>
+          </MutableLink>
         </Row>
         <Row
           sx={(theme) => ({

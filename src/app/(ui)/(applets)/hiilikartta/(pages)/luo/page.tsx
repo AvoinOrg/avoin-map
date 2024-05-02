@@ -7,7 +7,7 @@ import { T } from '@tolgee/react'
 import { useRouter } from 'next/navigation'
 
 import { getRoute } from '#/common/utils/routing'
-import Link from '#/components/common/Link'
+import MutableLink from '#/components/common/MutableLink'
 import { useMapStore } from '#/common/store'
 import { ClickableModal } from '#/components/Modal'
 
@@ -71,14 +71,15 @@ const Page = () => {
 
   return (
     <>
-      <Link
-        href={getRoute(routeTree.create.import, routeTree)}
+      <MutableLink
+        route={routeTree.create.import}
+        routeTree={routeTree}
         sx={{ display: 'flex', color: 'inherit', textDecoration: 'none' }}
       >
         <BigMenuButton variant="contained" component="label">
           <T keyName={'sidebar.create.upload'} ns={'hiilikartta'}></T>
         </BigMenuButton>
-      </Link>
+      </MutableLink>
       <Box
         sx={{
           display: 'flex',
