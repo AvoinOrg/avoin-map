@@ -19,3 +19,9 @@ export type Params = {
     | URLSearchParams
     | ReadonlyURLSearchParams
 }
+
+export type RouteForLinks = {
+  name: string
+  path: string
+  routeTree: RouteTree
+}
