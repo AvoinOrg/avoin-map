@@ -32,7 +32,7 @@ force = true
 
 # For each new applet with its own domain, copy the above redirects
 
-[[redirects]]
-from = "/*"
-to = "/"
-status = 200
+# [[redirects]]
+# from = "/*"
+# to = "/"
+# status = 200
