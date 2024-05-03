@@ -6,23 +6,23 @@ to = "https://test.map.avoin.org/_next/:splat"
 status = 200
 force = true
 
-[[redirects]]
-from = "https://test2.map.avoin.org"
-to = "https://test.map.avoin.org/hiilikartta"
-status = 200
-force = true
+# [[redirects]]
+# from = "https://test2.map.avoin.org"
+# to = "https://test.map.avoin.org/hiilikartta"
+# status = 200
+# force = true
 
-[[redirects]]
-from = "https://test2.map.avoin.org/adds/*"
-to = "https://test2.map.avoin.org/adds/:splat"
-status = 200
-force = true
+# [[redirects]]
+# from = "https://test2.map.avoin.org/adds/*"
+# to = "https://test2.map.avoin.org/adds/:splat"
+# status = 200
+# force = true
 
-[[redirects]]
-from = "https://test2.map.avoin.org/api/*"
-to = "https://test2.map.avoin.org/api/:splat"
-status = 200
-force = true
+# [[redirects]]
+# from = "https://test2.map.avoin.org/api/*"
+# to = "https://test2.map.avoin.org/api/:splat"
+# status = 200
+# force = true
 
 [[redirects]]
 from = "https://test2.map.avoin.org/*"
