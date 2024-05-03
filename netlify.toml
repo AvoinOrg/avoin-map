@@ -31,3 +31,8 @@ status = 200
 force = true
 
 # For each new applet with its own domain, copy the above redirects
+
+[[redirects]]
+from = "/*"
+to = "/"
+status = 200
