@@ -58,6 +58,7 @@ const nextConfig = {
     },
   },
   transpilePackages: ['lodash-es'],
+  trailingSlash: true,
   eslint: {
     ignoreDuringBuilds: true,
   },
