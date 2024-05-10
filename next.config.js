@@ -61,6 +61,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  trailingSlash: true,
   // i18n: {
   //   locales: ['en', 'fi'],
   //   // localeDetection: false,
