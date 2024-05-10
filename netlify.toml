@@ -2,32 +2,32 @@
 
 [[redirects]]
 from = "https://test2.map.avoin.org/_next/*"
-to = "https://avoin-map-test.netlify.app/_next/:splat"
+to = "https://hiilikartta-deploy-test--avoin-map-test.netlify.app/_next/:splat"
 status = 200
 force = true
 
 [[redirects]]
 from = "https://test2.map.avoin.org/adds/*"
-to = "https://avoin-map-test.netlify.app/adds/:splat"
+to = "https://hiilikartta-deploy-test--avoin-map-test.netlify.app/adds/:splat"
 status = 200
 force = true
 
 [[redirects]]
 from = "https://test2.map.avoin.org/api/*"
-to = "https://avoin-map-test.netlify.app/api/:splat"
+to = "https://hiilikartta-deploy-test--avoin-map-test.netlify.app/api/:splat"
 status = 200
 force = true
 
 [[redirects]]
 from = "https://test2.map.avoin.org/hiilikartta"
-to = "https://avoin-map-test.netlify.app/hiilikartta"
+to = "https://hiilikartta-deploy-test--avoin-map-test.netlify.app/hiilikartta"
 status = 200
 force = true
 
 
 [[redirects]]
 from = "https://test2.map.avoin.org/*"
-to = "https://avoin-map-test.netlify.app/hiilikartta/:splat"
+to = "https://hiilikartta-deploy-test--avoin-map-test.netlify.app/hiilikartta/:splat"
 status = 200
 force = true
 
