@@ -18,6 +18,12 @@ to = "https://avoin-map-test.netlify.app/api/:splat"
 status = 200
 force = true
 
+[[redirects]]
+from = "https://test2.map.avoin.org/hiilikartta"
+to = "https://avoin-map-test.netlify.app/hiilikartta"
+status = 200
+force = true
+
 # [[redirects]]
 # from = "https://test2.map.avoin.org"
 # to = "https://avoin-map-test.netlify.app/hiilikartta"
