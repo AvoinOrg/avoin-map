@@ -19,12 +19,6 @@ status = 200
 force = true
 
 [[redirects]]
-from = "https://test2.map.avoin.org/asdf"
-to = "https://avoin-map-test.netlify.app/hiilikartta"
-status = 200
-force = true
-
-[[redirects]]
 from = "https://test2.map.avoin.org"
 to = "https://avoin-map-test.netlify.app/hiilikartta"
 status = 200
@@ -36,21 +30,5 @@ to = "https://avoin-map-test.netlify.app/hiilikartta/:splat"
 status = 200
 force = true
 
-# [[redirects]]
-# from = "https://test2.map.avoin.org"
-# to = "https://avoin-map-test.netlify.app/hiilikartta"
-# status = 200
-# force = true
-
-# [[redirects]]
-# from = "https://test2.map.avoin.org/*"
-# to = "https://avoin-map-test.netlify.app/hiilikartta/:splat"
-# status = 200
-# force = true
-
 # For each new applet with its own domain, copy the above redirects
 
-# [[redirects]]
-# from = "/*"
-# to = "/"
-# status = 200
