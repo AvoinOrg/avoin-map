@@ -1,10 +1,8 @@
-'use client'
-
 import '#/common/style/index.css'
 
-import React, { useEffect, useState } from 'react'
-import { SessionProvider } from 'next-auth/react'
-import { SWRProvider } from '#/components/utils/SWRProvider'
+import React from 'react'
+
+import LayoutClient from './layoutClient'
 
 // import { UserModal } from '#/components/Profile'
 // import { UiStateProvider, UserStateProvider } from '#/components/State'
@@ -17,21 +15,10 @@ const RootLayout = ({
 }: {
   children: React.ReactNode
 }) => {
-  const [isHydrated, setIsHydrated] = useState(false)
-  useEffect(() => {
-    setIsHydrated(true)
-  }, [])
-
   return (
     <html lang="en">
       <body>
-        {/* <RootStyleRegistry> */}
-        {isHydrated && (
-          <SessionProvider>
-            <SWRProvider>{children}</SWRProvider>
-          </SessionProvider>
-        )}
-        {/* </RootStyleRegistry> */}
+        <LayoutClient>{children}</LayoutClient>
       </body>
     </html>
   )
