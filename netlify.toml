@@ -20,7 +20,7 @@ force = true
 
 [[redirects]]
 from = "https://test2.map.avoin.org/hiilikartta"
-to = "https://hiilikartta-deploy-test--avoin-map-test.netlify.app/hiilikartta"
+to = "https://test.map.avoin.org/hiilikartta"
 status = 200
 force = true
 
