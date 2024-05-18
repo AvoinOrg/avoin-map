@@ -28,6 +28,6 @@
       }
     ]
   },
-  "include": ["src", ".next/types/**/*.ts"],
+  "include": ["src", ".next/types/**/*.ts", "localeConf.json"],
   "exclude": ["node_modules"]
 }

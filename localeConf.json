@@ -1,0 +1,6 @@
+{
+  "avoin-map": {
+    "langs": ["en"]
+  },
+  "hiilikartta": { "langs": ["fi"], "domains": ["test2.map.avoin.org"] }
+}
