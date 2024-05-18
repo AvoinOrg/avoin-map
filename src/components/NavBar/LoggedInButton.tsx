@@ -16,7 +16,8 @@ import { styled } from '@mui/material/styles'
 import { T } from '@tolgee/react'
 import { useSession } from 'next-auth/react'
 import { signOut } from 'next-auth/react'
-import useSWR from 'swr'
+import { User } from 'next-auth'
+import { useQuery } from '@tanstack/react-query'
 
 import { openWindow } from '#/common/utils/modal'
 import { useUserStore } from '#/common/store/userStore'
@@ -25,11 +26,24 @@ const profileUrl =
   process.env.NEXT_PUBLIC_ZITADEL_ISSUER + '/ui/console/users/me'
 
 const LoggedInButton = () => {
-  const { data: session, status } = useSession()
-  const { data: user, error, isLoading } = useSWR('/api/userinfo')
+  const { data: session } = useSession()
+  const {
+    data: user,
+    error,
+    isLoading,
+  } = useQuery<User>({
+    queryKey: ['userinfo'],
+    queryFn: async () => {
+      const response = await fetch('/api/userinfo')
+      if (!response.ok) {
+        throw new Error('Network response was not ok')
+      }
+      return response.json()
+    },
+  })
   const signOutActions = useUserStore((state) => state.signOutActions)
 
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = useState(false)
   const anchorRef = React.useRef<HTMLButtonElement>(null)
 
   const handleToggle = () => {
@@ -77,7 +91,7 @@ const LoggedInButton = () => {
 
   // return focus to the button when we transitioned from !open -> open
   const prevOpen = React.useRef(open)
-  React.useEffect(() => {
+  useEffect(() => {
     if (prevOpen.current === true && open === false) {
       anchorRef.current!.focus()
     }
