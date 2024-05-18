@@ -2,11 +2,13 @@
 
 import '#/common/style/index.css'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider } from '@mui/material/styles'
 import { Box } from '@mui/material'
 import { QueryClientProvider } from '@tanstack/react-query'
+import { SessionProvider } from 'next-auth/react'
+import { SWRProvider } from '#/components/utils/SWRProvider'
 
 import theme from '#/common/style/theme'
 import { queryClient } from '#/common/queries/queryClient'
@@ -31,8 +33,14 @@ const LayoutClient = ({
 }: {
   children: React.ReactNode
 }) => {
+  const [isHydrated, setIsHydrated] = useState(false)
+
   const { data: session } = useSession()
   const setUser = useUserStore((state) => state.setUser)
+
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
 
   useEffect(() => {
     if (session?.user?.id) {
@@ -43,34 +51,39 @@ const LayoutClient = ({
   }, [session])
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={theme}>
-        {/* <UserStateProvider> */}
-        <CssBaseline>
-          <NotificationProvider>
-            <Map>
-              {/* <UserModal /> */}
-              <Box
-                className="layout-container"
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  height: '100vh',
-                  width: '100vw',
-                  zIndex: 'drawer',
-                }}
-              >
-                <Sidebar>{children}</Sidebar>
-                <NavBar />
-              </Box>
-              <LoginModal></LoginModal>
-              <ConfirmationDialog></ConfirmationDialog>
-            </Map>
-          </NotificationProvider>
-        </CssBaseline>
-        {/* </UserStateProvider> */}
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ThemeProvider theme={theme}>
+      {/* <UserStateProvider> */}
+      <CssBaseline>
+        {isHydrated && (
+          <SessionProvider>
+            <NotificationProvider>
+              <QueryClientProvider client={queryClient}>
+                <SWRProvider>{children}</SWRProvider>
+                <Map>
+                  {/* <UserModal /> */}
+                  <Box
+                    className="layout-container"
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      height: '100vh',
+                      width: '100vw',
+                      zIndex: 'drawer',
+                    }}
+                  >
+                    <Sidebar>{children}</Sidebar>
+                    <NavBar />
+                  </Box>
+                  <LoginModal></LoginModal>
+                  <ConfirmationDialog></ConfirmationDialog>
+                </Map>
+              </QueryClientProvider>
+            </NotificationProvider>
+          </SessionProvider>
+        )}
+      </CssBaseline>
+      {/* </UserStateProvider> */}
+    </ThemeProvider>
   )
 }
 
