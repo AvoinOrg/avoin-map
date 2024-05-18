@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { notFound } from 'next/navigation'
-import LayoutClient from '../../layoutClient'
+import LayoutClient from './layoutClient'
 import { ALL_NS_LANGS, getStaticData } from '#/common/tolgee/shared'
 import { TolgeeNextProvider } from '#/common/tolgee/client'
 
