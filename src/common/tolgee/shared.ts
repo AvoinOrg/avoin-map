@@ -10,10 +10,12 @@ export const DEFAULT_NS = 'avoin-map'
 const apiKey = process.env.NEXT_PUBLIC_TOLGEE_API_KEY
 const apiUrl = process.env.NEXT_PUBLIC_TOLGEE_API_URL
 
-export const getStaticData = async (nsLangs: { [key: string]: string[] }) => {
+export const getStaticData = async (nsLangs: {
+  [key: string]: { langs: string[] }
+}) => {
   const result: Record<string, any> = {}
-  for (const lang of Object.keys(nsLangs)) {
-    for (const namespace of nsLangs[lang]) {
+  for (const namespace of Object.keys(nsLangs)) {
+    for (const lang of nsLangs[namespace].langs) {
       result[`${lang}:${namespace}`] = (
         await import(`../i18n/${lang}.json`)
       ).default
