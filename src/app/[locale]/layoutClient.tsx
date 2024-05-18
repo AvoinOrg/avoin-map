@@ -8,7 +8,6 @@ import { ThemeProvider } from '@mui/material/styles'
 import { Box } from '@mui/material'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { SessionProvider } from 'next-auth/react'
-import { SWRProvider } from '#/components/utils/SWRProvider'
 
 import theme from '#/common/style/theme'
 import { queryClient } from '#/common/queries/queryClient'
@@ -58,7 +57,6 @@ const LayoutClient = ({
           <SessionProvider>
             <NotificationProvider>
               <QueryClientProvider client={queryClient}>
-                <SWRProvider>{children}</SWRProvider>
                 <Map>
                   {/* <UserModal /> */}
                   <Box

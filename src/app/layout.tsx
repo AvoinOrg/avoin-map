@@ -2,8 +2,6 @@ import '#/common/style/index.css'
 
 import React from 'react'
 
-import LayoutClient from './layoutClient'
-
 // import { UserModal } from '#/components/Profile'
 // import { UiStateProvider, UserStateProvider } from '#/components/State'
 // import RootStyleRegistry from './emotion'
@@ -17,9 +15,7 @@ const RootLayout = ({
 }) => {
   return (
     <html lang="en">
-      <body>
-        <LayoutClient>{children}</LayoutClient>
-      </body>
+      <body>{children}</body>
     </html>
   )
 }
