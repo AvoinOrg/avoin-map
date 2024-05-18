@@ -1,6 +1,6 @@
 import React from 'react'
-import { useRouter } from 'next/router'
 
+import { notFound } from 'next/navigation'
 import LayoutClient from '../../layoutClient'
 import { ALL_NS_LANGS, getStaticData } from '#/common/tolgee/shared'
 import { TolgeeNextProvider } from '#/common/tolgee/client'
@@ -16,18 +16,25 @@ const Layout = async ({
   children,
   params: { locale },
 }: Props) => {
-  // if (!ALL_NS_LANGS.includes(locale)) {
-  //   notFound()
-  // }
-  const router = useRouter()
-  const fullPath = router.asPath
+  // const locales = await getStaticData([locale])
+  const getLocaleObj = (locale: string) => {
+    const locales: Record<string, { langs: string[] }> = {}
+    for (const ns of Object.keys(ALL_NS_LANGS)) {
+      // @ts-ignore
+      if (ALL_NS_LANGS[ns].langs.includes(locale)) {
+        locales[ns] = { langs: [locale] }
+      }
+    }
+    return locales
+  }
 
-  const pathSegments = fullPath.split('/').filter((segment) => segment !== '')
-  console.log(locale)
-  console.log(pathSegments)
-  const nextPart = pathSegments[1] || ''
+  const localeObj = getLocaleObj(locale)
 
-  const locales = await getStaticData([locale])
+  if (Object.keys(localeObj).length === 0) {
+    notFound()
+  }
+
+  const locales = await getStaticData(getLocaleObj(locale))
 
   return (
     <TolgeeNextProvider locale={locale} locales={locales}>
