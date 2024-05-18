@@ -1,18 +1,16 @@
 import { DevTools, Tolgee } from '@tolgee/web'
 import { FormatIcu } from '@tolgee/format-icu'
 
-export const ALL_NS_LANGS = {
-  'avoin-map': ['en'],
-  hiilikartta: ['fi'],
-}
+import tolgeeLocales from '../../../localeConf.json'
 
+export const ALL_NS_LANGS = tolgeeLocales
 export const DEFAULT_LOCALE = 'en'
 export const DEFAULT_NS = 'avoin-map'
 
 const apiKey = process.env.NEXT_PUBLIC_TOLGEE_API_KEY
 const apiUrl = process.env.NEXT_PUBLIC_TOLGEE_API_URL
 
-export async function getStaticData(nsLangs: { [key: string]: string[] }) {
+export const getStaticData = async (nsLangs: { [key: string]: string[] }) => {
   const result: Record<string, any> = {}
   for (const lang of Object.keys(nsLangs)) {
     for (const namespace of nsLangs[lang]) {
