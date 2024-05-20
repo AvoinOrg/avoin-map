@@ -19,8 +19,7 @@ import {
   ConfirmationDialog,
   NotificationProvider,
 } from '#/components/Notification'
-import { useSession } from 'next-auth/react'
-import { useUserStore } from '#/common/store/userStore'
+import StateHandler from './stateHandler'
 // import { UserModal } from '#/components/Profile'
 // import { UiStateProvider, UserStateProvider } from '#/components/State'
 // import RootStyleRegistry from './emotion'
@@ -34,20 +33,9 @@ const LayoutClient = ({
 }) => {
   const [isHydrated, setIsHydrated] = useState(false)
 
-  const { data: session } = useSession()
-  const setUser = useUserStore((state) => state.setUser)
-
   useEffect(() => {
     setIsHydrated(true)
   }, [])
-
-  useEffect(() => {
-    if (session?.user?.id) {
-      setUser({ ...session.user, accessToken: session.accessToken })
-    } else {
-      setUser(null)
-    }
-  }, [session])
 
   return (
     <ThemeProvider theme={theme}>
@@ -57,24 +45,26 @@ const LayoutClient = ({
           <SessionProvider>
             <NotificationProvider>
               <QueryClientProvider client={queryClient}>
-                <Map>
-                  {/* <UserModal /> */}
-                  <Box
-                    className="layout-container"
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      height: '100vh',
-                      width: '100vw',
-                      zIndex: 'drawer',
-                    }}
-                  >
-                    <Sidebar>{children}</Sidebar>
-                    <NavBar />
-                  </Box>
-                  <LoginModal></LoginModal>
-                  <ConfirmationDialog></ConfirmationDialog>
-                </Map>
+                <StateHandler>
+                  <Map>
+                    {/* <UserModal /> */}
+                    <Box
+                      className="layout-container"
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        height: '100vh',
+                        width: '100vw',
+                        zIndex: 'drawer',
+                      }}
+                    >
+                      <Sidebar>{children}</Sidebar>
+                      <NavBar />
+                    </Box>
+                    <LoginModal></LoginModal>
+                    <ConfirmationDialog></ConfirmationDialog>
+                  </Map>
+                </StateHandler>
               </QueryClientProvider>
             </NotificationProvider>
           </SessionProvider>
