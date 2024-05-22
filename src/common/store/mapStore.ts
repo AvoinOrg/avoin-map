@@ -3,7 +3,6 @@
 // There are a also various helper hooks in src/common/hooks/map.
 
 import { map, cloneDeep, uniq, isEqual } from 'lodash-es'
-import olms from 'ol-mapbox-style'
 import turfBbox from '@turf/bbox'
 import { immer } from 'zustand/middleware/immer'
 import { produce } from 'immer'
@@ -11,6 +10,8 @@ import { Feature, FeatureCollection } from 'geojson'
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
+// import olms from 'ol-mapbox-style'
+// import { Map as OlMap } from 'ol'
 import {
   MapLayerMouseEvent,
   Map as MbMap,
@@ -22,7 +23,6 @@ import {
 import mapboxgl from 'mapbox-gl'
 import MapboxDraw from '@mapbox/mapbox-gl-draw'
 import { useUIStore } from '#/common/store'
-import { Map as OlMap } from 'ol'
 import drawStyles from '#/common/utils/drawStyles'
 
 import {
@@ -95,7 +95,8 @@ export type Vars = {
   // mapbox map object
   _mbMap: MbMap | null
   // openlayers map object
-  _olMap: OlMap | null
+  // _olMap: OlMap | null
+  _olMap: null
   // A single UI layer has often multiple layers which are grouped together.
   _layerGroups: LayerGroups
   // For quickly access a layer group by its id.
