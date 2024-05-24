@@ -138,6 +138,12 @@ export const ZONING_CLASSES = [
     color_pantone: '236',
   },
   {
+    name: 'Aurinkovoimala',
+    code: 'EN/aur',
+    color_hex: '#F1A7DC ',
+    color_pantone: '236',
+  },
+  {
     name: 'Jätteenkäsittelyalueet',
     code: 'EJ',
     color_hex: '#F1A7DC ',
