@@ -1,7 +1,8 @@
 import React from 'react'
 import { LinkProps as MuiLinkProps, Link as MuiLink } from '@mui/material'
-import NextLink, { LinkProps as NextLinkProps } from 'next/link'
+import { LinkProps as NextLinkProps } from 'next/link'
 
+import { NextIntlLink } from '../Navigation'
 import { useUIStore } from '#/common/store'
 import { Params, RouteTree } from '#/common/types/routing'
 import { getRoute } from '#/common/utils/routing'
@@ -45,7 +46,7 @@ const MutableLink = ({
     <>
       {isBaseDomainForApplet ? (
         <MuiLink
-          component={NextLink}
+          component={NextIntlLink}
           sx={{
             display: 'inline-flex',
             color: 'inherit',
@@ -60,7 +61,7 @@ const MutableLink = ({
         </MuiLink>
       ) : (
         <MuiLink
-          component={NextLink}
+          component={NextIntlLink}
           sx={{
             display: 'inline-flex',
             color: 'inherit',
