@@ -1,6 +1,7 @@
 import { RouteTree } from '../types/routing'
 import { getRoute, getRouteParent, getRoutesForPath } from './routing'
 import { cloneDeep } from 'lodash-es'
+import { useUIStore } from '../store'
 
 describe('routing utils', () => {
   const routeTree: RouteTree = {
@@ -208,11 +209,16 @@ describe('routing utils', () => {
 
   describe('getRoutesForPath', () => {
     it('returns a correct set of routes for a path', () => {
-      const routes = getRoutesForPath('/products/123/', routeTree)
+      // useUIStore.setState({ isBaseDomainForApplet: false })
+      const routes = getRoutesForPath('/en/products/123/', routeTree)
       expect(routes).toEqual([
-        { name: 'Home', path: '/' },
-        { name: 'Products', path: '/products' },
-        { name: 'Product', path: '/products/123' },
+        { name: 'Home', path: '/', routeTree: routeTree },
+        { name: 'Products', path: '/products', routeTree: routeTree.products },
+        {
+          name: 'Product',
+          path: '/products/123',
+          routeTree: routeTree.products.product,
+        },
       ])
     })
 
@@ -222,19 +228,31 @@ describe('routing utils', () => {
         routeTree
       )
       expect(routes).toEqual([
-        { name: 'Home', path: '/' },
-        { name: 'Products', path: '/products' },
-        { name: 'Product', path: '/products/123' },
+        { name: 'Home', path: '/', routeTree: routeTree },
+        { name: 'Products', path: '/products', routeTree: routeTree.products },
+        {
+          name: 'Product',
+          path: '/products/123',
+          routeTree: routeTree.products.product,
+        },
       ])
     })
 
     it('returns a correct set of routes for a path', () => {
       const routes = getRoutesForPath('/products/123/order/456', routeTree)
       expect(routes).toEqual([
-        { name: 'Home', path: '/' },
-        { name: 'Products', path: '/products' },
-        { name: 'Product', path: '/products/123' },
-        { name: 'Order', path: '/products/123/order/456' },
+        { name: 'Home', path: '/', routeTree: routeTree },
+        { name: 'Products', path: '/products', routeTree: routeTree.products },
+        {
+          name: 'Product',
+          path: '/products/123',
+          routeTree: routeTree.products.product,
+        },
+        {
+          name: 'Order',
+          path: '/products/123/order/456',
+          routeTree: routeTree.products.product.order,
+        },
       ])
     })
 
@@ -244,25 +262,39 @@ describe('routing utils', () => {
         routeTree
       )
       expect(routes).toEqual([
-        { name: 'Home', path: '/' },
-        { name: 'Stuff', path: '/stuff/123' },
-        { name: 'Settings', path: '/stuff/123/settings' },
+        { name: 'Home', path: '/', routeTree: routeTree },
+        { name: 'Stuff', path: '/stuff/123', routeTree: routeTree.stuff },
+        {
+          name: 'Settings',
+          path: '/stuff/123/settings',
+          routeTree: routeTree.stuff.settings,
+        },
       ])
     })
 
     it('returns a correct set of routes for a path', () => {
       const routes = getRoutesForPath('/stuff/123/extras/456', routeTree)
       expect(routes).toEqual([
-        { name: 'Home', path: '/' },
-        { name: 'Stuff', path: '/stuff/123' },
-        { name: 'Extras', path: '/stuff/123/extras' },
-        { name: 'Extra', path: '/stuff/123/extras/456' },
+        { name: 'Home', path: '/', routeTree: routeTree },
+        { name: 'Stuff', path: '/stuff/123', routeTree: routeTree.stuff },
+        {
+          name: 'Extras',
+          path: '/stuff/123/extras',
+          routeTree: routeTree.stuff.extras,
+        },
+        {
+          name: 'Extra',
+          path: '/stuff/123/extras/456',
+          routeTree: routeTree.stuff.extras.extra,
+        },
       ])
     })
 
     it('returns a correct set of routes for a path', () => {
       const routes = getRoutesForPath('/', routeTree)
-      expect(routes).toEqual([{ name: 'Home', path: '/' }])
+      expect(routes).toEqual([
+        { name: 'Home', path: '/', routeTree: routeTree },
+      ])
     })
 
     it('returns a correct set of routes for a path for a route tree with a base path', () => {
@@ -271,24 +303,42 @@ describe('routing utils', () => {
         routeTreeWithBase
       )
       expect(routes).toEqual([
-        { name: 'Home', path: '/home' },
-        { name: 'Stuff', path: '/home/stuff/123' },
-        { name: 'Settings', path: '/home/stuff/123/settings' },
+        { name: 'Home', path: '/home', routeTree: routeTreeWithBase },
+        {
+          name: 'Stuff',
+          path: '/home/stuff/123',
+          routeTree: routeTreeWithBase.stuff,
+        },
+        {
+          name: 'Settings',
+          path: '/home/stuff/123/settings',
+          routeTree: routeTreeWithBase.stuff.settings,
+        },
       ])
     })
 
     it('returns a correct set of routes for a path for a route tree with a base path', () => {
       const routes = getRoutesForPath('/home/about/contact', routeTreeWithBase)
       expect(routes).toEqual([
-        { name: 'Home', path: '/home' },
-        { name: 'About', path: '/home/about' },
-        { name: 'Contact', path: '/home/about/contact' },
+        { name: 'Home', path: '/home', routeTree: routeTreeWithBase },
+        {
+          name: 'About',
+          path: '/home/about',
+          routeTree: routeTreeWithBase.about,
+        },
+        {
+          name: 'Contact',
+          path: '/home/about/contact',
+          routeTree: routeTreeWithBase.about.contact,
+        },
       ])
     })
 
     it('returns a correct set of routes for a path for a route tree with a base path', () => {
       const routes = getRoutesForPath('/home', routeTreeWithBase)
-      expect(routes).toEqual([{ name: 'Home', path: '/home' }])
+      expect(routes).toEqual([
+        { name: 'Home', path: '/home', routeTree: routeTreeWithBase },
+      ])
     })
   })
 })
