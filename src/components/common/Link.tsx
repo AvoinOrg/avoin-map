@@ -1,6 +1,7 @@
 import React from 'react'
 import { LinkProps as MuiLinkProps, Link as MuiLink } from '@mui/material'
-import NextLink, { LinkProps as NextLinkProps } from 'next/link'
+import { LinkProps as NextLinkProps } from 'next/link'
+import { NextIntlLink } from '#/components/Navigation'
 
 type LinkProps = MuiLinkProps & NextLinkProps
 
@@ -11,7 +12,7 @@ type LinkProps = MuiLinkProps & NextLinkProps
 const Link = ({ sx, children, ...props }: LinkProps) => {
   return (
     <MuiLink
-      component={NextLink}
+      component={NextIntlLink}
       sx={{
         display: 'inline-flex',
         color: 'inherit',
