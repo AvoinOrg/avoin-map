@@ -1,5 +1,10 @@
 import { RouteTree } from '../types/routing'
-import { getRoute, getRouteParent, getRoutesForPath } from './routing'
+import {
+  generatePathNames,
+  getRoute,
+  getRouteParent,
+  getRoutesForPath,
+} from './routing'
 import { cloneDeep } from 'lodash-es'
 import { useUIStore } from '../store'
 
@@ -339,6 +344,27 @@ describe('routing utils', () => {
       expect(routes).toEqual([
         { name: 'Home', path: '/home', routeTree: routeTreeWithBase },
       ])
+    })
+  })
+  describe('generatePathNames', () => {
+    it('returns a correct array of path names for a routeTree', () => {
+      // useUIStore.setState({ isBaseDomainForApplet: false })
+      const pathnames = generatePathNames([routeTree])
+      expect(pathnames).toEqual({
+        '/': '/',
+        '/about': '/about',
+        '/about/contact': '/about/contact',
+        '/products': '/products',
+        '/products/[productId]': '/products/[productId]',
+        '/products/[productId]/details': '/products/[productId]/details',
+        '/products/[productId]/order/[orderId]':
+          '/products/[productId]/order/[orderId]',
+        '/stuff/[stuffId]': '/stuff/[stuffId]',
+        '/stuff/[stuffId]/extras': '/stuff/[stuffId]/extras',
+        '/stuff/[stuffId]/extras/[extraId]':
+          '/stuff/[stuffId]/extras/[extraId]',
+        '/stuff/[stuffId]/settings': '/stuff/[stuffId]/settings',
+      })
     })
   })
 })
