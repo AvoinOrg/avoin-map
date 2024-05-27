@@ -2,11 +2,16 @@ import {
   createLocalizedPathnamesNavigation,
   Pathnames,
 } from 'next-intl/navigation'
-const requireRouteTrees = (require as any).context('#/app', true, /routes\.ts$/)
+
 import { LOCALES } from '#/common/tolgee/shared'
 import { generatePathNames } from '#/common/utils/routing'
+import { RouteTree } from '#/common/types/routing'
 
-const routeTrees = requireRouteTrees.keys().map(requireRouteTrees)
+const requireRouteTrees = (require as any).context('#/app', true, /routes\.ts$/)
+const routeTrees: RouteTree[] = requireRouteTrees.keys().map((key: string) => {
+  const module = requireRouteTrees(key)
+  return module.routeTree
+})
 
 // Generate pathnames
 const mainPathnames = { '/': '/' } satisfies Pathnames<typeof LOCALES>
