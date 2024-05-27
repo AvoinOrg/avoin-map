@@ -7,6 +7,18 @@ export const ALL_NS_LANGS = tolgeeLocales
 export const DEFAULT_LOCALE = 'en'
 export const DEFAULT_NS = 'avoin-map'
 
+const localesSet = new Set<string>()
+
+for (const key in tolgeeLocales) {
+  if (tolgeeLocales.hasOwnProperty(key)) {
+    // @ts-ignore
+    const langs = tolgeeLocales[key].langs
+    langs.forEach((lang: string) => localesSet.add(lang))
+  }
+}
+
+export const LOCALES = Array.from(localesSet)
+
 const apiKey = process.env.NEXT_PUBLIC_TOLGEE_API_KEY
 const apiUrl = process.env.NEXT_PUBLIC_TOLGEE_API_URL
 
