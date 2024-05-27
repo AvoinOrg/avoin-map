@@ -1,3 +1,4 @@
+import { Pathnames } from 'next-intl/navigation'
 import { ReadonlyURLSearchParams } from 'next/navigation'
 
 import { useUIStore } from '../store'
@@ -181,14 +182,15 @@ export const getRoutesForPath = (
     .filter((p) => p.length > 0)
 
   // ensure that the basePath only has a starting slash
-  const basePath = '/' + routeTree._conf.path.replace(/^\/|\/$/g, '')
+  const basePath = `/${subPaths.shift()}/${routeTree._conf.path.replace(
+    /^\/|\/$/g,
+    ''
+  )}`
   const routes = [
     { name: routeTree._conf.name, path: basePath, routeTree: routeTree },
   ]
 
-  if (basePath === '/' + subPaths[0]) {
-    subPaths.shift()
-  }
+  subPaths.shift()
 
   let currentPath = basePath.length > 1 ? basePath : ''
 
@@ -304,4 +306,34 @@ export const getBaseUrl = () => {
   }
 
   return baseUrl
+}
+
+const generatePaths = (tree: RouteTree, basePath = ''): string[] => {
+  const paths = []
+  const currentPath = `${basePath}/${tree._conf.path}`.replace(/\/+/g, '/')
+  paths.push(currentPath)
+
+  for (const key in tree) {
+    if (key !== '_conf' && tree[key]._conf) {
+      paths.push(...generatePaths(tree[key], currentPath))
+    }
+  }
+
+  return paths
+}
+
+export const generatePathNames = (
+  routeTrees: RouteTree[] | any,
+) => {
+  const pathnames = routeTrees.reduce(
+    (acc: Record<string, string>, module: { routeTree: RouteTree }) => {
+      const paths = generatePaths(module.routeTree)
+      paths.forEach((path) => {
+        acc[path] = path
+      })
+      return acc
+    }
+  )
+
+  return pathnames
 }
