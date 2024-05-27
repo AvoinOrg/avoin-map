@@ -327,15 +327,18 @@ const generatePaths = (tree: RouteTree, basePath = ''): string[] => {
   return paths
 }
 
-export const generatePathNames = (routeTrees: RouteTree[] | any) => {
+export const generatePathNames = (
+  routeTrees: RouteTree[] | any
+): Record<string, string> => {
   const pathnames = routeTrees.reduce(
-    (acc: Record<string, string>, module: { routeTree: RouteTree }) => {
-      const paths = generatePaths(module.routeTree)
+    (acc: Record<string, string>, routeTree: RouteTree) => {
+      const paths = generatePaths(routeTree)
       paths.forEach((path) => {
         acc[path] = path
       })
       return acc
-    }
+    },
+    {}
   )
 
   return pathnames
