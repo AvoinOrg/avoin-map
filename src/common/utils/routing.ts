@@ -1,6 +1,7 @@
 import { Pathnames } from 'next-intl/navigation'
 import { ReadonlyURLSearchParams } from 'next/navigation'
 
+import { LOCALES } from '../tolgee/shared'
 import { useUIStore } from '../store'
 import { RouteTree, RouteObject, Params, RouteForLinks } from '../types/routing'
 
@@ -181,16 +182,20 @@ export const getRoutesForPath = (
     .split('/')
     .filter((p) => p.length > 0)
 
+  // remove the locale from the path
+  if (subPaths.length > 0 && LOCALES.includes(subPaths[0].toLowerCase())) {
+    subPaths.shift()
+  }
+
   // ensure that the basePath only has a starting slash
-  const basePath = `/${subPaths.shift()}/${routeTree._conf.path.replace(
-    /^\/|\/$/g,
-    ''
-  )}`
+  const basePath = '/' + routeTree._conf.path.replace(/^\/|\/$/g, '')
   const routes = [
     { name: routeTree._conf.name, path: basePath, routeTree: routeTree },
   ]
 
-  subPaths.shift()
+  if (basePath === '/' + subPaths[0]) {
+    subPaths.shift()
+  }
 
   let currentPath = basePath.length > 1 ? basePath : ''
 
@@ -322,9 +327,7 @@ const generatePaths = (tree: RouteTree, basePath = ''): string[] => {
   return paths
 }
 
-export const generatePathNames = (
-  routeTrees: RouteTree[] | any,
-) => {
+export const generatePathNames = (routeTrees: RouteTree[] | any) => {
   const pathnames = routeTrees.reduce(
     (acc: Record<string, string>, module: { routeTree: RouteTree }) => {
       const paths = generatePaths(module.routeTree)
