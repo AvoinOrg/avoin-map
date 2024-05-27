@@ -69,7 +69,10 @@ const AppletWrapper = ({
     const path = window.location.pathname
     // Split the path into segments based on "/"
     const segments = path.split('/').filter(Boolean) // filter(Boolean) removes any empty strings from the array
-    setIsBaseDomainForApplet(segments[0] !== appletPath)
+
+    if (segments.length > 1) {
+      setIsBaseDomainForApplet(segments[1] !== appletPath)
+    }
 
     setMapContext(mapContext)
 
