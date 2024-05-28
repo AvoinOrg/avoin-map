@@ -298,8 +298,15 @@ export const getBaseUrl = () => {
     baseUrl = `${process.env.VERCEL_URL}`
   } else if (process.env.VERCEL_DOMAIN != null) {
     baseUrl = `${process.env.VERCEL_DOMAIN}`
-  } else {
+  } else if (typeof window !== 'undefined') {
     baseUrl = `${window.location.protocol}//${window.location.host}`
+  } else {
+    baseUrl = 'http://localhost'
+    if (process.env.PORT) {
+      baseUrl += `:${process.env.PORT}`
+    } else if (process.env.DEV_PORT) {
+      baseUrl += `:${process.env.DEV_PORT}`
+    }
   }
 
   if (!baseUrl.startsWith('https://') && !baseUrl.startsWith('http://')) {
