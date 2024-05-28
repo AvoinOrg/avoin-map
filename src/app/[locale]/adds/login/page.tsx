@@ -4,7 +4,7 @@ import { signIn } from 'next-auth/react'
 
 import { getBaseUrl } from '#/common/utils/routing'
 // import Image from 'next/image'
-import { useEffect } from 'react'
+// import { useEffect } from 'react'
 // import { useQuery } from 'react-query'
 
 // const loadData = (url: string) =>
@@ -20,7 +20,7 @@ import { useEffect } from 'react'
 
 export default function Login() {
   signIn('zitadel', {
-    callbackUrl: `${getBaseUrl()}/adds/login/callback`,
+    callbackUrl: `${getBaseUrl()}/en/adds/login/callback`,
   })
   // useEffect(() => {}, [])
 
