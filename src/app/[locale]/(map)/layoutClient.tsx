@@ -23,7 +23,7 @@ const LayoutClient = ({
   // This will be populated with nested layouts or pages
   children,
 }: {
-  children: React.ReactNode
+  children?: React.ReactNode
 }) => {
   const [isHydrated, setIsHydrated] = useState(false)
 
