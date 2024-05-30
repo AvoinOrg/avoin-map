@@ -8,7 +8,7 @@ import React, { useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useUserStore } from '#/common/store/userStore'
 
-const StateHandler = ({ children }: { children: React.ReactNode }) => {
+const StateHandler = ({ children }: { children?: React.ReactNode }) => {
   const { data: session } = useSession()
   const setUser = useUserStore((state) => state.setUser)
 
