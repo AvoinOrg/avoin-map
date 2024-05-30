@@ -7,7 +7,7 @@ export default function CallbackPage() {
   const { status } = useSession()
 
   useEffect(() => {
-    if (status === 'authenticated') {
+    if (status === 'authenticated' && typeof window !== 'undefined') {
       window.close()
     }
   }, [status])
