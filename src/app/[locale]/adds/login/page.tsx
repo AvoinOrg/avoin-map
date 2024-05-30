@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { signIn } from 'next-auth/react'
 
 import { getBaseUrl } from '#/common/utils/routing'
@@ -19,10 +20,11 @@ import { getBaseUrl } from '#/common/utils/routing'
 //   })
 
 export default function Login() {
-  signIn('zitadel', {
-    callbackUrl: `${getBaseUrl()}/en/adds/login/callback`,
-  })
-  // useEffect(() => {}, [])
+  useEffect(() => {
+    signIn('zitadel', {
+      callbackUrl: `${getBaseUrl()}/en/adds/login/callback`,
+    })
+  }, [])
 
   return null
   // const { data: session, status } = useSession()
