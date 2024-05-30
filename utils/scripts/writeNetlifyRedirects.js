@@ -72,12 +72,12 @@ Object.keys(localConf).forEach((namespace) => {
 })
 
 // Define the path to the _redirects file
-const redirectsFilePath = path.join(__dirname, '../../public/_redirects')
+const redirectsFilePath = path.join(__dirname, '../../.next/_redirects')
 
 // Ensure the public directory exists
-const publicDir = path.dirname(redirectsFilePath)
-if (!fs.existsSync(publicDir)) {
-  fs.mkdirSync(publicDir)
+const publishDir = path.dirname(redirectsFilePath)
+if (!fs.existsSync(publishDir)) {
+  fs.mkdirSync(publishDir)
 }
 
 // Write the generated rules to the _redirects file
