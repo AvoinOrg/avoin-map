@@ -1,34 +1,3 @@
-# These are for handling redirects for applets with their own domain
-
-[[redirects]]
-from = "https://test2.map.avoin.org/_next/*"
-to = "https://hiilikartta-deploy-test--avoin-map-test.netlify.app/_next/:splat"
-status = 200
-force = true
-
-[[redirects]]
-from = "https://test2.map.avoin.org/adds/*"
-to = "https://hiilikartta-deploy-test--avoin-map-test.netlify.app/adds/:splat"
-status = 200
-force = true
-
-[[redirects]]
-from = "https://test2.map.avoin.org/api/*"
-to = "https://hiilikartta-deploy-test--avoin-map-test.netlify.app/api/:splat"
-status = 200
-force = true
-
-[[redirects]]
-from = "https://test2.map.avoin.org/hiilikartta"
-to = "https://test.map.avoin.org/hiilikartta"
-status = 200
-force = true
-
-
-[[redirects]]
-from = "https://test2.map.avoin.org/*"
-to = "https://hiilikartta-deploy-test--avoin-map-test.netlify.app/hiilikartta/:splat"
-status = 200
-force = true
-
-# For each new applet with its own domain, copy the above redirects
+[build]
+publish = ".next"
+command = "yarn run build"
