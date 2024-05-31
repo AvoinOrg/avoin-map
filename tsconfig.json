@@ -19,7 +19,7 @@
     "baseUrl": ".",
     "outDir": "build/",
     "paths": {
-      "applets/*": ["src/app/[locale]/(applets)/*"],
+      "applets/*": ["src/app/[locale]/(map)/(applets)/*"],
       "#/*": ["src/*"]
     },
     "plugins": [
