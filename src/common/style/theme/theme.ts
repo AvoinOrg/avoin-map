@@ -1,3 +1,5 @@
+'use client'
+
 import { createTheme, Shadows, ThemeOptions } from '@mui/material/styles'
 import { TypographyOptions } from '@mui/material/styles/createTypography'
 import { Arimo } from 'next/font/google'
