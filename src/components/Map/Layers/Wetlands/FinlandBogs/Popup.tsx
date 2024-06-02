@@ -37,9 +37,12 @@ const Popup = ({ features }: PopupProps) => {
           <TableRow>
             <TableCell>
               Evaluation of how close the bog is to its natural state (class{' '}
-              {p.luonnontilaisuusluokka === -1 ? '?' : p.luonnontilaisuusluokka} out of 5)
+              {p.luonnontilaisuusluokka === -1 ? '?' : p.luonnontilaisuusluokka}{' '}
+              out of 5)
             </TableCell>
-            <TableCell>{gtkTurveVaratLuonnontilaisuusluokka[p.luonnontilaisuusluokka]}</TableCell>
+            <TableCell>
+              {gtkTurveVaratLuonnontilaisuusluokka[p.luonnontilaisuusluokka]}
+            </TableCell>
           </TableRow>
         </TableBody>
       </Table>
@@ -63,7 +66,8 @@ const PhotoContainer = ({ photoJson }: { photoJson: string }) => {
               <Photo src={imageURL} />
             </a>
             <br />
-            Date: {kuvausaika.toLowerCase() === 'tuntematon' ? 'Unknown' : kuvausaika}
+            Date:{' '}
+            {kuvausaika.toLowerCase() === 'tuntematon' ? 'Unknown' : kuvausaika}
             <br />
             Photographer: {kuvaaja}
           </p>
