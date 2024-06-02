@@ -3,11 +3,8 @@
 import '#/common/style/index.css'
 
 import React, { useEffect, useState } from 'react'
-import CssBaseline from '@mui/material/CssBaseline'
-import { ThemeProvider } from '@mui/material/styles'
 import { Box } from '@mui/material'
 
-import theme from '#/common/style/theme'
 import { Sidebar } from '#/components/Sidebar'
 import { NavBar } from '#/components/NavBar'
 import { Map } from '#/components/Map'
@@ -32,34 +29,32 @@ const LayoutClient = ({
   }, [])
 
   return (
-    <ThemeProvider theme={theme}>
+    <>
       {/* <UserStateProvider> */}
-      <CssBaseline>
-        {isHydrated && (
-          <StateHandler>
-            <Map>
-              {/* <UserModal /> */}
-              <Box
-                className="layout-container"
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  height: '100vh',
-                  width: '100vw',
-                  zIndex: 'drawer',
-                }}
-              >
-                <Sidebar>{children}</Sidebar>
-                <NavBar />
-              </Box>
-              <LoginModal></LoginModal>
-              <ConfirmationDialog></ConfirmationDialog>
-            </Map>
-          </StateHandler>
-        )}
-      </CssBaseline>
+      {isHydrated && (
+        <StateHandler>
+          <Map>
+            {/* <UserModal /> */}
+            <Box
+              className="layout-container"
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100vh',
+                width: '100vw',
+                zIndex: 'drawer',
+              }}
+            >
+              <Sidebar>{children}</Sidebar>
+              <NavBar />
+            </Box>
+            <LoginModal></LoginModal>
+            <ConfirmationDialog></ConfirmationDialog>
+          </Map>
+        </StateHandler>
+      )}
       {/* </UserStateProvider> */}
-    </ThemeProvider>
+    </>
   )
 }
 
