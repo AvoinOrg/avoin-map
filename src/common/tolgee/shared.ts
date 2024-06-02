@@ -36,6 +36,24 @@ export const getStaticData = async (nsLangs: {
   return result
 }
 
+export const getLocaleObj = (locale: string) => {
+  const locales: Record<string, { langs: string[] }> = {}
+
+  for (const ns of Object.keys(ALL_NS_LANGS) as Array<
+    keyof typeof ALL_NS_LANGS
+  >) {
+    if (ALL_NS_LANGS[ns].langs.includes(locale)) {
+      locales[ns] = { langs: [locale] }
+    }
+  }
+
+  return locales
+}
+
+export const getLocalesForNs = (ns: keyof typeof ALL_NS_LANGS) => {
+  return ALL_NS_LANGS[ns].langs
+}
+
 export function TolgeeBase() {
   return (
     Tolgee()
