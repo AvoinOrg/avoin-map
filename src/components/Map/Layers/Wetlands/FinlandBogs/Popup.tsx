@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 import { Table, TableBody, TableCell, TableRow, Box } from '@mui/material'
 import { styled } from '@mui/material/styles'
