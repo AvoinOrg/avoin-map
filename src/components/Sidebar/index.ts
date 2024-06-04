@@ -1,15 +1,6 @@
-import { Sidebar } from './Sidebar'
-import { MainMenu } from './MainMenu'
-import SidebarToggleButton from './SidebarToggleButton'
-import SidebarHeader from './SidebarHeader'
-import BreadcrumbNav from './BreadcrumbNav'
-import SidebarContentBox from './SidebarContentBox'
-
-export {
-  MainMenu,
-  Sidebar,
-  SidebarToggleButton,
-  SidebarHeader,
-  BreadcrumbNav,
-  SidebarContentBox,
-}
+export { Sidebar } from './Sidebar'
+export { MainMenu } from './MainMenu'
+export { default as SidebarToggleButton } from './SidebarToggleButton'
+export { default as SidebarHeader } from './SidebarHeader'
+export { default as BreadcrumbNav } from './BreadcrumbNav'
+export { default as SidebarContentBox } from './SidebarContentBox'

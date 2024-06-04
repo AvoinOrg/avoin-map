@@ -1,3 +1,1 @@
-import { OverlayMessages } from './OverlayMessages'
-
-export { OverlayMessages }
+export { OverlayMessages } from './OverlayMessages'

@@ -1,4 +1,2 @@
-import { LoginModal } from './LoginModal'
-import ClickableModal from './ClickableModal'
-
-export { LoginModal, ClickableModal }
+export { LoginModal } from './LoginModal'
+export { default as ClickableModal } from './ClickableModal'

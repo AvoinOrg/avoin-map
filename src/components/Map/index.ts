@@ -1,4 +1,2 @@
-import { Map } from './Map'
-import { MapButtons } from './MapButtons'
-
-export { Map, MapButtons }
+export { Map } from './Map'
+export { MapButtons } from './MapButtons'
