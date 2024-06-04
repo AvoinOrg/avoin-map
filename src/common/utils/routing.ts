@@ -1,4 +1,3 @@
-import { Pathnames } from 'next-intl/navigation'
 import { ReadonlyURLSearchParams } from 'next/navigation'
 
 import { LOCALES } from '../tolgee/shared'
