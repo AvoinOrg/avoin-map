@@ -1,4 +1,2 @@
-import { LoadingModal } from './LoadingModal'
-import { LoadingSpinner } from './LoadingSpinner'
-
-export { LoadingModal, LoadingSpinner }
+export { LoadingModal } from './LoadingModal'
+export { LoadingSpinner } from './LoadingSpinner'

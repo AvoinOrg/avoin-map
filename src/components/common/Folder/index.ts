@@ -1,3 +1,1 @@
-import Folder from './Folder'
-
-export default Folder
+export { default as Folder } from './Folder'

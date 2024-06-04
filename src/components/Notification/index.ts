@@ -1,4 +1,2 @@
-import NotificationProvider from './NotificationProvider'
-import ConfirmationDialog from './ConfirmationDialog'
-
-export { NotificationProvider, ConfirmationDialog }
+export { default as NotificationProvider } from './NotificationProvider'
+export { default as ConfirmationDialog } from './ConfirmationDialog'

@@ -1,3 +1,1 @@
-import CarbonLineChart from './CarbonLineChart'
-
-export default CarbonLineChart
+export { default as CarbonLineChart } from './CarbonLineChart'

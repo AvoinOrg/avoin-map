@@ -1,9 +1,5 @@
-import {
-  Link as NextIntlLink,
-  redirect,
-  usePathname,
-  useRouter,
-  pathnames,
-} from './navigation'
-
-export { NextIntlLink, redirect, usePathname, useRouter, pathnames }
+export { Link as NextIntLInk } from './navigation'
+export { redirect } from './navigation'
+export { usePathname } from './navigation'
+export { useRouter } from './navigation'
+export { pathnames } from './navigation'
