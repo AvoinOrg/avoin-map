@@ -9,20 +9,20 @@ import { styled, SxProps } from '@mui/system'
 import { Box, Theme, Typography, useMediaQuery, useTheme } from '@mui/material'
 import { T, useTranslate } from '@tolgee/react'
 
-import { getRoute } from '#/common/utils/routing'
+import { getRoute } from '#/common/utils/routing-client'
 import MultiSelectAutocomplete from '#/components/common/MultiSelectAutocomplete'
 import { FetchStatus, SelectOption } from '#/common/types/general'
 import { Link as LinkIcon } from '#/components/icons'
 
-import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
-import { routeTree } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/routes'
+import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
+import { routeTree } from 'applets/hiilikartta/common/routes'
 import {
   GlobalState,
   PlanConfWithReportData,
-} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
-import CarbonMapGraph from '#/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonMapGraph'
-import CarbonLineChart from '#/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonLineChart'
-import CarbonOverviewGraph from '#/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonOverviewGraph'
+} from 'applets/hiilikartta/common/types'
+import CarbonMapGraph from 'applets/hiilikartta/components/CarbonMapGraph'
+import { CarbonLineChart } from 'applets/hiilikartta/components/CarbonLineChart'
+import CarbonOverviewGraph from 'applets/hiilikartta/components/CarbonOverviewGraph'
 import ClipboardCopyWrapper from '#/components/common/ClipboardCopyWrapper'
 import { LoadingSpinner } from '#/components/Loading'
 import { useUIStore } from '#/common/store'
