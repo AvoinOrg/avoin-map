@@ -45,8 +45,7 @@ const LayoutClient = ({
                 zIndex: 'drawer',
               }}
             >
-              <Sidebar>{children}</Sidebar>
-              <NavBar />
+              {children}
             </Box>
             <LoginModal></LoginModal>
             <ConfirmationDialog></ConfirmationDialog>

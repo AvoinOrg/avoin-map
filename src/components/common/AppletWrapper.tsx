@@ -4,7 +4,7 @@
 
 'use client'
 
-import React, { useEffect, useLayoutEffect } from 'react'
+import React, { useEffect } from 'react'
 import { useMapStore, useUIStore } from '#/common/store'
 import { MapContext } from '#/common/types/map'
 import { useTolgee } from '@tolgee/react'
@@ -16,7 +16,6 @@ const AppletWrapper = ({
   localizationNamespace,
   subPath,
   defaultLanguage,
-  SidebarHeaderElement,
   sx,
 }: {
   children: React.ReactNode
@@ -24,16 +23,13 @@ const AppletWrapper = ({
   localizationNamespace?: string
   subPath?: string
   defaultLanguage?: string
-  SidebarHeaderElement?: React.JSX.Element
   sx?: any
 }) => {
   const tolgee = useTolgee(['update'])
 
   const setMapContext = useMapStore((state) => state.setMapContext)
   const stateMapContext = useMapStore((state) => state.mapContext)
-  const setSidebarHeaderElement = useUIStore(
-    (state) => state.setSidebarHeaderElement
-  )
+
   const setIsBaseDomainForApplet = useUIStore(
     (state) => state.setIsBaseDomainForApplet
   )
@@ -44,22 +40,6 @@ const AppletWrapper = ({
       defaultLanguage != null && tolgee.changeLanguage(defaultLanguage)
     }
   }, [tolgee.isLoaded()])
-
-  useLayoutEffect(() => {
-    if (SidebarHeaderElement != null && setSidebarHeaderElement != null) {
-      const AdjustedSidebarHeaderElement = React.cloneElement(
-        SidebarHeaderElement,
-        {
-          sx: {
-            ...SidebarHeaderElement.props.sx,
-            width: sx?.width ? sx.width : '100%',
-          },
-        }
-      )
-
-      setSidebarHeaderElement(AdjustedSidebarHeaderElement)
-    }
-  }, [setSidebarHeaderElement, SidebarHeaderElement])
 
   useEffect(() => {
     let appletPath = subPath
