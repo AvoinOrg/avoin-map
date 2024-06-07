@@ -2,10 +2,7 @@ import '#/common/style/index.css'
 
 import React from 'react'
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter'
-import { ThemeProvider } from '@emotion/react'
-import CssBaseline from '@mui/material/CssBaseline'
 
-import theme from '#/common/style/theme'
 // import { UserModal } from '#/components/Profile'
 // import { UiStateProvider, UserStateProvider } from '#/components/State'
 // import RootStyleRegistry from './emotion'
@@ -20,7 +17,6 @@ const RootLayout = ({
   return (
     <html lang="en">
       <body>
-        <CssBaseline />
         <AppRouterCacheProvider>{children}</AppRouterCacheProvider>
       </body>
     </html>
