@@ -4,12 +4,12 @@
 //
 // That is why some of the props and styling elements are
 // captured and passed to the underlying components.
-
 import React from 'react'
 import { Box } from '@mui/material'
 import type { SxProps, Theme } from '@mui/system'
-import SvgFolder from './SvgFolder'
 import { useTheme } from '@mui/material/styles'
+
+import SvgFolder from './SvgFolder'
 import { resolveColor } from '#/common/utils/styling'
 
 const defaultHeight = 86
@@ -37,7 +37,6 @@ const Folder = ({ height = defaultHeight, children, sx }: Props) => {
     }
     if ('backgroundColor' in sx && typeof sx.backgroundColor === 'string') {
       backgroundColor = resolveColor(sx.backgroundColor, theme)
-      delete sx.backgroundColor
     }
   }
 
@@ -68,6 +67,11 @@ const Folder = ({ height = defaultHeight, children, sx }: Props) => {
       } else {
         mainStyles[key as keyof SxProps<Theme>] =
           sx[key as keyof SxProps<Theme>]
+        if (mainStyles.backgroundColor != null) {
+          // deleting the backgroundColor from the main container, as it should
+          // probably be transparent
+          delete mainStyles.backgroundColor
+        }
       }
     })
   }
