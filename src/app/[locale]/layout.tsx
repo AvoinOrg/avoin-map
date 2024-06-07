@@ -15,7 +15,6 @@ const Layout = async ({
   // This will be populated with nested layouts or pages
   children,
   params: { locale },
-  resolvedUrl,
 }: Props) => {
   const locales = await getStaticData(getLocaleObj(locale))
 
