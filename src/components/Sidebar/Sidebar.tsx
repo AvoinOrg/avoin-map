@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Box } from '@mui/material'
+import { Box, SxProps, Theme } from '@mui/material'
 
 import { useUIStore } from '#/common/store'
 import { MapPopup } from '../Map/MapPopup'
@@ -12,9 +12,11 @@ import { SidebarHeader } from '#/components/Sidebar'
 
 export const Sidebar = ({
   headerElement,
+  sx,
   children,
 }: {
   headerElement?: React.ReactNode
+  sx?: SxProps<Theme>
   children: React.ReactNode
 }) => {
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
@@ -43,6 +45,7 @@ export const Sidebar = ({
     }
   }, [])
 
+  console.log(sx)
   return (
     <Box
       ref={sidebarRef}
@@ -70,11 +73,15 @@ export const Sidebar = ({
             )}
             <Box
               ref={sidebarRef}
-              sx={{
-                overflow: 'auto',
-                display: 'flex',
-                flexGrow: 1,
-              }}
+              sx={[
+                {
+                  overflow: 'auto',
+                  display: 'flex',
+                  flexGrow: 1,
+                  maxWidth: '100vw',
+                },
+                ...(Array.isArray(sx) ? sx : [sx]),
+              ]}
             >
               {children}
             </Box>

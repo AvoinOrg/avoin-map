@@ -11,7 +11,6 @@ import { BreadcrumbNav } from '#/components/Sidebar'
 import AppletWrapper from '#/components/common/AppletWrapper'
 import { useUserStore } from '#/common/store/userStore'
 
-import { SIDEBAR_WIDTH_REM } from '../common/constants'
 import { planStatsQuery } from '../common/queries/planStatsQuery'
 import { planQueries } from '../common/queries/planQueries'
 import { useAppletStore } from '../state/appletStore'
@@ -43,14 +42,6 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
   const [planConfsToFetch, setPlanConfsToFetch] = React.useState<
     PlaceholderPlanConf[]
   >([])
-
-  const SidebarHeaderElement = (
-    <SidebarHeader title={'Hiilikartta'}>
-      <Box sx={{ mt: 8, maxWidth: SIDEBAR_WIDTH_REM - 6 + 'rem' }}>
-        <BreadcrumbNav routeTree={routeTree}></BreadcrumbNav>
-      </Box>
-    </SidebarHeader>
-  )
 
   const planConfStatsQuery = useQuery({
     ...planStatsQuery(),
@@ -184,9 +175,10 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
       }}
     >
       <Sidebar
+        sx={{ width: '30rem' }}
         headerElement={
           <SidebarHeader title={'Hiilikartta'}>
-            <Box sx={{ mt: 8, maxWidth: SIDEBAR_WIDTH_REM - 6 + 'rem' }}>
+            <Box sx={{ mt: 8, width: '100%' }}>
               <BreadcrumbNav routeTree={routeTree}></BreadcrumbNav>
             </Box>
           </SidebarHeader>
