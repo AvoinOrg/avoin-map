@@ -1,7 +1,6 @@
 import { ReadonlyURLSearchParams } from 'next/navigation'
 
 import { LOCALES } from '#/common/navigation/tolgee/shared'
-import { useUIStore } from '../store/UIStore'
 import { RouteTree, RouteObject, Params, RouteForLinks } from '../types/routing'
 
 const toQueryString = (queryParams: Params['queryParams']): string => {
@@ -76,35 +75,9 @@ const findRouteObjects = (
 }
 
 /**
- * Creates a route from routeTree. Note that if used within an applet, the function might get called before the
- * isBaseDomainForApplet is properly set, resulting in an incorrect path, depending on whether the applet
- * is the root of the domain or not.
+ * Creates a route from routeTree. For mutable links that work within domained
+ * applets, use getRoute
  */
-export const getRoute = (
-  route: RouteTree,
-  routeTree: RouteTree,
-  { routeParams = {}, queryParams = {} }: Params = {},
-  removeSteps = 0,
-  removeStepsFromRoot = 0
-) => {
-  const isBaseDomainForApplet = useUIStore.getState().isBaseDomainForApplet
-
-  if (
-    removeStepsFromRoot === 0 &&
-    routeTree._conf.isAppletRoot &&
-    isBaseDomainForApplet
-  ) {
-    removeStepsFromRoot = 1
-  }
-
-  return getRouteNoStoreCheck(
-    route,
-    routeTree,
-    { routeParams, queryParams },
-    removeSteps,
-    removeStepsFromRoot
-  )
-}
 
 export const getRouteNoStoreCheck = (
   route: RouteTree,

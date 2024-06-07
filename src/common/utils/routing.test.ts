@@ -6,7 +6,6 @@ import {
   getRoutesForPath,
 } from './routing'
 import { cloneDeep } from 'lodash-es'
-import { useUIStore } from '../store'
 
 describe('routing utils', () => {
   const routeTree: RouteTree = {
