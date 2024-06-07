@@ -6,7 +6,7 @@ import { styled } from '@mui/material/styles'
 import { T } from '@tolgee/react'
 import { useRouter } from 'next/navigation'
 
-import { getRoute } from '#/common/utils/routing'
+import { getRoute } from '#/common/utils/routing-client'
 import MutableLink from '#/components/common/MutableLink'
 import { useMapStore } from '#/common/store'
 import { ClickableModal } from '#/components/Modal'

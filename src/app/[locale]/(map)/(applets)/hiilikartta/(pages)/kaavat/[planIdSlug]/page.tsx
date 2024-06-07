@@ -12,7 +12,7 @@ import { useMutation } from '@tanstack/react-query'
 import FolderCopy from '@mui/icons-material/FolderCopyOutlined'
 import Tooltip from '@mui/material/Tooltip'
 
-import { getRoute } from '#/common/utils/routing'
+import { getRoute } from '#/common/utils/routing-client'
 import useStore from '#/common/hooks/useStore'
 import { useUIStore } from '#/common/store'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'

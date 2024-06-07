@@ -1,7 +1,7 @@
 'use client'
 import { useUIStore } from '#/common/store'
 import { Params, RouteTree } from '#/common/types/routing'
-import { getRoute } from '#/common/utils/routing'
+import { getRoute } from '#/common/utils/routing-client'
 
 /**
  * The most accurate way for fetching a route within an applet.

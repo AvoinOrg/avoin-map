@@ -5,7 +5,7 @@ import { LinkProps as NextLinkProps } from 'next/link'
 import { NextIntlLink } from '#/common/navigation/navigation'
 import { useUIStore } from '#/common/store'
 import { Params, RouteTree } from '#/common/types/routing'
-import { getRoute } from '#/common/utils/routing'
+import { getRoute } from '#/common/utils/routing-client'
 import { useGetRoute } from '#/common/hooks/routing/useGetRoute'
 
 type LinkProps = Omit<MuiLinkProps & NextLinkProps, 'href'> & {

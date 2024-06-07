@@ -7,7 +7,7 @@ import { buffer } from '@turf/turf'
 import booleanValid from '@turf/boolean-valid'
 import { flattenDeep } from 'lodash-es'
 
-import { getRoute } from '#/common/utils/routing'
+import { getRoute } from '#/common/utils/routing-client'
 import {
   FeatureProperties,
   FileType,
