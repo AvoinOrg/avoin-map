@@ -1,7 +1,8 @@
 import React from 'react'
 import { LinkProps as MuiLinkProps, Link as MuiLink } from '@mui/material'
 import { LinkProps as NextLinkProps } from 'next/link'
-import { NextIntlLink } from '#/components/Navigation'
+
+import { NextIntlLink } from '#/common/navigation/navigation'
 
 type LinkProps = MuiLinkProps & NextLinkProps
 

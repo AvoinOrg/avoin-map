@@ -1,8 +1,8 @@
 import React from 'react'
 
 import LayoutClient from './layoutClient'
-import { getStaticData, getLocaleObj } from '#/common/tolgee/shared'
-import { TolgeeNextProvider } from '#/common/tolgee/client'
+import { getStaticData, getLocaleObj } from '#/common/navigation/tolgee/shared'
+import { TolgeeNextProvider } from '#/common/navigation/tolgee/client'
 
 type Props = {
   children: React.ReactNode

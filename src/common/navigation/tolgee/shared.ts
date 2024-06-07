@@ -1,7 +1,7 @@
 import { DevTools, Tolgee } from '@tolgee/web'
 import { FormatIcu } from '@tolgee/format-icu'
 
-import tolgeeLocales from '../../../localeConf.json'
+import tolgeeLocales from '../../../../localeConf.json'
 
 export const ALL_NS_LANGS = tolgeeLocales
 export const DEFAULT_LOCALE = 'en'
@@ -29,7 +29,7 @@ export const getStaticData = async (nsLangs: {
   for (const namespace of Object.keys(nsLangs)) {
     for (const lang of nsLangs[namespace].langs) {
       result[`${lang}:${namespace}`] = (
-        await import(`../../i18n/${namespace}/${lang}.json`)
+        await import(`../../../i18n/${namespace}/${lang}.json`)
       ).default
     }
   }

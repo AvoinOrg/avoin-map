@@ -3,7 +3,7 @@ import {
   Pathnames,
 } from 'next-intl/navigation'
 
-import { LOCALES } from '#/common/tolgee/shared'
+import { LOCALES } from '#/common/navigation/tolgee/shared'
 import { generatePathNames } from '#/common/utils/routing'
 import { RouteTree } from '#/common/types/routing'
 
@@ -20,5 +20,10 @@ const pathnames = { ...mainPathnames, ...generatedPathnames }
 
 export { pathnames }
 
-export const { Link, redirect, usePathname, useRouter } =
-  createLocalizedPathnamesNavigation({ locales: LOCALES, pathnames })
+export const {
+  Link: NextIntlLink,
+  redirect,
+  usePathname,
+  useRouter,
+} = createLocalizedPathnamesNavigation({ locales: LOCALES, pathnames })
+

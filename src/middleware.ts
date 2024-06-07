@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { pathnames } from '#/components/Navigation'
+import { pathnames } from '#/common/navigation/navigation'
 import {
   DEFAULT_LOCALE,
   getLocaleObj,
   getLocalesForNs,
   ALL_NS_LANGS,
-} from '#/common/tolgee/shared'
+} from '#/common/navigation/tolgee/shared'
 
 // check out locale validity and redirect if needed
 export function middleware(request: NextRequest) {

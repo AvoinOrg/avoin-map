@@ -1,7 +1,7 @@
 import { ReadonlyURLSearchParams } from 'next/navigation'
 
-import { LOCALES } from '../tolgee/shared'
-import { useUIStore } from '../store'
+import { LOCALES } from '#/common/navigation/tolgee/shared'
+import { useUIStore } from '../store/UIStore'
 import { RouteTree, RouteObject, Params, RouteForLinks } from '../types/routing'
 
 const toQueryString = (queryParams: Params['queryParams']): string => {
