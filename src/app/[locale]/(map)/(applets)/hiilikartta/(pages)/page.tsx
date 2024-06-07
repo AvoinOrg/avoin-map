@@ -4,7 +4,7 @@ import React, { useMemo } from 'react'
 import { Box, Typography } from '@mui/material'
 import { T } from '@tolgee/react'
 
-import Folder from '#/components/common/Folder'
+import { Folder } from '#/components/common/Folder'
 import { SidebarContentBox } from '#/components/Sidebar'
 import useStore from '#/common/hooks/useStore'
 import MutableLink from '#/components/common/MutableLink'

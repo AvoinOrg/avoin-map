@@ -7,7 +7,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { SessionProvider } from 'next-auth/react'
 import { ThemeProvider } from '@mui/material/styles'
 
-import theme from '#/common/style/theme'
+import { theme } from '#/common/style/theme'
 import { queryClient } from '#/common/queries/queryClient'
 import { NotificationProvider } from '#/components/Notification'
 // import { UserModal } from '#/components/Profile'
