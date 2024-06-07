@@ -2,7 +2,6 @@
 'use client'
 
 import { useMapStore } from '#/common/store'
-import { NavBar } from '#/components/NavBar'
 import { MainMenu, Sidebar } from '#/components/Sidebar'
 import { useEffect } from 'react'
 
@@ -18,7 +17,6 @@ const Page = () => {
       <Sidebar>
         <MainMenu />
       </Sidebar>
-      <NavBar />
     </>
   )
 }

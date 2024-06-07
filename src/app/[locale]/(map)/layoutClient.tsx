@@ -5,8 +5,6 @@ import '#/common/style/index.css'
 import React, { useEffect, useState } from 'react'
 import { Box } from '@mui/material'
 
-import { Sidebar } from '#/components/Sidebar'
-import { NavBar } from '#/components/NavBar'
 import { Map } from '#/components/Map'
 import { LoginModal } from '#/components/Modal'
 import { ConfirmationDialog } from '#/components/Notification'
