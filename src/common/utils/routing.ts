@@ -140,7 +140,7 @@ export const getRouteParent = (
   routeTree: RouteTree,
   params: Params = {}
 ) => {
-  const path = getRoute(route, routeTree, params, 1)
+  const path = getRouteNoStoreCheck(route, routeTree, params, 1)
   return path
 }
 
