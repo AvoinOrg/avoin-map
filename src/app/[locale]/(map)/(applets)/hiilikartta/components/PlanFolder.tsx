@@ -7,7 +7,7 @@ import { SaveOutlined as SaveIcon } from '@mui/icons-material'
 import { useMutation } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
 
-import Folder from '#/components/common/Folder'
+import { Folder } from '#/components/common/Folder'
 import { Error as ErrorIcon, Exclamation, Info } from '#/components/icons'
 import EditableText from '#/components/common/EditableText'
 
