@@ -2,7 +2,7 @@ import React from 'react'
 import { LinkProps as MuiLinkProps, Link as MuiLink } from '@mui/material'
 import { LinkProps as NextLinkProps } from 'next/link'
 
-import { NextIntlLink } from '../Navigation'
+import { NextIntlLink } from '#/common/navigation/navigation'
 import { useUIStore } from '#/common/store'
 import { Params, RouteTree } from '#/common/types/routing'
 import { getRoute } from '#/common/utils/routing'
