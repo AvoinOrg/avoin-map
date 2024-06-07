@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react'
 import { Box, CircularProgress } from '@mui/material'
 
-import Folder from '#/components/common/Folder'
+import { Folder } from '#/components/common/Folder'
 import { PlaceholderPlanConf } from '../common/types'
 
 const PlanFolder = ({
