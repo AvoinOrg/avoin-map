@@ -5,11 +5,9 @@ import { Typography } from '@mui/material'
 
 import { SidebarContentBox } from '#/components/Sidebar'
 
-import { SIDEBAR_WIDTH_REM } from '../../common/constants'
-
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <SidebarContentBox sx={{ width: SIDEBAR_WIDTH_REM + 'rem' }}>
+    <SidebarContentBox>
       <Typography
         sx={(theme) => ({
           typography: theme.typography.h2,

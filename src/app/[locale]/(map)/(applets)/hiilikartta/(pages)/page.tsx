@@ -10,7 +10,6 @@ import useStore from '#/common/hooks/useStore'
 import MutableLink from '#/components/common/MutableLink'
 
 import { routeTree } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/routes'
-import { SIDEBAR_WIDTH_REM } from '../common/constants'
 import { useAppletStore } from '../state/appletStore'
 import { GlobalState, PlanConf, PlanConfState } from '../common/types'
 import { LoadingSpinner } from '#/components/Loading'
@@ -37,7 +36,7 @@ const Page = () => {
   }, [planConfs])
 
   return (
-    <SidebarContentBox sx={{ width: SIDEBAR_WIDTH_REM + 'rem' }}>
+    <SidebarContentBox>
       <MutableLink route={routeTree.create} routeTree={routeTree}>
         <Box sx={{ typography: 'h2', textAlign: 'start', mt: 5 }}>
           <T keyName={'sidebar.main.add_new'} ns="hiilikartta"></T>

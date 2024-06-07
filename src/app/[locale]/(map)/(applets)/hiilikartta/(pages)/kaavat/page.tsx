@@ -11,9 +11,11 @@ import MutableLink from '#/components/common/MutableLink'
 
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 import { routeTree } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/routes'
-import { SIDEBAR_WIDTH_REM } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/constants'
 import PlanFolder from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanFolder'
-import { PlanConf, PlanConfState } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
+import {
+  PlanConf,
+  PlanConfState,
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
 import PlanFolderLoading from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanFolderLoading'
 
 const Page = () => {
@@ -41,7 +43,7 @@ const Page = () => {
   }, [planConfs])
 
   return (
-    <SidebarContentBox sx={{ width: SIDEBAR_WIDTH_REM + 'rem' }}>
+    <SidebarContentBox>
       <Typography variant="h2">
         <T keyName={'sidebar.my_plans.title'} ns="hiilikartta"></T>
       </Typography>

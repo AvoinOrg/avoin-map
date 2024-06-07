@@ -30,7 +30,6 @@ import { checkIsValidZoningCode } from '#/app/[locale]/(map)/(applets)/hiilikart
 import ZoneAccordion from './_components/ZoneAccordion'
 import { calcPostMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/calcPostMutation'
 import PlanFolder from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanFolder'
-import { SIDEBAR_WIDTH_REM } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/constants'
 import {
   CalculationState,
   GlobalState,
@@ -201,7 +200,7 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        width: SIDEBAR_WIDTH_REM + 'rem',
+        width: '100%',
       }}
       className={'plan-sidebar-container'}
     >
@@ -412,11 +411,6 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
             sx={(theme) => ({
               display: 'flex',
               flexDirection: 'column',
-              width:
-                SIDEBAR_WIDTH_REM +
-                // SIDEBAR_PADDING_WITH_SCROLLBAR_REM +
-                // SIDEBAR_PADDING_REM +
-                'rem',
               pl: SIDEBAR_PADDING_WITH_SCROLLBAR_REM + 'rem',
               pr: SIDEBAR_PADDING_WITH_SCROLLBAR_REM + 'rem',
               pt: 2,

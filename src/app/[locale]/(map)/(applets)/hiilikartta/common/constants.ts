@@ -1,7 +1,5 @@
 import { CarbonChangeColorItem } from './types'
 
-export const SIDEBAR_WIDTH_REM = 30
-
 export const CARBON_CHANGE_COLORS: CarbonChangeColorItem[] = [
   { min: -1000, max: -500, color: '#C54032' },
   { min: -500, max: -250, color: '#F25050' },
