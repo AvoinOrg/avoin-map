@@ -45,7 +45,6 @@ export const Sidebar = ({
     }
   }, [])
 
-  console.log(sx)
   return (
     <Box
       ref={sidebarRef}
