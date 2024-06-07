@@ -6,7 +6,7 @@ import { useQueries, useQuery } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
 
 import { routeTree } from '../common/routes'
-import { SidebarHeader } from '#/components/Sidebar'
+import { Sidebar, SidebarHeader } from '#/components/Sidebar'
 import { BreadcrumbNav } from '#/components/Sidebar'
 import AppletWrapper from '#/components/common/AppletWrapper'
 import { useUserStore } from '#/common/store/userStore'
@@ -177,14 +177,23 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
       mapContext={'hiilikartta'}
       localizationNamespace={localizationNamespace}
       defaultLanguage={defaultLanguage}
-      SidebarHeaderElement={SidebarHeaderElement}
       sx={{
         pt: 0,
         display: 'flex',
         flexDirection: 'column',
       }}
     >
-      {children}
+      <Sidebar
+        headerElement={
+          <SidebarHeader title={'Hiilikartta'}>
+            <Box sx={{ mt: 8, maxWidth: SIDEBAR_WIDTH_REM - 6 + 'rem' }}>
+              <BreadcrumbNav routeTree={routeTree}></BreadcrumbNav>
+            </Box>
+          </SidebarHeader>
+        }
+      >
+        {children}
+      </Sidebar>
     </AppletWrapper>
   )
 }

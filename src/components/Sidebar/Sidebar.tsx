@@ -9,34 +9,23 @@ import { useMapStore } from '#/common/store'
 import Drawer from './Drawer'
 import PopupDrawer from './PopupDrawer'
 import { SidebarHeader } from '#/components/Sidebar'
-import { SCROLLBAR_WIDTH_REM } from '#/common/style/theme/constants'
 
-export const Sidebar = ({ children }: { children: React.ReactNode }) => {
+export const Sidebar = ({
+  headerElement,
+  children,
+}: {
+  headerElement?: React.ReactNode
+  children: React.ReactNode
+}) => {
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
   const isMapPopupOpen = useUIStore((state) => state.isMapPopupOpen)
   const mode = useUIStore((state) => state.mode)
   const setIsMapPopupOpen = useUIStore((state) => state.setIsMapPopupOpen)
   const popupOpts = useMapStore((state) => state.popupOpts)
-  const setSidebarHeaderElementSetter = useUIStore(
-    (state) => state.setSidebarHeaderElementSetter
-  )
+
   const setSidebarWidth = useUIStore((state) => state.setSidebarWidth)
-  const sidebarWidth = useUIStore((state) => state.sidebarWidth)
 
-  // Initialize with empty header title to make the change of header smoother
-  const [sidebarHeader, setSidebarHeader] = useState(
-    <SidebarHeader title={''}></SidebarHeader>
-  )
   const sidebarRef = useRef()
-
-  useLayoutEffect(() => {
-    setSidebarHeaderElementSetter(setSidebarHeader)
-  }, [])
-
-  useLayoutEffect(() => {
-    // TODO: Figure out a way to fix this horror. This runs after appletWrapper, for some reason
-    // setSidebarHeader(<SidebarHeader title={'avoin map'}></SidebarHeader>)
-  }, [])
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
@@ -74,7 +63,11 @@ export const Sidebar = ({ children }: { children: React.ReactNode }) => {
           sx={{ display: 'flex', flexDirection: 'row', flex: 1, minHeight: 0 }}
         >
           <Drawer open={isSidebarOpen}>
-            {sidebarHeader}
+            {headerElement ? (
+              headerElement
+            ) : (
+              <SidebarHeader title={'avoin map'}></SidebarHeader>
+            )}
             <Box
               ref={sidebarRef}
               sx={{

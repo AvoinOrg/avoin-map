@@ -2,7 +2,8 @@
 'use client'
 
 import { useMapStore } from '#/common/store'
-import { MainMenu } from '#/components/Sidebar'
+import { NavBar } from '#/components/NavBar'
+import { MainMenu, Sidebar } from '#/components/Sidebar'
 import { useEffect } from 'react'
 
 const Page = () => {
@@ -14,7 +15,10 @@ const Page = () => {
 
   return (
     <>
-      <MainMenu />
+      <Sidebar>
+        <MainMenu />
+      </Sidebar>
+      <NavBar />
     </>
   )
 }
