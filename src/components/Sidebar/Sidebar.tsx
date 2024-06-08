@@ -87,6 +87,7 @@ export const Sidebar = ({
           >
             {children}
           </Box>
+          {navbarElement ? navbarElement : <Navbar></Navbar>}
         </Drawer>
 
         <PopupDrawer open={isMapPopupOpen}>
@@ -111,7 +112,6 @@ export const Sidebar = ({
           </Box>
         </PopupDrawer>
       </Box>
-      {navbarElement ? navbarElement : <Navbar></Navbar>}
       {/* {mode === 'full' && (
         <Box
           sx={{
