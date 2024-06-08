@@ -15,7 +15,6 @@ import { generateUUID } from '../utils/general'
 interface Vars {
   isSidebarOpen: boolean
   isSidebarDisabled: boolean
-  mode: 'side' | 'full'
   isMapPopupOpen: boolean
   notifications: Record<string, InternalNotificationMessage>
   isNavbarOpen: boolean
@@ -27,7 +26,6 @@ interface Vars {
 
 interface Actions {
   setIsSidebarOpen: (value: boolean) => void
-  setMode: (value: 'side' | 'full') => void
   setIsSidebarDisabled: (value: boolean) => void
   setIsMapPopupOpen: (value: boolean) => void
   notify: (notification: NotificationMessage) => Promise<void>
@@ -55,7 +53,6 @@ export const useUIStore = create<State>()(
     const vars: Vars = {
       isSidebarDisabled: false,
       isSidebarOpen: true,
-      mode: 'side',
       isMapPopupOpen: false,
       isLoginModalOpen: false,
       isNavbarOpen: true,
@@ -66,7 +63,6 @@ export const useUIStore = create<State>()(
     }
     const actions: Actions = {
       setIsSidebarOpen: (value) => set({ isSidebarOpen: value }),
-      setMode: (value) => set({ mode: value }),
       setIsSidebarDisabled: (value) => set({ isSidebarDisabled: value }),
       setIsMapPopupOpen: (value) => set({ isMapPopupOpen: value }),
       setIsLoginModalOpen: (isOpen: boolean) => {
