@@ -12,16 +12,17 @@ import { SidebarHeader } from '#/components/Sidebar'
 
 export const Sidebar = ({
   headerElement,
+  navbarElement,
   sx,
   children,
 }: {
   headerElement?: React.ReactNode
+  navbarElement?: React.ReactNode
   sx?: SxProps<Theme>
   children: React.ReactNode
 }) => {
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
   const isMapPopupOpen = useUIStore((state) => state.isMapPopupOpen)
-  const mode = useUIStore((state) => state.mode)
   const setIsMapPopupOpen = useUIStore((state) => state.setIsMapPopupOpen)
   const popupOpts = useMapStore((state) => state.popupOpts)
 
@@ -60,56 +61,54 @@ export const Sidebar = ({
         flex: 1,
       }}
     >
-      {mode === 'side' && (
-        <Box
-          sx={{ display: 'flex', flexDirection: 'row', flex: 1, minHeight: 0 }}
-        >
-          <Drawer open={isSidebarOpen}>
-            {headerElement ? (
-              headerElement
-            ) : (
-              <SidebarHeader title={'avoin map'}></SidebarHeader>
-            )}
-            <Box
-              ref={sidebarRef}
-              sx={[
-                {
-                  overflow: 'auto',
-                  display: 'flex',
-                  flexGrow: 1,
-                  maxWidth: '100vw',
-                },
-                ...(Array.isArray(sx) ? sx : [sx]),
-              ]}
-            >
-              {children}
-            </Box>
-          </Drawer>
+      <Box
+        sx={{ display: 'flex', flexDirection: 'row', flex: 1, minHeight: 0 }}
+      >
+        <Drawer open={isSidebarOpen}>
+          {headerElement ? (
+            headerElement
+          ) : (
+            <SidebarHeader title={'avoin map'}></SidebarHeader>
+          )}
+          <Box
+            ref={sidebarRef}
+            sx={[
+              {
+                overflow: 'auto',
+                display: 'flex',
+                flexGrow: 1,
+                maxWidth: '100vw',
+              },
+              ...(Array.isArray(sx) ? sx : [sx]),
+            ]}
+          >
+            {children}
+          </Box>
+        </Drawer>
 
-          <PopupDrawer open={isMapPopupOpen}>
+        <PopupDrawer open={isMapPopupOpen}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
             <Box
               sx={{
-                display: 'flex',
-                flexDirection: 'column',
+                textDecoration: 'none',
+                alignSelf: 'flex-end',
+                margin: '10px 10px 0 0',
+                '&:after': {
+                  content: "'✖'",
+                },
               }}
-            >
-              <Box
-                sx={{
-                  textDecoration: 'none',
-                  alignSelf: 'flex-end',
-                  margin: '10px 10px 0 0',
-                  '&:after': {
-                    content: "'✖'",
-                  },
-                }}
-                onClick={() => setIsMapPopupOpen(false)}
-              />
-              <MapPopup popupOpts={popupOpts} />
-            </Box>
-          </PopupDrawer>
-        </Box>
-      )}
-      {mode === 'full' && (
+              onClick={() => setIsMapPopupOpen(false)}
+            />
+            <MapPopup popupOpts={popupOpts} />
+          </Box>
+        </PopupDrawer>
+      </Box>
+      {/* {mode === 'full' && (
         <Box
           sx={{
             display: 'flex',
@@ -120,7 +119,7 @@ export const Sidebar = ({
         >
           {children}
         </Box>
-      )}
+      )} */}
     </Box>
   )
 }
