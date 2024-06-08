@@ -52,7 +52,7 @@ export const Sidebar = ({
       className="sidebar-container"
       sx={{
         zIndex: 'drawer',
-        backgroundColor: 'white',
+        // backgroundColor: 'white',
         minHeight: 0,
         width: 'max-content',
         maxWidth: '100%',
@@ -78,6 +78,8 @@ export const Sidebar = ({
                 display: 'flex',
                 flexGrow: 1,
                 maxWidth: '100vw',
+                width: '27.5rem',
+                backgroundColor: 'neutral.lighter',
               },
               ...(Array.isArray(sx) ? sx : [sx]),
             ]}
