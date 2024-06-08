@@ -8,7 +8,7 @@ import { MapPopup } from '../Map/MapPopup'
 import { useMapStore } from '#/common/store'
 import Drawer from './Drawer'
 import PopupDrawer from './PopupDrawer'
-import { SidebarHeader } from '#/components/Sidebar'
+import { SidebarHeader, SidebarToggleButton } from '#/components/Sidebar'
 import { Navbar } from './Navbar'
 
 export const Sidebar = ({
@@ -62,6 +62,14 @@ export const Sidebar = ({
         flex: 1,
       }}
     >
+      <SidebarToggleButton
+        sx={(theme) => ({
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          zIndex: theme.zIndex.drawer + 1,
+        })}
+      />
       <Box
         sx={{ display: 'flex', flexDirection: 'row', flex: 1, minHeight: 0 }}
       >
