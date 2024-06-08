@@ -1,4 +1,4 @@
-import { Button } from '@mui/material'
+import { Button, SxProps } from '@mui/material'
 import { styled } from '@mui/material/styles'
 
 import Sandwich from '../icons/Sandwich'
@@ -6,7 +6,7 @@ import { useUIStore } from '../../common/store'
 import { SIDEBAR_CLOSED_WIDTH } from '#/common/style/theme/constants'
 
 interface Props {
-  sx?: any
+  sx?: SxProps<Theme>
 }
 
 const SidebarToggleButton = ({ sx }: Props) => {
@@ -21,29 +21,30 @@ const SidebarToggleButton = ({ sx }: Props) => {
   return (
     <Button
       onClick={toggleSidebar}
-      sx={(theme) => ({
-        m: 0,
-        p: 0,
-        pt: 4,
-        pl: 5,
-        display: 'flex',
-        '&:hover': {
-          backgroundColor: 'transparent',
-        },
-        minWidth: 'unset',
-        maxWidth: 'unset',
-        ...(!isSidebarOpen && {
-          height: '100vh',
-          alignItems: 'flex-start',
-          width: SIDEBAR_CLOSED_WIDTH + 'px',
+      sx={[
+        {
+          m: 0,
           p: 0,
-          pt: 0,
-          pl: 0,
-          marginLeft: '-2px', // a hack to visually align the button with the sidebar
-        }),
-        transition: 'padding 0.1s',
-        ...sx,
-      })}
+          pt: 4,
+          pl: 5,
+          display: 'flex',
+          '&:hover': {
+            backgroundColor: 'transparent',
+          },
+          minWidth: 'unset',
+          maxWidth: 'unset',
+          ...(!isSidebarOpen && {
+            height: '100vh',
+            alignItems: 'flex-start',
+            p: 0,
+            pt: 0,
+            pl: 0,
+            marginLeft: '-2px', // a hack to visually align the button with the sidebar
+          }),
+          transition: 'padding 0.1s',
+        },
+        ...(Array.isArray(sx) ? sx : [sx]),
+      ]}
       disableRipple={true}
       color="inherit"
       aria-label="open drawer"

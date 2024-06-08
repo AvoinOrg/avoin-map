@@ -31,9 +31,15 @@ const SidebarHeader = ({ children, title, sx }: Props) => {
           pr: 5,
         }}
       >
-        <SidebarToggleButton />
+        <SidebarToggleButton
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+          }}
+        />
         <Typography
-          sx={{ width: '100%', textAlign: 'end', mt: 4 }}
+          sx={{ width: '100%', textAlign: 'end', mt: 4, whiteSpace: 'nowrap' }}
           variant="h2"
         >
           {title}
