@@ -1,9 +1,8 @@
-import { Button, SxProps } from '@mui/material'
+import { Button, SxProps, Theme } from '@mui/material'
 import { styled } from '@mui/material/styles'
 
 import Sandwich from '../icons/Sandwich'
 import { useUIStore } from '../../common/store'
-import { SIDEBAR_CLOSED_WIDTH } from '#/common/style/theme/constants'
 
 interface Props {
   sx?: SxProps<Theme>
