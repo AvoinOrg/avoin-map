@@ -7,7 +7,7 @@ import { styled } from '@mui/material/styles'
 import { useUIStore } from '#/common/store'
 import UserButtons from './UserButtons'
 
-export const NavBar = () => {
+export const Navbar = () => {
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
 
   return (
