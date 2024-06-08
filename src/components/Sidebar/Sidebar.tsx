@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Box, SxProps, Theme } from '@mui/material'
 
 import { useUIStore } from '#/common/store'
@@ -9,6 +9,7 @@ import { useMapStore } from '#/common/store'
 import Drawer from './Drawer'
 import PopupDrawer from './PopupDrawer'
 import { SidebarHeader } from '#/components/Sidebar'
+import { Navbar } from './Navbar'
 
 export const Sidebar = ({
   headerElement,
@@ -110,6 +111,7 @@ export const Sidebar = ({
           </Box>
         </PopupDrawer>
       </Box>
+      {navbarElement ? navbarElement : <Navbar></Navbar>}
       {/* {mode === 'full' && (
         <Box
           sx={{
