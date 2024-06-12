@@ -606,13 +606,13 @@ export const useMapStore = create<State>()(
             }
 
             if (!opts.layerConf) {
-              opts = cloneDeep(_persistingLayerGroupAddOptions[layerGroupId])
-            }
-
-            if (!opts.layerConf) {
-              opts.layerConf = layerConfs.find((el: LayerConf) => {
-                return el.id === layerGroupId
-              })
+              if (_persistingLayerGroupAddOptions[layerGroupId] != null) {
+                opts = cloneDeep(_persistingLayerGroupAddOptions[layerGroupId])
+              } else {
+                opts.layerConf = layerConfs.find((el: LayerConf) => {
+                  return el.id === layerGroupId
+                })
+              }
             }
 
             if (opts.layerConf) {
