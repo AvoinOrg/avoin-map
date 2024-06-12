@@ -1,20 +1,16 @@
 import { memo, useState, useEffect } from 'react'
-import {
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Box,
-} from '@mui/material'
+import { AccordionDetails, Box } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import { T } from '@tolgee/react'
 
 import DropDownSelect from '#/components/common/DropDownSelect'
-import { ArrowDown } from '#/components/icons'
+import CustomAccordion from '#/components/common/CustomAccordion'
+import CustomAccordionSummary from '#/components/common/CustomAccordionSummary'
 
-import { ZONING_CLASSES } from '../../../../common/constants'
-import { PlanDataFeature } from '../../../../common/types'
+import { ZONING_CLASSES } from 'applets/hiilikartta/common/constants'
+import { PlanDataFeature } from 'applets/hiilikartta/common/types'
 import ZoneAccordionItemTitle from './ZoneAccordionItemTitle'
-import { checkIsValidZoningCode } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
+import { checkIsValidZoningCode } from 'applets/hiilikartta/common/utils'
 
 const zoningCodeOptions = ZONING_CLASSES.map((zoning) => ({
   value: zoning.code,
@@ -71,29 +67,14 @@ const ZoneAccordionItem = memo(
     }
 
     return (
-      <Accordion
+      <CustomAccordion
         key={feature.properties.id}
-        sx={{
-          width: '100%',
-          backgroundColor: 'background.paper',
-          ':before': {
-            opacity: 0,
-          },
-          '&.Mui-expanded': {
-            margin: 'auto',
-            backgroundColor: 'primary.lighter',
-          },
-          '&:before': {
-            display: 'none',
-          },
-        }}
-        TransitionProps={{ unmountOnExit: true }}
+        slotProps={{ transition: { unmountOnExit: true } }}
         expanded={expanded}
         onChange={onChange(feature.properties.id)}
         ref={(el) => (accordionRefs.current[feature.properties.id] = el)}
       >
-        <AccordionSummary
-          expandIcon={<ArrowDown />}
+        <CustomAccordionSummary
           aria-controls={`panel${index + 1}-content`}
           id={`panel${index + 1}-header`}
           sx={{
@@ -110,7 +91,7 @@ const ZoneAccordionItem = memo(
             isValidZoningCode={isValid}
             onChange={handleNameChange}
           ></ZoneAccordionItemTitle>
-        </AccordionSummary>
+        </CustomAccordionSummary>
         <AccordionDetails sx={{ display: 'flex', flexDirection: 'column' }}>
           <Row>
             <T
@@ -129,7 +110,7 @@ const ZoneAccordionItem = memo(
             }}
           ></DropDownSelect>
         </AccordionDetails>
-      </Accordion>
+      </CustomAccordion>
     )
   },
   (prevProps, nextProps) => {
