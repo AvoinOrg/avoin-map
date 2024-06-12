@@ -1,8 +1,6 @@
 import { Box, Typography } from '@mui/material'
 import React from 'react'
 
-import SidebarToggleButton from './SidebarToggleButton'
-
 interface Props {
   children?: React.ReactNode
   title: string
@@ -19,6 +17,7 @@ const SidebarHeader = ({ children, title, sx }: Props) => {
         border: 1,
         borderColor: 'primary.dark',
         flexDirection: 'column',
+        minHeight: '8rem',
         ...sx,
       }}
     >
