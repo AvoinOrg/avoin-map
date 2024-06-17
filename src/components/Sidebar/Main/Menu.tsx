@@ -4,8 +4,8 @@ import React from 'react'
 import List from '@mui/material/List'
 import { ListItem } from '@mui/material'
 
-import { Accordion } from '#/components/Sidebar/Accordion'
-import drawerItems from '#/components/Sidebar/drawerItems'
+import { Accordion } from '#/components/Sidebar/Main/Accordion'
+import drawerItems from '#/components/Sidebar/Main/Accordion/drawerItems'
 
 export const MainMenu = () => {
   // const { isLoggedIn }: any = useContext(UserStateContext)
