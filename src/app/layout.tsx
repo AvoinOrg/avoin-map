@@ -1,5 +1,3 @@
-import '#/common/style/index.css'
-
 import React from 'react'
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter'
 
