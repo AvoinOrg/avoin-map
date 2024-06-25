@@ -38,7 +38,7 @@ const Page = () => {
   return (
     <SidebarContentBox>
       <MutableLink route={routeTree.create} routeTree={routeTree}>
-        <Box sx={{ typography: 'h2', textAlign: 'start', mt: 5 }}>
+        <Box sx={{ typography: 'h2', textAlign: 'start', mt: 4 }}>
           <T keyName={'sidebar.main.add_new'} ns="hiilikartta"></T>
         </Box>
       </MutableLink>
