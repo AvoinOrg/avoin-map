@@ -1,6 +1,5 @@
 'use client'
 
-import '#/common/style/index.css'
 
 import React from 'react'
 import { QueryClientProvider } from '@tanstack/react-query'

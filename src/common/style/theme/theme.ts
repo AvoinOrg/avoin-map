@@ -257,6 +257,7 @@ const components = {
         '@supports selector(::-webkit-scrollbar)': {
           '&::-webkit-scrollbar': {
             width: SCROLLBAR_WIDTH_REM + 'rem',
+            backgroundColor: 'transparent',
           },
           '&::-webkit-scrollbar-thumb': {
             backgroundColor: palette.neutral.main,
@@ -271,6 +272,81 @@ const components = {
         boxSizing: 'border-box',
         borderCollapse: 'collapse',
       },
+      html: {
+        margin: 0,
+        padding: 0,
+        overflow: 'hidden',
+      },
+      body: {
+        margin: 0,
+        padding: 0,
+        overflow: 'hidden',
+        fontFamily:
+          "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+        WebkitFontSmoothing: 'antialiased',
+        MozOsxFontSmoothing: 'grayscale',
+      },
+      a: {
+        color: 'inherit',
+        textDecoration: 'inherit', // no underline
+      },
+      '.mapboxgl-ctrl-logo': {
+        width: '55px !important',
+        backgroundSize: '55px',
+        margin: '0 0 -16px -8px !important',
+      },
+      // code: {
+      //   fontFamily:
+      //     "source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace",
+      // },
+      // 'input, ul, li': {
+      //   fontFamily:
+      //     "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+      // },
+      // 'input::placeholder': {
+      //   fontFamily: "'Raleway'",
+      // },
+      // '.ol-popup': {
+      //   position: 'absolute',
+      //   backgroundColor: 'white',
+      //   filter: 'drop-shadow(0 1px 4px rgba(0, 0, 0, 0.2))',
+      //   padding: '15px',
+      //   borderRadius: '10px',
+      //   border: '1px solid #cccccc',
+      //   bottom: '12px',
+      //   left: '-50px',
+      //   minWidth: '280px',
+      // },
+      // '.ol-popup:after, .ol-popup:before': {
+      //   top: '100%',
+      //   border: 'solid transparent',
+      //   content: "' '",
+      //   height: 0,
+      //   width: 0,
+      //   position: 'absolute',
+      //   pointerEvents: 'none',
+      // },
+      // '.ol-popup:after': {
+      //   borderTopColor: 'white',
+      //   borderWidth: '10px',
+      //   left: '48px',
+      //   marginLeft: '-10px',
+      // },
+      // '.ol-popup:before': {
+      //   borderTopColor: '#cccccc',
+      //   borderWidth: '11px',
+      //   left: '48px',
+      //   marginLeft: '-11px',
+      // },
+      // '.ol-popup-closer': {
+      //   textDecoration: 'none',
+      //   position: 'absolute',
+      //   top: '2px',
+      //   right: '8px',
+      // },
+      // '.ol-popup-closer:after': {
+      //   content: "'✖'",
+      // },
     },
   },
 }
