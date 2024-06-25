@@ -297,7 +297,7 @@ const components = {
       },
       // see https://github.com/KingSora/OverlayScrollbars#styling-in-depth
       '.os-scrollbar': {
-        '--os-size': '16px',
+        '--os-size': SCROLLBAR_WIDTH_REM + 'rem',
         '--os-handle-bg': palette.neutral.main,
         '--os-handle-bg-hover': palette.neutral.dark,
         '--os-handle-bg-active': palette.neutral.dark,
