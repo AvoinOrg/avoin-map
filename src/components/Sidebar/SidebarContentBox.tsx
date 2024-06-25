@@ -1,49 +1,53 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
-import { Box } from '@mui/material'
+import React from 'react'
+import { Box, SxProps, Theme } from '@mui/material'
 
-import {
-  SCROLLBAR_WIDTH_REM,
-  SIDEBAR_PADDING_REM,
-} from '#/common/style/theme/constants'
+import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
+import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 
 const SidebarContentBox = ({
+  sxOuter,
+  sxInner,
   children,
-  sx,
 }: {
+  sxOuter?: SxProps<Theme>
+  sxInner?: SxProps<Theme>
   children: React.ReactNode
-  sx?: any
 }) => {
-  const boxRef = useRef(null)
-
   return (
     <Box
-      ref={boxRef}
       className="sidebar-children-container"
-      sx={{
-        direction: 'rtl',
-        overflowY: 'scroll',
-        height: '100%',
-        width: '100%',
-        maxWidth: '100%',
-        ...sx,
-      }}
-    >
-      <Box
-        sx={{
+      sx={[
+        {
+          overflowY: 'auto',
+          height: '100%',
+          width: '100%',
+          maxWidth: '100%',
           display: 'flex',
           flexDirection: 'column',
-          direction: 'ltr',
-          height: '100%',
-          overflowY: 'visible',
-          p: SIDEBAR_PADDING_REM + 'rem',
-          mr: SCROLLBAR_WIDTH_REM + 'rem',
-          flex: 1,
-        }}
-      >
-        {children}
-      </Box>
+          flexGrow: 1,
+          direction: 'rtl',
+        },
+        ...(Array.isArray(sxOuter) ? sxOuter : [sxOuter]),
+      ]}
+    >
+      <OverlayScrollbarsComponent defer>
+        <Box
+          sx={[
+            {
+              direction: 'ltr',
+              // display: 'flex',
+              // flexDirection: 'column',
+              // flex: 1,
+              p: SIDEBAR_PADDING_REM + 'rem',
+            },
+            ...(Array.isArray(sxInner) ? sxInner : [sxInner]),
+          ]}
+        >
+          {children}
+        </Box>
+      </OverlayScrollbarsComponent>
     </Box>
   )
 }
