@@ -17,11 +17,7 @@ import useStore from '#/common/hooks/useStore'
 import { useUIStore } from '#/common/store'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
 import { pp } from '#/common/utils/general'
-import {
-  SCROLLBAR_WIDTH_REM,
-  SIDEBAR_PADDING_REM,
-  SIDEBAR_PADDING_WITH_SCROLLBAR_REM,
-} from '#/common/style/theme/constants'
+import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
 import { ArrowNextBig, Delete, Star } from '#/components/icons'
 
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
@@ -37,6 +33,7 @@ import {
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
 import { planDeleteMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/planDeleteMutation'
 import { LoadingSpinner } from '#/components/Loading'
+import SidebarContentBox from '#/components/Sidebar/SidebarContentBox'
 
 const Page = ({ params }: { params: { planIdSlug: string } }) => {
   const triggerConfirmationDialog = useUIStore(
@@ -206,30 +203,10 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
     >
       {isLoaded && planConf && (
         <>
-          <Box
-            sx={{
-              overflowY: 'scroll',
-              direction: 'rtl',
-              display: 'flex',
-              flexGrow: 1,
-              flexDirection: 'column',
-            }}
-          >
-            <Box
-              sx={{
-                direction: 'ltr',
-                overflow: 'visible',
-                p: SIDEBAR_PADDING_REM + 'rem',
-                mr: SCROLLBAR_WIDTH_REM + 'rem',
-              }}
-            >
-              <PlanFolder
-                isNameEditable={true}
-                planConf={planConf}
-                height={90}
-              />
+          <SidebarContentBox>
+            <PlanFolder isNameEditable={true} planConf={planConf} height={90} />
 
-              {/* <MuiLink
+            {/* <MuiLink
             href={getRoute(routeTree.plans.plan.settings, routeTree, [planConf.id])}
             sx={{ display: 'flex', color: 'inherit', textDecoration: 'none' }}
             component={Link}
@@ -238,181 +215,181 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
             Kaavatiedoston asetukset <SettingsIcon />
             </MenuButton>
           </MuiLink> */}
-              {!planConf.reportData && (
-                <Box sx={{ display: 'flex', flexDirection: 'row', mt: 10 }}>
-                  <Star sx={{ height: 40, width: 'auto' }}></Star>
+            {!planConf.reportData && (
+              <Box sx={{ display: 'flex', flexDirection: 'row', mt: 10 }}>
+                <Star sx={{ height: 40, width: 'auto' }}></Star>
+                <Typography
+                  sx={{
+                    display: 'inline-flex',
+                    typography: 'body2',
+                    ml: 1.5,
+                    mt: 0.5,
+                  }}
+                >
+                  <T
+                    keyName={'sidebar.plan_settings.draw_hint'}
+                    ns="hiilikartta"
+                  ></T>
+                </Typography>
+              </Box>
+            )}
+
+            {planConf.reportData && currentYear != null && (
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Box
+                  sx={{
+                    flexDirection: 'row',
+                    typography: 'h2',
+                    justifyContent: 'space-between',
+                    mt: 4,
+                    mb: 2,
+                  }}
+                >
+                  <T
+                    keyName={
+                      'sidebar.plan_settings.report_preview.impact_on_carbon_stock'
+                    }
+                    ns="hiilikartta"
+                  ></T>
+                </Box>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-end',
+                    mt: 2,
+                  }}
+                >
                   <Typography
                     sx={{
                       display: 'inline-flex',
-                      typography: 'body2',
-                      ml: 1.5,
-                      mt: 0.5,
+                      typography: 'h6',
+                      textAlign: 'end',
                     }}
                   >
                     <T
-                      keyName={'sidebar.plan_settings.draw_hint'}
+                      keyName={'sidebar.plan_settings.report_preview.on_year'}
                       ns="hiilikartta"
                     ></T>
                   </Typography>
+                  <DropDownSelectMinimal
+                    value={currentYear}
+                    isIconOnTheRight={false}
+                    sx={{ mr: -4, mt: -0.5 }}
+                    iconSx={{ mt: 0.25 }}
+                    optionSx={{ typography: 'h8' }}
+                    onChange={(e) => setCurrentYear(e.target.value)}
+                    options={planConf.reportData.metadata.featureYears
+                      .slice(1)
+                      .map((year) => {
+                        return {
+                          value: year,
+                          label: year,
+                        }
+                      })}
+                  ></DropDownSelectMinimal>
                 </Box>
-              )}
-
-              {planConf.reportData && currentYear != null && (
-                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    typography: 'h4',
+                    justifyContent: 'space-between',
+                    mt: 4,
+                    mb: 2,
+                  }}
+                >
                   <Box
                     sx={{
-                      flexDirection: 'row',
-                      typography: 'h2',
-                      justifyContent: 'space-between',
-                      mt: 4,
-                      mb: 2,
+                      display: 'inline-flex',
+                      maxWidth: '15rem',
+                      mr: 3,
+                      pt: 0.3,
+                      lineHeight: 1.2,
                     }}
                   >
                     <T
                       keyName={
-                        'sidebar.plan_settings.report_preview.impact_on_carbon_stock'
+                        'sidebar.plan_settings.report_preview.carbon_stores_shrink'
                       }
                       ns="hiilikartta"
                     ></T>
                   </Box>
                   <Box
                     sx={{
-                      display: 'flex',
+                      display: 'inline-flex',
                       flexDirection: 'column',
-                      alignItems: 'flex-end',
-                      mt: 2,
+                      alignItems: 'end',
+                      textAlign: 'end',
                     }}
                   >
-                    <Typography
-                      sx={{
-                        display: 'inline-flex',
-                        typography: 'h6',
-                        textAlign: 'end',
-                      }}
-                    >
+                    <Typography typography={'h1'}>
+                      {pp(
+                        planConf.reportData.agg.totals.bio_carbon_total_diff[
+                          currentYear
+                        ] +
+                          planConf.reportData.agg.totals
+                            .ground_carbon_total_diff[currentYear],
+                        0
+                      )}
+                    </Typography>
+                    <Typography mt={0.5} typography={'h5'}>
                       <T
-                        keyName={'sidebar.plan_settings.report_preview.on_year'}
+                        keyName="sidebar.plan_settings.report_preview.carbon_eqv_unit"
                         ns="hiilikartta"
                       ></T>
                     </Typography>
-                    <DropDownSelectMinimal
-                      value={currentYear}
-                      isIconOnTheRight={false}
-                      sx={{ mr: -4, mt: -0.5 }}
-                      iconSx={{ mt: 0.25 }}
-                      optionSx={{ typography: 'h8' }}
-                      onChange={(e) => setCurrentYear(e.target.value)}
-                      options={planConf.reportData.metadata.featureYears
-                        .slice(1)
-                        .map((year) => {
-                          return {
-                            value: year,
-                            label: year,
-                          }
-                        })}
-                    ></DropDownSelectMinimal>
-                  </Box>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      typography: 'h4',
-                      justifyContent: 'space-between',
-                      mt: 4,
-                      mb: 2,
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        display: 'inline-flex',
-                        maxWidth: '15rem',
-                        mr: 3,
-                        pt: 0.3,
-                        lineHeight: 1.2,
-                      }}
-                    >
+                    <Typography mt={2} typography={'h1'}>
+                      {pp(
+                        planConf.reportData.agg.totals.bio_carbon_ha_diff[
+                          currentYear
+                        ] +
+                          planConf.reportData.agg.totals.ground_carbon_ha_diff[
+                            currentYear
+                          ],
+                        0
+                      )}
+                    </Typography>
+                    <Typography mt={0.5} typography={'h5'}>
                       <T
-                        keyName={
-                          'sidebar.plan_settings.report_preview.carbon_stores_shrink'
-                        }
+                        keyName="sidebar.plan_settings.report_preview.carbon_eqv_unit_hectare"
                         ns="hiilikartta"
                       ></T>
-                    </Box>
-                    <Box
-                      sx={{
-                        display: 'inline-flex',
-                        flexDirection: 'column',
-                        alignItems: 'end',
-                        textAlign: 'end',
-                      }}
-                    >
-                      <Typography typography={'h1'}>
-                        {pp(
-                          planConf.reportData.agg.totals.bio_carbon_total_diff[
-                            currentYear
-                          ] +
-                            planConf.reportData.agg.totals
-                              .ground_carbon_total_diff[currentYear],
-                          0
-                        )}
-                      </Typography>
-                      <Typography mt={0.5} typography={'h5'}>
-                        <T
-                          keyName="sidebar.plan_settings.report_preview.carbon_eqv_unit"
-                          ns="hiilikartta"
-                        ></T>
-                      </Typography>
-                      <Typography mt={2} typography={'h1'}>
-                        {pp(
-                          planConf.reportData.agg.totals.bio_carbon_ha_diff[
-                            currentYear
-                          ] +
-                            planConf.reportData.agg.totals
-                              .ground_carbon_ha_diff[currentYear],
-                          0
-                        )}
-                      </Typography>
-                      <Typography mt={0.5} typography={'h5'}>
-                        <T
-                          keyName="sidebar.plan_settings.report_preview.carbon_eqv_unit_hectare"
-                          ns="hiilikartta"
-                        ></T>
-                      </Typography>
-                    </Box>
-                  </Box>
-                  <Box
-                    sx={{
-                      typography: 'h2',
-                      textAlign: 'end',
-                      mt: 6,
-                      mb: 1,
-                      minWidth: '270px',
-                      '&:hover': { cursor: 'pointer' },
-                      textDecoration: 'underline',
-                    }}
-                    onClick={handleOpenReport}
-                  >
-                    <T
-                      keyName={'sidebar.plan_settings.open_full_report'}
-                      ns={'hiilikartta'}
-                    ></T>
+                    </Typography>
                   </Box>
                 </Box>
-              )}
+                <Box
+                  sx={{
+                    typography: 'h2',
+                    textAlign: 'end',
+                    mt: 6,
+                    mb: 1,
+                    minWidth: '270px',
+                    '&:hover': { cursor: 'pointer' },
+                    textDecoration: 'underline',
+                  }}
+                  onClick={handleOpenReport}
+                >
+                  <T
+                    keyName={'sidebar.plan_settings.open_full_report'}
+                    ns={'hiilikartta'}
+                  ></T>
+                </Box>
+              </Box>
+            )}
 
-              <ZoneAccordion
-                planConfId={planConf.id}
-                sx={{ mt: 4 }}
-              ></ZoneAccordion>
-            </Box>
-          </Box>
+            <ZoneAccordion
+              planConfId={planConf.id}
+              sx={{ mt: 4 }}
+            ></ZoneAccordion>
+          </SidebarContentBox>
 
           <Box
             sx={(theme) => ({
               display: 'flex',
               flexDirection: 'column',
-              pl: SIDEBAR_PADDING_WITH_SCROLLBAR_REM + 'rem',
-              pr: SIDEBAR_PADDING_WITH_SCROLLBAR_REM + 'rem',
+              pl: SIDEBAR_PADDING_REM + 'rem',
+              pr: SIDEBAR_PADDING_REM + 'rem',
               pt: 2,
               pb: 2,
               zIndex: 9999,
