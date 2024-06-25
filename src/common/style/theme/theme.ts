@@ -295,6 +295,17 @@ const components = {
         backgroundSize: '55px',
         margin: '0 0 -16px -8px !important',
       },
+      // see https://github.com/KingSora/OverlayScrollbars#styling-in-depth
+      '.os-scrollbar': {
+        '--os-size': '16px',
+        '--os-handle-bg': palette.neutral.main,
+        '--os-handle-bg-hover': palette.neutral.dark,
+        '--os-handle-bg-active': palette.neutral.dark,
+      },
+      '.os-scrollbar-handle': {
+        boxShadow: '0px 4px 4px 0px rgba(159, 159, 159, 0.25)',
+      },
+      // old stuff below, probably not needed
       // code: {
       //   fontFamily:
       //     "source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace",
