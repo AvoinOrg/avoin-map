@@ -1,5 +1,6 @@
 'use client'
 
+import 'overlayscrollbars/overlayscrollbars.css'
 
 import React from 'react'
 import { QueryClientProvider } from '@tanstack/react-query'
