@@ -1,5 +1,6 @@
 services:
-  app:
+  app-prod:
+    profiles: [ prod ]
     container_name: climate-map-app
     build: .
     env_file: ./.env
@@ -7,6 +8,24 @@ services:
       - '${DEV_PORT}:3000'
     volumes:
       - .:/app:z
+    entrypoint: '/bin/bash /app/docker-entrypoint.sh'
+    networks:
+      - climate-map-networ
+
+  app-dev:
+    profiles: [ dev ]
+    container_name: climate-map-app
+    build: .
+    env_file: ./.env
+    ports:
+      - '${DEV_PORT}:3000'
+    volumes:
+      - .:/app:z
+      - type: bind
+        source: $HOST_SSH_AUTH_SOCK # e.g. /home/<youruser>/.ssh/agent.sock
+        target: /ssh-agent
+    environment:
+      SSH_AUTH_SOCK: /ssh-agent
     entrypoint: '/bin/bash /app/docker-entrypoint.sh'
     networks:
       - climate-map-network
