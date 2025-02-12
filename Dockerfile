@@ -6,9 +6,13 @@ RUN yarn set version stable
 # TODO: figure out why it's scanning root. Using differnt user does not help.
 RUN chmod -R 777 /root
 
+RUN mkdir -p /home/node/dev &&\
+    chown -R node:node /home/node/dev
+
 WORKDIR /app
 
 USER node
+RUN touch /home/node/.bash_history
 
 EXPOSE 3000
 

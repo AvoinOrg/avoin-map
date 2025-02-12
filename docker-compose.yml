@@ -4,6 +4,8 @@ services:
     container_name: climate-map-app
     build: .
     env_file: ./.env
+    environment:
+      NODE_ENV: production
     ports:
       - '${DEV_PORT}:3000'
     volumes:
@@ -21,10 +23,12 @@ services:
       - '${DEV_PORT}:3000'
     volumes:
       - .:/app:z
+      - node-dev:/home/node/dev
       - type: bind
         source: $HOST_SSH_AUTH_SOCK # e.g. /home/<youruser>/.ssh/agent.sock
         target: /ssh-agent
     environment:
+      NODE_ENV: development
       SSH_AUTH_SOCK: /ssh-agent
     entrypoint: '/bin/bash /app/docker-entrypoint.sh'
     networks:
@@ -33,3 +37,7 @@ services:
 networks:
   climate-map-network:
     external: true
+
+volumes:
+  node-dev:
+    driver: local
