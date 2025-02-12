@@ -13,7 +13,7 @@ const SidebarContentBox = ({
 }: {
   sxOuter?: SxProps<Theme>
   sxInner?: SxProps<Theme>
-  children: React.ReactNode
+  children?: React.ReactNode
 }) => {
   return (
     <Box
