@@ -13,7 +13,8 @@ WORKDIR /app
 
 USER node
 RUN touch /home/node/.bash_history &&\
-    export PROMPT_COMMAND='history -a; history -n'
+    echo 'PS0="$PS0"'"'"'$(history -a)'"'" >> /home/node/.bashrc &&\
+    echo 'PROMPT_COMMAND="history -n; $PROMPT_COMMAND"' >> /home/node/.bashrc
 
 EXPOSE 3000
 
