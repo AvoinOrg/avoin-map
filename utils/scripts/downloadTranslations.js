@@ -14,7 +14,7 @@ async function downloadTranslations() {
   }
 
   const languages = 'en,fi'
-  const namespaces = 'avoin-map,hiilikartta'
+  const namespaces = 'avoin-map,hiilikartta,luonnonmetsakartat'
   const format = 'JSON'
   const structureDelimiter = '.'
 
