@@ -12,7 +12,8 @@ RUN mkdir -p /home/node/dev &&\
 WORKDIR /app
 
 USER node
-RUN touch /home/node/.bash_history
+RUN touch /home/node/.bash_history &&\
+    export PROMPT_COMMAND='history -a; history -n'
 
 EXPOSE 3000
 
