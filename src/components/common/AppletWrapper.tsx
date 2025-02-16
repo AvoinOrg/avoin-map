@@ -16,6 +16,7 @@ const AppletWrapper = ({
   localizationNamespace,
   subPath,
   defaultLanguage,
+  isNavbarHidden,
   sx,
 }: {
   children: React.ReactNode
@@ -23,6 +24,7 @@ const AppletWrapper = ({
   localizationNamespace?: string
   subPath?: string
   defaultLanguage?: string
+  isNavbarHidden?: boolean
   sx?: any
 }) => {
   const tolgee = useTolgee(['update'])
@@ -33,6 +35,7 @@ const AppletWrapper = ({
   const setIsBaseDomainForApplet = useUIStore(
     (state) => state.setIsBaseDomainForApplet
   )
+  const setIsNavbarHidden = useUIStore((state) => state.setIsNavbarHidden)
 
   useEffect(() => {
     if (tolgee.isLoaded()) {
@@ -56,9 +59,12 @@ const AppletWrapper = ({
 
     setMapContext(mapContext)
 
+    setIsNavbarHidden(isNavbarHidden || false)
+
     return () => {
       tolgee.removeActiveNs(localizationNamespace)
       setIsBaseDomainForApplet(false)
+      setIsNavbarHidden(false)
     }
   }, [])
 
