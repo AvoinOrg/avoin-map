@@ -25,9 +25,10 @@ export const Sidebar = ({
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
   const isMapPopupOpen = useUIStore((state) => state.isMapPopupOpen)
   const setIsMapPopupOpen = useUIStore((state) => state.setIsMapPopupOpen)
-  const popupOpts = useMapStore((state) => state.popupOpts)
-
   const setSidebarWidth = useUIStore((state) => state.setSidebarWidth)
+  const isNavbarHidden = useUIStore((state) => state.isNavbarHidden)
+
+  const popupOpts = useMapStore((state) => state.popupOpts)
 
   const sidebarRef = useRef()
 
@@ -95,7 +96,8 @@ export const Sidebar = ({
           >
             {children}
           </Box>
-          {navbarElement ? navbarElement : <Navbar></Navbar>}
+          {!isNavbarHidden &&
+            (navbarElement ? navbarElement : <Navbar></Navbar>)}
         </Drawer>
 
         <PopupDrawer open={isMapPopupOpen}>
