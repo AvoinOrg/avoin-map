@@ -17,7 +17,7 @@ interface Vars {
   isSidebarDisabled: boolean
   isMapPopupOpen: boolean
   notifications: Record<string, InternalNotificationMessage>
-  isNavbarOpen: boolean
+  isNavbarHidden: boolean
   isLoginModalOpen: boolean
   sidebarWidth: number | undefined
   confirmationDialogOptions: InternalConfirmationDialogOptions
@@ -33,7 +33,7 @@ interface Actions {
     notificationId: string,
     notification: Partial<InternalNotificationMessage>
   ) => Promise<void>
-  setIsNavbarOpen: (value: boolean) => void
+  setIsNavbarHidden: (value: boolean) => void
   setSidebarHeaderElement: undefined | ((value: React.JSX.Element) => void)
   setSidebarHeaderElementSetter: (
     setter: (value: React.JSX.Element) => void
@@ -55,7 +55,7 @@ export const useUIStore = create<State>()(
       isSidebarOpen: true,
       isMapPopupOpen: false,
       isLoginModalOpen: false,
-      isNavbarOpen: true,
+      isNavbarHidden: false,
       notifications: {},
       sidebarWidth: undefined,
       confirmationDialogOptions: { id: null },
@@ -74,7 +74,7 @@ export const useUIStore = create<State>()(
       // setModalState: (value) => set({ modalState: value }),
       // signupFunnelStep: 0,
       // setSignupFunnelStep: (value) => set({ signupFunnelStep: value }),
-      setIsNavbarOpen: (value) => set({ isNavbarOpen: value }),
+      setIsNavbarHidden: (value) => set({ isNavbarHidden: value }),
       // These two allow dynamic changing of the sidebar header from other components
       // TODO: Figure out a better way to do this
       setSidebarHeaderElement: undefined,
