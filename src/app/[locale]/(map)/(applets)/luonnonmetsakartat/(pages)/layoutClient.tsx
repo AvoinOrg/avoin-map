@@ -11,14 +11,7 @@ import { BreadcrumbNav } from '#/components/Sidebar'
 import AppletWrapper from '#/components/common/AppletWrapper'
 import { useUserStore } from '#/common/store/userStore'
 
-import { planStatsQuery } from '../common/queries/planStatsQuery'
-import { planQueries } from '../common/queries/planQueries'
 import { useAppletStore } from '../state/appletStore'
-import {
-  PlanConfState,
-  PlaceholderPlanConf,
-  GlobalState,
-} from '../common/types'
 
 const localizationNamespace = 'luonnonmetsakartat'
 const defaultLanguage = 'fi'
@@ -29,6 +22,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
       mapContext={'luonnonmetsakartat'}
       localizationNamespace={localizationNamespace}
       defaultLanguage={defaultLanguage}
+      isNavbarHidden={true}
       sx={{
         pt: 0,
         display: 'flex',
