@@ -322,3 +322,24 @@ export const generatePathNames = (
 
   return pathnames
 }
+
+export const getPathnameWithoutLocale = (
+  pathname: string,
+  locale: string | string[] | null
+): string => {
+  if (!pathname) return '/'
+  if (!locale) return pathname
+
+  if (Array.isArray(locale)) {
+    if (locale.length === 0) {
+      return pathname
+    }
+
+    locale = locale[0]
+  }
+
+  const pattern = new RegExp(`^/${locale}($|/)`)
+  // Replace /locale at the start with "/"
+  const cleaned = pathname.replace(pattern, '/').replace(/\/+$/, '')
+  return cleaned === '' ? '/' : cleaned
+}
