@@ -6,27 +6,27 @@ import {
 } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
 
-// import { checkIsValidZoningCode } from '../common/utils'
+import { AdminVerificationStatus } from 'applets/luonnonmetsakartat/common/types'
 
 type Vars = {
-  isAdminVerified: boolean
+  adminVerificationStatus: AdminVerificationStatus
 }
 
 type Actions = {
-  setIsAdminVerified: (isAdminVerified: boolean) => void
+  setAdminVerificationStatus: (status: AdminVerificationStatus) => void
 }
 
 export const useAppletStore = create<Vars & Actions>()(
   subscribeWithSelector(
     immer((set, get) => {
       const vars = {
-        isAdminVerified: false,
+        adminVerificationStatus: AdminVerificationStatus.Pending,
       }
 
       const actions = {
-        setIsAdminVerified: (isAdminVerified: boolean) => {
+        setAdminVerificationStatus: (status: AdminVerificationStatus) => {
           set((state) => {
-            state.isAdminVerified = isAdminVerified
+            state.adminVerificationStatus = status
           })
         },
       }
