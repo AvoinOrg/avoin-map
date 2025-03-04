@@ -16,5 +16,11 @@ export const routeTree: RouteTree = {
       path: 'admin',
       name: 'Admin',
     },
+    import: {
+      _conf: {
+        path: 'tuo',
+        name: 'Tuo',
+      },
+    },
   },
 }
