@@ -12,7 +12,7 @@ services:
       - .:/app:z
     entrypoint: '/bin/bash /app/docker-entrypoint.sh'
     networks:
-      - climate-map-networ
+      - climate-map-network
 
   app-dev:
     profiles: [ dev ]
@@ -30,6 +30,10 @@ services:
     environment:
       NODE_ENV: development
       SSH_AUTH_SOCK: /ssh-agent
+      HOST_MACHINE: host.docker.internal
+    # Add extra_hosts to make host.docker.internal work
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     entrypoint: '/bin/bash /app/docker-entrypoint.sh'
     networks:
       - climate-map-network
