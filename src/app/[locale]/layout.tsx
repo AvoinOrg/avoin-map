@@ -1,4 +1,5 @@
 import React from 'react'
+import { Metadata } from 'next'
 
 import LayoutClient from './layoutClient'
 import { getStaticData, getLocaleObj } from '#/common/navigation/tolgee/shared'
@@ -10,12 +11,8 @@ type Props = {
   resolvedUrl: string
 }
 
-const Layout = async ({
-  // Layouts must accept a children prop.
-  // This will be populated with nested layouts or pages
-  children,
-  params: { locale },
-}: Props) => {
+const Layout = async ({ children, params }: Props) => {
+  const { locale } = await params
   const locales = await getStaticData(getLocaleObj(locale))
 
   return (

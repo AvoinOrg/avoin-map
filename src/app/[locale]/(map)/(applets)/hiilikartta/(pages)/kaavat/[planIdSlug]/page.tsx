@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import { Box, Typography } from '@mui/material'
-import { useRouter } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { styled } from '@mui/material/styles'
 // import SettingsIcon from '@mui/icons-material/Settings'
 // import MuiLink from '@mui/material/Link'
@@ -35,7 +35,8 @@ import { planDeleteMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/c
 import { LoadingSpinner } from '#/components/Loading'
 import SidebarContentBox from '#/components/Sidebar/SidebarContentBox'
 
-const Page = ({ params }: { params: { planIdSlug: string } }) => {
+const Page = () => {
+  const params = useParams<{ planIdSlug: string }>()
   const triggerConfirmationDialog = useUIStore(
     (state) => state.triggerConfirmationDialog
   )
@@ -326,10 +327,10 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
                     <Typography typography={'h1'}>
                       {pp(
                         planConf.reportData.agg.totals.bio_carbon_total_diff[
-                          currentYear
+                        currentYear
                         ] +
-                          planConf.reportData.agg.totals
-                            .ground_carbon_total_diff[currentYear],
+                        planConf.reportData.agg.totals
+                          .ground_carbon_total_diff[currentYear],
                         0
                       )}
                     </Typography>
@@ -342,11 +343,11 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
                     <Typography mt={2} typography={'h1'}>
                       {pp(
                         planConf.reportData.agg.totals.bio_carbon_ha_diff[
-                          currentYear
+                        currentYear
                         ] +
-                          planConf.reportData.agg.totals.ground_carbon_ha_diff[
-                            currentYear
-                          ],
+                        planConf.reportData.agg.totals.ground_carbon_ha_diff[
+                        currentYear
+                        ],
                         0
                       )}
                     </Typography>
@@ -431,81 +432,81 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
               CalculationState.ERRORED,
               CalculationState.FINISHED,
             ].includes(planConf.calculationState) && (
-              <Box
-                sx={{
-                  display: 'flex',
-                  flex: 1,
-                  flexDirection: 'column',
-                  justifyContent: 'flex-end',
-                }}
-              >
                 <Box
                   sx={{
                     display: 'flex',
-                    flexDirection: 'row',
+                    flex: 1,
+                    flexDirection: 'column',
                     justifyContent: 'flex-end',
                   }}
                 >
-                  <Tooltip
-                    title={
-                      hasNoFeatures
-                        ? t(
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      justifyContent: 'flex-end',
+                    }}
+                  >
+                    <Tooltip
+                      title={
+                        hasNoFeatures
+                          ? t(
                             'sidebar.plan_settings.calculate_carbon_effect.tooltip_no_features'
                           )
-                        : t(
+                          : t(
                             'sidebar.plan_settings.calculate_carbon_effect.tooltip_invalid'
                           )
-                    }
-                    disableHoverListener={areSettingsValid && !hasNoFeatures}
-                    disableFocusListener={areSettingsValid && !hasNoFeatures}
-                    disableTouchListener={areSettingsValid && !hasNoFeatures}
-                  >
-                    <Box
-                      sx={{
-                        display: 'inline-flex',
-                        flexDirection: 'row',
-                        '&:hover': {
-                          cursor:
-                            areSettingsValid && !hasNoFeatures
-                              ? 'pointer'
-                              : 'default',
-                        },
-                        mt: 4,
-                        flex: '0',
-                        color:
-                          areSettingsValid && !hasNoFeatures
-                            ? 'neutral.darker'
-                            : 'neutral.main',
-                      }}
-                      onClick={
-                        areSettingsValid && !hasNoFeatures
-                          ? handleSubmit
-                          : undefined
                       }
+                      disableHoverListener={areSettingsValid && !hasNoFeatures}
+                      disableFocusListener={areSettingsValid && !hasNoFeatures}
+                      disableTouchListener={areSettingsValid && !hasNoFeatures}
                     >
                       <Box
                         sx={{
-                          typography: 'h1',
-                          textAlign: 'end',
-                          mr: 3,
-                          minWidth: '270px',
+                          display: 'inline-flex',
+                          flexDirection: 'row',
+                          '&:hover': {
+                            cursor:
+                              areSettingsValid && !hasNoFeatures
+                                ? 'pointer'
+                                : 'default',
+                          },
+                          mt: 4,
+                          flex: '0',
+                          color:
+                            areSettingsValid && !hasNoFeatures
+                              ? 'neutral.darker'
+                              : 'neutral.main',
                         }}
+                        onClick={
+                          areSettingsValid && !hasNoFeatures
+                            ? handleSubmit
+                            : undefined
+                        }
                       >
-                        <T
-                          keyName={
-                            'sidebar.plan_settings.calculate_carbon_effect'
-                          }
-                          ns={'hiilikartta'}
-                        />
+                        <Box
+                          sx={{
+                            typography: 'h1',
+                            textAlign: 'end',
+                            mr: 3,
+                            minWidth: '270px',
+                          }}
+                        >
+                          <T
+                            keyName={
+                              'sidebar.plan_settings.calculate_carbon_effect'
+                            }
+                            ns={'hiilikartta'}
+                          />
+                        </Box>
+                        <Box sx={{ mt: 0.2 }}>
+                          <ArrowNextBig></ArrowNextBig>
+                        </Box>
                       </Box>
-                      <Box sx={{ mt: 0.2 }}>
-                        <ArrowNextBig></ArrowNextBig>
-                      </Box>
-                    </Box>
-                  </Tooltip>
+                    </Tooltip>
+                  </Box>
                 </Box>
-              </Box>
-            )}
+              )}
           </Box>
         </>
       )}
