@@ -24,12 +24,8 @@ services:
     volumes:
       - .:/app:z
       - node-dev:/home/node/dev
-      - type: bind
-        source: $HOST_SSH_AUTH_SOCK # e.g. /home/<youruser>/.ssh/agent.sock
-        target: /ssh-agent
     environment:
       NODE_ENV: development
-      SSH_AUTH_SOCK: /ssh-agent
       HOST_MACHINE: host.docker.internal
     # Add extra_hosts to make host.docker.internal work
     extra_hosts:
