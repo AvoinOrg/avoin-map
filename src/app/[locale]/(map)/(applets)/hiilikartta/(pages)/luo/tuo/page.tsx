@@ -16,6 +16,8 @@ import {
   ZONING_CODE_COL,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
 import { getGeoJsonArea } from '#/common/utils/gis'
+import BigMenuButton from '#/components/common/BigMenuButton'
+import { Upload } from '#/components/icons'
 
 import { routeTree } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/routes'
 import PlanImportGpkg from './_components/PlanImportGpkg'
@@ -259,7 +261,7 @@ const Page = () => {
 
   return (
     <>
-      <Button
+      <BigMenuButton
         variant="outlined"
         component="label"
         sx={(theme) => ({
@@ -277,7 +279,8 @@ const Page = () => {
           onChange={handleFileInput}
           ref={inputRef}
         />
-      </Button>
+        <Upload />
+      </BigMenuButton>
       {fileType === 'gpkg' && arrayBuffer && (
         <PlanImportGpkg
           fileBuffer={arrayBuffer}
