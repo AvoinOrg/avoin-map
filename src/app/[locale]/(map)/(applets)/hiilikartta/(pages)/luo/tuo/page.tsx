@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { buffer } from '@turf/turf'
 import booleanValid from '@turf/boolean-valid'
 import { flattenDeep } from 'lodash-es'
+import { useTranslate } from '@tolgee/react'
 
 import { getRoute } from '#/common/utils/routing-client'
 import {
@@ -32,6 +33,7 @@ const Page = () => {
   const isInitializing = useRef(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
+  const { t } = useTranslate('hiilikartta')
 
   useEffect(() => {
     if (inputRef.current) {
@@ -266,7 +268,7 @@ const Page = () => {
           mb: 6,
         })}
       >
-        {fileName ? fileName : 'Valitse tiedosto'}
+        {fileName ? fileName : t('sidebar.create.select_file')}
         <input
           hidden
           accept=".zip, .gpkg"
