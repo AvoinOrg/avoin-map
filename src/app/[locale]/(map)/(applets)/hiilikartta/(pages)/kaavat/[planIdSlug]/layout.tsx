@@ -1,16 +1,21 @@
 'use client'
 import React, { useEffect, useRef } from 'react'
-
-import { useMapStore } from '#/common/store'
+import { useParams } from 'next/navigation'
+import { FeatureCollection } from 'geojson'
 
 // import { useAppStore } from 'applets/hiilikartta/state/appStore'
+import { useMapStore } from '#/common/store'
+import { Feature } from 'geojson'
+import { getGeoJsonArea } from '#/common/utils/gis'
+import { generateUUID } from '#/common/utils/general'
+import useStore from '#/common/hooks/useStore'
+import { useDoesLayerGroupExist } from '#/common/hooks/map/useDoesLayerGroupExist'
+import { SerializableLayerGroupAddOptions } from '#/common/types/map'
+
 import {
   createLayerConf,
   getPlanLayerGroupId,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
-import { Feature } from 'geojson'
-import { getGeoJsonArea } from '#/common/utils/gis'
-import { generateUUID } from '#/common/utils/general'
 import {
   FeatureProperties,
   GlobalState,
@@ -19,18 +24,13 @@ import {
   ZONING_CODE_COL,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
-import useStore from '#/common/hooks/useStore'
-import { useDoesLayerGroupExist } from '#/common/hooks/map/useDoesLayerGroupExist'
-import { SerializableLayerGroupAddOptions } from '#/common/types/map'
-import { FeatureCollection } from 'geojson'
 
 const Layout = ({
-  params,
   children,
 }: {
-  params: { planIdSlug: string }
   children: React.ReactNode
 }) => {
+  const params = useParams<{ planIdSlug: string }>()
   // const planConf = useStore(useAppStore, (state) => state.planConfs)
   const enableSerializableLayerGroup = useMapStore(
     (state) => state.enableSerializableLayerGroup
@@ -142,11 +142,11 @@ const Layout = ({
     } else if (!planConf && doesLayerGroupExist) {
       disableSerializableLayerGroup(
         getPlanLayerGroupId(params.planIdSlug)
-      ).catch(() => {})
+      ).catch(() => { })
     } else if (planConf && planConf.isHidden && doesLayerGroupExist) {
       disableSerializableLayerGroup(
         getPlanLayerGroupId(params.planIdSlug)
-      ).catch(() => {})
+      ).catch(() => { })
     } else if (
       planConf &&
       planConf.state != null &&
@@ -154,7 +154,7 @@ const Layout = ({
     ) {
       disableSerializableLayerGroup(
         getPlanLayerGroupId(params.planIdSlug)
-      ).catch(() => {})
+      ).catch(() => { })
       isLoaded.current = false
     }
   }, [planConf, isLoaded, doesLayerGroupExist, globalState])
