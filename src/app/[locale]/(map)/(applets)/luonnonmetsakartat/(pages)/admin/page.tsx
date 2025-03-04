@@ -9,14 +9,14 @@ import { T } from '@tolgee/react'
 import MutableLink from '#/components/common/MutableLink'
 import { Upload } from '#/components/icons'
 
-import { routeTree } from 'applets/hiilikartta/common/routes'
+import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
 
 const Page = () => {
   useEffect(() => {}, [])
 
   return (
     <MutableLink
-      route={routeTree.create.import}
+      route={routeTree.admin.import}
       routeTree={routeTree}
       sx={{
         display: 'flex',
