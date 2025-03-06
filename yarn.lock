@@ -7927,7 +7927,7 @@ __metadata:
     ol: ^7.2.2
     ol-mapbox-style: ^9.5.0
     openid-client: ^5.4.2
-    overlayscrollbars: ^2.8.3
+    overlayscrollbars: ^2.11.1
     overlayscrollbars-react: ^0.5.6
     react: ^19.0.0
     react-chartjs-2: ^5.2.0
@@ -14407,10 +14407,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"overlayscrollbars@npm:^2.8.3":
-  version: 2.8.3
-  resolution: "overlayscrollbars@npm:2.8.3"
-  checksum: d6288fbf0cf1bcddff4656748782437ae22e8087dc15dc09b94244a2c991159bc3ce623926a4adf3e32f1082772dd8a1175c3dcfa87f1122ff399c2ad83d1807
+"overlayscrollbars@npm:^2.11.1":
+  version: 2.11.1
+  resolution: "overlayscrollbars@npm:2.11.1"
+  checksum: f401cfeddcbb99d1b4a4000e5f6d1630be25fda921e7c20d4330aedb5e348e716bca908f127a43a336249b5e32f21f66e952c2e7c4cf87c6d0fe792c2f27e41c
   languageName: node
   linkType: hard
 
