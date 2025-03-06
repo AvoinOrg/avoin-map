@@ -1,10 +1,10 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Box, SxProps, Theme } from '@mui/material'
 
 import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
-import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
+import { OverlayScrollbarsComponent, useOverlayScrollbars } from 'overlayscrollbars-react'
 
 const SidebarContentBox = ({
   sxOuter,
@@ -15,6 +15,8 @@ const SidebarContentBox = ({
   sxInner?: SxProps<Theme>
   children?: React.ReactNode
 }) => {
+
+
   return (
     <Box
       className="sidebar-children-container"
@@ -32,14 +34,25 @@ const SidebarContentBox = ({
         ...(Array.isArray(sxOuter) ? sxOuter : [sxOuter]),
       ]}
     >
-      <OverlayScrollbarsComponent defer>
+      <OverlayScrollbarsComponent defer
+        options={{
+          scrollbars: {
+            autoHide: 'scroll'
+          }
+        }}
+        style={{
+          height: '100%',
+          width: '100%',
+          display: 'flex',
+        }}>
         <Box
+          className="sidebar-children-container-inner"
           sx={[
             {
               direction: 'ltr',
-              // display: 'flex',
-              // flexDirection: 'column',
-              // flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              height: "100%",
               p: SIDEBAR_PADDING_REM + 'rem',
             },
             ...(Array.isArray(sxInner) ? sxInner : [sxInner]),
