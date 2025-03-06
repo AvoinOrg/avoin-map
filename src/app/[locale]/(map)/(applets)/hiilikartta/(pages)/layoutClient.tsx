@@ -89,7 +89,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
           !Object.keys(planConfs).includes(placeholderPlanConf.id) ||
           (planConfs[placeholderPlanConf.id].localLastEdited != null &&
             (planConfs[placeholderPlanConf.id].localLastEdited ?? 0) <
-              placeholderPlanConf.cloudLastSaved)
+            placeholderPlanConf.cloudLastSaved)
         ) {
           await addPlaceholderPlanConf(
             placeholderPlanConf.id,
@@ -177,7 +177,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
       <Sidebar
         sx={{ width: '30rem' }}
         headerElement={
-          <SidebarHeader title={'Hiilikartta'}>
+          <SidebarHeader title={'Hiilikartta'} sx={{}}>
             <Box sx={{ mt: 8, width: '100%' }}>
               <BreadcrumbNav routeTree={routeTree}></BreadcrumbNav>
             </Box>
