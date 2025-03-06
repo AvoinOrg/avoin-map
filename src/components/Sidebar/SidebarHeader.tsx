@@ -17,7 +17,8 @@ const SidebarHeader = ({ children, title, sx }: Props) => {
         border: 1,
         borderColor: 'primary.dark',
         flexDirection: 'column',
-        minHeight: '8rem',
+        flexShrink: 0,
+        minHeight: 8,
         ...sx,
       }}
     >
@@ -42,7 +43,6 @@ const SidebarHeader = ({ children, title, sx }: Props) => {
           pl: 5,
           pb: 4,
           pr: 5,
-          overflow: 'hidden',
           maxWidth: sx?.width ? sx.width : '100%',
         }}
       >
