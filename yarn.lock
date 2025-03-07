@@ -3687,37 +3687,37 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tolgee/core@npm:5.26.0":
-  version: 5.26.0
-  resolution: "@tolgee/core@npm:5.26.0"
-  checksum: 3233f77bf6b710976765586cbfe40e15ab163d56df292a48ebcafe0977e48ea73822dfe863913852004431e5e4cee33fe31b67f841bccc66e4f68fc518d55b1f
+"@tolgee/core@npm:6.2.2":
+  version: 6.2.2
+  resolution: "@tolgee/core@npm:6.2.2"
+  checksum: 8de253633d59c8d91b0ad4c6de368224be7dd0137289dfe4ed3f2c0f0908dacae5c6d4dd4603feef8deedacee1d5387ddf066e6630d4fe2618d11103a33a64b2
   languageName: node
   linkType: hard
 
-"@tolgee/format-icu@npm:^5.23.0":
-  version: 5.23.0
-  resolution: "@tolgee/format-icu@npm:5.23.0"
-  checksum: 7eb99148da909693e43205f415ce0c1c28f209a91c20757a221b4acac9d6a490ea9aecfd9c228341d3fa7a3f595b0d66bf0887f2b1a970dea8035aac45e64e0a
+"@tolgee/format-icu@npm:^6.2.2":
+  version: 6.2.2
+  resolution: "@tolgee/format-icu@npm:6.2.2"
+  checksum: f87377bfb6ab6ff1297e73aca66535c637ca0e78b072a1700f67659d0f943ebcaef4e511372d609c36a98c52d3ffa5df3c8a038bfb7174953ca75d5dab7fd4b1
   languageName: node
   linkType: hard
 
-"@tolgee/react@npm:^5.26.0":
-  version: 5.26.0
-  resolution: "@tolgee/react@npm:5.26.0"
+"@tolgee/react@npm:^6.2.2":
+  version: 6.2.2
+  resolution: "@tolgee/react@npm:6.2.2"
   dependencies:
-    "@tolgee/web": 5.26.0
+    "@tolgee/web": 6.2.2
   peerDependencies:
-    react: ^16.14.0 || ^17.0.1 || ^18.1.0
-  checksum: 7e1fa5e7b7c67ae91b2c9fde5946b7b856bb2531a62875020d6d2f97bd7ffab72fd39074cb8967ecf83788819c10f8f6470174be5dde3d8132bf684e98a4759a
+    react: ^16.14.0 || ^17.0.1 || ^18.1.0 || ^19
+  checksum: fff86eee05a502f4dfead4de70d62ea69dc873a95bb6a058ea49075d93fbe81a6b7df83c5ecb27a12df639efcaf62e36d119bba2f4084a65789fa1f6f8fc0ad8
   languageName: node
   linkType: hard
 
-"@tolgee/web@npm:5.26.0":
-  version: 5.26.0
-  resolution: "@tolgee/web@npm:5.26.0"
+"@tolgee/web@npm:6.2.2, @tolgee/web@npm:^6.2.2":
+  version: 6.2.2
+  resolution: "@tolgee/web@npm:6.2.2"
   dependencies:
-    "@tolgee/core": 5.26.0
-  checksum: 739162e38f0c39d6a09db8acbc59a0e2612fc0cef38697ff425ebf79b5c6e69fb56c34fd3443c6341dd1033ee4fe7e9acc1ec9fb0894c91dd135e6785d572d8c
+    "@tolgee/core": 6.2.2
+  checksum: 9b822b0a1714756a4ade34d1b96dbccb26df2dc4036795522868fcb60ebf395f4dea992dc32e43df59b0bfc546f19e7ab95d63bd245e59ac5fb80028c4daec11
   languageName: node
   linkType: hard
 
@@ -7850,8 +7850,9 @@ __metadata:
     "@tanstack/react-query": rc
     "@testing-library/jest-dom": ^6.4.5
     "@testing-library/react": ^15.0.7
-    "@tolgee/format-icu": ^5.23.0
-    "@tolgee/react": ^5.26.0
+    "@tolgee/format-icu": ^6.2.2
+    "@tolgee/react": ^6.2.2
+    "@tolgee/web": ^6.2.2
     "@turf/boolean-valid": ^6.5.0
     "@turf/boolean-within": ^6.5.0
     "@turf/helpers": ^6.5.0
