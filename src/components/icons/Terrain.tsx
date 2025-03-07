@@ -1,12 +1,18 @@
 import * as React from 'react'
-import type { SVGProps } from 'react'
-const SvgTerrain = (props: SVGProps<SVGSVGElement>) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
+import { Box, SxProps, Theme } from '@mui/material'
+
+type Props = {
+  sx?: SxProps<Theme>
+}
+
+const Terrain = (props: Props) => (
+  <Box
+    component={"svg"}
+    width={24}
+    height={24}
     viewBox="0 0 24 24"
     fill="none"
+    xmlns="http://www.w3.org/2000/svg"
     {...props}
   >
     <rect
@@ -47,6 +53,7 @@ const SvgTerrain = (props: SVGProps<SVGSVGElement>) => (
       fill="black"
       mask="url(#path-4-outside-1_14_521)"
     />
-  </svg>
+  </Box>
 )
-export default SvgTerrain
+
+export default Terrain

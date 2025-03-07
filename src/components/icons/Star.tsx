@@ -1,5 +1,4 @@
 import * as React from 'react'
-import type { SVGProps } from 'react'
 import { SxProps, Box, Theme } from '@mui/material'
 
 type Props = {
