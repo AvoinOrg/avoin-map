@@ -25,6 +25,9 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
   const adminVerificationStatus = useAppletStore(
     (state) => state.adminVerificationStatus
   )
+  const setAdminVerificationStatus = useAppletStore(
+    (state) => state.setAdminVerificationStatus
+  )
   const { data: session, status } = useSession()
   const [isReady, setIsReady] = useState(false)
 
@@ -61,25 +64,32 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
     }
   }, [adminVerificationStatus])
 
+  useEffect(() => {
+    if (status == "unauthenticated") {
+      setAdminVerificationStatus(AdminVerificationStatus.NoUser)
+    }
+  }, [adminVerificationStatus, status])
+
   // returns the user back to admin page, if they try to navigate
   // further without being verified
   useEffect(() => {
-    if (adminVerificationStatus !== AdminVerificationStatus.Verified) {
+    if ((status != "loading" && ![AdminVerificationStatus.Pending, AdminVerificationStatus.Verified].includes(adminVerificationStatus))
+      && !(status == 'authenticated' && adminVerificationStatus == AdminVerificationStatus.NoUser)) {
       const adminRoute = getRoute(routeTree.admin, routeTree)
       if (getPathnameWithoutLocale(pathname, locale) !== adminRoute) {
         router.replace(adminRoute)
       }
     }
-  }, [adminVerificationStatus, pathname, router, locale])
+  }, [adminVerificationStatus, pathname, router, locale, status])
 
   return (
     <SidebarContentBox>
       {(status === 'loading' ||
         adminVerificationStatus === AdminVerificationStatus.Pending) && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-          <LoadingSpinner />
-        </Box>
-      )}
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+            <LoadingSpinner />
+          </Box>
+        )}
       {status !== 'loading' && session?.user?.id == null && (
         <Box sx={{ display: 'flex', flexDirection: 'row', mt: 3 }}>
           <Star sx={{ height: 40, width: 'auto' }}></Star>
