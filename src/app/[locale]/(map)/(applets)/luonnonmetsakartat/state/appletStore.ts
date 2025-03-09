@@ -20,7 +20,7 @@ export const useAppletStore = create<Vars & Actions>()(
   subscribeWithSelector(
     immer((set, get) => {
       const vars = {
-        adminVerificationStatus: AdminVerificationStatus.Pending,
+        adminVerificationStatus: AdminVerificationStatus.NoUser,
       }
 
       const actions = {
