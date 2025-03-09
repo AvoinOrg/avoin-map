@@ -6,38 +6,36 @@ import { useRouter } from 'next/navigation'
 import { buffer } from '@turf/turf'
 import booleanValid from '@turf/boolean-valid'
 import { flattenDeep } from 'lodash-es'
+import { useTranslate } from '@tolgee/react'
+import { Feature, FeatureCollection } from 'geojson'
 
 import { getRoute } from '#/common/utils/routing-client'
-import {
-  FeatureProperties,
-  FileType,
-  NewPlanConf,
-  ZONING_CODE_COL,
-} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
 import { getGeoJsonArea } from '#/common/utils/gis'
-
-import { routeTree } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/routes'
-import LayerImportShp from 'applets/luonnonmetsakartat/components/LayerImportShp'
-import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
-import { Feature, FeatureCollection } from 'geojson'
 import { generateUUID } from '#/common/utils/general'
-import { ZONING_CLASSES } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/constants'
 import BigMenuButton from '#/components/common/BigMenuButton'
 import { Upload } from '#/components/icons'
-import { useTranslate } from '@tolgee/react'
+
+import {
+  FeatureProperties,
+} from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
+import { routeTree } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/routes'
+import LayerImportShp from 'applets/luonnonmetsakartat/components/LayerImportShp'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 
 const Page = () => {
-  const addPlanConf = useAppletStore((state) => state.addPlanConf)
-  const [fileType, setFileType] = useState<FileType>()
+  const addForestLayer = useAppletStore((state) => state.addForestLayer)
+  const [fileType, setFileType] = useState<"shp">()
   const [fileName, setFileName] = useState<string>()
-  const [arrayBuffer, setArrayBuffer] = useState<ArrayBuffer>()
+  const [arrayBuffers, setArrayBuffers] = useState<ArrayBuffer[]>()
   const isInitializing = useRef(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const { t } = useTranslate('luonnonmetsakartat')
+  const dialogOpenedRef = useRef(false);
 
   useEffect(() => {
-    if (inputRef.current) {
+    if (inputRef.current && !dialogOpenedRef.current) {
+      dialogOpenedRef.current = true
       inputRef.current.click()
     }
   }, [])
@@ -208,21 +206,22 @@ const Page = () => {
     const reader = new window.FileReader()
     reader.readAsArrayBuffer(f)
 
+    const newArrayBuffers: ArrayBuffer[] = []
+
     reader.onloadend = async () => {
       // TODO: add error handling. An error message popup if file is invalid?
       if (reader.result != null) {
         setFileName(f.name)
         if (typeof reader.result !== 'string') {
-          if (f.name.split('.').pop() === 'gpkg') {
-            if (typeof reader.result !== 'string') {
-              setFileType('gpkg')
-              setArrayBuffer(reader.result)
-            }
-          } else if (f.name.split('.').pop() === 'zip') {
+          if (f.name.split('.').pop() === 'zip') {
             setFileType('shp')
-            setArrayBuffer(reader.result)
-            // initializePlan(json)
+            newArrayBuffers.push(reader.result)
           }
+          else if (f.name.split('.').pop() === 'shp') {
+            setFileType('shp')
+            newArrayBuffers.push(reader.result)
+          }
+          setArrayBuffers(newArrayBuffers)
         } else {
           console.error('reader.result is a string, not an ArrayBuffer')
         }
@@ -265,25 +264,25 @@ const Page = () => {
         component="label"
         sx={(theme) => ({
           width: '100%',
-          height: '60px',
+          minHeight: '60px',
           mb: 6,
         })}
       >
         {fileName ? fileName : t('sidebar.admin.create.select_file')}
         <input
           hidden
-          accept=".zip, .gpkg"
+          accept=".zip"
           multiple
           type="file"
           onChange={handleFileInput}
           ref={inputRef}
         />
-        <Upload />
+        <Upload sx={{ width: "24px" }} />
       </BigMenuButton>
 
-      {fileType === 'shp' && arrayBuffer && (
+      {fileType === 'shp' && arrayBuffers && arrayBuffers?.length > 0 && (
         <LayerImportShp
-          fileBuffer={arrayBuffer}
+          fileBuffers={arrayBuffers}
           onFinish={handleFinish}
         ></LayerImportShp>
       )}
