@@ -5,6 +5,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { SessionProvider } from 'next-auth/react'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
+import { NextIntlClientProvider } from 'next-intl'
 
 import { theme } from '#/common/style/theme'
 import { queryClient } from '#/common/queries/queryClient'
@@ -21,16 +22,20 @@ const LayoutClient = ({
   children: React.ReactNode
 }) => {
   return (
-    <SessionProvider>
-      <NotificationProvider>
-        <QueryClientProvider client={queryClient}>
-          <ThemeProvider theme={theme}>
-            <CssBaseline />
-            {children}
-          </ThemeProvider>
-        </QueryClientProvider>
-      </NotificationProvider>
-    </SessionProvider>
+    // TODO: Does this even do anything? Figure it out.
+    // Supposedly the locale needs to be supplied
+    <NextIntlClientProvider locale={'en'}>
+      <SessionProvider>
+        <NotificationProvider>
+          <QueryClientProvider client={queryClient}>
+            <ThemeProvider theme={theme}>
+              <CssBaseline />
+              {children}
+            </ThemeProvider>
+          </QueryClientProvider>
+        </NotificationProvider>
+      </SessionProvider>
+    </NextIntlClientProvider>
   )
 }
 
