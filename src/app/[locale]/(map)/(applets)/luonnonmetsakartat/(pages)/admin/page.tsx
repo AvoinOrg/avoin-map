@@ -11,7 +11,7 @@ import BigMenuButton from '#/components/common/BigMenuButton'
 import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
 
 const Page = () => {
-  useEffect(() => {}, [])
+  useEffect(() => { }, [])
 
   return (
     <MutableLink
@@ -25,9 +25,7 @@ const Page = () => {
       }}
     >
       <BigMenuButton color="primary" sx={{ pl: 3, pr: 3 }}>
-        <Box typography={'body1'}>
-          <T keyName={'sidebar.admin.upload'} ns={'luonnonmetsakartat'}></T>
-        </Box>
+        <T keyName={'sidebar.admin.upload'} ns={'luonnonmetsakartat'}></T>
         <Upload />
       </BigMenuButton>
     </MutableLink>
