@@ -6,10 +6,10 @@ import LayerImportActionsRow from './LayerImportActionsRow'
 import LayerImportCodeRecordSelect from './LayerImportCodeRecordSelect'
 
 const LayerImportShp = ({
-  fileBuffer,
+  fileBuffers,
   onFinish,
 }: {
-  fileBuffer: ArrayBuffer
+  fileBuffers: ArrayBuffer[]
   onFinish: (
     json: FeatureCollection,
     zoningColName: string,
@@ -23,9 +23,9 @@ const LayerImportShp = ({
   const [columns, setColumns] = useState<string[]>([])
 
   useEffect(() => {
-    const loadGeojson = async (fileBuffer: ArrayBuffer) => {
+    const loadGeojson = async (fileBuffers: ArrayBuffer[]) => {
       const shp = (await import('shpjs')).default
-      const json = await shp(fileBuffer)
+      const json = await shp(fileBuffers[0])
 
       let allFeatures: Feature[] = []
 
@@ -46,8 +46,8 @@ const LayerImportShp = ({
       setGeojson(mergedFeatureCollection)
     }
 
-    loadGeojson(fileBuffer)
-  }, [fileBuffer])
+    loadGeojson(fileBuffers)
+  }, [fileBuffers])
 
   useEffect(() => {
     if (geojson != null) {
