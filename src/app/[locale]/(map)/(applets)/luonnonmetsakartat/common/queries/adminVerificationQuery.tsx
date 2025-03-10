@@ -23,7 +23,6 @@ export const adminVerificationQuery = (): UseQueryOptions<boolean | null> => {
       }
 
       try {
-
         const response = await axios.get(`${API_URL}/admin/validate`, {
           headers: {
             'Content-Type': 'multipart/form-data',
@@ -50,7 +49,7 @@ export const adminVerificationQuery = (): UseQueryOptions<boolean | null> => {
         if (axios.isAxiosError(error)) {
           if (error.response?.status === 403) {
             setAdminVerificationStatus(AdminVerificationStatus.Rejected)
-            error.name = 'AuthorizationError';
+            error.name = 'AuthorizationError'
             return false
           }
         }
@@ -63,11 +62,11 @@ export const adminVerificationQuery = (): UseQueryOptions<boolean | null> => {
     retry: (failureCount, error) => {
       // Don't retry authorization errors (403)
       if (error && error.name === 'AuthorizationError') {
-        return false;
+        return false
       }
 
       // Retry other errors up to 3 times
-      return failureCount < 3;
+      return failureCount < 3
     },
   }
 }
