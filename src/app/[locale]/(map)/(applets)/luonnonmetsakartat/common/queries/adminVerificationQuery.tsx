@@ -22,34 +22,52 @@ export const adminVerificationQuery = (): UseQueryOptions<boolean | null> => {
         return Promise.resolve(false)
       }
 
-      const response = await axios.get(`${API_URL}/admin/validate`, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${session?.accessToken}`,
-        },
-      })
+      try {
 
-      if (response.status === 200) {
-        if (
-          response.data?.is_editor === true ||
-          response.data?.is_admin === true
-        ) {
-          setAdminVerificationStatus(AdminVerificationStatus.Verified)
-          return true
+        const response = await axios.get(`${API_URL}/admin/validate`, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${session?.accessToken}`,
+          },
+        })
+
+        if (response.status === 200) {
+          if (
+            response.data?.is_editor === true ||
+            response.data?.is_admin === true
+          ) {
+            setAdminVerificationStatus(AdminVerificationStatus.Verified)
+            return true
+          }
+
+          setAdminVerificationStatus(AdminVerificationStatus.Rejected)
+          return false
         }
 
-        setAdminVerificationStatus(AdminVerificationStatus.Rejected)
-        return false
-      }
+        setAdminVerificationStatus(AdminVerificationStatus.Errored)
+        return null
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 403) {
+            setAdminVerificationStatus(AdminVerificationStatus.Rejected)
+            error.name = 'AuthorizationError';
+            return false
+          }
+        }
 
-      if (response.status === 403) {
-        setAdminVerificationStatus(AdminVerificationStatus.Rejected)
-        return false
+        // Any other error
+        setAdminVerificationStatus(AdminVerificationStatus.Errored)
+        return null
       }
-
-      setAdminVerificationStatus(AdminVerificationStatus.Errored)
-      return null
     },
-    retry: 3,
+    retry: (failureCount, error) => {
+      // Don't retry authorization errors (403)
+      if (error && error.name === 'AuthorizationError') {
+        return false;
+      }
+
+      // Retry other errors up to 3 times
+      return failureCount < 3;
+    },
   }
 }
