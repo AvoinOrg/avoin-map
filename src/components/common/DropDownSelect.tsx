@@ -45,6 +45,7 @@ const DropDownSelect = ({
   }, [value, options])
 
   const useEmpty = allowEmpty || value == null || value === ''
+  const currentValue = value == null ? '' : value
 
   return (
     <FormControl sx={[...(Array.isArray(sx) ? sx : [sx])]}>
@@ -62,7 +63,7 @@ const DropDownSelect = ({
         </Typography>
       )}
       <Select
-        value={value == null ? '' : value}
+        value={currentValue}
         onChange={onChange}
         IconComponent={DownIcon}
         MenuProps={{
@@ -87,29 +88,29 @@ const DropDownSelect = ({
           ...(Array.isArray(selectSx) ? selectSx : [selectSx]),
         ]}
       >
-        {hasEmpty === true && value != null && value != '' && (
-          <MenuItem key={value} value={value}>
+        {hasEmpty === true && value != null && value !== '' && (
+          <MenuItem key={`invalid-${value}`} value={value}>
             <i>
               <T
                 keyName={'components.drop_down_select.invalid_value'}
                 ns={'avoin-map'}
-              ></T>
+              />
               {` (${value})`}
             </i>
           </MenuItem>
         )}
         {useEmpty && (
-          <MenuItem key={''} value={undefined}>
+          <MenuItem key="empty-selection" value="">
             <i>
               <T
                 keyName={'components.drop_down_select.empty_selection'}
                 ns={'avoin-map'}
-              ></T>
+              />
             </i>
           </MenuItem>
         )}
         {options.map((option) => (
-          <MenuItem key={option.value} value={option.value}>
+          <MenuItem key={`option-${option.value}`} value={option.value}>
             {option.label}
           </MenuItem>
         ))}
