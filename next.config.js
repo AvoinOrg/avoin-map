@@ -40,7 +40,6 @@ const getNextAuthUrl = () => {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  swcMinify: true,
   // emotion: true,
   compiler: {
     styledComponents: true,
