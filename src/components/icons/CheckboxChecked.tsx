@@ -1,13 +1,32 @@
-import * as React from 'react'
-import type { SVGProps } from 'react'
-interface Props extends SVGProps<SVGSVGElement> {
-  fillColor?: string
+import React from 'react'
+import { Box, SxProps, Theme } from '@mui/material'
+
+type Props = {
+  sx?: SxProps<Theme>
 }
 
-const SvgCheckboxChecked = ({ fillColor = 'gray', ...props }): Props => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={23} height={23} fill="none" {...props}>
-    <path fill={fillColor} fillOpacity={0.35} stroke="currentColor" strokeWidth={2} d="M1 1h21v21H1z" />
-    <path stroke="currentColor" strokeWidth={2} d="m5 10.5 5 5.5 8-9" />
-  </svg>
+const CheckboxChecked = (props: Props) => (
+  <Box
+    component={'svg'}
+    width={24}
+    height={24}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    {...props}
+  >
+    <rect
+      x="1"
+      y="1"
+      width="22"
+      height="22"
+      rx="2"
+      // fill="#97C68B"
+      stroke="black"
+      stroke-width="2"
+    />
+    <path d="M6 11.5L11 17L19 8" stroke="black" stroke-width="2" />
+  </Box>
 )
-export default SvgCheckboxChecked
+
+export default CheckboxChecked
