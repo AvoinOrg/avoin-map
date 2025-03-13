@@ -20,6 +20,14 @@ import { Star } from '#/components/icons'
 import { T } from '@tolgee/react'
 import { AdminVerificationStatus } from 'applets/luonnonmetsakartat/common/types'
 
+enum LocalState {
+  Loading = 'loading',
+  Verified = 'verified',
+  Rejected = 'rejected',
+  Errored = 'errored',
+  NoUser = 'noUser',
+}
+
 const layoutClient = ({ children }: { children: React.ReactNode }) => {
   const setIsNavbarHidden = useUIStore((state) => state.setIsNavbarHidden)
   const adminVerificationStatus = useAppletStore(
@@ -29,7 +37,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
     (state) => state.setAdminVerificationStatus
   )
   const { data: session, status } = useSession()
-  const [isReady, setIsReady] = useState(false)
+  const [localState, setLocalState] = useState<LocalState>(LocalState.Loading)
 
   const router = useRouter()
   const pathname = usePathname()
@@ -54,43 +62,50 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
         localAdminVerificationQuery.refetch()
       }
     }
-  }, [session?.user?.id, status, localAdminVerificationQuery.data])
+  }, [session?.user?.id, status])
 
   useEffect(() => {
-    if (adminVerificationStatus === AdminVerificationStatus.Verified) {
-      setIsReady(true)
-    } else {
-      setIsReady(false)
+    if (
+      status == 'authenticated' &&
+      adminVerificationStatus === AdminVerificationStatus.Verified
+    ) {
+      setLocalState(LocalState.Verified)
+    } else if (status == 'unauthenticated') {
+      setLocalState(LocalState.NoUser)
+    } else if (
+      status == 'loading' ||
+      adminVerificationStatus == AdminVerificationStatus.Pending
+    ) {
+      setLocalState(LocalState.Loading)
+    } else if (
+      status == 'authenticated' &&
+      adminVerificationStatus === AdminVerificationStatus.Rejected
+    ) {
+      setLocalState(LocalState.Rejected)
+    } else if (adminVerificationStatus === AdminVerificationStatus.Errored) {
+      setLocalState(LocalState.Errored)
     }
-  }, [adminVerificationStatus])
-
-  useEffect(() => {
-    if (status == "unauthenticated") {
-      setAdminVerificationStatus(AdminVerificationStatus.NoUser)
-    }
-  }, [adminVerificationStatus, status])
+  }, [session, status, adminVerificationStatus])
 
   // returns the user back to admin page, if they try to navigate
   // further without being verified
   useEffect(() => {
-    if ((status != "loading" && ![AdminVerificationStatus.Pending, AdminVerificationStatus.Verified].includes(adminVerificationStatus))
-      && !(status == 'authenticated' && adminVerificationStatus == AdminVerificationStatus.NoUser)) {
+    if (localState === LocalState.Rejected) {
       const adminRoute = getRoute(routeTree.admin, routeTree)
       if (getPathnameWithoutLocale(pathname, locale) !== adminRoute) {
         router.replace(adminRoute)
       }
     }
-  }, [adminVerificationStatus, pathname, router, locale, status])
+  }, [localState, pathname, router, locale, status])
 
   return (
     <SidebarContentBox>
-      {(status === 'loading' ||
-        adminVerificationStatus === AdminVerificationStatus.Pending) && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-            <LoadingSpinner />
-          </Box>
-        )}
-      {status !== 'loading' && session?.user?.id == null && (
+      {localState === LocalState.Loading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+          <LoadingSpinner />
+        </Box>
+      )}
+      {localState === LocalState.NoUser && (
         <Box sx={{ display: 'flex', flexDirection: 'row', mt: 3 }}>
           <Star sx={{ height: 40, width: 'auto' }}></Star>
           <Typography
@@ -108,7 +123,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
           </Typography>
         </Box>
       )}
-      {adminVerificationStatus === AdminVerificationStatus.Errored && (
+      {localState === LocalState.Errored && (
         <Box sx={{ display: 'flex', flexDirection: 'row', mt: 3 }}>
           {/* <Star sx={{ height: 40, width: 'auto' }}></Star> */}
           <Typography
@@ -126,25 +141,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
           </Typography>
         </Box>
       )}
-      {adminVerificationStatus === AdminVerificationStatus.Errored && (
-        <Box sx={{ display: 'flex', flexDirection: 'row', mt: 3 }}>
-          {/* <Star sx={{ height: 40, width: 'auto' }}></Star> */}
-          <Typography
-            sx={{
-              display: 'inline-flex',
-              typography: 'body2',
-              ml: 1.5,
-              mt: 0.5,
-            }}
-          >
-            <T
-              keyName={'sidebar.admin.verification_errored'}
-              ns="luonnonmetsakartat"
-            ></T>
-          </Typography>
-        </Box>
-      )}
-      {adminVerificationStatus === AdminVerificationStatus.Rejected && (
+      {localState === LocalState.Rejected && (
         <Box sx={{ display: 'flex', flexDirection: 'row', mt: 3 }}>
           {/* <Star sx={{ height: 40, width: 'auto' }}></Star> */}
           <Typography
@@ -162,7 +159,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
           </Typography>
         </Box>
       )}
-      {isReady && children}
+      {localState === LocalState.Verified && children}
     </SidebarContentBox>
   )
 }
