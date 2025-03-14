@@ -19,14 +19,15 @@ export interface FeatureProperties {
 export interface LayerConf {
   id: string
   name: string
-  createdTs: string
-  updatedTs: string
+  createdTs: number
+  updatedTs: number
   description?: string
 }
 
 export enum LayerConfState {
   Idle = 'idle',
   Saving = 'saving',
+  Deleting = 'deleting',
 }
 
 export interface AdminLayerConf extends LayerConf {
