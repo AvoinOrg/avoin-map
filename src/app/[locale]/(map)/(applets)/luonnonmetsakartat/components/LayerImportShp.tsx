@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Feature, FeatureCollection } from 'geojson'
-import { useTranslate } from '@tolgee/react'
+import { useTranslate, T } from '@tolgee/react'
+
+import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
+import CheckBoxWithText from '#/components/common/CheckBoxWithText'
 
 import LayerImportActionsRow from './LayerImportActionsRow'
-import LayerImportCodeRecordSelect from './LayerImportCodeRecordSelect'
 
 const LayerImportShp = ({
   fileBuffers,
@@ -12,17 +14,22 @@ const LayerImportShp = ({
   fileBuffers: ArrayBuffer[]
   onFinish: (
     json: FeatureCollection,
-    zoningColName: string,
-    nameColName?: string
+    layerName: string,
+    isVisible: boolean
   ) => void
 }) => {
   const { t } = useTranslate('luonnonmetsakartat')
   const [geojson, setGeojson] = useState<FeatureCollection>()
-  const [zoningCol, setZoningCol] = useState<string>()
-  const [nameCol, setNameCol] = useState<string | undefined>() // nameCol can be optional
+  // const [zoningCol, setZoningCol] = useState<string>()
+  const [layerNameValue, setLayerNameValue] = useState<string>('')
+  const [isVisible, setIsVisible] = useState<boolean>(false)
+  // const [layerDescriptionValue, setLayerDescriptionValue] = useState<string>('')
+  // const [nameCol, setNameCol] = useState<string | undefined>() // nameCol can be optional
   const [columns, setColumns] = useState<string[]>([])
 
   useEffect(() => {
+    // Load shp into geojson to validate it locally
+    // TODO: Validate it locally :)
     const loadGeojson = async (fileBuffers: ArrayBuffer[]) => {
       const shp = (await import('shpjs')).default
       const json = await shp(fileBuffers[0])
@@ -63,17 +70,37 @@ const LayerImportShp = ({
     }
   }, [geojson])
 
-  const handleZoningColChange = (newZoningCol: string | undefined) => {
-    setZoningCol(newZoningCol)
+  // const handleZoningColChange = (newZoningCol: string | undefined) => {
+  //   setZoningCol(newZoningCol)
+  // }
+
+  // const handleNameColChange = (newNameCol: string | undefined) => {
+  //   setNameCol(newNameCol)
+  // }
+
+  const handleLayerNameChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setLayerNameValue(event.target.value)
   }
 
-  const handleNameColChange = (newNameCol: string | undefined) => {
-    setNameCol(newNameCol)
+  const handleIsVisibleChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    checked: boolean
+  ) => {
+    setIsVisible(checked)
   }
+
+  // const handleLayerDescriptionChange = (
+  //   event: React.ChangeEvent<HTMLInputElement>
+  // ) => {
+  //   setLayerDescriptionValue(event.target.value)
+  // }
 
   const handleFinish = () => {
-    if (zoningCol != null && geojson != null) {
-      onFinish(geojson, zoningCol, nameCol)
+    if (layerNameValue != null && geojson != null) {
+      console.log("test")
+      onFinish(geojson, layerNameValue, isVisible)
     }
   }
 
@@ -81,7 +108,31 @@ const LayerImportShp = ({
     <>
       {columns.length > 0 && (
         <>
-          <LayerImportCodeRecordSelect
+          <TextFieldWithHeader
+            headerText={t('sidebar.admin.create.name.header')}
+            value={layerNameValue}
+            onChange={handleLayerNameChange}
+            placeholderText={t('sidebar.admin.create.name.placeholder')}
+            sx={{ mt: 2.5 }}
+          ></TextFieldWithHeader>
+          <CheckBoxWithText
+            checked={isVisible}
+            onChange={handleIsVisibleChange}
+            sx={{ mt: 2.5 }}
+          >
+            <T
+              ns={'luonnonmetsakartat'}
+              keyName={'sidebar.admin.create.is_visible'}
+            ></T>
+          </CheckBoxWithText>
+          {/* <TextFieldWithHeader
+            headerText={t('sidebar.admin.create.description.header')}
+            value={layerDescriptionValue}
+            onChange={handleLayerDescriptionChange}
+            placeholderText={t('sidebar.admin.create.description.placeholder')}
+            sx={{ mt: 2.5 }}
+          ></TextFieldWithHeader> */}
+          {/* <LayerImportCodeRecordSelect
             columns={columns}
             selectedColumn={zoningCol}
             onColumnChange={handleZoningColChange}
@@ -94,13 +145,13 @@ const LayerImportShp = ({
             label={t('sidebar.create.select_zone_name_record')}
             allowEmpty={true}
             sx={{ mt: 5 }}
-          />
+          /> */}
         </>
       )}
 
       <LayerImportActionsRow
         onClickAccept={handleFinish}
-        isAcceptDisabled={zoningCol == null}
+        isAcceptDisabled={layerNameValue == null || layerNameValue.length === 0}
       ></LayerImportActionsRow>
     </>
   )
