@@ -67,8 +67,8 @@ export const layerPostMutation = (): UseMutationOptions<
         name: postRes.data.name,
         isVisible: postRes.data.is_hidden,
         state: LayerConfState.Idle,
-        createdTs: postRes.data.created_ts,
-        updatedTs: postRes.data.updated_ts,
+        createdTs: postRes.data.created_ts * 1000,
+        updatedTs: postRes.data.updated_ts * 1000,
       }
       await addAdminLayerConf(adminLayerConf)
 
