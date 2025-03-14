@@ -21,6 +21,7 @@ import { useQuery } from '@tanstack/react-query'
 
 import { openWindow } from '#/common/utils/modal'
 import { useUserStore } from '#/common/store/userStore'
+import { LoadingSpinner } from '#/components/Loading'
 
 const profileUrl =
   process.env.NEXT_PUBLIC_ZITADEL_ISSUER + '/ui/console/users/me'
@@ -101,52 +102,58 @@ const LoggedInButton = () => {
 
   return (
     <>
-      <Button
-        ref={anchorRef}
-        aria-haspopup="true"
-        id="navbar-profile-button"
-        sx={{ color: 'neutral.lighter', typography: 'h3' }}
-        onClick={handleToggle}
-      >
-        {user ? user.name : session?.user?.name}
-      </Button>
-
-      <Popper
-        open={open}
-        anchorEl={anchorRef.current}
-        role={undefined}
-        placement="bottom-start"
-        transition
-        disablePortal
-      >
-        {({ TransitionProps, placement }) => (
-          <Grow
-            {...TransitionProps}
-            style={{
-              transformOrigin:
-                placement === 'bottom-start' ? 'left top' : 'left bottom',
-            }}
+      {(user?.name || session?.user?.name) && (
+        <>
+          <Button
+            ref={anchorRef}
+            aria-haspopup="true"
+            id="navbar-profile-button"
+            sx={{ color: 'neutral.lighter', typography: 'h3' }}
+            onClick={handleToggle}
           >
-            <Paper>
-              <ClickAwayListener onClickAway={handleClose}>
-                <MenuList
-                  autoFocusItem={open}
-                  id="navbar-profile-menu"
-                  aria-labelledby="navbar-profile-button"
-                  onKeyDown={handleListKeyDown}
-                >
-                  <MenuItem onClick={handleProfileClick}>
-                    <T keyName={'navbar.profile.settings'}></T>
-                  </MenuItem>
-                  <MenuItem onClick={handleSignoutClick}>
-                    <T keyName={'navbar.profile.sign_out'}></T>
-                  </MenuItem>
-                </MenuList>
-              </ClickAwayListener>
-            </Paper>
-          </Grow>
-        )}
-      </Popper>
+            {user ? user.name : session?.user?.name}
+          </Button>
+          <Popper
+            open={open}
+            anchorEl={anchorRef.current}
+            role={undefined}
+            placement="bottom-start"
+            transition
+            disablePortal
+          >
+            {({ TransitionProps, placement }) => (
+              <Grow
+                {...TransitionProps}
+                style={{
+                  transformOrigin:
+                    placement === 'bottom-start' ? 'left top' : 'left bottom',
+                }}
+              >
+                <Paper>
+                  <ClickAwayListener onClickAway={handleClose}>
+                    <MenuList
+                      autoFocusItem={open}
+                      id="navbar-profile-menu"
+                      aria-labelledby="navbar-profile-button"
+                      onKeyDown={handleListKeyDown}
+                    >
+                      <MenuItem onClick={handleProfileClick}>
+                        <T keyName={'navbar.profile.settings'}></T>
+                      </MenuItem>
+                      <MenuItem onClick={handleSignoutClick}>
+                        <T keyName={'navbar.profile.sign_out'}></T>
+                      </MenuItem>
+                    </MenuList>
+                  </ClickAwayListener>
+                </Paper>
+              </Grow>
+            )}
+          </Popper>
+        </>
+      )}
+      {!user?.name && !session?.user?.name && (
+        <LoadingSpinner sx={{ ml: 1 }} size={'2rem'}></LoadingSpinner>
+      )}
     </>
   )
 }
