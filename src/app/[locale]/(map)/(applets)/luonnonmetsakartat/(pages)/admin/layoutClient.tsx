@@ -65,25 +65,22 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
   }, [session?.user?.id, status])
 
   useEffect(() => {
-    if (
-      status == 'authenticated' &&
-      adminVerificationStatus === AdminVerificationStatus.Verified
-    ) {
-      setLocalState(LocalState.Verified)
-    } else if (status == 'unauthenticated') {
+    if (status === 'authenticated') {
+      if (adminVerificationStatus === AdminVerificationStatus.NoUser) {
+        setLocalState(LocalState.Loading)
+      } else if (adminVerificationStatus === AdminVerificationStatus.Pending) {
+        setLocalState(LocalState.Loading)
+      } else if (adminVerificationStatus === AdminVerificationStatus.Verified) {
+        setLocalState(LocalState.Verified)
+      } else if (adminVerificationStatus === AdminVerificationStatus.Rejected) {
+        setLocalState(LocalState.Rejected)
+      } else if (adminVerificationStatus === AdminVerificationStatus.Errored) {
+        setLocalState(LocalState.Errored)
+      }
+    } else if (status === 'unauthenticated') {
       setLocalState(LocalState.NoUser)
-    } else if (
-      status == 'loading' ||
-      adminVerificationStatus == AdminVerificationStatus.Pending
-    ) {
+    } else if (status === 'loading') {
       setLocalState(LocalState.Loading)
-    } else if (
-      status == 'authenticated' &&
-      adminVerificationStatus === AdminVerificationStatus.Rejected
-    ) {
-      setLocalState(LocalState.Rejected)
-    } else if (adminVerificationStatus === AdminVerificationStatus.Errored) {
-      setLocalState(LocalState.Errored)
     }
   }, [session, status, adminVerificationStatus])
 
