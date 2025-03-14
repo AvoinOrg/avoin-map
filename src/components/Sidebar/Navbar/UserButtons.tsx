@@ -14,7 +14,7 @@ const UserButtons = () => {
 
   return (
     <>
-      {status === 'authenticated' ? (
+      {status !== 'unauthenticated' ? (
         <Box>
           <LoggedInButton></LoggedInButton>
         </Box>
