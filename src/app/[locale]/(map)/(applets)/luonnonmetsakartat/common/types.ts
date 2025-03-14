@@ -8,9 +8,29 @@ export enum AdminVerificationStatus {
 
 export interface FeatureProperties {
   id: string
-  name: string | number
-  area_ha: number
-  zoning_code: string | null
-  old_zoning_code?: string
-  old_id?: string | number
+  name: string
+  areaHa?: number
+  municipality?: string
+  region?: string
+  date?: string
+  personInCharge?: string
+}
+
+export interface LayerConf {
+  id: string
+  name: string
+  createdTs: string
+  updatedTs: string
+  description?: string
+}
+
+export enum LayerConfState {
+  Idle = 'idle',
+  Saving = 'saving',
+}
+
+export interface AdminLayerConf extends LayerConf {
+  isVisible: boolean
+  state: LayerConfState
+  features?: FeatureProperties[]
 }
