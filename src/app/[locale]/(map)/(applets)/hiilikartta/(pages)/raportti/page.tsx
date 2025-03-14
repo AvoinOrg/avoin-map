@@ -473,7 +473,7 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
             justifyContent: 'center',
           }}
         >
-          <LoadingSpinner sx={{ height: '3rem' }}></LoadingSpinner>
+          <LoadingSpinner size={'3rem'}></LoadingSpinner>
         </Box>
       )}
       {isLoaded && planConfs.length > 0 && featureYears.length > 0 && (
