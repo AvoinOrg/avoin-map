@@ -9,7 +9,7 @@ const getDataFromUserInfo = async (_req: NextApiRequest, token: {}) => {
       `${process.env.NEXT_PUBLIC_ZITADEL_ISSUER}/oidc/v1/userinfo`,
       {
         headers: {
-          authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'content-type': 'application/json',
         },
       }
