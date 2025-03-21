@@ -39,11 +39,8 @@ export const adminLayerQuery = (
           updatedTs: response.data.updated_ts * 1000, // Convert to milliseconds
         }
 
-        // Check if this layer already exists in the store
-        const adminLayerConfs = useAppletStore.getState().adminLayerConfs
-        const existingLayer = adminLayerConfs.find(
-          (conf) => conf.id === layerId
-        )
+        const existingLayer =
+          useAppletStore.getState().adminLayerConfs[layerConf.id]
 
         if (existingLayer) {
           // Update existing layer
@@ -94,9 +91,8 @@ export const adminLayersQuery = (): UseQueryOptions<AdminLayerConf[]> => {
         )
 
         for (const layerConf of layerConfs) {
-          const existingLayer = useAppletStore
-            .getState()
-            .adminLayerConfs.find((conf) => conf.id === layerConf.id)
+          const existingLayer =
+            useAppletStore.getState().adminLayerConfs[layerConf.id]
 
           if (existingLayer) {
             updateAdminLayerConf(layerConf)
