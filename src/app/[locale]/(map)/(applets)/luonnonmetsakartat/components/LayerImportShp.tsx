@@ -99,7 +99,6 @@ const LayerImportShp = ({
 
   const handleFinish = () => {
     if (layerNameValue != null && geojson != null) {
-      console.log("test")
       onFinish(geojson, layerNameValue, isVisible)
     }
   }
