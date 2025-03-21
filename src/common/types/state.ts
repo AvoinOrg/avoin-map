@@ -49,10 +49,21 @@ export interface InternalConfirmationDialogOptions
   id: string | null
 }
 
-export type User = {
+export interface UserAuth {
   id: string
-  name: string
-  email: string
-  image: string
-  accessToken?: string
+  accessToken: string | undefined
+}
+
+export enum UserAuthState {
+  Loading = 'loading',
+  Authenticated = 'authenticated',
+  Unauthenticated = 'unauthenticated',
+  Error = 'error',
+}
+
+export enum UserDataState {
+  Unfetched = 'unfetched',
+  Fetching = 'fetching',
+  Fetched = 'fetched',
+  Error = 'error',
 }
