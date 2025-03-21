@@ -5,10 +5,13 @@ import { Issuer } from 'openid-client'
 
 const refreshAccessToken = async (token: JWT): Promise<JWT> => {
   try {
-    const issuer = await Issuer.discover(process.env.ZITADEL_ISSUER ?? '')
+    const issuer = await Issuer.discover(
+      process.env.NEXT_PUBLIC_ZITADEL_ISSUER ?? ''
+    )
     const client = new issuer.Client({
       client_id: process.env.ZITADEL_CLIENT_ID || '',
-      token_endpoint_auth_method: 'none',
+      client_secret: process.env.ZITADEL_CLIENT_SECRET || '',
+      token_endpoint_auth_method: 'client_secret_basic',
     })
 
     const { refresh_token, access_token, expires_at } = await client.refresh(
@@ -26,6 +29,7 @@ const refreshAccessToken = async (token: JWT): Promise<JWT> => {
 
     return {
       ...token,
+      refreshToken: undefined,
       error: 'RefreshAccessTokenError',
     }
   }
@@ -99,7 +103,7 @@ const options = () => {
           name: user?.name,
           loginName: user?.loginName,
         }
-        session.clientId = process.env.ZITADEL_CLIENT_ID
+        // session.clientId = process.env.ZITADEL_CLIENT_ID
         session.accessToken = accessToken
         session.error = tokenError
         return session
