@@ -19,6 +19,7 @@ export interface FeatureProperties {
 export interface LayerConf {
   id: string
   name: string
+  colorCode: string
   createdTs: number
   updatedTs: number
   description?: string
@@ -26,6 +27,7 @@ export interface LayerConf {
 
 export enum LayerConfState {
   Idle = 'idle',
+  Fetching = 'fetching',
   Saving = 'saving',
   Deleting = 'deleting',
 }
@@ -33,5 +35,10 @@ export enum LayerConfState {
 export interface AdminLayerConf extends LayerConf {
   isVisible: boolean
   state: LayerConfState
-  features?: FeatureProperties[]
+}
+
+export interface LayerAreaCollection {
+  id: string
+  features: FeatureProperties[]
+  state: LayerConfState
 }
