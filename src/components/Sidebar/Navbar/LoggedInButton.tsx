@@ -15,34 +15,24 @@ import {
 import { styled } from '@mui/material/styles'
 import { T } from '@tolgee/react'
 import { useSession } from 'next-auth/react'
-import { signOut } from 'next-auth/react'
 import { User } from 'next-auth'
 import { useQuery } from '@tanstack/react-query'
 
 import { openWindow } from '#/common/utils/modal'
 import { useUserStore } from '#/common/store/userStore'
 import { LoadingSpinner } from '#/components/Loading'
+import { UserAuthState, UserDataState } from '#/common/types/state'
 
 const profileUrl =
   process.env.NEXT_PUBLIC_ZITADEL_ISSUER + '/ui/console/users/me'
 
 const LoggedInButton = () => {
   const { data: session } = useSession()
-  const {
-    data: user,
-    error,
-    isLoading,
-  } = useQuery<User>({
-    queryKey: ['userinfo'],
-    queryFn: async () => {
-      const response = await fetch('/api/userinfo')
-      if (!response.ok) {
-        throw new Error('Network response was not ok')
-      }
-      return response.json()
-    },
-  })
-  const signOutActions = useUserStore((state) => state.signOutActions)
+
+  const signOut = useUserStore((state) => state.signOut)
+  const userData = useUserStore((state) => state.userData)
+  const userAuthState = useUserStore((state) => state.userAuthState)
+  const userDataState = useUserStore((state) => state.userDataState)
 
   const [open, setOpen] = useState(false)
   const anchorRef = React.useRef<HTMLButtonElement>(null)
@@ -68,9 +58,6 @@ const LoggedInButton = () => {
   }
 
   const handleSignoutClick = () => {
-    for (const key in signOutActions) {
-      signOutActions[key]()
-    }
     signOut()
     setOpen(false)
   }
@@ -84,12 +71,6 @@ const LoggedInButton = () => {
     }
   }
 
-  useEffect(() => {
-    if (error) {
-      signOut()
-    }
-  }, [error])
-
   // return focus to the button when we transitioned from !open -> open
   const prevOpen = React.useRef(open)
   useEffect(() => {
@@ -102,56 +83,57 @@ const LoggedInButton = () => {
 
   return (
     <>
-      {(user?.name || session?.user?.name) && (
-        <>
-          <Button
-            ref={anchorRef}
-            aria-haspopup="true"
-            id="navbar-profile-button"
-            sx={{ color: 'neutral.lighter', typography: 'h3' }}
-            onClick={handleToggle}
-          >
-            {user ? user.name : session?.user?.name}
-          </Button>
-          <Popper
-            open={open}
-            anchorEl={anchorRef.current}
-            role={undefined}
-            placement="bottom-start"
-            transition
-            disablePortal
-          >
-            {({ TransitionProps, placement }) => (
-              <Grow
-                {...TransitionProps}
-                style={{
-                  transformOrigin:
-                    placement === 'bottom-start' ? 'left top' : 'left bottom',
-                }}
-              >
-                <Paper>
-                  <ClickAwayListener onClickAway={handleClose}>
-                    <MenuList
-                      autoFocusItem={open}
-                      id="navbar-profile-menu"
-                      aria-labelledby="navbar-profile-button"
-                      onKeyDown={handleListKeyDown}
-                    >
-                      <MenuItem onClick={handleProfileClick}>
-                        <T keyName={'navbar.profile.settings'}></T>
-                      </MenuItem>
-                      <MenuItem onClick={handleSignoutClick}>
-                        <T keyName={'navbar.profile.sign_out'}></T>
-                      </MenuItem>
-                    </MenuList>
-                  </ClickAwayListener>
-                </Paper>
-              </Grow>
-            )}
-          </Popper>
-        </>
-      )}
-      {!user?.name && !session?.user?.name && (
+      {userAuthState === UserAuthState.Authenticated &&
+        userDataState === UserDataState.Fetched && (
+          <>
+            <Button
+              ref={anchorRef}
+              aria-haspopup="true"
+              id="navbar-profile-button"
+              sx={{ color: 'neutral.lighter', typography: 'h3' }}
+              onClick={handleToggle}
+            >
+              {userData?.name}
+            </Button>
+            <Popper
+              open={open}
+              anchorEl={anchorRef.current}
+              role={undefined}
+              placement="bottom-start"
+              transition
+              disablePortal
+            >
+              {({ TransitionProps, placement }) => (
+                <Grow
+                  {...TransitionProps}
+                  style={{
+                    transformOrigin:
+                      placement === 'bottom-start' ? 'left top' : 'left bottom',
+                  }}
+                >
+                  <Paper>
+                    <ClickAwayListener onClickAway={handleClose}>
+                      <MenuList
+                        autoFocusItem={open}
+                        id="navbar-profile-menu"
+                        aria-labelledby="navbar-profile-button"
+                        onKeyDown={handleListKeyDown}
+                      >
+                        <MenuItem onClick={handleProfileClick}>
+                          <T keyName={'navbar.profile.settings'}></T>
+                        </MenuItem>
+                        <MenuItem onClick={handleSignoutClick}>
+                          <T keyName={'navbar.profile.sign_out'}></T>
+                        </MenuItem>
+                      </MenuList>
+                    </ClickAwayListener>
+                  </Paper>
+                </Grow>
+              )}
+            </Popper>
+          </>
+        )}
+      {userDataState !== UserDataState.Fetched && (
         <LoadingSpinner sx={{ ml: 1 }} size={'2rem'}></LoadingSpinner>
       )}
     </>
