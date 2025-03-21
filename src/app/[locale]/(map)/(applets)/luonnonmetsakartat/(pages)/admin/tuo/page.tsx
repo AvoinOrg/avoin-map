@@ -13,6 +13,7 @@ import { getRoute } from '#/common/utils/routing-client'
 import { getGeoJsonArea } from '#/common/utils/gis'
 import { generateUUID } from '#/common/utils/general'
 import BigMenuButton from '#/components/common/BigMenuButton'
+import { SidebarContentBox } from '#/components/Sidebar'
 import { Upload } from '#/components/icons'
 
 import { FeatureProperties } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
@@ -125,7 +126,7 @@ const Page = () => {
   }
 
   return (
-    <>
+    <SidebarContentBox>
       <BigMenuButton
         variant="outlined"
         component="label"
@@ -153,7 +154,7 @@ const Page = () => {
           onFinish={handleFinish}
         ></LayerImportShp>
       )}
-    </>
+    </SidebarContentBox>
   )
 }
 
