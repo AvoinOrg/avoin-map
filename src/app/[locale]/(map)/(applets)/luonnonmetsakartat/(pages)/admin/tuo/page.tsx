@@ -15,23 +15,24 @@ import { generateUUID } from '#/common/utils/general'
 import BigMenuButton from '#/components/common/BigMenuButton'
 import { Upload } from '#/components/icons'
 
-import {
-  FeatureProperties,
-} from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
+import { FeatureProperties } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 import { routeTree } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/routes'
 import LayerImportShp from 'applets/luonnonmetsakartat/components/LayerImportShp'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
+import { layerPostMutation } from 'applets/luonnonmetsakartat/common/queries/layerPostMutation'
+import { useMutation } from '@tanstack/react-query'
 
 const Page = () => {
-  const addForestLayer = useAppletStore((state) => state.addForestLayer)
-  const [fileType, setFileType] = useState<"shp">()
+  const addAdminLayerConf = useAppletStore((state) => state.addAdminLayerConf)
+  const [fileType, setFileType] = useState<'shp'>()
   const [fileName, setFileName] = useState<string>()
   const [arrayBuffers, setArrayBuffers] = useState<ArrayBuffer[]>()
   const isInitializing = useRef(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const { t } = useTranslate('luonnonmetsakartat')
-  const dialogOpenedRef = useRef(false);
+  const dialogOpenedRef = useRef(false)
+  const localLayerPostMutation = useMutation(layerPostMutation())
 
   useEffect(() => {
     if (inputRef.current && !dialogOpenedRef.current) {
@@ -40,162 +41,29 @@ const Page = () => {
     }
   }, [])
 
-  const formatGeojson: any = (
-    json: FeatureCollection,
-    zoningColName: string,
-    nameColName?: string
-  ): FeatureCollection => {
-    const features = json.features
-      .map((feature: Feature, index) => {
-        if (
-          !feature.geometry ||
-          // @ts-ignore
-          !feature.geometry.coordinates ||
-          !['MultiPolygon', 'Polygon'].includes(feature.geometry.type)
-        ) {
-          return null // Remove features without geometry
-        }
+  const initializePlan = async (name: string, isVisible: boolean) => {
+    if (!arrayBuffers || arrayBuffers.length === 0) {
+      return
+    }
 
-        if (
-          // @ts-ignore
-          feature.geometry.coordinates &&
-          // @ts-ignore
-          (feature.geometry.coordinates.length === 0 ||
-            // @ts-ignore
-            flattenDeep(feature.geometry.coordinates).length === 0)
-        ) {
-          return null
-        }
+    localLayerPostMutation.mutate({
+      name,
+      isHidden: !isVisible,
+      rawShapefile: arrayBuffers[0],
+    })
+  }
 
-        if (!booleanValid(feature)) {
-          try {
-            // Attempt to fix invalid geometry by applying a buffer
-            const fixedGeometry = buffer(feature, 0).geometry
-            if (booleanValid(fixedGeometry)) {
-              // If the fixed geometry is valid, update the feature's geometry
-              feature.geometry = fixedGeometry
-            } else {
-              // If the geometry is still invalid, discard the feature
-              return null
-            }
-          } catch (error) {
-            console.error('Error fixing geometry:', error)
-            return null // Discard features with geometry that cannot be fixed
-          }
-        }
-
-        // Get the value of the property using colName and remove other properties
-        let zoningCode = feature.properties?.[zoningColName]
-
-        if (!zoningCode) {
-          zoningCode = null
-        } else if (typeof zoningCode !== 'string') {
-          zoningCode = String(zoningCode)
-        }
-
-        let name: string | number = index + 1
-        if (nameColName != null) {
-          const nameColVal = feature.properties?.[nameColName]
-          if (
-            (nameColVal != null && typeof nameColVal === 'string') ||
-            typeof nameColVal === 'number'
-          ) {
-            name = feature.properties?.[nameColName]
-          }
-        }
-
-        // If the desired property is not found, don't modify the feature
-
-        const featureAreaHa = getGeoJsonArea(feature) / 10000
-
-        const properties: FeatureProperties = {
-          id: generateUUID(),
-          name: name,
-          [ZONING_CODE_COL]: zoningCode,
-          area_ha: featureAreaHa,
-          old_id: feature.id != null ? feature.id : undefined,
-        }
-
-        if (zoningCode != null) {
-          const trimmedZoningCode = zoningCode
-            .toUpperCase()
-            .trim()
-            .split(' ')[0]
-            .split('-')[0]
-            .split('.')[0]
-
-          const zoningClass = ZONING_CLASSES.find((zoningClass) => {
-            let code = zoningClass.code
-            if (code.includes(',')) {
-              return zoningClass.code.split(',').includes(trimmedZoningCode)
-            } else {
-              return code.toUpperCase() === trimmedZoningCode
-            }
-          })
-
-          if (zoningClass) {
-            properties[ZONING_CODE_COL] = zoningClass.code
-            properties.old_zoning_code = zoningCode
-          }
-        }
-
-        // Return the new feature with only zoning_code and area in hectares in its properties
-        return {
-          ...feature,
-          properties: properties,
-        }
+  useEffect(() => {
+    if (localLayerPostMutation.isSuccess) {
+      const id = localLayerPostMutation.data.id
+      const route = getRoute(routeTree.admin.layer, routeTree, {
+        routeParams: {
+          layerId: id,
+        },
       })
-      .filter((feature) => feature !== null)
-
-    return {
-      type: 'FeatureCollection',
-      features: features as Feature[],
+      router.push(route)
     }
-  }
-
-  const initializePlan = async (
-    json: FeatureCollection,
-    zoningColName: string,
-    nameColName?: string
-  ) => {
-    if (!fileName) {
-      return null
-    }
-
-    const formatedJson = formatGeojson(json, zoningColName, nameColName)
-
-    const areaHa = getGeoJsonArea(formatedJson) / 10000
-    const newPlanConf: NewPlanConf = {
-      data: formatedJson,
-      name: fileName,
-      areaHa: areaHa,
-    }
-
-    const planConf = await addPlanConf(newPlanConf)
-
-    // try {
-    //   const layerConf = createLayerConf(
-    //     formatedJson,
-    //     planConf.id,
-    //     ZONING_CODE_COL
-    //   )
-
-    //   // Testing if the file works, then removing the layers.
-    //   await addSerializableLayerGroup(layerConf.id, {
-    //     layerConf,
-    //     persist: false,
-    //     isHidden: true,
-    //   })
-    //   await removeSerializableLayerGroup(layerConf.id)
-    // } catch (e) {
-    //   deletePlanConf(planConf.id)
-    //   console.error(e)
-    //   // TODO: show error to user, invalid file
-    //   return null
-    // }
-
-    return planConf.id
-  }
+  }, [localLayerPostMutation])
 
   const handleFileInput = async (e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) {
@@ -216,8 +84,7 @@ const Page = () => {
           if (f.name.split('.').pop() === 'zip') {
             setFileType('shp')
             newArrayBuffers.push(reader.result)
-          }
-          else if (f.name.split('.').pop() === 'shp') {
+          } else if (f.name.split('.').pop() === 'shp') {
             setFileType('shp')
             newArrayBuffers.push(reader.result)
           }
@@ -232,23 +99,23 @@ const Page = () => {
 
   const handleFinish = async (
     json: FeatureCollection,
-    zoningColName: string,
-    nameColName?: string
+    name: string,
+    isVisible: boolean
   ) => {
     if (isInitializing.current) {
       return
     }
     isInitializing.current = true
     try {
-      const id = await initializePlan(json, zoningColName, nameColName)
-      if (id) {
-        const route = getRoute(routeTree.plans.plan, routeTree, {
-          routeParams: {
-            planId: id,
-          },
-        })
-        router.push(route)
-      }
+      const id = await initializePlan(name, isVisible)
+      // if (id) {
+      //   const route = getRoute(routeTree.plans.plan, routeTree, {
+      //     routeParams: {
+      //       planId: id,
+      //     },
+      //   })
+      //   router.push(route)
+      // }
     } catch (e) {
       console.error(e)
     }
@@ -277,7 +144,7 @@ const Page = () => {
           onChange={handleFileInput}
           ref={inputRef}
         />
-        <Upload sx={{ width: "24px" }} />
+        <Upload sx={{ width: '24px' }} />
       </BigMenuButton>
 
       {fileType === 'shp' && arrayBuffers && arrayBuffers?.length > 0 && (
