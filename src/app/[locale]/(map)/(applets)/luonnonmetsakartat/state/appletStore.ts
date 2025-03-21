@@ -10,6 +10,7 @@ import {
   AdminVerificationStatus,
   AdminLayerConf,
   LayerConf,
+  LayerAreaCollection,
 } from 'applets/luonnonmetsakartat/common/types'
 
 type AdminLayerConfMap = {
@@ -20,25 +21,40 @@ type LayerConfMap = {
   [id: string]: LayerConf
 }
 
+type LayerAreaCollectionMap = {
+  [id: string]: LayerAreaCollection
+}
+
 type Vars = {
   layerConfs: LayerConfMap
-  adminLayerConfs: AdminLayerConfMap
+  adminLayerConfs: AdminLayerConfMap 
+  layerAreaCollections: LayerAreaCollectionMap
   adminVerificationStatus: AdminVerificationStatus
 }
 
 type Actions = {
   addLayerConf: (layerConf: LayerConf) => void
   setLayerConfs: (layerConfs: LayerConf[]) => void
-  updateLayerConf: (layerConf: LayerConf) => void
+  updateLayerConf: (layerId: string, updates: Partial<LayerConf>) => void
   deleteLayerConf: (layerId: string) => void
-  getLayerConfsAsArray: () => LayerConf[]
 
   addAdminLayerConf: (layerConf: AdminLayerConf) => void
   setAdminLayerConfs: (layerConfs: AdminLayerConf[]) => void
-  updateAdminLayerConf: (layerConf: AdminLayerConf) => void
+  updateAdminLayerConf: (
+    layerId: string,
+    updates: Partial<AdminLayerConf>
+  ) => void
   deleteAdminLayerConf: (layerId: string) => void
-  getAdminLayerConfsAsArray: () => AdminLayerConf[]
 
+  addLayerAreaCollection: (
+    layerId: string,
+    layerAreaCollection: LayerAreaCollection
+  ) => void
+  updateLayerAreaCollection: (
+    layerId: string,
+    updates: Partial<LayerAreaCollection>
+  ) => void
+  deleteLayerAreaCollection: (layerId: string) => void
   setAdminVerificationStatus: (status: AdminVerificationStatus) => void
 }
 
@@ -48,6 +64,7 @@ export const useAppletStore = create<Vars & Actions>()(
       const vars = {
         layerConfs: {} as LayerConfMap,
         adminLayerConfs: {} as AdminLayerConfMap,
+        layerAreaCollections: {} as LayerAreaCollectionMap,
         adminVerificationStatus: AdminVerificationStatus.NoUser,
       }
 
@@ -69,9 +86,15 @@ export const useAppletStore = create<Vars & Actions>()(
           })
         },
 
-        updateLayerConf: (layerConf: LayerConf) => {
+        updateLayerConf: (layerId: string, updates: Partial<LayerConf>) => {
           set((state) => {
-            state.layerConfs[layerConf.id] = layerConf
+            const existingConf = state.layerConfs[layerId]
+            if (existingConf) {
+              state.layerConfs[layerId] = {
+                ...existingConf,
+                ...updates,
+              }
+            }
           })
         },
 
@@ -80,10 +103,6 @@ export const useAppletStore = create<Vars & Actions>()(
             const { [layerId]: _, ...rest } = state.layerConfs
             state.layerConfs = rest
           })
-        },
-
-        getLayerConfsAsArray: () => {
-          return Object.values(get().layerConfs)
         },
 
         // AdminLayerConf actions
@@ -103,9 +122,18 @@ export const useAppletStore = create<Vars & Actions>()(
           })
         },
 
-        updateAdminLayerConf: (layerConf: AdminLayerConf) => {
+        updateAdminLayerConf: (
+          layerId: string,
+          updates: Partial<AdminLayerConf>
+        ) => {
           set((state) => {
-            state.adminLayerConfs[layerConf.id] = layerConf
+            const existingConf = state.adminLayerConfs[layerId]
+            if (existingConf) {
+              state.adminLayerConfs[layerId] = {
+                ...existingConf,
+                ...updates,
+              }
+            }
           })
         },
 
@@ -116,8 +144,36 @@ export const useAppletStore = create<Vars & Actions>()(
           })
         },
 
-        getAdminLayerConfsAsArray: () => {
-          return Object.values(get().adminLayerConfs)
+        // LayerAreaCollection actions
+        addLayerAreaCollection: (
+          layerId: string,
+          layerAreaCollection: LayerAreaCollection
+        ) => {
+          set((state) => {
+            state.layerAreaCollections[layerId] = layerAreaCollection
+          })
+        },
+
+        updateLayerAreaCollection: (
+          layerId: string,
+          updates: Partial<LayerAreaCollection>
+        ) => {
+          set((state) => {
+            const existingCollection = state.layerAreaCollections[layerId]
+            if (existingCollection) {
+              state.layerAreaCollections[layerId] = {
+                ...existingCollection,
+                ...updates,
+              }
+            }
+          })
+        },
+
+        deleteLayerAreaCollection: (layerId: string) => {
+          set((state) => {
+            const { [layerId]: _, ...rest } = state.layerAreaCollections
+            state.layerAreaCollections = rest
+          })
         },
 
         // Admin verification status
