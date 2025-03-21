@@ -4,17 +4,20 @@ import React from 'react'
 import Button from '@mui/material/Button'
 import { Box } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { useSession } from 'next-auth/react'
 
+import { useUserStore } from '#/common/store/userStore'
 import LoggedInButton from './LoggedInButton'
 import LoginButton from './LoginButton'
+import { UserAuthState } from '#/common/types/state'
 
 const UserButtons = () => {
-  const { data: session, status } = useSession()
+  const userAuthState = useUserStore((state) => state.userAuthState)
 
   return (
     <>
-      {status !== 'unauthenticated' ? (
+      {[UserAuthState.Authenticated, UserAuthState.Loading].includes(
+        userAuthState
+      ) ? (
         <Box>
           <LoggedInButton></LoggedInButton>
         </Box>
