@@ -7,18 +7,83 @@
 import React, { useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useUserStore } from '#/common/store/userStore'
+import { accessToken } from 'mapbox-gl'
+import { useQuery } from '@tanstack/react-query'
+import { User } from 'next-auth'
+import { set } from 'ol/transform'
+import { UserAuthState, UserDataState } from '#/common/types/state'
 
 const StateHandler = ({ children }: { children?: React.ReactNode }) => {
-  const { data: session } = useSession()
-  const setUser = useUserStore((state) => state.setUser)
+  const { data: session, status } = useSession()
+  const setUserAuth = useUserStore((state) => state.setUserAuth)
+  const setUserData = useUserStore((state) => state.setUserData)
+  const setUserAuthState = useUserStore((state) => state.setUserAuthState)
+  const setUserDataState = useUserStore((state) => state.setUserDataState)
+  const signOut = useUserStore((state) => state.signOut)
+
+  const {
+    data: user,
+    error,
+    isLoading,
+    refetch,
+  } = useQuery<User>({
+    queryKey: ['userinfo'],
+    queryFn: async () => {
+      const response = await fetch('/api/userinfo')
+      if (!response.ok) {
+        throw new Error('Network response was not ok')
+      }
+      return response.json()
+    },
+    enabled: false,
+  })
+
+  useEffect(() => {
+    if (error) {
+      signOut()
+    }
+  }, [error])
+
+  useEffect(() => {
+    if (user) {
+      setUserData(user)
+    } else {
+      setUserData(null)
+    }
+  }, [user])
 
   useEffect(() => {
     if (session?.user?.id) {
-      setUser({ ...session.user, accessToken: session.accessToken })
+      setUserAuth({ id: session.user.id, accessToken: session.accessToken })
     } else {
-      setUser(null)
+      setUserAuth(null)
+      setUserData(null)
     }
   }, [session])
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      setUserAuth(null)
+      setUserData(null)
+      setUserAuthState(UserAuthState.Unauthenticated)
+      setUserDataState(UserDataState.Unfetched)
+    } else if (status === 'loading') {
+      setUserAuthState(UserAuthState.Loading)
+      setUserDataState(UserDataState.Unfetched)
+      setUserAuth(null)
+      setUserData(null)
+    } else if (status === 'authenticated') {
+      setUserAuthState(UserAuthState.Authenticated)
+      if (!user) {
+        setUserData(null)
+        setUserDataState(UserDataState.Fetching)
+        refetch()
+      } else if (user) {
+        setUserData(user)
+        setUserDataState(UserDataState.Fetched)
+      }
+    }
+  }, [status, user])
 
   return <>{children}</>
 }
