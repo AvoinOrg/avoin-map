@@ -25,7 +25,7 @@ export const routeTree: RouteTree = {
     },
     layer: {
       _conf: {
-        path: 'taso/[planId]',
+        path: 'taso/[layerId]',
         name: 'Karttataso',
       },
     },
