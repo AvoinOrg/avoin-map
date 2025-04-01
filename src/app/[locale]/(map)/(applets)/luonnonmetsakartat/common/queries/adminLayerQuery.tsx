@@ -44,6 +44,7 @@ export const adminLayerQuery = (
           state: LayerConfState.Idle,
           createdTs: response.data.created_ts * 1000, // Convert to milliseconds
           updatedTs: response.data.updated_ts * 1000, // Convert to milliseconds
+          unsyncedChanges: false,
         }
 
         const existingLayer =
