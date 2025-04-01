@@ -128,19 +128,19 @@ export type Actions = {
     _queueOptions?: QueueOptions
   ) => Promise<FeatureCollection | null>
   addLayerGroup: (
-    layerGroupId: LayerGroupId,
+    layerGroupId: LayerGroupId | string,
     options?: LayerGroupAddOptions,
     _queueOptions?: QueueOptions
   ) => Promise<void>
   enableLayerGroup: (
-    layerGroupId: LayerGroupId,
+    layerGroupId: LayerGroupId | string,
     options?: LayerGroupAddOptions,
     _queueOptions?: QueueOptions
   ) => Promise<void>
-  disableLayerGroup: (layerGroupId: LayerGroupId) => Promise<void>
-  removeLayerGroup: (layerGroupId: LayerGroupId) => Promise<void>
+  disableLayerGroup: (layerGroupId: LayerGroupId | string) => Promise<void>
+  removeLayerGroup: (layerGroupId: LayerGroupId | string) => Promise<void>
   toggleLayerGroup: (
-    layerGroupId: LayerGroupId,
+    layerGroupId: LayerGroupId | string,
     options?: LayerGroupAddOptions,
     _queueOptions?: QueueOptions
   ) => Promise<void>
@@ -237,9 +237,12 @@ export type Actions = {
   _setIsHydrated: { (isHydrated: boolean): void }
   _setIsLoaded: { (isLoaded: boolean): void }
   _setIsMapReady: { (isMapReady: boolean): void }
-  _setGroupVisibility: (layerGroupId: LayerGroupId, isVisible: boolean) => void
+  _setGroupVisibility: (
+    layerGroupId: LayerGroupId | string,
+    isVisible: boolean
+  ) => void
   _addMbStyle: (
-    id: LayerGroupId,
+    id: LayerGroupId | string,
     options: LayerGroupAddOptionsWithConf
   ) => Promise<void>
   _addMbPopup: (
@@ -247,7 +250,7 @@ export type Actions = {
     fn: (e: MapLayerMouseEvent) => void
   ) => void
   _addMbStyleToMb: (
-    id: LayerGroupId,
+    id: LayerGroupId | string,
     options: LayerGroupAddOptionsWithConf
   ) => Promise<void>
   _runLayerGroupActivationActions: (
@@ -482,7 +485,13 @@ export const useMapStore = create<State>()(
                 keptFeatures.push(selectedFeature)
               } else {
                 _mbMap?.setFeatureState(
-                  { source: feature.source, id: feature.id },
+                  {
+                    source: feature.source,
+                    id: feature.id,
+                    ...(feature.sourceLayer
+                      ? { sourceLayer: String(feature.sourceLayer) }
+                      : {}),
+                  },
                   { selected: true }
                 )
               }
@@ -491,7 +500,13 @@ export const useMapStore = create<State>()(
             for (const selectedFeature of selectedFeatures) {
               if (!keptFeatures.includes(selectedFeature)) {
                 _mbMap?.setFeatureState(
-                  { source: selectedFeature.source, id: selectedFeature.id },
+                  {
+                    source: selectedFeature.source,
+                    id: selectedFeature.id,
+                    ...(selectedFeature.sourceLayer
+                      ? { sourceLayer: String(selectedFeature.sourceLayer) }
+                      : {}),
+                  },
                   { selected: false }
                 )
               }
@@ -575,7 +590,7 @@ export const useMapStore = create<State>()(
         // make "options" mandatory, and always supply a layerConf from the calling function.
         addLayerGroup: queueableFnInit(
           async (
-            layerGroupId: LayerGroupId,
+            layerGroupId: LayerGroupId | string,
             options?: LayerGroupAddOptions | SerializableLayerGroupAddOptions
           ) => {
             const {
@@ -639,7 +654,7 @@ export const useMapStore = create<State>()(
         ),
 
         enableLayerGroup: async (
-          layerGroupId: LayerGroupId,
+          layerGroupId: LayerGroupId | string,
           options?: LayerGroupAddOptions
         ) => {
           const {
@@ -657,7 +672,7 @@ export const useMapStore = create<State>()(
           }
         },
 
-        disableLayerGroup: async (layerGroupId: LayerGroupId) => {
+        disableLayerGroup: async (layerGroupId: LayerGroupId | string) => {
           const {
             _setGroupVisibility,
             _layerGroups,
@@ -678,7 +693,7 @@ export const useMapStore = create<State>()(
           }
         },
 
-        removeLayerGroup: async (layerGroupId: LayerGroupId) => {
+        removeLayerGroup: async (layerGroupId: LayerGroupId | string) => {
           const { _layerGroups, _mbMap, _drawOptions, _removeDraw } = get() // Assuming you have a map reference in your store.
 
           if (!Object.keys(_layerGroups).includes(layerGroupId)) {
@@ -720,7 +735,7 @@ export const useMapStore = create<State>()(
         },
 
         toggleLayerGroup: async (
-          layerGroupId: LayerGroupId,
+          layerGroupId: LayerGroupId | string,
           options?: LayerGroupAddOptions
         ) => {
           const { disableLayerGroup, enableLayerGroup, _layerGroups } = get()
@@ -1406,7 +1421,7 @@ export const useMapStore = create<State>()(
         },
 
         _setGroupVisibility: (
-          layerGroupId: LayerGroupId,
+          layerGroupId: LayerGroupId | string,
           isVisible: boolean
         ) => {
           const { _layerGroups, _mbMap } = get()
@@ -1441,7 +1456,7 @@ export const useMapStore = create<State>()(
         // Used by OpenLayers. Broken after removing ActiveLayerGroupIds
         // Refactor if migrating to OpenLayers
         _addMbStyle: async (
-          id: LayerGroupId,
+          id: LayerGroupId | string,
           options: LayerGroupAddOptionsWithConf
         ) => {
           const style = await resolveMbStyle(options.layerConf.style)
@@ -1544,7 +1559,7 @@ export const useMapStore = create<State>()(
         },
 
         _addMbStyleToMb: async (
-          id: LayerGroupId,
+          id: LayerGroupId | string,
           options: LayerGroupAddOptionsWithConf
         ) => {
           const {
@@ -1579,7 +1594,7 @@ export const useMapStore = create<State>()(
                 id: layer.id,
                 source: layer.source,
                 name: getLayerName(layer.id),
-                layerType: getLayerType(layer.id),
+                layerType: layer.type,
                 selectable: layer.selectable || false,
                 multiSelectable: layer.multiSelectable || false,
                 popup:
