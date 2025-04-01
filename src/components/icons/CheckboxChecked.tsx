@@ -25,7 +25,7 @@ const CheckboxChecked = (props: Props) => (
       stroke="black"
       strokeWidth="2"
     />
-    <path d="M6 11.5L11 17L19 8" stroke="black" stroke-width="2" />
+    <path d="M6 11.5L11 17L19 8" stroke="black" strokeWidth="2" />
   </Box>
 )
 
