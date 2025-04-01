@@ -228,6 +228,78 @@ export const Map = ({ children }: Props) => {
     newMbMap.on('click', mbSelectionFunction)
 
     newMbMap.on('load', () => {
+      const createPinElement = (feature, options = {}) => {
+        // Default pin styling
+        const defaultStyle = {
+          size: 24,
+          fill: '#4285f4',
+          fillOpacity: 0.8,
+          strokeColor: 'black',
+          strokeOpacity: 1,
+          strokeWidth: 1.5,
+          selected: false,
+        }
+
+        // Merge defaults with provided options
+        const style = { ...defaultStyle, ...options }
+
+        // Check if feature is selected
+        const isSelected =
+          feature && feature.state && feature.state.selected === true
+
+        // Adjust styling based on selection state
+        if (isSelected || style.selected) {
+          style.fill = '#ff6b6b' // Selected pin color
+          style.fillOpacity = 0.9
+          style.strokeWidth = 2
+        }
+
+        // Create the pin element
+        const pinElement = document.createElement('div')
+        pinElement.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" 
+            width="${style.size}" 
+            height="${style.size}" 
+            viewBox="0 0 24 24"
+            fill="${style.fill}"
+            fill-opacity="${style.fillOpacity}"
+            stroke="${style.strokeColor}" 
+            stroke-opacity="${style.strokeOpacity}"
+            stroke-width="${style.strokeWidth}" 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            class="mapbox-pin-icon">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>`
+
+        return pinElement
+      }
+
+      // Add the pin generator to the map for use in other components
+      newMbMap.createPinElement = createPinElement
+
+      // Generate a basic pin for initial loading
+      const basicPin = createPinElement(null, { size: 24 })
+
+      // Create a canvas element to render the SVG
+      const canvas = document.createElement('canvas')
+      const size = 24
+      canvas.width = size
+      canvas.height = size
+      const ctx = canvas.getContext('2d')
+
+      // Convert SVG to an image that can be used by Mapbox
+      const img = new Image()
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, size, size)
+        // Add the rendered image to the map
+        if (!newMbMap.hasImage('pin')) {
+          newMbMap.addImage('pin', ctx.getImageData(0, 0, size, size))
+        }
+      }
+      img.src = 'data:image/svg+xml,' + encodeURIComponent(basicPin.innerHTML)
+
       setIsMbMapReady(true)
     })
 
