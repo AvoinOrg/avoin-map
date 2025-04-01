@@ -24,11 +24,10 @@ import { layerPostMutation } from 'applets/luonnonmetsakartat/common/queries/lay
 import { useMutation } from '@tanstack/react-query'
 
 const Page = () => {
-  const addAdminLayerConf = useAppletStore((state) => state.addAdminLayerConf)
   const [fileType, setFileType] = useState<'shp'>()
   const [fileName, setFileName] = useState<string>()
   const [arrayBuffers, setArrayBuffers] = useState<ArrayBuffer[]>()
-  const isInitializing = useRef(false)
+  const isInitializingRef = useRef(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const { t } = useTranslate('luonnonmetsakartat')
@@ -103,10 +102,9 @@ const Page = () => {
     name: string,
     isVisible: boolean
   ) => {
-    if (isInitializing.current) {
+    if (isInitializingRef.current) {
       return
     }
-    isInitializing.current = true
     try {
       const id = await initializePlan(name, isVisible)
       // if (id) {
@@ -122,7 +120,7 @@ const Page = () => {
     }
     // TODO: throw error if id is null, i.e. if file is invalid
 
-    isInitializing.current = false
+    isInitializingRef.current = false
   }
 
   return (
@@ -152,6 +150,7 @@ const Page = () => {
         <LayerImportShp
           fileBuffers={arrayBuffers}
           onFinish={handleFinish}
+          isInitializing={localLayerPostMutation.isPending}
         ></LayerImportShp>
       )}
     </SidebarContentBox>
