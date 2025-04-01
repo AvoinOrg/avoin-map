@@ -35,6 +35,7 @@ export enum LayerConfState {
 export interface AdminLayerConf extends LayerConf {
   isVisible: boolean
   state: LayerConfState
+  unsyncedChanges: boolean
 }
 
 export interface LayerAreaCollection {
