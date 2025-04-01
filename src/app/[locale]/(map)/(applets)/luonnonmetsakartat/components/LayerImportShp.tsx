@@ -10,6 +10,7 @@ import LayerImportActionsRow from './LayerImportActionsRow'
 const LayerImportShp = ({
   fileBuffers,
   onFinish,
+  isInitializing,
 }: {
   fileBuffers: ArrayBuffer[]
   onFinish: (
@@ -17,6 +18,7 @@ const LayerImportShp = ({
     layerName: string,
     isVisible: boolean
   ) => void
+  isInitializing: boolean
 }) => {
   const { t } = useTranslate('luonnonmetsakartat')
   const [geojson, setGeojson] = useState<FeatureCollection>()
@@ -113,11 +115,13 @@ const LayerImportShp = ({
             onChange={handleLayerNameChange}
             placeholderText={t('sidebar.admin.create.name.placeholder')}
             sx={{ mt: 2.5 }}
+            disabled={isInitializing}
           ></TextFieldWithHeader>
           <CheckBoxWithText
             checked={isVisible}
             onChange={handleIsVisibleChange}
             sx={{ mt: 2.5 }}
+            disabled={isInitializing}
           >
             <T
               ns={'luonnonmetsakartat'}
@@ -147,10 +151,10 @@ const LayerImportShp = ({
           /> */}
         </>
       )}
-
       <LayerImportActionsRow
         onClickAccept={handleFinish}
         isAcceptDisabled={layerNameValue == null || layerNameValue.length === 0}
+        isLoading={isInitializing}
       ></LayerImportActionsRow>
     </>
   )
