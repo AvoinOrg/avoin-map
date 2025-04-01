@@ -27,9 +27,10 @@ type LayerAreaCollectionMap = {
 
 type Vars = {
   layerConfs: LayerConfMap
-  adminLayerConfs: AdminLayerConfMap 
+  adminLayerConfs: AdminLayerConfMap
   layerAreaCollections: LayerAreaCollectionMap
   adminVerificationStatus: AdminVerificationStatus
+  adminApiKey: string
 }
 
 type Actions = {
@@ -56,6 +57,7 @@ type Actions = {
   ) => void
   deleteLayerAreaCollection: (layerId: string) => void
   setAdminVerificationStatus: (status: AdminVerificationStatus) => void
+  setAdminApiKey: (apiKey: string) => void
 }
 
 export const useAppletStore = create<Vars & Actions>()(
@@ -180,6 +182,12 @@ export const useAppletStore = create<Vars & Actions>()(
         setAdminVerificationStatus: (status: AdminVerificationStatus) => {
           set((state) => {
             state.adminVerificationStatus = status
+          })
+        },
+        
+        setAdminApiKey: (apiKey: string) => {
+          set((state) => {
+            state.adminApiKey = apiKey
           })
         },
       }
