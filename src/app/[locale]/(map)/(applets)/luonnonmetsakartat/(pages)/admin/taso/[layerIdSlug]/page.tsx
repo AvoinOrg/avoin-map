@@ -27,6 +27,7 @@ import { useMutation } from '@tanstack/react-query'
 import { LoadingSpinner } from '#/components/Loading'
 import { SidebarContentBox } from '#/components/Sidebar'
 import { set } from 'ol/transform'
+import EditableText from '#/components/common/EditableText'
 
 const Page = () => {
   const [isLayerReady, setIsLayerReady] = useState(false)
@@ -41,6 +42,9 @@ const Page = () => {
   )
   const layerAreaCollection = useAppletStore(
     (state) => state.layerAreaCollections[params.layerIdSlug]
+  )
+  const updateAdminLayerConf = useAppletStore(
+    (state) => state.updateAdminLayerConf
   )
   // const localAdminLayerPostMutation = useMutation(adminLayerPostMutation())
 
@@ -65,6 +69,14 @@ const Page = () => {
     console.log(layerAreaCollection)
   }, [layerAreaCollection])
 
+  const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const newName = e.target.value
+    updateAdminLayerConf(params.layerIdSlug, {
+      name: newName,
+      unsyncedChanges: true,
+    })
+  }
+
   return (
     <>
       <SidebarContentBox>
@@ -74,7 +86,12 @@ const Page = () => {
           </Box>
         )}
         {isLayerReady && (
-          <Typography variant="h6">{adminLayerConf.name}</Typography>
+          <Box>
+            <EditableText
+              value={adminLayerConf.name}
+              onChange={handleNameChange}
+            ></EditableText>
+          </Box>
         )}
       </SidebarContentBox>
     </>
