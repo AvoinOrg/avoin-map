@@ -15,6 +15,7 @@ type MutationData = {
   name: string
   isHidden: boolean
   rawShapefile: ArrayBuffer
+  colorCode: string
 }
 
 type ResponseData = {
@@ -27,9 +28,7 @@ export const layerPostMutation = (): UseMutationOptions<
   Error,
   MutationData
 > => {
-  const addAdminLayerConf = useAppletStore(
-    (state) => state.updateAdminLayerConf
-  )
+  const addAdminLayerConf = useAppletStore((state) => state.addAdminLayerConf)
   const notify = useUIStore((state) => state.notify)
   const { t } = useTranslate('luonnonmetsakartat')
   const { data: session } = useSession()
@@ -43,6 +42,7 @@ export const layerPostMutation = (): UseMutationOptions<
       formData.append('zip_file', blob, 'shapefile.zip')
       formData.append('name', mutationData.name)
       formData.append('is_hidden', mutationData.isHidden.toString())
+      formData.append('color_code', mutationData.colorCode)
 
       const postRes = await axios.post(`${API_URL}/layer`, formData, {
         headers: {
@@ -69,6 +69,8 @@ export const layerPostMutation = (): UseMutationOptions<
         state: LayerConfState.Idle,
         createdTs: postRes.data.created_ts * 1000,
         updatedTs: postRes.data.updated_ts * 1000,
+        unsyncedChanges: false,
+        colorCode: postRes.data.color_code,
       }
       await addAdminLayerConf(adminLayerConf)
 

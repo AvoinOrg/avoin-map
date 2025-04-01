@@ -40,6 +40,7 @@ export const adminLayersQuery = (): UseQueryOptions<AdminLayerConf[]> => {
             state: LayerConfState.Idle,
             createdTs: layer.created_ts * 1000,
             updatedTs: layer.updated_ts * 1000,
+            unsyncedChanges: false,
           })
         )
 
