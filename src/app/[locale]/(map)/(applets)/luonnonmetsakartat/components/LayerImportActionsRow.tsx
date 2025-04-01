@@ -1,13 +1,16 @@
 import React from 'react'
 import { Box, Typography } from '@mui/material'
 import { T } from '@tolgee/react'
+import LoadingHorizontal from '#/components/Loading/LoadingHorizontal'
 
 const LayerImportActionsRow = ({
   onClickAccept,
   isAcceptDisabled,
+  isLoading,
 }: {
   onClickAccept: () => void
   isAcceptDisabled: boolean
+  isLoading?: boolean
 }) => {
   return (
     <Box
@@ -19,20 +22,23 @@ const LayerImportActionsRow = ({
         margin: '40px 0 60px 0',
       })}
     >
-      <Typography
-        typography={'h3'}
-        sx={(theme) => ({
-          float: 'right',
-          ...(isAcceptDisabled
-            ? { color: theme.palette.neutral.main }
-            : { cursor: 'pointer' }),
-        })}
-        onClick={isAcceptDisabled ? undefined : onClickAccept}
-      >
-        <u>
-          <T keyName="sidebar.create.accept" ns="hiilikartta" />
-        </u>
-      </Typography>
+      {isLoading && <LoadingHorizontal></LoadingHorizontal>}
+      {!isLoading && (
+        <Typography
+          typography={'h3'}
+          sx={(theme) => ({
+            float: 'right',
+            ...(isAcceptDisabled
+              ? { color: theme.palette.neutral.main }
+              : { cursor: 'pointer' }),
+          })}
+          onClick={isAcceptDisabled ? undefined : onClickAccept}
+        >
+          <u>
+            <T keyName="sidebar.create.accept" ns="hiilikartta" />
+          </u>
+        </Typography>
+      )}
     </Box>
   )
 }
