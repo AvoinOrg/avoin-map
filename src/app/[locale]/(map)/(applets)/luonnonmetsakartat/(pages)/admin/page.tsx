@@ -12,24 +12,24 @@ import { SidebarContentBox } from '#/components/Sidebar'
 import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import { useQuery } from '@tanstack/react-query'
-import { adminLayersQuery } from 'applets/luonnonmetsakartat/common/queries/adminLayersQuery'
+import { adminFolayersQuery } from 'applets/luonnonmetsakartat/common/queries/adminFolayersQuery'
 import { LoadingSpinner } from '#/components/Loading'
-import { AdminLayerConf } from 'applets/luonnonmetsakartat/common/types'
+import { AdminFolayerConf } from 'applets/luonnonmetsakartat/common/types'
 
 const Page = () => {
-  const adminLayerConfs = useAppletStore((state) => state.adminLayerConfs)
+  const adminFolayerConfs = useAppletStore((state) => state.adminFolayerConfs)
 
-  const { refetch: adminLayerRefetch, isLoading } = useQuery({
-    ...adminLayersQuery(),
+  const { refetch: adminFolayerRefetch, isLoading } = useQuery({
+    ...adminFolayersQuery(),
     enabled: false,
   })
 
-  const adminLayerConfsArray: AdminLayerConf[] = useMemo(() => {
-    return Object.values(adminLayerConfs)
-  }, [adminLayerConfs])
+  const adminFolayerConfsArray: AdminFolayerConf[] = useMemo(() => {
+    return Object.values(adminFolayerConfs)
+  }, [adminFolayerConfs])
 
   useEffect(() => {
-    adminLayerRefetch()
+    adminFolayerRefetch()
   }, [])
 
   return (
@@ -52,13 +52,13 @@ const Page = () => {
 
       {/* <Box>
         {isLoading && <LoadingSpinner></LoadingSpinner>}
-        {!isLoading && adminLayerConfsArray.length > 0 && (
+        {!isLoading && adminFolayerConfsArray.length > 0 && (
           <Box sx={{ width: '100%', mt: 2 }}>
-            {adminLayerConfsArray.map((conf) => (
+            {adminFolayerConfsArray.map((conf) => (
               <ListItem key={conf.id} disablePadding>
                 <MutableLink
-                  route={routeTree.admin.layer}
-                  routeParams={{ layerIdSlug: conf.id }}
+                  route={routeTree.admin.folayer}
+                  routeParams={{ folayerIdSlug: conf.id }}
                   routeTree={routeTree}
                   sx={{
                     display: 'flex',

@@ -5,9 +5,9 @@ import { useTranslate, T } from '@tolgee/react'
 import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
 import CheckBoxWithText from '#/components/common/CheckBoxWithText'
 
-import LayerImportActionsRow from './LayerImportActionsRow'
+import FolayerImportActionsRow from './FolayerImportActionsRow'
 
-const LayerImportShp = ({
+const FolayerImportShp = ({
   fileBuffers,
   onFinish,
   isInitializing,
@@ -15,7 +15,7 @@ const LayerImportShp = ({
   fileBuffers: ArrayBuffer[]
   onFinish: (
     json: FeatureCollection,
-    layerName: string,
+    folayerName: string,
     isVisible: boolean
   ) => void
   isInitializing: boolean
@@ -23,9 +23,9 @@ const LayerImportShp = ({
   const { t } = useTranslate('luonnonmetsakartat')
   const [geojson, setGeojson] = useState<FeatureCollection>()
   // const [zoningCol, setZoningCol] = useState<string>()
-  const [layerNameValue, setLayerNameValue] = useState<string>('')
+  const [folayerNameValue, setFolayerNameValue] = useState<string>('')
   const [isVisible, setIsVisible] = useState<boolean>(false)
-  // const [layerDescriptionValue, setLayerDescriptionValue] = useState<string>('')
+  // const [folayerDescriptionValue, setFolayerDescriptionValue] = useState<string>('')
   // const [nameCol, setNameCol] = useState<string | undefined>() // nameCol can be optional
   const [columns, setColumns] = useState<string[]>([])
 
@@ -80,10 +80,10 @@ const LayerImportShp = ({
   //   setNameCol(newNameCol)
   // }
 
-  const handleLayerNameChange = (
+  const handleFolayerNameChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setLayerNameValue(event.target.value)
+    setFolayerNameValue(event.target.value)
   }
 
   const handleIsVisibleChange = (
@@ -93,15 +93,15 @@ const LayerImportShp = ({
     setIsVisible(checked)
   }
 
-  // const handleLayerDescriptionChange = (
+  // const handleFolayerDescriptionChange = (
   //   event: React.ChangeEvent<HTMLInputElement>
   // ) => {
-  //   setLayerDescriptionValue(event.target.value)
+  //   setFolayerDescriptionValue(event.target.value)
   // }
 
   const handleFinish = () => {
-    if (layerNameValue != null && geojson != null) {
-      onFinish(geojson, layerNameValue, isVisible)
+    if (folayerNameValue != null && geojson != null) {
+      onFinish(geojson, folayerNameValue, isVisible)
     }
   }
 
@@ -111,8 +111,8 @@ const LayerImportShp = ({
         <>
           <TextFieldWithHeader
             headerText={t('sidebar.admin.create.name.header')}
-            value={layerNameValue}
-            onChange={handleLayerNameChange}
+            value={folayerNameValue}
+            onChange={handleFolayerNameChange}
             placeholderText={t('sidebar.admin.create.name.placeholder')}
             sx={{ mt: 2.5 }}
             disabled={isInitializing}
@@ -130,18 +130,18 @@ const LayerImportShp = ({
           </CheckBoxWithText>
           {/* <TextFieldWithHeader
             headerText={t('sidebar.admin.create.description.header')}
-            value={layerDescriptionValue}
-            onChange={handleLayerDescriptionChange}
+            value={folayerDescriptionValue}
+            onChange={handleFolayerDescriptionChange}
             placeholderText={t('sidebar.admin.create.description.placeholder')}
             sx={{ mt: 2.5 }}
           ></TextFieldWithHeader> */}
-          {/* <LayerImportCodeRecordSelect
+          {/* <FolayerImportCodeRecordSelect
             columns={columns}
             selectedColumn={zoningCol}
             onColumnChange={handleZoningColChange}
             label={t('sidebar.create.select_zone_code_record')}
           />
-          <LayerImportCodeRecordSelect
+          <FolayerImportCodeRecordSelect
             columns={columns}
             selectedColumn={nameCol}
             onColumnChange={handleNameColChange}
@@ -151,13 +151,13 @@ const LayerImportShp = ({
           /> */}
         </>
       )}
-      <LayerImportActionsRow
+      <FolayerImportActionsRow
         onClickAccept={handleFinish}
-        isAcceptDisabled={layerNameValue == null || layerNameValue.length === 0}
+        isAcceptDisabled={folayerNameValue == null || folayerNameValue.length === 0}
         isLoading={isInitializing}
-      ></LayerImportActionsRow>
+      ></FolayerImportActionsRow>
     </>
   )
 }
 
-export default LayerImportShp
+export default FolayerImportShp

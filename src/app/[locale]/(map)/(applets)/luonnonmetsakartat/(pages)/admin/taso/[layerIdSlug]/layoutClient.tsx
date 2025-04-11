@@ -6,64 +6,64 @@ import { useParams } from 'next/navigation'
 import useStore from '#/common/hooks/useStore'
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import { useQuery } from '@tanstack/react-query'
-import { adminLayerQuery } from 'applets/luonnonmetsakartat/common/queries/adminLayerQuery'
-import { adminLayerAreaQuery } from 'applets/luonnonmetsakartat/common/queries/adminLayerAreaQuery'
+import { adminFolayerQuery } from 'applets/luonnonmetsakartat/common/queries/adminFolayerQuery'
+import { adminFolayerAreaQuery } from 'applets/luonnonmetsakartat/common/queries/adminFolayerAreaQuery'
 import { useMapStore } from '#/common/store/mapStore'
-import { useDoesLayerGroupExist } from '#/common/hooks/map/useDoesLayerGroupExist'
+import { useDoesFolayerGroupExist } from '#/common/hooks/map/useDoesFolayerGroupExist'
 import {
-  createAdminLayerConf,
-  getLayerGroupId,
+  createAdminFolayerConf,
+  getFolayerGroupId,
 } from 'applets/luonnonmetsakartat/common/utils'
-import { LayerGroupAddOptions } from '#/common/types/map'
+import { FolayerGroupAddOptions } from '#/common/types/map'
 import { Feature } from 'geojson'
 import {
   FeatureProperties,
-  LayerConfState,
+  FolayerConfState,
 } from 'applets/luonnonmetsakartat/common/types'
 import { getGeoJsonArea } from '#/common/utils/gis'
 
 const layoutClient = ({ children }: { children: React.ReactNode }) => {
-  const params = useParams<{ layerIdSlug: string }>()
-  const enableLayerGroup = useMapStore((state) => state.enableLayerGroup)
-  const addLayerGroup = useMapStore((state) => state.addLayerGroup)
-  const disableLayerGroup = useMapStore((state) => state.disableLayerGroup)
-  const adminLayerConf = useStore(
+  const params = useParams<{ folayerIdSlug: string }>()
+  const enableFolayerGroup = useMapStore((state) => state.enableFolayerGroup)
+  const addFolayerGroup = useMapStore((state) => state.addFolayerGroup)
+  const disableFolayerGroup = useMapStore((state) => state.disableFolayerGroup)
+  const adminFolayerConf = useStore(
     useAppletStore,
-    (state) => state.adminLayerConfs[params.layerIdSlug]
+    (state) => state.adminFolayerConfs[params.folayerIdSlug]
   )
-  const layerAreaCollection = useStore(
+  const folayerAreaCollection = useStore(
     useAppletStore,
-    (state) => state.layerAreaCollections[params.layerIdSlug]
+    (state) => state.folayerAreaCollections[params.folayerIdSlug]
   )
   const adminApiKey = useStore(useAppletStore, (state) => state.adminApiKey)
 
-  const { refetch: layerRefetch } = useQuery({
-    ...adminLayerQuery(params.layerIdSlug),
+  const { refetch: folayerRefetch } = useQuery({
+    ...adminFolayerQuery(params.folayerIdSlug),
     enabled: false, // This prevents the query from running automatically
   })
 
   const { refetch: areasRefetch } = useQuery({
-    ...adminLayerAreaQuery(params.layerIdSlug),
+    ...adminFolayerAreaQuery(params.folayerIdSlug),
     enabled: false, // This prevents the query from running automatically
   })
 
   // const updateSourceData = useMapStore((state) => state.updateSourceData)
 
-  const doesLayerGroupExist = useDoesLayerGroupExist(
-    getLayerGroupId(params.layerIdSlug)
+  const doesFolayerGroupExist = useDoesFolayerGroupExist(
+    getFolayerGroupId(params.folayerIdSlug)
   )
 
   const isLoaded = useRef(false)
 
   useEffect(() => {
     const init = async () => {
-      if (adminLayerConf && !isLoaded.current && doesLayerGroupExist != null) {
-        const layerGroupId = getLayerGroupId(params.layerIdSlug)
-        const layerGroupAddOptions: LayerGroupAddOptions = {
+      if (adminFolayerConf && !isLoaded.current && doesFolayerGroupExist != null) {
+        const folayerGroupId = getFolayerGroupId(params.folayerIdSlug)
+        const folayerGroupAddOptions: FolayerGroupAddOptions = {
           zoomToExtent: true,
           // dataUpdateMutator: async (data: FeatureCollection) => {
           //   if (updatePlanConf != null) {
-          //     updatePlanConf(params.layerIdSlug, { data: data as PlanData })
+          //     updatePlanConf(params.folayerIdSlug, { data: data as PlanData })
           //   } else {
           //     console.error('Unable to add dataUpdateMutator')
           //   }
@@ -99,19 +99,19 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
           // },
         }
 
-        if (doesLayerGroupExist) {
-          await enableLayerGroup(layerGroupId, layerGroupAddOptions)
+        if (doesFolayerGroupExist) {
+          await enableFolayerGroup(folayerGroupId, folayerGroupAddOptions)
         } else {
-          const layerConf = createAdminLayerConf(
+          const folayerConf = createAdminFolayerConf(
             adminApiKey as string,
-            // layerAreaCollection,
-            adminLayerConf.id,
-            adminLayerConf.colorCode
+            // folayerAreaCollection,
+            adminFolayerConf.id,
+            adminFolayerConf.colorCode
           )
 
-          await addLayerGroup(layerGroupId, {
-            ...layerGroupAddOptions,
-            layerConf: layerConf,
+          await addFolayerGroup(folayerGroupId, {
+            ...folayerGroupAddOptions,
+            folayerConf: folayerConf,
           })
         }
 
@@ -120,43 +120,43 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
     }
 
     if (
-      adminLayerConf &&
-      ![LayerConfState.Fetching, LayerConfState.Deleting].includes(
-        adminLayerConf.state
+      adminFolayerConf &&
+      ![FolayerConfState.Fetching, FolayerConfState.Deleting].includes(
+        adminFolayerConf.state
       ) &&
       !isLoaded.current &&
-      doesLayerGroupExist != null
+      doesFolayerGroupExist != null
     ) {
       init()
       // return () => {
       //   try {
-      //     disableLayerGroup(layerGroupId)
+      //     disableFolayerGroup(folayerGroupId)
       //   } catch (e) {
-      //     // if it fails, the layer is (most likely) already disabled/removed
+      //     // if it fails, the folayer is (most likely) already disabled/removed
       //   }
       // }
-    } else if (!adminLayerConf && doesLayerGroupExist) {
-      disableLayerGroup(getLayerGroupId(params.layerIdSlug)).catch(() => {})
-      // } else if (adminLayerConf && adminLayerConf.isHidden && doesLayerGroupExist) {
-      //   disableLayerGroup(getLayerGroupId(params.layerIdSlug)).catch(() => {})
+    } else if (!adminFolayerConf && doesFolayerGroupExist) {
+      disableFolayerGroup(getFolayerGroupId(params.folayerIdSlug)).catch(() => {})
+      // } else if (adminFolayerConf && adminFolayerConf.isHidden && doesFolayerGroupExist) {
+      //   disableFolayerGroup(getFolayerGroupId(params.folayerIdSlug)).catch(() => {})
     } else if (
-      adminLayerConf &&
-      adminLayerConf.state != null &&
-      adminLayerConf.state === LayerConfState.Fetching
+      adminFolayerConf &&
+      adminFolayerConf.state != null &&
+      adminFolayerConf.state === FolayerConfState.Fetching
     ) {
-      disableLayerGroup(getLayerGroupId(params.layerIdSlug)).catch(() => {})
+      disableFolayerGroup(getFolayerGroupId(params.folayerIdSlug)).catch(() => {})
       isLoaded.current = false
     }
-  }, [adminLayerConf, isLoaded, doesLayerGroupExist])
+  }, [adminFolayerConf, isLoaded, doesFolayerGroupExist])
 
   useEffect(() => {
-    if (adminLayerConf) {
-      document.title = adminLayerConf.name
+    if (adminFolayerConf) {
+      document.title = adminFolayerConf.name
     }
-  }, [adminLayerConf])
+  }, [adminFolayerConf])
 
   useEffect(() => {
-    layerRefetch()
+    folayerRefetch()
     areasRefetch()
   }, [])
 
