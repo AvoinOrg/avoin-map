@@ -29,7 +29,7 @@ import {
 import { routeTree } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/routes'
 import LayerImportShp from 'applets/luonnonmetsakartat/components/LayerImportShp'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
-import { layerPostMutation } from 'applets/luonnonmetsakartat/common/queries/layerPostMutation'
+import { adminLayerPatchMutation } from 'applets/luonnonmetsakartat/common/queries/adminLayerPatchMutation'
 import { useMutation } from '@tanstack/react-query'
 import { LoadingSpinner } from '#/components/Loading'
 import { SidebarContentBox } from '#/components/Sidebar'
@@ -37,6 +37,8 @@ import { set } from 'ol/transform'
 import EditableText from '#/components/common/EditableText'
 import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
 import CheckBoxWithText from '#/components/common/CheckBoxWithText'
+import { SaveOutlined } from '@mui/icons-material'
+import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
 
 const Page = () => {
   const [isLayerReady, setIsLayerReady] = useState(false)
@@ -55,7 +57,7 @@ const Page = () => {
   const updateAdminLayerConf = useAppletStore(
     (state) => state.updateAdminLayerConf
   )
-  // const localAdminLayerPostMutation = useMutation(adminLayerPostMutation())
+  const localAdminLayerPatchMutation = useMutation(adminLayerPatchMutation())
 
   useEffect(() => {
     if (adminLayerConf && adminLayerConf.state === LayerConfState.Idle) {
@@ -103,6 +105,16 @@ const Page = () => {
     })
   }
 
+  const handleSaveClick = (event: any) => {
+    event.preventDefault()
+    event.stopPropagation()
+    event.nativeEvent.stopImmediatePropagation()
+
+    if (adminLayerConf) {
+      localAdminLayerPatchMutation.mutate(adminLayerConf)
+    }
+  }
+
   return (
     <>
       <SidebarContentBox>
@@ -139,6 +151,127 @@ const Page = () => {
           </Box>
         )}
       </SidebarContentBox>
+      {adminLayerConf.unsyncedChanges && (
+        <Box
+          sx={(theme) => ({
+            display: 'flex',
+            flexDirection: 'column',
+            pl: SIDEBAR_PADDING_REM + 'rem',
+            pr: SIDEBAR_PADDING_REM + 'rem',
+            pt: 2,
+            pb: 2,
+            zIndex: 9999,
+            borderTop: 1,
+            borderColor: 'primary.lighter',
+          })}
+        >
+          <Box
+            onClick={handleSaveClick}
+            sx={{
+              mt: 1.3,
+              display: 'inline-flex',
+              flexDirection: 'row',
+              '&:hover': { cursor: 'pointer' },
+              color: 'neutral.dark',
+              flex: '0',
+              whiteSpace: 'nowrap',
+              alignSelf: 'flex-start',
+            }}
+          >
+            <Box sx={{ mr: 1.7 }}>
+              <SaveOutlined></SaveOutlined>
+            </Box>
+            <Box
+              sx={{
+                typography: 'h3',
+              }}
+            >
+              <T keyName={'sidebar.plan_settings.delete'} ns={'hiilikartta'} />
+            </Box>
+            {/* </Box> */}
+          </Box>
+          {[
+            CalculationState.NOT_STARTED,
+            CalculationState.ERRORED,
+            CalculationState.FINISHED,
+          ].includes(planConf.calculationState) && (
+            <Box
+              sx={{
+                display: 'flex',
+                flex: 1,
+                flexDirection: 'column',
+                justifyContent: 'flex-end',
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'flex-end',
+                }}
+              >
+                <Tooltip
+                  title={
+                    hasNoFeatures
+                      ? t(
+                          'sidebar.plan_settings.calculate_carbon_effect.tooltip_no_features'
+                        )
+                      : t(
+                          'sidebar.plan_settings.calculate_carbon_effect.tooltip_invalid'
+                        )
+                  }
+                  disableHoverListener={areSettingsValid && !hasNoFeatures}
+                  disableFocusListener={areSettingsValid && !hasNoFeatures}
+                  disableTouchListener={areSettingsValid && !hasNoFeatures}
+                >
+                  <Box
+                    sx={{
+                      display: 'inline-flex',
+                      flexDirection: 'row',
+                      '&:hover': {
+                        cursor:
+                          areSettingsValid && !hasNoFeatures
+                            ? 'pointer'
+                            : 'default',
+                      },
+                      mt: 4,
+                      flex: '0',
+                      color:
+                        areSettingsValid && !hasNoFeatures
+                          ? 'neutral.darker'
+                          : 'neutral.main',
+                    }}
+                    onClick={
+                      areSettingsValid && !hasNoFeatures
+                        ? handleSubmit
+                        : undefined
+                    }
+                  >
+                    <Box
+                      sx={{
+                        typography: 'h1',
+                        textAlign: 'end',
+                        mr: 3,
+                        minWidth: '270px',
+                      }}
+                    >
+                      <T
+                        keyName={
+                          'sidebar.plan_settings.calculate_carbon_effect'
+                        }
+                        ns={'hiilikartta'}
+                      />
+                    </Box>
+                    <Box sx={{ mt: 0.2 }}>
+                      <ArrowNextBig></ArrowNextBig>
+                    </Box>
+                  </Box>
+                </Tooltip>
+              </Box>
+            </Box>
+          )}
+        </Box>
+      )}
     </>
   )
 }
