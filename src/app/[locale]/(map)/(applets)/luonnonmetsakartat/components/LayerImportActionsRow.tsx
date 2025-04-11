@@ -3,7 +3,7 @@ import { Box, Typography } from '@mui/material'
 import { T } from '@tolgee/react'
 import LoadingHorizontal from '#/components/Loading/LoadingHorizontal'
 
-const LayerImportActionsRow = ({
+const FolayerImportActionsRow = ({
   onClickAccept,
   isAcceptDisabled,
   isLoading,
@@ -43,4 +43,4 @@ const LayerImportActionsRow = ({
   )
 }
 
-export default LayerImportActionsRow
+export default FolayerImportActionsRow

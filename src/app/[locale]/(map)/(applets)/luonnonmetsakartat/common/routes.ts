@@ -23,9 +23,9 @@ export const routeTree: RouteTree = {
         name: 'Tuo',
       },
     },
-    layer: {
+    folayer: {
       _conf: {
-        path: 'taso/[layerId]',
+        path: 'taso/[folayerId]',
         name: 'Karttataso',
       },
     },

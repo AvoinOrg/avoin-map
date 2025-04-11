@@ -16,7 +16,7 @@ export interface FeatureProperties {
   personInCharge?: string
 }
 
-export interface LayerConf {
+export interface FolayerConf {
   id: string
   name: string
   colorCode: string
@@ -25,21 +25,21 @@ export interface LayerConf {
   description?: string
 }
 
-export enum LayerConfState {
+export enum FolayerConfState {
   Idle = 'idle',
   Fetching = 'fetching',
   Saving = 'saving',
   Deleting = 'deleting',
 }
 
-export interface AdminLayerConf extends LayerConf {
+export interface AdminFolayerConf extends FolayerConf {
   isVisible: boolean
-  state: LayerConfState
+  state: FolayerConfState
   unsyncedChanges: boolean
 }
 
-export interface LayerAreaCollection {
+export interface FolayerAreaCollection {
   id: string
   features: FeatureProperties[]
-  state: LayerConfState
+  state: FolayerConfState
 }

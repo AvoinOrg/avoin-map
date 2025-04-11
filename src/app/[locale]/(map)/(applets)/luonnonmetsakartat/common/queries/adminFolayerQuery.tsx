@@ -3,61 +3,61 @@ import axios from 'axios'
 import { useSession } from 'next-auth/react'
 
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
-import { AdminLayerConf, LayerConfState } from '../types'
+import { AdminFolayerConf, FolayerConfState } from '../types'
 
 const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 
-export const adminLayerQuery = (
-  layerId: string
-): UseQueryOptions<AdminLayerConf | null> => {
+export const adminFolayerQuery = (
+  folayerId: string
+): UseQueryOptions<AdminFolayerConf | null> => {
   const { data: session } = useSession()
-  const updateAdminLayerConf = useAppletStore.getState().updateAdminLayerConf
-  const addAdminLayerConf = useAppletStore.getState().addAdminLayerConf
+  const updateAdminFolayerConf = useAppletStore.getState().updateAdminFolayerConf
+  const addAdminFolayerConf = useAppletStore.getState().addAdminFolayerConf
 
   return {
-    queryKey: ['adminLayer', layerId],
+    queryKey: ['adminFolayer', folayerId],
     queryFn: async () => {
-      const existingLayerConf =
-        useAppletStore.getState().adminLayerConfs[layerId]
+      const existingFolayerConf =
+        useAppletStore.getState().adminFolayerConfs[folayerId]
 
-      if (existingLayerConf) {
-        if (existingLayerConf.state !== LayerConfState.Idle) {
+      if (existingFolayerConf) {
+        if (existingFolayerConf.state !== FolayerConfState.Idle) {
           return null
         }
-        updateAdminLayerConf(layerId, { state: LayerConfState.Fetching })
+        updateAdminFolayerConf(folayerId, { state: FolayerConfState.Fetching })
       }
-      // Get layer data from API
-      const response = await axios.get(`${API_URL}/layer/${layerId}`, {
+      // Get folayer data from API
+      const response = await axios.get(`${API_URL}/folayer/${folayerId}`, {
         headers: {
           Authorization: `Bearer ${session?.accessToken}`,
         },
       })
 
       if (response.status === 200) {
-        // Map API response to AdminLayerConf
-        const layerConf: AdminLayerConf = {
+        // Map API response to AdminFolayerConf
+        const folayerConf: AdminFolayerConf = {
           id: response.data.id,
           name: response.data.name,
           description: response.data.description || '',
           colorCode: response.data.color_code || '',
           isVisible: !response.data.is_hidden, // Note the inversion of is_hidden to isVisible
-          state: LayerConfState.Idle,
+          state: FolayerConfState.Idle,
           createdTs: response.data.created_ts * 1000, // Convert to milliseconds
           updatedTs: response.data.updated_ts * 1000, // Convert to milliseconds
           unsyncedChanges: false,
         }
 
-        const existingLayer =
-          useAppletStore.getState().adminLayerConfs[layerConf.id]
+        const existingFolayer =
+          useAppletStore.getState().adminFolayerConfs[folayerConf.id]
 
-        if (existingLayer) {
-          // Update existing layer
-          updateAdminLayerConf(layerConf.id, layerConf)
+        if (existingFolayer) {
+          // Update existing folayer
+          updateAdminFolayerConf(folayerConf.id, folayerConf)
         } else {
-          addAdminLayerConf(layerConf)
+          addAdminFolayerConf(folayerConf)
         }
 
-        return layerConf
+        return folayerConf
       }
 
       return null

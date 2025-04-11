@@ -4,18 +4,15 @@ import JSZip from 'jszip'
 import { useSession } from 'next-auth/react'
 import { FeatureCollection } from 'geojson'
 
-import { AdminLayerConf, LayerConf, LayerConfState } from '../types'
+import { AdminFolayerConf, FolayerConf, FolayerConfState } from '../types'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { useUIStore } from '#/common/store'
 import { useTranslate } from '@tolgee/react'
 
 const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 
-type MutationData = {
-  name: string
-  isHidden: boolean
-  rawShapefile: ArrayBuffer
-  colorCode: string
+interface MutationData extends AdminFolayerConf {
+  rawShapefile?: ArrayBuffer
 }
 
 type ResponseData = {
@@ -23,28 +20,34 @@ type ResponseData = {
   id: string
 }
 
-export const layerPostMutation = (): UseMutationOptions<
+export const adminFolayerPatchMutation = (): UseMutationOptions<
   ResponseData,
   Error,
   MutationData
 > => {
-  const addAdminLayerConf = useAppletStore((state) => state.addAdminLayerConf)
+  const addAdminFolayerConf = useAppletStore((state) => state.addAdminFolayerConf)
   const notify = useUIStore((state) => state.notify)
   const { t } = useTranslate('luonnonmetsakartat')
   const { data: session } = useSession()
 
   return {
     mutationFn: async (mutationData: MutationData) => {
-      const blob = new Blob([mutationData.rawShapefile], {
-        type: 'application/zip',
-      })
       const formData = new FormData()
-      formData.append('zip_file', blob, 'shapefile.zip')
+
+      if (mutationData.rawShapefile) {
+        const blob = new Blob([mutationData.rawShapefile], {
+          type: 'application/zip',
+        })
+        formData.append('zip_file', blob, 'shapefile.zip')
+      }
+
+      const isHidden = !mutationData.isVisible
+      formData.append('is_hidden', isHidden.toString())
+
       formData.append('name', mutationData.name)
-      formData.append('is_hidden', mutationData.isHidden.toString())
       formData.append('color_code', mutationData.colorCode)
 
-      const postRes = await axios.post(`${API_URL}/layer`, formData, {
+      const postRes = await axios.post(`${API_URL}/folayer`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${session?.accessToken}`,
@@ -52,7 +55,7 @@ export const layerPostMutation = (): UseMutationOptions<
       })
 
       if (postRes.status !== 200 && postRes.status !== 201) {
-        throw new Error('Failed to save the layer')
+        throw new Error('Failed to save the folayer')
       }
 
       // updatePlanConf(planConf.id, {
@@ -62,24 +65,24 @@ export const layerPostMutation = (): UseMutationOptions<
       //   userId: postRes.data.user_id,
       // })
 
-      const adminLayerConf: AdminLayerConf = {
+      const adminFolayerConf: AdminFolayerConf = {
         id: postRes.data.id,
         name: postRes.data.name,
         isVisible: postRes.data.is_hidden,
-        state: LayerConfState.Idle,
+        state: FolayerConfState.Idle,
         createdTs: postRes.data.created_ts * 1000,
         updatedTs: postRes.data.updated_ts * 1000,
         unsyncedChanges: false,
         colorCode: postRes.data.color_code,
       }
-      await addAdminLayerConf(adminLayerConf)
+      await addAdminFolayerConf(adminFolayerConf)
 
       return { status: postRes.status, id: postRes.data.id }
     },
     onError: (error) => {
       console.error(error)
       notify({
-        message: `${t('notifications.layer_creation_error')}`,
+        message: `${t('notifications.folayer_creation_error')}`,
         variant: 'error',
       })
     },
