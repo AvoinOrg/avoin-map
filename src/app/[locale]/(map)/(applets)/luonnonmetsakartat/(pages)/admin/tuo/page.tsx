@@ -49,6 +49,7 @@ const Page = () => {
     localLayerPostMutation.mutate({
       name,
       isHidden: !isVisible,
+      colorCode: "C7C9B8",
       rawShapefile: arrayBuffers[0],
     })
   }
