@@ -4,37 +4,37 @@ import { useSession } from 'next-auth/react'
 import { useTranslate } from '@tolgee/react'
 
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
-import { AdminLayerConf, LayerConfState } from '../types'
+import { AdminFolayerConf, FolayerConfState } from '../types'
 import { useUIStore } from '#/common/store'
 
 const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 
-export const layerDeleteMutation = (): UseMutationOptions<
+export const folayerDeleteMutation = (): UseMutationOptions<
   void,
   Error,
-  AdminLayerConf
+  AdminFolayerConf
 > => {
-  const deleteAdminLayerConf = useAppletStore(
-    (state) => state.deleteAdminLayerConf
+  const deleteAdminFolayerConf = useAppletStore(
+    (state) => state.deleteAdminFolayerConf
   )
-  const updateAdminLayerConf = useAppletStore(
-    (state) => state.updateAdminLayerConf
+  const updateAdminFolayerConf = useAppletStore(
+    (state) => state.updateAdminFolayerConf
   )
   const { data: session } = useSession()
   const notify = useUIStore((state) => state.notify)
   const { t } = useTranslate('luonnonmetsakartat')
 
   return {
-    mutationFn: async (layerConf: AdminLayerConf) => {
-      // Update layer state to show it's being deleted
-      updateAdminLayerConf({
-        ...layerConf,
-        state: LayerConfState.Deleting,
+    mutationFn: async (folayerConf: AdminFolayerConf) => {
+      // Update folayer state to show it's being deleted
+      updateAdminFolayerConf(folayerConf.id, {
+        ...folayerConf,
+        state: FolayerConfState.Deleting,
       })
 
       if (session) {
         const deleteRes = await axios.delete(
-          `${API_URL}/layer/${layerConf.id}`,
+          `${API_URL}/folayer/${folayerConf.id}`,
           {
             headers: {
               Authorization: `Bearer ${session?.accessToken}`,
@@ -47,33 +47,33 @@ export const layerDeleteMutation = (): UseMutationOptions<
           deleteRes.status !== 204 &&
           deleteRes.status !== 404
         ) {
-          throw new Error('Failed to delete the layer')
+          throw new Error('Failed to delete the folayer')
         }
       }
 
       // Remove from store
-      deleteAdminLayerConf(layerConf.id)
+      deleteAdminFolayerConf(folayerConf.id)
     },
-    onError: (error, layerConf) => {
+    onError: (error, folayerConf) => {
       console.error(error)
 
-      // Revert layer state if deletion fails
-      updateAdminLayerConf({
-        ...layerConf,
-        state: LayerConfState.Idle,
+      // Revert folayer state if deletion fails
+      updateAdminFolayerConf(folayerConf.id, {
+        ...folayerConf,
+        state: FolayerConfState.Idle,
       })
 
       // Notify user of error
       notify({
-        message: t('notifications.layer_delete_error'),
+        message: t('notifications.folayer_delete_error'),
         variant: 'error',
       })
     },
-    onSuccess: (_, layerConf) => {
+    onSuccess: (_, folayerConf) => {
       // Notify user of successful deletion
       notify({
-        message: t('notifications.layer_delete_success', {
-          name: layerConf.name,
+        message: t('notifications.folayer_delete_success', {
+          name: folayerConf.name,
         }),
         variant: 'success',
       })

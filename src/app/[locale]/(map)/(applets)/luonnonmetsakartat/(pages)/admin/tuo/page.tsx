@@ -18,9 +18,9 @@ import { Upload } from '#/components/icons'
 
 import { FeatureProperties } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 import { routeTree } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/routes'
-import LayerImportShp from 'applets/luonnonmetsakartat/components/LayerImportShp'
+import FolayerImportShp from 'applets/luonnonmetsakartat/components/FolayerImportShp'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
-import { layerPostMutation } from 'applets/luonnonmetsakartat/common/queries/layerPostMutation'
+import { folayerPostMutation } from 'applets/luonnonmetsakartat/common/queries/folayerPostMutation'
 import { useMutation } from '@tanstack/react-query'
 
 const Page = () => {
@@ -32,7 +32,7 @@ const Page = () => {
   const router = useRouter()
   const { t } = useTranslate('luonnonmetsakartat')
   const dialogOpenedRef = useRef(false)
-  const localLayerPostMutation = useMutation(layerPostMutation())
+  const localFolayerPostMutation = useMutation(folayerPostMutation())
 
   useEffect(() => {
     if (inputRef.current && !dialogOpenedRef.current) {
@@ -46,7 +46,7 @@ const Page = () => {
       return
     }
 
-    localLayerPostMutation.mutate({
+    localFolayerPostMutation.mutate({
       name,
       isHidden: !isVisible,
       colorCode: "C7C9B8",
@@ -55,16 +55,16 @@ const Page = () => {
   }
 
   useEffect(() => {
-    if (localLayerPostMutation.isSuccess) {
-      const id = localLayerPostMutation.data.id
-      const route = getRoute(routeTree.admin.layer, routeTree, {
+    if (localFolayerPostMutation.isSuccess) {
+      const id = localFolayerPostMutation.data.id
+      const route = getRoute(routeTree.admin.folayer, routeTree, {
         routeParams: {
-          layerId: id,
+          folayerId: id,
         },
       })
       router.push(route)
     }
-  }, [localLayerPostMutation])
+  }, [localFolayerPostMutation])
 
   const handleFileInput = async (e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) {
@@ -148,11 +148,11 @@ const Page = () => {
       </BigMenuButton>
 
       {fileType === 'shp' && arrayBuffers && arrayBuffers?.length > 0 && (
-        <LayerImportShp
+        <FolayerImportShp
           fileBuffers={arrayBuffers}
           onFinish={handleFinish}
-          isInitializing={localLayerPostMutation.isPending}
-        ></LayerImportShp>
+          isInitializing={localFolayerPostMutation.isPending}
+        ></FolayerImportShp>
       )}
     </SidebarContentBox>
   )

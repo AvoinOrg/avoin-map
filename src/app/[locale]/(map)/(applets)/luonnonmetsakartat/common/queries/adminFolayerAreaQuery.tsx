@@ -6,60 +6,65 @@ import { area as turfArea } from '@turf/turf'
 
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { useSession } from 'next-auth/react'
-import { LayerConfState, LayerAreaCollection } from '../types'
+import { FolayerConfState, FolayerAreaCollection } from '../types'
 
 const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 
-export const adminLayerAreaQuery = (
-  layerId: string
-): UseQueryOptions<LayerAreaCollection | null> => {
+export const adminFolayerAreaQuery = (
+  folayerId: string
+): UseQueryOptions<FolayerAreaCollection | null> => {
   const { data: session } = useSession()
-  const updateLayerAreaCollection =
-    useAppletStore.getState().updateLayerAreaCollection
-  const addLayerAreaCollection =
-    useAppletStore.getState().addLayerAreaCollection
+  const updateFolayerAreaCollection =
+    useAppletStore.getState().updateFolayerAreaCollection
+  const addFolayerAreaCollection =
+    useAppletStore.getState().addFolayerAreaCollection
 
   return {
-    queryKey: ['adminLayerAreas', layerId],
+    queryKey: ['adminFolayerAreas', folayerId],
     queryFn: async () => {
       const existingCollection =
-        useAppletStore.getState().layerAreaCollections[layerId]
+        useAppletStore.getState().folayerAreaCollections[folayerId]
 
       if (existingCollection) {
-        if (existingCollection.state !== LayerConfState.Idle) {
+        if (existingCollection.state !== FolayerConfState.Idle) {
           return null
         }
-        updateLayerAreaCollection(layerId, { state: LayerConfState.Fetching })
+        updateFolayerAreaCollection(folayerId, {
+          state: FolayerConfState.Fetching,
+        })
       } else {
         // Add new collection
-        addLayerAreaCollection(layerId, {
-          id: layerId,
+        addFolayerAreaCollection(folayerId, {
+          id: folayerId,
           features: [],
-          state: LayerConfState.Fetching,
+          state: FolayerConfState.Fetching,
         })
       }
 
-      // Get layer data from API
-      const response = await axios.get(`${API_URL}/layer/${layerId}/areas`, {
-        headers: {
-          Authorization: `Bearer ${session?.accessToken}`,
-        },
-      })
+      // Get folayer data from API
+      const response = await axios.get(
+        `${API_URL}/folayer/${folayerId}/areas`,
+        {
+          headers: {
+            Authorization: `Bearer ${session?.accessToken}`,
+          },
+        }
+      )
 
       if (response.status === 200) {
         // Extract area collection data
-        const areaCollection: LayerAreaCollection = {
-          id: layerId, // Using the same ID as the layer
+        const areaCollection: FolayerAreaCollection = {
+          id: folayerId, // Using the same ID as the folayer
           features: response.data || [], // Assuming features are in the response
-          state: LayerConfState.Idle,
+          state: FolayerConfState.Idle,
         }
 
         // Handle the area collection separately
         const existingCollection =
-          useAppletStore.getState().layerAreaCollections[layerId]
+          useAppletStore.getState().folayerAreaCollections[folayerId]
 
         if (existingCollection) {
-          updateLayerAreaCollection(layerId, areaCollection)
+          updateFolayerAreaCollection(folayerId, areaCollection)
         }
 
         return areaCollection

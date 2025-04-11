@@ -24,12 +24,12 @@ import { Upload } from '#/components/icons'
 
 import {
   FeatureProperties,
-  LayerConfState,
+  FolayerConfState,
 } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 import { routeTree } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/routes'
-import LayerImportShp from 'applets/luonnonmetsakartat/components/LayerImportShp'
+import FolayerImportShp from 'applets/luonnonmetsakartat/components/FolayerImportShp'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
-import { adminLayerPatchMutation } from 'applets/luonnonmetsakartat/common/queries/adminLayerPatchMutation'
+import { adminFolayerPatchMutation } from 'applets/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
 import { useMutation } from '@tanstack/react-query'
 import { LoadingSpinner } from '#/components/Loading'
 import { SidebarContentBox } from '#/components/Sidebar'
@@ -41,55 +41,55 @@ import { SaveOutlined } from '@mui/icons-material'
 import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
 
 const Page = () => {
-  const [isLayerReady, setIsLayerReady] = useState(false)
+  const [isFolayerReady, setIsFolayerReady] = useState(false)
   const [isAreaCollectionReady, setIsAreaCollectionReady] = useState(false)
-  const params = useParams<{ layerIdSlug: string }>()
+  const params = useParams<{ folayerIdSlug: string }>()
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const { t } = useTranslate('luonnonmetsakartat')
 
-  const adminLayerConf = useAppletStore(
-    (state) => state.adminLayerConfs[params.layerIdSlug]
+  const adminFolayerConf = useAppletStore(
+    (state) => state.adminFolayerConfs[params.folayerIdSlug]
   )
-  const layerAreaCollection = useAppletStore(
-    (state) => state.layerAreaCollections[params.layerIdSlug]
+  const folayerAreaCollection = useAppletStore(
+    (state) => state.folayerAreaCollections[params.folayerIdSlug]
   )
-  const updateAdminLayerConf = useAppletStore(
-    (state) => state.updateAdminLayerConf
+  const updateAdminFolayerConf = useAppletStore(
+    (state) => state.updateAdminFolayerConf
   )
-  const localAdminLayerPatchMutation = useMutation(adminLayerPatchMutation())
+  const localAdminFolayerPatchMutation = useMutation(adminFolayerPatchMutation())
 
   useEffect(() => {
-    if (adminLayerConf && adminLayerConf.state === LayerConfState.Idle) {
-      setIsLayerReady(true)
+    if (adminFolayerConf && adminFolayerConf.state === FolayerConfState.Idle) {
+      setIsFolayerReady(true)
     } else {
-      setIsLayerReady(false)
+      setIsFolayerReady(false)
     }
-    console.log(adminLayerConf)
-  }, [adminLayerConf])
+    console.log(adminFolayerConf)
+  }, [adminFolayerConf])
 
   useEffect(() => {
     if (
-      layerAreaCollection &&
-      layerAreaCollection.state === LayerConfState.Idle
+      folayerAreaCollection &&
+      folayerAreaCollection.state === FolayerConfState.Idle
     ) {
       setIsAreaCollectionReady(true)
     } else {
       setIsAreaCollectionReady(false)
     }
-    console.log(layerAreaCollection)
-  }, [layerAreaCollection])
+    console.log(folayerAreaCollection)
+  }, [folayerAreaCollection])
 
   const isEditingDisabled = useMemo(() => {
-    if (adminLayerConf.state === LayerConfState.Idle) {
+    if (adminFolayerConf.state === FolayerConfState.Idle) {
       return false
     }
     return true
-  }, [adminLayerConf?.state])
+  }, [adminFolayerConf?.state])
 
   const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value
-    updateAdminLayerConf(params.layerIdSlug, {
+    updateAdminFolayerConf(params.folayerIdSlug, {
       name: newName,
       unsyncedChanges: true,
     })
@@ -99,7 +99,7 @@ const Page = () => {
     _e: ChangeEvent<HTMLInputElement>,
     checked: boolean
   ) => {
-    updateAdminLayerConf(params.layerIdSlug, {
+    updateAdminFolayerConf(params.folayerIdSlug, {
       isVisible: checked,
       unsyncedChanges: true,
     })
@@ -110,48 +110,48 @@ const Page = () => {
     event.stopPropagation()
     event.nativeEvent.stopImmediatePropagation()
 
-    if (adminLayerConf) {
-      localAdminLayerPatchMutation.mutate(adminLayerConf)
+    if (adminFolayerConf) {
+      localAdminFolayerPatchMutation.mutate(adminFolayerConf)
     }
   }
 
   return (
     <>
       <SidebarContentBox>
-        {!isLayerReady && (
+        {!isFolayerReady && (
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
             <LoadingSpinner></LoadingSpinner>
           </Box>
         )}
-        {isLayerReady && (
+        {isFolayerReady && (
           <Box>
             <TextFieldWithHeader
-              headerText={t('sidebar.admin.layer.name.header')}
-              value={adminLayerConf.name}
+              headerText={t('sidebar.admin.folayer.name.header')}
+              value={adminFolayerConf.name}
               onChange={handleNameChange}
-              placeholderText={adminLayerConf.name}
+              placeholderText={adminFolayerConf.name}
               sx={{ mt: 2.5 }}
               disabled={isEditingDisabled}
             ></TextFieldWithHeader>
             <CheckBoxWithText
-              checked={adminLayerConf.isVisible}
+              checked={adminFolayerConf.isVisible}
               onChange={handleIsVisibleChange}
               sx={{ mt: 2.5 }}
               disabled={isEditingDisabled}
             >
               <T
                 ns={'luonnonmetsakartat'}
-                keyName={'sidebar.admin.layer.is_visible'}
+                keyName={'sidebar.admin.folayer.is_visible'}
               ></T>
             </CheckBoxWithText>
             <EditableText
-              value={adminLayerConf.name}
+              value={adminFolayerConf.name}
               onChange={handleNameChange}
             ></EditableText>
           </Box>
         )}
       </SidebarContentBox>
-      {adminLayerConf.unsyncedChanges && (
+      {adminFolayerConf.unsyncedChanges && (
         <Box
           sx={(theme) => ({
             display: 'flex',

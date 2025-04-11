@@ -11,7 +11,7 @@ interface Props {
   sx?: SxProps<Theme>
 }
 
-const LayerImportCodeRecordSelect = ({
+const FolayerImportCodeRecordSelect = ({
   columns,
   selectedColumn,
   onColumnChange,
@@ -48,4 +48,4 @@ const LayerImportCodeRecordSelect = ({
   )
 }
 
-export default LayerImportCodeRecordSelect
+export default FolayerImportCodeRecordSelect
