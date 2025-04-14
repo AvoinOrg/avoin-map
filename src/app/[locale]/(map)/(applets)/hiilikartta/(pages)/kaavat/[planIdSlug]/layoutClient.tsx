@@ -9,12 +9,12 @@ import { useQuery } from '@tanstack/react-query'
 import { adminFolayerQuery } from 'applets/luonnonmetsakartat/common/queries/adminFolayerQuery'
 import { adminFolayerAreaQuery } from 'applets/luonnonmetsakartat/common/queries/adminFolayerAreaQuery'
 import { useMapStore } from '#/common/store/mapStore'
-import { useDoesLayerGroupExist } from '#/common/hooks/map/useDoesLayerGroupExist'
+import { useDoeslayerGroupExist } from '#/common/hooks/map/useDoeslayerGroupExist'
 import {
   createAdminFolayerConf,
   getFolayerGroupId,
 } from 'applets/luonnonmetsakartat/common/utils'
-import { LayerGroupAddOptions } from '#/common/types/map'
+import { FolayerGroupAddOptions } from '#/common/types/map'
 import { Feature } from 'geojson'
 import {
   FeatureProperties,
@@ -24,9 +24,9 @@ import { getGeoJsonArea } from '#/common/utils/gis'
 
 const layoutClient = ({ children }: { children: React.ReactNode }) => {
   const params = useParams<{ folayerIdSlug: string }>()
-  const enableLayerGroup = useMapStore((state) => state.enableLayerGroup)
-  const addLayerGroup = useMapStore((state) => state.addLayerGroup)
-  const disableLayerGroup = useMapStore((state) => state.disableLayerGroup)
+  const enableFolayerGroup = useMapStore((state) => state.enableFolayerGroup)
+  const addFolayerGroup = useMapStore((state) => state.addFolayerGroup)
+  const disableFolayerGroup = useMapStore((state) => state.disableFolayerGroup)
   const adminFolayerConf = useStore(
     useAppletStore,
     (state) => state.adminFolayerConfs[params.folayerIdSlug]
@@ -49,7 +49,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
 
   // const updateSourceData = useMapStore((state) => state.updateSourceData)
 
-  const doesLayerGroupExist = useDoesLayerGroupExist(
+  const doesFolayerGroupExist = useDoeslayerGroupExist(
     getFolayerGroupId(params.folayerIdSlug)
   )
 
@@ -57,13 +57,9 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const init = async () => {
-      if (
-        adminFolayerConf &&
-        !isLoaded.current &&
-        doesLayerGroupExist != null
-      ) {
+      if (adminFolayerConf && !isLoaded.current && doesFolayerGroupExist != null) {
         const folayerGroupId = getFolayerGroupId(params.folayerIdSlug)
-        const folayerGroupAddOptions: LayerGroupAddOptions = {
+        const folayerGroupAddOptions: FolayerGroupAddOptions = {
           zoomToExtent: true,
           // dataUpdateMutator: async (data: FeatureCollection) => {
           //   if (updatePlanConf != null) {
@@ -103,19 +99,19 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
           // },
         }
 
-        if (doesLayerGroupExist) {
-          await enableLayerGroup(folayerGroupId, folayerGroupAddOptions)
+        if (doesFolayerGroupExist) {
+          await enableFolayerGroup(folayerGroupId, folayerGroupAddOptions)
         } else {
-          const layerConf = createAdminFolayerConf(
+          const folayerConf = createAdminFolayerConf(
             adminApiKey as string,
             // folayerAreaCollection,
             adminFolayerConf.id,
             adminFolayerConf.colorCode
           )
 
-          await addLayerGroup(folayerGroupId, {
+          await addFolayerGroup(folayerGroupId, {
             ...folayerGroupAddOptions,
-            layerConf: layerConf,
+            folayerConf: folayerConf,
           })
         }
 
@@ -129,29 +125,29 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
         adminFolayerConf.state
       ) &&
       !isLoaded.current &&
-      doesLayerGroupExist != null
+      doesFolayerGroupExist != null
     ) {
       init()
       // return () => {
       //   try {
-      //     disableLayerGroup(folayerGroupId)
+      //     disableFolayerGroup(folayerGroupId)
       //   } catch (e) {
       //     // if it fails, the folayer is (most likely) already disabled/removed
       //   }
       // }
-    } else if (!adminFolayerConf && doesLayerGroupExist) {
-      disableLayerGroup(getFolayerGroupId(params.folayerIdSlug)).catch(() => {})
-      // } else if (adminFolayerConf && adminFolayerConf.isHidden && doesLayerGroupExist) {
-      //   disableLayerGroup(getLayerGroupId(params.folayerIdSlug)).catch(() => {})
+    } else if (!adminFolayerConf && doesFolayerGroupExist) {
+      disableFolayerGroup(getFolayerGroupId(params.folayerIdSlug)).catch(() => {})
+      // } else if (adminFolayerConf && adminFolayerConf.isHidden && doesFolayerGroupExist) {
+      //   disableFolayerGroup(getFolayerGroupId(params.folayerIdSlug)).catch(() => {})
     } else if (
       adminFolayerConf &&
       adminFolayerConf.state != null &&
       adminFolayerConf.state === FolayerConfState.Fetching
     ) {
-      disableLayerGroup(getFolayerGroupId(params.folayerIdSlug)).catch(() => {})
+      disableFolayerGroup(getFolayerGroupId(params.folayerIdSlug)).catch(() => {})
       isLoaded.current = false
     }
-  }, [adminFolayerConf, isLoaded, doesLayerGroupExist])
+  }, [adminFolayerConf, isLoaded, doesFolayerGroupExist])
 
   useEffect(() => {
     if (adminFolayerConf) {
