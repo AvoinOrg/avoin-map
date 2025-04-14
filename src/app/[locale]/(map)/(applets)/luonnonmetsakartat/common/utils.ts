@@ -8,39 +8,39 @@ const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 const GS_WORKSPACE =
   process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE
 
-export const getLayerIdWithoutHyphens = (layerId: string) => {
+export const getFolayerIdWithoutHyphens = (layerId: string) => {
   return layerId.replace(/-/g, '')
 }
 
-export const getLayerGroupId = (layerId: string) => {
-  const layerIdWithoutHyphens = getLayerIdWithoutHyphens(layerId)
+export const getFolayerGroupId = (layerId: string) => {
+  const layerIdWithoutHyphens = getFolayerIdWithoutHyphens(layerId)
   return `${layerIdWithoutHyphens}_luonnonmetsakartat`
 }
 
-export const getSourceLayerId = (layerId: string) => {
-  return `forest_areas_${getLayerIdWithoutHyphens(layerId)}`
+export const getSourceFolayerId = (layerId: string) => {
+  return `forest_areas_${getFolayerIdWithoutHyphens(layerId)}`
 }
 
-export const getCentroidSourceLayerId = (layerId: string) => {
-  return `forest_areas_${getLayerIdWithoutHyphens(layerId)}_centroid`
+export const getCentroidSourceFolayerId = (layerId: string) => {
+  return `forest_areas_${getFolayerIdWithoutHyphens(layerId)}_centroid`
 }
 
 export const getCentroidLayerGroupId = (layerId: string) => {
-  const layerIdWithoutHyphens = getLayerIdWithoutHyphens(layerId)
+  const layerIdWithoutHyphens = getFolayerIdWithoutHyphens(layerId)
   return `${layerIdWithoutHyphens}_luonnonmetsakartat_centroid`
 }
 
-export const createAdminLayerConf = (
+export const createAdminFolayerConf = (
   apiKey: string,
   // json: any,
   layerId: string,
   featureColorCol: string
 ) => {
-  const sourceId = getLayerGroupId(layerId)
-  const sourceLayer = getSourceLayerId(layerId)
+  const sourceId = getFolayerGroupId(layerId)
+  const sourceLayer = getSourceFolayerId(layerId)
 
   const centroidSourceId = getCentroidLayerGroupId(layerId)
-  const centroidSourceLayer = getCentroidSourceLayerId(layerId)
+  const centroidSourceLayer = getCentroidSourceFolayerId(layerId)
 
   const style: ExtendedMbStyle = {
     version: 8,
