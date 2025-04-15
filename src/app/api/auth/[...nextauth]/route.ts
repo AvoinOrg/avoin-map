@@ -29,7 +29,9 @@ const refreshAccessToken = async (token: JWT): Promise<JWT> => {
 
     return {
       ...token,
+      accessToken: undefined,
       refreshToken: undefined,
+      expiresAt: 0,
       error: 'RefreshAccessTokenError',
     }
   }
@@ -96,6 +98,14 @@ const options = () => {
         session,
         token: { user, error: tokenError, accessToken },
       }: any) {
+        if (tokenError === 'RefreshAccessTokenError') {
+          return {
+            expires: new Date(0).toISOString(), // Set to a date in the past
+            user: null, // Clear user data
+            error: 'RefreshAccessTokenError', // Add error flag
+          }
+        }
+
         session.user = {
           id: user?.id,
           email: user?.email,
@@ -105,7 +115,11 @@ const options = () => {
         }
         // session.clientId = process.env.ZITADEL_CLIENT_ID
         session.accessToken = accessToken
-        session.error = tokenError
+
+        if (tokenError) {
+          session.error = tokenError
+        }
+
         return session
       },
     },

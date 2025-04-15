@@ -1,7 +1,7 @@
 'use client'
 
 import { User } from 'next-auth'
-import { signOut } from 'next-auth/react'
+import { signOut as nextSignOut } from 'next-auth/react'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 
@@ -73,8 +73,14 @@ export const useUserStore = create<State>()(
       signOut: () => {
         for (const key in get().signOutActions) {
           get().signOutActions[key]()
-          signOut()
         }
+        nextSignOut()
+        set({
+          userAuth: null,
+          userData: null,
+          userAuthState: UserAuthState.Unauthenticated,
+          userDataState: UserDataState.Unfetched,
+        })
       },
     }
 

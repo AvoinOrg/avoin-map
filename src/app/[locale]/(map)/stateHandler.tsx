@@ -53,6 +53,13 @@ const StateHandler = ({ children }: { children?: React.ReactNode }) => {
   }, [user])
 
   useEffect(() => {
+    if (session?.error === 'RefreshAccessTokenError') {
+      console.log('Session expired - signing out')
+      // Force a clean sign-out
+      setUserAuth(null)
+      setUserData(null)
+      signOut()
+    }
     if (session?.user?.id) {
       setUserAuth({ id: session.user.id, accessToken: session.accessToken })
     } else {
