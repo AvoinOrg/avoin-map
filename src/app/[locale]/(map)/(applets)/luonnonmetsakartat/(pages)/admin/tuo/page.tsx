@@ -20,7 +20,7 @@ import { FeatureProperties } from '#/app/[locale]/(map)/(applets)/luonnonmetsaka
 import { routeTree } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/routes'
 import FolayerImportShp from 'applets/luonnonmetsakartat/components/FolayerImportShp'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
-import { folayerPostMutation } from 'applets/luonnonmetsakartat/common/queries/folayerPostMutation'
+import { adminFolayerPostMutation } from 'applets/luonnonmetsakartat/common/queries/adminFolayerPostMutation'
 import { useMutation } from '@tanstack/react-query'
 
 const Page = () => {
@@ -32,7 +32,7 @@ const Page = () => {
   const router = useRouter()
   const { t } = useTranslate('luonnonmetsakartat')
   const dialogOpenedRef = useRef(false)
-  const localFolayerPostMutation = useMutation(folayerPostMutation())
+  const localFolayerPostMutation = useMutation(adminFolayerPostMutation())
 
   useEffect(() => {
     if (inputRef.current && !dialogOpenedRef.current) {
@@ -49,7 +49,7 @@ const Page = () => {
     localFolayerPostMutation.mutate({
       name,
       isHidden: !isVisible,
-      colorCode: "C7C9B8",
+      colorCode: 'C7C9B8',
       rawShapefile: arrayBuffers[0],
     })
   }

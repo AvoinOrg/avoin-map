@@ -23,12 +23,14 @@ type ResponseData = {
   id: string
 }
 
-export const folayerPostMutation = (): UseMutationOptions<
+export const adminFolayerPostMutation = (): UseMutationOptions<
   ResponseData,
   Error,
   MutationData
 > => {
-  const addAdminFolayerConf = useAppletStore((state) => state.addAdminFolayerConf)
+  const addAdminFolayerConf = useAppletStore(
+    (state) => state.addAdminFolayerConf
+  )
   const notify = useUIStore((state) => state.notify)
   const { t } = useTranslate('luonnonmetsakartat')
   const { data: session } = useSession()
