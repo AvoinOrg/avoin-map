@@ -47,7 +47,7 @@ export const adminFolayerPatchMutation = (): UseMutationOptions<
       formData.append('name', mutationData.name)
       formData.append('color_code', mutationData.colorCode)
 
-      const postRes = await axios.post(`${API_URL}/folayer`, formData, {
+      const postRes = await axios.post(`${API_URL}/layer`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${session?.accessToken}`,

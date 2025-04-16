@@ -27,7 +27,7 @@ export const adminFolayerQuery = (
         updateAdminFolayerConf(folayerId, { state: FolayerConfState.Fetching })
       }
       // Get folayer data from API
-      const response = await axios.get(`${API_URL}/folayer/${folayerId}`, {
+      const response = await axios.get(`${API_URL}/layer/${folayerId}`, {
         headers: {
           Authorization: `Bearer ${session?.accessToken}`,
         },
