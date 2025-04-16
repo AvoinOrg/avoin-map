@@ -57,7 +57,9 @@ const Page = () => {
   const updateAdminFolayerConf = useAppletStore(
     (state) => state.updateAdminFolayerConf
   )
-  const localAdminFolayerPatchMutation = useMutation(adminFolayerPatchMutation())
+  const localAdminFolayerPatchMutation = useMutation(
+    adminFolayerPatchMutation()
+  )
 
   useEffect(() => {
     if (adminFolayerConf && adminFolayerConf.state === FolayerConfState.Idle) {
@@ -81,7 +83,7 @@ const Page = () => {
   }, [folayerAreaCollection])
 
   const isEditingDisabled = useMemo(() => {
-    if (adminFolayerConf.state === FolayerConfState.Idle) {
+    if (adminFolayerConf && adminFolayerConf.state === FolayerConfState.Idle) {
       return false
     }
     return true
@@ -151,7 +153,7 @@ const Page = () => {
           </Box>
         )}
       </SidebarContentBox>
-      {adminFolayerConf.unsyncedChanges && (
+      {adminFolayerConf && adminFolayerConf.unsyncedChanges && (
         <Box
           sx={(theme) => ({
             display: 'flex',
