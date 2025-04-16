@@ -118,7 +118,7 @@ const Page = () => {
   }
 
   return (
-    <>
+    <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
       <SidebarContentBox>
         {!isFolayerReady && (
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -138,7 +138,7 @@ const Page = () => {
             <CheckBoxWithText
               checked={adminFolayerConf.isVisible}
               onChange={handleIsVisibleChange}
-              sx={{ mt: 2.5 }}
+              sx={{ mt: 4 }}
               disabled={isEditingDisabled}
             >
               <T
@@ -146,10 +146,6 @@ const Page = () => {
                 keyName={'sidebar.admin.folayer.is_visible'}
               ></T>
             </CheckBoxWithText>
-            <EditableText
-              value={adminFolayerConf.name}
-              onChange={handleNameChange}
-            ></EditableText>
           </Box>
         )}
       </SidebarContentBox>
@@ -178,103 +174,24 @@ const Page = () => {
               flex: '0',
               whiteSpace: 'nowrap',
               alignSelf: 'flex-start',
+              width: '100%',
             }}
           >
-            <Box sx={{ mr: 1.7 }}>
+            <Box sx={{ mr: 1.7, display: 'flex', alignItems: 'center' }}>
               <SaveOutlined></SaveOutlined>
-            </Box>
-            <Box
-              sx={{
-                typography: 'h3',
-              }}
-            >
-              <T keyName={'sidebar.plan_settings.delete'} ns={'hiilikartta'} />
-            </Box>
-            {/* </Box> */}
-          </Box>
-          {[
-            CalculationState.NOT_STARTED,
-            CalculationState.ERRORED,
-            CalculationState.FINISHED,
-          ].includes(planConf.calculationState) && (
-            <Box
-              sx={{
-                display: 'flex',
-                flex: 1,
-                flexDirection: 'column',
-                justifyContent: 'flex-end',
-              }}
-            >
-              <Box
+              <Typography
                 sx={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  justifyContent: 'flex-end',
+                  typography: 'h3',
+                  ml: 1,
                 }}
               >
-                <Tooltip
-                  title={
-                    hasNoFeatures
-                      ? t(
-                          'sidebar.plan_settings.calculate_carbon_effect.tooltip_no_features'
-                        )
-                      : t(
-                          'sidebar.plan_settings.calculate_carbon_effect.tooltip_invalid'
-                        )
-                  }
-                  disableHoverListener={areSettingsValid && !hasNoFeatures}
-                  disableFocusListener={areSettingsValid && !hasNoFeatures}
-                  disableTouchListener={areSettingsValid && !hasNoFeatures}
-                >
-                  <Box
-                    sx={{
-                      display: 'inline-flex',
-                      flexDirection: 'row',
-                      '&:hover': {
-                        cursor:
-                          areSettingsValid && !hasNoFeatures
-                            ? 'pointer'
-                            : 'default',
-                      },
-                      mt: 4,
-                      flex: '0',
-                      color:
-                        areSettingsValid && !hasNoFeatures
-                          ? 'neutral.darker'
-                          : 'neutral.main',
-                    }}
-                    onClick={
-                      areSettingsValid && !hasNoFeatures
-                        ? handleSubmit
-                        : undefined
-                    }
-                  >
-                    <Box
-                      sx={{
-                        typography: 'h1',
-                        textAlign: 'end',
-                        mr: 3,
-                        minWidth: '270px',
-                      }}
-                    >
-                      <T
-                        keyName={
-                          'sidebar.plan_settings.calculate_carbon_effect'
-                        }
-                        ns={'hiilikartta'}
-                      />
-                    </Box>
-                    <Box sx={{ mt: 0.2 }}>
-                      <ArrowNextBig></ArrowNextBig>
-                    </Box>
-                  </Box>
-                </Tooltip>
-              </Box>
+                <T keyName={'sidebar.admin.folayer.save'} ns={'hiilikartta'} />
+              </Typography>
             </Box>
-          )}
+          </Box>
         </Box>
       )}
-    </>
+    </Box>
   )
 }
 
