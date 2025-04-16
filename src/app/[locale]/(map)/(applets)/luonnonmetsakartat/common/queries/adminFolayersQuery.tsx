@@ -23,7 +23,7 @@ export const adminFolayersQuery = (): UseQueryOptions<AdminFolayerConf[]> => {
         updateAdminFolayerConf(folayer.id, { state: FolayerConfState.Fetching })
       }
 
-      const response = await axios.get(`${API_URL}/folayers`, {
+      const response = await axios.get(`${API_URL}/layers`, {
         headers: {
           Authorization: `Bearer ${session?.accessToken}`,
         },

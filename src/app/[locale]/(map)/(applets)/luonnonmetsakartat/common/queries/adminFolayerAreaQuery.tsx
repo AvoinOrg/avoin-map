@@ -43,7 +43,7 @@ export const adminFolayerAreaQuery = (
 
       // Get folayer data from API
       const response = await axios.get(
-        `${API_URL}/folayer/${folayerId}/areas`,
+        `${API_URL}/layer/${folayerId}/areas`,
         {
           headers: {
             Authorization: `Bearer ${session?.accessToken}`,
