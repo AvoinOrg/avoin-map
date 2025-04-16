@@ -13,12 +13,12 @@ import { getPathnameWithoutLocale } from '#/common/utils/routing'
 import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import { adminVerificationQuery } from 'applets/luonnonmetsakartat/common/queries/adminVerificationQuery'
-import { SidebarContentBox } from '#/components/Sidebar'
-import { LoadingSpinner } from '#/components/Loading'
+import { Sidebar, SidebarContentBox } from '#/components/Sidebar'
 import { Box, Typography } from '@mui/material'
 import { Star } from '#/components/icons'
 import { T } from '@tolgee/react'
 import { AdminVerificationStatus } from 'applets/luonnonmetsakartat/common/types'
+import LoadingBlocker from 'applets/luonnonmetsakartat/components/LoadingBlocker'
 
 enum LocalState {
   Loading = 'loading',
@@ -98,67 +98,71 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       {localState !== LocalState.Verified && (
-        <SidebarContentBox>
+        <>
           {localState === LocalState.Loading && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-              <LoadingSpinner />
-            </Box>
+            <LoadingBlocker></LoadingBlocker>
           )}
           {localState === LocalState.NoUser && (
-            <Box sx={{ display: 'flex', flexDirection: 'row', mt: 3 }}>
-              <Star sx={{ height: 40, width: 'auto' }}></Star>
-              <Typography
-                sx={{
-                  display: 'inline-flex',
-                  typography: 'body2',
-                  ml: 1.5,
-                  mt: 0.5,
-                }}
-              >
-                <T
-                  keyName={'sidebar.admin.log_in_hint'}
-                  ns="luonnonmetsakartat"
-                ></T>
-              </Typography>
-            </Box>
+            <SidebarContentBox>
+              <Box sx={{ display: 'flex', flexDirection: 'row', mt: 3 }}>
+                <Star sx={{ height: 40, width: 'auto' }}></Star>
+                <Typography
+                  sx={{
+                    display: 'inline-flex',
+                    typography: 'body2',
+                    ml: 1.5,
+                    mt: 0.5,
+                  }}
+                >
+                  <T
+                    keyName={'sidebar.admin.log_in_hint'}
+                    ns="luonnonmetsakartat"
+                  ></T>
+                </Typography>
+              </Box>
+            </SidebarContentBox>
           )}
           {localState === LocalState.Errored && (
-            <Box sx={{ display: 'flex', flexDirection: 'row', mt: 3 }}>
-              {/* <Star sx={{ height: 40, width: 'auto' }}></Star> */}
-              <Typography
-                sx={{
-                  display: 'inline-flex',
-                  typography: 'body2',
-                  ml: 1.5,
-                  mt: 0.5,
-                }}
-              >
-                <T
-                  keyName={'sidebar.admin.verification_errored'}
-                  ns="luonnonmetsakartat"
-                ></T>
-              </Typography>
-            </Box>
+            <SidebarContentBox>
+              <Box sx={{ display: 'flex', flexDirection: 'row', mt: 3 }}>
+                {/* <Star sx={{ height: 40, width: 'auto' }}></Star> */}
+                <Typography
+                  sx={{
+                    display: 'inline-flex',
+                    typography: 'body2',
+                    ml: 1.5,
+                    mt: 0.5,
+                  }}
+                >
+                  <T
+                    keyName={'sidebar.admin.verification_errored'}
+                    ns="luonnonmetsakartat"
+                  ></T>
+                </Typography>
+              </Box>
+            </SidebarContentBox>
           )}
           {localState === LocalState.Rejected && (
-            <Box sx={{ display: 'flex', flexDirection: 'row', mt: 3 }}>
-              {/* <Star sx={{ height: 40, width: 'auto' }}></Star> */}
-              <Typography
-                sx={{
-                  display: 'inline-flex',
-                  typography: 'body2',
-                  ml: 1.5,
-                  mt: 0.5,
-                }}
-              >
-                <T
-                  keyName={'sidebar.admin.verification_rejected'}
-                  ns="luonnonmetsakartat"
-                ></T>
-              </Typography>
-            </Box>
+            <SidebarContentBox>
+              <Box sx={{ display: 'flex', flexDirection: 'row', mt: 3 }}>
+                {/* <Star sx={{ height: 40, width: 'auto' }}></Star> */}
+                <Typography
+                  sx={{
+                    display: 'inline-flex',
+                    typography: 'body2',
+                    ml: 1.5,
+                    mt: 0.5,
+                  }}
+                >
+                  <T
+                    keyName={'sidebar.admin.verification_rejected'}
+                    ns="luonnonmetsakartat"
+                  ></T>
+                </Typography>
+              </Box>
+            </SidebarContentBox>
           )}
-        </SidebarContentBox>
+        </>
       )}
       {localState === LocalState.Verified && children}
     </>
