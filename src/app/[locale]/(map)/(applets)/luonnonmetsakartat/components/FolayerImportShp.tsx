@@ -153,7 +153,9 @@ const FolayerImportShp = ({
       )}
       <FolayerImportActionsRow
         onClickAccept={handleFinish}
-        isAcceptDisabled={folayerNameValue == null || folayerNameValue.length === 0}
+        isAcceptDisabled={
+          folayerNameValue == null || folayerNameValue.length === 0
+        }
         isLoading={isInitializing}
       ></FolayerImportActionsRow>
     </>
