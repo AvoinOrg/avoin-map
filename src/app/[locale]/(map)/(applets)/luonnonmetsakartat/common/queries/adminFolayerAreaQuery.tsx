@@ -42,14 +42,11 @@ export const adminFolayerAreaQuery = (
       }
 
       // Get folayer data from API
-      const response = await axios.get(
-        `${API_URL}/layer/${folayerId}/areas`,
-        {
-          headers: {
-            Authorization: `Bearer ${session?.accessToken}`,
-          },
-        }
-      )
+      const response = await axios.get(`${API_URL}/layer/${folayerId}/areas`, {
+        headers: {
+          Authorization: `Bearer ${session?.accessToken}`,
+        },
+      })
 
       if (response.status === 200) {
         // Extract area collection data
