@@ -34,7 +34,7 @@ export const adminFolayerDeleteMutation = (): UseMutationOptions<
 
       if (session) {
         const deleteRes = await axios.delete(
-          `${API_URL}/folayer/${folayerConf.id}`,
+          `${API_URL}/layer/${folayerConf.id}`,
           {
             headers: {
               Authorization: `Bearer ${session?.accessToken}`,

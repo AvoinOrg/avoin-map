@@ -21,7 +21,7 @@ const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 //     queryKey: ['folayer', folayerId],
 //     queryFn: async () => {
 //       // Get folayer data from API
-//       const response = await axios.get(`${API_URL}/folayer/${folayerId}`, {
+//       const response = await axios.get(`${API_URL}/layer/${folayerId}`, {
 //         headers: {
 //           Authorization: `Bearer ${session?.accessToken}`,
 //         },
@@ -72,7 +72,7 @@ export const folayersQuery = (): UseQueryOptions<AdminFolayerConf[]> => {
   return {
     queryKey: ['folayers'],
     queryFn: async () => {
-      const response = await axios.get(`${API_URL}/folayers`)
+      const response = await axios.get(`${API_URL}/layers`)
 
       if (response.status === 200) {
         const folayerConfs: AdminFolayerConf[] = response.data.map(
