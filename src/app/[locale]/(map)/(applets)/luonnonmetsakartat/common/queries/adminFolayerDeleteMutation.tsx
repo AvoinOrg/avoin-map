@@ -9,7 +9,7 @@ import { useUIStore } from '#/common/store'
 
 const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 
-export const folayerDeleteMutation = (): UseMutationOptions<
+export const adminFolayerDeleteMutation = (): UseMutationOptions<
   void,
   Error,
   AdminFolayerConf
