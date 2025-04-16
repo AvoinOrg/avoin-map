@@ -1,26 +1,32 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
+import { T } from '@tolgee/react'
 import { Box, Typography } from '@mui/material'
+import { Feature } from 'geojson'
 import { useParams } from 'next/navigation'
-import useStore from '#/common/hooks/useStore'
-import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import { useQuery } from '@tanstack/react-query'
-import { adminFolayerQuery } from 'applets/luonnonmetsakartat/common/queries/adminFolayerQuery'
-import { adminFolayerAreaQuery } from 'applets/luonnonmetsakartat/common/queries/adminFolayerAreaQuery'
+
+import useStore from '#/common/hooks/useStore'
+import { getGeoJsonArea } from '#/common/utils/gis'
+import { LoadingSpinner } from '#/components/Loading'
+import { SidebarContentBox } from '#/components/Sidebar'
 import { useMapStore } from '#/common/store/mapStore'
 import { useDoesLayerGroupExist } from '#/common/hooks/map/useDoesLayerGroupExist'
+import { LayerGroupAddOptions } from '#/common/types/map'
+
+import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
+import { adminFolayerQuery } from 'applets/luonnonmetsakartat/common/queries/adminFolayerQuery'
+import { adminFolayerAreaQuery } from 'applets/luonnonmetsakartat/common/queries/adminFolayerAreaQuery'
 import {
   createAdminFolayerConf,
   getFolayerGroupId,
 } from 'applets/luonnonmetsakartat/common/utils'
-import { LayerGroupAddOptions } from '#/common/types/map'
-import { Feature } from 'geojson'
 import {
   FeatureProperties,
   FolayerConfState,
 } from 'applets/luonnonmetsakartat/common/types'
-import { getGeoJsonArea } from '#/common/utils/gis'
+import LoadingBlocker from 'applets/luonnonmetsakartat/components/LoadingBlocker'
 
 const layoutClient = ({ children }: { children: React.ReactNode }) => {
   const params = useParams<{ folayerIdSlug: string }>()
@@ -37,12 +43,12 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
   )
   const adminApiKey = useStore(useAppletStore, (state) => state.adminApiKey)
 
-  const { refetch: folayerRefetch } = useQuery({
+  const { status: folayerStatus, refetch: folayerRefetch } = useQuery({
     ...adminFolayerQuery(params.folayerIdSlug),
     enabled: false, // This prevents the query from running automatically
   })
 
-  const { refetch: areasRefetch } = useQuery({
+  const { status: areaStatus, refetch: areasRefetch } = useQuery({
     ...adminFolayerAreaQuery(params.folayerIdSlug),
     enabled: false, // This prevents the query from running automatically
   })
@@ -164,7 +170,28 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
     areasRefetch()
   }, [])
 
-  return children
+  return (
+    <>
+      {folayerStatus === 'success' && children}
+      {folayerStatus === 'pending' && <LoadingBlocker></LoadingBlocker>}
+      {folayerStatus === 'error' && (
+        <SidebarContentBox>
+          <Typography
+            sx={{
+              display: 'inline-flex',
+              typography: 'body2',
+              mt: 0.5,
+            }}
+          >
+            <T
+              keyName={'sidebar.admin.folayer.error_fetching'}
+              ns={'luonnonmetsakartat'}
+            ></T>
+          </Typography>
+        </SidebarContentBox>
+      )}
+    </>
+  )
 }
 
 export default layoutClient
