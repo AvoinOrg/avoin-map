@@ -25,7 +25,9 @@ export const adminFolayerPatchMutation = (): UseMutationOptions<
   Error,
   MutationData
 > => {
-  const addAdminFolayerConf = useAppletStore((state) => state.addAdminFolayerConf)
+  const addAdminFolayerConf = useAppletStore(
+    (state) => state.addAdminFolayerConf
+  )
   const notify = useUIStore((state) => state.notify)
   const { t } = useTranslate('luonnonmetsakartat')
   const { data: session } = useSession()
@@ -45,14 +47,21 @@ export const adminFolayerPatchMutation = (): UseMutationOptions<
       formData.append('is_hidden', isHidden.toString())
 
       formData.append('name', mutationData.name)
-      formData.append('color_code', mutationData.colorCode)
 
-      const postRes = await axios.post(`${API_URL}/layer`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${session?.accessToken}`,
-        },
-      })
+      if (mutationData.colorCode && mutationData.colorCode !== '') {
+        formData.append('color_code', mutationData.colorCode)
+      }
+
+      const postRes = await axios.patch(
+        `${API_URL}/layer/${mutationData.id}`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${session?.accessToken}`,
+          },
+        }
+      )
 
       if (postRes.status !== 200 && postRes.status !== 201) {
         throw new Error('Failed to save the folayer')
@@ -68,7 +77,7 @@ export const adminFolayerPatchMutation = (): UseMutationOptions<
       const adminFolayerConf: AdminFolayerConf = {
         id: postRes.data.id,
         name: postRes.data.name,
-        isVisible: postRes.data.is_hidden,
+        isVisible: !postRes.data.is_hidden,
         state: FolayerConfState.Idle,
         createdTs: postRes.data.created_ts * 1000,
         updatedTs: postRes.data.updated_ts * 1000,
