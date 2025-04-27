@@ -15,6 +15,7 @@ import booleanValid from '@turf/boolean-valid'
 import { flattenDeep } from 'lodash-es'
 import { T, useTranslate } from '@tolgee/react'
 import { Feature, FeatureCollection } from 'geojson'
+import { HexColorPicker } from 'react-colorful'
 
 import { getRoute } from '#/common/utils/routing-client'
 import { getGeoJsonArea } from '#/common/utils/gis'
@@ -39,6 +40,7 @@ import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
 import CheckBoxWithText from '#/components/common/CheckBoxWithText'
 import { SaveOutlined } from '@mui/icons-material'
 import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
+import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
 
 const Page = () => {
   const [isFolayerReady, setIsFolayerReady] = useState(false)
@@ -97,6 +99,13 @@ const Page = () => {
     })
   }
 
+  const handleColorChange = (color: string) => {
+    updateAdminFolayerConf(params.folayerIdSlug, {
+      colorCode: color,
+      unsyncedChanges: true,
+    })
+  }
+
   const handleIsVisibleChange = (
     _e: ChangeEvent<HTMLInputElement>,
     checked: boolean
@@ -135,10 +144,16 @@ const Page = () => {
               sx={{ mt: 2.5 }}
               disabled={isEditingDisabled}
             ></TextFieldWithHeader>
+            <ColorPickerWithPopover
+              color={adminFolayerConf.colorCode}
+              onChange={handleColorChange}
+              sx={{ mt: 6 }}
+              labelText={t('sidebar.admin.folayer.color')}
+            ></ColorPickerWithPopover>
             <CheckBoxWithText
               checked={adminFolayerConf.isVisible}
               onChange={handleIsVisibleChange}
-              sx={{ mt: 4 }}
+              sx={{ mt: 5 }}
               disabled={isEditingDisabled}
             >
               <T
@@ -185,7 +200,10 @@ const Page = () => {
                   ml: 1,
                 }}
               >
-                <T keyName={'sidebar.admin.folayer.save'} ns={'hiilikartta'} />
+                <T
+                  keyName={'sidebar.admin.folayer.save'}
+                  ns={'luonnonmetsakartat'}
+                />
               </Typography>
             </Box>
           </Box>
