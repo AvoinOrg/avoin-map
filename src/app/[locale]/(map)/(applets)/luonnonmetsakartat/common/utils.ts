@@ -81,7 +81,7 @@ export const createAdminFolayerConf = (
             1.5,
           ],
         },
-        minzoom: 6, // Only show outlines at medium to high zoom levels
+        minzoom: 9, // Only show outlines at medium to high zoom levels
       },
 
       // Fill layer - shown at medium to high zoom levels
@@ -101,7 +101,7 @@ export const createAdminFolayerConf = (
           ],
         },
         selectable: true,
-        minzoom: 6, // Only show fills at medium to high zoom levels
+        minzoom: 9, // Only show fills at medium to high zoom levels
       },
 
       // Text labels - shown only at high zoom levels
