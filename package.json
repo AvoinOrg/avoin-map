@@ -46,6 +46,7 @@
     "@next/bundle-analyzer": "^13.2.4",
     "@ngageoint/geopackage": "^4.2.3",
     "@tanstack/react-query": "rc",
+    "@tanstack/react-table": "^8.21.3",
     "@tolgee/format-icu": "^6.2.2",
     "@tolgee/react": "^6.2.2",
     "@tolgee/web": "^6.2.2",
