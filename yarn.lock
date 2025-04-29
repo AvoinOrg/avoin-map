@@ -3567,6 +3567,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/react-table@npm:^8.21.3":
+  version: 8.21.3
+  resolution: "@tanstack/react-table@npm:8.21.3"
+  dependencies:
+    "@tanstack/table-core": 8.21.3
+  peerDependencies:
+    react: ">=16.8"
+    react-dom: ">=16.8"
+  checksum: 1452e7bd1dd0febbfc37e656c61c2c426dc243136333a8688bfadfccfec233e87c9bbe83011d742b0e86ae52c9b3d436bdc5618be4ac675ab921f52317317780
+  languageName: node
+  linkType: hard
+
+"@tanstack/table-core@npm:8.21.3":
+  version: 8.21.3
+  resolution: "@tanstack/table-core@npm:8.21.3"
+  checksum: ce260ab981f334ba999240cf68ae942a524a28980f6853275da90d1864a8b56fa59b952bfd2266570f36ae11f66476d1c96dacc640ba5fd9d6d4e2a78cf05187
+  languageName: node
+  linkType: hard
+
 "@testing-library/dom@npm:^10.0.0":
   version: 10.1.0
   resolution: "@testing-library/dom@npm:10.1.0"
@@ -7795,6 +7814,7 @@ __metadata:
     "@pmmmwh/react-refresh-webpack-plugin": ^0.5.10
     "@tanstack/eslint-plugin-query": rc
     "@tanstack/react-query": rc
+    "@tanstack/react-table": ^8.21.3
     "@testing-library/jest-dom": ^6.4.5
     "@testing-library/react": ^15.0.7
     "@tolgee/format-icu": ^6.2.2
