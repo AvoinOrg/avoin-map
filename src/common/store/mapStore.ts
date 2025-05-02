@@ -723,11 +723,9 @@ export const useMapStore = create<State>()(
             _mbMap?.off('data', layerGroupOptions.handleDataUpdate)
           }
 
-          set(
-            produce((state: State) => {
-              delete state._layerGroups[layerGroupId]
-            })
-          )
+          set((state) => {
+            delete state._layerGroups[layerGroupId]
+          })
 
           if (_drawOptions.layerGroupId === layerGroupId) {
             await _removeDraw({ skipQueue: true })
