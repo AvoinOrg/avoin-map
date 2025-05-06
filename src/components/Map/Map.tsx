@@ -87,7 +87,9 @@ export const Map = ({ children }: Props) => {
 
   const overlayMessage = useMapStore((state) => state.overlayMessage)
   const selectedFeatures = useMapStore((state) => state.selectedFeatures)
-  const setSelectedFeatures = useMapStore((state) => state.setSelectedFeatures)
+  const setSelectedFeaturesByClick = useMapStore(
+    (state) => state.setSelectedFeaturesByClick
+  )
   const _isFunctionQueueExecuting = useMapStore(
     (state) => state._isFunctionQueueExecuting
   )
@@ -220,85 +222,111 @@ export const Map = ({ children }: Props) => {
       const point = newMbMap.project(e.lngLat)
 
       const features = newMbMap.queryRenderedFeatures(point)
-
-      hasProcessedFeatureSelection.current = false
-      setNewlySelectedFeatures(features)
+      // hasProcessedFeatureSelection.current = false
+      setSelectedFeaturesByClick(features)
     }
 
     newMbMap.on('click', mbSelectionFunction)
 
     newMbMap.on('load', () => {
-      const createPinElement = (feature, options = {}) => {
-        // Default pin styling
-        const defaultStyle = {
-          size: 24,
-          fill: '#4285f4',
-          fillOpacity: 0.8,
-          strokeColor: 'black',
-          strokeOpacity: 1,
-          strokeWidth: 1.5,
-          selected: false,
-        }
+      // const createPinElement = (feature, options = {}) => {
+      // Default pin styling
+      //   const defaultStyle = {
+      //     size: 24,
+      //     fill: '#4285f4',
+      //     fillOpacity: 0.8,
+      //     strokeColor: 'black',
+      //     strokeOpacity: 1,
+      //     strokeWidth: 1.5,
+      //     selected: false,
+      //   }
 
-        // Merge defaults with provided options
-        const style = { ...defaultStyle, ...options }
+      //   // Merge defaults with provided options
+      //   const style = { ...defaultStyle, ...options }
 
-        // Check if feature is selected
-        const isSelected =
-          feature && feature.state && feature.state.selected === true
+      //   // Check if feature is selected
+      //   const isSelected =
+      //     feature && feature.state && feature.state.selected === true
 
-        // Adjust styling based on selection state
-        if (isSelected || style.selected) {
-          style.fill = '#ff6b6b' // Selected pin color
-          style.fillOpacity = 0.9
-          style.strokeWidth = 2
-        }
+      //   // Adjust styling based on selection state
+      //   if (isSelected || style.selected) {
+      //     style.fill = '#ff6b6b' // Selected pin color
+      //     style.fillOpacity = 0.9
+      //     style.strokeWidth = 2
+      //   }
 
-        // Create the pin element
-        const pinElement = document.createElement('div')
-        pinElement.innerHTML = `
-          <svg xmlns="http://www.w3.org/2000/svg" 
-            width="${style.size}" 
-            height="${style.size}" 
-            viewBox="0 0 24 24"
-            fill="${style.fill}"
-            fill-opacity="${style.fillOpacity}"
-            stroke="${style.strokeColor}" 
-            stroke-opacity="${style.strokeOpacity}"
-            stroke-width="${style.strokeWidth}" 
-            stroke-linecap="round" 
-            stroke-linejoin="round" 
-            class="mapbox-pin-icon">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-            <circle cx="12" cy="10" r="3"></circle>
-          </svg>`
+      //   // Create the pin element
+      //   const pinElement = document.createElement('div')
+      //   pinElement.innerHTML = `
+      //     <svg xmlns="http://www.w3.org/2000/svg"
+      //       width="${style.size}"
+      //       height="${style.size}"
+      //       viewBox="0 0 24 24"
+      //       fill="${style.fill}"
+      //       fill-opacity="${style.fillOpacity}"
+      //       stroke="${style.strokeColor}"
+      //       stroke-opacity="${style.strokeOpacity}"
+      //       stroke-width="${style.strokeWidth}"
+      //       stroke-linecap="round"
+      //       stroke-linejoin="round"
+      //       class="mapbox-pin-icon">
+      //       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+      //       <circle cx="12" cy="10" r="3"></circle>
+      //     </svg>`
 
-        return pinElement
-      }
+      //   return pinElement
+      // }
 
-      // Add the pin generator to the map for use in other components
-      newMbMap.createPinElement = createPinElement
+      // // Add the pin generator to the map for use in other components
+      // newMbMap.createPinElement = createPinElement
 
-      // Generate a basic pin for initial loading
-      const basicPin = createPinElement(null, { size: 24 })
+      // // Generate a basic pin for initial loading
+      // const basicPin = createPinElement(null, { size: 24 })
+
+      // // Create a canvas element to render the SVG
+      // const canvas = document.createElement('canvas')
+      // const size = 24
+      // canvas.width = size
+      // canvas.height = size
+      // const ctx = canvas.getContext('2d')
+
+      // // Convert SVG to an image that can be used by Mapbox
+      // const img = new Image()
+      // img.onload = () => {
+      //   ctx.drawImage(img, 0, 0, size, size)
+      //   // Add the rendered image to the map
+      //   if (!newMbMap.hasImage('pin')) {
+      //     newMbMap.addImage('pin', ctx.getImageData(0, 0, size, size))
+      //   }
+      // }
+      // img.src = 'data:image/svg+xml,' + encodeURIComponent(basicPin.innerHTML)
 
       // Create a canvas element to render the SVG
-      const canvas = document.createElement('canvas')
-      const size = 24
-      canvas.width = size
-      canvas.height = size
-      const ctx = canvas.getContext('2d')
+      // const canvas = document.createElement('canvas')
+      // const size = 24 // Match SVG width/height
+      // canvas.width = size
+      // canvas.height = size
+      // const ctx = canvas.getContext('2d')
 
-      // Convert SVG to an image that can be used by Mapbox
-      const img = new Image()
-      img.onload = () => {
-        ctx.drawImage(img, 0, 0, size, size)
-        // Add the rendered image to the map
-        if (!newMbMap.hasImage('pin')) {
-          newMbMap.addImage('pin', ctx.getImageData(0, 0, size, size))
-        }
-      }
-      img.src = 'data:image/svg+xml,' + encodeURIComponent(basicPin.innerHTML)
+      // // Convert the white SVG to an image
+      // const img = new Image()
+      // img.onload = () => {
+      //   if (!ctx) return // Type guard for context
+      //   ctx.clearRect(0, 0, size, size) // Ensure canvas is clear
+      //   ctx.drawImage(img, 0, 0, size, size)
+      //   const imageData = ctx.getImageData(0, 0, size, size)
+
+      //   if (!newMbMap.hasImage('pin')) {
+      //     newMbMap.addImage('pin', imageData)
+      //   }
+      //   // Now the 'pin' image can be colored using 'icon-color' in your style layers
+      // }
+      // img.onerror = (err) => {
+      //   console.error('Error loading SVG for pin icon:', err)
+      // }
+      // // Use the white SVG string for the image source
+      // img.src =
+      //   'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(pinSvgString)
 
       setIsMbMapReady(true)
     })
@@ -554,121 +582,121 @@ export const Map = ({ children }: Props) => {
   // This effect filters the selected features to those,
   // that are from selectable layers. Also applies styling
   // to the layers, so that the features are visually selected.
-  useEffect(() => {
-    if (isLoaded && !hasProcessedFeatureSelection.current) {
-      hasProcessedFeatureSelection.current = true
+  // useEffect(() => {
+  //   if (isLoaded && !hasProcessedFeatureSelection.current) {
+  //     hasProcessedFeatureSelection.current = true
 
-      if (newlySelectedFeatures.length === 0) {
-        return
-      } else {
-        setNewlySelectedFeatures([])
-      }
+  //     if (newlySelectedFeatures.length === 0) {
+  //       return
+  //     } else {
+  //       setNewlySelectedFeatures([])
+  //     }
 
-      const filterSelectedFeatures = (
-        layerOptionsObj: LayerOptionsObj,
-        activeLayerIds: string[],
-        selectedFeatures: MapboxGeoJSONFeature[],
-        newlySelectedFeatures: MapboxGeoJSONFeature[],
-        layerGroups: LayerGroups
-      ) => {
-        const selectableLayers = Object.keys(
-          pickBy(layerOptionsObj, (value: LayerOptions, _key: string) => {
-            return value.selectable
-          })
-        )
+  //     const filterSelectedFeatures = (
+  //       layerOptionsObj: LayerOptionsObj,
+  //       activeLayerIds: string[],
+  //       selectedFeatures: MapboxGeoJSONFeature[],
+  //       newlySelectedFeatures: MapboxGeoJSONFeature[],
+  //       layerGroups: LayerGroups
+  //     ) => {
+  //       const selectableLayers = Object.keys(
+  //         pickBy(layerOptionsObj, (value: LayerOptions, _key: string) => {
+  //           return value.selectable
+  //         })
+  //       )
 
-        // remove features from unselectable layers
-        let filteredFeatures = newlySelectedFeatures.filter(
-          (f) =>
-            selectableLayers.includes(f.layer.id) &&
-            activeLayerIds.includes(f.layer.id)
-        )
+  //       // remove features from unselectable layers
+  //       let filteredFeatures = newlySelectedFeatures.filter(
+  //         (f) =>
+  //           selectableLayers.includes(f.layer.id) &&
+  //           activeLayerIds.includes(f.layer.id)
+  //       )
 
-        // Remove duplicates. Not sure why there are any.
-        filteredFeatures = uniqBy(filteredFeatures, 'id')
+  //       // Remove duplicates. Not sure why there are any.
+  //       filteredFeatures = uniqBy(filteredFeatures, 'id')
 
-        if (
-          _drawOptions != null &&
-          _drawOptions.isEnabled &&
-          _drawOptions.draw != null &&
-          _drawOptions.layerGroupId != null
-        ) {
-          const drawLayerGroupId = _drawOptions.layerGroupId
-          filteredFeatures = filteredFeatures.filter(
-            (f) =>
-              getLayerGroupIdForLayer(f.layer.id, layerGroups) !==
-              drawLayerGroupId
-          )
-        }
+  //       if (
+  //         _drawOptions != null &&
+  //         _drawOptions.isEnabled &&
+  //         _drawOptions.draw != null &&
+  //         _drawOptions.layerGroupId != null
+  //       ) {
+  //         const drawLayerGroupId = _drawOptions.layerGroupId
+  //         filteredFeatures = filteredFeatures.filter(
+  //           (f) =>
+  //             getLayerGroupIdForLayer(f.layer.id, layerGroups) !==
+  //             drawLayerGroupId
+  //         )
+  //       }
 
-        // remove reatures without an id and log an error
-        filteredFeatures = filteredFeatures.filter((f) => {
-          if (f.id == null) {
-            console.error(
-              'Feature without id on layer "',
-              f.layer.id,
-              '". Check that the source style has either "generateId" or "promoteId" set.'
-            )
-            return false
-          }
-          return true
-        })
+  //       // remove reatures without an id and log an error
+  //       filteredFeatures = filteredFeatures.filter((f) => {
+  //         if (f.id == null) {
+  //           console.error(
+  //             'Feature without id on layer "',
+  //             f.layer.id,
+  //             '". Check that the source style has either "generateId" or "promoteId" set.'
+  //           )
+  //           return false
+  //         }
+  //         return true
+  //       })
 
-        let selectedFeaturesCopy = [...selectedFeatures]
+  //       let selectedFeaturesCopy = [...selectedFeatures]
 
-        // go through filtered features and compare them to previously selected features
-        for (const feature of filteredFeatures) {
-          const layerId = feature.layer.id
+  //       // go through filtered features and compare them to previously selected features
+  //       for (const feature of filteredFeatures) {
+  //         const layerId = feature.layer.id
 
-          // if the feature is already selected, unselect
-          if (selectedFeaturesCopy.find((f) => f.id === feature.id)) {
-            selectedFeaturesCopy = selectedFeaturesCopy.filter(
-              (f) => f.id !== feature.id
-            )
-            continue
-          }
+  //         // if the feature is already selected, unselect
+  //         if (selectedFeaturesCopy.find((f) => f.id === feature.id)) {
+  //           selectedFeaturesCopy = selectedFeaturesCopy.filter(
+  //             (f) => f.id !== feature.id
+  //           )
+  //           continue
+  //         }
 
-          // if the layer is not multi-selectable, unselect all other features from that layer
-          if (!layerOptionsObj[layerId].multiSelectable) {
-            selectedFeaturesCopy = selectedFeaturesCopy.filter(
-              (f) => f.layer.id !== feature.layer.id
-            )
-          }
+  //         // if the layer is not multi-selectable, unselect all other features from that layer
+  //         if (!layerOptionsObj[layerId].multiSelectable) {
+  //           selectedFeaturesCopy = selectedFeaturesCopy.filter(
+  //             (f) => f.layer.id !== feature.layer.id
+  //           )
+  //         }
 
-          selectedFeaturesCopy.push(feature)
-        }
+  //         selectedFeaturesCopy.push(feature)
+  //       }
 
-        return selectedFeaturesCopy
-      }
+  //       return selectedFeaturesCopy
+  //     }
 
-      const layerOptionsObj = getAllLayerOptionsObj(_layerGroups)
+  //     const layerOptionsObj = getAllLayerOptionsObj(_layerGroups)
 
-      let activeLayerIds: string[] = []
-      for (const layerGroupId of Object.keys(visibleLayerGroups)) {
-        const layerGroup = visibleLayerGroups[layerGroupId]
-        activeLayerIds = [...activeLayerIds, ...Object.keys(layerGroup.layers)]
-      }
+  //     let activeLayerIds: string[] = []
+  //     for (const layerGroupId of Object.keys(visibleLayerGroups)) {
+  //       const layerGroup = visibleLayerGroups[layerGroupId]
+  //       activeLayerIds = [...activeLayerIds, ...Object.keys(layerGroup.layers)]
+  //     }
 
-      const filteredSelectedFeatures = filterSelectedFeatures(
-        layerOptionsObj,
-        activeLayerIds,
-        selectedFeatures,
-        newlySelectedFeatures,
-        _layerGroups
-      )
+  //     const filteredSelectedFeatures = filterSelectedFeatures(
+  //       layerOptionsObj,
+  //       activeLayerIds,
+  //       selectedFeatures,
+  //       newlySelectedFeatures,
+  //       _layerGroups
+  //     )
 
-      // TODO: "selectedFeaturesCopy" is calculated twice for each update, which
-      // is not great. However, this allows direct manipulation of
-      // "selectedFeatures" from other components. Make smarter later.
-      setSelectedFeatures(filteredSelectedFeatures)
-    }
-  }, [
-    newlySelectedFeatures,
-    selectedFeatures,
-    isLoaded,
-    visibleLayerGroups,
-    _layerGroups,
-  ])
+  //     // TODO: "selectedFeaturesCopy" is calculated twice for each update, which
+  //     // is not great. However, this allows direct manipulation of
+  //     // "selectedFeatures" from other components. Make smarter later.
+  //     setSelectedFeatures(filteredSelectedFeatures)
+  //   }
+  // }, [
+  //   newlySelectedFeatures,
+  //   selectedFeatures,
+  //   isLoaded,
+  //   visibleLayerGroups,
+  //   _layerGroups,
+  // ])
 
   useEffect(() => {
     if (!isLoaded && mapContext != null) {
