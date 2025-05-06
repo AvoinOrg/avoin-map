@@ -1,15 +1,17 @@
-import {
+import type { Feature, FeatureCollection } from 'geojson'
+import type { ReactNode } from 'react'
+import type {
   Style as MbStyle,
   AnyLayer,
   MapboxGeoJSONFeature,
   GeoJSONSource,
+  Map,
   MapLayerEventType,
+  MapLayerMouseEvent,
+  MapLayerTouchEvent,
 } from 'mapbox-gl'
-import { Feature } from 'geojson'
-import { ReactNode } from 'react'
 
-import { Actions as MapStoreActions } from '#/common/store/mapStore'
-import { FeatureCollection } from 'geojson'
+import type { Actions as MapStoreActions } from '#/common/store/mapStore'
 // interface mapFunctions {}
 
 export type PopupProps = { features: PopupFeature[] }
@@ -35,6 +37,7 @@ export type LayerGroupOptions = {
   isHidden: boolean
   persist: boolean
   layers: LayerOptionsObj
+  eventHandlers: LayerEventHandlerOptions[]
   handleDataUpdate?: (e: any) => void
 }
 
@@ -50,6 +53,7 @@ export type LayerOptions = {
   layerType: LayerType
   selectable: boolean
   multiSelectable: boolean
+  hoverPointer: boolean
   popup: Popup | false
   useMb: boolean
   additionalSelectionSources?: AdditionalSelectionSource[]
@@ -141,6 +145,7 @@ export type ExtendedAnyLayer = AnyLayer & {
   source: string
   selectable?: boolean // whether a feature can be highlighted
   multiSelectable?: boolean // whether multiple features can be highlighted
+  hoverPointer?: boolean // whether the pointer should change to a pointer when hovering over the layer
   additionalSelectionSources?: AdditionalSelectionSource[]
 }
 
@@ -152,11 +157,25 @@ export type ExtendedMbStyleOrFn =
   | ExtendedMbStyle
   | (() => Promise<ExtendedMbStyle>)
 
+export type LayerEventHandlerOptions = {
+  eventType: keyof MapLayerEventType
+  layers: string[]
+  handler: (e: MapLayerMouseEvent | MapLayerTouchEvent) => void
+}
+
+export type LayerEventHandlerAddOptions = {
+  eventType: keyof MapLayerEventType
+  layers: string[]
+  handlerCreator: (
+    map: Map
+  ) => (e: MapLayerMouseEvent | MapLayerTouchEvent) => void
+}
 // TODO: Rename all these from layerConf to layerGroupConf
 type BaseLayerConf = {
   id: string
   style: ExtendedMbStyleOrFn
   useMb?: boolean
+  eventHandlers?: LayerEventHandlerAddOptions[]
 }
 
 // SerializableLayerConf is used for hydration.
@@ -166,6 +185,10 @@ export interface SerializableLayerConf extends BaseLayerConf {
 
 export interface LayerConf extends BaseLayerConf {
   popup?: Popup
+}
+
+export interface EventHandlerInitializer {
+  eventType: keyof MapLayerEventType
 }
 
 // For checking if layer name adheres to LayerType, in runtime
