@@ -242,3 +242,10 @@ export type FitBoundsOptions = {
   lonExtra?: number
   latExtra?: number
 }
+
+export type ImageOptions = {
+  id: string
+  layerGroupId: string
+  colorCode?: string
+  size?: number
+}
