@@ -3,7 +3,7 @@
 // There are a also various helper hooks in src/common/hooks/map.
 'use client'
 
-import { map, cloneDeep, uniq, isEqual } from 'lodash-es'
+import { map, cloneDeep, uniq, isEqual, pickBy, uniqBy } from 'lodash-es'
 import turfBbox from '@turf/bbox'
 import { immer } from 'zustand/middleware/immer'
 import { produce } from 'immer'
@@ -48,6 +48,9 @@ import {
   FitBoundsOptions,
   LayerGroups,
   LayerEventHandlers,
+  ImageOptions,
+  LayerEventHandlerOptions,
+  LayerOptionsObj,
 } from '#/common/types/map'
 import { layerConfs } from '#/components/Map/Layers'
 
@@ -65,9 +68,14 @@ import {
   fetchFeaturesByIds,
   getSelectableLayers,
   getMatchingDrawFeatures,
+  getAllLayerOptionsObj,
 } from '#/common/utils/map'
 
 const DEFAULT_MAP_LIBRARY_MODE: MapLibraryMode = 'mapbox'
+
+let imageRenderCanvas: HTMLCanvasElement | null = null
+let imageRenderCtx: CanvasRenderingContext2D | null = null
+const imageRenderSize = 24 // Default size
 
 export type Vars = {
   // Whether to use mapbox, openlayers, or both.
@@ -88,6 +96,7 @@ export type Vars = {
   // but before the map functions are ready to be used by external components.
   _isMapReady: boolean
   _drawOptions: MapDrawOptions
+  _images: Record<string, ImageOptions>
   // A queue where functions are added before the map is loaded.
   // Executed after mapIsReady.
   _functionQueue: FunctionQueue
@@ -102,6 +111,10 @@ export type Vars = {
   _layerGroups: LayerGroups
   // For quickly access a layer group by its id.
   _layerInstances: Record<string, AnyLayer>
+  _globalEventHandlers: {
+    selectableLeave?: (e: MapLayerMouseEvent) => void
+    selectableEnter?: (e: MapLayerMouseEvent) => void
+  }
   // For persisting user customised or uploaded layer configurations.
   _persistingLayerGroupAddOptions: Record<
     string,
@@ -200,6 +213,7 @@ export type Actions = {
     features: MapboxGeoJSONFeature[],
     updateDrawSelect?: boolean
   ) => void
+  setSelectedFeaturesByClick: (features: MapboxGeoJSONFeature[]) => void
   removeSelectedFeaturesByIds: (
     featureIds: string[],
     idField: string,
@@ -232,6 +246,13 @@ export type Actions = {
   deleteDrawFeatures: (features: Feature[]) => void
   setMapContext: (mapContext: MapContext) => void
   updateSourceData: (layerGroupId: string, data: FeatureCollection) => void
+  addImage: (
+    id: string,
+    layerGroupId: string,
+    svgString: string,
+    colorCode?: string,
+    size?: number
+  ) => Promise<void>
   // The below are internal variables
   // ----------------------------------
   _setIsHydrated: { (isHydrated: boolean): void }
@@ -273,14 +294,15 @@ export type Actions = {
     serializableLayerGroupAddOptions: SerializableLayerGroupAddOptions
   ) => void
   _removePersistingLayerGroupAddOptions: (layerGroupId: string) => void
+  _updateSelectableHoverHandlers: () => void
   _enableDraw: (
     drawMode?: MapboxDraw.DrawMode,
     _queueOptions?: QueueOptions
   ) => Promise<void>
   _removeDraw: (_queueOptions?: QueueOptions) => Promise<void>
   _updateDrawSelectedFeatures: (updateSelectedFeatures?: boolean) => void
-  _enableLayerEventHandlers: (layerOptions: LayerOptions) => void
-  _disableLayerEventHandlers: (layerOptions: LayerOptions) => void
+  // _enableLayerEventHandlers: (layerOptions: LayerOptions) => void
+  // _disableLayerEventHandlers: (layerOptions: LayerOptions) => void
   _enableLayerGroupEventHandlers: (layerGroupId: string) => void
   _disableLayerGroupEventHandlers: (layerGroupId: string) => void
 }
@@ -301,6 +323,7 @@ export const useMapStore = create<State>()(
         popupOpts: null,
         mapContext: null,
         selectedFeatures: [],
+        _images: {},
         _isMapReady: false,
         _drawOptions: {
           layerGroupId: null,
@@ -309,6 +332,7 @@ export const useMapStore = create<State>()(
           featureAddMutator: undefined,
           idField: undefined,
         },
+        _globalEventHandlers: {},
         _functionQueue: [],
         _isFunctionQueueExecuting: false,
         _mbMap: null,
@@ -472,28 +496,78 @@ export const useMapStore = create<State>()(
             selectedFeatures,
             _drawOptions,
             _updateDrawSelectedFeatures,
+            _layerGroups,
           } = get()
 
           const keptFeatures = []
 
           if (!isEqual(features, selectedFeatures)) {
+            const LayerOptionsObj = getAllLayerOptionsObj(_layerGroups)
             for (const feature of features) {
+              // Check if the feature is already selected
               const selectedFeature = selectedFeatures.find(
                 (f) => f.id === feature.id && f.source === feature.source
               )
+
+              const additionalFeatures: MapboxGeoJSONFeature[] = []
+              const layerOptions = LayerOptionsObj[feature.layer.id]
+
+              // if feature is already selected
               if (selectedFeature != null) {
+                // if (layerOptions.additionalSelectionSources != null) {
+                //   for (const additionalSource of layerOptions.additionalSelectionSources) {
+                //     const additionalFeature = selectedFeatures.find(
+                //       (f) =>
+                //         f.id === feature.id &&
+                //         f.source === additionalSource.source
+                //     )
+                //     if (additionalFeature) {
+                //       additionalFeatures.push(additionalFeature)
+                //     }
+                //   }
+                // }
                 keptFeatures.push(selectedFeature)
+
+                // for (const anyFeature of [
+                //   selectedFeature,
+                //   ...additionalFeatures,
+                // ]) {
+                // }
               } else {
-                _mbMap?.setFeatureState(
-                  {
-                    source: feature.source,
-                    id: feature.id,
-                    ...(feature.sourceLayer
-                      ? { sourceLayer: String(feature.sourceLayer) }
-                      : {}),
-                  },
-                  { selected: true }
-                )
+                if (layerOptions.additionalSelectionSources != null) {
+                  for (const additionalSource of layerOptions.additionalSelectionSources) {
+                    if (
+                      additionalSource.sourceLayers &&
+                      additionalSource.sourceLayers.length > 0
+                    ) {
+                      for (const sourceLayer of additionalSource.sourceLayers) {
+                        additionalFeatures.push({
+                          source: additionalSource.source,
+                          id: feature.id,
+                          sourceLayer: sourceLayer,
+                        } as MapboxGeoJSONFeature)
+                      }
+                    } else {
+                      additionalFeatures.push({
+                        source: additionalSource.source,
+                        id: feature.id,
+                      } as MapboxGeoJSONFeature)
+                    }
+                  }
+                }
+
+                for (const anyFeature of [feature, ...additionalFeatures]) {
+                  _mbMap?.setFeatureState(
+                    {
+                      source: anyFeature.source,
+                      id: anyFeature.id,
+                      ...(anyFeature.sourceLayer
+                        ? { sourceLayer: String(anyFeature.sourceLayer) }
+                        : {}),
+                    },
+                    { selected: true }
+                  )
+                }
               }
             }
 
@@ -524,6 +598,120 @@ export const useMapStore = create<State>()(
               }
             }
           }
+        },
+        setSelectedFeaturesByClick: (features: MapboxGeoJSONFeature[]) => {
+          const {
+            selectedFeatures,
+            setSelectedFeatures,
+            _drawOptions,
+            _layerGroups,
+          } = get()
+
+          if (features.length === 0) {
+            return
+          }
+
+          const filterSelectedFeatures = (
+            layerOptionsObj: LayerOptionsObj,
+            activeLayerIds: string[],
+            selectedFeatures: MapboxGeoJSONFeature[],
+            newlySelectedFeatures: MapboxGeoJSONFeature[],
+            layerGroups: LayerGroups
+          ) => {
+            const selectableLayers = Object.keys(
+              pickBy(layerOptionsObj, (value: LayerOptions, _key: string) => {
+                return value.selectable
+              })
+            )
+
+            // remove features from unselectable layers
+            let filteredFeatures = newlySelectedFeatures.filter(
+              (f) =>
+                selectableLayers.includes(f.layer.id) &&
+                activeLayerIds.includes(f.layer.id)
+            )
+
+            // Remove duplicates. Not sure why there are any.
+            // filteredFeatures = uniqBy(filteredFeatures, 'id')
+
+            if (
+              _drawOptions != null &&
+              _drawOptions.isEnabled &&
+              _drawOptions.draw != null &&
+              _drawOptions.layerGroupId != null
+            ) {
+              const drawLayerGroupId = _drawOptions.layerGroupId
+              filteredFeatures = filteredFeatures.filter(
+                (f) =>
+                  getLayerGroupIdForLayer(f.layer.id, layerGroups) !==
+                  drawLayerGroupId
+              )
+            }
+
+            // remove reatures without an id and log an error
+            filteredFeatures = filteredFeatures.filter((f) => {
+              if (f.id == null) {
+                console.error(
+                  'Feature without id on layer "',
+                  f.layer.id,
+                  '". Check that the source style has either "generateId" or "promoteId" set.'
+                )
+                return false
+              }
+              return true
+            })
+
+            let selectedFeaturesCopy = [...selectedFeatures]
+
+            // go through filtered features and compare them to previously selected features
+            for (const feature of filteredFeatures) {
+              const layerId = feature.layer.id
+
+              // if the feature is already selected, unselect
+              if (selectedFeaturesCopy.find((f) => f.id === feature.id)) {
+                selectedFeaturesCopy = selectedFeaturesCopy.filter(
+                  (f) => f.id !== feature.id
+                )
+                continue
+              }
+
+              // if the layer is not multi-selectable, unselect all other features from that layer
+              if (!layerOptionsObj[layerId].multiSelectable) {
+                selectedFeaturesCopy = selectedFeaturesCopy.filter(
+                  (f) => f.layer.id !== feature.layer.id
+                )
+              }
+
+              selectedFeaturesCopy.push(feature)
+            }
+
+            return selectedFeaturesCopy
+          }
+
+          const layerOptionsObj = getAllLayerOptionsObj(_layerGroups)
+          const visibleLayerGroups = getVisibleLayerGroups(_layerGroups)
+
+          let activeLayerIds: string[] = []
+          for (const layerGroupId of Object.keys(visibleLayerGroups)) {
+            const layerGroup = visibleLayerGroups[layerGroupId]
+            activeLayerIds = [
+              ...activeLayerIds,
+              ...Object.keys(layerGroup.layers),
+            ]
+          }
+
+          const filteredSelectedFeatures = filterSelectedFeatures(
+            layerOptionsObj,
+            activeLayerIds,
+            selectedFeatures,
+            features,
+            _layerGroups
+          )
+
+          // TODO: "selectedFeaturesCopy" is calculated twice for each update, which
+          // is not great. However, this allows direct manipulation of
+          // "selectedFeatures" from other components. Make smarter later.
+          setSelectedFeatures(filteredSelectedFeatures)
         },
 
         removeSelectedFeaturesByIds: (
@@ -678,6 +866,8 @@ export const useMapStore = create<State>()(
             _layerGroups,
             _drawOptions,
             _removeDraw,
+            setSelectedFeatures,
+            selectedFeatures,
           } = get()
 
           if (!Object.keys(_layerGroups).includes(layerGroupId)) {
@@ -688,13 +878,27 @@ export const useMapStore = create<State>()(
           }
 
           _setGroupVisibility(layerGroupId, false)
+          const layerGroup = _layerGroups[layerGroupId]
+          const sources = uniq(map(layerGroup.layers, 'source'))
+
+          setSelectedFeatures(
+            selectedFeatures.filter((f) => !sources.includes(f.source))
+          )
+
           if (_drawOptions.layerGroupId === layerGroupId) {
             _removeDraw({ skipQueue: true })
           }
         },
 
         removeLayerGroup: async (layerGroupId: LayerGroupId | string) => {
-          const { _layerGroups, _mbMap, _drawOptions, _removeDraw } = get() // Assuming you have a map reference in your store.
+          const {
+            _layerGroups,
+            _mbMap,
+            _drawOptions,
+            _removeDraw,
+            _images,
+            _updateSelectableHoverHandlers,
+          } = get() // Assuming you have a map reference in your store.
 
           if (!Object.keys(_layerGroups).includes(layerGroupId)) {
             console.warn(
@@ -723,6 +927,14 @@ export const useMapStore = create<State>()(
             _mbMap?.off('data', layerGroupOptions.handleDataUpdate)
           }
 
+          Object.keys(_images).forEach((imageId) => {
+            const image = _images[imageId]
+            if (image.layerGroupId === layerGroupId) {
+              _mbMap?.removeImage(imageId)
+              delete _images[imageId]
+            }
+          })
+
           set((state) => {
             delete state._layerGroups[layerGroupId]
           })
@@ -730,6 +942,8 @@ export const useMapStore = create<State>()(
           if (_drawOptions.layerGroupId === layerGroupId) {
             await _removeDraw({ skipQueue: true })
           }
+
+          _updateSelectableHoverHandlers()
         },
 
         toggleLayerGroup: async (
@@ -808,6 +1022,86 @@ export const useMapStore = create<State>()(
 
           await removeLayerGroup(layerGroupIdString as LayerGroupId)
         },
+
+        addImage: queueableFnInit(
+          async (
+            id: string,
+            layerGroupId: string,
+            svgString: string,
+            colorCode?: string,
+            size: number = imageRenderSize
+          ) => {
+            const { _mbMap } = get()
+            if (!_mbMap) {
+              console.error('Map not initialized')
+              return
+            }
+
+            if (!imageRenderCanvas && typeof document !== 'undefined') {
+              imageRenderCanvas = document.createElement('canvas')
+              imageRenderCtx = imageRenderCanvas.getContext('2d')
+            }
+
+            if (!imageRenderCanvas || !imageRenderCtx) {
+              console.error(
+                'Canvas context could not be initialized (not in browser?)'
+              )
+              return
+            }
+
+            // Ensure canvas has the correct size for this specific image
+            if (
+              imageRenderCanvas.width !== size ||
+              imageRenderCanvas.height !== size
+            ) {
+              imageRenderCanvas.width = size
+              imageRenderCanvas.height = size
+            }
+
+            const ctx = imageRenderCtx
+
+            if (_mbMap.hasImage(id)) {
+              _mbMap.removeImage(id)
+            }
+
+            // Adjust canvas size if necessary for this specific image
+            if (
+              imageRenderCanvas.width !== size ||
+              imageRenderCanvas.height !== size
+            ) {
+              imageRenderCanvas.width = size
+              imageRenderCanvas.height = size
+            }
+
+            const img = new Image()
+            img.onload = () => {
+              ctx.clearRect(0, 0, size, size)
+              ctx.drawImage(img, 0, 0, size, size)
+              const imageData = ctx.getImageData(0, 0, size, size)
+
+              if (!_mbMap.hasImage(id)) {
+                _mbMap.addImage(id, imageData)
+
+                set((state) => {
+                  const imageOptions: ImageOptions = {
+                    id,
+                    layerGroupId,
+                    size,
+                    ...(colorCode && { colorCode }),
+                  }
+                  state._images[id] = imageOptions
+                })
+              }
+            }
+            img.onerror = (err) => {
+              /* ... error handling ... */
+            }
+            img.src =
+              'data:image/svg+xml;charset=utf-8,' +
+              encodeURIComponent(svgString)
+          },
+          { priority: QueuePriority.HIGH }
+        ),
 
         setLayoutProperty: queueableFnInit(
           async (layer: string, name: string, value: any): Promise<any> => {
@@ -1038,6 +1332,35 @@ export const useMapStore = create<State>()(
           }
 
           source.setData(data)
+        },
+
+        _updateSelectableHoverHandlers: () => {
+          const { _mbMap, _layerGroups, _globalEventHandlers } = get()
+          const layerOptionsObj = getAllLayerOptionsObj(_layerGroups)
+
+          if (_globalEventHandlers.selectableEnter != null) {
+            _mbMap?.off('mouseenter', _globalEventHandlers.selectableEnter)
+          }
+          if (_globalEventHandlers.selectableLeave != null) {
+            _mbMap?.off('mouseleave', _globalEventHandlers.selectableLeave)
+          }
+
+          const hoverableLayers: string[] = []
+          for (const layerOptions of Object.values(layerOptionsObj)) {
+            if (layerOptions.hoverPointer) {
+              hoverableLayers.push(layerOptions.id)
+            }
+          }
+
+          if (hoverableLayers.length > 0) {
+            _mbMap?.on('mouseenter', hoverableLayers, (e) => {
+              _mbMap.getCanvas().style.cursor = 'pointer'
+            })
+
+            _mbMap?.on('mouseleave', hoverableLayers, () => {
+              _mbMap.getCanvas().style.cursor = ''
+            })
+          }
         },
 
         _enableDraw: queueableFnInit(
@@ -1567,6 +1890,7 @@ export const useMapStore = create<State>()(
             _findFirstMatchingLayer,
             _findLastMatchingLayer,
             _enableLayerGroupEventHandlers,
+            _updateSelectableHoverHandlers,
           } = get()
           const setIsMapPopupOpen = useUIStore.getState().setIsMapPopupOpen
 
@@ -1585,9 +1909,18 @@ export const useMapStore = create<State>()(
               isHidden: options.isHidden ? true : false,
               persist: options.persist ? true : false,
               layers: {},
+              eventHandlers: [],
             }
 
             for (const layer of style.layers) {
+              let hoverPointer = false
+              if (layer.hoverPointer !== undefined) {
+                hoverPointer = layer.hoverPointer
+              } else {
+                hoverPointer =
+                  layer.selectable || layer.multiSelectable || false
+              }
+
               const layerOptions: LayerOptions = {
                 id: layer.id,
                 source: layer.source,
@@ -1595,32 +1928,20 @@ export const useMapStore = create<State>()(
                 layerType: layer.type,
                 selectable: layer.selectable || false,
                 multiSelectable: layer.multiSelectable || false,
+                hoverPointer: hoverPointer,
                 popup:
                   'popup' in options.layerConf
                     ? options.layerConf.popup || false
                     : false,
                 useMb: true,
-                eventHandlers: {} as LayerEventHandlers,
+                ...(layer.additionalSelectionSources &&
+                  layer.additionalSelectionSources.length > 0 && {
+                    additionalSelectionSources:
+                      layer.additionalSelectionSources,
+                  }),
               }
 
               layerGroup.layers[layer.id] = layerOptions
-
-              const mouseEnterHandler = () => {
-                if (_mbMap) {
-                  _mbMap.getCanvas().style.cursor = 'pointer'
-                }
-              }
-
-              const mouseLeaveHandler = () => {
-                if (_mbMap) {
-                  _mbMap.getCanvas().style.cursor = ''
-                }
-              }
-
-              if (layer.selectable) {
-                layerOptions.eventHandlers['mouseenter'] = mouseEnterHandler
-                layerOptions.eventHandlers['mouseleave'] = mouseLeaveHandler
-              }
 
               if (layerOptions.layerType === 'fill') {
                 if (layerOptions.popup) {
@@ -1700,11 +2021,25 @@ export const useMapStore = create<State>()(
               }
             }
 
+            if (options.layerConf.eventHandlers && _mbMap) {
+              for (const eventHandlerOptions of options.layerConf
+                .eventHandlers) {
+                const eventHandler = eventHandlerOptions.handlerCreator(_mbMap)
+
+                layerGroup.eventHandlers.push({
+                  layers: eventHandlerOptions.layers,
+                  eventType: eventHandlerOptions.eventType,
+                  handler: eventHandler,
+                })
+              }
+            }
+
             await set((state) => {
               state._layerGroups[id] = layerGroup
             })
 
             _enableLayerGroupEventHandlers(id)
+            _updateSelectableHoverHandlers()
           } catch (e: any) {
             if (!e.message.includes('There is already a source')) {
               console.error(e)
@@ -1961,59 +2296,77 @@ export const useMapStore = create<State>()(
           }
         },
 
-        _enableLayerEventHandlers: (layerOptions: LayerOptions) => {
-          if (
-            layerOptions.eventHandlers != null &&
-            Object.keys(layerOptions.eventHandlers).length > 0
-          ) {
-            const { _mbMap } = get()
+        // _enableLayerEventHandlers: (layerOptions: LayerOptions) => {
+        //   if (
+        //     layerOptions.eventHandlers != null &&
+        //     Object.keys(layerOptions.eventHandlers).length > 0
+        //   ) {
+        //     const { _mbMap } = get()
 
-            Object.keys(layerOptions.eventHandlers).forEach(
-              (eventKeyString) => {
-                const eventKey = eventKeyString as keyof MapLayerEventType
-                const handlerFn = layerOptions.eventHandlers[eventKey]
-                if (handlerFn != null) {
-                  _mbMap?.on(eventKey, layerOptions.id, handlerFn)
-                }
-              }
-            )
-          }
-        },
+        //     Object.keys(layerOptions.eventHandlers).forEach(
+        //       (eventKeyString) => {
+        //         const eventKey = eventKeyString as keyof MapLayerEventType
+        //         const handlerFn = layerOptions.eventHandlers[eventKey]
+        //         if (handlerFn != null) {
+        //           _mbMap?.on(eventKey, layerOptions.id, handlerFn)
+        //         }
+        //       }
+        //     )
+        //   }
+        // },
 
-        _disableLayerEventHandlers: (layerOptions: LayerOptions) => {
-          if (
-            layerOptions.eventHandlers != null &&
-            Object.keys(layerOptions.eventHandlers).length > 0
-          ) {
-            const { _mbMap } = get()
+        // _disableLayerEventHandlers: (layerOptions: LayerOptions) => {
+        //   if (
+        //     layerOptions.eventHandlers != null &&
+        //     Object.keys(layerOptions.eventHandlers).length > 0
+        //   ) {
+        //     const { _mbMap } = get()
 
-            Object.keys(layerOptions.eventHandlers).forEach(
-              (eventKeyString) => {
-                const eventKey = eventKeyString as keyof MapLayerEventType
-                const handlerFn = layerOptions.eventHandlers[eventKey]
-                if (handlerFn != null) {
-                  _mbMap?.off(eventKey, layerOptions.id, handlerFn)
-                }
-              }
-            )
-          }
-        },
+        //     Object.keys(layerOptions.eventHandlers).forEach(
+        //       (eventKeyString) => {
+        //         const eventKey = eventKeyString as keyof MapLayerEventType
+        //         const handlerFn = layerOptions.eventHandlers[eventKey]
+        //         if (handlerFn != null) {
+        //           _mbMap?.off(eventKey, layerOptions.id, handlerFn)
+        //         }
+        //       }
+        //     )
+        //   }
+        // },
 
         _enableLayerGroupEventHandlers: (layerGroupId: string) => {
-          const { _layerGroups, _enableLayerEventHandlers } = get()
+          const { _layerGroups, _mbMap } = get()
 
-          for (const layerId in _layerGroups[layerGroupId].layers) {
-            const layerOptions = _layerGroups[layerGroupId].layers[layerId]
-            _enableLayerEventHandlers(layerOptions)
+          for (const eventHandlerOptions of _layerGroups[layerGroupId]
+            .eventHandlers) {
+            if (
+              eventHandlerOptions.layers == null ||
+              eventHandlerOptions.layers.length === 0
+            ) {
+              _mbMap?.on(
+                eventHandlerOptions.eventType,
+                eventHandlerOptions.handler
+              )
+            } else {
+              _mbMap?.on(
+                eventHandlerOptions.eventType,
+                eventHandlerOptions.layers,
+                eventHandlerOptions.handler
+              )
+            }
           }
         },
 
         _disableLayerGroupEventHandlers: (layerGroupId: string) => {
-          const { _layerGroups, _disableLayerEventHandlers } = get()
+          const { _layerGroups, _mbMap } = get()
 
-          for (const layerId in _layerGroups[layerGroupId].layers) {
-            const layerOptions = _layerGroups[layerGroupId].layers[layerId]
-            _disableLayerEventHandlers(layerOptions)
+          for (const eventHandlerOptions of _layerGroups[layerGroupId]
+            .eventHandlers) {
+            _mbMap?.off(
+              eventHandlerOptions.eventType,
+              eventHandlerOptions.layers,
+              eventHandlerOptions.handler
+            )
           }
         },
 

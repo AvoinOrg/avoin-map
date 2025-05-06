@@ -16,6 +16,11 @@ export type PopupProps = { features: PopupFeature[] }
 
 export type Popup = (props: PopupProps) => ReactNode
 
+export type AdditionalSelectionSource = {
+  source: string
+  sourceLayers?: string[]
+}
+
 export type SourceType =
   | 'geojson'
   | 'vector'
@@ -47,7 +52,7 @@ export type LayerOptions = {
   multiSelectable: boolean
   popup: Popup | false
   useMb: boolean
-  eventHandlers: LayerEventHandlers
+  additionalSelectionSources?: AdditionalSelectionSource[]
 }
 
 export type LayerOptionsObj = {
@@ -136,6 +141,7 @@ export type ExtendedAnyLayer = AnyLayer & {
   source: string
   selectable?: boolean // whether a feature can be highlighted
   multiSelectable?: boolean // whether multiple features can be highlighted
+  additionalSelectionSources?: AdditionalSelectionSource[]
 }
 
 export type ExtendedMbStyle = MbStyle & {
