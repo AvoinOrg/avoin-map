@@ -1,10 +1,4 @@
-import type {
-  Map,
-  MapLayerMouseEvent,
-  GeoJSONSource,
-  MapMouseEvent,
-  MapLayerEventType,
-} from 'mapbox-gl'
+import type { GeoJSONSource } from 'mapbox-gl'
 
 import { useMapStore } from '#/common/store/mapStore'
 import {
