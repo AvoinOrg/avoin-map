@@ -1,8 +1,19 @@
+import type {
+  Map,
+  MapLayerMouseEvent,
+  GeoJSONSource,
+  MapMouseEvent,
+  MapLayerEventType,
+} from 'mapbox-gl'
+
+import { useMapStore } from '#/common/store/mapStore'
 import {
   ExtendedMbStyle,
   LayerConf,
+  LayerEventHandlerAddOptions,
   SerializableLayerConf,
 } from '#/common/types/map'
+import { getContrastColor } from '#/common/utils/styling'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 const GS_WORKSPACE =
@@ -30,18 +41,45 @@ export const getCentroidLayerGroupId = (layerId: string) => {
   return `${layerIdWithoutHyphens}_luonnonmetsakartat_centroid`
 }
 
-export const createAdminFolayerConf = (
+export const createAdminFolayerConf = async (
   apiKey: string,
   // json: any,
   layerId: string,
-  featureColorCol: string
+  colorCode: string
 ) => {
+  // const addImage = useMapStore.getState().addImage
   const sourceId = getFolayerGroupId(layerId)
   const sourceLayer = getSourceFolayerId(layerId)
 
   const centroidSourceId = getCentroidLayerGroupId(layerId)
   const centroidSourceLayer = getCentroidSourceFolayerId(layerId)
 
+  const validColorCode = colorCode || '#4cbf00' // Default to green if none provided
+  const contrastColor = getContrastColor(validColorCode)
+
+  // const pinSvgString = `
+  //   <svg xmlns="http://www.w3.org/2000/svg"
+  //       width="24"
+  //       height="24"
+  //       viewBox="0 0 24 24"
+  //       fill="${validColorCode}"
+  //       fill-opacity="0.8"
+  //       stroke="black"
+  //       stroke-opacity="1"
+  //       stroke-width="1.5"
+  //       stroke-linecap="round"
+  //       stroke-linejoin="round"
+  //       class="mapbox-pin-icon">
+  //       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+  //       <circle cx="12" cy="10" r="3"></circle>
+  //     </svg>`
+
+  // const pinId = `pin-${sourceId}`
+  // await addImage(pinId, sourceId, pinSvgString, validColorCode)
+
+  console.log(
+    `${SERVER_URL}/${GS_WORKSPACE}/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=${GS_WORKSPACE}:${centroidSourceLayer}&outputFormat=application/json&srsName=EPSG:4326`
+  )
   const style: ExtendedMbStyle = {
     version: 8,
     sources: {
@@ -54,14 +92,22 @@ export const createAdminFolayerConf = (
         bounds: [19, 59, 32, 71], // Finland
         promoteId: 'id',
       },
+      // [centroidSourceId]: {
+      //   type: 'vector',
+      //   scheme: 'tms',
+      //   tiles: [
+      //     `${SERVER_URL}/gwc/service/tms/1.0.0/${GS_WORKSPACE}:${centroidSourceLayer}@EPSG:900913@pbf/{z}/{x}/{y}.pbf`,
+      //   ],
+      //   bounds: [19, 59, 32, 71], // Finland
+      //   promoteId: 'id',
+      // },
       [centroidSourceId]: {
-        type: 'vector',
-        scheme: 'tms',
-        tiles: [
-          `${SERVER_URL}/gwc/service/tms/1.0.0/${GS_WORKSPACE}:${centroidSourceLayer}@EPSG:900913@pbf/{z}/{x}/{y}.pbf`,
-        ],
-        bounds: [19, 59, 32, 71], // Finland
-        promoteId: 'id',
+        type: 'geojson',
+        data: `${SERVER_URL}/${GS_WORKSPACE}/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=${GS_WORKSPACE}:${centroidSourceLayer}&outputFormat=application/json&srsName=EPSG:4326`,
+        cluster: true, // Enable Mapbox GL JS clustering
+        clusterMaxZoom: 11, // Max zoom to cluster points on
+        clusterRadius: 45, // Radius of clusters in pixels
+        promoteId: 'id', // Promote ID if your GeoJSON features have a unique 'id' property
       },
     },
     layers: [
@@ -72,16 +118,16 @@ export const createAdminFolayerConf = (
         source: sourceId,
         'source-layer': sourceLayer,
         paint: {
-          'line-color': 'black',
+          'line-color': 'black', // Keep outline black for contrast
           'line-opacity': 1,
           'line-width': [
             'case',
             ['boolean', ['feature-state', 'selected'], false],
-            3,
-            1.5,
+            3, // Thicker outline when selected
+            1.5, // Default outline width
           ],
         },
-        minzoom: 9, // Only show outlines at medium to high zoom levels
+        minzoom: 7, // Only show outlines at medium to high zoom levels
       },
 
       // Fill layer - shown at medium to high zoom levels
@@ -92,18 +138,23 @@ export const createAdminFolayerConf = (
         'source-layer': sourceLayer,
         layout: {},
         paint: {
-          'fill-color': '#4cbf00',
+          // Use the provided colorCode for the fill
+          'fill-color': validColorCode,
           'fill-opacity': [
             'case',
             ['boolean', ['feature-state', 'selected'], false],
-            0.9,
-            0.5,
+            0.9, // Higher opacity when selected
+            0.7, // Default opacity
           ],
         },
         selectable: true,
-        minzoom: 9, // Only show fills at medium to high zoom levels
+        additionalSelectionSources: [
+          {
+            source: centroidSourceId,
+          },
+        ],
+        minzoom: 7, // Only show fills at medium to high zoom levels
       },
-
       // Text labels - shown only at high zoom levels
       {
         id: `${sourceId}-symbol`,
@@ -122,63 +173,276 @@ export const createAdminFolayerConf = (
           'text-offset': [0, 0.2], // Small offset to center text better
         },
         paint: {
-          'text-color': 'black',
+          'text-color': 'black', // Keep text black for readability
           'text-halo-blur': 1,
-          'text-halo-color': 'rgb(242,243,240)',
+          'text-halo-color': 'rgb(242,243,240)', // Light halo for contrast
           'text-halo-width': 2,
         },
         minzoom: 11, // Only show text at high zoom levels
+        selectable: true,
+        additionalSelectionSources: [
+          {
+            source: centroidSourceId,
+          },
+        ],
       },
       {
-        id: `${centroidSourceId}-pin`,
+        id: `${centroidSourceId}-cluster_circle`,
+        type: 'circle',
+        source: centroidSourceId, // Use the clustered source
+        // 'source-layer': centroidSourceLayer,
+        filter: ['has', 'point_count'], // Only apply to clustered points
+        paint: {
+          // Use step expressions to style circles based on point count
+          'circle-color': validColorCode,
+          'circle-radius': [
+            'step',
+            ['get', 'point_count'],
+            15, // Default radius (for < 10 points)
+            10,
+            20, // Radius for >= 10 points
+            50,
+            25, // Radius for >= 50 points
+          ],
+          'circle-stroke-width': 1,
+          'circle-stroke-color': 'black',
+          'circle-opacity': 0.9,
+        },
+        hoverPointer: true,
+        maxzoom: 10, // Match the maxzoom of the individual pins
+      },
+
+      {
+        id: `${centroidSourceId}-cluster_count`,
         type: 'symbol',
-        source: centroidSourceId,
-        'source-layer': centroidSourceLayer,
+        source: centroidSourceId, // Use the clustered source
+        // 'source-layer': centroidSourceLayer,
+        filter: ['has', 'point_count'], // Only apply to clustered points
         layout: {
-          'symbol-placement': 'point', // This places a symbol at the centroid of each polygon
-          'icon-image': 'pin',
-          'icon-size': ['interpolate', ['linear'], ['zoom'], 0, 0.5, 9, 0.8],
-          'icon-allow-overlap': true,
-          'icon-anchor': 'bottom',
-          'icon-offset': [0, -5],
-          'icon-ignore-placement': true,
-          // This is the key change - only show one icon per feature
-          'icon-pitch-alignment': 'viewport',
-          // Add a visibility filter based on geometry type
-          visibility: 'visible',
+          'text-field': '{point_count_abbreviated}', // Display the abbreviated count
+          'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+          'text-size': 12,
         },
         paint: {
-          'icon-color': [
+          'text-color': contrastColor, // Black text for contrast
+        },
+        hoverPointer: true,
+        maxzoom: 10, // Match the maxzoom of the individual pins
+      },
+      {
+        id: `${centroidSourceId}-unclustered`,
+        type: 'circle',
+        source: centroidSourceId, // Use the clustered source
+        // 'source-layer': centroidSourceLayer,
+        filter: ['!', ['has', 'point_count']], // Only apply to clustered points
+        paint: {
+          'circle-color': validColorCode,
+          'circle-radius': [
             'case',
             ['boolean', ['feature-state', 'selected'], false],
-            '#66ff00',
-            '#4cbf00',
+            14,
+            12,
           ],
-          'icon-opacity': [
+          'circle-stroke-width': [
             'case',
             ['boolean', ['feature-state', 'selected'], false],
-            1.0,
-            0.8,
+            3, // Selected stroke width
+            1, // Default stroke width
           ],
-          'icon-halo-color': 'black',
-          'icon-halo-width': [
+          'circle-stroke-color': 'black',
+          'circle-opacity': [
             'case',
             ['boolean', ['feature-state', 'selected'], false],
-            1.5,
-            0.5,
+            1.0, // Selected opacity
+            0.9, // Default opacity
           ],
         },
-        // Add a filter to only show the pin for the first part of each MultiPolygon
-        // filter: ['==', ['geometry-type'], 'Point'],
-        maxzoom: 12,
+        promoteId: 'id',
         selectable: true,
+        additionalSelectionSources: [
+          {
+            source: sourceId,
+            sourceLayers: [sourceLayer],
+          },
+        ],
+        maxzoom: 12, // Match the maxzoom of the individual pins
       },
+      // Centroid Pin layer - shown at low to medium zoom levels
+      // {
+      //   id: `${centroidSourceId}-pin`,
+      //   type: 'symbol',
+      //   source: centroidSourceId,
+      //  'source-layer': centroidSourceLayer,
+      //   layout: {
+      //     'symbol-placement': 'point',
+      //     'icon-image': pinId, // Assuming 'pin' is a loaded image/sprite
+      //     'icon-size': ['interpolate', ['linear'], ['zoom'], 0, 0.5, 9, 0.8],
+      //     'icon-allow-overlap': true,
+      //     'icon-anchor': 'bottom',
+      //     'icon-offset': [0, -5],
+      //     'icon-ignore-placement': true,
+      //     'icon-pitch-alignment': 'viewport',
+      //     visibility: 'visible',
+      //   },
+      //   paint: {
+      //     'icon-opacity': [
+      //       'case',
+      //       ['boolean', ['feature-state', 'selected'], false],
+      //       1.0, // Fully opaque when selected
+      //       0.8, // Slightly transparent by default
+      //     ],
+      //     'icon-halo-color': 'white', // Keep halo black for contrast
+      //     'icon-halo-width': [
+      //       'case',
+      //       ['boolean', ['feature-state', 'selected'], false],
+      //       10, // Wider halo when selected
+      //       0.5, // Default halo width
+      //     ],
+      //   },
+      //   maxzoom: 12, // Hide pins at higher zoom levels where fill/outline are visible
+      //   selectable: true,
+      // },
     ],
   }
+
+  // const selectionHandler: MapEventHandler = (map: Map) => {
+  //   const selectableLayers = [
+  //     `${centroidSourceId}-unclustered`, // Unclustered circles
+  //     `${sourceId}-fill`, // Polygon fills
+  //   ]
+
+  //   let selectedFeatureId: string | number | null = null // Track selected ID
+
+  //   map.on('click', selectableLayers, (e: MapLayerMouseEvent) => {
+  //     if (!e.features || e.features.length === 0) return
+
+  //     const clickedFeature = e.features[0]
+  //     const featureId = clickedFeature.properties?.id // Get ID from properties
+
+  //     // Clear previous selection if a valid feature was clicked
+  //     if (selectedFeatureId !== null) {
+  //       map.setFeatureState(
+  //         { source: centroidSourceId, id: selectedFeatureId },
+  //         { selected: false }
+  //       )
+  //       map.setFeatureState(
+  //         { source: sourceId, id: selectedFeatureId },
+  //         { selected: false }
+  //       )
+  //       selectedFeatureId = null
+  //     }
+
+  //     // Set new selection if a valid ID exists
+  //     if (featureId !== undefined && featureId !== null) {
+  //       selectedFeatureId = featureId
+
+  //       map.setFeatureState(
+  //         { source: centroidSourceId, id: featureId },
+  //         { selected: true }
+  //       )
+  //       map.setFeatureState(
+  //         { source: sourceId, id: featureId },
+  //         { selected: true }
+  //       )
+
+  //       console.log(
+  //         `Selected feature ID: ${featureId} on layer ${clickedFeature.layer.id}`
+  //       )
+  //       // Add other actions like showing a popup or flying to the feature
+  //     }
+  //   })
+
+  //   // Optional: Clear selection when clicking off features
+  //   map.on('click', (e) => {
+  //     if (
+  //       !map.queryRenderedFeatures(e.point, { layers: selectableLayers }).length
+  //     ) {
+  //       if (selectedFeatureId !== null) {
+  //         map.setFeatureState(
+  //           { source: centroidSourceId, id: selectedFeatureId },
+  //           { selected: false }
+  //         )
+  //         map.setFeatureState(
+  //           { source: sourceId, id: selectedFeatureId },
+  //           { selected: false }
+  //         )
+  //         selectedFeatureId = null
+  //         console.log('Selection cleared')
+  //       }
+  //     }
+  //   })
+  // }
+
+  // const mouseEnterHandler: MapEventHandler = (map: Map) => {
+  //   const eventType = 'mouseenter'
+  //   const selectableLayers = [
+  //     `${centroidSourceId}-unclustered`,
+  //     `${sourceId}-fill`,
+  //     `${centroidSourceId}-cluster_circle`, // Add cluster layer for pointer change
+  //   ]
+
+  //   map.on(eventType, selectableLayers, () => {
+  //     map.getCanvas().style.cursor = 'pointer'
+  //   })
+
+  //   return { selectableLayers, eventType }
+  // }
+
+  // const mouseLeaveHandler: MapEventHandler = (map: Map) => {
+  //   const selectableLayers = [
+  //     `${centroidSourceId}-unclustered`,
+  //     `${sourceId}-fill`,
+  //     `${centroidSourceId}-cluster_circle`,
+  //   ]
+  //   map.on('mouseleave', selectableLayers, () => {
+  //     map.getCanvas().style.cursor = ''
+  //   })
+  // }
+
+  const eventHandlers: LayerEventHandlerAddOptions[] = [
+    {
+      layers: [`${centroidSourceId}-cluster_circle`],
+      eventType: 'click',
+      handlerCreator: (map) => {
+        // This returns the actual event handler function
+        return (e) => {
+          if (!e.features?.[0]?.properties) {
+            return
+          }
+
+          const features = e.features
+          const clusterId = features[0].properties.cluster_id
+          const source = map.getSource(centroidSourceId) as GeoJSONSource
+
+          if (!source || typeof source.getClusterExpansionZoom !== 'function') {
+            console.error(
+              'Source not found or is not a clustered GeoJSON source:',
+              centroidSourceId
+            )
+            return
+          }
+
+          source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+            if (err) {
+              console.error('Error getting cluster expansion zoom:', err)
+              return
+            }
+            if (features[0].geometry.type === 'Point') {
+              map.easeTo({
+                center: features[0].geometry.coordinates as [number, number],
+                zoom: zoom + 0.5,
+              })
+            }
+          })
+        }
+      },
+    },
+  ]
 
   const layerConf: LayerConf = {
     id: sourceId,
     style: style,
+    eventHandlers: eventHandlers,
     useMb: true,
   }
 
