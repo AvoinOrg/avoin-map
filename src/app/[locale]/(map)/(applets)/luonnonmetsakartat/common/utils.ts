@@ -71,9 +71,6 @@ export const createAdminFolayerConf = async (
   // const pinId = `pin-${sourceId}`
   // await addImage(pinId, sourceId, pinSvgString, validColorCode)
 
-  console.log(
-    `${SERVER_URL}/${GS_WORKSPACE}/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=${GS_WORKSPACE}:${centroidSourceLayer}&outputFormat=application/json&srsName=EPSG:4326`
-  )
   const style: ExtendedMbStyle = {
     version: 8,
     sources: {
