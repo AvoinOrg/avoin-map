@@ -70,7 +70,6 @@ import {
   getMatchingDrawFeatures,
   getAllLayerOptionsObj,
 } from '#/common/utils/map'
-import { features } from 'process'
 
 const DEFAULT_MAP_LIBRARY_MODE: MapLibraryMode = 'mapbox'
 
@@ -740,6 +739,8 @@ export const useMapStore = create<State>()(
           setSelectedFeatures(filteredSelectedFeatures)
         },
 
+        // if the layerConf specifies other sources that have the same features (with the same ids), these
+        // are queried here and returned
         _getAdditionalSelectedFeatures: (features: MapboxGeoJSONFeature[]) => {
           const { _layerGroups, _mbMap } = get()
 
