@@ -70,6 +70,7 @@ import {
   getMatchingDrawFeatures,
   getAllLayerOptionsObj,
 } from '#/common/utils/map'
+import { features } from 'process'
 
 const DEFAULT_MAP_LIBRARY_MODE: MapLibraryMode = 'mapbox'
 
@@ -278,6 +279,9 @@ export type Actions = {
     layerGroupIdString: string,
     opts?: LayerGroupAddOptions | SerializableLayerGroupAddOptions
   ) => Promise<void>
+  _getAdditionalSelectedFeatures: (
+    features: MapboxGeoJSONFeature[]
+  ) => MapboxGeoJSONFeature[]
   _addToFunctionQueue: (queueFunction: QueueFunction) => Promise<any>
   _setFunctionQueue: (functionQueue: FunctionQueue) => void
   _executeFunctionQueue: (callback?: () => void) => Promise<void>
@@ -499,112 +503,78 @@ export const useMapStore = create<State>()(
             _layerGroups,
           } = get()
 
+          if (isEqual(features, selectedFeatures)) {
+            return
+          }
+
           const keptFeatures = []
 
-          if (!isEqual(features, selectedFeatures)) {
-            const LayerOptionsObj = getAllLayerOptionsObj(_layerGroups)
-            for (const feature of features) {
-              // Check if the feature is already selected
-              const selectedFeature = selectedFeatures.find(
-                (f) => f.id === feature.id && f.source === feature.source
-              )
-
-              const additionalFeatures: MapboxGeoJSONFeature[] = []
-              const layerOptions = LayerOptionsObj[feature.layer.id]
-
-              // if feature is already selected
-              if (selectedFeature != null) {
-                // if (layerOptions.additionalSelectionSources != null) {
-                //   for (const additionalSource of layerOptions.additionalSelectionSources) {
-                //     const additionalFeature = selectedFeatures.find(
-                //       (f) =>
-                //         f.id === feature.id &&
-                //         f.source === additionalSource.source
-                //     )
-                //     if (additionalFeature) {
-                //       additionalFeatures.push(additionalFeature)
-                //     }
-                //   }
-                // }
-                keptFeatures.push(selectedFeature)
-
-                // for (const anyFeature of [
-                //   selectedFeature,
-                //   ...additionalFeatures,
-                // ]) {
-                // }
-              } else {
-                if (layerOptions.additionalSelectionSources != null) {
-                  for (const additionalSource of layerOptions.additionalSelectionSources) {
-                    if (
-                      additionalSource.sourceLayers &&
-                      additionalSource.sourceLayers.length > 0
-                    ) {
-                      for (const sourceLayer of additionalSource.sourceLayers) {
-                        additionalFeatures.push({
-                          source: additionalSource.source,
-                          id: feature.id,
-                          sourceLayer: sourceLayer,
-                        } as MapboxGeoJSONFeature)
-                      }
-                    } else {
-                      additionalFeatures.push({
-                        source: additionalSource.source,
-                        id: feature.id,
-                      } as MapboxGeoJSONFeature)
-                    }
-                  }
-                }
-
-                for (const anyFeature of [feature, ...additionalFeatures]) {
-                  _mbMap?.setFeatureState(
-                    {
-                      source: anyFeature.source,
-                      id: anyFeature.id,
-                      ...(anyFeature.sourceLayer
-                        ? { sourceLayer: String(anyFeature.sourceLayer) }
-                        : {}),
-                    },
-                    { selected: true }
-                  )
-                }
-              }
-            }
-
-            for (const selectedFeature of selectedFeatures) {
-              if (!keptFeatures.includes(selectedFeature)) {
-                _mbMap?.setFeatureState(
-                  {
-                    source: selectedFeature.source,
-                    id: selectedFeature.id,
-                    ...(selectedFeature.sourceLayer
-                      ? { sourceLayer: String(selectedFeature.sourceLayer) }
-                      : {}),
-                  },
-                  { selected: false }
+          for (const feature of features) {
+            // Check if the feature is already selected
+            const selectedFeature = selectedFeatures.find((f) => {
+              if (feature.sourceLayer) {
+                return (
+                  f.id === feature.id &&
+                  f.source === feature.source &&
+                  f.sourceLayer === feature.sourceLayer
                 )
               }
+              return f.id === feature.id && f.source === feature.source
+            })
+
+            // if feature is already selected
+            if (selectedFeature != null) {
+              keptFeatures.push(selectedFeature)
+              // if feature is not yet in selected features
+            } else {
+              _mbMap?.setFeatureState(
+                {
+                  source: feature.source,
+                  id: feature.id,
+                  ...(feature.sourceLayer
+                    ? { sourceLayer: String(feature.sourceLayer) }
+                    : {}),
+                },
+                { selected: true }
+              )
             }
+          }
 
-            set(
-              produce((draft: State) => {
-                draft.selectedFeatures = features
-              })
-            )
+          for (const selectedFeature of selectedFeatures) {
+            if (!keptFeatures.includes(selectedFeature)) {
+              _mbMap?.setFeatureState(
+                {
+                  source: selectedFeature.source,
+                  id: selectedFeature.id,
+                  ...(selectedFeature.sourceLayer
+                    ? { sourceLayer: String(selectedFeature.sourceLayer) }
+                    : {}),
+                },
+                { selected: false }
+              )
+            }
+          }
 
-            if (updateDrawSelect) {
-              if (_drawOptions.isEnabled && _drawOptions.draw != null) {
-                _updateDrawSelectedFeatures()
-              }
+          set(
+            produce((draft: State) => {
+              draft.selectedFeatures = features
+            })
+          )
+
+          if (updateDrawSelect) {
+            if (_drawOptions.isEnabled && _drawOptions.draw != null) {
+              _updateDrawSelectedFeatures()
             }
           }
         },
+
         setSelectedFeaturesByClick: (features: MapboxGeoJSONFeature[]) => {
           const {
             selectedFeatures,
             setSelectedFeatures,
             _drawOptions,
             _layerGroups,
+            _getAdditionalSelectedFeatures,
           } = get()
 
           if (features.length === 0) {
@@ -631,9 +601,20 @@ export const useMapStore = create<State>()(
                 activeLayerIds.includes(f.layer.id)
             )
 
-            // Remove duplicates. Not sure why there are any.
-            // filteredFeatures = uniqBy(filteredFeatures, 'id')
+            // since feature selection works by source basis, filter
+            // out duplicate features from different layers but same source
+            filteredFeatures = uniqBy(
+              filteredFeatures,
+              (feature: MapboxGeoJSONFeature) => {
+                if (feature.sourceLayer) {
+                  return `sl-${feature.id}-${feature.sourceLayer}`
+                } else {
+                  return `s-${feature.id}-${feature.source}`
+                }
+              }
+            )
 
+            // filter out features that are not in the active draw group, if there is one
             if (
               _drawOptions != null &&
               _drawOptions.isEnabled &&
@@ -661,28 +642,72 @@ export const useMapStore = create<State>()(
               return true
             })
 
+            if (filteredFeatures.length === 0) {
+              return null
+            }
+
+            // only keep the topmost feature
+            const filteredFeature = filteredFeatures[0]
+
             let selectedFeaturesCopy = [...selectedFeatures]
+            const additionalFeatures = _getAdditionalSelectedFeatures([
+              filteredFeature,
+            ])
 
             // go through filtered features and compare them to previously selected features
-            for (const feature of filteredFeatures) {
-              const layerId = feature.layer.id
+            const layerId = filteredFeature.layer.id
 
-              // if the feature is already selected, unselect
-              if (selectedFeaturesCopy.find((f) => f.id === feature.id)) {
-                selectedFeaturesCopy = selectedFeaturesCopy.filter(
-                  (f) => f.id !== feature.id
-                )
-                continue
+            // if the feature is already selected, unselect
+            // also remove features from additional selection sources
+            let foundExisting = false
+            selectedFeaturesCopy = selectedFeaturesCopy.filter((f) => {
+              for (const additionalFeature of additionalFeatures) {
+                if (
+                  f.id === additionalFeature.id &&
+                  f.source === additionalFeature.source
+                ) {
+                  if (
+                    additionalFeature.sourceLayer &&
+                    f.sourceLayer &&
+                    additionalFeature.sourceLayer === f.sourceLayer
+                  ) {
+                    foundExisting = true
+                    return false
+                  }
+                }
+              }
+              if (f.id === filteredFeature.id) {
+                foundExisting = true
+                return false
+              }
+            })
+
+            // i.e. a feature was clicked that was not already selected
+            if (!foundExisting) {
+              // remove all other selections
+              if (selectedFeaturesCopy.length > 0) {
+                if (!layerOptionsObj[layerId].multiSelectable) {
+                  selectedFeaturesCopy = []
+                } else {
+                  selectedFeaturesCopy = selectedFeaturesCopy.filter((f) => {
+                    if (f.source === filteredFeature.source) {
+                      if (!f.sourceLayer && !filteredFeature.sourceLayer) {
+                        return true
+                      }
+                      if (f.sourceLayer === filteredFeature.sourceLayer) {
+                        return true
+                      }
+                      return false
+                    }
+                  })
+                }
               }
 
-              // if the layer is not multi-selectable, unselect all other features from that layer
-              if (!layerOptionsObj[layerId].multiSelectable) {
-                selectedFeaturesCopy = selectedFeaturesCopy.filter(
-                  (f) => f.layer.id !== feature.layer.id
-                )
-              }
-
-              selectedFeaturesCopy.push(feature)
+              selectedFeaturesCopy = [
+                ...selectedFeaturesCopy,
+                filteredFeature,
+                ...additionalFeatures,
+              ]
             }
 
             return selectedFeaturesCopy
@@ -708,10 +733,83 @@ export const useMapStore = create<State>()(
             _layerGroups
           )
 
-          // TODO: "selectedFeaturesCopy" is calculated twice for each update, which
-          // is not great. However, this allows direct manipulation of
-          // "selectedFeatures" from other components. Make smarter later.
+          if (filteredSelectedFeatures == null) {
+            return
+          }
+
           setSelectedFeatures(filteredSelectedFeatures)
+        },
+
+        _getAdditionalSelectedFeatures: (features: MapboxGeoJSONFeature[]) => {
+          const { _layerGroups, _mbMap } = get()
+
+          const LayerOptionsObj = getAllLayerOptionsObj(_layerGroups)
+
+          const additionalFeatures: MapboxGeoJSONFeature[] = []
+
+          for (const feature of features) {
+            const layerOptions = LayerOptionsObj[feature.layer.id]
+
+            if (layerOptions.additionalSelectionSources != null) {
+              for (const additionalSource of layerOptions.additionalSelectionSources) {
+                if (
+                  additionalSource.sourceLayers &&
+                  additionalSource.sourceLayers.length > 0
+                ) {
+                  for (const sourceLayer of additionalSource.sourceLayers) {
+                    const queriedAdditionalFeatures =
+                      _mbMap?.querySourceFeatures(additionalSource.source, {
+                        sourceLayer: sourceLayer, // REQUIRED for vector tile sources
+                        filter: ['==', ['get', 'id'], feature.id], // Assumes 'id' is promoted or is the property name
+                      })
+
+                    // only add the first feature, if there are duplicates
+                    if (
+                      queriedAdditionalFeatures &&
+                      queriedAdditionalFeatures.length > 0 &&
+                      queriedAdditionalFeatures[0] != null
+                    ) {
+                      queriedAdditionalFeatures[0].source =
+                        additionalSource.source
+                      queriedAdditionalFeatures[0].sourceLayer = sourceLayer
+                      additionalFeatures.push(queriedAdditionalFeatures[0])
+                    } else {
+                      additionalFeatures.push({
+                        source: additionalSource.source,
+                        id: feature.id,
+                        sourceLayer: sourceLayer,
+                      } as MapboxGeoJSONFeature)
+                    }
+                  }
+                } else {
+                  const queriedAdditionalFeatures = _mbMap?.querySourceFeatures(
+                    additionalSource.source,
+                    {
+                      filter: ['==', ['get', 'id'], feature.id], // Assumes 'id' is promoted or is the property name
+                    }
+                  )
+
+                  // only add the first feature, if there are duplicates
+                  if (
+                    queriedAdditionalFeatures &&
+                    queriedAdditionalFeatures.length > 0 &&
+                    queriedAdditionalFeatures[0] != null
+                  ) {
+                    queriedAdditionalFeatures[0].source =
+                      additionalSource.source
+                    additionalFeatures.push(queriedAdditionalFeatures[0])
+                  } else {
+                    additionalFeatures.push({
+                      source: additionalSource.source,
+                      id: feature.id,
+                    } as MapboxGeoJSONFeature)
+                  }
+                }
+              }
+            }
+          }
+
+          return additionalFeatures
         },
 
         removeSelectedFeaturesByIds: (
