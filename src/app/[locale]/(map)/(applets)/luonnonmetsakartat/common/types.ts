@@ -1,3 +1,5 @@
+import { Feature, Geometry } from 'geojson'
+
 export enum AdminVerificationStatus {
   Pending = 'pending',
   Verified = 'verified',
@@ -9,11 +11,15 @@ export enum AdminVerificationStatus {
 export interface FeatureProperties {
   id: string
   name: string
-  areaHa?: number
+  owner?: string
+  area_ha?: number
   municipality?: string
   region?: string
   date?: string
-  personInCharge?: string
+  person_responsible?: string
+  updated_ts?: number
+  created_ts?: number
+  layer_id?: string
 }
 
 export interface FolayerConf {
@@ -38,8 +44,10 @@ export interface AdminFolayerConf extends FolayerConf {
   unsyncedChanges: boolean
 }
 
+export type FolayerFeature = Feature<Geometry, FeatureProperties>
+
 export interface FolayerAreaCollection {
   id: string
-  features: FeatureProperties[]
+  features: FolayerFeature[]
   state: FolayerConfState
 }
