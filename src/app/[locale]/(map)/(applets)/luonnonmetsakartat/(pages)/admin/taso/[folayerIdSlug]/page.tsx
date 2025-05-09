@@ -41,6 +41,7 @@ import CheckBoxWithText from '#/components/common/CheckBoxWithText'
 import { SaveOutlined } from '@mui/icons-material'
 import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
 import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
+import AreaList from 'applets/luonnonmetsakartat/components/AreaList'
 
 const Page = () => {
   const [isFolayerReady, setIsFolayerReady] = useState(false)
@@ -163,6 +164,7 @@ const Page = () => {
             </CheckBoxWithText>
           </Box>
         )}
+        <AreaList data={folayerAreaCollection.features}></AreaList>
       </SidebarContentBox>
       {adminFolayerConf && adminFolayerConf.unsyncedChanges && (
         <Box
