@@ -112,7 +112,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
         if (doesLayerGroupExist) {
           await enableLayerGroup(folayerGroupId, folayerGroupAddOptions)
         } else {
-          const layerConf = createAdminFolayerConf(
+          const layerConf = await createAdminFolayerConf(
             adminApiKey as string,
             // folayerAreaCollection,
             adminFolayerConf.id,
