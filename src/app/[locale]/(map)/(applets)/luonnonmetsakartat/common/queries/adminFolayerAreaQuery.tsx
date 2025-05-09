@@ -52,7 +52,7 @@ export const adminFolayerAreaQuery = (
         // Extract area collection data
         const areaCollection: FolayerAreaCollection = {
           id: folayerId, // Using the same ID as the folayer
-          features: response.data || [], // Assuming features are in the response
+          features: response.data.features || [], // Assuming features are in the response
           state: FolayerConfState.Idle,
         }
 
