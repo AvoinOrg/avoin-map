@@ -13,3 +13,8 @@ export enum FetchStatus {
   FETCHED = 'fetched',
   ERRORED = 'errored',
 }
+
+export type SortKey = {
+  key: string
+  label: string
+}
