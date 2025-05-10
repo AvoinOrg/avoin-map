@@ -164,7 +164,33 @@ const Page = () => {
             </CheckBoxWithText>
           </Box>
         )}
-        <AreaList data={folayerAreaCollection.features}></AreaList>
+        <Typography sx={{ mt: 7, typography: 'h3' }}>
+          <T keyName={'sidebar.admin.folayer.all_areas_title'}></T>
+        </Typography>
+        <AreaList
+          sx={{ mt: 2, pb: 5 }}
+          data={folayerAreaCollection.features}
+          keysToSearch={[
+            'properties.name',
+            'properties.region',
+            'properties.municipality',
+          ]}
+          sortKeys={[
+            {
+              key: 'name',
+              label: t('sidebar.admin.folayer.sort_by_name'),
+            },
+            // {
+            //   key: 'region',
+            //   label: t('sidebar.admin.folayer.sort_by_region'),
+            // },
+            // {
+            //   key: 'municipality',
+            //   label: t('sidebar.admin.folayer.sort_by_municipality'),
+            // },
+          ]}
+          searchPlaceholder={t('sidebar.admin.folayer.search_placeholder')}
+        ></AreaList>
       </SidebarContentBox>
       {adminFolayerConf && adminFolayerConf.unsyncedChanges && (
         <Box
