@@ -43,7 +43,7 @@ const columns: ColumnDef<FolayerFeature>[] = [
   },
 ]
 
-const AreaList = ({
+const SearchTable = ({
   data = [],
   keysToSearch,
   searchPlaceholder,
@@ -297,4 +297,4 @@ const AreaList = ({
   )
 }
 
-export default AreaList
+export default SearchTable
