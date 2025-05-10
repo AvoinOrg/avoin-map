@@ -41,7 +41,7 @@ import CheckBoxWithText from '#/components/common/CheckBoxWithText'
 import { SaveOutlined } from '@mui/icons-material'
 import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
 import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
-import AreaList from 'applets/luonnonmetsakartat/components/AreaList'
+import SearchTable from 'applets/luonnonmetsakartat/components/SearchTable'
 
 const Page = () => {
   const [isFolayerReady, setIsFolayerReady] = useState(false)
@@ -167,7 +167,7 @@ const Page = () => {
         <Typography sx={{ mt: 7, typography: 'h3' }}>
           <T keyName={'sidebar.admin.folayer.all_areas_title'}></T>
         </Typography>
-        <AreaList
+        <SearchTable
           sx={{ mt: 2, pb: 5 }}
           data={folayerAreaCollection.features}
           keysToSearch={[
@@ -190,7 +190,7 @@ const Page = () => {
             // },
           ]}
           searchPlaceholder={t('sidebar.admin.folayer.search_placeholder')}
-        ></AreaList>
+        ></SearchTable>
       </SidebarContentBox>
       {adminFolayerConf && adminFolayerConf.unsyncedChanges && (
         <Box
