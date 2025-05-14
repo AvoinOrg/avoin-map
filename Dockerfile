@@ -1,7 +1,11 @@
-FROM node:18
+FROM node:24-slim
 
 RUN corepack enable
 RUN yarn set version stable
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends git && \
+    rm -rf /var/lib/apt/lists/*
+    
 # A quick and dirty fix to prevent watchpack errors.
 # TODO: figure out why it's scanning root. Using differnt user does not help.
 RUN chmod -R 777 /root
