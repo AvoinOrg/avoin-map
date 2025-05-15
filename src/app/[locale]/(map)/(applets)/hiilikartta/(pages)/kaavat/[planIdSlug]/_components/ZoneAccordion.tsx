@@ -99,20 +99,19 @@ const ZoneAccordion = ({ planConfId, sx }: Props) => {
       })
 
       if (isExpanded) {
-        addSelectedFeaturesByIds(
-          [featureId],
-          'id',
-          getPlanLayerGroupId(planConfId),
-          undefined,
-          true
-        )
+        addSelectedFeaturesByIds({
+          featureIds: [featureId],
+          idField: 'id',
+          sourceId: getPlanLayerGroupId(planConfId),
+          updateDrawSelect: true,
+        })
       } else {
-        removeSelectedFeaturesByIds(
-          [featureId],
-          'id',
-          getPlanLayerGroupId(planConfId),
-          true
-        )
+        removeSelectedFeaturesByIds({
+          featureIds: [featureId],
+          idField: 'id',
+          sourceId: getPlanLayerGroupId(planConfId),
+          updateDrawSelect: true,
+        })
       }
     }
   }, [lastAction, addSelectedFeaturesByIds, removeSelectedFeaturesByIds])
