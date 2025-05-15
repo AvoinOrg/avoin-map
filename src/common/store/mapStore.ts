@@ -214,19 +214,20 @@ export type Actions = {
     updateDrawSelect?: boolean
   ) => void
   setSelectedFeaturesByClick: (features: MapboxGeoJSONFeature[]) => void
-  removeSelectedFeaturesByIds: (
-    featureIds: string[],
-    idField: string,
-    sourceId: string,
+  removeSelectedFeaturesByIds: (params: {
+    featureIds: string[]
+    idField: string
+    sourceId: string
     updateDrawSelect?: boolean
-  ) => void
-  addSelectedFeaturesByIds: (
-    featureIds: string[],
-    idField: string,
-    sourceId: string,
-    allowedLayers?: string[],
+  }) => void
+  addSelectedFeaturesByIds: (params: {
+    featureIds: string[]
+    idField: string
+    sourceId: string
+    allowedLayers?: string[]
     updateDrawSelect?: boolean
-  ) => void
+    triggerPopup?: boolean
+  }) => void
   setMapLibraryMode: (mode: MapLibraryMode) => void
   getGeocoder: () => void
   mapRelocate: () => void
@@ -813,12 +814,13 @@ export const useMapStore = create<State>()(
           return additionalFeatures
         },
 
-        removeSelectedFeaturesByIds: (
-          featureIds: string[],
-          idField: string,
-          sourceId: string,
+        removeSelectedFeaturesByIds: (params: {
+          featureIds: string[]
+          idField: string
+          sourceId: string
           updateDrawSelect?: boolean
-        ) => {
+        }) => {
+          const { featureIds, idField, sourceId, updateDrawSelect } = params
           const { selectedFeatures, setSelectedFeatures } = get()
 
           const newSelectedFeatures = selectedFeatures.filter((feature) => {
@@ -837,13 +839,23 @@ export const useMapStore = create<State>()(
           setSelectedFeatures(newSelectedFeatures, updateDrawSelect)
         },
 
-        addSelectedFeaturesByIds: (
-          featureIds: string[],
-          idField: string,
-          sourceId: string,
-          allowedLayers?: string[],
+        addSelectedFeaturesByIds: (params: {
+          featureIds: string[]
+          idField: string
+          sourceId: string
+          allowedLayers?: string[]
           updateDrawSelect?: boolean
-        ) => {
+          triggerPopup?: boolean
+        }) => {
+          const {
+            featureIds,
+            idField,
+            sourceId,
+            allowedLayers,
+            updateDrawSelect,
+            triggerPopup,
+          } = params
+
           const {
             selectedFeatures,
             setSelectedFeatures,
