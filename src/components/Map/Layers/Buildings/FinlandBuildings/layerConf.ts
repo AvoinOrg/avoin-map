@@ -1,19 +1,23 @@
-import { Style as MbStyle } from 'mapbox-gl'
-
 import { fillOpacity } from '#/common/utils/map'
-import { LayerGroupId, LayerConf, ExtendedMbStyle } from '#/common/types/map'
+import {
+  LayerGroupId,
+  LayerConf,
+  ExtendedStyleSpecification,
+} from '#/common/types/map'
 import Popup from './Popup'
 
 const id: LayerGroupId = 'fi_buildings'
 
-const getStyle = async (): Promise<ExtendedMbStyle> => {
+const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   return {
     version: 8,
     name: id,
     sources: {
       [id]: {
         type: 'vector',
-        tiles: ['https://server.avoin.org/data/map/fi-buildings/{z}/{x}/{y}.pbf.gz'],
+        tiles: [
+          'https://server.avoin.org/data/map/fi-buildings/{z}/{x}/{y}.pbf.gz',
+        ],
         minzoom: 6,
         maxzoom: 13,
         bounds: [19, 59, 32, 71], // Finland
@@ -43,6 +47,11 @@ const getStyle = async (): Promise<ExtendedMbStyle> => {
   }
 }
 
-const layerConf: LayerConf = { id: id, style: getStyle, popup: Popup, useMb: true }
+const layerConf: LayerConf = {
+  id: id,
+  style: getStyle,
+  popup: Popup,
+  useMb: true,
+}
 
 export default layerConf

@@ -1,6 +1,6 @@
 "use client"
 
-import { LayerGroupId, LayerConf, ExtendedMbStyle } from '#/common/types/map'
+import { LayerGroupId, LayerConf, ExtendedStyleSpecification } from '#/common/types/map'
 
 const id: LayerGroupId = 'no2'
 
@@ -9,7 +9,7 @@ const id: LayerGroupId = 'no2'
 const no2Tileset = 0
 const timestampHour = Math.round(+new Date() / 1e6)
 
-const getStyle = async (): Promise<ExtendedMbStyle> => {
+const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   return {
     version: 8,
     name: id,

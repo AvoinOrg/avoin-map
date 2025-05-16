@@ -1,16 +1,22 @@
 import { fillOpacity, roundToSignificantDigitsExpr } from '#/common/utils/map'
-import { LayerGroupId, LayerConf, ExtendedMbStyle } from '#/common/types/map'
+import {
+  LayerGroupId,
+  LayerConf,
+  ExtendedStyleSpecification,
+} from '#/common/types/map'
 
 const id: LayerGroupId = 'hsy_solarpotential'
 
-const getStyle = async (): Promise<ExtendedMbStyle> => {
+const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   return {
     version: 8,
     name: id,
     sources: {
       [id]: {
         type: 'vector',
-        tiles: ['https://server.avoin.org/data/map/hsy-aurinkosahkopotentiaali/{z}/{x}/{y}.pbf'],
+        tiles: [
+          'https://server.avoin.org/data/map/hsy-aurinkosahkopotentiaali/{z}/{x}/{y}.pbf',
+        ],
         minzoom: 1,
         maxzoom: 14,
         bounds: [19, 59, 32, 71], // Finland
@@ -24,7 +30,12 @@ const getStyle = async (): Promise<ExtendedMbStyle> => {
         'source-layer': 'solarpower_potential',
         type: 'fill',
         paint: {
-          'fill-color': ['case', ['has', 'ELEC'], ['case', ['<', 0, ['get', 'ELEC']], '#92b565', 'gray'], 'gray'],
+          'fill-color': [
+            'case',
+            ['has', 'ELEC'],
+            ['case', ['<', 0, ['get', 'ELEC']], '#92b565', 'gray'],
+            'gray',
+          ],
           // areaCO2eFillColor(['*', 1e-3, ['get', 'CO2']]), // The variable CO2 is not documented at all!
           'fill-opacity': fillOpacity,
         },

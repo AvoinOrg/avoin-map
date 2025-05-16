@@ -1,8 +1,12 @@
-import { LayerGroupId, LayerConf, ExtendedMbStyle } from '#/common/types/map'
+import {
+  LayerGroupId,
+  LayerConf,
+  ExtendedStyleSpecification,
+} from '#/common/types/map'
 
 const id: LayerGroupId = 'mangrove_forests'
 
-const getStyle = async (): Promise<ExtendedMbStyle> => {
+const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   return {
     version: 8,
     name: id,
@@ -16,7 +20,8 @@ const getStyle = async (): Promise<ExtendedMbStyle> => {
         bounds: [-175.3, -38.8, 179.9, 33.8],
         // Creative Commons Attribution 4.0 Unported (CC BY 4.0)
         // http://data.unep-wcmc.org/pdfs/45/WCMC-043-GlobalCH-IFCPS6-2017.pdf
-        attribution: '<a href="https://www.eorc.jaxa.jp/ALOS/en/kyoto/mangrovewatch.htm">Global Mangrove Watch</a>',
+        attribution:
+          '<a href="https://www.eorc.jaxa.jp/ALOS/en/kyoto/mangrovewatch.htm">Global Mangrove Watch</a>',
       },
     },
     layers: [

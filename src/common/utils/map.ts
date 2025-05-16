@@ -1,19 +1,23 @@
-import { Expression, GeoJSONSource, MapboxGeoJSONFeature } from 'mapbox-gl'
+import {
+  ExpressionSpecification,
+  GeoJSONSource,
+  MapGeoJSONFeature,
+} from 'maplibre-gl'
 // import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
 // import Layer from 'ol/layer/Layer'
 // import WebGLVectorLayerRenderer from 'ol/renderer/webgl/VectorLayer'
 // import { asArray } from 'ol/color'
 // import { packColor } from 'ol/renderer/webgl/shaders'
 import { Feature, Geometry, Position } from 'geojson'
-import { Map } from 'mapbox-gl'
+import { Map } from 'maplibre-gl'
 
 import {
   LayerType,
   layerTypes,
   LayerOptions,
-  ExtendedAnyLayer,
-  ExtendedMbStyleOrFn,
-  ExtendedMbStyle,
+  ExtendedLayerSpecification,
+  ExtendedStyleSpecificationOrFn,
+  ExtendedStyleSpecification,
   LayerGroupOptions,
   LayerOptionsObj,
   DrawMode,
@@ -149,7 +153,7 @@ export const getColorExpressionArrForValues = (values: any[]) => {
 // NB: By using the '/' operator instead of '*', we get rid of float bugs like 1.2000000000004.
 export const roundToSignificantDigitsPosExpr = (
   n: number,
-  expr: Expression
+  expr: ExpressionSpecification
 ) => [
   // Multiply back by true scale
   '/',
@@ -157,16 +161,21 @@ export const roundToSignificantDigitsPosExpr = (
   ['round', ['/', expr, ['^', 10, ['+', -n + 1, ['floor', ['log10', expr]]]]]],
   ['^', 10, ['-', n - 1, ['floor', ['log10', expr]]]],
 ]
-export const roundToSignificantDigitsExpr = (n: number, expr: Expression) => [
-  'case',
-  ['==', 0, expr],
-  0,
-  ['>', 0, expr],
-  ['*', -1, roundToSignificantDigitsPosExpr(n, ['*', -1, expr])],
-  roundToSignificantDigitsPosExpr(n, expr),
-]
+export const roundToSignificantDigitsExpr = (
+  n: number,
+  expr: ExpressionSpecification
+) =>
+  // @ts-ignore
+  [
+    'case',
+    ['==', 0, expr],
+    0,
+    ['>', 0, expr],
+    ['*', -1, roundToSignificantDigitsPosExpr(n, ['*', -1, expr])],
+    roundToSignificantDigitsPosExpr(n, expr),
+  ] as ExpressionSpecification
 
-export const getCombinedBounds = (features: MapboxGeoJSONFeature[]) => {
+export const getCombinedBounds = (features: MapGeoJSONFeature[]) => {
   const coords = features.map((f) => {
     const g: any = f.geometry
     return g.coordinates
@@ -268,9 +277,9 @@ export const getLayerGroupIdForLayer = (
 // that can be either a style object or
 // a function returning a style object.
 export const resolveMbStyle = async (
-  mbStyle: ExtendedMbStyleOrFn
-): Promise<ExtendedMbStyle> => {
-  let style: ExtendedMbStyle
+  mbStyle: ExtendedStyleSpecificationOrFn
+): Promise<ExtendedStyleSpecification> => {
+  let style: ExtendedStyleSpecification
   if (typeof mbStyle === 'function') {
     style = await mbStyle()
   } else {
@@ -539,7 +548,7 @@ export const getSelectableLayers = (
 
 export const getMatchingDrawFeatures = (
   draw: any,
-  features: MapboxGeoJSONFeature[],
+  features: MapGeoJSONFeature[],
   idField: string | undefined
 ): Feature[] => {
   const drawData = draw.getAll()
