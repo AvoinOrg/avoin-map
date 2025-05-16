@@ -1,8 +1,8 @@
-import type { GeoJSONSource } from 'mapbox-gl'
+import type { GeoJSONSource } from 'maplibre-gl'
 
 import { useMapStore } from '#/common/store/mapStore'
 import {
-  ExtendedMbStyle,
+  ExtendedStyleSpecification,
   LayerConf,
   LayerEventHandlerAddOptions,
   SerializableLayerConf,
@@ -73,7 +73,7 @@ export const createAdminFolayerConf = async (
   // const pinId = `pin-${sourceId}`
   // await addImage(pinId, sourceId, pinSvgString, validColorCode)
 
-  const style: ExtendedMbStyle = {
+  const style: ExtendedStyleSpecification = {
     version: 8,
     sources: {
       [sourceId]: {
@@ -415,18 +415,25 @@ export const createAdminFolayerConf = async (
             return
           }
 
-          source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-            if (err) {
+          source
+            .getClusterExpansionZoom(clusterId)
+            .then((zoom: number) => {
+              // Ensure features[0] and its geometry exist and are of type Point
+              if (features[0]?.geometry?.type === 'Point') {
+                map.easeTo({
+                  center: features[0].geometry.coordinates as [number, number],
+                  zoom: zoom + 0.5, // Add a slight zoom buffer
+                })
+              } else {
+                console.warn(
+                  'Clicked cluster feature is not a Point or geometry is missing.'
+                )
+              }
+            })
+            .catch((err: any) => {
+              // Catch any errors from the promise
               console.error('Error getting cluster expansion zoom:', err)
-              return
-            }
-            if (features[0].geometry.type === 'Point') {
-              map.easeTo({
-                center: features[0].geometry.coordinates as [number, number],
-                zoom: zoom + 0.5,
-              })
-            }
-          })
+            })
         }
       },
     },
@@ -439,6 +446,8 @@ export const createAdminFolayerConf = async (
     useMb: true,
     popupOpts: {
       component: AreaModal,
+      source: centroidSourceId,
+      sourceLayer: null,
       multiPoppable: false,
       sidebar: false,
     },

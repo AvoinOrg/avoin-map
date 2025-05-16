@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import mapboxgl from 'mapbox-gl'
+import { Map, GeoJSONSource } from 'maplibre-gl'
 import {
   Box,
   Button,
@@ -62,7 +62,7 @@ const CarbonMapGraphMap = ({
     y: 0,
   })
   const mapContainer = useRef<HTMLDivElement>(null)
-  const map = useRef<mapboxgl.Map | null>(null)
+  const map = useRef<Map | null>(null)
   const [mapIsLoaded, setMapIsLoaded] = useState(false)
   const allDataIds = useRef<string[]>([])
   const selectOptions = useMemo(() => {
@@ -83,12 +83,9 @@ const CarbonMapGraphMap = ({
   }, [datas])
 
   useEffect(() => {
-    // Ensure mapboxgl.accessToken is set
-    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN as string
-
     if (map.current) return // Initialize the map only once
 
-    map.current = new mapboxgl.Map({
+    map.current = new Map({
       container: mapContainer.current!,
       style: 'mapbox://styles/mapbox/streets-v11', // Specify the map style
       center: [0, 0], // Specify the initial map center coordinates
@@ -137,7 +134,7 @@ const CarbonMapGraphMap = ({
         const layerId = `carbon-graph-layer-${data.id}`
 
         if (map.current!.getSource(sourceId)) {
-          ;(map.current!.getSource(sourceId) as mapboxgl.GeoJSONSource).setData(
+          ;(map.current!.getSource(sourceId) as GeoJSONSource).setData(
             data.data
           )
 
