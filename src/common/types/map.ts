@@ -213,7 +213,7 @@ export type OverlayMessage = {
   layerGroupId: LayerGroupId
 }
 
-export type MapLibraryMode = 'hybrid' | 'mapbox'
+export type MapLibraryMode = 'hybrid' | 'maplibre'
 
 // Queue priority is used to determine the order in which functions are executed.
 // Low priority functions, such as layer styling, might depend on high priority functions.

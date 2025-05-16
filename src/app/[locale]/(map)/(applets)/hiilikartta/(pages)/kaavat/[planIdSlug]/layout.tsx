@@ -186,7 +186,7 @@ const Layout = ({
   }, [])
 
   // useEffect(() => {
-  //   setMapLibraryMode('mapbox')
+  //   setMapLibraryMode('maplibre')
   // }, [])
   return <>{children}</>
 }
