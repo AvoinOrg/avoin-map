@@ -53,12 +53,13 @@ export type LayerEventHandlers = Record<
 export type LayerOptions = {
   id: string
   source: string
+  sourceLayer?: string
   name: string
   layerType: LayerType
   selectable: boolean
   multiSelectable: boolean
   hoverPointer: boolean
-  popup: Popup | false
+  popupOpts: PopupOpts | null
   useMb: boolean
   additionalSelectionSources?: AdditionalSelectionSource[]
 }
@@ -147,6 +148,7 @@ export type LayerGroupId =
 
 export type ExtendedAnyLayer = AnyLayer & {
   source: string
+  sourceLayer?: string
   selectable?: boolean // whether a feature can be highlighted
   multiSelectable?: boolean // whether multiple features can be highlighted
   hoverPointer?: boolean // whether the pointer should change to a pointer when hovering over the layer
@@ -188,7 +190,7 @@ export interface SerializableLayerConf extends BaseLayerConf {
 }
 
 export interface LayerConf extends BaseLayerConf {
-  popup?: Popup
+  popupOpts?: PopupOpts
 }
 
 export interface EventHandlerInitializer {
@@ -222,9 +224,21 @@ export enum QueuePriority {
   HIGH = 4, // for hydration and other vital stuff
 }
 
+export interface PopupData {
+  features: MapboxGeoJSONFeature[]
+  component: Popup
+  source: string
+  sourceLayer: string | null
+  multiPoppable?: boolean
+  sidebar?: boolean
+}
+
 export interface PopupOpts {
-  features: Feature[] | MapboxGeoJSONFeature[]
-  PopupElement: React.FC<{ features: any }>
+  component: Popup
+  source: string
+  sourceLayer: string | null
+  multiPoppable?: boolean
+  sidebar?: boolean
 }
 
 export type PopupFeature = {
