@@ -71,7 +71,7 @@ export const MapHandler = ({ children }: Props) => {
   const hasProcessedFeatureSelection = useRef(true)
 
   const _map = useMapStore((state) => state._map)
-  const _setMbMap = useMapStore((state) => state._setMbMap)
+  const _setMap = useMapStore((state) => state._setMap)
   const mapLibraryMode = useMapStore((state) => state.mapLibraryMode)
   const isLoaded = useMapStore((state) => state.isLoaded)
   const _setIsLoaded = useMapStore((state) => state._setIsLoaded)
@@ -98,7 +98,7 @@ export const MapHandler = ({ children }: Props) => {
   const visibleLayerGroups = useVisibleLayerGroups()
   const visibleLayerGroupIds = useVisibleLayerGroupIds()
 
-  const [isMapReady, setIsMapReady] = useState(false)
+  // const [isOlMapReady, setIsOlMapReady] = useState(false)
   const [isMbMapReady, setIsMbMapReady] = useState(false)
   const [draw, setDraw] = useState<MapboxDraw>()
   const [isDrawEnabled, setIsDrawEnabled] = useState(false)
@@ -129,7 +129,7 @@ export const MapHandler = ({ children }: Props) => {
           'mapbox:autocomposite': true,
           'mapbox:type': 'template',
         },
-        glyphs: 'mapbox://fonts/mapbox/{fontstack}/{range}.pbf',
+        // glyphs: 'mapbox://fonts/mapbox/{fontstack}/{range}.pbf',
         sources: {},
         layers: [
           {
@@ -161,7 +161,7 @@ export const MapHandler = ({ children }: Props) => {
     } else {
       const style: StyleSpecification = {
         version: 8,
-        glyphs: 'mapbox://fonts/mapbox/{fontstack}/{range}.pbf',
+        // glyphs: 'mapbox://fonts/mapbox/{fontstack}/{range}.pbf',
         sources: {
           osm: {
             type: 'raster',
@@ -440,11 +440,11 @@ export const MapHandler = ({ children }: Props) => {
     viewSettings: { center: [number, number]; zoom?: number }
   ) => {
     switch (mode) {
-      case 'mapbox': {
+      case 'maplibre': {
         let newMap = initMap(viewSettings, false)
-        _setMbMap(newMap)
+        _setMap(newMap)
 
-        mapLibraryRef.current = 'mapbox'
+        mapLibraryRef.current = 'maplibre'
 
         return () => {
           newMap.remove()
@@ -454,7 +454,7 @@ export const MapHandler = ({ children }: Props) => {
       case 'hybrid': {
         let { newOlMap, newMap } = initHybridMap(viewSettings)
         mapRef.current = newOlMap
-        _setMbMap(newMap)
+        _setMap(newMap)
 
         mapLibraryRef.current = 'hybrid'
 
@@ -477,7 +477,7 @@ export const MapHandler = ({ children }: Props) => {
     } else if (mapLibraryRef.current !== mapLibraryMode) {
       _setIsMapReady(false)
 
-      if (mapLibraryRef.current === 'mapbox') {
+      if (mapLibraryRef.current === 'maplibre') {
         const mbCenter = _map?.getCenter()
         if (mbCenter != null) {
           center = [mbCenter.lng, mbCenter.lat]
@@ -505,77 +505,77 @@ export const MapHandler = ({ children }: Props) => {
   // This effect runs only when OpenLayers is used
   // It refreshes the set of popup functions whenever
   // layerGroups get hidden or shown
-  useEffect(() => {
-    if (isMapReady) {
-      if (mapLibraryRef.current !== 'mapbox') {
-        // remove the old callback and create a new one each time state is updated
-        unByKey(popupKey)
+  // useEffect(() => {
+  //   if (isOlMapReady) {
+  //     if (mapLibraryRef.current !== 'maplibre') {
+  //       // remove the old callback and create a new one each time state is updated
+  //       unByKey(popupKey)
 
-        const newPopupFunc = (evt: MapBrowserEvent<any>) => {
-          let point = mapRef.current?.getCoordinateFromPixel(evt.pixel)
+  //       const newPopupFunc = (evt: MapBrowserEvent<any>) => {
+  //         let point = mapRef.current?.getCoordinateFromPixel(evt.pixel)
 
-          if (point != undefined) {
-            point = proj.toLonLat(point)
-            _map?.fire('click', {
-              lngLat: point as mapboxgl.LngLatLike,
-            })
-          }
+  //         if (point != undefined) {
+  //           point = proj.toLonLat(point)
+  //           _map?.fire('click', {
+  //             lngLat: point as mapboxgl.LngLatLike,
+  //           })
+  //         }
 
-          let featureObjs: any[] = []
+  //         let featureObjs: any[] = []
 
-          mapRef.current?.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
-            featureObjs.push({ feature, layer })
-          })
+  //         mapRef.current?.forEachFeatureAtPixel(evt.pixel, (feature, layer) => {
+  //           featureObjs.push({ feature, layer })
+  //         })
 
-          if (featureObjs.length > 0) {
-            featureObjs = featureObjs.sort((a: any, b: any) => {
-              const aZ = a.layer.getZIndex()
-              const bZ = b.layer.getZIndex()
+  //         if (featureObjs.length > 0) {
+  //           featureObjs = featureObjs.sort((a: any, b: any) => {
+  //             const aZ = a.layer.getZIndex()
+  //             const bZ = b.layer.getZIndex()
 
-              if (aZ > bZ) {
-                return -1
-              } else if (bZ > aZ) {
-                return 1
-              } else {
-                return 0
-              }
-            })
+  //             if (aZ > bZ) {
+  //               return -1
+  //             } else if (bZ > aZ) {
+  //               return 1
+  //             } else {
+  //               return 0
+  //             }
+  //           })
 
-            const featureGroup = featureObjs[0].layer.get('group')
-            const features = featureObjs.map((f) => {
-              if (f.layer.get('group') === featureGroup) {
-                return f.feature
-              }
-            })
+  //           const featureGroup = featureObjs[0].layer.get('group')
+  //           const features = featureObjs.map((f) => {
+  //             if (f.layer.get('group') === featureGroup) {
+  //               return f.feature
+  //             }
+  //           })
 
-            const Popup = popups[featureGroup]
-            if (Popup != null) {
-              const popupOpts: PopupOpts = {
-                features,
-                PopupElement: Popup,
-              }
+  //           const Popup = popups[featureGroup]
+  //           if (Popup != null) {
+  //             const popupOpts: PopupOpts = {
+  //               features,
+  //               PopupElement: Popup,
+  //             }
 
-              setPopupOpts(popupOpts)
-              setIsMapPopupOpen(true)
-            }
+  //             setPopupOpts(popupOpts)
+  //             setIsMapPopupOpen(true)
+  //           }
 
-            // console.log(features)
-            // for (const i in activeLayers) {
-            //   console.log(layers[activeLayers[i]].getSource)
-            //   if (layers[activeLayers[i]].hasFeature(features[0])) {
-            //     console.log("asdfasdf")
-            //   }
-            // }
-            // map.forEachLayerAtPixel(evt.pixel, function (layer: any) {})
-          }
-        }
-        const newpopupKey = mapRef.current?.on('singleclick', newPopupFunc)
+  //           // console.log(features)
+  //           // for (const i in activeLayers) {
+  //           //   console.log(layers[activeLayers[i]].getSource)
+  //           //   if (layers[activeLayers[i]].hasFeature(features[0])) {
+  //           //     console.log("asdfasdf")
+  //           //   }
+  //           // }
+  //           // map.forEachLayerAtPixel(evt.pixel, function (layer: any) {})
+  //         }
+  //       }
+  //       const newpopupKey = mapRef.current?.on('singleclick', newPopupFunc)
 
-        setPopupKey(newpopupKey)
-      } else {
-      }
-    }
-  }, [visibleLayerGroupIds, mapLibraryMode, isLoaded, popups])
+  //       setPopupKey(newpopupKey)
+  //     } else {
+  //     }
+  //   }
+  // }, [visibleLayerGroupIds, mapLibraryMode, isLoaded, popups])
 
   // This effect filters the selected features to those,
   // that are from selectable layers. Also applies styling
@@ -699,19 +699,19 @@ export const MapHandler = ({ children }: Props) => {
   useEffect(() => {
     if (!isLoaded && mapContext != null) {
       switch (mapLibraryMode) {
-        case 'mapbox': {
+        case 'maplibre': {
           if (isMbMapReady) {
             _setIsMapReady(true)
           }
         }
-        case 'hybrid': {
-          if (isMbMapReady && isMapReady) {
-            _setIsMapReady(true)
-          }
-        }
+        // case 'hybrid': {
+        //   if (isMbMapReady && isHandlerReady) {
+        //     _setIsMapReady(true)
+        //   }
+        // }
       }
     }
-  }, [isLoaded, isMapReady, isMbMapReady, mapLibraryMode, mapContext])
+  }, [isLoaded, isMbMapReady, mapLibraryMode, mapContext])
 
   useEffect(() => {
     // Run queued functions once map has loaded
