@@ -1,20 +1,27 @@
-import { RasterSource } from 'mapbox-gl'
+import { RasterSourceSpecification } from 'maplibre-gl'
 
-import { LayerGroupId, LayerConf, ExtendedMbStyle, ExtendedAnyLayer } from '#/common/types/map'
+import {
+  LayerGroupId,
+  LayerConf,
+  ExtendedStyleSpecification,
+  ExtendedLayerSpecification,
+} from '#/common/types/map'
 
 const id: LayerGroupId = 'zonation'
 
 const zonationVersions = [1, 2, 3, 4, 5, 6]
 
 const getZonationSources = () => {
-  const sources: { [index: string]: RasterSource } = {}
+  const sources: { [index: string]: RasterSourceSpecification } = {}
 
   zonationVersions.forEach((v) => {
     const id = `zonation-v${v}`
 
     sources[id] = {
       type: 'raster',
-      tiles: [`https://server.avoin.org/data/map/zonation/MetZa2018_VMA0${v}/{z}/{x}/{y}.png?v=7`],
+      tiles: [
+        `https://server.avoin.org/data/map/zonation/MetZa2018_VMA0${v}/{z}/{x}/{y}.png?v=7`,
+      ],
       minzoom: 5,
       maxzoom: 9,
       bounds: [19, 59, 32, 71], // Finland
@@ -29,7 +36,7 @@ const getZonationSources = () => {
 }
 
 const getZonationLayers = () => {
-  const layers: ExtendedAnyLayer[] = []
+  const layers: ExtendedLayerSpecification[] = []
 
   zonationVersions.forEach((v) => {
     const id = `zonation-v${v}`
@@ -49,8 +56,8 @@ const getZonationLayers = () => {
   return layers
 }
 
-const getStyle = async (): Promise<ExtendedMbStyle> => {
-  const style: ExtendedMbStyle = {
+const getStyle = async (): Promise<ExtendedStyleSpecification> => {
+  const style: ExtendedStyleSpecification = {
     version: 8,
     name: id,
     sources: getZonationSources(),

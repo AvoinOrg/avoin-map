@@ -1,26 +1,39 @@
 import axios from 'axios'
-import { Style as MbStyle, Expression } from 'mapbox-gl'
+import { ExpressionSpecification } from 'maplibre-gl'
 
-import { LayerGroupId, LayerConf, ExtendedMbStyle } from '#/common/types/map'
+import {
+  LayerGroupId,
+  LayerConf,
+  ExtendedStyleSpecification,
+} from '#/common/types/map'
 import { fillOpacity } from '#/common/utils/map'
 
 const id: LayerGroupId = 'metsaan_ete_important'
 
-const getStyle = async (): Promise<ExtendedMbStyle> => {
+const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   const { data } = await axios.get('ete_codes.json')
 
-  const eteAllLabels = ['match', ['get', 'featurecode'], ...data, 'UNKNOWN habitat type'] as Expression
+  // @ts-ignore
+  const eteAllLabels = [
+    'match',
+    ['get', 'featurecode'],
+    ...data,
+    'UNKNOWN habitat type',
+  ] as ExpressionSpecification
 
-  const style: MbStyle = {
+  const style: ExtendedStyleSpecification = {
     version: 8,
     name: id,
     sources: {
       [id]: {
         type: 'vector',
-        tiles: ['https://server.avoin.org/data/map/metsaan-ete/{z}/{x}/{y}.pbf'],
+        tiles: [
+          'https://server.avoin.org/data/map/metsaan-ete/{z}/{x}/{y}.pbf',
+        ],
         maxzoom: 12,
         bounds: [19, 59, 32, 71], // Finland
-        attribution: '<a href="https://www.metsaan.fi">© Finnish Forest Centre</a>',
+        attribution:
+          '<a href="https://www.metsaan.fi">© Finnish Forest Centre</a>',
       },
     },
     layers: [

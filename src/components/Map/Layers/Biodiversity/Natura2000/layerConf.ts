@@ -1,4 +1,4 @@
-import { LayerGroupId, LayerConf, ExtendedMbStyle, ExtendedAnyLayer } from '#/common/types/map'
+import { LayerGroupId, LayerConf, ExtendedStyleSpecification, ExtendedLayerSpecification } from '#/common/types/map'
 
 const id: LayerGroupId = 'natura2000'
 
@@ -12,7 +12,7 @@ const natura2000Mappings = {
 }
 
 const getNaturaLayers = () => {
-  const layers: ExtendedAnyLayer[] = []
+  const layers: ExtendedLayerSpecification[] = []
 
   Object.entries(natura2000Mappings).forEach(([baseName, x]) => {
     layers.push({
@@ -56,8 +56,8 @@ const getNaturaLayers = () => {
   return layers
 }
 
-const getStyle = async (): Promise<ExtendedMbStyle> => {
-  const style: ExtendedMbStyle = {
+const getStyle = async (): Promise<ExtendedStyleSpecification> => {
+  const style: ExtendedStyleSpecification = {
     version: 8,
     name: id,
     sources: {

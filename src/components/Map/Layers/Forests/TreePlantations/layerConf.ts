@@ -1,20 +1,27 @@
-import { LayerGroupId, LayerConf, ExtendedMbStyle } from '#/common/types/map'
+import {
+  LayerGroupId,
+  LayerConf,
+  ExtendedStyleSpecification,
+} from '#/common/types/map'
 import { fillOpacity } from '#/common/utils/map'
 import Popup from './Popup'
 
 const id: LayerGroupId = 'gfw_tree_plantations'
 
-const getStyle = async (): Promise<ExtendedMbStyle> => {
+const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   return {
     version: 8,
     name: id,
     sources: {
       [id]: {
         type: 'vector',
-        tiles: ['https://server.avoin.org/data/map/gfw_tree_plantations/{z}/{x}/{y}.pbf'],
+        tiles: [
+          'https://server.avoin.org/data/map/gfw_tree_plantations/{z}/{x}/{y}.pbf',
+        ],
         minzoom: 0,
         maxzoom: 12,
-        attribution: '<a href="https://www.globalforestwatch.org/">© Global Forest Watch</a>',
+        attribution:
+          '<a href="https://www.globalforestwatch.org/">© Global Forest Watch</a>',
       },
     },
     layers: [
@@ -24,7 +31,12 @@ const getStyle = async (): Promise<ExtendedMbStyle> => {
         'source-layer': 'gfw_plantations',
         type: 'fill',
         paint: {
-          'fill-color': ['case', ['<', 0.4, ['get', 'peat_ratio']], 'rgb(214, 7, 7)', 'rgb(109, 41, 7)'],
+          'fill-color': [
+            'case',
+            ['<', 0.4, ['get', 'peat_ratio']],
+            'rgb(214, 7, 7)',
+            'rgb(109, 41, 7)',
+          ],
           'fill-opacity': fillOpacity,
         },
         BEFORE: 'FILL',
@@ -59,6 +71,11 @@ const getStyle = async (): Promise<ExtendedMbStyle> => {
   }
 }
 
-const layerConf: LayerConf = { id: id, style: getStyle, popup: Popup, useMb: true }
+const layerConf: LayerConf = {
+  id: id,
+  style: getStyle,
+  popup: Popup,
+  useMb: true,
+}
 
 export default layerConf

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { Box } from '@mui/material'
 
-import { Map } from '#/components/Map'
+import { MapHandler } from '#/components/Map'
 import { LoginModal } from '#/components/Modal'
 import { ConfirmationDialog } from '#/components/Notification'
 import StateHandler from './stateHandler'
@@ -29,7 +29,7 @@ const LayoutClient = ({
       {/* <UserStateProvider> */}
       {isHydrated && (
         <StateHandler>
-          <Map>
+          <MapHandler>
             {/* <UserModal /> */}
             <Box
               className="layout-container"
@@ -45,7 +45,7 @@ const LayoutClient = ({
             </Box>
             <LoginModal></LoginModal>
             <ConfirmationDialog></ConfirmationDialog>
-          </Map>
+          </MapHandler>
         </StateHandler>
       )}
       {/* </UserStateProvider> */}

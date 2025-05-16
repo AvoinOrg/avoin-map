@@ -1,7 +1,9 @@
-// import { Style as MbStyle } from 'mapbox-gl'
-
 import { fillOpacity, roundToSignificantDigitsExpr } from '#/common/utils/map'
-import { LayerGroupId, LayerConf, ExtendedMbStyle } from '#/common/types/map'
+import {
+  LayerGroupId,
+  LayerConf,
+  ExtendedStyleSpecification,
+} from '#/common/types/map'
 import { layerOptions } from './constants'
 
 import Popup from './Popup'
@@ -10,7 +12,7 @@ const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 
 const id: LayerGroupId = 'helsinki_buildings'
 
-const getStyle = async (): Promise<ExtendedMbStyle> => {
+const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   const sources: any = {}
   let layers: any = []
 
@@ -19,7 +21,9 @@ const getStyle = async (): Promise<ExtendedMbStyle> => {
     sources[layerGroupId] = {
       type: 'vector',
       scheme: 'tms',
-      tiles: [`${SERVER_URL}/gwc/service/tms/1.0.0/misc:${options.serverId}@EPSG:900913@pbf/{z}/{x}/{y}.pbf`],
+      tiles: [
+        `${SERVER_URL}/gwc/service/tms/1.0.0/misc:${options.serverId}@EPSG:900913@pbf/{z}/{x}/{y}.pbf`,
+      ],
       minzoom: options.minzoom,
       maxzoom: options.maxzoom,
       bounds: [19, 59, 32, 71], // Finland
@@ -106,6 +110,11 @@ const getStyle = async (): Promise<ExtendedMbStyle> => {
   }
 }
 
-const layerConf: LayerConf = { id: id, style: getStyle, popup: Popup, useMb: true }
+const layerConf: LayerConf = {
+  id: id,
+  style: getStyle,
+  popup: Popup,
+  useMb: true,
+}
 
 export default layerConf

@@ -1,10 +1,10 @@
-import { Expression } from 'mapbox-gl'
+import { ExpressionSpecification } from 'maplibre-gl'
 
-import { LayerGroupId, LayerConf, ExtendedMbStyle } from '#/common/types/map'
+import { LayerGroupId, LayerConf, ExtendedStyleSpecification } from '#/common/types/map'
 
 const id: LayerGroupId = 'terramonitor'
 
-const getStyle = async (): Promise<ExtendedMbStyle> => {
+const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   return {
     version: 8,
     name: id,
