@@ -1,16 +1,16 @@
 import { useMapStore } from '#/common/store'
-import { MapboxGeoJSONFeature } from 'mapbox-gl'
+import { MapGeoJSONFeature } from 'maplibre-gl'
 import { useEffect, useState } from 'react'
 
 const useSelectedFeaturesFilteredByLayer = (filterLayers: string[]) => {
   const selectedFeatures = useMapStore((state) => state.selectedFeatures)
-  const [filteredFeatures, setFilteredFeatures] = useState<
-    MapboxGeoJSONFeature[]
-  >([])
+  const [filteredFeatures, setFilteredFeatures] = useState<MapGeoJSONFeature[]>(
+    []
+  )
 
   useEffect(() => {
     const newFilteredFeatures = selectedFeatures.filter(
-      (f: MapboxGeoJSONFeature) => {
+      (f: MapGeoJSONFeature) => {
         if (filterLayers.includes(f.layer.id)) {
           return true
         }

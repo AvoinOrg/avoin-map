@@ -1,5 +1,5 @@
 import { every } from 'lodash-es'
-import { Expression, Layer } from 'mapbox-gl'
+import { ExpressionSpecification, LayerSpecification } from 'maplibre-gl'
 import { GeoJsonProperties } from 'geojson'
 import { uniqBy } from 'lodash-es'
 
@@ -29,7 +29,7 @@ export const stepsToLinear = (min: number, max: number, steps: string[]) => {
   return res
 }
 
-export const fiForestsAreaCO2FillColor: (expr: Expression) => Expression = (expr) => [
+export const fiForestsAreaCO2FillColor: (expr: ExpressionSpecification) => ExpressionSpecification = (expr) => [
   'interpolate',
   ['linear'],
   expr,
@@ -37,11 +37,11 @@ export const fiForestsAreaCO2FillColor: (expr: Expression) => Expression = (expr
 ]
 
 export const fiForestsSumMethodAttrs = (
-  forestryMethod: ForestryMethod | Expression,
+  forestryMethod: ForestryMethod | ExpressionSpecification,
   attrPrefix: string,
   attrSuffix = '_area_mult_sum'
 ) => {
-  const expr: Expression = [
+  const expr: ExpressionSpecification = [
     'let',
     'p',
     ['concat', 'f', forestryMethod, '_'],
@@ -64,24 +64,24 @@ export const fiForestsBestMethodCumulativeSumCbt = fiForestsSumMethodAttrs(FILL_
 
 export const fiForestsCumulativeCO2eValueExpr = fiForestsBestMethodCumulativeSumCbt
 
-export const fiForestsTextfieldExpression: (co2eValueExpr: Expression) => Expression = (co2eValueExpr) => [
+export const fiForestsTextfieldExpression: (co2eValueExpr: ExpressionSpecification) => ExpressionSpecification = (co2eValueExpr) => [
   'case',
   ['has', 'f1_cbt1_area_mult_sum'],
   [
     'concat',
-    roundToSignificantDigitsExpr(3, ['get', 'area']) as Expression,
+    roundToSignificantDigitsExpr(3, ['get', 'area']) as ExpressionSpecification,
     ' ha\n',
-    roundToSignificantDigitsExpr(2, co2eValueExpr) as Expression,
+    roundToSignificantDigitsExpr(2, co2eValueExpr) as ExpressionSpecification,
     ' t CO2e/y/ha',
   ],
   '',
 ]
 
 export const fiForestsBestMethodVsOther = (
-  forestryMethod: ForestryMethod | Expression,
+  forestryMethod: ForestryMethod | ExpressionSpecification,
   attrPrefix: string,
   attrSuffix = 'area_mult_sum'
-): Expression => [
+): ExpressionSpecification => [
   '-',
   fiForestsSumMethodAttrs(forestryMethod, attrPrefix, attrSuffix),
   fiForestsSumMethodAttrs(TRADITIONAL_FORESTRY_METHOD, attrPrefix, attrSuffix),
@@ -380,7 +380,7 @@ export const getNpvText = (
   return npvValue === 0 || npvValue ? `${pp(npvValue)} €${perHectareFlag ? ' per ha' : ''}` : '-'
 }
 
-export const getChartTitleSingleLayer = (selectedFeatureLayer: Layer, featureProps: any[], multiple: boolean) => {
+export const getChartTitleSingleLayer = (selectedFeatureLayer: LayerSpecification, featureProps: any[], multiple: boolean) => {
   assert(selectedFeatureLayer, 'selectedFeatureLayer must be set')
   if (selectedFeatureLayer.id === LayerLevel.Parcel + '-fill') {
     const name = featureProps.map((p) => p.standid).join(', ')
@@ -398,7 +398,7 @@ export const getChartTitleSingleLayer = (selectedFeatureLayer: Layer, featurePro
   }
 }
 
-export const getChartTitle = (selectedFeatureLayers: Layer[], featureProps: any[]) => {
+export const getChartTitle = (selectedFeatureLayers: LayerSpecification[], featureProps: any[]) => {
   if (featureProps.length === 0) return 'No area selected'
 
   assert(selectedFeatureLayers.length > 0, 'selectedFeatureLayer must be non-empty')
