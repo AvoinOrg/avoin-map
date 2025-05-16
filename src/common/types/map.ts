@@ -14,7 +14,11 @@ import type {
 import type { Actions as MapStoreActions } from '#/common/store/mapStore'
 // interface mapFunctions {}
 
-export type PopupProps = { features: PopupFeature[] }
+export type PopupProps = {
+  onClose: () => {}
+  features: PopupFeature[]
+  isOpen?: boolean
+}
 
 export type Popup = (props: PopupProps) => ReactNode
 

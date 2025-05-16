@@ -9,6 +9,8 @@ import {
 } from '#/common/types/map'
 import { getContrastColor } from '#/common/utils/styling'
 
+import AreaModal from '../components/AreaModal'
+
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 const GS_WORKSPACE =
   process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE
@@ -435,6 +437,11 @@ export const createAdminFolayerConf = async (
     style: style,
     eventHandlers: eventHandlers,
     useMb: true,
+    popupOpts: {
+      component: AreaModal,
+      multiPoppable: false,
+      sidebar: false,
+    },
   }
 
   return layerConf
