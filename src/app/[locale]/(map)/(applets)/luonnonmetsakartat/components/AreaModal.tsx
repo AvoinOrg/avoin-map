@@ -10,17 +10,12 @@ import {
 import { T } from '@tolgee/react'
 import LoadingHorizontal from '#/components/Loading/LoadingHorizontal'
 import { Cross } from '#/components/icons'
+import { PopupProps } from '#/common/types/map'
 
-type Props = {
-  open: boolean
-  onClose: () => void
-  features: any[]
-}
-
-const AreaModal = ({ open, onClose, features }: Props) => {
+const AreaModal = ({ onClose, features, isOpen = true }: PopupProps) => {
   return (
     <Modal
-      open={open}
+      open={isOpen}
       onClose={onClose}
       aria-labelledby="area-modal-title"
       aria-describedby="area-modal-description"
