@@ -2,7 +2,7 @@ import area from '@turf/area'
 import bbox from '@turf/bbox'
 import bboxPolygon from '@turf/bbox-polygon'
 import { featureCollection } from '@turf/helpers'
-import { LngLatBounds } from 'mapbox-gl'
+import { LngLatBounds } from 'maplibre-gl'
 
 export const getGeoJsonArea = (geoJson: any) => {
   return area(geoJson)
