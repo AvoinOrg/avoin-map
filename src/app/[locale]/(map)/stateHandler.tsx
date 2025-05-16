@@ -7,7 +7,6 @@
 import React, { useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useUserStore } from '#/common/store/userStore'
-import { accessToken } from 'mapbox-gl'
 import { useQuery } from '@tanstack/react-query'
 import { User } from 'next-auth'
 import { set } from 'ol/transform'
