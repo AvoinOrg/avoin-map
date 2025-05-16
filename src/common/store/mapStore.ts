@@ -34,7 +34,7 @@ import {
   OverlayMessage,
   MapLibraryMode,
   QueuePriority,
-  PopupOpts,
+  PopupData,
   QueueFunction,
   FunctionQueue,
   LayerGroupAddOptions,
@@ -69,6 +69,7 @@ import {
   getSelectableLayers,
   getMatchingDrawFeatures,
   getAllLayerOptionsObj,
+  isMatchingSource,
 } from '#/common/utils/map'
 
 const DEFAULT_MAP_LIBRARY_MODE: MapLibraryMode = 'mapbox'
@@ -86,7 +87,7 @@ export type Vars = {
   // An overlay message over the map
   overlayMessage: OverlayMessage | null
   // Options for popup windows, when clicking a feature on the map
-  popupOpts: PopupOpts | null
+  activePopupData: PopupData[]
   // Whether user has activated drawing mode
   mapContext: MapContext
   selectedFeatures: MapboxGeoJSONFeature[]
@@ -219,6 +220,7 @@ export type Actions = {
     idField: string
     sourceId: string
     updateDrawSelect?: boolean
+    ignorePopups?: boolean
   }) => void
   addSelectedFeaturesByIds: (params: {
     featureIds: string[]
@@ -226,7 +228,7 @@ export type Actions = {
     sourceId: string
     allowedLayers?: string[]
     updateDrawSelect?: boolean
-    triggerPopup?: boolean
+    ignorePopups?: boolean
   }) => void
   setMapLibraryMode: (mode: MapLibraryMode) => void
   getGeocoder: () => void
@@ -267,10 +269,6 @@ export type Actions = {
     id: LayerGroupId | string,
     options: LayerGroupAddOptionsWithConf
   ) => Promise<void>
-  _addMbPopup: (
-    layer: string | string[],
-    fn: (e: MapLayerMouseEvent) => void
-  ) => void
   _addMbStyleToMb: (
     id: LayerGroupId | string,
     options: LayerGroupAddOptionsWithConf
@@ -282,11 +280,12 @@ export type Actions = {
   _getAdditionalSelectedFeatures: (
     features: MapboxGeoJSONFeature[]
   ) => MapboxGeoJSONFeature[]
+  _setPopupDataForFeatures: (features: MapboxGeoJSONFeature[]) => void
   _addToFunctionQueue: (queueFunction: QueueFunction) => Promise<any>
   _setFunctionQueue: (functionQueue: FunctionQueue) => void
   _executeFunctionQueue: (callback?: () => void) => Promise<void>
   _setIsFunctionQueueExecuting: (isExecuting: boolean) => void
-  _setPopupOpts: (popupOpts: PopupOpts) => void
+  _setActivePopupData: (activePopupData: PopupData) => void
   _setMbMap: (mbMap: MbMap) => void
   // Adds a layer after the specified layer id.
   _addLayerAfter: (layer: AnyLayer, afterId: string) => void
@@ -324,7 +323,7 @@ export const useMapStore = create<State>()(
         mapLibraryMode: DEFAULT_MAP_LIBRARY_MODE, // Assume an initial value
         isLoaded: false,
         overlayMessage: null,
-        popupOpts: null,
+        activePopupData: [],
         mapContext: null,
         selectedFeatures: [],
         _images: {},
@@ -575,6 +574,7 @@ export const useMapStore = create<State>()(
             _drawOptions,
             _layerGroups,
             _getAdditionalSelectedFeatures,
+            _setPopupDataForFeatures,
           } = get()
 
           if (features.length === 0) {
@@ -738,6 +738,7 @@ export const useMapStore = create<State>()(
           }
 
           setSelectedFeatures(filteredSelectedFeatures)
+          _setPopupDataForFeatures(filteredSelectedFeatures)
         },
 
         // if the layerConf specifies other sources that have the same features (with the same ids), these
@@ -814,14 +815,92 @@ export const useMapStore = create<State>()(
           return additionalFeatures
         },
 
+        _setPopupDataForFeatures: (features: MapboxGeoJSONFeature[]) => {
+          if (features == null || features.length === 0) {
+            return
+          }
+
+          const { _layerGroups, activePopupData } = get()
+
+          const layerOptionsObj = getAllLayerOptionsObj(_layerGroups)
+
+          const popupDatas: PopupData[] = []
+
+          const featuresWithPopup = features.filter((feature) => {
+            const layerOptions = layerOptionsObj[feature.layer.id]
+            return layerOptions.popupOpts != null
+          })
+
+          for (const feature of featuresWithPopup) {
+            const layerOptions = layerOptionsObj[feature.layer.id]
+
+            if (layerOptions.popupOpts) {
+              const popupData: PopupData = {
+                features: features,
+                component: layerOptions.popupOpts.component,
+                source: feature.source,
+                sourceLayer: feature.sourceLayer,
+                multiPoppable: layerOptions.popupOpts.multiPoppable,
+                sidebar: layerOptions.popupOpts.sidebar,
+              }
+
+              popupDatas.push(popupData)
+
+              if (!popupData.multiPoppable) {
+                // TODO: figure out logic for multiple popups, if needed
+                break
+              }
+            }
+          }
+
+          // if there is new and old popup data, check if they are the same
+          if (activePopupData.length > 0 && popupDatas.length > 0) {
+            const newPopupData = popupDatas[0]
+            const oldPopupData = activePopupData[0]
+
+            if (
+              isMatchingSource(newPopupData, oldPopupData) &&
+              newPopupData.component === oldPopupData.component
+            ) {
+              if (isEqual(newPopupData.features, oldPopupData.features)) {
+                return
+              }
+              // if the features are different or in different order, update the popup data
+              set(
+                produce((draft: State) => {
+                  draft.activePopupData[0].features = newPopupData.features
+                })
+              )
+              return
+            }
+          }
+
+          set(
+            produce((draft: State) => {
+              draft.activePopupData = popupDatas
+            })
+          )
+        },
+
         removeSelectedFeaturesByIds: (params: {
           featureIds: string[]
           idField: string
           sourceId: string
           updateDrawSelect?: boolean
+          ignorePopups?: boolean
         }) => {
-          const { featureIds, idField, sourceId, updateDrawSelect } = params
-          const { selectedFeatures, setSelectedFeatures } = get()
+          const {
+            featureIds,
+            idField,
+            sourceId,
+            updateDrawSelect,
+            ignorePopups,
+          } = params
+          const {
+            selectedFeatures,
+            setSelectedFeatures,
+            _setPopupDataForFeatures,
+          } = get()
 
           const newSelectedFeatures = selectedFeatures.filter((feature) => {
             if (feature.source !== sourceId) {
@@ -837,6 +916,10 @@ export const useMapStore = create<State>()(
           })
 
           setSelectedFeatures(newSelectedFeatures, updateDrawSelect)
+
+          if (!ignorePopups) {
+            _setPopupDataForFeatures(newSelectedFeatures)
+          }
         },
 
         addSelectedFeaturesByIds: (params: {
@@ -845,7 +928,7 @@ export const useMapStore = create<State>()(
           sourceId: string
           allowedLayers?: string[]
           updateDrawSelect?: boolean
-          triggerPopup?: boolean
+          ignorePopups?: boolean
         }) => {
           const {
             featureIds,
@@ -853,7 +936,7 @@ export const useMapStore = create<State>()(
             sourceId,
             allowedLayers,
             updateDrawSelect,
-            triggerPopup,
+            ignorePopups,
           } = params
 
           const {
@@ -861,6 +944,7 @@ export const useMapStore = create<State>()(
             setSelectedFeatures,
             _mbMap,
             _layerGroups,
+            _setPopupDataForFeatures,
           } = get()
 
           let usedAllowedLayers: string[] = []
@@ -882,6 +966,10 @@ export const useMapStore = create<State>()(
             uniq([...selectedFeatures, ...newFeatures]),
             updateDrawSelect
           )
+
+          if (!ignorePopups) {
+            _setPopupDataForFeatures(newFeatures)
+          }
         },
         // TODO: The logic of this function is getting too complex. Now we have
         // LayerConfs fetched from the common storage and LayerConfs supplied by the calling
@@ -1877,10 +1965,10 @@ export const useMapStore = create<State>()(
           })
         },
 
-        _setPopupOpts: (popupOpts: PopupOpts) => {
+        _setActivePopupData: (activePopupData: PopupData) => {
           set(
             produce((state) => {
-              state.popupOpts = popupOpts
+              state.activePopupData = activePopupData
             })
           )
         },
@@ -1971,31 +2059,11 @@ export const useMapStore = create<State>()(
           })
         },
 
-        _addMbPopup: (
-          layer: string | string[],
-          fn: (e: MapLayerMouseEvent) => void
-        ) => {
-          const { _mbMap } = get()
-
-          _mbMap?.on('click', layer, fn)
-          _mbMap?.on('mouseenter', layer, () => {
-            if (_mbMap) {
-              _mbMap.getCanvas().style.cursor = 'pointer'
-            }
-          })
-          _mbMap?.on('mouseleave', layer, () => {
-            if (_mbMap) {
-              _mbMap.getCanvas().style.cursor = ''
-            }
-          })
-        },
-
         _addMbStyleToMb: async (
           id: LayerGroupId | string,
           options: LayerGroupAddOptionsWithConf
         ) => {
           const {
-            _addMbPopup,
             _mbMap,
             _addLayerAfter,
             _findFirstMatchingLayer,
@@ -2035,15 +2103,13 @@ export const useMapStore = create<State>()(
               const layerOptions: LayerOptions = {
                 id: layer.id,
                 source: layer.source,
+                ...(layer.sourceLayer && { sourceLayer: layer.sourceLayer }),
                 name: getLayerName(layer.id),
                 layerType: layer.type,
                 selectable: layer.selectable || false,
                 multiSelectable: layer.multiSelectable || false,
                 hoverPointer: hoverPointer,
-                popup:
-                  'popup' in options.layerConf
-                    ? options.layerConf.popup || false
-                    : false,
+                popupOpts: null,
                 useMb: true,
                 ...(layer.additionalSelectionSources &&
                   layer.additionalSelectionSources.length > 0 && {
@@ -2054,26 +2120,16 @@ export const useMapStore = create<State>()(
 
               layerGroup.layers[layer.id] = layerOptions
 
-              if (layerOptions.layerType === 'fill') {
-                if (layerOptions.popup) {
-                  const Popup: any = layerOptions.popup
+              if (
+                'popupOpts' in options.layerConf &&
+                options.layerConf.popupOpts
+              ) {
+                if (layer.selectable || layer.multiSelectable) {
+                  const popupOpts = options.layerConf.popupOpts
 
-                  const popupFn = (evt: MapLayerMouseEvent) => {
-                    const features = evt.features || []
-                    const popupOpts: PopupOpts = {
-                      features,
-                      PopupElement: Popup,
-                    }
-
-                    set(
-                      produce((state) => {
-                        state.popupOpts = popupOpts
-                      })
-                    )
-
-                    setIsMapPopupOpen(true)
+                  if (isMatchingSource(layer, popupOpts)) {
+                    layerOptions.popupOpts = popupOpts
                   }
-                  _addMbPopup(layer.id, popupFn)
                 }
               }
 
