@@ -1,26 +1,34 @@
-import { Expression } from 'mapbox-gl'
+import { ExpressionSpecification } from 'maplibre-gl'
 
-import { LayerGroupId, LayerConf, ExtendedMbStyle } from '#/common/types/map'
+import {
+  LayerGroupId,
+  LayerConf,
+  ExtendedStyleSpecification,
+} from '#/common/types/map'
 import { metsaanFiTreeSpecies } from './constants'
 import Popup from './Popup'
 
 const id: LayerGroupId = 'fi_mature_forests'
 
-const fillRegenerationFelling: Expression = [
+const fillRegenerationFelling: ExpressionSpecification = [
   'case',
   ['>=', 0.5, ['get', 'regeneration_felling_prediction']],
   'rgba(73, 25, 2320, 0.65)',
   'rgba(206, 244, 66, 0.35)',
 ]
 
-const treeSpeciesText = (speciesId: any) => [
-  'match',
-  speciesId,
-  ...Object.entries(metsaanFiTreeSpecies).reduce((x: any, y) => [...x, +y[0], y[1]], []),
-  'Unknown',
-]
+const treeSpeciesText = (speciesId: any) =>
+  [
+    'match',
+    speciesId,
+    ...Object.entries(metsaanFiTreeSpecies).reduce(
+      (x: any, y) => [...x, +y[0], y[1]],
+      []
+    ),
+    'Unknown',
+  ] as ExpressionSpecification
 
-const getStyle = async (): Promise<ExtendedMbStyle> => {
+const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   const sourceNames = ['metsaan_stand', 'metsaan_stand_mature']
 
   return {
@@ -29,19 +37,25 @@ const getStyle = async (): Promise<ExtendedMbStyle> => {
     sources: {
       [sourceNames[0]]: {
         type: 'vector',
-        tiles: ['https://server.avoin.org/data/map/stand2/{z}/{x}/{y}.pbf.gz?v=2'],
+        tiles: [
+          'https://server.avoin.org/data/map/stand2/{z}/{x}/{y}.pbf.gz?v=2',
+        ],
         minzoom: 12,
         maxzoom: 13,
         bounds: [19, 59, 32, 71], // Finland
-        attribution: '<a href="https://www.metsaan.fi">© Finnish Forest Centre</a>',
+        attribution:
+          '<a href="https://www.metsaan.fi">© Finnish Forest Centre</a>',
       },
       [sourceNames[1]]: {
         type: 'raster',
-        tiles: ['https://server.avoin.org/data/map/stand2-mature/{z}/{x}/{y}.png'],
+        tiles: [
+          'https://server.avoin.org/data/map/stand2-mature/{z}/{x}/{y}.png',
+        ],
         tileSize: 512,
         maxzoom: 12,
         bounds: [19, 59, 32, 71], // Finland
-        attribution: '<a href="https://www.metsaan.fi">© Finnish Forest Centre</a>',
+        attribution:
+          '<a href="https://www.metsaan.fi">© Finnish Forest Centre</a>',
       },
     },
     layers: [
@@ -92,6 +106,11 @@ const getStyle = async (): Promise<ExtendedMbStyle> => {
   }
 }
 
-const layerConf: LayerConf = { id: id, style: getStyle, popup: Popup, useMb: true }
+const layerConf: LayerConf = {
+  id: id,
+  style: getStyle,
+  popup: Popup,
+  useMb: true,
+}
 
 export default layerConf

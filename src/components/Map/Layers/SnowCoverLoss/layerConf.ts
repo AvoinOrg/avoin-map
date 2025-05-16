@@ -1,18 +1,29 @@
 import { fillOpacity } from '#/common/utils/map'
-import { LayerGroupId, LayerConf, ExtendedMbStyle } from '#/common/types/map'
+import {
+  LayerGroupId,
+  LayerConf,
+  ExtendedStyleSpecification,
+} from '#/common/types/map'
+import { ExpressionSpecification } from 'maplibre-gl'
 
 const id: LayerGroupId = 'snow_cover_loss'
 
-const snowCoverLossDays = ['-', ['get', 'avg_snow_cover_1980_1990'], ['get', 'avg_snow_cover_1996_2016']]
+const snowCoverLossDays: ExpressionSpecification = [
+  '-',
+  ['get', 'avg_snow_cover_1980_1990'],
+  ['get', 'avg_snow_cover_1996_2016'],
+]
 
-const getStyle = async (): Promise<ExtendedMbStyle> => {
+const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   return {
     version: 8,
     name: 'snow_cover_loss',
     sources: {
       [id]: {
         type: 'vector',
-        tiles: ['https://server.avoin.org/data/map/snow_cover_loss_2016/{z}/{x}/{y}.pbf'],
+        tiles: [
+          'https://server.avoin.org/data/map/snow_cover_loss_2016/{z}/{x}/{y}.pbf',
+        ],
         maxzoom: 3,
       },
     },

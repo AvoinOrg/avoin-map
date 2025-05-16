@@ -1,10 +1,14 @@
 import { fillOpacity } from '#/common/utils/map'
-import { LayerGroupId, LayerConf, ExtendedMbStyle } from '#/common/types/map'
+import {
+  LayerGroupId,
+  LayerConf,
+  ExtendedStyleSpecification,
+} from '#/common/types/map'
 import Popup from './Popup'
 
 const id: LayerGroupId = 'fi_bogs'
 
-const getStyle = async (): Promise<ExtendedMbStyle> => {
+const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   const sourceNames = ['fi_bogs', 'gtk_peat']
 
   return {
@@ -13,19 +17,25 @@ const getStyle = async (): Promise<ExtendedMbStyle> => {
     sources: {
       [sourceNames[0]]: {
         type: 'vector',
-        tiles: ['https://server.avoin.org/data/map/fi-mml-suot/{z}/{x}/{y}.pbf.gz?v=5'],
+        tiles: [
+          'https://server.avoin.org/data/map/fi-mml-suot/{z}/{x}/{y}.pbf.gz?v=5',
+        ],
         minzoom: 0,
         maxzoom: 11,
         bounds: [19, 59, 32, 71], // Finland
-        attribution: '<a href="http://mml.fi/">© National Land Survey of Finland</a>',
+        attribution:
+          '<a href="http://mml.fi/">© National Land Survey of Finland</a>',
       },
       [sourceNames[1]]: {
         type: 'vector',
-        tiles: ['https://server.avoin.org/data/map/gtk-turvevarat-suot/{z}/{x}/{y}.pbf.gz?v=5'],
+        tiles: [
+          'https://server.avoin.org/data/map/gtk-turvevarat-suot/{z}/{x}/{y}.pbf.gz?v=5',
+        ],
         minzoom: 0,
         maxzoom: 14,
         bounds: [19, 59, 32, 71], // Finland
-        attribution: '<a href="http://www.gtk.fi/">© Geological Survey of Finland</a>',
+        attribution:
+          '<a href="http://www.gtk.fi/">© Geological Survey of Finland</a>',
       },
     },
     layers: [
@@ -38,7 +48,6 @@ const getStyle = async (): Promise<ExtendedMbStyle> => {
           'fill-color': 'orange',
           'fill-opacity': fillOpacity,
         },
-        BEFORE: 'FILL',
       },
       {
         id: sourceNames[1] + '-fill',
@@ -46,7 +55,12 @@ const getStyle = async (): Promise<ExtendedMbStyle> => {
         'source-layer': 'default',
         type: 'fill',
         paint: {
-          'fill-color': ['case', ['==', null, ['get', 'photos_json']], 'red', 'orange'],
+          'fill-color': [
+            'case',
+            ['==', ['get', 'photos_json'], ['literal', null]],
+            'red',
+            'orange',
+          ],
           // 'fill-color': fillColorFertilityClass,
           // 'fill-color': fillRegenerationFelling,
           'fill-opacity': fillOpacity,
@@ -57,6 +71,11 @@ const getStyle = async (): Promise<ExtendedMbStyle> => {
   }
 }
 
-const layerConf: LayerConf = { id: id, style: getStyle, popup: Popup, useMb: true }
+const layerConf: LayerConf = {
+  id: id,
+  style: getStyle,
+  popup: Popup,
+  useMb: true,
+}
 
 export default layerConf

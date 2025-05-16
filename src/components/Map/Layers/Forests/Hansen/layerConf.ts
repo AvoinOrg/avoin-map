@@ -1,10 +1,14 @@
-import { LayerGroupId, LayerConf, ExtendedMbStyle } from '#/common/types/map'
+import {
+  LayerGroupId,
+  LayerConf,
+  ExtendedStyleSpecification,
+} from '#/common/types/map'
 
 const id: LayerGroupId = 'hansen'
 
 const URL_PREFIX = `https://server.avoin.org/data/map/hansen/`
 
-const getStyle = async (): Promise<ExtendedMbStyle> => {
+const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   const sourceNames = ['hansen_treecover', 'hansen_gainloss']
 
   return {

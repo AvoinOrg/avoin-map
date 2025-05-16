@@ -15,13 +15,14 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 // import { Map as OlMap } from 'ol'
 import {
   MapLayerMouseEvent,
-  Map as MbMap,
+  Map,
   LngLatBounds,
-  MapboxGeoJSONFeature,
-  AnyLayer,
-  MapLayerEventType,
-} from 'mapbox-gl'
-import mapboxgl from 'mapbox-gl'
+  MapGeoJSONFeature,
+  LayerSpecification,
+  FilterSpecification,
+  GeoJSONSource,
+} from 'maplibre-gl'
+import mapboxgl from 'maplibre-gl'
 import MapboxDraw from '@mapbox/mapbox-gl-draw'
 import { useUIStore } from '#/common/store'
 import drawStyles from '#/common/utils/drawStyles'
@@ -30,7 +31,7 @@ import {
   LayerGroupId,
   LayerOptions,
   LayerGroupOptions,
-  ExtendedAnyLayer,
+  ExtendedLayerSpecification,
   OverlayMessage,
   MapLibraryMode,
   QueuePriority,
@@ -90,7 +91,7 @@ export type Vars = {
   activePopupData: PopupData[]
   // Whether user has activated drawing mode
   mapContext: MapContext
-  selectedFeatures: MapboxGeoJSONFeature[]
+  selectedFeatures: MapGeoJSONFeature[]
   // The below are internal variables.
   // --------------------------------------
   // isMapReady is after the internal map object is ready to be interacted with,
@@ -104,14 +105,14 @@ export type Vars = {
   // A variable to prevent bugs when executing function queue.
   _isFunctionQueueExecuting: boolean
   // mapbox map object
-  _mbMap: MbMap | null
+  _map: Map | null
   // openlayers map object
   // _olMap: OlMap | null
   _olMap: null
   // A single UI layer has often multiple layers which are grouped together.
   _layerGroups: LayerGroups
   // For quickly access a layer group by its id.
-  _layerInstances: Record<string, AnyLayer>
+  _layerInstances: Record<string, LayerSpecification>
   _globalEventHandlers: {
     selectableLeave?: (e: MapLayerMouseEvent) => void
     selectableEnter?: (e: MapLayerMouseEvent) => void
@@ -158,7 +159,7 @@ export type Actions = {
     options?: LayerGroupAddOptions,
     _queueOptions?: QueueOptions
   ) => Promise<void>
-  // AnyLayerGroup allows adding layerGroups with custom ids,
+  // LayerSpecificationGroup allows adding layerGroups with custom ids,
   // e.g., uploaded custom layers with generated ids.
   addSerializableLayerGroup: (
     layerGroupIdString: string,
@@ -192,7 +193,7 @@ export type Actions = {
   // Only show specific features in a layer
   setFilter: (
     layer: string,
-    filter: any[],
+    filter: FilterSpecification,
     _queueOptions?: QueueOptions
   ) => Promise<void>
   setOverlayMessage: (
@@ -211,10 +212,10 @@ export type Actions = {
     _queueOptions?: QueueOptions
   ) => Promise<any>
   setSelectedFeatures: (
-    features: MapboxGeoJSONFeature[],
+    features: MapGeoJSONFeature[],
     updateDrawSelect?: boolean
   ) => void
-  setSelectedFeaturesByClick: (features: MapboxGeoJSONFeature[]) => void
+  setSelectedFeaturesByClick: (features: MapGeoJSONFeature[]) => void
   removeSelectedFeaturesByIds: (params: {
     featureIds: string[]
     idField: string
@@ -278,17 +279,17 @@ export type Actions = {
     opts?: LayerGroupAddOptions | SerializableLayerGroupAddOptions
   ) => Promise<void>
   _getAdditionalSelectedFeatures: (
-    features: MapboxGeoJSONFeature[]
-  ) => MapboxGeoJSONFeature[]
-  _setPopupDataForFeatures: (features: MapboxGeoJSONFeature[]) => void
+    features: MapGeoJSONFeature[]
+  ) => MapGeoJSONFeature[]
+  _setPopupDataForFeatures: (features: MapGeoJSONFeature[]) => void
   _addToFunctionQueue: (queueFunction: QueueFunction) => Promise<any>
   _setFunctionQueue: (functionQueue: FunctionQueue) => void
   _executeFunctionQueue: (callback?: () => void) => Promise<void>
   _setIsFunctionQueueExecuting: (isExecuting: boolean) => void
   _setActivePopupData: (activePopupData: PopupData) => void
-  _setMbMap: (mbMap: MbMap) => void
+  _setMap: (map: Map) => void
   // Adds a layer after the specified layer id.
-  _addLayerAfter: (layer: AnyLayer, afterId: string) => void
+  _addLayerAfter: (layer: LayerSpecification, afterId: string) => void
   _findFirstMatchingLayer: (id: LayerGroupId | string) => string | null
   _findLastMatchingLayer: (id: LayerGroupId | string) => string | null
   _runHydrationActions: () => void
@@ -338,7 +339,7 @@ export const useMapStore = create<State>()(
         _globalEventHandlers: {},
         _functionQueue: [],
         _isFunctionQueueExecuting: false,
-        _mbMap: null,
+        _map: null,
         _olMap: null,
         _layerGroups: {},
         _layerInstances: {},
@@ -410,9 +411,9 @@ export const useMapStore = create<State>()(
           async (sourceId: string): Promise<LngLatBounds | null> => {
             // Query source features for the specified source
             try {
-              const { _mbMap, getSourceJson } = get()
+              const { _map, getSourceJson } = get()
 
-              if (!_mbMap) {
+              if (!_map) {
                 return null
               }
 
@@ -425,7 +426,7 @@ export const useMapStore = create<State>()(
               if (sourceFeatures) {
                 featureColl = sourceFeatures
               } else {
-                const features = _mbMap.querySourceFeatures(sourceId)
+                const features = _map.querySourceFeatures(sourceId)
 
                 if (features.length > 0 && features[0].geometry) {
                   featureColl = {
@@ -433,7 +434,7 @@ export const useMapStore = create<State>()(
                     features: features,
                   }
                 } else {
-                  const source = _mbMap.getSource(sourceId)
+                  const source = _map.getSource(sourceId)
                   // TODO: check the method of finding the set extent of a source in style. This method is probably deprecated.
                   //@ts-ignore
                   if (source && source.tileBounds && source.tileBounds.bounds) {
@@ -471,10 +472,10 @@ export const useMapStore = create<State>()(
         getSourceJson: queueableFnInit(
           async (id: string): Promise<FeatureCollection | null> => {
             try {
-              const { _mbMap } = get()
+              const { _map } = get()
               const geojson: FeatureCollection =
                 //@ts-ignore
-                _mbMap?.getSource(id)._options.data
+                _map?.getSource(id)._options.data
               return geojson
             } catch (e) {
               console.error(e)
@@ -491,11 +492,11 @@ export const useMapStore = create<State>()(
         },
 
         setSelectedFeatures: (
-          features: MapboxGeoJSONFeature[],
+          features: MapGeoJSONFeature[],
           updateDrawSelect?: boolean
         ) => {
           const {
-            _mbMap,
+            _map,
             selectedFeatures,
             _drawOptions,
             _updateDrawSelectedFeatures,
@@ -526,7 +527,7 @@ export const useMapStore = create<State>()(
               keptFeatures.push(selectedFeature)
               // if feature is not yet in selected features
             } else {
-              _mbMap?.setFeatureState(
+              _map?.setFeatureState(
                 {
                   source: feature.source,
                   id: feature.id,
@@ -541,7 +542,7 @@ export const useMapStore = create<State>()(
 
           for (const selectedFeature of selectedFeatures) {
             if (!keptFeatures.includes(selectedFeature)) {
-              _mbMap?.setFeatureState(
+              _map?.setFeatureState(
                 {
                   source: selectedFeature.source,
                   id: selectedFeature.id,
@@ -554,11 +555,9 @@ export const useMapStore = create<State>()(
             }
           }
 
-          set(
-            produce((draft: State) => {
-              draft.selectedFeatures = features
-            })
-          )
+          set((draft) => {
+            draft.selectedFeatures = features
+          })
 
           if (updateDrawSelect) {
             if (_drawOptions.isEnabled && _drawOptions.draw != null) {
@@ -567,7 +566,7 @@ export const useMapStore = create<State>()(
           }
         },
 
-        setSelectedFeaturesByClick: (features: MapboxGeoJSONFeature[]) => {
+        setSelectedFeaturesByClick: (features: MapGeoJSONFeature[]) => {
           const {
             selectedFeatures,
             setSelectedFeatures,
@@ -584,8 +583,8 @@ export const useMapStore = create<State>()(
           const filterSelectedFeatures = (
             layerOptionsObj: LayerOptionsObj,
             activeLayerIds: string[],
-            selectedFeatures: MapboxGeoJSONFeature[],
-            newlySelectedFeatures: MapboxGeoJSONFeature[],
+            selectedFeatures: MapGeoJSONFeature[],
+            newlySelectedFeatures: MapGeoJSONFeature[],
             layerGroups: LayerGroups
           ) => {
             const selectableLayers = Object.keys(
@@ -605,7 +604,7 @@ export const useMapStore = create<State>()(
             // out duplicate features from different layers but same source
             filteredFeatures = uniqBy(
               filteredFeatures,
-              (feature: MapboxGeoJSONFeature) => {
+              (feature: MapGeoJSONFeature) => {
                 if (feature.sourceLayer) {
                   return `sl-${feature.id}-${feature.sourceLayer}`
                 } else {
@@ -743,12 +742,12 @@ export const useMapStore = create<State>()(
 
         // if the layerConf specifies other sources that have the same features (with the same ids), these
         // are queried here and returned
-        _getAdditionalSelectedFeatures: (features: MapboxGeoJSONFeature[]) => {
-          const { _layerGroups, _mbMap } = get()
+        _getAdditionalSelectedFeatures: (features: MapGeoJSONFeature[]) => {
+          const { _layerGroups, _map } = get()
 
           const LayerOptionsObj = getAllLayerOptionsObj(_layerGroups)
 
-          const additionalFeatures: MapboxGeoJSONFeature[] = []
+          const additionalFeatures: MapGeoJSONFeature[] = []
 
           for (const feature of features) {
             const layerOptions = LayerOptionsObj[feature.layer.id]
@@ -760,11 +759,13 @@ export const useMapStore = create<State>()(
                   additionalSource.sourceLayers.length > 0
                 ) {
                   for (const sourceLayer of additionalSource.sourceLayers) {
-                    const queriedAdditionalFeatures =
-                      _mbMap?.querySourceFeatures(additionalSource.source, {
+                    const queriedAdditionalFeatures = _map?.querySourceFeatures(
+                      additionalSource.source,
+                      {
                         sourceLayer: sourceLayer, // REQUIRED for vector tile sources
                         filter: ['==', ['get', 'id'], feature.id], // Assumes 'id' is promoted or is the property name
-                      })
+                      }
+                    )
 
                     // only add the first feature, if there are duplicates
                     if (
@@ -781,11 +782,11 @@ export const useMapStore = create<State>()(
                         source: additionalSource.source,
                         id: feature.id,
                         sourceLayer: sourceLayer,
-                      } as MapboxGeoJSONFeature)
+                      } as MapGeoJSONFeature)
                     }
                   }
                 } else {
-                  const queriedAdditionalFeatures = _mbMap?.querySourceFeatures(
+                  const queriedAdditionalFeatures = _map?.querySourceFeatures(
                     additionalSource.source,
                     {
                       filter: ['==', ['get', 'id'], feature.id], // Assumes 'id' is promoted or is the property name
@@ -805,7 +806,7 @@ export const useMapStore = create<State>()(
                     additionalFeatures.push({
                       source: additionalSource.source,
                       id: feature.id,
-                    } as MapboxGeoJSONFeature)
+                    } as MapGeoJSONFeature)
                   }
                 }
               }
@@ -815,7 +816,7 @@ export const useMapStore = create<State>()(
           return additionalFeatures
         },
 
-        _setPopupDataForFeatures: (features: MapboxGeoJSONFeature[]) => {
+        _setPopupDataForFeatures: (features: MapGeoJSONFeature[]) => {
           if (features == null || features.length === 0) {
             return
           }
@@ -866,20 +867,17 @@ export const useMapStore = create<State>()(
                 return
               }
               // if the features are different or in different order, update the popup data
-              set(
-                produce((draft: State) => {
-                  draft.activePopupData[0].features = newPopupData.features
-                })
-              )
+              set((draft) => {
+                draft.activePopupData[0].features = newPopupData.features
+              })
+
               return
             }
           }
 
-          set(
-            produce((draft: State) => {
-              draft.activePopupData = popupDatas
-            })
-          )
+          set((draft) => {
+            draft.activePopupData = popupDatas
+          })
         },
 
         removeSelectedFeaturesByIds: (params: {
@@ -942,7 +940,7 @@ export const useMapStore = create<State>()(
           const {
             selectedFeatures,
             setSelectedFeatures,
-            _mbMap,
+            _map,
             _layerGroups,
             _setPopupDataForFeatures,
           } = get()
@@ -959,7 +957,7 @@ export const useMapStore = create<State>()(
             sourceId,
             idField,
             usedAllowedLayers,
-            _mbMap
+            _map
           )
 
           setSelectedFeatures(
@@ -1092,7 +1090,7 @@ export const useMapStore = create<State>()(
         removeLayerGroup: async (layerGroupId: LayerGroupId | string) => {
           const {
             _layerGroups,
-            _mbMap,
+            _map,
             _drawOptions,
             _removeDraw,
             _images,
@@ -1111,25 +1109,25 @@ export const useMapStore = create<State>()(
 
           // Remove each layer from the map.
           for (const layerId of Object.keys(layerGroupOptions.layers)) {
-            if (_mbMap?.getLayer(layerId)) {
-              _mbMap?.removeLayer(layerId)
+            if (_map?.getLayer(layerId)) {
+              _map?.removeLayer(layerId)
             }
 
             // Optional: If there's a source associated with this layer and no other layer is using it.
             // Here I'm assuming layerId and sourceId are the same. Adjust if different.
-            if (_mbMap?.getSource(layerId)) {
-              _mbMap?.removeSource(layerId)
+            if (_map?.getSource(layerId)) {
+              _map?.removeSource(layerId)
             }
           }
 
           if (layerGroupOptions.handleDataUpdate) {
-            _mbMap?.off('data', layerGroupOptions.handleDataUpdate)
+            _map?.off('data', layerGroupOptions.handleDataUpdate)
           }
 
           Object.keys(_images).forEach((imageId) => {
             const image = _images[imageId]
             if (image.layerGroupId === layerGroupId) {
-              _mbMap?.removeImage(imageId)
+              _map?.removeImage(imageId)
               delete _images[imageId]
             }
           })
@@ -1230,8 +1228,8 @@ export const useMapStore = create<State>()(
             colorCode?: string,
             size: number = imageRenderSize
           ) => {
-            const { _mbMap } = get()
-            if (!_mbMap) {
+            const { _map } = get()
+            if (!_map) {
               console.error('Map not initialized')
               return
             }
@@ -1259,8 +1257,8 @@ export const useMapStore = create<State>()(
 
             const ctx = imageRenderCtx
 
-            if (_mbMap.hasImage(id)) {
-              _mbMap.removeImage(id)
+            if (_map.hasImage(id)) {
+              _map.removeImage(id)
             }
 
             // Adjust canvas size if necessary for this specific image
@@ -1278,8 +1276,8 @@ export const useMapStore = create<State>()(
               ctx.drawImage(img, 0, 0, size, size)
               const imageData = ctx.getImageData(0, 0, size, size)
 
-              if (!_mbMap.hasImage(id)) {
-                _mbMap.addImage(id, imageData)
+              if (!_map.hasImage(id)) {
+                _map.addImage(id, imageData)
 
                 set((state) => {
                   const imageOptions: ImageOptions = {
@@ -1304,25 +1302,25 @@ export const useMapStore = create<State>()(
 
         setLayoutProperty: queueableFnInit(
           async (layer: string, name: string, value: any): Promise<any> => {
-            const { _mbMap } = get()
+            const { _map } = get()
 
-            _mbMap?.setLayoutProperty(layer, name, value)
+            _map?.setLayoutProperty(layer, name, value)
           }
         ),
 
         setPaintProperty: queueableFnInit(
           async (layer: string, name: string, value: any): Promise<any> => {
-            const { _mbMap } = get()
+            const { _map } = get()
 
-            _mbMap?.setPaintProperty(layer, name, value)
+            _map?.setPaintProperty(layer, name, value)
           }
         ),
 
         setFilter: queueableFnInit(
-          async (layer: string, filter: any[]): Promise<any> => {
-            const { _mbMap } = get()
+          async (layer: string, filter: FilterSpecification): Promise<any> => {
+            const { _map } = get()
 
-            _mbMap?.setFilter(layer, filter)
+            _map?.setFilter(layer, filter)
           }
         ),
 
@@ -1344,7 +1342,7 @@ export const useMapStore = create<State>()(
               latExtra = 1,
             }: FitBoundsOptions = {}
           ): Promise<void> => {
-            const { _mbMap } = get()
+            const { _map } = get()
 
             let [lonMax, lonMin, latMax, latMin] = [0, 0, 0, 0]
 
@@ -1366,7 +1364,7 @@ export const useMapStore = create<State>()(
             const flyOptions = { duration: duration }
             const lonDiff = lonMax - lonMin
             const latDiff = latMax - latMin
-            _mbMap?.fitBounds(
+            _map?.fitBounds(
               [
                 [lonMin - lonExtra * lonDiff, latMin - latExtra * latDiff],
                 [lonMax + lonExtra * lonDiff, latMax + latExtra * latDiff],
@@ -1417,8 +1415,8 @@ export const useMapStore = create<State>()(
           // })
         },
         mapResetNorth: () => {
-          const { _mbMap } = get()
-          _mbMap?.resetNorth()
+          const { _map } = get()
+          _map?.resetNorth()
         },
 
         mapToggleTerrain: () => {
@@ -1431,17 +1429,17 @@ export const useMapStore = create<State>()(
         },
 
         mapZoomIn: () => {
-          const { _mbMap } = get()
-          _mbMap?.zoomIn()
+          const { _map } = get()
+          _map?.zoomIn()
         },
 
         mapZoomOut: () => {
-          const { _mbMap } = get()
-          _mbMap?.zoomOut()
+          const { _map } = get()
+          _map?.zoomOut()
         },
 
         deleteDrawFeatures: (features: Feature[]) => {
-          const { _mbMap, _drawOptions } = get()
+          const { _map, _drawOptions } = get()
 
           if (_drawOptions.draw == null) {
             console.error('Cannot delete features: No draw object found.')
@@ -1452,7 +1450,7 @@ export const useMapStore = create<State>()(
 
           _drawOptions.draw.delete(featureIds)
 
-          _mbMap?.fire('draw.delete', { features })
+          _map?.fire('draw.delete', { features })
         },
 
         toggleDrawMode: queueableFnInit(
@@ -1514,9 +1512,9 @@ export const useMapStore = create<State>()(
         },
 
         updateSourceData: (layerGroupId: string, data: FeatureCollection) => {
-          const { _mbMap } = get() // Get the Mapbox map instance from the state
+          const { _map } = get() // Get the Mapbox map instance from the state
 
-          const source = _mbMap?.getSource(layerGroupId)
+          const source = _map?.getSource(layerGroupId) as GeoJSONSource
 
           if (!source) {
             console.error('No source found with id ' + layerGroupId)
@@ -1534,14 +1532,14 @@ export const useMapStore = create<State>()(
         },
 
         _updateSelectableHoverHandlers: () => {
-          const { _mbMap, _layerGroups, _globalEventHandlers } = get()
+          const { _map, _layerGroups, _globalEventHandlers } = get()
           const layerOptionsObj = getAllLayerOptionsObj(_layerGroups)
 
           if (_globalEventHandlers.selectableEnter != null) {
-            _mbMap?.off('mouseenter', _globalEventHandlers.selectableEnter)
+            _map?.off('mouseenter', _globalEventHandlers.selectableEnter)
           }
           if (_globalEventHandlers.selectableLeave != null) {
-            _mbMap?.off('mouseleave', _globalEventHandlers.selectableLeave)
+            _map?.off('mouseleave', _globalEventHandlers.selectableLeave)
           }
 
           const hoverableLayers: string[] = []
@@ -1552,12 +1550,12 @@ export const useMapStore = create<State>()(
           }
 
           if (hoverableLayers.length > 0) {
-            _mbMap?.on('mouseenter', hoverableLayers, (e) => {
-              _mbMap.getCanvas().style.cursor = 'pointer'
+            _map?.on('mouseenter', hoverableLayers, (e) => {
+              _map.getCanvas().style.cursor = 'pointer'
             })
 
-            _mbMap?.on('mouseleave', hoverableLayers, () => {
-              _mbMap.getCanvas().style.cursor = ''
+            _map?.on('mouseleave', hoverableLayers, () => {
+              _map.getCanvas().style.cursor = ''
             })
           }
         },
@@ -1565,7 +1563,7 @@ export const useMapStore = create<State>()(
         _enableDraw: queueableFnInit(
           async (drawMode?: MapboxDraw.DrawMode) => {
             const {
-              _mbMap,
+              _map,
               _drawOptions,
               selectedFeatures,
               _layerGroups,
@@ -1581,7 +1579,7 @@ export const useMapStore = create<State>()(
 
             const layerGroupId = _drawOptions.layerGroupId
 
-            const source = cloneDeep(_mbMap?.getStyle().sources[layerGroupId])
+            const source = cloneDeep(_map?.getStyle().sources[layerGroupId])
 
             if (!source) {
               console.error(`No source found with id: ${layerGroupId}`)
@@ -1590,7 +1588,7 @@ export const useMapStore = create<State>()(
 
             const originalStyles: Record<string, any> = {}
 
-            _mbMap?.getStyle().layers.forEach((layer) => {
+            _map?.getStyle().layers.forEach((layer) => {
               if (layer.id.startsWith(`${layerGroupId}-`)) {
                 let opacityProperty: string | undefined = undefined
 
@@ -1613,7 +1611,7 @@ export const useMapStore = create<State>()(
                 }
 
                 if (opacityProperty != null) {
-                  let originalOpacity = _mbMap.getPaintProperty(
+                  let originalOpacity = _map.getPaintProperty(
                     layer.id,
                     opacityProperty
                   )
@@ -1621,7 +1619,7 @@ export const useMapStore = create<State>()(
                     typeof originalOpacity === 'number' &&
                     originalOpacity > 0.3
                   ) {
-                    _mbMap.setPaintProperty(layer.id, opacityProperty, 0.3)
+                    _map.setPaintProperty(layer.id, opacityProperty, 0.3)
                   }
 
                   if (!originalStyles[layer.id]) {
@@ -1640,7 +1638,7 @@ export const useMapStore = create<State>()(
               keybindings: true,
             })
 
-            _mbMap?.addControl(draw, 'bottom-right')
+            _map?.addControl(draw, 'bottom-right')
 
             const idField = _drawOptions.idField || 'id'
 
@@ -1703,7 +1701,7 @@ export const useMapStore = create<State>()(
                       return
                     }
                   }
-                  addFeatureToDrawSource(feature, layerGroupId, _mbMap)
+                  addFeatureToDrawSource(feature, layerGroupId, _map)
                 })
               }
 
@@ -1716,7 +1714,7 @@ export const useMapStore = create<State>()(
                     feature,
                     idField,
                     layerGroupId,
-                    _mbMap
+                    _map
                   )
                 })
               }
@@ -1727,7 +1725,7 @@ export const useMapStore = create<State>()(
                     feature,
                     idField,
                     layerGroupId,
-                    _mbMap
+                    _map
                   )
                 })
               }
@@ -1750,7 +1748,7 @@ export const useMapStore = create<State>()(
                     layerGroupId,
                     idField,
                     allowedLayers,
-                    _mbMap
+                    _map
                   )
 
                   if (features) {
@@ -1758,12 +1756,12 @@ export const useMapStore = create<State>()(
                     setSelectedFeatures(features)
                   }
                 }
-                _mbMap?.on('draw.selectionchange', handleSelectionChange)
+                _map?.on('draw.selectionchange', handleSelectionChange)
               }
 
-              _mbMap?.on('draw.create', handleDrawCreate)
-              _mbMap?.on('draw.update', handleDrawUpdate)
-              _mbMap?.on('draw.delete', handleDrawDelete)
+              _map?.on('draw.create', handleDrawCreate)
+              _map?.on('draw.update', handleDrawUpdate)
+              _map?.on('draw.delete', handleDrawDelete)
 
               await set((state) => {
                 state._drawOptions.draw = draw
@@ -1792,10 +1790,10 @@ export const useMapStore = create<State>()(
             selectedFeatures,
             _layerGroups,
             setSelectedFeatures,
-            _mbMap,
+            _map,
           } = get()
 
-          let newSelectedFeatures: MapboxGeoJSONFeature[] = []
+          let newSelectedFeatures: MapGeoJSONFeature[] = []
           newSelectedFeatures = selectedFeatures.filter((feature) => {
             return (
               getLayerGroupIdForLayer(feature.layer.id, _layerGroups) ===
@@ -1817,7 +1815,7 @@ export const useMapStore = create<State>()(
             featureIds: matchingFeatureIds,
           })
 
-          _mbMap?.fire('draw.selectionchange', {
+          _map?.fire('draw.selectionchange', {
             features: matchingFeatures,
           })
 
@@ -1828,7 +1826,7 @@ export const useMapStore = create<State>()(
 
         disableDraw: queueableFnInit(
           async () => {
-            const { _mbMap, _drawOptions } = get()
+            const { _map, _drawOptions } = get()
 
             const drawInstance = _drawOptions.draw
 
@@ -1851,7 +1849,7 @@ export const useMapStore = create<State>()(
                 // })
 
                 // // Set the modified GeoJSON to the original source
-                // const originalSource = _mbMap?.getSource(
+                // const originalSource = _map?.getSource(
                 //   _drawOptions.layerGroupId
                 // ) as mapboxgl.GeoJSONSource
                 // originalSource.setData(geoJSON)
@@ -1861,23 +1859,23 @@ export const useMapStore = create<State>()(
                     _drawOptions.originalStyles
                   )) {
                     for (const [property, value] of Object.entries(style)) {
-                      _mbMap?.setPaintProperty(layerId, property, value)
+                      _map?.setPaintProperty(layerId, property, value)
                     }
                   }
                 }
               }
 
               if (_drawOptions.handleDrawCreate != null) {
-                _mbMap?.off('draw.create', _drawOptions.handleDrawCreate)
+                _map?.off('draw.create', _drawOptions.handleDrawCreate)
               }
               if (_drawOptions.handleDrawUpdate != null) {
-                _mbMap?.off('draw.update', _drawOptions.handleDrawUpdate)
+                _map?.off('draw.update', _drawOptions.handleDrawUpdate)
               }
               if (_drawOptions.handleDrawDelete != null) {
-                _mbMap?.off('draw.delete', _drawOptions.handleDrawDelete)
+                _map?.off('draw.delete', _drawOptions.handleDrawDelete)
               }
               if (_drawOptions.handleSelectionChange != null) {
-                _mbMap?.off(
+                _map?.off(
                   'draw.selectionchange',
                   _drawOptions.handleSelectionChange
                 )
@@ -1890,7 +1888,7 @@ export const useMapStore = create<State>()(
                 })
               }
 
-              _mbMap?.removeControl(drawInstance)
+              _map?.removeControl(drawInstance)
 
               await set((state) => {
                 state._drawOptions.draw = null
@@ -1944,12 +1942,12 @@ export const useMapStore = create<State>()(
           layerGroupId: LayerGroupId | string,
           isVisible: boolean
         ) => {
-          const { _layerGroups, _mbMap } = get()
+          const { _layerGroups, _map } = get()
           const layerGroup = _layerGroups[layerGroupId]
 
           for (const layerId in layerGroup.layers) {
             if (layerGroup.layers[layerId].useMb) {
-              _mbMap?.setLayoutProperty(
+              _map?.setLayoutProperty(
                 layerId,
                 'visibility',
                 isVisible ? 'visible' : 'none'
@@ -1981,7 +1979,7 @@ export const useMapStore = create<State>()(
         ) => {
           const style = await resolveMbStyle(options.layerConf.style)
 
-          const layers: ExtendedAnyLayer[] = style.layers
+          const layers: ExtendedLayerSpecification[] = style.layers
           const sourceKeys = Object.keys(style.sources)
 
           const layerGroup: any = {}
@@ -2001,9 +1999,8 @@ export const useMapStore = create<State>()(
                   layerKeys != null &&
                   layerKeys.length > 0
                 ) {
-                  const conf: ExtendedAnyLayer | undefined = layers.find(
-                    (l: any) => l.id === layerKeys[0]
-                  )
+                  const conf: ExtendedLayerSpecification | undefined =
+                    layers.find((l: any) => l.id === layerKeys[0])
 
                   if (conf) {
                     //@ts-ignore
@@ -2064,7 +2061,7 @@ export const useMapStore = create<State>()(
           options: LayerGroupAddOptionsWithConf
         ) => {
           const {
-            _mbMap,
+            _map,
             _addLayerAfter,
             _findFirstMatchingLayer,
             _findLastMatchingLayer,
@@ -2079,7 +2076,7 @@ export const useMapStore = create<State>()(
 
           try {
             for (const sourceKey in style.sources) {
-              _mbMap?.addSource(sourceKey, style.sources[sourceKey])
+              _map?.addSource(sourceKey, style.sources[sourceKey])
             }
 
             const layerGroup: LayerGroupOptions = {
@@ -2147,15 +2144,15 @@ export const useMapStore = create<State>()(
                     const beforeLayer = _findFirstMatchingLayer(
                       options.neighboringLayerGroupId
                     )
-                    _mbMap?.addLayer(layer, beforeLayer || undefined)
+                    _map?.addLayer(layer, beforeLayer || undefined)
                   } else {
-                    const mapLayers = _mbMap?.getStyle().layers
+                    const mapLayers = _map?.getStyle().layers
                     if (mapLayers && mapLayers.length > 0) {
                       // add layer before the first layer, if there is one
-                      _mbMap?.addLayer(layer, mapLayers[0].id)
+                      _map?.addLayer(layer, mapLayers[0].id)
                     } else {
                       // or if not, just add it normally
-                      _mbMap?.addLayer(layer)
+                      _map?.addLayer(layer)
                     }
                   }
                 }
@@ -2169,7 +2166,7 @@ export const useMapStore = create<State>()(
                   if (layerInsertId != null) {
                     _addLayerAfter(layer, layerInsertId)
                   } else {
-                    _mbMap?.addLayer(layer)
+                    _map?.addLayer(layer)
                   }
                 }
               }
@@ -2182,16 +2179,16 @@ export const useMapStore = create<State>()(
               layerInsertId = layer.id
 
               if (!options.isHidden) {
-                _mbMap?.setLayoutProperty(layer.id, 'visibility', 'visible')
+                _map?.setLayoutProperty(layer.id, 'visibility', 'visible')
               } else {
-                _mbMap?.setLayoutProperty(layer.id, 'visibility', 'none')
+                _map?.setLayoutProperty(layer.id, 'visibility', 'none')
               }
             }
 
-            if (options.layerConf.eventHandlers && _mbMap) {
+            if (options.layerConf.eventHandlers && _map) {
               for (const eventHandlerOptions of options.layerConf
                 .eventHandlers) {
-                const eventHandler = eventHandlerOptions.handlerCreator(_mbMap)
+                const eventHandler = eventHandlerOptions.handlerCreator(_map)
 
                 layerGroup.eventHandlers.push({
                   layers: eventHandlerOptions.layers,
@@ -2219,7 +2216,7 @@ export const useMapStore = create<State>()(
           opts?: LayerGroupAddOptions | SerializableLayerGroupAddOptions
         ) => {
           if (opts != null) {
-            const { getAndFitBounds, _drawOptions, _removeDraw, _mbMap } = get()
+            const { getAndFitBounds, _drawOptions, _removeDraw, _map } = get()
             if (opts?.zoomToExtent) {
               getAndFitBounds(layerGroupIdString, undefined, {
                 skipQueue: true,
@@ -2269,7 +2266,7 @@ export const useMapStore = create<State>()(
                   handleDataUpdate
               })
 
-              _mbMap?.on('data', handleDataUpdate)
+              _map?.on('data', handleDataUpdate)
             }
           }
         },
@@ -2395,19 +2392,19 @@ export const useMapStore = create<State>()(
           return
         },
 
-        _setMbMap: (mbMap: MbMap) => {
+        _setMap: (map: Map) => {
           set((state) => {
-            state._mbMap = mbMap
+            state._map = map
           })
         },
 
         // Finds the first layer that starts with the given id. Mapbox renders
         // layers in order, last layer in array being on top.
         _findFirstMatchingLayer: (id: string) => {
-          const { _mbMap } = get()
+          const { _map } = get()
 
-          if (_mbMap) {
-            const layers = _mbMap.getStyle().layers
+          if (_map) {
+            const layers = _map.getStyle().layers
 
             if (layers) {
               let firstMatch = layers.find((l) => l.id.startsWith(id))
@@ -2420,10 +2417,10 @@ export const useMapStore = create<State>()(
 
         // Finds the last layer that starts with the given id
         _findLastMatchingLayer: (id: string) => {
-          const { _mbMap } = get()
+          const { _map } = get()
 
-          if (_mbMap) {
-            const layers = _mbMap.getStyle().layers
+          if (_map) {
+            const layers = _map.getStyle().layers
 
             if (layers) {
               let lastMatch: string | null = null
@@ -2442,10 +2439,10 @@ export const useMapStore = create<State>()(
 
         // The default mapbox addLayer function can only specify a
         // layer to be added before another layer.
-        _addLayerAfter: (layer: AnyLayer, afterId: string) => {
-          const { _mbMap } = get()
+        _addLayerAfter: (layer: LayerSpecification, afterId: string) => {
+          const { _map } = get()
 
-          const layers = _mbMap?.getStyle().layers
+          const layers = _map?.getStyle().layers
 
           if (layers) {
             const index = layers.findIndex((l) => l.id === afterId)
@@ -2455,10 +2452,10 @@ export const useMapStore = create<State>()(
               const beforeId = layers[index + 1].id
 
               // Add the new layer before that layer, effectively adding it after the 'after' layer
-              _mbMap?.addLayer(layer, beforeId)
+              _map?.addLayer(layer, beforeId)
             } else {
               // If the 'after' layer wasn't found or it's the last layer, just add the new layer
-              _mbMap?.addLayer(layer)
+              _map?.addLayer(layer)
             }
           }
         },
@@ -2468,14 +2465,14 @@ export const useMapStore = create<State>()(
         //     layerOptions.eventHandlers != null &&
         //     Object.keys(layerOptions.eventHandlers).length > 0
         //   ) {
-        //     const { _mbMap } = get()
+        //     const { _map } = get()
 
         //     Object.keys(layerOptions.eventHandlers).forEach(
         //       (eventKeyString) => {
         //         const eventKey = eventKeyString as keyof MapLayerEventType
         //         const handlerFn = layerOptions.eventHandlers[eventKey]
         //         if (handlerFn != null) {
-        //           _mbMap?.on(eventKey, layerOptions.id, handlerFn)
+        //           _map?.on(eventKey, layerOptions.id, handlerFn)
         //         }
         //       }
         //     )
@@ -2487,14 +2484,14 @@ export const useMapStore = create<State>()(
         //     layerOptions.eventHandlers != null &&
         //     Object.keys(layerOptions.eventHandlers).length > 0
         //   ) {
-        //     const { _mbMap } = get()
+        //     const { _map } = get()
 
         //     Object.keys(layerOptions.eventHandlers).forEach(
         //       (eventKeyString) => {
         //         const eventKey = eventKeyString as keyof MapLayerEventType
         //         const handlerFn = layerOptions.eventHandlers[eventKey]
         //         if (handlerFn != null) {
-        //           _mbMap?.off(eventKey, layerOptions.id, handlerFn)
+        //           _map?.off(eventKey, layerOptions.id, handlerFn)
         //         }
         //       }
         //     )
@@ -2502,7 +2499,7 @@ export const useMapStore = create<State>()(
         // },
 
         _enableLayerGroupEventHandlers: (layerGroupId: string) => {
-          const { _layerGroups, _mbMap } = get()
+          const { _layerGroups, _map } = get()
 
           for (const eventHandlerOptions of _layerGroups[layerGroupId]
             .eventHandlers) {
@@ -2510,12 +2507,12 @@ export const useMapStore = create<State>()(
               eventHandlerOptions.layers == null ||
               eventHandlerOptions.layers.length === 0
             ) {
-              _mbMap?.on(
+              _map?.on(
                 eventHandlerOptions.eventType,
                 eventHandlerOptions.handler
               )
             } else {
-              _mbMap?.on(
+              _map?.on(
                 eventHandlerOptions.eventType,
                 eventHandlerOptions.layers,
                 eventHandlerOptions.handler
@@ -2525,11 +2522,11 @@ export const useMapStore = create<State>()(
         },
 
         _disableLayerGroupEventHandlers: (layerGroupId: string) => {
-          const { _layerGroups, _mbMap } = get()
+          const { _layerGroups, _map } = get()
 
           for (const eventHandlerOptions of _layerGroups[layerGroupId]
             .eventHandlers) {
-            _mbMap?.off(
+            _map?.off(
               eventHandlerOptions.eventType,
               eventHandlerOptions.layers,
               eventHandlerOptions.handler

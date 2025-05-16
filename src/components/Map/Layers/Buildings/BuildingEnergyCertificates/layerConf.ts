@@ -1,19 +1,23 @@
-import { Style as MbStyle } from 'mapbox-gl'
-
 import { fillOpacity } from '#/common/utils/map'
-import { LayerGroupId, LayerConf, ExtendedMbStyle } from '#/common/types/map'
+import {
+  LayerGroupId,
+  LayerConf,
+  ExtendedStyleSpecification,
+} from '#/common/types/map'
 import Popup from './Popup'
 
 const id: LayerGroupId = 'building_energy_certs'
 
-const getStyle = async (): Promise<ExtendedMbStyle> => {
+const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   return {
     version: 8,
     name: id,
     sources: {
       [id]: {
         type: 'vector',
-        tiles: ['https://server.avoin.org/data/map/hel-energiatodistukset/{z}/{x}/{y}.pbf?v=3'],
+        tiles: [
+          'https://server.avoin.org/data/map/hel-energiatodistukset/{z}/{x}/{y}.pbf?v=3',
+        ],
         maxzoom: 14,
         // Bounds source: https://koordinates.com/layer/4257-finland-11000000-administrative-regions/
         // select ST_Extent(ST_Transform(ST_SetSRID(geom,3067), 4326))
@@ -82,6 +86,11 @@ const getStyle = async (): Promise<ExtendedMbStyle> => {
   }
 }
 
-const layerConf: LayerConf = { id: id, style: getStyle, popup: Popup, useMb: true }
+const layerConf: LayerConf = {
+  id: id,
+  style: getStyle,
+  popup: Popup,
+  useMb: true,
+}
 
 export default layerConf
