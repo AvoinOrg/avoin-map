@@ -563,3 +563,34 @@ export const getMatchingDrawFeatures = (
 
   return matchingFeatures
 }
+
+export const isMatchingSource = (
+  obj1: { source: string; [key: string]: any },
+  obj2: { source: string; [key: string]: any }
+) => {
+  if (obj1 == null || obj2 == null) {
+    console.error(
+      'One of the objects given to isMatchingSource is null or undefined.'
+    )
+    return false
+  }
+
+  if (obj1.source == null || obj2.source == null) {
+    console.error(
+      'One of the objects given to isMatchingSource does not have a source property.'
+    )
+    return false
+  }
+
+  const sourceMatches = obj1.source === obj2.source
+
+  const sourceLayerMatches =
+    (obj1.sourceLayer == null && obj2.sourceLayer == null) ||
+    obj1.sourceLayer === obj2.sourceLayer
+
+  if (sourceMatches && sourceLayerMatches) {
+    return true
+  }
+
+  return false
+}
