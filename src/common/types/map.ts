@@ -228,7 +228,7 @@ export interface PopupData {
   features: MapGeoJSONFeature[]
   component: Popup
   source: string
-  sourceLayer: string | null
+  sourceLayer?: string
   multiPoppable?: boolean
   sidebar?: boolean
 }
@@ -236,7 +236,7 @@ export interface PopupData {
 export interface PopupOpts {
   component: Popup
   source: string
-  sourceLayer: string | null
+  sourceLayer?: string
   multiPoppable?: boolean
   sidebar?: boolean
 }
