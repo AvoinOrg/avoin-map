@@ -1,8 +1,10 @@
-import { map, uniq } from 'lodash-es'
-import { Expression } from 'mapbox-gl'
+import { ExpressionSpecification } from 'maplibre-gl'
 import GeoJSON from 'geojson'
 
-import { ExtendedMbStyle, SerializableLayerConf } from '#/common/types/map'
+import {
+  ExtendedStyleSpecification,
+  SerializableLayerConf,
+} from '#/common/types/map'
 import {
   CalcFeatureCollection,
   CalcFeatureProperties,
@@ -23,8 +25,10 @@ export const getPlanLayerGroupId = (planId: string) => {
   return `${planId}_zoning_plan`
 }
 
-const zoningFillColorExpression = (defaultColor = 'white'): Expression => {
-  const expression: Expression = ['match', ['get', 'zoning_code']]
+const zoningFillColorExpression = (
+  defaultColor = 'white'
+): ExpressionSpecification => {
+  const expression: any[] = ['match', ['get', 'zoning_code']]
 
   ZONING_CLASSES.forEach((zoningClass) => {
     expression.push(zoningClass.code, zoningClass.color_hex)
@@ -33,7 +37,7 @@ const zoningFillColorExpression = (defaultColor = 'white'): Expression => {
   // Default color if no match is found
   expression.push(defaultColor)
 
-  return expression
+  return expression as ExpressionSpecification
 }
 
 export const isZoningCodeValid = (zoningCode: string) => {
@@ -57,7 +61,7 @@ export const isZoningCodeValidExpression = () => {
     'in',
     ['get', 'zoning_code'],
     ['literal', validZoningCodes],
-  ] as Expression
+  ] as ExpressionSpecification
 }
 
 export const createLayerConf = (
@@ -67,7 +71,7 @@ export const createLayerConf = (
 ) => {
   const sourceId = getPlanLayerGroupId(planId)
 
-  const style: ExtendedMbStyle = {
+  const style: ExtendedStyleSpecification = {
     version: 8,
     sources: {
       [sourceId]: {
@@ -378,7 +382,7 @@ export const getCarbonValueForProperties = (
   }
 }
 
-export const getCarbonChangeColor = (carbon: Number | null | undefined) => {
+export const getCarbonChangeColor = (carbon: number | null | undefined) => {
   let color = CARBON_CHANGE_NO_DATA_COLOR
   if (carbon == null) {
     return color

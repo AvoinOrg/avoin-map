@@ -1,7 +1,9 @@
-import { Expression } from 'mapbox-gl'
-
 import { fillOpacity } from '#/common/utils/map'
-import { LayerGroupId, LayerConf, ExtendedMbStyle } from '#/common/types/map'
+import {
+  LayerGroupId,
+  LayerConf,
+  ExtendedStyleSpecification,
+} from '#/common/types/map'
 import { layerOptions } from '#/app/[locale]/(map)/(applets)/fi-forest/constants'
 import { LayerLevel } from '#/app/[locale]/(map)/(applets)/fi-forest/types'
 import {
@@ -14,7 +16,7 @@ const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 
 const id: LayerGroupId = 'fi_forests'
 
-const getStyle = async (): Promise<ExtendedMbStyle> => {
+const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   const sources: any = {}
   let layers: any = []
 
