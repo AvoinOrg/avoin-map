@@ -1,15 +1,15 @@
 import type { Feature, FeatureCollection } from 'geojson'
 import type { ReactNode } from 'react'
 import type {
-  Style as MbStyle,
-  AnyLayer,
-  MapboxGeoJSONFeature,
+  StyleSpecification,
+  LayerSpecification,
+  MapGeoJSONFeature,
   GeoJSONSource,
   Map,
   MapLayerEventType,
   MapLayerMouseEvent,
   MapLayerTouchEvent,
-} from 'mapbox-gl'
+} from 'maplibre-gl'
 
 import type { Actions as MapStoreActions } from '#/common/store/mapStore'
 // interface mapFunctions {}
@@ -146,7 +146,7 @@ export type LayerGroupId =
   | 'fi_forests'
   | 'terramonitor'
 
-export type ExtendedAnyLayer = AnyLayer & {
+export type ExtendedLayerSpecification = LayerSpecification & {
   source: string
   sourceLayer?: string
   selectable?: boolean // whether a feature can be highlighted
@@ -155,13 +155,13 @@ export type ExtendedAnyLayer = AnyLayer & {
   additionalSelectionSources?: AdditionalSelectionSource[]
 }
 
-export type ExtendedMbStyle = MbStyle & {
-  layers: ExtendedAnyLayer[]
+export type ExtendedStyleSpecification = StyleSpecification & {
+  layers: ExtendedLayerSpecification[]
 }
 
-export type ExtendedMbStyleOrFn =
-  | ExtendedMbStyle
-  | (() => Promise<ExtendedMbStyle>)
+export type ExtendedStyleSpecificationOrFn =
+  | ExtendedStyleSpecification
+  | (() => Promise<ExtendedStyleSpecification>)
 
 export type LayerEventHandlerOptions = {
   eventType: keyof MapLayerEventType
@@ -179,14 +179,14 @@ export type LayerEventHandlerAddOptions = {
 // TODO: Rename all these from layerConf to layerGroupConf
 type BaseLayerConf = {
   id: string
-  style: ExtendedMbStyleOrFn
+  style: ExtendedStyleSpecificationOrFn
   useMb?: boolean
   eventHandlers?: LayerEventHandlerAddOptions[]
 }
 
 // SerializableLayerConf is used for hydration.
 export interface SerializableLayerConf extends BaseLayerConf {
-  style: ExtendedMbStyle
+  style: ExtendedStyleSpecification
 }
 
 export interface LayerConf extends BaseLayerConf {
@@ -225,7 +225,7 @@ export enum QueuePriority {
 }
 
 export interface PopupData {
-  features: MapboxGeoJSONFeature[]
+  features: MapGeoJSONFeature[]
   component: Popup
   source: string
   sourceLayer: string | null
