@@ -129,7 +129,7 @@ export const MapHandler = ({ children }: Props) => {
           'mapbox:autocomposite': true,
           'mapbox:type': 'template',
         },
-        // glyphs: 'mapbox://fonts/mapbox/{fontstack}/{range}.pbf',
+        glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
         sources: {},
         layers: [
           {
@@ -161,7 +161,7 @@ export const MapHandler = ({ children }: Props) => {
     } else {
       const style: StyleSpecification = {
         version: 8,
-        // glyphs: 'mapbox://fonts/mapbox/{fontstack}/{range}.pbf',
+        glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
         sources: {
           osm: {
             type: 'raster',
