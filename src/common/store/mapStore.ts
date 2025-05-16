@@ -73,7 +73,7 @@ import {
   isMatchingSource,
 } from '#/common/utils/map'
 
-const DEFAULT_MAP_LIBRARY_MODE: MapLibraryMode = 'mapbox'
+const DEFAULT_MAP_LIBRARY_MODE: MapLibraryMode = 'maplibre'
 
 let imageRenderCanvas: HTMLCanvasElement | null = null
 let imageRenderCtx: CanvasRenderingContext2D | null = null
@@ -81,7 +81,7 @@ const imageRenderSize = 24 // Default size
 
 export type Vars = {
   // Whether to use mapbox, openlayers, or both.
-  // Currently only "mapbox" is ever used as the mode.
+  // Currently only "maplibre" is ever used as the mode.
   mapLibraryMode: MapLibraryMode
   // Whether the map is ready to be interacted with.
   isLoaded: boolean

@@ -273,7 +273,7 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
   // }, [])
 
   // useEffect(() => {
-  //   setMapLibraryMode('mapbox')
+  //   setMapLibraryMode('maplibre')
   // }, [])
   return (
     <Box
