@@ -24,12 +24,13 @@ import VectorSource from 'ol/source/Vector'
 import { Attribution, ScaleLine, defaults as defaultControls } from 'ol/control'
 
 import {
+  Map,
   MapLayerMouseEvent,
-  Style as MbStyle,
-  MapboxGeoJSONFeature,
-} from 'mapbox-gl'
+  StyleSpecification,
+  MapGeoJSONFeature,
+  AttributionControl,
+} from 'maplibre-gl'
 // import GeoJSON from 'ol/format/GeoJSON'
-import mapboxgl from 'mapbox-gl'
 import MapboxDraw from '@mapbox/mapbox-gl-draw'
 import { useUIStore } from '../../common/store'
 import { useMapStore } from '../../common/store'
@@ -60,7 +61,7 @@ interface Props {
 const DEFAULT_CENTER = [15, 62] as [number, number]
 const DEFAULT_ZOOM = 5
 
-export const Map = ({ children }: Props) => {
+export const MapHandler = ({ children }: Props) => {
   const setIsMapPopupOpen = useUIStore((state) => state.setIsMapPopupOpen)
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
 
@@ -69,7 +70,7 @@ export const Map = ({ children }: Props) => {
   const mapLibraryRef = useRef<MapLibraryMode | null>(null)
   const hasProcessedFeatureSelection = useRef(true)
 
-  const _mbMap = useMapStore((state) => state._mbMap)
+  const _map = useMapStore((state) => state._map)
   const _setMbMap = useMapStore((state) => state._setMbMap)
   const mapLibraryMode = useMapStore((state) => state.mapLibraryMode)
   const isLoaded = useMapStore((state) => state.isLoaded)
@@ -109,22 +110,19 @@ export const Map = ({ children }: Props) => {
   const [popupOpts, setPopupOpts] = useState<PopupOpts | null>(null)
 
   const [newlySelectedFeatures, setNewlySelectedFeatures] = useState<
-    MapboxGeoJSONFeature[]
+    MapGeoJSONFeature[]
   >([])
 
   // The following functions are used to initialize the map,
   // depending on the map's mode (Openlayers, Mapbox GL, or hybrid of both)
-  const initMbMap = (
+  const initMap = (
     viewSettings: { center: [number, number]; zoom?: number },
     isHybrid = true
   ) => {
-    // Mapbox does not render without a valid access token
-    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN as string
-
-    let newMbMap: mapboxgl.Map
+    let newMap: Map
 
     if (isHybrid) {
-      const emptyStyle: MbStyle = {
+      const emptyStyle: StyleSpecification = {
         version: 8,
         name: 'empty',
         metadata: {
@@ -144,7 +142,7 @@ export const Map = ({ children }: Props) => {
         ],
       }
 
-      newMbMap = new mapboxgl.Map({
+      newMap = new Map({
         // style: 'mapbox://styles/mapbox/satellite-v9',
         attributionControl: false,
         boxZoom: false,
@@ -161,7 +159,7 @@ export const Map = ({ children }: Props) => {
         style: emptyStyle,
       })
     } else {
-      const style: MbStyle = {
+      const style: StyleSpecification = {
         version: 8,
         glyphs: 'mapbox://fonts/mapbox/{fontstack}/{range}.pbf',
         sources: {
@@ -182,7 +180,7 @@ export const Map = ({ children }: Props) => {
         ],
       }
 
-      newMbMap = new mapboxgl.Map({
+      newMap = new Map({
         //@ts-ignore
         container: 'map', // container id
         style: style,
@@ -197,38 +195,38 @@ export const Map = ({ children }: Props) => {
         // },
       })
 
-      newMbMap.addControl(
-        new mapboxgl.AttributionControl({
+      newMap.addControl(
+        new AttributionControl({
           compact: true,
         })
       )
     }
 
-    if (_mbMap && _mbMap.getStyle()) {
-      const sources = _mbMap.getStyle().sources
+    if (_map && _map.getStyle()) {
+      const sources = _map.getStyle().sources
       for (const key in sources) {
-        newMbMap.addSource(key, sources[key])
+        newMap.addSource(key, sources[key])
       }
-      for (const layer of _mbMap.getStyle().layers) {
-        newMbMap.addLayer(layer)
+      for (const layer of _map.getStyle().layers) {
+        newMap.addLayer(layer)
       }
-      _mbMap.remove()
+      _map.remove()
     }
 
     const mbSelectionFunction = (e: MapLayerMouseEvent) => {
       // Set `bbox` as 5px reactangle area around clicked point.
       // Find features intersecting the bounding box.
       // @ts-ignore
-      const point = newMbMap.project(e.lngLat)
+      const point = newMap.project(e.lngLat)
 
-      const features = newMbMap.queryRenderedFeatures(point)
+      const features = newMap.queryRenderedFeatures(point)
       // hasProcessedFeatureSelection.current = false
       setSelectedFeaturesByClick(features)
     }
 
-    newMbMap.on('click', mbSelectionFunction)
+    newMap.on('click', mbSelectionFunction)
 
-    newMbMap.on('load', () => {
+    newMap.on('load', () => {
       // const createPinElement = (feature, options = {}) => {
       // Default pin styling
       //   const defaultStyle = {
@@ -278,7 +276,7 @@ export const Map = ({ children }: Props) => {
       // }
 
       // // Add the pin generator to the map for use in other components
-      // newMbMap.createPinElement = createPinElement
+      // newMap.createPinElement = createPinElement
 
       // // Generate a basic pin for initial loading
       // const basicPin = createPinElement(null, { size: 24 })
@@ -295,8 +293,8 @@ export const Map = ({ children }: Props) => {
       // img.onload = () => {
       //   ctx.drawImage(img, 0, 0, size, size)
       //   // Add the rendered image to the map
-      //   if (!newMbMap.hasImage('pin')) {
-      //     newMbMap.addImage('pin', ctx.getImageData(0, 0, size, size))
+      //   if (!newMap.hasImage('pin')) {
+      //     newMap.addImage('pin', ctx.getImageData(0, 0, size, size))
       //   }
       // }
       // img.src = 'data:image/svg+xml,' + encodeURIComponent(basicPin.innerHTML)
@@ -316,8 +314,8 @@ export const Map = ({ children }: Props) => {
       //   ctx.drawImage(img, 0, 0, size, size)
       //   const imageData = ctx.getImageData(0, 0, size, size)
 
-      //   if (!newMbMap.hasImage('pin')) {
-      //     newMbMap.addImage('pin', imageData)
+      //   if (!newMap.hasImage('pin')) {
+      //     newMap.addImage('pin', imageData)
       //   }
       //   // Now the 'pin' image can be colored using 'icon-color' in your style layers
       // }
@@ -331,13 +329,13 @@ export const Map = ({ children }: Props) => {
       setIsMbMapReady(true)
     })
 
-    return newMbMap
+    return newMap
   }
 
-  const getHybridMbLayer = (newMbMap: mapboxgl.Map) => {
+  const getHybridMbLayer = (newMap: Map) => {
     const mbLayer = new Layer({
       render: function (frameState) {
-        const canvas: any = newMbMap.getCanvas()
+        const canvas: any = newMap.getCanvas()
         const viewState = frameState.viewState
 
         const visible = mbLayer.getVisible()
@@ -349,7 +347,7 @@ export const Map = ({ children }: Props) => {
 
         // adjust view parameters in mapbox
         const rotation = viewState.rotation
-        newMbMap.jumpTo({
+        newMap.jumpTo({
           center: proj.toLonLat(viewState.center) as [number, number],
           zoom: viewState.zoom - 1,
           bearing: (-rotation * 180) / Math.PI,
@@ -359,13 +357,13 @@ export const Map = ({ children }: Props) => {
         // see https://github.com/mapbox/mapbox-gl-js/issues/7893#issue-408992184
         // NOTE: THIS MIGHT BREAK IF UPDATING THE MAPBOX VERSION
         //@ts-ignore
-        if (newMbMap._frame) {
+        if (newMap._frame) {
           //@ts-ignore
-          newMbMap._frame.cancel()
+          newMap._frame.cancel()
           //@ts-ignore
-          newMbMap._frame = null
+          newMap._frame = null
         } //@ts-ignore
-        newMbMap._render()
+        newMap._render()
 
         return canvas
       },
@@ -378,8 +376,8 @@ export const Map = ({ children }: Props) => {
     center: [number, number]
     zoom?: number
   }) => {
-    const newMbMap = initMbMap(viewSettings, true)
-    const mbLayer = getHybridMbLayer(newMbMap)
+    const newMap = initMap(viewSettings, true)
+    const mbLayer = getHybridMbLayer(newMap)
 
     const attribution = new Attribution({
       collapsible: false,
@@ -409,10 +407,10 @@ export const Map = ({ children }: Props) => {
         new ScaleLine(),
       ]),
     }
-    const newMap = new OlMap(options)
+    const newOlMap = new OlMap(options)
 
-    newMap.once('rendercomplete', () => {
-      newMap.setTarget(mapDivRef.current)
+    newOlMap.once('rendercomplete', () => {
+      newOlMap.setTarget(mapDivRef.current)
 
       const overlay = new Overlay({
         element: popupRef.current as HTMLElement,
@@ -429,12 +427,12 @@ export const Map = ({ children }: Props) => {
 
       setPopupOnClose(() => onclick)
 
-      newMap.addOverlay(overlay)
+      newOlMap.addOverlay(overlay)
 
       _setIsMapReady(true)
     })
 
-    return { newMap, newMbMap }
+    return { newOlMap, newMap }
   }
 
   const initMapMode = (
@@ -443,26 +441,26 @@ export const Map = ({ children }: Props) => {
   ) => {
     switch (mode) {
       case 'mapbox': {
-        let newMbMap = initMbMap(viewSettings, false)
-        _setMbMap(newMbMap)
+        let newMap = initMap(viewSettings, false)
+        _setMbMap(newMap)
 
         mapLibraryRef.current = 'mapbox'
 
         return () => {
-          newMbMap.remove()
+          newMap.remove()
           mapLibraryRef.current = null
         }
       }
       case 'hybrid': {
-        let { newMap, newMbMap } = initHybridMap(viewSettings)
-        mapRef.current = newMap
-        _setMbMap(newMbMap)
+        let { newOlMap, newMap } = initHybridMap(viewSettings)
+        mapRef.current = newOlMap
+        _setMbMap(newMap)
 
         mapLibraryRef.current = 'hybrid'
 
         return () => {
-          newMap.setTarget(undefined)
-          newMbMap.remove()
+          newOlMap.setTarget(undefined)
+          newMap.remove()
           mapLibraryRef.current = null
         }
       }
@@ -480,12 +478,12 @@ export const Map = ({ children }: Props) => {
       _setIsMapReady(false)
 
       if (mapLibraryRef.current === 'mapbox') {
-        const mbCenter = _mbMap?.getCenter()
+        const mbCenter = _map?.getCenter()
         if (mbCenter != null) {
           center = [mbCenter.lng, mbCenter.lat]
         }
 
-        const mbZoom = _mbMap?.getZoom()
+        const mbZoom = _map?.getZoom()
         if (mbZoom != null) {
           zoom = mbZoom
         }
@@ -518,7 +516,7 @@ export const Map = ({ children }: Props) => {
 
           if (point != undefined) {
             point = proj.toLonLat(point)
-            _mbMap?.fire('click', {
+            _map?.fire('click', {
               lngLat: point as mapboxgl.LngLatLike,
             })
           }
@@ -595,8 +593,8 @@ export const Map = ({ children }: Props) => {
   //     const filterSelectedFeatures = (
   //       layerOptionsObj: LayerOptionsObj,
   //       activeLayerIds: string[],
-  //       selectedFeatures: MapboxGeoJSONFeature[],
-  //       newlySelectedFeatures: MapboxGeoJSONFeature[],
+  //       selectedFeatures: MapGeoJSONFeature[],
+  //       newlySelectedFeatures: MapGeoJSONFeature[],
   //       layerGroups: LayerGroups
   //     ) => {
   //       const selectableLayers = Object.keys(
@@ -730,7 +728,7 @@ export const Map = ({ children }: Props) => {
 
   useEffect(() => {
     if (isLoaded) {
-      _mbMap?.resize()
+      _map?.resize()
     }
   }, [isSidebarOpen, isLoaded])
 
