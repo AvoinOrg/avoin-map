@@ -23,7 +23,7 @@ import {
   GeoJSONSource,
 } from 'maplibre-gl'
 import mapboxgl from 'maplibre-gl'
-import MapboxDraw from '@mapbox/mapbox-gl-draw'
+import MaplibreDraw from 'maplibre-gl-draw'
 import { useUIStore } from '#/common/store'
 import drawStyles from '#/common/utils/drawStyles'
 
@@ -63,7 +63,7 @@ import {
   updateFeatureInDrawSource,
   addFeatureToDrawSource,
   deleteFeatureFromDrawSource,
-  getMapboxDrawMode,
+  getMaplibreDrawMode,
   getLayerGroupIdForLayer,
   isLayerGroupSelectable,
   fetchFeaturesByIds,
@@ -300,7 +300,7 @@ export type Actions = {
   _removePersistingLayerGroupAddOptions: (layerGroupId: string) => void
   _updateSelectableHoverHandlers: () => void
   _enableDraw: (
-    drawMode?: MapboxDraw.DrawMode,
+    drawMode?: MaplibreDraw.DrawMode,
     _queueOptions?: QueueOptions
   ) => Promise<void>
   _removeDraw: (_queueOptions?: QueueOptions) => Promise<void>
@@ -1457,7 +1457,7 @@ export const useMapStore = create<State>()(
           async (drawMode: DrawMode) => {
             const { _drawOptions, _enableDraw, disableDraw } = get()
 
-            let mode = getMapboxDrawMode(drawMode)
+            let mode = getMaplibreDrawMode(drawMode)
 
             if (_drawOptions.draw == null) {
               await _enableDraw(mode, { skipQueue: true })
@@ -1468,7 +1468,7 @@ export const useMapStore = create<State>()(
               }
             }
 
-            // Shitty typing in MapboxDraw
+            // Shitty typing in MaplibreDraw
             _drawOptions.draw?.changeMode(mode as any)
           },
           {
@@ -1485,7 +1485,7 @@ export const useMapStore = create<State>()(
               selectedFeatures,
             } = get()
 
-            let mode = getMapboxDrawMode(drawMode)
+            let mode = getMaplibreDrawMode(drawMode)
 
             if (_drawOptions.draw == null) {
               await _enableDraw(mode, { skipQueue: true })
@@ -1493,7 +1493,7 @@ export const useMapStore = create<State>()(
               if (mode === 'simple_select' && selectedFeatures.length > 0) {
                 _updateDrawSelectedFeatures()
               } else {
-                // Shitty typing in MapboxDraw
+                // Shitty typing in MaplibreDraw
                 _drawOptions.draw.changeMode(mode as any)
               }
             }
@@ -1561,7 +1561,7 @@ export const useMapStore = create<State>()(
         },
 
         _enableDraw: queueableFnInit(
-          async (drawMode?: MapboxDraw.DrawMode) => {
+          async (drawMode?: MaplibreDraw.DrawMode) => {
             const {
               _map,
               _drawOptions,
@@ -1630,7 +1630,7 @@ export const useMapStore = create<State>()(
               }
             })
 
-            const draw = new MapboxDraw({
+            const draw = new MaplibreDraw({
               displayControlsDefault: false,
               defaultMode: drawMode || 'simple_select',
               userProperties: true,
