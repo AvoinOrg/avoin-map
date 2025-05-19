@@ -32,8 +32,6 @@ import { useMapStore } from '../../common/store'
 import { MapLibraryMode, PopupOpts } from '#/common/types/map'
 import { OverlayMessages } from './OverlayMessages'
 import { MapButtons } from './MapButtons'
-import { useVisibleLayerGroups } from '#/common/hooks/map/useVisibleLayerGroups'
-import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
 
 interface Props {
   children?: React.ReactNode
