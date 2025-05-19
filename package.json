@@ -82,6 +82,7 @@
     "jszip": "^3.10.1",
     "lodash-es": "^4.17.21",
     "maplibre-gl": "^5.5.0",
+    "maplibre-gl-draw": "^1.6.9",
     "micro-observables": "^1.7.2",
     "mini-css-extract-plugin": "^2.7.2",
     "next": "^15.2.3",

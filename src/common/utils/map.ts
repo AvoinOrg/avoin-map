@@ -1,4 +1,5 @@
 import {
+  Map,
   ExpressionSpecification,
   GeoJSONSource,
   MapGeoJSONFeature,
@@ -9,13 +10,11 @@ import {
 // import { asArray } from 'ol/color'
 // import { packColor } from 'ol/renderer/webgl/shaders'
 import { Feature, Geometry, Position } from 'geojson'
-import { Map } from 'maplibre-gl'
+import type { DrawMode as MaplibreDrawMode } from 'maplibre-gl-draw'
 
 import {
   LayerType,
   layerTypes,
-  LayerOptions,
-  ExtendedLayerSpecification,
   ExtendedStyleSpecificationOrFn,
   ExtendedStyleSpecification,
   LayerGroupOptions,
@@ -492,7 +491,7 @@ export const fetchFeaturesByIds = (
   return uniqueFeatures
 }
 
-export const getMapboxDrawMode = (drawMode: DrawMode): MapboxDraw.DrawMode => {
+export const getMaplibreDrawMode = (drawMode: DrawMode): MaplibreDrawMode => {
   switch (drawMode) {
     case 'polygon':
       return 'draw_polygon'
@@ -502,8 +501,8 @@ export const getMapboxDrawMode = (drawMode: DrawMode): MapboxDraw.DrawMode => {
 }
 
 // TODO: Add more modes as needed
-export const getDrawMode = (mapboxDrawMode: MapboxDraw.DrawMode): DrawMode => {
-  switch (mapboxDrawMode) {
+export const getDrawMode = (maplibreDrawMode: MaplibreDrawMode): DrawMode => {
+  switch (maplibreDrawMode) {
     case 'draw_polygon':
       return 'polygon'
     case 'simple_select':
