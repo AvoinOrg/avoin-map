@@ -10,6 +10,7 @@ import type {
   MapLayerMouseEvent,
   MapLayerTouchEvent,
 } from 'maplibre-gl'
+import type MaplibreDraw from 'maplibre-gl-draw'
 
 import type { Actions as MapStoreActions } from '#/common/store/mapStore'
 // interface mapFunctions {}
@@ -81,7 +82,7 @@ export interface LayerGroupDrawOptions {
 
 export interface MapDrawOptions extends LayerGroupDrawOptions {
   layerGroupId: string | null
-  draw: MapboxDraw | null
+  draw: MaplibreDraw | null
   isEnabled: boolean
   originalStyles?: Record<string, any>
   handleDrawCreate?: (e: any) => void
