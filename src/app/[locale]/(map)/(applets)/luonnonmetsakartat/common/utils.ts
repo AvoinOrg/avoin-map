@@ -97,7 +97,7 @@ export const createAdminFolayerConf = async (
       [centroidSourceId]: {
         type: 'geojson',
         data: `${SERVER_URL}/${GS_WORKSPACE}/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=${GS_WORKSPACE}:${centroidSourceLayer}&outputFormat=application/json&srsName=EPSG:4326`,
-        cluster: true, // Enable Mapbox GL JS clustering
+        cluster: true, // Enable Maplibre GL JS clustering
         clusterMaxZoom: 11, // Max zoom to cluster points on
         clusterRadius: 45, // Radius of clusters in pixels
         promoteId: 'id', // Promote ID if your GeoJSON features have a unique 'id' property
