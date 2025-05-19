@@ -77,7 +77,7 @@ export const MapHandler = ({ children }: Props) => {
 
   // const [isOlMapReady, setIsOlMapReady] = useState(false)
   const [isMbMapReady, setIsMbMapReady] = useState(false)
-  // const [draw, setDraw] = useState<MapboxDraw>()
+  // const [draw, setDraw] = useState<MaplibreDraw>()
   // const [isDrawEnabled, setIsDrawEnabled] = useState(false)
 
   const popupRef = useRef<HTMLDivElement>(null)
