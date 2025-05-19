@@ -87,7 +87,26 @@ const CarbonMapGraphMap = ({
 
     map.current = new Map({
       container: mapContainer.current!,
-      style: 'mapbox://styles/mapbox/streets-v11', // Specify the map style
+      style: {
+        version: 8,
+        // glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+        sources: {
+          osm: {
+            type: 'raster',
+            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+            tileSize: 256,
+            attribution:
+              '© <a target="_top" rel="noopener" href="https://openstreetmap.org/">OpenStreetMap</a>, under the <a target="_top" rel="noopener" href="https://operations.osmfoundation.org/policies/tiles/">tile usage policy</a>.',
+          },
+        },
+        layers: [
+          {
+            id: 'osm',
+            type: 'raster',
+            source: 'osm',
+          },
+        ],
+      },
       center: [0, 0], // Specify the initial map center coordinates
       zoom: 2, // Specify the initial zoom level
     })
