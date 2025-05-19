@@ -1,28 +1,23 @@
-// This is the main Map component, exported as a context.
-// Uses Openlayers with Mapbox GL added as a layer. This is due to the low performance of
-// Openlayers as WebGL renderer, while Mapbox GL lacks a lot of features that Openlayers has.
-// TODO: Look into Maplibre GL, which is a fork of Mapbox GL that is more open source friendly.
-// See: https://github.com/geoblocks/ol-maplibre-layer
-//
+// This is the main Map component. Most of the logic, however, is in the mapStore.
+// There is some leftover code from the OpenLayers implementation, but it is not used at the moment.
+// There is code for the hybrid implementation, where maplibre map is rendered on top of
+// OpenLayers. There is no need for this at the moment, but it is kept for future reference,
+// in case a need arises.
 'use client'
 
-import 'ol/ol.css'
-import '#/common/style/mapbox.css'
-import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
-
-import { pickBy, uniqBy } from 'lodash-es'
+// import 'ol/ol.css'
+import 'maplibre-gl/dist/maplibre-gl.css'
+import 'maplibre-gl-draw/dist/mapbox-gl-draw.css'
 
 import React, { useState, useRef, useEffect } from 'react'
 import Box from '@mui/material/Box'
-import { Map as OlMap, View, MapBrowserEvent } from 'ol'
-import * as proj from 'ol/proj'
-import { unByKey } from 'ol/Observable'
-import { Layer, Tile as TileLayer, Vector as VectorLayer } from 'ol/layer'
-import Overlay from 'ol/Overlay'
-import OSM from 'ol/source/OSM'
-import VectorSource from 'ol/source/Vector'
-import { Attribution, ScaleLine, defaults as defaultControls } from 'ol/control'
-
+// import { Map as OlMap, View, MapBrowserEvent } from 'ol'
+// import * as proj from 'ol/proj'
+// import { Layer, Tile as TileLayer, Vector as VectorLayer } from 'ol/layer'
+// import Overlay from 'ol/Overlay'
+// import OSM from 'ol/source/OSM'
+// import VectorSource from 'ol/source/Vector'
+// import { Attribution, ScaleLine, defaults as defaultControls } from 'ol/control'
 import {
   Map,
   MapLayerMouseEvent,
@@ -31,24 +26,10 @@ import {
   AttributionControl,
 } from 'maplibre-gl'
 // import GeoJSON from 'ol/format/GeoJSON'
-import MapboxDraw from '@mapbox/mapbox-gl-draw'
 import { useUIStore } from '../../common/store'
 import { useMapStore } from '../../common/store'
 
-import {
-  LayerOptions,
-  LayerOptionsObj,
-  MapLibraryMode,
-  QueuePriority,
-  PopupOpts,
-  FunctionQueue,
-  LayerGroups,
-} from '#/common/types/map'
-import {
-  getAllLayerOptionsObj,
-  getLayerGroupIdForLayer,
-  getLayerName,
-} from '#/common/utils/map'
+import { MapLibraryMode, PopupOpts } from '#/common/types/map'
 import { OverlayMessages } from './OverlayMessages'
 import { MapButtons } from './MapButtons'
 import { useVisibleLayerGroups } from '#/common/hooks/map/useVisibleLayerGroups'
@@ -62,13 +43,12 @@ const DEFAULT_CENTER = [15, 62] as [number, number]
 const DEFAULT_ZOOM = 5
 
 export const MapHandler = ({ children }: Props) => {
-  const setIsMapPopupOpen = useUIStore((state) => state.setIsMapPopupOpen)
+  // const setIsMapPopupOpen = useUIStore((state) => state.setIsMapPopupOpen)
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
 
   const mapDivRef = useRef<HTMLDivElement>()
   const mapRef = useRef<OlMap | null>(null)
   const mapLibraryRef = useRef<MapLibraryMode | null>(null)
-  const hasProcessedFeatureSelection = useRef(true)
 
   const _map = useMapStore((state) => state._map)
   const _setMap = useMapStore((state) => state._setMap)
@@ -82,12 +62,9 @@ export const MapHandler = ({ children }: Props) => {
   const _executeFunctionQueue = useMapStore(
     (state) => state._executeFunctionQueue
   )
-  const _layerGroups = useMapStore((state) => state._layerGroups)
-  const _drawOptions = useMapStore((state) => state._drawOptions)
   const mapContext = useMapStore((state) => state.mapContext)
 
   const overlayMessage = useMapStore((state) => state.overlayMessage)
-  const selectedFeatures = useMapStore((state) => state.selectedFeatures)
   const setSelectedFeaturesByClick = useMapStore(
     (state) => state.setSelectedFeaturesByClick
   )
@@ -95,23 +72,19 @@ export const MapHandler = ({ children }: Props) => {
     (state) => state._isFunctionQueueExecuting
   )
 
-  const visibleLayerGroups = useVisibleLayerGroups()
-  const visibleLayerGroupIds = useVisibleLayerGroupIds()
+  // const visibleLayerGroups = useVisibleLayerGroups()
+  // const visibleLayerGroupIds = useVisibleLayerGroupIds()
 
   // const [isOlMapReady, setIsOlMapReady] = useState(false)
   const [isMbMapReady, setIsMbMapReady] = useState(false)
-  const [draw, setDraw] = useState<MapboxDraw>()
-  const [isDrawEnabled, setIsDrawEnabled] = useState(false)
+  // const [draw, setDraw] = useState<MapboxDraw>()
+  // const [isDrawEnabled, setIsDrawEnabled] = useState(false)
 
   const popupRef = useRef<HTMLDivElement>(null)
-  const [popups, setPopups] = useState<any>({})
-  const [popupOnClose, setPopupOnClose] = useState<any>(null)
-  const [popupKey, setPopupKey] = useState<any>(null)
-  const [popupOpts, setPopupOpts] = useState<PopupOpts | null>(null)
-
-  const [newlySelectedFeatures, setNewlySelectedFeatures] = useState<
-    MapGeoJSONFeature[]
-  >([])
+  // const [popups, setPopups] = useState<any>({})
+  // const [popupOnClose, setPopupOnClose] = useState<any>(null)
+  // const [popupKey, setPopupKey] = useState<any>(null)
+  // const [popupOpts, setPopupOpts] = useState<PopupOpts | null>(null)
 
   // The following functions are used to initialize the map,
   // depending on the map's mode (Openlayers, Mapbox GL, or hybrid of both)
@@ -126,10 +99,10 @@ export const MapHandler = ({ children }: Props) => {
         version: 8,
         name: 'empty',
         metadata: {
-          'mapbox:autocomposite': true,
-          'mapbox:type': 'template',
+          'maplibre:autocomposite': true,
+          'maplibre:type': 'template',
         },
-        glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+        // glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
         sources: {},
         layers: [
           {
@@ -143,7 +116,6 @@ export const MapHandler = ({ children }: Props) => {
       }
 
       newMap = new Map({
-        // style: 'mapbox://styles/mapbox/satellite-v9',
         attributionControl: false,
         boxZoom: false,
         center: viewSettings.center,
@@ -161,7 +133,7 @@ export const MapHandler = ({ children }: Props) => {
     } else {
       const style: StyleSpecification = {
         version: 8,
-        glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+        // glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
         sources: {
           osm: {
             type: 'raster',
@@ -332,108 +304,108 @@ export const MapHandler = ({ children }: Props) => {
     return newMap
   }
 
-  const getHybridMbLayer = (newMap: Map) => {
-    const mbLayer = new Layer({
-      render: function (frameState) {
-        const canvas: any = newMap.getCanvas()
-        const viewState = frameState.viewState
+  // const getHybridMbLayer = (newMap: Map) => {
+  //   const mbLayer = new Layer({
+  //     render: function (frameState) {
+  //       const canvas: any = newMap.getCanvas()
+  //       const viewState = frameState.viewState
 
-        const visible = mbLayer.getVisible()
-        canvas.style.display = visible ? 'block' : 'none'
-        canvas.style.position = 'absolute'
+  //       const visible = mbLayer.getVisible()
+  //       canvas.style.display = visible ? 'block' : 'none'
+  //       canvas.style.position = 'absolute'
 
-        const opacity = mbLayer.getOpacity()
-        canvas.style.opacity = opacity
+  //       const opacity = mbLayer.getOpacity()
+  //       canvas.style.opacity = opacity
 
-        // adjust view parameters in mapbox
-        const rotation = viewState.rotation
-        newMap.jumpTo({
-          center: proj.toLonLat(viewState.center) as [number, number],
-          zoom: viewState.zoom - 1,
-          bearing: (-rotation * 180) / Math.PI,
-        })
+  //       // adjust view parameters in mapbox
+  //       const rotation = viewState.rotation
+  //       newMap.jumpTo({
+  //         center: proj.toLonLat(viewState.center) as [number, number],
+  //         zoom: viewState.zoom - 1,
+  //         bearing: (-rotation * 180) / Math.PI,
+  //       })
 
-        // cancel the scheduled update & trigger synchronous redraw
-        // see https://github.com/mapbox/mapbox-gl-js/issues/7893#issue-408992184
-        // NOTE: THIS MIGHT BREAK IF UPDATING THE MAPBOX VERSION
-        //@ts-ignore
-        if (newMap._frame) {
-          //@ts-ignore
-          newMap._frame.cancel()
-          //@ts-ignore
-          newMap._frame = null
-        } //@ts-ignore
-        newMap._render()
+  //       // cancel the scheduled update & trigger synchronous redraw
+  //       // see https://github.com/mapbox/mapbox-gl-js/issues/7893#issue-408992184
+  //       // NOTE: THIS MIGHT BREAK IF UPDATING THE MAPBOX VERSION
+  //       //@ts-ignore
+  //       if (newMap._frame) {
+  //         //@ts-ignore
+  //         newMap._frame.cancel()
+  //         //@ts-ignore
+  //         newMap._frame = null
+  //       } //@ts-ignore
+  //       newMap._render()
 
-        return canvas
-      },
-    })
+  //       return canvas
+  //     },
+  //   })
 
-    return mbLayer
-  }
+  //   return mbLayer
+  // }
 
-  const initHybridMap = (viewSettings: {
-    center: [number, number]
-    zoom?: number
-  }) => {
-    const newMap = initMap(viewSettings, true)
-    const mbLayer = getHybridMbLayer(newMap)
+  // const initHybridMap = (viewSettings: {
+  //   center: [number, number]
+  //   zoom?: number
+  // }) => {
+  //   const newMap = initMap(viewSettings, true)
+  //   const mbLayer = getHybridMbLayer(newMap)
 
-    const attribution = new Attribution({
-      collapsible: false,
-    })
+  //   const attribution = new Attribution({
+  //     collapsible: false,
+  //   })
 
-    const options = {
-      renderer: 'webgl',
-      target: 'map',
-      view: new View({
-        zoom: viewSettings.zoom,
-        center: proj.fromLonLat(viewSettings.center),
-      }),
-      layers: [
-        new TileLayer({
-          source: new OSM(),
-        }),
-        new VectorLayer({
-          source: new VectorSource({
-            attributions:
-              '© Powered by <a href="https://www.netlify.com/" target="_blank">Netlify</a>',
-          }),
-        }),
-        mbLayer,
-      ],
-      controls: defaultControls({ attribution: false }).extend([
-        attribution,
-        new ScaleLine(),
-      ]),
-    }
-    const newOlMap = new OlMap(options)
+  //   const options = {
+  //     renderer: 'webgl',
+  //     target: 'map',
+  //     view: new View({
+  //       zoom: viewSettings.zoom,
+  //       center: proj.fromLonLat(viewSettings.center),
+  //     }),
+  //     layers: [
+  //       new TileLayer({
+  //         source: new OSM(),
+  //       }),
+  //       new VectorLayer({
+  //         source: new VectorSource({
+  //           attributions:
+  //             '© Powered by <a href="https://www.netlify.com/" target="_blank">Netlify</a>',
+  //         }),
+  //       }),
+  //       mbLayer,
+  //     ],
+  //     controls: defaultControls({ attribution: false }).extend([
+  //       attribution,
+  //       new ScaleLine(),
+  //     ]),
+  //   }
+  //   const newOlMap = new OlMap(options)
 
-    newOlMap.once('rendercomplete', () => {
-      newOlMap.setTarget(mapDivRef.current)
+  //   newOlMap.once('rendercomplete', () => {
+  //     newOlMap.setTarget(mapDivRef.current)
 
-      const overlay = new Overlay({
-        element: popupRef.current as HTMLElement,
-        autoPan: true,
-        // autoPanAnimation: {
-        //   duration: 250,
-        // },
-      })
+  //     const overlay = new Overlay({
+  //       element: popupRef.current as HTMLElement,
+  //       autoPan: true,
+  //       // autoPanAnimation: {
+  //       //   duration: 250,
+  //       // },
+  //     })
 
-      const onclick = () => {
-        overlay.setPosition(undefined)
-        return false
-      }
+  //     const onclick = () => {
+  //       overlay.setPosition(undefined)
+  //       return false
+  //     }
 
-      setPopupOnClose(() => onclick)
+  //     setPopupOnClose(() => onclick)
 
-      newOlMap.addOverlay(overlay)
+  //     newOlMap.addOverlay(overlay)
 
-      _setIsMapReady(true)
-    })
+  //     _setIsMapReady(true)
+  //   })
 
-    return { newOlMap, newMap }
-  }
+  //   return { newOlMap, newMap }
+  // }
 
   const initMapMode = (
     mode: MapLibraryMode,
@@ -451,19 +423,19 @@ export const MapHandler = ({ children }: Props) => {
           mapLibraryRef.current = null
         }
       }
-      case 'hybrid': {
-        let { newOlMap, newMap } = initHybridMap(viewSettings)
-        mapRef.current = newOlMap
-        _setMap(newMap)
+      // case 'hybrid': {
+      //   let { newOlMap, newMap } = initHybridMap(viewSettings)
+      //   mapRef.current = newOlMap
+      //   _setMap(newMap)
 
-        mapLibraryRef.current = 'hybrid'
+      //   mapLibraryRef.current = 'hybrid'
 
-        return () => {
-          newOlMap.setTarget(undefined)
-          newMap.remove()
-          mapLibraryRef.current = null
-        }
-      }
+      //   return () => {
+      //     newOlMap.setTarget(undefined)
+      //     newMap.remove()
+      //     mapLibraryRef.current = null
+      //   }
+      // }
     }
   }
 
@@ -487,16 +459,17 @@ export const MapHandler = ({ children }: Props) => {
         if (mbZoom != null) {
           zoom = mbZoom
         }
-      } else {
-        const olCenter = mapRef.current?.getView().getCenter()
-        if (olCenter != null) {
-          center = proj.toLonLat(olCenter) as [number, number]
-        }
-        const olZoom = mapRef.current?.getView().getZoom()
-        if (olZoom != null) {
-          zoom = olZoom
-        }
       }
+      // else {
+      //   const olCenter = mapRef.current?.getView().getCenter()
+      //   if (olCenter != null) {
+      //     center = proj.toLonLat(olCenter) as [number, number]
+      //   }
+      //   const olZoom = mapRef.current?.getView().getZoom()
+      //   if (olZoom != null) {
+      //     zoom = olZoom
+      //   }
+      // }
 
       return initMapMode(mapLibraryMode, { center, zoom })
     }
