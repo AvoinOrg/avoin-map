@@ -55,7 +55,7 @@ export const isZoningCodeValidExpression = () => {
     validZoningCodes.push(zoningClass.code)
   })
 
-  // Return a Mapbox expression that checks if the zoning code is in the list of valid codes
+  // Return a maplibre expression that checks if the zoning code is in the list of valid codes
   // The expression uses the 'in' operator to check if the zoning code is in the array of valid codes
   return [
     'in',
