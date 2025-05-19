@@ -47,7 +47,7 @@ export const MapHandler = ({ children }: Props) => {
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
 
   const mapDivRef = useRef<HTMLDivElement>()
-  const mapRef = useRef<OlMap | null>(null)
+  // const mapRef = useRef<OlMap | null>(null)
   const mapLibraryRef = useRef<MapLibraryMode | null>(null)
 
   const _map = useMapStore((state) => state._map)
@@ -722,7 +722,7 @@ export const MapHandler = ({ children }: Props) => {
       <Box
         ref={mapDivRef}
         id="map"
-        className={'ol-map'}
+        // className={'ol-map'}
         sx={{
           position: 'absolute',
           top: 0,
@@ -730,9 +730,9 @@ export const MapHandler = ({ children }: Props) => {
           left: 0,
           right: 0,
           overflow: 'hidden',
-          ...(mapLibraryMode === 'hybrid' && {
-            '.ol-scale-line': { right: '8px', left: 'auto', bottom: '26px' },
-          }),
+          // ...(mapLibraryMode === 'hybrid' && {
+          //   '.ol-scale-line': { right: '8px', left: 'auto', bottom: '26px' },
+          // }),
           // pointerEvents: 'none',
           // '> *': {
           //   pointerEvents: 'auto',
