@@ -29,6 +29,10 @@ import { isZoningCodeValidExpression } from '#/app/[locale]/(map)/(applets)/hiil
 import { mergeArraysAlternate, pp } from '#/common/utils/general'
 import { Cross } from '#/components/icons'
 
+const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
+// const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+
+
 type Props = {
   datas: MapGraphData[]
   activeYear: string
@@ -89,7 +93,8 @@ const CarbonMapGraphMap = ({
       container: mapContainer.current!,
       style: {
         version: 8,
-        // glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+        glyphs: `${SERVER_URL}/www/font/{fontstack}/{range}.pbf`,
+        // glyphs: `https://api.mapbox.com/fonts/v1/{fontstack}/{range}.pbf?access_token=${MAPBOX_ACCESS_TOKEN}`,
         sources: {
           osm: {
             type: 'raster',

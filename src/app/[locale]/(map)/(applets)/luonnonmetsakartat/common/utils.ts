@@ -213,7 +213,7 @@ export const createAdminFolayerConf = async (
         filter: ['has', 'point_count'], // Only apply to clustered points
         layout: {
           'text-field': '{point_count_abbreviated}', // Display the abbreviated count
-          'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+          'text-font': ['Open Sans Semibold'],
           'text-size': 12,
         },
         paint: {
