@@ -33,12 +33,15 @@ import { MapLibraryMode, PopupOpts } from '#/common/types/map'
 import { OverlayMessages } from './OverlayMessages'
 import { MapButtons } from './MapButtons'
 
-interface Props {
-  children?: React.ReactNode
-}
+const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
+// const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 
 const DEFAULT_CENTER = [15, 62] as [number, number]
 const DEFAULT_ZOOM = 5
+
+interface Props {
+  children?: React.ReactNode
+}
 
 export const MapHandler = ({ children }: Props) => {
   // const setIsMapPopupOpen = useUIStore((state) => state.setIsMapPopupOpen)
@@ -100,7 +103,8 @@ export const MapHandler = ({ children }: Props) => {
           'maplibre:autocomposite': true,
           'maplibre:type': 'template',
         },
-        // glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+        glyphs: `${SERVER_URL}/www/font/{fontstack}/{range}.pbf`,
+        // glyphs: `https://api.mapbox.com/fonts/v1/avoin/{fontstack}/{range}.pbf?access_token=${MAPBOX_ACCESS_TOKEN}`,
         sources: {},
         layers: [
           {
@@ -131,7 +135,8 @@ export const MapHandler = ({ children }: Props) => {
     } else {
       const style: StyleSpecification = {
         version: 8,
-        // glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+        glyphs: `${SERVER_URL}/www/font/{fontstack}/{range}.pbf`,
+        // glyphs: `https://api.mapbox.com/fonts/v1/{user}/{fontstack}/{range}.pbf?access_token=${MAPBOX_ACCESS_TOKEN}`,
         sources: {
           osm: {
             type: 'raster',
