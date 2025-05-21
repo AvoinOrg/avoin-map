@@ -32,7 +32,6 @@ import { Cross } from '#/components/icons'
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 // const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 
-
 type Props = {
   datas: MapGraphData[]
   activeYear: string
