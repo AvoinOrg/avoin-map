@@ -473,10 +473,38 @@ export const useMapStore = create<State>()(
           async (id: string): Promise<FeatureCollection | null> => {
             try {
               const { _map } = get()
-              const geojson: FeatureCollection =
-                //@ts-ignore
-                _map?.getSource(id)._options.data
-              return geojson
+
+              const source = _map?.getSource(id) as GeoJSONSource
+
+              if (!source || source.type !== 'geojson') {
+                console.error(
+                  `Source "${id}" either doesn't exist or isn't GeoJSON.`
+                )
+                return null
+              }
+
+              if (!source._options.data) {
+                console.error(`Source "${id}" has no data.`)
+                return null
+              }
+
+              const dataArg = source._options?.data
+
+              if (!dataArg || typeof dataArg !== 'object') {
+                console.error(
+                  `Source "${id}" does not contain valid JSON data.`
+                )
+                return null
+              }
+
+              if (dataArg.type !== 'FeatureCollection') {
+                console.error(
+                  `Source "${id}" data is not a valid FeatureCollection.`
+                )
+                return null
+              }
+
+              return dataArg as FeatureCollection
             } catch (e) {
               console.error(e)
             }
