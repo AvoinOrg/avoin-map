@@ -52,6 +52,7 @@ import {
   ImageOptions,
   LayerEventHandlerOptions,
   LayerOptionsObj,
+  SourceOptions,
 } from '#/common/types/map'
 import { layerConfs } from '#/components/Map/Layers'
 
@@ -2117,7 +2118,28 @@ export const useMapStore = create<State>()(
               isHidden: options.isHidden ? true : false,
               persist: options.persist ? true : false,
               layers: {},
+              sources: {},
               eventHandlers: [],
+            }
+
+            for (const sourceKey in style.sources) {
+              const sourceOptions: SourceOptions = {
+                id: sourceKey,
+                popupOpts: null,
+                layerIds: [],
+              }
+
+              if ('popupOpts' in options.layerConf) {
+                if (options.layerConf.popupOpts) {
+                  const popupOpts = options.layerConf.popupOpts
+
+                  if (sourceKey === popupOpts.source) {
+                    sourceOptions.popupOpts = popupOpts
+                  }
+                }
+              }
+
+              layerGroup.sources[sourceKey] = sourceOptions
             }
 
             for (const layer of style.layers) {
@@ -2148,6 +2170,7 @@ export const useMapStore = create<State>()(
               }
 
               layerGroup.layers[layer.id] = layerOptions
+              layerGroup.sources[layer.source].layerIds.push(layer.id)
 
               if (
                 'popupOpts' in options.layerConf &&

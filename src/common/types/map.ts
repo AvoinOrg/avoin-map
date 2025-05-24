@@ -42,6 +42,7 @@ export type LayerGroupOptions = {
   isHidden: boolean
   persist: boolean
   layers: LayerOptionsObj
+  sources: SourceOptionsObj
   eventHandlers: LayerEventHandlerOptions[]
   handleDataUpdate?: (e: any) => void
 }
@@ -67,6 +68,16 @@ export type LayerOptions = {
 
 export type LayerOptionsObj = {
   [key: string]: LayerOptions
+}
+
+export type SourceOptions = {
+  id: string
+  popupOpts: PopupOpts | null
+  layerIds: string[]
+}
+
+export type SourceOptionsObj = {
+  [key: string]: SourceOptions
 }
 
 export type LayerGroups = Record<string, LayerGroupOptions>
