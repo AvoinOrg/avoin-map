@@ -138,7 +138,8 @@ export type Actions = {
     sourceId: string,
     _queueOptions?: QueueOptions
   ) => Promise<LngLatBounds | null>
-  getSourceJson: (
+  getSourceJson: (id: string) => FeatureCollection | null
+  getSourceJsonAsyncQueue: (
     id: string,
     _queueOptions?: QueueOptions
   ) => Promise<FeatureCollection | null>
@@ -411,7 +412,7 @@ export const useMapStore = create<State>()(
           async (sourceId: string): Promise<LngLatBounds | null> => {
             // Query source features for the specified source
             try {
-              const { _map, getSourceJson } = get()
+              const { _map, getSourceJsonAsyncQueue } = get()
 
               if (!_map) {
                 return null
@@ -419,7 +420,7 @@ export const useMapStore = create<State>()(
 
               let featureColl: FeatureCollection | null = null
 
-              const sourceFeatures = await getSourceJson(sourceId, {
+              const sourceFeatures = await getSourceJsonAsyncQueue(sourceId, {
                 skipQueue: true,
               })
 
@@ -469,46 +470,49 @@ export const useMapStore = create<State>()(
           { priority: QueuePriority.LOW }
         ),
 
-        getSourceJson: queueableFnInit(
-          async (id: string): Promise<FeatureCollection | null> => {
-            try {
-              const { _map } = get()
+        getSourceJson: (id: string) => {
+          try {
+            const { _map } = get()
 
-              const source = _map?.getSource(id) as GeoJSONSource
+            const source = _map?.getSource(id) as GeoJSONSource
 
-              if (!source || source.type !== 'geojson') {
-                console.error(
-                  `Source "${id}" either doesn't exist or isn't GeoJSON.`
-                )
-                return null
-              }
-
-              if (!source._options.data) {
-                console.error(`Source "${id}" has no data.`)
-                return null
-              }
-
-              const dataArg = source._options?.data
-
-              if (!dataArg || typeof dataArg !== 'object') {
-                console.error(
-                  `Source "${id}" does not contain valid JSON data.`
-                )
-                return null
-              }
-
-              if (dataArg.type !== 'FeatureCollection') {
-                console.error(
-                  `Source "${id}" data is not a valid FeatureCollection.`
-                )
-                return null
-              }
-
-              return dataArg as FeatureCollection
-            } catch (e) {
-              console.error(e)
+            if (!source || source.type !== 'geojson') {
+              console.error(
+                `Source "${id}" either doesn't exist or isn't GeoJSON.`
+              )
+              return null
             }
-            return null
+
+            if (!source._options.data) {
+              console.error(`Source "${id}" has no data.`)
+              return null
+            }
+
+            const dataArg = source._options?.data
+
+            if (!dataArg || typeof dataArg !== 'object') {
+              console.error(`Source "${id}" does not contain valid JSON data.`)
+              return null
+            }
+
+            if (dataArg.type !== 'FeatureCollection') {
+              console.error(
+                `Source "${id}" data is not a valid FeatureCollection.`
+              )
+              return null
+            }
+
+            return dataArg as FeatureCollection
+          } catch (e) {
+            console.error(e)
+          }
+          return null
+        },
+
+        getSourceJsonAsyncQueue: queueableFnInit(
+          async (id: string): Promise<FeatureCollection | null> => {
+            const { getSourceJson } = get()
+            return getSourceJson(id)
           },
           { priority: QueuePriority.LOW }
         ),
