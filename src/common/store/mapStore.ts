@@ -2006,88 +2006,88 @@ export const useMapStore = create<State>()(
 
         // Used by OpenLayers. Broken after removing ActiveLayerGroupIds
         // Refactor if migrating to OpenLayers
-        _addMbStyle: async (
-          id: LayerGroupId | string,
-          options: LayerGroupAddOptionsWithConf
-        ) => {
-          const style = await resolveMbStyle(options.layerConf.style)
+        // _addStyleToOl: async (
+        //   id: LayerGroupId | string,
+        //   options: LayerGroupAddOptionsWithConf
+        // ) => {
+        //   const style = await resolveMbStyle(options.layerConf.style)
 
-          const layers: ExtendedLayerSpecification[] = style.layers
-          const sourceKeys = Object.keys(style.sources)
+        //   const layers: ExtendedLayerSpecification[] = style.layers
+        //   const sourceKeys = Object.keys(style.sources)
 
-          const layerGroup: any = {}
+        //   const layerGroup: any = {}
 
-          // After adding the layers using style, find them and add them to the layerGroup
-          //@ts-ignore
-          olms(map, style).then((map) => {
-            map
-              .getLayers()
-              .getArray()
-              .forEach((layer: any) => {
-                const sourceKey = layer.get('mapbox-source')
-                const layerKeys = layer.get('mapbox-layers')
+        //   // After adding the layers using style, find them and add them to the layerGroup
+        //   //@ts-ignore
+        //   olms(map, style).then((map) => {
+        //     map
+        //       .getLayers()
+        //       .getArray()
+        //       .forEach((layer: any) => {
+        //         const sourceKey = layer.get('mapbox-source')
+        //         const layerKeys = layer.get('mapbox-layers')
 
-                if (
-                  sourceKeys.includes(sourceKey) &&
-                  layerKeys != null &&
-                  layerKeys.length > 0
-                ) {
-                  const conf: ExtendedLayerSpecification | undefined =
-                    layers.find((l: any) => l.id === layerKeys[0])
+        //         if (
+        //           sourceKeys.includes(sourceKey) &&
+        //           layerKeys != null &&
+        //           layerKeys.length > 0
+        //         ) {
+        //           const conf: ExtendedLayerSpecification | undefined =
+        //             layers.find((l: any) => l.id === layerKeys[0])
 
-                  if (conf) {
-                    //@ts-ignore
-                    const layerOpt: LayerOptions = {
-                      id: layerKeys[0],
-                      source: sourceKey,
-                      name: getLayerName(layerKeys[0]),
-                      layerType: getLayerType(layerKeys[0]),
-                      selectable: conf.selectable || false,
-                      multiSelectable: conf.multiSelectable || false,
-                      //@ts-ignore
-                      popup: options.layerConf.popup || false,
-                      useMb: false,
-                    }
+        //           if (conf) {
+        //             //@ts-ignore
+        //             const layerOpt: LayerOptions = {
+        //               id: layerKeys[0],
+        //               source: sourceKey,
+        //               name: getLayerName(layerKeys[0]),
+        //               layerType: getLayerType(layerKeys[0]),
+        //               selectable: conf.selectable || false,
+        //               multiSelectable: conf.multiSelectable || false,
+        //               //@ts-ignore
+        //               popup: options.layerConf.popup || false,
+        //               useMb: false,
+        //             }
 
-                    layer.set('group', id)
-                    layerGroup[layerKeys[0]] = layer
+        //             layer.set('group', id)
+        //             layerGroup[layerKeys[0]] = layer
 
-                    set((state) => {
-                      //@ts-ignore
-                      state._layerOptions[layerKeys[0]] = layerOpt
-                    })
-                  } else {
-                    console.error(
-                      'Could not find layer configuration for layer: ' +
-                        layerKeys[0]
-                    )
-                  }
-                }
-              })
+        //             set((state) => {
+        //               //@ts-ignore
+        //               state._layerOptions[layerKeys[0]] = layerOpt
+        //             })
+        //           } else {
+        //             console.error(
+        //               'Could not find layer configuration for layer: ' +
+        //                 layerKeys[0]
+        //             )
+        //           }
+        //         }
+        //       })
 
-            set((state) => {
-              state._layerGroups[id] = layerGroup
-            })
+        //     set((state) => {
+        //       state._layerGroups[id] = layerGroup
+        //     })
 
-            if (!options.isHidden) {
-              set((state) => {
-                //@ts-ignore
-                state.activeLayerGroupIds.push(id)
-              })
-            } else {
-              for (const layer in layerGroup) {
-                layerGroup[layer].setVisible(false)
-              }
-            }
+        //     if (!options.isHidden) {
+        //       set((state) => {
+        //         //@ts-ignore
+        //         state.activeLayerGroupIds.push(id)
+        //       })
+        //     } else {
+        //       for (const layer in layerGroup) {
+        //         layerGroup[layer].setVisible(false)
+        //       }
+        //     }
 
-            // TODO: Figure out olMap popups
-            // if (layerConf.popup) {
-            //   set((state) => {
-            //     state.popups[id] = layerConf.popup
-            //   })
-            // }
-          })
-        },
+        //     // TODO: Figure out olMap popups
+        //     // if (layerConf.popup) {
+        //     //   set((state) => {
+        //     //     state.popups[id] = layerConf.popup
+        //     //   })
+        //     // }
+        //   })
+        // },
 
         _addStyle: async (
           id: LayerGroupId | string,
