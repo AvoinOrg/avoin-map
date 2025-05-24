@@ -267,11 +267,11 @@ export type Actions = {
     layerGroupId: LayerGroupId | string,
     isVisible: boolean
   ) => void
-  _addMbStyle: (
-    id: LayerGroupId | string,
-    options: LayerGroupAddOptionsWithConf
-  ) => Promise<void>
-  _addMbStyleToMb: (
+  // _addStyleToOl: (
+  //   id: LayerGroupId | string,
+  //   options: LayerGroupAddOptionsWithConf
+  // ) => Promise<void>
+  _addStyle: (
     id: LayerGroupId | string,
     options: LayerGroupAddOptionsWithConf
   ) => Promise<void>
@@ -1011,8 +1011,7 @@ export const useMapStore = create<State>()(
             options?: LayerGroupAddOptions | SerializableLayerGroupAddOptions
           ) => {
             const {
-              _addMbStyleToMb,
-              _addMbStyle,
+              _addStyle,
               _persistingLayerGroupAddOptions,
               _addPersistingLayerGroupAddOptions,
               mapContext,
@@ -1049,16 +1048,17 @@ export const useMapStore = create<State>()(
 
             if (opts.layerConf) {
               if (opts.layerConf.useMb == null || opts.layerConf.useMb) {
-                await _addMbStyleToMb(
-                  layerGroupId,
-                  opts as LayerGroupAddOptionsWithConf
-                )
-              } else {
-                await _addMbStyle(
+                await _addStyle(
                   layerGroupId,
                   opts as LayerGroupAddOptionsWithConf
                 )
               }
+              // else {
+              //   await _addStyleToOl(
+              //     layerGroupId,
+              //     opts as LayerGroupAddOptionsWithConf
+              //   )
+              // }
 
               // Add event listener for source data changes
 
@@ -2088,7 +2088,7 @@ export const useMapStore = create<State>()(
           })
         },
 
-        _addMbStyleToMb: async (
+        _addStyle: async (
           id: LayerGroupId | string,
           options: LayerGroupAddOptionsWithConf
         ) => {
@@ -2100,7 +2100,7 @@ export const useMapStore = create<State>()(
             _enableLayerGroupEventHandlers,
             _updateSelectableHoverHandlers,
           } = get()
-          const setIsMapPopupOpen = useUIStore.getState().setIsMapPopupOpen
+          // const setIsMapPopupOpen = useUIStore.getState().setIsMapPopupOpen
 
           const style = await resolveMbStyle(options.layerConf.style)
 
