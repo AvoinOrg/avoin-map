@@ -32,6 +32,7 @@ import { useMapStore } from '../../common/store'
 import { MapLibraryMode, PopupOpts } from '#/common/types/map'
 import { OverlayMessages } from './OverlayMessages'
 import { MapButtons } from './MapButtons'
+import { MapPopupModal } from './MapPopupModal'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 // const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
@@ -81,7 +82,6 @@ export const MapHandler = ({ children }: Props) => {
   // const [draw, setDraw] = useState<MaplibreDraw>()
   // const [isDrawEnabled, setIsDrawEnabled] = useState(false)
 
-  const popupRef = useRef<HTMLDivElement>(null)
   // const [popups, setPopups] = useState<any>({})
   // const [popupOnClose, setPopupOnClose] = useState<any>(null)
   // const [popupKey, setPopupKey] = useState<any>(null)
@@ -744,6 +744,8 @@ export const MapHandler = ({ children }: Props) => {
       ></Box>
       <OverlayMessages message={overlayMessage}></OverlayMessages>
       <MapButtons></MapButtons>
+      <MapPopupModal></MapPopupModal>
+      <></>
       {children}
     </>
   )
