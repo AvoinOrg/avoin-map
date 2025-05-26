@@ -491,26 +491,38 @@ export const useMapStore = create<State>()(
               return null
             }
 
-            if (!source._options.data) {
+            let data
+
+            if (source._data) {
+              data = source._data
+            } else if (source._options?.data) {
+              data = source._options.data
+            } else {
               console.error(`Source "${id}" has no data.`)
               return null
             }
 
-            const dataArg = source._options?.data
-
-            if (!dataArg || typeof dataArg !== 'object') {
+            if (!data || typeof data !== 'object') {
               console.error(`Source "${id}" does not contain valid JSON data.`)
               return null
             }
 
-            if (dataArg.type !== 'FeatureCollection') {
+            if (data.type !== 'FeatureCollection') {
               console.error(
                 `Source "${id}" data is not a valid FeatureCollection.`
               )
               return null
             }
 
-            return dataArg as FeatureCollection
+            // maplibre hallucinates irrelevant ids when the source data is queried like this.
+            // set the id to what is should be.
+            for (const feature of data.features) {
+              if (feature.properties?.id) {
+                feature.id = feature.properties.id
+              }
+            }
+
+            return data as FeatureCollection
           } catch (e) {
             console.error(e)
           }
