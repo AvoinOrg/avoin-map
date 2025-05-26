@@ -55,6 +55,7 @@ import {
   ExtendedMapGeoJSONFeature,
   SourceOptions,
   ExtendedSourceSpecification,
+  PopupOpts,
 } from '#/common/types/map'
 import { layerConfs } from '#/components/Map/Layers'
 
@@ -74,7 +75,9 @@ import {
   getMatchingDrawFeatures,
   getAllLayerOptionsObj,
   isMatchingSource,
+  findSourceOptsById,
 } from '#/common/utils/map'
+import { geoserverJsonQuery } from '../queries/geoserverJsonQuery'
 
 const DEFAULT_MAP_LIBRARY_MODE: MapLibraryMode = 'maplibre'
 
