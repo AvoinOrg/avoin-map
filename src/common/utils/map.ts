@@ -21,6 +21,7 @@ import {
   LayerOptionsObj,
   DrawMode,
   LayerGroups,
+  SourceOptions,
 } from '../types/map'
 import { clone, uniqBy } from 'lodash-es'
 
@@ -310,6 +311,22 @@ export const getAllLayerOptionsObj = (
   )
 
   return allLayerOptionsObj
+}
+
+export const findSourceOptsById = (id: string, layerGroups: LayerGroups) => {
+  let sourceOptions: SourceOptions | undefined
+
+  for (const layerGroupId in layerGroups) {
+    sourceOptions = Object.values(layerGroups[layerGroupId].sources).find(
+      (source) => source.id === id
+    )
+
+    if (sourceOptions) {
+      break
+    }
+  }
+
+  return sourceOptions
 }
 
 const getSourceData = (
