@@ -910,8 +910,12 @@ export const useMapStore = create<State>()(
           return additionalFeatures
         },
 
-        _setPopupDataForFeatures: (features: MapGeoJSONFeature[]) => {
+        _setPopupDataForFeatures: (features: ExtendedMapGeoJSONFeature[]) => {
           if (features == null || features.length === 0) {
+            set((draft) => {
+              draft.activePopupData = []
+            })
+
             return
           }
 
@@ -921,30 +925,57 @@ export const useMapStore = create<State>()(
 
           const popupDatas: PopupData[] = []
 
-          const featuresWithPopup = features.filter((feature) => {
-            const layerOptions = layerOptionsObj[feature.layer.id]
-            return layerOptions.popupOpts != null
-          })
+          // filter features that have popup options
+          // add the popup option to feature here for efficiency
+          const featurePopupOpts: {
+            feature: MapGeoJSONFeature
+            popupOpts: PopupOpts
+          }[] = features.reduce<
+            {
+              feature: MapGeoJSONFeature
+              popupOpts: PopupOpts
+            }[]
+          >((acc, feature) => {
+            if (feature.isPlaceholder) {
+              return acc // Skip placeholder features
+            }
 
-          for (const feature of featuresWithPopup) {
-            const layerOptions = layerOptionsObj[feature.layer.id]
+            let popupOpts: PopupOpts | null = null
 
-            if (layerOptions.popupOpts) {
-              const popupData: PopupData = {
-                features: features,
-                component: layerOptions.popupOpts.component,
-                source: feature.source,
-                sourceLayer: feature.sourceLayer,
-                multiPoppable: layerOptions.popupOpts.multiPoppable,
-                sidebar: layerOptions.popupOpts.sidebar,
+            if (feature.layer == null) {
+              const source = findSourceOptsById(feature.source, _layerGroups)
+              if (
+                source &&
+                source.popupOpts != null &&
+                isMatchingSource(source.popupOpts, feature)
+              ) {
+                popupOpts = source.popupOpts
               }
-
-              popupDatas.push(popupData)
-
-              if (!popupData.multiPoppable) {
-                // TODO: figure out logic for multiple popups, if needed
-                break
+            } else {
+              const layerOptions = layerOptionsObj[feature.layer.id]
+              if (layerOptions && layerOptions.popupOpts != null) {
+                popupOpts = layerOptions.popupOpts
               }
+            }
+
+            if (popupOpts) {
+              acc.push({ feature, popupOpts })
+            }
+
+            return acc
+          }, [])
+
+          for (const featurePopupOpt of featurePopupOpts) {
+            const popupData: PopupData = {
+              features: featurePopupOpts.map((fp) => fp.feature),
+              ...featurePopupOpt.popupOpts,
+            }
+
+            popupDatas.push(popupData)
+
+            if (!popupData.multiPoppable) {
+              // TODO: figure out logic for multiple popups, if needed
+              break
             }
           }
 
