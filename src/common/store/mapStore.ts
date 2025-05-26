@@ -2123,8 +2123,14 @@ export const useMapStore = create<State>()(
             }
 
             for (const sourceKey in style.sources) {
+              const { extendedOpts, ...sourceSpec } = style.sources[
+                sourceKey
+              ] as ExtendedSourceSpecification
+
+              _map?.addSource(sourceKey, sourceSpec)
               const sourceOptions: SourceOptions = {
                 id: sourceKey,
+                type: sourceSpec.type,
                 popupOpts: null,
                 layerIds: [],
               }
@@ -2140,6 +2146,23 @@ export const useMapStore = create<State>()(
               }
 
               layerGroup.sources[sourceKey] = sourceOptions
+
+              // for geojson sources, optionally fetch the data to ensure it is available locally
+              // maplibre typically stores only the url string in the source spec
+              // and fetches the data when needed, but that makes querying the data impossible
+              if (
+                sourceSpec.type === 'geojson' &&
+                extendedOpts &&
+                extendedOpts.ensureLocalData &&
+                typeof sourceSpec.data === 'string' // Data is a URL
+              ) {
+                const dataUrl = sourceSpec.data
+                const fetchedData = await geoserverJsonQuery(dataUrl)
+                if (fetchedData) {
+                  const source = _map?.getSource(sourceKey)
+                  ;(source as GeoJSONSource).setData(fetchedData)
+                }
+              }
             }
 
             for (const layer of style.layers) {

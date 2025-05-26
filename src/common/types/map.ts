@@ -167,6 +167,12 @@ export type ExtendedLayerSpecification = LayerSpecification & {
   additionalSelectionSources?: AdditionalSelectionSource[]
 }
 
+export type ExtendedSourceSpecification = SourceSpecification & {
+  extendedOpts?: {
+    ensureLocalData?: boolean
+  }
+}
+
 export type ExtendedStyleSpecification = StyleSpecification & {
   layers: ExtendedLayerSpecification[]
 }

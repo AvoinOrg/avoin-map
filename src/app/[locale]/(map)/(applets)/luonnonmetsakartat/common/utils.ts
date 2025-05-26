@@ -101,6 +101,9 @@ export const createAdminFolayerConf = async (
         clusterMaxZoom: 11, // Max zoom to cluster points on
         clusterRadius: 45, // Radius of clusters in pixels
         promoteId: 'id', // Promote ID if your GeoJSON features have a unique 'id' property
+        extendedOpts: {
+          ensureLocalData: true,
+        },
       },
     },
     layers: [
