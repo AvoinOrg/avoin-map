@@ -2270,10 +2270,6 @@ export const useMapStore = create<State>()(
           let layerInsertId: string | null = null
 
           try {
-            for (const sourceKey in style.sources) {
-              _map?.addSource(sourceKey, style.sources[sourceKey])
-            }
-
             const layerGroup: LayerGroupOptions = {
               id: id,
               mapContext: options.mapContext,
