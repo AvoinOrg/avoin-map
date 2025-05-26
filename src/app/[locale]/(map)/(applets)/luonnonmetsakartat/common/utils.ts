@@ -450,8 +450,8 @@ export const createAdminFolayerConf = async (
     popupOpts: {
       component: AreaModal,
       source: centroidSourceId,
+      type: 'modal',
       multiPoppable: false,
-      sidebar: false,
     },
   }
 
