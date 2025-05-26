@@ -70,7 +70,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
       ) {
         const folayerGroupId = getFolayerGroupId(params.folayerIdSlug)
         const folayerGroupAddOptions: LayerGroupAddOptions = {
-          zoomToExtent: true,
+          // zoomToExtent: true,
           // dataUpdateMutator: async (data: FeatureCollection) => {
           //   if (updatePlanConf != null) {
           //     updatePlanConf(params.folayerIdSlug, { data: data as PlanData })
@@ -90,9 +90,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
           //   //     area_ha: getGeoJsonArea(feature) / 10000,
           //   //     zoning_code: '',
           //   //   }
-
           //   //   feature.properties = properties
-
           //   //   return feature
           //   // },
           //   featureUpdateMutator: (feature: Feature) => {
@@ -101,9 +99,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
           //       ...properties,
           //       areaHa: getGeoJsonArea(feature) / 10000,
           //     }
-
           //     feature.properties = newProperties
-
           //     return feature
           //   },
           // },
