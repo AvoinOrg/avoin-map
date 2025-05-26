@@ -458,20 +458,26 @@ export const getFeaturesFromSourceById = (
   return [] as Feature[]
 }
 
-export const fetchFeaturesByIds = (
-  ids: (string | number | undefined)[],
-  sourceId: string,
-  idField: string,
-  allowedLayers: string[],
-  _mbMap: Map | null
-) => {
-  if (!_mbMap) {
+export const fetchFeaturesByIds = ({
+  ids,
+  sourceId,
+  idField,
+  allowedLayers,
+  map,
+}: {
+  ids: (string | number | undefined)[]
+  sourceId: string
+  idField: string
+  allowedLayers: string[]
+  map: Map | null
+}) => {
+  if (!map) {
     console.error('Map object is not available')
     return []
   }
 
   // Query the rendered features from all layers
-  const allRenderedFeatures = _mbMap.queryRenderedFeatures(undefined, {
+  const allRenderedFeatures = map.queryRenderedFeatures(undefined, {
     layers: allowedLayers,
   })
 

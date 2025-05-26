@@ -985,13 +985,13 @@ export const useMapStore = create<State>()(
             usedAllowedLayers = allowedLayers
           }
 
-          const newFeatures = fetchFeaturesByIds(
-            featureIds,
-            sourceId,
-            idField,
-            usedAllowedLayers,
-            _map
-          )
+          const newFeatures = fetchFeaturesByIds({
+            ids: featureIds,
+            sourceId: sourceId,
+            idField: idField,
+            allowedLayers: usedAllowedLayers,
+            map: _map,
+          })
 
           setSelectedFeatures(
             uniq([...selectedFeatures, ...newFeatures]),
@@ -1776,13 +1776,13 @@ export const useMapStore = create<State>()(
                     return feature.properties[idField]
                   })
 
-                  const features = fetchFeaturesByIds(
-                    featureIds,
-                    layerGroupId,
-                    idField,
-                    allowedLayers,
-                    _map
-                  )
+                  const features = fetchFeaturesByIds({
+                    ids: featureIds,
+                    sourceId: layerGroupId,
+                    idField: idField,
+                    allowedLayers: allowedLayers,
+                    map: _map,
+                  })
 
                   if (features) {
                     features.filter
