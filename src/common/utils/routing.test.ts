@@ -1,10 +1,6 @@
 import { RouteTree } from '../types/routing'
-import {
-  generatePathNames,
-  getRoute,
-  getRouteParent,
-  getRoutesForPath,
-} from './routing'
+import { generatePathNames, getRouteParent, getRoutesForPath } from './routing'
+import { getRoute } from './routing-client'
 import { cloneDeep } from 'lodash-es'
 
 describe('routing utils', () => {
@@ -220,6 +216,7 @@ describe('routing utils', () => {
         { name: 'Products', path: '/products', routeTree: routeTree.products },
         {
           name: 'Product',
+          params: { routeParams: { productId: '123' } },
           path: '/products/123',
           routeTree: routeTree.products.product,
         },
@@ -236,6 +233,7 @@ describe('routing utils', () => {
         { name: 'Products', path: '/products', routeTree: routeTree.products },
         {
           name: 'Product',
+          params: { routeParams: { productId: '123' } },
           path: '/products/123',
           routeTree: routeTree.products.product,
         },
@@ -244,16 +242,19 @@ describe('routing utils', () => {
 
     it('returns a correct set of routes for a path', () => {
       const routes = getRoutesForPath('/products/123/order/456', routeTree)
+      console.log(JSON.stringify(routes, null, 2))
       expect(routes).toEqual([
         { name: 'Home', path: '/', routeTree: routeTree },
         { name: 'Products', path: '/products', routeTree: routeTree.products },
         {
           name: 'Product',
+          params: { routeParams: { productId: '123' } },
           path: '/products/123',
           routeTree: routeTree.products.product,
         },
         {
           name: 'Order',
+          params: { routeParams: { productId: '123', orderId: '456' } },
           path: '/products/123/order/456',
           routeTree: routeTree.products.product.order,
         },
@@ -267,9 +268,15 @@ describe('routing utils', () => {
       )
       expect(routes).toEqual([
         { name: 'Home', path: '/', routeTree: routeTree },
-        { name: 'Stuff', path: '/stuff/123', routeTree: routeTree.stuff },
+        {
+          name: 'Stuff',
+          params: { routeParams: { stuffId: '123' } },
+          path: '/stuff/123',
+          routeTree: routeTree.stuff,
+        },
         {
           name: 'Settings',
+          params: { routeParams: { stuffId: '123' } },
           path: '/stuff/123/settings',
           routeTree: routeTree.stuff.settings,
         },
@@ -280,14 +287,21 @@ describe('routing utils', () => {
       const routes = getRoutesForPath('/stuff/123/extras/456', routeTree)
       expect(routes).toEqual([
         { name: 'Home', path: '/', routeTree: routeTree },
-        { name: 'Stuff', path: '/stuff/123', routeTree: routeTree.stuff },
+        {
+          name: 'Stuff',
+          params: { routeParams: { stuffId: '123' } },
+          path: '/stuff/123',
+          routeTree: routeTree.stuff,
+        },
         {
           name: 'Extras',
+          params: { routeParams: { stuffId: '123' } },
           path: '/stuff/123/extras',
           routeTree: routeTree.stuff.extras,
         },
         {
           name: 'Extra',
+          params: { routeParams: { stuffId: '123', extraId: '456' } },
           path: '/stuff/123/extras/456',
           routeTree: routeTree.stuff.extras.extra,
         },
@@ -310,11 +324,13 @@ describe('routing utils', () => {
         { name: 'Home', path: '/home', routeTree: routeTreeWithBase },
         {
           name: 'Stuff',
+          params: { routeParams: { stuffId: '123' } },
           path: '/home/stuff/123',
           routeTree: routeTreeWithBase.stuff,
         },
         {
           name: 'Settings',
+          params: { routeParams: { stuffId: '123' } },
           path: '/home/stuff/123/settings',
           routeTree: routeTreeWithBase.stuff.settings,
         },

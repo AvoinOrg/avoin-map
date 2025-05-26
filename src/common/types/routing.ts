@@ -24,4 +24,5 @@ export type RouteForLinks = {
   name: string
   path: string
   routeTree: RouteTree
+  params?: Params
 }
