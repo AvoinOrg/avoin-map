@@ -1555,8 +1555,31 @@ export const useMapStore = create<State>()(
             }: FitBoundsOptions = {}
           ): Promise<void> => {
             const { fitBounds, getSourceBounds } = get()
+            const { _layerGroups } = get()
 
-            const bounds = await getSourceBounds(layerGroupId, {
+            const layerGroupOpts = _layerGroups[layerGroupId]
+
+            let boundsSource
+
+            for (const [sourceId, sourceDetails] of Object.entries(
+              layerGroupOpts.sources
+            )) {
+              if (sourceDetails.type === 'geojson') {
+                boundsSource = sourceId
+                break
+              }
+            }
+
+            if (!boundsSource) {
+              const errorMsg =
+                'Zooming to bounds: no GeoJSON source found in layer group: ' +
+                layerGroupId
+
+              console.error(errorMsg)
+              return Promise.reject(new Error(errorMsg))
+            }
+
+            const bounds = await getSourceBounds(boundsSource, {
               skipQueue: true,
             })
             if (bounds) {
