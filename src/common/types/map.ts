@@ -17,8 +17,7 @@ import type { Actions as MapStoreActions } from '#/common/store/mapStore'
 // interface mapFunctions {}
 
 export type PopupProps = {
-  onClose: () => {}
-  features: PopupFeature[]
+  features: MapGeoJSONFeature[]
   isOpen?: boolean
 }
 
@@ -239,21 +238,23 @@ export enum QueuePriority {
   HIGH = 4, // for hydration and other vital stuff
 }
 
+export type PopupType = 'tooltip' | 'sidebar' | 'modal' | 'unique'
+
 export interface PopupData {
   features: MapGeoJSONFeature[]
   component: Popup
   source: string
+  type: PopupType
   sourceLayer?: string
   multiPoppable?: boolean
-  sidebar?: boolean
 }
 
 export interface PopupOpts {
   component: Popup
   source: string
+  type: PopupType
   sourceLayer?: string
   multiPoppable?: boolean
-  sidebar?: boolean
 }
 
 export type PopupFeature = {
