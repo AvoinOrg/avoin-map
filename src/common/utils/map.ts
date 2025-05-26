@@ -459,7 +459,7 @@ export const getFeaturesFromSourceById = (
 }
 
 export const fetchFeaturesByIds = (
-  ids: string[],
+  ids: (string | number | undefined)[],
   sourceId: string,
   idField: string,
   allowedLayers: string[],
