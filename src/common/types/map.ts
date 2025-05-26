@@ -305,3 +305,8 @@ export type ImageOptions = {
   colorCode?: string
   size?: number
 }
+
+export type ExtendedMapGeoJSONFeature = MapGeoJSONFeature & {
+  isAdditional?: boolean
+  isPlaceholder?: boolean
+}
