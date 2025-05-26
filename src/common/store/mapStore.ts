@@ -52,6 +52,7 @@ import {
   ImageOptions,
   LayerEventHandlerOptions,
   LayerOptionsObj,
+  ExtendedMapGeoJSONFeature,
   SourceOptions,
   ExtendedSourceSpecification,
 } from '#/common/types/map'
@@ -777,7 +778,7 @@ export const useMapStore = create<State>()(
         // if the layerConf specifies other sources that have the same features (with the same ids), these
         // are queried here and returned
         _getAdditionalSelectedFeatures: (features: MapGeoJSONFeature[]) => {
-          const { _layerGroups, _map } = get()
+          const { _layerGroups, _map, getSourceJson } = get()
 
           const LayerOptionsObj = getAllLayerOptionsObj(_layerGroups)
 
@@ -807,16 +808,21 @@ export const useMapStore = create<State>()(
                       queriedAdditionalFeatures.length > 0 &&
                       queriedAdditionalFeatures[0] != null
                     ) {
-                      queriedAdditionalFeatures[0].source =
-                        additionalSource.source
-                      queriedAdditionalFeatures[0].sourceLayer = sourceLayer
-                      additionalFeatures.push(queriedAdditionalFeatures[0])
+                      const queriedFeature =
+                        queriedAdditionalFeatures[0] as ExtendedMapGeoJSONFeature
+                      queriedFeature.source = additionalSource.source
+                      queriedFeature.sourceLayer = sourceLayer
+                      queriedFeature.isAdditional = true
+                      // queriedFeature.layer = { id: sourceLayer }
+                      additionalFeatures.push(queriedFeature)
                     } else {
                       additionalFeatures.push({
                         source: additionalSource.source,
                         id: feature.id,
                         sourceLayer: sourceLayer,
-                      } as MapGeoJSONFeature)
+                        isPlaceholder: true,
+                        isAdditional: true,
+                      } as ExtendedMapGeoJSONFeature)
                     }
                   }
                 } else {
@@ -833,14 +839,68 @@ export const useMapStore = create<State>()(
                     queriedAdditionalFeatures.length > 0 &&
                     queriedAdditionalFeatures[0] != null
                   ) {
-                    queriedAdditionalFeatures[0].source =
-                      additionalSource.source
-                    additionalFeatures.push(queriedAdditionalFeatures[0])
+                    const queriedFeature =
+                      queriedAdditionalFeatures[0] as ExtendedMapGeoJSONFeature
+                    queriedFeature.source = additionalSource.source
+                    queriedFeature.isAdditional = true
+                    additionalFeatures.push(queriedFeature)
                   } else {
+                    // TODO: here add stuff to actually fetch the data somewhere.
+                    // wfs, postgres, whatever. The query function could be added to layerConf.
+                    // Keep the placeholder until the data is fetched. I guess you need a callback to replace
+                    // the placeholder with the actual data.
+
+                    const sourceType = _map?.getSource(
+                      additionalSource.source
+                    )?.type
+
+                    if (sourceType != null) {
+                      if (sourceType === 'geojson') {
+                        const featureCollection = getSourceJson(
+                          additionalSource.source
+                        )
+
+                        if (featureCollection) {
+                          const additionalFeature =
+                            featureCollection.features.find((f) => {
+                              return f.id === feature.id
+                            })
+
+                          if (additionalFeature) {
+                            const extendedFeature = {
+                              ...additionalFeature,
+                              source: additionalSource.source,
+                              isAdditional: true,
+                            }
+                            additionalFeatures.push(
+                              extendedFeature as ExtendedMapGeoJSONFeature
+                            )
+                            continue
+                          }
+                          additionalFeatures.push({
+                            source: additionalSource.source,
+                            id: feature.id,
+                            isPlaceholder: true,
+                            isAdditional: true,
+                          } as ExtendedMapGeoJSONFeature)
+                          continue
+                        }
+                        additionalFeatures.push({
+                          source: additionalSource.source,
+                          id: feature.id,
+                          isPlaceholder: true,
+                          isAdditional: true,
+                        } as ExtendedMapGeoJSONFeature)
+                        continue
+                      }
+                    }
+                    // For now, just handle the geojson source
                     additionalFeatures.push({
                       source: additionalSource.source,
                       id: feature.id,
-                    } as MapGeoJSONFeature)
+                      isPlaceholder: true,
+                      isAdditional: true,
+                    } as ExtendedMapGeoJSONFeature)
                   }
                 }
               }
