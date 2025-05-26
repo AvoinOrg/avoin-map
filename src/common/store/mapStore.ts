@@ -220,15 +220,20 @@ export type Actions = {
     updateDrawSelect?: boolean
   ) => void
   setSelectedFeaturesByClick: (features: MapGeoJSONFeature[]) => void
+  removeSelectedFeatures: (params: {
+    features: MapGeoJSONFeature[]
+    updateDrawSelect?: boolean
+    ignorePopups?: boolean
+  }) => void
   removeSelectedFeaturesByIds: (params: {
-    featureIds: string[]
+    featureIds: (string | number | undefined)[]
     idField: string
     sourceId: string
     updateDrawSelect?: boolean
     ignorePopups?: boolean
   }) => void
   addSelectedFeaturesByIds: (params: {
-    featureIds: string[]
+    featureIds: (string | number | undefined)[]
     idField: string
     sourceId: string
     allowedLayers?: string[]
@@ -1005,8 +1010,35 @@ export const useMapStore = create<State>()(
           })
         },
 
+        removeSelectedFeatures: (params: {
+          features: MapGeoJSONFeature[]
+          updateDrawSelect?: boolean
+          ignorePopups?: boolean
+        }) => {
+          const { features, updateDrawSelect, ignorePopups } = params
+          const {
+            selectedFeatures,
+            setSelectedFeatures,
+            _setPopupDataForFeatures,
+          } = get()
+
+          const newSelectedFeatures = selectedFeatures.filter((sf) => {
+            const isPresentInParamsFeatures = features.some((pf) => {
+              return pf.id === sf.id && isMatchingSource(sf, pf)
+            })
+
+            return !isPresentInParamsFeatures
+          })
+
+          setSelectedFeatures(newSelectedFeatures, updateDrawSelect)
+
+          if (!ignorePopups) {
+            _setPopupDataForFeatures(newSelectedFeatures)
+          }
+        },
+
         removeSelectedFeaturesByIds: (params: {
-          featureIds: string[]
+          featureIds: (string | number | undefined)[]
           idField: string
           sourceId: string
           updateDrawSelect?: boolean
@@ -1046,7 +1078,7 @@ export const useMapStore = create<State>()(
         },
 
         addSelectedFeaturesByIds: (params: {
-          featureIds: string[]
+          featureIds: (string | number | undefined)[]
           idField: string
           sourceId: string
           allowedLayers?: string[]
