@@ -28,13 +28,7 @@ export type AdditionalSelectionSource = {
   sourceLayers?: string[]
 }
 
-export type SourceType =
-  | 'geojson'
-  | 'vector'
-  | 'raster'
-  | 'image'
-  | 'video'
-  | 'canvas'
+export type SourceType = SourceSpecification['type']
 
 export type LayerGroupOptions = {
   id: string
@@ -72,6 +66,7 @@ export type LayerOptionsObj = {
 
 export type SourceOptions = {
   id: string
+  type: SourceType
   popupOpts: PopupOpts | null
   layerIds: string[]
 }
