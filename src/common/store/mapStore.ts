@@ -53,6 +53,7 @@ import {
   LayerEventHandlerOptions,
   LayerOptionsObj,
   SourceOptions,
+  ExtendedSourceSpecification,
 } from '#/common/types/map'
 import { layerConfs } from '#/components/Map/Layers'
 

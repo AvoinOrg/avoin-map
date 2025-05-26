@@ -9,6 +9,7 @@ import type {
   MapLayerEventType,
   MapLayerMouseEvent,
   MapLayerTouchEvent,
+  SourceSpecification,
 } from 'maplibre-gl'
 import type MaplibreDraw from 'maplibre-gl-draw'
 
@@ -169,6 +170,7 @@ export type ExtendedSourceSpecification = SourceSpecification & {
 }
 
 export type ExtendedStyleSpecification = StyleSpecification & {
+  sources: Record<string, ExtendedSourceSpecification>
   layers: ExtendedLayerSpecification[]
 }
 
