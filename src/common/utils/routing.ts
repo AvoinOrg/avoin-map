@@ -115,7 +115,15 @@ export const getRouteNoStoreCheck = (
             const paramName = pathPart.slice(1, -1) // Remove the brackets
             if (routeParams[paramName] == null) {
               throw new Error(
-                `Not enough params provided for route: ${route} in ${routeTree} with params: ${routeParams}`
+                `Not enough params provided for route: ${JSON.stringify(
+                  route,
+                  null,
+                  2
+                )} in ${JSON.stringify(
+                  routeTree,
+                  null,
+                  2
+                )} with params: ${JSON.stringify(routeParams, null, 2)}`
               )
             }
             path += `/${routeParams[paramName]}`
@@ -161,13 +169,15 @@ export const getRoutesForPath = (
 
   // ensure that the basePath only has a starting slash
   const basePath = '/' + routeTree._conf.path.replace(/^\/|\/$/g, '')
-  const routes = [
+  const routes: RouteForLinks[] = [
     { name: routeTree._conf.name, path: basePath, routeTree: routeTree },
   ]
 
   if (basePath === '/' + subPaths[0]) {
     subPaths.shift()
   }
+
+  const accumulatedParams: Record<string, string> = {}
 
   let currentPath = basePath.length > 1 ? basePath : ''
 
@@ -185,39 +195,66 @@ export const getRoutesForPath = (
         if (child._conf.path === subPath) {
           currentPath += `/${subPath}`
 
-          routes.push({
+          const route: RouteForLinks = {
             name: child._conf.name,
             path: currentPath,
             routeTree: child,
-          })
+          }
+
+          if (Object.keys(accumulatedParams).length > 0) {
+            route.params = { routeParams: { ...accumulatedParams } }
+          }
+
+          routes.push(route)
+
           currentRouteTree = child
           foundChild = true
           i++
           break
         } else {
-          const childPaths = child._conf.path
+          const splitPaths = child._conf.path
             .split('/')
             .filter((p: string) => p.length > 0)
+
           if (
-            childPaths[0] !== subPath &&
-            !childPaths[0].startsWith('[') &&
-            !childPaths[0].endsWith(']')
+            splitPaths[0] !== subPath &&
+            !splitPaths[0].startsWith('[') &&
+            !splitPaths[0].endsWith(']')
           ) {
             break
           }
 
-          if (childPaths.length > 0) {
-            const max = childPaths.length + i
+          if (splitPaths.length > 0) {
+            const max = splitPaths.length + i
+
+            let splitIndex = 0
             while (i < max) {
+              // get the used param if the path is dynamic
+              if (
+                splitPaths[splitIndex].startsWith('[') &&
+                splitPaths[splitIndex].endsWith(']')
+              ) {
+                const paramName = splitPaths[splitIndex].slice(1, -1)
+                accumulatedParams[paramName] = subPaths[i]
+              }
+
               currentPath += `/${subPaths[i]}`
               i++
+              splitIndex++
             }
 
-            routes.push({
+            const route: RouteForLinks = {
               name: child._conf.name,
               path: currentPath,
               routeTree: child,
-            })
+            }
+
+            if (Object.keys(accumulatedParams).length > 0) {
+              route.params = { routeParams: { ...accumulatedParams } }
+            }
+
+            routes.push(route)
+
             currentRouteTree = child
             foundChild = true
             break
@@ -232,12 +269,16 @@ export const getRoutesForPath = (
         child._conf.path.endsWith(']')
       ) {
         currentPath += `/${subPath}`
+        const paramName = child._conf.path.slice(1, -1)
+        accumulatedParams[paramName] = subPath
 
         routes.push({
           name: child._conf.name,
+          params: { routeParams: { ...accumulatedParams } },
           path: currentPath,
           routeTree: child,
         })
+
         currentRouteTree = child
         foundChild = true
         i++
@@ -251,6 +292,148 @@ export const getRoutesForPath = (
   }
   return routes
 }
+
+// export const getRoutesForPath = (
+//   path: string,
+//   routeTree: RouteTree
+// ): RouteForLinks[] => {
+//   const pathWithoutQuery = path.split('?')[0];
+//   let subPaths = pathWithoutQuery
+//     .toLowerCase()
+//     .split('/')
+//     .filter((p) => p.length > 0);
+
+//   // Remove locale if present
+//   if (subPaths.length > 0 && LOCALES.includes(subPaths[0].toLowerCase())) {
+//     subPaths.shift();
+//   }
+
+//   let accumulatedParams: Record<string, string> = {};
+//   const routes: RouteForLinks[] = [];
+
+//   // --- Match the root routeTree._conf.path against the initial subPaths ---
+//   const rootPathConf = routeTree._conf.path;
+//   const rootPathConfSegments = rootPathConf.split('/').filter(p => p.length > 0);
+//   let rootPathMatchedUrlSegments: string[] = [];
+//   let rootPathConsumedUrlSegmentsCount = 0;
+
+//   if (rootPathConfSegments.length > 0) {
+//     if (subPaths.length < rootPathConfSegments.length) {
+//       // This error means the input path is shorter than the defined root path of the routeTree
+//       // e.g. routeTree expects "/app/[id]" but path is "/app"
+//       throw new Error(
+//         `Path "${path}" is too short to match root routeTree base path "${rootPathConf}". Remaining path segments: "${subPaths.join('/')}"`
+//       );
+//     }
+//     for (let k = 0; k < rootPathConfSegments.length; k++) {
+//       const confSegment = rootPathConfSegments[k];
+//       const urlSegment = subPaths[k];
+//       if (confSegment.startsWith('[') && confSegment.endsWith(']')) {
+//         const paramName = confSegment.slice(1, -1);
+//         accumulatedParams[paramName] = urlSegment;
+//         rootPathMatchedUrlSegments.push(urlSegment);
+//         rootPathConsumedUrlSegmentsCount++;
+//       } else if (confSegment === urlSegment) {
+//         rootPathMatchedUrlSegments.push(urlSegment);
+//         rootPathConsumedUrlSegmentsCount++;
+//       } else {
+//         throw new Error(
+//           `Path "${path}" does not match root routeTree base path "${rootPathConf}" at segment "${confSegment}" (expected) vs "${urlSegment}" (actual).`
+//         );
+//       }
+//     }
+//   }
+
+//   const initialFullPath = ('/' + rootPathMatchedUrlSegments.join('/')).replace(/\/+/g, '/') || '/';
+//   routes.push({
+//     name: routeTree._conf.name,
+//     path: initialFullPath,
+//     routeTree: routeTree,
+//     params: { ...accumulatedParams },
+//   });
+
+//   // Update subPaths to only contain segments not consumed by the root path match
+//   subPaths = subPaths.slice(rootPathConsumedUrlSegmentsCount);
+
+//   let currentRouteTree = routeTree;
+//   let currentParentPath = initialFullPath;
+
+//   // --- Loop through children to match remaining subPaths ---
+//   while (subPaths.length > 0) {
+//     let foundChild = false;
+//     const children = getRouteChildren(currentRouteTree);
+
+//     for (const child of children) {
+//       if (!child._conf) continue;
+
+//       const childDefinedPath = child._conf.path;
+//       const childDefinedPathSegments = childDefinedPath.split('/').filter(p => p.length > 0);
+
+//       if (childDefinedPathSegments.length === 0) continue; // Child path conf must have segments
+//       if (subPaths.length < childDefinedPathSegments.length) continue; // Not enough remaining URL segments for this child
+
+//       let tempProposedParams = { ...accumulatedParams }; // Inherit params from parent scope
+//       let numUrlSegmentsConsumedByThisChild = 0;
+//       let pathSegmentsForThisChildMatch: string[] = [];
+
+//       let matchSuccessful = true;
+//       for (let k = 0; k < childDefinedPathSegments.length; k++) {
+//         const definedSegment = childDefinedPathSegments[k];
+//         const urlSegmentToMatch = subPaths[k]; // Match against the current start of subPaths
+
+//         if (definedSegment.startsWith('[') && definedSegment.endsWith(']')) {
+//           const paramName = definedSegment.slice(1, -1);
+//           tempProposedParams[paramName] = urlSegmentToMatch;
+//           pathSegmentsForThisChildMatch.push(urlSegmentToMatch);
+//           numUrlSegmentsConsumedByThisChild++;
+//         } else if (definedSegment === urlSegmentToMatch) {
+//           pathSegmentsForThisChildMatch.push(urlSegmentToMatch);
+//           numUrlSegmentsConsumedByThisChild++;
+//         } else {
+//           matchSuccessful = false;
+//           break;
+//         }
+//       }
+
+//       if (matchSuccessful) {
+//         // Construct the full path for this matched child
+//         let nextFullPath = currentParentPath;
+//         if (pathSegmentsForThisChildMatch.length > 0) {
+//           if (nextFullPath === '/') { // Avoid double slash at root
+//             nextFullPath = '/' + pathSegmentsForThisChildMatch.join('/');
+//           } else {
+//             nextFullPath += '/' + pathSegmentsForThisChildMatch.join('/');
+//           }
+//         }
+//         nextFullPath = nextFullPath.replace(/\/+/g, '/') || '/'; // Normalize and ensure root is '/'
+
+//         accumulatedParams = tempProposedParams; // Update the main accumulatedParams for subsequent children/levels
+
+//         routes.push({
+//           name: child._conf.name,
+//           path: nextFullPath,
+//           routeTree: child,
+//           params: { ...accumulatedParams }, // Store a snapshot of all params up to this point
+//         });
+
+//         currentRouteTree = child;
+//         currentParentPath = nextFullPath;
+//         foundChild = true;
+//         subPaths = subPaths.slice(numUrlSegmentsConsumedByThisChild); // Consume matched segments
+//         break; // Move to match children of this newly matched child
+//       }
+//     } // End for (child of children)
+
+//     if (!foundChild) {
+//       // If subPaths still has items, but no child matched them
+//       throw new Error(
+//         `Route not found. Could not match remaining segments "${subPaths.join('/')}" from original path "${path}". Last successful path: "${currentParentPath}".`
+//       );
+//     }
+//   } // End while (subPaths.length > 0)
+
+//   return routes;
+// };
 
 export const getBaseUrl = () => {
   let baseUrl = ''
