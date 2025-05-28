@@ -20,6 +20,7 @@ const BreadcrumbNav = ({ routeTree }: Props) => {
     <MutableLink
       route={route.routeTree}
       routeTree={routeTree}
+      params={route.params}
       sx={{ color: 'inherit' }}
     >
       <Typography
@@ -66,6 +67,7 @@ const BreadcrumbNav = ({ routeTree }: Props) => {
           <MutableLink
             route={routes[routes.length - 2].routeTree}
             routeTree={routeTree}
+            params={routes[routes.length - 2].params}
           >
             <ArrowBackIosNewIcon
               sx={(theme) => ({
