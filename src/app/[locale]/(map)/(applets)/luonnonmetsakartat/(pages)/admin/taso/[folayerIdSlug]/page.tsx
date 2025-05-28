@@ -21,7 +21,7 @@ import { getRoute } from '#/common/utils/routing-client'
 import { getGeoJsonArea } from '#/common/utils/gis'
 import { generateUUID } from '#/common/utils/general'
 import BigMenuButton from '#/components/common/BigMenuButton'
-import { Upload } from '#/components/icons'
+import { ArrowNextBig, Upload } from '#/components/icons'
 
 import {
   FeatureProperties,
@@ -42,6 +42,7 @@ import { SaveOutlined } from '@mui/icons-material'
 import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
 import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
 import SearchTable from 'applets/luonnonmetsakartat/components/SearchTable'
+import MutableLink from '#/components/common/MutableLink'
 
 const Page = () => {
   const [isFolayerReady, setIsFolayerReady] = useState(false)
@@ -137,33 +138,43 @@ const Page = () => {
         )}
         {isFolayerReady && (
           <Box>
-            <TextFieldWithHeader
-              headerText={t('sidebar.admin.folayer.name.header')}
-              value={adminFolayerConf.name}
-              onChange={handleNameChange}
-              placeholderText={adminFolayerConf.name}
-              sx={{ mt: 2.5 }}
-              disabled={isEditingDisabled}
-            ></TextFieldWithHeader>
-            <ColorPickerWithPopover
-              color={adminFolayerConf.colorCode}
-              onChange={handleColorChange}
-              sx={{ mt: 6 }}
-              labelText={t('sidebar.admin.folayer.color')}
-            ></ColorPickerWithPopover>
-            <CheckBoxWithText
-              checked={adminFolayerConf.isVisible}
-              onChange={handleIsVisibleChange}
-              sx={{ mt: 5 }}
-              disabled={isEditingDisabled}
-            >
-              <T
-                ns={'luonnonmetsakartat'}
-                keyName={'sidebar.admin.folayer.is_visible'}
-              ></T>
-            </CheckBoxWithText>
+            <Typography sx={{ typography: 'h2' }}>
+              {adminFolayerConf.name}
+            </Typography>
           </Box>
         )}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            mt: 4,
+            width: '100%',
+            justifyContent: 'flex-end',
+          }}
+        >
+          <MutableLink
+            route={routeTree.admin.folayer.settings}
+            routeTree={routeTree}
+            params={{ routeParams: { folayerId: adminFolayerConf.id } }}
+            sx={{ alignItems: 'center' }}
+          >
+            <Typography
+              sx={{
+                typography: 'h6',
+                fontWeight: 500,
+                textDecoration: 'underline',
+                textUnderlineOffset: '0.1em',
+              }}
+            >
+              <T
+                keyName={'sidebar.admin.folayer.open_settings'}
+                ns={'luonnonmetsakartat'}
+              ></T>
+            </Typography>
+            <ArrowNextBig sx={{ ml: 1, height: '1.2rem' }}></ArrowNextBig>
+          </MutableLink>
+        </Box>
+
         <Typography sx={{ mt: 7, typography: 'h3' }}>
           <T keyName={'sidebar.admin.folayer.all_areas_title'}></T>
         </Typography>
