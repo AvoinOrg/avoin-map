@@ -28,6 +28,12 @@ export const routeTree: RouteTree = {
         path: 'taso/[folayerId]',
         name: 'Karttataso',
       },
+      settings: {
+        _conf: {
+          path: 'asetukset',
+          name: 'Asetukset',
+        },
+      },
     },
   },
 }
