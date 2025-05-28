@@ -70,13 +70,13 @@ const MutableLink = ({
           }}
           prefetch={true}
           {...props}
-          href={getRoute(
-            route,
-            routeTree,
-            params,
-            removeSteps,
-            removeStepsFromRoot
-          )}
+          href={getRoute({
+            routeNode: route,
+            routeTree: routeTree,
+            params: params,
+            removeSteps: removeSteps,
+            removeStepsFromRoot: removeStepsFromRoot,
+          })}
         >
           {children}
         </MuiLink>

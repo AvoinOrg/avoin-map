@@ -232,8 +232,12 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
 
           // Use router.replace to update the URL without adding a new history entry
           router.replace(
-            getRoute(routeTree.report, routeTree, {
-              queryParams: newSearchParams,
+            getRoute({
+              routeNode: routeTree.report,
+              routeTree: routeTree,
+              params: {
+                queryParams: newSearchParams,
+              },
             })
           )
         }
@@ -251,8 +255,12 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
 
     // Use router.replace to update the URL without adding a new history entry
     router.replace(
-      getRoute(routeTree.report, routeTree, {
-        queryParams: newSearchParams,
+      getRoute({
+        routeNode: routeTree.report,
+        routeTree: routeTree,
+        params: {
+          queryParams: newSearchParams,
+        },
       })
     )
   }

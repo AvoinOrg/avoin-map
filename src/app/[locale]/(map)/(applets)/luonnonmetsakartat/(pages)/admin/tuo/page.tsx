@@ -57,9 +57,13 @@ const Page = () => {
   useEffect(() => {
     if (localFolayerPostMutation.isSuccess) {
       const id = localFolayerPostMutation.data.id
-      const route = getRoute(routeTree.admin.folayer, routeTree, {
-        routeParams: {
-          folayerId: id,
+      const route = getRoute({
+        routeNode: routeTree.admin.folayer,
+        routeTree: routeTree,
+        params: {
+          routeParams: {
+            folayerId: id,
+          },
         },
       })
       router.push(route)
