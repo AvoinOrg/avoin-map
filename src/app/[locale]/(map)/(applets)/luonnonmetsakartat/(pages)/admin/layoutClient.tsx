@@ -88,7 +88,10 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
   // further without being verified
   useEffect(() => {
     if (localState === LocalState.Rejected) {
-      const adminRoute = getRoute(routeTree.admin, routeTree)
+      const adminRoute = getRoute({
+        routeNode: routeTree.admin,
+        routeTree: routeTree,
+      })
       if (getPathnameWithoutLocale(pathname, locale) !== adminRoute) {
         router.replace(adminRoute)
       }

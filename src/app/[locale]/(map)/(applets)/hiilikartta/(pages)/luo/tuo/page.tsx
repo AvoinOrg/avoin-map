@@ -244,9 +244,13 @@ const Page = () => {
     try {
       const id = await initializePlan(json, zoningColName, nameColName)
       if (id) {
-        const route = getRoute(routeTree.plans.plan, routeTree, {
-          routeParams: {
-            planId: id,
+        const route = getRoute({
+          routeNode: routeTree.plans.plan,
+          routeTree: routeTree,
+          params: {
+            routeParams: {
+              planId: id,
+            },
           },
         })
         router.push(route)

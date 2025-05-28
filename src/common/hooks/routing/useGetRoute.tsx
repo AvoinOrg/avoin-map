@@ -19,13 +19,13 @@ export const useGetRoute = (
   )
 
   const computedRoute = useMemo(() => {
-    return getRoute(
-      route,
-      routeTree,
-      { routeParams, queryParams },
-      removeSteps,
-      removeStepsFromRoot
-    )
+    return getRoute({
+      routeNode: route,
+      routeTree: routeTree,
+      params: { routeParams, queryParams },
+      removeSteps: removeSteps,
+      removeStepsFromRoot: removeStepsFromRoot,
+    })
   }, [
     route,
     routeTree,

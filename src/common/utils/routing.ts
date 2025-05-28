@@ -79,23 +79,32 @@ const findRouteObjects = (
  * applets, use getRoute
  */
 
-export const getRouteNoStoreCheck = (
-  route: RouteTree,
-  routeTree: RouteTree,
-  { routeParams = {}, queryParams = {} }: Params = {},
+interface GetRouteNoStoreCheckParams extends Params {
+  routeNode: RouteTree
+  routeTree: RouteTree
+  params?: Params
+  removeSteps?: number
+  removeStepsFromRoot?: number
+}
+
+export const getRouteNoStoreCheck = ({
+  routeNode,
+  routeTree,
+  params = {},
   removeSteps = 0,
-  removeStepsFromRoot = 0
-) => {
-  let routeObjects = findRouteObjects(route, routeTree)
+  removeStepsFromRoot = 0,
+}: GetRouteNoStoreCheckParams): string => {
+  let routeObjects = findRouteObjects(routeNode, routeTree)
+  const { routeParams = {}, queryParams = {} } = params
 
   if (!routeObjects) {
-    throw new Error('Route not found: ' + route + ' in ' + routeTree)
+    throw new Error('Route not found: ' + routeNode + ' in ' + routeTree)
   }
   // Remove the last steps from the route, e.g. removeSteps = 1 will take the parent route
   routeObjects = routeObjects.slice(0, routeObjects.length - removeSteps)
 
   if (routeObjects.length === 0) {
-    throw new Error('Route not found: ' + route + ' in ' + routeTree)
+    throw new Error('Route not found: ' + routeNode + ' in ' + routeTree)
   }
 
   if (removeStepsFromRoot > 0) {
@@ -116,7 +125,7 @@ export const getRouteNoStoreCheck = (
             if (routeParams[paramName] == null) {
               throw new Error(
                 `Not enough params provided for route: ${JSON.stringify(
-                  route,
+                  routeNode,
                   null,
                   2
                 )} in ${JSON.stringify(
@@ -148,7 +157,12 @@ export const getRouteParent = (
   routeTree: RouteTree,
   params: Params = {}
 ) => {
-  const path = getRouteNoStoreCheck(route, routeTree, params, 1)
+  const path = getRouteNoStoreCheck({
+    routeNode: route,
+    routeTree: routeTree,
+    params: params,
+    removeSteps: 1,
+  })
   return path
 }
 
