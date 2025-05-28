@@ -12,14 +12,23 @@ import { getRouteNoStoreCheck } from './routing'
  * isBaseDomainForApplet is properly set, resulting in an incorrect path, depending on whether the applet
  * is the root of the domain or not.
  */
-export const getRoute = (
-  route: RouteTree,
-  routeTree: RouteTree,
-  { routeParams = {}, queryParams = {} }: Params = {},
+export interface GetRouteArgs {
+  routeNode: RouteTree
+  routeTree: RouteTree
+  params?: Params
+  removeSteps?: number
+  removeStepsFromRoot?: number
+}
+
+export const getRoute = ({
+  routeNode,
+  routeTree,
+  params = {},
   removeSteps = 0,
-  removeStepsFromRoot = 0
-) => {
+  removeStepsFromRoot = 0,
+}: GetRouteArgs) => {
   const isBaseDomainForApplet = useUIStore.getState().isBaseDomainForApplet
+  const { routeParams = {}, queryParams = {} } = params
 
   if (
     removeStepsFromRoot === 0 &&
@@ -29,11 +38,11 @@ export const getRoute = (
     removeStepsFromRoot = 1
   }
 
-  return getRouteNoStoreCheck(
-    route,
-    routeTree,
-    { routeParams, queryParams },
-    removeSteps,
-    removeStepsFromRoot
-  )
+  return getRouteNoStoreCheck({
+    routeNode: routeNode,
+    routeTree: routeTree,
+    params: { routeParams, queryParams },
+    removeSteps: removeSteps,
+    removeStepsFromRoot: removeStepsFromRoot,
+  })
 }
