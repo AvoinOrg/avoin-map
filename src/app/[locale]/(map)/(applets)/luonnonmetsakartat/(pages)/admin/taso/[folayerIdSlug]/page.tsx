@@ -176,7 +176,10 @@ const Page = () => {
         </Box>
 
         <Typography sx={{ mt: 7, typography: 'h3' }}>
-          <T keyName={'sidebar.admin.folayer.all_areas_title'}></T>
+          <T
+            ns={'luonnonmetsakartat'}
+            keyName={'sidebar.admin.folayer.all_areas_title'}
+          ></T>
         </Typography>
         <SearchTable
           sx={{ mt: 2, pb: 5 }}
