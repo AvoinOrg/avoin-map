@@ -130,7 +130,6 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
                   sx={{
                     display: 'inline-flex',
                     typography: 'body2',
-                    ml: 1.5,
                     mt: 0.5,
                   }}
                 >
