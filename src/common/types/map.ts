@@ -16,6 +16,8 @@ import type MaplibreDraw from 'maplibre-gl-draw'
 import type { Actions as MapStoreActions } from '#/common/store/mapStore'
 // interface mapFunctions {}
 
+export const EMBEDDED_PARAMS_URL_PREFIX = 'mapparams::'
+
 export type PopupProps = {
   features: MapGeoJSONFeature[]
   isOpen?: boolean
