@@ -25,14 +25,16 @@ import {
   MapGeoJSONFeature,
   AttributionControl,
 } from 'maplibre-gl'
+import { useSession } from 'next-auth/react'
+
 // import GeoJSON from 'ol/format/GeoJSON'
 import { useUIStore } from '../../common/store'
 import { useMapStore } from '../../common/store'
-
-import { MapLibraryMode, PopupOpts } from '#/common/types/map'
+import { EMBEDDED_PARAMS_URL_PREFIX, MapLibraryMode } from '#/common/types/map'
 import { OverlayMessages } from './OverlayMessages'
 import { MapButtons } from './MapButtons'
 import { MapPopupModal } from './MapPopupModal'
+import { decodeUrlAndParams } from '#/common/utils/map'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 // const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
@@ -46,6 +48,7 @@ interface Props {
 
 export const MapHandler = ({ children }: Props) => {
   // const setIsMapPopupOpen = useUIStore((state) => state.setIsMapPopupOpen)
+  const { data: session } = useSession()
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
 
   const mapDivRef = useRef<HTMLDivElement>()
@@ -65,6 +68,10 @@ export const MapHandler = ({ children }: Props) => {
     (state) => state._executeFunctionQueue
   )
   const mapContext = useMapStore((state) => state.mapContext)
+  const _addStaleSourceId = useMapStore((state) => state._addStaleSourceId)
+  const _refreshStaleSources = useMapStore(
+    (state) => state._refreshStaleSources
+  )
 
   const overlayMessage = useMapStore((state) => state.overlayMessage)
   const setSelectedFeaturesByClick = useMapStore(
@@ -134,28 +141,62 @@ export const MapHandler = ({ children }: Props) => {
     //   })
     // } else {
 
-
-      newMap = new Map({
-        //@ts-ignore
-        container: 'map', // container id
-        style: style,
-        center: viewSettings.center, // starting position [lng, lat]
-        zoom: viewSettings.zoom, // starting zoom
-        attributionControl: false,
-        // transformRequest: (url) => {
-        //   return {
-        //     url: url,
-        //     headers: { "Accept-Encoding": "gzip" },
-        //   };
-        // },
-      })
-
-      newMap.addControl(
-        new AttributionControl({
-          compact: true,
-        })
-      )
+    const style: StyleSpecification = {
+      version: 8,
+      glyphs: `${SERVER_URL}/www/font/{fontstack}/{range}.pbf`,
+      // glyphs: `https://api.mapbox.com/fonts/v1/{user}/{fontstack}/{range}.pbf?access_token=${MAPBOX_ACCESS_TOKEN}`,
+      sources: {
+        osm: {
+          type: 'raster',
+          tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+          tileSize: 256,
+          attribution:
+            '© <a target="_top" rel="noopener" href="https://openstreetmap.org/">OpenStreetMap</a>, under the <a target="_top" rel="noopener" href="https://operations.osmfoundation.org/policies/tiles/">tile usage policy</a>.',
+        },
+      },
+      layers: [
+        {
+          id: 'osm',
+          type: 'raster',
+          source: 'osm',
+        },
+      ],
     }
+
+    newMap = new Map({
+      //@ts-ignore
+      container: 'map', // container id
+      style: style,
+      center: viewSettings.center, // starting position [lng, lat]
+      zoom: viewSettings.zoom, // starting zoom
+      attributionControl: false,
+      transformRequest: (url, type) => {
+        if (
+          url.includes('requireToken=true') &&
+          SERVER_URL != null &&
+          url.includes(SERVER_URL)
+        ) {
+          if (session == null || session.accessToken == null) {
+            console.error(
+              'Maplibre: No access token provided for the request.',
+              url
+            )
+            return { url }
+          }
+
+          return {
+            url,
+            headers: { Authorization: `Bearer ${session?.accessToken}` },
+          }
+        }
+      },
+    })
+
+    newMap.addControl(
+      new AttributionControl({
+        compact: true,
+      })
+    )
 
     if (_map && _map.getStyle()) {
       const sources = _map.getStyle().sources
@@ -280,6 +321,14 @@ export const MapHandler = ({ children }: Props) => {
       // // Use the white SVG string for the image source
       // img.src =
       //   'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(pinSvgString)
+
+      newMap.on('error', (e) => {
+        if (e.error && typeof e.error.status === 'number') {
+          if ('sourceId' in e) {
+            _addStaleSourceId(e.sourceId as string)
+          }
+        }
+      })
 
       setIsMbMapReady(true)
     })
@@ -457,6 +506,63 @@ export const MapHandler = ({ children }: Props) => {
       return initMapMode(mapLibraryMode, { center, zoom })
     }
   }, [mapLibraryMode])
+
+  useEffect(() => {
+    if (_map) {
+      if (session && session.accessToken) {
+        _map.setTransformRequest((url, type) => {
+          if (url.startsWith(EMBEDDED_PARAMS_URL_PREFIX)) {
+            const decoded = decodeUrlAndParams(url)
+            if (decoded == null) {
+              console.error(
+                'Maplibre: Could not decode URL and parameters from',
+                url
+              )
+              return { url }
+            }
+
+            const { url: originalUrl, params } = decoded
+
+            if (params.useAccessToken) {
+              return {
+                url: originalUrl,
+                headers: { Authorization: `Bearer ${session.accessToken}` },
+              }
+            }
+          }
+          return { url }
+        })
+      } else {
+        _map.setTransformRequest((url, type) => {
+          if (url.startsWith(EMBEDDED_PARAMS_URL_PREFIX)) {
+            const decoded = decodeUrlAndParams(url)
+            if (decoded == null) {
+              console.error(
+                'Maplibre: Could not decode URL and parameters from',
+                url
+              )
+              return { url }
+            }
+
+            const { url: originalUrl, params } = decoded
+
+            if (params.useAccessToken) {
+              console.error(
+                'Maplibre: No access token provided for the request.',
+                originalUrl
+              )
+
+              _addStaleSourceId(originalUrl)
+
+              return { url: originalUrl }
+            }
+          }
+        })
+      }
+
+      _refreshStaleSources()
+    }
+  }, [_map, session?.accessToken])
 
   // This effect runs only when OpenLayers is used
   // It refreshes the set of popup functions whenever
