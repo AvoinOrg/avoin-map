@@ -76,6 +76,7 @@ import {
   getAllLayerOptionsObj,
   isMatchingSource,
   findSourceOptsById,
+  encodeUrlWithParams,
 } from '#/common/utils/map'
 import { geoserverJsonQuery } from '../queries/geoserverJsonQuery'
 
@@ -2291,7 +2292,50 @@ export const useMapStore = create<State>()(
                 type: sourceSpec.type,
                 popupOpts: null,
                 layerIds: [],
+                ...(extendedOpts && { extendedOpts }),
               }
+
+              // store the original urls in the sourceOptions
+              if ('data' in sourceSpec && typeof sourceSpec.data === 'string') {
+                sourceOptions.url = sourceSpec.data
+
+                // if it useAccessToken is set, then the source url needs to be encoded in a such way that
+                // the transformRequest knows to add the access token and can get sourceId to clear cache if needed
+                if (extendedOpts && extendedOpts.useAccessToken) {
+                  sourceSpec.data = encodeUrlWithParams(sourceSpec.data, {
+                    sourceId: sourceKey,
+                    useAccessToken: true,
+                  })
+                }
+              } else if (
+                'url' in sourceSpec &&
+                typeof sourceSpec.url === 'string'
+              ) {
+                sourceOptions.url = sourceSpec.url
+
+                if (extendedOpts && extendedOpts.useAccessToken) {
+                  sourceSpec.url = encodeUrlWithParams(sourceSpec.url, {
+                    sourceId: sourceKey,
+                    useAccessToken: true,
+                  })
+                }
+              } else if (
+                'tiles' in sourceSpec &&
+                Array.isArray(sourceSpec.tiles)
+              ) {
+                sourceOptions.tiles = sourceSpec.tiles
+
+                if (extendedOpts && extendedOpts.useAccessToken) {
+                  sourceSpec.tiles = sourceSpec.tiles.map((tileUrl) => {
+                    return encodeUrlWithParams(tileUrl, {
+                      sourceId: sourceKey,
+                      useAccessToken: true,
+                    })
+                  })
+                }
+              }
+
+              _map?.addSource(sourceKey, sourceSpec)
 
               if ('popupOpts' in options.layerConf) {
                 if (options.layerConf.popupOpts) {
@@ -2305,20 +2349,23 @@ export const useMapStore = create<State>()(
 
               layerGroup.sources[sourceKey] = sourceOptions
 
-              // for geojson sources, optionally fetch the data to ensure it is available locally
-              // maplibre typically stores only the url string in the source spec
-              // and fetches the data when needed, but that makes querying the data impossible
-              if (
-                sourceSpec.type === 'geojson' &&
-                extendedOpts &&
-                extendedOpts.ensureLocalData &&
-                typeof sourceSpec.data === 'string' // Data is a URL
-              ) {
-                const dataUrl = sourceSpec.data
-                const fetchedData = await geoserverJsonQuery(dataUrl)
-                if (fetchedData) {
-                  const source = _map?.getSource(sourceKey)
-                  ;(source as GeoJSONSource).setData(fetchedData)
+              if (extendedOpts) {
+                // for geojson sources, optionally fetch the data to ensure it is available locally
+                // maplibre typically stores only the url string in the source spec
+                // and fetches the data when needed, but that makes querying the data impossible
+                if (
+                  sourceOptions.type === 'geojson' &&
+                  extendedOpts.ensureLocalData &&
+                  typeof sourceOptions.url === 'string' // Data is a URL
+                ) {
+                  const fetchedData = await geoserverJsonQuery(
+                    sourceOptions.url,
+                    extendedOpts.useAccessToken
+                  )
+                  if (fetchedData) {
+                    const source = _map?.getSource(sourceKey)
+                    ;(source as GeoJSONSource).setData(fetchedData)
+                  }
                 }
               }
             }
