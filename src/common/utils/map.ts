@@ -22,8 +22,11 @@ import {
   DrawMode,
   LayerGroups,
   SourceOptions,
+  EMBEDDED_PARAMS_URL_PREFIX,
 } from '../types/map'
 import { clone, uniqBy } from 'lodash-es'
+
+const EMBEDDED_PARAMS_URL_SEPARATOR = '||'
 
 export const fillOpacity = 0.65
 
@@ -624,4 +627,62 @@ export const isMatchingSource = (
   }
 
   return false
+}
+
+export const encodeUrlWithParams = (
+  url: string,
+  params: Record<string, any>
+): string => {
+  try {
+    const jsonParams = JSON.stringify(params)
+    const encodedJsonParams = encodeURIComponent(jsonParams)
+    return `${EMBEDDED_PARAMS_URL_PREFIX}${encodedJsonParams}${EMBEDDED_PARAMS_URL_SEPARATOR}${url}`
+  } catch (error) {
+    console.error('Failed to stringify params for URL encoding:', params, error)
+    return url
+  }
+}
+
+export const decodeUrlAndParams = (
+  encodedUrl: string
+): {
+  url: string
+  params: Record<string, any>
+} | null => {
+  if (
+    !encodedUrl ||
+    typeof encodedUrl !== 'string' ||
+    !encodedUrl.startsWith(EMBEDDED_PARAMS_URL_PREFIX)
+  ) {
+    return null
+  }
+
+  const contentWithoutPrefix = encodedUrl.substring(
+    EMBEDDED_PARAMS_URL_PREFIX.length
+  )
+  const separatorIndex = contentWithoutPrefix.indexOf(
+    EMBEDDED_PARAMS_URL_SEPARATOR
+  )
+
+  if (separatorIndex === -1) {
+    return null
+  }
+
+  const encodedJsonParams = contentWithoutPrefix.substring(0, separatorIndex)
+  const originalUrl = contentWithoutPrefix.substring(
+    separatorIndex + EMBEDDED_PARAMS_URL_SEPARATOR.length
+  )
+
+  if (encodedJsonParams === '') {
+    return null
+  }
+
+  try {
+    const jsonParams = decodeURIComponent(encodedJsonParams)
+    const params = JSON.parse(jsonParams)
+    return { url: originalUrl, params }
+  } catch (e) {
+    console.error('Failed to decode or parse params from URL:', encodedUrl, e)
+    return null
+  }
 }
