@@ -124,6 +124,9 @@ export type Vars = {
     selectableLeave?: (e: MapLayerMouseEvent) => void
     selectableEnter?: (e: MapLayerMouseEvent) => void
   }
+  // For storing sourceIds whose cache should be refreshed. For example because auth headers
+  // have changed and the source data needs to be re-fetched.
+  _staleSourceIds: string[]
   // For persisting user customised or uploaded layer configurations.
   _persistingLayerGroupAddOptions: Record<
     string,
@@ -322,6 +325,8 @@ export type Actions = {
   // _disableLayerEventHandlers: (layerOptions: LayerOptions) => void
   _enableLayerGroupEventHandlers: (layerGroupId: string) => void
   _disableLayerGroupEventHandlers: (layerGroupId: string) => void
+  _addStaleSourceId: (id: string) => void
+  _refreshStaleSources: () => Promise<void>
 }
 
 export type State = Vars & Actions
@@ -356,6 +361,7 @@ export const useMapStore = create<State>()(
         _olMap: null,
         _layerGroups: {},
         _layerInstances: {},
+        _staleSourceIds: [],
         _isHydrated: false,
         _persistingLayerGroupAddOptions: {},
         _hydrationData: {
@@ -2251,6 +2257,60 @@ export const useMapStore = create<State>()(
         //     // }
         //   })
         // },
+
+        _addStaleSourceId: (id: string) => {
+          const { _staleSourceIds } = get()
+          if (!_staleSourceIds.includes(id)) {
+            set((state) => {
+              state._staleSourceIds.push(id)
+            })
+          }
+        },
+
+        _refreshStaleSources: async () => {
+          const { _map, _staleSourceIds, _layerGroups } = get()
+
+          const newStaleSourceIds: string[] = []
+
+          _staleSourceIds.forEach(async (sourceId) => {
+            const sourceOpts = findSourceOptsById(sourceId, _layerGroups)
+
+            if (!sourceOpts) {
+              console.warn(
+                `No source options found for stale source id: ${sourceId}`
+              )
+              return
+            }
+
+            if (sourceOpts.url) {
+              if (sourceOpts.type === 'geojson') {
+                if (sourceOpts.extendedOpts?.ensureLocalData) {
+                  const fetchedData = await geoserverJsonQuery(
+                    sourceOpts.url,
+                    sourceOpts.extendedOpts.useAccessToken
+                  )
+                  if (fetchedData) {
+                    const source = _map?.getSource(sourceOpts.id)
+                    ;(source as GeoJSONSource).setData(fetchedData)
+                  } else {
+                    newStaleSourceIds.push(sourceId)
+                  }
+                } else {
+                  const source = _map?.getSource(sourceOpts.id) as GeoJSONSource
+                  source.setData(sourceOpts.url)
+                }
+              }
+              _map?.refreshTiles(sourceId)
+            }
+            if (sourceOpts.tiles && sourceOpts.tiles.length > 0) {
+              _map?.refreshTiles(sourceId)
+            }
+          })
+
+          set((state) => {
+            state._staleSourceIds = uniq(newStaleSourceIds)
+          })
+        },
 
         _addStyle: async (
           id: LayerGroupId | string,
