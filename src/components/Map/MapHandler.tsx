@@ -91,69 +91,49 @@ export const MapHandler = ({ children }: Props) => {
   // depending on the map's mode (Openlayers, Mapbox GL, or hybrid of both)
   const initMap = (
     viewSettings: { center: [number, number]; zoom?: number },
-    isHybrid = true
+    isHybrid = false
   ) => {
     let newMap: Map
 
-    if (isHybrid) {
-      const emptyStyle: StyleSpecification = {
-        version: 8,
-        name: 'empty',
-        metadata: {
-          'maplibre:autocomposite': true,
-          'maplibre:type': 'template',
-        },
-        glyphs: `${SERVER_URL}/www/font/{fontstack}/{range}.pbf`,
-        // glyphs: `https://api.mapbox.com/fonts/v1/avoin/{fontstack}/{range}.pbf?access_token=${MAPBOX_ACCESS_TOKEN}`,
-        sources: {},
-        layers: [
-          {
-            id: 'background',
-            type: 'background',
-            paint: {
-              'background-color': 'rgba(0,0,0,0)',
-            },
-          },
-        ],
-      }
+    // if (isHybrid) {
+    //   const emptyStyle: StyleSpecification = {
+    //     version: 8,
+    //     name: 'empty',
+    //     metadata: {
+    //       'maplibre:autocomposite': true,
+    //       'maplibre:type': 'template',
+    //     },
+    //     glyphs: `${SERVER_URL}/www/font/{fontstack}/{range}.pbf`,
+    //     // glyphs: `https://api.mapbox.com/fonts/v1/avoin/{fontstack}/{range}.pbf?access_token=${MAPBOX_ACCESS_TOKEN}`,
+    //     sources: {},
+    //     layers: [
+    //       {
+    //         id: 'background',
+    //         type: 'background',
+    //         paint: {
+    //           'background-color': 'rgba(0,0,0,0)',
+    //         },
+    //       },
+    //     ],
+    //   }
 
-      newMap = new Map({
-        attributionControl: false,
-        boxZoom: false,
-        center: viewSettings.center,
-        container: 'map',
-        doubleClickZoom: false,
-        dragPan: false,
-        dragRotate: false,
-        interactive: true,
-        keyboard: false,
-        pitchWithRotate: false,
-        scrollZoom: false,
-        touchZoomRotate: false,
-        style: emptyStyle,
-      })
-    } else {
-      const style: StyleSpecification = {
-        version: 8,
-        glyphs: `${SERVER_URL}/www/font/{fontstack}/{range}.pbf`,
-        // glyphs: `https://api.mapbox.com/fonts/v1/{user}/{fontstack}/{range}.pbf?access_token=${MAPBOX_ACCESS_TOKEN}`,
-        sources: {
-          osm: {
-            type: 'raster',
-            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-            tileSize: 256,
-            attribution:
-              '© <a target="_top" rel="noopener" href="https://openstreetmap.org/">OpenStreetMap</a>, under the <a target="_top" rel="noopener" href="https://operations.osmfoundation.org/policies/tiles/">tile usage policy</a>.',
-          },
-        },
-        layers: [
-          {
-            id: 'osm',
-            type: 'raster',
-            source: 'osm',
-          },
-        ],
-      }
+    //   newMap = new Map({
+    //     attributionControl: false,
+    //     boxZoom: false,
+    //     center: viewSettings.center,
+    //     container: 'map',
+    //     doubleClickZoom: false,
+    //     dragPan: false,
+    //     dragRotate: false,
+    //     interactive: true,
+    //     keyboard: false,
+    //     pitchWithRotate: false,
+    //     scrollZoom: false,
+    //     touchZoomRotate: false,
+    //     style: emptyStyle,
+    //   })
+    // } else {
+
 
       newMap = new Map({
         //@ts-ignore
