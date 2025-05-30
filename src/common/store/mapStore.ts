@@ -61,7 +61,6 @@ import { layerConfs } from '#/components/Map/Layers'
 
 import {
   getLayerName,
-  getLayerType,
   resolveMbStyle,
   getVisibleLayerGroups,
   updateFeatureInDrawSource,
@@ -115,7 +114,6 @@ export type Vars = {
   _map: Map | null
   // openlayers map object
   // _olMap: OlMap | null
-  _olMap: null
   // A single UI layer has often multiple layers which are grouped together.
   _layerGroups: LayerGroups
   // For quickly access a layer group by its id.
@@ -358,7 +356,7 @@ export const useMapStore = create<State>()(
         _functionQueue: [],
         _isFunctionQueueExecuting: false,
         _map: null,
-        _olMap: null,
+        // _olMap: null,
         _layerGroups: {},
         _layerInstances: {},
         _staleSourceIds: [],
@@ -618,6 +616,7 @@ export const useMapStore = create<State>()(
           }
 
           set((draft) => {
+            // @ts-ignore
             draft.selectedFeatures = features
           })
 
@@ -825,6 +824,7 @@ export const useMapStore = create<State>()(
                       additionalSource.source,
                       {
                         sourceLayer: sourceLayer, // REQUIRED for vector tile sources
+                        // @ts-ignore
                         filter: ['==', ['get', 'id'], feature.id], // Assumes 'id' is promoted or is the property name
                       }
                     )
@@ -856,6 +856,7 @@ export const useMapStore = create<State>()(
                   const queriedAdditionalFeatures = _map?.querySourceFeatures(
                     additionalSource.source,
                     {
+                      // @ts-ignore
                       filter: ['==', ['get', 'id'], feature.id], // Assumes 'id' is promoted or is the property name
                     }
                   )
@@ -2346,7 +2347,6 @@ export const useMapStore = create<State>()(
                 sourceKey
               ] as ExtendedSourceSpecification
 
-              _map?.addSource(sourceKey, sourceSpec)
               const sourceOptions: SourceOptions = {
                 id: sourceKey,
                 type: sourceSpec.type,
@@ -2737,6 +2737,7 @@ export const useMapStore = create<State>()(
 
         _setMap: (map: Map) => {
           set((state) => {
+            // @ts-ignore
             state._map = map
           })
         },
