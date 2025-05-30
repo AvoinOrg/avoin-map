@@ -66,11 +66,19 @@ export type LayerOptionsObj = {
   [key: string]: LayerOptions
 }
 
+export type SourceExtendedOpts = {
+  useAccessToken?: boolean
+  ensureLocalData?: boolean
+}
+
 export type SourceOptions = {
   id: string
   type: SourceType
   popupOpts: PopupOpts | null
+  url?: string
+  tiles?: string[]
   layerIds: string[]
+  extendedOpts?: SourceExtendedOpts
 }
 
 export type SourceOptionsObj = {
@@ -165,9 +173,7 @@ export type ExtendedLayerSpecification = LayerSpecification & {
 }
 
 export type ExtendedSourceSpecification = SourceSpecification & {
-  extendedOpts?: {
-    ensureLocalData?: boolean
-  }
+  extendedOpts?: SourceExtendedOpts
 }
 
 export type ExtendedStyleSpecification = StyleSpecification & {
