@@ -84,6 +84,9 @@ export const createAdminFolayerConf = async (
         ],
         bounds: [19, 59, 32, 71], // Finland
         promoteId: 'id',
+        extendedOpts: {
+          useAccessToken: true,
+        },
       },
       // [centroidSourceId]: {
       //   type: 'vector',
@@ -102,6 +105,7 @@ export const createAdminFolayerConf = async (
         clusterRadius: 45, // Radius of clusters in pixels
         promoteId: 'id', // Promote ID if your GeoJSON features have a unique 'id' property
         extendedOpts: {
+          useAccessToken: true,
           ensureLocalData: true,
         },
       },
