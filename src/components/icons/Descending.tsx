@@ -1,8 +1,9 @@
 import * as React from 'react'
-import { Box } from '@mui/system'
+import { Box } from '@mui/material'
+import type { SxProps, Theme } from '@mui/material/styles'
 
 type Props = {
-  sx?: any
+  sx?: SxProps<Theme>
 }
 
 const SvgDescending = (props: Props) => (
