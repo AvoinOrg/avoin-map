@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useEffect, useState, ChangeEvent, useMemo } from 'react'
+import React, { useEffect, useState, ChangeEvent, useMemo } from 'react'
 import { Box, Typography } from '@mui/material'
 import { useParams, useRouter } from 'next/navigation'
 import { T, useTranslate } from '@tolgee/react'
@@ -15,6 +15,12 @@ import CheckBoxWithText from '#/components/common/CheckBoxWithText'
 import { SaveOutlined } from '@mui/icons-material'
 import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
 import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
+import { adminFolayerDeleteMutation } from 'applets/luonnonmetsakartat/common/queries/adminFolayerDeleteMutation'
+import { useUIStore } from '#/common/store'
+import { Delete } from '#/components/icons'
+import { getRoute } from '#/common/utils/routing-client'
+import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
+import IconWithText from '#/components/common/IconWithText'
 
 const Page = () => {
   const [isFolayerReady, setIsFolayerReady] = useState(false)
@@ -22,6 +28,10 @@ const Page = () => {
   const router = useRouter()
   const { t } = useTranslate('luonnonmetsakartat')
 
+  const notify = useUIStore((state) => state.notify)
+  const triggerConfirmationDialog = useUIStore(
+    (state) => state.triggerConfirmationDialog
+  )
   const adminFolayerConf = useAppletStore(
     (state) => state.adminFolayerConfs[params.folayerIdSlug]
   )
@@ -32,6 +42,16 @@ const Page = () => {
   const localAdminFolayerPatchMutation = useMutation(
     adminFolayerPatchMutation()
   )
+  const localAdminFolayerDeleteMutation = useMutation(
+    adminFolayerDeleteMutation()
+  )
+
+  const isEditingDisabled = useMemo(() => {
+    if (adminFolayerConf && adminFolayerConf.state === FolayerConfState.Idle) {
+      return false
+    }
+    return true
+  }, [adminFolayerConf?.state])
 
   useEffect(() => {
     if (adminFolayerConf && adminFolayerConf.state === FolayerConfState.Idle) {
@@ -41,12 +61,22 @@ const Page = () => {
     }
   }, [adminFolayerConf])
 
-  const isEditingDisabled = useMemo(() => {
-    if (adminFolayerConf && adminFolayerConf.state === FolayerConfState.Idle) {
-      return false
+  useEffect(() => {
+    if (localAdminFolayerDeleteMutation.isSuccess) {
+      router.push(
+        getRoute({ routeNode: routeTree.admin, routeTree: routeTree })
+      )
     }
-    return true
-  }, [adminFolayerConf?.state])
+    if (localAdminFolayerDeleteMutation.isError) {
+      notify({
+        message: t('sidebar.plan_settings.delete_error'),
+        variant: 'error',
+      })
+    }
+  }, [
+    localAdminFolayerDeleteMutation.isError,
+    localAdminFolayerDeleteMutation.isSuccess,
+  ])
 
   const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newName = e.target.value
@@ -64,7 +94,7 @@ const Page = () => {
   }
 
   const handleIsVisibleChange = (
-    _e: ChangeEvent<HTMLInputElement>,
+    _e: React.SyntheticEvent<Element, Event>,
     checked: boolean
   ) => {
     updateAdminFolayerConf(params.folayerIdSlug, {
@@ -83,6 +113,21 @@ const Page = () => {
     }
   }
 
+  const handleDeleteClick = async () => {
+    if (adminFolayerConf) {
+      const handleDeleteConfirm = async () => {
+        await localAdminFolayerDeleteMutation.mutate(adminFolayerConf)
+      }
+
+      triggerConfirmationDialog({
+        content: t(
+          'sidebar.admin.folayer.settings.delete_confirmation_message'
+        ),
+        onConfirm: handleDeleteConfirm,
+      })
+    }
+  }
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
       <SidebarContentBox>
@@ -92,20 +137,38 @@ const Page = () => {
           </Box>
         )}
         {isFolayerReady && (
-          <Box>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <IconWithText
+              sx={{ alignSelf: 'flex-end', color: 'neutral.dark' }}
+              icon={<Delete />}
+              isIconOnRight={true}
+              onClick={handleDeleteClick}
+              iconSx={{ height: '1.1rem' }}
+              textSx={{ typography: 'h8' }}
+            >
+              <T
+                keyName={'sidebar.admin.folayer.settings.delete'}
+                ns={'luonnonmetsakartat'}
+              ></T>
+            </IconWithText>
             <TextFieldWithHeader
-              headerText={t('sidebar.admin.folayer.name.header')}
+              headerText={t('sidebar.admin.folayer.settings.name.header')}
               value={adminFolayerConf.name}
               onChange={handleNameChange}
               placeholderText={adminFolayerConf.name}
-              sx={{ mt: 2.5 }}
+              sx={{ mt: 5.5 }}
               disabled={isEditingDisabled}
             ></TextFieldWithHeader>
             <ColorPickerWithPopover
               color={adminFolayerConf.colorCode}
               onChange={handleColorChange}
               sx={{ mt: 6 }}
-              labelText={t('sidebar.admin.folayer.color')}
+              labelText={t('sidebar.admin.folayer.settings.color')}
             ></ColorPickerWithPopover>
             <CheckBoxWithText
               checked={adminFolayerConf.isVisible}
@@ -115,7 +178,7 @@ const Page = () => {
             >
               <T
                 ns={'luonnonmetsakartat'}
-                keyName={'sidebar.admin.folayer.is_visible'}
+                keyName={'sidebar.admin.folayer.settings.is_visible'}
               ></T>
             </CheckBoxWithText>
           </Box>
