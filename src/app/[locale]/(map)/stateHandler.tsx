@@ -5,11 +5,12 @@
 'use client'
 
 import React, { useEffect } from 'react'
+import axios from 'axios'
 import { useSession } from 'next-auth/react'
 import { useUserStore } from '#/common/store/userStore'
 import { useQuery } from '@tanstack/react-query'
 import { User } from 'next-auth'
-import { set } from 'ol/transform'
+
 import { UserAuthState, UserDataState } from '#/common/types/state'
 
 const StateHandler = ({ children }: { children?: React.ReactNode }) => {
@@ -28,11 +29,13 @@ const StateHandler = ({ children }: { children?: React.ReactNode }) => {
   } = useQuery<User>({
     queryKey: ['userinfo'],
     queryFn: async () => {
-      const response = await fetch('/api/userinfo')
-      if (!response.ok) {
+      try {
+        const response = await axios.get('/api/userinfo')
+        return response.data
+      } catch (axiosError) {
+        console.error('Error fetching userinfo with axios:', axiosError)
         throw new Error('Network response was not ok')
       }
-      return response.json()
     },
     enabled: false,
   })
