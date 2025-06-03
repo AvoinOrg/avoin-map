@@ -148,11 +148,6 @@ export const createAdminFolayerConf = async (
           ],
         },
         selectable: true,
-        additionalSelectionSources: [
-          {
-            source: centroidSourceId,
-          },
-        ],
         minzoom: 7, // Only show fills at medium to high zoom levels
       },
       // Text labels - shown only at high zoom levels
@@ -180,11 +175,6 @@ export const createAdminFolayerConf = async (
         },
         minzoom: 11, // Only show text at high zoom levels
         selectable: true,
-        additionalSelectionSources: [
-          {
-            source: centroidSourceId,
-          },
-        ],
       },
       {
         id: `${centroidSourceId}-cluster_circle`,
@@ -259,12 +249,6 @@ export const createAdminFolayerConf = async (
         },
         promoteId: 'id',
         selectable: true,
-        additionalSelectionSources: [
-          {
-            source: sourceId,
-            sourceLayers: [sourceLayer],
-          },
-        ],
         maxzoom: 12, // Match the maxzoom of the individual pins
       },
       // Centroid Pin layer - shown at low to medium zoom levels
@@ -457,6 +441,12 @@ export const createAdminFolayerConf = async (
       type: 'modal',
       multiPoppable: false,
     },
+    joinedSelectionSources: [
+      [
+        { source: centroidSourceId },
+        { source: sourceId, sourceLayer: sourceLayer },
+      ],
+    ],
   }
 
   return layerConf

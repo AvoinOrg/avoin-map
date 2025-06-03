@@ -56,6 +56,7 @@ import {
   SourceOptions,
   ExtendedSourceSpecification,
   PopupOpts,
+  SelectionSource,
 } from '#/common/types/map'
 import { layerConfs } from '#/components/Map/Layers'
 
@@ -76,6 +77,7 @@ import {
   isMatchingSource,
   findSourceOptsById,
   encodeUrlWithParams,
+  getJoinedSelectionSourcesForSource,
 } from '#/common/utils/map'
 import { geoserverJsonQuery } from '../queries/geoserverJsonQuery'
 
@@ -98,6 +100,7 @@ export type Vars = {
   // Whether user has activated drawing mode
   mapContext: MapContext
   selectedFeatures: MapGeoJSONFeature[]
+  _joinedSelectionSourceMap: SelectionSource[][]
   // The below are internal variables.
   // --------------------------------------
   // isMapReady is after the internal map object is ready to be interacted with,
@@ -343,6 +346,7 @@ export const useMapStore = create<State>()(
         activePopupData: [],
         mapContext: null,
         selectedFeatures: [],
+        _joinedSelectionSourceMap: [],
         _images: {},
         _isMapReady: false,
         _drawOptions: {
@@ -804,53 +808,65 @@ export const useMapStore = create<State>()(
         // if the layerConf specifies other sources that have the same features (with the same ids), these
         // are queried here and returned
         _getAdditionalSelectedFeatures: (features: MapGeoJSONFeature[]) => {
-          const { _layerGroups, _map, getSourceJson } = get()
+          const {
+            _layerGroups,
+            _map,
+            getSourceJson,
+            _joinedSelectionSourceMap,
+          } = get()
 
-          const LayerOptionsObj = getAllLayerOptionsObj(_layerGroups)
+          // const LayerOptionsObj = getAllLayerOptionsObj(_layerGroups)
 
           const additionalFeatures: MapGeoJSONFeature[] = []
 
+          // in progress: create helper util to fetch joined sources map
+
           for (const feature of features) {
-            const layerOptions = LayerOptionsObj[feature.layer.id]
+            const sourceOptions = findSourceOptsById(
+              feature.source,
+              _layerGroups
+            )
 
-            if (layerOptions.additionalSelectionSources != null) {
-              for (const additionalSource of layerOptions.additionalSelectionSources) {
-                if (
-                  additionalSource.sourceLayers &&
-                  additionalSource.sourceLayers.length > 0
-                ) {
-                  for (const sourceLayer of additionalSource.sourceLayers) {
-                    const queriedAdditionalFeatures = _map?.querySourceFeatures(
-                      additionalSource.source,
-                      {
-                        sourceLayer: sourceLayer, // REQUIRED for vector tile sources
-                        // @ts-ignore
-                        filter: ['==', ['get', 'id'], feature.id], // Assumes 'id' is promoted or is the property name
-                      }
-                    )
+            const additionalSelectionSources =
+              getJoinedSelectionSourcesForSource({
+                joinedSelectionSourceMap: _joinedSelectionSourceMap,
+                source: feature.source,
+                sourceLayer: feature.sourceLayer,
+              })
 
-                    // only add the first feature, if there are duplicates
-                    if (
-                      queriedAdditionalFeatures &&
-                      queriedAdditionalFeatures.length > 0 &&
-                      queriedAdditionalFeatures[0] != null
-                    ) {
-                      const queriedFeature =
-                        queriedAdditionalFeatures[0] as ExtendedMapGeoJSONFeature
-                      queriedFeature.source = additionalSource.source
-                      queriedFeature.sourceLayer = sourceLayer
-                      queriedFeature.isAdditional = true
-                      // queriedFeature.layer = { id: sourceLayer }
-                      additionalFeatures.push(queriedFeature)
-                    } else {
-                      additionalFeatures.push({
-                        source: additionalSource.source,
-                        id: feature.id,
-                        sourceLayer: sourceLayer,
-                        isPlaceholder: true,
-                        isAdditional: true,
-                      } as ExtendedMapGeoJSONFeature)
+            if (additionalSelectionSources != null) {
+              for (const additionalSource of additionalSelectionSources) {
+                if (additionalSource.sourceLayer) {
+                  const queriedAdditionalFeatures = _map?.querySourceFeatures(
+                    additionalSource.source,
+                    {
+                      sourceLayer: additionalSource.sourceLayer, // REQUIRED for vector tile sources
+                      // @ts-ignore
+                      filter: ['==', ['get', 'id'], feature.id], // Assumes 'id' is promoted or is the property name
                     }
+                  )
+
+                  // only add the first feature, if there are duplicates
+                  if (
+                    queriedAdditionalFeatures &&
+                    queriedAdditionalFeatures.length > 0 &&
+                    queriedAdditionalFeatures[0] != null
+                  ) {
+                    const queriedFeature =
+                      queriedAdditionalFeatures[0] as ExtendedMapGeoJSONFeature
+                    queriedFeature.source = additionalSource.source
+                    queriedFeature.sourceLayer = additionalSource.sourceLayer
+                    queriedFeature.isAdditional = true
+                    // queriedFeature.layer = { id: sourceLayer }
+                    additionalFeatures.push(queriedFeature)
+                  } else {
+                    additionalFeatures.push({
+                      source: additionalSource.source,
+                      id: feature.id,
+                      sourceLayer: additionalSource.sourceLayer,
+                      isPlaceholder: true,
+                      isAdditional: true,
+                    } as ExtendedMapGeoJSONFeature)
                   }
                 } else {
                   const queriedAdditionalFeatures = _map?.querySourceFeatures(
@@ -1035,18 +1051,33 @@ export const useMapStore = create<State>()(
 
         removeSelectedFeatures: (params: {
           features: MapGeoJSONFeature[]
+          ignoreAdditionalFeatures?: boolean
           updateDrawSelect?: boolean
           ignorePopups?: boolean
         }) => {
-          const { features, updateDrawSelect, ignorePopups } = params
+          const {
+            features,
+            ignoreAdditionalFeatures,
+            updateDrawSelect,
+            ignorePopups,
+          } = params
           const {
             selectedFeatures,
             setSelectedFeatures,
             _setPopupDataForFeatures,
+            _getAdditionalSelectedFeatures,
           } = get()
 
+          let featuresToRemove = features
+
+          if (!ignoreAdditionalFeatures) {
+            // get additional features for the selected features
+            const additionalFeatures = _getAdditionalSelectedFeatures(features)
+            featuresToRemove = [...features, ...additionalFeatures]
+          }
+
           const newSelectedFeatures = selectedFeatures.filter((sf) => {
-            const isPresentInParamsFeatures = features.some((pf) => {
+            const isPresentInParamsFeatures = featuresToRemove.some((pf) => {
               return pf.id === sf.id && isMatchingSource(sf, pf)
             })
 
@@ -1308,11 +1339,28 @@ export const useMapStore = create<State>()(
             const image = _images[imageId]
             if (image.layerGroupId === layerGroupId) {
               _map?.removeImage(imageId)
-              delete _images[imageId]
             }
           })
 
           set((state) => {
+            for (const imageId in state._images) {
+              if (state._images[imageId].layerGroupId === layerGroupId) {
+                delete state._images[imageId]
+              }
+            }
+
+            const sourceIdsToRemove = Object.keys(layerGroupOptions.sources)
+            if (sourceIdsToRemove.length > 0) {
+              state._joinedSelectionSourceMap =
+                state._joinedSelectionSourceMap.filter((joinedArray) => {
+                  const hasMatchingSource = joinedArray.some(
+                    (selectionSource) =>
+                      sourceIdsToRemove.includes(selectionSource.source)
+                  )
+                  return !hasMatchingSource // Keep the array if it does NOT have a matching source
+                })
+            }
+
             delete state._layerGroups[layerGroupId]
           })
 
@@ -2450,11 +2498,6 @@ export const useMapStore = create<State>()(
                 hoverPointer: hoverPointer,
                 popupOpts: null,
                 useMb: true,
-                ...(layer.additionalSelectionSources &&
-                  layer.additionalSelectionSources.length > 0 && {
-                    additionalSelectionSources:
-                      layer.additionalSelectionSources,
-                  }),
               }
 
               layerGroup.layers[layer.id] = layerOptions
@@ -2543,6 +2586,20 @@ export const useMapStore = create<State>()(
 
             await set((state) => {
               state._layerGroups[id] = layerGroup
+
+              if (options.layerConf.joinedSelectionSources) {
+                options.layerConf.joinedSelectionSources.forEach(
+                  (newJoinedArray: SelectionSource[]) => {
+                    const alreadyExists = state._joinedSelectionSourceMap.some(
+                      (existingJoinedArray) =>
+                        isEqual(existingJoinedArray, newJoinedArray)
+                    )
+                    if (!alreadyExists) {
+                      state._joinedSelectionSourceMap.push(newJoinedArray)
+                    }
+                  }
+                )
+              }
             })
 
             _enableLayerGroupEventHandlers(id)
