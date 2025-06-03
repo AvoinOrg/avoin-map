@@ -25,9 +25,9 @@ export type PopupProps = {
 
 export type Popup = (props: PopupProps) => ReactNode
 
-export type AdditionalSelectionSource = {
+export type SelectionSource = {
   source: string
-  sourceLayers?: string[]
+  sourceLayer?: string
 }
 
 export type SourceType = SourceSpecification['type']
@@ -59,7 +59,6 @@ export type LayerOptions = {
   hoverPointer: boolean
   popupOpts: PopupOpts | null
   useMb: boolean
-  additionalSelectionSources?: AdditionalSelectionSource[]
 }
 
 export type LayerOptionsObj = {
@@ -169,7 +168,6 @@ export type ExtendedLayerSpecification = LayerSpecification & {
   selectable?: boolean // whether a feature can be highlighted
   multiSelectable?: boolean // whether multiple features can be highlighted
   hoverPointer?: boolean // whether the pointer should change to a pointer when hovering over the layer
-  additionalSelectionSources?: AdditionalSelectionSource[]
 }
 
 export type ExtendedSourceSpecification = SourceSpecification & {
@@ -204,6 +202,7 @@ type BaseLayerConf = {
   style: ExtendedStyleSpecificationOrFn
   useMb?: boolean
   eventHandlers?: LayerEventHandlerAddOptions[]
+  joinedSelectionSources?: SelectionSource[][]
 }
 
 // SerializableLayerConf is used for hydration.
