@@ -686,3 +686,40 @@ export const decodeUrlAndParams = (
     return null
   }
 }
+
+interface GetJoinedSelectionSourcesForSourceParams {
+  joinedSelectionSourceMap: { source: string; sourceLayer?: string }[][]
+  source: string
+  sourceLayer?: string
+}
+
+export const getJoinedSelectionSourcesForSource = ({
+  joinedSelectionSourceMap,
+  source,
+  sourceLayer,
+}: GetJoinedSelectionSourcesForSourceParams): {
+  source: string
+  sourceLayer?: string
+}[] => {
+  const allRelatedSources: { source: string; sourceLayer?: string }[] = []
+  const targetSelection = { source, sourceLayer }
+
+  for (const joinedArray of joinedSelectionSourceMap) {
+    const isTargetPresentInJoinedArray = joinedArray.some((selectionInArray) =>
+      isMatchingSource(selectionInArray, targetSelection)
+    )
+
+    if (isTargetPresentInJoinedArray) {
+      allRelatedSources.push(...joinedArray)
+    }
+  }
+
+  const allRelatedSourcesWithoutTargetSource = allRelatedSources.filter(
+    (ss) => !isMatchingSource(ss, targetSelection)
+  )
+
+  return uniqBy(
+    allRelatedSourcesWithoutTargetSource,
+    (ss) => `${ss.source}#${ss.sourceLayer || 'undefined'}` // Create a unique key for comparison
+  )
+}
