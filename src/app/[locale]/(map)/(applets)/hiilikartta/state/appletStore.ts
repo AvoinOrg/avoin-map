@@ -96,7 +96,7 @@ export const useAppletStore = create<Vars & Actions>()(
             const id = generateShortId()
             const serverId = generateUUID()
             const created = new Date().getTime()
-            const userId = useUserStore.getState().user?.id
+            const userId = useUserStore.getState().userData?.id
 
             const planConf: PlanConf = {
               id,
