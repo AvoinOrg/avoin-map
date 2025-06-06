@@ -3,7 +3,7 @@
  * even when unnecessary. useUIStore uses lodash-es, which uses code that is unsupported edge runtime
  */
 
-import { useUIStore } from '../store/UIStore'
+import { useUIStore } from '../store/uiStore'
 import { RouteTree, Params } from '../types/routing'
 import { getRouteNoStoreCheck } from './routing'
 

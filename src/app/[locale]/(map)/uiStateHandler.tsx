@@ -5,7 +5,7 @@
 'use client'
 
 import React, { useEffect } from 'react'
-import { useUIStore } from '#/common/store/UIStore'
+import { useUIStore } from '#/common/store/uiStore'
 
 const UIStateHandler = ({ children }: { children?: React.ReactNode }) => {
   const sidebarWidth = useUIStore((state) => state.sidebarWidth)
