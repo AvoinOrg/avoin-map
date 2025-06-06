@@ -2,17 +2,11 @@
 
 import React, { useEffect, useMemo, useState } from 'react'
 import Box from '@mui/material/Box'
-import { styled } from '@mui/material/styles'
-// import { MapGeoJSONFeature } from 'maplibre-gl'
-// import Feature from 'ol/Feature'
-// import { PopupOpts } from '#/common/types/map'
-import { PopupOpts } from '#/common/types/map'
+import { Modal } from '@mui/material'
+
 import { useMapStore } from '#/common/store/mapStore'
-import { IconButton, Modal } from '@mui/material'
-import { Cross } from '../icons'
 
 export const MapPopupModal = () => {
-  const [popupFeatures, setPopupFeatures] = useState<any[]>()
   const [isActive, setIsActive] = useState(false)
   const activePopupData = useMapStore((state) => state.activePopupData)
   const removeSelectedFeatures = useMapStore(
@@ -53,6 +47,13 @@ export const MapPopupModal = () => {
           onClose={handleClose}
           aria-labelledby="map-popup-modal-title"
           aria-describedby="map-popup-modal-description"
+          slotProps={{
+            backdrop: {
+              sx: {
+                backgroundColor: 'transparent',
+              },
+            },
+          }}
           sx={{
             position: 'absolute' as const,
             top: '50%',
@@ -64,43 +65,22 @@ export const MapPopupModal = () => {
               md: '500px',
             },
             maxHeight: '90vh',
-            bgcolor: 'background.paper',
+            bgColor: 'transparent',
+            backgroundColor: 'transparent',
             boxShadow: 24,
-            p: 4,
-            borderRadius: 1,
+            borderRadius: 5,
             outline: 'none',
             display: 'flex',
             flexDirection: 'column',
           }}
         >
-          <Box>
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                mb: 2,
-              }}
-            >
-              {/* <Typography id="area-modal-title" variant="h6" component="h2">
-                  {title}
-                </Typography> */}
-              <IconButton
-                aria-label="close"
-                onClick={handleClose}
-                sx={{
-                  // Position to top-right if preferred, or remove for default flow if title is on left
-                  // position: 'absolute',
-                  // right: (theme) => theme.spacing(1),
-                  // top: (theme) => theme.spacing(1),
-                  color: (theme) => theme.palette.grey[500],
-                }}
-              >
-                <Cross />
-              </IconButton>
-            </Box>
-
-            {popupData && <popupData.component features={popupData.features} />}
+          <Box sx={{ display: 'flex', flex: 1, height: '100%', width: '100%' }}>
+            {popupData && (
+              <popupData.component
+                features={popupData.features}
+                onClose={handleClose}
+              />
+            )}
           </Box>
         </Modal>
       )}
