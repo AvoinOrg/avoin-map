@@ -44,7 +44,20 @@ export interface AdminFolayerConf extends FolayerConf {
   unsyncedChanges: boolean
 }
 
-export type FolayerFeature = Feature<Geometry, FeatureProperties>
+export type FolayerFeatureProperties = FeatureProperties & {
+  id: string
+  name: string
+  created_ts: string
+  updated_ts: string
+  area_ha: number
+  date: string
+  region?: string
+  municipality?: string
+  description?: string
+  pictures?: string
+}
+
+export type FolayerFeature = Feature<Geometry, FolayerFeatureProperties>
 
 export interface FolayerAreaCollection {
   id: string
