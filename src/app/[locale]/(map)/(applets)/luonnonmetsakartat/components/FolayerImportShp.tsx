@@ -6,24 +6,28 @@ import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
 import CheckBoxWithText from '#/components/common/CheckBoxWithText'
 
 import FolayerImportActionsRow from './FolayerImportActionsRow'
+import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
+
+interface FolayerImportShpProps {
+  fileBuffers: ArrayBuffer[]
+  onFinish: (params: {
+    name: string
+    colorCode: string
+    isVisible: boolean
+  }) => void
+  isInitializing: boolean
+}
 
 const FolayerImportShp = ({
   fileBuffers,
   onFinish,
   isInitializing,
-}: {
-  fileBuffers: ArrayBuffer[]
-  onFinish: (
-    json: FeatureCollection,
-    folayerName: string,
-    isVisible: boolean
-  ) => void
-  isInitializing: boolean
-}) => {
+}: FolayerImportShpProps) => {
   const { t } = useTranslate('luonnonmetsakartat')
   const [geojson, setGeojson] = useState<FeatureCollection>()
   // const [zoningCol, setZoningCol] = useState<string>()
   const [folayerNameValue, setFolayerNameValue] = useState<string>('')
+  const [folayerColorValue, setFolayerColorValue] = useState<string>('#06402B')
   const [isVisible, setIsVisible] = useState<boolean>(false)
   // const [folayerDescriptionValue, setFolayerDescriptionValue] = useState<string>('')
   // const [nameCol, setNameCol] = useState<string | undefined>() // nameCol can be optional
@@ -87,21 +91,23 @@ const FolayerImportShp = ({
   }
 
   const handleIsVisibleChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
+    _e: React.SyntheticEvent<Element, Event>,
     checked: boolean
   ) => {
     setIsVisible(checked)
   }
 
-  // const handleFolayerDescriptionChange = (
-  //   event: React.ChangeEvent<HTMLInputElement>
-  // ) => {
-  //   setFolayerDescriptionValue(event.target.value)
-  // }
+  const handleColorChange = (color: string) => {
+    setFolayerColorValue(color)
+  }
 
   const handleFinish = () => {
     if (folayerNameValue != null && geojson != null) {
-      onFinish(geojson, folayerNameValue, isVisible)
+      onFinish({
+        name: folayerNameValue,
+        colorCode: folayerColorValue,
+        isVisible: isVisible,
+      })
     }
   }
 
@@ -117,6 +123,12 @@ const FolayerImportShp = ({
             sx={{ mt: 2.5 }}
             disabled={isInitializing}
           ></TextFieldWithHeader>
+          <ColorPickerWithPopover
+            color={folayerColorValue}
+            onChange={handleColorChange}
+            sx={{ mt: 6 }}
+            labelText={t('sidebar.admin.folayer.settings.color')}
+          ></ColorPickerWithPopover>
           <CheckBoxWithText
             checked={isVisible}
             onChange={handleIsVisibleChange}
