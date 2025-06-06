@@ -830,7 +830,7 @@ export const MapHandler = ({ children }: Props) => {
       ></Box>
       <OverlayMessages message={overlayMessage}></OverlayMessages>
       <MapButtons></MapButtons>
-      <MapPopupModal></MapPopupModal>
+      <MapPopup></MapPopup>
       <></>
       {children}
     </>
