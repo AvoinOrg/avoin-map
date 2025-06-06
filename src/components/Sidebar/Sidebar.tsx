@@ -4,7 +4,7 @@ import React, { useEffect, useRef } from 'react'
 import { Box, SxProps, Theme } from '@mui/material'
 
 import { useUIStore } from '#/common/store'
-import { MapPopup } from '../Map/MapPopup'
+// import { MapPopup } from '../Map/MapPopup_old'
 import { useMapStore } from '#/common/store'
 import Drawer from './Drawer'
 import PopupDrawer from './PopupDrawer'
@@ -28,7 +28,7 @@ export const Sidebar = ({
   const setSidebarWidth = useUIStore((state) => state.setSidebarWidth)
   const isNavbarHidden = useUIStore((state) => state.isNavbarHidden)
 
-  const popupOpts = useMapStore((state) => state.popupOpts)
+  // const popupOpts = useMapStore((state) => state.popupOpts)
 
   const sidebarRef = useRef()
 
@@ -119,7 +119,7 @@ export const Sidebar = ({
               }}
               onClick={() => setIsMapPopupOpen(false)}
             />
-            <MapPopup popupOpts={popupOpts} />
+            {/* <MapPopup popupOpts={popupOpts} /> */}
           </Box>
         </PopupDrawer>
       </Box>
