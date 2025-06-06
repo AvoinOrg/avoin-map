@@ -12,30 +12,44 @@ import LoadingHorizontal from '#/components/Loading/LoadingHorizontal'
 import { Cross } from '#/components/icons'
 import { PopupProps } from '#/common/types/map'
 
-const AreaModal = ({ features }: PopupProps) => {
+const AreaModal = ({ features, onClose }: PopupProps) => {
   return (
     <Box
       sx={{
-        position: 'absolute' as const,
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        width: {
-          xs: '90%',
-          sm: '70%',
-          md: '500px',
-        },
-        maxHeight: '90vh',
-        bgcolor: 'background.paper',
-        boxShadow: 24,
-        p: 4,
-        borderRadius: 1,
-        outline: 'none',
-        display: 'flex',
-        flexDirection: 'column',
+        backgroundColor: '#3E3E3E',
+        borderRadius: '0.625rem',
+        color: '#A9E7CB',
+        p: 5,
       }}
     >
-      <Box sx={{ overflowY: 'auto', flexGrow: 1 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          position: "absolute",
+          top: 0,
+          left: 0,
+        }}
+      >
+        {/* <Typography id="area-modal-title" variant="h6" component="h2">
+                  {title}
+                </Typography> */}
+        <IconButton
+          aria-label="close"
+          onClick={onClose}
+          sx={{
+            // Position to top-right if preferred, or remove for default flow if title is on left
+            // position: 'absolute',
+            // right: (theme) => theme.spacing(1),
+            // top: (theme) => theme.spacing(1),
+            color: (theme) => theme.palette.grey[500],
+          }}
+        >
+          <Cross />
+        </IconButton>
+      </Box>
+      <Box sx={{ overflowY: 'auto', flexGrow: 1, top: '2.5rem' }}>
         {features && features.length > 0 ? (
           features.map((feature, index) => (
             // Replace with your actual feature rendering logic
@@ -53,8 +67,6 @@ const AreaModal = ({ features }: PopupProps) => {
             </T>
           </Typography>
         )}
-        {/* Example of using LoadingHorizontal if needed */}
-        {/* <LoadingHorizontal /> */}
       </Box>
     </Box>
   )
