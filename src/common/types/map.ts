@@ -20,7 +20,7 @@ export const EMBEDDED_PARAMS_URL_PREFIX = 'mapparams::'
 
 export type PopupProps = {
   features: MapGeoJSONFeature[]
-  isOpen?: boolean
+  onClose?: () => void
 }
 
 export type Popup = (props: PopupProps) => ReactNode
