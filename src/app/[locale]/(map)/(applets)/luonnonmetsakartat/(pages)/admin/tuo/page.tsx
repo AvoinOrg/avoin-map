@@ -41,7 +41,11 @@ const Page = () => {
     }
   }, [])
 
-  const initializePlan = async (name: string, isVisible: boolean) => {
+  const initializePlan = async (
+    name: string,
+    colorCode: string,
+    isVisible: boolean
+  ) => {
     if (!arrayBuffers || arrayBuffers.length === 0) {
       return
     }
@@ -49,7 +53,7 @@ const Page = () => {
     localFolayerPostMutation.mutate({
       name,
       isHidden: !isVisible,
-      colorCode: 'C7C9B8',
+      colorCode: colorCode,
       rawShapefile: arrayBuffers[0],
     })
   }
@@ -102,16 +106,20 @@ const Page = () => {
     }
   }
 
-  const handleFinish = async (
-    json: FeatureCollection,
-    name: string,
+  const handleFinish = async ({
+    name,
+    colorCode,
+    isVisible,
+  }: {
+    name: string
+    colorCode: string
     isVisible: boolean
-  ) => {
+  }) => {
     if (isInitializingRef.current) {
       return
     }
     try {
-      const id = await initializePlan(name, isVisible)
+      const id = await initializePlan(name, colorCode, isVisible)
       // if (id) {
       //   const route = getRoute(routeTree.plans.plan, routeTree, {
       //     routeParams: {
