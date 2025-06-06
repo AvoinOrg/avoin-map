@@ -1,5 +1,5 @@
 /**
- * @file For global state handling that cannot be done in layoutClient.tsx
+ * @file For global user state handling
  */
 
 'use client'
@@ -13,7 +13,7 @@ import { User } from 'next-auth'
 
 import { UserAuthState, UserDataState } from '#/common/types/state'
 
-const StateHandler = ({ children }: { children?: React.ReactNode }) => {
+const UserStateHandler = ({ children }: { children?: React.ReactNode }) => {
   const { data: session, status } = useSession()
   const setUserAuth = useUserStore((state) => state.setUserAuth)
   const setUserData = useUserStore((state) => state.setUserData)
@@ -97,4 +97,4 @@ const StateHandler = ({ children }: { children?: React.ReactNode }) => {
   return <>{children}</>
 }
 
-export default StateHandler
+export default UserStateHandler
