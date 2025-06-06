@@ -11,6 +11,7 @@ import {
   AdminFolayerConf,
   FolayerConf,
   FolayerAreaCollection,
+  FolayerFeature,
 } from 'applets/luonnonmetsakartat/common/types'
 
 type AdminFolayerConfMap = {
@@ -30,7 +31,6 @@ type Vars = {
   adminFolayerConfs: AdminFolayerConfMap
   folayerAreaCollections: FolayerAreaCollectionMap
   adminVerificationStatus: AdminVerificationStatus
-  adminApiKey: string
 }
 
 type Actions = {
@@ -57,7 +57,15 @@ type Actions = {
   ) => void
   deleteFolayerAreaCollection: (folayerId: string) => void
   setAdminVerificationStatus: (status: AdminVerificationStatus) => void
-  setAdminApiKey: (apiKey: string) => void
+  getFolayerAreaById: (
+    folayerId: string,
+    areaId: string
+  ) => FolayerFeature | undefined
+  updateFolayerArea: (
+    folayerId: string,
+    areaId: string,
+    updates: Partial<FolayerFeature>
+  ) => void
 }
 
 export const useAppletStore = create<Vars & Actions>()(
@@ -88,7 +96,10 @@ export const useAppletStore = create<Vars & Actions>()(
           })
         },
 
-        updateFolayerConf: (folayerId: string, updates: Partial<FolayerConf>) => {
+        updateFolayerConf: (
+          folayerId: string,
+          updates: Partial<FolayerConf>
+        ) => {
           set((state) => {
             const existingConf = state.folayerConfs[folayerId]
             if (existingConf) {
@@ -184,10 +195,31 @@ export const useAppletStore = create<Vars & Actions>()(
             state.adminVerificationStatus = status
           })
         },
-        
-        setAdminApiKey: (apiKey: string) => {
+        getFolayerAreaById: (folayerId: string, areaId: string) => {
+          const collection = get().folayerAreaCollections[folayerId]
+          if (collection) {
+            return collection.features.find((feature) => feature.id === areaId)
+          }
+          return undefined
+        },
+        updateFolayerArea: (
+          folayerId: string,
+          areaId: string,
+          updates: Partial<FolayerFeature>
+        ) => {
           set((state) => {
-            state.adminApiKey = apiKey
+            const collection = state.folayerAreaCollections[folayerId]
+            if (collection) {
+              const featureIndex = collection.features.findIndex(
+                (feature) => feature.id === areaId
+              )
+              if (featureIndex !== -1) {
+                collection.features[featureIndex] = {
+                  ...collection.features[featureIndex],
+                  ...updates,
+                }
+              }
+            }
           })
         },
       }
