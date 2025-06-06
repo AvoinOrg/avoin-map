@@ -6,7 +6,8 @@ import { Box } from '@mui/material'
 import { MapHandler } from '#/components/Map'
 import { LoginModal } from '#/components/Modal'
 import { ConfirmationDialog } from '#/components/Notification'
-import StateHandler from './stateHandler'
+import UserStateHandler from './userStateHandler'
+import UIStateHandler from './uiStateHandler'
 // import { UserModal } from '#/components/Profile'
 // import { UiStateProvider, UserStateProvider } from '#/components/State'
 // import RootStyleRegistry from './emotion'
@@ -28,25 +29,27 @@ const LayoutClient = ({
     <>
       {/* <UserStateProvider> */}
       {isHydrated && (
-        <StateHandler>
-          <MapHandler>
-            {/* <UserModal /> */}
-            <Box
-              className="layout-container"
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100vh',
-                width: '100vw',
-                zIndex: 'drawer',
-              }}
-            >
-              {children}
-            </Box>
-            <LoginModal></LoginModal>
-            <ConfirmationDialog></ConfirmationDialog>
-          </MapHandler>
-        </StateHandler>
+        <UserStateHandler>
+          <UIStateHandler>
+            <MapHandler>
+              {/* <UserModal /> */}
+              <Box
+                className="layout-container"
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100vh',
+                  width: '100vw',
+                  zIndex: 'drawer',
+                }}
+              >
+                {children}
+              </Box>
+              <LoginModal></LoginModal>
+              <ConfirmationDialog></ConfirmationDialog>
+            </MapHandler>
+          </UIStateHandler>
+        </UserStateHandler>
       )}
       {/* </UserStateProvider> */}
     </>
