@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useParams } from 'next/navigation'
 
-import { useUIStore } from '#/common/store/UIStore'
+import { useUIStore } from '#/common/store/uiStore'
 import { getRoute } from '#/common/utils/routing-client'
 import { getPathnameWithoutLocale } from '#/common/utils/routing'
 

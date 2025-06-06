@@ -22,6 +22,14 @@ interface Vars {
   sidebarWidth: number | undefined
   confirmationDialogOptions: InternalConfirmationDialogOptions
   isBaseDomainForApplet: boolean
+  windowSize: {
+    width: number
+    height: number
+  }
+  visibleMapSize: {
+    width: number
+    height: number
+  }
 }
 
 interface Actions {
@@ -44,6 +52,8 @@ interface Actions {
     options: ConfirmationDialogOptions
   ) => Promise<void>
   setIsBaseDomainForApplet: (value: boolean) => void
+  setWindowSize: (size: Partial<{ width: number; height: number }>) => void
+  setVisibleMapSize: (size: Partial<{ width: number; height: number }>) => void
 }
 
 type State = Vars & Actions
@@ -60,6 +70,8 @@ export const useUIStore = create<State>()(
       sidebarWidth: undefined,
       confirmationDialogOptions: { id: null },
       isBaseDomainForApplet: false,
+      windowSize: { width: 0, height: 0 },
+      visibleMapSize: { width: 0, height: 0 },
     }
     const actions: Actions = {
       setIsSidebarOpen: (value) => set({ isSidebarOpen: value }),
@@ -68,15 +80,7 @@ export const useUIStore = create<State>()(
       setIsLoginModalOpen: (isOpen: boolean) => {
         set({ isLoginModalOpen: isOpen })
       },
-      // profileState: 'none',
-      // setProfileState: (value) => set({ profileState: value }),
-      // modalState: 'none',
-      // setModalState: (value) => set({ modalState: value }),
-      // signupFunnelStep: 0,
-      // setSignupFunnelStep: (value) => set({ signupFunnelStep: value }),
       setIsNavbarHidden: (value) => set({ isNavbarHidden: value }),
-      // These two allow dynamic changing of the sidebar header from other components
-      // TODO: Figure out a better way to do this
       setSidebarHeaderElement: undefined,
       setSidebarHeaderElementSetter: (setter) =>
         set({ setSidebarHeaderElement: setter }),
@@ -118,6 +122,16 @@ export const useUIStore = create<State>()(
         const newOptions = { ...options, id: generateUUID() }
         await set((state) => {
           state.confirmationDialogOptions = newOptions
+        })
+      },
+      setVisibleMapSize: (size: { width?: number; height?: number }) => {
+        set((state) => {
+          state.visibleMapSize = { ...state.visibleMapSize, ...size }
+        })
+      },
+      setWindowSize: (size: { width?: number; height?: number }) => {
+        set((state) => {
+          state.windowSize = { ...state.windowSize, ...size }
         })
       },
       setIsBaseDomainForApplet: (value) =>
