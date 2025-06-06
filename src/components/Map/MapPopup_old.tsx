@@ -12,7 +12,7 @@ interface Props {
   popupOpts: PopupOpts | null
 }
 
-export const MapPopup = ({ popupOpts }: Props) => {
+export const MapPopupOld = ({ popupOpts }: Props) => {
   const [popupFeatures, setPopupFeatures] = React.useState<any[]>()
 
   useEffect(() => {

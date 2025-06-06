@@ -6,7 +6,7 @@ import { Modal } from '@mui/material'
 
 import { useMapStore } from '#/common/store/mapStore'
 
-export const MapPopupModal = () => {
+export const MapPopup = () => {
   const [isActive, setIsActive] = useState(false)
   const activePopupData = useMapStore((state) => state.activePopupData)
   const removeSelectedFeatures = useMapStore(
