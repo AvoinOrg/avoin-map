@@ -33,7 +33,7 @@ import { useMapStore } from '../../common/store'
 import { EMBEDDED_PARAMS_URL_PREFIX, MapLibraryMode } from '#/common/types/map'
 import { OverlayMessages } from './OverlayMessages'
 import { MapButtons } from './MapButtons'
-import { MapPopupModal } from './MapPopupModal'
+import { MapPopup } from './MapPopup'
 import { decodeUrlAndParams } from '#/common/utils/map'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
