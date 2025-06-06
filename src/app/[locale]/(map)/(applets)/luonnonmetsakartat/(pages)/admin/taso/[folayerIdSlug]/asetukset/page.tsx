@@ -221,7 +221,7 @@ const Page = () => {
                 }}
               >
                 <T
-                  keyName={'sidebar.admin.folayer.save'}
+                  keyName={'sidebar.admin.folayer.settings.save'}
                   ns={'luonnonmetsakartat'}
                 />
               </Typography>
