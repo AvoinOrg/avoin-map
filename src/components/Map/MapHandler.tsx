@@ -33,7 +33,7 @@ import { useMapStore } from '../../common/store'
 import { EMBEDDED_PARAMS_URL_PREFIX, MapLibraryMode } from '#/common/types/map'
 import { OverlayMessages } from './OverlayMessages'
 import { MapButtons } from './MapButtons'
-import { MapPopup } from './MapPopup'
+import { MapPopupHandler } from './MapPopupHandler'
 import { decodeUrlAndParams } from '#/common/utils/map'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
@@ -830,7 +830,7 @@ export const MapHandler = ({ children }: Props) => {
       ></Box>
       <OverlayMessages message={overlayMessage}></OverlayMessages>
       <MapButtons></MapButtons>
-      <MapPopup></MapPopup>
+      <MapPopupHandler></MapPopupHandler>
       <></>
       {children}
     </>
