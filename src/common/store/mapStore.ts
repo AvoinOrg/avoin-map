@@ -1030,7 +1030,8 @@ export const useMapStore = create<State>()(
 
             if (
               isMatchingSource(newPopupData, oldPopupData) &&
-              newPopupData.component === oldPopupData.component
+              newPopupData.component === oldPopupData.component &&
+              isEqual(newPopupData.componentProps, oldPopupData.componentProps)
             ) {
               if (isEqual(newPopupData.features, oldPopupData.features)) {
                 return
