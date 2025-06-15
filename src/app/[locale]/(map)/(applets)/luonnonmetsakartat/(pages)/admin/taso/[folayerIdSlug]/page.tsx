@@ -8,34 +8,24 @@ import React, {
   use,
   useMemo,
 } from 'react'
-import { Box, Button, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { useParams, useRouter } from 'next/navigation'
-import { buffer } from '@turf/turf'
-import booleanValid from '@turf/boolean-valid'
-import { flattenDeep } from 'lodash-es'
 import { T, useTranslate } from '@tolgee/react'
-import { Feature, FeatureCollection } from 'geojson'
-import { HexColorPicker } from 'react-colorful'
-
-import { getRoute } from '#/common/utils/routing-client'
-import { getGeoJsonArea } from '#/common/utils/gis'
-import { generateUUID } from '#/common/utils/general'
-import BigMenuButton from '#/components/common/BigMenuButton'
-import { ArrowNextBig, Upload } from '#/components/icons'
-
-import {
-  FolayerConfState,
-} from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
-import { routeTree } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/routes'
-import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
-import { adminFolayerPatchMutation } from 'applets/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
 import { useMutation } from '@tanstack/react-query'
+import { SaveOutlined } from '@mui/icons-material'
+
 import { LoadingSpinner } from '#/components/Loading'
 import { SidebarContentBox } from '#/components/Sidebar'
-import { SaveOutlined } from '@mui/icons-material'
-import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
-import SearchTable from 'applets/luonnonmetsakartat/components/SearchTable'
+
+import { ArrowNextBig } from '#/components/icons'
 import MutableLink from '#/components/common/MutableLink'
+import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
+
+import { adminFolayerPatchMutation } from 'applets/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
+import SearchTable from 'applets/luonnonmetsakartat/components/SearchTable'
+import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
+import { FolayerConfState } from 'applets/luonnonmetsakartat/common/types'
+import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 
 const Page = () => {
   const [isFolayerReady, setIsFolayerReady] = useState(false)
