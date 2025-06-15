@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Box, TextField, Typography, SxProps, Theme } from '@mui/material'
 
-interface CustomTextFieldProps {
+interface TextFieldWithHeaderProps {
   headerText: string
   placeholderText?: string
   value: string
@@ -14,9 +14,13 @@ interface CustomTextFieldProps {
   disabled?: boolean
   error?: boolean
   helperText?: string
+  multiline?: boolean
+  rows?: number
+  minRows?: number
+  maxRows?: number
 }
 
-const CustomTextField = ({
+const TextFieldWithHeader = ({
   headerText,
   placeholderText,
   value,
@@ -24,13 +28,32 @@ const CustomTextField = ({
   sx,
   headerSx,
   textSx,
+  helperText,
   required = false,
   fullWidth = true,
   disabled = false,
   error = false,
-  helperText,
-  ...textFieldProps
-}: CustomTextFieldProps) => {
+  multiline = false,
+  rows,
+  minRows,
+  maxRows,
+  ...restTextFieldProps
+}: TextFieldWithHeaderProps) => {
+  const textFieldProps: any = {
+    value,
+    onChange,
+    placeholder: placeholderText,
+    fullWidth,
+    disabled,
+    error,
+    helperText,
+    multiline,
+    rows,
+    minRows,
+    maxRows,
+    ...restTextFieldProps,
+  }
+
   return (
     <Box
       sx={[
@@ -55,13 +78,7 @@ const CustomTextField = ({
         {required && ' *'}
       </Typography>
       <TextField
-        value={value}
-        onChange={onChange}
-        placeholder={placeholderText}
-        fullWidth={fullWidth}
-        disabled={disabled}
-        error={error}
-        helperText={helperText}
+        {...textFieldProps}
         sx={[
           {
             '& .MuiOutlinedInput-root': {
@@ -103,10 +120,9 @@ const CustomTextField = ({
           },
           ...(Array.isArray(textSx) ? textSx : [textSx]),
         ]}
-        {...textFieldProps}
       />
     </Box>
   )
 }
 
-export default CustomTextField
+export default TextFieldWithHeader
