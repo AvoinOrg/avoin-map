@@ -65,6 +65,7 @@ export const MapPopupHandler = () => {
               <popupData.component
                 features={popupData.features}
                 onClose={handleClose}
+                {...popupData.componentProps}
               />
             )}
           </Box>
