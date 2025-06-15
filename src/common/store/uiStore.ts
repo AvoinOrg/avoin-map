@@ -11,6 +11,7 @@ import {
   NotificationMessage,
 } from '#/common/types/state'
 import { generateUUID } from '../utils/general'
+import { MapDims } from '../types/map'
 
 interface Vars {
   isSidebarOpen: boolean
@@ -26,9 +27,9 @@ interface Vars {
     width: number
     height: number
   }
-  visibleMapSize: {
-    width: number
-    height: number
+  mapDims: {
+    visible: MapDims | undefined
+    min: MapDims | undefined
   }
 }
 
@@ -53,7 +54,10 @@ interface Actions {
   ) => Promise<void>
   setIsBaseDomainForApplet: (value: boolean) => void
   setWindowSize: (size: Partial<{ width: number; height: number }>) => void
-  setVisibleMapSize: (size: Partial<{ width: number; height: number }>) => void
+  setMapDims: (dims: {
+    visible?: Partial<MapDims>
+    min?: Partial<MapDims>
+  }) => void
 }
 
 type State = Vars & Actions
@@ -71,7 +75,7 @@ export const useUIStore = create<State>()(
       confirmationDialogOptions: { id: null },
       isBaseDomainForApplet: false,
       windowSize: { width: 0, height: 0 },
-      visibleMapSize: { width: 0, height: 0 },
+      mapDims: { visible: undefined, min: undefined },
     }
     const actions: Actions = {
       setIsSidebarOpen: (value) => set({ isSidebarOpen: value }),
@@ -124,11 +128,36 @@ export const useUIStore = create<State>()(
           state.confirmationDialogOptions = newOptions
         })
       },
-      setVisibleMapSize: (size: { width?: number; height?: number }) => {
+
+      setMapDims: (dims: {
+        visible?: Partial<MapDims>
+        min?: Partial<MapDims>
+      }) => {
         set((state) => {
-          state.visibleMapSize = { ...state.visibleMapSize, ...size }
+          if (dims.visible != null) {
+            if (state.mapDims.visible == null) {
+              state.mapDims.visible = {
+                ...{ width: 0, height: 0, centerX: 0, centerY: 0 },
+                ...dims,
+              }
+            } else {
+              state.mapDims.visible = { ...state.mapDims.visible, ...dims }
+            }
+          }
+
+          if (dims.min != null) {
+            if (state.mapDims.min == null) {
+              state.mapDims.min = {
+                ...{ width: 0, height: 0, centerX: 0, centerY: 0 },
+                ...dims,
+              }
+            } else {
+              state.mapDims.min = { ...state.mapDims.min, ...dims.min }
+            }
+          }
         })
       },
+
       setWindowSize: (size: { width?: number; height?: number }) => {
         set((state) => {
           state.windowSize = { ...state.windowSize, ...size }
