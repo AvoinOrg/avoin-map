@@ -61,27 +61,23 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
     }
   }
 
-  const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setName(event.target.value)
+  const handleNameChange = (value: string) => {
+    setName(value)
     setUnsyncedChanges(true)
   }
 
-  const handleDescriptionChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setDescription(event.target.value)
+  const handleDescriptionChange = (value: string) => {
+    setDescription(value)
     setUnsyncedChanges(true)
   }
 
-  const handleMunicipalityChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setMunicipality(event.target.value)
+  const handleMunicipalityChange = (value: string) => {
+    setMunicipality(value)
     setUnsyncedChanges(true)
   }
 
-  const handleRegionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRegion(event.target.value)
+  const handleRegionChange = (value: string) => {
+    setRegion(value)
     setUnsyncedChanges(true)
   }
 
@@ -177,7 +173,7 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
             ></TextFieldWithHeader>
           </Box>
         )}
-        {feature && unsyncedChanges && (
+        {/* {feature && unsyncedChanges && (
           <Box
             sx={(theme) => ({
               display: 'flex',
@@ -221,7 +217,7 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
               </Box>
             </Box>
           </Box>
-        )}
+        )} */}
       </Box>
     </MapModalWrapper>
   )

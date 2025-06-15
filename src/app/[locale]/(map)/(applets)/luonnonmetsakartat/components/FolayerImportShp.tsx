@@ -84,10 +84,8 @@ const FolayerImportShp = ({
   //   setNameCol(newNameCol)
   // }
 
-  const handleFolayerNameChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setFolayerNameValue(event.target.value)
+  const handleFolayerNameChange = (value: string) => {
+    setFolayerNameValue(value)
   }
 
   const handleIsVisibleChange = (
