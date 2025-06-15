@@ -10,7 +10,7 @@ import { useUIStore } from '#/common/store/uiStore'
 const UIStateHandler = ({ children }: { children?: React.ReactNode }) => {
   const sidebarWidth = useUIStore((state) => state.sidebarWidth)
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
-  const setVisibleMapSize = useUIStore((state) => state.setVisibleMapSize)
+  const setMapDims = useUIStore((state) => state.setMapDims)
   const windowSize = useUIStore((state) => state.windowSize)
   const setWindowSize = useUIStore((state) => state.setWindowSize)
 
@@ -31,13 +31,30 @@ const UIStateHandler = ({ children }: { children?: React.ReactNode }) => {
 
   useEffect(() => {
     const currentActualSidebarWidth = isSidebarOpen ? sidebarWidth || 0 : 0
-    const calculatedVisibleMapWidth =
-      windowSize.width - currentActualSidebarWidth
+    const visibleMapWidth = windowSize.width - currentActualSidebarWidth
 
-    setVisibleMapSize({
-      width: calculatedVisibleMapWidth,
+    const visibleMapCenterX = visibleMapWidth / 2 + currentActualSidebarWidth
+    const visibleMapCenterY = windowSize.height / 2
+
+    const minMapWidth = windowSize.width - (sidebarWidth || 0)
+    const minMapCenterX = minMapWidth / 2 + (sidebarWidth || 0)
+    const minMapCenterY = windowSize.height / 2
+
+    setMapDims({
+      visible: {
+        width: visibleMapWidth,
+        height: windowSize.height,
+        centerX: visibleMapCenterX,
+        centerY: visibleMapCenterY,
+      },
+      min: {
+        width: minMapWidth,
+        height: windowSize.height,
+        centerX: minMapCenterX,
+        centerY: minMapCenterY,
+      },
     })
-  }, [windowSize, sidebarWidth, isSidebarOpen, setVisibleMapSize])
+  }, [windowSize, sidebarWidth, isSidebarOpen, setMapDims])
 
   return <>{children}</>
 }
