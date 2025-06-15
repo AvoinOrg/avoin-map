@@ -9,7 +9,7 @@ import {
 } from '#/common/types/map'
 import { getContrastColor } from '#/common/utils/styling'
 
-import AreaModal from '../components/AreaModal'
+import AreaModalAdmin from '../components/AreaModalAdmin'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 const GS_WORKSPACE =
@@ -40,15 +40,15 @@ export const getCentroidLayerGroupId = (layerId: string) => {
 export const createAdminFolayerConf = async (
   apiKey: string,
   // json: any,
-  layerId: string,
+  folayerId: string,
   colorCode: string
 ) => {
   // const addImage = useMapStore.getState().addImage
-  const sourceId = getFolayerGroupId(layerId)
-  const sourceLayer = getSourceFolayerId(layerId)
+  const sourceId = getFolayerGroupId(folayerId)
+  const sourceLayer = getSourceFolayerId(folayerId)
 
-  const centroidSourceId = getCentroidLayerGroupId(layerId)
-  const centroidSourceLayer = getCentroidSourceFolayerId(layerId)
+  const centroidSourceId = getCentroidLayerGroupId(folayerId)
+  const centroidSourceLayer = getCentroidSourceFolayerId(folayerId)
 
   const validColorCode = colorCode || '#4cbf00' // Default to green if none provided
   const contrastColor = getContrastColor(validColorCode)
@@ -436,7 +436,10 @@ export const createAdminFolayerConf = async (
     eventHandlers: eventHandlers,
     useMb: true,
     popupOpts: {
-      component: AreaModal,
+      component: AreaModalAdmin,
+      componentProps: {
+        folayerId: folayerId,
+      },
       source: centroidSourceId,
       type: 'modal',
       multiPoppable: false,
