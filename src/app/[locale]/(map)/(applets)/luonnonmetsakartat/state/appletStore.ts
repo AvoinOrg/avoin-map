@@ -12,6 +12,7 @@ import {
   FolayerConf,
   FolayerAreaCollection,
   FolayerFeature,
+  PartialFolayerFeature,
 } from 'applets/luonnonmetsakartat/common/types'
 
 type AdminFolayerConfMap = {
@@ -64,7 +65,7 @@ type Actions = {
   updateFolayerArea: (
     folayerId: string,
     areaId: string,
-    updates: Partial<FolayerFeature>
+    updates: PartialFolayerFeature
   ) => void
 }
 
@@ -205,7 +206,7 @@ export const useAppletStore = create<Vars & Actions>()(
         updateFolayerArea: (
           folayerId: string,
           areaId: string,
-          updates: Partial<FolayerFeature>
+          updates: PartialFolayerFeature
         ) => {
           set((state) => {
             const collection = state.folayerAreaCollections[folayerId]
@@ -214,10 +215,17 @@ export const useAppletStore = create<Vars & Actions>()(
                 (feature) => feature.id === areaId
               )
               if (featureIndex !== -1) {
-                collection.features[featureIndex] = {
+                const updatedFeature = {
                   ...collection.features[featureIndex],
-                  ...updates,
                 }
+                if (updates.properties) {
+                  updatedFeature.properties = {
+                    ...updatedFeature.properties,
+                    ...updates.properties,
+                  }
+                }
+
+                collection.features[featureIndex] = updatedFeature
               }
             }
           })
