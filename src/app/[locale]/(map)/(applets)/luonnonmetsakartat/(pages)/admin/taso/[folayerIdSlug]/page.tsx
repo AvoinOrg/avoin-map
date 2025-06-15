@@ -24,23 +24,16 @@ import BigMenuButton from '#/components/common/BigMenuButton'
 import { ArrowNextBig, Upload } from '#/components/icons'
 
 import {
-  FeatureProperties,
   FolayerConfState,
 } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 import { routeTree } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/routes'
-import FolayerImportShp from 'applets/luonnonmetsakartat/components/FolayerImportShp'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { adminFolayerPatchMutation } from 'applets/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
 import { useMutation } from '@tanstack/react-query'
 import { LoadingSpinner } from '#/components/Loading'
 import { SidebarContentBox } from '#/components/Sidebar'
-import { set } from 'ol/transform'
-import EditableText from '#/components/common/EditableText'
-import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
-import CheckBoxWithText from '#/components/common/CheckBoxWithText'
 import { SaveOutlined } from '@mui/icons-material'
 import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
-import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
 import SearchTable from 'applets/luonnonmetsakartat/components/SearchTable'
 import MutableLink from '#/components/common/MutableLink'
 
