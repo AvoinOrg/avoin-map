@@ -23,7 +23,7 @@ export type PopupProps = {
   onClose?: () => void
 }
 
-export type Popup = (props: PopupProps) => ReactNode
+export type Popup = (props: PopupProps & any) => ReactNode
 
 export type SelectionSource = {
   source: string
@@ -118,6 +118,13 @@ interface BaseLayerGroupAddOptions {
 }
 
 export type DataUpdateMutator = (data: FeatureCollection) => Promise<void>
+
+export type MapDims = {
+  width: number
+  height: number
+  centerX: number
+  centerY: number
+}
 
 // Compatible with hydration.
 export interface SerializableLayerGroupAddOptions
@@ -252,6 +259,7 @@ export interface PopupData {
   component: Popup
   source: string
   type: PopupType
+  componentProps?: Record<string, any>
   sourceLayer?: string
   multiPoppable?: boolean
 }
@@ -260,6 +268,7 @@ export interface PopupOpts {
   component: Popup
   source: string
   type: PopupType
+  componentProps?: Record<string, any>
   sourceLayer?: string
   multiPoppable?: boolean
 }
