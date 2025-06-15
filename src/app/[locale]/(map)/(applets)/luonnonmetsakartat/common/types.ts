@@ -59,6 +59,10 @@ export type FolayerFeatureProperties = FeatureProperties & {
 
 export type FolayerFeature = Feature<Geometry, FolayerFeatureProperties>
 
+export type PartialFolayerFeature = Partial<
+  Feature<Geometry, Partial<FolayerFeatureProperties>>
+>
+
 export interface FolayerAreaCollection {
   id: string
   features: FolayerFeature[]
