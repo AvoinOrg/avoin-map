@@ -78,10 +78,9 @@ const Page = () => {
     localAdminFolayerDeleteMutation.isSuccess,
   ])
 
-  const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newName = e.target.value
+  const handleNameChange = (value: string) => {
     updateAdminFolayerConf(params.folayerIdSlug, {
-      name: newName,
+      name: value,
       unsyncedChanges: true,
     })
   }
