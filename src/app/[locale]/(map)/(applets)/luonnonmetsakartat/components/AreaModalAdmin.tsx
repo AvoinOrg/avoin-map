@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   Box,
   Typography,
@@ -8,14 +8,16 @@ import {
   Theme,
 } from '@mui/material'
 import { T, useTranslate } from '@tolgee/react'
-import LoadingHorizontal from '#/components/Loading/LoadingHorizontal'
 import { Cross } from '#/components/icons'
 import { PopupProps } from '#/common/types/map'
-import CustomTextField from '#/components/common/TextFieldWithHeader'
 import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
 import { useAppletStore } from '../state/appletStore'
 import { MapModalWrapper } from '#/components/Map/MapModalWrapper'
-import Popup from '#/components/Map/Layers/Buildings/BuildingEnergyCertificates/Popup'
+import { SaveOutlined } from '@mui/icons-material'
+import { SCROLLBAR_WIDTH_REM } from '#/common/style/theme/constants'
+import { adminFolayerAreaPatchMutation } from '../common/queries/adminFolayerAreaPatchMutation'
+import { useMutation } from '@tanstack/react-query'
+import { LoadingSpinner } from '#/components/Loading'
 
 interface Props extends PopupProps {
   folayerId: string
@@ -34,7 +36,9 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
   const [region, setRegion] = useState('')
   const [unsyncedChanges, setUnsyncedChanges] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
-  // const [area, setArea] = useState<number>()
+  const localAdminFolayerAreaPatchMutation = useMutation(
+    adminFolayerAreaPatchMutation()
+  )
 
   const feature = useMemo(() => {
     if (features && features.length > 0 && folayerAreaCollection) {
@@ -54,6 +58,20 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
     }
     return null
   }, [features, folayerAreaCollection])
+
+  useEffect(() => {
+    if (!localAdminFolayerAreaPatchMutation.isPending) {
+      setIsUpdating(false)
+    } else {
+      setIsUpdating(true)
+    }
+  }, [localAdminFolayerAreaPatchMutation.isPending])
+
+  useEffect(() => {
+    if (localAdminFolayerAreaPatchMutation.isPending) {
+      setUnsyncedChanges(false)
+    }
+  }, [localAdminFolayerAreaPatchMutation.isSuccess])
 
   const handleClose = () => {
     if (onClose) {
@@ -82,7 +100,9 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
   }
 
   const handleSaveClick = () => {
-    updateArea(folayerId, feature?.id as string, {
+    localAdminFolayerAreaPatchMutation.mutate({
+      layerId: folayerId,
+      featureId: feature?.id as string,
       properties: {
         name: name,
         description: description,
@@ -102,8 +122,12 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
         sx={{
           backgroundColor: '#3E3E3E',
           color: '#A9E7CB',
-          p: 5,
           minWidth: minWidthBeforeFullScreen + 'px',
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          overflow: 'auto',
+          borderRadius: '0.625rem',
         }}
       >
         <Box
@@ -111,9 +135,10 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            position: 'absolute',
-            top: 0,
-            left: 0,
+            height: '4.0rem',
+            borderBottom: '1px solid',
+            borderColor: 'neutral.dark',
+            pl: 1.2,
           }}
         >
           {/* <Typography id="area-modal-title" variant="h6" component="h2">
@@ -134,7 +159,25 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
           </IconButton>
         </Box>
         {feature && (
-          <Box sx={{ overflowY: 'auto', flexGrow: 1, top: '2.5rem' }}>
+          <Box
+            sx={(theme) => ({
+              overflowY: 'scroll',
+              flexGrow: 1,
+              top: '2.5rem',
+              pt: 3,
+              pb: 3,
+              pr: 2,
+              pl: 1 + SCROLLBAR_WIDTH_REM + 'rem',
+              '@supports selector(::-webkit-scrollbar)': {
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: '#878787',
+                },
+              },
+              '@supports not selector(::-webkit-scrollbar)': {
+                scrollbarColor: `${theme.palette.neutral.main} transparent`,
+              },
+            })}
+          >
             <TextFieldWithHeader
               headerText={t('sidebar.admin.area.name.header')}
               placeholderText={t('sidebar.admin.area.name.placeholder')}
@@ -173,35 +216,38 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
             ></TextFieldWithHeader>
           </Box>
         )}
-        {/* {feature && unsyncedChanges && (
-          <Box
-            sx={(theme) => ({
-              display: 'flex',
-              flexDirection: 'column',
-              pl: SIDEBAR_PADDING_REM + 'rem',
-              pr: SIDEBAR_PADDING_REM + 'rem',
-              pt: 2,
-              pb: 2,
-              zIndex: 9999,
-              borderTop: 1,
-              borderColor: 'primary.lighter',
-            })}
-          >
+        <Box
+          sx={(theme) => ({
+            display: 'flex',
+            flexDirection: 'row',
+            height: '5.5rem',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            pr: 3.5,
+            borderTop: `1px solid`,
+            borderColor: 'neutral.dark',
+          })}
+        >
+          {feature && unsyncedChanges && (
             <Box
               onClick={handleSaveClick}
               sx={{
-                mt: 1.3,
                 display: 'inline-flex',
                 flexDirection: 'row',
                 '&:hover': { cursor: 'pointer' },
                 color: 'neutral.dark',
                 flex: '0',
                 whiteSpace: 'nowrap',
-                alignSelf: 'flex-start',
-                width: '100%',
+                justifyContent: 'center',
               }}
             >
-              <Box sx={{ mr: 1.7, display: 'flex', alignItems: 'center' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
                 <SaveOutlined></SaveOutlined>
                 <Typography
                   sx={{
@@ -216,8 +262,27 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
                 </Typography>
               </Box>
             </Box>
+          )}
+        </Box>
+        {isUpdating && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10, // Ensure it's on top
+              borderRadius: 'inherit', // Inherit border radius from parent if needed
+            }}
+          >
+            <LoadingSpinner size="5rem" />
           </Box>
-        )} */}
+        )}
       </Box>
     </MapModalWrapper>
   )
