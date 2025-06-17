@@ -74,7 +74,7 @@ export const Sidebar = ({
           position: 'absolute',
           top: 0,
           left: 0,
-          zIndex: theme.zIndex.drawer + 2,
+          zIndex: theme.zIndex.drawer + 11, // draw over the loading spinner
         })}
       />
       <Box
@@ -98,7 +98,7 @@ export const Sidebar = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                zIndex: theme.zIndex.drawer + 1,
+                zIndex: theme.zIndex.drawer + 10, // Changed from +1 to +2
                 borderRadius: 'inherit', // Inherit border radius from parent if needed
               })}
             >
