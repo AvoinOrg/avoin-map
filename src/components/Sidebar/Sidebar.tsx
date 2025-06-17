@@ -10,6 +10,7 @@ import Drawer from './Drawer'
 import PopupDrawer from './PopupDrawer'
 import { SidebarHeader, SidebarToggleButton } from '#/components/Sidebar'
 import { Navbar } from './Navbar'
+import { LoadingSpinner } from '../Loading'
 
 export const Sidebar = ({
   headerElement,
@@ -27,6 +28,7 @@ export const Sidebar = ({
   const setIsMapPopupOpen = useUIStore((state) => state.setIsMapPopupOpen)
   const setSidebarWidth = useUIStore((state) => state.setSidebarWidth)
   const isNavbarHidden = useUIStore((state) => state.isNavbarHidden)
+  const isSidebarLoading = useUIStore((state) => state.isSidebarLoading)
 
   // const popupOpts = useMapStore((state) => state.popupOpts)
 
@@ -61,6 +63,7 @@ export const Sidebar = ({
           maxWidth: '100%',
           display: 'flex',
           flexDirection: 'column',
+          position: 'relative',
           flex: 1,
         },
         ...(Array.isArray(sx) ? sx : [sx]),
@@ -71,7 +74,7 @@ export const Sidebar = ({
           position: 'absolute',
           top: 0,
           left: 0,
-          zIndex: theme.zIndex.drawer + 1,
+          zIndex: theme.zIndex.drawer + 2,
         })}
       />
       <Box
@@ -82,6 +85,25 @@ export const Sidebar = ({
             headerElement
           ) : (
             <SidebarHeader title={'avoin map'}></SidebarHeader>
+          )}
+          {isSidebarLoading && (
+            <Box
+              sx={(theme) => ({
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: theme.zIndex.drawer + 1,
+                borderRadius: 'inherit', // Inherit border radius from parent if needed
+              })}
+            >
+              <LoadingSpinner size="5rem" />
+            </Box>
           )}
           <Box
             ref={sidebarRef}

@@ -20,6 +20,7 @@ interface Vars {
   notifications: Record<string, InternalNotificationMessage>
   isNavbarHidden: boolean
   isLoginModalOpen: boolean
+  isSidebarLoading: boolean
   sidebarWidth: number | undefined
   confirmationDialogOptions: InternalConfirmationDialogOptions
   isBaseDomainForApplet: boolean
@@ -31,12 +32,15 @@ interface Vars {
     visible: MapDims | undefined
     min: MapDims | undefined
   }
+  _activeSidebarLoaders: Set<string>
 }
 
 interface Actions {
   setIsSidebarOpen: (value: boolean) => void
   setIsSidebarDisabled: (value: boolean) => void
   setIsMapPopupOpen: (value: boolean) => void
+  startSidebarLoading: (loaderId: string) => void
+  stopSidebarLoading: (loaderId: string) => void
   notify: (notification: NotificationMessage) => Promise<void>
   updateNotification: (
     notificationId: string,
@@ -71,11 +75,13 @@ export const useUIStore = create<State>()(
       isLoginModalOpen: false,
       isNavbarHidden: false,
       notifications: {},
+      isSidebarLoading: false,
       sidebarWidth: undefined,
       confirmationDialogOptions: { id: null },
       isBaseDomainForApplet: false,
       windowSize: { width: 0, height: 0 },
       mapDims: { visible: undefined, min: undefined },
+      _activeSidebarLoaders: new Set<string>(),
     }
     const actions: Actions = {
       setIsSidebarOpen: (value) => set({ isSidebarOpen: value }),
@@ -90,6 +96,18 @@ export const useUIStore = create<State>()(
         set({ setSidebarHeaderElement: setter }),
       setSidebarWidth(pixels: number) {
         set({ sidebarWidth: pixels })
+      },
+      startSidebarLoading: (loaderId: string) => {
+        set((state) => {
+          state._activeSidebarLoaders.add(loaderId)
+          state.isSidebarLoading = state._activeSidebarLoaders.size > 0
+        })
+      },
+      stopSidebarLoading: (loaderId: string) => {
+        set((state) => {
+          state._activeSidebarLoaders.delete(loaderId)
+          state.isSidebarLoading = state._activeSidebarLoaders.size > 0
+        })
       },
       notify: async (notification: NotificationMessage) => {
         const newNotification: InternalNotificationMessage = {
