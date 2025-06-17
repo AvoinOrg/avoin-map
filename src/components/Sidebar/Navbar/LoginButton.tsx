@@ -9,7 +9,7 @@ import { openWindow } from '#/common/utils/modal'
 const LoginButton = () => {
   return (
     <Button
-      sx={{ color: 'neutral.lighter', typography: 'h3' }}
+      sx={{ color: 'neutral.lighter', typography: 'h3', pl: 0 }}
       onClick={() => openWindow('/en/adds/login')}
     >
       <T keyName="navbar.profile.sign_in" />
