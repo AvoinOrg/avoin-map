@@ -22,6 +22,7 @@ import { openWindow } from '#/common/utils/modal'
 import { useUserStore } from '#/common/store/userStore'
 import { LoadingSpinner } from '#/components/Loading'
 import { UserAuthState, UserDataState } from '#/common/types/state'
+import LoadingHorizontal from '#/components/Loading/LoadingHorizontal'
 
 const profileUrl =
   process.env.NEXT_PUBLIC_ZITADEL_ISSUER + '/ui/console/users/me'
@@ -90,7 +91,7 @@ const LoggedInButton = () => {
               ref={anchorRef}
               aria-haspopup="true"
               id="navbar-profile-button"
-              sx={{ color: 'neutral.lighter', typography: 'h3' }}
+              sx={{ color: 'neutral.lighter', typography: 'h3', pl: 0 }}
               onClick={handleToggle}
             >
               {userData?.name}
@@ -101,7 +102,10 @@ const LoggedInButton = () => {
               role={undefined}
               placement="bottom-start"
               transition
-              disablePortal
+              // disablePortal
+              sx={{
+                zIndex: 3300,
+              }}
             >
               {({ TransitionProps, placement }) => (
                 <Grow
@@ -134,7 +138,7 @@ const LoggedInButton = () => {
           </>
         )}
       {userDataState !== UserDataState.Fetched && (
-        <LoadingSpinner sx={{ ml: 1 }} size={'2rem'}></LoadingSpinner>
+        <LoadingHorizontal></LoadingHorizontal>
       )}
     </>
   )
