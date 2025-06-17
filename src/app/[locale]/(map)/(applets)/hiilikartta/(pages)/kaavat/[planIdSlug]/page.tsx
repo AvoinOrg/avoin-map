@@ -401,7 +401,7 @@ const Page = () => {
               pr: SIDEBAR_PADDING_REM + 'rem',
               pt: 2,
               pb: 2,
-              zIndex: 9999,
+              zIndex: theme.zIndex.drawer + 1,
               borderTop: 1,
               borderColor: 'primary.lighter',
             })}
