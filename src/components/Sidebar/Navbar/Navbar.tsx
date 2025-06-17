@@ -4,6 +4,7 @@ import React from 'react'
 import { Box } from '@mui/material'
 
 import UserButtons from './UserButtons'
+import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
 
 export const Navbar = () => {
   return (
@@ -22,6 +23,7 @@ export const Navbar = () => {
         display: 'flex',
         flexDirection: 'row',
         p: 4,
+        pl: SIDEBAR_PADDING_REM + 'rem',
       })}
     >
       <Box sx={{ display: 'flex', flexDirection: 'row' }}>
