@@ -189,51 +189,6 @@ const Page = () => {
           searchPlaceholder={t('sidebar.admin.folayer.search_placeholder')}
         ></SearchTable>
       </SidebarContentBox>
-      {adminFolayerConf && adminFolayerConf.unsyncedChanges && (
-        <Box
-          sx={(theme) => ({
-            display: 'flex',
-            flexDirection: 'column',
-            pl: SIDEBAR_PADDING_REM + 'rem',
-            pr: SIDEBAR_PADDING_REM + 'rem',
-            pt: 2,
-            pb: 2,
-            zIndex: 9999,
-            borderTop: 1,
-            borderColor: 'primary.lighter',
-          })}
-        >
-          <Box
-            onClick={handleSaveClick}
-            sx={{
-              mt: 1.3,
-              display: 'inline-flex',
-              flexDirection: 'row',
-              '&:hover': { cursor: 'pointer' },
-              color: 'neutral.dark',
-              flex: '0',
-              whiteSpace: 'nowrap',
-              alignSelf: 'flex-start',
-              width: '100%',
-            }}
-          >
-            <Box sx={{ mr: 1.7, display: 'flex', alignItems: 'center' }}>
-              <SaveOutlined></SaveOutlined>
-              <Typography
-                sx={{
-                  typography: 'h3',
-                  ml: 1,
-                }}
-              >
-                <T
-                  keyName={'sidebar.admin.folayer.save'}
-                  ns={'luonnonmetsakartat'}
-                />
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-      )}
     </Box>
   )
 }
