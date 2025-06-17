@@ -51,16 +51,20 @@ export const MapPopupHandler = () => {
             backdrop: {
               sx: {
                 backgroundColor: 'transparent',
+                pointerEvents: 'none',
               },
             },
           }}
           sx={{
-            position: 'absolute' as const,
-            bgColor: 'transparent',
-            backgroundColor: 'transparent',
+            zIndex: 'modal',
+            pointerEvents: 'none',
           }}
         >
-          <Box sx={{ display: 'flex', flex: 1, height: '100%', width: '100%' }}>
+          <Box
+            sx={{
+              pointerEvents: 'auto',
+            }}
+          >
             {popupData && (
               <popupData.component
                 features={popupData.features}
