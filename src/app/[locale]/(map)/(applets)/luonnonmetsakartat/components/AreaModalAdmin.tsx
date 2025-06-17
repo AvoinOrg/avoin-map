@@ -128,6 +128,7 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
           height: '100%',
           overflow: 'auto',
           borderRadius: '0.625rem',
+          maxHeight: '80rem',
         }}
       >
         <Box
