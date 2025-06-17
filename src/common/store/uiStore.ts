@@ -3,6 +3,7 @@
 import React from 'react'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
+import { enableMapSet } from 'immer'
 
 import {
   ConfirmationDialogOptions,
@@ -65,6 +66,8 @@ interface Actions {
 }
 
 type State = Vars & Actions
+
+enableMapSet()
 
 export const useUIStore = create<State>()(
   immer((set, get) => {
