@@ -21,9 +21,11 @@ import { Delete } from '#/components/icons'
 import { getRoute } from '#/common/utils/routing-client'
 import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
 import IconWithText from '#/components/common/IconWithText'
+import { useSidebarActivityLoader } from '#/common/hooks/ui/useSidebarActivityLoader'
 
 const Page = () => {
   const [isFolayerReady, setIsFolayerReady] = useState(false)
+  const [isLoading, setIsLoading] = useSidebarActivityLoader()
   const params = useParams<{ folayerIdSlug: string }>()
   const router = useRouter()
   const { t } = useTranslate('luonnonmetsakartat')
@@ -46,13 +48,6 @@ const Page = () => {
     adminFolayerDeleteMutation()
   )
 
-  const isEditingDisabled = useMemo(() => {
-    if (adminFolayerConf && adminFolayerConf.state === FolayerConfState.Idle) {
-      return false
-    }
-    return true
-  }, [adminFolayerConf?.state])
-
   useEffect(() => {
     if (adminFolayerConf && adminFolayerConf.state === FolayerConfState.Idle) {
       setIsFolayerReady(true)
@@ -60,6 +55,14 @@ const Page = () => {
       setIsFolayerReady(false)
     }
   }, [adminFolayerConf])
+
+  useEffect(() => {
+    if (!localAdminFolayerPatchMutation.isPending) {
+      setIsLoading(false)
+    } else {
+      setIsLoading(true)
+    }
+  }, [localAdminFolayerPatchMutation.isPending])
 
   useEffect(() => {
     if (localAdminFolayerDeleteMutation.isSuccess) {
@@ -110,6 +113,8 @@ const Page = () => {
     if (adminFolayerConf) {
       localAdminFolayerPatchMutation.mutate(adminFolayerConf)
     }
+
+    setIsLoading(true)
   }
 
   const handleDeleteClick = async () => {
@@ -129,7 +134,7 @@ const Page = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-      <SidebarContentBox>
+      <SidebarContentBox sxOuter={{ position: 'relative' }}>
         {!isFolayerReady && (
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
             <LoadingSpinner></LoadingSpinner>
@@ -161,7 +166,6 @@ const Page = () => {
               onChange={handleNameChange}
               placeholderText={adminFolayerConf.name}
               sx={{ mt: 5.5 }}
-              disabled={isEditingDisabled}
             ></TextFieldWithHeader>
             <ColorPickerWithPopover
               color={adminFolayerConf.colorCode}
@@ -173,7 +177,6 @@ const Page = () => {
               checked={adminFolayerConf.isVisible}
               onChange={handleIsVisibleChange}
               sx={{ mt: 5 }}
-              disabled={isEditingDisabled}
             >
               <T
                 ns={'luonnonmetsakartat'}
@@ -192,7 +195,7 @@ const Page = () => {
             pr: SIDEBAR_PADDING_REM + 'rem',
             pt: 2,
             pb: 2,
-            zIndex: 9999,
+            zIndex: theme.zIndex.drawer + 1,
             borderTop: 1,
             borderColor: 'primary.lighter',
           })}
