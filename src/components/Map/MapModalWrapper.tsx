@@ -90,6 +90,7 @@ export const MapModalWrapper = ({
                     minHeight: 0,
                     minWidth: '0 !important', // to allow it to scale down if it has minWidth set when drawn over the map as modal
                     borderRadius: '0 !important',
+                    maxHeight: '100% !important',
                   },
                 }
               : null,
@@ -102,6 +103,7 @@ export const MapModalWrapper = ({
                   boxShadow: 24,
                   '& > *': {
                     borderRadius: '0 !important',
+                    maxHeight: '100% !important',
                   },
                 }
               : null,
