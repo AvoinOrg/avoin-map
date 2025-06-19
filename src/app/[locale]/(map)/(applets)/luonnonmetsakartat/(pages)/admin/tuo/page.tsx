@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useRef, useEffect, useState, ChangeEvent, use } from 'react'
-import { Button } from '@mui/material'
+import { Box, Button } from '@mui/material'
 import { useRouter } from 'next/navigation'
 import { buffer } from '@turf/turf'
 import booleanValid from '@turf/boolean-valid'
@@ -22,11 +22,13 @@ import FolayerImportShp from 'applets/luonnonmetsakartat/components/FolayerImpor
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { adminFolayerPostMutation } from 'applets/luonnonmetsakartat/common/queries/adminFolayerPostMutation'
 import { useMutation } from '@tanstack/react-query'
+import { useSidebarActivityLoader } from '#/common/hooks/ui/useSidebarActivityLoader'
 
 const Page = () => {
   const [fileType, setFileType] = useState<'shp'>()
   const [fileName, setFileName] = useState<string>()
   const [arrayBuffers, setArrayBuffers] = useState<ArrayBuffer[]>()
+  const [isLoading, setIsLoading] = useSidebarActivityLoader()
   const isInitializingRef = useRef(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
@@ -71,6 +73,11 @@ const Page = () => {
         },
       })
       router.push(route)
+    }
+    if (localFolayerPostMutation.isPending) {
+      setIsLoading(true)
+    } else {
+      setIsLoading(false)
     }
   }, [localFolayerPostMutation])
 
@@ -160,11 +167,13 @@ const Page = () => {
       </BigMenuButton>
 
       {fileType === 'shp' && arrayBuffers && arrayBuffers?.length > 0 && (
-        <FolayerImportShp
-          fileBuffers={arrayBuffers}
-          onFinish={handleFinish}
-          isInitializing={localFolayerPostMutation.isPending}
-        ></FolayerImportShp>
+        <Box sx={{ mt: 5 }}>
+          <FolayerImportShp
+            fileBuffers={arrayBuffers}
+            onFinish={handleFinish}
+            isInitializing={localFolayerPostMutation.isPending}
+          ></FolayerImportShp>
+        </Box>
       )}
     </SidebarContentBox>
   )

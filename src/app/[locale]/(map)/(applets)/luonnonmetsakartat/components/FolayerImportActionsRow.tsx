@@ -6,11 +6,9 @@ import LoadingHorizontal from '#/components/Loading/LoadingHorizontal'
 const FolayerImportActionsRow = ({
   onClickAccept,
   isAcceptDisabled,
-  isLoading,
 }: {
   onClickAccept: () => void
   isAcceptDisabled: boolean
-  isLoading?: boolean
 }) => {
   return (
     <Box
@@ -22,23 +20,20 @@ const FolayerImportActionsRow = ({
         margin: '40px 0 60px 0',
       })}
     >
-      {isLoading && <LoadingHorizontal></LoadingHorizontal>}
-      {!isLoading && (
-        <Typography
-          typography={'h3'}
-          sx={(theme) => ({
-            float: 'right',
-            ...(isAcceptDisabled
-              ? { color: theme.palette.neutral.main }
-              : { cursor: 'pointer' }),
-          })}
-          onClick={isAcceptDisabled ? undefined : onClickAccept}
-        >
-          <u>
-            <T keyName="sidebar.create.accept" ns="hiilikartta" />
-          </u>
-        </Typography>
-      )}
+      <Typography
+        typography={'h3'}
+        sx={(theme) => ({
+          float: 'right',
+          ...(isAcceptDisabled
+            ? { color: theme.palette.neutral.main }
+            : { cursor: 'pointer' }),
+        })}
+        onClick={isAcceptDisabled ? undefined : onClickAccept}
+      >
+        <u>
+          <T keyName="sidebar.create.accept" ns="hiilikartta" />
+        </u>
+      </Typography>
     </Box>
   )
 }
