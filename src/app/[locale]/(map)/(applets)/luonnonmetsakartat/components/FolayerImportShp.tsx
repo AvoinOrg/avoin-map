@@ -118,19 +118,18 @@ const FolayerImportShp = ({
             value={folayerNameValue}
             onChange={handleFolayerNameChange}
             placeholderText={t('sidebar.admin.create.name.placeholder')}
-            sx={{ mt: 2.5 }}
             disabled={isInitializing}
           ></TextFieldWithHeader>
           <ColorPickerWithPopover
             color={folayerColorValue}
             onChange={handleColorChange}
-            sx={{ mt: 6 }}
+            sx={{ mt: 5 }}
             labelText={t('sidebar.admin.folayer.settings.color')}
           ></ColorPickerWithPopover>
           <CheckBoxWithText
             checked={isVisible}
             onChange={handleIsVisibleChange}
-            sx={{ mt: 2.5 }}
+            sx={{ mt: 4.5 }}
             disabled={isInitializing}
           >
             <T
@@ -164,9 +163,10 @@ const FolayerImportShp = ({
       <FolayerImportActionsRow
         onClickAccept={handleFinish}
         isAcceptDisabled={
-          folayerNameValue == null || folayerNameValue.length === 0
+          folayerNameValue == null ||
+          folayerNameValue.length === 0 ||
+          isInitializing
         }
-        isLoading={isInitializing}
       ></FolayerImportActionsRow>
     </>
   )
