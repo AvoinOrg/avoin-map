@@ -1,12 +1,10 @@
-import * as React from 'react'
-import type { SVGProps } from 'react'
-import { Box } from '@mui/system'
+import { Box, SxProps, Theme } from '@mui/material'
 
 type Props = {
-  sx?: any
+  sx?: SxProps<Theme>
 }
 
-const SvgInfo = (props: Props) => (
+const Info = (props: Props) => (
   <Box
     component="svg"
     xmlns="http://www.w3.org/2000/svg"
@@ -23,4 +21,4 @@ const SvgInfo = (props: Props) => (
   </Box>
 )
 
-export default SvgInfo
+export default Info

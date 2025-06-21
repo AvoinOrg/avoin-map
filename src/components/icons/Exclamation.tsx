@@ -1,12 +1,11 @@
 import * as React from 'react'
-import { Box, SxProps } from '@mui/system'
-import { Theme } from '@mui/material'
+import { Theme, Box, SxProps } from '@mui/material'
 
 type Props = {
   sx?: SxProps<Theme>
 }
 
-const SvgExclamation = ({ sx, ...props }: Props) => (
+const Exclamation = (props: Props) => (
   <Box
     component="svg"
     xmlns="http://www.w3.org/2000/svg"
@@ -14,7 +13,6 @@ const SvgExclamation = ({ sx, ...props }: Props) => (
     height="20"
     viewBox="0 0 9 20"
     fill="none"
-    sx={[...(Array.isArray(sx) ? sx : [sx])]}
     {...props}
   >
     <path d="M3 13.3158L1 1H8L6 13.3158H4.5H3Z" stroke="currentColor" />
@@ -22,4 +20,4 @@ const SvgExclamation = ({ sx, ...props }: Props) => (
   </Box>
 )
 
-export default SvgExclamation
+export default Exclamation

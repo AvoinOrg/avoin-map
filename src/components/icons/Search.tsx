@@ -1,11 +1,10 @@
-import * as React from 'react'
-import { Box } from '@mui/system'
+import { Box, SxProps, Theme } from '@mui/material';
 
 type Props = {
-  sx?: any
-}
+  sx?: SxProps<Theme>;
+};
 
-const SvgSearch = (props: Props) => (
+const Search = (props: Props) => (
   <Box
     component="svg"
     xmlns="http://www.w3.org/2000/svg"
@@ -25,6 +24,6 @@ const SvgSearch = (props: Props) => (
       <path d="m17 17 8 8" />
     </g>
   </Box>
-)
+);
 
-export default SvgSearch
+export default Search;

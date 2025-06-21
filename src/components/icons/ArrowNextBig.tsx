@@ -5,7 +5,7 @@ type Props = {
   sx?: SxProps<Theme>
 }
 
-const SvgArrowNextBig = (props: Props) => (
+const ArrowNextBig = (props: Props) => (
   <Box
     component="svg"
     xmlns="http://www.w3.org/2000/svg"
@@ -20,4 +20,4 @@ const SvgArrowNextBig = (props: Props) => (
     </g>
   </Box>
 )
-export default SvgArrowNextBig
+export default ArrowNextBig

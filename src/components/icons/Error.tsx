@@ -1,12 +1,10 @@
-import * as React from 'react'
-import type { SVGProps } from 'react'
-import { Box } from '@mui/system'
+import { Box, SxProps, Theme } from '@mui/material'
 
 type Props = {
-  sx?: any
+  sx?: SxProps<Theme>
 }
 
-const SvgError = (props: Props) => (
+const Error = (props: Props) => (
   <Box
     component="svg"
     xmlns="http://www.w3.org/2000/svg"
@@ -23,4 +21,4 @@ const SvgError = (props: Props) => (
   </Box>
 )
 
-export default SvgError
+export default Error

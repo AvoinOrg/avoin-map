@@ -6,7 +6,7 @@ type Props = {
   sx?: SxProps<Theme>
 }
 
-const SvgCross = (props: Props) => (
+const Cross = (props: Props) => (
   <Box
     component="svg"
     xmlns="http://www.w3.org/2000/svg"
@@ -24,4 +24,4 @@ const SvgCross = (props: Props) => (
     />
   </Box>
 )
-export default SvgCross
+export default Cross
