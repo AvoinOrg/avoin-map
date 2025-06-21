@@ -1,12 +1,11 @@
 import * as React from 'react'
-import { Box } from '@mui/material'
-import type { SxProps, Theme } from '@mui/material/styles'
+import { Box, SxProps, Theme } from '@mui/material'
 
 type Props = {
   sx?: SxProps<Theme>
 }
 
-const SvgDelete = (props: Props) => (
+const Delete = (props: Props) => (
   <Box
     component="svg"
     xmlns="http://www.w3.org/2000/svg"
@@ -22,4 +21,4 @@ const SvgDelete = (props: Props) => (
     />
   </Box>
 )
-export default SvgDelete
+export default Delete

@@ -22,10 +22,10 @@ const CheckboxChecked = (props: Props) => (
       height="22"
       rx="2"
       // fill="#97C68B"
-      stroke="black"
+      stroke="currentColor"
       strokeWidth="2"
     />
-    <path d="M6 11.5L11 17L19 8" stroke="black" strokeWidth="2" />
+    <path d="M6 11.5L11 17L19 8" stroke="currentColor" strokeWidth="2" />
   </Box>
 )
 
