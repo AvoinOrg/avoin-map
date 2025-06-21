@@ -22,7 +22,7 @@ const Checkbox = (props: Props) => (
       width="22"
       height="22"
       rx="2"
-      stroke="#A0A0A0"
+      stroke="currentColor"
       strokeWidth="2"
     />
   </Box>

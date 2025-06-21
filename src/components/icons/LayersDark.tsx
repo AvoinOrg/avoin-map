@@ -1,7 +1,19 @@
-import * as React from 'react'
-import type { SVGProps } from 'react'
-const SvgLayersDark = (props: SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={24} height={24} fill="none" {...props}>
+import { Box, SxProps, Theme } from '@mui/material'
+
+type Props = {
+  sx?: SxProps<Theme>
+}
+
+const LayersDark = (props: Props) => (
+  <Box
+    component="svg"
+    xmlns="http://www.w3.org/2000/svg"
+    width={24}
+    height={24}
+    viewBox="0 0 24 24"
+    fill="none"
+    {...props}
+  >
     <mask
       id="layers-dark_svg__a"
       width={24}
@@ -21,6 +33,7 @@ const SvgLayersDark = (props: SVGProps<SVGSVGElement>) => (
         d="M11.5 24.096 0 15.161l1.722-1.323 9.778 7.57 9.778-7.57L23 15.16l-11.5 8.935Zm0-6.225L0 8.935 11.5 0 23 8.935l-11.5 8.936Z"
       />
     </g>
-  </svg>
+  </Box>
 )
-export default SvgLayersDark
+
+export default LayersDark
