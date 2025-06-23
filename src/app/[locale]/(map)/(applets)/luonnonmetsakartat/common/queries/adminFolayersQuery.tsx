@@ -35,7 +35,7 @@ export const adminFolayersQuery = (): UseQueryOptions<AdminFolayerConf[]> => {
             id: folayer.id,
             name: folayer.name,
             description: folayer.description || '',
-            colorCode: response.data.color_code || '',
+            colorCode: folayer.color_code || '',
             isVisible: !folayer.is_hidden,
             state: FolayerConfState.Idle,
             createdTs: folayer.created_ts * 1000,
