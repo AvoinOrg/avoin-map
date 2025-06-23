@@ -65,6 +65,7 @@ export const Sidebar = ({
           flexDirection: 'column',
           position: 'relative',
           flex: 1,
+          pointerEvents: isSidebarOpen || isMapPopupOpen ? 'auto' : 'none',
         },
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
@@ -74,7 +75,8 @@ export const Sidebar = ({
           position: 'absolute',
           top: 0,
           left: 0,
-          zIndex: theme.zIndex.drawer + 11, // draw over the loading spinner
+          zIndex: theme.zIndex.drawer + 11,
+          pointerEvents: 'auto',
         })}
       />
       <Box
@@ -98,7 +100,7 @@ export const Sidebar = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                zIndex: theme.zIndex.drawer + 10, // Changed from +1 to +2
+                zIndex: theme.zIndex.drawer + 10,
                 borderRadius: 'inherit', // Inherit border radius from parent if needed
               })}
             >
