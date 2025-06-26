@@ -6,7 +6,7 @@
 import { map, cloneDeep, uniq, isEqual, pickBy, uniqBy } from 'lodash-es'
 import turfBbox from '@turf/bbox'
 import { immer } from 'zustand/middleware/immer'
-import { produce } from 'immer'
+import { enableMapSet, produce } from 'immer'
 import { Feature, FeatureCollection } from 'geojson'
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
@@ -86,6 +86,7 @@ const DEFAULT_MAP_LIBRARY_MODE: MapLibraryMode = 'maplibre'
 let imageRenderCanvas: HTMLCanvasElement | null = null
 let imageRenderCtx: CanvasRenderingContext2D | null = null
 const imageRenderSize = 24 // Default size
+enableMapSet()
 
 export type Vars = {
   // Whether to use mapbox, openlayers, or both.
@@ -356,6 +357,7 @@ export const useMapStore = create<State>()(
           featureAddMutator: undefined,
           idField: undefined,
         },
+        _layerGroupIdsBeingProcessed: new Set(),
         _globalEventHandlers: {},
         _functionQueue: [],
         _isFunctionQueueExecuting: false,
@@ -1196,55 +1198,75 @@ export const useMapStore = create<State>()(
               _addPersistingLayerGroupAddOptions,
               mapContext,
               _runLayerGroupActivationActions,
+              _layerGroupIdsBeingProcessed,
             } = get()
 
-            // Initialize layer if it doesn't exist
-            let opts = cloneDeep(options) || {
-              persist: false,
-              layerConf: undefined,
+            if (_layerGroupIdsBeingProcessed.has(layerGroupId)) {
+              console.warn(
+                `Layer group "${layerGroupId}" is already being processed. Skipping addLayerGroup call.`
+              )
+              return
             }
 
-            if (opts.mapContext == null) {
-              opts.mapContext = mapContext
-            }
+            set((state) => {
+              state._layerGroupIdsBeingProcessed.add(layerGroupId)
+            })
 
-            if (opts.mapContext !== mapContext) {
-              opts.isHidden = true
-            }
+            try {
+              // Initialize layer if it doesn't exist
+              let opts = cloneDeep(options) || {
+                persist: false,
+                layerConf: undefined,
+              }
 
-            if (opts.persist) {
-              _addPersistingLayerGroupAddOptions(layerGroupId, opts)
-            }
+              if (opts.mapContext == null) {
+                opts.mapContext = mapContext
+              }
 
-            if (!opts.layerConf) {
-              if (_persistingLayerGroupAddOptions[layerGroupId] != null) {
-                opts = cloneDeep(_persistingLayerGroupAddOptions[layerGroupId])
+              if (opts.mapContext !== mapContext) {
+                opts.isHidden = true
+              }
+
+              if (opts.persist) {
+                _addPersistingLayerGroupAddOptions(layerGroupId, opts)
+              }
+
+              if (!opts.layerConf) {
+                if (_persistingLayerGroupAddOptions[layerGroupId] != null) {
+                  opts = cloneDeep(
+                    _persistingLayerGroupAddOptions[layerGroupId]
+                  )
+                } else {
+                  opts.layerConf = layerConfs.find((el: LayerConf) => {
+                    return el.id === layerGroupId
+                  })
+                }
+              }
+
+              if (opts.layerConf) {
+                if (opts.layerConf.useMb == null || opts.layerConf.useMb) {
+                  await _addStyle(
+                    layerGroupId,
+                    opts as LayerGroupAddOptionsWithConf
+                  )
+                }
+                // else {
+                //   await _addStyleToOl(
+                //     layerGroupId,
+                //     opts as LayerGroupAddOptionsWithConf
+                //   )
+                // }
+
+                // Add event listener for source data changes
+
+                await _runLayerGroupActivationActions(layerGroupId, opts)
               } else {
-                opts.layerConf = layerConfs.find((el: LayerConf) => {
-                  return el.id === layerGroupId
-                })
+                console.error('No layer config found for id: ' + layerGroupId)
               }
-            }
-
-            if (opts.layerConf) {
-              if (opts.layerConf.useMb == null || opts.layerConf.useMb) {
-                await _addStyle(
-                  layerGroupId,
-                  opts as LayerGroupAddOptionsWithConf
-                )
-              }
-              // else {
-              //   await _addStyleToOl(
-              //     layerGroupId,
-              //     opts as LayerGroupAddOptionsWithConf
-              //   )
-              // }
-
-              // Add event listener for source data changes
-
-              _runLayerGroupActivationActions(layerGroupId, opts)
-            } else {
-              console.error('No layer config found for id: ' + layerGroupId)
+            } finally {
+              set((state) => {
+                state._layerGroupIdsBeingProcessed.delete(layerGroupId)
+              })
             }
           },
           { priority: QueuePriority.MEDIUM_HIGH }
