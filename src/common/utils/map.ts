@@ -23,6 +23,7 @@ import {
   LayerGroups,
   SourceOptions,
   EMBEDDED_PARAMS_URL_PREFIX,
+  SelectionSource,
 } from '../types/map'
 import { clone, uniqBy } from 'lodash-es'
 
@@ -480,13 +481,13 @@ export const getFeaturesFromSourceById = (
 
 export const fetchFeaturesByIds = ({
   ids,
-  sourceId,
+  source,
   idField,
   allowedLayers,
   map,
 }: {
   ids: (string | number | undefined)[]
-  sourceId: string
+  source: SelectionSource
   idField: string
   allowedLayers: string[]
   map: Map | null
@@ -501,10 +502,11 @@ export const fetchFeaturesByIds = ({
     layers: allowedLayers,
   })
 
-  // Filter features based on sourceId and matching ids
+  // Filter features based on source and matching ids
   const filteredFeatures = allRenderedFeatures.filter((feature) => {
     return (
-      feature.source === sourceId && ids.includes(feature.properties?.[idField])
+      isMatchingSource(feature, source) &&
+      ids.includes(feature.properties?.[idField])
     )
   })
 
