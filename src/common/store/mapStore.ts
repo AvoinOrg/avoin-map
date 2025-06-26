@@ -238,14 +238,14 @@ export type Actions = {
   removeSelectedFeaturesByIds: (params: {
     featureIds: (string | number | undefined)[]
     idField: string
-    sourceId: string
+    source: SelectionSource
     updateDrawSelect?: boolean
     ignorePopups?: boolean
   }) => void
   addSelectedFeaturesByIds: (params: {
     featureIds: (string | number | undefined)[]
     idField: string
-    sourceId: string
+    source: SelectionSource
     allowedLayers?: string[]
     updateDrawSelect?: boolean
     ignorePopups?: boolean
@@ -1098,14 +1098,14 @@ export const useMapStore = create<State>()(
         removeSelectedFeaturesByIds: (params: {
           featureIds: (string | number | undefined)[]
           idField: string
-          sourceId: string
+          source: SelectionSource
           updateDrawSelect?: boolean
           ignorePopups?: boolean
         }) => {
           const {
             featureIds,
             idField,
-            sourceId,
+            source,
             updateDrawSelect,
             ignorePopups,
           } = params
@@ -1116,7 +1116,7 @@ export const useMapStore = create<State>()(
           } = get()
 
           const newSelectedFeatures = selectedFeatures.filter((feature) => {
-            if (feature.source !== sourceId) {
+            if (!isMatchingSource(feature, source)) {
               return true
             }
 
@@ -1138,7 +1138,7 @@ export const useMapStore = create<State>()(
         addSelectedFeaturesByIds: (params: {
           featureIds: (string | number | undefined)[]
           idField: string
-          sourceId: string
+          source: SelectionSource
           allowedLayers?: string[]
           updateDrawSelect?: boolean
           ignorePopups?: boolean
@@ -1146,7 +1146,7 @@ export const useMapStore = create<State>()(
           const {
             featureIds,
             idField,
-            sourceId,
+            source,
             allowedLayers,
             updateDrawSelect,
             ignorePopups,
@@ -1162,14 +1162,14 @@ export const useMapStore = create<State>()(
 
           let usedAllowedLayers: string[] = []
           if (!allowedLayers) {
-            usedAllowedLayers = getSelectableLayers(sourceId, _layerGroups)
+            usedAllowedLayers = getSelectableLayers(source.source, _layerGroups)
           } else {
             usedAllowedLayers = allowedLayers
           }
 
           const newFeatures = fetchFeaturesByIds({
             ids: featureIds,
-            sourceId: sourceId,
+            source: source,
             idField: idField,
             allowedLayers: usedAllowedLayers,
             map: _map,
@@ -2020,7 +2020,7 @@ export const useMapStore = create<State>()(
 
                   const features = fetchFeaturesByIds({
                     ids: featureIds,
-                    sourceId: layerGroupId,
+                    source: { source: layerGroupId },
                     idField: idField,
                     allowedLayers: allowedLayers,
                     map: _map,

@@ -102,14 +102,14 @@ const ZoneAccordion = ({ planConfId, sx }: Props) => {
         addSelectedFeaturesByIds({
           featureIds: [featureId],
           idField: 'id',
-          sourceId: getPlanLayerGroupId(planConfId),
+          source: { source: getPlanLayerGroupId(planConfId) },
           updateDrawSelect: true,
         })
       } else {
         removeSelectedFeaturesByIds({
           featureIds: [featureId],
           idField: 'id',
-          sourceId: getPlanLayerGroupId(planConfId),
+          source: { source: getPlanLayerGroupId(planConfId) },
           updateDrawSelect: true,
         })
       }
