@@ -122,6 +122,7 @@ export type Vars = {
   _layerGroups: LayerGroups
   // For quickly access a layer group by its id.
   _layerInstances: Record<string, LayerSpecification>
+  _layerGroupIdsBeingProcessed: Set<string>
   _globalEventHandlers: {
     selectableLeave?: (e: MapLayerMouseEvent) => void
     selectableEnter?: (e: MapLayerMouseEvent) => void
