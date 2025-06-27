@@ -78,6 +78,7 @@ import {
   findSourceOptsById,
   encodeUrlWithParams,
   getJoinedSelectionSourcesForSource,
+  getSourceJson,
 } from '#/common/utils/map'
 import { geoserverJsonQuery } from '../queries/geoserverJsonQuery'
 
