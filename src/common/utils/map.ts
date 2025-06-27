@@ -9,7 +9,7 @@ import {
 // import WebGLVectorLayerRenderer from 'ol/renderer/webgl/VectorLayer'
 // import { asArray } from 'ol/color'
 // import { packColor } from 'ol/renderer/webgl/shaders'
-import { Feature, Geometry, Position } from 'geojson'
+import { Feature, FeatureCollection, Geometry, Position } from 'geojson'
 import type { DrawMode as MaplibreDrawMode } from 'maplibre-gl-draw'
 
 import {
@@ -477,6 +477,51 @@ export const getFeaturesFromSourceById = (
   }
 
   return [] as Feature[]
+}
+
+export const getSourceJson = (id: string, map: Map | null) => {
+  try {
+    const source = map?.getSource(id) as GeoJSONSource
+
+    if (!source || source.type !== 'geojson') {
+      console.error(`Source "${id}" either doesn't exist or isn't GeoJSON.`)
+      return null
+    }
+
+    let data
+
+    if (source._data) {
+      data = source._data
+    } else if (source._options?.data) {
+      data = source._options.data
+    } else {
+      console.error(`Source "${id}" has no data.`)
+      return null
+    }
+
+    if (!data || typeof data !== 'object') {
+      console.error(`Source "${id}" does not contain valid JSON data.`)
+      return null
+    }
+
+    if (data.type !== 'FeatureCollection') {
+      console.error(`Source "${id}" data is not a valid FeatureCollection.`)
+      return null
+    }
+
+    // maplibre hallucinates irrelevant ids when the source data is queried like this.
+    // set the id to what is should be.
+    for (const feature of data.features) {
+      if (feature.properties?.id) {
+        feature.id = feature.properties.id
+      }
+    }
+
+    return data as FeatureCollection
+  } catch (e) {
+    console.error(e)
+  }
+  return null
 }
 
 export const fetchFeaturesByIds = ({
