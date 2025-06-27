@@ -6,6 +6,7 @@ import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 
 import { UserAuth, UserAuthState, UserDataState } from '#/common/types/state'
+import { devtools } from 'zustand/middleware'
 
 interface Vars {
   userAuth: UserAuth | null
@@ -28,62 +29,64 @@ interface Actions {
 type State = Vars & Actions
 
 export const useUserStore = create<State>()(
-  immer((set, get) => {
-    const vars: Vars = {
-      userAuth: null,
-      userData: null,
-      userAuthState: UserAuthState.Unauthenticated,
-      userDataState: UserDataState.Unfetched,
-      signOutActions: {},
-    }
+  devtools(
+    immer((set, get) => {
+      const vars: Vars = {
+        userAuth: null,
+        userData: null,
+        userAuthState: UserAuthState.Unauthenticated,
+        userDataState: UserDataState.Unfetched,
+        signOutActions: {},
+      }
 
-    const actions: Actions = {
-      setUserData: (userData: User | null) => {
-        set((state) => {
-          state.userData = userData
-        })
-      },
-      setUserAuth: (userAuth: UserAuth | null) => {
-        set((state) => {
-          state.userAuth = userAuth
-        })
-      },
-      setUserAuthState: (userAuthState: UserAuthState) => {
-        set((state) => {
-          state.userAuthState = userAuthState
-        })
-      },
-      setUserDataState: (userDataState: UserDataState) => {
-        set((state) => {
-          state.userDataState = userDataState
-        })
-      },
-      addSignOutAction: (key: string, action: () => void) => {
-        set((state) => {
-          state.signOutActions[key] = action
-        })
-      },
-      removeSignOutAction: (key: string) => {
-        if (get().signOutActions[key]) {
+      const actions: Actions = {
+        setUserData: (userData: User | null) => {
           set((state) => {
-            delete state.signOutActions[key]
+            state.userData = userData
           })
-        }
-      },
-      signOut: () => {
-        for (const key in get().signOutActions) {
-          get().signOutActions[key]()
-        }
-        nextSignOut()
-        set({
-          userAuth: null,
-          userData: null,
-          userAuthState: UserAuthState.Unauthenticated,
-          userDataState: UserDataState.Unfetched,
-        })
-      },
-    }
+        },
+        setUserAuth: (userAuth: UserAuth | null) => {
+          set((state) => {
+            state.userAuth = userAuth
+          })
+        },
+        setUserAuthState: (userAuthState: UserAuthState) => {
+          set((state) => {
+            state.userAuthState = userAuthState
+          })
+        },
+        setUserDataState: (userDataState: UserDataState) => {
+          set((state) => {
+            state.userDataState = userDataState
+          })
+        },
+        addSignOutAction: (key: string, action: () => void) => {
+          set((state) => {
+            state.signOutActions[key] = action
+          })
+        },
+        removeSignOutAction: (key: string) => {
+          if (get().signOutActions[key]) {
+            set((state) => {
+              delete state.signOutActions[key]
+            })
+          }
+        },
+        signOut: () => {
+          for (const key in get().signOutActions) {
+            get().signOutActions[key]()
+          }
+          nextSignOut()
+          set({
+            userAuth: null,
+            userData: null,
+            userAuthState: UserAuthState.Unauthenticated,
+            userDataState: UserDataState.Unfetched,
+          })
+        },
+      }
 
-    return { ...vars, ...actions }
-  })
+      return { ...vars, ...actions }
+    })
+  )
 )

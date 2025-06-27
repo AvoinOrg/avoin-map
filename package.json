@@ -113,6 +113,7 @@
     "@babel/preset-typescript": "^7.24.1",
     "@babel/register": "^7.18.9",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.10",
+    "@redux-devtools/extension": "^3.3.0",
     "@tanstack/eslint-plugin-query": "rc",
     "@testing-library/jest-dom": "^6.4.5",
     "@testing-library/react": "^15.0.7",

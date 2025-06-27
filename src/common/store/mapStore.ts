@@ -9,7 +9,7 @@ import { immer } from 'zustand/middleware/immer'
 import { enableMapSet, produce } from 'immer'
 import { Feature, FeatureCollection } from 'geojson'
 import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
+import { persist, createJSONStorage, devtools } from 'zustand/middleware'
 
 // import olms from 'ol-mapbox-style'
 // import { Map as OlMap } from 'ol'
@@ -339,7 +339,7 @@ export const useMapStore = create<State>()(
   // Include your additional states and setters...
 
   // Add your additional actions...
-
+  devtools(
   persist(
     immer((set, get) => {
       const vars: Vars = {
@@ -2892,12 +2892,16 @@ export const useMapStore = create<State>()(
       onRehydrateStorage: (state) => {
         return (state, error) => {
           if (error) {
-            console.log('map store: an error happened during hydration', error)
+            console.log(
+              'map store: an error happened during hydration',
+              error
+            )
           }
           state?._runHydrationActions()
         }
       },
     }
+    )
   )
 )
 
