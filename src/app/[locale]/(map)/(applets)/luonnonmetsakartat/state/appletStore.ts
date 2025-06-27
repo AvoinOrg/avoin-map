@@ -3,8 +3,11 @@ import {
   persist,
   createJSONStorage,
   subscribeWithSelector,
+  devtools,
 } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
+
+import { commonDevtools } from '#/common/store/shared-devtools'
 
 import {
   AdminVerificationStatus,
@@ -70,169 +73,174 @@ type Actions = {
 }
 
 export const useAppletStore = create<Vars & Actions>()(
-  subscribeWithSelector(
-    immer((set, get) => {
-      const vars = {
-        folayerConfs: {} as FolayerConfMap,
-        adminFolayerConfs: {} as AdminFolayerConfMap,
-        folayerAreaCollections: {} as FolayerAreaCollectionMap,
-        adminVerificationStatus: AdminVerificationStatus.NoUser,
-      }
+  devtools(
+    subscribeWithSelector(
+      immer((set, get) => {
+        const vars = {
+          folayerConfs: {} as FolayerConfMap,
+          adminFolayerConfs: {} as AdminFolayerConfMap,
+          folayerAreaCollections: {} as FolayerAreaCollectionMap,
+          adminVerificationStatus: AdminVerificationStatus.NoUser,
+        }
 
-      const actions = {
-        // FolayerConf actions
-        addFolayerConf: (folayerConf: FolayerConf) => {
-          set((state) => {
-            state.folayerConfs[folayerConf.id] = folayerConf
-          })
-        },
-
-        setFolayerConfs: (folayerConfs: FolayerConf[]) => {
-          set((state) => {
-            const folayerConfMap: FolayerConfMap = {}
-            folayerConfs.forEach((conf) => {
-              folayerConfMap[conf.id] = conf
+        const actions = {
+          // FolayerConf actions
+          addFolayerConf: (folayerConf: FolayerConf) => {
+            set((state) => {
+              state.folayerConfs[folayerConf.id] = folayerConf
             })
-            state.folayerConfs = folayerConfMap
-          })
-        },
+          },
 
-        updateFolayerConf: (
-          folayerId: string,
-          updates: Partial<FolayerConf>
-        ) => {
-          set((state) => {
-            const existingConf = state.folayerConfs[folayerId]
-            if (existingConf) {
-              state.folayerConfs[folayerId] = {
-                ...existingConf,
-                ...updates,
-              }
-            }
-          })
-        },
-
-        deleteFolayerConf: (folayerId: string) => {
-          set((state) => {
-            const { [folayerId]: _, ...rest } = state.folayerConfs
-            state.folayerConfs = rest
-          })
-        },
-
-        // AdminFolayerConf actions
-        addAdminFolayerConf: (folayerConf: AdminFolayerConf) => {
-          set((state) => {
-            state.adminFolayerConfs[folayerConf.id] = folayerConf
-          })
-        },
-
-        setAdminFolayerConfs: (folayerConfs: AdminFolayerConf[]) => {
-          set((state) => {
-            const folayerConfMap: AdminFolayerConfMap = {}
-            folayerConfs.forEach((conf) => {
-              folayerConfMap[conf.id] = conf
+          setFolayerConfs: (folayerConfs: FolayerConf[]) => {
+            set((state) => {
+              const folayerConfMap: FolayerConfMap = {}
+              folayerConfs.forEach((conf) => {
+                folayerConfMap[conf.id] = conf
+              })
+              state.folayerConfs = folayerConfMap
             })
-            state.adminFolayerConfs = folayerConfMap
-          })
-        },
+          },
 
-        updateAdminFolayerConf: (
-          folayerId: string,
-          updates: Partial<AdminFolayerConf>
-        ) => {
-          set((state) => {
-            const existingConf = state.adminFolayerConfs[folayerId]
-            if (existingConf) {
-              state.adminFolayerConfs[folayerId] = {
-                ...existingConf,
-                ...updates,
+          updateFolayerConf: (
+            folayerId: string,
+            updates: Partial<FolayerConf>
+          ) => {
+            set((state) => {
+              const existingConf = state.folayerConfs[folayerId]
+              if (existingConf) {
+                state.folayerConfs[folayerId] = {
+                  ...existingConf,
+                  ...updates,
+                }
               }
-            }
-          })
-        },
+            })
+          },
 
-        deleteAdminFolayerConf: (folayerId: string) => {
-          set((state) => {
-            const { [folayerId]: _, ...rest } = state.adminFolayerConfs
-            state.adminFolayerConfs = rest
-          })
-        },
+          deleteFolayerConf: (folayerId: string) => {
+            set((state) => {
+              const { [folayerId]: _, ...rest } = state.folayerConfs
+              state.folayerConfs = rest
+            })
+          },
 
-        // FolayerAreaCollection actions
-        addFolayerAreaCollection: (
-          folayerId: string,
-          folayerAreaCollection: FolayerAreaCollection
-        ) => {
-          set((state) => {
-            state.folayerAreaCollections[folayerId] = folayerAreaCollection
-          })
-        },
+          // AdminFolayerConf actions
+          addAdminFolayerConf: (folayerConf: AdminFolayerConf) => {
+            set((state) => {
+              state.adminFolayerConfs[folayerConf.id] = folayerConf
+            })
+          },
 
-        updateFolayerAreaCollection: (
-          folayerId: string,
-          updates: Partial<FolayerAreaCollection>
-        ) => {
-          set((state) => {
-            const existingCollection = state.folayerAreaCollections[folayerId]
-            if (existingCollection) {
-              state.folayerAreaCollections[folayerId] = {
-                ...existingCollection,
-                ...updates,
+          setAdminFolayerConfs: (folayerConfs: AdminFolayerConf[]) => {
+            set((state) => {
+              const folayerConfMap: AdminFolayerConfMap = {}
+              folayerConfs.forEach((conf) => {
+                folayerConfMap[conf.id] = conf
+              })
+              state.adminFolayerConfs = folayerConfMap
+            })
+          },
+
+          updateAdminFolayerConf: (
+            folayerId: string,
+            updates: Partial<AdminFolayerConf>
+          ) => {
+            set((state) => {
+              const existingConf = state.adminFolayerConfs[folayerId]
+              if (existingConf) {
+                state.adminFolayerConfs[folayerId] = {
+                  ...existingConf,
+                  ...updates,
+                }
               }
-            }
-          })
-        },
+            })
+          },
 
-        deleteFolayerAreaCollection: (folayerId: string) => {
-          set((state) => {
-            const { [folayerId]: _, ...rest } = state.folayerAreaCollections
-            state.folayerAreaCollections = rest
-          })
-        },
+          deleteAdminFolayerConf: (folayerId: string) => {
+            set((state) => {
+              const { [folayerId]: _, ...rest } = state.adminFolayerConfs
+              state.adminFolayerConfs = rest
+            })
+          },
 
-        // Admin verification status
-        setAdminVerificationStatus: (status: AdminVerificationStatus) => {
-          set((state) => {
-            state.adminVerificationStatus = status
-          })
-        },
-        getFolayerAreaById: (folayerId: string, areaId: string) => {
-          const collection = get().folayerAreaCollections[folayerId]
-          if (collection) {
-            return collection.features.find((feature) => feature.id === areaId)
-          }
-          return undefined
-        },
-        updateFolayerArea: (
-          folayerId: string,
-          areaId: string,
-          updates: PartialFolayerFeature
-        ) => {
-          set((state) => {
-            const collection = state.folayerAreaCollections[folayerId]
+          // FolayerAreaCollection actions
+          addFolayerAreaCollection: (
+            folayerId: string,
+            folayerAreaCollection: FolayerAreaCollection
+          ) => {
+            set((state) => {
+              state.folayerAreaCollections[folayerId] = folayerAreaCollection
+            })
+          },
+
+          updateFolayerAreaCollection: (
+            folayerId: string,
+            updates: Partial<FolayerAreaCollection>
+          ) => {
+            set((state) => {
+              const existingCollection = state.folayerAreaCollections[folayerId]
+              if (existingCollection) {
+                state.folayerAreaCollections[folayerId] = {
+                  ...existingCollection,
+                  ...updates,
+                }
+              }
+            })
+          },
+
+          deleteFolayerAreaCollection: (folayerId: string) => {
+            set((state) => {
+              const { [folayerId]: _, ...rest } = state.folayerAreaCollections
+              state.folayerAreaCollections = rest
+            })
+          },
+
+          // Admin verification status
+          setAdminVerificationStatus: (status: AdminVerificationStatus) => {
+            set((state) => {
+              state.adminVerificationStatus = status
+            })
+          },
+          getFolayerAreaById: (folayerId: string, areaId: string) => {
+            const collection = get().folayerAreaCollections[folayerId]
             if (collection) {
-              const featureIndex = collection.features.findIndex(
+              return collection.features.find(
                 (feature) => feature.id === areaId
               )
-              if (featureIndex !== -1) {
-                const updatedFeature = {
-                  ...collection.features[featureIndex],
-                }
-                if (updates.properties) {
-                  updatedFeature.properties = {
-                    ...updatedFeature.properties,
-                    ...updates.properties,
-                  }
-                }
-
-                collection.features[featureIndex] = updatedFeature
-              }
             }
-          })
-        },
-      }
+            return undefined
+          },
+          updateFolayerArea: (
+            folayerId: string,
+            areaId: string,
+            updates: PartialFolayerFeature
+          ) => {
+            set((state) => {
+              const collection = state.folayerAreaCollections[folayerId]
+              if (collection) {
+                const featureIndex = collection.features.findIndex(
+                  (feature) => feature.id === areaId
+                )
+                if (featureIndex !== -1) {
+                  const updatedFeature = {
+                    ...collection.features[featureIndex],
+                  }
+                  if (updates.properties) {
+                    updatedFeature.properties = {
+                      ...updatedFeature.properties,
+                      ...updates.properties,
+                    }
+                  }
 
-      return { ...vars, ...actions }
-    })
+                  collection.features[featureIndex] = updatedFeature
+                }
+              }
+            })
+          },
+        }
+
+        return { ...vars, ...actions }
+      })
+    ),
+    { ...commonDevtools, store: 'luonnonmetsakartatStore' }
   )
 )
