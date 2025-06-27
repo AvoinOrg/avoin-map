@@ -493,61 +493,10 @@ export const useMapStore = create<State>()(
           { priority: QueuePriority.LOW }
         ),
 
-        getSourceJson: (id: string) => {
-          try {
-            const { _map } = get()
-
-            const source = _map?.getSource(id) as GeoJSONSource
-
-            if (!source || source.type !== 'geojson') {
-              console.error(
-                `Source "${id}" either doesn't exist or isn't GeoJSON.`
-              )
-              return null
-            }
-
-            let data
-
-            if (source._data) {
-              data = source._data
-            } else if (source._options?.data) {
-              data = source._options.data
-            } else {
-              console.error(`Source "${id}" has no data.`)
-              return null
-            }
-
-            if (!data || typeof data !== 'object') {
-              console.error(`Source "${id}" does not contain valid JSON data.`)
-              return null
-            }
-
-            if (data.type !== 'FeatureCollection') {
-              console.error(
-                `Source "${id}" data is not a valid FeatureCollection.`
-              )
-              return null
-            }
-
-            // maplibre hallucinates irrelevant ids when the source data is queried like this.
-            // set the id to what is should be.
-            for (const feature of data.features) {
-              if (feature.properties?.id) {
-                feature.id = feature.properties.id
-              }
-            }
-
-            return data as FeatureCollection
-          } catch (e) {
-            console.error(e)
-          }
-          return null
-        },
-
         getSourceJsonAsyncQueue: queueableFnInit(
           async (id: string): Promise<FeatureCollection | null> => {
-            const { getSourceJson } = get()
-            return getSourceJson(id)
+            const { _map } = get()
+            return getSourceJson(id, _map)
           },
           { priority: QueuePriority.LOW }
         ),
