@@ -707,6 +707,49 @@ export const getSelectableLayers = (
     return layerIds
   }
 
+  console.warn(
+    '[getSelectableLayers]: No selectable layers found for layerGroup',
+    layerGroupId
+  )
+
+  return []
+}
+
+export const getSelectableLayersForSource = (
+  source: SelectionSource,
+  layerGroups: LayerGroups
+): string[] => {
+  let targetGroup: LayerGroupOptions | null = null
+
+  for (const groupId in layerGroups) {
+    if (layerGroups[groupId].sources[source.source]) {
+      targetGroup = layerGroups[groupId]
+      break
+    }
+  }
+
+  if (targetGroup) {
+    const selectableLayers = Object.values(targetGroup.layers)
+      .filter((layer) => {
+        if (!layer.selectable) {
+          return false
+        }
+
+        const sourceMatches = isMatchingSource(
+          { source: layer.source, sourceLayer: layer.sourceLayer },
+          source
+        )
+
+        return sourceMatches
+      })
+      .map((layer) => layer.id)
+    return selectableLayers
+  }
+  console.warn(
+    '[getSelectableLayersForSource]: No selectable layers found for source',
+    source
+  )
+
   return []
 }
 
