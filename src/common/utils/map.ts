@@ -527,41 +527,133 @@ export const getSourceJson = (id: string, map: Map | null) => {
 export const fetchFeaturesByIds = ({
   ids,
   source,
-  idField,
-  allowedLayers,
   map,
+  idField = 'id',
 }: {
   ids: (string | number | undefined)[]
   source: SelectionSource
-  idField: string
-  allowedLayers: string[]
   map: Map | null
+  idField?: string
 }) => {
   if (!map) {
     console.error('Map object is not available')
     return []
   }
 
-  // Query the rendered features from all layers
-  const allRenderedFeatures = map.queryRenderedFeatures(undefined, {
-    layers: allowedLayers,
-  })
+  const features = []
 
-  // Filter features based on source and matching ids
-  const filteredFeatures = allRenderedFeatures.filter((feature) => {
-    return (
-      isMatchingSource(feature, source) &&
-      ids.includes(feature.properties?.[idField])
-    )
-  })
+  for (const id of ids) {
+    if (id == null) {
+      console.warn('[fetchFeaturesByIds]: Skipping null or undefined id')
+      continue
+    }
 
-  // Remove duplicates, as queryRenderedFeatures may return duplicates
-  const uniqueFeatures = uniqBy(
-    filteredFeatures,
-    (feature) => feature.properties?.[idField]
-  )
+    if (source.sourceLayer) {
+      const queriedAdditionalFeatures = map?.querySourceFeatures(
+        source.source,
+        {
+          sourceLayer: source.sourceLayer, // REQUIRED for vector tile sources
+          filter: ['==', ['get', idField], id], // Assumes 'id' is promoted or is the property name
+        }
+      )
 
-  return uniqueFeatures
+      // only add the first feature, if there are duplicates
+      if (
+        queriedAdditionalFeatures &&
+        queriedAdditionalFeatures.length > 0 &&
+        queriedAdditionalFeatures[0] != null
+      ) {
+        const queriedFeature =
+          queriedAdditionalFeatures[0] as ExtendedMapGeoJSONFeature
+        queriedFeature.source = source.source
+        queriedFeature.sourceLayer = source.sourceLayer
+        queriedFeature.isAdditional = true
+        // queriedFeature.layer = { id: sourceLayer }
+        features.push(queriedFeature)
+      } else {
+        features.push({
+          source: source.source,
+          id: id,
+          sourceLayer: source.sourceLayer,
+          isPlaceholder: true,
+          isAdditional: true,
+        } as ExtendedMapGeoJSONFeature)
+      }
+    } else {
+      const queriedAdditionalFeatures = map?.querySourceFeatures(
+        source.source,
+        {
+          // @ts-ignore
+          filter: ['==', ['get', idField], id], // Assumes 'id' is promoted or is the property name
+        }
+      )
+
+      // only add the first feature, if there are duplicates
+      if (
+        queriedAdditionalFeatures &&
+        queriedAdditionalFeatures.length > 0 &&
+        queriedAdditionalFeatures[0] != null
+      ) {
+        const queriedFeature =
+          queriedAdditionalFeatures[0] as ExtendedMapGeoJSONFeature
+        queriedFeature.source = source.source
+        queriedFeature.isAdditional = true
+        features.push(queriedFeature)
+      } else {
+        // TODO: here add stuff to actually fetch the data somewhere.
+        // wfs, postgres, whatever. The query function could be added to layerConf.
+        // Keep the placeholder until the data is fetched. I guess you need a callback to replace
+        // the placeholder with the actual data.
+
+        const sourceType = map?.getSource(source.source)?.type
+
+        if (sourceType != null) {
+          if (sourceType === 'geojson') {
+            const featureCollection = getSourceJson(source.source, map)
+
+            if (featureCollection) {
+              const additionalFeature = featureCollection.features.find((f) => {
+                return f.id === id
+              })
+
+              if (additionalFeature) {
+                const extendedFeature = {
+                  ...additionalFeature,
+                  source: source.source,
+                  isAdditional: true,
+                }
+                features.push(extendedFeature as ExtendedMapGeoJSONFeature)
+                continue
+              }
+              features.push({
+                source: source.source,
+                id: id,
+                isPlaceholder: true,
+                isAdditional: true,
+              } as ExtendedMapGeoJSONFeature)
+              continue
+            }
+            features.push({
+              source: source.source,
+              id: id,
+              isPlaceholder: true,
+              isAdditional: true,
+            } as ExtendedMapGeoJSONFeature)
+            continue
+          }
+        }
+        // For now, just handle the geojson source
+        features.push({
+          source: source.source,
+          id: id,
+          isPlaceholder: true,
+          isAdditional: true,
+        } as ExtendedMapGeoJSONFeature)
+      }
+    }
+  }
+
+  return features
 }
 
 export const getMaplibreDrawMode = (drawMode: DrawMode): MaplibreDrawMode => {
