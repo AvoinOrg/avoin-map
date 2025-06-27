@@ -761,12 +761,7 @@ export const useMapStore = create<State>()(
         // if the layerConf specifies other sources that have the same features (with the same ids), these
         // are queried here and returned
         _getAdditionalSelectedFeatures: (features: MapGeoJSONFeature[]) => {
-          const {
-            _layerGroups,
-            _map,
-            getSourceJson,
-            _joinedSelectionSourceMap,
-          } = get()
+          const { _layerGroups, _map, _joinedSelectionSourceMap } = get()
 
           // const LayerOptionsObj = getAllLayerOptionsObj(_layerGroups)
 
@@ -789,117 +784,13 @@ export const useMapStore = create<State>()(
 
             if (additionalSelectionSources != null) {
               for (const additionalSource of additionalSelectionSources) {
-                if (additionalSource.sourceLayer) {
-                  const queriedAdditionalFeatures = _map?.querySourceFeatures(
-                    additionalSource.source,
-                    {
-                      sourceLayer: additionalSource.sourceLayer, // REQUIRED for vector tile sources
-                      // @ts-ignore
-                      filter: ['==', ['get', 'id'], feature.id], // Assumes 'id' is promoted or is the property name
-                    }
-                  )
+                const features = fetchFeaturesByIds({
+                  ids: [feature.id],
+                  source: additionalSource,
+                  map: _map,
+                })
 
-                  // only add the first feature, if there are duplicates
-                  if (
-                    queriedAdditionalFeatures &&
-                    queriedAdditionalFeatures.length > 0 &&
-                    queriedAdditionalFeatures[0] != null
-                  ) {
-                    const queriedFeature =
-                      queriedAdditionalFeatures[0] as ExtendedMapGeoJSONFeature
-                    queriedFeature.source = additionalSource.source
-                    queriedFeature.sourceLayer = additionalSource.sourceLayer
-                    queriedFeature.isAdditional = true
-                    // queriedFeature.layer = { id: sourceLayer }
-                    additionalFeatures.push(queriedFeature)
-                  } else {
-                    additionalFeatures.push({
-                      source: additionalSource.source,
-                      id: feature.id,
-                      sourceLayer: additionalSource.sourceLayer,
-                      isPlaceholder: true,
-                      isAdditional: true,
-                    } as ExtendedMapGeoJSONFeature)
-                  }
-                } else {
-                  const queriedAdditionalFeatures = _map?.querySourceFeatures(
-                    additionalSource.source,
-                    {
-                      // @ts-ignore
-                      filter: ['==', ['get', 'id'], feature.id], // Assumes 'id' is promoted or is the property name
-                    }
-                  )
-
-                  // only add the first feature, if there are duplicates
-                  if (
-                    queriedAdditionalFeatures &&
-                    queriedAdditionalFeatures.length > 0 &&
-                    queriedAdditionalFeatures[0] != null
-                  ) {
-                    const queriedFeature =
-                      queriedAdditionalFeatures[0] as ExtendedMapGeoJSONFeature
-                    queriedFeature.source = additionalSource.source
-                    queriedFeature.isAdditional = true
-                    additionalFeatures.push(queriedFeature)
-                  } else {
-                    // TODO: here add stuff to actually fetch the data somewhere.
-                    // wfs, postgres, whatever. The query function could be added to layerConf.
-                    // Keep the placeholder until the data is fetched. I guess you need a callback to replace
-                    // the placeholder with the actual data.
-
-                    const sourceType = _map?.getSource(
-                      additionalSource.source
-                    )?.type
-
-                    if (sourceType != null) {
-                      if (sourceType === 'geojson') {
-                        const featureCollection = getSourceJson(
-                          additionalSource.source
-                        )
-
-                        if (featureCollection) {
-                          const additionalFeature =
-                            featureCollection.features.find((f) => {
-                              return f.id === feature.id
-                            })
-
-                          if (additionalFeature) {
-                            const extendedFeature = {
-                              ...additionalFeature,
-                              source: additionalSource.source,
-                              isAdditional: true,
-                            }
-                            additionalFeatures.push(
-                              extendedFeature as ExtendedMapGeoJSONFeature
-                            )
-                            continue
-                          }
-                          additionalFeatures.push({
-                            source: additionalSource.source,
-                            id: feature.id,
-                            isPlaceholder: true,
-                            isAdditional: true,
-                          } as ExtendedMapGeoJSONFeature)
-                          continue
-                        }
-                        additionalFeatures.push({
-                          source: additionalSource.source,
-                          id: feature.id,
-                          isPlaceholder: true,
-                          isAdditional: true,
-                        } as ExtendedMapGeoJSONFeature)
-                        continue
-                      }
-                    }
-                    // For now, just handle the geojson source
-                    additionalFeatures.push({
-                      source: additionalSource.source,
-                      id: feature.id,
-                      isPlaceholder: true,
-                      isAdditional: true,
-                    } as ExtendedMapGeoJSONFeature)
-                  }
-                }
+                additionalFeatures.push(...features)
               }
             }
           }
