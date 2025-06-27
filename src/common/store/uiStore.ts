@@ -14,6 +14,7 @@ import {
 import { generateUUID } from '../utils/general'
 import { MapDims } from '../types/map'
 import { devtools } from 'zustand/middleware'
+import { commonDevtools } from './shared-devtools'
 
 interface Vars {
   isSidebarOpen: boolean
@@ -193,6 +194,7 @@ export const useUIStore = create<State>()(
       }
 
       return { ...vars, ...actions }
-    })
+    }),
+    { ...commonDevtools, store: 'uiStore' }
   )
 )

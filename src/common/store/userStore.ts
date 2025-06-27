@@ -4,9 +4,10 @@ import { User } from 'next-auth'
 import { signOut as nextSignOut } from 'next-auth/react'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
+import { devtools } from 'zustand/middleware'
 
 import { UserAuth, UserAuthState, UserDataState } from '#/common/types/state'
-import { devtools } from 'zustand/middleware'
+import { commonDevtools } from './shared-devtools'
 
 interface Vars {
   userAuth: UserAuth | null
@@ -87,6 +88,7 @@ export const useUserStore = create<State>()(
       }
 
       return { ...vars, ...actions }
-    })
+    }),
+    { ...commonDevtools, store: 'userStore' }
   )
 )
