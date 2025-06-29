@@ -3,6 +3,8 @@
 // There are a also various helper hooks in src/common/hooks/map.
 'use client'
 
+// TODO: Refactor the _map object to somewhere else. It does need to be in the store.
+
 import { map, cloneDeep, uniq, isEqual, pickBy, uniqBy } from 'lodash-es'
 import turfBbox from '@turf/bbox'
 import { immer } from 'zustand/middleware/immer'
