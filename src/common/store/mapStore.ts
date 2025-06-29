@@ -80,6 +80,7 @@ import {
   findSourceOptsById,
   encodeUrlWithParams,
   getJoinedSelectionSourcesForSource,
+  getSelectableLayersForSource,
   getSourceJson,
 } from '#/common/utils/map'
 import { geoserverJsonQuery } from '../queries/geoserverJsonQuery'
@@ -155,7 +156,6 @@ export type Actions = {
     sourceId: string,
     _queueOptions?: QueueOptions
   ) => Promise<LngLatBounds | null>
-  getSourceJson: (id: string) => FeatureCollection | null
   getSourceJsonAsyncQueue: (
     id: string,
     _queueOptions?: QueueOptions
@@ -245,14 +245,16 @@ export type Actions = {
     source: SelectionSource
     updateDrawSelect?: boolean
     ignorePopups?: boolean
+    ignoreAdditionalFeatures?: boolean
   }) => void
   addSelectedFeaturesByIds: (params: {
     featureIds: (string | number | undefined)[]
     idField: string
     source: SelectionSource
-    allowedLayers?: string[]
     updateDrawSelect?: boolean
     ignorePopups?: boolean
+    ignoreAdditionalFeatures?: boolean
+    removeOtherFeatures?: boolean
   }) => void
   setMapLibraryMode: (mode: MapLibraryMode) => void
   getGeocoder: () => void
@@ -983,44 +985,72 @@ export const useMapStore = create<State>()(
           featureIds: (string | number | undefined)[]
           idField: string
           source: SelectionSource
-          allowedLayers?: string[]
           updateDrawSelect?: boolean
           ignorePopups?: boolean
+          ignoreAdditionalFeatures?: boolean
+          removeOtherFeatures?: boolean | 'useLayerOption'
         }) => {
           const {
             featureIds,
             idField,
             source,
-            allowedLayers,
-            updateDrawSelect,
-            ignorePopups,
+            updateDrawSelect = false,
+            ignorePopups = false,
+            ignoreAdditionalFeatures = false,
+            removeOtherFeatures = 'useLayerOption',
           } = params
 
           const {
-            selectedFeatures,
             setSelectedFeatures,
             _map,
-            _layerGroups,
             _setPopupDataForFeatures,
+            _getAdditionalSelectedFeatures,
+            selectedFeatures,
+            _joinedSelectionSourceMap,
           } = get()
-
-          let usedAllowedLayers: string[] = []
-          if (!allowedLayers) {
-            usedAllowedLayers = getSelectableLayers(source.source, _layerGroups)
-          } else {
-            usedAllowedLayers = allowedLayers
-          }
 
           const newFeatures = fetchFeaturesByIds({
             ids: featureIds,
             source: source,
             idField: idField,
-            allowedLayers: usedAllowedLayers,
             map: _map,
           })
 
+          let oldFeatures: MapGeoJSONFeature[] = []
+
+          if (removeOtherFeatures === false) {
+            oldFeatures.push(...selectedFeatures)
+          } else if (removeOtherFeatures === 'useLayerOption') {
+            const sourceOptions = findSourceOptsById(
+              source.source,
+              get()._layerGroups
+            )
+
+            if (sourceOptions?.extendedOpts?.multiSelectable) {
+              const joinedSelectionSources = getJoinedSelectionSourcesForSource(
+                {
+                  joinedSelectionSourceMap: _joinedSelectionSourceMap,
+                  source: source.source,
+                  sourceLayer: source.sourceLayer,
+                }
+              )
+              const matchingFeatures = selectedFeatures.filter((f) => {
+                ;[...joinedSelectionSources, source].some((js) => {
+                  isMatchingSource(f, js)
+                })
+              })
+              oldFeatures.push(...matchingFeatures)
+            }
+          }
+
+          if (!ignoreAdditionalFeatures) {
+            const additionalFeatures =
+              _getAdditionalSelectedFeatures(newFeatures)
+            newFeatures.push(...additionalFeatures)
+          }
+
           setSelectedFeatures(
-            uniq([...selectedFeatures, ...newFeatures]),
+            uniq([...oldFeatures, ...newFeatures]),
             updateDrawSelect
           )
 
