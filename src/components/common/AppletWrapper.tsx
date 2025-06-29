@@ -9,6 +9,7 @@ import { useMapStore, useUIStore } from '#/common/store'
 import { MapContext } from '#/common/types/map'
 import { useTolgee } from '@tolgee/react'
 import { Box } from '@mui/material'
+import { useExclusiveLayerGroups } from '#/common/hooks/map/useExclusiveLayerGroups'
 
 const AppletWrapper = ({
   children,
@@ -31,6 +32,7 @@ const AppletWrapper = ({
 
   const setMapContext = useMapStore((state) => state.setMapContext)
   const stateMapContext = useMapStore((state) => state.mapContext)
+  useExclusiveLayerGroups()
 
   const setIsBaseDomainForApplet = useUIStore(
     (state) => state.setIsBaseDomainForApplet
