@@ -19,36 +19,40 @@ export const getFolayerIdWithoutHyphens = (layerId: string) => {
   return layerId.replace(/-/g, '')
 }
 
-export const getFolayerGroupId = (layerId: string) => {
+export const getFolayerSourceId = (layerId: string) => {
   const layerIdWithoutHyphens = getFolayerIdWithoutHyphens(layerId)
   return `${layerIdWithoutHyphens}_luonnonmetsakartat`
 }
 
-export const getSourceFolayerId = (layerId: string) => {
+export const getFolayerGroupId = (layerId: string) => {
+  return getFolayerSourceId(layerId)
+}
+
+export const getFolayerSourceLayer = (layerId: string) => {
   return `forest_areas_${getFolayerIdWithoutHyphens(layerId)}`
 }
 
-export const getCentroidSourceFolayerId = (layerId: string) => {
+export const getFolayerCentroidSourceLayer = (layerId: string) => {
   return `forest_areas_${getFolayerIdWithoutHyphens(layerId)}_centroid`
 }
 
-export const getCentroidLayerGroupId = (layerId: string) => {
+export const getFolayerCentroidSourceId = (layerId: string) => {
   const layerIdWithoutHyphens = getFolayerIdWithoutHyphens(layerId)
   return `${layerIdWithoutHyphens}_luonnonmetsakartat_centroid`
 }
 
 export const createAdminFolayerConf = async (
-  apiKey: string,
   // json: any,
   folayerId: string,
   colorCode: string
 ) => {
+  const groupId = getFolayerGroupId(folayerId)
   // const addImage = useMapStore.getState().addImage
-  const sourceId = getFolayerGroupId(folayerId)
-  const sourceLayer = getSourceFolayerId(folayerId)
+  const sourceId = getFolayerSourceId(folayerId)
+  const sourceLayer = getFolayerSourceLayer(folayerId)
 
-  const centroidSourceId = getCentroidLayerGroupId(folayerId)
-  const centroidSourceLayer = getCentroidSourceFolayerId(folayerId)
+  const centroidSourceId = getFolayerCentroidSourceId(folayerId)
+  const centroidSourceLayer = getFolayerCentroidSourceLayer(folayerId)
 
   const validColorCode = colorCode || '#4cbf00' // Default to green if none provided
   const contrastColor = getContrastColor(validColorCode)
@@ -86,6 +90,8 @@ export const createAdminFolayerConf = async (
         promoteId: 'id',
         extendedOpts: {
           useAccessToken: true,
+          selectable: true,
+          multiSelectable: false,
         },
       },
       // [centroidSourceId]: {
@@ -107,6 +113,8 @@ export const createAdminFolayerConf = async (
         extendedOpts: {
           useAccessToken: true,
           ensureLocalData: true,
+          selectable: true,
+          multiSelectable: false,
         },
       },
     },
@@ -431,7 +439,7 @@ export const createAdminFolayerConf = async (
   ]
 
   const layerConf: LayerConf = {
-    id: sourceId,
+    id: groupId,
     style: style,
     eventHandlers: eventHandlers,
     useMb: true,
