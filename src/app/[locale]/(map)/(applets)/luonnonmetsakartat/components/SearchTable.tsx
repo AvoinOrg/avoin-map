@@ -23,12 +23,16 @@ import { FixedSizeList, ListChildComponentProps } from 'react-window'
 
 import { SortKey } from '#/common/types/general'
 import { Search, Ascending, Descending } from '#/components/icons'
+import { SelectionSource } from '#/common/types/map'
 
-import { FolayerFeature } from '../common/types'
+import { FolayerFeature, FolayerFeatureProperties } from '../common/types'
+import { useMapStore } from '#/common/store'
+import useSelectedFeaturesFilteredBySource from '#/common/hooks/map/useSelectedFeaturesFilteredBySource'
 
 interface Props {
   data: FolayerFeature[] | undefined
   keysToSearch: string[]
+  source: SelectionSource
   sortKeys?: SortKey[]
   searchPlaceholder?: string
   sx?: SxProps<Theme>
@@ -47,10 +51,18 @@ const SearchTable = ({
   data = [],
   keysToSearch,
   searchPlaceholder,
+  source,
   sortKeys = [],
   sx,
 }: Props) => {
   const { t } = useTranslate('avoin-map')
+  const addSelectedFeaturesByIds = useMapStore(
+    (state) => state.addSelectedFeaturesByIds
+  )
+  const removeSelectedFeaturesByIds = useMapStore(
+    (state) => state.removeSelectedFeaturesByIds
+  )
+  const selectedFeatures = useSelectedFeaturesFilteredBySource([source])
 
   const [searchTerm, setSearchTerm] = React.useState('')
   const [debouncedSearchTerm, setDebouncedSearchTerm] = React.useState('')
@@ -137,6 +149,28 @@ const SearchTable = ({
     setIsAscending((prev) => !prev)
   }
 
+  const handleClick = (feature: FolayerFeature) => {
+    console.log('Clicked on feature with properties:', feature.properties)
+    const isSelected = selectedFeatures.some(
+      (f) => f.properties && f.properties.id === feature.properties.id
+    )
+
+    if (isSelected) {
+      removeSelectedFeaturesByIds({
+        featureIds: [feature.properties.id],
+        idField: 'id',
+        source: source,
+      })
+    } else {
+      addSelectedFeaturesByIds({
+        featureIds: [feature.properties.id],
+        idField: 'id',
+        source: source,
+        removeOtherFeatures: true,
+      })
+    }
+  }
+
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -158,6 +192,10 @@ const SearchTable = ({
   // without nesting <div> under actual table elements.
   const Row = ({ index, style }: ListChildComponentProps) => {
     const row = table.getRowModel().rows[index]
+
+    const isSelected = selectedFeatures.some(
+      (f) => f.properties?.id === row.original.properties.id
+    )
     return (
       <Box
         sx={{
@@ -173,7 +211,21 @@ const SearchTable = ({
         {row.getVisibleCells().map((cell) => (
           <Box
             key={cell.id}
-            sx={{ flex: 1, p: 1, display: 'flex', alignItems: 'center' }}
+            onClick={() => handleClick(cell.row.original)}
+            sx={{
+              flex: 1,
+              p: 1,
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              '&': { cursor: 'pointer' },
+              backgroundColor: isSelected ? 'action.selected' : 'transparent',
+              '&:hover': {
+                backgroundColor: isSelected
+                  ? 'action.selected'
+                  : 'action.hover',
+              },
+            }}
           >
             {flexRender(cell.column.columnDef.cell, cell.getContext())}
           </Box>
@@ -219,7 +271,7 @@ const SearchTable = ({
           {allSortKeys.map((key) => (
             <MenuItem
               sx={{
-                textAlign: 'right', // Align the text inside the dropdown items to the right
+                textAlign: 'right',
                 typography: 'body7',
                 fontWeight: 500,
               }}
