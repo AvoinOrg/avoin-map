@@ -68,6 +68,8 @@ export type LayerOptionsObj = {
 export type SourceExtendedOpts = {
   useAccessToken?: boolean
   ensureLocalData?: boolean
+  selectable?: boolean
+  multiSelectable?: boolean
 }
 
 export type SourceOptions = {
