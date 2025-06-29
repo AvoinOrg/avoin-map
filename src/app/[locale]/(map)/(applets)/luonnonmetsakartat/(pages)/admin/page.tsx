@@ -3,17 +3,18 @@
 import React, { useEffect, useMemo } from 'react'
 import Box from '@mui/material/Box'
 import { T } from '@tolgee/react'
+import { useQuery } from '@tanstack/react-query'
 
 import MutableLink from '#/components/common/MutableLink'
 import { Upload } from '#/components/icons'
 import BigMenuButton from '#/components/common/BigMenuButton'
 import { SidebarContentBox } from '#/components/Sidebar'
+import { LoadingSpinner } from '#/components/Loading'
 
+import AdminLayerItem from 'applets/luonnonmetsakartat/components/AdminLayerItem'
 import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
-import { useQuery } from '@tanstack/react-query'
 import { adminFolayersQuery } from 'applets/luonnonmetsakartat/common/queries/adminFolayersQuery'
-import { LoadingSpinner } from '#/components/Loading'
 import { AdminFolayerConf } from 'applets/luonnonmetsakartat/common/types'
 
 const Page = () => {
@@ -49,6 +50,14 @@ const Page = () => {
           <Upload />
         </BigMenuButton>
       </MutableLink>
+      {isLoading && <LoadingSpinner sx={{ ml: 2 }} />}
+      {!isLoading && adminFolayerConfsArray.length > 0 && (
+        <Box sx={{ width: '100%', mt: 5, pb: 4 }}>
+          {adminFolayerConfsArray.map((conf) => (
+            <AdminLayerItem key={conf.id} conf={conf} />
+          ))}
+        </Box>
+      )}
 
       {/* <Box>
         {isLoading && <LoadingSpinner></LoadingSpinner>}
