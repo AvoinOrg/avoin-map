@@ -12,20 +12,19 @@ import { Box, Typography } from '@mui/material'
 import { useParams, useRouter } from 'next/navigation'
 import { T, useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
-import { SaveOutlined } from '@mui/icons-material'
 
 import { LoadingSpinner } from '#/components/Loading'
 import { SidebarContentBox } from '#/components/Sidebar'
 
 import { ArrowNextBig } from '#/components/icons'
 import MutableLink from '#/components/common/MutableLink'
-import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
 
 import { adminFolayerPatchMutation } from 'applets/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
 import SearchTable from 'applets/luonnonmetsakartat/components/SearchTable'
 import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
 import { FolayerConfState } from 'applets/luonnonmetsakartat/common/types'
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
+import { getFolayerCentroidSourceId } from 'applets/luonnonmetsakartat/common/utils'
 
 const Page = () => {
   const [isFolayerReady, setIsFolayerReady] = useState(false)
@@ -54,7 +53,6 @@ const Page = () => {
     } else {
       setIsFolayerReady(false)
     }
-    console.log(adminFolayerConf)
   }, [adminFolayerConf])
 
   useEffect(() => {
@@ -66,50 +64,7 @@ const Page = () => {
     } else {
       setIsAreaCollectionReady(false)
     }
-    console.log(folayerAreaCollection)
   }, [folayerAreaCollection])
-
-  const isEditingDisabled = useMemo(() => {
-    if (adminFolayerConf && adminFolayerConf.state === FolayerConfState.Idle) {
-      return false
-    }
-    return true
-  }, [adminFolayerConf?.state])
-
-  const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const newName = e.target.value
-    updateAdminFolayerConf(params.folayerIdSlug, {
-      name: newName,
-      unsyncedChanges: true,
-    })
-  }
-
-  const handleColorChange = (color: string) => {
-    updateAdminFolayerConf(params.folayerIdSlug, {
-      colorCode: color,
-      unsyncedChanges: true,
-    })
-  }
-
-  const handleIsVisibleChange = (
-    _e: ChangeEvent<HTMLInputElement>,
-    checked: boolean
-  ) => {
-    updateAdminFolayerConf(params.folayerIdSlug, {
-      isVisible: checked,
-      unsyncedChanges: true,
-    })
-  }
-
-  const handleSaveClick = (event: any) => {
-    event.preventDefault()
-    event.stopPropagation()
-    event.nativeEvent.stopImmediatePropagation()
-
-    if (adminFolayerConf) {
-      localAdminFolayerPatchMutation.mutate(adminFolayerConf)
-    }
-  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
@@ -167,6 +122,7 @@ const Page = () => {
         <SearchTable
           sx={{ mt: 2, pb: 5 }}
           data={folayerAreaCollection.features}
+          source={{ source: getFolayerCentroidSourceId(params.folayerIdSlug) }}
           keysToSearch={[
             'properties.name',
             'properties.region',
