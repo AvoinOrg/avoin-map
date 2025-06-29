@@ -2344,13 +2344,7 @@ export const useMapStore = create<State>()(
             }
 
             for (const layer of style.layers) {
-              let hoverPointer = false
-              if (layer.hoverPointer !== undefined) {
-                hoverPointer = layer.hoverPointer
-              } else {
-                hoverPointer =
-                  layer.selectable || layer.multiSelectable || false
-              }
+              const matchingSource = layerGroup.sources[layer.source]
 
               const layerOptions: LayerOptions = {
                 id: layer.id,
@@ -2358,9 +2352,17 @@ export const useMapStore = create<State>()(
                 ...(layer.sourceLayer && { sourceLayer: layer.sourceLayer }),
                 name: getLayerName(layer.id),
                 layerType: layer.type,
-                selectable: layer.selectable || false,
-                multiSelectable: layer.multiSelectable || false,
-                hoverPointer: hoverPointer,
+                selectable:
+                  layer.selectable ??
+                  matchingSource.extendedOpts?.selectable ??
+                  false,
+                multiSelectable:
+                  matchingSource.extendedOpts?.multiSelectable ?? false,
+                hoverPointer:
+                  layer.hoverPointer ??
+                  layer.selectable ??
+                  matchingSource.extendedOpts?.selectable ??
+                  false,
                 popupOpts: null,
                 useMb: true,
               }
