@@ -339,7 +339,7 @@ export const useMapStore = create<State>()(
   // Include your additional states and setters...
 
   // Add your additional actions...
-  devtools(
+  // devtools(
   persist(
     immer((set, get) => {
       const vars: Vars = {
@@ -2903,7 +2903,73 @@ export const useMapStore = create<State>()(
         }
       },
     }
-    )
+    // ),
+    // {
+    //   ...commonDevtools,
+    //   store: 'mapStore',
+    //   features: {
+    //     pause: true,
+    //     lock: true,
+    //     persist: false,
+    //     export: false,
+    //     import: false,
+    //   },
+    //   maxAge: 50,
+    //   serialize: {
+    //     options: true,
+    //     infinity: true,
+    //     date: true,
+    //     map: true,
+    //     set: true,
+
+    //   // This replacer prevents large or non-serializable objects from being
+    //   // sent to Redux DevTools, which improves performance.
+    //     replacer: (key: string, value: any) => {
+    //       // The map instance is a large, complex object with circular references.
+    //       // if (key === '_map' && value) {
+    //       //   return '[MapInstance]';
+    //       // }
+    //       // if (value instanceof Set) {
+    //       //   return Array.from(value);
+    //       // }
+    //       // // The draw instance is also a complex object.
+    //       // if (key === 'draw' && value) {
+    //       //   return '[DrawInstance]';
+    //       // }
+    //       // if (['_layerInstances', '_hydrationData'].includes(key) && value) {
+    //       //     const keys = Object.keys(value);
+    //       //     return `[Object with keys: ${keys.slice(0, 3).join(', ')}${keys.length > 3 ? ', ...' : ''}] (${keys.length} total)`;
+    //       // }
+    //       // // Functions and Promises are not serializable.
+    //       // if (typeof value === 'function') {
+    //       //   return '[Function]';
+    //       // }
+    //       // if (value instanceof Promise) {
+    //       //   return '[Promise]';
+    //       // }
+    //       // return value;
+    //       if (key === '') {
+    //         // This is the root state object
+    //         // Be warned: including the full _layerGroups object can still be slow.
+    //         // const sanitizedFeatures = value.selectedFeatures.map(
+    //         //   (feature: MapGeoJSONFeature) => ({
+    //         //     id: feature.id,
+    //         //     source: feature.source,
+    //         //     sourceLayer: feature.sourceLayer,
+    //         //     layerId: feature.layer?.id,
+    //         //     properties: feature.properties,
+    //         //   })
+    //         // )
+    //         // return {
+    //         //   _layerGroups: value._layerGroups,
+    //         //   selectedFeatures: sanitizedFeatures,
+    //         // }
+    //         return {}
+    //       }
+    //       return value
+    //       },
+    //   },
+    // }
   )
 )
 
