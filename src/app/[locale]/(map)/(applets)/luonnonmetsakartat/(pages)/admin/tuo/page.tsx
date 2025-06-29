@@ -73,11 +73,15 @@ const Page = () => {
         },
       })
       router.push(route)
+      return
     }
+
+    if (localFolayerPostMutation.isError) {
+      setIsLoading(false)
+    }
+
     if (localFolayerPostMutation.isPending) {
       setIsLoading(true)
-    } else {
-      setIsLoading(false)
     }
   }, [localFolayerPostMutation])
 
