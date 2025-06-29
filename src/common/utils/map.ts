@@ -24,6 +24,7 @@ import {
   SourceOptions,
   EMBEDDED_PARAMS_URL_PREFIX,
   SelectionSource,
+  ExtendedMapGeoJSONFeature,
 } from '../types/map'
 import { clone, uniqBy } from 'lodash-es'
 
