@@ -83,6 +83,7 @@ import {
   getSourceJson,
 } from '#/common/utils/map'
 import { geoserverJsonQuery } from '../queries/geoserverJsonQuery'
+// import { commonDevtools } from './shared-devtools'
 
 const DEFAULT_MAP_LIBRARY_MODE: MapLibraryMode = 'maplibre'
 
