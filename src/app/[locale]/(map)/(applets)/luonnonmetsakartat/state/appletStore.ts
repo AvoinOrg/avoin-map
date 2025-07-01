@@ -13,7 +13,7 @@ import {
   AdminVerificationStatus,
   AdminFolayerConf,
   FolayerConf,
-  FolayerAreaCollection,
+  FolayerAreaConf,
   FolayerFeature,
   PartialFolayerFeature,
 } from 'applets/luonnonmetsakartat/common/types'
@@ -26,14 +26,14 @@ type FolayerConfMap = {
   [id: string]: FolayerConf
 }
 
-type FolayerAreaCollectionMap = {
-  [id: string]: FolayerAreaCollection
+type FolayerAreaConfMap = {
+  [id: string]: FolayerAreaConf
 }
 
 type Vars = {
   folayerConfs: FolayerConfMap
   adminFolayerConfs: AdminFolayerConfMap
-  folayerAreaCollections: FolayerAreaCollectionMap
+  folayerAreaConfs: FolayerAreaConfMap
   adminVerificationStatus: AdminVerificationStatus
 }
 
@@ -51,15 +51,15 @@ type Actions = {
   ) => void
   deleteAdminFolayerConf: (folayerId: string) => void
 
-  addFolayerAreaCollection: (
+  addFolayerAreaConf: (
     folayerId: string,
-    folayerAreaCollection: FolayerAreaCollection
+    folayerAreaConf: FolayerAreaConf
   ) => void
-  updateFolayerAreaCollection: (
+  updateFolayerAreaConf: (
     folayerId: string,
-    updates: Partial<FolayerAreaCollection>
+    updates: Partial<FolayerAreaConf>
   ) => void
-  deleteFolayerAreaCollection: (folayerId: string) => void
+  deleteFolayerAreaConf: (folayerId: string) => void
   setAdminVerificationStatus: (status: AdminVerificationStatus) => void
   getFolayerAreaById: (
     folayerId: string,
@@ -72,14 +72,16 @@ type Actions = {
   ) => void
 }
 
-export const useAppletStore = create<Vars & Actions>()(
+export type State = Vars & Actions
+
+export const useAppletStore = create<State>()(
   devtools(
     subscribeWithSelector(
       immer((set, get) => {
         const vars = {
           folayerConfs: {} as FolayerConfMap,
           adminFolayerConfs: {} as AdminFolayerConfMap,
-          folayerAreaCollections: {} as FolayerAreaCollectionMap,
+          folayerAreaConfs: {} as FolayerAreaConfMap,
           adminVerificationStatus: AdminVerificationStatus.NoUser,
         }
 
@@ -162,24 +164,24 @@ export const useAppletStore = create<Vars & Actions>()(
             })
           },
 
-          // FolayerAreaCollection actions
-          addFolayerAreaCollection: (
+          // FolayerAreaConf actions
+          addFolayerAreaConf: (
             folayerId: string,
-            folayerAreaCollection: FolayerAreaCollection
+            folayerAreaConf: FolayerAreaConf
           ) => {
             set((state) => {
-              state.folayerAreaCollections[folayerId] = folayerAreaCollection
+              state.folayerAreaConfs[folayerId] = folayerAreaConf
             })
           },
 
-          updateFolayerAreaCollection: (
+          updateFolayerAreaConf: (
             folayerId: string,
-            updates: Partial<FolayerAreaCollection>
+            updates: Partial<FolayerAreaConf>
           ) => {
             set((state) => {
-              const existingCollection = state.folayerAreaCollections[folayerId]
+              const existingCollection = state.folayerAreaConfs[folayerId]
               if (existingCollection) {
-                state.folayerAreaCollections[folayerId] = {
+                state.folayerAreaConfs[folayerId] = {
                   ...existingCollection,
                   ...updates,
                 }
@@ -187,10 +189,10 @@ export const useAppletStore = create<Vars & Actions>()(
             })
           },
 
-          deleteFolayerAreaCollection: (folayerId: string) => {
+          deleteFolayerAreaConf: (folayerId: string) => {
             set((state) => {
-              const { [folayerId]: _, ...rest } = state.folayerAreaCollections
-              state.folayerAreaCollections = rest
+              const { [folayerId]: _, ...rest } = state.folayerAreaConfs
+              state.folayerAreaConfs = rest
             })
           },
 
@@ -201,9 +203,9 @@ export const useAppletStore = create<Vars & Actions>()(
             })
           },
           getFolayerAreaById: (folayerId: string, areaId: string) => {
-            const collection = get().folayerAreaCollections[folayerId]
-            if (collection) {
-              return collection.features.find(
+            const areaObj = get().folayerAreaConfs[folayerId]
+            if (areaObj) {
+              return areaObj.data.features.find(
                 (feature) => feature.id === areaId
               )
             }
@@ -215,14 +217,14 @@ export const useAppletStore = create<Vars & Actions>()(
             updates: PartialFolayerFeature
           ) => {
             set((state) => {
-              const collection = state.folayerAreaCollections[folayerId]
-              if (collection) {
-                const featureIndex = collection.features.findIndex(
+              const areaObj = state.folayerAreaConfs[folayerId]
+              if (areaObj) {
+                const featureIndex = areaObj.data.features.findIndex(
                   (feature) => feature.id === areaId
                 )
                 if (featureIndex !== -1) {
                   const updatedFeature = {
-                    ...collection.features[featureIndex],
+                    ...areaObj.data.features[featureIndex],
                   }
                   if (updates.properties) {
                     updatedFeature.properties = {
@@ -231,7 +233,7 @@ export const useAppletStore = create<Vars & Actions>()(
                     }
                   }
 
-                  collection.features[featureIndex] = updatedFeature
+                  areaObj.data.features[featureIndex] = updatedFeature
                 }
               }
             })

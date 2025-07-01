@@ -37,14 +37,8 @@ const Page = () => {
   const adminFolayerConf = useAppletStore(
     (state) => state.adminFolayerConfs[params.folayerIdSlug]
   )
-  const folayerAreaCollection = useAppletStore(
-    (state) => state.folayerAreaCollections[params.folayerIdSlug]
-  )
-  const updateAdminFolayerConf = useAppletStore(
-    (state) => state.updateAdminFolayerConf
-  )
-  const localAdminFolayerPatchMutation = useMutation(
-    adminFolayerPatchMutation()
+  const folayerAreaConf = useAppletStore(
+    (state) => state.folayerAreaConfs[params.folayerIdSlug]
   )
 
   useEffect(() => {
@@ -57,14 +51,14 @@ const Page = () => {
 
   useEffect(() => {
     if (
-      folayerAreaCollection &&
-      folayerAreaCollection.state === FolayerConfState.Idle
+      folayerAreaConf?.data &&
+      folayerAreaConf.state === FolayerConfState.Idle
     ) {
       setIsAreaCollectionReady(true)
     } else {
       setIsAreaCollectionReady(false)
     }
-  }, [folayerAreaCollection])
+  }, [folayerAreaConf])
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
@@ -119,31 +113,35 @@ const Page = () => {
             keyName={'sidebar.admin.folayer.all_areas_title'}
           ></T>
         </Typography>
-        <SearchTable
-          sx={{ mt: 2, pb: 5 }}
-          data={folayerAreaCollection.features}
-          source={{ source: getFolayerCentroidSourceId(params.folayerIdSlug) }}
-          keysToSearch={[
-            'properties.name',
-            'properties.region',
-            'properties.municipality',
-          ]}
-          sortKeys={[
-            {
-              key: 'name',
-              label: t('sidebar.admin.folayer.sort_by_name'),
-            },
-            // {
-            //   key: 'region',
-            //   label: t('sidebar.admin.folayer.sort_by_region'),
-            // },
-            // {
-            //   key: 'municipality',
-            //   label: t('sidebar.admin.folayer.sort_by_municipality'),
-            // },
-          ]}
-          searchPlaceholder={t('sidebar.admin.folayer.search_placeholder')}
-        ></SearchTable>
+        {folayerAreaConf?.data && (
+          <SearchTable
+            sx={{ mt: 2, pb: 5 }}
+            data={folayerAreaConf.data.features}
+            source={{
+              source: getFolayerCentroidSourceId(params.folayerIdSlug),
+            }}
+            keysToSearch={[
+              'properties.name',
+              'properties.region',
+              'properties.municipality',
+            ]}
+            sortKeys={[
+              {
+                key: 'name',
+                label: t('sidebar.admin.folayer.sort_by_name'),
+              },
+              // {
+              //   key: 'region',
+              //   label: t('sidebar.admin.folayer.sort_by_region'),
+              // },
+              // {
+              //   key: 'municipality',
+              //   label: t('sidebar.admin.folayer.sort_by_municipality'),
+              // },
+            ]}
+            searchPlaceholder={t('sidebar.admin.folayer.search_placeholder')}
+          ></SearchTable>
+        )}
       </SidebarContentBox>
     </Box>
   )
