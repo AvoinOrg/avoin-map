@@ -1,3 +1,4 @@
+import { FeatureCollection } from '@turf/helpers'
 import { Feature, Geometry } from 'geojson'
 
 export enum AdminVerificationStatus {
@@ -63,8 +64,13 @@ export type PartialFolayerFeature = Partial<
   Feature<Geometry, Partial<FolayerFeatureProperties>>
 >
 
-export interface FolayerAreaCollection {
-  id: string
+export interface FolayerAreaCollection
+  extends FeatureCollection<Geometry, FolayerFeatureProperties> {
   features: FolayerFeature[]
+}
+
+export interface FolayerAreaConf {
+  id: string
   state: FolayerConfState
+  data: FolayerAreaCollection
 }

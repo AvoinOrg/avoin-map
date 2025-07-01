@@ -20,8 +20,8 @@ export const useAdminFolayer = (
   const adminFolayerConf = useAppletStore(
     (state) => state.adminFolayerConfs[folayerId]
   )
-  const folayerAreaCollection = useAppletStore(
-    (state) => state.folayerAreaCollections[folayerId]
+  const folayerAreaConf = useAppletStore(
+    (state) => state.folayerAreaConfs[folayerId]
   )
 
   const { refetch: folayerRefetch } = useQuery({
@@ -39,11 +39,11 @@ export const useAdminFolayer = (
     if (!adminFolayerConf) {
       promises.push(folayerRefetch())
     }
-    if (!folayerAreaCollection) {
+    if (!folayerAreaConf) {
       promises.push(areasRefetch())
     }
     await Promise.all(promises)
-  }, [adminFolayerConf, folayerAreaCollection, folayerRefetch, areasRefetch])
+  }, [adminFolayerConf, folayerAreaConf, folayerRefetch, areasRefetch])
 
   const getLayerConf = useCallback(async () => {
     let conf: AdminFolayerConf | null | undefined = adminFolayerConf

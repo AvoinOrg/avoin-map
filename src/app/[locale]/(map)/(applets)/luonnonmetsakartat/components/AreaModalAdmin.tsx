@@ -26,8 +26,8 @@ interface Props extends PopupProps {
 const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
   const { t } = useTranslate('luonnonmetsakartat')
   const updateArea = useAppletStore((state) => state.updateFolayerArea)
-  const folayerAreaCollection = useAppletStore(
-    (state) => state.folayerAreaCollections[folayerId]
+  const folayerAreaConf = useAppletStore(
+    (state) => state.folayerAreaConfs[folayerId]
   )
 
   const [name, setName] = useState('')
@@ -41,8 +41,8 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
   )
 
   const feature = useMemo(() => {
-    if (features && features.length > 0 && folayerAreaCollection) {
-      const foundFeature = folayerAreaCollection.features.find(
+    if (features && features.length > 0 && folayerAreaConf) {
+      const foundFeature = folayerAreaConf.data.features.find(
         (f) => f.id === features[0].id
       )
 
@@ -57,7 +57,7 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
       }
     }
     return null
-  }, [features, folayerAreaCollection])
+  }, [features, folayerAreaConf])
 
   useEffect(() => {
     if (!localAdminFolayerAreaPatchMutation.isPending) {
