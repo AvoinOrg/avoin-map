@@ -1,11 +1,9 @@
 import type { GeoJSONSource } from 'maplibre-gl'
 
-import { useMapStore } from '#/common/store/mapStore'
 import {
   ExtendedStyleSpecification,
   LayerConf,
   LayerEventHandlerAddOptions,
-  SerializableLayerConf,
 } from '#/common/types/map'
 import { getContrastColor } from '#/common/utils/styling'
 
