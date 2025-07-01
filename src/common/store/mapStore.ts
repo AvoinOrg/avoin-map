@@ -23,6 +23,7 @@ import {
   LayerSpecification,
   FilterSpecification,
   GeoJSONSource,
+  SourceSpecification,
 } from 'maplibre-gl'
 import mapboxgl from 'maplibre-gl'
 import MaplibreDraw from 'maplibre-gl-draw'
@@ -59,6 +60,7 @@ import {
   ExtendedSourceSpecification,
   PopupOpts,
   SelectionSource,
+  isStandardSourceOptions,
 } from '#/common/types/map'
 import { layerConfs } from '#/components/Map/Layers'
 
@@ -136,6 +138,7 @@ export type Vars = {
   // have changed and the source data needs to be re-fetched.
   _staleSourceIds: string[]
   // For persisting user customised or uploaded layer configurations.
+  _dataSyncSubscriptions: Record<string, Record<string, () => void>>
   _persistingLayerGroupAddOptions: Record<
     string,
     SerializableLayerGroupAddOptions
@@ -373,6 +376,7 @@ export const useMapStore = create<State>()(
         _layerGroups: {},
         _layerInstances: {},
         _staleSourceIds: [],
+        _dataSyncSubscriptions: {},
         _isHydrated: false,
         _persistingLayerGroupAddOptions: {},
         _hydrationData: {
@@ -1204,6 +1208,7 @@ export const useMapStore = create<State>()(
             _removeDraw,
             _images,
             _updateSelectableHoverHandlers,
+            _dataSyncSubscriptions,
           } = get() // Assuming you have a map reference in your store.
 
           if (!Object.keys(_layerGroups).includes(layerGroupId)) {
@@ -1233,6 +1238,12 @@ export const useMapStore = create<State>()(
             _map?.off('data', layerGroupOptions.handleDataUpdate)
           }
 
+          if (_dataSyncSubscriptions[layerGroupId]) {
+            Object.values(_dataSyncSubscriptions[layerGroupId]).forEach(
+              (unsubscribe) => unsubscribe()
+            )
+          }
+
           Object.keys(_images).forEach((imageId) => {
             const image = _images[imageId]
             if (image.layerGroupId === layerGroupId) {
@@ -1260,6 +1271,8 @@ export const useMapStore = create<State>()(
             }
 
             delete state._layerGroups[layerGroupId]
+
+            delete state._dataSyncSubscriptions[layerGroupId]
           })
 
           if (_drawOptions.layerGroupId === layerGroupId) {
@@ -1896,7 +1909,6 @@ export const useMapStore = create<State>()(
                     ids: featureIds,
                     source: { source: layerGroupId },
                     idField: idField,
-                    allowedLayers: allowedLayers,
                     map: _map,
                   })
 
@@ -2229,28 +2241,32 @@ export const useMapStore = create<State>()(
               return
             }
 
-            if (sourceOpts.url) {
-              if (sourceOpts.type === 'geojson') {
-                if (sourceOpts.extendedOpts?.ensureLocalData) {
-                  const fetchedData = await geoserverJsonQuery(
-                    sourceOpts.url,
-                    sourceOpts.extendedOpts.useAccessToken
-                  )
-                  if (fetchedData) {
-                    const source = _map?.getSource(sourceOpts.id)
-                    ;(source as GeoJSONSource).setData(fetchedData)
+            if (sourceOpts.type !== 'store') {
+              if ('url' in sourceOpts && sourceOpts.url) {
+                if (sourceOpts.type === 'geojson') {
+                  if (sourceOpts.extendedOpts?.ensureLocalData) {
+                    const fetchedData = await geoserverJsonQuery(
+                      sourceOpts.url,
+                      sourceOpts.extendedOpts.useAccessToken
+                    )
+                    if (fetchedData) {
+                      const source = _map?.getSource(sourceOpts.id)
+                      ;(source as GeoJSONSource).setData(fetchedData)
+                    } else {
+                      newStaleSourceIds.push(sourceId)
+                    }
                   } else {
-                    newStaleSourceIds.push(sourceId)
+                    const source = _map?.getSource(
+                      sourceOpts.id
+                    ) as GeoJSONSource
+                    source.setData(sourceOpts.url)
                   }
-                } else {
-                  const source = _map?.getSource(sourceOpts.id) as GeoJSONSource
-                  source.setData(sourceOpts.url)
                 }
+                _map?.refreshTiles(sourceId)
               }
-              _map?.refreshTiles(sourceId)
-            }
-            if (sourceOpts.tiles && sourceOpts.tiles.length > 0) {
-              _map?.refreshTiles(sourceId)
+              if (sourceOpts.tiles && sourceOpts.tiles.length > 0) {
+                _map?.refreshTiles(sourceId)
+              }
             }
           })
 
@@ -2299,49 +2315,107 @@ export const useMapStore = create<State>()(
                 popupOpts: null,
                 layerIds: [],
                 ...(extendedOpts && { extendedOpts }),
-              }
+              } as SourceOptions
 
-              // store the original urls in the sourceOptions
-              if ('data' in sourceSpec && typeof sourceSpec.data === 'string') {
-                sourceOptions.url = sourceSpec.data
+              if (isStandardSourceOptions(sourceOptions)) {
+                // store the original urls in the sourceOptions
+                if (
+                  'data' in sourceSpec &&
+                  typeof sourceSpec.data === 'string'
+                ) {
+                  sourceOptions.url = sourceSpec.data
 
-                // if it useAccessToken is set, then the source url needs to be encoded in a such way that
-                // the transformRequest knows to add the access token and can get sourceId to clear cache if needed
-                if (extendedOpts && extendedOpts.useAccessToken) {
-                  sourceSpec.data = encodeUrlWithParams(sourceSpec.data, {
-                    sourceId: sourceKey,
-                    useAccessToken: true,
-                  })
-                }
-              } else if (
-                'url' in sourceSpec &&
-                typeof sourceSpec.url === 'string'
-              ) {
-                sourceOptions.url = sourceSpec.url
-
-                if (extendedOpts && extendedOpts.useAccessToken) {
-                  sourceSpec.url = encodeUrlWithParams(sourceSpec.url, {
-                    sourceId: sourceKey,
-                    useAccessToken: true,
-                  })
-                }
-              } else if (
-                'tiles' in sourceSpec &&
-                Array.isArray(sourceSpec.tiles)
-              ) {
-                sourceOptions.tiles = sourceSpec.tiles
-
-                if (extendedOpts && extendedOpts.useAccessToken) {
-                  sourceSpec.tiles = sourceSpec.tiles.map((tileUrl) => {
-                    return encodeUrlWithParams(tileUrl, {
+                  // if it useAccessToken is set, then the source url needs to be encoded in a such way that
+                  // the transformRequest knows to add the access token and can get sourceId to clear cache if needed
+                  if (
+                    sourceOptions.extendedOpts &&
+                    sourceOptions.extendedOpts.useAccessToken
+                  ) {
+                    sourceSpec.data = encodeUrlWithParams(sourceSpec.data, {
                       sourceId: sourceKey,
                       useAccessToken: true,
                     })
-                  })
+                  }
+                } else if (
+                  'url' in sourceSpec &&
+                  typeof sourceSpec.url === 'string'
+                ) {
+                  sourceOptions.url = sourceSpec.url
+
+                  if (
+                    sourceOptions.extendedOpts &&
+                    sourceOptions.extendedOpts.useAccessToken
+                  ) {
+                    sourceSpec.url = encodeUrlWithParams(sourceSpec.url, {
+                      sourceId: sourceKey,
+                      useAccessToken: true,
+                    })
+                  }
+                } else if (
+                  'tiles' in sourceSpec &&
+                  Array.isArray(sourceSpec.tiles)
+                ) {
+                  sourceOptions.tiles = sourceSpec.tiles
+
+                  if (
+                    sourceOptions.extendedOpts &&
+                    sourceOptions.extendedOpts.useAccessToken
+                  ) {
+                    sourceSpec.tiles = sourceSpec.tiles.map((tileUrl) => {
+                      return encodeUrlWithParams(tileUrl, {
+                        sourceId: sourceKey,
+                        useAccessToken: true,
+                      })
+                    })
+                  }
                 }
               }
 
-              _map?.addSource(sourceKey, sourceSpec)
+              if (sourceOptions.type === 'store') {
+                const storeDataOpts = sourceOptions.extendedOpts?.storeData
+                if (!storeDataOpts?.sync) {
+                  console.error(
+                    `Source "${sourceKey}" is type 'store' but is missing storeData.sync configuration.`
+                  )
+                  continue // Skip this source
+                }
+
+                const { store, selector } = storeDataOpts.sync
+                const initialData = selector(store.getState())
+
+                const parsedSourceSpec: SourceSpecification = {
+                  ...sourceSpec,
+                  type: 'geojson',
+                  data: initialData || {
+                    type: 'FeatureCollection',
+                    features: [],
+                  },
+                }
+
+                _map?.addSource(sourceKey, parsedSourceSpec)
+
+                const unsubscribe = (store as any).subscribe(
+                  selector,
+                  (newData: FeatureCollection) => {
+                    const map = get()._map
+                    const source = map?.getSource(sourceKey) as GeoJSONSource
+                    // Update the map source when the store data changes
+                    if (source && newData) {
+                      source.setData(newData)
+                    }
+                  }
+                )
+
+                // Save the unsubscribe function for later cleanup
+                set((state) => {
+                  if (!state._dataSyncSubscriptions[id]) {
+                    state._dataSyncSubscriptions[id] = {}
+                  }
+                  state._dataSyncSubscriptions[id][sourceKey] = unsubscribe
+                })
+              } else {
+                _map?.addSource(sourceKey, sourceSpec as SourceSpecification)
+              }
 
               if ('popupOpts' in options.layerConf) {
                 if (options.layerConf.popupOpts) {
@@ -2355,18 +2429,18 @@ export const useMapStore = create<State>()(
 
               layerGroup.sources[sourceKey] = sourceOptions
 
-              if (extendedOpts) {
+              if (sourceOptions.extendedOpts) {
                 // for geojson sources, optionally fetch the data to ensure it is available locally
                 // maplibre typically stores only the url string in the source spec
                 // and fetches the data when needed, but that makes querying the data impossible
                 if (
                   sourceOptions.type === 'geojson' &&
-                  extendedOpts.ensureLocalData &&
+                  sourceOptions.extendedOpts.ensureLocalData &&
                   typeof sourceOptions.url === 'string' // Data is a URL
                 ) {
                   const fetchedData = await geoserverJsonQuery(
                     sourceOptions.url,
-                    extendedOpts.useAccessToken
+                    sourceOptions.extendedOpts.useAccessToken
                   )
                   if (fetchedData) {
                     const source = _map?.getSource(sourceKey)
@@ -2927,10 +3001,7 @@ export const useMapStore = create<State>()(
       onRehydrateStorage: (state) => {
         return (state, error) => {
           if (error) {
-            console.log(
-              'map store: an error happened during hydration',
-              error
-            )
+            console.log('map store: an error happened during hydration', error)
           }
           state?._runHydrationActions()
         }

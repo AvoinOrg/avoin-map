@@ -10,10 +10,12 @@ import type {
   MapLayerMouseEvent,
   MapLayerTouchEvent,
   SourceSpecification,
+  GeoJSONSourceSpecification,
 } from 'maplibre-gl'
 import type MaplibreDraw from 'maplibre-gl-draw'
 
 import type { Actions as MapStoreActions } from '#/common/store/mapStore'
+import { StoreApi, UseBoundStore } from 'zustand'
 // interface mapFunctions {}
 
 export const EMBEDDED_PARAMS_URL_PREFIX = 'mapparams::'
@@ -65,25 +67,56 @@ export type LayerOptionsObj = {
   [key: string]: LayerOptions
 }
 
-export type SourceExtendedOpts = {
-  useAccessToken?: boolean
-  ensureLocalData?: boolean
+type BaseSourceExtendedOpts = {
   selectable?: boolean
   multiSelectable?: boolean
 }
 
-export type SourceOptions = {
+type StoreSourceExtendedOpts = BaseSourceExtendedOpts & {
+  selectable?: boolean
+  multiSelectable?: boolean
+  storeData: {
+    sync: {
+      store: UseBoundStore<StoreApi<any>>
+      selector: (state: any) => FeatureCollection | null
+    }
+    // query?: () => Promise<FeatureCollection | null>
+  }
+}
+
+type DataSourceExtendedOpts = BaseSourceExtendedOpts & {
+  useAccessToken?: boolean
+  ensureLocalData?: boolean
+}
+
+type BaseSourceOptions = {
   id: string
-  type: SourceType
   popupOpts: PopupOpts | null
+  layerIds: string[]
+}
+
+type StandardSourceOptions = BaseSourceOptions & {
   url?: string
   tiles?: string[]
-  layerIds: string[]
-  extendedOpts?: SourceExtendedOpts
+  type?: SourceType
+  extendedOpts?: DataSourceExtendedOpts
 }
+
+type StoreSourceOptions = BaseSourceOptions & {
+  type: 'store'
+  extendedOpts?: StoreSourceExtendedOpts
+}
+
+export type SourceOptions = StandardSourceOptions | StoreSourceOptions
 
 export type SourceOptionsObj = {
   [key: string]: SourceOptions
+}
+
+export const isStandardSourceOptions = (
+  opts: SourceOptions
+): opts is StandardSourceOptions => {
+  return opts.type !== 'store'
 }
 
 export type LayerGroups = Record<string, LayerGroupOptions>
@@ -179,11 +212,26 @@ export type ExtendedLayerSpecification = LayerSpecification & {
   hoverPointer?: boolean // whether the pointer should change to a pointer when hovering over the layer
 }
 
-export type ExtendedSourceSpecification = SourceSpecification & {
-  extendedOpts?: SourceExtendedOpts
+export type StoreSourceSpecification = Omit<
+  GeoJSONSourceSpecification,
+  'data' | 'type'
+> & {
+  type: 'store'
+  extendedOpts: StoreSourceExtendedOpts
 }
 
-export type ExtendedStyleSpecification = StyleSpecification & {
+export type StandardSourceSpecification = SourceSpecification & {
+  extendedOpts?: DataSourceExtendedOpts
+}
+
+export type ExtendedSourceSpecification =
+  | StandardSourceSpecification
+  | StoreSourceSpecification
+
+export type ExtendedStyleSpecification = Omit<
+  StyleSpecification,
+  'sources' | 'layers'
+> & {
   sources: Record<string, ExtendedSourceSpecification>
   layers: ExtendedLayerSpecification[]
 }
