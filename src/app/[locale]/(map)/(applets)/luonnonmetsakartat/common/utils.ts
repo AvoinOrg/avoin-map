@@ -8,6 +8,7 @@ import {
 import { getContrastColor } from '#/common/utils/styling'
 
 import AreaModalAdmin from '../components/AreaModalAdmin'
+import { State, useAppletStore } from '../state/appletStore'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 const GS_WORKSPACE =
@@ -93,26 +94,35 @@ export const createAdminFolayerConf = async (
         },
       },
       // [centroidSourceId]: {
-      //   type: 'vector',
-      //   scheme: 'tms',
-      //   tiles: [
-      //     `${SERVER_URL}/gwc/service/tms/1.0.0/${GS_WORKSPACE}:${centroidSourceLayer}@EPSG:900913@pbf/{z}/{x}/{y}.pbf`,
-      //   ],
-      //   bounds: [19, 59, 32, 71], // Finland
-      //   promoteId: 'id',
+      //   type: 'geojson',
+      //   data: `${SERVER_URL}/${GS_WORKSPACE}/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=${GS_WORKSPACE}:${centroidSourceLayer}&outputFormat=application/json&srsName=EPSG:4326`,
+      //   cluster: true, // Enable Maplibre GL JS clustering
+      //   clusterMaxZoom: 11, // Max zoom to cluster points on
+      //   clusterRadius: 45, // Radius of clusters in pixels
+      //   promoteId: 'id', // Promote ID if your GeoJSON features have a unique 'id' property
+      //   extendedOpts: {
+      //     useAccessToken: true,
+      //     ensureLocalData: true,
+      //     selectable: true,
+      //     multiSelectable: false,
+      //   },
       // },
       [centroidSourceId]: {
-        type: 'geojson',
-        data: `${SERVER_URL}/${GS_WORKSPACE}/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=${GS_WORKSPACE}:${centroidSourceLayer}&outputFormat=application/json&srsName=EPSG:4326`,
+        type: 'store',
         cluster: true, // Enable Maplibre GL JS clustering
         clusterMaxZoom: 11, // Max zoom to cluster points on
         clusterRadius: 45, // Radius of clusters in pixels
         promoteId: 'id', // Promote ID if your GeoJSON features have a unique 'id' property
         extendedOpts: {
-          useAccessToken: true,
-          ensureLocalData: true,
           selectable: true,
           multiSelectable: false,
+          storeData: {
+            sync: {
+              store: useAppletStore,
+              selector: (state: State) =>
+                state.folayerAreaConfs[folayerId].data,
+            },
+          },
         },
       },
     },
