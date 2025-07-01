@@ -253,7 +253,6 @@ export const createAdminFolayerConf = async (
             0.9, // Default opacity
           ],
         },
-        promoteId: 'id',
         selectable: true,
         maxzoom: 12, // Match the maxzoom of the individual pins
       },
