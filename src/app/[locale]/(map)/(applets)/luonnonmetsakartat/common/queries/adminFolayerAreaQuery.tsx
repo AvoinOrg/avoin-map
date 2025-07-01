@@ -1,48 +1,53 @@
-import { FetchStatus } from '#/common/types/general'
 import { UseQueryOptions } from '@tanstack/react-query'
 import axios from 'axios'
-import { FeatureCollection } from 'geojson'
-import { area as turfArea } from '@turf/turf'
 
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { useSession } from 'next-auth/react'
-import { FolayerConfState, FolayerAreaCollection } from '../types'
+import { FolayerConfState, FolayerAreaConf } from '../types'
+import { getFolayerCentroidSourceLayer } from '../utils'
 
-const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
+const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
+const GS_WORKSPACE =
+  process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE
 
 export const adminFolayerAreaQuery = (
   folayerId: string
-): UseQueryOptions<FolayerAreaCollection | null> => {
+): UseQueryOptions<FolayerAreaConf | null> => {
   const { data: session } = useSession()
-  const updateFolayerAreaCollection =
-    useAppletStore.getState().updateFolayerAreaCollection
-  const addFolayerAreaCollection =
-    useAppletStore.getState().addFolayerAreaCollection
-
+  const updateFolayerAreaConf = useAppletStore.getState().updateFolayerAreaConf
+  const addFolayerAreaConf = useAppletStore.getState().addFolayerAreaConf
+  const centroidSourceLayer = getFolayerCentroidSourceLayer(folayerId)
   return {
     queryKey: ['adminFolayerAreas', folayerId],
     queryFn: async () => {
       const existingCollection =
-        useAppletStore.getState().folayerAreaCollections[folayerId]
+        useAppletStore.getState().folayerAreaConfs[folayerId]
 
       if (existingCollection) {
         if (existingCollection.state !== FolayerConfState.Idle) {
           return null
         }
-        updateFolayerAreaCollection(folayerId, {
+        updateFolayerAreaConf(folayerId, {
           state: FolayerConfState.Fetching,
         })
       } else {
         // Add new collection
-        addFolayerAreaCollection(folayerId, {
+        addFolayerAreaConf(folayerId, {
           id: folayerId,
-          features: [],
+          data: { type: 'FeatureCollection', features: [] },
           state: FolayerConfState.Fetching,
         })
       }
 
       // Get folayer data from API
-      const response = await axios.get(`${API_URL}/layer/${folayerId}/areas`, {
+      // const response = await axios.get(`${API_URL}/layer/${folayerId}/areas`, {
+      //   headers: {
+      //     Authorization: `Bearer ${session?.accessToken}`,
+      //   },
+      // })
+
+      const url = `${SERVER_URL}/${GS_WORKSPACE}/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=${GS_WORKSPACE}:${centroidSourceLayer}&outputFormat=application/json&srsName=EPSG:4326`
+      const response = await axios.get(url, {
         headers: {
           Authorization: `Bearer ${session?.accessToken}`,
         },
@@ -50,21 +55,24 @@ export const adminFolayerAreaQuery = (
 
       if (response.status === 200) {
         // Extract area collection data
-        const areaCollection: FolayerAreaCollection = {
+        const areaObj: FolayerAreaConf = {
           id: folayerId, // Using the same ID as the folayer
-          features: response.data.features || [], // Assuming features are in the response
+          data: {
+            type: 'FeatureCollection',
+            features: response.data.features || [],
+          }, // Assuming features are in the response
           state: FolayerConfState.Idle,
         }
 
         // Handle the area collection separately
         const existingCollection =
-          useAppletStore.getState().folayerAreaCollections[folayerId]
+          useAppletStore.getState().folayerAreaConfs[folayerId]
 
         if (existingCollection) {
-          updateFolayerAreaCollection(folayerId, areaCollection)
+          updateFolayerAreaConf(folayerId, areaObj)
         }
 
-        return areaCollection
+        return areaObj
       }
 
       return null
@@ -74,20 +82,4 @@ export const adminFolayerAreaQuery = (
     staleTime: 60 * 1000, // 1 minute
     refetchOnWindowFocus: false,
   }
-}
-
-// Helper function to calculate total area
-const calculateTotalArea = (features: any[]): number => {
-  if (!features || !Array.isArray(features) || features.length === 0) {
-    return 0
-  }
-
-  // Create a FeatureCollection for turf.js
-  const featureCollection: FeatureCollection = {
-    type: 'FeatureCollection',
-    features: features,
-  }
-
-  // Calculate total area using turf.js
-  return turfArea(featureCollection)
 }
