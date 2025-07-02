@@ -82,6 +82,7 @@ export const folayersQuery = (): UseQueryOptions<AdminFolayerConf[]> => {
             description: folayer.description || '',
             createdTs: folayer.created_ts * 1000,
             updatedTs: folayer.updated_ts * 1000,
+            colorCode: folayer.color_code || '#000000',
           })
         )
 
