@@ -1,17 +1,12 @@
 'use client'
 
-import React, { useEffect } from 'react'
+import React from 'react'
 import { Box } from '@mui/material'
-import { useQueries, useQuery } from '@tanstack/react-query'
-import { useSession } from 'next-auth/react'
 
 import { routeTree } from '../common/routes'
 import { Sidebar, SidebarHeader } from '#/components/Sidebar'
 import { BreadcrumbNav } from '#/components/Sidebar'
 import AppletWrapper from '#/components/common/AppletWrapper'
-import { useUserStore } from '#/common/store/userStore'
-
-import { useAppletStore } from '../state/appletStore'
 
 const localizationNamespace = 'luonnonmetsakartat'
 const defaultLanguage = 'fi'
