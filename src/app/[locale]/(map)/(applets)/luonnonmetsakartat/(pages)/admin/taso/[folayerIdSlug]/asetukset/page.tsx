@@ -30,6 +30,7 @@ const Page = () => {
   const router = useRouter()
   const { t } = useTranslate('luonnonmetsakartat')
 
+  const removeLayerGroup = useMapStore((state) => state.removeLayerGroup)
   const notify = useUIStore((state) => state.notify)
   const triggerConfirmationDialog = useUIStore(
     (state) => state.triggerConfirmationDialog
@@ -63,23 +64,6 @@ const Page = () => {
       setIsLoading(true)
     }
   }, [localAdminFolayerPatchMutation.isPending])
-
-  useEffect(() => {
-    if (localAdminFolayerDeleteMutation.isSuccess) {
-      router.push(
-        getRoute({ routeNode: routeTree.admin, routeTree: routeTree })
-      )
-    }
-    if (localAdminFolayerDeleteMutation.isError) {
-      notify({
-        message: t('sidebar.plan_settings.delete_error'),
-        variant: 'error',
-      })
-    }
-  }, [
-    localAdminFolayerDeleteMutation.isError,
-    localAdminFolayerDeleteMutation.isSuccess,
-  ])
 
   const handleNameChange = (value: string) => {
     updateAdminFolayerConf(params.folayerIdSlug, {
@@ -120,7 +104,16 @@ const Page = () => {
   const handleDeleteClick = async () => {
     if (adminFolayerConf) {
       const handleDeleteConfirm = async () => {
-        await localAdminFolayerDeleteMutation.mutate(adminFolayerConf)
+        setIsLoading(true)
+        localAdminFolayerDeleteMutation.mutate({
+          folayerConf: adminFolayerConf,
+          callbackFn: () => {
+            removeLayerGroup(getFolayerGroupId(adminFolayerConf.id))
+            router.push(
+              getRoute({ routeNode: routeTree.admin, routeTree: routeTree })
+            )
+          },
+        })
       }
 
       triggerConfirmationDialog({
@@ -135,11 +128,12 @@ const Page = () => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
       <SidebarContentBox sxOuter={{ position: 'relative' }}>
-        {!isFolayerReady && (
-          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <LoadingSpinner></LoadingSpinner>
-          </Box>
-        )}
+        {!isFolayerReady &&
+          adminFolayerConf.state !== FolayerConfState.Deleting && (
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <LoadingSpinner></LoadingSpinner>
+            </Box>
+          )}
         {isFolayerReady && (
           <Box
             sx={{
