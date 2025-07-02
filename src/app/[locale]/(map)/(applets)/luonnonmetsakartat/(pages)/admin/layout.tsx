@@ -3,7 +3,7 @@ import { Metadata } from 'next'
 import LayoutClient from './layoutClient'
 
 export const metadata: Metadata = {
-  title: 'Luonnonmetsakartat - Admin',
+  title: 'Luonnonmetsakartat / Admin',
 }
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
