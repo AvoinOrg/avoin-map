@@ -27,7 +27,7 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (adminFolayerConf) {
-      document.title = adminFolayerConf.name
+      document.title = "Luonnonmetsakartat / Admin - " + adminFolayerConf.name
     }
   }, [adminFolayerConf])
 
