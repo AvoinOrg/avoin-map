@@ -9,11 +9,12 @@ import { useParams } from 'next/navigation'
 import { useUIStore } from '#/common/store/uiStore'
 import { getRoute } from '#/common/utils/routing-client'
 import { getPathnameWithoutLocale } from '#/common/utils/routing'
+import { useExclusiveLayerGroups } from '#/common/hooks/map/useExclusiveLayerGroups'
 
 import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import { adminVerificationQuery } from 'applets/luonnonmetsakartat/common/queries/adminVerificationQuery'
-import { Sidebar, SidebarContentBox } from '#/components/Sidebar'
+import { SidebarContentBox } from '#/components/Sidebar'
 import { Box, Typography } from '@mui/material'
 import { Star } from '#/components/icons'
 import { T } from '@tolgee/react'
@@ -29,12 +30,10 @@ enum LocalState {
 }
 
 const layoutClient = ({ children }: { children: React.ReactNode }) => {
+  useExclusiveLayerGroups()
   const setIsNavbarHidden = useUIStore((state) => state.setIsNavbarHidden)
   const adminVerificationStatus = useAppletStore(
     (state) => state.adminVerificationStatus
-  )
-  const setAdminVerificationStatus = useAppletStore(
-    (state) => state.setAdminVerificationStatus
   )
   const { data: session, status } = useSession()
   const [localState, setLocalState] = useState<LocalState>(LocalState.Loading)
