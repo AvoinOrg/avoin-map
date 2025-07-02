@@ -512,11 +512,12 @@ export const getSourceJson = (id: string, map: Map | null) => {
 
     // maplibre hallucinates irrelevant ids when the source data is queried like this.
     // set the id to what is should be.
-    for (const feature of data.features) {
-      if (feature.properties?.id) {
-        feature.id = feature.properties.id
-      }
-    }
+    // for (const feature of data.features) {
+    //   console.log(feature)
+    //   if (feature.properties?.id) {
+    //     feature.id = feature.properties.id
+    //   }
+    // }
 
     return data as FeatureCollection
   } catch (e) {
