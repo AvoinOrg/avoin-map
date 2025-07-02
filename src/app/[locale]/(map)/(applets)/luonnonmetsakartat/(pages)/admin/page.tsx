@@ -50,9 +50,13 @@ const Page = () => {
           <Upload />
         </BigMenuButton>
       </MutableLink>
-      {isLoading && <LoadingSpinner sx={{ ml: 2 }} />}
+      {isLoading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 5 }}>
+          <LoadingSpinner />
+        </Box>
+      )}
       {!isLoading && adminFolayerConfsArray.length > 0 && (
-        <Box sx={{ width: '100%', mt: 5, pb: 4 }}>
+        <Box sx={{ width: '100%', mt: 7, pb: 4 }}>
           {adminFolayerConfsArray.map((conf) => (
             <AdminLayerItem key={conf.id} conf={conf} />
           ))}
