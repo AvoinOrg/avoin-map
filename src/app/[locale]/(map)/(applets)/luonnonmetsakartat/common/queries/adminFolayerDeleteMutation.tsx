@@ -9,10 +9,15 @@ import { useUIStore } from '#/common/store'
 
 const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 
+export interface AdminFolayerDeleteInput {
+  folayerConf: AdminFolayerConf
+  callbackFn?: () => void
+}
+
 export const adminFolayerDeleteMutation = (): UseMutationOptions<
   void,
   Error,
-  AdminFolayerConf
+  AdminFolayerDeleteInput
 > => {
   const deleteAdminFolayerConf = useAppletStore(
     (state) => state.deleteAdminFolayerConf
@@ -25,7 +30,7 @@ export const adminFolayerDeleteMutation = (): UseMutationOptions<
   const { t } = useTranslate('luonnonmetsakartat')
 
   return {
-    mutationFn: async (folayerConf: AdminFolayerConf) => {
+    mutationFn: async ({ folayerConf }) => {
       // Update folayer state to show it's being deleted
       updateAdminFolayerConf(folayerConf.id, {
         ...folayerConf,
@@ -50,16 +55,13 @@ export const adminFolayerDeleteMutation = (): UseMutationOptions<
           throw new Error('Failed to delete the folayer')
         }
       }
-
-      // Remove from store
-      deleteAdminFolayerConf(folayerConf.id)
     },
-    onError: (error, folayerConf) => {
+    onError: (error, params) => {
       console.error(error)
 
       // Revert folayer state if deletion fails
-      updateAdminFolayerConf(folayerConf.id, {
-        ...folayerConf,
+      updateAdminFolayerConf(params.folayerConf.id, {
+        ...params.folayerConf,
         state: FolayerConfState.Idle,
       })
 
@@ -69,14 +71,17 @@ export const adminFolayerDeleteMutation = (): UseMutationOptions<
         variant: 'error',
       })
     },
-    onSuccess: (_, folayerConf) => {
+    onSuccess: (_, params) => {
       // Notify user of successful deletion
       notify({
         message: t('notifications.folayer_delete_success', {
-          name: folayerConf.name,
+          name: params.folayerConf.name,
         }),
         variant: 'success',
       })
+
+      params.callbackFn?.()
+      deleteAdminFolayerConf(params.folayerConf.id)
     },
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(attemptIndex * 1000, 3000),
