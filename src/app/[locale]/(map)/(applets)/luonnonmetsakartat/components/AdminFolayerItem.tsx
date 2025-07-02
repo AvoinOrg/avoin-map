@@ -8,8 +8,9 @@ import { AdminFolayerConf } from 'applets/luonnonmetsakartat/common/types'
 import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
 import { useAdminFolayer } from 'applets/luonnonmetsakartat/common/hooks/useAdminFolayer'
 import LoadingHorizontal from '#/components/Loading/LoadingHorizontal'
+import { getContrastColor } from '#/common/utils/styling'
 
-const AdminLayerItem = ({ conf }: { conf: AdminFolayerConf }) => {
+const AdminFolayerItem = ({ conf }: { conf: AdminFolayerConf }) => {
   const [layerGroupStatus, setIsEnabled] = useAdminFolayer(conf.id, {
     preload: true,
   })
@@ -22,13 +23,51 @@ const AdminLayerItem = ({ conf }: { conf: AdminFolayerConf }) => {
         }
       >
         {layerGroupStatus === 'processing' && (
-          <LoadingHorizontal sx={{ width: '24px', height: '24px' }} />
+          <Box
+            sx={{
+              width: '32px',
+              height: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <LoadingHorizontal sx={{ width: '24px', height: '24px' }} />
+          </Box>
         )}
         {layerGroupStatus === 'hidden' && (
-          <EyeClosed sx={{ width: '24px', height: '24px' }} />
+          <Box
+            sx={{
+              width: '32px',
+              height: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <EyeClosed sx={{ width: '24px', height: '24px' }} />
+          </Box>
         )}
         {layerGroupStatus === 'visible' && (
-          <EyeOpen sx={{ width: '24px', height: '24px' }} />
+          <Box
+            sx={{
+              width: 32,
+              height: 24,
+              borderRadius: '50%',
+              background: conf.colorCode,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <EyeOpen
+              sx={{
+                width: 24,
+                height: 24,
+                color: getContrastColor(conf.colorCode),
+              }}
+            />
+          </Box>
         )}
       </IconButton>
       <Typography
@@ -52,4 +91,4 @@ const AdminLayerItem = ({ conf }: { conf: AdminFolayerConf }) => {
   )
 }
 
-export default AdminLayerItem
+export default AdminFolayerItem
