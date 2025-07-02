@@ -9,6 +9,7 @@ import { getContrastColor } from '#/common/utils/styling'
 
 import AreaModalAdmin from '../components/AreaModalAdmin'
 import { State, useAppletStore } from '../state/appletStore'
+import AreaModal from '../components/AreaModal'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 const GS_WORKSPACE =
@@ -40,10 +41,11 @@ export const getFolayerCentroidSourceId = (layerId: string) => {
   return `${layerIdWithoutHyphens}_luonnonmetsakartat_centroid`
 }
 
-export const createAdminFolayerConf = async (
+export const createFolayerConf = async (
   // json: any,
   folayerId: string,
-  colorCode: string
+  colorCode: string,
+  isAdmin: boolean = false
 ) => {
   const groupId = getFolayerGroupId(folayerId)
   // const addImage = useMapStore.getState().addImage
@@ -88,7 +90,7 @@ export const createAdminFolayerConf = async (
         bounds: [19, 59, 32, 71], // Finland
         promoteId: 'id',
         extendedOpts: {
-          useAccessToken: true,
+          useAccessToken: isAdmin ? true : false,
           selectable: true,
           multiSelectable: false,
         },
@@ -112,7 +114,7 @@ export const createAdminFolayerConf = async (
         cluster: true, // Enable Maplibre GL JS clustering
         clusterMaxZoom: 11, // Max zoom to cluster points on
         clusterRadius: 45, // Radius of clusters in pixels
-        promoteId: 'properties.id', 
+        promoteId: 'id',
         extendedOpts: {
           selectable: true,
           multiSelectable: false,
@@ -451,7 +453,7 @@ export const createAdminFolayerConf = async (
     eventHandlers: eventHandlers,
     useMb: true,
     popupOpts: {
-      component: AreaModalAdmin,
+      component: isAdmin ? AreaModalAdmin : AreaModal,
       componentProps: {
         folayerId: folayerId,
       },
