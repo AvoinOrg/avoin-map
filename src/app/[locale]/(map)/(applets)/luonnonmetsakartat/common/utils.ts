@@ -120,7 +120,7 @@ export const createAdminFolayerConf = async (
             sync: {
               store: useAppletStore,
               selector: (state: State) =>
-                state.folayerAreaConfs[folayerId].data,
+                state.folayerAreaConfs[folayerId]?.data,
             },
           },
         },
