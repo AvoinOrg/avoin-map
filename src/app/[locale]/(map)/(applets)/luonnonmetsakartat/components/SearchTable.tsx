@@ -150,7 +150,6 @@ const SearchTable = ({
   }
 
   const handleClick = (feature: FolayerFeature) => {
-    console.log('Clicked on feature with properties:', feature.properties)
     const isSelected = selectedFeatures.some(
       (f) => f.properties && f.properties.id === feature.properties.id
     )
