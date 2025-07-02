@@ -159,8 +159,19 @@ export const useAppletStore = create<State>()(
 
           deleteAdminFolayerConf: (folayerId: string) => {
             set((state) => {
-              const { [folayerId]: _, ...rest } = state.adminFolayerConfs
-              state.adminFolayerConfs = rest
+              const {
+                [folayerId]: _adminFolayerConf,
+                ...restAdminFolayerConfs
+              } = state.adminFolayerConfs
+              state.adminFolayerConfs = restAdminFolayerConfs
+
+              if (state.folayerAreaConfs[folayerId]) {
+                const {
+                  [folayerId]: _folayerAreaConf,
+                  ...restFolayerAreaConfs
+                } = state.folayerAreaConfs
+                state.folayerAreaConfs = restFolayerAreaConfs
+              }
             })
           },
 
