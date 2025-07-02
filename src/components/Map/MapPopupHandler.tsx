@@ -23,7 +23,6 @@ export const MapPopupHandler = () => {
   }, [activePopupData])
 
   useEffect(() => {
-    console.log(popupData)
     if (!popupData) {
       setIsActive(false)
       return

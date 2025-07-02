@@ -56,7 +56,7 @@ const UserStateHandler = ({ children }: { children?: React.ReactNode }) => {
 
   useEffect(() => {
     if (session?.error === 'RefreshAccessTokenError') {
-      console.log('Session expired - signing out')
+      console.debug('Session expired - signing out')
       // Force a clean sign-out
       setUserAuth(null)
       setUserData(null)
