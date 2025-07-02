@@ -11,7 +11,7 @@ import BigMenuButton from '#/components/common/BigMenuButton'
 import { SidebarContentBox } from '#/components/Sidebar'
 import { LoadingSpinner } from '#/components/Loading'
 
-import AdminLayerItem from 'applets/luonnonmetsakartat/components/AdminLayerItem'
+import AdminFolayerItem from 'applets/luonnonmetsakartat/components/AdminFolayerItem'
 import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import { adminFolayersQuery } from 'applets/luonnonmetsakartat/common/queries/adminFolayersQuery'
@@ -58,7 +58,7 @@ const Page = () => {
       {!isLoading && adminFolayerConfsArray.length > 0 && (
         <Box sx={{ width: '100%', mt: 7, pb: 4 }}>
           {adminFolayerConfsArray.map((conf) => (
-            <AdminLayerItem key={conf.id} conf={conf} />
+            <AdminFolayerItem key={conf.id} conf={conf} />
           ))}
         </Box>
       )}
