@@ -54,6 +54,9 @@ export const adminFolayerAreaQuery = (
       })
 
       if (response.status === 200) {
+        for (const feature of response.data.features) {
+          feature.id = feature.properties.id || feature.id
+        }
         // Extract area collection data
         const areaObj: FolayerAreaConf = {
           id: folayerId, // Using the same ID as the folayer
