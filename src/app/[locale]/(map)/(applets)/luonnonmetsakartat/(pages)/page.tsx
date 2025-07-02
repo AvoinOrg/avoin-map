@@ -1,43 +1,51 @@
 'use client'
 
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { Box, Typography } from '@mui/material'
 import { T } from '@tolgee/react'
+import { useQuery } from '@tanstack/react-query'
 
-import { Folder } from '#/components/common/Folder'
 import { SidebarContentBox } from '#/components/Sidebar'
-import useStore from '#/common/hooks/useStore'
-import MutableLink from '#/components/common/MutableLink'
+import { LoadingSpinner } from '#/components/Loading'
 
 import { routeTree } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/routes'
 import { useAppletStore } from '../state/appletStore'
-import { GlobalState, PlanConf, PlanConfState } from '../common/types'
-import { LoadingSpinner } from '#/components/Loading'
+import { folayersQuery } from '../common/queries/folayersQuery'
+import FolayerItem from '../components/FolayerItem'
+import { FolayerConf } from '../common/types'
+import { useExclusiveLayerGroups } from '#/common/hooks/map/useExclusiveLayerGroups'
 
 const Page = () => {
-  // const planConfs = useStore(useAppletStore, (state) => state.planConfs)
-  // const globalState = useStore(useAppletStore, (state) => state.globalState)
+  const folayerConfs = useAppletStore((state) => state.folayerConfs)
+  useExclusiveLayerGroups()
 
-  // const filteredPlanConfs: PlanConf[] = useMemo(() => {
-  //   if (planConfs == null) {
-  //     return []
-  //   }
+  const { refetch: folayerRefetch, isLoading } = useQuery({
+    ...folayersQuery(),
+    enabled: false,
+  })
 
-  //   return Object.keys(planConfs).reduce<PlanConf[]>((acc, id) => {
-  //     if (
-  //       !planConfs[id].isHidden &&
-  //       planConfs[id].state !== PlanConfState.FETCHING
-  //     ) {
-  //       acc.push(planConfs[id])
-  //     }
+  const folayerConfsArray: FolayerConf[] = useMemo(() => {
+    return Object.values(folayerConfs)
+  }, [folayerConfs])
 
-  //     return acc
-  //   }, [])
-  // }, [planConfs])
+  useEffect(() => {
+    folayerRefetch()
+  }, [])
 
   return (
     <SidebarContentBox>
-      <></>
+      {isLoading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+          <LoadingSpinner />
+        </Box>
+      )}
+      {!isLoading && folayerConfsArray.length > 0 && (
+        <Box sx={{ width: '100%', mt: 5, pb: 4 }}>
+          {folayerConfsArray.map((conf) => (
+            <FolayerItem key={conf.id} conf={conf} />
+          ))}
+        </Box>
+      )}
     </SidebarContentBox>
   )
 }
