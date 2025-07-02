@@ -67,7 +67,7 @@ export const adminFolayerPostMutation = (): UseMutationOptions<
       const adminFolayerConf: AdminFolayerConf = {
         id: postRes.data.id,
         name: postRes.data.name,
-        isVisible: postRes.data.is_hidden,
+        isVisible: !postRes.data.is_hidden,
         state: FolayerConfState.Idle,
         createdTs: postRes.data.created_ts * 1000,
         updatedTs: postRes.data.updated_ts * 1000,
