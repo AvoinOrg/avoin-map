@@ -9,7 +9,7 @@ import {
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import { adminFolayerQuery } from '../queries/adminFolayerQuery'
 import { adminFolayerAreaQuery } from '../queries/adminFolayerAreaQuery'
-import { getFolayerGroupId, createAdminFolayerConf } from '../utils'
+import { getFolayerGroupId, createFolayerConf } from '../utils'
 import { AdminFolayerConf } from 'applets/luonnonmetsakartat/common/types'
 
 export const useAdminFolayer = (
@@ -54,7 +54,7 @@ export const useAdminFolayer = (
     if (!conf) {
       throw new Error(`Could not load folayer config for ${folayerId}`)
     }
-    return createAdminFolayerConf(conf.id, conf.colorCode)
+    return createFolayerConf(conf.id, conf.colorCode, true)
   }, [folayerId, adminFolayerConf, folayerRefetch])
 
   const layerGroupId = getFolayerGroupId(folayerId)
