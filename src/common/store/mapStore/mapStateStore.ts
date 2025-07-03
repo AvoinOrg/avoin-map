@@ -29,6 +29,7 @@ import mapboxgl from 'maplibre-gl'
 import MaplibreDraw from 'maplibre-gl-draw'
 import { useUIStore } from '#/common/store'
 import drawStyles from '#/common/utils/drawStyles'
+import { useMapInstanceStore } from './mapInstanceStore'
 
 import {
   LayerGroupId,
@@ -85,7 +86,7 @@ import {
   getSelectableLayersForSource,
   getSourceJson,
 } from '#/common/utils/map'
-import { geoserverJsonQuery } from '../queries/geoserverJsonQuery'
+import { geoserverJsonQuery } from '#/common/queries/geoserverJsonQuery'
 // import { commonDevtools } from './shared-devtools'
 
 const DEFAULT_MAP_LIBRARY_MODE: MapLibraryMode = 'maplibre'
@@ -121,8 +122,6 @@ export type Vars = {
   _functionQueue: FunctionQueue
   // A variable to prevent bugs when executing function queue.
   _isFunctionQueueExecuting: boolean
-  // mapbox map object
-  _map: Map | null
   // openlayers map object
   // _olMap: OlMap | null
   // A single UI layer has often multiple layers which are grouped together.
@@ -315,7 +314,6 @@ export type Actions = {
   _executeFunctionQueue: (callback?: () => void) => Promise<void>
   _setIsFunctionQueueExecuting: (isExecuting: boolean) => void
   _setActivePopupData: (activePopupData: PopupData) => void
-  _setMap: (map: Map) => void
   // Adds a layer after the specified layer id.
   _addLayerAfter: (layer: LayerSpecification, afterId: string) => void
   _findFirstMatchingLayer: (id: LayerGroupId | string) => string | null
@@ -343,7 +341,7 @@ export type Actions = {
 
 export type State = Vars & Actions
 
-export const useMapStore = create<State>()(
+export const useMapStateStore = create<State>()(
   // Include your additional states and setters...
 
   // Add your additional actions...
@@ -371,7 +369,6 @@ export const useMapStore = create<State>()(
         _globalEventHandlers: {},
         _functionQueue: [],
         _isFunctionQueueExecuting: false,
-        _map: null,
         // _olMap: null,
         _layerGroups: {},
         _layerInstances: {},
@@ -445,7 +442,8 @@ export const useMapStore = create<State>()(
           async (sourceId: string): Promise<LngLatBounds | null> => {
             // Query source features for the specified source
             try {
-              const { _map, getSourceJsonAsyncQueue } = get()
+              const { getSourceJsonAsyncQueue } = get()
+              const _map = useMapInstanceStore.getState()._map
 
               if (!_map) {
                 return null
@@ -460,7 +458,7 @@ export const useMapStore = create<State>()(
               if (sourceFeatures) {
                 featureColl = sourceFeatures
               } else {
-                const features = _map.querySourceFeatures(sourceId)
+                const features = _map?.querySourceFeatures(sourceId)
 
                 if (features.length > 0 && features[0].geometry) {
                   featureColl = {
@@ -468,7 +466,7 @@ export const useMapStore = create<State>()(
                     features: features,
                   }
                 } else {
-                  const source = _map.getSource(sourceId)
+                  const source = _map?.getSource(sourceId)
                   // TODO: check the method of finding the set extent of a source in style. This method is probably deprecated.
                   //@ts-ignore
                   if (source && source.tileBounds && source.tileBounds.bounds) {
@@ -505,7 +503,7 @@ export const useMapStore = create<State>()(
 
         getSourceJsonAsyncQueue: queueableFnInit(
           async (id: string): Promise<FeatureCollection | null> => {
-            const { _map } = get()
+            const _map = useMapInstanceStore.getState()._map
             return getSourceJson(id, _map)
           },
           { priority: QueuePriority.LOW }
@@ -522,12 +520,12 @@ export const useMapStore = create<State>()(
           updateDrawSelect?: boolean
         ) => {
           const {
-            _map,
             selectedFeatures,
             _drawOptions,
             _updateDrawSelectedFeatures,
             _layerGroups,
           } = get()
+          const _map = useMapInstanceStore.getState()._map
 
           if (isEqual(features, selectedFeatures)) {
             return
@@ -770,9 +768,8 @@ export const useMapStore = create<State>()(
         // if the layerConf specifies other sources that have the same features (with the same ids), these
         // are queried here and returned
         _getAdditionalSelectedFeatures: (features: MapGeoJSONFeature[]) => {
-          const { _layerGroups, _map, _joinedSelectionSourceMap } = get()
-
-          // const LayerOptionsObj = getAllLayerOptionsObj(_layerGroups)
+          const { _layerGroups, _joinedSelectionSourceMap } = get()
+          const _map = useMapInstanceStore.getState()._map
 
           const additionalFeatures: MapGeoJSONFeature[] = []
 
@@ -1006,12 +1003,12 @@ export const useMapStore = create<State>()(
 
           const {
             setSelectedFeatures,
-            _map,
             _setPopupDataForFeatures,
             _getAdditionalSelectedFeatures,
             selectedFeatures,
             _joinedSelectionSourceMap,
           } = get()
+          const _map = useMapInstanceStore.getState()._map
 
           const newFeatures = fetchFeaturesByIds({
             ids: featureIds,
@@ -1203,13 +1200,13 @@ export const useMapStore = create<State>()(
         removeLayerGroup: async (layerGroupId: LayerGroupId | string) => {
           const {
             _layerGroups,
-            _map,
             _drawOptions,
             _removeDraw,
             _images,
             _updateSelectableHoverHandlers,
             _dataSyncSubscriptions,
           } = get() // Assuming you have a map reference in your store.
+          const _map = useMapInstanceStore.getState()._map
 
           if (!Object.keys(_layerGroups).includes(layerGroupId)) {
             console.warn(
@@ -1367,7 +1364,7 @@ export const useMapStore = create<State>()(
             colorCode?: string,
             size: number = imageRenderSize
           ) => {
-            const { _map } = get()
+            const _map = useMapInstanceStore.getState()._map
             if (!_map) {
               console.error('Map not initialized')
               return
@@ -1441,7 +1438,7 @@ export const useMapStore = create<State>()(
 
         setLayoutProperty: queueableFnInit(
           async (layer: string, name: string, value: any): Promise<any> => {
-            const { _map } = get()
+            const _map = useMapInstanceStore.getState()._map
 
             _map?.setLayoutProperty(layer, name, value)
           }
@@ -1449,7 +1446,7 @@ export const useMapStore = create<State>()(
 
         setPaintProperty: queueableFnInit(
           async (layer: string, name: string, value: any): Promise<any> => {
-            const { _map } = get()
+            const _map = useMapInstanceStore.getState()._map
 
             _map?.setPaintProperty(layer, name, value)
           }
@@ -1457,7 +1454,7 @@ export const useMapStore = create<State>()(
 
         setFilter: queueableFnInit(
           async (layer: string, filter: FilterSpecification): Promise<any> => {
-            const { _map } = get()
+            const _map = useMapInstanceStore.getState()._map
 
             _map?.setFilter(layer, filter)
           }
@@ -1481,7 +1478,7 @@ export const useMapStore = create<State>()(
               latExtra = 1,
             }: FitBoundsOptions = {}
           ): Promise<void> => {
-            const { _map } = get()
+            const _map = useMapInstanceStore.getState()._map
 
             let [lonMax, lonMin, latMax, latMin] = [0, 0, 0, 0]
 
@@ -1577,7 +1574,7 @@ export const useMapStore = create<State>()(
           // })
         },
         mapResetNorth: () => {
-          const { _map } = get()
+          const _map = useMapInstanceStore.getState()._map
           _map?.resetNorth()
         },
 
@@ -1591,17 +1588,18 @@ export const useMapStore = create<State>()(
         },
 
         mapZoomIn: () => {
-          const { _map } = get()
+          const _map = useMapInstanceStore.getState()._map
           _map?.zoomIn()
         },
 
         mapZoomOut: () => {
-          const { _map } = get()
+          const _map = useMapInstanceStore.getState()._map
           _map?.zoomOut()
         },
 
         deleteDrawFeatures: (features: Feature[]) => {
-          const { _map, _drawOptions } = get()
+          const { _drawOptions } = get()
+          const _map = useMapInstanceStore.getState()._map
 
           if (_drawOptions.draw == null) {
             console.error('Cannot delete features: No draw object found.')
@@ -1674,7 +1672,7 @@ export const useMapStore = create<State>()(
         },
 
         updateSourceData: (layerGroupId: string, data: FeatureCollection) => {
-          const { _map } = get() // Get the Mapbox map instance from the state
+          const _map = useMapInstanceStore.getState()._map // Get the Mapbox map instance from the state
 
           const source = _map?.getSource(layerGroupId) as GeoJSONSource
 
@@ -1694,7 +1692,8 @@ export const useMapStore = create<State>()(
         },
 
         _updateSelectableHoverHandlers: () => {
-          const { _map, _layerGroups, _globalEventHandlers } = get()
+          const { _layerGroups, _globalEventHandlers } = get()
+          const _map = useMapInstanceStore.getState()._map
           const layerOptionsObj = getAllLayerOptionsObj(_layerGroups)
 
           if (_globalEventHandlers.selectableEnter != null) {
@@ -1725,7 +1724,6 @@ export const useMapStore = create<State>()(
         _enableDraw: queueableFnInit(
           async (drawMode?: MaplibreDraw.DrawMode) => {
             const {
-              _map,
               _drawOptions,
               selectedFeatures,
               _layerGroups,
@@ -1733,6 +1731,7 @@ export const useMapStore = create<State>()(
               setSelectedFeatures,
               _updateDrawSelectedFeatures,
             } = get()
+            const _map = useMapInstanceStore.getState()._map
 
             if (_drawOptions.layerGroupId == null) {
               console.error('No layerGroupId set for drawing.')
@@ -1951,8 +1950,8 @@ export const useMapStore = create<State>()(
             selectedFeatures,
             _layerGroups,
             setSelectedFeatures,
-            _map,
           } = get()
+          const _map = useMapInstanceStore.getState()._map
 
           let newSelectedFeatures: MapGeoJSONFeature[] = []
           newSelectedFeatures = selectedFeatures.filter((feature) => {
@@ -1987,7 +1986,8 @@ export const useMapStore = create<State>()(
 
         disableDraw: queueableFnInit(
           async () => {
-            const { _map, _drawOptions } = get()
+            const _map = useMapInstanceStore.getState()._map
+            const { _drawOptions } = get()
 
             const drawInstance = _drawOptions.draw
 
@@ -2103,7 +2103,9 @@ export const useMapStore = create<State>()(
           layerGroupId: LayerGroupId | string,
           isVisible: boolean
         ) => {
-          const { _layerGroups, _map } = get()
+          const { _layerGroups } = get()
+          const _map = useMapInstanceStore.getState()._map
+
           const layerGroup = _layerGroups[layerGroupId]
 
           for (const layerId in layerGroup.layers) {
@@ -2227,7 +2229,8 @@ export const useMapStore = create<State>()(
         },
 
         _refreshStaleSources: async () => {
-          const { _map, _staleSourceIds, _layerGroups } = get()
+          const { _staleSourceIds, _layerGroups } = get()
+          const _map = useMapInstanceStore.getState()._map
 
           const newStaleSourceIds: string[] = []
 
@@ -2280,7 +2283,6 @@ export const useMapStore = create<State>()(
           options: LayerGroupAddOptionsWithConf
         ) => {
           const {
-            _map,
             _addLayerAfter,
             _findFirstMatchingLayer,
             _findLastMatchingLayer,
@@ -2288,6 +2290,7 @@ export const useMapStore = create<State>()(
             _updateSelectableHoverHandlers,
           } = get()
           // const setIsMapPopupOpen = useUIStore.getState().setIsMapPopupOpen
+          const _map = useMapInstanceStore.getState()._map
 
           const style = await resolveMbStyle(options.layerConf.style)
 
@@ -2397,8 +2400,8 @@ export const useMapStore = create<State>()(
                 const unsubscribe = (store as any).subscribe(
                   selector,
                   (newData: FeatureCollection) => {
-                    const map = get()._map
-                    const source = map?.getSource(sourceKey) as GeoJSONSource
+                    const _map = useMapInstanceStore.getState()._map
+                    const source = _map?.getSource(sourceKey) as GeoJSONSource
                     // Update the map source when the store data changes
                     if (source && newData) {
                       source.setData(newData)
@@ -2590,7 +2593,9 @@ export const useMapStore = create<State>()(
           opts?: LayerGroupAddOptions | SerializableLayerGroupAddOptions
         ) => {
           if (opts != null) {
-            const { getAndFitBounds, _drawOptions, _removeDraw, _map } = get()
+            const { getAndFitBounds, _drawOptions, _removeDraw } = get()
+            const _map = useMapInstanceStore.getState()._map
+            
             if (opts?.zoomToExtent) {
               getAndFitBounds(layerGroupIdString, undefined, {
                 skipQueue: true,
@@ -2766,17 +2771,10 @@ export const useMapStore = create<State>()(
           return
         },
 
-        _setMap: (map: Map) => {
-          set((state) => {
-            // @ts-ignore
-            state._map = map
-          })
-        },
-
         // Finds the first layer that starts with the given id. Mapbox renders
         // layers in order, last layer in array being on top.
         _findFirstMatchingLayer: (id: string) => {
-          const { _map } = get()
+          const _map = useMapInstanceStore.getState()._map
 
           if (_map) {
             const layers = _map.getStyle().layers
@@ -2792,7 +2790,7 @@ export const useMapStore = create<State>()(
 
         // Finds the last layer that starts with the given id
         _findLastMatchingLayer: (id: string) => {
-          const { _map } = get()
+          const _map = useMapInstanceStore.getState()._map
 
           if (_map) {
             const layers = _map.getStyle().layers
@@ -2815,7 +2813,7 @@ export const useMapStore = create<State>()(
         // The default mapbox addLayer function can only specify a
         // layer to be added before another layer.
         _addLayerAfter: (layer: LayerSpecification, afterId: string) => {
-          const { _map } = get()
+          const _map = useMapInstanceStore.getState()._map
 
           const layers = _map?.getStyle().layers
 
@@ -2840,7 +2838,7 @@ export const useMapStore = create<State>()(
         //     layerOptions.eventHandlers != null &&
         //     Object.keys(layerOptions.eventHandlers).length > 0
         //   ) {
-        //     const { _map } = get()
+        //     const _map = useMapInstanceStore.getState()._map
 
         //     Object.keys(layerOptions.eventHandlers).forEach(
         //       (eventKeyString) => {
@@ -2859,7 +2857,7 @@ export const useMapStore = create<State>()(
         //     layerOptions.eventHandlers != null &&
         //     Object.keys(layerOptions.eventHandlers).length > 0
         //   ) {
-        //     const { _map } = get()
+        //     const _map = useMapInstanceStore.getState()._map
 
         //     Object.keys(layerOptions.eventHandlers).forEach(
         //       (eventKeyString) => {
@@ -2874,7 +2872,8 @@ export const useMapStore = create<State>()(
         // },
 
         _enableLayerGroupEventHandlers: (layerGroupId: string) => {
-          const { _layerGroups, _map } = get()
+          const { _layerGroups } = get()
+          const _map = useMapInstanceStore.getState()._map
 
           for (const eventHandlerOptions of _layerGroups[layerGroupId]
             .eventHandlers) {
@@ -2897,7 +2896,8 @@ export const useMapStore = create<State>()(
         },
 
         _disableLayerGroupEventHandlers: (layerGroupId: string) => {
-          const { _layerGroups, _map } = get()
+          const { _layerGroups } = get()
+          const _map = useMapInstanceStore.getState()._map
 
           for (const eventHandlerOptions of _layerGroups[layerGroupId]
             .eventHandlers) {
