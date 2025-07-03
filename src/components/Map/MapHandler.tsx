@@ -30,6 +30,7 @@ import { useSession } from 'next-auth/react'
 // import GeoJSON from 'ol/format/GeoJSON'
 import { useUIStore } from '../../common/store'
 import { useMapStore } from '../../common/store'
+import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
 import { EMBEDDED_PARAMS_URL_PREFIX, MapLibraryMode } from '#/common/types/map'
 import { OverlayMessages } from './OverlayMessages'
 import { MapButtons } from './MapButtons'
@@ -55,8 +56,8 @@ export const MapHandler = ({ children }: Props) => {
   // const mapRef = useRef<OlMap | null>(null)
   const mapLibraryRef = useRef<MapLibraryMode | null>(null)
 
-  const _map = useMapStore((state) => state._map)
-  const _setMap = useMapStore((state) => state._setMap)
+  const _map = useMapInstanceStore((state) => state._map)
+  const _setMap = useMapInstanceStore((state) => state._setMap)
   const mapLibraryMode = useMapStore((state) => state.mapLibraryMode)
   const isLoaded = useMapStore((state) => state.isLoaded)
   const _setIsLoaded = useMapStore((state) => state._setIsLoaded)

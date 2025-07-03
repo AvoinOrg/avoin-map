@@ -4,10 +4,10 @@ import React, { useState } from 'react'
 import { Autocomplete, Box, InputAdornment, TextField } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import { debounce } from 'lodash-es'
-
 import { useTranslate } from '@tolgee/react'
 import axios from 'axios'
-import { useMapStore } from '#/common/store/mapStore'
+
+import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
 
 export const SearchBar = () => {
   const [searchResults, setSearchResults] = useState<any[]>([])
@@ -15,7 +15,7 @@ export const SearchBar = () => {
   const [inputValue, setInputValue] = useState('')
 
   const { t } = useTranslate('avoin-map')
-  const flyTo = useMapStore((state) => state._map?.flyTo)
+  const flyTo = useMapInstanceStore((state) => state._map?.flyTo)
 
   const debouncedSearch = React.useMemo(
     () =>

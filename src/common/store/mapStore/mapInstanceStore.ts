@@ -6,12 +6,12 @@ type Vars = {
 }
 
 type Actions = {
-  setMap: (map: Map) => void
+  _setMap: (map: Map) => void
 }
 
 export type MapInstanceState = Vars & Actions
 
 export const useMapInstanceStore = create<MapInstanceState>((set) => ({
   _map: null,
-  setMap: (map) => set({ _map: map }),
+  _setMap: (map) => set({ _map: map }),
 }))
