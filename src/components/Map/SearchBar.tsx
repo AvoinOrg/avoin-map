@@ -7,7 +7,7 @@ import { debounce } from 'lodash-es'
 
 import { useTranslate } from '@tolgee/react'
 import axios from 'axios'
-import { useMapStore } from '#/common/store'
+import { useMapStore } from '#/common/store/mapStore'
 
 export const SearchBar = () => {
   const [searchResults, setSearchResults] = useState<any[]>([])
