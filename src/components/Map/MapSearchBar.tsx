@@ -2,14 +2,14 @@
 
 import React, { useState } from 'react'
 import { Autocomplete, Box, InputAdornment, TextField } from '@mui/material'
-import SearchIcon from '@mui/icons-material/Search'
 import { debounce } from 'lodash-es'
 import { useTranslate } from '@tolgee/react'
 import axios from 'axios'
 
 import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
+import Search from '#/components/icons/Search'
 
-export const SearchBar = () => {
+export const MapSearchBar = () => {
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [value, setValue] = useState('')
   const [inputValue, setInputValue] = useState('')
@@ -59,7 +59,7 @@ export const SearchBar = () => {
   }
 
   return (
-    <Box sx={{ minWidth: 250 }}>
+    <Box sx={{ width: 200 }}>
       <Autocomplete
         freeSolo
         options={searchResults}
@@ -86,11 +86,16 @@ export const SearchBar = () => {
             size="small"
             variant="outlined"
             placeholder={t('map.search.placeholder')}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: 'neutral.light',
+              },
+            }}
             InputProps={{
               ...params.InputProps,
               endAdornment: (
                 <InputAdornment position="end">
-                  <SearchIcon />
+                  <Search />
                   {params.InputProps.endAdornment}
                 </InputAdornment>
               ),
