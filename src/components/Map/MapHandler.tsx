@@ -36,6 +36,7 @@ import { OverlayMessages } from './OverlayMessages'
 import { MapButtons } from './MapButtons'
 import { MapPopupHandler } from './MapPopupHandler'
 import { decodeUrlAndParams } from '#/common/utils/map'
+import { MapSearchBar } from './MapSearchBar'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 // const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
@@ -830,6 +831,7 @@ export const MapHandler = ({ children }: Props) => {
         }}
       ></Box>
       <OverlayMessages message={overlayMessage}></OverlayMessages>
+      <MapSearchBar></MapSearchBar>
       <MapButtons></MapButtons>
       <MapPopupHandler></MapPopupHandler>
       <></>
