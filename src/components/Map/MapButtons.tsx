@@ -68,15 +68,10 @@ export const MapButtons = () => {
 
   return (
     <Box
-      sx={(theme) => ({
-        position: 'absolute',
-        top: theme.spacing(1),
-        right: theme.spacing(1),
+      sx={{
         display: 'flex',
         flexDirection: 'row',
-        zIndex:
-          theme.zIndex.mobileStepper /* force this to be on top of the map */,
-      })}
+      }}
     >
       {isDrawEnabled && isDrawDeleteAllowed && (
         <StyledButtonGroup
