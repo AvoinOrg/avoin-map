@@ -140,11 +140,11 @@ export const MapButtons = () => {
             <ExploreIcon sx={{ fontSize: '27px' }} />
           </StyledButton>
         </Tooltip>
-        <Tooltip title={t('map.buttons.relocate')}>
+        {/* <Tooltip title={t('map.buttons.relocate')}>
           <StyledButton onClick={mapRelocate} size="small">
             <Bullseye />
           </StyledButton>
-        </Tooltip>
+        </Tooltip> */}
         <Tooltip title={t('map.buttons.zoom_in')}>
           <StyledButton onClick={mapZoomIn} size="small">
             <Plus />
@@ -162,6 +162,7 @@ export const MapButtons = () => {
 
 // TODO: theme styling
 const StyledButton = styled(Button)(({ theme }) => ({
+  opacity: 0.9,
   color: theme.palette.neutral.darker,
   backgroundColor: theme.palette.neutral.light,
   border: 'none',
@@ -181,5 +182,13 @@ const StyledButton = styled(Button)(({ theme }) => ({
 
 const StyledButtonGroup = styled(ButtonGroup)(({ theme }) => ({
   height: '100%',
-  boxShadow: '1px 1px 7px 0px #EEECEC',
+  // boxShadow: '1px 1px 7px 0px #EEECEC',
+  '& .MuiButton-root:first-of-type': {
+    borderTopLeftRadius: '0.3125rem',
+    borderBottomLeftRadius: '0.3125rem',
+  },
+  '& .MuiButton-root:last-of-type': {
+    borderTopRightRadius: '0.3125rem',
+    borderBottomRightRadius: '0.3125rem',
+  },
 }))
