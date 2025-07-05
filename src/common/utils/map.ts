@@ -11,6 +11,7 @@ import {
 // import { packColor } from 'ol/renderer/webgl/shaders'
 import { Feature, FeatureCollection, Geometry, Position } from 'geojson'
 import type { DrawMode as MaplibreDrawMode } from 'maplibre-gl-draw'
+import { AllGeoJSON, center } from '@turf/turf'
 
 import {
   LayerType,
@@ -906,4 +907,43 @@ export const getJoinedSelectionSourcesForSource = ({
     allRelatedSourcesWithoutTargetSource,
     (ss) => `${ss.source}#${ss.sourceLayer || 'undefined'}` // Create a unique key for comparison
   )
+}
+
+export const getFeatureCenterCoordinates = (
+  feature: Feature
+): [number, number] | null => {
+  if (!feature.geometry) {
+    return null
+  }
+  try {
+    const featureCenter = center(feature as AllGeoJSON)
+    return featureCenter.geometry.coordinates as [number, number]
+  } catch (e) {
+    console.error('Could not get feature coordinates', e)
+    return null
+  }
+}
+
+export const defaultFeatureDisplayPattern = (
+  properties: Record<string, any>
+): string | null => {
+  for (const key of ['name', 'title', 'label']) {
+    if (properties[key] != null) {
+      return properties[key]
+    }
+  }
+
+  const patternVals = []
+
+  for (const key of Object.keys(properties)) {
+    if (properties[key] != null) {
+      patternVals.push(properties[key])
+    }
+  }
+
+  if (patternVals.length === 0) {
+    return null
+  }
+
+  return patternVals.join(', ')
 }
