@@ -130,6 +130,19 @@ export const createFolayerConf = async ({
                 state.folayerAreaConfs[folayerId]?.data,
             },
           },
+          dataSearchOpts: {
+            name: folayerName,
+            displayPattern: (properties: any) => {
+              return `${properties.name}, ${properties.municipality}`
+            },
+            appendDatasetName: true,
+            // getCoordinates: (feature: any) => {
+            //   if (feature.geometry && feature.geometry.type === 'Point') {
+            //     return feature.geometry.coordinates as [number, number]
+            //   }
+            //   return null
+            // },
+          },
         },
       },
     },
