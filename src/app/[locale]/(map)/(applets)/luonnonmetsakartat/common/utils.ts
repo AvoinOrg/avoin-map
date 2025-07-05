@@ -10,6 +10,7 @@ import { getContrastColor } from '#/common/utils/styling'
 import AreaModalAdmin from '../components/AreaModalAdmin'
 import { State, useAppletStore } from '../state/appletStore'
 import AreaModal from '../components/AreaModal'
+import { FolayerFeature } from './types'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 const GS_WORKSPACE =
@@ -132,8 +133,13 @@ export const createFolayerConf = async ({
           },
           dataSearchOpts: {
             name: folayerName,
-            displayPattern: (properties: any) => {
-              return `${properties.name}, ${properties.municipality}`
+            fields: ['name'],
+            displayPattern: (feature: any) => {
+              const folayerFeature = feature as FolayerFeature
+              return [
+                folayerFeature.properties.name,
+                folayerFeature.properties.municipality,
+              ]
             },
             appendDatasetName: true,
             // getCoordinates: (feature: any) => {
