@@ -1120,12 +1120,12 @@ export const useMapStore = create<State>()(
               }
 
               if (opts.layerConf) {
-                if (opts.layerConf.useMb == null || opts.layerConf.useMb) {
-                  await _addStyle(
-                    layerGroupId,
-                    opts as LayerGroupAddOptionsWithConf
-                  )
-                }
+                // if (opts.layerConf.useMb == null || opts.layerConf.useMb) {
+                await _addStyle(
+                  layerGroupId,
+                  opts as LayerGroupAddOptionsWithConf
+                )
+                // }
                 // else {
                 //   await _addStyleToOl(
                 //     layerGroupId,
