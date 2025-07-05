@@ -54,7 +54,12 @@ export const useAdminFolayer = (
     if (!conf) {
       throw new Error(`Could not load folayer config for ${folayerId}`)
     }
-    return createFolayerConf(conf.id, conf.colorCode, true)
+    return createFolayerConf({
+      folayerId: conf.id,
+      folayerName: conf.name,
+      colorCode: conf.colorCode,
+      isAdmin: true,
+    })
   }, [folayerId, adminFolayerConf, folayerRefetch])
 
   const layerGroupId = getFolayerGroupId(folayerId)
