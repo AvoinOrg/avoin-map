@@ -1,14 +1,17 @@
 'use client'
 
-import { createTheme, Shadows, ThemeOptions } from '@mui/material/styles'
-import { TypographyOptions } from '@mui/material/styles/createTypography'
+import {
+  createTheme,
+  PaletteColorOptions,
+  Shadows,
+  ThemeOptions,
+} from '@mui/material/styles'
 import { Arimo } from 'next/font/google'
-import '@mui/material/styles/createPalette'
 import { SCROLLBAR_WIDTH_REM } from './constants'
 
 //extending palette to add background color
 
-declare module '@mui/material/styles/createPalette' {
+declare module '@mui/material/styles' {
   interface PaletteColor {
     lighter?: string
     darker?: string
@@ -25,9 +28,7 @@ declare module '@mui/material/styles/createPalette' {
   interface PaletteOptions {
     neutral: PaletteColorOptions
   }
-}
 
-declare module '@mui/material/styles' {
   interface TypographyVariants {
     h7?: React.CSSProperties
     h8?: React.CSSProperties
@@ -55,15 +56,6 @@ declare module '@mui/material/styles' {
 declare module '@mui/material/Typography' {
   interface TypographyPropsVariantOverrides {
     buttonSmall: true
-  }
-}
-
-declare module '@mui/material/styles/createTypography' {
-  interface TypographyOptions {
-    h7?: React.CSSProperties
-    h8?: React.CSSProperties
-    h9?: React.CSSProperties
-    body7?: React.CSSProperties
   }
 }
 
@@ -123,7 +115,7 @@ const fonts = {
   primary: arimo.style.fontFamily,
 }
 
-const typography: TypographyOptions = {
+const typography = {
   fontFamily: fonts.primary,
   body1: {
     fontFamily: fonts.primary,
