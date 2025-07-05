@@ -36,7 +36,11 @@ export const useFolayer = (
 
   const getLayerConf = useCallback(async () => {
     let conf: FolayerConf | null | undefined = folayerConf
-    return createFolayerConf(conf.id, conf.colorCode)
+    return createFolayerConf({
+      folayerId: conf.id,
+      folayerName: conf.name,
+      colorCode: conf.colorCode,
+    })
   }, [folayerId, folayerConf])
 
   const layerGroupId = getFolayerGroupId(folayerId)
