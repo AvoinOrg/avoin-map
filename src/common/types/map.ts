@@ -67,6 +67,13 @@ export type LayerOptionsObj = {
   [key: string]: LayerOptions
 }
 
+type DataSearchOpts = {
+  name: string
+  appendDatasetName?: boolean
+  displayPattern?: (properties: any) => string
+  getCoordinates?: (feature: Feature) => [number, number] | null
+}
+
 type BaseSourceExtendedOpts = {
   selectable?: boolean
   multiSelectable?: boolean
@@ -82,6 +89,13 @@ type StoreSourceExtendedOpts = BaseSourceExtendedOpts & {
     }
     // query?: () => Promise<FeatureCollection | null>
   }
+  dataSearchOpts?: DataSearchOpts
+}
+
+type GeoJSONSourceExtendedOpts = BaseSourceExtendedOpts & {
+  useAccessToken?: boolean
+  ensureLocalData?: boolean
+  dataSearchOpts?: DataSearchOpts
 }
 
 type DataSourceExtendedOpts = BaseSourceExtendedOpts & {
@@ -107,7 +121,16 @@ type StoreSourceOptions = BaseSourceOptions & {
   extendedOpts?: StoreSourceExtendedOpts
 }
 
-export type SourceOptions = StandardSourceOptions | StoreSourceOptions
+type GeoJSONSourceOptions = BaseSourceOptions & {
+  type: 'geojson'
+  url?: string
+  extendedOpts?: GeoJSONSourceExtendedOpts
+}
+
+export type SourceOptions =
+  | StandardSourceOptions
+  | StoreSourceOptions
+  | GeoJSONSourceOptions
 
 export type SourceOptionsObj = {
   [key: string]: SourceOptions
@@ -224,9 +247,18 @@ export type StandardSourceSpecification = SourceSpecification & {
   extendedOpts?: DataSourceExtendedOpts
 }
 
+export type CustomGeoJSONSourceSpecification = Omit<
+  GeoJSONSourceSpecification,
+  'data' | 'type'
+> & {
+  type: 'geojson'
+  extendedOpts?: GeoJSONSourceExtendedOpts
+}
+
 export type ExtendedSourceSpecification =
   | StandardSourceSpecification
   | StoreSourceSpecification
+  | CustomGeoJSONSourceSpecification
 
 export type ExtendedStyleSpecification = Omit<
   StyleSpecification,
@@ -376,4 +408,13 @@ export type ImageOptions = {
 export type ExtendedMapGeoJSONFeature = MapGeoJSONFeature & {
   isAdditional?: boolean
   isPlaceholder?: boolean
+}
+
+export type SearchableData = {
+  data: FeatureCollection
+  fields: string[]
+  name: string
+  appendDatasetName?: boolean
+  displayPattern?: (properties: any) => string
+  getCoordinates?: (feature: Feature) => [number, number] | null
 }
