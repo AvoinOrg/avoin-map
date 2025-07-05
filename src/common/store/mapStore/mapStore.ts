@@ -62,6 +62,8 @@ import {
   PopupOpts,
   SelectionSource,
   isStandardSourceOptions,
+  SearchableDataOpts,
+  DataSearchOpts,
 } from '#/common/types/map'
 import { layerConfs } from '#/components/Map/Layers'
 
@@ -109,6 +111,7 @@ export type Vars = {
   // Whether user has activated drawing mode
   mapContext: MapContext
   selectedFeatures: MapGeoJSONFeature[]
+  searchableDatas: Record<string, SearchableDataOpts>
   _joinedSelectionSourceMap: SelectionSource[][]
   // The below are internal variables.
   // --------------------------------------
@@ -355,6 +358,7 @@ export const useMapStore = create<State>()(
         activePopupData: [],
         mapContext: null,
         selectedFeatures: [],
+        searchableDatas: {},
         _joinedSelectionSourceMap: [],
         _images: {},
         _isMapReady: false,
@@ -1175,6 +1179,7 @@ export const useMapStore = create<State>()(
             _removeDraw,
             setSelectedFeatures,
             selectedFeatures,
+            searchableDatas,
           } = get()
 
           if (!Object.keys(_layerGroups).includes(layerGroupId)) {
@@ -1192,6 +1197,12 @@ export const useMapStore = create<State>()(
             selectedFeatures.filter((f) => !sources.includes(f.source))
           )
 
+          if (searchableDatas[layerGroupId]) {
+            set((state) => {
+              state.searchableDatas[layerGroupId].enabled = false
+            })
+          }
+
           if (_drawOptions.layerGroupId === layerGroupId) {
             _removeDraw({ skipQueue: true })
           }
@@ -1205,6 +1216,7 @@ export const useMapStore = create<State>()(
             _images,
             _updateSelectableHoverHandlers,
             _dataSyncSubscriptions,
+            searchableDatas,
           } = get() // Assuming you have a map reference in your store.
           const _map = useMapInstanceStore.getState()._map
 
@@ -1233,6 +1245,12 @@ export const useMapStore = create<State>()(
 
           if (layerGroupOptions.handleDataUpdate) {
             _map?.off('data', layerGroupOptions.handleDataUpdate)
+          }
+
+          if (searchableDatas[layerGroupId]) {
+            set((state) => {
+              delete state.searchableDatas[layerGroupId]
+            })
           }
 
           if (_dataSyncSubscriptions[layerGroupId]) {
@@ -2267,7 +2285,11 @@ export const useMapStore = create<State>()(
                 }
                 _map?.refreshTiles(sourceId)
               }
-              if (sourceOpts.tiles && sourceOpts.tiles.length > 0) {
+              if (
+                'tiles' in sourceOpts &&
+                sourceOpts.tiles &&
+                sourceOpts.tiles.length > 0
+              ) {
                 _map?.refreshTiles(sourceId)
               }
             }
@@ -2374,6 +2396,20 @@ export const useMapStore = create<State>()(
                 }
               }
 
+              // used for searchableData when the source type is geojson or store
+              let data: FeatureCollection | undefined = undefined
+
+              // for geojson sources
+              if (
+                sourceOptions.type === 'geojson' &&
+                'data' in sourceSpec &&
+                sourceSpec.data
+              ) {
+                if (typeof sourceSpec.data !== 'string') {
+                  data = sourceSpec.data as FeatureCollection
+                }
+              }
+
               if (sourceOptions.type === 'store') {
                 const storeDataOpts = sourceOptions.extendedOpts?.storeData
                 if (!storeDataOpts?.sync) {
@@ -2386,13 +2422,15 @@ export const useMapStore = create<State>()(
                 const { store, selector } = storeDataOpts.sync
                 const initialData = selector(store.getState())
 
+                data = initialData || {
+                  type: 'FeatureCollection',
+                  features: [],
+                }
+
                 const parsedSourceSpec: SourceSpecification = {
                   ...sourceSpec,
                   type: 'geojson',
-                  data: initialData || {
-                    type: 'FeatureCollection',
-                    features: [],
-                  },
+                  data: data,
                 }
 
                 _map?.addSource(sourceKey, parsedSourceSpec)
@@ -2405,6 +2443,12 @@ export const useMapStore = create<State>()(
                     // Update the map source when the store data changes
                     if (source && newData) {
                       source.setData(newData)
+                    }
+
+                    if (sourceOptions.extendedOpts?.dataSearchOpts) {
+                      set((state) => {
+                        state.searchableDatas[id].data = newData
+                      })
                     }
                   }
                 )
@@ -2436,19 +2480,52 @@ export const useMapStore = create<State>()(
                 // for geojson sources, optionally fetch the data to ensure it is available locally
                 // maplibre typically stores only the url string in the source spec
                 // and fetches the data when needed, but that makes querying the data impossible
+                let dataSearchOpts: DataSearchOpts | undefined
+
+                if (
+                  'dataSearchOpts' in sourceOptions.extendedOpts &&
+                  sourceOptions.extendedOpts.dataSearchOpts
+                ) {
+                  dataSearchOpts = sourceOptions.extendedOpts.dataSearchOpts
+                }
                 if (
                   sourceOptions.type === 'geojson' &&
-                  sourceOptions.extendedOpts.ensureLocalData &&
+                  (sourceOptions.extendedOpts.ensureLocalData ||
+                    dataSearchOpts) &&
                   typeof sourceOptions.url === 'string' // Data is a URL
                 ) {
-                  const fetchedData = await geoserverJsonQuery(
+                  data = await geoserverJsonQuery(
                     sourceOptions.url,
                     sourceOptions.extendedOpts.useAccessToken
                   )
-                  if (fetchedData) {
+                  if (data) {
                     const source = _map?.getSource(sourceKey)
-                    ;(source as GeoJSONSource).setData(fetchedData)
+                    ;(source as GeoJSONSource).setData(data)
                   }
+                }
+                if (
+                  'dataSearchOpts' in sourceOptions.extendedOpts &&
+                  sourceOptions.extendedOpts?.dataSearchOpts
+                ) {
+                  const dataSearchOpts =
+                    sourceOptions.extendedOpts.dataSearchOpts
+
+                  set((state) => {
+                    state.searchableDatas[id] = {
+                      layerGroupId: id,
+                      data: data as FeatureCollection, // if the source type is store or geojson, the data should be available
+                      name: dataSearchOpts.name,
+                      enabled: options.isHidden ? false : true,
+                      appendDatasetName:
+                        dataSearchOpts.appendDatasetName ?? false,
+                      ...(dataSearchOpts.displayPattern && {
+                        displayPattern: dataSearchOpts.displayPattern,
+                      }),
+                      ...(dataSearchOpts.getCoordinates && {
+                        getCoordinates: dataSearchOpts.getCoordinates,
+                      }),
+                    }
+                  })
                 }
               }
             }
@@ -2592,10 +2669,18 @@ export const useMapStore = create<State>()(
           layerGroupIdString: string,
           opts?: LayerGroupAddOptions | SerializableLayerGroupAddOptions
         ) => {
+          const { searchableDatas } = get()
+
+          if (searchableDatas[layerGroupIdString]) {
+            set((state) => {
+              state.searchableDatas[layerGroupIdString].enabled = true
+            })
+          }
+
           if (opts != null) {
             const { getAndFitBounds, _drawOptions, _removeDraw } = get()
             const _map = useMapInstanceStore.getState()._map
-            
+
             if (opts?.zoomToExtent) {
               getAndFitBounds(layerGroupIdString, undefined, {
                 skipQueue: true,
