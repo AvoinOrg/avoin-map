@@ -1,1 +1,1 @@
-export { useMapStore } from './mapStore'
+export * from './mapStore'
