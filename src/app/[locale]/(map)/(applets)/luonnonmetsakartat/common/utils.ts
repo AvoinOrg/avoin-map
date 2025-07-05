@@ -41,12 +41,17 @@ export const getFolayerCentroidSourceId = (layerId: string) => {
   return `${layerIdWithoutHyphens}_luonnonmetsakartat_centroid`
 }
 
-export const createFolayerConf = async (
-  // json: any,
-  folayerId: string,
-  colorCode: string,
-  isAdmin: boolean = false
-) => {
+export const createFolayerConf = async ({
+  folayerId,
+  folayerName,
+  colorCode,
+  isAdmin = false,
+}: {
+  folayerId: string
+  folayerName: string
+  colorCode: string
+  isAdmin?: boolean
+}) => {
   const groupId = getFolayerGroupId(folayerId)
   // const addImage = useMapStore.getState().addImage
   const sourceId = getFolayerSourceId(folayerId)
