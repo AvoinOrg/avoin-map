@@ -925,25 +925,45 @@ export const getFeatureCenterCoordinates = (
 }
 
 export const defaultFeatureDisplayPattern = (
-  properties: Record<string, any>
-): string | null => {
-  for (const key of ['name', 'title', 'label']) {
-    if (properties[key] != null) {
-      return properties[key]
+  feature: any,
+  fields: string[]
+): string[] => {
+  const pieces: string[] = []
+  const primaryKeys = ['name', 'title', 'label']
+  const addedKeys: Set<string> = new Set()
+
+  const properties = feature.properties || {}
+
+  // Create a mapping from lowercase property keys to their original cased keys
+  const lowerCaseKeyMap: Record<string, string> = Object.keys(
+    properties
+  ).reduce((acc, key) => {
+    acc[key.toLowerCase()] = key
+    return acc
+  }, {} as Record<string, string>)
+
+  // Find primary keys first, case-insensitively
+  for (const primaryKey of primaryKeys) {
+    const originalKey = lowerCaseKeyMap[primaryKey]
+    if (originalKey && properties[originalKey] != null) {
+      pieces.push(properties[originalKey])
+      addedKeys.add(primaryKey)
     }
   }
 
-  const patternVals = []
-
-  for (const key of Object.keys(properties)) {
-    if (properties[key] != null) {
-      patternVals.push(properties[key])
+  // Add other fields, ensuring they haven't been added
+  if (fields && fields.length > 0) {
+    for (const field of fields) {
+      const lowerField = field.toLowerCase()
+      if (!addedKeys.has(lowerField)) {
+        const originalKey = lowerCaseKeyMap[lowerField]
+        if (originalKey && properties[originalKey] != null) {
+          pieces.push(properties[originalKey])
+          addedKeys.add(lowerField)
+        }
+      }
     }
   }
 
-  if (patternVals.length === 0) {
-    return null
-  }
-
-  return patternVals.join(', ')
+  return pieces
 }

@@ -69,8 +69,9 @@ export type LayerOptionsObj = {
 
 export type DataSearchOpts = {
   name: string
+  fields: string[]
   appendDatasetName?: boolean
-  displayPattern?: (properties: any) => string
+  displayPattern?: (feature: any, fields?: string[]) => string[]
   getCoordinates?: (feature: Feature) => [number, number] | null
 }
 
@@ -410,12 +411,8 @@ export type ExtendedMapGeoJSONFeature = MapGeoJSONFeature & {
   isPlaceholder?: boolean
 }
 
-export type SearchableDataOpts = {
+export type SearchableDataOpts = DataSearchOpts & {
   layerGroupId: string
   data: FeatureCollection
-  name: string
   enabled: boolean
-  appendDatasetName?: boolean
-  displayPattern?: (properties: any) => string
-  getCoordinates?: (feature: Feature) => [number, number] | null
 }
