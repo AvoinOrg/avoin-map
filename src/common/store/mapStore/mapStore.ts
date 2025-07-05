@@ -2140,6 +2140,9 @@ export const useMapStore = create<State>()(
           }
 
           set((state) => {
+            if (state.searchableDatas[layerGroupId]) {
+              state.searchableDatas[layerGroupId].enabled = isVisible
+            }
             state._layerGroups[layerGroupId].isHidden = !isVisible
           })
         },
@@ -2515,9 +2518,11 @@ export const useMapStore = create<State>()(
                       layerGroupId: id,
                       data: data as FeatureCollection, // if the source type is store or geojson, the data should be available
                       name: dataSearchOpts.name,
+                      fields: dataSearchOpts.fields,
                       enabled: options.isHidden ? false : true,
-                      appendDatasetName:
-                        dataSearchOpts.appendDatasetName ?? false,
+                      ...(dataSearchOpts.appendDatasetName && {
+                        appendDataSetName: dataSearchOpts.appendDatasetName,
+                      }),
                       ...(dataSearchOpts.displayPattern && {
                         displayPattern: dataSearchOpts.displayPattern,
                       }),
@@ -2669,14 +2674,6 @@ export const useMapStore = create<State>()(
           layerGroupIdString: string,
           opts?: LayerGroupAddOptions | SerializableLayerGroupAddOptions
         ) => {
-          const { searchableDatas } = get()
-
-          if (searchableDatas[layerGroupIdString]) {
-            set((state) => {
-              state.searchableDatas[layerGroupIdString].enabled = true
-            })
-          }
-
           if (opts != null) {
             const { getAndFitBounds, _drawOptions, _removeDraw } = get()
             const _map = useMapInstanceStore.getState()._map
