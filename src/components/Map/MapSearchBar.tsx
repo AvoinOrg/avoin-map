@@ -8,7 +8,7 @@ import axios from 'axios'
 import { useParams } from 'next/navigation'
 
 import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
-import { useMapStore } from '#/common/store'
+import { useMapStore, useUIStore } from '#/common/store'
 import Search from '#/components/icons/Search'
 import {
   defaultFeatureDisplayPattern,
@@ -25,6 +25,7 @@ export const MapSearchBar = () => {
   const { t } = useTranslate('avoin-map')
   const map = useMapInstanceStore((state) => state._map)
   const searchableDatas = useMapStore((state) => state.searchableDatas)
+  const searchCountryCodes = useUIStore((state) => state.searchCountryCodes)
 
   const enabledSearchableDatas = useMemo(
     () =>
@@ -124,9 +125,12 @@ export const MapSearchBar = () => {
     const localResults = performLocalSearch(query)
 
     try {
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+      let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
         query
       )}&addressdetails=1&limit=5`
+      if (searchCountryCodes.length > 0) {
+        url += `&countrycodes=${searchCountryCodes.join(',')}`
+      }
       const res = await axios.get(url, {
         headers: { 'Accept-Language': locale || 'en' },
       })

@@ -4,7 +4,7 @@
 
 'use client'
 
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { useMapStore, useUIStore } from '#/common/store'
 import { MapContext } from '#/common/types/map'
 import { useTolgee } from '@tolgee/react'
@@ -18,6 +18,7 @@ const AppletWrapper = ({
   subPath,
   defaultLanguage,
   isNavbarHidden,
+  searchCountryCodes,
   sx,
 }: {
   children: React.ReactNode
@@ -26,6 +27,7 @@ const AppletWrapper = ({
   subPath?: string
   defaultLanguage?: string
   isNavbarHidden?: boolean
+  searchCountryCodes?: string[]
   sx?: any
 }) => {
   const tolgee = useTolgee(['update'])
@@ -33,6 +35,13 @@ const AppletWrapper = ({
   const setMapContext = useMapStore((state) => state.setMapContext)
   const stateMapContext = useMapStore((state) => state.mapContext)
   useExclusiveLayerGroups()
+  const storeSearchCountryCodes = useUIStore(
+    (state) => state.searchCountryCodes
+  )
+  const setStoreSearchCountryCodes = useUIStore(
+    (state) => state.setSearchCountryCodes
+  )
+  const originalCountryCodes = useRef<string[] | null>(null)
 
   const setIsBaseDomainForApplet = useUIStore(
     (state) => state.setIsBaseDomainForApplet
@@ -59,6 +68,13 @@ const AppletWrapper = ({
       setIsBaseDomainForApplet(segments[1] !== appletPath)
     }
 
+    if (searchCountryCodes != null) {
+      originalCountryCodes.current = storeSearchCountryCodes
+      setStoreSearchCountryCodes(searchCountryCodes)
+    } else if (originalCountryCodes.current == null) {
+      originalCountryCodes.current = storeSearchCountryCodes
+    }
+
     setMapContext(mapContext)
 
     setIsNavbarHidden(isNavbarHidden || false)
@@ -67,6 +83,9 @@ const AppletWrapper = ({
       tolgee.removeActiveNs(localizationNamespace)
       setIsBaseDomainForApplet(false)
       setIsNavbarHidden(false)
+      if (originalCountryCodes.current != null) {
+        setStoreSearchCountryCodes(originalCountryCodes.current)
+      }
     }
   }, [])
 
