@@ -1,25 +1,21 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import {
-  Box,
-  Typography,
-  Modal,
-  IconButton,
-  SxProps,
-  Theme,
-} from '@mui/material'
+import { Box, Typography, IconButton } from '@mui/material'
 import { T, useTranslate } from '@tolgee/react'
+import { useMutation } from '@tanstack/react-query'
+
 import { Cross } from '#/components/icons'
 import { PopupProps } from '#/common/types/map'
 import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
-import { useAppletStore } from '../state/appletStore'
 import { MapModalWrapper } from '#/components/Map/MapModalWrapper'
 import { SaveOutlined } from '@mui/icons-material'
 import { SCROLLBAR_WIDTH_REM } from '#/common/style/theme/constants'
-import { adminFolayerAreaPatchMutation } from '../common/queries/adminFolayerAreaPatchMutation'
-import { useMutation } from '@tanstack/react-query'
 import { LoadingSpinner } from '#/components/Loading'
 
-interface Props extends PopupProps {
+import { adminFolayerAreaPatchMutation } from '../common/queries/adminFolayerAreaPatchMutation'
+import { useAppletStore } from '../state/appletStore'
+import { FolayerFeatureProperties } from '../common/types'
+
+interface Props extends PopupProps<FolayerFeatureProperties> {
   folayerId: string
 }
 
