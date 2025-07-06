@@ -164,10 +164,13 @@ export const useUIStore = create<State>()(
               if (state.mapDims.visible == null) {
                 state.mapDims.visible = {
                   ...{ width: 0, height: 0, centerX: 0, centerY: 0 },
-                  ...dims,
+                  ...dims.visible,
                 }
               } else {
-                state.mapDims.visible = { ...state.mapDims.visible, ...dims }
+                state.mapDims.visible = {
+                  ...state.mapDims.visible,
+                  ...dims.visible,
+                }
               }
             }
 
@@ -175,7 +178,7 @@ export const useUIStore = create<State>()(
               if (state.mapDims.min == null) {
                 state.mapDims.min = {
                   ...{ width: 0, height: 0, centerX: 0, centerY: 0 },
-                  ...dims,
+                  ...dims.min,
                 }
               } else {
                 state.mapDims.min = { ...state.mapDims.min, ...dims.min }

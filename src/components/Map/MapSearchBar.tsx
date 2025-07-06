@@ -148,7 +148,7 @@ export const MapSearchBar = () => {
   }
 
   return (
-    <Box sx={{ width: 250 }}>
+    <Box sx={{ width: '300px', maxWidth: '300px' }}>
       <Autocomplete
         freeSolo
         options={searchResults}

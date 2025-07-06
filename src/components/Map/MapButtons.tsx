@@ -24,7 +24,11 @@ import { useSelectedDrawFeatures } from '#/common/hooks/map/useSelectedDrawFeatu
 import { useIsDrawDeleteAllowed } from '#/common/hooks/map/useIsDrawDeleteAllowed'
 import { useTranslate } from '@tolgee/react'
 
-export const MapButtons = () => {
+interface Props {
+  isVertical?: boolean
+}
+
+export const MapButtons = ({ isVertical }: Props) => {
   const mapToggleTerrain = useMapStore((state) => state.mapToggleTerrain)
   const mapResetNorth = useMapStore((state) => state.mapResetNorth)
   const mapZoomIn = useMapStore((state) => state.mapZoomIn)
@@ -70,13 +74,14 @@ export const MapButtons = () => {
     <Box
       sx={{
         display: 'flex',
-        flexDirection: 'row',
+        flexDirection: isVertical ? 'column' : 'row',
+        gap: 1,
       }}
     >
       {isDrawEnabled && isDrawDeleteAllowed && (
         <StyledButtonGroup
-          orientation="horizontal"
-          sx={{ height: '100%', mr: 1 }}
+          orientation={isVertical ? 'vertical' : 'horizontal'}
+          isVertical={isVertical}
         >
           {drawMode != null && (
             <Tooltip title={t('map.buttons.draw_delete')}>
@@ -96,8 +101,8 @@ export const MapButtons = () => {
       )}
       {isDrawEnabled && (
         <StyledButtonGroup
-          orientation="horizontal"
-          sx={{ height: '100%', mr: 1 }}
+          orientation={isVertical ? 'vertical' : 'horizontal'}
+          isVertical={isVertical}
         >
           {drawMode != null && (
             <Tooltip title={t('map.buttons.disable_draw')}>
@@ -129,7 +134,10 @@ export const MapButtons = () => {
           )}
         </StyledButtonGroup>
       )}
-      <StyledButtonGroup orientation="horizontal" sx={{ height: '100%' }}>
+      <StyledButtonGroup
+        orientation={isVertical ? 'vertical' : 'horizontal'}
+        isVertical={isVertical}
+      >
         <Tooltip title={t('map.buttons.background_map')}>
           <StyledButton onClick={mapToggleTerrain} size="small">
             <Terrain />
@@ -175,20 +183,22 @@ const StyledButton = styled(Button)(({ theme }) => ({
     border: 'none',
     color: theme.palette.neutral.main, // you can adjust the color if you want
   },
-  flex: 1,
   width: '40px',
   height: '40px',
 }))
 
-const StyledButtonGroup = styled(ButtonGroup)(({ theme }) => ({
-  height: '100%',
+const StyledButtonGroup = styled(ButtonGroup, {
+  shouldForwardProp: (prop) => prop !== 'isVertical',
+})<{ isVertical?: boolean }>(({ theme, isVertical }) => ({
   // boxShadow: '1px 1px 7px 0px #EEECEC',
   '& .MuiButton-root:first-of-type': {
     borderTopLeftRadius: '0.3125rem',
-    borderBottomLeftRadius: '0.3125rem',
+    borderBottomLeftRadius: isVertical ? 0 : '0.3125rem',
+    borderTopRightRadius: isVertical ? '0.3125rem' : 0,
   },
   '& .MuiButton-root:last-of-type': {
-    borderTopRightRadius: '0.3125rem',
+    borderTopRightRadius: isVertical ? 0 : '0.3125rem',
+    borderBottomLeftRadius: isVertical ? '0.3125rem' : 0,
     borderBottomRightRadius: '0.3125rem',
   },
 }))
