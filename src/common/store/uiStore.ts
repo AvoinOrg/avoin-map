@@ -36,6 +36,7 @@ interface Vars {
     min: MapDims | undefined
   }
   _activeSidebarLoaders: Set<string>
+  searchCountryCodes: string[]
 }
 
 interface Actions {
@@ -65,6 +66,7 @@ interface Actions {
     visible?: Partial<MapDims>
     min?: Partial<MapDims>
   }) => void
+  setSearchCountryCodes: (codes: string[]) => void
 }
 
 type State = Vars & Actions
@@ -88,6 +90,7 @@ export const useUIStore = create<State>()(
         windowSize: { width: 0, height: 0 },
         mapDims: { visible: undefined, min: undefined },
         _activeSidebarLoaders: new Set<string>(),
+        searchCountryCodes: [],
       }
       const actions: Actions = {
         setIsSidebarOpen: (value) => set({ isSidebarOpen: value }),
@@ -186,6 +189,9 @@ export const useUIStore = create<State>()(
             }
           })
         },
+
+        setSearchCountryCodes: (codes: string[]) =>
+          set({ searchCountryCodes: codes }),
 
         setWindowSize: (size: { width?: number; height?: number }) => {
           set((state) => {
