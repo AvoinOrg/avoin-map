@@ -20,8 +20,8 @@ import { StoreApi, UseBoundStore } from 'zustand'
 
 export const EMBEDDED_PARAMS_URL_PREFIX = 'mapparams::'
 
-export type PopupProps = {
-  features: MapGeoJSONFeature[]
+export type PopupProps<P = Record<string, any>> = {
+  features: (Omit<MapGeoJSONFeature, 'properties'> & { properties: P })[]
   onClose?: () => void
 }
 
