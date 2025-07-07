@@ -28,9 +28,10 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
         sx={{ width: '30rem' }}
         headerElement={
           <SidebarHeader title={'Luonnonmetsäkartat'}>
-            <Box sx={{ mt: 8, width: '100%' }}>
-              <BreadcrumbNav routeTree={routeTree}></BreadcrumbNav>
-            </Box>
+            <BreadcrumbNav
+              collapseIfRoot={true}
+              routeTree={routeTree}
+            ></BreadcrumbNav>
           </SidebarHeader>
         }
       >
