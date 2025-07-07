@@ -16,6 +16,8 @@ import { MapDims } from '../types/map'
 import { devtools } from 'zustand/middleware'
 import { commonDevtools } from './shared-devtools'
 
+type PopupModalViewMode = 'constrained' | 'fullscreen' | 'full-height'
+
 interface Vars {
   isSidebarOpen: boolean
   isSidebarDisabled: boolean
@@ -37,6 +39,7 @@ interface Vars {
   }
   _activeSidebarLoaders: Set<string>
   searchCountryCodes: string[]
+  popupModalViewMode: PopupModalViewMode
 }
 
 interface Actions {
@@ -67,6 +70,7 @@ interface Actions {
     min?: Partial<MapDims>
   }) => void
   setSearchCountryCodes: (codes: string[]) => void
+  setPopupModalViewMode: (mode: PopupModalViewMode) => void
 }
 
 type State = Vars & Actions
@@ -91,6 +95,7 @@ export const useUIStore = create<State>()(
         mapDims: { visible: undefined, min: undefined },
         _activeSidebarLoaders: new Set<string>(),
         searchCountryCodes: [],
+        popupModalViewMode: 'constrained',
       }
       const actions: Actions = {
         setIsSidebarOpen: (value) => set({ isSidebarOpen: value }),
@@ -192,6 +197,9 @@ export const useUIStore = create<State>()(
 
         setSearchCountryCodes: (codes: string[]) =>
           set({ searchCountryCodes: codes }),
+
+        setPopupModalViewMode: (mode: PopupModalViewMode) =>
+          set({ popupModalViewMode: mode }),
 
         setWindowSize: (size: { width?: number; height?: number }) => {
           set((state) => {
