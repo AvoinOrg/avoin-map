@@ -1,6 +1,6 @@
 import React from 'react'
 import { usePathname } from 'next/navigation'
-import { Box, Typography } from '@mui/material'
+import { Box, SxProps, Theme, Typography } from '@mui/material'
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 
 import MutableLink from '#/components/common/MutableLink'
@@ -9,9 +9,11 @@ import { RouteForLinks, RouteTree } from '#/common/types/routing'
 
 interface Props {
   routeTree: RouteTree
+  collapseIfRoot?: boolean
+  sx?: SxProps<Theme>
 }
 
-const BreadcrumbNav = ({ routeTree }: Props) => {
+const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
   const pathname = usePathname()
 
   const routes = getRoutesForPath(pathname, routeTree)
@@ -53,12 +55,29 @@ const BreadcrumbNav = ({ routeTree }: Props) => {
 
   return (
     <Box
-      sx={(theme) => ({
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'flex-end',
-        color: theme.palette.neutral.dark,
-      })}
+      className="breadcrumb-nav"
+      sx={[
+        (theme) => ({
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'flex-end',
+          color: theme.palette.neutral.dark,
+          minHeight: '6rem',
+          width: '100%',
+        }),
+        ...(Array.isArray(sx) ? sx : [sx]),
+        collapseIfRoot && routes.length <= 1
+          ? {
+              minHeight: '0px',
+              height: '0px',
+              flexGrow: 0,
+              mt: 0,
+              mb: 0,
+              pt: 0,
+              pb: 0,
+            }
+          : { flexGrow: 1 },
+      ]}
     >
       {routes.length > 1 && (
         <Box
