@@ -8,7 +8,10 @@ import { FolayerFeatureProperties } from '../common/types'
 import { SCROLLBAR_WIDTH_REM } from '#/common/style/theme/constants'
 import { useLocaleFormatter } from '#/common/hooks/useLocaleFormatter'
 
-const AreaModal = ({ features, onClose }: PopupProps<FolayerFeatureProperties>) => {
+const AreaModal = ({
+  features,
+  onClose,
+}: PopupProps<FolayerFeatureProperties>) => {
   const { formatNumber } = useLocaleFormatter()
   const feature = features && features.length > 0 ? features[0] : null
   const properties = feature?.properties
@@ -33,13 +36,9 @@ const AreaModal = ({ features, onClose }: PopupProps<FolayerFeatureProperties>) 
         <Box
           sx={{
             display: 'flex',
-            justifyContent: 'flex-end', // Only close button is here
-            alignItems: 'center',
-            height: '4.0rem',
-            borderBottom: '1px solid',
-            borderColor: 'neutral.dark',
-            pl: 1.2,
-            pr: 1.2, // Add padding for the close button
+            justifyContent: 'flex-start', // Changed to move cross to the left
+            pl: 0.5,
+            pt: 1,
           }}
         >
           <IconButton
@@ -49,16 +48,17 @@ const AreaModal = ({ features, onClose }: PopupProps<FolayerFeatureProperties>) 
               color: (theme) => theme.palette.grey[500],
             }}
           >
-            <Cross />
+            <Cross sx={{ height: '1rem' }} />
           </IconButton>
         </Box>
         <Box
           sx={(theme) => ({
             overflowY: 'scroll',
             flexGrow: 1,
-            p: 3,
-            pr: 2,
-            pl: 1 + SCROLLBAR_WIDTH_REM + 'rem',
+            pt: 1,
+            pb: 4,
+            pr: 4,
+            pl: 6, // Increased left padding for content
             '@supports selector(::-webkit-scrollbar)': {
               '&::-webkit-scrollbar-thumb': {
                 backgroundColor: '#878787',
