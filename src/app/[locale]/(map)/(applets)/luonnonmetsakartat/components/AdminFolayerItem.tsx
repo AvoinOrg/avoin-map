@@ -15,6 +15,8 @@ const AdminFolayerItem = ({ conf }: { conf: AdminFolayerConf }) => {
     preload: true,
   })
 
+  const contrastColor = getContrastColor(conf.colorCode)
+
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', mb: 1 }}>
       <IconButton
@@ -58,13 +60,15 @@ const AdminFolayerItem = ({ conf }: { conf: AdminFolayerConf }) => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              border: '1px solid',
+              borderColor: contrastColor,
             }}
           >
             <EyeOpen
               sx={{
                 width: 24,
                 height: 24,
-                color: getContrastColor(conf.colorCode),
+                color: contrastColor,
               }}
             />
           </Box>
