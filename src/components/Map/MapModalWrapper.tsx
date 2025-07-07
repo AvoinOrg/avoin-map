@@ -1,6 +1,6 @@
 'use client'
 
-import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import React, { ReactNode, useEffect, useRef } from 'react'
 import Box from '@mui/material/Box'
 import { SxProps, Theme } from '@mui/material'
 import { useUIStore } from '#/common/store'
@@ -17,10 +17,9 @@ export const MapModalWrapper = ({
   minWidthBeforeFullScreen = 500,
 }: MapModalWrapperProps) => {
   const minMapDims = useUIStore((state) => state.mapDims.min)
+  const popupModalViewMode = useUIStore((state) => state.popupModalViewMode)
+  const setPopupModalViewMode = useUIStore((state) => state.setPopupModalViewMode)
   const wrapperRef = useRef<HTMLDivElement>(null)
-  const [viewMode, setViewMode] = useState<
-    'constrained' | 'fullscreen' | 'full-height'
-  >('constrained')
 
   useEffect(() => {
     const element = wrapperRef.current
@@ -32,15 +31,15 @@ export const MapModalWrapper = ({
 
     const checkViewMode = () => {
       if (minMapDims.width <= minWidthBeforeFullScreen) {
-        setViewMode('fullscreen')
+        setPopupModalViewMode('fullscreen')
         return
       }
       if (element.offsetHeight >= minMapDims.height - 1) {
-        setViewMode('full-height')
+        setPopupModalViewMode('full-height')
         return
       }
 
-      setViewMode('constrained')
+      setPopupModalViewMode('constrained')
     }
 
     checkViewMode()
@@ -70,7 +69,7 @@ export const MapModalWrapper = ({
               maxHeight: minMapDims.height,
             },
             // Conditional styles
-            viewMode === 'constrained'
+            popupModalViewMode === 'constrained'
               ? {
                   maxWidth: minMapDims.width,
                   left: minMapDims.centerX,
@@ -79,7 +78,7 @@ export const MapModalWrapper = ({
                   boxShadow: 24,
                 }
               : null,
-            viewMode === 'fullscreen'
+            popupModalViewMode === 'fullscreen'
               ? {
                   maxWidth: '100%',
                   width: '100%',
@@ -94,7 +93,7 @@ export const MapModalWrapper = ({
                   },
                 }
               : null,
-            viewMode === 'full-height'
+            popupModalViewMode === 'full-height'
               ? {
                   maxWidth: minMapDims.width,
                   left: minMapDims.centerX,

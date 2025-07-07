@@ -5,6 +5,7 @@ import Box from '@mui/material/Box'
 import { Modal } from '@mui/material'
 
 import { useMapStore } from '#/common/store/mapStore'
+import { useUIStore } from '#/common/store'
 
 export const MapPopupHandler = () => {
   const [isActive, setIsActive] = useState(false)
@@ -12,6 +13,7 @@ export const MapPopupHandler = () => {
   const removeSelectedFeatures = useMapStore(
     (state) => state.removeSelectedFeatures
   )
+  const popupModalViewMode = useUIStore((state) => state.popupModalViewMode)
 
   const popupData = useMemo(() => {
     if (!activePopupData || activePopupData.length === 0) {
@@ -46,6 +48,7 @@ export const MapPopupHandler = () => {
           onClose={handleClose}
           aria-labelledby="map-popup-modal-title"
           aria-describedby="map-popup-modal-description"
+          disableEnforceFocus={popupModalViewMode !== 'fullscreen'}
           slotProps={{
             backdrop: {
               sx: {
