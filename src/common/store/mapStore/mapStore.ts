@@ -65,7 +65,7 @@ import {
   SearchableDataOpts,
   DataSearchOpts,
 } from '#/common/types/map'
-import { layerConfs } from '#/components/Map/layers'
+// import { layerConfs } from '#/components/Map/layers'
 
 import {
   getLayerName,
@@ -1116,11 +1116,12 @@ export const useMapStore = create<State>()(
                   opts = cloneDeep(
                     _persistingLayerGroupAddOptions[layerGroupId]
                   )
-                } else {
-                  opts.layerConf = layerConfs.find((el: LayerConf) => {
-                    return el.id === layerGroupId
-                  })
-                }
+                } 
+                // else {
+                //   opts.layerConf = layerConfs.find((el: LayerConf) => {
+                //     return el.id === layerGroupId
+                //   })
+                // }
               }
 
               if (opts.layerConf) {
