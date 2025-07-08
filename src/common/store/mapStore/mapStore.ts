@@ -65,7 +65,7 @@ import {
   SearchableDataOpts,
   DataSearchOpts,
 } from '#/common/types/map'
-import { layerConfs } from '#/components/Map/Layers'
+import { layerConfs } from '#/components/Map/layers'
 
 import {
   getLayerName,
