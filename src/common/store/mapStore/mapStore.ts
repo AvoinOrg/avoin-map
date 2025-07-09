@@ -85,7 +85,6 @@ import {
   findSourceOptsById,
   encodeUrlWithParams,
   getJoinedSelectionSourcesForSource,
-  getSelectableLayersForSource,
   getSourceJson,
   findFirstMatchingLayer,
   findLastMatchingLayer,
