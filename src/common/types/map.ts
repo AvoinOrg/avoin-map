@@ -165,11 +165,21 @@ export interface MapDrawOptions extends LayerGroupDrawOptions {
   handleSelectionChange?: (e: any) => void
 }
 
+type LayerOrderOptionsNeighbor = {
+  neighboringLayerGroupId: string // The id of the layer group to add the layer under or over.
+  isAddedUnderNeighbor?: boolean // If true, the layer is added under (before) the neighboringLayerGroupId.
+}
+
+type LayerOrderOptionsBackground = {
+  isBackground: boolean // If true, the layer is added as a background layer. This overwrites neighbor settings.
+}
+
+type LayerOrderOptions = LayerOrderOptionsNeighbor | LayerOrderOptionsBackground
+
 interface BaseLayerGroupAddOptions {
   mapContext?: MapContext
   layerConf?: SerializableLayerConf | LayerConf
-  isAddedBefore?: boolean
-  neighboringLayerGroupId?: LayerGroupId | string
+  layerOrderOptions?: LayerOrderOptions
   isHidden?: boolean
   persist?: boolean
   drawOptions?: LayerGroupDrawOptions
@@ -227,6 +237,7 @@ export type LayerGroupId =
   | 'gfw_tree_plantations'
   | 'fi_forests'
   | 'terramonitor'
+  | 'mml_taustakartta'
 
 export type ExtendedLayerSpecification = LayerSpecification & {
   source: string
