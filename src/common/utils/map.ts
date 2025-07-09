@@ -3,6 +3,7 @@ import {
   ExpressionSpecification,
   GeoJSONSource,
   MapGeoJSONFeature,
+  LayerSpecification,
 } from 'maplibre-gl'
 // import { Circle as CircleStyle, Fill, Stroke, Style } from 'ol/style'
 // import Layer from 'ol/layer/Layer'
@@ -966,4 +967,64 @@ export const defaultFeatureDisplayPattern = (
   }
 
   return pieces
+}
+
+// Finds the first layer that starts with the given id. Maplibre renders
+// layers in order, last layer in array being on top.
+export const findFirstMatchingLayer = (id: string, map: Map | null) => {
+  if (map) {
+    const layers = map.getStyle().layers
+
+    if (layers) {
+      let firstMatch = layers.find((l) => l.id.startsWith(id))
+      return firstMatch ? firstMatch.id : null
+    }
+  }
+
+  return null
+}
+
+// Finds the last layer that starts with the given id
+export const findLastMatchingLayer = (id: string, map: Map | null) => {
+  if (map) {
+    const layers = map.getStyle().layers
+
+    if (layers) {
+      let lastMatch: string | null = null
+      layers.forEach((layer) => {
+        if (layer.id.startsWith(id)) {
+          lastMatch = layer.id
+        }
+      })
+
+      return lastMatch
+    }
+  }
+
+  return null
+}
+
+// The default mapbox addLayer function can only specify a
+// layer to be added before another layer.
+export const addLayerAfter = (
+  layer: LayerSpecification,
+  afterId: string,
+  map: Map | null
+) => {
+  const layers = map?.getStyle().layers
+
+  if (layers) {
+    const index = layers.findIndex((l) => l.id === afterId)
+
+    if (index !== -1 && index < layers.length - 1) {
+      // Get the ID of the layer after the 'after' layer
+      const beforeId = layers[index + 1].id
+
+      // Add the new layer before that layer, effectively adding it after the 'after' layer
+      map?.addLayer(layer, beforeId)
+    } else {
+      // If the 'after' layer wasn't found or it's the last layer, just add the new layer
+      map?.addLayer(layer)
+    }
+  }
 }
