@@ -113,6 +113,7 @@ export type Vars = {
   selectedFeatures: MapGeoJSONFeature[]
   searchableDatas: Record<string, SearchableDataOpts>
   _joinedSelectionSourceMap: SelectionSource[][]
+  backgroundLayer: string
   // The below are internal variables.
   // --------------------------------------
   // isMapReady is after the internal map object is ready to be interacted with,
@@ -167,7 +168,7 @@ export type Actions = {
   ) => Promise<FeatureCollection | null>
   addLayerGroup: (
     layerGroupId: LayerGroupId | string,
-    options?: LayerGroupAddOptions,
+    options: LayerGroupAddOptions | SerializableLayerGroupAddOptions,
     _queueOptions?: QueueOptions
   ) => Promise<void>
   enableLayerGroup: (
@@ -179,24 +180,24 @@ export type Actions = {
   removeLayerGroup: (layerGroupId: LayerGroupId | string) => Promise<void>
   toggleLayerGroup: (
     layerGroupId: LayerGroupId | string,
-    options?: LayerGroupAddOptions,
+    options: LayerGroupAddOptions,
     _queueOptions?: QueueOptions
   ) => Promise<void>
   // LayerSpecificationGroup allows adding layerGroups with custom ids,
   // e.g., uploaded custom layers with generated ids.
   addSerializableLayerGroup: (
     layerGroupIdString: string,
-    options?: SerializableLayerGroupAddOptions,
+    options: SerializableLayerGroupAddOptions,
     _queueOptions?: QueueOptions
   ) => Promise<void>
   toggleSerializableLayerGroup: (
     layerGroupIdString: string,
-    options?: SerializableLayerGroupAddOptions,
+    options: SerializableLayerGroupAddOptions,
     _queueOptions?: QueueOptions
   ) => Promise<void>
   enableSerializableLayerGroup: (
     layerGroupIdString: string,
-    options?: SerializableLayerGroupAddOptions,
+    options: SerializableLayerGroupAddOptions,
     _queueOptions?: QueueOptions
   ) => Promise<void>
   disableSerializableLayerGroup: (layerGroupIdString: string) => Promise<void>
@@ -265,7 +266,7 @@ export type Actions = {
   getGeocoder: () => void
   mapRelocate: () => void
   mapResetNorth: () => void
-  mapToggleTerrain: () => void
+  // mapToggleTerrain: () => void
   mapZoomIn: () => void
   mapZoomOut: () => void
   toggleDrawMode: (
@@ -280,6 +281,10 @@ export type Actions = {
   deleteDrawFeatures: (features: Feature[]) => void
   setMapContext: (mapContext: MapContext) => void
   updateSourceData: (layerGroupId: string, data: FeatureCollection) => void
+  setBackgroundLayer: (
+    layerGroupId: string,
+    options: LayerGroupAddOptions
+  ) => Promise<void>
   addImage: (
     id: string,
     layerGroupId: string,
@@ -360,6 +365,7 @@ export const useMapStore = create<State>()(
         selectedFeatures: [],
         searchableDatas: {},
         _joinedSelectionSourceMap: [],
+        backgroundLayer: 'osm',
         _images: {},
         _isMapReady: false,
         _drawOptions: {
@@ -1069,8 +1075,8 @@ export const useMapStore = create<State>()(
         // make "options" mandatory, and always supply a layerConf from the calling function.
         addLayerGroup: queueableFnInit(
           async (
-            layerGroupId: LayerGroupId | string,
-            options?: LayerGroupAddOptions | SerializableLayerGroupAddOptions
+            layerGroupId: string,
+            options: LayerGroupAddOptions | SerializableLayerGroupAddOptions
           ) => {
             const {
               _addStyle,
@@ -1116,7 +1122,7 @@ export const useMapStore = create<State>()(
                   opts = cloneDeep(
                     _persistingLayerGroupAddOptions[layerGroupId]
                   )
-                } 
+                }
                 // else {
                 //   opts.layerConf = layerConfs.find((el: LayerConf) => {
                 //     return el.id === layerGroupId
@@ -1153,6 +1159,20 @@ export const useMapStore = create<State>()(
           { priority: QueuePriority.MEDIUM_HIGH }
         ),
 
+        setBackgroundLayer: queueableFnInit(
+          async (
+            layerGroupId: string,
+            options: LayerGroupAddOptions | SerializableLayerGroupAddOptions
+          ) => {
+            const { backgroundLayer, disableLayerGroup, addLayerGroup } = get()
+
+            addLayerGroup(layerGroupId, options)
+
+            disableLayerGroup(backgroundLayer)
+          },
+          { priority: QueuePriority.HIGH }
+        ),
+
         enableLayerGroup: async (
           layerGroupId: LayerGroupId | string,
           options?: LayerGroupAddOptions
@@ -1168,6 +1188,12 @@ export const useMapStore = create<State>()(
             _setGroupVisibility(layerGroupId, true)
             _runLayerGroupActivationActions(layerGroupId, options)
           } else {
+            if (!options) {
+              throw new Error(
+                'Unable to enable layer group without layer group options: ' +
+                  layerGroupId
+              )
+            }
             addLayerGroup(layerGroupId, options)
           }
         },
@@ -1300,7 +1326,7 @@ export const useMapStore = create<State>()(
 
         toggleLayerGroup: async (
           layerGroupId: LayerGroupId | string,
-          options?: LayerGroupAddOptions
+          options: LayerGroupAddOptions
         ) => {
           const { disableLayerGroup, enableLayerGroup, _layerGroups } = get()
 
@@ -1314,7 +1340,7 @@ export const useMapStore = create<State>()(
         // these are used used for layers with dynamic ids
         addSerializableLayerGroup: async (
           layerGroupIdString: string,
-          options?: SerializableLayerGroupAddOptions
+          options: SerializableLayerGroupAddOptions
         ) => {
           const { addLayerGroup } = get()
 
@@ -1597,14 +1623,14 @@ export const useMapStore = create<State>()(
           _map?.resetNorth()
         },
 
-        mapToggleTerrain: () => {
-          const { toggleLayerGroup } = get()
-          toggleLayerGroup('terramonitor', {
-            mapContext: 'any',
-            isAddedBefore: false,
-            neighboringLayerGroupId: 'osm',
-          })
-        },
+        // mapToggleTerrain: () => {
+        //   const { toggleLayerGroup } = get()
+        //   toggleLayerGroup('terramonitor', {
+        //     mapContext: 'any',
+        //     isAddedUnderNeighbor: false,
+        //     neighboringLayerGroupId: 'osm',
+        //   })
+        // },
 
         mapZoomIn: () => {
           const _map = useMapInstanceStore.getState()._map
@@ -2585,10 +2611,17 @@ export const useMapStore = create<State>()(
                 // if the layer is added before, add the first layer before the neighboring layer
                 // The consecutive layers are added after the first layer
                 // In Mapbox, the last layer is rendered on top.
-                if (options.isAddedBefore) {
-                  if (options.neighboringLayerGroupId != null) {
+                if (
+                  options.layerOrderOptions &&
+                  'isAddedUnderNeighbor' in options.layerOrderOptions &&
+                  options.layerOrderOptions.isAddedUnderNeighbor
+                ) {
+                  if (
+                    'neighboringLayerGroupId' in options.layerOrderOptions &&
+                    options.layerOrderOptions.neighboringLayerGroupId != null
+                  ) {
                     const beforeLayer = _findFirstMatchingLayer(
-                      options.neighboringLayerGroupId
+                      options.layerOrderOptions.neighboringLayerGroupId
                     )
                     _map?.addLayer(layer, beforeLayer || undefined)
                   } else {
@@ -2602,18 +2635,36 @@ export const useMapStore = create<State>()(
                     }
                   }
                 }
-                // If the layer is added after, add the first layer after the neighboring layer
+                // If the layer is added after (over), add the first layer after the neighboring layer
                 else {
-                  if (options.neighboringLayerGroupId != null) {
+                  if (
+                    options.layerOrderOptions &&
+                    'neighboringLayerGroupId' in options.layerOrderOptions &&
+                    options.layerOrderOptions.neighboringLayerGroupId != null
+                  ) {
                     layerInsertId = _findLastMatchingLayer(
-                      options.neighboringLayerGroupId
+                      options.layerOrderOptions.neighboringLayerGroupId
                     )
                   }
+
                   if (layerInsertId != null) {
                     _addLayerAfter(layer, layerInsertId)
                   } else {
-                    _map?.addLayer(layer)
+                    // No neighboring layer found, so add the first layer to the map
+                    if (
+                      options.layerOrderOptions &&
+                      'isBackground' in options.layerOrderOptions &&
+                      options.layerOrderOptions.isBackground
+                    ) {
+                      // if the layer is a background layer, find the first 
+                      // layer, if there are any. The background layer goes underneath it.
+                      const firstLayer = _findFirstMatchingLayer('')
+                      _map?.addLayer(layer, firstLayer ? firstLayer : undefined)
+                    } else {
+                      _map?.addLayer(layer)
+                    }
                   }
+                  // }
                 }
               }
               // the consecutive layers are added after the first layer
@@ -2854,7 +2905,7 @@ export const useMapStore = create<State>()(
           return
         },
 
-        // Finds the first layer that starts with the given id. Mapbox renders
+        // Finds the first layer that starts with the given id. Maplibre renders
         // layers in order, last layer in array being on top.
         _findFirstMatchingLayer: (id: string) => {
           const _map = useMapInstanceStore.getState()._map
