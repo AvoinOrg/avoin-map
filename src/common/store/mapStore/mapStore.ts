@@ -87,6 +87,9 @@ import {
   getJoinedSelectionSourcesForSource,
   getSelectableLayersForSource,
   getSourceJson,
+  findFirstMatchingLayer,
+  findLastMatchingLayer,
+  addLayerAfter,
 } from '#/common/utils/map'
 import { geoserverJsonQuery } from '#/common/queries/geoserverJsonQuery'
 // import { commonDevtools } from './shared-devtools'
@@ -322,10 +325,6 @@ export type Actions = {
   _executeFunctionQueue: (callback?: () => void) => Promise<void>
   _setIsFunctionQueueExecuting: (isExecuting: boolean) => void
   _setActivePopupData: (activePopupData: PopupData) => void
-  // Adds a layer after the specified layer id.
-  _addLayerAfter: (layer: LayerSpecification, afterId: string) => void
-  _findFirstMatchingLayer: (id: LayerGroupId | string) => string | null
-  _findLastMatchingLayer: (id: LayerGroupId | string) => string | null
   _runHydrationActions: () => void
   _addPersistingLayerGroupAddOptions: (
     layerGroupId: string,
@@ -2335,9 +2334,6 @@ export const useMapStore = create<State>()(
           options: LayerGroupAddOptionsWithConf
         ) => {
           const {
-            _addLayerAfter,
-            _findFirstMatchingLayer,
-            _findLastMatchingLayer,
             _enableLayerGroupEventHandlers,
             _updateSelectableHoverHandlers,
           } = get()
@@ -2620,8 +2616,9 @@ export const useMapStore = create<State>()(
                     'neighboringLayerGroupId' in options.layerOrderOptions &&
                     options.layerOrderOptions.neighboringLayerGroupId != null
                   ) {
-                    const beforeLayer = _findFirstMatchingLayer(
-                      options.layerOrderOptions.neighboringLayerGroupId
+                    const beforeLayer = findFirstMatchingLayer(
+                      options.layerOrderOptions.neighboringLayerGroupId,
+                      _map
                     )
                     _map?.addLayer(layer, beforeLayer || undefined)
                   } else {
@@ -2642,13 +2639,14 @@ export const useMapStore = create<State>()(
                     'neighboringLayerGroupId' in options.layerOrderOptions &&
                     options.layerOrderOptions.neighboringLayerGroupId != null
                   ) {
-                    layerInsertId = _findLastMatchingLayer(
-                      options.layerOrderOptions.neighboringLayerGroupId
+                    layerInsertId = findLastMatchingLayer(
+                      options.layerOrderOptions.neighboringLayerGroupId,
+                      _map
                     )
                   }
 
                   if (layerInsertId != null) {
-                    _addLayerAfter(layer, layerInsertId)
+                    addLayerAfter(layer, layerInsertId, _map)
                   } else {
                     // No neighboring layer found, so add the first layer to the map
                     if (
@@ -2656,9 +2654,9 @@ export const useMapStore = create<State>()(
                       'isBackground' in options.layerOrderOptions &&
                       options.layerOrderOptions.isBackground
                     ) {
-                      // if the layer is a background layer, find the first 
+                      // if the layer is a background layer, find the first
                       // layer, if there are any. The background layer goes underneath it.
-                      const firstLayer = _findFirstMatchingLayer('')
+                      const firstLayer = findFirstMatchingLayer('', _map)
                       _map?.addLayer(layer, firstLayer ? firstLayer : undefined)
                     } else {
                       _map?.addLayer(layer)
@@ -2669,7 +2667,7 @@ export const useMapStore = create<State>()(
               }
               // the consecutive layers are added after the first layer
               else {
-                _addLayerAfter(layer, layerInsertId)
+                addLayerAfter(layer, layerInsertId, _map)
                 layerInsertId = layer.id
               }
 
@@ -2903,68 +2901,6 @@ export const useMapStore = create<State>()(
           _setIsFunctionQueueExecuting(false)
 
           return
-        },
-
-        // Finds the first layer that starts with the given id. Maplibre renders
-        // layers in order, last layer in array being on top.
-        _findFirstMatchingLayer: (id: string) => {
-          const _map = useMapInstanceStore.getState()._map
-
-          if (_map) {
-            const layers = _map.getStyle().layers
-
-            if (layers) {
-              let firstMatch = layers.find((l) => l.id.startsWith(id))
-              return firstMatch ? firstMatch.id : null
-            }
-          }
-
-          return null
-        },
-
-        // Finds the last layer that starts with the given id
-        _findLastMatchingLayer: (id: string) => {
-          const _map = useMapInstanceStore.getState()._map
-
-          if (_map) {
-            const layers = _map.getStyle().layers
-
-            if (layers) {
-              let lastMatch: string | null = null
-              layers.forEach((layer) => {
-                if (layer.id.startsWith(id)) {
-                  lastMatch = layer.id
-                }
-              })
-
-              return lastMatch
-            }
-          }
-
-          return null
-        },
-
-        // The default mapbox addLayer function can only specify a
-        // layer to be added before another layer.
-        _addLayerAfter: (layer: LayerSpecification, afterId: string) => {
-          const _map = useMapInstanceStore.getState()._map
-
-          const layers = _map?.getStyle().layers
-
-          if (layers) {
-            const index = layers.findIndex((l) => l.id === afterId)
-
-            if (index !== -1 && index < layers.length - 1) {
-              // Get the ID of the layer after the 'after' layer
-              const beforeId = layers[index + 1].id
-
-              // Add the new layer before that layer, effectively adding it after the 'after' layer
-              _map?.addLayer(layer, beforeId)
-            } else {
-              // If the 'after' layer wasn't found or it's the last layer, just add the new layer
-              _map?.addLayer(layer)
-            }
-          }
         },
 
         // _enableLayerEventHandlers: (layerOptions: LayerOptions) => {
