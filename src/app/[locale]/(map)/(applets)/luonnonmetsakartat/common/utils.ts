@@ -136,10 +136,11 @@ export const createFolayerConf = async ({
             fields: ['name'],
             displayPattern: (feature: any) => {
               const folayerFeature = feature as FolayerFeature
-              return [
-                folayerFeature.properties.name,
-                folayerFeature.properties.municipality,
-              ]
+              const parts = [folayerFeature.properties.name]
+              if (folayerFeature.properties.municipality) {
+                parts.push(folayerFeature.properties.municipality)
+              }
+              return parts
             },
             appendDatasetName: true,
             // getCoordinates: (feature: any) => {
