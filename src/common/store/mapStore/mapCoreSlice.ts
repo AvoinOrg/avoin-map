@@ -528,9 +528,8 @@ export const createMapCoreSlice: (
         }
       }
 
-      set((draft) => {
-        // @ts-ignore
-        draft.selectedFeatures = features
+      set({
+        selectedFeatures: features,
       })
 
       if (updateDrawSelect) {
