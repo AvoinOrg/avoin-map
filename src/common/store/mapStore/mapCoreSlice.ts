@@ -287,10 +287,6 @@ export type MapCoreActions = {
   deleteDrawFeatures: (features: Feature[]) => void
   setMapContext: (mapContext: MapContext) => void
   updateSourceData: (layerGroupId: string, data: FeatureCollection) => void
-  setBackgroundLayer: (
-    layerGroupId: string,
-    options: LayerGroupAddOptions
-  ) => Promise<void>
   addImage: (
     id: string,
     layerGroupId: string,
@@ -1080,20 +1076,6 @@ export const createMapCoreSlice: (
         }
       },
       { priority: QueuePriority.MEDIUM_HIGH }
-    ),
-
-    setBackgroundLayer: helpers.queueableFnInit(
-      async (
-        layerGroupId: string,
-        options: LayerGroupAddOptions | SerializableLayerGroupAddOptions
-      ) => {
-        const { backgroundLayer, disableLayerGroup, addLayerGroup } = get()
-
-        addLayerGroup(layerGroupId, options)
-
-        disableLayerGroup(backgroundLayer)
-      },
-      { priority: QueuePriority.HIGH }
     ),
 
     enableLayerGroup: async (
