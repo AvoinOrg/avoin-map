@@ -66,6 +66,7 @@ import {
   SearchableDataOpts,
   DataSearchOpts,
   LayerOrderLevel,
+  ListedLayerGroup,
 } from '#/common/types/map'
 // import { layerConfs } from '#/components/Map/layers'
 
@@ -119,7 +120,7 @@ export type MapCoreVars = {
   selectedFeatures: MapGeoJSONFeature[]
   searchableDatas: Record<string, SearchableDataOpts>
   _joinedSelectionSourceMap: SelectionSource[][]
-  backgroundLayer: string
+  listedLayerGroups: ListedLayerGroup[]
   // The below are internal variables.
   // --------------------------------------
   // isMapReady is after the internal map object is ready to be interacted with,
@@ -245,6 +246,7 @@ export type MapCoreActions = {
     features: MapGeoJSONFeature[],
     updateDrawSelect?: boolean
   ) => void
+  setListedLayerGroups: (listedLayerGroups: ListedLayerGroup[]) => void
   setSelectedFeaturesByClick: (features: MapGeoJSONFeature[]) => void
   removeSelectedFeatures: (params: {
     features: MapGeoJSONFeature[]
@@ -358,8 +360,8 @@ export const createMapCoreSlice: (
     mapContext: null,
     selectedFeatures: [],
     searchableDatas: {},
+    listedLayerGroups: [],
     _joinedSelectionSourceMap: [],
-    backgroundLayer: 'osm',
     _images: {},
     _isMapReady: false,
     _drawOptions: {
@@ -991,6 +993,9 @@ export const createMapCoreSlice: (
       if (!ignorePopups) {
         _setPopupDataForFeatures(newFeatures)
       }
+    },
+    setListedLayerGroups: (listedLayerGroups: ListedLayerGroup[]) => {
+      set({ listedLayerGroups: listedLayerGroups })
     },
     // TODO: The logic of this function is getting too complex. Now we have
     // LayerConfs fetched from the common storage and LayerConfs supplied by the calling

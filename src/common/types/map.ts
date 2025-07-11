@@ -34,6 +34,14 @@ export type SelectionSource = {
 
 export type SourceType = SourceSpecification['type']
 
+export type ListedLayerGroup = {
+  id: string
+  name: string
+  orderLevel: LayerOrderLevel
+  addOptions: LayerGroupAddOptions
+  previewImage?: string
+}
+
 export type LayerGroupOptions = {
   id: string
   mapContext: MapContext
