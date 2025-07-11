@@ -305,7 +305,7 @@ export type LayerEventHandlerAddOptions = {
 type BaseLayerConf = {
   id: string
   style: ExtendedStyleSpecificationOrFn
-  useMb?: boolean
+  // useMb?: boolean
   eventHandlers?: LayerEventHandlerAddOptions[]
   joinedSelectionSources?: SelectionSource[][]
 }
