@@ -65,6 +65,7 @@ import {
   isStandardSourceOptions,
   SearchableDataOpts,
   DataSearchOpts,
+  LayerOrderLevel,
 } from '#/common/types/map'
 // import { layerConfs } from '#/components/Map/layers'
 
@@ -90,9 +91,10 @@ import {
   findFirstMatchingLayer,
   findLastMatchingLayer,
   addLayerAfter,
+  addLayerByOrderLevel,
 } from '#/common/utils/map'
 import { geoserverJsonQuery } from '#/common/queries/geoserverJsonQuery'
-import { MapStateCreator, MapStore, MapStoreHelpers } from './mapStore'
+import { MapStateCreator, MapStoreHelpers } from './mapStore'
 // import { commonDevtools } from './shared-devtools'
 
 const DEFAULT_MAP_LIBRARY_MODE: MapLibraryMode = 'maplibre'
@@ -2227,8 +2229,11 @@ export const createMapCoreSlice: (
       id: LayerGroupId | string,
       options: LayerGroupAddOptionsWithConf
     ) => {
-      const { _enableLayerGroupEventHandlers, _updateSelectableHoverHandlers } =
-        get()
+      const {
+        _enableLayerGroupEventHandlers,
+        _updateSelectableHoverHandlers,
+        _layerGroups,
+      } = get()
       // const setIsMapPopupOpen = useUIStore.getState().setIsMapPopupOpen
       const _map = useMapInstanceStore.getState()._map
 
@@ -2237,11 +2242,20 @@ export const createMapCoreSlice: (
       let layerInsertId: string | null = null
 
       try {
+        let orderLevel: LayerOrderLevel = LayerOrderLevel.LAYER
+        if (
+          options?.layerOrderOptions &&
+          'layerOrderLevel' in options.layerOrderOptions
+        ) {
+          orderLevel = options.layerOrderOptions.layerOrderLevel
+        }
+
         const layerGroup: LayerGroupOptions = {
           id: id,
           mapContext: options.mapContext,
           isHidden: options.isHidden ? true : false,
           persist: options.persist ? true : false,
+          orderLevel: orderLevel,
           layers: {},
           sources: {},
           eventHandlers: [],
@@ -2486,81 +2500,158 @@ export const createMapCoreSlice: (
             state._layerInstances[layer.id] = layer
           })
 
-          // if layerInsertId is null, this is the first layer to be added
-          if (layerInsertId == null) {
-            // if the layer is added before, add the first layer before the neighboring layer
-            // The consecutive layers are added after the first layer
-            // In Mapbox, the last layer is rendered on top.
-            if (
-              options.layerOrderOptions &&
-              'isAddedUnderNeighbor' in options.layerOrderOptions &&
-              options.layerOrderOptions.isAddedUnderNeighbor
-            ) {
-              if (
-                'neighboringLayerGroupId' in options.layerOrderOptions &&
-                options.layerOrderOptions.neighboringLayerGroupId != null
-              ) {
-                const beforeLayer = findFirstMatchingLayer(
-                  options.layerOrderOptions.neighboringLayerGroupId,
-                  _map
-                )
-                _map?.addLayer(layer, beforeLayer || undefined)
-              } else {
-                const mapLayers = _map?.getStyle().layers
-                if (mapLayers && mapLayers.length > 0) {
-                  // add layer before the first layer, if there is one
-                  _map?.addLayer(layer, mapLayers[0].id)
-                } else {
-                  // or if not, just add it normally
-                  _map?.addLayer(layer)
-                }
-              }
-            }
-            // If the layer is added after (over), add the first layer after the neighboring layer
-            else {
-              if (
-                options.layerOrderOptions &&
-                'neighboringLayerGroupId' in options.layerOrderOptions &&
-                options.layerOrderOptions.neighboringLayerGroupId != null
-              ) {
-                layerInsertId = findLastMatchingLayer(
-                  options.layerOrderOptions.neighboringLayerGroupId,
-                  _map
-                )
-              }
+          // if the layer is added before, add the first layer before the neighboring layer
+          // The consecutive layers are added after the first layer
+          // In Mapbox, the last layer is rendered on top.
+          if (layerInsertId == null || _map?.getLayer(layerInsertId) == null) {
+            let layerAdded = false
 
-              if (layerInsertId != null) {
-                addLayerAfter(layer, layerInsertId, _map)
-              } else {
-                // No neighboring layer found, so add the first layer to the map
-                if (
-                  options.layerOrderOptions &&
-                  'isBackground' in options.layerOrderOptions &&
-                  options.layerOrderOptions.isBackground
-                ) {
-                  // if the layer is a background layer, find the first
-                  // layer, if there are any. The background layer goes underneath it.
-                  const firstLayer = findFirstMatchingLayer('', _map)
-                  _map?.addLayer(layer, firstLayer ? firstLayer : undefined)
-                } else {
-                  _map?.addLayer(layer)
+            if (options.layerOrderOptions) {
+              if (options.layerOrderOptions.neighboringLayerGroupId) {
+                const neighborLayerOrderLevel =
+                  _layerGroups[
+                    options.layerOrderOptions.neighboringLayerGroupId
+                  ]?.orderLevel
+
+                if (neighborLayerOrderLevel) {
+                  let neighborLayerId: string | null
+                  if (options.layerOrderOptions.isAddedUnder) {
+                    neighborLayerId = findFirstMatchingLayer(
+                      options.layerOrderOptions.neighboringLayerGroupId,
+                      _map
+                    )
+                    if (neighborLayerId != null) {
+                      _map?.addLayer(layer, neighborLayerId)
+
+                      layerAdded = true
+                    }
+                  } else {
+                    neighborLayerId = findLastMatchingLayer(
+                      options.layerOrderOptions.neighboringLayerGroupId,
+                      _map
+                    )
+
+                    if (neighborLayerId != null) {
+                      addLayerAfter(layer, neighborLayerId, _map)
+
+                      layerAdded = true
+                    }
+                  }
+
+                  if (neighborLayerId == null) {
+                    console.warn(
+                      `No neighboring layer found for layer group ${id}. Adding layers based on order level.`
+                    )
+                  }
                 }
               }
-              // }
             }
-          }
-          // the consecutive layers are added after the first layer
-          else {
+            if (!layerAdded) {
+              addLayerByOrderLevel({
+                layer,
+                orderLevel,
+                map: _map,
+                layerGroups: _layerGroups,
+                isAddedUnder: options.layerOrderOptions?.isAddedUnder,
+              })
+            }
+          } else if (layerInsertId != null) {
+            // if the layer is not first to be added in the group, simply add it after the last added layer
             addLayerAfter(layer, layerInsertId, _map)
-            layerInsertId = layer.id
           }
 
           layerInsertId = layer.id
+
+          // if layerInsertId is null, this is the first layer to be added
+          // if (layerInsertId == null) {
+          //   if (
+          //     options.layerOrderOptions &&
+          //     'neighboringLayerGroupId' in options.layerOrderOptions &&
+          //     options.layerOrderOptions.neighboringLayerGroupId
+          //   ) {
+          //     if (
+          //       'neighboringLayerGroupId' in options.layerOrderOptions &&
+          //       options.layerOrderOptions.neighboringLayerGroupId != null
+          //     ) {
+          //       const beforeLayer = findFirstMatchingLayer(
+          //         options.layerOrderOptions.neighboringLayerGroupId,
+          //         _map
+          //       )
+          //       _map?.addLayer(layer, beforeLayer || undefined)
+          //     } else {
+          //       const mapLayers = _map?.getStyle().layers
+          //       if (mapLayers && mapLayers.length > 0) {
+          //         // add layer before the first layer, if there is one
+          //         _map?.addLayer(layer, mapLayers[0].id)
+          //       } else {
+          //         // or if not, just add it normally
+          //         _map?.addLayer(layer)
+          //       }
+          //     }
+          //   }
+          //   // If the layer is added after (over), add the first layer after the neighboring layer
+          //   else {
+          //     if (
+          //       options.layerOrderOptions &&
+          //       'neighboringLayerGroupId' in options.layerOrderOptions &&
+          //       options.layerOrderOptions.neighboringLayerGroupId != null
+          //     ) {
+          //       layerInsertId = findLastMatchingLayer(
+          //         options.layerOrderOptions.neighboringLayerGroupId,
+          //         _map
+          //       )
+          //     }
+
+          //     if (layerInsertId != null) {
+          //       addLayerAfter(layer, layerInsertId, _map)
+          //     } else {
+          //       // No neighboring layer found, so add the first layer to the map
+          //       if (
+          //         options.layerOrderOptions &&
+          //         'isBackground' in options.layerOrderOptions &&
+          //         options.layerOrderOptions.isBackground
+          //       ) {
+          //         // if the layer is a background layer, find the first
+          //         // layer, if there are any. The background layer goes underneath it.
+          //         const firstLayer = findFirstMatchingLayer('', _map)
+          //         _map?.addLayer(layer, firstLayer ? firstLayer : undefined)
+          //       } else {
+          //         _map?.addLayer(layer)
+          //       }
+          //     }
+          //     // }
+          //   }
+          // }
+          // // the consecutive layers are added after the first layer
+          // else {
+          //   addLayerAfter(layer, layerInsertId, _map)
+          //   layerInsertId = layer.id
+          // }
+
+          // layerInsertId = layer.id
+          //   }
 
           if (!options.isHidden) {
             _map?.setLayoutProperty(layer.id, 'visibility', 'visible')
           } else {
             _map?.setLayoutProperty(layer.id, 'visibility', 'none')
+          }
+
+          if (options.layerOrderOptions?.disableOthersInGroup) {
+            // Disable all other layer groups with the same order level
+            const { disableLayerGroup } = get()
+
+            for (const otherLayerGroupId in _layerGroups) {
+              if (otherLayerGroupId !== id) {
+                const otherLayerGroup = _layerGroups[otherLayerGroupId]
+                if (
+                  otherLayerGroup.orderLevel === orderLevel &&
+                  !otherLayerGroup.isHidden
+                ) {
+                  disableLayerGroup(otherLayerGroupId)
+                }
+              }
+            }
           }
         }
 
