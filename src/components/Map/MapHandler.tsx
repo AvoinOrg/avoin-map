@@ -31,13 +31,21 @@ import { useSession } from 'next-auth/react'
 import { useUIStore } from '../../common/store'
 import { useMapStore } from '../../common/store'
 import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
-import { EMBEDDED_PARAMS_URL_PREFIX, MapLibraryMode } from '#/common/types/map'
+import {
+  EMBEDDED_PARAMS_URL_PREFIX,
+  LayerOrderLevel,
+  MapLibraryMode,
+} from '#/common/types/map'
 import { OverlayMessages } from './OverlayMessages'
 import { MapButtons } from './MapButtons'
 import { MapPopupHandler } from './MapPopupHandler'
 import { decodeUrlAndParams } from '#/common/utils/map'
 import { MapSearchBar } from './MapSearchBar'
 import { MapActionsWrapper } from './MapActionsWrapper'
+import {
+  layerGroupId as osmId,
+  layerConf as osmLayerConf,
+} from './layers/common/OSM/background'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 // const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
@@ -75,6 +83,7 @@ export const MapHandler = ({ children }: Props) => {
   const _refreshStaleSources = useMapStore(
     (state) => state._refreshStaleSources
   )
+  const enableLayerGroup = useMapStore((state) => state.enableLayerGroup)
 
   const overlayMessage = useMapStore((state) => state.overlayMessage)
   const setSelectedFeaturesByClick = useMapStore(
@@ -148,22 +157,8 @@ export const MapHandler = ({ children }: Props) => {
       version: 8,
       glyphs: `${SERVER_URL}/www/font/{fontstack}/{range}.pbf`,
       // glyphs: `https://api.mapbox.com/fonts/v1/{user}/{fontstack}/{range}.pbf?access_token=${MAPBOX_ACCESS_TOKEN}`,
-      sources: {
-        osm: {
-          type: 'raster',
-          tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-          tileSize: 256,
-          attribution:
-            '© <a target="_top" rel="noopener" href="https://openstreetmap.org/">OpenStreetMap</a>, under the <a target="_top" rel="noopener" href="https://operations.osmfoundation.org/policies/tiles/">tile usage policy</a>.',
-        },
-      },
-      layers: [
-        {
-          id: 'osm',
-          type: 'raster',
-          source: 'osm',
-        },
-      ],
+      sources: {},
+      layers: [],
     }
 
     newMap = new Map({
@@ -334,6 +329,13 @@ export const MapHandler = ({ children }: Props) => {
       })
 
       setIsMbMapReady(true)
+      enableLayerGroup(osmId, {
+        layerConf: osmLayerConf,
+        layerOrderOptions: {
+          layerOrderLevel: LayerOrderLevel.BACKGROUND,
+          disableOthersInGroup: true,
+        },
+      })
     })
 
     return newMap
