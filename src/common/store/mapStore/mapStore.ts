@@ -47,7 +47,7 @@ export type MapStoreHelpers = {
 
 enableMapSet()
 
-export const useMapStore = create<MapState>()(
+export const useMapStore = create<MapStoreState>()(
   devtools(
     persist(
       immer((set, get, api) => {
