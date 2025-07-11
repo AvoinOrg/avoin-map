@@ -17,7 +17,6 @@ import hansen from './main/Forests/Hansen'
 import finlandMatureForests from './main/Forests/FinlandMatureForests'
 import mangroveForests from './main/Forests/MangroveForests'
 import treePlantations from './main/Forests/TreePlantations'
-import terramonitor from './extras/Terramonitor'
 
 export const layerConfs = [
   buildingEnergyCertificates,
@@ -36,5 +35,4 @@ export const layerConfs = [
   finlandMatureForests,
   mangroveForests,
   treePlantations,
-  terramonitor,
 ]
