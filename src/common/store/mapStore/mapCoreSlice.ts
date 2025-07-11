@@ -7,7 +7,6 @@
 
 import { map, cloneDeep, uniq, isEqual, pickBy, uniqBy } from 'lodash-es'
 import turfBbox from '@turf/bbox'
-import { immer } from 'zustand/middleware/immer'
 import { enableMapSet, produce } from 'immer'
 import { Feature, FeatureCollection } from 'geojson'
 import { create } from 'zustand'
@@ -831,6 +830,7 @@ export const createMapCoreSlice: (
           }
           // if the features are different or in different order, update the popup data
           set((draft) => {
+            // @ts-expect-error -- TS2589: deep instantiation in Draft<MapCoreSlice>
             draft.activePopupData[0].features = newPopupData.features
           })
 
@@ -838,8 +838,8 @@ export const createMapCoreSlice: (
         }
       }
 
-      set((draft) => {
-        draft.activePopupData = popupDatas
+      set({
+        activePopupData: popupDatas,
       })
     },
 
