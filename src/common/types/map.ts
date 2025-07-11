@@ -40,6 +40,7 @@ export type LayerGroupOptions = {
   isHidden: boolean
   persist: boolean
   layers: LayerOptionsObj
+  orderLevel: LayerOrderLevel
   sources: SourceOptionsObj
   eventHandlers: LayerEventHandlerOptions[]
   handleDataUpdate?: (e: any) => void
@@ -165,16 +166,19 @@ export interface MapDrawOptions extends LayerGroupDrawOptions {
   handleSelectionChange?: (e: any) => void
 }
 
-type LayerOrderOptionsNeighbor = {
-  neighboringLayerGroupId: string // The id of the layer group to add the layer under or over.
-  isAddedUnderNeighbor?: boolean // If true, the layer is added under (before) the neighboringLayerGroupId.
+export enum LayerOrderLevel {
+  BACKGROUND = 'background',
+  BACKGROUND_OVERLAY = 'background-overlay',
+  LAYER = 'layer',
+  OVERLAY = 'overlay',
 }
 
-type LayerOrderOptionsBackground = {
-  isBackground: boolean // If true, the layer is added as a background layer. This overwrites neighbor settings.
+export type LayerOrderOptions = {
+  layerOrderLevel: LayerOrderLevel
+  disableOthersInGroup?: boolean // If true, disables all other layers in the group.
+  isAddedUnder?: boolean // If true, the layer is added under (before) the neighboringLayerGroupId / first layer of the level.
+  neighboringLayerGroupId?: string // The id of the layer group to add the layer under or over.
 }
-
-type LayerOrderOptions = LayerOrderOptionsNeighbor | LayerOrderOptionsBackground
 
 interface BaseLayerGroupAddOptions {
   mapContext?: MapContext
