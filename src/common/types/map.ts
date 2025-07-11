@@ -14,7 +14,7 @@ import type {
 } from 'maplibre-gl'
 import type MaplibreDraw from 'maplibre-gl-draw'
 
-import type { Actions as MapStoreActions } from '#/common/store/mapStore'
+import type { MapStoreActions } from '#/common/store/mapStore'
 import { StoreApi, UseBoundStore } from 'zustand'
 // interface mapFunctions {}
 
