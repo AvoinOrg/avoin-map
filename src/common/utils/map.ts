@@ -27,6 +27,7 @@ import {
   EMBEDDED_PARAMS_URL_PREFIX,
   SelectionSource,
   ExtendedMapGeoJSONFeature,
+  LayerOrderLevel,
 } from '../types/map'
 import { clone, uniqBy } from 'lodash-es'
 
@@ -1026,5 +1027,125 @@ export const addLayerAfter = (
       // If the 'after' layer wasn't found or it's the last layer, just add the new layer
       map?.addLayer(layer)
     }
+  }
+}
+
+export const addLayerByOrderLevel = ({
+  layer,
+  orderLevel,
+  map,
+  layerGroups,
+  isAddedUnder = false, // Default to adding above the topmost layer
+}: {
+  layer: LayerSpecification
+  orderLevel: LayerOrderLevel
+  map: Map | null
+  layerGroups: LayerGroups
+  isAddedUnder?: boolean // Optional parameter to add below the topmost layer instead of above
+}) => {
+  if (!map) {
+    return
+  }
+
+  const layerOrder = Object.values(LayerOrderLevel)
+
+  const mapLayers = map.getStyle().layers
+  if (!mapLayers) {
+    map.addLayer(layer)
+    return
+  }
+
+  const findLayersInGroup = (level: LayerOrderLevel) => {
+    const groups = Object.values(layerGroups).filter(
+      (group) => group.orderLevel === level
+    )
+    const layerIds = new Set<string>()
+    for (const group of groups) {
+      for (const layerId in group.layers) {
+        layerIds.add(layerId)
+      }
+    }
+    return layerIds
+  }
+
+  const targetLayerIds = findLayersInGroup(orderLevel)
+
+  if (targetLayerIds.size > 0) {
+    if (!isAddedUnder) {
+      let topMostLayerId: string | null = null
+      for (let i = mapLayers.length - 1; i >= 0; i--) {
+        if (targetLayerIds.has(mapLayers[i].id)) {
+          topMostLayerId = mapLayers[i].id
+          break
+        }
+      }
+      addLayerAfter(layer, topMostLayerId!, map)
+    } else {
+      let bottomMostLayerId: string | null = null
+      for (let i = 0; i < mapLayers.length; i++) {
+        if (targetLayerIds.has(mapLayers[i].id)) {
+          bottomMostLayerId = mapLayers[i].id
+          break
+        }
+      }
+      map.addLayer(layer, bottomMostLayerId!)
+    }
+    return
+  }
+
+  // If no layers in the target orderLevel, find where to place it.
+  const currentOrderIndex = layerOrder.indexOf(orderLevel)
+
+  if (!isAddedUnder) {
+    // Find topmost layer of the group below
+    for (let i = currentOrderIndex - 1; i >= 0; i--) {
+      const belowOrderLevel = layerOrder[i]
+      const belowLayerIds = findLayersInGroup(belowOrderLevel)
+      if (belowLayerIds.size > 0) {
+        let topMostLayerId: string | null = null
+        for (let j = mapLayers.length - 1; j >= 0; j--) {
+          if (belowLayerIds.has(mapLayers[j].id)) {
+            topMostLayerId = mapLayers[j].id
+            break
+          }
+        }
+        if (topMostLayerId) {
+          addLayerAfter(layer, topMostLayerId, map)
+          return
+        }
+      }
+    }
+
+    // Fallback: add to the bottom of the stack
+    if (mapLayers.length > 0) {
+      map.addLayer(layer, mapLayers[0].id)
+    } else {
+      map.addLayer(layer)
+    }
+    return
+  } else {
+    // isAddedUnder is true
+    // Find bottommost layer of the group above
+    for (let i = currentOrderIndex + 1; i < layerOrder.length; i++) {
+      const aboveOrderLevel = layerOrder[i]
+      const aboveLayerIds = findLayersInGroup(aboveOrderLevel)
+      if (aboveLayerIds.size > 0) {
+        let bottomMostLayerId: string | null = null
+        for (let j = 0; j < mapLayers.length; j++) {
+          if (aboveLayerIds.has(mapLayers[j].id)) {
+            bottomMostLayerId = mapLayers[j].id
+            break
+          }
+        }
+        if (bottomMostLayerId) {
+          map.addLayer(layer, bottomMostLayerId)
+          return
+        }
+      }
+    }
+
+    // Fallback: add to top
+    map.addLayer(layer)
+    return
   }
 }
