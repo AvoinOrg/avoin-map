@@ -153,25 +153,6 @@ export const createFolayerConf = async ({
       },
     },
     layers: [
-      // Outline layer - shown at medium to high zoom levels
-      {
-        id: `${sourceId}-outline`,
-        type: 'line',
-        source: sourceId,
-        'source-layer': sourceLayer,
-        paint: {
-          'line-color': 'black', // Keep outline black for contrast
-          'line-opacity': 1,
-          'line-width': [
-            'case',
-            ['boolean', ['feature-state', 'selected'], false],
-            3, // Thicker outline when selected
-            1.5, // Default outline width
-          ],
-        },
-        minzoom: 7, // Only show outlines at medium to high zoom levels
-      },
-
       // Fill layer - shown at medium to high zoom levels
       {
         id: `${sourceId}-fill`,
@@ -191,6 +172,24 @@ export const createFolayerConf = async ({
         },
         selectable: true,
         minzoom: 7, // Only show fills at medium to high zoom levels
+      },
+      // Outline layer - shown at medium to high zoom levels
+      {
+        id: `${sourceId}-outline`,
+        type: 'line',
+        source: sourceId,
+        'source-layer': sourceLayer,
+        paint: {
+          'line-color': 'black', // Keep outline black for contrast
+          'line-opacity': 1,
+          'line-width': [
+            'case',
+            ['boolean', ['feature-state', 'selected'], false],
+            3, // Thicker outline when selected
+            1.5, // Default outline width
+          ],
+        },
+        minzoom: 7, // Only show outlines at medium to high zoom levels
       },
       // Text labels - shown only at high zoom levels
       {
