@@ -392,8 +392,17 @@ export interface ILayerOption {
 }
 
 export type QueueOptions = {
+  key?: string // a key to identify duplicates
   skipQueue?: boolean
   priority?: QueuePriority
+  allowDuplicates?: boolean // If true, the function can be added to the queue multiple times. Checked by deep comparison of the function and arguments.
+}
+
+export type QueueOptionsEnforceKey = {
+  key: string // a key to identify duplicates
+  skipQueue?: boolean
+  priority?: QueuePriority
+  allowDuplicates?: boolean // If true, the function can be added to the queue multiple times. Checked by deep comparison of the function and arguments.
 }
 
 export type QueueFunctionFuncName = keyof MapStoreActions
@@ -401,7 +410,9 @@ export type QueueFunctionFuncName = keyof MapStoreActions
 export type QueueFunction = {
   fn: (...args: any) => Promise<void>
   args: any[]
+  key: string // If provided, two functions with the same uniqueKey will not run concurrently
   priority?: QueuePriority
+  allowDuplicates?: boolean // If true, the function can be added to the queue multiple times. Checked by deep comparison of the function and arguments.
 }
 
 export type FunctionQueue = (QueueFunction & {
