@@ -12,7 +12,7 @@ import {
 } from './mapCoreSlice'
 import { commonDevtools } from '../shared-devtools'
 import { enableMapSet } from 'immer'
-import { QueueOptions, QueuePriority } from '#/common/types/map'
+import { QueueOptions, QueueOptionsEnforceKey, QueuePriority } from '#/common/types/map'
 // import { LayerSlice, createLayerSlice } from './layerSlice'
 // import { SelectionSlice, createSelectionSlice } from './selectionSlice'
 // import { DrawSlice, createDrawSlice } from './drawSlice'
@@ -41,7 +41,7 @@ export type MapStateCreator<S> = StateCreator<
 export type MapStoreHelpers = {
   queueableFnInit: <A1 extends any[], A2 extends [queueOptions?: QueueOptions]>(
     fn: (...args: A1) => Promise<any>,
-    queueOptions?: QueueOptions
+    queueOptions: QueueOptionsEnforceKey
   ) => (...args: [...A1, ...A2]) => Promise<any>
 }
 
@@ -58,11 +58,11 @@ export const useMapStore = create<MapStoreState>()(
             A2 extends [queueOptions?: QueueOptions]
           >(
             fn: (...args: A1) => Promise<any>,
-            queueOptions?: QueueOptions
+            queueOptions: QueueOptionsEnforceKey
           ) => {
             const queueableFn = async (
               fnWithArgs: { fn: (...args: A1) => Promise<any>; args: A1 },
-              queueOptions: QueueOptions
+              queueOptions: QueueOptionsEnforceKey
             ) => {
               const { isLoaded, _addToFunctionQueue } = get()
 
@@ -71,6 +71,8 @@ export const useMapStore = create<MapStoreState>()(
                   fn: fnWithArgs.fn,
                   args: fnWithArgs.args,
                   priority: queueOptions.priority,
+                  key: queueOptions.key,
+                  allowDuplicates: queueOptions.allowDuplicates,
                 })
               }
 
@@ -83,7 +85,7 @@ export const useMapStore = create<MapStoreState>()(
 
                 // initialize queue options with values from the function initialization.
                 // If they don't exist, use the default values.
-                const qOpts: QueueOptions = {
+                const qOpts: QueueOptionsEnforceKey = {
                   skipQueue:
                     queueOptions?.skipQueue != null
                       ? queueOptions?.skipQueue
@@ -92,6 +94,7 @@ export const useMapStore = create<MapStoreState>()(
                     queueOptions?.priority != null
                       ? queueOptions?.priority
                       : QueuePriority.LOW,
+                  key: queueOptions?.key,
                 }
 
                 // Overwrite queue options with values from the function call.
@@ -103,6 +106,11 @@ export const useMapStore = create<MapStoreState>()(
                       : qOpts.skipQueue
                   qOpts.priority =
                     qArgs?.priority != null ? qArgs?.priority : qOpts.priority
+                  qOpts.key = qArgs?.key != null ? qArgs?.key : qOpts.key
+                  qOpts.allowDuplicates =
+                    qArgs?.allowDuplicates != null
+                      ? qArgs?.allowDuplicates
+                      : qOpts.allowDuplicates
                 }
                 return queueableFn({ fn: fn, args: fnArgs }, qOpts)
               },
