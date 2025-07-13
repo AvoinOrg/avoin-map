@@ -246,7 +246,11 @@ export type MapCoreActions = {
     features: MapGeoJSONFeature[],
     updateDrawSelect?: boolean
   ) => void
-  setListedLayerGroups: (listedLayerGroups: ListedLayerGroup[]) => void
+  setListedLayerGroups: (
+    listedLayerGroups: ListedLayerGroup[],
+    resetVisibility?: boolean,
+    _queueOptions?: QueueOptions
+  ) => Promise<void>
   setSelectedFeaturesByClick: (features: MapGeoJSONFeature[]) => void
   removeSelectedFeatures: (params: {
     features: MapGeoJSONFeature[]
@@ -995,9 +999,64 @@ export const createMapCoreSlice: (
         _setPopupDataForFeatures(newFeatures)
       }
     },
-    setListedLayerGroups: (listedLayerGroups: ListedLayerGroup[]) => {
-      set({ listedLayerGroups: listedLayerGroups })
-    },
+
+    setListedLayerGroups: helpers.queueableFnInit(
+      async (
+        listedLayerGroups: ListedLayerGroup[],
+        resetVisibility?: boolean
+      ) => {
+        const {
+          listedLayerGroups: oldListedLayerGroups,
+          _layerGroups,
+          removeLayerGroup,
+          addLayerGroup,
+          enableLayerGroup,
+        } = get()
+
+        const oldVisibleIds = []
+
+        for (const oldLg of oldListedLayerGroups) {
+          if (_layerGroups[oldLg.id] == null) {
+            continue
+          }
+          if (!listedLayerGroups.some((lg) => lg.id === oldLg.id)) {
+            await removeLayerGroup(oldLg.id)
+          } else {
+            // if there are previously visible background layers, keep them visible
+            if (!resetVisibility && !_layerGroups[oldLg.id].isHidden) {
+              oldVisibleIds.push(oldLg.id)
+            }
+          }
+        }
+
+        for (const lg of listedLayerGroups) {
+          const oldLg = oldListedLayerGroups.find((old) => old.id === lg.id)
+          if (oldLg == null || _layerGroups[oldLg.id] == null) {
+            // if there are old visible ids, then overwrite visibility of the addOptions
+            if (oldVisibleIds.length > 0) {
+              await addLayerGroup(
+                lg.id,
+                { ...lg.addOptions, isHidden: true },
+                { skipQueue: true }
+              )
+            } else {
+              await addLayerGroup(lg.id, lg.addOptions, { skipQueue: true })
+            }
+          } else {
+            if (oldVisibleIds.length === 0) {
+              if (_layerGroups[oldLg.id].isHidden && !lg.addOptions.isHidden) {
+                // if there are no enabled background layers and the old layer group was
+                // hidden, but the new one is not, then enable it
+                await enableLayerGroup(oldLg.id, lg.addOptions)
+              }
+            }
+          }
+        }
+
+        set({ listedLayerGroups: listedLayerGroups })
+      },
+      { key: 'setListedLayerGroups', priority: QueuePriority.MEDIUM_HIGH }
+    ),
     // TODO: The logic of this function is getting too complex. Now we have
     // LayerConfs fetched from the common storage and LayerConfs supplied by the calling
     // component. Solution:
