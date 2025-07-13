@@ -12,6 +12,7 @@ import { Feature, FeatureCollection } from 'geojson'
 import { create } from 'zustand'
 import { persist, createJSONStorage, devtools } from 'zustand/middleware'
 import { StateCreator } from 'zustand'
+import stableStringify from 'fast-json-stable-stringify'
 
 // import olms from 'ol-mapbox-style'
 // import { Map as OlMap } from 'ol'
@@ -448,7 +449,7 @@ export const createMapCoreSlice: (
           return null
         }
       },
-      { priority: QueuePriority.LOW }
+      { key: 'getSourceBounds', priority: QueuePriority.LOW }
     ),
 
     getSourceJsonAsyncQueue: helpers.queueableFnInit(
@@ -456,7 +457,7 @@ export const createMapCoreSlice: (
         const _map = useMapInstanceStore.getState()._map
         return getSourceJson(id, _map)
       },
-      { priority: QueuePriority.LOW }
+      { key: 'getSourceJsonAsyncQueue', priority: QueuePriority.LOW }
     ),
 
     setMapLibraryMode: (mode: MapLibraryMode) => {
@@ -1079,7 +1080,7 @@ export const createMapCoreSlice: (
           })
         }
       },
-      { priority: QueuePriority.MEDIUM_HIGH }
+      { key: 'addLayerGroup', priority: QueuePriority.MEDIUM_HIGH }
     ),
 
     enableLayerGroup: async (
@@ -1384,7 +1385,7 @@ export const createMapCoreSlice: (
         img.src =
           'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgString)
       },
-      { priority: QueuePriority.HIGH }
+      { key: 'addImage', priority: QueuePriority.HIGH }
     ),
 
     setLayoutProperty: helpers.queueableFnInit(
@@ -1392,7 +1393,8 @@ export const createMapCoreSlice: (
         const _map = useMapInstanceStore.getState()._map
 
         _map?.setLayoutProperty(layer, name, value)
-      }
+      },
+      { key: 'setLayoutProperty' }
     ),
 
     setPaintProperty: helpers.queueableFnInit(
@@ -1400,7 +1402,8 @@ export const createMapCoreSlice: (
         const _map = useMapInstanceStore.getState()._map
 
         _map?.setPaintProperty(layer, name, value)
-      }
+      },
+      { key: 'setPaintProperty' }
     ),
 
     setFilter: helpers.queueableFnInit(
@@ -1408,7 +1411,8 @@ export const createMapCoreSlice: (
         const _map = useMapInstanceStore.getState()._map
 
         _map?.setFilter(layer, filter)
-      }
+      },
+      { key: 'setFilter' }
     ),
 
     setOverlayMessage: async (condition: boolean, message: OverlayMessage) => {
@@ -1453,6 +1457,9 @@ export const createMapCoreSlice: (
         )
 
         return Promise.resolve()
+      },
+      {
+        key: 'fitBounds',
       }
     ),
 
@@ -1502,6 +1509,9 @@ export const createMapCoreSlice: (
         }
 
         return Promise.resolve()
+      },
+      {
+        key: 'getAndFitBounds',
       }
     ),
 
@@ -1572,6 +1582,7 @@ export const createMapCoreSlice: (
         _drawOptions.draw?.changeMode(mode as any)
       },
       {
+        key: 'toggleDrawMode',
         priority: QueuePriority.LOW,
       }
     ),
@@ -1599,6 +1610,7 @@ export const createMapCoreSlice: (
         }
       },
       {
+        key: 'setDrawMode',
         priority: QueuePriority.LOW,
       }
     ),
@@ -1869,7 +1881,7 @@ export const createMapCoreSlice: (
           }
         }
       },
-      { priority: QueuePriority.LOW }
+      { key: 'enableDraw', priority: QueuePriority.LOW }
     ),
 
     _updateDrawSelectedFeatures: (updateSelectedFeatures?: boolean) => {
@@ -1990,6 +2002,7 @@ export const createMapCoreSlice: (
         }
       },
       {
+        key: 'disableDraw',
         priority: QueuePriority.LOW,
       }
     ),
@@ -2005,6 +2018,7 @@ export const createMapCoreSlice: (
         })
       },
       {
+        key: 'removeDraw',
         priority: QueuePriority.LOW,
       }
     ),
@@ -2759,6 +2773,8 @@ export const createMapCoreSlice: (
           fn: queueFunction.fn,
           args: queueFunction.args,
           priority: queueFunction.priority,
+          key: queueFunction.key,
+          allowDuplicates: queueFunction.allowDuplicates,
           promise: {
             resolve: promiseResolve,
             reject: promiseReject,
@@ -2813,25 +2829,112 @@ export const createMapCoreSlice: (
         }
 
         const callFuncs = async () => {
-          await Promise.all(
-            functionsToCall.map(async (call) => {
-              try {
-                const result = await call.fn(...call.args)
-                if (call.promise != null) {
-                  call.promise.resolve(result)
-                }
-              } catch (e) {
-                console.error(
-                  "Couldn't run queued map function",
-                  call.fn,
-                  call.args
-                )
-                console.error(e)
-                call.promise.reject(new Error('Function execution failed'))
-                return null
+          const basicFns: FunctionQueue = []
+          const keyGroups: Record<string, FunctionQueue> = {}
+          const dupeCheckObj: Record<string, FunctionQueue> = {}
+
+          functionsToCall.forEach((call) => {
+            if (!call.key) {
+              console.warn(
+                'A function in the queue is missing a key, this may cause issues with duplicate function calls.',
+                call
+              )
+              basicFns.push(call)
+              return
+            }
+
+            const key = `${call.key}-${stableStringify(call.args)}`
+            if (call.allowDuplicates) {
+              if (!dupeCheckObj[key]) {
+                dupeCheckObj[key] = []
               }
-            })
-          )
+
+              keyGroups[key].push(call)
+            } else {
+              if (!dupeCheckObj[key]) {
+                dupeCheckObj[key] = []
+              } else {
+                console.debug(
+                  `Duplicate function call detected for key: ${key}. Only the last one will be executed.`
+                )
+              }
+
+              dupeCheckObj[key].push(call)
+            }
+          })
+
+          for (const key in dupeCheckObj) {
+            if (!keyGroups[key]) {
+              keyGroups[key] = []
+            }
+            const lastIndex = dupeCheckObj[key].length - 1
+            keyGroups[key].push(dupeCheckObj[key][lastIndex])
+          }
+
+          const promises: Promise<any>[] = []
+
+          // Handle functions with unique keys
+          for (const key in keyGroups) {
+            const group = keyGroups[key]
+
+            if (group.length > 1) {
+              promises.push(
+                (async () => {
+                  for (const call of group) {
+                    try {
+                      const result = await call.fn(...call.args)
+                      if (call.promise != null) {
+                        call.promise.resolve(result)
+                      }
+                    } catch (e) {
+                      console.error(
+                        "Couldn't run queued map function",
+                        call.fn,
+                        call.args
+                      )
+                      console.error(e)
+                      if (call.promise) {
+                        call.promise.reject(
+                          new Error('Function execution failed')
+                        )
+                      }
+                      return null
+                    }
+                  }
+                })()
+              )
+            } else {
+              // If only one function with this unique key, treat as normal
+              basicFns.push(group[0])
+            }
+          }
+
+          // Handle singular functions
+          basicFns.forEach((call) => {
+            promises.push(
+              (async () => {
+                try {
+                  const result = await call.fn(...call.args)
+                  if (call.promise != null) {
+                    call.promise.resolve(result)
+                  }
+                } catch (e) {
+                  console.error(
+                    "Couldn't run queued map function",
+                    call.fn,
+                    call.args
+                  )
+                  console.error(e)
+                  if (call.promise) {
+                    call.promise.reject(new Error('Function execution failed'))
+                  }
+                  return null
+                }
+              })()
+            )
+          })
+
+          await Promise.all(promises)
         }
 
         try {
