@@ -6,10 +6,11 @@
 
 import React, { useEffect, useRef } from 'react'
 import { useMapStore, useUIStore } from '#/common/store'
-import { MapContext } from '#/common/types/map'
+import { ListedLayerGroup, MapContext } from '#/common/types/map'
 import { useTolgee } from '@tolgee/react'
 import { Box } from '@mui/material'
 import { useExclusiveLayerGroups } from '#/common/hooks/map/useExclusiveLayerGroups'
+import { defaultListedLayerGroups } from '../Map/layers/defaultListedLayerGroups'
 
 const AppletWrapper = ({
   children,
@@ -19,6 +20,7 @@ const AppletWrapper = ({
   defaultLanguage,
   isNavbarHidden,
   searchCountryCodes,
+  listedLayerGroups,
   sx,
 }: {
   children: React.ReactNode
@@ -28,6 +30,7 @@ const AppletWrapper = ({
   defaultLanguage?: string
   isNavbarHidden?: boolean
   searchCountryCodes?: string[]
+  listedLayerGroups?: ListedLayerGroup[]
   sx?: any
 }) => {
   const tolgee = useTolgee(['update'])
@@ -47,6 +50,18 @@ const AppletWrapper = ({
     (state) => state.setIsBaseDomainForApplet
   )
   const setIsNavbarHidden = useUIStore((state) => state.setIsNavbarHidden)
+
+  const setListedLayerGroups = useMapStore(
+    (state) => state.setListedLayerGroups
+  )
+
+  useEffect(() => {
+    if (listedLayerGroups == null) {
+      setListedLayerGroups(defaultListedLayerGroups)
+    } else {
+      setListedLayerGroups(listedLayerGroups)
+    }
+  }, [listedLayerGroups])
 
   useEffect(() => {
     if (tolgee.isLoaded()) {
