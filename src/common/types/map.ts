@@ -36,10 +36,14 @@ export type SourceType = SourceSpecification['type']
 
 export type ListedLayerGroup = {
   id: string
-  name: string
-  orderLevel: LayerOrderLevel
+  // orderLevel: LayerOrderLevel
   addOptions: LayerGroupAddOptions
-  previewImage?: string
+  name?: string
+  translationNs?: string
+  nameTranslationKey?: string
+  description?: string
+  descriptionTranslationKey?: string
+  thumbnail?: string
 }
 
 export type LayerGroupOptions = {
