@@ -21,6 +21,9 @@ import {
   defaultFeatureDisplayPattern,
   getFeatureCenterCoordinates,
 } from '#/common/utils/map'
+import { MapMenuState } from '#/common/types/state'
+
+const mapMenuState: MapMenuState = 'search'
 
 export const MapSearchBar = ({
   isVertical = false,
@@ -43,7 +46,7 @@ export const MapSearchBar = ({
   const searchCountryCodes = useUIStore((state) => state.searchCountryCodes)
 
   const isActive = useMemo(() => {
-    return activeMapMenu === 'search'
+    return activeMapMenu === mapMenuState
   }, [activeMapMenu])
 
   useEffect(() => {
@@ -218,7 +221,7 @@ export const MapSearchBar = ({
                 !inputValue &&
                 !document.activeElement?.closest('.MuiAutocomplete-popper')
               ) {
-                setMapMenuState('search', false)
+                setMapMenuState(mapMenuState, false)
               }
             }, 200)
           }}
@@ -361,7 +364,7 @@ export const MapSearchBar = ({
       </Collapse>
       {isVertical && !isActive && (
         <IconButton
-          onClick={() => setMapMenuState('search', true)}
+          onClick={() => setMapMenuState(mapMenuState, true)}
           sx={{
             backgroundColor: 'transparent',
             width: '40px',
