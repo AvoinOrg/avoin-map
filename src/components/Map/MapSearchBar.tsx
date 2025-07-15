@@ -181,7 +181,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
         position: 'relative',
         width: isVertical && !isActive ? '40px' : '300px',
         height: '40px',
-        transition: 'width 0.3s ease-in-out',
+        transition: `width ${isActive ? '0.2s' : '0.2s'} ease-in-out`,
         zIndex: isFocused ? (theme) => theme.zIndex.drawer + 5 : 'auto',
         right: 0,
         backgroundColor: 'neutral.light',
@@ -203,6 +203,11 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
             top: 0,
             right: 0,
           }),
+        }}
+        timeout={{ appear: 0, enter: 0, exit: 0 }}
+        easing={{
+          enter: 'ease-in-out',
+          exit: 'ease-in-out',
         }}
       >
         <Autocomplete
