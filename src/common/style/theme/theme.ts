@@ -46,6 +46,7 @@ declare module '@mui/material/styles' {
 
   interface ZIndex {
     popup: number
+    mapButtons: number
   }
 
   interface ThemeOptions {
@@ -104,11 +105,10 @@ const shape = {
 const zIndex = {
   modal: 1500,
   snackbar: 1600,
+  MapButtons: 1300,
   drawer: 1400,
   appBar: 1400,
-  mobileStepper: 1000,
-  popup: 1500,
-  tooltip: 1450,
+  zpopup: 1500,
 }
 
 const fonts = {
