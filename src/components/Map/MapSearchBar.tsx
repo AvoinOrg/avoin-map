@@ -25,11 +25,7 @@ import { MapMenuState } from '#/common/types/state'
 
 const mapMenuState: MapMenuState = 'search'
 
-export const MapSearchBar = ({
-  isVertical = false,
-}: {
-  isVertical?: boolean
-}) => {
+export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [value, setValue] = useState('')
   const [inputValue, setInputValue] = useState('')
