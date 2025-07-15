@@ -86,7 +86,7 @@
     "maplibre-gl-draw": "^1.6.9",
     "micro-observables": "^1.7.2",
     "mini-css-extract-plugin": "^2.7.2",
-    "next": "^15.2.3",
+    "next": "^15.3.5",
     "next-auth": "^4.24.11",
     "next-intl": "^3.26.5",
     "notistack": "^3.0.1",
