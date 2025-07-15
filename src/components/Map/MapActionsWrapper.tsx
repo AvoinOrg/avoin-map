@@ -1,5 +1,5 @@
 import { Box } from '@mui/material'
-import { MapButtons } from './MapButtons'
+import { MapButtons } from './MapButtonGroups'
 import { MapSearchBar } from './MapSearchBar'
 import { useUIStore } from '#/common/store'
 
@@ -20,10 +20,10 @@ export const MapActionsWrapper = () => {
         alignItems: 'flex-end',
         flex: 1,
         zIndex:
-          theme.zIndex.mobileStepper /* force this to be on top of the map */,
+          theme.zIndex.mapButtons /* force this to be on top of the map */,
       })}
     >
-      <MapSearchBar />
+      <MapSearchBar isVertical={isVertical} />
       <MapButtons isVertical={isVertical} />
     </Box>
   )
