@@ -1165,6 +1165,24 @@ export const createMapCoreSlice: (
         }
         addLayerGroup(layerGroupId, options)
       }
+
+      if (options?.layerOrderOptions?.disableOthersInGroup) {
+        // Disable all other layer groups with the same order level
+        const { disableLayerGroup } = get()
+        const orderLevel = options.layerOrderOptions.layerOrderLevel
+
+        for (const otherLayerGroupId in _layerGroups) {
+          if (otherLayerGroupId !== layerGroupId) {
+            const otherLayerGroup = _layerGroups[otherLayerGroupId]
+            if (
+              otherLayerGroup.orderLevel === orderLevel &&
+              !otherLayerGroup.isHidden
+            ) {
+              disableLayerGroup(otherLayerGroupId)
+            }
+          }
+        }
+      }
     },
 
     disableLayerGroup: async (layerGroupId: LayerGroupId | string) => {
@@ -2694,23 +2712,6 @@ export const createMapCoreSlice: (
             _map?.setLayoutProperty(layer.id, 'visibility', 'visible')
           } else {
             _map?.setLayoutProperty(layer.id, 'visibility', 'none')
-          }
-
-          if (options.layerOrderOptions?.disableOthersInGroup) {
-            // Disable all other layer groups with the same order level
-            const { disableLayerGroup } = get()
-
-            for (const otherLayerGroupId in _layerGroups) {
-              if (otherLayerGroupId !== id) {
-                const otherLayerGroup = _layerGroups[otherLayerGroupId]
-                if (
-                  otherLayerGroup.orderLevel === orderLevel &&
-                  !otherLayerGroup.isHidden
-                ) {
-                  disableLayerGroup(otherLayerGroupId)
-                }
-              }
-            }
           }
         }
 
