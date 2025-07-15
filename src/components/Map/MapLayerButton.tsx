@@ -87,6 +87,7 @@ type Props = {
   isVertical: boolean
   shownLayerLevels: LayerOrderLevel[]
   tooltipLabel: string
+  headerLabel?: string
   icon?: React.ReactNode
 }
 
@@ -94,6 +95,7 @@ export const MapLayerButton = ({
   isVertical,
   shownLayerLevels,
   tooltipLabel,
+  headerLabel,
   icon,
 }: Props) => {
   const listedLayerGroups = useMapStore((state) => state.listedLayerGroups)
@@ -171,31 +173,41 @@ export const MapLayerButton = ({
       >
         <Paper
           sx={(theme) => ({
-            width: filteredLayerGroups.length > 1 ? 320 : 150,
-            maxHeight: 400,
+            width: filteredLayerGroups.length > 1 ? 430 : 200,
+            // maxHeight: 400,
             overflowY: 'auto',
-            p: 2,
+            p: 4,
             backgroundColor: alpha(theme.palette.neutral.light, 0.9),
             borderRadius: '0.3125rem',
           })}
         >
           <ClickAwayListener onClickAway={handleClose}>
-            <Grid container spacing={2}>
-              {filteredLayerGroups.map((layerGroup: ListedLayerGroup) => (
-                <Grid
-                  size={filteredLayerGroups.length > 1 ? 6 : 12}
-                  key={layerGroup.id}
+            <Box>
+              {headerLabel && (
+                <Typography
+                  variant="body1"
+                  sx={{ mb: 3, ml: 0.5, textAlign: 'left' }}
                 >
-                  <LayerItem
-                    layerGroup={layerGroup}
-                    isSelected={visibleLayerGroupIds.includes(layerGroup.id)}
-                    onSelect={() => {
-                      toggleLayerGroup(layerGroup.id, layerGroup.addOptions)
-                    }}
-                  />
-                </Grid>
-              ))}
-            </Grid>
+                  {headerLabel}
+                </Typography>
+              )}
+              <Grid container spacing={2}>
+                {filteredLayerGroups.map((layerGroup: ListedLayerGroup) => (
+                  <Grid
+                    size={filteredLayerGroups.length > 1 ? 6 : 12}
+                    key={layerGroup.id}
+                  >
+                    <LayerItem
+                      layerGroup={layerGroup}
+                      isSelected={visibleLayerGroupIds.includes(layerGroup.id)}
+                      onSelect={() => {
+                        toggleLayerGroup(layerGroup.id, layerGroup.addOptions)
+                      }}
+                    />
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
           </ClickAwayListener>
         </Paper>
       </Popper>
