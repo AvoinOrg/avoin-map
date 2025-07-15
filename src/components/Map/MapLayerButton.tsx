@@ -177,7 +177,9 @@ export const MapLayerButton = ({
             // maxHeight: 400,
             overflowY: 'auto',
             p: 4,
-            backgroundColor: alpha(theme.palette.neutral.light, 0.9),
+            backgroundColor: isVertical
+              ? theme.palette.neutral.light
+              : alpha(theme.palette.neutral.light, 0.9),
             borderRadius: '0.3125rem',
           })}
         >
