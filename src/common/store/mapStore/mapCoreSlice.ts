@@ -1297,7 +1297,7 @@ export const createMapCoreSlice: (
     ) => {
       const { disableLayerGroup, enableLayerGroup, _layerGroups } = get()
 
-      if (Object.keys(_layerGroups).includes(layerGroupId)) {
+      if (_layerGroups[layerGroupId] && !_layerGroups[layerGroupId].isHidden) {
         await disableLayerGroup(layerGroupId)
       } else {
         await enableLayerGroup(layerGroupId, options)
