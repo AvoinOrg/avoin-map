@@ -129,7 +129,7 @@ const nextConfig = {
               let publicIndex = relativePath.indexOf('public') + 6 // To exclude 'public' from path
               return path.join(
                 __dirname,
-                '/public',
+                '/public/files',
                 relativePath.slice(publicIndex)
               )
             },
@@ -148,7 +148,7 @@ const nextConfig = {
               )
               return path.join(
                 __dirname,
-                '/public',
+                '/public/files',
                 parentDirectory,
                 newRelativePath
               )
@@ -196,7 +196,7 @@ const nextConfig = {
               __dirname,
               'node_modules/rtree-sql.js/dist/sql-wasm.wasm'
             ),
-            to: path.join(__dirname, '/public/dyn/'),
+            to: path.join(__dirname, '/public/lib/'),
           },
         ],
       }),
