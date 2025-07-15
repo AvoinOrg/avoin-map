@@ -10,9 +10,19 @@ import {
   MapCoreVars,
   createMapCoreSlice,
 } from './mapCoreSlice'
+import {
+  MapDevActions,
+  MapDevVars,
+  MapDevSlice,
+  createMapDevSlice,
+} from './mapDevSlice'
 import { commonDevtools } from '../shared-devtools'
 import { enableMapSet } from 'immer'
-import { QueueOptions, QueueOptionsEnforceKey, QueuePriority } from '#/common/types/map'
+import {
+  QueueOptions,
+  QueueOptionsEnforceKey,
+  QueuePriority,
+} from '#/common/types/map'
 // import { LayerSlice, createLayerSlice } from './layerSlice'
 // import { SelectionSlice, createSelectionSlice } from './selectionSlice'
 // import { DrawSlice, createDrawSlice } from './drawSlice'
@@ -20,11 +30,11 @@ import { QueueOptions, QueueOptionsEnforceKey, QueuePriority } from '#/common/ty
 
 // Combine all slice types into a single store type
 
-export type MapStoreActions = MapCoreActions
+export type MapStoreActions = MapCoreActions & MapDevActions
 
-export type MapStoreVars = MapCoreVars
+export type MapStoreVars = MapCoreVars & MapDevVars
 
-export type MapStoreState = MapCoreSlice
+export type MapStoreState = MapCoreSlice & MapDevSlice
 // &
 //   LayerSlice &
 //   SelectionSlice &
@@ -120,6 +130,7 @@ export const useMapStore = create<MapStoreState>()(
 
         return {
           ...createMapCoreSlice(helpers)(set, get, api),
+          ...createMapDevSlice(helpers)(set, get, api),
         }
         // ...createLayerSlice(...args),
         // ...createSelectionSlice(...args),
