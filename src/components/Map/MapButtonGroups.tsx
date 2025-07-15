@@ -6,6 +6,7 @@ import ButtonGroup from '@mui/material/ButtonGroup'
 import ExploreIcon from '@mui/icons-material/ExploreOutlined'
 import DoneIcon from '@mui/icons-material/Done'
 import { Box, Button, Tooltip } from '@mui/material'
+import { useTranslate } from '@tolgee/react'
 
 import { useMapStore } from '#/common/store'
 import { useDrawMode } from '#/common/hooks/map/useDrawMode'
@@ -17,19 +18,20 @@ import {
   Polygon,
   EditDocument,
   Delete,
+  LayersDark,
 } from '#/components/icons'
 import { useIsDrawEnabled } from '#/common/hooks/map/useIsDrawEnabled'
 import { useAllowedDrawModes } from '#/common/hooks/map/useAllowedDrawModes'
 import { useSelectedDrawFeatures } from '#/common/hooks/map/useSelectedDrawFeature'
 import { useIsDrawDeleteAllowed } from '#/common/hooks/map/useIsDrawDeleteAllowed'
-import { useTranslate } from '@tolgee/react'
-import { BackgroundLayerButton } from './BackgroundLayerButton'
+import { MapLayerButton } from './MapLayerButton'
 import { MapButton } from './MapButton'
+import { LayerOrderLevel } from '#/common/types/map'
 
 const IS_DEV = process.env.NODE_ENV === 'development'
 
 interface Props {
-  isVertical?: boolean
+  isVertical: boolean
 }
 
 export const MapButtons = ({ isVertical }: Props) => {
@@ -141,7 +143,12 @@ export const MapButtons = ({ isVertical }: Props) => {
         orientation={isVertical ? 'vertical' : 'horizontal'}
         isVertical={isVertical}
       >
-        <BackgroundLayerButton isVertical={isVertical} />
+        <MapLayerButton
+          isVertical={isVertical}
+          shownLayerLevels={[LayerOrderLevel.BACKGROUND]}
+          tooltipLabel={t('map.buttons.background_layers')}
+          icon={<LayersDark />}
+        />
         <Tooltip title={t('map.buttons.reset_north')}>
           <MapButton onClick={mapResetNorth} size="small">
             <ExploreIcon sx={{ fontSize: '27px' }} />
