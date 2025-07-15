@@ -1,13 +1,13 @@
 import { LayerConf, ExtendedStyleSpecification } from '#/common/types/map'
 
-export const osmBackgroundLayerGroupId = 'osm'
+export const layerGroupId = 'osm'
 
 const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   return {
     version: 8,
-    name: osmBackgroundLayerGroupId,
+    name: layerGroupId,
     sources: {
-      [osmBackgroundLayerGroupId]: {
+      [layerGroupId]: {
         type: 'raster',
         tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
         tileSize: 256,
@@ -17,7 +17,7 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
     },
     layers: [
       {
-        id: osmBackgroundLayerGroupId,
+        id: layerGroupId,
         type: 'raster',
         source: 'osm',
       },
@@ -26,6 +26,6 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
 }
 
 export const osmBackgroundLayerConf: LayerConf = {
-  id: osmBackgroundLayerGroupId,
+  id: layerGroupId,
   style: getStyle,
 }
