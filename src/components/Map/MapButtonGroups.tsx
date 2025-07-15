@@ -1,11 +1,10 @@
 'use client'
 
 import React from 'react'
-import { styled } from '@mui/material/styles'
-import ButtonGroup from '@mui/material/ButtonGroup'
+import ButtonGroup, { ButtonGroupProps } from '@mui/material/ButtonGroup'
 import ExploreIcon from '@mui/icons-material/ExploreOutlined'
 import DoneIcon from '@mui/icons-material/Done'
-import { Box, Button, Tooltip } from '@mui/material'
+import { Box } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
 import { useMapStore } from '#/common/store'
@@ -89,18 +88,15 @@ export const MapButtons = ({ isVertical }: Props) => {
           isVertical={isVertical}
         >
           {drawMode != null && (
-            <Tooltip title={t('map.buttons.draw_delete')}>
-              {/* The box acts as a wrapper for tooltip to function when the button is disabled */}
-              <Box>
-                <MapButton
-                  onClick={handleDrawDeleteClick}
-                  size="small"
-                  disabled={selectedDrawFeatures.length === 0}
-                >
-                  <Delete />
-                </MapButton>
-              </Box>
-            </Tooltip>
+            <MapButton
+              onClick={handleDrawDeleteClick}
+              size="small"
+              disabled={selectedDrawFeatures.length === 0}
+              tooltip={t('map.buttons.draw_delete')}
+              isVertical={isVertical}
+            >
+              <Delete />
+            </MapButton>
           )}
         </MapButtonGroup>
       )}
@@ -110,32 +106,35 @@ export const MapButtons = ({ isVertical }: Props) => {
           isVertical={isVertical}
         >
           {drawMode != null && (
-            <Tooltip title={t('map.buttons.disable_draw')}>
-              <MapButton onClick={() => disableDraw()} size="small">
-                <DoneIcon />
-              </MapButton>
-            </Tooltip>
+            <MapButton
+              onClick={() => disableDraw()}
+              size="small"
+              tooltip={t('map.buttons.disable_draw')}
+              isVertical={isVertical}
+            >
+              <DoneIcon />
+            </MapButton>
           )}
           {allowedDrawModes.includes('edit') && (
-            <Tooltip title={t('map.buttons.draw_edit')}>
-              {/* The box acts as a wrapper for tooltip to function when the button is disabled */}
-              <Box>
-                <MapButton
-                  onClick={() => setDrawMode('edit')}
-                  size="small"
-                  disabled={drawMode === 'edit'}
-                >
-                  <EditDocument />
-                </MapButton>
-              </Box>
-            </Tooltip>
+            <MapButton
+              onClick={() => setDrawMode('edit')}
+              size="small"
+              disabled={drawMode === 'edit'}
+              tooltip={t('map.buttons.draw_edit')}
+              isVertical={isVertical}
+            >
+              <EditDocument />
+            </MapButton>
           )}
           {allowedDrawModes.includes('polygon') && (
-            <Tooltip title={t('map.buttons.draw_polygon')}>
-              <MapButton onClick={() => setDrawMode('polygon')} size="small">
-                <Polygon />
-              </MapButton>
-            </Tooltip>
+            <MapButton
+              onClick={() => setDrawMode('polygon')}
+              size="small"
+              tooltip={t('map.buttons.draw_polygon')}
+              isVertical={isVertical}
+            >
+              <Polygon />
+            </MapButton>
           )}
         </MapButtonGroup>
       )}
@@ -149,80 +148,99 @@ export const MapButtons = ({ isVertical }: Props) => {
           tooltipLabel={t('map.buttons.background_layers')}
           icon={<LayersDark />}
         />
-        <Tooltip title={t('map.buttons.reset_north')}>
-          <MapButton onClick={mapResetNorth} size="small">
-            <ExploreIcon sx={{ fontSize: '27px' }} />
-          </MapButton>
-        </Tooltip>
-        {/* <Tooltip title={t('map.buttons.relocate')}>
-          <MapButton onClick={mapRelocate} size="small">
-            <Bullseye />
-          </MapButton>
-        </Tooltip> */}
-        <Tooltip title={t('map.buttons.zoom_in')}>
-          <MapButton onClick={mapZoomIn} size="small">
-            <Plus />
-          </MapButton>
-        </Tooltip>
-        <Tooltip title={t('map.buttons.zoom_out')}>
-          <MapButton onClick={mapZoomOut} size="small">
-            <Minus />
-          </MapButton>
-        </Tooltip>
+        <MapButton
+          onClick={mapResetNorth}
+          size="small"
+          tooltip={t('map.buttons.reset_north')}
+          isVertical={isVertical}
+        >
+          <ExploreIcon sx={{ fontSize: '27px' }} />
+        </MapButton>
+        {/* <MapButton
+          onClick={mapRelocate}
+          size="small"
+          tooltip={t('map.buttons.relocate')}
+          isVertical={isVertical}
+        >
+          <Bullseye />
+        </MapButton> */}
+        <MapButton
+          onClick={mapZoomIn}
+          size="small"
+          tooltip={t('map.buttons.zoom_in')}
+          isVertical={isVertical}
+        >
+          <Plus />
+        </MapButton>
+        <MapButton
+          onClick={mapZoomOut}
+          size="small"
+          tooltip={t('map.buttons.zoom_out')}
+          isVertical={isVertical}
+        >
+          <Minus />
+        </MapButton>
       </MapButtonGroup>
       {IS_DEV && (
         <MapButtonGroup
           orientation={isVertical ? 'vertical' : 'horizontal'}
           isVertical={isVertical}
         >
-          <Tooltip title="Toggle box for snapshot">
-            <MapButton
-              onClick={() => useMapStore.getState()._toggleSnapshotBox()}
-              size="small"
-            >
-              TB
-            </MapButton>
-          </Tooltip>
-          <Tooltip title="Toggle coordinate print">
-            <MapButton
-              onClick={() => useMapStore.getState()._toggleCoordinatePrint()}
-              size="small"
-            >
-              TC
-            </MapButton>
-          </Tooltip>
-          <Tooltip title="Take snapshot">
-            <MapButton
-              onClick={() =>
-                useMapStore.getState()._takeSnapshot({
-                  center: [25.6251, 60.353],
-                  zoom: 12.5,
-                  filename: 'snapshot.jpg',
-                })
-              }
-              size="small"
-            >
-              TS
-            </MapButton>
-          </Tooltip>
+          <MapButton
+            onClick={() => useMapStore.getState()._toggleSnapshotBox()}
+            size="small"
+            tooltip="Toggle box for snapshot"
+            isVertical={isVertical}
+          >
+            TB
+          </MapButton>
+          <MapButton
+            onClick={() => useMapStore.getState()._toggleCoordinatePrint()}
+            size="small"
+            tooltip="Toggle coordinate print"
+            isVertical={isVertical}
+          >
+            TC
+          </MapButton>
+          <MapButton
+            onClick={() =>
+              useMapStore.getState()._takeSnapshot({
+                center: [25.6251, 60.353],
+                zoom: 12.5,
+                filename: 'snapshot.jpg',
+              })
+            }
+            size="small"
+            tooltip="Take snapshot"
+            isVertical={isVertical}
+          >
+            TS
+          </MapButton>
         </MapButtonGroup>
       )}
     </Box>
   )
 }
 
-const MapButtonGroup = styled(ButtonGroup, {
-  shouldForwardProp: (prop) => prop !== 'isVertical',
-})<{ isVertical?: boolean }>(({ theme, isVertical }) => ({
-  // boxShadow: '1px 1px 7px 0px #EEECEC',
-  '& .MuiButton-root:first-of-type': {
-    borderTopLeftRadius: '0.3125rem',
-    borderBottomLeftRadius: isVertical ? 0 : '0.3125rem',
-    borderTopRightRadius: isVertical ? '0.3125rem' : 0,
-  },
-  '& .MuiButton-root:last-of-type': {
-    borderTopRightRadius: isVertical ? 0 : '0.3125rem',
-    borderBottomLeftRadius: isVertical ? '0.3125rem' : 0,
-    borderBottomRightRadius: '0.3125rem',
-  },
-}))
+interface MapButtonGroupProps extends ButtonGroupProps {
+  isVertical?: boolean
+}
+
+const MapButtonGroup = ({ isVertical, sx, ...props }: MapButtonGroupProps) => (
+  <ButtonGroup
+    {...props}
+    sx={{
+      '& .MuiButton-root:first-of-type': {
+        borderTopLeftRadius: '0.3125rem',
+        borderBottomLeftRadius: isVertical ? 0 : '0.3125rem',
+        borderTopRightRadius: isVertical ? '0.3125rem' : 0,
+      },
+      '& .MuiButton-root:last-of-type': {
+        borderTopRightRadius: isVertical ? 0 : '0.3125rem',
+        borderBottomLeftRadius: isVertical ? '0.3125rem' : 0,
+        borderBottomRightRadius: '0.3125rem',
+      },
+      ...sx,
+    }}
+  />
+)
