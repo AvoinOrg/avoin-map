@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useMemo } from 'react'
 import ButtonGroup, { ButtonGroupProps } from '@mui/material/ButtonGroup'
 import ExploreIcon from '@mui/icons-material/ExploreOutlined'
 import DoneIcon from '@mui/icons-material/Done'
@@ -46,6 +46,7 @@ export const MapButtons = ({ isVertical }: Props) => {
   const allowedDrawModes = useAllowedDrawModes()
   const selectedDrawFeatures = useSelectedDrawFeatures()
   const isDrawDeleteAllowed = useIsDrawDeleteAllowed()
+  const listedLayerGroups = useMapStore((state) => state.listedLayerGroups)
   const { t } = useTranslate('avoin-map')
   // const setIsDrawPolygon = useMapStore((state) => state.setIsDrawPolygon)
 
@@ -73,6 +74,26 @@ export const MapButtons = ({ isVertical }: Props) => {
   //     handleDrawDeleteClick()
   //   }
   // }
+
+  const hasBackgroundLayers = useMemo(
+    () =>
+      listedLayerGroups.some(
+        (layerGroup) =>
+          layerGroup.addOptions.layerOrderOptions.layerOrderLevel ===
+          LayerOrderLevel.BACKGROUND
+      ),
+    [listedLayerGroups]
+  )
+
+  const hasBackgroundOverlayLayers = useMemo(
+    () =>
+      listedLayerGroups.some(
+        (layerGroup) =>
+          layerGroup.addOptions.layerOrderOptions.layerOrderLevel ===
+          LayerOrderLevel.BACKGROUND_OVERLAY
+      ),
+    [listedLayerGroups]
+  )
 
   return (
     <Box
@@ -138,16 +159,35 @@ export const MapButtons = ({ isVertical }: Props) => {
           )}
         </MapButtonGroup>
       )}
+      {(hasBackgroundLayers || hasBackgroundOverlayLayers) && (
+        <MapButtonGroup
+          orientation={isVertical ? 'vertical' : 'horizontal'}
+          isVertical={isVertical}
+        >
+          {hasBackgroundLayers && (
+            <MapLayerButton
+              isVertical={isVertical}
+              shownLayerLevels={[LayerOrderLevel.BACKGROUND]}
+              headerLabel={t('map.menus.background_layers')}
+              tooltipLabel={t('map.buttons.background_layers')}
+              icon={<LayersDark />}
+            />
+          )}
+          {hasBackgroundOverlayLayers && (
+            <MapLayerButton
+              isVertical={isVertical}
+              shownLayerLevels={[LayerOrderLevel.BACKGROUND_OVERLAY]}
+              headerLabel={t('map.menus.background_overlay_layers')}
+              tooltipLabel={t('map.buttons.background_overlay_layers')}
+              icon={<LayersDark />}
+            />
+          )}
+        </MapButtonGroup>
+      )}
       <MapButtonGroup
         orientation={isVertical ? 'vertical' : 'horizontal'}
         isVertical={isVertical}
       >
-        <MapLayerButton
-          isVertical={isVertical}
-          shownLayerLevels={[LayerOrderLevel.BACKGROUND]}
-          tooltipLabel={t('map.buttons.background_layers')}
-          icon={<LayersDark />}
-        />
         <MapButton
           onClick={mapResetNorth}
           size="small"
