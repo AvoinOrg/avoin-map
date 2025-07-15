@@ -37,7 +37,7 @@ export type SourceType = SourceSpecification['type']
 export type ListedLayerGroup = {
   id: string
   // orderLevel: LayerOrderLevel
-  addOptions: LayerGroupAddOptions
+  addOptions: LayerGroupAddOptionsWithOrderLevel
   name?: string
   translationNs?: string
   nameTranslationKey?: string
@@ -222,6 +222,13 @@ export interface SerializableLayerGroupAddOptions
 // TODO: Make layerConf required. Currently, it is optional because layerConf can be
 // imported by mapStore directly, which is not clean.
 export interface LayerGroupAddOptions extends BaseLayerGroupAddOptions {
+  layerConf?: LayerConf
+  persist?: false
+}
+
+export interface LayerGroupAddOptionsWithOrderLevel
+  extends BaseLayerGroupAddOptions {
+  layerOrderOptions: LayerOrderOptions
   layerConf?: LayerConf
   persist?: false
 }
