@@ -9,6 +9,7 @@ import {
   ConfirmationDialogOptions,
   InternalConfirmationDialogOptions,
   InternalNotificationMessage,
+  MapMenuState,
   NotificationMessage,
 } from '#/common/types/state'
 import { generateUUID } from '../utils/general'
@@ -40,6 +41,7 @@ interface Vars {
   _activeSidebarLoaders: Set<string>
   searchCountryCodes: string[]
   popupModalViewMode: PopupModalViewMode
+  activeMapMenu: MapMenuState | undefined
 }
 
 interface Actions {
@@ -71,6 +73,7 @@ interface Actions {
   }) => void
   setSearchCountryCodes: (codes: string[]) => void
   setPopupModalViewMode: (mode: PopupModalViewMode) => void
+  setMapMenuState: (menu: MapMenuState, open: boolean) => void
 }
 
 type State = Vars & Actions
@@ -96,6 +99,7 @@ export const useUIStore = create<State>()(
         _activeSidebarLoaders: new Set<string>(),
         searchCountryCodes: [],
         popupModalViewMode: 'constrained',
+        activeMapMenu: undefined,
       }
       const actions: Actions = {
         setIsSidebarOpen: (value) => set({ isSidebarOpen: value }),
@@ -204,6 +208,26 @@ export const useUIStore = create<State>()(
         setWindowSize: (size: { width?: number; height?: number }) => {
           set((state) => {
             state.windowSize = { ...state.windowSize, ...size }
+          })
+        },
+        setMapMenuState: (menu: MapMenuState, open: boolean) => {
+          // ignore toggling open if the menu is already open
+          if (open && get().activeMapMenu === menu) {
+            return
+          }
+
+          if (!open) {
+            // only allow toggling off if the calling menu is active
+            if (get().activeMapMenu === menu) {
+              set((state) => {
+                state.activeMapMenu = undefined
+              })
+            }
+            return
+          }
+
+          set((state) => {
+            state.activeMapMenu = menu
           })
         },
         setIsBaseDomainForApplet: (value) =>

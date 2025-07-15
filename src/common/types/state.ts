@@ -67,3 +67,8 @@ export enum UserDataState {
   Fetched = 'fetched',
   Error = 'error',
 }
+
+export type MapMenuState =
+  | 'search'
+  | 'backgroundLayers'
+  | 'backgroundOverlayLayers'
