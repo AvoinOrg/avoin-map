@@ -7,15 +7,13 @@ import {
   Paper,
   Typography,
   Grid,
-  Tooltip,
   ClickAwayListener,
 } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 import Image from 'next/image'
-import { useTranslate } from '@tolgee/react'
 
 import { useMapStore, useUIStore } from '#/common/store'
-import { Layers, Terrain } from '#/components/icons'
+import { Layers } from '#/components/icons'
 import { MapButton } from './MapButton'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
 import { LayerOrderLevel, ListedLayerGroup } from '#/common/types/map'
@@ -35,7 +33,7 @@ const LayerItem = ({ layerGroup, isSelected, onSelect }: LayerItemProps) => (
       border: `2px solid transparent`,
       borderRadius: '4px',
       padding: '4px',
-      textAlign: 'center',
+      textAlign: 'left',
     }}
   >
     <Box
@@ -68,7 +66,18 @@ const LayerItem = ({ layerGroup, isSelected, onSelect }: LayerItemProps) => (
         }}
       />
     </Box>
-    <Typography variant="caption">{layerGroup.name}</Typography>
+    <Typography
+      sx={{
+        typography: 'body1',
+        fontSize: '0.60rem',
+        letterSpacing: '0.040rem',
+        mt: 1,
+        whiteSpace: 'normal',
+        overflowWrap: 'break-word',
+      }}
+    >
+      {layerGroup.name}
+    </Typography>
   </Box>
 )
 
@@ -122,18 +131,18 @@ export const MapLayerButton = ({
 
   return (
     <>
-      <Tooltip title={tooltipLabel}>
-        <MapButton
-          onClick={handleToggle}
-          ref={anchorRef}
-          size="small"
-          sx={{
-            backgroundColor: isActive ? 'neutral.main' : 'neutral.light',
-          }}
-        >
-          {icon || <Layers />}
-        </MapButton>
-      </Tooltip>
+      <MapButton
+        onClick={handleToggle}
+        ref={anchorRef}
+        size="small"
+        tooltip={tooltipLabel}
+        isVertical={isVertical}
+        sx={{
+          backgroundColor: isActive ? 'neutral.main' : 'neutral.light',
+        }}
+      >
+        {icon || <Layers />}
+      </MapButton>
       <Popper
         open={isActive}
         anchorEl={anchorRef.current}
@@ -162,7 +171,7 @@ export const MapLayerButton = ({
       >
         <Paper
           sx={(theme) => ({
-            width: 300,
+            width: filteredLayerGroups.length > 1 ? 320 : 150,
             maxHeight: 400,
             overflowY: 'auto',
             p: 2,
@@ -173,7 +182,10 @@ export const MapLayerButton = ({
           <ClickAwayListener onClickAway={handleClose}>
             <Grid container spacing={2}>
               {filteredLayerGroups.map((layerGroup: ListedLayerGroup) => (
-                <Grid size={6} key={layerGroup.id}>
+                <Grid
+                  size={filteredLayerGroups.length > 1 ? 6 : 12}
+                  key={layerGroup.id}
+                >
                   <LayerItem
                     layerGroup={layerGroup}
                     isSelected={visibleLayerGroupIds.includes(layerGroup.id)}
