@@ -81,11 +81,10 @@ const LayerItem = ({ layerGroup, isSelected, onSelect }: LayerItemProps) => (
   </Box>
 )
 
-const mapMenuState: MapMenuState = 'backgroundLayers'
-
 type Props = {
   isVertical: boolean
   shownLayerLevels: LayerOrderLevel[]
+  mapMenuState: MapMenuState
   tooltipLabel: string
   headerLabel?: string
   icon?: React.ReactNode
@@ -94,6 +93,7 @@ type Props = {
 export const MapLayerButton = ({
   isVertical,
   shownLayerLevels,
+  mapMenuState,
   tooltipLabel,
   headerLabel,
   icon,
