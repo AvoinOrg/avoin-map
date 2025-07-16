@@ -13,7 +13,7 @@ export const listedOsmBackgroundLayerGroup: ListedLayerGroup = {
   // orderLevel: LayerOrderLevel.BACKGROUND,
   name: 'OpenStreetMap',
   translationNs: 'avoin-map',
-  nameTranslationKey: 'layers.osm.description',
+  nameTranslationKey: 'layers.osm.background.description',
   thumbnail: '/files/img/layer-thumbnails/osm/background.jpg',
   // description: 'Base layers for the map',
   // descriptionTranslationKey: 'layers.osm.description',
