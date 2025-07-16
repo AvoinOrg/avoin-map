@@ -11,7 +11,7 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
     sources: {
       [layerGroupId]: {
         type: 'raster',
-        tiles: [`/api/map/mml/tms/{z}/{x}/{y}?layer=taustakartta`],
+        tiles: [`/api/map/core/mml/tms/{z}/{x}/{y}?layer=taustakartta`],
         tileSize: 256,
         attribution:
           '<a href="https://www.maanmittauslaitos.fi/avoindata">© Maanmittauslaitos</a>',
