@@ -274,6 +274,9 @@ const MapButtonGroup = ({ isVertical, sx, ...props }: MapButtonGroupProps) => (
     {...props}
     sx={{
       // This rule handles a single button in the group, ensuring all corners are rounded.
+      '& .MuiButton-root': {
+        border: 0,
+      },
       '& .MuiButton-root:first-of-type': {
         borderTopLeftRadius: '0.3125rem',
         borderBottomLeftRadius: isVertical ? 0 : '0.3125rem',
