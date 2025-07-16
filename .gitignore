@@ -145,6 +145,9 @@ next-env.d.ts
 src/app/api/*
 !src/app/api/auth/
 !src/app/api/userinfo/
+!src/app/api/map/
+src/app/api/map/*
+!src/app/api/map/core/
 
 
 # i18n files, which are downloaded dynamically
