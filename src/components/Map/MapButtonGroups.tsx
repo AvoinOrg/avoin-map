@@ -18,6 +18,7 @@ import {
   EditDocument,
   Delete,
   LayersDark,
+  Layers,
 } from '#/components/icons'
 import { useIsDrawEnabled } from '#/common/hooks/map/useIsDrawEnabled'
 import { useAllowedDrawModes } from '#/common/hooks/map/useAllowedDrawModes'
@@ -170,6 +171,7 @@ export const MapButtons = ({ isVertical }: Props) => {
               shownLayerLevels={[LayerOrderLevel.BACKGROUND]}
               headerLabel={t('map.menus.background_layers')}
               tooltipLabel={t('map.buttons.background_layers')}
+              mapMenuState="backgroundLayers"
               icon={<LayersDark />}
             />
           )}
@@ -179,7 +181,8 @@ export const MapButtons = ({ isVertical }: Props) => {
               shownLayerLevels={[LayerOrderLevel.BACKGROUND_OVERLAY]}
               headerLabel={t('map.menus.background_overlay_layers')}
               tooltipLabel={t('map.buttons.background_overlay_layers')}
-              icon={<LayersDark />}
+              mapMenuState="backgroundOverlayLayers"
+              icon={<Layers />}
             />
           )}
         </MapButtonGroup>
@@ -246,8 +249,8 @@ export const MapButtons = ({ isVertical }: Props) => {
             onClick={() =>
               useMapStore.getState()._takeSnapshot({
                 center: [25.6251, 60.353],
-                zoom: 12.5,
-                filename: 'snapshot.jpg',
+                zoom: 12.5, // 14.5 was used for some layers
+                filename: 'snapshot.png',
               })
             }
             size="small"
@@ -270,6 +273,7 @@ const MapButtonGroup = ({ isVertical, sx, ...props }: MapButtonGroupProps) => (
   <ButtonGroup
     {...props}
     sx={{
+      // This rule handles a single button in the group, ensuring all corners are rounded.
       '& .MuiButton-root:first-of-type': {
         borderTopLeftRadius: '0.3125rem',
         borderBottomLeftRadius: isVertical ? 0 : '0.3125rem',
@@ -279,6 +283,9 @@ const MapButtonGroup = ({ isVertical, sx, ...props }: MapButtonGroupProps) => (
         borderTopRightRadius: isVertical ? 0 : '0.3125rem',
         borderBottomLeftRadius: isVertical ? '0.3125rem' : 0,
         borderBottomRightRadius: '0.3125rem',
+      },
+      '& .MuiButton-root:only-child': {
+        borderRadius: '0.3125rem',
       },
       ...sx,
     }}
