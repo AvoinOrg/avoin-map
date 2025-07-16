@@ -148,8 +148,9 @@ export const createMapDevSlice: (
             _toggleSnapshotBox()
           }
 
+          // Always capture as PNG to preserve the alpha channel
           const fullCanvas = _map.getCanvas()
-          const fullDataURL = fullCanvas.toDataURL('image/jpg')
+          const fullDataURL = fullCanvas.toDataURL('image/png')
 
           const tempCanvas = document.createElement('canvas')
           tempCanvas.width = boxSize
@@ -170,14 +171,39 @@ export const createMapDevSlice: (
             // Draw the cropped 256x256 image onto the temporary canvas
             ctx.drawImage(img, sx, sy, boxSize, boxSize, 0, 0, boxSize, boxSize)
 
-            const croppedDataURL = tempCanvas.toDataURL('image/png')
+            const isJpg =
+              options.filename?.endsWith('.jpg') ||
+              options.filename?.endsWith('.jpeg')
+
+            let finalDataURL: string
+
+            if (isJpg) {
+              // For JPG, we need to manually fill the background as it doesn't support transparency.
+              const finalCanvas = document.createElement('canvas')
+              finalCanvas.width = boxSize
+              finalCanvas.height = boxSize
+              const finalCtx = finalCanvas.getContext('2d')
+
+              if (finalCtx) {
+                // Fill the background with white
+                finalCtx.fillStyle = 'white'
+                finalCtx.fillRect(0, 0, boxSize, boxSize)
+                // Draw the captured image on top of the white background
+                finalCtx.drawImage(tempCanvas, 0, 0)
+                finalDataURL = finalCanvas.toDataURL('image/jpeg')
+              } else {
+                // Fallback in case context is not available
+                finalDataURL = tempCanvas.toDataURL('image/jpeg')
+              }
+            } else {
+              // For PNG, we can use the data directly as it supports transparency
+              finalDataURL = tempCanvas.toDataURL('image/png')
+            }
 
             if (options.filename) {
               const link = document.createElement('a')
-              link.href = croppedDataURL
-              link.download = options.filename.endsWith('.png')
-                ? options.filename
-                : `${options.filename}.png`
+              link.href = finalDataURL
+              link.download = options.filename
               document.body.appendChild(link)
               link.click()
               document.body.removeChild(link)
@@ -190,7 +216,7 @@ export const createMapDevSlice: (
               _toggleSnapshotBox()
             }
 
-            resolve(croppedDataURL)
+            resolve(finalDataURL)
           }
           img.onerror = () => {
             _map.jumpTo(originalView)
