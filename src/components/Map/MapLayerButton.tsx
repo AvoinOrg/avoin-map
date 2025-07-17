@@ -1,4 +1,7 @@
 'use client'
+// Grid grid grid, why are you so shit
+// The layout and styling is complete spaghetti.
+// TODO: figure out how to make it neat. 
 
 import React, { useRef, useMemo } from 'react'
 import {
@@ -22,17 +25,22 @@ import { MapMenuState } from '#/common/types/state'
 type LayerItemProps = {
   layerGroup: ListedLayerGroup
   isSelected: boolean
+  isVertical: boolean
   onSelect: (id: string) => void
 }
 
-const LayerItem = ({ layerGroup, isSelected, onSelect }: LayerItemProps) => (
+const LayerItem = ({
+  layerGroup,
+  isSelected,
+  isVertical,
+  onSelect,
+}: LayerItemProps) => (
   <Box
     onClick={() => onSelect(layerGroup.id)}
     sx={{
       cursor: 'pointer',
       border: `2px solid transparent`,
       borderRadius: '4px',
-      padding: '4px',
       textAlign: 'left',
     }}
   >
@@ -51,18 +59,20 @@ const LayerItem = ({ layerGroup, isSelected, onSelect }: LayerItemProps) => (
               ? theme.palette.secondary.dark
               : theme.palette.primary.main,
         },
+        width: isVertical ? '10rem' : '12rem',
+        height: isVertical ? '10rem' : '12rem',
       }}
     >
       <Image
         src={layerGroup.thumbnail || ''}
         alt={layerGroup.name || ''}
-        width={100}
-        height={100}
+        width={256}
+        height={256}
         style={{
           width: '100%',
           height: 'auto',
           aspectRatio: '1 / 1',
-          objectFit: 'cover',
+          objectFit: 'contain',
         }}
       />
     </Box>
@@ -74,6 +84,7 @@ const LayerItem = ({ layerGroup, isSelected, onSelect }: LayerItemProps) => (
         mt: 1,
         whiteSpace: 'normal',
         overflowWrap: 'break-word',
+        width: isVertical ? '120px' : '180px',
       }}
     >
       {layerGroup.name}
@@ -163,7 +174,9 @@ export const MapLayerButton = ({
           {
             name: 'preventOverflow',
             options: {
-              padding: { right: 16, top: 16 },
+              padding: 16,
+              tether: false,
+              // altAxis: true,
             },
           },
         ]}
@@ -173,14 +186,15 @@ export const MapLayerButton = ({
       >
         <Paper
           sx={(theme) => ({
-            width: filteredLayerGroups.length > 1 ? 430 : 200,
-            // maxHeight: 400,
+            maxWidth: `calc(100vw - 78px)`,
+            maxHeight: isVertical ? `calc(100vh - 32px)` : 'calc(100vh - 78px)',
             overflowY: 'auto',
-            p: 4,
+            p: '2rem',
             backgroundColor: isVertical
               ? theme.palette.neutral.light
               : alpha(theme.palette.neutral.light, 0.9),
             borderRadius: '0.3125rem',
+            width: 'fit-content',
           })}
         >
           <ClickAwayListener onClickAway={handleClose}>
@@ -193,15 +207,26 @@ export const MapLayerButton = ({
                   {headerLabel}
                 </Typography>
               )}
-              <Grid container spacing={2}>
+              <Grid
+                container
+                spacing={'1rem'}
+                sx={{
+                  width: 'max-content',
+                  display: 'inline-flex',
+                  wrap: 'wrap',
+                  maxWidth: isVertical
+                    ? '10rem'
+                    : filteredLayerGroups.length > 1
+                    ? '25.5rem'
+                    : '12rem',
+                }}
+              >
                 {filteredLayerGroups.map((layerGroup: ListedLayerGroup) => (
-                  <Grid
-                    size={filteredLayerGroups.length > 1 ? 6 : 12}
-                    key={layerGroup.id}
-                  >
+                  <Grid sx={{ flex: '0 0 auto' }} key={layerGroup.id}>
                     <LayerItem
                       layerGroup={layerGroup}
                       isSelected={visibleLayerGroupIds.includes(layerGroup.id)}
+                      isVertical={isVertical}
                       onSelect={() => {
                         toggleLayerGroup(layerGroup.id, layerGroup.addOptions)
                       }}
