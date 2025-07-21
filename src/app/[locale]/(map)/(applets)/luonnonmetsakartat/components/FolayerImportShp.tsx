@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
 import { Feature, FeatureCollection } from 'geojson'
 import { useTranslate, T } from '@tolgee/react'
-import { SelectChangeEvent } from '@mui/material'
+import { SelectChangeEvent, Box, Typography } from '@mui/material'
 
 import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
 import CheckBoxWithText from '#/components/common/CheckBoxWithText'
 import DropDownSelect from '#/components/common/DropDownSelect'
+import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
 
 import FolayerImportActionsRow from './FolayerImportActionsRow'
-import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
 import FolayerImportCodeRecordSelect from './FolayerImportCodeRecordSelect'
 import { IndexingStrategy } from '../common/types'
 
@@ -216,74 +216,89 @@ const FolayerImportShp = ({
     <>
       {columns.length > 0 && (
         <>
-          <DropDownSelect
-            label={t('sidebar.admin.create.indexing_strategy_label')}
-            value={indexingStrategy}
-            onChange={handleIndexingStrategyChange}
-            options={[
-              {
-                value: 'id',
-                label: t('sidebar.admin.create.indexing_strategy.id'),
-              },
-              {
-                value: 'name_municipality',
-                label: t(
-                  'sidebar.admin.create.indexing_strategy.name_municipality'
-                ),
-              },
-            ]}
-            sx={{ width: '100%' }}
-          />
-          {indexingStrategy === 'id' && (
+          <Box
+            sx={(theme) => ({
+              backgroundColor: theme.palette.neutral.light,
+              p: 4,
+              borderRadius: '0.3125rem',
+            })}
+          >
+            <Typography variant="h4" sx={{ mb: 4 }}>
+              {t('sidebar.admin.create.column_selection_header')}
+            </Typography>
+            <DropDownSelect
+              label={t('sidebar.admin.create.indexing_strategy_label')}
+              value={indexingStrategy}
+              onChange={handleIndexingStrategyChange}
+              options={[
+                {
+                  value: 'id',
+                  label: t('sidebar.admin.create.indexing_strategy.id'),
+                },
+                {
+                  value: 'name_municipality',
+                  label: t(
+                    'sidebar.admin.create.indexing_strategy.name_municipality'
+                  ),
+                },
+              ]}
+              sx={{ width: '100%' }}
+            />
+            {indexingStrategy === 'id' && (
+              <FolayerImportCodeRecordSelect
+                columns={columns}
+                selectedColumn={idCol}
+                onColumnChange={handleIdColChange}
+                label={t('sidebar.admin.create.select_folayer_id_record')}
+                allowEmpty={true}
+                sx={{ mt: 4, width: '100%' }}
+              />
+            )}
             <FolayerImportCodeRecordSelect
               columns={columns}
-              selectedColumn={idCol}
-              onColumnChange={handleIdColChange}
-              label={t('sidebar.admin.create.select_folayer_id_record')}
+              selectedColumn={nameCol}
+              onColumnChange={handleNameColChange}
+              label={t('sidebar.admin.create.select_folayer_name_record')}
               allowEmpty={true}
               sx={{ mt: 4, width: '100%' }}
             />
-          )}
-          <FolayerImportCodeRecordSelect
-            columns={columns}
-            selectedColumn={nameCol}
-            onColumnChange={handleNameColChange}
-            label={t('sidebar.admin.create.select_folayer_name_record')}
-            allowEmpty={true}
-            sx={{ mt: 4, width: '100%' }}
-          />
-          <FolayerImportCodeRecordSelect
-            columns={columns}
-            selectedColumn={municipalityCol}
-            onColumnChange={handleMunicipalityColChange}
-            label={t('sidebar.admin.create.select_folayer_municipality_record')}
-            allowEmpty={true}
-            sx={{ mt: 4, width: '100%' }}
-          />
-          <FolayerImportCodeRecordSelect
-            columns={columns}
-            selectedColumn={regionCol}
-            onColumnChange={handleRegionColChange}
-            label={t('sidebar.admin.create.select_folayer_region_record')}
-            allowEmpty={true}
-            sx={{ mt: 4, width: '100%' }}
-          />
-          <FolayerImportCodeRecordSelect
-            columns={columns}
-            selectedColumn={descriptionCol}
-            onColumnChange={handleDescriptionColChange}
-            label={t('sidebar.admin.create.select_folayer_description_record')}
-            allowEmpty={true}
-            sx={{ mt: 4, width: '100%' }}
-          />
-          <FolayerImportCodeRecordSelect
-            columns={columns}
-            selectedColumn={areaCol}
-            onColumnChange={handleAreaColChange}
-            label={t('sidebar.admin.create.select_folayer_area_record')}
-            allowEmpty={true}
-            sx={{ mt: 4, width: '100%' }}
-          />
+            <FolayerImportCodeRecordSelect
+              columns={columns}
+              selectedColumn={municipalityCol}
+              onColumnChange={handleMunicipalityColChange}
+              label={t(
+                'sidebar.admin.create.select_folayer_municipality_record'
+              )}
+              allowEmpty={true}
+              sx={{ mt: 4, width: '100%' }}
+            />
+            <FolayerImportCodeRecordSelect
+              columns={columns}
+              selectedColumn={regionCol}
+              onColumnChange={handleRegionColChange}
+              label={t('sidebar.admin.create.select_folayer_region_record')}
+              allowEmpty={true}
+              sx={{ mt: 4, width: '100%' }}
+            />
+            <FolayerImportCodeRecordSelect
+              columns={columns}
+              selectedColumn={descriptionCol}
+              onColumnChange={handleDescriptionColChange}
+              label={t(
+                'sidebar.admin.create.select_folayer_description_record'
+              )}
+              allowEmpty={true}
+              sx={{ mt: 4, width: '100%' }}
+            />
+            <FolayerImportCodeRecordSelect
+              columns={columns}
+              selectedColumn={areaCol}
+              onColumnChange={handleAreaColChange}
+              label={t('sidebar.admin.create.select_folayer_area_record')}
+              allowEmpty={true}
+              sx={{ mt: 4, width: '100%' }}
+            />
+          </Box>
           <TextFieldWithHeader
             headerText={t('sidebar.admin.create.name.header')}
             value={folayerNameValue}
