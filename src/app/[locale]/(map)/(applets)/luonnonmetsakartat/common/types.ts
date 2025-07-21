@@ -45,6 +45,8 @@ export interface AdminFolayerConf extends FolayerConf {
   unsyncedChanges: boolean
 }
 
+export type IndexingStrategy = 'name_municipality' | 'id'
+
 export type FolayerFeatureProperties = FeatureProperties & {
   id: string
   name: string
