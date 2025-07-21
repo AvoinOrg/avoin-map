@@ -23,6 +23,7 @@ interface Props {
   selectSx?: SxProps<Theme>
   labelSx?: SxProps<Theme>
   iconSx?: SxProps<Theme>
+  typographySx?: SxProps<Theme>
 }
 
 const DropDownSelect = ({
@@ -35,6 +36,7 @@ const DropDownSelect = ({
   selectSx,
   labelSx,
   iconSx,
+  typographySx,
 }: Props) => {
   const [hasEmpty, setHasEmpty] = React.useState(true)
 
@@ -48,7 +50,9 @@ const DropDownSelect = ({
   const currentValue = value == null ? '' : value
 
   return (
-    <FormControl sx={[...(Array.isArray(sx) ? sx : [sx])]}>
+    <FormControl
+      sx={[{ maxWidth: '100%' }, ...(Array.isArray(sx) ? sx : [sx])]}
+    >
       {label && (
         <Typography
           sx={[
@@ -68,7 +72,7 @@ const DropDownSelect = ({
         IconComponent={DownIcon}
         MenuProps={{
           anchorOrigin: {
-            vertical: 'top',
+            vertical: 'bottom',
             horizontal: 'left',
           },
           transformOrigin: {
@@ -81,15 +85,23 @@ const DropDownSelect = ({
             backgroundColor: 'background.main',
             '.MuiSvgIcon-root': { fontSize: '16px', margin: '0 10px 0 0' },
             '.MuiSelect-icon': {
-              mt: -0.3,
+              mt: 0.3,
               ...(iconSx as Record<string, any>),
             },
+            typography: 'body2',
           },
           ...(Array.isArray(selectSx) ? selectSx : [selectSx]),
         ]}
       >
         {hasEmpty === true && value != null && value !== '' && (
-          <MenuItem key={`invalid-${value}`} value={value}>
+          <MenuItem
+            key={`invalid-${value}`}
+            value={value}
+            sx={[
+              { typography: 'body2' },
+              ...(Array.isArray(typographySx) ? typographySx : [typographySx]),
+            ]}
+          >
             <i>
               <T
                 keyName={'components.drop_down_select.invalid_value'}
@@ -100,7 +112,14 @@ const DropDownSelect = ({
           </MenuItem>
         )}
         {useEmpty && (
-          <MenuItem key="empty-selection" value="">
+          <MenuItem
+            key="empty-selection"
+            value=""
+            sx={[
+              { typography: 'body2' },
+              ...(Array.isArray(typographySx) ? typographySx : [typographySx]),
+            ]}
+          >
             <i>
               <T
                 keyName={'components.drop_down_select.empty_selection'}
@@ -110,7 +129,14 @@ const DropDownSelect = ({
           </MenuItem>
         )}
         {options.map((option) => (
-          <MenuItem key={`option-${option.value}`} value={option.value}>
+          <MenuItem
+            key={`option-${option.value}`}
+            value={option.value}
+            sx={[
+              { typography: 'body2' },
+              ...(Array.isArray(typographySx) ? typographySx : [typographySx]),
+            ]}
+          >
             {option.label}
           </MenuItem>
         ))}
