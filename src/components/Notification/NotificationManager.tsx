@@ -17,7 +17,9 @@ const NotificationManager = () => {
           updateNotification(notification.id, { shown: true })
           enqueueSnackbar(notification.message, {
             variant: notification.variant || 'default',
-            autoHideDuration: notification.duration || 5000,
+            autoHideDuration:
+              notification.duration || notification.manualDismiss ? null : 6000,
+            persist: notification.manualDismiss,
             hideIconVariant: true,
             action: (key) => (
               <Box
