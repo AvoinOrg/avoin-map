@@ -16,7 +16,10 @@ import BigMenuButton from '#/components/common/BigMenuButton'
 import { SidebarContentBox } from '#/components/Sidebar'
 import { Upload } from '#/components/icons'
 
-import { FeatureProperties } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
+import {
+  FeatureProperties,
+  IndexingStrategy,
+} from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 import { routeTree } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/routes'
 import FolayerImportShp from 'applets/luonnonmetsakartat/components/FolayerImportShp'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
@@ -43,16 +46,43 @@ const Page = () => {
     }
   }, [])
 
-  const initializePlan = async (
-    name: string,
-    colorCode: string,
+  const initializePlan = async (params: {
+    indexingStrategy: IndexingStrategy
+    nameCol: string
+    municipalityCol: string
+    name: string
+    colorCode: string
     isVisible: boolean
-  ) => {
+    idCol?: string
+    regionCol?: string
+    descriptionCol?: string
+    areaCol?: string
+  }) => {
     if (!arrayBuffers || arrayBuffers.length === 0) {
       return
     }
 
+    const {
+      indexingStrategy,
+      nameCol,
+      municipalityCol,
+      name,
+      colorCode,
+      isVisible,
+      idCol,
+      regionCol,
+      descriptionCol,
+      areaCol,
+    } = params
+
     localFolayerPostMutation.mutate({
+      indexingStrategy: indexingStrategy,
+      nameCol: nameCol,
+      municipalityCol: municipalityCol,
+      regionCol: regionCol,
+      descriptionCol: descriptionCol,
+      areaCol: areaCol,
+      idCol: idCol,
       name,
       isHidden: !isVisible,
       colorCode: colorCode,
@@ -118,19 +148,61 @@ const Page = () => {
   }
 
   const handleFinish = async ({
+    indexingStrategy,
+    idCol,
+    nameCol,
+    municipalityCol,
+    regionCol,
+    descriptionCol,
+    areaCol,
     name,
     colorCode,
     isVisible,
   }: {
-    name: string
-    colorCode: string
-    isVisible: boolean
+    indexingStrategy: IndexingStrategy
+    idCol?: string
+    nameCol: string
+    municipalityCol: string
+    regionCol?: string
+    descriptionCol?: string
+    areaCol?: string
+    name?: string
+    colorCode?: string
+    isVisible?: boolean
   }) => {
     if (isInitializingRef.current) {
       return
     }
+    if (
+      nameCol == null ||
+      municipalityCol == null ||
+      name == null ||
+      colorCode == null ||
+      isVisible == null
+    ) {
+      console.error(
+        'nameCol, municipalityCol, name, color code and isiVisible are required'
+      )
+      return
+    }
+    if (indexingStrategy === 'id' && !idCol) {
+      console.error('idCol is required when indexingStrategy is "id"')
+      return
+    }
+
     try {
-      const id = await initializePlan(name, colorCode, isVisible)
+      await initializePlan({
+        indexingStrategy,
+        nameCol,
+        municipalityCol,
+        name,
+        colorCode,
+        isVisible,
+        idCol,
+        regionCol,
+        descriptionCol,
+        areaCol,
+      })
       // if (id) {
       //   const route = getRoute(routeTree.plans.plan, routeTree, {
       //     routeParams: {
@@ -155,7 +227,6 @@ const Page = () => {
         sx={(theme) => ({
           width: '100%',
           minHeight: '60px',
-          mb: 6,
         })}
       >
         {fileName ? fileName : t('sidebar.admin.create.select_file')}
