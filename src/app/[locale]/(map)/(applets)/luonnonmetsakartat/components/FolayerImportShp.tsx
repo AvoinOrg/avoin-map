@@ -7,6 +7,7 @@ import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
 import CheckBoxWithText from '#/components/common/CheckBoxWithText'
 import DropDownSelect from '#/components/common/DropDownSelect'
 import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
+import { useUIStore } from '#/common/store'
 
 import FolayerImportActionsRow from './FolayerImportActionsRow'
 import FolayerImportCodeRecordSelect from './FolayerImportCodeRecordSelect'
@@ -35,6 +36,7 @@ const FolayerImportShp = ({
   isInitializing,
 }: FolayerImportShpProps) => {
   const { t } = useTranslate('luonnonmetsakartat')
+  const notify = useUIStore((state) => state.notify)
   const [geojson, setGeojson] = useState<FeatureCollection>()
   // const [zoningCol, setZoningCol] = useState<string>()
   const [folayerNameValue, setFolayerNameValue] = useState<string>('')
@@ -197,6 +199,56 @@ const FolayerImportShp = ({
 
   const handleFinish = () => {
     if (folayerNameValue != null && geojson != null) {
+      if (indexingStrategy === 'name_municipality') {
+        const nameMunicipalityPairs = new Set<string>()
+        for (const feature of geojson.features) {
+          const name = feature.properties?.[nameCol as string]
+          const municipality = feature.properties?.[municipalityCol as string]
+          if (name && municipality) {
+            const pair = `${name}|${municipality}`
+            if (nameMunicipalityPairs.has(pair)) {
+              const errorMessage = t(
+                'sidebar.admin.create.error_name_municipality_not_unique',
+                {
+                  nameCol: nameCol,
+                  municipalityCol: municipalityCol,
+                  name: name,
+                  municipality: municipality,
+                }
+              )
+              notify({
+                variant: 'error',
+                message: errorMessage,
+                manualDismiss: true,
+              })
+              console.error('Name and municipality pair is not unique:', pair)
+
+              return
+            }
+            nameMunicipalityPairs.add(pair)
+          }
+        }
+      } else if (indexingStrategy === 'id') {
+        const idSet = new Set<string | number>()
+        for (const feature of geojson.features) {
+          const id = feature.properties?.[idCol as string]
+
+          if (idSet.has(id)) {
+            const errorMessage = t('sidebar.admin.create.error_id_not_unique', {
+              id: id,
+            })
+            notify({
+              variant: 'error',
+              message: errorMessage,
+              manualDismiss: true,
+            })
+            console.error('ID is not unique:', id)
+            return
+          }
+          idSet.add(id)
+        }
+      }
+
       onFinish({
         name: folayerNameValue,
         colorCode: folayerColorValue,
@@ -338,7 +390,6 @@ const FolayerImportShp = ({
         isAcceptDisabled={
           folayerNameValue == null ||
           folayerNameValue.length === 0 ||
-          idCol == null ||
           nameCol == null ||
           municipalityCol == null ||
           (indexingStrategy === 'id' && idCol == null) ||
