@@ -1,19 +1,30 @@
 import { useState, useEffect } from 'react'
 import { Feature, FeatureCollection } from 'geojson'
 import { useTranslate, T } from '@tolgee/react'
+import { SelectChangeEvent } from '@mui/material'
 
 import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
 import CheckBoxWithText from '#/components/common/CheckBoxWithText'
+import DropDownSelect from '#/components/common/DropDownSelect'
 
 import FolayerImportActionsRow from './FolayerImportActionsRow'
 import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
+import FolayerImportCodeRecordSelect from './FolayerImportCodeRecordSelect'
+import { IndexingStrategy } from '../common/types'
 
 interface FolayerImportShpProps {
   fileBuffers: ArrayBuffer[]
   onFinish: (params: {
-    name: string
-    colorCode: string
-    isVisible: boolean
+    indexingStrategy: IndexingStrategy
+    nameCol: string
+    municipalityCol: string
+    idCol?: string
+    regionCol?: string
+    descriptionCol?: string
+    areaCol?: string
+    name?: string
+    colorCode?: string
+    isVisible?: boolean
   }) => void
   isInitializing: boolean
 }
@@ -30,8 +41,15 @@ const FolayerImportShp = ({
   const [folayerColorValue, setFolayerColorValue] = useState<string>('#06402B')
   const [isVisible, setIsVisible] = useState<boolean>(false)
   // const [folayerDescriptionValue, setFolayerDescriptionValue] = useState<string>('')
-  // const [nameCol, setNameCol] = useState<string | undefined>() // nameCol can be optional
   const [columns, setColumns] = useState<string[]>([])
+  const [idCol, setIdCol] = useState<string | undefined>()
+  const [nameCol, setNameCol] = useState<string | undefined>()
+  const [descriptionCol, setDescriptionCol] = useState<string | undefined>()
+  const [areaCol, setAreaCol] = useState<string | undefined>()
+  const [municipalityCol, setMunicipalityCol] = useState<string | undefined>()
+  const [regionCol, setRegionCol] = useState<string | undefined>()
+  const [indexingStrategy, setIndexingStrategy] =
+    useState<IndexingStrategy>('id')
 
   useEffect(() => {
     // Load shp into geojson to validate it locally
@@ -73,16 +91,94 @@ const FolayerImportShp = ({
       }
 
       setColumns(columns)
+
+      const findBestColumnMatch = (
+        cols: string[],
+        candidates: string[],
+        allowPartial: boolean = false
+      ): string | undefined => {
+        const lowerCaseColumns = cols.map((c) => ({
+          original: c,
+          lower: c.toLowerCase(),
+        }))
+
+        // Prioritize exact matches
+        for (const candidate of candidates) {
+          const found = lowerCaseColumns.find(
+            (c) => c.lower === candidate.toLowerCase()
+          )
+          if (found) {
+            return found.original
+          }
+        }
+
+        // If no exact match, and partial is allowed, try partial
+        if (allowPartial) {
+          for (const candidate of candidates) {
+            const found = lowerCaseColumns.find((c) =>
+              c.lower.includes(candidate.toLowerCase())
+            )
+            if (found) {
+              return found.original
+            }
+          }
+        }
+
+        return undefined
+      }
+
+      const idCandidates = ['id', 'fid', 'oid', 'objectid', 'tunnus']
+      const nameCandidates = ['name', 'nimi']
+      const descriptionCandidates = ['description', 'desc', 'kuvaus']
+      const areaCandidates = ['ala', 'area', 'pinta'] // Partial matches will catch variations
+      const municipalityCandidates = ['municipality', 'kunta']
+      const regionCandidates = ['region', 'maakunta']
+
+      setIdCol(findBestColumnMatch(columns, idCandidates))
+      setNameCol(findBestColumnMatch(columns, nameCandidates))
+      setDescriptionCol(findBestColumnMatch(columns, descriptionCandidates))
+      setAreaCol(findBestColumnMatch(columns, areaCandidates, true))
+      setMunicipalityCol(findBestColumnMatch(columns, municipalityCandidates))
+      setRegionCol(findBestColumnMatch(columns, regionCandidates))
     }
   }, [geojson])
 
-  // const handleZoningColChange = (newZoningCol: string | undefined) => {
-  //   setZoningCol(newZoningCol)
-  // }
+  const handleNameColChange = (newNameCol: string | undefined) => {
+    setNameCol(newNameCol)
+  }
 
-  // const handleNameColChange = (newNameCol: string | undefined) => {
-  //   setNameCol(newNameCol)
-  // }
+  const handleMunicipalityColChange = (
+    newMunicipalityCol: string | undefined
+  ) => {
+    setMunicipalityCol(newMunicipalityCol)
+  }
+
+  const handleRegionColChange = (newRegionCol: string | undefined) => {
+    setRegionCol(newRegionCol)
+  }
+
+  const handleIdColChange = (newIdCol: string | undefined) => {
+    setIdCol(newIdCol)
+  }
+
+  const handleDescriptionColChange = (
+    newDescriptionCol: string | undefined
+  ) => {
+    setDescriptionCol(newDescriptionCol)
+  }
+
+  const handleAreaColChange = (newAreaCol: string | undefined) => {
+    setAreaCol(newAreaCol)
+  }
+
+  const handleIndexingStrategyChange = (event: SelectChangeEvent) => {
+    const value = event.target.value
+    if (value === 'id' || value === 'name_municipality') {
+      setIndexingStrategy(value as IndexingStrategy)
+    } else {
+      throw new Error(`Invalid indexing strategy: ${value}`)
+    }
+  }
 
   const handleFolayerNameChange = (value: string) => {
     setFolayerNameValue(value)
@@ -105,6 +201,13 @@ const FolayerImportShp = ({
         name: folayerNameValue,
         colorCode: folayerColorValue,
         isVisible: isVisible,
+        indexingStrategy: indexingStrategy,
+        idCol: idCol,
+        nameCol: nameCol as string,
+        municipalityCol: municipalityCol as string,
+        regionCol: regionCol,
+        descriptionCol: descriptionCol,
+        areaCol: areaCol,
       })
     }
   }
@@ -113,12 +216,81 @@ const FolayerImportShp = ({
     <>
       {columns.length > 0 && (
         <>
+          <DropDownSelect
+            label={t('sidebar.admin.create.indexing_strategy_label')}
+            value={indexingStrategy}
+            onChange={handleIndexingStrategyChange}
+            options={[
+              {
+                value: 'id',
+                label: t('sidebar.admin.create.indexing_strategy.id'),
+              },
+              {
+                value: 'name_municipality',
+                label: t(
+                  'sidebar.admin.create.indexing_strategy.name_municipality'
+                ),
+              },
+            ]}
+            sx={{ width: '100%' }}
+          />
+          {indexingStrategy === 'id' && (
+            <FolayerImportCodeRecordSelect
+              columns={columns}
+              selectedColumn={idCol}
+              onColumnChange={handleIdColChange}
+              label={t('sidebar.admin.create.select_folayer_id_record')}
+              allowEmpty={true}
+              sx={{ mt: 4, width: '100%' }}
+            />
+          )}
+          <FolayerImportCodeRecordSelect
+            columns={columns}
+            selectedColumn={nameCol}
+            onColumnChange={handleNameColChange}
+            label={t('sidebar.admin.create.select_folayer_name_record')}
+            allowEmpty={true}
+            sx={{ mt: 4, width: '100%' }}
+          />
+          <FolayerImportCodeRecordSelect
+            columns={columns}
+            selectedColumn={municipalityCol}
+            onColumnChange={handleMunicipalityColChange}
+            label={t('sidebar.admin.create.select_folayer_municipality_record')}
+            allowEmpty={true}
+            sx={{ mt: 4, width: '100%' }}
+          />
+          <FolayerImportCodeRecordSelect
+            columns={columns}
+            selectedColumn={regionCol}
+            onColumnChange={handleRegionColChange}
+            label={t('sidebar.admin.create.select_folayer_region_record')}
+            allowEmpty={true}
+            sx={{ mt: 4, width: '100%' }}
+          />
+          <FolayerImportCodeRecordSelect
+            columns={columns}
+            selectedColumn={descriptionCol}
+            onColumnChange={handleDescriptionColChange}
+            label={t('sidebar.admin.create.select_folayer_description_record')}
+            allowEmpty={true}
+            sx={{ mt: 4, width: '100%' }}
+          />
+          <FolayerImportCodeRecordSelect
+            columns={columns}
+            selectedColumn={areaCol}
+            onColumnChange={handleAreaColChange}
+            label={t('sidebar.admin.create.select_folayer_area_record')}
+            allowEmpty={true}
+            sx={{ mt: 4, width: '100%' }}
+          />
           <TextFieldWithHeader
             headerText={t('sidebar.admin.create.name.header')}
             value={folayerNameValue}
             onChange={handleFolayerNameChange}
             placeholderText={t('sidebar.admin.create.name.placeholder')}
             disabled={isInitializing}
+            sx={{ mt: 7 }}
           ></TextFieldWithHeader>
           <ColorPickerWithPopover
             color={folayerColorValue}
@@ -144,20 +316,6 @@ const FolayerImportShp = ({
             placeholderText={t('sidebar.admin.create.description.placeholder')}
             sx={{ mt: 2.5 }}
           ></TextFieldWithHeader> */}
-          {/* <FolayerImportCodeRecordSelect
-            columns={columns}
-            selectedColumn={zoningCol}
-            onColumnChange={handleZoningColChange}
-            label={t('sidebar.create.select_zone_code_record')}
-          />
-          <FolayerImportCodeRecordSelect
-            columns={columns}
-            selectedColumn={nameCol}
-            onColumnChange={handleNameColChange}
-            label={t('sidebar.create.select_zone_name_record')}
-            allowEmpty={true}
-            sx={{ mt: 5 }}
-          /> */}
         </>
       )}
       <FolayerImportActionsRow
@@ -165,6 +323,10 @@ const FolayerImportShp = ({
         isAcceptDisabled={
           folayerNameValue == null ||
           folayerNameValue.length === 0 ||
+          idCol == null ||
+          nameCol == null ||
+          municipalityCol == null ||
+          (indexingStrategy === 'id' && idCol == null) ||
           isInitializing
         }
       ></FolayerImportActionsRow>
