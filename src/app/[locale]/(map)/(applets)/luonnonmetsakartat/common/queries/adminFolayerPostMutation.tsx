@@ -4,7 +4,7 @@ import JSZip from 'jszip'
 import { useSession } from 'next-auth/react'
 import { FeatureCollection } from 'geojson'
 
-import { AdminFolayerConf, FolayerConf, FolayerConfState } from '../types'
+import { AdminFolayerConf, FolayerConf, FolayerConfState, IndexingStrategy } from '../types'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { useUIStore } from '#/common/store'
 import { useTranslate } from '@tolgee/react'
@@ -12,6 +12,13 @@ import { useTranslate } from '@tolgee/react'
 const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 
 type MutationData = {
+  indexingStrategy: IndexingStrategy
+  nameCol: string
+  municipalityCol: string
+  regionCol?: string
+  descriptionCol?: string
+  areaCol?: string
+  idCol?: string
   name: string
   isHidden: boolean
   rawShapefile: ArrayBuffer
@@ -45,6 +52,21 @@ export const adminFolayerPostMutation = (): UseMutationOptions<
       formData.append('name', mutationData.name)
       formData.append('is_hidden', mutationData.isHidden.toString())
       formData.append('color_code', mutationData.colorCode)
+      formData.append('indexing_strategy', mutationData.indexingStrategy)
+      formData.append('name_col', mutationData.nameCol)
+      formData.append('municipality_col', mutationData.municipalityCol)
+      if (mutationData.regionCol) {
+        formData.append('region_col', mutationData.regionCol)
+      }
+      if (mutationData.descriptionCol) {
+        formData.append('description_col', mutationData.descriptionCol)
+      }
+      if (mutationData.areaCol) {
+        formData.append('area_col', mutationData.areaCol)
+      }
+      if (mutationData.idCol) {
+        formData.append('id_col', mutationData.idCol)
+      }
 
       const postRes = await axios.post(`${API_URL}/layer`, formData, {
         headers: {
