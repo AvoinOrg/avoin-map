@@ -296,16 +296,18 @@ const FolayerImportShp = ({
               ]}
               sx={{ width: '100%' }}
             />
-            {indexingStrategy === 'id' && (
-              <FolayerImportCodeRecordSelect
-                columns={columns}
-                selectedColumn={idCol}
-                onColumnChange={handleIdColChange}
-                label={t('sidebar.admin.create.select_folayer_id_record')}
-                allowEmpty={true}
-                sx={{ mt: 4, width: '100%' }}
-              />
-            )}
+            <FolayerImportCodeRecordSelect
+              columns={columns}
+              selectedColumn={idCol}
+              onColumnChange={handleIdColChange}
+              label={
+                indexingStrategy === 'id'
+                  ? t('sidebar.admin.create.select_folayer_id_record')
+                  : t('sidebar.admin.create.select_folayer_id_record_optional')
+              }
+              allowEmpty={true}
+              sx={{ mt: 4, width: '100%' }}
+            />
             <FolayerImportCodeRecordSelect
               columns={columns}
               selectedColumn={nameCol}
