@@ -11,7 +11,8 @@ export const adminFolayerQuery = (
   folayerId: string
 ): UseQueryOptions<AdminFolayerConf | null> => {
   const { data: session } = useSession()
-  const updateAdminFolayerConf = useAppletStore.getState().updateAdminFolayerConf
+  const updateAdminFolayerConf =
+    useAppletStore.getState().updateAdminFolayerConf
   const addAdminFolayerConf = useAppletStore.getState().addAdminFolayerConf
 
   return {
@@ -42,9 +43,10 @@ export const adminFolayerQuery = (
           colorCode: response.data.color_code || '',
           isVisible: !response.data.is_hidden, // Note the inversion of is_hidden to isVisible
           state: FolayerConfState.Idle,
-          createdTs: response.data.created_ts * 1000, // Convert to milliseconds
-          updatedTs: response.data.updated_ts * 1000, // Convert to milliseconds
+          createdTs: response.data.created_ts,
+          updatedTs: response.data.updated_ts,
           unsyncedChanges: false,
+          colOptions: response.data.col_options,
         }
 
         const existingFolayer =

@@ -4,7 +4,12 @@ import JSZip from 'jszip'
 import { useSession } from 'next-auth/react'
 import { FeatureCollection } from 'geojson'
 
-import { AdminFolayerConf, FolayerConf, FolayerConfState, IndexingStrategy } from '../types'
+import {
+  AdminFolayerConf,
+  ColOptions,
+  FolayerConfState,
+  IndexingStrategy,
+} from '../types'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { useUIStore } from '#/common/store'
 import { useTranslate } from '@tolgee/react'
@@ -12,13 +17,7 @@ import { useTranslate } from '@tolgee/react'
 const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 
 type MutationData = {
-  indexingStrategy: IndexingStrategy
-  nameCol: string
-  municipalityCol: string
-  regionCol?: string
-  descriptionCol?: string
-  areaCol?: string
-  idCol?: string
+  colOptions: ColOptions
   name: string
   isHidden: boolean
   rawShapefile: ArrayBuffer
@@ -52,20 +51,29 @@ export const adminFolayerPostMutation = (): UseMutationOptions<
       formData.append('name', mutationData.name)
       formData.append('is_hidden', mutationData.isHidden.toString())
       formData.append('color_code', mutationData.colorCode)
-      formData.append('indexing_strategy', mutationData.indexingStrategy)
-      formData.append('name_col', mutationData.nameCol)
-      formData.append('municipality_col', mutationData.municipalityCol)
-      if (mutationData.regionCol) {
-        formData.append('region_col', mutationData.regionCol)
+      formData.append(
+        'indexing_strategy',
+        mutationData.colOptions.indexingStrategy
+      )
+      formData.append('name_col', mutationData.colOptions.nameCol)
+      formData.append(
+        'municipality_col',
+        mutationData.colOptions.municipalityCol
+      )
+      if (mutationData.colOptions.regionCol) {
+        formData.append('region_col', mutationData.colOptions.regionCol)
       }
-      if (mutationData.descriptionCol) {
-        formData.append('description_col', mutationData.descriptionCol)
+      if (mutationData.colOptions.descriptionCol) {
+        formData.append(
+          'description_col',
+          mutationData.colOptions.descriptionCol
+        )
       }
-      if (mutationData.areaCol) {
-        formData.append('area_col', mutationData.areaCol)
+      if (mutationData.colOptions.areaCol) {
+        formData.append('area_col', mutationData.colOptions.areaCol)
       }
-      if (mutationData.idCol) {
-        formData.append('id_col', mutationData.idCol)
+      if (mutationData.colOptions.idCol) {
+        formData.append('id_col', mutationData.colOptions.idCol)
       }
 
       const postRes = await axios.post(`${API_URL}/layer`, formData, {
@@ -91,10 +99,11 @@ export const adminFolayerPostMutation = (): UseMutationOptions<
         name: postRes.data.name,
         isVisible: !postRes.data.is_hidden,
         state: FolayerConfState.Idle,
-        createdTs: postRes.data.created_ts * 1000,
-        updatedTs: postRes.data.updated_ts * 1000,
+        createdTs: postRes.data.created_ts,
+        updatedTs: postRes.data.updated_ts,
         unsyncedChanges: false,
         colorCode: postRes.data.color_code,
+        colOptions: postRes.data.col_options,
       }
       await addAdminFolayerConf(adminFolayerConf)
 
