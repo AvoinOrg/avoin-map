@@ -30,6 +30,7 @@ export interface FolayerConf {
   createdTs: number
   updatedTs: number
   description?: string
+  colOptions?: ColOptions
 }
 
 export enum FolayerConfState {
@@ -46,6 +47,16 @@ export interface AdminFolayerConf extends FolayerConf {
 }
 
 export type IndexingStrategy = 'name_municipality' | 'id'
+
+export interface ColOptions {
+  indexingStrategy: IndexingStrategy
+  idCol?: string
+  nameCol: string
+  municipalityCol: string
+  regionCol?: string
+  descriptionCol?: string
+  areaCol?: string
+}
 
 export type FolayerFeatureProperties = FeatureProperties & {
   id: string
