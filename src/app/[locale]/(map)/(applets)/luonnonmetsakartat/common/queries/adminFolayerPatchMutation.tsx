@@ -4,7 +4,12 @@ import JSZip from 'jszip'
 import { useSession } from 'next-auth/react'
 import { FeatureCollection } from 'geojson'
 
-import { AdminFolayerConf, FolayerConf, FolayerConfState } from '../types'
+import {
+  AdminFolayerConf,
+  FolayerConf,
+  FolayerConfState,
+  ColOptions,
+} from '../types'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { useUIStore } from '#/common/store'
 import { useTranslate } from '@tolgee/react'
@@ -52,6 +57,33 @@ export const adminFolayerPatchMutation = (): UseMutationOptions<
         formData.append('color_code', mutationData.colorCode)
       }
 
+      if (mutationData.colOptions) {
+        formData.append(
+          'indexing_strategy',
+          mutationData.colOptions.indexingStrategy
+        )
+        formData.append('name_col', mutationData.colOptions.nameCol)
+        formData.append(
+          'municipality_col',
+          mutationData.colOptions.municipalityCol
+        )
+        if (mutationData.colOptions.regionCol) {
+          formData.append('region_col', mutationData.colOptions.regionCol)
+        }
+        if (mutationData.colOptions.descriptionCol) {
+          formData.append(
+            'description_col',
+            mutationData.colOptions.descriptionCol
+          )
+        }
+        if (mutationData.colOptions.areaCol) {
+          formData.append('area_col', mutationData.colOptions.areaCol)
+        }
+        if (mutationData.colOptions.idCol) {
+          formData.append('id_col', mutationData.colOptions.idCol)
+        }
+      }
+
       const postRes = await axios.patch(
         `${API_URL}/layer/${mutationData.id}`,
         formData,
@@ -79,10 +111,11 @@ export const adminFolayerPatchMutation = (): UseMutationOptions<
         name: postRes.data.name,
         isVisible: !postRes.data.is_hidden,
         state: FolayerConfState.Idle,
-        createdTs: postRes.data.created_ts * 1000,
-        updatedTs: postRes.data.updated_ts * 1000,
+        createdTs: postRes.data.created_ts,
+        updatedTs: postRes.data.updated_ts,
         unsyncedChanges: false,
         colorCode: postRes.data.color_code,
+        colOptions: postRes.data.col_options,
       }
       await addAdminFolayerConf(adminFolayerConf)
 

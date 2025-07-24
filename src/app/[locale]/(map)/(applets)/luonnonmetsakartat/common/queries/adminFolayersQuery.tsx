@@ -38,9 +38,10 @@ export const adminFolayersQuery = (): UseQueryOptions<AdminFolayerConf[]> => {
             colorCode: folayer.color_code || '',
             isVisible: !folayer.is_hidden,
             state: FolayerConfState.Idle,
-            createdTs: folayer.created_ts * 1000,
-            updatedTs: folayer.updated_ts * 1000,
+            createdTs: folayer.created_ts,
+            updatedTs: folayer.updated_ts,
             unsyncedChanges: false,
+            colOptions: folayer.col_options,
           })
         )
 
