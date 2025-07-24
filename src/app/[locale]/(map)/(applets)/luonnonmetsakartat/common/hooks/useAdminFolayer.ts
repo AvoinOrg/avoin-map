@@ -15,7 +15,7 @@ import { AdminFolayerConf } from 'applets/luonnonmetsakartat/common/types'
 export const useAdminFolayer = (
   folayerId: string,
   options: { preload?: boolean } = {}
-): [LayerGroupStatus, (shouldBeEnabled: boolean) => void] => {
+): [LayerGroupStatus, (shouldBeEnabled: boolean) => void, boolean] => {
   const { preload = false } = options
   const adminFolayerConf = useAppletStore(
     (state) => state.adminFolayerConfs[folayerId]
@@ -24,12 +24,20 @@ export const useAdminFolayer = (
     (state) => state.folayerAreaConfs[folayerId]
   )
 
-  const { refetch: folayerRefetch } = useQuery({
+  const {
+    refetch: folayerRefetch,
+    error: folayerError,
+    isError: isFolayerError,
+  } = useQuery({
     ...adminFolayerQuery(folayerId),
     enabled: false,
   })
 
-  const { refetch: areasRefetch } = useQuery({
+  const {
+    refetch: areasRefetch,
+    error: areasError,
+    isError: isAreasError,
+  } = useQuery({
     ...adminFolayerAreaQuery(folayerId),
     enabled: false,
   })
@@ -64,8 +72,12 @@ export const useAdminFolayer = (
 
   const layerGroupId = getFolayerGroupId(folayerId)
 
-  return useLayerGroup(layerGroupId, getLayerConf, {
+  const [status, setEnabled] = useLayerGroup(layerGroupId, getLayerConf, {
     preload,
     initActions,
   })
+
+  const hasErrored = isFolayerError || isAreasError
+
+  return [status, setEnabled, hasErrored]
 }
