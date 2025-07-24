@@ -76,13 +76,15 @@ const Page = () => {
     } = params
 
     localFolayerPostMutation.mutate({
-      indexingStrategy: indexingStrategy,
-      nameCol: nameCol,
-      municipalityCol: municipalityCol,
-      regionCol: regionCol,
-      descriptionCol: descriptionCol,
-      areaCol: areaCol,
-      idCol: idCol,
+      colOptions: {
+        indexingStrategy: indexingStrategy,
+        nameCol: nameCol,
+        municipalityCol: municipalityCol,
+        regionCol: regionCol,
+        descriptionCol: descriptionCol,
+        areaCol: areaCol,
+        idCol: idCol,
+      },
       name,
       isHidden: !isVisible,
       colorCode: colorCode,
