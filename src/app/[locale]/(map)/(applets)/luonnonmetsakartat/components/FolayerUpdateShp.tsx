@@ -10,10 +10,14 @@ import FolayerImportCodeRecordSelect from './FolayerImportCodeRecordSelect'
 import { IndexingStrategy, AdminFolayerConf, ColOptions } from '../common/types'
 
 export interface FolayerUpdateShpRef {
-  getValues: () => {
-    colOptions: ColOptions
-    rawShapefile: ArrayBuffer
-  } | null
+  getValues: (
+    callback: (
+      values: {
+        colOptions: ColOptions
+        rawShapefile: ArrayBuffer
+      } | null
+    ) => void
+  ) => void
 }
 
 interface FolayerUpdateShpProps {
@@ -27,6 +31,9 @@ const FolayerUpdateShp = forwardRef<
 >(({ fileBuffers, adminFolayerConf }, ref) => {
   const { t } = useTranslate('luonnonmetsakartat')
   const notify = useUIStore((state) => state.notify)
+  const triggerConfirmationDialog = useUIStore(
+    (state) => state.triggerConfirmationDialog
+  )
   const [geojson, setGeojson] = useState<FeatureCollection>()
   const [columns, setColumns] = useState<string[]>([])
   const [idCol, setIdCol] = useState<string | undefined>()
@@ -40,50 +47,43 @@ const FolayerUpdateShp = forwardRef<
   )
 
   useImperativeHandle(ref, () => ({
-    getValues: () => {
+    getValues: (
+      callback: (
+        values: {
+          colOptions: ColOptions
+          rawShapefile: ArrayBuffer
+        } | null
+      ) => void
+    ) => {
       if (geojson) {
-        if (indexingStrategy === 'name_municipality') {
-          const nameMunicipalityPairs = new Set<string>()
-          for (const feature of geojson.features) {
-            const name = feature.properties?.[nameCol as string]
-            const municipality =
-              feature.properties?.[municipalityCol as string]
-            if (name && municipality) {
-              const pair = `${name}|${municipality}`
-              if (nameMunicipalityPairs.has(pair)) {
-                const errorMessage = t(
-                  'sidebar.admin.create.error_name_municipality_not_unique',
-                  {
-                    nameCol: nameCol,
-                    municipalityCol: municipalityCol,
-                    name: name,
-                    municipality: municipality,
-                  }
-                )
-                notify({
-                  variant: 'error',
-                  message: errorMessage,
-                  manualDismiss: true,
-                })
-                console.error(
-                  'Name and municipality pair is not unique:',
-                  pair
-                )
-                return null
+        const performFinish = () => {
+          if (indexingStrategy === 'name_municipality') {
+            const nameMunicipalityCounts: { [key: string]: string[] } = {}
+            for (const feature of geojson.features) {
+              const name = feature.properties?.[nameCol as string]
+              const municipality =
+                feature.properties?.[municipalityCol as string]
+              if (name && municipality) {
+                const pair = `${name}|${municipality}`
+                if (!nameMunicipalityCounts[pair]) {
+                  nameMunicipalityCounts[pair] = []
+                }
+                nameMunicipalityCounts[pair].push(`${name} - ${municipality}`)
               }
-              nameMunicipalityPairs.add(pair)
             }
-          }
-        } else if (indexingStrategy === 'id') {
-          const idSet = new Set<string | number>()
-          for (const feature of geojson.features) {
-            const id = feature.properties?.[idCol as string]
 
-            if (idSet.has(id)) {
+            const duplicates = Object.values(nameMunicipalityCounts).filter(
+              (v) => v.length > 1
+            )
+
+            if (duplicates.length > 0) {
+              const duplicateList = duplicates
+                .map((group) => group[0])
+                .join(', ')
               const errorMessage = t(
-                'sidebar.admin.create.error_id_not_unique',
+                'sidebar.admin.create.error_name_municipality_not_unique',
                 {
-                  id: id,
+                  duplicates: duplicateList,
                 }
               )
               notify({
@@ -91,27 +91,172 @@ const FolayerUpdateShp = forwardRef<
                 message: errorMessage,
                 manualDismiss: true,
               })
-              console.error('ID is not unique:', id)
-              return null
+              console.error(
+                'Name and municipality pairs are not unique:',
+                duplicateList
+              )
+              callback(null)
+              return
             }
-            idSet.add(id)
+          } else if (indexingStrategy === 'id') {
+            const idCounts: { [key: string]: number } = {}
+            for (const feature of geojson.features) {
+              const id = feature.properties?.[idCol as string]
+              if (id) {
+                idCounts[id] = (idCounts[id] || 0) + 1
+              }
+            }
+
+            const duplicates = Object.entries(idCounts)
+              .filter(([, count]) => count > 1)
+              .map(([id]) => id)
+
+            if (duplicates.length > 0) {
+              const duplicateList = duplicates.join(', ')
+              const errorMessage = t(
+                'sidebar.admin.create.error_id_not_unique',
+                {
+                  ids: duplicateList,
+                }
+              )
+              notify({
+                variant: 'error',
+                message: errorMessage,
+                manualDismiss: true,
+              })
+              console.error('IDs are not unique:', duplicateList)
+              callback(null)
+              return
+            }
+          }
+
+          callback({
+            colOptions: {
+              indexingStrategy: indexingStrategy,
+              idCol: idCol,
+              nameCol: nameCol as string,
+              municipalityCol: municipalityCol as string,
+              regionCol: regionCol,
+              descriptionCol: descriptionCol,
+              areaCol: areaCol,
+            },
+            rawShapefile: fileBuffers[0],
+          })
+        }
+
+        const invalidCharRegex = /[^a-zA-Z0-9åäöÅÄÖ\s-]/
+        const encodingErrorRegex = /Ã/
+
+        const checkColumn = (colName: string | undefined) => {
+          if (!colName || !geojson)
+            return { invalidChars: [], encodingErrors: [] }
+          const invalidChars: string[] = []
+          const encodingErrors: string[] = []
+          for (const feature of geojson.features) {
+            const value = feature.properties?.[colName]
+            if (typeof value === 'string') {
+              if (invalidCharRegex.test(value)) {
+                invalidChars.push(value)
+              }
+              if (encodingErrorRegex.test(value)) {
+                encodingErrors.push(value)
+              }
+            }
+          }
+          return {
+            invalidChars: [...new Set(invalidChars)],
+            encodingErrors: [...new Set(encodingErrors)],
           }
         }
 
-        return {
-          colOptions: {
-            indexingStrategy: indexingStrategy,
-            idCol: idCol,
-            nameCol: nameCol as string,
-            municipalityCol: municipalityCol as string,
-            regionCol: regionCol,
-            descriptionCol: descriptionCol,
-            areaCol: areaCol,
-          },
-          rawShapefile: fileBuffers[0],
+        const nameValidation = checkColumn(nameCol)
+        const municipalityValidation = checkColumn(municipalityCol)
+        const regionValidation = checkColumn(regionCol)
+
+        const nameHasErrors =
+          nameValidation.invalidChars.length > 0 ||
+          nameValidation.encodingErrors.length > 0
+        const municipalityHasErrors =
+          municipalityValidation.invalidChars.length > 0 ||
+          municipalityValidation.encodingErrors.length > 0
+
+        if (indexingStrategy === 'name_municipality') {
+          if (nameHasErrors || municipalityHasErrors) {
+            const invalidStrings = [
+              ...nameValidation.invalidChars,
+              ...nameValidation.encodingErrors,
+              ...municipalityValidation.invalidChars,
+              ...municipalityValidation.encodingErrors,
+            ]
+            console.error(
+              'Invalid strings found:',
+              [...new Set(invalidStrings)]
+            )
+            const errorMessage = t(
+              'sidebar.admin.create.error_invalid_chars_or_encoding'
+            )
+            notify({
+              variant: 'error',
+              message: errorMessage,
+              manualDismiss: true,
+            })
+            callback(null)
+            return
+          }
+        } else {
+          const problematicCols: string[] = []
+          const allInvalidStrings: string[] = []
+          if (nameHasErrors) {
+            problematicCols.push(
+              t('sidebar.admin.create.select_folayer_name_record')
+            )
+            allInvalidStrings.push(
+              ...nameValidation.invalidChars,
+              ...nameValidation.encodingErrors
+            )
+          }
+          if (municipalityHasErrors) {
+            problematicCols.push(
+              t('sidebar.admin.create.select_folayer_municipality_record')
+            )
+            allInvalidStrings.push(
+              ...municipalityValidation.invalidChars,
+              ...municipalityValidation.encodingErrors
+            )
+          }
+          if (
+            regionValidation.invalidChars.length > 0 ||
+            regionValidation.encodingErrors.length > 0
+          ) {
+            problematicCols.push(
+              t('sidebar.admin.create.select_folayer_region_record')
+            )
+            allInvalidStrings.push(
+              ...regionValidation.invalidChars,
+              ...regionValidation.encodingErrors
+            )
+          }
+
+          if (problematicCols.length > 0) {
+            console.error(
+              'Invalid strings found:',
+              [...new Set(allInvalidStrings)]
+            )
+            triggerConfirmationDialog({
+              content: t('sidebar.admin.create.confirm_invalid_chars', {
+                columns: problematicCols.join(', '),
+              }),
+              onConfirm: performFinish,
+              onCancel: () => callback(null),
+            })
+            return
+          }
         }
+
+        performFinish()
+      } else {
+        callback(null)
       }
-      return null
     },
   }))
 
