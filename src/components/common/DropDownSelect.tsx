@@ -24,6 +24,7 @@ interface Props {
   labelSx?: SxProps<Theme>
   iconSx?: SxProps<Theme>
   typographySx?: SxProps<Theme>
+  disabled?: boolean
 }
 
 const DropDownSelect = ({
@@ -37,6 +38,7 @@ const DropDownSelect = ({
   labelSx,
   iconSx,
   typographySx,
+  disabled,
 }: Props) => {
   const [hasEmpty, setHasEmpty] = React.useState(true)
 
@@ -80,6 +82,7 @@ const DropDownSelect = ({
             horizontal: 'left',
           },
         }}
+        disabled={disabled}
         sx={[
           {
             backgroundColor: 'background.main',
