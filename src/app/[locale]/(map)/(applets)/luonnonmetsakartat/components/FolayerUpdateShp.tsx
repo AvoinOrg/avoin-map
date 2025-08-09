@@ -8,6 +8,11 @@ import { useUIStore } from '#/common/store'
 
 import FolayerImportCodeRecordSelect from './FolayerImportCodeRecordSelect'
 import { IndexingStrategy, AdminFolayerConf, ColOptions } from '../common/types'
+import {
+  folayerDataValidateColumnValues,
+  folayerDataFindDuplicateIds,
+  folayerDataFindDuplicateNameMunicipalityPairs,
+} from '../common/utils'
 
 export interface FolayerUpdateShpRef {
   getValues: (
@@ -58,28 +63,13 @@ const FolayerUpdateShp = forwardRef<
       if (geojson) {
         const performFinish = () => {
           if (indexingStrategy === 'name_municipality') {
-            const nameMunicipalityCounts: { [key: string]: string[] } = {}
-            for (const feature of geojson.features) {
-              const name = feature.properties?.[nameCol as string]
-              const municipality =
-                feature.properties?.[municipalityCol as string]
-              if (name && municipality) {
-                const pair = `${name}|${municipality}`
-                if (!nameMunicipalityCounts[pair]) {
-                  nameMunicipalityCounts[pair] = []
-                }
-                nameMunicipalityCounts[pair].push(`${name} - ${municipality}`)
-              }
-            }
-
-            const duplicates = Object.values(nameMunicipalityCounts).filter(
-              (v) => v.length > 1
+            const duplicates = folayerDataFindDuplicateNameMunicipalityPairs(
+              geojson,
+              nameCol as string,
+              municipalityCol as string
             )
-
             if (duplicates.length > 0) {
-              const duplicateList = duplicates
-                .map((group) => group[0])
-                .join(', ')
+              const duplicateList = duplicates.join(', ')
               const errorMessage = t(
                 'sidebar.admin.create.error_name_municipality_not_unique',
                 {
@@ -99,18 +89,10 @@ const FolayerUpdateShp = forwardRef<
               return
             }
           } else if (indexingStrategy === 'id') {
-            const idCounts: { [key: string]: number } = {}
-            for (const feature of geojson.features) {
-              const id = feature.properties?.[idCol as string]
-              if (id) {
-                idCounts[id] = (idCounts[id] || 0) + 1
-              }
-            }
-
-            const duplicates = Object.entries(idCounts)
-              .filter(([, count]) => count > 1)
-              .map(([id]) => id)
-
+            const duplicates = folayerDataFindDuplicateIds(
+              geojson,
+              idCol as string
+            )
             if (duplicates.length > 0) {
               const duplicateList = duplicates.join(', ')
               const errorMessage = t(
@@ -144,34 +126,18 @@ const FolayerUpdateShp = forwardRef<
           })
         }
 
-        const invalidCharRegex = /[^a-zA-Z0-9åäöÅÄÖ\s-]/
-        const encodingErrorRegex = /Ã/
-
-        const checkColumn = (colName: string | undefined) => {
-          if (!colName || !geojson)
-            return { invalidChars: [], encodingErrors: [] }
-          const invalidChars: string[] = []
-          const encodingErrors: string[] = []
-          for (const feature of geojson.features) {
-            const value = feature.properties?.[colName]
-            if (typeof value === 'string') {
-              if (invalidCharRegex.test(value)) {
-                invalidChars.push(value)
-              }
-              if (encodingErrorRegex.test(value)) {
-                encodingErrors.push(value)
-              }
-            }
-          }
-          return {
-            invalidChars: [...new Set(invalidChars)],
-            encodingErrors: [...new Set(encodingErrors)],
-          }
-        }
-
-        const nameValidation = checkColumn(nameCol)
-        const municipalityValidation = checkColumn(municipalityCol)
-        const regionValidation = checkColumn(regionCol)
+        const nameValidation = folayerDataValidateColumnValues(
+          geojson,
+          nameCol
+        )
+        const municipalityValidation = folayerDataValidateColumnValues(
+          geojson,
+          municipalityCol
+        )
+        const regionValidation = folayerDataValidateColumnValues(
+          geojson,
+          regionCol
+        )
 
         const nameHasErrors =
           nameValidation.invalidChars.length > 0 ||
