@@ -1,4 +1,4 @@
-import { UseMutationOptions } from '@tanstack/react-query'
+import { UseMutationOptions, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
 import JSZip from 'jszip'
 import { useSession } from 'next-auth/react'
@@ -18,6 +18,7 @@ const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 
 interface MutationData extends AdminFolayerConf {
   rawShapefile?: ArrayBuffer
+  deleteAreasNotUpdated?: boolean
 }
 
 type ResponseData = {
@@ -30,6 +31,7 @@ export const adminFolayerPatchMutation = (): UseMutationOptions<
   Error,
   MutationData
 > => {
+  const queryClient = useQueryClient()
   const addAdminFolayerConf = useAppletStore(
     (state) => state.addAdminFolayerConf
   )
@@ -46,6 +48,14 @@ export const adminFolayerPatchMutation = (): UseMutationOptions<
           type: 'application/zip',
         })
         formData.append('zip_file', blob, 'shapefile.zip')
+      }
+
+      // Whether to delete areas not present in the uploaded update
+      if (typeof mutationData.deleteAreasNotUpdated !== 'undefined') {
+        formData.append(
+          'delete_areas_not_updated',
+          String(!!mutationData.deleteAreasNotUpdated)
+        )
       }
 
       const isHidden = !mutationData.isVisible
@@ -120,6 +130,39 @@ export const adminFolayerPatchMutation = (): UseMutationOptions<
       await addAdminFolayerConf(adminFolayerConf)
 
       return { status: postRes.status, id: postRes.data.id }
+    },
+    onSuccess: async (_data, variables) => {
+      // Invalidate and refetch admin area data for this layer
+      await queryClient.invalidateQueries({
+        queryKey: ['adminFolayerAreas', variables.id],
+        exact: true,
+      })
+      await queryClient.refetchQueries({
+        queryKey: ['adminFolayerAreas', variables.id],
+        type: 'inactive',
+      })
+
+      // Optionally refetch normal folayer areas if present in store
+      const state = useAppletStore.getState()
+      const hasNormalAreas = !!state.folayerAreaConfs?.[variables.id]
+      const hasNormalConf = Array.isArray((state as any).folayerConfs)
+        ? (state as any).folayerConfs.some((c: any) => c?.id === variables.id)
+        : !!(state as any).folayerConfs?.[variables.id]
+
+      if (hasNormalAreas || hasNormalConf) {
+        await queryClient.invalidateQueries({
+          queryKey: ['folayerAreas', variables.id],
+          exact: true,
+        })
+        await queryClient.refetchQueries({
+          queryKey: ['folayerAreas', variables.id],
+          type: 'inactive',
+        })
+      }
+
+      // Refresh the list of layers
+      await queryClient.invalidateQueries({ queryKey: ['folayers'] })
+      await queryClient.refetchQueries({ queryKey: ['folayers'], type: 'inactive' })
     },
     onError: (error) => {
       console.error(error)
