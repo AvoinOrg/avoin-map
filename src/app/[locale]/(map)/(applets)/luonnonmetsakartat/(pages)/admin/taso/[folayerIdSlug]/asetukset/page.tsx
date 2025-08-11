@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Box, Typography } from '@mui/material'
 import { useParams, useRouter } from 'next/navigation'
 import { T, useTranslate } from '@tolgee/react'
@@ -18,6 +18,8 @@ import { SidebarContentBox } from '#/components/Sidebar'
 import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
 import CheckBoxWithText from '#/components/common/CheckBoxWithText'
 import { useSidebarActivityLoader } from '#/common/hooks/ui/useSidebarActivityLoader'
+import BigMenuButton from '#/components/common/BigMenuButton'
+import { Upload } from '#/components/icons'
 
 import { FolayerConfState } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
@@ -25,10 +27,19 @@ import { adminFolayerPatchMutation } from 'applets/luonnonmetsakartat/common/que
 import { adminFolayerDeleteMutation } from 'applets/luonnonmetsakartat/common/queries/adminFolayerDeleteMutation'
 import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
 import { getFolayerGroupId } from 'applets/luonnonmetsakartat/common/utils'
+import FolayerUpdateShp from 'applets/luonnonmetsakartat/components/FolayerUpdateShp'
 
 const Page = () => {
   const [isFolayerReady, setIsFolayerReady] = useState(false)
   const [isLoading, setIsLoading] = useSidebarActivityLoader()
+  const [fileType, setFileType] = useState<'shp'>()
+  const [fileName, setFileName] = useState<string>()
+  const [arrayBuffers, setArrayBuffers] = useState<ArrayBuffer[]>()
+  const [isUpdateValid, setIsUpdateValid] = useState<boolean>(true)
+  const [deleteAreasNotUpdated, setDeleteAreasNotUpdated] = useState<boolean>(
+    false
+  )
+  const inputRef = useRef<HTMLInputElement>(null)
   const params = useParams<{ folayerIdSlug: string }>()
   const router = useRouter()
   const { t } = useTranslate('luonnonmetsakartat')
@@ -52,6 +63,35 @@ const Page = () => {
     adminFolayerDeleteMutation()
   )
 
+  const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) {
+      return
+    }
+
+    const f = e.target.files[0]
+    const reader = new window.FileReader()
+    reader.readAsArrayBuffer(f)
+
+    const newArrayBuffers: ArrayBuffer[] = []
+
+    reader.onloadend = async () => {
+      if (reader.result != null) {
+        setFileName(f.name)
+        if (typeof reader.result !== 'string') {
+          const ext = f.name.split('.').pop()?.toLowerCase()
+          if (ext === 'zip' || ext === 'shp') {
+            setFileType('shp')
+            newArrayBuffers.push(reader.result)
+          }
+          setArrayBuffers(newArrayBuffers)
+        } else {
+          console.error('reader.result is a string, not an ArrayBuffer')
+        }
+      }
+      e.target.value = ''
+    }
+  }
+
   useEffect(() => {
     if (adminFolayerConf && adminFolayerConf.state === FolayerConfState.Idle) {
       setIsFolayerReady(true)
@@ -67,6 +107,20 @@ const Page = () => {
       setIsLoading(true)
     }
   }, [localAdminFolayerPatchMutation.isPending])
+
+  // After successful save, clear uploaded file state and reset flags
+  useEffect(() => {
+    if (localAdminFolayerPatchMutation.isSuccess) {
+      setFileName(undefined)
+      setFileType(undefined)
+      setArrayBuffers(undefined)
+      setDeleteAreasNotUpdated(false)
+      setIsUpdateValid(true)
+      if (inputRef.current) {
+        inputRef.current.value = ''
+      }
+    }
+  }, [localAdminFolayerPatchMutation.isSuccess])
 
   const handleNameChange = (value: string) => {
     updateAdminFolayerConf(params.folayerIdSlug, {
@@ -98,7 +152,15 @@ const Page = () => {
     event.nativeEvent.stopImmediatePropagation()
 
     if (adminFolayerConf) {
-      localAdminFolayerPatchMutation.mutate(adminFolayerConf)
+      // Build payload, include raw shapefile and deleteAreasNotUpdated when updating from file
+      const payload: any = {
+        ...adminFolayerConf,
+      }
+      if (fileType && arrayBuffers?.length) {
+        payload.rawShapefile = arrayBuffers[0]
+        payload.deleteAreasNotUpdated = deleteAreasNotUpdated
+      }
+      localAdminFolayerPatchMutation.mutate(payload)
     }
 
     setIsLoading(true)
@@ -142,6 +204,7 @@ const Page = () => {
             sx={{
               display: 'flex',
               flexDirection: 'column',
+              pb: 5,
             }}
           >
             <IconWithText
@@ -157,33 +220,91 @@ const Page = () => {
                 ns={'luonnonmetsakartat'}
               ></T>
             </IconWithText>
-            <TextFieldWithHeader
-              headerText={t('sidebar.admin.folayer.settings.name.header')}
-              value={adminFolayerConf.name}
-              onChange={handleNameChange}
-              placeholderText={adminFolayerConf.name}
-              sx={{ mt: 5.5 }}
-            ></TextFieldWithHeader>
-            <ColorPickerWithPopover
-              color={adminFolayerConf.colorCode}
-              onChange={handleColorChange}
-              sx={{ mt: 6 }}
-              labelText={t('sidebar.admin.folayer.settings.color')}
-            ></ColorPickerWithPopover>
-            <CheckBoxWithText
-              checked={adminFolayerConf.isVisible}
-              onChange={handleIsVisibleChange}
-              sx={{ mt: 5 }}
+            <Box
+              sx={(theme) => ({
+                backgroundColor: theme.palette.neutral.light,
+                p: 4,
+                borderRadius: '0.3125rem',
+                mt: 6,
+              })}
             >
-              <T
-                ns={'luonnonmetsakartat'}
-                keyName={'sidebar.admin.folayer.settings.is_visible'}
-              ></T>
-            </CheckBoxWithText>
+              <TextFieldWithHeader
+                headerText={t('sidebar.admin.folayer.settings.name.header')}
+                value={adminFolayerConf.name}
+                onChange={handleNameChange}
+                placeholderText={adminFolayerConf.name}
+                sx={{ mt: 2 }}
+              />
+              <ColorPickerWithPopover
+                color={adminFolayerConf.colorCode}
+                onChange={handleColorChange}
+                sx={{ mt: 4 }}
+                labelText={t('sidebar.admin.folayer.settings.color')}
+              />
+              <CheckBoxWithText
+                checked={adminFolayerConf.isVisible}
+                onChange={handleIsVisibleChange}
+                sx={{ mt: 4 }}
+              >
+                <T
+                  ns={'luonnonmetsakartat'}
+                  keyName={'sidebar.admin.folayer.settings.is_visible'}
+                />
+              </CheckBoxWithText>
+            </Box>
+            {/* Import/update shapefile */}
+            <Box
+              sx={(theme) => ({
+                backgroundColor: theme.palette.neutral.light,
+                p: 4,
+                borderRadius: '0.3125rem',
+                mt: 6,
+              })}
+            >
+              <BigMenuButton
+                variant="outlined"
+                component="label"
+                sx={{ width: '100%', minHeight: '60px' }}
+              >
+                {fileName ||
+                  t('sidebar.admin.folayer.settings.update_with_file')}
+                <input
+                  hidden
+                  accept=".zip"
+                  multiple={false}
+                  type="file"
+                  onChange={handleFileInput}
+                  ref={inputRef}
+                />
+                <Upload sx={{ width: '24px' }} />
+              </BigMenuButton>
+
+              {fileType === 'shp' && arrayBuffers && arrayBuffers.length > 0 && (
+                <>
+                  <CheckBoxWithText
+                    checked={deleteAreasNotUpdated}
+                    onChange={(_e, checked) => setDeleteAreasNotUpdated(checked)}
+                    sx={{ mt: 5 }}
+                  >
+                    <T
+                      ns={'luonnonmetsakartat'}
+                      keyName={'sidebar.admin.folayer.settings.delete_areas_not_updated'}
+                    />
+                  </CheckBoxWithText>
+                  <Box sx={{ mt: 5 }}>
+                    <FolayerUpdateShp
+                      fileBuffers={arrayBuffers}
+                      adminFolayerConf={adminFolayerConf}
+                      onValidationChange={setIsUpdateValid}
+                    />
+                  </Box>
+                </>
+              )}
+            </Box>
           </Box>
         )}
       </SidebarContentBox>
-      {adminFolayerConf && adminFolayerConf.unsyncedChanges && (
+      {adminFolayerConf && (adminFolayerConf.unsyncedChanges || fileName) && (
         <Box
           sx={(theme) => ({
             display: 'flex',
@@ -198,17 +319,45 @@ const Page = () => {
           })}
         >
           <Box
-            onClick={handleSaveClick}
+            onClick={(event) => {
+              if (fileType && arrayBuffers?.length && !isUpdateValid) {
+                event.preventDefault()
+                event.stopPropagation()
+                // @ts-ignore
+                event.nativeEvent?.stopImmediatePropagation?.()
+                return
+              }
+              handleSaveClick(event)
+            }}
             sx={{
               mt: 1.3,
               display: 'inline-flex',
               flexDirection: 'row',
-              '&:hover': { cursor: 'pointer' },
+              cursor:
+                fileType && arrayBuffers?.length
+                  ? isUpdateValid
+                    ? 'pointer'
+                    : 'not-allowed'
+                  : 'pointer',
+              '&:hover': {
+                cursor:
+                  fileType && arrayBuffers?.length
+                    ? isUpdateValid
+                      ? 'pointer'
+                      : 'not-allowed'
+                    : 'pointer',
+              },
               color: 'neutral.dark',
               flex: '0',
               whiteSpace: 'nowrap',
               alignSelf: 'flex-start',
               width: '100%',
+              opacity:
+                fileType && arrayBuffers?.length
+                  ? isUpdateValid
+                    ? 1
+                    : 0.5
+                  : 1,
             }}
           >
             <Box sx={{ mr: 1.7, display: 'flex', alignItems: 'center' }}>
