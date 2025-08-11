@@ -28,12 +28,13 @@ export interface FolayerUpdateShpRef {
 interface FolayerUpdateShpProps {
   fileBuffers: ArrayBuffer[]
   adminFolayerConf: AdminFolayerConf
+  onValidationChange?: (isValid: boolean) => void
 }
 
 const FolayerUpdateShp = forwardRef<
   FolayerUpdateShpRef,
   FolayerUpdateShpProps
->(({ fileBuffers, adminFolayerConf }, ref) => {
+>(({ fileBuffers, adminFolayerConf, onValidationChange }, ref) => {
   const { t } = useTranslate('luonnonmetsakartat')
   const notify = useUIStore((state) => state.notify)
   const triggerConfirmationDialog = useUIStore(
@@ -50,6 +51,56 @@ const FolayerUpdateShp = forwardRef<
   const [indexingStrategy, setIndexingStrategy] = useState<IndexingStrategy>(
     adminFolayerConf.colOptions?.indexingStrategy || 'id'
   )
+
+  // Inform parent about current validity for Save button state
+  useEffect(() => {
+    if (!onValidationChange) return
+    if (!geojson) {
+      onValidationChange(false)
+      return
+    }
+
+    // Required columns present?
+    if (
+      (indexingStrategy === 'id' && !idCol) ||
+      (indexingStrategy === 'name_municipality' && (!nameCol || !municipalityCol))
+    ) {
+      onValidationChange(false)
+      return
+    }
+
+    let isValid = true
+
+    if (indexingStrategy === 'name_municipality') {
+      const dupNM = folayerDataFindDuplicateNameMunicipalityPairs(
+        geojson,
+        nameCol as string,
+        municipalityCol as string
+      )
+      const nameV = folayerDataValidateColumnValues(geojson, nameCol)
+      const muniV = folayerDataValidateColumnValues(geojson, municipalityCol)
+      const hasNameMuniErrors =
+        nameV.invalidChars.length > 0 ||
+        nameV.encodingErrors.length > 0 ||
+        muniV.invalidChars.length > 0 ||
+        muniV.encodingErrors.length > 0
+      if (dupNM.length > 0 || hasNameMuniErrors) isValid = false
+    } else if (indexingStrategy === 'id') {
+      const dupIds = folayerDataFindDuplicateIds(geojson, idCol as string)
+      // Soft errors in other columns don't block Save here
+      if (dupIds.length > 0) isValid = false
+    }
+
+    onValidationChange(isValid)
+  }, [
+    onValidationChange,
+    geojson,
+    idCol,
+    nameCol,
+    municipalityCol,
+    regionCol,
+    indexingStrategy,
+  ])
 
   useImperativeHandle(ref, () => ({
     getValues: (
@@ -354,8 +405,8 @@ const FolayerUpdateShp = forwardRef<
           <Box
             sx={(theme) => ({
               backgroundColor: theme.palette.neutral.light,
-              p: 4,
               borderRadius: '0.3125rem',
+              border: `1px solid ${theme.palette.neutral.main}`,
             })}
           >
             <Typography variant="h4" sx={{ mb: 4 }}>
