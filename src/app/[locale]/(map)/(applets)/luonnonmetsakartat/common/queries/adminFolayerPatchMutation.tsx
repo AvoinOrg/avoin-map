@@ -1,6 +1,5 @@
 import { UseMutationOptions, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
-import JSZip from 'jszip'
 import { useSession } from 'next-auth/react'
 import { FeatureCollection } from 'geojson'
 
@@ -149,37 +148,39 @@ export const adminFolayerPatchMutation = (): UseMutationOptions<
       return { status: postRes.status, id: postRes.data.id }
     },
     onSuccess: async (_data, variables) => {
-      // Invalidate and refetch admin area data for this layer
-      await queryClient.invalidateQueries({
-        queryKey: ['adminFolayerAreas', variables.id],
-        exact: true,
-      })
-      await queryClient.refetchQueries({
-        queryKey: ['adminFolayerAreas', variables.id],
-        type: 'inactive',
-      })
-
-      // Optionally refetch normal folayer areas if present in store
-      const state = useAppletStore.getState()
-      const hasNormalAreas = !!state.folayerAreaConfs?.[variables.id]
-      const hasNormalConf = Array.isArray((state as any).folayerConfs)
-        ? (state as any).folayerConfs.some((c: any) => c?.id === variables.id)
-        : !!(state as any).folayerConfs?.[variables.id]
-
-      if (hasNormalAreas || hasNormalConf) {
+      // If a new shapefile was provided, areas may have changed — refetch areas
+      if (variables.rawShapefile) {
         await queryClient.invalidateQueries({
-          queryKey: ['folayerAreas', variables.id],
+          queryKey: ['adminFolayerAreas', variables.id],
           exact: true,
         })
         await queryClient.refetchQueries({
-          queryKey: ['folayerAreas', variables.id],
-          type: 'inactive',
+          queryKey: ['adminFolayerAreas', variables.id],
+          type: 'active',
         })
+
+        // Optionally refetch normal folayer areas if present in store
+        const state = useAppletStore.getState()
+        const hasNormalAreas = !!state.folayerAreaConfs?.[variables.id]
+        const hasNormalConf = Array.isArray((state as any).folayerConfs)
+          ? (state as any).folayerConfs.some((c: any) => c?.id === variables.id)
+          : !!(state as any).folayerConfs?.[variables.id]
+
+        if (hasNormalAreas || hasNormalConf) {
+          await queryClient.invalidateQueries({
+            queryKey: ['folayerAreas', variables.id],
+            exact: true,
+          })
+          await queryClient.refetchQueries({
+            queryKey: ['folayerAreas', variables.id],
+            type: 'active',
+          })
+        }
       }
 
       // Refresh the list of layers
       await queryClient.invalidateQueries({ queryKey: ['folayers'] })
-      await queryClient.refetchQueries({ queryKey: ['folayers'], type: 'inactive' })
+      await queryClient.refetchQueries({ queryKey: ['folayers'], type: 'active' })
     },
     onError: (error) => {
       console.error(error)
