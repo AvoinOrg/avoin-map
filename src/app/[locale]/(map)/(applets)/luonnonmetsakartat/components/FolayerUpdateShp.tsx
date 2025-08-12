@@ -40,12 +40,25 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
     )
     const [geojson, setGeojson] = useState<FeatureCollection>()
     const [columns, setColumns] = useState<string[]>([])
-    const [idCol, setIdCol] = useState<string | undefined>()
-    const [nameCol, setNameCol] = useState<string | undefined>()
-    const [descriptionCol, setDescriptionCol] = useState<string | undefined>()
-    const [areaCol, setAreaCol] = useState<string | undefined>()
-    const [municipalityCol, setMunicipalityCol] = useState<string | undefined>()
-    const [regionCol, setRegionCol] = useState<string | undefined>()
+
+    const [idCol, setIdCol] = useState<string | undefined>(
+      adminFolayerConf.colOptions?.idCol
+    )
+    const [nameCol, setNameCol] = useState<string | undefined>(
+      adminFolayerConf.colOptions?.nameCol
+    )
+    const [descriptionCol, setDescriptionCol] = useState<string | undefined>(
+      adminFolayerConf.colOptions?.descriptionCol
+    )
+    const [areaCol, setAreaCol] = useState<string | undefined>(
+      adminFolayerConf.colOptions?.areaCol
+    )
+    const [municipalityCol, setMunicipalityCol] = useState<string | undefined>(
+      adminFolayerConf.colOptions?.municipalityCol
+    )
+    const [regionCol, setRegionCol] = useState<string | undefined>(
+      adminFolayerConf.colOptions?.regionCol
+    )
     const [indexingStrategy, setIndexingStrategy] = useState<IndexingStrategy>(
       adminFolayerConf.colOptions?.indexingStrategy || 'id'
     )
