@@ -27,7 +27,10 @@ import { adminFolayerPatchMutation } from 'applets/luonnonmetsakartat/common/que
 import { adminFolayerDeleteMutation } from 'applets/luonnonmetsakartat/common/queries/adminFolayerDeleteMutation'
 import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
 import { getFolayerGroupId } from 'applets/luonnonmetsakartat/common/utils'
-import FolayerUpdateShp from 'applets/luonnonmetsakartat/components/FolayerUpdateShp'
+import FolayerUpdateShp, { FolayerUpdateShpRef } from 'applets/luonnonmetsakartat/components/FolayerUpdateShp'
+import FolayerImportPictures, {
+  FolayerImportPicturesRef,
+} from 'applets/luonnonmetsakartat/components/FolayerImportPictures'
 
 const Page = () => {
   const [isFolayerReady, setIsFolayerReady] = useState(false)
@@ -39,6 +42,8 @@ const Page = () => {
   const [deleteAreasNotUpdated, setDeleteAreasNotUpdated] = useState<boolean>(
     false
   )
+  const picturesRef = useRef<FolayerImportPicturesRef>(null)
+  const shpRef = useRef<FolayerUpdateShpRef>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const params = useParams<{ folayerIdSlug: string }>()
   const router = useRouter()
@@ -146,19 +151,38 @@ const Page = () => {
     })
   }
 
-  const handleSaveClick = (event: any) => {
+  const handleSaveClick = async (event: any) => {
     event.preventDefault()
     event.stopPropagation()
     event.nativeEvent.stopImmediatePropagation()
 
     if (adminFolayerConf) {
-      // Build payload, include raw shapefile and deleteAreasNotUpdated when updating from file
+      // Gather picture values from child component
+      const picValues = await new Promise<any>((resolve) => {
+        if (!picturesRef.current) return resolve(null)
+        picturesRef.current.getValues((vals) => resolve(vals))
+      })
+
+      // Gather shapefile colOptions and confirm validity
+      const shpValues = await new Promise<any>((resolve) => {
+        if (!shpRef.current) return resolve(null)
+        shpRef.current.getValues((vals) => resolve(vals))
+      })
+
+      // Build payload, include raw shapefile, deleteAreasNotUpdated, and pictures when provided
       const payload: any = {
         ...adminFolayerConf,
       }
       if (fileType && arrayBuffers?.length) {
-        payload.rawShapefile = arrayBuffers[0]
+        if (shpValues && shpValues.colOptions) {
+          payload.colOptions = shpValues.colOptions
+        }
+        payload.rawShapefile = shpValues?.rawShapefile || arrayBuffers[0]
         payload.deleteAreasNotUpdated = deleteAreasNotUpdated
+      }
+      if (picValues && picValues.bulkImages?.length) {
+        payload.bulkImages = picValues.bulkImages
+        payload.bulkAreaIds = picValues.bulkAreaIds
       }
       localAdminFolayerPatchMutation.mutate(payload)
     }
@@ -252,6 +276,20 @@ const Page = () => {
                 />
               </CheckBoxWithText>
             </Box>
+            <Box
+              sx={(theme) => ({
+                backgroundColor: theme.palette.neutral.light,
+                p: 4,
+                borderRadius: '0.3125rem',
+                mt: 6,
+              })}
+            >
+              {/* Pictures upload */}
+              <FolayerImportPictures
+                folayerId={adminFolayerConf.id}
+                ref={picturesRef}
+              />
+            </Box>
             {/* Import/update shapefile */}
             <Box
               sx={(theme) => ({
@@ -296,6 +334,7 @@ const Page = () => {
                       fileBuffers={arrayBuffers}
                       adminFolayerConf={adminFolayerConf}
                       onValidationChange={setIsUpdateValid}
+                      ref={shpRef}
                     />
                   </Box>
                 </>
