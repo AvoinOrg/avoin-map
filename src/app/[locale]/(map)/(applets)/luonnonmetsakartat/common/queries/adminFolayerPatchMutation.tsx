@@ -19,6 +19,8 @@ const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 interface MutationData extends AdminFolayerConf {
   rawShapefile?: ArrayBuffer
   deleteAreasNotUpdated?: boolean
+  bulkImages?: File[]
+  bulkAreaIds?: string[]
 }
 
 type ResponseData = {
@@ -92,6 +94,21 @@ export const adminFolayerPatchMutation = (): UseMutationOptions<
         if (mutationData.colOptions.idCol) {
           formData.append('id_col', mutationData.colOptions.idCol)
         }
+      }
+
+      // Append bulk images and their corresponding area IDs (aligned by index)
+      if (
+        mutationData.bulkImages &&
+        mutationData.bulkAreaIds &&
+        mutationData.bulkImages.length > 0 &&
+        mutationData.bulkImages.length === mutationData.bulkAreaIds.length
+      ) {
+        mutationData.bulkImages.forEach((file) => {
+          formData.append('bulk_images', file, file.name)
+        })
+        mutationData.bulkAreaIds.forEach((id) => {
+          formData.append('bulk_area_ids', id)
+        })
       }
 
       const postRes = await axios.patch(
