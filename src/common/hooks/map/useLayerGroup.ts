@@ -16,12 +16,16 @@ export const useLayerGroup = (
   options: {
     preload?: boolean
     initActions?: () => Promise<void>
+    // When this value changes, the layer group will be removed and recreated
+    // and the cached layer configuration is invalidated.
+    confVersion?: string | number
   } = {}
 ): [LayerGroupStatus, (shouldBeEnabled: boolean) => void] => {
-  const { preload = false, initActions } = options
+  const { preload = false, initActions, confVersion } = options
   const addLayerGroup = useMapStore((state) => state.addLayerGroup)
   const enableLayerGroup = useMapStore((state) => state.enableLayerGroup)
   const disableLayerGroup = useMapStore((state) => state.disableLayerGroup)
+  const removeLayerGroup = useMapStore((state) => state.removeLayerGroup)
 
   const doesLayerGroupExist = useDoesLayerGroupExist(layerGroupId)
   const isLayerGroupVisible = useIsLayerGroupVisible(layerGroupId)
@@ -30,6 +34,7 @@ export const useLayerGroup = (
   const initCompleted = useRef(false)
   const enableQueued = useRef(false)
   const layerConfRef = useRef<LayerConf | null>(null)
+  const confVersionRef = useRef<string | number | undefined>(confVersion)
 
   const [uiQueued, setUiQueued] = useState(false)
 
@@ -65,6 +70,37 @@ export const useLayerGroup = (
     return 'hidden'
   }, [layerGroupId, isLayerGroupVisible, uiQueued])
 
+  // Invalidate and recreate the layer group when confVersion changes
+  useEffect(() => {
+    if (confVersionRef.current === confVersion) return
+    console.log("muna")
+    // Update stored version
+    confVersionRef.current = confVersion
+
+    const recreate = async () => {
+      try {
+        const group = useMapStore.getState()._layerGroups[layerGroupId]
+        console.log("group")
+        const wasVisible = !!group && !group.isHidden
+        if (group) {
+          console.log("yes remove")
+          await removeLayerGroup(layerGroupId)
+        }
+        // clear cached conf so the next add uses latest configuration
+        layerConfRef.current = null
+        // If the group was visible, re-enable to recreate immediately
+        if (wasVisible) {
+          await setEnabled(true)
+        }
+      } catch (err) {
+        console.error(`Failed to recreate layer group ${layerGroupId}`, err)
+      }
+    }
+
+    recreate()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [confVersion, layerGroupId, removeLayerGroup])
+
   // Effect for preloading
 
   const setEnabled = useCallback(
@@ -81,7 +117,7 @@ export const useLayerGroup = (
           await runInitActions()
 
           const group = useMapStore.getState()._layerGroups[layerGroupId]
-
+          console.log("RE-ADDING GR")
           if (group) {
             if (group.isHidden) {
               await enableLayerGroup(layerGroupId, {})
