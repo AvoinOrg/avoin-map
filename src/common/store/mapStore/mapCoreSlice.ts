@@ -1230,7 +1230,7 @@ export const createMapCoreSlice: (
         _updateSelectableHoverHandlers,
         _dataSyncSubscriptions,
         searchableDatas,
-      } = get() // Assuming you have a map reference in your store.
+      } = get()
       const _map = useMapInstanceStore.getState()._map
 
       if (!Object.keys(_layerGroups).includes(layerGroupId)) {
@@ -1243,35 +1243,78 @@ export const createMapCoreSlice: (
 
       const layerGroupOptions = _layerGroups[layerGroupId]
 
-      // Remove each layer from the map.
+      // Remove all layers of this group
       for (const layerId of Object.keys(layerGroupOptions.layers)) {
         if (_map?.getLayer(layerId)) {
-          _map?.removeLayer(layerId)
-        }
-
-        // Optional: If there's a source associated with this layer and no other layer is using it.
-        // Here I'm assuming layerId and sourceId are the same. Adjust if different.
-        if (_map?.getSource(layerId)) {
-          _map?.removeSource(layerId)
+          _map.removeLayer(layerId)
         }
       }
 
+      // Remove all unique sources used by this group
+      // Prefer the group's own source registry; fallback to sources referenced by layer options.
+      const sourceIdsInGroup = new Set<string>(
+        Object.keys(layerGroupOptions.sources)
+      )
+      for (const layerId of Object.keys(layerGroupOptions.layers)) {
+        const src = layerGroupOptions.layers[layerId]?.source
+        if (src) sourceIdsInGroup.add(src)
+      }
+
+      for (const sourceId of sourceIdsInGroup) {
+        if (_map?.getSource(sourceId)) {
+          try {
+            _map.removeSource(sourceId)
+          } catch (e) {
+            console.warn(`Failed to remove source "${sourceId}"`, e)
+          }
+        }
+      }
+
+      // 3) Wait for a style tick so MapLibre finalizes removals before next add
+      await new Promise<void>((resolve) => {
+        const map = useMapInstanceStore.getState()._map
+        if (!map) return resolve()
+        let done = false
+        const finish = () => {
+          if (done) return
+          done = true
+          resolve()
+        }
+        try {
+          map.once('styledata', finish)
+        } catch {
+          // ignore
+        }
+        if (
+          typeof window !== 'undefined' &&
+          'requestAnimationFrame' in window
+        ) {
+          requestAnimationFrame(finish)
+        } else {
+          setTimeout(finish, 0)
+        }
+      })
+
+      // Detach data handler (if any)
       if (layerGroupOptions.handleDataUpdate) {
         _map?.off('data', layerGroupOptions.handleDataUpdate)
       }
 
+      // Clean searchableDatas entry
       if (searchableDatas[layerGroupId]) {
         set((state) => {
           delete state.searchableDatas[layerGroupId]
         })
       }
 
+      // Unsubscribe store syncs
       if (_dataSyncSubscriptions[layerGroupId]) {
         Object.values(_dataSyncSubscriptions[layerGroupId]).forEach(
           (unsubscribe) => unsubscribe()
         )
       }
 
+      // Remove any images tied to this group
       Object.keys(_images).forEach((imageId) => {
         const image = _images[imageId]
         if (image.layerGroupId === layerGroupId) {
@@ -1279,13 +1322,15 @@ export const createMapCoreSlice: (
         }
       })
 
+      // Clear state for this group (images, layerInstances, joined selection sources, etc.)
       set((state) => {
+        // purge images metadata
         for (const imageId in state._images) {
           if (state._images[imageId].layerGroupId === layerGroupId) {
             delete state._images[imageId]
           }
         }
-
+        // remove any joined selection entries that reference these sources
         const sourceIdsToRemove = Object.keys(layerGroupOptions.sources)
         if (sourceIdsToRemove.length > 0) {
           state._joinedSelectionSourceMap =
@@ -1297,11 +1342,12 @@ export const createMapCoreSlice: (
             })
         }
 
+        // finally drop the group and subscriptions
         delete state._layerGroups[layerGroupId]
-
         delete state._dataSyncSubscriptions[layerGroupId]
       })
 
+      // 9) Remove draw if it was tied to this group
       if (_drawOptions.layerGroupId === layerGroupId) {
         await _removeDraw({ skipQueue: true })
       }
