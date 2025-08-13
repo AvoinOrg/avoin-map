@@ -72,9 +72,13 @@ export const useAdminFolayer = (
 
   const layerGroupId = getFolayerGroupId(folayerId)
 
+  // Bump this when server-updated timestamp changes
+  const confVersion = `${adminFolayerConf?.updatedTs ?? ''}`
+
   const [status, setEnabled] = useLayerGroup(layerGroupId, getLayerConf, {
     preload,
     initActions,
+    confVersion,
   })
 
   const hasErrored = isFolayerError || isAreasError
