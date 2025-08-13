@@ -45,8 +45,12 @@ export const useFolayer = (
 
   const layerGroupId = getFolayerGroupId(folayerId)
 
+  // Bump when color or updated timestamp changes
+  const confVersion = `${folayerConf?.updatedTs ?? ''}`
+
   return useLayerGroup(layerGroupId, getLayerConf, {
     preload,
     initActions,
+    confVersion,
   })
 }
