@@ -143,6 +143,7 @@ export const adminFolayerPatchMutation = (): UseMutationOptions<
         colorCode: postRes.data.color_code,
         colOptions: postRes.data.col_options,
       }
+
       await addAdminFolayerConf(adminFolayerConf)
 
       return { status: postRes.status, id: postRes.data.id }
