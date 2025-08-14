@@ -50,8 +50,12 @@ const FolayerImportPictures = forwardRef<
   const [files, setFiles] = useState<File[]>([])
   const [selectedFolderLabel, setSelectedFolderLabel] = useState<string>()
   const [manualMappings, setManualMappings] = useState<
-    Record<string, string | undefined>
+    Record<string, string | null | undefined>
   >({})
+  // Persisted initial row order (by folder name), so manual changes don't re-order rows
+  const [rowOrder, setRowOrder] = useState<string[]>([])
+  // Track whether we've already signaled the parent that changes can be made
+  const hasSignaledRef = useRef(false)
 
   const areaConf: FolayerAreaConf | undefined = useAppletStore(
     (s) => s.folayerAreaConfs[folayerId]
@@ -102,10 +106,15 @@ const FolayerImportPictures = forwardRef<
         return fName === nName && fMunicipality === nMunicipality
       })
 
-      // Manual mapping takes precedence
-      const manualId = manualMappings[folderName]
-      let resolvedId: string | undefined = manualId
-      if (!resolvedId && autoFound) {
+      // Manual mapping takes precedence; null means explicitly cleared
+      const manual = manualMappings[folderName]
+      let resolvedId: string | undefined
+
+      if (manual === null) {
+        resolvedId = undefined
+      } else if (typeof manual === 'string' && manual) {
+        resolvedId = manual
+      } else if (autoFound) {
         resolvedId =
           autoFound.id != null
             ? String(autoFound.id)
@@ -129,15 +138,68 @@ const FolayerImportPictures = forwardRef<
     return { ...result, unmatched, resolvedByFolder }
   }, [groups, areaConf, manualMappings])
 
-  // Report validity: valid when we have at least one image and no unmatched areas (folders)
+  // Establish initial row order when a new selection (groups) is loaded; do not depend on manualMappings
+  useEffect(() => {
+    const folders = Array.from(groups.keys())
+    if (folders.length === 0) {
+      setRowOrder([])
+      return
+    }
+
+    // Wait until areas are available to compute initial unmatched-first order
+    if (!areaConf?.data?.features?.length) return
+
+    // If the set of folders hasn't changed and we already have an order, do not reorder
+    const prevSet = new Set(rowOrder)
+    const sameSet =
+      rowOrder.length > 0 &&
+      rowOrder.length === folders.length &&
+      folders.every((f) => prevSet.has(f))
+    if (sameSet) return
+
+    const features = areaConf.data.features
+
+    // Determine auto-match status for initial ordering only
+    const autoResolvedByFolder: Record<string, boolean> = {}
+    folders.forEach((folderName) => {
+      if (!folderName || features.length === 0) {
+        autoResolvedByFolder[folderName] = false
+        return
+      }
+      const split = folderName.split(',')
+      const municipalityRaw = split.shift()
+      const nameRaw = split.join(',')
+
+      const nMunicipality = normalize(municipalityRaw)
+      const nName = normalize(nameRaw)
+
+      const autoFound = features.find((feat: any) => {
+        const fName = normalize(feat.properties?.name)
+        const fMunicipality = normalize(feat.properties?.municipality)
+        return fName === nName && fMunicipality === nMunicipality
+      })
+      autoResolvedByFolder[folderName] = !!autoFound
+    })
+
+    const sorted = folders.sort((a, b) => {
+      const aUnmatched = !autoResolvedByFolder[a]
+      const bUnmatched = !autoResolvedByFolder[b]
+      if (aUnmatched === bUnmatched) return a.localeCompare(b)
+      return aUnmatched ? -1 : 1
+    })
+
+    setRowOrder(sorted)
+  }, [groups, areaConf])
+
+  // Report to parent: signal when at least one image is mapped to an area
   useEffect(() => {
     if (!onValidationChange) return
-    const isValid =
-      (mapping.bulkImages.length > 0 || groups.size > 0) &&
-      mapping.unmatched.length === 0 &&
-      !!areaConf
-    onValidationChange(isValid)
-  }, [onValidationChange, mapping, groups.size, areaConf])
+    const hasAtLeastOneMapped = mapping.bulkImages.length > 0 && !!areaConf
+    if (hasAtLeastOneMapped && !hasSignaledRef.current) {
+      onValidationChange(true)
+      hasSignaledRef.current = true
+    }
+  }, [onValidationChange, mapping.bulkImages.length, areaConf])
 
   useImperativeHandle(ref, () => ({
     getValues: (cb) => {
@@ -153,6 +215,8 @@ const FolayerImportPictures = forwardRef<
     const fList = e.target.files
     if (!fList) return
     const arr = Array.from(fList)
+    // reset signal when a new selection is made
+    hasSignaledRef.current = false
     setFiles(arr)
     // Derive a label from the top-level selected folder
     const first = arr[0] as any
@@ -232,12 +296,14 @@ const FolayerImportPictures = forwardRef<
       )}
 
       {unmatchedFolders.length > 0 && (
-        <Box sx={{ mt: 3 }}>
+        <Box sx={{ mt: 4 }}>
           <Typography variant="body2" color="error" sx={{ mb: 1 }}>
             <T
               ns="luonnonmetsakartat"
               keyName={
-                'sidebar.admin.folayer.settings.picture.unmatched_folders'
+                unmatchedFoldersCount > 1
+                  ? 'sidebar.admin.folayer.settings.picture.unmatched_folders'
+                  : 'sidebar.admin.folayer.settings.picture.unmatched_folder'
               }
               params={{
                 folderCount: unmatchedFoldersCount,
@@ -245,47 +311,55 @@ const FolayerImportPictures = forwardRef<
               }}
             />
           </Typography>
-          <List dense sx={{ maxHeight: 160, overflowY: 'auto', pl: 2 }}>
-            {unmatchedFolders.map((g) => (
-              <ListItem key={g} sx={{ py: 0.2 }}>
-                <Chip
-                  label={g}
-                  size="small"
-                  color="warning"
-                  variant="outlined"
-                />
-              </ListItem>
-            ))}
-          </List>
-        </Box>
-      )}
-
-      {totalAreas > 0 && unmatchedFolders.length === 0 && (
-        <Box sx={{ mt: 2 }}>
-          <Typography variant="body2" color="success.main">
-            All folders matched to areas.
-          </Typography>
         </Box>
       )}
 
       {/* Mapping table: show all folders with searchable area selector. Unmatched first. */}
       {groups.size > 0 && areaConf?.data?.features?.length ? (
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="h6" sx={{ mb: 1 }}>
-            Folders ↔ Areas
-          </Typography>
-          {Array.from(groups.entries())
-            .map(([folder, imgs]) => ({ folder, count: imgs.length }))
-            .sort((a, b) => {
-              const aUnmatched = !mapping.resolvedByFolder[a.folder]
-              const bUnmatched = !mapping.resolvedByFolder[b.folder]
-              if (aUnmatched === bUnmatched)
-                return a.folder.localeCompare(b.folder)
-              return aUnmatched ? -1 : 1
-            })
-            .map(({ folder, count }) => {
+        <Box sx={{ mt: 2 }}>
+          {/* Table header */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: '1fr auto 1.5fr',
+              alignItems: 'center',
+              gap: 2,
+              py: 0.75,
+              // removed header top border and highlight background per request
+              // borderTop: '1px solid',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+              // backgroundColor: 'action.hover',
+            }}
+          >
+            <Typography variant="caption" color="text.secondary">
+              {t('sidebar.admin.folayer.settings.picture.folders')}
+            </Typography>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ textAlign: 'left' }}
+            >
+              {t('sidebar.admin.folayer.settings.picture.images')}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {t('sidebar.admin.folayer.settings.picture.areas')}
+            </Typography>
+          </Box>
+
+          {/* Scrollable rows container */}
+          <Box sx={{ maxHeight: 300, overflowY: 'auto' }}>
+            {rowOrder.map((folder) => {
+              const imgs = groups.get(folder) || []
+              const count = imgs.length
               const features = areaConf.data.features
-              const areaOptions = features
+              type AreaOption = {
+                id: string
+                label: string
+                municipality: string
+                name: string
+              }
+              const areaOptions: AreaOption[] = features
                 .map((feat) => {
                   const id =
                     feat.id != null
@@ -294,21 +368,31 @@ const FolayerImportPictures = forwardRef<
                       ? String(feat.properties.id)
                       : undefined
                   if (!id) return null
-                  const labelParts = [
-                    feat.properties?.municipality,
-                    feat.properties?.name,
-                  ]
-                    .filter(Boolean)
-                    .join(', ')
-                  return { id, label: labelParts }
+                  const municipality = feat.properties?.municipality || ''
+                  const name = feat.properties?.name || ''
+                  const label = [municipality, name].filter(Boolean).join(', ')
+                  return { id, label, municipality, name }
                 })
-                .filter(Boolean) as { id: string; label: string }[]
+                .filter(Boolean)
+                // Order by municipality, then by name (case-insensitive, trimmed)
+                .sort((a, b) => {
+                  const am = normalize(a.municipality)
+                  const bm = normalize(b.municipality)
+                  if (am !== bm) return am.localeCompare(bm)
+                  const an = normalize(a.name)
+                  const bn = normalize(b.name)
+                  return an.localeCompare(bn)
+                }) as AreaOption[]
 
               const optionsMap = new Map(areaOptions.map((o) => [o.id, o]))
+              const manualVal = manualMappings[folder]
               const currentId =
-                manualMappings[folder] || mapping.resolvedByFolder[folder]
-              const currentValue =
-                (currentId && optionsMap.get(currentId)) || null
+                manualVal === null
+                  ? undefined
+                  : manualVal || mapping.resolvedByFolder[folder]
+              const currentValue = currentId
+                ? optionsMap.get(currentId) || null
+                : null
 
               return (
                 <Box
@@ -319,13 +403,22 @@ const FolayerImportPictures = forwardRef<
                     alignItems: 'center',
                     gap: 2,
                     py: 1,
-                    borderTop: '1px solid',
+                    borderBottom: '1px solid',
                     borderColor: 'divider',
                   }}
                 >
-                  <Typography variant="body2">{folder}</Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {count} img
+                  <Typography
+                    typography="body7"
+                    sx={{ whiteSpace: 'normal', wordBreak: 'break-word' }}
+                  >
+                    {folder}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ textAlign: 'right' }}
+                  >
+                    {count}
                   </Typography>
                   <Autocomplete
                     size="small"
@@ -333,19 +426,38 @@ const FolayerImportPictures = forwardRef<
                     value={currentValue}
                     isOptionEqualToValue={(o, v) => o.id === v.id}
                     getOptionLabel={(o) => o.label}
+                    renderOption={(props, option) => (
+                      <li {...props} key={option.id}>
+                        <Typography typography="body7">{option.label}</Typography>
+                      </li>
+                    )}
+                    noOptionsText={t('sidebar.admin.folayer.settings.picture.no_options')}
+                    clearOnEscape
+                    disableClearable={false}
                     onChange={(_e, newValue) => {
                       setManualMappings((prev) => ({
                         ...prev,
-                        [folder]: newValue?.id,
+                        [folder]: newValue ? newValue.id : null, // null = explicitly cleared
                       }))
                     }}
                     renderInput={(params) => (
-                      <TextField {...params} placeholder="Select area" />
+                      <TextField
+                        {...params}
+                        placeholder={t(
+                          'sidebar.admin.folayer.settings.picture.select_area'
+                        )}
+                        sx={{
+                          '& .MuiInputBase-input': (theme) => ({
+                            typography: 'body7',
+                          }),
+                        }}
+                      />
                     )}
                   />
                 </Box>
               )
             })}
+          </Box>
         </Box>
       ) : null}
     </Box>
