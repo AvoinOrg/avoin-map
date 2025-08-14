@@ -73,17 +73,14 @@ export const useLayerGroup = (
   // Invalidate and recreate the layer group when confVersion changes
   useEffect(() => {
     if (confVersionRef.current === confVersion) return
-    console.log("muna")
     // Update stored version
     confVersionRef.current = confVersion
 
     const recreate = async () => {
       try {
         const group = useMapStore.getState()._layerGroups[layerGroupId]
-        console.log("group")
         const wasVisible = !!group && !group.isHidden
         if (group) {
-          console.log("yes remove")
           await removeLayerGroup(layerGroupId)
         }
         // clear cached conf so the next add uses latest configuration
@@ -117,7 +114,6 @@ export const useLayerGroup = (
           await runInitActions()
 
           const group = useMapStore.getState()._layerGroups[layerGroupId]
-          console.log("RE-ADDING GR")
           if (group) {
             if (group.isHidden) {
               await enableLayerGroup(layerGroupId, {})
