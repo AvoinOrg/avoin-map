@@ -21,6 +21,60 @@ import { Upload } from '#/components/icons'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { FolayerAreaConf } from '../common/types'
 import { T, useTranslate } from '@tolgee/react'
+import { FixedSizeList, ListChildComponentProps } from 'react-window'
+
+const LISTBOX_PADDING = 8 // px
+
+function renderRow(props: ListChildComponentProps) {
+  const { data, index, style } = props
+  // data is the array of rendered options
+  // `data[index]` is the rendered option, which is a `<li>` element
+  // We're adding the style from react-window to it
+  return React.cloneElement(data[index] as React.ReactElement, {
+    style: {
+      ...style,
+      top: (style.top as number) + LISTBOX_PADDING,
+    },
+  })
+}
+
+const OuterElementContext = React.createContext({})
+
+const OuterElementType = React.forwardRef<HTMLDivElement>((props, ref) => {
+  const outerProps = React.useContext(OuterElementContext)
+  return <div ref={ref} {...props} {...outerProps} />
+})
+
+const ListboxComponent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLElement>
+>(function ListboxComponent(props, ref) {
+  const { children, ...other } = props
+  const itemData = React.Children.toArray(children)
+  const itemCount = itemData.length
+  const itemSize = 36 // Estimated height for 'body7' typography
+
+  const height = Math.min(itemCount, 8) * itemSize
+
+  return (
+    <div ref={ref}>
+      <OuterElementContext.Provider value={other}>
+        <FixedSizeList
+          itemData={itemData}
+          height={height + 2 * LISTBOX_PADDING}
+          width="100%"
+          outerElementType={OuterElementType}
+          innerElementType="ul"
+          itemSize={itemSize}
+          overscanCount={5}
+          itemCount={itemCount}
+        >
+          {renderRow}
+        </FixedSizeList>
+      </OuterElementContext.Provider>
+    </div>
+  )
+})
 
 export interface FolayerImportPicturesValues {
   bulkImages: File[]
@@ -431,7 +485,20 @@ const FolayerImportPictures = forwardRef<
                         <Typography typography="body7">{option.label}</Typography>
                       </li>
                     )}
-                    noOptionsText={t('sidebar.admin.folayer.settings.picture.no_options')}
+                    noOptionsText={
+                      <Typography typography="body7">
+                        {t(
+                          'sidebar.admin.folayer.settings.picture.no_options'
+                        )}
+                      </Typography>
+                    }
+                    slotProps={{
+                      listbox: {
+                        component: ListboxComponent as React.ComponentType<
+                          React.HTMLAttributes<HTMLElement>
+                        >,
+                      },
+                    }}
                     clearOnEscape
                     disableClearable={false}
                     onChange={(_e, newValue) => {
