@@ -288,6 +288,13 @@ const Page = () => {
               <FolayerImportPictures
                 folayerId={adminFolayerConf.id}
                 ref={picturesRef}
+                onValidationChange={(hasAny) => {
+                  if (hasAny) {
+                    updateAdminFolayerConf(params.folayerIdSlug, {
+                      unsyncedChanges: true,
+                    })
+                  }
+                }}
               />
             </Box>
             {/* Import/update shapefile */}
