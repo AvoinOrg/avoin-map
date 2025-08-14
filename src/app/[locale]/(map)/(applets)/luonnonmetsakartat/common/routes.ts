@@ -34,6 +34,12 @@ export const routeTree: RouteTree = {
           name: 'Asetukset',
         },
       },
+      pictures: {
+        _conf: {
+          path: 'kuvat',
+          name: 'Kuvat',
+        },
+      },
     },
   },
 }
