@@ -108,12 +108,69 @@ const FolayerImportPictures = forwardRef<
   >({})
   // Persisted initial row order (by folder name), so manual changes don't re-order rows
   const [rowOrder, setRowOrder] = useState<string[]>([])
-  // Track whether we've already signaled the parent that changes can be made
-  const hasSignaledRef = useRef(false)
 
   const areaConf: FolayerAreaConf | undefined = useAppletStore(
     (s) => s.folayerAreaConfs[folayerId]
   )
+
+  // Prepare fast, memoized lookups based on current area features
+  type AreaOption = {
+    id: string
+    label: string
+    municipality: string
+    name: string
+  }
+  const features = areaConf?.data?.features ?? []
+  const areaOptionsAll: AreaOption[] = useMemo(() => {
+    const list = features
+      .map((feat) => {
+        const id =
+          feat.id != null
+            ? String(feat.id)
+            : feat.properties?.id != null
+            ? String(feat.properties.id)
+            : undefined
+        if (!id) return null
+        const municipality = feat.properties?.municipality || ''
+        const name = feat.properties?.name || ''
+        const label = [municipality, name].filter(Boolean).join(', ')
+        return { id, label, municipality, name }
+      })
+      .filter((o): o is AreaOption => !!o)
+      // Order by municipality, then by name (case-insensitive, trimmed)
+      .sort((a, b) => {
+        const am = normalize(a.municipality)
+        const bm = normalize(b.municipality)
+        if (am !== bm) return am.localeCompare(bm)
+        const an = normalize(a.name)
+        const bn = normalize(b.name)
+        return an.localeCompare(bn)
+      })
+    return list
+  }, [features])
+  const optionsById = useMemo(
+    () => new Map(areaOptionsAll.map((o) => [o.id, o] as const)),
+    [areaOptionsAll]
+  )
+  // Fast lookup for auto-matching by normalized municipality+name
+  const featureIdByNormKey = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const feat of features) {
+      const id =
+        feat.id != null
+          ? String(feat.id)
+          : feat.properties?.id != null
+          ? String(feat.properties.id)
+          : undefined
+      if (!id) continue
+      const municipality = normalize(feat.properties?.municipality)
+      const name = normalize(feat.properties?.name)
+      const key = `${municipality}|${name}`
+      // Store the first occurrence; if duplicates exist, first wins
+      if (!map.has(key)) map.set(key, id)
+    }
+    return map
+  }, [features])
 
   // Area folders by bottom-level folder name
   const groups = useMemo(() => {
@@ -143,8 +200,6 @@ const FolayerImportPictures = forwardRef<
       return { ...result, unmatched, resolvedByFolder }
     }
 
-    const features = areaConf.data.features
-
     groups.forEach((imgs, folderName) => {
       if (!folderName) return
       const split = folderName.split(',')
@@ -153,12 +208,7 @@ const FolayerImportPictures = forwardRef<
 
       const nMunicipality = normalize(municipalityRaw)
       const nName = normalize(nameRaw)
-
-      const autoFound = features.find((feat) => {
-        const fName = normalize(feat.properties?.name)
-        const fMunicipality = normalize(feat.properties?.municipality)
-        return fName === nName && fMunicipality === nMunicipality
-      })
+      const autoFoundId = featureIdByNormKey.get(`${nMunicipality}|${nName}`)
 
       // Manual mapping takes precedence; null means explicitly cleared
       const manual = manualMappings[folderName]
@@ -168,13 +218,8 @@ const FolayerImportPictures = forwardRef<
         resolvedId = undefined
       } else if (typeof manual === 'string' && manual) {
         resolvedId = manual
-      } else if (autoFound) {
-        resolvedId =
-          autoFound.id != null
-            ? String(autoFound.id)
-            : autoFound.properties?.id != null
-            ? String(autoFound.properties.id)
-            : undefined
+      } else if (autoFoundId) {
+        resolvedId = autoFoundId
       }
 
       if (!resolvedId) {
@@ -190,7 +235,7 @@ const FolayerImportPictures = forwardRef<
     })
 
     return { ...result, unmatched, resolvedByFolder }
-  }, [groups, areaConf, manualMappings])
+  }, [groups, featureIdByNormKey, manualMappings])
 
   // Establish initial row order when a new selection (groups) is loaded; do not depend on manualMappings
   useEffect(() => {
@@ -201,7 +246,7 @@ const FolayerImportPictures = forwardRef<
     }
 
     // Wait until areas are available to compute initial unmatched-first order
-    if (!areaConf?.data?.features?.length) return
+  if (!features.length) return
 
     // If the set of folders hasn't changed and we already have an order, do not reorder
     const prevSet = new Set(rowOrder)
@@ -210,8 +255,6 @@ const FolayerImportPictures = forwardRef<
       rowOrder.length === folders.length &&
       folders.every((f) => prevSet.has(f))
     if (sameSet) return
-
-    const features = areaConf.data.features
 
     // Determine auto-match status for initial ordering only
     const autoResolvedByFolder: Record<string, boolean> = {}
@@ -226,13 +269,9 @@ const FolayerImportPictures = forwardRef<
 
       const nMunicipality = normalize(municipalityRaw)
       const nName = normalize(nameRaw)
-
-      const autoFound = features.find((feat: any) => {
-        const fName = normalize(feat.properties?.name)
-        const fMunicipality = normalize(feat.properties?.municipality)
-        return fName === nName && fMunicipality === nMunicipality
-      })
-      autoResolvedByFolder[folderName] = !!autoFound
+      autoResolvedByFolder[folderName] = featureIdByNormKey.has(
+        `${nMunicipality}|${nName}`
+      )
     })
 
     const sorted = folders.sort((a, b) => {
@@ -243,16 +282,13 @@ const FolayerImportPictures = forwardRef<
     })
 
     setRowOrder(sorted)
-  }, [groups, areaConf])
+  }, [groups, features.length, featureIdByNormKey])
 
-  // Report to parent: signal when at least one image is mapped to an area
+  // Report to parent: always reflect current validity (active when at least one image is mapped)
   useEffect(() => {
     if (!onValidationChange) return
-    const hasAtLeastOneMapped = mapping.bulkImages.length > 0 && !!areaConf
-    if (hasAtLeastOneMapped && !hasSignaledRef.current) {
-      onValidationChange(true)
-      hasSignaledRef.current = true
-    }
+    const isValid = mapping.bulkImages.length > 0 && !!areaConf
+    onValidationChange(isValid)
   }, [onValidationChange, mapping.bulkImages.length, areaConf])
 
   useImperativeHandle(ref, () => ({
@@ -269,8 +305,6 @@ const FolayerImportPictures = forwardRef<
     const fList = e.target.files
     if (!fList) return
     const arr = Array.from(fList)
-    // reset signal when a new selection is made
-    hasSignaledRef.current = false
     setFiles(arr)
     // Derive a label from the top-level selected folder
     const first = arr[0] as any
@@ -406,46 +440,13 @@ const FolayerImportPictures = forwardRef<
             {rowOrder.map((folder) => {
               const imgs = groups.get(folder) || []
               const count = imgs.length
-              const features = areaConf.data.features
-              type AreaOption = {
-                id: string
-                label: string
-                municipality: string
-                name: string
-              }
-              const areaOptions: AreaOption[] = features
-                .map((feat) => {
-                  const id =
-                    feat.id != null
-                      ? String(feat.id)
-                      : feat.properties?.id != null
-                      ? String(feat.properties.id)
-                      : undefined
-                  if (!id) return null
-                  const municipality = feat.properties?.municipality || ''
-                  const name = feat.properties?.name || ''
-                  const label = [municipality, name].filter(Boolean).join(', ')
-                  return { id, label, municipality, name }
-                })
-                .filter(Boolean)
-                // Order by municipality, then by name (case-insensitive, trimmed)
-                .sort((a, b) => {
-                  const am = normalize(a.municipality)
-                  const bm = normalize(b.municipality)
-                  if (am !== bm) return am.localeCompare(bm)
-                  const an = normalize(a.name)
-                  const bn = normalize(b.name)
-                  return an.localeCompare(bn)
-                }) as AreaOption[]
-
-              const optionsMap = new Map(areaOptions.map((o) => [o.id, o]))
               const manualVal = manualMappings[folder]
               const currentId =
                 manualVal === null
                   ? undefined
                   : manualVal || mapping.resolvedByFolder[folder]
               const currentValue = currentId
-                ? optionsMap.get(currentId) || null
+                ? optionsById.get(currentId) || null
                 : null
 
               return (
@@ -476,7 +477,7 @@ const FolayerImportPictures = forwardRef<
                   </Typography>
                   <Autocomplete
                     size="small"
-                    options={areaOptions}
+                    options={areaOptionsAll}
                     value={currentValue}
                     isOptionEqualToValue={(o, v) => o.id === v.id}
                     getOptionLabel={(o) => o.label}
