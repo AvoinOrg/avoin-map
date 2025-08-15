@@ -302,10 +302,10 @@ const FolayerImportPictures = forwardRef<
 
   return (
     <Box
-      sx={(theme) => ({
-        backgroundColor: theme.palette.neutral.light,
-        borderRadius: '0.3125rem',
-      })}
+      // sx={(theme) => ({
+      //   backgroundColor: theme.palette.neutral.light,
+      //   borderRadius: '0.3125rem',
+      // })}
     >
       {/* <Typography variant="h4" sx={{ mb: 3 }}>
         Upload pictures (folder or folder of folders)
