@@ -106,6 +106,37 @@ const Page = () => {
             <ArrowNextBig sx={{ ml: 1, height: '1.2rem' }}></ArrowNextBig>
           </MutableLink>
         </Box>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            mt: 2,
+            width: '100%',
+            justifyContent: 'flex-end',
+          }}
+        >
+          <MutableLink
+            route={routeTree.admin.folayer.pictures}
+            routeTree={routeTree}
+            params={{ routeParams: { folayerId: adminFolayerConf.id } }}
+            sx={{ alignItems: 'center' }}
+          >
+            <Typography
+              sx={{
+                typography: 'h6',
+                fontWeight: 500,
+                textDecoration: 'underline',
+                textUnderlineOffset: '0.1em',
+              }}
+            >
+              <T
+                keyName={'sidebar.admin.folayer.open_pictures'}
+                ns={'luonnonmetsakartat'}
+              ></T>
+            </Typography>
+            <ArrowNextBig sx={{ ml: 1, height: '1.2rem' }}></ArrowNextBig>
+          </MutableLink>
+        </Box>
 
         <Typography sx={{ mt: 7, typography: 'h3' }}>
           <T
