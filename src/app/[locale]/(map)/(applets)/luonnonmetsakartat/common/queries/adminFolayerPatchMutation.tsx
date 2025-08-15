@@ -59,10 +59,14 @@ export const adminFolayerPatchMutation = (): UseMutationOptions<
         )
       }
 
-      const isHidden = !mutationData.isVisible
-      formData.append('is_hidden', isHidden.toString())
+      if (mutationData.isVisible != null) {
+        const isHidden = !mutationData.isVisible
+        formData.append('is_hidden', isHidden.toString())
+      }
 
-      formData.append('name', mutationData.name)
+      if (mutationData.name) {
+        formData.append('name', mutationData.name)
+      }
 
       if (mutationData.colorCode && mutationData.colorCode !== '') {
         formData.append('color_code', mutationData.colorCode)
@@ -181,7 +185,10 @@ export const adminFolayerPatchMutation = (): UseMutationOptions<
 
       // Refresh the list of layers
       await queryClient.invalidateQueries({ queryKey: ['folayers'] })
-      await queryClient.refetchQueries({ queryKey: ['folayers'], type: 'active' })
+      await queryClient.refetchQueries({
+        queryKey: ['folayers'],
+        type: 'active',
+      })
     },
     onError: (error) => {
       console.error(error)
