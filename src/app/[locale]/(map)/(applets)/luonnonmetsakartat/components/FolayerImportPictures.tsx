@@ -394,8 +394,8 @@ const FolayerImportPictures = forwardRef<
                   : 'sidebar.admin.folayer.settings.picture.unmatched_folder'
               }
               params={{
-                folderCount: unmatchedFoldersCount,
-                imageCount: unmatchedImagesCount,
+                unmatchedFoldersCount: unmatchedFoldersCount,
+                unmatchedImagesCount: unmatchedImagesCount,
               }}
             />
           </Typography>
