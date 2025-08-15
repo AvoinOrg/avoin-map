@@ -67,7 +67,7 @@ const Page = () => {
 
       if (picValues && picValues.bulkImages?.length) {
         const payload: any = {
-          ...adminFolayerConf,
+          id: adminFolayerConf.id,
           bulkImages: picValues.bulkImages,
           bulkAreaIds: picValues.bulkAreaIds,
         }
