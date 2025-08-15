@@ -42,7 +42,6 @@ const Page = () => {
   const [deleteAreasNotUpdated, setDeleteAreasNotUpdated] = useState<boolean>(
     false
   )
-  const picturesRef = useRef<FolayerImportPicturesRef>(null)
   const shpRef = useRef<FolayerUpdateShpRef>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const params = useParams<{ folayerIdSlug: string }>()
@@ -157,12 +156,6 @@ const Page = () => {
     event.nativeEvent.stopImmediatePropagation()
 
     if (adminFolayerConf) {
-      // Gather picture values from child component
-      const picValues = await new Promise<any>((resolve) => {
-        if (!picturesRef.current) return resolve(null)
-        picturesRef.current.getValues((vals) => resolve(vals))
-      })
-
       // Gather shapefile colOptions and confirm validity
       const shpValues = await new Promise<any>((resolve) => {
         if (!shpRef.current) return resolve(null)
@@ -179,10 +172,6 @@ const Page = () => {
         }
         payload.rawShapefile = shpValues?.rawShapefile || arrayBuffers[0]
         payload.deleteAreasNotUpdated = deleteAreasNotUpdated
-      }
-      if (picValues && picValues.bulkImages?.length) {
-        payload.bulkImages = picValues.bulkImages
-        payload.bulkAreaIds = picValues.bulkAreaIds
       }
       localAdminFolayerPatchMutation.mutate(payload)
     }
@@ -275,27 +264,6 @@ const Page = () => {
                   keyName={'sidebar.admin.folayer.settings.is_visible'}
                 />
               </CheckBoxWithText>
-            </Box>
-            <Box
-              sx={(theme) => ({
-                backgroundColor: theme.palette.neutral.light,
-                p: 4,
-                borderRadius: '0.3125rem',
-                mt: 6,
-              })}
-            >
-              {/* Pictures upload */}
-              <FolayerImportPictures
-                folayerId={adminFolayerConf.id}
-                ref={picturesRef}
-                onValidationChange={(hasAny) => {
-                  if (hasAny) {
-                    updateAdminFolayerConf(params.folayerIdSlug, {
-                      unsyncedChanges: true,
-                    })
-                  }
-                }}
-              />
             </Box>
             {/* Import/update shapefile */}
             <Box
