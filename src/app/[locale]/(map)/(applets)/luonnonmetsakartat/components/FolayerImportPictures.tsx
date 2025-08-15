@@ -265,7 +265,8 @@ const FolayerImportPictures = forwardRef<
 
   useImperativeHandle(ref, () => ({
     getValues: (cb) => {
-      if (mapping.unmatched.length > 0 || mapping.bulkImages.length === 0) {
+  // Allow partial saves: return mapped images even if some folders are unmatched
+  if (mapping.bulkImages.length === 0) {
         cb(null)
         return
       }
