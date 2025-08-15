@@ -277,21 +277,9 @@ const FolayerImportPictures = forwardRef<
     const fList = e.target.files
     if (!fList) return
     const arr = Array.from(fList)
-    // Merge selections (emulate multi-folder by multiple picks) and de-duplicate
-    setFiles((prev) => {
-      const all = [...prev, ...arr]
-      const seen = new Set<string>()
-      const deduped: File[] = []
-      for (const f of all) {
-        const anyF = f as any
-        const rel: string = anyF.webkitRelativePath || f.name
-        const key = `${rel}\u0000${f.size}\u0000${f.lastModified}`
-        if (seen.has(key)) continue
-        seen.add(key)
-        deduped.push(f)
-      }
-      return deduped
-    })
+  // Replace previous selection entirely
+  setManualMappings({})
+  setFiles(arr)
     // Label from top-level of the latest selection
     const first = arr[0] as any
     const relFirst: string = first?.webkitRelativePath || first?.name || ''
