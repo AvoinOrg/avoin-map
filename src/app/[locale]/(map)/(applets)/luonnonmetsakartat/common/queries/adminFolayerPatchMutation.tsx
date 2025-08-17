@@ -153,8 +153,28 @@ export const adminFolayerPatchMutation = (): UseMutationOptions<
       return { status: postRes.status, id: postRes.data.id }
     },
     onSuccess: async (_data, variables) => {
-      // If a new shapefile was provided, areas may have changed — refetch areas
-      if (variables.rawShapefile) {
+      // Notify user of successful update (settings, shapefile, or pictures)
+      if (variables.bulkImages?.length && variables.bulkImages.length > 0) {
+        notify({
+          message: t('notifications.folayer_pictures_success', {
+            name: (variables as any).name || variables.id,
+          }),
+          variant: 'success',
+        })
+      } else {
+        notify({
+          message: t('notifications.folayer_update_success', {
+            name: (variables as any).name || variables.id,
+          }),
+          variant: 'success',
+        })
+      }
+
+      // If a new shapefile or bulk images were provided, areas may have changed — refetch areas
+      if (
+        variables.rawShapefile ||
+        (variables.bulkImages?.length && variables.bulkImages?.length > 0)
+      ) {
         await queryClient.invalidateQueries({
           queryKey: ['adminFolayerAreas', variables.id],
           exact: true,
@@ -195,6 +215,7 @@ export const adminFolayerPatchMutation = (): UseMutationOptions<
       notify({
         message: `${t('notifications.folayer_creation_error')}`,
         variant: 'error',
+        manualDismiss: true,
       })
     },
     retry: 3,
