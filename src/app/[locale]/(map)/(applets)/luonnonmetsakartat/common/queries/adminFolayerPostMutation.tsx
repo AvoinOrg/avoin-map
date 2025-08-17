@@ -109,11 +109,18 @@ export const adminFolayerPostMutation = (): UseMutationOptions<
 
       return { status: postRes.status, id: postRes.data.id }
     },
+    onSuccess: async (_data) => {
+      notify({
+        message: t('notifications.folayer_create_success'),
+        variant: 'success',
+      })
+    },
     onError: (error) => {
       console.error(error)
       notify({
         message: `${t('notifications.folayer_creation_error')}`,
         variant: 'error',
+  manualDismiss: true,
       })
     },
     retry: 3,
