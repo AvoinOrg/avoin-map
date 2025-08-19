@@ -51,6 +51,18 @@ export const folayerAreaQuery = (
       if (response.status === 200) {
         for (const feature of response.data.features) {
           feature.id = feature.properties.id || feature.id
+          // Decode pictures if it's a JSON-encoded string
+          const pics = (feature as any).properties?.pictures
+          if (typeof pics === 'string') {
+            try {
+              const parsed = JSON.parse(pics)
+              if (Array.isArray(parsed)) {
+                ;(feature as any).properties.pictures = parsed
+              }
+            } catch (_e) {
+              // leave as-is if not valid JSON
+            }
+          }
         }
         // Extract area collection data
         const areaObj: FolayerAreaConf = {
