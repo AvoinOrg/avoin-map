@@ -9402,6 +9402,7 @@ __metadata:
     react-colorful: ^5.6.1
     react-dom: ^19.0.0
     react-ga: ^3.3.1
+    react-photo-album: ^3.1.0
     react-refresh: ^0.14.0
     react-router-dom: ^7.2.0
     react-window: ^1.8.11
@@ -9417,6 +9418,7 @@ __metadata:
     webpack-bundle-analyzer: ^4.7.0
     webpack-cli: ^5.0.1
     webpack-dev-server: ^4.11.1
+    yet-another-react-lightbox: ^3.25.0
     zustand: ^5.0.6
   languageName: unknown
   linkType: soft
@@ -17249,6 +17251,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-photo-album@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "react-photo-album@npm:3.1.0"
+  peerDependencies:
+    "@types/react": ^18 || ^19
+    react: ^18 || ^19
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: da8cabd0b7889ef23e5db6ab94e14e72ac24e3ff8fa71a7408ea0748d749e2ee8905cdac9f22b63cd06f0edfbc9b3627ef54dab5a624ea2e0d74424a0987b100
+  languageName: node
+  linkType: hard
+
 "react-refresh@npm:^0.14.0":
   version: 0.14.0
   resolution: "react-refresh@npm:0.14.0"
@@ -20300,6 +20315,23 @@ __metadata:
     y18n: ^5.0.5
     yargs-parser: ^21.1.1
   checksum: 73b572e863aa4a8cbef323dd911d79d193b772defd5a51aab0aca2d446655216f5002c42c5306033968193bdbf892a7a4c110b0d77954a7fdf563e653967b56a
+  languageName: node
+  linkType: hard
+
+"yet-another-react-lightbox@npm:^3.25.0":
+  version: 3.25.0
+  resolution: "yet-another-react-lightbox@npm:3.25.0"
+  peerDependencies:
+    "@types/react": ^16 || ^17 || ^18 || ^19
+    "@types/react-dom": ^16 || ^17 || ^18 || ^19
+    react: ^16.8.0 || ^17 || ^18 || ^19
+    react-dom: ^16.8.0 || ^17 || ^18 || ^19
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+  checksum: 41f4182fae10a97406b16a61649b9a5de5142f814b60a114c2632be54bd040a801be60ccc67e0dd94c3a50deb905f5104eb77d7bcf5ebcea9c99e24db2d792b9
   languageName: node
   linkType: hard
 
