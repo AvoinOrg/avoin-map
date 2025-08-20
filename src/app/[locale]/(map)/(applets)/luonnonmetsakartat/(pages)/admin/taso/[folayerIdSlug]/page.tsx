@@ -149,7 +149,7 @@ const Page = () => {
             sx={{ mt: 2, pb: 5 }}
             data={folayerAreaConf.data.features}
             source={{
-              source: getFolayerCentroidSourceId(params.folayerIdSlug),
+              source: getFolayerCentroidSourceId(params.folayerIdSlug, true),
             }}
             keysToSearch={[
               'properties.name',
