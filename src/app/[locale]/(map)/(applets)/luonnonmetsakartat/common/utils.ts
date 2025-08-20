@@ -21,26 +21,33 @@ export const getFolayerIdWithoutHyphens = (layerId: string) => {
   return layerId.replace(/-/g, '')
 }
 
-export const getFolayerSourceId = (layerId: string) => {
+export const getFolayerSourceId = (layerId: string, isAdmin: boolean) => {
   const layerIdWithoutHyphens = getFolayerIdWithoutHyphens(layerId)
-  return `${layerIdWithoutHyphens}_luonnonmetsakartat`
+  return `${layerIdWithoutHyphens}_luonnonmetsakartat${isAdmin ? '_admin' : ''}`
 }
 
-export const getFolayerGroupId = (layerId: string) => {
-  return getFolayerSourceId(layerId)
+export const getFolayerGroupId = (layerId: string, isAdmin: boolean) => {
+  return getFolayerSourceId(layerId, isAdmin)
 }
 
 export const getFolayerSourceLayer = (layerId: string) => {
   return `forest_areas_${getFolayerIdWithoutHyphens(layerId)}`
 }
 
-export const getFolayerCentroidSourceLayer = (layerId: string) => {
+export const getFolayerCentroidSourceLayer = (
+  layerId: string,
+) => {
   return `forest_areas_${getFolayerIdWithoutHyphens(layerId)}_centroid`
 }
 
-export const getFolayerCentroidSourceId = (layerId: string) => {
+export const getFolayerCentroidSourceId = (
+  layerId: string,
+  isAdmin: boolean
+) => {
   const layerIdWithoutHyphens = getFolayerIdWithoutHyphens(layerId)
-  return `${layerIdWithoutHyphens}_luonnonmetsakartat_centroid`
+  return `${layerIdWithoutHyphens}_luonnonmetsakartat_centroid${
+    isAdmin ? '_admin' : ''
+  }`
 }
 
 export const createFolayerConf = async ({
@@ -54,13 +61,12 @@ export const createFolayerConf = async ({
   colorCode: string
   isAdmin?: boolean
 }) => {
-  const groupId = getFolayerGroupId(folayerId)
+  const groupId = getFolayerGroupId(folayerId, isAdmin)
   // const addImage = useMapStore.getState().addImage
-  const sourceId = getFolayerSourceId(folayerId)
+  const sourceId = getFolayerSourceId(folayerId, isAdmin)
   const sourceLayer = getFolayerSourceLayer(folayerId)
 
-  const centroidSourceId = getFolayerCentroidSourceId(folayerId)
-  const centroidSourceLayer = getFolayerCentroidSourceLayer(folayerId)
+  const centroidSourceId = getFolayerCentroidSourceId(folayerId, isAdmin)
 
   const validColorCode = colorCode || '#4cbf00' // Default to green if none provided
   const contrastColor = getContrastColor(validColorCode)

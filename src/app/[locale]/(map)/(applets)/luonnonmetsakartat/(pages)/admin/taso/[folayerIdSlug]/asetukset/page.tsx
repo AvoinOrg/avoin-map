@@ -186,7 +186,7 @@ const Page = () => {
         localAdminFolayerDeleteMutation.mutate({
           folayerConf: adminFolayerConf,
           callbackFn: () => {
-            removeLayerGroup(getFolayerGroupId(adminFolayerConf.id))
+            removeLayerGroup(getFolayerGroupId(adminFolayerConf.id, true))
             router.push(
               getRoute({ routeNode: routeTree.admin, routeTree: routeTree })
             )

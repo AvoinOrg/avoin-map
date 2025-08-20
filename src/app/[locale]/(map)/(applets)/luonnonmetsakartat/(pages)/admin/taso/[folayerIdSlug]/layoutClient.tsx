@@ -18,7 +18,7 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   )
 
   const [isFolayerEnabled, setFolayerEnabled] = useAdminFolayer(folayerId)
-  const folayerGroupId = getFolayerGroupId(folayerId)
+  const folayerGroupId = getFolayerGroupId(folayerId, true)
   useExclusiveLayerGroups([folayerGroupId])
 
   useEffect(() => {

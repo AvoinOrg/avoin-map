@@ -6,7 +6,7 @@ import { area as turfArea } from '@turf/turf'
 
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { useSession } from 'next-auth/react'
-import { AdminFolayerConf, FolayerConfState } from '../types'
+import { AdminFolayerConf, FolayerConf, FolayerConfState } from '../types'
 
 const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 
@@ -66,7 +66,7 @@ const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 // }
 
 // For getting all folayers (if needed)
-export const folayersQuery = (): UseQueryOptions<AdminFolayerConf[]> => {
+export const folayersQuery = (): UseQueryOptions<FolayerConf[]> => {
   const setFolayerConfs = useAppletStore.getState().setFolayerConfs
 
   return {
@@ -75,7 +75,7 @@ export const folayersQuery = (): UseQueryOptions<AdminFolayerConf[]> => {
       const response = await axios.get(`${API_URL}/layers`)
 
       if (response.status === 200) {
-        const folayerConfs: AdminFolayerConf[] = response.data.map(
+        const folayerConfs: FolayerConf[] = response.data.map(
           (folayer: any) => ({
             id: folayer.id,
             name: folayer.name,
