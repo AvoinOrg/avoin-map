@@ -70,10 +70,10 @@ export const useAdminFolayer = (
     })
   }, [folayerId, adminFolayerConf, folayerRefetch])
 
-  const layerGroupId = getFolayerGroupId(folayerId)
+  const layerGroupId = getFolayerGroupId(folayerId, true)
 
   // Bump this when server-updated timestamp changes
-  const confVersion = `${adminFolayerConf?.updatedTs ?? ''}`
+  const confVersion = `${adminFolayerConf?.updatedTs ?? ''}-admin`
 
   const [status, setEnabled] = useLayerGroup(layerGroupId, getLayerConf, {
     preload,
