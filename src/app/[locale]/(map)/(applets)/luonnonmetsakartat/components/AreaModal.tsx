@@ -244,21 +244,23 @@ const AreaModal = ({
                   </Typography>
                 </Box>
 
-                <Box sx={{ mt: 4 }}>
-                  <Typography
-                    variant="body1"
-                    sx={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
-                  >
-                    {properties.description}
-                  </Typography>
-                </Box>
+                {properties.description && (
+                  <Box sx={{ mt: 4 }}>
+                    <Typography
+                      variant="body1"
+                      sx={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
+                    >
+                      {properties.description}
+                    </Typography>
+                  </Box>
+                )}
               </Box>
 
               {/* Right / carousel — ZERO padding, flush to top/right/bottom */}
               {hasPictures && (
                 <Box
                   className="area-modal-right"
-                  sx={{ minWidth: 0, pt: { xs: 8, md: 0 }, minHeight: '30rem' }}
+                  sx={{ minWidth: 0, minHeight: '30rem' }}
                 >
                   <Box
                     sx={{
