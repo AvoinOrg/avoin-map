@@ -14,6 +14,7 @@ import { folayersQuery } from '../common/queries/folayersQuery'
 import FolayerItem from '../components/FolayerItem'
 import { FolayerConf } from '../common/types'
 import { useExclusiveLayerGroups } from '#/common/hooks/map/useExclusiveLayerGroups'
+import { Eco } from '#/components/icons'
 
 const Page = () => {
   const folayerConfs = useAppletStore((state) => state.folayerConfs)
@@ -44,6 +45,29 @@ const Page = () => {
           {folayerConfsArray.map((conf) => (
             <FolayerItem key={conf.id} conf={conf} />
           ))}
+        </Box>
+      )}
+      {!isLoading && folayerConfsArray.length === 0 && (
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            mt: 3,
+            alignItems: 'start',
+          }}
+        >
+          <Eco
+            sx={{ width: 50, height: 'auto', flexShrink: 0, mt: -0.5 }}
+          ></Eco>
+          <Typography
+            sx={{
+              display: 'inline-flex',
+              typography: 'body2',
+              ml: 1.5,
+            }}
+          >
+            <T ns="luonnonmetsakartat" keyName="sidebar.main.no_data" />
+          </Typography>
         </Box>
       )}
     </SidebarContentBox>

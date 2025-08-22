@@ -106,8 +106,17 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
           )}
           {localState === LocalState.NoUser && (
             <SidebarContentBox>
-              <Box sx={{ display: 'flex', flexDirection: 'row', mt: 3 }}>
-                <Star sx={{ height: 40, width: 'auto' }}></Star>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  mt: 3,
+                  alignItems: 'start',
+                }}
+              >
+                <Star
+                  sx={{ height: 40, width: 'auto', flexShrink: 0, mt: 0.5 }}
+                ></Star>
                 <Typography
                   sx={{
                     display: 'inline-flex',
