@@ -1,0 +1,54 @@
+import React, { cloneElement } from 'react'
+import { Button, Tooltip, ButtonProps } from '@mui/material'
+
+interface MapButtonProps extends ButtonProps {
+  tooltip?: string
+  isVertical?: boolean
+}
+
+export const MapButton = ({
+  children,
+  tooltip,
+  isVertical,
+  sx,
+  className,
+  style,
+  ...props
+}: MapButtonProps) => {
+  const button = (
+    <Button
+      {...props}
+      className={className}
+      style={style}
+      sx={{
+        width: '40px',
+        height: '40px',
+        backgroundColor: 'neutral.light',
+        color: 'text.primary',
+        boxShadow: 'none',
+        opacity: 0.9,
+        '&:hover': {
+          backgroundColor: 'neutral.main',
+          opacity: 1,
+        },
+        '&.Mui-disabled': {
+          backgroundColor: 'neutral.light',
+          opacity: 0.5,
+        },
+        ...sx,
+      }}
+    >
+      {children}
+    </Button>
+  )
+
+  if (tooltip) {
+    return (
+      <Tooltip title={tooltip} placement={isVertical ? 'left' : 'bottom'}>
+        {button}
+      </Tooltip>
+    )
+  }
+
+  return button
+}

@@ -1,0 +1,28 @@
+import { ReadonlyURLSearchParams } from 'next/navigation'
+
+export type RouteObject = {
+  name: string
+  path: string
+  isAppletRoot?: boolean
+}
+
+export type RouteTree = {
+  _conf: RouteObject
+} & {
+  [key: string]: RouteTree | any
+}
+
+export type Params = {
+  routeParams?: Record<string, string>
+  queryParams?:
+    | Record<string, string>
+    | URLSearchParams
+    | ReadonlyURLSearchParams
+}
+
+export type RouteForLinks = {
+  name: string
+  path: string
+  routeTree: RouteTree
+  params?: Params
+}

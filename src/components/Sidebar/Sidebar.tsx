@@ -1,106 +1,166 @@
-import React, { useContext } from "react";
-import { makeStyles, Theme, createStyles } from "@material-ui/core/styles";
-import Drawer from "@material-ui/core/Drawer";
-import List from "@material-ui/core/List";
+'use client'
 
-import Accordion from "../Accordion";
+import React, { useEffect, useRef } from 'react'
+import { Box, SxProps, Theme } from '@mui/material'
 
-import drawerItems, { privateDrawerItems } from "./drawerItems";
+import { useUIStore } from '#/common/store'
+// import { MapPopup } from '../Map/MapPopup_old'
+import { useMapStore } from '#/common/store'
+import Drawer from './Drawer'
+import PopupDrawer from './PopupDrawer'
+import { SidebarHeader, SidebarToggleButton } from '#/components/Sidebar'
+import { Navbar } from './Navbar'
+import { LoadingSpinner } from '../Loading'
 
-import { ListItem } from "@material-ui/core";
-import { StateContext } from "../State";
-import { UserContext } from "../User";
+export const Sidebar = ({
+  headerElement,
+  navbarElement,
+  sx,
+  children,
+}: {
+  headerElement?: React.ReactNode
+  navbarElement?: React.ReactNode
+  sx?: SxProps<Theme>
+  children: React.ReactNode
+}) => {
+  const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
+  const isMapPopupOpen = useUIStore((state) => state.isMapPopupOpen)
+  const setIsMapPopupOpen = useUIStore((state) => state.setIsMapPopupOpen)
+  const setSidebarWidth = useUIStore((state) => state.setSidebarWidth)
+  const isNavbarHidden = useUIStore((state) => state.isNavbarHidden)
+  const isSidebarLoading = useUIStore((state) => state.isSidebarLoading)
 
-const drawerWidth = 340;
+  // const popupOpts = useMapStore((state) => state.popupOpts)
 
-const useStyles = makeStyles((theme: Theme) =>
-  createStyles({
-    title: {
-      paddingLeft: 16,
-    },
-    menuButton: {
-      position: "absolute",
-      marginRight: theme.spacing(2),
-    },
-    hide: {
-      display: "none",
-    },
-    navlink: {
-      color: "black",
-      textDecoration: "none",
-    },
-    logo: {
-      maxWidth: 200,
-      float: "left",
-      marginLeft: -12,
-      marginBottom: -24,
-    },
-    search: {
-      padding: 0,
-    },
-    dropdownList: {
-      marginTop: 80,
-    },
-    drawer: {
-      width: drawerWidth,
-      flexShrink: 0,
-    },
-    drawerPaper: {
-      width: drawerWidth,
-    },
-    drawerItem: {
-      marginBottom: theme.spacing(4),
-      height: 47,
-    },
-    content: {
-      flexGrow: 1,
-      padding: theme.spacing(3),
-    },
-    toolbar: theme.mixins.toolbar,
-    listItem: {
-      fontFamily: theme.typography.fontFamily[0],
-    },
-  })
-);
+  const sidebarRef = useRef()
 
-export function MainMenu() {
-  const classes = useStyles({});
+  useEffect(() => {
+    const resizeObserver = new ResizeObserver((entries) => {
+      setSidebarWidth(entries[0].contentRect.width)
+    })
 
-  const { isLoggedIn }: any = useContext(UserContext);
+    if (sidebarRef.current) {
+      resizeObserver.observe(sidebarRef.current)
+    }
+
+    return () => {
+      if (sidebarRef.current) {
+        resizeObserver.unobserve(sidebarRef.current)
+      }
+    }
+  }, [])
 
   return (
-    <List className={classes.dropdownList}>
-      {isLoggedIn &&
-        privateDrawerItems.map((item, i) => (
-          <ListItem key={item.title} className={classes.listItem}>
-            <Accordion drawerItem={true} item={item} />
-          </ListItem>
-        ))}
-      {drawerItems.map((item, i) => (
-        <ListItem key={item.title} className={classes.listItem}>
-          <Accordion drawerItem={true} item={item} />
-        </ListItem>
-      ))}
-    </List>
-  );
-}
-
-function Sidebar({ children }) {
-  const classes = useStyles({});
-  const { isSidebarOpen }: any = useContext(StateContext);
-
-  return (
-    <div className={"left-drawer"}>
-      <Drawer
-        className={classes.drawer}
-        variant="persistent"
-        anchor="left"
-        open={isSidebarOpen}
+    <Box
+      ref={sidebarRef}
+      className="sidebar-container"
+      sx={[
+        {
+          zIndex: 'drawer',
+          // backgroundColor: 'white',
+          minHeight: 0,
+          width: 'max-content',
+          maxWidth: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          position: 'relative',
+          flex: 1,
+          pointerEvents: isSidebarOpen || isMapPopupOpen ? 'auto' : 'none',
+        },
+        ...(Array.isArray(sx) ? sx : [sx]),
+      ]}
+    >
+      <SidebarToggleButton
+        sx={(theme) => ({
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          zIndex: theme.zIndex.drawer + 11,
+          pointerEvents: 'auto',
+        })}
+      />
+      <Box
+        sx={{ display: 'flex', flexDirection: 'row', flex: 1, minHeight: 0 }}
       >
-        {children}
-      </Drawer>
-    </div>
-  );
+        <Drawer open={isSidebarOpen}>
+          {headerElement ? (
+            headerElement
+          ) : (
+            <SidebarHeader title={'avoin map'}></SidebarHeader>
+          )}
+          {isSidebarLoading && (
+            <Box
+              sx={(theme) => ({
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: theme.zIndex.drawer + 10,
+                borderRadius: 'inherit', // Inherit border radius from parent if needed
+              })}
+            >
+              <LoadingSpinner size="5rem" />
+            </Box>
+          )}
+          <Box
+            ref={sidebarRef}
+            sx={[
+              {
+                overflow: 'auto',
+                display: 'flex',
+                flexGrow: 1,
+                maxWidth: '100vw',
+                backgroundColor: 'neutral.lighter',
+              },
+            ]}
+          >
+            {children}
+          </Box>
+          {!isNavbarHidden &&
+            (navbarElement ? navbarElement : <Navbar></Navbar>)}
+        </Drawer>
+
+        <PopupDrawer open={isMapPopupOpen}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <Box
+              sx={{
+                textDecoration: 'none',
+                alignSelf: 'flex-end',
+                margin: '10px 10px 0 0',
+                '&:after': {
+                  content: "'✖'",
+                },
+              }}
+              onClick={() => setIsMapPopupOpen(false)}
+            />
+            {/* <MapPopup popupOpts={popupOpts} /> */}
+          </Box>
+        </PopupDrawer>
+      </Box>
+      {/* {mode === 'full' && (
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            width: '100%',
+            height: '100%',
+          }}
+        >
+          {children}
+        </Box>
+      )} */}
+    </Box>
+  )
 }
 
-export default Sidebar;
+export default Sidebar

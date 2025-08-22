@@ -1,0 +1,21 @@
+{
+  "avoin-map": {
+    "langs": [
+      "en",
+      "fi"
+    ]
+  },
+  "hiilikartta": {
+    "langs": [
+      "fi"
+    ],
+    "domains": [
+      "test2.map.avoin.org"
+    ]
+  },
+  "luonnonmetsakartat": {
+    "langs": [
+      "fi"
+    ]
+  }
+}

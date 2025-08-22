@@ -1,16 +1,3 @@
-[[redirects]]
-  from = "https://avoin-map.netlify.app/*"
-  to = "https://map.avoin.org/*"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "https://avoinmap.org"
-  to = "https://map.avoin.org"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+[build]
+publish = ".next"
+command = "yarn run build"
