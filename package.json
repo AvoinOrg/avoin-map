@@ -77,6 +77,8 @@
     "date-fns": "^2.30.0",
     "dompurify": "^2.4.3",
     "dotenv": "^16.0.3",
+    "embla-carousel": "^8.6.0",
+    "embla-carousel-react": "^8.6.0",
     "fast-json-stable-stringify": "^2.1.0",
     "fuse.js": "^7.1.0",
     "immer": "^10.0.1",
