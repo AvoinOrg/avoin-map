@@ -29,7 +29,7 @@ export const getStaticData = async (nsLangs: {
   for (const namespace of Object.keys(nsLangs)) {
     for (const lang of nsLangs[namespace].langs) {
       result[`${lang}:${namespace}`] = (
-        await import(`../../../i18n/${namespace}/${lang}.json`)
+  await import(`@i18n/${namespace}/${lang}.json`)
       ).default
     }
   }

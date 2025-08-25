@@ -37,7 +37,7 @@ async function downloadTranslations() {
         const language = path.basename(languageFile, '.json')
         const outputPath = path.resolve(
           __dirname,
-          `../../src/i18n/${namespace}/${language}.json`
+          `../../i18n/${namespace}/${language}.json`
         )
 
         // Ensure the directory exists

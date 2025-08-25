@@ -151,6 +151,6 @@ src/app/api/map/*
 
 
 # i18n files, which are downloaded dynamically
-src/i18n/*
+i18n/*
 
 .dev
