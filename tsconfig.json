@@ -20,7 +20,8 @@
     "outDir": "build/",
     "paths": {
       "applets/*": ["src/app/[locale]/(map)/(applets)/*"],
-      "#/*": ["src/*"]
+  "#/*": ["src/*"],
+  "@i18n/*": ["i18n/*"]
     },
     "plugins": [
       {
