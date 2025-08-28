@@ -102,6 +102,7 @@ const nextConfig = {
     config,
     { buildId, dev, isServer, defaultLoaders, nextRuntime, webpack }
   ) => {
+    config.resolve.alias['@i18n'] = path.resolve(__dirname, 'i18n')
     // Important: return the modified config
     // Inside the webpack configuration function
 
