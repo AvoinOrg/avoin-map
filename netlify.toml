@@ -1,3 +1,14 @@
 [build]
-publish = ".next"
-command = "yarn run build"
+  command = "NEXT_PUBLIC_URL=$DEPLOY_PRIME_URL yarn run build"
+
+[context.deploy-preview]
+  command = "NEXT_PUBLIC_URL=$DEPLOY_PRIME_URL yarn run build"
+
+[context.branch-deploy]
+  command = "NEXT_PUBLIC_URL=$DEPLOY_PRIME_URL yarn run build"
+
+[context."hiilikartta_deploy"]
+  command = "NEXT_PUBLIC_URL=$DEPLOY_PRIME_URL APPLET=hiilikartta yarn run build-applet"
+
+[context."luonnonmetsakartat_deploy"]
+  command = "NEXT_PUBLIC_URL=$DEPLOY_PRIME_URL APPLET=luonnonmetsakartat yarn run build-applet"
