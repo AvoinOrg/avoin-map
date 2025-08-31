@@ -5,7 +5,14 @@ const fs = require('fs')
 const path = require('path')
 
 const projectRoot = path.join(__dirname, '..', '..')
-const appletsPath = path.join(projectRoot, 'src', 'app', '(ui)', '(applets)')
+const appletsPath = path.join(
+    projectRoot,
+    'src',
+    'app',
+    '[locale]',
+    '(map)',
+    '(applets)'
+)
 const applet = process.env.APPLET || process.argv[2]
 if (!applet) {
     console.error('No applet specified.')
@@ -22,7 +29,7 @@ function updateTsConfig() {
         const tsConfig = JSON.parse(fs.readFileSync(tsConfigPath, 'utf8'))
 
         tsConfig.compilerOptions.paths[`applets/${applet}/*`] = [
-            `src/app/(ui)/(applets)/(${applet})/*`,
+            `src/app/[locale]/(map)/(applets)/(${applet})/*`,
         ]
 
         fs.writeFileSync(tsConfigPath, JSON.stringify(tsConfig, null, 2))

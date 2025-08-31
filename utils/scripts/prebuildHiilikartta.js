@@ -5,7 +5,14 @@ const fs = require('fs')
 const path = require('path')
 
 const projectRoot = path.join(__dirname, '..', '..')
-const appletsPath = path.join(projectRoot, 'src', 'app', '(ui)', '(applets)')
+const appletsPath = path.join(
+  projectRoot,
+  'src',
+  'app',
+  '[locale]',
+  '(map)',
+  '(applets)'
+)
 const hiilikarttaPath = path.join(appletsPath, 'hiilikartta')
 const pagePath = path.join(projectRoot, 'src', 'app', '(ui)', 'page.tsx')
 const tsConfigPath = path.join(projectRoot, 'tsconfig.json')
