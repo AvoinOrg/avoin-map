@@ -7,10 +7,11 @@
   "scripts": {
     "start": "next start",
     "dev": "next dev",
+    "clean": "rm -rf .next node_modules/.cache",
     "prebuild": "node ./utils/scripts/downloadTranslations.js",
     "postbuild": "node ./utils/scripts/writeNetlifyRedirects.js",
     "prebuild-applet": "node ./utils/scripts/prebuildApplet.js",
-    "build-applet": "yarn run prebuild-applet && NEXT_PUBLIC_USE_BASE_ROUTE_FOR_APPLETS=true yarn build",
+    "build-applet": "yarn run clean && yarn run prebuild-applet && NEXT_PUBLIC_USE_BASE_ROUTE_FOR_APPLETS=true yarn build",
     "build-hiilikartta": "APPLET=hiilikartta yarn run build-applet",
     "build-luonnonmetsakartat": "APPLET=luonnonmetsakartat yarn run build-applet",
     "build": "yarn run prebuild && next build && yarn run postbuild",
