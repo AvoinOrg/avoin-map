@@ -3,7 +3,7 @@ import axios from 'axios'
 import { useSession } from 'next-auth/react'
 
 import { FolayerFeature, FolayerFeatureProperties } from '../types'
-import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
+import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import { useUIStore } from '#/common/store'
 import { useTranslate } from '@tolgee/react'
 

@@ -5,7 +5,7 @@ import { CalcFeatureCollection } from '../../common/types'
 import {
   getCarbonChangeColor,
   getCarbonValueForProperties,
-} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
+} from 'applets/hiilikartta/common/utils'
 
 type Props = {
   calcFeatures: CalcFeatureCollection

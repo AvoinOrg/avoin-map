@@ -11,7 +11,7 @@ import React, {
 import { Box, Typography, Autocomplete, TextField, Tooltip } from '@mui/material'
 import BigMenuButton from '#/components/common/BigMenuButton'
 import { Upload } from '#/components/icons'
-import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
+import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import { FolayerAreaConf } from '../common/types'
 import { T, useTranslate } from '@tolgee/react'
 import { FixedSizeList, ListChildComponentProps } from 'react-window'

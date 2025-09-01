@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react'
 
 import { useUIStore } from '#/common/store'
 
-import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
+import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
 import {
   CalculationState,
   PlaceholderPlanConf,

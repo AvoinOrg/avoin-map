@@ -19,10 +19,10 @@ import { Upload } from '#/components/icons'
 import {
   FeatureProperties,
   IndexingStrategy,
-} from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
-import { routeTree } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/routes'
+} from 'applets/luonnonmetsakartat/common/types'
+import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
 import FolayerImportShp from 'applets/luonnonmetsakartat/components/FolayerImportShp'
-import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
+import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import { adminFolayerPostMutation } from 'applets/luonnonmetsakartat/common/queries/adminFolayerPostMutation'
 import { useMutation } from '@tanstack/react-query'
 import { useSidebarActivityLoader } from '#/common/hooks/ui/useSidebarActivityLoader'

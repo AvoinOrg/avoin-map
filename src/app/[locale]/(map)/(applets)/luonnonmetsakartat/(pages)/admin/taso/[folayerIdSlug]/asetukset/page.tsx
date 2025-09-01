@@ -21,8 +21,8 @@ import { useSidebarActivityLoader } from '#/common/hooks/ui/useSidebarActivityLo
 import BigMenuButton from '#/components/common/BigMenuButton'
 import { Upload } from '#/components/icons'
 
-import { FolayerConfState } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
-import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
+import { FolayerConfState } from 'applets/luonnonmetsakartat/common/types'
+import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import { adminFolayerPatchMutation } from 'applets/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
 import { adminFolayerDeleteMutation } from 'applets/luonnonmetsakartat/common/queries/adminFolayerDeleteMutation'
 import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
