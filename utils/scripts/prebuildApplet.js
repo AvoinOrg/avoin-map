@@ -36,10 +36,37 @@ function updateTsConfig() {
     }
 }
 
+function rewriteImportsInApplet(directory) {
+    if (!fs.existsSync(directory)) {
+        return
+    }
+    const entries = fs.readdirSync(directory, { withFileTypes: true })
+    for (const entry of entries) {
+        const fullPath = path.join(directory, entry.name)
+        if (entry.isDirectory()) {
+            rewriteImportsInApplet(fullPath)
+        } else if (
+            entry.isFile() &&
+            (fullPath.endsWith('.ts') || fullPath.endsWith('.tsx'))
+        ) {
+            let content = fs.readFileSync(fullPath, 'utf8')
+            const oldImportPrefix = '#/app/[locale]/(map)/(applets)/'
+            const newImportPrefix = 'applets/'
+            // Use a regex for global replacement
+            const importRegex = new RegExp(oldImportPrefix, 'g')
+            if (content.match(importRegex)) {
+                const newContent = content.replace(importRegex, newImportPrefix)
+                fs.writeFileSync(fullPath, newContent, 'utf8')
+            }
+        }
+    }
+}
+
 function renameAndCleanup() {
+    let newAppletPath
     // Rename selected applet folder
     if (fs.existsSync(appletPath)) {
-        const newAppletPath = path.join(appletsPath, `(${applet})`)
+        newAppletPath = path.join(appletsPath, `(${applet})`)
         fs.renameSync(appletPath, newAppletPath)
     }
 
@@ -60,6 +87,10 @@ function renameAndCleanup() {
     }
 
     updateTsConfig()
+
+    if (newAppletPath) {
+        rewriteImportsInApplet(newAppletPath)
+    }
 }
 
 renameAndCleanup()
