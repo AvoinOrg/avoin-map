@@ -20,7 +20,7 @@ if (!applet) {
 }
 
 const appletPath = path.join(appletsPath, applet)
-const pagePath = path.join(projectRoot, 'src', 'app', '(ui)', 'page.tsx')
+const pagePath = path.join(projectRoot, 'src', 'app', '[locale]', '(map)', 'page.tsx')
 const tsConfigPath = path.join(projectRoot, 'tsconfig.json')
 
 
@@ -81,7 +81,7 @@ function renameAndCleanup() {
         }
     })
 
-    // Remove page.tsx
+    // Remove the default (map) page.tsx, because we want the applet root page to be the landing page
     if (fs.existsSync(pagePath)) {
         fs.unlinkSync(pagePath)
     }
