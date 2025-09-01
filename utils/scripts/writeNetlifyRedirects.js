@@ -3,11 +3,11 @@ const path = require('path')
 require('dotenv').config()
 
 // Load environment variables from .env file
-const mainUrl = process.env.URL
+const mainUrl = process.env.DEPLOY_PRIME_URL || process.env.URL
 
 if (!mainUrl) {
   console.error(
-    'No redirect rules were generated: The "URL" environment variable is missing.'
+    'No redirect rules were generated: Neither DEPLOY_PRIME_URL nor URL environment variable was found.'
   )
   process.exit(1)
 }
