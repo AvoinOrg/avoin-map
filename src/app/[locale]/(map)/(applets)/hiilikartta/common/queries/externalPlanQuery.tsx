@@ -1,6 +1,6 @@
 import { FetchStatus } from '#/common/types/general'
 import { UseQueryOptions } from '@tanstack/react-query'
-import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
+import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
 import axios from 'axios'
 import { ExternalPlanConf, ReportData } from '../types'
 import { processCalcQueryToReportData } from '../utils'

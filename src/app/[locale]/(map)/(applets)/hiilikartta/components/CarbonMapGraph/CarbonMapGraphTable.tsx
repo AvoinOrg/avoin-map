@@ -12,7 +12,7 @@ import { T } from '@tolgee/react'
 
 import { pp } from '#/common/utils/general'
 
-import { MapGraphData } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
+import { MapGraphData } from 'applets/hiilikartta/common/types'
 
 type Props = {
   datas: MapGraphData[]

@@ -14,18 +14,18 @@ import {
   FileType,
   NewPlanConf,
   ZONING_CODE_COL,
-} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
+} from 'applets/hiilikartta/common/types'
 import { getGeoJsonArea } from '#/common/utils/gis'
 import BigMenuButton from '#/components/common/BigMenuButton'
 import { Upload } from '#/components/icons'
 
-import { routeTree } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/routes'
+import { routeTree } from 'applets/hiilikartta/common/routes'
 import PlanImportGpkg from './_components/PlanImportGpkg'
 import PlanImportShp from './_components/PlanImportShp'
-import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
+import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
 import { Feature, FeatureCollection } from 'geojson'
 import { generateUUID } from '#/common/utils/general'
-import { ZONING_CLASSES } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/constants'
+import { ZONING_CLASSES } from 'applets/hiilikartta/common/constants'
 
 const Page = () => {
   const addPlanConf = useAppletStore((state) => state.addPlanConf)

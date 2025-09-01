@@ -15,15 +15,15 @@ import { SerializableLayerGroupAddOptions } from '#/common/types/map'
 import {
   createLayerConf,
   getPlanLayerGroupId,
-} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
+} from 'applets/hiilikartta/common/utils'
 import {
   FeatureProperties,
   GlobalState,
   PlanConfState,
   PlanData,
   ZONING_CODE_COL,
-} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
-import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
+} from 'applets/hiilikartta/common/types'
+import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
 
 const Layout = ({
   children,

@@ -20,18 +20,18 @@ import { pp } from '#/common/utils/general'
 import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
 import { ArrowNextBig, Delete, Star } from '#/components/icons'
 
-import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
-import { routeTree } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/routes'
-import { checkIsValidZoningCode } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
+import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
+import { routeTree } from 'applets/hiilikartta/common/routes'
+import { checkIsValidZoningCode } from 'applets/hiilikartta/common/utils'
 import ZoneAccordion from './_components/ZoneAccordion'
-import { calcPostMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/calcPostMutation'
-import PlanFolder from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanFolder'
+import { calcPostMutation } from 'applets/hiilikartta/common/queries/calcPostMutation'
+import PlanFolder from 'applets/hiilikartta/components/PlanFolder'
 import {
   CalculationState,
   GlobalState,
   PlanConfState,
-} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
-import { planDeleteMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/planDeleteMutation'
+} from 'applets/hiilikartta/common/types'
+import { planDeleteMutation } from 'applets/hiilikartta/common/queries/planDeleteMutation'
 import { LoadingSpinner } from '#/components/Loading'
 import SidebarContentBox from '#/components/Sidebar/SidebarContentBox'
 

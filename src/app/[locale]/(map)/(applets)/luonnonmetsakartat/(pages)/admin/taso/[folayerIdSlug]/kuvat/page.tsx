@@ -12,12 +12,12 @@ import { useUIStore } from '#/common/store'
 import { useSidebarActivityLoader } from '#/common/hooks/ui/useSidebarActivityLoader'
 import { SidebarContentBox } from '#/components/Sidebar'
 import { adminFolayerPatchMutation } from 'applets/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
-import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
+import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import FolayerImportPictures, {
   FolayerImportPicturesRef,
   FolayerImportPicturesValues,
 } from 'applets/luonnonmetsakartat/components/FolayerImportPictures'
-import { FolayerConfState } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
+import { FolayerConfState } from 'applets/luonnonmetsakartat/common/types'
 import { LoadingSpinner } from '#/components/Loading'
 
 const Page = () => {

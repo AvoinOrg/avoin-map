@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query'
 import { SidebarContentBox } from '#/components/Sidebar'
 import { LoadingSpinner } from '#/components/Loading'
 
-import { routeTree } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/routes'
+import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
 import { useAppletStore } from '../state/appletStore'
 import { folayersQuery } from '../common/queries/folayersQuery'
 import FolayerItem from '../components/FolayerItem'
