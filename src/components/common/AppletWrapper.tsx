@@ -17,7 +17,7 @@ const AppletWrapper = ({
   mapContext,
   localizationNamespace,
   subPath,
-  defaultLanguage,
+  // defaultLanguage,
   isNavbarHidden,
   searchCountryCodes,
   listedLayerGroups,
@@ -27,7 +27,7 @@ const AppletWrapper = ({
   mapContext: MapContext
   localizationNamespace?: string
   subPath?: string
-  defaultLanguage?: string
+  // defaultLanguage?: string
   isNavbarHidden?: boolean
   searchCountryCodes?: string[]
   listedLayerGroups?: ListedLayerGroup[]
@@ -66,7 +66,7 @@ const AppletWrapper = ({
   useEffect(() => {
     if (tolgee.isLoaded()) {
       localizationNamespace != null && tolgee.addActiveNs(localizationNamespace)
-      defaultLanguage != null && tolgee.changeLanguage(defaultLanguage)
+      // defaultLanguage != null && tolgee.changeLanguage(defaultLanguage)
     }
   }, [tolgee.isLoaded()])
 
@@ -109,7 +109,7 @@ const AppletWrapper = ({
       localizationNamespace != null &&
       !tolgee
         .getAllRecords()
-        .some((item) => item.namespace === localizationNamespace)
+        .some((item) => item!.namespace === localizationNamespace)
     ) {
       return false
     }
