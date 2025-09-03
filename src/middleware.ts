@@ -1,118 +1,168 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { NextResponse, NextRequest } from 'next/server'
 import { pathnames } from '#/common/navigation/navigation'
 import {
   DEFAULT_LOCALE,
-  getLocaleObj,
+  DEFAULT_NS,
   getLocalesForNs,
-  ALL_NS_LANGS,
 } from '#/common/navigation/tolgee/shared'
 
-// check out locale validity and redirect if needed
-export function middleware(request: NextRequest) {
-  const pathname = request.nextUrl.pathname
-  let splitUrl: string[] = []
+// If you don't use domain-based detection anymore, remove this import.
+import conf from '../localeConf.json' assert { type: 'json' }
 
-  if (pathname != null && request.nextUrl.pathname !== '' && pathname !== '/') {
-    splitUrl = request.nextUrl.pathname.split('/').filter((path) => path !== '')
-    const locale = splitUrl[0]
+// ---------- helpers ----------
+const SKIP_PREFIXES = new Set([
+  '/_next',
+  '/api',
+  '/adds',
+  '/favicon.ico',
+  '/apple-icon',
+  '/icon',
+  '/robots.txt',
+  '/sitemap.xml',
+  '/files',
+  '/lib',
+])
 
-    let localeObj = getLocaleObj(locale as string)
-    const localeExists = Object.keys(localeObj).length > 0
-    let localeParamMissing = false
+function redirectPreserveQuery(req: NextRequest, toPath: string) {
+  const url = req.nextUrl
+  const next = new URL(toPath, url)
+  next.search = url.search
+  if (next.pathname === url.pathname) return NextResponse.next()
+  return NextResponse.redirect(next, 308)
+}
 
-    if (!localeExists || splitUrl.length > 1) {
-      let matchedPath: string | undefined
+// Union of all locales once (module scope = cached for all requests)
+// const ALL_LOCALES: Set<string> = (() => {
+//   const s = new Set<string>([DEFAULT_LOCALE])
+//   const data = (conf as any).default || conf
+//   for (const ns of Object.keys(data)) {
+//     for (const l of (data as any)[ns].langs as string[]) s.add(l)
+//   }
+//   return s
+// })()
 
-      // find the possible matching path for the relevant part of the url
-      if (localeExists && splitUrl.length > 1) {
-        matchedPath = findMatchedPath(pathnames, splitUrl[1])
-      } else {
-        matchedPath = findMatchedPath(pathnames, splitUrl[0])
+const KNOWN_APPLETS = new Set(
+  Object.keys((conf as any).default || conf).filter(
+    (k) => ((conf as any).default || conf)[k].applet
+  )
+)
 
-        if (matchedPath != null) {
-          localeParamMissing = true
-        } else if (splitUrl.length > 1) {
-          matchedPath = findMatchedPath(pathnames, splitUrl[1])
-        }
-      }
+function findAppletFromSegment(seg: string): string | null {
+  // First try canonical namespace
+  if (KNOWN_APPLETS.has(seg)) return seg
+  // Fallback: your `pathnames` alias mapping (if slugs differ from ns)
+  const hit = Object.entries(pathnames).find(([, p]) => {
+    const first = p.replace(/^\//, '').split('/')[0]?.toLowerCase()
+    return first === seg.toLowerCase()
+  })
+  return hit ? hit[0] : null
+}
 
-      // if the path is legit
-      if (matchedPath) {
-        if (Object.keys(ALL_NS_LANGS).includes(matchedPath)) {
-          let appletLocale = locale
-          if (!localeExists) {
-            appletLocale = DEFAULT_LOCALE
-          }
-          const appletPath = matchedPath as keyof typeof ALL_NS_LANGS
-          const localesForNs = getLocalesForNs(appletPath)
+// Standalone applet? (env controls it)
+function getActiveAppletNs(): string | null {
+  return process.env.NEXT_PUBLIC_APPLET_NAMESPACE || null
+}
 
-          if (localesForNs.includes(locale)) {
-            if (!localeExists) {
-              // redirect to the global default locale
-              if (!localeParamMissing) {
-                // if an invalid locale param was supplied, remove the locale from path
-                return NextResponse.redirect(
-                  new URL(
-                    `/${appletLocale}/${splitUrl.slice(1).join('/')}`,
-                    request.url
-                  )
-                )
-              }
-              return NextResponse.redirect(
-                new URL(`/${appletLocale}${pathname}`, request.url)
-              )
-            }
-          } else {
-            // redirect to default (first) locale for the applet
-            appletLocale = localesForNs[0]
+export function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl
 
-            if (!localeParamMissing) {
-              // if an invalid locale param was supplied, remove the locale from path
-              return NextResponse.redirect(
-                new URL(
-                  `/${appletLocale}/${splitUrl.slice(1).join('/')}`,
-                  request.url
-                )
-              )
-            }
-            return NextResponse.redirect(
-              new URL(`/${appletLocale}/${pathname}`, request.url)
-            )
-          }
-        }
-      }
+  // Pass-through ASAP
+  for (const p of SKIP_PREFIXES) {
+    if (pathname.startsWith(p)) return NextResponse.next()
+  }
 
-      if (!localeExists) {
-        // redirect to the global default locale
-        return NextResponse.redirect(new URL(`/${DEFAULT_LOCALE}`, request.url))
-      }
+  const envNs = getActiveAppletNs()
+  const segments = pathname.split('/').filter(Boolean)
+  const first = segments[0]
+  // const hasLocale = !!first && ALL_LOCALES.has(first)
+  const hasLocale = !!first && first.length === 2
+
+  // ----------------- Standalone APPLET site -----------------
+  if (envNs) {
+    console.log('isEnvNs')
+    const allowed = new Set<string>(getLocalesForNs(envNs))
+    const def = getLocalesForNs(envNs)[0] ?? DEFAULT_LOCALE
+
+    // 1) "/" -> "/<def>"
+    if (pathname === '/') return redirectPreserveQuery(req, `/${def}`)
+
+    // 2) "/path" -> "/<def>/path"
+    if (!hasLocale) return redirectPreserveQuery(req, `/${def}${pathname}`)
+
+    // 3) "/<bad-locale>/..." -> "/<def>/..."
+    if (!allowed.has(locale!)) {
+      const tail = '/' + segments.slice(1).join('/')
+      return redirectPreserveQuery(req, `/${def}${tail}`)
     }
+
+    return NextResponse.next()
+  }
+
+  // ----------------- MAIN app (applets under /<locale>/<applet>) -----------------
+
+  // "/" -> "/<DEFAULT_LOCALE>"
+  if (pathname === '/') return redirectPreserveQuery(req, `/${DEFAULT_LOCALE}`)
+
+  let locale = hasLocale ? first! : null
+
+  // Figure out if the url includes an applet path
+  const probe = hasLocale ? segments[1] : segments[0]
+  const targetNs = probe ? findAppletFromSegment(probe) : null
+  const isApplet = !!targetNs
+
+  if (isApplet) {
+    const localesForNs = getLocalesForNs(targetNs!)
+
+    if (!hasLocale) {
+      // "/applet/..." (no locale) -> "/<appletDefault>/applet/..."
+      const def = localesForNs[0] ?? DEFAULT_LOCALE
+      return redirectPreserveQuery(req, `/${def}${pathname}`)
+    }
+
+    if (hasLocale && !localesForNs.includes(locale!)) {
+      // "<invalidLocale>/applet/..." -> "/<appletDefaultLocale>/applet/..."
+      const def = localesForNs[0] ?? DEFAULT_LOCALE
+      const tail = segments.slice(1).join('/')
+      return redirectPreserveQuery(req, `/${def}/${tail}`)
+    }
+
+    // url is correct, the applet includes the locale
+    return NextResponse.next()
+  }
+
+  // No applet path detected
+  const localesForNs = getLocalesForNs(DEFAULT_NS)
+
+  if (hasLocale) {
+    if (!localesForNs.includes(locale!)) {
+      const def = localesForNs[0] ?? DEFAULT_LOCALE
+
+      if (segments.length > 1) {
+        // replace the invalid locale with default
+        return redirectPreserveQuery(
+          req,
+          `/${def}/${segments.slice(1).join('/')}`
+        )
+      }
+
+      // no segments, redirect to default locale
+      return redirectPreserveQuery(req, `/${def}`)
+    }
+
+    // locale is fine, pass without redirecting
+    return NextResponse.next()
+  }
+
+  if (!hasLocale) {
+    const def = localesForNs[0] ?? DEFAULT_LOCALE
+
+    return redirectPreserveQuery(req, `/${def}/${segments.join('/')}`)
   }
 
   return NextResponse.next()
 }
 
+// Narrow scope so assets truly bypass (and to reduce edge work)
 export const config = {
-  matcher: [
-    // match all routes except static files and APIs
-    '/((?!api|_next/static|_next/image|favicon.ico|files|lib).*)',
-  ],
-}
-
-const findMatchedPath = (
-  pathnames: Record<string, string>,
-  urlPath: string
-) => {
-  let match = Object.values(pathnames).find((pathname) => {
-    const splitPathname = pathname.split('/').filter((path) => path !== '')
-    if (splitPathname.length > 0) {
-      return splitPathname[0].toLowerCase() === urlPath.toLowerCase()
-    }
-  })
-
-  if (match != null && match.charAt(0) === '/') {
-    match = match.slice(1)
-  }
-  return match
+  matcher: ['/((?!_next|api|favicon.ico|robots.txt|sitemap.xml|files|lib).*)'],
 }
