@@ -22,17 +22,17 @@ export default async function Head() {
       {/* End Google Tag Manager */}
       <meta name="viewport" content="initial-scale=1,width=device-width,maximum-scale=1,user-scalable=no" />
 
-      <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png" />
-      <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png" />
-      <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png" />
-      {/* <link rel="manifest" href="favicon/site.webmanifest"> */}
+      <link rel="apple-touch-icon" sizes="180x180" href="files/apple-touch-icon.png" />
+      <link rel="icon" type="image/png" sizes="32x32" href="files/favicon-32x32.png" />
+      <link rel="icon" type="image/png" sizes="16x16" href="files/favicon-16x16.png" />
+      {/* <link rel="manifest" href="files/site.webmanifest"> */}
       <link rel="manifest" href="manifest.json" />
 
-      <link rel="mask-icon" href="favicon/safari-pinned-tab.svg" color="#5bbad5" />
-      <link rel="shortcut icon" href="favicon/favicon.ico" />
+      <link rel="mask-icon" href="/files/safari-pinned-tab.svg" color="#5bbad5" />
+      {/* <link rel="shortcut icon" href="/files/favicon.ico" /> */}
       <meta name="msapplication-TileColor" content="#da532c" />
-      <meta name="msapplication-TileImage" content="favicon/mstile-144x144.png" />
-      <meta name="msapplication-config" content="favicon/browserconfig.xml" />
+      <meta name="msapplication-TileImage" content="/files/mstile-144x144.png" />
+      <meta name="msapplication-config" content="/files/browserconfig.xml" />
       <meta name="theme-color" content="#ffffff" />
 
       <meta property="og:type" content="website" />
