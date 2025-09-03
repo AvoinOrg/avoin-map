@@ -1,5 +1,14 @@
 import React from 'react'
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  icons: {
+    icon: '/files/favicon.ico',
+    shortcut: '/files/favicon.ico',
+    // apple: '/files/apple-touch-icon.png',
+  },
+}
 
 // import { UserModal } from '#/components/Profile'
 // import { UiStateProvider, UserStateProvider } from '#/components/State'
