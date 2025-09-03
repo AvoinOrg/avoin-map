@@ -8,6 +8,8 @@ const getNextAuthUrl = () => {
     baseUrl = `${process.env.NEXTAUTH_URL}`
   } else if (process.env.URL != null) {
     baseUrl = `${process.env.URL}`
+  } else if (process.env.DEPLOY_PRIME_URL != null) {
+    baseUrl = `${process.env.DEPLOY_PRIME_URL}`
   } else if (process.env.DOMAIN != null) {
     baseUrl = `${process.env.DOMAIN}`
   } else if (process.env.REACT_APP_URL != null) {
