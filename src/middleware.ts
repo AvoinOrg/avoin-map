@@ -13,7 +13,6 @@ import conf from '../localeConf.json' assert { type: 'json' }
 const SKIP_PREFIXES = new Set([
   '/_next',
   '/api',
-  '/adds',
   '/favicon.ico',
   '/apple-icon',
   '/icon',
@@ -22,6 +21,8 @@ const SKIP_PREFIXES = new Set([
   '/files',
   '/lib',
 ])
+
+const COMMON_LOCALIZED_PATHS = new Set<string>(['/adds'])
 
 function redirectPreserveQuery(req: NextRequest, toPath: string) {
   const url = req.nextUrl
@@ -68,7 +69,9 @@ export function middleware(req: NextRequest) {
 
   // Pass-through ASAP
   for (const p of SKIP_PREFIXES) {
-    if (pathname.startsWith(p)) return NextResponse.next()
+    if (pathname.startsWith(p)) {
+      return NextResponse.next()
+    }
   }
 
   const envNs = getActiveAppletNs()
@@ -76,34 +79,56 @@ export function middleware(req: NextRequest) {
   const first = segments[0]
   // const hasLocale = !!first && ALL_LOCALES.has(first)
   const hasLocale = !!first && first.length === 2
+  const locale = hasLocale ? first! : null
 
+  // handle common localized paths, which are the same regardless of APPLET mode
+  for (const p of COMMON_LOCALIZED_PATHS) {
+    const pathWithoutSlash = p.replace(/^\//, '')
+
+    // TODO: Add a check later to actually validate the localizations
+    if (hasLocale) {
+      if (segments[1] === pathWithoutSlash) {
+        return NextResponse.next()
+      }
+    } else {
+      if (segments[0] === pathWithoutSlash) {
+        return NextResponse.next()
+      }
+    }
+  }
   // ----------------- Standalone APPLET site -----------------
   if (envNs) {
-    console.log('isEnvNs')
     const allowed = new Set<string>(getLocalesForNs(envNs))
     const def = getLocalesForNs(envNs)[0] ?? DEFAULT_LOCALE
 
-    // 1) "/" -> "/<def>"
+    // Make the locale visible in the URL (redirect)
     if (pathname === '/') return redirectPreserveQuery(req, `/${def}`)
+    const segments = pathname.split('/').filter(Boolean)
+    const first = segments[0]
+    const hasLocale = !!first && first.length === 2 // or use your own ALL_LOCALES check
+    const locale = hasLocale ? first! : null
 
-    // 2) "/path" -> "/<def>/path"
-    if (!hasLocale) return redirectPreserveQuery(req, `/${def}${pathname}`)
+    if (!hasLocale) {
+      // "/path" -> "/<def>/path" (visible change)
+      return redirectPreserveQuery(req, `/${def}${pathname}`)
+    }
 
-    // 3) "/<bad-locale>/..." -> "/<def>/..."
     if (!allowed.has(locale!)) {
-      const tail = '/' + segments.slice(1).join('/')
+      // "/<bad-locale>/..." -> "/<def>/..." (visible change)
+      const tail = segments.length > 1 ? `/${segments.slice(1).join('/')}` : ''
       return redirectPreserveQuery(req, `/${def}${tail}`)
     }
 
-    return NextResponse.next()
+    // At this point URL is "/<locale>[/...]" and locale is valid.
+    // Internally serve from "/<locale>/<ns>[/...]" WITHOUT changing the URL:
+    const tail = segments.length > 1 ? `/${segments.slice(1).join('/')}` : ''
+    return NextResponse.rewrite(new URL(`/${locale}/${envNs}${tail}`, req.url))
   }
 
   // ----------------- MAIN app (applets under /<locale>/<applet>) -----------------
 
   // "/" -> "/<DEFAULT_LOCALE>"
   if (pathname === '/') return redirectPreserveQuery(req, `/${DEFAULT_LOCALE}`)
-
-  let locale = hasLocale ? first! : null
 
   // Figure out if the url includes an applet path
   const probe = hasLocale ? segments[1] : segments[0]
