@@ -2,7 +2,7 @@ import { RouteTree } from '#/common/types/routing'
 import path from 'path'
 
 const basePath =
-  process.env.NEXT_PUBLIC_USE_BASE_ROUTE_FOR_APPLETS === 'true'
+  process.env.NEXT_PUBLIC_APPLET_NAMESPACE === 'luonnonmetsakartat'
     ? ''
     : 'luonnonmetsakartat'
 

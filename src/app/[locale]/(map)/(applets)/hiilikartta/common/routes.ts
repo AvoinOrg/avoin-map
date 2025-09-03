@@ -1,7 +1,7 @@
 import { RouteTree } from '#/common/types/routing'
 
 const basePath =
-  process.env.NEXT_PUBLIC_USE_BASE_ROUTE_FOR_APPLETS === 'true'
+  process.env.NEXT_PUBLIC_APPLET_NAMESPACE === 'hiilikartta'
     ? ''
     : 'hiilikartta'
 
