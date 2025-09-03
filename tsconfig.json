@@ -2,7 +2,11 @@
   "allowSyntheticDefaults": true,
   "compilerOptions": {
     "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -19,9 +23,15 @@
     "baseUrl": ".",
     "outDir": "build/",
     "paths": {
-      "applets/*": ["src/app/[locale]/(map)/(applets)/*"],
-  "#/*": ["src/*"],
-  "@i18n/*": ["i18n/*"]
+      "applets/*": [
+        "src/app/[locale]/(map)/(applets)/*"
+      ],
+      "#/*": [
+        "src/*"
+      ],
+      "@i18n/*": [
+        "i18n/*"
+      ]
     },
     "plugins": [
       {
@@ -29,6 +39,12 @@
       }
     ]
   },
-  "include": ["src", ".next/types/**/*.ts", "localeConf.json"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src",
+    ".next/types/**/*.ts",
+    "localeConf.json"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
