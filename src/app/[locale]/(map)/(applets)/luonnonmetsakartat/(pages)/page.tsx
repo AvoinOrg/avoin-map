@@ -20,7 +20,11 @@ const Page = () => {
   const folayerConfs = useAppletStore((state) => state.folayerConfs)
   useExclusiveLayerGroups()
 
-  const { refetch: folayerRefetch, isLoading } = useQuery({
+  const {
+    refetch: folayerRefetch,
+    isLoading,
+    isFetched,
+  } = useQuery({
     ...folayersQuery(),
     enabled: false,
   })
@@ -47,7 +51,7 @@ const Page = () => {
           ))}
         </Box>
       )}
-      {!isLoading && folayerConfsArray.length === 0 && (
+      {isFetched && !isLoading && (!folayerConfsArray ||folayerConfsArray.length === 0) && (
         <Box
           sx={{
             display: 'flex',
