@@ -72,6 +72,7 @@ const options = () => {
       }),
     ],
     trustHost: true,
+    useSecureCookies: true,
     callbacks: {
       async jwt({
         token,
