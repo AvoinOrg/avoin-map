@@ -71,6 +71,7 @@ const options = () => {
         },
       }),
     ],
+    trustHost: true,
     callbacks: {
       async jwt({
         token,
@@ -122,6 +123,17 @@ const options = () => {
 
         return session
       },
+    },
+    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
+      // allow relative
+      if (url.startsWith('/')) return `${baseUrl}${url}`
+      // allow same-origin absolute
+      try {
+        const u = new URL(url)
+        if (u.origin === baseUrl) return url
+      } catch {}
+      // fallback
+      return baseUrl
     },
   }
 }
