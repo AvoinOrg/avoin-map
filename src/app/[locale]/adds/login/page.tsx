@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { signIn } from 'next-auth/react'
 
-import { getBaseUrl } from '#/common/utils/routing'
+// import { getBaseUrl } from '#/common/utils/routing'
 // import Image from 'next/image'
 // import { useEffect } from 'react'
 // import { useQuery } from 'react-query'
@@ -22,7 +22,7 @@ import { getBaseUrl } from '#/common/utils/routing'
 export default function Login() {
   useEffect(() => {
     signIn('zitadel', {
-      callbackUrl: `${getBaseUrl()}/en/adds/login/callback`,
+      callbackUrl: `/en/adds/login/callback`,
     })
   }, [])
 
