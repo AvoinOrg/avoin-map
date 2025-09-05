@@ -120,7 +120,7 @@ export const adminFolayerPostMutation = (): UseMutationOptions<
       notify({
         message: `${t('notifications.folayer_creation_error')}`,
         variant: 'error',
-  manualDismiss: true,
+  persist: true,
       })
     },
     retry: 3,
