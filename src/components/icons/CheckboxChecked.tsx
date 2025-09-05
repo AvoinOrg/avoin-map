@@ -21,7 +21,6 @@ const CheckboxChecked = (props: Props) => (
       width="22"
       height="22"
       rx="2"
-      // fill="#97C68B"
       stroke="currentColor"
       strokeWidth="2"
     />

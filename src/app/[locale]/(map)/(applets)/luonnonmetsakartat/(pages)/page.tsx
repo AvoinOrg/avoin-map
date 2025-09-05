@@ -44,36 +44,40 @@ const Page = () => {
           <LoadingSpinner />
         </Box>
       )}
-      {!isLoading && folayerConfsArray.length > 0 && (
-        <Box sx={{ width: '100%', mt: 5, pb: 4 }}>
-          {folayerConfsArray.map((conf) => (
-            <FolayerItem key={conf.id} conf={conf} />
-          ))}
-        </Box>
-      )}
-      {isFetched && !isLoading && (!folayerConfsArray ||folayerConfsArray.length === 0) && (
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'row',
-            mt: 3,
-            alignItems: 'start',
-          }}
-        >
-          <Eco
-            sx={{ width: 50, height: 'auto', flexShrink: 0, mt: -0.5 }}
-          ></Eco>
-          <Typography
-            sx={{
-              display: 'inline-flex',
-              typography: 'body2',
-              ml: 1.5,
-            }}
-          >
-            <T ns="luonnonmetsakartat" keyName="sidebar.main.no_data" />
-          </Typography>
-        </Box>
-      )}
+      <Box sx={{ ml: '-0.7rem' }}>
+        {!isLoading && folayerConfsArray.length > 0 && (
+          <Box sx={{ width: '100%', mt: 5, pb: 4 }}>
+            {folayerConfsArray.map((conf) => (
+              <FolayerItem key={conf.id} conf={conf} />
+            ))}
+          </Box>
+        )}
+        {isFetched &&
+          !isLoading &&
+          (!folayerConfsArray || folayerConfsArray.length === 0) && (
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'row',
+                mt: 3,
+                alignItems: 'start',
+              }}
+            >
+              <Eco
+                sx={{ width: 50, height: 'auto', flexShrink: 0, mt: -0.5 }}
+              ></Eco>
+              <Typography
+                sx={{
+                  display: 'inline-flex',
+                  typography: 'body2',
+                  ml: 1.5,
+                }}
+              >
+                <T ns="luonnonmetsakartat" keyName="sidebar.main.no_data" />
+              </Typography>
+            </Box>
+          )}
+      </Box>
     </SidebarContentBox>
   )
 }

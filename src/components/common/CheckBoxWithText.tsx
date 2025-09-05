@@ -61,7 +61,8 @@ const CheckBoxWithText = ({
             <CheckboxIcon
               sx={[
                 {
-                  backgroundColor: 'neutral.light', // Default icon style
+                  backgroundColor: 'transparent', // Default icon style
+                  color: 'neutral.darker',
                 },
                 ...(Array.isArray(iconSx) ? iconSx : [iconSx]), // User-provided icon styles
               ]}
@@ -72,6 +73,7 @@ const CheckBoxWithText = ({
               sx={[
                 {
                   backgroundColor: '#97C68B',
+                  color: 'neutral.darker',
                 },
                 ...(Array.isArray(iconCheckedSx) // User-provided checked icon styles
                   ? iconCheckedSx
