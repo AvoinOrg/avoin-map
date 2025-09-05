@@ -3,6 +3,8 @@ import { JWT } from 'next-auth/jwt'
 import ZitadelProvider from 'next-auth/providers/zitadel'
 import { Issuer } from 'openid-client'
 
+const isProd = process.env.NODE_ENV === 'production'
+
 const refreshAccessToken = async (token: JWT): Promise<JWT> => {
   try {
     const issuer = await Issuer.discover(
@@ -72,7 +74,7 @@ const options = () => {
       }),
     ],
     trustHost: true,
-    useSecureCookies: true,
+    useSecureCookies: isProd,
     callbacks: {
       async jwt({
         token,
