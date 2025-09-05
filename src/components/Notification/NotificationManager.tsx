@@ -21,11 +21,8 @@ const NotificationManager = () => {
             </Typography>,
             {
               variant: notification.variant || 'default',
-              autoHideDuration:
-                notification.duration || notification.manualDismiss
-                  ? null
-                  : 6000,
-              persist: notification.manualDismiss,
+              autoHideDuration: notification.duration,
+              persist: notification.persist,
               hideIconVariant: true,
               action: (key) => (
                 <Box

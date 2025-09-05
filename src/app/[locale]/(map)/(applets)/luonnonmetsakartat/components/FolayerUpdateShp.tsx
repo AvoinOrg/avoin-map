@@ -142,7 +142,7 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
                 notify({
                   variant: 'error',
                   message: errorMessage,
-                  manualDismiss: true,
+                  persist: true,
                 })
                 console.error(
                   'Name and municipality pairs are not unique:',
@@ -167,7 +167,7 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
                 notify({
                   variant: 'error',
                   message: errorMessage,
-                  manualDismiss: true,
+                  persist: true,
                 })
                 console.error('IDs are not unique:', duplicateList)
                 callback(null)
@@ -226,7 +226,7 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
               notify({
                 variant: 'error',
                 message: errorMessage,
-                manualDismiss: true,
+                persist: true,
               })
               callback(null)
               return

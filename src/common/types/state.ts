@@ -26,7 +26,7 @@ export type NotificationMessage = {
   message: string
   variant: 'default' | 'success' | 'error' | 'info' | 'warning'
   duration?: number
-  manualDismiss?: boolean
+  persist?: boolean
 }
 
 export interface InternalNotificationMessage extends NotificationMessage {

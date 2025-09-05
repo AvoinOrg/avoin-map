@@ -226,7 +226,7 @@ const FolayerImportShp = ({
             notify({
               variant: 'error',
               message: errorMessage,
-              manualDismiss: true,
+              persist: true,
             })
             console.error(
               'Name and municipality pairs are not unique:',
@@ -248,7 +248,7 @@ const FolayerImportShp = ({
             notify({
               variant: 'error',
               message: errorMessage,
-              manualDismiss: true,
+              persist: true,
             })
             console.error('IDs are not unique:', duplicateList)
             return
@@ -298,7 +298,7 @@ const FolayerImportShp = ({
           notify({
             variant: 'error',
             message: errorMessage,
-            manualDismiss: true,
+            persist: true,
           })
           return
         }
