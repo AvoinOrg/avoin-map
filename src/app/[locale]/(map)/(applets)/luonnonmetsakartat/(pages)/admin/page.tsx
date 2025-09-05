@@ -55,13 +55,15 @@ const Page = () => {
           <LoadingSpinner />
         </Box>
       )}
-      {!isLoading && adminFolayerConfsArray.length > 0 && (
-        <Box sx={{ width: '100%', mt: 7, pb: 4 }}>
-          {adminFolayerConfsArray.map((conf) => (
-            <AdminFolayerItem key={conf.id} conf={conf} />
-          ))}
-        </Box>
-      )}
+      <Box sx={{ ml: '-0.7rem', mr: '-0.5rem' }}>
+        {!isLoading && adminFolayerConfsArray.length > 0 && (
+          <Box sx={{ width: '100%', mt: 7, pb: 4 }}>
+            {adminFolayerConfsArray.map((conf) => (
+              <AdminFolayerItem key={conf.id} conf={conf} />
+            ))}
+          </Box>
+        )}
+      </Box>
 
       {/* <Box>
         {isLoading && <LoadingSpinner></LoadingSpinner>}
