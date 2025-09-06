@@ -242,6 +242,14 @@ export type MapCoreActions = {
     options?: FitBoundsOptions,
     _queueOptions?: QueueOptions
   ) => Promise<any>
+  flyTo: (
+    options: mapboxgl.FlyToOptions,
+    _queueOptions?: QueueOptions
+  ) => Promise<void>
+  easeTo: (
+    options: mapboxgl.EaseToOptions,
+    _queueOptions?: QueueOptions
+  ) => Promise<void>
   setSelectedFeatures: (
     features: MapGeoJSONFeature[],
     updateDrawSelect?: boolean
@@ -1550,6 +1558,7 @@ export const createMapCoreSlice: (
         { duration = 2000, lonExtra = 1, latExtra = 1 }: FitBoundsOptions = {}
       ): Promise<void> => {
         const _map = useMapInstanceStore.getState()._map
+        const mapDims = useUIStore.getState().mapDims
 
         let [lonMax, lonMin, latMax, latMin] = [0, 0, 0, 0]
 
@@ -1568,7 +1577,22 @@ export const createMapCoreSlice: (
           latMin = bbox[3]
         }
 
-        const flyOptions = { duration: duration }
+        const flyOptions: mapboxgl.FitBoundsOptions = { duration: duration }
+
+        if (_map && mapDims.visible) {
+          const container = _map.getContainer() as HTMLElement
+          const mapCenterX = container.clientWidth / 2
+          const mapCenterY = container.clientHeight / 2
+
+          const { centerX: visibleCenterX, centerY: visibleCenterY } =
+            mapDims.visible
+
+          flyOptions.offset = [
+            visibleCenterX - mapCenterX,
+            visibleCenterY - mapCenterY,
+          ]
+        }
+
         const lonDiff = lonMax - lonMin
         const latDiff = latMax - latMin
         _map?.fitBounds(
@@ -1584,6 +1608,60 @@ export const createMapCoreSlice: (
       {
         key: 'fitBounds',
       }
+    ),
+
+    flyTo: helpers.queueableFnInit(
+      (options: mapboxgl.FlyToOptions): Promise<void> => {
+        const _map = useMapInstanceStore.getState()._map
+        const mapDims = useUIStore.getState().mapDims
+
+        const flyToOptions: mapboxgl.FlyToOptions = { ...options }
+
+        if (_map && mapDims.visible) {
+          const container = _map.getContainer() as HTMLElement
+          const mapCenterX = container.clientWidth / 2
+          const mapCenterY = container.clientHeight / 2
+
+          const { centerX: visibleCenterX, centerY: visibleCenterY } =
+            mapDims.visible
+
+          flyToOptions.offset = [
+            visibleCenterX - mapCenterX,
+            visibleCenterY - mapCenterY,
+          ]
+        }
+
+        _map?.flyTo(flyToOptions)
+        return Promise.resolve()
+      },
+      { key: 'flyTo' }
+    ),
+
+    easeTo: helpers.queueableFnInit(
+      (options: mapboxgl.EaseToOptions): Promise<void> => {
+        const _map = useMapInstanceStore.getState()._map
+        const mapDims = useUIStore.getState().mapDims
+
+        const easeToOptions: mapboxgl.EaseToOptions = { ...options }
+
+        if (_map && mapDims.visible) {
+          const container = _map.getContainer() as HTMLElement
+          const mapCenterX = container.clientWidth / 2
+          const mapCenterY = container.clientHeight / 2
+
+          const { centerX: visibleCenterX, centerY: visibleCenterY } =
+            mapDims.visible
+
+          easeToOptions.offset = [
+            visibleCenterX - mapCenterX,
+            visibleCenterY - mapCenterY,
+          ]
+        }
+
+        _map?.easeTo(easeToOptions)
+        return Promise.resolve()
+      },
+      { key: 'easeTo' }
     ),
 
     getAndFitBounds: helpers.queueableFnInit(
