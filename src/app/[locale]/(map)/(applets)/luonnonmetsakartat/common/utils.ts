@@ -7,6 +7,7 @@ import {
   LayerEventHandlerAddOptions,
 } from '#/common/types/map'
 import { getContrastColor } from '#/common/utils/styling'
+import { useMapStore } from '#/common/store'
 
 import AreaModalAdmin from '../components/AreaModalAdmin'
 import { State, useAppletStore } from '../state/appletStore'
@@ -34,9 +35,7 @@ export const getFolayerSourceLayer = (layerId: string) => {
   return `forest_areas_${getFolayerIdWithoutHyphens(layerId)}`
 }
 
-export const getFolayerCentroidSourceLayer = (
-  layerId: string,
-) => {
+export const getFolayerCentroidSourceLayer = (layerId: string) => {
   return `forest_areas_${getFolayerIdWithoutHyphens(layerId)}_centroid`
 }
 
@@ -459,7 +458,7 @@ export const createFolayerConf = async ({
             .then((zoom: number) => {
               // Ensure features[0] and its geometry exist and are of type Point
               if (features[0]?.geometry?.type === 'Point') {
-                map.easeTo({
+                useMapStore.getState().easeTo({
                   center: features[0].geometry.coordinates as [number, number],
                   zoom: zoom + 0.5, // Add a slight zoom buffer
                 })

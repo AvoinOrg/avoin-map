@@ -62,6 +62,7 @@ const SearchTable = ({
   const removeSelectedFeaturesByIds = useMapStore(
     (state) => state.removeSelectedFeaturesByIds
   )
+  const flyTo = useMapStore((state) => state.flyTo)
   const selectedFeatures = useSelectedFeaturesFilteredBySource([source])
 
   const [searchTerm, setSearchTerm] = React.useState('')
@@ -161,6 +162,16 @@ const SearchTable = ({
         source: source,
       })
     } else {
+      if ('coordinates' in feature.geometry) {
+        flyTo({
+          // @ts-ignore
+          center: {
+            lng: feature.geometry.coordinates[0],
+            lat: feature.geometry.coordinates[1],
+          },
+          zoom: 12,
+        })
+      }
       addSelectedFeaturesByIds({
         featureIds: [feature.properties.id],
         idField: 'id',
