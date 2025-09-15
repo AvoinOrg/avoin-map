@@ -21,7 +21,6 @@ import {
 } from '../common/types'
 
 const localizationNamespace = 'hiilikartta'
-const defaultLanguage = 'fi'
 
 const layoutClient = ({ children }: { children: React.ReactNode }) => {
   const { data: session, status } = useSession()
