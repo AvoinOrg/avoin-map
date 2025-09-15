@@ -1,6 +1,8 @@
 'use client'
 
-import React from 'react'
+import { Box } from '@mui/material'
+import { OverlayScrollbarsComponent } from 'overlayscrollbars-react' // note: 'overlayscrollbars-react'
+// import styles from './Menu.module.css'
 
 import ImgAccordion from '#/components/Sidebar/Main/Accordion/ImgAccordion'
 import {
@@ -11,57 +13,65 @@ import {
   AirQualityContent,
   SnowCoverLossContent,
 } from './Accordion'
-import CustomAccordion from '#/components/common/CustomAccordion'
-import SidebarContentBox from '../SidebarContentBox'
-import { Box } from '@mui/material'
-import { SCROLLBAR_WIDTH_REM } from '#/common/style/theme/constants'
-
-const placeholderImage = 'path/to/placeholder/image.jpg'
 
 export const MainMenu = () => {
-  // const { isLoggedIn }: any = useContext(UserStateContext)
-
   return (
     <Box
       sx={{
-        display: 'flex',
-        flexDirection: 'column',
+        position: 'relative',
         height: '100%',
-        width: '100%',
-        maxWidth: '100%',
+        maxWidth: 400,
         flex: 1,
-        scrollbarGutter: 'stable',
       }}
     >
-      {/* {isLoggedIn &&
-        privateDrawerItems.map((item, i) => (
-          <ListItem key={item.title} sx={{fontFamily: theme.typography.fontFamily[0]}}>
-            <Accordion drawerItem={true} item={item} />
-          </ListItem>
-        ))} */}
-      <Box
-        sx={{ backgroundColor: 'black', width: '100%', height: '200px' }}
-      ></Box>
-      <ImgAccordion title="Forest" img={placeholderImage}>
-        <ForestContent />
-      </ImgAccordion>
-      <ImgAccordion title="Biodiversity" img={placeholderImage}>
-        <BiodiversityContent />
-      </ImgAccordion>
-      <ImgAccordion title="Wetlands" img={placeholderImage}>
-        <WetlandsContent />
-      </ImgAccordion>
-      <ImgAccordion title="Buildings" img={placeholderImage}>
-        <BuildingsContent />
-      </ImgAccordion>
-      <ImgAccordion title="Air quality" img={placeholderImage}>
-        <AirQualityContent />
-      </ImgAccordion>
-      <ImgAccordion title="Snow cover loss" img={placeholderImage}>
-        <SnowCoverLossContent />
-      </ImgAccordion>
+      <OverlayScrollbarsComponent
+        className="osLeft"
+        options={{
+          overflow: { x: 'hidden', y: 'scroll' }, // make THIS the scroller
+          scrollbars: {
+            theme: 'os-theme-dark',
+            autoHide: 'leave',
+            autoHideDelay: 600,
+          },
+        }}
+      >
+        <ImgAccordion
+          title="Forest"
+          img="/files/img/main-menu/main_menu_forests.jpg"
+        >
+          <ForestContent />
+        </ImgAccordion>
+        <ImgAccordion
+          title="Biodiversity"
+          img="/files/img/main-menu/main_menu_forests.jpg"
+        >
+          <BiodiversityContent />
+        </ImgAccordion>
+        <ImgAccordion
+          title="Wetlands"
+          img="/files/img/main-menu/main_menu_forests.jpg"
+        >
+          <WetlandsContent />
+        </ImgAccordion>
+        <ImgAccordion
+          title="Buildings"
+          img="/files/img/main-menu/main_menu_forests.jpg"
+        >
+          <BuildingsContent />
+        </ImgAccordion>
+        <ImgAccordion
+          title="Air quality"
+          img="/files/img/main-menu/main_menu_forests.jpg"
+        >
+          <AirQualityContent />
+        </ImgAccordion>
+        <ImgAccordion
+          title="Snow cover loss"
+          img="/files/img/main-menu/main_menu_forests.jpg"
+        >
+          <SnowCoverLossContent />
+        </ImgAccordion>
+      </OverlayScrollbarsComponent>
     </Box>
   )
 }
-
-export default MainMenu
