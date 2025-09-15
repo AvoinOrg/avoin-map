@@ -16,7 +16,6 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
     <AppletWrapper
       mapContext={'luonnonmetsakartat'}
       localizationNamespace={localizationNamespace}
-      defaultLanguage={defaultLanguage}
       isNavbarHidden={true}
       listedLayerGroups={listedLayerGroups}
       sx={{
