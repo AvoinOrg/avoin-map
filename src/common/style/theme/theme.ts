@@ -5,6 +5,7 @@ import {
   PaletteColorOptions,
   Shadows,
   ThemeOptions,
+  alpha,
 } from '@mui/material/styles'
 import { Arimo } from 'next/font/google'
 import { SCROLLBAR_WIDTH_REM } from './constants'
@@ -252,14 +253,20 @@ const components = {
             backgroundColor: 'transparent',
           },
           '&::-webkit-scrollbar-thumb': {
-            backgroundColor: palette.neutral.main,
+            // darker + 70% opacity
+            backgroundColor: alpha(palette.neutral.dark, 0.7),
             borderRadius: '7px !important',
-            boxShadow: '0px 4px 4px 0px rgba(159, 159, 159, 0.25)', // Added box-shadow
+            boxShadow: '0px 4px 4px 0px rgba(159, 159, 159, 0.25)',
+          },
+          // hover → 90% opacity
+          '&::-webkit-scrollbar-thumb:hover': {
+            backgroundColor: alpha(palette.neutral.dark, 0.9),
           },
         },
         '@supports not selector(::-webkit-scrollbar)': {
+          // Firefox (no hover state available)
           scrollbarWidth: 'thin',
-          scrollbarColor: `${palette.neutral.main} transparent`,
+          scrollbarColor: `${alpha(palette.neutral.dark, 0.7)} transparent`,
         },
         boxSizing: 'border-box',
         borderCollapse: 'collapse',
@@ -287,14 +294,46 @@ const components = {
         backgroundSize: '55px',
         margin: '0 0 -16px -8px !important',
       },
-      // see https://github.com/KingSora/OverlayScrollbars#styling-in-depth
-      '.os-scrollbar': {
-        '--os-size': SCROLLBAR_WIDTH_REM + 'rem',
-        '--os-handle-bg': palette.neutral.main,
-        '--os-handle-bg-hover': palette.neutral.dark,
-        '--os-handle-bg-active': palette.neutral.dark,
+      '.osLeft': {
+        position: 'relative',
+        height: '100%',
       },
-      '.os-scrollbar-handle': {
+      '.osLeft .os-viewport': {
+        scrollbarWidth: 'none !important',
+        msOverflowStyle: 'none !important',
+      },
+      '.osLeft .os-viewport::-webkit-scrollbar': {
+        width: 0,
+        height: 0,
+        background: 'transparent',
+      },
+      '.osLeft .os-scrollbar-vertical': {
+        left: 0,
+        right: 'auto',
+        zIndex: 10,
+      },
+      '.osLeft .os-scrollbar-corner': {
+        left: 0,
+        right: 'auto',
+      },
+
+      // Match the natives: darker @70%, hover @90%
+      '.osLeft .os-scrollbar': {
+        '--os-size': `${SCROLLBAR_WIDTH_REM}rem`,
+        '--os-track-bg': 'transparent',
+        '--os-track-bg-hover': 'transparent',
+        '--os-track-bg-active': 'transparent',
+
+        // base / hover / active
+        '--os-handle-bg': alpha(palette.neutral.dark, 0.7),
+        '--os-handle-bg-hover': alpha(palette.neutral.dark, 0.9),
+        '--os-handle-bg-active': alpha(palette.neutral.dark, 0.9),
+
+        '--os-padding-perpendicular': '0px',
+        '--os-padding-axis': '0px',
+      },
+      '.osLeft .os-scrollbar-handle': {
+        borderRadius: '7px',
         boxShadow: '0px 4px 4px 0px rgba(159, 159, 159, 0.25)',
       },
       // old stuff below, probably not needed

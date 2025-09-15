@@ -13,6 +13,7 @@ import { NotificationProvider } from '#/components/Notification'
 // import { UserModal } from '#/components/Profile'
 // import { UiStateProvider, UserStateProvider } from '#/components/State'
 // import RootStyleRegistry from './emotion'
+import 'overlayscrollbars/overlayscrollbars.css'
 
 const LayoutClient = ({
   // Layouts must accept a children prop.

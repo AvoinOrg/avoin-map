@@ -9399,6 +9399,8 @@ __metadata:
     notistack: ^3.0.1
     ol: ^7.2.2
     ol-mapbox-style: ^9.5.0
+    overlayscrollbars: ^2.12.0
+    overlayscrollbars-react: ^0.5.6
     react: ^19.0.0
     react-chartjs-2: ^5.2.0
     react-colorful: ^5.6.1
@@ -16074,6 +16076,23 @@ __metadata:
   version: 1.0.2
   resolution: "os-tmpdir@npm:1.0.2"
   checksum: 5666560f7b9f10182548bf7013883265be33620b1c1b4a4d405c25be2636f970c5488ff3e6c48de75b55d02bde037249fe5dbfbb4c0fb7714953d56aed062e6d
+  languageName: node
+  linkType: hard
+
+"overlayscrollbars-react@npm:^0.5.6":
+  version: 0.5.6
+  resolution: "overlayscrollbars-react@npm:0.5.6"
+  peerDependencies:
+    overlayscrollbars: ^2.0.0
+    react: ">=16.8.0"
+  checksum: 4a07dda99543522763c5182b1a1344b35a13534ea3213fb8638604e813ec92ff8f9e63d72e11ded596ab5dbe5829d4f50f6b2d0ffc76ce18e6e67a662c7bdb6a
+  languageName: node
+  linkType: hard
+
+"overlayscrollbars@npm:^2.12.0":
+  version: 2.12.0
+  resolution: "overlayscrollbars@npm:2.12.0"
+  checksum: e8c1fdc0b9efa0047074fb492f0629bcb77daf49467dcd8761d87ac42115b3e09645475cc59ff779cb491f9c8ea3bef9a686b4d636a5b80057a7d76976d1e530
   languageName: node
   linkType: hard
 
