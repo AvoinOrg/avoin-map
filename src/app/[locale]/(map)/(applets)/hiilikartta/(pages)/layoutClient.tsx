@@ -89,7 +89,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
           !Object.keys(planConfs).includes(placeholderPlanConf.id) ||
           (planConfs[placeholderPlanConf.id].localLastEdited != null &&
             (planConfs[placeholderPlanConf.id].localLastEdited ?? 0) <
-            placeholderPlanConf.cloudLastSaved)
+              placeholderPlanConf.cloudLastSaved)
         ) {
           await addPlaceholderPlanConf(
             placeholderPlanConf.id,
@@ -167,7 +167,6 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
     <AppletWrapper
       mapContext={'hiilikartta'}
       localizationNamespace={localizationNamespace}
-      defaultLanguage={defaultLanguage}
       sx={{
         pt: 0,
         display: 'flex',
