@@ -1,7 +1,7 @@
 'use client'
 // Grid grid grid, why are you so shit
 // The layout and styling is complete spaghetti.
-// TODO: figure out how to make it neat. 
+// TODO: figure out how to make it neat.
 
 import React, { useRef, useMemo } from 'react'
 import {
@@ -21,6 +21,7 @@ import { MapButton } from './MapButton'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
 import { LayerOrderLevel, ListedLayerGroup } from '#/common/types/map'
 import { MapMenuState } from '#/common/types/state'
+import { useTranslate } from '@tolgee/react'
 
 type LayerItemProps = {
   layerGroup: ListedLayerGroup
@@ -34,63 +35,68 @@ const LayerItem = ({
   isSelected,
   isVertical,
   onSelect,
-}: LayerItemProps) => (
-  <Box
-    onClick={() => onSelect(layerGroup.id)}
-    sx={{
-      cursor: 'pointer',
-      border: `2px solid transparent`,
-      borderRadius: '4px',
-      textAlign: 'left',
-    }}
-  >
+}: LayerItemProps) => {
+  const { t } = useTranslate(layerGroup.translationNs)
+  const name = t(layerGroup.nameTranslationKey, layerGroup.name)
+
+  return (
     <Box
+      onClick={() => onSelect(layerGroup.id)}
       sx={{
-        border: isSelected
-          ? (theme) => `2px solid ${theme.palette.secondary.dark}`
-          : '2px solid transparent',
-        borderRadius: '0.3125rem',
-        overflow: 'hidden',
-        lineHeight: 0,
-        '&:hover': {
-          borderWidth: '3px',
-          borderColor: (theme) =>
-            isSelected
-              ? theme.palette.secondary.dark
-              : theme.palette.primary.main,
-        },
-        width: isVertical ? '10rem' : '12rem',
-        height: isVertical ? '10rem' : '12rem',
+        cursor: 'pointer',
+        border: `2px solid transparent`,
+        borderRadius: '4px',
+        textAlign: 'left',
       }}
     >
-      <Image
-        src={layerGroup.thumbnail || ''}
-        alt={layerGroup.name || ''}
-        width={256}
-        height={256}
-        style={{
-          width: '100%',
-          height: 'auto',
-          aspectRatio: '1 / 1',
-          objectFit: 'contain',
+      <Box
+        sx={{
+          border: isSelected
+            ? (theme) => `2px solid ${theme.palette.secondary.dark}`
+            : '2px solid transparent',
+          borderRadius: '0.3125rem',
+          overflow: 'hidden',
+          lineHeight: 0,
+          '&:hover': {
+            borderWidth: '3px',
+            borderColor: (theme) =>
+              isSelected
+                ? theme.palette.secondary.dark
+                : theme.palette.primary.main,
+          },
+          width: isVertical ? '10rem' : '12rem',
+          height: isVertical ? '10rem' : '12rem',
         }}
-      />
+      >
+        <Image
+          src={layerGroup.thumbnail || ''}
+          alt={name}
+          width={256}
+          height={256}
+          style={{
+            width: '100%',
+            height: 'auto',
+            aspectRatio: '1 / 1',
+            objectFit: 'contain',
+          }}
+        />
+      </Box>
+      <Typography
+        sx={{
+          typography: 'body1',
+          fontSize: '0.60rem',
+          letterSpacing: '0.040rem',
+          mt: 1,
+          whiteSpace: 'normal',
+          overflowWrap: 'break-word',
+          width: isVertical ? '120px' : '180px',
+        }}
+      >
+        {name}
+      </Typography>
     </Box>
-    <Typography
-      sx={{
-        typography: 'body1',
-        fontSize: '0.60rem',
-        letterSpacing: '0.040rem',
-        mt: 1,
-        whiteSpace: 'normal',
-        overflowWrap: 'break-word',
-        width: isVertical ? '120px' : '180px',
-      }}
-    >
-      {layerGroup.name}
-    </Typography>
-  </Box>
-)
+  )
+}
 
 type Props = {
   isVertical: boolean
