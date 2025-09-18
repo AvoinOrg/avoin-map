@@ -38,9 +38,9 @@ export type ListedLayerGroup = {
   id: string
   // orderLevel: LayerOrderLevel
   addOptions: LayerGroupAddOptionsWithOrderLevel
+  nameTranslationKey: string
+  translationNs: string
   name?: string
-  translationNs?: string
-  nameTranslationKey?: string
   description?: string
   descriptionTranslationKey?: string
   thumbnail?: string
