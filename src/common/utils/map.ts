@@ -30,6 +30,7 @@ import {
   LayerOrderLevel,
 } from '../types/map'
 import { clone, uniqBy } from 'lodash-es'
+import { useMapStore } from '../store'
 
 const EMBEDDED_PARAMS_URL_SEPARATOR = '||'
 
@@ -1034,13 +1035,11 @@ export const addLayerByOrderLevel = ({
   layer,
   orderLevel,
   map,
-  layerGroups,
   isAddedUnder = false, // Default to adding above the topmost layer
 }: {
   layer: LayerSpecification
   orderLevel: LayerOrderLevel
   map: Map | null
-  layerGroups: LayerGroups
   isAddedUnder?: boolean // Optional parameter to add below the topmost layer instead of above
 }) => {
   if (!map) {
@@ -1055,6 +1054,7 @@ export const addLayerByOrderLevel = ({
     return
   }
 
+  const layerGroups = useMapStore.getState()._layerGroups
   const findLayersInGroup = (level: LayerOrderLevel) => {
     const groups = Object.values(layerGroups).filter(
       (group) => group.orderLevel === level
