@@ -294,31 +294,31 @@ const components = {
         backgroundSize: '55px',
         margin: '0 0 -16px -8px !important',
       },
-      '.osLeft': {
+      '.osScroll': {
         position: 'relative',
         height: '100%',
       },
-      '.osLeft .os-viewport': {
+      '.osScroll .os-viewport': {
         scrollbarWidth: 'none !important',
         msOverflowStyle: 'none !important',
       },
-      '.osLeft .os-viewport::-webkit-scrollbar': {
+      '.osScroll .os-viewport::-webkit-scrollbar': {
         width: 0,
         height: 0,
         background: 'transparent',
       },
-      '.osLeft .os-scrollbar-vertical': {
-        left: 0,
-        right: 'auto',
+      '.osScroll .os-scrollbar-vertical': {
+        Scroll: 0,
+        left: 'auto',
         zIndex: 10,
       },
-      '.osLeft .os-scrollbar-corner': {
-        left: 0,
-        right: 'auto',
+      '.osScroll .os-scrollbar-corner': {
+        Scroll: 0,
+        left: 'auto',
       },
 
       // Match the natives: darker @70%, hover @90%
-      '.osLeft .os-scrollbar': {
+      '.osScroll .os-scrollbar': {
         '--os-size': `${SCROLLBAR_WIDTH_REM}rem`,
         '--os-track-bg': 'transparent',
         '--os-track-bg-hover': 'transparent',
