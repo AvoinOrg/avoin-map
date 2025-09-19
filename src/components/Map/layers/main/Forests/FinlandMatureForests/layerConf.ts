@@ -17,6 +17,9 @@ const fillRegenerationFelling: ExpressionSpecification = [
   'rgba(206, 244, 66, 0.35)',
 ]
 
+const sourceId = 'metsaan_stand'
+const sourceIdMature = 'metsaan_stand_mature'
+
 const treeSpeciesText = (speciesId: any) =>
   [
     'match',
@@ -29,13 +32,11 @@ const treeSpeciesText = (speciesId: any) =>
   ] as ExpressionSpecification
 
 const getStyle = async (): Promise<ExtendedStyleSpecification> => {
-  const sourceNames = ['metsaan_stand', 'metsaan_stand_mature']
-
   return {
     version: 8,
     name: id,
     sources: {
-      [sourceNames[0]]: {
+      [sourceId]: {
         type: 'vector',
         tiles: [
           'https://server.avoin.org/data/map/stand2/{z}/{x}/{y}.pbf.gz?v=2',
@@ -46,7 +47,7 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
         attribution:
           '<a href="https://www.metsaan.fi">© Finnish Forest Centre</a>',
       },
-      [sourceNames[1]]: {
+      [sourceIdMature]: {
         type: 'raster',
         tiles: [
           'https://server.avoin.org/data/map/stand2-mature/{z}/{x}/{y}.png',
@@ -60,8 +61,8 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
     },
     layers: [
       {
-        id: sourceNames[0] + '-fill',
-        source: sourceNames[0],
+        id: sourceId + '-fill',
+        source: sourceId,
         'source-layer': 'stand',
         type: 'fill',
         minzoom: 12,
@@ -72,15 +73,15 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
         },
       },
       {
-        id: sourceNames[1] + '-raster',
-        source: sourceNames[1],
+        id: sourceIdMature + '-raster',
+        source: sourceIdMature,
         type: 'raster',
         minzoom: 0,
         maxzoom: 12,
       },
       {
-        id: sourceNames[0] + '-symbol',
-        source: sourceNames[0],
+        id: sourceId + '-symbol',
+        source: sourceId,
         'source-layer': 'stand',
         type: 'symbol',
         minzoom: 15.5,
@@ -109,8 +110,8 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
 const layerConf: LayerConf = {
   id: id,
   style: getStyle,
-  popup: Popup,
-  useMb: true,
+  popupOpts: { component: Popup, source: sourceId, type: 'modal' },
+  signatureColor: 'rgba(73, 25, 2320, 0.65)',
 }
 
 export default layerConf
