@@ -48,6 +48,7 @@ export type ListedLayerGroup = {
 
 export type LayerGroupOptions = {
   id: string
+  isProcessing: boolean
   mapContext: MapContext
   isHidden: boolean
   persist: boolean
@@ -324,7 +325,7 @@ export type LayerEventHandlerAddOptions = {
 type BaseLayerConf = {
   id: string
   style: ExtendedStyleSpecificationOrFn
-  // useMb?: boolean
+  signatureColor?: string
   eventHandlers?: LayerEventHandlerAddOptions[]
   joinedSelectionSources?: SelectionSource[][]
 }
