@@ -111,8 +111,6 @@ const ImgAccordion = ({ title, img, children }: Props) => {
         <Box
           sx={{
             width: '100%',
-            pl: 5,
-            pr: 5,
           }}
         >
           {children}
