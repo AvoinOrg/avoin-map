@@ -3,7 +3,13 @@ export { default as BuildingsContent } from './BuildingsContent/BuildingsContent
 export { default as SnowCoverLossContent } from './SnowCoverLossContent/SnowCoverLossContent'
 export { default as WetlandsContent } from './WetlandsContent/WetlandsContent'
 export { default as BiodiversityContent } from './BiodiversityContent/BiodiversityContent'
-export { default as ForestContent } from './ForestContent/ForestContent'
+export {
+  default as ForestContent,
+  MatureForestContent,
+  MangroveForestContent,
+  TropicalForestContent,
+  ForestCoverageContent,
+} from './ForestContent/ForestContent'
 // import UserContent from './UserContent/UserContent'
 // import PrivateContent from './PrivateContent/PrivateContent'
 

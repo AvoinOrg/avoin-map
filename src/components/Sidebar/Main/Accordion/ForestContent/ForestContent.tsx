@@ -21,7 +21,7 @@ const LegendBox = (props: any) => {
   )
 }
 
-const MatureForestContent = () => (
+export const MatureForestContent = () => (
   <InfoContainer>
     <p>
       This layer shows forests that have reached the approximate threshold for
@@ -35,7 +35,7 @@ const MatureForestContent = () => (
   </InfoContainer>
 )
 
-const MangroveForestContent = () => (
+export const MangroveForestContent = () => (
   <InfoContainer>
     <p>
       This layer shows mangrove forests monitored by
@@ -49,7 +49,7 @@ const MangroveForestContent = () => (
   </InfoContainer>
 )
 
-const TropicalForestContent = () => (
+export const TropicalForestContent = () => (
   <InfoContainer>
     <p>
       <a href="https://www.globalforestwatch.org/">the Global Forest Watch</a>
@@ -68,7 +68,7 @@ const TropicalForestContent = () => (
   </InfoContainer>
 )
 
-const ForestCoverageContent = () => (
+export const ForestCoverageContent = () => (
   <InfoContainer>
     <p>
       <a href="https://developers.google.com/earth-engine/datasets/catalog/UMD_hansen_global_forest_change_2020_v1_8">
