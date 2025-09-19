@@ -2,27 +2,29 @@ import {
   LayerGroupId,
   LayerConf,
   ExtendedStyleSpecification,
+  LayerOrderLevel,
 } from '#/common/types/map'
 
 const id: LayerGroupId = 'hansen'
 
 const URL_PREFIX = `https://server.avoin.org/data/map/hansen/`
 
-const getStyle = async (): Promise<ExtendedStyleSpecification> => {
-  const sourceNames = ['hansen_treecover', 'hansen_gainloss']
+const sourceIdTreecover = 'hansen_treecover'
+const sourceIdGainloss = 'hansen_gainloss'
 
+const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   return {
     version: 8,
     name: id,
     sources: {
-      [sourceNames[0]]: {
+      [sourceIdTreecover]: {
         type: 'raster',
         tiles: [URL_PREFIX + 'treecover/tiles/{z}/{x}/{y}.png'],
         maxzoom: 7,
         attribution:
           '<a href="https://developers.google.com/earth-engine/datasets/catalog/UMD_hansen_global_forest_change_2020_v1_8">Hansen/UMD/Google/USGS/NASAESA</a>',
       },
-      [sourceNames[1]]: {
+      [sourceIdGainloss]: {
         type: 'raster',
         tiles: [URL_PREFIX + 'gainloss/tiles/{z}/{x}/{y}.png'],
         maxzoom: 7,
@@ -32,8 +34,8 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
     },
     layers: [
       {
-        id: sourceNames[0] + '-raster',
-        source: sourceNames[0],
+        id: sourceIdTreecover + '-raster',
+        source: sourceIdTreecover,
         type: 'raster',
         minzoom: 0,
         paint: {
@@ -41,8 +43,8 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
         },
       },
       {
-        id: sourceNames[1] + '-raster',
-        source: sourceNames[1],
+        id: sourceIdGainloss + '-raster',
+        source: sourceIdGainloss,
         type: 'raster',
         minzoom: 0,
         paint: {
@@ -53,6 +55,9 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   }
 }
 
-const layerConf: LayerConf = { id: id, style: getStyle, useMb: true }
+const layerConf: LayerConf = {
+  id: id,
+  style: getStyle,
+}
 
 export default layerConf
