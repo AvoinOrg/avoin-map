@@ -21,10 +21,6 @@ const ImgAccordion = ({ title, img, children }: Props) => {
       elevation={0}
       sx={{
         width: '100%',
-        backgroundColor: 'background.paper',
-        '&.Mui-expanded': {
-          backgroundColor: 'primary.lighter',
-        },
         '&:before': {
           display: 'none',
         },
@@ -95,7 +91,13 @@ const ImgAccordion = ({ title, img, children }: Props) => {
         />
         <Typography
           sx={{
-            typography: 'h3',
+            typography: 'h1',
+            fontSize: '0.75rem',
+            fontStyle: 'normal',
+            fontWeight: 700,
+            lineHeight: 'normal',
+            letterSpacing: '0.075rem',
+            textTransform: 'uppercase',
             flexGrow: 1,
             transition: 'color 0.3s ease-in-out',
             zIndex: 2, // Ensure text is on top
