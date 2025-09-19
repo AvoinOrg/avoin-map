@@ -2451,7 +2451,8 @@ export const createMapCoreSlice: (
           orderLevel = options.layerOrderOptions.layerOrderLevel
         }
 
-        const layerGroup: LayerGroupOptions = {
+        let layerGroup: LayerGroupOptions = {
+          isProcessing: true,
           id: id,
           mapContext: options.mapContext,
           isHidden: options.isHidden ? true : false,
@@ -2703,7 +2704,7 @@ export const createMapCoreSlice: (
 
           // if the layer is added before, add the first layer before the neighboring layer
           // The consecutive layers are added after the first layer
-          // In Mapbox, the last layer is rendered on top.
+          // In MapLibre, the last layer is rendered on top.
           if (layerInsertId == null || _map?.getLayer(layerInsertId) == null) {
             let layerAdded = false
 
@@ -2752,7 +2753,6 @@ export const createMapCoreSlice: (
                 layer,
                 orderLevel,
                 map: _map,
-                layerGroups: _layerGroups,
                 isAddedUnder: options.layerOrderOptions?.isAddedUnder,
               })
             }
@@ -2832,6 +2832,14 @@ export const createMapCoreSlice: (
           // layerInsertId = layer.id
           //   }
 
+          // add the group to state after the first layer is added, in case other layers are dependant on the group configs
+          await set((state) => {
+            state._layerGroups[id] = layerGroup
+          })
+
+          // create a deep copy of the object, preserving immutability. Zustand has frozen the previous object.
+          layerGroup = cloneDeep(layerGroup)
+
           if (!options.isHidden) {
             _map?.setLayoutProperty(layer.id, 'visibility', 'visible')
           } else {
@@ -2850,6 +2858,8 @@ export const createMapCoreSlice: (
             })
           }
         }
+
+        layerGroup.isProcessing = false
 
         await set((state) => {
           state._layerGroups[id] = layerGroup
@@ -2873,7 +2883,17 @@ export const createMapCoreSlice: (
         _updateSelectableHoverHandlers()
       } catch (e: any) {
         if (!e.message.includes('There is already a source')) {
+          console.error('Error adding the layer group: ', id)
           console.error(e)
+          if (get()._layerGroups[id]) {
+            console.log('Rolling back the layer group: ', id)
+            get().removeLayerGroup(id)
+          }
+        } else {
+          console.error(
+            'Layer group already exists, or there is a conflicting source id. Aborting adding the layer group: ',
+            id
+          )
         }
       }
     },
