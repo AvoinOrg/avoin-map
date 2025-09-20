@@ -18,10 +18,10 @@ export const AirQualityContent = () => (
 export const SnowCoverLossContent = () => (
   <Box>
     <Typography component="p" gutterBottom>
-      This layer shows the global decrease in the amount of snow over time.
-      Each area shown corresponds to an area that between 1980 and 1990 had at
-      least 10 days of snow on average. This average is contrasted with the
-      average snowfall between 1996 and 2016.
+      This layer shows the global decrease in the amount of snow over time. Each
+      area shown corresponds to an area that between 1980 and 1990 had at least
+      10 days of snow on average. This average is contrasted with the average
+      snowfall between 1996 and 2016.
     </Typography>
     <Typography component="p" gutterBottom>
       The data comes from FT-ESDR or{' '}
