@@ -39,7 +39,6 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
           ],
           'fill-opacity': fillOpacity,
         },
-        BEFORE: 'FILL',
       },
       {
         id: id + '-outline',
@@ -50,7 +49,6 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
         paint: {
           'line-opacity': 0.5,
         },
-        BEFORE: 'OUTLINE',
       },
       {
         id: id + '-symbol',
@@ -65,7 +63,6 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
           'text-font': ['Open Sans Regular'],
           'text-field': ['get', 'spec3'],
         },
-        BEFORE: 'LABEL',
       },
     ],
   }
@@ -74,8 +71,7 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
 const layerConf: LayerConf = {
   id: id,
   style: getStyle,
-  popup: Popup,
-  useMb: true,
+  popupOpts: { source: id, component: Popup, type: 'modal' },
 }
 
 export default layerConf
