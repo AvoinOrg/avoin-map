@@ -50,8 +50,7 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
 const layerConf: LayerConf = {
   id: id,
   style: getStyle,
-  popup: Popup,
-  useMb: true,
+  popupOpts: { source: id, component: Popup, type: 'modal' },
 }
 
 export default layerConf
