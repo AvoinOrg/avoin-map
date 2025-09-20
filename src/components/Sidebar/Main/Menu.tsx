@@ -1,30 +1,41 @@
 'use client'
 
 import { Box } from '@mui/material'
-import { OverlayScrollbarsComponent } from 'overlayscrollbars-react' // note: 'overlayscrollbars-react'
-// import styles from './Menu.module.css'
+import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 import { useTranslate } from '@tolgee/react'
 
 import ImgAccordion from '#/components/Sidebar/Main/Accordion/ImgAccordion'
 import { AccordionItem } from '#/components/Sidebar/Main/Accordion/AccordionItem'
+import { AccordionLink } from '#/components/Sidebar/Main/Accordion/AccordionLink'
+
+// Layer Confs
 import fiMatureForestsLayerConf from '#/components/Map/layers/main/Forests/FinlandMatureForests/layerConf'
-import mangroveForestsLayerConf from '#/components/Map/layers/main/Forests/MangroveForests/layerConf'
 import treePlantationsLayerConf from '#/components/Map/layers/main/Forests/TreePlantations/layerConf'
 import hansenLayerConf from '#/components/Map/layers/main/Forests/Hansen/layerConf'
+import metsaanEteBasicLayerConf from '#/components/Map/layers/main/Biodiversity/MetsaanEteBasic/layerConf'
+import metsaanEteImportantLayerConf from '#/components/Map/layers/main/Biodiversity/MetsaanEteImportant/layerConf'
+import zonationLayerConf from '#/components/Map/layers/main/Biodiversity/Zonation/layerConf'
+import natura2000LayerConf from '#/components/Map/layers/main/Biodiversity/Natura2000/layerConf'
+import fiBogsLayerConf from '#/components/Map/layers/main/Wetlands/FinlandBogs/layerConf'
+import ciforPeatlandsLayerConf from '#/components/Map/layers/main/Wetlands/CiforPeatlands/layerConf'
+import ciforWetlandsLayerConf from '#/components/Map/layers/main/Wetlands/CiforWetlands/layerConf'
+import buildingEnergyCertsLayerConf from '#/components/Map/layers/main/Buildings/BuildingEnergyCertificates/layerConf'
+import helsinkiBuildingsLayerConf from '#/components/Map/layers/main/Buildings/HelsinkiBuildings/layerConf'
+import hsySolarpotentialLayerConf from '#/components/Map/layers/main/Buildings/HsySolarPotential/layerConf'
+import airQualityLayerConf from '#/components/Map/layers/main/AirQuality/layerConf'
+import snowCoverLossLayerConf from '#/components/Map/layers/main/SnowCoverLoss/layerConf'
+
+// Content Components
 import {
-  ForestContent,
-  BiodiversityContent,
-  WetlandsContent,
-  BuildingsContent,
-  AirQualityContent,
-  SnowCoverLossContent,
   MatureForestContent,
-  MangroveForestContent,
   TropicalForestContent,
   ForestCoverageContent,
-} from './Accordion'
-import { AOAccordionLink } from './Accordion'
-import { AccordionLink } from './Accordion/AccordionLink'
+} from './Accordion/ForestContent/ForestContent'
+import { FiZonationContent } from './Accordion/BiodiversityContent/BiodiversityContent'
+import {
+  AirQualityContent,
+  SnowCoverLossContent,
+} from './Accordion/OtherContent/OtherContent'
 
 export const MainMenu = () => {
   const { t } = useTranslate('avoin-map')
@@ -34,14 +45,14 @@ export const MainMenu = () => {
       sx={{
         position: 'relative',
         height: '100%',
-        maxWidth: 400,
+        width: '100%',
         flex: 1,
       }}
     >
       <OverlayScrollbarsComponent
         className="osScroll"
         options={{
-          overflow: { x: 'hidden', y: 'scroll' }, // make THIS the scroller
+          overflow: { x: 'hidden', y: 'scroll' },
           scrollbars: {
             theme: 'os-theme-dark',
             autoHide: 'leave',
@@ -69,12 +80,6 @@ export const MainMenu = () => {
           >
             <MatureForestContent />
           </AccordionItem>
-          {/* <AccordionItem
-            layerConf={mangroveForestsLayerConf}
-            name={t('sidebar.layers.mangrove_forests')}
-          >
-            <MangroveForestContent />
-          </AccordionItem> */}
           <AccordionItem
             layerConf={treePlantationsLayerConf}
             name={t('sidebar.layers.tree_plantations')}
@@ -83,34 +88,78 @@ export const MainMenu = () => {
           </AccordionItem>
         </ImgAccordion>
         <ImgAccordion
-          title="Biodiversity"
+          title={t('sidebar.biodiversity')}
           img="/files/img/main-menu/main_menu_forests.jpg"
         >
-          <BiodiversityContent />
+          <AccordionItem
+            layerConf={metsaanEteBasicLayerConf}
+            name={t('sidebar.layers.potential_metso_areas')}
+          />
+          <AccordionItem
+            layerConf={metsaanEteImportantLayerConf}
+            name={t('sidebar.layers.especially_important_habitats')}
+          />
+          <AccordionItem
+            layerConf={zonationLayerConf}
+            name={t('sidebar.layers.areas_important_to_biodiversity')}
+          >
+            <FiZonationContent />
+          </AccordionItem>
+          <AccordionItem
+            layerConf={natura2000LayerConf}
+            name={t('sidebar.layers.natura_2000')}
+          />
         </ImgAccordion>
         <ImgAccordion
-          title="Wetlands"
+          title={t('sidebar.wetlands')}
           img="/files/img/main-menu/main_menu_forests.jpg"
         >
-          <WetlandsContent />
+          <AccordionItem
+            layerConf={fiBogsLayerConf}
+            name={t('sidebar.layers.bogs_and_swamps')}
+          />
+          <AccordionItem
+            layerConf={ciforPeatlandsLayerConf}
+            name={t('sidebar.layers.tropical_peatlands')}
+          />
+          <AccordionItem
+            layerConf={ciforWetlandsLayerConf}
+            name={t('sidebar.layers.tropical_wetlands')}
+          />
         </ImgAccordion>
         <ImgAccordion
-          title="Buildings"
+          title={t('sidebar.buildings')}
           img="/files/img/main-menu/main_menu_forests.jpg"
         >
-          <BuildingsContent />
+          <AccordionItem
+            layerConf={buildingEnergyCertsLayerConf}
+            name={t('sidebar.layers.building_energy_certificates')}
+          />
+          <AccordionItem
+            layerConf={helsinkiBuildingsLayerConf}
+            name={t('sidebar.layers.buildings_helsinki')}
+          />
+          <AccordionItem
+            layerConf={hsySolarpotentialLayerConf}
+            name={t('sidebar.layers.helsinki_solar_power_potential')}
+          />
         </ImgAccordion>
         <ImgAccordion
-          title="Air quality"
+          title={t('sidebar.other')}
           img="/files/img/main-menu/main_menu_forests.jpg"
         >
-          <AirQualityContent />
-        </ImgAccordion>
-        <ImgAccordion
-          title="Snow cover loss"
-          img="/files/img/main-menu/main_menu_forests.jpg"
-        >
-          <SnowCoverLossContent />
+          <AccordionItem
+            layerConf={airQualityLayerConf}
+            name={t('sidebar.layers.air_pollution_no2')}
+          >
+            <AirQualityContent />
+          </AccordionItem>
+          <AccordionItem
+            layerConf={snowCoverLossLayerConf}
+            name={t('sidebar.layers.snow_cover_loss')}
+          >
+            <SnowCoverLossContent />
+          </AccordionItem>
         </ImgAccordion>
       </OverlayScrollbarsComponent>
     </Box>
