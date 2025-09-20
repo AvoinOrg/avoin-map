@@ -309,6 +309,12 @@ export const MapHandler = ({ children }: Props) => {
       //   'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(pinSvgString)
 
       newMap.on('error', (e) => {
+        // Suppress 404 errors for tiles
+        if (e.error && e.error.status === 404) {
+          // This is a tile error, so we can safely ignore it
+          return
+        }
+
         if (e.error && typeof e.error.status === 'number') {
           if ('sourceId' in e) {
             _addStaleSourceId(e.sourceId as string)
