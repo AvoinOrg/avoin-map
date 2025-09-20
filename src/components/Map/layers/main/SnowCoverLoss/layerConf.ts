@@ -49,7 +49,6 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
           ],
           'fill-opacity': fillOpacity,
         },
-        BEFORE: 'FILL',
       },
       {
         id: id + '-symbol',
@@ -73,12 +72,11 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
             ['get', 'avg_snow_cover_1996_2016'],
           ],
         },
-        BEFORE: 'LABEL',
       },
     ],
   }
 }
 
-const layerConf: LayerConf = { id: id, style: getStyle, useMb: true }
+const layerConf: LayerConf = { id: id, style: getStyle }
 
 export default layerConf

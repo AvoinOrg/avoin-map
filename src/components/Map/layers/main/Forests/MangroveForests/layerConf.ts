@@ -30,12 +30,11 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
         source: id,
         type: 'raster',
         paint: {},
-        BEFORE: 'FILL',
       },
     ],
   }
 }
 
-const layerConf: LayerConf = { id: id, style: getStyle, useMb: true }
+const layerConf: LayerConf = { id: id, style: getStyle }
 
 export default layerConf

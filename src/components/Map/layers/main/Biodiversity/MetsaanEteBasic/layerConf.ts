@@ -1,6 +1,10 @@
 import { ExpressionSpecification } from 'maplibre-gl'
 
-import { LayerGroupId, LayerConf, ExtendedStyleSpecification } from '#/common/types/map'
+import {
+  LayerGroupId,
+  LayerConf,
+  ExtendedStyleSpecification,
+} from '#/common/types/map'
 import { fillOpacity } from '#/common/utils/map'
 
 const id: LayerGroupId = 'metsaan_ete_basic'
@@ -28,10 +32,13 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
     sources: {
       [id]: {
         type: 'vector',
-        tiles: ['https://server.avoin.org/data/map/metsaan-ete/{z}/{x}/{y}.pbf'],
+        tiles: [
+          'https://server.avoin.org/data/map/metsaan-ete/{z}/{x}/{y}.pbf',
+        ],
         maxzoom: 12,
         bounds: [19, 59, 32, 71], // Finland
-        attribution: '<a href="https://www.metsaan.fi">© Finnish Forest Centre</a>',
+        attribution:
+          '<a href="https://www.metsaan.fi">© Finnish Forest Centre</a>',
       },
     },
     layers: [
@@ -44,7 +51,6 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
           'fill-color': 'cyan',
           'fill-opacity': fillOpacity,
         },
-        BEFORE: 'FILL',
       },
       {
         id: id + `-outline`,
@@ -55,7 +61,6 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
         paint: {
           'line-opacity': 1,
         },
-        BEFORE: 'OUTLINE',
       },
       {
         id: id + '-symbol',
@@ -72,12 +77,11 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
           'text-halo-color': 'rgb(242,243,240)',
           'text-halo-width': 2,
         },
-        BEFORE: 'LABEL',
       },
     ],
   }
 }
 
-const layerConf: LayerConf = { id: id, style: getStyle, useMb: true }
+const layerConf: LayerConf = { id: id, style: getStyle }
 
 export default layerConf

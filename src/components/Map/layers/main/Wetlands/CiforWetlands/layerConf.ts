@@ -1,4 +1,8 @@
-import { LayerGroupId, LayerConf, ExtendedStyleSpecification } from '#/common/types/map'
+import {
+  LayerGroupId,
+  LayerConf,
+  ExtendedStyleSpecification,
+} from '#/common/types/map'
 
 const id: LayerGroupId = 'cifor_wetlands'
 
@@ -9,11 +13,14 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
     sources: {
       [id]: {
         type: 'raster',
-        tiles: ['https://server.avoin.org/data/map/cifor/TROP-SUBTROP_WetlandV2_2016_CIFOR/{z}/{x}/{y}.png?v=3'],
+        tiles: [
+          'https://server.avoin.org/data/map/cifor/TROP-SUBTROP_WetlandV2_2016_CIFOR/{z}/{x}/{y}.png?v=3',
+        ],
         bounds: [-180, -60, 180, 40],
         minzoom: 0,
         maxzoom: 10,
-        attribution: '<a href="https://www.cifor.org/">© Center for International Forestry Research (CIFOR)</a>',
+        attribution:
+          '<a href="https://www.cifor.org/">© Center for International Forestry Research (CIFOR)</a>',
       },
     },
     layers: [
@@ -29,6 +36,6 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   }
 }
 
-const layerConf: LayerConf = { id: id, style: getStyle, useMb: true }
+const layerConf: LayerConf = { id: id, style: getStyle }
 
 export default layerConf
