@@ -1,9 +1,23 @@
 import React from 'react'
-import { Table, TableBody, TableCell, TableRow } from '@mui/material'
+import {
+  Box,
+  Typography,
+  IconButton,
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+} from '@mui/material'
+import { Cross } from '#/components/icons'
 import { PopupProps } from '#/common/types/map'
 import { uniqWith, isEqual } from 'lodash-es'
+import { MapModalWrapper } from '#/components/Map/MapModalWrapper'
 
-import { buildingHelBhsysClass, buildingHePaybackClass, energyConsumption } from './constants'
+import {
+  buildingHelBhsysClass,
+  buildingHePaybackClass,
+  energyConsumption,
+} from './constants'
 
 // Variables
 let heatings,
@@ -60,7 +74,7 @@ const emissionFactor = (tecc: number, empdpn: number) => {
 //   features: Feature[]
 // }
 
-const Popup = ({ features }: PopupProps) => {
+const Popup = ({ features, onClose }: PopupProps) => {
   let buildingIds: any = []
   const tableValues: any = {}
 
@@ -82,26 +96,29 @@ const Popup = ({ features }: PopupProps) => {
     }
     // Building type: Apartment building
     if (kktark == '032' || kktark == '039') {
-      tableValues['Building type:'] = <address>{'Apartment building'}</address>
+      tableValues['Building type:'] = 'Apartment building'
     }
     if (p.c_valmpvm != null) {
       let doccdate = p.c_valmpvm.toString().substr(0, 4)
-      tableValues['Construction year:'] = <address>{doccdate}</address>
+      tableValues['Construction year:'] = doccdate
     }
     if (p.i_raktilav != null) {
-      tableValues['Heated floor area: m2'] = <address>{p.i_kokala}</address>
+      tableValues['Heated floor area: m2'] = p.i_kokala
       let docctilav = p.i_raktilav
     }
     if (p.i_raktilav != null) {
-      tableValues['Heated volume: m3'] = <address>{p.i_raktilav}</address>
+      tableValues['Heated volume: m3'] = p.i_raktilav
       let docctilav = p.i_raktilav
     }
     // The house's heat source
     if (kktark == '032' || (kktark == '039' && p.c_poltaine != null)) {
-      tableValues['Heating system'] = <address>{buildingHelBhsysClass[p.c_poltaine] || ''}</address>
+      tableValues['Heating system'] = buildingHelBhsysClass[p.c_poltaine] || ''
     }
     // district heating
-    if (kktark == '032' || (kktark == '039' && p.c_poltaine == 1 && p.c_valmpvm != null)) {
+    if (
+      kktark == '032' ||
+      (kktark == '039' && p.c_poltaine == 1 && p.c_valmpvm != null)
+    ) {
       if (tecdate <= 1975) {
         heatings = energyConsumption.consumption[0].dis_heating
         heatingsL = energyConsumption.consumption[0].dis_heatingL
@@ -195,7 +212,8 @@ const Popup = ({ features }: PopupProps) => {
       let electenergyconspt = teconsS / 1000
       let electenergyconsptm = teconsmS / 1000
 
-      let yearcostbi = districthconsmp * districtprice + electenergyconspt * powerprice
+      let yearcostbi =
+        districthconsmp * districtprice + electenergyconspt * powerprice
       let yearcostai = electenergyconsptm * powerprice
       let savingsum = Number(yearcostbi) - Number(yearcostai)
 
@@ -209,51 +227,105 @@ const Popup = ({ features }: PopupProps) => {
         cumulative_yield += present_value
       }
 
-      tableValues['Estimated yearly heating related CO2-emissions: [tCO2/a]'] = (
-        <address>{Tecons(tecons) + ' ' + nulls}</address>
+      tableValues['Estimated yearly heating related CO2-emissions: [tCO2/a]'] =
+        (
+          <Typography component="span" sx={{ fontWeight: 700 }}>
+            {Tecons(tecons) + ' ' + nulls}
+          </Typography>
+        )
+      tableValues[
+        'Estimated yearly heating related CO2-emissions: [kgCO2/(m3/a)]'
+      ] = (
+        <Typography component="span" sx={{ fontWeight: 700 }}>
+          {heatings}
+        </Typography>
       )
-      tableValues['Estimated yearly heating related CO2-emissions: [kgCO2/(m3/a)]'] = <address>{heatings}</address>
-      tableValues['Estimated yearly heating related CO2-emissions: [kgCO2/kWh]'] = (
-        <address>{emissionFactor(tecons, empdp[1]) + ' ' + nulls}</address>
+      tableValues[
+        'Estimated yearly heating related CO2-emissions: [kgCO2/kWh]'
+      ] = (
+        <Typography component="span" sx={{ fontWeight: 700 }}>
+          {emissionFactor(tecons, empdp[1]) + ' ' + nulls}
+        </Typography>
       )
       // payback time
-      tableValues['From District Heat to Geothermal Heat (Cost Savings):'] = <address></address>
+      tableValues['From District Heat to Geothermal Heat (Cost Savings):'] = (
+        <address></address>
+      )
       tableValues['Before Investing: [Mwh/a, €/a]'] = (
-        <address>
+        <div>
           <div>
-            {buildingHePaybackClass[1]}: {districthconsmp.toFixed(3)}
+            {buildingHePaybackClass[1]}:{' '}
+            <Typography component="span" sx={{ fontWeight: 700 }}>
+              {districthconsmp.toFixed(3)}
+            </Typography>
           </div>
           <div>
-            {buildingHePaybackClass[2]}: {electenergyconspt.toFixed(3)}
+            {buildingHePaybackClass[2]}:{' '}
+            <Typography component="span" sx={{ fontWeight: 700 }}>
+              {electenergyconspt.toFixed(3)}
+            </Typography>
           </div>
           <div>
-            {buildingHePaybackClass[3]}: {numberWithISpaces(yearcostbi.toFixed(0).toLocaleString())}
+            {buildingHePaybackClass[3]}:{' '}
+            <Typography component="span" sx={{ fontWeight: 700 }}>
+              {numberWithISpaces(yearcostbi.toFixed(0).toLocaleString())}
+            </Typography>
           </div>
-        </address>
+        </div>
       )
       tableValues['After Investing: [Mwh/a, €/a]'] = (
-        <address>
-          <div>{buildingHePaybackClass[1]}: 0</div>
+        <div>
           <div>
-            {buildingHePaybackClass[2]}: {electenergyconsptm.toFixed(3)}
+            {buildingHePaybackClass[1]}:{' '}
+            <Typography component="span" sx={{ fontWeight: 700 }}>
+              0
+            </Typography>
           </div>
           <div>
-            {buildingHePaybackClass[3]}: {numberWithISpaces(Number(yearcostai).toFixed(0).toLocaleString())}
+            {buildingHePaybackClass[2]}:{' '}
+            <Typography component="span" sx={{ fontWeight: 700 }}>
+              {electenergyconsptm.toFixed(3)}
+            </Typography>
           </div>
-        </address>
+          <div>
+            {buildingHePaybackClass[3]}:{' '}
+            <Typography component="span" sx={{ fontWeight: 700 }}>
+              {numberWithISpaces(
+                Number(yearcostai).toFixed(0).toLocaleString()
+              )}
+            </Typography>
+          </div>
+        </div>
       )
-      tableValues['Saving: [€]'] = <address>{numberWithISpaces(savingsum.toFixed(0))}</address>
-      tableValues['Price of district heating & Electricity: [€/MWh, snt/kWh]'] = (
+      tableValues['Saving: [€]'] = (
         <address>
-          {districtprice} & {powerprice / 10}
+          <Typography component="span" sx={{ fontWeight: 700 }}>
+            {numberWithISpaces(savingsum.toFixed(0))}
+          </Typography>
         </address>
       )
+      tableValues['Price of district heating & Electricity: [€/MWh, snt/kWh]'] =
+        (
+          <address>
+            <Typography component="span" sx={{ fontWeight: 700 }}>
+              {districtprice} & {powerprice / 10}
+            </Typography>
+          </address>
+        )
       tableValues['Cumulative Savings (15a / Rate 3%): [€]'] = (
-        <address>{numberWithISpaces(cumulative_yield.toFixed(0).toLocaleString())}</address>
+        <address>
+          <Typography component="span" sx={{ fontWeight: 700 }}>
+            {numberWithISpaces(cumulative_yield.toFixed(0).toLocaleString())}
+          </Typography>
+        </address>
       )
     }
     // Oil
-    if (kktark == '032' || (kktark == '039' && p.c_poltaine == 2) || (p.c_poltaine == 3 && p.c_valmpvm != null)) {
+    if (
+      kktark == '032' ||
+      (kktark == '039' && p.c_poltaine == 2) ||
+      (p.c_poltaine == 3 && p.c_valmpvm != null)
+    ) {
       if (tecdate <= 1975) {
         heatings = energyConsumption.consumption[0].Oil
         tecons = docctilav * convertToFloat(heatings)
@@ -285,16 +357,20 @@ const Popup = ({ features }: PopupProps) => {
         heatings = 0
         tecons = 0
       }
-      tableValues['Estimated yearly heating related CO2-emissions: [tCO2/a]'] = (
+      tableValues['Estimated yearly heating related CO2-emissions: [tCO2/a]'] =
         <address>{Tecons(tecons) + ' ' + nulls}</address>
-      )
-      tableValues['Estimated yearly heating related CO2-emissions: [kgCO2/(m3/a)]'] = <address>{heatings}</address>
-      tableValues['Estimated yearly heating related CO2-emissions: [kgCO2/kWh]'] = (
-        <address>{emissionFactor(tecons, empdp[0]) + ' ' + nulls}</address>
-      )
+      tableValues[
+        'Estimated yearly heating related CO2-emissions: [kgCO2/(m3/a)]'
+      ] = <address>{heatings}</address>
+      tableValues[
+        'Estimated yearly heating related CO2-emissions: [kgCO2/kWh]'
+      ] = <address>{emissionFactor(tecons, empdp[0]) + ' ' + nulls}</address>
     }
     // Direct_Heating
-    if (kktark == '032' || (kktark == '039' && p.c_poltaine == 4 && p.c_valmpvm != null)) {
+    if (
+      kktark == '032' ||
+      (kktark == '039' && p.c_poltaine == 4 && p.c_valmpvm != null)
+    ) {
       if (tecdate <= 1975) {
         heatings = energyConsumption.consumption[0].direct_heating
         tecons = docctilav * convertToFloat(heatings)
@@ -326,16 +402,20 @@ const Popup = ({ features }: PopupProps) => {
         heatings = 0
         tecons = 0
       }
-      tableValues['Estimated yearly heating related CO2-emissions: [tCO2/a]'] = (
+      tableValues['Estimated yearly heating related CO2-emissions: [tCO2/a]'] =
         <address>{Tecons(tecons) + ' ' + nulls}</address>
-      )
-      tableValues['Estimated yearly heating related CO2-emissions: [kgCO2/(m3/a)]'] = <address>{heatings}</address>
-      tableValues['Estimated yearly heating related CO2-emissions: [kgCO2/kWh]'] = (
-        <address>{emissionFactor(tecons, empdp[2]) + ' ' + nulls}</address>
-      )
+      tableValues[
+        'Estimated yearly heating related CO2-emissions: [kgCO2/(m3/a)]'
+      ] = <address>{heatings}</address>
+      tableValues[
+        'Estimated yearly heating related CO2-emissions: [kgCO2/kWh]'
+      ] = <address>{emissionFactor(tecons, empdp[2]) + ' ' + nulls}</address>
     }
     // Air-to-water heat pumpu, Ground source heat pump
-    if (kktark == '032' || (kktark == '039' && p.c_poltaine == 9 && p.c_valmpvm != null)) {
+    if (
+      kktark == '032' ||
+      (kktark == '039' && p.c_poltaine == 9 && p.c_valmpvm != null)
+    ) {
       if (tecdate <= 1975) {
         heatings = energyConsumption.consumption[0].ghpump
         tecons = docctilav * convertToFloat(heatings)
@@ -367,12 +447,25 @@ const Popup = ({ features }: PopupProps) => {
         heatings = 0
         tecons = 0
       }
-      tableValues['Estimated yearly heating related CO2-emissions: [tCO2/a]'] = (
-        <address>{Tecons(tecons) + ' ' + nulls}</address>
+      tableValues['Estimated yearly heating related CO2-emissions: [tCO2/a]'] =
+        (
+          <Typography component="span" sx={{ fontWeight: 700 }}>
+            {Tecons(tecons) + ' ' + nulls}
+          </Typography>
+        )
+      tableValues[
+        'Estimated yearly heating related CO2-emissions: [kgCO2/(m3/a)]'
+      ] = (
+        <Typography component="span" sx={{ fontWeight: 700 }}>
+          {heatings}
+        </Typography>
       )
-      tableValues['Estimated yearly heating related CO2-emissions: [kgCO2/(m3/a)]'] = <address>{heatings}</address>
-      tableValues['Estimated yearly heating related CO2-emissions: [kgCO2/kWh]'] = (
-        <address>{emissionFactor(tecons, empdp[3]) + ' ' + nulls}</address>
+      tableValues[
+        'Estimated yearly heating related CO2-emissions: [kgCO2/kWh]'
+      ] = (
+        <Typography component="span" sx={{ fontWeight: 700 }}>
+          {emissionFactor(tecons, empdp[3]) + ' ' + nulls}
+        </Typography>
       )
       // district heat price
       /*tableValues['Energy consumption reduction potential by switching to GSHP: MWh/a'] = <address>{'GSHP = Ground source heat pum'}</address>
@@ -380,11 +473,15 @@ const Popup = ({ features }: PopupProps) => {
       tableValues['Energy consumption reduction potential by switching to AWHP: MWh/a'] = <address>{'AWHP = Air-to-water heat pump'}</address>
       tableValues['CO2-emission reduction potential by switching to AWHP: tCO2/a'] = <address>{''}</address>*/
     }
-    if (p.hakija != null || p.hakija_osoite != null || p.hakija_postinumero != null) {
+    if (
+      p.hakija != null ||
+      p.hakija_osoite != null ||
+      p.hakija_postinumero != null
+    ) {
       tableValues['Demolition requested by'] = (
-        <address>
+        <div>
           {p.hakija}, {p.hakija_osoite}, {p.hakija_postinumero}
-        </address>
+        </div>
       )
     }
     if (p.lupa_voimassa_asti != null) {
@@ -395,38 +492,141 @@ const Popup = ({ features }: PopupProps) => {
   // remove duplicate building ids by comparing the objects
   buildingIds = uniqWith(buildingIds, isEqual)
 
-  const buildingIdString = Object.keys(buildingIds).reduce((prev: any, index: any) => {
-    const curr = buildingIds[index]
-    const val = curr.vtj_prt && curr.ratu ? `${curr.vtj_prt} (${curr.ratu})` : curr.vtj_prt || curr.ratu
+  const buildingIdString = Object.keys(buildingIds).reduce(
+    (prev: any, index: any) => {
+      const curr = buildingIds[index]
+      const val =
+        curr.vtj_prt && curr.ratu
+          ? `${curr.vtj_prt} (${curr.ratu})`
+          : curr.vtj_prt || curr.ratu
 
-    if (val != null) {
-      if (prev !== '') {
-        prev += ', '
+      if (val != null) {
+        if (prev !== '') {
+          prev += ', '
+        }
+
+        prev += val
       }
 
-      prev += val
-    }
-
-    return prev
-  }, '')
+      return prev
+    },
+    ''
+  )
 
   return (
-    <Table sx={{ width: '500px' }} size={'small'}>
-      <TableBody>
-        <TableRow>
-          <TableCell>Building ID:</TableCell>
-          <TableCell>{buildingIdString.slice(0, 10)}</TableCell>
-        </TableRow>
-        {Object.keys(tableValues).map((key: string) => {
-          return (
-            <TableRow key={key}>
-              <TableCell>{key}</TableCell>
-              <TableCell>{tableValues[key]}</TableCell>
-            </TableRow>
-          )
-        })}
-      </TableBody>
-    </Table>
+    <MapModalWrapper minWidthBeforeFullScreen={500}>
+      <Box
+        sx={{
+          backgroundColor: '#3E3E3E',
+          color: '#A9E7CB',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          overflow: 'hidden', // ensure borderRadius clips children
+          borderRadius: '0.625rem',
+          maxHeight: '40rem',
+          minWidth: 500,
+        }}
+      >
+        {/* Header bar */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            height: '4.0rem',
+            borderBottom: '1px solid',
+            borderColor: 'neutral.dark',
+            pl: 1.2,
+            flex: '0 0 auto', // Header should not shrink
+          }}
+        >
+          <IconButton
+            aria-label="close"
+            onClick={onClose}
+            sx={{ color: (theme) => theme.palette.grey[500] }}
+          >
+            <Cross />
+          </IconButton>
+        </Box>
+
+        {/* Scroll body */}
+        <Box
+          sx={(theme) => ({
+            overflowY: 'auto',
+            flexGrow: 1,
+            minHeight: 0, // Allow flex child to shrink
+            pt: 3,
+            pb: 4,
+            px: { xs: 2.6, md: 4 },
+            '@supports selector(::-webkit-scrollbar)': {
+              '&::-webkit-scrollbar-thumb': { backgroundColor: '#878787' },
+            },
+            '@supports not selector(::-webkit-scrollbar)': {
+              scrollbarColor: `${
+                (theme.palette as any).neutral?.main ?? '#878787'
+              } transparent`,
+            },
+          })}
+        >
+          <Typography variant="h6" sx={{ mb: 4 }}>
+            Building ID: {buildingIdString}
+          </Typography>
+
+          <Table sx={{ width: '100%', color: 'inherit' }} size={'small'}>
+            <TableBody
+              sx={{
+                'th, td': {
+                  color: 'inherit',
+                  borderColor: 'rgba(169, 231, 203, 0.2)',
+                },
+              }}
+            >
+              {Object.keys(tableValues).map((key: string) => {
+                const value = tableValues[key]
+                const typographySx = {
+                  fontSize: '0.6875rem',
+                  fontStyle: 'normal',
+                  fontWeight: 400,
+                  lineHeight: '1.4',
+                  letterSpacing: '0.06875rem',
+                }
+                const valueTypographySx = {
+                  ...typographySx,
+                  fontWeight: 700,
+                }
+                // The <address> tag is used for complex values, render them directly
+                if (React.isValidElement(value)) {
+                  return (
+                    <TableRow key={key}>
+                      <TableCell
+                        sx={{ verticalAlign: 'top', pl: 0, width: '50%' }}
+                      >
+                        <Typography sx={typographySx}>{key}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={typographySx}>{value}</Box>
+                      </TableCell>
+                    </TableRow>
+                  )
+                }
+                // For simple string values
+                return (
+                  <TableRow key={key}>
+                    <TableCell sx={{ pl: 0, width: '50%' }}>
+                      <Typography sx={typographySx}>{key}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography sx={valueTypographySx}>{value}</Typography>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </Box>
+      </Box>
+    </MapModalWrapper>
   )
 }
 
