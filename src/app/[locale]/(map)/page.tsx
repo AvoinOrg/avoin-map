@@ -20,7 +20,7 @@ const Page = () => {
         flexDirection: 'column',
       }}
     >
-      <Sidebar>
+      <Sidebar sx={{ width: '30rem' }}>
         <MainMenu />
       </Sidebar>
     </AppletWrapper>
