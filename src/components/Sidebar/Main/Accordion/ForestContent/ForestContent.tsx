@@ -1,37 +1,10 @@
 import React from 'react'
 import { Box, Typography, Link } from '@mui/material'
 import { Legend } from '#/components/common/Legend'
-
-const LegendBox = ({ color, title }: { color: string; title: string }) => (
-  <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-    <Box
-      sx={{
-        backgroundColor: color,
-        border: '1px solid black',
-        width: '1rem',
-        height: '1rem',
-        mr: 1,
-        flexShrink: 0,
-      }}
-    />
-    <Typography>{title}</Typography>
-  </Box>
-)
-
-const InfoContainer = ({ children }: { children: React.ReactNode }) => (
-  <Box
-    sx={{
-      '& .MuiTypography-paragraph:first-of-type': {
-        mt: 0,
-      },
-    }}
-  >
-    {children}
-  </Box>
-)
+import { LegendBox } from '#/components/common/LegendBox'
 
 export const MatureForestContent = () => (
-  <InfoContainer>
+  <Box>
     <Typography component="p" gutterBottom>
       This layer shows forests that have reached the approximate threshold for
       regeneration felling.
@@ -40,11 +13,11 @@ export const MatureForestContent = () => (
       <LegendBox color="rgba(73, 25, 232, 0.65)" title="Mature forest" />
       <LegendBox color="rgba(206, 244, 66, 0.35)" title="Other forest" />
     </Legend>
-  </InfoContainer>
+  </Box>
 )
 
 export const MangroveForestContent = () => (
-  <InfoContainer>
+  <Box>
     <Typography component="p" gutterBottom>
       This layer shows mangrove forests monitored by{' '}
       <Link
@@ -59,11 +32,11 @@ export const MangroveForestContent = () => (
     <Typography component="p" gutterBottom>
       The data shown here is from 2010.
     </Typography>
-  </InfoContainer>
+  </Box>
 )
 
 export const TropicalForestContent = () => (
-  <InfoContainer>
+  <Box>
     <Typography component="p" gutterBottom>
       <Link
         href="https://www.globalforestwatch.org/"
@@ -91,11 +64,11 @@ export const TropicalForestContent = () => (
       emission reduction potentials of peatland forest plantations when the
       groundwater level is lifted by 40 cm.
     </Typography>
-  </InfoContainer>
+  </Box>
 )
 
 export const ForestCoverageContent = () => (
-  <InfoContainer>
+  <Box>
     <Typography component="p" gutterBottom>
       <Link
         href="https://developers.google.com/earth-engine/datasets/catalog/UMD_hansen_global_forest_change_2020_v1_8"
@@ -119,5 +92,5 @@ export const ForestCoverageContent = () => (
         title="Both gain (2000-2020) and loss (2000-2012)"
       />
     </Legend>
-  </InfoContainer>
+  </Box>
 )
