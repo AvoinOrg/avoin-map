@@ -11,7 +11,7 @@ import { fillOpacity } from '#/common/utils/map'
 const id: LayerGroupId = 'metsaan_ete_important'
 
 const getStyle = async (): Promise<ExtendedStyleSpecification> => {
-  const { data } = await axios.get('ete_codes.json')
+  const { data } = await axios.get('/files/ete_codes.json')
 
   // @ts-ignore
   const eteAllLabels = [
@@ -46,7 +46,6 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
           'fill-color': 'cyan',
           'fill-opacity': fillOpacity,
         },
-        BEFORE: 'FILL',
       },
       {
         id: id + `-outline`,
@@ -57,7 +56,6 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
         paint: {
           'line-opacity': 1,
         },
-        BEFORE: 'OUTLINE',
       },
       {
         id: id + '-symbol',
@@ -74,7 +72,6 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
           'text-halo-color': 'rgb(242,243,240)',
           'text-halo-width': 2,
         },
-        BEFORE: 'LABEL',
       },
     ],
   }
@@ -82,6 +79,6 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   return style
 }
 
-const layerConf: LayerConf = { id: id, style: getStyle, useMb: true }
+const layerConf: LayerConf = { id: id, style: getStyle }
 
 export default layerConf

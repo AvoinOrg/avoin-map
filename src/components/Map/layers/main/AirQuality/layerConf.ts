@@ -1,6 +1,10 @@
-"use client"
+'use client'
 
-import { LayerGroupId, LayerConf, ExtendedStyleSpecification } from '#/common/types/map'
+import {
+  LayerGroupId,
+  LayerConf,
+  ExtendedStyleSpecification,
+} from '#/common/types/map'
 
 const id: LayerGroupId = 'no2'
 
@@ -41,6 +45,6 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   }
 }
 
-const layerConf: LayerConf = { id: id, style: getStyle, useMb: true }
+const layerConf: LayerConf = { id: id, style: getStyle }
 
 export default layerConf
