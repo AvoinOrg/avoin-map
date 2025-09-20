@@ -1,35 +1,43 @@
 import React from 'react'
-import { Box } from '@mui/material'
-import { styled } from '@mui/material/styles'
-import { AOAccordionLink, AOAccordion } from '..'
+import { Box, Typography, Link } from '@mui/material'
+import { Legend } from '#/components/common/Legend'
 
-const LegendBox = (props: any) => {
-  return (
-    <span>
-      <Box
-        sx={{
-          backgroundColor: props.color,
-          border: '1px solid black',
-          width: '1rem',
-          height: '1rem',
-          margin: '0 5px -2px 0',
-          display: 'inline-block',
-        }}
-      ></Box>
-      {props.title}
-    </span>
-  )
-}
+const LegendBox = ({ color, title }: { color: string; title: string }) => (
+  <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+    <Box
+      sx={{
+        backgroundColor: color,
+        border: '1px solid black',
+        width: '1rem',
+        height: '1rem',
+        mr: 1,
+        flexShrink: 0,
+      }}
+    />
+    <Typography>{title}</Typography>
+  </Box>
+)
+
+const InfoContainer = ({ children }: { children: React.ReactNode }) => (
+  <Box
+    sx={{
+      '& .MuiTypography-paragraph:first-of-type': {
+        mt: 0,
+      },
+    }}
+  >
+    {children}
+  </Box>
+)
 
 export const MatureForestContent = () => (
   <InfoContainer>
-    <p>
+    <Typography component="p" gutterBottom>
       This layer shows forests that have reached the approximate threshold for
       regeneration felling.
-    </p>
-    Legend:
-    <Legend id="legend-mature-forests">
-      <LegendBox color="rgba(73, 25, 2320, 0.65)" title="Mature forest" />
+    </Typography>
+    <Legend>
+      <LegendBox color="rgba(73, 25, 232, 0.65)" title="Mature forest" />
       <LegendBox color="rgba(206, 244, 66, 0.35)" title="Other forest" />
     </Legend>
   </InfoContainer>
@@ -37,51 +45,72 @@ export const MatureForestContent = () => (
 
 export const MangroveForestContent = () => (
   <InfoContainer>
-    <p>
-      This layer shows mangrove forests monitored by
-      {}{' '}
-      <a href="https://www.globalmangrovewatch.org/about/">
+    <Typography component="p" gutterBottom>
+      This layer shows mangrove forests monitored by{' '}
+      <Link
+        href="https://www.globalmangrovewatch.org/about/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         the Global Mangrove Watch
-      </a>
+      </Link>
       .
-    </p>
-    <p>The data shown here is from 2010.</p>
+    </Typography>
+    <Typography component="p" gutterBottom>
+      The data shown here is from 2010.
+    </Typography>
   </InfoContainer>
 )
 
 export const TropicalForestContent = () => (
   <InfoContainer>
-    <p>
-      <a href="https://www.globalforestwatch.org/">the Global Forest Watch</a>
-      {} tree plantations data from combined with
-      {} <a href="https://www.cifor.org/">CIFOR data</a> of global wetlands.
-    </p>
-    <p>
-      Green areas area forest plantations that are on mineral soil and brown
-      areas those in peatlands.
-    </p>
-    <p>
+    <Typography component="p" gutterBottom>
+      <Link
+        href="https://www.globalforestwatch.org/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        The Global Forest Watch
+      </Link>{' '}
+      tree plantations data combined with{' '}
+      <Link
+        href="https://www.cifor.org/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        CIFOR data
+      </Link>{' '}
+      of global wetlands.
+    </Typography>
+    <Typography component="p" gutterBottom>
+      Green areas are forest plantations that are on mineral soil and brown
+      areas are those in peatlands.
+    </Typography>
+    <Typography component="p" gutterBottom>
       Click on a forest plantation to view more information and estimated
       emission reduction potentials of peatland forest plantations when the
       groundwater level is lifted by 40 cm.
-    </p>
+    </Typography>
   </InfoContainer>
 )
 
 export const ForestCoverageContent = () => (
   <InfoContainer>
-    <p>
-      <a href="https://developers.google.com/earth-engine/datasets/catalog/UMD_hansen_global_forest_change_2020_v1_8">
+    <Typography component="p" gutterBottom>
+      <Link
+        href="https://developers.google.com/earth-engine/datasets/catalog/UMD_hansen_global_forest_change_2020_v1_8"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         Hansen/UMD/Google/USGS/NASA
-      </a>
-      {} global forest change data.
-    </p>
-    <p>
+      </Link>{' '}
+      global forest change data.
+    </Typography>
+    <Typography component="p" gutterBottom>
       Shows global forest coverage from year 2000, forest cover loss from years
       2000-2020, and forest cover gain from years 2000-2012.
-    </p>
-    Legend:
-    <Legend id="legend-forest-coverage">
+    </Typography>
+    <Legend>
       <LegendBox color="green" title="Forest coverage (2000)" />
       <LegendBox color="red" title="Forest coverage loss (2000-2020)" />
       <LegendBox color="blue" title="Forest coverage gain (2000-2012)" />
@@ -92,46 +121,3 @@ export const ForestCoverageContent = () => (
     </Legend>
   </InfoContainer>
 )
-
-const ForestContent = () => {
-  return (
-    <Box sx={{ width: '100%' }}>
-      <AOAccordionLink href="/fi-forest" label={"Finland's Forests"} />
-      <AOAccordion
-        layerGroupId={'hansen'}
-        label={'Global forest coverage'}
-        content={<ForestCoverageContent />}
-      />
-      <AOAccordion
-        layerGroupId={'fi_mature_forests'}
-        label={'Mature Forests'}
-        content={<MatureForestContent />}
-      />
-      <AOAccordion
-        layerGroupId={'mangrove_forests'}
-        label={'Mangrove forests'}
-        content={<MangroveForestContent />}
-      />
-      <AOAccordion
-        layerGroupId={'gfw_tree_plantations'}
-        label={'Tree plantations'}
-        content={<TropicalForestContent />}
-      />
-    </Box>
-  )
-}
-
-const InfoContainer = styled(Box)({
-  // TODO: figure out why this does not work
-  '&p:first-of-type': {
-    marginTop: 0,
-  },
-})
-
-const Legend = styled('legend')({
-  display: 'flex',
-  flexDirection: 'column',
-  padding: '6px 0 0 0',
-})
-
-export default ForestContent
