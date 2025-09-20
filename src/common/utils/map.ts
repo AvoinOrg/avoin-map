@@ -251,7 +251,9 @@ export const getLayerName = (layerGroupId: string): LayerType => {
   const layerGroupIdSplitArr = layerGroupId.split('-')
   if (layerGroupIdSplitArr.length > 2) {
     console.error(
-      'Invalid layer id. Only use hyphen ("-") to separate the LayerType-suffix from the rest of the id.'
+      'Invalid layer id: ' +
+        layerGroupId +
+        '. Only use hyphen ("-") to separate the LayerType-suffix from the rest of the id.'
     )
   }
 
