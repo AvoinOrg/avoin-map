@@ -6,31 +6,28 @@ import Popup from './Popup'
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 
 const layerGroupId = 'helsinki_buildings'
-const serverId = 'fi_misc_helsinki_buildings'
 
 const getStyle = async (): Promise<ExtendedStyleSpecification> => {
-  const sources: any = {}
-  let layers: any = []
-
-  sources[layerGroupId] = {
-    type: 'vector',
-    scheme: 'tms',
-    tiles: [
-      `${SERVER_URL}/gwc/service/tms/1.0.0/misc:${serverId}@EPSG:900913@pbf/{z}/{x}/{y}.pbf`,
-    ],
-    minzoom: 5,
-    maxzoom: 14,
-    bounds: [19, 59, 32, 71], // Finland
-    attribution: '<a href="https://www.hel.fi">© City of Helsinki</a>',
-    promoteId: 'id',
+  const sources = {
+    [layerGroupId]: {
+      type: 'vector',
+      scheme: 'tms',
+      tiles: [
+        `${SERVER_URL}/gwc/service/tms/1.0.0/misc:${layerGroupId}@EPSG:900913@pbf/{z}/{x}/{y}.pbf`,
+      ],
+      minzoom: 5,
+      maxzoom: 14,
+      bounds: [19, 59, 32, 71], // Finland
+      attribution: '<a href="https://www.hel.fi">© City of Helsinki</a>',
+      promoteId: 'id',
+    },
   }
 
-  layers = [
-    ...layers,
+  const layers = [
     {
       id: `${layerGroupId}-fill`,
       source: layerGroupId,
-      'source-layer': serverId,
+      'source-layer': layerGroupId,
       type: 'fill',
       paint: {
         'fill-color': [
@@ -43,8 +40,14 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
           'cyan',
           'gray', // fallback value
         ],
-        'fill-opacity': fillOpacity,
+        'fill-opacity': [
+          'case',
+          ['boolean', ['feature-state', 'selected'], false],
+          0.9, // Higher opacity when selected
+          0.7, // Default opacity
+        ],
       },
+      selectable: true,
       // paint: {
       //  'fill-color': fiForestsAreaCO2FillColor(fiForestsCumulativeCO2eValueExpr),
       //  'fill-opacity': layerGroupId === 'parcel' ? 1 : fillOpacity,
@@ -55,11 +58,18 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
     {
       id: `${layerGroupId}-outline`,
       source: layerGroupId,
-      'source-layer': serverId,
+      'source-layer': layerGroupId,
       type: 'line',
       minzoom: 11,
       paint: {
+        'line-color': 'black', // Keep outline black for contrast
         'line-opacity': 0.75,
+        'line-width': [
+          'case',
+          ['boolean', ['feature-state', 'selected'], false],
+          2, // Thicker outline when selected
+          1, // Default outline width
+        ],
       },
       // ...(options.layerMinzoom != null && { minzoom: options.layerMinzoom }),
       // ...(options.layerMaxzoom != null && { maxzoom: options.layerMaxzoom }),
@@ -67,7 +77,7 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
     {
       id: `${layerGroupId}-symbol`,
       source: layerGroupId,
-      'source-layer': serverId,
+      'source-layer': layerGroupId,
       type: 'symbol',
       minzoom: 16,
       paint: {},
@@ -91,6 +101,7 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
           '',
         ],
       },
+      selectable: 'true',
       // ...(options.layerMinzoom != null && { minzoom: options.layerMinzoom }),
       // ...(options.layerMaxzoom != null && { maxzoom: options.layerMaxzoom }),
     },
