@@ -1,15 +1,3 @@
-import { ILayerOptions, LayerLevel } from './types'
-
-export const layerOptions: ILayerOptions = {
-  [LayerLevel.Helsinki_buildings]: {
-    minzoom: 5,
-    maxzoom: 14,
-    serverId: 'helsinki_buildings',
-    layerMinzoom: 6,
-    layerMaxzoom: 14,
-  },
-} as const
-
 export const buildingHelBhsysClass: any = {
   1: 'District heating',
   2: 'Light fuel oil',
