@@ -80,12 +80,12 @@ export const MainMenu = () => {
           >
             <MatureForestContent />
           </AccordionItem>
-          <AccordionItem
+          {/* <AccordionItem
             layerConf={treePlantationsLayerConf}
             name={t('sidebar.layers.tree_plantations')}
           >
             <TropicalForestContent />
-          </AccordionItem>
+          </AccordionItem> */}
         </ImgAccordion>
         <ImgAccordion
           title={t('sidebar.biodiversity')}
