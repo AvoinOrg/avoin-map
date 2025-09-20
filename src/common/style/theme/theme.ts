@@ -244,6 +244,25 @@ const components = {
       },
     },
   },
+  MuiTypography: {
+    defaultProps: { variant: 'inherit' as 'inherit' }, // <- key: do not reset sizes in children
+  },
+  MuiLink: {
+    styleOverrides: {
+      root: {
+        color: palette.secondary.dark,
+        textDecoration: 'underline',
+        '&:hover': {
+          color: palette.secondary.main,
+        },
+        fontSize: 'inherit',
+        lineHeight: 'inherit',
+        letterSpacing: 'inherit',
+        textTransform: 'inherit' as 'inherit',
+        fontWeight: 'inherit',
+      },
+    },
+  },
   MuiCssBaseline: {
     styleOverrides: {
       '*': {
