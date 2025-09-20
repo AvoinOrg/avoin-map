@@ -15,7 +15,7 @@ const getZonationSources = () => {
   const sources: { [index: string]: RasterSourceSpecification } = {}
 
   zonationVersions.forEach((v) => {
-    const id = `zonation-v${v}`
+    const id = `zonation_v${v}`
 
     sources[id] = {
       type: 'raster',
@@ -39,7 +39,7 @@ const getZonationLayers = () => {
   const layers: ExtendedLayerSpecification[] = []
 
   zonationVersions.forEach((v) => {
-    const id = `zonation-v${v}`
+    const id = `zonation_v${v}`
 
     layers.push({
       id: id + `-fill`,
