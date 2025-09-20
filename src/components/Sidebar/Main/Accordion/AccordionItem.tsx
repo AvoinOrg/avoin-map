@@ -54,7 +54,8 @@ export const AccordionItem = ({
           py: 1,
           pl: 3.5,
           pr: 5,
-          height: '3.5rem',
+          height: 'auto',
+          minHeight: '3.5rem',
           cursor: children ? 'pointer' : 'default',
           '&:hover': {
             backgroundColor: isExpanded ? 'neutral.main' : 'neutral.light',
@@ -72,12 +73,13 @@ export const AccordionItem = ({
         <Typography
           sx={{
             flexGrow: 1,
-            typography: 'body2',
+            typography: 'body1',
             fontSize: '0.6875rem',
             fontStyle: 'normal',
             fontWeight: 700,
-            lineHeight: 'normal',
+            lineHeight: '1.4',
             letterSpacing: '0.06875rem',
+            pr: 2,
           }}
         >
           {name}
@@ -98,13 +100,16 @@ export const AccordionItem = ({
         <Collapse in={isExpanded} timeout="auto" unmountOnExit>
           <Box
             sx={{
-              width: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              px: 5,
-              pb: 2,
-              pt: 0,
               typography: 'body2',
+              fontSize: '0.6875rem',
+              fontStyle: 'normal',
+              fontWeight: 400,
+              lineHeight: '1.4',
+              letterSpacing: '0.06875rem',
+              textTransform: 'none',
+              px: 5,
+              pt: 2.5,
+              pb: 5,
             }}
           >
             {children}
