@@ -21,8 +21,23 @@ const ImgAccordion = ({ title, img, children }: Props) => {
       elevation={0}
       sx={{
         width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        flex: '1 1 0%',
+        '&.Mui-expanded': {
+          flex: '0 0 auto',
+        },
         '&:before': {
           display: 'none',
+        },
+        // Target the heading element inserted by MUI (h3.MuiAccordion-heading)
+        // Collapsed: heading grows to fill available height
+        '& > .MuiAccordion-heading': {
+          flex: '1 1 auto',
+          minHeight: '5rem',
+        },
+        '&.Mui-expanded > .MuiAccordion-heading': {
+          flex: '0 0 5rem',
         },
       }}
     >
@@ -30,7 +45,7 @@ const ImgAccordion = ({ title, img, children }: Props) => {
         sx={{
           position: 'relative',
           overflow: 'hidden', // Clip the contents
-          minHeight: '80px',
+          height: '100%', // fill the heading's height
           p: 0, // Remove default padding
           '& .MuiAccordionSummary-content': {
             zIndex: 2, // Ensure text is above overlays
