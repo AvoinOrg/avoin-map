@@ -46,7 +46,9 @@ export const MainMenu = () => {
         position: 'relative',
         height: '100%',
         width: '100%',
-        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: 0,
       }}
     >
       <OverlayScrollbarsComponent
@@ -59,108 +61,119 @@ export const MainMenu = () => {
             autoHideDelay: 600,
           },
         }}
+        style={{ flex: 1, minHeight: 0 }}
       >
-        <ImgAccordion
-          title={t('sidebar.forests')}
-          img="/files/img/main-menu/main_menu_forests.jpg"
+        <Box
+          sx={{
+            display: 'flex',
+            height: '100%',
+            minHeight: 0,
+            flexDirection: 'column',
+            gap: 0,
+          }}
         >
-          <AccordionLink
-            href="/fi-forest"
-            name={t('sidebar.layers.finland_forests')}
-          />
-          <AccordionItem
-            layerConf={hansenLayerConf}
-            name={t('sidebar.layers.global_forest_coverage')}
+          <ImgAccordion
+            title={t('sidebar.forests')}
+            img="/files/img/main-menu/main_menu_forests.jpg"
           >
-            <ForestCoverageContent />
-          </AccordionItem>
-          <AccordionItem
-            layerConf={fiMatureForestsLayerConf}
-            name={t('sidebar.layers.mature_forests')}
-          >
-            <MatureForestContent />
-          </AccordionItem>
-          {/* <AccordionItem
+            <AccordionLink
+              href="/fi-forest"
+              name={t('sidebar.layers.finland_forests')}
+            />
+            <AccordionItem
+              layerConf={hansenLayerConf}
+              name={t('sidebar.layers.global_forest_coverage')}
+            >
+              <ForestCoverageContent />
+            </AccordionItem>
+            <AccordionItem
+              layerConf={fiMatureForestsLayerConf}
+              name={t('sidebar.layers.mature_forests')}
+            >
+              <MatureForestContent />
+            </AccordionItem>
+            {/* <AccordionItem
             layerConf={treePlantationsLayerConf}
             name={t('sidebar.layers.tree_plantations')}
           >
             <TropicalForestContent />
           </AccordionItem> */}
-        </ImgAccordion>
-        <ImgAccordion
-          title={t('sidebar.biodiversity')}
-          img="/files/img/main-menu/main_menu_forests.jpg"
-        >
-          <AccordionItem
-            layerConf={metsaanEteBasicLayerConf}
-            name={t('sidebar.layers.potential_metso_areas')}
-          />
-          <AccordionItem
-            layerConf={metsaanEteImportantLayerConf}
-            name={t('sidebar.layers.especially_important_habitats')}
-          />
-          <AccordionItem
-            layerConf={zonationLayerConf}
-            name={t('sidebar.layers.areas_important_to_biodiversity')}
+          </ImgAccordion>
+          <ImgAccordion
+            title={t('sidebar.biodiversity')}
+            img="/files/img/main-menu/main_menu_forests.jpg"
           >
-            <FiZonationContent />
-          </AccordionItem>
-          <AccordionItem
-            layerConf={natura2000LayerConf}
-            name={t('sidebar.layers.natura_2000')}
-          />
-        </ImgAccordion>
-        <ImgAccordion
-          title={t('sidebar.wetlands')}
-          img="/files/img/main-menu/main_menu_forests.jpg"
-        >
-          <AccordionItem
-            layerConf={fiBogsLayerConf}
-            name={t('sidebar.layers.bogs_and_swamps')}
-          />
-          <AccordionItem
-            layerConf={ciforPeatlandsLayerConf}
-            name={t('sidebar.layers.tropical_peatlands')}
-          />
-          <AccordionItem
-            layerConf={ciforWetlandsLayerConf}
-            name={t('sidebar.layers.tropical_wetlands')}
-          />
-        </ImgAccordion>
-        <ImgAccordion
-          title={t('sidebar.buildings')}
-          img="/files/img/main-menu/main_menu_forests.jpg"
-        >
-          <AccordionItem
-            layerConf={buildingEnergyCertsLayerConf}
-            name={t('sidebar.layers.building_energy_certificates')}
-          />
-          <AccordionItem
-            layerConf={helsinkiBuildingsLayerConf}
-            name={t('sidebar.layers.buildings_helsinki')}
-          />
-          <AccordionItem
-            layerConf={hsySolarpotentialLayerConf}
-            name={t('sidebar.layers.helsinki_solar_power_potential')}
-          />
-        </ImgAccordion>
-        <ImgAccordion
-          title={t('sidebar.other')}
-          img="/files/img/main-menu/main_menu_forests.jpg"
-        >
-          <AccordionItem
-            layerConf={airQualityLayerConf}
-            name={t('sidebar.layers.air_pollution_no2')}
+            <AccordionItem
+              layerConf={metsaanEteBasicLayerConf}
+              name={t('sidebar.layers.potential_metso_areas')}
+            />
+            <AccordionItem
+              layerConf={metsaanEteImportantLayerConf}
+              name={t('sidebar.layers.especially_important_habitats')}
+            />
+            <AccordionItem
+              layerConf={zonationLayerConf}
+              name={t('sidebar.layers.areas_important_to_biodiversity')}
+            >
+              <FiZonationContent />
+            </AccordionItem>
+            <AccordionItem
+              layerConf={natura2000LayerConf}
+              name={t('sidebar.layers.natura_2000')}
+            />
+          </ImgAccordion>
+          <ImgAccordion
+            title={t('sidebar.wetlands')}
+            img="/files/img/main-menu/main_menu_forests.jpg"
           >
-            <AirQualityContent />
-          </AccordionItem>
-          <AccordionItem
-            layerConf={snowCoverLossLayerConf}
-            name={t('sidebar.layers.snow_cover_loss')}
+            <AccordionItem
+              layerConf={fiBogsLayerConf}
+              name={t('sidebar.layers.bogs_and_swamps')}
+            />
+            <AccordionItem
+              layerConf={ciforPeatlandsLayerConf}
+              name={t('sidebar.layers.tropical_peatlands')}
+            />
+            <AccordionItem
+              layerConf={ciforWetlandsLayerConf}
+              name={t('sidebar.layers.tropical_wetlands')}
+            />
+          </ImgAccordion>
+          <ImgAccordion
+            title={t('sidebar.buildings')}
+            img="/files/img/main-menu/main_menu_forests.jpg"
           >
-            <SnowCoverLossContent />
-          </AccordionItem>
-        </ImgAccordion>
+            <AccordionItem
+              layerConf={buildingEnergyCertsLayerConf}
+              name={t('sidebar.layers.building_energy_certificates')}
+            />
+            <AccordionItem
+              layerConf={helsinkiBuildingsLayerConf}
+              name={t('sidebar.layers.buildings_helsinki')}
+            />
+            <AccordionItem
+              layerConf={hsySolarpotentialLayerConf}
+              name={t('sidebar.layers.helsinki_solar_power_potential')}
+            />
+          </ImgAccordion>
+          <ImgAccordion
+            title={t('sidebar.other')}
+            img="/files/img/main-menu/main_menu_forests.jpg"
+          >
+            <AccordionItem
+              layerConf={airQualityLayerConf}
+              name={t('sidebar.layers.air_pollution_no2')}
+            >
+              <AirQualityContent />
+            </AccordionItem>
+            <AccordionItem
+              layerConf={snowCoverLossLayerConf}
+              name={t('sidebar.layers.snow_cover_loss')}
+            >
+              <SnowCoverLossContent />
+            </AccordionItem>
+          </ImgAccordion>
+        </Box>
       </OverlayScrollbarsComponent>
     </Box>
   )
