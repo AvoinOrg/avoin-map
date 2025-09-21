@@ -74,7 +74,7 @@ export const MainMenu = () => {
         >
           <ImgAccordion
             title={t('sidebar.forests')}
-            img="/files/img/main-menu/main_menu_forests.jpg"
+            img="/files/img/green-drawings/forest-mountains.jpg"
           >
             <AccordionLink
               href="/fi-forest"
@@ -100,8 +100,25 @@ export const MainMenu = () => {
           </AccordionItem> */}
           </ImgAccordion>
           <ImgAccordion
+            title={t('sidebar.buildings')}
+            img="/files/img/green-drawings/buildings.jpg"
+          >
+            <AccordionItem
+              layerConf={buildingEnergyCertsLayerConf}
+              name={t('sidebar.layers.building_energy_certificates')}
+            />
+            <AccordionItem
+              layerConf={helsinkiBuildingsLayerConf}
+              name={t('sidebar.layers.buildings_helsinki')}
+            />
+            <AccordionItem
+              layerConf={hsySolarpotentialLayerConf}
+              name={t('sidebar.layers.helsinki_solar_power_potential')}
+            />
+          </ImgAccordion>
+          <ImgAccordion
             title={t('sidebar.biodiversity')}
-            img="/files/img/main-menu/main_menu_forests.jpg"
+            img="/files/img/green-drawings/animals.jpg"
           >
             <AccordionItem
               layerConf={metsaanEteBasicLayerConf}
@@ -124,7 +141,7 @@ export const MainMenu = () => {
           </ImgAccordion>
           <ImgAccordion
             title={t('sidebar.wetlands')}
-            img="/files/img/main-menu/main_menu_forests.jpg"
+            img="/files/img/green-drawings/bugs.jpg"
           >
             <AccordionItem
               layerConf={fiBogsLayerConf}
@@ -139,26 +156,10 @@ export const MainMenu = () => {
               name={t('sidebar.layers.tropical_wetlands')}
             />
           </ImgAccordion>
-          <ImgAccordion
-            title={t('sidebar.buildings')}
-            img="/files/img/main-menu/main_menu_forests.jpg"
-          >
-            <AccordionItem
-              layerConf={buildingEnergyCertsLayerConf}
-              name={t('sidebar.layers.building_energy_certificates')}
-            />
-            <AccordionItem
-              layerConf={helsinkiBuildingsLayerConf}
-              name={t('sidebar.layers.buildings_helsinki')}
-            />
-            <AccordionItem
-              layerConf={hsySolarpotentialLayerConf}
-              name={t('sidebar.layers.helsinki_solar_power_potential')}
-            />
-          </ImgAccordion>
+
           <ImgAccordion
             title={t('sidebar.other')}
-            img="/files/img/main-menu/main_menu_forests.jpg"
+            img="/files/img/green-drawings/dam.jpg"
           >
             <AccordionItem
               layerConf={airQualityLayerConf}
