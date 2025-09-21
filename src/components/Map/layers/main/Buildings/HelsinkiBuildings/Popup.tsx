@@ -12,6 +12,7 @@ import { Cross } from '#/components/icons'
 import { PopupProps } from '#/common/types/map'
 import { uniqWith, isEqual } from 'lodash-es'
 import { MapModalWrapper } from '#/components/Map/MapModalWrapper'
+import { useLocaleFormatter } from '#/common/hooks/useLocaleFormatter'
 
 import {
   buildingHelBhsysClass,
@@ -25,15 +26,11 @@ let heatings,
   heatingsS,
   heatingsmS,
   tecons,
-  teconss,
   teconsL,
   teconsS,
   teconsmS,
   tecdate,
-  tecdate_st,
-  emisfactord,
-  emisfactords
-const nulls = '000'
+  tecdate_st
 // Energy prices
 const districtprice = 81
 const powerprice = 100
@@ -45,36 +42,11 @@ const convertToFloat = (a: string) => {
   // Return float value
   return floatValue
 }
-// integer numbers:
-function numberWithISpaces(xa: any) {
-  return xa.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
-}
-// floating numbers
-function numberWithFSpaces(xa: any) {
-  var parts = xa.toString().split('.')
-  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
-  return parts.join('.')
-}
 // Emission factors [kgCO2/kWh]
 const empdp = [0.255, 0.195, 0.104, 0.104, 0.104]
-// round the tecons value
-const Tecons = (tecc: number) => {
-  tecons = Math.round(tecc / 1000) * 1000
-  teconss = tecons.toString().slice(0, -3)
-  return teconss
-}
-// Emission factor function [kgCO2/kWh]
-const emissionFactor = (tecc: number, empdpn: number) => {
-  emisfactord = Math.round((tecc * empdpn) / 1000) * 1000
-  emisfactords = emisfactord.toString().slice(0, -3)
-  return emisfactords
-}
-
-// interface Props {
-//   features: Feature[]
-// }
 
 const Popup = ({ features, onClose }: PopupProps) => {
+  const { formatNumber } = useLocaleFormatter()
   let buildingIds: any = []
   const tableValues: any = {}
 
@@ -96,18 +68,18 @@ const Popup = ({ features, onClose }: PopupProps) => {
     }
     // Building type: Apartment building
     if (kktark == '032' || kktark == '039') {
-      tableValues['Building type:'] = 'Apartment building'
+      tableValues['Building type'] = 'Apartment building'
     }
     if (p.c_valmpvm != null) {
       let doccdate = p.c_valmpvm.toString().substr(0, 4)
-      tableValues['Construction year:'] = doccdate
+      tableValues['Construction year'] = doccdate
     }
     if (p.i_raktilav != null) {
-      tableValues['Heated floor area: m2'] = p.i_kokala
+      tableValues['Heated floor area [m2]'] = formatNumber(p.i_kokala)
       let docctilav = p.i_raktilav
     }
     if (p.i_raktilav != null) {
-      tableValues['Heated volume: m3'] = p.i_raktilav
+      tableValues['Heated volume [m3]'] = formatNumber(p.i_raktilav)
       let docctilav = p.i_raktilav
     }
     // The house's heat source
@@ -227,53 +199,61 @@ const Popup = ({ features, onClose }: PopupProps) => {
         cumulative_yield += present_value
       }
 
-      tableValues['Estimated yearly heating related CO2-emissions: [tCO2/a]'] =
-        (
-          <Typography component="span" sx={{ fontWeight: 700 }}>
-            {Tecons(tecons) + ' ' + nulls}
-          </Typography>
-        )
+      tableValues['Estimated yearly heating related CO2-emissions [tCO2/a]'] = (
+        <Typography component="span" sx={{ fontWeight: 700 }}>
+          {formatNumber(Math.round(tecons / 1000))}
+        </Typography>
+      )
       tableValues[
-        'Estimated yearly heating related CO2-emissions: [kgCO2/(m3/a)]'
+        'Estimated yearly heating related CO2-emissions [kgCO2/(m3/a)]'
       ] = (
         <Typography component="span" sx={{ fontWeight: 700 }}>
           {heatings}
         </Typography>
       )
       tableValues[
-        'Estimated yearly heating related CO2-emissions: [kgCO2/kWh]'
+        'Estimated yearly heating related CO2-emissions [kgCO2/kWh]'
       ] = (
         <Typography component="span" sx={{ fontWeight: 700 }}>
-          {emissionFactor(tecons, empdp[1]) + ' ' + nulls}
+          {formatNumber(Math.round((tecons * empdp[1]) / 1000))}
         </Typography>
       )
       // payback time
-      tableValues['From District Heat to Geothermal Heat (Cost Savings):'] = (
+      tableValues['From district heat to geothermal heat (cost savings)'] = (
         <address></address>
       )
-      tableValues['Before Investing: [Mwh/a, €/a]'] = (
+      tableValues['Before investing [Mwh/a, €/a]'] = (
         <div>
           <div>
             {buildingHePaybackClass[1]}:{' '}
             <Typography component="span" sx={{ fontWeight: 700 }}>
-              {districthconsmp.toFixed(3)}
+              {formatNumber(districthconsmp, {
+                minimumFractionDigits: 3,
+                maximumFractionDigits: 3,
+              })}
             </Typography>
           </div>
           <div>
             {buildingHePaybackClass[2]}:{' '}
             <Typography component="span" sx={{ fontWeight: 700 }}>
-              {electenergyconspt.toFixed(3)}
+              {formatNumber(electenergyconspt, {
+                minimumFractionDigits: 3,
+                maximumFractionDigits: 3,
+              })}
             </Typography>
           </div>
           <div>
             {buildingHePaybackClass[3]}:{' '}
             <Typography component="span" sx={{ fontWeight: 700 }}>
-              {numberWithISpaces(yearcostbi.toFixed(0).toLocaleString())}
+              {formatNumber(yearcostbi, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+              })}
             </Typography>
           </div>
         </div>
       )
-      tableValues['After Investing: [Mwh/a, €/a]'] = (
+      tableValues['After investing [Mwh/a, €/a]'] = (
         <div>
           <div>
             {buildingHePaybackClass[1]}:{' '}
@@ -284,40 +264,44 @@ const Popup = ({ features, onClose }: PopupProps) => {
           <div>
             {buildingHePaybackClass[2]}:{' '}
             <Typography component="span" sx={{ fontWeight: 700 }}>
-              {electenergyconsptm.toFixed(3)}
+              {formatNumber(electenergyconsptm, {
+                minimumFractionDigits: 3,
+                maximumFractionDigits: 3,
+              })}
             </Typography>
           </div>
           <div>
             {buildingHePaybackClass[3]}:{' '}
             <Typography component="span" sx={{ fontWeight: 700 }}>
-              {numberWithISpaces(
-                Number(yearcostai).toFixed(0).toLocaleString()
-              )}
+              {formatNumber(yearcostai, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+              })}
             </Typography>
           </div>
         </div>
       )
-      tableValues['Saving: [€]'] = (
-        <address>
-          <Typography component="span" sx={{ fontWeight: 700 }}>
-            {numberWithISpaces(savingsum.toFixed(0))}
-          </Typography>
-        </address>
+      tableValues['Savings [€]'] = (
+        <Typography component="span" sx={{ fontWeight: 700 }}>
+          {formatNumber(savingsum, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+          })}
+        </Typography>
       )
-      tableValues['Price of district heating & Electricity: [€/MWh, snt/kWh]'] =
+      tableValues['Price of district heating & electricity [€/MWh, snt/kWh]'] =
         (
-          <address>
-            <Typography component="span" sx={{ fontWeight: 700 }}>
-              {districtprice} & {powerprice / 10}
-            </Typography>
-          </address>
-        )
-      tableValues['Cumulative Savings (15a / Rate 3%): [€]'] = (
-        <address>
           <Typography component="span" sx={{ fontWeight: 700 }}>
-            {numberWithISpaces(cumulative_yield.toFixed(0).toLocaleString())}
+            {formatNumber(districtprice)} & {formatNumber(powerprice / 10)}
           </Typography>
-        </address>
+        )
+      tableValues['Cumulative savings (15a / Rate 3%): [€]'] = (
+        <Typography component="span" sx={{ fontWeight: 700 }}>
+          {formatNumber(cumulative_yield, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+          })}
+        </Typography>
       )
     }
     // Oil
@@ -358,13 +342,25 @@ const Popup = ({ features, onClose }: PopupProps) => {
         tecons = 0
       }
       tableValues['Estimated yearly heating related CO2-emissions: [tCO2/a]'] =
-        <address>{Tecons(tecons) + ' ' + nulls}</address>
+        (
+          <Typography component="span" sx={{ fontWeight: 700 }}>
+            {formatNumber(Math.round(tecons / 1000))}
+          </Typography>
+        )
       tableValues[
         'Estimated yearly heating related CO2-emissions: [kgCO2/(m3/a)]'
-      ] = <address>{heatings}</address>
+      ] = (
+        <Typography component="span" sx={{ fontWeight: 700 }}>
+          {formatNumber(heatings)}
+        </Typography>
+      )
       tableValues[
         'Estimated yearly heating related CO2-emissions: [kgCO2/kWh]'
-      ] = <address>{emissionFactor(tecons, empdp[0]) + ' ' + nulls}</address>
+      ] = (
+        <Typography component="span" sx={{ fontWeight: 700 }}>
+          {formatNumber(Math.round((tecons * empdp[0]) / 1000))}
+        </Typography>
+      )
     }
     // Direct_Heating
     if (
@@ -403,13 +399,25 @@ const Popup = ({ features, onClose }: PopupProps) => {
         tecons = 0
       }
       tableValues['Estimated yearly heating related CO2-emissions: [tCO2/a]'] =
-        <address>{Tecons(tecons) + ' ' + nulls}</address>
+        (
+          <Typography component="span" sx={{ fontWeight: 700 }}>
+            {formatNumber(Math.round(tecons / 1000))}
+          </Typography>
+        )
       tableValues[
         'Estimated yearly heating related CO2-emissions: [kgCO2/(m3/a)]'
-      ] = <address>{heatings}</address>
+      ] = (
+        <Typography component="span" sx={{ fontWeight: 700 }}>
+          {heatings}
+        </Typography>
+      )
       tableValues[
         'Estimated yearly heating related CO2-emissions: [kgCO2/kWh]'
-      ] = <address>{emissionFactor(tecons, empdp[2]) + ' ' + nulls}</address>
+      ] = (
+        <Typography component="span" sx={{ fontWeight: 700 }}>
+          {formatNumber(Math.round((tecons * empdp[2]) / 1000))}
+        </Typography>
+      )
     }
     // Air-to-water heat pumpu, Ground source heat pump
     if (
@@ -450,7 +458,7 @@ const Popup = ({ features, onClose }: PopupProps) => {
       tableValues['Estimated yearly heating related CO2-emissions: [tCO2/a]'] =
         (
           <Typography component="span" sx={{ fontWeight: 700 }}>
-            {Tecons(tecons) + ' ' + nulls}
+            {formatNumber(Math.round(tecons / 1000))}
           </Typography>
         )
       tableValues[
@@ -464,7 +472,7 @@ const Popup = ({ features, onClose }: PopupProps) => {
         'Estimated yearly heating related CO2-emissions: [kgCO2/kWh]'
       ] = (
         <Typography component="span" sx={{ fontWeight: 700 }}>
-          {emissionFactor(tecons, empdp[3]) + ' ' + nulls}
+          {formatNumber(Math.round((tecons * empdp[3]) / 1000))}
         </Typography>
       )
       // district heat price
