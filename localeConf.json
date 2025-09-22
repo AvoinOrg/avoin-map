@@ -25,5 +25,11 @@
       "luonnonmetsakarta.netlify.app",
       "luonnonmetsakartat.avoin.org"
     ]
+  },
+  "energiakartta": {
+    "applet": true,
+    "langs": [
+      "fi"
+    ]
   }
 }
