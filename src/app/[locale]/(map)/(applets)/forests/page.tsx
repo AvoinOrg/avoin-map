@@ -450,7 +450,7 @@ const FinlandForests = () => {
                   {/* TODO: fix logo */}
                   <Image
                     alt="Arvometsä"
-                    src={'/fi-forest/arvometsa_logo.png'}
+                    src={'/forests/arvometsa_logo.png'}
                     width={0}
                     height={0}
                     sizes="100vw"
@@ -512,7 +512,7 @@ const FinlandForests = () => {
                 variant="contained"
                 color="primary"
                 // TODO: enable analytics
-                // onClick={() => Analytics.pageview('layers/fi-forest/methodology')}
+                // onClick={() => Analytics.pageview('layers/forests/methodology')}
               >
                 Read about the methodology
               </Button>

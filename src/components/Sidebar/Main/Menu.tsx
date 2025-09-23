@@ -77,7 +77,7 @@ export const MainMenu = () => {
             img="/files/img/green-drawings/forest-mountains.jpg"
           >
             <AccordionLink
-              href="/fi-forest"
+              href="/forests"
               name={t('sidebar.layers.finland_forests')}
             />
             <AccordionItem

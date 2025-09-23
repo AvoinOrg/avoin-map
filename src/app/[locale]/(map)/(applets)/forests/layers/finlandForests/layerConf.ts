@@ -4,13 +4,13 @@ import {
   LayerConf,
   ExtendedStyleSpecification,
 } from '#/common/types/map'
-import { layerOptions } from 'applets/fi-forest/constants'
-import { LayerLevel } from 'applets/fi-forest/types'
+import { layerOptions } from 'applets/forests/constants'
+import { LayerLevel } from 'applets/forests/types'
 import {
   fiForestsAreaCO2FillColor,
   fiForestsCumulativeCO2eValueExpr,
   fiForestsTextfieldExpression,
-} from 'applets/fi-forest/utils'
+} from 'applets/forests/utils'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 
