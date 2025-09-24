@@ -13,8 +13,30 @@ async function downloadTranslations() {
     process.exit(1)
   }
 
-  const languages = 'en,fi'
-  const namespaces = 'avoin-map,hiilikartta,luonnonmetsakartat'
+  // Load namespaces and languages from localeConf.json
+  const localeConfPath = path.resolve(__dirname, '../../localeConf.json')
+  let namespacesArr = []
+  let languagesSet = new Set()
+  try {
+    const raw = fs.readFileSync(localeConfPath, 'utf8')
+    const conf = JSON.parse(raw)
+    namespacesArr = Object.keys(conf)
+    namespacesArr.forEach((ns) => {
+      const langs = conf[ns]?.langs || []
+      langs.forEach((l) => languagesSet.add(l))
+    })
+  } catch (e) {
+    console.error('Failed to read localeConf.json:', e.message)
+    process.exit(1)
+  }
+
+  if (namespacesArr.length === 0 || languagesSet.size === 0) {
+    console.error('No namespaces or languages found in localeConf.json')
+    process.exit(1)
+  }
+
+  const languages = Array.from(languagesSet).join(',')
+  const namespaces = namespacesArr.join(',')
   const format = 'JSON'
   const structureDelimiter = '.'
 
