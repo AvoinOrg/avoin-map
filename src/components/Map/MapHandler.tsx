@@ -181,6 +181,8 @@ export const MapHandler = ({ children }: Props) => {
     newMap.addControl(
       new AttributionControl({
         compact: true,
+        customAttribution:
+          'Avoin Map hosted on <a href="https://www.netlify.com/" target="_blank">Netlify</a>',
       })
     )
 
@@ -209,6 +211,42 @@ export const MapHandler = ({ children }: Props) => {
     newMap.on('click', mbSelectionFunction)
 
     newMap.on('load', () => {
+      // collapse the attribution
+      // const el = newMap
+      //   .getContainer()
+      //   .querySelector('.maplibregl-ctrl-attrib') as HTMLElement | null
+      // if (!el) return
+      // // Force compact mode + collapsed state immediately
+      // el.classList.add('maplibregl-compact')
+      // el.classList.remove('maplibregl-compact-show')
+      // el.removeAttribute('open')
+
+      // make attribtion links open in new tab
+      const attrib = newMap
+        .getContainer()
+        .querySelector('.maplibregl-ctrl-attrib')
+      if (!attrib) return
+
+      const patchLinks = (root: ParentNode) => {
+        root.querySelectorAll<HTMLAnchorElement>('a').forEach((a) => {
+          a.setAttribute('target', '_blank')
+          // keep it safe:
+          const rel = (a.getAttribute('rel') ?? '').split(/\s+/).filter(Boolean)
+          const needed = ['noopener', 'noreferrer']
+          a.setAttribute(
+            'rel',
+            Array.from(new Set([...rel, ...needed])).join(' ')
+          )
+        })
+      }
+
+      patchLinks(attrib)
+
+      // Watch for future changes to the attribution content
+      const obs = new MutationObserver(() => patchLinks(attrib))
+      obs.observe(attrib, { childList: true, subtree: true })
+
+      newMap.once('remove', () => obs.disconnect())
       // const createPinElement = (feature, options = {}) => {
       // Default pin styling
       //   const defaultStyle = {
