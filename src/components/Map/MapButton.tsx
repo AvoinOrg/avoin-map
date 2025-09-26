@@ -1,6 +1,8 @@
 import React, { cloneElement } from 'react'
 import { Button, Tooltip, ButtonProps } from '@mui/material'
 
+export const MAP_BUTTON_SIZE = 40
+
 interface MapButtonProps extends ButtonProps {
   tooltip?: string
   isVertical?: boolean
@@ -21,8 +23,8 @@ export const MapButton = ({
       className={className}
       style={style}
       sx={{
-        width: '40px',
-        height: '40px',
+        width: MAP_BUTTON_SIZE,
+        height: MAP_BUTTON_SIZE,
         backgroundColor: 'neutral.light',
         color: 'text.primary',
         boxShadow: 'none',

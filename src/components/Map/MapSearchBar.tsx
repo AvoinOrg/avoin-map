@@ -25,6 +25,9 @@ import { MapMenuState } from '#/common/types/state'
 
 const mapMenuState: MapMenuState = 'search'
 
+export const MAP_SEARCH_BAR_VERTICAL_MODE_WIDTH = 40
+export const MAP_SEARCH_BAR_HORIZONTAL_MODE_WIDTH = 300
+
 export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [value, setValue] = useState('')
@@ -179,7 +182,10 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
     <Box
       sx={{
         position: 'relative',
-        width: isVertical && !isActive ? '40px' : '300px',
+        width:
+          isVertical && !isActive
+            ? MAP_SEARCH_BAR_VERTICAL_MODE_WIDTH
+            : MAP_SEARCH_BAR_HORIZONTAL_MODE_WIDTH,
         height: '40px',
         transition: `width ${isActive ? '0.2s' : '0.2s'} ease-in-out`,
         zIndex: isFocused ? (theme) => theme.zIndex.drawer + 5 : 'auto',
