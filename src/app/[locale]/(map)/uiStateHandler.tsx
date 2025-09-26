@@ -15,21 +15,40 @@ const UIStateHandler = ({ children }: { children?: React.ReactNode }) => {
   const setWindowSize = useUIStore((state) => state.setWindowSize)
 
   useEffect(() => {
-    const handleResize = () => {
-      if (typeof window !== 'undefined') {
-        setWindowSize({ width: window.innerWidth, height: window.innerHeight })
-      }
+    if (typeof window === 'undefined') return
+
+    const DEBOUNCE_MS = 100
+    let timeoutId: number | undefined
+    let rafId: number | undefined
+
+    const apply = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight })
     }
 
-    handleResize()
+    const handleResize = () => {
+      if (timeoutId) window.clearTimeout(timeoutId)
+      timeoutId = window.setTimeout(() => {
+        if (rafId) window.cancelAnimationFrame(rafId)
+        rafId = window.requestAnimationFrame(apply)
+      }, DEBOUNCE_MS)
+    }
+
+    // initial size
+    apply()
     window.addEventListener('resize', handleResize)
 
     return () => {
       window.removeEventListener('resize', handleResize)
+      if (timeoutId) window.clearTimeout(timeoutId)
+      if (rafId) window.cancelAnimationFrame(rafId)
     }
   }, [setWindowSize])
 
   useEffect(() => {
+    if (windowSize == null) return
+    if (windowSize.width === 0 || windowSize.height === 0) return
+    if (sidebarWidth == null) return
+
     const currentActualSidebarWidth = isSidebarOpen ? sidebarWidth || 0 : 0
     const visibleMapWidth = windowSize.width - currentActualSidebarWidth
 
