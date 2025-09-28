@@ -336,7 +336,7 @@ const components = {
       '.osScroll .os-scrollbar-vertical': {
         Scroll: 0,
         left: 'auto',
-        zIndex: 10,
+        zIndex: 0,
       },
       '.osScroll .os-scrollbar-corner': {
         Scroll: 0,
@@ -345,6 +345,7 @@ const components = {
 
       // Match the natives: darker @70%, hover @90%
       '.osScroll .os-scrollbar': {
+        zIndex: 0,
         '--os-size': `${SCROLLBAR_WIDTH_REM}rem`,
         '--os-track-bg': 'transparent',
         '--os-track-bg-hover': 'transparent',
@@ -356,7 +357,7 @@ const components = {
         '--os-handle-bg-active': alpha(palette.neutral.dark, 0.9),
 
         '--os-padding-perpendicular': '0px',
-        '--os-padding-axis': '0px',
+        '--os-padding-axis': '4px',
       },
       '.osLeft .os-scrollbar-handle': {
         borderRadius: '7px',
