@@ -42,6 +42,7 @@ export const MainMenu = () => {
 
   return (
     <Box
+      className="menu"
       sx={{
         position: 'relative',
         height: '100%',
