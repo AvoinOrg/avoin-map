@@ -1,5 +1,4 @@
 import { NextResponse, NextRequest } from 'next/server'
-import { pathnames } from '#/common/navigation/navigation'
 import {
   DEFAULT_LOCALE,
   DEFAULT_NS,
@@ -52,11 +51,13 @@ function findAppletFromSegment(seg: string): string | null {
   // First try canonical namespace
   if (KNOWN_APPLETS.has(seg)) return seg
   // Fallback: your `pathnames` alias mapping (if slugs differ from ns)
-  const hit = Object.entries(pathnames).find(([, p]) => {
-    const first = p.replace(/^\//, '').split('/')[0]?.toLowerCase()
-    return first === seg.toLowerCase()
-  })
-  return hit ? hit[0] : null
+  return null
+  // const hit = Object.entries(pathnames).find(([, p]) => {
+  //   const first = p.replace(/^\//, '').split('/')[0]?.toLowerCase()
+  //   return first === seg.toLowerCase()
+  // })
+  // console.log('hit', hit)
+  // return hit ? hit[0] : null
 }
 
 // Standalone applet? (env controls it)
