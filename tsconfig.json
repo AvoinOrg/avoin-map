@@ -31,6 +31,9 @@
       ],
       "@i18n/*": [
         "i18n/*"
+      ],
+      "map/*": [
+        "src/app/[locale]/(map)/*"
       ]
     },
     "plugins": [
