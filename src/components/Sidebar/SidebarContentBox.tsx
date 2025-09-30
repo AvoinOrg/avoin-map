@@ -1,9 +1,10 @@
 'use client'
 
-import React, { useEffect, useRef } from 'react'
+import React from 'react'
 import { Box, SxProps, Theme } from '@mui/material'
 
-import { SCROLLBAR_WIDTH_REM, SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
+import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
+import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 const SidebarContentBox = ({
   sxOuter,
   sxInner,
@@ -13,54 +14,49 @@ const SidebarContentBox = ({
   sxInner?: SxProps<Theme>
   children?: React.ReactNode
 }) => {
-
-
   return (
     <Box
       className="sidebar-children-container"
       sx={[
         {
-          overflowY: 'auto',
+          flexDirection: 'column',
           height: '100%',
           width: '100%',
-          maxWidth: '100%',
           display: 'flex',
-          flexDirection: 'column',
-          flexGrow: 1,
-          direction: 'rtl',
-          scrollbarGutter: 'stable',
+          minHeight: 0,
         },
         ...(Array.isArray(sxOuter) ? sxOuter : [sxOuter]),
       ]}
     >
-      {/* <OverlayScrollbarsComponent defer
+      <OverlayScrollbarsComponent
+        className="osScroll"
         options={{
+          overflow: { x: 'hidden', y: 'scroll' },
           scrollbars: {
-            autoHide: 'scroll'
-          }
-        }}
-        style={{
-          height: '100%',
-          width: '100%',
-          display: 'flex',
-        }}> */}
-      <Box
-        className="sidebar-children-container-inner"
-        sx={[
-          {
-            direction: 'ltr',
-            display: 'flex',
-            flexDirection: 'column',
-            height: "100%",
-            p: SIDEBAR_PADDING_REM + 'rem',
-            pl: SIDEBAR_PADDING_REM - SCROLLBAR_WIDTH_REM + 'rem',
+            theme: 'os-theme-dark',
+            autoHide: 'leave',
+            autoHideDelay: 600,
           },
-          ...(Array.isArray(sxInner) ? sxInner : [sxInner]),
-        ]}
+        }}
+        style={{ flex: 1, minHeight: 0 }}
       >
-        {children}
-      </Box>
-      {/* </OverlayScrollbarsComponent> */}
+        <Box
+          className="sidebar-children-container-inner"
+          sx={[
+            {
+              display: 'flex',
+              flexDirection: 'column',
+              minHeight: 0,
+              height: '100%',
+              p: SIDEBAR_PADDING_REM + 'rem',
+              pl: SIDEBAR_PADDING_REM + 'rem',
+            },
+            ...(Array.isArray(sxInner) ? sxInner : [sxInner]),
+          ]}
+        >
+          {children}
+        </Box>
+      </OverlayScrollbarsComponent>
     </Box>
   )
 }
