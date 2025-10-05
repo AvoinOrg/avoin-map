@@ -142,7 +142,9 @@ export type MapCoreVars = {
   _layerGroupIdsBeingProcessed: Set<string>
   _globalEventHandlers: {
     selectableLeave?: (e: MapLayerMouseEvent) => void
+    selectableMove?: (e: MapLayerMouseEvent) => void
     selectableEnter?: (e: MapLayerMouseEvent) => void
+    selectableLayers: string[]
   }
   // For storing sourceIds whose cache should be refreshed. For example because auth headers
   // have changed and the source data needs to be re-fetched.
