@@ -24,7 +24,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
       }}
     >
       <Sidebar
-        sx={{ width: '30rem' }}
+        // sx={{ width: '30rem' }}
         headerElement={
           <SidebarHeader title={'Luonnonmetsäkartat'}>
             <BreadcrumbNav
