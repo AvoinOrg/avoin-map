@@ -28,6 +28,7 @@ import {
   SelectionSource,
   ExtendedMapGeoJSONFeature,
   LayerOrderLevel,
+  LayerOptions,
 } from '../types/map'
 import { clone, uniqBy } from 'lodash-es'
 import { useMapStore } from '../store'
@@ -771,6 +772,40 @@ export const getSelectableLayersForSource = (
     '[getSelectableLayersForSource]: No selectable layers found for source',
     source
   )
+
+  return []
+}
+
+export const getLayersForSource = (
+  source: SelectionSource,
+  layerGroups: LayerGroups
+): LayerOptions[] => {
+  let targetGroup: LayerGroupOptions | null = null
+
+  for (const groupId in layerGroups) {
+    if (layerGroups[groupId].sources[source.source]) {
+      targetGroup = layerGroups[groupId]
+      break
+    }
+  }
+
+  if (targetGroup) {
+    const layers = Object.values(targetGroup.layers).filter((layer) => {
+      if (layer.source == null) {
+        return false
+      }
+
+      const sourceMatches = isMatchingSource(
+        { source: layer.source, sourceLayer: layer.sourceLayer },
+        source
+      )
+
+      return sourceMatches
+    })
+
+    return layers
+  }
+  console.warn('[getLayersForSource]: No layers found for source', source)
 
   return []
 }
