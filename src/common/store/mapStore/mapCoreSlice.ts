@@ -2139,7 +2139,7 @@ export const createMapCoreSlice: (
               })
 
               if (features) {
-                features.filter
+                // features.filter
                 setSelectedFeatures(features)
               }
             }
