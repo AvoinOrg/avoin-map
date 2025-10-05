@@ -33,8 +33,6 @@ const Drawer = ({ open, children }: Props) => {
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden', // Hide overflowing content
-        border: 1,
-        borderColor: 'primary.dark',
         whiteSpace: open ? 'normal' : 'nowrap',
       })}
     >
