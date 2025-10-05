@@ -1,7 +1,6 @@
 'use client'
 
 import { Box } from '@mui/material'
-import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 import { useTranslate } from '@tolgee/react'
 
 import ImgAccordion from '#/components/Sidebar/Main/Accordion/ImgAccordion'
