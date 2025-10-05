@@ -2748,33 +2748,55 @@ export const createMapCoreSlice: (
         }
 
         for (const layer of style.layers) {
-          const matchingSource = layerGroup.sources[layer.source]
+          let matchingSource = null
+
+          if (layer.source) {
+            matchingSource = layerGroup.sources[layer.source]
+          }
 
           const layerOptions: LayerOptions = {
             id: layer.id,
-            source: layer.source,
-            ...(layer.sourceLayer && { sourceLayer: layer.sourceLayer }),
+            ...(layer.source && {
+              source: layer.source,
+            }),
+            ...(layer['source-layer'] && {
+              sourceLayer: layer['source-layer'],
+            }),
             name: getLayerName(layer.id),
             layerType: layer.type,
+            activeOn: layer.activeOn || 'always',
             selectable:
               layer.selectable ??
-              matchingSource.extendedOpts?.selectable ??
+              (matchingSource && matchingSource.extendedOpts?.selectable) ??
               false,
             multiSelectable:
-              matchingSource.extendedOpts?.multiSelectable ?? false,
+              (matchingSource &&
+                matchingSource.extendedOpts?.multiSelectable) ??
+              false,
             hoverPointer:
               layer.hoverPointer ??
               layer.selectable ??
-              matchingSource.extendedOpts?.selectable ??
+              (matchingSource && matchingSource.extendedOpts?.selectable) ??
               false,
             popupOpts: null,
             useMb: true,
           }
 
-          layerGroup.layers[layer.id] = layerOptions
-          layerGroup.sources[layer.source].layerIds.push(layer.id)
+          if (layerOptions.activeOn != 'always' && layer.type != 'background') {
+            layer.filter = ['in', ['id'], '']
+          }
 
-          if ('popupOpts' in options.layerConf && options.layerConf.popupOpts) {
+          layerGroup.layers[layer.id] = layerOptions
+
+          if (layer.source) {
+            layerGroup.sources[layer.source].layerIds.push(layer.id)
+          }
+
+          if (
+            'popupOpts' in options.layerConf &&
+            options.layerConf.popupOpts &&
+            layer.type != 'background'
+          ) {
             if (layer.selectable || layer.multiSelectable) {
               const popupOpts = options.layerConf.popupOpts
 
