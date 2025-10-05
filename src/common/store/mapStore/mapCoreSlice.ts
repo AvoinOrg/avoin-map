@@ -385,7 +385,7 @@ export const createMapCoreSlice: (
       idField: undefined,
     },
     _layerGroupIdsBeingProcessed: new Set(),
-    _globalEventHandlers: {},
+    _globalEventHandlers: { selectableLayers: [] },
     _functionQueue: [],
     _isFunctionQueueExecuting: false,
     // _olMap: null,
