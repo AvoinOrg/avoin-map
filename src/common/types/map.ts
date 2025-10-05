@@ -66,10 +66,11 @@ export type LayerEventHandlers = Record<
 
 export type LayerOptions = {
   id: string
-  source: string
+  source?: string
   sourceLayer?: string
   name: string
   layerType: LayerType
+  activeOn: ActiveOnOption
   selectable: boolean
   multiSelectable: boolean
   hoverPointer: boolean
@@ -263,13 +264,33 @@ export type LayerGroupId =
   | 'terramonitor'
   | 'mml_taustakartta'
 
-export type ExtendedLayerSpecification = LayerSpecification & {
-  source: string
-  sourceLayer?: string
-  selectable?: boolean // whether a feature can be highlighted
-  multiSelectable?: boolean // whether multiple features can be highlighted
-  hoverPointer?: boolean // whether the pointer should change to a pointer when hovering over the layer
+export type ActiveOnOption =
+  | 'always'
+  | 'hover'
+  | 'selected'
+  | 'hover-or-selected'
+
+// export type ExtendedLayerSpecification = LayerSpecification & {
+//   source: string
+//   'source-layer': string
+//   activeOn?: ActiveOnOption
+//   selectable?: boolean // whether a feature can be highlighted
+//   multiSelectable?: boolean // whether multiple features can be highlighted
+//   hoverPointer?: boolean // whether the pointer should change to a pointer when hovering over the layer
+// }
+
+type LayerExtras = {
+  source?: string
+  'source-layer'?: string
+  activeOn?: ActiveOnOption
+  selectable?: boolean
+  multiSelectable?: boolean
+  hoverPointer?: boolean
 }
+
+type ExtendEachLayerSpec<T> = T extends any ? T & LayerExtras : never
+
+export type ExtendedLayerSpecification = ExtendEachLayerSpec<LayerSpecification>
 
 export type StoreSourceSpecification = Omit<
   GeoJSONSourceSpecification,
