@@ -14,11 +14,13 @@ const SidebarHeader = ({ children, title, sx }: Props) => {
       sx={{
         backgroundColor: 'neutral.light',
         display: 'flex',
-        border: 1,
-        borderColor: 'primary.dark',
+        // border: 1,
+        // borderColor: 'primary.dark',
         flexDirection: 'column',
         flexShrink: 0,
         minHeight: 8,
+        zIndex: (theme) => theme.zIndex.drawer + 1,
+        boxShadow: '0 4px 4px 0 rgba(179, 179, 179, 0.25)',
         ...sx,
       }}
     >
