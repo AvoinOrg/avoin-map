@@ -2521,12 +2521,21 @@ export const createMapCoreSlice: (
         _updateSelectableHoverHandlers,
         _layerGroups,
       } = get()
+
+      if (_layerGroups[id]) {
+        console.warn(
+          `Layer group with id "${id}" already exists. Skipping adding it again. In react strict mode this warning is expected. Otherwise, something is probably funky.`
+        )
+        return
+      }
       // const setIsMapPopupOpen = useUIStore.getState().setIsMapPopupOpen
       const _map = useMapInstanceStore.getState()._map
 
       const style = await resolveMbStyle(options.layerConf.style)
 
       let layerInsertId: string | null = null
+
+      let dataHasBeenAdded = false // for checking if rollback is needed
 
       try {
         let orderLevel: LayerOrderLevel = LayerOrderLevel.LAYER
@@ -2651,6 +2660,7 @@ export const createMapCoreSlice: (
             }
 
             _map?.addSource(sourceKey, parsedSourceSpec)
+            dataHasBeenAdded = true
 
             const unsubscribe = (store as any).subscribe(
               selector,
@@ -2993,7 +3003,7 @@ export const createMapCoreSlice: (
         if (!e.message.includes('There is already a source')) {
           console.error('Error adding the layer group: ', id)
           console.error(e)
-          if (get()._layerGroups[id]) {
+          if (dataHasBeenAdded && get()._layerGroups[id]) {
             console.log('Rolling back the layer group: ', id)
             get().removeLayerGroup(id)
           }
