@@ -118,7 +118,16 @@ const AppletWrapper = ({
   }
 
   return (
-    <Box sx={{ height: '100%', ...sx }} className={'applet-wrapper'}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+        minHeight: 0,
+        ...sx,
+      }}
+      className={'applet-wrapper'}
+    >
       {stateMapContext === mapContext && isTolgeeReady() && children}
     </Box>
   )
