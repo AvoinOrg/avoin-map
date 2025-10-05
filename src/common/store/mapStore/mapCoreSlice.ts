@@ -497,6 +497,12 @@ export const createMapCoreSlice: (
 
       const keptFeatures = []
 
+      const featureIdsBySource: {
+        ids: Set<string | number | undefined>
+        source: string
+        sourceLayer?: string
+      }[] = []
+
       for (const feature of features) {
         // Check if the feature is already selected
         const selectedFeature = selectedFeatures.find((f) => {
@@ -526,6 +532,21 @@ export const createMapCoreSlice: (
             { selected: true }
           )
         }
+
+        // group feature ids by source and sourceLayer, to set layer filters later
+        if (
+          featureIdsBySource.find((f) => isMatchingSource(f, feature)) == null
+        ) {
+          featureIdsBySource.push({
+            source: feature.source,
+            sourceLayer: feature.sourceLayer,
+            ids: new Set(),
+          })
+        }
+
+        featureIdsBySource
+          .find((f) => isMatchingSource(f, feature))
+          ?.ids.add(feature.id)
       }
 
       for (const selectedFeature of selectedFeatures) {
@@ -546,6 +567,23 @@ export const createMapCoreSlice: (
       set({
         selectedFeatures: features,
       })
+
+      // update the map filters, because some layer styling cannot use feature state
+      for (const item of featureIdsBySource) {
+        const layers = getLayersForSource(
+          { source: item.source, sourceLayer: item.sourceLayer },
+          _layerGroups
+        )
+        for (const layer of layers) {
+          if (['selected', 'hover-or-selected'].includes(layer.activeOn)) {
+            _map?.setFilter(layer.id, [
+              'in',
+              ['get', 'id'],
+              ['literal', Array.from(item.ids)],
+            ])
+          }
+        }
+      }
 
       if (updateDrawSelect) {
         if (_drawOptions.isEnabled && _drawOptions.draw != null) {
