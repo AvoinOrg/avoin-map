@@ -93,6 +93,7 @@ import {
   findLastMatchingLayer,
   addLayerAfter,
   addLayerByOrderLevel,
+  getLayersForSource,
 } from '#/common/utils/map'
 import { geoserverJsonQuery } from '#/common/queries/geoserverJsonQuery'
 import { MapStateCreator, MapStoreHelpers } from './mapStore'
