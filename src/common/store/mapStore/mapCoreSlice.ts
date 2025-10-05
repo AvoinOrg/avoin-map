@@ -333,6 +333,7 @@ export type MapCoreActions = {
     features: MapGeoJSONFeature[]
   ) => MapGeoJSONFeature[]
   _setPopupDataForFeatures: (features: MapGeoJSONFeature[]) => void
+  _setLayerFilters: (feature?: MapGeoJSONFeature) => void
   _addToFunctionQueue: (queueFunction: QueueFunction) => Promise<any>
   _setFunctionQueue: (functionQueue: FunctionQueue) => void
   _executeFunctionQueue: (callback?: () => void) => Promise<void>
@@ -1863,14 +1864,99 @@ export const createMapCoreSlice: (
         }
       }
 
-      if (hoverableLayers.length > 0) {
-        _map?.on('mouseenter', hoverableLayers, (e) => {
-          _map.getCanvas().style.cursor = 'pointer'
-        })
+    // finds all related layers by source, checks their activeOn status, and then applies a filter on them on if needed
+    _setLayerFilters: (feature?: MapGeoJSONFeature) => {
+      const _map = useMapInstanceStore.getState()._map
 
-        _map?.on('mouseleave', hoverableLayers, () => {
-          _map.getCanvas().style.cursor = ''
-        })
+      const { _layerGroups } = get()
+
+      if (feature) {
+        const layerGroupId = getLayerGroupIdForLayer(
+          feature.layer.id,
+          _layerGroups
+        )
+
+        if (!layerGroupId) return
+
+        for (const layer of Object.values(_layerGroups[layerGroupId].layers)) {
+          if (
+            layer.source != null &&
+            isMatchingSource(
+              feature,
+              layer as { source: string; sourceLayer?: string }
+            )
+          ) {
+            if (
+              layer &&
+              ['hover', 'hover-or-selected'].includes(layer.activeOn)
+            ) {
+              const idsToFilter = [feature.id]
+
+              if (layer.activeOn === 'hover-or-selected') {
+                const selectedFeatures = get().selectedFeatures
+
+                const selectedFromSource = selectedFeatures.filter((sf) =>
+                  isMatchingSource(sf, feature)
+                )
+
+                if (selectedFromSource != null) {
+                  const isSelected = selectedFromSource.some(
+                    (sf) =>
+                      sf.id === feature.id ||
+                      (sf.properties &&
+                        feature.properties &&
+                        sf.properties.id !== undefined &&
+                        sf.properties.id === feature.properties.id)
+                  )
+
+                  if (isSelected) return // filters should already apply
+
+                  for (const sf of selectedFromSource) {
+                    if (sf.id != null) {
+                      idsToFilter.push(sf.id)
+                    }
+                  }
+                }
+              }
+              _map?.setFilter(layer.id, [
+                'in',
+                ['id'],
+                ['literal', idsToFilter],
+              ])
+            }
+          }
+        }
+        // No feature given, so there is nothing currently being hovered over. Clear the hover filters, but keep selected features.
+      } else {
+        const layerOptionsObj = getAllLayerOptionsObj(_layerGroups)
+
+        const hoverableLayers = []
+        for (const layerOptions of Object.values(layerOptionsObj)) {
+          if (['hover', 'hover-or-selected'].includes(layerOptions.activeOn)) {
+            hoverableLayers.push(layerOptions)
+          }
+        }
+
+        for (const layer of hoverableLayers) {
+          const idsToFilter: any[] = []
+
+          if (layer.activeOn === 'hover-or-selected') {
+            const selectedFeatures = get().selectedFeatures
+
+            for (const sf of selectedFeatures) {
+              if (
+                isMatchingSource(
+                  sf,
+                  layer as { source: string; sourceLayer?: string }
+                ) &&
+                sf.id != null
+              ) {
+                idsToFilter.push(sf.id)
+              }
+            }
+          }
+          _map?.setFilter(layer.id, ['in', ['id'], ['literal', idsToFilter]])
+        }
       }
     },
 
