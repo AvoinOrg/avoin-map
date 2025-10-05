@@ -758,6 +758,10 @@ export const getSelectableLayersForSource = (
           return false
         }
 
+        if (layer.source == null) {
+          return false
+        }
+
         const sourceMatches = isMatchingSource(
           { source: layer.source, sourceLayer: layer.sourceLayer },
           source
