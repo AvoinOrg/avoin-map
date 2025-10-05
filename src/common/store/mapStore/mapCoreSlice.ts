@@ -1846,23 +1846,145 @@ export const createMapCoreSlice: (
     },
 
     _updateSelectableHoverHandlers: () => {
-      const { _layerGroups, _globalEventHandlers } = get()
+      const { _layerGroups, _globalEventHandlers, _setLayerFilters } = get()
       const _map = useMapInstanceStore.getState()._map
+      if (!_map) return
+
       const layerOptionsObj = getAllLayerOptionsObj(_layerGroups)
 
-      if (_globalEventHandlers.selectableEnter != null) {
-        _map?.off('mouseenter', _globalEventHandlers.selectableEnter)
-      }
-      if (_globalEventHandlers.selectableLeave != null) {
-        _map?.off('mouseleave', _globalEventHandlers.selectableLeave)
-      }
+      const oldLayers = _globalEventHandlers.selectableLayers ?? []
+      if (_globalEventHandlers.selectableEnter)
+        _map.off('mouseenter', oldLayers, _globalEventHandlers.selectableEnter)
+      if (_globalEventHandlers.selectableMove)
+        _map.off('mousemove', oldLayers, _globalEventHandlers.selectableMove)
+      if (_globalEventHandlers.selectableLeave)
+        _map.off('mouseleave', oldLayers, _globalEventHandlers.selectableLeave)
 
-      const hoverableLayers: string[] = []
+      const selectableLayers: string[] = []
       for (const layerOptions of Object.values(layerOptionsObj)) {
         if (layerOptions.hoverPointer) {
-          hoverableLayers.push(layerOptions.id)
+          selectableLayers.push(layerOptions.id)
         }
       }
+
+      if (selectableLayers.length === 0) {
+        set({
+          _globalEventHandlers: {
+            ..._globalEventHandlers,
+            selectableEnter: undefined,
+            selectableMove: undefined,
+            selectableLeave: undefined,
+            selectableLayers: [],
+          },
+        })
+        return
+      }
+
+      type HoverRef = {
+        source: string
+        id: any
+        sourceLayer?: string
+        layerId: string
+      }
+      const lastHoverByLayer: Record<string, HoverRef | null> = {}
+
+      const clearHoverForLayer = (layerId: string) => {
+        const lastHover = lastHoverByLayer[layerId]
+        if (lastHover) {
+          try {
+            _map.setFeatureState(
+              {
+                source: lastHover.source,
+                id: lastHover.id,
+                ...(lastHover.sourceLayer
+                  ? { sourceLayer: lastHover.sourceLayer }
+                  : {}),
+              },
+              { hover: false }
+            )
+          } catch {}
+          lastHoverByLayer[layerId] = null
+        }
+      }
+
+      const clearAllHover = () => {
+        for (const lastHover of Object.values(lastHoverByLayer)) {
+          if (!lastHover) continue
+          clearHoverForLayer(lastHover.layerId)
+        }
+        selectableLayers.forEach((id) => (lastHoverByLayer[id] = null))
+      }
+
+      const applyHoverFromEvent = (e: maplibregl.MapLayerMouseEvent) => {
+        const f = e.features?.[0]
+        if (!f) return
+        const layerId = (f.layer as any)?.id as string | undefined
+        if (!layerId) return
+
+        // Figure out a usable feature id
+        const fid =
+          (f.id as any) ??
+          (f.properties && (f.properties.cluster_id ?? f.properties.id))
+        if (fid == null) {
+          // No id → feature-state won’t work; suggest promoteId/generateId in your source.
+          return
+        }
+
+        const source = f.source as string
+        const sourceLayer = (f as any).sourceLayer as string | undefined
+        const prev = lastHoverByLayer[layerId]
+
+        // If we moved to a different feature (or source/layer), clear previous
+        if (
+          prev &&
+          (prev.id !== fid ||
+            prev.source !== source ||
+            prev.sourceLayer !== sourceLayer)
+        ) {
+          clearHoverForLayer(layerId)
+        }
+
+        // Set current hover
+        try {
+          _map.setFeatureState(
+            { source, id: fid, ...(sourceLayer ? { sourceLayer } : {}) },
+            { hover: true }
+          )
+          lastHoverByLayer[layerId] = { source, id: fid, sourceLayer, layerId }
+        } catch {}
+
+        _setLayerFilters(f)
+      }
+
+      const onEnter = (e: maplibregl.MapLayerMouseEvent) => {
+        _map.getCanvas().style.cursor = 'pointer'
+        applyHoverFromEvent(e)
+      }
+
+      const onMove = (e: maplibregl.MapLayerMouseEvent) => {
+        applyHoverFromEvent(e)
+      }
+
+      const onLeave = () => {
+        _map.getCanvas().style.cursor = ''
+        clearAllHover() // clear all tracked hovers for these layers
+        _setLayerFilters()
+      }
+
+      _map.on('mouseenter', selectableLayers, onEnter)
+      _map.on('mousemove', selectableLayers, onMove)
+      _map.on('mouseleave', selectableLayers, onLeave)
+
+      set({
+        _globalEventHandlers: {
+          ..._globalEventHandlers,
+          selectableEnter: onEnter,
+          selectableMove: onMove,
+          selectableLeave: onLeave,
+          selectableLayers: selectableLayers,
+        },
+      })
+    },
 
     // finds all related layers by source, checks their activeOn status, and then applies a filter on them on if needed
     _setLayerFilters: (feature?: MapGeoJSONFeature) => {
