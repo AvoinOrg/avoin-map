@@ -822,9 +822,12 @@ export const isMatchingSource = (
 
   const sourceMatches = obj1.source === obj2.source
 
+  const sourceLayer1 = obj1.sourceLayer ?? obj1['source-layer']
+  const sourceLayer2 = obj2.sourceLayer ?? obj2['source-layer']
+
   const sourceLayerMatches =
-    (obj1.sourceLayer == null && obj2.sourceLayer == null) ||
-    obj1.sourceLayer === obj2.sourceLayer
+    (sourceLayer1 == null && sourceLayer2 == null) ||
+    sourceLayer1 === sourceLayer2
 
   if (sourceMatches && sourceLayerMatches) {
     return true
