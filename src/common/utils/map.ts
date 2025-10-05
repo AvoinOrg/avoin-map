@@ -324,6 +324,20 @@ export const getAllLayerOptionsObj = (
   return allLayerOptionsObj
 }
 
+export const findLayerOptsById = (
+  id: string,
+  layerGroups: Record<string, LayerGroupOptions>
+) => {
+  for (const layerGroupId in layerGroups) {
+    const layerOptions = layerGroups[layerGroupId].layers[id]
+    if (layerOptions) {
+      return layerOptions
+    }
+  }
+
+  return undefined
+}
+
 export const findSourceOptsById = (id: string, layerGroups: LayerGroups) => {
   let sourceOptions: SourceOptions | undefined
 
