@@ -30,10 +30,12 @@ interface Vars {
   sidebarWidth: number | undefined
   confirmationDialogOptions: InternalConfirmationDialogOptions
   isBaseDomainForApplet: boolean
-  windowSize: {
-    width: number
-    height: number
-  }
+  windowSize:
+    | {
+        width: number
+        height: number
+      }
+    | undefined
   mapDims: {
     visible: MapDims | undefined
     min: MapDims | undefined
@@ -94,7 +96,7 @@ export const useUIStore = create<State>()(
         sidebarWidth: undefined,
         confirmationDialogOptions: { id: null },
         isBaseDomainForApplet: false,
-        windowSize: { width: 0, height: 0 },
+        windowSize: undefined,
         mapDims: { visible: undefined, min: undefined },
         _activeSidebarLoaders: new Set<string>(),
         searchCountryCodes: [],
