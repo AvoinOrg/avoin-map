@@ -9,7 +9,7 @@ import Drawer from './Drawer'
 import { SidebarHeader, SidebarToggleButton } from '#/components/Sidebar'
 import { Navbar } from './Navbar'
 import { LoadingSpinner } from '../Loading'
-import { SidebarDrawerContainer } from './SidebarDrawerContainer'
+import { Slot } from '../context/slotsContext'
 
 export const Sidebar = ({
   headerElement,
@@ -53,28 +53,28 @@ export const Sidebar = ({
       ref={sidebarRef}
       sx={{
         zIndex: 'drawer',
-        display: 'flex',
-        minWidth: 0,
-        width: '100%',
+        display: 'inline-flex',
         flexDirection: 'row',
+        height: '100%',
+        width: 'max-content',
         maxWidth: '100%',
-        position: 'relative',
+        minWidth: 0,
         minHeight: 0,
-        flex: 1,
-        pointerEvents: 'none',
+        position: 'relative',
       }}
     >
       <Box
         className="sidebar-container"
         sx={[
           {
-            minHeight: 0,
-            minWidth: 0,
-            flex: '1',
-            maxWidth: '30rem',
-            width: '100%',
             display: 'flex',
             flexDirection: 'column',
+            width: '30rem',
+            maxWidth: '100%',
+            flex: '0 1 auto',
+            minWidth: 0,
+            height: '100%',
+            minHeight: 0,
             pointerEvents:
               isSidebarOpen || isSidebarDrawerOpen ? 'auto' : 'none',
           },
@@ -148,7 +148,7 @@ export const Sidebar = ({
         </Box>
       )} */}
       </Box>
-      <SidebarDrawerContainer></SidebarDrawerContainer>
+      <Slot name="sidebar-drawer" />
     </Box>
   )
 }
