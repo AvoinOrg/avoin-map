@@ -100,6 +100,7 @@ import { MapStateCreator, MapStoreHelpers } from './mapStore'
 // import { commonDevtools } from './shared-devtools'
 
 const DEFAULT_MAP_LIBRARY_MODE: MapLibraryMode = 'maplibre'
+const IS_DEV = process.env.NODE_ENV === 'development'
 
 let imageRenderCanvas: HTMLCanvasElement | null = null
 let imageRenderCtx: CanvasRenderingContext2D | null = null
@@ -570,6 +571,9 @@ export const createMapCoreSlice: (
       set({
         selectedFeatures: features,
       })
+      if (IS_DEV) {
+        console.log('DEV DEBUG: Set selected features', features)
+      }
 
       // update the map filters, because some layer styling cannot use feature state
       for (const item of featureIdsBySource) {
