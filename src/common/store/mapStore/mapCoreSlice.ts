@@ -565,6 +565,19 @@ export const createMapCoreSlice: (
             },
             { selected: false }
           )
+
+          // add empty sets for sources that are no longer selected, to update filters later
+          if (
+            featureIdsBySource.find((f) =>
+              isMatchingSource(f, selectedFeature)
+            ) == null
+          ) {
+            featureIdsBySource.push({
+              source: selectedFeature.source,
+              sourceLayer: selectedFeature.sourceLayer,
+              ids: new Set(),
+            })
+          }
         }
       }
 
