@@ -25,21 +25,21 @@ const baseCanvasFillOptions: Pick<
 }
 
 const factorBySize: Record<CanvasFillSize, number> = {
-  16: 32,
-  32: 32,
-  64: 32,
-  128: 32,
-  256: 32,
-  512: 32,
+  16: 16,
+  32: 16,
+  64: 16,
+  128: 16,
+  256: 16,
+  512: 16,
 }
 
 const lineWidthBySize: Record<CanvasFillSize, number> = {
   16: 1,
   32: 1,
   64: 1,
-  128: 2,
-  256: 3,
-  512: 4,
+  128: 1,
+  256: 2,
+  512: 2,
 }
 
 const defaultLine = (
@@ -50,7 +50,7 @@ const defaultLine = (
   color,
   width: lineWidthBySize[size],
   type,
-  lineCap: 'butt', // avoids extra paint at segment ends
+  // lineCap: 'butt', // avoids extra paint at segment ends
 })
 
 const lineTypeByImageId: Record<CanvasFillImageId, string> = {
