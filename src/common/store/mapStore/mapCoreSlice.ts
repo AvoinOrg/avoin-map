@@ -3006,6 +3006,7 @@ export const createMapCoreSlice: (
           }
 
           set((state) => {
+            // @ts-ignore
             state._layerInstances[layer.id] = layer
           })
 
