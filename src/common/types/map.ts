@@ -279,10 +279,25 @@ export type ActiveOnOption =
 //   hoverPointer?: boolean // whether the pointer should change to a pointer when hovering over the layer
 // }
 
+export type CanvasFillImageId =
+  | 'DiagonalCross'
+  | 'Cross'
+  | 'ForwardDiagonal'
+  | 'BackwardDiagonal'
+  | 'Vertical'
+  | 'Horizontal'
+
+export type GeneratedFillPatternOptions = {
+  patternId: CanvasFillImageId
+  colorRGBA?: string
+  backgroundColorRGBA?: string
+}
+
 type LayerExtras = {
   source?: string
   'source-layer'?: string
   activeOn?: ActiveOnOption
+  generatedFillPatternOptions?: GeneratedFillPatternOptions
   selectable?: boolean
   multiSelectable?: boolean
   hoverPointer?: boolean
