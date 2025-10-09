@@ -3055,7 +3055,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@maplibre/maplibre-gl-style-spec@npm:^20.3.0":
+"@maplibre/maplibre-gl-style-spec@npm:^20.3.0, @maplibre/maplibre-gl-style-spec@npm:^20.3.1":
   version: 20.4.0
   resolution: "@maplibre/maplibre-gl-style-spec@npm:20.4.0"
   dependencies:
@@ -9391,6 +9391,7 @@ __metadata:
     lodash-es: ^4.17.21
     maplibre-gl: ^5.5.0
     maplibre-gl-draw: ^1.6.9
+    maplibre_symbol_utils: ^0.1.3
     micro-observables: ^1.7.2
     mini-css-extract-plugin: ^2.7.2
     next: ^15.3.5
@@ -10748,6 +10749,13 @@ __metadata:
   version: 2.2.4
   resolution: "earcut@npm:2.2.4"
   checksum: aea0466cb2f24e0c3c57148d8d28ac9846f53c4f43ee66780826474303ac851b305ef988152d0bdeb31e8f7ca939dc0df737e7505cfb1c1bdf2ff9d7f9ea2faa
+  languageName: node
+  linkType: hard
+
+"earcut@npm:^3.0.0":
+  version: 3.0.2
+  resolution: "earcut@npm:3.0.2"
+  checksum: b4c8965e2e20cc3e6679f19e3c4bca4fe3c72bdf1b463430e3cefb2a016e50bb829a4ce570c289dec966235eb891c430a96b179e6b44bc25e1f38f0839b6527b
   languageName: node
   linkType: hard
 
@@ -14997,6 +15005,40 @@ __metadata:
   languageName: node
   linkType: hard
 
+"maplibre-gl@npm:^4.0.0":
+  version: 4.7.1
+  resolution: "maplibre-gl@npm:4.7.1"
+  dependencies:
+    "@mapbox/geojson-rewind": ^0.5.2
+    "@mapbox/jsonlint-lines-primitives": ^2.0.2
+    "@mapbox/point-geometry": ^0.1.0
+    "@mapbox/tiny-sdf": ^2.0.6
+    "@mapbox/unitbezier": ^0.0.1
+    "@mapbox/vector-tile": ^1.3.1
+    "@mapbox/whoots-js": ^3.1.0
+    "@maplibre/maplibre-gl-style-spec": ^20.3.1
+    "@types/geojson": ^7946.0.14
+    "@types/geojson-vt": 3.2.5
+    "@types/mapbox__point-geometry": ^0.1.4
+    "@types/mapbox__vector-tile": ^1.3.4
+    "@types/pbf": ^3.0.5
+    "@types/supercluster": ^7.1.3
+    earcut: ^3.0.0
+    geojson-vt: ^4.0.2
+    gl-matrix: ^3.4.3
+    global-prefix: ^4.0.0
+    kdbush: ^4.0.2
+    murmurhash-js: ^1.0.0
+    pbf: ^3.3.0
+    potpack: ^2.0.0
+    quickselect: ^3.0.0
+    supercluster: ^8.0.1
+    tinyqueue: ^3.0.0
+    vt-pbf: ^3.1.3
+  checksum: 0a0dc285b74d518dd0e4bbdd9ac8b93448a12c40d0b46c04b2a191f7cc1bc2419a1ee7bdb36c00f0732269e4bd3de19bd1b81dee5f2070601fe9be343988ba69
+  languageName: node
+  linkType: hard
+
 "maplibre-gl@npm:^5.5.0":
   version: 5.5.0
   resolution: "maplibre-gl@npm:5.5.0"
@@ -15028,6 +15070,17 @@ __metadata:
     tinyqueue: ^3.0.0
     vt-pbf: ^3.1.3
   checksum: 02fdf85cb4ccb9b5b711e71f5c7ec93c453e1f2c20efb5c14183426cae3c588d770d22f7b23e256d6e2cbc518e4f06bd6a60bebc6d084ff025dff8b5c8560cea
+  languageName: node
+  linkType: hard
+
+"maplibre_symbol_utils@npm:^0.1.3":
+  version: 0.1.3
+  resolution: "maplibre_symbol_utils@npm:0.1.3"
+  dependencies:
+    maplibre-gl: ^4.0.0
+  peerDependencies:
+    maplibre-gl: ^4.0.0
+  checksum: dc82a4ec14755d3e289089c904afaaacefcc0e83697050cf356fe44cf3518cd0c51ccee63703fd95a3fcdc8c882ee27a58f1303b64035add834c1fb089c49fba
   languageName: node
   linkType: hard
 
