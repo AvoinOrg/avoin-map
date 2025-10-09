@@ -38,8 +38,8 @@ const lineWidthBySize: Record<CanvasFillSize, number> = {
   32: 1,
   64: 1,
   128: 1,
-  256: 2,
-  512: 2,
+  256: 1,
+  512: 1,
 }
 
 const defaultLine = (
