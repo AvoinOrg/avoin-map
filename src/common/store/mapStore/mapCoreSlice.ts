@@ -2983,6 +2983,14 @@ export const createMapCoreSlice: (
             }
           }
 
+          if (layer.generatedFillPatternOptions) {
+            applyCanvasFillPattern(
+              _map,
+              layer,
+              layer.generatedFillPatternOptions
+            )
+          }
+
           set((state) => {
             state._layerInstances[layer.id] = layer
           })
