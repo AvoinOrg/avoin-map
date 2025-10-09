@@ -29,9 +29,18 @@ import {
   ExtendedMapGeoJSONFeature,
   LayerOrderLevel,
   LayerOptions,
+  ExtendedLayerSpecification,
+  GeneratedFillPatternOptions,
 } from '../types/map'
 import { clone, uniqBy } from 'lodash-es'
 import { useMapStore } from '../store'
+import {
+  CANVAS_FILL_DEFAULT_BACKGROUND_COLOR,
+  CANVAS_FILL_DEFAULT_COLOR,
+  CANVAS_FILL_ZOOM_SIZE_RANGES,
+  getCanvasFillPatternOptions,
+} from '../constants/map'
+import { canvasFill } from 'maplibre_symbol_utils'
 
 const EMBEDDED_PARAMS_URL_SEPARATOR = '||'
 
@@ -1206,4 +1215,105 @@ export const addLayerByOrderLevel = ({
     map.addLayer(layer)
     return
   }
+}
+
+// TODO: If we ever need deck-gl, we can update to use the fill pattern from there.
+export const applyCanvasFillPattern = (
+  map: Map | null | undefined,
+  layer: ExtendedLayerSpecification,
+  generatedFillPatternOptions: GeneratedFillPatternOptions
+) => {
+  if (!map || layer.type !== 'fill') {
+    return layer
+  }
+
+  const layerMinZoom = layer.minzoom ?? 0
+  const layerMaxZoom = layer.maxzoom ?? Infinity
+
+  const overlappingRanges = CANVAS_FILL_ZOOM_SIZE_RANGES.filter((range) => {
+    const rangeMax = range.maxZoom ?? Infinity
+    return rangeMax >= layerMinZoom && range.minZoom <= layerMaxZoom
+  })
+
+  const ranges: typeof CANVAS_FILL_ZOOM_SIZE_RANGES = overlappingRanges.length
+    ? [...overlappingRanges]
+    : [CANVAS_FILL_ZOOM_SIZE_RANGES[CANVAS_FILL_ZOOM_SIZE_RANGES.length - 1]]
+
+  if (ranges.length === 1) {
+    const loneIndex = CANVAS_FILL_ZOOM_SIZE_RANGES.findIndex(
+      (candidate) => candidate.size === ranges[0].size
+    )
+    const previous = CANVAS_FILL_ZOOM_SIZE_RANGES[loneIndex - 1]
+    const next = CANVAS_FILL_ZOOM_SIZE_RANGES[loneIndex + 1]
+    if (previous) {
+      ranges.unshift(previous)
+    } else if (next) {
+      ranges.push(next)
+    }
+  }
+
+  const getImageId = (
+    patternId: string,
+    size: number,
+    color: string,
+    backgroundColor: string
+  ) => {
+    return `${patternId}-${size}-${color}-${backgroundColor}`
+  }
+
+  ranges.forEach((range) => {
+    const imageId = getImageId(
+      generatedFillPatternOptions.patternId,
+      range.size,
+      generatedFillPatternOptions.colorRGBA || CANVAS_FILL_DEFAULT_COLOR,
+      generatedFillPatternOptions.backgroundColorRGBA ||
+        CANVAS_FILL_DEFAULT_BACKGROUND_COLOR
+    )
+    if (map.hasImage(imageId)) {
+      return
+    }
+    const options = getCanvasFillPatternOptions(
+      generatedFillPatternOptions.patternId,
+      range.size,
+      generatedFillPatternOptions.colorRGBA,
+      generatedFillPatternOptions.backgroundColorRGBA
+    )
+    if (!options) {
+      return
+    }
+
+    map.addImage(imageId, new canvasFill({ ...options }))
+  })
+
+  const basePatternId = getImageId(
+    generatedFillPatternOptions.patternId,
+    ranges[0].size,
+    generatedFillPatternOptions.colorRGBA || CANVAS_FILL_DEFAULT_COLOR,
+    generatedFillPatternOptions.backgroundColorRGBA ||
+      CANVAS_FILL_DEFAULT_BACKGROUND_COLOR
+  )
+
+  const fillPatternExpression = [
+    'step',
+    ['zoom'],
+    basePatternId,
+    ...ranges
+      .slice(1)
+      .flatMap((range) => [
+        range.minZoom,
+        getImageId(
+          generatedFillPatternOptions.patternId,
+          range.size,
+          generatedFillPatternOptions.colorRGBA || CANVAS_FILL_DEFAULT_COLOR,
+          generatedFillPatternOptions.backgroundColorRGBA ||
+            CANVAS_FILL_DEFAULT_BACKGROUND_COLOR
+        ),
+      ]),
+  ] as unknown as ExpressionSpecification
+
+  const fillPatternValue: string | ExpressionSpecification =
+    ranges.length > 1 ? fillPatternExpression : basePatternId
+
+  layer.paint = layer.paint ?? {}
+  layer.paint['fill-pattern'] = fillPatternValue
 }
