@@ -13,13 +13,18 @@ import { debounce } from 'lodash-es'
 import { useTranslate } from '@tolgee/react'
 import axios from 'axios'
 import { useParams } from 'next/navigation'
+import { bbox as turfBBox } from '@turf/turf'
 
 import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
 import { useMapStore, useUIStore } from '#/common/store'
 import Search from '#/components/icons/Search'
 import {
+  boundsFromNominatim,
   defaultFeatureDisplayPattern,
+  defaultPointZoom,
   getFeatureCenterCoordinates,
+  zoomFromPlaceOptions,
+  zoomFromPlaceRank,
 } from '#/common/utils/map'
 import { MapMenuState } from '#/common/types/state'
 
@@ -43,6 +48,8 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
   const map = useMapInstanceStore((state) => state._map)
   const searchableDatas = useMapStore((state) => state.searchableDatas)
   const searchCountryCodes = useUIStore((state) => state.searchCountryCodes)
+  const fitBounds = useMapStore((state) => state.fitBounds)
+  const flyTo = useMapStore((state) => state.flyTo)
 
   const isActive = useMemo(() => {
     return activeMapMenu === mapMenuState
@@ -124,12 +131,19 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
               displayNameArr.push(`(${datasetName})`)
             }
 
+            const bbox = (feature as any).bbox
+              ? ((feature as any).bbox as [number, number, number, number])
+              : feature.geometry
+              ? (turfBBox(feature as any) as [number, number, number, number])
+              : null
+
             if (coords) {
               localResults.push({
                 // ...feature,
                 isLocal: true,
                 lon: coords[0],
                 lat: coords[1],
+                bbox,
                 displayNameArr: displayNameArr,
                 datasetName: datasetName,
                 place_id:
@@ -171,10 +185,45 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
     }
   }
 
-  const handleSelect = (event: any, option: any) => {
-    if (option && map) {
-      const { lon, lat } = option
-      map.flyTo({ center: [parseFloat(lon), parseFloat(lat)], zoom: 13 })
+  const handleSelect = (_event: any, option: any) => {
+    if (!option || !map) return
+
+    // try to build a bbox
+    let bbox: [number, number, number, number] | null = null
+
+    if (option.isLocal) {
+      bbox = option.bbox || null
+    } else {
+      bbox = boundsFromNominatim(option)
+    }
+
+    if (bbox) {
+      // Use your store fitBounds (handles sidebar padding)
+      // Small extras are fine horizontally; keep latExtra 0 to avoid Mercator bias
+      fitBounds([bbox[2], bbox[0], bbox[3], bbox[1]], {
+        // your order: [lonMax, lonMin, latMax, latMin]
+        duration: 1200,
+        lonExtra: 0.05,
+        latExtra: 0, // keep 0; rely on padding for vertical margin
+      })
+      return
+    }
+
+    // point fallback
+    const lon = parseFloat(option.lon ?? option.lon ?? option.lng)
+    const lat = parseFloat(option.lat ?? option.latitude)
+    if (Number.isFinite(lon) && Number.isFinite(lat)) {
+      let z = defaultPointZoom(option)
+
+      if (option.place_rank != null) {
+        z = zoomFromPlaceOptions(option.place_rank, {
+          importance: option.importance,
+          cls: option.class,
+          type: option.type,
+        })
+      }
+
+      flyTo({ center: [lon, lat], zoom: z, duration: 900 })
     }
   }
 

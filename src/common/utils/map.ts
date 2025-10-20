@@ -1404,19 +1404,6 @@ export const boundsFromNominatim = (
   return [west, south, east, north]
 }
 
-export const zoomFromPlaceRank = (rank?: number): number => {
-  if (rank == null) return 12
-  // loose mapping; tweak to taste
-  if (rank >= 28) return 17 // building, address, POI
-  if (rank >= 26) return 16 // street
-  if (rank >= 22) return 14.5 // suburb/village
-  if (rank >= 18) return 13 // town/small city
-  if (rank >= 14) return 11 // city/metro
-  if (rank >= 10) return 8.5 // state/region
-  if (rank >= 6) return 6 // country
-  return 4.5 // continent/large area
-}
-
 // fallback if neither bbox nor place_rank
 export const defaultPointZoom = (opt: any): number => {
   // Nominatim has "importance" [0..1]; use it if present
