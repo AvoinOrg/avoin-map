@@ -39,6 +39,7 @@ import {
   CANVAS_FILL_DEFAULT_COLOR,
   CANVAS_FILL_ZOOM_SIZE_RANGES,
   getCanvasFillPatternOptions,
+  MAX_MERC_LAT,
 } from '../constants/map'
 import { canvasFill } from 'maplibre_symbol_utils'
 
@@ -1317,3 +1318,75 @@ export const applyCanvasFillPattern = (
   layer.paint = layer.paint ?? {}
   layer.paint['fill-pattern'] = fillPatternValue
 }
+export const paddingFromVisibleViewport = (
+  container: HTMLElement,
+  vis: { width: number; height: number; centerX: number; centerY: number }
+) => {
+  const rect = container.getBoundingClientRect()
+
+  const vLeft = vis.centerX - vis.width / 2
+  const vRight = vis.centerX + vis.width / 2
+  const vTop = vis.centerY - vis.height / 2
+  const vBottom = vis.centerY + vis.height / 2
+
+  // If visible area vertically covers the container, don’t pad vertically.
+  const coversVertically = vTop <= rect.top && vBottom >= rect.bottom
+
+  const left = Math.max(0, Math.round(vLeft - rect.left))
+  const right = Math.max(0, Math.round(rect.right - vRight))
+  const top = coversVertically ? 0 : Math.max(0, Math.round(vTop - rect.top))
+  const bottom = coversVertically
+    ? 0
+    : Math.max(0, Math.round(rect.bottom - vBottom))
+
+  return { left, top, right, bottom } as const
+}
+
+const mercY = (latDeg: number) => {
+  const φ = (latDeg * Math.PI) / 180
+  return Math.log(Math.tan(Math.PI / 4 + φ / 2))
+}
+
+const invMercY = (y: number) => {
+  const φ = 2 * Math.atan(Math.exp(y)) - Math.PI / 2
+  return (φ * 180) / Math.PI
+}
+
+const clampLat = (lat: number) => {
+  return Math.max(-MAX_MERC_LAT, Math.min(MAX_MERC_LAT, lat))
+}
+
+export const expandBoundsMercY = (
+  lonMin: number,
+  lonMax: number,
+  latMin: number,
+  latMax: number,
+  lonExtra: number,
+  latExtra: number
+): [[number, number], [number, number]] => {
+  // Lon: linear → simple
+  const lonDiff = lonMax - lonMin
+  const west = lonMin - lonExtra * lonDiff
+  const east = lonMax + lonExtra * lonDiff
+
+  // Lat: expand in Mercator-Y to keep vertical centering stable
+  if (latExtra !== 0) {
+    const yMin = mercY(latMin)
+    const yMax = mercY(latMax)
+    const yDiff = yMax - yMin
+    const yMinE = yMin - latExtra * yDiff
+    const yMaxE = yMax + latExtra * yDiff
+    const south = clampLat(invMercY(yMinE))
+    const north = clampLat(invMercY(yMaxE))
+    return [
+      [west, south],
+      [east, north],
+    ]
+  } else {
+    return [
+      [west, latMin],
+      [east, latMax],
+    ]
+  }
+}
+

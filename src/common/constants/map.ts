@@ -1,6 +1,8 @@
 import type { CanvasFillImageId } from '#/common/types/map'
 import { lineOptions } from 'maplibre_symbol_utils'
 
+export const MAX_MERC_LAT = 85.05112878
+
 export type CanvasFillOptions = {
   backGroundColor?: string
 

@@ -95,9 +95,12 @@ import {
   addLayerByOrderLevel,
   getLayersForSource,
   applyCanvasFillPattern,
+  paddingFromVisibleViewport,
+  expandBoundsMercY,
 } from '#/common/utils/map'
 import { geoserverJsonQuery } from '#/common/queries/geoserverJsonQuery'
 import { MapStateCreator, MapStoreHelpers } from './mapStore'
+import { waitForMapDims } from '../uiStore'
 // import { commonDevtools } from './shared-devtools'
 
 const DEFAULT_MAP_LIBRARY_MODE: MapLibraryMode = 'maplibre'
@@ -1613,69 +1616,76 @@ export const createMapCoreSlice: (
     },
 
     fitBounds: helpers.queueableFnInit(
-      (
+      async (
         bbox: number[] | LngLatBounds,
-        { duration = 2000, lonExtra = 1, latExtra = 1 }: FitBoundsOptions = {}
+        fitOptions?: FitBoundsOptions
       ): Promise<void> => {
+        const { duration = 2000, lonExtra = 0, latExtra = 0 } = fitOptions ?? {}
         const _map = useMapInstanceStore.getState()._map
-        const mapDims = useUIStore.getState().mapDims
+        if (!_map) return // or await a similar waitFor(_map) if you want
 
-        let [lonMax, lonMin, latMax, latMin] = [0, 0, 0, 0]
-
+        // Safely unwrap bbox
+        let lonMax: number, lonMin: number, latMax: number, latMin: number
         if (bbox instanceof LngLatBounds) {
-          const southWest = bbox.getSouthWest()
-          const northEast = bbox.getNorthEast()
-
-          lonMax = northEast.lng
-          lonMin = southWest.lng
-          latMax = northEast.lat
-          latMin = southWest.lat
+          const sw = bbox.getSouthWest()
+          const ne = bbox.getNorthEast()
+          lonMax = ne.lng
+          lonMin = sw.lng
+          latMax = ne.lat
+          latMin = sw.lat
         } else {
-          lonMax = bbox[0]
-          lonMin = bbox[1]
-          latMax = bbox[2]
-          latMin = bbox[3]
+          ;[lonMax, lonMin, latMax, latMin] = bbox
         }
 
-        const flyOptions: mapboxgl.FitBoundsOptions = { duration: duration }
+        const fitBoundsOptions: mapboxgl.FitBoundsOptions = { duration }
 
-        if (_map && mapDims.visible) {
+        // Only wait for mapDims if you want the offset that depends on it:
+        let mapDims = useUIStore.getState().mapDims
+        if (!mapDims || !mapDims.visible) {
+          try {
+            mapDims = await waitForMapDims(5000)
+          } catch {
+            // If it never comes, just proceed without offset.
+          }
+        }
+
+        if (_map && mapDims?.visible) {
           const container = _map.getContainer() as HTMLElement
-          const mapCenterX = container.clientWidth / 2
-          const mapCenterY = container.clientHeight / 2
 
-          const { centerX: visibleCenterX, centerY: visibleCenterY } =
+          fitBoundsOptions.padding = paddingFromVisibleViewport(
+            container,
             mapDims.visible
-
-          flyOptions.offset = [
-            visibleCenterX - mapCenterX,
-            visibleCenterY - mapCenterY,
-          ]
+          )
         }
 
-        const lonDiff = lonMax - lonMin
-        const latDiff = latMax - latMin
-        _map?.fitBounds(
-          [
-            [lonMin - lonExtra * lonDiff, latMin - latExtra * latDiff],
-            [lonMax + lonExtra * lonDiff, latMax + latExtra * latDiff],
-          ],
-          flyOptions
+        const expandedBounds = expandBoundsMercY(
+          lonMin,
+          lonMax,
+          latMin,
+          latMax,
+          lonExtra,
+          latExtra
         )
 
-        return Promise.resolve()
+        _map.fitBounds(expandedBounds, fitBoundsOptions)
       },
-      {
-        key: 'fitBounds',
-      }
+      { key: 'fitBounds' }
     ),
 
     flyTo: helpers.queueableFnInit(
-      (options: mapboxgl.FlyToOptions): Promise<void> => {
+      async (options: mapboxgl.FlyToOptions): Promise<void> => {
         const _map = useMapInstanceStore.getState()._map
-        const mapDims = useUIStore.getState().mapDims
 
         const flyToOptions: mapboxgl.FlyToOptions = { ...options }
+
+        let mapDims = useUIStore.getState().mapDims
+        if (!mapDims || !mapDims.visible) {
+          try {
+            mapDims = await waitForMapDims(5000)
+          } catch {
+            // If it never comes, just proceed without offset.
+          }
+        }
 
         if (_map && mapDims.visible) {
           const container = _map.getContainer() as HTMLElement
@@ -1698,11 +1708,19 @@ export const createMapCoreSlice: (
     ),
 
     easeTo: helpers.queueableFnInit(
-      (options: mapboxgl.EaseToOptions): Promise<void> => {
+      async (options: mapboxgl.EaseToOptions): Promise<void> => {
         const _map = useMapInstanceStore.getState()._map
-        const mapDims = useUIStore.getState().mapDims
 
         const easeToOptions: mapboxgl.EaseToOptions = { ...options }
+
+        let mapDims = useUIStore.getState().mapDims
+        if (!mapDims || !mapDims.visible) {
+          try {
+            mapDims = await waitForMapDims(5000)
+          } catch {
+            // If it never comes, just proceed without offset.
+          }
+        }
 
         if (_map && mapDims.visible) {
           const container = _map.getContainer() as HTMLElement
