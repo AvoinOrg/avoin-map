@@ -498,3 +498,5 @@ export type SearchableDataOpts = DataSearchOpts & {
   data: FeatureCollection
   enabled: boolean
 }
+
+export type ColorStop = { color: string; value: number }
