@@ -40,6 +40,7 @@ import {
   CANVAS_FILL_ZOOM_SIZE_RANGES,
   getCanvasFillPatternOptions,
   MAX_MERC_LAT,
+  PLACE_RANK_ZOOM_ANCHORS,
 } from '../constants/map'
 import { canvasFill } from 'maplibre_symbol_utils'
 
@@ -1390,3 +1391,81 @@ export const expandBoundsMercY = (
   }
 }
 
+export const boundsFromNominatim = (
+  opt: any
+): [number, number, number, number] | null => {
+  const bb = opt?.boundingbox // ["south","north","west","east"] as strings
+  if (!bb || bb.length !== 4) return null
+  const south = parseFloat(bb[0]),
+    north = parseFloat(bb[1])
+  const west = parseFloat(bb[2]),
+    east = parseFloat(bb[3])
+  if ([south, north, west, east].some(Number.isNaN)) return null
+  return [west, south, east, north]
+}
+
+export const zoomFromPlaceRank = (rank?: number): number => {
+  if (rank == null) return 12
+  // loose mapping; tweak to taste
+  if (rank >= 28) return 17 // building, address, POI
+  if (rank >= 26) return 16 // street
+  if (rank >= 22) return 14.5 // suburb/village
+  if (rank >= 18) return 13 // town/small city
+  if (rank >= 14) return 11 // city/metro
+  if (rank >= 10) return 8.5 // state/region
+  if (rank >= 6) return 6 // country
+  return 4.5 // continent/large area
+}
+
+// fallback if neither bbox nor place_rank
+export const defaultPointZoom = (opt: any): number => {
+  // Nominatim has "importance" [0..1]; use it if present
+  const imp = typeof opt?.importance === 'number' ? opt.importance : null
+  if (imp != null) return 10 + 7 * Math.min(1, Math.max(0, imp)) // ~10..17
+  return 13 // safe general default for points
+}
+
+const clamp = (n: number, a: number, b: number) => Math.min(b, Math.max(a, n))
+
+export function zoomFromPlaceOptions(
+  rank?: number,
+  opts?: { importance?: number; cls?: string; type?: string; round?: number }
+): number {
+  const { importance, cls, type, round = 2 } = opts ?? {}
+
+  if (rank == null || !isFinite(rank as number)) return 12
+  const r = clamp(rank, 0, 30)
+
+  // Piecewise-linear interpolation across anchors
+  let z: number
+  if (r <= PLACE_RANK_ZOOM_ANCHORS[0][0]) {
+    z = PLACE_RANK_ZOOM_ANCHORS[0][1]
+  } else if (r >= PLACE_RANK_ZOOM_ANCHORS.at(-1)![0]) {
+    z = PLACE_RANK_ZOOM_ANCHORS.at(-1)![1]
+  } else {
+    for (let i = 0; i < PLACE_RANK_ZOOM_ANCHORS.length - 1; i++) {
+      const [r0, z0] = PLACE_RANK_ZOOM_ANCHORS[i]
+      const [r1, z1] = PLACE_RANK_ZOOM_ANCHORS[i + 1]
+      if (r >= r0 && r <= r1) {
+        const t = (r - r0) / (r1 - r0)
+        z = z0 + t * (z1 - z0)
+        break
+      }
+    }
+    // TypeScript appeasement
+    z ??= 12
+  }
+
+  // Light, optional nudges (feel free to tweak)
+  if (typeof importance === 'number') {
+    z += (importance - 0.5) * 1.2 // about -0.6..+0.6
+  }
+  if (cls === 'amenity' || cls === 'shop' || cls === 'tourism') z += 0.4
+  if (cls === 'building') z += 0.6
+  if (cls === 'highway') z -= 0.3
+  if (cls === 'boundary' && (type === 'administrative' || type === 'country'))
+    z -= 0.5
+  if (cls === 'natural' && (type === 'peak' || type === 'volcano')) z += 0.2
+
+  return +z.toFixed(round)
+}

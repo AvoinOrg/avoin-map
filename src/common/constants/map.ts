@@ -91,3 +91,36 @@ export const CANVAS_FILL_ZOOM_SIZE_RANGES: CanvasFillZoomSizeRange[] = [
   { minZoom: 10, size: 32 },
   { minZoom: 14, size: 16 },
 ]
+
+export const PLACE_RANK_ZOOM_ANCHORS: Array<[number, number]> = [
+  [0, 2.3],
+  [2, 3.3],
+  [3, 3.8],
+  [4, 4.5], // continent-ish
+  [5, 5.0],
+  [6, 5.7],
+  [7, 6.1],
+  [8, 6.6], // country
+  [9, 7.1],
+  [10, 7.6], // large region
+  [11, 8.0],
+  [12, 8.5], // state/region
+  [13, 9.0],
+  [14, 9.6], // metro/county
+  [15, 10.1],
+  [16, 10.6], // city
+  [17, 11.1],
+  [18, 11.6], // large town
+  [19, 12.2],
+  [20, 12.8], // town
+  [21, 13.4],
+  [22, 14.0], // suburb/village
+  [23, 14.4],
+  [24, 14.8], // neighbourhood
+  [25, 15.4],
+  [26, 16.0], // street
+  [27, 16.6],
+  [28, 17.2], // POI/amenity
+  [29, 17.6],
+  [30, 18.0], // address/entrance
+]
