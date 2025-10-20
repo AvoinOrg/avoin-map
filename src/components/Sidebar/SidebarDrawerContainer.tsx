@@ -46,6 +46,7 @@ export const SidebarDrawerContainer = ({
               position: 'relative',
               height: '100%',
               backgroundColor: 'neutral.light',
+              boxShadow: '-4px 0 4px 0 rgba(179, 179, 179, 0.25)',
               minHeight: 0,
               zIndex: (theme) => theme.zIndex.drawer + 2,
             },
@@ -79,7 +80,7 @@ export const SidebarDrawerContainer = ({
                     mr: 2,
                   }}
                 >
-                  <Cross sx={{ height: '1.5rem', width: '1.5rem' }} />
+                  <Cross sx={{ height: '1.2rem', width: '1.2rem' }} />
                 </IconButton>
               </Box>
             </Box>
