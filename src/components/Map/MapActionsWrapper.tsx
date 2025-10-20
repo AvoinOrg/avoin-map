@@ -19,7 +19,10 @@ export const MapActionsWrapper = () => {
   const { width: wrapperWidth, height: wrapperHeight } =
     useElementSize(wrapperRef)
 
-  const [isVertical, setIsVertical] = useState(false)
+  const [isVertical, setIsVertical] = useState(() => {
+    if (typeof window === 'undefined') return true
+    return window.innerWidth < 1100
+  })
 
   const debouncedWrapperHeight = useDebounce(wrapperHeight, 250)
   const debouncedWrapperWidth = useDebounce(wrapperWidth, 250)
