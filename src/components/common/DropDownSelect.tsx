@@ -88,8 +88,13 @@ const DropDownSelect = ({
             backgroundColor: 'background.main',
             '.MuiSvgIcon-root': { fontSize: '16px', margin: '0 10px 0 0' },
             '.MuiSelect-icon': {
-              mt: 0.3,
+              mt: 0.2,
               ...(iconSx as Record<string, any>),
+            },
+            '.MuiSelect-select': {
+              display: 'flex',
+              alignItems: 'center',
+              py: 1.5,
             },
             typography: 'body2',
           },
