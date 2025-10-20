@@ -24,7 +24,6 @@ import {
   defaultPointZoom,
   getFeatureCenterCoordinates,
   zoomFromPlaceOptions,
-  zoomFromPlaceRank,
 } from '#/common/utils/map'
 import { MapMenuState } from '#/common/types/state'
 
