@@ -31,6 +31,7 @@ import {
   LayerOptions,
   ExtendedLayerSpecification,
   GeneratedFillPatternOptions,
+  ColorStop,
 } from '../types/map'
 import { clone, uniqBy } from 'lodash-es'
 import { useMapStore } from '../store'
@@ -43,6 +44,7 @@ import {
   PLACE_RANK_ZOOM_ANCHORS,
 } from '../constants/map'
 import { canvasFill } from 'maplibre_symbol_utils'
+import { colorAtValue } from './general'
 
 const EMBEDDED_PARAMS_URL_SEPARATOR = '||'
 
@@ -1319,6 +1321,57 @@ export const applyCanvasFillPattern = (
   layer.paint = layer.paint ?? {}
   layer.paint['fill-pattern'] = fillPatternValue
 }
+
+/**
+ * Build a MapLibre 'step' expression with N bins across [min, max].
+ * Each bin gets a color sampled from the piecewise-linear ramp defined by 'stops'.
+ */
+export const buildBinnedColorExpr = (
+  valueExpr: ExpressionSpecification,
+  stops: ColorStop[],
+  numberOfBins: number
+): ExpressionSpecification => {
+  if (!Array.isArray(stops) || stops.length < 2) {
+    throw new Error('Provide at least two stops: [{color, value}, ...].')
+  }
+  if (numberOfBins < stops.length) {
+    throw new Error('numberOfBins must be >= stops.length')
+  }
+
+  // Ensure ascending by value
+  const sorted = [...stops].sort((a, b) => a.value - b.value)
+  const min = sorted[0].value
+  const max = sorted[sorted.length - 1].value
+
+  if (max === min) {
+    const onlyColor = colorAtValue(sorted, min)
+    return ['step', ['to-number', valueExpr], onlyColor]
+  }
+
+  const range = max - min
+
+  // Uniform bin edges across [min, max]
+  const edges: number[] = []
+  for (let i = 1; i < numberOfBins; i++) {
+    edges.push(min + (range * i) / numberOfBins)
+  }
+
+  // Bin colors sampled at bin midpoints
+  const colors: string[] = []
+  for (let i = 0; i < numberOfBins; i++) {
+    const vMid = min + (range * (i + 0.5)) / numberOfBins
+    colors.push(colorAtValue(sorted, vMid))
+  }
+
+  // Build 'step' expression:
+  // ['step', valueExpr, colors[0], edges[0], colors[1], edges[1], colors[2], ...]
+  const expr: any[] = ['step', ['to-number', valueExpr], colors[0]]
+  for (let i = 0; i < edges.length; i++) {
+    expr.push(edges[i], colors[i + 1])
+  }
+  return expr as ExpressionSpecification
+}
+
 export const paddingFromVisibleViewport = (
   container: HTMLElement,
   vis: { width: number; height: number; centerX: number; centerY: number }
