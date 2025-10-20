@@ -34,7 +34,7 @@
       ],
       "map/*": [
         "src/app/[locale]/(map)/*"
-      ]
+      ],
     },
     "plugins": [
       {
