@@ -9,7 +9,7 @@ export const useLocaleFormatter = () => {
       const localeValue =
         typeof locale === 'string'
           ? locale.toLowerCase() === 'en'
-            ? 'en-GB'
+            ? 'en-FI'
             : locale
           : undefined
 
