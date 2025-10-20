@@ -5,12 +5,16 @@ export const useLocaleFormatter = () => {
   const { locale } = useParams()
 
   const formatNumber = useCallback(
-    (
-      value: number,
-      options?: Intl.NumberFormatOptions
-    ): string => {
+    (value: number, options?: Intl.NumberFormatOptions): string => {
+      const localeValue =
+        typeof locale === 'string'
+          ? locale.toLowerCase() === 'en'
+            ? 'en-GB'
+            : locale
+          : undefined
+
       try {
-        return value.toLocaleString(locale as string, options)
+        return value.toLocaleString(localeValue, options)
       } catch (error) {
         console.error('Error formatting number with locale:', {
           locale,
@@ -24,6 +28,5 @@ export const useLocaleFormatter = () => {
     },
     [locale]
   )
-
   return { formatNumber }
 }
