@@ -275,8 +275,8 @@ export type MapCoreActions = {
   }) => void
   removeSelectedFeaturesByIds: (params: {
     featureIds: (string | number | undefined)[]
-    idField: string
     source: SelectionSource
+    idField?: string
     updateDrawSelect?: boolean
     ignorePopups?: boolean
     ignoreAdditionalFeatures?: boolean
@@ -963,13 +963,18 @@ export const createMapCoreSlice: (
 
     removeSelectedFeaturesByIds: (params: {
       featureIds: (string | number | undefined)[]
-      idField: string
       source: SelectionSource
+      idField?: string
       updateDrawSelect?: boolean
       ignorePopups?: boolean
     }) => {
-      const { featureIds, idField, source, updateDrawSelect, ignorePopups } =
-        params
+      const {
+        featureIds,
+        source,
+        idField = 'id',
+        updateDrawSelect,
+        ignorePopups,
+      } = params
       const {
         selectedFeatures,
         setSelectedFeatures,
