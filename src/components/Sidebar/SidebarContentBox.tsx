@@ -47,7 +47,7 @@ const SidebarContentBox = ({
               display: 'flex',
               flexDirection: 'column',
               minHeight: 0,
-              height: '100%',
+              flexGrow: 1,
               p: SIDEBAR_PADDING_REM + 'rem',
               pl: SIDEBAR_PADDING_REM + 'rem',
             },
