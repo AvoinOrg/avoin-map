@@ -299,8 +299,7 @@ const components = {
         margin: 0,
         padding: 0,
         overflow: 'hidden',
-        fontFamily:
-          "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+        fontFamily: fonts.primary,
         WebkitFontSmoothing: 'antialiased',
         MozOsxFontSmoothing: 'grayscale',
       },
