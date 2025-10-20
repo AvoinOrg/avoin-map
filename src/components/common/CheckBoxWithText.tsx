@@ -62,7 +62,12 @@ const CheckBoxWithText = ({
               sx={[
                 {
                   backgroundColor: 'transparent', // Default icon style
-                  color: 'neutral.darker',
+                  color: (theme: Theme) =>
+                    disabled
+                      ? theme.palette.text.disabled
+                      : (theme.palette as any)?.neutral?.darker ??
+                        theme.palette.text.primary,
+                  opacity: disabled ? 0.6 : 1,
                 },
                 ...(Array.isArray(iconSx) ? iconSx : [iconSx]), // User-provided icon styles
               ]}
@@ -72,8 +77,16 @@ const CheckBoxWithText = ({
             <CheckboxCheckedIcon
               sx={[
                 {
-                  backgroundColor: '#97C68B',
-                  color: 'neutral.darker',
+                  backgroundColor: (theme: Theme) =>
+                    disabled
+                      ? theme.palette.action.disabledBackground
+                      : '#97C68B',
+                  color: (theme: Theme) =>
+                    disabled
+                      ? theme.palette.text.disabled
+                      : (theme.palette as any)?.neutral?.darker ??
+                        theme.palette.text.primary,
+                  opacity: disabled ? 0.6 : 1,
                 },
                 ...(Array.isArray(iconCheckedSx) // User-provided checked icon styles
                   ? iconCheckedSx
@@ -87,6 +100,7 @@ const CheckBoxWithText = ({
             },
             ...(Array.isArray(checkboxSx) ? checkboxSx : [checkboxSx]), // User-provided Checkbox styles
           ]}
+          disabled={disabled}
           {...rest} // Spread other props like 'name', 'value', 'inputProps'
         />
       }
@@ -95,9 +109,14 @@ const CheckBoxWithText = ({
           variant="body2"
           sx={[
             {
-              color: 'neutral.darker',
+              color: (theme: Theme) =>
+                disabled
+                  ? theme.palette.text.disabled
+                  : (theme.palette as any)?.neutral?.darker ??
+                    theme.palette.text.primary,
               userSelect: 'none',
               ml: 2,
+              opacity: disabled ? 0.8 : 1,
             },
             ...(Array.isArray(textSx) ? textSx : [textSx]),
           ]}
