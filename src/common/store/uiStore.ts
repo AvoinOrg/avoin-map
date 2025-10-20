@@ -16,6 +16,7 @@ import { generateUUID } from '../utils/general'
 import { MapDims } from '../types/map'
 import { devtools } from 'zustand/middleware'
 import { commonDevtools } from './shared-devtools'
+import { waitFor } from '../utils/store'
 
 type PopupModalViewMode = 'constrained' | 'fullscreen' | 'full-height'
 
@@ -252,3 +253,12 @@ export const useUIStore = create<State>()(
     { ...commonDevtools, store: 'uiStore' }
   )
 )
+
+export const waitForMapDims = (timeoutMs?: number) =>
+  waitFor(
+    useUIStore,
+    (state) => state.mapDims,
+    (mapDims) =>
+      mapDims != null && mapDims.visible != null && mapDims.min != null,
+    timeoutMs
+  )
