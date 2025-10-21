@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useRef } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Box, SxProps, Theme } from '@mui/material'
 
 import { useUIStore } from '#/common/store'
@@ -30,23 +30,129 @@ export const Sidebar = ({
 
   // const popupOpts = useMapStore((state) => state.popupOpts)
 
-  const sidebarRef = useRef()
+  const sidebarRef = useRef<HTMLDivElement | null>(null)
+  const sidebarContainerRef = useRef<HTMLDivElement | null>(null)
+  const drawerSlotRef = useRef<HTMLDivElement | null>(null)
+
+  const [isDrawerOverlay, setIsDrawerOverlay] = useState(false)
+  const [overlayWidth, setOverlayWidth] = useState<number | null>(null)
+  const isDrawerOverlayRef = useRef(false)
+  const drawerNaturalWidthRef = useRef(0)
+
+  const evaluateLayout = useCallback(() => {
+    if (!isSidebarDrawerOpen) {
+      isDrawerOverlayRef.current = false
+      drawerNaturalWidthRef.current = 0
+      setIsDrawerOverlay(false)
+      setOverlayWidth(null)
+      return
+    }
+
+    const sidebarEl = sidebarRef.current
+    const containerEl = sidebarContainerRef.current
+    const slotEl = drawerSlotRef.current
+
+    if (!sidebarEl || !containerEl || !slotEl) {
+      isDrawerOverlayRef.current = false
+      drawerNaturalWidthRef.current = 0
+      setIsDrawerOverlay(false)
+      setOverlayWidth(null)
+      return
+    }
+
+    const containerWidth = containerEl.getBoundingClientRect().width
+    const wasOverlay = isDrawerOverlayRef.current
+    const slotChild = slotEl.firstElementChild as HTMLElement | null
+    const measuredSlotWidth = slotChild
+      ? slotChild.getBoundingClientRect().width
+      : slotEl.getBoundingClientRect().width
+
+    if (measuredSlotWidth <= 0) {
+      drawerNaturalWidthRef.current = 0
+      setIsDrawerOverlay(false)
+      setOverlayWidth(null)
+      return
+    }
+
+    if (!wasOverlay || drawerNaturalWidthRef.current === 0) {
+      drawerNaturalWidthRef.current = measuredSlotWidth
+    }
+
+    const slotWidthForDecision = wasOverlay
+      ? drawerNaturalWidthRef.current || measuredSlotWidth
+      : measuredSlotWidth
+
+    let availableWidth =
+      typeof window !== 'undefined'
+        ? window.innerWidth
+        : slotWidthForDecision + containerWidth
+    const parentWidth = sidebarEl.parentElement?.getBoundingClientRect().width
+    if (parentWidth && parentWidth > 0) {
+      availableWidth = Math.min(availableWidth, parentWidth)
+    }
+
+    const totalWidth = containerWidth + slotWidthForDecision
+    const shouldOverlay = totalWidth > availableWidth
+
+    isDrawerOverlayRef.current = shouldOverlay
+    setIsDrawerOverlay((prev) =>
+      prev === shouldOverlay ? prev : shouldOverlay
+    )
+    if (shouldOverlay) {
+      const naturalDrawerWidth =
+        drawerNaturalWidthRef.current || slotWidthForDecision || containerWidth
+      const targetWidth = Math.min(
+        availableWidth,
+        Math.max(containerWidth, naturalDrawerWidth)
+      )
+      setOverlayWidth((prev) => (prev === targetWidth ? prev : targetWidth))
+    } else {
+      drawerNaturalWidthRef.current = measuredSlotWidth
+      setOverlayWidth((prev) => (prev === null ? prev : null))
+    }
+  }, [isSidebarDrawerOpen])
 
   useEffect(() => {
-    const resizeObserver = new ResizeObserver((entries) => {
-      setSidebarWidth(entries[0].contentRect.width)
-    })
-
-    if (sidebarRef.current) {
-      resizeObserver.observe(sidebarRef.current)
-    }
-
-    return () => {
+    const measure = () => {
+      evaluateLayout()
       if (sidebarRef.current) {
-        resizeObserver.unobserve(sidebarRef.current)
+        setSidebarWidth(sidebarRef.current.getBoundingClientRect().width)
       }
     }
-  }, [])
+
+    const observer =
+      typeof ResizeObserver !== 'undefined'
+        ? new ResizeObserver(() => {
+            measure()
+          })
+        : null
+
+    if (observer) {
+      if (sidebarRef.current) {
+        observer.observe(sidebarRef.current)
+      }
+      if (sidebarContainerRef.current) {
+        observer.observe(sidebarContainerRef.current)
+      }
+      if (drawerSlotRef.current) {
+        observer.observe(drawerSlotRef.current)
+      }
+    }
+
+    window.addEventListener('resize', measure)
+    measure()
+
+    return () => {
+      if (observer) {
+        observer.disconnect()
+      }
+      window.removeEventListener('resize', measure)
+    }
+  }, [evaluateLayout, setSidebarWidth])
+
+  useEffect(() => {
+    evaluateLayout()
+  }, [evaluateLayout, isSidebarDrawerOpen, isSidebarOpen])
 
   return (
     <Box
@@ -65,13 +171,16 @@ export const Sidebar = ({
     >
       <Box
         className="sidebar-container"
+        ref={sidebarContainerRef}
         sx={[
           {
             display: 'flex',
             flexDirection: 'column',
             width: '30rem',
             maxWidth: '100%',
-            flex: '0 1 auto',
+            // flex: '0 1 auto',
+            flex: '0 0 auto',
+            flexShrink: 0,
             minWidth: 0,
             height: '100%',
             minHeight: 0,
@@ -148,7 +257,41 @@ export const Sidebar = ({
         </Box>
       )} */}
       </Box>
-      <Slot name="sidebar-drawer" />
+      <Box
+        ref={drawerSlotRef}
+        sx={[
+          {
+            flex: '0 0 auto',
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'stretch',
+            pointerEvents: isSidebarDrawerOpen ? 'auto' : 'none',
+          },
+          isDrawerOverlay
+            ? (theme: Theme) => ({
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                height: '100%',
+                width: overlayWidth != null ? `${overlayWidth}px` : '100%',
+                zIndex: theme.zIndex.drawer + 12,
+                pointerEvents: 'auto',
+                '& > *': {
+                  width: '100%',
+                  maxWidth: '100%',
+                },
+                '& > * > *': {
+                  width: '100%',
+                  maxWidth: '100%',
+                },
+              })
+            : {
+                position: 'relative',
+              },
+        ]}
+      >
+        <Slot name="sidebar-drawer" />
+      </Box>
     </Box>
   )
 }
