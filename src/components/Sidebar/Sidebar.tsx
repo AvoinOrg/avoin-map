@@ -39,12 +39,25 @@ export const Sidebar = ({
   const isDrawerOverlayRef = useRef(false)
   const drawerNaturalWidthRef = useRef(0)
 
-  const evaluateLayout = useCallback(() => {
-    if (!isSidebarDrawerOpen) {
+  const clearOverlay = useCallback(() => {
+    if (isDrawerOverlayRef.current) {
       isDrawerOverlayRef.current = false
-      drawerNaturalWidthRef.current = 0
       setIsDrawerOverlay(false)
-      setOverlayWidth(null)
+    }
+    setOverlayWidth((prev) => (prev === null ? prev : null))
+  }, [])
+
+  const applyOverlay = useCallback((width: number) => {
+    if (!isDrawerOverlayRef.current) {
+      isDrawerOverlayRef.current = true
+      setIsDrawerOverlay(true)
+    }
+    setOverlayWidth((prev) => (prev === width ? prev : width))
+  }, [])
+
+  const evaluateLayout = useCallback(() => {
+    if (!isSidebarOpen || !isSidebarDrawerOpen) {
+      clearOverlay()
       return
     }
 
@@ -53,10 +66,8 @@ export const Sidebar = ({
     const slotEl = drawerSlotRef.current
 
     if (!sidebarEl || !containerEl || !slotEl) {
-      isDrawerOverlayRef.current = false
       drawerNaturalWidthRef.current = 0
-      setIsDrawerOverlay(false)
-      setOverlayWidth(null)
+      clearOverlay()
       return
     }
 
@@ -69,8 +80,7 @@ export const Sidebar = ({
 
     if (measuredSlotWidth <= 0) {
       drawerNaturalWidthRef.current = 0
-      setIsDrawerOverlay(false)
-      setOverlayWidth(null)
+      clearOverlay()
       return
     }
 
@@ -78,39 +88,32 @@ export const Sidebar = ({
       drawerNaturalWidthRef.current = measuredSlotWidth
     }
 
+    const naturalDrawerWidth =
+      drawerNaturalWidthRef.current || measuredSlotWidth
     const slotWidthForDecision = wasOverlay
-      ? drawerNaturalWidthRef.current || measuredSlotWidth
+      ? naturalDrawerWidth
       : measuredSlotWidth
 
-    let availableWidth =
-      typeof window !== 'undefined'
-        ? window.innerWidth
-        : slotWidthForDecision + containerWidth
+    const fallbackWidth = slotWidthForDecision + containerWidth
+    const windowWidth =
+      typeof window !== 'undefined' ? window.innerWidth : fallbackWidth
     const parentWidth = sidebarEl.parentElement?.getBoundingClientRect().width
-    if (parentWidth && parentWidth > 0) {
-      availableWidth = Math.min(availableWidth, parentWidth)
-    }
+    const availableWidth = Math.min(windowWidth, parentWidth ?? windowWidth)
 
     const totalWidth = containerWidth + slotWidthForDecision
     const shouldOverlay = totalWidth > availableWidth
 
-    isDrawerOverlayRef.current = shouldOverlay
-    setIsDrawerOverlay((prev) =>
-      prev === shouldOverlay ? prev : shouldOverlay
-    )
     if (shouldOverlay) {
-      const naturalDrawerWidth =
-        drawerNaturalWidthRef.current || slotWidthForDecision || containerWidth
       const targetWidth = Math.min(
         availableWidth,
         Math.max(containerWidth, naturalDrawerWidth)
       )
-      setOverlayWidth((prev) => (prev === targetWidth ? prev : targetWidth))
+      applyOverlay(targetWidth)
     } else {
       drawerNaturalWidthRef.current = measuredSlotWidth
-      setOverlayWidth((prev) => (prev === null ? prev : null))
+      clearOverlay()
     }
-  }, [isSidebarDrawerOpen])
+  }, [applyOverlay, clearOverlay, isSidebarDrawerOpen, isSidebarOpen])
 
   useEffect(() => {
     const measure = () => {
@@ -167,6 +170,7 @@ export const Sidebar = ({
         minWidth: 0,
         minHeight: 0,
         position: 'relative',
+        pointerEvents: isSidebarOpen ? 'auto' : 'none',
       }}
     >
       <Box
@@ -178,14 +182,12 @@ export const Sidebar = ({
             flexDirection: 'column',
             width: '30rem',
             maxWidth: '100%',
-            // flex: '0 1 auto',
             flex: '0 0 auto',
             flexShrink: 0,
             minWidth: 0,
             height: '100%',
             minHeight: 0,
-            pointerEvents:
-              isSidebarOpen || isSidebarDrawerOpen ? 'auto' : 'none',
+            pointerEvents: isSidebarOpen ? 'auto' : 'none',
           },
           ...(Array.isArray(sx) ? sx : [sx]),
         ]}
@@ -265,7 +267,8 @@ export const Sidebar = ({
             flexShrink: 0,
             display: 'flex',
             alignItems: 'stretch',
-            pointerEvents: isSidebarDrawerOpen ? 'auto' : 'none',
+            pointerEvents:
+              isSidebarOpen && isSidebarDrawerOpen ? 'auto' : 'none',
           },
           isDrawerOverlay
             ? (theme: Theme) => ({
@@ -274,13 +277,9 @@ export const Sidebar = ({
                 left: 0,
                 height: '100%',
                 width: overlayWidth != null ? `${overlayWidth}px` : '100%',
-                zIndex: theme.zIndex.drawer + 12,
+                zIndex: theme.zIndex.drawer + 10,
                 pointerEvents: 'auto',
                 '& > *': {
-                  width: '100%',
-                  maxWidth: '100%',
-                },
-                '& > * > *': {
                   width: '100%',
                   maxWidth: '100%',
                 },
