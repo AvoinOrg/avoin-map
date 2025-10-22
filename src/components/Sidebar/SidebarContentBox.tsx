@@ -38,7 +38,7 @@ const SidebarContentBox = ({
             autoHideDelay: 600,
           },
         }}
-        style={{ flex: 1, minHeight: 0 }}
+        style={{ flex: 1, minHeight: 0, height: '100%' }}
       >
         <Box
           className="sidebar-children-container-inner"
@@ -46,8 +46,8 @@ const SidebarContentBox = ({
             {
               display: 'flex',
               flexDirection: 'column',
-              minHeight: 0,
-              flexGrow: 1,
+              minHeight: '100%',
+              flex: 1,
               p: SIDEBAR_PADDING_REM + 'rem',
               pl: SIDEBAR_PADDING_REM + 'rem',
             },
