@@ -20,12 +20,14 @@ const SidebarToggleButton = ({ sx }: Props) => {
   return (
     <Button
       onClick={toggleSidebar}
+      className="sidebar-toggle-button"
       sx={[
         {
           m: 0,
-          p: 0,
           pt: 4,
           pl: 5,
+          pb: 2,
+          pr: 2,
           display: 'flex',
           '&:hover': {
             backgroundColor: 'transparent',
@@ -33,12 +35,12 @@ const SidebarToggleButton = ({ sx }: Props) => {
           minWidth: 'unset',
           maxWidth: 'unset',
           ...(!isSidebarOpen && {
-            height: '100vh',
             alignItems: 'flex-start',
-            p: 0,
-            pt: 0,
             pl: 0,
-            marginLeft: '-2px', // a hack to visually align the button with the sidebar
+            pb: 4,
+            pt: 0,
+            pr: 0,
+            marginLeft: '-3px', // a hack to visually align the button with the sidebar
           }),
           transition: 'padding 0.1s',
         },
