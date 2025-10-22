@@ -31,10 +31,17 @@ const SidebarHeader = ({ children, title, sx }: Props) => {
           justifyContent: 'space-between',
           flexGrow: 1,
           pr: 5,
+          pb: 4,
         }}
       >
         <Typography
-          sx={{ width: '100%', textAlign: 'end', mt: 4, whiteSpace: 'nowrap' }}
+          sx={{
+            width: '100%',
+            textAlign: 'end',
+            mt: 4,
+            whiteSpace: 'nowrap',
+            minHeight: '20px',
+          }}
           variant="h2"
         >
           {title}
@@ -43,7 +50,6 @@ const SidebarHeader = ({ children, title, sx }: Props) => {
       <Box
         sx={{
           pl: 5,
-          pb: 4,
           pr: 5,
           maxWidth: sx?.width ? sx.width : '100%',
         }}

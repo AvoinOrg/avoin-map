@@ -62,8 +62,8 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
           flexDirection: 'row',
           alignItems: 'flex-end',
           color: theme.palette.neutral.dark,
-          minHeight: '6rem',
           width: '100%',
+          pb: 2,
         }),
         ...(Array.isArray(sx) ? sx : [sx]),
         collapseIfRoot && routes.length <= 1
