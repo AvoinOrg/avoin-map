@@ -23,46 +23,43 @@ const ImgAccordion = ({ title, img, children }: Props) => {
         width: '100%',
         display: 'flex',
         flexDirection: 'column',
-        flex: '1 1 0%',
-        '&.Mui-expanded': {
-          flex: '0 0 auto',
-        },
-        '&:before': {
-          display: 'none',
-        },
-        // Target the heading element inserted by MUI (h3.MuiAccordion-heading)
-        // Collapsed: heading grows to fill available height
+        minHeight: 0,
+        flex: '1 1 0%', // collapsed: take available space
+        '&.Mui-expanded': { flex: '0 0 auto' }, // expanded: natural height
+        '&:before': { display: 'none' },
+
+        // v6: MUI adds a heading wrapper element
         '& > .MuiAccordion-heading': {
-          flex: '1 1 auto',
-          minHeight: '5rem',
+          display: 'flex',
+          flexDirection: 'column', // make vertical main axis
+          flex: '1 1 0%', // this fills the Accordion root
+          minHeight: '5rem', // your collapsed min height
         },
         '&.Mui-expanded > .MuiAccordion-heading': {
-          flex: '0 0 5rem',
+          flex: '0 0 5rem', // fixed when expanded
         },
+
+        // (optional) keep Collapse from trying to eat flex space
+        '& .MuiCollapse-root': { flex: '0 0 auto' },
       }}
     >
       <AccordionSummary
         sx={{
           position: 'relative',
-          overflow: 'hidden', // Clip the contents
-          height: '100%', // fill the heading's height
-          p: 0, // Remove default padding
+          overflow: 'hidden',
+          flex: '1 1 auto', // fill the heading vertically
+          minHeight: 0, // allow shrinking
+          p: 0,
           '& .MuiAccordionSummary-content': {
-            zIndex: 2, // Ensure text is above overlays
-            m: 0, // Remove default margin
-            pl: 5, // Add our own padding
+            zIndex: 2,
+            m: 0,
+            pl: 5,
             pr: 5,
             pt: 3,
             pb: 3,
           },
-          // Hide white fade when expanded
-          '&.Mui-expanded .white-fade': {
-            opacity: 0,
-          },
-          // Show dark contrast overlay when expanded
-          '&.Mui-expanded .dark-fade': {
-            opacity: 1,
-          },
+          '&.Mui-expanded .white-fade': { opacity: 0 },
+          '&.Mui-expanded .dark-fade': { opacity: 1 },
         }}
       >
         <Image
