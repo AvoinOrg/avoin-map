@@ -42,7 +42,7 @@ export const layerOptions: ILayerOptions = {
   },
 } as const
 
-export const colorboxStepsNeg = ['#FFEC42', '#FDF259', '#FCF670', '#F0F596']
+// export const colorboxStepsNeg = ['#FFEC42', '#FDF259', '#FCF670', '#F0F596']
 
 export const baseAttrs = `
   cbf1 cbf2 cbf3 cbf4 cbf5
