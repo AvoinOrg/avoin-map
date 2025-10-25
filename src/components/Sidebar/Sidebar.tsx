@@ -5,7 +5,6 @@ import { Box, SxProps, Theme } from '@mui/material'
 
 import { useUIStore } from '#/common/store'
 // import { MapPopup } from '../Map/MapPopup_old'
-import Drawer from './Drawer'
 import { SidebarHeader, SidebarToggleButton } from '#/components/Sidebar'
 import { Navbar } from './Navbar'
 import { LoadingSpinner } from '../Loading'
@@ -34,32 +33,68 @@ export const Sidebar = ({
   const sidebarContainerRef = useRef<HTMLDivElement | null>(null)
   const drawerSlotRef = useRef<HTMLDivElement | null>(null)
 
-  const [isDrawerOverlay, setIsDrawerOverlay] = useState(false)
+  const isSidebarDrawerOverlay = useUIStore(
+    (state) => state.isSidebarDrawerOverlay
+  )
+  const setIsSidebarDrawerOverlay = useUIStore(
+    (state) => state.setIsSidebarDrawerOverlay
+  )
   const [overlayWidth, setOverlayWidth] = useState<number | null>(null)
-  const isDrawerOverlayRef = useRef(false)
+  const [sidebarContainerWidth, setSidebarContainerWidth] = useState<number>(0)
+  const isDrawerOverlayRef = useRef(isSidebarDrawerOverlay)
   const drawerNaturalWidthRef = useRef(0)
+
+  // Close the extra drawer when the sidebar is closed.
+  const closeExtraDrawerWithSidebar = true
 
   const clearOverlay = useCallback(() => {
     if (isDrawerOverlayRef.current) {
       isDrawerOverlayRef.current = false
-      setIsDrawerOverlay(false)
+      setIsSidebarDrawerOverlay(false)
     }
     setOverlayWidth((prev) => (prev === null ? prev : null))
-  }, [])
+  }, [setIsSidebarDrawerOverlay])
 
-  const applyOverlay = useCallback((width: number) => {
-    if (!isDrawerOverlayRef.current) {
-      isDrawerOverlayRef.current = true
-      setIsDrawerOverlay(true)
-    }
-    setOverlayWidth((prev) => (prev === width ? prev : width))
-  }, [])
+  const applyOverlay = useCallback(
+    (width: number) => {
+      if (!isDrawerOverlayRef.current) {
+        isDrawerOverlayRef.current = true
+        setIsSidebarDrawerOverlay(true)
+      }
+      setOverlayWidth((prev) => (prev === width ? prev : width))
+    },
+    [setIsSidebarDrawerOverlay]
+  )
+
+  const getDrawerTransform = useCallback(
+    (
+      sidebarOpen: boolean,
+      drawerOpen: boolean,
+      isOverlay: boolean,
+      containerWidth: number
+    ) => {
+      // Drawer is visible - no transform needed
+      if (sidebarOpen && drawerOpen) {
+        return 'translateX(0)'
+      }
+
+      // Drawer is hidden
+      // In overlay mode: slide just offscreen
+      // In side-by-side mode: slide offscreen + sidebar width
+      if (isOverlay) {
+        return 'translateX(-100%)'
+      } else {
+        return `translateX(calc(-100% - ${containerWidth}px))`
+      }
+    },
+    []
+  )
 
   const evaluateLayout = useCallback(() => {
-    if (!isSidebarOpen || !isSidebarDrawerOpen) {
-      clearOverlay()
-      return
-    }
+    // if (!isSidebarOpen || !isSidebarDrawerOpen) {
+    //   clearOverlay()
+    //   return
+    // }
 
     const sidebarEl = sidebarRef.current
     const containerEl = sidebarContainerRef.current
@@ -72,6 +107,7 @@ export const Sidebar = ({
     }
 
     const containerWidth = containerEl.getBoundingClientRect().width
+    setSidebarContainerWidth(containerWidth)
     const wasOverlay = isDrawerOverlayRef.current
     const slotChild = slotEl.firstElementChild as HTMLElement | null
     const measuredSlotWidth = slotChild
@@ -173,78 +209,104 @@ export const Sidebar = ({
         pointerEvents: isSidebarOpen ? 'auto' : 'none',
       }}
     >
+      <SidebarToggleButton
+        sx={(theme) => ({
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          zIndex: theme.zIndex.drawer + 11,
+          pointerEvents: 'auto',
+        })}
+      />
       <Box
         className="sidebar-container"
         ref={sidebarContainerRef}
         sx={[
-          {
+          (theme: Theme) => ({
             display: 'flex',
             flexDirection: 'column',
-            width: '30rem',
             maxWidth: '100%',
             flex: '0 0 auto',
+            width: '30rem',
             flexShrink: 0,
             minWidth: 0,
             height: '100%',
             minHeight: 0,
+            zIndex: theme.zIndex.drawer + 1,
             pointerEvents: isSidebarOpen ? 'auto' : 'none',
-          },
+            // ...(isSidebarDrawerOpen && {
+            //   boxShadow: '4px 0 4px 0 rgba(179, 179, 179, 0.15)',
+            // }),
+          }),
           ...(Array.isArray(sx) ? sx : [sx]),
         ]}
       >
-        <SidebarToggleButton
-          sx={(theme) => ({
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            zIndex: theme.zIndex.drawer + 11,
-            pointerEvents: 'auto',
-          })}
-        />
         <Box
           sx={{ display: 'flex', flexDirection: 'row', flex: 1, minHeight: 0 }}
         >
-          <Drawer open={isSidebarOpen}>
-            {headerElement ? (
-              headerElement
-            ) : (
-              <SidebarHeader title={'avoin map'}></SidebarHeader>
-            )}
-            {isSidebarLoading && (
-              <Box
-                sx={(theme) => ({
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  zIndex: theme.zIndex.drawer + 10,
-                  borderRadius: 'inherit', // Inherit border radius from parent if needed
-                })}
-              >
-                <LoadingSpinner size="5rem" />
-              </Box>
-            )}
+          <Box
+            sx={{
+              position: 'relative',
+              width: '100%', // rail keeps its width
+              overflow: 'hidden',
+              boxSizing: 'border-box',
+            }}
+          >
             <Box
-              sx={[
-                {
-                  overflow: 'auto',
-                  display: 'flex',
-                  flexGrow: 1,
-                  maxWidth: '100vw',
-                  backgroundColor: 'neutral.lighter',
-                },
-              ]}
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                transform: isSidebarOpen
+                  ? 'translateX(0)'
+                  : 'translateX(-100%)',
+                transition: 'transform 220ms cubic-bezier(.2,0,.2,1)',
+                willChange: 'transform',
+                display: 'flex',
+                flexDirection: 'column',
+                minWidth: 0,
+                whiteSpace: 'normal',
+              }}
             >
-              {children}
+              {headerElement ? (
+                headerElement
+              ) : (
+                <SidebarHeader title={'avoin map'}></SidebarHeader>
+              )}
+              {isSidebarLoading && (
+                <Box
+                  sx={(theme) => ({
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: theme.zIndex.drawer + 10,
+                    borderRadius: 'inherit', // Inherit border radius from parent if needed
+                  })}
+                >
+                  <LoadingSpinner size="5rem" />
+                </Box>
+              )}
+              <Box
+                sx={[
+                  {
+                    overflow: 'auto',
+                    display: 'flex',
+                    flexGrow: 1,
+                    backgroundColor: 'neutral.lighter',
+                  },
+                ]}
+              >
+                {children}
+              </Box>
+              {!isNavbarHidden &&
+                (navbarElement ? navbarElement : <Navbar></Navbar>)}
             </Box>
-            {!isNavbarHidden &&
-              (navbarElement ? navbarElement : <Navbar></Navbar>)}
-          </Drawer>
+          </Box>
         </Box>
         {/* {mode === 'full' && (
         <Box
@@ -261,35 +323,80 @@ export const Sidebar = ({
       </Box>
       <Box
         ref={drawerSlotRef}
+        className="sidebar-drawer-container"
         sx={[
-          {
-            flex: '0 0 auto',
-            flexShrink: 0,
+          (theme: Theme) => ({
+            // flex: '0 0 auto',
+            // flexShrink: 0,
             display: 'flex',
+            flex: 1,
             alignItems: 'stretch',
-            pointerEvents:
-              isSidebarOpen && isSidebarDrawerOpen ? 'auto' : 'none',
-          },
-          isDrawerOverlay
-            ? (theme: Theme) => ({
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                height: '100%',
-                width: overlayWidth != null ? `${overlayWidth}px` : '100%',
-                zIndex: theme.zIndex.drawer + 10,
-                pointerEvents: 'auto',
-                '& > *': {
-                  width: '100%',
-                  maxWidth: '100%',
-                },
-              })
-            : {
-                position: 'relative',
+            pointerEvents: isSidebarOpen ? 'auto' : 'none',
+            position: 'relative',
+            minHeight: 0,
+            zIndex: theme.zIndex.drawer - 1,
+            transform: getDrawerTransform(
+              isSidebarOpen,
+              isSidebarDrawerOpen,
+              isSidebarDrawerOverlay,
+              sidebarContainerWidth
+            ),
+            transition: 'transform 220ms cubic-bezier(.2,0,.2,1)',
+            willChange: 'transform',
+          }),
+          isSidebarDrawerOverlay &&
+            ((theme: Theme) => ({
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              height: '100%',
+              width: overlayWidth != null ? `${overlayWidth}px` : '100%',
+              zIndex: theme.zIndex.drawer + 2,
+              pointerEvents: 'auto',
+              '& > *': {
+                width: '100%',
+                maxWidth: '100%',
               },
+            })),
+          !isSidebarOpen &&
+            closeExtraDrawerWithSidebar && {
+              pointerEvents: 'none',
+              // visibility: 'hidden',
+            },
+          // isSidebarDrawerOverlay
+          //   ? (theme: Theme) => ({
+          //       position: 'absolute',
+          //       top: 0,
+          //       left: 0,
+          //       height: '100%',
+          //       width: overlayWidth != null ? `${overlayWidth}px` : '100%',
+          //       zIndex: theme.zIndex.drawer + 10,
+          //       pointerEvents: 'auto',
+          //       '& > *': {
+          //         width: '100%',
+          //         maxWidth: '100%',
+          //       },
+          //     })
+          //   : {
+          //       position: 'relative',
+          //     },
         ]}
       >
+        {/* <Box
+          sx={{
+            transform:
+              isSidebarOpen && isSidebarDrawerOpen
+                ? 'translateX(0)'
+                : 'translateX(-100%)',
+            transition: 'transform 220ms cubic-bezier(.2,0,.2,1)',
+            willChange: 'transform',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        > */}
         <Slot name="sidebar-drawer" />
+        {/* </Box> */}
       </Box>
     </Box>
   )
