@@ -3,6 +3,8 @@ import {
   LayerGroupId,
   LayerConf,
   ExtendedStyleSpecification,
+  ExtendedLayerSpecification,
+  ExtendedSourceSpecification,
 } from '#/common/types/map'
 import { layerOptions } from 'applets/forests/constants'
 import { LayerLevel } from 'applets/forests/types'
@@ -14,11 +16,11 @@ import {
 
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 
-const id: LayerGroupId = 'fi_forests'
+export const id: LayerGroupId = 'fi_forests'
 
 const getStyle = async (): Promise<ExtendedStyleSpecification> => {
-  const sources: any = {}
-  let layers: any = []
+  const sources: Record<string, ExtendedSourceSpecification> = {}
+  let layers: ExtendedLayerSpecification[] = []
 
   for (const layerGroupId in layerOptions) {
     const options = layerOptions[layerGroupId]
@@ -47,13 +49,12 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
           'fill-color': fiForestsAreaCO2FillColor(
             fiForestsCumulativeCO2eValueExpr
           ),
-          'fill-opacity': layerGroupId === 'parcel' ? 1 : fillOpacity,
+          'fill-opacity': 0.7,
         },
         ...(options.layerMinzoom != null && { minzoom: options.layerMinzoom }),
         ...(options.layerMaxzoom != null && { maxzoom: options.layerMaxzoom }),
         selectable: true,
         multiSelectable: true,
-        BEFORE: 'FILL',
       },
       {
         id: `${layerGroupId}-outline`,
@@ -61,53 +62,73 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
         'source-layer': options.serverId,
         type: 'line',
         paint: {
-          'line-opacity': 0.5,
+          // 'line-blur': 0,
+          // 'fill-antialias': false,
+          'line-color': 'black',
+          'line-width': 1,
         },
         ...(options.layerMinzoom != null && { minzoom: options.layerMinzoom }),
         ...(options.layerMaxzoom != null && { maxzoom: options.layerMaxzoom }),
-        BEFORE: 'OUTLINE',
+      },
+      {
+        id: `${layerGroupId}_fill-highlighted`,
+        source: layerGroupId,
+        'source-layer': options.serverId,
+        type: 'fill',
+        // paint: {
+        //   'fill-pattern': 'DiagonalCross',
+        // },
+        generatedFillPatternOptions: {
+          patternId: 'ForwardDiagonal',
+          colorRGBA: 'rgba(255,255,255,1)',
+          backgroundColorRGBA: 'rgba(0,0,0,0)',
+        },
+        activeOn: 'selected',
+        ...(options.layerMinzoom != null && { minzoom: options.layerMinzoom }),
+        ...(options.layerMaxzoom != null && { maxzoom: options.layerMaxzoom }),
       },
       {
         id: `${layerGroupId}-highlighted`,
         source: layerGroupId,
         'source-layer': options.serverId,
-        type: 'fill',
+        type: 'line',
         paint: {
-          'fill-outline-color': '#484896',
-          'fill-color': '#6e599f',
-          'fill-opacity': 0.4,
+          // 'line-outline-color': 'white',
+          'line-width': 2,
+          'line-color': 'white',
+          'line-opacity': 1,
         },
-        filter: ['in', 'id', ''],
-        BEFORE: 'OUTLINE',
+        activeOn: 'hover-or-selected',
         ...(options.layerMinzoom != null && { minzoom: options.layerMinzoom }),
         ...(options.layerMaxzoom != null && { maxzoom: options.layerMaxzoom }),
       },
-      ...(layerGroupId === LayerLevel.Parcel
-        ? [
-            {
-              id: `${layerGroupId}-symbol`,
-              source: layerGroupId,
-              'source-layer': options.serverId,
-              type: 'symbol',
-              paint: {},
-              layout: {
-                'text-size': 20,
-                'symbol-placement': 'point',
-                'text-font': ['Open Sans Regular'],
-                'text-field': fiForestsTextfieldExpression(
-                  fiForestsCumulativeCO2eValueExpr
-                ),
-              },
-              ...(options.layerMinzoom != null && {
-                minzoom: options.layerMinzoom,
-              }),
-              ...(options.layerMaxzoom != null && {
-                maxzoom: options.layerMaxzoom,
-              }),
-            },
-          ]
-        : []),
     ]
+
+    if (layerGroupId === LayerLevel.Parcel) {
+      layers.push({
+        id: `${layerGroupId}-symbol`,
+        source: layerGroupId,
+        'source-layer': options.serverId,
+        type: 'symbol' as const,
+        paint: {},
+        layout: {
+          'text-size': 20,
+          'symbol-placement': 'point',
+          'text-font': ['Open Sans Regular'],
+          'text-field': fiForestsTextfieldExpression(
+            fiForestsCumulativeCO2eValueExpr
+          ),
+        },
+        selectable: true,
+        multiSelectable: true,
+        ...(options.layerMinzoom != null && {
+          minzoom: options.layerMinzoom,
+        }),
+        ...(options.layerMaxzoom != null && {
+          maxzoom: options.layerMaxzoom,
+        }),
+      })
+    }
   }
 
   return {
@@ -118,10 +139,7 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   }
 }
 
-const layerConf: LayerConf = {
+export const layerConf: LayerConf = {
   id: id,
   style: getStyle,
-  useMb: true,
 }
-
-export default layerConf
