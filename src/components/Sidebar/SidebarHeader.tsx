@@ -19,8 +19,8 @@ const SidebarHeader = ({ children, title, sx }: Props) => {
         flexDirection: 'column',
         flexShrink: 0,
         minHeight: 8,
-        zIndex: (theme) => theme.zIndex.drawer + 1,
-        boxShadow: '0 4px 4px 0 rgba(179, 179, 179, 0.25)',
+        zIndex: (theme) => theme.zIndex.drawer + 4,
+        boxShadow: '0px 4px 4px 0 rgba(179, 179, 179, 0.25)',
         ...sx,
       }}
     >
