@@ -3,7 +3,10 @@ import { ExpressionSpecification, LayerSpecification } from 'maplibre-gl'
 import { GeoJsonProperties } from 'geojson'
 import { uniqBy } from 'lodash-es'
 
-import { roundToSignificantDigitsExpr } from '#/common/utils/map'
+import {
+  buildBinnedColorExpr,
+  roundToSignificantDigitsExpr,
+} from '#/common/utils/map'
 import { assert, pp } from '#/common/utils/general'
 
 import {
@@ -11,11 +14,11 @@ import {
   harvestedWoodAttrs,
   nC_to_CO2,
   TRADITIONAL_FORESTRY_METHOD,
-  FILL_COLOR_FORESTRY_METHOD,
+  DEFAULT_FORESTRY_METHOD,
   carbonStockAttrPrefixes,
-  colorboxStepsNeg,
 } from './constants'
 import { ForestryMethod, LayerLevel } from './types'
+import { ColorStop } from '#/common/types/map'
 
 export const stepsToLinear = (min: number, max: number, steps: string[]) => {
   const step = (max - min) / (steps.length - 1)
@@ -29,12 +32,41 @@ export const stepsToLinear = (min: number, max: number, steps: string[]) => {
   return res
 }
 
-export const fiForestsAreaCO2FillColor: (expr: ExpressionSpecification) => ExpressionSpecification = (expr) => [
-  'interpolate',
-  ['linear'],
-  expr,
-  ...stepsToLinear(-5, 0, colorboxStepsNeg).concat([0.01, 'hsla(159, 100%, 50%, 1)', 15, 'hsla(159, 100%, 25%, 1)']),
+// export const fiForestsAreaCO2FillColor: (
+//   expr: ExpressionSpecification
+// ) => ExpressionSpecification = (expr) => [
+//   'interpolate',
+//   ['linear'],
+//   expr,
+//   ...stepsToLinear(-5, 0, colorboxStepsNeg).concat([
+//     0.01,
+//     'hsla(159, 100%, 50%, 1)',
+//     15,
+//     'hsla(159, 100%, 25%, 1)',
+//   ]),
+// ]
+
+export const perHa = (
+  expr: ExpressionSpecification
+): ExpressionSpecification => ['/', expr, fiForestsAreaDivisorExpr]
+
+export const DIVERGING_CO2_STOPS: ColorStop[] = [
+  { color: '#b2182b', value: -15 }, // deep red
+  { color: '#ffd24a', value: 0 }, // yellow
+  { color: '#1a9850', value: 15 }, // deep green
 ]
+
+export const fiForestsAreaCO2FillColorBinned = (
+  expr: ExpressionSpecification,
+  numberOfBins = 9,
+  stops: ColorStop[] = DIVERGING_CO2_STOPS
+): ExpressionSpecification => buildBinnedColorExpr(expr, stops, numberOfBins)
+
+// (Optional) Keep the old name for backwards-compat, point it to the new one:
+export const fiForestsAreaCO2FillColor = (
+  expr: ExpressionSpecification
+): ExpressionSpecification =>
+  fiForestsAreaCO2FillColorBinned(expr, 9, DIVERGING_CO2_STOPS)
 
 export const fiForestsSumMethodAttrs = (
   forestryMethod: ForestryMethod | ExpressionSpecification,
@@ -60,11 +92,31 @@ export const fiForestsSumMethodAttrs = (
   return expr
 }
 
-export const fiForestsBestMethodCumulativeSumCbt = fiForestsSumMethodAttrs(FILL_COLOR_FORESTRY_METHOD, 'cbt')
+export const fiForestsBestMethodCumulativeSumCbt = fiForestsSumMethodAttrs(
+  DEFAULT_FORESTRY_METHOD,
+  'cbt'
+)
 
-export const fiForestsCumulativeCO2eValueExpr = fiForestsBestMethodCumulativeSumCbt
+const fiForestsAreaDivisorExpr: ExpressionSpecification = [
+  'max',
+  0.0001,
+  [
+    'coalesce',
+    ['to-number', ['get', 'f_area']],
+    ['to-number', ['get', 'area']],
+    0,
+  ],
+]
 
-export const fiForestsTextfieldExpression: (co2eValueExpr: ExpressionSpecification) => ExpressionSpecification = (co2eValueExpr) => [
+export const fiForestsCumulativeCO2eValueExpr: ExpressionSpecification = [
+  '/',
+  fiForestsBestMethodCumulativeSumCbt,
+  fiForestsAreaDivisorExpr,
+]
+
+export const fiForestsTextfieldExpression: (
+  co2eValueExpr: ExpressionSpecification
+) => ExpressionSpecification = (co2eValueExpr) => [
   'case',
   ['has', 'f1_cbt1_area_mult_sum'],
   [
@@ -80,7 +132,7 @@ export const fiForestsTextfieldExpression: (co2eValueExpr: ExpressionSpecificati
 export const fiForestsBestMethodVsOther = (
   forestryMethod: ForestryMethod | ExpressionSpecification,
   attrPrefix: string,
-  attrSuffix = 'area_mult_sum'
+  attrSuffix = '_area_mult_sum'
 ): ExpressionSpecification => [
   '-',
   fiForestsSumMethodAttrs(forestryMethod, attrPrefix, attrSuffix),
@@ -138,7 +190,11 @@ export const getChartDatasets = (prefix: string, attrValues: any) => {
   }
 }
 
-export const getUnitPerArea = (prefix: string, cumulative: boolean, perHectareFlag: boolean) => {
+export const getUnitPerArea = (
+  prefix: string,
+  cumulative: boolean,
+  perHectareFlag: boolean
+) => {
   const baseUnit = getUnit(prefix, cumulative)
   const unit = perHectareFlag ? `${baseUnit}/ha` : baseUnit
   return unit
@@ -156,7 +212,11 @@ export const getUnit = (prefix: string, cumulative: boolean) => {
   }
 }
 
-export const getDatasetAttributes = (forestryMethod: ForestryMethod, cumulativeFlag: boolean, totals: any) => {
+export const getDatasetAttributes = (
+  forestryMethod: ForestryMethod,
+  cumulativeFlag: boolean,
+  totals: any
+) => {
   const attrGroups = baseAttrs.split('\n').concat(harvestedWoodAttrs)
 
   const dsAttrValues: any = {
@@ -197,15 +257,23 @@ export const getDatasetAttributes = (forestryMethod: ForestryMethod, cumulativeF
   // Soil carbon content is the absolute amount of carbon in the soil, so it's not cumulative or per decade.
   // Here, we make it one of those:
   if (cumulativeFlag) {
-    dsAttrValues.soilCB = dsAttrValues.maa.slice(1).map((v: any, _i: number) => v - dsAttrValues.maa[0])
+    dsAttrValues.soilCB = dsAttrValues.maa
+      .slice(1)
+      .map((v: any, _i: number) => v - dsAttrValues.maa[0])
   } else {
-    dsAttrValues.soilCB = dsAttrValues.maa.slice(1).map((v: any, i: number) => v - dsAttrValues.maa[i])
+    dsAttrValues.soilCB = dsAttrValues.maa
+      .slice(1)
+      .map((v: any, i: number) => v - dsAttrValues.maa[i])
   }
   // tons carbon -> tons CO₂e approx TODO: verify
   dsAttrValues.soilCB = dsAttrValues.soilCB.map((x: any) => x * nC_to_CO2)
 
-  dsAttrValues.productsCB = dsAttrValues.cbt.map((cbtValue: any, i: number) => cbtValue - dsAttrValues.cbf[i])
-  dsAttrValues.treeCB = dsAttrValues.cbf.map((cbfValue: any, i: number) => cbfValue - dsAttrValues.soilCB[i])
+  dsAttrValues.productsCB = dsAttrValues.cbt.map(
+    (cbtValue: any, i: number) => cbtValue - dsAttrValues.cbf[i]
+  )
+  dsAttrValues.treeCB = dsAttrValues.cbf.map(
+    (cbfValue: any, i: number) => cbfValue - dsAttrValues.soilCB[i]
+  )
 
   return dsAttrValues
 }
@@ -216,14 +284,18 @@ export const getTotals = (
   allFeatureProps: GeoJsonProperties[]
 ) => {
   const totals: any = { area: 0, f_area: 0 }
-  const totalBaseAttrs = (harvestedWoodAttrs.join(' ') + ' ' + baseAttrs).split(/\s+/)
+  const totalBaseAttrs = (harvestedWoodAttrs.join(' ') + ' ' + baseAttrs).split(
+    /\s+/
+  )
   for (const dsNum of [forestryMethod, TRADITIONAL_FORESTRY_METHOD]) {
     for (const attr of totalBaseAttrs) {
       totals[`f${dsNum}_${attr}_area_mult_sum`] = 0
     }
   }
 
-  const areaProportionalAttrs = Object.keys(totals).filter((x) => !['area', 'f_area'].includes(x))
+  const areaProportionalAttrs = Object.keys(totals).filter(
+    (x) => !['area', 'f_area'].includes(x)
+  )
 
   // const reMatchAttr = /m-?\d_(.*)/
 
@@ -288,7 +360,12 @@ export const getTotals = (
   return totals
 }
 
-export const getChartProps = (prefix: string, cumulativeFlag: boolean, perHectareFlag: boolean, attrValues: any) => {
+export const getChartProps = (
+  prefix: string,
+  cumulativeFlag: boolean,
+  perHectareFlag: boolean,
+  attrValues: any
+) => {
   // carbon stock is not counted cumulatively.
   const isCarbonStock = carbonStockAttrPrefixes.indexOf(prefix) !== -1
   const cumulative = cumulativeFlag && !isCarbonStock
@@ -306,13 +383,27 @@ export const getChartProps = (prefix: string, cumulativeFlag: boolean, perHectar
     'harvested-wood': ['10', '20', '30', '40', '50'],
   }
 
-  const labelCallback = function (tooltipItem: Chart.ChartTooltipItem, data: Chart.ChartData) {
-    if (data && data.datasets && data.datasets && tooltipItem.datasetIndex != null && tooltipItem.yLabel != null) {
+  const labelCallback = function (
+    tooltipItem: Chart.ChartTooltipItem,
+    data: Chart.ChartData
+  ) {
+    if (
+      data &&
+      data.datasets &&
+      data.datasets &&
+      tooltipItem.datasetIndex != null &&
+      tooltipItem.yLabel != null
+    ) {
       const label = data.datasets[tooltipItem.datasetIndex].label
       const v = pp(+tooltipItem.yLabel, 2)
       return `${label}: ${v} ${unit}`
     }
-    console.error('Invalid label for chartProp. toolTipItem:', tooltipItem, 'data:', data)
+    console.error(
+      'Invalid label for chartProp. toolTipItem:',
+      tooltipItem,
+      'data:',
+      data
+    )
     return ''
   }
 
@@ -331,7 +422,12 @@ export const getChartProps = (prefix: string, cumulativeFlag: boolean, perHectar
       chart.options.tooltips.callbacks.label = labelCallback
       chart.update()
     } else {
-      console.error('Error in chartUpdateFunction. datasets:', datasets, 'chart:', chart)
+      console.error(
+        'Error in chartUpdateFunction. datasets:',
+        datasets,
+        'chart:',
+        chart
+      )
     }
   }
 
@@ -347,7 +443,8 @@ export const getChartProps = (prefix: string, cumulativeFlag: boolean, perHectar
         ticks: {
           maxTicksLimit: 8,
           beginAtZero: true,
-          callback: (value: any, _index: any, _values: any) => value.toLocaleString(),
+          callback: (value: any, _index: any, _values: any) =>
+            value.toLocaleString(),
         },
       },
     },
@@ -367,6 +464,7 @@ export const getNpvText = (
   _carbonBalanceDifferenceFlag: boolean,
   perHectareFlag: boolean,
   totals: any,
+  formatNumber: (value: number, options?: Intl.NumberFormatOptions) => string,
   forestryMethod: ForestryMethod
 ) => {
   // The comparison is too confusing IMO. Disabled for now.
@@ -376,11 +474,22 @@ export const getNpvText = (
   //     : 0
   // )
   const npvComparison = 0
-  const npvValue = forestryMethod === 1 ? null : totals[`f${forestryMethod}_npv3_area_mult_sum`] - npvComparison
-  return npvValue === 0 || npvValue ? `${pp(npvValue)} €${perHectareFlag ? ' per ha' : ''}` : '-'
+  const npvValue =
+    forestryMethod === 1
+      ? null
+      : totals[`f${forestryMethod}_npv3_area_mult_sum`] - npvComparison
+  return npvValue === 0 || npvValue
+    ? `${formatNumber(npvValue, { maximumFractionDigits: 0 })} €${
+        perHectareFlag ? ' per ha' : ''
+      }`
+    : '-'
 }
 
-export const getChartTitleSingleLayer = (selectedFeatureLayer: LayerSpecification, featureProps: any[], multiple: boolean) => {
+export const getChartTitleSingleLayer = (
+  selectedFeatureLayer: LayerSpecification,
+  featureProps: any[],
+  multiple: boolean
+) => {
   assert(selectedFeatureLayer, 'selectedFeatureLayer must be set')
   if (selectedFeatureLayer.id === LayerLevel.Parcel + '-fill') {
     const name = featureProps.map((p) => p.standid).join(', ')
@@ -391,19 +500,33 @@ export const getChartTitleSingleLayer = (selectedFeatureLayer: LayerSpecificatio
     if (multiple) return `Multiple properties selected: ${name}`
     return `Property with forest (${name})`
   } else {
-    assert(every(featureProps.map((p) => p.namefin)), `Expected namefin: ${selectedFeatureLayer}`)
+    assert(
+      every(featureProps.map((p) => p.namefin)),
+      `Expected namefin: ${selectedFeatureLayer}`
+    )
     const name = featureProps.map((p) => p.namefin || p.nameswe).join(', ')
     if (multiple) return `Multiple administrative areas selected: ${name}`
     return name
   }
 }
 
-export const getChartTitle = (selectedFeatureLayers: LayerSpecification[], featureProps: any[]) => {
+export const getChartTitle = (
+  selectedFeatureLayers: LayerSpecification[],
+  featureProps: any[]
+) => {
   if (featureProps.length === 0) return 'No area selected'
 
-  assert(selectedFeatureLayers.length > 0, 'selectedFeatureLayer must be non-empty')
+  assert(
+    selectedFeatureLayers.length > 0,
+    'selectedFeatureLayer must be non-empty'
+  )
   const uniqueLayers = uniqBy(selectedFeatureLayers, (l) => l.id)
-  if (uniqueLayers.length > 1) return 'Areas selected across multiple scales: double-counting an area is possible'
+  if (uniqueLayers.length > 1)
+    return 'Areas selected across multiple scales: double-counting an area is possible'
 
-  return getChartTitleSingleLayer(uniqueLayers[0], featureProps, selectedFeatureLayers.length > 1)
+  return getChartTitleSingleLayer(
+    uniqueLayers[0],
+    featureProps,
+    selectedFeatureLayers.length > 1
+  )
 }
