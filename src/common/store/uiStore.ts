@@ -26,6 +26,7 @@ interface Vars {
   isMapPopupOpen: boolean
   // Drawer extension state (extra content area next to the main drawer)
   isSidebarDrawerOpen: boolean
+  isSidebarDrawerOverlay: boolean
   notifications: Record<string, InternalNotificationMessage>
   isNavbarHidden: boolean
   isLoginModalOpen: boolean
@@ -54,6 +55,7 @@ interface Actions {
   setIsSidebarDisabled: (value: boolean) => void
   setIsMapPopupOpen: (value: boolean) => void
   setIsSidebarDrawerOpen: (value: boolean) => void
+  setIsSidebarDrawerOverlay: (value: boolean) => void
   startSidebarLoading: (loaderId: string) => void
   stopSidebarLoading: (loaderId: string) => void
   notify: (notification: NotificationMessage) => Promise<void>
@@ -94,6 +96,7 @@ export const useUIStore = create<State>()(
         isSidebarOpen: true,
         isMapPopupOpen: false,
         isSidebarDrawerOpen: false,
+        isSidebarDrawerOverlay: false,
         isLoginModalOpen: false,
         isNavbarHidden: false,
         notifications: {},
@@ -113,6 +116,8 @@ export const useUIStore = create<State>()(
         setIsSidebarDisabled: (value) => set({ isSidebarDisabled: value }),
         setIsMapPopupOpen: (value) => set({ isMapPopupOpen: value }),
         setIsSidebarDrawerOpen: (value) => set({ isSidebarDrawerOpen: value }),
+        setIsSidebarDrawerOverlay: (value) =>
+          set({ isSidebarDrawerOverlay: value }),
         setIsLoginModalOpen: (isOpen: boolean) => {
           set({ isLoginModalOpen: isOpen })
         },
