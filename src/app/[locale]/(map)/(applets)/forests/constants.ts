@@ -70,13 +70,13 @@ export const harvestedWoodAttrs = [
   [1, 2, 3, 4, 5].map((x) => `k${x}_kui`).join(' '),
 ]
 
-export const CO2_TONS_PER_PERSON = 7.0 // EU-27 in 2018
+export const CO2_TONS_PER_PERSON = 10.7 // EU-27 in 2022 (average Finnish person a bit lower, 10.3)
 
 export const nC_to_CO2 = 44 / 12
 
 // export const TRADITIONAL_FORESTRY_METHOD_KEY = 'tasaikainen'
 export const TRADITIONAL_FORESTRY_METHOD = ForestryMethod.tasaikainen
-export const FILL_COLOR_FORESTRY_METHOD = ForestryMethod.vapaa
+export const DEFAULT_FORESTRY_METHOD = ForestryMethod.jatkuva
 
 export const carbonStockAttrPrefixes = ['bio', 'maa']
 
