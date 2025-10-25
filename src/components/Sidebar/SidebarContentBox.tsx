@@ -24,6 +24,7 @@ const SidebarContentBox = ({
           width: '100%',
           display: 'flex',
           minHeight: 0,
+          maxWidth: '100%',
         },
         ...(Array.isArray(sxOuter) ? sxOuter : [sxOuter]),
       ]}
