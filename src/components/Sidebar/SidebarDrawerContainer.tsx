@@ -21,6 +21,9 @@ export const SidebarDrawerContainer = ({
   const setIsSidebarDrawerOpen = useUIStore(
     (state) => state.setIsSidebarDrawerOpen
   )
+  const isSidebarDrawerOverlay = useUIStore(
+    (state) => state.isSidebarDrawerOverlay
+  )
 
   // useEffect(() => {
   //   setIsSidebarDrawerOpen(true)
@@ -40,19 +43,30 @@ export const SidebarDrawerContainer = ({
         <Box
           className="sidebar-drawer-content"
           sx={[
-            {
+            (theme: Theme) => ({
               display: 'flex',
               flexDirection: 'column',
               position: 'relative',
               height: '100%',
               backgroundColor: 'neutral.light',
-              boxShadow: '-4px 0 4px 0 rgba(179, 179, 179, 0.25)',
               minHeight: 0,
-              zIndex: (theme) => theme.zIndex.drawer + 2,
-            },
+              ...(!isSidebarDrawerOverlay && {
+                borderLeft: '2px solid ' + theme.palette.neutral.main,
+              }),
+              zIndex: theme.zIndex.drawer + 2,
+            }),
             ...(Array.isArray(sx) ? sx : [sx]),
           ]}
         >
+          {isSidebarDrawerOverlay && (
+            <Box
+              sx={{
+                height: '5.8rem',
+                boxShadow: '0px 4px 4px 0 rgba(179, 179, 179, 0.25)',
+                zIndex: 5,
+              }}
+            ></Box>
+          )}
           {showCloseButton && (
             <Box
               sx={{
@@ -76,7 +90,7 @@ export const SidebarDrawerContainer = ({
                   onClick={handleClose}
                   sx={{
                     color: (theme) => theme.palette.grey[500],
-                    mt: 2,
+                    mt: 1.8,
                     mr: 2,
                   }}
                 >
