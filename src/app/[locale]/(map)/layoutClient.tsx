@@ -9,6 +9,7 @@ import { ConfirmationDialog } from '#/components/Notification'
 import UserStateHandler from './userStateHandler'
 import UIStateHandler from './uiStateHandler'
 import { SlotsProvider } from '#/components/context/slotsContext'
+import { Sidebar } from '#/components/Sidebar'
 // import { UserModal } from '#/components/Profile'
 // import { UiStateProvider, UserStateProvider } from '#/components/State'
 // import RootStyleRegistry from './emotion'
@@ -45,7 +46,7 @@ const LayoutClient = ({
                     zIndex: 'drawer',
                   }}
                 >
-                  {children}
+                  <Sidebar>{children}</Sidebar>
                 </Box>
                 <LoginModal></LoginModal>
                 <ConfirmationDialog></ConfirmationDialog>

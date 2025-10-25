@@ -3,7 +3,7 @@
 import React from 'react'
 
 import AppletWrapper from '#/components/common/AppletWrapper'
-import { BreadcrumbNav, Sidebar, SidebarHeader } from '#/components/Sidebar'
+import { BreadcrumbNav } from '#/components/Sidebar'
 import { routeTree } from 'map/common/routes'
 import { defaultListedLayerGroups } from '#/components/Map/layers/defaultListedLayerGroups'
 
@@ -14,19 +14,14 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       isNavbarHidden={true}
       localizationNamespace={'fi-forests'}
       listedLayerGroups={defaultListedLayerGroups}
+      sidebarHeaderChildren={
+        <BreadcrumbNav
+          collapseIfRoot={true}
+          routeTree={routeTree}
+        ></BreadcrumbNav>
+      }
     >
-      <Sidebar
-        headerElement={
-          <SidebarHeader title={'avoin map'}>
-            <BreadcrumbNav
-              collapseIfRoot={true}
-              routeTree={routeTree}
-            ></BreadcrumbNav>
-          </SidebarHeader>
-        }
-      >
-        {children}
-      </Sidebar>
+      {children}
     </AppletWrapper>
   )
 }

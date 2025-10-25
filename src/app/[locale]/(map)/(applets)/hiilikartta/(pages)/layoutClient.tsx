@@ -1,12 +1,10 @@
 'use client'
 
 import React, { useEffect } from 'react'
-import { Box } from '@mui/material'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
 
 import { routeTree } from '../common/routes'
-import { Sidebar, SidebarHeader } from '#/components/Sidebar'
 import { BreadcrumbNav } from '#/components/Sidebar'
 import AppletWrapper from '#/components/common/AppletWrapper'
 import { useUserStore } from '#/common/store/userStore'
@@ -166,24 +164,20 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
     <AppletWrapper
       mapContext={'hiilikartta'}
       localizationNamespace={localizationNamespace}
+      sidebarHeaderTitle={'Hiilikartta'}
+      sidebarHeaderChildren={
+        <BreadcrumbNav
+          collapseIfRoot={true}
+          routeTree={routeTree}
+        ></BreadcrumbNav>
+      }
       sx={{
         pt: 0,
         display: 'flex',
         flexDirection: 'column',
       }}
     >
-      <Sidebar
-        sx={{ width: '30rem' }}
-        headerElement={
-          <SidebarHeader title={'Hiilikartta'} sx={{}}>
-            <Box sx={{ mt: 8, width: '100%' }}>
-              <BreadcrumbNav routeTree={routeTree}></BreadcrumbNav>
-            </Box>
-          </SidebarHeader>
-        }
-      >
-        {children}
-      </Sidebar>
+      {children}
     </AppletWrapper>
   )
 }

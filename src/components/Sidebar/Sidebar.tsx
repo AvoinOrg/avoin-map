@@ -4,28 +4,28 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Box, SxProps, Theme } from '@mui/material'
 
 import { useUIStore } from '#/common/store'
-// import { MapPopup } from '../Map/MapPopup_old'
-import { SidebarHeader, SidebarToggleButton } from '#/components/Sidebar'
-import { Navbar } from './Navbar'
+import { SidebarToggleButton } from '#/components/Sidebar'
 import { LoadingSpinner } from '../Loading'
 import { Slot } from '../context/slotsContext'
 
 export const Sidebar = ({
-  headerElement,
-  navbarElement,
   sx,
   children,
 }: {
-  headerElement?: React.ReactNode
-  navbarElement?: React.ReactNode
   sx?: SxProps<Theme>
   children: React.ReactNode
 }) => {
+  const isSidebarDisabled = useUIStore((state) => state.isSidebarDisabled)
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
   const isSidebarDrawerOpen = useUIStore((state) => state.isSidebarDrawerOpen)
   const setSidebarWidth = useUIStore((state) => state.setSidebarWidth)
   const isNavbarHidden = useUIStore((state) => state.isNavbarHidden)
   const isSidebarLoading = useUIStore((state) => state.isSidebarLoading)
+
+  // If sidebar is disabled, just return children without any sidebar wrapper
+  if (isSidebarDisabled) {
+    return <>{children}</>
+  }
 
   // const popupOpts = useMapStore((state) => state.popupOpts)
 
@@ -267,11 +267,8 @@ export const Sidebar = ({
                 whiteSpace: 'normal',
               }}
             >
-              {headerElement ? (
-                headerElement
-              ) : (
-                <SidebarHeader title={'avoin map'}></SidebarHeader>
-              )}
+              {/* Header slot - content comes from AppletWrapper */}
+              <Slot name="sidebar-header" />
               {isSidebarLoading && (
                 <Box
                   sx={(theme) => ({
@@ -303,8 +300,8 @@ export const Sidebar = ({
               >
                 {children}
               </Box>
-              {!isNavbarHidden &&
-                (navbarElement ? navbarElement : <Navbar></Navbar>)}
+              {/* Navbar slot - content comes from AppletWrapper */}
+              {!isNavbarHidden && <Slot name="sidebar-navbar" />}
             </Box>
           </Box>
         </Box>

@@ -1,11 +1,9 @@
 /** @jsxImportSource @emotion/react */
 'use client'
 
-import { useMapStore } from '#/common/store'
 import AppletWrapper from '#/components/common/AppletWrapper'
 import { defaultListedLayerGroups } from '#/components/Map/layers/defaultListedLayerGroups'
-import { MainMenu, Sidebar } from '#/components/Sidebar'
-import { useEffect } from 'react'
+import { MainMenu } from '#/components/Sidebar'
 
 const Page = () => {
   return (
@@ -20,9 +18,7 @@ const Page = () => {
         flexDirection: 'column',
       }}
     >
-      <Sidebar sx={{ width: '30rem' }}>
-        <MainMenu />
-      </Sidebar>
+      <MainMenu />
     </AppletWrapper>
   )
 }

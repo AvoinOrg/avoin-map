@@ -5,12 +5,43 @@
 'use client'
 
 import React, { useEffect, useRef } from 'react'
-import { useMapStore, useUIStore } from '#/common/store'
-import { ListedLayerGroup, MapContext } from '#/common/types/map'
 import { useTolgee } from '@tolgee/react'
 import { Box } from '@mui/material'
+
+import { useMapStore, useUIStore } from '#/common/store'
+import { ListedLayerGroup, MapContext } from '#/common/types/map'
 import { useExclusiveLayerGroups } from '#/common/hooks/map/useExclusiveLayerGroups'
 import { defaultListedLayerGroups } from '../Map/layers/defaultListedLayerGroups'
+import { IntoSlot } from '#/components/context/slotsContext'
+import SidebarHeader from '#/components/Sidebar/SidebarHeader'
+import { Navbar } from '#/components/Sidebar/Navbar'
+
+type BaseAppletWrapperProps = {
+  children: React.ReactNode
+  mapContext: MapContext
+  localizationNamespace?: string
+  subPath?: string
+  // defaultLanguage?: string
+  isNavbarHidden?: boolean
+  searchCountryCodes?: string[]
+  listedLayerGroups?: ListedLayerGroup[]
+  sidebarNavbarElement?: React.ReactNode
+  sx?: any
+}
+
+type AppletWrapperProps = BaseAppletWrapperProps &
+  (
+    | {
+        sidebarHeaderElement?: React.ReactNode
+        sidebarHeaderTitle?: never
+        sidebarHeaderChildren?: never
+      }
+    | {
+        sidebarHeaderElement?: never
+        sidebarHeaderTitle?: string
+        sidebarHeaderChildren?: React.ReactNode
+      }
+  )
 
 const AppletWrapper = ({
   children,
@@ -21,18 +52,12 @@ const AppletWrapper = ({
   isNavbarHidden,
   searchCountryCodes,
   listedLayerGroups,
+  sidebarHeaderElement,
+  sidebarHeaderTitle,
+  sidebarHeaderChildren,
+  sidebarNavbarElement,
   sx,
-}: {
-  children: React.ReactNode
-  mapContext: MapContext
-  localizationNamespace?: string
-  subPath?: string
-  // defaultLanguage?: string
-  isNavbarHidden?: boolean
-  searchCountryCodes?: string[]
-  listedLayerGroups?: ListedLayerGroup[]
-  sx?: any
-}) => {
+}: AppletWrapperProps) => {
   const tolgee = useTolgee(['update'])
 
   const setMapContext = useMapStore((state) => state.setMapContext)
@@ -128,7 +153,27 @@ const AppletWrapper = ({
       }}
       className={'applet-wrapper'}
     >
-      {stateMapContext === mapContext && isTolgeeReady() && children}
+      {stateMapContext === mapContext && isTolgeeReady() && (
+        <>
+          {/* Portal sidebar header into the Sidebar component */}
+          <IntoSlot name="sidebar-header">
+            {sidebarHeaderElement ? (
+              sidebarHeaderElement
+            ) : (
+              <SidebarHeader title={sidebarHeaderTitle || 'avoin map'}>
+                {sidebarHeaderChildren}
+              </SidebarHeader>
+            )}
+          </IntoSlot>
+
+          {/* Portal navbar into the Sidebar component */}
+          <IntoSlot name="sidebar-navbar">
+            {sidebarNavbarElement ? sidebarNavbarElement : <Navbar />}
+          </IntoSlot>
+
+          {children}
+        </>
+      )}
     </Box>
   )
 }
