@@ -1,32 +1,39 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import {
-  Box,
-  Button,
-  Checkbox,
-  Container,
-  FormControlLabel,
-  Paper,
-} from '@mui/material'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import Link from 'next/link'
-import { Link as MuiLink } from '@mui/material'
+import React, { useState, useEffect, useLayoutEffect } from 'react'
+import { Box, IconButton, Tooltip, Typography } from '@mui/material'
+import BarChartIcon from '@mui/icons-material/BarChart'
+import Info from '#/components/icons/Info'
+import { Star, Cross } from '#/components/icons'
 import Image from 'next/image'
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title as ChartTitlePlugin,
+  Tooltip as ChartTooltip,
+  Legend,
+} from 'chart.js'
+import { Bar } from 'react-chartjs-2'
+import { Bar as FinlandForestsChart } from './components/FinlandForestsChart'
 
 import { getCombinedBounds } from '#/common/utils/map'
+import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
+import Link from '#/components/common/Link'
+import CheckBoxWithText from '#/components/common/CheckBoxWithText'
 // import { setOverlayMessage } from '../../OverlayMessages/OverlayMessages'
 // import * as SelectedFeatureState from './ArvometsaSelectedLayer'
-import { HeaderTable, SimpleTable } from './components/FinlandForestsTable'
 import {
   CO2_TONS_PER_PERSON,
+  DEFAULT_FORESTRY_METHOD,
   TRADITIONAL_FORESTRY_METHOD,
   layerOptions,
   titleRenames,
 } from './constants'
 import { useMapStore, useUIStore } from '#/common/store'
 // import { setSearchPlaceholder } from '../../NavBar/NavBarSearch'
-import { pp } from '#/common/utils/general'
+import { useLocaleFormatter } from '#/common/hooks/useLocaleFormatter'
 
 import { useUpdateMapDetails } from './hooks/useUpdateMapDetails'
 import {
@@ -37,16 +44,27 @@ import {
   getChartProps,
   getUnitPerArea,
 } from './utils'
-import { finlandForests as layerConf } from './layers'
+import { layerConf, id as layerGroupId } from './layers/layerConf'
 import useSelectedFeaturesFilteredByLayer from '#/common/hooks/map/useSelectedFeaturesFilteredByLayer'
-import { FinlandForestsChart } from './components/FinlandForestsChart'
 import { ForestryMethod } from './types'
 import DropDownSelect from '#/components/common/DropDownSelect'
+import { SidebarDrawerContainer } from '#/components/Sidebar/SidebarDrawerContainer'
+import { SidebarContentBox } from '#/components/Sidebar'
+import { useLayerGroup } from '#/common/hooks/map/useLayerGroup'
+import arvometsaLogo from 'public/files/forests/arvometsa_logo.png'
+import { MapGeoJSONFeature } from 'maplibre-gl'
 // import * as Analytics from 'src/map/analytics'
 
 // import arvometsaLogo from './assets/arvometsa_logo.png'
 
-const LAYER_TITLE = `Finland's forests`
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ChartTitlePlugin,
+  ChartTooltip,
+  Legend
+)
 
 // for (const sourceName of Object.keys(layerOptions)) {
 //   const layerName = `${sourceName}-fill`
@@ -95,22 +113,31 @@ const LAYER_TITLE = `Finland's forests`
 
 const FinlandForests = () => {
   const enableLayerGroup = useMapStore((state) => state.enableLayerGroup)
-  const setOverlayMessage = useMapStore((state) => state.setOverlayMessage)
   const fitBounds = useMapStore((state) => state.fitBounds)
+  const removeSelectedFeatures = useMapStore(
+    (state) => state.removeSelectedFeatures
+  )
 
-  const setIsSidebarOpen = useUIStore((state) => state.setIsSidebarOpen)
+  const isSidebarDrawerOpen = useUIStore((state) => state.isSidebarDrawerOpen)
+  const setIsSidebarDrawerOpen = useUIStore(
+    (state) => state.setIsSidebarDrawerOpen
+  )
+
+  useLayerGroup('fi_forests', layerConf)
   const updateMapDetails = useUpdateMapDetails()
   const [hasFeature, setHasFeature] = useState(false)
   const [options, setOptions] = useState<any>(null)
   const filteredFeatures = useSelectedFeaturesFilteredByLayer(
     Object.keys(layerOptions).map((x) => `${x}-fill`)
   )
+  const { formatNumber } = useLocaleFormatter()
 
   useEffect(() => {
     enableLayerGroup('fi_forests', { layerConf })
+    fitBounds([31.6, 19.0, 70.1, 59.3], { duration: 200, lonExtra: 1 })
   }, [])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const newHasFeature = filteredFeatures.length > 0
     setHasFeature(newHasFeature)
   }, [filteredFeatures])
@@ -118,7 +145,7 @@ const FinlandForests = () => {
   const [reportPanelOpen, setReportPanelOpen] = useState(true)
 
   const [forestryMethod, setForestryMethod] = useState<ForestryMethod>(
-    ForestryMethod.jatkuva
+    DEFAULT_FORESTRY_METHOD
   )
   const [perHectareFlag, setPerHectareFlag] = useState(true)
   const [cumulativeFlag, setCumulativeFlag] = useState(true)
@@ -153,16 +180,16 @@ const FinlandForests = () => {
   }, [forestryMethod, carbonBalanceDifferenceFlag])
 
   // TODO: enable overlay message and search placeholder
-  useEffect(() => {
-    setOverlayMessage(!hasFeature, {
-      layerGroupId: 'fi_forests',
-      message: 'Zoom in and click a forest area for carbon report',
-    })
-    // setSearchPlaceholder({
-    //   layer: LAYER_ID,
-    //   placeholder: 'Look up by property ID',
-    // })
-  }, [hasFeature])
+  // useEffect(() => {
+  //   setOverlayMessage(!hasFeature, {
+  //     layerGroupId: 'fi_forests',
+  //     message: 'Zoom in and click a forest area for carbon report',
+  //   })
+  //   // setSearchPlaceholder({
+  //   //   layer: LAYER_ID,
+  //   //   placeholder: 'Look up by property ID',
+  //   // })
+  // }, [hasFeature])
 
   useEffect(() => {
     const newOptions: any = {}
@@ -200,6 +227,7 @@ const FinlandForests = () => {
       carbonBalanceDifferenceFlag,
       perHectareFlag,
       newOptions.totals,
+      formatNumber,
       forestryMethod
     )
 
@@ -238,9 +266,11 @@ const FinlandForests = () => {
     const unit = perHectareFlag ? 'tons CO₂e/ha/y' : 'tons CO₂e/y'
     newOptions.averageCarbonBalanceText = isNaN(averageCarbonBalance)
       ? ''
-      : `${averageCarbonBalance > 0 ? '+' : ''}${pp(
+      : `${averageCarbonBalance > 0 ? '+' : ''}${formatNumber(
           averageCarbonBalance,
-          2
+          {
+            maximumFractionDigits: 2,
+          }
         )} ${unit}`
 
     const totalsOverall = getTotals(forestryMethod, false, allFeatureProps)
@@ -248,28 +278,7 @@ const FinlandForests = () => {
       getAverageCarbonBalanceFigure(totalsOverall)
 
     newOptions.headerTitle = titleRenames[title] || title
-    const headerOnClick = () => {
-      if (!hasFeature) setIsSidebarOpen(false)
-    }
-    newOptions.headerRows = [
-      {
-        name: (
-          <div
-            onClick={headerOnClick}
-            style={{ cursor: hasFeature ? 'initial' : 'pointer' }}
-          >
-            {newOptions.headerTitle}
-            {!hasFeature && (
-              <span>
-                <br />
-                <strong>click to show the map</strong>
-              </span>
-            )}
-          </div>
-        ),
-        value: `${pp(newOptions.totals.area, 3)} ha`,
-      },
-    ]
+
     newOptions.bounds = getCombinedBounds(filteredFeatures)
     newOptions.showReport = reportPanelOpen && hasFeature
 
@@ -282,6 +291,7 @@ const FinlandForests = () => {
     carbonBalanceDifferenceFlag,
     perHectareFlag,
     cumulativeFlag,
+    formatNumber,
   ])
 
   const onChangeCheckbox = (
@@ -291,245 +301,633 @@ const FinlandForests = () => {
       callback((event.target as HTMLInputElement).checked)
     }
   }
-  const onChangeValue = (
-    callback: React.Dispatch<React.SetStateAction<any>>
-  ) => {
-    return (event: any) => {
-      callback((event.target as HTMLInputElement).value)
+
+  const normalizeNamefin = (value?: string) => {
+    if (!value) return value
+    if (value === value.toUpperCase()) {
+      const lower = value.toLowerCase()
+      return lower.charAt(0).toUpperCase() + lower.slice(1)
+    }
+    return value
+  }
+
+  const getAreaNameParts = (feature: any) => {
+    const props = feature?.properties ?? {}
+    const nameFin = normalizeNamefin(props.namefin)
+    if (nameFin) {
+      return {
+        label: nameFin,
+        display: nameFin,
+      }
+    }
+
+    if (props.estate_id_text) {
+      const label = `Property with forest (${props.estate_id_text})`
+      return {
+        label,
+        display: (
+          <>
+            Property with forest{' '}
+            <Box
+              component="span"
+              sx={{
+                fontWeight: 600,
+                display: 'inline-block',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              ({props.estate_id_text})
+            </Box>
+          </>
+        ),
+      }
+    }
+
+    if (props.standid) {
+      const label = `Forest parcel (${props.standid})`
+      return {
+        label,
+        display: (
+          <>
+            Forest parcel{' '}
+            <Box
+              component="span"
+              sx={{
+                fontWeight: 600,
+                display: 'inline-block',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              ({props.standid})
+            </Box>
+          </>
+        ),
+      }
+    }
+
+    return {
+      label: 'Unnamed area',
+      display: 'Unnamed area',
     }
   }
 
-  const onFitLayerBounds = () => {
-    if (options.bounds) {
-      fitBounds(options.bounds, { lonExtra: 0.4, latExtra: 0.15 })
+  const getFeatureArea = (feature: any) => {
+    const props = feature?.properties ?? {}
+    const areaValue =
+      props.area ?? props.f_area ?? props.area_ha ?? props.area_hectares
+    if (typeof areaValue === 'number') {
+      return `${formatNumber(areaValue, {
+        maximumFractionDigits: 1,
+      })} ha`
     }
+    return ''
   }
+
+  const handleDeselectFeature = (feature: MapGeoJSONFeature) => {
+    removeSelectedFeatures({ features: [feature] })
+  }
+
+  const selectedAreaRows = filteredFeatures.map(
+    (feature: any, index: number) => {
+      const props = feature?.properties ?? {}
+      const featureId = feature?.id ?? props.id
+
+      const nameParts = getAreaNameParts(feature)
+
+      return {
+        id: String(featureId),
+        label: nameParts.label,
+        display: nameParts.display,
+        area: getFeatureArea(feature),
+        feature: feature,
+      }
+    }
+  )
+
+  const summaryRows = options
+    ? [
+        {
+          key: 'forest-area',
+          name: 'Forest area',
+          value: hasFeature
+            ? `${formatNumber(options.totals.f_area ?? 0, {
+                maximumFractionDigits: 1,
+              })} ha`
+            : '',
+        },
+        {
+          key: 'average-carbon-balance',
+          name: (
+            <Box
+              component="span"
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'flex-start',
+                columnGap: 0.5,
+                rowGap: 0,
+              }}
+            >
+              <Typography
+                component="span"
+                variant="body2"
+                sx={{ fontWeight: 'inherit', lineHeight: 1.4 }}
+              >
+                Average carbon balance
+                <Tooltip
+                  arrow
+                  title={
+                    <Box>
+                      <Box
+                        component="ul"
+                        sx={{ m: 0, pl: 2, '& li': { mb: 0.5 } }}
+                      >
+                        <li>Assuming even-age forestry</li>
+                        <li>
+                          Carbon balance means changes in soil, trees, and wood
+                          products. When the carbon balance is positive, more
+                          carbon is being stored than released.
+                        </li>
+                      </Box>
+                    </Box>
+                  }
+                >
+                  <Info
+                    sx={{
+                      color: 'action.active',
+                      width: 16,
+                      height: 16,
+                      ml: 0.5,
+                      mb: '-2px',
+                    }}
+                  />
+                </Tooltip>
+              </Typography>
+            </Box>
+          ),
+          value: hasFeature ? options.averageCarbonBalanceText : '',
+        },
+        {
+          key: 'npv',
+          name: 'Net present value (3% discounting)',
+          value: hasFeature ? options.npvText : '',
+        },
+      ]
+    : []
 
   return (
-    <>
-      {options != null && (
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: '0 100vw auto',
-            gridTemplateRows: '0px auto',
-            gridColumnGap: '0px',
-            gridRowGap: '0px',
-            height: '100vh',
-            marginTop: '64px',
-            ...(options.showReport
-              ? {
-                  '@media (min-width: 400px)': {
-                    gridTemplateColumns: '0 400px auto',
-                  },
-                  '@media (min-width: 800px)': {
-                    gridTemplateColumns: '400px 400px auto',
-                  },
-                }
-              : {
-                  gridTemplateColumns: '100% 0 auto',
-                  '@media (min-width: 400px)': {
-                    gridTemplateColumns: '400px 0 auto',
-                  },
-                }),
-          }}
-        >
-          <Paper className="grid-col1" elevation={5} sx={{ width: '400px' }}>
-            <Container>
-              {/* TODO: enable headerTable */}
-              <HeaderTable
-                title={
-                  <MuiLink
-                    href="/"
-                    sx={{
-                      display: 'flex',
-                      color: 'inherit',
-                      textDecoration: 'none',
-                    }}
-                    component={Link}
-                  >
-                    <ExpandMoreIcon style={{ transform: 'rotate(90deg)' }} />
-                    {LAYER_TITLE}
-                  </MuiLink>
-                }
-                rows={options.headerRows}
-                onFitLayerBounds={onFitLayerBounds}
-              />
-              <br />
-              <Paper>
-                <FormControlLabel
-                  style={{ padding: '4px 10px' }}
-                  control={<Checkbox />}
-                  label="Show values per hectare"
-                  checked={perHectareFlag}
-                  onChange={(event) => {
-                    onChangeCheckbox(setPerHectareFlag)(event)
-                    setReportPanelOpen(true)
+    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+      <SidebarContentBox>
+        {options != null && (
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              flex: 1,
+              minHeight: 0,
+            }}
+          >
+            {/* TODO: enable headerTable */}
+            <Box>
+              {hasFeature ? (
+                <Box>
+                  <Box>
+                    <Box
+                      sx={{
+                        backgroundColor: 'neutral.light',
+                        px: 2,
+                        py: 0.5,
+                        borderRadius: 1,
+                      }}
+                    >
+                      <Box
+                        component="table"
+                        sx={{
+                          width: '100%',
+                          borderCollapse: 'collapse',
+                        }}
+                      >
+                        <Box component="tbody">
+                          {selectedAreaRows.map((row) => (
+                            <Box component="tr" key={row.id}>
+                              <Box
+                                component="td"
+                                sx={{
+                                  py: 1,
+                                  px: 0,
+                                  pr: 1.5,
+                                  verticalAlign: 'middle',
+                                }}
+                              >
+                                {row.display}
+                              </Box>
+                              <Box
+                                component="td"
+                                sx={{
+                                  py: 1,
+                                  px: 0,
+                                  textAlign: 'right',
+                                  whiteSpace: 'nowrap',
+                                  minWidth: 80,
+                                  verticalAlign: 'middle',
+                                }}
+                              >
+                                {row.area}
+                              </Box>
+                              <Box
+                                component="td"
+                                sx={{
+                                  py: 1,
+                                  px: 0,
+                                  textAlign: 'right',
+                                  verticalAlign: 'middle',
+                                }}
+                              >
+                                <IconButton
+                                  size="small"
+                                  aria-label={`Remove ${row.label}`}
+                                  onClick={() =>
+                                    handleDeselectFeature(row.feature)
+                                  }
+                                >
+                                  <Cross sx={{ width: 14, height: 14 }} />
+                                </IconButton>
+                              </Box>
+                            </Box>
+                          ))}
+                        </Box>
+                      </Box>
+                    </Box>
+                    <Box
+                      component="table"
+                      sx={{
+                        width: '100%',
+                        borderCollapse: 'collapse',
+                        mt: 3,
+                      }}
+                    >
+                      <Box
+                        component="tbody"
+                        sx={{ 'td:first-of-type': { pr: 1.5 } }}
+                      >
+                        {summaryRows.map((row) => (
+                          <Box component="tr" key={row.key}>
+                            <Box
+                              component="td"
+                              sx={{
+                                py: 1,
+                                px: 0,
+                                fontWeight: 500,
+                                verticalAlign: 'top',
+                              }}
+                            >
+                              {row.name}
+                            </Box>
+                            <Box
+                              component="td"
+                              sx={{
+                                py: 1,
+                                px: 0,
+                                textAlign: 'right',
+                                whiteSpace: 'nowrap',
+                                minWidth: 80,
+                              }}
+                            >
+                              {row.value}
+                            </Box>
+                          </Box>
+                        ))}
+                      </Box>
+                    </Box>
+                  </Box>
+                  <Box sx={{ mt: 2 }}>
+                    <Typography
+                      variant="body2"
+                      component="span"
+                      sx={{
+                        fontStyle: 'italic',
+                        display: 'inline',
+                      }}
+                    >
+                      Equals{' '}
+                      {formatNumber(
+                        options.averageCarbonBalanceOverall /
+                          CO2_TONS_PER_PERSON,
+                        {
+                          maximumFractionDigits: 0,
+                        }
+                      )}{' '}
+                      times average 👤 CO₂ emissions
+                      <Tooltip
+                        arrow
+                        title="10.7 tonnes of CO₂ equivalents per capita. EU-27, 2022."
+                      >
+                        <Info
+                          sx={{
+                            color: 'action.active',
+                            width: 16,
+                            height: 16,
+                            ml: 1,
+                            mb: '-3px',
+                          }}
+                        />
+                      </Tooltip>
+                    </Typography>
+                  </Box>
+                </Box>
+              ) : (
+                <Box
+                  sx={{
+                    mt: 3,
+                    mb: 6,
+                    ml: -1,
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
                   }}
-                />
-              </Paper>
-              <br />
-              <SimpleTable
-                rows={[
-                  {
-                    name: 'Forest area',
-                    value: `${pp(options.totals.f_area, 3)} ha`,
-                  },
-                  // { name: 'Main tree species', value: 'Pine' },
-                  // { name: 'Forest age', value: `${pp(123, 2)} years` },
-                  // { name: 'Biomass volume', value: `${pp(123.45, 2)} m³/ha` },
-                  {
-                    name: 'Average carbon balance*',
-                    value: options.averageCarbonBalanceText,
-                  },
-                  {
-                    name: 'Net present value (3% discounting)',
-                    value: options.npvText,
-                  },
-                ]}
-              />
-              {/* area stats */}
-              <p>* Assuming even-age forestry</p>
-              <p>
-                * Carbon balance means changes in soil, trees, and wood
-                products. When the carbon balance is positive, more carbon is
-                being stored than released.
-              </p>
-              <p hidden={!hasFeature}>
-                Equals{' '}
-                {pp(
-                  options.averageCarbonBalanceOverall / CO2_TONS_PER_PERSON,
-                  1
-                )}{' '}
-                times average 👤 CO2 emissions
-              </p>
-              <h1>Forestry projections</h1>
-              <hr />
-              <DropDownSelect
-                label={'Choose forestry method for calculations:'}
-                value={forestryMethod}
-                options={[
-                  { value: ForestryMethod.eihakata, label: 'No cuttings' },
-                  {
-                    value: ForestryMethod.jatkuva,
-                    label: 'Continuous cover forestry',
-                  },
-                  {
-                    value: ForestryMethod.tasaikainen,
-                    label: 'Thin from below - extended rotation',
-                  },
-                  { value: ForestryMethod.vapaa, label: 'Unrestricted' },
-                ]}
+                >
+                  <Star
+                    sx={{
+                      height: 40,
+                      width: 'auto',
+                      flexShrink: 0,
+                    }}
+                  />
+                  <Typography variant="body2" sx={{ ml: 1.5 }}>
+                    Select a forest area to explore its carbon report. You can
+                    zoom in and out to view different levels.
+                  </Typography>
+                </Box>
+              )}
+              <CheckBoxWithText
+                sx={{ mt: 7 }}
+                checked={perHectareFlag}
                 onChange={(event) => {
-                  setForestryMethod(Number(event.target.value))
+                  onChangeCheckbox(setPerHectareFlag)(event)
                   setReportPanelOpen(true)
                 }}
-                sx={{ width: '100%' }}
-              />
-              <br />
-              <br />
-              <Button
-                variant="contained"
-                color="primary"
-                disabled={!hasFeature}
-                onClick={() => setReportPanelOpen(true)}
               >
-                Open report
-              </Button>
-              <br />
-              <br />
-              <Link href="/">
-                <Button variant="contained" color="secondary">
-                  Go back
-                </Button>
-              </Link>
-              <p style={{ fontSize: '1.5em', textAlign: 'center' }}>
-                Scientific forest model by
-                <br />
-                <a href="https://arvometsa.fi">
-                  {/* TODO: fix logo */}
-                  <Image
-                    alt="Arvometsä"
-                    src={'/forests/arvometsa_logo.png'}
-                    width={0}
-                    height={0}
-                    sizes="100vw"
-                    style={{ width: '100px', height: 'auto' }} // optional
+                Show values per hectare
+              </CheckBoxWithText>
+              <CheckBoxWithText
+                sx={{ mt: 2 }}
+                checked={carbonBalanceDifferenceFlag}
+                onChange={onChangeCheckbox(setCarbonBalanceDifferenceFlag)}
+                disabled={forestryMethod === TRADITIONAL_FORESTRY_METHOD}
+              >
+                Show carbon balance improvement potential compared to the
+                prevalent forestry practice
+              </CheckBoxWithText>
+              <Box sx={{ mt: 7, p: 2, backgroundColor: 'neutral.light' }}>
+                <Box>
+                  <DropDownSelect
+                    label={'Choose forestry method for calculations:'}
+                    value={forestryMethod.toString()}
+                    options={[
+                      {
+                        value: ForestryMethod.eihakata + '',
+                        label: 'No cuttings',
+                      },
+                      {
+                        value: ForestryMethod.jatkuva + '',
+                        label: 'Continuous cover forestry',
+                      },
+                      {
+                        value: ForestryMethod.tasaikainen + '',
+                        label: 'Thin from below - extended rotation',
+                      },
+                      {
+                        value: ForestryMethod.vapaa + '',
+                        label: 'Unrestricted',
+                      },
+                    ]}
+                    onChange={(event) => {
+                      setForestryMethod(Number(event.target.value))
+                    }}
+                    sx={{ width: '100%' }}
                   />
-                </a>
-              </p>
-            </Container>
-          </Paper>
+                </Box>
+                <Box sx={{ mt: 2 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      alignItems: 'center',
+                      justifyContent: 'start',
+                      gap: 1,
+                      flexWrap: 'wrap',
+                      textAlign: { xs: 'center', sm: 'left' },
+                    }}
+                  >
+                    <Typography
+                      typography="body2"
+                      sx={{ fontSize: '0.675rem' }}
+                    >
+                      Scientific forest model by
+                    </Typography>
+                    <Link
+                      href="https://arvometsa.fi"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{ display: 'inline-flex', alignItems: 'center' }}
+                    >
+                      <Image
+                        alt="Arvometsä"
+                        src={arvometsaLogo}
+                        width={arvometsaLogo.width}
+                        height={arvometsaLogo.height}
+                        style={{ width: 100, height: 'auto' }}
+                      />
+                    </Link>
+                  </Box>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        )}
+      </SidebarContentBox>
 
-          <Paper
-            sx={{ gridArea: '2 / 2 / 3 / 3', paddingBottom: '20px' }}
-            elevation={2}
-            hidden={!options.showReport}
+      {options != null && (
+        <SidebarDrawerContainer>
+          <SidebarContentBox
+            sxOuter={{
+              width: '30rem',
+              maxWidth: '100%',
+              minWidth: 0,
+            }}
           >
-            <Container>
-              <Paper>
-                <FormControlLabel
-                  style={{ padding: '4px 10px' }}
-                  control={<Checkbox />}
-                  label="Show cumulative carbon balance"
-                  checked={cumulativeFlag}
-                  onChange={onChangeCheckbox(setCumulativeFlag)}
-                />
-              </Paper>
-              <br />
-              <Paper>
-                <FormControlLabel
-                  style={{ padding: '4px 10px' }}
-                  control={<Checkbox />}
-                  label="Show carbon balance improvement potential compared to the prevalent forestry practice"
-                  checked={carbonBalanceDifferenceFlag}
-                  onChange={onChangeCheckbox(setCarbonBalanceDifferenceFlag)}
-                  disabled={forestryMethod === TRADITIONAL_FORESTRY_METHOD}
-                />
-              </Paper>
-              <br />
-              <abbr title="Carbon dioxide equivalent">
-                CO<sub>2</sub>eq
-              </abbr>{' '}
-              carbon balance (
-              {getUnitPerArea('cbt', cumulativeFlag, perHectareFlag)})
-              <FinlandForestsChart {...options.cbt} />
-              <br />
-              Forest carbon stock
-              <br />
-              <small>
-                in {getUnitPerArea('bio', cumulativeFlag, perHectareFlag)};
-                multiply by 3.67 to get CO<sub>2</sub>eq amounts
-              </small>
-              <FinlandForestsChart {...options.bio} />
-              <br />
-              Harvested wood (
-              {getUnitPerArea('harvested-wood', cumulativeFlag, perHectareFlag)}
-              )
-              <FinlandForestsChart {...options.wood} />
-              <br />
-              <Button
-                variant="contained"
-                color="primary"
-                // TODO: enable analytics
-                // onClick={() => Analytics.pageview('layers/forests/methodology')}
-              >
-                Read about the methodology
-              </Button>
-              <br />
-              <br />
-              <Button
-                variant="contained"
-                color="secondary"
-                onClick={() => setReportPanelOpen(false)}
-              >
-                Close report
-              </Button>
-            </Container>
-          </Paper>
+            <CheckBoxWithText
+              sx={{ mb: 7 }}
+              checked={cumulativeFlag}
+              onChange={onChangeCheckbox(setCumulativeFlag)}
+            >
+              Show cumulative carbon balance
+            </CheckBoxWithText>
+            {hasFeature && (
+              <>
+                <Box
+                  sx={{
+                    mt: 1,
+                    backgroundColor: 'neutral.light',
+                    borderRadius: 1,
+                  }}
+                >
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'baseline',
+                      flexWrap: 'wrap',
+                      columnGap: 0.5,
+                      rowGap: 0.5,
+                    }}
+                  >
+                    <Box component="span">
+                      <abbr title="Carbon dioxide equivalent">
+                        CO<sub>2</sub>eq
+                      </abbr>
+                    </Box>
+                    <Box component="span">
+                      carbon balance (
+                      {getUnitPerArea('cbt', cumulativeFlag, perHectareFlag)})
+                    </Box>
+                  </Typography>
+                  <Box sx={{ mt: 3 }}>
+                    <FinlandForestsChart
+                      options={options.cbt.chartOptions.options}
+                      data={options.cbt.chartOptions.data}
+                    />
+                  </Box>
+                </Box>
+                <Box
+                  sx={{
+                    mt: 5,
+                    backgroundColor: 'neutral.light',
+                    borderRadius: 1,
+                  }}
+                >
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 600,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      columnGap: 0.5,
+                      rowGap: 0.5,
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    Forest carbon stock (tons C/ha)
+                    <Tooltip
+                      arrow
+                      title={
+                        <Box>
+                          multiply by 3.67 to get CO<sub>2</sub>eq amounts
+                        </Box>
+                      }
+                    >
+                      <Info
+                        sx={{
+                          color: 'action.active',
+                          width: 16,
+                          height: 16,
+                          ml: 0.5,
+                          mb: 0.2,
+                        }}
+                      />
+                    </Tooltip>
+                  </Typography>
+                  <Box sx={{ mt: 3 }}>
+                    <FinlandForestsChart
+                      options={options.bio.chartOptions.options}
+                      data={options.bio.chartOptions.data}
+                    />
+                  </Box>
+                </Box>
+                <Box
+                  sx={{
+                    mt: 5,
+                    backgroundColor: 'neutral.light',
+                    borderRadius: 1,
+                  }}
+                >
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 600,
+                      display: 'flex',
+                      alignItems: 'baseline',
+                      flexWrap: 'wrap',
+                      columnGap: 0.5,
+                      rowGap: 0.5,
+                    }}
+                  >
+                    <Box component="span">
+                      Harvested wood (
+                      {getUnitPerArea(
+                        'harvested-wood',
+                        cumulativeFlag,
+                        perHectareFlag
+                      )}
+                      )
+                    </Box>
+                  </Typography>
+                  <Box sx={{ mt: 3 }}>
+                    <FinlandForestsChart
+                      options={options.wood.chartOptions.options}
+                      data={options.wood.chartOptions.data}
+                    />
+                  </Box>
+                </Box>
+              </>
+            )}
+          </SidebarContentBox>
+        </SidebarDrawerContainer>
+      )}
+      {hasFeature && !isSidebarDrawerOpen && (
+        <Box
+          sx={(theme) => ({
+            display: 'flex',
+            flexDirection: 'column',
+            pl: SIDEBAR_PADDING_REM + 'rem',
+            pr: SIDEBAR_PADDING_REM + 'rem',
+            pt: 2,
+            pb: 2,
+            position: 'sticky',
+            bottom: 0,
+            zIndex: theme.zIndex.drawer + 1,
+            borderTop: 1,
+            borderColor: 'primary.lighter',
+            backgroundColor: theme.palette.background.paper,
+          })}
+        >
+          <Box
+            onClick={() => setIsSidebarDrawerOpen(true)}
+            sx={{
+              mt: 1.3,
+              display: 'inline-flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              cursor: 'pointer',
+              color: 'neutral.dark',
+              flex: 0,
+              whiteSpace: 'nowrap',
+              alignSelf: 'flex-end',
+              gap: 0.75,
+            }}
+          >
+            <Typography
+              sx={{
+                typography: 'h3',
+              }}
+            >
+              Show graphs
+            </Typography>
+            <BarChartIcon sx={{ mb: 1 }} fontSize="large" />
+          </Box>
         </Box>
       )}
-    </>
+    </Box>
   )
 }
 
