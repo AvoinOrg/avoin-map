@@ -3,8 +3,6 @@
 import React, { useState, useEffect, useLayoutEffect } from 'react'
 import { Box, IconButton, Tooltip, Typography } from '@mui/material'
 import BarChartIcon from '@mui/icons-material/BarChart'
-import Info from '#/components/icons/Info'
-import { Star, Cross } from '#/components/icons'
 import Image from 'next/image'
 import {
   Chart as ChartJS,
@@ -16,7 +14,7 @@ import {
   Legend,
 } from 'chart.js'
 import { Bar } from 'react-chartjs-2'
-import { Bar as FinlandForestsChart } from './components/FinlandForestsChart'
+import { MapGeoJSONFeature } from 'maplibre-gl'
 
 import { getCombinedBounds } from '#/common/utils/map'
 import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
@@ -24,18 +22,20 @@ import Link from '#/components/common/Link'
 import CheckBoxWithText from '#/components/common/CheckBoxWithText'
 // import { setOverlayMessage } from '../../OverlayMessages/OverlayMessages'
 // import * as SelectedFeatureState from './ArvometsaSelectedLayer'
-import {
-  CO2_TONS_PER_PERSON,
-  DEFAULT_FORESTRY_METHOD,
-  TRADITIONAL_FORESTRY_METHOD,
-  layerOptions,
-  titleRenames,
-} from './constants'
 import { useMapStore, useUIStore } from '#/common/store'
 // import { setSearchPlaceholder } from '../../NavBar/NavBarSearch'
 import { useLocaleFormatter } from '#/common/hooks/useLocaleFormatter'
+import { FINLAND_BOUNDS } from '#/common/constants/map'
+import useSelectedFeaturesFilteredByLayer from '#/common/hooks/map/useSelectedFeaturesFilteredByLayer'
+import DropDownSelect from '#/components/common/DropDownSelect'
+import { SidebarDrawerContainer } from '#/components/Sidebar/SidebarDrawerContainer'
+import { SidebarContentBox } from '#/components/Sidebar'
+import { useLayerGroup } from '#/common/hooks/map/useLayerGroup'
+import Info from '#/components/icons/Info'
+import { Star, Cross } from '#/components/icons'
 
 import { useUpdateMapDetails } from './hooks/useUpdateMapDetails'
+import { Bar as FinlandForestsChart } from './components/FinlandForestsChart'
 import {
   getTotals,
   getDatasetAttributes,
@@ -44,15 +44,17 @@ import {
   getChartProps,
   getUnitPerArea,
 } from './utils'
-import { layerConf, id as layerGroupId } from './layers/layerConf'
-import useSelectedFeaturesFilteredByLayer from '#/common/hooks/map/useSelectedFeaturesFilteredByLayer'
+import { layerConf } from './layers/layerConf'
 import { ForestryMethod } from './types'
-import DropDownSelect from '#/components/common/DropDownSelect'
-import { SidebarDrawerContainer } from '#/components/Sidebar/SidebarDrawerContainer'
-import { SidebarContentBox } from '#/components/Sidebar'
-import { useLayerGroup } from '#/common/hooks/map/useLayerGroup'
+import {
+  CO2_TONS_PER_PERSON,
+  DEFAULT_FORESTRY_METHOD,
+  TRADITIONAL_FORESTRY_METHOD,
+  layerOptions,
+  titleRenames,
+} from './constants'
+
 import arvometsaLogo from 'public/files/forests/arvometsa_logo.png'
-import { MapGeoJSONFeature } from 'maplibre-gl'
 // import * as Analytics from 'src/map/analytics'
 
 // import arvometsaLogo from './assets/arvometsa_logo.png'
@@ -134,7 +136,7 @@ const FinlandForests = () => {
 
   useEffect(() => {
     enableLayerGroup('fi_forests', { layerConf })
-    fitBounds([31.6, 19.0, 70.1, 59.3], { duration: 200, lonExtra: 1 })
+    fitBounds(FINLAND_BOUNDS, { duration: 200, lonExtra: 1 })
   }, [])
 
   useLayoutEffect(() => {

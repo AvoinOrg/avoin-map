@@ -3,6 +3,8 @@ import { lineOptions } from 'maplibre_symbol_utils'
 
 export const MAX_MERC_LAT = 85.05112878
 
+export const FINLAND_BOUNDS = [31.6, 19.0, 70.1, 59.3]
+
 export type CanvasFillOptions = {
   backGroundColor?: string
 
