@@ -2,8 +2,8 @@ import axios from 'axios'
 import { UseQueryOptions } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
 
-import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
-import { AdminVerificationStatus } from 'applets/luonnonmetsakartat/common/types'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
+import { AdminVerificationStatus } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 
 const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 

@@ -2,7 +2,7 @@ import { UseQueryOptions } from '@tanstack/react-query'
 import axios from 'axios'
 import { useSession } from 'next-auth/react'
 
-import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { AdminFolayerConf, FolayerConfState } from '../types'
 
 const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
@@ -11,7 +11,8 @@ const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 export const adminFolayersQuery = (): UseQueryOptions<AdminFolayerConf[]> => {
   const { data: session } = useSession()
   const addAdminFolayerConf = useAppletStore.getState().addAdminFolayerConf
-  const updateAdminFolayerConf = useAppletStore.getState().updateAdminFolayerConf
+  const updateAdminFolayerConf =
+    useAppletStore.getState().updateAdminFolayerConf
 
   return {
     queryKey: ['adminFolayers'],

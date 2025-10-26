@@ -9,7 +9,7 @@ import { SidebarContentBox } from '#/components/Sidebar'
 import useStore from '#/common/hooks/useStore'
 import MutableLink from '#/components/common/MutableLink'
 
-import { routeTree } from 'applets/hiilikartta/common/routes'
+import { routeTree } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/routes'
 import { useAppletStore } from '../state/appletStore'
 import { GlobalState, PlanConf, PlanConfState } from '../common/types'
 import { LoadingSpinner } from '#/components/Loading'

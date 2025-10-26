@@ -6,11 +6,11 @@ import {
   useLayerGroup,
 } from '#/common/hooks/map/useLayerGroup'
 
-import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { adminFolayerQuery } from '../queries/adminFolayerQuery'
 import { adminFolayerAreaQuery } from '../queries/adminFolayerAreaQuery'
 import { getFolayerGroupId, createFolayerConf } from '../utils'
-import { AdminFolayerConf } from 'applets/luonnonmetsakartat/common/types'
+import { AdminFolayerConf } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 
 export const useAdminFolayer = (
   folayerId: string,

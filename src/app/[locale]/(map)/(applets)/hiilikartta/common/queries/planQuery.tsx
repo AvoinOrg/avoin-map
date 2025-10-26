@@ -4,7 +4,7 @@ import axios from 'axios'
 import { FeatureCollection } from 'geojson'
 import { area as turfArea } from '@turf/turf'
 
-import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 
 import { CalculationState, PlanConf, ReportData } from '../types'
 import { processCalcQueryToReportData } from '../utils'

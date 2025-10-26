@@ -6,13 +6,13 @@ import {
   ExtendedLayerSpecification,
   ExtendedSourceSpecification,
 } from '#/common/types/map'
-import { layerOptions } from 'applets/forests/constants'
-import { LayerLevel } from 'applets/forests/types'
+import { layerOptions } from '#/app/[locale]/(map)/(applets)/forests/constants'
+import { LayerLevel } from '#/app/[locale]/(map)/(applets)/forests/types'
 import {
   fiForestsAreaCO2FillColor,
   fiForestsCumulativeCO2eValueExpr,
   fiForestsTextfieldExpression,
-} from 'applets/forests/utils'
+} from '#/app/[locale]/(map)/(applets)/forests/utils'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 

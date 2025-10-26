@@ -6,10 +6,10 @@ import {
   useLayerGroup,
 } from '#/common/hooks/map/useLayerGroup'
 
-import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { folayerAreaQuery } from '../queries/folayerAreaQuery'
 import { getFolayerGroupId, createFolayerConf } from '../utils'
-import { FolayerConf } from 'applets/luonnonmetsakartat/common/types'
+import { FolayerConf } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 
 export const useFolayer = (
   folayerId: string,

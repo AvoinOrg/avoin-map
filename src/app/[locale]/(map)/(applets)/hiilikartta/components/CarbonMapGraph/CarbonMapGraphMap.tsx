@@ -24,8 +24,8 @@ import {
   MapGraphData,
   MapGraphDataSelectOption,
   ZONING_CODE_COL,
-} from 'applets/hiilikartta/common/types'
-import { isZoningCodeValidExpression } from 'applets/hiilikartta/common/utils'
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
+import { isZoningCodeValidExpression } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
 import { mergeArraysAlternate, pp } from '#/common/utils/general'
 import { Cross } from '#/components/icons'
 

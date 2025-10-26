@@ -14,15 +14,15 @@ import MultiSelectAutocomplete from '#/components/common/MultiSelectAutocomplete
 import { FetchStatus, SelectOption } from '#/common/types/general'
 import { Link as LinkIcon } from '#/components/icons'
 
-import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
-import { routeTree } from 'applets/hiilikartta/common/routes'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
+import { routeTree } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/routes'
 import {
   GlobalState,
   PlanConfWithReportData,
-} from 'applets/hiilikartta/common/types'
-import CarbonMapGraph from 'applets/hiilikartta/components/CarbonMapGraph'
-import { CarbonLineChart } from 'applets/hiilikartta/components/CarbonLineChart'
-import CarbonOverviewGraph from 'applets/hiilikartta/components/CarbonOverviewGraph'
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
+import CarbonMapGraph from '#/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonMapGraph'
+import { CarbonLineChart } from '#/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonLineChart'
+import CarbonOverviewGraph from '#/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonOverviewGraph'
 import ClipboardCopyWrapper from '#/components/common/ClipboardCopyWrapper'
 import { LoadingSpinner } from '#/components/Loading'
 import { useUIStore } from '#/common/store'

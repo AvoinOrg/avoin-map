@@ -15,21 +15,17 @@ import { SerializableLayerGroupAddOptions } from '#/common/types/map'
 import {
   createLayerConf,
   getPlanLayerGroupId,
-} from 'applets/hiilikartta/common/utils'
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
 import {
   FeatureProperties,
   GlobalState,
   PlanConfState,
   PlanData,
   ZONING_CODE_COL,
-} from 'applets/hiilikartta/common/types'
-import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 
-const Layout = ({
-  children,
-}: {
-  children: React.ReactNode
-}) => {
+const Layout = ({ children }: { children: React.ReactNode }) => {
   const params = useParams<{ planIdSlug: string }>()
   // const planConf = useStore(useAppStore, (state) => state.planConfs)
   const enableSerializableLayerGroup = useMapStore(
@@ -142,11 +138,11 @@ const Layout = ({
     } else if (!planConf && doesLayerGroupExist) {
       disableSerializableLayerGroup(
         getPlanLayerGroupId(params.planIdSlug)
-      ).catch(() => { })
+      ).catch(() => {})
     } else if (planConf && planConf.isHidden && doesLayerGroupExist) {
       disableSerializableLayerGroup(
         getPlanLayerGroupId(params.planIdSlug)
-      ).catch(() => { })
+      ).catch(() => {})
     } else if (
       planConf &&
       planConf.state != null &&
@@ -154,7 +150,7 @@ const Layout = ({
     ) {
       disableSerializableLayerGroup(
         getPlanLayerGroupId(params.planIdSlug)
-      ).catch(() => { })
+      ).catch(() => {})
       isLoaded.current = false
     }
   }, [planConf, isLoaded, doesLayerGroupExist, globalState])

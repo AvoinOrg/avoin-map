@@ -11,7 +11,7 @@ import MutableLink from '#/components/common/MutableLink'
 import { useMapStore } from '#/common/store'
 import { ClickableModal } from '#/components/Modal'
 
-import { routeTree } from 'applets/hiilikartta/common/routes'
+import { routeTree } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/routes'
 import { NewPlanConf, PlanData, ZONING_CODE_COL } from '../../common/types'
 import { useAppletStore } from '../../state/appletStore'
 import { createLayerConf } from '../../common/utils'

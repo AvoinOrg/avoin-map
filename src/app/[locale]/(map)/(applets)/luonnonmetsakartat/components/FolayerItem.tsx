@@ -7,9 +7,9 @@ import { getContrastColor } from '#/common/utils/styling'
 import MutableLink from '#/components/common/MutableLink'
 import LoadingHorizontal from '#/components/Loading/LoadingHorizontal'
 
-import { FolayerConf } from 'applets/luonnonmetsakartat/common/types'
-import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
-import { useFolayer } from 'applets/luonnonmetsakartat/common/hooks/useFolayer'
+import { FolayerConf } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
+import { routeTree } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/routes'
+import { useFolayer } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/hooks/useFolayer'
 
 const FolayerItem = ({ conf }: { conf: FolayerConf }) => {
   const [layerGroupStatus, setIsEnabled] = useFolayer(conf.id, {

@@ -6,7 +6,7 @@ import EditableText from '#/components/common/EditableText'
 import { Exclamation } from '#/components/icons'
 
 import { PlanDataFeature } from '../../../../common/types'
-import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 
 const ZoneAccordionItemTitle = ({
   name,

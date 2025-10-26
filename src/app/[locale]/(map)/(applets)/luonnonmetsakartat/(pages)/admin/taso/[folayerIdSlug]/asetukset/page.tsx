@@ -21,16 +21,18 @@ import { useSidebarActivityLoader } from '#/common/hooks/ui/useSidebarActivityLo
 import BigMenuButton from '#/components/common/BigMenuButton'
 import { Upload } from '#/components/icons'
 
-import { FolayerConfState } from 'applets/luonnonmetsakartat/common/types'
-import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
-import { adminFolayerPatchMutation } from 'applets/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
-import { adminFolayerDeleteMutation } from 'applets/luonnonmetsakartat/common/queries/adminFolayerDeleteMutation'
-import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
-import { getFolayerGroupId } from 'applets/luonnonmetsakartat/common/utils'
-import FolayerUpdateShp, { FolayerUpdateShpRef } from 'applets/luonnonmetsakartat/components/FolayerUpdateShp'
+import { FolayerConfState } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
+import { adminFolayerPatchMutation } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
+import { adminFolayerDeleteMutation } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerDeleteMutation'
+import { routeTree } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/routes'
+import { getFolayerGroupId } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/utils'
+import FolayerUpdateShp, {
+  FolayerUpdateShpRef,
+} from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerUpdateShp'
 import FolayerImportPictures, {
   FolayerImportPicturesRef,
-} from 'applets/luonnonmetsakartat/components/FolayerImportPictures'
+} from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportPictures'
 
 const Page = () => {
   const [isFolayerReady, setIsFolayerReady] = useState(false)
@@ -39,9 +41,8 @@ const Page = () => {
   const [fileName, setFileName] = useState<string>()
   const [arrayBuffers, setArrayBuffers] = useState<ArrayBuffer[]>()
   const [isUpdateValid, setIsUpdateValid] = useState<boolean>(true)
-  const [deleteAreasNotUpdated, setDeleteAreasNotUpdated] = useState<boolean>(
-    false
-  )
+  const [deleteAreasNotUpdated, setDeleteAreasNotUpdated] =
+    useState<boolean>(false)
   const shpRef = useRef<FolayerUpdateShpRef>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const params = useParams<{ folayerIdSlug: string }>()
@@ -292,28 +293,34 @@ const Page = () => {
                 <Upload sx={{ width: '24px' }} />
               </BigMenuButton>
 
-              {fileType === 'shp' && arrayBuffers && arrayBuffers.length > 0 && (
-                <>
-                  <CheckBoxWithText
-                    checked={deleteAreasNotUpdated}
-                    onChange={(_e, checked) => setDeleteAreasNotUpdated(checked)}
-                    sx={{ mt: 5 }}
-                  >
-                    <T
-                      ns={'luonnonmetsakartat'}
-                      keyName={'sidebar.admin.folayer.settings.delete_areas_not_updated'}
-                    />
-                  </CheckBoxWithText>
-                  <Box sx={{ mt: 5 }}>
-                    <FolayerUpdateShp
-                      fileBuffers={arrayBuffers}
-                      adminFolayerConf={adminFolayerConf}
-                      onValidationChange={setIsUpdateValid}
-                      ref={shpRef}
-                    />
-                  </Box>
-                </>
-              )}
+              {fileType === 'shp' &&
+                arrayBuffers &&
+                arrayBuffers.length > 0 && (
+                  <>
+                    <CheckBoxWithText
+                      checked={deleteAreasNotUpdated}
+                      onChange={(_e, checked) =>
+                        setDeleteAreasNotUpdated(checked)
+                      }
+                      sx={{ mt: 5 }}
+                    >
+                      <T
+                        ns={'luonnonmetsakartat'}
+                        keyName={
+                          'sidebar.admin.folayer.settings.delete_areas_not_updated'
+                        }
+                      />
+                    </CheckBoxWithText>
+                    <Box sx={{ mt: 5 }}>
+                      <FolayerUpdateShp
+                        fileBuffers={arrayBuffers}
+                        adminFolayerConf={adminFolayerConf}
+                        onValidationChange={setIsUpdateValid}
+                        ref={shpRef}
+                      />
+                    </Box>
+                  </>
+                )}
             </Box>
           </Box>
         )}

@@ -13,16 +13,16 @@ import {
   MapGraphDataSelectOption,
   PlanConfWithReportData,
   ZONING_CODE_COL,
-} from 'applets/hiilikartta/common/types'
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
 import CarbonMapGraphMap from './CarbonMapGraphMap'
 import CarbonChangeLegend from '../CarbonChangeLegend'
-import { GraphCalcType } from 'applets/hiilikartta/common/types'
-import { ZONING_CLASSES } from 'applets/hiilikartta/common/constants'
+import { GraphCalcType } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
+import { ZONING_CLASSES } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/constants'
 import {
   getCarbonChangeColor,
   getCarbonValueForProperties,
   isZoningCodeValid,
-} from 'applets/hiilikartta/common/utils'
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
 import CarbonMapGraphTable from './CarbonMapGraphTable'
 import ReadMoreModal from '../ReadMoreModal'
 

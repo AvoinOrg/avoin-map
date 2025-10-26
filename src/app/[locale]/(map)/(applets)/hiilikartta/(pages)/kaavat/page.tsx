@@ -9,14 +9,14 @@ import useStore from '#/common/hooks/useStore'
 import { SidebarContentBox } from '#/components/Sidebar'
 import MutableLink from '#/components/common/MutableLink'
 
-import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
-import { routeTree } from 'applets/hiilikartta/common/routes'
-import PlanFolder from 'applets/hiilikartta/components/PlanFolder'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
+import { routeTree } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/routes'
+import PlanFolder from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanFolder'
 import {
   PlanConf,
   PlanConfState,
-} from 'applets/hiilikartta/common/types'
-import PlanFolderLoading from 'applets/hiilikartta/components/PlanFolderLoading'
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
+import PlanFolderLoading from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanFolderLoading'
 
 const Page = () => {
   const planConfs = useStore(useAppletStore, (state) => state.planConfs)

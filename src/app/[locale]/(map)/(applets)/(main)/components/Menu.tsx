@@ -2,9 +2,9 @@
 
 import { useTranslate } from '@tolgee/react'
 
-import ImgAccordion from '#/components/Sidebar/Main/Accordion/ImgAccordion'
-import { AccordionItem } from '#/components/Sidebar/Main/Accordion/AccordionItem'
-import { AccordionLink } from '#/components/Sidebar/Main/Accordion/AccordionLink'
+import ImgAccordion from '#/app/[locale]/(map)/(applets)/(main)/components/Accordion/ImgAccordion'
+import { AccordionItem } from '#/app/[locale]/(map)/(applets)/(main)/components/Accordion/AccordionItem'
+import { AccordionLink } from '#/app/[locale]/(map)/(applets)/(main)/components/Accordion/AccordionLink'
 
 // Layer Confs
 import fiMatureForestsLayerConf from '#/components/Map/layers/main/Forests/FinlandMatureForests/layerConf'
@@ -22,21 +22,21 @@ import helsinkiBuildingsLayerConf from '#/components/Map/layers/main/Buildings/H
 import hsySolarpotentialLayerConf from '#/components/Map/layers/main/Buildings/HsySolarPotential/layerConf'
 import airQualityLayerConf from '#/components/Map/layers/main/AirQuality/layerConf'
 import snowCoverLossLayerConf from '#/components/Map/layers/main/SnowCoverLoss/layerConf'
+import SidebarContentBox from '#/components/Sidebar/SidebarContentBox'
 
 // Content Components
 import {
   MatureForestContent,
-  TropicalForestContent,
+  // TropicalForestContent,
   ForestCoverageContent,
-} from '../../../../legacy/components/Accordion/ForestContent/ForestContent'
-import { FiZonationContent } from '../../../../legacy/components/Accordion/BiodiversityContent/BiodiversityContent'
+} from './Accordion/ForestContent/ForestContent'
+import { FiZonationContent } from './Accordion/BiodiversityContent/BiodiversityContent'
 import {
   AirQualityContent,
   SnowCoverLossContent,
-} from '../../../../legacy/components/Accordion/OtherContent/OtherContent'
-import SidebarContentBox from '../SidebarContentBox'
+} from './Accordion/OtherContent/OtherContent'
 
-export const MainMenu = () => {
+export const Menu = () => {
   const { t } = useTranslate('avoin-map')
 
   return (

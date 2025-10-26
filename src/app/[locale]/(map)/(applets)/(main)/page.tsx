@@ -3,7 +3,8 @@
 
 import AppletWrapper from '#/components/common/AppletWrapper'
 import { defaultListedLayerGroups } from '#/components/Map/layers/defaultListedLayerGroups'
-import { MainMenu } from '#/components/Sidebar'
+
+import { Menu } from './components/Menu'
 
 const Page = () => {
   return (
@@ -18,7 +19,7 @@ const Page = () => {
         flexDirection: 'column',
       }}
     >
-      <MainMenu />
+      <Menu />
     </AppletWrapper>
   )
 }

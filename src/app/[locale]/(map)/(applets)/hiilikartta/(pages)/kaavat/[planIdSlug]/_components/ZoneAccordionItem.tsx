@@ -7,10 +7,10 @@ import DropDownSelect from '#/components/common/DropDownSelect'
 import CustomAccordion from '#/components/common/CustomAccordion'
 import CustomAccordionSummary from '#/components/common/CustomAccordionSummary'
 
-import { ZONING_CLASSES } from 'applets/hiilikartta/common/constants'
-import { PlanDataFeature } from 'applets/hiilikartta/common/types'
+import { ZONING_CLASSES } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/constants'
+import { PlanDataFeature } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
 import ZoneAccordionItemTitle from './ZoneAccordionItemTitle'
-import { checkIsValidZoningCode } from 'applets/hiilikartta/common/utils'
+import { checkIsValidZoningCode } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
 
 const zoningCodeOptions = ZONING_CLASSES.map((zoning) => ({
   value: zoning.code,

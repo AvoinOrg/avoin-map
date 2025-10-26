@@ -12,7 +12,7 @@ import { pp } from '#/common/utils/general'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
 import TText from '#/components/common/TText'
 
-import { PlanConfWithReportData } from 'applets/hiilikartta/common/types'
+import { PlanConfWithReportData } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
 import GeomGraphic from './GeomGraphic'
 import CarbonChangeLegend from '../CarbonChangeLegend'
 import ReadMoreModal from '../ReadMoreModal'

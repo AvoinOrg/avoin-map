@@ -2,7 +2,7 @@ import {
   ILayerOptions,
   ForestryMethod,
   LayerLevel,
-} from 'applets/forests/types'
+} from '#/app/[locale]/(map)/(applets)/forests/types'
 
 export const layerOptions: ILayerOptions = {
   [LayerLevel.Country]: {
