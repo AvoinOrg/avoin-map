@@ -1,6 +1,5 @@
 'use client'
 
-import { Box } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
 import ImgAccordion from '#/components/Sidebar/Main/Accordion/ImgAccordion'
@@ -9,7 +8,7 @@ import { AccordionLink } from '#/components/Sidebar/Main/Accordion/AccordionLink
 
 // Layer Confs
 import fiMatureForestsLayerConf from '#/components/Map/layers/main/Forests/FinlandMatureForests/layerConf'
-import treePlantationsLayerConf from '#/components/Map/layers/main/Forests/TreePlantations/layerConf'
+// import treePlantationsLayerConf from '#/components/Map/layers/main/Forests/TreePlantations/layerConf'
 import hansenLayerConf from '#/components/Map/layers/main/Forests/Hansen/layerConf'
 import metsaanEteBasicLayerConf from '#/components/Map/layers/main/Biodiversity/MetsaanEteBasic/layerConf'
 import metsaanEteImportantLayerConf from '#/components/Map/layers/main/Biodiversity/MetsaanEteImportant/layerConf'
@@ -29,12 +28,12 @@ import {
   MatureForestContent,
   TropicalForestContent,
   ForestCoverageContent,
-} from './Accordion/ForestContent/ForestContent'
-import { FiZonationContent } from './Accordion/BiodiversityContent/BiodiversityContent'
+} from '../../../../legacy/components/Accordion/ForestContent/ForestContent'
+import { FiZonationContent } from '../../../../legacy/components/Accordion/BiodiversityContent/BiodiversityContent'
 import {
   AirQualityContent,
   SnowCoverLossContent,
-} from './Accordion/OtherContent/OtherContent'
+} from '../../../../legacy/components/Accordion/OtherContent/OtherContent'
 import SidebarContentBox from '../SidebarContentBox'
 
 export const MainMenu = () => {

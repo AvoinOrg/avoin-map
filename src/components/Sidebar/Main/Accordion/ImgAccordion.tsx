@@ -134,11 +134,4 @@ const ImgAccordion = ({ title, img, children }: Props) => {
   )
 }
 
-const Content = (props: any) => {
-  const { item, checked } = props
-
-  const ContentComponent = item.content
-  return <ContentComponent checked={checked} item={item.content} />
-}
-
 export default ImgAccordion
