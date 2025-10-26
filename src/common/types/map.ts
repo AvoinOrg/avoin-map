@@ -481,6 +481,11 @@ export type FitBoundsOptions = {
   latExtra?: number
 }
 
+export type AutoRelocateOptions = {
+  checkIfAutoRelocate?: boolean
+  disableAutoRelocate?: boolean
+}
+
 export type ImageOptions = {
   id: string
   layerGroupId: string

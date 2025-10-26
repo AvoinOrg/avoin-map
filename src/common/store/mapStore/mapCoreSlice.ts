@@ -67,6 +67,7 @@ import {
   DataSearchOpts,
   LayerOrderLevel,
   ListedLayerGroup,
+  AutoRelocateOptions,
 } from '#/common/types/map'
 // import { layerConfs } from '#/components/Map/layers'
 
@@ -97,6 +98,7 @@ import {
   applyCanvasFillPattern,
   paddingFromVisibleViewport,
   expandBoundsMercY,
+  handleAutoRelocate,
 } from '#/common/utils/map'
 import { geoserverJsonQuery } from '#/common/queries/geoserverJsonQuery'
 import { MapStateCreator, MapStoreHelpers } from './mapStore'
@@ -162,6 +164,7 @@ export type MapCoreVars = {
     SerializableLayerGroupAddOptions
   >
   _isHydrated: boolean
+  isAutoRelocateDisabled: boolean
   _hydrationData: {
     layerGroups: Record<string, LayerGroupOptions>
     persistingLayerGroupAddOptions: Record<
@@ -241,8 +244,11 @@ export type MapCoreActions = {
     _queueOptions?: QueueOptions
   ) => Promise<void>
   fitBounds: (
-    bbox: number[] | LngLatBounds,
-    options?: FitBoundsOptions,
+    params: {
+      bbox: number[] | LngLatBounds
+      options?: FitBoundsOptions
+      autoRelocateOptions?: AutoRelocateOptions
+    },
     _queueOptions?: QueueOptions
   ) => Promise<any>
   getAndFitBounds: (
@@ -251,11 +257,17 @@ export type MapCoreActions = {
     _queueOptions?: QueueOptions
   ) => Promise<any>
   flyTo: (
-    options: mapboxgl.FlyToOptions,
+    params: {
+      options: mapboxgl.FlyToOptions
+      autoRelocateOptions?: AutoRelocateOptions
+    },
     _queueOptions?: QueueOptions
   ) => Promise<void>
   easeTo: (
-    options: mapboxgl.EaseToOptions,
+    params: {
+      options: mapboxgl.EaseToOptions
+      autoRelocateOptions?: AutoRelocateOptions
+    },
     _queueOptions?: QueueOptions
   ) => Promise<void>
   setSelectedFeatures: (
@@ -316,6 +328,7 @@ export type MapCoreActions = {
     colorCode?: string,
     size?: number
   ) => Promise<void>
+  setIsAutoRelocateDisabled: { (isDisabled: boolean): void }
   // The below are internal variables
   // ----------------------------------
   _setIsHydrated: { (isHydrated: boolean): void }
@@ -402,6 +415,7 @@ export const createMapCoreSlice: (
     _staleSourceIds: [],
     _dataSyncSubscriptions: {},
     _isHydrated: false,
+    isAutoRelocateDisabled: false,
     _persistingLayerGroupAddOptions: {},
     _hydrationData: {
       layerGroups: {},
@@ -1621,11 +1635,21 @@ export const createMapCoreSlice: (
     },
 
     fitBounds: helpers.queueableFnInit(
-      async (
-        bbox: number[] | LngLatBounds,
-        fitOptions?: FitBoundsOptions
-      ): Promise<void> => {
-        const { duration = 2000, lonExtra = 0, latExtra = 0 } = fitOptions ?? {}
+      async (params: {
+        bbox: number[] | LngLatBounds
+        options?: FitBoundsOptions
+        autoRelocateOptions?: AutoRelocateOptions
+      }): Promise<void> => {
+        const { bbox, options, autoRelocateOptions } = params
+
+        // Handle auto-relocate logic
+        const shouldProceed = handleAutoRelocate(autoRelocateOptions)
+
+        if (!shouldProceed) {
+          return
+        }
+
+        const { duration = 2000, lonExtra = 0, latExtra = 0 } = options ?? {}
         const _map = useMapInstanceStore.getState()._map
         if (!_map) return // or await a similar waitFor(_map) if you want
 
@@ -1678,7 +1702,19 @@ export const createMapCoreSlice: (
     ),
 
     flyTo: helpers.queueableFnInit(
-      async (options: mapboxgl.FlyToOptions): Promise<void> => {
+      async (params: {
+        options: mapboxgl.FlyToOptions
+        autoRelocateOptions?: AutoRelocateOptions
+      }): Promise<void> => {
+        const { options, autoRelocateOptions } = params
+
+        // Handle auto-relocate logic
+        const shouldProceed = handleAutoRelocate(autoRelocateOptions)
+
+        if (!shouldProceed) {
+          return
+        }
+
         const _map = useMapInstanceStore.getState()._map
 
         const flyToOptions: mapboxgl.FlyToOptions = { ...options }
@@ -1713,7 +1749,19 @@ export const createMapCoreSlice: (
     ),
 
     easeTo: helpers.queueableFnInit(
-      async (options: mapboxgl.EaseToOptions): Promise<void> => {
+      async (params: {
+        options: mapboxgl.EaseToOptions
+        autoRelocateOptions?: AutoRelocateOptions
+      }): Promise<void> => {
+        const { options, autoRelocateOptions } = params
+
+        // Handle auto-relocate logic
+        const shouldProceed = handleAutoRelocate(autoRelocateOptions)
+
+        if (!shouldProceed) {
+          return
+        }
+
         const _map = useMapInstanceStore.getState()._map
 
         const easeToOptions: mapboxgl.EaseToOptions = { ...options }
@@ -1782,11 +1830,13 @@ export const createMapCoreSlice: (
         })
         if (bounds) {
           fitBounds(
-            bounds,
             {
-              duration: duration,
-              latExtra: lonExtra,
-              lonExtra: latExtra,
+              bbox: bounds,
+              options: {
+                duration: duration,
+                latExtra: lonExtra,
+                lonExtra: latExtra,
+              },
             },
             { skipQueue: true }
           )
@@ -2529,6 +2579,12 @@ export const createMapCoreSlice: (
     _setIsMapReady: (isMapReady: boolean) => {
       set((state) => {
         state._isMapReady = isMapReady
+      })
+    },
+
+    setIsAutoRelocateDisabled: (isDisabled: boolean) => {
+      set((state) => {
+        state.isAutoRelocateDisabled = isDisabled
       })
     },
 

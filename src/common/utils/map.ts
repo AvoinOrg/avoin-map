@@ -32,6 +32,7 @@ import {
   ExtendedLayerSpecification,
   GeneratedFillPatternOptions,
   ColorStop,
+  AutoRelocateOptions,
 } from '../types/map'
 import { clone, uniqBy } from 'lodash-es'
 import { useMapStore } from '../store'
@@ -1508,4 +1509,38 @@ export function zoomFromPlaceOptions(
   if (cls === 'natural' && (type === 'peak' || type === 'volcano')) z += 0.2
 
   return +z.toFixed(round)
+}
+
+/**
+ * Helper function to handle auto-relocate logic for map movement functions.
+ * @param autoRelocateOptions Options to check/disable auto-relocate
+ * @param isAutoRelocateDisabled Current state from the store
+ * @param setIsAutoRelocateDisabled Function to update the store state
+ * @returns true if the operation should proceed, false if it should be skipped
+ */
+export const handleAutoRelocate = (
+  autoRelocateOptions: AutoRelocateOptions | undefined
+): boolean => {
+  const { checkIfAutoRelocate = false, disableAutoRelocate = false } =
+    autoRelocateOptions ?? {}
+
+  if (!disableAutoRelocate && !checkIfAutoRelocate) {
+    return true // No auto-relocate options, proceed normally
+  }
+
+  const isAutoRelocateDisabled = useMapStore.getState().isAutoRelocateDisabled
+  const setIsAutoRelocateDisabled =
+    useMapStore.getState().setIsAutoRelocateDisabled
+
+  // If disableAutoRelocate is true, set the flag
+  if (disableAutoRelocate && !isAutoRelocateDisabled) {
+    setIsAutoRelocateDisabled(true)
+  }
+
+  // If checkIfAutoRelocate is true and relocate is disabled, skip the operation
+  if (checkIfAutoRelocate && isAutoRelocateDisabled) {
+    return false
+  }
+
+  return true
 }
