@@ -4,16 +4,6 @@ import React, { useState, useEffect, useLayoutEffect } from 'react'
 import { Box, IconButton, Tooltip, Typography } from '@mui/material'
 import BarChartIcon from '@mui/icons-material/BarChart'
 import Image from 'next/image'
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title as ChartTitlePlugin,
-  Tooltip as ChartTooltip,
-  Legend,
-} from 'chart.js'
-import { Bar } from 'react-chartjs-2'
 import { MapGeoJSONFeature } from 'maplibre-gl'
 
 import { getCombinedBounds } from '#/common/utils/map'
@@ -58,15 +48,6 @@ import arvometsaLogo from 'public/files/forests/arvometsa_logo.png'
 // import * as Analytics from 'src/map/analytics'
 
 // import arvometsaLogo from './assets/arvometsa_logo.png'
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ChartTitlePlugin,
-  ChartTooltip,
-  Legend
-)
 
 // for (const sourceName of Object.keys(layerOptions)) {
 //   const layerName = `${sourceName}-fill`

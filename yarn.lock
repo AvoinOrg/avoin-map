@@ -2893,13 +2893,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@kurkle/color@npm:^0.3.0":
-  version: 0.3.2
-  resolution: "@kurkle/color@npm:0.3.2"
-  checksum: 79e97b31f8f6efb28c69d373f94b0c7480226fe8ec95221f518ac998e156444a496727ce47de6d728eb5c3369288e794cba82cae34253deb0d472d3bfe080e49
-  languageName: node
-  linkType: hard
-
 "@leichtgewicht/ip-codec@npm:^2.0.1":
   version: 2.0.4
   resolution: "@leichtgewicht/ip-codec@npm:2.0.4"
@@ -6608,15 +6601,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/chart.js@npm:^2.9.37":
-  version: 2.9.37
-  resolution: "@types/chart.js@npm:2.9.37"
-  dependencies:
-    moment: ^2.10.2
-  checksum: 5626a8cc3b410c9f2668ee7efd5b1b408f7de814608f83f9fdb349f59e3c7f5eb7199e73b41e6634c24b4ccb8d3846b290264df8d4224d184f63b095f82cfb94
-  languageName: node
-  linkType: hard
-
 "@types/connect-history-api-fallback@npm:^1.3.5":
   version: 1.5.0
   resolution: "@types/connect-history-api-fallback@npm:1.5.0"
@@ -9172,15 +9156,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chart.js@npm:^4.2.0":
-  version: 4.3.0
-  resolution: "chart.js@npm:4.3.0"
-  dependencies:
-    "@kurkle/color": ^0.3.0
-  checksum: 157ceaa3815665163cb30ccc221a5af40834dca940faa6ec02cb95406bf3e83c15c5f36ad950a1716c9d199e87f7b9be953227c4d9d445d593536175b47bbab8
-  languageName: node
-  linkType: hard
-
 "chokidar@npm:>=3.0.0 <4.0.0, chokidar@npm:^3.5.3":
   version: 3.5.3
   resolution: "chokidar@npm:3.5.3"
@@ -9325,7 +9300,6 @@ __metadata:
     "@turf/helpers": ^6.5.0
     "@turf/meta": ^6.5.0
     "@turf/turf": ^6.5.0
-    "@types/chart.js": ^2.9.37
     "@types/dompurify": ^2.4.0
     "@types/geojson": ^7946.0.14
     "@types/jest": ^29.5.12
@@ -9354,7 +9328,6 @@ __metadata:
     babel-polyfill: ^6.26.0
     babel-preset-react-app: ^10.0.1
     buffer: ^6.0.3
-    chart.js: ^4.2.0
     clean-webpack-plugin: ^4.0.0
     copy-webpack-plugin: ^11.0.0
     css-loader: ^6.7.3
@@ -9403,7 +9376,6 @@ __metadata:
     overlayscrollbars: ^2.12.0
     overlayscrollbars-react: ^0.5.6
     react: ^19.0.0
-    react-chartjs-2: ^5.2.0
     react-colorful: ^5.6.1
     react-dom: ^19.0.0
     react-ga: ^3.3.1
@@ -15398,13 +15370,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"moment@npm:^2.10.2":
-  version: 2.29.4
-  resolution: "moment@npm:2.29.4"
-  checksum: 0ec3f9c2bcba38dc2451b1daed5daded747f17610b92427bebe1d08d48d8b7bdd8d9197500b072d14e326dd0ccf3e326b9e3d07c5895d3d49e39b6803b76e80e
-  languageName: node
-  linkType: hard
-
 "mrmime@npm:^1.0.0":
   version: 1.0.1
   resolution: "mrmime@npm:1.0.1"
@@ -17281,16 +17246,6 @@ __metadata:
   bin:
     rc: ./cli.js
   checksum: 2e26e052f8be2abd64e6d1dabfbd7be03f80ec18ccbc49562d31f617d0015fbdbcf0f9eed30346ea6ab789e0fdfe4337f033f8016efdbee0df5354751842080e
-  languageName: node
-  linkType: hard
-
-"react-chartjs-2@npm:^5.2.0":
-  version: 5.2.0
-  resolution: "react-chartjs-2@npm:5.2.0"
-  peerDependencies:
-    chart.js: ^4.1.1
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0
-  checksum: ace702185be1450e5888a8bcd8b5fc1995067e3b11d236764a67f5567a3d7c32ff16923b8d48d3d39bda6e45135da6c044c9b43fbe8e1978f95aca9d2c0ce348
   languageName: node
   linkType: hard
 
