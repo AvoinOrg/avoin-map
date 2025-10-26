@@ -459,8 +459,13 @@ export const createFolayerConf = async ({
               // Ensure features[0] and its geometry exist and are of type Point
               if (features[0]?.geometry?.type === 'Point') {
                 useMapStore.getState().easeTo({
-                  center: features[0].geometry.coordinates as [number, number],
-                  zoom: zoom + 0.5, // Add a slight zoom buffer
+                  options: {
+                    center: features[0].geometry.coordinates as [
+                      number,
+                      number
+                    ],
+                    zoom: zoom + 0.5, // Add a slight zoom buffer
+                  },
                 })
               } else {
                 console.warn(

@@ -117,7 +117,14 @@ const FinlandForests = () => {
 
   useEffect(() => {
     enableLayerGroup('fi_forests', { layerConf })
-    fitBounds(FINLAND_BOUNDS, { duration: 200, lonExtra: 1 })
+    fitBounds({
+      bbox: FINLAND_BOUNDS,
+      options: { duration: 200, lonExtra: 1 },
+      autoRelocateOptions: {
+        checkIfAutoRelocate: true,
+        disableAutoRelocate: true,
+      },
+    })
   }, [])
 
   useLayoutEffect(() => {

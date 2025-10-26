@@ -199,11 +199,14 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
     if (bbox) {
       // Use your store fitBounds (handles sidebar padding)
       // Small extras are fine horizontally; keep latExtra 0 to avoid Mercator bias
-      fitBounds([bbox[2], bbox[0], bbox[3], bbox[1]], {
-        // your order: [lonMax, lonMin, latMax, latMin]
-        duration: 1200,
-        lonExtra: 0.05,
-        latExtra: 0, // keep 0; rely on padding for vertical margin
+      fitBounds({
+        bbox: [bbox[2], bbox[0], bbox[3], bbox[1]],
+        options: {
+          // your order: [lonMax, lonMin, latMax, latMin]
+          duration: 1200,
+          lonExtra: 0.05,
+          latExtra: 0, // keep 0; rely on padding for vertical margin
+        },
       })
       return
     }
@@ -222,7 +225,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
         })
       }
 
-      flyTo({ center: [lon, lat], zoom: z, duration: 900 })
+      flyTo({ options: { center: [lon, lat], zoom: z, duration: 900 } })
     }
   }
 
