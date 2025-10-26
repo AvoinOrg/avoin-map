@@ -6,7 +6,8 @@ import { Box, SxProps, Theme } from '@mui/material'
 import { useUIStore } from '#/common/store'
 import { SidebarToggleButton } from '#/components/Sidebar'
 import { LoadingSpinner } from '../Loading'
-import { Slot } from '../context/slotsContext'
+import { Slot, useSlotContent } from '../context/slotsContext'
+import SidebarHeader from './SidebarHeader'
 
 export const Sidebar = ({
   sx,
@@ -21,6 +22,9 @@ export const Sidebar = ({
   const setSidebarWidth = useUIStore((state) => state.setSidebarWidth)
   const isNavbarHidden = useUIStore((state) => state.isNavbarHidden)
   const isSidebarLoading = useUIStore((state) => state.isSidebarLoading)
+  const sidebarHeaderConfig = useUIStore((state) => state.sidebarHeaderConfig)
+
+  const hasCustomHeader = useSlotContent('sidebar-header')
 
   // If sidebar is disabled, just return children without any sidebar wrapper
   if (isSidebarDisabled) {
@@ -268,7 +272,13 @@ export const Sidebar = ({
               }}
             >
               {/* Header slot - content comes from AppletWrapper */}
-              <Slot name="sidebar-header" />
+              {hasCustomHeader ? (
+                <Slot name="sidebar-header" />
+              ) : (
+                <SidebarHeader title={sidebarHeaderConfig.title}>
+                  <Slot name="sidebar-header-children" />
+                </SidebarHeader>
+              )}
               {isSidebarLoading && (
                 <Box
                   sx={(theme) => ({

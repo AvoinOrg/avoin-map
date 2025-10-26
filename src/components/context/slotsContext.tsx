@@ -22,6 +22,11 @@ export const useSlots = () => {
   return slots
 }
 
+export const useSlotContent = (name: SlotKey): boolean => {
+  const slots = useSlots()
+  return slots.has(name)
+}
+
 /** Host-side: place this where content should land */
 export const Slot = ({ name }: { name: SlotKey }) => {
   const slots = useSlots()

@@ -75,6 +75,9 @@ const AppletWrapper = ({
     (state) => state.setIsBaseDomainForApplet
   )
   const setIsNavbarHidden = useUIStore((state) => state.setIsNavbarHidden)
+  const setSidebarHeaderConfig = useUIStore(
+    (state) => state.setSidebarHeaderConfig
+  )
 
   const setListedLayerGroups = useMapStore(
     (state) => state.setListedLayerGroups
@@ -129,6 +132,18 @@ const AppletWrapper = ({
     }
   }, [])
 
+  // Update sidebar header title when it changes
+  useEffect(() => {
+    if (sidebarHeaderTitle) {
+      setSidebarHeaderConfig({ title: sidebarHeaderTitle })
+    }
+
+    return () => {
+      // Reset to default on unmount
+      setSidebarHeaderConfig({ title: 'avoin map' })
+    }
+  }, [sidebarHeaderTitle, setSidebarHeaderConfig])
+
   const isTolgeeReady = () => {
     if (
       localizationNamespace != null &&
@@ -155,16 +170,17 @@ const AppletWrapper = ({
     >
       {stateMapContext === mapContext && isTolgeeReady() && (
         <>
-          {/* Portal sidebar header into the Sidebar component */}
-          <IntoSlot name="sidebar-header">
-            {sidebarHeaderElement ? (
-              sidebarHeaderElement
-            ) : (
-              <SidebarHeader title={sidebarHeaderTitle || 'avoin map'}>
-                {sidebarHeaderChildren}
-              </SidebarHeader>
-            )}
-          </IntoSlot>
+          {/* Portal custom header element if provided */}
+          {sidebarHeaderElement && (
+            <IntoSlot name="sidebar-header">{sidebarHeaderElement}</IntoSlot>
+          )}
+
+          {/* Portal header children to slot inside default SidebarHeader */}
+          {sidebarHeaderChildren && (
+            <IntoSlot name="sidebar-header-children">
+              {sidebarHeaderChildren}
+            </IntoSlot>
+          )}
 
           {/* Portal navbar into the Sidebar component */}
           <IntoSlot name="sidebar-navbar">

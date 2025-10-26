@@ -20,6 +20,10 @@ import { waitFor } from '../utils/store'
 
 type PopupModalViewMode = 'constrained' | 'fullscreen' | 'full-height'
 
+type SidebarHeaderConfig = {
+  title: string
+}
+
 interface Vars {
   isSidebarOpen: boolean
   isSidebarDisabled: boolean
@@ -32,6 +36,7 @@ interface Vars {
   isLoginModalOpen: boolean
   isSidebarLoading: boolean
   sidebarWidth: number | undefined
+  sidebarHeaderConfig: SidebarHeaderConfig
   confirmationDialogOptions: InternalConfirmationDialogOptions
   isBaseDomainForApplet: boolean
   windowSize:
@@ -70,6 +75,7 @@ interface Actions {
   ) => void
   setIsLoginModalOpen: (isOpen: boolean) => void
   setSidebarWidth: (pixels: number) => void
+  setSidebarHeaderConfig: (config: SidebarHeaderConfig) => void
   triggerConfirmationDialog: (
     options: ConfirmationDialogOptions
   ) => Promise<void>
@@ -102,6 +108,7 @@ export const useUIStore = create<State>()(
         notifications: {},
         isSidebarLoading: false,
         sidebarWidth: undefined,
+        sidebarHeaderConfig: { title: 'avoin map' },
         confirmationDialogOptions: { id: null },
         isBaseDomainForApplet: false,
         windowSize: undefined,
@@ -128,6 +135,8 @@ export const useUIStore = create<State>()(
         setSidebarWidth(pixels: number) {
           set({ sidebarWidth: pixels })
         },
+        setSidebarHeaderConfig: (config: SidebarHeaderConfig) =>
+          set({ sidebarHeaderConfig: config }),
         startSidebarLoading: (loaderId: string) => {
           set((state) => {
             state._activeSidebarLoaders.add(loaderId)
