@@ -108,7 +108,7 @@ export const useUIStore = create<State>()(
         notifications: {},
         isSidebarLoading: false,
         sidebarWidth: undefined,
-        sidebarHeaderConfig: { title: 'avoin map' },
+        sidebarHeaderConfig: { title: '' },
         confirmationDialogOptions: { id: null },
         isBaseDomainForApplet: false,
         windowSize: undefined,

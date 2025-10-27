@@ -13,7 +13,6 @@ import { ListedLayerGroup, MapContext } from '#/common/types/map'
 import { useExclusiveLayerGroups } from '#/common/hooks/map/useExclusiveLayerGroups'
 import { defaultListedLayerGroups } from '../Map/layers/defaultListedLayerGroups'
 import { IntoSlot } from '#/components/context/slotsContext'
-import SidebarHeader from '#/components/Sidebar/SidebarHeader'
 import { Navbar } from '#/components/Sidebar/Navbar'
 
 type BaseAppletWrapperProps = {
@@ -136,6 +135,8 @@ const AppletWrapper = ({
   useEffect(() => {
     if (sidebarHeaderTitle) {
       setSidebarHeaderConfig({ title: sidebarHeaderTitle })
+    } else {
+      setSidebarHeaderConfig({ title: 'avoin map' })
     }
 
     return () => {
