@@ -90,7 +90,7 @@ const AppletWrapper = ({
   useEffect(() => {
     fitBounds({
       bbox: FINLAND_BOUNDS,
-      options: { duration: 200, lonExtra: 1 },
+      options: { duration: 200, lonExtra: 0.6 },
       autoRelocateOptions: {
         checkIfAutoRelocate: true,
         disableAutoRelocate: true,
