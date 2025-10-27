@@ -14,6 +14,7 @@ import { useExclusiveLayerGroups } from '#/common/hooks/map/useExclusiveLayerGro
 import { defaultListedLayerGroups } from '../Map/layers/defaultListedLayerGroups'
 import { IntoSlot } from '#/components/context/slotsContext'
 import { Navbar } from '#/components/Sidebar/Navbar'
+import { FINLAND_BOUNDS } from '#/common/constants/map'
 
 type BaseAppletWrapperProps = {
   children: React.ReactNode
@@ -23,6 +24,7 @@ type BaseAppletWrapperProps = {
   // defaultLanguage?: string
   isNavbarHidden?: boolean
   searchCountryCodes?: string[]
+  disableDefaultFitbounds?: boolean
   listedLayerGroups?: ListedLayerGroup[]
   sidebarNavbarElement?: React.ReactNode
   sx?: any
@@ -50,6 +52,7 @@ const AppletWrapper = ({
   // defaultLanguage,
   isNavbarHidden,
   searchCountryCodes,
+  disableDefaultFitbounds = false,
   listedLayerGroups,
   sidebarHeaderElement,
   sidebarHeaderTitle,
@@ -61,6 +64,8 @@ const AppletWrapper = ({
 
   const setMapContext = useMapStore((state) => state.setMapContext)
   const stateMapContext = useMapStore((state) => state.mapContext)
+  const fitBounds = useMapStore((state) => state.fitBounds)
+
   useExclusiveLayerGroups()
   const storeSearchCountryCodes = useUIStore(
     (state) => state.searchCountryCodes
@@ -81,6 +86,17 @@ const AppletWrapper = ({
   const setListedLayerGroups = useMapStore(
     (state) => state.setListedLayerGroups
   )
+
+  useEffect(() => {
+    fitBounds({
+      bbox: FINLAND_BOUNDS,
+      options: { duration: 200, lonExtra: 1 },
+      autoRelocateOptions: {
+        checkIfAutoRelocate: true,
+        disableAutoRelocate: true,
+      },
+    })
+  }, [])
 
   useEffect(() => {
     if (listedLayerGroups == null) {
