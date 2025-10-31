@@ -9,7 +9,7 @@ import { flattenDeep } from 'lodash-es'
 import { useTranslate } from '@tolgee/react'
 import { Feature, FeatureCollection } from 'geojson'
 
-import { getRoute } from '#/common/utils/routing-client'
+import { getRoute } from '#/common/routing/routing-client'
 import { getGeoJsonArea } from '#/common/utils/gis'
 import { generateUUID } from '#/common/utils/general'
 import BigMenuButton from '#/components/common/BigMenuButton'
@@ -20,7 +20,7 @@ import {
   FeatureProperties,
   IndexingStrategy,
 } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
-import { routeTree } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/routes'
+import { routeTree } from '#/common/routing/routes/luonnonmetsakartat'
 import FolayerImportShp from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportShp'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { adminFolayerPostMutation } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerPostMutation'

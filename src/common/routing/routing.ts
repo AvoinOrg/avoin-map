@@ -3,6 +3,39 @@ import { ReadonlyURLSearchParams } from 'next/navigation'
 import { LOCALES } from '#/common/navigation/tolgee/shared'
 import { RouteTree, RouteObject, Params, RouteForLinks } from '../types/routing'
 
+export const compiledApplets = (process.env.NEXT_PUBLIC_COMPILED_APPLETS || '')
+  .toLowerCase()
+  .trim()
+  .split(',')
+  .filter(Boolean)
+
+const normalizeDomain = (domain?: string | null) => {
+  if (!domain) return undefined
+  return domain.replace(/\/+$/, '')
+}
+
+const buildPathFromSegments = (segments: string[], domain?: string): string => {
+  const normalizedDomain = normalizeDomain(domain)
+  if (normalizedDomain) {
+    return segments.length > 0
+      ? `${normalizedDomain}/${segments.join('/')}`
+      : normalizedDomain
+  }
+  if (segments.length === 0) {
+    return '/'
+  }
+  return `/${segments.join('/')}`
+}
+
+const splitPathParts = (path: string) =>
+  path
+    .split('/')
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0)
+
+const isDynamicPart = (part: string) =>
+  part.startsWith('[') && part.endsWith(']')
+
 const toQueryString = (queryParams: Params['queryParams']): string => {
   if (!queryParams) {
     return ''
@@ -114,41 +147,45 @@ export const getRouteNoStoreCheck = ({
     routeObjects.shift()
   }
 
-  let path = ''
+  let pathSegments: string[] = []
+  let currentDomain: string | undefined
+
   for (const routeObject of routeObjects) {
-    if (routeObject._conf) {
-      const pathParts: string[] = routeObject._conf.path.split('/')
-      for (const pathPart of pathParts) {
-        if (pathPart.length > 0) {
-          if (pathPart.startsWith('[') && pathPart.endsWith(']')) {
-            const paramName = pathPart.slice(1, -1) // Remove the brackets
-            if (routeParams[paramName] == null) {
-              throw new Error(
-                `Not enough params provided for route: ${JSON.stringify(
-                  routeNode,
-                  null,
-                  2
-                )} in ${JSON.stringify(
-                  routeTree,
-                  null,
-                  2
-                )} with params: ${JSON.stringify(routeParams, null, 2)}`
-              )
-            }
-            path += `/${routeParams[paramName]}`
-          } else {
-            path += `/${pathPart}`
-          }
+    if (!routeObject._conf) continue
+
+    const { path: routePath, domain } = routeObject._conf
+    const normalizedDomain = normalizeDomain(domain)
+    if (normalizedDomain) {
+      currentDomain = normalizedDomain
+      pathSegments = []
+    }
+
+    const pathParts = splitPathParts(routePath)
+    for (const part of pathParts) {
+      if (isDynamicPart(part)) {
+        const paramName = part.slice(1, -1)
+        const paramValue = routeParams[paramName]
+        if (paramValue == null) {
+          throw new Error(
+            `Not enough params provided for route: ${JSON.stringify(
+              routeNode,
+              null,
+              2
+            )} in ${JSON.stringify(
+              routeTree,
+              null,
+              2
+            )} with params: ${JSON.stringify(routeParams, null, 2)}`
+          )
         }
+        pathSegments.push(String(paramValue))
+      } else {
+        pathSegments.push(part)
       }
     }
   }
 
-  // check if the path is empty, if so, return the root path
-  if (path === '') {
-    path = '/'
-  }
-
+  const path = buildPathFromSegments(pathSegments, currentDomain)
   return path + toQueryString(queryParams)
 }
 
@@ -166,145 +203,224 @@ export const getRouteParent = (
   return path
 }
 
+type PathMatchResult = {
+  matched: boolean
+  nextIndex: number
+  params: Record<string, string>
+}
+
+const matchPathParts = (
+  routePath: string,
+  segments: string[],
+  startIndex: number,
+  params: Record<string, string>
+): PathMatchResult => {
+  const parts = splitPathParts(routePath)
+  let index = startIndex
+  const updatedParams = { ...params }
+
+  for (const part of parts) {
+    if (index >= segments.length) {
+      return { matched: false, nextIndex: startIndex, params }
+    }
+
+    const segment = segments[index]
+    if (isDynamicPart(part)) {
+      const paramName = part.slice(1, -1)
+      updatedParams[paramName] = segment
+    } else if (part.toLowerCase() !== segment.toLowerCase()) {
+      return { matched: false, nextIndex: startIndex, params }
+    }
+
+    index++
+  }
+
+  return { matched: true, nextIndex: index, params: updatedParams }
+}
+
+type RouteMatch = {
+  routes: RouteForLinks[]
+  consumed: number
+}
+
+const matchRouteNode = (
+  node: RouteTree,
+  segments: string[],
+  origin: string | undefined,
+  domainContext: string | undefined,
+  startIndex: number,
+  params: Record<string, string>,
+  root: RouteTree
+): RouteMatch | null => {
+  const conf = node._conf
+  if (!conf) {
+    return null
+  }
+
+  const ownDomain = normalizeDomain(conf.domain)
+  const effectiveDomain = ownDomain ?? domainContext
+  const hasOwnDomain = ownDomain != null
+  const normalizedOrigin = origin
+
+  const exploreChildren = (
+    inheritedDomain: string | undefined,
+    inheritedStartIndex: number,
+    inheritedParams: Record<string, string>,
+    requireDomainedChild: boolean
+  ): RouteMatch | null => {
+    let bestMatch: RouteMatch | null = null
+    for (const child of getRouteChildren(node)) {
+      if (requireDomainedChild && !normalizeDomain(child._conf?.domain)) {
+        continue
+      }
+
+      const childMatch = matchRouteNode(
+        child,
+        segments,
+        origin,
+        inheritedDomain,
+        inheritedStartIndex,
+        { ...inheritedParams },
+        root
+      )
+      if (!childMatch) {
+        continue
+      }
+
+      if (!bestMatch || childMatch.consumed > bestMatch.consumed) {
+        bestMatch = childMatch
+      }
+
+      if (childMatch.consumed === segments.length) {
+        break
+      }
+    }
+    return bestMatch
+  }
+
+  if (
+    effectiveDomain &&
+    normalizedOrigin &&
+    effectiveDomain !== normalizedOrigin
+  ) {
+    return exploreChildren(domainContext, startIndex, params, true)
+  }
+
+  const matchStartIndex = hasOwnDomain ? 0 : startIndex
+  const matchResult = matchPathParts(
+    conf.path,
+    segments,
+    matchStartIndex,
+    params
+  )
+
+  if (!matchResult.matched) {
+    return exploreChildren(domainContext, startIndex, params, true)
+  }
+
+  const updatedParams = matchResult.params
+
+  const routePath = getRouteNoStoreCheck({
+    routeNode: node,
+    routeTree: root,
+    params: { routeParams: updatedParams },
+  })
+
+  const route: RouteForLinks = {
+    name: conf.name,
+    path: routePath,
+    routeTree: node,
+  }
+
+  if (Object.keys(updatedParams).length > 0) {
+    route.params = { routeParams: { ...updatedParams } }
+  }
+
+  const routes: RouteForLinks[] = [route]
+  const nextDomainContext = effectiveDomain
+  const nextStartIndex = matchResult.nextIndex
+
+  const childMatch = exploreChildren(
+    nextDomainContext,
+    nextStartIndex,
+    updatedParams,
+    false
+  )
+
+  if (childMatch) {
+    return {
+      routes: routes.concat(childMatch.routes),
+      consumed: childMatch.consumed,
+    }
+  }
+
+  return {
+    routes,
+    consumed: nextStartIndex,
+  }
+}
+
+const parsePathIntoSegments = (path: string) => {
+  const [pathWithoutQuery] = path.split('?')
+  let origin: string | undefined
+  let pathname = pathWithoutQuery
+
+  try {
+    const url = new URL(pathWithoutQuery)
+    origin = url.origin
+    pathname = url.pathname
+  } catch {
+    if (pathWithoutQuery.startsWith('//')) {
+      try {
+        const url = new URL(`http:${pathWithoutQuery}`)
+        origin = url.origin
+        pathname = url.pathname
+      } catch {
+        // ignore invalid URL, treat as relative path
+      }
+    }
+  }
+
+  let segments = pathname
+    .split('/')
+    .map((segment) => segment.trim())
+    .filter((segment) => segment.length > 0)
+
+  if (segments.length > 0 && LOCALES.includes(segments[0].toLowerCase())) {
+    segments = segments.slice(1)
+  }
+
+  return {
+    origin: normalizeDomain(origin),
+    segments,
+  }
+}
+
 export const getRoutesForPath = (
   path: string,
   routeTree: RouteTree
 ): RouteForLinks[] => {
-  const pathWithoutQuery = path.split('?')[0]
-  const subPaths = pathWithoutQuery
-    .toLowerCase()
-    .split('/')
-    .filter((p) => p.length > 0)
+  const { origin, segments } = parsePathIntoSegments(path)
 
-  // remove the locale from the path
-  if (subPaths.length > 0 && LOCALES.includes(subPaths[0].toLowerCase())) {
-    subPaths.shift()
+  const match = matchRouteNode(
+    routeTree,
+    segments,
+    origin,
+    undefined,
+    0,
+    {},
+    routeTree
+  )
+
+  if (!match) {
+    throw new Error('Route not found: ' + path + ' in ' + routeTree)
   }
 
-  // ensure that the basePath only has a starting slash
-  const basePath = '/' + routeTree._conf.path.replace(/^\/|\/$/g, '')
-  const routes: RouteForLinks[] = [
-    { name: routeTree._conf.name, path: basePath, routeTree: routeTree },
-  ]
-
-  if (basePath === '/' + subPaths[0]) {
-    subPaths.shift()
+  if (segments.length > 0 && match.consumed < segments.length) {
+    throw new Error('Route not found: ' + path + ' in ' + routeTree)
   }
 
-  const accumulatedParams: Record<string, string> = {}
-
-  let currentPath = basePath.length > 1 ? basePath : ''
-
-  let currentRouteTree = routeTree
-
-  let i = 0
-
-  while (i < subPaths.length) {
-    let foundChild = false
-    const children = getRouteChildren(currentRouteTree)
-    const subPath = subPaths[i]
-
-    for (const child of children) {
-      if (child._conf && child._conf.path.includes(subPath)) {
-        if (child._conf.path === subPath) {
-          currentPath += `/${subPath}`
-
-          const route: RouteForLinks = {
-            name: child._conf.name,
-            path: currentPath,
-            routeTree: child,
-          }
-
-          if (Object.keys(accumulatedParams).length > 0) {
-            route.params = { routeParams: { ...accumulatedParams } }
-          }
-
-          routes.push(route)
-
-          currentRouteTree = child
-          foundChild = true
-          i++
-          break
-        } else {
-          const splitPaths = child._conf.path
-            .split('/')
-            .filter((p: string) => p.length > 0)
-
-          if (
-            splitPaths[0] !== subPath &&
-            !splitPaths[0].startsWith('[') &&
-            !splitPaths[0].endsWith(']')
-          ) {
-            break
-          }
-
-          if (splitPaths.length > 0) {
-            const max = splitPaths.length + i
-
-            let splitIndex = 0
-            while (i < max) {
-              // get the used param if the path is dynamic
-              if (
-                splitPaths[splitIndex].startsWith('[') &&
-                splitPaths[splitIndex].endsWith(']')
-              ) {
-                const paramName = splitPaths[splitIndex].slice(1, -1)
-                accumulatedParams[paramName] = subPaths[i]
-              }
-
-              currentPath += `/${subPaths[i]}`
-              i++
-              splitIndex++
-            }
-
-            const route: RouteForLinks = {
-              name: child._conf.name,
-              path: currentPath,
-              routeTree: child,
-            }
-
-            if (Object.keys(accumulatedParams).length > 0) {
-              route.params = { routeParams: { ...accumulatedParams } }
-            }
-
-            routes.push(route)
-
-            currentRouteTree = child
-            foundChild = true
-            break
-          } else {
-            throw new Error(
-              'RouteTree contains invalid paths: ' + child + ' in ' + routeTree
-            )
-          }
-        }
-      } else if (
-        child._conf.path.startsWith('[') &&
-        child._conf.path.endsWith(']')
-      ) {
-        currentPath += `/${subPath}`
-        const paramName = child._conf.path.slice(1, -1)
-        accumulatedParams[paramName] = subPath
-
-        routes.push({
-          name: child._conf.name,
-          params: { routeParams: { ...accumulatedParams } },
-          path: currentPath,
-          routeTree: child,
-        })
-
-        currentRouteTree = child
-        foundChild = true
-        i++
-        break
-      }
-    }
-
-    if (!foundChild) {
-      throw new Error('Route not found: ' + path + ' in ' + routeTree)
-    }
-  }
-  return routes
+  return match.routes
 }
 
 // export const getRoutesForPath = (
@@ -539,4 +655,23 @@ export const getPathnameWithoutLocale = (
   // Replace /locale at the start with "/"
   const cleaned = pathname.replace(pattern, '/').replace(/\/+$/, '')
   return cleaned === '' ? '/' : cleaned
+}
+
+export const getAppletRouteConfs = (namespace: string) => {
+  const appletDomain =
+    process.env['NEXT_PUBLIC_APPLET_' + namespace.toUpperCase() + '_DOMAIN']
+
+  let basePath = namespace
+  if (
+    compiledApplets.length === 1 &&
+    compiledApplets.includes(namespace.toLowerCase())
+  ) {
+    basePath = ''
+  }
+
+  return {
+    path: basePath,
+    isAppletRoot: true,
+    ...(appletDomain != null && appletDomain != '' && { domain: appletDomain }),
+  }
 }

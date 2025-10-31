@@ -4,7 +4,7 @@ import {
 } from 'next-intl/navigation'
 
 import { LOCALES } from '#/common/navigation/tolgee/shared'
-import { generatePathNames } from '#/common/utils/routing'
+import { generatePathNames } from '#/common/routing/routing'
 import { RouteTree } from '#/common/types/routing'
 
 const requireRouteTrees = (require as any).context('#/app', true, /routes\.ts$/)
@@ -26,4 +26,3 @@ export const {
   usePathname,
   useRouter,
 } = createLocalizedPathnamesNavigation({ locales: LOCALES, pathnames })
-

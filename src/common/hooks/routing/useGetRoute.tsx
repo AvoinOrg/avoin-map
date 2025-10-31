@@ -1,7 +1,7 @@
 'use client'
 import { useUIStore } from '#/common/store'
 import { Params, RouteTree } from '#/common/types/routing'
-import { getRoute } from '#/common/utils/routing-client'
+import { getRoute } from '#/common/routing/routing-client'
 import { useEffect, useMemo } from 'react'
 
 /**

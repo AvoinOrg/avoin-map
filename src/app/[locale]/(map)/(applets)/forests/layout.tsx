@@ -4,7 +4,7 @@ import React from 'react'
 
 import AppletWrapper from '#/components/common/AppletWrapper'
 import { BreadcrumbNav } from '#/components/Sidebar'
-import { routeTree } from '#/app/[locale]/(map)/(applets)/(main)/common/routes'
+import { mainRouteTree } from '#/common/routing/routes/main'
 import { defaultListedLayerGroups } from '#/components/Map/layers/defaultListedLayerGroups'
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
@@ -17,7 +17,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       sidebarHeaderChildren={
         <BreadcrumbNav
           collapseIfRoot={true}
-          routeTree={routeTree}
+          routeTree={mainRouteTree}
         ></BreadcrumbNav>
       }
     >

@@ -1,27 +1,44 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { usePathname } from 'next/navigation'
 import { Box, SxProps, Theme, Typography } from '@mui/material'
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 
 import MutableLink from '#/components/common/MutableLink'
-import { getRoutesForPath } from '#/common/utils/routing'
+import { getRoutesForPath } from '#/common/routing/routing'
 import { RouteForLinks, RouteTree } from '#/common/types/routing'
+import { useUIStore } from '#/common/store'
+import { mainRouteTree } from '#/common/routing/routes/main'
 
 interface Props {
   routeTree: RouteTree
   collapseIfRoot?: boolean
+  appletNamespace?: string
   sx?: SxProps<Theme>
 }
 
 const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
   const pathname = usePathname()
+  const isBaseDomainForApplet = useUIStore(
+    (state) => state.isBaseDomainForApplet
+  )
 
-  const routes = getRoutesForPath(pathname, routeTree)
+  const { routes, usedRouteTree } = useMemo(() => {
+    if (isBaseDomainForApplet && !mainRouteTree._conf.domain) {
+      return {
+        routes: getRoutesForPath(pathname, routeTree),
+        usedRouteTree: routeTree,
+      }
+    }
+    return {
+      routes: getRoutesForPath(pathname, mainRouteTree),
+      usedRouteTree: mainRouteTree,
+    }
+  }, [routeTree, isBaseDomainForApplet])
 
   const RouteElement = ({ route }: { route: RouteForLinks }) => (
     <MutableLink
       route={route.routeTree}
-      routeTree={routeTree}
+      routeTree={usedRouteTree}
       params={route.params}
       sx={{ color: 'inherit' }}
     >
@@ -85,7 +102,7 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
         >
           <MutableLink
             route={routes[routes.length - 2].routeTree}
-            routeTree={routeTree}
+            routeTree={usedRouteTree}
             params={routes[routes.length - 2].params}
           >
             <ArrowBackIosNewIcon

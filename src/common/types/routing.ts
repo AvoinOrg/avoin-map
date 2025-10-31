@@ -4,10 +4,16 @@ export type RouteObject = {
   name: string
   path: string
   isAppletRoot?: boolean
+  domain?: string
+}
+
+export type AppletRouteObject = RouteObject & {
+  isAppletRoot: true
+  domain?: string
 }
 
 export type RouteTree = {
-  _conf: RouteObject
+  _conf: RouteObject | AppletRouteObject
 } & {
   [key: string]: RouteTree | any
 }

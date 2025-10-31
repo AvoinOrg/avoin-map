@@ -21,7 +21,7 @@ import MutableLink from '#/components/common/MutableLink'
 
 import { adminFolayerPatchMutation } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
 import SearchTable from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/SearchTable'
-import { routeTree } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/routes'
+import { routeTree } from '#/common/routing/routes/luonnonmetsakartat'
 import { FolayerConfState } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { getFolayerCentroidSourceId } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/utils'

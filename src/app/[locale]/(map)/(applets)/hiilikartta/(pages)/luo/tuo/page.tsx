@@ -8,7 +8,7 @@ import booleanValid from '@turf/boolean-valid'
 import { flattenDeep } from 'lodash-es'
 import { useTranslate } from '@tolgee/react'
 
-import { getRoute } from '#/common/utils/routing-client'
+import { getRoute } from '#/common/routing/routing-client'
 import {
   FeatureProperties,
   FileType,
@@ -19,7 +19,7 @@ import { getGeoJsonArea } from '#/common/utils/gis'
 import BigMenuButton from '#/components/common/BigMenuButton'
 import { Upload } from '#/components/icons'
 
-import { routeTree } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/routes'
+import { routeTree } from '#/common/routing/routes/hiilikartta'
 import PlanImportGpkg from './_components/PlanImportGpkg'
 import PlanImportShp from './_components/PlanImportShp'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'

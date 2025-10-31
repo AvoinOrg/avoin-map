@@ -1,15 +1,13 @@
 import { RouteTree } from '#/common/types/routing'
+import { getAppletRouteConfs } from '../routing'
 
-const basePath =
-  process.env.NEXT_PUBLIC_APPLET_NAMESPACE === 'hiilikartta'
-    ? ''
-    : 'hiilikartta'
+export const APPLET_NAMESPACE = 'hiilikartta' as const
 
-export const routeTree: RouteTree = {
+const appletConf = getAppletRouteConfs(APPLET_NAMESPACE)
+export const routeTree = {
   _conf: {
-    path: basePath,
     name: 'Etusivu',
-    isAppletRoot: true,
+    ...appletConf,
   },
   create: {
     _conf: {
@@ -41,4 +39,4 @@ export const routeTree: RouteTree = {
       name: 'Raportti',
     },
   },
-}
+} as const satisfies RouteTree

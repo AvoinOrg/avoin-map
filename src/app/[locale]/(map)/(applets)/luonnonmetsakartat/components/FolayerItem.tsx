@@ -8,7 +8,7 @@ import MutableLink from '#/components/common/MutableLink'
 import LoadingHorizontal from '#/components/Loading/LoadingHorizontal'
 
 import { FolayerConf } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
-import { routeTree } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/routes'
+import { routeTree } from '#/common/routing/routes/luonnonmetsakartat'
 import { useFolayer } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/hooks/useFolayer'
 
 const FolayerItem = ({ conf }: { conf: FolayerConf }) => {

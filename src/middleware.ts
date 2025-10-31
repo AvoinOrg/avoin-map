@@ -4,6 +4,8 @@ import {
   DEFAULT_NS,
   getLocalesForNs,
 } from '#/common/navigation/tolgee/shared'
+import { compiledApplets } from './common/routing/routing'
+import { MAIN_NAMESPACE } from './common/routing/routes/main'
 
 // If you don't use domain-based detection anymore, remove this import.
 import conf from '../localeConf.json' assert { type: 'json' }
@@ -62,7 +64,10 @@ function findAppletFromSegment(seg: string): string | null {
 
 // Standalone applet? (env controls it)
 function getActiveAppletNs(): string | null {
-  return process.env.NEXT_PUBLIC_APPLET_NAMESPACE || null
+  if (compiledApplets.length === 1 && compiledApplets[0] !== MAIN_NAMESPACE) {
+    return compiledApplets[0]
+  }
+  return null
 }
 
 export function middleware(req: NextRequest) {

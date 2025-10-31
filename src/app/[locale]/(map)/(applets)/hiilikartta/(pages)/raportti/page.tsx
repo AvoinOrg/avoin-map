@@ -9,13 +9,13 @@ import { styled, SxProps } from '@mui/system'
 import { Box, Theme, Typography, useMediaQuery, useTheme } from '@mui/material'
 import { T, useTranslate } from '@tolgee/react'
 
-import { getRoute } from '#/common/utils/routing-client'
+import { getRoute } from '#/common/routing/routing-client'
 import MultiSelectAutocomplete from '#/components/common/MultiSelectAutocomplete'
 import { FetchStatus, SelectOption } from '#/common/types/general'
 import { Link as LinkIcon } from '#/components/icons'
 
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
-import { routeTree } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/routes'
+import { routeTree } from '#/common/routing/routes/hiilikartta'
 import {
   GlobalState,
   PlanConfWithReportData,

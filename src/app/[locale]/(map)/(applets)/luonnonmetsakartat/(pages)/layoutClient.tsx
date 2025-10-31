@@ -2,7 +2,7 @@
 
 import React from 'react'
 
-import { routeTree } from '../common/routes'
+import { routeTree } from '../../../../../../common/routing/routes/luonnonmetsakartat'
 import { BreadcrumbNav } from '#/components/Sidebar'
 import AppletWrapper from '#/components/common/AppletWrapper'
 import { listedLayerGroups } from '../common/constants'

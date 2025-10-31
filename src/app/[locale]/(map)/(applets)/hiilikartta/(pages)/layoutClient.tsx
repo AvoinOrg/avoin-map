@@ -4,7 +4,7 @@ import React, { useEffect } from 'react'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
 
-import { routeTree } from '../common/routes'
+import { routeTree } from '#/common/routing/routes/hiilikartta'
 import { BreadcrumbNav } from '#/components/Sidebar'
 import AppletWrapper from '#/components/common/AppletWrapper'
 import { useUserStore } from '#/common/store/userStore'

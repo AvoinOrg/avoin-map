@@ -38,8 +38,37 @@ describe('routing utils', () => {
     },
   }
 
+  const routeTreeWithDomains: RouteTree = cloneDeep(routeTree)
+  routeTreeWithDomains._conf = {
+    ...routeTreeWithDomains._conf,
+    domain: 'https://example.org',
+  }
+  routeTreeWithDomains.about._conf = {
+    ...routeTreeWithDomains.about._conf,
+    domain: 'https://about.example.org',
+  }
+
+  const routeTreeWithDomainsNoBaseDomain: RouteTree = cloneDeep(routeTree)
+  routeTreeWithDomainsNoBaseDomain.about._conf = {
+    ...routeTreeWithDomainsNoBaseDomain.about._conf,
+    domain: 'https://about.example.org',
+  }
+
   const routeTreeWithBase: RouteTree = cloneDeep(routeTree)
   routeTreeWithBase._conf.path = '/home'
+
+  const routeTreeWithDomainReset: RouteTree = {
+    _conf: { path: '/', name: 'Root' },
+    muna: {
+      _conf: { path: 'muna', name: 'Muna' },
+      kalle: {
+        _conf: { path: 'kalle', name: 'Kalle', domain: 'https://domain.org' },
+        juntti: {
+          _conf: { path: 'juntti', name: 'Juntti' },
+        },
+      },
+    },
+  }
 
   describe('getRoute', () => {
     it('returns the correct route with no parameters', () => {
@@ -178,6 +207,30 @@ describe('routing utils', () => {
       expect(route).toBe('/home/stuff/123/settings?extraValue=true')
     })
 
+    it('handles routes when the root has a domain', () => {
+      const route = getRoute({
+        routeNode: routeTreeWithDomains.products,
+        routeTree: routeTreeWithDomains,
+      })
+      expect(route).toBe('https://example.org/products')
+    })
+
+    it('handles nested domained routes', () => {
+      const route = getRoute({
+        routeNode: routeTreeWithDomains.about.contact,
+        routeTree: routeTreeWithDomains,
+      })
+      expect(route).toBe('https://about.example.org/about/contact')
+    })
+
+    it('handles domain resets within the tree', () => {
+      const route = getRoute({
+        routeNode: routeTreeWithDomainReset.muna.kalle.juntti,
+        routeTree: routeTreeWithDomainReset,
+      })
+      expect(route).toBe('https://domain.org/kalle/juntti')
+    })
+
     it('throws an error if route not found', () => {
       expect(() =>
         getRoute({
@@ -232,6 +285,22 @@ describe('routing utils', () => {
     it('returns the root route as the parent of a top-level route for a route tree with a base path', () => {
       const route = getRouteParent(routeTreeWithBase.about, routeTreeWithBase)
       expect(route).toBe('/home')
+    })
+
+    it('returns the domained parent route when the node has a domain', () => {
+      const route = getRouteParent(
+        routeTreeWithDomains.about.contact,
+        routeTreeWithDomains
+      )
+      expect(route).toBe('https://about.example.org/about')
+    })
+
+    it('returns the domained parent route when an ancestor resets the domain', () => {
+      const route = getRouteParent(
+        routeTreeWithDomainReset.muna.kalle.juntti,
+        routeTreeWithDomainReset
+      )
+      expect(route).toBe('https://domain.org/kalle')
     })
   })
 
@@ -386,6 +455,70 @@ describe('routing utils', () => {
       const routes = getRoutesForPath('/home', routeTreeWithBase)
       expect(routes).toEqual([
         { name: 'Home', path: '/home', routeTree: routeTreeWithBase },
+      ])
+    })
+
+    it('returns domained routes when the root has a domain', () => {
+      const routes = getRoutesForPath(
+        'https://example.org/products/123',
+        routeTreeWithDomains
+      )
+      expect(routes).toEqual([
+        {
+          name: 'Home',
+          path: 'https://example.org',
+          routeTree: routeTreeWithDomains,
+        },
+        {
+          name: 'Products',
+          path: 'https://example.org/products',
+          routeTree: routeTreeWithDomains.products,
+        },
+        {
+          name: 'Product',
+          path: 'https://example.org/products/123',
+          params: { routeParams: { productId: '123' } },
+          routeTree: routeTreeWithDomains.products.product,
+        },
+      ])
+    })
+
+    it('returns domained routes for nested domains', () => {
+      const routes = getRoutesForPath(
+        'https://about.example.org/about/contact',
+        routeTreeWithDomains
+      )
+      expect(routes).toEqual([
+        {
+          name: 'About',
+          path: 'https://about.example.org/about',
+          routeTree: routeTreeWithDomains.about,
+        },
+        {
+          name: 'Contact',
+          path: 'https://about.example.org/about/contact',
+          routeTree: routeTreeWithDomains.about.contact,
+        },
+      ])
+    })
+
+    it('returns domained routes when a descendant resets the domain', () => {
+      const routes = getRoutesForPath(
+        'https://domain.org/kalle/juntti',
+        routeTreeWithDomainReset
+      )
+      expect(routes).toEqual([
+        { name: 'Root', path: '/', routeTree: routeTreeWithDomainReset },
+        {
+          name: 'Kalle',
+          path: 'https://domain.org/kalle',
+          routeTree: routeTreeWithDomainReset.muna.kalle,
+        },
+        {
+          name: 'Juntti',
+          path: 'https://domain.org/kalle/juntti',
+          routeTree: routeTreeWithDomainReset.muna.kalle.juntti,
+        },
       ])
     })
   })

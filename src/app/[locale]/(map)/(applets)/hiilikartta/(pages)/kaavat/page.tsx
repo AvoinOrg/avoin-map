@@ -10,7 +10,7 @@ import { SidebarContentBox } from '#/components/Sidebar'
 import MutableLink from '#/components/common/MutableLink'
 
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
-import { routeTree } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/routes'
+import { routeTree } from '#/common/routing/routes/hiilikartta'
 import PlanFolder from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanFolder'
 import {
   PlanConf,
