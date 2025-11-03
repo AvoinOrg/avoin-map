@@ -21,7 +21,7 @@ const SidebarContentBox = ({
         {
           flexDirection: 'column',
           height: '100%',
-          width: '100%',
+          width: '30rem',
           display: 'flex',
           minHeight: 0,
           maxWidth: '100%',
