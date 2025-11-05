@@ -1,4 +1,4 @@
-import React, { cloneElement } from 'react'
+import React from 'react'
 import { Button, Tooltip, ButtonProps } from '@mui/material'
 
 export const MAP_BUTTON_SIZE = 40
@@ -47,7 +47,7 @@ export const MapButton = ({
   if (tooltip) {
     return (
       <Tooltip title={tooltip} placement={isVertical ? 'left' : 'bottom'}>
-        {button}
+        <span>{button}</span>
       </Tooltip>
     )
   }

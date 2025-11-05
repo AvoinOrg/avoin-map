@@ -25,6 +25,10 @@ export const getPlanLayerGroupId = (planId: string) => {
   return `${planId}_zoning_plan`
 }
 
+export const getPlanSourceId = (planId: string) => {
+  return getPlanLayerGroupId(planId)
+}
+
 const zoningFillColorExpression = (
   defaultColor = 'white'
 ): ExpressionSpecification => {
@@ -69,7 +73,7 @@ export const createLayerConf = (
   planId: string,
   featureColorCol: string
 ) => {
-  const sourceId = getPlanLayerGroupId(planId)
+  const sourceId = getPlanSourceId(planId)
 
   const style: ExtendedStyleSpecification = {
     version: 8,
