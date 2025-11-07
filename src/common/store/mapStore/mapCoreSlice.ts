@@ -366,7 +366,7 @@ export type MapCoreActions = {
     serializableLayerGroupAddOptions: SerializableLayerGroupAddOptions
   ) => void
   _removePersistingLayerGroupAddOptions: (layerGroupId: string) => void
-  _updateSelectableHoverHandlers: () => void
+  _updateSelectableHoverHandlers: (excludeLayerIds?: string[]) => void
   _enableDraw: (
     drawMode?: MaplibreDraw.DrawMode,
     _queueOptions?: QueueOptions
@@ -1977,7 +1977,7 @@ export const createMapCoreSlice: (
       source.setData(data)
     },
 
-    _updateSelectableHoverHandlers: () => {
+    _updateSelectableHoverHandlers: (excludeLayerIds: string[] = []) => {
       const { _layerGroups, _globalEventHandlers, _setLayerFilters } = get()
       const _map = useMapInstanceStore.getState()._map
       if (!_map) return
@@ -1994,7 +1994,10 @@ export const createMapCoreSlice: (
 
       const selectableLayers: string[] = []
       for (const layerOptions of Object.values(layerOptionsObj)) {
-        if (layerOptions.hoverPointer) {
+        if (
+          layerOptions.hoverPointer &&
+          !excludeLayerIds.includes(layerOptions.id)
+        ) {
           selectableLayers.push(layerOptions.id)
         }
       }
@@ -2223,6 +2226,7 @@ export const createMapCoreSlice: (
           _disableLayerGroupEventHandlers,
           setSelectedFeatures,
           _updateDrawSelectedFeatures,
+          _updateSelectableHoverHandlers,
         } = get()
         const _map = useMapInstanceStore.getState()._map
 
@@ -2240,10 +2244,13 @@ export const createMapCoreSlice: (
           return
         }
 
+        const layerGroup = _layerGroups[layerGroupId]
+        const layerIds = Object.keys(layerGroup.layers)
         const originalStyles: Record<string, any> = {}
 
+        // dim underlying layers
         _map?.getStyle().layers.forEach((layer) => {
-          if (layer.id.startsWith(`${layerGroupId}-`)) {
+          if (layerIds.includes(layer.id)) {
             let opacityProperty: string | undefined = undefined
 
             switch (layer.type) {
@@ -2293,6 +2300,9 @@ export const createMapCoreSlice: (
         })
 
         _map?.addControl(draw, 'bottom-right')
+
+        // Update selectable hover handlers to exclude drawn layers
+        _updateSelectableHoverHandlers(layerIds)
 
         const idField = _drawOptions.idField || 'id'
 
@@ -2468,7 +2478,7 @@ export const createMapCoreSlice: (
     disableDraw: helpers.queueableFnInit(
       async () => {
         const _map = useMapInstanceStore.getState()._map
-        const { _drawOptions } = get()
+        const { _drawOptions, _updateSelectableHoverHandlers } = get()
 
         const drawInstance = _drawOptions.draw
 
@@ -2531,6 +2541,9 @@ export const createMapCoreSlice: (
           }
 
           _map?.removeControl(drawInstance)
+
+          // re-enable selectable hover handlers, if some were disabled
+          _updateSelectableHoverHandlers()
 
           await set((state) => {
             state._drawOptions.draw = null
