@@ -11,6 +11,30 @@ import {
   createMapCoreSlice,
 } from './mapCoreSlice'
 import {
+  MapLayerActions,
+  MapLayerSlice,
+  MapLayerVars,
+  createMapLayerSlice,
+} from './mapLayerSlice'
+import {
+  MapFeatureActions,
+  MapFeatureSlice,
+  MapFeatureVars,
+  createMapFeatureSlice,
+} from './mapFeatureSlice'
+import {
+  MapActionActions,
+  MapActionSlice,
+  MapActionVars,
+  createMapActionSlice,
+} from './mapActionSlice'
+import {
+  MapDrawActions,
+  MapDrawSlice,
+  MapDrawVars,
+  createMapDrawSlice,
+} from './mapDrawSlice'
+import {
   MapDevActions,
   MapDevVars,
   MapDevSlice,
@@ -30,11 +54,26 @@ import {
 
 // Combine all slice types into a single store type
 
-export type MapStoreActions = MapCoreActions & MapDevActions
+export type MapStoreActions = MapCoreActions &
+  MapLayerActions &
+  MapFeatureActions &
+  MapActionActions &
+  MapDrawActions &
+  MapDevActions
 
-export type MapStoreVars = MapCoreVars & MapDevVars
+export type MapStoreVars = MapCoreVars &
+  MapLayerVars &
+  MapFeatureVars &
+  MapActionVars &
+  MapDrawVars &
+  MapDevVars
 
-export type MapStoreState = MapCoreSlice & MapDevSlice
+export type MapStoreState = MapCoreSlice &
+  MapLayerSlice &
+  MapFeatureSlice &
+  MapActionSlice &
+  MapDrawSlice &
+  MapDevSlice
 // &
 //   LayerSlice &
 //   SelectionSlice &
@@ -130,6 +169,10 @@ export const useMapStore = create<MapStoreState>()(
 
         return {
           ...createMapCoreSlice(helpers)(set, get, api),
+          ...createMapLayerSlice(helpers)(set, get, api),
+          ...createMapFeatureSlice(helpers)(set, get, api),
+          ...createMapActionSlice(helpers)(set, get, api),
+          ...createMapDrawSlice(helpers)(set, get, api),
           ...createMapDevSlice(helpers)(set, get, api),
         }
         // ...createLayerSlice(...args),
