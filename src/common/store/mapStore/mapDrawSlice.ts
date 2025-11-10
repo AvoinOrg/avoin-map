@@ -8,6 +8,10 @@ import { useMapInstanceStore } from './mapInstanceStore'
 import drawStyles from '#/common/utils/drawStyles'
 import {
   getMaplibreDrawMode,
+  ensureCorridorPreviewLayers,
+  CORRIDOR_PREVIEW_SOURCE_ID,
+  CORRIDOR_PREVIEW_LAYER_ID,
+  corridorPolygonFromLine,
   getLayerGroupIdForLayer,
   getSelectableLayers,
   isLayerGroupSelectable,
@@ -18,7 +22,12 @@ import {
   deleteFeatureFromDrawSource,
 } from '#/common/utils/map'
 import type { MapStoreHelpers, MapStateCreator } from './mapStore'
-import type { MapDrawOptions, DrawMode, QueueOptions } from '#/common/types/map'
+import type {
+  MapDrawOptions,
+  DrawMode,
+  QueueOptions,
+  ExtendedMaplibreDrawMode,
+} from '#/common/types/map'
 import { QueuePriority } from '#/common/types/map'
 
 export type MapDrawVars = {
@@ -56,6 +65,8 @@ export const createMapDrawSlice: (
       isEnabled: false,
       featureAddMutator: undefined,
       idField: undefined,
+      corridorEnabled: true,
+      corridorHalfWidthMeters: 3,
     },
   }
 
@@ -129,7 +140,7 @@ export const createMapDrawSlice: (
     ),
 
     _enableDraw: helpers.queueableFnInit(
-      async (drawMode?: MaplibreDraw.DrawMode) => {
+      async (drawMode?: ExtendedMaplibreDrawMode) => {
         const {
           _drawOptions,
           selectedFeatures,
@@ -202,12 +213,63 @@ export const createMapDrawSlice: (
           }
         })
 
+        // Extend draw with custom corridor mode
+        const BaseLine: any = (MaplibreDraw as any).modes.draw_line_string
+        const DrawCorridorMode: any = {
+          ...BaseLine,
+          onSetup(this: any, opts: any) {
+            const state = BaseLine.onSetup.call(this, opts)
+            ensureCorridorPreviewLayers(this.map)
+            state._raf = 0
+            return state
+          },
+          onMouseMove(this: any, state: any, e: any) {
+            BaseLine.onMouseMove.call(this, state, e)
+            this._renderCorridorPreview(state)
+          },
+          onClick(this: any, state: any, e: any) {
+            BaseLine.onClick.call(this, state, e)
+            this._renderCorridorPreview(state)
+          },
+          onStop(this: any, state: any) {
+            const src: any = this.map.getSource(CORRIDOR_PREVIEW_SOURCE_ID)
+            if (src) src.setData({ type: 'FeatureCollection', features: [] })
+            BaseLine.onStop.call(this, state)
+          },
+          _renderCorridorPreview(this: any, state: any) {
+            if (!state?.line) return
+            const coords =
+              state.line.coordinates ??
+              (typeof state.line.getCoordinates === 'function'
+                ? state.line.getCoordinates()
+                : null)
+            if (!coords || coords.length < 2) return
+            const line = {
+              type: 'Feature',
+              properties: {},
+              geometry: { type: 'LineString', coordinates: coords },
+            }
+            const half = (get()._drawOptions.corridorHalfWidthMeters ??
+              3) as number
+            cancelAnimationFrame(state._raf)
+            state._raf = requestAnimationFrame(async () => {
+              const poly = await corridorPolygonFromLine(line as any, half)
+              const src: any = this.map.getSource(CORRIDOR_PREVIEW_SOURCE_ID)
+              if (src) src.setData(poly)
+            })
+          },
+        }
+
         const draw = new MaplibreDraw({
           displayControlsDefault: false,
           defaultMode: drawMode || 'simple_select',
           userProperties: true,
           styles: drawStyles,
           keybindings: true,
+          modes: {
+            ...(MaplibreDraw as any).modes,
+            draw_corridor: DrawCorridorMode,
+          },
         })
 
         _map?.addControl(draw, 'bottom-right')
@@ -260,7 +322,8 @@ export const createMapDrawSlice: (
           }
 
           const handleDrawCreate = (e: any) => {
-            e.features.forEach((feature: Feature) => {
+            const mode = draw.getMode()
+            e.features.forEach(async (feature: Feature) => {
               if (_drawOptions.featureAddMutator != null) {
                 const mutatedFeature = _drawOptions.featureAddMutator(feature)
 
@@ -275,7 +338,27 @@ export const createMapDrawSlice: (
                   return
                 }
               }
-              addFeatureToDrawSource(feature, layerGroupId, _map)
+              let f: Feature = feature
+              if (mode === 'draw_corridor') {
+                try {
+                  const half = _drawOptions.corridorHalfWidthMeters ?? 3
+                  const poly = (await corridorPolygonFromLine(
+                    feature as any,
+                    half
+                  )) as any
+                  // Replace the temp line feature in draw with the polygon
+                  try {
+                    draw.delete(String(feature.id))
+                  } catch {}
+                  const props = feature.properties || {}
+                  poly.properties = { ...props }
+                  draw.add(poly)
+                  f = poly
+                } catch (err) {
+                  console.error('Failed to create corridor polygon', err)
+                }
+              }
+              addFeatureToDrawSource(f, layerGroupId, _map)
             })
           }
 
@@ -449,6 +532,14 @@ export const createMapDrawSlice: (
             await drawInstance.changeMode('simple_select', {
               featureIds: [],
             })
+          }
+
+          // Clean up corridor preview artifacts
+          if (_map?.getLayer(CORRIDOR_PREVIEW_LAYER_ID)) {
+            _map.removeLayer(CORRIDOR_PREVIEW_LAYER_ID)
+          }
+          if (_map?.getSource(CORRIDOR_PREVIEW_SOURCE_ID)) {
+            _map.removeSource(CORRIDOR_PREVIEW_SOURCE_ID)
           }
 
           _map?.removeControl(drawInstance)
