@@ -165,6 +165,7 @@ export interface LayerGroupDrawOptions {
   polygonEnabled?: boolean
   editEnabled?: boolean
   deleteEnabled?: boolean
+  corridorEnabled?: boolean
   featureAddMutator?: (feature: Feature) => Feature
   featureUpdateMutator?: (feature: Feature) => Feature
 }
@@ -178,6 +179,7 @@ export interface MapDrawOptions extends LayerGroupDrawOptions {
   handleDrawUpdate?: (e: any) => void
   handleDrawDelete?: (e: any) => void
   handleSelectionChange?: (e: any) => void
+  corridorHalfWidthMeters?: number
 }
 
 export enum LayerOrderLevel {
@@ -473,7 +475,9 @@ export const isGeoJSONSource = (source: any): source is GeoJSONSource => {
   return source != null && 'setData' in source // or other appropriate conditions
 }
 
-export type DrawMode = 'polygon' | 'edit'
+export type DrawMode = 'polygon' | 'edit' | 'corridor'
+
+export type ExtendedMaplibreDrawMode = MaplibreDraw.DrawMode | 'draw_corridor'
 
 export type FitBoundsOptions = {
   duration?: number
