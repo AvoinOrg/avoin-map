@@ -1,0 +1,12 @@
+diff --git a/package.json b/package.json
+index b51c5f361f5d615588736cf53880f0806b208b97..17f9a76e02f6ffeda10e7113a3979d46ac6b0ae8 100644
+--- a/package.json
++++ b/package.json
+@@ -11,6 +11,7 @@
+     "Topology",
+     "Geometry"
+   ],
++  "main": "dist/jsts.min.js",
+   "license": "(EDL-1.0 OR EPL-1.0)",
+   "devDependencies": {
+     "@rollup/plugin-commonjs": "^28.0.1",
