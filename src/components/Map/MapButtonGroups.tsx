@@ -158,6 +158,16 @@ export const MapButtons = ({ isVertical }: Props) => {
               <Polygon />
             </MapButton>
           )}
+          {allowedDrawModes.includes('corridor') && (
+            <MapButton
+              onClick={() => setDrawMode('corridor')}
+              size="small"
+              tooltip={t('map.buttons.draw_corridor', 'Draw corridor')}
+              isVertical={isVertical}
+            >
+              <EditDocument />
+            </MapButton>
+          )}
         </MapButtonGroup>
       )}
       {(hasBackgroundLayers || hasBackgroundOverlayLayers) && (
