@@ -15,3 +15,5 @@ declare module 'next-auth' {
     }
   }
 }
+
+declare module 'jsts'
