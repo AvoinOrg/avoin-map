@@ -72,6 +72,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             polygonEnabled: true,
             editEnabled: true,
             deleteEnabled: true,
+            corridorEnabled: true,
             featureAddMutator: (feature: Feature) => {
               const properties: FeatureProperties = {
                 id: generateUUID(),
