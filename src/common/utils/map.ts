@@ -11,7 +11,8 @@ import {
 // import { asArray } from 'ol/color'
 // import { packColor } from 'ol/renderer/webgl/shaders'
 import { Feature, FeatureCollection, Geometry, Position } from 'geojson'
-import type { DrawMode as MaplibreDrawMode } from 'maplibre-gl-draw'
+import { buffer, Feature as TurfFeature, LineString, Polygon } from '@turf/turf'
+import { toMercator, toWgs84 } from '@turf/projection'
 import { AllGeoJSON, center } from '@turf/turf'
 
 import {
@@ -33,6 +34,7 @@ import {
   GeneratedFillPatternOptions,
   ColorStop,
   AutoRelocateOptions,
+  ExtendedMaplibreDrawMode,
 } from '../types/map'
 import { clone, uniqBy } from 'lodash-es'
 import { useMapStore } from '../store'
@@ -693,22 +695,30 @@ export const fetchFeaturesByIds = ({
   return features
 }
 
-export const getMaplibreDrawMode = (drawMode: DrawMode): MaplibreDrawMode => {
+export const getMaplibreDrawMode = (
+  drawMode: DrawMode
+): ExtendedMaplibreDrawMode => {
   switch (drawMode) {
     case 'polygon':
       return 'draw_polygon'
     case 'edit':
       return 'simple_select'
+    case 'corridor':
+      return 'draw_corridor' as any
   }
 }
 
 // TODO: Add more modes as needed
-export const getDrawMode = (maplibreDrawMode: MaplibreDrawMode): DrawMode => {
+export const getDrawMode = (
+  maplibreDrawMode: ExtendedMaplibreDrawMode
+): DrawMode => {
   switch (maplibreDrawMode) {
     case 'draw_polygon':
       return 'polygon'
     case 'simple_select':
       return 'edit'
+    case 'draw_corridor':
+      return 'corridor'
     case 'direct_select':
       return 'edit'
     case 'static':
@@ -716,6 +726,67 @@ export const getDrawMode = (maplibreDrawMode: MaplibreDrawMode): DrawMode => {
     default:
       return 'edit'
   }
+}
+
+// Corridor preview/buffer helpers
+export const CORRIDOR_PREVIEW_SOURCE_ID = 'corridor-preview-src'
+export const CORRIDOR_PREVIEW_LAYER_ID = 'corridor-preview-layer'
+
+export const ensureCorridorPreviewLayers = (map: Map) => {
+  if (!map.getSource(CORRIDOR_PREVIEW_SOURCE_ID)) {
+    map.addSource(CORRIDOR_PREVIEW_SOURCE_ID, {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: [] },
+    } as any)
+  }
+  if (!map.getLayer(CORRIDOR_PREVIEW_LAYER_ID)) {
+    map.addLayer({
+      id: CORRIDOR_PREVIEW_LAYER_ID,
+      type: 'fill',
+      source: CORRIDOR_PREVIEW_SOURCE_ID,
+      paint: { 'fill-color': '#3b82f6', 'fill-opacity': 0.25 },
+    })
+  }
+}
+
+let jstsP: Promise<any> | null = null
+const getJSTS = () => (jstsP ??= import('jsts'))
+
+// Create a polygon buffered around a LineString with rounded corners and flat end caps where possible.
+// Falls back to Turf buffer (rounded ends) when flat caps are not available.
+export const corridorPolygonFromLine = async (
+  line: TurfFeature<LineString>,
+  halfWidthMeters: number
+): Promise<TurfFeature<Polygon>> => {
+  try {
+    // Try JSTS if available for flat ends
+    const jsts = await getJSTS()
+
+    if (jsts) {
+      console.log(jsts)
+      const reader = new jsts.io.GeoJSONReader()
+      const writer = new jsts.io.GeoJSONWriter()
+      const params = new jsts.operation.buffer.BufferParameters()
+      params.setEndCapStyle(jsts.operation.buffer.BufferParameters.CAP_FLAT)
+      params.setJoinStyle(jsts.operation.buffer.BufferParameters.JOIN_ROUND)
+      params.setQuadrantSegments(12)
+
+      const m = toMercator(line) as any
+      const geom = reader.read(m)
+      const buffered = jsts.operation.buffer.BufferOp.bufferOp(
+        geom,
+        halfWidthMeters,
+        params
+      )
+      const wgs = toWgs84(writer.write(buffered)) as TurfFeature<Polygon>
+      return wgs
+    }
+  } catch {}
+
+  // Fallback: Turf buffer (rounded ends)
+  const km = halfWidthMeters / 1000
+  const poly = buffer(line, km, { units: 'kilometers', steps: 16 }) as any
+  return poly as TurfFeature<Polygon>
 }
 
 export const isLayerGroupSelectable = (
