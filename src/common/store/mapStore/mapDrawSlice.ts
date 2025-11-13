@@ -12,7 +12,7 @@ import {
   CORRIDOR_PREVIEW_SOURCE_ID,
   CORRIDOR_PREVIEW_LAYER_ID,
   corridorPolygonFromLine,
-  getLayerGroupIdForLayer,
+  getLayerGroupIdForSource,
   getSelectableLayers,
   isLayerGroupSelectable,
   fetchFeaturesByIds,
@@ -460,8 +460,12 @@ export const createMapDrawSlice: (
 
       let newSelectedFeatures: MapGeoJSONFeature[] = []
       newSelectedFeatures = selectedFeatures.filter((feature) => {
+        const sourceId = feature.source as string | undefined
+        if (!sourceId) {
+          return false
+        }
         return (
-          getLayerGroupIdForLayer(feature.layer.id, _layerGroups) ===
+          getLayerGroupIdForSource(sourceId, _layerGroups) ===
           _drawOptions.layerGroupId
         )
       })
