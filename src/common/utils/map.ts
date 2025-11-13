@@ -10,7 +10,13 @@ import {
 // import WebGLVectorLayerRenderer from 'ol/renderer/webgl/VectorLayer'
 // import { asArray } from 'ol/color'
 // import { packColor } from 'ol/renderer/webgl/shaders'
-import { Feature, FeatureCollection, Geometry, Position } from 'geojson'
+import {
+  Feature,
+  FeatureCollection,
+  Geometry,
+  MultiPolygon,
+  Position,
+} from 'geojson'
 import { buffer, Feature as TurfFeature, LineString, Polygon } from '@turf/turf'
 import { toMercator, toWgs84 } from '@turf/projection'
 import { AllGeoJSON, center } from '@turf/turf'
@@ -750,43 +756,93 @@ export const ensureCorridorPreviewLayers = (map: Map) => {
 }
 
 let jstsP: Promise<any> | null = null
-const getJSTS = () => (jstsP ??= import('jsts'))
+export const getJSTS = () =>
+  (jstsP ??= (async () => {
+    const [GeoJSONReader, GeoJSONWriter, BufferParameters, BufferOp] =
+      await Promise.all([
+        import('jsts/org/locationtech/jts/io/GeoJSONReader.js').then(
+          (m) => m.default
+        ),
+        import('jsts/org/locationtech/jts/io/GeoJSONWriter.js').then(
+          (m) => m.default
+        ),
+        import(
+          'jsts/org/locationtech/jts/operation/buffer/BufferParameters.js'
+        ).then((m) => m.default),
+        import('jsts/org/locationtech/jts/operation/buffer/BufferOp.js').then(
+          (m) => m.default
+        ),
+      ])
+    return {
+      io: { GeoJSONReader, GeoJSONWriter },
+      operation: { buffer: { BufferParameters, BufferOp } },
+    }
+  })())
+const asGeometry = (g: any) => {
+  if (!g) return null
+  if (g.type === 'Feature') return g.geometry
+  if (g.type === 'FeatureCollection') {
+    // you draw one line; take first geometry defensively
+    const f = g.features?.[0]
+    return f ? f.geometry : null
+  }
+  return g // already a geometry
+}
 
-// Create a polygon buffered around a LineString with rounded corners and flat end caps where possible.
-// Falls back to Turf buffer (rounded ends) when flat caps are not available.
+const asFeature = (geom: any): TurfFeature<Polygon | MultiPolygon> => ({
+  type: 'Feature',
+  properties: {},
+  geometry: geom as Polygon | MultiPolygon,
+})
+
+// --- MAIN API ---------------------------------------------------------------
 export const corridorPolygonFromLine = async (
   line: TurfFeature<LineString>,
   halfWidthMeters: number
-): Promise<TurfFeature<Polygon>> => {
+): Promise<TurfFeature<Polygon | MultiPolygon>> => {
+  // Prefer JSTS when it’s legal to load; otherwise fall back cleanly.
   try {
-    // Try JSTS if available for flat ends
     const jsts = await getJSTS()
 
-    if (jsts) {
-      console.log(jsts)
-      const reader = new jsts.io.GeoJSONReader()
-      const writer = new jsts.io.GeoJSONWriter()
-      const params = new jsts.operation.buffer.BufferParameters()
-      params.setEndCapStyle(jsts.operation.buffer.BufferParameters.CAP_FLAT)
-      params.setJoinStyle(jsts.operation.buffer.BufferParameters.JOIN_ROUND)
-      params.setQuadrantSegments(12)
+    // PROJECT → READ GEOMETRY (not Feature!) → BUFFER → WRITE → UNPROJECT
+    const merc = toMercator(line) as any
+    const geomIn = asGeometry(merc)
+    if (!geomIn) throw new Error('GeoJSONReader: no geometry extracted')
 
-      const m = toMercator(line) as any
-      const geom = reader.read(m)
-      const buffered = jsts.operation.buffer.BufferOp.bufferOp(
-        geom,
-        halfWidthMeters,
-        params
-      )
-      const wgs = toWgs84(writer.write(buffered)) as TurfFeature<Polygon>
-      return wgs
-    }
-  } catch {}
+    const reader = new jsts.io.GeoJSONReader()
+    const writer = new jsts.io.GeoJSONWriter()
 
-  // Fallback: Turf buffer (rounded ends)
+    const jGeom = reader.read(geomIn) // JTS Geometry
+    if (!jGeom) throw new Error('GeoJSONReader returned undefined')
+
+    const params = new jsts.operation.buffer.BufferParameters()
+    params.setEndCapStyle(jsts.operation.buffer.BufferParameters.CAP_FLAT) // flat ends
+    params.setJoinStyle(jsts.operation.buffer.BufferParameters.JOIN_ROUND) // rounded bends
+    params.setQuadrantSegments(12)
+
+    const jBuffered = jsts.operation.buffer.BufferOp.bufferOp(
+      jGeom,
+      halfWidthMeters,
+      params
+    )
+    const geojsonGeom = writer.write(jBuffered) // Geometry JSON (not Feature)
+    const wgsGeom = toWgs84(geojsonGeom) as Polygon | MultiPolygon
+
+    return asFeature(wgsGeom)
+  } catch (err) {
+    // Loud, but don’t brick drawing
+    console.warn(
+      '[corridorPolygonFromLine] JSTS failed; falling back to Turf:',
+      err
+    )
+  }
+
+  // Fallback: Turf buffer (rounded ends everywhere)
   const km = halfWidthMeters / 1000
-  const poly = buffer(line, km, { units: 'kilometers', steps: 16 }) as any
-  return poly as TurfFeature<Polygon>
+  return buffer(line, km, {
+    units: 'kilometers',
+    steps: 16,
+  }) as TurfFeature<Polygon | MultiPolygon>
 }
 
 export const isLayerGroupSelectable = (

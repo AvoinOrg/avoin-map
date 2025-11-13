@@ -45,7 +45,8 @@
   "include": [
     "src",
     ".next/types/**/*.ts",
-    "localeConf.json"
+    "localeConf.json",
+    "src/types/**/*.d.ts"
   ],
   "exclude": [
     "node_modules"

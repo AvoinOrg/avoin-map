@@ -175,8 +175,5 @@
       "react-app"
     ]
   },
-  "packageManager": "yarn@3.6.0",
-  "resolutions": {
-    "jsts@^2.12.1": "patch:jsts@npm%3A2.12.1#./.yarn/patches/jsts-npm-2.12.1-3b2a88e458.patch"
-  }
+  "packageManager": "yarn@3.6.0"
 }

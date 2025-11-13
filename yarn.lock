@@ -14490,21 +14490,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsts@npm:2.12.1":
+"jsts@npm:^2.12.1":
   version: 2.12.1
   resolution: "jsts@npm:2.12.1"
   dependencies:
     fastpriorityqueue: ^0.7.5
   checksum: 8820dd8bfc82a35598086b06e48169d5879c99c76f241cff5ba09778f2c394d3624a683337c05ca5d164746b6cd8ce892d652aa428ac746f1fbd94ee3fb16ae7
-  languageName: node
-  linkType: hard
-
-"jsts@patch:jsts@npm%3A2.12.1#./.yarn/patches/jsts-npm-2.12.1-3b2a88e458.patch::locator=climate-map%40workspace%3A.":
-  version: 2.12.1
-  resolution: "jsts@patch:jsts@npm%3A2.12.1#./.yarn/patches/jsts-npm-2.12.1-3b2a88e458.patch::version=2.12.1&hash=a041cb&locator=climate-map%40workspace%3A."
-  dependencies:
-    fastpriorityqueue: ^0.7.5
-  checksum: 2188540364550196fb5d6a30019d713ae6d24f9b4c709e603646036f1263dba8460fefa4877c8415783be71c38b7977da5595c982861781e84ba9fa36401a0ef
   languageName: node
   linkType: hard
 
