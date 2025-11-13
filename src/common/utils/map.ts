@@ -817,7 +817,6 @@ const asFeature = (geom: any): TurfFeature<Polygon | MultiPolygon> => ({
   geometry: geom as Polygon | MultiPolygon,
 })
 
-// --- MAIN API ---------------------------------------------------------------
 export const corridorPolygonFromLine = async (
   line: TurfFeature<LineString>,
   halfWidthMeters: number
@@ -838,9 +837,9 @@ export const corridorPolygonFromLine = async (
     if (!jGeom) throw new Error('GeoJSONReader returned undefined')
 
     const params = new jsts.operation.buffer.BufferParameters()
-    params.setEndCapStyle(jsts.operation.buffer.BufferParameters.CAP_FLAT) // flat ends
-    params.setJoinStyle(jsts.operation.buffer.BufferParameters.JOIN_ROUND) // rounded bends
-    params.setQuadrantSegments(12)
+  params.setEndCapStyle(jsts.operation.buffer.BufferParameters.CAP_FLAT) // flat ends
+  params.setJoinStyle(jsts.operation.buffer.BufferParameters.JOIN_MITRE) // sharp bends
+  params.setMitreLimit(1) // fall back to beveled corners on very acute angles
 
     const jBuffered = jsts.operation.buffer.BufferOp.bufferOp(
       jGeom,
