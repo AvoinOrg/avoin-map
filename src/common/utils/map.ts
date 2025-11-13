@@ -307,6 +307,29 @@ export const getLayerGroupIdForLayer = (
   return null // return null if no group is found containing the layerId
 }
 
+export const getLayerGroupIdForSource = (
+  sourceId: string,
+  layerGroups: LayerGroups
+): string | null => {
+  for (const groupId in layerGroups) {
+    if (!Object.prototype.hasOwnProperty.call(layerGroups, groupId)) {
+      continue
+    }
+    const group = layerGroups[groupId]
+    for (const sourceKey in group.sources) {
+      if (!Object.prototype.hasOwnProperty.call(group.sources, sourceKey)) {
+        continue
+      }
+      const source = group.sources[sourceKey]
+      if (source.id === sourceId || sourceKey === sourceId) {
+        return groupId
+      }
+    }
+  }
+
+  return null
+}
+
 // A helper function for resolving a style
 // that can be either a style object or
 // a function returning a style object.
@@ -759,7 +782,7 @@ export const ensureCorridorPreviewLayers = (map: Map) => {
 export const clearCorridorPreview = (map: maplibregl.Map) => {
   const src = map.getSource(CORRIDOR_PREVIEW_SOURCE_ID) as any
   if (src) {
-    console.log("CLEARING CORRIDOR PREVIEW")
+    console.log('CLEARING CORRIDOR PREVIEW')
     src.setData({ type: 'FeatureCollection', features: [] })
   }
 }
@@ -837,9 +860,9 @@ export const corridorPolygonFromLine = async (
     if (!jGeom) throw new Error('GeoJSONReader returned undefined')
 
     const params = new jsts.operation.buffer.BufferParameters()
-  params.setEndCapStyle(jsts.operation.buffer.BufferParameters.CAP_FLAT) // flat ends
-  params.setJoinStyle(jsts.operation.buffer.BufferParameters.JOIN_MITRE) // sharp bends
-  params.setMitreLimit(1) // fall back to beveled corners on very acute angles
+    params.setEndCapStyle(jsts.operation.buffer.BufferParameters.CAP_FLAT) // flat ends
+    params.setJoinStyle(jsts.operation.buffer.BufferParameters.JOIN_MITRE) // sharp bends
+    params.setMitreLimit(1) // fall back to beveled corners on very acute angles
 
     const jBuffered = jsts.operation.buffer.BufferOp.bufferOp(
       jGeom,
