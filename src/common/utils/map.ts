@@ -750,8 +750,30 @@ export const ensureCorridorPreviewLayers = (map: Map) => {
       id: CORRIDOR_PREVIEW_LAYER_ID,
       type: 'fill',
       source: CORRIDOR_PREVIEW_SOURCE_ID,
+      layout: { visibility: 'none' },
       paint: { 'fill-color': '#3b82f6', 'fill-opacity': 0.25 },
     })
+  }
+}
+
+export const clearCorridorPreview = (map: maplibregl.Map) => {
+  const src = map.getSource(CORRIDOR_PREVIEW_SOURCE_ID) as any
+  if (src) {
+    console.log("CLEARING CORRIDOR PREVIEW")
+    src.setData({ type: 'FeatureCollection', features: [] })
+  }
+}
+
+export const setCorridorPreviewVisible = (
+  map: maplibregl.Map,
+  show: boolean
+) => {
+  if (map.getLayer(CORRIDOR_PREVIEW_LAYER_ID)) {
+    map.setLayoutProperty(
+      CORRIDOR_PREVIEW_LAYER_ID,
+      'visibility',
+      show ? 'visible' : 'none'
+    )
   }
 }
 

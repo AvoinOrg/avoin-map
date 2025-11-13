@@ -20,6 +20,8 @@ import {
   addFeatureToDrawSource,
   updateFeatureInDrawSource,
   deleteFeatureFromDrawSource,
+  setCorridorPreviewVisible,
+  clearCorridorPreview,
 } from '#/common/utils/map'
 import type { MapStoreHelpers, MapStateCreator } from './mapStore'
 import type {
@@ -220,7 +222,9 @@ export const createMapDrawSlice: (
           onSetup(this: any, opts: any) {
             const state = BaseLine.onSetup.call(this, opts)
             ensureCorridorPreviewLayers(this.map)
+            setCorridorPreviewVisible(this.map, true)
             state._raf = 0
+            state._exiting = false
             return state
           },
           onMouseMove(this: any, state: any, e: any) {
@@ -232,12 +236,15 @@ export const createMapDrawSlice: (
             this._renderCorridorPreview(state)
           },
           onStop(this: any, state: any) {
-            const src: any = this.map.getSource(CORRIDOR_PREVIEW_SOURCE_ID)
-            if (src) src.setData({ type: 'FeatureCollection', features: [] })
+            clearCorridorPreview(this.map)
+            setCorridorPreviewVisible(this.map, false)
+            state._exiting = true
             BaseLine.onStop.call(this, state)
           },
           _renderCorridorPreview(this: any, state: any) {
             if (!state?.line) return
+            if (state._exiting) return
+
             const coords =
               state.line.coordinates ??
               (typeof state.line.getCoordinates === 'function'
@@ -262,7 +269,7 @@ export const createMapDrawSlice: (
 
         const draw = new MaplibreDraw({
           displayControlsDefault: false,
-          defaultMode: drawMode || 'simple_select',
+          defaultMode: 'simple_select',
           userProperties: true,
           styles: drawStyles,
           keybindings: true,
@@ -274,6 +281,19 @@ export const createMapDrawSlice: (
 
         _map?.addControl(draw, 'bottom-right')
 
+        // const onModeChange = (e: any) => {
+        //   console.log('changing mode', e.mode)
+        //   const mode = e.mode
+        //   const show = mode === 'draw_corridor'
+        //   setCorridorPreviewVisible(_map!, show)
+        //   if (!show) clearCorridorPreview(_map!)
+        // }
+
+        // _map?.on('draw.modechange', onModeChange)
+
+        if (drawMode && drawMode !== 'simple_select') {
+          draw.changeMode(drawMode as any)
+        }
         // Update selectable hover handlers to exclude drawn layers
         _updateSelectableHoverHandlers(layerIds)
 
