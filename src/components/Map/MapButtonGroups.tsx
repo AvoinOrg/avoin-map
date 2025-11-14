@@ -19,6 +19,7 @@ import {
   Delete,
   LayersDark,
   Layers,
+  Line,
 } from '#/components/icons'
 import { useIsDrawEnabled } from '#/common/hooks/map/useIsDrawEnabled'
 import { useAllowedDrawModes } from '#/common/hooks/map/useAllowedDrawModes'
@@ -165,7 +166,7 @@ export const MapButtons = ({ isVertical }: Props) => {
               tooltip={t('map.buttons.draw_corridor', 'Draw corridor')}
               isVertical={isVertical}
             >
-              <EditDocument />
+              <Line />
             </MapButton>
           )}
         </MapButtonGroup>
