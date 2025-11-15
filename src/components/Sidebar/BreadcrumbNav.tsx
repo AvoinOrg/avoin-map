@@ -33,7 +33,7 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
       routes: getRoutesForPath(pathname, mainRouteTree),
       usedRouteTree: mainRouteTree,
     }
-  }, [routeTree, isBaseDomainForApplet])
+  }, [routeTree, isBaseDomainForApplet, pathname])
 
   const RouteElement = ({ route }: { route: RouteForLinks }) => (
     <MutableLink
