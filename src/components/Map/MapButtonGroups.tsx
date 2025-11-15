@@ -284,21 +284,22 @@ const MapButtonGroup = ({ isVertical, sx, ...props }: MapButtonGroupProps) => (
   <ButtonGroup
     {...props}
     sx={{
-      // This rule handles a single button in the group, ensuring all corners are rounded.
-      '& .MuiButton-root': {
+      // Tooltip wraps each button in a span, so target the wrapper first.
+      '& > *:not(style) .MuiButton-root': {
         border: 0,
+        borderRadius: 0,
       },
-      '& .MuiButton-root:first-of-type': {
+      '& > *:not(style):first-of-type .MuiButton-root': {
         borderTopLeftRadius: '0.3125rem',
         borderBottomLeftRadius: isVertical ? 0 : '0.3125rem',
         borderTopRightRadius: isVertical ? '0.3125rem' : 0,
       },
-      '& .MuiButton-root:last-of-type': {
+      '& > *:not(style):last-of-type .MuiButton-root': {
         borderTopRightRadius: isVertical ? 0 : '0.3125rem',
         borderBottomLeftRadius: isVertical ? '0.3125rem' : 0,
         borderBottomRightRadius: '0.3125rem',
       },
-      '& .MuiButton-root:only-child': {
+      '& > *:not(style):only-child .MuiButton-root': {
         borderRadius: '0.3125rem',
       },
       ...sx,
