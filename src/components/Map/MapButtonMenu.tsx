@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState, ReactElement } from 'react'
-import { Box, ClickAwayListener, Paper, Popper } from '@mui/material'
+import { Box, Paper, Popper } from '@mui/material'
 import type { PopperPlacementType } from '@mui/material/Popper'
 import type { SxProps, Theme } from '@mui/material/styles'
 import { alpha } from '@mui/material/styles'
@@ -48,9 +48,11 @@ export const MapButtonMenu = ({
   }
 
   const originalOnClick = children.props.onClick
-  const childRef = (children as React.ReactElement & {
-    ref?: React.Ref<HTMLButtonElement>
-  }).ref
+  const childRef = (
+    children as React.ReactElement & {
+      ref?: React.Ref<HTMLButtonElement>
+    }
+  ).ref
 
   const setChildRef = (node: HTMLButtonElement | null) => {
     anchorRef.current = node
@@ -71,17 +73,6 @@ export const MapButtonMenu = ({
     if (childDisabled) return
 
     setOpen((prev) => !prev)
-  }
-
-  const handleClose = (event: MouseEvent | TouchEvent) => {
-    if (
-      anchorRef.current &&
-      event.target instanceof HTMLElement &&
-      anchorRef.current.contains(event.target)
-    ) {
-      return
-    }
-    setOpen(false)
   }
 
   const clonedChild = React.cloneElement(children, {
@@ -121,7 +112,7 @@ export const MapButtonMenu = ({
           (theme) => ({
             zIndex: theme.zIndex.drawer + 3,
           }),
-          popperSx,
+          ...(Array.isArray(popperSx) ? popperSx : [popperSx]),
         ]}
       >
         <Paper
@@ -139,12 +130,10 @@ export const MapButtonMenu = ({
               borderRadius: '0.3125rem',
               width: 'fit-content',
             }),
-            paperSx,
+            ...(Array.isArray(paperSx) ? paperSx : [paperSx]),
           ]}
         >
-          <ClickAwayListener onClickAway={handleClose}>
-            <Box>{menuContent}</Box>
-          </ClickAwayListener>
+          <Box>{menuContent}</Box>
         </Paper>
       </Popper>
     </>
