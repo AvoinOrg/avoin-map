@@ -38,6 +38,7 @@ export type MapDrawVars = {
 
 export type MapDrawActions = {
   deleteDrawFeatures: (features: Feature[]) => void
+  setCorridorHalfWidthMeters: (value: number) => void
   toggleDrawMode: (
     drawMode: DrawMode,
     _queueOptions?: QueueOptions
@@ -87,6 +88,13 @@ export const createMapDrawSlice: (
       _drawOptions.draw.delete(featureIds)
 
       _map?.fire('draw.delete', { features })
+    },
+
+    setCorridorHalfWidthMeters: (value: number) => {
+      const nextValue = Number.isFinite(value) ? Math.max(0, value) : 0
+      set((state) => {
+        state._drawOptions.corridorHalfWidthMeters = nextValue
+      })
     },
 
     toggleDrawMode: helpers.queueableFnInit(
