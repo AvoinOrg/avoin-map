@@ -4,7 +4,9 @@ import React, { useMemo } from 'react'
 import ButtonGroup, { ButtonGroupProps } from '@mui/material/ButtonGroup'
 import ExploreIcon from '@mui/icons-material/ExploreOutlined'
 import DoneIcon from '@mui/icons-material/Done'
-import { Box } from '@mui/material'
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
+import { Box, IconButton, InputAdornment, TextField, Typography } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
 import { useMapStore } from '#/common/store'
@@ -27,6 +29,7 @@ import { useSelectedDrawFeatures } from '#/common/hooks/map/useSelectedDrawFeatu
 import { useIsDrawDeleteAllowed } from '#/common/hooks/map/useIsDrawDeleteAllowed'
 import { MapLayerButton } from './MapLayerButton'
 import { MapButton } from './MapButton'
+import { MapButtonMenu } from './MapButtonMenu'
 import { LayerOrderLevel } from '#/common/types/map'
 
 const IS_DEV = process.env.NODE_ENV === 'development'
@@ -160,14 +163,19 @@ export const MapButtons = ({ isVertical }: Props) => {
             </MapButton>
           )}
           {allowedDrawModes.includes('corridor') && (
-            <MapButton
-              onClick={() => setDrawMode('corridor')}
-              size="small"
-              tooltip={t('map.buttons.draw_corridor', 'Draw corridor')}
+            <MapButtonMenu
               isVertical={isVertical}
+              menuContent={<CorridorBufferMenu />}
             >
-              <Line />
-            </MapButton>
+              <MapButton
+                onClick={() => setDrawMode('corridor')}
+                size="small"
+                tooltip={t('map.buttons.draw_corridor', 'Draw corridor')}
+                isVertical={isVertical}
+              >
+                <Line />
+              </MapButton>
+            </MapButtonMenu>
           )}
         </MapButtonGroup>
       )}
@@ -306,3 +314,123 @@ const MapButtonGroup = ({ isVertical, sx, ...props }: MapButtonGroupProps) => (
     }}
   />
 )
+
+const CORRIDOR_BUFFER_STEP = 0.5
+
+const normalizeCorridorBuffer = (value: number) => {
+  if (!Number.isFinite(value)) {
+    return 0
+  }
+  const stepped =
+    Math.round(value / CORRIDOR_BUFFER_STEP) * CORRIDOR_BUFFER_STEP
+  return Math.max(0, Number(stepped.toFixed(2)))
+}
+
+const formatCorridorBuffer = (value: number) =>
+  Number(value.toFixed(2)).toString()
+
+const CorridorBufferMenu = () => {
+  const { t } = useTranslate('avoin-map')
+  const corridorBuffer =
+    useMapStore((state) => state._drawOptions.corridorHalfWidthMeters) ?? 0
+  const setCorridorBuffer = useMapStore(
+    (state) => state.setCorridorHalfWidthMeters
+  )
+  const [inputValue, setInputValue] = React.useState(() =>
+    formatCorridorBuffer(corridorBuffer)
+  )
+
+  React.useEffect(() => {
+    setInputValue(formatCorridorBuffer(corridorBuffer))
+  }, [corridorBuffer])
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = event.target.value
+    setInputValue(rawValue)
+    const parsed = parseFloat(rawValue.replace(',', '.'))
+    if (!Number.isNaN(parsed)) {
+      setCorridorBuffer(normalizeCorridorBuffer(parsed))
+    }
+  }
+
+  const handleBlur = () => {
+    const parsed = parseFloat(inputValue.replace(',', '.'))
+    if (Number.isNaN(parsed)) {
+      setInputValue(formatCorridorBuffer(corridorBuffer))
+      return
+    }
+    const normalized = normalizeCorridorBuffer(parsed)
+    setCorridorBuffer(normalized)
+    setInputValue(formatCorridorBuffer(normalized))
+  }
+
+  const adjustBuffer = (delta: number) => {
+    const normalized = normalizeCorridorBuffer(corridorBuffer + delta)
+    setCorridorBuffer(normalized)
+    setInputValue(formatCorridorBuffer(normalized))
+  }
+
+  return (
+    <Box sx={{ minWidth: '14rem', display: 'flex', flexDirection: 'column', gap: 1 }}>
+      <Typography variant="body1" sx={{ fontWeight: 600, textAlign: 'left' }}>
+        {t('map.buttons.corridor_buffer', 'Corridor buffer')}
+      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <TextField
+          value={inputValue}
+          onChange={handleInputChange}
+          onBlur={handleBlur}
+          size="small"
+          type="number"
+          inputProps={{
+            min: 0,
+            step: CORRIDOR_BUFFER_STEP,
+            inputMode: 'decimal',
+            'aria-label': t('map.buttons.corridor_buffer', 'Corridor buffer'),
+          }}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                {t('map.buttons.meters_suffix', 'm')}
+              </InputAdornment>
+            ),
+          }}
+          sx={{ width: '7rem' }}
+        />
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            border: (theme) => `1px solid ${theme.palette.divider}`,
+            borderRadius: '0.25rem',
+            overflow: 'hidden',
+          }}
+        >
+          <IconButton
+            size="small"
+            onClick={() => adjustBuffer(CORRIDOR_BUFFER_STEP)}
+            aria-label={t(
+              'map.buttons.corridor_buffer_increase',
+              'Increase buffer'
+            )}
+            sx={{ p: 0 }}
+          >
+            <KeyboardArrowUpIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            onClick={() => adjustBuffer(-CORRIDOR_BUFFER_STEP)}
+            aria-label={t(
+              'map.buttons.corridor_buffer_decrease',
+              'Decrease buffer'
+            )}
+            disabled={corridorBuffer <= 0}
+            sx={{ p: 0 }}
+          >
+            <KeyboardArrowDownIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      </Box>
+    </Box>
+  )
+}
