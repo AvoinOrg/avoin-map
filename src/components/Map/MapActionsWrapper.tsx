@@ -67,6 +67,7 @@ export const MapActionsWrapper = () => {
         flexDirection: isVertical ? 'column' : 'row',
         gap: theme.spacing(1),
         alignItems: 'flex-end',
+        pointerEvents: 'none',
         zIndex:
           theme.zIndex.mapButtons /* force this to be on top of the map */,
       })}

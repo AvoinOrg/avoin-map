@@ -106,6 +106,7 @@ export const MapButtons = ({ isVertical }: Props) => {
         display: 'flex',
         flexDirection: isVertical ? 'column' : 'row',
         gap: 1,
+        pointerEvents: 'auto',
       }}
     >
       {isDrawEnabled && isDrawDeleteAllowed && (

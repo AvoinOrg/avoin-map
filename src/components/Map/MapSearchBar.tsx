@@ -244,6 +244,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
         backgroundColor: 'neutral.light',
         marginLeft: 'auto',
         borderRadius: '0.3125rem',
+        pointerEvents: 'auto',
         overflow: 'hidden',
         '&:hover': {
           opacity: 1,
