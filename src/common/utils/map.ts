@@ -782,7 +782,6 @@ export const ensureCorridorPreviewLayers = (map: Map) => {
 export const clearCorridorPreview = (map: maplibregl.Map) => {
   const src = map.getSource(CORRIDOR_PREVIEW_SOURCE_ID) as any
   if (src) {
-    console.log('CLEARING CORRIDOR PREVIEW')
     src.setData({ type: 'FeatureCollection', features: [] })
   }
 }
