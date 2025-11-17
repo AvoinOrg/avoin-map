@@ -6,7 +6,13 @@ import ExploreIcon from '@mui/icons-material/ExploreOutlined'
 import DoneIcon from '@mui/icons-material/Done'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
-import { Box, IconButton, InputAdornment, TextField, Typography } from '@mui/material'
+import {
+  Box,
+  IconButton,
+  InputAdornment,
+  TextField,
+  Typography,
+} from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
 import { useMapStore } from '#/common/store'
@@ -31,6 +37,7 @@ import { MapLayerButton } from './MapLayerButton'
 import { MapButton } from './MapButton'
 import { MapButtonMenu } from './MapButtonMenu'
 import { LayerOrderLevel } from '#/common/types/map'
+import { MapButtonStickyMenu } from './MapButtonStickyMenu'
 
 const IS_DEV = process.env.NODE_ENV === 'development'
 
@@ -164,7 +171,7 @@ export const MapButtons = ({ isVertical }: Props) => {
             </MapButton>
           )}
           {allowedDrawModes.includes('corridor') && (
-            <MapButtonMenu
+            <MapButtonStickyMenu
               isVertical={isVertical}
               menuContent={<CorridorBufferMenu />}
             >
@@ -176,7 +183,7 @@ export const MapButtons = ({ isVertical }: Props) => {
               >
                 <Line />
               </MapButton>
-            </MapButtonMenu>
+            </MapButtonStickyMenu>
           )}
         </MapButtonGroup>
       )}
@@ -372,7 +379,14 @@ const CorridorBufferMenu = () => {
   }
 
   return (
-    <Box sx={{ minWidth: '14rem', display: 'flex', flexDirection: 'column', gap: 1 }}>
+    <Box
+      sx={{
+        minWidth: '14rem',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 1,
+      }}
+    >
       <Typography variant="body1" sx={{ fontWeight: 600, textAlign: 'left' }}>
         {t('map.buttons.corridor_buffer', 'Corridor buffer')}
       </Typography>
