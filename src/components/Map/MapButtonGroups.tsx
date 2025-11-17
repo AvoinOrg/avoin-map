@@ -173,6 +173,7 @@ export const MapButtons = ({ isVertical }: Props) => {
           {allowedDrawModes.includes('corridor') && (
             <MapButtonStickyMenu
               isVertical={isVertical}
+              isActive={drawMode === 'corridor'}
               menuContent={<CorridorBufferMenu />}
             >
               <MapButton

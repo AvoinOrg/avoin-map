@@ -10,11 +10,13 @@ import {
   MAP_SEARCH_BAR_VERTICAL_MODE_WIDTH,
 } from './MapSearchBar'
 import { MAP_BUTTON_SIZE } from './MapButton'
+import { Slot } from '../context/slotsContext'
 
 const SIDE_MARGIN = 32
 
 export const MapActionsWrapper = () => {
   const minMapWidth = useUIStore((state) => state.mapDims.min?.width)
+  const activeMapMenu = useUIStore((state) => state.activeMapMenu)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const { width: wrapperWidth, height: wrapperHeight } =
     useElementSize(wrapperRef)
@@ -55,6 +57,8 @@ export const MapActionsWrapper = () => {
     }
   }, [minMapWidth, debouncedHorizontalWidth])
 
+  const isSearchOpen = activeMapMenu === 'search'
+
   return (
     <Box
       ref={wrapperRef}
@@ -64,7 +68,7 @@ export const MapActionsWrapper = () => {
         top: theme.spacing(2),
         right: theme.spacing(2),
         display: 'flex',
-        flexDirection: isVertical ? 'column' : 'row',
+        flexDirection: 'column',
         gap: theme.spacing(1),
         alignItems: 'flex-end',
         pointerEvents: 'none',
@@ -74,8 +78,58 @@ export const MapActionsWrapper = () => {
     >
       {minMapWidth != null && (
         <>
-          <MapSearchBar isVertical={isVertical} />
-          <MapButtons isVertical={isVertical} />
+          {isVertical ? (
+            <>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  gap: 1,
+                  alignItems: 'flex-end',
+                  pointerEvents: 'auto',
+                }}
+              >
+                {!isSearchOpen && <Slot name="map-sticky-menu-toggle" />}
+                <MapSearchBar isVertical={isVertical} />
+              </Box>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  gap: 1,
+                  alignItems: 'flex-end',
+                  pointerEvents: 'auto',
+                }}
+              >
+                {isSearchOpen && <Slot name="map-sticky-menu-toggle" />}
+                <MapButtons isVertical={isVertical} />
+              </Box>
+            </>
+          ) : (
+            <>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  gap: 1,
+                  alignItems: 'flex-end',
+                  pointerEvents: 'auto',
+                }}
+              >
+                <MapSearchBar isVertical={isVertical} />
+                <MapButtons isVertical={isVertical} />
+              </Box>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  pointerEvents: 'auto',
+                }}
+              >
+                <Slot name="map-sticky-menu-toggle" />
+              </Box>
+            </>
+          )}
         </>
       )}
     </Box>
