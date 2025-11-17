@@ -155,7 +155,7 @@ export const MapButtonStickyMenu = ({
         ]}
         sx={[
           (theme) => ({
-            zIndex: theme.zIndex.drawer + 3,
+            zIndex: theme.zIndex.drawer - 1,
           }),
           ...(Array.isArray(popperSx) ? popperSx : [popperSx]),
         ]}
