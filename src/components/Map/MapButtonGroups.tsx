@@ -116,22 +116,20 @@ export const MapButtons = ({ isVertical }: Props) => {
         pointerEvents: 'auto',
       }}
     >
-      {isDrawEnabled && isDrawDeleteAllowed && (
+      {isDrawEnabled && isDrawDeleteAllowed && drawMode != null && (
         <MapButtonGroup
           orientation={isVertical ? 'vertical' : 'horizontal'}
           isVertical={isVertical}
         >
-          {drawMode != null && (
-            <MapButton
-              onClick={handleDrawDeleteClick}
-              size="small"
-              disabled={selectedDrawFeatures.length === 0}
-              tooltip={t('map.buttons.draw_delete')}
-              isVertical={isVertical}
-            >
-              <Delete />
-            </MapButton>
-          )}
+          <MapButton
+            onClick={handleDrawDeleteClick}
+            size="small"
+            disabled={selectedDrawFeatures.length === 0}
+            tooltip={t('map.buttons.draw_delete')}
+            isVertical={isVertical}
+          >
+            <Delete />
+          </MapButton>
         </MapButtonGroup>
       )}
       {isDrawEnabled && (
