@@ -97,7 +97,7 @@ export const MapActionsWrapper = () => {
                   display: 'flex',
                   flexDirection: 'row',
                   gap: 1,
-                  alignItems: 'flex-end',
+                  alignItems: 'flex-start',
                   pointerEvents: 'auto',
                 }}
               >
