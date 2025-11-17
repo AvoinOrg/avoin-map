@@ -238,7 +238,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
             ? MAP_SEARCH_BAR_VERTICAL_MODE_WIDTH
             : MAP_SEARCH_BAR_HORIZONTAL_MODE_WIDTH,
         height: '40px',
-        transition: `width ${isActive ? '0.2s' : '0.2s'} ease-in-out`,
+        // transition: `width ${isActive ? '0.2s' : '0.2s'} ease-in-out`,
         zIndex: isFocused ? (theme) => theme.zIndex.drawer + 5 : 'auto',
         right: 0,
         backgroundColor: 'neutral.light',
