@@ -12,7 +12,7 @@ import { useTranslate } from '@tolgee/react'
 import { ArrowUp } from '#/components/icons'
 import { useUIStore } from '#/common/store'
 import { IntoSlot } from '../context/slotsContext'
-import { MapButton, MapButtonProps } from './MapButton'
+import { MAP_BUTTON_SIZE, MapButton, MapButtonProps } from './MapButton'
 
 type MapButtonStickyMenuProps = {
   children: React.ReactElement<MapButtonProps>
@@ -94,31 +94,51 @@ export const MapButtonStickyMenu = ({
     onClick: handleChildClick,
   })
 
+  const anchorEl =
+    typeof document !== 'undefined' && anchorRef.current
+      ? document.body.contains(anchorRef.current)
+        ? anchorRef.current
+        : null
+      : anchorRef.current
+
+  const isSearchOpenVertical = isVertical && activeMapMenu === 'search'
+  const effectiveOpen = open && !isSearchOpenVertical && Boolean(anchorEl)
+
   return (
     <>
       {clonedChild}
 
       <IntoSlot name={STICKY_MENU_SLOT_NAME}>
-        <MapButton
-          ref={anchorRef}
-          onClick={handleToggleFromIcon}
-          size="small"
-          tooltip={t('map.buttons.menu.show', 'Show menu')}
-          isVertical={isVertical}
+        <Box
+          sx={{
+            visibility: open ? 'hidden' : 'visible',
+          }}
         >
-          <TuneIcon />
-        </MapButton>
+          <MapButton
+            ref={anchorRef}
+            onClick={handleToggleFromIcon}
+            size="small"
+            tooltip={t('map.buttons.menu.show', 'Show menu')}
+            isVertical={isVertical}
+          >
+            <TuneIcon />
+          </MapButton>
+        </Box>
       </IntoSlot>
 
       <Popper
-        open={open}
-        anchorEl={anchorRef.current}
-        placement={placement ?? (isVertical ? 'left-start' : 'bottom-end')}
+        open={effectiveOpen}
+        anchorEl={anchorEl}
+        placement={
+          placement ?? (isVertical ? 'bottom-end' : 'bottom-start')
+        }
         modifiers={[
           {
             name: 'offset',
             options: {
-              offset: [0, 8],
+              // Move popper up by button height so it visually
+              // replaces the toggle button instead of appearing below it.
+              offset: [0, -MAP_BUTTON_SIZE],
             },
           },
           {
