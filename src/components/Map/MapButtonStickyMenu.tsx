@@ -129,9 +129,7 @@ export const MapButtonStickyMenu = ({
       <Popper
         open={effectiveOpen}
         anchorEl={anchorEl}
-        placement={
-          placement ?? (isVertical ? 'bottom-end' : 'bottom-start')
-        }
+        placement={placement ?? (isVertical ? 'bottom-end' : 'bottom-start')}
         modifiers={[
           {
             name: 'offset',
