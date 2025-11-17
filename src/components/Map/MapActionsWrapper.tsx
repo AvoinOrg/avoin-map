@@ -84,24 +84,31 @@ export const MapActionsWrapper = () => {
                 sx={{
                   display: 'flex',
                   flexDirection: 'row',
-                  gap: 1,
+                  gap: '0.5rem',
                   alignItems: 'flex-end',
                   pointerEvents: 'auto',
                 }}
               >
-                {!isSearchOpen && <Slot name="map-sticky-menu-toggle" />}
                 <MapSearchBar isVertical={isVertical} />
               </Box>
               <Box
                 sx={{
                   display: 'flex',
                   flexDirection: 'row',
-                  gap: 1,
+                  gap: '0.5rem',
                   alignItems: 'flex-start',
                   pointerEvents: 'auto',
                 }}
               >
-                {isSearchOpen && <Slot name="map-sticky-menu-toggle" />}
+                <Box
+                  sx={{
+                    marginTop: isSearchOpen
+                      ? 0
+                      : `calc(-${MAP_BUTTON_SIZE}px - 0.5rem)`,
+                  }}
+                >
+                  <Slot name="map-sticky-menu-toggle" />
+                </Box>
                 <MapButtons isVertical={isVertical} />
               </Box>
             </>
@@ -111,7 +118,7 @@ export const MapActionsWrapper = () => {
                 sx={{
                   display: 'flex',
                   flexDirection: 'row',
-                  gap: 1,
+                  gap: "0.5rem",
                   alignItems: 'flex-end',
                   pointerEvents: 'auto',
                 }}
