@@ -30,6 +30,8 @@ export const MapButton = forwardRef<HTMLButtonElement, MapButtonProps>(
         sx={{
           width: MAP_BUTTON_SIZE,
           height: MAP_BUTTON_SIZE,
+          minWidth: MAP_BUTTON_SIZE,
+          borderRadius: '0.3125rem',
           backgroundColor: 'neutral.light',
           color: 'text.primary',
           boxShadow: 'none',
