@@ -32,7 +32,11 @@ export const MapActionsWrapper = () => {
   const horizontalWidth = useMemo(() => {
     if (!debouncedWrapperHeight || !debouncedWrapperWidth) return undefined
 
-    if (debouncedWrapperHeight && debouncedWrapperHeight > MAP_BUTTON_SIZE) {
+    if (
+      debouncedWrapperHeight &&
+      debouncedWrapperWidth &&
+      debouncedWrapperHeight > debouncedWrapperWidth
+    ) {
       const width =
         debouncedWrapperHeight +
         MAP_SEARCH_BAR_HORIZONTAL_MODE_WIDTH -
@@ -118,7 +122,7 @@ export const MapActionsWrapper = () => {
                 sx={{
                   display: 'flex',
                   flexDirection: 'row',
-                  gap: "0.5rem",
+                  gap: '0.5rem',
                   alignItems: 'flex-end',
                   pointerEvents: 'auto',
                 }}
