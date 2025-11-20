@@ -22,7 +22,10 @@ import { ArrowNextBig, Delete, Star } from '#/components/icons'
 
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 import { routeTree } from '#/common/routing/routes/hiilikartta'
-import { checkIsValidZoningCode } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
+import {
+  checkIsValidLandUseDistribution,
+  checkIsValidZoningCode,
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
 import ZoneAccordion from './_components/ZoneAccordion'
 import { calcPostMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/calcPostMutation'
 import PlanFolder from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanFolder'
@@ -54,7 +57,6 @@ const Page = () => {
   const calcPost = useMutation(calcPostMutation())
   const planDelete = useMutation(planDeleteMutation())
   const [currentYear, setCurrentYear] = useState<string>()
-  const [areSettingsValid, setAreSettingsValid] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
   const router = useRouter()
   const { t } = useTranslate('hiilikartta')
@@ -66,18 +68,20 @@ const Page = () => {
     return true
   }, [planConf?.data?.features])
 
-  useEffect(() => {
+  const areSettingsValid = useMemo(() => {
     if (planConf?.data.features) {
       for (const feature of planConf.data.features) {
         if (!checkIsValidZoningCode(feature.properties.zoning_code)) {
-          if (areSettingsValid) {
-            setAreSettingsValid(false)
-          }
-          return
+          return false
+        }
+        if (!checkIsValidLandUseDistribution(feature.properties)) {
+          return false
         }
       }
-      setAreSettingsValid(true)
+      return true
     }
+
+    return false
   }, [planConf?.data.features])
 
   const handleSubmit = async () => {

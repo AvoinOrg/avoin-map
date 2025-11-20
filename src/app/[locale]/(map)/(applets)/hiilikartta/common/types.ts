@@ -82,6 +82,7 @@ export type NewPlanConf = {
 export type FileType = 'shp' | 'geojson' | 'gpkg'
 
 export const ZONING_CODE_COL = 'zoning_code'
+
 export interface FeatureProperties {
   id: string
   name: string | number
@@ -89,6 +90,9 @@ export interface FeatureProperties {
   zoning_code: string | null
   old_zoning_code?: string
   old_id?: string | number
+  new_land_use_without_vegetation?: number
+  new_land_use_with_vegetation?: number
+  remaining_existing_land_use?: number
 }
 
 export const featureCols = [

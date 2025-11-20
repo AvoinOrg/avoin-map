@@ -14,6 +14,7 @@ import {
   FeatureCalcs,
   GraphCalcType,
   ReportData,
+  FeatureProperties,
 } from './types'
 import {
   ZONING_CLASSES,
@@ -168,7 +169,6 @@ export const createLayerConf = (
   const layerConf: SerializableLayerConf = {
     id: sourceId,
     style: style,
-    useMb: true,
   }
 
   return layerConf
@@ -444,6 +444,40 @@ export const processCalcQueryToReportData = (data: any): ReportData => {
   }
 
   return reportData
+}
+
+export const checkIsValidLandUseDistribution = (
+  properties: FeatureProperties
+) => {
+  const newLandUseWithoutVegetation = properties.new_land_use_without_vegetation
+  const newLandUseWithVegetation = properties.new_land_use_with_vegetation
+  const remainingExistingLandUse = properties.remaining_existing_land_use
+
+  if (
+    newLandUseWithoutVegetation == undefined &&
+    newLandUseWithVegetation == undefined &&
+    remainingExistingLandUse == undefined
+  ) {
+    return true
+  }
+
+  if (
+    newLandUseWithoutVegetation == undefined ||
+    newLandUseWithVegetation == undefined ||
+    remainingExistingLandUse == undefined
+  ) {
+    return false
+  }
+
+  if (
+    newLandUseWithoutVegetation +
+      newLandUseWithVegetation +
+      remainingExistingLandUse ===
+    100
+  ) {
+    return true
+  }
+  return false
 }
 
 export const checkIsValidZoningCode = (zoningCode: string | null) => {

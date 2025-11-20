@@ -1,5 +1,7 @@
 import { CarbonChangeColorItem } from './types'
 
+export const CUSTOM_ZONING_CODE = 'OMA'
+
 export const CARBON_CHANGE_COLORS: CarbonChangeColorItem[] = [
   { min: -1000, max: -500, color: '#C54032' },
   { min: -500, max: -250, color: '#F25050' },
@@ -15,6 +17,12 @@ export const CARBON_CHANGE_COLORS: CarbonChangeColorItem[] = [
 export const CARBON_CHANGE_NO_DATA_COLOR = '#D9D9D9'
 
 export const ZONING_CLASSES = [
+  {
+    name: 'Oma valinta',
+    code: CUSTOM_ZONING_CODE,
+    color_hex: '#3bf63eff',
+    color_pantone: '137',
+  },
   {
     name: 'Asuinalueet',
     code: 'A',

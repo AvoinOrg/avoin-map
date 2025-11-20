@@ -11,12 +11,12 @@ import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state
 const ZoneAccordionItemTitle = ({
   name,
   zoningCode,
-  isValidZoningCode,
+  isValid,
   onChange,
 }: {
   name: PlanDataFeature['properties']['name']
   zoningCode: PlanDataFeature['properties']['zoning_code']
-  isValidZoningCode: boolean
+  isValid: boolean
   onChange: (event: any) => void
 }) => {
   const { t } = useTranslate('hiilikartta')
@@ -48,7 +48,7 @@ const ZoneAccordionItemTitle = ({
       sx={{
         display: 'flex',
         flexDirection: 'row',
-        color: isValidZoningCode ? 'auto' : 'warning.main',
+        color: isValid ? 'auto' : 'warning.main',
         justifyContent: 'space-between',
         height: '100%',
         alignItems: 'center',
@@ -65,7 +65,7 @@ const ZoneAccordionItemTitle = ({
         sx={{ pr: 1 }}
         iconSx={{ fontSize: '16px' }}
       ></EditableText>
-      {!isValidZoningCode && (
+      {!isValid && (
         <Exclamation sx={{ height: '1.4rem' }}></Exclamation>
       )}
     </Box>
