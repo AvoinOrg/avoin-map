@@ -154,3 +154,5 @@ src/app/api/map/*
 i18n/*
 
 .dev
+
+.codex
