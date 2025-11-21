@@ -1,0 +1,56 @@
+// .devcontainer/devcontainer.json
+{
+  "name": "climate-map",
+  // ① Re-use your existing compose file (or chain in overrides)
+  "dockerComposeFile": [
+    "../docker-compose.yml"
+  ],
+  "service": "app-dev",
+  "workspaceFolder": "/app",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "charliermarsh.ruff",
+        "dbaeumer.vscode-eslint",
+        "docker.docker",
+        "esbenp.prettier-vscode",
+        "github.copilot",
+        "github.copilot-chat",
+        "github.vscode-pull-request-github",
+        "ms-azuretools.vscode-docker",
+        "ms-python.debugpy",
+        "ms-python.python",
+        "ms-toolsai.jupyter",
+        "ms-toolsai.jupyter-keymap",
+        "ms-toolsai.jupyter-renderers",
+        "ms-toolsai.vscode-jupyter-cell-tags",
+        "ms-toolsai.vscode-jupyter-slideshow",
+        "openai.chatgpt"
+      ]
+    }
+  },
+  // "initializeCommand": "sudo groupadd -f -g $(stat -c '%g' /var/run/docker.sock) docker && sudo usermod -aG $(stat -c '%g' /var/run/docker.sock) $(id -un)",
+  // "postStartCommand": ".devcontainer/configure-env.sh",
+  "features": {
+    // "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
+  // "initializeCommand": [
+  //   "bash",
+  //   "-c",
+  //   "SOCK=/var/run/docker.sock; GID=$(stat -c '%g' $SOCK); if ! getent group $GID >/dev/null 2>&1; then groupadd -g $GID host-docker; fi; usermod -aG $GID node"
+  // ],
+  "runServices": [
+    "app-dev"
+  ],
+  // Mount the **stable** SSH-agent socket
+  // "mounts": [
+  //   "type=bind,source=${localEnv:HOME}/.ssh/sockets,target=/ssh-sockets",
+  //   "source=${localWorkspaceFolder}/.codex,target=/home/node/.codex,type=bind,consistency=cached",
+  //   "type=bind,source=${localEnv:HOME}/.codex/auth.json,target=/home/node/.codex/auth.json,consistency=cached"
+  //   // "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  // ],
+  // "remoteEnv": {
+  //   "SSH_AUTH_SOCK": "/ssh-sockets/agent.sock"
+  // },
+  "remoteUser": "node"
+}

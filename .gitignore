@@ -115,7 +115,7 @@ yarn-debug.log*
 yarn-error.log*
 
 .vscode
-.devcontainer
+.devcontainer/devcontainer.json
 
 # Local Netlify folder
 .netlify
