@@ -3,7 +3,7 @@
 import { cloneDeep } from 'lodash-es'
 import MaplibreDraw from 'maplibre-gl-draw'
 import type { Feature, FeatureCollection } from 'geojson'
-import type { MapGeoJSONFeature } from 'maplibre-gl'
+import type { MapGeoJSONFeature, IControl } from 'maplibre-gl'
 import { useMapInstanceStore } from './mapInstanceStore'
 import drawStyles from '#/common/utils/drawStyles'
 import {
@@ -295,7 +295,7 @@ export const createMapDrawSlice: (
           },
         })
 
-        _map?.addControl(draw, 'bottom-right')
+        _map?.addControl(draw as unknown as IControl, 'bottom-right')
 
         // const onModeChange = (e: any) => {
         //   console.log('changing mode', e.mode)
@@ -603,7 +603,7 @@ export const createMapDrawSlice: (
             _map.removeSource(CORRIDOR_PREVIEW_SOURCE_ID)
           }
 
-          _map?.removeControl(drawInstance)
+          _map?.removeControl(drawInstance as unknown as IControl)
 
           // re-enable selectable hover handlers, if some were disabled
           _updateSelectableHoverHandlers()
