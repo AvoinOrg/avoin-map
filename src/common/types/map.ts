@@ -166,6 +166,7 @@ export interface LayerGroupDrawOptions {
   editEnabled?: boolean
   deleteEnabled?: boolean
   corridorEnabled?: boolean
+  corridorHalfWidthMeters?: number
   featureAddMutator?: (feature: Feature) => Feature
   featureUpdateMutator?: (feature: Feature) => Feature
 }

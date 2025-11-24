@@ -369,7 +369,10 @@ export const createMapDrawSlice: (
               let f: Feature = feature
               if (mode === 'draw_corridor') {
                 try {
-                  const half = _drawOptions.corridorHalfWidthMeters ?? 3
+                  const half =
+                    get()._drawOptions.corridorHalfWidthMeters ??
+                    _drawOptions.corridorHalfWidthMeters ??
+                    3
                   const poly = (await corridorPolygonFromLine(
                     feature as any,
                     half

@@ -1389,12 +1389,24 @@ export const createMapLayerSlice: (
             await _removeDraw({ skipQueue: true })
           }
           set((state) => {
+            const prevDrawOptions = state._drawOptions
+            const corridorHalfWidth =
+              opts.drawOptions?.corridorHalfWidthMeters ??
+              prevDrawOptions?.corridorHalfWidthMeters ??
+              3
+            const corridorEnabled =
+              opts.drawOptions?.corridorEnabled ??
+              prevDrawOptions?.corridorEnabled ??
+              true
+
             state._drawOptions = {
               draw: null,
               polygonEnabled: false,
               editEnabled: false,
               deleteEnabled: false,
               ...opts.drawOptions,
+              corridorEnabled,
+              corridorHalfWidthMeters: corridorHalfWidth,
               layerGroupId: layerGroupIdString,
               isEnabled: true,
             }
