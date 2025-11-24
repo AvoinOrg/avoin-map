@@ -22,6 +22,7 @@ import {
   deleteFeatureFromDrawSource,
   setCorridorPreviewVisible,
   clearCorridorPreview,
+  getDrawMode,
 } from '#/common/utils/map'
 import type { MapStoreHelpers, MapStateCreator } from './mapStore'
 import type {
@@ -48,7 +49,7 @@ export type MapDrawActions = {
     _queueOptions?: QueueOptions
   ) => Promise<void>
   _enableDraw: (
-    drawMode?: MaplibreDraw.DrawMode,
+    drawMode?: ExtendedMaplibreDrawMode,
     _queueOptions?: QueueOptions
   ) => Promise<void>
   _updateDrawSelectedFeatures: (updateSelectedFeatures?: boolean) => void
@@ -70,6 +71,7 @@ export const createMapDrawSlice: (
       idField: undefined,
       corridorEnabled: true,
       corridorHalfWidthMeters: 3,
+      currentMode: null,
     },
   }
 
@@ -114,6 +116,9 @@ export const createMapDrawSlice: (
 
         // Shitty typing in MaplibreDraw
         _drawOptions.draw?.changeMode(mode as any)
+        set((state) => {
+          state._drawOptions.currentMode = drawMode
+        })
       },
       {
         key: 'toggleDrawMode',
@@ -142,6 +147,9 @@ export const createMapDrawSlice: (
             _drawOptions.draw.changeMode(mode as any)
           }
         }
+        set((state) => {
+          state._drawOptions.currentMode = drawMode
+        })
       },
       {
         key: 'setDrawMode',
@@ -302,6 +310,19 @@ export const createMapDrawSlice: (
         if (drawMode && drawMode !== 'simple_select') {
           draw.changeMode(drawMode as any)
         }
+        const initialMode = getDrawMode(
+          draw.getMode() as ExtendedMaplibreDrawMode
+        )
+        set((state) => {
+          state._drawOptions.currentMode = initialMode
+        })
+
+        const handleModeChange = (e: any) => {
+          const mode = getDrawMode(e.mode as ExtendedMaplibreDrawMode)
+          set((state) => {
+            state._drawOptions.currentMode = mode
+          })
+        }
         // Update selectable hover handlers to exclude drawn layers
         _updateSelectableHoverHandlers(layerIds)
 
@@ -432,12 +453,13 @@ export const createMapDrawSlice: (
                 setSelectedFeatures(features)
               }
             }
-            _map?.on('draw.selectionchange', handleSelectionChange)
-          }
+          _map?.on('draw.selectionchange', handleSelectionChange)
+        }
 
-          _map?.on('draw.create', handleDrawCreate)
-          _map?.on('draw.update', handleDrawUpdate)
-          _map?.on('draw.delete', handleDrawDelete)
+        _map?.on('draw.modechange', handleModeChange)
+        _map?.on('draw.create', handleDrawCreate)
+        _map?.on('draw.update', handleDrawUpdate)
+        _map?.on('draw.delete', handleDrawDelete)
 
           await set((state) => {
             state._drawOptions.draw = draw
@@ -446,6 +468,7 @@ export const createMapDrawSlice: (
             state._drawOptions.handleDrawUpdate = handleDrawUpdate
             state._drawOptions.handleDrawDelete = handleDrawDelete
             state._drawOptions.handleSelectionChange = handleSelectionChange
+            state._drawOptions.handleModeChange = handleModeChange
           })
 
           _disableLayerGroupEventHandlers(layerGroupId)
@@ -561,6 +584,9 @@ export const createMapDrawSlice: (
               _drawOptions.handleSelectionChange
             )
           }
+          if (_drawOptions.handleModeChange != null) {
+            _map?.off('draw.modechange', _drawOptions.handleModeChange)
+          }
 
           // clear selected features, if any
           if (drawInstance.getMode() === 'simple_select') {
@@ -589,6 +615,8 @@ export const createMapDrawSlice: (
             state._drawOptions.handleDrawUpdate = undefined
             state._drawOptions.handleDrawDelete = undefined
             state._drawOptions.handleSelectionChange = undefined
+            state._drawOptions.handleModeChange = undefined
+            state._drawOptions.currentMode = null
           })
         }
       },

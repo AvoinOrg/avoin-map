@@ -175,11 +175,13 @@ export interface MapDrawOptions extends LayerGroupDrawOptions {
   layerGroupId: string | null
   draw: MaplibreDraw | null
   isEnabled: boolean
+  currentMode?: DrawMode | null
   originalStyles?: Record<string, any>
   handleDrawCreate?: (e: any) => void
   handleDrawUpdate?: (e: any) => void
   handleDrawDelete?: (e: any) => void
   handleSelectionChange?: (e: any) => void
+  handleModeChange?: (e: any) => void
   corridorHalfWidthMeters?: number
 }
 

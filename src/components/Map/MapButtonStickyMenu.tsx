@@ -39,16 +39,19 @@ export const MapButtonStickyMenu = ({
   const activeMapMenu = useUIStore((state) => state.activeMapMenu)
 
   const anchorRef = useRef<HTMLButtonElement | null>(null)
-  const [open, setOpen] = useState(false)
-
   const hasMenuContent = React.Children.count(menuContent) > 0
   const childDisabled = Boolean(children.props.disabled)
+  const [open, setOpen] = useState(
+    () => isActive && hasMenuContent && !childDisabled
+  )
 
   useEffect(() => {
-    if (!isActive || !hasMenuContent) {
+    if (!hasMenuContent || childDisabled) {
       setOpen(false)
+      return
     }
-  }, [isActive, hasMenuContent])
+    setOpen(isActive)
+  }, [isActive, hasMenuContent, childDisabled])
 
   useEffect(() => {
     if (isVertical && activeMapMenu === 'search') {

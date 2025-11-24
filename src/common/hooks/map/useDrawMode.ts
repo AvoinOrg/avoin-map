@@ -4,9 +4,14 @@ import MaplibreDraw from 'maplibre-gl-draw'
 
 export const useDrawMode = () => {
   const options = useMapStore((state) => state._drawOptions)
+  console.log('useDrawMode currentMode:', options.currentMode)
 
   if (options.draw == null || options.isEnabled === false) {
     return null
+  }
+
+  if (options.currentMode) {
+    return options.currentMode
   }
 
   const MaplibreDrawMode = options.draw.getMode() as MaplibreDraw.DrawMode

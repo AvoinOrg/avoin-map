@@ -1407,6 +1407,7 @@ export const createMapLayerSlice: (
               ...opts.drawOptions,
               corridorEnabled,
               corridorHalfWidthMeters: corridorHalfWidth,
+              currentMode: null,
               layerGroupId: layerGroupIdString,
               isEnabled: true,
             }
