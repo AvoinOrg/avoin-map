@@ -546,7 +546,7 @@ export const getFeaturesFromSourceById = (
   return [] as Feature[]
 }
 
-export const getSourceJson = (id: string, map: Map | null) => {
+export const getSourceJson = async (id: string, map: Map | null) => {
   try {
     const source = map?.getSource(id) as GeoJSONSource
 
@@ -555,35 +555,19 @@ export const getSourceJson = (id: string, map: Map | null) => {
       return null
     }
 
-    let data
-
-    if (source._data) {
-      data = source._data
-    } else if (source._options?.data) {
-      data = source._options.data
-    } else {
-      console.error(`Source "${id}" has no data.`)
-      return null
-    }
+    const data = (source as any).getData
+      ? await (source as any).getData()
+      : null
 
     if (!data || typeof data !== 'object') {
       console.error(`Source "${id}" does not contain valid JSON data.`)
       return null
     }
 
-    if (data.type !== 'FeatureCollection') {
+    if (data.type !== 'FeatureCollection' || !Array.isArray(data.features)) {
       console.error(`Source "${id}" data is not a valid FeatureCollection.`)
       return null
     }
-
-    // maplibre hallucinates irrelevant ids when the source data is queried like this.
-    // set the id to what is should be.
-    // for (const feature of data.features) {
-    //   console.log(feature)
-    //   if (feature.properties?.id) {
-    //     feature.id = feature.properties.id
-    //   }
-    // }
 
     return data as FeatureCollection
   } catch (e) {
@@ -677,7 +661,21 @@ export const fetchFeaturesByIds = ({
 
         if (sourceType != null) {
           if (sourceType === 'geojson') {
-            const featureCollection = getSourceJson(source.source, map)
+            const src = map?.getSource(
+              source.source
+            ) as GeoJSONSource | undefined
+            const rawData =
+              (src as any)?._data?.geojson ??
+              (src as any)?._data ??
+              (src as any)?._options?.data ??
+              null
+            const featureCollection =
+              rawData &&
+              typeof rawData === 'object' &&
+              rawData.type === 'FeatureCollection' &&
+              Array.isArray((rawData as any).features)
+                ? (rawData as FeatureCollection)
+                : null
 
             if (featureCollection) {
               const additionalFeature = featureCollection.features.find((f) => {

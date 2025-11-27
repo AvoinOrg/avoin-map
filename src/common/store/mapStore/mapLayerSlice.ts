@@ -229,7 +229,7 @@ export const createMapLayerSlice: (
     getSourceJsonAsyncQueue: helpers.queueableFnInit(
       async (id: string): Promise<FeatureCollection | null> => {
         const _map = useMapInstanceStore.getState()._map
-        return getSourceJson(id, _map)
+        return await getSourceJson(id, _map)
       },
       { key: 'getSourceJsonAsyncQueue', priority: QueuePriority.LOW }
     ),
