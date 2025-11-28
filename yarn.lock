@@ -3004,6 +3004,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mapbox/mapbox-gl-supported@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "@mapbox/mapbox-gl-supported@npm:3.0.0"
+  checksum: e129beda3aa7f26cdb5d6a31ef4bfa95ca557307465d4084906542d2d86bf75e809741b234022993bf19a747d3a78e1cc3dca5de882a763f1df66c571b95b7b5
+  languageName: node
+  linkType: hard
+
 "@mapbox/point-geometry@npm:0.1.0, @mapbox/point-geometry@npm:^0.1.0, @mapbox/point-geometry@npm:~0.1.0":
   version: 0.1.0
   resolution: "@mapbox/point-geometry@npm:0.1.0"
@@ -3121,8 +3128,8 @@ __metadata:
   linkType: hard
 
 "@maplibre/vt-pbf@npm:^4.0.3":
-  version: 4.0.3
-  resolution: "@maplibre/vt-pbf@npm:4.0.3"
+  version: 4.1.0
+  resolution: "@maplibre/vt-pbf@npm:4.1.0"
   dependencies:
     "@mapbox/point-geometry": ^1.1.0
     "@mapbox/vector-tile": ^2.0.4
@@ -3131,7 +3138,7 @@ __metadata:
     geojson-vt: ^4.0.2
     pbf: ^4.0.1
     supercluster: ^8.0.1
-  checksum: 450a48748a4681d6b6d6a1e4f61e95f3f1da377fe780f04e5c4ecd4421370195a684151c5821591cb249a1925b732fbd338f04eee91294d7927ed968e8e92dcf
+  checksum: 39bbc3a4a9b0800665f68b71bbf7128423a8dbca3e352a07d486f2af40baf9a52bf8fa558992ed4ba587e9c26fad0a0a7e694f611c8d49b29e51fa3958041878
   languageName: node
   linkType: hard
 
@@ -6830,7 +6837,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/geojson-vt@npm:3.2.5":
+"@types/geojson-vt@npm:3.2.5, @types/geojson-vt@npm:^3.2.5":
   version: 3.2.5
   resolution: "@types/geojson-vt@npm:3.2.5"
   dependencies:
@@ -7017,13 +7024,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/mapbox__mapbox-gl-draw@npm:^1.3.3":
-  version: 1.4.0
-  resolution: "@types/mapbox__mapbox-gl-draw@npm:1.4.0"
+"@types/mapbox__mapbox-gl-draw@npm:^1.4.9":
+  version: 1.4.9
+  resolution: "@types/mapbox__mapbox-gl-draw@npm:1.4.9"
   dependencies:
     "@types/geojson": "*"
-    "@types/mapbox-gl": "*"
-  checksum: 8cc16b86b3e21d241fe64ba7b70c1acf193871eb7cfbe77e074560b3abf294fe47ae480c9c7d6c4e62480057edf1e18beb57d005bfeeb30c29738843b8e550a3
+    mapbox-gl: "*"
+  checksum: 8e71d456b1210ca68e2d4cc6126312a58245dc429b47b8161060e3452437ed72626955d12991d0644b046e819bb6ac7280962ed599050f7e285701da7c3f31c8
   languageName: node
   linkType: hard
 
@@ -9221,6 +9228,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cheap-ruler@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "cheap-ruler@npm:4.0.0"
+  checksum: cdf4722167cef0b979c9420dc260c985a87ce1534ab4d642f82523ab204d80b85ad51f12f61dc562b6e4771a64ed35f2466fc3ab3f9063f9b81a31b57b2b620f
+  languageName: node
+  linkType: hard
+
 "chokidar@npm:>=3.0.0 <4.0.0, chokidar@npm:^3.5.3":
   version: 3.5.3
   resolution: "chokidar@npm:3.5.3"
@@ -9370,7 +9384,7 @@ __metadata:
     "@types/jest": ^29.5.12
     "@types/jsts": ^0.17.24
     "@types/lodash-es": ^4.17.6
-    "@types/mapbox__mapbox-gl-draw": ^1.3.3
+    "@types/mapbox__mapbox-gl-draw": ^1.4.9
     "@types/node": ^20.12.13
     "@types/react-dom": ^18.3.0
     "@types/react-window": ^1.8.8
@@ -9980,7 +9994,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"csscolorparser@npm:~1.0.2":
+"csscolorparser@npm:~1.0.2, csscolorparser@npm:~1.0.3":
   version: 1.0.3
   resolution: "csscolorparser@npm:1.0.3"
   checksum: e40f3045ea15c7e7eaa78e110412fe8b820d47b698c1eb1d1e7ecb42703bf447406a24304b891ae9df61e85d947f33fc67bd0120c7f9e3a5183e6e0b9afff92c
@@ -10791,7 +10805,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"earcut@npm:^3.0.0, earcut@npm:^3.0.2":
+"earcut@npm:^3.0.0, earcut@npm:^3.0.1, earcut@npm:^3.0.2":
   version: 3.0.2
   resolution: "earcut@npm:3.0.2"
   checksum: b4c8965e2e20cc3e6679f19e3c4bca4fe3c72bdf1b463430e3cefb2a016e50bb829a4ce570c289dec966235eb891c430a96b179e6b44bc25e1f38f0839b6527b
@@ -12676,6 +12690,13 @@ __metadata:
   version: 4.2.11
   resolution: "graceful-fs@npm:4.2.11"
   checksum: ac85f94da92d8eb6b7f5a8b20ce65e43d66761c55ce85ac96df6865308390da45a8d3f0296dd3a663de65d30ba497bd46c696cc1e248c72b13d6d567138a4fc7
+  languageName: node
+  linkType: hard
+
+"grid-index@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "grid-index@npm:1.1.0"
+  checksum: 0e9d427b606ac644a723719116bb067639c01dccc881f161525e8eddb13b2de3b8a274641ef6d926d7629877ad8ed06b45290d52dd2d8af45532c50ccbbefe43
   languageName: node
   linkType: hard
 
@@ -15033,6 +15054,41 @@ __metadata:
   languageName: node
   linkType: hard
 
+"mapbox-gl@npm:*":
+  version: 3.16.0
+  resolution: "mapbox-gl@npm:3.16.0"
+  dependencies:
+    "@mapbox/jsonlint-lines-primitives": ^2.0.2
+    "@mapbox/mapbox-gl-supported": ^3.0.0
+    "@mapbox/point-geometry": ^1.1.0
+    "@mapbox/tiny-sdf": ^2.0.6
+    "@mapbox/unitbezier": ^0.0.1
+    "@mapbox/vector-tile": ^2.0.4
+    "@mapbox/whoots-js": ^3.1.0
+    "@types/geojson": ^7946.0.16
+    "@types/geojson-vt": ^3.2.5
+    "@types/mapbox__point-geometry": ^0.1.4
+    "@types/pbf": ^3.0.5
+    "@types/supercluster": ^7.1.3
+    cheap-ruler: ^4.0.0
+    csscolorparser: ~1.0.3
+    earcut: ^3.0.1
+    geojson-vt: ^4.0.2
+    gl-matrix: ^3.4.4
+    grid-index: ^1.1.0
+    kdbush: ^4.0.2
+    martinez-polygon-clipping: ^0.7.4
+    murmurhash-js: ^1.0.0
+    pbf: ^4.0.1
+    potpack: ^2.0.0
+    quickselect: ^3.0.0
+    serialize-to-js: ^3.1.2
+    supercluster: ^8.0.1
+    tinyqueue: ^3.0.0
+  checksum: 7a7aaddfa327fa35655c9026d1f48feb0a432d6cb0cf9f9a091fa0ded7e42b074c83847f36786f1f8a4a9c00d21704cd67de52ff7e4691b2b976d6d284c6b2c4
+  languageName: node
+  linkType: hard
+
 "mapbox-to-css-font@npm:^2.4.1":
   version: 2.4.2
   resolution: "mapbox-to-css-font@npm:2.4.2"
@@ -15133,6 +15189,17 @@ __metadata:
   peerDependencies:
     maplibre-gl: ^4.0.0
   checksum: dc82a4ec14755d3e289089c904afaaacefcc0e83697050cf356fe44cf3518cd0c51ccee63703fd95a3fcdc8c882ee27a58f1303b64035add834c1fb089c49fba
+  languageName: node
+  linkType: hard
+
+"martinez-polygon-clipping@npm:^0.7.4":
+  version: 0.7.4
+  resolution: "martinez-polygon-clipping@npm:0.7.4"
+  dependencies:
+    robust-predicates: ^2.0.4
+    splaytree: ^0.1.4
+    tinyqueue: ^1.2.0
+  checksum: 22dc1f9ce84a4c74ea470aa2badfb039950db247d549e15c4509fe6d28b29ed4a010e1ea60646e064392102c9887c588b973330330917ae082b4be891e059288
   languageName: node
   linkType: hard
 
@@ -18237,6 +18304,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"serialize-to-js@npm:^3.1.2":
+  version: 3.1.2
+  resolution: "serialize-to-js@npm:3.1.2"
+  checksum: 85b639499eccb52dea98966231a4fe2ed5e14c97e3e39b9bf63612007f5054bf7425b26a4d2abdf95cd1dbbdd8282ed3c3138ea25744597f1e3a4c1f89c40f51
+  languageName: node
+  linkType: hard
+
 "serve-index@npm:^1.9.1":
   version: 1.9.1
   resolution: "serve-index@npm:1.9.1"
@@ -18693,6 +18767,13 @@ __metadata:
     select-hose: ^2.0.0
     spdy-transport: ^3.0.0
   checksum: 2c739d0ff6f56ad36d2d754d0261d5ec358457bea7cbf77b1b05b0c6464f2ce65b85f196305f50b7bd9120723eb94bae9933466f28e67e5cd8cde4e27f1d75f8
+  languageName: node
+  linkType: hard
+
+"splaytree@npm:^0.1.4":
+  version: 0.1.4
+  resolution: "splaytree@npm:0.1.4"
+  checksum: 414a1cef3da28aad5c1fd32289bdcdd36d716457ce0446c0d223f4c57f04ff9202bbe90c8a2ad24d15a8cdedc52aaa8db6661dcc9ca0238225d76ffdfe01d2f8
   languageName: node
   linkType: hard
 
@@ -19257,6 +19338,13 @@ __metadata:
   version: 1.1.0
   resolution: "thunky@npm:1.1.0"
   checksum: 993096c472b6b8f30e29dc777a8d17720e4cab448375041f20c0cb802a09a7fb2217f2a3e8cdc11851faa71c957e2db309357367fc9d7af3cb7a4d00f4b66034
+  languageName: node
+  linkType: hard
+
+"tinyqueue@npm:^1.2.0":
+  version: 1.2.3
+  resolution: "tinyqueue@npm:1.2.3"
+  checksum: a9a7c81ed470252e8e380df956c8f6989602ec473751628cb2c95e6c5b4cb5d98a6dc38155f35c366d0364447f15c2f1c676a4ab970f728aaf764679d2c8e6fa
   languageName: node
   linkType: hard
 
