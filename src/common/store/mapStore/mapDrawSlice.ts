@@ -1,7 +1,7 @@
 'use client'
 
 import { cloneDeep } from 'lodash-es'
-import MaplibreDraw from 'maplibre-gl-draw'
+import MapboxDraw from '@mapbox/mapbox-gl-draw'
 import type { Feature, FeatureCollection } from 'geojson'
 import type { MapGeoJSONFeature, IControl } from 'maplibre-gl'
 import { useMapInstanceStore } from './mapInstanceStore'
@@ -35,6 +35,19 @@ import { QueuePriority } from '#/common/types/map'
 
 export type MapDrawVars = {
   _drawOptions: MapDrawOptions
+}
+
+// Mapbox GL Draw uses Mapbox class names by default; patch them so controls
+// attach to a MapLibre map container.
+const ensureDrawUsesMaplibreClasses = () => {
+  const classes = (MapboxDraw as any)?.constants?.classes
+  if (!classes) return
+  if (classes.CANVAS === 'maplibregl-canvas') return
+  classes.CANVAS = 'maplibregl-canvas'
+  classes.CONTROL_BASE = 'maplibregl-ctrl'
+  classes.CONTROL_PREFIX = 'maplibregl-ctrl-'
+  classes.CONTROL_GROUP = 'maplibregl-ctrl-group'
+  classes.ATTRIBUTION = 'maplibregl-ctrl-attrib'
 }
 
 export type MapDrawActions = {
@@ -114,7 +127,7 @@ export const createMapDrawSlice: (
           }
         }
 
-        // Shitty typing in MaplibreDraw
+        // Shitty typing in MapboxDraw
         _drawOptions.draw?.changeMode(mode as any)
         set((state) => {
           state._drawOptions.currentMode = drawMode
@@ -143,7 +156,7 @@ export const createMapDrawSlice: (
           if (mode === 'simple_select' && selectedFeatures.length > 0) {
             _updateDrawSelectedFeatures()
           } else {
-            // Shitty typing in MaplibreDraw
+            // Shitty typing in MapboxDraw
             _drawOptions.draw.changeMode(mode as any)
           }
         }
@@ -232,7 +245,8 @@ export const createMapDrawSlice: (
         })
 
         // Extend draw with custom corridor mode
-        const BaseLine: any = (MaplibreDraw as any).modes.draw_line_string
+        ensureDrawUsesMaplibreClasses()
+        const BaseLine: any = (MapboxDraw as any).modes.draw_line_string
         const DrawCorridorMode: any = {
           ...BaseLine,
           onSetup(this: any, opts: any) {
@@ -283,14 +297,14 @@ export const createMapDrawSlice: (
           },
         }
 
-        const draw = new MaplibreDraw({
+        const draw = new MapboxDraw({
           displayControlsDefault: false,
           defaultMode: 'simple_select',
           userProperties: true,
           styles: drawStyles,
           keybindings: true,
           modes: {
-            ...(MaplibreDraw as any).modes,
+            ...(MapboxDraw as any).modes,
             draw_corridor: DrawCorridorMode,
           },
         })
@@ -453,13 +467,16 @@ export const createMapDrawSlice: (
                 setSelectedFeatures(features)
               }
             }
-          _map?.on('draw.selectionchange', handleSelectionChange)
-        }
+          }
 
-        _map?.on('draw.modechange', handleModeChange)
-        _map?.on('draw.create', handleDrawCreate)
-        _map?.on('draw.update', handleDrawUpdate)
-        _map?.on('draw.delete', handleDrawDelete)
+          if (handleSelectionChange) {
+            _map?.on('draw.selectionchange', handleSelectionChange)
+          }
+
+          _map?.on('draw.modechange', handleModeChange)
+          _map?.on('draw.create', handleDrawCreate)
+          _map?.on('draw.update', handleDrawUpdate)
+          _map?.on('draw.delete', handleDrawDelete)
 
           await set((state) => {
             state._drawOptions.draw = draw

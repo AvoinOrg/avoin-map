@@ -7,7 +7,7 @@
 
 // import 'ol/ol.css'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import 'maplibre-gl-draw/dist/mapbox-gl-draw.css'
+import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
 
 import React, { useState, useRef, useEffect } from 'react'
 import Box from '@mui/material/Box'

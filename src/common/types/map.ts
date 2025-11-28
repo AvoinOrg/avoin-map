@@ -12,7 +12,7 @@ import type {
   SourceSpecification,
   GeoJSONSourceSpecification,
 } from 'maplibre-gl'
-import type MaplibreDraw from 'maplibre-gl-draw'
+import type MapboxDraw from '@mapbox/mapbox-gl-draw'
 
 import type { MapStoreActions } from '#/common/store/mapStore'
 import { StoreApi, UseBoundStore } from 'zustand'
@@ -480,7 +480,7 @@ export const isGeoJSONSource = (source: any): source is GeoJSONSource => {
 
 export type DrawMode = 'polygon' | 'edit' | 'corridor'
 
-export type ExtendedMaplibreDrawMode = MaplibreDraw.DrawMode | 'draw_corridor'
+export type ExtendedMaplibreDrawMode = MapboxDraw.DrawMode | 'draw_corridor'
 
 export type FitBoundsOptions = {
   duration?: number
