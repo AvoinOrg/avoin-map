@@ -50,6 +50,18 @@ const ensureDrawUsesMaplibreClasses = () => {
   classes.ATTRIBUTION = 'maplibregl-ctrl-attrib'
 }
 
+// Bridge Mapbox CSS selectors to MapLibre DOM by duplicating key classes.
+const bridgeMapboxCssClasses = (map: maplibregl.Map | null) => {
+  if (!map) return
+  const container = map.getContainer()
+  const canvasContainer = (map as any).getCanvasContainer?.()
+  const canvas = map.getCanvas?.()
+
+  container?.classList.add('mapboxgl-map')
+  canvasContainer?.classList.add('mapboxgl-canvas-container', 'mapboxgl-interactive')
+  canvas?.classList.add('mapboxgl-canvas')
+}
+
 export type MapDrawActions = {
   deleteDrawFeatures: (features: Feature[]) => void
   setCorridorHalfWidthMeters: (value: number) => void
@@ -246,6 +258,7 @@ export const createMapDrawSlice: (
 
         // Extend draw with custom corridor mode
         ensureDrawUsesMaplibreClasses()
+        bridgeMapboxCssClasses(_map)
         const BaseLine: any = (MapboxDraw as any).modes.draw_line_string
         const DrawCorridorMode: any = {
           ...BaseLine,
