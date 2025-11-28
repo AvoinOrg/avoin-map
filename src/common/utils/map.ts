@@ -400,15 +400,15 @@ export const findSourceOptsById = (id: string, layerGroups: LayerGroups) => {
   return sourceOptions
 }
 
-const getSourceData = (
+const getSourceData = async (
   layerGroupId: string,
-  _mbMap: Map | null
-): GeoJSON.FeatureCollection | null => {
-  if (!_mbMap || !layerGroupId) {
+  map: Map | null
+): Promise<GeoJSON.FeatureCollection | null> => {
+  if (!map || !layerGroupId) {
     return null
   }
 
-  const originalSource = _mbMap.getSource(layerGroupId) as
+  const originalSource = map.getSource(layerGroupId) as
     | GeoJSONSource
     | undefined
 
@@ -417,15 +417,17 @@ const getSourceData = (
     return null
   }
 
-  return originalSource._data as GeoJSON.FeatureCollection
+  const sourceData = await originalSource.getData()
+
+  return sourceData as GeoJSON.FeatureCollection
 }
 
-export const addFeatureToDrawSource = (
+export const addFeatureToDrawSource = async (
   feature: GeoJSON.Feature,
   layerGroupId: string,
-  _mbMap: Map | null
+  map: Map | null
 ) => {
-  const data = getSourceData(layerGroupId, _mbMap)
+  const data = await getSourceData(layerGroupId, map)
   if (!data) {
     return
   }
@@ -433,18 +435,18 @@ export const addFeatureToDrawSource = (
   const newFeatures = [...clone(data.features), feature]
 
   // Update the source with the modified features
-  const originalSource = _mbMap!.getSource(layerGroupId) as GeoJSONSource
+  const originalSource = map!.getSource(layerGroupId) as GeoJSONSource
   originalSource.setData({ ...data, features: newFeatures })
-  _mbMap?.triggerRepaint()
+  map?.triggerRepaint()
 }
 
-export const updateFeatureInDrawSource = (
+export const updateFeatureInDrawSource = async (
   feature: Feature,
   idField: string,
   layerGroupId: string,
-  _mbMap: Map | null
+  map: Map | null
 ) => {
-  const data = getSourceData(layerGroupId, _mbMap)
+  const data = await getSourceData(layerGroupId, map)
   if (!data) {
     return
   }
@@ -479,19 +481,19 @@ export const updateFeatureInDrawSource = (
     }
   } else {
     // Update the source with the modified features
-    const originalSource = _mbMap!.getSource(layerGroupId) as GeoJSONSource
+    const originalSource = map!.getSource(layerGroupId) as GeoJSONSource
     originalSource.setData({ ...data, features: updatedFeatures })
-    _mbMap?.triggerRepaint()
+    map?.triggerRepaint()
   }
 }
 
-export const deleteFeatureFromDrawSource = (
+export const deleteFeatureFromDrawSource = async (
   feature: Feature,
   idField: string,
   layerGroupId: string,
-  _mbMap: Map | null
+  map: Map | null
 ) => {
-  const data = getSourceData(layerGroupId, _mbMap)
+  const data = await getSourceData(layerGroupId, map)
   if (!data) {
     return
   }
@@ -508,18 +510,18 @@ export const deleteFeatureFromDrawSource = (
   })
 
   // Update the source with the modified features
-  const originalSource = _mbMap!.getSource(layerGroupId) as GeoJSONSource
+  const originalSource = map!.getSource(layerGroupId) as GeoJSONSource
   originalSource.setData({ ...data, features: updatedFeatures })
-  _mbMap?.triggerRepaint()
+  map?.triggerRepaint()
 }
 
-export const getFeaturesFromSourceById = (
+export const getFeaturesFromSourceById = async (
   features: Feature[],
   idField: string,
   layerGroupId: string,
-  _mbMap: Map | null
+  map: Map | null
 ) => {
-  const data = getSourceData(layerGroupId, _mbMap)
+  const data = await getSourceData(layerGroupId, map)
 
   if (data) {
     // Find the corresponding original features for the selected ones
@@ -661,9 +663,9 @@ export const fetchFeaturesByIds = ({
 
         if (sourceType != null) {
           if (sourceType === 'geojson') {
-            const src = map?.getSource(
-              source.source
-            ) as GeoJSONSource | undefined
+            const src = map?.getSource(source.source) as
+              | GeoJSONSource
+              | undefined
             const rawData =
               (src as any)?._data?.geojson ??
               (src as any)?._data ??
