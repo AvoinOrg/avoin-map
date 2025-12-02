@@ -12,6 +12,7 @@ import { generateShortId, generateUUID } from '#/common/utils/general'
 import { queryClient } from '#/common/queries/queryClient'
 import { useUserStore } from '#/common/store/userStore'
 import { useMapStore } from '#/common/store'
+import { createIndexedDbStorage } from '#/common/utils/store'
 import { getPlanLayerGroupId } from '../common/utils'
 
 import {
@@ -27,6 +28,11 @@ import {
 import { calcQueryPoll } from '../common/queries/calcQueryPoll'
 import { externalPlanQuery } from '../common/queries/externalPlanQuery'
 // import { checkIsValidZoningCode } from '../common/utils'
+
+const createHiilikarttaIndexedDbStorage = createIndexedDbStorage({
+  dbName: 'hiilikartta-store',
+  storeName: 'hiilikartta',
+})
 
 type Vars = {
   planConfs: { [key: string]: PlanConf }
@@ -349,7 +355,10 @@ export const useAppletStore = create<Vars & Actions>()(
     ),
     {
       name: 'hiilikarttaStore', // name of item in the storage (must be unique)
-      storage: createJSONStorage(() => sessionStorage), // (optional) by default the 'localStorage' is used
+      storage: createJSONStorage(createHiilikarttaIndexedDbStorage),
+      partialize: (state) => ({
+        planConfs: state.planConfs,
+      }),
       onRehydrateStorage: (state) => {
         return (state, error) => {
           if (error) {

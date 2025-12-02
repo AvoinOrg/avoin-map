@@ -24,6 +24,7 @@ import MapboxDraw from '@mapbox/mapbox-gl-draw'
 import { useUIStore } from '#/common/store'
 import { Map as OlMap } from 'ol'
 import drawStyles from '#/common/utils/drawStyles'
+import { createIndexedDbStorage } from '#/common/utils/store'
 
 import {
   LayerGroupId,
@@ -2079,7 +2080,12 @@ export const useMapStore = create<State>()(
     }),
     {
       name: 'mapStorage', // name of item in the storage (must be unique)
-      storage: createJSONStorage(() => sessionStorage), // (optional) by default the 'localStorage' is used
+      storage: createJSONStorage(
+        createIndexedDbStorage({
+          dbName: 'map-store',
+          storeName: 'mapStorage',
+        })
+      ),
       partialize: (state: State) => {
         return {
           // TODO: fix hydration. Currently rehydrates layerGroups that do not have data
