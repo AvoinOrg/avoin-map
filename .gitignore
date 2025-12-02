@@ -149,3 +149,5 @@ src/app/api/*
 
 # i18n files, which are downloaded dynamically
 src/i18n/*
+
+.codex
