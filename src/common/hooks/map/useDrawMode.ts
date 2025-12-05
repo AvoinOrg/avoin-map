@@ -1,6 +1,5 @@
 import { useMapStore } from '#/common/store/mapStore'
 import { getDrawMode } from '#/common/utils/map'
-import MapboxDraw from '@mapbox/mapbox-gl-draw'
 
 export const useDrawMode = () => {
   const options = useMapStore((state) => state._drawOptions)
@@ -13,7 +12,7 @@ export const useDrawMode = () => {
     return options.currentMode
   }
 
-  const MaplibreDrawMode = options.draw.getMode() as MapboxDraw.DrawMode
+  const MaplibreDrawMode = options.draw.getMode() as any
 
   return getDrawMode(MaplibreDrawMode)
 }

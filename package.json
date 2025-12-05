@@ -110,6 +110,8 @@
     "sass-loader": "^13.2.0",
     "shpjs": "^4.0.4",
     "style-loader": "^3.3.1",
+    "terra-draw": "^1.19.0",
+    "terra-draw-maplibre-gl-adapter": "^1.2.2",
     "terser-webpack-plugin": "^5.3.6",
     "typescript": "^5.8.3",
     "webpack": "^5.75.0",

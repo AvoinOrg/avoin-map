@@ -1,17 +1,18 @@
 'use client'
 
 import { cloneDeep } from 'lodash-es'
-import MapboxDraw from '@mapbox/mapbox-gl-draw'
+import {
+  TerraDraw,
+  TerraDrawPolygonMode,
+  TerraDrawSelectMode,
+  TerraDrawLineStringMode,
+} from 'terra-draw'
+import { TerraDrawMapLibreGLAdapter } from 'terra-draw-maplibre-gl-adapter'
 import type { Feature, FeatureCollection } from 'geojson'
-import type { MapGeoJSONFeature, IControl } from 'maplibre-gl'
+import type { MapGeoJSONFeature } from 'maplibre-gl'
 import { useMapInstanceStore } from './mapInstanceStore'
-import drawStyles from '#/common/utils/drawStyles'
 import {
   getMaplibreDrawMode,
-  ensureCorridorPreviewLayers,
-  CORRIDOR_PREVIEW_SOURCE_ID,
-  CORRIDOR_PREVIEW_LAYER_ID,
-  corridorPolygonFromLine,
   getLayerGroupIdForSource,
   getSelectableLayers,
   isLayerGroupSelectable,
@@ -20,9 +21,8 @@ import {
   addFeatureToDrawSource,
   updateFeatureInDrawSource,
   deleteFeatureFromDrawSource,
-  setCorridorPreviewVisible,
-  clearCorridorPreview,
   getDrawMode,
+  corridorPolygonFromLine,
 } from '#/common/utils/map'
 import type { MapStoreHelpers, MapStateCreator } from './mapStore'
 import type {
@@ -37,29 +37,37 @@ export type MapDrawVars = {
   _drawOptions: MapDrawOptions
 }
 
-// Mapbox GL Draw uses Mapbox class names by default; patch them so controls
-// attach to a MapLibre map container.
-const ensureDrawUsesMaplibreClasses = () => {
-  const classes = (MapboxDraw as any)?.constants?.classes
-  if (!classes) return
-  if (classes.CANVAS === 'maplibregl-canvas') return
-  classes.CANVAS = 'maplibregl-canvas'
-  classes.CONTROL_BASE = 'maplibregl-ctrl'
-  classes.CONTROL_PREFIX = 'maplibregl-ctrl-'
-  classes.CONTROL_GROUP = 'maplibregl-ctrl-group'
-  classes.ATTRIBUTION = 'maplibregl-ctrl-attrib'
+// Custom TerraDraw mode for corridors. Leverages LineString drawing but reports a unique mode name.
+class TerraDrawCorridorMode extends TerraDrawLineStringMode {
+  mode = 'corridor'
+  constructor() {
+    super({ modeName: 'corridor' } as any)
+  }
 }
 
-// Bridge Mapbox CSS selectors to MapLibre DOM by duplicating key classes.
-const bridgeMapboxCssClasses = (map: maplibregl.Map | null) => {
+const removeTerraDrawArtifacts = (map: maplibregl.Map | null) => {
   if (!map) return
-  const container = map.getContainer()
-  const canvasContainer = (map as any).getCanvasContainer?.()
-  const canvas = map.getCanvas?.()
-
-  container?.classList.add('mapboxgl-map')
-  canvasContainer?.classList.add('mapboxgl-canvas-container', 'mapboxgl-interactive')
-  canvas?.classList.add('mapboxgl-canvas')
+  const style = map.getStyle()
+  const terraLayerIds = (style.layers || [])
+    .map((l) => l.id)
+    .filter((id) => id.startsWith('td-'))
+  terraLayerIds.forEach((id) => {
+    if (map.getLayer(id)) {
+      try {
+        map.removeLayer(id)
+      } catch {}
+    }
+  })
+  const terraSourceIds = Object.keys(style.sources || {}).filter((id) =>
+    id.startsWith('td-')
+  )
+  terraSourceIds.forEach((id) => {
+    if (map.getSource(id)) {
+      try {
+        map.removeSource(id)
+      } catch {}
+    }
+  })
 }
 
 export type MapDrawActions = {
@@ -112,7 +120,11 @@ export const createMapDrawSlice: (
 
       const featureIds = features.map((feature) => String(feature.id))
 
-      _drawOptions.draw.delete(featureIds)
+      try {
+        _drawOptions.draw.removeFeatures(featureIds as any)
+      } catch (err) {
+        console.error('Failed to remove features', err)
+      }
 
       _map?.fire('draw.delete', { features })
     },
@@ -139,8 +151,7 @@ export const createMapDrawSlice: (
           }
         }
 
-        // Shitty typing in MapboxDraw
-        _drawOptions.draw?.changeMode(mode as any)
+        _drawOptions.draw?.setMode(mode as any)
         set((state) => {
           state._drawOptions.currentMode = drawMode
         })
@@ -165,11 +176,10 @@ export const createMapDrawSlice: (
         if (_drawOptions.draw == null) {
           await _enableDraw(mode, { skipQueue: true })
         } else {
-          if (mode === 'simple_select' && selectedFeatures.length > 0) {
+          if (mode === 'select' && selectedFeatures.length > 0) {
             _updateDrawSelectedFeatures()
           } else {
-            // Shitty typing in MapboxDraw
-            _drawOptions.draw.changeMode(mode as any)
+            _drawOptions.draw.setMode(mode as any)
           }
         }
         set((state) => {
@@ -195,6 +205,20 @@ export const createMapDrawSlice: (
         } = get()
         const _map = useMapInstanceStore.getState()._map
 
+        // Clean up any previous TerraDraw layers/sources that might linger after errors
+        removeTerraDrawArtifacts(_map)
+
+        // Stop a previous instance if somehow still present
+        if (_drawOptions.draw) {
+          try {
+            _drawOptions.draw.stop()
+            _drawOptions.draw.clear()
+          } catch {}
+          await set((state) => {
+            state._drawOptions.draw = null
+          })
+        }
+
         if (_drawOptions.layerGroupId == null) {
           console.error('No layerGroupId set for drawing.')
           return
@@ -210,7 +234,11 @@ export const createMapDrawSlice: (
         }
 
         const layerGroup = _layerGroups[layerGroupId]
-        const layerIds = Object.keys(layerGroup.layers)
+        if (!layerGroup || !layerGroup.layers) {
+          console.error(`No layerGroup found with id: ${layerGroupId}`)
+          return
+        }
+        const layerIds = Object.keys(layerGroup.layers || {})
         const originalStyles: Record<string, any> = {}
 
         // dim underlying layers
@@ -256,73 +284,25 @@ export const createMapDrawSlice: (
           }
         })
 
-        // Extend draw with custom corridor mode
-        ensureDrawUsesMaplibreClasses()
-        bridgeMapboxCssClasses(_map)
-        const BaseLine: any = (MapboxDraw as any).modes.draw_line_string
-        const DrawCorridorMode: any = {
-          ...BaseLine,
-          onSetup(this: any, opts: any) {
-            const state = BaseLine.onSetup.call(this, opts)
-            ensureCorridorPreviewLayers(this.map)
-            setCorridorPreviewVisible(this.map, true)
-            state._raf = 0
-            state._exiting = false
-            return state
-          },
-          onMouseMove(this: any, state: any, e: any) {
-            BaseLine.onMouseMove.call(this, state, e)
-            this._renderCorridorPreview(state)
-          },
-          onClick(this: any, state: any, e: any) {
-            BaseLine.onClick.call(this, state, e)
-            this._renderCorridorPreview(state)
-          },
-          onStop(this: any, state: any) {
-            clearCorridorPreview(this.map)
-            setCorridorPreviewVisible(this.map, false)
-            state._exiting = true
-            BaseLine.onStop.call(this, state)
-          },
-          _renderCorridorPreview(this: any, state: any) {
-            if (!state?.line) return
-            if (state._exiting) return
-
-            const coords =
-              state.line.coordinates ??
-              (typeof state.line.getCoordinates === 'function'
-                ? state.line.getCoordinates()
-                : null)
-            if (!coords || coords.length < 2) return
-            const line = {
-              type: 'Feature',
-              properties: {},
-              geometry: { type: 'LineString', coordinates: coords },
-            }
-            const half = (get()._drawOptions.corridorHalfWidthMeters ??
-              3) as number
-            cancelAnimationFrame(state._raf)
-            state._raf = requestAnimationFrame(async () => {
-              const poly = await corridorPolygonFromLine(line as any, half)
-              const src: any = this.map.getSource(CORRIDOR_PREVIEW_SOURCE_ID)
-              if (src) src.setData(poly)
-            })
-          },
-        }
-
-        const draw = new MapboxDraw({
-          displayControlsDefault: false,
-          defaultMode: 'simple_select',
-          userProperties: true,
-          styles: drawStyles,
-          keybindings: true,
-          modes: {
-            ...(MapboxDraw as any).modes,
-            draw_corridor: DrawCorridorMode,
-          },
+        const adapter = new TerraDrawMapLibreGLAdapter({
+          map: _map,
+          prefixId: 'td',
         })
 
-        _map?.addControl(draw as unknown as IControl, 'bottom-right')
+        const selectMode = new TerraDrawSelectMode({
+          modeName: 'select',
+        } as any)
+        const polygonMode = new TerraDrawPolygonMode({
+          modeName: 'polygon',
+        } as any)
+        const corridorMode = new TerraDrawCorridorMode()
+
+        const draw = new TerraDraw({
+          adapter,
+          modes: [selectMode, polygonMode, corridorMode],
+        })
+
+        draw.start()
 
         // const onModeChange = (e: any) => {
         //   console.log('changing mode', e.mode)
@@ -334,22 +314,14 @@ export const createMapDrawSlice: (
 
         // _map?.on('draw.modechange', onModeChange)
 
-        if (drawMode && drawMode !== 'simple_select') {
-          draw.changeMode(drawMode as any)
+        if (drawMode && drawMode !== 'select') {
+          draw.setMode(drawMode as any)
         }
-        const initialMode = getDrawMode(
-          draw.getMode() as ExtendedMaplibreDrawMode
-        )
+        const initialMode = getDrawMode(draw.getMode() as any)
         set((state) => {
           state._drawOptions.currentMode = initialMode
         })
 
-        const handleModeChange = (e: any) => {
-          const mode = getDrawMode(e.mode as ExtendedMaplibreDrawMode)
-          set((state) => {
-            state._drawOptions.currentMode = mode
-          })
-        }
         // Update selectable hover handlers to exclude drawn layers
         _updateSelectableHoverHandlers(layerIds)
 
@@ -359,152 +331,162 @@ export const createMapDrawSlice: (
           const data = source.data as FeatureCollection
           const features = data.features
           try {
-            // As mapbox draw creates a clone of the original features, we need to ensure
-            // that the id field is properly cloned as well. It is used to identify updated and deleted
-            // features across the two datasets.
-            // If idField is not set (feature.properties[idField]), the feature.id is used instead.
-            const modifiedFeatures = features.map((feature) => {
-              const userProperties: Record<string, any> = {}
+            const terraFeatures = features.map((feature) => {
+              const userProperties: Record<string, any> = {
+                mode: 'polygon',
+              }
 
               if (_drawOptions.idField != null) {
                 const id = (feature.properties as any)[_drawOptions.idField]
                 userProperties[_drawOptions.idField] = id
-
-                if (id !== undefined) {
-                } else {
-                  throw new Error(
-                    `No "${_drawOptions.idField}" found in draw feature's properties.`
-                  )
-                }
-              } else {
+              } else if (feature.id != null) {
                 userProperties['id'] = feature.id
               }
 
               return {
                 ...feature,
+                id: feature.id,
                 properties: userProperties,
               }
             })
 
-            const modifiedSourceData = {
-              ...data,
-              features: modifiedFeatures,
-            }
-            //@ts-ignore
-            await draw.add(modifiedSourceData)
+            draw.addFeatures(terraFeatures as any)
           } catch (e) {
             console.error(e)
             return
           }
 
-          const handleDrawCreate = (e: any) => {
-            const mode = draw.getMode()
-            e.features.forEach(async (feature: Feature) => {
-              if (_drawOptions.featureAddMutator != null) {
-                const mutatedFeature = _drawOptions.featureAddMutator(feature)
+          const handleFinish = async (featureId: any, context: any) => {
+            const feature = draw.getSnapshotFeature(featureId) as Feature | null
+            if (!feature) return
+            const mode = context?.mode || feature.properties?.mode
+            if (!_drawOptions.idField) {
+              feature.properties = {
+                ...(feature.properties || {}),
+                id: feature.id,
+              }
+            } else {
+              feature.properties = {
+                ...(feature.properties || {}),
+                [_drawOptions.idField]:
+                  (feature.properties as any)?.[_drawOptions.idField] ??
+                  feature.id,
+              }
+            }
+            if (_drawOptions.featureAddMutator != null) {
+              Object.assign(
+                feature,
+                _drawOptions.featureAddMutator(feature as Feature)
+              )
+            }
 
-                const id = (mutatedFeature.properties as any)[idField]
+            if (mode === 'corridor') {
+              try {
+                const half =
+                  get()._drawOptions.corridorHalfWidthMeters ??
+                  _drawOptions.corridorHalfWidthMeters ??
+                  3
+                const poly = (await corridorPolygonFromLine(
+                  feature as any,
+                  half
+                )) as any
+                poly.id = feature.id
+                poly.properties = {
+                  ...(feature.properties || {}),
+                  mode: 'polygon',
+                }
+                draw.removeFeatures([featureId])
+                draw.addFeatures([poly])
+                addFeatureToDrawSource(poly, layerGroupId, _map)
+                return
+              } catch (err) {
+                console.error('Failed to create corridor polygon', err)
+              }
+            }
 
-                if (id !== undefined) {
-                  draw.setFeatureProperty(String(feature.id), idField, id)
-                } else {
-                  console.error(
-                    `Mutated draw feature has no idField: "${idField}"`
-                  )
+            addFeatureToDrawSource(feature, layerGroupId, _map)
+          }
+
+          const handleChange = (ids: any[], type: string) => {
+            if (type === 'update') {
+              ids.forEach((id) => {
+                const feature = draw.getSnapshotFeature(id) as Feature | null
+                if (!feature) return
+                const props = feature.properties as Record<string, any> | null
+                // Skip TerraDraw guidance/provisional features that should not sync to the source
+                if (
+                  !props ||
+                  props.currentlyDrawing ||
+                  props.closingPoint ||
+                  props.coordinatePoint
+                ) {
                   return
                 }
-              }
-              let f: Feature = feature
-              if (mode === 'draw_corridor') {
-                try {
-                  const half =
-                    get()._drawOptions.corridorHalfWidthMeters ??
-                    _drawOptions.corridorHalfWidthMeters ??
-                    3
-                  const poly = (await corridorPolygonFromLine(
-                    feature as any,
-                    half
-                  )) as any
-                  // Replace the temp line feature in draw with the polygon
-                  try {
-                    draw.delete(String(feature.id))
-                  } catch {}
-                  const props = feature.properties || {}
-                  poly.properties = { ...props }
-                  draw.add(poly)
-                  f = poly
-                } catch (err) {
-                  console.error('Failed to create corridor polygon', err)
+                const fid = props[idField]
+                if (fid == null) return
+                let f: Feature = { ...feature, id: fid }
+                if (_drawOptions.featureUpdateMutator != null) {
+                  f = _drawOptions.featureUpdateMutator(f)
                 }
-              }
-              addFeatureToDrawSource(f, layerGroupId, _map)
-            })
-          }
-
-          const handleDrawUpdate = (e: any) => {
-            e.features.forEach((feature: Feature) => {
-              if (_drawOptions.featureUpdateMutator != null) {
-                feature = _drawOptions.featureUpdateMutator(feature)
-              }
-              updateFeatureInDrawSource(feature, idField, layerGroupId, _map)
-            })
-          }
-
-          const handleDrawDelete = (e: any) => {
-            e.features.forEach((feature: Feature) => {
-              deleteFeatureFromDrawSource(feature, idField, layerGroupId, _map)
-            })
-          }
-
-          let handleSelectionChange: ((e: any) => void) | undefined = undefined
-
-          if (isLayerGroupSelectable(layerGroupId, _layerGroups)) {
-            const allowedLayers = getSelectableLayers(
-              layerGroupId,
-              _layerGroups
-            )
-            handleSelectionChange = (e: any) => {
-              const featureIds = e.features.map((feature: any) => {
-                return feature.properties[idField]
+                updateFeatureInDrawSource(f, idField, layerGroupId, _map)
               })
-
-              const features = fetchFeaturesByIds({
-                ids: featureIds,
-                source: { source: layerGroupId },
-                idField: idField,
-                map: _map,
+            } else if (type === 'delete') {
+              ids.forEach((id) => {
+                const deletionFeature: Feature = {
+                  type: 'Feature',
+                  geometry: null as any,
+                  properties: {
+                    [idField]: id,
+                  },
+                  id,
+                }
+                deleteFeatureFromDrawSource(
+                  deletionFeature,
+                  idField,
+                  layerGroupId,
+                  _map
+                )
               })
-
-              if (features) {
-                // features.filter
-                setSelectedFeatures(features)
-              }
             }
           }
 
-          if (handleSelectionChange) {
-            _map?.on('draw.selectionchange', handleSelectionChange)
+          const handleSelect = (id: any) => {
+            const feature = draw.getSnapshotFeature(id) as Feature | null
+            if (!feature) return
+            const fid = (feature.properties as any)?.[idField] ?? feature.id
+            if (fid == null) return
+            const featureIds = [fid]
+            const features = fetchFeaturesByIds({
+              ids: featureIds,
+              source: { source: layerGroupId },
+              idField,
+              map: _map,
+            })
+            setSelectedFeatures(features)
           }
 
-          _map?.on('draw.modechange', handleModeChange)
-          _map?.on('draw.create', handleDrawCreate)
-          _map?.on('draw.update', handleDrawUpdate)
-          _map?.on('draw.delete', handleDrawDelete)
+          const handleDeselect = () => {
+            setSelectedFeatures([])
+          }
+
+          draw.on('finish', handleFinish)
+          draw.on('change', handleChange as any)
+          draw.on('select', handleSelect)
+          draw.on('deselect', handleDeselect)
 
           await set((state) => {
             state._drawOptions.draw = draw
             state._drawOptions.originalStyles = originalStyles
-            state._drawOptions.handleDrawCreate = handleDrawCreate
-            state._drawOptions.handleDrawUpdate = handleDrawUpdate
-            state._drawOptions.handleDrawDelete = handleDrawDelete
-            state._drawOptions.handleSelectionChange = handleSelectionChange
-            state._drawOptions.handleModeChange = handleModeChange
+            state._drawOptions.handleDrawCreate = handleFinish
+            state._drawOptions.handleDrawUpdate = handleChange as any
+            state._drawOptions.handleDrawDelete = handleChange as any
+            state._drawOptions.handleSelectionChange = handleSelect as any
           })
 
           _disableLayerGroupEventHandlers(layerGroupId)
 
           if (selectedFeatures?.length > 0) {
-            if (draw.getMode() === 'simple_select') {
+            if (draw.getMode() === 'select') {
               _updateDrawSelectedFeatures(true)
             }
           }
@@ -544,13 +526,14 @@ export const createMapDrawSlice: (
         (feature: Feature) => feature.id as string
       )
 
-      _drawOptions.draw?.changeMode('simple_select', {
-        featureIds: matchingFeatureIds,
-      })
-
-      _map?.fire('draw.selectionchange', {
-        features: matchingFeatures,
-      })
+      if (_drawOptions.draw) {
+        _drawOptions.draw.setMode('select')
+        matchingFeatureIds.forEach((id) => {
+          try {
+            _drawOptions.draw?.selectFeature(id as any)
+          } catch {}
+        })
+      }
 
       if (updateSelectedFeatures) {
         setSelectedFeatures(newSelectedFeatures)
@@ -600,40 +583,27 @@ export const createMapDrawSlice: (
           }
 
           if (_drawOptions.handleDrawCreate != null) {
-            _map?.off('draw.create', _drawOptions.handleDrawCreate)
+            drawInstance.off('finish', _drawOptions.handleDrawCreate)
           }
           if (_drawOptions.handleDrawUpdate != null) {
-            _map?.off('draw.update', _drawOptions.handleDrawUpdate)
+            drawInstance.off('change', _drawOptions.handleDrawUpdate as any)
           }
           if (_drawOptions.handleDrawDelete != null) {
-            _map?.off('draw.delete', _drawOptions.handleDrawDelete)
+            drawInstance.off('change', _drawOptions.handleDrawDelete as any)
           }
           if (_drawOptions.handleSelectionChange != null) {
-            _map?.off(
-              'draw.selectionchange',
-              _drawOptions.handleSelectionChange
-            )
-          }
-          if (_drawOptions.handleModeChange != null) {
-            _map?.off('draw.modechange', _drawOptions.handleModeChange)
+            drawInstance.off('select', _drawOptions.handleSelectionChange)
+            drawInstance.off('deselect', _drawOptions.handleSelectionChange)
           }
 
           // clear selected features, if any
-          if (drawInstance.getMode() === 'simple_select') {
-            await drawInstance.changeMode('simple_select', {
-              featureIds: [],
-            })
-          }
+          setSelectedFeatures([])
 
-          // Clean up corridor preview artifacts
-          if (_map?.getLayer(CORRIDOR_PREVIEW_LAYER_ID)) {
-            _map.removeLayer(CORRIDOR_PREVIEW_LAYER_ID)
-          }
-          if (_map?.getSource(CORRIDOR_PREVIEW_SOURCE_ID)) {
-            _map.removeSource(CORRIDOR_PREVIEW_SOURCE_ID)
-          }
-
-          _map?.removeControl(drawInstance as unknown as IControl)
+          drawInstance.stop()
+          try {
+            drawInstance.clear()
+          } catch {}
+          removeTerraDrawArtifacts(_map)
 
           // re-enable selectable hover handlers, if some were disabled
           _updateSelectableHoverHandlers()
@@ -645,7 +615,6 @@ export const createMapDrawSlice: (
             state._drawOptions.handleDrawUpdate = undefined
             state._drawOptions.handleDrawDelete = undefined
             state._drawOptions.handleSelectionChange = undefined
-            state._drawOptions.handleModeChange = undefined
             state._drawOptions.currentMode = null
           })
         }

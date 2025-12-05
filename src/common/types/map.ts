@@ -12,7 +12,7 @@ import type {
   SourceSpecification,
   GeoJSONSourceSpecification,
 } from 'maplibre-gl'
-import type MapboxDraw from '@mapbox/mapbox-gl-draw'
+import type { TerraDraw } from 'terra-draw'
 
 import type { MapStoreActions } from '#/common/store/mapStore'
 import { StoreApi, UseBoundStore } from 'zustand'
@@ -173,7 +173,7 @@ export interface LayerGroupDrawOptions {
 
 export interface MapDrawOptions extends LayerGroupDrawOptions {
   layerGroupId: string | null
-  draw: MaplibreDraw | null
+  draw: TerraDraw | null
   isEnabled: boolean
   currentMode?: DrawMode | null
   originalStyles?: Record<string, any>
@@ -480,7 +480,7 @@ export const isGeoJSONSource = (source: any): source is GeoJSONSource => {
 
 export type DrawMode = 'polygon' | 'edit' | 'corridor'
 
-export type ExtendedMaplibreDrawMode = MapboxDraw.DrawMode | 'draw_corridor'
+export type ExtendedMaplibreDrawMode = 'polygon' | 'select' | 'corridor'
 
 export type FitBoundsOptions = {
   duration?: number

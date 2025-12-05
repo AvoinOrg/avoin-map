@@ -8106,6 +8106,8 @@ __metadata:
     sass-loader: ^13.2.0
     shpjs: ^4.0.4
     style-loader: ^3.3.1
+    terra-draw: ^1.19.0
+    terra-draw-maplibre-gl-adapter: ^1.2.2
     terser-webpack-plugin: ^5.3.6
     ts-jest: ^29.1.2
     ts-node: ^10.9.2
@@ -17752,6 +17754,23 @@ __metadata:
     mkdirp: ^1.0.3
     yallist: ^4.0.0
   checksum: f23832fceeba7578bf31907aac744ae21e74a66f4a17a9e94507acf460e48f6db598c7023882db33bab75b80e027c21f276d405e4a0322d58f51c7088d428268
+  languageName: node
+  linkType: hard
+
+"terra-draw-maplibre-gl-adapter@npm:^1.2.2":
+  version: 1.2.2
+  resolution: "terra-draw-maplibre-gl-adapter@npm:1.2.2"
+  peerDependencies:
+    maplibre-gl: ">=4"
+    terra-draw: ^1.0.0
+  checksum: 4830e63e650af45edffafca83032a71bd84a2c37db484f5dc4e4709e01ea9a1098a5e65a3cdd3e74e38b46dfc43a945f8c0386072fbe45573046cb1780aca763
+  languageName: node
+  linkType: hard
+
+"terra-draw@npm:^1.19.0":
+  version: 1.19.0
+  resolution: "terra-draw@npm:1.19.0"
+  checksum: 93c745443ea1595ec0fd0802546ee0c414da47180438c4feecb7347467f42584cb850963a9d81949398a68eb77154e3adf10125d0acb90d8b6717e26bc52a51a
   languageName: node
   linkType: hard
 

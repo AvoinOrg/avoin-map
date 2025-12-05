@@ -729,11 +729,11 @@ export const getMaplibreDrawMode = (
 ): ExtendedMaplibreDrawMode => {
   switch (drawMode) {
     case 'polygon':
-      return 'draw_polygon'
+      return 'polygon'
     case 'edit':
-      return 'simple_select'
+      return 'select'
     case 'corridor':
-      return 'draw_corridor' as any
+      return 'corridor'
   }
 }
 
@@ -742,16 +742,12 @@ export const getDrawMode = (
   maplibreDrawMode: ExtendedMaplibreDrawMode
 ): DrawMode => {
   switch (maplibreDrawMode) {
-    case 'draw_polygon':
+    case 'polygon':
       return 'polygon'
-    case 'simple_select':
+    case 'select':
       return 'edit'
-    case 'draw_corridor':
+    case 'corridor':
       return 'corridor'
-    case 'direct_select':
-      return 'edit'
-    case 'static':
-      return 'edit'
     default:
       return 'edit'
   }
@@ -1003,8 +999,14 @@ export const getMatchingDrawFeatures = (
   features: MapGeoJSONFeature[],
   idField: string | undefined
 ): Feature[] => {
-  const drawData = draw.getAll()
-  const matchingFeatures = drawData.features.filter((drawFeature: Feature) => {
+  let drawFeatures: Feature[] = []
+  if (draw?.getAll) {
+    drawFeatures = draw.getAll().features
+  } else if (draw?.getSnapshot) {
+    drawFeatures = draw.getSnapshot() as any
+  }
+
+  const matchingFeatures = drawFeatures.filter((drawFeature: Feature) => {
     return features.some((feature) => {
       if (idField) {
         if (
