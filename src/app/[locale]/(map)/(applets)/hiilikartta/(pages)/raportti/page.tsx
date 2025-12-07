@@ -35,12 +35,7 @@ enum ErrorState {
   NO_DATA = 'NO_DATA',
 }
 
-type PageProps = {
-  params: Promise<{ planIdSlug: string }>
-}
-
-const Page = ({ params }: PageProps) => {
-  const { planIdSlug } = use(params)
+const Page = () => {
   const searchParams = useSearchParams()
   const globalState = useStore(useAppletStore, (state) => state.globalState)
   const notify = useUIStore((state) => state.notify)
