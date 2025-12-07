@@ -1,11 +1,5 @@
 'use client'
-import React, {
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import React, { useEffect, useMemo, useRef, useState, use } from 'react'
 
 import useStore from '#/common/hooks/useStore'
 import MutableLink from '#/components/common/MutableLink'
@@ -41,7 +35,12 @@ enum ErrorState {
   NO_DATA = 'NO_DATA',
 }
 
-const Page = ({ params }: { params: { planIdSlug: string } }) => {
+type PageProps = {
+  params: Promise<{ planIdSlug: string }>
+}
+
+const Page = ({ params }: PageProps) => {
+  const { planIdSlug } = use(params)
   const searchParams = useSearchParams()
   const globalState = useStore(useAppletStore, (state) => state.globalState)
   const notify = useUIStore((state) => state.notify)
