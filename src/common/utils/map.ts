@@ -422,8 +422,38 @@ const getSourceData = async (
   return sourceData as GeoJSON.FeatureCollection
 }
 
+const getFeatureIdentifier = (
+  feature: Feature,
+  idField: string
+): string | number | null => {
+  const props = feature.properties as Record<string, any> | undefined
+  if (props && props[idField] != null) {
+    return props[idField] as string | number
+  }
+  if (feature.id != null) {
+    return feature.id as string | number
+  }
+  return null
+}
+
+const ensureIdOnFeature = (
+  feature: Feature,
+  idField: string
+): Feature | null => {
+  const identifier = getFeatureIdentifier(feature, idField)
+  if (identifier == null) {
+    return null
+  }
+  const properties = {
+    ...(feature.properties || {}),
+    [idField]: identifier,
+  }
+  return { ...feature, id: feature.id ?? identifier, properties }
+}
+
 export const addFeatureToDrawSource = async (
   feature: GeoJSON.Feature,
+  idField: string = 'id',
   layerGroupId: string,
   map: Map | null
 ) => {
@@ -432,7 +462,8 @@ export const addFeatureToDrawSource = async (
     return
   }
 
-  const newFeatures = [...clone(data.features), feature]
+  const normalized = ensureIdOnFeature(feature, idField)
+  const newFeatures = [...clone(data.features), normalized ?? feature]
 
   // Update the source with the modified features
   const originalSource = map!.getSource(layerGroupId) as GeoJSONSource
@@ -446,6 +477,12 @@ export const updateFeatureInDrawSource = async (
   layerGroupId: string,
   map: Map | null
 ) => {
+  const normalizedFeature = ensureIdOnFeature(feature, idField)
+  if (!normalizedFeature) {
+    console.error('Cannot update feature without an identifier')
+    return
+  }
+
   const data = await getSourceData(layerGroupId, map)
   if (!data) {
     return
@@ -453,16 +490,24 @@ export const updateFeatureInDrawSource = async (
 
   let found = false
 
-  const updatedFeatures = data.features.map((f) => {
-    // Check if the current feature in the map is the one that needs to be updated
-    if (f.properties && feature.properties) {
-      const originalId = f.properties[idField]
-      const drawId = feature.properties[idField]
+  const featureId = getFeatureIdentifier(normalizedFeature, idField)
 
-      if (originalId === drawId) {
-        found = true
-        // Return a new feature object with updated geometry
-        return { ...f, geometry: feature.geometry }
+  const updatedFeatures = data.features.map((f) => {
+    const originalId = getFeatureIdentifier(f as Feature, idField)
+
+    if (originalId != null && featureId != null && originalId === featureId) {
+      found = true
+      // Return a new feature object with updated geometry and ensured id
+      const properties = {
+        ...(f.properties || {}),
+        ...(normalizedFeature.properties || {}),
+        [idField]: featureId,
+      }
+      return {
+        ...f,
+        id: f.id ?? featureId,
+        geometry: normalizedFeature.geometry,
+        properties,
       }
     }
     // Return the unmodified feature
@@ -470,9 +515,9 @@ export const updateFeatureInDrawSource = async (
   })
 
   if (!found) {
-    if (feature.properties) {
+    if (featureId != null) {
       console.error(
-        `Feature with id ${feature.properties[idField]} not found in the original source`
+        `Feature with id ${featureId} not found in the original source`
       )
     } else {
       console.error(
@@ -493,20 +538,20 @@ export const deleteFeatureFromDrawSource = async (
   layerGroupId: string,
   map: Map | null
 ) => {
+  const featureId = getFeatureIdentifier(feature, idField)
+
   const data = await getSourceData(layerGroupId, map)
   if (!data) {
     return
   }
 
   const updatedFeatures = data.features.filter((f) => {
-    if (f.properties && feature.properties) {
-      const originalId = f.properties[idField]
-      const drawId = feature.properties[idField]
-
-      return originalId !== drawId
+    const originalId = getFeatureIdentifier(f as Feature, idField)
+    if (originalId == null || featureId == null) {
+      // If properties are missing, keep the feature (i.e., do not delete it)
+      return true
     }
-    // If properties are missing, keep the feature (i.e., do not delete it)
-    return true
+    return originalId !== featureId
   })
 
   // Update the source with the modified features
@@ -1008,19 +1053,16 @@ export const getMatchingDrawFeatures = (
 
   const matchingFeatures = drawFeatures.filter((drawFeature: Feature) => {
     return features.some((feature) => {
-      if (idField) {
-        if (
-          feature.properties &&
-          feature.properties[idField] != null &&
-          drawFeature.properties &&
-          drawFeature.properties[idField] != null
-        ) {
-          return drawFeature.properties[idField] === feature.properties[idField]
-        }
+      const drawId = getFeatureIdentifier(drawFeature, idField || 'id')
+      const targetId = idField
+        ? getFeatureIdentifier(feature, idField)
+        : feature.id
+
+      if (drawId == null || targetId == null) {
         return false
-      } else {
-        return drawFeature.properties?.id === feature.id
       }
+
+      return drawId === targetId
     })
   })
 
