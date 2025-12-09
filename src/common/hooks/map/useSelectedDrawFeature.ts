@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useMapStore } from '#/common/store'
 import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
-import { getActiveDrawInstance } from '#/common/store/mapStore/drawInstance'
+import { getActiveDrawInstance } from '#/common/store/mapStore/mapDrawSlice'
 
 export const useSelectedDrawFeatures = () => {
   const map = useMapInstanceStore((state) => state._map)

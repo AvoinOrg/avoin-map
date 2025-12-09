@@ -4,7 +4,7 @@ import { uniq, isEqual, pickBy, uniqBy } from 'lodash-es'
 import { produce } from 'immer'
 import { MapGeoJSONFeature } from 'maplibre-gl'
 import { useMapInstanceStore } from './mapInstanceStore'
-import { getActiveDrawInstance } from './drawInstance'
+import { getActiveDrawInstance } from './mapDrawSlice'
 import {
   PopupData,
   PopupOpts,

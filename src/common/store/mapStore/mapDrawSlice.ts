@@ -12,10 +12,6 @@ import type { Feature, FeatureCollection } from 'geojson'
 import type { MapGeoJSONFeature } from 'maplibre-gl'
 import { useMapInstanceStore } from './mapInstanceStore'
 import {
-  getActiveDrawInstance,
-  setActiveDrawInstance,
-} from './drawInstance'
-import {
   getMaplibreDrawMode,
   getLayerGroupIdForSource,
   getSelectableLayers,
@@ -37,6 +33,14 @@ import type {
   ExtendedMaplibreDrawMode,
 } from '#/common/types/map'
 import { QueuePriority } from '#/common/types/map'
+
+let activeDrawInstance: TerraDraw | null = null
+
+export const getActiveDrawInstance = () => activeDrawInstance
+
+export const setActiveDrawInstance = (instance: TerraDraw | null) => {
+  activeDrawInstance = instance
+}
 
 export type MapDrawVars = {
   _drawOptions: MapDrawOptions
