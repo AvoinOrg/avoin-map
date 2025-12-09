@@ -549,7 +549,6 @@ export const createMapDrawSlice: (
           setActiveDrawInstance(draw)
 
           await set((state) => {
-            state._drawOptions.draw = null
             state._drawOptions.originalStyles = originalStyles
             state._drawOptions.handleDrawCreate = handleFinish
             state._drawOptions.handleDrawUpdate = handleChange as any
@@ -693,7 +692,6 @@ export const createMapDrawSlice: (
           _updateSelectableHoverHandlers()
 
           await set((state) => {
-            state._drawOptions.draw = null
             state._drawOptions.originalStyles = undefined
             state._drawOptions.handleDrawCreate = undefined
             state._drawOptions.handleDrawUpdate = undefined
