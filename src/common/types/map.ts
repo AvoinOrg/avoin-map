@@ -173,7 +173,6 @@ export interface LayerGroupDrawOptions {
 
 export interface MapDrawOptions extends LayerGroupDrawOptions {
   layerGroupId: string | null
-  draw: TerraDraw | null
   isEnabled: boolean
   currentMode?: DrawMode | null
   originalStyles?: Record<string, any>
