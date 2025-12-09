@@ -4,6 +4,7 @@ import { uniq, isEqual, pickBy, uniqBy } from 'lodash-es'
 import { produce } from 'immer'
 import { MapGeoJSONFeature } from 'maplibre-gl'
 import { useMapInstanceStore } from './mapInstanceStore'
+import { getActiveDrawInstance } from './drawInstance'
 import {
   PopupData,
   PopupOpts,
@@ -203,7 +204,7 @@ export const createMapFeatureSlice: (
       }
 
       if (updateDrawSelect) {
-        if (_drawOptions.isEnabled && _drawOptions.draw != null) {
+        if (_drawOptions.isEnabled && getActiveDrawInstance() != null) {
           _updateDrawSelectedFeatures()
         }
       }
@@ -260,7 +261,7 @@ export const createMapFeatureSlice: (
         if (
           _drawOptions != null &&
           _drawOptions.isEnabled &&
-          _drawOptions.draw != null &&
+          getActiveDrawInstance() != null &&
           _drawOptions.layerGroupId != null
         ) {
           const drawLayerGroupId = _drawOptions.layerGroupId

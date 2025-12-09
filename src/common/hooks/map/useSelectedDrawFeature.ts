@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useMapStore } from '#/common/store'
 import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
+import { getActiveDrawInstance } from '#/common/store/mapStore/drawInstance'
 
 export const useSelectedDrawFeatures = () => {
   const map = useMapInstanceStore((state) => state._map)
-  const draw = useMapStore((state) => state._drawOptions.draw)
+  const drawGeneration = useMapStore(
+    (state) => state._drawOptions.drawGeneration
+  )
 
   const [selectedDrawFeatures, setSelectedDrawFeatures] = useState<
     GeoJSON.Feature[]
@@ -21,7 +24,10 @@ export const useSelectedDrawFeatures = () => {
       : undefined)
 
   useEffect(() => {
-    if (!map || !draw) return
+    if (!map) return
+
+    const draw = getActiveDrawInstance()
+    if (!draw) return
 
     const handleSelectionChange = (e: any) => {
       if (e.features.length > 0) {
@@ -62,7 +68,7 @@ export const useSelectedDrawFeatures = () => {
       map.off('draw.selectionchange', handleSelectionChange)
       map.off('draw.delete', handleDrawDelete)
     }
-  }, [map, draw])
+  }, [map, drawGeneration])
 
   return selectedDrawFeatures
 }

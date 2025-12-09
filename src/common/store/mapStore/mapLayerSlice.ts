@@ -1410,6 +1410,7 @@ export const createMapLayerSlice: (
               currentMode: null,
               layerGroupId: layerGroupIdString,
               isEnabled: true,
+              drawGeneration: prevDrawOptions?.drawGeneration ?? 0,
             }
           })
         }

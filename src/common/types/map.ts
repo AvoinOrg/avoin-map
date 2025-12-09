@@ -183,6 +183,7 @@ export interface MapDrawOptions extends LayerGroupDrawOptions {
   handleSelectionChange?: (e: any) => void
   handleModeChange?: (e: any) => void
   corridorHalfWidthMeters?: number
+  drawGeneration: number
 }
 
 export enum LayerOrderLevel {
