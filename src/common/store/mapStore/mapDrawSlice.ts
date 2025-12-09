@@ -23,6 +23,10 @@ import {
   deleteFeatureFromDrawSource,
   getDrawMode,
   corridorPolygonFromLine,
+  CORRIDOR_PREVIEW_SOURCE_ID,
+  ensureCorridorPreviewLayers,
+  setCorridorPreviewVisible,
+  clearCorridorPreview,
   getSourceJson,
 } from '#/common/utils/map'
 import type { MapStoreHelpers, MapStateCreator } from './mapStore'
@@ -166,6 +170,17 @@ export const createMapDrawSlice: (
         }
 
         draw.setMode(mode as any)
+        const mapForPreview = useMapInstanceStore.getState()._map
+        if (mapForPreview) {
+          if (drawMode === 'corridor') {
+            ensureCorridorPreviewLayers(mapForPreview)
+            clearCorridorPreview(mapForPreview)
+            setCorridorPreviewVisible(mapForPreview, false)
+          } else {
+            clearCorridorPreview(mapForPreview)
+            setCorridorPreviewVisible(mapForPreview, false)
+          }
+        }
         set((state) => {
           state._drawOptions.currentMode = drawMode
         })
@@ -202,6 +217,17 @@ export const createMapDrawSlice: (
         if (!draw) {
           return
         }
+        const mapForPreview = useMapInstanceStore.getState()._map
+        if (mapForPreview) {
+          if (drawMode === 'corridor') {
+            ensureCorridorPreviewLayers(mapForPreview)
+            clearCorridorPreview(mapForPreview)
+            setCorridorPreviewVisible(mapForPreview, false)
+          } else {
+            clearCorridorPreview(mapForPreview)
+            setCorridorPreviewVisible(mapForPreview, false)
+          }
+        }
         set((state) => {
           state._drawOptions.currentMode = drawMode
         })
@@ -224,6 +250,7 @@ export const createMapDrawSlice: (
           _updateSelectableHoverHandlers,
         } = get()
         const _map = useMapInstanceStore.getState()._map
+        const sourceFeatureIds = new Set<string | number>()
 
         removeTerraDrawArtifacts(_map)
 
@@ -338,7 +365,10 @@ export const createMapDrawSlice: (
         ) => {
           const nextProperties: Record<string, any> = {
             ...(input.properties || {}),
-            mode: 'polygon',
+          }
+
+          if (nextProperties.mode == null) {
+            nextProperties.mode = 'polygon'
           }
 
           let identifier = nextProperties[idField] ?? input.id ?? fallbackId
@@ -379,28 +409,78 @@ export const createMapDrawSlice: (
           })
         }
 
+        let corridorPreviewRequest = 0
+        const updateCorridorPreview = async (lineFeature?: Feature | null) => {
+          const mapInstance = _map
+          if (!mapInstance) return
+
+          if (!lineFeature || lineFeature.geometry?.type !== 'LineString') {
+            clearCorridorPreview(mapInstance)
+            setCorridorPreviewVisible(mapInstance, false)
+            return
+          }
+
+          ensureCorridorPreviewLayers(mapInstance)
+          const requestId = ++corridorPreviewRequest
+          const half =
+            get()._drawOptions.corridorHalfWidthMeters ??
+            _drawOptions.corridorHalfWidthMeters ??
+            3
+
+          try {
+            const poly = await corridorPolygonFromLine(lineFeature as any, half)
+            if (requestId !== corridorPreviewRequest) {
+              return
+            }
+            const src: any = mapInstance.getSource(CORRIDOR_PREVIEW_SOURCE_ID)
+            if (src?.setData) {
+              src.setData({
+                type: 'FeatureCollection',
+                features: [poly as any],
+              })
+              setCorridorPreviewVisible(mapInstance, true)
+            }
+          } catch (err) {
+            console.error('Failed to render corridor preview', err)
+          }
+        }
+
+        updateCorridorPreview(null)
+
         if ('data' in source) {
           const data = source.data as FeatureCollection
           const features = data.features
           try {
-            const terraFeatures = features.map((feature) => {
-              const userProperties: Record<string, any> = {
-                mode: 'polygon',
+            let sourceNeedsUpdate = false
+            const terraFeatures = features.map((feature, idx) => {
+              const fallbackId = feature.id ?? idx
+              const { feature: normalizedFeature, identifier } = ensureFeatureIdentifier(
+                feature,
+                fallbackId
+              )
+              const originalId =
+                (feature.properties as any)?.[idField] ?? feature.id
+              const normalizedId =
+                (normalizedFeature.properties as any)?.[idField]
+
+              if (identifier != null) {
+                sourceFeatureIds.add(identifier)
               }
 
-              if (_drawOptions.idField != null) {
-                const id = (feature.properties as any)[_drawOptions.idField]
-                userProperties[_drawOptions.idField] = id
-              } else if (feature.id != null) {
-                userProperties['id'] = feature.id
+              if (
+                normalizedId !== originalId ||
+                feature.id !== normalizedFeature.id
+              ) {
+                sourceNeedsUpdate = true
               }
 
-              return {
-                ...feature,
-                id: feature.id,
-                properties: userProperties,
-              }
+              return normalizedFeature
             })
+
+            if (sourceNeedsUpdate) {
+              const originalSource = _map?.getSource(layerGroupId) as any
+              originalSource?.setData({ ...data, features: terraFeatures })
+            }
 
             draw.addFeatures(terraFeatures as any)
           } catch (e) {
@@ -430,6 +510,7 @@ export const createMapDrawSlice: (
                 draw.removeFeatures([featureId])
                 draw.addFeatures([poly])
                 feature = poly
+                updateCorridorPreview(null)
               } catch (err) {
                 console.error('Failed to create corridor polygon', err)
                 return
@@ -439,12 +520,11 @@ export const createMapDrawSlice: (
             let { feature: normalizedFeature, identifier } =
               ensureFeatureIdentifier(feature, featureId)
 
-            let shouldUpdateExisting =
-              context?.action != null && context.action !== 'draw'
-
-            if (!shouldUpdateExisting) {
-              shouldUpdateExisting = await doesFeatureExistInSource(identifier)
-            }
+            const isUpdateAction = ['update', 'edit', 'modify'].includes(
+              context?.action
+            )
+            const existsInSource = await doesFeatureExistInSource(identifier)
+            const shouldUpdateExisting = isUpdateAction || existsInSource
 
             if (shouldUpdateExisting) {
               if (_drawOptions.featureUpdateMutator != null) {
@@ -461,6 +541,9 @@ export const createMapDrawSlice: (
                 layerGroupId,
                 _map
               )
+              if (identifier != null) {
+                sourceFeatureIds.add(identifier)
+              }
             } else {
               if (_drawOptions.featureAddMutator != null) {
                 const mutatedFeature = _drawOptions.featureAddMutator(
@@ -470,16 +553,36 @@ export const createMapDrawSlice: (
                   ensureFeatureIdentifier(mutatedFeature, featureId))
               }
 
-              addFeatureToDrawSource(normalizedFeature, layerGroupId, _map)
+              addFeatureToDrawSource(
+                normalizedFeature,
+                idField,
+                layerGroupId,
+                _map
+              )
+              if (identifier != null) {
+                sourceFeatureIds.add(identifier)
+              }
             }
           }
 
           const handleChange = (ids: any[], type: string) => {
             if (type === 'update') {
+              let previewUpdated = false
               ids.forEach((id) => {
                 const feature = draw.getSnapshotFeature(id) as Feature | null
                 if (!feature) return
                 const props = feature.properties as Record<string, any> | null
+
+                const isCorridorMode =
+                  props?.mode === 'corridor' ||
+                  draw.getMode() === 'corridor' ||
+                  get()._drawOptions.currentMode === 'corridor'
+
+                if (isCorridorMode && feature.geometry?.type === 'LineString') {
+                  updateCorridorPreview(feature)
+                  previewUpdated = true
+                }
+
                 if (
                   !props ||
                   props.currentlyDrawing ||
@@ -490,12 +593,18 @@ export const createMapDrawSlice: (
                 }
                 const fid = props[idField] ?? feature.id
                 if (fid == null) return
+                if (!sourceFeatureIds.has(fid)) {
+                  return
+                }
                 let updated: Feature = { ...feature, id: fid }
                 if (_drawOptions.featureUpdateMutator != null) {
                   updated = _drawOptions.featureUpdateMutator(updated)
                 }
                 updateFeatureInDrawSource(updated, idField, layerGroupId, _map)
               })
+              if (!previewUpdated) {
+                updateCorridorPreview(null)
+              }
             } else if (type === 'delete') {
               const deletedFeatures: Feature[] = []
               ids.forEach((id) => {
@@ -514,6 +623,9 @@ export const createMapDrawSlice: (
                   layerGroupId,
                   _map
                 )
+                if (typeof id === 'string' || typeof id === 'number') {
+                  sourceFeatureIds.delete(id)
+                }
               })
               if (deletedFeatures.length > 0) {
                 _map?.fire('draw.delete', { features: deletedFeatures })
@@ -553,6 +665,7 @@ export const createMapDrawSlice: (
           setActiveDrawInstance(draw)
 
           await set((state) => {
+            state._drawOptions.draw = draw as any
             state._drawOptions.originalStyles = originalStyles
             state._drawOptions.handleDrawCreate = handleFinish
             state._drawOptions.handleDrawUpdate = handleChange as any
@@ -691,11 +804,14 @@ export const createMapDrawSlice: (
             drawInstance.clear()
           } catch {}
           removeTerraDrawArtifacts(_map)
+          clearCorridorPreview(_map as any)
+          setCorridorPreviewVisible(_map as any, false)
 
           // re-enable selectable hover handlers, if some were disabled
           _updateSelectableHoverHandlers()
 
           await set((state) => {
+            state._drawOptions.draw = null
             state._drawOptions.originalStyles = undefined
             state._drawOptions.handleDrawCreate = undefined
             state._drawOptions.handleDrawUpdate = undefined
