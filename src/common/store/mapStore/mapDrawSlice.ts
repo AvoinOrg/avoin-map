@@ -117,7 +117,6 @@ export const createMapDrawSlice: (
       corridorEnabled: true,
       corridorHalfWidthMeters: 3,
       currentMode: null,
-      draw: null,
       drawGeneration: 0,
     },
   }
@@ -126,6 +125,10 @@ export const createMapDrawSlice: (
     deleteDrawFeatures: (features: Feature[]) => {
       const _map = useMapInstanceStore.getState()._map
       const draw = getActiveDrawInstance()
+      const { _drawOptions, setSelectedFeatures } = get()
+      const idField = _drawOptions.idField || 'id'
+      const layerGroupId = _drawOptions.layerGroupId
+
       if (draw == null) {
         return
       }
@@ -138,6 +141,13 @@ export const createMapDrawSlice: (
         console.error('Failed to remove features', err)
       }
 
+      if (layerGroupId) {
+        features.forEach((f) => {
+          deleteFeatureFromDrawSource(f, idField, layerGroupId, _map)
+        })
+      }
+
+      setSelectedFeatures([])
       _map?.fire('draw.delete', { features })
     },
 
