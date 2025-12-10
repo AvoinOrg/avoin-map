@@ -1416,43 +1416,39 @@ export const createMapLayerSlice: (
         }
 
         if ('dataUpdateMutator' in opts) {
+          let lastDataRef: FeatureCollection | null = null
           const handleDataUpdate = (e: any) => {
-            let lastDataRef: FeatureCollection | null = null
-            const handleDataUpdate = (e: any) => {
-              if (
-                e.dataType === 'source' &&
-                e.sourceId === layerGroupIdString &&
-                e.isSourceLoaded
-              ) {
+            if (
+              e.dataType === 'source' &&
+              e.sourceId === layerGroupIdString &&
+              e.isSourceLoaded
+            ) {
+              if (e.sourceDataType && e.sourceDataType !== 'content') return
 
-                if (e.sourceDataType && e.sourceDataType !== 'content') return
-
-                if ('data' in e.source) {
-                  const data = e.source.data as FeatureCollection | undefined
+              if ('data' in e.source) {
+                const data = e.source.data as FeatureCollection | undefined
+                if (
+                  data?.type === 'FeatureCollection' &&
+                  Array.isArray((data as any).features)
+                ) {
+                  // Skip if this data is the same as the last we processed
                   if (
-                    data?.type === 'FeatureCollection' &&
-                    Array.isArray((data as any).features)
+                    lastDataRef &&
+                    (lastDataRef === data || isEqual(lastDataRef, data))
                   ) {
-                    // Skip if this data is the same as the last we processed
-                    if (
-                      lastDataRef &&
-                      (lastDataRef === data || isEqual(lastDataRef, data))
-                    ) {
-                      return
-                    }
-                    lastDataRef = data
-                    opts.dataUpdateMutator?.(data) // Update Zustand store with new data
+                    return
                   }
+                  lastDataRef = data
+                  opts.dataUpdateMutator?.(data) // Update Zustand store with new data
                 }
               }
-
-              set((state) => {
-                state._layerGroups[layerGroupIdString].handleDataUpdate =
-                  handleDataUpdate
-              })
             }
           }
 
+          set((state) => {
+            state._layerGroups[layerGroupIdString].handleDataUpdate =
+              handleDataUpdate
+          })
           _map?.on('data', handleDataUpdate)
         }
       }
