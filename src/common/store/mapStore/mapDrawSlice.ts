@@ -563,6 +563,35 @@ export const createMapDrawSlice: (
                 sourceFeatureIds.add(identifier)
               }
             }
+
+            // Switch to select/edit mode and select the new/updated feature
+            const targetId = identifier ?? featureId
+            try {
+              draw.setMode('select')
+              if (targetId != null) {
+                draw.selectFeature(targetId as any)
+              }
+            } catch (err) {
+              console.warn('Failed to switch to select mode after finish', err)
+            }
+
+            const selected = targetId
+              ? fetchFeaturesByIds({
+                  ids: [targetId],
+                  source: { source: layerGroupId },
+                  idField,
+                  map: _map,
+                }) || []
+              : []
+
+            if (selected.length > 0) {
+              setSelectedFeatures(selected as any)
+              _map?.fire('draw.selectionchange', { features: selected })
+            }
+
+            set((state) => {
+              state._drawOptions.currentMode = 'edit'
+            })
           }
 
           const handleChange = (ids: any[], type: string) => {
