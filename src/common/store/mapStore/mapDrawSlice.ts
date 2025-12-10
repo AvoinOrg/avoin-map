@@ -343,11 +343,32 @@ export const createMapDrawSlice: (
         })
 
         const selectMode = new TerraDrawSelectMode({
-          modeName: 'select',
-        } as any)
-        const polygonMode = new TerraDrawPolygonMode({
-          modeName: 'polygon',
-        } as any)
+          flags: {
+            polygon: {
+              feature: {
+                draggable: true,
+                rotateable: true,
+                scaleable: true,
+                coordinates: {
+                  midpoints: true,
+                  draggable: true,
+                  deletable: true,
+                },
+              },
+            },
+            linestring: {
+              feature: {
+                draggable: true,
+                coordinates: {
+                  midpoints: true,
+                  draggable: true,
+                  deletable: true,
+                },
+              },
+            },
+          },
+        })
+        const polygonMode = new TerraDrawPolygonMode()
         const corridorMode = new TerraDrawCorridorMode()
 
         const draw = new TerraDraw({
