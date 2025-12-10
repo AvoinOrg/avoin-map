@@ -1400,7 +1400,6 @@ export const createMapLayerSlice: (
               true
 
             state._drawOptions = {
-              draw: null,
               polygonEnabled: false,
               editEnabled: false,
               deleteEnabled: false,
