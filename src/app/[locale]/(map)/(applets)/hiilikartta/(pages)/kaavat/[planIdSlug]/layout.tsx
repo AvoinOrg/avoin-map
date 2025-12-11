@@ -68,28 +68,39 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
             }
           },
           drawOptions: {
-            idField: 'id',
             polygonEnabled: true,
             editEnabled: true,
             deleteEnabled: true,
             corridorEnabled: true,
             featureAddMutator: (feature: Feature) => {
+              const { mode } = feature.properties || {}
               const properties: FeatureProperties = {
                 id: generateUUID(),
-                name: '',
                 area_ha: getGeoJsonArea(feature) / 10000,
+                name: '',
                 zoning_code: '',
               }
 
+              if (mode != null) {
+                properties.geometry_mode = mode
+              }
+
+              feature.id = properties.id
               feature.properties = properties
 
               return feature
             },
             featureUpdateMutator: (feature: Feature) => {
-              const properties = feature.properties as FeatureProperties
+              const { mode, ...rest } = feature.properties || {}
+              const properties = rest as FeatureProperties
+
               const newProperties: FeatureProperties = {
                 ...properties,
                 area_ha: getGeoJsonArea(feature) / 10000,
+              }
+
+              if (mode != null) {
+                newProperties.geometry_mode = mode
               }
 
               feature.properties = newProperties
