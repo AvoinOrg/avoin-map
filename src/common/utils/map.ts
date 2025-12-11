@@ -42,7 +42,7 @@ import {
   AutoRelocateOptions,
   ExtendedMaplibreDrawMode,
 } from '../types/map'
-import { clone, uniqBy } from 'lodash-es'
+import { uniqBy } from 'lodash-es'
 import { useMapStore } from '../store'
 import {
   CANVAS_FILL_DEFAULT_BACKGROUND_COLOR,
@@ -400,6 +400,68 @@ export const findSourceOptsById = (id: string, layerGroups: LayerGroups) => {
   return sourceOptions
 }
 
+// ============================================================================
+// GeoJSON Source Mutation Manager
+// Serializes all mutations per source to prevent race conditions
+// ============================================================================
+
+class GeoJSONSourceManager {
+  private queues: globalThis.Map<string, Promise<void>> = new globalThis.Map()
+
+  /**
+   * Queue a mutation operation for a GeoJSON source.
+   * All mutations for the same source are serialized to prevent race conditions.
+   */
+  async mutate(
+    map: Map,
+    sourceId: string,
+    mutator: (features: Feature[]) => Feature[]
+  ): Promise<void> {
+    const prev = this.queues.get(sourceId) ?? Promise.resolve()
+
+    const operation = prev
+      .then(async () => {
+        const source = map.getSource(sourceId) as GeoJSONSource | undefined
+        if (!source) {
+          console.error(`Source "${sourceId}" not found`)
+          return
+        }
+
+        const data = (await source.getData()) as FeatureCollection | null
+        if (!data || data.type !== 'FeatureCollection') {
+          console.error(
+            `Source "${sourceId}" data is not a valid FeatureCollection`
+          )
+          return
+        }
+
+        const newFeatures = mutator(data.features as Feature[])
+        source.setData({ ...data, features: newFeatures })
+        map.triggerRepaint()
+      })
+      .catch((err: unknown) => {
+        console.error(`Error mutating source "${sourceId}":`, err)
+      })
+
+    this.queues.set(sourceId, operation)
+    return operation
+  }
+
+  /**
+   * Clear the queue for a specific source (useful for cleanup)
+   */
+  clearQueue(sourceId: string): void {
+    this.queues.delete(sourceId)
+  }
+}
+
+// Singleton instance for the application
+export const geoJSONSourceManager = new GeoJSONSourceManager()
+
+// ============================================================================
+// Helper functions (kept private for internal use)
+// ============================================================================
+
 const getSourceData = async (
   layerGroupId: string,
   map: Map | null
@@ -451,113 +513,101 @@ const ensureIdOnFeature = (
   return { ...feature, id: feature.id ?? identifier, properties }
 }
 
-export const addFeatureToDrawSource = async (
+export const addFeatureToSource = (
   feature: GeoJSON.Feature,
-  idField: string = 'id',
   layerGroupId: string,
   map: Map | null
-) => {
-  const data = await getSourceData(layerGroupId, map)
-  if (!data) {
-    return
+): Promise<void> => {
+  console.log('adding feature to source', feature, layerGroupId)
+  if (!map) {
+    console.error('Map is not available')
+    return Promise.resolve()
   }
 
-  const normalized = ensureIdOnFeature(feature, idField)
-  const newFeatures = [...clone(data.features), normalized ?? feature]
-
-  // Update the source with the modified features
-  const originalSource = map!.getSource(layerGroupId) as GeoJSONSource
-  originalSource.setData({ ...data, features: newFeatures })
-  map?.triggerRepaint()
+  return geoJSONSourceManager.mutate(map, layerGroupId, (features) => {
+    return [...features, feature] as Feature[]
+  })
 }
 
-export const updateFeatureInDrawSource = async (
+export const updateFeatureInSource = (
   feature: Feature,
-  idField: string,
   layerGroupId: string,
   map: Map | null
-) => {
-  const normalizedFeature = ensureIdOnFeature(feature, idField)
-  if (!normalizedFeature) {
-    console.error('Cannot update feature without an identifier')
-    return
+): Promise<void> => {
+  console.log('updating feature in source', feature, layerGroupId)
+  if (!map) {
+    console.error('Map is not available')
+    return Promise.resolve()
   }
 
-  const data = await getSourceData(layerGroupId, map)
-  if (!data) {
-    return
-  }
-
-  let found = false
-
-  const featureId = getFeatureIdentifier(normalizedFeature, idField)
-
-  const updatedFeatures = data.features.map((f) => {
-    const originalId = getFeatureIdentifier(f as Feature, idField)
-
-    if (originalId != null && featureId != null && originalId === featureId) {
-      found = true
-      // Return a new feature object with updated geometry and ensured id
-      const properties = {
-        ...(f.properties || {}),
-        ...(normalizedFeature.properties || {}),
-        [idField]: featureId,
-      }
-      return {
-        ...f,
-        id: f.id ?? featureId,
-        geometry: normalizedFeature.geometry,
-        properties,
-      }
+  return geoJSONSourceManager.mutate(map, layerGroupId, (features) => {
+    if (feature.id == null) {
+      console.error('Cannot update feature without an identifier')
+      return features
     }
-    // Return the unmodified feature
-    return f
+
+    let found = false
+    const updatedFeatures = features.map((f) => {
+      const originalId = f.id
+
+      if (originalId != null && originalId === feature.id) {
+        found = true
+        const properties = {
+          ...(f.properties || {}),
+          ...(feature.properties || {}),
+        }
+        return {
+          ...f,
+          id: f.id ?? feature.id,
+          geometry: feature.geometry,
+          properties,
+        }
+      }
+      return f
+    })
+
+    if (!found) {
+      console.error(
+        `Feature with id ${feature.id} not found in the original source`
+      )
+    }
+
+    return updatedFeatures
   })
-
-  if (!found) {
-    if (featureId != null) {
-      console.error(
-        `Feature with id ${featureId} not found in the original source`
-      )
-    } else {
-      console.error(
-        'Feature properties are null, or the feature was not found in the original source.'
-      )
-    }
-  } else {
-    // Update the source with the modified features
-    const originalSource = map!.getSource(layerGroupId) as GeoJSONSource
-    originalSource.setData({ ...data, features: updatedFeatures })
-    map?.triggerRepaint()
-  }
 }
 
-export const deleteFeatureFromDrawSource = async (
-  feature: Feature,
-  idField: string,
+export const deleteFeaturesFromSource = (
+  features: Feature[],
   layerGroupId: string,
   map: Map | null
-) => {
-  const featureId = getFeatureIdentifier(feature, idField)
-
-  const data = await getSourceData(layerGroupId, map)
-  if (!data) {
-    return
+): Promise<void> => {
+  console.log('deleting features from source', features, layerGroupId)
+  if (!map) {
+    console.error('Map is not available')
+    return Promise.resolve()
   }
 
-  const updatedFeatures = data.features.filter((f) => {
-    const originalId = getFeatureIdentifier(f as Feature, idField)
-    if (originalId == null || featureId == null) {
-      // If properties are missing, keep the feature (i.e., do not delete it)
-      return true
-    }
-    return originalId !== featureId
-  })
+  return geoJSONSourceManager.mutate(map, layerGroupId, (features) => {
+    let featureIds = features.map((f) => {
+      if (f.id == null) {
+        console.error(
+          '[deleteFeaturesFromSource]: Cannot delete feature without an identifier: ',
+          f
+        )
+        return null
+      }
+      return f.id
+    })
 
-  // Update the source with the modified features
-  const originalSource = map!.getSource(layerGroupId) as GeoJSONSource
-  originalSource.setData({ ...data, features: updatedFeatures })
-  map?.triggerRepaint()
+    return features.filter((f) => {
+      const originalId = f.id
+      if (originalId == null) {
+        // Keep features without identifiers
+        return true
+      }
+      return featureIds.includes(originalId) === false
+    })
+  })
 }
 
 export const getFeaturesFromSourceById = async (
@@ -1041,8 +1091,7 @@ export const getLayersForSource = (
 
 export const getMatchingDrawFeatures = (
   draw: any,
-  features: MapGeoJSONFeature[],
-  idField: string | undefined
+  features: MapGeoJSONFeature[]
 ): Feature[] => {
   let drawFeatures: Feature[] = []
   if (draw?.getAll) {
@@ -1053,10 +1102,8 @@ export const getMatchingDrawFeatures = (
 
   const matchingFeatures = drawFeatures.filter((drawFeature: Feature) => {
     return features.some((feature) => {
-      const drawId = getFeatureIdentifier(drawFeature, idField || 'id')
-      const targetId = idField
-        ? getFeatureIdentifier(feature, idField)
-        : feature.id
+      const drawId = drawFeature.id
+      const targetId = feature.id
 
       if (drawId == null || targetId == null) {
         return false

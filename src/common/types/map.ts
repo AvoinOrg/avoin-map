@@ -161,7 +161,6 @@ export const isStandardSourceOptions = (
 export type LayerGroups = Record<string, LayerGroupOptions>
 
 export interface LayerGroupDrawOptions {
-  idField?: string
   polygonEnabled?: boolean
   editEnabled?: boolean
   deleteEnabled?: boolean
@@ -176,11 +175,10 @@ export interface MapDrawOptions extends LayerGroupDrawOptions {
   isEnabled: boolean
   currentMode?: DrawMode | null
   originalStyles?: Record<string, any>
-  handleDrawCreate?: (e: any) => void
-  handleDrawUpdate?: (e: any) => void
-  handleDrawDelete?: (e: any) => void
-  handleSelectionChange?: (e: any) => void
-  handleModeChange?: (e: any) => void
+  handleDrawFinish?: (...args: any[]) => Promise<void>
+  handleDrawUpdate?: (...args: any[]) => void
+  handleSelectionChange?: (...args: any[]) => void
+  handleModeChange?: (...args: any[]) => void
   corridorHalfWidthMeters?: number
   drawGeneration: number
 }

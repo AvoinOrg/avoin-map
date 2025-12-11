@@ -6,6 +6,7 @@ import {
   TerraDrawPolygonMode,
   TerraDrawSelectMode,
   TerraDrawLineStringMode,
+  GeoJSONStoreFeatures,
 } from 'terra-draw'
 import { TerraDrawMapLibreGLAdapter } from 'terra-draw-maplibre-gl-adapter'
 import type { Feature, FeatureCollection } from 'geojson'
@@ -18,9 +19,9 @@ import {
   isLayerGroupSelectable,
   fetchFeaturesByIds,
   getMatchingDrawFeatures,
-  addFeatureToDrawSource,
-  updateFeatureInDrawSource,
-  deleteFeatureFromDrawSource,
+  addFeatureToSource,
+  updateFeatureInSource,
+  deleteFeaturesFromSource,
   getDrawMode,
   corridorPolygonFromLine,
   CORRIDOR_PREVIEW_SOURCE_ID,
@@ -37,6 +38,8 @@ import type {
   ExtendedMaplibreDrawMode,
 } from '#/common/types/map'
 import { QueuePriority } from '#/common/types/map'
+import { generateUUID } from '#/common/utils/general'
+import { FeatureId } from 'terra-draw/dist/extend'
 
 let activeDrawInstance: TerraDraw | null = null
 
@@ -113,7 +116,6 @@ export const createMapDrawSlice: (
       layerGroupId: null,
       isEnabled: false,
       featureAddMutator: undefined,
-      idField: undefined,
       corridorEnabled: true,
       corridorHalfWidthMeters: 3,
       currentMode: null,
@@ -126,7 +128,6 @@ export const createMapDrawSlice: (
       const _map = useMapInstanceStore.getState()._map
       const draw = getActiveDrawInstance()
       const { _drawOptions, setSelectedFeatures } = get()
-      const idField = _drawOptions.idField || 'id'
       const layerGroupId = _drawOptions.layerGroupId
 
       if (draw == null) {
@@ -143,7 +144,7 @@ export const createMapDrawSlice: (
 
       if (layerGroupId) {
         features.forEach((f) => {
-          deleteFeatureFromDrawSource(f, idField, layerGroupId, _map)
+          deleteFeaturesFromSource([f], layerGroupId, _map)
         })
       }
 
@@ -400,36 +401,34 @@ export const createMapDrawSlice: (
 
         _updateSelectableHoverHandlers(layerIds)
 
-        const idField = _drawOptions.idField || 'id'
+        // const ensureFeatureIdentifier = (
+        //   input: Feature,
+        //   fallbackId?: string | number
+        // ) => {
+        //   const nextProperties: Record<string, any> = {
+        //     ...(input.properties || {}),
+        //   }
 
-        const ensureFeatureIdentifier = (
-          input: Feature,
-          fallbackId?: string | number
-        ) => {
-          const nextProperties: Record<string, any> = {
-            ...(input.properties || {}),
-          }
+        //   if (nextProperties.mode == null) {
+        //     nextProperties.mode = 'polygon'
+        //   }
 
-          if (nextProperties.mode == null) {
-            nextProperties.mode = 'polygon'
-          }
+        //   let identifier = nextProperties[idField] ?? input.id ?? fallbackId
+        //   if (identifier == null) {
+        //     identifier = fallbackId ?? String(Date.now())
+        //   }
 
-          let identifier = nextProperties[idField] ?? input.id ?? fallbackId
-          if (identifier == null) {
-            identifier = fallbackId ?? String(Date.now())
-          }
+        //   nextProperties[idField] = identifier
 
-          nextProperties[idField] = identifier
-
-          return {
-            feature: {
-              ...input,
-              id: identifier,
-              properties: nextProperties,
-            },
-            identifier,
-          }
-        }
+        //   return {
+        //     feature: {
+        //       ...input,
+        //       id: identifier,
+        //       properties: nextProperties,
+        //     },
+        //     identifier,
+        //   }
+        // }
 
         const doesFeatureExistInSource = async (
           candidateId?: string | number | null
@@ -444,11 +443,7 @@ export const createMapDrawSlice: (
           }
 
           return sourceData.features.some((sourceFeature) => {
-            const props =
-              sourceFeature.properties as Record<string, any> | undefined
-            const sourceId =
-              props && props[idField] != null ? props[idField] : sourceFeature.id
-            return sourceId === candidateId
+            return sourceFeature.id === candidateId
           })
         }
 
@@ -494,36 +489,31 @@ export const createMapDrawSlice: (
           const data = source.data as FeatureCollection
           const features = data.features
           try {
-            let sourceNeedsUpdate = false
-            const terraFeatures = features.map((feature, idx) => {
-              const fallbackId = feature.id ?? idx
-              const { feature: normalizedFeature, identifier } = ensureFeatureIdentifier(
-                feature,
-                fallbackId
-              )
-              const originalId =
-                (feature.properties as any)?.[idField] ?? feature.id
-              const normalizedId =
-                (normalizedFeature.properties as any)?.[idField]
-
-              if (identifier != null) {
-                sourceFeatureIds.add(identifier)
+            // let sourceNeedsUpdate = false
+            const terraFeatures = features.map((feature) => {
+              if (!feature.id) {
+                console.error(
+                  'Feature is missing ID field, cannot add to draw: ',
+                  feature
+                )
+                return
               }
 
-              if (
-                normalizedId !== originalId ||
-                feature.id !== normalizedFeature.id
-              ) {
-                sourceNeedsUpdate = true
-              }
+              sourceFeatureIds.add(feature.id)
 
-              return normalizedFeature
+              feature.properties = feature.properties || {}
+              feature.properties.mode =
+                feature.properties.geometry_mode ||
+                feature.properties.mode ||
+                'polygon'
+
+              return feature
             })
 
-            if (sourceNeedsUpdate) {
-              const originalSource = _map?.getSource(layerGroupId) as any
-              originalSource?.setData({ ...data, features: terraFeatures })
-            }
+            // if (sourceNeedsUpdate) {
+            //   const originalSource = _map?.getSource(layerGroupId) as any
+            //   originalSource?.setData({ ...data, features: terraFeatures })
+            // }
 
             draw.addFeatures(terraFeatures as any)
           } catch (e) {
@@ -533,8 +523,15 @@ export const createMapDrawSlice: (
 
           const handleFinish = async (featureId: any, context: any) => {
             let feature = draw.getSnapshotFeature(featureId) as Feature | null
+
             if (!feature) return
             const mode = context?.mode || feature.properties?.mode
+
+            const existsInSource = await doesFeatureExistInSource(featureId)
+            let newFeatureId = null
+            if (!existsInSource) {
+              newFeatureId = generateUUID()
+            }
 
             if (mode === 'corridor') {
               try {
@@ -545,14 +542,23 @@ export const createMapDrawSlice: (
                 const poly = (await corridorPolygonFromLine(
                   feature as any,
                   half
-                )) as any
-                poly.id = feature.id
-                poly.properties = {
-                  ...(feature.properties || {}),
-                  mode: 'corridor',
-                }
+                )) as GeoJSONStoreFeatures
+
                 draw.removeFeatures([featureId])
-                draw.addFeatures([poly])
+
+                // Add the polygon to TerraDraw - TerraDraw will use poly.id if provided
+                try {
+                  if (newFeatureId != null) {
+                    poly.id = newFeatureId
+                  }
+                  draw.addFeatures([poly])
+                } catch (addErr) {
+                  console.warn(
+                    'Failed to add corridor polygon to TerraDraw, continuing anyway',
+                    addErr
+                  )
+                }
+
                 feature = poly
                 updateCorridorPreview(null)
               } catch (err) {
@@ -561,69 +567,86 @@ export const createMapDrawSlice: (
               }
             }
 
-            let { feature: normalizedFeature, identifier } =
-              ensureFeatureIdentifier(feature, featureId)
+            if (
+              // ['draw', 'create'].includes(context?.action) ||
+              !existsInSource
+            ) {
+              if (_drawOptions.featureAddMutator != null) {
+                const mutatedFeature = _drawOptions.featureAddMutator({
+                  ...feature,
+                })
 
-            const isUpdateAction = ['update', 'edit', 'modify'].includes(
-              context?.action
-            )
-            const existsInSource = await doesFeatureExistInSource(identifier)
-            const shouldUpdateExisting = isUpdateAction || existsInSource
-
-            if (shouldUpdateExisting) {
-              if (_drawOptions.featureUpdateMutator != null) {
-                const mutatedFeature = _drawOptions.featureUpdateMutator(
-                  normalizedFeature
-                )
-                ;({ feature: normalizedFeature, identifier } =
-                  ensureFeatureIdentifier(mutatedFeature, featureId))
+                if (mutatedFeature.id !== feature.id) {
+                  newFeatureId = mutatedFeature.id as string
+                }
+                await addFeatureToSource(mutatedFeature, layerGroupId, _map)
+              } else {
+                await addFeatureToSource(feature, layerGroupId, _map)
               }
 
-              updateFeatureInDrawSource(
-                normalizedFeature,
-                idField,
-                layerGroupId,
-                _map
-              )
-              if (identifier != null) {
-                sourceFeatureIds.add(identifier)
+              if (newFeatureId != null && feature.id !== newFeatureId) {
+                draw.removeFeatures([featureId])
+                feature.id = newFeatureId
+                draw.addFeatures([feature as GeoJSONStoreFeatures])
+              }
+
+              if (feature.id) {
+                sourceFeatureIds.add(feature.id)
               }
             } else {
-              if (_drawOptions.featureAddMutator != null) {
-                const mutatedFeature = _drawOptions.featureAddMutator(
-                  normalizedFeature
-                )
-                ;({ feature: normalizedFeature, identifier } =
-                  ensureFeatureIdentifier(mutatedFeature, featureId))
-              }
-
-              addFeatureToDrawSource(
-                normalizedFeature,
-                idField,
-                layerGroupId,
-                _map
-              )
-              if (identifier != null) {
-                sourceFeatureIds.add(identifier)
+              if (_drawOptions.featureUpdateMutator != null) {
+                const mutatedFeature =
+                  _drawOptions.featureUpdateMutator(feature)
+                updateFeatureInSource(mutatedFeature, layerGroupId, _map)
+                updateFeatureInSource(mutatedFeature, layerGroupId, _map)
+              } else {
+                updateFeatureInSource(feature, layerGroupId, _map)
               }
             }
 
+            // const isUpdateAction = ['update', 'edit', 'modify'].includes(
+            //   context?.action
+            // )
+
+            // const shouldUpdateExisting = existsInSource
+
+            // if (shouldUpdateExisting) {
+            //   if (_drawOptions.featureUpdateMutator != null) {
+            //   }
+
+            //   updateFeatureInSource(
+            //     feature,
+            //     idField,
+            //     layerGroupId,
+            //     _map
+            //   )
+            //   if (identifier != null) {
+            //     sourceFeatureIds.add(identifier)
+            //   }
+            // } else {
+            //   if (_drawOptions.featureAddMutator != null) {
+            //     const mutatedFeature =
+            //       _drawOptions.featureAddMutator(normalizedFeature)
+            //     ;({ feature: normalizedFeature, identifier } =
+            //       ensureFeatureIdentifier(mutatedFeature, featureId))
+            //   }
+
+            // }
+
             // Switch to select/edit mode and select the new/updated feature
-            const targetId = identifier ?? featureId
             try {
               draw.setMode('select')
-              if (targetId != null) {
-                draw.selectFeature(targetId as any)
+              if (featureId != null) {
+                draw.selectFeature(featureId as any)
               }
             } catch (err) {
               console.warn('Failed to switch to select mode after finish', err)
             }
 
-            const selected = targetId
+            const selected = featureId
               ? fetchFeaturesByIds({
-                  ids: [targetId],
+                  ids: [featureId],
                   source: { source: layerGroupId },
-                  idField,
                   map: _map,
                 }) || []
               : []
@@ -642,66 +665,82 @@ export const createMapDrawSlice: (
             if (type === 'update') {
               let previewUpdated = false
               ids.forEach((id) => {
-                const feature = draw.getSnapshotFeature(id) as Feature | null
-                if (!feature) return
-                const props = feature.properties as Record<string, any> | null
+                const isCorridorMode = draw.getMode() === 'corridor'
 
-                const isCorridorMode =
-                  props?.mode === 'corridor' ||
-                  draw.getMode() === 'corridor' ||
-                  get()._drawOptions.currentMode === 'corridor'
+                if (isCorridorMode) {
+                  const feature = draw.getSnapshotFeature(id) as Feature | null
+                  if (!feature) return
 
-                if (isCorridorMode && feature.geometry?.type === 'LineString') {
-                  updateCorridorPreview(feature)
-                  previewUpdated = true
+                  if (feature.geometry?.type === 'LineString') {
+                    updateCorridorPreview(feature)
+                    previewUpdated = true
+                  }
                 }
 
-                if (
-                  !props ||
-                  props.currentlyDrawing ||
-                  props.closingPoint ||
-                  props.coordinatePoint
-                ) {
-                  return
-                }
-                const fid = props[idField] ?? feature.id
-                if (fid == null) return
-                if (!sourceFeatureIds.has(fid)) {
-                  return
-                }
-                let updated: Feature = { ...feature, id: fid }
-                if (_drawOptions.featureUpdateMutator != null) {
-                  updated = _drawOptions.featureUpdateMutator(updated)
-                }
-                updateFeatureInDrawSource(updated, idField, layerGroupId, _map)
+                // if (
+                //   !props ||
+                //   props.currentlyDrawing ||
+                //   props.closingPoint ||
+                //   props.coordinatePoint
+                // ) {
+                //   return
+                // }
+                // const fid = props[idField] ?? feature.id
+                // if (fid == null) return
+                // if (!sourceFeatureIds.has(fid)) {
+                //   return
+                // }
+                // let updated: Feature = { ...feature, id: fid }
+                // if (_drawOptions.featureUpdateMutator != null) {
+                //   updated = _drawOptions.featureUpdateMutator(updated)
+                // }
+                // updateFeatureInSource(updated, idField, layerGroupId, _map)
               })
               if (!previewUpdated) {
                 updateCorridorPreview(null)
               }
             } else if (type === 'delete') {
+              const filteredIds = ids.filter((id) => {
+                if (typeof id !== 'string' && typeof id !== 'number') {
+                  return false
+                }
+                if (!sourceFeatureIds.has(id)) {
+                  return false
+                }
+                // Verify the feature is actually gone from TerraDraw
+                // If it still exists, this is just a temporary change event
+                try {
+                  const stillExists = draw.getSnapshotFeature(id as FeatureId)
+                  if (stillExists) {
+                    return false
+                  }
+                } catch {
+                  // Feature doesn't exist, proceed with delete
+                }
+                return true
+              })
+
+              if (filteredIds.length === 0) {
+                return
+              }
+
               const deletedFeatures: Feature[] = []
               ids.forEach((id) => {
                 const deletionFeature: Feature = {
                   type: 'Feature',
                   geometry: null as any,
                   properties: {
-                    [idField]: id,
+                    id: id,
                   },
                   id,
                 }
                 deletedFeatures.push(deletionFeature)
-                deleteFeatureFromDrawSource(
-                  deletionFeature,
-                  idField,
-                  layerGroupId,
-                  _map
-                )
-                if (typeof id === 'string' || typeof id === 'number') {
-                  sourceFeatureIds.delete(id)
-                }
+                sourceFeatureIds.delete(id)
               })
+              
               if (deletedFeatures.length > 0) {
                 _map?.fire('draw.delete', { features: deletedFeatures })
+                deleteFeaturesFromSource(deletedFeatures, layerGroupId, _map)
               }
             }
           }
@@ -709,13 +748,12 @@ export const createMapDrawSlice: (
           const handleSelect = (id: any) => {
             const feature = draw.getSnapshotFeature(id) as Feature | null
             if (!feature) return
-            const fid = (feature.properties as any)?.[idField] ?? feature.id
+            const fid = feature.id
             if (fid == null) return
             const featureIds = [fid]
             const features = fetchFeaturesByIds({
               ids: featureIds,
               source: { source: layerGroupId },
-              idField,
               map: _map,
             })
             const nextFeatures = features ?? []
@@ -738,12 +776,10 @@ export const createMapDrawSlice: (
           setActiveDrawInstance(draw)
 
           await set((state) => {
-            state._drawOptions.draw = draw as any
             state._drawOptions.originalStyles = originalStyles
-            state._drawOptions.handleDrawCreate = handleFinish
-            state._drawOptions.handleDrawUpdate = handleChange as any
-            state._drawOptions.handleDrawDelete = handleChange as any
-            state._drawOptions.handleSelectionChange = handleSelect as any
+            state._drawOptions.handleDrawFinish = handleFinish
+            state._drawOptions.handleDrawUpdate = handleChange
+            state._drawOptions.handleSelectionChange = handleSelect
             state._drawOptions.drawGeneration += 1
           })
 
@@ -784,8 +820,7 @@ export const createMapDrawSlice: (
 
       const matchingFeatures = getMatchingDrawFeatures(
         draw,
-        newSelectedFeatures,
-        _drawOptions.idField
+        newSelectedFeatures
       )
 
       const matchingFeatureIds = matchingFeatures.map(
@@ -856,14 +891,11 @@ export const createMapDrawSlice: (
             }
           }
 
-          if (_drawOptions.handleDrawCreate != null) {
-            drawInstance.off('finish', _drawOptions.handleDrawCreate)
+          if (_drawOptions.handleDrawFinish != null) {
+            drawInstance.off('finish', _drawOptions.handleDrawFinish)
           }
           if (_drawOptions.handleDrawUpdate != null) {
             drawInstance.off('change', _drawOptions.handleDrawUpdate as any)
-          }
-          if (_drawOptions.handleDrawDelete != null) {
-            drawInstance.off('change', _drawOptions.handleDrawDelete as any)
           }
           if (_drawOptions.handleSelectionChange != null) {
             drawInstance.off('select', _drawOptions.handleSelectionChange)
@@ -884,11 +916,9 @@ export const createMapDrawSlice: (
           _updateSelectableHoverHandlers()
 
           await set((state) => {
-            state._drawOptions.draw = null
             state._drawOptions.originalStyles = undefined
-            state._drawOptions.handleDrawCreate = undefined
+            state._drawOptions.handleDrawFinish = undefined
             state._drawOptions.handleDrawUpdate = undefined
-            state._drawOptions.handleDrawDelete = undefined
             state._drawOptions.handleSelectionChange = undefined
             state._drawOptions.currentMode = null
             state._drawOptions.drawGeneration += 1

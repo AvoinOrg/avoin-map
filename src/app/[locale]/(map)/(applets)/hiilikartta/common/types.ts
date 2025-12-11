@@ -93,6 +93,7 @@ export interface FeatureProperties {
   new_land_use_without_vegetation?: number
   new_land_use_with_vegetation?: number
   remaining_existing_land_use?: number
+  geometry_mode?: 'polygon' | 'corridor'
 }
 
 export const featureCols = [
