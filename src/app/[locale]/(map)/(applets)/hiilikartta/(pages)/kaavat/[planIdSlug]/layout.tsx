@@ -70,8 +70,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           drawOptions: {
             polygonEnabled: true,
             editEnabled: true,
-            deleteEnabled: true,
             corridorEnabled: true,
+            deleteOptions: {
+              enabled: true,
+              deleteOutsideDrawMode: true,
+            },
             featureAddMutator: (feature: Feature) => {
               const { mode } = feature.properties || {}
               const properties: FeatureProperties = {

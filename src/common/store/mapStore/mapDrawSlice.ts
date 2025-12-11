@@ -130,6 +130,12 @@ export const createMapDrawSlice: (
       const { _drawOptions, setSelectedFeatures } = get()
       const layerGroupId = _drawOptions.layerGroupId
 
+      if (layerGroupId) {
+        features.forEach((f) => {
+          deleteFeaturesFromSource([f], layerGroupId, _map)
+        })
+      }
+
       if (draw == null) {
         return
       }
@@ -140,12 +146,6 @@ export const createMapDrawSlice: (
         draw.removeFeatures(featureIds as any)
       } catch (err) {
         console.error('Failed to remove features', err)
-      }
-
-      if (layerGroupId) {
-        features.forEach((f) => {
-          deleteFeaturesFromSource([f], layerGroupId, _map)
-        })
       }
 
       setSelectedFeatures([])
@@ -737,7 +737,7 @@ export const createMapDrawSlice: (
                 deletedFeatures.push(deletionFeature)
                 sourceFeatureIds.delete(id)
               })
-              
+
               if (deletedFeatures.length > 0) {
                 _map?.fire('draw.delete', { features: deletedFeatures })
                 deleteFeaturesFromSource(deletedFeatures, layerGroupId, _map)

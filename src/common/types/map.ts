@@ -163,7 +163,10 @@ export type LayerGroups = Record<string, LayerGroupOptions>
 export interface LayerGroupDrawOptions {
   polygonEnabled?: boolean
   editEnabled?: boolean
-  deleteEnabled?: boolean
+  deleteOptions?: {
+    enabled: boolean
+    deleteOutsideDrawMode?: boolean
+  }
   corridorEnabled?: boolean
   corridorHalfWidthMeters?: number
   featureAddMutator?: (feature: Feature) => Feature

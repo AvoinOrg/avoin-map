@@ -1402,10 +1402,13 @@ export const createMapLayerSlice: (
             state._drawOptions = {
               polygonEnabled: false,
               editEnabled: false,
-              deleteEnabled: false,
-              ...opts.drawOptions,
+              deleteOptions: {
+                enabled: false,
+                deleteOutsideDrawMode: false,
+              },
               corridorEnabled,
               corridorHalfWidthMeters: corridorHalfWidth,
+              ...opts.drawOptions,
               currentMode: null,
               layerGroupId: layerGroupIdString,
               isEnabled: true,
