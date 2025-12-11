@@ -518,7 +518,6 @@ export const addFeatureToSource = (
   layerGroupId: string,
   map: Map | null
 ): Promise<void> => {
-  console.log('adding feature to source', feature, layerGroupId)
   if (!map) {
     console.error('Map is not available')
     return Promise.resolve()
@@ -534,7 +533,6 @@ export const updateFeatureInSource = (
   layerGroupId: string,
   map: Map | null
 ): Promise<void> => {
-  console.log('updating feature in source', feature, layerGroupId)
   if (!map) {
     console.error('Map is not available')
     return Promise.resolve()
@@ -581,7 +579,6 @@ export const deleteFeaturesFromSource = (
   layerGroupId: string,
   map: Map | null
 ): Promise<void> => {
-  console.log('deleting features from source', features, layerGroupId)
   if (!map) {
     console.error('Map is not available')
     return Promise.resolve()

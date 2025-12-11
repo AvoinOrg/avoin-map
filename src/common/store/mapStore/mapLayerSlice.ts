@@ -1423,7 +1423,6 @@ export const createMapLayerSlice: (
             if (e.sourceDataType && e.sourceDataType !== 'content') return
 
             if ('data' in e.source) {
-              console.log("Processing data for source:", e.source.data.features)
               const data = e.source.data as FeatureCollection | undefined
               if (
                 data?.type === 'FeatureCollection' &&
