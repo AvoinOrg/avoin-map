@@ -391,9 +391,10 @@ export const createMapDrawSlice: (
 
         draw.start()
 
-        if (drawMode && drawMode !== 'select') {
-          draw.setMode(drawMode as any)
-        }
+        // Set the requested mode (default to 'select' for edit functionality)
+        const modeToSet = drawMode ?? 'select'
+        draw.setMode(modeToSet as any)
+
         const initialMode = getDrawMode(draw.getMode() as any)
         set((state) => {
           state._drawOptions.currentMode = initialMode
