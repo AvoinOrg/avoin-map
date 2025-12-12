@@ -527,12 +527,6 @@ export const createMapDrawSlice: (
             if (!feature) return
             const mode = context?.mode || feature.properties?.mode
 
-            const existsInSource = await doesFeatureExistInSource(featureId)
-            let newFeatureId = null
-            if (!existsInSource) {
-              newFeatureId = generateUUID()
-            }
-
             if (mode === 'corridor') {
               try {
                 const half =
@@ -548,9 +542,6 @@ export const createMapDrawSlice: (
 
                 // Add the polygon to TerraDraw - TerraDraw will use poly.id if provided
                 try {
-                  if (newFeatureId != null) {
-                    poly.id = newFeatureId
-                  }
                   draw.addFeatures([poly])
                 } catch (addErr) {
                   console.warn(
@@ -560,6 +551,7 @@ export const createMapDrawSlice: (
                 }
 
                 feature = poly
+
                 updateCorridorPreview(null)
               } catch (err) {
                 console.error('Failed to create corridor polygon', err)
@@ -567,31 +559,32 @@ export const createMapDrawSlice: (
               }
             }
 
-            if (
-              // ['draw', 'create'].includes(context?.action) ||
-              !existsInSource
-            ) {
+            const existsInSource = await doesFeatureExistInSource(featureId)
+            let newFeatureId = null
+
+            if (!existsInSource) {
               if (_drawOptions.featureAddMutator != null) {
                 const mutatedFeature = _drawOptions.featureAddMutator({
                   ...feature,
                 })
 
                 if (mutatedFeature.id !== feature.id) {
-                  newFeatureId = mutatedFeature.id as string
+                  feature.id = mutatedFeature.id as string
                 }
                 await addFeatureToSource(mutatedFeature, layerGroupId, _map)
               } else {
+                feature.id = generateUUID()
                 await addFeatureToSource(feature, layerGroupId, _map)
               }
 
-              if (newFeatureId != null && feature.id !== newFeatureId) {
-                draw.removeFeatures([featureId])
-                feature.id = newFeatureId
-                draw.addFeatures([feature as GeoJSONStoreFeatures])
-              }
-
               if (feature.id) {
-                sourceFeatureIds.add(feature.id)
+                if (newFeatureId != null && feature.id !== newFeatureId) {
+                  draw.removeFeatures([feature.id])
+                  feature.id = newFeatureId
+                  draw.addFeatures([feature as GeoJSONStoreFeatures])
+
+                  sourceFeatureIds.add(feature.id)
+                }
               }
             } else {
               if (_drawOptions.featureUpdateMutator != null) {
