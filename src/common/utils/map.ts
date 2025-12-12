@@ -584,7 +584,7 @@ export const deleteFeaturesFromSource = (
     return Promise.resolve()
   }
 
-  return geoJSONSourceManager.mutate(map, layerGroupId, (features) => {
+  return geoJSONSourceManager.mutate(map, layerGroupId, (sourceFeatures) => {
     let featureIds = features.map((f) => {
       if (f.id == null) {
         console.error(
@@ -596,7 +596,7 @@ export const deleteFeaturesFromSource = (
       return f.id
     })
 
-    return features.filter((f) => {
+    return sourceFeatures.filter((f) => {
       const originalId = f.id
       if (originalId == null) {
         // Keep features without identifiers

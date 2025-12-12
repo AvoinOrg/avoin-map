@@ -57,6 +57,7 @@ export const MapButtons = ({ isVertical }: Props) => {
   const isDrawEnabled = useIsDrawEnabled()
   const allowedDrawModes = useAllowedDrawModes()
   const selectedDrawFeatures = useSelectedDrawFeatures()
+  const selectedFeatures = useMapStore((state) => state.selectedFeatures)
   const isDrawDeleteAllowed = useIsDrawDeleteAllowed()
   const listedLayerGroups = useMapStore((state) => state.listedLayerGroups)
   const { t } = useTranslate('avoin-map')
@@ -72,7 +73,11 @@ export const MapButtons = ({ isVertical }: Props) => {
   // }, [])
 
   const handleDrawDeleteClick = () => {
-    deleteDrawFeatures(selectedDrawFeatures)
+    if (drawMode != null) {
+      deleteDrawFeatures(selectedDrawFeatures)
+    } else {
+      deleteDrawFeatures(selectedFeatures)
+    }
   }
 
   // const handleKeyPress = (event: KeyboardEvent) => {
@@ -116,7 +121,7 @@ export const MapButtons = ({ isVertical }: Props) => {
         pointerEvents: 'auto',
       }}
     >
-      {isDrawEnabled && isDrawDeleteAllowed && drawMode != null && (
+      {isDrawEnabled && isDrawDeleteAllowed && (
         <MapButtonGroup
           orientation={isVertical ? 'vertical' : 'horizontal'}
           isVertical={isVertical}
@@ -124,7 +129,9 @@ export const MapButtons = ({ isVertical }: Props) => {
           <MapButton
             onClick={handleDrawDeleteClick}
             size="small"
-            disabled={selectedDrawFeatures.length === 0}
+            disabled={
+              selectedDrawFeatures.length === 0 && selectedFeatures.length === 0
+            }
             tooltip={t('map.buttons.draw_delete')}
             isVertical={isVertical}
           >

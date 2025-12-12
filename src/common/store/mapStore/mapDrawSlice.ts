@@ -126,16 +126,16 @@ export const createMapDrawSlice: (
   const actions: MapDrawActions = {
     deleteDrawFeatures: (features: Feature[]) => {
       const _map = useMapInstanceStore.getState()._map
-      const draw = getActiveDrawInstance()
       const { _drawOptions, setSelectedFeatures } = get()
       const layerGroupId = _drawOptions.layerGroupId
 
       if (layerGroupId) {
-        features.forEach((f) => {
-          deleteFeaturesFromSource([f], layerGroupId, _map)
-        })
+        deleteFeaturesFromSource(features, layerGroupId, _map)
       }
 
+      setSelectedFeatures([])
+
+      const draw = getActiveDrawInstance()
       if (draw == null) {
         return
       }
@@ -148,7 +148,6 @@ export const createMapDrawSlice: (
         console.error('Failed to remove features', err)
       }
 
-      setSelectedFeatures([])
       _map?.fire('draw.delete', { features })
     },
 
