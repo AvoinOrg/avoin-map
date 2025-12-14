@@ -343,6 +343,7 @@ export const createMapDrawSlice: (
         })
 
         const selectMode = new TerraDrawSelectMode({
+          pointerDistance: 25,
           flags: {
             polygon: {
               feature: {
