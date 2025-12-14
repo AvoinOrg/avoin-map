@@ -539,6 +539,7 @@ export const createMapDrawSlice: (
                 )) as GeoJSONStoreFeatures
 
                 draw.removeFeatures([featureId])
+                poly.id = feature.id
 
                 // Add the polygon to TerraDraw - TerraDraw will use poly.id if provided
                 try {
@@ -629,8 +630,8 @@ export const createMapDrawSlice: (
             // Switch to select/edit mode and select the new/updated feature
             try {
               draw.setMode('select')
-              if (featureId != null) {
-                draw.selectFeature(featureId as any)
+              if (feature.id != null) {
+                draw.selectFeature(feature.id as any)
               }
             } catch (err) {
               console.warn('Failed to switch to select mode after finish', err)
