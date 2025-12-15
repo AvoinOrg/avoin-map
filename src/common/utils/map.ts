@@ -927,6 +927,14 @@ const asFeature = (geom: any): TurfFeature<Polygon | MultiPolygon> => ({
   geometry: geom as Polygon | MultiPolygon,
 })
 
+// Round coordinates to avoid TerraDraw precision validation issues
+const roundCoordinates = (coords: any, precision: number = 9): any => {
+  if (typeof coords[0] === 'number') {
+    return coords.map((c: number) => +c.toFixed(precision))
+  }
+  return coords.map((c: any) => roundCoordinates(c, precision))
+}
+
 export const corridorPolygonFromLine = async (
   line: TurfFeature<LineString>,
   halfWidthMeters: number
@@ -959,6 +967,9 @@ export const corridorPolygonFromLine = async (
     const geojsonGeom = writer.write(jBuffered) // Geometry JSON (not Feature)
     const wgsGeom = toWgs84(geojsonGeom) as Polygon | MultiPolygon
 
+    // Round coordinates to avoid TerraDraw precision validation issues
+    wgsGeom.coordinates = roundCoordinates(wgsGeom.coordinates)
+
     return asFeature(wgsGeom)
   } catch (err) {
     // Loud, but don’t brick drawing
@@ -970,10 +981,17 @@ export const corridorPolygonFromLine = async (
 
   // Fallback: Turf buffer (rounded ends everywhere)
   const km = halfWidthMeters / 1000
-  return buffer(line, km, {
+  const buffered = buffer(line, km, {
     units: 'kilometers',
     steps: 16,
   }) as TurfFeature<Polygon | MultiPolygon>
+
+  // Round coordinates to avoid TerraDraw precision validation issues
+  if (buffered.geometry) {
+    buffered.geometry.coordinates = roundCoordinates(buffered.geometry.coordinates)
+  }
+
+  return buffered
 }
 
 export const isLayerGroupSelectable = (

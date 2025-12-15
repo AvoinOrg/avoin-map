@@ -503,10 +503,7 @@ export const createMapDrawSlice: (
               sourceFeatureIds.add(feature.id)
 
               feature.properties = feature.properties || {}
-              feature.properties.mode =
-                feature.properties.geometry_mode ||
-                feature.properties.mode ||
-                'polygon'
+              feature.properties.mode = feature.properties.mode || 'polygon'
 
               return feature
             })
@@ -515,8 +512,12 @@ export const createMapDrawSlice: (
             //   const originalSource = _map?.getSource(layerGroupId) as any
             //   originalSource?.setData({ ...data, features: terraFeatures })
             // }
-
+            console.log(terraFeatures)
             draw.addFeatures(terraFeatures as any)
+            console.log(
+              'TerraDraw snapshot after adding features:',
+              draw.getSnapshot()
+            )
           } catch (e) {
             console.error(e)
             return
@@ -592,7 +593,6 @@ export const createMapDrawSlice: (
               if (_drawOptions.featureUpdateMutator != null) {
                 const mutatedFeature =
                   _drawOptions.featureUpdateMutator(feature)
-                updateFeatureInSource(mutatedFeature, layerGroupId, _map)
                 updateFeatureInSource(mutatedFeature, layerGroupId, _map)
               } else {
                 updateFeatureInSource(feature, layerGroupId, _map)
