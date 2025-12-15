@@ -512,12 +512,7 @@ export const createMapDrawSlice: (
             //   const originalSource = _map?.getSource(layerGroupId) as any
             //   originalSource?.setData({ ...data, features: terraFeatures })
             // }
-            console.log(terraFeatures)
             draw.addFeatures(terraFeatures as any)
-            console.log(
-              'TerraDraw snapshot after adding features:',
-              draw.getSnapshot()
-            )
           } catch (e) {
             console.error(e)
             return
@@ -528,6 +523,7 @@ export const createMapDrawSlice: (
 
             if (!feature) return
             const mode = context?.mode || feature.properties?.mode
+            let drawFeatureRemoved = false
 
             if (mode === 'corridor') {
               try {
@@ -540,21 +536,14 @@ export const createMapDrawSlice: (
                   half
                 )) as GeoJSONStoreFeatures
 
-                draw.removeFeatures([featureId])
                 poly.id = feature.id
-
-                // Add the polygon to TerraDraw - TerraDraw will use poly.id if provided
-                try {
-                  draw.addFeatures([poly])
-                } catch (addErr) {
-                  console.warn(
-                    'Failed to add corridor polygon to TerraDraw, continuing anyway',
-                    addErr
-                  )
+                poly.properties = {
+                  mode: 'polygon',
                 }
+                draw.removeFeatures([feature.id!])
+                drawFeatureRemoved = true
 
                 feature = poly
-
                 updateCorridorPreview(null)
               } catch (err) {
                 console.error('Failed to create corridor polygon', err)
@@ -572,22 +561,33 @@ export const createMapDrawSlice: (
                 })
 
                 if (mutatedFeature.id !== feature.id) {
-                  feature.id = mutatedFeature.id as string
+                  newFeatureId = mutatedFeature.id
                 }
                 await addFeatureToSource(mutatedFeature, layerGroupId, _map)
               } else {
-                feature.id = generateUUID()
-                await addFeatureToSource(feature, layerGroupId, _map)
+                newFeatureId = generateUUID()
+                await addFeatureToSource(
+                  { ...feature, id: newFeatureId },
+                  layerGroupId,
+                  _map
+                )
               }
 
               if (feature.id) {
                 if (newFeatureId != null && feature.id !== newFeatureId) {
-                  draw.removeFeatures([feature.id])
+                  if (!drawFeatureRemoved) {
+                    draw.removeFeatures([feature.id])
+                    drawFeatureRemoved = true
+                  }
                   feature.id = newFeatureId
                   draw.addFeatures([feature as GeoJSONStoreFeatures])
 
                   sourceFeatureIds.add(feature.id)
                 }
+              } else {
+                console.error(
+                  '[mapDrawSlice.ts] Feature is missing ID after add.'
+                )
               }
             } else {
               if (_drawOptions.featureUpdateMutator != null) {
