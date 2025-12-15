@@ -928,11 +928,24 @@ const asFeature = (geom: any): TurfFeature<Polygon | MultiPolygon> => ({
 })
 
 // Round coordinates to avoid TerraDraw precision validation issues
-const roundCoordinates = (coords: any, precision: number = 9): any => {
+export const roundCoordinates = (coords: any, precision: number = 9): any => {
   if (typeof coords[0] === 'number') {
     return coords.map((c: number) => +c.toFixed(precision))
   }
   return coords.map((c: any) => roundCoordinates(c, precision))
+}
+
+export const roundFeatureCoordinates = (feature: Feature): Feature => {
+  if (feature.geometry && 'coordinates' in feature.geometry) {
+    return {
+      ...feature,
+      geometry: {
+        ...feature.geometry,
+        coordinates: roundCoordinates(feature.geometry.coordinates),
+      },
+    } as Feature
+  }
+  return feature
 }
 
 export const corridorPolygonFromLine = async (

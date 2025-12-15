@@ -4,6 +4,7 @@ import { useTranslate } from '@tolgee/react'
 
 import PlanImportActionsRow from './PlanImportActionsRow'
 import PlanImportCodeRecordSelect from './PlanImportCodeRecordSelect'
+import { roundFeatureCoordinates } from '#/common/utils/map'
 
 const PlanImportShp = ({
   fileBuffer,
@@ -40,7 +41,7 @@ const PlanImportShp = ({
 
       const mergedFeatureCollection: FeatureCollection = {
         type: 'FeatureCollection',
-        features: allFeatures,
+        features: allFeatures.map(roundFeatureCoordinates),
       }
 
       setGeojson(mergedFeatureCollection)

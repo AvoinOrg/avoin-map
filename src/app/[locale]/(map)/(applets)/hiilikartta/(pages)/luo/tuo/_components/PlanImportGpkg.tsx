@@ -7,6 +7,7 @@ import DropDownSelect from '#/components/common/DropDownSelect'
 import PlanImportActionsRow from './PlanImportActionsRow'
 import PlanImportCodeRecordSelect from './PlanImportCodeRecordSelect'
 import { useTranslate } from '@tolgee/react'
+import { roundFeatureCoordinates } from '#/common/utils/map'
 
 const PlanImportGpkg = ({
   fileBuffer,
@@ -103,7 +104,7 @@ const PlanImportGpkg = ({
       }
       const iterator = geopackage.iterateGeoJSONFeatures(tableName)
       for (const feature of iterator) {
-        geoJson.features.push(feature)
+        geoJson.features.push(roundFeatureCoordinates(feature))
       }
       return Promise.resolve(geoJson)
     }
