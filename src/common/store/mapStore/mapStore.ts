@@ -2,6 +2,7 @@
 
 import { create, StateCreator } from 'zustand'
 import { persist, createJSONStorage, devtools } from 'zustand/middleware'
+import { createIndexedDbStorage } from '#/common/utils/store'
 import { immer } from 'zustand/middleware/immer'
 
 import {
@@ -180,7 +181,12 @@ export const useMapStore = create<MapStoreState>()(
     }),
     {
       name: 'mapStorage', // name of item in the storage (must be unique)
-      storage: createJSONStorage(() => sessionStorage), // (optional) by default the 'localStorage' is used
+      storage: createJSONStorage(
+        createIndexedDbStorage({
+          dbName: 'map-store',
+          storeName: 'mapStorage',
+        })
+      ),
       partialize: (state: MapStoreState) => {
         return {
           // TODO: fix hydration. Currently rehydrates layerGroups that do not have data

@@ -14,6 +14,7 @@ import { queryClient } from '#/common/queries/queryClient'
 import { useUserStore } from '#/common/store/userStore'
 import { useMapStore } from '#/common/store'
 import { commonDevtools } from '#/common/store/shared-devtools'
+import { createIndexedDbStorage } from '#/common/utils/store'
 
 import { getPlanLayerGroupId } from '../common/utils'
 import {
@@ -355,7 +356,15 @@ export const useAppletStore = create<Vars & Actions>()(
     ),
     {
       name: 'hiilikarttaStore', // name of item in the storage (must be unique)
-      storage: createJSONStorage(() => sessionStorage), // (optional) by default the 'localStorage' is used
+      storage: createJSONStorage(
+        createIndexedDbStorage({
+          dbName: 'hiilikartta-store',
+          storeName: 'hiilikartta',
+        })
+      ),
+      partialize: (state) => ({
+        planConfs: state.planConfs,
+      }),
       onRehydrateStorage: (state) => {
         return (state, error) => {
           if (error) {
