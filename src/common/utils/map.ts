@@ -58,6 +58,7 @@ import { colorAtValue } from './general'
 const EMBEDDED_PARAMS_URL_SEPARATOR = '||'
 
 export const fillOpacity = 0.65
+export const clampOpacity = (value: number) => Math.min(1, Math.max(0, value))
 
 // const defaultVectorStyles: any = {
 //   LineString: new Style({

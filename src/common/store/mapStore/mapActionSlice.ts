@@ -9,6 +9,7 @@ import {
   paddingFromVisibleViewport,
   expandBoundsMercY,
   handleAutoRelocate,
+  clampOpacity,
 } from '#/common/utils/map'
 import type { MapStoreHelpers, MapStateCreator } from './mapStore'
 import {
@@ -21,6 +22,7 @@ import {
 export type MapActionVars = {
   overlayMessage: OverlayMessage | null
   isAutoRelocateDisabled: boolean
+  layerGroupOpacities: Record<string, number>
 }
 
 export type MapActionActions = {
@@ -39,6 +41,11 @@ export type MapActionActions = {
   setFilter: (
     layer: string,
     filter: FilterSpecification,
+    _queueOptions?: QueueOptions
+  ) => Promise<void>
+  setLayerGroupOpacity: (
+    layerGroupId: string,
+    opacity: number,
     _queueOptions?: QueueOptions
   ) => Promise<void>
   setOverlayMessage: (
@@ -89,6 +96,7 @@ export const createMapActionSlice: (
   const vars: MapActionVars = {
     overlayMessage: null,
     isAutoRelocateDisabled: false,
+    layerGroupOpacities: {},
   }
 
   const actions: MapActionActions = {
@@ -117,6 +125,33 @@ export const createMapActionSlice: (
         _map?.setFilter(layer, filter)
       },
       { key: 'setFilter' }
+    ),
+
+    setLayerGroupOpacity: helpers.queueableFnInit(
+      async (layerGroupId: string, opacity: number): Promise<void> => {
+        const clampedOpacity = clampOpacity(opacity)
+        const { _layerGroups, layerGroupOpacities } = get()
+        const _map = useMapInstanceStore.getState()._map
+
+        if (layerGroupOpacities[layerGroupId] !== clampedOpacity) {
+          set((state) => {
+            state.layerGroupOpacities[layerGroupId] = clampedOpacity
+          })
+        }
+
+        const layerGroup = _layerGroups[layerGroupId]
+        if (!layerGroup || !_map) {
+          return
+        }
+
+        for (const layer of Object.values(layerGroup.layers)) {
+          if (layer.layerType !== 'raster') {
+            continue
+          }
+          _map.setPaintProperty(layer.id, 'raster-opacity', clampedOpacity)
+        }
+      },
+      { key: 'setLayerGroupOpacity' }
     ),
 
     setOverlayMessage: async (condition: boolean, message: OverlayMessage) => {

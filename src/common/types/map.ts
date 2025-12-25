@@ -34,6 +34,11 @@ export type SelectionSource = {
 
 export type SourceType = SourceSpecification['type']
 
+export type ListedLayerGroupStyleOptions = {
+  defaultOpacity?: number
+  showOpacitySlider?: boolean
+}
+
 export type ListedLayerGroup = {
   id: string
   // orderLevel: LayerOrderLevel
@@ -44,6 +49,7 @@ export type ListedLayerGroup = {
   description?: string
   descriptionTranslationKey?: string
   thumbnail?: string
+  styleOptions?: ListedLayerGroupStyleOptions
 }
 
 export type LayerGroupOptions = {

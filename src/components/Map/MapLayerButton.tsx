@@ -3,7 +3,7 @@
 // The layout and styling is complete spaghetti.
 // TODO: figure out how to make it neat.
 
-import React, { useRef, useMemo } from 'react'
+import React, { useRef, useMemo, useCallback, useEffect } from 'react'
 import {
   Box,
   Popper,
@@ -11,6 +11,7 @@ import {
   Typography,
   Grid,
   ClickAwayListener,
+  Slider,
 } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 import Image from 'next/image'
@@ -19,15 +20,20 @@ import { useMapStore, useUIStore } from '#/common/store'
 import { Layers } from '#/components/icons'
 import { MapButton } from './MapButton'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
+import { useLayerGroupOpacity } from '#/common/hooks/map/useLayerGroupOpacity'
 import { LayerOrderLevel, ListedLayerGroup } from '#/common/types/map'
 import { MapMenuState } from '#/common/types/state'
 import { useTranslate } from '@tolgee/react'
+import { clampOpacity } from '#/common/utils/map'
 
 type LayerItemProps = {
   layerGroup: ListedLayerGroup
   isSelected: boolean
   isVertical: boolean
   onSelect: (id: string) => void
+  showOpacitySlider?: boolean
+  opacityLabel?: string
+  onOpacityChange?: (layerGroupId: string, opacity: number) => void
 }
 
 const LayerItem = ({
@@ -35,61 +41,112 @@ const LayerItem = ({
   isSelected,
   isVertical,
   onSelect,
+  showOpacitySlider,
+  opacityLabel,
+  onOpacityChange,
 }: LayerItemProps) => {
   const { t } = useTranslate(layerGroup.translationNs)
   const name = t(layerGroup.nameTranslationKey, layerGroup.name)
+  const tileSize = isVertical ? '10rem' : '12rem'
+  const textWidth = isVertical ? '120px' : '180px'
+  const storedOpacity = useLayerGroupOpacity(layerGroup.id)
+  const defaultOpacity = clampOpacity(
+    layerGroup.styleOptions?.defaultOpacity ?? 1
+  )
+  const resolvedOpacity = storedOpacity ?? defaultOpacity
+
+  useEffect(() => {
+    if (!showOpacitySlider || !onOpacityChange) {
+      return
+    }
+    if (storedOpacity == null) {
+      onOpacityChange(layerGroup.id, defaultOpacity)
+    }
+  }, [
+    defaultOpacity,
+    layerGroup.id,
+    onOpacityChange,
+    showOpacitySlider,
+    storedOpacity,
+  ])
+
+  const handleOpacityChange = (_event: Event, value: number | number[]) => {
+    if (!onOpacityChange) {
+      return
+    }
+
+    const nextValue = Array.isArray(value) ? value[0] : value
+    onOpacityChange(layerGroup.id, nextValue)
+  }
 
   return (
-    <Box
-      onClick={() => onSelect(layerGroup.id)}
-      sx={{
-        cursor: 'pointer',
-        border: `2px solid transparent`,
-        borderRadius: '4px',
-        textAlign: 'left',
-      }}
-    >
+    <Box sx={{ width: tileSize, textAlign: 'left' }}>
       <Box
+        onClick={() => onSelect(layerGroup.id)}
         sx={{
-          border: isSelected
-            ? (theme) => `2px solid ${theme.palette.secondary.dark}`
-            : '2px solid transparent',
-          borderRadius: '0.3125rem',
-          overflow: 'hidden',
-          lineHeight: 0,
-          '&:hover': {
-            borderWidth: '3px',
-            borderColor: (theme) =>
-              isSelected
-                ? theme.palette.secondary.dark
-                : theme.palette.primary.main,
-          },
-          width: isVertical ? '10rem' : '12rem',
-          height: isVertical ? '10rem' : '12rem',
+          cursor: 'pointer',
         }}
       >
-        <Image
-          src={layerGroup.thumbnail || ''}
-          alt={name}
-          width={256}
-          height={256}
-          style={{
-            width: '100%',
-            height: 'auto',
-            aspectRatio: '1 / 1',
-            objectFit: 'contain',
+        <Box
+          sx={{
+            border: isSelected
+              ? (theme) => `2px solid ${theme.palette.secondary.dark}`
+              : '2px solid transparent',
+            borderRadius: '0.3125rem',
+            overflow: 'hidden',
+            lineHeight: 0,
+            '&:hover': {
+              borderWidth: '3px',
+              borderColor: (theme) =>
+                isSelected
+                  ? theme.palette.secondary.dark
+                  : theme.palette.primary.main,
+            },
+            width: tileSize,
+            height: tileSize,
           }}
-        />
+        >
+          <Image
+            src={layerGroup.thumbnail || ''}
+            alt={name}
+            width={256}
+            height={256}
+            style={{
+              width: '100%',
+              height: 'auto',
+              aspectRatio: '1 / 1',
+              objectFit: 'contain',
+            }}
+          />
+        </Box>
       </Box>
+      {showOpacitySlider && (
+        <Box sx={{ mt: 0.75 }}>
+          <Slider
+            size="small"
+            min={0}
+            max={1}
+            step={0.05}
+            value={resolvedOpacity}
+            valueLabelDisplay="auto"
+            valueLabelFormat={(value) => `${Math.round(value * 100)}%`}
+            onChange={handleOpacityChange}
+            aria-label={opacityLabel || 'Opacity'}
+            sx={{ width: '100%' }}
+          />
+        </Box>
+      )}
       <Typography
+        onClick={() => onSelect(layerGroup.id)}
         sx={{
+          cursor: 'pointer',
           typography: 'body1',
           fontSize: '0.60rem',
           letterSpacing: '0.040rem',
-          mt: 1,
+          mt: showOpacitySlider ? 0.5 : 1,
           whiteSpace: 'normal',
           overflowWrap: 'break-word',
-          width: isVertical ? '120px' : '180px',
+          width: textWidth,
         }}
       >
         {name}
@@ -117,10 +174,15 @@ export const MapLayerButton = ({
 }: Props) => {
   const listedLayerGroups = useMapStore((state) => state.listedLayerGroups)
   const toggleLayerGroup = useMapStore((state) => state.toggleLayerGroup)
+  const setLayerGroupOpacity = useMapStore(
+    (state) => state.setLayerGroupOpacity
+  )
   const visibleLayerGroupIds = useVisibleLayerGroupIds()
   const activeMapMenu = useUIStore((state) => state.activeMapMenu)
   const setMapMenuState = useUIStore((state) => state.setMapMenuState)
   const anchorRef = useRef<HTMLButtonElement>(null)
+  const { t } = useTranslate('avoin-map')
+  const opacityLabel = t('map.menus.layer_opacity')
 
   const isActive = useMemo(() => {
     return activeMapMenu === mapMenuState
@@ -133,6 +195,13 @@ export const MapLayerButton = ({
       )
     )
   }, [listedLayerGroups, shownLayerLevels])
+
+  const handleOpacityChange = useCallback(
+    (layerGroupId: string, nextOpacity: number) => {
+      void setLayerGroupOpacity(layerGroupId, nextOpacity, { skipQueue: true })
+    },
+    [setLayerGroupOpacity]
+  )
 
   const handleToggle = () => {
     setMapMenuState(mapMenuState, !isActive)
@@ -233,6 +302,11 @@ export const MapLayerButton = ({
                       layerGroup={layerGroup}
                       isSelected={visibleLayerGroupIds.includes(layerGroup.id)}
                       isVertical={isVertical}
+                      showOpacitySlider={
+                        layerGroup.styleOptions?.showOpacitySlider
+                      }
+                      opacityLabel={opacityLabel}
+                      onOpacityChange={handleOpacityChange}
                       onSelect={() => {
                         toggleLayerGroup(layerGroup.id, layerGroup.addOptions)
                       }}

@@ -103,6 +103,9 @@ export const listedMmlKiinteistojaotusLayerGroup: ListedLayerGroup = {
   translationNs: 'avoin-map',
   nameTranslationKey: 'layers.mml.kiinteistojaotus.name',
   thumbnail: '/files/img/layer-thumbnails/mml/kiinteistojaotus.png',
+  styleOptions: {
+    showOpacitySlider: true,
+  },
 }
 
 export const listedMmlKiinteistotunnuksetLayerGroup: ListedLayerGroup = {
@@ -118,6 +121,9 @@ export const listedMmlKiinteistotunnuksetLayerGroup: ListedLayerGroup = {
   translationNs: 'avoin-map',
   nameTranslationKey: 'layers.mml.kiinteistotunnukset.name',
   thumbnail: '/files/img/layer-thumbnails/mml/kiinteistotunnukset.png',
+  styleOptions: {
+    showOpacitySlider: true,
+  },
 }
 
 export const defaultListedLayerGroups: ListedLayerGroup[] = [

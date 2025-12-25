@@ -1348,6 +1348,12 @@ export const createMapLayerSlice: (
           }
         })
 
+        const { layerGroupOpacities, setLayerGroupOpacity } = get()
+        const storedOpacity = layerGroupOpacities[id]
+        if (storedOpacity != null) {
+          await setLayerGroupOpacity(id, storedOpacity, { skipQueue: true })
+        }
+
         _enableLayerGroupEventHandlers(id)
         _updateSelectableHoverHandlers()
       } catch (e: any) {
