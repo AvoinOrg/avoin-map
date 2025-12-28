@@ -31,7 +31,7 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   }
 }
 
-export const hiilikarttaKasvillisuudenHiili2021TchaLayerConf: LayerConf = {
+export const vegetationCO2LayerConf: LayerConf = {
   id: layerGroupId,
   style: getStyle,
 }

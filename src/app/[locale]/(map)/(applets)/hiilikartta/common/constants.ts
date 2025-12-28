@@ -9,21 +9,20 @@ import {
   listedMmlTaustakarttaLayerGroup,
   listedOsmBackgroundLayerGroup,
 } from '#/components/Map/layers/defaultListedLayerGroups'
-import { hiilikarttaKasvillisuudenHiili2021TchaLayerConf } from '../layers/hiilikarttaKasvillisuudenHiili2021Tcha'
+import { vegetationCO2LayerConf } from '../layers/vegetationCO2'
 import { CarbonChangeColorItem } from './types'
 
 const listedHiilikarttaKasvillisuudenHiiliLayerGroup: ListedLayerGroup = {
-  id: hiilikarttaKasvillisuudenHiili2021TchaLayerConf.id,
+  id: vegetationCO2LayerConf.id,
   addOptions: {
-    layerConf: hiilikarttaKasvillisuudenHiili2021TchaLayerConf,
+    layerConf: vegetationCO2LayerConf,
     layerOrderOptions: {
       layerOrderLevel: LayerOrderLevel.BACKGROUND_OVERLAY,
     },
     isHidden: false,
   },
-  name: 'Kasvillisuuden hiili 2021',
   translationNs: 'hiilikartta',
-  nameTranslationKey: 'layers.hiilikartta.kasvillisuudenhiili_2021_tcha.name',
+  nameTranslationKey: 'layers.vegetation_co2.name',
   thumbnail: '/files/img/layer-thumbnails/osm/background.jpg',
   styleOptions: {
     showOpacitySlider: true,
