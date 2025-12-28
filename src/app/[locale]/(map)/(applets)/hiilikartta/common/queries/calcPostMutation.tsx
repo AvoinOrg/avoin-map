@@ -37,12 +37,16 @@ export const calcPostMutation = (): UseMutationOptions<
       const formData = new FormData()
       formData.append('file', zipBlob, 'file.zip')
 
+      const userAgent =
+        typeof window !== 'undefined' ? window.navigator.userAgent : 'unknown'
+
       const postRes = await axios.post(`${API_URL}/calculation`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           ...(session?.accessToken
             ? { Authorization: `Bearer ${session.accessToken}` }
             : {}),
+          'X-User-Agent': userAgent,
         },
         params: {
           id: planConf.serverId,
