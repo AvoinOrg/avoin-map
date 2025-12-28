@@ -306,6 +306,13 @@ const MapButtonGroup = ({ isVertical, sx, ...props }: MapButtonGroupProps) => (
   <ButtonGroup
     {...props}
     sx={{
+      '& .MuiButtonGroup-grouped': {
+        border: 0,
+      },
+      '& .MuiButtonGroup-middleButton, & .MuiButtonGroup-lastButton': {
+        marginLeft: 0,
+        marginTop: 0,
+      },
       // Tooltip wraps each button in a span, so target the wrapper first.
       '& > *:not(style) .MuiButton-root': {
         border: 0,
