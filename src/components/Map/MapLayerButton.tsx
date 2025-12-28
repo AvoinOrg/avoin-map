@@ -6,18 +6,20 @@
 import React, { useRef, useMemo, useCallback, useEffect } from 'react'
 import {
   Box,
+  IconButton,
   Popper,
   Paper,
   Typography,
   Grid,
   ClickAwayListener,
   Slider,
+  Tooltip,
 } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 import Image from 'next/image'
 
 import { useMapStore, useUIStore } from '#/common/store'
-import { Layers } from '#/components/icons'
+import { Info, Layers } from '#/components/icons'
 import { MapButton } from './MapButton'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
 import { useLayerGroupOpacity } from '#/common/hooks/map/useLayerGroupOpacity'
@@ -136,21 +138,69 @@ const LayerItem = ({
           />
         </Box>
       )}
-      <Typography
-        onClick={() => onSelect(layerGroup.id)}
+      <Box
         sx={{
-          cursor: 'pointer',
-          typography: 'body1',
-          fontSize: '0.60rem',
-          letterSpacing: '0.040rem',
           mt: showOpacitySlider ? 0.5 : 1,
-          whiteSpace: 'normal',
-          overflowWrap: 'break-word',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 0.5,
           width: textWidth,
         }}
       >
-        {name}
-      </Typography>
+        <Typography
+          sx={{
+            typography: 'body1',
+            fontSize: '0.60rem',
+            letterSpacing: '0.040rem',
+            whiteSpace: 'normal',
+            overflowWrap: 'break-word',
+            flex: 1,
+            minWidth: 0,
+          }}
+        >
+          {name}
+        </Typography>
+        {layerGroup.infoElement && (
+          <Tooltip
+            arrow
+            placement="right"
+            title={layerGroup.infoElement}
+            enterTouchDelay={0}
+            disableInteractive={false}
+            slotProps={{
+              tooltip: {
+                sx: {
+                  maxWidth: 260,
+                  backgroundColor: 'neutral.light',
+                  color: 'text.primary',
+                  boxShadow: 3,
+                  p: 1,
+                },
+              },
+              arrow: {
+                sx: {
+                  color: 'neutral.light',
+                },
+              },
+            }}
+          >
+            <IconButton
+              size="small"
+              aria-label={`${name} info`}
+              sx={{
+                p: 0.25,
+                mt: '1px',
+                color: 'text.secondary',
+                '&:hover': {
+                  color: 'text.primary',
+                },
+              }}
+            >
+              <Info sx={{ width: 14, height: 14 }} />
+            </IconButton>
+          </Tooltip>
+        )}
+      </Box>
     </Box>
   )
 }

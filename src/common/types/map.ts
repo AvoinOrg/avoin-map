@@ -49,6 +49,7 @@ export type ListedLayerGroup = {
   description?: string
   descriptionTranslationKey?: string
   thumbnail?: string
+  infoElement?: ReactNode
   styleOptions?: ListedLayerGroupStyleOptions
 }
 
