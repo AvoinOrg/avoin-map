@@ -9,6 +9,7 @@ import { BreadcrumbNav } from '#/components/Sidebar'
 import AppletWrapper from '#/components/common/AppletWrapper'
 import { useUserStore } from '#/common/store/userStore'
 
+import { listedLayerGroups } from '../common/constants'
 import { planStatsQuery } from '../common/queries/planStatsQuery'
 import { planQueries } from '../common/queries/planQueries'
 import { useAppletStore } from '../state/appletStore'
@@ -164,6 +165,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
     <AppletWrapper
       mapContext={'hiilikartta'}
       localizationNamespace={localizationNamespace}
+      listedLayerGroups={listedLayerGroups}
       sidebarHeaderTitle={'Hiilikartta'}
       sidebarHeaderChildren={
         <BreadcrumbNav

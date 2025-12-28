@@ -1,4 +1,51 @@
+import { LayerOrderLevel, ListedLayerGroup } from '#/common/types/map'
+import {
+  listedMmlKiinteistojaotusLayerGroup,
+  listedMmlKiinteistotunnuksetLayerGroup,
+  listedMmlMaastokarttaLayerGroup,
+  listedMmlOrtokuvaLayerGroup,
+  listedMmlSelkokarttaLayerGroup,
+  listedMmlTaustakarttaLayerGroup,
+  listedOsmBackgroundLayerGroup,
+} from '#/components/Map/layers/defaultListedLayerGroups'
+import { hiilikarttaKasvillisuudenHiili2021TchaLayerConf } from '../layers/hiilikarttaKasvillisuudenHiili2021Tcha'
 import { CarbonChangeColorItem } from './types'
+
+const listedHiilikarttaKasvillisuudenHiiliLayerGroup: ListedLayerGroup = {
+  id: hiilikarttaKasvillisuudenHiili2021TchaLayerConf.id,
+  addOptions: {
+    layerConf: hiilikarttaKasvillisuudenHiili2021TchaLayerConf,
+    layerOrderOptions: {
+      layerOrderLevel: LayerOrderLevel.BACKGROUND_OVERLAY,
+    },
+    isHidden: false,
+  },
+  name: 'Kasvillisuuden hiili 2021',
+  translationNs: 'hiilikartta',
+  nameTranslationKey: 'layers.hiilikartta.kasvillisuudenhiili_2021_tcha.name',
+  thumbnail: '/files/img/layer-thumbnails/osm/background.jpg',
+  styleOptions: {
+    showOpacitySlider: true,
+    defaultOpacity: 0.6,
+  },
+}
+
+export const listedLayerGroups: ListedLayerGroup[] = [
+  {
+    ...listedOsmBackgroundLayerGroup,
+    addOptions: {
+      ...listedOsmBackgroundLayerGroup.addOptions,
+      isHidden: false,
+    },
+  },
+  listedMmlTaustakarttaLayerGroup,
+  listedMmlMaastokarttaLayerGroup,
+  listedMmlOrtokuvaLayerGroup,
+  listedMmlSelkokarttaLayerGroup,
+  listedHiilikarttaKasvillisuudenHiiliLayerGroup,
+  listedMmlKiinteistojaotusLayerGroup,
+  listedMmlKiinteistotunnuksetLayerGroup,
+]
 
 export const CUSTOM_ZONING_CODE = 'OMA'
 
