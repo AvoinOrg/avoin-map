@@ -1,3 +1,4 @@
+// Layer config for the 2021 vegetation carbon WMTS tiles in the Hiilikartta applet.
 import { LayerConf, ExtendedStyleSpecification } from '#/common/types/map'
 
 export const layerGroupId: string =

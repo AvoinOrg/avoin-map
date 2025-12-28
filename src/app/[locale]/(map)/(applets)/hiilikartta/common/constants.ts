@@ -1,3 +1,4 @@
+// Hiilikartta applet constants for layers, zoning codes, and color ramps.
 import { LayerOrderLevel, ListedLayerGroup } from '#/common/types/map'
 import {
   listedMmlKiinteistojaotusLayerGroup,

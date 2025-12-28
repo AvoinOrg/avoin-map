@@ -1,3 +1,5 @@
+// Client-side layout for the Hiilikartta applet; coordinates session state,
+// plan sync, and the shared map UI shell.
 'use client'
 
 import React, { useEffect } from 'react'
@@ -48,6 +50,10 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
 
   const planQs = useQueries(planQueries(planConfsToFetch))
 
+  // Plan conf hydration flow:
+  // 1) sync session -> local plans + fetch stats
+  // 2) decide which plans to fetch based on server stats
+  // 3) kick off per-plan fetches and clear loading state when done
   useEffect(() => {
     clearPlaceholderPlanConfs()
 
@@ -143,6 +149,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
     }
   }, [planQs])
 
+  // Register sign-out cleanup so user-owned plans are cleared on logout.
   useEffect(() => {
     if (session?.user?.id != null) {
       addSignOutAction('hiilikartta', () => {

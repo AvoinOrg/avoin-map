@@ -1,3 +1,4 @@
+// Map toolbar buttons and draw controls grouped by map state and layout.
 'use client'
 
 import React, { useMemo } from 'react'

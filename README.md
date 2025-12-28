@@ -1,26 +1,30 @@
 # Avoin Map
 
-An app for visualizing a variety of sustainability-related map data. The app can be explored at https://map.avoin.org.
+A map-based web app for visualizing sustainability-related data. The app is
+available at https://map.avoin.org.
 
 ## Development
 
-The app is built on Next.js and the codebase is mostly Typescript. Clone the repository, set the environmental variables, and run the container using Docker Compose.
+The app uses Next.js (App Router) and runs via Docker Compose.
 
-The environmental variables can be set in the `.env` file. See `.env.template`.
-You need to set **at least** the following variables:
+Create `.env` from `.env.template`, then set at least:
 
-```
-# The URL of the Avoin geoserver, serving map data.
+```bash
+# Map data source.
 NEXT_PUBLIC_GEOSERVER_URL=https://gis.example.org/geoserver
 
-# Needed for translations.
+# Tolgee runtime config (used in the client).
 NEXT_PUBLIC_TOLGEE_API_URL=
 NEXT_PUBLIC_TOLGEE_API_KEY=
+
+# Tolgee export API (used by utils/scripts/downloadTranslations.js).
+TOLGEE_API_URL=
+TOLGEE_API_KEY=
 ```
 
-In addition, if you develop or test auth -related functionalities, you need the relevant Zitadel and Next Auth variables:
+If you need auth flows, also set:
 
-```
+```bash
 NEXT_PUBLIC_ZITADEL_ISSUER=
 ZITADEL_CLIENT_ID=
 ZITADEL_CLIENT_SECRET=
@@ -28,43 +32,77 @@ NEXTAUTH_URL=
 NEXTAUTH_SECRET=
 ```
 
-To run the project, you need to have Docker installed. Run with
+Run the app:
 
-```
+```bash
 docker compose up
 ```
 
-The app will be available on localhost at DEV_PORT. The default address is http://localhost:3000.
+The app serves on `http://localhost:3000` unless `DEV_PORT` overrides it.
 
 ## App structure
 
-The app uses the App Router structure, introduced in Next.js version 13. See https://nextjs.org/docs/app for a quick introduction.
+- `src/app`: Next.js App Router entries (routes, layouts, API handlers).
+- `src/app/[locale]/(map)/(applets)`: Applet roots.
+- `src/app/[locale]/(map)/(applets)/(main)`: Main app pages/components.
+- `src/common`: Shared hooks, routing, store, types, utilities.
+- `src/components`: Shared UI and map components.
+- `utils/scripts`: Build-time helpers (translations, applet prebuild, redirects).
 
-The app is split into the main app and various applets. Applets are basically self-contained apps that leverage the components and other resources of the main app. The applets reside in their own folders inside the App Router structure, where their individual resources are kept.
+## Applets and build modes
 
+Applets are self-contained apps that reuse shared map components but keep their
+own pages, stores, and layer configs. They can run inside the main app or as
+standalone deployments.
 
-### Map
+- `APPLET=<namespace> yarn build-applet` runs `utils/scripts/prebuildApplet.js`
+  to keep a single applet, rewrite import paths, and update `tsconfig` aliases.
+- `NEXT_PUBLIC_COMPILED_APPLETS` controls which applets are compiled. If only
+  one non-`main` applet is compiled, the app runs as a standalone site.
+- `localeConf.json` defines applet namespaces, locales, and optional domains.
+- `utils/scripts/writeNetlifyRedirects.js` uses `localeConf.json` to generate
+  Netlify `_redirects` rules for applet domains.
 
-Not surprisingly, the map is the main component. The main library is Maplibre GL JS. A lot of the state management happens in a Zustand store.
+## Routing and navigation
 
-### Sidebar
+- Next.js folder routing applies; route groups in parentheses do not appear in
+  the URL.
+- Route trees in `src/common/routing/routes/*.ts` power `getRoute` and
+  `MutableLink` for applet-aware paths.
+- `src/middleware.ts` normalizes locale and applet routing and supports
+  standalone applets or domain-based URLs.
 
-As is typical in Map-based apps, the sidebar is used for most functionalities. This might include toggling on and off layers, logging in and out, viewing reports and graphs, and whatever the various applets aim to accomplish. Each view on the sidebar is a Next.js page with its own url.
+## Assets and API copying
 
-### Routing
+`next.config.js` copies:
+- `src/public/**/*` into `public/files/*`
+- `src/app/**/public/**/*` into `public/files/<applet>/*`
+- `src/app/(ui)/**/api/**/*` into `src/app/api/<applet>/*`
 
-Routing happens via the folder based structure of Next.js. In addition, paths and links are defined in route-tree objects, which are manipulated by various helper functions to achieve, for example, dynamic links.
+`public/` and generated `src/app/api/*` entries are gitignored. Avoid dynamic
+API route segments (like `[id]`) in applet API folders due to webpack
+limitations.
 
-### State management
+## State, data, and map
 
-Zustand is used for state management. For the map, user data, ui, the needs of the applets, and various other purposes. Big stores, like the MapStore, are split into slices for easier management.
+- Map rendering uses MapLibre GL JS.
+- State is managed with Zustand; the map store is split into slices and applet
+  stores live in their applet folders.
+- Data fetching uses TanStack Query.
 
-For queries, we use Tanstack Query.
+## Localization
 
-### User managemenet
+- Tolgee provides translations; namespaces and languages live in
+  `localeConf.json`.
+- `utils/scripts/downloadTranslations.js` generates `i18n/*` during prebuild.
+- The Tolgee browser plugin (Alt+click) is the preferred editing workflow.
 
-The user management and authentication happens via Avoin's Zitadel instance.
+## Auth
 
-### Translations
+Authentication uses NextAuth with a Zitadel issuer. Core auth routes live in
+`src/app/api/auth` and `src/app/api/userinfo`.
 
-Translations are provided by Avoin's Tolgee instance. It is recommended to use the Tolgee browser extension to easily manipulate the translations while developing.
+## Tests
+
+Tests are currently light. Routing has unit tests, but applet-specific e2e
+coverage is not standardized yet.
