@@ -86,6 +86,8 @@ limitations.
 ## State, data, and map
 
 - Map rendering uses MapLibre GL JS.
+- UI components and styling are built with MUI (Material UI); prefer the `sx`
+  prop for styling over separate style sheets when possible.
 - State is managed with Zustand; the map store is split into slices and applet
   stores live in their applet folders.
 - Data fetching uses TanStack Query.

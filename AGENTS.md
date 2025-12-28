@@ -60,6 +60,8 @@ standalone sites.
 - Layer configs live in `src/components/Map/layers` plus applet-specific layer
   definitions.
 - Styles use MapLibre/Mapbox expression syntax for dynamic styling.
+- UI uses MUI (Material UI). Prefer styling via the `sx` prop to keep component
+  styling colocated with usage.
 
 ## Auth
 - Auth uses NextAuth with a Zitadel issuer.
