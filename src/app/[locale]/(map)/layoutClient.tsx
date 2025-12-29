@@ -10,6 +10,7 @@ import UserStateHandler from './userStateHandler'
 import UIStateHandler from './uiStateHandler'
 import { SlotsProvider } from '#/components/context/slotsContext'
 import { Sidebar } from '#/components/Sidebar'
+import { FullscreenPageSlot } from '#/components/common/FullscreenPage'
 // import { UserModal } from '#/components/Profile'
 // import { UiStateProvider, UserStateProvider } from '#/components/State'
 // import RootStyleRegistry from './emotion'
@@ -48,6 +49,7 @@ const LayoutClient = ({
                 >
                   <Sidebar>{children}</Sidebar>
                 </Box>
+                <FullscreenPageSlot />
                 <LoginModal></LoginModal>
                 <ConfirmationDialog></ConfirmationDialog>
               </MapHandler>

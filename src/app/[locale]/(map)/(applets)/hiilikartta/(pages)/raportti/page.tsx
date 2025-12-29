@@ -11,6 +11,7 @@ import { T, useTranslate } from '@tolgee/react'
 
 import { getRoute } from '#/common/routing/routing-client'
 import MultiSelectAutocomplete from '#/components/common/MultiSelectAutocomplete'
+import { FullscreenPage } from '#/components/common/FullscreenPage'
 import { FetchStatus, SelectOption } from '#/common/types/general'
 import { Link as LinkIcon } from '#/components/icons'
 
@@ -284,14 +285,8 @@ const Page = () => {
   //   setMapLibraryMode('maplibre')
   // }, [])
   return (
-    <Box
+    <FullscreenPage
       sx={(theme) => ({
-        position: 'absolute',
-        top: 0,
-        bottom: 0,
-        left: 0,
-        right: 0,
-        width: '100vw',
         backgroundColor: theme.palette.neutral.lighter,
         display: 'flex',
         flexDirection: 'column',
@@ -546,7 +541,7 @@ const Page = () => {
           </Section>
         </Col>
       )}
-    </Box>
+    </FullscreenPage>
   )
 }
 
