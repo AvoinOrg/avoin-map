@@ -13,7 +13,7 @@ import { getRoute } from '#/common/routing/routing-client'
 import MultiSelectAutocomplete from '#/components/common/MultiSelectAutocomplete'
 import { FullscreenPage } from '#/components/common/FullscreenPage'
 import { FetchStatus, SelectOption } from '#/common/types/general'
-import { Link as LinkIcon } from '#/components/icons'
+import { Download as DownloadIcon, Link as LinkIcon } from '#/components/icons'
 
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 import { routeTree } from '#/common/routing/routes/hiilikartta'
@@ -272,6 +272,43 @@ const Page = () => {
     return `${window.location.origin}${pathName}?${newSearchParams.toString()}`
   }, [pathName, searchParams])
 
+  const handleDownloadGeoJson = () => {
+    if (planConfs.length === 0) {
+      return
+    }
+
+    const geoJsonData =
+      planConfs.length === 1
+        ? planConfs[0].reportData.areas
+        : {
+            type: 'FeatureCollection',
+            features: planConfs.flatMap((planConf) =>
+              planConf.reportData.areas.features.map((feature) => ({
+                ...feature,
+                properties: {
+                  ...feature.properties,
+                  plan_id: planConf.serverId,
+                  plan_name: planConf.name,
+                },
+              }))
+            ),
+          }
+
+    const jsonString = JSON.stringify(geoJsonData, null, 2)
+    const blob = new Blob([jsonString], { type: 'application/geo+json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    const baseName =
+      planConfs.length === 1 ? planConfs[0].name : 'hiilikartta-report'
+    const safeName = baseName.replace(/[\\/]/g, '-')
+    link.href = url
+    link.download = `${safeName || 'report'}.geojson`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   // useEffect(() => {
   //   const planLayerGroupId = getPlanLayerGroupId(params.planIdSlug)
   //   enableSerializableLayerGroup(planLayerGroupId)
@@ -443,13 +480,33 @@ const Page = () => {
             minHeight: '4.75rem',
           }}
         >
-          <ClipboardCopyWrapper textToCopy={fullUrl}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              columnGap: 3,
+            }}
+          >
             <Box
+              component="button"
+              type="button"
+              disabled={planConfs.length === 0}
+              onClick={handleDownloadGeoJson}
               sx={{
-                display: 'flex',
-                flexDirection: 'row',
+                display: 'inline-flex',
+                alignItems: 'center',
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                color: 'inherit',
+                textAlign: 'left',
                 '&:hover': {
                   cursor: 'pointer',
+                },
+                '&:disabled': {
+                  cursor: 'not-allowed',
+                  opacity: 0.6,
                 },
               }}
             >
@@ -458,13 +515,45 @@ const Page = () => {
                   typography: theme.typography.body7,
                   display: 'inline',
                   fontWeight: '700',
+                  textAlign: 'left',
                 })}
               >
-                <T keyName="report.copy_link" ns={'hiilikartta'}></T>
+                <T keyName="report.download_geojson" ns={'hiilikartta'}></T>
+                <DownloadIcon
+                  sx={{
+                    ml: 1.5,
+                    width: 14,
+                    height: 20,
+                    verticalAlign: 'middle',
+                  }}
+                />
               </Typography>
-              <LinkIcon sx={{ ml: 1.5, mt: 0.2 }} />
             </Box>
-          </ClipboardCopyWrapper>
+            <ClipboardCopyWrapper textToCopy={fullUrl}>
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  textAlign: 'left',
+                  '&:hover': {
+                    cursor: 'pointer',
+                  },
+                }}
+              >
+                <Typography
+                  sx={(theme) => ({
+                    typography: theme.typography.body7,
+                    display: 'inline',
+                    fontWeight: '700',
+                    textAlign: 'left',
+                  })}
+                >
+                  <T keyName="report.copy_link" ns={'hiilikartta'}></T>
+                  <LinkIcon sx={{ ml: 1.5, verticalAlign: 'middle' }} />
+                </Typography>
+              </Box>
+            </ClipboardCopyWrapper>
+          </Box>
         </Row>
       </Section>
       {!isLoaded && (
