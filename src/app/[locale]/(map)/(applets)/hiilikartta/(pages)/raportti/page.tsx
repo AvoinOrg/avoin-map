@@ -496,6 +496,7 @@ const Page = () => {
               sx={{
                 display: 'inline-flex',
                 alignItems: 'center',
+                columnGap: 1.5,
                 background: 'none',
                 border: 'none',
                 padding: 0,
@@ -519,21 +520,17 @@ const Page = () => {
                 })}
               >
                 <T keyName="report.download_geojson" ns={'hiilikartta'}></T>
-                <DownloadIcon
-                  sx={{
-                    ml: 1.5,
-                    width: 14,
-                    height: 20,
-                    verticalAlign: 'middle',
-                  }}
-                />
               </Typography>
+              <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
+                <DownloadIcon sx={{ width: 14, height: 20 }} />
+              </Box>
             </Box>
             <ClipboardCopyWrapper textToCopy={fullUrl}>
               <Box
                 sx={{
                   display: 'inline-flex',
                   alignItems: 'center',
+                  columnGap: 1.5,
                   textAlign: 'left',
                   '&:hover': {
                     cursor: 'pointer',
@@ -546,11 +543,14 @@ const Page = () => {
                     display: 'inline',
                     fontWeight: '700',
                     textAlign: 'left',
+                    minWidth: 0,
                   })}
                 >
                   <T keyName="report.copy_link" ns={'hiilikartta'}></T>
-                  <LinkIcon sx={{ ml: 1.5, verticalAlign: 'middle' }} />
                 </Typography>
+                <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
+                  <LinkIcon />
+                </Box>
               </Box>
             </ClipboardCopyWrapper>
           </Box>
