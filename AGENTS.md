@@ -48,6 +48,7 @@ standalone sites.
   `i18n/` based on `localeConf.json` (requires `TOLGEE_API_URL` and
   `TOLGEE_API_KEY`).
 - Prefer the Tolgee browser plugin (Alt+click) for editing keys.
+- Never directly edit the language json files within the i18n folder. Those are automatically downloaded from the Tolgee server.
 
 ## State and data
 - Zustand manages client state. The map store is sliced under
