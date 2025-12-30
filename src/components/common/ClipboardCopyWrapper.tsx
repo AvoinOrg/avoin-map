@@ -36,7 +36,17 @@ const ClipboardCopyWrapper = ({
   }
 
   return (
-    <Box onClick={copyToClipboard} sx={sx}>
+    <Box
+      onClick={copyToClipboard}
+      sx={[
+        {
+          '&:hover': {
+            cursor: 'pointer',
+          },
+        },
+        ...(Array.isArray(sx) ? sx : [sx]),
+      ]}
+    >
       {children}
     </Box>
   )
