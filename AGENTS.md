@@ -1,11 +1,13 @@
 # AGENTS
 
 ## Repository overview
+
 Avoin Map is a map-based web app built on Next.js. The codebase contains a core
 map experience plus multiple applets that can run inside the main app or as
 standalone sites.
 
 ## Top-level structure
+
 - `src/app`: Next.js App Router entries (routes, layouts, API handlers).
 - `src/app/[locale]/(map)/(applets)`: Applet roots.
 - `src/app/[locale]/(map)/(applets)/(main)`: Main app pages/components.
@@ -14,6 +16,7 @@ standalone sites.
 - `utils/scripts`: Build-time helpers (translations, applet prebuild, redirects).
 
 ## Applets and build modes
+
 - Applets live under `src/app/[locale]/(map)/(applets)/<namespace>`.
 - `APPLET=<namespace> yarn build-applet` runs `utils/scripts/prebuildApplet.js`
   to keep only one applet, update `tsconfig` aliases, and rewrite applet import
@@ -23,6 +26,7 @@ standalone sites.
 - `localeConf.json` declares applets, their locales, and optional domains.
 
 ## Routing
+
 - Next.js folder routing applies; folders in parentheses are route groups and
   do not appear in the URL.
 - Route trees live in `src/common/routing/routes/*.ts` and are converted into
@@ -33,6 +37,7 @@ standalone sites.
   applets and domain-based URLs.
 
 ## Assets and API copying
+
 - `next.config.js` uses CopyPlugin to copy:
   - `src/public/**/*` into `public/files/*`
   - `src/app/**/public/**/*` into `public/files/<applet>/*`
@@ -42,6 +47,7 @@ standalone sites.
   limitation).
 
 ## Localization
+
 - Tolgee powers translations. Applet namespaces and locales are defined in
   `localeConf.json`.
 - `utils/scripts/downloadTranslations.js` downloads translation files into
@@ -51,12 +57,14 @@ standalone sites.
 - Never directly edit the language json files within the i18n folder. Those are automatically downloaded from the Tolgee server.
 
 ## State and data
+
 - Zustand manages client state. The map store is sliced under
   `src/common/store/mapStore`, and applets keep their own stores in their
   folders.
 - Queries are handled via TanStack Query.
 
 ## Map and styling
+
 - Map rendering uses MapLibre GL JS.
 - Layer configs live in `src/components/Map/layers` plus applet-specific layer
   definitions.
@@ -65,16 +73,24 @@ standalone sites.
   styling colocated with usage.
 
 ## Auth
+
 - Auth uses NextAuth with a Zitadel issuer.
 - Core auth endpoints live in `src/app/api/auth` and `src/app/api/userinfo`.
 
 ## Code style
+
 - Prefer `const` arrow functions.
 - Use object params for functions with more than two arguments.
 - Keep types in `src/common/types` or applet-specific `common/types`.
 - Use path aliases (`#/*`, `applets/*`, `@i18n/*`) instead of deep relative
   imports.
 
+## Components
+
+- Always use functional components (const MyComponent = () => {}).
+- When creating a stylable component with Sx-prop, extend Sx as array (sx={[{}], ...(Array.isArray(sx) ? sx : [sx])]})
+
 ## Tests
+
 - Jest is configured, but coverage is limited (routing has unit tests).
 - Applet-specific e2e tests are not standardized yet.
