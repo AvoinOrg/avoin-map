@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box } from '@mui/material'
+import { Box, SxProps, Theme } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
 import { useUIStore } from '#/common/store'
@@ -10,6 +10,7 @@ type Props = {
   onSuccessText?: string
   onFailText?: string
   disabled?: boolean
+  sx?: SxProps<Theme>
 }
 
 const ClipboardCopyWrapper = ({
@@ -18,6 +19,7 @@ const ClipboardCopyWrapper = ({
   onSuccessText,
   onFailText,
   disabled,
+  sx,
 }: Props) => {
   const { t } = useTranslate('avoin-map')
   const notify = useUIStore((state) => state.notify)
@@ -33,7 +35,11 @@ const ClipboardCopyWrapper = ({
     }
   }
 
-  return <Box onClick={copyToClipboard}>{children}</Box>
+  return (
+    <Box onClick={copyToClipboard} sx={sx}>
+      {children}
+    </Box>
+  )
 }
 
 export default ClipboardCopyWrapper

@@ -511,47 +511,46 @@ const Page = () => {
                 },
               }}
             >
+              <Box sx={{ display: 'inline-flex' }}>
+                <DownloadIcon sx={{ width: 14, height: 20, mt: '-2px' }} />
+              </Box>
               <Typography
                 sx={(theme) => ({
                   typography: theme.typography.body7,
-                  display: 'inline',
+                  display: 'inline-flex',
+                  alignItems: 'center',
                   fontWeight: '700',
                   textAlign: 'left',
+                  minHeight: '2rem',
                 })}
               >
                 <T keyName="report.download_geojson" ns={'hiilikartta'}></T>
               </Typography>
-              <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
-                <DownloadIcon sx={{ width: 14, height: 20 }} />
-              </Box>
             </Box>
-            <ClipboardCopyWrapper textToCopy={fullUrl}>
-              <Box
-                sx={{
+            <ClipboardCopyWrapper
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                columnGap: 1.5,
+                textAlign: 'left',
+              }}
+              textToCopy={fullUrl}
+            >
+              <Box sx={{ display: 'inline-flex' }}>
+                <LinkIcon />
+              </Box>
+              <Typography
+                sx={(theme) => ({
+                  typography: theme.typography.body7,
                   display: 'inline-flex',
                   alignItems: 'center',
-                  columnGap: 1.5,
+                  fontWeight: '700',
                   textAlign: 'left',
-                  '&:hover': {
-                    cursor: 'pointer',
-                  },
-                }}
+                  minHeight: '2rem',
+                })}
               >
-                <Typography
-                  sx={(theme) => ({
-                    typography: theme.typography.body7,
-                    display: 'inline',
-                    fontWeight: '700',
-                    textAlign: 'left',
-                    minWidth: 0,
-                  })}
-                >
-                  <T keyName="report.copy_link" ns={'hiilikartta'}></T>
-                </Typography>
-                <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>
-                  <LinkIcon />
-                </Box>
-              </Box>
+                <T keyName="report.copy_link" ns={'hiilikartta'}></T>
+              </Typography>
             </ClipboardCopyWrapper>
           </Box>
         </Row>
