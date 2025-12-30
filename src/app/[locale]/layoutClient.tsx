@@ -27,14 +27,14 @@ const LayoutClient = ({
     // Supposedly the locale needs to be supplied
     <NextIntlClientProvider locale={'en'}>
       <SessionProvider>
-        <NotificationProvider>
-          <QueryClientProvider client={queryClient}>
-            <ThemeProvider theme={theme}>
-              <CssBaseline />
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <NotificationProvider>
+            <QueryClientProvider client={queryClient}>
               {children}
-            </ThemeProvider>
-          </QueryClientProvider>
-        </NotificationProvider>
+            </QueryClientProvider>
+          </NotificationProvider>
+        </ThemeProvider>
       </SessionProvider>
     </NextIntlClientProvider>
   )
