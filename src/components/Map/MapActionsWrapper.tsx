@@ -2,13 +2,13 @@ import { Box } from '@mui/material'
 import { MapButtons } from './MapButtonGroups'
 import { MapSearchBar } from './MapSearchBar'
 import { useUIStore } from '#/common/store'
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useElementSize } from '#/common/hooks/ui/useResizeObserver'
-import { useDebounce } from '#/common/hooks/useDebounce'
-import {
-  MAP_SEARCH_BAR_HORIZONTAL_MODE_WIDTH,
-  MAP_SEARCH_BAR_VERTICAL_MODE_WIDTH,
-} from './MapSearchBar'
+// import { useDebounce } from '#/common/hooks/useDebounce'
+// import {
+//   MAP_SEARCH_BAR_HORIZONTAL_MODE_WIDTH,
+//   MAP_SEARCH_BAR_VERTICAL_MODE_WIDTH,
+// } from './MapSearchBar'
 import { MAP_BUTTON_SIZE } from './MapButton'
 import { Slot } from '../context/slotsContext'
 
@@ -22,44 +22,45 @@ export const MapActionsWrapper = () => {
     useElementSize(wrapperRef)
 
   const [isVertical, setIsVertical] = useState(() => {
-    if (typeof window === 'undefined') return true
-    return window.innerWidth < 1100
+    // if (typeof window === 'undefined') return true
+    // return window.innerWidth < 1100
+    return true
   })
 
-  const debouncedWrapperHeight = useDebounce(wrapperHeight, 250)
-  const debouncedWrapperWidth = useDebounce(wrapperWidth, 250)
+  // const debouncedWrapperHeight = useDebounce(wrapperHeight, 250)
+  // const debouncedWrapperWidth = useDebounce(wrapperWidth, 250)
 
-  const horizontalWidth = useMemo(() => {
-    if (!debouncedWrapperHeight || !debouncedWrapperWidth) return undefined
+  // const horizontalWidth = useMemo(() => {
+  //   if (!debouncedWrapperHeight || !debouncedWrapperWidth) return undefined
 
-    if (
-      debouncedWrapperHeight &&
-      debouncedWrapperWidth &&
-      debouncedWrapperHeight > debouncedWrapperWidth
-    ) {
-      const width =
-        debouncedWrapperHeight +
-        MAP_SEARCH_BAR_HORIZONTAL_MODE_WIDTH -
-        MAP_SEARCH_BAR_VERTICAL_MODE_WIDTH +
-        SIDE_MARGIN
-      return width
-    } else {
-      return (debouncedWrapperWidth || 0) + SIDE_MARGIN
-    }
-  }, [debouncedWrapperHeight, debouncedWrapperWidth])
+  //   if (
+  //     debouncedWrapperHeight &&
+  //     debouncedWrapperWidth &&
+  //     debouncedWrapperHeight > debouncedWrapperWidth
+  //   ) {
+  //     const width =
+  //       debouncedWrapperHeight +
+  //       MAP_SEARCH_BAR_HORIZONTAL_MODE_WIDTH -
+  //       MAP_SEARCH_BAR_VERTICAL_MODE_WIDTH +
+  //       SIDE_MARGIN
+  //     return width
+  //   } else {
+  //     return (debouncedWrapperWidth || 0) + SIDE_MARGIN
+  //   }
+  // }, [debouncedWrapperHeight, debouncedWrapperWidth])
 
-  const debouncedHorizontalWidth = useDebounce(horizontalWidth, 250)
+  // const debouncedHorizontalWidth = useDebounce(horizontalWidth, 250)
 
   // Debounce just the computed width to avoid rapid effect re-runs during layout settle
   // const debouncedHorizontalWidth = useDebounce(horizontalWidth, 250)
 
-  useLayoutEffect(() => {
-    if (minMapWidth && debouncedHorizontalWidth) {
-      const nextIsVertical = debouncedHorizontalWidth > minMapWidth
-      // Avoid unnecessary state updates (prevents extra renders)
-      setIsVertical((prev) => (prev !== nextIsVertical ? nextIsVertical : prev))
-    }
-  }, [minMapWidth, debouncedHorizontalWidth])
+  // useLayoutEffect(() => {
+  //   if (minMapWidth && debouncedHorizontalWidth) {
+  //     const nextIsVertical = debouncedHorizontalWidth > minMapWidth
+  //     // Avoid unnecessary state updates (prevents extra renders)
+  //     setIsVertical((prev) => (prev !== nextIsVertical ? nextIsVertical : prev))
+  //   }
+  // }, [minMapWidth, debouncedHorizontalWidth])
 
   const isSearchOpen = activeMapMenu === 'search'
 
