@@ -3,7 +3,7 @@
 // The layout and styling is complete spaghetti.
 // TODO: figure out how to make it neat.
 
-import React, { useRef, useMemo, useCallback, useEffect } from 'react'
+import React, { useRef, useMemo, useCallback, useEffect, useState } from 'react'
 import {
   Box,
   IconButton,
@@ -13,13 +13,14 @@ import {
   Grid,
   ClickAwayListener,
   Slider,
-  Tooltip,
+  Collapse,
 } from '@mui/material'
+import type { Instance } from '@popperjs/core'
 import { alpha } from '@mui/material/styles'
 import Image from 'next/image'
 
 import { useMapStore, useUIStore } from '#/common/store'
-import { Info, Layers } from '#/components/icons'
+import { DownArrowRounded, Layers } from '#/components/icons'
 import { MapButton } from './MapButton'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
 import { useLayerGroupOpacity } from '#/common/hooks/map/useLayerGroupOpacity'
@@ -36,6 +37,7 @@ type LayerItemProps = {
   showOpacitySlider?: boolean
   opacityLabel?: string
   onOpacityChange?: (layerGroupId: string, opacity: number) => void
+  onInfoToggle?: () => void
 }
 
 const LayerItem = ({
@@ -46,16 +48,25 @@ const LayerItem = ({
   showOpacitySlider,
   opacityLabel,
   onOpacityChange,
+  onInfoToggle,
 }: LayerItemProps) => {
   const { t } = useTranslate(layerGroup.translationNs)
   const name = t(layerGroup.nameTranslationKey, layerGroup.name)
-  const tileSize = isVertical ? '10rem' : '12rem'
-  const textWidth = isVertical ? '120px' : '180px'
+  const tileWidth = isVertical ? '10rem' : '12rem'
+  const tileHeight = `calc(${tileWidth} / 3)`
+  const textWidth = tileWidth
+  const infoCardRadius = '0.3125rem'
+  const baseShadow = '0 2px 4px 0 rgba(0, 0, 0, 0.10)'
+  const headerHeight = 20
+  const imageSpacing = 0.75
   const storedOpacity = useLayerGroupOpacity(layerGroup.id)
   const defaultOpacity = clampOpacity(
     layerGroup.styleOptions?.defaultOpacity ?? 1
   )
   const resolvedOpacity = storedOpacity ?? defaultOpacity
+  const [isInfoOpen, setIsInfoOpen] = useState(false)
+  const hasInfo = Boolean(layerGroup.infoElement)
+  const infoId = `layer-info-${layerGroup.id}`
 
   useEffect(() => {
     if (!showOpacitySlider || !onOpacityChange) {
@@ -81,47 +92,139 @@ const LayerItem = ({
     onOpacityChange(layerGroup.id, nextValue)
   }
 
-  return (
-    <Box sx={{ width: tileSize, textAlign: 'left' }}>
+  const getImageShadow = (borderWidth: number, borderColor: string) => {
+    if (borderWidth <= 0) {
+      return baseShadow
+    }
+    return `${baseShadow}, inset 0 0 0 ${borderWidth}px ${borderColor}`
+  }
+
+  const renderImage = (variant: 'standalone' | 'card') => (
+    <Box
+      onClick={() => onSelect(layerGroup.id)}
+      sx={{
+        cursor: 'pointer',
+        mt: variant === 'standalone' ? imageSpacing : 0,
+      }}
+    >
       <Box
-        onClick={() => onSelect(layerGroup.id)}
         sx={{
-          cursor: 'pointer',
-        }}
-      >
-        <Box
-          sx={{
-            border: isSelected
-              ? (theme) => `2px solid ${theme.palette.secondary.dark}`
-              : '2px solid transparent',
-            borderRadius: '0.3125rem',
-            overflow: 'hidden',
-            lineHeight: 0,
-            '&:hover': {
-              borderWidth: '3px',
-              borderColor: (theme) =>
+          borderRadius: infoCardRadius,
+          overflow: 'hidden',
+          lineHeight: 0,
+          '&:hover': {
+            boxShadow: (theme) =>
+              getImageShadow(
+                3,
                 isSelected
                   ? theme.palette.secondary.dark
-                  : theme.palette.primary.main,
-            },
-            width: tileSize,
-            height: tileSize,
+                  : theme.palette.primary.main
+              ),
+          },
+          width: tileWidth,
+          height: tileHeight,
+          boxShadow: (theme) =>
+            getImageShadow(
+              isSelected ? 2 : 0,
+              theme.palette.secondary.dark
+            ),
+          transition: 'box-shadow 0.2s ease',
+        }}
+      >
+        <Image
+          src={layerGroup.thumbnail || ''}
+          alt={name}
+          width={256}
+          height={256}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
+          }}
+        />
+      </Box>
+    </Box>
+  )
+
+  return (
+    <Box sx={{ width: tileWidth, textAlign: 'left' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+          width: textWidth,
+          minHeight: headerHeight,
+        }}
+      >
+        <Typography
+          sx={{
+            typography: 'body1',
+            fontSize: '0.60rem',
+            letterSpacing: '0.040rem',
+            lineHeight: 1.2,
+            whiteSpace: 'normal',
+            overflowWrap: 'break-word',
+            flex: 1,
+            minWidth: 0,
           }}
         >
-          <Image
-            src={layerGroup.thumbnail || ''}
-            alt={name}
-            width={256}
-            height={256}
-            style={{
-              width: '100%',
-              height: 'auto',
-              aspectRatio: '1 / 1',
-              objectFit: 'contain',
+          {name}
+        </Typography>
+        {hasInfo && (
+          <IconButton
+            size="small"
+            aria-label={`${name} info`}
+            aria-expanded={isInfoOpen}
+            aria-controls={infoId}
+            onClick={() => setIsInfoOpen((prev) => !prev)}
+            sx={{
+              p: 0,
+              width: 20,
+              height: 20,
+              borderRadius: '50%',
+              backgroundColor: 'common.white',
+              color: '#075CFF',
+              '&:hover': {
+                backgroundColor: 'common.white',
+              },
             }}
-          />
-        </Box>
+          >
+            <DownArrowRounded
+              sx={{
+                transform: isInfoOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s ease',
+              }}
+            />
+          </IconButton>
+        )}
       </Box>
+      {hasInfo && (
+        <Collapse
+          in={isInfoOpen}
+          timeout="auto"
+          unmountOnExit
+          onEntered={onInfoToggle}
+          onExited={onInfoToggle}
+        >
+          <Box
+            id={infoId}
+            sx={{
+              mt: imageSpacing,
+              width: tileWidth,
+              backgroundColor: 'common.white',
+              color: 'text.primary',
+              boxShadow: baseShadow,
+              borderRadius: infoCardRadius,
+            }}
+          >
+            <Box sx={{ p: 1 }}>{layerGroup.infoElement}</Box>
+            {renderImage('card')}
+          </Box>
+        </Collapse>
+      )}
+      {(!hasInfo || !isInfoOpen) && renderImage('standalone')}
       {showOpacitySlider && (
         <Box sx={{ mt: 0.75 }}>
           <Slider
@@ -138,69 +241,6 @@ const LayerItem = ({
           />
         </Box>
       )}
-      <Box
-        sx={{
-          mt: showOpacitySlider ? 0.5 : 1,
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: 0.5,
-          width: textWidth,
-        }}
-      >
-        <Typography
-          sx={{
-            typography: 'body1',
-            fontSize: '0.60rem',
-            letterSpacing: '0.040rem',
-            whiteSpace: 'normal',
-            overflowWrap: 'break-word',
-            flex: 1,
-            minWidth: 0,
-          }}
-        >
-          {name}
-        </Typography>
-        {layerGroup.infoElement && (
-          <Tooltip
-            arrow
-            placement="right"
-            title={layerGroup.infoElement}
-            enterTouchDelay={0}
-            disableInteractive={false}
-            slotProps={{
-              tooltip: {
-                sx: {
-                  maxWidth: 260,
-                  backgroundColor: 'neutral.light',
-                  color: 'text.primary',
-                  boxShadow: 3,
-                  p: 1,
-                },
-              },
-              arrow: {
-                sx: {
-                  color: 'neutral.light',
-                },
-              },
-            }}
-          >
-            <IconButton
-              size="small"
-              aria-label={`${name} info`}
-              sx={{
-                p: 0.25,
-                mt: '1px',
-                color: 'text.secondary',
-                '&:hover': {
-                  color: 'text.primary',
-                },
-              }}
-            >
-              <Info sx={{ width: 14, height: 14 }} />
-            </IconButton>
-          </Tooltip>
-        )}
-      </Box>
     </Box>
   )
 }
@@ -231,6 +271,7 @@ export const MapLayerButton = ({
   const activeMapMenu = useUIStore((state) => state.activeMapMenu)
   const setMapMenuState = useUIStore((state) => state.setMapMenuState)
   const anchorRef = useRef<HTMLButtonElement>(null)
+  const popperRef = useRef<Instance | null>(null)
   const { t } = useTranslate('avoin-map')
   const opacityLabel = t('map.menus.layer_opacity')
 
@@ -256,6 +297,10 @@ export const MapLayerButton = ({
   const handleToggle = () => {
     setMapMenuState(mapMenuState, !isActive)
   }
+
+  const handlePopperUpdate = useCallback(() => {
+    popperRef.current?.update()
+  }, [])
 
   const handleClose = (event: Event | React.SyntheticEvent) => {
     if (
@@ -284,6 +329,7 @@ export const MapLayerButton = ({
       <Popper
         open={isActive}
         anchorEl={anchorRef.current}
+        popperRef={popperRef}
         placement={isVertical ? 'left-end' : 'bottom-start'}
         modifiers={[
           {
@@ -300,8 +346,8 @@ export const MapLayerButton = ({
             name: 'preventOverflow',
             options: {
               padding: 16,
-              tether: false,
-              // altAxis: true,
+              tether: true,
+              altAxis: true,
             },
           },
         ]}
@@ -357,6 +403,7 @@ export const MapLayerButton = ({
                       }
                       opacityLabel={opacityLabel}
                       onOpacityChange={handleOpacityChange}
+                      onInfoToggle={handlePopperUpdate}
                       onSelect={() => {
                         toggleLayerGroup(layerGroup.id, layerGroup.addOptions)
                       }}
