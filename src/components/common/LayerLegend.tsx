@@ -27,6 +27,7 @@ const LayerLegendItemRow = ({ item }: { item: LayerLegendItem }) => {
           width: '1.25rem',
           height: '0.5rem',
           borderRadius: '0.25rem',
+          border: '1px solid black',
           backgroundColor: color,
           flexShrink: 0,
         }}
