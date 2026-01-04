@@ -92,13 +92,6 @@ const LayerItem = ({
     onOpacityChange(layerGroup.id, nextValue)
   }
 
-  const getImageShadow = (borderWidth: number, borderColor: string) => {
-    if (borderWidth <= 0) {
-      return baseShadow
-    }
-    return `${baseShadow}, inset 0 0 0 ${borderWidth}px ${borderColor}`
-  }
-
   const renderImage = (variant: 'standalone' | 'card') => (
     <Box
       onClick={() => onSelect(layerGroup.id)}
@@ -109,26 +102,34 @@ const LayerItem = ({
     >
       <Box
         sx={{
+          position: 'relative',
           borderRadius: infoCardRadius,
           overflow: 'hidden',
           lineHeight: 0,
-          '&:hover': {
-            boxShadow: (theme) =>
-              getImageShadow(
-                3,
-                isSelected
-                  ? theme.palette.secondary.dark
-                  : theme.palette.primary.main
-              ),
-          },
           width: tileWidth,
           height: tileHeight,
-          boxShadow: (theme) =>
-            getImageShadow(
-              isSelected ? 2 : 0,
-              theme.palette.secondary.dark
-            ),
-          transition: 'box-shadow 0.2s ease',
+          boxShadow: baseShadow,
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            inset: 0,
+            borderRadius: infoCardRadius,
+            borderStyle: 'solid',
+            borderWidth: isSelected ? 2 : 0,
+            borderColor: (theme) =>
+              isSelected ? theme.palette.secondary.dark : 'transparent',
+            boxSizing: 'border-box',
+            pointerEvents: 'none',
+            transition: 'border-color 0.2s ease, border-width 0.2s ease',
+            zIndex: 1,
+          },
+          '&:hover::after': {
+            borderWidth: 3,
+            borderColor: (theme) =>
+              isSelected
+                ? theme.palette.secondary.dark
+                : theme.palette.primary.main,
+          },
         }}
       >
         <Image
@@ -330,7 +331,7 @@ export const MapLayerButton = ({
         open={isActive}
         anchorEl={anchorRef.current}
         popperRef={popperRef}
-        placement={isVertical ? 'left-end' : 'bottom-start'}
+        placement={isVertical ? 'left-start' : 'bottom-start'}
         modifiers={[
           {
             name: 'offset',
@@ -360,7 +361,7 @@ export const MapLayerButton = ({
             maxWidth: `calc(100vw - 78px)`,
             maxHeight: isVertical ? `calc(100vh - 32px)` : 'calc(100vh - 78px)',
             overflowY: 'auto',
-            p: '2rem',
+            p: '1rem',
             backgroundColor: isVertical
               ? theme.palette.neutral.light
               : alpha(theme.palette.neutral.light, 0.9),
