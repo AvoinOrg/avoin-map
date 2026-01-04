@@ -1,4 +1,5 @@
 // Hiilikartta applet constants for layers, zoning codes, and color ramps.
+import React from 'react'
 import { LayerOrderLevel, ListedLayerGroup } from '#/common/types/map'
 import {
   listedMmlKiinteistojaotusLayerGroup,
@@ -9,6 +10,7 @@ import {
   listedMmlTaustakarttaLayerGroup,
   listedOsmBackgroundLayerGroup,
 } from '#/components/Map/layers/defaultListedLayerGroups'
+import LayerLegend from '#/components/common/LayerLegend'
 import { vegetationCO2LayerConf } from '../layers/vegetationCO2'
 import { CarbonChangeColorItem } from './types'
 
@@ -24,6 +26,35 @@ const listedHiilikarttaKasvillisuudenHiiliLayerGroup: ListedLayerGroup = {
   translationNs: 'hiilikartta',
   nameTranslationKey: 'layers.vegetation_co2.name',
   thumbnail: '/files/img/layer-thumbnails/osm/background.jpg',
+  infoElement: React.createElement(LayerLegend, {
+    items: [
+      {
+        color: '#FFFFFF',
+        translationNs: 'hiilikartta',
+        labelTranslationKey: 'layer.vegetation_co2.legend.bin0',
+      },
+      {
+        color: '#DDF5D0',
+        translationNs: 'hiilikartta',
+        labelTranslationKey: 'layer.vegetation_co2.legend.bin1',
+      },
+      {
+        color: '#B6EFA5',
+        translationNs: 'hiilikartta',
+        labelTranslationKey: 'layer.vegetation_co2.legend.bin2',
+      },
+      {
+        color: '#7DE46F',
+        translationNs: 'hiilikartta',
+        labelTranslationKey: 'layer.vegetation_co2.legend.bin3',
+      },
+      {
+        color: '#2ECC40',
+        translationNs: 'hiilikartta',
+        labelTranslationKey: 'layer.vegetation_co2.legend.bin4',
+      },
+    ],
+  }),
   styleOptions: {
     showOpacitySlider: true,
     defaultOpacity: 0.6,
