@@ -33,21 +33,21 @@ const listedHiilikarttaKasvillisuudenHiiliLayerGroup: ListedLayerGroup = {
         translationNs: 'hiilikartta',
         labelTranslationKey: 'layer.vegetation_co2.legend.bin0',
       },
-      {
-        color: '#DDF5D0',
-        translationNs: 'hiilikartta',
-        labelTranslationKey: 'layer.vegetation_co2.legend.bin1',
-      },
-      {
-        color: '#B6EFA5',
-        translationNs: 'hiilikartta',
-        labelTranslationKey: 'layer.vegetation_co2.legend.bin2',
-      },
-      {
-        color: '#7DE46F',
-        translationNs: 'hiilikartta',
-        labelTranslationKey: 'layer.vegetation_co2.legend.bin3',
-      },
+      // {
+      //   color: '#DDF5D0',
+      //   translationNs: 'hiilikartta',
+      //   labelTranslationKey: 'layer.vegetation_co2.legend.bin1',
+      // },
+      // {
+      //   color: '#B6EFA5',
+      //   translationNs: 'hiilikartta',
+      //   labelTranslationKey: 'layer.vegetation_co2.legend.bin2',
+      // },
+      // {
+      //   color: '#7DE46F',
+      //   translationNs: 'hiilikartta',
+      //   labelTranslationKey: 'layer.vegetation_co2.legend.bin3',
+      // },
       {
         color: '#2ECC40',
         translationNs: 'hiilikartta',
