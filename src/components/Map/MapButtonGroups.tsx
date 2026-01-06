@@ -34,7 +34,10 @@ import { useIsDrawEnabled } from '#/common/hooks/map/useIsDrawEnabled'
 import { useAllowedDrawModes } from '#/common/hooks/map/useAllowedDrawModes'
 import { useSelectedDrawFeatures } from '#/common/hooks/map/useSelectedDrawFeature'
 import { useIsDrawDeleteAllowed } from '#/common/hooks/map/useIsDrawDeleteAllowed'
-import { MapLayerButton } from './MapLayerButton'
+import {
+  MapLayerButtonHorizontal,
+  MapLayerButtonVertical,
+} from './MapLayerButton'
 import { MapButton } from './MapButton'
 import { MapButtonMenu } from './MapButtonMenu'
 import { LayerOrderLevel } from '#/common/types/map'
@@ -112,6 +115,9 @@ export const MapButtons = ({ isVertical }: Props) => {
       ),
     [listedLayerGroups]
   )
+  const LayerMenuButton = isVertical
+    ? MapLayerButtonVertical
+    : MapLayerButtonHorizontal
 
   return (
     <Box
@@ -200,8 +206,7 @@ export const MapButtons = ({ isVertical }: Props) => {
           isVertical={isVertical}
         >
           {hasBackgroundLayers && (
-            <MapLayerButton
-              isVertical={isVertical}
+            <LayerMenuButton
               shownLayerLevels={[LayerOrderLevel.BACKGROUND]}
               headerLabel={t('map.menus.background_layers')}
               tooltipLabel={t('map.buttons.background_layers')}
@@ -210,8 +215,7 @@ export const MapButtons = ({ isVertical }: Props) => {
             />
           )}
           {hasBackgroundOverlayLayers && (
-            <MapLayerButton
-              isVertical={isVertical}
+            <LayerMenuButton
               shownLayerLevels={[LayerOrderLevel.BACKGROUND_OVERLAY]}
               headerLabel={t('map.menus.background_overlay_layers')}
               tooltipLabel={t('map.buttons.background_overlay_layers')}
