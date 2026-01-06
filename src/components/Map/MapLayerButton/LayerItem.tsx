@@ -141,10 +141,7 @@ const LayerItem = ({
       >
         <Typography
           sx={{
-            typography: 'body1',
-            fontSize: '0.60rem',
-            letterSpacing: '0.040rem',
-            lineHeight: 1.2,
+            typography: 'h4',
             whiteSpace: 'normal',
             overflowWrap: 'break-word',
             flex: 1,
@@ -207,7 +204,7 @@ const LayerItem = ({
       )}
       {(!hasInfo || !isInfoOpen) && renderImage('standalone')}
       {showOpacitySlider && (
-        <Box sx={{ mt: 0.75 }}>
+        <Box sx={{ mt: 0.75, px: 1.5 }}>
           <Slider
             size="small"
             min={0}
@@ -218,7 +215,13 @@ const LayerItem = ({
             valueLabelFormat={(value) => `${Math.round(value * 100)}%`}
             onChange={handleOpacityChange}
             aria-label={opacityLabel || 'Opacity'}
-            sx={{ width: '100%' }}
+            sx={{
+              width: '100%',
+              overflow: 'visible',
+              '& .MuiSlider-valueLabel': {
+                zIndex: 2,
+              },
+            }}
           />
         </Box>
       )}

@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useCallback, useMemo } from 'react'
+import { useTheme } from '@mui/material/styles'
 import MapLayerButtonBase, { MapLayerButtonProps } from './MapLayerButtonBase'
 
 const MapLayerButtonHorizontal = ({
@@ -10,13 +11,16 @@ const MapLayerButtonHorizontal = ({
   headerLabel,
   icon,
 }: MapLayerButtonProps) => {
+  const theme = useTheme()
   const menuWidth = '12rem'
+  const headerHeight = theme.spacing(5)
   const popperOffset = useMemo<[number, number]>(() => [0, 8], [])
   const popperPadding = 16
   const resolveAnchorEl = useCallback(
     (anchorRef: React.RefObject<HTMLButtonElement>) => anchorRef.current,
     []
   )
+  const scrollMaxHeight = `calc(100vh - 78px - ${headerHeight})`
 
   return (
     <MapLayerButtonBase
@@ -35,6 +39,7 @@ const MapLayerButtonHorizontal = ({
         maxWidth: `calc(100vw - 78px)`,
         maxHeight: 'calc(100vh - 78px)',
       }}
+      scrollMaxHeight={scrollMaxHeight}
     />
   )
 }

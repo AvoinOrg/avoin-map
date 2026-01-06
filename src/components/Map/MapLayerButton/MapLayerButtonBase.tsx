@@ -27,6 +27,7 @@ type Props = {
   resolveAnchorEl: (anchorRef: React.RefObject<HTMLButtonElement>) => AnchorEl
   paperSx?: SxProps<Theme>
   listSx?: SxProps<Theme>
+  scrollMaxHeight?: string
 }
 
 export type MapLayerButtonProps = {
@@ -50,6 +51,7 @@ const MapLayerButtonBase = ({
   resolveAnchorEl,
   paperSx,
   listSx,
+  scrollMaxHeight,
 }: Props) => {
   const listedLayerGroups = useMapStore((state) => state.listedLayerGroups)
   const toggleLayerGroup = useMapStore((state) => state.toggleLayerGroup)
@@ -197,6 +199,7 @@ const MapLayerButtonBase = ({
               onInfoToggle={handlePopperUpdate}
               onClose={handleCloseMenu}
               listSx={listSx}
+              scrollMaxHeight={scrollMaxHeight}
             />
           </ClickAwayListener>
         </Paper>

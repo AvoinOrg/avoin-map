@@ -17,20 +17,20 @@ const MapLayerButtonVertical = ({
   const isMobile = useIsMobile()
   const verticalMenuWidth = '20rem'
   const verticalTopOffset = parseFloat(theme.spacing(2))
-  const mobileInset = parseFloat(theme.spacing(1))
+  const headerHeight = theme.spacing(5)
 
   const popperOffset = useMemo<[number, number]>(
     () => (isMobile ? [0, 0] : [0, 8]),
     [isMobile]
   )
-  const popperPadding = isMobile ? mobileInset : 16
+  const popperPadding = isMobile ? 0 : 16
 
   const resolveAnchorEl = useCallback(
     (anchorRef: React.RefObject<HTMLButtonElement>) => ({
       getBoundingClientRect: () => {
         const anchorRect = anchorRef.current?.getBoundingClientRect()
-        const left = isMobile ? mobileInset : anchorRect?.left ?? 0
-        const top = isMobile ? mobileInset : verticalTopOffset
+        const left = isMobile ? 0 : anchorRect?.left ?? 0
+        const top = isMobile ? 0 : verticalTopOffset
 
         return {
           width: 0,
@@ -54,24 +54,24 @@ const MapLayerButtonVertical = ({
         }
       },
     }),
-    [isMobile, mobileInset, verticalTopOffset]
+    [isMobile, verticalTopOffset]
   )
 
   const paperSx = useMemo(
     () => ({
-      maxWidth: isMobile
-        ? `calc(100vw - ${theme.spacing(2)})`
-        : `calc(100vw - 78px)`,
-      maxHeight: isMobile
-        ? `calc(100vh - ${theme.spacing(2)})`
-        : `calc(100vh - 32px)`,
-      height: isMobile ? `calc(100vh - ${theme.spacing(2)})` : 'auto',
-      width: isMobile ? `calc(100vw - ${theme.spacing(2)})` : verticalMenuWidth,
+      maxWidth: isMobile ? '100vw' : `calc(100vw - 78px)`,
+      maxHeight: isMobile ? '100vh' : `calc(100vh - 32px)`,
+      height: isMobile ? '100vh' : 'auto',
+      width: isMobile ? '100vw' : verticalMenuWidth,
+      ...(isMobile && { borderRadius: 0 }),
     }),
     [isMobile, theme, verticalMenuWidth]
   )
 
   const placement = isMobile ? 'bottom-start' : 'left-start'
+  const scrollMaxHeight = isMobile
+    ? `calc(100vh - ${headerHeight})`
+    : `calc(100vh - 32px - ${headerHeight})`
 
   return (
     <MapLayerButtonBase
@@ -86,6 +86,7 @@ const MapLayerButtonVertical = ({
       popperPadding={popperPadding}
       resolveAnchorEl={resolveAnchorEl}
       paperSx={paperSx}
+      scrollMaxHeight={scrollMaxHeight}
     />
   )
 }
