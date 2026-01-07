@@ -1,6 +1,7 @@
 export const SIDEBAR_CLOSED_WIDTH = 64
 
 export const SIDEBAR_PADDING_REM = 2.75
+export const MOBILE_SIDEBAR_PADDING_REM = 1.5
 
 export const SCROLLBAR_WIDTH_REM = 0.6
 

@@ -1,10 +1,15 @@
 'use client'
 
-import React from 'react'
+import React, { use } from 'react'
 import { Box, SxProps, Theme } from '@mui/material'
 
-import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
+import {
+  MOBILE_SIDEBAR_PADDING_REM,
+  SIDEBAR_PADDING_REM,
+} from '#/common/style/theme/constants'
+import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
+
 const SidebarContentBox = ({
   sxOuter,
   sxInner,
@@ -14,6 +19,8 @@ const SidebarContentBox = ({
   sxInner?: SxProps<Theme>
   children?: React.ReactNode
 }) => {
+  const isMobile = useIsMobile()
+
   return (
     <Box
       className="sidebar-children-container"
@@ -21,7 +28,8 @@ const SidebarContentBox = ({
         {
           flexDirection: 'column',
           height: '100%',
-          width: '30rem',
+          flexGrow: '1',
+          minWidth: isMobile ? '100%' : '0',
           display: 'flex',
           minHeight: 0,
           maxWidth: '100%',
@@ -50,7 +58,9 @@ const SidebarContentBox = ({
               minHeight: '100%',
               flex: 1,
               p: SIDEBAR_PADDING_REM + 'rem',
-              pl: SIDEBAR_PADDING_REM + 'rem',
+              px: isMobile
+                ? MOBILE_SIDEBAR_PADDING_REM + 'rem'
+                : SIDEBAR_PADDING_REM + 'rem',
             },
             ...(Array.isArray(sxInner) ? sxInner : [sxInner]),
           ]}

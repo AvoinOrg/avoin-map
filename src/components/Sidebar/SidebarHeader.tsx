@@ -1,5 +1,10 @@
 import { Box, Typography } from '@mui/material'
+import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import React from 'react'
+import {
+  MOBILE_SIDEBAR_PADDING_REM,
+  SIDEBAR_PADDING_REM,
+} from '#/common/style/theme/constants'
 
 interface Props {
   children?: React.ReactNode
@@ -8,6 +13,8 @@ interface Props {
 }
 
 const SidebarHeader = ({ children, title, sx }: Props) => {
+  const isMobile = useIsMobile()
+
   return (
     <Box
       className="sidebar-header"
@@ -30,7 +37,9 @@ const SidebarHeader = ({ children, title, sx }: Props) => {
           flexDirection: 'row',
           justifyContent: 'space-between',
           flexGrow: 1,
-          pr: 5,
+          pr: isMobile
+            ? MOBILE_SIDEBAR_PADDING_REM - 0.2 + 'rem'
+            : SIDEBAR_PADDING_REM - 0.2 + 'rem',
           pb: 4,
         }}
       >
@@ -49,8 +58,12 @@ const SidebarHeader = ({ children, title, sx }: Props) => {
       </Box>
       <Box
         sx={{
-          pl: 5,
-          pr: 5,
+          pl: isMobile
+            ? MOBILE_SIDEBAR_PADDING_REM + 'rem'
+            : SIDEBAR_PADDING_REM + 'rem',
+          pr: isMobile
+            ? MOBILE_SIDEBAR_PADDING_REM - 0.2 + 'rem'
+            : SIDEBAR_PADDING_REM - 0.2 + 'rem',
           maxWidth: sx?.width ? sx.width : '100%',
         }}
       >

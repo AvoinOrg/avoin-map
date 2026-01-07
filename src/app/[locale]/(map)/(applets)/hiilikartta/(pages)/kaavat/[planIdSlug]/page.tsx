@@ -17,7 +17,10 @@ import useStore from '#/common/hooks/useStore'
 import { useUIStore } from '#/common/store'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
 import { pp } from '#/common/utils/general'
-import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
+import {
+  MOBILE_SIDEBAR_PADDING_REM,
+  SIDEBAR_PADDING_REM,
+} from '#/common/style/theme/constants'
 import { ArrowNextBig, Delete, Star } from '#/components/icons'
 
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
@@ -37,6 +40,7 @@ import {
 import { planDeleteMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/planDeleteMutation'
 import { LoadingSpinner } from '#/components/Loading'
 import SidebarContentBox from '#/components/Sidebar/SidebarContentBox'
+import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 
 const Page = () => {
   const params = useParams<{ planIdSlug: string }>()
@@ -48,6 +52,7 @@ const Page = () => {
     useAppletStore,
     (state) => state.planConfs[params.planIdSlug]
   )
+  const isMobile = useIsMobile()
   const globalState = useAppletStore((state) => state.globalState)
   const updatePlanConf = useAppletStore((state) => state.updatePlanConf)
   const placeholderPlanConfs = useAppletStore(
@@ -401,8 +406,9 @@ const Page = () => {
             sx={(theme) => ({
               display: 'flex',
               flexDirection: 'column',
-              pl: SIDEBAR_PADDING_REM + 'rem',
-              pr: SIDEBAR_PADDING_REM + 'rem',
+              px: isMobile
+                ? MOBILE_SIDEBAR_PADDING_REM + 'rem'
+                : SIDEBAR_PADDING_REM + 'rem',
               pt: 2,
               pb: 2,
               zIndex: theme.zIndex.drawer + 1,
