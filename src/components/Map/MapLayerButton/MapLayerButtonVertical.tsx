@@ -15,7 +15,7 @@ const MapLayerButtonVertical = ({
 }: MapLayerButtonProps) => {
   const theme = useTheme()
   const isMobile = useIsMobile()
-  const verticalMenuWidth = '20rem'
+  const verticalMenuWidth = '22rem'
   const verticalTopOffset = parseFloat(theme.spacing(2))
   const headerHeight = theme.spacing(5)
 
@@ -63,6 +63,7 @@ const MapLayerButtonVertical = ({
       maxHeight: isMobile ? '100vh' : `calc(100vh - 32px)`,
       height: isMobile ? '100vh' : 'auto',
       width: isMobile ? '100vw' : verticalMenuWidth,
+      minWidth: isMobile ? '100vw' : verticalMenuWidth,
       ...(isMobile && { borderRadius: 0 }),
     }),
     [isMobile, theme, verticalMenuWidth]

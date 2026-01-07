@@ -12,7 +12,7 @@ const MapLayerButtonHorizontal = ({
   icon,
 }: MapLayerButtonProps) => {
   const theme = useTheme()
-  const menuWidth = '12rem'
+  const menuWidth = '14rem'
   const headerHeight = theme.spacing(5)
   const popperOffset = useMemo<[number, number]>(() => [0, 8], [])
   const popperPadding = 16
@@ -36,6 +36,7 @@ const MapLayerButtonHorizontal = ({
       resolveAnchorEl={resolveAnchorEl}
       paperSx={{
         width: menuWidth,
+        minWidth: menuWidth,
         maxWidth: `calc(100vw - 78px)`,
         maxHeight: 'calc(100vh - 78px)',
       }}

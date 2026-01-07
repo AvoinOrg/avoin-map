@@ -92,7 +92,7 @@ const LayerMenuContent = ({
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'stretch',
-              gap: '1rem',
+              gap: '1.5rem',
               width: '100%',
               px: 3,
               py: 4,

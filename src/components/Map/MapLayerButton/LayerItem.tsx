@@ -38,7 +38,7 @@ const LayerItem = ({
   const infoCardRadius = '0.3125rem'
   const baseShadow = '0 2px 4px 0 rgba(0, 0, 0, 0.10)'
   const headerHeight = 20
-  const imageSpacing = 0.75
+  const imageSpacing = 1.25
   const storedOpacity = useLayerGroupOpacity(layerGroup.id)
   const defaultOpacity = clampOpacity(
     layerGroup.styleOptions?.defaultOpacity ?? 1
@@ -159,11 +159,12 @@ const LayerItem = ({
             onClick={() => setIsInfoOpen((prev) => !prev)}
             sx={{
               p: 0,
-              width: 20,
-              height: 20,
+              width: 30,
+              height: 30,
               borderRadius: '50%',
               backgroundColor: 'common.white',
               color: '#075CFF',
+              boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.12)',
               '&:hover': {
                 backgroundColor: 'common.white',
               },
@@ -204,7 +205,7 @@ const LayerItem = ({
       )}
       {(!hasInfo || !isInfoOpen) && renderImage('standalone')}
       {showOpacitySlider && (
-        <Box sx={{ mt: 0.75, px: 1.5 }}>
+        <Box sx={{ mt: 1.25, px: '1rem' }}>
           <Slider
             size="small"
             min={0}
