@@ -15,7 +15,7 @@ const MapLayerButtonVertical = ({
 }: MapLayerButtonProps) => {
   const theme = useTheme()
   const isMobile = useIsMobile()
-  const verticalMenuWidth = '22rem'
+  const verticalMenuWidth = '26rem'
   const verticalTopOffset = parseFloat(theme.spacing(2))
   const headerHeight = theme.spacing(5)
 
