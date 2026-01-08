@@ -39,6 +39,7 @@ const LayerItem = ({
   const baseShadow = '0 2px 4px 0 rgba(0, 0, 0, 0.10)'
   const headerHeight = 20
   const imageSpacing = 1.25
+  const infoOverlap = '0.75rem'
   const storedOpacity = useLayerGroupOpacity(layerGroup.id)
   const defaultOpacity = clampOpacity(
     layerGroup.styleOptions?.defaultOpacity ?? 1
@@ -72,12 +73,16 @@ const LayerItem = ({
     onOpacityChange(layerGroup.id, nextValue)
   }
 
-  const renderImage = (variant: 'standalone' | 'card') => (
+  const imageMarginTop = hasInfo && isInfoOpen ? 0 : imageSpacing
+
+  const renderImage = () => (
     <Box
       onClick={() => onSelect(layerGroup.id)}
       sx={{
         cursor: 'pointer',
-        mt: variant === 'standalone' ? imageSpacing : 0,
+        mt: imageMarginTop,
+        position: 'relative',
+        zIndex: 1,
       }}
     >
       <Box
@@ -191,21 +196,31 @@ const LayerItem = ({
             id={infoId}
             sx={{
               mt: imageSpacing,
+              mb: `-${infoOverlap}`,
               width: '100%',
               backgroundColor: 'common.white',
               color: 'text.primary',
               boxShadow: baseShadow,
               borderRadius: infoCardRadius,
+              position: 'relative',
+              zIndex: 0,
             }}
           >
-            <Box sx={{ p: 1 }}>{layerGroup.infoElement}</Box>
-            {renderImage('card')}
+            <Box
+              sx={{
+                px: 1,
+                pt: 1,
+                pb: `calc(${infoOverlap} + 0.5rem)`,
+              }}
+            >
+              {layerGroup.infoElement}
+            </Box>
           </Box>
         </Collapse>
       )}
-      {(!hasInfo || !isInfoOpen) && renderImage('standalone')}
+      {renderImage()}
       {showOpacitySlider && (
-        <Box sx={{ mt: 1.25, px: '1rem' }}>
+        <Box sx={{ mt: 1.25, px: '1rem', position: 'relative', zIndex: 3 }}>
           <Slider
             size="small"
             min={0}
@@ -219,8 +234,10 @@ const LayerItem = ({
             sx={{
               width: '100%',
               overflow: 'visible',
+              position: 'relative',
+              zIndex: 3,
               '& .MuiSlider-valueLabel': {
-                zIndex: 2,
+                zIndex: 4,
               },
             }}
           />

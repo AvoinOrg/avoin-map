@@ -62,7 +62,7 @@ const LayerMenuContent = ({
           size="small"
           aria-label={t('map.buttons.menu.close', 'Close menu')}
           onClick={onClose}
-          sx={{ p: 0.25, mr: 0 }}
+          sx={{ p: 0.5, mr: 0, width: 32, height: 32 }}
         >
           <Cross sx={{ width: 18, height: 18 }} />
         </IconButton>
