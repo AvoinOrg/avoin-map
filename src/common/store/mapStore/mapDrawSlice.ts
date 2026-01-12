@@ -638,9 +638,11 @@ export const createMapDrawSlice: (
               console.warn('Failed to switch to select mode after finish', err)
             }
 
-            const selected = featureId
+            const selectedFeatureId =
+              (newFeatureId ?? feature.id ?? featureId) ?? null
+            const selected = selectedFeatureId
               ? fetchFeaturesByIds({
-                  ids: [featureId],
+                  ids: [selectedFeatureId],
                   source: { source: layerGroupId },
                   map: _map,
                 }) || []
