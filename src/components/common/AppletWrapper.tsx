@@ -13,7 +13,6 @@ import { ListedLayerGroup, MapContext } from '#/common/types/map'
 import { useExclusiveLayerGroups } from '#/common/hooks/map/useExclusiveLayerGroups'
 import { defaultListedLayerGroups } from '../Map/layers/defaultListedLayerGroups'
 import { IntoSlot } from '#/components/context/slotsContext'
-import { Navbar } from '#/components/Sidebar/Navbar'
 import { FINLAND_BOUNDS } from '#/common/constants/map'
 
 type BaseAppletWrapperProps = {
@@ -26,7 +25,6 @@ type BaseAppletWrapperProps = {
   searchCountryCodes?: string[]
   disableDefaultFitbounds?: boolean
   listedLayerGroups?: ListedLayerGroup[]
-  sidebarNavbarElement?: React.ReactNode
   sx?: any
 }
 
@@ -57,7 +55,6 @@ const AppletWrapper = ({
   sidebarHeaderElement,
   sidebarHeaderTitle,
   sidebarHeaderChildren,
-  sidebarNavbarElement,
   sx,
 }: AppletWrapperProps) => {
   const tolgee = useTolgee(['update'])
@@ -198,11 +195,6 @@ const AppletWrapper = ({
               {sidebarHeaderChildren}
             </IntoSlot>
           )}
-
-          {/* Portal navbar into the Sidebar component */}
-          <IntoSlot name="sidebar-navbar">
-            {sidebarNavbarElement ? sidebarNavbarElement : <Navbar />}
-          </IntoSlot>
 
           {children}
         </>

@@ -20,7 +20,6 @@ export const Sidebar = ({
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
   const isSidebarDrawerOpen = useUIStore((state) => state.isSidebarDrawerOpen)
   const setSidebarWidth = useUIStore((state) => state.setSidebarWidth)
-  const isNavbarHidden = useUIStore((state) => state.isNavbarHidden)
   const isSidebarLoading = useUIStore((state) => state.isSidebarLoading)
   const sidebarHeaderConfig = useUIStore((state) => state.sidebarHeaderConfig)
 
@@ -310,8 +309,6 @@ export const Sidebar = ({
               >
                 {children}
               </Box>
-              {/* Navbar slot - content comes from AppletWrapper */}
-              {!isNavbarHidden && <Slot name="sidebar-navbar" />}
             </Box>
           </Box>
         </Box>

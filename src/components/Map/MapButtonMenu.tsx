@@ -8,9 +8,11 @@ import { alpha } from '@mui/material/styles'
 
 import { MapButtonProps } from './MapButton'
 
+type MenuContentRenderer = (helpers: { closeMenu: () => void }) => React.ReactNode
+
 type MapButtonMenuProps = {
   children: ReactElement<MapButtonProps>
-  menuContent?: React.ReactNode
+  menuContent?: React.ReactNode | MenuContentRenderer
   isVertical: boolean
   placement?: PopperPlacementType
   paperSx?: SxProps<Theme>
@@ -27,8 +29,11 @@ export const MapButtonMenu = ({
 }: MapButtonMenuProps) => {
   const anchorRef = useRef<HTMLButtonElement | null>(null)
   const [open, setOpen] = useState(false)
+  const closeMenu = () => setOpen(false)
+  const resolvedMenuContent =
+    typeof menuContent === 'function' ? menuContent({ closeMenu }) : menuContent
 
-  const hasMenuContent = React.Children.count(menuContent) > 0
+  const hasMenuContent = React.Children.count(resolvedMenuContent) > 0
   const childDisabled = Boolean(children.props.disabled)
 
   useEffect(() => {
@@ -145,7 +150,7 @@ export const MapButtonMenu = ({
           ]}
         >
           <ClickAwayListener onClickAway={handleClose}>
-            <Box>{menuContent}</Box>
+            <Box>{resolvedMenuContent}</Box>
           </ClickAwayListener>
         </Paper>
       </Popper>
