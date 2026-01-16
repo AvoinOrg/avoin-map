@@ -1902,6 +1902,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime@npm:^7.28.4":
+  version: 7.28.6
+  resolution: "@babel/runtime@npm:7.28.6"
+  checksum: 42d8a868c2fc2e9a77927945a6daa7ec03c7ea49e611e0d15442933cdabb12f20e3a6849c729259076c10a4247adec229331d1f94c2d0073ea0979d7853e29fd
+  languageName: node
+  linkType: hard
+
 "@babel/template@npm:^7.22.15, @babel/template@npm:^7.24.0":
   version: 7.24.0
   resolution: "@babel/template@npm:7.24.0"
@@ -1979,6 +1986,47 @@ __metadata:
     "@babel/helper-validator-identifier": ^7.24.5
     to-fast-properties: ^2.0.0
   checksum: 8eeeacd996593b176e649ee49d8dc3f26f9bb6aa1e3b592030e61a0e58ea010fb018dccc51e5314c8139409ea6cbab02e29b33e674e1f6962d8e24c52da6375b
+  languageName: node
+  linkType: hard
+
+"@base-ui/react@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "@base-ui/react@npm:1.1.0"
+  dependencies:
+    "@babel/runtime": ^7.28.4
+    "@base-ui/utils": 0.2.4
+    "@floating-ui/react-dom": ^2.1.6
+    "@floating-ui/utils": ^0.2.10
+    reselect: ^5.1.1
+    tabbable: ^6.4.0
+    use-sync-external-store: ^1.6.0
+  peerDependencies:
+    "@types/react": ^17 || ^18 || ^19
+    react: ^17 || ^18 || ^19
+    react-dom: ^17 || ^18 || ^19
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 43c42ccdef8a525f0808c3b3a42c335ec70aff1ddcbc47110c5e781f80ebae82f5d938ee2be4e6d86f3a93c29a2a0541e664a8fc122a1a749ebfbbad02bb0975
+  languageName: node
+  linkType: hard
+
+"@base-ui/utils@npm:0.2.4":
+  version: 0.2.4
+  resolution: "@base-ui/utils@npm:0.2.4"
+  dependencies:
+    "@babel/runtime": ^7.28.4
+    "@floating-ui/utils": ^0.2.10
+    reselect: ^5.1.1
+    use-sync-external-store: ^1.6.0
+  peerDependencies:
+    "@types/react": ^17 || ^18 || ^19
+    react: ^17 || ^18 || ^19
+    react-dom: ^17 || ^18 || ^19
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: daf52bb322a5baa1cc705f629bf277eb24e6989a96ac67d98f27c6ce17638ce17ef5fa08232fd85ceda28923c6456c174fb55232fee6f27c6aabdef831bfbc62
   languageName: node
   linkType: hard
 
@@ -2206,6 +2254,44 @@ __metadata:
   version: 1.3.0
   resolution: "@esri/arcgis-to-geojson-utils@npm:1.3.0"
   checksum: 3fe8fc2ad3d7afc09f030845081d26d0e2c140319f327fdbdc22a1fce5603df8a843a589ac999fb7a3f3a69453bdf527e8a3b41bcadc44f30fac65fee404a891
+  languageName: node
+  linkType: hard
+
+"@floating-ui/core@npm:^1.7.3":
+  version: 1.7.3
+  resolution: "@floating-ui/core@npm:1.7.3"
+  dependencies:
+    "@floating-ui/utils": ^0.2.10
+  checksum: 5adfb28ddfa1776ec83516439256b9026e5d62b5413f62ae51e50a870cf0df4bea9abf72aacc0610ee84bc00e85883d0d32f2a0976ee7fa89728a717a7494f27
+  languageName: node
+  linkType: hard
+
+"@floating-ui/dom@npm:^1.7.4":
+  version: 1.7.4
+  resolution: "@floating-ui/dom@npm:1.7.4"
+  dependencies:
+    "@floating-ui/core": ^1.7.3
+    "@floating-ui/utils": ^0.2.10
+  checksum: 806923e6f5b09e024c366070f2115a4db6e8ad28462bac29cd075170a6f7d900497da3ee542439bd0770b8e2fff12b636cc30873d1c82e9ec4a487870b080643
+  languageName: node
+  linkType: hard
+
+"@floating-ui/react-dom@npm:^2.1.6":
+  version: 2.1.6
+  resolution: "@floating-ui/react-dom@npm:2.1.6"
+  dependencies:
+    "@floating-ui/dom": ^1.7.4
+  peerDependencies:
+    react: ">=16.8.0"
+    react-dom: ">=16.8.0"
+  checksum: 24ff266806cd4cba6ad066f0eda7b99583f68af877f41df0b2a8d10a392692e3a1c1d666ebb75571a060818ede940bae59d833aa517ed538f7dba9dddd9991ae
+  languageName: node
+  linkType: hard
+
+"@floating-ui/utils@npm:^0.2.10":
+  version: 0.2.10
+  resolution: "@floating-ui/utils@npm:0.2.10"
+  checksum: ffc4c24a46a665cfd0337e9aaf7de8415b572f8a0f323af39175e4b575582aed13d172e7f049eedeece9eaf022bad019c140a2d192580451984ae529bdf1285c
   languageName: node
   linkType: hard
 
@@ -7993,6 +8079,7 @@ __metadata:
     "@babel/eslint-parser": ^7.19.1
     "@babel/preset-typescript": ^7.24.1
     "@babel/register": ^7.18.9
+    "@base-ui/react": ^1.1.0
     "@emotion/cache": ^11.14.0
     "@emotion/react": ^11.14.0
     "@emotion/styled": ^11.14.0
@@ -16314,6 +16401,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"reselect@npm:^5.1.1":
+  version: 5.1.1
+  resolution: "reselect@npm:5.1.1"
+  checksum: 5d32d48be29071ddda21a775945c2210cf4ca3fccde1c4a0e1582ac3bf99c431c6c2330ef7ca34eae4c06feea617e7cb2c275c4b33ccf9a930836dfc98b49b13
+  languageName: node
+  linkType: hard
+
 "resolve-cwd@npm:^3.0.0":
   version: 3.0.0
   resolution: "resolve-cwd@npm:3.0.0"
@@ -17711,6 +17805,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tabbable@npm:^6.4.0":
+  version: 6.4.0
+  resolution: "tabbable@npm:6.4.0"
+  checksum: 7084cba269ebbc7dcdeed5aca7f90c0a0fb59a295dd1e83703ab89cca5e6c53b78d02020e3d1065481984cd64bba7dd1ea3c0a48e92fdba83d586e6e86d62a74
+  languageName: node
+  linkType: hard
+
 "tapable@npm:^2.0.0, tapable@npm:^2.1.1, tapable@npm:^2.2.0":
   version: 2.2.1
   resolution: "tapable@npm:2.2.1"
@@ -18399,6 +18500,15 @@ __metadata:
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0 || >=19.0.0-rc <19.0.0 || ^19.0.0
   checksum: b38bb59cd93ef84249122924ac6f03f416e420dff35f9d44b8563fd743bb9367d593968a0f29ac4b4324f8551b72c6eab5a40a7a1e48162757852d95a647d80f
+  languageName: node
+  linkType: hard
+
+"use-sync-external-store@npm:^1.6.0":
+  version: 1.6.0
+  resolution: "use-sync-external-store@npm:1.6.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 61a62e910713adfaf91bdb72ff2cd30e5ba83687accaf3b6e75a903b45bf635f5722e3694af30d83a03e92cb533c0a5c699298d2fef639a03ffc86b469f4eee2
   languageName: node
   linkType: hard
 
