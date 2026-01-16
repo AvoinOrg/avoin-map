@@ -344,6 +344,9 @@ export const createMapDrawSlice: (
 
         const selectMode = new TerraDrawSelectMode({
           pointerDistance: 25,
+          styles: {
+            selectedPolygonFillOpacity: 0,
+          },
           flags: {
             polygon: {
               feature: {
@@ -381,7 +384,13 @@ export const createMapDrawSlice: (
             },
           },
         })
-        const polygonMode = new TerraDrawPolygonMode()
+        const polygonMode = new TerraDrawPolygonMode({
+          styles: {
+            // Keep fill while drawing, but hide it once the polygon is committed.
+            fillOpacity: (feature: GeoJSONStoreFeatures) =>
+              feature.properties?.currentlyDrawing ? 0.3 : 0,
+          },
+        })
         const corridorMode = new TerraDrawCorridorMode()
 
         const draw = new TerraDraw({
