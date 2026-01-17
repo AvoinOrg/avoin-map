@@ -1,7 +1,14 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
-import { Box, IconButton, Paper, Popper, Tooltip } from '@mui/material'
+import {
+  Box,
+  IconButton,
+  Paper,
+  Popper,
+  Tooltip,
+  Typography,
+} from '@mui/material'
 import type { PopperPlacementType } from '@mui/material/Popper'
 import type { SxProps, Theme } from '@mui/material/styles'
 import { alpha } from '@mui/material/styles'
@@ -14,14 +21,20 @@ import { useUIStore } from '#/common/store'
 import { IntoSlot } from '../context/slotsContext'
 import { MAP_BUTTON_SIZE, MapButton, MapButtonProps } from './MapButton'
 
+type MenuContentRenderer = (helpers: {
+  closeMenu: () => void
+}) => React.ReactNode
+
 type MapButtonStickyMenuProps = {
   children: React.ReactElement<MapButtonProps>
-  menuContent?: React.ReactNode
+  menuContent?: React.ReactNode | MenuContentRenderer
   isVertical: boolean
   isActive: boolean
   paperSx?: SxProps<Theme>
   popperSx?: SxProps<Theme>
   placement?: PopperPlacementType
+  showTooltip?: string
+  menuTitle?: string
 }
 
 const STICKY_MENU_SLOT_NAME = 'map-sticky-menu-toggle'
@@ -34,16 +47,31 @@ export const MapButtonStickyMenu = ({
   paperSx,
   popperSx,
   placement,
+  showTooltip,
+  menuTitle,
 }: MapButtonStickyMenuProps) => {
   const { t } = useTranslate('avoin-map')
   const activeMapMenu = useUIStore((state) => state.activeMapMenu)
 
   const anchorRef = useRef<HTMLButtonElement | null>(null)
-  const hasMenuContent = React.Children.count(menuContent) > 0
   const childDisabled = Boolean(children.props.disabled)
+  const hasRawMenuContent =
+    typeof menuContent === 'function'
+      ? true
+      : React.Children.count(menuContent) > 0
   const [open, setOpen] = useState(
-    () => isActive && hasMenuContent && !childDisabled
+    () => isActive && hasRawMenuContent && !childDisabled
   )
+  const closeMenu = React.useCallback(() => {
+    setOpen(false)
+  }, [])
+  const resolvedMenuContent = React.useMemo(() => {
+    if (typeof menuContent === 'function') {
+      return menuContent({ closeMenu })
+    }
+    return menuContent
+  }, [menuContent, closeMenu])
+  const hasMenuContent = React.Children.count(resolvedMenuContent) > 0
 
   useEffect(() => {
     if (!hasMenuContent || childDisabled) {
@@ -89,10 +117,6 @@ export const MapButtonStickyMenu = ({
     setOpen((prev) => !prev)
   }
 
-  const handleCollapse = () => {
-    setOpen(false)
-  }
-
   const clonedChild = React.cloneElement(children, {
     onClick: handleChildClick,
   })
@@ -106,6 +130,7 @@ export const MapButtonStickyMenu = ({
 
   const isSearchOpenVertical = isVertical && activeMapMenu === 'search'
   const effectiveOpen = open && !isSearchOpenVertical && Boolean(anchorEl)
+  const hideLabel = t('map.menu.hide')
 
   return (
     <>
@@ -121,7 +146,7 @@ export const MapButtonStickyMenu = ({
             ref={anchorRef}
             onClick={handleToggleFromIcon}
             size="small"
-            tooltip={t('map.buttons.menu.show', 'Show menu')}
+            tooltip={showTooltip ?? t('map.buttons.menu.show')}
             isVertical={isVertical}
           >
             <TuneIcon />
@@ -183,20 +208,27 @@ export const MapButtonStickyMenu = ({
           <Box
             sx={{
               display: 'flex',
-              justifyContent: 'flex-end',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 1,
               mb: 0.5,
             }}
           >
-            <Tooltip
-              title={t('map.buttons.menu.hide', 'Hide menu')}
-              placement="left"
-            >
-              <IconButton size="small" onClick={handleCollapse}>
-                <ArrowUp sx={{ color: 'text.secondary' }} />
-              </IconButton>
-            </Tooltip>
+            {menuTitle ? (
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: 600, textAlign: 'left' }}
+              >
+                {menuTitle}
+              </Typography>
+            ) : (
+              <Box sx={{ flex: 1 }} />
+            )}
+            <IconButton size="small" onClick={closeMenu} aria-label={hideLabel}>
+              <ArrowUp sx={{ color: 'text.secondary' }} />
+            </IconButton>
           </Box>
-          <Box>{menuContent}</Box>
+          <Box>{resolvedMenuContent}</Box>
         </Paper>
       </Popper>
     </>
