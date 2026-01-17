@@ -55,6 +55,7 @@ standalone sites.
   `TOLGEE_API_KEY`).
 - Prefer the Tolgee browser plugin (Alt+click) for editing keys.
 - Never directly edit the language json files within the i18n folder. Those are automatically downloaded from the Tolgee server.
+- Never add a backup string for a key; Always simply use keys. That way we can directly see in UI which keys have not been manually checked.
 
 ## State and data
 
