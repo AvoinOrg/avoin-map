@@ -82,9 +82,11 @@ const Page = () => {
 
     if (planConf?.data.features) {
       for (const feature of planConf.data.features) {
-        if (
-          !checkIsValidZoningCode(feature.properties.zoning_code)
-        ) {
+        const hasValidZoningCode =
+          feature.properties.hasValidZoningCode ??
+          checkIsValidZoningCode(feature.properties.zoning_code)
+
+        if (!hasValidZoningCode) {
           return false
         }
         if (!checkIsValidLandUseDistribution(feature.properties)) {

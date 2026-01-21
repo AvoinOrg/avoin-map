@@ -105,13 +105,35 @@ const ZoneAccordionItem = memo(
       feature.properties.zoning_code?.toUpperCase() === CUSTOM_ZONING_CODE
     )
 
+    const hasValidZoningCode = useMemo(() => {
+      if (feature.properties.hasValidZoningCode != null) {
+        return feature.properties.hasValidZoningCode
+      }
+      if (isZoningClassesLoading) {
+        return true
+      }
+      return checkIsValidZoningCode(feature.properties.zoning_code)
+    }, [
+      feature.properties.hasValidZoningCode,
+      feature.properties.zoning_code,
+      isZoningClassesLoading,
+      zoningClasses,
+    ])
+
     useEffect(() => {
       if (
-        feature.properties.zoning_code?.toUpperCase() === CUSTOM_ZONING_CODE
+        feature.properties.zoning_code?.toUpperCase() === CUSTOM_ZONING_CODE &&
+        hasValidZoningCode
       ) {
         setIsLandUseExpanded(true)
       }
-    }, [feature.properties.zoning_code])
+    }, [feature.properties.zoning_code, hasValidZoningCode])
+
+    useEffect(() => {
+      if (!hasValidZoningCode) {
+        setIsLandUseExpanded(false)
+      }
+    }, [hasValidZoningCode])
 
     useEffect(() => {
       if (isZoningClassesLoading) {
@@ -122,7 +144,21 @@ const ZoneAccordionItem = memo(
         feature.properties.zoning_code,
         zoningClasses
       )
+      const nextHasValidZoningCode = zoningClass != null
+      const needsHasValidUpdate =
+        feature.properties.hasValidZoningCode !== nextHasValidZoningCode
+
       if (!zoningClass) {
+        if (!needsHasValidUpdate) {
+          return
+        }
+
+        updateFeature(feature.properties.id, {
+          properties: {
+            ...feature.properties,
+            hasValidZoningCode: false,
+          },
+        })
         return
       }
 
@@ -132,7 +168,11 @@ const ZoneAccordionItem = memo(
       const needsZoningCodeUpdate =
         feature.properties.zoning_code !== zoningClass.code
 
-      if (!needsZoningCodeUpdate && hasLandUseValues) {
+      if (
+        !needsZoningCodeUpdate &&
+        hasLandUseValues &&
+        !needsHasValidUpdate
+      ) {
         return
       }
 
@@ -140,6 +180,7 @@ const ZoneAccordionItem = memo(
         properties: {
           ...feature.properties,
           zoning_code: zoningClass.code,
+          hasValidZoningCode: true,
           ...(hasLandUseValues
             ? {}
             : getZoningClassLandUseDefaults(zoningClass)),
@@ -152,35 +193,25 @@ const ZoneAccordionItem = memo(
       zoningClasses,
     ])
 
-    const isZoningCodeValid = useMemo(
-      () =>
-        isZoningClassesLoading
-          ? true
-          : checkIsValidZoningCode(feature.properties.zoning_code),
-      [
-        feature.properties.zoning_code,
-        isZoningClassesLoading,
-        zoningClasses,
-      ]
-    )
-
     const isLandUseDistributionValid = useMemo(
       () => checkIsValidLandUseDistribution(feature.properties),
       [feature.properties]
     )
 
-    const isItemValid = isZoningCodeValid && isLandUseDistributionValid
+    const isItemValid = hasValidZoningCode && isLandUseDistributionValid
 
     const handleZoningCodeChange = (event: any) => {
       const zoningCode = event.target.value
 
       if (zoningCode != null) {
         const zoningClass = getZoningClassByCode(zoningCode, zoningClasses)
+        const nextHasValidZoningCode = zoningClass != null
 
         updateFeature(feature.properties.id, {
           properties: {
             ...feature.properties,
             zoning_code: zoningClass?.code ?? zoningCode,
+            hasValidZoningCode: nextHasValidZoningCode,
             ...(zoningClass
               ? getZoningClassLandUseDefaults(zoningClass)
               : {}),
@@ -256,56 +287,63 @@ const ZoneAccordionItem = memo(
               mt: 1,
             }}
           ></DropDownSelect>
-          <Box sx={{ mt: 2 }}>
-            <ButtonBase
-              onClick={() => setIsLandUseExpanded((prev) => !prev)}
-              sx={{
-                width: '100%',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                display: 'flex',
-                borderRadius: 1,
-                py: 0.5,
-                textAlign: 'left',
-                color: isLandUseDistributionValid
-                  ? 'text.secondary'
-                  : 'warning.main',
-              }}
-            >
-              <Typography variant="body2">
-                {t('sidebar.plan_settings.zones.land_use_distribution')}
-              </Typography>
-              {isLandUseExpanded ? (
-                <ArrowUp sx={{ fontSize: 16 }} />
-              ) : (
-                <ArrowDown sx={{ fontSize: 16 }} />
-              )}
-            </ButtonBase>
-            <Collapse in={isLandUseExpanded} timeout="auto" unmountOnExit>
-              <Box
-                sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}
+          {hasValidZoningCode ? (
+            <Box sx={{ mt: 2 }}>
+              <ButtonBase
+                onClick={() => setIsLandUseExpanded((prev) => !prev)}
+                sx={{
+                  width: '100%',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  display: 'flex',
+                  borderRadius: 1,
+                  py: 0.5,
+                  textAlign: 'left',
+                  color: isLandUseDistributionValid
+                    ? 'text.secondary'
+                    : 'warning.main',
+                }}
               >
-                {landUseFields.map((field) => (
-                  <TextField
-                    key={field.key}
-                    type="number"
-                    value={feature.properties[field.key] ?? ''}
-                    onChange={handleLandUseValueChange(field.key)}
-                    label={t(field.translationKey)}
-                    fullWidth
-                    size="small"
-                    error={!isLandUseDistributionValid}
-                    inputProps={{ min: 0, max: 100, step: 1 }}
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">%</InputAdornment>
-                      ),
-                    }}
-                  />
-                ))}
-              </Box>
-            </Collapse>
-          </Box>
+                <Typography variant="body2">
+                  {t('sidebar.plan_settings.zones.land_use_distribution')}
+                </Typography>
+                {isLandUseExpanded ? (
+                  <ArrowUp sx={{ fontSize: 16 }} />
+                ) : (
+                  <ArrowDown sx={{ fontSize: 16 }} />
+                )}
+              </ButtonBase>
+              <Collapse in={isLandUseExpanded} timeout="auto" unmountOnExit>
+                <Box
+                  sx={{
+                    mt: 2,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                  }}
+                >
+                  {landUseFields.map((field) => (
+                    <TextField
+                      key={field.key}
+                      type="number"
+                      value={feature.properties[field.key] ?? ''}
+                      onChange={handleLandUseValueChange(field.key)}
+                      label={t(field.translationKey)}
+                      fullWidth
+                      size="small"
+                      error={!isLandUseDistributionValid}
+                      inputProps={{ min: 0, max: 100, step: 1 }}
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment position="end">%</InputAdornment>
+                        ),
+                      }}
+                    />
+                  ))}
+                </Box>
+              </Collapse>
+            </Box>
+          ) : null}
         </AccordionDetails>
       </CustomAccordion>
     )
@@ -316,6 +354,8 @@ const ZoneAccordionItem = memo(
       prevProps.feature.properties.zoning_code ===
         nextProps.feature.properties.zoning_code &&
       prevProps.feature.properties.name === nextProps.feature.properties.name &&
+      prevProps.feature.properties.hasValidZoningCode ===
+        nextProps.feature.properties.hasValidZoningCode &&
       prevProps.feature.properties.landuse_built ===
         nextProps.feature.properties.landuse_built &&
       prevProps.feature.properties.landuse_new_open_vegetation ===

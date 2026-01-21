@@ -20,6 +20,7 @@ import {
   PlaceholderPlanConf,
   GlobalState,
 } from '../common/types'
+import { getZoningClasses } from '../common/zoningClasses'
 
 const localizationNamespace = 'hiilikartta'
 
@@ -163,6 +164,9 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
   }, [planConfs, session?.user?.id])
 
   useEffect(() => {
+    // Preload zoning classes on applet load
+    getZoningClasses()
+    
     return () => {
       removeSignOutAction('hiilikartta')
     }

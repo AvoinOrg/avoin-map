@@ -20,6 +20,7 @@ import { CARBON_CHANGE_COLORS, CARBON_CHANGE_NO_DATA_COLOR } from './constants'
 import {
   getZoningClassByCode,
   getZoningClassColor,
+  getZoningClasses,
   getZoningClassesCache,
 } from './zoningClasses'
 
@@ -74,11 +75,12 @@ export const isZoningCodeValidExpression = () => {
   ] as ExpressionSpecification
 }
 
-export const createLayerConf = (
+export const createLayerConf = async (
   json: any,
   planId: string,
   featureColorCol: string
 ) => {
+  await getZoningClasses()
   const sourceId = getPlanSourceId(planId)
 
   const style: ExtendedStyleSpecification = {
@@ -454,10 +456,16 @@ export const processCalcQueryToReportData = (data: any): ReportData => {
 export const checkIsValidLandUseDistribution = (
   properties: FeatureProperties
 ) => {
+  if (properties.hasValidZoningCode === false) {
+    return true
+  }
+
   const landuseBuilt = properties.landuse_built
   const landuseNewOpenVegetation = properties.landuse_new_open_vegetation
   const landuseNewTreeVegetation = properties.landuse_new_tree_vegetation
   const landuseExisting = properties.landuse_existing
+
+  const requiresLandUseValues = properties.hasValidZoningCode === true
 
   if (
     landuseBuilt == null &&
@@ -465,7 +473,7 @@ export const checkIsValidLandUseDistribution = (
     landuseNewTreeVegetation == null &&
     landuseExisting == null
   ) {
-    return true
+    return !requiresLandUseValues
   }
 
   if (

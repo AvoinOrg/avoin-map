@@ -122,12 +122,17 @@ const Page = () => {
 
         const featureAreaHa = getGeoJsonArea(feature) / 10000
 
-        const properties: FeatureProperties = {
+        const baseProperties = {
           id: generateUUID(),
           name: name,
           [ZONING_CODE_COL]: zoningCode,
           area_ha: featureAreaHa,
           old_id: feature.id != null ? feature.id : undefined,
+        }
+
+        let properties: FeatureProperties = {
+          ...baseProperties,
+          hasValidZoningCode: false,
         }
 
         if (zoningCode != null) {
@@ -141,12 +146,13 @@ const Page = () => {
           })
 
           if (zoningClass) {
-            properties[ZONING_CODE_COL] = zoningClass.code
-            properties.old_zoning_code = zoningCode
-            Object.assign(
-              properties,
-              getZoningClassLandUseDefaults(zoningClass)
-            )
+            properties = {
+              ...baseProperties,
+              [ZONING_CODE_COL]: zoningClass.code,
+              old_zoning_code: zoningCode,
+              hasValidZoningCode: true,
+              ...getZoningClassLandUseDefaults(zoningClass),
+            }
           }
         }
 
