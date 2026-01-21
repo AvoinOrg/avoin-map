@@ -17,12 +17,12 @@ import {
 import CarbonMapGraphMap from './CarbonMapGraphMap'
 import CarbonChangeLegend from '../CarbonChangeLegend'
 import { GraphCalcType } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
-import { ZONING_CLASSES } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/constants'
 import {
   getCarbonChangeColor,
   getCarbonValueForProperties,
   isZoningCodeValid,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
+import { useZoningClasses } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/useZoningClasses'
 import CarbonMapGraphTable from './CarbonMapGraphTable'
 import ReadMoreModal from '../ReadMoreModal'
 
@@ -43,6 +43,8 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
   const [calcType, setCalcType] = React.useState<GraphCalcType>('total')
   const [areaType, setAreaType] = React.useState<string>('all')
   const [localDatas, setLocalDatas] = useState<MapGraphData[]>([])
+  const { zoningClasses, isLoading: isZoningClassesLoading } =
+    useZoningClasses()
 
   const handleCalcTypeChange = (
     _event: React.MouseEvent<HTMLElement>,
@@ -72,24 +74,47 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
   }, [planConfs])
 
   useEffect(() => {
-    if (datas.length === 0) return
-    const newDatas = updateDataWithColor(datas, activeYear, calcType, areaType)
+    if (datas.length === 0 || isZoningClassesLoading) return
+    const newDatas = updateDataWithColor({
+      datas,
+      year: activeYear,
+      calcType,
+      areaType,
+    })
     setLocalDatas(newDatas)
-  }, [datas, activeYear, calcType, areaType])
+  }, [
+    datas,
+    activeYear,
+    calcType,
+    areaType,
+    zoningClasses,
+    isZoningClassesLoading,
+  ])
 
   const areaTypeOptions = useMemo(() => {
+    const seen = new Set<string>()
     return [
       { value: 'all', label: t('report.map_graph.select_all_types') },
-      ...ZONING_CLASSES.filter((zoningClass) => {
-        if (zoningClass.code.length === 1) return true
-      }).map((zoningClass) => {
-        return {
-          value: zoningClass.code,
-          label: zoningClass.name,
-        }
-      }),
+      ...zoningClasses
+        .filter((zoningClass) => {
+          if (zoningClass.code.length !== 1) {
+            return false
+          }
+          const normalized = zoningClass.code.toUpperCase()
+          if (seen.has(normalized)) {
+            return false
+          }
+          seen.add(normalized)
+          return true
+        })
+        .map((zoningClass) => {
+          return {
+            value: zoningClass.code,
+            label: zoningClass.name,
+          }
+        }),
     ]
-  }, [])
+  }, [t, zoningClasses])
 
   return (
     <Box>
@@ -258,16 +283,21 @@ const StyledToggleButton = styled(ToggleButton)(({ theme }) => ({
   },
 }))
 
-const updateDataWithColor = (
+const updateDataWithColor = ({
+  datas,
+  year,
+  calcType,
+  areaType,
+}: {
   datas: {
     id: string
     name: string
     data: CalcFeatureCollection
-  }[],
-  year: string,
-  calcType: GraphCalcType,
+  }[]
+  year: string
+  calcType: GraphCalcType
   areaType: string
-): MapGraphData[] => {
+}): MapGraphData[] => {
   const newDatas = datas.map((data) => {
     const updatedFeatures = data.data.features.map((feature) => {
       const valueHa =

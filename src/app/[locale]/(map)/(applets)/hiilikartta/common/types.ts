@@ -90,9 +90,10 @@ export interface FeatureProperties {
   zoning_code: string | null
   old_zoning_code?: string
   old_id?: string | number
-  new_land_use_without_vegetation?: number
-  new_land_use_with_vegetation?: number
-  remaining_existing_land_use?: number
+  landuse_built?: number
+  landuse_new_open_vegetation?: number
+  landuse_new_tree_vegetation?: number
+  landuse_existing?: number
   geometry_mode?: 'polygon' | 'corridor'
 }
 
@@ -144,6 +145,15 @@ export type CarbonChangeColorItem = {
 }
 
 export type GraphCalcType = 'ground' | 'bio' | 'total'
+
+export type ZoningClass = {
+  name: string
+  code: string
+  landuse_built?: number
+  landuse_new_open_vegetation?: number
+  landuse_new_tree_vegetation?: number
+  landuse_existing?: number
+}
 
 export interface MapGraphCalcFeature extends CalcFeature {
   properties: CalcFeatureProperties & {

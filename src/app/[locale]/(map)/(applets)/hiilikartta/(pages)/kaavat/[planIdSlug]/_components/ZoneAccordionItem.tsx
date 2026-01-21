@@ -25,7 +25,6 @@ import { ArrowDown, ArrowUp } from '#/components/icons'
 
 import {
   CUSTOM_ZONING_CODE,
-  ZONING_CLASSES,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/constants'
 import { PlanDataFeature } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
 import ZoneAccordionItemTitle from './ZoneAccordionItemTitle'
@@ -33,25 +32,28 @@ import {
   checkIsValidLandUseDistribution,
   checkIsValidZoningCode,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
-
-const zoningCodeOptions = ZONING_CLASSES.map((zoning) => ({
-  value: zoning.code,
-  label: `${zoning.name} (${zoning.code})`,
-}))
+import { useZoningClasses } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/useZoningClasses'
+import {
+  getZoningClassByCode,
+  getZoningClassLandUseDefaults,
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/zoningClasses'
 
 const landUseFields = [
   {
-    key: 'new_land_use_without_vegetation',
-    translationKey:
-      'sidebar.plan_settings.zones.new_land_use_without_vegetation',
+    key: 'landuse_built',
+    translationKey: 'sidebar.plan_settings.zones.landuse_built',
   },
   {
-    key: 'new_land_use_with_vegetation',
-    translationKey: 'sidebar.plan_settings.zones.new_land_use_with_vegetation',
+    key: 'landuse_new_open_vegetation',
+    translationKey: 'sidebar.plan_settings.zones.landuse_new_open_vegetation',
   },
   {
-    key: 'remaining_existing_land_use',
-    translationKey: 'sidebar.plan_settings.zones.remaining_existing_land_use',
+    key: 'landuse_new_tree_vegetation',
+    translationKey: 'sidebar.plan_settings.zones.landuse_new_tree_vegetation',
+  },
+  {
+    key: 'landuse_existing',
+    translationKey: 'sidebar.plan_settings.zones.landuse_existing',
   },
 ] as const
 
@@ -80,6 +82,25 @@ const ZoneAccordionItem = memo(
     updateFeature,
   }: CustomAccordionProps) => {
     const { t } = useTranslate('hiilikartta')
+    const { zoningClasses, isLoading: isZoningClassesLoading } =
+      useZoningClasses()
+    const zoningCodeOptions = useMemo(
+      () => {
+        const seen = new Set<string>()
+        return zoningClasses.filter((zoning) => {
+          const normalizedCode = zoning.code.toUpperCase()
+          if (seen.has(normalizedCode)) {
+            return false
+          }
+          seen.add(normalizedCode)
+          return true
+        }).map((zoning) => ({
+          value: zoning.code,
+          label: `${zoning.name} (${zoning.code})`,
+        }))
+      },
+      [zoningClasses]
+    )
     const [isLandUseExpanded, setIsLandUseExpanded] = useState(
       feature.properties.zoning_code?.toUpperCase() === CUSTOM_ZONING_CODE
     )
@@ -92,9 +113,55 @@ const ZoneAccordionItem = memo(
       }
     }, [feature.properties.zoning_code])
 
+    useEffect(() => {
+      if (isZoningClassesLoading) {
+        return
+      }
+
+      const zoningClass = getZoningClassByCode(
+        feature.properties.zoning_code,
+        zoningClasses
+      )
+      if (!zoningClass) {
+        return
+      }
+
+      const hasLandUseValues = landUseFields.some(
+        (field) => feature.properties[field.key] != null
+      )
+      const needsZoningCodeUpdate =
+        feature.properties.zoning_code !== zoningClass.code
+
+      if (!needsZoningCodeUpdate && hasLandUseValues) {
+        return
+      }
+
+      updateFeature(feature.properties.id, {
+        properties: {
+          ...feature.properties,
+          zoning_code: zoningClass.code,
+          ...(hasLandUseValues
+            ? {}
+            : getZoningClassLandUseDefaults(zoningClass)),
+        },
+      })
+    }, [
+      feature.properties,
+      isZoningClassesLoading,
+      updateFeature,
+      zoningClasses,
+    ])
+
     const isZoningCodeValid = useMemo(
-      () => checkIsValidZoningCode(feature.properties.zoning_code),
-      [feature.properties.zoning_code]
+      () =>
+        isZoningClassesLoading
+          ? true
+          : checkIsValidZoningCode(feature.properties.zoning_code),
+      [
+        feature.properties.zoning_code,
+        isZoningClassesLoading,
+        zoningClasses,
+      ]
     )
 
     const isLandUseDistributionValid = useMemo(
@@ -108,8 +175,16 @@ const ZoneAccordionItem = memo(
       const zoningCode = event.target.value
 
       if (zoningCode != null) {
+        const zoningClass = getZoningClassByCode(zoningCode, zoningClasses)
+
         updateFeature(feature.properties.id, {
-          properties: { ...feature.properties, zoning_code: zoningCode },
+          properties: {
+            ...feature.properties,
+            zoning_code: zoningClass?.code ?? zoningCode,
+            ...(zoningClass
+              ? getZoningClassLandUseDefaults(zoningClass)
+              : {}),
+          },
         })
       }
     }
@@ -241,12 +316,14 @@ const ZoneAccordionItem = memo(
       prevProps.feature.properties.zoning_code ===
         nextProps.feature.properties.zoning_code &&
       prevProps.feature.properties.name === nextProps.feature.properties.name &&
-      prevProps.feature.properties.new_land_use_without_vegetation ===
-        nextProps.feature.properties.new_land_use_without_vegetation &&
-      prevProps.feature.properties.new_land_use_with_vegetation ===
-        nextProps.feature.properties.new_land_use_with_vegetation &&
-      prevProps.feature.properties.remaining_existing_land_use ===
-        nextProps.feature.properties.remaining_existing_land_use
+      prevProps.feature.properties.landuse_built ===
+        nextProps.feature.properties.landuse_built &&
+      prevProps.feature.properties.landuse_new_open_vegetation ===
+        nextProps.feature.properties.landuse_new_open_vegetation &&
+      prevProps.feature.properties.landuse_new_tree_vegetation ===
+        nextProps.feature.properties.landuse_new_tree_vegetation &&
+      prevProps.feature.properties.landuse_existing ===
+        nextProps.feature.properties.landuse_existing
     )
   }
 )

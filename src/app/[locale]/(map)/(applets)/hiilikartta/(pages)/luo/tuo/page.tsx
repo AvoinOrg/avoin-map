@@ -13,6 +13,7 @@ import {
   FeatureProperties,
   FileType,
   NewPlanConf,
+  ZoningClass,
   ZONING_CODE_COL,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
 import { getGeoJsonArea } from '#/common/utils/gis'
@@ -25,7 +26,11 @@ import PlanImportShp from './_components/PlanImportShp'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 import { Feature, FeatureCollection } from 'geojson'
 import { generateUUID } from '#/common/utils/general'
-import { ZONING_CLASSES } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/constants'
+import {
+  getZoningClasses,
+  normalizeZoningCode,
+  getZoningClassLandUseDefaults,
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/zoningClasses'
 
 const Page = () => {
   const addPlanConf = useAppletStore((state) => state.addPlanConf)
@@ -43,11 +48,17 @@ const Page = () => {
     }
   }, [])
 
-  const formatGeojson: any = (
-    json: FeatureCollection,
-    zoningColName: string,
-    nameColName?: string
-  ): FeatureCollection => {
+  const formatGeojson: any = ({
+    json,
+    zoningColName,
+    nameColName,
+    zoningClasses,
+  }: {
+    json: FeatureCollection
+    zoningColName: string
+    nameColName: string | undefined
+    zoningClasses: ZoningClass[]
+  }): FeatureCollection => {
     const features = json.features
       .map((feature: Feature, index) => {
         if (
@@ -120,25 +131,22 @@ const Page = () => {
         }
 
         if (zoningCode != null) {
-          const trimmedZoningCode = zoningCode
-            .toUpperCase()
-            .trim()
-            .split(' ')[0]
-            .split('-')[0]
-            .split('.')[0]
+          const trimmedZoningCode = normalizeZoningCode(zoningCode)
 
-          const zoningClass = ZONING_CLASSES.find((zoningClass) => {
-            let code = zoningClass.code
-            if (code.includes(',')) {
-              return zoningClass.code.split(',').includes(trimmedZoningCode)
-            } else {
-              return code.toUpperCase() === trimmedZoningCode
-            }
+          const zoningClass = zoningClasses.find((zoningClass) => {
+            const codes = zoningClass.code
+              .split(',')
+              .map((code) => normalizeZoningCode(code))
+            return codes.includes(trimmedZoningCode)
           })
 
           if (zoningClass) {
             properties[ZONING_CODE_COL] = zoningClass.code
             properties.old_zoning_code = zoningCode
+            Object.assign(
+              properties,
+              getZoningClassLandUseDefaults(zoningClass)
+            )
           }
         }
 
@@ -165,7 +173,19 @@ const Page = () => {
       return null
     }
 
-    const formatedJson = formatGeojson(json, zoningColName, nameColName)
+    let zoningClasses: ZoningClass[] = []
+    try {
+      zoningClasses = await getZoningClasses()
+    } catch (error) {
+      console.error('Failed to load zoning classes', error)
+    }
+
+    const formatedJson = formatGeojson({
+      json,
+      zoningColName,
+      nameColName,
+      zoningClasses,
+    })
 
     const areaHa = getGeoJsonArea(formatedJson) / 10000
     const newPlanConf: NewPlanConf = {

@@ -1,0 +1,40 @@
+﻿Luokka;Lyhenne;Rakennettu;Uusi_avoin_kasvipeite;Uusi_puustoinen_kasvipeite;Aiempi_maanpeite;Maaperan_muutos_uuden_kasvipeitteen_alueilla
+Asuinalueet (A);A;0,55;0,19;0,19;0,08;0,00
+Kerrostaloalueet (AK);AK;0,72;0,12;0,12;0,05;0,00
+Pientaloalueet (AP);AP;0,40;0,25;0,25;0,10;0,00
+Keskustatoiminnot (C);C;0,80;0,10;0,10;0,00;0,00
+Palvelut (P);P;0,80;0,07;0,07;0,06;0,00
+Yleiset rakennukset (Y);Y;0,80;0,07;0,07;0,06;0,00
+Elinkeinot (K);K;0,80;0,07;0,07;0,06;0,00
+Liike- ja toimistorakennukset (K);K;0,80;0,07;0,07;0,06;0,00
+Teollisuus- ja varastoalueet (T);T;0,80;0,07;0,07;0,06;0,00
+Virkistys (V);V;0,00;0,00;0,00;1,00;0,00
+Puisto, leikkipuisto (VP);VP;0,07;0,07;0,07;0,80;0,00
+Lähivirkistysalue, lähimetsä (VL);VL;0,00;0,00;0,00;1,00;0,00
+Urheilualue (VU);VU;0,25;0,13;0,13;0,50;0,00
+Retkeily- ja ulkoilualue (VR);VR;0,00;0,00;0,00;1,00;0,00
+Loma-asuminen ja matkailu (R);R;0,30;0,25;0,25;0,20;0,00
+Loma-asuntojen alue (RA);RA;0,30;0,23;0,23;0,25;0,00
+Matkailualue (RM);RM;0,40;0,27;0,27;0,07;0,00
+Liikennealue (L);L;0,60;0,20;0,20;0,00;0,00
+Yleisen tien alue( LT);LT;0,60;0,20;0,20;0,00;0,00
+Rautatien alue (LR);LR;0,60;0,20;0,20;0,00;0,00
+Erityisalue€;E;0,50;0,25;0,25;0,00;0,00
+Yhdyskuntatekniikan alueet (ET);ET;0,60;0,20;0,20;0,00;0,00
+Energiahuollon alueet (EN);EN;0,50;0,25;0,25;0,00;0,00
+Aurinkovoima-alueet (ENaur);ENaur;0,50;0,50;0,00;0,00;0,00
+Tuulivoimaloinen alueet (Entv);ENtv;0,30;0,40;0,10;0,20;0,00
+Sähkönsiirtolinjojen alueet (ENsl);Ensl;0,05;0,45;0,50;0,00;0,00
+Sähkönsiirtolinjojen johtoaukeat (ENslja);Enslja;0,10;0,90;0,00;0,00;0,00
+Sähkönsiirtolinjojen reunavyöhykkeet (Enslrv);Enslrv;0,00;0,00;1,00;0,00;0,00
+Jätteenkäsittelyalueet (EJ);EJ;0,70;0,15;0,15;0,00;0,00
+Maa-ainestenotto- ja kaivosalueet (EO);EO;0,70;0,15;0,15;0,00;0,00
+Hautausmaat (EH);EH;0,20;0,40;0,40;0,00;0,00
+Suojaviheralueet (EV);EV;0,10;0,05;0,05;0,80;0,00
+Suojelualueet (S);S;0,00;0,00;0,00;1,00;0,00
+Luonnon suojelualueet (SL);SL;0,00;0,00;0,00;1,00;0,00
+Rakennussuojelulain mukaiset suojelualueet (SR);SR;0,43;0,26;0,26;0,05;0,00
+Maa- ja metsätalous (M);M;0,00;0,00;0,00;1,00;0,00
+Maatalousalue (MT);MT;0,00;0,00;0,00;1,00;0,00
+Kotieläintalous, puutarha, kasvihuone (ME);ME;0,60;0,20;0,20;0,00;0,00
+Vesialueet (W);W;0,00;0,00;0,00;1,00;0,00

@@ -29,6 +29,7 @@ import {
   checkIsValidLandUseDistribution,
   checkIsValidZoningCode,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
+import { useZoningClasses } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/useZoningClasses'
 import ZoneAccordion from './_components/ZoneAccordion'
 import { calcPostMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/calcPostMutation'
 import PlanFolder from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanFolder'
@@ -65,6 +66,7 @@ const Page = () => {
   const [isLoaded, setIsLoaded] = useState(false)
   const router = useRouter()
   const { t } = useTranslate('hiilikartta')
+  const { isLoading: isZoningClassesLoading } = useZoningClasses()
 
   const hasNoFeatures = useMemo(() => {
     if (planConf?.data?.features != null) {
@@ -74,9 +76,15 @@ const Page = () => {
   }, [planConf?.data?.features])
 
   const areSettingsValid = useMemo(() => {
+    if (isZoningClassesLoading) {
+      return true
+    }
+
     if (planConf?.data.features) {
       for (const feature of planConf.data.features) {
-        if (!checkIsValidZoningCode(feature.properties.zoning_code)) {
+        if (
+          !checkIsValidZoningCode(feature.properties.zoning_code)
+        ) {
           return false
         }
         if (!checkIsValidLandUseDistribution(feature.properties)) {
@@ -87,7 +95,10 @@ const Page = () => {
     }
 
     return false
-  }, [planConf?.data.features])
+  }, [
+    planConf?.data.features,
+    isZoningClassesLoading,
+  ])
 
   const handleSubmit = async () => {
     if (planConf) {

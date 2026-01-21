@@ -1,4 +1,4 @@
-import { ExpressionSpecification } from 'maplibre-gl'
+import type { ExpressionSpecification } from 'maplibre-gl'
 import GeoJSON from 'geojson'
 
 import {
@@ -16,11 +16,12 @@ import {
   ReportData,
   FeatureProperties,
 } from './types'
+import { CARBON_CHANGE_COLORS, CARBON_CHANGE_NO_DATA_COLOR } from './constants'
 import {
-  ZONING_CLASSES,
-  CARBON_CHANGE_COLORS,
-  CARBON_CHANGE_NO_DATA_COLOR,
-} from './constants'
+  getZoningClassByCode,
+  getZoningClassColor,
+  getZoningClassesCache,
+} from './zoningClasses'
 
 export const getPlanLayerGroupId = (planId: string) => {
   return `${planId}_zoning_plan`
@@ -33,10 +34,16 @@ export const getPlanSourceId = (planId: string) => {
 const zoningFillColorExpression = (
   defaultColor = 'white'
 ): ExpressionSpecification => {
+  const zoningClasses = getZoningClassesCache()
+  if (zoningClasses.length === 0) {
+    return ['literal', defaultColor] as ExpressionSpecification
+  }
+
   const expression: any[] = ['match', ['get', 'zoning_code']]
 
-  ZONING_CLASSES.forEach((zoningClass) => {
-    expression.push(zoningClass.code, zoningClass.color_hex)
+  zoningClasses.forEach((zoningClass) => {
+    const color = getZoningClassColor(zoningClass.code) || defaultColor
+    expression.push(zoningClass.code, color)
   })
 
   // Default color if no match is found
@@ -46,19 +53,17 @@ const zoningFillColorExpression = (
 }
 
 export const isZoningCodeValid = (zoningCode: string) => {
-  return ZONING_CLASSES.some(
-    (zoningClassObj) => zoningClassObj.code === zoningCode
-  )
+  if (!zoningCode) {
+    return false
+  }
+
+  return getZoningClassByCode(zoningCode) != null
 }
 
 export const isZoningCodeValidExpression = () => {
-  // This array will hold the zoning codes to check
-  let validZoningCodes: string[] = []
-
-  // Populate the array with valid zoning codes
-  ZONING_CLASSES.forEach((zoningClass) => {
-    validZoningCodes.push(zoningClass.code)
-  })
+  const validZoningCodes = Array.from(
+    new Set(getZoningClassesCache().map((zoningClass) => zoningClass.code))
+  )
 
   // Return a maplibre expression that checks if the zoning code is in the list of valid codes
   // The expression uses the 'in' operator to check if the zoning code is in the array of valid codes
@@ -449,35 +454,36 @@ export const processCalcQueryToReportData = (data: any): ReportData => {
 export const checkIsValidLandUseDistribution = (
   properties: FeatureProperties
 ) => {
-  const newLandUseWithoutVegetation = properties.new_land_use_without_vegetation
-  const newLandUseWithVegetation = properties.new_land_use_with_vegetation
-  const remainingExistingLandUse = properties.remaining_existing_land_use
+  const landuseBuilt = properties.landuse_built
+  const landuseNewOpenVegetation = properties.landuse_new_open_vegetation
+  const landuseNewTreeVegetation = properties.landuse_new_tree_vegetation
+  const landuseExisting = properties.landuse_existing
 
   if (
-    newLandUseWithoutVegetation == undefined &&
-    newLandUseWithVegetation == undefined &&
-    remainingExistingLandUse == undefined
+    landuseBuilt == null &&
+    landuseNewOpenVegetation == null &&
+    landuseNewTreeVegetation == null &&
+    landuseExisting == null
   ) {
     return true
   }
 
   if (
-    newLandUseWithoutVegetation == undefined ||
-    newLandUseWithVegetation == undefined ||
-    remainingExistingLandUse == undefined
+    landuseBuilt == null ||
+    landuseNewOpenVegetation == null ||
+    landuseNewTreeVegetation == null ||
+    landuseExisting == null
   ) {
     return false
   }
 
-  if (
-    newLandUseWithoutVegetation +
-      newLandUseWithVegetation +
-      remainingExistingLandUse ===
-    100
-  ) {
-    return true
-  }
-  return false
+  const sum =
+    landuseBuilt +
+    landuseNewOpenVegetation +
+    landuseNewTreeVegetation +
+    landuseExisting
+
+  return Math.abs(sum - 1) <= 0.02
 }
 
 export const checkIsValidZoningCode = (zoningCode: string | null) => {
@@ -485,12 +491,14 @@ export const checkIsValidZoningCode = (zoningCode: string | null) => {
     return false
   }
 
-  for (let zoning of ZONING_CLASSES) {
+  const normalized = zoningCode.trim().toUpperCase()
+
+  for (let zoning of getZoningClassesCache()) {
     // Split the code by comma and trim spaces, then check if zoningCode is one of them
     const codes = zoning.code
       .split(',')
       .map((code) => code.trim().toUpperCase())
-    if (codes.includes(zoningCode.trim().toUpperCase())) {
+    if (codes.includes(normalized)) {
       return true
     }
   }
