@@ -2,7 +2,7 @@ import { CUSTOM_ZONING_CODE, ZONING_CLASS_COLORS_BY_CODE } from './constants'
 import type { ZoningClass } from './types'
 
 const ZONING_CLASSES_URL =
-  '/files/hiilikartta/Hiilikartta_luokat_teksti_19_1_2026.csv'
+  '/files/hiilikartta/hiilikartta_classes.csv'
 
 export const normalizeZoningCode = (value: string) => {
   const trimmed = value.trim().toUpperCase()
