@@ -3,7 +3,6 @@ import {
   useEffect,
   useMemo,
   useState,
-  type ChangeEvent,
   type SyntheticEvent,
 } from 'react'
 import {
@@ -11,8 +10,6 @@ import {
   Box,
   ButtonBase,
   Collapse,
-  InputAdornment,
-  TextField,
   Typography,
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
@@ -21,6 +18,7 @@ import { T, useTranslate } from '@tolgee/react'
 import DropDownSelect from '#/components/common/DropDownSelect'
 import CustomAccordion from '#/components/common/CustomAccordion'
 import CustomAccordionSummary from '#/components/common/CustomAccordionSummary'
+import { NumberInputField } from '#/components/common/NumberInputField'
 import { ArrowDown, ArrowUp } from '#/components/icons'
 
 import {
@@ -96,7 +94,7 @@ const ZoneAccordionItem = memo(
           return true
         }).map((zoning) => ({
           value: zoning.code,
-          label: `${zoning.name} (${zoning.code})`,
+          label: zoning.name,
         }))
       },
       [zoningClasses]
@@ -231,16 +229,13 @@ const ZoneAccordionItem = memo(
     }
 
     const handleLandUseValueChange =
-      (key: LandUseFieldKey) => (event: ChangeEvent<HTMLInputElement>) => {
-        const rawValue = event.target.value
-        const parsedValue = rawValue === '' ? null : Number(rawValue)
-
-        if (parsedValue !== null && Number.isNaN(parsedValue)) {
+      (key: LandUseFieldKey) => (nextValue: number | null) => {
+        if (nextValue !== null && Number.isNaN(nextValue)) {
           return
         }
 
         updateFeature(feature.properties.id, {
-          properties: { ...feature.properties, [key]: parsedValue },
+          properties: { ...feature.properties, [key]: nextValue },
         })
       }
 
@@ -323,21 +318,20 @@ const ZoneAccordionItem = memo(
                   }}
                 >
                   {landUseFields.map((field) => (
-                    <TextField
+                    <NumberInputField
                       key={field.key}
-                      type="number"
-                      value={feature.properties[field.key] ?? ''}
-                      onChange={handleLandUseValueChange(field.key)}
                       label={t(field.translationKey)}
-                      fullWidth
                       size="small"
+                      value={feature.properties[field.key] ?? null}
+                      onValueChange={handleLandUseValueChange(field.key)}
                       error={!isLandUseDistributionValid}
-                      inputProps={{ min: 0, max: 100, step: 1 }}
-                      InputProps={{
-                        endAdornment: (
-                          <InputAdornment position="end">%</InputAdornment>
-                        ),
-                      }}
+                      showAsPercentages
+                      minValue={0}
+                      maxValue={1}
+                      incrementStepValue={0.01}
+                      containerSx={{ width: '100%' }}
+                      inputSx={{ width: '100%' }}
+                      inputSlotProps={{ inputMode: 'decimal' }}
                     />
                   ))}
                 </Box>

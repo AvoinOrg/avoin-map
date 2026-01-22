@@ -15,6 +15,7 @@ import { routeTree } from '#/common/routing/routes/hiilikartta'
 import { NewPlanConf, PlanData, ZONING_CODE_COL } from '../../common/types'
 import { useAppletStore } from '../../state/appletStore'
 import { createLayerConf } from '../../common/utils'
+import { getZoningClasses } from '../../common/zoningClasses'
 
 const Page = () => {
   const router = useRouter()

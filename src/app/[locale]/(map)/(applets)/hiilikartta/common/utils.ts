@@ -80,7 +80,13 @@ export const createLayerConf = async (
   planId: string,
   featureColorCol: string
 ) => {
-  await getZoningClasses()
+  // Ensure zoning classes are loaded, as they are needed by the expressions.
+  // try {
+  //   await getZoningClasses()
+  // } catch (error) {
+  //   console.error('Failed to load zoning classes', error)
+  // }
+
   const sourceId = getPlanSourceId(planId)
 
   const style: ExtendedStyleSpecification = {

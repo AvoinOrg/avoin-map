@@ -165,7 +165,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     // Preload zoning classes on applet load
-    getZoningClasses()
+    getZoningClasses().catch(() => {})
     
     return () => {
       removeSignOutAction('hiilikartta')

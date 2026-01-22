@@ -27,9 +27,9 @@ import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state
 import { Feature, FeatureCollection } from 'geojson'
 import { generateUUID } from '#/common/utils/general'
 import {
-  getZoningClasses,
   normalizeZoningCode,
   getZoningClassLandUseDefaults,
+  getZoningClasses,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/zoningClasses'
 
 const Page = () => {
