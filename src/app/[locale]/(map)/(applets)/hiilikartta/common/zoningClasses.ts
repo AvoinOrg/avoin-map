@@ -129,35 +129,34 @@ export const parseZoningClassesText = (text: string): ZoningClass[] => {
     5
   )
 
-  const parsed = rows
-    .slice(1)
-    .map((row) => {
-      const columns = row.split(delimiter)
-      const rawName = columns[nameIndex]
-      const rawCode = columns[codeIndex]
-      if (!rawName || !rawCode) {
-        return null
-      }
+  const parsed = rows.slice(1).reduce<ZoningClass[]>((acc, row) => {
+    const columns = row.split(delimiter)
+    const rawName = columns[nameIndex]
+    const rawCode = columns[codeIndex]
+    if (!rawName || !rawCode) {
+      return acc
+    }
 
-      const code = rawCode.replace(/^\uFEFF/, '').trim()
-      if (!code) {
-        return null
-      }
+    const code = rawCode.replace(/^\uFEFF/, '').trim()
+    if (!code) {
+      return acc
+    }
 
-      return {
-        name: rawName.replace(/^\uFEFF/, '').trim(),
-        code: code,
-        landuse_built: parseLandUseValue(columns[landuseBuiltIndex]),
-        landuse_new_open_vegetation: parseLandUseValue(
-          columns[landuseNewOpenIndex]
-        ),
-        landuse_new_tree_vegetation: parseLandUseValue(
-          columns[landuseNewTreeIndex]
-        ),
-        landuse_existing: parseLandUseValue(columns[landuseExistingIndex]),
-      }
+    acc.push({
+      name: rawName.replace(/^\uFEFF/, '').trim(),
+      code: code,
+      landuse_built: parseLandUseValue(columns[landuseBuiltIndex]),
+      landuse_new_open_vegetation: parseLandUseValue(
+        columns[landuseNewOpenIndex]
+      ),
+      landuse_new_tree_vegetation: parseLandUseValue(
+        columns[landuseNewTreeIndex]
+      ),
+      landuse_existing: parseLandUseValue(columns[landuseExistingIndex]),
     })
-    .filter((item): item is ZoningClass => item != null)
+
+    return acc
+  }, [])
 
   return dedupeZoningClasses(parsed)
 }
@@ -177,7 +176,7 @@ const fetchZoningClasses = async () => {
   return parsed
 }
 
-export const getZoningClasses = () => {
+const requestZoningClasses = () => {
   if (!zoningClassesPromise) {
     zoningClassesPromise = fetchZoningClasses().catch((error) => {
       zoningClassesPromise = null
@@ -186,6 +185,14 @@ export const getZoningClasses = () => {
   }
 
   return zoningClassesPromise
+}
+
+export const getZoningClasses = async () => {
+  if (zoningClassesCache.length > 0) {
+    return ensureOmaZoningClass(zoningClassesCache)
+  }
+
+  return requestZoningClasses()
 }
 
 export const getZoningClassesCache = () =>
