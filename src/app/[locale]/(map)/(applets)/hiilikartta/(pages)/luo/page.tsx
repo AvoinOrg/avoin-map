@@ -3,13 +3,13 @@
 import React from 'react'
 import { Box, Button, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { T } from '@tolgee/react'
 import { useRouter } from 'next/navigation'
 
 import { getRoute } from '#/common/routing/routing-client'
 import MutableLink from '#/components/common/MutableLink'
 import { useMapStore } from '#/common/store'
 import { ClickableModal } from '#/components/Modal'
+import TText from '#/components/common/TText'
 
 import { routeTree } from '#/common/routing/routes/hiilikartta'
 import { NewPlanConf, PlanData, ZONING_CODE_COL } from '../../common/types'
@@ -81,7 +81,7 @@ const Page = () => {
         sx={{ display: 'flex', color: 'inherit', textDecoration: 'none' }}
       >
         <BigMenuButton variant="contained" component="label">
-          <T keyName={'sidebar.create.upload'} ns={'hiilikartta'}></T>
+          <TText keyName={'sidebar.create.upload'} ns={'hiilikartta'} />
         </BigMenuButton>
       </MutableLink>
       <Box
@@ -96,26 +96,8 @@ const Page = () => {
         <ClickableModal
           modalBody={
             <Box>
-              <Typography sx={{ typography: 'body2' }}>
-                Hiilikarttaan tuotava kaavatiedosto tulee olla joko Esrin
-                Shapefile- tai avoimen lähdekoodin GeoPackage-muodossa.
-                Shapefile-tiedoston osaset tulee olla pakattuna yhdeksi
-                zip-tiedostoksi. Varmista, että aineistolle on määritelty
-                koordinaattijärjestelmä. Suositeltu koordinaattijärjestelmä on
-                ETRS-TM35FIN (ESPG:3067), mutta hiilikartta osaa lukea myös
-                muita koordinaattijärjestelmiä. Voit tarkastaa, että aineisto
-                aukeaa oikein esim. QGIS-ohjelmistossa.
-                <br /> <br /> Kaavan vaikutusten laskenta Hiilikartassa perustuu
-                käyttötarkoitusluokkiin. Kaava-aineistoon voi tehdä valmiiksi
-                käyttötarkoitusluokituksen, jota Hiilikartta käyttää tai kaavaa
-                tuotaessa pitää kaavakohteittain kertoa, mihin Hiilikartan
-                luokkaan kaavakohde kuuluu. Hiilikartan käyttämät
-                käyttötarkoitusluokat ja niiden lyhenteet on esitetty alla
-                olevassa taulukossa. Paikkatietoaineistoon voidaan tehdä uusi
-                sarake ja koodata siihen taulukossa esitetty
-                käyttötarkoitusluokan lyhenne. Kun kaava tuodaan työkaluun,
-                kerrotaan mistä sarakkeesta koodattu käyttötarkoitusluokan
-                lyhenne löytyy.
+              <Typography component="div" sx={{ typography: 'body2' }}>
+                <TText keyName={'sidebar.create.upload_info'} ns={'hiilikartta'} />
               </Typography>
             </Box>
           }
@@ -127,10 +109,10 @@ const Page = () => {
               typography: 'body2',
             }}
           >
-            <T
+            <TText
               ns="hiilikartta"
               keyName={'sidebar.create.show_instructions'}
-            ></T>
+            ></TText>
           </Typography>
         </ClickableModal>
       </Box>
@@ -140,7 +122,7 @@ const Page = () => {
         variant="contained"
         onClick={handleNewPlanClick}
       >
-        <T keyName={'sidebar.create.draw_new'} ns={'hiilikartta'}></T>
+        <TText keyName={'sidebar.create.draw_new'} ns={'hiilikartta'} />
       </BigMenuButton>
       <Box
         sx={{
@@ -155,19 +137,7 @@ const Page = () => {
           modalBody={
             <Box>
               <Typography sx={{ typography: 'body2' }}>
-                Aloita uuden kaavan piirtäminen valitsemalla piirtotyökalu
-                kartan yläreunasta. Zoomaa karttaa haluamallesi alueelle ja
-                aloita piirtäminen klikkaamalla karttaa. Piirrä monikulmio ja
-                lopeta piirtäminen tuplaklikkaamalla. Voit muokata piirtämiäsi
-                kohteita siirtämällä kulmapisteitä. Voit lisätä uusia
-                kulmapisteitä tuplaklikkaamalla aluerajaa. Voit deletoida
-                valitun karttakohteen yläreunan roskakori-kuvakkeen avulla tai
-                painamalla näppäimistöstä del. Lisää piirtämillesi alueille
-                aluetiedot ruudun vasemman reunan valikosta. Jos aluekohteille
-                ei lisää mitään käyttötarkoitusluokkaa, niin Hiilikartta olettaa
-                että koko alue muuttuu rakennetuksi ja hiilivarasto poistuu. Kun
-                kaikki alueet on piirretty ja halutut aluetiedot lisätty voit
-                painaa “laske vaikutukset hiilivarastoon”.
+                <TText keyName={'sidebar.create.draw_new_info'}></TText>
               </Typography>
             </Box>
           }
@@ -179,10 +149,10 @@ const Page = () => {
               typography: 'body2',
             }}
           >
-            <T
+            <TText
               ns="hiilikartta"
               keyName={'sidebar.create.show_instructions'}
-            ></T>
+            ></TText>
           </Typography>
         </ClickableModal>
       </Box>
