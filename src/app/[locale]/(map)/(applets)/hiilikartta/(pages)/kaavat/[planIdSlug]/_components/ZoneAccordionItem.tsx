@@ -56,6 +56,7 @@ const landUseFields = [
 ] as const
 
 type LandUseFieldKey = (typeof landUseFields)[number]['key']
+const soilChangeKey = 'soil_change_new_vegetation_pct'
 
 interface CustomAccordionProps {
   feature: PlanDataFeature
@@ -163,15 +164,30 @@ const ZoneAccordionItem = memo(
       const hasLandUseValues = landUseFields.some(
         (field) => feature.properties[field.key] != null
       )
+      const needsSoilChangeUpdate =
+        feature.properties[soilChangeKey] == null
       const needsZoningCodeUpdate =
         feature.properties.zoning_code !== zoningClass.code
 
       if (
         !needsZoningCodeUpdate &&
         hasLandUseValues &&
-        !needsHasValidUpdate
+        !needsHasValidUpdate &&
+        !needsSoilChangeUpdate
       ) {
         return
+      }
+
+      const landUseDefaults = getZoningClassLandUseDefaults(zoningClass)
+      const landUseUpdates: Partial<PlanDataFeature['properties']> = {}
+      landUseFields.forEach((field) => {
+        if (feature.properties[field.key] == null) {
+          landUseUpdates[field.key] = landUseDefaults[field.key]
+        }
+      })
+      if (feature.properties[soilChangeKey] == null) {
+        landUseUpdates[soilChangeKey] =
+          landUseDefaults[soilChangeKey]
       }
 
       updateFeature(feature.properties.id, {
@@ -179,9 +195,7 @@ const ZoneAccordionItem = memo(
           ...feature.properties,
           zoning_code: zoningClass.code,
           hasValidZoningCode: true,
-          ...(hasLandUseValues
-            ? {}
-            : getZoningClassLandUseDefaults(zoningClass)),
+          ...landUseUpdates,
         },
       })
     }, [
@@ -238,6 +252,19 @@ const ZoneAccordionItem = memo(
           properties: { ...feature.properties, [key]: nextValue },
         })
       }
+
+    const handleSoilChangeValueChange = (nextValue: number | null) => {
+      if (nextValue !== null && Number.isNaN(nextValue)) {
+        return
+      }
+
+      updateFeature(feature.properties.id, {
+        properties: {
+          ...feature.properties,
+          [soilChangeKey]: nextValue,
+        },
+      })
+    }
 
     return (
       <CustomAccordion
@@ -311,10 +338,10 @@ const ZoneAccordionItem = memo(
               <Collapse in={isLandUseExpanded} timeout="auto" unmountOnExit>
                 <Box
                   sx={{
-                    mt: 2,
+                    mt: 3,
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 2,
+                    gap: 3,
                   }}
                 >
                   {landUseFields.map((field) => (
@@ -325,15 +352,32 @@ const ZoneAccordionItem = memo(
                       value={feature.properties[field.key] ?? null}
                       onValueChange={handleLandUseValueChange(field.key)}
                       error={!isLandUseDistributionValid}
-                      showAsPercentages
                       minValue={0}
-                      maxValue={1}
-                      incrementStepValue={0.01}
+                      maxValue={100}
+                      incrementStepValue={1}
                       containerSx={{ width: '100%' }}
+                      inputRowSx={{ width: '100%' }}
+                      formControlSx={{ width: '100%' }}
                       inputSx={{ width: '100%' }}
                       inputSlotProps={{ inputMode: 'decimal' }}
                     />
                   ))}
+                  <NumberInputField
+                    label={t(
+                      'sidebar.plan_settings.zones.soil_change_new_vegetation_pct'
+                    )}
+                    size="small"
+                    value={feature.properties[soilChangeKey] ?? null}
+                    onValueChange={handleSoilChangeValueChange}
+                    minValue={0}
+                    maxValue={100}
+                    incrementStepValue={1}
+                    containerSx={{ width: '100%', mt: 3 }}
+                    inputRowSx={{ width: '100%' }}
+                    formControlSx={{ width: '100%' }}
+                    inputSx={{ width: '100%' }}
+                    inputSlotProps={{ inputMode: 'decimal' }}
+                  />
                 </Box>
               </Collapse>
             </Box>
@@ -357,7 +401,9 @@ const ZoneAccordionItem = memo(
       prevProps.feature.properties.landuse_new_tree_vegetation ===
         nextProps.feature.properties.landuse_new_tree_vegetation &&
       prevProps.feature.properties.landuse_existing ===
-        nextProps.feature.properties.landuse_existing
+        nextProps.feature.properties.landuse_existing &&
+      prevProps.feature.properties.soil_change_new_vegetation_pct ===
+        nextProps.feature.properties.soil_change_new_vegetation_pct
     )
   }
 )

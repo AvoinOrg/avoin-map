@@ -98,6 +98,7 @@ type FeatureLandUseValues = {
   landuse_new_open_vegetation: number
   landuse_new_tree_vegetation: number
   landuse_existing: number
+  soil_change_new_vegetation_pct: number
 }
 
 type FeatureLandUseOptionalValues = {
@@ -105,6 +106,7 @@ type FeatureLandUseOptionalValues = {
   landuse_new_open_vegetation?: number | null
   landuse_new_tree_vegetation?: number | null
   landuse_existing?: number | null
+  soil_change_new_vegetation_pct?: number | null
 }
 
 export type FeatureProperties =
@@ -171,6 +173,7 @@ export type ZoningClass = {
   landuse_new_open_vegetation?: number
   landuse_new_tree_vegetation?: number
   landuse_existing?: number
+  soil_change_new_vegetation_pct?: number
 }
 
 export interface MapGraphCalcFeature extends CalcFeature {

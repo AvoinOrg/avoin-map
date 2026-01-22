@@ -13,6 +13,7 @@ import {
 } from '@mui/material'
 import type { SxProps, Theme } from '@mui/material/styles'
 import { useTranslate } from '@tolgee/react'
+import { useLocaleFormatter } from '#/common/hooks/useLocaleFormatter'
 
 type BaseNumberFieldRootProps = React.ComponentPropsWithoutRef<
   typeof BaseNumberField.Root
@@ -41,7 +42,6 @@ type NumberInputFieldProps = Omit<
   adornmentSx?: SxProps<Theme>
   helperTextSx?: SxProps<Theme>
   inputSlotProps?: React.ComponentPropsWithoutRef<'input'>
-  showAsPercentages?: boolean
   minValue?: number
   maxValue?: number
   incrementStepValue?: number
@@ -59,11 +59,11 @@ export const NumberInputField = ({
   adornmentSx,
   helperTextSx,
   inputSlotProps,
-  showAsPercentages = false,
   minValue,
   maxValue,
   incrementStepValue,
   id: idProp,
+  locale: localeProp,
   value,
   defaultValue,
   min,
@@ -80,49 +80,10 @@ export const NumberInputField = ({
   const generatedId = React.useId()
   const id = idProp ?? generatedId
   const { t } = useTranslate('avoin-map')
-  const scale = showAsPercentages ? 100 : 1
+  const { numberLocale } = useLocaleFormatter()
   const effectiveMin = minValue ?? min
   const effectiveMax = maxValue ?? max
-  const effectiveStep =
-    incrementStepValue ??
-    (step === 'any'
-      ? 'any'
-      : step ?? (showAsPercentages ? 0.01 : 1))
-  const displayValue = value == null ? value : value * scale
-  const displayDefaultValue =
-    defaultValue == null ? defaultValue : defaultValue * scale
-  const displayMin =
-    effectiveMin == null ? effectiveMin : effectiveMin * scale
-  const displayMax =
-    effectiveMax == null ? effectiveMax : effectiveMax * scale
-  const displayStep =
-    effectiveStep === 'any' ? 'any' : effectiveStep * scale
-  const displaySmallStep =
-    smallStep == null ? smallStep : smallStep * scale
-  const displayLargeStep =
-    largeStep == null ? largeStep : largeStep * scale
-
-  const handleValueChange: BaseNumberFieldRootProps['onValueChange'] = (
-    nextValue,
-    eventDetails
-  ) => {
-    const resolvedValue =
-      showAsPercentages && nextValue != null
-        ? nextValue / scale
-        : nextValue
-    onValueChange?.(resolvedValue, eventDetails)
-  }
-
-  const handleValueCommitted: BaseNumberFieldRootProps['onValueCommitted'] = (
-    nextValue,
-    eventDetails
-  ) => {
-    const resolvedValue =
-      showAsPercentages && nextValue != null
-        ? nextValue / scale
-        : nextValue
-    onValueCommitted?.(resolvedValue, eventDetails)
-  }
+  const effectiveStep = incrementStepValue ?? step
 
   return (
     <Box
@@ -148,16 +109,17 @@ export const NumberInputField = ({
         <BaseNumberField.Root
           {...rootProps}
           id={id}
-          value={displayValue}
-          defaultValue={displayDefaultValue}
-          min={displayMin}
-          max={displayMax}
-          step={displayStep}
-          smallStep={displaySmallStep}
-          largeStep={displayLargeStep}
+          value={value}
+          defaultValue={defaultValue}
+          min={effectiveMin}
+          max={effectiveMax}
+          step={effectiveStep}
+          smallStep={smallStep}
+          largeStep={largeStep}
+          locale={localeProp ?? numberLocale}
           format={format}
-          onValueChange={handleValueChange}
-          onValueCommitted={handleValueCommitted}
+          onValueChange={onValueChange}
+          onValueCommitted={onValueCommitted}
           render={(props, state) => (
             <FormControl
               size={size}
@@ -182,8 +144,8 @@ export const NumberInputField = ({
           <SSRInitialFilled
             {...rootProps}
             id={id}
-            value={displayValue}
-            defaultValue={displayDefaultValue}
+            value={value}
+            defaultValue={defaultValue}
           />
           {hasLabel && <InputLabel htmlFor={id}>{label}</InputLabel>}
           <BaseNumberField.Input

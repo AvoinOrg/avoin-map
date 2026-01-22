@@ -17,6 +17,7 @@ const OMA_ZONING_CLASS = {
   landuse_new_open_vegetation: 0,
   landuse_new_tree_vegetation: 0,
   landuse_existing: 0,
+  soil_change_new_vegetation_pct: 0,
 }
 
 const ensureOmaZoningClass = (zoningClasses: ZoningClass[]) => {
@@ -42,7 +43,7 @@ const parseLandUseValue = (value: string | undefined) => {
   }
 
   const numberValue = Number(normalized)
-  return Number.isNaN(numberValue) ? undefined : numberValue
+  return Number.isNaN(numberValue) ? undefined : numberValue * 100
 }
 
 const detectDelimiter = (headerRow: string) => {
@@ -128,6 +129,14 @@ export const parseZoningClassesText = (text: string): ZoningClass[] => {
     ['aiempi_maanpeite', 'landuse_existing'],
     5
   )
+  const soilChangeIndex = getHeaderIndex(
+    headerColumns,
+    [
+      'maaperan_muutos_uuden_kasvipeitteen_alueilla',
+      'soil_change_new_vegetation_pct',
+    ],
+    6
+  )
 
   const parsed = rows.slice(1).reduce<ZoningClass[]>((acc, row) => {
     const columns = row.split(delimiter)
@@ -153,6 +162,9 @@ export const parseZoningClassesText = (text: string): ZoningClass[] => {
         columns[landuseNewTreeIndex]
       ),
       landuse_existing: parseLandUseValue(columns[landuseExistingIndex]),
+      soil_change_new_vegetation_pct: parseLandUseValue(
+        columns[soilChangeIndex]
+      ),
     })
 
     return acc
@@ -220,6 +232,8 @@ export const getZoningClassLandUseDefaults = (
   landuse_new_open_vegetation: zoningClass.landuse_new_open_vegetation ?? 0,
   landuse_new_tree_vegetation: zoningClass.landuse_new_tree_vegetation ?? 0,
   landuse_existing: zoningClass.landuse_existing ?? 0,
+  soil_change_new_vegetation_pct:
+    zoningClass.soil_change_new_vegetation_pct ?? 0,
 })
 
 export const getZoningClassColor = (
