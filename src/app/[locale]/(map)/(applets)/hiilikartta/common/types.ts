@@ -83,7 +83,7 @@ export type FileType = 'shp' | 'geojson' | 'gpkg'
 
 export const ZONING_CODE_COL = 'zoning_code'
 
-type FeaturePropertiesBase = {
+type FeatureProperties = {
   id: string
   name: string | number
   area_ha: number
@@ -91,31 +91,15 @@ type FeaturePropertiesBase = {
   old_zoning_code?: string
   old_id?: string | number
   geometry_mode?: 'polygon' | 'corridor'
-}
-
-type FeatureLandUseValues = {
-  landuse_built: number
-  landuse_new_open_vegetation: number
-  landuse_new_tree_vegetation: number
-  landuse_existing: number
-  soil_change_new_vegetation_pct: number
-}
-
-type FeatureLandUseOptionalValues = {
   landuse_built?: number | null
   landuse_new_open_vegetation?: number | null
   landuse_new_tree_vegetation?: number | null
   landuse_existing?: number | null
   soil_change_new_vegetation_pct?: number | null
+  extras?: {
+    hasValidZoningCode: boolean
+  }
 }
-
-export type FeatureProperties =
-  | (FeaturePropertiesBase & {
-      hasValidZoningCode: true
-    } & FeatureLandUseValues)
-  | (FeaturePropertiesBase & {
-      hasValidZoningCode?: false
-    } & FeatureLandUseOptionalValues)
 
 export const featureCols = [
   'bio_carbon_total',

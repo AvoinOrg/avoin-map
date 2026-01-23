@@ -2,6 +2,7 @@ import { UseMutationOptions } from '@tanstack/react-query'
 import axios from 'axios'
 import JSZip from 'jszip'
 import { CalculationState, PlanConfState, PlanConf } from '../types'
+import { stripFeatureExtras } from '../utils'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 import { useUIStore } from '#/common/store'
 import { useTranslate } from '@tolgee/react'
@@ -31,7 +32,8 @@ export const calcPostMutation = (): UseMutationOptions<
         state: PlanConfState.SAVING,
       })
       const zip = new JSZip()
-      zip.file('file', JSON.stringify(planConf.data))
+      const sanitizedData = stripFeatureExtras(planConf.data)
+      zip.file('file', JSON.stringify(sanitizedData))
       const zipBlob = await zip.generateAsync({ type: 'blob' })
 
       const formData = new FormData()

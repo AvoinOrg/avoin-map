@@ -15,7 +15,7 @@ import {
   PlanConfState,
   ReportData,
 } from '../types'
-import { processCalcQueryToReportData } from '../utils'
+import { processCalcQueryToReportData, stripFeatureExtras } from '../utils'
 
 const API_URL = process.env.NEXT_PUBLIC_HIILIKARTTA_API_URL
 
@@ -89,7 +89,7 @@ export const planQueries = (
               localLastSaved: response.data.saved_ts * 1000,
               localLastEdited: response.data.saved_ts * 1000,
               userId: response.data.user_id,
-              data: response.data.data,
+              data: stripFeatureExtras(response.data.data),
               areaHa: turfArea(response.data.data as FeatureCollection) / 10000,
               reportData: reportData,
             }

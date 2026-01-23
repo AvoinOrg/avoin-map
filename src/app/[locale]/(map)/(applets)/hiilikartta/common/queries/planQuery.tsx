@@ -7,7 +7,7 @@ import { area as turfArea } from '@turf/turf'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 
 import { CalculationState, PlanConf, ReportData } from '../types'
-import { processCalcQueryToReportData } from '../utils'
+import { processCalcQueryToReportData, stripFeatureExtras } from '../utils'
 import { useSession } from 'next-auth/react'
 
 const API_URL = process.env.NEXT_PUBLIC_HIILIKARTTA_API_URL
@@ -69,7 +69,7 @@ export const planQuery = (
           localLastSaved: response.data.saved_ts * 1000,
           localLastEdited: response.data.saved_ts * 1000,
           userId: response.data.user_id,
-          data: response.data.data,
+          data: stripFeatureExtras(response.data.data),
           areaHa: turfArea(response.data.data as FeatureCollection) / 10000,
           reportData: reportData,
         }
@@ -85,7 +85,7 @@ export const planQuery = (
             return updatedPlanConf
           }
         } else {
-          planConf.data = response.data.data
+          planConf.data = stripFeatureExtras(response.data.data)
           const newPlanConf = await addPlanConf(planConf)
           return newPlanConf
         }

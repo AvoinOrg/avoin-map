@@ -16,7 +16,7 @@ import { useMapStore } from '#/common/store'
 import { commonDevtools } from '#/common/store/shared-devtools'
 import { createIndexedDbStorage } from '#/common/utils/store'
 
-import { getPlanLayerGroupId } from '../common/utils'
+import { getPlanLayerGroupId, stripFeatureExtras } from '../common/utils'
 import {
   CalculationState,
   NewPlanConf,
@@ -376,6 +376,10 @@ export const useAppletStore = create<Vars & Actions>()(
           if (state) {
             state.globalState = GlobalState.INITIALIZING
             for (const planId of Object.keys(state.planConfs)) {
+              const planConf = state.planConfs[planId]
+              if (planConf?.data) {
+                planConf.data = stripFeatureExtras(planConf.data)
+              }
               if (
                 state.planConfs[planId].calculationState ===
                 CalculationState.INITIALIZING

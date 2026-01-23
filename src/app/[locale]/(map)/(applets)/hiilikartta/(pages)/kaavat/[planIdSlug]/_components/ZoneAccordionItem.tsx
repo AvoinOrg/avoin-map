@@ -23,9 +23,7 @@ import CustomAccordionSummary from '#/components/common/CustomAccordionSummary'
 import { NumberInputField } from '#/components/common/NumberInputField'
 import { ArrowDown, ArrowUp } from '#/components/icons'
 
-import {
-  CUSTOM_ZONING_CODE,
-} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/constants'
+import { CUSTOM_ZONING_CODE } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/constants'
 import { PlanDataFeature } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
 import ZoneAccordionItemTitle from './ZoneAccordionItemTitle'
 import {
@@ -87,37 +85,36 @@ const ZoneAccordionItem = memo(
     const { t } = useTranslate('hiilikartta')
     const { zoningClasses, isLoading: isZoningClassesLoading } =
       useZoningClasses()
-    const zoningCodeOptions = useMemo(
-      () => {
-        const seen = new Set<string>()
-        return zoningClasses.filter((zoning) => {
+    const zoningCodeOptions = useMemo(() => {
+      const seen = new Set<string>()
+      return zoningClasses
+        .filter((zoning) => {
           const normalizedCode = zoning.code.toUpperCase()
           if (seen.has(normalizedCode)) {
             return false
           }
           seen.add(normalizedCode)
           return true
-        }).map((zoning) => ({
+        })
+        .map((zoning) => ({
           value: zoning.code,
           label: zoning.name,
         }))
-      },
-      [zoningClasses]
-    )
+    }, [zoningClasses])
     const [isLandUseExpanded, setIsLandUseExpanded] = useState(
       feature.properties.zoning_code?.toUpperCase() === CUSTOM_ZONING_CODE
     )
 
     const hasValidZoningCode = useMemo(() => {
-      if (feature.properties.hasValidZoningCode != null) {
-        return feature.properties.hasValidZoningCode
+      if (feature.properties.extras?.hasValidZoningCode != null) {
+        return feature.properties.extras.hasValidZoningCode
       }
       if (isZoningClassesLoading) {
         return true
       }
       return checkIsValidZoningCode(feature.properties.zoning_code)
     }, [
-      feature.properties.hasValidZoningCode,
+      feature.properties.extras?.hasValidZoningCode,
       feature.properties.zoning_code,
       isZoningClassesLoading,
       zoningClasses,
@@ -149,7 +146,7 @@ const ZoneAccordionItem = memo(
       )
       const nextHasValidZoningCode = zoningClass != null
       const needsHasValidUpdate =
-        feature.properties.hasValidZoningCode !== nextHasValidZoningCode
+        feature.properties.extras?.hasValidZoningCode !== nextHasValidZoningCode
 
       if (!zoningClass) {
         if (!needsHasValidUpdate) {
@@ -159,7 +156,10 @@ const ZoneAccordionItem = memo(
         updateFeature(feature.properties.id, {
           properties: {
             ...feature.properties,
-            hasValidZoningCode: false,
+            extras: {
+              ...feature.properties.extras,
+              hasValidZoningCode: false,
+            },
           },
         })
         return
@@ -168,8 +168,7 @@ const ZoneAccordionItem = memo(
       const hasLandUseValues = landUseFields.some(
         (field) => feature.properties[field.key] != null
       )
-      const needsSoilChangeUpdate =
-        feature.properties[soilChangeKey] == null
+      const needsSoilChangeUpdate = feature.properties[soilChangeKey] == null
       const needsZoningCodeUpdate =
         feature.properties.zoning_code !== zoningClass.code
 
@@ -197,7 +196,10 @@ const ZoneAccordionItem = memo(
         properties: {
           ...feature.properties,
           zoning_code: zoningClass.code,
-          hasValidZoningCode: true,
+          extras: {
+            ...feature.properties.extras,
+            hasValidZoningCode: true,
+          },
           ...landUseUpdates,
         },
       })
@@ -226,10 +228,11 @@ const ZoneAccordionItem = memo(
           properties: {
             ...feature.properties,
             zoning_code: zoningClass?.code ?? zoningCode,
-            hasValidZoningCode: nextHasValidZoningCode,
-            ...(zoningClass
-              ? getZoningClassLandUseDefaults(zoningClass)
-              : {}),
+            extras: {
+              ...feature.properties.extras,
+              hasValidZoningCode: nextHasValidZoningCode,
+            },
+            ...(zoningClass ? getZoningClassLandUseDefaults(zoningClass) : {}),
           },
         })
       }
@@ -402,8 +405,6 @@ const ZoneAccordionItem = memo(
       prevProps.feature.properties.zoning_code ===
         nextProps.feature.properties.zoning_code &&
       prevProps.feature.properties.name === nextProps.feature.properties.name &&
-      prevProps.feature.properties.hasValidZoningCode ===
-        nextProps.feature.properties.hasValidZoningCode &&
       prevProps.feature.properties.landuse_built ===
         nextProps.feature.properties.landuse_built &&
       prevProps.feature.properties.landuse_new_open_vegetation ===
@@ -413,7 +414,9 @@ const ZoneAccordionItem = memo(
       prevProps.feature.properties.landuse_existing ===
         nextProps.feature.properties.landuse_existing &&
       prevProps.feature.properties.soil_change_new_vegetation_pct ===
-        nextProps.feature.properties.soil_change_new_vegetation_pct
+        nextProps.feature.properties.soil_change_new_vegetation_pct &&
+      prevProps.feature.properties.extras?.hasValidZoningCode ===
+        nextProps.feature.properties.extras?.hasValidZoningCode
     )
   }
 )

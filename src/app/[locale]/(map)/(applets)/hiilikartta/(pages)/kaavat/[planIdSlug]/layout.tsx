@@ -81,7 +81,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 area_ha: getGeoJsonArea(feature) / 10000,
                 name: '',
                 zoning_code: '',
-                hasValidZoningCode: false,
+                extras: { hasValidZoningCode: false },
               }
 
               if (mode != null) {

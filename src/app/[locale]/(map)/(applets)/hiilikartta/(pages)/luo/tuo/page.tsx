@@ -132,7 +132,7 @@ const Page = () => {
 
         let properties: FeatureProperties = {
           ...baseProperties,
-          hasValidZoningCode: false,
+          extras: { hasValidZoningCode: false },
         }
 
         if (zoningCode != null) {
@@ -150,7 +150,7 @@ const Page = () => {
               ...baseProperties,
               [ZONING_CODE_COL]: zoningClass.code,
               old_zoning_code: zoningCode,
-              hasValidZoningCode: true,
+              extras: { hasValidZoningCode: true },
               ...getZoningClassLandUseDefaults(zoningClass),
             }
           }

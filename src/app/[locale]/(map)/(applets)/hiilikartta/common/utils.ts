@@ -462,7 +462,9 @@ export const processCalcQueryToReportData = (data: any): ReportData => {
 export const checkIsValidLandUseDistribution = (
   properties: FeatureProperties
 ) => {
-  if (properties.hasValidZoningCode === false) {
+  const hasValidZoningCode = properties.extras?.hasValidZoningCode
+
+  if (hasValidZoningCode === false) {
     return true
   }
 
@@ -471,7 +473,7 @@ export const checkIsValidLandUseDistribution = (
   const landuseNewTreeVegetation = properties.landuse_new_tree_vegetation
   const landuseExisting = properties.landuse_existing
 
-  const requiresLandUseValues = properties.hasValidZoningCode === true
+  const requiresLandUseValues = hasValidZoningCode === true
 
   if (
     landuseBuilt == null &&
@@ -505,6 +507,23 @@ export const checkIsValidLandUseDistribution = (
 
   return sumInBasisPoints === 100 * 100
 }
+
+export const stripFeatureExtras = <G extends GeoJSON.Geometry | null>(
+  data: GeoJSON.FeatureCollection<G, FeatureProperties>
+) => ({
+  ...data,
+  features: data.features.map((feature) => {
+    if (!feature.properties) {
+      return feature
+    }
+
+    const { extras, ...properties } = feature.properties
+    return {
+      ...feature,
+      properties: properties as FeatureProperties,
+    }
+  }),
+})
 
 export const checkIsValidZoningCode = (zoningCode: string | null) => {
   if (zoningCode == null) {
