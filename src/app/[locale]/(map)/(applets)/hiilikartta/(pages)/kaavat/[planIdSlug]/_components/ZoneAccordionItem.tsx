@@ -313,7 +313,7 @@ const ZoneAccordionItem = memo(
             }}
           ></DropDownSelect>
           {hasValidZoningCode ? (
-            <Box sx={{ mt: 2 }}>
+            <Box sx={{ mt: 3 }}>
               <ButtonBase
                 onClick={() => setIsLandUseExpanded((prev) => !prev)}
                 sx={{
@@ -341,7 +341,7 @@ const ZoneAccordionItem = memo(
               <Collapse in={isLandUseExpanded} timeout="auto" unmountOnExit>
                 <Box
                   sx={{
-                    mt: 3,
+                    mt: 4,
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 3,
@@ -365,6 +365,13 @@ const ZoneAccordionItem = memo(
                       inputSlotProps={{ inputMode: 'decimal' }}
                     />
                   ))}
+                  {!isLandUseDistributionValid && (
+                    <Typography typography="body7" sx={{ color: 'error.main' }}>
+                      {t(
+                        'sidebar.plan_settings.zones.land_use_distribution.sum_not_100_error'
+                      )}
+                    </Typography>
+                  )}
                   <NumberInputField
                     label={t(
                       'sidebar.plan_settings.zones.soil_change_new_vegetation_pct'
