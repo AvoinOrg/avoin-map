@@ -43,7 +43,11 @@ const parseLandUseValue = (value: string | undefined) => {
   }
 
   const numberValue = Number(normalized)
-  return Number.isNaN(numberValue) ? undefined : numberValue * 100
+  if (Number.isNaN(numberValue)) {
+    return undefined
+  }
+
+  return Math.round(numberValue * 10000) / 100
 }
 
 const detectDelimiter = (headerRow: string) => {

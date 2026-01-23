@@ -497,7 +497,13 @@ export const checkIsValidLandUseDistribution = (
     landuseNewTreeVegetation +
     landuseExisting
 
-  return Math.abs(sum - 100) <= 2
+  const sumInBasisPoints =
+    Math.round(landuseBuilt * 100) +
+    Math.round(landuseNewOpenVegetation * 100) +
+    Math.round(landuseNewTreeVegetation * 100) +
+    Math.round(landuseExisting * 100)
+
+  return sumInBasisPoints === 100 * 100
 }
 
 export const checkIsValidZoningCode = (zoningCode: string | null) => {

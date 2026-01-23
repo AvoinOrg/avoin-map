@@ -3,6 +3,7 @@ import {
   useEffect,
   useMemo,
   useState,
+  type MutableRefObject,
   type SyntheticEvent,
 } from 'react'
 import {
@@ -10,6 +11,7 @@ import {
   Box,
   ButtonBase,
   Collapse,
+  type SelectChangeEvent,
   Typography,
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
@@ -56,7 +58,9 @@ const landUseFields = [
 ] as const
 
 type LandUseFieldKey = (typeof landUseFields)[number]['key']
-const soilChangeKey = 'soil_change_new_vegetation_pct'
+const soilChangeKey = 'soil_change_new_vegetation_pct' as const
+type SoilChangeKey = typeof soilChangeKey
+type LandUseValueKey = LandUseFieldKey | SoilChangeKey
 
 interface CustomAccordionProps {
   feature: PlanDataFeature
@@ -65,7 +69,7 @@ interface CustomAccordionProps {
   onChange: (
     featureId: string
   ) => (event: SyntheticEvent, isExpanded: boolean) => void
-  accordionRefs: React.MutableRefObject<{
+  accordionRefs: MutableRefObject<{
     [key: string]: HTMLDivElement | null
   }>
   updateFeature: (id: string, feature: Partial<PlanDataFeature>) => void
@@ -179,15 +183,14 @@ const ZoneAccordionItem = memo(
       }
 
       const landUseDefaults = getZoningClassLandUseDefaults(zoningClass)
-      const landUseUpdates: Partial<PlanDataFeature['properties']> = {}
+      const landUseUpdates: Partial<Record<LandUseValueKey, number>> = {}
       landUseFields.forEach((field) => {
         if (feature.properties[field.key] == null) {
           landUseUpdates[field.key] = landUseDefaults[field.key]
         }
       })
       if (feature.properties[soilChangeKey] == null) {
-        landUseUpdates[soilChangeKey] =
-          landUseDefaults[soilChangeKey]
+        landUseUpdates[soilChangeKey] = landUseDefaults[soilChangeKey]
       }
 
       updateFeature(feature.properties.id, {
@@ -212,7 +215,7 @@ const ZoneAccordionItem = memo(
 
     const isItemValid = hasValidZoningCode && isLandUseDistributionValid
 
-    const handleZoningCodeChange = (event: any) => {
+    const handleZoningCodeChange = (event: SelectChangeEvent<string>) => {
       const zoningCode = event.target.value
 
       if (zoningCode != null) {

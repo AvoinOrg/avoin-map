@@ -27,6 +27,51 @@ type SSRInitialFilledComponent = ((props: BaseNumberFieldRootProps) => null) & {
 const SSRInitialFilled: SSRInitialFilledComponent = () => null
 SSRInitialFilled.muiName = 'Input'
 
+const getStepPrecision = (stepValue: number) => {
+  if (!Number.isFinite(stepValue)) {
+    return 0
+  }
+
+  const valueString = stepValue.toString()
+  if (valueString.includes('e-')) {
+    const [, exponent] = valueString.split('e-')
+    const precision = Number(exponent)
+    return Number.isNaN(precision) ? 0 : precision
+  }
+
+  const decimalIndex = valueString.indexOf('.')
+  if (decimalIndex === -1) {
+    return 0
+  }
+
+  return valueString.length - decimalIndex - 1
+}
+
+const normalizeStepValue = <T extends number | null | undefined>(
+  inputValue: T,
+  stepValue?: number | 'any'
+): T => {
+  if (inputValue == null) {
+    return inputValue
+  }
+
+  if (
+    typeof stepValue !== 'number' ||
+    !Number.isFinite(stepValue) ||
+    stepValue === 0
+  ) {
+    return inputValue
+  }
+
+  const nearest = Math.round(inputValue / stepValue) * stepValue
+  if (Math.abs(inputValue - nearest) > 1e-6) {
+    return inputValue
+  }
+
+  const precision = getStepPrecision(stepValue)
+  return Number(nearest.toFixed(precision)) as T
+}
+
 type NumberInputFieldProps = Omit<
   BaseNumberFieldRootProps,
   'children' | 'render'
@@ -84,6 +129,11 @@ export const NumberInputField = ({
   const effectiveMin = minValue ?? min
   const effectiveMax = maxValue ?? max
   const effectiveStep = incrementStepValue ?? step
+  const normalizedValue = normalizeStepValue(value, effectiveStep)
+  const normalizedDefaultValue = normalizeStepValue(
+    defaultValue,
+    effectiveStep
+  )
 
   return (
     <Box
@@ -109,8 +159,8 @@ export const NumberInputField = ({
         <BaseNumberField.Root
           {...rootProps}
           id={id}
-          value={value}
-          defaultValue={defaultValue}
+          value={normalizedValue}
+          defaultValue={normalizedDefaultValue}
           min={effectiveMin}
           max={effectiveMax}
           step={effectiveStep}
@@ -144,8 +194,8 @@ export const NumberInputField = ({
           <SSRInitialFilled
             {...rootProps}
             id={id}
-            value={value}
-            defaultValue={defaultValue}
+            value={normalizedValue}
+            defaultValue={normalizedDefaultValue}
           />
           {hasLabel && <InputLabel htmlFor={id}>{label}</InputLabel>}
           <BaseNumberField.Input
