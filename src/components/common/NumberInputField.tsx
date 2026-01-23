@@ -129,6 +129,11 @@ export const NumberInputField = ({
   const effectiveMin = minValue ?? min
   const effectiveMax = maxValue ?? max
   const effectiveStep = incrementStepValue ?? step
+  const effectiveFormat =
+    format ??
+    (typeof effectiveStep === 'number'
+      ? { maximumFractionDigits: Math.max(getStepPrecision(effectiveStep), 2) }
+      : undefined)
   const normalizedValue = normalizeStepValue(value, effectiveStep)
   const normalizedDefaultValue = normalizeStepValue(
     defaultValue,
@@ -167,7 +172,7 @@ export const NumberInputField = ({
           smallStep={smallStep}
           largeStep={largeStep}
           locale={localeProp ?? numberLocale}
-          format={format}
+          format={effectiveFormat}
           onValueChange={onValueChange}
           onValueCommitted={onValueCommitted}
           render={(props, state) => (
