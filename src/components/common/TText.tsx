@@ -1,12 +1,19 @@
 import React from 'react'
-import { T, TProps } from '@tolgee/react'
+import { T } from '@tolgee/react'
 
-type Props = TProps
-
-const lb = (_content: React.ReactNode) => <br />
-
-const TText = (props: Props) => {
-  return <T params={{ i: <i />, b: <b />, lb: lb }} {...props}></T>
+const defaultParams = {
+  lb: (_content: React.ReactNode) => <br />,
+  i: (content: React.ReactNode) => <i>{content}</i>,
+  b: (content: React.ReactNode) => <b>{content}</b>,
 }
 
-export default TText
+type TTextProps = React.ComponentProps<typeof T>
+
+export const TText = React.memo((props: TTextProps) => {
+  const mergedParams = React.useMemo(
+    () => ({ ...defaultParams, ...(props.params ?? {}) }),
+    [props.params]
+  )
+
+  return <T {...props} params={mergedParams} />
+})
