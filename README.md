@@ -92,6 +92,15 @@ limitations.
   stores live in their applet folders.
 - Data fetching uses TanStack Query.
 
+## Notifications
+
+- UI notifications are queued with `useUIStore().notify({ message, variant, duration, persist })`.
+- `src/components/Notification/NotificationManager.tsx` listens to
+  `uiStore.notifications` and enqueues Notistack snackbars, marking them as
+  shown to avoid duplicates.
+- `duration` defaults to 6000 ms; set it per-notification to auto-dismiss
+  sooner or use `persist` to keep it open.
+
 ## Localization
 
 - Tolgee provides translations; namespaces and languages live in

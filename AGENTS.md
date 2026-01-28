@@ -64,6 +64,13 @@ standalone sites.
   folders.
 - Queries are handled via TanStack Query.
 
+## Notifications
+
+- Notifications are queued via `useUIStore().notify({ message, variant, duration, persist })`.
+- `src/components/Notification/NotificationManager.tsx` reads
+  `uiStore.notifications` and pushes them into Notistack snackbars.
+- `duration` defaults to 6000 ms; use `persist` to keep a notification open.
+
 ## Map and styling
 
 - Map rendering uses MapLibre GL JS.
