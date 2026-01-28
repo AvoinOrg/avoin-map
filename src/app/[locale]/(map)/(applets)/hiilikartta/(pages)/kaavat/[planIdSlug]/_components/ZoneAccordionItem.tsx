@@ -21,7 +21,7 @@ import DropDownSelect from '#/components/common/DropDownSelect'
 import CustomAccordion from '#/components/common/CustomAccordion'
 import CustomAccordionSummary from '#/components/common/CustomAccordionSummary'
 import { NumberInputField } from '#/components/common/NumberInputField'
-import { ArrowDown, ArrowUp } from '#/components/icons'
+import { ArrowDown, ArrowUp, Exclamation } from '#/components/icons'
 
 import { CUSTOM_ZONING_CODE } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/constants'
 import { PlanDataFeature } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
@@ -319,6 +319,8 @@ const ZoneAccordionItem = memo(
             <Box sx={{ mt: 3 }}>
               <ButtonBase
                 onClick={() => setIsLandUseExpanded((prev) => !prev)}
+                disableRipple
+                disableTouchRipple
                 sx={{
                   width: '100%',
                   justifyContent: 'space-between',
@@ -368,13 +370,25 @@ const ZoneAccordionItem = memo(
                       inputSlotProps={{ inputMode: 'decimal' }}
                     />
                   ))}
-                  {!isLandUseDistributionValid && (
-                    <Typography typography="body7" sx={{ color: 'error.main' }}>
+                  <Box
+                    sx={{
+                      mt: -1.5,
+                      display: 'flex',
+                      alignItems: 'center',
+                      color: 'error.main',
+                      height: '0.5rem',
+                      visibility: isLandUseDistributionValid
+                        ? 'hidden'
+                        : 'visible',
+                    }}
+                  >
+                    <Exclamation sx={{ height: '1rem', mr: 1 }} />
+                    <Typography typography="body7" sx={{ color: 'inherit' }}>
                       {t(
                         'sidebar.plan_settings.zones.land_use_distribution.sum_not_100_error'
                       )}
                     </Typography>
-                  )}
+                  </Box>
                   <NumberInputField
                     label={t(
                       'sidebar.plan_settings.zones.soil_change_new_vegetation_pct'
@@ -385,7 +399,7 @@ const ZoneAccordionItem = memo(
                     minValue={0}
                     maxValue={100}
                     incrementStepValue={1}
-                    containerSx={{ width: '100%', mt: 3 }}
+                    containerSx={{ width: '100%', mt: 1 }}
                     inputRowSx={{ width: '100%' }}
                     formControlSx={{ width: '100%' }}
                     inputSx={{ width: '100%' }}
