@@ -33,7 +33,8 @@ const PlanImportGpkg = ({
       const { GeoPackageAPI, setSqljsWasmLocateFile } = await import(
         '@ngageoint/geopackage'
       )
-      setSqljsWasmLocateFile((file) => '/dyn/' + file)
+      // Serve wasm from /public/lib to avoid locale-prefixed middleware rewrites.
+      setSqljsWasmLocateFile((file) => '/lib/' + file)
 
       const geopackage = await GeoPackageAPI.open(new Uint8Array(fileBuffer))
       setGpkgFile(geopackage)
