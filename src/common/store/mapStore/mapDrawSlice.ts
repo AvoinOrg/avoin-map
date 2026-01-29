@@ -7,6 +7,7 @@ import {
   TerraDrawSelectMode,
   TerraDrawLineStringMode,
   GeoJSONStoreFeatures,
+  ValidateNotSelfIntersecting,
 } from 'terra-draw'
 import { TerraDrawMapLibreGLAdapter } from 'terra-draw-maplibre-gl-adapter'
 import type { Feature, FeatureCollection } from 'geojson'
@@ -40,6 +41,7 @@ import type {
 import { QueuePriority } from '#/common/types/map'
 import { generateUUID } from '#/common/utils/general'
 import { FeatureId } from 'terra-draw/dist/extend'
+import { useUIStore } from '#/common/store'
 
 let activeDrawInstance: TerraDraw | null = null
 
@@ -47,6 +49,43 @@ export const getActiveDrawInstance = () => activeDrawInstance
 
 export const setActiveDrawInstance = (instance: TerraDraw | null) => {
   activeDrawInstance = instance
+}
+
+const INVALID_DRAW_NOTIFICATION_KEY = 'notifications.invalid_geometry'
+const INVALID_DRAW_NOTIFICATION_NS = 'avoin-map'
+const INVALID_DRAW_NOTIFICATION_DURATION_MS = 5000
+
+const notifyInvalidDrawGeometry = () => {
+  useUIStore.getState().notify({
+    keyName: INVALID_DRAW_NOTIFICATION_KEY,
+    ns: INVALID_DRAW_NOTIFICATION_NS,
+    variant: 'error',
+    duration: INVALID_DRAW_NOTIFICATION_DURATION_MS,
+  })
+}
+
+const validatePolygonForTerraDraw = (feature: Feature | null) => {
+  if (!feature?.geometry) {
+    return { valid: false, reason: 'Feature has no geometry' }
+  }
+
+  if (feature.geometry.type === 'MultiPolygon') {
+    return { valid: false, reason: 'Feature is not a Polygon' }
+  }
+
+  if (feature.geometry.type !== 'Polygon') {
+    return { valid: false, reason: 'Feature is not a Polygon' }
+  }
+
+  if (!Array.isArray(feature.geometry.coordinates)) {
+    return { valid: false, reason: 'Feature coordinates is not an array' }
+  }
+
+  if (feature.geometry.coordinates.length !== 1) {
+    return { valid: false, reason: 'Feature has holes' }
+  }
+
+  return ValidateNotSelfIntersecting(feature as GeoJSONStoreFeatures)
 }
 
 export type MapDrawVars = {
@@ -534,6 +573,17 @@ export const createMapDrawSlice: (
             const mode = context?.mode || feature.properties?.mode
             let drawFeatureRemoved = false
 
+            const removeInvalidDrawFeature = (id?: FeatureId | null) => {
+              if (id == null) {
+                return
+              }
+              try {
+                draw.removeFeatures([id])
+              } catch (err) {
+                console.warn('Failed to remove invalid draw feature', err)
+              }
+            }
+
             if (mode === 'corridor') {
               try {
                 const half =
@@ -549,6 +599,19 @@ export const createMapDrawSlice: (
                 poly.properties = {
                   mode: 'polygon',
                 }
+
+                const validation = validatePolygonForTerraDraw(poly as Feature)
+                if (!validation.valid) {
+                  console.warn(
+                    '[mapDrawSlice.ts] Invalid corridor geometry',
+                    validation.reason
+                  )
+                  notifyInvalidDrawGeometry()
+                  removeInvalidDrawFeature(feature.id as FeatureId)
+                  updateCorridorPreview(null)
+                  return
+                }
+
                 draw.removeFeatures([feature.id!])
                 drawFeatureRemoved = true
 
@@ -556,6 +619,19 @@ export const createMapDrawSlice: (
                 updateCorridorPreview(null)
               } catch (err) {
                 console.error('Failed to create corridor polygon', err)
+                return
+              }
+            }
+
+            if (mode === 'polygon') {
+              const validation = validatePolygonForTerraDraw(feature)
+              if (!validation.valid) {
+                console.warn(
+                  '[mapDrawSlice.ts] Invalid polygon geometry',
+                  validation.reason
+                )
+                notifyInvalidDrawGeometry()
+                removeInvalidDrawFeature(feature.id as FeatureId)
                 return
               }
             }
