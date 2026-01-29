@@ -66,7 +66,10 @@ standalone sites.
 
 ## Notifications
 
-- Notifications are queued via `useUIStore().notify({ message, variant, duration, persist })`.
+- Notifications are queued via
+  `useUIStore().notify({ message, keyName, ns, variant, duration, persist })`.
+- Pass `message` directly or provide a Tolgee `keyName` (and optional `ns`);
+  `NotificationManager` resolves translation keys before showing.
 - `src/components/Notification/NotificationManager.tsx` reads
   `uiStore.notifications` and pushes them into Notistack snackbars.
 - `duration` defaults to 6000 ms; use `persist` to keep a notification open.

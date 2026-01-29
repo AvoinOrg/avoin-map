@@ -94,7 +94,9 @@ limitations.
 
 ## Notifications
 
-- UI notifications are queued with `useUIStore().notify({ message, variant, duration, persist })`.
+- UI notifications are queued with `useUIStore().notify({ message, keyName, ns, variant, duration, persist })`.
+- Provide `message` directly or pass a Tolgee `keyName` (and optional `ns`);
+  `NotificationManager` resolves translation keys before showing the snackbar.
 - `src/components/Notification/NotificationManager.tsx` listens to
   `uiStore.notifications` and enqueues Notistack snackbars, marking them as
   shown to avoid duplicates.
