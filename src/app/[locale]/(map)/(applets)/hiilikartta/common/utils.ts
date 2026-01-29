@@ -32,7 +32,7 @@ export const getPlanSourceId = (planId: string) => {
   return getPlanLayerGroupId(planId)
 }
 
-const zoningFillColorExpression = (
+export const zoningFillColorExpression = (
   defaultColor = 'white'
 ): ExpressionSpecification => {
   const zoningClasses = getZoningClassesCache()

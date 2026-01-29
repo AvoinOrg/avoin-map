@@ -25,7 +25,10 @@ import {
   MapGraphDataSelectOption,
   ZONING_CODE_COL,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
-import { isZoningCodeValidExpression } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
+import {
+  isZoningCodeValidExpression,
+  zoningFillColorExpression,
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
 import { mergeArraysAlternate, pp } from '#/common/utils/general'
 import { Cross } from '#/components/icons'
 import { osmBackgroundLayerConf } from '#/components/Map/layers/common/OSM/background'
@@ -197,10 +200,11 @@ const CarbonMapGraphMap = ({
               false,
             ])
           }
-          map.current!.setPaintProperty(layerId, 'fill-color', [
-            'get',
-            activeDataOption.isCurrent ? 'colorNochange' : 'color',
-          ])
+          map.current!.setPaintProperty(
+            layerId,
+            'fill-color',
+            zoningFillColorExpression()
+          )
         } else {
           map.current!.setLayoutProperty(layerId, 'visibility', 'none')
           map.current!.setLayoutProperty(
@@ -223,10 +227,7 @@ const CarbonMapGraphMap = ({
             visibility: data.id === activeDataOption.id ? 'visible' : 'none',
           },
           paint: {
-            'fill-color': [
-              'get',
-              activeDataOption.isCurrent ? 'colorNochange' : 'color',
-            ],
+            'fill-color': zoningFillColorExpression(),
             'fill-opacity': 0.9,
             'fill-outline-color': '#274AFF',
           },
