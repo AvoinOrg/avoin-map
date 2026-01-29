@@ -23,7 +23,9 @@ export type RouteState =
   | 'login'
 
 export type NotificationMessage = {
-  message: string
+  message?: string
+  keyName?: string
+  ns?: string
   variant: 'default' | 'success' | 'error' | 'info' | 'warning'
   duration?: number
   persist?: boolean
