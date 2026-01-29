@@ -13,12 +13,23 @@ const CustomAccordionSummary = ({
   return (
     <AccordionSummary
       expandIcon={expandIcon}
+      disableRipple
+      disableTouchRipple
       sx={[
         {
           '& .MuiAccordionSummary-content': {
             width: '100%',
             display: 'flex',
             flexGrow: 1,
+          },
+          '&.Mui-focusVisible': {
+            backgroundColor: 'transparent',
+          },
+          '&:active': {
+            backgroundColor: 'transparent',
+          },
+          '& .MuiTouchRipple-root': {
+            display: 'none',
           },
         },
         ...(Array.isArray(sx) ? sx : [sx]),
