@@ -9,7 +9,7 @@ const defaultParams = {
 
 type TTextProps = React.ComponentProps<typeof T>
 
-export const TText = React.memo((props: TTextProps) => {
+const TText = React.memo((props: TTextProps) => {
   const mergedParams = React.useMemo(
     () => ({ ...defaultParams, ...(props.params ?? {}) }),
     [props.params]
@@ -17,3 +17,5 @@ export const TText = React.memo((props: TTextProps) => {
 
   return <T {...props} params={mergedParams} />
 })
+
+export default TText
