@@ -79,6 +79,7 @@ export const listedLayerGroups: ListedLayerGroup[] = [
 ]
 
 export const CUSTOM_ZONING_CODE = 'OMA'
+export const POWERLINE_ZONING_CLASS_PREFIX = 'ENs'
 
 export const CARBON_CHANGE_COLORS: CarbonChangeColorItem[] = [
   { min: -1000, max: -500, color: '#C54032' },
