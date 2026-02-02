@@ -24,7 +24,10 @@ import CustomAccordionSummary from '#/components/common/CustomAccordionSummary'
 import { NumberInputField } from '#/components/common/NumberInputField'
 import { ArrowDown, ArrowUp, QuestionCircleOutline } from '#/components/icons'
 
-import { CUSTOM_ZONING_CODE } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/constants'
+import {
+  CUSTOM_ZONING_CODE,
+  POWERLINE_ZONING_CLASS_PREFIX,
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/constants'
 import { PlanDataFeature } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
 import ZoneAccordionItemTitle from './ZoneAccordionItemTitle'
 import {
@@ -45,16 +48,23 @@ const landUseFields = [
   {
     key: 'landuse_new_open_vegetation',
     translationKey: 'sidebar.plan_settings.zones.landuse_new_open_vegetation',
+    powerlineTranslationKey: 'sidebar.plan_settings.zones.landuse_powerline_open',
   },
   {
     key: 'landuse_new_tree_vegetation',
     translationKey: 'sidebar.plan_settings.zones.landuse_new_tree_vegetation',
+    powerlineTranslationKey:
+      'sidebar.plan_settings.zones.landuse_powerline_buffer',
   },
   {
     key: 'landuse_existing',
     translationKey: 'sidebar.plan_settings.zones.landuse_existing',
   },
-] as const
+] as const satisfies readonly {
+  key: string
+  translationKey: string
+  powerlineTranslationKey?: string
+}[]
 
 type LandUseFieldKey = (typeof landUseFields)[number]['key']
 const soilChangeKey = 'soil_change_new_vegetation_pct' as const
@@ -105,6 +115,15 @@ const ZoneAccordionItem = memo(
     const [isLandUseExpanded, setIsLandUseExpanded] = useState(
       feature.properties.zoning_code?.toUpperCase() === CUSTOM_ZONING_CODE
     )
+    const isPowerlineZoningClass = useMemo(() => {
+      const zoningCode = feature.properties.zoning_code
+      if (!zoningCode) {
+        return false
+      }
+      return zoningCode
+        .toLowerCase()
+        .startsWith(POWERLINE_ZONING_CLASS_PREFIX.toLowerCase())
+    }, [feature.properties.zoning_code])
 
     const hasValidZoningCode = useMemo(() => {
       if (feature.properties.extras?.hasValidZoningCode != null) {
@@ -395,7 +414,12 @@ const ZoneAccordionItem = memo(
                   {landUseFields.map((field) => (
                     <NumberInputField
                       key={field.key}
-                      label={t(field.translationKey)}
+                      label={t(
+                        isPowerlineZoningClass &&
+                          'powerlineTranslationKey' in field
+                          ? field.powerlineTranslationKey
+                          : field.translationKey
+                      )}
                       size="small"
                       value={feature.properties[field.key] ?? null}
                       onValueChange={handleLandUseValueChange(field.key)}
