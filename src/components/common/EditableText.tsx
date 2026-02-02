@@ -157,13 +157,23 @@ const EditableText = ({
       ) : (
         <TextField
           autoFocus
-          sx={{ p: 0, m: 0, width: '100%' }}
+          sx={{
+            p: 0,
+            m: 0,
+            width: '100%',
+            '& .MuiOutlinedInput-root': {
+              borderRadius: '999px',
+            },
+            '& .MuiOutlinedInput-notchedOutline': {
+              borderRadius: '999px',
+            },
+          }}
           value={internalValue}
           onChange={handleInputChange}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           onClick={(event) => event.stopPropagation()}
-          variant="standard"
+          variant="outlined"
           onFocus={(event) => {
             event.stopPropagation()
           }}

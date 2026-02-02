@@ -285,6 +285,10 @@ export const NumberInputField = ({
                 sx={[
                   {
                     pr: 0,
+                    borderRadius: '999px',
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderRadius: '999px',
+                    },
                   },
                   ...(Array.isArray(inputSx) ? inputSx : [inputSx]),
                 ]}

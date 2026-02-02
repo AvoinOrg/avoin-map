@@ -136,12 +136,12 @@ const TextFieldWithHeader = ({
         sx={[
           {
             '& .MuiOutlinedInput-root': {
-              borderRadius: '2px',
+              borderRadius: '999px',
               border: '0.5px solid',
               borderColor: 'neutral.main',
               backgroundColor: 'neutral.light',
               boxShadow: '0px 4px 7px 0px rgba(217, 217, 217, 0.50) inset',
-              '& fieldset': { border: 'none' },
+              '& fieldset': { border: 'none', borderRadius: '999px' },
               '&:hover fieldset': { border: 'none' },
               '&.Mui-focused fieldset': { border: 'none' },
               '&.MuiInputBase-multiline': { padding: '12px 14px' }, // Example padding
