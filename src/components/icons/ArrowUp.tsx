@@ -10,12 +10,16 @@ const ArrowUp = (props: Props) => (
     component="svg"
     xmlns="http://www.w3.org/2000/svg"
     width={17}
-    height={11}
-    viewBox="0 0 17 11"
+    height={9}
+    viewBox="0 0 17 9"
     fill="none"
     {...props}
   >
-    <path d="M1 10L8.5 2L16 10" stroke="currentColor" strokeWidth={2} />
+    <path
+      d="M0.5 8.08594L7.79289 0.793044C8.18342 0.40252 8.81658 0.402521 9.20711 0.793045L16.5 8.08594"
+      stroke="currentColor"
+      strokeLinecap="round"
+    />
   </Box>
 )
 
