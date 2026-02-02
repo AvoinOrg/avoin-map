@@ -9,7 +9,7 @@ import {
 import Image from 'next/image'
 import { useTranslate } from '@tolgee/react'
 
-import { DownArrowRounded } from '#/components/icons'
+import { ArrowDown } from '#/components/icons'
 import { useLayerGroupOpacity } from '#/common/hooks/map/useLayerGroupOpacity'
 import { ListedLayerGroup } from '#/common/types/map'
 import { clampOpacity } from '#/common/utils/map'
@@ -175,10 +175,12 @@ const LayerItem = ({
               },
             }}
           >
-            <DownArrowRounded
+            <ArrowDown
               sx={{
                 transform: isInfoOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                 transition: 'transform 0.2s ease',
+                width: 9,
+                height: 5,
               }}
             />
           </IconButton>
