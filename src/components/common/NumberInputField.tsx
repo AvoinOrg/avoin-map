@@ -238,7 +238,14 @@ export const NumberInputField = ({
                         '& button': {
                           py: 0,
                           flex: 1,
-                          borderRadius: 0.5,
+                          borderRadius: 0,
+                          overflow: 'hidden',
+                        },
+                        '& button:first-of-type': {
+                          borderTopRightRadius: '999px',
+                        },
+                        '& button:last-of-type': {
+                          borderBottomRightRadius: '999px',
                         },
                       },
                       ...(Array.isArray(adornmentSx)
@@ -286,6 +293,7 @@ export const NumberInputField = ({
                   {
                     pr: 0,
                     borderRadius: '999px',
+                    overflow: 'hidden',
                     '& .MuiOutlinedInput-notchedOutline': {
                       borderRadius: '999px',
                     },

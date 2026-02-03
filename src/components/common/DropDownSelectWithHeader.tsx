@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react'
 import {
   FormControl,
-  InputLabel,
   MenuItem,
   Select,
   SelectChangeEvent,
   SxProps,
   Theme,
+  Typography,
 } from '@mui/material'
 import { T } from '@tolgee/react'
 
@@ -27,7 +27,7 @@ interface Props {
   disabled?: boolean
 }
 
-const DropDownSelect = ({
+const DropDownSelectWithHeader = ({
   value,
   options,
   onChange,
@@ -41,9 +41,6 @@ const DropDownSelect = ({
   disabled,
 }: Props) => {
   const [hasEmpty, setHasEmpty] = React.useState(true)
-  const generatedId = React.useId()
-  const labelId = label ? `${generatedId}-label` : undefined
-  const selectId = `${generatedId}-select`
 
   useEffect(() => {
     setHasEmpty(
@@ -63,20 +60,22 @@ const DropDownSelect = ({
       ]}
     >
       {label && (
-        <InputLabel
-          id={labelId}
-          sx={[...(Array.isArray(labelSx) ? labelSx : [labelSx])]}
+        <Typography
+          sx={[
+            {
+              typography: 'h7',
+              mb: 2,
+            },
+            ...(Array.isArray(labelSx) ? labelSx : [labelSx]),
+          ]}
         >
           {label}
-        </InputLabel>
+        </Typography>
       )}
       <Select
-        id={selectId}
-        labelId={labelId}
         value={currentValue}
         onChange={onChange}
         IconComponent={DownIcon}
-        label={label}
         MenuProps={{
           anchorOrigin: {
             vertical: 'bottom',
@@ -169,4 +168,4 @@ const DropDownSelect = ({
   )
 }
 
-export default DropDownSelect
+export default DropDownSelectWithHeader
