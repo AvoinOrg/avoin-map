@@ -1,6 +1,6 @@
-import { SelectChangeEvent, SxProps, Theme } from '@mui/material'
+import { Box, SelectChangeEvent, SxProps, Theme } from '@mui/material'
 
-import DropDownSelect from '#/components/common/DropDownSelect'
+import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 
 interface Props {
   columns: string[]
@@ -33,8 +33,7 @@ const PlanImportCodeRecordSelect = ({
   return (
     <>
       {columns.length > 0 && (
-        <DropDownSelect
-          sx={[...(Array.isArray(sx) ? sx : [sx])]}
+        <DropDownSelectWithHeader
           value={selectedColumn}
           options={columns.map((col) => {
             return { value: col, label: col }
@@ -42,6 +41,7 @@ const PlanImportCodeRecordSelect = ({
           onChange={handleSelectColumn}
           allowEmpty={allowEmpty}
           label={label}
+          sx={[{ width: '100%' }, ...(Array.isArray(sx) ? sx : [sx])]}
         />
       )}
     </>

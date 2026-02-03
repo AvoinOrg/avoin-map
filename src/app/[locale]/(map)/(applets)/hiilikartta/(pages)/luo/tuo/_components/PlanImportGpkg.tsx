@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { SelectChangeEvent } from '@mui/material'
 import { FeatureCollection } from 'geojson'
 
-import DropDownSelect from '#/components/common/DropDownSelect'
+import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import PlanImportActionsRow from './PlanImportActionsRow'
 import PlanImportCodeRecordSelect from './PlanImportCodeRecordSelect'
 import { useTranslate } from '@tolgee/react'
@@ -30,9 +30,8 @@ const PlanImportGpkg = ({
 
   useEffect(() => {
     const loadGpkg = async (fileBuffer: ArrayBuffer) => {
-      const { GeoPackageAPI, setSqljsWasmLocateFile } = await import(
-        '@ngageoint/geopackage'
-      )
+      const { GeoPackageAPI, setSqljsWasmLocateFile } =
+        await import('@ngageoint/geopackage')
       // Serve wasm from /public/lib to avoid locale-prefixed middleware rewrites.
       setSqljsWasmLocateFile((file) => '/lib/' + file)
 
@@ -121,7 +120,7 @@ const PlanImportGpkg = ({
   return (
     <>
       {tables.length > 1 && (
-        <DropDownSelect
+        <DropDownSelectWithHeader
           value={table}
           options={tables.map((table) => {
             return { value: table, label: table }
@@ -129,7 +128,7 @@ const PlanImportGpkg = ({
           onChange={handleSelectTable}
           label="Valitse tietokantataulu"
           sx={{ mb: 5 }}
-        ></DropDownSelect>
+        />
       )}
       {columns.length > 0 && (
         <>
