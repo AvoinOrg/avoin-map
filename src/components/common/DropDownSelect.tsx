@@ -65,7 +65,19 @@ const DropDownSelect = ({
       {label && (
         <InputLabel
           id={labelId}
-          sx={[...(Array.isArray(labelSx) ? labelSx : [labelSx])]}
+          sx={[
+            {
+              typography: 'body2',
+              fontWeight: 400,
+              letterSpacing: '0.0875rem',
+              lineHeight: 'normal',
+              transform: 'translate(14px, 12px) scale(1)',
+              '&.MuiInputLabel-shrink': {
+                transform: 'translate(14px, -8px) scale(0.75)',
+              },
+            },
+            ...(Array.isArray(labelSx) ? labelSx : [labelSx]),
+          ]}
         >
           {label}
         </InputLabel>

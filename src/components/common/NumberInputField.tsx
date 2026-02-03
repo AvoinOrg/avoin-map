@@ -139,6 +139,30 @@ export const NumberInputField = ({
     defaultValue,
     effectiveStep
   )
+  const isControlled = value !== undefined
+  const [localValue, setLocalValue] =
+    React.useState<BaseNumberFieldRootProps['value']>(normalizedValue)
+
+  React.useEffect(() => {
+    if (!isControlled) {
+      return
+    }
+    if (normalizedValue !== localValue) {
+      setLocalValue(normalizedValue)
+    }
+  }, [isControlled, normalizedValue, localValue])
+
+  const handleValueChange = React.useCallback<
+    BaseNumberFieldRootProps['onValueChange']
+  >(
+    (nextValue, details) => {
+      if (isControlled) {
+        setLocalValue(nextValue)
+      }
+      onValueChange?.(nextValue, details)
+    },
+    [isControlled, onValueChange]
+  )
 
   return (
     <Box
@@ -164,7 +188,7 @@ export const NumberInputField = ({
         <BaseNumberField.Root
           {...rootProps}
           id={id}
-          value={normalizedValue}
+          value={isControlled ? localValue : undefined}
           defaultValue={normalizedDefaultValue}
           min={effectiveMin}
           max={effectiveMax}
@@ -173,7 +197,7 @@ export const NumberInputField = ({
           largeStep={largeStep}
           locale={localeProp ?? numberLocale}
           format={effectiveFormat}
-          onValueChange={onValueChange}
+          onValueChange={handleValueChange}
           onValueCommitted={onValueCommitted}
           render={(props, state) => (
             <FormControl
@@ -237,6 +261,8 @@ export const NumberInputField = ({
                         alignItems: 'stretch',
                         '& button': {
                           py: 0,
+                          pl: 0.5,
+                          pr: 1.25,
                           flex: 1,
                           borderRadius: 0,
                           overflow: 'hidden',
