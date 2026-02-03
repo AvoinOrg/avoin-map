@@ -17,7 +17,7 @@ import { useMapStore, useUIStore } from '#/common/store'
 import { useLocaleFormatter } from '#/common/hooks/useLocaleFormatter'
 import { FINLAND_BOUNDS } from '#/common/constants/map'
 import useSelectedFeaturesFilteredByLayer from '#/common/hooks/map/useSelectedFeaturesFilteredByLayer'
-import DropDownSelect from '#/components/common/DropDownSelect'
+import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import { SidebarDrawerContainer } from '#/components/Sidebar/SidebarDrawerContainer'
 import { SidebarContentBox } from '#/components/Sidebar'
 import { useLayerGroup } from '#/common/hooks/map/useLayerGroup'
@@ -44,10 +44,8 @@ import {
   titleRenames,
 } from './constants'
 
-import arvometsaLogo from 'public/files/forests/arvometsa_logo.png'
+import arvometsaLogo from './public/arvometsa_logo.png'
 // import * as Analytics from 'src/map/analytics'
-
-// import arvometsaLogo from './assets/arvometsa_logo.png'
 
 // for (const sourceName of Object.keys(layerOptions)) {
 //   const layerName = `${sourceName}-fill`
@@ -661,7 +659,7 @@ const FinlandForests = () => {
               </CheckBoxWithText>
               <Box sx={{ mt: 7, p: 2, backgroundColor: 'neutral.light' }}>
                 <Box>
-                  <DropDownSelect
+                  <DropDownSelectWithHeader
                     label={'Choose forestry method for calculations:'}
                     value={forestryMethod.toString()}
                     options={[
