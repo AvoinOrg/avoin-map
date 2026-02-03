@@ -5,7 +5,7 @@ import { SelectChangeEvent, Box } from '@mui/material'
 
 import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
 import CheckBoxWithText from '#/components/common/CheckBoxWithText'
-import DropDownSelect from '#/components/common/DropDownSelect'
+import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
 import { useUIStore } from '#/common/store'
 
@@ -366,7 +366,7 @@ const FolayerImportShp = ({
               borderRadius: '0.3125rem',
             })}
           >
-            <DropDownSelect
+            <DropDownSelectWithHeader
               label={t('sidebar.admin.create.indexing_strategy_label')}
               value={indexingStrategy}
               onChange={handleIndexingStrategyChange}

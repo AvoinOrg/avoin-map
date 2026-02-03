@@ -18,7 +18,7 @@ import {
 import { styled } from '@mui/material/styles'
 import { T, useTranslate } from '@tolgee/react'
 
-import DropDownSelect from '#/components/common/DropDownSelect'
+import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import CustomAccordion from '#/components/common/CustomAccordion'
 import CustomAccordionSummary from '#/components/common/CustomAccordionSummary'
 import { NumberInputField } from '#/components/common/NumberInputField'
@@ -329,7 +329,7 @@ const ZoneAccordionItem = memo(
               ns="hiilikartta"
             ></T>
           </Row>
-          <DropDownSelect
+          <DropDownSelectWithHeader
             value={feature.properties.zoning_code}
             options={zoningCodeOptions}
             onChange={handleZoningCodeChange}
@@ -338,7 +338,7 @@ const ZoneAccordionItem = memo(
               borderColor: 'primary.light',
               mt: 1,
             }}
-          ></DropDownSelect>
+          ></DropDownSelectWithHeader>
           {hasValidZoningCode ? (
             <Box sx={{ mt: 3 }}>
               <ButtonBase

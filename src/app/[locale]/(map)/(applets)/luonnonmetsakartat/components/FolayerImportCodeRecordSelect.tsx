@@ -1,6 +1,6 @@
 import { SelectChangeEvent, SxProps, Theme } from '@mui/material'
 
-import DropDownSelect from '#/components/common/DropDownSelect'
+import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 
 interface Props {
   columns: string[]
@@ -33,7 +33,7 @@ const FolayerImportCodeRecordSelect = ({
   return (
     <>
       {columns.length > 0 && (
-        <DropDownSelect
+        <DropDownSelectWithHeader
           sx={[...(Array.isArray(sx) ? sx : [sx])]}
           value={selectedColumn}
           options={columns.map((col) => {

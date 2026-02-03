@@ -4,7 +4,7 @@ import { cloneDeep } from 'lodash-es'
 import { useTranslate } from '@tolgee/react'
 import { styled } from '@mui/material/styles'
 
-import DropDownSelect from '#/components/common/DropDownSelect'
+import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import TText from '#/components/common/TText'
 
 import {
@@ -208,7 +208,7 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
             keyName={'report.map_graph.select_zoning_type'}
           ></TText>
         </Typography>
-        <DropDownSelect
+        <DropDownSelectWithHeader
           options={areaTypeOptions}
           value={areaType}
           onChange={handleAreaTypeChange}
@@ -221,7 +221,7 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
             letterSpacing: 'normal',
           }}
           iconSx={{ fontSize: '1rem', mr: '0.5rem' }}
-        ></DropDownSelect>
+        ></DropDownSelectWithHeader>
       </Box>
       <CarbonChangeLegend
         sx={{
