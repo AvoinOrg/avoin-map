@@ -72,8 +72,13 @@ const DropDownSelect = ({
               letterSpacing: '0.0875rem',
               lineHeight: 'normal',
               transform: 'translate(14px, 12px) scale(1)',
+              backgroundColor: 'background.main',
+              px: 0.5,
               '&.MuiInputLabel-shrink': {
                 transform: 'translate(14px, -8px) scale(0.75)',
+              },
+              '&.Mui-focused': {
+                color: 'secondary.dark',
               },
             },
             ...(Array.isArray(labelSx) ? labelSx : [labelSx]),
@@ -98,6 +103,13 @@ const DropDownSelect = ({
             vertical: 'top',
             horizontal: 'left',
           },
+          PaperProps: {
+            sx: {
+              borderRadius: '10px',
+              border: '0.1px solid #A0A0A0',
+              boxShadow: '0 1px 3px 0 rgba(214, 214, 214, 0.50) inset',
+            },
+          },
         }}
         disabled={disabled}
         sx={[
@@ -106,13 +118,18 @@ const DropDownSelect = ({
               backgroundColor: 'background.main',
               borderRadius: '999px',
               overflow: 'hidden',
+              boxShadow: '0 1px 2px 0 rgba(214, 214, 214, 0.60) inset',
             },
             '& .MuiOutlinedInput-notchedOutline': {
               borderRadius: '999px',
             },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: 'secondary.dark',
+            },
             '.MuiSvgIcon-root': { fontSize: '16px', margin: '0 10px 0 0' },
             '.MuiSelect-icon': {
               mt: 0.2,
+              mr: 1.1,
               ...(iconSx as Record<string, any>),
             },
             '.MuiSelect-select': {

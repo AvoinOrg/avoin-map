@@ -226,7 +226,20 @@ export const NumberInputField = ({
             value={normalizedValue}
             defaultValue={normalizedDefaultValue}
           />
-          {hasLabel && <InputLabel htmlFor={id}>{label}</InputLabel>}
+          {hasLabel && (
+            <InputLabel
+              htmlFor={id}
+              sx={{
+                backgroundColor: 'background.main',
+                px: 0.5,
+                '&.Mui-focused': {
+                  color: 'secondary.dark',
+                },
+              }}
+            >
+              {label}
+            </InputLabel>
+          )}
           <BaseNumberField.Input
             id={id}
             render={(props, state) => (
@@ -320,8 +333,12 @@ export const NumberInputField = ({
                     pr: 0,
                     borderRadius: '999px',
                     overflow: 'hidden',
+                    boxShadow: '0 1px 2px 0 rgba(214, 214, 214, 0.60) inset',
                     '& .MuiOutlinedInput-notchedOutline': {
                       borderRadius: '999px',
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: 'secondary.dark',
                     },
                   },
                   ...(Array.isArray(inputSx) ? inputSx : [inputSx]),
