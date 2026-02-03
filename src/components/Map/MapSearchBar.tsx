@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import {
   Autocomplete,
   Box,
@@ -31,6 +31,21 @@ const mapMenuState: MapMenuState = 'search'
 
 export const MAP_SEARCH_BAR_VERTICAL_MODE_WIDTH = 40
 export const MAP_SEARCH_BAR_HORIZONTAL_MODE_WIDTH = 300
+const SEARCH_DEBOUNCE_MS = 300
+const MIN_REMOTE_QUERY_LENGTH = 3
+const MAX_LOCAL_RESULTS = 25
+const MAX_REMOTE_RESULTS = 5
+const MAX_REMOTE_CACHE_SIZE = 50
+
+type LocalSearchIndexEntry = {
+  feature: any
+  searchText: string
+  displayNameArr: string[]
+  datasetName: string
+  appendDatasetName: boolean
+  getCoordinates: (feature: any) => [number, number] | null
+  place_id: string
+}
 
 export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
   const [searchResults, setSearchResults] = useState<any[]>([])
@@ -38,6 +53,8 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
   const [inputValue, setInputValue] = useState('')
   const [isFocused, setIsFocused] = useState(false)
   const fetchCounter = React.useRef(0)
+  const remoteCacheRef = useRef<Map<string, any[]>>(new Map())
+  const remoteRequestRef = useRef<AbortController | null>(null)
   const { locale } = useParams()
   const searchInputRef = useRef<HTMLInputElement>(null)
   const activeMapMenu = useUIStore((state) => state.activeMapMenu)
@@ -72,31 +89,10 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
     [searchableDatas]
   )
 
-  const debouncedSearch = useMemo(
-    () =>
-      debounce((query: string) => {
-        handleSearch(query)
-      }, 300),
-    [enabledSearchableDatas]
-  )
+  const localSearchIndex = useMemo(() => {
+    const entries: LocalSearchIndexEntry[] = []
 
-  useEffect(() => {
-    if (inputValue) {
-      debouncedSearch(inputValue)
-    } else {
-      setSearchResults([])
-    }
-    return () => {
-      debouncedSearch.cancel()
-    }
-  }, [inputValue, debouncedSearch])
-
-  const performLocalSearch = (query: string) => {
-    if (!query || !enabledSearchableDatas) return []
-    const lowerCaseQuery = query.toLowerCase()
-    const localResults: any[] = []
-
-    Object.values(enabledSearchableDatas).forEach((source) => {
+    enabledSearchableDatas.forEach((source) => {
       const {
         data,
         name: datasetName,
@@ -105,84 +101,173 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
         getCoordinates = getFeatureCenterCoordinates,
         displayPattern = defaultFeatureDisplayPattern,
       } = source
-      if (data?.features) {
-        data.features.forEach((feature) => {
-          const properties = feature.properties
-          if (!properties) return
 
-          const isMatch = fields
-            ? fields.some(
-                (field) =>
-                  properties[field] &&
-                  String(properties[field])
-                    .toLowerCase()
-                    .includes(lowerCaseQuery)
-              )
-            : Object.values(properties).some(
-                (value) =>
-                  value && String(value).toLowerCase().includes(lowerCaseQuery)
-              )
+      if (!data?.features) return
 
-          if (isMatch) {
-            const coords = getCoordinates(feature)
-            const displayNameArr = displayPattern(feature, fields)
-            if (appendDatasetName) {
-              displayNameArr.push(`(${datasetName})`)
-            }
+      data.features.forEach((feature) => {
+        const properties = feature.properties
+        if (!properties) return
 
-            const bbox = (feature as any).bbox
-              ? ((feature as any).bbox as [number, number, number, number])
-              : feature.geometry
-              ? (turfBBox(feature as any) as [number, number, number, number])
-              : null
+        const values = (fields && fields.length > 0
+          ? fields.map((field) => properties[field])
+          : Object.values(properties)
+        ).filter((value) => value != null && value !== '')
 
-            if (coords) {
-              localResults.push({
-                // ...feature,
-                isLocal: true,
-                lon: coords[0],
-                lat: coords[1],
-                bbox,
-                displayNameArr: displayNameArr,
-                datasetName: datasetName,
-                place_id:
-                  feature.id ||
-                  feature.properties?.id ||
-                  `${datasetName}-${displayNameArr.join('-')}`,
-              })
-            }
-          }
+        if (values.length === 0) return
+
+        const searchText = values
+          .map((value) => String(value).toLowerCase())
+          .join(' ')
+        const displayNameArr = displayPattern(feature, fields)
+
+        entries.push({
+          feature,
+          searchText,
+          displayNameArr,
+          datasetName,
+          appendDatasetName,
+          getCoordinates,
+          place_id:
+            feature.id ||
+            feature.properties?.id ||
+            `${datasetName}-${displayNameArr.join('-')}`,
         })
-      }
-    })
-    return localResults
-  }
-
-  const handleSearch = async (query: string) => {
-    if (!query) return
-    const currentFetchId = ++fetchCounter.current
-
-    const localResults = performLocalSearch(query)
-
-    try {
-      let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-        query
-      )}&addressdetails=1&limit=5`
-      if (searchCountryCodes.length > 0) {
-        url += `&countrycodes=${searchCountryCodes.join(',')}`
-      }
-      const res = await axios.get(url, {
-        headers: { 'Accept-Language': locale || 'en' },
       })
-      if (currentFetchId === fetchCounter.current) {
-        setSearchResults([...localResults, ...res.data])
+    })
+
+    return entries
+  }, [enabledSearchableDatas])
+
+  const performLocalSearch = useCallback(
+    (query: string) => {
+      if (!query) return []
+      const lowerCaseQuery = query.toLowerCase()
+      const localResults: any[] = []
+
+      for (const entry of localSearchIndex) {
+        if (!entry.searchText.includes(lowerCaseQuery)) {
+          continue
+        }
+
+        const coords = entry.getCoordinates(entry.feature)
+        if (!coords) {
+          continue
+        }
+
+        const bbox = (entry.feature as any).bbox
+          ? ((entry.feature as any).bbox as [number, number, number, number])
+          : entry.feature.geometry
+          ? (turfBBox(entry.feature as any) as [number, number, number, number])
+          : null
+
+        const displayNameArr = entry.appendDatasetName
+          ? [...entry.displayNameArr, `(${entry.datasetName})`]
+          : entry.displayNameArr
+
+        localResults.push({
+          isLocal: true,
+          lon: coords[0],
+          lat: coords[1],
+          bbox,
+          displayNameArr,
+          datasetName: entry.datasetName,
+          place_id: entry.place_id,
+        })
+
+        if (localResults.length >= MAX_LOCAL_RESULTS) {
+          break
+        }
       }
-    } catch (e) {
+
+      return localResults
+    },
+    [localSearchIndex]
+  )
+
+  const handleSearch = useCallback(
+    async (rawQuery: string) => {
+      const query = rawQuery.trim()
+      if (!query) return
+      const currentFetchId = ++fetchCounter.current
+
+      const localResults = performLocalSearch(query)
+
       if (currentFetchId === fetchCounter.current) {
         setSearchResults(localResults)
       }
+
+      if (query.length < MIN_REMOTE_QUERY_LENGTH) {
+        return
+      }
+
+      const cacheKey = `${locale || 'en'}|${searchCountryCodes.join(
+        ','
+      )}|${query}`
+      const cachedResults = remoteCacheRef.current.get(cacheKey)
+      if (cachedResults) {
+        if (currentFetchId === fetchCounter.current) {
+          setSearchResults([...localResults, ...cachedResults])
+        }
+        return
+      }
+
+      remoteRequestRef.current?.abort()
+      const controller = new AbortController()
+      remoteRequestRef.current = controller
+
+      try {
+        let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          query
+        )}&addressdetails=1&limit=${MAX_REMOTE_RESULTS}`
+        if (searchCountryCodes.length > 0) {
+          url += `&countrycodes=${searchCountryCodes.join(',')}`
+        }
+        const res = await axios.get(url, {
+          headers: { 'Accept-Language': locale || 'en' },
+          signal: controller.signal,
+        })
+        if (controller.signal.aborted) return
+
+        remoteCacheRef.current.set(cacheKey, res.data)
+        if (remoteCacheRef.current.size > MAX_REMOTE_CACHE_SIZE) {
+          const oldestKey = remoteCacheRef.current.keys().next().value
+          if (oldestKey) {
+            remoteCacheRef.current.delete(oldestKey)
+          }
+        }
+
+        if (currentFetchId === fetchCounter.current) {
+          setSearchResults([...localResults, ...res.data])
+        }
+      } catch (e) {
+        if (controller.signal.aborted) return
+        if (currentFetchId === fetchCounter.current) {
+          setSearchResults(localResults)
+        }
+      }
+    },
+    [locale, performLocalSearch, searchCountryCodes]
+  )
+
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((query: string) => {
+        handleSearch(query)
+      }, SEARCH_DEBOUNCE_MS),
+    [handleSearch]
+  )
+
+  useEffect(() => {
+    const query = inputValue.trim()
+    if (query) {
+      debouncedSearch(query)
+    } else {
+      setSearchResults([])
     }
-  }
+    return () => {
+      debouncedSearch.cancel()
+    }
+  }, [inputValue, debouncedSearch])
 
   const handleSelect = (_event: any, option: any) => {
     if (!option || !map) return
