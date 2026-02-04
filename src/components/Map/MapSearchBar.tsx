@@ -431,6 +431,21 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
                 zIndex: theme.zIndex.drawer + 4,
               }),
             },
+            clearIndicator: {
+              // If the input is already empty, treat the clear button as "close" in vertical mode.
+              // Use capture so we don't override MUI's built-in clear handler when there's text.
+              onMouseDownCapture: (e) => {
+                if (isVertical && !inputValue.trim()) {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setValue('')
+                  setInputValue('')
+                  setSearchResults([])
+                  setMapMenuState(mapMenuState, false)
+                  searchInputRef.current?.blur()
+                }
+              },
+            },
           }}
           renderInput={(params) => (
             <TextField
