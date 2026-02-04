@@ -4,7 +4,7 @@ import { useTranslate, T } from '@tolgee/react'
 import { SelectChangeEvent, Box } from '@mui/material'
 
 import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
-import CheckBoxWithText from '#/components/common/CheckBoxWithText'
+import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
 import { useUIStore } from '#/common/store'
@@ -455,7 +455,7 @@ const FolayerImportShp = ({
             sx={{ mt: 5 }}
             labelText={t('sidebar.admin.folayer.settings.color')}
           ></ColorPickerWithPopover>
-          <CheckBoxWithText
+          <SwitchWithLabel
             checked={isVisible}
             onChange={handleIsVisibleChange}
             sx={{ mt: 4.5 }}
@@ -465,7 +465,7 @@ const FolayerImportShp = ({
               ns={'luonnonmetsakartat'}
               keyName={'sidebar.admin.create.is_visible'}
             ></T>
-          </CheckBoxWithText>
+          </SwitchWithLabel>
           {/* <TextFieldWithHeader
             headerText={t('sidebar.admin.create.description.header')}
             value={folayerDescriptionValue}

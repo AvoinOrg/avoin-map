@@ -9,7 +9,7 @@ import { MapGeoJSONFeature } from 'maplibre-gl'
 import { getCombinedBounds } from '#/common/utils/map'
 import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
 import Link from '#/components/common/Link'
-import CheckBoxWithText from '#/components/common/CheckBoxWithText'
+import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 // import { setOverlayMessage } from '../../OverlayMessages/OverlayMessages'
 // import * as SelectedFeatureState from './ArvometsaSelectedLayer'
 import { useMapStore, useUIStore } from '#/common/store'
@@ -638,7 +638,7 @@ const FinlandForests = () => {
                   </Typography>
                 </Box>
               )}
-              <CheckBoxWithText
+              <SwitchWithLabel
                 sx={{ mt: 7 }}
                 checked={perHectareFlag}
                 onChange={(event) => {
@@ -647,8 +647,8 @@ const FinlandForests = () => {
                 }}
               >
                 Show values per hectare
-              </CheckBoxWithText>
-              <CheckBoxWithText
+              </SwitchWithLabel>
+              <SwitchWithLabel
                 sx={{ mt: 2 }}
                 checked={carbonBalanceDifferenceFlag}
                 onChange={onChangeCheckbox(setCarbonBalanceDifferenceFlag)}
@@ -656,7 +656,7 @@ const FinlandForests = () => {
               >
                 Show carbon balance improvement potential compared to the
                 prevalent forestry practice
-              </CheckBoxWithText>
+              </SwitchWithLabel>
               <Box sx={{ mt: 7, p: 2, backgroundColor: 'neutral.light' }}>
                 <Box>
                   <DropDownSelectWithHeader
@@ -735,13 +735,13 @@ const FinlandForests = () => {
               minWidth: 0,
             }}
           >
-            <CheckBoxWithText
+            <SwitchWithLabel
               sx={{ mb: 7 }}
               checked={cumulativeFlag}
               onChange={onChangeCheckbox(setCumulativeFlag)}
             >
               Show cumulative carbon balance
-            </CheckBoxWithText>
+            </SwitchWithLabel>
             {hasFeature && (
               <>
                 <Box

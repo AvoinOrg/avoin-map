@@ -16,7 +16,7 @@ import IconWithText from '#/components/common/IconWithText'
 import { LoadingSpinner } from '#/components/Loading'
 import { SidebarContentBox } from '#/components/Sidebar'
 import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
-import CheckBoxWithText from '#/components/common/CheckBoxWithText'
+import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 import { useSidebarActivityLoader } from '#/common/hooks/ui/useSidebarActivityLoader'
 import BigMenuButton from '#/components/common/BigMenuButton'
 import { Upload } from '#/components/icons'
@@ -255,7 +255,7 @@ const Page = () => {
                 sx={{ mt: 4 }}
                 labelText={t('sidebar.admin.folayer.settings.color')}
               />
-              <CheckBoxWithText
+              <SwitchWithLabel
                 checked={adminFolayerConf.isVisible}
                 onChange={handleIsVisibleChange}
                 sx={{ mt: 4 }}
@@ -264,7 +264,7 @@ const Page = () => {
                   ns={'luonnonmetsakartat'}
                   keyName={'sidebar.admin.folayer.settings.is_visible'}
                 />
-              </CheckBoxWithText>
+              </SwitchWithLabel>
             </Box>
             {/* Import/update shapefile */}
             <Box
@@ -297,7 +297,7 @@ const Page = () => {
                 arrayBuffers &&
                 arrayBuffers.length > 0 && (
                   <>
-                    <CheckBoxWithText
+                    <SwitchWithLabel
                       checked={deleteAreasNotUpdated}
                       onChange={(_e, checked) =>
                         setDeleteAreasNotUpdated(checked)
@@ -310,7 +310,7 @@ const Page = () => {
                           'sidebar.admin.folayer.settings.delete_areas_not_updated'
                         }
                       />
-                    </CheckBoxWithText>
+                    </SwitchWithLabel>
                     <Box sx={{ mt: 5 }}>
                       <FolayerUpdateShp
                         fileBuffers={arrayBuffers}
