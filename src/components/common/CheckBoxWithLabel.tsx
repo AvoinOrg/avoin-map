@@ -10,7 +10,7 @@ import {
 import CheckboxIcon from '#/components/icons/Checkbox'
 import CheckboxCheckedIcon from '#/components/icons/CheckboxChecked'
 
-interface CheckBoxWithTextProps {
+interface CheckBoxWithLabelProps {
   checked: boolean
   onChange: (
     event: React.SyntheticEvent<Element, Event>,
@@ -28,7 +28,7 @@ interface CheckBoxWithTextProps {
   [key: string]: any
 }
 
-const CheckBoxWithText = ({
+const CheckBoxWithLabel = ({
   checked,
   onChange,
   children,
@@ -40,7 +40,7 @@ const CheckBoxWithText = ({
   disabled = false,
   required = false,
   ...rest // Captures other props for the MUI Checkbox (e.g., name, value)
-}: CheckBoxWithTextProps) => {
+}: CheckBoxWithLabelProps) => {
   return (
     <FormControlLabel
       sx={[
@@ -132,4 +132,4 @@ const CheckBoxWithText = ({
   )
 }
 
-export default CheckBoxWithText
+export default CheckBoxWithLabel
