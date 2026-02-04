@@ -5,6 +5,7 @@ import {
   Autocomplete,
   Box,
   Collapse,
+  CircularProgress,
   IconButton,
   TextField,
   Typography,
@@ -52,6 +53,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
   const [value, setValue] = useState('')
   const [inputValue, setInputValue] = useState('')
   const [isFocused, setIsFocused] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const fetchCounter = React.useRef(0)
   const remoteCacheRef = useRef<Map<string, any[]>>(new Map())
   const remoteRequestRef = useRef<AbortController | null>(null)
@@ -108,9 +110,10 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
         const properties = feature.properties
         if (!properties) return
 
-        const values = (fields && fields.length > 0
-          ? fields.map((field) => properties[field])
-          : Object.values(properties)
+        const values = (
+          fields && fields.length > 0
+            ? fields.map((field) => properties[field])
+            : Object.values(properties)
         ).filter((value) => value != null && value !== '')
 
         if (values.length === 0) return
@@ -157,8 +160,13 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
         const bbox = (entry.feature as any).bbox
           ? ((entry.feature as any).bbox as [number, number, number, number])
           : entry.feature.geometry
-          ? (turfBBox(entry.feature as any) as [number, number, number, number])
-          : null
+            ? (turfBBox(entry.feature as any) as [
+                number,
+                number,
+                number,
+                number,
+              ])
+            : null
 
         const displayNameArr = entry.appendDatasetName
           ? [...entry.displayNameArr, `(${entry.datasetName})`]
@@ -187,7 +195,10 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
   const handleSearch = useCallback(
     async (rawQuery: string) => {
       const query = rawQuery.trim()
-      if (!query) return
+      if (!query) {
+        setIsLoading(false)
+        return
+      }
       const currentFetchId = ++fetchCounter.current
 
       const localResults = performLocalSearch(query)
@@ -197,6 +208,9 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
       }
 
       if (query.length < MIN_REMOTE_QUERY_LENGTH) {
+        if (currentFetchId === fetchCounter.current) {
+          setIsLoading(false)
+        }
         return
       }
 
@@ -207,6 +221,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
       if (cachedResults) {
         if (currentFetchId === fetchCounter.current) {
           setSearchResults([...localResults, ...cachedResults])
+          setIsLoading(false)
         }
         return
       }
@@ -214,6 +229,9 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
       remoteRequestRef.current?.abort()
       const controller = new AbortController()
       remoteRequestRef.current = controller
+      if (currentFetchId === fetchCounter.current) {
+        setIsLoading(true)
+      }
 
       try {
         let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
@@ -238,11 +256,13 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
 
         if (currentFetchId === fetchCounter.current) {
           setSearchResults([...localResults, ...res.data])
+          setIsLoading(false)
         }
       } catch (e) {
         if (controller.signal.aborted) return
         if (currentFetchId === fetchCounter.current) {
           setSearchResults(localResults)
+          setIsLoading(false)
         }
       }
     },
@@ -263,6 +283,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
       debouncedSearch(query)
     } else {
       setSearchResults([])
+      setIsLoading(false)
     }
     return () => {
       debouncedSearch.cancel()
@@ -439,13 +460,32 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
                   startAdornment: (
                     <>
                       {params.InputProps.startAdornment}
-                      <Search
-                        sx={{
-                          color: 'action.active',
-                          width: '24px',
-                          height: '26px',
-                        }}
-                      />
+                      {isLoading ? (
+                        <Box
+                          sx={{
+                            width: '24px',
+                            height: '24px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <CircularProgress
+                            size={18}
+                            sx={{
+                              color: 'action.active',
+                            }}
+                          />
+                        </Box>
+                      ) : (
+                        <Search
+                          sx={{
+                            color: 'action.active',
+                            width: '24px',
+                            height: '24px',
+                          }}
+                        />
+                      )}
                     </>
                   ),
                 },
