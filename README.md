@@ -47,7 +47,7 @@ The app serves on `http://localhost:3000` unless `DEV_PORT` overrides it.
 - `src/app/[locale]/(map)/(applets)/(main)`: Main app pages/components.
 - `src/common`: Shared hooks, routing, store, types, utilities.
 - `src/components`: Shared UI and map components.
-- `utils/scripts`: Build-time helpers (translations, applet prebuild, redirects).
+- `utils/scripts`: Build-time helpers (translations, folder pruning, Netlify helpers).
 
 ## Applets and build modes
 
@@ -55,13 +55,26 @@ Applets are self-contained apps that reuse shared map components but keep their
 own pages, stores, and layer configs. They can run inside the main app or as
 standalone deployments.
 
-- `APPLET=<namespace> yarn build-applet` runs `utils/scripts/prebuildApplet.js`
-  to keep a single applet, rewrite import paths, and update `tsconfig` aliases.
-- `NEXT_PUBLIC_COMPILED_APPLETS` controls which applets are compiled. If only
-  one non-`main` applet is compiled, the app runs as a standalone site.
-- `localeConf.json` defines applet namespaces, locales, and optional domains.
-- `utils/scripts/writeNetlifyRedirects.js` uses `localeConf.json` to generate
-  Netlify `_redirects` rules for applet domains.
+- `NEXT_PUBLIC_COMPILED_APPLETS` drives both runtime routing and build-time
+  pruning:
+  - If it includes `main`, we build the main app and only the listed applets
+    (unlisted applet folders are pruned).
+  - If it does not include `main`, exactly one applet must be listed; that
+    build runs in standalone mode.
+- `appletConf.json` defines applets, their Tolgee namespace (`localeNs`),
+  languages, and optional domains.
+- Builds run in a temp workspace (non-destructive):
+  - `yarn prebuild-dev`: downloads translations (writes `i18n/*`).
+  - `yarn prebuild`: downloads translations + prepares a pruned temp workspace
+    (see `utils/scripts/prebuildFolderPruneTmp.js` and
+    `utils/scripts/prebuildFolderPrune.js`).
+  - `yarn build`: runs `yarn prebuild`, then runs `next build` in the temp
+    workspace, then copies `.next` plus `public/files` + `public/lib` back to
+    the real workspace (see `utils/scripts/buildFromFolderPruneTmp.js`).
+    The temp workspace path is persisted in `.applet-build-tmp.json` (gitignored);
+    set `BUILD_TMP_KEEP=1` to keep the temp folder for debugging.
+- `utils/scripts/writeNetlifyRedirects.js` exists for legacy Netlify domain
+  setups, but is not part of the default build pipeline.
 
 ## Routing and navigation
 
@@ -87,7 +100,8 @@ limitations.
 
 - Map rendering uses MapLibre GL JS.
 - UI components and styling are built with MUI (Material UI); prefer the `sx`
-  prop for styling over separate style sheets when possible.
+  prop for styling over `styled()` / `@emotion/styled` and separate style sheets
+  when possible (use `styled` only when it significantly improves DRY/reuse).
 - State is managed with Zustand; the map store is split into slices and applet
   stores live in their applet folders.
 - Data fetching uses TanStack Query.
@@ -106,8 +120,10 @@ limitations.
 ## Localization
 
 - Tolgee provides translations; namespaces and languages live in
-  `localeConf.json`.
-- `utils/scripts/downloadTranslations.js` generates `i18n/*` during prebuild.
+  `appletConf.json` (`localeNs` + `langs`).
+- `utils/scripts/downloadTranslations.js` generates `i18n/*`. It only downloads
+  namespaces for applets listed in `NEXT_PUBLIC_COMPILED_APPLETS` (and always
+  includes the shared `main` namespace, `avoin-map`, for the active locales).
 - The Tolgee browser plugin (Alt+click) is the preferred editing workflow.
 
 ## Auth

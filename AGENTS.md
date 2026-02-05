@@ -13,17 +13,28 @@ standalone sites.
 - `src/app/[locale]/(map)/(applets)/(main)`: Main app pages/components.
 - `src/components`: Shared UI and map components.
 - `src/common`: Shared hooks, routing, store, types, and utilities.
-- `utils/scripts`: Build-time helpers (translations, applet prebuild, redirects).
+- `utils/scripts`: Build-time helpers (translations, folder pruning, Netlify helpers).
 
 ## Applets and build modes
 
 - Applets live under `src/app/[locale]/(map)/(applets)/<namespace>`.
-- `APPLET=<namespace> yarn build-applet` runs `utils/scripts/prebuildApplet.js`
-  to keep only one applet, update `tsconfig` aliases, and rewrite applet import
-  paths.
-- `NEXT_PUBLIC_COMPILED_APPLETS` controls which applets are compiled. If only
-  one applet (and not `main`) is compiled, the app runs in standalone mode.
-- `localeConf.json` declares applets, their locales, and optional domains.
+- `NEXT_PUBLIC_COMPILED_APPLETS` drives both runtime routing and build-time
+  pruning (see `utils/scripts/prebuildFolderPrune.js`):
+  - If it includes `main`, the main app is built and only the listed applets
+    remain (unlisted applet folders are removed in the temp build workspace).
+  - If it does not include `main`, exactly one applet must be listed; that
+    build runs in standalone mode.
+- `appletConf.json` declares applets, their Tolgee namespace (`localeNs`),
+  languages, and optional domains.
+- Builds run in a non-destructive temp workspace:
+  - `yarn prebuild-dev`: downloads translations (writes `i18n/*`).
+  - `yarn prebuild`: downloads translations + prepares a pruned temp workspace
+    (see `utils/scripts/prebuildFolderPruneTmp.js`).
+  - `yarn build`: runs `yarn prebuild`, then runs `next build` in the temp
+    workspace, then copies `.next` + `public/files` + `public/lib` back to the
+    real workspace (see `utils/scripts/buildFromFolderPruneTmp.js`).
+    The temp workspace path is tracked in `.applet-build-tmp.json` (gitignored);
+    set `BUILD_TMP_KEEP=1` to keep the temp folder for debugging.
 
 ## Routing
 
@@ -49,10 +60,11 @@ standalone sites.
 ## Localization
 
 - Tolgee powers translations. Applet namespaces and locales are defined in
-  `localeConf.json`.
+  `appletConf.json` (`localeNs` + `langs`).
 - `utils/scripts/downloadTranslations.js` downloads translation files into
-  `i18n/` based on `localeConf.json` (requires `TOLGEE_API_URL` and
-  `TOLGEE_API_KEY`).
+  `i18n/` for applets listed in `NEXT_PUBLIC_COMPILED_APPLETS` (and always
+  includes the shared `main` namespace, `avoin-map`, for the active locales;
+  requires `TOLGEE_API_URL` and `TOLGEE_API_KEY`).
 - Prefer the Tolgee browser plugin (Alt+click) for editing keys.
 - Never directly edit the language json files within the i18n folder. Those are automatically downloaded from the Tolgee server.
 - Never add a backup string for a key; Always simply use keys. That way we can directly see in UI which keys have not been manually checked.
@@ -80,8 +92,11 @@ standalone sites.
 - Layer configs live in `src/components/Map/layers` plus applet-specific layer
   definitions.
 - Styles use MapLibre/Mapbox expression syntax for dynamic styling.
-- UI uses MUI (Material UI). Prefer styling via the `sx` prop to keep component
-  styling colocated with usage.
+- UI uses MUI (Material UI). Prefer styling via the `sx` prop (including `sx`
+  arrays) to keep component styling colocated with usage.
+- Prefer `sx` over `styled()` / `@emotion/styled`; only use `styled` when it
+  materially improves DRY/reuse or encapsulates styling that can’t be expressed
+  cleanly with `sx`.
 
 ## Auth
 
