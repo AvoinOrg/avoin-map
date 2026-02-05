@@ -1,14 +1,13 @@
 import { NextResponse, NextRequest } from 'next/server'
 import {
   DEFAULT_LOCALE,
-  DEFAULT_NS,
-  getLocalesForNs,
+  getLocalesForApplet,
 } from '#/common/navigation/tolgee/shared'
 import { compiledApplets } from './common/routing/routing'
 import { MAIN_NAMESPACE } from './common/routing/routes/main'
 
 // If you don't use domain-based detection anymore, remove this import.
-import conf from '../localeConf.json' assert { type: 'json' }
+import conf from '../appletConf.json' assert { type: 'json' }
 
 // ---------- helpers ----------
 const SKIP_PREFIXES = new Set([
@@ -44,9 +43,7 @@ function redirectPreserveQuery(req: NextRequest, toPath: string) {
 // })()
 
 const KNOWN_APPLETS = new Set(
-  Object.keys((conf as any).default || conf).filter(
-    (k) => ((conf as any).default || conf)[k].applet
-  )
+  Object.keys((conf as any).default || conf).filter((k) => k !== MAIN_NAMESPACE)
 )
 
 function findAppletFromSegment(seg: string): string | null {
@@ -104,8 +101,8 @@ export function middleware(req: NextRequest) {
   }
   // ----------------- Standalone APPLET site -----------------
   if (envNs) {
-    const allowed = new Set<string>(getLocalesForNs(envNs))
-    const def = getLocalesForNs(envNs)[0] ?? DEFAULT_LOCALE
+    const allowed = new Set<string>(getLocalesForApplet(envNs))
+    const def = getLocalesForApplet(envNs)[0] ?? DEFAULT_LOCALE
 
     // Make the locale visible in the URL (redirect)
     if (pathname === '/') return redirectPreserveQuery(req, `/${def}`)
@@ -142,7 +139,7 @@ export function middleware(req: NextRequest) {
   const isApplet = !!targetNs
 
   if (isApplet) {
-    const localesForNs = getLocalesForNs(targetNs!)
+    const localesForNs = getLocalesForApplet(targetNs!)
 
     if (!hasLocale) {
       // "/applet/..." (no locale) -> "/<appletDefault>/applet/..."
@@ -162,7 +159,7 @@ export function middleware(req: NextRequest) {
   }
 
   // No applet path detected
-  const localesForNs = getLocalesForNs(DEFAULT_NS)
+  const localesForNs = getLocalesForApplet(MAIN_NAMESPACE)
 
   if (hasLocale) {
     if (!localesForNs.includes(locale!)) {

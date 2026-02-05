@@ -11,7 +11,7 @@ ln -s /home/node/dev/.bash_history /home/node/.bash_history
 
 
 if [ "$NODE_ENV" = "production" ]; then
-    yarn install --only=prod && yarn run prebuild && yarn build && yarn start;
+    yarn install --only=prod && yarn build && yarn start;
 else
-    yarn install && yarn run prebuild && yarn dev;
+    yarn install && yarn run prebuild-dev && yarn dev;
 fi
