@@ -58,6 +58,10 @@ declare module '@mui/material/styles' {
 declare module '@mui/material/Typography' {
   interface TypographyPropsVariantOverrides {
     buttonSmall: true
+    h7: true
+    h8: true
+    h9: true
+    body7: true
   }
 }
 
