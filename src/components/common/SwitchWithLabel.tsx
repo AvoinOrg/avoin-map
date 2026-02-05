@@ -26,7 +26,7 @@ interface SwitchWithLabelProps {
   [key: string]: any
 }
 
-const AvoinSwitch = styled((props: SwitchProps) => (
+const CustomSwitch = styled((props: SwitchProps) => (
   <Switch focusVisibleClassName=".Mui-focusVisible" disableRipple {...props} />
 ))(({ theme }) => ({
   width: 44,
@@ -40,7 +40,7 @@ const AvoinSwitch = styled((props: SwitchProps) => (
       transform: 'translateX(16px)',
       color: theme.palette.common.white,
       '& + .MuiSwitch-track': {
-        backgroundColor: theme.palette.primary.dark,
+        backgroundColor: theme.palette.secondary.dark,
         opacity: 1,
         border: 0,
       },
@@ -69,30 +69,6 @@ const AvoinSwitch = styled((props: SwitchProps) => (
     transition: theme.transitions.create(['background-color'], {
       duration: 250,
     }),
-    '&::before, &::after': {
-      content: '""',
-      position: 'absolute',
-      top: '50%',
-      transform: 'translateY(-50%)',
-      width: 14,
-      height: 14,
-      backgroundRepeat: 'no-repeat',
-      backgroundPosition: 'center',
-      opacity: 0.65,
-      pointerEvents: 'none',
-    },
-    '&::before': {
-      left: 7,
-      backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' height='14' width='14' viewBox='0 0 24 24'><path fill='${encodeURIComponent(
-        theme.palette.getContrastText(theme.palette.primary.dark),
-      )}' d='M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z'/></svg>")`,
-    },
-    '&::after': {
-      right: 7,
-      backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' height='14' width='14' viewBox='0 0 24 24'><path fill='${encodeURIComponent(
-        theme.palette.getContrastText(theme.palette.primary.dark),
-      )}' d='M19,13H5V11H19V13Z'/></svg>")`,
-    },
   },
 }))
 
@@ -125,7 +101,7 @@ const SwitchWithLabel = ({
         ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
       ]}
       control={
-        <AvoinSwitch
+        <CustomSwitch
           sx={[
             ...(Array.isArray(controlSx)
               ? controlSx
@@ -145,7 +121,8 @@ const SwitchWithLabel = ({
               color: (theme: Theme) =>
                 disabled
                   ? theme.palette.text.disabled
-                  : theme.palette.neutral.darker ?? theme.palette.text.primary,
+                  : (theme.palette.neutral.darker ??
+                    theme.palette.text.primary),
               userSelect: 'none',
               ml: 2,
               opacity: disabled ? 0.8 : 1,
