@@ -45,7 +45,7 @@
     "@mui/material": "^7.2.0",
     "@mui/material-nextjs": "^7.2.0",
     "@next/bundle-analyzer": "^13.2.4",
-    "@ngageoint/geopackage": "^4.2.3",
+    "@ngageoint/geopackage": "^4.2.6",
     "@tanstack/react-query": "rc",
     "@tanstack/react-table": "^8.21.3",
     "@tolgee/format-icu": "^6.2.7",
