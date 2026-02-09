@@ -85,6 +85,49 @@ const cleanup = (tmpRoot) => {
   fs.rmSync(statePath, { force: true })
 }
 
+const rewriteTmpPathsInNextOutput = ({ tmpRoot }) => {
+  // Netlify's Next plugin reads tracing metadata from `.next` that can contain
+  // absolute paths from the build-time working directory. Because we build in a
+  // temp workspace, those paths would point to `/tmp/...` and break the plugin
+  // after we clean up the temp folder.
+  const nextDir = path.join(projectRoot, '.next')
+  if (!fs.existsSync(nextDir)) return
+
+  let rewrittenFiles = 0
+
+  const visit = (dir) => {
+    const entries = fs.readdirSync(dir, { withFileTypes: true })
+    for (const ent of entries) {
+      const full = path.join(dir, ent.name)
+      if (ent.isDirectory()) {
+        visit(full)
+        continue
+      }
+      if (!ent.isFile()) continue
+      if (!ent.name.endsWith('.json')) continue
+
+      let text
+      try {
+        text = fs.readFileSync(full, 'utf8')
+      } catch {
+        continue
+      }
+
+      if (!text.includes(tmpRoot)) continue
+      fs.writeFileSync(full, text.split(tmpRoot).join(projectRoot), 'utf8')
+      rewrittenFiles += 1
+    }
+  }
+
+  visit(nextDir)
+
+  if (rewrittenFiles > 0) {
+    console.log(
+      `buildFromFolderPruneTmp: rewrote build-time tmp paths in ${rewrittenFiles} .next json file(s)`
+    )
+  }
+}
+
 const main = () => {
   const tmpRoot = readTmpRoot()
   console.log(`buildFromFolderPruneTmp: tmp=${tmpRoot}`)
@@ -97,6 +140,7 @@ const main = () => {
     )
 
     copyArtifactsBack(tmpRoot)
+    rewriteTmpPathsInNextOutput({ tmpRoot })
     cleanup(tmpRoot)
   } catch (e) {
     console.error(`buildFromFolderPruneTmp: failed: ${e.message}`)
@@ -111,4 +155,3 @@ const main = () => {
 }
 
 main()
-
