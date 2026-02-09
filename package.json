@@ -44,6 +44,7 @@
     "@mui/icons-material": "^7.2.0",
     "@mui/material": "^7.2.0",
     "@mui/material-nextjs": "^7.2.0",
+    "@netlify/plugin-nextjs": "^5.15.8",
     "@next/bundle-analyzer": "^13.2.4",
     "@ngageoint/geopackage": "^4.2.6",
     "@tanstack/react-query": "rc",

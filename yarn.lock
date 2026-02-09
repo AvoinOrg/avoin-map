@@ -3380,6 +3380,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@netlify/plugin-nextjs@npm:^5.15.8":
+  version: 5.15.8
+  resolution: "@netlify/plugin-nextjs@npm:5.15.8"
+  checksum: 9d498e7510461e9b735e3065d8b4ffd8fd8b88c4f5787b71e67bfca041ff1786dad236eb3e9e21cdb49daa0d533f168bdf1ed404a09f22339db59096618d29e0
+  languageName: node
+  linkType: hard
+
 "@next/bundle-analyzer@npm:^13.2.4":
   version: 13.4.7
   resolution: "@next/bundle-analyzer@npm:13.4.7"
@@ -8079,6 +8086,7 @@ __metadata:
     "@mui/icons-material": ^7.2.0
     "@mui/material": ^7.2.0
     "@mui/material-nextjs": ^7.2.0
+    "@netlify/plugin-nextjs": ^5.15.8
     "@next/bundle-analyzer": ^13.2.4
     "@ngageoint/geopackage": ^4.2.6
     "@pmmmwh/react-refresh-webpack-plugin": ^0.5.10
