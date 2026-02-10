@@ -17,6 +17,7 @@ const DropDownSelectWithHeader = ({
         {
           typography: 'h7',
           mb: 1,
+          borderRadius: '999px',
         },
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
