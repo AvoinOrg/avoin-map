@@ -4,7 +4,7 @@ import { Box, SxProps, Theme, Typography } from '@mui/material'
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 
 import MutableLink from '#/components/common/MutableLink'
-import { getRoutesForPath } from '#/common/routing/routing'
+import { compiledApplets, getRoutesForPath } from '#/common/routing/routing'
 import { RouteForLinks, RouteTree } from '#/common/types/routing'
 import { useUIStore } from '#/common/store'
 import { mainRouteTree } from '#/common/routing/routes/main'
@@ -21,9 +21,14 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
   const isBaseDomainForApplet = useUIStore(
     (state) => state.isBaseDomainForApplet
   )
+  const isStandaloneAppletBuild =
+    compiledApplets.length === 1 && !compiledApplets.includes('main')
 
   const { routes, usedRouteTree } = useMemo(() => {
-    if (isBaseDomainForApplet && !mainRouteTree._conf.domain) {
+    if (
+      isStandaloneAppletBuild ||
+      (isBaseDomainForApplet && !mainRouteTree._conf.domain)
+    ) {
       return {
         routes: getRoutesForPath(pathname, routeTree),
         usedRouteTree: routeTree,
@@ -33,7 +38,7 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
       routes: getRoutesForPath(pathname, mainRouteTree),
       usedRouteTree: mainRouteTree,
     }
-  }, [routeTree, isBaseDomainForApplet, pathname])
+  }, [routeTree, isBaseDomainForApplet, isStandaloneAppletBuild, pathname])
 
   const RouteElement = ({ route }: { route: RouteForLinks }) => (
     <MutableLink
