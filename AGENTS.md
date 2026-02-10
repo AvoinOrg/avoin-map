@@ -111,6 +111,13 @@ standalone sites.
 - Use path aliases (`#/*`, `applets/*`, `@i18n/*`) instead of deep relative
   imports.
 
+## Environment variables
+
+- If you add, rename, or remove environment variables in code, scripts, or
+  build configuration, update `.env.template` in the same change.
+- Keep `.env.template` non-secret and include a short purpose comment for new
+  keys.
+
 ## Components
 
 - Always use functional components (const MyComponent = () => {}).
