@@ -122,13 +122,19 @@ const nextConfig = {
 
       // next-intl ships minified production bundles with stripped error
       // messages. For debug builds, swap to development bundles.
+      const nextIntlClientEntry = require.resolve('next-intl')
+      const nextIntlNavigationEntry = require.resolve('next-intl/navigation')
       config.resolve.alias = {
         ...(config.resolve.alias || {}),
-        'next-intl$': require.resolve(
-          'next-intl/dist/development/index.react-client.js'
+        'next-intl$': path.join(
+          path.dirname(nextIntlClientEntry),
+          'development',
+          'index.react-client.js'
         ),
-        'next-intl/navigation$': require.resolve(
-          'next-intl/dist/development/navigation.react-client.js'
+        'next-intl/navigation$': path.join(
+          path.dirname(nextIntlNavigationEntry),
+          'development',
+          'navigation.react-client.js'
         ),
       }
     }
