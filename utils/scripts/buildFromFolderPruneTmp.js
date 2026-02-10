@@ -104,7 +104,7 @@ const rewriteTmpPathsInNextOutput = ({ tmpRoot }) => {
         continue
       }
       if (!ent.isFile()) continue
-      if (!ent.name.endsWith('.json')) continue
+      if (!ent.name.endsWith('.json') && ent.name !== 'trace') continue
 
       let text
       try {
