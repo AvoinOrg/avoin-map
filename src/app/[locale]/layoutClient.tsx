@@ -19,13 +19,15 @@ const LayoutClient = ({
   // Layouts must accept a children prop.
   // This will be populated with nested layouts or pages
   children,
+  locale,
 }: {
   children: React.ReactNode
+  locale: string
 }) => {
   return (
     // TODO: Does this even do anything? Figure it out.
     // Supposedly the locale needs to be supplied
-    <NextIntlClientProvider locale={'en'}>
+    <NextIntlClientProvider locale={locale}>
       <SessionProvider>
         <ThemeProvider theme={theme}>
           <CssBaseline />

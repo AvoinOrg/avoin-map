@@ -119,6 +119,18 @@ const nextConfig = {
         minimizer: [],
       }
       config.devtool = 'source-map'
+
+      // next-intl ships minified production bundles with stripped error
+      // messages. For debug builds, swap to development bundles.
+      config.resolve.alias = {
+        ...(config.resolve.alias || {}),
+        'next-intl$': require.resolve(
+          'next-intl/dist/development/index.react-client.js'
+        ),
+        'next-intl/navigation$': require.resolve(
+          'next-intl/dist/development/navigation.react-client.js'
+        ),
+      }
     }
 
     config.resolve.alias['@i18n'] = path.resolve(__dirname, 'i18n')
