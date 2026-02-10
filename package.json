@@ -11,6 +11,7 @@
     "prebuild-dev": "node ./utils/scripts/downloadTranslations.js",
     "prebuild": "yarn run prebuild-dev && node ./utils/scripts/prebuildFolderPruneTmp.js",
     "build": "yarn run prebuild && node ./utils/scripts/buildFromFolderPruneTmp.js",
+    "build-prune": "yarn run prebuild-dev && node ./utils/scripts/prebuildFolderPrune.js && node ./node_modules/next/dist/bin/next build",
     "build-analyze": "ANALYZE=true yarn build",
     "test": "jest",
     "test:watch": "jest --watch",

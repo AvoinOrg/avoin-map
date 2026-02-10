@@ -36,10 +36,17 @@ const readTmpRoot = () => {
   }
 
   const raw = fs.readFileSync(statePath, 'utf8')
-  const state = JSON.parse(raw)
+  const state = (() => {
+    try {
+      return JSON.parse(raw)
+    } catch {
+      die(`buildFromFolderPruneTmp: invalid state JSON in ${statePath}`)
+    }
+  })()
+
   const tmpRoot = state?.tmpRoot
   if (typeof tmpRoot !== 'string' || tmpRoot.trim() === '') {
-    die(`buildFromFolderPruneTmp: invalid state in ${statePath}`)
+    die(`buildFromFolderPruneTmp: invalid tmp state in ${statePath}`)
   }
 
   if (!fs.existsSync(tmpRoot)) {
