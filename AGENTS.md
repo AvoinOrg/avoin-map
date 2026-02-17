@@ -15,6 +15,16 @@ standalone sites.
 - `src/common`: Shared hooks, routing, store, types, and utilities.
 - `utils/scripts`: Build-time helpers (translations, folder pruning, Netlify helpers).
 
+## Figma MCP (WSL2/devcontainer)
+
+- The Figma MCP server can run on the Windows host at `http://127.0.0.1:3845/mcp`.
+- From inside the devcontainer, use `http://host.docker.internal:3845/mcp`
+  (also available via `FIGMA_MCP_URL` in `.devcontainer/devcontainer.json`).
+- Ensure the compose service has
+  `extra_hosts: ["host.docker.internal:host-gateway"]` for host reachability.
+- `curl`/browser calls that return JSON-RPC `Invalid sessionId` indicate the
+  endpoint is reachable and awaiting a proper MCP session.
+
 ## Applets and build modes
 
 - Applets live under `src/app/[locale]/(map)/(applets)/<namespace>`.

@@ -40,6 +40,27 @@ docker compose up
 
 The app serves on `http://localhost:3000` unless `DEV_PORT` overrides it.
 
+## Figma MCP in devcontainer
+
+When the Figma MCP server runs on the Windows host (for example at
+`http://127.0.0.1:3845/mcp` on Windows), use this endpoint from the
+devcontainer:
+
+- `http://host.docker.internal:3845/mcp`
+- `.devcontainer/devcontainer.json` exposes this as `FIGMA_MCP_URL`
+- The compose service must include
+  `extra_hosts: ["host.docker.internal:host-gateway"]` (already present in this repo)
+
+Quick connectivity check from inside the container:
+
+```bash
+curl -i "$FIGMA_MCP_URL"
+```
+
+If you get a JSON-RPC error like `Invalid sessionId`, networking is working.
+That response means the server is reachable but expects an MCP session, not a
+plain HTTP request.
+
 ## App structure
 
 - `src/app`: Next.js App Router entries (routes, layouts, API handlers).

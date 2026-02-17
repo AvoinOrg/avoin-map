@@ -52,5 +52,8 @@
   // "remoteEnv": {
   //   "SSH_AUTH_SOCK": "/ssh-sockets/agent.sock"
   // },
+  "remoteEnv": {
+    "FIGMA_MCP_URL": "http://host.docker.internal:3845/mcp"
+  },
   "remoteUser": "node"
 }
