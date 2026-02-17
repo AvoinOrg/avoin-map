@@ -155,7 +155,9 @@ i18n/*
 
 .dev
 
-.codex
+.codex/**
+!.codex/**/
+!.codex/**/*.template
 
 # Temp build workspace state (see utils/scripts/prebuildFolderPruneTmp.js)
 .applet-build-tmp.json
