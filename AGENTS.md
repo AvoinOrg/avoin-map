@@ -24,6 +24,10 @@ standalone sites.
   `extra_hosts: ["host.docker.internal:host-gateway"]` for host reachability.
 - `curl`/browser calls that return JSON-RPC `Invalid sessionId` indicate the
   endpoint is reachable and awaiting a proper MCP session.
+- When a user shares a public Figma URL, do not pass the full URL to MCP tools.
+  Extract `node-id` from the URL and use that as MCP `nodeId`.
+- Convert URL-style node IDs to MCP format when needed:
+  `node-id=3163-8036` -> `nodeId: "3163:8036"`.
 
 ## Applets and build modes
 
