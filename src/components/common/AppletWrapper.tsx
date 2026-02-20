@@ -34,11 +34,13 @@ type AppletWrapperProps = BaseAppletWrapperProps &
         sidebarHeaderElement?: React.ReactNode
         sidebarHeaderTitle?: never
         sidebarHeaderChildren?: never
+        sidebarHeaderBackgroundImage?: never
       }
     | {
         sidebarHeaderElement?: never
         sidebarHeaderTitle?: string
         sidebarHeaderChildren?: React.ReactNode
+        sidebarHeaderBackgroundImage?: string
       }
   )
 
@@ -55,6 +57,7 @@ const AppletWrapper = ({
   sidebarHeaderElement,
   sidebarHeaderTitle,
   sidebarHeaderChildren,
+  sidebarHeaderBackgroundImage,
   sx,
 }: AppletWrapperProps) => {
   const tolgee = useTolgee(['update'])
@@ -146,17 +149,20 @@ const AppletWrapper = ({
 
   // Update sidebar header title when it changes
   useEffect(() => {
-    if (sidebarHeaderTitle) {
-      setSidebarHeaderConfig({ title: sidebarHeaderTitle })
-    } else {
-      setSidebarHeaderConfig({ title: 'avoin map' })
-    }
+    setSidebarHeaderConfig({
+      title: sidebarHeaderTitle || 'avoin map',
+      backgroundImage: sidebarHeaderBackgroundImage,
+    })
 
     return () => {
       // Reset to default on unmount
       setSidebarHeaderConfig({ title: 'avoin map' })
     }
-  }, [sidebarHeaderTitle, setSidebarHeaderConfig])
+  }, [
+    sidebarHeaderTitle,
+    sidebarHeaderBackgroundImage,
+    setSidebarHeaderConfig,
+  ])
 
   const isTolgeeReady = () => {
     if (
