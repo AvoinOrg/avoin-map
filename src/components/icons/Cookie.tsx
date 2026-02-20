@@ -7,7 +7,7 @@ type Props = {
 // Figma node 2838:38812
 // MCP asset refs: http://localhost:3845/assets/8208f4e1c959724cca9a8722b01a00c61e4ab34a.svg
 // and the polygon assets in the same node.
-export const ATTRIBUTION_COOKIE_ICON_SVG = `
+export const COOKIE_ICON_SVG = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 26" fill="none" aria-hidden="true" focusable="false">
   <circle cx="13" cy="13" r="8.8" stroke="currentColor" stroke-width="1.4" />
   <circle cx="8.8" cy="8.6" r="1.15" fill="currentColor" />
@@ -20,7 +20,7 @@ export const ATTRIBUTION_COOKIE_ICON_SVG = `
 </svg>
 `.trim()
 
-const AttributionCookie = (props: Props) => (
+const Cookie = (props: Props) => (
   <Box
     component="svg"
     xmlns="http://www.w3.org/2000/svg"
@@ -41,4 +41,4 @@ const AttributionCookie = (props: Props) => (
   </Box>
 )
 
-export default AttributionCookie
+export default Cookie
