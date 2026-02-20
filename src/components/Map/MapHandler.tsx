@@ -34,6 +34,7 @@ import { OverlayMessages } from './OverlayMessages'
 import { MapPopupHandler } from './MapPopupHandler'
 import { decodeUrlAndParams } from '#/common/utils/map'
 import { MapActionsWrapper } from './MapActionsWrapper'
+import MapBottomControls from './MapBottomControls'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 // const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
@@ -50,7 +51,7 @@ export const MapHandler = ({ children }: Props) => {
   const { data: session } = useSession()
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
 
-  const mapDivRef = useRef<HTMLDivElement>()
+  const mapDivRef = useRef<HTMLDivElement | null>(null)
   // const mapRef = useRef<OlMap | null>(null)
   const mapLibraryRef = useRef<MapLibraryMode | null>(null)
 
@@ -65,6 +66,9 @@ export const MapHandler = ({ children }: Props) => {
   const _functionQueue = useMapStore((state) => state._functionQueue)
   const _executeFunctionQueue = useMapStore(
     (state) => state._executeFunctionQueue
+  )
+  const setMapAttributionHtml = useMapStore(
+    (state) => state.setMapAttributionHtml
   )
   const mapContext = useMapStore((state) => state.mapContext)
   const _addStaleSourceId = useMapStore((state) => state._addStaleSourceId)
@@ -179,10 +183,11 @@ export const MapHandler = ({ children }: Props) => {
 
     newMap.addControl(
       new AttributionControl({
-        compact: true,
+        compact: false,
         customAttribution:
           'Avoin Map hosted on <a href="https://www.netlify.com/" target="_blank">Netlify</a>',
-      })
+      }),
+      'bottom-left'
     )
 
     if (_map && _map.getStyle()) {
@@ -210,26 +215,30 @@ export const MapHandler = ({ children }: Props) => {
     newMap.on('click', mbSelectionFunction)
 
     newMap.on('load', () => {
-      // collapse the attribution
-      // const el = newMap
-      //   .getContainer()
-      //   .querySelector('.maplibregl-ctrl-attrib') as HTMLElement | null
-      // if (!el) return
-      // // Force compact mode + collapsed state immediately
-      // el.classList.add('maplibregl-compact')
-      // el.classList.remove('maplibregl-compact-show')
-      // el.removeAttribute('open')
+      const syncAttributionHtml = () => {
+        const attributionContainer = newMap
+          .getContainer()
+          .querySelector('.maplibregl-ctrl-attrib') as HTMLElement | null
 
-      // make attribtion links open in new tab
-      const attrib = newMap
-        .getContainer()
-        .querySelector('.maplibregl-ctrl-attrib')
-      if (!attrib) return
+        if (!attributionContainer) {
+          setMapAttributionHtml('')
+          return
+        }
 
-      const patchLinks = (root: ParentNode) => {
-        root.querySelectorAll<HTMLAnchorElement>('a').forEach((a) => {
+        attributionContainer.style.display = 'none'
+        attributionContainer.setAttribute('aria-hidden', 'true')
+
+        const attributionInner = attributionContainer.querySelector(
+          '.maplibregl-ctrl-attrib-inner'
+        ) as HTMLElement | null
+
+        if (!attributionInner) {
+          setMapAttributionHtml('')
+          return
+        }
+
+        attributionInner.querySelectorAll<HTMLAnchorElement>('a').forEach((a) => {
           a.setAttribute('target', '_blank')
-          // keep it safe:
           const rel = (a.getAttribute('rel') ?? '').split(/\s+/).filter(Boolean)
           const needed = ['noopener', 'noreferrer']
           a.setAttribute(
@@ -237,15 +246,27 @@ export const MapHandler = ({ children }: Props) => {
             Array.from(new Set([...rel, ...needed])).join(' ')
           )
         })
+
+        setMapAttributionHtml(attributionInner.innerHTML.trim())
       }
 
-      patchLinks(attrib)
+      const scheduleAttributionSync = () => {
+        requestAnimationFrame(syncAttributionHtml)
+      }
 
-      // Watch for future changes to the attribution content
-      const obs = new MutationObserver(() => patchLinks(attrib))
-      obs.observe(attrib, { childList: true, subtree: true })
+      syncAttributionHtml()
+      scheduleAttributionSync()
 
-      newMap.once('remove', () => obs.disconnect())
+      newMap.on('styledata', scheduleAttributionSync)
+      newMap.on('sourcedata', scheduleAttributionSync)
+      newMap.on('idle', scheduleAttributionSync)
+
+      newMap.once('remove', () => {
+        newMap.off('styledata', scheduleAttributionSync)
+        newMap.off('sourcedata', scheduleAttributionSync)
+        newMap.off('idle', scheduleAttributionSync)
+        setMapAttributionHtml('')
+      })
       // const createPinElement = (feature, options = {}) => {
       // Default pin styling
       //   const defaultStyle = {
@@ -859,6 +880,7 @@ export const MapHandler = ({ children }: Props) => {
       ></Box>
       <OverlayMessages message={overlayMessage}></OverlayMessages>
       <MapActionsWrapper></MapActionsWrapper>
+      <MapBottomControls />
       <MapPopupHandler></MapPopupHandler>
       <></>
       {children}
