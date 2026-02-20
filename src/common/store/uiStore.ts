@@ -22,6 +22,7 @@ type PopupModalViewMode = 'constrained' | 'fullscreen' | 'full-height'
 
 type SidebarHeaderConfig = {
   title: string
+  backgroundImage?: string
 }
 
 interface Vars {
