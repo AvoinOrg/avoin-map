@@ -132,7 +132,7 @@ const breakpoints: ThemeOptions['breakpoints'] = {
 const zIndex = {
   modal: 1500,
   snackbar: 1600,
-  MapButtons: 1300,
+  mapButtons: 1300,
   drawer: 1400,
   appBar: 1400,
   zpopup: 1500,
