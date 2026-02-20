@@ -4,10 +4,10 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Box, SxProps, Theme } from '@mui/material'
 
 import { useUIStore } from '#/common/store'
-import { SidebarToggleButton } from '#/components/Sidebar'
 import { LoadingSpinner } from '../Loading'
 import { Slot, useSlotContent } from '../context/slotsContext'
 import SidebarHeader from './SidebarHeader'
+import SidebarToggleButton from './SidebarToggleButton'
 
 export const Sidebar = ({
   sx,
@@ -197,212 +197,225 @@ export const Sidebar = ({
   }, [evaluateLayout, isSidebarDrawerOpen, isSidebarOpen])
 
   return (
-    <Box
-      ref={sidebarRef}
-      sx={{
-        zIndex: 'drawer',
-        display: 'inline-flex',
-        flexDirection: 'row',
-        height: '100%',
-        width: 'max-content',
-        maxWidth: '100%',
-        minWidth: 0,
-        minHeight: 0,
-        position: 'relative',
-        pointerEvents: isSidebarOpen ? 'auto' : 'none',
-      }}
-    >
-      <SidebarToggleButton
-        sx={(theme) => ({
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          zIndex: theme.zIndex.drawer + 11,
-          pointerEvents: 'auto',
-        })}
-      />
+    <>
+      <SidebarToggleButton />
       <Box
-        className="sidebar-container"
-        ref={sidebarContainerRef}
-        sx={[
-          (theme: Theme) => ({
-            display: 'flex',
-            flexDirection: 'column',
-            maxWidth: '100%',
-            flex: '0 0 auto',
-            width: '30rem',
-            flexShrink: 0,
-            minWidth: 0,
-            height: '100%',
-            minHeight: 0,
-            zIndex: theme.zIndex.drawer + 1,
-            pointerEvents: isSidebarOpen ? 'auto' : 'none',
-            // ...(isSidebarDrawerOpen && {
-            //   boxShadow: '4px 0 4px 0 rgba(179, 179, 179, 0.15)',
-            // }),
-          }),
-          ...(Array.isArray(sx) ? sx : [sx]),
-        ]}
+        ref={sidebarRef}
+        sx={{
+          zIndex: 'drawer',
+          display: 'inline-flex',
+          flexDirection: 'row',
+          height: '100%',
+          width: 'max-content',
+          maxWidth: '100%',
+          minWidth: 0,
+          minHeight: 0,
+          position: 'relative',
+          boxSizing: 'border-box',
+          pointerEvents: 'none',
+          pt: { mobile: 0, desktop: 2 },
+          pb: { mobile: 0, desktop: 2 },
+        }}
       >
         <Box
-          sx={{ display: 'flex', flexDirection: 'row', flex: 1, minHeight: 0 }}
+          className="sidebar-container"
+          ref={sidebarContainerRef}
+          sx={[
+            (theme: Theme) => ({
+              display: 'flex',
+              flexDirection: 'column',
+              flex: '0 0 auto',
+              width: { mobile: '100vw', desktop: '30rem' },
+              maxWidth: {
+                mobile: '100vw',
+                desktop: 'min(30rem, calc(100vw - 2rem))',
+              },
+              flexShrink: 0,
+              minWidth: 0,
+              height: '100%',
+              minHeight: 0,
+              zIndex: theme.zIndex.drawer + 1,
+              pointerEvents: isSidebarOpen ? 'auto' : 'none',
+              ml: { mobile: 0, desktop: 2 },
+            }),
+            ...(Array.isArray(sx) ? sx : [sx]),
+          ]}
         >
           <Box
             sx={{
-              position: 'relative',
-              width: '100%', // rail keeps its width
-              overflow: 'hidden',
-              boxSizing: 'border-box',
+              display: 'flex',
+              flexDirection: 'row',
+              flex: 1,
+              minHeight: 0,
             }}
           >
             <Box
               sx={{
-                position: 'absolute',
-                inset: 0,
-                transform: isSidebarOpen
-                  ? 'translateX(0)'
-                  : 'translateX(-100%)',
-                transition: 'transform 220ms cubic-bezier(.2,0,.2,1)',
-                willChange: 'transform',
-                display: 'flex',
-                flexDirection: 'column',
-                minWidth: 0,
-                whiteSpace: 'normal',
+                position: 'relative',
+                width: '100%', // rail keeps its width
+                overflow: 'hidden',
+                boxSizing: 'border-box',
               }}
             >
-              {/* Header slot - content comes from AppletWrapper */}
-              {hasCustomHeader ? (
-                <Slot name="sidebar-header" />
-              ) : (
-                <SidebarHeader title={sidebarHeaderConfig.title}>
-                  <Slot name="sidebar-header-children" />
-                </SidebarHeader>
-              )}
-              {isSidebarLoading && (
-                <Box
-                  sx={(theme) => ({
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: theme.zIndex.drawer + 10,
-                    borderRadius: 'inherit', // Inherit border radius from parent if needed
-                  })}
-                >
-                  <LoadingSpinner size="5rem" />
-                </Box>
-              )}
               <Box
-                sx={[
-                  {
-                    overflow: 'auto',
-                    display: 'flex',
-                    flexGrow: 1,
-                    backgroundColor: 'neutral.lighter',
-                  },
-                ]}
+                sx={{
+                  position: 'absolute',
+                  inset: 0,
+                  transform: isSidebarOpen
+                    ? 'translateX(0)'
+                    : 'translateX(calc(-100% - 4px))',
+                  transition: isSidebarOpen
+                    ? 'transform 220ms cubic-bezier(.2,0,.2,1), visibility 0ms linear 0ms'
+                    : 'transform 220ms cubic-bezier(.2,0,.2,1), visibility 0ms linear 220ms',
+                  willChange: 'transform',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  minWidth: 0,
+                  whiteSpace: 'normal',
+                  visibility: isSidebarOpen ? 'visible' : 'hidden',
+                  borderRadius: { mobile: 0, desktop: '10px' },
+                  overflow: 'hidden',
+                  backgroundColor: '#f4f4f4',
+                  boxShadow: 'none',
+                }}
               >
-                {children}
+                {/* Header slot - content comes from AppletWrapper */}
+                {hasCustomHeader ? (
+                  <Slot name="sidebar-header" />
+                ) : (
+                  <SidebarHeader
+                    title={sidebarHeaderConfig.title}
+                    backgroundImage={sidebarHeaderConfig.backgroundImage}
+                  >
+                    <Slot name="sidebar-header-children" />
+                  </SidebarHeader>
+                )}
+                {isSidebarLoading && (
+                  <Box
+                    sx={(theme) => ({
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      zIndex: theme.zIndex.drawer + 10,
+                      borderRadius: 'inherit', // Inherit border radius from parent if needed
+                    })}
+                  >
+                    <LoadingSpinner size="5rem" />
+                  </Box>
+                )}
+                <Box
+                  sx={[
+                    {
+                      overflow: 'auto',
+                      display: 'flex',
+                      flexGrow: 1,
+                      backgroundColor: '#f4f4f4',
+                    },
+                  ]}
+                >
+                  {children}
+                </Box>
               </Box>
             </Box>
           </Box>
-        </Box>
-        {/* {mode === 'full' && (
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'row',
-            width: '100%',
-            height: '100%',
-          }}
-        >
-          {children}
-        </Box>
-      )} */}
-      </Box>
-      <Box
-        ref={drawerSlotRef}
-        className="sidebar-drawer-container"
-        sx={[
-          (theme: Theme) => ({
-            // flex: '0 0 auto',
-            // flexShrink: 0,
-            display: 'flex',
-            flex: 1,
-            alignItems: 'stretch',
-            pointerEvents: isSidebarOpen ? 'auto' : 'none',
-            position: 'relative',
-            minHeight: 0,
-            zIndex: theme.zIndex.drawer - 1,
-            transform: getDrawerTransform(
-              isSidebarOpen,
-              isSidebarDrawerOpen,
-              isSidebarDrawerOverlay,
-              sidebarContainerWidth
-            ),
-            transition: 'transform 220ms cubic-bezier(.2,0,.2,1)',
-            willChange: 'transform',
-          }),
-          isSidebarDrawerOverlay &&
-            ((theme: Theme) => ({
-              position: 'absolute',
-              top: 0,
-              left: 0,
+          {/* {mode === 'full' && (
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              width: '100%',
               height: '100%',
-              width: overlayWidth != null ? `${overlayWidth}px` : '100%',
-              zIndex: theme.zIndex.drawer + 2,
-              pointerEvents: 'auto',
-              '& > *': {
-                width: '100%',
-                maxWidth: '100%',
+            }}
+          >
+            {children}
+          </Box>
+        )} */}
+        </Box>
+        <Box
+          ref={drawerSlotRef}
+          className="sidebar-drawer-container"
+          sx={[
+            (theme: Theme) => ({
+              // flex: '0 0 auto',
+              // flexShrink: 0,
+              display: 'flex',
+              flex: 1,
+              alignItems: 'stretch',
+              pointerEvents: isSidebarOpen ? 'auto' : 'none',
+              position: 'relative',
+              minHeight: 0,
+              zIndex: theme.zIndex.drawer - 1,
+              transform: getDrawerTransform(
+                isSidebarOpen,
+                isSidebarDrawerOpen,
+                isSidebarDrawerOverlay,
+                sidebarContainerWidth
+              ),
+              transition: 'transform 220ms cubic-bezier(.2,0,.2,1)',
+              willChange: 'transform',
+            }),
+            isSidebarDrawerOverlay &&
+              ((theme: Theme) => ({
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                height: '100%',
+                width: overlayWidth != null ? `${overlayWidth}px` : '100%',
+                zIndex: theme.zIndex.drawer + 2,
+                pointerEvents: 'auto',
+                '& > *': {
+                  width: '100%',
+                  maxWidth: '100%',
+                },
+              })),
+            !isSidebarOpen &&
+              closeExtraDrawerWithSidebar && {
+                pointerEvents: 'none',
+                // visibility: 'hidden',
               },
-            })),
-          !isSidebarOpen &&
-            closeExtraDrawerWithSidebar && {
-              pointerEvents: 'none',
-              // visibility: 'hidden',
-            },
-          // isSidebarDrawerOverlay
-          //   ? (theme: Theme) => ({
-          //       position: 'absolute',
-          //       top: 0,
-          //       left: 0,
-          //       height: '100%',
-          //       width: overlayWidth != null ? `${overlayWidth}px` : '100%',
-          //       zIndex: theme.zIndex.drawer + 10,
-          //       pointerEvents: 'auto',
-          //       '& > *': {
-          //         width: '100%',
-          //         maxWidth: '100%',
-          //       },
-          //     })
-          //   : {
-          //       position: 'relative',
-          //     },
-        ]}
-      >
-        {/* <Box
-          sx={{
-            transform:
-              isSidebarOpen && isSidebarDrawerOpen
-                ? 'translateX(0)'
-                : 'translateX(-100%)',
-            transition: 'transform 220ms cubic-bezier(.2,0,.2,1)',
-            willChange: 'transform',
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        > */}
-        <Slot name="sidebar-drawer" />
-        {/* </Box> */}
+            // isSidebarDrawerOverlay
+            //   ? (theme: Theme) => ({
+            //       position: 'absolute',
+            //       top: 0,
+            //       left: 0,
+            //       height: '100%',
+            //       width: overlayWidth != null ? `${overlayWidth}px` : '100%',
+            //       zIndex: theme.zIndex.drawer + 10,
+            //       pointerEvents: 'auto',
+            //       '& > *': {
+            //         width: '100%',
+            //         maxWidth: '100%',
+            //       },
+            //     })
+            //   : {
+            //       position: 'relative',
+            //     },
+          ]}
+        >
+          {/* <Box
+            sx={{
+              transform:
+                isSidebarOpen && isSidebarDrawerOpen
+                  ? 'translateX(0)'
+                  : 'translateX(-100%)',
+              transition: 'transform 220ms cubic-bezier(.2,0,.2,1)',
+              willChange: 'transform',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          > */}
+          <Slot name="sidebar-drawer" />
+          {/* </Box> */}
+        </Box>
       </Box>
-    </Box>
+    </>
   )
 }
 

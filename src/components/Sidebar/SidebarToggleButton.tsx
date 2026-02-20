@@ -1,7 +1,7 @@
 import { Button, SxProps, Theme } from '@mui/material'
-import { styled } from '@mui/material/styles'
-
-import Sandwich from '../icons/Sandwich'
+import { useRef } from 'react'
+import MenuOpenIcon from '@mui/icons-material/MenuOpen'
+import TravelExploreIcon from '@mui/icons-material/TravelExplore'
 import { useUIStore } from '../../common/store'
 
 interface Props {
@@ -12,6 +12,11 @@ const SidebarToggleButton = ({ sx }: Props) => {
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
   const setIsSidebarOpen = useUIStore((state) => state.setIsSidebarOpen)
   const isSidebarDisabled = useUIStore((state) => state.isSidebarDisabled)
+  const buttonRef = useRef<HTMLButtonElement | null>(null)
+
+  if (isSidebarDisabled) {
+    return null
+  }
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen)
@@ -19,59 +24,47 @@ const SidebarToggleButton = ({ sx }: Props) => {
 
   return (
     <Button
+      ref={buttonRef}
       onClick={toggleSidebar}
       className="sidebar-toggle-button"
       sx={[
-        {
+        (theme) => ({
           m: 0,
-          pt: 4,
-          pl: 5,
-          pb: 2,
-          pr: 2,
-          display: 'flex',
+          p: 0,
+          display: 'inline-flex',
+          position: 'fixed',
+          right: theme.spacing(2),
+          bottom: theme.spacing(2),
+          width: '45px',
+          minWidth: '45px',
+          height: '45px',
+          borderRadius: '10px',
+          color: '#FFFFFF',
+          backgroundColor: '#4f4f4f',
+          boxShadow: '0px 10px 24px rgba(0, 0, 0, 0.26)',
+          zIndex: theme.zIndex.drawer + 12,
+          pointerEvents: 'auto',
+          transition: 'background-color 0.2s, transform 0.2s',
+          transform: 'translateY(0)',
           '&:hover': {
-            backgroundColor: 'transparent',
+            backgroundColor: '#424242',
+            transform: 'translateY(-1px)',
           },
-          minWidth: 'unset',
-          maxWidth: 'unset',
-          ...(!isSidebarOpen && {
-            alignItems: 'flex-start',
-            pl: 0,
-            pb: 4,
-            pt: 0,
-            pr: 0,
-            marginLeft: '-3px', // a hack to visually align the button with the sidebar
-          }),
-          transition: 'padding 0.1s',
-        },
+        }),
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
       disableRipple={true}
       color="inherit"
-      aria-label="open drawer"
-      disabled={isSidebarDisabled}
+      aria-label={isSidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
       size="large"
     >
       {isSidebarOpen ? (
-        <MySandwich />
+        <TravelExploreIcon sx={{ fontSize: '1.25rem' }} />
       ) : (
-        <MySandwich
-          sx={{
-            transform: 'rotate(90deg)',
-            mt: 5,
-            mr: 2,
-            ml: 2,
-          }}
-        />
+        <MenuOpenIcon sx={{ fontSize: '1.25rem' }} />
       )}
     </Button>
   )
 }
-
-const MySandwich = styled(Sandwich)(({ theme }) => ({
-  margin: '0',
-  width: '48px',
-  transition: 'transform 0.1s, margin 0.1s',
-}))
 
 export default SidebarToggleButton
