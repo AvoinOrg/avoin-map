@@ -289,6 +289,17 @@ const components = {
       },
     },
   },
+  MuiTooltip: {
+    defaultProps: {
+      arrow: false,
+    },
+    styleOverrides: {
+      tooltip: {
+        borderRadius: '0.5rem',
+        padding: '0.5rem 0.75rem',
+      },
+    },
+  },
   MuiCssBaseline: {
     styleOverrides: {
       '*': {
