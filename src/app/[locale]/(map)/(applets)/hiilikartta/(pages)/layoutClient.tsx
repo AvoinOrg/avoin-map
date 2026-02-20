@@ -178,6 +178,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
       localizationNamespace={localizationNamespace}
       listedLayerGroups={listedLayerGroups}
       sidebarHeaderTitle={'Hiilikartta'}
+      sidebarHeaderBackgroundImage={'/files/img/green-drawings/forest-mountains.jpg'}
       sidebarHeaderChildren={
         <BreadcrumbNav
           collapseIfRoot={true}
