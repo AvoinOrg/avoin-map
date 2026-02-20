@@ -50,7 +50,9 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
       <Typography
         sx={(theme) => ({
           display: 'inline-block',
-          typography: theme.typography.subtitle2,
+          fontSize: '0.72rem',
+          fontWeight: 600,
+          letterSpacing: '0.04em',
           '&:hover': { color: theme.palette.primary.main },
           textTransform: 'uppercase',
         })}
@@ -65,7 +67,9 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
       <Typography
         sx={(theme) => ({
           display: 'inline-block',
-          typography: theme.typography.subtitle2,
+          fontSize: '0.72rem',
+          fontWeight: 600,
+          letterSpacing: '0.04em',
           color: 'neutral.darker',
           textTransform: 'uppercase',
         })}
@@ -82,10 +86,9 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
         (theme) => ({
           display: 'flex',
           flexDirection: 'row',
-          alignItems: 'flex-end',
+          alignItems: 'center',
           color: theme.palette.neutral.dark,
           width: '100%',
-          pb: 2,
         }),
         ...(Array.isArray(sx) ? sx : [sx]),
         collapseIfRoot && routes.length <= 1
@@ -109,18 +112,27 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
             route={routes[routes.length - 2].routeTree}
             routeTree={usedRouteTree}
             params={routes[routes.length - 2].params}
+            sx={{ alignItems: 'center' }}
           >
             <ArrowBackIosNewIcon
               sx={(theme) => ({
-                float: 'left',
                 cursor: 'pointer',
                 color: theme.palette.neutral.dark,
-                margin: '0 10px 0 -5px',
+                height: '0.85rem',
+                mt: 0.1,
+                ml: -1,
                 '&:hover': { color: theme.palette.neutral.main },
               })}
             ></ArrowBackIosNewIcon>
           </MutableLink>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}
+          >
             {routes.map((route) => {
               if (route === routes[routes.length - 1]) {
                 return (
@@ -131,19 +143,13 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
                 )
               }
               return (
-                <Box
-                  sx={(theme) => ({
-                    display: 'inline-block',
-                    lineHeight: '0',
-                    height: '18px',
-                  })}
-                  key={route.path}
-                >
+                <Box key={route.path}>
                   <RouteElement route={route}></RouteElement>
                   <Typography
                     sx={(theme) => ({
                       display: 'inline-block',
-                      margin: '0 5px 0 5px',
+                      fontSize: '0.75rem',
+                      margin: '0 3px',
                     })}
                   >
                     /
