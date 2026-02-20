@@ -8,7 +8,12 @@ import {
   alpha,
 } from '@mui/material/styles'
 import { Arimo } from 'next/font/google'
-import { SCROLLBAR_WIDTH_REM } from './constants'
+import {
+  DESKTOP_BREAKPOINT_KEY,
+  MOBILE_BREAKPOINT_KEY,
+  MOBILE_BREAKPOINT_PX,
+  SCROLLBAR_WIDTH_REM,
+} from './constants'
 
 //extending palette to add background color
 
@@ -52,6 +57,11 @@ declare module '@mui/material/styles' {
 
   interface ThemeOptions {
     zIndex?: Partial<ZIndex> | undefined
+  }
+
+  interface BreakpointOverrides {
+    mobile: true
+    desktop: true
   }
 }
 
@@ -105,6 +115,18 @@ const palette = {
 
 const shape = {
   borderRadius: 0,
+}
+
+const breakpoints: ThemeOptions['breakpoints'] = {
+  values: {
+    [MOBILE_BREAKPOINT_KEY]: 0,
+    [DESKTOP_BREAKPOINT_KEY]: MOBILE_BREAKPOINT_PX,
+    xs: 0,
+    sm: MOBILE_BREAKPOINT_PX,
+    md: 900,
+    lg: 1200,
+    xl: 1536,
+  },
 }
 
 const zIndex = {

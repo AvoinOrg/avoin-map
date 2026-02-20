@@ -111,6 +111,8 @@ standalone sites.
 - Prefer `sx` over `styled()` / `@emotion/styled`; only use `styled` when it
   materially improves DRY/reuse or encapsulates styling that can’t be expressed
   cleanly with `sx`.
+- For responsive `sx`, use the app breakpoint keys `mobile` and `desktop`
+  instead of MUI default breakpoint keys (`xs`, `sm`, etc.).
 
 ## Auth
 
