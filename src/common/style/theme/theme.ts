@@ -344,13 +344,6 @@ const components = {
         color: 'inherit',
         textDecoration: 'inherit', // no underline
       },
-      '.maplibregl-ctrl-attrib': {
-        fontSize: '0.7rem',
-        letterSpacing: '0.02rem',
-        lineHeight: 2,
-        fontFamily: fonts.primary,
-      },
-      '.maplibregl-ctrl-attrib a': { fontSize: 'inherit' },
       '.mapboxgl-ctrl-logo': {
         width: '55px !important',
         backgroundSize: '55px',
