@@ -30,6 +30,7 @@ export type MapCoreVars = {
   mapLibraryMode: MapLibraryMode
   mapContext: MapContext | null
   isLoaded: boolean
+  mapAttributionHtml: string
   _isMapReady: boolean
   _functionQueue: FunctionQueue
   _isFunctionQueueExecuting: boolean
@@ -52,6 +53,7 @@ export type MapCoreVars = {
 export type MapCoreActions = {
   setMapLibraryMode: (mode: MapLibraryMode) => void
   setMapContext: (mapContext: MapContext) => void
+  setMapAttributionHtml: (html: string) => void
   _updateSelectableHoverHandlers: (excludeLayerIds?: string[]) => void
   _setLayerFilters: (feature?: MapGeoJSONFeature) => void
   _setIsHydrated: (isHydrated: boolean) => void
@@ -73,6 +75,7 @@ export const createMapCoreSlice: (
     mapLibraryMode: DEFAULT_MAP_LIBRARY_MODE,
     isLoaded: false,
     mapContext: null,
+    mapAttributionHtml: '',
     _isMapReady: false,
     _functionQueue: [],
     _isFunctionQueueExecuting: false,
@@ -94,6 +97,15 @@ export const createMapCoreSlice: (
     setMapContext: (mapContext: MapContext) => {
       set((state) => {
         state.mapContext = mapContext
+      })
+    },
+
+    setMapAttributionHtml: (html: string) => {
+      set((state) => {
+        if (state.mapAttributionHtml === html) {
+          return
+        }
+        state.mapAttributionHtml = html
       })
     },
 
