@@ -458,6 +458,7 @@ const components = {
 
 export default createTheme({
   palette,
+  breakpoints,
   components,
   typography,
   zIndex,
