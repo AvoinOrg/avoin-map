@@ -2,5 +2,20 @@ model = "gpt-5.3-codex"
 model_reasoning_effort = "xhigh"
 personality = "pragmatic"
 
+[network_access]
+# Allow local MCP endpoints (e.g. Figma MCP on host machine / devcontainer host gateway).
+allowed_domains = [
+  "host.docker.internal",
+  "localhost",
+  "127.0.0.1",
+]
+allow_local_binding = true
+
+sandbox_mode    = "workspace-write"
+approval_policy = "on-request"
+
+[sandbox_workspace_write]
+network_access = true
+
 [mcp_servers.figma]
 url = "http://host.docker.internal:3845/mcp"
