@@ -29,7 +29,11 @@
       ]
     }
   },
-  // "initializeCommand": "sudo groupadd -f -g $(stat -c '%g' /var/run/docker.sock) docker && sudo usermod -aG $(stat -c '%g' /var/run/docker.sock) $(id -un)",
+  "initializeCommand": [
+    "bash",
+    "${localWorkspaceFolder}/.devcontainer/sync-codex-host-files.sh",
+    "${localWorkspaceFolder}"
+  ],
   // "postStartCommand": ".devcontainer/configure-env.sh",
   "features": {
     // "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
