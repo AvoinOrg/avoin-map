@@ -15,10 +15,12 @@ standalone sites.
 - `src/common`: Shared hooks, routing, store, types, and utilities.
 - `utils/scripts`: Build-time helpers (translations, folder pruning, Netlify helpers).
 
-## Figma MCP (WSL2/devcontainer)
+## Figma MCP (Prefer Remote; Local Fallback)
 
-- The Figma MCP server can run on the Windows host at `http://127.0.0.1:3845/mcp`.
-- From inside the devcontainer, use `http://host.docker.internal:3845/mcp`
+- Prefer the remote Figma MCP tools (`mcp__figma_remote__*`) when available.
+  Use local/devcontainer MCP only as a fallback when remote MCP is unavailable.
+- Local Figma MCP server can run on the Windows host at `http://127.0.0.1:3845/mcp`.
+- From inside the devcontainer, local MCP is `http://host.docker.internal:3845/mcp`
   (also available via `FIGMA_MCP_URL` in `.devcontainer/devcontainer.json`).
 - Ensure the compose service has
   `extra_hosts: ["host.docker.internal:host-gateway"]` for host reachability.
@@ -28,6 +30,15 @@ standalone sites.
   Extract `node-id` from the URL and use that as MCP `nodeId`.
 - Convert URL-style node IDs to MCP format when needed:
   `node-id=3163-8036` -> `nodeId: "3163:8036"`.
+- For exact Figma image/icon assets (not screenshots), prefer this workflow:
+  1. Call `get_metadata` on the shared node to inspect child layers and find the
+     actual image/vector child node (for example the header image rectangle).
+  2. Call `get_design_context` on that child node to get exact asset URLs (MCP
+     returns image/SVG asset URLs in the generated output).
+  3. Download the returned asset URL and commit the file into repo assets
+     (for example under `src/public/...`) instead of recreating/approximating it.
+  4. Only use `get_screenshot` as a visual reference/fallback, not as a
+     substitute for exact exported vectors/images when exactness matters.
 
 ## Applets and build modes
 
