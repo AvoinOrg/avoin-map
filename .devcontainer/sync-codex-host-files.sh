@@ -8,7 +8,21 @@ if [[ -z "${workspace_dir}" ]]; then
   exit 1
 fi
 
-host_codex_dir="${HOME}/.codex"
+host_home_dir="${HOME:-}"
+
+if [[ -z "${host_home_dir}" ]]; then
+  current_user="$(id -un 2>/dev/null || true)"
+  if [[ -n "${current_user}" ]] && command -v getent >/dev/null 2>&1; then
+    host_home_dir="$(getent passwd "${current_user}" | cut -d: -f6 || true)"
+  fi
+fi
+
+if [[ -z "${host_home_dir}" ]]; then
+  echo "Could not determine host home directory (HOME is unset)." >&2
+  exit 1
+fi
+
+host_codex_dir="${host_home_dir}/.codex"
 workspace_codex_dir="${workspace_dir}/.codex"
 
 link_file() {
