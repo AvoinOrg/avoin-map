@@ -1,7 +1,7 @@
 import { Button, SxProps, Theme } from '@mui/material'
 import { useRef } from 'react'
 import MenuOpenIcon from '@mui/icons-material/MenuOpen'
-import TravelExploreIcon from '@mui/icons-material/TravelExplore'
+import { MapPinGlobe } from '#/components/icons'
 import { useUIStore } from '../../common/store'
 
 interface Props {
@@ -59,9 +59,9 @@ const SidebarToggleButton = ({ sx }: Props) => {
       size="large"
     >
       {isSidebarOpen ? (
-        <TravelExploreIcon sx={{ fontSize: '1.25rem' }} />
+        <MapPinGlobe sx={{ width: '2rem', height: '2rem', mt: -0.4, mr: -0.42 }} />
       ) : (
-        <MenuOpenIcon sx={{ fontSize: '1.25rem' }} />
+        <MenuOpenIcon sx={{ fontSize: '1.75rem' }} />
       )}
     </Button>
   )
