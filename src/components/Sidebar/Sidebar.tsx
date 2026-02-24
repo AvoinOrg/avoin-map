@@ -213,8 +213,6 @@ export const Sidebar = ({
           position: 'relative',
           boxSizing: 'border-box',
           pointerEvents: 'none',
-          pt: { mobile: 0, desktop: 2 },
-          pb: { mobile: 0, desktop: 2 },
         }}
       >
         <Box
@@ -235,8 +233,21 @@ export const Sidebar = ({
               height: '100%',
               minHeight: 0,
               zIndex: theme.zIndex.drawer + 1,
-              pointerEvents: isSidebarOpen ? 'auto' : 'none',
+              pt: { mobile: 0, desktop: 2 },
+              pb: { mobile: 0, desktop: 2 },
               ml: { mobile: 0, desktop: 2 },
+              pointerEvents: isSidebarOpen ? 'auto' : 'none',
+              transform: isSidebarOpen
+                ? 'translateX(0)'
+                : {
+                    mobile: 'translateX(calc(-100% - 4px))',
+                    desktop: `translateX(calc(-100% - ${theme.spacing(2)} - 4px))`,
+                  },
+              transition: isSidebarOpen
+                ? 'transform 220ms cubic-bezier(.2,0,.2,1), visibility 0ms linear 0ms'
+                : 'transform 220ms cubic-bezier(.2,0,.2,1), visibility 0ms linear 220ms',
+              willChange: 'transform',
+              visibility: isSidebarOpen ? 'visible' : 'hidden',
             }),
             ...(Array.isArray(sx) ? sx : [sx]),
           ]}
@@ -261,18 +272,10 @@ export const Sidebar = ({
                 sx={{
                   position: 'absolute',
                   inset: 0,
-                  transform: isSidebarOpen
-                    ? 'translateX(0)'
-                    : 'translateX(calc(-100% - 4px))',
-                  transition: isSidebarOpen
-                    ? 'transform 220ms cubic-bezier(.2,0,.2,1), visibility 0ms linear 0ms'
-                    : 'transform 220ms cubic-bezier(.2,0,.2,1), visibility 0ms linear 220ms',
-                  willChange: 'transform',
                   display: 'flex',
                   flexDirection: 'column',
                   minWidth: 0,
                   whiteSpace: 'normal',
-                  visibility: isSidebarOpen ? 'visible' : 'hidden',
                   borderRadius: { mobile: 0, desktop: '10px' },
                   overflow: 'hidden',
                   backgroundColor: '#f4f4f4',
