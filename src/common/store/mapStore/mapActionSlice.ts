@@ -17,6 +17,7 @@ import {
   FitBoundsOptions,
   AutoRelocateOptions,
   QueueOptions,
+  MapDims,
 } from '#/common/types/map'
 
 export type MapActionVars = {
@@ -89,6 +90,32 @@ export type MapActionActions = {
 }
 
 export type MapActionSlice = MapActionVars & MapActionActions
+
+type VisibleViewportCameraGeometry = {
+  offset: [number, number]
+  visibleCenterPxInContainer: [number, number]
+}
+
+const getVisibleViewportCameraGeometry = (
+  container: HTMLElement,
+  visible: MapDims
+): VisibleViewportCameraGeometry => {
+  const rect = container.getBoundingClientRect()
+  const visibleCenterPxInContainer: [number, number] = [
+    visible.centerX - rect.left,
+    visible.centerY - rect.top,
+  ]
+
+  // `mapDims.visible` is tracked in viewport (window) coordinates. Convert that
+  // to container-local pixels and a MapLibre camera offset so camera actions
+  // target the unobscured viewport center instead of the raw map center.
+  const offset: [number, number] = [
+    visibleCenterPxInContainer[0] - rect.width / 2,
+    visibleCenterPxInContainer[1] - rect.height / 2,
+  ]
+
+  return { offset, visibleCenterPxInContainer }
+}
 
 export const createMapActionSlice: (
   helpers: MapStoreHelpers
@@ -256,16 +283,11 @@ export const createMapActionSlice: (
 
         if (_map && mapDims.visible) {
           const container = _map.getContainer() as HTMLElement
-          const mapCenterX = container.clientWidth / 2
-          const mapCenterY = container.clientHeight / 2
-
-          const { centerX: visibleCenterX, centerY: visibleCenterY } =
+          const { offset } = getVisibleViewportCameraGeometry(
+            container,
             mapDims.visible
-
-          flyToOptions.offset = [
-            visibleCenterX - mapCenterX,
-            visibleCenterY - mapCenterY,
-          ]
+          )
+          flyToOptions.offset = offset
         }
 
         _map?.flyTo(flyToOptions)
@@ -303,16 +325,11 @@ export const createMapActionSlice: (
 
         if (_map && mapDims.visible) {
           const container = _map.getContainer() as HTMLElement
-          const mapCenterX = container.clientWidth / 2
-          const mapCenterY = container.clientHeight / 2
-
-          const { centerX: visibleCenterX, centerY: visibleCenterY } =
+          const { offset } = getVisibleViewportCameraGeometry(
+            container,
             mapDims.visible
-
-          easeToOptions.offset = [
-            visibleCenterX - mapCenterX,
-            visibleCenterY - mapCenterY,
-          ]
+          )
+          easeToOptions.offset = offset
         }
 
         _map?.easeTo(easeToOptions)
@@ -399,12 +416,44 @@ export const createMapActionSlice: (
 
     mapZoomIn: () => {
       const _map = useMapInstanceStore.getState()._map
-      _map?.zoomIn()
+      if (!_map) return
+
+      const visibleMapDims = useUIStore.getState().mapDims.visible
+      if (!visibleMapDims) {
+        _map.zoomIn()
+        return
+      }
+
+      const container = _map.getContainer() as HTMLElement
+      const { offset, visibleCenterPxInContainer } =
+        getVisibleViewportCameraGeometry(container, visibleMapDims)
+
+      _map.easeTo({
+        center: _map.unproject(visibleCenterPxInContainer),
+        zoom: _map.getZoom() + 1,
+        offset,
+      })
     },
 
     mapZoomOut: () => {
       const _map = useMapInstanceStore.getState()._map
-      _map?.zoomOut()
+      if (!_map) return
+
+      const visibleMapDims = useUIStore.getState().mapDims.visible
+      if (!visibleMapDims) {
+        _map.zoomOut()
+        return
+      }
+
+      const container = _map.getContainer() as HTMLElement
+      const { offset, visibleCenterPxInContainer } =
+        getVisibleViewportCameraGeometry(container, visibleMapDims)
+
+      _map.easeTo({
+        center: _map.unproject(visibleCenterPxInContainer),
+        zoom: _map.getZoom() - 1,
+        offset,
+      })
     },
 
     setIsAutoRelocateDisabled: (isDisabled: boolean) => {

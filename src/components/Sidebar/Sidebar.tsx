@@ -137,6 +137,8 @@ export const Sidebar = ({
     const windowWidth =
       typeof window !== 'undefined' ? window.innerWidth : fallbackWidth
     const parentWidth = sidebarEl.parentElement?.getBoundingClientRect().width
+    // Clamp to the narrower of window/parent so drawer overlay decisions stay
+    // correct when the map shell is rendered inside a constrained container.
     const availableWidth = Math.min(windowWidth, parentWidth ?? windowWidth)
 
     const totalWidth = containerWidth + slotWidthForDecision
@@ -158,10 +160,14 @@ export const Sidebar = ({
     const measure = () => {
       evaluateLayout()
       if (sidebarRef.current) {
+        // Persist the actual rendered sidebar width so UIStateHandler can derive
+        // the visible map viewport center used by flyTo/easeTo/zoom actions.
         setSidebarWidth(sidebarRef.current.getBoundingClientRect().width)
       }
     }
 
+    // ResizeObserver catches content-driven width changes (header, slots, drawer
+    // content), while window resize catches viewport breakpoint changes.
     const observer =
       typeof ResizeObserver !== 'undefined'
         ? new ResizeObserver(() => {
