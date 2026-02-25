@@ -13,5 +13,5 @@ ln -s /home/node/dev/.bash_history /home/node/.bash_history
 if [ "$NODE_ENV" = "production" ]; then
     yarn workspaces focus -A --production && yarn build && yarn start;
 else
-    yarn install && yarn run prebuild-dev && yarn dev;
+    yarn install && yarn visual:install && yarn run prebuild-dev && yarn dev;
 fi

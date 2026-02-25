@@ -154,3 +154,8 @@ standalone sites.
 
 - Jest is configured, but coverage is limited (routing has unit tests).
 - Applet-specific e2e tests are not standardized yet.
+- For UI changes, run `yarn visual:changed --files <comma-separated-paths>` after edits to capture targeted visual snapshots and check for regressions against local baselines.
+- For a simpler post-edit workflow, use `yarn visual:after-edit -- <path1> <path2> ...` (plain path args; it forwards them to the targeted visual regression runner).
+- Visual commands target `http://127.0.0.1:3000` first (reuse an already running `yarn dev` server when available). If the server is unreachable, the runner may temporarily start a local dev server as a fallback.
+- Use `yarn visual:baseline` to create or refresh local visual baselines intentionally.
+- Add `--no-start` when calling `node utils/scripts/visual/run.js` directly if you want to fail instead of allowing the fallback temporary server.
