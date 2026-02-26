@@ -20,6 +20,10 @@
     "visual:baseline": "node ./utils/scripts/visual/run.js --mode=baseline --base-url=http://127.0.0.1:3000",
     "visual:changed": "node ./utils/scripts/visual/run.js --mode=changed --base-url=http://127.0.0.1:3000",
     "visual:after-edit": "node ./utils/scripts/visual/after-edit.js",
+    "browser-state:sync:localhost": "node ./utils/scripts/visual/sync-host-chrome-state.js",
+    "visual:baseline:host-state": "node ./utils/scripts/visual/run.js --mode=baseline --base-url=http://localhost:3000 --storage-state=.codex/browser-state/localhost-3000.storage-state.json",
+    "visual:changed:host-state": "node ./utils/scripts/visual/run.js --mode=changed --base-url=http://localhost:3000 --storage-state=.codex/browser-state/localhost-3000.storage-state.json",
+    "visual:after-edit:host-state": "node ./utils/scripts/visual/after-edit.js --base-url=http://localhost:3000 --storage-state=.codex/browser-state/localhost-3000.storage-state.json",
     "favicon": "real-favicon generate faviconDescription.json faviconData.json favicon/"
   },
   "eslintConfig": {

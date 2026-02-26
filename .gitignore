@@ -164,3 +164,6 @@ i18n/*
 
 # Local visual regression artifacts
 .visual-regression/
+
+# Local browser state snapshots for Playwright (sensitive)
+.codex/browser-state/

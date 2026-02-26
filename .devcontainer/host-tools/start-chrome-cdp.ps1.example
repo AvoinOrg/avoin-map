@@ -1,0 +1,34 @@
+param(
+  [string]$StartUrl = "http://localhost:3000/fi/hiilikartta",
+  [int]$Port = 9222,
+  [string]$ProfileDir = "$env:LOCALAPPDATA\\AvoinMap-Codex-Chrome"
+)
+
+$chromeCandidates = @(
+  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+  "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
+)
+
+$chromePath = $chromeCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+if (-not $chromePath) {
+  throw "Chrome executable not found. Update the path in this script."
+}
+
+Write-Host "Launching Chrome CDP profile..." -ForegroundColor Cyan
+Write-Host "Chrome:  $chromePath"
+Write-Host "Profile: $ProfileDir"
+Write-Host "Port:    $Port"
+Write-Host "URL:     $StartUrl"
+
+New-Item -ItemType Directory -Force -Path $ProfileDir | Out-Null
+
+Start-Process -FilePath $chromePath -ArgumentList @(
+  "--remote-debugging-port=$Port",
+  "--remote-debugging-address=0.0.0.0",
+  "--user-data-dir=$ProfileDir",
+  $StartUrl
+)
+
+Write-Host "Next steps:" -ForegroundColor Green
+Write-Host "  1) Use that Chrome window to log in / import plans"
+Write-Host "  2) In devcontainer run: yarn browser-state:sync:localhost"

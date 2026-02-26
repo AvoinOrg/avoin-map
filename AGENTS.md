@@ -159,3 +159,26 @@ standalone sites.
 - Visual commands target `http://127.0.0.1:3000` first (reuse an already running `yarn dev` server when available). If the server is unreachable, the runner may temporarily start a local dev server as a fallback.
 - Use `yarn visual:baseline` to create or refresh local visual baselines intentionally.
 - Add `--no-start` when calling `node utils/scripts/visual/run.js` directly if you want to fail instead of allowing the fallback temporary server.
+- For host-browser state reuse (auth/imported plans on `localhost:3000`), use the CDP snapshot sync:
+  1. Launch a dedicated Chrome profile on Windows with remote debugging enabled.
+  2. Open `http://localhost:3000` in that Chrome window and log in/import the plan.
+  3. Run `yarn browser-state:sync:localhost` in the devcontainer.
+  4. Run host-state visual commands (for example `yarn visual:after-edit:host-state -- <paths>`).
+- Host-state scripts intentionally target `http://localhost:3000` (not `127.0.0.1`) because browser storage state is origin-specific.
+- Exported browser state is sensitive (cookies + local app state). It is stored under `.codex/browser-state/` (gitignored). Use a dedicated Chrome debug profile, not your main daily profile.
+- For ad-hoc interactive Playwright scripts, use `browser.newContext({ ignoreHTTPSErrors: true, storageState: '.codex/browser-state/localhost-3000.storage-state.json' })` and target `http://localhost:3000/...` routes (not `127.0.0.1`).
+- Windows PowerShell example for starting Chrome with CDP (dedicated profile):
+  ```powershell
+  $chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+  $profile = "$env:LOCALAPPDATA\AvoinMap-Codex-Chrome"
+  Start-Process -FilePath $chrome -ArgumentList @(
+    '--remote-debugging-port=9222',
+    '--remote-debugging-address=0.0.0.0',
+    "--user-data-dir=$profile",
+    'http://localhost:3000/fi/hiilikartta'
+  )
+  ```
+- Host-state visual scripts:
+  - `yarn visual:baseline:host-state`
+  - `yarn visual:changed:host-state --files <comma-separated-paths>`
+  - `yarn visual:after-edit:host-state -- <path1> <path2> ...`

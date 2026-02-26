@@ -7,6 +7,7 @@ const HELP_TEXT = `\
 Usage:
   yarn visual:after-edit -- <file> [file...]
   yarn visual:after-edit -- --files a.tsx,b.tsx
+  yarn visual:after-edit -- --storage-state .codex/browser-state/localhost-3000.storage-state.json <file>
   yarn visual:after-edit -- --no-start <file> [file...]
   yarn visual:after-edit
 
@@ -17,6 +18,7 @@ Behavior:
 
 Options:
   --base-url <url>            Override the target app URL
+  --storage-state <path>      Playwright storage state JSON (cookies/localStorage/IndexedDB)
   --start-command <cmd>       Override fallback dev server command
   --no-start                  Fail instead of starting a temporary dev server
   --files <csv>               Additional comma-separated file list
@@ -26,6 +28,7 @@ Options:
 const parseArgs = (argv) => {
   const args = {
     baseUrl: 'http://127.0.0.1:3000',
+    storageState: null,
     startCommand: null,
     noStart: false,
     help: false,
@@ -55,6 +58,16 @@ const parseArgs = (argv) => {
     }
     if (token === '--base-url') {
       args.baseUrl = argv[i + 1]
+      i++
+      continue
+    }
+
+    if (token.startsWith('--storage-state=')) {
+      args.storageState = token.slice('--storage-state='.length)
+      continue
+    }
+    if (token === '--storage-state') {
+      args.storageState = argv[i + 1]
       i++
       continue
     }
@@ -109,6 +122,9 @@ const run = () => {
   const runnerPath = path.join(__dirname, 'run.js')
   const commandArgs = [runnerPath, '--mode=changed', `--base-url=${args.baseUrl}`]
 
+  if (args.storageState) {
+    commandArgs.push(`--storage-state=${args.storageState}`)
+  }
   if (args.startCommand) {
     commandArgs.push(`--start-command=${args.startCommand}`)
   }

@@ -15,16 +15,23 @@ const {
 } = require('../../visual/constants')
 const { buildVisualScenarios } = require('../../visual/scenarios')
 const { resolveImpactedScenarios } = require('../../visual/impactMap')
+const {
+  buildPlaywrightContextOptions,
+  validateStorageStateFile,
+  warnOnStorageStateOriginMismatch,
+} = require('./playwrightContext')
 
 const HELP_TEXT = `\
 Usage:
   node utils/scripts/visual/run.js --mode=baseline [--base-url=http://127.0.0.1:3000]
   node utils/scripts/visual/run.js --mode=changed [--files=a.tsx,b.tsx] [--base-url=http://127.0.0.1:3000]
+  node utils/scripts/visual/run.js --mode=changed --base-url=http://localhost:3000 --storage-state=.codex/browser-state/localhost-3000.storage-state.json
 
 Options:
   --mode baseline|changed     Run baseline generation or regression check
   --files <csv>               Comma-separated changed files for targeted mode
   --base-url <url>            Base URL for the running Next.js app
+  --storage-state <path>      Playwright storage state JSON (cookies/localStorage/IndexedDB)
   --start-command <cmd>       Command used if the dev server is not already running (default: yarn dev)
   --no-start                  Fail instead of attempting to start the dev server
   --help                      Show this help
@@ -56,6 +63,7 @@ const parseArgs = (argv) => {
     mode: null,
     files: [],
     baseUrl: null,
+    storageState: null,
     startCommand: 'yarn dev',
     noStart: false,
     help: false,
@@ -90,6 +98,16 @@ const parseArgs = (argv) => {
     }
     if (token === '--base-url') {
       args.baseUrl = argv[i + 1]
+      i++
+      continue
+    }
+
+    if (token.startsWith('--storage-state=')) {
+      args.storageState = token.slice('--storage-state='.length)
+      continue
+    }
+    if (token === '--storage-state') {
+      args.storageState = argv[i + 1]
       i++
       continue
     }
@@ -341,14 +359,19 @@ const applyStabilityStyles = async ({ page, maskSelectors }) => {
   })
 }
 
-const captureScreenshot = async ({ browser, scenario, viewport, currentPath }) => {
-  const context = await browser.newContext({
-    viewport: { width: viewport.width, height: viewport.height },
-    deviceScaleFactor: viewport.deviceScaleFactor || 1,
-    isMobile: !!viewport.isMobile,
-    hasTouch: !!viewport.hasTouch,
-    ignoreHTTPSErrors: true,
-  })
+const captureScreenshot = async ({
+  browser,
+  scenario,
+  viewport,
+  currentPath,
+  storageStatePath,
+}) => {
+  const context = await browser.newContext(
+    buildPlaywrightContextOptions({
+      viewport,
+      storageStatePath,
+    })
+  )
 
   const page = await context.newPage()
 
@@ -402,6 +425,9 @@ const printSummary = ({ report }) => {
   const lines = []
   lines.push(`Mode: ${report.mode}`)
   lines.push(`Base URL: ${report.baseUrl}`)
+  if (report.storageStatePath) {
+    lines.push(`Storage state: ${report.storageStatePath}`)
+  }
   lines.push(`Scenarios: ${report.selectedScenarioIds.length}/${report.totalScenarioCount}`)
   if (report.changedFiles.length > 0) {
     lines.push(`Changed files: ${report.changedFiles.length}`)
@@ -440,6 +466,18 @@ const run = async () => {
   }
 
   const baseUrl = args.baseUrl || getDefaultBaseUrl()
+  const storageStatePath = args.storageState
+    ? validateStorageStateFile({ storageStatePath: args.storageState })
+    : null
+
+  if (storageStatePath) {
+    warnOnStorageStateOriginMismatch({
+      baseUrl,
+      storageStatePath,
+      logger: (message) => console.warn(message),
+    })
+  }
+
   const allScenarios = buildVisualScenarios({ baseUrl })
 
   const changedFiles = args.files.length > 0 ? args.files : collectChangedFilesFromGit()
@@ -504,7 +542,13 @@ const run = async () => {
         safeUnlink(diffPath)
 
         try {
-          await captureScreenshot({ browser, scenario, viewport, currentPath })
+          await captureScreenshot({
+            browser,
+            scenario,
+            viewport,
+            currentPath,
+            storageStatePath,
+          })
 
           if (mode === 'baseline') {
             ensureDir(path.dirname(baselinePath))
@@ -583,6 +627,7 @@ const run = async () => {
     timestamp: new Date().toISOString(),
     mode,
     baseUrl,
+    storageStatePath,
     changedFiles,
     selectedScenarioIds: selectedScenarios.map((scenario) => scenario.id),
     totalScenarioCount: allScenarios.length,
