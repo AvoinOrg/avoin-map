@@ -182,3 +182,30 @@ standalone sites.
   - `yarn visual:baseline:host-state`
   - `yarn visual:changed:host-state --files <comma-separated-paths>`
   - `yarn visual:after-edit:host-state -- <path1> <path2> ...`
+- Live shared browser control (real-time shared interaction, separate from storage-state sync):
+  - `browser-state:sync:localhost` exports a storage snapshot for visual screenshots. It does **not** provide live shared control.
+  - `browser:live:*` commands attach to a real shared browser session (host Chrome via CDP, or headed Chromium in the container).
+  - Turn-taking lock (recommended before interactive actions):
+    - `yarn browser:live:lock:take:codex`
+    - `yarn browser:live:lock:take:human`
+    - `yarn browser:live:lock:status`
+    - `yarn browser:live:lock:release` (defaults to `codex`; override with `-- --owner=human`)
+    - Use `-- --mode=container-headed` when locking for the container-headed workflow.
+  - Host Chrome shared-tab workflow (what you see is what Codex sees):
+    1. Launch dedicated Windows Chrome with CDP enabled (PowerShell example above).
+    2. Open `http://localhost:3000/...` in that Chrome window.
+    3. (Optional but recommended) Take a lock: `yarn browser:live:lock:take:human`
+    4. Verify attachability: `yarn browser:live:host:check`
+    5. Attach from the devcontainer: `yarn browser:live:host:attach -- --page-match hiilikartta`
+  - Container headed Chromium shared-window workflow (native host window via devcontainer GUI bridge):
+    1. Start the shared browser: `yarn browser:live:container:start`
+    2. (Optional) Take a lock with `-- --mode=container-headed`
+    3. Attach from the devcontainer: `yarn browser:live:container:attach`
+    4. Stop the session: `yarn browser:live:container:stop`
+  - Quick verification options:
+    - `--screenshot-out .visual-regression/report/live-check.png`
+    - `--assert-lock-owner codex` (or `human`) to enforce turn-taking
+  - Recovery:
+    - Host CDP unreachable: relaunch the dedicated host Chrome profile with `--remote-debugging-port=9222`.
+    - Stale container session file: `yarn browser:live:container:stop -- --force-clean`
+    - Stale lock: check `yarn browser:live:lock:status`, then release with `--force` if needed.

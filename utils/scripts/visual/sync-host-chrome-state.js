@@ -3,10 +3,16 @@
 const fs = require('fs')
 const path = require('path')
 
-const { chromium } = require('@playwright/test')
 const {
   waitForAppHydration,
 } = require('./playwrightContext')
+const {
+  connectToCdpBrowser,
+  ensurePageForOrigin,
+  formatHostCdpConnectionError,
+  getConnectedCdpUrl,
+  validateOriginAndUrl,
+} = require('./liveSharedBrowser')
 
 const HELP_TEXT = `\
 Usage:
@@ -115,53 +121,9 @@ const parseArgs = (argv) => {
     throw new Error(`Invalid --timeout-ms value: ${args.timeoutMs}`)
   }
 
-  try {
-    // Validate early.
-    const originUrl = new URL(args.origin)
-    const pageUrl = new URL(args.url)
-    if (originUrl.origin !== args.origin) {
-      throw new Error('origin must not include a path/query/hash')
-    }
-    if (pageUrl.origin !== originUrl.origin) {
-      throw new Error(`--url origin (${pageUrl.origin}) must match --origin (${originUrl.origin})`)
-    }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
-    throw new Error(`Invalid URL/origin arguments: ${message}`)
-  }
+  validateOriginAndUrl({ origin: args.origin, url: args.url })
 
   return args
-}
-
-const getPagePreferenceScore = ({ pageUrl, origin, pageMatch }) => {
-  if (!pageUrl || typeof pageUrl !== 'string') return -1
-  if (!pageUrl.startsWith(origin)) return -1
-  let score = 10
-  if (pageMatch && pageUrl.includes(pageMatch)) {
-    score += 100
-  }
-  if (pageUrl === origin || pageUrl === `${origin}/`) {
-    score += 5
-  }
-  return score
-}
-
-const findPreferredContextAndPage = ({ browser, origin, pageMatch }) => {
-  let best = null
-
-  for (const context of browser.contexts()) {
-    for (const page of context.pages()) {
-      const pageUrl = page.url()
-      const score = getPagePreferenceScore({ pageUrl, origin, pageMatch })
-      if (score < 0) continue
-
-      if (!best || score > best.score) {
-        best = { context, page, score, pageUrl }
-      }
-    }
-  }
-
-  return best
 }
 
 const cookieMatchesHost = ({ cookie, host }) => {
@@ -209,26 +171,6 @@ const getOriginSummary = ({ storageState, origin }) => {
   }
 }
 
-const formatCdpConnectionError = ({ cdpUrl, error }) => {
-  const message = error instanceof Error ? error.message : String(error)
-  return `Could not connect to host Chrome CDP endpoint at ${cdpUrl}.
-
-Launch Chrome on the Windows host with remote debugging enabled (dedicated profile recommended), for example in PowerShell:
-
-  $chrome = \"C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe\"
-  $profile = \"$env:LOCALAPPDATA\\AvoinMap-Codex-Chrome\"
-  Start-Process -FilePath $chrome -ArgumentList @(
-    '--remote-debugging-port=9222',
-    '--remote-debugging-address=0.0.0.0',
-    \"--user-data-dir=$profile\",
-    'http://localhost:3000/fi/hiilikartta'
-  )
-
-Then open the app in that Chrome window, log in/import the plan, and rerun the sync.
-
-Original error: ${message}`
-}
-
 const run = async () => {
   const args = parseArgs(process.argv.slice(2))
   if (args.help) {
@@ -241,9 +183,18 @@ const run = async () => {
 
   let browser
   try {
-    browser = await chromium.connectOverCDP(args.cdpUrl)
+    browser = await connectToCdpBrowser({
+      cdpUrl: args.cdpUrl,
+      logger: (message) => console.warn(message),
+    })
   } catch (error) {
-    throw new Error(formatCdpConnectionError({ cdpUrl: args.cdpUrl, error }))
+    throw new Error(
+      formatHostCdpConnectionError({
+        cdpUrl: args.cdpUrl,
+        error,
+        actionLabel: 'rerun the sync',
+      })
+    )
   }
 
   let selectedContext
@@ -251,30 +202,17 @@ const run = async () => {
   let openedNewPage = false
 
   try {
-    const preferred = findPreferredContextAndPage({
+    const selected = await ensurePageForOrigin({
       browser,
       origin: args.origin,
+      url: args.url,
       pageMatch: args.pageMatch,
+      openIfMissing: true,
+      timeoutMs: args.timeoutMs,
     })
-
-    if (preferred) {
-      selectedContext = preferred.context
-      selectedPage = preferred.page
-    } else {
-      selectedContext = browser.contexts()[0]
-      if (!selectedContext) {
-        throw new Error(
-          `No browser context found via CDP at ${args.cdpUrl}. Open at least one normal Chrome window in the debug profile and try again.`
-        )
-      }
-
-      selectedPage = await selectedContext.newPage()
-      openedNewPage = true
-      await selectedPage.goto(args.url, {
-        waitUntil: 'domcontentloaded',
-        timeout: args.timeoutMs,
-      })
-    }
+    selectedContext = selected.context
+    selectedPage = selected.page
+    openedNewPage = selected.openedNewPage
 
     try {
       await waitForAppHydration({
@@ -305,7 +243,7 @@ const run = async () => {
     console.log(
       JSON.stringify(
         {
-          cdpUrl: args.cdpUrl,
+          cdpUrl: getConnectedCdpUrl({ browser, requestedCdpUrl: args.cdpUrl }),
           origin: args.origin,
           out: outPath,
           cookiesCount: summary.cookiesCount,

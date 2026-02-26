@@ -156,3 +156,17 @@ Authentication uses NextAuth with a Zitadel issuer. Core auth routes live in
 
 Tests are currently light. Routing has unit tests, but applet-specific e2e
 coverage is not standardized yet.
+
+## Developer browser collaboration
+
+This repo includes two real-time shared browser workflows in addition to the
+visual regression screenshot tooling:
+
+- `browser:live:host:*`: attach from the devcontainer to a Windows host Chrome
+  instance over CDP (same tab the human is watching).
+- `browser:live:container:*`: run a headed Chromium in the devcontainer and
+  attach to it over CDP (visible through the devcontainer GUI bridge).
+
+Use `browser:live:lock:*` commands for turn-taking when both the human and the
+automation may interact with the same browser. See `AGENTS.md` for the detailed
+runbook and host Chrome startup command.
