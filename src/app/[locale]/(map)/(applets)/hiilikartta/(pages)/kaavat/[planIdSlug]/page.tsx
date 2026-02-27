@@ -304,6 +304,9 @@ const Page = () => {
                     ></T>
                   </Typography>
                   <DropDownSelectMinimal
+                    ariaLabel={t(
+                      'sidebar.plan_settings.report_preview.on_year'
+                    )}
                     value={currentYear}
                     isIconOnTheRight={false}
                     sx={{ mr: -4, mt: -0.5 }}
@@ -390,7 +393,13 @@ const Page = () => {
                   </Box>
                 </Box>
                 <Box
+                  component="button"
+                  type="button"
+                  aria-label={t('sidebar.plan_settings.open_full_report')}
                   sx={{
+                    background: 'none',
+                    border: 'none',
+                    p: 0,
                     typography: 'h2',
                     textAlign: 'end',
                     mt: 6,
@@ -429,7 +438,13 @@ const Page = () => {
               borderColor: 'primary.lighter',
             })}
           >
-            <FooterButtonContainer mt={0.4} onClick={handleCopyClick}>
+            <FooterButtonContainer
+              component="button"
+              type="button"
+              aria-label={t('sidebar.plan_settings.copy')}
+              mt={0.4}
+              onClick={handleCopyClick}
+            >
               <Box sx={{ mr: 1.5 }}>
                 <FolderCopy></FolderCopy>
               </Box>
@@ -442,7 +457,13 @@ const Page = () => {
               </Box>
               {/* </Box> */}
             </FooterButtonContainer>
-            <FooterButtonContainer onClick={handleDeleteClick} sx={{ mt: 1.3 }}>
+            <FooterButtonContainer
+              component="button"
+              type="button"
+              aria-label={t('sidebar.plan_settings.delete')}
+              onClick={handleDeleteClick}
+              sx={{ mt: 1.3 }}
+            >
               <Box sx={{ mr: 1.7 }}>
                 <Delete></Delete>
               </Box>
@@ -493,7 +514,19 @@ const Page = () => {
                     disableTouchListener={areSettingsValid && !hasNoFeatures}
                   >
                     <Box
+                      component="button"
+                      type="button"
+                      aria-label={t(
+                        'sidebar.plan_settings.calculate_carbon_effect'
+                      )}
+                      aria-disabled={
+                        areSettingsValid && !hasNoFeatures ? undefined : 'true'
+                      }
                       sx={{
+                        background: 'none',
+                        border: 'none',
+                        p: 0,
+                        textAlign: 'inherit',
                         display: 'inline-flex',
                         flexDirection: 'row',
                         '&:hover': {
@@ -557,14 +590,21 @@ const Page = () => {
   )
 }
 
-const FooterButtonContainer = styled(Box)<{ component?: string }>({
-  display: 'inline-flex',
-  flexDirection: 'row',
-  '&:hover': { cursor: 'pointer' },
-  color: 'neutral.dark',
-  flex: '0',
-  whiteSpace: 'nowrap',
-  alignSelf: 'flex-start',
-})
+const FooterButtonContainer = styled(Box)<{ component?: string; type?: string }>(
+  {
+    display: 'inline-flex',
+    flexDirection: 'row',
+    background: 'none',
+    border: 'none',
+    padding: 0,
+    margin: 0,
+    textAlign: 'inherit',
+    '&:hover': { cursor: 'pointer' },
+    color: 'neutral.dark',
+    flex: '0',
+    whiteSpace: 'nowrap',
+    alignSelf: 'flex-start',
+  }
+)
 
 export default Page

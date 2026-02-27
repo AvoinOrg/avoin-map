@@ -44,7 +44,12 @@ export const MapLoginButton = ({ isVertical }: Props) => {
 
   if (isLoading) {
     return (
-      <MapButton size="small" disabled isVertical={isVertical}>
+      <MapButton
+        size="small"
+        disabled
+        isVertical={isVertical}
+        aria-label={tooltipLabel}
+      >
         <LoadingHorizontal sx={{ color: 'text.secondary' }} />
       </MapButton>
     )
@@ -78,8 +83,9 @@ export const MapLoginButton = ({ isVertical }: Props) => {
         </Typography>
       </Box>
       <Divider />
-      <MenuList sx={{ py: 1 }}>
+      <MenuList aria-label={t('map.buttons.account', 'Account menu')} sx={{ py: 1 }}>
         <MenuItem
+          aria-label={t('navbar.profile.settings')}
           onClick={() => {
             openWindow(PROFILE_URL)
             closeMenu()
@@ -89,6 +95,7 @@ export const MapLoginButton = ({ isVertical }: Props) => {
           <T keyName="navbar.profile.settings" />
         </MenuItem>
         <MenuItem
+          aria-label={t('navbar.profile.sign_out')}
           onClick={() => {
             signOut()
             closeMenu()

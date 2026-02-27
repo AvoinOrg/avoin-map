@@ -313,6 +313,15 @@ const CarbonLineChartInner = ({
                   <div
                     key={`legend-${i}`}
                     onClick={() => toggleLineVisibility(i)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        toggleLineVisibility(i)
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Toggle chart series ${String(label.text)}`}
                     style={{
                       cursor: 'pointer',
                       marginRight: '2rem',

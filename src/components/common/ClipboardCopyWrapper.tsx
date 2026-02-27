@@ -9,6 +9,7 @@ type Props = {
   children: React.ReactNode
   onSuccessText?: string
   onFailText?: string
+  ariaLabel?: string
   disabled?: boolean
   sx?: SxProps<Theme>
 }
@@ -18,6 +19,7 @@ const ClipboardCopyWrapper = ({
   children,
   onSuccessText,
   onFailText,
+  ariaLabel,
   disabled,
   sx,
 }: Props) => {
@@ -37,12 +39,23 @@ const ClipboardCopyWrapper = ({
 
   return (
     <Box
-      onClick={copyToClipboard}
+      component="button"
+      type="button"
+      aria-label={ariaLabel ?? 'Copy to clipboard'}
+      aria-disabled={disabled ? 'true' : undefined}
+      onClick={disabled ? undefined : copyToClipboard}
       sx={[
         {
+          background: 'none',
+          border: 'none',
+          p: 0,
+          m: 0,
+          color: 'inherit',
+          textAlign: 'inherit',
           '&:hover': {
-            cursor: 'pointer',
+            cursor: disabled ? 'not-allowed' : 'pointer',
           },
+          opacity: disabled ? 0.6 : 1,
         },
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}

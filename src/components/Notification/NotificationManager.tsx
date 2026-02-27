@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { closeSnackbar, useSnackbar } from 'notistack'
 
 import { useUIStore } from '#/common/store'
-import { Box, Typography } from '@mui/material'
+import { IconButton, Typography } from '@mui/material'
 import { Cross } from '../icons'
 import { useTranslate } from '@tolgee/react'
 
@@ -43,19 +43,18 @@ const NotificationManager = () => {
               persist: notification.persist,
               hideIconVariant: true,
               action: (key) => (
-                <Box
+                <IconButton
+                  size="small"
+                  aria-label="Close notification"
                   onClick={() => {
                     closeSnackbar(key)
                   }}
                   sx={{
-                    height: '100%',
-                    '&:hover': { cursor: 'pointer' },
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    color: 'inherit',
                   }}
                 >
                   <Cross sx={{ display: 'flex', height: '16px' }}></Cross>
-                </Box>
+                </IconButton>
               ),
             }
           )

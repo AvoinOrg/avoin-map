@@ -20,13 +20,21 @@ const InitActionsRow = ({
       })}
     >
       <Typography
+        component="button"
+        type="button"
+        aria-label="Accept imported plan"
         typography={'h3'}
         sx={(theme) => ({
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          margin: 0,
           float: 'right',
           ...(isAcceptDisabled
             ? { color: theme.palette.neutral.main }
             : { cursor: 'pointer' }),
         })}
+        disabled={isAcceptDisabled}
         onClick={isAcceptDisabled ? undefined : onClickAccept}
       >
         <u>

@@ -18,6 +18,7 @@ interface Props {
   options: SelectOption[]
   onChange: (event: SelectChangeEvent) => void
   label?: string
+  ariaLabel?: string
   allowEmpty?: boolean
   sx?: SxProps<Theme>
   selectSx?: SxProps<Theme>
@@ -32,6 +33,7 @@ const DropDownSelect = ({
   options,
   onChange,
   label,
+  ariaLabel,
   allowEmpty,
   sx,
   selectSx,
@@ -90,6 +92,7 @@ const DropDownSelect = ({
       <Select
         id={selectId}
         labelId={labelId}
+        aria-label={ariaLabel ?? label}
         value={currentValue}
         onChange={onChange}
         IconComponent={DownIcon}
@@ -150,6 +153,7 @@ const DropDownSelect = ({
           <MenuItem
             key={`invalid-${value}`}
             value={value}
+            aria-label={`Invalid value ${value}`}
             sx={[
               { typography: 'body2' },
               ...(Array.isArray(typographySx) ? typographySx : [typographySx]),
@@ -168,6 +172,7 @@ const DropDownSelect = ({
           <MenuItem
             key="empty-selection"
             value=""
+            aria-label="Empty selection"
             sx={[
               { typography: 'body2' },
               ...(Array.isArray(typographySx) ? typographySx : [typographySx]),
@@ -185,6 +190,11 @@ const DropDownSelect = ({
           <MenuItem
             key={`option-${option.value}`}
             value={option.value}
+            aria-label={
+              typeof option.label === 'string'
+                ? option.label
+                : String(option.value)
+            }
             sx={[
               { typography: 'body2' },
               ...(Array.isArray(typographySx) ? typographySx : [typographySx]),

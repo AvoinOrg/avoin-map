@@ -7,9 +7,15 @@ type Props = {
   modalBody: React.ReactNode
   sx?: SxProps<Theme>
   textContainerSx?: SxProps<Theme>
+  triggerAriaLabel?: string
 }
 
-const ClickableModal = ({ modalBody, children, sx }: Props) => {
+const ClickableModal = ({
+  modalBody,
+  children,
+  sx,
+  triggerAriaLabel = 'Open modal',
+}: Props) => {
   const [open, setOpen] = React.useState(false)
 
   const handleClose = () => {
@@ -19,8 +25,19 @@ const ClickableModal = ({ modalBody, children, sx }: Props) => {
   return (
     <>
       <Box
+        component="button"
+        type="button"
+        aria-label={triggerAriaLabel}
         sx={[
-          { '&:hover': { cursor: 'pointer' } },
+          {
+            background: 'none',
+            border: 'none',
+            p: 0,
+            m: 0,
+            color: 'inherit',
+            textAlign: 'inherit',
+            '&:hover': { cursor: 'pointer' },
+          },
           ...(Array.isArray(sx) ? sx : [sx]),
         ]}
         onClick={() => setOpen(true)}

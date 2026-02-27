@@ -62,6 +62,10 @@ const ZoneAccordionItemTitle = ({
         value={title}
         valueAppendix={titleAppendix}
         onChange={onChange}
+        textFieldAriaLabel={`Zone name input ${title}${titleAppendix}`}
+        editButtonAriaLabel={`Edit zone name ${title}${titleAppendix}`}
+        saveButtonAriaLabel={`Save zone name ${title}${titleAppendix}`}
+        cancelButtonAriaLabel={`Cancel editing zone name ${title}${titleAppendix}`}
         sx={{ pr: 1 }}
         iconSx={{ fontSize: '16px' }}
       ></EditableText>

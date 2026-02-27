@@ -11,6 +11,7 @@ import Switch from '#/components/common/Switch'
 
 type SwitchWithLabelProps = Omit<SwitchProps, 'sx'> & {
   children?: React.ReactNode
+  ariaLabel?: string
   sx?: SxProps<Theme> // For the entire FormControlLabel wrapper
   controlSx?: SxProps<Theme>
   labelSx?: SxProps<Theme>
@@ -19,6 +20,7 @@ type SwitchWithLabelProps = Omit<SwitchProps, 'sx'> & {
 
 const SwitchWithLabel = ({
   children,
+  ariaLabel,
   sx,
   controlSx,
   labelSx,
@@ -26,6 +28,14 @@ const SwitchWithLabel = ({
   required = false,
   ...rest
 }: SwitchWithLabelProps) => {
+  const { inputProps: switchInputProps, ...switchRest } = rest
+  const resolvedAriaLabel =
+    switchInputProps?.['aria-label'] ??
+    ariaLabel ??
+    (typeof children === 'string' || typeof children === 'number'
+      ? String(children)
+      : undefined)
+
   return (
     <FormControlLabel
       sx={[
@@ -41,7 +51,16 @@ const SwitchWithLabel = ({
         ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
       ]}
       control={
-        <Switch sx={controlSx} disabled={disabled} {...rest} />
+        <Switch
+          sx={controlSx}
+          disabled={disabled}
+          aria-label={resolvedAriaLabel}
+          inputProps={{
+            ...switchInputProps,
+            'aria-label': resolvedAriaLabel,
+          }}
+          {...switchRest}
+        />
       }
       label={
         <Typography

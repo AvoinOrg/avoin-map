@@ -44,6 +44,7 @@ const ImgAccordion = ({ title, img, children }: Props) => {
       }}
     >
       <AccordionSummary
+        aria-label={`Toggle ${title}`}
         sx={{
           position: 'relative',
           overflow: 'hidden',

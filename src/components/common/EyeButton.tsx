@@ -9,13 +9,23 @@ interface EyeButtonProps {
   onClick: (e: React.MouseEvent) => void
   color: string
   status: LayerGroupStatus
+  ariaLabel?: string
 }
 
-export const EyeButton = ({ onClick, color, status }: EyeButtonProps) => {
+export const EyeButton = ({
+  onClick,
+  color,
+  status,
+  ariaLabel,
+}: EyeButtonProps) => {
   const contrastColor = getContrastColor(color)
 
   return (
-    <IconButton onClick={onClick} sx={{ mr: 1 }}>
+    <IconButton
+      onClick={onClick}
+      aria-label={ariaLabel ?? 'Toggle layer visibility'}
+      sx={{ mr: 1 }}
+    >
       {status === 'processing' && (
         <Box
           sx={{

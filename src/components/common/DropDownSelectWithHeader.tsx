@@ -35,7 +35,12 @@ const DropDownSelectWithHeader = ({
           {label}
         </Typography>
       )}
-      <DropDownSelect sx={{ width: '100%' }} {...rest} label={undefined} />
+      <DropDownSelect
+        sx={{ width: '100%' }}
+        {...rest}
+        ariaLabel={label}
+        label={undefined}
+      />
     </Box>
   )
 }

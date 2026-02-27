@@ -16,6 +16,10 @@ interface Props {
   value: string
   onChange: (event: any) => void
   valueAppendix?: string
+  editButtonAriaLabel?: string
+  saveButtonAriaLabel?: string
+  cancelButtonAriaLabel?: string
+  textFieldAriaLabel?: string
   sx?: SxProps<Theme>
   textSx?: SxProps<Theme>
   iconSx?: SxProps<Theme>
@@ -25,6 +29,10 @@ const EditableText = ({
   value,
   onChange,
   valueAppendix,
+  editButtonAriaLabel = 'Edit text',
+  saveButtonAriaLabel = 'Save text',
+  cancelButtonAriaLabel = 'Cancel text editing',
+  textFieldAriaLabel = 'Editable text',
   sx,
   textSx,
   iconSx,
@@ -134,6 +142,7 @@ const EditableText = ({
           <IconButton
             disableRipple
             onClick={handleEditClick}
+            aria-label={editButtonAriaLabel}
             component="span"
             role="button"
             tabIndex={0}
@@ -174,10 +183,14 @@ const EditableText = ({
           onKeyDown={handleKeyDown}
           onClick={(event) => event.stopPropagation()}
           variant="outlined"
+          aria-label={textFieldAriaLabel}
           onFocus={(event) => {
             event.stopPropagation()
           }}
           slotProps={{
+            htmlInput: {
+              'aria-label': textFieldAriaLabel,
+            },
             input: {
               sx: [
                 { m: 0, p: 0, height: '100%' },
@@ -186,8 +199,14 @@ const EditableText = ({
               endAdornment: (
                 <InputAdornment position="end">
                   <Box
-                    component="span"
+                    component="button"
+                    type="button"
+                    aria-label={saveButtonAriaLabel}
                     sx={{
+                      p: 0,
+                      m: 0,
+                      background: 'none',
+                      border: 'none',
                       height: '100%',
                       color: 'neutral.dark',
                       cursor: 'pointer',
@@ -207,9 +226,14 @@ const EditableText = ({
                     />
                   </Box>
                   <Box
-                    component="span"
+                    component="button"
+                    type="button"
+                    aria-label={cancelButtonAriaLabel}
                     sx={{
                       p: 0,
+                      m: 0,
+                      background: 'none',
+                      border: 'none',
                       height: '100%',
                       color: 'neutral.dark',
                       cursor: 'pointer',

@@ -68,6 +68,7 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
               ></TText>{' '}
             </Typography>
             <DropDownSelectMinimal
+              ariaLabel="Select overview graph year"
               options={featureYears.map((featureYear) => ({
                 label: featureYear,
                 value: featureYear,

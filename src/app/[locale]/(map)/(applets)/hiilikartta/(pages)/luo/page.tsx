@@ -81,7 +81,11 @@ const Page = () => {
         routeTree={routeTree}
         sx={{ display: 'flex', color: 'inherit', textDecoration: 'none' }}
       >
-        <BigMenuButton variant="contained" component="label">
+        <BigMenuButton
+          variant="contained"
+          component="label"
+          aria-label="Open plan import"
+        >
           <TText keyName={'sidebar.create.upload'} ns={'hiilikartta'} />
         </BigMenuButton>
       </MutableLink>
@@ -95,6 +99,7 @@ const Page = () => {
         }}
       >
         <ClickableModal
+          triggerAriaLabel="Show upload instructions"
           modalBody={
             <Box>
               <Typography component="div" sx={{ typography: 'body2' }}>
@@ -121,6 +126,7 @@ const Page = () => {
       <BigMenuButton
         sx={{ mt: 5 }}
         variant="contained"
+        aria-label="Create new plan by drawing"
         onClick={handleNewPlanClick}
       >
         <TText keyName={'sidebar.create.draw_new'} ns={'hiilikartta'} />
@@ -135,6 +141,7 @@ const Page = () => {
         }}
       >
         <ClickableModal
+          triggerAriaLabel="Show drawing instructions"
           modalBody={
             <Box>
               <Typography sx={{ typography: 'body2' }}>

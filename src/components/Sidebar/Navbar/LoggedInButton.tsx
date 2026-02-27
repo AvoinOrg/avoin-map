@@ -89,6 +89,7 @@ const LoggedInButton = () => {
           <>
             <Button
               ref={anchorRef}
+              aria-label={`Open account menu for ${userData?.name ?? 'user'}`}
               aria-haspopup="true"
               id="navbar-profile-button"
               sx={{ color: 'neutral.lighter', typography: 'h3', pl: 0 }}
@@ -123,10 +124,16 @@ const LoggedInButton = () => {
                         aria-labelledby="navbar-profile-button"
                         onKeyDown={handleListKeyDown}
                       >
-                        <MenuItem onClick={handleProfileClick}>
+                        <MenuItem
+                          aria-label="Open profile settings"
+                          onClick={handleProfileClick}
+                        >
                           <T keyName={'navbar.profile.settings'}></T>
                         </MenuItem>
-                        <MenuItem onClick={handleSignoutClick}>
+                        <MenuItem
+                          aria-label="Sign out"
+                          onClick={handleSignoutClick}
+                        >
                           <T keyName={'navbar.profile.sign_out'}></T>
                         </MenuItem>
                       </MenuList>

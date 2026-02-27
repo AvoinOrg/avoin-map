@@ -77,8 +77,17 @@ const LayerItem = ({
 
   const renderImage = () => (
     <Box
+      component="button"
+      type="button"
+      aria-label={`Toggle layer ${name}`}
       onClick={() => onSelect(layerGroup.id)}
       sx={{
+        p: 0,
+        m: 0,
+        width: '100%',
+        background: 'none',
+        border: 'none',
+        textAlign: 'inherit',
         cursor: 'pointer',
         mt: imageMarginTop,
         position: 'relative',

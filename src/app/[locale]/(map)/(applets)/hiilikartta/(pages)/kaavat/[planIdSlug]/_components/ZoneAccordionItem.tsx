@@ -307,6 +307,7 @@ const ZoneAccordionItem = memo(
         <CustomAccordionSummary
           aria-controls={`panel${index + 1}-content`}
           id={`panel${index + 1}-header`}
+          aria-label={`Toggle zone ${feature.properties.name ?? feature.properties.id}`}
           sx={{
             '& .MuiAccordionSummary-content': {
               width: '100%',
@@ -343,6 +344,11 @@ const ZoneAccordionItem = memo(
             <Box sx={{ mt: 3 }}>
               <ButtonBase
                 onClick={() => setIsLandUseExpanded((prev) => !prev)}
+                aria-label={`${
+                  isLandUseExpanded ? 'Collapse' : 'Expand'
+                } land use distribution for ${
+                  feature.properties.name ?? feature.properties.id
+                }`}
                 disableRipple
                 disableTouchRipple
                 sx={{
@@ -377,11 +383,17 @@ const ZoneAccordionItem = memo(
                       enterTouchDelay={0}
                     >
                       <Box
-                        component="span"
+                        component="button"
+                        type="button"
+                        aria-label={`Show land use distribution help for ${
+                          feature.properties.name ?? feature.properties.id
+                        }`}
                         onClick={handleLandUseTooltipClick}
                         onMouseDown={handleLandUseTooltipClick}
                         onTouchStart={handleLandUseTooltipClick}
                         sx={{
+                          border: 'none',
+                          background: 'none',
                           display: 'inline-flex',
                           alignItems: 'center',
                           justifyContent: 'center',

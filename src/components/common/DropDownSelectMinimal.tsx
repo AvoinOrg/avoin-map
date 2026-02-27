@@ -17,6 +17,7 @@ interface Props {
   value: any
   options: SelectOption[]
   onChange: (event: SelectChangeEvent<string>) => void
+  ariaLabel?: string
   sx?: SxProps<Theme>
   optionSx?: SxProps<Theme>
   iconSx?: SxProps<Theme>
@@ -27,6 +28,7 @@ const DropDownSelectMinimal = ({
   value,
   options,
   onChange,
+  ariaLabel,
   sx,
   optionSx,
   iconSx,
@@ -37,6 +39,7 @@ const DropDownSelectMinimal = ({
   return (
     <FormControl variant={'standard'}>
       <Select
+        aria-label={ariaLabel}
         value={value == null ? '' : value}
         onChange={onChange}
         IconComponent={StyledDownIcon}
@@ -83,6 +86,11 @@ const DropDownSelectMinimal = ({
         {hasEmpty && <option key={''} value={''}></option>}
         {options.map((option) => (
           <MenuItem
+            aria-label={
+              typeof option.label === 'string'
+                ? option.label
+                : String(option.value)
+            }
             sx={{
               m: 0,
               p: 0,

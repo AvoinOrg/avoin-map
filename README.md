@@ -123,6 +123,9 @@ limitations.
 - UI components and styling are built with MUI (Material UI); prefer the `sx`
   prop for styling over `styled()` / `@emotion/styled` and separate style sheets
   when possible (use `styled` only when it significantly improves DRY/reuse).
+- Add unique `aria-label` values to icon-only buttons, custom click targets,
+  and menu triggers/items that do not already expose a stable accessible name.
+  This improves both accessibility and automated UI test reliability.
 - State is managed with Zustand; the map store is split into slices and applet
   stores live in their applet folders.
 - Data fetching uses TanStack Query.

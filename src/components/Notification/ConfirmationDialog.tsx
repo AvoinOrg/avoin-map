@@ -76,12 +76,21 @@ const ConfirmationDialog = () => {
         </DialogContent>
       )}
       <DialogActions>
-        <Button onClick={handleCancel} disableFocusRipple>
+        <Button
+          onClick={handleCancel}
+          aria-label={localOptions.cancelText}
+          disableFocusRipple
+        >
           <Typography sx={{ color: 'neutral.darker' }}>
             {localOptions.cancelText}
           </Typography>
         </Button>
-        <Button onClick={handleAccept} autoFocus disableFocusRipple>
+        <Button
+          onClick={handleAccept}
+          aria-label={localOptions.confirmText}
+          autoFocus
+          disableFocusRipple
+        >
           <Typography sx={{ color: 'neutral.darker' }}>
             {localOptions.confirmText}
           </Typography>

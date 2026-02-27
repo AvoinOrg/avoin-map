@@ -434,7 +434,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
             clearIndicator: {
               // If the input is already empty, treat the clear button as "close" in vertical mode.
               // Use capture so we don't override MUI's built-in clear handler when there's text.
-              onMouseDownCapture: (e) => {
+              onMouseDownCapture: (e: React.MouseEvent<HTMLElement>) => {
                 if (isVertical && !inputValue.trim()) {
                   e.preventDefault()
                   e.stopPropagation()
@@ -450,6 +450,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
           renderInput={(params) => (
             <TextField
               {...params}
+              aria-label={t('map.search.placeholder')}
               inputRef={searchInputRef}
               size="small"
               variant="outlined"
@@ -564,6 +565,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
       {isVertical && !isActive && (
         <IconButton
           onClick={() => setMapMenuState(mapMenuState, true)}
+          aria-label="Open search"
           sx={{
             backgroundColor: 'transparent',
             width: '40px',

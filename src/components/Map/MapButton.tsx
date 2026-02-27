@@ -17,6 +17,7 @@ export const MapButton = forwardRef<HTMLButtonElement, MapButtonProps>(
       sx,
       className,
       style,
+      'aria-label': ariaLabel,
       ...props
     },
     ref
@@ -24,6 +25,7 @@ export const MapButton = forwardRef<HTMLButtonElement, MapButtonProps>(
     const button = (
       <Button
         {...props}
+        aria-label={ariaLabel ?? tooltip}
         className={className}
         style={style}
         ref={ref}

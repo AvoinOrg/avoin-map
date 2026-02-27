@@ -41,6 +41,13 @@ const CheckBoxWithLabel = ({
   required = false,
   ...rest // Captures other props for the MUI Checkbox (e.g., name, value)
 }: CheckBoxWithLabelProps) => {
+  const { inputProps: checkboxInputProps, ...checkboxRest } = rest
+  const resolvedAriaLabel =
+    checkboxInputProps?.['aria-label'] ??
+    (typeof children === 'string' || typeof children === 'number'
+      ? String(children)
+      : undefined)
+
   return (
     <FormControlLabel
       sx={[
@@ -101,7 +108,12 @@ const CheckBoxWithLabel = ({
             ...(Array.isArray(checkboxSx) ? checkboxSx : [checkboxSx]), // User-provided Checkbox styles
           ]}
           disabled={disabled}
-          {...rest} // Spread other props like 'name', 'value', 'inputProps'
+          aria-label={resolvedAriaLabel}
+          inputProps={{
+            ...checkboxInputProps,
+            'aria-label': resolvedAriaLabel,
+          }}
+          {...checkboxRest} // Spread other props like 'name', 'value'
         />
       }
       label={

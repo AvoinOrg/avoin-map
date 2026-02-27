@@ -8,6 +8,7 @@ interface IconWithTextProps {
   ) => void
   children?: React.ReactNode
   isIconOnRight?: boolean
+  ariaLabel?: string
   sx?: SxProps<Theme>
   iconSx?: SxProps<Theme>
   textSx?: SxProps<Theme>
@@ -19,6 +20,7 @@ const IconWithText = ({
   onClick,
   children,
   isIconOnRight = false,
+  ariaLabel,
   sx,
   iconSx,
   textSx,
@@ -55,6 +57,14 @@ const IconWithText = ({
     <Box
       onClick={isInteractive ? onClick : undefined}
       onKeyDown={isInteractive ? handleKeyPress : undefined}
+      aria-label={
+        isInteractive
+          ? ariaLabel ??
+            (typeof children === 'string' || typeof children === 'number'
+              ? String(children)
+              : undefined)
+          : undefined
+      }
       role={onClick ? 'button' : undefined} // Role is button only if onClick is provided
       tabIndex={isInteractive ? 0 : -1}
       aria-disabled={disabled} // aria-disabled can still be relevant even if not interactive via onClick

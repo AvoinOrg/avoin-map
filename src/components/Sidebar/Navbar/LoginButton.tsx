@@ -9,6 +9,7 @@ import { openWindow } from '#/common/utils/modal'
 const LoginButton = () => {
   return (
     <Button
+      aria-label="Sign in"
       sx={{ color: 'neutral.lighter', typography: 'h3', pl: 0 }}
       onClick={() => openWindow('/en/adds/login')}
     >

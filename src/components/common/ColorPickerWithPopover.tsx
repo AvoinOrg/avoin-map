@@ -15,6 +15,7 @@ interface ColorPickerWithPopoverProps {
   color: string
   onChange: (newColor: string) => void
   labelText?: string
+  ariaLabel?: string
   sx?: SxProps<Theme>
   colorBoxSx?: SxProps<Theme>
   labelSx?: SxProps<Theme>
@@ -31,6 +32,7 @@ const ColorPickerWithPopover = ({
   color, // The final color value from the parent
   onChange, // The callback to update the parent's state
   labelText,
+  ariaLabel,
   sx,
   colorBoxSx,
   labelSx,
@@ -39,11 +41,11 @@ const ColorPickerWithPopover = ({
   popoverProps,
   colorBoxProps,
 }: ColorPickerWithPopoverProps) => {
-  const [anchorEl, setAnchorEl] = useState<HTMLDivElement | null>(null)
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   // Internal state to hold the color while the popover is open
   const [internalColor, setInternalColor] = useState<string>(color)
 
-  const handleOpen = (event: React.MouseEvent<HTMLDivElement>) => {
+  const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
     // Reset internal color to the current parent color when opening
     setInternalColor(color)
     setAnchorEl(event.currentTarget)
@@ -71,11 +73,20 @@ const ColorPickerWithPopover = ({
     <>
       {/* Root container - unchanged */}
       <Box
+        component="button"
+        type="button"
+        aria-label={ariaLabel ?? labelText ?? 'Open color picker'}
         sx={[
           {
             display: 'flex',
             alignItems: 'center',
             gap: 2,
+            p: 0,
+            m: 0,
+            border: 'none',
+            background: 'none',
+            color: 'inherit',
+            textAlign: 'inherit',
             cursor: 'pointer',
           },
           ...(Array.isArray(sx) ? sx : sx ? [sx] : []),

@@ -491,6 +491,7 @@ const Page = () => {
             <Box
               component="button"
               type="button"
+              aria-label="Download report data as GeoJSON"
               disabled={planConfs.length === 0}
               onClick={handleDownloadGeoJson}
               sx={{
@@ -528,6 +529,7 @@ const Page = () => {
               </Typography>
             </Box>
             <ClipboardCopyWrapper
+              ariaLabel="Copy report link"
               sx={{
                 display: 'inline-flex',
                 alignItems: 'center',

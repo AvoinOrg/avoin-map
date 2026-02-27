@@ -346,6 +346,7 @@ const CarbonMapGraphMap = ({
         }}
       >
         <DropDownSelectMinimal
+          ariaLabel="Select map graph year"
           value={activeYear}
           options={featureYears.map((year) => ({
             label: year,
@@ -391,6 +392,7 @@ const CarbonMapGraphMap = ({
                 }),
             }}
             key={option.id + option.isCurrent}
+            aria-label={`Show map graph data for ${option.name}`}
             onClick={() => handlePlanSelectClick(option)}
           >
             <Typography
@@ -450,7 +452,18 @@ const CarbonMapGraphMap = ({
               }}
             >
               <Box
-                sx={{ display: 'inline' }}
+                component="button"
+                type="button"
+                aria-label="Close map graph tooltip"
+                sx={{
+                  display: 'inline',
+                  p: 0,
+                  m: 0,
+                  border: 'none',
+                  background: 'none',
+                  color: 'inherit',
+                  cursor: 'pointer',
+                }}
                 onClick={() =>
                   setTooltip((prev: any) => ({ ...prev, visible: false }))
                 }

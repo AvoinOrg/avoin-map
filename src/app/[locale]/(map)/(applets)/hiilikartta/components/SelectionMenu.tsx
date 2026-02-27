@@ -16,7 +16,13 @@ const SelectionMenu = ({ id, options, value, onChange, sx, label }: Props) => {
   return (
     <FormControl variant="filled" sx={sx}>
       {label && <InputLabel id={`${id}-label`}>{label}</InputLabel>}
-      <Select labelId={`${id}-label`} id={`${id}`} value={value} onChange={onChange}>
+      <Select
+        labelId={`${id}-label`}
+        id={`${id}`}
+        aria-label={label ?? id}
+        value={value}
+        onChange={onChange}
+      >
         {options.map((option) => (
           <option key={option} value={option}>
             {option}

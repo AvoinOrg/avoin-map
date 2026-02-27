@@ -294,6 +294,7 @@ const Page = () => {
       <BigMenuButton
         variant="outlined"
         component="label"
+        aria-label="Select plan file to import"
         sx={(theme) => ({
           width: '100%',
           height: '60px',

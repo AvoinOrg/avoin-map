@@ -149,6 +149,10 @@ standalone sites.
 
 - Always use functional components (const MyComponent = () => {}).
 - When creating a stylable component with Sx-prop, extend Sx as array (sx={[{}], ...(Array.isArray(sx) ? sx : [sx])]})
+- Add unique `aria-label` values to icon-only buttons and custom clickable UI
+  elements (including menu triggers/items when needed) when a stable
+  accessible name is not already present. This is required for reliable
+  automated testing and accessibility tooling.
 
 ## Tests
 

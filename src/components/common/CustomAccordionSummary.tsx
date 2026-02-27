@@ -8,10 +8,12 @@ const CustomAccordionSummary = ({
   expandIcon = <ArrowDown />,
   sx,
   children,
+  'aria-label': ariaLabel,
   ...accordionSummaryProps
 }: AccordionSummaryProps & { children: React.ReactNode }) => {
   return (
     <AccordionSummary
+      aria-label={ariaLabel}
       expandIcon={expandIcon}
       disableRipple
       disableTouchRipple

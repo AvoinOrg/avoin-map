@@ -11,6 +11,7 @@ import { ClickableModal } from '#/components/Modal'
 const ReadMoreModal = () => {
   return (
     <ClickableModal
+      triggerAriaLabel="Open calculation method details"
       modalBody={
         <Box>
           <Typography sx={{ typography: 'body1', mb: 2 }}>

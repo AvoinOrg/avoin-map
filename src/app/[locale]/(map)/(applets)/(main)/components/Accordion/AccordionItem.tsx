@@ -43,10 +43,26 @@ export const AccordionItem = ({
     }
   }
 
+  const handleHeaderKeyDown = (event: React.KeyboardEvent) => {
+    if (!children) return
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      handleToggleExpand()
+    }
+  }
+
   return (
     <>
       <Box
         onClick={handleToggleExpand}
+        role={children ? 'button' : undefined}
+        tabIndex={children ? 0 : undefined}
+        aria-label={
+          children
+            ? `${isExpanded ? 'Collapse' : 'Expand'} ${name}`
+            : undefined
+        }
+        onKeyDown={handleHeaderKeyDown}
         sx={{
           display: 'flex',
           alignItems: 'center',
@@ -69,6 +85,9 @@ export const AccordionItem = ({
           onClick={handleToggleVisibility}
           color={itemColor}
           status={layerGroupStatus}
+          ariaLabel={`${name}: ${
+            layerGroupStatus === 'visible' ? 'Hide layer' : 'Show layer'
+          }`}
         />
         <Typography
           sx={{

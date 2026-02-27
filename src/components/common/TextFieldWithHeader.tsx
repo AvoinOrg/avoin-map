@@ -5,6 +5,7 @@ import { debounce } from 'lodash-es' // Or from 'lodash' or 'lodash.debounce'
 interface TextFieldWithHeaderProps {
   headerText: string
   placeholderText?: string
+  ariaLabel?: string
   value: string // Controlled value from parent
   onChange: (value: string) => void // MODIFIED: Receives debounced string value
   debounceTimeout?: number // Optional: allow parent to configure timeout
@@ -28,6 +29,7 @@ interface TextFieldWithHeaderProps {
 const TextFieldWithHeader = ({
   headerText,
   placeholderText,
+  ariaLabel,
   value: propValue,
   onChange: onParentChange,
   debounceTimeout = 300, // Default 300ms debounce
@@ -133,6 +135,7 @@ const TextFieldWithHeader = ({
       </Typography>
       <TextField
         {...textFieldFinalProps}
+        aria-label={ariaLabel ?? headerText}
         sx={[
           {
             '& .MuiOutlinedInput-root': {
