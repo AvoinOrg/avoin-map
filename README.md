@@ -193,3 +193,5 @@ Persistent live-browser profiles:
 - Container live-browser startup uses software WebGL-friendly defaults for
   devcontainer reliability; pass extra Chrome flags with
   `yarn browser:live:container:start -- --browser-arg=<flag>` when needed.
+- Window controls are also available: `-- --window-size=1600,960`,
+  `-- --start-maximized`, or `-- --no-window-size`.

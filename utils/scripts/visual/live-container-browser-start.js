@@ -19,6 +19,8 @@ const {
   writeContainerSessionMetadata,
 } = require('./liveSharedBrowser')
 
+const DEFAULT_WINDOW_SIZE = '1600,960'
+
 const HELP_TEXT = `\
 Usage:
   node utils/scripts/visual/live-container-browser-start.js [options]
@@ -32,6 +34,9 @@ Options:
   --log-path <path>           Browser log file path (default: ${LIVE_BROWSER_PATHS.containerBrowserLog})
   --browser-bin <path>        Browser executable to use (default: prefer Google Chrome stable, fallback to Playwright Chromium)
   --browser-arg <arg>         Additional raw browser arg (repeatable)
+  --window-size <w,h>         Initial window size (default: ${DEFAULT_WINDOW_SIZE})
+  --no-window-size            Do not force an initial window size (use browser/profile default)
+  --start-maximized           Start maximized (overrides --window-size)
   --force                     Replace stale session metadata if present
   --help                      Show this help
 `
@@ -111,6 +116,22 @@ const resolveContainerBrowserExecutable = ({ browserBinOverride } = {}) => {
   }
 }
 
+const parseWindowSize = ({ value, optionName }) => {
+  const raw = String(value || '').trim()
+  const match = raw.match(/^(\d+)\s*,\s*(\d+)$/)
+  if (!match) {
+    throw new Error(`Invalid ${optionName} value: ${value}. Expected "<width>,<height>"`)
+  }
+
+  const width = Number(match[1])
+  const height = Number(match[2])
+  if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0) {
+    throw new Error(`Invalid ${optionName} value: ${value}. Width/height must be positive integers`)
+  }
+
+  return `${width},${height}`
+}
+
 const parseArgs = (argv) => {
   const args = {
     cdpUrl: DEFAULT_CONTAINER_CDP_URL,
@@ -121,6 +142,9 @@ const parseArgs = (argv) => {
     logPath: LIVE_BROWSER_PATHS.containerBrowserLog,
     browserBin: null,
     browserArgs: [],
+    windowSize: DEFAULT_WINDOW_SIZE,
+    noWindowSize: false,
+    startMaximized: false,
     force: false,
     help: false,
   }
@@ -137,6 +161,14 @@ const parseArgs = (argv) => {
     }
     if (token === '--force') {
       args.force = true
+      continue
+    }
+    if (token === '--no-window-size') {
+      args.noWindowSize = true
+      continue
+    }
+    if (token === '--start-maximized') {
+      args.startMaximized = true
       continue
     }
 
@@ -225,11 +257,32 @@ const parseArgs = (argv) => {
       continue
     }
 
+    if (token.startsWith('--window-size=')) {
+      args.windowSize = parseWindowSize({
+        value: token.slice('--window-size='.length),
+        optionName: '--window-size',
+      })
+      continue
+    }
+    if (token === '--window-size') {
+      args.windowSize = parseWindowSize({
+        value: readValue(),
+        optionName: '--window-size',
+      })
+      continue
+    }
+
     throw new Error(`Unknown option: ${token}`)
   }
 
   if (!Number.isFinite(args.timeoutMs) || args.timeoutMs <= 0) {
     throw new Error(`Invalid --timeout-ms value: ${args.timeoutMs}`)
+  }
+  if (!args.noWindowSize) {
+    args.windowSize = parseWindowSize({
+      value: args.windowSize,
+      optionName: '--window-size',
+    })
   }
 
   validateOriginAndUrl({ origin: args.origin, url: args.url })
@@ -335,6 +388,11 @@ const run = async () => {
       `--user-data-dir=${userDataDir}`,
       '--no-first-run',
       '--new-window',
+      ...(args.startMaximized
+        ? ['--start-maximized']
+        : args.noWindowSize
+          ? []
+          : [`--window-size=${args.windowSize}`]),
       ...args.browserArgs,
       args.url,
     ],
@@ -385,6 +443,8 @@ const run = async () => {
         userDataDir: metadata.userDataDir,
         browserBin: metadata.browserBin || browserExec.browserBin,
         browserKind: metadata.browserKind || browserExec.browserKind,
+        windowSize: args.noWindowSize ? null : args.windowSize,
+        startMaximized: args.startMaximized,
         fallbackBrowserUsed: browserExec.fallbackUsed,
         startedAt: metadata.startedAt,
       },

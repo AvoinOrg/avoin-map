@@ -202,6 +202,7 @@ standalone sites.
     - If Chrome stable is unavailable, it falls back to Playwright bundled Chromium and prints a warning.
     - Container start now enables WebGL via software rendering defaults (SwiftShader) to avoid Linux container GPU blocklist failures in map views.
     - You can pass extra launch flags with repeated `-- --browser-arg=<flag>` (for example `-- --browser-arg=--use-angle=gl`).
+    - Window sizing controls: `-- --window-size=1600,960`, `-- --start-maximized`, or `-- --no-window-size`.
     - Manual extension install is acceptable and extension/profile data persists when using the same profile folder.
   - Optional `.env` example for relocating the container shared-browser persistent profile (WSL/Linux path format):
     - `LIVE_BROWSER_CONTAINER_DATA_HOST_DIR=/mnt/c/Users/<you>/AvoinMap/live-browser-data`
