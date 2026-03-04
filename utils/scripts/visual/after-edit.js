@@ -7,7 +7,7 @@ const HELP_TEXT = `\
 Usage:
   yarn visual:after-edit -- <file> [file...]
   yarn visual:after-edit -- --files a.tsx,b.tsx
-  yarn visual:after-edit -- --storage-state .codex/browser-state/localhost-3000.storage-state.json <file>
+  yarn visual:after-edit -- --storage-state .dev/browser-state/localhost-3000.storage-state.json <file>
   yarn visual:after-edit -- --no-start <file> [file...]
   yarn visual:after-edit
 

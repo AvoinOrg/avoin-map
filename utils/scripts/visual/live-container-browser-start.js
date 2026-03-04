@@ -3,7 +3,6 @@
 const fs = require('fs')
 const path = require('path')
 const { spawn } = require('child_process')
-const { chromium } = require('@playwright/test')
 const {
   DEFAULT_CONTAINER_CDP_URL,
   DEFAULT_CONTAINER_URL,
@@ -31,9 +30,86 @@ Options:
   --timeout-ms <ms>           Startup timeout (default: ${DEFAULT_TIMEOUT_MS})
   --user-data-dir <path>      Chromium user data dir (default: ${LIVE_BROWSER_PATHS.containerUserDataDir})
   --log-path <path>           Browser log file path (default: ${LIVE_BROWSER_PATHS.containerBrowserLog})
+  --browser-bin <path>        Browser executable to use (default: prefer Google Chrome stable, fallback to Playwright Chromium)
+  --browser-arg <arg>         Additional raw browser arg (repeatable)
   --force                     Replace stale session metadata if present
   --help                      Show this help
 `
+
+const CONTAINER_BROWSER_BIN_CANDIDATES = [
+  { path: '/usr/bin/google-chrome-stable', kind: 'google-chrome-stable' },
+  { path: '/usr/bin/google-chrome', kind: 'google-chrome' },
+]
+
+const DEFAULT_CONTAINER_BROWSER_ARGS = [
+  '--no-sandbox',
+  '--disable-dev-shm-usage',
+  '--ozone-platform=x11',
+  '--enable-webgl',
+  '--ignore-gpu-blocklist',
+  '--enable-unsafe-swiftshader',
+  '--use-gl=angle',
+  '--use-angle=swiftshader',
+]
+
+const fileExists = (targetPath) => {
+  try {
+    fs.accessSync(targetPath)
+    return true
+  } catch {
+    return false
+  }
+}
+
+const getPlaywrightChromiumExecutablePath = () => {
+  const { chromium } = require('@playwright/test')
+  return chromium.executablePath()
+}
+
+const resolveContainerBrowserExecutable = ({ browserBinOverride } = {}) => {
+  if (browserBinOverride) {
+    const normalizedOverride = String(browserBinOverride).trim()
+    if (!normalizedOverride) {
+      throw new Error('Browser executable override is empty')
+    }
+    const looksLikePath =
+      normalizedOverride.startsWith('/') ||
+      normalizedOverride.startsWith('./') ||
+      normalizedOverride.startsWith('../')
+    const resolvedPath = looksLikePath ? path.resolve(process.cwd(), normalizedOverride) : normalizedOverride
+    if (looksLikePath && !fileExists(resolvedPath)) {
+      throw new Error(`Browser executable not found: ${resolvedPath}`)
+    }
+
+    return {
+      browserBin: resolvedPath,
+      browserKind: 'custom',
+      fallbackUsed: false,
+      warnings: [],
+    }
+  }
+
+  for (const candidate of CONTAINER_BROWSER_BIN_CANDIDATES) {
+    if (fileExists(candidate.path)) {
+      return {
+        browserBin: candidate.path,
+        browserKind: candidate.kind,
+        fallbackUsed: false,
+        warnings: [],
+      }
+    }
+  }
+
+  const playwrightChromiumPath = getPlaywrightChromiumExecutablePath()
+  return {
+    browserBin: playwrightChromiumPath,
+    browserKind: 'playwright-chromium',
+    fallbackUsed: true,
+    warnings: [
+      'Google Chrome stable was not found in the container. Falling back to Playwright bundled Chromium; Chrome Web Store extension install may be limited in this browser build.',
+    ],
+  }
+}
 
 const parseArgs = (argv) => {
   const args = {
@@ -43,6 +119,8 @@ const parseArgs = (argv) => {
     timeoutMs: DEFAULT_TIMEOUT_MS,
     userDataDir: LIVE_BROWSER_PATHS.containerUserDataDir,
     logPath: LIVE_BROWSER_PATHS.containerBrowserLog,
+    browserBin: null,
+    browserArgs: [],
     force: false,
     help: false,
   }
@@ -118,6 +196,32 @@ const parseArgs = (argv) => {
     }
     if (token === '--log-path') {
       args.logPath = readValue()
+      continue
+    }
+
+    if (token.startsWith('--browser-bin=')) {
+      args.browserBin = token.slice('--browser-bin='.length)
+      continue
+    }
+    if (token === '--browser-bin') {
+      args.browserBin = readValue()
+      continue
+    }
+
+    if (token.startsWith('--browser-arg=')) {
+      const browserArg = token.slice('--browser-arg='.length)
+      if (!browserArg) {
+        throw new Error('Invalid --browser-arg value: empty string')
+      }
+      args.browserArgs.push(browserArg)
+      continue
+    }
+    if (token === '--browser-arg') {
+      const browserArg = readValue()
+      if (!browserArg) {
+        throw new Error('Invalid --browser-arg value: empty string')
+      }
+      args.browserArgs.push(browserArg)
       continue
     }
 
@@ -208,22 +312,30 @@ const run = async () => {
 
   const cdpUrl = new URL(args.cdpUrl)
   const cdpPort = cdpUrl.port
-  const chromeBin = chromium.executablePath()
+  const browserExec = resolveContainerBrowserExecutable({ browserBinOverride: args.browserBin })
   const logPath = path.resolve(process.cwd(), args.logPath)
   const userDataDir = path.resolve(process.cwd(), args.userDataDir)
   const logFd = fs.openSync(logPath, 'a')
   const startStamp = new Date().toISOString()
-  fs.writeSync(logFd, `\n[${startStamp}] Starting shared container Chromium: ${chromeBin}\n`)
+  fs.writeSync(
+    logFd,
+    `\n[${startStamp}] Starting shared container browser (${browserExec.browserKind}): ${browserExec.browserBin}\n`
+  )
+  for (const warning of browserExec.warnings) {
+    fs.writeSync(logFd, `[${startStamp}] Warning: ${warning}\n`)
+    console.warn(`[live-container-start] ${warning}`)
+  }
 
   const child = spawn(
-    chromeBin,
+    browserExec.browserBin,
     [
-      '--no-sandbox',
+      ...DEFAULT_CONTAINER_BROWSER_ARGS,
       `--remote-debugging-port=${cdpPort}`,
       '--remote-debugging-address=127.0.0.1',
       `--user-data-dir=${userDataDir}`,
       '--no-first-run',
       '--new-window',
+      ...args.browserArgs,
       args.url,
     ],
     {
@@ -241,7 +353,7 @@ const run = async () => {
   if (!ready) {
     await stopPid({ pid: child.pid })
     throw new Error(
-      `Timed out waiting for container Chromium CDP endpoint at ${cdpVersionUrl}. See ${logPath} for details.`
+      `Timed out waiting for container shared browser CDP endpoint at ${cdpVersionUrl}. See ${logPath} for details.`
     )
   }
 
@@ -255,6 +367,8 @@ const run = async () => {
       startedAt: startStamp,
       logPath,
       userDataDir,
+      browserBin: browserExec.browserBin,
+      browserKind: browserExec.browserKind,
     },
   })
 
@@ -269,6 +383,9 @@ const run = async () => {
         url: metadata.url,
         logPath: metadata.logPath,
         userDataDir: metadata.userDataDir,
+        browserBin: metadata.browserBin || browserExec.browserBin,
+        browserKind: metadata.browserKind || browserExec.browserKind,
+        fallbackBrowserUsed: browserExec.fallbackUsed,
         startedAt: metadata.startedAt,
       },
       null,

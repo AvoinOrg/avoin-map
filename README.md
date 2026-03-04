@@ -173,3 +173,23 @@ visual regression screenshot tooling:
 Use `browser:live:lock:*` commands for turn-taking when both the human and the
 automation may interact with the same browser. See `AGENTS.md` for the detailed
 runbook and host Chrome startup command.
+
+Local tooling artifacts are gitignored under `.dev/`:
+- Visual regression outputs: `.dev/visual-regression/`
+- Host browser storage snapshots: `.dev/browser-state/`
+- Live shared-browser lock/session/log files: `.dev/live-browser/`
+- Container shared-browser persistent profile data: `.dev/live-browser-persist/`
+
+Persistent live-browser profiles:
+
+- Host Chrome persistence is controlled by the `--user-data-dir` path in the
+  Windows PowerShell launch command. Reusing the same path keeps extensions,
+  cache, cookies, localStorage, and IndexedDB.
+- Container shared-browser profiles persist by default and can be relocated on
+  the host via optional `.env` variable
+  `LIVE_BROWSER_CONTAINER_DATA_HOST_DIR` (WSL/Linux path format recommended).
+- When the env var is unset, Docker Compose uses project-local
+  `./.dev/live-browser-persist` (gitignored).
+- Container live-browser startup uses software WebGL-friendly defaults for
+  devcontainer reliability; pass extra Chrome flags with
+  `yarn browser:live:container:start -- --browser-arg=<flag>` when needed.

@@ -160,6 +160,7 @@ standalone sites.
 - Applet-specific e2e tests are not standardized yet.
 - For UI changes, run `yarn visual:changed --files <comma-separated-paths>` after edits to capture targeted visual snapshots and check for regressions against local baselines.
 - For a simpler post-edit workflow, use `yarn visual:after-edit -- <path1> <path2> ...` (plain path args; it forwards them to the targeted visual regression runner).
+- Visual regression artifacts are stored under `.dev/visual-regression/` (gitignored).
 - Visual commands target `http://127.0.0.1:3000` first (reuse an already running `yarn dev` server when available). If the server is unreachable, the runner may temporarily start a local dev server as a fallback.
 - Use `yarn visual:baseline` to create or refresh local visual baselines intentionally.
 - Add `--no-start` when calling `node utils/scripts/visual/run.js` directly if you want to fail instead of allowing the fallback temporary server.
@@ -169,8 +170,8 @@ standalone sites.
   3. Run `yarn browser-state:sync:localhost` in the devcontainer.
   4. Run host-state visual commands (for example `yarn visual:after-edit:host-state -- <paths>`).
 - Host-state scripts intentionally target `http://localhost:3000` (not `127.0.0.1`) because browser storage state is origin-specific.
-- Exported browser state is sensitive (cookies + local app state). It is stored under `.codex/browser-state/` (gitignored). Use a dedicated Chrome debug profile, not your main daily profile.
-- For ad-hoc interactive Playwright scripts, use `browser.newContext({ ignoreHTTPSErrors: true, storageState: '.codex/browser-state/localhost-3000.storage-state.json' })` and target `http://localhost:3000/...` routes (not `127.0.0.1`).
+- Exported browser state is sensitive (cookies + local app state). It is stored under `.dev/browser-state/` (gitignored). Use a dedicated Chrome debug profile, not your main daily profile.
+- For ad-hoc interactive Playwright scripts, use `browser.newContext({ ignoreHTTPSErrors: true, storageState: '.dev/browser-state/localhost-3000.storage-state.json' })` and target `http://localhost:3000/...` routes (not `127.0.0.1`).
 - Windows PowerShell example for starting Chrome with CDP (dedicated profile):
   ```powershell
   $chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
@@ -182,6 +183,7 @@ standalone sites.
     'http://localhost:3000/fi/hiilikartta'
   )
   ```
+- The PowerShell host Chrome command uses a fixed `--user-data-dir` path, so it is a persistent profile by design (extensions, cache, cookies, localStorage, IndexedDB, etc. survive restarts as long as you reuse the same path).
 - Host-state visual scripts:
   - `yarn visual:baseline:host-state`
   - `yarn visual:changed:host-state --files <comma-separated-paths>`
@@ -189,6 +191,20 @@ standalone sites.
 - Live shared browser control (real-time shared interaction, separate from storage-state sync):
   - `browser-state:sync:localhost` exports a storage snapshot for visual screenshots. It does **not** provide live shared control.
   - `browser:live:*` commands attach to a real shared browser session (host Chrome via CDP, or headed Chromium in the container).
+  - Live control metadata (lock/session/log files) is stored under `.dev/live-browser/` (gitignored).
+  - Container shared-browser profile persistence:
+    - The container browser already persists state because it uses `--user-data-dir` under `/app` (a host bind mount).
+    - The persistent host folder can be relocated with `.env` variable `LIVE_BROWSER_CONTAINER_DATA_HOST_DIR`.
+    - When unset, Docker Compose defaults to project-local `./.dev/live-browser-persist` (gitignored).
+    - The container path remains fixed at `/app/.dev/live-browser-persist`.
+  - Container browser runtime for extensions:
+    - `browser:live:container:start` prefers Google Chrome stable in the container (for easier extension install from the Chrome Web Store or manual extension workflows).
+    - If Chrome stable is unavailable, it falls back to Playwright bundled Chromium and prints a warning.
+    - Container start now enables WebGL via software rendering defaults (SwiftShader) to avoid Linux container GPU blocklist failures in map views.
+    - You can pass extra launch flags with repeated `-- --browser-arg=<flag>` (for example `-- --browser-arg=--use-angle=gl`).
+    - Manual extension install is acceptable and extension/profile data persists when using the same profile folder.
+  - Optional `.env` example for relocating the container shared-browser persistent profile (WSL/Linux path format):
+    - `LIVE_BROWSER_CONTAINER_DATA_HOST_DIR=/mnt/c/Users/<you>/AvoinMap/live-browser-data`
   - Turn-taking lock (recommended before interactive actions):
     - `yarn browser:live:lock:take:codex`
     - `yarn browser:live:lock:take:human`
@@ -207,7 +223,7 @@ standalone sites.
     3. Attach from the devcontainer: `yarn browser:live:container:attach`
     4. Stop the session: `yarn browser:live:container:stop`
   - Quick verification options:
-    - `--screenshot-out .visual-regression/report/live-check.png`
+    - `--screenshot-out .dev/visual-regression/report/live-check.png`
     - `--assert-lock-owner codex` (or `human`) to enforce turn-taking
   - Recovery:
     - Host CDP unreachable: relaunch the dedicated host Chrome profile with `--remote-debugging-port=9222`.

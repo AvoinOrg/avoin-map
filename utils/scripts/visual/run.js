@@ -25,7 +25,7 @@ const HELP_TEXT = `\
 Usage:
   node utils/scripts/visual/run.js --mode=baseline [--base-url=http://127.0.0.1:3000]
   node utils/scripts/visual/run.js --mode=changed [--files=a.tsx,b.tsx] [--base-url=http://127.0.0.1:3000]
-  node utils/scripts/visual/run.js --mode=changed --base-url=http://localhost:3000 --storage-state=.codex/browser-state/localhost-3000.storage-state.json
+  node utils/scripts/visual/run.js --mode=changed --base-url=http://localhost:3000 --storage-state=.dev/browser-state/localhost-3000.storage-state.json
 
 Options:
   --mode baseline|changed     Run baseline generation or regression check

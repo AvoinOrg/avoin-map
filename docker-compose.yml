@@ -23,6 +23,9 @@ services:
       - '${DEV_PORT}:3000'
     volumes:
       - .:/app:z
+      - type: bind
+        source: ${LIVE_BROWSER_CONTAINER_DATA_HOST_DIR:-./.dev/live-browser-persist}
+        target: /app/.dev/live-browser-persist
       - node-dev:/home/node/dev
     environment:
       NODE_ENV: development

@@ -1,6 +1,6 @@
 const path = require('path')
 
-const VISUAL_ROOT_DIR = path.join(process.cwd(), '.visual-regression')
+const VISUAL_ROOT_DIR = path.join(process.cwd(), '.dev', 'visual-regression')
 
 const VISUAL_DIRS = {
   root: VISUAL_ROOT_DIR,

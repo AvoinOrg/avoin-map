@@ -10,11 +10,16 @@ const DEFAULT_CONTAINER_URL = 'http://localhost:3000/en'
 const DEFAULT_TIMEOUT_MS = 60000
 
 const LIVE_BROWSER_PATHS = {
-  root: path.join(process.cwd(), '.codex', 'live-browser'),
-  controlLockFile: path.join(process.cwd(), '.codex', 'live-browser', 'control-lock.json'),
-  containerSessionFile: path.join(process.cwd(), '.codex', 'live-browser', 'container-session.json'),
-  containerBrowserLog: path.join(process.cwd(), '.codex', 'live-browser', 'container-browser.log'),
-  containerUserDataDir: path.join(process.cwd(), '.codex', 'live-browser', 'container-chrome-profile'),
+  root: path.join(process.cwd(), '.dev', 'live-browser'),
+  controlLockFile: path.join(process.cwd(), '.dev', 'live-browser', 'control-lock.json'),
+  containerSessionFile: path.join(process.cwd(), '.dev', 'live-browser', 'container-session.json'),
+  containerBrowserLog: path.join(process.cwd(), '.dev', 'live-browser', 'container-browser.log'),
+  containerUserDataDir: path.join(
+    process.cwd(),
+    '.dev',
+    'live-browser-persist',
+    'container-chrome-profile'
+  ),
 }
 
 const ensureDir = (dirPath) => fs.mkdirSync(dirPath, { recursive: true })
@@ -383,6 +388,8 @@ const validateContainerSessionMetadata = ({ value, source = 'container session m
     startedAt: value.startedAt,
     logPath: typeof value.logPath === 'string' ? value.logPath : undefined,
     userDataDir: typeof value.userDataDir === 'string' ? value.userDataDir : undefined,
+    browserBin: typeof value.browserBin === 'string' ? value.browserBin : undefined,
+    browserKind: typeof value.browserKind === 'string' ? value.browserKind : undefined,
   }
 }
 

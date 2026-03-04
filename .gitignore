@@ -153,17 +153,10 @@ src/app/api/map/*
 # i18n files, which are downloaded dynamically
 i18n/*
 
-.dev
+.dev/
 
 .codex/**
-!.codex/**/
-!.codex/**/*.template
+!.codex/config.toml.template
 
 # Temp build workspace state (see utils/scripts/prebuildFolderPruneTmp.js)
 .applet-build-tmp.json
-
-# Local visual regression artifacts
-.visual-regression/
-
-# Local browser state snapshots for Playwright (sensitive)
-.codex/browser-state/
