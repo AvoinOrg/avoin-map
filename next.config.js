@@ -49,6 +49,7 @@ const nextConfig = {
   compiler: {
     styledComponents: true,
   },
+  devIndicators: false,
   reactStrictMode: true,
   productionBrowserSourceMaps: DEBUG_CLIENT_ERRORS,
   modularizeImports: {
