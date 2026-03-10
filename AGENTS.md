@@ -30,6 +30,9 @@ standalone sites.
   Extract `node-id` from the URL and use that as MCP `nodeId`.
 - Convert URL-style node IDs to MCP format when needed:
   `node-id=3163-8036` -> `nodeId: "3163:8036"`.
+- For the Energiakartta front-page sketch (`fileKey: Vjf62EF7vUP3cbtSb0D09R`),
+  ignore the bottom-right map scale widget (`Group 9423`, node `2478:32264`).
+  Do not implement that element in app code.
 - For exact Figma image/icon assets (not screenshots), prefer this workflow:
   1. Call `get_metadata` on the shared node to inspect child layers and find the
      actual image/vector child node (for example the header image rectangle).
@@ -160,6 +163,9 @@ standalone sites.
 - Applet-specific e2e tests are not standardized yet.
 - For UI changes, run `yarn visual:changed --files <comma-separated-paths>` after edits to capture targeted visual snapshots and check for regressions against local baselines.
 - For a simpler post-edit workflow, use `yarn visual:after-edit -- <path1> <path2> ...` (plain path args; it forwards them to the targeted visual regression runner).
+- For every completed UI edit pass, verify the layout in both desktop and
+  mobile viewports before finalizing. Prefer host shared-browser checks first;
+  if host attach is unavailable, use the container shared-browser workflow.
 - Visual regression artifacts are stored under `.dev/visual-regression/` (gitignored).
 - Visual commands target `http://127.0.0.1:3000` first (reuse an already running `yarn dev` server when available). If the server is unreachable, the runner may temporarily start a local dev server as a fallback.
 - Use `yarn visual:baseline` to create or refresh local visual baselines intentionally.
@@ -218,6 +224,9 @@ standalone sites.
     3. (Optional but recommended) Take a lock: `yarn browser:live:lock:take:human`
     4. Verify attachability: `yarn browser:live:host:check`
     5. Attach from the devcontainer: `yarn browser:live:host:attach -- --page-match hiilikartta`
+    6. If host attach is unavailable/fails, immediately switch to the container
+       headed workflow below (`browser:live:container:start` + `attach`) to
+       continue visual verification without blocking.
   - Container headed Chromium shared-window workflow (native host window via devcontainer GUI bridge):
     1. Start the shared browser: `yarn browser:live:container:start`
     2. (Optional) Take a lock with `-- --mode=container-headed`
