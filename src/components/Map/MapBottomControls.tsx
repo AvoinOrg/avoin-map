@@ -8,7 +8,7 @@ import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import { Cookie, AttributionInfo } from '#/components/icons'
 
-const MAX_PANEL_WIDTH_FALLBACK_PX = 480
+const INITIAL_PANEL_MAX_WIDTH_PX = 480
 
 const MapBottomControls = () => {
   const _map = useMapInstanceStore((state) => state._map)
@@ -19,7 +19,7 @@ const MapBottomControls = () => {
 
   const [isPanelOpen, setIsPanelOpen] = useState(true)
   const [panelMaxWidth, setPanelMaxWidth] = useState<number>(
-    MAX_PANEL_WIDTH_FALLBACK_PX
+    INITIAL_PANEL_MAX_WIDTH_PX
   )
   const [panelLeftOffset, setPanelLeftOffset] = useState<number>(84)
   const controlsRef = useRef<HTMLDivElement | null>(null)
@@ -68,18 +68,14 @@ const MapBottomControls = () => {
       const toggleRect = sidebarToggleButton.getBoundingClientRect()
       const availableWidth = Math.floor(toggleRect.left - panelStartX - panelGapPx)
 
-      setPanelMaxWidth(
-        Math.min(MAX_PANEL_WIDTH_FALLBACK_PX, Math.max(0, availableWidth))
-      )
+      setPanelMaxWidth(Math.max(0, availableWidth))
       return
     }
 
     const viewportWidth = window.innerWidth
     const fallbackWidth = Math.floor(viewportWidth - panelStartX - spacingLeftPx)
 
-    setPanelMaxWidth(
-      Math.min(MAX_PANEL_WIDTH_FALLBACK_PX, Math.max(0, fallbackWidth))
-    )
+    setPanelMaxWidth(Math.max(0, fallbackWidth))
   }, [panelGapPx, spacingLeftPx])
 
   useEffect(() => {
@@ -135,22 +131,31 @@ const MapBottomControls = () => {
             left: `${panelLeftOffset}px`,
             bottom: 0,
             pointerEvents: 'auto',
-            width: `${panelMaxWidth}px`,
-            maxWidth: panelMaxWidth,
-            px: theme.spacing(1),
-            py: theme.spacing(0.5),
+            width: 'max-content',
+            maxWidth: `${panelMaxWidth}px`,
+            px: '0.875rem',
+            py: '0.375rem',
             borderRadius: '0.3125rem',
             color: '#FFFFFF',
             backgroundColor: '#4F4F4F',
             boxShadow: 'inset 2px 2px 2px rgba(0, 0, 0, 0.1)',
             fontSize: '0.5rem',
-            lineHeight: 1.1,
+            fontFamily: theme.typography.fontFamily,
+            fontWeight: 400,
+            lineHeight: '0.75rem',
             letterSpacing: '0.05rem',
             whiteSpace: 'normal',
-            wordBreak: 'break-word',
+            overflowWrap: 'break-word',
+            '& p': {
+              m: 0,
+            },
             '& a': {
               color: '#FFFFFF',
               fontSize: 'inherit',
+              fontFamily: 'inherit',
+              fontWeight: 'inherit',
+              lineHeight: 'inherit',
+              letterSpacing: 'inherit',
               textDecoration: 'underline',
             },
           })}
