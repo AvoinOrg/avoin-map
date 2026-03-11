@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { Box } from '@mui/material'
+import { useParams, usePathname } from 'next/navigation'
 
 import { MapHandler } from '#/components/Map'
 import { LoginModal } from '#/components/Modal'
@@ -9,8 +10,9 @@ import { ConfirmationDialog } from '#/components/Notification'
 import UserStateHandler from './userStateHandler'
 import UIStateHandler from './uiStateHandler'
 import { SlotsProvider } from '#/components/context/slotsContext'
-import { Sidebar } from '#/components/Sidebar'
+import { MainSidebar, Sidebar } from '#/components/Sidebar'
 import { FullscreenPageSlot } from '#/components/common/FullscreenPage'
+import { getPathnameWithoutLocale } from '#/common/routing/routing'
 // import { UserModal } from '#/components/Profile'
 // import { UiStateProvider, UserStateProvider } from '#/components/State'
 // import RootStyleRegistry from './emotion'
@@ -23,10 +25,15 @@ const LayoutClient = ({
   children?: React.ReactNode
 }) => {
   const [isHydrated, setIsHydrated] = useState(false)
+  const pathname = usePathname()
+  const { locale } = useParams()
 
   useEffect(() => {
     setIsHydrated(true)
   }, [])
+
+  const pathnameWithoutLocale = getPathnameWithoutLocale(pathname, locale ?? null)
+  const useMainSidebar = pathnameWithoutLocale === '/'
 
   return (
     <>
@@ -47,7 +54,11 @@ const LayoutClient = ({
                     zIndex: 'drawer',
                   }}
                 >
-                  <Sidebar>{children}</Sidebar>
+                  {useMainSidebar ? (
+                    <MainSidebar>{children}</MainSidebar>
+                  ) : (
+                    <Sidebar>{children}</Sidebar>
+                  )}
                 </Box>
                 <FullscreenPageSlot />
                 <LoginModal></LoginModal>
