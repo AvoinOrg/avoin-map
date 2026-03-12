@@ -164,8 +164,12 @@ standalone sites.
 - For UI changes, run `yarn visual:changed --files <comma-separated-paths>` after edits to capture targeted visual snapshots and check for regressions against local baselines.
 - For a simpler post-edit workflow, use `yarn visual:after-edit -- <path1> <path2> ...` (plain path args; it forwards them to the targeted visual regression runner).
 - For every completed UI edit pass, verify the layout in both desktop and
-  mobile viewports before finalizing. Prefer host shared-browser checks first;
-  if host attach is unavailable, use the container shared-browser workflow.
+  mobile viewports before finalizing.
+- Prioritize the in-container Playwright/browser workflow for UI verification,
+  and always check it after UI changes unless the user specifically asks for a
+  different browser (such as host Chrome) instead or in addition.
+- If the in-container browser workflow is unavailable, fall back to the host
+  shared-browser workflow rather than skipping visual verification.
 - Visual regression artifacts are stored under `.dev/visual-regression/` (gitignored).
 - Visual commands target `http://127.0.0.1:3000` first (reuse an already running `yarn dev` server when available). If the server is unreachable, the runner may temporarily start a local dev server as a fallback.
 - Use `yarn visual:baseline` to create or refresh local visual baselines intentionally.
