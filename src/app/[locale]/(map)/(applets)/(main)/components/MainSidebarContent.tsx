@@ -19,7 +19,8 @@ const HIILIKARTTA_HERO_SRC = '/files/img/main-sidebar/hiilikartta-hero.svg'
 const FORESTS_HERO_SRC = '/files/img/main-sidebar/forests-hero.jpg'
 const BUILDINGS_HERO_SRC = '/files/img/main-sidebar/buildings-hero.jpg'
 const DESKTOP_SHADOW_BLEED_REM = 0.8
-const DESKTOP_SCROLLBAR_GUTTER_REM = SCROLLBAR_WIDTH_REM + 0.25
+const DESKTOP_LEFT_SPILL_REM = DESKTOP_SHADOW_BLEED_REM + SCROLLBAR_WIDTH_REM + 0.25
+const DESKTOP_RIGHT_SPILL_REM = 1.4
 
 type BubbleVariant = 'hiilikartta' | 'imageHeader'
 
@@ -160,7 +161,8 @@ const MainSidebarContent = () => {
             position: 'absolute',
             inset: 0,
             minHeight: 0,
-            mx: { mobile: 0, desktop: `-${DESKTOP_SHADOW_BLEED_REM}rem` },
+            ml: { mobile: 0, desktop: `-${DESKTOP_LEFT_SPILL_REM}rem` },
+            mr: { mobile: 0, desktop: `-${DESKTOP_RIGHT_SPILL_REM}rem` },
             pointerEvents: 'none',
             '& .os-scrollbar-vertical': {
               left: 0,
@@ -193,10 +195,10 @@ const MainSidebarContent = () => {
                   desktop: 'repeat(2, minmax(0, 1fr))',
                 },
                 gap: 2,
-                pr: { mobile: 0, desktop: `${DESKTOP_SHADOW_BLEED_REM}rem` },
+                pr: { mobile: 0, desktop: 0 },
                 pl: {
                   mobile: 0,
-                  desktop: `${DESKTOP_SHADOW_BLEED_REM + DESKTOP_SCROLLBAR_GUTTER_REM}rem`,
+                  desktop: `${DESKTOP_LEFT_SPILL_REM}rem`,
                 },
                 pb: showScrollHint ? 7 : 1,
               }}
@@ -364,8 +366,8 @@ const MainSidebarContent = () => {
                             sx={{
                               position: 'relative',
                               height: '6.25rem',
-                              borderRadius: '10px',
-                              border: '0.2px solid rgba(255, 255, 255, 0.9)',
+                              borderTopLeftRadius: '10px',
+                              borderTopRightRadius: '10px',
                               overflow: 'hidden',
                               flexShrink: 0,
                             }}
@@ -388,19 +390,21 @@ const MainSidebarContent = () => {
                             <Typography
                               sx={{
                                 position: 'absolute',
-                                left: 2,
-                                top: 2.25,
+                                left: 4,
+                                top: 0,
+                                bottom: 0,
+                                display: 'flex',
+                                alignItems: 'center',
                                 typography: 'h7',
-                                fontSize: '1rem',
-                                lineHeight: 1.125,
-                                letterSpacing: '0.08rem',
+                                fontSize: '0.75rem',
+                                lineHeight: 1.5,
+                                letterSpacing: '0.075rem',
                                 textTransform: 'uppercase',
                                 color: '#0f0f0f',
                                 maxWidth: '85%',
-                                display: '-webkit-box',
-                                WebkitLineClamp: 1,
-                                WebkitBoxOrient: 'vertical',
+                                whiteSpace: 'nowrap',
                                 overflow: 'hidden',
+                                textOverflow: 'ellipsis',
                               }}
                             >
                               {t(titleKey)}
