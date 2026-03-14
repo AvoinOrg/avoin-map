@@ -40,6 +40,11 @@ docker compose up
 
 The app serves on `http://localhost:3000` unless `DEV_PORT` overrides it.
 
+## Commits
+
+Use Conventional Commits for commit messages, for example `feat: ...`,
+`fix: ...`, `refactor: ...`, `docs: ...`, or `chore: ...`.
+
 ## Figma MCP in devcontainer
 
 When the Figma MCP server runs on the Windows host (for example at
