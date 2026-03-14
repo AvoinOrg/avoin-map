@@ -3,9 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DOMPurify from 'dompurify'
 import { Box, Button } from '@mui/material'
+import { useParams, usePathname } from 'next/navigation'
 import { useMapStore, useUIStore } from '#/common/store'
 import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
+import { MAIN_SIDEBAR_BOTTOM_CONTROLS_SLOT } from '#/common/constants/map'
+import { IntoSlot } from '#/components/context/slotsContext'
+import { getPathnameWithoutLocale } from '#/common/routing/routing'
 import { Cookie, AttributionInfo } from '#/components/icons'
 
 const INITIAL_PANEL_MAX_WIDTH_PX = 480
@@ -16,6 +20,10 @@ const MapBottomControls = () => {
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
   const sidebarWidth = useUIStore((state) => state.sidebarWidth)
   const isMobile = useIsMobile('desktop')
+  const pathname = usePathname()
+  const { locale } = useParams()
+  const pathnameWithoutLocale = getPathnameWithoutLocale(pathname, locale ?? null)
+  const useMainSidebarSlot = pathnameWithoutLocale === '/' && isSidebarOpen
 
   const [isPanelOpen, setIsPanelOpen] = useState(true)
   const [panelMaxWidth, setPanelMaxWidth] = useState<number>(
@@ -109,21 +117,17 @@ const MapBottomControls = () => {
     return () => {
       window.removeEventListener('resize', updateMaxWidth)
     }
-  }, [updateMaxWidth, isMobile, isSidebarOpen, sidebarWidth, isPanelOpen])
+  }, [
+    updateMaxWidth,
+    isMobile,
+    isSidebarOpen,
+    sidebarWidth,
+    isPanelOpen,
+    useMainSidebarSlot,
+  ])
 
-  return (
-    <Box
-      ref={controlsRef}
-      sx={(theme) => ({
-        position: 'fixed',
-        left: leftOffsetPx,
-        bottom: spacingBottomPx,
-        pointerEvents: 'none',
-        zIndex: theme.zIndex.mapButtons,
-        transition:
-          'left 220ms cubic-bezier(.2,0,.2,1), bottom 220ms cubic-bezier(.2,0,.2,1)',
-      })}
-    >
+  const controlsContent = (
+    <>
       {isPanelOpen && sanitizedAttributionHtml && (
         <Box
           sx={(theme) => ({
@@ -229,6 +233,40 @@ const MapBottomControls = () => {
           <AttributionInfo />
         </Button>
       </Box>
+    </>
+  )
+
+  if (useMainSidebarSlot) {
+    return (
+      <IntoSlot name={MAIN_SIDEBAR_BOTTOM_CONTROLS_SLOT}>
+        <Box
+          ref={controlsRef}
+          sx={(theme) => ({
+            position: 'relative',
+            pointerEvents: 'none',
+            zIndex: theme.zIndex.mapButtons,
+          })}
+        >
+          {controlsContent}
+        </Box>
+      </IntoSlot>
+    )
+  }
+
+  return (
+    <Box
+      ref={controlsRef}
+      sx={(theme) => ({
+        position: 'fixed',
+        left: leftOffsetPx,
+        bottom: spacingBottomPx,
+        pointerEvents: 'none',
+        zIndex: theme.zIndex.mapButtons,
+        transition:
+          'left 220ms cubic-bezier(.2,0,.2,1), bottom 220ms cubic-bezier(.2,0,.2,1)',
+      })}
+    >
+      {controlsContent}
     </Box>
   )
 }
