@@ -33,7 +33,7 @@ import {
 import { MapButton } from './MapButton'
 import { LayerOrderLevel } from '#/common/types/map'
 import { MapButtonStickyMenu } from './MapButtonStickyMenu'
-import { MapLoginButton } from './MapLoginButton'
+import { MapUserButtons } from './MapUserButtons'
 import { CorridorBufferMenu } from './CorridorBufferMenu'
 
 const IS_DEV = process.env.NODE_ENV === 'development'
@@ -125,7 +125,7 @@ export const MapButtons = ({ isVertical }: Props) => {
         orientation={isVertical ? 'vertical' : 'horizontal'}
         isVertical={isVertical}
       >
-        <MapLoginButton isVertical={isVertical} />
+        <MapUserButtons isVertical={isVertical} />
       </MapButtonGroup>
       {isDrawEnabled && isDrawDeleteAllowed && (
         <MapButtonGroup
