@@ -15,6 +15,13 @@ standalone sites.
 - `src/common`: Shared hooks, routing, store, types, and utilities.
 - `utils/scripts`: Build-time helpers (translations, folder pruning, Netlify helpers).
 
+## Shared agent assets
+
+- Tracked, reusable agent assets live under `agents/`.
+- Shared skills live under `agents/skills/`.
+- The shared Codex config template lives at `agents/.codex/config.toml.template`.
+- The repository-root `.codex/` folder is for local runtime state and remains gitignored.
+
 ## Figma MCP (Prefer Remote; Local Fallback)
 
 - Prefer the remote Figma MCP tools (`mcp__figma_remote__*`) when available.
@@ -168,6 +175,9 @@ standalone sites.
 - Prioritize the in-container Playwright/browser workflow for UI verification,
   and always check it after UI changes unless the user specifically asks for a
   different browser (such as host Chrome) instead or in addition.
+- If a UI pass is still visibly off after verification, continue iterating:
+  edit, recheck in the in-container browser, and repeat until the result is
+  acceptable rather than stopping after a single pass.
 - If the in-container browser workflow is unavailable, fall back to the host
   shared-browser workflow rather than skipping visual verification.
 - Visual regression artifacts are stored under `.dev/visual-regression/` (gitignored).
