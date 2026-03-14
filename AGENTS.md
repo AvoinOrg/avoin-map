@@ -144,7 +144,18 @@ standalone sites.
 
 - Prefer `const` arrow functions.
 - Use object params for functions with more than two arguments.
-- Keep types in `src/common/types` or applet-specific `common/types`.
+- If a type is only used within one component/file, or is tightly coupled to it
+  (for example `Props`), keep it in that file.
+- If a type is used by multiple files and ownership is not clearly local to one
+  component, move it into a relevant domain type file under `src/common/types`
+  or an applet-specific `common/types`.
+- If a constant is only used within one component/file, or is tightly coupled to
+  it logically, keep it in that file.
+- If a constant is used by multiple files and ownership is not clearly local to
+  one component, move it into a relevant domain constants file under
+  `src/common/constants` or an applet-specific `common/constants`.
+- Shared map constants/types should generally live in the relevant map domain
+  files such as `src/common/constants/map.ts` and `src/common/types/map.ts`.
 - Use path aliases (`#/*`, `applets/*`, `@i18n/*`) instead of deep relative
   imports.
 
