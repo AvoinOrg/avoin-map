@@ -156,6 +156,8 @@ standalone sites.
   `src/common/constants` or an applet-specific `common/constants`.
 - Shared map constants/types should generally live in the relevant map domain
   files such as `src/common/constants/map.ts` and `src/common/types/map.ts`.
+- Use Conventional Commits for commit messages (`feat:`, `fix:`, `refactor:`,
+  `docs:`, `chore:`, etc.).
 - Use path aliases (`#/*`, `applets/*`, `@i18n/*`) instead of deep relative
   imports.
 
