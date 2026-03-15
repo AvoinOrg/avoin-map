@@ -1,0 +1,54 @@
+services:
+  dev-server:
+    build:
+      context: .
+      target: dev-server
+    env_file: ./.env
+    ports:
+      - '${DEV_PORT}:3000'
+      - '127.0.0.1:${CODE_SERVER_PORT:-8443}:8080'
+    volumes:
+      - .:/app:z
+      - type: bind
+        source: ${LIVE_BROWSER_CONTAINER_DATA_HOST_DIR:-./.dev/live-browser-persist}
+        target: /app/.dev/live-browser-persist
+      - node-dev:/home/node/dev
+      - code-server-config:/home/node/.config/code-server
+      - code-server-data:/home/node/.local/share/code-server
+      - type: bind
+        source: ${HOME}/.ssh
+        target: /home/node/.ssh
+        read_only: true
+      - type: bind
+        source: ${HOME}/.codex/auth.json
+        target: /app/.codex/auth.json
+        read_only: true
+      - type: bind
+        source: ${HOME}/.codex/.credentials.json
+        target: /app/.codex/.credentials.json
+        read_only: true
+      - type: bind
+        source: ${HOME}/.codex/rules/default.rules
+        target: /app/.codex/rules/default.rules
+        read_only: true
+    environment:
+      NODE_ENV: development
+      HOST_MACHINE: host.docker.internal
+      CODEX_HOME: /app/.codex
+      FIGMA_MCP_URL: http://host.docker.internal:3845/mcp
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - climate-map-network
+
+networks:
+  climate-map-network:
+    external: true
+
+volumes:
+  code-server-config:
+    driver: local
+  code-server-data:
+    driver: local
+  node-dev:
+    driver: local

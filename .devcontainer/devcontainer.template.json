@@ -1,11 +1,10 @@
 // .devcontainer/devcontainer.json
 {
   "name": "climate-map",
-  // ① Re-use your existing compose file (or chain in overrides)
   "dockerComposeFile": [
-    "../docker-compose.yml"
+    "../docker-compose.dev.yml"
   ],
-  "service": "app-dev",
+  "service": "app",
   "workspaceFolder": "/app",
   "customizations": {
     "vscode": {
@@ -34,7 +33,6 @@
     "${localWorkspaceFolder}/.devcontainer/sync-codex-host-files.sh",
     "${localWorkspaceFolder}"
   ],
-  // "postStartCommand": ".devcontainer/configure-env.sh",
   "features": {
     // "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
   },
@@ -44,19 +42,17 @@
   //   "SOCK=/var/run/docker.sock; GID=$(stat -c '%g' $SOCK); if ! getent group $GID >/dev/null 2>&1; then groupadd -g $GID host-docker; fi; usermod -aG $GID node"
   // ],
   "runServices": [
-    "app-dev"
+    "app"
   ],
-  // Mount the **stable** SSH-agent socket
-  // "mounts": [
-  //   "type=bind,source=${localEnv:HOME}/.ssh/sockets,target=/ssh-sockets",
-  //   "source=${localWorkspaceFolder}/.codex,target=/home/node/.codex,type=bind,consistency=cached",
-  //   "type=bind,source=${localEnv:HOME}/.codex/auth.json,target=/home/node/.codex/auth.json,consistency=cached"
-  //   // "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
-  // ],
-  // "remoteEnv": {
-  //   "SSH_AUTH_SOCK": "/ssh-sockets/agent.sock"
-  // },
+  "mounts": [
+    "type=bind,source=${localEnv:HOME}/.ssh/sockets,target=/ssh-sockets",
+    "type=bind,source=${localWorkspaceFolder}/.codex/auth.json,target=/app/.codex/auth.json",
+    "type=bind,source=${localWorkspaceFolder}/.codex/.credentials.json,target=/app/.codex/.credentials.json",
+    "type=bind,source=${localWorkspaceFolder}/.codex/rules/default.rules,target=/app/.codex/rules/default.rules"
+  ],
   "remoteEnv": {
+    "SSH_AUTH_SOCK": "/ssh-sockets/agent.sock",
+    "CODEX_HOME": "/app/.codex",
     "FIGMA_MCP_URL": "http://host.docker.internal:3845/mcp"
   },
   "remoteUser": "node"

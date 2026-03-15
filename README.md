@@ -32,13 +32,29 @@ NEXTAUTH_URL=
 NEXTAUTH_SECRET=
 ```
 
-Run the app:
+Run the development app:
 
 ```bash
-docker compose up
+docker compose -f docker-compose.dev.yml up
 ```
 
 The app serves on `http://localhost:3000` unless `DEV_PORT` overrides it.
+
+Run the production image flow:
+
+```bash
+docker compose -f docker-compose.prod.yml up
+```
+
+Run the combined dev-server flow with `code-server` and the app in one
+container:
+
+```bash
+docker compose -f docker-compose.dev-server.yml up --build
+```
+
+That flow serves the app on `http://localhost:3000` and `code-server` on
+`http://127.0.0.1:8443` unless `DEV_PORT` or `CODE_SERVER_PORT` override them.
 
 ## Commits
 
@@ -54,7 +70,11 @@ devcontainer:
 - `http://host.docker.internal:3845/mcp`
 - `.devcontainer/devcontainer.json` exposes this as `FIGMA_MCP_URL`
 - The compose service must include
-  `extra_hosts: ["host.docker.internal:host-gateway"]` (already present in this repo)
+  `extra_hosts: ["host.docker.internal:host-gateway"]` (present in the dev and
+  dev-server compose files)
+
+The devcontainer uses `docker-compose.dev.yml` and attaches to the `app`
+service.
 
 Quick connectivity check from inside the container:
 
