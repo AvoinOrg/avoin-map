@@ -159,3 +159,5 @@ i18n/*
 
 # Temp build workspace state (see utils/scripts/prebuildFolderPruneTmp.js)
 .applet-build-tmp.json
+
+.temp
