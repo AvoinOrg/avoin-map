@@ -22,6 +22,32 @@ standalone sites.
 - The shared Codex config template lives at `agents/.codex/config.toml.template`.
 - The repository-root `.codex/` folder is for local runtime state and remains gitignored.
 
+## Temporary chat notes
+
+- Temporary per-chat markdown notes live under `.tmp/` and remain gitignored.
+- Use the `tmp-documenting` skill when the user asks for a running temp note or
+  per-chat documentation.
+- Keep one markdown file per chat under `.tmp/`.
+- Write each user instruction into that file verbatim.
+- If you ask the user a question, write the question and the answer verbatim
+  too.
+- If a later instruction clarifies or overwrites an earlier instruction, update
+  the authoritative instruction text in the markdown so it reflects the current
+  instruction set.
+- After completing each prompt, append a brief summary of the changes made for
+  that prompt.
+
+## Skills
+
+### Available tracked skills
+
+- `tmp-documenting`: Maintain a per-chat markdown note under `.tmp/` with
+  verbatim user instructions, question-and-answer logging, corrected current
+  instructions, and a brief change summary after each prompt. (file:
+  `agents/skills/tmp-documenting/SKILL.md`)
+- `ui-live-iteration`: Implement and iterate on Avoin Map UI changes with
+  visual verification. (file: `agents/skills/ui-live-iteration/SKILL.md`)
+
 ## Figma MCP (Prefer Remote; Local Fallback)
 
 - Prefer the remote Figma MCP tools (`mcp__figma_remote__*`) when available.
