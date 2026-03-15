@@ -1312,8 +1312,9 @@ const MainSidebarContent = () => {
             data-main-sidebar-top-controls="true"
             sx={{
               position: 'absolute',
-              top: 0,
+              top: 'auto',
               left: 0,
+              bottom: 0,
               display: { mobile: 'block', desktop: 'none' },
               pointerEvents: 'none',
               zIndex: 3,
