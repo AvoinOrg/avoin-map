@@ -91,7 +91,7 @@ export const MainSidebar = ({
               pt: { mobile: 0, desktop: 2 },
               pb: { mobile: 0, desktop: 2 },
               ml: { mobile: 0, desktop: 2 },
-              pointerEvents: isSidebarOpen ? 'auto' : 'none',
+              pointerEvents: 'none',
               transform: isSidebarOpen
                 ? 'translateX(0)'
                 : {

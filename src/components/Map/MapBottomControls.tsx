@@ -4,15 +4,30 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DOMPurify from 'dompurify'
 import { Box, Button } from '@mui/material'
 import { useParams, usePathname } from 'next/navigation'
+
+import {
+  MAIN_SIDEBAR_BOTTOM_CONTROLS_SLOT,
+  MAIN_SIDEBAR_TOP_CONTROLS_SLOT,
+} from '#/common/constants/map'
+import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
+import { getPathnameWithoutLocale } from '#/common/routing/routing'
 import { useMapStore, useUIStore } from '#/common/store'
 import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
-import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
-import { MAIN_SIDEBAR_BOTTOM_CONTROLS_SLOT } from '#/common/constants/map'
 import { IntoSlot } from '#/components/context/slotsContext'
-import { getPathnameWithoutLocale } from '#/common/routing/routing'
-import { Cookie, AttributionInfo } from '#/components/icons'
+import { AttributionInfo, Cookie } from '#/components/icons'
 
 const INITIAL_PANEL_MAX_WIDTH_PX = 480
+const MIN_INLINE_PANEL_WIDTH_PX = 120
+const CONTROL_EDGE_GUTTER_PX = 16
+const PANEL_GAP_PX = 8
+
+type MainSidebarPlacement =
+  | 'under-left'
+  | 'under-right'
+  | 'outside-right'
+  | 'overlay-sidebar'
+
+type PanelLayout = 'inline-right' | 'overlay-sidebar'
 
 const MapBottomControls = () => {
   const _map = useMapInstanceStore((state) => state._map)
@@ -23,13 +38,21 @@ const MapBottomControls = () => {
   const pathname = usePathname()
   const { locale } = useParams()
   const pathnameWithoutLocale = getPathnameWithoutLocale(pathname, locale ?? null)
-  const useMainSidebarSlot = pathnameWithoutLocale === '/' && isSidebarOpen
+  const isMainPage = pathnameWithoutLocale === '/'
+  const useMainSidebarBottomSlot = isMainPage && isSidebarOpen && !isMobile
+  const useMainSidebarTopSlot = isMainPage && isSidebarOpen && isMobile
+  const useMobileFixedInfoOnly = isMainPage && !isSidebarOpen && isMobile
 
   const [isPanelOpen, setIsPanelOpen] = useState(true)
   const [panelMaxWidth, setPanelMaxWidth] = useState<number>(
     INITIAL_PANEL_MAX_WIDTH_PX
   )
   const [panelLeftOffset, setPanelLeftOffset] = useState<number>(84)
+  const [overlayPanelLeftOffset, setOverlayPanelLeftOffset] = useState<number>(0)
+  const [panelLayout, setPanelLayout] = useState<PanelLayout>('inline-right')
+  const [slotPlacement, setSlotPlacement] = useState<MainSidebarPlacement | null>(
+    null
+  )
   const controlsRef = useRef<HTMLDivElement | null>(null)
   const buttonRowRef = useRef<HTMLDivElement | null>(null)
 
@@ -41,9 +64,8 @@ const MapBottomControls = () => {
     [mapAttributionHtml]
   )
 
-  const spacingLeftPx = isMobile ? 16 : 8
-  const spacingBottomPx = 16
-  const panelGapPx = 8
+  const spacingLeftPx = CONTROL_EDGE_GUTTER_PX
+  const spacingBottomPx = CONTROL_EDGE_GUTTER_PX
 
   const leftOffsetPx = isMobile
     ? spacingLeftPx
@@ -51,7 +73,7 @@ const MapBottomControls = () => {
       ? (sidebarWidth ?? 0) + spacingLeftPx
       : spacingLeftPx
 
-  const updateMaxWidth = useCallback(() => {
+  const updatePanelLayout = useCallback(() => {
     const controlsEl = controlsRef.current
     const buttonRowEl = buttonRowRef.current
 
@@ -61,30 +83,81 @@ const MapBottomControls = () => {
 
     const controlsRect = controlsEl.getBoundingClientRect()
     const buttonRowRect = buttonRowEl.getBoundingClientRect()
-    const nextPanelLeftOffset = Math.floor(buttonRowRect.width + panelGapPx)
+    const nextPanelLeftOffset = Math.floor(buttonRowRect.width + PANEL_GAP_PX)
 
     setPanelLeftOffset((prev) =>
       prev === nextPanelLeftOffset ? prev : nextPanelLeftOffset
     )
 
-    const panelStartX = controlsRect.left + nextPanelLeftOffset
-    const sidebarToggleButton = document.querySelector(
-      '.sidebar-toggle-button'
-    ) as HTMLElement | null
+    let nextPanelMaxWidth = INITIAL_PANEL_MAX_WIDTH_PX
+    let nextOverlayPanelLeftOffset = 0
+    let nextPanelLayout: PanelLayout = 'inline-right'
+    let nextSlotPlacement: MainSidebarPlacement | null = null
 
-    if (sidebarToggleButton) {
-      const toggleRect = sidebarToggleButton.getBoundingClientRect()
-      const availableWidth = Math.floor(toggleRect.left - panelStartX - panelGapPx)
+    if (useMainSidebarBottomSlot) {
+      const frameEl = controlsEl.closest(
+        '[data-main-sidebar-visible-frame="true"]'
+      ) as HTMLElement | null
+      const wrapperEl = controlsEl.closest(
+        '[data-main-sidebar-controls-slot-wrapper]'
+      ) as HTMLElement | null
 
-      setPanelMaxWidth(Math.max(0, availableWidth))
-      return
+      nextSlotPlacement =
+        (wrapperEl?.dataset
+          .mainSidebarControlsSlotWrapper as MainSidebarPlacement | undefined) ??
+        null
+
+      if (frameEl) {
+        const frameRect = frameEl.getBoundingClientRect()
+        const inlinePanelStartX = controlsRect.left + nextPanelLeftOffset
+        const inlineAvailableWidth = Math.floor(
+          frameRect.right - inlinePanelStartX - CONTROL_EDGE_GUTTER_PX
+        )
+        const overlayStartX = frameRect.left + CONTROL_EDGE_GUTTER_PX
+        const overlayAvailableWidth = Math.floor(
+          frameRect.right - overlayStartX - CONTROL_EDGE_GUTTER_PX
+        )
+
+        nextOverlayPanelLeftOffset = Math.floor(overlayStartX - controlsRect.left)
+        nextPanelLayout =
+          nextSlotPlacement === 'overlay-sidebar' ||
+          inlineAvailableWidth < MIN_INLINE_PANEL_WIDTH_PX
+            ? 'overlay-sidebar'
+            : 'inline-right'
+        nextPanelMaxWidth = Math.max(
+          0,
+          nextPanelLayout === 'overlay-sidebar'
+            ? overlayAvailableWidth
+            : inlineAvailableWidth
+        )
+      }
+    } else {
+      const panelStartX = controlsRect.left + nextPanelLeftOffset
+      const sidebarToggleButton = document.querySelector(
+        '.sidebar-toggle-button'
+      ) as HTMLElement | null
+
+      if (sidebarToggleButton) {
+        const toggleRect = sidebarToggleButton.getBoundingClientRect()
+        nextPanelMaxWidth = Math.max(
+          0,
+          Math.floor(toggleRect.left - panelStartX - PANEL_GAP_PX)
+        )
+      } else {
+        nextPanelMaxWidth = Math.max(
+          0,
+          Math.floor(window.innerWidth - panelStartX - spacingLeftPx)
+        )
+      }
     }
 
-    const viewportWidth = window.innerWidth
-    const fallbackWidth = Math.floor(viewportWidth - panelStartX - spacingLeftPx)
-
-    setPanelMaxWidth(Math.max(0, fallbackWidth))
-  }, [panelGapPx, spacingLeftPx])
+    setSlotPlacement((prev) => (prev === nextSlotPlacement ? prev : nextSlotPlacement))
+    setOverlayPanelLeftOffset((prev) =>
+      prev === nextOverlayPanelLeftOffset ? prev : nextOverlayPanelLeftOffset
+    )
+    setPanelLayout((prev) => (prev === nextPanelLayout ? prev : nextPanelLayout))
+    setPanelMaxWidth((prev) => (prev === nextPanelMaxWidth ? prev : nextPanelMaxWidth))
+  }, [spacingLeftPx, useMainSidebarBottomSlot])
 
   useEffect(() => {
     const closePanel = () => {
@@ -111,29 +184,102 @@ const MapBottomControls = () => {
   }, [_map])
 
   useEffect(() => {
-    updateMaxWidth()
+    updatePanelLayout()
 
-    window.addEventListener('resize', updateMaxWidth)
+    window.addEventListener('resize', updatePanelLayout)
     return () => {
-      window.removeEventListener('resize', updateMaxWidth)
+      window.removeEventListener('resize', updatePanelLayout)
     }
   }, [
-    updateMaxWidth,
+    updatePanelLayout,
     isMobile,
     isSidebarOpen,
     sidebarWidth,
-    isPanelOpen,
-    useMainSidebarSlot,
+    useMainSidebarBottomSlot,
+    useMainSidebarTopSlot,
+    useMobileFixedInfoOnly,
   ])
 
-  const controlsContent = (
+  const cookieButton = (
+    <Button
+      type="button"
+      aria-label="Cookie settings"
+      disabled={true}
+      tabIndex={-1}
+      sx={{
+        width: '2.125rem',
+        minWidth: '2.125rem',
+        height: '2.125rem',
+        border: 0,
+        p: 0,
+        borderRadius: '0.3125rem',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'rgba(79, 79, 79, 0.55)',
+        backgroundColor: 'rgba(244, 244, 244, 0.9)',
+        boxShadow: 'inset 2px 2px 2px rgba(177, 177, 177, 0.25)',
+        opacity: 0.75,
+        '&.Mui-disabled': {
+          color: 'rgba(79, 79, 79, 0.55)',
+          backgroundColor: 'rgba(244, 244, 244, 0.9)',
+          opacity: 0.75,
+        },
+        '& svg': {
+          width: '1.15rem',
+          height: '1.15rem',
+        },
+      }}
+    >
+      <Cookie />
+    </Button>
+  )
+
+  const infoButton = (
+    <Button
+      type="button"
+      onClick={() => setIsPanelOpen((prev) => !prev)}
+      aria-label="Toggle attribution information"
+      sx={{
+        width: '2.125rem',
+        minWidth: '2.125rem',
+        height: '2.125rem',
+        border: 0,
+        p: 0,
+        borderRadius: '0.3125rem',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'rgba(79, 79, 79, 0.85)',
+        backgroundColor: 'rgba(244, 244, 244, 0.9)',
+        boxShadow: 'inset 2px 2px 2px rgba(177, 177, 177, 0.25)',
+        '& svg': {
+          width: '1.15rem',
+          height: '1.15rem',
+        },
+      }}
+    >
+      <AttributionInfo />
+    </Button>
+  )
+
+  const renderControls = ({
+    showCookieButton,
+    showInfoButton,
+  }: {
+    showCookieButton: boolean
+    showInfoButton: boolean
+  }) => (
     <>
-      {isPanelOpen && sanitizedAttributionHtml && (
+      {showInfoButton && isPanelOpen && sanitizedAttributionHtml && (
         <Box
           sx={(theme) => ({
             position: 'absolute',
-            left: `${panelLeftOffset}px`,
-            bottom: 0,
+            left:
+              panelLayout === 'overlay-sidebar'
+                ? `${overlayPanelLeftOffset}px`
+                : `${panelLeftOffset}px`,
+            bottom: panelLayout === 'overlay-sidebar' ? 'calc(100% + 0.5rem)' : 0,
             pointerEvents: 'auto',
             width: 'max-content',
             maxWidth: `${panelMaxWidth}px`,
@@ -168,6 +314,7 @@ const MapBottomControls = () => {
       )}
       <Box
         ref={buttonRowRef}
+        data-main-sidebar-controls-row-placement={slotPlacement ?? undefined}
         sx={(theme) => ({
           display: 'flex',
           alignItems: 'center',
@@ -175,79 +322,45 @@ const MapBottomControls = () => {
           pointerEvents: 'auto',
         })}
       >
-        <Button
-          type="button"
-          aria-label="Cookie settings"
-          disabled={true}
-          tabIndex={-1}
-          sx={(theme) => ({
-            width: '2.125rem',
-            minWidth: '2.125rem',
-            height: '2.125rem',
-            border: 0,
-            p: 0,
-            borderRadius: '0.3125rem',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'rgba(79, 79, 79, 0.55)',
-            backgroundColor: 'rgba(244, 244, 244, 0.9)',
-            boxShadow: 'inset 2px 2px 2px rgba(177, 177, 177, 0.25)',
-            opacity: 0.75,
-            '&.Mui-disabled': {
-              color: 'rgba(79, 79, 79, 0.55)',
-              backgroundColor: 'rgba(244, 244, 244, 0.9)',
-              opacity: 0.75,
-            },
-            '& svg': {
-              width: '1.15rem',
-              height: '1.15rem',
-            },
-          })}
-        >
-          <Cookie />
-        </Button>
-        <Button
-          type="button"
-          onClick={() => setIsPanelOpen((prev) => !prev)}
-          aria-label="Toggle attribution information"
-          sx={{
-            width: '2.125rem',
-            minWidth: '2.125rem',
-            height: '2.125rem',
-            border: 0,
-            p: 0,
-            borderRadius: '0.3125rem',
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'rgba(79, 79, 79, 0.85)',
-            backgroundColor: 'rgba(244, 244, 244, 0.9)',
-            boxShadow: 'inset 2px 2px 2px rgba(177, 177, 177, 0.25)',
-            '& svg': {
-              width: '1.15rem',
-              height: '1.15rem',
-            },
-          }}
-        >
-          <AttributionInfo />
-        </Button>
+        {showCookieButton ? cookieButton : null}
+        {showInfoButton ? infoButton : null}
       </Box>
     </>
   )
 
-  if (useMainSidebarSlot) {
+  if (useMainSidebarTopSlot) {
     return (
-      <IntoSlot name={MAIN_SIDEBAR_BOTTOM_CONTROLS_SLOT}>
+      <IntoSlot name={MAIN_SIDEBAR_TOP_CONTROLS_SLOT}>
         <Box
           ref={controlsRef}
+          data-main-sidebar-top-controls-inner="true"
           sx={(theme) => ({
             position: 'relative',
+            width: 'max-content',
             pointerEvents: 'none',
             zIndex: theme.zIndex.mapButtons,
           })}
         >
-          {controlsContent}
+          {renderControls({ showCookieButton: true, showInfoButton: false })}
+        </Box>
+      </IntoSlot>
+    )
+  }
+
+  if (useMainSidebarBottomSlot) {
+    return (
+      <IntoSlot name={MAIN_SIDEBAR_BOTTOM_CONTROLS_SLOT}>
+        <Box
+          ref={controlsRef}
+          data-main-sidebar-bottom-controls-inner="true"
+          sx={(theme) => ({
+            position: 'relative',
+            width: 'max-content',
+            pointerEvents: 'none',
+            zIndex: theme.zIndex.mapButtons,
+          })}
+        >
+          {renderControls({ showCookieButton: true, showInfoButton: true })}
         </Box>
       </IntoSlot>
     )
@@ -266,7 +379,10 @@ const MapBottomControls = () => {
           'left 220ms cubic-bezier(.2,0,.2,1), bottom 220ms cubic-bezier(.2,0,.2,1)',
       })}
     >
-      {controlsContent}
+      {renderControls({
+        showCookieButton: !useMobileFixedInfoOnly,
+        showInfoButton: true,
+      })}
     </Box>
   )
 }

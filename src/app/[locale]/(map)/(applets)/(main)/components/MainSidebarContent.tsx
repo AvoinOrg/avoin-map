@@ -5,13 +5,17 @@ import Image from 'next/image'
 import { useTranslate } from '@tolgee/react'
 import { Box, IconButton, Typography } from '@mui/material'
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded'
+import KeyboardArrowUpRoundedIcon from '@mui/icons-material/KeyboardArrowUpRounded'
 import type { EventListeners } from 'overlayscrollbars'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react'
 
 import MutableLink from '#/components/common/MutableLink'
 import { Slot } from '#/components/context/slotsContext'
-import { MAIN_SIDEBAR_BOTTOM_CONTROLS_SLOT } from '#/common/constants/map'
+import {
+  MAIN_SIDEBAR_BOTTOM_CONTROLS_SLOT,
+  MAIN_SIDEBAR_TOP_CONTROLS_SLOT,
+} from '#/common/constants/map'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import { mainRouteTree } from '#/common/routing/routes/main'
 import { SCROLLBAR_WIDTH_REM } from '#/common/style/theme/constants'
@@ -36,7 +40,6 @@ const BUBBLE_GAP_REM = 1
 const BOTTOM_CONTROLS_REQUIRED_SPACE_PX = 44
 const BOTTOM_CONTROLS_OUTSIDE_GAP_PX = 16
 const BOTTOM_CONTROLS_ROW_WIDTH_PX = 64
-
 type BubbleVariant = 'hiilikartta' | 'imageHeader'
 
 const APPLET_BUBBLES: Array<{
@@ -85,28 +88,31 @@ const APPLET_BUBBLES: Array<{
   },
 ]
 
-type BottomControlsPlacement = 'under-left' | 'under-right' | 'outside-right'
+type BottomControlsPlacement =
+  | 'under-left'
+  | 'under-right'
+  | 'outside-right'
+  | 'overlay-sidebar'
 
-const getRemPx = () => {
-  if (typeof window === 'undefined') {
-    return 16
-  }
-
-  const fontSize = window.getComputedStyle(document.documentElement).fontSize
-  return Number.parseFloat(fontSize) || 16
+type ScrollState = {
+  hasOverflow: boolean
+  canScrollUp: boolean
+  canScrollDown: boolean
 }
 
 const MainSidebarContent = () => {
   const { t } = useTranslate('avoin-map')
   const isMobile = useIsMobile('desktop')
   const scrollContainerRef = useRef<OverlayScrollbarsComponentRef<'div'> | null>(null)
-  const spillContainerRef = useRef<HTMLDivElement | null>(null)
+  const visibleFrameRef = useRef<HTMLDivElement | null>(null)
   const leftColumnRef = useRef<HTMLDivElement | null>(null)
   const rightColumnRef = useRef<HTMLDivElement | null>(null)
-  const [showScrollHint, setShowScrollHint] = useState(false)
-  const [controlsSlotLeftPx, setControlsSlotLeftPx] = useState<number>(
-    DESKTOP_LEFT_SPILL_REM * 16
-  )
+  const [scrollState, setScrollState] = useState<ScrollState>({
+    hasOverflow: false,
+    canScrollUp: false,
+    canScrollDown: false,
+  })
+  const [controlsSlotLeftPx, setControlsSlotLeftPx] = useState<number>(0)
   const [controlsPlacement, setControlsPlacement] =
     useState<BottomControlsPlacement>('under-left')
 
@@ -124,53 +130,61 @@ const MainSidebarContent = () => {
   )
 
   const updateBottomControlsPlacement = useCallback(() => {
-    const remPx = getRemPx()
-
     if (isMobile) {
       setControlsPlacement('under-left')
-      setControlsSlotLeftPx(MOBILE_SPILL_REM * remPx)
+      setControlsSlotLeftPx(0)
       return
     }
 
-    const spillContainerEl = spillContainerRef.current
+    const visibleFrameEl = visibleFrameRef.current
     const leftColumnEl = leftColumnRef.current
     const rightColumnEl = rightColumnRef.current
 
-    if (!spillContainerEl || !leftColumnEl || !rightColumnEl) {
+    if (!visibleFrameEl || !leftColumnEl || !rightColumnEl) {
       setControlsPlacement('under-left')
-      setControlsSlotLeftPx(DESKTOP_LEFT_SPILL_REM * remPx)
+      setControlsSlotLeftPx(0)
       return
     }
 
-    const spillRect = spillContainerEl.getBoundingClientRect()
+    const frameRect = visibleFrameEl.getBoundingClientRect()
     const leftColumnRect = leftColumnEl.getBoundingClientRect()
     const rightColumnRect = rightColumnEl.getBoundingClientRect()
-    const visibleFrameBottom = spillRect.bottom - DESKTOP_BOTTOM_SPILL_REM * remPx
+    const visibleFrameBottom = frameRect.bottom
 
     const leftSpaceBelow = visibleFrameBottom - leftColumnRect.bottom
     const rightSpaceBelow = visibleFrameBottom - rightColumnRect.bottom
+    const rightSpaceToViewport =
+      window.innerWidth -
+      rightColumnRect.right -
+      BOTTOM_CONTROLS_OUTSIDE_GAP_PX
 
     let nextPlacement: BottomControlsPlacement = 'under-left'
-    let nextLeftPx = leftColumnRect.left - spillRect.left
+    let nextLeftPx = leftColumnRect.left - frameRect.left
 
     if (leftSpaceBelow >= BOTTOM_CONTROLS_REQUIRED_SPACE_PX) {
       nextPlacement = 'under-left'
-      nextLeftPx = leftColumnRect.left - spillRect.left
+      nextLeftPx = leftColumnRect.left - frameRect.left
     } else if (rightSpaceBelow >= BOTTOM_CONTROLS_REQUIRED_SPACE_PX) {
       nextPlacement = 'under-right'
-      nextLeftPx = rightColumnRect.left - spillRect.left
-    } else {
+      nextLeftPx = rightColumnRect.left - frameRect.left
+    } else if (rightSpaceToViewport >= BOTTOM_CONTROLS_ROW_WIDTH_PX) {
       nextPlacement = 'outside-right'
       nextLeftPx =
         rightColumnRect.right -
-        spillRect.left +
+        frameRect.left +
         BOTTOM_CONTROLS_OUTSIDE_GAP_PX
+    } else {
+      nextPlacement = 'overlay-sidebar'
+      nextLeftPx = 0
     }
 
-    const minLeftPx = DESKTOP_LEFT_SPILL_REM * remPx
+    const minLeftPx = 0
     const maxLeftPx = Math.max(
       minLeftPx,
-      spillRect.width - BOTTOM_CONTROLS_ROW_WIDTH_PX
+      window.innerWidth -
+        frameRect.left -
+        BOTTOM_CONTROLS_ROW_WIDTH_PX -
+        BOTTOM_CONTROLS_OUTSIDE_GAP_PX
     )
 
     setControlsPlacement(nextPlacement)
@@ -182,15 +196,34 @@ const MainSidebarContent = () => {
     const viewport = osInstance?.elements().viewport
 
     if (!osInstance || !viewport) {
-      setShowScrollHint(false)
+      setScrollState({
+        hasOverflow: false,
+        canScrollUp: false,
+        canScrollDown: false,
+      })
       return
     }
 
     const hasOverflow = osInstance.state().hasOverflow.y
+    const canScrollUp = viewport.scrollTop > 3
     const canScrollDown =
       viewport.scrollTop + viewport.clientHeight < viewport.scrollHeight - 3
 
-    setShowScrollHint(hasOverflow && canScrollDown)
+    setScrollState((prev) => {
+      if (
+        prev.hasOverflow === hasOverflow &&
+        prev.canScrollUp === canScrollUp &&
+        prev.canScrollDown === canScrollDown
+      ) {
+        return prev
+      }
+
+      return {
+        hasOverflow,
+        canScrollUp,
+        canScrollDown,
+      }
+    })
   }, [])
 
   const scrollEvents = useMemo<EventListeners>(
@@ -232,7 +265,7 @@ const MainSidebarContent = () => {
         : null
 
     const elementsToObserve = [
-      spillContainerRef.current,
+      visibleFrameRef.current,
       leftColumnRef.current,
       rightColumnRef.current,
     ].filter(Boolean) as HTMLElement[]
@@ -258,8 +291,18 @@ const MainSidebarContent = () => {
     viewport.scrollBy({ top: 260, behavior: 'smooth' })
   }
 
+  const handleScrollUp = () => {
+    const viewport = scrollContainerRef.current?.osInstance()?.elements().viewport
+    if (!viewport) {
+      return
+    }
+
+    viewport.scrollBy({ top: -260, behavior: 'smooth' })
+  }
+
   return (
     <Box
+      data-main-sidebar-root="true"
       sx={{
         flex: 1,
         minHeight: 0,
@@ -278,7 +321,6 @@ const MainSidebarContent = () => {
         }}
       >
         <Box
-          ref={spillContainerRef}
           sx={{
             position: 'absolute',
             top: { mobile: `-${MOBILE_SPILL_REM}rem`, desktop: `-${DESKTOP_TOP_SPILL_REM}rem` },
@@ -294,58 +336,102 @@ const MainSidebarContent = () => {
               mobile: `-${MOBILE_SPILL_REM}rem`,
               desktop: `-${DESKTOP_BOTTOM_SPILL_REM}rem`,
             },
+            pointerEvents: 'none',
+          }}
+        />
+        <Box
+          ref={visibleFrameRef}
+          data-main-sidebar-visible-frame="true"
+          sx={{
+            position: 'absolute',
+            inset: 0,
             minHeight: 0,
-            pointerEvents: { mobile: 'auto', desktop: 'none' },
-            backgroundColor: 'transparent',
-            '& .os-scrollbar-vertical': {
-              left: 0,
-              right: 'auto',
-            },
-            '& .os-scrollbar-corner': {
-              left: 0,
-              right: 'auto',
-            },
+            pointerEvents: 'none',
           }}
         >
-          <OverlayScrollbarsComponent
-            ref={scrollContainerRef}
-            className="osScroll osLeft"
-            options={scrollOptions}
-            events={scrollEvents}
-            style={{
-              height: '100%',
+          <Box
+            sx={{
+              position: 'absolute',
+              top: { mobile: `-${MOBILE_SPILL_REM}rem`, desktop: `-${DESKTOP_TOP_SPILL_REM}rem` },
+              left: {
+                mobile: `-${MOBILE_SPILL_REM}rem`,
+                desktop: `-${DESKTOP_LEFT_SPILL_REM}rem`,
+              },
+              right: {
+                mobile: `-${MOBILE_SPILL_REM}rem`,
+                desktop: `-${DESKTOP_RIGHT_SPILL_REM}rem`,
+              },
+              bottom: {
+                mobile: `-${MOBILE_SPILL_REM}rem`,
+                desktop: `-${DESKTOP_BOTTOM_SPILL_REM}rem`,
+              },
               minHeight: 0,
-              direction: 'rtl',
-              pointerEvents: 'auto',
+              pointerEvents: { mobile: 'auto', desktop: 'none' },
+              backgroundColor: 'transparent',
+              '& .os-scrollbar-vertical': {
+                left: 0,
+                right: 'auto',
+                pointerEvents: 'auto',
+              },
+              '& .os-scrollbar-horizontal': {
+                pointerEvents: 'auto',
+              },
+              '& .os-scrollbar-corner': {
+                left: 0,
+                right: 'auto',
+                pointerEvents: 'auto',
+              },
             }}
           >
-            <Box
-              sx={{
-                direction: 'ltr',
-                minHeight: '100%',
-                pt: {
-                  mobile: `${MOBILE_SPILL_REM}rem`,
-                  desktop: `${DESKTOP_TOP_SPILL_REM}rem`,
-                },
-                pr: {
-                  mobile: `${MOBILE_SPILL_REM}rem`,
-                  desktop: `${DESKTOP_RIGHT_SPILL_REM}rem`,
-                },
-                pl: {
-                  mobile: `${MOBILE_SPILL_REM}rem`,
-                  desktop: `${DESKTOP_LEFT_SPILL_REM}rem`,
-                },
-                pb: {
-                  mobile: `calc(${MOBILE_SPILL_REM}rem + ${showScrollHint ? 3.5 : 0}rem)`,
-                  desktop: `calc(${DESKTOP_BOTTOM_SPILL_REM}rem + ${showScrollHint ? 3.5 : 0}rem)`,
-                },
+            <OverlayScrollbarsComponent
+              ref={scrollContainerRef}
+              className="osScroll osLeft"
+              options={scrollOptions}
+              events={scrollEvents}
+              style={{
+                height: '100%',
+                minHeight: 0,
+                direction: 'rtl',
+                pointerEvents: isMobile ? 'auto' : 'none',
               }}
             >
+              <Box
+                sx={{
+                  direction: 'ltr',
+                  minHeight: '100%',
+                  pointerEvents: { mobile: 'auto', desktop: 'none' },
+                  pt: {
+                    mobile: `${MOBILE_SPILL_REM}rem`,
+                    desktop: `${DESKTOP_TOP_SPILL_REM}rem`,
+                  },
+                  pr: {
+                    mobile: `${MOBILE_SPILL_REM}rem`,
+                    desktop: `${DESKTOP_RIGHT_SPILL_REM}rem`,
+                  },
+                  pl: {
+                    mobile: `${MOBILE_SPILL_REM}rem`,
+                    desktop: `${DESKTOP_LEFT_SPILL_REM}rem`,
+                  },
+                  pb: {
+                    mobile: `${MOBILE_SPILL_REM}rem`,
+                    desktop: `${DESKTOP_BOTTOM_SPILL_REM}rem`,
+                  },
+                }}
+              >
+                <Box
+                  data-main-sidebar-interactive-surface="true"
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    pointerEvents: { mobile: 'auto', desktop: 'none' },
+                  }}
+                >
               <Box
                 sx={{
                   display: { mobile: 'none', desktop: 'flex' },
                   alignItems: 'flex-start',
                   gap: `${BUBBLE_GAP_REM}rem`,
+                  pointerEvents: 'none',
                 }}
               >
                 <Box
@@ -356,6 +442,7 @@ const MainSidebarContent = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     gap: `${BUBBLE_GAP_REM}rem`,
+                    pointerEvents: 'none',
                   }}
                 >
                   <Box
@@ -371,6 +458,7 @@ const MainSidebarContent = () => {
                       pt: 4.75,
                       pb: 3.25,
                       boxShadow: '0 18px 36px rgba(0, 0, 0, 0.2)',
+                      pointerEvents: 'auto',
                     }}
                   >
                     <Box
@@ -418,6 +506,7 @@ const MainSidebarContent = () => {
                       pt: 2.5,
                       pb: 2.25,
                       boxShadow: '0 14px 30px rgba(0, 0, 0, 0.16)',
+                      pointerEvents: 'auto',
                     }}
                   >
                     <Typography
@@ -510,6 +599,7 @@ const MainSidebarContent = () => {
                         sx={{
                           display: 'flex',
                           width: '100%',
+                          pointerEvents: 'auto',
                         }}
                       >
                         <Box
@@ -608,6 +698,7 @@ const MainSidebarContent = () => {
                     display: 'flex',
                     flexDirection: 'column',
                     gap: `${BUBBLE_GAP_REM}rem`,
+                    pointerEvents: 'none',
                   }}
                 >
                   {APPLET_BUBBLES.filter((bubble) => bubble.variant === 'imageHeader').map(
@@ -629,6 +720,7 @@ const MainSidebarContent = () => {
                         sx={{
                           display: 'flex',
                           width: '100%',
+                          pointerEvents: 'auto',
                         }}
                       >
                         <Box
@@ -1211,19 +1303,42 @@ const MainSidebarContent = () => {
                   )
                 )}
               </Box>
+                </Box>
+              </Box>
+            </OverlayScrollbarsComponent>
+          </Box>
+
+          <Box
+            data-main-sidebar-top-controls="true"
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              display: { mobile: 'block', desktop: 'none' },
+              pointerEvents: 'none',
+              zIndex: 3,
+            }}
+          >
+            <Box
+              sx={{
+                width: 'max-content',
+                pointerEvents: 'auto',
+              }}
+            >
+              <Slot name={MAIN_SIDEBAR_TOP_CONTROLS_SLOT} />
             </Box>
-          </OverlayScrollbarsComponent>
+          </Box>
 
           <Box
             sx={{
               position: 'absolute',
               left: `${controlsSlotLeftPx}px`,
               bottom: {
-                mobile: `${MOBILE_SPILL_REM}rem`,
-                desktop: `${DESKTOP_BOTTOM_SPILL_REM}rem`,
+                mobile: `${BUBBLE_GAP_REM}rem`,
+                desktop: 0,
               },
               pointerEvents: 'none',
-              zIndex: 2,
+              zIndex: 3,
               transition: 'left 220ms cubic-bezier(.2,0,.2,1)',
             }}
           >
@@ -1240,13 +1355,13 @@ const MainSidebarContent = () => {
           </Box>
         </Box>
 
-        {showScrollHint && (
+        {scrollState.canScrollUp && (
           <IconButton
-            onClick={handleScrollDown}
-            aria-label={t('sidebar.main.scroll_hint.aria_label')}
+            onClick={handleScrollUp}
+            aria-label={t('sidebar.main.scroll_up_hint.aria_label')}
             sx={{
               position: 'absolute',
-              bottom: 0,
+              top: { mobile: `${BUBBLE_GAP_REM}rem`, desktop: 0 },
               left: '50%',
               transform: 'translate(-50%, 0)',
               width: '2.375rem',
@@ -1254,6 +1369,33 @@ const MainSidebarContent = () => {
               backgroundColor: 'rgba(79, 79, 79, 0.95)',
               color: 'common.white',
               boxShadow: '0 10px 24px rgba(0, 0, 0, 0.24)',
+              pointerEvents: 'auto',
+              zIndex: 4,
+              '&:hover': {
+                backgroundColor: '#3f3f3f',
+              },
+            }}
+          >
+            <KeyboardArrowUpRoundedIcon />
+          </IconButton>
+        )}
+
+        {scrollState.canScrollDown && (
+          <IconButton
+            onClick={handleScrollDown}
+            aria-label={t('sidebar.main.scroll_hint.aria_label')}
+            sx={{
+              position: 'absolute',
+              bottom: { mobile: `${BUBBLE_GAP_REM}rem`, desktop: 0 },
+              left: '50%',
+              transform: 'translate(-50%, 0)',
+              width: '2.375rem',
+              height: '2.375rem',
+              backgroundColor: 'rgba(79, 79, 79, 0.95)',
+              color: 'common.white',
+              boxShadow: '0 10px 24px rgba(0, 0, 0, 0.24)',
+              pointerEvents: 'auto',
+              zIndex: 4,
               '&:hover': {
                 backgroundColor: '#3f3f3f',
               },
