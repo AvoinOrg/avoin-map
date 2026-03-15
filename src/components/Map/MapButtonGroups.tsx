@@ -315,6 +315,10 @@ const MapButtonGroup = ({ isVertical, sx, ...props }: MapButtonGroupProps) => (
   <ButtonGroup
     {...props}
     sx={{
+      '& > .MuiButton-root, & > *:not(style) .MuiButton-root': {
+        border: 0,
+        borderRadius: 0,
+      },
       '& .MuiButtonGroup-grouped': {
         border: 0,
       },
@@ -322,22 +326,17 @@ const MapButtonGroup = ({ isVertical, sx, ...props }: MapButtonGroupProps) => (
         marginLeft: 0,
         marginTop: 0,
       },
-      // Tooltip wraps each button in a span, so target the wrapper first.
-      '& > *:not(style) .MuiButton-root': {
-        border: 0,
-        borderRadius: 0,
-      },
-      '& > *:not(style):first-of-type .MuiButton-root': {
+      '& > .MuiButton-root:first-child, & > *:not(style):first-child .MuiButton-root': {
         borderTopLeftRadius: '0.3125rem',
         borderBottomLeftRadius: isVertical ? 0 : '0.3125rem',
         borderTopRightRadius: isVertical ? '0.3125rem' : 0,
       },
-      '& > *:not(style):last-of-type .MuiButton-root': {
+      '& > .MuiButton-root:last-child, & > *:not(style):last-child .MuiButton-root': {
         borderTopRightRadius: isVertical ? 0 : '0.3125rem',
         borderBottomLeftRadius: isVertical ? '0.3125rem' : 0,
         borderBottomRightRadius: '0.3125rem',
       },
-      '& > *:not(style):only-child .MuiButton-root': {
+      '& > .MuiButton-root:only-child, & > *:not(style):only-child .MuiButton-root': {
         borderRadius: '0.3125rem',
       },
       ...sx,
