@@ -200,3 +200,15 @@ Persistent live-browser profiles:
   `yarn browser:live:container:start -- --browser-arg=<flag>` when needed.
 - Window controls are also available: `-- --window-size=1600,960`,
   `-- --start-maximized`, or `-- --no-window-size`.
+
+Visual runner browser modes:
+
+- `utils/scripts/visual/run.js` now accepts `--browser-mode=auto|headless|xvfb-webgl`.
+- `auto` is the default. It switches map/WebGL scenarios to headed Playwright
+  Chromium under `xvfb-run`, while non-WebGL scenarios stay in true headless
+  mode.
+- Use `yarn visual:webgl:smoke` and `yarn visual:webgl:smoke:headless` to probe
+  raw browser WebGL support without loading the app.
+- The built-in MCP browser used by some assistants is not repo-configurable and
+  may still fail on WebGL pages even when the repo-controlled Playwright
+  workflows work correctly.

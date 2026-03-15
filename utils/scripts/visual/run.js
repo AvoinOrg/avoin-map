@@ -20,6 +20,14 @@ const {
   validateStorageStateFile,
   warnOnStorageStateOriginMismatch,
 } = require('./playwrightContext')
+const {
+  BROWSER_MODE_AUTO,
+  SUPPORTED_BROWSER_MODES,
+  assertWebGLAvailable,
+  getChromiumLaunchOptions,
+  maybeReexecInsideXvfb,
+  resolveBrowserMode,
+} = require('./browserRuntime')
 
 const HELP_TEXT = `\
 Usage:
@@ -29,6 +37,7 @@ Usage:
 
 Options:
   --mode baseline|changed     Run baseline generation or regression check
+  --browser-mode <mode>       Browser mode: ${SUPPORTED_BROWSER_MODES.join('|')} (default: ${BROWSER_MODE_AUTO})
   --files <csv>               Comma-separated changed files for targeted mode
   --base-url <url>            Base URL for the running Next.js app
   --storage-state <path>      Playwright storage state JSON (cookies/localStorage/IndexedDB)
@@ -39,6 +48,8 @@ Options:
 Behavior:
   The runner probes --base-url first and reuses an existing dev server when reachable.
   It only spawns a temporary server with --start-command as a fallback (unless --no-start is set).
+  Browser mode "auto" switches WebGL scenarios to Xvfb-backed Chromium and keeps
+  non-WebGL scenarios in true headless mode.
 `
 
 const ensureDir = (dirPath) => fs.mkdirSync(dirPath, { recursive: true })
@@ -61,6 +72,7 @@ const requireOrThrow = ({ id, installHint }) => {
 const parseArgs = (argv) => {
   const args = {
     mode: null,
+    browserMode: BROWSER_MODE_AUTO,
     files: [],
     baseUrl: null,
     storageState: null,
@@ -88,6 +100,16 @@ const parseArgs = (argv) => {
     }
     if (token === '--mode') {
       args.mode = argv[i + 1]
+      i++
+      continue
+    }
+
+    if (token.startsWith('--browser-mode=')) {
+      args.browserMode = token.slice('--browser-mode='.length)
+      continue
+    }
+    if (token === '--browser-mode') {
+      args.browserMode = argv[i + 1]
       i++
       continue
     }
@@ -425,6 +447,7 @@ const printSummary = ({ report }) => {
   const lines = []
   lines.push(`Mode: ${report.mode}`)
   lines.push(`Base URL: ${report.baseUrl}`)
+  lines.push(`Browser mode: ${report.browserMode.effective} (requested: ${report.browserMode.requested})`)
   if (report.storageStatePath) {
     lines.push(`Storage state: ${report.storageStatePath}`)
   }
@@ -499,6 +522,17 @@ const run = async () => {
     throw new Error('No visual scenarios selected')
   }
 
+  const effectiveBrowserMode = resolveBrowserMode({
+    browserMode: args.browserMode,
+    scenarios: selectedScenarios,
+  })
+  const xvfbBootstrap = maybeReexecInsideXvfb({
+    browserMode: effectiveBrowserMode,
+  })
+  if (xvfbBootstrap.reexecuted) {
+    process.exit(xvfbBootstrap.exitCode)
+  }
+
   ensureDir(VISUAL_DIRS.root)
   ensureDir(VISUAL_DIRS.baseline)
   ensureDir(VISUAL_DIRS.current)
@@ -515,12 +549,21 @@ const run = async () => {
     id: '@playwright/test',
     installHint: '`yarn install` and `yarn visual:install`',
   })
-  const browser = await chromium.launch({ headless: true })
+  const browser = await chromium.launch(
+    getChromiumLaunchOptions({ browserMode: effectiveBrowserMode })
+  )
 
   const results = []
   let failed = false
 
   try {
+    if (selectedScenarios.some((scenario) => scenario.requiresWebGL)) {
+      await assertWebGLAvailable({
+        browser,
+        browserMode: effectiveBrowserMode,
+      })
+    }
+
     for (const scenario of selectedScenarios) {
       for (const viewport of DEFAULT_VIEWPORTS) {
         const currentPath = getImagePath({
@@ -626,6 +669,10 @@ const run = async () => {
   const report = {
     timestamp: new Date().toISOString(),
     mode,
+    browserMode: {
+      requested: args.browserMode,
+      effective: effectiveBrowserMode,
+    },
     baseUrl,
     storageStatePath,
     changedFiles,

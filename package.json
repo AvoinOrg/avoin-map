@@ -17,6 +17,8 @@
     "test:watch": "jest --watch",
     "test:watch-changed": "jest --watch --onlyChanged",
     "visual:install": "npx playwright install chromium",
+    "visual:webgl:smoke": "node ./utils/scripts/visual/webgl-smoke.js --browser-mode=xvfb-webgl --expect-webgl=available",
+    "visual:webgl:smoke:headless": "node ./utils/scripts/visual/webgl-smoke.js --browser-mode=headless --expect-webgl=unavailable",
     "visual:baseline": "node ./utils/scripts/visual/run.js --mode=baseline --base-url=http://127.0.0.1:3000",
     "visual:changed": "node ./utils/scripts/visual/run.js --mode=changed --base-url=http://127.0.0.1:3000",
     "visual:after-edit": "node ./utils/scripts/visual/after-edit.js",

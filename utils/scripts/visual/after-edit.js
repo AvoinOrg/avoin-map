@@ -18,6 +18,7 @@ Behavior:
 
 Options:
   --base-url <url>            Override the target app URL
+  --browser-mode <mode>       Browser mode passed to the visual runner
   --storage-state <path>      Playwright storage state JSON (cookies/localStorage/IndexedDB)
   --start-command <cmd>       Override fallback dev server command
   --no-start                  Fail instead of starting a temporary dev server
@@ -28,6 +29,7 @@ Options:
 const parseArgs = (argv) => {
   const args = {
     baseUrl: 'http://127.0.0.1:3000',
+    browserMode: null,
     storageState: null,
     startCommand: null,
     noStart: false,
@@ -58,6 +60,16 @@ const parseArgs = (argv) => {
     }
     if (token === '--base-url') {
       args.baseUrl = argv[i + 1]
+      i++
+      continue
+    }
+
+    if (token.startsWith('--browser-mode=')) {
+      args.browserMode = token.slice('--browser-mode='.length)
+      continue
+    }
+    if (token === '--browser-mode') {
+      args.browserMode = argv[i + 1]
       i++
       continue
     }
@@ -122,6 +134,9 @@ const run = () => {
   const runnerPath = path.join(__dirname, 'run.js')
   const commandArgs = [runnerPath, '--mode=changed', `--base-url=${args.baseUrl}`]
 
+  if (args.browserMode) {
+    commandArgs.push(`--browser-mode=${args.browserMode}`)
+  }
   if (args.storageState) {
     commandArgs.push(`--storage-state=${args.storageState}`)
   }

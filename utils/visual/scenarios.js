@@ -55,12 +55,20 @@ const joinUrl = ({ baseUrl, path }) => {
   return `${normalizedBaseUrl}${path}`
 }
 
-const buildScenario = ({ id, applet, locale, path, baseUrl }) => ({
+const buildScenario = ({
+  id,
+  applet,
+  locale,
+  path,
+  baseUrl,
+  requiresWebGL = false,
+}) => ({
   id,
   applet,
   locale,
   path,
   url: joinUrl({ baseUrl, path }),
+  requiresWebGL,
   waitFor: DEFAULT_WAIT_FOR_SELECTOR,
   maskSelectors: [...DEFAULT_MASK_SELECTORS],
   tags: ['root', `applet:${applet}`],
@@ -80,6 +88,7 @@ const buildVisualScenarios = ({ env = process.env, baseUrl = '' } = {}) => {
         locale,
         path: `/${locale}`,
         baseUrl,
+        requiresWebGL: true,
       }),
     ]
   }
@@ -95,6 +104,7 @@ const buildVisualScenarios = ({ env = process.env, baseUrl = '' } = {}) => {
         locale,
         path: `/${locale}`,
         baseUrl,
+        requiresWebGL: true,
       })
     )
   }
@@ -109,6 +119,7 @@ const buildVisualScenarios = ({ env = process.env, baseUrl = '' } = {}) => {
         locale,
         path: `/${locale}/${applet}`,
         baseUrl,
+        requiresWebGL: true,
       })
     )
   }

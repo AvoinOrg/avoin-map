@@ -18,6 +18,7 @@ const {
   waitForHttpEndpoint,
   writeContainerSessionMetadata,
 } = require('./liveSharedBrowser')
+const { WEBGL_CHROMIUM_ARGS } = require('./browserRuntime')
 
 const DEFAULT_WINDOW_SIZE = '1600,960'
 
@@ -47,14 +48,8 @@ const CONTAINER_BROWSER_BIN_CANDIDATES = [
 ]
 
 const DEFAULT_CONTAINER_BROWSER_ARGS = [
-  '--no-sandbox',
-  '--disable-dev-shm-usage',
+  ...WEBGL_CHROMIUM_ARGS,
   '--ozone-platform=x11',
-  '--enable-webgl',
-  '--ignore-gpu-blocklist',
-  '--enable-unsafe-swiftshader',
-  '--use-gl=angle',
-  '--use-angle=swiftshader',
 ]
 
 const fileExists = (targetPath) => {
