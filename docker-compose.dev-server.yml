@@ -13,8 +13,9 @@ services:
         source: ${LIVE_BROWSER_CONTAINER_DATA_HOST_DIR:-./.dev/live-browser-persist}
         target: /app/.dev/live-browser-persist
       - node-dev:/home/node/dev
-      - code-server-config:/home/node/.config/code-server
-      - code-server-data:/home/node/.local/share/code-server
+      - type: bind
+        source: ${CODE_SERVER_HOST_DIR:-./.dev/code-server}
+        target: /home/node/code-server
       - type: bind
         source: ${HOME}/.ssh
         target: /home/node/.ssh
@@ -35,6 +36,7 @@ services:
       NODE_ENV: development
       HOST_MACHINE: host.docker.internal
       CODEX_HOME: /app/.codex
+      CODE_SERVER_HOME: /home/node/code-server
       FIGMA_MCP_URL: http://host.docker.internal:3845/mcp
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -46,9 +48,5 @@ networks:
     external: true
 
 volumes:
-  code-server-config:
-    driver: local
-  code-server-data:
-    driver: local
   node-dev:
     driver: local

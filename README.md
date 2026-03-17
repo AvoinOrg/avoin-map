@@ -55,6 +55,8 @@ docker compose -f docker-compose.dev-server.yml up --build
 
 That flow serves the app on `http://localhost:3000` and `code-server` on
 `http://127.0.0.1:8443` unless `DEV_PORT` or `CODE_SERVER_PORT` override them.
+`code-server` config, extensions, and user data default to `./.dev/code-server`
+on the host, and you can override that path with `CODE_SERVER_HOST_DIR`.
 
 ## Commits
 
