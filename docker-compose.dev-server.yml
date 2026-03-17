@@ -17,19 +17,19 @@ services:
         source: ${CODE_SERVER_HOST_DIR:-./.dev/code-server}
         target: /home/node/code-server
       - type: bind
-        source: ${HOME}/.ssh
+        source: ${SSH_PATH:?Set SSH_PATH to the host SSH directory}
         target: /home/node/.ssh
         read_only: true
       - type: bind
-        source: ${HOME}/.codex/auth.json
+        source: ${CODEX_PATH:?Set CODEX_PATH to the host Codex directory}/auth.json
         target: /app/.codex/auth.json
         read_only: true
       - type: bind
-        source: ${HOME}/.codex/.credentials.json
+        source: ${CODEX_PATH:?Set CODEX_PATH to the host Codex directory}/.credentials.json
         target: /app/.codex/.credentials.json
         read_only: true
       - type: bind
-        source: ${HOME}/.codex/rules/default.rules
+        source: ${CODEX_PATH:?Set CODEX_PATH to the host Codex directory}/rules/default.rules
         target: /app/.codex/rules/default.rules
         read_only: true
     environment:
