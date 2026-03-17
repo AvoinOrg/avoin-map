@@ -6,7 +6,7 @@ services:
     env_file: ./.env
     ports:
       - '${DEV_PORT}:3000'
-      - '127.0.0.1:${CODE_SERVER_PORT:-8443}:8080'
+      - '${CODE_SERVER_PORT:-8443}:8080'
     volumes:
       - .:/app:z
       - type: bind
