@@ -20,10 +20,32 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends google-chrome-stable && \
     rm -rf /var/lib/apt/lists/*
 
+# The Playwright base image already ships with a UID 1000 user (`pwuser`).
+# Normalize that account to `node` so Dev Containers can attach consistently.
 RUN if ! getent passwd node >/dev/null; then \
-      groupadd --gid 1000 node && \
-      useradd --uid 1000 --gid 1000 --create-home --shell /bin/bash node; \
-    fi
+      existing_uid_user="$(getent passwd 1000 | cut -d: -f1 || true)" && \
+      if [ -n "${existing_uid_user}" ]; then \
+        usermod --login node "${existing_uid_user}"; \
+      elif getent group 1000 >/dev/null; then \
+        useradd --uid 1000 --gid 1000 --create-home --home-dir /home/node --shell /bin/bash node; \
+      else \
+        groupadd --gid 1000 node && \
+        useradd --uid 1000 --gid 1000 --create-home --home-dir /home/node --shell /bin/bash node; \
+      fi; \
+    fi && \
+    current_group="$(id -gn node)" && \
+    if [ "${current_group}" != "node" ]; then \
+      if getent group node >/dev/null; then \
+        usermod --gid node node; \
+      else \
+        groupmod --new-name node "${current_group}"; \
+      fi; \
+    fi && \
+    current_home="$(getent passwd node | cut -d: -f6)" && \
+    if [ "${current_home}" != "/home/node" ]; then \
+      usermod --home /home/node --move-home node; \
+    fi && \
+    usermod --shell /bin/bash node
 
 RUN corepack enable && corepack prepare yarn@3.6.0 --activate
 
