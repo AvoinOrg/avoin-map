@@ -207,22 +207,39 @@ standalone sites.
 
 - Jest is configured, but coverage is limited (routing has unit tests).
 - Applet-specific e2e tests are not standardized yet.
-- For UI changes, run `yarn visual:changed --files <comma-separated-paths>` after edits to capture targeted visual snapshots and check for regressions against local baselines.
-- For a simpler post-edit workflow, use `yarn visual:after-edit -- <path1> <path2> ...` (plain path args; it forwards them to the targeted visual regression runner).
+- For UI changes, prefer the repo-controlled visual runner first. The default
+  path is `yarn visual:after-edit -- <path1> <path2> ...`, which forwards to
+  the targeted visual regression runner.
+- Use `yarn visual:changed --files <comma-separated-paths>` when you explicitly
+  want changed-file targeting.
 - For every completed UI edit pass, verify the layout in both desktop and
   mobile viewports before finalizing.
-- Prioritize the in-container Playwright/browser workflow for UI verification,
-  and always check it after UI changes unless the user specifically asks for a
-  different browser (such as host Chrome) instead or in addition.
+- The visual runner defaults to `--browser-mode=auto`: non-WebGL routes stay in
+  true headless Chromium, while map/WebGL routes switch to Xvfb-backed
+  Chromium automatically.
+- Only force `--browser-mode=headless` when you specifically need to reproduce
+  a strict headless issue. Only force `--browser-mode=xvfb-webgl` when you want
+  to probe the WebGL-capable path directly.
+- Use `yarn visual:webgl:smoke` to confirm that the WebGL-capable browser path
+  is healthy, and `yarn visual:webgl:smoke:headless` to check whether strict
+  headless currently lacks WebGL support.
+- Prioritize the in-container Playwright visual runner for normal UI
+  verification, and use live/shared browser workflows only when the task needs
+  interactive review, shared visibility, extension state, or existing auth/app
+  state that the runner does not cover.
 - If a UI pass is still visibly off after verification, continue iterating:
   edit, recheck in the in-container browser, and repeat until the result is
   acceptable rather than stopping after a single pass.
-- If the in-container browser workflow is unavailable, fall back to the host
-  shared-browser workflow rather than skipping visual verification.
+- If the in-container visual runner or browser workflow is unavailable, fall
+  back to the host shared-browser workflow rather than skipping visual
+  verification.
 - Visual regression artifacts are stored under `.dev/visual-regression/` (gitignored).
 - Visual commands target `http://127.0.0.1:3000` first (reuse an already running `yarn dev` server when available). If the server is unreachable, the runner may temporarily start a local dev server as a fallback.
 - Use `yarn visual:baseline` to create or refresh local visual baselines intentionally.
 - Add `--no-start` when calling `node utils/scripts/visual/run.js` directly if you want to fail instead of allowing the fallback temporary server.
+- The built-in MCP browser used by assistants is not the source of truth for
+  WebGL verification because its launcher/runtime is not repo-controlled. Use
+  the repo visual runner or the documented live-browser workflows instead.
 - For host-browser state reuse (auth/imported plans on `localhost:3000`), use the CDP snapshot sync:
   1. Launch a dedicated Chrome profile on Windows with remote debugging enabled.
   2. Open `http://localhost:3000` in that Chrome window and log in/import the plan.

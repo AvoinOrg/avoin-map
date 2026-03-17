@@ -46,16 +46,24 @@ Use this skill when the user asks for any of the following:
 
 ### 4. Verify visually
 
-- Run targeted visual verification for the edited files.
+- Run targeted visual verification for the edited files with the repo visual
+  runner first.
 - Verify both desktop and mobile before considering the task complete.
-- Prefer the in-container browser workflow first.
-- Fall back to the host shared-browser workflow instead of skipping visual checks.
+- Treat `yarn visual:after-edit -- <paths>` as the default verification path.
+- Let the runner use its default `--browser-mode=auto` unless you are
+  intentionally debugging strict headless behavior or forcing the Xvfb-backed
+  WebGL path.
+- Use the WebGL smoke commands when the task touches map pages and browser
+  runtime health is in doubt.
+- Fall back to the host shared-browser workflow instead of skipping visual
+  checks.
 
 ### 5. Iterate
 
 - Compare the result against the request, screenshots, or Figma.
 - Make the next smallest correction.
-- Re-run targeted verification after each meaningful UI pass.
+- Re-run targeted verification after each meaningful UI pass, using the same
+  browser mode unless the verification itself is what you are debugging.
 - Stop only when the layout, styling, and responsive behavior are correct.
 
 ## Decision Guide
@@ -63,6 +71,9 @@ Use this skill when the user asks for any of the following:
 - UI change without Figma: read the project UI rules and verification workflow.
 - Figma-driven work: read all three references.
 - Auth-dependent or imported-plan pages: prefer the host-state or shared-browser workflows from the verification reference.
+- Map/WebGL pages: still start with the repo visual runner in `auto` mode; only
+  switch to live/shared browser workflows when stateful interaction or
+  collaborative review is the real need.
 - Shared navigation or routing UI: inspect existing route helpers before changing links.
 
 ## Expected Output

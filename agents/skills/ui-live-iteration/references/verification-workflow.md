@@ -6,16 +6,33 @@ Use this reference after every meaningful UI edit pass.
 
 - Verify UI changes before finalizing.
 - Check both desktop and mobile layouts.
-- Prefer the in-container Playwright or browser workflow first.
-- If that path is unavailable, fall back to the host shared-browser workflow instead of skipping verification.
+- Prefer the in-container repo-controlled visual runner first.
+- Let the runner keep its default `--browser-mode=auto` unless you are
+  debugging the browser runtime itself.
+- If that path is unavailable, fall back to the host shared-browser workflow
+  instead of skipping verification.
 
 ## Primary visual commands
 
 - Use `yarn visual:after-edit -- <path1> <path2> ...` for the normal post-edit workflow.
 - Use `yarn visual:changed --files <comma-separated-paths>` when you specifically want changed-file targeting.
 - Use `yarn visual:baseline` only when intentionally refreshing local baselines.
+- Use `yarn visual:webgl:smoke` to probe the Xvfb-backed WebGL path directly.
+- Use `yarn visual:webgl:smoke:headless` to check whether strict headless
+  currently lacks WebGL support or to confirm that headless support is present.
 
 The visual runner targets `http://127.0.0.1:3000` first and may temporarily start a local dev server if none is reachable.
+
+Browser mode guidance:
+
+- `auto` is the default and should stay the default for normal UI work.
+- `auto` keeps non-WebGL pages in true headless Chromium and switches WebGL
+  pages to Xvfb-backed Chromium automatically.
+- Use `--browser-mode=headless` only when reproducing strict headless issues.
+- Use `--browser-mode=xvfb-webgl` only when you need to force the WebGL-capable
+  path explicitly.
+- Do not rely on the built-in MCP browser for authoritative WebGL verification;
+  its launcher/runtime is not repo-controlled.
 
 ## Host-state visual workflow
 
@@ -30,7 +47,9 @@ Target `localhost:3000` for host-state workflows because browser storage is orig
 
 ## Live browser workflows
 
-Use a live browser when the task benefits from interactive review or when the user wants shared visibility during iteration.
+Use a live browser when the task benefits from interactive review, when the
+user wants shared visibility during iteration, or when the page depends on
+state that the repo visual runner does not provide conveniently.
 
 ### Host Chrome shared-tab workflow
 
