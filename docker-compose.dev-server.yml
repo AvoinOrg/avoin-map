@@ -19,7 +19,6 @@ services:
       - type: bind
         source: ${SSH_PATH:?Set SSH_PATH to the host SSH directory}
         target: /home/node/.ssh
-        read_only: true
       - type: bind
         source: ${CODEX_PATH:?Set CODEX_PATH to the host Codex directory}/auth.json
         target: /codex-mounts/auth.json
