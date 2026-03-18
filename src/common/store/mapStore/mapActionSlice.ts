@@ -233,11 +233,25 @@ export const createMapActionSlice: (
 
         if (_map && mapDims?.visible) {
           const container = _map.getContainer() as HTMLElement
+          const containerRect = container.getBoundingClientRect()
+          const { visible } = mapDims
 
-          fitBoundsOptions.padding = paddingFromVisibleViewport(
-            container,
-            mapDims.visible
-          )
+          if (
+            containerRect.width > 0 &&
+            containerRect.height > 0 &&
+            visible.width > 0 &&
+            visible.height > 0
+          ) {
+            const padding = paddingFromVisibleViewport(container, visible)
+            const availableWidth =
+              containerRect.width - padding.left - padding.right
+            const availableHeight =
+              containerRect.height - padding.top - padding.bottom
+
+            if (availableWidth > 0 && availableHeight > 0) {
+              fitBoundsOptions.padding = padding
+            }
+          }
         }
 
         const expandedBounds = expandBoundsMercY(

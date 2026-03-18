@@ -52,33 +52,25 @@ const UIStateHandler = ({ children }: { children?: React.ReactNode }) => {
     if (windowSize.width === 0 || windowSize.height === 0) return
     if (sidebarWidth == null) return
 
-    // `visible` tracks the current unobscured map viewport (depends on whether
-    // the sidebar is open). Camera actions use its center to target what the
-    // user actually sees.
-    const currentActualSidebarWidth = isSidebarOpen ? sidebarWidth || 0 : 0
-    const visibleMapWidth = windowSize.width - currentActualSidebarWidth
-
-    const visibleMapCenterX = visibleMapWidth / 2 + currentActualSidebarWidth
-    const visibleMapCenterY = windowSize.height / 2
-
-    // `min` reserves sidebar space even when closed. UI overlays use this
-    // "worst-case" map width/center to avoid jumping when the sidebar opens.
-    const minMapWidth = windowSize.width - (sidebarWidth || 0)
-    const minMapCenterX = minMapWidth / 2 + (sidebarWidth || 0)
-    const minMapCenterY = windowSize.height / 2
+    const isFullscreenSidebar = sidebarWidth >= windowSize.width - 1
+    const visibleSidebarWidth =
+      isSidebarOpen && !isFullscreenSidebar ? sidebarWidth : 0
+    const minSidebarWidth = isFullscreenSidebar ? 0 : sidebarWidth
+    const visibleMapWidth = Math.max(0, windowSize.width - visibleSidebarWidth)
+    const minMapWidth = Math.max(0, windowSize.width - minSidebarWidth)
 
     setMapDims({
       visible: {
         width: visibleMapWidth,
         height: windowSize.height,
-        centerX: visibleMapCenterX,
-        centerY: visibleMapCenterY,
+        centerX: visibleMapWidth / 2 + visibleSidebarWidth,
+        centerY: windowSize.height / 2,
       },
       min: {
         width: minMapWidth,
         height: windowSize.height,
-        centerX: minMapCenterX,
-        centerY: minMapCenterY,
+        centerX: minMapWidth / 2 + minSidebarWidth,
+        centerY: windowSize.height / 2,
       },
     })
   }, [windowSize, sidebarWidth, isSidebarOpen, setMapDims])
