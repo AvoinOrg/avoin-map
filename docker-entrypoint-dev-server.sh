@@ -4,6 +4,7 @@ set -euo pipefail
 source /app/docker-entrypoint-common.sh
 
 setup_bash_history
+setup_codex_mounts
 
 code_server_home="${CODE_SERVER_HOME:-/home/node/code-server}"
 code_server_log_dir="${code_server_home}/logs"

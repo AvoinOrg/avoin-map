@@ -21,16 +21,8 @@ services:
         target: /home/node/.ssh
         read_only: true
       - type: bind
-        source: ${CODEX_PATH:?Set CODEX_PATH to the host Codex directory}/auth.json
-        target: /app/.codex/auth.json
-        read_only: true
-      - type: bind
-        source: ${CODEX_PATH:?Set CODEX_PATH to the host Codex directory}/.credentials.json
-        target: /app/.codex/.credentials.json
-        read_only: true
-      - type: bind
-        source: ${CODEX_PATH:?Set CODEX_PATH to the host Codex directory}/rules/default.rules
-        target: /app/.codex/rules/default.rules
+        source: ${CODEX_PATH:?Set CODEX_PATH to the host Codex directory}
+        target: /codex-host
         read_only: true
     environment:
       NODE_ENV: development
