@@ -53,6 +53,9 @@ Use this skill when the user asks for any of the following:
 - Let the runner use its default `--browser-mode=auto` unless you are
   intentionally debugging strict headless behavior or forcing the Xvfb-backed
   WebGL path.
+- Treat WebGL-compatible browser launch as the default for map routes in this
+  repo. When you are not using the repo runner, prefer `xvfb-run -a` plus the
+  Chromium WebGL/SwiftShader flags instead of plain headless defaults.
 - Use the WebGL smoke commands when the task touches map pages and browser
   runtime health is in doubt.
 - Fall back to the host shared-browser workflow instead of skipping visual

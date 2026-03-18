@@ -217,6 +217,10 @@ standalone sites.
 - The visual runner defaults to `--browser-mode=auto`: non-WebGL routes stay in
   true headless Chromium, while map/WebGL routes switch to Xvfb-backed
   Chromium automatically.
+- Treat WebGL-capable browser launch as the default for this repo's map routes.
+  When you are not using the repo visual runner or live-browser scripts, launch
+  ad-hoc browser automation in a WebGL-compatible mode instead of plain
+  headless defaults.
 - Only force `--browser-mode=headless` when you specifically need to reproduce
   a strict headless issue. Only force `--browser-mode=xvfb-webgl` when you want
   to probe the WebGL-capable path directly.
@@ -248,6 +252,12 @@ standalone sites.
 - Host-state scripts intentionally target `http://localhost:3000` (not `127.0.0.1`) because browser storage state is origin-specific.
 - Exported browser state is sensitive (cookies + local app state). It is stored under `.dev/browser-state/` (gitignored). Use a dedicated Chrome debug profile, not your main daily profile.
 - For ad-hoc interactive Playwright scripts, use `browser.newContext({ ignoreHTTPSErrors: true, storageState: '.dev/browser-state/localhost-3000.storage-state.json' })` and target `http://localhost:3000/...` routes (not `127.0.0.1`).
+- For ad-hoc Playwright or screenshot scripts that open map pages, prefer the
+  repo visual runner first. If you need a one-off script, launch it under
+  `xvfb-run -a` and use Chromium WebGL/SwiftShader flags such as
+  `--enable-webgl`, `--ignore-gpu-blocklist`,
+  `--enable-unsafe-swiftshader`, `--use-gl=angle`, and
+  `--use-angle=swiftshader`.
 - Windows PowerShell example for starting Chrome with CDP (dedicated profile):
   ```powershell
   $chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
