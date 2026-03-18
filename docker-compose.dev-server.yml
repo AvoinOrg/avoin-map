@@ -21,9 +21,20 @@ services:
         target: /home/node/.ssh
         read_only: true
       - type: bind
-        source: ${CODEX_PATH:?Set CODEX_PATH to the host Codex directory}
-        target: /codex-host
-        read_only: true
+        source: ${CODEX_PATH:?Set CODEX_PATH to the host Codex directory}/auth.json
+        target: /codex-mounts/auth.json
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${CODEX_PATH:?Set CODEX_PATH to the host Codex directory}/.credentials.json
+        target: /codex-mounts/.credentials.json
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${CODEX_PATH:?Set CODEX_PATH to the host Codex directory}/rules/default.rules
+        target: /codex-mounts/rules/default.rules
+        bind:
+          create_host_path: false
     environment:
       NODE_ENV: development
       HOST_MACHINE: host.docker.internal

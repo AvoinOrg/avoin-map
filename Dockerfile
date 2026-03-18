@@ -53,7 +53,8 @@ RUN corepack enable && corepack prepare yarn@3.6.0 --activate
 # TODO: figure out why it's scanning root. Using different user does not help.
 RUN chmod -R 777 /root
 
-RUN mkdir -p /app /home/node/dev /home/node/code-server && \
+RUN mkdir -p /app /home/node/dev /home/node/code-server /codex-mounts/rules && \
+    touch /codex-mounts/auth.json /codex-mounts/.credentials.json /codex-mounts/rules/default.rules && \
     chown -R node:node /home/node /app
 
 WORKDIR /app
