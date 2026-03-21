@@ -30,32 +30,3 @@ bootstrap_dev_app() {
     yarn visual:install
     yarn run prebuild-dev
 }
-
-sync_codex_file() {
-    local relative_path="$1"
-    local mounted_path="$2"
-    local workspace_codex_dir="${CODEX_HOME:-/app/.codex}"
-    local workspace_path="${workspace_codex_dir}/${relative_path}"
-
-    mkdir -p "$(dirname "${workspace_path}")"
-
-    if [ -f "${mounted_path}" ]; then
-        rm -rf "${workspace_path}"
-        ln -s "${mounted_path}" "${workspace_path}"
-        return
-    fi
-
-    if [ ! -e "${workspace_path}" ]; then
-        touch "${workspace_path}"
-    fi
-}
-
-setup_codex_mounts() {
-    local workspace_codex_dir="${CODEX_HOME:-/app/.codex}"
-
-    mkdir -p "${workspace_codex_dir}" "${workspace_codex_dir}/rules"
-
-    sync_codex_file "auth.json" "/codex-mounts/auth.json"
-    sync_codex_file ".credentials.json" "/codex-mounts/.credentials.json"
-    sync_codex_file "rules/default.rules" "/codex-mounts/rules/default.rules"
-}

@@ -252,7 +252,7 @@ const startServerIfNeeded = async ({ baseUrl, noStart, startCommand }) => {
     throw new Error(`Dev server is not reachable at ${baseUrl} and --no-start was set`)
   }
 
-  const logPath = path.join(VISUAL_DIRS.report, 'dev-server.log')
+  const logPath = path.join(VISUAL_DIRS.report, 'visual-runner.log')
   const logStream = fs.createWriteStream(logPath, { flags: 'a' })
   logStream.write(`\n[${new Date().toISOString()}] Starting server: ${startCommand}\n`)
 

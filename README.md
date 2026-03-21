@@ -46,22 +46,6 @@ Run the production image flow:
 docker compose -f docker-compose.prod.yml up
 ```
 
-Run the combined dev-server flow with `code-server` and the app in one
-container:
-
-```bash
-docker compose -f docker-compose.dev-server.yml up --build
-```
-
-That flow serves the app on `http://localhost:3000` and `code-server` on
-`http://127.0.0.1:8443` unless `DEV_PORT` or `CODE_SERVER_PORT` override them.
-`code-server` config, extensions, and user data default to `./.dev/code-server`
-on the host, and you can override that path with `CODE_SERVER_HOST_DIR`.
-Before starting the dev-server compose, set `SSH_PATH` and `CODEX_PATH` in
-`.env` to the host directories that should be mounted for SSH and Codex auth.
-If the app bootstrap fails in the dev-server flow, `code-server` stays up and
-the app status/logs are written under `./.dev/code-server/logs/`.
-
 ## Commits
 
 Use Conventional Commits for commit messages, for example `feat: ...`,
@@ -76,8 +60,8 @@ devcontainer:
 - `http://host.docker.internal:3845/mcp`
 - `.devcontainer/devcontainer.json` exposes this as `FIGMA_MCP_URL`
 - The compose service must include
-  `extra_hosts: ["host.docker.internal:host-gateway"]` (present in the dev and
-  dev-server compose files)
+  `extra_hosts: ["host.docker.internal:host-gateway"]` (present in the dev
+  compose file)
 
 The devcontainer uses `docker-compose.dev.yml` and attaches to the `app`
 service.
