@@ -25,7 +25,7 @@ fi
 host_codex_dir="${host_home_dir}/.codex"
 workspace_codex_dir="${workspace_dir}/.codex"
 
-link_file() {
+sync_file() {
   local relative_path="$1"
   local ensure_host_file="${2:-false}"
   local host_file="${host_codex_dir}/${relative_path}"
@@ -39,11 +39,14 @@ link_file() {
   fi
 
   rm -rf "${workspace_file}"
-  ln -sf "${host_file}" "${workspace_file}"
+
+  if [[ -e "${host_file}" ]]; then
+    cp -fL "${host_file}" "${workspace_file}"
+  fi
 }
 
 mkdir -p "${host_codex_dir}" "${workspace_codex_dir}"
 
-link_file "auth.json" true
-link_file ".credentials.json"
-link_file "rules/default.rules" true
+sync_file "auth.json" true
+sync_file ".credentials.json"
+sync_file "rules/default.rules" true
