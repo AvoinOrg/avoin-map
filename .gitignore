@@ -103,6 +103,8 @@ typings/
 # production
 /build
 
+.fuse_hidden*
+
 # misc
 .DS_Store
 .env.local
