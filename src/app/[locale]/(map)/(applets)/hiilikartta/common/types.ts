@@ -6,6 +6,7 @@ export interface ReportData {
   totals: CalcFeatureCollection
   metadata: {
     timestamp: number
+    forestry_scenario?: number
     featureYears: string[]
   }
   agg: { totals: FeatureCalcs }

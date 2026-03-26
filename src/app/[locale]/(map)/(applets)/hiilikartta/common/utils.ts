@@ -441,6 +441,7 @@ export const processCalcQueryToReportData = (data: any): ReportData => {
   )
   const metadata = {
     timestamp: Number(data.metadata.calculated_ts),
+    forestry_scenario: data.metadata.forestry_scenario,
     reportName: data.metadata.report_name,
     featureYears,
   }
