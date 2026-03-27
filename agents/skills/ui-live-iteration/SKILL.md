@@ -1,6 +1,6 @@
 ---
 name: ui-live-iteration
-description: Implement and iterate on Avoin Map UI changes with visual verification. Use when requests involve page or component styling, layout tweaks, responsive fixes, Figma-based UI work, or live browser review and iteration on desktop and mobile.
+description: Implement and iterate on Avoin Map UI changes with visual verification. Use when requests involve page or component styling, layout tweaks, responsive fixes, Figma-to-UI implementation work, or live browser review and iteration on desktop and mobile. Pair with `figma-mcp` when the task needs Figma URL parsing, MCP access checks, metadata, screenshots, design context, or exact asset extraction.
 ---
 
 # UI Live Iteration
@@ -10,6 +10,9 @@ description: Implement and iterate on Avoin Map UI changes with visual verificat
 Use this skill to make Avoin Map UI changes, verify them visually, and iterate until the result is correct in both desktop and mobile layouts.
 
 Keep this file focused on workflow. Read the referenced files only when their context is needed.
+Use `figma-mcp` first or alongside this skill when the task includes Figma URL
+normalization, MCP reachability, node metadata, screenshots, or exact asset
+lookup.
 
 ## Use This Skill
 
@@ -29,7 +32,8 @@ Use this skill when the user asks for any of the following:
 - Identify whether the work is shared UI or applet-specific UI.
 - Read [references/project-ui-rules.md](references/project-ui-rules.md) for local conventions.
 - Read [references/verification-workflow.md](references/verification-workflow.md) before final verification.
-- If the task includes Figma, also read [references/figma-ui-workflow.md](references/figma-ui-workflow.md).
+- If the task includes Figma, use `figma-mcp` for the Figma-side workflow and
+  also read [references/figma-ui-workflow.md](references/figma-ui-workflow.md).
 
 ### 2. Plan the smallest correct change
 
@@ -72,7 +76,9 @@ Use this skill when the user asks for any of the following:
 ## Decision Guide
 
 - UI change without Figma: read the project UI rules and verification workflow.
-- Figma-driven work: read all three references.
+- Figma-only inspection or MCP troubleshooting: use `figma-mcp`.
+- Figma-driven UI implementation: use `figma-mcp` for design retrieval and this
+  skill for the edit and verification loop.
 - Auth-dependent or imported-plan pages: prefer the host-state or shared-browser workflows from the verification reference.
 - Map/WebGL pages: still start with the repo visual runner in `auto` mode; only
   switch to live/shared browser workflows when stateful interaction or

@@ -9,6 +9,7 @@ RUN apt-get update && \
       dumb-init \
       fonts-liberation \
       gnupg \
+      jq \
       openssh-client \
       wget \
       xauth \

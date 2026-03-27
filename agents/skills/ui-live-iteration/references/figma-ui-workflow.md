@@ -2,17 +2,22 @@
 
 Use this reference when a UI task includes a Figma design, public Figma URL, or exact asset matching.
 
+## Skill split
+
+- Use `figma-mcp` for Figma-specific work:
+  URL parsing, endpoint choice, credentials, reachability checks, node
+  metadata, screenshots, design context, and exact asset lookup.
+- Use `ui-live-iteration` for app-side implementation:
+  adapting the design to this repo, editing components, and verifying desktop
+  and mobile layouts.
+
 ## Tool choice
 
 - Prefer the remote Figma MCP tools.
-- Use the local or devcontainer Figma MCP only as a fallback if the remote tools are unavailable.
-
-## URL and node handling
-
-- Do not pass the full public Figma URL directly to MCP tools.
-- Extract the `node-id` from the URL and convert it to MCP format when needed.
-- Example: `node-id=3163-8036` becomes `nodeId: "3163:8036"`.
-- Extract the file key separately when the remote tool needs it.
+- Use the local or devcontainer Figma MCP only as a fallback if the remote
+  tools are unavailable.
+- For URL normalization and manual probes, follow the `figma-mcp` skill and its
+  bundled helper script instead of duplicating that logic here.
 
 ## Exact asset workflow
 
