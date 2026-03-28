@@ -1,0 +1,3 @@
+# copy as .envrc and use direnv to load it
+export CODEX_HOME="$PWD/.codex"
+mkdir -p "$CODEX_HOME"
