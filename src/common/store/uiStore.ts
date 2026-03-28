@@ -19,6 +19,7 @@ import { commonDevtools } from './shared-devtools'
 import { waitFor } from '../utils/store'
 
 type PopupModalViewMode = 'constrained' | 'fullscreen' | 'full-height'
+export type SidebarVariant = 'default' | 'simple'
 
 type SidebarHeaderConfig = {
   title: string
@@ -37,6 +38,8 @@ interface Vars {
   isLoginModalOpen: boolean
   isSidebarLoading: boolean
   sidebarWidth: number | undefined
+  sidebarVariant: SidebarVariant
+  isSidebarHeaderHidden: boolean
   sidebarHeaderConfig: SidebarHeaderConfig
   confirmationDialogOptions: InternalConfirmationDialogOptions
   isBaseDomainForApplet: boolean
@@ -76,6 +79,8 @@ interface Actions {
   ) => void
   setIsLoginModalOpen: (isOpen: boolean) => void
   setSidebarWidth: (pixels: number) => void
+  setSidebarVariant: (variant: SidebarVariant) => void
+  setIsSidebarHeaderHidden: (hidden: boolean) => void
   setSidebarHeaderConfig: (config: SidebarHeaderConfig) => void
   triggerConfirmationDialog: (
     options: ConfirmationDialogOptions
@@ -109,6 +114,8 @@ export const useUIStore = create<State>()(
         notifications: {},
         isSidebarLoading: false,
         sidebarWidth: undefined,
+        sidebarVariant: 'default',
+        isSidebarHeaderHidden: false,
         sidebarHeaderConfig: { title: '' },
         confirmationDialogOptions: { id: null },
         isBaseDomainForApplet: false,
@@ -136,6 +143,10 @@ export const useUIStore = create<State>()(
         setSidebarWidth(pixels: number) {
           set({ sidebarWidth: pixels })
         },
+        setSidebarVariant: (variant: SidebarVariant) =>
+          set({ sidebarVariant: variant }),
+        setIsSidebarHeaderHidden: (hidden: boolean) =>
+          set({ isSidebarHeaderHidden: hidden }),
         setSidebarHeaderConfig: (config: SidebarHeaderConfig) =>
           set({ sidebarHeaderConfig: config }),
         startSidebarLoading: (loaderId: string) => {

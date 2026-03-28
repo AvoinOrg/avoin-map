@@ -10,9 +10,10 @@ import { ConfirmationDialog } from '#/components/Notification'
 import UserStateHandler from './userStateHandler'
 import UIStateHandler from './uiStateHandler'
 import { SlotsProvider } from '#/components/context/slotsContext'
-import { MainSidebar, Sidebar } from '#/components/Sidebar'
+import { MainSidebar, Sidebar, SimpleSidebar } from '#/components/Sidebar'
 import { FullscreenPageSlot } from '#/components/common/FullscreenPage'
 import { getPathnameWithoutLocale } from '#/common/routing/routing'
+import { useUIStore } from '#/common/store'
 // import { UserModal } from '#/components/Profile'
 // import { UiStateProvider, UserStateProvider } from '#/components/State'
 // import RootStyleRegistry from './emotion'
@@ -34,6 +35,7 @@ const LayoutClient = ({
 
   const pathnameWithoutLocale = getPathnameWithoutLocale(pathname, locale ?? null)
   const useMainSidebar = pathnameWithoutLocale === '/'
+  const sidebarVariant = useUIStore((state) => state.sidebarVariant)
 
   return (
     <>
@@ -56,6 +58,8 @@ const LayoutClient = ({
                 >
                   {useMainSidebar ? (
                     <MainSidebar>{children}</MainSidebar>
+                  ) : sidebarVariant === 'simple' ? (
+                    <SimpleSidebar>{children}</SimpleSidebar>
                   ) : (
                     <Sidebar>{children}</Sidebar>
                   )}
