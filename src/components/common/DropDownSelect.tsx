@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react'
 import {
+  Box,
   FormControl,
   InputLabel,
   MenuItem,
@@ -11,6 +12,7 @@ import {
 import { T } from '@tolgee/react'
 
 import DownIcon from '#/components/icons/DownIcon'
+import CheckcircleChecked from '#/components/icons/CheckcircleChecked'
 import { SelectOption } from '#/common/types/general'
 
 interface Props {
@@ -55,15 +57,24 @@ const DropDownSelect = ({
 
   const useEmpty = allowEmpty || value == null || value === ''
   const currentValue = value == null ? '' : value
+  const hasValidSelection =
+    !disabled &&
+    value != null &&
+    value !== '' &&
+    options.some((option) => option.value === value)
 
   return (
-    <FormControl
-      variant="outlined"
+    <Box
       sx={[
-        { maxWidth: '100%', borderRadius: '999px' },
+        {
+          position: 'relative',
+          maxWidth: '100%',
+          borderRadius: '999px',
+        },
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
     >
+      <FormControl variant="outlined" sx={{ width: '100%', borderRadius: '999px' }}>
       {label && (
         <InputLabel
           id={labelId}
@@ -132,13 +143,14 @@ const DropDownSelect = ({
             '.MuiSvgIcon-root': { fontSize: '16px', margin: '0 10px 0 0' },
             '.MuiSelect-icon': {
               mt: 0.2,
-              mr: 1.1,
+              mr: hasValidSelection ? 3.35 : 1.1,
               ...(iconSx as Record<string, any>),
             },
             '.MuiSelect-select': {
               display: 'flex',
               alignItems: 'center',
               py: 1.5,
+              pr: hasValidSelection ? '4rem !important' : undefined,
               backgroundColor: 'transparent',
               '&:focus': {
                 backgroundColor: 'transparent',
@@ -204,7 +216,23 @@ const DropDownSelect = ({
           </MenuItem>
         ))}
       </Select>
-    </FormControl>
+      </FormControl>
+      {hasValidSelection && (
+        <CheckcircleChecked
+          fillColor="rgba(51, 147, 73, 0.2)"
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            right: '2.7rem',
+            transform: 'translateY(-50%)',
+            width: 20,
+            height: 20,
+            color: 'secondary.dark',
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+    </Box>
   )
 }
 

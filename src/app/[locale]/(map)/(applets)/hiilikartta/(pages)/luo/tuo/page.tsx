@@ -1,330 +1,353 @@
 'use client'
 
-import React, { useRef, useEffect, useState, ChangeEvent } from 'react'
-import { Button } from '@mui/material'
+import React, { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { Box, Typography } from '@mui/material'
+import { FeatureCollection } from 'geojson'
 import { useRouter } from 'next/navigation'
-import { buffer } from '@turf/turf'
-import booleanValid from '@turf/boolean-valid'
-import { flattenDeep } from 'lodash-es'
-import { useTranslate } from '@tolgee/react'
+import { T, useTranslate } from '@tolgee/react'
 
 import { getRoute } from '#/common/routing/routing-client'
-import {
-  FeatureProperties,
-  FileType,
-  NewPlanConf,
-  ZoningClass,
-  ZONING_CODE_COL,
-} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
-import { getGeoJsonArea } from '#/common/utils/gis'
+import { SidebarContentBox } from '#/components/Sidebar'
 import BigMenuButton from '#/components/common/BigMenuButton'
-import { Upload } from '#/components/icons'
+import SidebarBackgroundContent from '#/components/common/SidebarBackgroundContent'
+import FlowNodeContainer from '#/components/common/FlowNodeContainer'
+import FlowNode from '#/components/common/FlowNode'
+import { Upload, ArrowNextBig } from '#/components/icons'
+import { useMapStore } from '#/common/store'
+import { useDoesLayerGroupExist } from '#/common/hooks/map/useDoesLayerGroupExist'
 
 import { routeTree } from '#/common/routing/routes/hiilikartta'
+import {
+  FileType,
+  PlanData,
+  ZONING_CODE_COL,
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
+import {
+  formatImportedGeojson,
+  getImportedPlanAreaHa,
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/planImport'
+import { getZoningClasses } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/zoningClasses'
+import {
+  createLayerConf,
+  getPlanLayerGroupId,
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
 import PlanImportGpkg from './_components/PlanImportGpkg'
 import PlanImportShp from './_components/PlanImportShp'
-import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
-import { Feature, FeatureCollection } from 'geojson'
-import { generateUUID } from '#/common/utils/general'
-import {
-  normalizeZoningCode,
-  getZoningClassLandUseDefaults,
-  getZoningClasses,
-} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/zoningClasses'
+
+const EMPTY_PLAN_DATA: PlanData = {
+  type: 'FeatureCollection',
+  features: [],
+}
 
 const Page = () => {
-  const addPlanConf = useAppletStore((state) => state.addPlanConf)
+  const { t } = useTranslate('hiilikartta')
+  const router = useRouter()
+  const inputRef = useRef<HTMLInputElement>(null)
+  const hasOpenedInitialPickerRef = useRef(false)
+  const hasSelectedInitialFileRef = useRef(false)
+  const shouldDeleteDraftOnUnmountRef = useRef(true)
+  const isCreatingDraftRef = useRef(false)
+  const isConfirmingRef = useRef(false)
+
+  const [draftPlanId, setDraftPlanId] = useState<string>()
   const [fileType, setFileType] = useState<FileType>()
   const [fileName, setFileName] = useState<string>()
   const [arrayBuffer, setArrayBuffer] = useState<ArrayBuffer>()
-  const isInitializing = useRef(false)
-  const inputRef = useRef<HTMLInputElement>(null)
-  const router = useRouter()
-  const { t } = useTranslate('hiilikartta')
+  const [isConfirmed, setIsConfirmed] = useState(false)
+
+  const addPlanConf = useAppletStore((state) => state.addPlanConf)
+  const updatePlanConf = useAppletStore((state) => state.updatePlanConf)
+  const deletePlanConf = useAppletStore((state) => state.deletePlanConf)
+
+  const addSerializableLayerGroup = useMapStore(
+    (state) => state.addSerializableLayerGroup
+  )
+  const enableSerializableLayerGroup = useMapStore(
+    (state) => state.enableSerializableLayerGroup
+  )
+  const updateSourceData = useMapStore((state) => state.updateSourceData)
+
+  const layerGroupId = useMemo(
+    () => (draftPlanId ? getPlanLayerGroupId(draftPlanId) : undefined),
+    [draftPlanId]
+  )
+  const doesLayerGroupExist = useDoesLayerGroupExist(layerGroupId ?? '')
+
+  const goBackToKaavat = async () => {
+    if (draftPlanId) {
+      await deletePlanConf(draftPlanId)
+    }
+    shouldDeleteDraftOnUnmountRef.current = false
+    router.replace(getRoute({ routeNode: routeTree.plans, routeTree }))
+  }
+
+  const openFilePicker = ({ trackInitialCancel }: { trackInitialCancel: boolean }) => {
+    if (!inputRef.current) {
+      return
+    }
+
+    if (trackInitialCancel) {
+      window.addEventListener(
+        'focus',
+        () => {
+          window.setTimeout(() => {
+            if (!hasSelectedInitialFileRef.current && !isConfirmed) {
+              goBackToKaavat().catch(console.error)
+            }
+          }, 320)
+        },
+        { once: true }
+      )
+    }
+
+    inputRef.current.click()
+  }
 
   useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.click()
-    }
-  }, [])
-
-  const formatGeojson: any = ({
-    json,
-    zoningColName,
-    nameColName,
-    zoningClasses,
-  }: {
-    json: FeatureCollection
-    zoningColName: string
-    nameColName: string | undefined
-    zoningClasses: ZoningClass[]
-  }): FeatureCollection => {
-    const features = json.features
-      .map((feature: Feature, index) => {
-        if (
-          !feature.geometry ||
-          // @ts-ignore
-          !feature.geometry.coordinates ||
-          !['MultiPolygon', 'Polygon'].includes(feature.geometry.type)
-        ) {
-          return null // Remove features without geometry
-        }
-
-        if (
-          // @ts-ignore
-          feature.geometry.coordinates &&
-          // @ts-ignore
-          (feature.geometry.coordinates.length === 0 ||
-            // @ts-ignore
-            flattenDeep(feature.geometry.coordinates).length === 0)
-        ) {
-          return null
-        }
-
-        if (!booleanValid(feature)) {
-          try {
-            // Attempt to fix invalid geometry by applying a buffer
-            const fixedGeometry = buffer(feature, 0).geometry
-            if (booleanValid(fixedGeometry)) {
-              // If the fixed geometry is valid, update the feature's geometry
-              feature.geometry = fixedGeometry
-            } else {
-              // If the geometry is still invalid, discard the feature
-              return null
-            }
-          } catch (error) {
-            console.error('Error fixing geometry:', error)
-            return null // Discard features with geometry that cannot be fixed
-          }
-        }
-
-        // Get the value of the property using colName and remove other properties
-        let zoningCode = feature.properties?.[zoningColName]
-
-        if (!zoningCode) {
-          zoningCode = null
-        } else if (typeof zoningCode !== 'string') {
-          zoningCode = String(zoningCode)
-        }
-
-        let name: string | number = index + 1
-        if (nameColName != null) {
-          const nameColVal = feature.properties?.[nameColName]
-          if (
-            (nameColVal != null && typeof nameColVal === 'string') ||
-            typeof nameColVal === 'number'
-          ) {
-            name = feature.properties?.[nameColName]
-          }
-        }
-
-        // If the desired property is not found, don't modify the feature
-
-        const featureAreaHa = getGeoJsonArea(feature) / 10000
-
-        const baseProperties = {
-          id: generateUUID(),
-          name: name,
-          [ZONING_CODE_COL]: zoningCode,
-          area_ha: featureAreaHa,
-          old_id: feature.id != null ? feature.id : undefined,
-        }
-
-        let properties: FeatureProperties = {
-          ...baseProperties,
-          extras: { hasValidZoningCode: false },
-        }
-
-        if (zoningCode != null) {
-          const trimmedZoningCode = normalizeZoningCode(zoningCode)
-
-          const zoningClass = zoningClasses.find((zoningClass) => {
-            const codes = zoningClass.code
-              .split(',')
-              .map((code) => normalizeZoningCode(code))
-            return codes.includes(trimmedZoningCode)
-          })
-
-          if (zoningClass) {
-            properties = {
-              ...baseProperties,
-              [ZONING_CODE_COL]: zoningClass.code,
-              old_zoning_code: zoningCode,
-              extras: { hasValidZoningCode: true },
-              ...getZoningClassLandUseDefaults(zoningClass),
-            }
-          }
-        }
-
-        // Return the new feature with only zoning_code and area in hectares in its properties
-        return {
-          ...feature,
-          properties: properties,
-        }
-      })
-      .filter((feature) => feature !== null)
-
-    return {
-      type: 'FeatureCollection',
-      features: features as Feature[],
-    }
-  }
-
-  const initializePlan = async (
-    json: FeatureCollection,
-    zoningColName: string,
-    nameColName?: string
-  ) => {
-    if (!fileName) {
-      return null
-    }
-
-    let zoningClasses: ZoningClass[] = []
-    try {
-      zoningClasses = await getZoningClasses()
-    } catch (error) {
-      console.error('Failed to load zoning classes', error)
-    }
-
-    const formatedJson = formatGeojson({
-      json,
-      zoningColName,
-      nameColName,
-      zoningClasses,
-    })
-
-    const areaHa = getGeoJsonArea(formatedJson) / 10000
-    const newPlanConf: NewPlanConf = {
-      data: formatedJson,
-      name: fileName,
-      areaHa: areaHa,
-    }
-
-    const planConf = await addPlanConf(newPlanConf)
-
-    // try {
-    //   const layerConf = createLayerConf(
-    //     formatedJson,
-    //     planConf.id,
-    //     ZONING_CODE_COL
-    //   )
-
-    //   // Testing if the file works, then removing the layers.
-    //   await addSerializableLayerGroup(layerConf.id, {
-    //     layerConf,
-    //     persist: false,
-    //     isHidden: true,
-    //   })
-    //   await removeSerializableLayerGroup(layerConf.id)
-    // } catch (e) {
-    //   deletePlanConf(planConf.id)
-    //   console.error(e)
-    //   // TODO: show error to user, invalid file
-    //   return null
-    // }
-
-    return planConf.id
-  }
-
-  const handleFileInput = async (e: ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) {
+    if (draftPlanId || isCreatingDraftRef.current) {
       return
     }
 
-    const f = e.target.files[0]
+    isCreatingDraftRef.current = true
+
+    addPlanConf({
+      data: EMPTY_PLAN_DATA,
+      name: '',
+      areaHa: 0,
+      draftType: 'import',
+    })
+      .then(async (planConf) => {
+        await updatePlanConf(planConf.id, { isHidden: true, draftType: 'import' })
+        setDraftPlanId(planConf.id)
+      })
+      .finally(() => {
+        isCreatingDraftRef.current = false
+      })
+  }, [addPlanConf, draftPlanId, updatePlanConf])
+
+  useEffect(() => {
+    if (!draftPlanId || hasOpenedInitialPickerRef.current) {
+      return
+    }
+
+    hasOpenedInitialPickerRef.current = true
+    window.setTimeout(() => {
+      openFilePicker({ trackInitialCancel: true })
+    }, 0)
+  }, [draftPlanId])
+
+  useEffect(() => {
+    return () => {
+      if (shouldDeleteDraftOnUnmountRef.current && draftPlanId && !isConfirmed) {
+        deletePlanConf(draftPlanId)
+      }
+    }
+  }, [deletePlanConf, draftPlanId, isConfirmed])
+
+  const handleFileInput = async (event: ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files?.length) {
+      return
+    }
+
+    const selectedFile = event.target.files[0]
+    const extension = selectedFile.name.split('.').pop()?.toLowerCase()
+
+    hasSelectedInitialFileRef.current = true
+
     const reader = new window.FileReader()
-    reader.readAsArrayBuffer(f)
+    reader.readAsArrayBuffer(selectedFile)
 
     reader.onloadend = async () => {
-      // TODO: add error handling. An error message popup if file is invalid?
-      if (reader.result != null) {
-        setFileName(f.name)
-        if (typeof reader.result !== 'string') {
-          if (f.name.split('.').pop() === 'gpkg') {
-            if (typeof reader.result !== 'string') {
-              setFileType('gpkg')
-              setArrayBuffer(reader.result)
-            }
-          } else if (f.name.split('.').pop() === 'zip') {
-            setFileType('shp')
-            setArrayBuffer(reader.result)
-            // initializePlan(json)
-          }
-        } else {
-          console.error('reader.result is a string, not an ArrayBuffer')
-        }
+      if (reader.result == null || typeof reader.result === 'string') {
+        console.error('reader.result is a string, not an ArrayBuffer')
+        return
       }
-      e.target.value = ''
+
+      setFileName(selectedFile.name)
+      setArrayBuffer(reader.result)
+      setIsConfirmed(false)
+
+      if (extension === 'gpkg') {
+        setFileType('gpkg')
+      } else if (extension === 'zip') {
+        setFileType('shp')
+      } else {
+        setFileType(undefined)
+      }
     }
+
+    event.target.value = ''
   }
 
-  const handleFinish = async (
+  const handleConfirmImport = async (
     json: FeatureCollection,
     zoningColName: string,
     nameColName?: string
   ) => {
-    if (isInitializing.current) {
+    if (!draftPlanId || !fileName || isConfirmingRef.current) {
       return
     }
-    isInitializing.current = true
-    try {
-      const id = await initializePlan(json, zoningColName, nameColName)
-      if (id) {
-        const route = getRoute({
-          routeNode: routeTree.plans.plan,
-          routeTree: routeTree,
-          params: {
-            routeParams: {
-              planId: id,
-            },
-          },
-        })
-        router.push(route)
-      }
-    } catch (e) {
-      console.error(e)
-    }
-    // TODO: throw error if id is null, i.e. if file is invalid
 
-    isInitializing.current = false
+    isConfirmingRef.current = true
+
+    try {
+      const zoningClasses = await getZoningClasses().catch((error) => {
+        console.error('Failed to load zoning classes', error)
+        return []
+      })
+
+      const formattedJson = formatImportedGeojson({
+        json,
+        zoningColName,
+        nameColName,
+        zoningClasses,
+      })
+      const areaHa = getImportedPlanAreaHa(formattedJson)
+
+      await updatePlanConf(draftPlanId, {
+        data: formattedJson as PlanData,
+        name: fileName,
+        areaHa,
+        draftType: undefined,
+        isHidden: false,
+      })
+
+      const layerConf = await createLayerConf(
+        formattedJson,
+        draftPlanId,
+        ZONING_CODE_COL
+      )
+
+      if (layerGroupId) {
+        if (doesLayerGroupExist) {
+          await enableSerializableLayerGroup(layerGroupId, {
+            layerConf,
+            persist: false,
+            zoomToExtent: true,
+          })
+          updateSourceData(layerGroupId, formattedJson)
+        } else {
+          await addSerializableLayerGroup(layerGroupId, {
+            layerConf,
+            persist: false,
+            zoomToExtent: true,
+          })
+        }
+      }
+
+      shouldDeleteDraftOnUnmountRef.current = false
+      setIsConfirmed(true)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      isConfirmingRef.current = false
+    }
+  }
+
+  const handleOpenPlanDetails = () => {
+    if (!draftPlanId || !isConfirmed) {
+      return
+    }
+
+    router.push(
+      getRoute({
+        routeNode: routeTree.plans.plan,
+        routeTree,
+        params: {
+          routeParams: {
+            planId: draftPlanId,
+          },
+        },
+      })
+    )
   }
 
   return (
-    <>
-      <BigMenuButton
-        variant="outlined"
-        component="label"
-        aria-label="Select plan file to import"
-        sx={(theme) => ({
-          width: '100%',
-          height: '60px',
-          mb: 6,
-        })}
+    <SidebarContentBox sxInner={{ pt: 0, gap: 3 }}>
+      <SidebarBackgroundContent
+        imageSrc="/files/img/hiilikartta/zoning.jpg"
+        imageAlt="Tuo kaavatiedosto"
+        title={<T keyName="sidebar.kaavat.title" ns="hiilikartta" />}
+        description={<T keyName="sidebar.kaavat.description" ns="hiilikartta" />}
       >
-        {fileName ? fileName : t('sidebar.create.select_file')}
-        <input
-          hidden
-          accept=".zip, .gpkg"
-          multiple
-          type="file"
-          onChange={handleFileInput}
-          ref={inputRef}
-        />
-        <Upload />
-      </BigMenuButton>
-      {fileType === 'gpkg' && arrayBuffer && (
-        <PlanImportGpkg
-          fileBuffer={arrayBuffer}
-          onFinish={handleFinish}
-        ></PlanImportGpkg>
-      )}
-      {fileType === 'shp' && arrayBuffer && (
-        <PlanImportShp
-          fileBuffer={arrayBuffer}
-          onFinish={handleFinish}
-        ></PlanImportShp>
-      )}
-    </>
+        <FlowNodeContainer>
+          <FlowNode
+            state={isConfirmed ? 'complete' : 'active'}
+            title={<T keyName="sidebar.create.upload" ns="hiilikartta" />}
+            defaultExpanded
+          >
+            <BigMenuButton
+              variant="outlined"
+              component="label"
+              aria-label="Select plan file to import"
+              sx={{
+                mb: 1,
+                backgroundColor: 'rgba(255,255,255,0.96)',
+                borderColor: 'rgba(255,255,255,0.65)',
+                color: 'neutral.darker',
+              }}
+            >
+              {fileName ? fileName : t('sidebar.create.select_file')}
+              <input
+                hidden
+                accept=".zip, .gpkg"
+                multiple={false}
+                type="file"
+                onChange={handleFileInput}
+                ref={inputRef}
+              />
+              <Upload />
+            </BigMenuButton>
+
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Typography
+                component="button"
+                type="button"
+                aria-label="Choose another import file"
+                onClick={() => openFilePicker({ trackInitialCancel: false })}
+                sx={{
+                  border: 'none',
+                  background: 'none',
+                  p: 0,
+                  color: 'inherit',
+                  typography: 'body3',
+                  textDecoration: 'underline',
+                  cursor: 'pointer',
+                }}
+              >
+                <T keyName="sidebar.import.change_file" ns="hiilikartta" />
+              </Typography>
+            </Box>
+
+            {fileType === 'gpkg' && arrayBuffer && (
+              <PlanImportGpkg
+                fileBuffer={arrayBuffer}
+                onFinish={handleConfirmImport}
+              />
+            )}
+
+            {fileType === 'shp' && arrayBuffer && (
+              <PlanImportShp
+                fileBuffer={arrayBuffer}
+                onFinish={handleConfirmImport}
+              />
+            )}
+          </FlowNode>
+
+          <FlowNode
+            state={isConfirmed ? 'available' : 'disabled'}
+            title={<T keyName="sidebar.import.step_review.title" ns="hiilikartta" />}
+            trailing={
+              isConfirmed ? (
+                <ArrowNextBig sx={{ width: 16, height: 16, color: 'inherit' }} />
+              ) : undefined
+            }
+            onClick={handleOpenPlanDetails}
+          />
+        </FlowNodeContainer>
+      </SidebarBackgroundContent>
+    </SidebarContentBox>
   )
 }
 

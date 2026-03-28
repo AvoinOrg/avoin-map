@@ -26,6 +26,7 @@ export interface PlanConf extends NewPlanConf {
   userId?: string
   areSettingsValid?: boolean
   isHidden?: boolean
+  draftType?: 'import'
 }
 
 export interface ExternalPlanConf {
@@ -78,13 +79,14 @@ export type NewPlanConf = {
   data: PlanData
   calculationState?: CalculationState
   reportData?: ReportData
+  draftType?: 'import'
 }
 
 export type FileType = 'shp' | 'geojson' | 'gpkg'
 
 export const ZONING_CODE_COL = 'zoning_code'
 
-type FeatureProperties = {
+export type FeatureProperties = {
   id: string
   name: string | number
   area_ha: number

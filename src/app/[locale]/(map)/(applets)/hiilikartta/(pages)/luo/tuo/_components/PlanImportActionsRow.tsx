@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Typography } from '@mui/material'
+import { Box, Button } from '@mui/material'
 import { T } from '@tolgee/react'
 
 const InitActionsRow = ({
@@ -11,36 +11,37 @@ const InitActionsRow = ({
 }) => {
   return (
     <Box
-      sx={(theme) => ({
-        minHeight: '25px',
+      sx={{
         display: 'flex',
-        flexDirection: 'row',
         justifyContent: 'flex-end',
-        margin: '40px 0 60px 0',
-      })}
+        mt: 4,
+      }}
     >
-      <Typography
-        component="button"
+      <Button
         type="button"
         aria-label="Accept imported plan"
-        typography={'h3'}
-        sx={(theme) => ({
-          background: 'none',
-          border: 'none',
-          padding: 0,
-          margin: 0,
-          float: 'right',
-          ...(isAcceptDisabled
-            ? { color: theme.palette.neutral.main }
-            : { cursor: 'pointer' }),
-        })}
+        variant="contained"
+        color="inherit"
         disabled={isAcceptDisabled}
         onClick={isAcceptDisabled ? undefined : onClickAccept}
+        sx={{
+          minWidth: '8rem',
+          px: '1.5rem',
+          py: '0.7rem',
+          borderRadius: '999px',
+          textTransform: 'uppercase',
+          typography: 'h4',
+          backgroundColor: '#fff',
+          color: 'primary.dark',
+          boxShadow: 'none',
+          '&:hover': {
+            backgroundColor: '#fff',
+            boxShadow: 'none',
+          },
+        }}
       >
-        <u>
-          <T keyName="sidebar.create.accept" ns="hiilikartta" />
-        </u>
-      </Typography>
+        <T keyName="sidebar.create.accept" ns="hiilikartta" />
+      </Button>
     </Box>
   )
 }
