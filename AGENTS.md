@@ -245,6 +245,14 @@ standalone sites.
   verification.
 - Visual regression artifacts are stored under `.dev/visual-regression/` (gitignored).
 - Visual commands target `http://127.0.0.1:3000` first (reuse an already running `yarn dev` server when available). If the server is unreachable, the runner may temporarily start a local dev server as a fallback.
+- Do not perform a "full dev-runtime reset" on your own in this devcontainer.
+  Do not mass-kill shared `next dev`/Node processes, and do not wipe generated
+  runtime directories such as `.next`, `public/files`, or `public/lib` unless
+  the user explicitly asks for that reset. In this environment those actions
+  can break the shared dev runtime and even stop the devcontainer session you
+  are working in. Prefer safer options first: reuse the existing server, start
+  a separate dev server on another port, narrow cleanup to the specific process
+  you started yourself, or pause and ask the user before any broad reset.
 - Use `yarn visual:baseline` to create or refresh local visual baselines intentionally.
 - Add `--no-start` when calling `node utils/scripts/visual/run.js` directly if you want to fail instead of allowing the fallback temporary server.
 - The built-in MCP browser used by assistants is not the source of truth for
