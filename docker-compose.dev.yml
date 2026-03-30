@@ -22,7 +22,7 @@ services:
 
 networks:
   climate-map-network:
-    external: true
+    name: climate-map-network
 
 volumes:
   node-dev:
