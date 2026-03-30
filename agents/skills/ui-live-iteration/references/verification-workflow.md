@@ -26,6 +26,16 @@ Use this reference after every meaningful UI edit pass.
 
 The visual runner targets `http://127.0.0.1:3000` first and may temporarily start a local dev server if none is reachable.
 
+Runtime safety:
+
+- Do not mass-kill shared `next dev` or Node processes as a first response to a
+  flaky dev server.
+- Do not delete `.next`, `public/files`, or `public/lib` unless the user has
+  explicitly approved a full runtime reset for this environment.
+- Prefer safer recovery steps first: verify which server you are actually
+  talking to, start a separate dev server on another port, or clean up only the
+  specific process you launched yourself.
+
 Browser mode guidance:
 
 - `auto` is the default and should stay the default for normal UI work.
