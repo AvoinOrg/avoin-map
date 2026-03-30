@@ -50,7 +50,6 @@ const parseFigmaUrl = (input) => {
   const rawNodeId = url.searchParams.get("node-id");
   const nodeId = normalizeNodeId(rawNodeId);
   const remoteMcpUrl = "https://mcp.figma.com/mcp";
-  const localMcpUrl = process.env.FIGMA_MCP_URL || null;
   const toolArguments = nodeId ? { fileKey, nodeId } : { fileKey };
 
   return {
@@ -59,10 +58,7 @@ const parseFigmaUrl = (input) => {
     fileKey,
     rawNodeId,
     nodeId,
-    endpoints: {
-      remote: remoteMcpUrl,
-      local: localMcpUrl,
-    },
+    endpoint: remoteMcpUrl,
     toolArguments,
     tools: nodeId
       ? {

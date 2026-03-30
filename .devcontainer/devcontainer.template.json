@@ -42,7 +42,7 @@
   "remoteEnv": {
     "SSH_AUTH_SOCK": "/ssh-sockets/agent.sock",
     "CODEX_HOME": "/app/.codex",
-    "FIGMA_MCP_URL": "http://host.docker.internal:3845/mcp"
+    "CODEX_SQLITE_HOME": "/app/.codex/sqlite"
   },
   "remoteUser": "node"
 }

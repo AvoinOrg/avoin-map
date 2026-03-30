@@ -6,7 +6,6 @@ connectivity checks, or URL normalization.
 ## Credential sources
 
 - Remote Figma MCP credentials live in `.codex/.credentials.json`.
-- The local fallback endpoint usually comes from `FIGMA_MCP_URL`.
 - The remote MCP endpoint is fixed at `https://mcp.figma.com/mcp`.
 - There is no design-specific MCP URL. The shared Figma URL is converted into
   MCP tool arguments such as `fileKey` and `nodeId`.
@@ -27,12 +26,6 @@ jq 'to_entries[]
     }' .codex/.credentials.json
 ```
 
-Read the local fallback endpoint:
-
-```bash
-printf '%s\n' "$FIGMA_MCP_URL"
-```
-
 Load the remote access token into a shell variable without echoing it:
 
 ```bash
@@ -42,14 +35,6 @@ TOKEN=$(jq -r 'to_entries[]
 ```
 
 ## Quick connectivity checks
-
-Local fallback MCP:
-
-```bash
-curl -i "$FIGMA_MCP_URL"
-```
-
-If the response mentions `Invalid sessionId`, the local server is reachable.
 
 Remote MCP initialize example:
 
@@ -97,7 +82,7 @@ node agents/skills/figma-mcp/scripts/figma-url-to-mcp-target.js \
 ```
 
 The script prints the normalized `fileKey`, raw `node-id`, MCP `nodeId`,
-available endpoints, and ready-to-use tool arguments.
+the fixed remote MCP endpoint, and ready-to-use tool arguments.
 
 ## Example MCP tool calls
 

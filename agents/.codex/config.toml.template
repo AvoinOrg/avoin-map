@@ -18,4 +18,4 @@ approval_policy = "on-request"
 network_access = true
 
 [mcp_servers.figma]
-url = "http://host.docker.internal:3845/mcp"
+url = "https://mcp.figma.com/mcp"

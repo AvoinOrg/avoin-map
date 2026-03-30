@@ -1,6 +1,6 @@
 ---
 name: figma-mcp
-description: Inspect Figma files and nodes through remote or local Figma MCP. Use when the user shares a Figma URL, asks whether Figma MCP is reachable, wants node metadata, screenshots, design context, or exact asset URLs, or needs help converting a public Figma URL into MCP fileKey and nodeId inputs.
+description: Inspect Figma files and nodes through remote Figma MCP. Use when the user shares a Figma URL, asks whether Figma MCP is reachable, wants node metadata, screenshots, design context, or exact asset URLs, or needs help converting a public Figma URL into MCP fileKey and nodeId inputs.
 ---
 
 # Figma MCP
@@ -16,7 +16,7 @@ implementation, continue with `ui-live-iteration`.
 
 Use this skill when the user asks for any of the following:
 
-- Check whether remote or local Figma MCP is reachable
+- Check whether remote Figma MCP is reachable
 - Inspect a public Figma design URL or pasted node link
 - Extract `fileKey` and `nodeId` from a shared Figma URL
 - Fetch node metadata, screenshots, or design context
@@ -24,13 +24,13 @@ Use this skill when the user asks for any of the following:
 
 ## Workflow
 
-### 1. Choose the MCP endpoint
+### 1. Use the remote MCP endpoint
 
-- Prefer the remote Figma MCP server when remote credentials are configured.
-- Use the local fallback endpoint from `FIGMA_MCP_URL` only when the remote
-  server is unavailable or the task specifically targets the host MCP.
-- A plain `curl -i "$FIGMA_MCP_URL"` returning JSON-RPC `Invalid sessionId`
-  means the local endpoint is reachable and waiting for an MCP session.
+- Use the remote Figma MCP server at `https://mcp.figma.com/mcp`.
+- If the user explicitly needs Figma inspection or comparison and the remote
+  Figma MCP path is unavailable, stop immediately and report that the task is
+  blocked on Figma access. Do not quietly continue from stale notes or earlier
+  screenshots unless the user explicitly approves that fallback.
 
 ### 2. Normalize the shared URL
 
@@ -75,9 +75,11 @@ Use this skill when the user asks for any of the following:
 ## Output Expectations
 
 - Report the normalized `fileKey` and `nodeId`.
-- State whether you used the remote MCP server or the local fallback.
+- State that you used the remote MCP server.
 - Call out any access limitation clearly, such as a refused local port, missing
   credentials, or an invalid node ID.
+- If Figma access was required but unavailable, say that you stopped because of
+  the Figma access block.
 - If the task becomes UI implementation work, switch to `ui-live-iteration` for
   the edit and verification loop.
 

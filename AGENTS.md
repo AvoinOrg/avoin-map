@@ -45,30 +45,23 @@ standalone sites.
   verbatim user instructions, question-and-answer logging, corrected current
   instructions, and a brief change summary after each prompt. (file:
   `agents/skills/tmp-documenting/SKILL.md`)
-- `figma-mcp`: Inspect Figma files and nodes through remote or local Figma MCP,
+- `figma-mcp`: Inspect Figma files and nodes through remote Figma MCP,
   normalize public Figma URLs into `fileKey` and `nodeId` inputs, and fetch
   metadata, screenshots, design context, or exact asset URLs. (file:
   `agents/skills/figma-mcp/SKILL.md`)
 - `ui-live-iteration`: Implement and iterate on Avoin Map UI changes with
   visual verification. (file: `agents/skills/ui-live-iteration/SKILL.md`)
 
-## Figma MCP (Prefer Remote; Local Fallback)
+## Figma MCP (Remote)
 
 - Use the `figma-mcp` skill when the task is primarily about Figma connectivity,
   credential handling, URL normalization, metadata fetches, screenshots, design
   context, or exact asset extraction. Use `ui-live-iteration` when the Figma
   work continues into app UI implementation.
-- Prefer the remote Figma MCP tools (`mcp__figma_remote__*`) when available.
-  Use local/devcontainer MCP only as a fallback when remote MCP is unavailable.
-- Local Figma MCP server can run on the Windows host at `http://127.0.0.1:3845/mcp`.
-- From inside the devcontainer, local MCP is `http://host.docker.internal:3845/mcp`
-  (also available via `FIGMA_MCP_URL` in `.devcontainer/devcontainer.json`).
+- Use the remote Figma MCP tools (`mcp__figma_remote__*`).
+- The Figma MCP endpoint is fixed at `https://mcp.figma.com/mcp`.
 - The devcontainer image includes `jq`, which is useful for safe inspection of
   `.codex/.credentials.json` and quick MCP response parsing.
-- Ensure the compose service has
-  `extra_hosts: ["host.docker.internal:host-gateway"]` for host reachability.
-- `curl`/browser calls that return JSON-RPC `Invalid sessionId` indicate the
-  endpoint is reachable and awaiting a proper MCP session.
 - When a user shares a public Figma URL, do not pass the full URL to MCP tools.
   Extract `node-id` from the URL and use that as MCP `nodeId`.
 - Convert URL-style node IDs to MCP format when needed:

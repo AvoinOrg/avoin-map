@@ -14,8 +14,6 @@ Use this reference when a UI task includes a Figma design, public Figma URL, or 
 ## Tool choice
 
 - Prefer the remote Figma MCP tools.
-- Use the local or devcontainer Figma MCP only as a fallback if the remote
-  tools are unavailable.
 - For URL normalization and manual probes, follow the `figma-mcp` skill and its
   bundled helper script instead of duplicating that logic here.
 

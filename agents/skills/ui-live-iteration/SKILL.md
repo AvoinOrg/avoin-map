@@ -34,6 +34,10 @@ Use this skill when the user asks for any of the following:
 - Read [references/verification-workflow.md](references/verification-workflow.md) before final verification.
 - If the task includes Figma, use `figma-mcp` for the Figma-side workflow and
   also read [references/figma-ui-workflow.md](references/figma-ui-workflow.md).
+- If the user explicitly directs you to inspect, compare against, or use Figma
+  and Figma access is unavailable, stop immediately and report the blockage
+  instead of continuing from memory, old screenshots, or earlier notes unless
+  the user explicitly approves that fallback.
 
 ### 2. Plan the smallest correct change
 
@@ -93,6 +97,8 @@ Use this skill when the user asks for any of the following:
 - Figma-only inspection or MCP troubleshooting: use `figma-mcp`.
 - Figma-driven UI implementation: use `figma-mcp` for design retrieval and this
   skill for the edit and verification loop.
+- Figma-directed task but no Figma access: stop and surface the block; do not
+  continue implementing or claiming design fidelity from stale context.
 - Auth-dependent or imported-plan pages: prefer the host-state or shared-browser workflows from the verification reference.
 - Imported-plan or other browser-storage-dependent checks that do not need the
   host browser can use an in-container persistent profile workflow instead of
