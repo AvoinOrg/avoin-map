@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Manual fallback helper for copying Codex config files into the workspace.
-# The active devcontainer setup prefers live bind mounts via CODEX_HOST_DIR.
+# Devcontainer initialize helper for copying Codex config files into the workspace.
+# Prefer CODEX_HOST_DIR when set so we do not depend on symlinked home paths.
 
 workspace_dir="${1:-}"
 
@@ -11,21 +11,41 @@ if [[ -z "${workspace_dir}" ]]; then
   exit 1
 fi
 
-host_home_dir="${HOME:-}"
+read_env_file_var() {
+  local env_file="$1"
+  local var_name="$2"
 
-if [[ -z "${host_home_dir}" ]]; then
-  current_user="$(id -un 2>/dev/null || true)"
-  if [[ -n "${current_user}" ]] && command -v getent >/dev/null 2>&1; then
-    host_home_dir="$(getent passwd "${current_user}" | cut -d: -f6 || true)"
+  if [[ ! -f "${env_file}" ]]; then
+    return 1
   fi
+
+  awk -F= -v key="${var_name}" '$1 == key { print substr($0, index($0, "=") + 1); exit }' "${env_file}"
+}
+
+host_codex_dir="${CODEX_HOST_DIR:-}"
+
+if [[ -z "${host_codex_dir}" ]]; then
+  host_codex_dir="$(read_env_file_var "${workspace_dir}/.env" "CODEX_HOST_DIR" || true)"
 fi
 
-if [[ -z "${host_home_dir}" ]]; then
-  echo "Could not determine host home directory (HOME is unset)." >&2
-  exit 1
+if [[ -z "${host_codex_dir}" ]]; then
+  host_home_dir="${HOME:-}"
+
+  if [[ -z "${host_home_dir}" ]]; then
+    current_user="$(id -un 2>/dev/null || true)"
+    if [[ -n "${current_user}" ]] && command -v getent >/dev/null 2>&1; then
+      host_home_dir="$(getent passwd "${current_user}" | cut -d: -f6 || true)"
+    fi
+  fi
+
+  if [[ -z "${host_home_dir}" ]]; then
+    echo "Could not determine CODEX_HOST_DIR or host home directory." >&2
+    exit 1
+  fi
+
+  host_codex_dir="${host_home_dir}/.codex"
 fi
 
-host_codex_dir="${host_home_dir}/.codex"
 workspace_codex_dir="${workspace_dir}/.codex"
 
 sync_file() {
