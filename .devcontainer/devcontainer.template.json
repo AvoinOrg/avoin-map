@@ -20,11 +20,6 @@
       ]
     }
   },
-  "initializeCommand": [
-    "bash",
-    "${localWorkspaceFolder}/.devcontainer/sync-codex-host-files.sh",
-    "${localWorkspaceFolder}"
-  ],
   "features": {
     // "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
   },
@@ -37,7 +32,12 @@
     "app"
   ],
   "mounts": [
-    "type=bind,source=${localEnv:HOME}/.ssh/sockets,target=/ssh-sockets"
+    "type=bind,source=${localEnv:SSH_AGENT_DIR},target=/ssh-sockets",
+    // CODEX_HOST_DIR must be a real host path to the Codex config directory.
+    // Do not point it at a symlinked alias; earlier file mounts failed on the shared filesystem.
+    "type=bind,source=${localEnv:CODEX_HOST_DIR}/auth.json,target=/app/.codex/auth.json",
+    "type=bind,source=${localEnv:CODEX_HOST_DIR}/.credentials.json,target=/app/.codex/.credentials.json",
+    "type=bind,source=${localEnv:CODEX_HOST_DIR}/rules/default.rules,target=/app/.codex/rules/default.rules"
   ],
   "remoteEnv": {
     "SSH_AUTH_SOCK": "/ssh-sockets/agent.sock",

@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Manual fallback helper for copying Codex config files into the workspace.
+# The active devcontainer setup prefers live bind mounts via CODEX_HOST_DIR.
+
 workspace_dir="${1:-}"
 
 if [[ -z "${workspace_dir}" ]]; then
