@@ -11,6 +11,9 @@ Use this reference after every meaningful UI edit pass.
   debugging the browser runtime itself.
 - If that path is unavailable, fall back to the host shared-browser workflow
   instead of skipping verification.
+- When the task is a substantial UI feature or the user asks for pics, capture
+  a small representative set of picture snapshots under `.tmp/` after the final
+  iteration pass.
 
 ## Primary visual commands
 
@@ -34,6 +37,19 @@ Browser mode guidance:
 - Do not rely on the built-in MCP browser for authoritative WebGL verification;
   its launcher/runtime is not repo-controlled.
 
+## Snapshot capture
+
+Use `.tmp/` for the user-facing picture snapshots that document what was
+actually implemented.
+
+- Prefer descriptive filenames that encode the feature and state, for example
+  `feature-root-desktop.png` or `feature-import-uploaded-mobile.png`.
+- Capture both desktop and mobile for the main changed surface.
+- Add extra snapshots only for meaningfully different states, such as an empty
+  page vs a populated page, or an import step before vs after file selection.
+- Keep the set curated. The goal is a readable artifact trail, not exhaustive
+  frame dumping.
+
 ## Host-state visual workflow
 
 Use the host-state path when the page depends on existing login state, imported plans, or other browser-origin state on `http://localhost:3000`.
@@ -44,6 +60,23 @@ Use the host-state path when the page depends on existing login state, imported 
 4. Run a host-state visual command such as `yarn visual:after-edit:host-state -- <path1> <path2> ...`.
 
 Target `localhost:3000` for host-state workflows because browser storage is origin-specific.
+
+## In-container persistent profile workflow
+
+Use this when you need browser storage such as IndexedDB or `localStorage` to
+survive browser restarts, but you do not need the user's existing host Chrome
+session specifically.
+
+1. Launch Playwright/Chromium with a persistent profile directory under a
+   gitignored repo path such as `.dev/browser-state/<name>/`.
+2. Reuse that same directory for follow-up verification runs so the same origin
+   state is loaded again.
+3. Keep access to that profile serial. Do not attach multiple Playwright runs
+   to the same persistent profile at once.
+4. Use this path for flows such as "import once, restart browser, verify the
+   imported plan still exists".
+
+This is a good middle ground when host-state sync would be heavier than needed.
 
 ## Live browser workflows
 
@@ -73,6 +106,12 @@ Use this when host attach is unavailable or when a container-managed browser win
 - If host CDP is unreachable, relaunch the dedicated host Chrome profile with remote debugging enabled.
 - If the container session is stale, use `yarn browser:live:container:stop -- --force-clean`.
 - If a stale lock blocks progress, inspect status and release it with force if appropriate.
+- If a route appears blank or stalled on its first hit, check the dev-server
+  logs before assuming a crash. App Router can spend a long time compiling a
+  not-yet-built route.
+- If parallel screenshot or browser runs start causing intermittent 500s or
+  asset-copy errors, reduce the verification to serial route checks against one
+  stable dev server before debugging the UI itself.
 
 ## Completion bar
 

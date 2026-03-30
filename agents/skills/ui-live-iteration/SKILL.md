@@ -64,6 +64,19 @@ Use this skill when the user asks for any of the following:
   runtime health is in doubt.
 - Fall back to the host shared-browser workflow instead of skipping visual
   checks.
+- When the page needs browser-origin state to persist across restarts but does
+  not specifically need the user's host Chrome session, use an in-container
+  persistent Playwright/Chromium profile under `.dev/browser-state/` or another
+  gitignored path inside the repo bind mount.
+- Do not open the same persistent profile from multiple Playwright runs at the
+  same time. Keep stateful verification serial when reusing one profile.
+- If a Next.js route seems hung on first load, check whether App Router is
+  still compiling that route before assuming the dev server crashed.
+- After the final iteration pass, save representative picture snapshots of the
+  implemented feature surfaces and any key adjacent states under `.tmp/` when
+  the task is substantial or when the user asks for pics.
+- Prefer a small, curated set of snapshots with descriptive filenames over a
+  large undifferentiated dump.
 
 ### 5. Iterate
 
@@ -71,7 +84,8 @@ Use this skill when the user asks for any of the following:
 - Make the next smallest correction.
 - Re-run targeted verification after each meaningful UI pass, using the same
   browser mode unless the verification itself is what you are debugging.
-- Stop only when the layout, styling, and responsive behavior are correct.
+- Stop only when the layout, styling, responsive behavior, and requested
+  snapshot capture are complete.
 
 ## Decision Guide
 
@@ -80,6 +94,9 @@ Use this skill when the user asks for any of the following:
 - Figma-driven UI implementation: use `figma-mcp` for design retrieval and this
   skill for the edit and verification loop.
 - Auth-dependent or imported-plan pages: prefer the host-state or shared-browser workflows from the verification reference.
+- Imported-plan or other browser-storage-dependent checks that do not need the
+  host browser can use an in-container persistent profile workflow instead of
+  host-state sync.
 - Map/WebGL pages: still start with the repo visual runner in `auto` mode; only
   switch to live/shared browser workflows when stateful interaction or
   collaborative review is the real need.
@@ -89,6 +106,8 @@ Use this skill when the user asks for any of the following:
 
 - Implement the requested UI change.
 - State how the change was verified.
+- Mention which `.tmp/` snapshots were captured when picture snapshots were part
+  of the task.
 - Mention any verification gap if live or visual checks were blocked.
 
 ## References
