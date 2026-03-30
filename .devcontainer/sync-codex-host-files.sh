@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Devcontainer initialize helper for copying Codex config files into the workspace.
-# Prefer CODEX_HOST_DIR when set so we do not depend on symlinked home paths.
+# Prefer CODEX_HOST_DIR/CODEX_SQLITE_HOME when set so we do not depend on symlinked home paths.
 
 workspace_dir="${1:-}"
 
@@ -23,9 +23,18 @@ read_env_file_var() {
 }
 
 host_codex_dir="${CODEX_HOST_DIR:-}"
+host_codex_sqlite_dir="${CODEX_SQLITE_HOME:-}"
 
 if [[ -z "${host_codex_dir}" ]]; then
   host_codex_dir="$(read_env_file_var "${workspace_dir}/.env" "CODEX_HOST_DIR" || true)"
+fi
+
+if [[ -z "${host_codex_sqlite_dir}" ]]; then
+  host_codex_sqlite_dir="$(read_env_file_var "${workspace_dir}/.env" "CODEX_SQLITE_HOME" || true)"
+fi
+
+if [[ -z "${host_codex_dir}" ]] && [[ -n "${host_codex_sqlite_dir}" ]]; then
+  host_codex_dir="$(dirname "${host_codex_sqlite_dir}")"
 fi
 
 if [[ -z "${host_codex_dir}" ]]; then
@@ -47,6 +56,8 @@ if [[ -z "${host_codex_dir}" ]]; then
 fi
 
 workspace_codex_dir="${workspace_dir}/.codex"
+host_codex_sqlite_dir="${host_codex_sqlite_dir:-${host_codex_dir}/sqlite}"
+workspace_codex_sqlite_dir="${workspace_codex_dir}/sqlite"
 
 sync_file() {
   local relative_path="$1"
@@ -68,7 +79,7 @@ sync_file() {
   fi
 }
 
-mkdir -p "${host_codex_dir}" "${workspace_codex_dir}"
+mkdir -p "${host_codex_dir}" "${workspace_codex_dir}" "${host_codex_sqlite_dir}" "${workspace_codex_sqlite_dir}"
 
 sync_file "auth.json" true
 sync_file ".credentials.json"
