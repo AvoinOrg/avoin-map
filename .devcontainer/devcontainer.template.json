@@ -37,7 +37,10 @@
     "app"
   ],
   "mounts": [
-    "type=bind,source=${localEnv:SSH_AGENT_DIR},target=/ssh-sockets"
+    "type=bind,source={CHANGE_THIS_TO_HOST_SSH_AGENT_DIR},target=/ssh-sockets",
+    "type=bind,source={CHANGE_THIS_TO_HOST_CODEX_DIR}/auth.json,target=/app/.codex/auth.json,consistency=cached",
+    "type=bind,source={CHANGE_THIS_TO_HOST_CODEX_DIR}/credentials.json,target=/app/.codex/credentials.json,consistency=cached",
+    "type=bind,source={CHANGE_THIS_TO_HOST_CODEX_DIR}/rules/default.rules,target=/app/.codex/rules/default.rules"
   ],
   "remoteEnv": {
     "SSH_AUTH_SOCK": "/ssh-sockets/agent.sock",
