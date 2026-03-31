@@ -10,9 +10,14 @@ import { ConfirmationDialog } from '#/components/Notification'
 import UserStateHandler from './userStateHandler'
 import UIStateHandler from './uiStateHandler'
 import { SlotsProvider } from '#/components/context/slotsContext'
-import { MainSidebar, Sidebar, SimpleSidebar } from '#/components/Sidebar'
+import {
+  HiilikarttaHomeSidebar,
+  MainSidebar,
+  Sidebar,
+  SimpleSidebar,
+} from '#/components/Sidebar'
 import { FullscreenPageSlot } from '#/components/common/FullscreenPage'
-import { getPathnameWithoutLocale } from '#/common/routing/routing'
+import { compiledApplets, getPathnameWithoutLocale } from '#/common/routing/routing'
 import { useUIStore } from '#/common/store'
 // import { UserModal } from '#/components/Profile'
 // import { UiStateProvider, UserStateProvider } from '#/components/State'
@@ -34,7 +39,12 @@ const LayoutClient = ({
   }, [])
 
   const pathnameWithoutLocale = getPathnameWithoutLocale(pathname, locale ?? null)
-  const useMainSidebar = pathnameWithoutLocale === '/'
+  const isStandaloneHiilikartta =
+    compiledApplets.length === 1 && compiledApplets[0] === 'hiilikartta'
+  const useMainSidebar = pathnameWithoutLocale === '/' && !isStandaloneHiilikartta
+  const useHiilikarttaHomeSidebar =
+    pathnameWithoutLocale === '/hiilikartta' ||
+    (isStandaloneHiilikartta && pathnameWithoutLocale === '/')
   const sidebarVariant = useUIStore((state) => state.sidebarVariant)
 
   return (
@@ -58,6 +68,8 @@ const LayoutClient = ({
                 >
                   {useMainSidebar ? (
                     <MainSidebar>{children}</MainSidebar>
+                  ) : useHiilikarttaHomeSidebar ? (
+                    <HiilikarttaHomeSidebar>{children}</HiilikarttaHomeSidebar>
                   ) : sidebarVariant === 'simple' ? (
                     <SimpleSidebar>{children}</SimpleSidebar>
                   ) : (

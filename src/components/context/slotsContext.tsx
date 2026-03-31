@@ -1,35 +1,66 @@
 'use client'
-import React, { createContext, useContext, useRef, useCallback } from 'react'
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { createPortal } from 'react-dom'
 
 type SlotKey = string | symbol
 type Slots = Map<SlotKey, HTMLElement>
 
-const SlotsContext = createContext<Slots | null>(null)
+type SlotsContextValue = {
+  slots: Slots
+  revision: number
+  bumpRevision: () => void
+}
+
+const SlotsContext = createContext<SlotsContextValue | null>(null)
 
 export const SlotsProvider = ({ children }: { children: React.ReactNode }) => {
   const ref = useRef<Slots>(new Map()) // stable across renders
+  const [revision, setRevision] = useState(0)
+  const bumpRevision = useCallback(() => {
+    setRevision((previous) => previous + 1)
+  }, [])
+  const value = useMemo(
+    () => ({
+      slots: ref.current,
+      revision,
+      bumpRevision,
+    }),
+    [bumpRevision, revision]
+  )
+
   return (
-    <SlotsContext.Provider value={ref.current}>
+    <SlotsContext.Provider value={value}>
       {children}
     </SlotsContext.Provider>
   )
 }
 
 export const useSlots = () => {
-  const slots = useContext(SlotsContext)
-  if (!slots) throw new Error('Wrap your app with <SlotsProvider>')
-  return slots
+  const context = useContext(SlotsContext)
+  if (!context) throw new Error('Wrap your app with <SlotsProvider>')
+  return context.slots
 }
 
 export const useSlotContent = (name: SlotKey): boolean => {
-  const slots = useSlots()
+  const context = useContext(SlotsContext)
+  if (!context) throw new Error('Wrap your app with <SlotsProvider>')
+  const { slots, revision } = context
+  void revision
   return slots.has(name)
 }
 
 /** Host-side: place this where content should land */
 export const Slot = ({ name }: { name: SlotKey }) => {
-  const slots = useSlots()
+  const context = useContext(SlotsContext)
+  if (!context) throw new Error('Wrap your app with <SlotsProvider>')
+  const { slots, bumpRevision } = context
 
   // Callback ref avoids extra renders and handles mount/unmount neatly
   const setRef = useCallback(
@@ -43,11 +74,13 @@ export const Slot = ({ name }: { name: SlotKey }) => {
           )
         }
         slots.set(name, el)
+        bumpRevision()
       } else {
         slots.delete(name)
+        bumpRevision()
       }
     },
-    [slots, name]
+    [bumpRevision, slots, name]
   )
 
   return <div ref={setRef} />
@@ -61,7 +94,10 @@ export const IntoSlot = ({
   name: SlotKey
   children: React.ReactNode
 }) => {
-  const slots = useSlots()
+  const context = useContext(SlotsContext)
+  if (!context) throw new Error('Wrap your app with <SlotsProvider>')
+  const { slots, revision } = context
+  void revision
   const target = slots.get(name) ?? null
   return target ? createPortal(children, target) : null
 }

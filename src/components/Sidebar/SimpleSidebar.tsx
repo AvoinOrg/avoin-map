@@ -18,11 +18,11 @@ export const SimpleSidebar = ({
     <Box
       sx={{
         flexShrink: 0,
-        px: { mobile: '1rem', desktop: '1.5rem' },
-        pt: { mobile: '1rem', desktop: '1.5rem' },
-        pb: { mobile: '0.75rem', desktop: '1rem' },
+        px: { mobile: '1rem', desktop: '1.875rem' },
+        pt: { mobile: '1rem', desktop: '1.75rem' },
+        pb: { mobile: '0.9rem', desktop: '1rem' },
         color: 'neutral.darker',
-        backgroundColor: '#f4f4f4',
+        backgroundColor: '#ffffff',
       }}
     >
       <Box
@@ -48,7 +48,8 @@ export const SimpleSidebar = ({
             pt: 0,
             pb: 0,
             ml: 0,
-            maxWidth: { mobile: '100vw', desktop: 'min(30rem, 100vw)' },
+            width: { mobile: '100vw', desktop: '23.75rem' },
+            maxWidth: { mobile: '100vw', desktop: 'min(23.75rem, 100vw)' },
           },
           ...(Array.isArray(sx) ? sx : [sx]),
         ]}
@@ -56,7 +57,7 @@ export const SimpleSidebar = ({
           borderRadius: 0,
         }}
         contentSx={{
-          backgroundColor: '#f4f4f4',
+          backgroundColor: '#ffffff',
         }}
       >
         {children}

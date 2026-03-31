@@ -11,7 +11,9 @@ type SidebarBackgroundContentProps = {
   children?: React.ReactNode
   actions?: React.ReactNode
   sx?: SxProps<Theme>
+  imageSx?: SxProps<Theme>
   contentSx?: SxProps<Theme>
+  actionsSx?: SxProps<Theme>
 }
 
 const SidebarBackgroundContent = ({
@@ -22,7 +24,9 @@ const SidebarBackgroundContent = ({
   children,
   actions,
   sx,
+  imageSx,
   contentSx,
+  actionsSx,
 }: SidebarBackgroundContentProps) => {
   return (
     <Box
@@ -30,10 +34,10 @@ const SidebarBackgroundContent = ({
         {
           width: '100%',
           overflow: 'hidden',
-          borderRadius: '1.5rem',
-          backgroundColor: '#4B7D2F',
-          color: '#fff',
-          boxShadow: '0 18px 42px rgba(35, 60, 24, 0.16)',
+          borderRadius: '1.25rem',
+          backgroundColor: '#e4f6d5',
+          color: '#111111',
+          boxShadow: 'none',
         },
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
@@ -42,32 +46,39 @@ const SidebarBackgroundContent = ({
         component="img"
         src={imageSrc}
         alt={imageAlt}
-        sx={{
-          display: 'block',
-          width: '100%',
-          height: { mobile: '10rem', desktop: '11rem' },
-          objectFit: 'cover',
-          objectPosition: 'center',
-        }}
+        sx={[
+          {
+            display: 'block',
+            width: '100%',
+            height: '4.375rem',
+            objectFit: 'cover',
+            objectPosition: 'center',
+          },
+          ...(Array.isArray(imageSx) ? imageSx : [imageSx]),
+        ]}
       />
       <Box
         sx={[
           {
             display: 'flex',
             flexDirection: 'column',
-            gap: 2,
-            px: { mobile: '1.25rem', desktop: '1.5rem' },
-            py: { mobile: '1.25rem', desktop: '1.5rem' },
+            gap: 1.5,
+            px: '1.25rem',
+            pt: '1.125rem',
+            pb: '1.25rem',
           },
           ...(Array.isArray(contentSx) ? contentSx : [contentSx]),
         ]}
       >
         {(title || description) && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.8 }}>
             {title && (
               <Typography
                 sx={{
-                  typography: 'h2',
+                  fontSize: '0.625rem',
+                  fontWeight: 700,
+                  lineHeight: '1.125rem',
+                  letterSpacing: '0.1em',
                   color: 'inherit',
                   textTransform: 'uppercase',
                 }}
@@ -78,9 +89,12 @@ const SidebarBackgroundContent = ({
             {description && (
               <Typography
                 sx={{
-                  typography: 'body2',
+                  fontSize: '0.625rem',
+                  fontWeight: 400,
+                  lineHeight: '1.125rem',
+                  letterSpacing: '0.1em',
                   color: 'inherit',
-                  maxWidth: '32ch',
+                  maxWidth: '24ch',
                 }}
               >
                 {description}
@@ -90,7 +104,16 @@ const SidebarBackgroundContent = ({
         )}
         {children}
         {actions && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          <Box
+            sx={[
+              {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1,
+              },
+              ...(Array.isArray(actionsSx) ? actionsSx : [actionsSx]),
+            ]}
+          >
             {actions}
           </Box>
         )}

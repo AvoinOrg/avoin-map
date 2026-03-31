@@ -264,7 +264,15 @@ const Page = () => {
   }
 
   return (
-    <SidebarContentBox sxInner={{ pt: 0, gap: 3 }}>
+    <SidebarContentBox
+      sxInner={{
+        pt: 0,
+        gap: { mobile: 2.25, desktop: 2.75 },
+        px: { mobile: '1rem', desktop: '1.875rem' },
+        pb: { mobile: '1.25rem', desktop: '1.75rem' },
+        backgroundColor: '#ffffff',
+      }}
+    >
       <SidebarBackgroundContent
         imageSrc="/files/img/hiilikartta/zoning.jpg"
         imageAlt="Tuo kaavatiedosto"

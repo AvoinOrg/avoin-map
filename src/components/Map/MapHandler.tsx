@@ -50,6 +50,8 @@ export const MapHandler = ({ children }: Props) => {
   // const setIsMapPopupOpen = useUIStore((state) => state.setIsMapPopupOpen)
   const { data: session } = useSession()
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
+  const sidebarWidth = useUIStore((state) => state.sidebarWidth)
+  const windowSize = useUIStore((state) => state.windowSize)
 
   const mapDivRef = useRef<HTMLDivElement | null>(null)
   // const mapRef = useRef<OlMap | null>(null)
@@ -840,9 +842,21 @@ export const MapHandler = ({ children }: Props) => {
 
   useEffect(() => {
     if (isLoaded) {
-      _map?.resize()
+      const frameId = window.requestAnimationFrame(() => {
+        _map?.resize()
+      })
+
+      return () => {
+        window.cancelAnimationFrame(frameId)
+      }
     }
-  }, [isSidebarOpen, isLoaded])
+  }, [
+    isSidebarOpen,
+    isLoaded,
+    sidebarWidth,
+    windowSize?.height,
+    windowSize?.width,
+  ])
 
   return (
     <>

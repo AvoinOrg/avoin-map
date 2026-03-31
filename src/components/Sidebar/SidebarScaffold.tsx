@@ -10,6 +10,7 @@ import { Slot } from '../context/slotsContext'
 type SidebarScaffoldProps = {
   children: React.ReactNode
   topContent?: React.ReactNode
+  bottomContent?: React.ReactNode
   containerSx?: SxProps<Theme>
   panelSx?: SxProps<Theme>
   contentSx?: SxProps<Theme>
@@ -18,6 +19,7 @@ type SidebarScaffoldProps = {
 const SidebarScaffold = ({
   children,
   topContent,
+  bottomContent,
   containerSx,
   panelSx,
   contentSx,
@@ -304,6 +306,16 @@ const SidebarScaffold = ({
               >
                 {children}
               </Box>
+              {bottomContent && (
+                <Box
+                  sx={{
+                    flexShrink: 0,
+                    backgroundColor: '#f4f4f4',
+                  }}
+                >
+                  {bottomContent}
+                </Box>
+              )}
             </Box>
           </Box>
         </Box>

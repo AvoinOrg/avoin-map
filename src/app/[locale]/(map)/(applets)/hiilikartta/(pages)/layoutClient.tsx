@@ -3,13 +3,18 @@
 'use client'
 
 import React, { useEffect } from 'react'
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
+import { Typography } from '@mui/material'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
+import { useParams, usePathname } from 'next/navigation'
 
 import { routeTree } from '#/common/routing/routes/hiilikartta'
-import { BreadcrumbNav } from '#/components/Sidebar'
+import { compiledApplets } from '#/common/routing/routing'
 import AppletWrapper from '#/components/common/AppletWrapper'
+import MutableLink from '#/components/common/MutableLink'
 import { useUserStore } from '#/common/store/userStore'
+import { getPathnameWithoutLocale } from '#/common/routing/routing'
 
 import { listedLayerGroups } from '../common/constants'
 import { planStatsQuery } from '../common/queries/planStatsQuery'
@@ -24,8 +29,46 @@ import { getZoningClasses } from '../common/zoningClasses'
 
 const localizationNamespace = 'hiilikartta'
 
+const HiilikarttaSidebarBackLink = () => {
+  return (
+    <MutableLink
+      route={routeTree}
+      routeTree={routeTree}
+      aria-label="Back to hiilikartta front page"
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '0.3rem',
+        color: '#111111',
+      }}
+    >
+      <ArrowBackIosNewIcon
+        sx={{
+          width: '0.5rem',
+          height: '0.95rem',
+          color: 'inherit',
+        }}
+      />
+      <Typography
+        sx={{
+          fontSize: '0.5625rem',
+          fontWeight: 400,
+          lineHeight: 1,
+          letterSpacing: '0.1em',
+          textTransform: 'uppercase',
+          color: 'inherit',
+        }}
+      >
+        {routeTree._conf.name}
+      </Typography>
+    </MutableLink>
+  )
+}
+
 const layoutClient = ({ children }: { children: React.ReactNode }) => {
   const { data: session, status } = useSession()
+  const pathname = usePathname()
+  const { locale } = useParams()
   const addSignOutAction = useUserStore((state) => state.addSignOutAction)
   const removeSignOutAction = useUserStore((state) => state.removeSignOutAction)
 
@@ -43,6 +86,13 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
   const [planConfsToFetch, setPlanConfsToFetch] = React.useState<
     PlaceholderPlanConf[]
   >([])
+  const pathnameWithoutLocale = getPathnameWithoutLocale(pathname, locale ?? null)
+  const isStandaloneHiilikartta =
+    compiledApplets.length === 1 && compiledApplets[0] === 'hiilikartta'
+  const isHiilikarttaRoot =
+    pathnameWithoutLocale === '/hiilikartta' ||
+    (isStandaloneHiilikartta && pathnameWithoutLocale === '/')
+  const showBreadcrumbNav = !isHiilikarttaRoot
 
   const planConfStatsQuery = useQuery({
     ...planStatsQuery(),
@@ -180,10 +230,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
       sidebarHeaderTitle={'Hiilikartta'}
       sidebarHeaderBackgroundImage={'/files/img/hiilikartta/zoning.jpg'}
       sidebarHeaderChildren={
-        <BreadcrumbNav
-          collapseIfRoot={true}
-          routeTree={routeTree}
-        ></BreadcrumbNav>
+        showBreadcrumbNav ? <HiilikarttaSidebarBackLink /> : undefined
       }
       sx={{
         pt: 0,

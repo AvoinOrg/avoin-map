@@ -1,23 +1,77 @@
 'use client'
 
 import React, { useMemo } from 'react'
-import { Box, Button, Typography } from '@mui/material'
-import { T } from '@tolgee/react'
+import { Box, Typography } from '@mui/material'
+import { T, useTranslate } from '@tolgee/react'
 import { useRouter } from 'next/navigation'
 
-import { SidebarContentBox, SidebarHeaderVisibilityBoundary } from '#/components/Sidebar'
+import { SidebarContentBox } from '#/components/Sidebar'
 import { getRoute } from '#/common/routing/routing-client'
 import { useMapStore } from '#/common/store'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
-import { EyeClosed, EyeOpen, ArrowNextBig } from '#/components/icons'
+import { EyeButton } from '#/components/common/EyeButton'
+import { IntoSlot } from '#/components/context/slotsContext'
 
 import { routeTree } from '#/common/routing/routes/hiilikartta'
 import { listedLayerGroups } from '../common/constants'
 
+const HomeSidebarHeader = () => {
+  return (
+    <Box
+      sx={{
+        px: { mobile: '0.625rem', desktop: '0.625rem' },
+        pt: { mobile: '0.625rem', desktop: '0.625rem' },
+        pb: { mobile: '0.375rem', desktop: '0.5rem' },
+        flexShrink: 0,
+      }}
+    >
+      <Box
+        sx={{
+          position: 'relative',
+          minHeight: { mobile: '6rem', desktop: '6.25rem' },
+          borderRadius: '0.625rem',
+          overflow: 'hidden',
+          backgroundImage:
+            'url(/files/img/hiilikartta/sidebar/main-hero.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'linear-gradient(90deg, rgba(244,244,244,1) 0%, rgba(244,244,244,0.98) 24%, rgba(244,244,244,0.48) 46%, rgba(244,244,244,0) 72%)',
+          }}
+        />
+        <Typography
+          sx={{
+            position: 'relative',
+            zIndex: 1,
+            px: '1.25rem',
+            pt: { mobile: '2.5rem', desktop: '2.625rem' },
+            color: '#111111',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            letterSpacing: '0.1em',
+            lineHeight: '1.125rem',
+            textTransform: 'uppercase',
+          }}
+        >
+          Hiilikartta
+        </Typography>
+      </Box>
+    </Box>
+  )
+}
+
 const Page = () => {
+  const { t } = useTranslate('hiilikartta')
   const router = useRouter()
   const toggleLayerGroup = useMapStore((state) => state.toggleLayerGroup)
   const visibleLayerGroupIds = useVisibleLayerGroupIds()
+  const introText = t('sidebar.main.intro')
 
   const vegetationLayerGroup = useMemo(
     () =>
@@ -29,165 +83,211 @@ const Page = () => {
   const isVegetationLayerVisible =
     vegetationLayerGroup != null &&
     visibleLayerGroupIds.includes(vegetationLayerGroup.id)
+  const firstSentenceEndIndex = introText.indexOf('. ')
+  const leadingIntroSentence =
+    firstSentenceEndIndex >= 0
+      ? introText.slice(0, firstSentenceEndIndex + 1)
+      : introText
+  const trailingIntroSentence =
+    firstSentenceEndIndex >= 0
+      ? introText.slice(firstSentenceEndIndex + 2)
+      : ''
 
   return (
-    <SidebarHeaderVisibilityBoundary hidden={true}>
-      <SidebarContentBox
-        sxInner={{
-          px: { mobile: '1.25rem', desktop: '1.25rem' },
-          pt: { mobile: '1.25rem', desktop: '1.25rem' },
-          pb: { mobile: '1.25rem', desktop: '1.5rem' },
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 3,
-        }}
-      >
+    <>
+      <IntoSlot name="sidebar-header">
+        <HomeSidebarHeader />
+      </IntoSlot>
+      <IntoSlot name="sidebar-footer">
         <Box
-          component="img"
-          src="/files/img/hiilikartta/sidebar/main-hero.jpg"
-          alt="Hiilikartta"
-          sx={{
-            width: '100%',
-            minHeight: { mobile: '6.25rem', desktop: '6.25rem' },
-            borderRadius: '0.875rem',
-            objectFit: 'cover',
-            objectPosition: 'center',
-          }}
-        />
-
-        <Typography
-          sx={{
-            typography: 'body2',
-            color: 'neutral.dark',
-            letterSpacing: '0.04rem',
-            lineHeight: '1.5rem',
-            whiteSpace: 'normal',
-          }}
-        >
-          <T keyName="sidebar.main.intro" ns="hiilikartta" />
-        </Typography>
-
-        {vegetationLayerGroup && (
-          <Box
-            component="button"
-            type="button"
-            aria-label="Toggle vegetation carbon layer"
-            onClick={() =>
-              toggleLayerGroup(
-                vegetationLayerGroup.id,
-                vegetationLayerGroup.addOptions
-              )
-            }
-            sx={{
-              width: '100%',
-              p: 0,
-              border: 'none',
-              background: 'none',
-              textAlign: 'inherit',
-              cursor: 'pointer',
-            }}
-          >
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 2,
-                px: 0.75,
-                py: 0.85,
-                borderBottom: '1px solid',
-                borderColor: 'rgba(17, 17, 17, 0.12)',
-                color: 'neutral.darker',
-              }}
-            >
-              <Typography
-                sx={{
-                  typography: 'body2',
-                  letterSpacing: '0.07rem',
-                  color: 'inherit',
-                  textAlign: 'left',
-                }}
-              >
-                <T keyName="sidebar.main.vegetation_layer" ns="hiilikartta" />
-              </Typography>
-              {isVegetationLayerVisible ? (
-                <EyeOpen sx={{ width: 18, height: 18, color: 'inherit' }} />
-              ) : (
-                <EyeClosed sx={{ width: 18, height: 18, color: 'inherit' }} />
-              )}
-            </Box>
-          </Box>
-        )}
-
-        <Box sx={{ flex: 1 }} />
-
-        <Typography
-          sx={{
-            typography: 'body3',
-            color: 'neutral.dark',
-            letterSpacing: '0.04rem',
-            lineHeight: '1rem',
-            whiteSpace: 'normal',
-          }}
-        >
-          <T keyName="sidebar.main.attribution" ns="hiilikartta" />
-        </Typography>
-
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 3,
-            flexWrap: 'wrap',
-          }}
-        >
-          <Box
-            component="img"
-            src="/files/img/hiilikartta/sidebar/nappaa-logo.png"
-            alt="Nappaa hiilesta kiinni"
-            sx={{ height: '2.25rem', width: 'auto', objectFit: 'contain' }}
-          />
-          <Box
-            component="img"
-            src="/files/img/hiilikartta/sidebar/syke-logo.png"
-            alt="Syke"
-            sx={{ height: '2.4rem', width: 'auto', objectFit: 'contain' }}
-          />
-          <Box
-            component="img"
-            src="/files/img/hiilikartta/sidebar/luke-logo.png"
-            alt="Luke"
-            sx={{ height: '2.4rem', width: 'auto', objectFit: 'contain' }}
-          />
-        </Box>
-
-        <Button
-          variant="contained"
+          component="button"
+          type="button"
           aria-label="Open plans page"
           onClick={() =>
             router.push(getRoute({ routeNode: routeTree.plans, routeTree }))
           }
           sx={{
             width: '100%',
-            minHeight: '5rem',
-            justifyContent: 'space-between',
-            borderRadius: '0.875rem',
-            textTransform: 'uppercase',
-            typography: 'h4',
-            backgroundColor: '#B0FF6B',
-            color: '#111',
-            boxShadow: '0 1px 1px rgba(189, 189, 189, 0.25)',
+            height: '5rem',
+            px: { mobile: '1.5rem', desktop: '1.6875rem' },
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1.625rem',
+            border: 'none',
+            borderRadius: { mobile: 0, desktop: '6px 6px 10px 10px' },
+            backgroundColor: '#b0ff6b',
+            color: '#111111',
+            cursor: 'pointer',
             '&:hover': {
-              backgroundColor: '#B0FF6B',
-              boxShadow: '0 1px 1px rgba(189, 189, 189, 0.25)',
+              backgroundColor: '#b0ff6b',
             },
           }}
         >
-          <T keyName="sidebar.main.add_new" ns="hiilikartta" />
-          <ArrowNextBig sx={{ width: 20, height: 20, color: 'inherit' }} />
-        </Button>
+          <Box
+            component="img"
+            src="/files/img/hiilikartta/sidebar/home-footer-icon.svg"
+            alt=""
+            aria-hidden="true"
+            sx={{
+              width: '1.375rem',
+              height: '1rem',
+              flexShrink: 0,
+            }}
+          />
+          <Typography
+            sx={{
+              fontSize: '0.6875rem',
+              fontWeight: 700,
+              lineHeight: '0.8125rem',
+              letterSpacing: '0.1em',
+              textAlign: 'left',
+              textTransform: 'none',
+            }}
+          >
+            Katsele omat kaavat tai luo uusia tästä
+          </Typography>
+        </Box>
+      </IntoSlot>
+      <SidebarContentBox
+        sxOuter={{
+          height: '100%',
+        }}
+        sxInner={{
+          p: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100%',
+          height: '100%',
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: '100%',
+            height: '100%',
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              flex: 1,
+              px: '1.25rem',
+              pt: 0,
+              pb: '1rem',
+            }}
+          >
+            <Box>
+              <Typography
+                sx={{
+                  color: '#111111',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.15em',
+                  lineHeight: '1.25rem',
+                  textTransform: 'uppercase',
+                  whiteSpace: 'normal',
+                  maxWidth: '18.2rem',
+                }}
+              >
+                <Box component="span" sx={{ color: '#979797' }}>
+                  {leadingIntroSentence}
+                  {trailingIntroSentence ? ' ' : ''}
+                </Box>
+                {trailingIntroSentence}
+              </Typography>
+
+              {vegetationLayerGroup && (
+                <Box
+                  sx={{
+                    mt: { mobile: '4rem', desktop: '5.25rem' },
+                    py: '0.4rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 1,
+                    borderBottom: '1px solid rgba(17, 17, 17, 0.1)',
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color: '#111111',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      lineHeight: '1.125rem',
+                      letterSpacing: '0.02em',
+                      whiteSpace: 'normal',
+                    }}
+                  >
+                    <T keyName="sidebar.main.vegetation_layer" ns="hiilikartta" />
+                  </Typography>
+                  <EyeButton
+                    ariaLabel="Toggle vegetation carbon layer"
+                    color="#B0FF6B"
+                    status={isVegetationLayerVisible ? 'visible' : 'hidden'}
+                    onClick={(event) => {
+                      event.preventDefault()
+                      toggleLayerGroup(
+                        vegetationLayerGroup.id,
+                        vegetationLayerGroup.addOptions
+                      )
+                    }}
+                  />
+                </Box>
+              )}
+            </Box>
+
+            <Box sx={{ mt: 'auto', pt: '2rem' }}>
+              <Typography
+                sx={{
+                  color: '#4b4b4b',
+                  fontSize: '0.5rem',
+                  fontWeight: 400,
+                  lineHeight: '1rem',
+                  letterSpacing: '0.04em',
+                  whiteSpace: 'normal',
+                  maxWidth: '18.625rem',
+                }}
+              >
+                <T keyName="sidebar.main.attribution" ns="hiilikartta" />
+              </Typography>
+
+              <Box
+                sx={{
+                  mt: '2.85rem',
+                  width: '100%',
+                  maxWidth: '15.875rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 1,
+                }}
+              >
+                <Box
+                  component="img"
+                  src="/files/img/hiilikartta/sidebar/nappaa-logo.png"
+                  alt="Nappaa hiilesta kiinni"
+                  sx={{ height: '2.375rem', width: 'auto', objectFit: 'contain' }}
+                />
+                <Box
+                  component="img"
+                  src="/files/img/hiilikartta/sidebar/syke-logo.png"
+                  alt="Syke"
+                  sx={{ height: '2.5rem', width: 'auto', objectFit: 'contain' }}
+                />
+                <Box
+                  component="img"
+                  src="/files/img/hiilikartta/sidebar/luke-logo.png"
+                  alt="Luke"
+                  sx={{ height: '2.5rem', width: 'auto', objectFit: 'contain' }}
+                />
+              </Box>
+            </Box>
+          </Box>
+        </Box>
       </SidebarContentBox>
-    </SidebarHeaderVisibilityBoundary>
+    </>
   )
 }
 

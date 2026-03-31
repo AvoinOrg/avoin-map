@@ -1,4 +1,5 @@
 export { Sidebar } from './Sidebar'
+export { HiilikarttaHomeSidebar } from './HiilikarttaHomeSidebar'
 export { MainSidebar } from './MainSidebar'
 export { SimpleSidebar } from './SimpleSidebar'
 export { default as SidebarToggleButton } from './SidebarToggleButton'

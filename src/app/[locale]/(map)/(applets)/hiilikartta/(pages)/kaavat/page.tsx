@@ -28,6 +28,8 @@ import { createLayerConf } from '#/app/[locale]/(map)/(applets)/hiilikartta/comm
 import { getVisiblePlanConfs } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/planVisibility'
 
 type SortOption = 'newest' | 'oldest' | 'a-z' | 'z-a'
+const IMPORT_PLAN_LABEL = 'Tuo oma kaavatiedosto'
+const DRAW_PLAN_LABEL = 'Piirrä kaava-alue karttaan'
 
 const Page = () => {
   const { t } = useTranslate('hiilikartta')
@@ -119,24 +121,44 @@ const Page = () => {
   }
 
   return (
-    <SidebarContentBox sxInner={{ pt: 0, gap: 3 }}>
+    <SidebarContentBox
+      sxInner={{
+        pt: 0,
+        gap: { mobile: '1.5rem', desktop: '1.5rem' },
+        px: { mobile: '1rem', desktop: '1.875rem' },
+        pb: { mobile: '1.25rem', desktop: '1.5rem' },
+        backgroundColor: '#ffffff',
+      }}
+    >
       <SidebarBackgroundContent
-        imageSrc="/files/img/hiilikartta/zoning.jpg"
+        imageSrc="/files/img/hiilikartta/sidebar/kaavat-hero.png"
         imageAlt="Hiilikartta kaavat"
         title={<T keyName="sidebar.kaavat.title" ns="hiilikartta" />}
         description={<T keyName="sidebar.kaavat.description" ns="hiilikartta" />}
+        imageSx={{
+          objectPosition: 'center 35%',
+        }}
+        contentSx={{
+          px: { mobile: '1.5rem', desktop: '2.4375rem' },
+          pt: { mobile: '1.125rem', desktop: '1.875rem' },
+          pb: { mobile: '1.25rem', desktop: '1.75rem' },
+          gap: { mobile: 1.5, desktop: 2 },
+        }}
+        actionsSx={{
+          gap: { mobile: 1, desktop: 0.75 },
+        }}
         actions={
           <>
             <IconTextButton
               icon={<Upload />}
-              text={<T keyName="sidebar.create.upload" ns="hiilikartta" />}
+              text={IMPORT_PLAN_LABEL}
               helperText={t('sidebar.create.upload_info')}
               helperAriaLabel="Show plan import information"
               onClick={handleImportClick}
             />
             <IconTextButton
               icon={<FountainPen />}
-              text={<T keyName="sidebar.create.draw_new" ns="hiilikartta" />}
+              text={DRAW_PLAN_LABEL}
               helperText={t('sidebar.create.draw_new_info')}
               helperAriaLabel="Show drawing instructions"
               onClick={handleDrawClick}
@@ -146,7 +168,16 @@ const Page = () => {
       />
 
       {hasPlansSection && (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+            p: { mobile: '1rem', desktop: '1.125rem' },
+            borderRadius: '1.25rem',
+            backgroundColor: '#f3f3f3',
+          }}
+        >
           <Box
             sx={{
               display: 'flex',
@@ -156,7 +187,16 @@ const Page = () => {
               flexDirection: { mobile: 'column', desktop: 'row' },
             }}
           >
-            <Typography sx={{ typography: 'h2', color: 'neutral.darker' }}>
+            <Typography
+              sx={{
+                color: '#111111',
+                fontSize: '0.625rem',
+                fontWeight: 700,
+                letterSpacing: '0.1em',
+                lineHeight: '1.125rem',
+                textTransform: 'uppercase',
+              }}
+            >
               <T keyName="sidebar.my_plans.title" ns="hiilikartta" />
             </Typography>
             <DropDownSelectMinimal
@@ -182,52 +222,72 @@ const Page = () => {
                 },
               ]}
               sx={{
-                typography: 'body2',
-                color: 'neutral.dark',
+                fontSize: '0.625rem',
+                color: '#4b4b4b',
                 alignSelf: { mobile: 'flex-start', desktop: 'center' },
+                minWidth: '5rem',
+                borderRadius: '999px',
+                backgroundColor: '#ffffff',
+                px: 1,
+                py: 0.45,
+              }}
+              iconSx={{
+                mt: 0,
+                mr: 0.1,
               }}
             />
           </Box>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {sortedPlanConfs.map((planConf) => (
-              <Box
-                key={planConf.id}
-                component="button"
-                type="button"
-                aria-label={`Open plan ${planConf.name}`}
-                onClick={() =>
-                  router.push(
-                    getRoute({
-                      routeNode: routeTree.plans.plan,
-                      routeTree,
-                      params: { routeParams: { planId: planConf.id } },
-                    })
-                  )
-                }
-                sx={{
-                  p: 0,
-                  m: 0,
-                  width: '100%',
-                  border: 'none',
-                  background: 'none',
-                  textAlign: 'inherit',
-                  cursor: 'pointer',
-                }}
-              >
-                <PlanFolder planConf={planConf} height={120} />
-              </Box>
-            ))}
-
-            {placeholderPlanConfs &&
-              Object.keys(placeholderPlanConfs).map((planConfId) => (
-                <Box key={planConfId}>
-                  <PlanFolderLoading
-                    planConf={placeholderPlanConfs[planConfId]}
-                    height={120}
-                  />
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2,
+              p: { mobile: '0.875rem', desktop: '1rem' },
+              borderRadius: '1rem',
+              backgroundColor: '#ffffff',
+            }}
+          >
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {sortedPlanConfs.map((planConf) => (
+                <Box
+                  key={planConf.id}
+                  component="button"
+                  type="button"
+                  aria-label={`Open plan ${planConf.name}`}
+                  onClick={() =>
+                    router.push(
+                      getRoute({
+                        routeNode: routeTree.plans.plan,
+                        routeTree,
+                        params: { routeParams: { planId: planConf.id } },
+                      })
+                    )
+                  }
+                  sx={{
+                    p: 0,
+                    m: 0,
+                    width: '100%',
+                    border: 'none',
+                    background: 'none',
+                    textAlign: 'inherit',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <PlanFolder planConf={planConf} height={120} />
                 </Box>
               ))}
+
+              {placeholderPlanConfs &&
+                Object.keys(placeholderPlanConfs).map((planConfId) => (
+                  <Box key={planConfId}>
+                    <PlanFolderLoading
+                      planConf={placeholderPlanConfs[planConfId]}
+                      height={120}
+                    />
+                  </Box>
+                ))}
+            </Box>
           </Box>
         </Box>
       )}

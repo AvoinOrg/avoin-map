@@ -13,7 +13,7 @@ import {
   Typography,
 } from '@mui/material'
 
-import InfoCircleFilled from '#/components/icons/InfoCircleFilled'
+import QuestionCircleOutline from '#/components/icons/QuestionCircleOutline'
 
 type IconTextButtonProps = ButtonProps & {
   icon: React.ReactElement
@@ -53,8 +53,8 @@ const IconTextButton = ({
   const iconElement = React.cloneElement(icon, {
     sx: [
       {
-        width: 22,
-        height: 22,
+        width: 14,
+        height: 14,
         color: 'inherit',
       },
       ...((icon.props.sx
@@ -70,29 +70,29 @@ const IconTextButton = ({
       sx={[
         {
           width: '100%',
-          minHeight: '4.5rem',
+          minHeight: '3.125rem',
           display: 'flex',
           alignItems: 'center',
-          borderRadius: '1rem',
-          border: '1px solid rgba(255, 255, 255, 0.18)',
-          backgroundColor: 'rgba(255, 255, 255, 0.12)',
-          color: '#fff',
+          borderRadius: '0.9375rem',
+          border: '1px solid rgba(47, 68, 23, 0.1)',
+          backgroundColor: 'rgba(255, 255, 255, 0.32)',
+          color: '#111111',
           boxShadow: 'none',
           transition: 'background-color 140ms ease, border-color 140ms ease',
           ...(isDisabled
             ? {
-                color: 'rgba(255,255,255,0.65)',
-                borderColor: 'rgba(255,255,255,0.14)',
-                backgroundColor: 'rgba(255,255,255,0.07)',
+                color: 'rgba(47,68,23,0.45)',
+                borderColor: 'rgba(47,68,23,0.08)',
+                backgroundColor: 'rgba(255,255,255,0.18)',
               }
             : {
                 '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.18)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.42)',
                   boxShadow: 'none',
                 },
               }),
           '& .MuiIconButton-root.Mui-disabled': {
-            color: 'rgba(255,255,255,0.5)',
+            color: 'rgba(47,68,23,0.35)',
           },
         },
         ...(Array.isArray(sx) ? sx : [sx]),
@@ -104,9 +104,9 @@ const IconTextButton = ({
         {...buttonProps}
         sx={{
           flex: 1,
-          minHeight: '4.5rem',
-          px: '1rem',
-          py: '0.875rem',
+          minHeight: '3.125rem',
+          px: '0.95rem',
+          py: '0.75rem',
           justifyContent: 'space-between',
           alignItems: 'center',
           textTransform: 'none',
@@ -150,11 +150,13 @@ const IconTextButton = ({
           <Typography
             sx={[
               {
-                typography: 'h4',
+                fontSize: '0.625rem',
+                fontWeight: 700,
                 color: 'inherit',
                 textAlign: 'left',
                 whiteSpace: 'normal',
-                lineHeight: 1.2,
+                lineHeight: '1.125rem',
+                letterSpacing: '0.1em',
               },
               ...(Array.isArray(textSx) ? textSx : [textSx]),
             ]}
@@ -168,7 +170,7 @@ const IconTextButton = ({
         <ClickAwayListener onClickAway={() => setIsHelperOpen(false)}>
           <Box
             sx={{
-              pr: '0.875rem',
+              pr: '0.75rem',
               pl: 0.25,
               flexShrink: 0,
               display: 'flex',
@@ -195,11 +197,11 @@ const IconTextButton = ({
                   setIsHelperOpen((prev) => !prev)
                 }}
                 sx={{
-                  color: 'inherit',
+                  color: '#95a086',
                   p: 0.25,
                 }}
               >
-                <InfoCircleFilled sx={{ width: 18, height: 18 }} />
+                <QuestionCircleOutline sx={{ width: 16, height: 16 }} />
               </IconButton>
             </Tooltip>
           </Box>
