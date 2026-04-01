@@ -12,8 +12,6 @@ import { getRoute } from '#/common/routing/routing-client'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
 import SidebarBackgroundContent from '#/components/common/SidebarBackgroundContent'
 import IconTextButton from '#/components/common/IconTextButton'
-import Upload from '#/components/icons/Upload'
-import FountainPen from '#/components/icons/FountainPen'
 
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 import { routeTree } from '#/common/routing/routes/hiilikartta'
@@ -31,6 +29,10 @@ import PlanOutlineIcon from '#/app/[locale]/(map)/(applets)/hiilikartta/componen
 type SortOption = 'newest' | 'oldest' | 'a-z' | 'z-a'
 const IMPORT_PLAN_LABEL = 'Tuo oma kaavatiedosto'
 const DRAW_PLAN_LABEL = 'Piirrä kaava-alue karttaan'
+const IMPORT_PLAN_ICON_SRC =
+  '/files/img/hiilikartta/sidebar/kaavat-action-upload.svg'
+const DRAW_PLAN_ICON_SRC =
+  '/files/img/hiilikartta/sidebar/kaavat-action-draw.svg'
 
 const Page = () => {
   const { t } = useTranslate('hiilikartta')
@@ -143,28 +145,60 @@ const Page = () => {
         title={<T keyName="sidebar.kaavat.title" ns="hiilikartta" />}
         description={<T keyName="sidebar.kaavat.description" ns="hiilikartta" />}
         imageSx={{
+          height: '5.625rem',
           objectPosition: 'center 35%',
         }}
         contentSx={{
-          px: { mobile: '1.5rem', desktop: '2.4375rem' },
-          pt: { mobile: '1.125rem', desktop: '1.875rem' },
-          pb: { mobile: '1.25rem', desktop: '1.75rem' },
-          gap: { mobile: 1.5, desktop: 2 },
+          px: '2.4375rem',
+          pt: '4.375rem',
+          pb: '4.6875rem',
+          gap: '3.75rem',
+        }}
+        headerSx={{
+          gap: '2.1875rem',
+        }}
+        descriptionSx={{
+          width: '100%',
+          maxWidth: '14.8125rem',
         }}
         actionsSx={{
-          gap: { mobile: 1, desktop: 0.75 },
+          gap: '1.75rem',
         }}
         actions={
           <>
             <IconTextButton
-              icon={<Upload />}
+              icon={
+                <Box
+                  component="img"
+                  src={IMPORT_PLAN_ICON_SRC}
+                  alt=""
+                  aria-hidden="true"
+                  sx={{
+                    width: '0.75rem',
+                    height: '0.90625rem',
+                    display: 'block',
+                  }}
+                />
+              }
               text={IMPORT_PLAN_LABEL}
               helperText={t('sidebar.create.upload_info')}
               helperAriaLabel="Show plan import information"
               onClick={handleImportClick}
             />
             <IconTextButton
-              icon={<FountainPen />}
+              icon={
+                <Box
+                  component="img"
+                  src={DRAW_PLAN_ICON_SRC}
+                  alt=""
+                  aria-hidden="true"
+                  sx={{
+                    width: '1.0125rem',
+                    height: '0.75rem',
+                    display: 'block',
+                  }}
+                />
+              }
               text={DRAW_PLAN_LABEL}
               helperText={t('sidebar.create.draw_new_info')}
               helperAriaLabel="Show drawing instructions"

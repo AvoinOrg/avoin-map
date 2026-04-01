@@ -70,25 +70,18 @@ const IconTextButton = ({
       sx={[
         {
           width: '100%',
-          minHeight: '3.125rem',
+          minHeight: '1.125rem',
           display: 'flex',
           alignItems: 'center',
-          borderRadius: '0.9375rem',
-          border: '1px solid rgba(47, 68, 23, 0.1)',
-          backgroundColor: 'rgba(255, 255, 255, 0.32)',
+          gap: '0.75rem',
           color: '#111111',
-          boxShadow: 'none',
-          transition: 'background-color 140ms ease, border-color 140ms ease',
           ...(isDisabled
             ? {
                 color: 'rgba(47,68,23,0.45)',
-                borderColor: 'rgba(47,68,23,0.08)',
-                backgroundColor: 'rgba(255,255,255,0.18)',
               }
             : {
                 '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.42)',
-                  boxShadow: 'none',
+                  color: '#0D6044',
                 },
               }),
           '& .MuiIconButton-root.Mui-disabled': {
@@ -104,13 +97,14 @@ const IconTextButton = ({
         {...buttonProps}
         sx={{
           flex: 1,
-          minHeight: '3.125rem',
-          px: '0.95rem',
-          py: '0.75rem',
-          justifyContent: 'space-between',
+          minWidth: 0,
+          minHeight: '1.125rem',
+          px: 0,
+          py: 0,
+          justifyContent: 'flex-start',
           alignItems: 'center',
           textTransform: 'none',
-          borderRadius: 'inherit',
+          borderRadius: 0,
           color: 'inherit',
           backgroundColor: 'transparent',
           boxShadow: 'none',
@@ -127,7 +121,7 @@ const IconTextButton = ({
           sx={{
             display: 'flex',
             alignItems: 'center',
-            gap: 1.25,
+            gap: '1rem',
             minWidth: 0,
             flex: 1,
           }}
@@ -139,6 +133,10 @@ const IconTextButton = ({
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0,
+                width: '1.125rem',
+                minWidth: '1.125rem',
+                height: '1.125rem',
+                color: '#0D6044',
               },
               ...(Array.isArray(iconWrapperSx)
                 ? iconWrapperSx
@@ -157,6 +155,7 @@ const IconTextButton = ({
                 whiteSpace: 'normal',
                 lineHeight: '1.125rem',
                 letterSpacing: '0.1em',
+                textTransform: 'none',
               },
               ...(Array.isArray(textSx) ? textSx : [textSx]),
             ]}
@@ -170,11 +169,13 @@ const IconTextButton = ({
         <ClickAwayListener onClickAway={() => setIsHelperOpen(false)}>
           <Box
             sx={{
-              pr: '0.75rem',
-              pl: 0.25,
               flexShrink: 0,
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
+              width: '1rem',
+              minWidth: '1rem',
+              height: '1.125rem',
             }}
           >
             <Tooltip
@@ -198,7 +199,9 @@ const IconTextButton = ({
                 }}
                 sx={{
                   color: '#95a086',
-                  p: 0.25,
+                  p: 0,
+                  width: '1rem',
+                  height: '1rem',
                 }}
               >
                 <QuestionCircleOutline sx={{ width: 16, height: 16 }} />

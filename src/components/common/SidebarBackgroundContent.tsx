@@ -13,6 +13,8 @@ type SidebarBackgroundContentProps = {
   sx?: SxProps<Theme>
   imageSx?: SxProps<Theme>
   contentSx?: SxProps<Theme>
+  headerSx?: SxProps<Theme>
+  descriptionSx?: SxProps<Theme>
   actionsSx?: SxProps<Theme>
 }
 
@@ -26,6 +28,8 @@ const SidebarBackgroundContent = ({
   sx,
   imageSx,
   contentSx,
+  headerSx,
+  descriptionSx,
   actionsSx,
 }: SidebarBackgroundContentProps) => {
   return (
@@ -71,7 +75,16 @@ const SidebarBackgroundContent = ({
         ]}
       >
         {(title || description) && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.8 }}>
+          <Box
+            sx={[
+              {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 0.8,
+              },
+              ...(Array.isArray(headerSx) ? headerSx : [headerSx]),
+            ]}
+          >
             {title && (
               <Typography
                 sx={{
@@ -88,14 +101,19 @@ const SidebarBackgroundContent = ({
             )}
             {description && (
               <Typography
-                sx={{
-                  fontSize: '0.625rem',
-                  fontWeight: 400,
-                  lineHeight: '1.125rem',
-                  letterSpacing: '0.1em',
-                  color: 'inherit',
-                  maxWidth: '24ch',
-                }}
+                sx={[
+                  {
+                    fontSize: '0.625rem',
+                    fontWeight: 400,
+                    lineHeight: '1.125rem',
+                    letterSpacing: '0.1em',
+                    color: 'inherit',
+                    maxWidth: '24ch',
+                  },
+                  ...(Array.isArray(descriptionSx)
+                    ? descriptionSx
+                    : [descriptionSx]),
+                ]}
               >
                 {description}
               </Typography>
