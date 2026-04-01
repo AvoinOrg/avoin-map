@@ -55,9 +55,10 @@ export const SimpleSidebar = ({
         ]}
         panelSx={{
           borderRadius: 0,
+          backgroundColor: '#ffffff',
         }}
         contentSx={{
-          backgroundColor: '#ffffff',
+          backgroundColor: 'inherit',
         }}
       >
         {children}

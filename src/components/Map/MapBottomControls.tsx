@@ -6,11 +6,12 @@ import { Box, Button } from '@mui/material'
 import { useParams, usePathname } from 'next/navigation'
 
 import {
+  HIILIKARTTA_HOME_FLOATING_GUTTER_PX,
   MAIN_SIDEBAR_BOTTOM_CONTROLS_SLOT,
   MAIN_SIDEBAR_TOP_CONTROLS_SLOT,
 } from '#/common/constants/map'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
-import { getPathnameWithoutLocale } from '#/common/routing/routing'
+import { compiledApplets, getPathnameWithoutLocale } from '#/common/routing/routing'
 import { useMapStore, useUIStore } from '#/common/store'
 import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
 import { IntoSlot } from '#/components/context/slotsContext'
@@ -38,7 +39,12 @@ const MapBottomControls = () => {
   const pathname = usePathname()
   const { locale } = useParams()
   const pathnameWithoutLocale = getPathnameWithoutLocale(pathname, locale ?? null)
-  const isMainPage = pathnameWithoutLocale === '/'
+  const isStandaloneHiilikartta =
+    compiledApplets.length === 1 && compiledApplets[0] === 'hiilikartta'
+  const isMainPage = pathnameWithoutLocale === '/' && !isStandaloneHiilikartta
+  const isHiilikarttaHomePage =
+    pathnameWithoutLocale === '/hiilikartta' ||
+    (isStandaloneHiilikartta && pathnameWithoutLocale === '/')
   const useMainSidebarBottomSlot = isMainPage && isSidebarOpen && !isMobile
   const useMainSidebarTopSlot = isMainPage && isSidebarOpen && isMobile
   const useMobileFixedInfoOnly = isMainPage && !isSidebarOpen && isMobile
@@ -64,8 +70,12 @@ const MapBottomControls = () => {
     [mapAttributionHtml]
   )
 
-  const spacingLeftPx = CONTROL_EDGE_GUTTER_PX
-  const spacingBottomPx = CONTROL_EDGE_GUTTER_PX
+  const controlEdgeGutterPx =
+    !isMobile && isHiilikarttaHomePage
+      ? HIILIKARTTA_HOME_FLOATING_GUTTER_PX
+      : CONTROL_EDGE_GUTTER_PX
+  const spacingLeftPx = controlEdgeGutterPx
+  const spacingBottomPx = controlEdgeGutterPx
 
   const leftOffsetPx = isMobile
     ? spacingLeftPx

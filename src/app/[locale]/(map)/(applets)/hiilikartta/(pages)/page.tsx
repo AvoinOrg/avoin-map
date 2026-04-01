@@ -83,15 +83,6 @@ const Page = () => {
   const isVegetationLayerVisible =
     vegetationLayerGroup != null &&
     visibleLayerGroupIds.includes(vegetationLayerGroup.id)
-  const firstSentenceEndIndex = introText.indexOf('. ')
-  const leadingIntroSentence =
-    firstSentenceEndIndex >= 0
-      ? introText.slice(0, firstSentenceEndIndex + 1)
-      : introText
-  const trailingIntroSentence =
-    firstSentenceEndIndex >= 0
-      ? introText.slice(firstSentenceEndIndex + 2)
-      : ''
 
   return (
     <>
@@ -109,15 +100,16 @@ const Page = () => {
           sx={{
             width: '100%',
             height: '5rem',
-            px: { mobile: '1.5rem', desktop: '1.6875rem' },
+            px: { mobile: '1.5rem', desktop: '2.375rem' },
             display: 'flex',
             alignItems: 'center',
-            gap: '1.625rem',
+            gap: { mobile: '1.125rem', desktop: '1.5625rem' },
             border: 'none',
             borderRadius: { mobile: 0, desktop: '6px 6px 10px 10px' },
             backgroundColor: '#b0ff6b',
             color: '#111111',
             cursor: 'pointer',
+            boxShadow: '0px 1px 1px rgba(189, 189, 189, 0.25)',
             '&:hover': {
               backgroundColor: '#b0ff6b',
             },
@@ -144,7 +136,7 @@ const Page = () => {
               textTransform: 'none',
             }}
           >
-            Katsele omat kaavat tai luo uusia tästä
+            Luo Kaava & laske hiilivaikutukset
           </Typography>
         </Box>
       </IntoSlot>
@@ -181,6 +173,7 @@ const Page = () => {
             <Box>
               <Typography
                 sx={{
+                  mt: { mobile: '0.875rem', desktop: '1rem' },
                   color: '#111111',
                   fontSize: '0.75rem',
                   fontWeight: 700,
@@ -191,37 +184,19 @@ const Page = () => {
                   maxWidth: '18.2rem',
                 }}
               >
-                <Box component="span" sx={{ color: '#979797' }}>
-                  {leadingIntroSentence}
-                  {trailingIntroSentence ? ' ' : ''}
-                </Box>
-                {trailingIntroSentence}
+                {introText}
               </Typography>
 
               {vegetationLayerGroup && (
                 <Box
                   sx={{
                     mt: { mobile: '4rem', desktop: '5.25rem' },
-                    py: '0.4rem',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: 1,
-                    borderBottom: '1px solid rgba(17, 17, 17, 0.1)',
+                    width: '100%',
+                    ml: '-0.5rem',
                   }}
                 >
-                  <Typography
-                    sx={{
-                      color: '#111111',
-                      fontSize: '0.75rem',
-                      fontWeight: 700,
-                      lineHeight: '1.125rem',
-                      letterSpacing: '0.02em',
-                      whiteSpace: 'normal',
-                    }}
-                  >
-                    <T keyName="sidebar.main.vegetation_layer" ns="hiilikartta" />
-                  </Typography>
                   <EyeButton
                     ariaLabel="Toggle vegetation carbon layer"
                     color="#B0FF6B"
@@ -234,18 +209,38 @@ const Page = () => {
                       )
                     }}
                   />
+                  <Typography
+                    onClick={() =>
+                      toggleLayerGroup(
+                        vegetationLayerGroup.id,
+                        vegetationLayerGroup.addOptions
+                      )
+                    }
+                    sx={{
+                      color: '#111111',
+                      flexGrow: 1,
+                      cursor: 'pointer',
+                      fontSize: '0.6875rem',
+                      fontWeight: 400,
+                      lineHeight: '1.125rem',
+                      letterSpacing: '0.1em',
+                      whiteSpace: 'normal',
+                    }}
+                  >
+                    <T keyName="sidebar.main.vegetation_layer" ns="hiilikartta" />
+                  </Typography>
                 </Box>
               )}
             </Box>
 
-            <Box sx={{ mt: 'auto', pt: '2rem' }}>
+            <Box sx={{ mt: 'auto', pt: { mobile: '2.5rem', desktop: '3rem' } }}>
               <Typography
                 sx={{
-                  color: '#4b4b4b',
-                  fontSize: '0.5rem',
+                  color: '#111111',
+                  fontSize: '0.625rem',
                   fontWeight: 400,
                   lineHeight: '1rem',
-                  letterSpacing: '0.04em',
+                  letterSpacing: '0.03125rem',
                   whiteSpace: 'normal',
                   maxWidth: '18.625rem',
                 }}
@@ -255,32 +250,45 @@ const Page = () => {
 
               <Box
                 sx={{
-                  mt: '2.85rem',
+                  mt: { mobile: '2.5rem', desktop: '3rem' },
                   width: '100%',
-                  maxWidth: '15.875rem',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  gap: 1,
+                  gap: '1rem',
                 }}
               >
                 <Box
                   component="img"
                   src="/files/img/hiilikartta/sidebar/nappaa-logo.png"
                   alt="Nappaa hiilesta kiinni"
-                  sx={{ height: '2.375rem', width: 'auto', objectFit: 'contain' }}
+                  sx={{
+                    width: '4.4375rem',
+                    height: '2.375rem',
+                    objectFit: 'contain',
+                    objectPosition: 'left center',
+                  }}
                 />
                 <Box
                   component="img"
                   src="/files/img/hiilikartta/sidebar/syke-logo.png"
                   alt="Syke"
-                  sx={{ height: '2.5rem', width: 'auto', objectFit: 'contain' }}
+                  sx={{
+                    width: '2.5625rem',
+                    height: '2.5rem',
+                    objectFit: 'contain',
+                  }}
                 />
                 <Box
                   component="img"
                   src="/files/img/hiilikartta/sidebar/luke-logo.png"
                   alt="Luke"
-                  sx={{ height: '2.5rem', width: 'auto', objectFit: 'contain' }}
+                  sx={{
+                    width: '2.75rem',
+                    height: '2.5rem',
+                    objectFit: 'contain',
+                    objectPosition: 'right center',
+                  }}
                 />
               </Box>
             </Box>

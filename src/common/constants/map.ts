@@ -7,6 +7,7 @@ export const FINLAND_BOUNDS = [31.6, 19.0, 70.1, 59.3]
 export const MAIN_SIDEBAR_BOTTOM_CONTROLS_SLOT =
   'main-sidebar-bottom-controls'
 export const MAIN_SIDEBAR_TOP_CONTROLS_SLOT = 'main-sidebar-top-controls'
+export const HIILIKARTTA_HOME_FLOATING_GUTTER_PX = 10
 
 export type CanvasFillOptions = {
   backGroundColor?: string

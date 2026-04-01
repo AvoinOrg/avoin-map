@@ -17,15 +17,16 @@ import FountainPen from '#/components/icons/FountainPen'
 
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 import { routeTree } from '#/common/routing/routes/hiilikartta'
-import PlanFolder from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanFolder'
+import PlanListItem from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanListItem'
 import {
   NewPlanConf,
   PlanData,
   ZONING_CODE_COL,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
-import PlanFolderLoading from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanFolderLoading'
+import PlanListItemLoading from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanListItemLoading'
 import { createLayerConf } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
 import { getVisiblePlanConfs } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/planVisibility'
+import PlanOutlineIcon from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanOutlineIcon'
 
 type SortOption = 'newest' | 'oldest' | 'a-z' | 'z-a'
 const IMPORT_PLAN_LABEL = 'Tuo oma kaavatiedosto'
@@ -47,7 +48,7 @@ const Page = () => {
   )
 
   const sortedPlanConfs = useMemo(() => {
-    const visiblePlanConfs = getVisiblePlanConfs(planConfs)
+    const visiblePlanConfs = getVisiblePlanConfs(planConfs ?? undefined)
 
     const sorted = [...visiblePlanConfs]
 
@@ -75,6 +76,11 @@ const Page = () => {
   const handleSortChange = (event: SelectChangeEvent<string>) => {
     setSortOrder(event.target.value as SortOption)
   }
+
+  const visiblePlanCount = sortedPlanConfs.length
+  const visiblePlanCountLabel = `${visiblePlanCount} ${
+    visiblePlanCount === 1 ? 'kaava' : 'kaavaa'
+  }`
 
   const handleImportClick = () => {
     router.push(getRoute({ routeNode: routeTree.create.import, routeTree }))
@@ -122,6 +128,7 @@ const Page = () => {
 
   return (
     <SidebarContentBox
+      scrollFadeColor="#ffffff"
       sxInner={{
         pt: 0,
         gap: { mobile: '1.5rem', desktop: '1.5rem' },
@@ -172,19 +179,17 @@ const Page = () => {
           sx={{
             display: 'flex',
             flexDirection: 'column',
-            gap: '1rem',
-            p: { mobile: '1rem', desktop: '1.125rem' },
+            gap: { mobile: '1rem', desktop: '1.125rem' },
+            p: { mobile: '1rem', desktop: '1.25rem' },
             borderRadius: '1.25rem',
-            backgroundColor: '#f3f3f3',
+            backgroundColor: '#f4f4f4',
           }}
         >
           <Box
             sx={{
               display: 'flex',
-              alignItems: { mobile: 'stretch', desktop: 'center' },
-              justifyContent: 'space-between',
-              gap: 1.5,
-              flexDirection: { mobile: 'column', desktop: 'row' },
+              flexDirection: 'column',
+              gap: '0.75rem',
             }}
           >
             <Typography
@@ -199,92 +204,154 @@ const Page = () => {
             >
               <T keyName="sidebar.my_plans.title" ns="hiilikartta" />
             </Typography>
-            <DropDownSelectMinimal
-              value={sortOrder}
-              onChange={handleSortChange}
-              ariaLabel={t('sidebar.kaavat.sort_label')}
-              options={[
-                {
-                  value: 'newest',
-                  label: t('sidebar.kaavat.sort_newest'),
-                },
-                {
-                  value: 'oldest',
-                  label: t('sidebar.kaavat.sort_oldest'),
-                },
-                {
-                  value: 'a-z',
-                  label: t('sidebar.kaavat.sort_a_z'),
-                },
-                {
-                  value: 'z-a',
-                  label: t('sidebar.kaavat.sort_z_a'),
-                },
-              ]}
+            <Box
               sx={{
-                fontSize: '0.625rem',
-                color: '#4b4b4b',
-                alignSelf: { mobile: 'flex-start', desktop: 'center' },
-                minWidth: '5rem',
-                borderRadius: '999px',
-                backgroundColor: '#ffffff',
-                px: 1,
-                py: 0.45,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                color: '#111111',
               }}
-              iconSx={{
-                mt: 0,
-                mr: 0.1,
-              }}
-            />
+            >
+              <PlanOutlineIcon
+                variant="large"
+                sx={{
+                  color: '#0D6044',
+                  flexShrink: 0,
+                }}
+              />
+              <Typography
+                sx={{
+                  color: '#111111',
+                  fontSize: '0.625rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.1em',
+                  lineHeight: '1.125rem',
+                }}
+              >
+                {visiblePlanCountLabel}
+              </Typography>
+            </Box>
           </Box>
 
           <Box
             sx={{
               display: 'flex',
               flexDirection: 'column',
-              gap: 2,
-              p: { mobile: '0.875rem', desktop: '1rem' },
-              borderRadius: '1rem',
-              backgroundColor: '#ffffff',
+              borderRadius: '0.75rem',
+              overflow: 'hidden',
+              backgroundColor: '#f4f4f4',
+              boxShadow: 'inset -1px -1px 6px 0 #dfdfdf',
             }}
           >
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                alignItems: 'center',
+                px: { mobile: '0.75rem', desktop: '0.875rem' },
+                py: '1rem',
+                backgroundColor: '#f4f4f4',
+                boxShadow: '0px 1px 1px 0px rgba(189, 189, 189, 0.25)',
+              }}
+            >
+              <DropDownSelectMinimal
+                value={sortOrder}
+                onChange={handleSortChange}
+                ariaLabel={t('sidebar.kaavat.sort_label')}
+                options={[
+                  {
+                    value: 'newest',
+                    label: 'Uusin ensin',
+                  },
+                  {
+                    value: 'oldest',
+                    label: t('sidebar.kaavat.sort_oldest'),
+                  },
+                  {
+                    value: 'a-z',
+                    label: t('sidebar.kaavat.sort_a_z'),
+                  },
+                  {
+                    value: 'z-a',
+                    label: t('sidebar.kaavat.sort_z_a'),
+                  },
+                ]}
+                sx={{
+                  minWidth: '7.25rem',
+                  borderRadius: '999px',
+                  backgroundColor: '#d9d9d9',
+                  boxShadow: '0px 1px 1px 0px rgba(189, 189, 189, 0.25)',
+                  color: '#111111',
+                  '& .MuiSelect-select': {
+                    pl: '0.75rem',
+                    pr: '1.75rem !important',
+                    py: '0.3125rem',
+                    fontSize: '0.5rem',
+                    fontWeight: 700,
+                    lineHeight: '1rem',
+                    letterSpacing: '0.1em',
+                  },
+                  '& .MuiSelect-icon': {
+                    right: '0.5rem',
+                    top: 'calc(50% - 0.25rem)',
+                    width: '0.5rem',
+                    height: '0.25rem',
+                  },
+                }}
+                optionSx={{
+                  fontSize: '0.5rem',
+                  fontWeight: 700,
+                  lineHeight: '1rem',
+                  letterSpacing: '0.1em',
+                  pl: 1.5,
+                  pr: 1,
+                }}
+                iconSx={{
+                  mt: 0,
+                  mr: 0,
+                }}
+              />
+            </Box>
+
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                px: { mobile: '1.125rem', desktop: '1.25rem' },
+                pb: { mobile: '1rem', desktop: '1.125rem' },
+                pt: '0.8125rem',
+              }}
+            >
               {sortedPlanConfs.map((planConf) => (
                 <Box
                   key={planConf.id}
-                  component="button"
-                  type="button"
-                  aria-label={`Open plan ${planConf.name}`}
-                  onClick={() =>
-                    router.push(
-                      getRoute({
-                        routeNode: routeTree.plans.plan,
-                        routeTree,
-                        params: { routeParams: { planId: planConf.id } },
-                      })
-                    )
-                  }
                   sx={{
-                    p: 0,
-                    m: 0,
                     width: '100%',
-                    border: 'none',
-                    background: 'none',
-                    textAlign: 'inherit',
-                    cursor: 'pointer',
+                    borderBottom:
+                      '1px solid rgba(13, 96, 68, 0.12)',
+                    '&:last-of-type': {
+                      borderBottom: 'none',
+                    },
                   }}
                 >
-                  <PlanFolder planConf={planConf} height={120} />
+                  <PlanListItem planConf={planConf} />
                 </Box>
               ))}
 
               {placeholderPlanConfs &&
                 Object.keys(placeholderPlanConfs).map((planConfId) => (
-                  <Box key={planConfId}>
-                    <PlanFolderLoading
-                      planConf={placeholderPlanConfs[planConfId]}
-                      height={120}
-                    />
+                  <Box
+                    key={planConfId}
+                    sx={{
+                      width: '100%',
+                      borderBottom:
+                        '1px solid rgba(13, 96, 68, 0.12)',
+                      '&:last-of-type': {
+                        borderBottom: 'none',
+                      },
+                    }}
+                  >
+                    <PlanListItemLoading />
                   </Box>
                 ))}
             </Box>
