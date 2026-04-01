@@ -19,11 +19,13 @@ const SidebarContentBox = ({
   sxOuter,
   sxInner,
   scrollFadeColor = '#f4f4f4',
+  scrollbarSide = 'right',
   children,
 }: {
   sxOuter?: SxProps<Theme>
   sxInner?: SxProps<Theme>
   scrollFadeColor?: string
+  scrollbarSide?: 'left' | 'right'
   children?: React.ReactNode
 }) => {
   const isMobile = useIsMobile()
@@ -80,10 +82,27 @@ const SidebarContentBox = ({
         ...(Array.isArray(sxOuter) ? sxOuter : [sxOuter]),
       ]}
     >
-      <Box sx={{ position: 'relative', flex: 1, minHeight: 0, height: '100%' }}>
+      <Box
+        sx={{
+          position: 'relative',
+          flex: 1,
+          minHeight: 0,
+          height: '100%',
+          ...(scrollbarSide === 'left' && {
+            '& .os-scrollbar-vertical': {
+              left: 0,
+              right: 'auto',
+            },
+            '& .os-scrollbar-corner': {
+              left: 0,
+              right: 'auto',
+            },
+          }),
+        }}
+      >
         <OverlayScrollbarsComponent
           ref={scrollContainerRef}
-          className="osScroll"
+          className={`osScroll${scrollbarSide === 'left' ? ' osLeft' : ''}`}
           options={{
             overflow: { x: 'hidden', y: 'scroll' },
             scrollbars: {
@@ -93,12 +112,18 @@ const SidebarContentBox = ({
             },
           }}
           events={scrollEvents}
-          style={{ flex: 1, minHeight: 0, height: '100%' }}
+          style={{
+            flex: 1,
+            minHeight: 0,
+            height: '100%',
+            direction: scrollbarSide === 'left' ? 'rtl' : 'ltr',
+          }}
         >
           <Box
             className="sidebar-children-container-inner"
             sx={[
               {
+                direction: 'ltr',
                 display: 'flex',
                 flexDirection: 'column',
                 minHeight: '100%',

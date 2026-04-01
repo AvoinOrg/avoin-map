@@ -14,12 +14,20 @@ import { IntoSlot } from '#/components/context/slotsContext'
 
 import { routeTree } from '#/common/routing/routes/hiilikartta'
 import { listedLayerGroups } from '../common/constants'
+import PlanOutlineIcon from '../components/PlanOutlineIcon'
+
+const HOME_SIDEBAR_HEADER_PADDING_REM = 0.75
+const HOME_SIDEBAR_LEFT_WALL_REM = 2
+const HOME_SIDEBAR_LOGO_ROW_PADDING_REM = 0.5
 
 const HomeSidebarHeader = () => {
   return (
     <Box
       sx={{
-        px: { mobile: '0.625rem', desktop: '0.625rem' },
+        px: {
+          mobile: `${HOME_SIDEBAR_HEADER_PADDING_REM}rem`,
+          desktop: `${HOME_SIDEBAR_HEADER_PADDING_REM}rem`,
+        },
         pt: { mobile: '0.625rem', desktop: '0.625rem' },
         pb: { mobile: '0.375rem', desktop: '0.5rem' },
         flexShrink: 0,
@@ -100,10 +108,14 @@ const Page = () => {
           sx={{
             width: '100%',
             height: '5rem',
-            px: { mobile: '1.5rem', desktop: '2.375rem' },
+            px: {
+              mobile: `${HOME_SIDEBAR_LEFT_WALL_REM}rem`,
+              desktop: `${HOME_SIDEBAR_LEFT_WALL_REM}rem`,
+            },
             display: 'flex',
             alignItems: 'center',
-            gap: { mobile: '1.125rem', desktop: '1.5625rem' },
+            justifyContent: 'flex-start',
+            gap: { mobile: '1.375rem', desktop: '1.625rem' },
             border: 'none',
             borderRadius: { mobile: 0, desktop: '6px 6px 10px 10px' },
             backgroundColor: '#b0ff6b',
@@ -115,15 +127,13 @@ const Page = () => {
             },
           }}
         >
-          <Box
-            component="img"
-            src="/files/img/hiilikartta/sidebar/home-footer-icon.svg"
-            alt=""
-            aria-hidden="true"
+          <PlanOutlineIcon
+            variant="large"
             sx={{
               width: '1.375rem',
               height: '1rem',
               flexShrink: 0,
+              color: '#111111',
             }}
           />
           <Typography
@@ -144,6 +154,7 @@ const Page = () => {
         sxOuter={{
           height: '100%',
         }}
+        scrollbarSide="left"
         sxInner={{
           p: 0,
           display: 'flex',
@@ -165,7 +176,10 @@ const Page = () => {
               display: 'flex',
               flexDirection: 'column',
               flex: 1,
-              px: '1.25rem',
+              px: {
+                mobile: `${HOME_SIDEBAR_LEFT_WALL_REM}rem`,
+                desktop: `${HOME_SIDEBAR_LEFT_WALL_REM}rem`,
+              },
               pt: 0,
               pb: '1rem',
             }}
@@ -173,7 +187,7 @@ const Page = () => {
             <Box>
               <Typography
                 sx={{
-                  mt: { mobile: '0.875rem', desktop: '1rem' },
+                  mt: { mobile: '1.125rem', desktop: '1.25rem' },
                   color: '#111111',
                   fontSize: '0.75rem',
                   fontWeight: 700,
@@ -194,13 +208,16 @@ const Page = () => {
                     display: 'flex',
                     alignItems: 'center',
                     width: '100%',
-                    ml: '-0.5rem',
                   }}
                 >
                   <EyeButton
                     ariaLabel="Toggle vegetation carbon layer"
                     color="#B0FF6B"
                     status={isVegetationLayerVisible ? 'visible' : 'hidden'}
+                    sx={{
+                      p: 0,
+                      mr: '0.75rem',
+                    }}
                     onClick={(event) => {
                       event.preventDefault()
                       toggleLayerGroup(
@@ -252,6 +269,10 @@ const Page = () => {
                 sx={{
                   mt: { mobile: '2.5rem', desktop: '3rem' },
                   width: '100%',
+                  px: {
+                    mobile: `${HOME_SIDEBAR_LOGO_ROW_PADDING_REM}rem`,
+                    desktop: `${HOME_SIDEBAR_LOGO_ROW_PADDING_REM}rem`,
+                  },
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
