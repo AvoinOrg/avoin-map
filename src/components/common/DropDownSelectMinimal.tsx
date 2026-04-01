@@ -65,23 +65,25 @@ const DropDownSelectMinimal = ({
             },
           },
         }}
-        sx={{
-          '.MuiSelect-icon': {
-            mt: 0.2,
-            ...(iconSx as Record<string, any>),
-          },
-          '& .MuiSelect-select': {
+        sx={[
+          {
+            '.MuiSelect-icon': {
+              mt: 0.2,
+              ...(iconSx as Record<string, any>),
+            },
+            '& .MuiSelect-select': {
+              m: 0,
+              p: 0,
+            },
+
+            '& .MuiSelect-select:focus': {
+              backgroundColor: 'transparent',
+            },
             m: 0,
             p: 0,
           },
-
-          '& .MuiSelect-select:focus': {
-            backgroundColor: 'transparent',
-          },
-          m: 0,
-          p: 0,
           ...(Array.isArray(sx) ? sx : [sx]),
-        }}
+        ]}
       >
         {hasEmpty && <option key={''} value={''}></option>}
         {options.map((option) => (
