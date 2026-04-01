@@ -91,7 +91,7 @@ const PlanListItem = ({ planConf }: { planConf: PlanConf }) => {
       sx={{
         width: '100%',
         display: 'flex',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         justifyContent: 'space-between',
         gap: '0.75rem',
         py: '0.75rem',
@@ -110,7 +110,7 @@ const PlanListItem = ({ planConf }: { planConf: PlanConf }) => {
       <Box
         sx={{
           display: 'flex',
-          alignItems: 'flex-start',
+          alignItems: 'center',
           gap: '0.875rem',
           minWidth: 0,
           flex: 1,
@@ -119,7 +119,6 @@ const PlanListItem = ({ planConf }: { planConf: PlanConf }) => {
         <PlanOutlineIcon
           sx={{
             flexShrink: 0,
-            mt: '0.25rem',
             color: '#0D6044',
           }}
         />
@@ -183,14 +182,13 @@ const PlanListItem = ({ planConf }: { planConf: PlanConf }) => {
           alignItems: 'center',
           flexShrink: 0,
           color: '#111111',
-          pt: '0.125rem',
           transition: 'transform 160ms cubic-bezier(.2,0,.2,1)',
         }}
       >
         <CircleArrowRight
           sx={{
-            width: '1rem',
-            height: '1rem',
+            width: '1.0625rem',
+            height: '1.0625rem',
             color: 'inherit',
           }}
         />

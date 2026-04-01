@@ -24,8 +24,8 @@ const PlanOutlineIcon = ({ sx, variant = 'small' }: Props) => {
       sx={[
         {
           display: 'block',
-          width: isLarge ? '1rem' : '0.6875rem',
-          height: isLarge ? '0.75rem' : '0.5rem',
+          width: isLarge ? '1rem' : '0.8125rem',
+          height: isLarge ? '0.75rem' : '0.625rem',
         },
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}

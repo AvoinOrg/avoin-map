@@ -248,7 +248,7 @@ const Page = () => {
                 display: 'flex',
                 justifyContent: 'flex-end',
                 alignItems: 'center',
-                px: { mobile: '0.75rem', desktop: '0.875rem' },
+                px: { mobile: '1.125rem', desktop: '1.25rem' },
                 py: '1rem',
                 backgroundColor: '#f4f4f4',
                 boxShadow: '0px 1px 1px 0px rgba(189, 189, 189, 0.25)',
@@ -278,6 +278,7 @@ const Page = () => {
                 ]}
                 sx={{
                   minWidth: '7.25rem',
+                  ml: 'auto',
                   borderRadius: '999px',
                   backgroundColor: '#d9d9d9',
                   boxShadow: '0px 1px 1px 0px rgba(189, 189, 189, 0.25)',
@@ -292,10 +293,10 @@ const Page = () => {
                     letterSpacing: '0.1em',
                   },
                   '& .MuiSelect-icon': {
-                    right: '0.5rem',
-                    top: 'calc(50% - 0.25rem)',
-                    width: '0.5rem',
-                    height: '0.25rem',
+                    right: '0.625rem',
+                    top: 'calc(50% - 0.21875rem)',
+                    width: '0.6875rem',
+                    height: '0.4375rem',
                   },
                 }}
                 optionSx={{

@@ -120,9 +120,11 @@ const DropDownSelectMinimal = ({
   )
 }
 
-const StyledDownIcon = styled(DownIcon)(({ theme }) => ({
-  margin: '6px 0 0 0',
-  height: '10px',
+const StyledDownIcon = styled(DownIcon)(() => ({
+  display: 'block',
+  margin: 0,
+  width: '0.625rem',
+  height: '0.4375rem',
 }))
 
 export default DropDownSelectMinimal
