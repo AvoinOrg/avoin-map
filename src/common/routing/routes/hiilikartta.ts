@@ -26,6 +26,12 @@ export const routeTree = {
       path: 'kaavat',
       name: 'Omat kaavat',
     },
+    import: {
+      _conf: {
+        path: 'tuo',
+        name: 'Tuo uusi kaavatiedosto',
+      },
+    },
     plan: {
       _conf: {
         path: '[planId]',

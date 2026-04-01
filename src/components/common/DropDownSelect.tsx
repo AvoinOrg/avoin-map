@@ -22,6 +22,7 @@ interface Props {
   label?: string
   ariaLabel?: string
   allowEmpty?: boolean
+  placeholder?: React.ReactNode
   sx?: SxProps<Theme>
   selectSx?: SxProps<Theme>
   labelSx?: SxProps<Theme>
@@ -37,6 +38,7 @@ const DropDownSelect = ({
   label,
   ariaLabel,
   allowEmpty,
+  placeholder,
   sx,
   selectSx,
   labelSx,
@@ -106,6 +108,28 @@ const DropDownSelect = ({
         aria-label={ariaLabel ?? label}
         value={currentValue}
         onChange={onChange}
+        displayEmpty={placeholder != null}
+        renderValue={(selected) => {
+          if ((selected == null || selected === '') && placeholder != null) {
+            return (
+              <Box
+                component="span"
+                sx={{
+                  display: 'block',
+                  color: '#a0a0a0',
+                }}
+              >
+                {placeholder}
+              </Box>
+            )
+          }
+
+          const selectedOption = options.find(
+            (option) => option.value === selected
+          )
+
+          return selectedOption?.label ?? selected
+        }}
         IconComponent={DownIcon}
         label={label}
         MenuProps={{

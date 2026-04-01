@@ -85,7 +85,7 @@ const Page = () => {
   }`
 
   const handleImportClick = () => {
-    router.push(getRoute({ routeNode: routeTree.create.import, routeTree }))
+    router.push(getRoute({ routeNode: routeTree.plans.import, routeTree }))
   }
 
   const handleDrawClick = async () => {
