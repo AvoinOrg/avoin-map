@@ -26,7 +26,7 @@ import {
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
-  const params = useParams<{ planIdSlug: string }>()
+  const params = useParams<{ planId: string }>()
   // const planConf = useStore(useAppStore, (state) => state.planConfs)
   const addSerializableLayerGroup = useMapStore(
     (state) => state.addSerializableLayerGroup
@@ -43,11 +43,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   const globalState = useStore(useAppletStore, (state) => state.globalState)
   const planConf = useStore(
     useAppletStore,
-    (state) => state.planConfs[params.planIdSlug]
+    (state) => state.planConfs[params.planId]
   )
   const updatePlanConf = useAppletStore((state) => state.updatePlanConf)
   const doesLayerGroupExist = useDoesLayerGroupExist(
-    getPlanLayerGroupId(params.planIdSlug)
+    getPlanLayerGroupId(params.planId)
   )
   const isLoaded = useRef(false)
 
@@ -56,12 +56,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const init = async () => {
       if (planConf && !isLoaded.current && doesLayerGroupExist != null) {
-        const layerGroupId = getPlanLayerGroupId(params.planIdSlug)
+        const layerGroupId = getPlanLayerGroupId(params.planId)
         const layerGroupAddOptions: SerializableLayerGroupAddOptions = {
           zoomToExtent: !doesLayerGroupExist,
           dataUpdateMutator: async (data: FeatureCollection) => {
             if (updatePlanConf != null) {
-              updatePlanConf(params.planIdSlug, { data: data as PlanData })
+              updatePlanConf(params.planId, { data: data as PlanData })
             } else {
               console.error('Unable to add dataUpdateMutator')
             }
@@ -152,11 +152,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       // }
     } else if (!planConf && doesLayerGroupExist) {
       disableSerializableLayerGroup(
-        getPlanLayerGroupId(params.planIdSlug)
+        getPlanLayerGroupId(params.planId)
       ).catch(() => {})
     } else if (planConf && planConf.isHidden && doesLayerGroupExist) {
       disableSerializableLayerGroup(
-        getPlanLayerGroupId(params.planIdSlug)
+        getPlanLayerGroupId(params.planId)
       ).catch(() => {})
     } else if (
       planConf &&
@@ -164,7 +164,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       planConf.state === PlanConfState.FETCHING
     ) {
       disableSerializableLayerGroup(
-        getPlanLayerGroupId(params.planIdSlug)
+        getPlanLayerGroupId(params.planId)
       ).catch(() => {})
       isLoaded.current = false
     }
@@ -179,7 +179,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     return () => {
-      const layerGroupId = getPlanLayerGroupId(params.planIdSlug)
+      const layerGroupId = getPlanLayerGroupId(params.planId)
 
       const cleanup = async () => {
         try {

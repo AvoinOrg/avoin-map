@@ -3,13 +3,7 @@ import { Feature, FeatureCollection } from 'geojson'
 
 import { roundFeatureCoordinates } from '#/common/utils/map'
 import PlanImportCodeRecordSelect from './PlanImportCodeRecordSelect'
-
-type ResolvedImport = {
-  importKey: string
-  json: FeatureCollection
-  zoningColName: string
-  nameColName?: string
-}
+import { PendingPlanImport } from './planImportTypes'
 
 type PlanImportShpProps = {
   fileBuffer: ArrayBuffer
@@ -19,13 +13,13 @@ type PlanImportShpProps = {
     areaNamesLabel: string
     areaNamesPlaceholder: string
   }
-  onResolveImport: (resolvedImport: ResolvedImport) => void
+  onPendingImportChange: (pendingImport: PendingPlanImport | null) => void
 }
 
 const PlanImportShp = ({
   fileBuffer,
   copy,
-  onResolveImport,
+  onPendingImportChange,
 }: PlanImportShpProps) => {
   const [geojson, setGeojson] = useState<FeatureCollection>()
   const [zoningCol, setZoningCol] = useState<string>()
@@ -39,6 +33,7 @@ const PlanImportShp = ({
     setZoningCol(undefined)
     setNameCol(undefined)
     lastResolvedImportKeyRef.current = undefined
+    onPendingImportChange(null)
 
     const loadGeojson = async () => {
       const shp = (await import('shpjs')).default
@@ -86,6 +81,7 @@ const PlanImportShp = ({
   useEffect(() => {
     if (geojson == null || zoningCol == null) {
       lastResolvedImportKeyRef.current = undefined
+      onPendingImportChange(null)
       return
     }
 
@@ -95,14 +91,14 @@ const PlanImportShp = ({
       return
     }
 
-    onResolveImport({
+    onPendingImportChange({
       importKey,
       json: geojson,
       zoningColName: zoningCol,
       nameColName: nameCol,
     })
     lastResolvedImportKeyRef.current = importKey
-  }, [fileBuffer.byteLength, geojson, nameCol, onResolveImport, zoningCol])
+  }, [fileBuffer.byteLength, geojson, nameCol, onPendingImportChange, zoningCol])
 
   return (
     <>

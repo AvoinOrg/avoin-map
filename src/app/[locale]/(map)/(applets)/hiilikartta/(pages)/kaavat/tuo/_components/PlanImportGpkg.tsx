@@ -5,13 +5,7 @@ import { FeatureCollection } from 'geojson'
 import { roundFeatureCoordinates } from '#/common/utils/map'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import PlanImportCodeRecordSelect from './PlanImportCodeRecordSelect'
-
-type ResolvedImport = {
-  importKey: string
-  json: FeatureCollection
-  zoningColName: string
-  nameColName?: string
-}
+import { PendingPlanImport } from './planImportTypes'
 
 type PlanImportGpkgProps = {
   fileBuffer: ArrayBuffer
@@ -23,7 +17,7 @@ type PlanImportGpkgProps = {
     areaNamesLabel: string
     areaNamesPlaceholder: string
   }
-  onResolveImport: (resolvedImport: ResolvedImport) => void
+  onPendingImportChange: (pendingImport: PendingPlanImport | null) => void
 }
 
 const sharedSelectSx = {
@@ -63,7 +57,7 @@ const sharedTypographySx = {
 const PlanImportGpkg = ({
   fileBuffer,
   copy,
-  onResolveImport,
+  onPendingImportChange,
 }: PlanImportGpkgProps) => {
   const [gpkgFile, setGpkgFile] = useState<any>()
   const [table, setTable] = useState<string>()
@@ -78,13 +72,14 @@ const PlanImportGpkg = ({
 
     setGpkgFile(undefined)
     setTables([])
-    setColumns([])
-    setTable(undefined)
-    setZoningCol(undefined)
-    setNameCol(undefined)
-    lastResolvedImportKeyRef.current = undefined
+      setColumns([])
+      setTable(undefined)
+      setZoningCol(undefined)
+      setNameCol(undefined)
+      lastResolvedImportKeyRef.current = undefined
+      onPendingImportChange(null)
 
-    const loadGpkg = async () => {
+      const loadGpkg = async () => {
       const { GeoPackageAPI, setSqljsWasmLocateFile } =
         await import('@ngageoint/geopackage')
 
@@ -128,6 +123,7 @@ const PlanImportGpkg = ({
       setZoningCol(undefined)
       setNameCol(undefined)
       lastResolvedImportKeyRef.current = undefined
+      onPendingImportChange(null)
       return
     }
 
@@ -142,6 +138,7 @@ const PlanImportGpkg = ({
   useEffect(() => {
     if (gpkgFile == null || table == null || zoningCol == null) {
       lastResolvedImportKeyRef.current = undefined
+      onPendingImportChange(null)
       return
     }
 
@@ -162,7 +159,7 @@ const PlanImportGpkg = ({
         geoJson.features.push(roundFeatureCoordinates(feature))
       }
 
-      onResolveImport({
+      onPendingImportChange({
         importKey,
         json: geoJson,
         zoningColName: zoningCol,
@@ -174,7 +171,14 @@ const PlanImportGpkg = ({
     extract().catch((error) => {
       console.error('Failed to extract GeoPackage features', error)
     })
-  }, [fileBuffer.byteLength, gpkgFile, nameCol, onResolveImport, table, zoningCol])
+  }, [
+    fileBuffer.byteLength,
+    gpkgFile,
+    nameCol,
+    onPendingImportChange,
+    table,
+    zoningCol,
+  ])
 
   const handleSelectTable = (event: SelectChangeEvent) => {
     setTable(event.target.value)
@@ -203,6 +207,7 @@ const PlanImportGpkg = ({
           }}
           selectSx={sharedSelectSx}
           typographySx={sharedTypographySx}
+          successIndicatorMode="outside"
           iconSx={{ mt: 0 }}
         />
       )}

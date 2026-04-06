@@ -4,10 +4,12 @@ import Box from '@mui/material/Box'
 import useStore from '#/common/hooks/useStore'
 import { useMapStore } from '#/common/store'
 import useSelectedFeaturesFilteredBySource from '#/common/hooks/map/useSelectedFeaturesFilteredBySource'
-
-import { PlanDataFeature } from '../../../../common/types'
-import { useAppletStore } from '../../../../state/appletStore'
-import { getPlanLayerGroupId, getPlanSourceId } from '../../../../common/utils'
+import { PlanDataFeature } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
+import {
+  getPlanLayerGroupId,
+  getPlanSourceId,
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
 import ZoneAccordionItem from './ZoneAccordionItem'
 
 interface Props {

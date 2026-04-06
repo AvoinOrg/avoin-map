@@ -19,6 +19,7 @@ import PlanListItem from '#/app/[locale]/(map)/(applets)/hiilikartta/components/
 import {
   NewPlanConf,
   PlanData,
+  PlanImportState,
   ZONING_CODE_COL,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
 import PlanListItemLoading from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanListItemLoading'
@@ -27,8 +28,6 @@ import { getVisiblePlanConfs } from '#/app/[locale]/(map)/(applets)/hiilikartta/
 import PlanOutlineIcon from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanOutlineIcon'
 
 type SortOption = 'newest' | 'oldest' | 'a-z' | 'z-a'
-const IMPORT_PLAN_LABEL = 'Tuo oma kaavatiedosto'
-const DRAW_PLAN_LABEL = 'Piirrä kaava-alue karttaan'
 const IMPORT_PLAN_ICON_SRC =
   '/files/img/hiilikartta/sidebar/kaavat-action-upload.svg'
 const DRAW_PLAN_ICON_SRC =
@@ -84,12 +83,39 @@ const Page = () => {
     visiblePlanCount === 1 ? 'kaava' : 'kaavaa'
   }`
 
-  const handleImportClick = () => {
-    router.push(getRoute({ routeNode: routeTree.plans.import, routeTree }))
+  const handleImportClick = async () => {
+    const newPlanConf: NewPlanConf = {
+      data: {
+        type: 'FeatureCollection',
+        features: [],
+      },
+      name: t('sidebar.plan_flow.new_plan_name'),
+      areaHa: 0,
+      draftType: 'import',
+      importState: 'awaiting-file' satisfies PlanImportState,
+    }
+
+    const planConf = await addPlanConf(newPlanConf)
+
+    await useAppletStore.getState().updatePlanConf(planConf.id, {
+      isHidden: true,
+    })
+
+    router.push(
+      getRoute({
+        routeNode: routeTree.plans.plan,
+        routeTree,
+        params: {
+          routeParams: {
+            planId: planConf.id,
+          },
+        },
+      })
+    )
   }
 
   const handleDrawClick = async () => {
-    const jsonName = 'Uusi kaava'
+    const jsonName = t('sidebar.plan_flow.new_plan_name')
     const data: PlanData = {
       type: 'FeatureCollection',
       features: [],
@@ -117,7 +143,7 @@ const Page = () => {
 
     router.push(
       getRoute({
-        routeNode: routeTree.plans.plan,
+        routeNode: routeTree.plans.plan.areas,
         routeTree,
         params: {
           routeParams: {
@@ -180,7 +206,7 @@ const Page = () => {
                   }}
                 />
               }
-              text={IMPORT_PLAN_LABEL}
+              text={<T keyName="sidebar.plan_flow.import_title" ns="hiilikartta" />}
               helperText={t('sidebar.create.upload_info')}
               helperAriaLabel="Show plan import information"
               onClick={handleImportClick}
@@ -199,7 +225,9 @@ const Page = () => {
                   }}
                 />
               }
-              text={DRAW_PLAN_LABEL}
+              text={
+                <T keyName="sidebar.plan_flow.draw_plan_action" ns="hiilikartta" />
+              }
               helperText={t('sidebar.create.draw_new_info')}
               helperAriaLabel="Show drawing instructions"
               onClick={handleDrawClick}
@@ -294,7 +322,7 @@ const Page = () => {
                 options={[
                   {
                     value: 'newest',
-                    label: 'Uusin ensin',
+                    label: t('sidebar.kaavat.sort_newest'),
                   },
                   {
                     value: 'oldest',

@@ -89,6 +89,10 @@ export const planQueries = (
               localLastSaved: response.data.saved_ts * 1000,
               localLastEdited: response.data.saved_ts * 1000,
               userId: response.data.user_id,
+              forestryScenario:
+                response.data.forestry_scenario ??
+                response.data.metadata?.forestry_scenario,
+              importState: 'confirmed',
               data: stripFeatureExtras(response.data.data),
               areaHa: turfArea(response.data.data as FeatureCollection) / 10000,
               reportData: reportData,

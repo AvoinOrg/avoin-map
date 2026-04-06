@@ -44,14 +44,14 @@ import SidebarContentBox from '#/components/Sidebar/SidebarContentBox'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 
 const Page = () => {
-  const params = useParams<{ planIdSlug: string }>()
+  const params = useParams<{ planId: string }>()
   const triggerConfirmationDialog = useUIStore(
     (state) => state.triggerConfirmationDialog
   )
   const notify = useUIStore((state) => state.notify)
   const planConf = useStore(
     useAppletStore,
-    (state) => state.planConfs[params.planIdSlug]
+    (state) => state.planConfs[params.planId]
   )
   const isMobile = useIsMobile()
   const globalState = useAppletStore((state) => state.globalState)
@@ -142,7 +142,8 @@ const Page = () => {
         params: {
           queryParams: {
             planIds: planConf.serverId,
-            prevPageId: params.planIdSlug,
+            prevPageId: params.planId,
+            prevPageStep: 'areas',
           },
         },
       })
@@ -197,7 +198,7 @@ const Page = () => {
     if (planConf === undefined) {
       if (
         globalState === GlobalState.FETCHING &&
-        !Object.keys(placeholderPlanConfs).includes(params.planIdSlug)
+        !Object.keys(placeholderPlanConfs).includes(params.planId)
       ) {
         router.push(getRoute({ routeNode: routeTree, routeTree: routeTree }))
       } else if (globalState === GlobalState.IDLE) {

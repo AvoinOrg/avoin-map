@@ -9,6 +9,7 @@ import { Login } from '#/components/icons'
 import { useUserStore } from '#/common/store/userStore'
 import { UserAuthState, UserDataState } from '#/common/types/state'
 import { openWindow } from '#/common/utils/modal'
+import { getLoginUrl } from '#/common/utils/auth'
 import LoadingHorizontal from '#/components/Loading/LoadingHorizontal'
 import { MapButton } from './MapButton'
 import { MapButtonMenu } from './MapButtonMenu'
@@ -34,7 +35,7 @@ export const MapLoginButton = ({ isVertical }: Props) => {
       : Array.isArray(localeParam)
         ? (localeParam[0] ?? 'en')
         : 'en'
-  const loginUrl = `/${locale}/adds/login`
+  const loginUrl = getLoginUrl(locale)
 
   const isAuthenticated = userAuthState === UserAuthState.Authenticated
   const isLoading =

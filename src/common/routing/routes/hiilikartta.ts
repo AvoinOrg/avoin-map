@@ -35,7 +35,13 @@ export const routeTree = {
     plan: {
       _conf: {
         path: '[planId]',
-        name: 'Kaavan tiedot',
+        name: 'Kaavan asetukset',
+      },
+      areas: {
+        _conf: {
+          path: 'alueet',
+          name: 'Alueet',
+        },
       },
     },
   },

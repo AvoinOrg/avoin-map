@@ -17,15 +17,19 @@ const sharedSelectSx = {
     minHeight: '1.25rem',
     borderRadius: '0.625rem',
     backgroundColor: '#ffffff',
+    boxShadow: 'inset 0px 0.5px 1px 0px #d9d9d9',
   },
   '& .MuiOutlinedInput-notchedOutline': {
     borderColor: '#d6d6d6',
+  },
+  '& .MuiOutlinedInput-notchedOutline legend': {
+    maxWidth: 0,
   },
   '& .MuiSelect-select': {
     minHeight: '1.25rem',
     py: '0.1875rem',
     pl: '1rem',
-    pr: '2.75rem !important',
+    pr: '2.5rem !important',
     fontSize: '0.6875rem',
     fontWeight: 400,
     lineHeight: 'normal',
@@ -33,9 +37,9 @@ const sharedSelectSx = {
     color: '#111111',
   },
   '& .MuiSelect-icon': {
-    width: '0.5rem',
-    height: '0.25rem',
-    mr: '0.75rem',
+    width: '0.75rem',
+    height: '0.375rem',
+    right: '0.875rem',
   },
 } as const satisfies SxProps<Theme>
 
@@ -95,6 +99,7 @@ const PlanImportCodeRecordSelect = ({
       }}
       selectSx={sharedSelectSx}
       typographySx={sharedTypographySx}
+      successIndicatorMode="outside"
       iconSx={{
         mt: 0,
       }}

@@ -12,7 +12,7 @@ import {
 } from '#/components/Map/layers/defaultListedLayerGroups'
 import LayerLegend from '#/components/common/LayerLegend'
 import { vegetationCO2LayerConf } from '../layers/vegetationCO2'
-import { CarbonChangeColorItem } from './types'
+import { CarbonChangeColorItem, ForestryScenarioId } from './types'
 
 const listedHiilikarttaKasvillisuudenHiiliLayerGroup: ListedLayerGroup = {
   id: vegetationCO2LayerConf.id,
@@ -94,6 +94,23 @@ export const CARBON_CHANGE_COLORS: CarbonChangeColorItem[] = [
 ]
 
 export const CARBON_CHANGE_NO_DATA_COLOR = '#D9D9D9'
+
+export const DEFAULT_FORESTRY_SCENARIO: ForestryScenarioId = 1
+
+export const FORESTRY_SCENARIOS = [
+  {
+    id: 1 as ForestryScenarioId,
+    code: 'managed_forestry',
+  },
+  {
+    id: 2 as ForestryScenarioId,
+    code: 'no_logging',
+  },
+  {
+    id: 3 as ForestryScenarioId,
+    code: 'recreational_forest',
+  },
+] as const
 
 export const ZONING_CLASS_COLORS_BY_CODE: Record<string, string> = {
   [CUSTOM_ZONING_CODE]: '#3bf63eff',

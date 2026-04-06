@@ -207,8 +207,8 @@ const FlowNodeBase = ({
       sx={[
         {
           display: 'flex',
-          alignItems: 'stretch',
-          gap: '0.9375rem',
+          alignItems: 'flex-start',
+          gap: '0.75rem',
           position: 'relative',
           width: '100%',
           color: '#111111',
@@ -231,7 +231,7 @@ const FlowNodeBase = ({
             sx={{
               position: 'absolute',
               left: '50%',
-              top: state === 'active' ? '0.875rem' : '0.8125rem',
+              top: state === 'complete' ? '0.6rem' : '0.5rem',
               bottom: 'calc(var(--flow-node-gap, 1rem) * -1)',
               transform: 'translateX(-50%)',
               width: '1px',

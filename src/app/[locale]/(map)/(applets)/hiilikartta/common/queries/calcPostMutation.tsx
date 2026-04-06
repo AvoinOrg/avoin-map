@@ -54,6 +54,7 @@ export const calcPostMutation = (): UseMutationOptions<
           id: planConf.serverId,
           name: planConf.name,
           visible_id: planConf.id,
+          forestry_scenario: planConf.forestryScenario,
         },
       })
 

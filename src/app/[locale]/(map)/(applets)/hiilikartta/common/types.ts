@@ -27,6 +27,7 @@ export interface PlanConf extends NewPlanConf {
   areSettingsValid?: boolean
   isHidden?: boolean
   draftType?: 'import'
+  importState?: PlanImportState
 }
 
 export interface ExternalPlanConf {
@@ -80,7 +81,16 @@ export type NewPlanConf = {
   calculationState?: CalculationState
   reportData?: ReportData
   draftType?: 'import'
+  importState?: PlanImportState
+  forestryScenario?: ForestryScenarioId
 }
+
+export type PlanImportState =
+  | 'awaiting-file'
+  | 'awaiting-confirm'
+  | 'confirmed'
+
+export type ForestryScenarioId = 1 | 2 | 3
 
 export type FileType = 'shp' | 'geojson' | 'gpkg'
 

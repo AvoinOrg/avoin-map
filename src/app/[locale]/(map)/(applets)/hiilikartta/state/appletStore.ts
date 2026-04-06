@@ -17,6 +17,7 @@ import { commonDevtools } from '#/common/store/shared-devtools'
 import { createIndexedDbStorage } from '#/common/utils/store'
 
 import { getPlanLayerGroupId, stripFeatureExtras } from '../common/utils'
+import { DEFAULT_FORESTRY_SCENARIO } from '../common/constants'
 import {
   CalculationState,
   NewPlanConf,
@@ -108,6 +109,7 @@ export const useAppletStore = create<Vars & Actions>()(
               created,
               reportData: undefined,
               calculationState: CalculationState.NOT_STARTED,
+              forestryScenario: DEFAULT_FORESTRY_SCENARIO,
               localLastEdited: created,
               userId: userId,
               state: PlanConfState.IDLE,
@@ -257,6 +259,11 @@ export const useAppletStore = create<Vars & Actions>()(
               name: `${planConf.name}${nameSuffix != null && ' ' + nameSuffix}`,
               areaHa: planConf.areaHa,
               data: cloneDeep(planConf.data),
+              forestryScenario: planConf.forestryScenario,
+              importState:
+                planConf.importState === 'confirmed'
+                  ? planConf.importState
+                  : undefined,
             }
             const copiedPlanConf = await addPlanConf(newPlanConf)
             return copiedPlanConf

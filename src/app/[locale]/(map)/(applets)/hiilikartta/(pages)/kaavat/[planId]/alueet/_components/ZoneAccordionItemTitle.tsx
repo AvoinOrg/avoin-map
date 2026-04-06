@@ -4,8 +4,7 @@ import { useTranslate } from '@tolgee/react'
 
 import EditableText from '#/components/common/EditableText'
 import { Exclamation } from '#/components/icons'
-
-import { PlanDataFeature } from '../../../../common/types'
+import { PlanDataFeature } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 
 const ZoneAccordionItemTitle = ({

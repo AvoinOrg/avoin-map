@@ -131,7 +131,7 @@ const IconTextButton = ({
               {
                 display: 'inline-flex',
                 alignItems: 'center',
-                justifyContent: 'center',
+                justifyContent: 'flex-start',
                 flexShrink: 0,
                 width: '1.125rem',
                 minWidth: '1.125rem',

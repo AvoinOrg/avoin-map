@@ -27,10 +27,10 @@ const FlowNodeContainer = ({ children, sx }: FlowNodeContainerProps) => {
     <Box
       sx={[
         {
-          '--flow-node-gap': '1rem',
+          '--flow-node-gap': '0.75rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '1rem',
+          gap: '0.75rem',
           width: '100%',
         },
         ...(Array.isArray(sx) ? sx : [sx]),

@@ -62,6 +62,7 @@ const Page = () => {
 
   const [planConfs, setPlanConfs] = useState<PlanConfWithReportData[]>([])
   const [prevPageId, setPrevPageId] = useState<string>()
+  const [prevPageStep, setPrevPageStep] = useState<'plan' | 'areas'>('plan')
   const [errorState, setErrorState] = useState<ErrorState>()
   const [isLoaded, setIsLoaded] = useState(false)
   const [featureYears, setFeatureYears] = useState<string[]>([])
@@ -224,12 +225,15 @@ const Page = () => {
       }
 
       const paramPrevPageId = searchParams.get('prevPageId')
+      const paramPrevPageStep = searchParams.get('prevPageStep')
       if (paramPrevPageId != null) {
         if (allPlanConfs[paramPrevPageId] != null) {
           setPrevPageId(paramPrevPageId)
+          setPrevPageStep(paramPrevPageStep === 'areas' ? 'areas' : 'plan')
         } else {
           const newSearchParams = new URLSearchParams(searchParams)
           newSearchParams.delete('prevPageId')
+          newSearchParams.delete('prevPageStep')
 
           // Use router.replace to update the URL without adding a new history entry
           router.replace(
@@ -269,6 +273,7 @@ const Page = () => {
   const fullUrl = useMemo(() => {
     const newSearchParams = new URLSearchParams(searchParams)
     newSearchParams.delete('prevPageId')
+    newSearchParams.delete('prevPageStep')
     return `${window.location.origin}${pathName}?${newSearchParams.toString()}`
   }, [pathName, searchParams])
 
@@ -366,7 +371,13 @@ const Page = () => {
             <T keyName={'report.header.title'} ns={'hiilikartta'}></T>
           </Typography>
           <MutableLink
-            route={prevPageId != null ? routeTree.plans.plan : routeTree}
+            route={
+              prevPageId != null
+                ? prevPageStep === 'areas'
+                  ? routeTree.plans.plan.areas
+                  : routeTree.plans.plan
+                : routeTree
+            }
             routeTree={routeTree}
             params={
               prevPageId != null ? { routeParams: { planId: prevPageId } } : {}
