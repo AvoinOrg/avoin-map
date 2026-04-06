@@ -180,7 +180,7 @@ const IconTextButton = ({
           >
             <Tooltip
               title={helperText}
-              open={isHelperOpen || undefined}
+              open={isHelperOpen}
               onOpen={() => setIsHelperOpen(true)}
               onClose={() => setIsHelperOpen(false)}
               arrow
