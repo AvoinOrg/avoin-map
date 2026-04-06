@@ -40,6 +40,13 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
     }
   }, [routeTree, isBaseDomainForApplet, isStandaloneAppletBuild, pathname])
 
+  const visibleRoutes = useMemo(() => {
+    const isAppletBreadcrumbInMainApp =
+      usedRouteTree === mainRouteTree && routeTree !== mainRouteTree
+
+    return isAppletBreadcrumbInMainApp ? routes.slice(1) : routes
+  }, [routeTree, routes, usedRouteTree])
+
   const RouteElement = ({ route }: { route: RouteForLinks }) => (
     <MutableLink
       route={route.routeTree}
@@ -91,7 +98,7 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
           width: '100%',
         }),
         ...(Array.isArray(sx) ? sx : [sx]),
-        collapseIfRoot && routes.length <= 1
+        collapseIfRoot && visibleRoutes.length <= 1
           ? {
               minHeight: '0px',
               height: '0px',
@@ -104,14 +111,14 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
           : { flexGrow: 1 },
       ]}
     >
-      {routes.length > 1 && (
+      {visibleRoutes.length > 1 && (
         <Box
           sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}
         >
           <MutableLink
-            route={routes[routes.length - 2].routeTree}
+            route={visibleRoutes[visibleRoutes.length - 2].routeTree}
             routeTree={usedRouteTree}
-            params={routes[routes.length - 2].params}
+            params={visibleRoutes[visibleRoutes.length - 2].params}
             sx={{ alignItems: 'center' }}
           >
             <ArrowBackIosNewIcon
@@ -133,8 +140,8 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
               alignItems: 'center',
             }}
           >
-            {routes.map((route) => {
-              if (route === routes[routes.length - 1]) {
+            {visibleRoutes.map((route) => {
+              if (route === visibleRoutes[visibleRoutes.length - 1]) {
                 return (
                   <RouteElementInert
                     key={route.path}
