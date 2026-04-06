@@ -22,8 +22,8 @@
   },
   "initializeCommand": [
     "bash",
-    "${localWorkspaceFolder}/.devcontainer/sync-codex-host-files.sh",
-    "${localWorkspaceFolder}"
+    "-lc",
+    "'${localWorkspaceFolder}/.devcontainer/sync-codex-host-files.sh' '${localWorkspaceFolder}' && '${localWorkspaceFolder}/.devcontainer/ensure-docker-network.sh' climate-map-network"
   ],
   "features": {
     // "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
