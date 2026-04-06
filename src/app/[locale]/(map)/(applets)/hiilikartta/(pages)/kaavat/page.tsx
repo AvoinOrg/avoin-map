@@ -282,8 +282,7 @@ const Page = () => {
                 display: 'flex',
                 justifyContent: 'flex-end',
                 alignItems: 'center',
-                px: { mobile: '1.125rem', desktop: '1.25rem' },
-                py: '1rem',
+                pb: '1.2rem',
                 backgroundColor: '#f4f4f4',
                 boxShadow: '0px 1px 1px 0px rgba(189, 189, 189, 0.25)',
               }}

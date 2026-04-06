@@ -45,16 +45,16 @@ export const SimpleSidebar = ({
         topContent={breadcrumbArea}
         containerSx={[
           {
-            pt: 0,
-            pb: 0,
-            ml: 0,
+            pt: { mobile: 0, desktop: 0 },
+            pb: { mobile: 0, desktop: 0 },
+            ml: { mobile: 0, desktop: 0 },
             width: { mobile: '100vw', desktop: '23.75rem' },
             maxWidth: { mobile: '100vw', desktop: 'min(23.75rem, 100vw)' },
           },
           ...(Array.isArray(sx) ? sx : [sx]),
         ]}
         panelSx={{
-          borderRadius: 0,
+          borderRadius: { mobile: 0, desktop: 0 },
           backgroundColor: '#ffffff',
         }}
         contentSx={{
