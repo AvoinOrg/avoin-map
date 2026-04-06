@@ -7,13 +7,13 @@ import {
   ThemeOptions,
   alpha,
 } from '@mui/material/styles'
-import { Arimo } from 'next/font/google'
 import {
   DESKTOP_BREAKPOINT_KEY,
   MOBILE_BREAKPOINT_KEY,
   MOBILE_BREAKPOINT_PX,
   SCROLLBAR_WIDTH_REM,
 } from './constants'
+import { ARIMO_FONT_FAMILY } from './fonts'
 
 //extending palette to add background color
 
@@ -77,23 +77,6 @@ declare module '@mui/material/Typography' {
 
 const defaultTheme = createTheme()
 
-export const arimo = Arimo({
-  weight: ['400', '500', '700'],
-  subsets: ['latin'],
-  display: 'swap',
-  fallback: [
-    'Arial',
-    'BlinkMacSystemFont',
-    'Segoe UI',
-    'Oxygen',
-    'Ubuntu',
-    'Cantarell',
-    'Fira Sans',
-    'Droid Sans',
-    'Helvetica Neue',
-  ],
-})
-
 const palette = {
   primary: {
     main: '#C7C9B8',
@@ -139,7 +122,7 @@ const zIndex = {
 }
 
 const fonts = {
-  primary: arimo.style.fontFamily,
+  primary: ARIMO_FONT_FAMILY,
 }
 
 const typography = {
