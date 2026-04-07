@@ -18,13 +18,13 @@ import { useParams, useRouter } from 'next/navigation'
 
 import { SidebarContentBox } from '#/components/Sidebar'
 import SidebarBackgroundContent from '#/components/common/SidebarBackgroundContent'
-import FlowNodeContainer from '#/components/common/FlowNodeContainer'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import IconTextButton from '#/components/common/IconTextButton'
 import NodeFlowAccordion from '#/components/common/NodeFlowAccordion'
 import NodeFlowButton, {
   NodeFlowButtonState,
 } from '#/components/common/NodeFlowButton'
+import NodeFlowContainer from '#/components/common/NodeFlowContainer'
 import { LoadingSpinner } from '#/components/Loading'
 import CheckcircleChecked from '#/components/icons/CheckcircleChecked'
 import {
@@ -65,10 +65,10 @@ import { routeTree } from '#/common/routing/routes/hiilikartta'
 import { planDeleteMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/planDeleteMutation'
 import { planPostMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/planPostMutation'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
-import PlanImportGpkg from '../tuo/_components/PlanImportGpkg'
-import PlanImportShp from '../tuo/_components/PlanImportShp'
-import PlanImportActionsRow from '#/app/[locale]/(map)/(applets)/hiilikartta/(pages)/luo/tuo/_components/PlanImportActionsRow'
-import { PendingPlanImport } from '../tuo/_components/planImportTypes'
+import PlanImportActionsRow from './_components/PlanImportActionsRow'
+import PlanImportGpkg from './_components/PlanImportGpkg'
+import PlanImportShp from './_components/PlanImportShp'
+import { PendingPlanImport } from './_components/planImportTypes'
 
 const getFileType = (fileName: string): FileType | undefined => {
   const extension = fileName.split('.').pop()?.toLowerCase()
@@ -752,7 +752,6 @@ const Page = () => {
         imageAlt="Hiilikartta kaavat"
         sx={{
           width: '100%',
-          maxWidth: '20rem',
         }}
         imageSx={{
           height: '5.625rem',
@@ -765,7 +764,7 @@ const Page = () => {
           gap: '1.25rem',
         }}
       >
-        <FlowNodeContainer>
+        <NodeFlowContainer>
           <NodeFlowAccordion
             title={
               isSettingsMode ? (
@@ -843,27 +842,6 @@ const Page = () => {
                         </StatusFieldRow>
                       </Box>
                     )}
-
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.625rem',
-                        width: '100%',
-                      }}
-                    >
-                      <IconTextButton
-                        aria-label={t('sidebar.plan_settings.delete')}
-                        icon={<Delete sx={{ width: 14, height: 14 }} />}
-                        text={
-                          <T
-                            keyName="sidebar.plan_settings.delete"
-                            ns="hiilikartta"
-                          />
-                        }
-                        onClick={handleDeleteClick}
-                      />
-                    </Box>
                   </>
                 )}
 
@@ -1209,7 +1187,7 @@ const Page = () => {
             helperLeading={calculationStepHelperLeading}
             ariaLabel={t('sidebar.plan_flow.calculate_report_step')}
           />
-        </FlowNodeContainer>
+        </NodeFlowContainer>
 
         <input
           hidden

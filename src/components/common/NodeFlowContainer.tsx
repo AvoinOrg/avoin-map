@@ -3,16 +3,20 @@
 import React from 'react'
 import { Box, SxProps, Theme } from '@mui/material'
 
-import FlowNode, { FlowNodeProps } from './FlowNode'
+import FlowNode from './FlowNode'
 
-type FlowNodeContainerProps = {
+type NodeFlowContainerProps = {
   children: React.ReactNode
   sx?: SxProps<Theme>
 }
 
 const isFlowNodeElement = (
   child: React.ReactNode
-): child is React.ReactElement<FlowNodeProps> => {
+): child is React.ReactElement<{
+  showConnector?: boolean
+  showConnectorTop?: boolean
+  showConnectorBottom?: boolean
+}> => {
   return (
     React.isValidElement(child) &&
     (child.type as { flowNodeMarker?: string }).flowNodeMarker ===
@@ -20,17 +24,18 @@ const isFlowNodeElement = (
   )
 }
 
-const FlowNodeContainer = ({ children, sx }: FlowNodeContainerProps) => {
+const NodeFlowContainer = ({ children, sx }: NodeFlowContainerProps) => {
   const childArray = React.Children.toArray(children)
+  const nodeGap = { mobile: '1.5rem', desktop: '1.75rem' } as const
 
   return (
     <Box
       sx={[
         {
-          '--flow-node-gap': '0.75rem',
+          '--flow-node-gap': nodeGap,
           display: 'flex',
           flexDirection: 'column',
-          gap: '0.75rem',
+          gap: nodeGap,
           width: '100%',
         },
         ...(Array.isArray(sx) ? sx : [sx]),
@@ -41,13 +46,19 @@ const FlowNodeContainer = ({ children, sx }: FlowNodeContainerProps) => {
           return <React.Fragment key={index}>{child}</React.Fragment>
         }
 
+        const previousChild = childArray[index - 1]
         const nextChild = childArray[index + 1]
-        const showConnector = isFlowNodeElement(nextChild)
+        const showConnectorTop = isFlowNodeElement(previousChild)
+        const showConnectorBottom = isFlowNodeElement(nextChild)
 
-        return React.cloneElement(child, { showConnector })
+        return React.cloneElement(child, {
+          showConnector: showConnectorBottom,
+          showConnectorTop,
+          showConnectorBottom,
+        })
       })}
     </Box>
   )
 }
 
-export default FlowNodeContainer
+export default NodeFlowContainer
