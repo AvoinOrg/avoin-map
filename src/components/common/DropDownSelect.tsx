@@ -168,7 +168,6 @@ const DropDownSelect = ({
               '&.MuiOutlinedInput-root': {
                 backgroundColor: 'background.main',
                 borderRadius: '999px',
-                overflow: 'hidden',
                 boxShadow: '0 1px 2px 0 rgba(214, 214, 214, 0.60) inset',
               },
               '& .MuiOutlinedInput-notchedOutline': {
