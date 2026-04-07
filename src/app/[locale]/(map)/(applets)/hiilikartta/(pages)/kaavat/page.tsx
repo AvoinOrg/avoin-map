@@ -234,7 +234,7 @@ const Page = () => {
         }}
         descriptionSx={{
           width: '100%',
-          maxWidth: '14.8125rem',
+          maxWidth: 'none',
         }}
         actionsSx={{
           gap: '1.75rem',
@@ -430,7 +430,7 @@ const Page = () => {
                 flexDirection: 'column',
                 px: { mobile: '1.125rem', desktop: '1.25rem' },
                 pb: { mobile: '1rem', desktop: '1.125rem' },
-                pt: '0.8125rem',
+                pt: 0,
               }}
             >
               {sortedPlanEntries.map((planEntry) => (
