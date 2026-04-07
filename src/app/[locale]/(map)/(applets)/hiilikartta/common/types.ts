@@ -94,6 +94,29 @@ export type ForestryScenarioId = 1 | 2 | 3
 
 export type FileType = 'shp' | 'geojson' | 'gpkg'
 
+export type CreationPlaceholderPlanConfStatus = Exclude<
+  PlanImportState,
+  'confirmed'
+>
+
+export type CreationPlaceholderPlanFile = {
+  storageKey: string
+  fileName: string
+  fileType?: FileType
+  size?: number
+}
+
+export interface CreationPlaceholderPlanConf {
+  id: string
+  created: number
+  name?: string
+  status: CreationPlaceholderPlanConfStatus
+  file?: CreationPlaceholderPlanFile
+  selectedTable?: string
+  selectedZoningCol?: string
+  selectedNameCol?: string
+}
+
 export const ZONING_CODE_COL = 'zoning_code'
 
 export type FeatureProperties = {

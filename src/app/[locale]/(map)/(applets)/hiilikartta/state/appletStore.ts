@@ -20,6 +20,7 @@ import { getPlanLayerGroupId, stripFeatureExtras } from '../common/utils'
 import { DEFAULT_FORESTRY_SCENARIO } from '../common/constants'
 import {
   CalculationState,
+  CreationPlaceholderPlanConf,
   NewPlanConf,
   PlanConf,
   PlanDataFeature,
@@ -36,6 +37,9 @@ type Vars = {
   planConfs: { [key: string]: PlanConf }
   externalPlanConfs: { [key: string]: ExternalPlanConf }
   placeholderPlanConfs: { [key: string]: PlaceholderPlanConf }
+  creationPlaceholderPlanConfs: {
+    [key: string]: CreationPlaceholderPlanConf
+  }
   globalState: GlobalState
 }
 
@@ -70,6 +74,16 @@ type Actions = {
   ) => Promise<PlaceholderPlanConf | null>
   deletePlaceholderPlanConf: (serverId: string) => Promise<void>
   clearPlaceholderPlanConfs: () => Promise<void>
+  addCreationPlaceholderPlanConf: (
+    creationPlaceholderPlanConf?: Partial<CreationPlaceholderPlanConf>
+  ) => Promise<CreationPlaceholderPlanConf>
+  updateCreationPlaceholderPlanConf: (
+    id: string,
+    creationPlaceholderPlanConf:
+      | Partial<CreationPlaceholderPlanConf>
+      | undefined
+  ) => Promise<CreationPlaceholderPlanConf | null>
+  deleteCreationPlaceholderPlanConf: (id: string) => Promise<void>
   updateGlobalState: (globalState: GlobalState) => void
 }
 
@@ -82,6 +96,7 @@ export const useAppletStore = create<Vars & Actions>()(
           planConfs: {},
           externalPlanConfs: {},
           placeholderPlanConfs: {},
+          creationPlaceholderPlanConfs: {},
           globalState: GlobalState.INITIALIZING,
         }
 
@@ -350,6 +365,69 @@ export const useAppletStore = create<Vars & Actions>()(
               state.placeholderPlanConfs = {}
             })
           },
+
+          addCreationPlaceholderPlanConf: async (
+            creationPlaceholderPlanConf
+          ) => {
+            const created = creationPlaceholderPlanConf?.created ?? Date.now()
+            const id = creationPlaceholderPlanConf?.id ?? generateShortId()
+
+            const nextCreationPlaceholderPlanConf: CreationPlaceholderPlanConf =
+              {
+                id,
+                created,
+                status: 'awaiting-file',
+                ...creationPlaceholderPlanConf,
+              }
+
+            await set((state) => {
+              state.creationPlaceholderPlanConfs[id] =
+                nextCreationPlaceholderPlanConf
+            })
+
+            return nextCreationPlaceholderPlanConf
+          },
+
+          updateCreationPlaceholderPlanConf: async (
+            id: string,
+            creationPlaceholderPlanConf:
+              | Partial<CreationPlaceholderPlanConf>
+              | undefined
+          ) => {
+            const oldCreationPlaceholderPlanConf =
+              get().creationPlaceholderPlanConfs[id]
+
+            if (oldCreationPlaceholderPlanConf == null) {
+              console.error(
+                'Unable to update non-existing creationPlaceholderPlanConf'
+              )
+              return null
+            }
+
+            let updatedCreationPlaceholderPlanConf =
+              oldCreationPlaceholderPlanConf
+
+            if (creationPlaceholderPlanConf != null) {
+              updatedCreationPlaceholderPlanConf = {
+                ...oldCreationPlaceholderPlanConf,
+                ...creationPlaceholderPlanConf,
+              }
+            }
+
+            await set((state) => {
+              state.creationPlaceholderPlanConfs[id] =
+                updatedCreationPlaceholderPlanConf
+            })
+
+            return updatedCreationPlaceholderPlanConf
+          },
+
+          deleteCreationPlaceholderPlanConf: async (id: string) => {
+            set((state) => {
+              delete state.creationPlaceholderPlanConfs[id]
+            })
+          },
+
           updateGlobalState: (globalState: GlobalState) => {
             if (globalState !== get().globalState) {
               set((state) => {
@@ -371,6 +449,7 @@ export const useAppletStore = create<Vars & Actions>()(
       ),
       partialize: (state) => ({
         planConfs: state.planConfs,
+        creationPlaceholderPlanConfs: state.creationPlaceholderPlanConfs,
       }),
       onRehydrateStorage: (state) => {
         return (state, error) => {
@@ -382,6 +461,8 @@ export const useAppletStore = create<Vars & Actions>()(
           }
           if (state) {
             state.globalState = GlobalState.INITIALIZING
+            state.creationPlaceholderPlanConfs =
+              state.creationPlaceholderPlanConfs ?? {}
             for (const planId of Object.keys(state.planConfs)) {
               const planConf = state.planConfs[planId]
               if (planConf?.data) {

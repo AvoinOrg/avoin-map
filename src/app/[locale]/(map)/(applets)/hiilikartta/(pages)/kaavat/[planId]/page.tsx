@@ -4,6 +4,7 @@ import React, { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Box,
   ButtonBase,
+  CircularProgress,
   TextField,
   Tooltip,
   Typography,
@@ -15,16 +16,25 @@ import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined'
 import { useSession } from 'next-auth/react'
 import { useParams, useRouter } from 'next/navigation'
 
-import useStore from '#/common/hooks/useStore'
 import { SidebarContentBox } from '#/components/Sidebar'
 import SidebarBackgroundContent from '#/components/common/SidebarBackgroundContent'
 import FlowNodeContainer from '#/components/common/FlowNodeContainer'
-import FlowNode from '#/components/common/FlowNode'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import IconTextButton from '#/components/common/IconTextButton'
+import NodeFlowAccordion from '#/components/common/NodeFlowAccordion'
+import NodeFlowButton, {
+  NodeFlowButtonState,
+} from '#/components/common/NodeFlowButton'
 import { LoadingSpinner } from '#/components/Loading'
 import CheckcircleChecked from '#/components/icons/CheckcircleChecked'
-import { Delete, Login, QuestionCircleOutline, Upload } from '#/components/icons'
+import {
+  Delete,
+  Eco,
+  Error as ErrorIcon,
+  Login,
+  QuestionCircleOutline,
+  Upload,
+} from '#/components/icons'
 import { getRoute } from '#/common/routing/routing-client'
 import { openLoginWindow } from '#/common/utils/auth'
 import { useUIStore } from '#/common/store'
@@ -37,8 +47,15 @@ import {
   CalculationState,
   FileType,
   GlobalState,
+  NewPlanConf,
   PlanData,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
+import {
+  deleteCreationImportFile,
+  getCreationImportFile,
+  getCreationImportFileStorageKey,
+  putCreationImportFile,
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/creationImportFileStorage'
 import {
   formatImportedGeojson,
   getImportedPlanAreaHa,
@@ -142,6 +159,7 @@ const InfoButton = ({ tooltip }: { tooltip: React.ReactNode }) => {
         }}
         onClick={(event) => {
           event.preventDefault()
+          event.stopPropagation()
         }}
         disableRipple
       >
@@ -207,6 +225,40 @@ const UploadField = ({
   )
 }
 
+const FlowStepLeadingIcon = () => (
+  <CheckcircleChecked
+    fillColor="rgba(44, 142, 116, 0.14)"
+    sx={{
+      width: 12,
+      height: 12,
+      color: '#0D6044',
+      flexShrink: 0,
+    }}
+  />
+)
+
+const getCalculationStepVisualState = (
+  calculationState: CalculationState | undefined,
+  hasReportData: boolean
+): NodeFlowButtonState => {
+  if (hasReportData || calculationState === CalculationState.FINISHED) {
+    return 'complete'
+  }
+
+  if (
+    calculationState === CalculationState.INITIALIZING ||
+    calculationState === CalculationState.CALCULATING
+  ) {
+    return 'active'
+  }
+
+  if (calculationState === CalculationState.ERRORED) {
+    return 'error'
+  }
+
+  return 'disabled'
+}
+
 const Page = () => {
   const params = useParams<{ locale: string; planId: string }>()
   const planId = params.planId
@@ -217,12 +269,22 @@ const Page = () => {
   const inputRef = useRef<HTMLInputElement>(null)
   const hasAttemptedAutoOpenRef = useRef(false)
 
-  const planConf = useStore(useAppletStore, (state) => state.planConfs[planId])
+  const planConf = useAppletStore((state) => state.planConfs[planId])
+  const creationPlaceholderPlanConf = useAppletStore(
+    (state) => state.creationPlaceholderPlanConfs[planId]
+  )
   const globalState = useAppletStore((state) => state.globalState)
   const placeholderPlanConfs = useAppletStore(
     (state) => state.placeholderPlanConfs
   )
+  const addPlanConf = useAppletStore((state) => state.addPlanConf)
   const updatePlanConf = useAppletStore((state) => state.updatePlanConf)
+  const updateCreationPlaceholderPlanConf = useAppletStore(
+    (state) => state.updateCreationPlaceholderPlanConf
+  )
+  const deleteCreationPlaceholderPlanConf = useAppletStore(
+    (state) => state.deleteCreationPlaceholderPlanConf
+  )
   const triggerConfirmationDialog = useUIStore(
     (state) => state.triggerConfirmationDialog
   )
@@ -238,13 +300,62 @@ const Page = () => {
     null
   )
 
-  const isImportDraft = planConf?.draftType === 'import'
-  const isSettingsMode =
-    planConf != null &&
-    (!isImportDraft || planConf.importState === 'confirmed')
+  const isSettingsMode = planConf != null
+
+  const calculationStepState = getCalculationStepVisualState(
+    planConf?.calculationState,
+    planConf?.reportData != null
+  )
+
+  const calculationStepHelper = (() => {
+    if (planConf == null) {
+      return undefined
+    }
+
+    switch (planConf.calculationState) {
+      case CalculationState.INITIALIZING:
+        return t('sidebar.my_plans.calculations_starting')
+      case CalculationState.CALCULATING:
+        return t('sidebar.my_plans.calculations_in_progress')
+      case CalculationState.ERRORED:
+        return t('sidebar.my_plans.calculations_errored')
+      default:
+        return undefined
+    }
+  })()
+
+  const calculationStepHelperLeading = (() => {
+    if (
+      planConf?.calculationState === CalculationState.INITIALIZING ||
+      planConf?.calculationState === CalculationState.CALCULATING
+    ) {
+      return (
+        <CircularProgress
+          size={12}
+          thickness={7}
+          sx={{ color: '#274AFF', flexShrink: 0 }}
+        />
+      )
+    }
+
+    if (planConf?.calculationState === CalculationState.ERRORED) {
+      return (
+        <ErrorIcon
+          sx={{
+            width: 12,
+            height: 12,
+            color: '#7A3D2B',
+            flexShrink: 0,
+          }}
+        />
+      )
+    }
+
+    return undefined
+  })()
 
   useEffect(() => {
-    if (planConf != null) {
+    if (planConf != null || creationPlaceholderPlanConf != null) {
       return
     }
 
@@ -259,11 +370,23 @@ const Page = () => {
     if (globalState === GlobalState.IDLE) {
       router.push(getRoute({ routeNode: routeTree.plans, routeTree }))
     }
-  }, [globalState, placeholderPlanConfs, planConf, planId, router])
+  }, [
+    creationPlaceholderPlanConf,
+    globalState,
+    placeholderPlanConfs,
+    planConf,
+    planId,
+    router,
+  ])
+
+  useEffect(() => {
+    hasAttemptedAutoOpenRef.current = false
+  }, [planId])
 
   useEffect(() => {
     if (
-      planConf?.importState !== 'awaiting-file' ||
+      creationPlaceholderPlanConf?.status !== 'awaiting-file' ||
+      creationPlaceholderPlanConf.file != null ||
       hasAttemptedAutoOpenRef.current
     ) {
       return
@@ -274,7 +397,71 @@ const Page = () => {
     window.requestAnimationFrame(() => {
       inputRef.current?.click()
     })
-  }, [planConf?.importState])
+  }, [creationPlaceholderPlanConf?.file, creationPlaceholderPlanConf?.status])
+
+  useEffect(() => {
+    if (creationPlaceholderPlanConf?.file?.storageKey == null) {
+      setPendingImport(null)
+      setFileName(undefined)
+      setArrayBuffer(undefined)
+      setFileType(undefined)
+      return
+    }
+
+    let isMounted = true
+    const creationPlaceholderFile = creationPlaceholderPlanConf.file
+
+    const loadCreationImportFile = async () => {
+      try {
+        const storedFile = await getCreationImportFile(
+          creationPlaceholderFile.storageKey
+        )
+
+        if (!isMounted) {
+          return
+        }
+
+        if (storedFile == null) {
+          setPendingImport(null)
+          setFileName(undefined)
+          setArrayBuffer(undefined)
+          setFileType(undefined)
+
+          await updateCreationPlaceholderPlanConf(creationPlaceholderPlanConf.id, {
+            status: 'awaiting-file',
+            file: undefined,
+            selectedTable: undefined,
+            selectedZoningCol: undefined,
+            selectedNameCol: undefined,
+          })
+          return
+        }
+
+        setPendingImport(null)
+        setFileName(creationPlaceholderFile.fileName)
+        setArrayBuffer(storedFile.buffer)
+        setFileType(
+          creationPlaceholderFile.fileType ??
+            storedFile.fileType ??
+            getFileType(storedFile.fileName)
+        )
+      } catch (error) {
+        console.error('Failed to load stored import file', error)
+      }
+    }
+
+    loadCreationImportFile()
+
+    return () => {
+      isMounted = false
+    }
+  }, [
+    creationPlaceholderPlanConf?.file?.fileName,
+    creationPlaceholderPlanConf?.file?.fileType,
+    creationPlaceholderPlanConf?.file?.storageKey,
+    creationPlaceholderPlanConf?.id,
+    updateCreationPlaceholderPlanConf,
+  ])
 
   useEffect(() => {
     if (planDelete.isSuccess) {
@@ -322,41 +509,60 @@ const Page = () => {
   )
 
   const handleFileInput = async (event: ChangeEvent<HTMLInputElement>) => {
-    if (!event.target.files?.length || planConf == null) {
+    if (
+      !event.target.files?.length ||
+      creationPlaceholderPlanConf == null
+    ) {
       return
     }
 
     const selectedFile = event.target.files[0]
     const selectedFileType = getFileType(selectedFile.name)
-    const reader = new window.FileReader()
+    const storageKey =
+      creationPlaceholderPlanConf.file?.storageKey ??
+      getCreationImportFileStorageKey(creationPlaceholderPlanConf.id)
 
     setPendingImport(null)
     setFileName(undefined)
     setArrayBuffer(undefined)
     setFileType(undefined)
 
-    await updatePlanConf(planConf.id, {
-      importState: 'awaiting-confirm',
-    })
+    try {
+      const storedFile = await putCreationImportFile({
+        storageKey,
+        file: selectedFile,
+        fileType: selectedFileType,
+      })
 
-    reader.readAsArrayBuffer(selectedFile)
+      await updateCreationPlaceholderPlanConf(creationPlaceholderPlanConf.id, {
+        status: 'awaiting-confirm',
+        file: {
+          storageKey,
+          fileName: storedFile.fileName,
+          fileType: storedFile.fileType,
+          size: storedFile.size,
+        },
+        selectedTable: undefined,
+        selectedZoningCol: undefined,
+        selectedNameCol: undefined,
+      })
 
-    reader.onloadend = () => {
-      if (reader.result == null || typeof reader.result === 'string') {
-        console.error('reader.result is not an ArrayBuffer')
-        return
-      }
-
-      setFileName(selectedFile.name)
-      setArrayBuffer(reader.result)
-      setFileType(selectedFileType)
+      setFileName(storedFile.fileName)
+      setArrayBuffer(storedFile.buffer)
+      setFileType(storedFile.fileType ?? selectedFileType)
+    } catch (error) {
+      console.error('Failed to persist selected import file', error)
     }
 
     event.target.value = ''
   }
 
   const handleConfirmImport = async () => {
-    if (planConf == null || pendingImport == null || fileName == null) {
+    if (
+      creationPlaceholderPlanConf == null ||
+      pendingImport == null ||
+      fileName == null
+    ) {
       return
     }
 
@@ -372,34 +578,61 @@ const Page = () => {
         nameColName: pendingImport.nameColName,
         zoningClasses,
       })
-      const nextPlanName = getPlanNameFromFileName(fileName)
+      const nextPlanName =
+        creationPlaceholderPlanConf.name?.trim() ||
+        getPlanNameFromFileName(fileName) ||
+        t('sidebar.my_plans.imported_plan_name')
       const areaHa = getImportedPlanAreaHa(formattedJson)
-
-      await updatePlanConf(planConf.id, {
+      const newPlanConf: NewPlanConf & { id: string; created: number } = {
+        id: creationPlaceholderPlanConf.id,
+        created: creationPlaceholderPlanConf.created,
         data: formattedJson as PlanData,
         name: nextPlanName,
         areaHa,
-        draftType: undefined,
-        importState: 'confirmed',
-        isHidden: false,
-      })
+      }
 
-      setPendingImport(null)
+      await addPlanConf(newPlanConf)
+
+      await deleteCreationPlaceholderPlanConf(creationPlaceholderPlanConf.id)
+
+      if (creationPlaceholderPlanConf.file?.storageKey != null) {
+        await deleteCreationImportFile(creationPlaceholderPlanConf.file.storageKey)
+      }
+
       setArrayBuffer(undefined)
       setFileName(undefined)
       setFileType(undefined)
+      setPendingImport(null)
     } catch (error) {
       console.error('Failed to apply imported plan', error)
     }
   }
 
   const handleDeleteClick = () => {
-    if (planConf == null) {
+    if (planConf == null && creationPlaceholderPlanConf == null) {
       return
     }
 
     const handleDeleteConfirm = async () => {
-      await planDelete.mutate(planConf)
+      if (creationPlaceholderPlanConf != null) {
+        if (creationPlaceholderPlanConf.file?.storageKey != null) {
+          await deleteCreationImportFile(
+            creationPlaceholderPlanConf.file.storageKey
+          )
+        }
+
+        await deleteCreationPlaceholderPlanConf(creationPlaceholderPlanConf.id)
+        setPendingImport(null)
+        setArrayBuffer(undefined)
+        setFileName(undefined)
+        setFileType(undefined)
+        router.push(getRoute({ routeNode: routeTree.plans, routeTree }))
+        return
+      }
+
+      if (planConf != null) {
+        await planDelete.mutate(planConf)
+      }
     }
 
     triggerConfirmationDialog({
@@ -463,12 +696,23 @@ const Page = () => {
   }
 
   const handlePlanNameChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const nextValue = event.target.value
+
+    if (creationPlaceholderPlanConf != null) {
+      updateCreationPlaceholderPlanConf(creationPlaceholderPlanConf.id, {
+        name: nextValue.trim() === '' ? undefined : nextValue,
+      }).catch((error) => {
+        console.error('Failed to update placeholder plan name', error)
+      })
+      return
+    }
+
     if (planConf == null) {
       return
     }
 
     updatePlanConf(planConf.id, {
-      name: event.target.value,
+      name: nextValue,
     }).catch((error) => {
       console.error('Failed to update plan name', error)
     })
@@ -484,7 +728,7 @@ const Page = () => {
     })
   }
 
-  if (planConf == null) {
+  if (planConf == null && creationPlaceholderPlanConf == null) {
     return (
       <SidebarContentBox>
         <LoadingSpinner />
@@ -522,8 +766,7 @@ const Page = () => {
         }}
       >
         <FlowNodeContainer>
-          <FlowNode
-            state="active"
+          <NodeFlowAccordion
             title={
               isSettingsMode ? (
                 <T keyName="sidebar.plan_flow.settings_title" ns="hiilikartta" />
@@ -537,6 +780,8 @@ const Page = () => {
                 <InfoButton tooltip={t('sidebar.create.upload_info')} />
               ) : undefined
             }
+            defaultOpen
+            ariaLabel={t('sidebar.plan_flow.import_title')}
             bodySx={{
               gap: '0.875rem',
             }}
@@ -544,17 +789,92 @@ const Page = () => {
             {!isSettingsMode && (
               <>
                 <UploadField
-                  label={
-                    fileName ??
-                    t('sidebar.create.select_file')
-                  }
+                  label={fileName ?? t('sidebar.create.select_file')}
                   isSelected={fileName != null}
                   onClick={() => inputRef.current?.click()}
                 />
 
+                {creationPlaceholderPlanConf != null && (
+                  <>
+                    {creationPlaceholderPlanConf.file != null && (
+                      <Box sx={{ width: '100%' }}>
+                        <FieldLabel>
+                          <T
+                            keyName="sidebar.plan_flow.plan_name_label"
+                            ns="hiilikartta"
+                          />
+                        </FieldLabel>
+                        <StatusFieldRow
+                          isSuccess={
+                            creationPlaceholderPlanConf.name?.trim() != null
+                          }
+                        >
+                          <TextField
+                            value={creationPlaceholderPlanConf.name ?? ''}
+                            onChange={handlePlanNameChange}
+                            aria-label={t('sidebar.plan_flow.plan_name_label')}
+                            variant="outlined"
+                            size="small"
+                            sx={{
+                              width: '100%',
+                              '& .MuiOutlinedInput-root': {
+                                minHeight: '1.25rem',
+                                borderRadius: '0.625rem',
+                                backgroundColor: '#ffffff',
+                                boxShadow: 'inset 0px 0.5px 1px 0px #d9d9d9',
+                              },
+                              '& .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#d6d6d6',
+                              },
+                              '& .MuiOutlinedInput-notchedOutline legend': {
+                                maxWidth: 0,
+                              },
+                              '& .MuiInputBase-input': {
+                                py: '0.1875rem',
+                                px: '1rem',
+                                fontSize: '0.6875rem',
+                                fontWeight: 400,
+                                lineHeight: 'normal',
+                                letterSpacing: '0.04em',
+                                color: '#111111',
+                              },
+                            }}
+                          />
+                        </StatusFieldRow>
+                      </Box>
+                    )}
+
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.625rem',
+                        width: '100%',
+                      }}
+                    >
+                      <IconTextButton
+                        aria-label={t('sidebar.plan_settings.delete')}
+                        icon={<Delete sx={{ width: 14, height: 14 }} />}
+                        text={
+                          <T
+                            keyName="sidebar.plan_settings.delete"
+                            ns="hiilikartta"
+                          />
+                        }
+                        onClick={handleDeleteClick}
+                      />
+                    </Box>
+                  </>
+                )}
+
                 {fileType === 'gpkg' && arrayBuffer && (
                   <PlanImportGpkg
                     fileBuffer={arrayBuffer}
+                    selectedTable={creationPlaceholderPlanConf?.selectedTable}
+                    selectedZoningCol={
+                      creationPlaceholderPlanConf?.selectedZoningCol
+                    }
+                    selectedNameCol={creationPlaceholderPlanConf?.selectedNameCol}
                     copy={{
                       tableLabel: t('sidebar.plan_flow.database_table_label'),
                       tablePlaceholder: t(
@@ -571,6 +891,59 @@ const Page = () => {
                         'sidebar.plan_flow.area_names_placeholder'
                       ),
                     }}
+                    onSelectedTableChange={(selectedTable) => {
+                      if (creationPlaceholderPlanConf == null) {
+                        return
+                      }
+
+                      updateCreationPlaceholderPlanConf(
+                        creationPlaceholderPlanConf.id,
+                        {
+                          selectedTable,
+                          selectedZoningCol: undefined,
+                          selectedNameCol: undefined,
+                        }
+                      ).catch((error) => {
+                        console.error(
+                          'Failed to update placeholder selected table',
+                          error
+                        )
+                      })
+                    }}
+                    onSelectedZoningColChange={(selectedZoningCol) => {
+                      if (creationPlaceholderPlanConf == null) {
+                        return
+                      }
+
+                      updateCreationPlaceholderPlanConf(
+                        creationPlaceholderPlanConf.id,
+                        {
+                          selectedZoningCol,
+                        }
+                      ).catch((error) => {
+                        console.error(
+                          'Failed to update placeholder zoning column',
+                          error
+                        )
+                      })
+                    }}
+                    onSelectedNameColChange={(selectedNameCol) => {
+                      if (creationPlaceholderPlanConf == null) {
+                        return
+                      }
+
+                      updateCreationPlaceholderPlanConf(
+                        creationPlaceholderPlanConf.id,
+                        {
+                          selectedNameCol,
+                        }
+                      ).catch((error) => {
+                        console.error(
+                          'Failed to update placeholder name column',
+                          error
+                        )
+                      })
+                    }}
                     onPendingImportChange={setPendingImport}
                   />
                 )}
@@ -578,6 +951,10 @@ const Page = () => {
                 {fileType === 'shp' && arrayBuffer && (
                   <PlanImportShp
                     fileBuffer={arrayBuffer}
+                    selectedZoningCol={
+                      creationPlaceholderPlanConf?.selectedZoningCol
+                    }
+                    selectedNameCol={creationPlaceholderPlanConf?.selectedNameCol}
                     copy={{
                       zoningClassesLabel: t(
                         'sidebar.create.select_zone_code_record'
@@ -589,6 +966,40 @@ const Page = () => {
                       areaNamesPlaceholder: t(
                         'sidebar.plan_flow.area_names_placeholder'
                       ),
+                    }}
+                    onSelectedZoningColChange={(selectedZoningCol) => {
+                      if (creationPlaceholderPlanConf == null) {
+                        return
+                      }
+
+                      updateCreationPlaceholderPlanConf(
+                        creationPlaceholderPlanConf.id,
+                        {
+                          selectedZoningCol,
+                        }
+                      ).catch((error) => {
+                        console.error(
+                          'Failed to update placeholder zoning column',
+                          error
+                        )
+                      })
+                    }}
+                    onSelectedNameColChange={(selectedNameCol) => {
+                      if (creationPlaceholderPlanConf == null) {
+                        return
+                      }
+
+                      updateCreationPlaceholderPlanConf(
+                        creationPlaceholderPlanConf.id,
+                        {
+                          selectedNameCol,
+                        }
+                      ).catch((error) => {
+                        console.error(
+                          'Failed to update placeholder name column',
+                          error
+                        )
+                      })
                     }}
                     onPendingImportChange={setPendingImport}
                   />
@@ -767,22 +1178,36 @@ const Page = () => {
                 </Box>
               </>
             )}
-          </FlowNode>
+          </NodeFlowAccordion>
 
-          <FlowNode
+          <NodeFlowButton
             state={isSettingsMode ? 'available' : 'disabled'}
             title={<T keyName="sidebar.plan_flow.areas_step" ns="hiilikartta" />}
+            leading={<FlowStepLeadingIcon />}
             onClick={isSettingsMode ? handleOpenAreas : undefined}
+            ariaLabel={t('sidebar.plan_flow.areas_step')}
           />
 
-          <FlowNode
-            state={planConf.reportData != null ? 'complete' : 'disabled'}
+          <NodeFlowButton
+            state={calculationStepState}
             title={
               <T
                 keyName="sidebar.plan_flow.calculate_report_step"
                 ns="hiilikartta"
               />
             }
+            leading={
+              <Eco
+                sx={{
+                  width: 12,
+                  height: 12,
+                  color: calculationStepState === 'error' ? '#7A3D2B' : '#0D6044',
+                }}
+              />
+            }
+            helper={calculationStepHelper}
+            helperLeading={calculationStepHelperLeading}
+            ariaLabel={t('sidebar.plan_flow.calculate_report_step')}
           />
         </FlowNodeContainer>
 

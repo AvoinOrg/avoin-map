@@ -8,7 +8,7 @@ import MutableLink from '#/components/common/MutableLink'
 import { CircleArrowRight, Error as ErrorIcon, Info } from '#/components/icons'
 import { routeTree } from '#/common/routing/routes/hiilikartta'
 
-import { CalculationState, PlanConf } from '../common/types'
+import { CalculationState } from '../common/types'
 import PlanOutlineIcon from './PlanOutlineIcon'
 
 type StatusDisplay = {
@@ -75,19 +75,44 @@ const getStatusDisplay = ({
   }
 }
 
-const PlanListItem = ({ planConf }: { planConf: PlanConf }) => {
+const PlanListItem = ({
+  planId,
+  name,
+  calculationState,
+  statusText,
+  statusColor = '#0D6044',
+}: {
+  planId: string
+  name: string
+  calculationState?: CalculationState
+  statusText?: string
+  statusColor?: string
+}) => {
   const { t } = useTranslate('hiilikartta')
-  const statusDisplay = getStatusDisplay({
-    calculationState: planConf.calculationState,
-    t,
-  })
+  const statusDisplay =
+    statusText != null
+      ? {
+          color: statusColor,
+          icon: (
+            <Info
+              sx={{ width: '0.625rem', height: '0.625rem', color: 'inherit' }}
+            />
+          ),
+          text: statusText,
+        }
+      : calculationState != null
+        ? getStatusDisplay({
+            calculationState,
+            t,
+          })
+        : null
 
   return (
     <MutableLink
       route={routeTree.plans.plan}
       routeTree={routeTree}
-      params={{ routeParams: { planId: planConf.id } }}
-      aria-label={`Open plan ${planConf.name}`}
+      params={{ routeParams: { planId } }}
+      aria-label={`Open plan ${name}`}
       sx={{
         width: '100%',
         display: 'flex',
@@ -144,7 +169,7 @@ const PlanListItem = ({ planConf }: { planConf: PlanConf }) => {
               whiteSpace: 'nowrap',
             }}
           >
-            {planConf.name}
+            {name}
           </Typography>
 
           {statusDisplay && (

@@ -7,31 +7,35 @@ import { PendingPlanImport } from './planImportTypes'
 
 type PlanImportShpProps = {
   fileBuffer: ArrayBuffer
+  selectedZoningCol?: string
+  selectedNameCol?: string
   copy: {
     zoningClassesLabel: string
     zoningClassesPlaceholder: string
     areaNamesLabel: string
     areaNamesPlaceholder: string
   }
+  onSelectedZoningColChange: (column: string | undefined) => void
+  onSelectedNameColChange: (column: string | undefined) => void
   onPendingImportChange: (pendingImport: PendingPlanImport | null) => void
 }
 
 const PlanImportShp = ({
   fileBuffer,
+  selectedZoningCol,
+  selectedNameCol,
   copy,
+  onSelectedZoningColChange,
+  onSelectedNameColChange,
   onPendingImportChange,
 }: PlanImportShpProps) => {
   const [geojson, setGeojson] = useState<FeatureCollection>()
-  const [zoningCol, setZoningCol] = useState<string>()
-  const [nameCol, setNameCol] = useState<string | undefined>()
   const [columns, setColumns] = useState<string[]>([])
   const lastResolvedImportKeyRef = useRef<string>()
 
   useEffect(() => {
     setGeojson(undefined)
     setColumns([])
-    setZoningCol(undefined)
-    setNameCol(undefined)
     lastResolvedImportKeyRef.current = undefined
     onPendingImportChange(null)
 
@@ -60,7 +64,7 @@ const PlanImportShp = ({
     loadGeojson().catch((error) => {
       console.error('Failed to load Shapefile zip', error)
     })
-  }, [fileBuffer])
+  }, [fileBuffer, onPendingImportChange])
 
   useEffect(() => {
     if (geojson == null) {
@@ -75,17 +79,37 @@ const PlanImportShp = ({
       return
     }
 
-    setColumns(Object.keys(featureProperties))
-  }, [geojson])
+    const nextColumns = Object.keys(featureProperties)
+
+    setColumns(nextColumns)
+    lastResolvedImportKeyRef.current = undefined
+
+    if (
+      selectedZoningCol != null &&
+      !nextColumns.includes(selectedZoningCol)
+    ) {
+      onSelectedZoningColChange(undefined)
+    }
+
+    if (selectedNameCol != null && !nextColumns.includes(selectedNameCol)) {
+      onSelectedNameColChange(undefined)
+    }
+  }, [
+    geojson,
+    onSelectedNameColChange,
+    onSelectedZoningColChange,
+    selectedNameCol,
+    selectedZoningCol,
+  ])
 
   useEffect(() => {
-    if (geojson == null || zoningCol == null) {
+    if (geojson == null || selectedZoningCol == null) {
       lastResolvedImportKeyRef.current = undefined
       onPendingImportChange(null)
       return
     }
 
-    const importKey = `${fileBuffer.byteLength}:${zoningCol}:${nameCol ?? ''}`
+    const importKey = `${fileBuffer.byteLength}:${selectedZoningCol}:${selectedNameCol ?? ''}`
 
     if (lastResolvedImportKeyRef.current === importKey) {
       return
@@ -94,26 +118,32 @@ const PlanImportShp = ({
     onPendingImportChange({
       importKey,
       json: geojson,
-      zoningColName: zoningCol,
-      nameColName: nameCol,
+      zoningColName: selectedZoningCol,
+      nameColName: selectedNameCol,
     })
     lastResolvedImportKeyRef.current = importKey
-  }, [fileBuffer.byteLength, geojson, nameCol, onPendingImportChange, zoningCol])
+  }, [
+    fileBuffer.byteLength,
+    geojson,
+    onPendingImportChange,
+    selectedNameCol,
+    selectedZoningCol,
+  ])
 
   return (
     <>
       <PlanImportCodeRecordSelect
         columns={columns}
-        selectedColumn={zoningCol}
-        onColumnChange={setZoningCol}
+        selectedColumn={selectedZoningCol}
+        onColumnChange={onSelectedZoningColChange}
         label={copy.zoningClassesLabel}
         placeholder={copy.zoningClassesPlaceholder}
         sx={{ mb: '1.125rem' }}
       />
       <PlanImportCodeRecordSelect
         columns={columns}
-        selectedColumn={nameCol}
-        onColumnChange={setNameCol}
+        selectedColumn={selectedNameCol}
+        onColumnChange={onSelectedNameColChange}
         allowEmpty
         label={copy.areaNamesLabel}
         placeholder={copy.areaNamesPlaceholder}

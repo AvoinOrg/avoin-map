@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { SelectChangeEvent } from '@mui/material'
 import { FeatureCollection } from 'geojson'
 
@@ -9,6 +9,9 @@ import { PendingPlanImport } from './planImportTypes'
 
 type PlanImportGpkgProps = {
   fileBuffer: ArrayBuffer
+  selectedTable?: string
+  selectedZoningCol?: string
+  selectedNameCol?: string
   copy: {
     tableLabel: string
     tablePlaceholder: string
@@ -17,6 +20,9 @@ type PlanImportGpkgProps = {
     areaNamesLabel: string
     areaNamesPlaceholder: string
   }
+  onSelectedTableChange: (table: string | undefined) => void
+  onSelectedZoningColChange: (column: string | undefined) => void
+  onSelectedNameColChange: (column: string | undefined) => void
   onPendingImportChange: (pendingImport: PendingPlanImport | null) => void
 }
 
@@ -56,30 +62,38 @@ const sharedTypographySx = {
 
 const PlanImportGpkg = ({
   fileBuffer,
+  selectedTable,
+  selectedZoningCol,
+  selectedNameCol,
   copy,
+  onSelectedTableChange,
+  onSelectedZoningColChange,
+  onSelectedNameColChange,
   onPendingImportChange,
 }: PlanImportGpkgProps) => {
   const [gpkgFile, setGpkgFile] = useState<any>()
-  const [table, setTable] = useState<string>()
   const [tables, setTables] = useState<string[]>([])
   const [columns, setColumns] = useState<string[]>([])
-  const [zoningCol, setZoningCol] = useState<string>()
-  const [nameCol, setNameCol] = useState<string | undefined>()
   const lastResolvedImportKeyRef = useRef<string>()
+
+  const activeTable = useMemo(() => {
+    if (selectedTable != null && tables.includes(selectedTable)) {
+      return selectedTable
+    }
+
+    return tables[0]
+  }, [selectedTable, tables])
 
   useEffect(() => {
     let isMounted = true
 
     setGpkgFile(undefined)
     setTables([])
-      setColumns([])
-      setTable(undefined)
-      setZoningCol(undefined)
-      setNameCol(undefined)
-      lastResolvedImportKeyRef.current = undefined
-      onPendingImportChange(null)
+    setColumns([])
+    lastResolvedImportKeyRef.current = undefined
+    onPendingImportChange(null)
 
-      const loadGpkg = async () => {
+    const loadGpkg = async () => {
       const { GeoPackageAPI, setSqljsWasmLocateFile } =
         await import('@ngageoint/geopackage')
 
@@ -93,7 +107,6 @@ const PlanImportGpkg = ({
       }
 
       setGpkgFile(geopackage)
-      setTables(geopackage.getFeatureTables())
     }
 
     loadGpkg().catch((error) => {
@@ -103,7 +116,7 @@ const PlanImportGpkg = ({
     return () => {
       isMounted = false
     }
-  }, [fileBuffer])
+  }, [fileBuffer, onPendingImportChange])
 
   useEffect(() => {
     if (gpkgFile == null) {
@@ -111,38 +124,64 @@ const PlanImportGpkg = ({
     }
 
     const nextTables = gpkgFile.getFeatureTables()
+    const nextSelectedTable =
+      selectedTable != null && nextTables.includes(selectedTable)
+        ? selectedTable
+        : nextTables[0]
+
     setTables(nextTables)
-    setTable((currentTable) =>
-      currentTable != null ? currentTable : nextTables[0]
-    )
-  }, [gpkgFile])
+
+    if (selectedTable !== nextSelectedTable) {
+      onSelectedTableChange(nextSelectedTable)
+    }
+  }, [gpkgFile, onSelectedTableChange, selectedTable])
 
   useEffect(() => {
-    if (table == null || gpkgFile == null) {
+    if (activeTable == null || gpkgFile == null) {
       setColumns([])
-      setZoningCol(undefined)
-      setNameCol(undefined)
       lastResolvedImportKeyRef.current = undefined
       onPendingImportChange(null)
       return
     }
 
-    const featureDao = gpkgFile.getFeatureDao(table)
+    const featureDao = gpkgFile.getFeatureDao(activeTable)
+    const nextColumns = featureDao.columns
 
-    setColumns(featureDao.columns)
-    setZoningCol(undefined)
-    setNameCol(undefined)
+    setColumns(nextColumns)
     lastResolvedImportKeyRef.current = undefined
-  }, [gpkgFile, table])
+
+    if (
+      selectedZoningCol != null &&
+      !nextColumns.includes(selectedZoningCol)
+    ) {
+      onSelectedZoningColChange(undefined)
+    }
+
+    if (selectedNameCol != null && !nextColumns.includes(selectedNameCol)) {
+      onSelectedNameColChange(undefined)
+    }
+  }, [
+    activeTable,
+    gpkgFile,
+    onPendingImportChange,
+    onSelectedNameColChange,
+    onSelectedZoningColChange,
+    selectedNameCol,
+    selectedZoningCol,
+  ])
 
   useEffect(() => {
-    if (gpkgFile == null || table == null || zoningCol == null) {
+    if (
+      gpkgFile == null ||
+      activeTable == null ||
+      selectedZoningCol == null
+    ) {
       lastResolvedImportKeyRef.current = undefined
       onPendingImportChange(null)
       return
     }
 
-    const importKey = `${fileBuffer.byteLength}:${table}:${zoningCol}:${nameCol ?? ''}`
+    const importKey = `${fileBuffer.byteLength}:${activeTable}:${selectedZoningCol}:${selectedNameCol ?? ''}`
 
     if (lastResolvedImportKeyRef.current === importKey) {
       return
@@ -153,7 +192,7 @@ const PlanImportGpkg = ({
         type: 'FeatureCollection',
         features: [],
       }
-      const iterator = gpkgFile.iterateGeoJSONFeatures(table)
+      const iterator = gpkgFile.iterateGeoJSONFeatures(activeTable)
 
       for (const feature of iterator) {
         geoJson.features.push(roundFeatureCoordinates(feature))
@@ -162,8 +201,8 @@ const PlanImportGpkg = ({
       onPendingImportChange({
         importKey,
         json: geoJson,
-        zoningColName: zoningCol,
-        nameColName: nameCol,
+        zoningColName: selectedZoningCol,
+        nameColName: selectedNameCol,
       })
       lastResolvedImportKeyRef.current = importKey
     }
@@ -172,23 +211,23 @@ const PlanImportGpkg = ({
       console.error('Failed to extract GeoPackage features', error)
     })
   }, [
+    activeTable,
     fileBuffer.byteLength,
     gpkgFile,
-    nameCol,
     onPendingImportChange,
-    table,
-    zoningCol,
+    selectedNameCol,
+    selectedZoningCol,
   ])
 
   const handleSelectTable = (event: SelectChangeEvent) => {
-    setTable(event.target.value)
+    onSelectedTableChange(event.target.value || undefined)
   }
 
   return (
     <>
       {tables.length > 1 && (
         <DropDownSelectWithHeader
-          value={table}
+          value={activeTable}
           options={tables.map((tableName) => ({
             value: tableName,
             label: tableName,
@@ -214,8 +253,8 @@ const PlanImportGpkg = ({
 
       <PlanImportCodeRecordSelect
         columns={columns}
-        selectedColumn={zoningCol}
-        onColumnChange={setZoningCol}
+        selectedColumn={selectedZoningCol}
+        onColumnChange={onSelectedZoningColChange}
         label={copy.zoningClassesLabel}
         placeholder={copy.zoningClassesPlaceholder}
         sx={{ mb: '1.125rem' }}
@@ -223,8 +262,8 @@ const PlanImportGpkg = ({
 
       <PlanImportCodeRecordSelect
         columns={columns}
-        selectedColumn={nameCol}
-        onColumnChange={setNameCol}
+        selectedColumn={selectedNameCol}
+        onColumnChange={onSelectedNameColChange}
         allowEmpty
         label={copy.areaNamesLabel}
         placeholder={copy.areaNamesPlaceholder}
