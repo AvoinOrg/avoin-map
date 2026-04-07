@@ -9,28 +9,10 @@ export const routeTree = {
     name: 'Etusivu',
     ...appletConf,
   },
-  create: {
-    _conf: {
-      path: 'luo',
-      name: 'Luo kaava',
-    },
-    import: {
-      _conf: {
-        path: 'tuo',
-        name: 'Tuo uusi kaavatiedosto',
-      },
-    },
-  },
   plans: {
     _conf: {
       path: 'kaavat',
       name: 'Kaavat',
-    },
-    import: {
-      _conf: {
-        path: 'tuo',
-        name: 'Tuo uusi kaavatiedosto',
-      },
     },
     plan: {
       _conf: {

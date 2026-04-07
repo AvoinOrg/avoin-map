@@ -2,7 +2,7 @@ import React from 'react'
 import { Box, Button } from '@mui/material'
 import { T } from '@tolgee/react'
 
-const InitActionsRow = ({
+const PlanImportActionsRow = ({
   onClickAccept,
   isAcceptDisabled,
 }: {
@@ -46,4 +46,4 @@ const InitActionsRow = ({
   )
 }
 
-export default InitActionsRow
+export default PlanImportActionsRow

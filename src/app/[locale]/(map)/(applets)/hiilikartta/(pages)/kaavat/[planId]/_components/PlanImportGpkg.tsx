@@ -259,7 +259,6 @@ const PlanImportGpkg = ({
         placeholder={copy.zoningClassesPlaceholder}
         sx={{ mb: '1.125rem' }}
       />
-
       <PlanImportCodeRecordSelect
         columns={columns}
         selectedColumn={selectedNameCol}

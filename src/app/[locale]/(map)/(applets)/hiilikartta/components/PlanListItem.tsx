@@ -116,7 +116,7 @@ const PlanListItem = ({
       sx={{
         width: '100%',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         justifyContent: 'space-between',
         gap: '0.75rem',
         py: '0.75rem',
@@ -134,70 +134,73 @@ const PlanListItem = ({
     >
       <Box
         sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.875rem',
+          display: 'grid',
+          gridTemplateColumns: '0.8125rem minmax(0, 1fr)',
+          columnGap: '0.875rem',
+          rowGap: '0.3125rem',
           minWidth: 0,
           flex: 1,
         }}
       >
-        <PlanOutlineIcon
-          sx={{
-            flexShrink: 0,
-            color: '#0D6044',
-          }}
-        />
         <Box
           sx={{
             display: 'flex',
-            flexDirection: 'column',
-            gap: '0.3125rem',
-            minWidth: 0,
-            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '1rem',
+            color: '#0D6044',
           }}
         >
-          <Typography
+          <PlanOutlineIcon
             sx={{
-              fontSize: '0.625rem',
-              fontWeight: 700,
-              lineHeight: '1rem',
-              letterSpacing: '0.1em',
-              color: '#111111',
-              textTransform: 'none',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              color: 'inherit',
             }}
-          >
-            {name}
-          </Typography>
+          />
+        </Box>
+        <Typography
+          sx={{
+            fontSize: '0.625rem',
+            fontWeight: 700,
+            lineHeight: '1rem',
+            letterSpacing: '0.1em',
+            color: '#111111',
+            textTransform: 'none',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {name}
+        </Typography>
 
-          {statusDisplay && (
+        {statusDisplay && (
+          <>
             <Box
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.4375rem',
-                minWidth: 0,
+                justifyContent: 'center',
+                minHeight: '0.875rem',
                 color: statusDisplay.color,
               }}
             >
               {statusDisplay.icon}
-              <Typography
-                sx={{
-                  fontSize: '0.5rem',
-                  fontWeight: 400,
-                  lineHeight: '0.875rem',
-                  letterSpacing: '0.12em',
-                  color: 'inherit',
-                  wordBreak: 'break-word',
-                }}
-              >
-                {statusDisplay.text}
-              </Typography>
             </Box>
-          )}
-        </Box>
+            <Typography
+              sx={{
+                fontSize: '0.5rem',
+                fontWeight: 400,
+                lineHeight: '0.875rem',
+                letterSpacing: '0.12em',
+                color: statusDisplay.color,
+                wordBreak: 'break-word',
+              }}
+            >
+              {statusDisplay.text}
+            </Typography>
+          </>
+        )}
       </Box>
 
       <Box
@@ -205,6 +208,8 @@ const PlanListItem = ({
         sx={{
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '1rem',
           flexShrink: 0,
           color: '#111111',
           transition: 'transform 160ms cubic-bezier(.2,0,.2,1)',
