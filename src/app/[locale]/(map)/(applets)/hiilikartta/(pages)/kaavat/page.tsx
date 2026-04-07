@@ -17,21 +17,55 @@ import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state
 import { routeTree } from '#/common/routing/routes/hiilikartta'
 import PlanListItem from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanListItem'
 import {
+  CreationPlaceholderPlanConf,
   NewPlanConf,
   PlanData,
-  PlanImportState,
   ZONING_CODE_COL,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
 import PlanListItemLoading from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanListItemLoading'
 import { createLayerConf } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
 import { getVisiblePlanConfs } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/planVisibility'
 import PlanOutlineIcon from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanOutlineIcon'
+import TText from '#/components/common/TText'
 
 type SortOption = 'newest' | 'oldest' | 'a-z' | 'z-a'
 const IMPORT_PLAN_ICON_SRC =
   '/files/img/hiilikartta/sidebar/kaavat-action-upload.svg'
 const DRAW_PLAN_ICON_SRC =
   '/files/img/hiilikartta/sidebar/kaavat-action-draw.svg'
+
+type PlanListEntry =
+  | {
+      kind: 'plan'
+      created: number
+      id: string
+      name: string
+      calculationState: NonNullable<
+        ReturnType<typeof getVisiblePlanConfs>[number]
+      >['calculationState']
+    }
+  | {
+      kind: 'creation-placeholder'
+      created: number
+      id: string
+      name: string
+    }
+
+const getCreationPlaceholderDisplayName = ({
+  creationPlaceholderPlanConf,
+  t,
+}: {
+  creationPlaceholderPlanConf: CreationPlaceholderPlanConf
+  t: (key: string) => string
+}) => {
+  const trimmedName = creationPlaceholderPlanConf.name?.trim()
+
+  if (trimmedName) {
+    return trimmedName
+  }
+
+  return t('sidebar.my_plans.imported_plan_name')
+}
 
 const Page = () => {
   const { t } = useTranslate('hiilikartta')
@@ -42,16 +76,45 @@ const Page = () => {
     useAppletStore,
     (state) => state.placeholderPlanConfs
   )
+  const creationPlaceholderPlanConfs = useStore(
+    useAppletStore,
+    (state) => state.creationPlaceholderPlanConfs
+  )
   const addPlanConf = useAppletStore((state) => state.addPlanConf)
+  const addCreationPlaceholderPlanConf = useAppletStore(
+    (state) => state.addCreationPlaceholderPlanConf
+  )
   const deletePlanConf = useAppletStore((state) => state.deletePlanConf)
   const addSerializableLayerGroup = useMapStore(
     (state) => state.addSerializableLayerGroup
   )
 
-  const sortedPlanConfs = useMemo(() => {
+  const sortedPlanEntries = useMemo(() => {
     const visiblePlanConfs = getVisiblePlanConfs(planConfs ?? undefined)
+    const creationPlaceholderEntries = Object.values(
+      creationPlaceholderPlanConfs ?? {}
+    ).map(
+      (creationPlaceholderPlanConf): PlanListEntry => ({
+        kind: 'creation-placeholder',
+        created: creationPlaceholderPlanConf.created,
+        id: creationPlaceholderPlanConf.id,
+        name: getCreationPlaceholderDisplayName({
+          creationPlaceholderPlanConf,
+          t,
+        }),
+      })
+    )
 
-    const sorted = [...visiblePlanConfs]
+    const sorted: PlanListEntry[] = [
+      ...visiblePlanConfs.map((planConf) => ({
+        kind: 'plan' as const,
+        created: planConf.created,
+        id: planConf.id,
+        name: planConf.name,
+        calculationState: planConf.calculationState,
+      })),
+      ...creationPlaceholderEntries,
+    ]
 
     sorted.sort((firstPlanConf, secondPlanConf) => {
       switch (sortOrder) {
@@ -68,38 +131,24 @@ const Page = () => {
     })
 
     return sorted
-  }, [planConfs, sortOrder])
+  }, [creationPlaceholderPlanConfs, planConfs, sortOrder, t])
 
   const hasPlansSection =
-    sortedPlanConfs.length > 0 ||
+    sortedPlanEntries.length > 0 ||
     Object.keys(placeholderPlanConfs ?? {}).length > 0
 
   const handleSortChange = (event: SelectChangeEvent<string>) => {
     setSortOrder(event.target.value as SortOption)
   }
 
-  const visiblePlanCount = sortedPlanConfs.length
-  const visiblePlanCountLabel = `${visiblePlanCount} ${
-    visiblePlanCount === 1 ? 'kaava' : 'kaavaa'
-  }`
+  const visiblePlanCount = sortedPlanEntries.length
+  const visiblePlanCountLabel = t('sidebar.my_plans.count', {
+    count: visiblePlanCount,
+  })
 
   const handleImportClick = async () => {
-    const newPlanConf: NewPlanConf = {
-      data: {
-        type: 'FeatureCollection',
-        features: [],
-      },
-      name: t('sidebar.plan_flow.new_plan_name'),
-      areaHa: 0,
-      draftType: 'import',
-      importState: 'awaiting-file' satisfies PlanImportState,
-    }
-
-    const planConf = await addPlanConf(newPlanConf)
-
-    await useAppletStore.getState().updatePlanConf(planConf.id, {
-      isHidden: true,
-    })
+    const creationPlaceholderPlanConf =
+      await addCreationPlaceholderPlanConf()
 
     router.push(
       getRoute({
@@ -107,7 +156,7 @@ const Page = () => {
         routeTree,
         params: {
           routeParams: {
-            planId: planConf.id,
+            planId: creationPlaceholderPlanConf.id,
           },
         },
       })
@@ -169,7 +218,7 @@ const Page = () => {
         imageSrc="/files/img/hiilikartta/sidebar/kaavat-hero.png"
         imageAlt="Hiilikartta kaavat"
         title={<T keyName="sidebar.kaavat.title" ns="hiilikartta" />}
-        description={<T keyName="sidebar.kaavat.description" ns="hiilikartta" />}
+        description={<TText keyName="sidebar.kaavat.description" ns="hiilikartta" />}
         imageSx={{
           height: '5.625rem',
           objectPosition: 'center 35%',
@@ -384,9 +433,9 @@ const Page = () => {
                 pt: '0.8125rem',
               }}
             >
-              {sortedPlanConfs.map((planConf) => (
+              {sortedPlanEntries.map((planEntry) => (
                 <Box
-                  key={planConf.id}
+                  key={planEntry.id}
                   sx={{
                     width: '100%',
                     borderBottom:
@@ -396,7 +445,20 @@ const Page = () => {
                     },
                   }}
                 >
-                  <PlanListItem planConf={planConf} />
+                  <PlanListItem
+                    planId={planEntry.id}
+                    name={planEntry.name}
+                    calculationState={
+                      planEntry.kind === 'plan'
+                        ? planEntry.calculationState
+                        : undefined
+                    }
+                    statusText={
+                      planEntry.kind === 'creation-placeholder'
+                        ? t('sidebar.my_plans.import_in_progress')
+                        : undefined
+                    }
+                  />
                 </Box>
               ))}
 
