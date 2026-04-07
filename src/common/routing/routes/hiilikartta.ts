@@ -24,7 +24,7 @@ export const routeTree = {
   plans: {
     _conf: {
       path: 'kaavat',
-      name: 'Omat kaavat',
+      name: 'Kaavat',
     },
     import: {
       _conf: {
@@ -35,7 +35,7 @@ export const routeTree = {
     plan: {
       _conf: {
         path: '[planId]',
-        name: 'Kaavan asetukset',
+        name: 'Kaava',
       },
       areas: {
         _conf: {
