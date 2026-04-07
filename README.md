@@ -164,6 +164,27 @@ limitations.
   namespaces for applets listed in `NEXT_PUBLIC_COMPILED_APPLETS` (and always
   includes the shared `main` namespace, `avoin-map`, for the active locales).
 - The Tolgee browser plugin (Alt+click) is the preferred editing workflow.
+- Prefer `TText` over raw `T` for JSX-rendered translation content. `TText`
+  injects repo-wide Tolgee ICU rich-text params from
+  `src/components/common/TText.tsx`.
+- Keep `useTranslate().t(...)` for string-only use cases such as `aria-label`,
+  helper text, metadata, and other non-JSX APIs.
+- `TText` default params currently support:
+  - `lb` and `br` for line breaks
+  - `i` for italics
+  - `b` for bold
+- Use ICU tag syntax for those params:
+  - line break: `Ensimmäinen rivi<lb></lb>Toinen rivi`
+  - italic: `Tämä on <i>kursiivia</i>`
+  - bold: `Tämä on <b>lihavoitu</b>`
+- Do not use `{lb}` or `{br}`. Curly braces are ICU value interpolation and can
+  cause errors such as `Functions are not valid as a React child`.
+- Tolgee React rich-text tags are not self-closing. Use `<lb></lb>` or
+  `<br></br>`, not `<lb />` or `<br />`.
+- Handle counts with ICU plural blocks instead of JS-side singular/plural
+  concatenation. Always include `other`, and add `=0`, `one`, `few`, `many`,
+  or other categories as the locale requires. Example:
+  `{count, plural, one {# kaava} other {# kaavaa}}`
 
 ## Auth
 

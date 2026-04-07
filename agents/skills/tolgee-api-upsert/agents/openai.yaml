@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tolgee API Upsert"
+  short_description: "Add or update Tolgee keys via API"
+  default_prompt: "Use $tolgee-api-upsert to add or update Tolgee keys from approved UI copy."

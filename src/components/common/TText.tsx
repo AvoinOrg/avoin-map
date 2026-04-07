@@ -1,10 +1,12 @@
 import React from 'react'
 import { T } from '@tolgee/react'
 
+// Repo-wide Tolgee ICU rich-text helpers for JSX-rendered translations.
 const defaultParams = {
-  lb: (_content: React.ReactNode) => <br />,
-  i: (content: React.ReactNode) => <i>{content}</i>,
-  b: (content: React.ReactNode) => <b>{content}</b>,
+  lb: <br />,
+  br: <br />,
+  i: <i />,
+  b: <b />,
 }
 
 type TTextProps = React.ComponentProps<typeof T>
