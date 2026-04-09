@@ -1,6 +1,13 @@
 'use client'
 
-import React, { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import {
   Box,
   ButtonBase,
@@ -299,6 +306,7 @@ const Page = () => {
   const router = useRouter()
   const { status } = useSession()
   const inputRef = useRef<HTMLInputElement>(null)
+  const autoOpenFrameRef = useRef<number | null>(null)
   const hasAttemptedAutoOpenRef = useRef(false)
   const hasHydrated = useAppletStoreHasHydrated()
 
@@ -390,6 +398,20 @@ const Page = () => {
     return undefined
   })()
 
+  const cancelPendingAutoOpen = useCallback(() => {
+    if (autoOpenFrameRef.current == null) {
+      return
+    }
+
+    window.cancelAnimationFrame(autoOpenFrameRef.current)
+    autoOpenFrameRef.current = null
+  }, [])
+
+  const openFilePicker = useCallback(() => {
+    cancelPendingAutoOpen()
+    inputRef.current?.click()
+  }, [cancelPendingAutoOpen])
+
   useEffect(() => {
     if (!hasHydrated) {
       return
@@ -421,8 +443,9 @@ const Page = () => {
   ])
 
   useEffect(() => {
+    cancelPendingAutoOpen()
     hasAttemptedAutoOpenRef.current = false
-  }, [planId])
+  }, [cancelPendingAutoOpen, planId])
 
   useEffect(() => {
     if (
@@ -435,10 +458,19 @@ const Page = () => {
 
     hasAttemptedAutoOpenRef.current = true
 
-    window.requestAnimationFrame(() => {
+    autoOpenFrameRef.current = window.requestAnimationFrame(() => {
+      autoOpenFrameRef.current = null
       inputRef.current?.click()
     })
-  }, [creationPlaceholderPlanConf?.file, creationPlaceholderPlanConf?.status])
+
+    return () => {
+      cancelPendingAutoOpen()
+    }
+  }, [
+    cancelPendingAutoOpen,
+    creationPlaceholderPlanConf?.file,
+    creationPlaceholderPlanConf?.status,
+  ])
 
   useEffect(() => {
     if (creationPlaceholderPlanConf?.file?.storageKey == null) {
@@ -578,6 +610,8 @@ const Page = () => {
   )
 
   const handleFileInput = async (event: ChangeEvent<HTMLInputElement>) => {
+    cancelPendingAutoOpen()
+
     if (!event.target.files?.length || creationPlaceholderPlanConf == null) {
       return
     }
@@ -906,15 +940,64 @@ const Page = () => {
                 : t('sidebar.plan_flow.import_title')
             }
             bodySx={{
-              gap: '0.875rem',
+              gap: isSettingsMode ? '1.125rem' : '1rem',
             }}
           >
             {!isSettingsMode && (
               <>
+                {creationPlaceholderPlanConf != null && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      width: '100%',
+                    }}
+                  >
+                    <ButtonBase
+                      type="button"
+                      aria-label={t('sidebar.plan_settings.delete')}
+                      onClick={handleDeleteClick}
+                      sx={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        minHeight: '0.875rem',
+                        color: '#0D6044',
+                        textAlign: 'right',
+                        '&:hover': {
+                          color: '#0A4835',
+                        },
+                      }}
+                    >
+                      <Delete
+                        sx={{
+                          width: 12,
+                          height: 12,
+                        }}
+                      />
+                      <Typography
+                        sx={{
+                          fontSize: '0.5625rem',
+                          fontWeight: 700,
+                          lineHeight: '0.875rem',
+                          letterSpacing: '0.08em',
+                          textTransform: 'uppercase',
+                          color: 'inherit',
+                        }}
+                      >
+                        <T
+                          keyName="sidebar.plan_settings.delete"
+                          ns="hiilikartta"
+                        />
+                      </Typography>
+                    </ButtonBase>
+                  </Box>
+                )}
+
                 <UploadField
                   label={fileName ?? t('sidebar.create.select_file')}
                   isSelected={fileName != null}
-                  onClick={() => inputRef.current?.click()}
+                  onClick={openFilePicker}
                 />
 
                 {creationPlaceholderPlanConf != null && (
@@ -1128,7 +1211,7 @@ const Page = () => {
                   sx={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '0.625rem',
+                    gap: '0.75rem',
                     width: '100%',
                   }}
                 >
@@ -1156,47 +1239,47 @@ const Page = () => {
                     }
                     onClick={handleCopyClick}
                   />
-                </Box>
 
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.3125rem',
-                    width: '100%',
-                  }}
-                >
-                  <IconTextButton
-                    aria-label={cloudActionLabel}
-                    disabled={status === 'authenticated' && !isCloudSaveEnabled}
-                    icon={
-                      status === 'authenticated' ? (
-                        <SaveOutlinedIcon sx={{ width: 14, height: 14 }} />
-                      ) : (
-                        <Login sx={{ width: 17, height: 14 }} />
-                      )
-                    }
-                    text={cloudActionLabel}
-                    onClick={handleCloudAction}
-                  />
+                  <Box
+                    sx={{
+                      width: '100%',
+                    }}
+                  >
+                    <IconTextButton
+                      aria-label={cloudActionLabel}
+                      disabled={
+                        status === 'authenticated' && !isCloudSaveEnabled
+                      }
+                      icon={
+                        status === 'authenticated' ? (
+                          <SaveOutlinedIcon sx={{ width: 14, height: 14 }} />
+                        ) : (
+                          <Login sx={{ width: 17, height: 14 }} />
+                        )
+                      }
+                      text={cloudActionLabel}
+                      onClick={handleCloudAction}
+                    />
 
-                  {status === 'authenticated' &&
-                    planConf.cloudLastSaved != null &&
-                    !planPost.isPending && (
-                      <Typography
-                        sx={{
-                          pl: '2.125rem',
-                          fontSize: '0.5rem',
-                          fontWeight: 400,
-                          lineHeight: '0.75rem',
-                          letterSpacing: '0.08em',
-                          color: '#111111',
-                        }}
-                      >
-                        {t('sidebar.plan_settings.last_saved')}{' '}
-                        {new Date(planConf.cloudLastSaved).toLocaleString()}
-                      </Typography>
-                    )}
+                    {status === 'authenticated' &&
+                      planConf.cloudLastSaved != null &&
+                      !planPost.isPending && (
+                        <Typography
+                          sx={{
+                            pl: '2.125rem',
+                            pt: '0.1875rem',
+                            fontSize: '0.5rem',
+                            fontWeight: 400,
+                            lineHeight: '0.75rem',
+                            letterSpacing: '0.08em',
+                            color: '#111111',
+                          }}
+                        >
+                          {t('sidebar.plan_settings.last_saved')}{' '}
+                          {new Date(planConf.cloudLastSaved).toLocaleString()}
+                        </Typography>
+                      )}
+                  </Box>
                 </Box>
 
                 <DropDownSelectWithHeader
@@ -1218,8 +1301,10 @@ const Page = () => {
                   placeholder={t('sidebar.plan_flow.forestry_scenario_label')}
                   successIndicatorMode="outside"
                   sx={{ width: '100%', mb: 0 }}
+                  headerSx={{
+                    mb: '0.375rem',
+                  }}
                   labelSx={{
-                    mb: '0.3125rem',
                     fontSize: '0.625rem',
                     fontWeight: 400,
                     lineHeight: '0.8125rem',

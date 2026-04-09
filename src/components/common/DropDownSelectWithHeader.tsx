@@ -1,17 +1,19 @@
 import React from 'react'
-import { Box, Typography } from '@mui/material'
+import { Box, SxProps, Theme, Typography } from '@mui/material'
 
 import DropDownSelect from '#/components/common/DropDownSelect'
 
 type DropDownSelectProps = React.ComponentProps<typeof DropDownSelect>
 type DropDownSelectWithHeaderProps = DropDownSelectProps & {
   labelAction?: React.ReactNode
+  headerSx?: SxProps<Theme>
 }
 
 const DropDownSelectWithHeader = ({
   ariaLabel,
   label,
   labelAction,
+  headerSx,
   labelSx,
   sx,
   ...rest
@@ -29,19 +31,23 @@ const DropDownSelectWithHeader = ({
     >
       {label && (
         <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            justifyContent: 'space-between',
-            gap: '0.5rem',
-          }}
+          sx={[
+            {
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '1rem',
+              maxWidth: '100%',
+              px: '0.5rem',
+              mb: 1,
+            },
+            ...(Array.isArray(headerSx) ? headerSx : [headerSx]),
+          ]}
         >
           <Typography
             sx={[
               {
                 typography: 'h7',
-                mb: 1,
-                flex: 1,
+                minWidth: 0,
               },
               ...(Array.isArray(labelSx) ? labelSx : [labelSx]),
             ]}

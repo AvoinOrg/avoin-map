@@ -36,17 +36,17 @@ type NodeFlowButtonComponent = React.FC<NodeFlowButtonProps> & {
   flowNodeMarker?: string
 }
 
-const NODE_FLOW_OUTER_OFFSET = {
+export const NODE_FLOW_OUTER_OFFSET = {
   mobile: '-0.75rem',
   desktop: '-0.875rem',
 } as const
 
-const NODE_FLOW_OUTER_WIDTH = {
+export const NODE_FLOW_OUTER_WIDTH = {
   mobile: 'calc(100% + 1.5rem)',
   desktop: 'calc(100% + 1.75rem)',
 } as const
 
-const NODE_FLOW_CONNECTOR_X = '1.125rem'
+export const NODE_FLOW_CONNECTOR_X = '1.125rem'
 
 const getRowStyles = (state: NodeFlowButtonState) => {
   switch (state) {
