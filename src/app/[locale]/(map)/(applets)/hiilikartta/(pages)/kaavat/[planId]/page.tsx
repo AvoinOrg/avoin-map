@@ -64,6 +64,7 @@ import { getZoningClasses } from '#/app/[locale]/(map)/(applets)/hiilikartta/com
 import { routeTree } from '#/common/routing/routes/hiilikartta'
 import { planDeleteMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/planDeleteMutation'
 import { planPostMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/planPostMutation'
+import useAppletStoreHasHydrated from '#/app/[locale]/(map)/(applets)/hiilikartta/common/useAppletStoreHasHydrated'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 import PlanImportActionsRow from './_components/PlanImportActionsRow'
 import PlanImportGpkg from './_components/PlanImportGpkg'
@@ -299,6 +300,7 @@ const Page = () => {
   const { status } = useSession()
   const inputRef = useRef<HTMLInputElement>(null)
   const hasAttemptedAutoOpenRef = useRef(false)
+  const hasHydrated = useAppletStoreHasHydrated()
 
   const planConf = useAppletStore((state) => state.planConfs[planId])
   const creationPlaceholderPlanConf = useAppletStore(
@@ -389,6 +391,10 @@ const Page = () => {
   })()
 
   useEffect(() => {
+    if (!hasHydrated) {
+      return
+    }
+
     if (planConf != null || creationPlaceholderPlanConf != null) {
       return
     }
@@ -411,6 +417,7 @@ const Page = () => {
     planConf,
     planId,
     router,
+    hasHydrated,
   ])
 
   useEffect(() => {
@@ -463,13 +470,16 @@ const Page = () => {
           setFileType(undefined)
           setCreationPlaceholderNameDraft('')
 
-          await updateCreationPlaceholderPlanConf(creationPlaceholderPlanConf.id, {
-            status: 'awaiting-file',
-            file: undefined,
-            selectedTable: undefined,
-            selectedZoningCol: undefined,
-            selectedNameCol: undefined,
-          })
+          await updateCreationPlaceholderPlanConf(
+            creationPlaceholderPlanConf.id,
+            {
+              status: 'awaiting-file',
+              file: undefined,
+              selectedTable: undefined,
+              selectedZoningCol: undefined,
+              selectedNameCol: undefined,
+            }
+          )
           return
         }
 
@@ -512,7 +522,10 @@ const Page = () => {
         : '')
 
     setCreationPlaceholderNameDraft(nextDraft)
-  }, [creationPlaceholderPlanConf?.id, creationPlaceholderPlanConf?.file?.storageKey])
+  }, [
+    creationPlaceholderPlanConf?.id,
+    creationPlaceholderPlanConf?.file?.storageKey,
+  ])
 
   useEffect(() => {
     setPlanNameDraft(planConf?.name ?? '')
@@ -535,7 +548,9 @@ const Page = () => {
     () =>
       FORESTRY_SCENARIOS.map((scenario) => ({
         value: String(scenario.id),
-        label: t(`sidebar.plan_flow.forestry_scenario_options.${scenario.code}`),
+        label: t(
+          `sidebar.plan_flow.forestry_scenario_options.${scenario.code}`
+        ),
       })),
     [t]
   )
@@ -554,20 +569,16 @@ const Page = () => {
 
   const isCloudSaveEnabled = Boolean(
     planConf &&
-      status === 'authenticated' &&
-      !planPost.isPending &&
-      ![
-        CalculationState.INITIALIZING,
-        CalculationState.CALCULATING,
-      ].includes(planConf.calculationState) &&
-      planConf.data.features.length > 0
+    status === 'authenticated' &&
+    !planPost.isPending &&
+    ![CalculationState.INITIALIZING, CalculationState.CALCULATING].includes(
+      planConf.calculationState
+    ) &&
+    planConf.data.features.length > 0
   )
 
   const handleFileInput = async (event: ChangeEvent<HTMLInputElement>) => {
-    if (
-      !event.target.files?.length ||
-      creationPlaceholderPlanConf == null
-    ) {
+    if (!event.target.files?.length || creationPlaceholderPlanConf == null) {
       return
     }
 
@@ -658,7 +669,9 @@ const Page = () => {
       await deleteCreationPlaceholderPlanConf(creationPlaceholderPlanConf.id)
 
       if (creationPlaceholderPlanConf.file?.storageKey != null) {
-        await deleteCreationImportFile(creationPlaceholderPlanConf.file.storageKey)
+        await deleteCreationImportFile(
+          creationPlaceholderPlanConf.file.storageKey
+        )
       }
 
       setArrayBuffer(undefined)
@@ -708,10 +721,9 @@ const Page = () => {
       return
     }
 
-    const copiedPlanConf = await useAppletStore.getState().copyPlanConf(
-      planConf.id,
-      t('sidebar.plan_settings.copy_suffix')
-    )
+    const copiedPlanConf = await useAppletStore
+      .getState()
+      .copyPlanConf(planConf.id, t('sidebar.plan_settings.copy_suffix'))
 
     router.push(
       getRoute({
@@ -826,7 +838,10 @@ const Page = () => {
     })
   }
 
-  if (planConf == null && creationPlaceholderPlanConf == null) {
+  if (
+    !hasHydrated ||
+    (planConf == null && creationPlaceholderPlanConf == null)
+  ) {
     return (
       <SidebarContentBox>
         <LoadingSpinner />
@@ -866,7 +881,9 @@ const Page = () => {
           <NodeFlowAccordion
             title={
               isSettingsMode ? (
-                planNameDraft.trim() || planConf?.name || t('sidebar.plan_flow.settings_title')
+                planNameDraft.trim() ||
+                planConf?.name ||
+                t('sidebar.plan_flow.settings_title')
               ) : (
                 <T keyName="sidebar.plan_flow.import_title" ns="hiilikartta" />
               )
@@ -911,9 +928,7 @@ const Page = () => {
                           />
                         </FieldLabel>
                         <StatusFieldRow
-                          isSuccess={
-                            creationPlaceholderNameDraft.trim() !== ''
-                          }
+                          isSuccess={creationPlaceholderNameDraft.trim() !== ''}
                         >
                           <TextField
                             value={creationPlaceholderNameDraft}
@@ -938,7 +953,9 @@ const Page = () => {
                     selectedZoningCol={
                       creationPlaceholderPlanConf?.selectedZoningCol
                     }
-                    selectedNameCol={creationPlaceholderPlanConf?.selectedNameCol}
+                    selectedNameCol={
+                      creationPlaceholderPlanConf?.selectedNameCol
+                    }
                     copy={{
                       tableLabel: t('sidebar.plan_flow.database_table_label'),
                       tablePlaceholder: t(
@@ -950,7 +967,9 @@ const Page = () => {
                       zoningClassesPlaceholder: t(
                         'sidebar.plan_flow.zoning_classes_placeholder'
                       ),
-                      areaNamesLabel: t('sidebar.create.select_zone_name_record'),
+                      areaNamesLabel: t(
+                        'sidebar.create.select_zone_name_record'
+                      ),
                       areaNamesPlaceholder: t(
                         'sidebar.plan_flow.area_names_placeholder'
                       ),
@@ -1018,7 +1037,9 @@ const Page = () => {
                     selectedZoningCol={
                       creationPlaceholderPlanConf?.selectedZoningCol
                     }
-                    selectedNameCol={creationPlaceholderPlanConf?.selectedNameCol}
+                    selectedNameCol={
+                      creationPlaceholderPlanConf?.selectedNameCol
+                    }
                     copy={{
                       zoningClassesLabel: t(
                         'sidebar.create.select_zone_code_record'
@@ -1026,7 +1047,9 @@ const Page = () => {
                       zoningClassesPlaceholder: t(
                         'sidebar.plan_flow.zoning_classes_placeholder'
                       ),
-                      areaNamesLabel: t('sidebar.create.select_zone_name_record'),
+                      areaNamesLabel: t(
+                        'sidebar.create.select_zone_name_record'
+                      ),
                       areaNamesPlaceholder: t(
                         'sidebar.plan_flow.area_names_placeholder'
                       ),
@@ -1112,13 +1135,25 @@ const Page = () => {
                   <IconTextButton
                     aria-label={t('sidebar.plan_settings.delete')}
                     icon={<Delete sx={{ width: 14, height: 14 }} />}
-                    text={<T keyName="sidebar.plan_settings.delete" ns="hiilikartta" />}
+                    text={
+                      <T
+                        keyName="sidebar.plan_settings.delete"
+                        ns="hiilikartta"
+                      />
+                    }
                     onClick={handleDeleteClick}
                   />
                   <IconTextButton
                     aria-label={t('sidebar.plan_settings.copy')}
-                    icon={<FolderCopyOutlinedIcon sx={{ width: 14, height: 14 }} />}
-                    text={<T keyName="sidebar.plan_settings.copy" ns="hiilikartta" />}
+                    icon={
+                      <FolderCopyOutlinedIcon sx={{ width: 14, height: 14 }} />
+                    }
+                    text={
+                      <T
+                        keyName="sidebar.plan_settings.copy"
+                        ns="hiilikartta"
+                      />
+                    }
                     onClick={handleCopyClick}
                   />
                 </Box>
@@ -1174,7 +1209,9 @@ const Page = () => {
                   label={t('sidebar.plan_flow.forestry_scenario_label')}
                   labelAction={
                     <InfoButton
-                      ariaLabel={t('sidebar.plan_flow.forestry_scenario_tooltip')}
+                      ariaLabel={t(
+                        'sidebar.plan_flow.forestry_scenario_tooltip'
+                      )}
                       tooltip={t('sidebar.plan_flow.forestry_scenario_tooltip')}
                     />
                   }
@@ -1232,7 +1269,9 @@ const Page = () => {
 
           <NodeFlowButton
             state={isSettingsMode ? 'available' : 'disabled'}
-            title={<T keyName="sidebar.plan_flow.areas_step" ns="hiilikartta" />}
+            title={
+              <T keyName="sidebar.plan_flow.areas_step" ns="hiilikartta" />
+            }
             leading={<FlowStepLeadingIcon />}
             onClick={isSettingsMode ? handleOpenAreas : undefined}
             ariaLabel={t('sidebar.plan_flow.areas_step')}
@@ -1251,7 +1290,8 @@ const Page = () => {
                 sx={{
                   width: 12,
                   height: 12,
-                  color: calculationStepState === 'error' ? '#7A3D2B' : '#0D6044',
+                  color:
+                    calculationStepState === 'error' ? '#7A3D2B' : '#0D6044',
                 }}
               />
             }

@@ -7,12 +7,12 @@ import { useParams, useRouter } from 'next/navigation'
 import { useTranslate } from '@tolgee/react'
 
 import { getRoute } from '#/common/routing/routing-client'
-import useStore from '#/common/hooks/useStore'
 import TText from '#/components/common/TText'
 import { ArrowNextBig } from '#/components/icons'
 import { LoadingSpinner } from '#/components/Loading'
 import SidebarContentBox from '#/components/Sidebar/SidebarContentBox'
 
+import useAppletStoreHasHydrated from '#/app/[locale]/(map)/(applets)/hiilikartta/common/useAppletStoreHasHydrated'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 import { routeTree } from '#/common/routing/routes/hiilikartta'
 import {
@@ -33,10 +33,8 @@ const SIDEBAR_BACKGROUND = '#F3F3F3'
 
 const Page = () => {
   const params = useParams<{ planId: string }>()
-  const planConf = useStore(
-    useAppletStore,
-    (state) => state.planConfs[params.planId]
-  )
+  const hasHydrated = useAppletStoreHasHydrated()
+  const planConf = useAppletStore((state) => state.planConfs[params.planId])
   const globalState = useAppletStore((state) => state.globalState)
   const placeholderPlanConfs = useAppletStore(
     (state) => state.placeholderPlanConfs
@@ -126,14 +124,19 @@ const Page = () => {
   }
 
   useEffect(() => {
+    if (!hasHydrated) {
+      setIsLoaded(false)
+      return
+    }
+
     if (planConf == null) {
       if (
         globalState === GlobalState.FETCHING &&
         !Object.keys(placeholderPlanConfs).includes(params.planId)
       ) {
-        router.push(getRoute({ routeNode: routeTree, routeTree }))
+        router.push(getRoute({ routeNode: routeTree.plans, routeTree }))
       } else if (globalState === GlobalState.IDLE) {
-        router.push(getRoute({ routeNode: routeTree, routeTree }))
+        router.push(getRoute({ routeNode: routeTree.plans, routeTree }))
       }
 
       setIsLoaded(false)
@@ -155,9 +158,16 @@ const Page = () => {
     }
 
     setIsLoaded(false)
-  }, [globalState, params.planId, planConf, placeholderPlanConfs, router])
+  }, [
+    globalState,
+    hasHydrated,
+    params.planId,
+    planConf,
+    placeholderPlanConfs,
+    router,
+  ])
 
-  if (!isLoaded || !planConf) {
+  if (!hasHydrated || !isLoaded || !planConf) {
     return <LoadingSpinner />
   }
 

@@ -8,7 +8,6 @@ import { useMapStore } from '#/common/store'
 import { Feature } from 'geojson'
 import { getGeoJsonArea } from '#/common/utils/gis'
 import { generateUUID } from '#/common/utils/general'
-import useStore from '#/common/hooks/useStore'
 import { useDoesLayerGroupExist } from '#/common/hooks/map/useDoesLayerGroupExist'
 import { SerializableLayerGroupAddOptions } from '#/common/types/map'
 
@@ -23,6 +22,7 @@ import {
   PlanData,
   ZONING_CODE_COL,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
+import useAppletStoreHasHydrated from '#/app/[locale]/(map)/(applets)/hiilikartta/common/useAppletStoreHasHydrated'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
@@ -40,11 +40,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
   const updateSourceData = useMapStore((state) => state.updateSourceData)
 
-  const globalState = useStore(useAppletStore, (state) => state.globalState)
-  const planConf = useStore(
-    useAppletStore,
-    (state) => state.planConfs[params.planId]
-  )
+  const hasHydrated = useAppletStoreHasHydrated()
+  const globalState = useAppletStore((state) => state.globalState)
+  const planConf = useAppletStore((state) => state.planConfs[params.planId])
   const updatePlanConf = useAppletStore((state) => state.updatePlanConf)
   const doesLayerGroupExist = useDoesLayerGroupExist(
     getPlanLayerGroupId(params.planId)
@@ -54,6 +52,10 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   // const setIsDrawEnabled = useMapStore((state) => state.setIsDrawEnabled)
 
   useEffect(() => {
+    if (!hasHydrated) {
+      return
+    }
+
     const init = async () => {
       if (planConf && !isLoaded.current && doesLayerGroupExist != null) {
         const layerGroupId = getPlanLayerGroupId(params.planId)
@@ -151,24 +153,24 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       //   }
       // }
     } else if (!planConf && doesLayerGroupExist) {
-      disableSerializableLayerGroup(
-        getPlanLayerGroupId(params.planId)
-      ).catch(() => {})
+      disableSerializableLayerGroup(getPlanLayerGroupId(params.planId)).catch(
+        () => {}
+      )
     } else if (planConf && planConf.isHidden && doesLayerGroupExist) {
-      disableSerializableLayerGroup(
-        getPlanLayerGroupId(params.planId)
-      ).catch(() => {})
+      disableSerializableLayerGroup(getPlanLayerGroupId(params.planId)).catch(
+        () => {}
+      )
     } else if (
       planConf &&
       planConf.state != null &&
       planConf.state === PlanConfState.FETCHING
     ) {
-      disableSerializableLayerGroup(
-        getPlanLayerGroupId(params.planId)
-      ).catch(() => {})
+      disableSerializableLayerGroup(getPlanLayerGroupId(params.planId)).catch(
+        () => {}
+      )
       isLoaded.current = false
     }
-  }, [planConf, isLoaded, doesLayerGroupExist, globalState])
+  }, [doesLayerGroupExist, globalState, hasHydrated, params.planId, planConf])
 
   useEffect(() => {
     if (planConf?.data != null && isLoaded.current) {
