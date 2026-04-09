@@ -87,6 +87,31 @@ const getFileType = (fileName: string): FileType | undefined => {
 const getPlanNameFromFileName = (fileName: string) =>
   fileName.replace(/\.[^/.]+$/, '')
 
+const PLAN_NAME_TEXT_FIELD_SX = {
+  width: '100%',
+  '& .MuiOutlinedInput-root': {
+    minHeight: '1.25rem',
+    borderRadius: '0.625rem',
+    backgroundColor: '#ffffff',
+    boxShadow: 'inset 0px 0.5px 1px 0px #d9d9d9',
+  },
+  '& .MuiOutlinedInput-notchedOutline': {
+    borderColor: '#d6d6d6',
+  },
+  '& .MuiOutlinedInput-notchedOutline legend': {
+    maxWidth: 0,
+  },
+  '& .MuiInputBase-input': {
+    py: '0.1875rem',
+    px: '1rem',
+    fontSize: '0.6875rem',
+    fontWeight: 400,
+    lineHeight: 'normal',
+    letterSpacing: '0.04em',
+    color: '#111111',
+  },
+} as const
+
 const StatusIndicator = () => (
   <CheckcircleChecked
     fillColor="rgba(44, 142, 116, 0.14)"
@@ -145,11 +170,17 @@ const FieldLabel = ({ children }: { children: React.ReactNode }) => {
   )
 }
 
-const InfoButton = ({ tooltip }: { tooltip: React.ReactNode }) => {
+const InfoButton = ({
+  ariaLabel = 'Show import instructions',
+  tooltip,
+}: {
+  ariaLabel?: string
+  tooltip: React.ReactNode
+}) => {
   return (
     <Tooltip title={tooltip} arrow placement="top">
       <ButtonBase
-        aria-label="Show import instructions"
+        aria-label={ariaLabel}
         sx={{
           width: '1rem',
           height: '1rem',
@@ -296,9 +327,12 @@ const Page = () => {
   const [fileType, setFileType] = useState<FileType>()
   const [fileName, setFileName] = useState<string>()
   const [arrayBuffer, setArrayBuffer] = useState<ArrayBuffer>()
+  const [creationPlaceholderNameDraft, setCreationPlaceholderNameDraft] =
+    useState('')
   const [pendingImport, setPendingImport] = useState<PendingPlanImport | null>(
     null
   )
+  const [planNameDraft, setPlanNameDraft] = useState('')
 
   const isSettingsMode = planConf != null
 
@@ -405,6 +439,7 @@ const Page = () => {
       setFileName(undefined)
       setArrayBuffer(undefined)
       setFileType(undefined)
+      setCreationPlaceholderNameDraft(creationPlaceholderPlanConf?.name ?? '')
       return
     }
 
@@ -426,6 +461,7 @@ const Page = () => {
           setFileName(undefined)
           setArrayBuffer(undefined)
           setFileType(undefined)
+          setCreationPlaceholderNameDraft('')
 
           await updateCreationPlaceholderPlanConf(creationPlaceholderPlanConf.id, {
             status: 'awaiting-file',
@@ -462,6 +498,25 @@ const Page = () => {
     creationPlaceholderPlanConf?.id,
     updateCreationPlaceholderPlanConf,
   ])
+
+  useEffect(() => {
+    if (creationPlaceholderPlanConf == null) {
+      setCreationPlaceholderNameDraft('')
+      return
+    }
+
+    const nextDraft =
+      creationPlaceholderPlanConf.name ??
+      (creationPlaceholderPlanConf.file?.fileName != null
+        ? getPlanNameFromFileName(creationPlaceholderPlanConf.file.fileName)
+        : '')
+
+    setCreationPlaceholderNameDraft(nextDraft)
+  }, [creationPlaceholderPlanConf?.id, creationPlaceholderPlanConf?.file?.storageKey])
+
+  useEffect(() => {
+    setPlanNameDraft(planConf?.name ?? '')
+  }, [planConf?.id, planConf?.name])
 
   useEffect(() => {
     if (planDelete.isSuccess) {
@@ -533,8 +588,14 @@ const Page = () => {
         file: selectedFile,
         fileType: selectedFileType,
       })
+      const nextPlaceholderName =
+        creationPlaceholderPlanConf.name?.trim() != null &&
+        creationPlaceholderPlanConf.name.trim() !== ''
+          ? creationPlaceholderPlanConf.name
+          : getPlanNameFromFileName(storedFile.fileName)
 
       await updateCreationPlaceholderPlanConf(creationPlaceholderPlanConf.id, {
+        name: nextPlaceholderName,
         status: 'awaiting-confirm',
         file: {
           storageKey,
@@ -549,6 +610,7 @@ const Page = () => {
 
       setFileName(storedFile.fileName)
       setArrayBuffer(storedFile.buffer)
+      setCreationPlaceholderNameDraft(nextPlaceholderName)
       setFileType(storedFile.fileType ?? selectedFileType)
     } catch (error) {
       console.error('Failed to persist selected import file', error)
@@ -699,11 +761,7 @@ const Page = () => {
     const nextValue = event.target.value
 
     if (creationPlaceholderPlanConf != null) {
-      updateCreationPlaceholderPlanConf(creationPlaceholderPlanConf.id, {
-        name: nextValue.trim() === '' ? undefined : nextValue,
-      }).catch((error) => {
-        console.error('Failed to update placeholder plan name', error)
-      })
+      setCreationPlaceholderNameDraft(nextValue)
       return
     }
 
@@ -711,11 +769,51 @@ const Page = () => {
       return
     }
 
+    setPlanNameDraft(nextValue)
+  }
+
+  const commitCreationPlaceholderPlanName = () => {
+    if (creationPlaceholderPlanConf == null) {
+      return
+    }
+
+    const nextName =
+      creationPlaceholderNameDraft.trim() === ''
+        ? undefined
+        : creationPlaceholderNameDraft
+
+    if (nextName === creationPlaceholderPlanConf.name) {
+      return
+    }
+
+    updateCreationPlaceholderPlanConf(creationPlaceholderPlanConf.id, {
+      name: nextName,
+    }).catch((error) => {
+      console.error('Failed to update placeholder plan name', error)
+    })
+  }
+
+  const commitPlanName = () => {
+    if (planConf == null || planNameDraft === planConf.name) {
+      return
+    }
+
     updatePlanConf(planConf.id, {
-      name: nextValue,
+      name: planNameDraft,
     }).catch((error) => {
       console.error('Failed to update plan name', error)
     })
+  }
+
+  const handlePlanNameFieldKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (event.key !== 'Enter') {
+      return
+    }
+
+    event.preventDefault()
+    event.currentTarget.blur()
   }
 
   const handleScenarioChange = async (value: string | number) => {
@@ -768,7 +866,7 @@ const Page = () => {
           <NodeFlowAccordion
             title={
               isSettingsMode ? (
-                <T keyName="sidebar.plan_flow.settings_title" ns="hiilikartta" />
+                planNameDraft.trim() || planConf?.name || t('sidebar.plan_flow.settings_title')
               ) : (
                 <T keyName="sidebar.plan_flow.import_title" ns="hiilikartta" />
               )
@@ -776,11 +874,20 @@ const Page = () => {
             leading={<Upload sx={{ width: 12, height: 14 }} />}
             trailing={
               !isSettingsMode ? (
-                <InfoButton tooltip={t('sidebar.create.upload_info')} />
+                <InfoButton
+                  ariaLabel={t('sidebar.create.upload_info')}
+                  tooltip={t('sidebar.create.upload_info')}
+                />
               ) : undefined
             }
             defaultOpen
-            ariaLabel={t('sidebar.plan_flow.import_title')}
+            ariaLabel={
+              isSettingsMode
+                ? planNameDraft.trim() ||
+                  planConf?.name ||
+                  t('sidebar.plan_flow.settings_title')
+                : t('sidebar.plan_flow.import_title')
+            }
             bodySx={{
               gap: '0.875rem',
             }}
@@ -805,39 +912,18 @@ const Page = () => {
                         </FieldLabel>
                         <StatusFieldRow
                           isSuccess={
-                            creationPlaceholderPlanConf.name?.trim() != null
+                            creationPlaceholderNameDraft.trim() !== ''
                           }
                         >
                           <TextField
-                            value={creationPlaceholderPlanConf.name ?? ''}
+                            value={creationPlaceholderNameDraft}
                             onChange={handlePlanNameChange}
+                            onBlur={commitCreationPlaceholderPlanName}
+                            onKeyDown={handlePlanNameFieldKeyDown}
                             aria-label={t('sidebar.plan_flow.plan_name_label')}
                             variant="outlined"
                             size="small"
-                            sx={{
-                              width: '100%',
-                              '& .MuiOutlinedInput-root': {
-                                minHeight: '1.25rem',
-                                borderRadius: '0.625rem',
-                                backgroundColor: '#ffffff',
-                                boxShadow: 'inset 0px 0.5px 1px 0px #d9d9d9',
-                              },
-                              '& .MuiOutlinedInput-notchedOutline': {
-                                borderColor: '#d6d6d6',
-                              },
-                              '& .MuiOutlinedInput-notchedOutline legend': {
-                                maxWidth: 0,
-                              },
-                              '& .MuiInputBase-input': {
-                                py: '0.1875rem',
-                                px: '1rem',
-                                fontSize: '0.6875rem',
-                                fontWeight: 400,
-                                lineHeight: 'normal',
-                                letterSpacing: '0.04em',
-                                color: '#111111',
-                              },
-                            }}
+                            sx={PLAN_NAME_TEXT_FIELD_SX}
                           />
                         </StatusFieldRow>
                       </Box>
@@ -1003,35 +1089,14 @@ const Page = () => {
                   </FieldLabel>
                   <StatusFieldRow isSuccess>
                     <TextField
-                      value={planConf.name}
+                      value={planNameDraft}
                       onChange={handlePlanNameChange}
+                      onBlur={commitPlanName}
+                      onKeyDown={handlePlanNameFieldKeyDown}
                       aria-label={t('sidebar.plan_flow.plan_name_label')}
                       variant="outlined"
                       size="small"
-                      sx={{
-                        width: '100%',
-                        '& .MuiOutlinedInput-root': {
-                          minHeight: '1.25rem',
-                          borderRadius: '0.625rem',
-                          backgroundColor: '#ffffff',
-                          boxShadow: 'inset 0px 0.5px 1px 0px #d9d9d9',
-                        },
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#d6d6d6',
-                        },
-                        '& .MuiOutlinedInput-notchedOutline legend': {
-                          maxWidth: 0,
-                        },
-                        '& .MuiInputBase-input': {
-                          py: '0.1875rem',
-                          px: '1rem',
-                          fontSize: '0.6875rem',
-                          fontWeight: 400,
-                          lineHeight: 'normal',
-                          letterSpacing: '0.04em',
-                          color: '#111111',
-                        },
-                      }}
+                      sx={PLAN_NAME_TEXT_FIELD_SX}
                     />
                   </StatusFieldRow>
                 </Box>
@@ -1058,13 +1123,61 @@ const Page = () => {
                   />
                 </Box>
 
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.3125rem',
+                    width: '100%',
+                  }}
+                >
+                  <IconTextButton
+                    aria-label={cloudActionLabel}
+                    disabled={status === 'authenticated' && !isCloudSaveEnabled}
+                    icon={
+                      status === 'authenticated' ? (
+                        <SaveOutlinedIcon sx={{ width: 14, height: 14 }} />
+                      ) : (
+                        <Login sx={{ width: 17, height: 14 }} />
+                      )
+                    }
+                    text={cloudActionLabel}
+                    onClick={handleCloudAction}
+                  />
+
+                  {status === 'authenticated' &&
+                    planConf.cloudLastSaved != null &&
+                    !planPost.isPending && (
+                      <Typography
+                        sx={{
+                          pl: '2.125rem',
+                          fontSize: '0.5rem',
+                          fontWeight: 400,
+                          lineHeight: '0.75rem',
+                          letterSpacing: '0.08em',
+                          color: '#111111',
+                        }}
+                      >
+                        {t('sidebar.plan_settings.last_saved')}{' '}
+                        {new Date(planConf.cloudLastSaved).toLocaleString()}
+                      </Typography>
+                    )}
+                </Box>
+
                 <DropDownSelectWithHeader
                   value={String(
                     planConf.forestryScenario ?? DEFAULT_FORESTRY_SCENARIO
                   )}
                   options={scenarioOptions}
                   onChange={(event) => handleScenarioChange(event.target.value)}
+                  ariaLabel={t('sidebar.plan_flow.forestry_scenario_label')}
                   label={t('sidebar.plan_flow.forestry_scenario_label')}
+                  labelAction={
+                    <InfoButton
+                      ariaLabel={t('sidebar.plan_flow.forestry_scenario_tooltip')}
+                      tooltip={t('sidebar.plan_flow.forestry_scenario_tooltip')}
+                    />
+                  }
                   placeholder={t('sidebar.plan_flow.forestry_scenario_label')}
                   successIndicatorMode="outside"
                   sx={{ width: '100%', mb: 0 }}
@@ -1113,47 +1226,6 @@ const Page = () => {
                     letterSpacing: '0.04em',
                   }}
                 />
-
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.3125rem',
-                    width: '100%',
-                  }}
-                >
-                  <IconTextButton
-                    aria-label={cloudActionLabel}
-                    disabled={status === 'authenticated' && !isCloudSaveEnabled}
-                    icon={
-                      status === 'authenticated' ? (
-                        <SaveOutlinedIcon sx={{ width: 14, height: 14 }} />
-                      ) : (
-                        <Login sx={{ width: 17, height: 14 }} />
-                      )
-                    }
-                    text={cloudActionLabel}
-                    onClick={handleCloudAction}
-                  />
-
-                  {status === 'authenticated' &&
-                    planConf.cloudLastSaved != null &&
-                    !planPost.isPending && (
-                      <Typography
-                        sx={{
-                          pl: '2.125rem',
-                          fontSize: '0.5rem',
-                          fontWeight: 400,
-                          lineHeight: '0.75rem',
-                          letterSpacing: '0.08em',
-                          color: '#111111',
-                        }}
-                      >
-                        {t('sidebar.plan_settings.last_saved')}{' '}
-                        {new Date(planConf.cloudLastSaved).toLocaleString()}
-                      </Typography>
-                    )}
-                </Box>
               </>
             )}
           </NodeFlowAccordion>
