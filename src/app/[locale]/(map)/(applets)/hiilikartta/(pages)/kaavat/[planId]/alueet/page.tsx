@@ -1,611 +1,322 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { Box, Typography } from '@mui/material'
-import { useParams, useRouter } from 'next/navigation'
-import { styled } from '@mui/material/styles'
-// import SettingsIcon from '@mui/icons-material/Settings'
-// import MuiLink from '@mui/material/Link'
-// import Link from 'next/link'
-import { T, useTranslate } from '@tolgee/react'
+import { Box, CircularProgress, Tooltip, Typography } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
-import FolderCopy from '@mui/icons-material/FolderCopyOutlined'
-import Tooltip from '@mui/material/Tooltip'
+import { useParams, useRouter } from 'next/navigation'
+import { useTranslate } from '@tolgee/react'
 
 import { getRoute } from '#/common/routing/routing-client'
 import useStore from '#/common/hooks/useStore'
-import { useUIStore } from '#/common/store'
-import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
-import { pp } from '#/common/utils/general'
-import {
-  MOBILE_SIDEBAR_PADDING_REM,
-  SIDEBAR_PADDING_REM,
-} from '#/common/style/theme/constants'
-import { ArrowNextBig, Delete, Star } from '#/components/icons'
+import TText from '#/components/common/TText'
+import { ArrowNextBig } from '#/components/icons'
+import { LoadingSpinner } from '#/components/Loading'
+import SidebarContentBox from '#/components/Sidebar/SidebarContentBox'
 
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 import { routeTree } from '#/common/routing/routes/hiilikartta'
-import {
-  checkIsValidLandUseDistribution,
-  checkIsValidZoningCode,
-} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
-import { useZoningClasses } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/useZoningClasses'
-import ZoneAccordion from './_components/ZoneAccordion'
-import { calcPostMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/calcPostMutation'
-import PlanFolder from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanFolder'
 import {
   CalculationState,
   GlobalState,
   PlanConfState,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
-import { planDeleteMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/planDeleteMutation'
-import { LoadingSpinner } from '#/components/Loading'
-import SidebarContentBox from '#/components/Sidebar/SidebarContentBox'
-import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
+import {
+  checkIsValidLandUseDistribution,
+  checkIsValidZoningCode,
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
+import { useZoningClasses } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/useZoningClasses'
+import { calcPostMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/calcPostMutation'
+import ZoneAccordion from './_components/ZoneAccordion'
+
+const CONTENT_PADDING_X = { mobile: '1.25rem', desktop: '2.5rem' } as const
+const SIDEBAR_BACKGROUND = '#F3F3F3'
 
 const Page = () => {
   const params = useParams<{ planId: string }>()
-  const triggerConfirmationDialog = useUIStore(
-    (state) => state.triggerConfirmationDialog
-  )
-  const notify = useUIStore((state) => state.notify)
   const planConf = useStore(
     useAppletStore,
     (state) => state.planConfs[params.planId]
   )
-  const isMobile = useIsMobile()
   const globalState = useAppletStore((state) => state.globalState)
-  const updatePlanConf = useAppletStore((state) => state.updatePlanConf)
   const placeholderPlanConfs = useAppletStore(
     (state) => state.placeholderPlanConfs
   )
-  const copyPlanConf = useAppletStore((state) => state.copyPlanConf)
+  const updatePlanConf = useAppletStore((state) => state.updatePlanConf)
   const calcPost = useMutation(calcPostMutation())
-  const planDelete = useMutation(planDeleteMutation())
-  const [currentYear, setCurrentYear] = useState<string>()
-  const [isLoaded, setIsLoaded] = useState(false)
   const router = useRouter()
   const { t } = useTranslate('hiilikartta')
   const { isLoading: isZoningClassesLoading } = useZoningClasses()
+  const [isLoaded, setIsLoaded] = useState(false)
 
   const hasNoFeatures = useMemo(() => {
-    if (planConf?.data?.features != null) {
+    if (planConf?.data.features != null) {
       return planConf.data.features.length === 0
     }
+
     return true
-  }, [planConf?.data?.features])
+  }, [planConf?.data.features])
 
   const areSettingsValid = useMemo(() => {
     if (isZoningClassesLoading) {
       return true
     }
 
-    if (planConf?.data.features) {
-      for (const feature of planConf.data.features) {
-        const hasValidZoningCode =
-          feature.properties.extras?.hasValidZoningCode ??
-          checkIsValidZoningCode(feature.properties.zoning_code)
-
-        if (!hasValidZoningCode) {
-          return false
-        }
-        if (!checkIsValidLandUseDistribution(feature.properties)) {
-          return false
-        }
-      }
-      return true
+    if (!planConf?.data.features) {
+      return false
     }
 
-    return false
-  }, [
-    planConf?.data.features,
-    isZoningClassesLoading,
-  ])
+    for (const feature of planConf.data.features) {
+      const hasValidZoningCode =
+        feature.properties.extras?.hasValidZoningCode ??
+        checkIsValidZoningCode(feature.properties.zoning_code ?? '')
+
+      if (!hasValidZoningCode) {
+        return false
+      }
+
+      if (!checkIsValidLandUseDistribution(feature.properties)) {
+        return false
+      }
+    }
+
+    return true
+  }, [isZoningClassesLoading, planConf?.data.features])
+
+  const isCalculationStarting =
+    calcPost.isPending ||
+    (planConf != null &&
+      [CalculationState.INITIALIZING, CalculationState.CALCULATING].includes(
+        planConf.calculationState
+      ))
 
   const handleSubmit = async () => {
-    if (planConf) {
-      calcPost.mutate(planConf)
-
-      if (planConf.reportData != null) {
-        updatePlanConf(planConf.id, { reportData: undefined })
-      }
-
-      // Download plan as JSON. A feature to be added later.
-      // const jsonString = JSON.stringify(planConf, null, 2)
-
-      // // Create a Blob from the JSON string
-      // const blob = new Blob([jsonString], { type: 'application/json' })
-
-      // // Create a URL for the Blob
-      // const url = URL.createObjectURL(blob)
-
-      // // Create a temporary anchor element and set the necessary attributes
-      // const a = document.createElement('a')
-      // a.href = url
-      // a.download = planConf.name + '.json'
-      // document.body.appendChild(a) // Append the anchor to the body
-
-      // // Programmatically click the anchor to trigger the download
-      // a.click()
-
-      // // Clean up by removing the anchor and revoking the Blob URL
-      // document.body.removeChild(a)
-      // URL.revokeObjectURL(url)
+    if (
+      !planConf ||
+      hasNoFeatures ||
+      !areSettingsValid ||
+      isCalculationStarting
+    ) {
+      return
     }
-  }
 
-  const handleOpenReport = async () => {
-    if (planConf) {
-      const route = getRoute({
-        routeNode: routeTree.report,
-        routeTree: routeTree,
-        params: {
-          queryParams: {
-            planIds: planConf.serverId,
-            prevPageId: params.planId,
-            prevPageStep: 'areas',
-          },
-        },
-      })
-      router.push(route)
+    const nextPlanConf =
+      planConf.reportData != null
+        ? {
+            ...planConf,
+            reportData: undefined,
+          }
+        : planConf
+
+    if (planConf.reportData != null) {
+      await updatePlanConf(planConf.id, { reportData: undefined })
     }
-  }
 
-  const handleDeleteClick = async () => {
-    if (planConf) {
-      const handleDeleteConfirm = async () => {
-        await planDelete.mutate(planConf)
-      }
-
-      triggerConfirmationDialog({
-        content: t('sidebar.plan_settings.delete_confirmation_message'),
-        onConfirm: handleDeleteConfirm,
-      })
-    }
-  }
-
-  useEffect(() => {
-    if (planDelete.isSuccess) {
-      router.push(getRoute({ routeNode: routeTree, routeTree: routeTree }))
-    }
-    if (planDelete.isError) {
-      notify({
-        message: t('sidebar.plan_settings.delete_error'),
-        variant: 'error',
-      })
-    }
-  }, [planDelete.isError, planDelete.isSuccess])
-
-  const handleCopyClick = async () => {
-    if (planConf) {
-      const { id } = await copyPlanConf(
-        planConf.id,
-        t('sidebar.plan_settings.copy_suffix')
-      )
+    try {
+      await calcPost.mutateAsync(nextPlanConf)
       router.push(
         getRoute({
           routeNode: routeTree.plans.plan,
-          routeTree: routeTree,
+          routeTree,
           params: {
-            routeParams: { planId: id },
+            routeParams: { planId: planConf.id },
           },
         })
       )
-    }
+    } catch (_error) {}
   }
 
   useEffect(() => {
-    if (planConf === undefined) {
+    if (planConf == null) {
       if (
         globalState === GlobalState.FETCHING &&
         !Object.keys(placeholderPlanConfs).includes(params.planId)
       ) {
-        router.push(getRoute({ routeNode: routeTree, routeTree: routeTree }))
+        router.push(getRoute({ routeNode: routeTree, routeTree }))
       } else if (globalState === GlobalState.IDLE) {
-        router.push(getRoute({ routeNode: routeTree, routeTree: routeTree }))
+        router.push(getRoute({ routeNode: routeTree, routeTree }))
       }
-    } else {
-      if (GlobalState.IDLE && planConf?.isHidden) {
-        router.push(getRoute({ routeNode: routeTree, routeTree: routeTree }))
-      } else {
-        if (planConf?.reportData) {
-          setCurrentYear(planConf.reportData.metadata.featureYears[1])
-        }
-        if (
-          planConf?.state == null ||
-          [PlanConfState.IDLE, PlanConfState.SAVING].includes(planConf?.state)
-        ) {
-          setIsLoaded(true)
-          return
-        }
-      }
+
+      setIsLoaded(false)
+      return
     }
+
+    if (globalState === GlobalState.IDLE && planConf.isHidden) {
+      router.push(getRoute({ routeNode: routeTree, routeTree }))
+      setIsLoaded(false)
+      return
+    }
+
+    if (
+      planConf.state == null ||
+      [PlanConfState.IDLE, PlanConfState.SAVING].includes(planConf.state)
+    ) {
+      setIsLoaded(true)
+      return
+    }
+
     setIsLoaded(false)
-  }, [planConf, globalState])
+  }, [globalState, params.planId, planConf, placeholderPlanConfs, router])
+
+  if (!isLoaded || !planConf) {
+    return <LoadingSpinner />
+  }
 
   return (
     <Box
+      className="plan-sidebar-container"
       sx={{
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
         width: '100%',
+        backgroundColor: SIDEBAR_BACKGROUND,
       }}
-      className={'plan-sidebar-container'}
     >
-      {isLoaded && planConf && (
-        <>
-          <SidebarContentBox>
-            <PlanFolder isNameEditable={true} planConf={planConf} height={90} />
-
-            {/* <MuiLink
-            href={getRoute(routeTree.plans.plan.settings, routeTree, [planConf.id])}
-            sx={{ display: 'flex', color: 'inherit', textDecoration: 'none' }}
-            component={Link}
-            >
-            <MenuButton sx={{ margin: '25px 0 0 0' }} variant="outlined">
-            Kaavatiedoston asetukset <SettingsIcon />
-            </MenuButton>
-          </MuiLink> */}
-            {!planConf.reportData && (
-              <Box sx={{ display: 'flex', flexDirection: 'row', mt: 10 }}>
-                <Star sx={{ height: 40, width: 'auto' }}></Star>
-                <Typography
-                  sx={{
-                    display: 'inline-flex',
-                    typography: 'body2',
-                    ml: 1.5,
-                    mt: 0.5,
-                  }}
-                >
-                  <T
-                    keyName={'sidebar.plan_settings.draw_hint'}
-                    ns="hiilikartta"
-                  ></T>
-                </Typography>
-              </Box>
-            )}
-
-            {planConf.reportData && currentYear != null && (
-              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                <Box
-                  sx={{
-                    flexDirection: 'row',
-                    typography: 'h2',
-                    justifyContent: 'space-between',
-                    mt: 4,
-                    mb: 2,
-                  }}
-                >
-                  <T
-                    keyName={
-                      'sidebar.plan_settings.report_preview.impact_on_carbon_stock'
-                    }
-                    ns="hiilikartta"
-                  ></T>
-                </Box>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'flex-end',
-                    mt: 2,
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      display: 'inline-flex',
-                      typography: 'h6',
-                      textAlign: 'end',
-                    }}
-                  >
-                    <T
-                      keyName={'sidebar.plan_settings.report_preview.on_year'}
-                      ns="hiilikartta"
-                    ></T>
-                  </Typography>
-                  <DropDownSelectMinimal
-                    ariaLabel={t(
-                      'sidebar.plan_settings.report_preview.on_year'
-                    )}
-                    value={currentYear}
-                    isIconOnTheRight={false}
-                    sx={{ mr: -4, mt: -0.5 }}
-                    iconSx={{ mt: 0.25 }}
-                    optionSx={{ typography: 'h8' }}
-                    onChange={(e) => setCurrentYear(e.target.value)}
-                    options={planConf.reportData.metadata.featureYears
-                      .slice(1)
-                      .map((year) => {
-                        return {
-                          value: year,
-                          label: year,
-                        }
-                      })}
-                  ></DropDownSelectMinimal>
-                </Box>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    typography: 'h4',
-                    justifyContent: 'space-between',
-                    mt: 4,
-                    mb: 2,
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: 'inline-flex',
-                      maxWidth: '15rem',
-                      mr: 3,
-                      pt: 0.3,
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    <T
-                      keyName={
-                        'sidebar.plan_settings.report_preview.carbon_stores_shrink'
-                      }
-                      ns="hiilikartta"
-                    ></T>
-                  </Box>
-                  <Box
-                    sx={{
-                      display: 'inline-flex',
-                      flexDirection: 'column',
-                      alignItems: 'end',
-                      textAlign: 'end',
-                    }}
-                  >
-                    <Typography typography={'h1'}>
-                      {pp(
-                        planConf.reportData.agg.totals.bio_carbon_total_diff[
-                          currentYear
-                        ] +
-                          planConf.reportData.agg.totals
-                            .ground_carbon_total_diff[currentYear],
-                        0
-                      )}
-                    </Typography>
-                    <Typography mt={0.5} typography={'h5'}>
-                      <T
-                        keyName="sidebar.plan_settings.report_preview.carbon_eqv_unit"
-                        ns="hiilikartta"
-                      ></T>
-                    </Typography>
-                    <Typography mt={2} typography={'h1'}>
-                      {pp(
-                        planConf.reportData.agg.totals.bio_carbon_ha_diff[
-                          currentYear
-                        ] +
-                          planConf.reportData.agg.totals.ground_carbon_ha_diff[
-                            currentYear
-                          ],
-                        0
-                      )}
-                    </Typography>
-                    <Typography mt={0.5} typography={'h5'}>
-                      <T
-                        keyName="sidebar.plan_settings.report_preview.carbon_eqv_unit_hectare"
-                        ns="hiilikartta"
-                      ></T>
-                    </Typography>
-                  </Box>
-                </Box>
-                <Box
-                  component="button"
-                  type="button"
-                  aria-label={t('sidebar.plan_settings.open_full_report')}
-                  sx={{
-                    background: 'none',
-                    border: 'none',
-                    p: 0,
-                    typography: 'h2',
-                    textAlign: 'end',
-                    mt: 6,
-                    mb: 1,
-                    minWidth: '270px',
-                    '&:hover': { cursor: 'pointer' },
-                    textDecoration: 'underline',
-                  }}
-                  onClick={handleOpenReport}
-                >
-                  <T
-                    keyName={'sidebar.plan_settings.open_full_report'}
-                    ns={'hiilikartta'}
-                  ></T>
-                </Box>
-              </Box>
-            )}
-
-            <ZoneAccordion
-              planConfId={planConf.id}
-              sx={{ mt: 4 }}
-            ></ZoneAccordion>
-          </SidebarContentBox>
-
-          <Box
-            sx={(theme) => ({
-              display: 'flex',
-              flexDirection: 'column',
-              px: isMobile
-                ? MOBILE_SIDEBAR_PADDING_REM + 'rem'
-                : SIDEBAR_PADDING_REM + 'rem',
-              pt: 2,
-              pb: 2,
-              zIndex: theme.zIndex.drawer + 1,
-              borderTop: 1,
-              borderColor: 'primary.lighter',
-            })}
-          >
-            <FooterButtonContainer
-              component="button"
-              type="button"
-              aria-label={t('sidebar.plan_settings.copy')}
-              mt={0.4}
-              onClick={handleCopyClick}
-            >
-              <Box sx={{ mr: 1.5 }}>
-                <FolderCopy></FolderCopy>
-              </Box>
-              <Box
-                sx={{
-                  typography: 'h3',
-                }}
-              >
-                <T keyName={'sidebar.plan_settings.copy'} ns={'hiilikartta'} />
-              </Box>
-              {/* </Box> */}
-            </FooterButtonContainer>
-            <FooterButtonContainer
-              component="button"
-              type="button"
-              aria-label={t('sidebar.plan_settings.delete')}
-              onClick={handleDeleteClick}
-              sx={{ mt: 1.3 }}
-            >
-              <Box sx={{ mr: 1.7 }}>
-                <Delete></Delete>
-              </Box>
-              <Box
-                sx={{
-                  typography: 'h3',
-                }}
-              >
-                <T
-                  keyName={'sidebar.plan_settings.delete'}
-                  ns={'hiilikartta'}
-                />
-              </Box>
-              {/* </Box> */}
-            </FooterButtonContainer>
-            {[
-              CalculationState.NOT_STARTED,
-              CalculationState.ERRORED,
-              CalculationState.FINISHED,
-            ].includes(planConf.calculationState) && (
-              <Box
-                sx={{
-                  display: 'flex',
-                  flex: 1,
-                  flexDirection: 'column',
-                  justifyContent: 'flex-end',
-                }}
-              >
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'flex-end',
-                  }}
-                >
-                  <Tooltip
-                    title={
-                      hasNoFeatures
-                        ? t(
-                            'sidebar.plan_settings.calculate_carbon_effect.tooltip_no_features'
-                          )
-                        : t(
-                            'sidebar.plan_settings.calculate_carbon_effect.tooltip_invalid'
-                          )
-                    }
-                    disableHoverListener={areSettingsValid && !hasNoFeatures}
-                    disableFocusListener={areSettingsValid && !hasNoFeatures}
-                    disableTouchListener={areSettingsValid && !hasNoFeatures}
-                  >
-                    <Box
-                      component="button"
-                      type="button"
-                      aria-label={t(
-                        'sidebar.plan_settings.calculate_carbon_effect'
-                      )}
-                      aria-disabled={
-                        areSettingsValid && !hasNoFeatures ? undefined : 'true'
-                      }
-                      sx={{
-                        background: 'none',
-                        border: 'none',
-                        p: 0,
-                        textAlign: 'inherit',
-                        display: 'inline-flex',
-                        flexDirection: 'row',
-                        '&:hover': {
-                          cursor:
-                            areSettingsValid && !hasNoFeatures
-                              ? 'pointer'
-                              : 'default',
-                        },
-                        mt: 4,
-                        flex: '0',
-                        color:
-                          areSettingsValid && !hasNoFeatures
-                            ? 'neutral.darker'
-                            : 'neutral.main',
-                      }}
-                      onClick={
-                        areSettingsValid && !hasNoFeatures
-                          ? handleSubmit
-                          : undefined
-                      }
-                    >
-                      <Box
-                        sx={{
-                          typography: 'h1',
-                          textAlign: 'end',
-                          mr: 3,
-                          minWidth: '270px',
-                        }}
-                      >
-                        <T
-                          keyName={
-                            'sidebar.plan_settings.calculate_carbon_effect'
-                          }
-                          ns={'hiilikartta'}
-                        />
-                      </Box>
-                      <Box sx={{ mt: 0.2 }}>
-                        <ArrowNextBig></ArrowNextBig>
-                      </Box>
-                    </Box>
-                  </Tooltip>
-                </Box>
-              </Box>
-            )}
-          </Box>
-        </>
-      )}
-      {!isLoaded && (
+      <SidebarContentBox
+        scrollFadeColor={SIDEBAR_BACKGROUND}
+        sxOuter={{ backgroundColor: SIDEBAR_BACKGROUND }}
+        sxInner={{
+          p: 0,
+          px: 0,
+          backgroundColor: SIDEBAR_BACKGROUND,
+        }}
+      >
         <Box
           sx={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'center',
-            mt: 18,
+            px: CONTENT_PADDING_X,
+            pt: { mobile: '1.5rem', desktop: '2.5rem' },
+            pb: { mobile: '1.5rem', desktop: '1.75rem' },
           }}
         >
-          <LoadingSpinner></LoadingSpinner>
+          <Typography
+            sx={{
+              fontSize: '0.75rem',
+              fontWeight: 400,
+              lineHeight: '1.125rem',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              color: '#075CFF',
+            }}
+          >
+            <TText
+              keyName="sidebar.plan_settings.areas.title"
+              ns="hiilikartta"
+            />
+          </Typography>
+
+          <Box
+            sx={{
+              mt: '0.5rem',
+              mb: '1rem',
+              height: '1px',
+              width: '100%',
+              backgroundColor: '#D6D6D6',
+            }}
+          />
+
+          <Typography
+            sx={{
+              maxWidth: '16.25rem',
+              fontSize: '0.75rem',
+              lineHeight: '1.125rem',
+              letterSpacing: '0.04em',
+              color: '#111111',
+            }}
+          >
+            <TText
+              keyName="sidebar.plan_settings.areas.description"
+              ns="hiilikartta"
+            />
+          </Typography>
         </Box>
-      )}
+
+        <ZoneAccordion planConfId={planConf.id} sx={{ pb: '1.5rem' }} />
+      </SidebarContentBox>
+
+      <Box
+        sx={{
+          px: CONTENT_PADDING_X,
+          py: { mobile: '1rem', desktop: '1.25rem' },
+          borderTop: '1px solid #D6D6D6',
+          backgroundColor: SIDEBAR_BACKGROUND,
+        }}
+      >
+        <Tooltip
+          title={
+            hasNoFeatures
+              ? t(
+                  'sidebar.plan_settings.calculate_carbon_effect.tooltip_no_features'
+                )
+              : t(
+                  'sidebar.plan_settings.calculate_carbon_effect.tooltip_invalid'
+                )
+          }
+          disableHoverListener={areSettingsValid && !hasNoFeatures}
+          disableFocusListener={areSettingsValid && !hasNoFeatures}
+          disableTouchListener={areSettingsValid && !hasNoFeatures}
+        >
+          <Box
+            component="button"
+            type="button"
+            aria-label={t('sidebar.plan_settings.areas.confirm_and_calculate')}
+            disabled={
+              hasNoFeatures || !areSettingsValid || isCalculationStarting
+            }
+            onClick={handleSubmit}
+            sx={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '0.75rem',
+              p: 0,
+              border: 'none',
+              background: 'none',
+              textAlign: 'left',
+              color: hasNoFeatures || !areSettingsValid ? '#A0A0A0' : '#111111',
+              cursor:
+                hasNoFeatures || !areSettingsValid || isCalculationStarting
+                  ? 'default'
+                  : 'pointer',
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: '0.75rem',
+                lineHeight: '1rem',
+                letterSpacing: '0.04em',
+                color: 'inherit',
+              }}
+            >
+              <TText
+                keyName="sidebar.plan_settings.areas.confirm_and_calculate"
+                ns="hiilikartta"
+              />
+            </Typography>
+
+            {isCalculationStarting ? (
+              <CircularProgress
+                size={18}
+                sx={{
+                  color: 'inherit',
+                  flexShrink: 0,
+                }}
+              />
+            ) : (
+              <ArrowNextBig
+                sx={{
+                  width: 10,
+                  height: 18,
+                  color: 'inherit',
+                  flexShrink: 0,
+                }}
+              />
+            )}
+          </Box>
+        </Tooltip>
+      </Box>
     </Box>
   )
 }
-
-const FooterButtonContainer = styled(Box)<{ component?: string; type?: string }>(
-  {
-    display: 'inline-flex',
-    flexDirection: 'row',
-    background: 'none',
-    border: 'none',
-    padding: 0,
-    margin: 0,
-    textAlign: 'inherit',
-    '&:hover': { cursor: 'pointer' },
-    color: 'neutral.dark',
-    flex: '0',
-    whiteSpace: 'nowrap',
-    alignSelf: 'flex-start',
-  }
-)
 
 export default Page
