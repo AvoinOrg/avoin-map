@@ -21,22 +21,32 @@ const PlanImportActionsRow = ({
         type="button"
         aria-label="Accept imported plan"
         variant="contained"
-        color="inherit"
         disabled={isAcceptDisabled}
         onClick={isAcceptDisabled ? undefined : onClickAccept}
         sx={{
-          minWidth: '8rem',
-          px: '1.5rem',
-          py: '0.7rem',
-          borderRadius: '999px',
+          width: 'fit-content',
+          minWidth: '5.125rem',
+          height: '1.25rem',
+          px: '0.75rem',
+          py: 0,
+          border: '0.2px solid #0A4835',
+          borderRadius: '0.625rem',
           textTransform: 'uppercase',
-          typography: 'h4',
-          backgroundColor: '#fff',
-          color: 'primary.dark',
+          fontSize: '0.625rem',
+          fontWeight: 700,
+          lineHeight: '0.875rem',
+          letterSpacing: '0.1em',
+          backgroundColor: '#BCE9B4',
+          color: '#111111',
           boxShadow: 'none',
           '&:hover': {
-            backgroundColor: '#fff',
+            backgroundColor: '#BCE9B4',
             boxShadow: 'none',
+          },
+          '&.Mui-disabled': {
+            borderColor: 'rgba(10, 72, 53, 0.35)',
+            backgroundColor: 'rgba(188, 233, 180, 0.5)',
+            color: 'rgba(17, 17, 17, 0.56)',
           },
         }}
       >

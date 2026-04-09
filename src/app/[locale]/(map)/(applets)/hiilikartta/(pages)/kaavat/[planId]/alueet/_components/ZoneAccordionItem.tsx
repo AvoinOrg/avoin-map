@@ -1,14 +1,10 @@
 import {
+  type ChangeEvent,
   useEffect,
   useMemo,
-  useState,
   type MutableRefObject,
-  type SyntheticEvent,
 } from 'react'
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
   Box,
   ButtonBase,
   Collapse,
@@ -17,15 +13,15 @@ import {
   Typography,
   type SelectChangeEvent,
 } from '@mui/material'
-import TText from '#/components/common/TText'
+import { useTranslate } from '@tolgee/react'
 
+import type { SelectOption } from '#/common/types/general'
+import TText from '#/components/common/TText'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import { NumberInputField } from '#/components/common/NumberInputField'
 import { ArrowDown, QuestionCircleOutline, Warning } from '#/components/icons'
-import { useTranslate } from '@tolgee/react'
 
 import {
-  CUSTOM_ZONING_CODE,
   POWERLINE_ZONING_CLASS_PREFIX,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/constants'
 import type {
@@ -40,7 +36,6 @@ import {
   getZoningClassByCode,
   getZoningClassLandUseDefaults,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/zoningClasses'
-import type { SelectOption } from '#/common/types/general'
 import ZoneClassChip from './ZoneClassChip'
 import {
   getLandUseDistributionTotal,
@@ -84,12 +79,11 @@ type Props = {
   accordionRefs: MutableRefObject<Record<string, HTMLDivElement | null>>
   expanded: boolean
   feature: PlanDataFeature
-  index: number
   isLast: boolean
   isZoningClassesLoading: boolean
-  onChange: (
-    featureId: string
-  ) => (_event: SyntheticEvent, isExpanded: boolean) => void
+  landUseEditorOpen: boolean
+  onLandUseEditorToggle: (featureId: string, nextOpen: boolean) => void
+  onToggle: (featureId: string) => void
   updateFeature: (id: string, feature: Partial<PlanDataFeature>) => void
   zoningClasses: ZoningClass[]
   zoningCodeOptions: SelectOption[]
@@ -130,6 +124,10 @@ const TEXT_FIELD_SX = {
 } as const
 
 const NUMBER_FIELD_WIDTH = '4.5rem'
+const SUMMARY_GUTTER_WIDTH = '1rem'
+const SUMMARY_ROW_PADDING_X = '0.375rem'
+const DETAILS_PADDING_LEFT = `calc(${SUMMARY_ROW_PADDING_X} + ${SUMMARY_GUTTER_WIDTH})`
+const OPEN_ITEM_MARGIN_X = { mobile: '-0.5rem', desktop: '-0.75rem' } as const
 
 const numberFieldInputSx = {
   width: NUMBER_FIELD_WIDTH,
@@ -163,16 +161,16 @@ const ZoneAccordionItem = ({
   accordionRefs,
   expanded,
   feature,
-  index,
   isLast,
   isZoningClassesLoading,
-  onChange,
+  landUseEditorOpen,
+  onLandUseEditorToggle,
+  onToggle,
   updateFeature,
   zoningClasses,
   zoningCodeOptions,
 }: Props) => {
   const { t } = useTranslate('hiilikartta')
-  const [isLandUseEditorOpen, setIsLandUseEditorOpen] = useState(false)
   const percentageFormatter = useMemo(
     () =>
       new Intl.NumberFormat('fi-FI', {
@@ -336,7 +334,7 @@ const ZoneAccordionItem = ({
   }
 
   const handleNameChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     updateFeature(feature.properties.id, {
       properties: {
@@ -371,97 +369,120 @@ const ZoneAccordionItem = ({
   }
 
   return (
-    <Accordion
-      disableGutters
-      expanded={expanded}
-      onChange={onChange(feature.properties.id)}
+    <Box
       ref={(node) => {
-        accordionRefs.current[feature.properties.id] = node
+        accordionRefs.current[feature.properties.id] =
+          node as HTMLDivElement | null
       }}
       sx={{
-        backgroundColor: 'transparent',
-        boxShadow: 'none',
-        borderTop: '1px solid #D6D6D6',
-        ...(isLast ? { borderBottom: '1px solid #D6D6D6' } : {}),
-        '&::before': {
-          display: 'none',
-        },
-        '&.Mui-expanded': {
-          m: 0,
-        },
+        mx: expanded ? OPEN_ITEM_MARGIN_X : 0,
+        my: expanded ? '0.25rem' : 0,
+        transition:
+          'margin 160ms ease, background-color 160ms ease, box-shadow 160ms ease',
       }}
     >
-      <AccordionSummary
-        expandIcon={
-          <ArrowDown sx={{ width: 12, height: 8, color: '#111111' }} />
-        }
-        aria-controls={`panel-${index + 1}-content`}
-        id={`panel-${index + 1}-header`}
+      <Box
         sx={{
-          minHeight: '2.25rem',
-          px: 0,
-          py: '0.125rem',
-          '& .MuiAccordionSummary-content': {
-            my: 0,
-            alignItems: 'center',
-            gap: '0.625rem',
-          },
-          '& .MuiAccordionSummary-expandIconWrapper': {
-            mr: 0,
-          },
-          '& .MuiAccordionSummary-expandIconWrapper.Mui-expanded': {
-            transform: 'rotate(180deg)',
-          },
+          overflow: 'hidden',
+          borderTop: '1px solid #D6D6D6',
+          borderRight: expanded ? '1px solid #D6D6D6' : 'none',
+          borderBottom: expanded || isLast ? '1px solid #D6D6D6' : 'none',
+          borderLeft: expanded ? '1px solid #D6D6D6' : 'none',
+          borderRadius: expanded ? '0.75rem' : 0,
+          backgroundColor: expanded ? '#FFFFFF' : 'transparent',
+          boxShadow: expanded
+            ? '0px 1px 2px rgba(17, 17, 17, 0.06), inset 0px 1px 2px rgba(214, 214, 214, 0.35)'
+            : 'none',
         }}
       >
-        {!isItemValid && (
-          <Warning
-            sx={{
-              width: 10,
-              height: 9,
-              color: '#D8A500',
-              flexShrink: 0,
-            }}
-          />
-        )}
-
-        <ZoneClassChip
-          code={zoningPresentation.code}
-          color={zoningPresentation.color}
-        />
-
-        <Typography
+        <ButtonBase
+          type="button"
+          onClick={() => onToggle(feature.properties.id)}
+          aria-expanded={expanded}
+          aria-controls={`zone-panel-${feature.properties.id}`}
+          id={`zone-toggle-${feature.properties.id}`}
           sx={{
-            flex: 1,
-            minWidth: 0,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            fontSize: '0.625rem',
-            fontWeight: 700,
-            lineHeight: '1.125rem',
-            letterSpacing: '0.18em',
-            color: expanded ? '#274AFF' : '#111111',
-          }}
-        >
-          {displayName}
-        </Typography>
-      </AccordionSummary>
-
-      <AccordionDetails sx={{ px: 0, pt: 0, pb: '0.75rem' }}>
-        <Box
-          sx={{
-            borderRadius: '0.75rem',
-            backgroundColor: '#E8E8E8',
-            p: '0.75rem',
+            width: '100%',
+            display: 'grid',
+            gridTemplateColumns: `${SUMMARY_GUTTER_WIDTH} auto minmax(0, 1fr) auto`,
+            alignItems: 'center',
+            columnGap: '0.625rem',
+            px: SUMMARY_ROW_PADDING_X,
+            py: '0.375rem',
+            justifyContent: 'initial',
+            textAlign: 'left',
           }}
         >
           <Box
             sx={{
-              borderRadius: '0.625rem',
-              backgroundColor: '#FFFFFF',
-              p: '0.75rem',
-              boxShadow: 'inset 0px 0px 0px 0.5px #D6D6D6',
+              display: 'flex',
+              width: SUMMARY_GUTTER_WIDTH,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            {!isItemValid && (
+              <Warning
+                sx={{
+                  width: 10,
+                  height: 9,
+                  color: '#D8A500',
+                  flexShrink: 0,
+                }}
+              />
+            )}
+          </Box>
+
+          <ZoneClassChip
+            code={zoningPresentation.code}
+            color={zoningPresentation.color}
+          />
+
+          <Box
+            sx={{
+              minWidth: 0,
+              overflow: 'hidden',
+            }}
+          >
+            <Typography
+              sx={{
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                fontSize: '0.625rem',
+                fontWeight: 700,
+                lineHeight: '1.125rem',
+                letterSpacing: '0.18em',
+                color: '#111111',
+              }}
+            >
+              {displayName}
+            </Typography>
+          </Box>
+
+          <ArrowDown
+            sx={{
+              width: 12,
+              height: 8,
+              color: '#111111',
+              transform: expanded ? 'rotate(180deg)' : 'none',
+              transition: 'transform 160ms ease',
+            }}
+          />
+        </ButtonBase>
+
+        <Collapse
+          in={expanded}
+          timeout="auto"
+          unmountOnExit
+          id={`zone-panel-${feature.properties.id}`}
+          aria-labelledby={`zone-toggle-${feature.properties.id}`}
+        >
+          <Box
+            sx={{
+              pb: '0.875rem',
+              pl: DETAILS_PADDING_LEFT,
+              pr: SUMMARY_ROW_PADDING_X,
             }}
           >
             <Typography sx={FIELD_LABEL_SX}>
@@ -542,160 +563,137 @@ const ZoneAccordionItem = ({
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
                     gap: '0.75rem',
                   }}
                 >
-                  <Typography
+                  <ButtonBase
+                    type="button"
+                    aria-label={`${t(
+                      'sidebar.plan_settings.zones.land_use_distribution'
+                    )} ${displayName}`}
+                    onClick={() =>
+                      onLandUseEditorToggle(
+                        feature.properties.id,
+                        !landUseEditorOpen
+                      )
+                    }
                     sx={{
-                      ...FIELD_LABEL_SX,
-                      mb: 0,
-                    }}
-                  >
-                    {t('sidebar.plan_settings.zones.land_use_distribution')}
-                  </Typography>
-
-                  <Box
-                    sx={{
-                      display: 'inline-flex',
+                      flex: 1,
+                      minWidth: 0,
+                      display: 'flex',
                       alignItems: 'center',
-                      gap: '0.375rem',
+                      justifyContent: 'space-between',
+                      gap: '0.75rem',
+                      px: 0,
+                      py: '0.125rem',
+                      textAlign: 'left',
                     }}
                   >
                     <Box
                       sx={{
-                        display: 'inline-flex',
+                        display: 'flex',
+                        minWidth: 0,
                         alignItems: 'center',
-                        gap: '0.25rem',
-                        minWidth: '4.625rem',
-                        height: '1.25rem',
-                        px: '0.625rem',
-                        borderRadius: '999px',
-                        backgroundColor: isLandUseDistributionValid
-                          ? '#F0D46E'
-                          : '#F3D56E',
-                        color: '#111111',
-                        fontSize: '0.625rem',
-                        lineHeight: '1rem',
-                        letterSpacing: '0.08em',
+                        gap: '0.5rem',
                       }}
                     >
-                      <Box component="span">
-                        {`${percentageFormatter.format(landUseDistributionTotal)} %`}
-                      </Box>
-                      {!isLandUseDistributionValid && (
-                        <Warning
-                          sx={{
-                            width: 10,
-                            height: 9,
-                            color: '#8D6A00',
-                          }}
-                        />
-                      )}
-                    </Box>
+                      <ArrowDown
+                        sx={{
+                          width: 12,
+                          height: 8,
+                          color: '#111111',
+                          flexShrink: 0,
+                          transform: landUseEditorOpen
+                            ? 'rotate(180deg)'
+                            : 'none',
+                          transition: 'transform 160ms ease',
+                        }}
+                      />
 
-                    {!isLandUseDistributionValid && (
-                      <Tooltip
-                        title={
-                          <Typography
-                            sx={{
-                              maxWidth: '12.5rem',
-                              fontSize: '0.75rem',
-                              lineHeight: '1.125rem',
-                              letterSpacing: '0.04em',
-                              color: '#FFFFFF',
-                            }}
-                          >
-                            <TText
-                              keyName={
-                                'sidebar.plan_settings.areas.land_use_distribution_invalid'
-                              }
-                              ns="hiilikartta"
-                            />
-                          </Typography>
-                        }
-                        placement="left-start"
-                        arrow
-                        enterTouchDelay={0}
-                        slotProps={{
-                          tooltip: {
-                            sx: {
-                              px: '1rem',
-                              py: '0.875rem',
-                              borderRadius: '0.3125rem',
-                              bgcolor: '#454545',
-                              boxShadow: '0px 8px 24px rgba(17, 17, 17, 0.22)',
-                            },
-                          },
-                          arrow: {
-                            sx: {
-                              color: '#454545',
-                            },
-                          },
+                      <Typography
+                        sx={{
+                          ...FIELD_LABEL_SX,
+                          mb: 0,
                         }}
                       >
-                        <ButtonBase
-                          aria-label={`${t(
-                            'sidebar.plan_settings.zones.land_use_distribution'
-                          )} ${displayName}`}
+                        {t('sidebar.plan_settings.zones.land_use_distribution')}
+                      </Typography>
+                    </Box>
+
+                    <Typography
+                      sx={{
+                        flexShrink: 0,
+                        fontSize: '0.6875rem',
+                        fontWeight: 700,
+                        lineHeight: '1rem',
+                        letterSpacing: '0.08em',
+                        color: isLandUseDistributionValid ? '#111111' : '#8D6A00',
+                      }}
+                    >
+                      {`${percentageFormatter.format(landUseDistributionTotal)} %`}
+                    </Typography>
+                  </ButtonBase>
+
+                  {!isLandUseDistributionValid && (
+                    <Tooltip
+                      title={
+                        <Typography
                           sx={{
-                            width: '1rem',
-                            height: '1rem',
-                            borderRadius: '999px',
-                            color: '#6D6D6D',
+                            maxWidth: '12.5rem',
+                            fontSize: '0.75rem',
+                            lineHeight: '1.125rem',
+                            letterSpacing: '0.04em',
+                            color: '#FFFFFF',
                           }}
                         >
-                          <QuestionCircleOutline
-                            sx={{ width: 16, height: 16 }}
+                          <TText
+                            keyName={
+                              'sidebar.plan_settings.areas.land_use_distribution_invalid'
+                            }
+                            ns="hiilikartta"
                           />
-                        </ButtonBase>
-                      </Tooltip>
-                    )}
-                  </Box>
+                        </Typography>
+                      }
+                      placement="left-start"
+                      arrow
+                      enterTouchDelay={0}
+                      slotProps={{
+                        tooltip: {
+                          sx: {
+                            px: '1rem',
+                            py: '0.875rem',
+                            borderRadius: '0.3125rem',
+                            bgcolor: '#454545',
+                            boxShadow: '0px 8px 24px rgba(17, 17, 17, 0.22)',
+                          },
+                        },
+                        arrow: {
+                          sx: {
+                            color: '#454545',
+                          },
+                        },
+                      }}
+                    >
+                      <ButtonBase
+                        type="button"
+                        aria-label={`${t(
+                          'sidebar.plan_settings.zones.land_use_distribution'
+                        )} ${displayName}`}
+                        sx={{
+                          width: '1rem',
+                          height: '1rem',
+                          flexShrink: 0,
+                          borderRadius: '999px',
+                          color: '#6D6D6D',
+                        }}
+                      >
+                        <QuestionCircleOutline sx={{ width: 16, height: 16 }} />
+                      </ButtonBase>
+                    </Tooltip>
+                  )}
                 </Box>
 
-                <ButtonBase
-                  type="button"
-                  aria-label={`${t('sidebar.plan_settings.areas.edit_land_use')} ${displayName}`}
-                  onClick={() =>
-                    setIsLandUseEditorOpen((previous) => !previous)
-                  }
-                  sx={{
-                    alignSelf: 'flex-start',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.375rem',
-                    px: '0.75rem',
-                    py: '0.375rem',
-                    borderRadius: '999px',
-                    border: '0.5px solid #D6D6D6',
-                    backgroundColor: '#FFFFFF',
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontSize: '0.625rem',
-                      lineHeight: '0.875rem',
-                      letterSpacing: '0.06em',
-                      color: '#111111',
-                    }}
-                  >
-                    {t('sidebar.plan_settings.areas.edit_land_use')}
-                  </Typography>
-                  <ArrowDown
-                    sx={{
-                      width: 12,
-                      height: 8,
-                      color: '#111111',
-                      transform: isLandUseEditorOpen
-                        ? 'rotate(180deg)'
-                        : 'none',
-                      transition: 'transform 160ms ease',
-                    }}
-                  />
-                </ButtonBase>
-
-                <Collapse in={isLandUseEditorOpen} timeout="auto">
+                <Collapse in={landUseEditorOpen} timeout="auto" unmountOnExit>
                   <Box
                     sx={{
                       display: 'flex',
@@ -794,9 +792,9 @@ const ZoneAccordionItem = ({
               </Box>
             )}
           </Box>
-        </Box>
-      </AccordionDetails>
-    </Accordion>
+        </Collapse>
+      </Box>
+    </Box>
   )
 }
 
