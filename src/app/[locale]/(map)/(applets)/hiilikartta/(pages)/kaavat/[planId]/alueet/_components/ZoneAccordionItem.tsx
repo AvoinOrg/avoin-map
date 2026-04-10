@@ -19,11 +19,9 @@ import type { SelectOption } from '#/common/types/general'
 import TText from '#/components/common/TText'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import { NumberInputField } from '#/components/common/NumberInputField'
-import { ArrowDown, QuestionCircleOutline, Warning } from '#/components/icons'
+import { ArrowDown, Warning } from '#/components/icons'
 
-import {
-  POWERLINE_ZONING_CLASS_PREFIX,
-} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/constants'
+import { POWERLINE_ZONING_CLASS_PREFIX } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/constants'
 import type {
   PlanDataFeature,
   ZoningClass,
@@ -124,10 +122,12 @@ const TEXT_FIELD_SX = {
 } as const
 
 const NUMBER_FIELD_WIDTH = '4.5rem'
-const SUMMARY_GUTTER_WIDTH = '1rem'
 const SUMMARY_ROW_PADDING_X = '0.375rem'
-const DETAILS_PADDING_LEFT = `calc(${SUMMARY_ROW_PADDING_X} + ${SUMMARY_GUTTER_WIDTH})`
-const OPEN_ITEM_MARGIN_X = { mobile: '-0.5rem', desktop: '-0.75rem' } as const
+const DETAILS_PADDING_LEFT = SUMMARY_ROW_PADDING_X
+const OPEN_ITEM_MARGIN_Y = '0.25rem'
+const OPEN_SHELL_OUTSET_X = { mobile: '0.5rem', desktop: '0.75rem' } as const
+const WARNING_ICON_OFFSET_X = { mobile: '-1rem', desktop: '-1.125rem' } as const
+const WARNING_ICON_TOP = '0.875rem'
 
 const numberFieldInputSx = {
   width: NUMBER_FIELD_WIDTH,
@@ -154,6 +154,23 @@ const numberFieldAdornmentSx = {
   '& button': {
     pl: 0.25,
     pr: 0.625,
+  },
+} as const
+
+const warningTooltipSlotProps = {
+  tooltip: {
+    sx: {
+      px: '1rem',
+      py: '0.875rem',
+      borderRadius: '0.3125rem',
+      bgcolor: '#454545',
+      boxShadow: '0px 8px 24px rgba(17, 17, 17, 0.22)',
+    },
+  },
+  arrow: {
+    sx: {
+      color: '#454545',
+    },
   },
 } as const
 
@@ -309,6 +326,22 @@ const ZoneAccordionItem = ({
     () => getLandUseDistributionTotal(feature.properties),
     [feature.properties]
   )
+  const landUseDistributionTooltip = !isLandUseDistributionValid ? (
+    <Typography
+      sx={{
+        maxWidth: '12.5rem',
+        fontSize: '0.75rem',
+        lineHeight: '1.125rem',
+        letterSpacing: '0.04em',
+        color: '#FFFFFF',
+      }}
+    >
+      <TText
+        keyName="sidebar.plan_settings.areas.land_use_distribution_invalid"
+        ns="hiilikartta"
+      />
+    </Typography>
+  ) : null
 
   const handleZoningCodeChange = (event: SelectChangeEvent<string>) => {
     const zoningCode = event.target.value
@@ -375,194 +408,218 @@ const ZoneAccordionItem = ({
           node as HTMLDivElement | null
       }}
       sx={{
-        mx: expanded ? OPEN_ITEM_MARGIN_X : 0,
-        my: expanded ? '0.25rem' : 0,
-        transition:
-          'margin 160ms ease, background-color 160ms ease, box-shadow 160ms ease',
+        position: 'relative',
+        my: expanded ? OPEN_ITEM_MARGIN_Y : 0,
       }}
     >
+      {!isItemValid && (
+        <Tooltip
+          title={landUseDistributionTooltip ?? ''}
+          placement="left-start"
+          arrow
+          disableFocusListener={landUseDistributionTooltip == null}
+          disableHoverListener={landUseDistributionTooltip == null}
+          disableTouchListener={landUseDistributionTooltip == null}
+          enterTouchDelay={0}
+          slotProps={warningTooltipSlotProps}
+        >
+          <Box
+            component="span"
+            sx={{
+              position: 'absolute',
+              left: WARNING_ICON_OFFSET_X,
+              top: WARNING_ICON_TOP,
+              zIndex: 2,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transform: 'translateY(-50%)',
+            }}
+          >
+            <Warning
+              sx={{
+                width: 10,
+                height: 9,
+                color: '#D8A500',
+                flexShrink: 0,
+              }}
+            />
+          </Box>
+        </Tooltip>
+      )}
+
       <Box
         sx={{
-          overflow: 'hidden',
-          borderTop: '1px solid #D6D6D6',
-          borderRight: expanded ? '1px solid #D6D6D6' : 'none',
-          borderBottom: expanded || isLast ? '1px solid #D6D6D6' : 'none',
-          borderLeft: expanded ? '1px solid #D6D6D6' : 'none',
-          borderRadius: expanded ? '0.75rem' : 0,
-          backgroundColor: expanded ? '#FFFFFF' : 'transparent',
-          boxShadow: expanded
-            ? '0px 1px 2px rgba(17, 17, 17, 0.06), inset 0px 1px 2px rgba(214, 214, 214, 0.35)'
-            : 'none',
+          position: 'relative',
+          '&::before': expanded
+            ? {
+                content: '""',
+                position: 'absolute',
+                top: `-${OPEN_ITEM_MARGIN_Y}`,
+                right: {
+                  mobile: `-${OPEN_SHELL_OUTSET_X.mobile}`,
+                  desktop: `-${OPEN_SHELL_OUTSET_X.desktop}`,
+                },
+                bottom: `-${OPEN_ITEM_MARGIN_Y}`,
+                left: {
+                  mobile: `-${OPEN_SHELL_OUTSET_X.mobile}`,
+                  desktop: `-${OPEN_SHELL_OUTSET_X.desktop}`,
+                },
+                border: '1px solid #D6D6D6',
+                borderRadius: '0.75rem',
+                pointerEvents: 'none',
+              }
+            : undefined,
         }}
       >
-        <ButtonBase
-          type="button"
-          onClick={() => onToggle(feature.properties.id)}
-          aria-expanded={expanded}
-          aria-controls={`zone-panel-${feature.properties.id}`}
-          id={`zone-toggle-${feature.properties.id}`}
+        <Box
           sx={{
-            width: '100%',
-            display: 'grid',
-            gridTemplateColumns: `${SUMMARY_GUTTER_WIDTH} auto minmax(0, 1fr) auto`,
-            alignItems: 'center',
-            columnGap: '0.625rem',
-            px: SUMMARY_ROW_PADDING_X,
-            py: '0.375rem',
-            justifyContent: 'initial',
-            textAlign: 'left',
+            position: 'relative',
+            borderTop: '1px solid #D6D6D6',
+            borderBottom: expanded || isLast ? '1px solid #D6D6D6' : 'none',
           }}
         >
-          <Box
+          <ButtonBase
+            type="button"
+            onClick={() => onToggle(feature.properties.id)}
+            aria-expanded={expanded}
+            aria-controls={`zone-panel-${feature.properties.id}`}
+            id={`zone-toggle-${feature.properties.id}`}
             sx={{
+              width: '100%',
               display: 'flex',
-              width: SUMMARY_GUTTER_WIDTH,
-              justifyContent: 'center',
               alignItems: 'center',
+              gap: '0.625rem',
+              px: SUMMARY_ROW_PADDING_X,
+              py: '0.375rem',
+              justifyContent: 'initial',
+              textAlign: 'left',
             }}
           >
-            {!isItemValid && (
-              <Warning
-                sx={{
-                  width: 10,
-                  height: 9,
-                  color: '#D8A500',
-                  flexShrink: 0,
-                }}
-              />
-            )}
-          </Box>
-
-          <ZoneClassChip
-            code={zoningPresentation.code}
-            color={zoningPresentation.color}
-          />
-
-          <Box
-            sx={{
-              minWidth: 0,
-              overflow: 'hidden',
-            }}
-          >
-            <Typography
-              sx={{
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                fontSize: '0.625rem',
-                fontWeight: 700,
-                lineHeight: '1.125rem',
-                letterSpacing: '0.18em',
-                color: '#111111',
-              }}
-            >
-              {displayName}
-            </Typography>
-          </Box>
-
-          <ArrowDown
-            sx={{
-              width: 12,
-              height: 8,
-              color: '#111111',
-              transform: expanded ? 'rotate(180deg)' : 'none',
-              transition: 'transform 160ms ease',
-            }}
-          />
-        </ButtonBase>
-
-        <Collapse
-          in={expanded}
-          timeout="auto"
-          unmountOnExit
-          id={`zone-panel-${feature.properties.id}`}
-          aria-labelledby={`zone-toggle-${feature.properties.id}`}
-        >
-          <Box
-            sx={{
-              pb: '0.875rem',
-              pl: DETAILS_PADDING_LEFT,
-              pr: SUMMARY_ROW_PADDING_X,
-            }}
-          >
-            <Typography sx={FIELD_LABEL_SX}>
-              {t('sidebar.plan_settings.areas.rename_label')}
-            </Typography>
-
-            <TextField
-              aria-label={`${t('sidebar.plan_settings.areas.rename_label')} ${displayName}`}
-              value={
-                typeof feature.properties.name === 'string'
-                  ? feature.properties.name
-                  : String(feature.properties.name ?? '')
-              }
-              onChange={handleNameChange}
-              variant="outlined"
-              sx={TEXT_FIELD_SX}
+            <ZoneClassChip
+              code={zoningPresentation.code}
+              color={zoningPresentation.color}
             />
 
-            <Box sx={{ mt: '1rem' }}>
-              <DropDownSelectWithHeader
-                ariaLabel={`${t('sidebar.plan_settings.areas.change_class_label')} ${displayName}`}
-                label={t('sidebar.plan_settings.areas.change_class_label')}
-                options={zoningCodeOptions}
-                onChange={handleZoningCodeChange}
-                successIndicatorMode="hidden"
-                value={feature.properties.zoning_code ?? ''}
-                sx={{ mb: 0 }}
-                labelSx={FIELD_LABEL_SX}
-                selectSx={{
-                  '&.MuiOutlinedInput-root': {
-                    minHeight: '1.375rem',
-                    borderRadius: '0.625rem',
-                    backgroundColor: '#FFFFFF',
-                    boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
-                  },
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#D6D6D6',
-                  },
-                  '& .MuiOutlinedInput-notchedOutline legend': {
-                    maxWidth: 0,
-                  },
-                  '& .MuiSelect-select': {
-                    minHeight: '1.375rem',
-                    py: '0.1875rem',
-                    pl: '0.75rem',
-                    pr: '2.25rem !important',
+            <Box
+              sx={{
+                minWidth: 0,
+                flex: 1,
+                overflow: 'hidden',
+              }}
+            >
+              <Typography
+                sx={{
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  fontSize: '0.625rem',
+                  fontWeight: 700,
+                  lineHeight: '1.125rem',
+                  letterSpacing: '0.18em',
+                  color: '#111111',
+                }}
+              >
+                {displayName}
+              </Typography>
+            </Box>
+
+            <ArrowDown
+              sx={{
+                width: 12,
+                height: 8,
+                color: '#111111',
+                transform: expanded ? 'rotate(180deg)' : 'none',
+                transition: 'transform 160ms ease',
+              }}
+            />
+          </ButtonBase>
+
+          <Collapse
+            in={expanded}
+            timeout="auto"
+            unmountOnExit
+            id={`zone-panel-${feature.properties.id}`}
+            aria-labelledby={`zone-toggle-${feature.properties.id}`}
+          >
+            <Box
+              sx={{
+                pb: '0.875rem',
+                pl: DETAILS_PADDING_LEFT,
+                pr: SUMMARY_ROW_PADDING_X,
+              }}
+            >
+              <Typography sx={FIELD_LABEL_SX}>
+                {t('sidebar.plan_settings.areas.rename_label')}
+              </Typography>
+
+              <TextField
+                aria-label={`${t('sidebar.plan_settings.areas.rename_label')} ${displayName}`}
+                value={
+                  typeof feature.properties.name === 'string'
+                    ? feature.properties.name
+                    : String(feature.properties.name ?? '')
+                }
+                onChange={handleNameChange}
+                variant="outlined"
+                sx={TEXT_FIELD_SX}
+              />
+
+              <Box sx={{ mt: '1rem' }}>
+                <DropDownSelectWithHeader
+                  ariaLabel={`${t('sidebar.plan_settings.areas.change_class_label')} ${displayName}`}
+                  label={t('sidebar.plan_settings.areas.change_class_label')}
+                  options={zoningCodeOptions}
+                  onChange={handleZoningCodeChange}
+                  successIndicatorMode="hidden"
+                  value={feature.properties.zoning_code ?? ''}
+                  sx={{ mb: 0 }}
+                  labelSx={FIELD_LABEL_SX}
+                  selectSx={{
+                    '&.MuiOutlinedInput-root': {
+                      minHeight: '1.375rem',
+                      borderRadius: '0.625rem',
+                      backgroundColor: '#FFFFFF',
+                      boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
+                    },
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#D6D6D6',
+                    },
+                    '& .MuiOutlinedInput-notchedOutline legend': {
+                      maxWidth: 0,
+                    },
+                    '& .MuiSelect-select': {
+                      minHeight: '1.375rem',
+                      py: '0.1875rem',
+                      pl: '0.75rem',
+                      pr: '2.25rem !important',
+                      fontSize: '0.6875rem',
+                      fontWeight: 400,
+                      lineHeight: 'normal',
+                      letterSpacing: '0.04em',
+                      color: '#111111',
+                    },
+                    '& .MuiSelect-icon': {
+                      width: '0.75rem',
+                      height: '0.375rem',
+                      right: '0.875rem',
+                    },
+                  }}
+                  typographySx={{
                     fontSize: '0.6875rem',
                     fontWeight: 400,
                     lineHeight: 'normal',
                     letterSpacing: '0.04em',
-                    color: '#111111',
-                  },
-                  '& .MuiSelect-icon': {
-                    width: '0.75rem',
-                    height: '0.375rem',
-                    right: '0.875rem',
-                  },
-                }}
-                typographySx={{
-                  fontSize: '0.6875rem',
-                  fontWeight: 400,
-                  lineHeight: 'normal',
-                  letterSpacing: '0.04em',
-                }}
-              />
-            </Box>
+                  }}
+                />
+              </Box>
 
-            {hasValidZoningCode && (
-              <Box
-                sx={{
-                  mt: '1rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.75rem',
-                }}
-              >
+              {hasValidZoningCode && (
                 <Box
                   sx={{
+                    mt: '1rem',
                     display: 'flex',
-                    alignItems: 'center',
+                    flexDirection: 'column',
                     gap: '0.75rem',
                   }}
                 >
@@ -578,8 +635,7 @@ const ZoneAccordionItem = ({
                       )
                     }
                     sx={{
-                      flex: 1,
-                      minWidth: 0,
+                      width: '100%',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
@@ -620,96 +676,138 @@ const ZoneAccordionItem = ({
                       </Typography>
                     </Box>
 
-                    <Typography
+                    <Box
                       sx={{
+                        display: 'inline-flex',
                         flexShrink: 0,
-                        fontSize: '0.6875rem',
-                        fontWeight: 700,
-                        lineHeight: '1rem',
-                        letterSpacing: '0.08em',
-                        color: isLandUseDistributionValid ? '#111111' : '#8D6A00',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.25rem',
+                        minWidth: '4.5625rem',
+                        minHeight: '1.25rem',
+                        px: '0.5rem',
+                        borderRadius: '999px',
+                        backgroundColor: isLandUseDistributionValid
+                          ? '#F0F0F1'
+                          : '#E5CF74',
+                        color: isLandUseDistributionValid
+                          ? '#111111'
+                          : '#8D6A00',
                       }}
                     >
-                      {`${percentageFormatter.format(landUseDistributionTotal)} %`}
-                    </Typography>
-                  </ButtonBase>
-
-                  {!isLandUseDistributionValid && (
-                    <Tooltip
-                      title={
-                        <Typography
-                          sx={{
-                            maxWidth: '12.5rem',
-                            fontSize: '0.75rem',
-                            lineHeight: '1.125rem',
-                            letterSpacing: '0.04em',
-                            color: '#FFFFFF',
-                          }}
-                        >
-                          <TText
-                            keyName={
-                              'sidebar.plan_settings.areas.land_use_distribution_invalid'
-                            }
-                            ns="hiilikartta"
-                          />
-                        </Typography>
-                      }
-                      placement="left-start"
-                      arrow
-                      enterTouchDelay={0}
-                      slotProps={{
-                        tooltip: {
-                          sx: {
-                            px: '1rem',
-                            py: '0.875rem',
-                            borderRadius: '0.3125rem',
-                            bgcolor: '#454545',
-                            boxShadow: '0px 8px 24px rgba(17, 17, 17, 0.22)',
-                          },
-                        },
-                        arrow: {
-                          sx: {
-                            color: '#454545',
-                          },
-                        },
-                      }}
-                    >
-                      <ButtonBase
-                        type="button"
-                        aria-label={`${t(
-                          'sidebar.plan_settings.zones.land_use_distribution'
-                        )} ${displayName}`}
+                      <Typography
                         sx={{
-                          width: '1rem',
-                          height: '1rem',
-                          flexShrink: 0,
-                          borderRadius: '999px',
-                          color: '#6D6D6D',
+                          fontSize: '0.625rem',
+                          fontWeight: 700,
+                          lineHeight: '0.875rem',
+                          letterSpacing: '0.08em',
+                          color: 'inherit',
                         }}
                       >
-                        <QuestionCircleOutline sx={{ width: 16, height: 16 }} />
-                      </ButtonBase>
-                    </Tooltip>
-                  )}
-                </Box>
+                        {`${percentageFormatter.format(landUseDistributionTotal)} %`}
+                      </Typography>
 
-                <Collapse in={landUseEditorOpen} timeout="auto" unmountOnExit>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '0.875rem',
-                      pt: '0.25rem',
-                    }}
-                  >
-                    {landUseFields.map((field) => (
+                      {!isLandUseDistributionValid && (
+                        <Tooltip
+                          title={landUseDistributionTooltip ?? ''}
+                          placement="left-start"
+                          arrow
+                          disableFocusListener={
+                            landUseDistributionTooltip == null
+                          }
+                          disableHoverListener={
+                            landUseDistributionTooltip == null
+                          }
+                          disableTouchListener={
+                            landUseDistributionTooltip == null
+                          }
+                          enterTouchDelay={0}
+                          slotProps={warningTooltipSlotProps}
+                        >
+                          <Box
+                            component="span"
+                            sx={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <Warning
+                              sx={{
+                                width: 10,
+                                height: 9,
+                                color: '#8D6A00',
+                                flexShrink: 0,
+                              }}
+                            />
+                          </Box>
+                        </Tooltip>
+                      )}
+                    </Box>
+                  </ButtonBase>
+
+                  <Collapse in={landUseEditorOpen} timeout="auto" unmountOnExit>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.875rem',
+                        pt: '0.25rem',
+                      }}
+                    >
+                      {landUseFields.map((field) => (
+                        <Box
+                          key={field.key}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '0.75rem',
+                          }}
+                        >
+                          <Typography
+                            sx={{
+                              flex: 1,
+                              minWidth: 0,
+                              fontSize: '0.625rem',
+                              lineHeight: '0.875rem',
+                              letterSpacing: '0.04em',
+                              color: '#111111',
+                            }}
+                          >
+                            {t(
+                              isPowerlineZoningClass &&
+                                'powerlineTranslationKey' in field
+                                ? field.powerlineTranslationKey
+                                : field.translationKey
+                            )}
+                          </Typography>
+
+                          <NumberInputField
+                            size="small"
+                            value={feature.properties[field.key] ?? null}
+                            onValueChange={handleLandUseValueChange(field.key)}
+                            error={!isLandUseDistributionValid}
+                            minValue={0}
+                            maxValue={100}
+                            incrementStepValue={1}
+                            containerSx={{ width: NUMBER_FIELD_WIDTH }}
+                            inputRowSx={{ width: NUMBER_FIELD_WIDTH }}
+                            formControlSx={{ width: NUMBER_FIELD_WIDTH }}
+                            inputSx={numberFieldInputSx}
+                            adornmentSx={numberFieldAdornmentSx}
+                            inputSlotProps={{ inputMode: 'decimal' }}
+                          />
+                        </Box>
+                      ))}
+
                       <Box
-                        key={field.key}
                         sx={{
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
                           gap: '0.75rem',
+                          pt: '0.75rem',
                         }}
                       >
                         <Typography
@@ -723,18 +821,14 @@ const ZoneAccordionItem = ({
                           }}
                         >
                           {t(
-                            isPowerlineZoningClass &&
-                              'powerlineTranslationKey' in field
-                              ? field.powerlineTranslationKey
-                              : field.translationKey
+                            'sidebar.plan_settings.zones.soil_change_new_vegetation_pct'
                           )}
                         </Typography>
 
                         <NumberInputField
                           size="small"
-                          value={feature.properties[field.key] ?? null}
-                          onValueChange={handleLandUseValueChange(field.key)}
-                          error={!isLandUseDistributionValid}
+                          value={feature.properties[soilChangeKey] ?? null}
+                          onValueChange={handleSoilChangeValueChange}
                           minValue={0}
                           maxValue={100}
                           incrementStepValue={1}
@@ -746,53 +840,13 @@ const ZoneAccordionItem = ({
                           inputSlotProps={{ inputMode: 'decimal' }}
                         />
                       </Box>
-                    ))}
-
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: '0.75rem',
-                        pt: '0.75rem',
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          flex: 1,
-                          minWidth: 0,
-                          fontSize: '0.625rem',
-                          lineHeight: '0.875rem',
-                          letterSpacing: '0.04em',
-                          color: '#111111',
-                        }}
-                      >
-                        {t(
-                          'sidebar.plan_settings.zones.soil_change_new_vegetation_pct'
-                        )}
-                      </Typography>
-
-                      <NumberInputField
-                        size="small"
-                        value={feature.properties[soilChangeKey] ?? null}
-                        onValueChange={handleSoilChangeValueChange}
-                        minValue={0}
-                        maxValue={100}
-                        incrementStepValue={1}
-                        containerSx={{ width: NUMBER_FIELD_WIDTH }}
-                        inputRowSx={{ width: NUMBER_FIELD_WIDTH }}
-                        formControlSx={{ width: NUMBER_FIELD_WIDTH }}
-                        inputSx={numberFieldInputSx}
-                        adornmentSx={numberFieldAdornmentSx}
-                        inputSlotProps={{ inputMode: 'decimal' }}
-                      />
                     </Box>
-                  </Box>
-                </Collapse>
-              </Box>
-            )}
-          </Box>
-        </Collapse>
+                  </Collapse>
+                </Box>
+              )}
+            </Box>
+          </Collapse>
+        </Box>
       </Box>
     </Box>
   )

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, CircularProgress, Tooltip, Typography } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { useParams, useRouter } from 'next/navigation'
@@ -16,16 +16,11 @@ import useAppletStoreHasHydrated from '#/app/[locale]/(map)/(applets)/hiilikartt
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 import { routeTree } from '#/common/routing/routes/hiilikartta'
 import {
-  CalculationState,
   GlobalState,
   PlanConfState,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
-import {
-  checkIsValidLandUseDistribution,
-  checkIsValidZoningCode,
-} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
-import { useZoningClasses } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/useZoningClasses'
 import { calcPostMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/calcPostMutation'
+import usePlanReportEligibility from '#/app/[locale]/(map)/(applets)/hiilikartta/common/usePlanReportEligibility'
 import ZoneAccordion from './_components/ZoneAccordion'
 
 const CONTENT_PADDING_X = { mobile: '1.25rem', desktop: '2.5rem' } as const
@@ -43,57 +38,19 @@ const Page = () => {
   const calcPost = useMutation(calcPostMutation())
   const router = useRouter()
   const { t } = useTranslate('hiilikartta')
-  const { isLoading: isZoningClassesLoading } = useZoningClasses()
   const [isLoaded, setIsLoaded] = useState(false)
-
-  const hasNoFeatures = useMemo(() => {
-    if (planConf?.data.features != null) {
-      return planConf.data.features.length === 0
-    }
-
-    return true
-  }, [planConf?.data.features])
-
-  const areSettingsValid = useMemo(() => {
-    if (isZoningClassesLoading) {
-      return true
-    }
-
-    if (!planConf?.data.features) {
-      return false
-    }
-
-    for (const feature of planConf.data.features) {
-      const hasValidZoningCode =
-        feature.properties.extras?.hasValidZoningCode ??
-        checkIsValidZoningCode(feature.properties.zoning_code ?? '')
-
-      if (!hasValidZoningCode) {
-        return false
-      }
-
-      if (!checkIsValidLandUseDistribution(feature.properties)) {
-        return false
-      }
-    }
-
-    return true
-  }, [isZoningClassesLoading, planConf?.data.features])
-
-  const isCalculationStarting =
-    calcPost.isPending ||
-    (planConf != null &&
-      [CalculationState.INITIALIZING, CalculationState.CALCULATING].includes(
-        planConf.calculationState
-      ))
+  const {
+    disabledTooltipKey,
+    hasNoFeatures,
+    isCalculationRunning,
+    isReportActionEnabled,
+  } = usePlanReportEligibility({
+    planConf,
+    isCalculationMutationPending: calcPost.isPending,
+  })
 
   const handleSubmit = async () => {
-    if (
-      !planConf ||
-      hasNoFeatures ||
-      !areSettingsValid ||
-      isCalculationStarting
-    ) {
+    if (!planConf || !isReportActionEnabled) {
       return
     }
 
@@ -252,27 +209,17 @@ const Page = () => {
         }}
       >
         <Tooltip
-          title={
-            hasNoFeatures
-              ? t(
-                  'sidebar.plan_settings.calculate_carbon_effect.tooltip_no_features'
-                )
-              : t(
-                  'sidebar.plan_settings.calculate_carbon_effect.tooltip_invalid'
-                )
-          }
-          disableHoverListener={areSettingsValid && !hasNoFeatures}
-          disableFocusListener={areSettingsValid && !hasNoFeatures}
-          disableTouchListener={areSettingsValid && !hasNoFeatures}
+          title={disabledTooltipKey != null ? t(disabledTooltipKey) : ''}
+          disableHoverListener={disabledTooltipKey == null}
+          disableFocusListener={disabledTooltipKey == null}
+          disableTouchListener={disabledTooltipKey == null}
         >
           <Box
             component="button"
             type="button"
             aria-label={t('sidebar.plan_settings.areas.confirm_and_calculate')}
-            disabled={
-              hasNoFeatures || !areSettingsValid || isCalculationStarting
-            }
-            onClick={handleSubmit}
+            disabled={!isReportActionEnabled}
+            onClick={isReportActionEnabled ? handleSubmit : undefined}
             sx={{
               width: '100%',
               display: 'flex',
@@ -283,11 +230,9 @@ const Page = () => {
               border: 'none',
               background: 'none',
               textAlign: 'left',
-              color: hasNoFeatures || !areSettingsValid ? '#A0A0A0' : '#111111',
-              cursor:
-                hasNoFeatures || !areSettingsValid || isCalculationStarting
-                  ? 'default'
-                  : 'pointer',
+              color:
+                hasNoFeatures || !isReportActionEnabled ? '#A0A0A0' : '#111111',
+              cursor: !isReportActionEnabled ? 'default' : 'pointer',
             }}
           >
             <Typography
@@ -304,7 +249,7 @@ const Page = () => {
               />
             </Typography>
 
-            {isCalculationStarting ? (
+            {isCalculationRunning ? (
               <CircularProgress
                 size={18}
                 sx={{

@@ -188,6 +188,7 @@ export interface MapDrawOptions extends LayerGroupDrawOptions {
   handleDrawFinish?: (...args: any[]) => Promise<void>
   handleDrawUpdate?: (...args: any[]) => void
   handleSelectionChange?: (...args: any[]) => void
+  handleDeselectionChange?: (...args: any[]) => void
   handleModeChange?: (...args: any[]) => void
   corridorHalfWidthMeters?: number
   drawGeneration: number

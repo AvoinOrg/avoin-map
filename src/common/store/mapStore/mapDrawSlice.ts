@@ -88,6 +88,20 @@ const validatePolygonForTerraDraw = (feature: Feature | null) => {
   return ValidateNotSelfIntersecting(feature as GeoJSONStoreFeatures)
 }
 
+const getSelectedDrawSnapshotFeatures = (draw: TerraDraw | null) => {
+  if (!draw) {
+    return [] as Feature[]
+  }
+
+  const drawInstance = draw as any
+  const drawFeatures =
+    drawInstance.getAll != null
+      ? (drawInstance.getAll().features as Feature[])
+      : ((drawInstance.getSnapshot?.() as Feature[]) ?? [])
+
+  return drawFeatures.filter((feature) => Boolean(feature.properties?.selected))
+}
+
 export type MapDrawVars = {
   _drawOptions: MapDrawOptions
 }
@@ -538,29 +552,41 @@ export const createMapDrawSlice: (
           const data = source.data as FeatureCollection
           const features = data.features
           try {
-            // let sourceNeedsUpdate = false
-            const terraFeatures = features.map((feature) => {
-              if (!feature.id) {
+            const terraFeatures = features.flatMap((feature) => {
+              const resolvedFeatureId = feature.id ?? feature.properties?.id
+
+              if (!resolvedFeatureId) {
                 console.error(
                   'Feature is missing ID field, cannot add to draw: ',
                   feature
                 )
-                return
+                return []
               }
 
-              sourceFeatureIds.add(feature.id)
-
+              feature.id = resolvedFeatureId
               feature.properties = feature.properties || {}
+              feature.properties.id =
+                feature.properties.id ?? String(resolvedFeatureId)
               feature.properties.mode = feature.properties.mode || 'polygon'
 
-              return feature
+              const validation = validatePolygonForTerraDraw(feature)
+              if (!validation.valid) {
+                console.warn(
+                  '[mapDrawSlice.ts] Skipping unsupported source feature',
+                  validation.reason,
+                  feature
+                )
+                return []
+              }
+
+              sourceFeatureIds.add(resolvedFeatureId)
+
+              return [feature]
             })
 
-            // if (sourceNeedsUpdate) {
-            //   const originalSource = _map?.getSource(layerGroupId) as any
-            //   originalSource?.setData({ ...data, features: terraFeatures })
-            // }
-            draw.addFeatures(terraFeatures as any)
+            if (terraFeatures.length > 0) {
+              draw.addFeatures(terraFeatures as any)
+            }
           } catch (e) {
             console.error(e)
             return
@@ -862,6 +888,7 @@ export const createMapDrawSlice: (
             state._drawOptions.handleDrawFinish = handleFinish
             state._drawOptions.handleDrawUpdate = handleChange
             state._drawOptions.handleSelectionChange = handleSelect
+            state._drawOptions.handleDeselectionChange = handleDeselect
             state._drawOptions.drawGeneration += 1
           })
 
@@ -905,11 +932,24 @@ export const createMapDrawSlice: (
         newSelectedFeatures
       )
 
+      const selectedDrawFeatures = getSelectedDrawSnapshotFeatures(draw)
       const matchingFeatureIds = matchingFeatures.map(
         (feature: Feature) => feature.id as string
       )
 
-      if (draw) {
+      if (draw && matchingFeatureIds.length === 0) {
+        selectedDrawFeatures.forEach((feature) => {
+          if (feature.id == null) {
+            return
+          }
+
+          try {
+            draw.deselectFeature(feature.id as any)
+          } catch {}
+        })
+      }
+
+      if (draw && matchingFeatureIds.length > 0) {
         draw.setMode('select')
         matchingFeatureIds.forEach((id) => {
           try {
@@ -922,9 +962,11 @@ export const createMapDrawSlice: (
         setSelectedFeatures(newSelectedFeatures)
       }
 
-      _map?.fire('draw.selectionchange', {
-        features: matchingFeatures,
-      })
+      if (matchingFeatureIds.length > 0) {
+        _map?.fire('draw.selectionchange', {
+          features: matchingFeatures,
+        })
+      }
     },
 
     disableDraw: helpers.queueableFnInit(
@@ -981,6 +1023,10 @@ export const createMapDrawSlice: (
           }
           if (_drawOptions.handleSelectionChange != null) {
             drawInstance.off('select', _drawOptions.handleSelectionChange)
+          }
+          if (_drawOptions.handleDeselectionChange != null) {
+            drawInstance.off('deselect', _drawOptions.handleDeselectionChange)
+          } else if (_drawOptions.handleSelectionChange != null) {
             drawInstance.off('deselect', _drawOptions.handleSelectionChange)
           }
 
@@ -1002,6 +1048,7 @@ export const createMapDrawSlice: (
             state._drawOptions.handleDrawFinish = undefined
             state._drawOptions.handleDrawUpdate = undefined
             state._drawOptions.handleSelectionChange = undefined
+            state._drawOptions.handleDeselectionChange = undefined
             state._drawOptions.currentMode = null
             state._drawOptions.drawGeneration += 1
           })

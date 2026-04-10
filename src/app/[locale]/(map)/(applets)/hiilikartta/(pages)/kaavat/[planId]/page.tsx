@@ -11,7 +11,6 @@ import React, {
 import {
   Box,
   ButtonBase,
-  CircularProgress,
   TextField,
   Tooltip,
   Typography,
@@ -28,20 +27,11 @@ import SidebarBackgroundContent from '#/components/common/SidebarBackgroundConte
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import IconTextButton from '#/components/common/IconTextButton'
 import NodeFlowAccordion from '#/components/common/NodeFlowAccordion'
-import NodeFlowButton, {
-  NodeFlowButtonState,
-} from '#/components/common/NodeFlowButton'
+import NodeFlowButton from '#/components/common/NodeFlowButton'
 import NodeFlowContainer from '#/components/common/NodeFlowContainer'
 import { LoadingSpinner } from '#/components/Loading'
 import CheckcircleChecked from '#/components/icons/CheckcircleChecked'
-import {
-  Delete,
-  Eco,
-  Error as ErrorIcon,
-  Login,
-  QuestionCircleOutline,
-  Upload,
-} from '#/components/icons'
+import { Delete, Login, QuestionCircleOutline, Upload } from '#/components/icons'
 import { getRoute } from '#/common/routing/routing-client'
 import { openLoginWindow } from '#/common/utils/auth'
 import { useUIStore } from '#/common/store'
@@ -66,13 +56,17 @@ import {
 import {
   formatImportedGeojson,
   getImportedPlanAreaHa,
+  PlanImportValidationError,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/planImport'
 import { getZoningClasses } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/zoningClasses'
 import { routeTree } from '#/common/routing/routes/hiilikartta'
+import { calcPostMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/calcPostMutation'
 import { planDeleteMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/planDeleteMutation'
 import { planPostMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/planPostMutation'
+import usePlanReportEligibility from '#/app/[locale]/(map)/(applets)/hiilikartta/common/usePlanReportEligibility'
 import useAppletStoreHasHydrated from '#/app/[locale]/(map)/(applets)/hiilikartta/common/useAppletStoreHasHydrated'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
+import PlanReportFlowStep from './_components/PlanReportFlowStep'
 import PlanImportActionsRow from './_components/PlanImportActionsRow'
 import PlanImportGpkg from './_components/PlanImportGpkg'
 import PlanImportShp from './_components/PlanImportShp'
@@ -276,28 +270,6 @@ const FlowStepLeadingIcon = () => (
   />
 )
 
-const getCalculationStepVisualState = (
-  calculationState: CalculationState | undefined,
-  hasReportData: boolean
-): NodeFlowButtonState => {
-  if (hasReportData || calculationState === CalculationState.FINISHED) {
-    return 'complete'
-  }
-
-  if (
-    calculationState === CalculationState.INITIALIZING ||
-    calculationState === CalculationState.CALCULATING
-  ) {
-    return 'active'
-  }
-
-  if (calculationState === CalculationState.ERRORED) {
-    return 'error'
-  }
-
-  return 'disabled'
-}
-
 const Page = () => {
   const params = useParams<{ locale: string; planId: string }>()
   const planId = params.planId
@@ -333,6 +305,7 @@ const Page = () => {
 
   const planDelete = useMutation(planDeleteMutation())
   const planPost = useMutation(planPostMutation())
+  const calcPost = useMutation(calcPostMutation())
 
   const [fileType, setFileType] = useState<FileType>()
   const [fileName, setFileName] = useState<string>()
@@ -345,58 +318,14 @@ const Page = () => {
   const [planNameDraft, setPlanNameDraft] = useState('')
 
   const isSettingsMode = planConf != null
-
-  const calculationStepState = getCalculationStepVisualState(
-    planConf?.calculationState,
-    planConf?.reportData != null
-  )
-
-  const calculationStepHelper = (() => {
-    if (planConf == null) {
-      return undefined
-    }
-
-    switch (planConf.calculationState) {
-      case CalculationState.INITIALIZING:
-        return t('sidebar.my_plans.calculations_starting')
-      case CalculationState.CALCULATING:
-        return t('sidebar.my_plans.calculations_in_progress')
-      case CalculationState.ERRORED:
-        return t('sidebar.my_plans.calculations_errored')
-      default:
-        return undefined
-    }
-  })()
-
-  const calculationStepHelperLeading = (() => {
-    if (
-      planConf?.calculationState === CalculationState.INITIALIZING ||
-      planConf?.calculationState === CalculationState.CALCULATING
-    ) {
-      return (
-        <CircularProgress
-          size={12}
-          thickness={7}
-          sx={{ color: '#274AFF', flexShrink: 0 }}
-        />
-      )
-    }
-
-    if (planConf?.calculationState === CalculationState.ERRORED) {
-      return (
-        <ErrorIcon
-          sx={{
-            width: 12,
-            height: 12,
-            color: '#7A3D2B',
-            flexShrink: 0,
-          }}
-        />
-      )
-    }
-
-    return undefined
-  })()
+  const {
+    isCalculationRunning,
+    isReportActionEnabled,
+    disabledTooltipKey,
+  } = usePlanReportEligibility({
+    planConf,
+    isCalculationMutationPending: calcPost.isPending,
+  })
 
   const cancelPendingAutoOpen = useCallback(() => {
     if (autoOpenFrameRef.current == null) {
@@ -714,6 +643,13 @@ const Page = () => {
       setPendingImport(null)
     } catch (error) {
       console.error('Failed to apply imported plan', error)
+
+      if (error instanceof PlanImportValidationError) {
+        notify({
+          message: error.message,
+          variant: 'error',
+        })
+      }
     }
   }
 
@@ -784,6 +720,56 @@ const Page = () => {
         },
       })
     )
+  }
+
+  const handleCalculateReport = async () => {
+    if (planConf == null || !isReportActionEnabled || calcPost.isPending) {
+      return
+    }
+
+    let nextPlanConf = planConf
+
+    if (planConf.reportData != null) {
+      const clearedPlanConf = await updatePlanConf(planConf.id, {
+        reportData: undefined,
+        calculationState: CalculationState.NOT_STARTED,
+      })
+
+      nextPlanConf =
+        clearedPlanConf ?? {
+          ...planConf,
+          reportData: undefined,
+          calculationState: CalculationState.NOT_STARTED,
+        }
+    }
+
+    try {
+      await calcPost.mutateAsync(nextPlanConf)
+    } catch (_error) {}
+  }
+
+  const handleOpenReport = () => {
+    if (planConf == null || planConf.reportData == null) {
+      return
+    }
+
+    router.push(
+      getRoute({
+        routeNode: routeTree.report,
+        routeTree,
+        params: {
+          queryParams: {
+            planIds: planConf.serverId,
+            prevPageId: planConf.id,
+            prevPageStep: 'plan',
+          },
+        },
+      })
+    )
+  }
+
+  const handleResetReportAndRecalculate = () => {
+    handleCalculateReport().catch(() => {})
   }
 
   const handleCloudAction = () => {
@@ -1362,27 +1348,15 @@ const Page = () => {
             ariaLabel={t('sidebar.plan_flow.areas_step')}
           />
 
-          <NodeFlowButton
-            state={calculationStepState}
-            title={
-              <T
-                keyName="sidebar.plan_flow.calculate_report_step"
-                ns="hiilikartta"
-              />
-            }
-            leading={
-              <Eco
-                sx={{
-                  width: 12,
-                  height: 12,
-                  color:
-                    calculationStepState === 'error' ? '#7A3D2B' : '#0D6044',
-                }}
-              />
-            }
-            helper={calculationStepHelper}
-            helperLeading={calculationStepHelperLeading}
-            ariaLabel={t('sidebar.plan_flow.calculate_report_step')}
+          <PlanReportFlowStep
+            planConf={planConf}
+            locale={locale}
+            isCalculationRunning={isCalculationRunning}
+            isReportActionEnabled={isReportActionEnabled}
+            disabledTooltipKey={disabledTooltipKey}
+            onCalculate={handleCalculateReport}
+            onOpenReport={handleOpenReport}
+            onResetReportAndRecalculate={handleResetReportAndRecalculate}
           />
         </NodeFlowContainer>
 

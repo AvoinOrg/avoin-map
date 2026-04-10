@@ -16,6 +16,19 @@ import {
   normalizeZoningCode,
 } from './zoningClasses'
 
+export class PlanImportValidationError extends Error {
+  code: 'unsupported-geometry' | 'no-editable-polygons'
+
+  constructor(
+    code: 'unsupported-geometry' | 'no-editable-polygons',
+    message: string
+  ) {
+    super(message)
+    this.name = 'PlanImportValidationError'
+    this.code = code
+  }
+}
+
 type FormatImportedGeojsonArgs = {
   json: FeatureCollection
   zoningColName: string
@@ -25,20 +38,51 @@ type FormatImportedGeojsonArgs = {
 
 type FormattedImportedFeature = Feature<Geometry, FeatureProperties>
 
+const getImportGeometryError = (feature: Feature) => {
+  if (!feature.geometry) {
+    return 'Feature has no geometry'
+  }
+
+  if (
+    // @ts-ignore geometry narrowing for uploaded data
+    !feature.geometry.coordinates
+  ) {
+    return 'Feature has no coordinates'
+  }
+
+  if (feature.geometry.type !== 'Polygon') {
+    return `Feature geometry type ${feature.geometry.type} is not supported`
+  }
+
+  if (
+    // @ts-ignore geometry narrowing for uploaded data
+    !Array.isArray(feature.geometry.coordinates)
+  ) {
+    return 'Feature coordinates is not an array'
+  }
+
+  if (
+    // @ts-ignore geometry narrowing for uploaded data
+    feature.geometry.coordinates.length !== 1
+  ) {
+    return 'Feature has holes'
+  }
+
+  return null
+}
+
 export const formatImportedGeojson = ({
   json,
   zoningColName,
   nameColName,
   zoningClasses,
 }: FormatImportedGeojsonArgs): FeatureCollection => {
+  const unsupportedFeatureIndexes: number[] = []
   const features = json.features
     .map<FormattedImportedFeature | null>((feature: Feature, index) => {
-      if (
-        !feature.geometry ||
-        // @ts-ignore geometry narrowing for uploaded data
-        !feature.geometry.coordinates ||
-        !['MultiPolygon', 'Polygon'].includes(feature.geometry.type)
-      ) {
+      const initialGeometryError = getImportGeometryError(feature)
+      if (initialGeometryError != null) {
+        unsupportedFeatureIndexes.push(index + 1)
         return null
       }
 
@@ -56,6 +100,17 @@ export const formatImportedGeojson = ({
       if (!booleanValid(feature)) {
         try {
           const fixedGeometry = buffer(feature, 0).geometry
+          const fixedFeature = {
+            ...feature,
+            geometry: fixedGeometry,
+          } as Feature
+
+          const fixedGeometryError = getImportGeometryError(fixedFeature)
+          if (fixedGeometryError != null) {
+            unsupportedFeatureIndexes.push(index + 1)
+            return null
+          }
+
           if (booleanValid(fixedGeometry)) {
             feature.geometry = fixedGeometry
           } else {
@@ -124,12 +179,27 @@ export const formatImportedGeojson = ({
 
       return {
         ...feature,
+        id: properties.id,
         properties,
       }
     })
     .filter(
       (feature): feature is FormattedImportedFeature => feature !== null
     )
+
+  if (unsupportedFeatureIndexes.length > 0) {
+    throw new PlanImportValidationError(
+      'unsupported-geometry',
+      'Imported file contains geometries that Hiilikartta cannot edit. Only polygons without holes are supported.'
+    )
+  }
+
+  if (features.length === 0) {
+    throw new PlanImportValidationError(
+      'no-editable-polygons',
+      'Imported file did not contain any editable polygons.'
+    )
+  }
 
   return {
     type: 'FeatureCollection',

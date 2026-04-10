@@ -52,6 +52,7 @@ const ZoneAccordion = ({ planConfId, sx }: Props) => {
   const addSelectedFeaturesByIds = useMapStore(
     (state) => state.addSelectedFeaturesByIds
   )
+  const drawMode = useMapStore((state) => state._drawOptions.currentMode)
   const { zoningClasses, isLoading: isZoningClassesLoading } =
     useZoningClasses()
 
@@ -59,7 +60,9 @@ const ZoneAccordion = ({ planConfId, sx }: Props) => {
     { source: getPlanSourceId(planConfId) },
   ])
 
-  const [expandedFeatureId, setExpandedFeatureId] = useState<string | null>(null)
+  const [expandedFeatureId, setExpandedFeatureId] = useState<string | null>(
+    null
+  )
   const [selectedFilterValues, setSelectedFilterValues] = useState<string[]>([])
   const [sortValue, setSortValue] = useState<ZoneSortValue>('name-asc')
   const [landUseEditorOpenByFeatureId, setLandUseEditorOpenByFeatureId] =
@@ -236,12 +239,41 @@ const ZoneAccordion = ({ planConfId, sx }: Props) => {
   ])
 
   useEffect(() => {
+    if (expandedFeatureId == null) {
+      return
+    }
+
+    const isExpandedFeatureVisible = visibleFeatures.some(
+      (feature) => feature.properties.id === expandedFeatureId
+    )
+
+    if (!isExpandedFeatureVisible) {
+      setExpandedFeatureId(null)
+    }
+  }, [expandedFeatureId, visibleFeatures])
+
+  useEffect(() => {
+    if (selectedFeatureIdFromMap == null) {
+      setExpandedFeatureId((previousExpandedFeatureId) =>
+        previousExpandedFeatureId === null ? previousExpandedFeatureId : null
+      )
+      return
+    }
+
+    const isSelectedFeatureVisible = visibleFeatures.some(
+      (feature) => feature.properties.id === selectedFeatureIdFromMap
+    )
+
+    if (!isSelectedFeatureVisible) {
+      return
+    }
+
     setExpandedFeatureId((previousExpandedFeatureId) =>
       previousExpandedFeatureId === selectedFeatureIdFromMap
         ? previousExpandedFeatureId
         : selectedFeatureIdFromMap
     )
-  }, [selectedFeatureIdFromMap])
+  }, [selectedFeatureIdFromMap, visibleFeatures])
 
   useEffect(() => {
     if (!expandedFeatureId) {
@@ -260,43 +292,6 @@ const ZoneAccordion = ({ planConfId, sx }: Props) => {
       })
     })
   }, [expandedFeatureId, visibleFeatures])
-
-  useEffect(() => {
-    if (expandedFeatureId == null) {
-      if (selectedFeatureIds.length === 0) {
-        return
-      }
-
-      removeSelectedFeaturesByIds({
-        featureIds: selectedFeatureIds,
-        idField: 'id',
-        source: { source: getPlanLayerGroupId(planConfId) },
-        updateDrawSelect: true,
-      })
-      return
-    }
-
-    if (
-      selectedFeatureIds.length === 1 &&
-      selectedFeatureIds[0] === expandedFeatureId
-    ) {
-      return
-    }
-
-    addSelectedFeaturesByIds({
-      featureIds: [expandedFeatureId],
-      idField: 'id',
-      source: { source: getPlanLayerGroupId(planConfId) },
-      updateDrawSelect: true,
-      removeOtherFeatures: true,
-    })
-  }, [
-    addSelectedFeaturesByIds,
-    expandedFeatureId,
-    planConfId,
-    removeSelectedFeaturesByIds,
-    selectedFeatureIds,
-  ])
 
   useEffect(() => {
     if (!expandedFeatureId || !planConf) {
@@ -325,11 +320,40 @@ const ZoneAccordion = ({ planConfId, sx }: Props) => {
     })
   }, [expandedFeatureId, planConf])
 
-  const handleAccordionToggle = useCallback((featureId: string) => {
-    setExpandedFeatureId((previousExpandedFeatureId) =>
-      previousExpandedFeatureId === featureId ? null : featureId
-    )
-  }, [])
+  const shouldSyncDrawSelection = drawMode === 'edit'
+
+  const handleAccordionToggle = useCallback(
+    (featureId: string) => {
+      const isClosing = expandedFeatureId === featureId
+
+      setExpandedFeatureId(isClosing ? null : featureId)
+
+      if (isClosing) {
+        removeSelectedFeaturesByIds({
+          featureIds: [featureId],
+          idField: 'id',
+          source: { source: getPlanLayerGroupId(planConfId) },
+          updateDrawSelect: shouldSyncDrawSelection,
+        })
+        return
+      }
+
+      addSelectedFeaturesByIds({
+        featureIds: [featureId],
+        idField: 'id',
+        source: { source: getPlanLayerGroupId(planConfId) },
+        updateDrawSelect: shouldSyncDrawSelection,
+        removeOtherFeatures: true,
+      })
+    },
+    [
+      addSelectedFeaturesByIds,
+      expandedFeatureId,
+      planConfId,
+      removeSelectedFeaturesByIds,
+      shouldSyncDrawSelection,
+    ]
+  )
 
   const handleFilterChange = (event: SelectChangeEvent<string[]>) => {
     const value = event.target.value
@@ -420,104 +444,95 @@ const ZoneAccordion = ({ planConfId, sx }: Props) => {
         <Box
           sx={{
             display: 'flex',
-            alignItems: 'flex-start',
-            gap: '0.75rem',
+            flexDirection: 'column',
+            gap: '0.25rem',
           }}
         >
-          <Box
+          <DropDownMultiSelect
+            ariaLabel={t('sidebar.plan_settings.areas.filter_label')}
+            value={selectedFilterValues}
+            options={filterSelectOptions}
+            onChange={handleFilterChange}
+            renderValue={(selected, selectedOptions) => {
+              if (selected.length === 0) {
+                return (
+                  <ZoneClassChip
+                    code={t('sidebar.plan_settings.areas.filter_all')}
+                    dark
+                    sx={{ minWidth: 0 }}
+                    uppercase={false}
+                  />
+                )
+              }
+
+              const visibleChips = selectedOptions.slice(0, 2)
+
+              return (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.375rem',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {visibleChips.map((option) => {
+                    const matchingFilterOption = filterOptions.find(
+                      (filterOption) => filterOption.value === option.value
+                    )
+
+                    if (!matchingFilterOption) {
+                      return null
+                    }
+
+                    return (
+                      <ZoneClassChip
+                        key={option.value}
+                        code={matchingFilterOption.code}
+                        color={matchingFilterOption.color}
+                      />
+                    )
+                  })}
+
+                  {selectedOptions.length > visibleChips.length && (
+                    <Typography
+                      sx={{
+                        fontSize: '0.625rem',
+                        lineHeight: '0.875rem',
+                        letterSpacing: '0.04em',
+                        color: '#111111',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      +{selectedOptions.length - visibleChips.length}
+                    </Typography>
+                  )}
+                </Box>
+              )
+            }}
+          />
+
+          <Typography
             sx={{
-              flex: 1,
-              minWidth: 0,
+              alignSelf: 'flex-end',
+              fontSize: '0.5rem',
+              lineHeight: '0.75rem',
+              letterSpacing: '0.08em',
+              color: '#111111',
             }}
           >
-            <DropDownMultiSelect
-              ariaLabel={t('sidebar.plan_settings.areas.filter_label')}
-              value={selectedFilterValues}
-              options={filterSelectOptions}
-              onChange={handleFilterChange}
-              renderValue={(selected, selectedOptions) => {
-                if (selected.length === 0) {
-                  return (
-                    <ZoneClassChip
-                      code={t('sidebar.plan_settings.areas.filter_all')}
-                      dark
-                      sx={{ minWidth: 0 }}
-                      uppercase={false}
-                    />
-                  )
-                }
-
-                const visibleChips = selectedOptions.slice(0, 2)
-
-                return (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.375rem',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    {visibleChips.map((option) => {
-                      const matchingFilterOption = filterOptions.find(
-                        (filterOption) => filterOption.value === option.value
-                      )
-
-                      if (!matchingFilterOption) {
-                        return null
-                      }
-
-                      return (
-                        <ZoneClassChip
-                          key={option.value}
-                          code={matchingFilterOption.code}
-                          color={matchingFilterOption.color}
-                        />
-                      )
-                    })}
-
-                    {selectedOptions.length > visibleChips.length && (
-                      <Typography
-                        sx={{
-                          fontSize: '0.625rem',
-                          lineHeight: '0.875rem',
-                          letterSpacing: '0.04em',
-                          color: '#111111',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        +{selectedOptions.length - visibleChips.length}
-                      </Typography>
-                    )}
-                  </Box>
-                )
-              }}
-            />
-          </Box>
+            {t('sidebar.plan_settings.areas.count', {
+              count: visibleFeatures.length,
+            })}
+          </Typography>
 
           <Box
             sx={{
               display: 'flex',
-              minWidth: '8rem',
-              flexDirection: 'column',
-              alignItems: 'flex-end',
-              gap: '0.25rem',
-              pt: '0.0625rem',
+              justifyContent: 'flex-end',
+              pt: '0.125rem',
             }}
           >
-            <Typography
-              sx={{
-                fontSize: '0.5rem',
-                lineHeight: '0.75rem',
-                letterSpacing: '0.08em',
-                color: '#111111',
-              }}
-            >
-              {t('sidebar.plan_settings.areas.count', {
-                count: visibleFeatures.length,
-              })}
-            </Typography>
-
             <DropDownSelectMinimal
               value={sortValue}
               onChange={handleSortChange}
