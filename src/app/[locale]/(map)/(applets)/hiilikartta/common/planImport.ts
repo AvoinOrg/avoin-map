@@ -50,7 +50,7 @@ const getImportGeometryError = (feature: Feature) => {
     return 'Feature has no coordinates'
   }
 
-  if (feature.geometry.type !== 'Polygon') {
+  if (!['Polygon', 'MultiPolygon'].includes(feature.geometry.type)) {
     return `Feature geometry type ${feature.geometry.type} is not supported`
   }
 
@@ -61,14 +61,25 @@ const getImportGeometryError = (feature: Feature) => {
     return 'Feature coordinates is not an array'
   }
 
-  if (
-    // @ts-ignore geometry narrowing for uploaded data
-    feature.geometry.coordinates.length !== 1
-  ) {
-    return 'Feature has holes'
-  }
-
   return null
+}
+
+const flattenFeatures = (features: Feature[]): Feature[] => {
+  return features.flatMap((feature) => {
+    if (feature.geometry?.type === 'MultiPolygon') {
+      // @ts-ignore geometry narrowing for uploaded data
+      return feature.geometry.coordinates.map(
+        (coords: number[][][]) => ({
+          ...feature,
+          geometry: {
+            type: 'Polygon' as const,
+            coordinates: coords,
+          },
+        })
+      )
+    }
+    return [feature]
+  })
 }
 
 export const formatImportedGeojson = ({
@@ -78,7 +89,8 @@ export const formatImportedGeojson = ({
   zoningClasses,
 }: FormatImportedGeojsonArgs): FeatureCollection => {
   const unsupportedFeatureIndexes: number[] = []
-  const features = json.features
+  const flattenedFeatures = flattenFeatures(json.features)
+  const features = flattenedFeatures
     .map<FormattedImportedFeature | null>((feature: Feature, index) => {
       const initialGeometryError = getImportGeometryError(feature)
       if (initialGeometryError != null) {
