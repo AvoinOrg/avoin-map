@@ -1,5 +1,6 @@
 import {
   type ChangeEvent,
+  memo,
   useEffect,
   useMemo,
   type MutableRefObject,
@@ -125,8 +126,8 @@ const NUMBER_FIELD_WIDTH = '4.5rem'
 const SUMMARY_ROW_PADDING_X = '0.375rem'
 const DETAILS_PADDING_LEFT = SUMMARY_ROW_PADDING_X
 const OPEN_ITEM_MARGIN_Y = '0.25rem'
-const OPEN_SHELL_OUTSET_X = { mobile: '0.5rem', desktop: '0.75rem' } as const
-const WARNING_ICON_OFFSET_X = { mobile: '-1rem', desktop: '-1.125rem' } as const
+const OPEN_SHELL_OUTSET_X = { mobile: '1rem', desktop: '1.5rem' } as const
+const WARNING_ICON_OFFSET_X = { mobile: '-0.625rem', desktop: '-0.75rem' } as const
 const WARNING_ICON_TOP = '0.875rem'
 
 const numberFieldInputSx = {
@@ -475,8 +476,9 @@ const ZoneAccordionItem = ({
         <Box
           sx={{
             position: 'relative',
-            borderTop: '1px solid #D6D6D6',
-            borderBottom: expanded || isLast ? '1px solid #D6D6D6' : 'none',
+            borderTop: expanded ? 'none' : '1px solid #D6D6D6',
+            borderBottom:
+              expanded ? 'none' : isLast ? '1px solid #D6D6D6' : 'none',
           }}
         >
           <ButtonBase
@@ -852,4 +854,4 @@ const ZoneAccordionItem = ({
   )
 }
 
-export default ZoneAccordionItem
+export default memo(ZoneAccordionItem)

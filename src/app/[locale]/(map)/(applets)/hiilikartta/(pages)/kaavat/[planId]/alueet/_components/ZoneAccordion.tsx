@@ -322,9 +322,15 @@ const ZoneAccordion = ({ planConfId, sx }: Props) => {
 
   const shouldSyncDrawSelection = drawMode === 'edit'
 
+  const expandedFeatureIdRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    expandedFeatureIdRef.current = expandedFeatureId
+  }, [expandedFeatureId])
+
   const handleAccordionToggle = useCallback(
     (featureId: string) => {
-      const isClosing = expandedFeatureId === featureId
+      const isClosing = expandedFeatureIdRef.current === featureId
 
       setExpandedFeatureId(isClosing ? null : featureId)
 
@@ -348,7 +354,6 @@ const ZoneAccordion = ({ planConfId, sx }: Props) => {
     },
     [
       addSelectedFeaturesByIds,
-      expandedFeatureId,
       planConfId,
       removeSelectedFeaturesByIds,
       shouldSyncDrawSelection,
@@ -376,38 +381,38 @@ const ZoneAccordion = ({ planConfId, sx }: Props) => {
     []
   )
 
-  const updateFeature = (
-    featureId: string,
-    feature: Partial<PlanDataFeature>
-  ) => {
-    if (!planConf) {
-      return
-    }
-
-    const existingFeature = planConf.data.features.find(
-      (item) => item.properties.id === featureId
-    )
-
-    if (!existingFeature) {
-      return
-    }
-
-    const hasChanged = Object.entries(feature).some(([key, value]) => {
-      const currentValue = existingFeature[key as keyof PlanDataFeature]
-
-      if (typeof currentValue === 'object' && currentValue !== null) {
-        return JSON.stringify(currentValue) !== JSON.stringify(value)
+  const updateFeature = useCallback(
+    (featureId: string, feature: Partial<PlanDataFeature>) => {
+      if (!planConf) {
+        return
       }
 
-      return currentValue !== value
-    })
+      const existingFeature = planConf.data.features.find(
+        (item) => item.properties.id === featureId
+      )
 
-    if (!hasChanged) {
-      return
-    }
+      if (!existingFeature) {
+        return
+      }
 
-    updatePlanConfDataFeature(planConf.id, featureId, feature)
-  }
+      const hasChanged = Object.entries(feature).some(([key, value]) => {
+        const currentValue = existingFeature[key as keyof PlanDataFeature]
+
+        if (typeof currentValue === 'object' && currentValue !== null) {
+          return JSON.stringify(currentValue) !== JSON.stringify(value)
+        }
+
+        return currentValue !== value
+      })
+
+      if (!hasChanged) {
+        return
+      }
+
+      updatePlanConfDataFeature(planConf.id, featureId, feature)
+    },
+    [planConf, updatePlanConfDataFeature]
+  )
 
   return (
     <Box
@@ -453,6 +458,7 @@ const ZoneAccordion = ({ planConfId, sx }: Props) => {
             value={selectedFilterValues}
             options={filterSelectOptions}
             onChange={handleFilterChange}
+            selectSx={{ width: '100%' }}
             renderValue={(selected, selectedOptions) => {
               if (selected.length === 0) {
                 return (
