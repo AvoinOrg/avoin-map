@@ -11,12 +11,12 @@ const ArrowDown = (props: Props) => (
     xmlns="http://www.w3.org/2000/svg"
     width={17}
     height={9}
-    viewBox="0 0 17 9"
+    viewBox="0 0 9 4.58579"
     fill="none"
     {...props}
   >
     <path
-      d="M16.5 0.5L9.20711 7.79289C8.81658 8.18342 8.18342 8.18342 7.79289 7.79289L0.5 0.5"
+      d="M0.5 0.5L3.79289 3.79289C4.18342 4.18342 4.81658 4.18342 5.20711 3.79289L8.5 0.5"
       stroke="currentColor"
       strokeLinecap="round"
     />
