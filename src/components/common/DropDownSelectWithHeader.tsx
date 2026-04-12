@@ -38,6 +38,7 @@ const DropDownSelectWithHeader = ({
               gap: '0.5rem',
               maxWidth: '100%',
               px: '1rem',
+              minHeight: '1.5rem',
               mb: 1,
             },
             ...(Array.isArray(headerSx) ? headerSx : [headerSx]),
