@@ -27,15 +27,21 @@ standalone sites.
 - Temporary per-chat markdown notes live under `.tmp/` and remain gitignored.
 - Use the `tmp-documenting` skill when the user asks for a running temp note or
   per-chat documentation.
-- Keep one markdown file per chat under `.tmp/`.
-- Write each user instruction into that file verbatim.
+- Use the `tmp-plan` skill when the user wants a chat-specific planning folder
+  with a detailed `plan.md`, a chronological `history.md`, and planning-only
+  investigation without implementation yet.
+- For `tmp-documenting`, keep one markdown file per chat under `.tmp/`.
+- For `tmp-plan`, keep one chat-specific folder under `.tmp/` with `plan.md`
+  and `history.md`.
+- Write each user instruction into the active temp note or planning history
+  file verbatim.
 - If you ask the user a question, write the question and the answer verbatim
   too.
 - If a later instruction clarifies or overwrites an earlier instruction, update
-  the authoritative instruction text in the markdown so it reflects the current
-  instruction set.
+  the authoritative instruction text in the active temp note or plan so it
+  reflects the current instruction set.
 - After completing each prompt, append a brief summary of the changes made for
-  that prompt.
+  that prompt when the active temp workflow expects one.
 
 ## Skills
 
@@ -45,6 +51,14 @@ standalone sites.
   verbatim user instructions, question-and-answer logging, corrected current
   instructions, and a brief change summary after each prompt. (file:
   `agents/skills/tmp-documenting/SKILL.md`)
+- `tmp-plan`: Maintain a per-chat planning workspace under `.tmp/` with a
+  chat-specific folder, an authoritative `plan.md`, and a chronological
+  `history.md`. Use it for implementation planning, plan revisions, and design
+  investigation that must stay planning-only until the user asks to implement.
+  It should inspect the real code paths and mechanisms involved, keep the plan
+  scoped to only the necessary changes, and coordinate with `figma-mcp`,
+  `ui-live-iteration`, and `tolgee-api-upsert` when relevant.
+  (file: `agents/skills/tmp-plan/SKILL.md`)
 - `figma-mcp`: Inspect Figma files and nodes through remote Figma MCP,
   normalize public Figma URLs into `fileKey` and `nodeId` inputs, and fetch
   metadata, screenshots, design context, or exact asset URLs. (file:
