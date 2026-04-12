@@ -18,15 +18,18 @@ export const SimpleSidebar = ({
     <Box
       sx={{
         flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
         px: { mobile: '1rem', desktop: '1.875rem' },
-        pt: { mobile: '1rem', desktop: '1.75rem' },
-        pb: { mobile: '0.9rem', desktop: '1rem' },
+        pt: { mobile: '1rem', desktop: '1.375rem' },
+        pb: { mobile: '0.9rem', desktop: '1.375rem' },
         color: 'neutral.darker',
         backgroundColor: '#ffffff',
       }}
     >
       <Box
         sx={{
+          width: '100%',
           minHeight: '1.5rem',
           display: 'flex',
           alignItems: 'center',
