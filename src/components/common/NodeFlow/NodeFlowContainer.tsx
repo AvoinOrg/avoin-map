@@ -3,9 +3,11 @@
 import React from 'react'
 import { Box, SxProps, Theme } from '@mui/material'
 
-import FlowNode from './FlowNode'
+import FlowNode from '../FlowNode'
 
-type NodeFlowContainerProps = {
+export const NODE_FLOW_CONNECTOR_X = '0.35rem'
+
+export type NodeFlowContainerProps = {
   children: React.ReactNode
   sx?: SxProps<Theme>
 }
@@ -46,16 +48,35 @@ const NodeFlowContainer = ({ children, sx }: NodeFlowContainerProps) => {
           return <React.Fragment key={index}>{child}</React.Fragment>
         }
 
-        const previousChild = childArray[index - 1]
         const nextChild = childArray[index + 1]
-        const showConnectorTop = isFlowNodeElement(previousChild)
-        const showConnectorBottom = isFlowNodeElement(nextChild)
 
-        return React.cloneElement(child, {
-          showConnector: showConnectorBottom,
-          showConnectorTop,
-          showConnectorBottom,
-        })
+        return (
+          <Box
+            key={index}
+            sx={{
+              position: 'relative',
+              width: '100%',
+              minWidth: 0,
+            }}
+          >
+            {child}
+
+            {isFlowNodeElement(nextChild) && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  left: NODE_FLOW_CONNECTOR_X,
+                  top: '100%',
+                  height: 'var(--flow-node-gap, 1.5rem)',
+                  transform: 'translateX(-50%)',
+                  width: '1px',
+                  backgroundColor: '#87BEA8',
+                  pointerEvents: 'none',
+                }}
+              />
+            )}
+          </Box>
+        )
       })}
     </Box>
   )

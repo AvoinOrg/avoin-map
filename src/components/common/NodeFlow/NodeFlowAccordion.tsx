@@ -4,7 +4,6 @@ import React, { useState } from 'react'
 import { Box, SxProps, Theme } from '@mui/material'
 
 import NodeFlowButton, {
-  NODE_FLOW_CONNECTOR_X,
   NODE_FLOW_OUTER_OFFSET,
   NODE_FLOW_OUTER_WIDTH,
 } from './NodeFlowButton'
@@ -37,11 +36,6 @@ const OPEN_SHELL_CONTENT_INSET = {
   desktop: '0.875rem',
 } as const
 
-const OPEN_SHELL_CONNECTOR_X = {
-  mobile: `calc(${OPEN_SHELL_CONTENT_INSET.mobile} + ${NODE_FLOW_CONNECTOR_X})`,
-  desktop: `calc(${OPEN_SHELL_CONTENT_INSET.desktop} + ${NODE_FLOW_CONNECTOR_X})`,
-} as const
-
 const NodeFlowAccordionBase = ({
   title,
   helper,
@@ -53,9 +47,6 @@ const NodeFlowAccordionBase = ({
   onOpenChange,
   children,
   ariaLabel,
-  showConnector = false,
-  showConnectorTop = false,
-  showConnectorBottom,
   sx,
   rowSx,
   bodySx,
@@ -63,7 +54,6 @@ const NodeFlowAccordionBase = ({
   const [internalOpen, setInternalOpen] = useState(defaultOpen)
   const isControlled = controlledOpen != null
   const isOpen = controlledOpen ?? internalOpen
-  const shouldShowConnectorBottom = showConnectorBottom ?? showConnector
 
   const handleToggle = () => {
     const nextOpen = !isOpen
@@ -99,8 +89,6 @@ const NodeFlowAccordionBase = ({
           ariaLabel={ariaLabel}
           ariaExpanded={isOpen}
           state="available"
-          showConnectorTop={showConnectorTop}
-          showConnectorBottom={shouldShowConnectorBottom}
           disableOuterOffset
           rowSx={rowSx}
         />
@@ -122,36 +110,6 @@ const NodeFlowAccordionBase = ({
               'inset 0px 0.5px 1px 0px rgba(217, 217, 217, 0.7), 0px 4px 16px 0px rgba(17, 17, 17, 0.03)',
           }}
         >
-          {showConnectorTop && (
-            <Box
-              sx={{
-                position: 'absolute',
-                left: OPEN_SHELL_CONNECTOR_X,
-                bottom: '100%',
-                height: 'var(--flow-node-gap, 1.5rem)',
-                transform: 'translateX(-50%)',
-                width: '1px',
-                backgroundColor: '#87BEA8',
-                pointerEvents: 'none',
-              }}
-            />
-          )}
-
-          {shouldShowConnectorBottom && (
-            <Box
-              sx={{
-                position: 'absolute',
-                left: OPEN_SHELL_CONNECTOR_X,
-                top: '100%',
-                height: 'var(--flow-node-gap, 1.5rem)',
-                transform: 'translateX(-50%)',
-                width: '1px',
-                backgroundColor: '#87BEA8',
-                pointerEvents: 'none',
-              }}
-            />
-          )}
-
           <NodeFlowButton
             title={title}
             helper={helper}

@@ -46,8 +46,6 @@ export const NODE_FLOW_OUTER_WIDTH = {
   desktop: 'calc(100% + 1.75rem)',
 } as const
 
-export const NODE_FLOW_CONNECTOR_X = '1.125rem'
-
 const getRowStyles = (state: NodeFlowButtonState) => {
   switch (state) {
     case 'active':
@@ -115,9 +113,6 @@ const NodeFlowButtonBase = ({
   disabled = false,
   ariaLabel,
   ariaExpanded,
-  showConnector = false,
-  showConnectorTop = false,
-  showConnectorBottom,
   disableOuterOffset = false,
   sx,
   rowSx,
@@ -126,7 +121,6 @@ const NodeFlowButtonBase = ({
   const isDisabled = disabled || state === 'disabled'
   const isInteractive = !isDisabled && onClick != null
   const rowStyles = getRowStyles(state)
-  const shouldShowConnectorBottom = showConnectorBottom ?? showConnector
   const resolvedTrailing =
     trailing === undefined ? (
       <ArrowRight
@@ -176,36 +170,6 @@ const NodeFlowButtonBase = ({
           minWidth: 0,
         }}
       >
-        {showConnectorTop && (
-          <Box
-            sx={{
-              position: 'absolute',
-              left: NODE_FLOW_CONNECTOR_X,
-              bottom: '100%',
-              height: 'var(--flow-node-gap, 1.5rem)',
-              transform: 'translateX(-50%)',
-              width: '1px',
-              backgroundColor: rowStyles.connectorColor,
-              pointerEvents: 'none',
-            }}
-          />
-        )}
-
-        {shouldShowConnectorBottom && (
-          <Box
-            sx={{
-              position: 'absolute',
-              left: NODE_FLOW_CONNECTOR_X,
-              top: '100%',
-              height: 'var(--flow-node-gap, 1.5rem)',
-              transform: 'translateX(-50%)',
-              width: '1px',
-              backgroundColor: rowStyles.connectorColor,
-              pointerEvents: 'none',
-            }}
-          />
-        )}
-
         <Box
           onClick={isInteractive ? onClick : undefined}
           onKeyDown={handleKeyDown}
