@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { Box, SxProps, Theme } from '@mui/material'
 
+import { ArrowDown, ArrowUp } from '#/components/icons'
 import NodeFlowButton, {
   NODE_FLOW_OUTER_OFFSET,
   NODE_FLOW_OUTER_WIDTH,
@@ -54,6 +55,28 @@ const NodeFlowAccordionBase = ({
   const [internalOpen, setInternalOpen] = useState(defaultOpen)
   const isControlled = controlledOpen != null
   const isOpen = controlledOpen ?? internalOpen
+  const resolvedTrailing =
+    trailing === undefined ? (
+      isOpen ? (
+        <ArrowUp
+          sx={{
+            width: '0.5625rem',
+            height: '0.286625rem',
+            color: 'inherit',
+          }}
+        />
+      ) : (
+        <ArrowDown
+          sx={{
+            width: '0.5625rem',
+            height: '0.286625rem',
+            color: 'inherit',
+          }}
+        />
+      )
+    ) : (
+      trailing
+    )
 
   const handleToggle = () => {
     const nextOpen = !isOpen
@@ -84,7 +107,7 @@ const NodeFlowAccordionBase = ({
           helper={helper}
           helperLeading={helperLeading}
           leading={leading}
-          trailing={trailing}
+          trailing={resolvedTrailing}
           onClick={handleToggle}
           ariaLabel={ariaLabel}
           ariaExpanded={isOpen}
@@ -115,7 +138,7 @@ const NodeFlowAccordionBase = ({
             helper={helper}
             helperLeading={helperLeading}
             leading={leading}
-            trailing={trailing}
+            trailing={resolvedTrailing}
             onClick={handleToggle}
             ariaLabel={ariaLabel}
             ariaExpanded={isOpen}

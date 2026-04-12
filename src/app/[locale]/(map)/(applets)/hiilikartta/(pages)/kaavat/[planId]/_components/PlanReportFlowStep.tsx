@@ -13,13 +13,13 @@ import { useTranslate } from '@tolgee/react'
 
 import TText from '#/components/common/TText'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
-import NodeFlowButton, {
-  NODE_FLOW_CONNECTOR_X,
+import {
   NODE_FLOW_OUTER_OFFSET,
   NODE_FLOW_OUTER_WIDTH,
   NodeFlowButtonState,
   NodeFlowButtonProps,
-} from '#/components/common/NodeFlowButton'
+  NodeFlowButton,
+} from '#/components/common/NodeFlow'
 import { Delete, Eco, Error as ErrorIcon, InfoCircle } from '#/components/icons'
 import { pp } from '#/common/utils/general'
 
@@ -50,24 +50,6 @@ const getDefaultYear = (featureYears: string[]) => {
   return featureYears[1] ?? featureYears[0]
 }
 
-const getConnectorColor = ({
-  state,
-  isDisabled,
-}: {
-  state: NodeFlowButtonState
-  isDisabled: boolean
-}) => {
-  if (state === 'error') {
-    return 'rgba(122, 61, 43, 0.42)'
-  }
-
-  if (isDisabled) {
-    return 'rgba(135, 190, 168, 0.7)'
-  }
-
-  return '#87BEA8'
-}
-
 const PlanReportFlowStepBase = ({
   planConf,
   locale,
@@ -77,9 +59,6 @@ const PlanReportFlowStepBase = ({
   onCalculate,
   onOpenReport,
   onResetReportAndRecalculate,
-  showConnector = false,
-  showConnectorTop = false,
-  showConnectorBottom,
 }: PlanReportFlowStepProps) => {
   const { t } = useTranslate('hiilikartta')
   const [selectedYear, setSelectedYear] = useState<string>()
@@ -211,11 +190,6 @@ const PlanReportFlowStepBase = ({
     buttonOnClick = onCalculate
   }
 
-  const connectorColor = getConnectorColor({
-    state: buttonState,
-    isDisabled: buttonDisabled,
-  })
-  const shouldShowConnectorBottom = showConnectorBottom ?? showConnector
   const shouldShowTooltip =
     disabledTooltipKey != null &&
     !hasFinishedReport &&
@@ -262,36 +236,6 @@ const PlanReportFlowStepBase = ({
         width: NODE_FLOW_OUTER_WIDTH,
       }}
     >
-      {showConnectorTop && (
-        <Box
-          sx={{
-            position: 'absolute',
-            left: NODE_FLOW_CONNECTOR_X,
-            bottom: '100%',
-            height: 'var(--flow-node-gap, 1.5rem)',
-            transform: 'translateX(-50%)',
-            width: '1px',
-            backgroundColor: connectorColor,
-            pointerEvents: 'none',
-          }}
-        />
-      )}
-
-      {shouldShowConnectorBottom && (
-        <Box
-          sx={{
-            position: 'absolute',
-            left: NODE_FLOW_CONNECTOR_X,
-            top: '100%',
-            height: 'var(--flow-node-gap, 1.5rem)',
-            transform: 'translateX(-50%)',
-            width: '1px',
-            backgroundColor: connectorColor,
-            pointerEvents: 'none',
-          }}
-        />
-      )}
-
       {shouldShowTooltip ? (
         <Tooltip title={tooltipLabel} arrow placement="top">
           <Box sx={{ width: '100%' }}>{button}</Box>

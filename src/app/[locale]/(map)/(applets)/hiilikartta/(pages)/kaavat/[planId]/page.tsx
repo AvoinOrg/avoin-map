@@ -17,21 +17,20 @@ import {
 } from '@mui/material'
 import { T, useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
-import FolderCopyOutlinedIcon from '@mui/icons-material/FolderCopyOutlined'
-import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined'
 import { useSession } from 'next-auth/react'
 import { useParams, useRouter } from 'next/navigation'
 
 import { SidebarContentBox } from '#/components/Sidebar'
 import SidebarBackgroundContent from '#/components/common/SidebarBackgroundContent'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
-import IconTextButton from '#/components/common/IconTextButton'
-import NodeFlowAccordion from '#/components/common/NodeFlowAccordion'
-import NodeFlowButton from '#/components/common/NodeFlowButton'
-import NodeFlowContainer from '#/components/common/NodeFlowContainer'
+import {
+  NodeFlowAccordion,
+  NodeFlowButton,
+  NodeFlowContainer,
+} from '#/components/common/NodeFlow'
 import { LoadingSpinner } from '#/components/Loading'
 import CheckcircleChecked from '#/components/icons/CheckcircleChecked'
-import { Delete, Login, QuestionCircleOutline, Upload } from '#/components/icons'
+import { QuestionCircleOutline, Upload } from '#/components/icons'
 import { getRoute } from '#/common/routing/routing-client'
 import { openLoginWindow } from '#/common/utils/auth'
 import { useUIStore } from '#/common/store'
@@ -68,6 +67,7 @@ import useAppletStoreHasHydrated from '#/app/[locale]/(map)/(applets)/hiilikartt
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 import PlanReportFlowStep from './_components/PlanReportFlowStep'
 import PlanImportActionsRow from './_components/PlanImportActionsRow'
+import PlanActionFooter from './_components/PlanActionFooter'
 import PlanImportGpkg from './_components/PlanImportGpkg'
 import PlanImportShp from './_components/PlanImportShp'
 import { PendingPlanImport } from './_components/planImportTypes'
@@ -317,7 +317,9 @@ const Page = () => {
   )
   const [planNameDraft, setPlanNameDraft] = useState('')
 
-  const isSettingsMode = planConf != null
+  const isImportCreationFlow = creationPlaceholderPlanConf != null
+  const isReadyPlan = planConf != null
+  const isDrawCreatedFirstVisit = planConf?.draftType === 'draw'
   const {
     isCalculationRunning,
     isReportActionEnabled,
@@ -400,6 +402,16 @@ const Page = () => {
     creationPlaceholderPlanConf?.file,
     creationPlaceholderPlanConf?.status,
   ])
+
+  useEffect(() => {
+    if (!isDrawCreatedFirstVisit) {
+      return
+    }
+
+    updatePlanConf(planId, { draftType: undefined }).catch((error) => {
+      console.error('Failed to clear draw draft type', error)
+    })
+  }, [isDrawCreatedFirstVisit, planId, updatePlanConf])
 
   useEffect(() => {
     if (creationPlaceholderPlanConf?.file?.storageKey == null) {
@@ -527,6 +539,20 @@ const Page = () => {
 
     return t('sidebar.plan_flow.cloud_save')
   }, [planPost.isPending, status, t])
+
+  const lastSavedLabel = useMemo(() => {
+    if (
+      status !== 'authenticated' ||
+      planConf?.cloudLastSaved == null ||
+      planPost.isPending
+    ) {
+      return undefined
+    }
+
+    return `${t('sidebar.plan_settings.last_saved')} ${new Date(
+      planConf.cloudLastSaved
+    ).toLocaleString()}`
+  }, [planConf?.cloudLastSaved, planPost.isPending, status, t])
 
   const isCloudSaveEnabled = Boolean(
     planConf &&
@@ -900,7 +926,7 @@ const Page = () => {
         <NodeFlowContainer>
           <NodeFlowAccordion
             title={
-              isSettingsMode ? (
+              isReadyPlan ? (
                 planNameDraft.trim() ||
                 planConf?.name ||
                 t('sidebar.plan_flow.settings_title')
@@ -910,76 +936,27 @@ const Page = () => {
             }
             leading={<Upload sx={{ width: 12, height: 14 }} />}
             trailing={
-              !isSettingsMode ? (
+              !isReadyPlan ? (
                 <InfoButton
                   ariaLabel={t('sidebar.create.upload_info')}
                   tooltip={t('sidebar.create.upload_info')}
                 />
               ) : undefined
             }
-            defaultOpen
+            defaultOpen={isImportCreationFlow || isDrawCreatedFirstVisit}
             ariaLabel={
-              isSettingsMode
+              isReadyPlan
                 ? planNameDraft.trim() ||
                   planConf?.name ||
                   t('sidebar.plan_flow.settings_title')
                 : t('sidebar.plan_flow.import_title')
             }
             bodySx={{
-              gap: isSettingsMode ? '1.125rem' : '1rem',
+              gap: isReadyPlan ? '1.125rem' : '1rem',
             }}
           >
-            {!isSettingsMode && (
+            {!isReadyPlan && (
               <>
-                {creationPlaceholderPlanConf != null && (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'flex-end',
-                      width: '100%',
-                    }}
-                  >
-                    <ButtonBase
-                      type="button"
-                      aria-label={t('sidebar.plan_settings.delete')}
-                      onClick={handleDeleteClick}
-                      sx={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        minHeight: '0.875rem',
-                        color: '#0D6044',
-                        textAlign: 'right',
-                        '&:hover': {
-                          color: '#0A4835',
-                        },
-                      }}
-                    >
-                      <Delete
-                        sx={{
-                          width: 12,
-                          height: 12,
-                        }}
-                      />
-                      <Typography
-                        sx={{
-                          fontSize: '0.5625rem',
-                          fontWeight: 700,
-                          lineHeight: '0.875rem',
-                          letterSpacing: '0.08em',
-                          textTransform: 'uppercase',
-                          color: 'inherit',
-                        }}
-                      >
-                        <T
-                          keyName="sidebar.plan_settings.delete"
-                          ns="hiilikartta"
-                        />
-                      </Typography>
-                    </ButtonBase>
-                  </Box>
-                )}
-
                 <UploadField
                   label={fileName ?? t('sidebar.create.select_file')}
                   isSelected={fileName != null}
@@ -1170,7 +1147,7 @@ const Page = () => {
               </>
             )}
 
-            {isSettingsMode && (
+            {isReadyPlan && (
               <>
                 <Box sx={{ width: '100%' }}>
                   <FieldLabel>
@@ -1191,81 +1168,6 @@ const Page = () => {
                       sx={PLAN_NAME_TEXT_FIELD_SX}
                     />
                   </StatusFieldRow>
-                </Box>
-
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.75rem',
-                    width: '100%',
-                  }}
-                >
-                  <IconTextButton
-                    aria-label={t('sidebar.plan_settings.delete')}
-                    icon={<Delete sx={{ width: 14, height: 14 }} />}
-                    text={
-                      <T
-                        keyName="sidebar.plan_settings.delete"
-                        ns="hiilikartta"
-                      />
-                    }
-                    onClick={handleDeleteClick}
-                  />
-                  <IconTextButton
-                    aria-label={t('sidebar.plan_settings.copy')}
-                    icon={
-                      <FolderCopyOutlinedIcon sx={{ width: 14, height: 14 }} />
-                    }
-                    text={
-                      <T
-                        keyName="sidebar.plan_settings.copy"
-                        ns="hiilikartta"
-                      />
-                    }
-                    onClick={handleCopyClick}
-                  />
-
-                  <Box
-                    sx={{
-                      width: '100%',
-                    }}
-                  >
-                    <IconTextButton
-                      aria-label={cloudActionLabel}
-                      disabled={
-                        status === 'authenticated' && !isCloudSaveEnabled
-                      }
-                      icon={
-                        status === 'authenticated' ? (
-                          <SaveOutlinedIcon sx={{ width: 14, height: 14 }} />
-                        ) : (
-                          <Login sx={{ width: 17, height: 14 }} />
-                        )
-                      }
-                      text={cloudActionLabel}
-                      onClick={handleCloudAction}
-                    />
-
-                    {status === 'authenticated' &&
-                      planConf.cloudLastSaved != null &&
-                      !planPost.isPending && (
-                        <Typography
-                          sx={{
-                            pl: '2.125rem',
-                            pt: '0.1875rem',
-                            fontSize: '0.5rem',
-                            fontWeight: 400,
-                            lineHeight: '0.75rem',
-                            letterSpacing: '0.08em',
-                            color: '#111111',
-                          }}
-                        >
-                          {t('sidebar.plan_settings.last_saved')}{' '}
-                          {new Date(planConf.cloudLastSaved).toLocaleString()}
-                        </Typography>
-                      )}
-                  </Box>
                 </Box>
 
                 <DropDownSelectWithHeader
@@ -1339,12 +1241,12 @@ const Page = () => {
           </NodeFlowAccordion>
 
           <NodeFlowButton
-            state={isSettingsMode ? 'available' : 'disabled'}
+            state={isReadyPlan ? 'available' : 'disabled'}
             title={
               <T keyName="sidebar.plan_flow.areas_step" ns="hiilikartta" />
             }
             leading={<FlowStepLeadingIcon />}
-            onClick={isSettingsMode ? handleOpenAreas : undefined}
+            onClick={isReadyPlan ? handleOpenAreas : undefined}
             ariaLabel={t('sidebar.plan_flow.areas_step')}
           />
 
@@ -1359,6 +1261,21 @@ const Page = () => {
             onResetReportAndRecalculate={handleResetReportAndRecalculate}
           />
         </NodeFlowContainer>
+
+        <PlanActionFooter
+          showDelete
+          showCopy={isReadyPlan}
+          showCloudAction={isReadyPlan}
+          cloudActionKind={status === 'authenticated' ? 'save' : 'login'}
+          cloudActionLabel={isReadyPlan ? cloudActionLabel : undefined}
+          isCloudActionDisabled={
+            status === 'authenticated' && !isCloudSaveEnabled
+          }
+          lastSavedLabel={isReadyPlan ? lastSavedLabel : undefined}
+          onDelete={handleDeleteClick}
+          onCopy={handleCopyClick}
+          onCloudAction={handleCloudAction}
+        />
 
         <input
           hidden
