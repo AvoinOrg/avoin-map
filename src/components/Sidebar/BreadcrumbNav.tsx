@@ -16,6 +16,17 @@ interface Props {
   sx?: SxProps<Theme>
 }
 
+const breadcrumbLabelSx = {
+  display: 'block',
+  fontSize: '0.72rem',
+  lineHeight: 1.2,
+  fontWeight: 600,
+  letterSpacing: '0.04em',
+  textTransform: 'uppercase',
+  position: 'relative',
+  top: '1px',
+} as const
+
 const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
   const pathname = usePathname()
   const isBaseDomainForApplet = useUIStore(
@@ -56,13 +67,11 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
     >
       <Typography
         sx={(theme) => ({
-          display: 'inline-block',
-          fontSize: '0.72rem',
-          fontWeight: 600,
-          letterSpacing: '0.04em',
+          ...breadcrumbLabelSx,
+          color: theme.palette.neutral.dark,
           '&:hover': { color: theme.palette.primary.main },
-          textTransform: 'uppercase',
         })}
+        component="span"
       >
         {route.name}
       </Typography>
@@ -73,13 +82,10 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
     <>
       <Typography
         sx={(theme) => ({
-          display: 'inline-block',
-          fontSize: '0.72rem',
-          fontWeight: 600,
-          letterSpacing: '0.04em',
-          color: 'neutral.darker',
-          textTransform: 'uppercase',
+          ...breadcrumbLabelSx,
+          color: theme.palette.neutral.darker,
         })}
+        component="span"
       >
         {name}
       </Typography>
@@ -138,26 +144,43 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
               flexWrap: 'wrap',
               flexDirection: 'row',
               alignItems: 'center',
+              rowGap: '0.125rem',
             }}
           >
             {visibleRoutes.map((route) => {
               if (route === visibleRoutes[visibleRoutes.length - 1]) {
                 return (
-                  <RouteElementInert
+                  <Box
                     key={route.path}
-                    name={route.name}
-                  ></RouteElementInert>
+                    sx={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <RouteElementInert name={route.name}></RouteElementInert>
+                  </Box>
                 )
               }
               return (
-                <Box key={route.path}>
+                <Box
+                  key={route.path}
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                  }}
+                >
                   <RouteElement route={route}></RouteElement>
                   <Typography
                     sx={(theme) => ({
-                      display: 'inline-block',
+                      display: 'block',
                       fontSize: '0.75rem',
+                      lineHeight: 1.2,
+                      color: theme.palette.neutral.dark,
                       margin: '0 3px',
+                      position: 'relative',
+                      top: '1px',
                     })}
+                    component="span"
                   >
                     /
                   </Typography>
