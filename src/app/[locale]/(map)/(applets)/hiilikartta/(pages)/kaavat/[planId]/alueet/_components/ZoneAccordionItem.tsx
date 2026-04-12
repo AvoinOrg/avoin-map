@@ -1,8 +1,11 @@
 import {
   type ChangeEvent,
+  type KeyboardEvent,
   memo,
   useEffect,
   useMemo,
+  useRef,
+  useState,
   type MutableRefObject,
 } from 'react'
 import {
@@ -17,6 +20,7 @@ import {
 import { useTranslate } from '@tolgee/react'
 
 import type { SelectOption } from '#/common/types/general'
+import { useDebounce } from '#/common/hooks/useDebounce'
 import TText from '#/components/common/TText'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import { NumberInputField } from '#/components/common/NumberInputField'
@@ -73,6 +77,7 @@ type LandUseFieldKey = (typeof landUseFields)[number]['key']
 const soilChangeKey = 'soil_change_new_vegetation_pct' as const
 type SoilChangeKey = typeof soilChangeKey
 type LandUseValueKey = LandUseFieldKey | SoilChangeKey
+type LandUseDraft = Record<LandUseValueKey, number | null>
 
 type Props = {
   accordionRefs: MutableRefObject<Record<string, HTMLDivElement | null>>
@@ -129,17 +134,41 @@ const OPEN_ITEM_MARGIN_Y = '0.25rem'
 const OPEN_SHELL_OUTSET_X = { mobile: '1rem', desktop: '1.5rem' } as const
 const WARNING_ICON_OFFSET_X = { mobile: '-0.625rem', desktop: '-0.75rem' } as const
 const WARNING_ICON_TOP = '0.875rem'
+const NAME_INPUT_DEBOUNCE_MS = 2000
+const LAND_USE_INPUT_DEBOUNCE_MS = 2000
+const LAND_USE_TOTAL_VALID_COLORS = {
+  backgroundColor: '#D8E8B9',
+  borderColor: '#AFC97B',
+  color: '#46611A',
+} as const
+const LAND_USE_TOTAL_INVALID_COLORS = {
+  backgroundColor: '#E5CF74',
+  borderColor: '#D0B344',
+  color: '#8D6A00',
+} as const
+const ACCORDION_BUTTON_RESET_SX = {
+  '&.Mui-focusVisible': {
+    backgroundColor: 'transparent',
+  },
+  '&:active': {
+    backgroundColor: 'transparent',
+  },
+  '& .MuiTouchRipple-root': {
+    display: 'none',
+  },
+} as const
 
 const numberFieldInputSx = {
   width: NUMBER_FIELD_WIDTH,
   '&.MuiOutlinedInput-root': {
     minHeight: '1.5rem',
-    borderRadius: '0.625rem',
+    borderRadius: '999px',
     backgroundColor: '#FFFFFF',
     boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
   },
   '& .MuiOutlinedInput-notchedOutline': {
     borderColor: '#D6D6D6',
+    borderRadius: '999px',
   },
   '& .MuiInputBase-input': {
     px: '0.625rem',
@@ -175,6 +204,27 @@ const warningTooltipSlotProps = {
   },
 } as const
 
+const getLandUseDraft = (properties: PlanDataFeature['properties']): LandUseDraft => ({
+  landuse_built: properties.landuse_built ?? null,
+  landuse_new_open_vegetation: properties.landuse_new_open_vegetation ?? null,
+  landuse_new_tree_vegetation: properties.landuse_new_tree_vegetation ?? null,
+  landuse_existing: properties.landuse_existing ?? null,
+  soil_change_new_vegetation_pct:
+    properties.soil_change_new_vegetation_pct ?? null,
+})
+
+const getFeatureNameValue = (name: PlanDataFeature['properties']['name']) =>
+  typeof name === 'string' ? name : String(name ?? '')
+
+const areLandUseDraftsEqual = (draftA: LandUseDraft, draftB: LandUseDraft) =>
+  draftA.landuse_built === draftB.landuse_built &&
+  draftA.landuse_new_open_vegetation ===
+    draftB.landuse_new_open_vegetation &&
+  draftA.landuse_new_tree_vegetation === draftB.landuse_new_tree_vegetation &&
+  draftA.landuse_existing === draftB.landuse_existing &&
+  draftA.soil_change_new_vegetation_pct ===
+    draftB.soil_change_new_vegetation_pct
+
 const ZoneAccordionItem = ({
   accordionRefs,
   expanded,
@@ -196,6 +246,41 @@ const ZoneAccordionItem = ({
       }),
     []
   )
+  const persistedName = useMemo(
+    () => getFeatureNameValue(feature.properties.name),
+    [feature.properties.name]
+  )
+  const [nameDraft, setNameDraft] = useState(persistedName)
+  const debouncedNameDraft = useDebounce(nameDraft, NAME_INPUT_DEBOUNCE_MS)
+  const persistedLandUseDraft = useMemo(
+    () => getLandUseDraft(feature.properties),
+    [
+      feature.properties.landuse_built,
+      feature.properties.landuse_existing,
+      feature.properties.landuse_new_open_vegetation,
+      feature.properties.landuse_new_tree_vegetation,
+      feature.properties.soil_change_new_vegetation_pct,
+    ]
+  )
+  const [landUseDraft, setLandUseDraft] =
+    useState<LandUseDraft>(persistedLandUseDraft)
+  const debouncedLandUseDraft = useDebounce(
+    landUseDraft,
+    LAND_USE_INPUT_DEBOUNCE_MS
+  )
+  const nameDraftRef = useRef(nameDraft)
+  const isNameFocusedRef = useRef(false)
+  const pendingNameDraftRef = useRef<string | null>(null)
+  const pendingNameCommitRef = useRef<string | null>(null)
+  const pendingLandUseDraftRef = useRef<LandUseDraft | null>(null)
+  const pendingLandUseCommitRef = useRef<LandUseDraft | null>(null)
+  const draftProperties = useMemo(
+    () => ({
+      ...feature.properties,
+      ...landUseDraft,
+    }),
+    [feature.properties, landUseDraft]
+  )
 
   const displayName = useMemo(
     () =>
@@ -216,6 +301,10 @@ const ZoneAccordionItem = ({
       }),
     [feature.properties.zoning_code, t, zoningClasses]
   )
+
+  useEffect(() => {
+    nameDraftRef.current = nameDraft
+  }, [nameDraft])
 
   const isPowerlineZoningClass = useMemo(() => {
     const zoningCode = feature.properties.zoning_code
@@ -244,6 +333,60 @@ const ZoneAccordionItem = ({
     feature.properties.zoning_code,
     isZoningClassesLoading,
   ])
+
+  useEffect(() => {
+    if (pendingNameCommitRef.current === persistedName) {
+      pendingNameCommitRef.current = null
+    }
+
+    if (pendingNameDraftRef.current === persistedName) {
+      pendingNameDraftRef.current = null
+    }
+
+    if (
+      isNameFocusedRef.current ||
+      pendingNameDraftRef.current != null ||
+      pendingNameCommitRef.current != null
+    ) {
+      return
+    }
+
+    setNameDraft((previousNameDraft) =>
+      previousNameDraft === persistedName ? previousNameDraft : persistedName
+    )
+  }, [persistedName])
+
+  useEffect(() => {
+    if (
+      pendingLandUseCommitRef.current != null &&
+      areLandUseDraftsEqual(
+        pendingLandUseCommitRef.current,
+        persistedLandUseDraft
+      )
+    ) {
+      pendingLandUseCommitRef.current = null
+    }
+
+    if (
+      pendingLandUseDraftRef.current != null &&
+      areLandUseDraftsEqual(pendingLandUseDraftRef.current, persistedLandUseDraft)
+    ) {
+      pendingLandUseDraftRef.current = null
+    }
+
+    if (
+      pendingLandUseDraftRef.current != null ||
+      pendingLandUseCommitRef.current != null
+    ) {
+      return
+    }
+
+    setLandUseDraft((previousDraft) =>
+      areLandUseDraftsEqual(previousDraft, persistedLandUseDraft)
+        ? previousDraft
+        : persistedLandUseDraft
+    )
+  }, [persistedLandUseDraft])
 
   useEffect(() => {
     if (isZoningClassesLoading) {
@@ -317,15 +460,69 @@ const ZoneAccordionItem = ({
     })
   }, [feature.properties, isZoningClassesLoading, updateFeature, zoningClasses])
 
+  useEffect(() => {
+    const pendingNameDraft = pendingNameDraftRef.current
+
+    if (pendingNameDraft == null || debouncedNameDraft !== pendingNameDraft) {
+      return
+    }
+
+    if (debouncedNameDraft === persistedName) {
+      pendingNameDraftRef.current = null
+      return
+    }
+
+    pendingNameDraftRef.current = null
+    pendingNameCommitRef.current = debouncedNameDraft
+
+    updateFeature(feature.properties.id, {
+      properties: {
+        ...feature.properties,
+        name: debouncedNameDraft,
+      },
+    })
+  }, [debouncedNameDraft, feature.properties, persistedName, updateFeature])
+
+  useEffect(() => {
+    const pendingLandUseDraft = pendingLandUseDraftRef.current
+
+    if (
+      pendingLandUseDraft == null ||
+      !areLandUseDraftsEqual(debouncedLandUseDraft, pendingLandUseDraft)
+    ) {
+      return
+    }
+
+    if (areLandUseDraftsEqual(debouncedLandUseDraft, persistedLandUseDraft)) {
+      pendingLandUseDraftRef.current = null
+      return
+    }
+
+    pendingLandUseDraftRef.current = null
+    pendingLandUseCommitRef.current = debouncedLandUseDraft
+
+    updateFeature(feature.properties.id, {
+      properties: {
+        ...feature.properties,
+        ...debouncedLandUseDraft,
+      },
+    })
+  }, [
+    debouncedLandUseDraft,
+    feature.properties,
+    persistedLandUseDraft,
+    updateFeature,
+  ])
+
   const isLandUseDistributionValid = useMemo(
-    () => checkIsValidLandUseDistribution(feature.properties),
-    [feature.properties]
+    () => checkIsValidLandUseDistribution(draftProperties),
+    [draftProperties]
   )
 
   const isItemValid = hasValidZoningCode && isLandUseDistributionValid
   const landUseDistributionTotal = useMemo(
-    () => getLandUseDistributionTotal(feature.properties),
-    [feature.properties]
+    () => getLandUseDistributionTotal(draftProperties),
+    [draftProperties]
   )
   const landUseDistributionTooltip = !isLandUseDistributionValid ? (
     <Typography
@@ -353,29 +550,85 @@ const ZoneAccordionItem = ({
 
     const zoningClass = getZoningClassByCode(zoningCode, zoningClasses)
     const nextHasValidZoningCode = zoningClass != null
+    const nextProperties = {
+      ...feature.properties,
+      zoning_code: zoningClass?.code ?? zoningCode,
+      extras: {
+        ...feature.properties.extras,
+        hasValidZoningCode: nextHasValidZoningCode,
+      },
+      ...(zoningClass ? getZoningClassLandUseDefaults(zoningClass) : {}),
+    }
+    const nextLandUseDraft = getLandUseDraft(nextProperties)
+
+    pendingLandUseDraftRef.current = null
+    pendingLandUseCommitRef.current = null
+    setLandUseDraft((previousDraft) =>
+      areLandUseDraftsEqual(previousDraft, nextLandUseDraft)
+        ? previousDraft
+        : nextLandUseDraft
+    )
 
     updateFeature(feature.properties.id, {
-      properties: {
-        ...feature.properties,
-        zoning_code: zoningClass?.code ?? zoningCode,
-        extras: {
-          ...feature.properties.extras,
-          hasValidZoningCode: nextHasValidZoningCode,
-        },
-        ...(zoningClass ? getZoningClassLandUseDefaults(zoningClass) : {}),
-      },
+      properties: nextProperties,
     })
   }
 
   const handleNameChange = (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    updateFeature(feature.properties.id, {
-      properties: {
-        ...feature.properties,
-        name: event.target.value,
-      },
-    })
+    const nextName = event.target.value
+
+    pendingNameDraftRef.current = nextName
+    setNameDraft(nextName)
+  }
+
+  const handleNameFocus = () => {
+    isNameFocusedRef.current = true
+  }
+
+  const handleNameBlur = () => {
+    isNameFocusedRef.current = false
+
+    if (pendingNameDraftRef.current != null) {
+      const nextName = nameDraftRef.current
+
+      pendingNameDraftRef.current = null
+
+      if (nextName === persistedName) {
+        pendingNameCommitRef.current = null
+        return
+      }
+
+      pendingNameCommitRef.current = nextName
+
+      updateFeature(feature.properties.id, {
+        properties: {
+          ...feature.properties,
+          name: nextName,
+        },
+      })
+
+      return
+    }
+
+    if (pendingNameCommitRef.current != null) {
+      return
+    }
+
+    setNameDraft((previousNameDraft) =>
+      previousNameDraft === persistedName ? previousNameDraft : persistedName
+    )
+  }
+
+  const handleNameKeyDown = (event: KeyboardEvent) => {
+    if (event.key !== 'Enter') {
+      return
+    }
+
+    event.preventDefault()
+    const target = event.target as HTMLElement
+    target.blur()
   }
 
   const handleLandUseValueChange =
@@ -384,8 +637,15 @@ const ZoneAccordionItem = ({
         return
       }
 
-      updateFeature(feature.properties.id, {
-        properties: { ...feature.properties, [key]: nextValue },
+      setLandUseDraft((previousDraft) => {
+        const nextDraft = {
+          ...previousDraft,
+          [key]: nextValue,
+        }
+
+        pendingLandUseDraftRef.current = nextDraft
+
+        return nextDraft
       })
     }
 
@@ -394,11 +654,15 @@ const ZoneAccordionItem = ({
       return
     }
 
-    updateFeature(feature.properties.id, {
-      properties: {
-        ...feature.properties,
+    setLandUseDraft((previousDraft) => {
+      const nextDraft = {
+        ...previousDraft,
         [soilChangeKey]: nextValue,
-      },
+      }
+
+      pendingLandUseDraftRef.current = nextDraft
+
+      return nextDraft
     })
   }
 
@@ -487,6 +751,8 @@ const ZoneAccordionItem = ({
             aria-expanded={expanded}
             aria-controls={`zone-panel-${feature.properties.id}`}
             id={`zone-toggle-${feature.properties.id}`}
+            disableRipple
+            disableTouchRipple
             sx={{
               width: '100%',
               display: 'flex',
@@ -496,6 +762,7 @@ const ZoneAccordionItem = ({
               py: '0.375rem',
               justifyContent: 'initial',
               textAlign: 'left',
+              ...ACCORDION_BUTTON_RESET_SX,
             }}
           >
             <ZoneClassChip
@@ -557,12 +824,11 @@ const ZoneAccordionItem = ({
 
               <TextField
                 aria-label={`${t('sidebar.plan_settings.areas.rename_label')} ${displayName}`}
-                value={
-                  typeof feature.properties.name === 'string'
-                    ? feature.properties.name
-                    : String(feature.properties.name ?? '')
-                }
+                value={nameDraft}
                 onChange={handleNameChange}
+                onFocus={handleNameFocus}
+                onBlur={handleNameBlur}
+                onKeyDown={handleNameKeyDown}
                 variant="outlined"
                 sx={TEXT_FIELD_SX}
               />
@@ -636,6 +902,8 @@ const ZoneAccordionItem = ({
                         !landUseEditorOpen
                       )
                     }
+                    disableRipple
+                    disableTouchRipple
                     sx={{
                       width: '100%',
                       display: 'flex',
@@ -645,6 +913,7 @@ const ZoneAccordionItem = ({
                       px: 0,
                       py: '0.125rem',
                       textAlign: 'left',
+                      ...ACCORDION_BUTTON_RESET_SX,
                     }}
                   >
                     <Box
@@ -662,8 +931,8 @@ const ZoneAccordionItem = ({
                           color: '#111111',
                           flexShrink: 0,
                           transform: landUseEditorOpen
-                            ? 'rotate(180deg)'
-                            : 'none',
+                            ? 'none'
+                            : 'rotate(180deg)',
                           transition: 'transform 160ms ease',
                         }}
                       />
@@ -688,13 +957,13 @@ const ZoneAccordionItem = ({
                         minWidth: '4.5625rem',
                         minHeight: '1.25rem',
                         px: '0.5rem',
+                        border: '1px solid',
                         borderRadius: '999px',
-                        backgroundColor: isLandUseDistributionValid
-                          ? '#F0F0F1'
-                          : '#E5CF74',
-                        color: isLandUseDistributionValid
-                          ? '#111111'
-                          : '#8D6A00',
+                        boxShadow:
+                          'inset 0px 0.5px 1px 0px rgba(255, 255, 255, 0.4)',
+                        ...(isLandUseDistributionValid
+                          ? LAND_USE_TOTAL_VALID_COLORS
+                          : LAND_USE_TOTAL_INVALID_COLORS),
                       }}
                     >
                       <Typography
@@ -787,9 +1056,8 @@ const ZoneAccordionItem = ({
 
                           <NumberInputField
                             size="small"
-                            value={feature.properties[field.key] ?? null}
+                            value={landUseDraft[field.key]}
                             onValueChange={handleLandUseValueChange(field.key)}
-                            error={!isLandUseDistributionValid}
                             minValue={0}
                             maxValue={100}
                             incrementStepValue={1}
@@ -829,7 +1097,7 @@ const ZoneAccordionItem = ({
 
                         <NumberInputField
                           size="small"
-                          value={feature.properties[soilChangeKey] ?? null}
+                          value={landUseDraft[soilChangeKey]}
                           onValueChange={handleSoilChangeValueChange}
                           minValue={0}
                           maxValue={100}

@@ -12,7 +12,7 @@ import {
 import { T } from '@tolgee/react'
 
 import DownIcon from '#/components/icons/DownIcon'
-import CheckcircleChecked from '#/components/icons/CheckcircleChecked'
+import CheckcircleCheckedFilled from '#/components/icons/CheckcircleCheckedFilled'
 import { SelectOption } from '#/common/types/general'
 
 interface Props {
@@ -270,8 +270,7 @@ const DropDownSelect = ({
         </Select>
       </FormControl>
       {hasValidSelection && successIndicatorMode === 'inside' && (
-        <CheckcircleChecked
-          fillColor="rgba(51, 147, 73, 0.2)"
+        <CheckcircleCheckedFilled
           sx={{
             position: 'absolute',
             top: '50%',
@@ -285,8 +284,7 @@ const DropDownSelect = ({
         />
       )}
       {hasValidSelection && successIndicatorMode === 'outside' && (
-        <CheckcircleChecked
-          fillColor="rgba(44, 142, 116, 0.14)"
+        <CheckcircleCheckedFilled
           sx={{
             width: 12,
             height: 12,

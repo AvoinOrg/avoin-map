@@ -2,6 +2,7 @@
 
 import React, {
   ChangeEvent,
+  startTransition,
   useCallback,
   useEffect,
   useMemo,
@@ -27,9 +28,11 @@ import {
   NodeFlowAccordion,
   NodeFlowButton,
   NodeFlowContainer,
+  NODE_FLOW_OUTER_OFFSET,
+  NODE_FLOW_OUTER_WIDTH,
 } from '#/components/common/NodeFlow'
 import { LoadingSpinner } from '#/components/Loading'
-import CheckcircleChecked from '#/components/icons/CheckcircleChecked'
+import CheckcircleCheckedFilled from '#/components/icons/CheckcircleCheckedFilled'
 import { QuestionCircleOutline, Upload } from '#/components/icons'
 import { getRoute } from '#/common/routing/routing-client'
 import { openLoginWindow } from '#/common/utils/auth'
@@ -115,8 +118,7 @@ const PLAN_NAME_TEXT_FIELD_SX = {
 } as const
 
 const StatusIndicator = () => (
-  <CheckcircleChecked
-    fillColor="rgba(44, 142, 116, 0.14)"
+  <CheckcircleCheckedFilled
     sx={{
       width: 12,
       height: 12,
@@ -164,6 +166,7 @@ const FieldLabel = ({ children }: { children: React.ReactNode }) => {
         lineHeight: '0.8125rem',
         letterSpacing: '0.11em',
         color: '#111111',
+        pl: '1rem',
         mb: '0.3125rem',
       }}
     >
@@ -259,8 +262,7 @@ const UploadField = ({
 }
 
 const FlowStepLeadingIcon = () => (
-  <CheckcircleChecked
-    fillColor="rgba(44, 142, 116, 0.14)"
+  <CheckcircleCheckedFilled
     sx={{
       width: 12,
       height: 12,
@@ -324,6 +326,7 @@ const Page = () => {
     isCalculationRunning,
     isReportActionEnabled,
     disabledTooltipKey,
+    areZonesValid,
   } = usePlanReportEligibility({
     planConf,
     isCalculationMutationPending: calcPost.isPending,
@@ -819,7 +822,9 @@ const Page = () => {
     const nextValue = event.target.value
 
     if (creationPlaceholderPlanConf != null) {
-      setCreationPlaceholderNameDraft(nextValue)
+      startTransition(() => {
+        setCreationPlaceholderNameDraft(nextValue)
+      })
       return
     }
 
@@ -827,7 +832,9 @@ const Page = () => {
       return
     }
 
-    setPlanNameDraft(nextValue)
+    startTransition(() => {
+      setPlanNameDraft(nextValue)
+    })
   }
 
   const commitCreationPlaceholderPlanName = () => {
@@ -934,7 +941,13 @@ const Page = () => {
                 <T keyName="sidebar.plan_flow.import_title" ns="hiilikartta" />
               )
             }
-            leading={<Upload sx={{ width: 12, height: 14 }} />}
+            leading={
+              isReadyPlan ? (
+                <CheckcircleCheckedFilled sx={{ width: 12, height: 12 }} />
+              ) : (
+                <Upload sx={{ width: 12, height: 14 }} />
+              )
+            }
             trailing={
               !isReadyPlan ? (
                 <InfoButton
@@ -1241,11 +1254,30 @@ const Page = () => {
           </NodeFlowAccordion>
 
           <NodeFlowButton
-            state={isReadyPlan ? 'available' : 'disabled'}
+            state={
+              isReadyPlan
+                ? areZonesValid
+                  ? 'available'
+                  : 'error'
+                : 'disabled'
+            }
             title={
               <T keyName="sidebar.plan_flow.areas_step" ns="hiilikartta" />
             }
-            leading={<FlowStepLeadingIcon />}
+            leading={
+              isReadyPlan && !areZonesValid ? (
+                <Box
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    backgroundColor: '#7A3D2B',
+                  }}
+                />
+              ) : (
+                <FlowStepLeadingIcon />
+              )
+            }
             onClick={isReadyPlan ? handleOpenAreas : undefined}
             ariaLabel={t('sidebar.plan_flow.areas_step')}
           />
@@ -1275,6 +1307,11 @@ const Page = () => {
           onDelete={handleDeleteClick}
           onCopy={handleCopyClick}
           onCloudAction={handleCloudAction}
+          sx={{
+            mt: '2.5rem',
+            ml: NODE_FLOW_OUTER_OFFSET,
+            width: NODE_FLOW_OUTER_WIDTH,
+          }}
         />
 
         <input

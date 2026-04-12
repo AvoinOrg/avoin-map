@@ -194,7 +194,7 @@ const NodeFlowButtonBase = ({
               minWidth: 0,
               minHeight: '1.5rem',
               px: '0.75rem',
-              py: '0.1875rem',
+              py: '0.25rem',
               borderRadius: '0.9375rem',
               border: `0.2px solid ${rowStyles.borderColor}`,
               backgroundColor: rowStyles.backgroundColor,

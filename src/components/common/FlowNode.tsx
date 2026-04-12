@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react'
 import { Box, ButtonBase, SxProps, Theme, Typography } from '@mui/material'
 
-import CheckcircleChecked from '#/components/icons/CheckcircleChecked'
+import CheckcircleCheckedFilled from '#/components/icons/CheckcircleCheckedFilled'
 
 export type FlowNodeState = 'active' | 'available' | 'disabled' | 'complete'
 
@@ -88,8 +88,7 @@ const FlowNodeBase = ({
   const marker = (() => {
     if (state === 'complete') {
       return (
-        <CheckcircleChecked
-          fillColor="rgba(44, 142, 116, 0.14)"
+        <CheckcircleCheckedFilled
           sx={{
             width: 12,
             height: 12,

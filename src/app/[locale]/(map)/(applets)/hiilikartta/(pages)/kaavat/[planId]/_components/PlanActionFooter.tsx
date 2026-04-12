@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Box, Typography } from '@mui/material'
+import { Box, SxProps, Theme, Typography } from '@mui/material'
 import FolderCopyOutlinedIcon from '@mui/icons-material/FolderCopyOutlined'
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined'
 import { T } from '@tolgee/react'
@@ -20,6 +20,7 @@ type PlanActionFooterProps = {
   onDelete?: () => void
   onCopy?: () => void
   onCloudAction?: () => void
+  sx?: SxProps<Theme>
 }
 
 const getActionRowSx = ({
@@ -67,6 +68,7 @@ const PlanActionFooter = ({
   onDelete,
   onCopy,
   onCloudAction,
+  sx,
 }: PlanActionFooterProps) => {
   if (!showDelete && !showCopy && !showCloudAction) {
     return null
@@ -74,12 +76,15 @@ const PlanActionFooter = ({
 
   return (
     <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.875rem',
-        width: '100%',
-      }}
+      sx={[
+        {
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1.75rem',
+          width: '100%',
+        },
+        ...(Array.isArray(sx) ? sx : [sx]),
+      ]}
     >
       <Box
         sx={{
@@ -94,7 +99,7 @@ const PlanActionFooter = ({
           flexDirection: 'column',
           gap: '0.8125rem',
           width: '100%',
-          pl: '0.875rem',
+          pl: '0.75rem',
           pb: '0.125rem',
         }}
       >

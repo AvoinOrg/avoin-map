@@ -35,9 +35,9 @@ const DropDownSelectWithHeader = ({
             {
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '1rem',
+              gap: '0.5rem',
               maxWidth: '100%',
-              px: '0.5rem',
+              px: '1rem',
               mb: 1,
             },
             ...(Array.isArray(headerSx) ? headerSx : [headerSx]),
@@ -60,6 +60,7 @@ const DropDownSelectWithHeader = ({
                 display: 'flex',
                 alignItems: 'center',
                 flexShrink: 0,
+                lineHeight: 0,
               }}
             >
               {labelAction}
