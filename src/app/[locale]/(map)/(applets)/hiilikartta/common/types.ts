@@ -27,7 +27,7 @@ export interface PlanConf extends NewPlanConf {
   userId?: string
   areSettingsValid?: boolean
   isHidden?: boolean
-  draftType?: 'import'
+  draftType?: 'import' | 'draw'
   importState?: PlanImportState
 }
 
@@ -81,7 +81,7 @@ export type NewPlanConf = {
   data: PlanData
   calculationState?: CalculationState
   reportData?: ReportData
-  draftType?: 'import'
+  draftType?: 'import' | 'draw'
   importState?: PlanImportState
   forestryScenario?: ForestryScenarioId
 }

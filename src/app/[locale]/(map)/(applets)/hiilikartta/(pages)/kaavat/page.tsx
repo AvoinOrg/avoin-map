@@ -174,6 +174,7 @@ const Page = () => {
       data,
       name: jsonName,
       areaHa: 0,
+      draftType: 'draw',
     }
 
     const planConf = await addPlanConf(newPlanConf)
@@ -192,7 +193,7 @@ const Page = () => {
 
     router.push(
       getRoute({
-        routeNode: routeTree.plans.plan.areas,
+        routeNode: routeTree.plans.plan,
         routeTree,
         params: {
           routeParams: {
