@@ -428,7 +428,7 @@ const ZoneAccordion = ({ planConfId, sx }: Props) => {
     >
       <Box
         sx={{
-          px: CONTENT_PADDING_X,
+          px: { mobile: '0.5rem', desktop: '1.75rem' },
           display: 'flex',
           flexDirection: 'column',
           gap: '0.625rem',
@@ -441,6 +441,7 @@ const ZoneAccordion = ({ planConfId, sx }: Props) => {
             lineHeight: '1.125rem',
             letterSpacing: '0.1em',
             color: '#111111',
+            ml: "0.75rem",
           }}
         >
           {t('sidebar.plan_settings.areas.filter_label')}
@@ -525,6 +526,8 @@ const ZoneAccordion = ({ planConfId, sx }: Props) => {
               lineHeight: '0.75rem',
               letterSpacing: '0.08em',
               color: '#111111',
+              mr: "0.75rem",
+              ml: "0.75rem",
             }}
           >
             {t('sidebar.plan_settings.areas.count', {
@@ -536,7 +539,7 @@ const ZoneAccordion = ({ planConfId, sx }: Props) => {
             sx={{
               display: 'flex',
               justifyContent: 'flex-end',
-              pt: '0.125rem',
+              pt: '0.5rem',
             }}
           >
             <DropDownSelectMinimal
