@@ -1,6 +1,5 @@
 import {
   type ChangeEvent,
-  type KeyboardEvent,
   memo,
   useCallback,
   useEffect,
@@ -328,16 +327,6 @@ const ZoneNameField = memo(
       )
     }
 
-    const handleNameKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Enter') {
-        return
-      }
-
-      event.preventDefault()
-      flushNameDraft()
-      ;(event.target as HTMLElement).blur()
-    }
-
     return (
       <TextFieldWithLabel
         label={label}
@@ -346,7 +335,6 @@ const ZoneNameField = memo(
         onChange={handleNameChange}
         onFocus={handleNameFocus}
         onBlur={handleNameBlur}
-        onKeyDown={handleNameKeyDown}
         sx={{ mt: 1.5, mr: '-1rem', ml: '-1rem', width: 'auto' }}
       />
     )

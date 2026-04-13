@@ -2,7 +2,6 @@
 
 import React, {
   ChangeEvent,
-  startTransition,
   useCallback,
   useEffect,
   useMemo,
@@ -99,6 +98,7 @@ const StatusIndicator = () => (
 )
 
 const PLAN_FLOW_NODE_GAP = '3rem'
+const NAME_INPUT_DEBOUNCE_MS = 2000
 
 const StatusFieldRow = ({
   children,
@@ -261,6 +261,28 @@ const Page = () => {
     null
   )
   const [planNameDraft, setPlanNameDraft] = useState('')
+  const creationPlaceholderNameDraftRef = useRef('')
+  const persistedCreationPlaceholderNameRef = useRef('')
+  const isCreationPlaceholderNameFocusedRef = useRef(false)
+  const pendingCreationPlaceholderNameDraftRef = useRef<string | null>(null)
+  const pendingCreationPlaceholderNameCommitRef = useRef<{
+    normalizedName: string | undefined
+  } | null>(null)
+  const creationPlaceholderNameCommitTimerRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null)
+  const planNameDraftRef = useRef('')
+  const persistedPlanNameRef = useRef('')
+  const isPlanNameFocusedRef = useRef(false)
+  const pendingPlanNameDraftRef = useRef<string | null>(null)
+  const pendingPlanNameCommitRef = useRef<string | null>(null)
+  const planNameCommitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  )
+  const commitCreationPlaceholderPlanNameRef = useRef(
+    (_nextName: string | undefined) => {}
+  )
+  const commitPlanNameRef = useRef((_nextName: string) => {})
 
   const isImportCreationFlow = creationPlaceholderPlanConf != null
   const isReadyPlan = planConf != null
@@ -276,6 +298,67 @@ const Page = () => {
     isCalculationMutationPending: calcPost.isPending,
   })
   const isAreasStepComplete = isReadyPlan && !hasNoFeatures && areZonesValid
+  const dateTimeLocale = useMemo(() => {
+    if (locale == null) {
+      return undefined
+    }
+
+    return locale.toLowerCase() === 'en' ? 'en-FI' : locale
+  }, [locale])
+
+  const clearCreationPlaceholderNameCommitTimer = useCallback(() => {
+    if (creationPlaceholderNameCommitTimerRef.current == null) {
+      return
+    }
+
+    clearTimeout(creationPlaceholderNameCommitTimerRef.current)
+    creationPlaceholderNameCommitTimerRef.current = null
+  }, [])
+
+  const clearPlanNameCommitTimer = useCallback(() => {
+    if (planNameCommitTimerRef.current == null) {
+      return
+    }
+
+    clearTimeout(planNameCommitTimerRef.current)
+    planNameCommitTimerRef.current = null
+  }, [])
+
+  const flushCreationPlaceholderNameDraft = useCallback(() => {
+    clearCreationPlaceholderNameCommitTimer()
+
+    const nextDraft =
+      pendingCreationPlaceholderNameDraftRef.current ??
+      creationPlaceholderNameDraftRef.current
+    const normalizedName = nextDraft.trim() === '' ? undefined : nextDraft
+
+    pendingCreationPlaceholderNameDraftRef.current = null
+
+    if (normalizedName === persistedCreationPlaceholderNameRef.current) {
+      pendingCreationPlaceholderNameCommitRef.current = null
+      return
+    }
+
+    pendingCreationPlaceholderNameCommitRef.current = { normalizedName }
+    commitCreationPlaceholderPlanNameRef.current(normalizedName)
+  }, [clearCreationPlaceholderNameCommitTimer])
+
+  const flushPlanNameDraft = useCallback(() => {
+    clearPlanNameCommitTimer()
+
+    const nextDraft =
+      pendingPlanNameDraftRef.current ?? planNameDraftRef.current
+
+    pendingPlanNameDraftRef.current = null
+
+    if (nextDraft === persistedPlanNameRef.current) {
+      pendingPlanNameCommitRef.current = null
+      return
+    }
+
+    pendingPlanNameCommitRef.current = nextDraft
+    commitPlanNameRef.current(nextDraft)
+  }, [clearPlanNameCommitTimer])
 
   const cancelPendingAutoOpen = useCallback(() => {
     if (autoOpenFrameRef.current == null) {
@@ -290,6 +373,87 @@ const Page = () => {
     cancelPendingAutoOpen()
     inputRef.current?.click()
   }, [cancelPendingAutoOpen])
+
+  const persistLatestPlanName = useCallback(async () => {
+    clearPlanNameCommitTimer()
+
+    const currentPlanConf = useAppletStore.getState().planConfs[planId]
+    if (currentPlanConf == null) {
+      pendingPlanNameDraftRef.current = null
+      pendingPlanNameCommitRef.current = null
+      return null
+    }
+
+    const nextName = planNameDraftRef.current
+    pendingPlanNameDraftRef.current = null
+
+    if (nextName === currentPlanConf.name) {
+      pendingPlanNameCommitRef.current = null
+      return currentPlanConf
+    }
+
+    pendingPlanNameCommitRef.current = nextName
+
+    const updatedPlanConf = await updatePlanConf(currentPlanConf.id, {
+      name: nextName,
+    })
+
+    return updatedPlanConf ?? { ...currentPlanConf, name: nextName }
+  }, [clearPlanNameCommitTimer, planId, updatePlanConf])
+
+  useEffect(() => {
+    commitCreationPlaceholderPlanNameRef.current = (
+      nextName: string | undefined
+    ) => {
+      if (creationPlaceholderPlanConf == null) {
+        pendingCreationPlaceholderNameCommitRef.current = null
+        return
+      }
+
+      if (nextName === creationPlaceholderPlanConf.name) {
+        pendingCreationPlaceholderNameCommitRef.current = null
+        return
+      }
+
+      updateCreationPlaceholderPlanConf(creationPlaceholderPlanConf.id, {
+        name: nextName,
+      }).catch((error) => {
+        console.error('Failed to update placeholder plan name', error)
+      })
+    }
+  }, [
+    creationPlaceholderPlanConf?.id,
+    creationPlaceholderPlanConf?.name,
+    updateCreationPlaceholderPlanConf,
+  ])
+
+  useEffect(() => {
+    commitPlanNameRef.current = (nextName: string) => {
+      if (planConf == null) {
+        pendingPlanNameCommitRef.current = null
+        return
+      }
+
+      if (nextName === planConf.name) {
+        pendingPlanNameCommitRef.current = null
+        return
+      }
+
+      updatePlanConf(planConf.id, {
+        name: nextName,
+      }).catch((error) => {
+        console.error('Failed to update plan name', error)
+      })
+    }
+  }, [planConf?.id, planConf?.name, updatePlanConf])
+
+  useEffect(() => {
+    creationPlaceholderNameDraftRef.current = creationPlaceholderNameDraft
+  }, [creationPlaceholderNameDraft])
+
+  useEffect(() => {
+    planNameDraftRef.current = planNameDraft
+  }, [planNameDraft])
 
   useEffect(() => {
     if (!hasHydrated) {
@@ -363,6 +527,14 @@ const Page = () => {
 
   useEffect(() => {
     if (creationPlaceholderPlanConf?.file?.storageKey == null) {
+      clearCreationPlaceholderNameCommitTimer()
+      isCreationPlaceholderNameFocusedRef.current = false
+      pendingCreationPlaceholderNameDraftRef.current = null
+      pendingCreationPlaceholderNameCommitRef.current = null
+      persistedCreationPlaceholderNameRef.current =
+        creationPlaceholderPlanConf?.name ?? ''
+      creationPlaceholderNameDraftRef.current =
+        creationPlaceholderPlanConf?.name ?? ''
       setPendingImport(null)
       setFileName(undefined)
       setArrayBuffer(undefined)
@@ -423,6 +595,7 @@ const Page = () => {
       isMounted = false
     }
   }, [
+    clearCreationPlaceholderNameCommitTimer,
     creationPlaceholderPlanConf?.file?.fileName,
     creationPlaceholderPlanConf?.file?.fileType,
     creationPlaceholderPlanConf?.file?.storageKey,
@@ -432,6 +605,12 @@ const Page = () => {
 
   useEffect(() => {
     if (creationPlaceholderPlanConf == null) {
+      clearCreationPlaceholderNameCommitTimer()
+      isCreationPlaceholderNameFocusedRef.current = false
+      pendingCreationPlaceholderNameDraftRef.current = null
+      pendingCreationPlaceholderNameCommitRef.current = null
+      persistedCreationPlaceholderNameRef.current = ''
+      creationPlaceholderNameDraftRef.current = ''
       setCreationPlaceholderNameDraft('')
       return
     }
@@ -442,15 +621,78 @@ const Page = () => {
         ? getPlanNameFromFileName(creationPlaceholderPlanConf.file.fileName)
         : '')
 
+    clearCreationPlaceholderNameCommitTimer()
+    isCreationPlaceholderNameFocusedRef.current = false
+    pendingCreationPlaceholderNameDraftRef.current = null
+    pendingCreationPlaceholderNameCommitRef.current = null
+    persistedCreationPlaceholderNameRef.current = nextDraft
+    creationPlaceholderNameDraftRef.current = nextDraft
     setCreationPlaceholderNameDraft(nextDraft)
   }, [
+    clearCreationPlaceholderNameCommitTimer,
     creationPlaceholderPlanConf?.id,
     creationPlaceholderPlanConf?.file?.storageKey,
   ])
 
   useEffect(() => {
-    setPlanNameDraft(planConf?.name ?? '')
-  }, [planConf?.id, planConf?.name])
+    if (
+      pendingCreationPlaceholderNameCommitRef.current?.normalizedName ===
+      creationPlaceholderPlanConf?.name
+    ) {
+      pendingCreationPlaceholderNameCommitRef.current = null
+    }
+  }, [creationPlaceholderPlanConf?.name])
+
+  useEffect(() => {
+    const persistedPlanName = planConf?.name ?? ''
+
+    clearPlanNameCommitTimer()
+    isPlanNameFocusedRef.current = false
+    pendingPlanNameDraftRef.current = null
+    pendingPlanNameCommitRef.current = null
+    persistedPlanNameRef.current = persistedPlanName
+    planNameDraftRef.current = persistedPlanName
+    setPlanNameDraft(persistedPlanName)
+  }, [clearPlanNameCommitTimer, planConf?.id])
+
+  useEffect(() => {
+    const persistedPlanName = planConf?.name ?? ''
+
+    persistedPlanNameRef.current = persistedPlanName
+
+    if (pendingPlanNameCommitRef.current === persistedPlanName) {
+      pendingPlanNameCommitRef.current = null
+    }
+
+    if (pendingPlanNameDraftRef.current === persistedPlanName) {
+      pendingPlanNameDraftRef.current = null
+      clearPlanNameCommitTimer()
+    }
+
+    if (
+      isPlanNameFocusedRef.current ||
+      planNameCommitTimerRef.current != null ||
+      pendingPlanNameDraftRef.current != null ||
+      pendingPlanNameCommitRef.current != null
+    ) {
+      return
+    }
+
+    planNameDraftRef.current = persistedPlanName
+    setPlanNameDraft((previousPlanNameDraft) =>
+      previousPlanNameDraft === persistedPlanName
+        ? previousPlanNameDraft
+        : persistedPlanName
+    )
+  }, [clearPlanNameCommitTimer, planConf?.name])
+
+  useEffect(
+    () => () => {
+      clearCreationPlaceholderNameCommitTimer()
+      clearPlanNameCommitTimer()
+    },
+    [clearCreationPlaceholderNameCommitTimer, clearPlanNameCommitTimer]
+  )
 
   useEffect(() => {
     if (planDelete.isSuccess) {
@@ -499,8 +741,8 @@ const Page = () => {
 
     return `${t('sidebar.plan_settings.last_saved')} ${new Date(
       planConf.cloudLastSaved
-    ).toLocaleString()}`
-  }, [planConf?.cloudLastSaved, planPost.isPending, status, t])
+    ).toLocaleString(dateTimeLocale)}`
+  }, [dateTimeLocale, planConf?.cloudLastSaved, planPost.isPending, status, t])
 
   const isCloudSaveEnabled = Boolean(
     planConf &&
@@ -588,8 +830,10 @@ const Page = () => {
         nameColName: pendingImport.nameColName,
         zoningClasses,
       })
+      const currentCreationPlaceholderName =
+        creationPlaceholderNameDraftRef.current.trim()
       const nextPlanName =
-        creationPlaceholderPlanConf.name?.trim() ||
+        currentCreationPlaceholderName ||
         getPlanNameFromFileName(fileName) ||
         t('sidebar.my_plans.imported_plan_name')
       const areaHa = getImportedPlanAreaHa(formattedJson)
@@ -661,13 +905,15 @@ const Page = () => {
   }
 
   const handleCopyClick = async () => {
-    if (planConf == null) {
+    const currentPlanConf = await persistLatestPlanName()
+
+    if (currentPlanConf == null) {
       return
     }
 
     const copiedPlanConf = await useAppletStore
       .getState()
-      .copyPlanConf(planConf.id, t('sidebar.plan_settings.copy_suffix'))
+      .copyPlanConf(currentPlanConf.id, t('sidebar.plan_settings.copy_suffix'))
 
     router.push(
       getRoute({
@@ -697,20 +943,22 @@ const Page = () => {
   }
 
   const handleCalculateReport = async () => {
-    if (planConf == null || !isReportActionEnabled || calcPost.isPending) {
+    const currentPlanConf = await persistLatestPlanName()
+
+    if (currentPlanConf == null || !isReportActionEnabled || calcPost.isPending) {
       return
     }
 
-    let nextPlanConf = planConf
+    let nextPlanConf = currentPlanConf
 
-    if (planConf.reportData != null) {
-      const clearedPlanConf = await updatePlanConf(planConf.id, {
+    if (currentPlanConf.reportData != null) {
+      const clearedPlanConf = await updatePlanConf(currentPlanConf.id, {
         reportData: undefined,
         calculationState: CalculationState.NOT_STARTED,
       })
 
       nextPlanConf = clearedPlanConf ?? {
-        ...planConf,
+        ...currentPlanConf,
         reportData: undefined,
         calculationState: CalculationState.NOT_STARTED,
       }
@@ -745,8 +993,10 @@ const Page = () => {
     handleCalculateReport().catch(() => {})
   }
 
-  const handleCloudAction = () => {
-    if (planConf == null) {
+  const handleCloudAction = async () => {
+    const currentPlanConf = await persistLatestPlanName()
+
+    if (currentPlanConf == null) {
       return
     }
 
@@ -759,70 +1009,73 @@ const Page = () => {
       return
     }
 
-    planPost.mutate(planConf)
+    planPost.mutate(currentPlanConf)
+  }
+
+  const handleCreationPlaceholderNameChange = (
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    const nextValue = event.target.value
+
+    creationPlaceholderNameDraftRef.current = nextValue
+    pendingCreationPlaceholderNameDraftRef.current = nextValue
+    setCreationPlaceholderNameDraft(nextValue)
+
+    clearCreationPlaceholderNameCommitTimer()
+    creationPlaceholderNameCommitTimerRef.current = setTimeout(() => {
+      flushCreationPlaceholderNameDraft()
+    }, NAME_INPUT_DEBOUNCE_MS)
+  }
+
+  const handleCreationPlaceholderNameFocus = () => {
+    isCreationPlaceholderNameFocusedRef.current = true
+  }
+
+  const handleCreationPlaceholderNameBlur = () => {
+    isCreationPlaceholderNameFocusedRef.current = false
+    flushCreationPlaceholderNameDraft()
+
+    if (pendingCreationPlaceholderNameCommitRef.current != null) {
+      return
+    }
+
+    const nextPersistedName = persistedCreationPlaceholderNameRef.current
+    creationPlaceholderNameDraftRef.current = nextPersistedName
+    setCreationPlaceholderNameDraft((previousDraft) =>
+      previousDraft === nextPersistedName ? previousDraft : nextPersistedName
+    )
   }
 
   const handlePlanNameChange = (event: ChangeEvent<HTMLInputElement>) => {
     const nextValue = event.target.value
 
-    if (creationPlaceholderPlanConf != null) {
-      startTransition(() => {
-        setCreationPlaceholderNameDraft(nextValue)
-      })
-      return
-    }
+    planNameDraftRef.current = nextValue
+    pendingPlanNameDraftRef.current = nextValue
+    setPlanNameDraft(nextValue)
 
-    if (planConf == null) {
-      return
-    }
-
-    startTransition(() => {
-      setPlanNameDraft(nextValue)
-    })
+    clearPlanNameCommitTimer()
+    planNameCommitTimerRef.current = setTimeout(() => {
+      flushPlanNameDraft()
+    }, NAME_INPUT_DEBOUNCE_MS)
   }
 
-  const commitCreationPlaceholderPlanName = () => {
-    if (creationPlaceholderPlanConf == null) {
-      return
-    }
-
-    const nextName =
-      creationPlaceholderNameDraft.trim() === ''
-        ? undefined
-        : creationPlaceholderNameDraft
-
-    if (nextName === creationPlaceholderPlanConf.name) {
-      return
-    }
-
-    updateCreationPlaceholderPlanConf(creationPlaceholderPlanConf.id, {
-      name: nextName,
-    }).catch((error) => {
-      console.error('Failed to update placeholder plan name', error)
-    })
+  const handlePlanNameFocus = () => {
+    isPlanNameFocusedRef.current = true
   }
 
-  const commitPlanName = () => {
-    if (planConf == null || planNameDraft === planConf.name) {
+  const handlePlanNameBlur = () => {
+    isPlanNameFocusedRef.current = false
+    flushPlanNameDraft()
+
+    if (pendingPlanNameCommitRef.current != null) {
       return
     }
 
-    updatePlanConf(planConf.id, {
-      name: planNameDraft,
-    }).catch((error) => {
-      console.error('Failed to update plan name', error)
-    })
-  }
-
-  const handlePlanNameFieldKeyDown = (
-    event: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    if (event.key !== 'Enter') {
-      return
-    }
-
-    event.preventDefault()
-    event.currentTarget.blur()
+    const nextPersistedName = persistedPlanNameRef.current
+    planNameDraftRef.current = nextPersistedName
+    setPlanNameDraft((previousDraft) =>
+      previousDraft === nextPersistedName ? previousDraft : nextPersistedName
+    )
   }
 
   const handleScenarioChange = async (value: string | number) => {
@@ -918,7 +1171,7 @@ const Page = () => {
           >
             {!isReadyPlan && (
               <>
-                <Box sx={{ width: '100%', mt: '0.25rem' }}>
+                <Box sx={{ width: '100%', mt: '0.rem' }}>
                   <UploadField
                     label={fileName ?? t('sidebar.create.select_file')}
                     isSelected={fileName != null}
@@ -929,7 +1182,7 @@ const Page = () => {
                 {creationPlaceholderPlanConf != null && (
                   <>
                     {creationPlaceholderPlanConf.file != null && (
-                      <Box sx={{ width: '100%' }}>
+                      <Box sx={{ width: '100%', mt: '1rem', mb: '1rem' }}>
                         <TextFieldWithLabel
                           label={
                             <T
@@ -938,9 +1191,9 @@ const Page = () => {
                             />
                           }
                           value={creationPlaceholderNameDraft}
-                          onChange={handlePlanNameChange}
-                          onBlur={commitCreationPlaceholderPlanName}
-                          onKeyDown={handlePlanNameFieldKeyDown}
+                          onChange={handleCreationPlaceholderNameChange}
+                          onFocus={handleCreationPlaceholderNameFocus}
+                          onBlur={handleCreationPlaceholderNameBlur}
                           ariaLabel={t('sidebar.plan_flow.plan_name_label')}
                           trailing={
                             creationPlaceholderNameDraft.trim() !== '' ? (
@@ -1120,8 +1373,8 @@ const Page = () => {
                     }
                     value={planNameDraft}
                     onChange={handlePlanNameChange}
-                    onBlur={commitPlanName}
-                    onKeyDown={handlePlanNameFieldKeyDown}
+                    onFocus={handlePlanNameFocus}
+                    onBlur={handlePlanNameBlur}
                     ariaLabel={t('sidebar.plan_flow.plan_name_label')}
                     trailing={<StatusIndicator />}
                   />
@@ -1154,11 +1407,7 @@ const Page = () => {
           <NodeFlowButton
             completed={isAreasStepComplete}
             state={
-              isReadyPlan
-                ? areZonesValid
-                  ? 'available'
-                  : 'error'
-                : 'disabled'
+              isReadyPlan ? (areZonesValid ? 'available' : 'error') : 'disabled'
             }
             title={
               <T keyName="sidebar.plan_flow.areas_step" ns="hiilikartta" />

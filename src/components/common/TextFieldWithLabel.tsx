@@ -27,8 +27,23 @@ const TextFieldWithLabel = ({
   fullWidth = true,
   size = 'small',
   variant = 'outlined',
+  multiline = false,
+  onKeyDown,
   ...textFieldProps
 }: TextFieldWithLabelProps) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    onKeyDown?.(event)
+
+    if (event.defaultPrevented || multiline || event.key !== 'Enter') {
+      return
+    }
+
+    event.preventDefault()
+    if (event.target instanceof HTMLElement) {
+      event.target.blur()
+    }
+  }
+
   return (
     <Box
       sx={[
@@ -83,6 +98,8 @@ const TextFieldWithLabel = ({
             {...textFieldProps}
             aria-label={ariaLabel}
             fullWidth={fullWidth}
+            multiline={multiline}
+            onKeyDown={handleKeyDown}
             size={size}
             variant={variant}
             sx={[
