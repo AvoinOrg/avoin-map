@@ -11,7 +11,7 @@ import {
 } from '@mui/material'
 import { T } from '@tolgee/react'
 
-import DownIcon from '#/components/icons/DownIcon'
+import ArrowDown from '#/components/icons/ArrowDown'
 import CheckcircleCheckedFilled from '#/components/icons/CheckcircleCheckedFilled'
 import { SelectOption } from '#/common/types/general'
 
@@ -29,7 +29,7 @@ interface Props {
   iconSx?: SxProps<Theme>
   typographySx?: SxProps<Theme>
   disabled?: boolean
-  successIndicatorMode?: 'inside' | 'outside' | 'hidden'
+  successIndicatorMode?: 'outside' | 'hidden'
 }
 
 const DropDownSelect = ({
@@ -46,7 +46,7 @@ const DropDownSelect = ({
   iconSx,
   typographySx,
   disabled,
-  successIndicatorMode = 'inside',
+  successIndicatorMode = 'hidden',
 }: Props) => {
   const [hasEmpty, setHasEmpty] = React.useState(true)
   const generatedId = React.useId()
@@ -66,6 +66,13 @@ const DropDownSelect = ({
     value != null &&
     value !== '' &&
     options.some((option) => option.value === value)
+  const menuItemTypographySx = {
+    fontSize: '0.6875rem',
+    fontWeight: 400,
+    lineHeight: 'normal',
+    letterSpacing: '0.04em',
+    color: '#111111',
+  } as const
 
   return (
     <Box
@@ -143,7 +150,7 @@ const DropDownSelect = ({
 
             return selectedOption?.label ?? selected
           }}
-          IconComponent={DownIcon}
+          IconComponent={ArrowDown}
           label={label}
           MenuProps={{
             anchorOrigin: {
@@ -166,43 +173,48 @@ const DropDownSelect = ({
           sx={[
             {
               '&.MuiOutlinedInput-root': {
-                backgroundColor: 'background.main',
-                borderRadius: '999px',
-                boxShadow: '0 1px 2px 0 rgba(214, 214, 214, 0.60) inset',
+                height: '2rem',
+                borderRadius: '999px !important',
+                boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
               },
               '& .MuiOutlinedInput-notchedOutline': {
+                borderColor: '#D6D6D6',
                 borderRadius: '999px',
               },
               '& .MuiOutlinedInput-notchedOutline legend': {
-                maxWidth: label ? undefined : 0,
+                maxWidth: 0,
               },
               '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                 borderColor: 'secondary.dark',
               },
-              '.MuiSvgIcon-root': { fontSize: '16px', margin: 0 },
               '.MuiSelect-icon': {
                 top: '50%',
                 transform: 'translateY(-50%)',
-                right:
-                  successIndicatorMode === 'inside' && hasValidSelection
-                    ? '2.1rem'
-                    : '0.75rem',
+                width: '0.75rem',
+                height: '0.375rem',
+                mr: '0rem',
                 ...(iconSx as Record<string, any>),
               },
+              '.MuiSelect-iconOpen': {
+                transform: 'translateY(-50%) rotate(180deg)',
+              },
               '.MuiSelect-select': {
+                minHeight: '1.25rem',
                 display: 'flex',
                 alignItems: 'center',
-                py: 1.5,
-                pr:
-                  successIndicatorMode === 'inside' && hasValidSelection
-                    ? '4rem !important'
-                    : '2.75rem !important',
+                py: '0.1875rem',
+                pl: '1rem !important',
+                pr: '2.5rem !important',
                 backgroundColor: 'transparent',
+                fontSize: '0.6875rem',
+                fontWeight: 400,
+                lineHeight: 'normal',
+                letterSpacing: '0.04em',
+                color: '#111111',
                 '&:focus': {
                   backgroundColor: 'transparent',
                 },
               },
-              typography: 'body2',
             },
             ...(Array.isArray(selectSx) ? selectSx : [selectSx]),
           ]}
@@ -213,7 +225,7 @@ const DropDownSelect = ({
               value={value}
               aria-label={`Invalid value ${value}`}
               sx={[
-                { typography: 'body2' },
+                menuItemTypographySx,
                 ...(Array.isArray(typographySx)
                   ? typographySx
                   : [typographySx]),
@@ -234,7 +246,7 @@ const DropDownSelect = ({
               value=""
               aria-label="Empty selection"
               sx={[
-                { typography: 'body2' },
+                menuItemTypographySx,
                 ...(Array.isArray(typographySx)
                   ? typographySx
                   : [typographySx]),
@@ -258,7 +270,7 @@ const DropDownSelect = ({
                   : String(option.value)
               }
               sx={[
-                { typography: 'body2' },
+                menuItemTypographySx,
                 ...(Array.isArray(typographySx)
                   ? typographySx
                   : [typographySx]),
@@ -269,20 +281,6 @@ const DropDownSelect = ({
           ))}
         </Select>
       </FormControl>
-      {hasValidSelection && successIndicatorMode === 'inside' && (
-        <CheckcircleCheckedFilled
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            right: '2.7rem',
-            transform: 'translateY(-50%)',
-            width: 20,
-            height: 20,
-            color: 'secondary.dark',
-            pointerEvents: 'none',
-          }}
-        />
-      )}
       {hasValidSelection && successIndicatorMode === 'outside' && (
         <CheckcircleCheckedFilled
           sx={{

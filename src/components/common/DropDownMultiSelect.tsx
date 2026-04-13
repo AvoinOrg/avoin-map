@@ -11,7 +11,7 @@ import {
   Typography,
 } from '@mui/material'
 
-import DownIcon from '#/components/icons/DownIcon'
+import ArrowDown from '#/components/icons/ArrowDown'
 
 export type DropDownMultiSelectOption = {
   value: string
@@ -79,7 +79,7 @@ const DropDownMultiSelect = ({
         onChange={onChange}
         disabled={disabled}
         input={<OutlinedInput notched={false} />}
-        IconComponent={DownIcon}
+        IconComponent={ArrowDown}
         renderValue={(selected) => {
           const selectedValues = selected as string[]
           const selectedOptions = options.filter((option) =>
@@ -112,6 +112,11 @@ const DropDownMultiSelect = ({
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
+                fontSize: '0.6875rem',
+                fontWeight: 400,
+                lineHeight: 'normal',
+                letterSpacing: '0.04em',
+                color: '#111111',
               }}
             >
               {selectedOptions
@@ -146,8 +151,8 @@ const DropDownMultiSelect = ({
         sx={[
           {
             '&.MuiOutlinedInput-root': {
-              minHeight: '1.375rem',
               borderRadius: '999px',
+              minHeight: '2rem',
               backgroundColor: '#FFFFFF',
               boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
             },
@@ -159,18 +164,27 @@ const DropDownMultiSelect = ({
               maxWidth: 0,
             },
             '& .MuiSelect-select': {
-              minHeight: '1.375rem',
               display: 'flex',
               alignItems: 'center',
-              py: '0.1875rem',
-              pl: '0.3125rem',
-              pr: '2.25rem !important',
+              py: '0.375rem',
+              pl: '1rem',
+              pr: '2.5rem !important',
+              fontSize: '0.6875rem',
+              fontWeight: 400,
+              lineHeight: 'normal',
+              letterSpacing: '0.04em',
+              color: '#111111',
             },
             '& .MuiSelect-icon': {
+              top: '50%',
+              transform: 'translateY(-50%)',
               width: '0.75rem',
               height: '0.375rem',
-              right: '0.875rem',
+              mr: "0.4rem",
               ...(iconSx as Record<string, unknown>),
+            },
+            '& .MuiSelect-iconOpen': {
+              transform: 'translateY(-50%) rotate(180deg)',
             },
           },
           ...(Array.isArray(selectSx) ? selectSx : [selectSx]),

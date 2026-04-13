@@ -43,6 +43,10 @@ type Vars = {
   globalState: GlobalState
 }
 
+export type PlanDataFeatureUpdate = Omit<Partial<PlanDataFeature>, 'properties'> & {
+  properties?: Partial<PlanDataFeature['properties']>
+}
+
 type Actions = {
   deletePlanConf: (planId: string) => void
   addPlanConf: (newPlanConf: NewPlanConf) => Promise<PlanConf>
@@ -53,7 +57,7 @@ type Actions = {
   updatePlanConfDataFeature: (
     planId: string,
     featureId: string,
-    feature: Partial<PlanDataFeature>
+    feature: PlanDataFeatureUpdate
   ) => Promise<PlanDataFeature | null>
   copyPlanConf: (planId: string, nameSuffix?: string) => Promise<PlanConf>
   addExternalPlanConf: (
@@ -206,7 +210,7 @@ export const useAppletStore = create<Vars & Actions>()(
           updatePlanConfDataFeature: async (
             planId: string,
             featureId: string,
-            feature: Partial<PlanDataFeature>
+            feature: PlanDataFeatureUpdate
           ) => {
             const planConf = get().planConfs[planId]
             if (!planConf) {

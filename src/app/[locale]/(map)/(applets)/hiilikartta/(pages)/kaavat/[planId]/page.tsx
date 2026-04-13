@@ -12,7 +12,6 @@ import React, {
 import {
   Box,
   ButtonBase,
-  TextField,
   Tooltip,
   Typography,
 } from '@mui/material'
@@ -24,6 +23,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { SidebarContentBox } from '#/components/Sidebar'
 import SidebarBackgroundContent from '#/components/common/SidebarBackgroundContent'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
+import TextFieldWithLabel from '#/components/common/TextFieldWithLabel'
 import {
   NodeFlowAccordion,
   NodeFlowButton,
@@ -92,31 +92,6 @@ const getFileType = (fileName: string): FileType | undefined => {
 const getPlanNameFromFileName = (fileName: string) =>
   fileName.replace(/\.[^/.]+$/, '')
 
-const PLAN_NAME_TEXT_FIELD_SX = {
-  width: '100%',
-  '& .MuiOutlinedInput-root': {
-    minHeight: '1.25rem',
-    borderRadius: '0.625rem',
-    backgroundColor: '#ffffff',
-    boxShadow: 'inset 0px 0.5px 1px 0px #d9d9d9',
-  },
-  '& .MuiOutlinedInput-notchedOutline': {
-    borderColor: '#d6d6d6',
-  },
-  '& .MuiOutlinedInput-notchedOutline legend': {
-    maxWidth: 0,
-  },
-  '& .MuiInputBase-input': {
-    py: '0.1875rem',
-    px: '1rem',
-    fontSize: '0.6875rem',
-    fontWeight: 400,
-    lineHeight: 'normal',
-    letterSpacing: '0.04em',
-    color: '#111111',
-  },
-} as const
-
 const StatusIndicator = () => (
   <CheckcircleCheckedFilled
     sx={{
@@ -154,24 +129,6 @@ const StatusFieldRow = ({
       </Box>
       {isSuccess && <StatusIndicator />}
     </Box>
-  )
-}
-
-const FieldLabel = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <Typography
-      sx={{
-        fontSize: '0.625rem',
-        fontWeight: 400,
-        lineHeight: '0.8125rem',
-        letterSpacing: '0.11em',
-        color: '#111111',
-        pl: '1rem',
-        mb: '0.3125rem',
-      }}
-    >
-      {children}
-    </Typography>
   )
 }
 
@@ -980,26 +937,24 @@ const Page = () => {
                   <>
                     {creationPlaceholderPlanConf.file != null && (
                       <Box sx={{ width: '100%' }}>
-                        <FieldLabel>
-                          <T
-                            keyName="sidebar.plan_flow.plan_name_label"
-                            ns="hiilikartta"
-                          />
-                        </FieldLabel>
-                        <StatusFieldRow
-                          isSuccess={creationPlaceholderNameDraft.trim() !== ''}
-                        >
-                          <TextField
-                            value={creationPlaceholderNameDraft}
-                            onChange={handlePlanNameChange}
-                            onBlur={commitCreationPlaceholderPlanName}
-                            onKeyDown={handlePlanNameFieldKeyDown}
-                            aria-label={t('sidebar.plan_flow.plan_name_label')}
-                            variant="outlined"
-                            size="small"
-                            sx={PLAN_NAME_TEXT_FIELD_SX}
-                          />
-                        </StatusFieldRow>
+                        <TextFieldWithLabel
+                          label={
+                            <T
+                              keyName="sidebar.plan_flow.plan_name_label"
+                              ns="hiilikartta"
+                            />
+                          }
+                          value={creationPlaceholderNameDraft}
+                          onChange={handlePlanNameChange}
+                          onBlur={commitCreationPlaceholderPlanName}
+                          onKeyDown={handlePlanNameFieldKeyDown}
+                          ariaLabel={t('sidebar.plan_flow.plan_name_label')}
+                          trailing={
+                            creationPlaceholderNameDraft.trim() !== '' ? (
+                              <StatusIndicator />
+                            ) : undefined
+                          }
+                        />
                       </Box>
                     )}
                   </>
@@ -1163,24 +1118,20 @@ const Page = () => {
             {isReadyPlan && (
               <>
                 <Box sx={{ width: '100%' }}>
-                  <FieldLabel>
-                    <T
-                      keyName="sidebar.plan_flow.plan_name_label"
-                      ns="hiilikartta"
-                    />
-                  </FieldLabel>
-                  <StatusFieldRow isSuccess>
-                    <TextField
-                      value={planNameDraft}
-                      onChange={handlePlanNameChange}
-                      onBlur={commitPlanName}
-                      onKeyDown={handlePlanNameFieldKeyDown}
-                      aria-label={t('sidebar.plan_flow.plan_name_label')}
-                      variant="outlined"
-                      size="small"
-                      sx={PLAN_NAME_TEXT_FIELD_SX}
-                    />
-                  </StatusFieldRow>
+                  <TextFieldWithLabel
+                    label={
+                      <T
+                        keyName="sidebar.plan_flow.plan_name_label"
+                        ns="hiilikartta"
+                      />
+                    }
+                    value={planNameDraft}
+                    onChange={handlePlanNameChange}
+                    onBlur={commitPlanName}
+                    onKeyDown={handlePlanNameFieldKeyDown}
+                    ariaLabel={t('sidebar.plan_flow.plan_name_label')}
+                    trailing={<StatusIndicator />}
+                  />
                 </Box>
 
                 <DropDownSelectWithHeader
@@ -1201,53 +1152,7 @@ const Page = () => {
                   }
                   placeholder={t('sidebar.plan_flow.forestry_scenario_label')}
                   successIndicatorMode="outside"
-                  sx={{ width: '100%', mb: 0 }}
-                  headerSx={{
-                    mb: '0.375rem',
-                  }}
-                  labelSx={{
-                    fontSize: '0.625rem',
-                    fontWeight: 400,
-                    lineHeight: '0.8125rem',
-                    letterSpacing: '0.11em',
-                    color: '#111111',
-                  }}
-                  selectSx={{
-                    '&.MuiOutlinedInput-root': {
-                      minHeight: '1.25rem',
-                      borderRadius: '0.625rem',
-                      backgroundColor: '#ffffff',
-                      boxShadow: 'inset 0px 0.5px 1px 0px #d9d9d9',
-                    },
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#d6d6d6',
-                    },
-                    '& .MuiOutlinedInput-notchedOutline legend': {
-                      maxWidth: 0,
-                    },
-                    '& .MuiSelect-select': {
-                      minHeight: '1.25rem',
-                      py: '0.1875rem',
-                      pl: '1rem',
-                      pr: '2.5rem !important',
-                      fontSize: '0.6875rem',
-                      fontWeight: 400,
-                      lineHeight: 'normal',
-                      letterSpacing: '0.04em',
-                      color: '#111111',
-                    },
-                    '& .MuiSelect-icon': {
-                      width: '0.75rem',
-                      height: '0.375rem',
-                      right: '0.875rem',
-                    },
-                  }}
-                  typographySx={{
-                    fontSize: '0.6875rem',
-                    fontWeight: 400,
-                    lineHeight: 'normal',
-                    letterSpacing: '0.04em',
-                  }}
+                  sx={{ width: '100%' }}
                 />
               </>
             )}

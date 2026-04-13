@@ -22,9 +22,7 @@ const DropDownSelectWithHeader = ({
     <Box
       sx={[
         {
-          typography: 'h7',
-          mb: 1,
-          borderRadius: '999px',
+          width: '100%',
         },
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
@@ -39,7 +37,7 @@ const DropDownSelectWithHeader = ({
               maxWidth: '100%',
               px: '1rem',
               minHeight: '1.5rem',
-              mb: 1,
+              mb: '0.2rem',
             },
             ...(Array.isArray(headerSx) ? headerSx : [headerSx]),
           ]}
@@ -47,8 +45,12 @@ const DropDownSelectWithHeader = ({
           <Typography
             sx={[
               {
-                typography: 'h7',
                 minWidth: 0,
+                fontSize: '0.625rem',
+                fontWeight: 400,
+                lineHeight: '0.8125rem',
+                letterSpacing: '0.11em',
+                color: '#111111',
               },
               ...(Array.isArray(labelSx) ? labelSx : [labelSx]),
             ]}
@@ -72,9 +74,7 @@ const DropDownSelectWithHeader = ({
       <DropDownSelect
         sx={{ width: '100%' }}
         {...rest}
-        ariaLabel={
-          ariaLabel ?? (typeof label === 'string' ? label : undefined)
-        }
+        ariaLabel={ariaLabel ?? (typeof label === 'string' ? label : undefined)}
         label={undefined}
       />
     </Box>

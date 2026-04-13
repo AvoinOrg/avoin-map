@@ -39,12 +39,14 @@ const Page = () => {
   const router = useRouter()
   const { t } = useTranslate('hiilikartta')
   const [isLoaded, setIsLoaded] = useState(false)
+  const [hasPendingLandUseEdits, setHasPendingLandUseEdits] = useState(false)
   const {
     disabledTooltipKey,
     hasNoFeatures,
     isCalculationRunning,
     isReportActionEnabled,
   } = usePlanReportEligibility({
+    hasPendingLocalLandUseEdits: hasPendingLandUseEdits,
     planConf,
     isCalculationMutationPending: calcPost.isPending,
   })
@@ -124,6 +126,10 @@ const Page = () => {
     router,
   ])
 
+  useEffect(() => {
+    setHasPendingLandUseEdits(false)
+  }, [planConf?.id])
+
   if (!hasHydrated || !isLoaded || !planConf) {
     return <LoadingSpinner />
   }
@@ -197,7 +203,11 @@ const Page = () => {
           </Typography>
         </Box>
 
-        <ZoneAccordion planConfId={planConf.id} sx={{ pb: '1.5rem' }} />
+        <ZoneAccordion
+          planConfId={planConf.id}
+          onPendingLandUseEditsChange={setHasPendingLandUseEdits}
+          sx={{ pb: '1.5rem' }}
+        />
       </SidebarContentBox>
 
       <Box

@@ -232,6 +232,11 @@ export const NumberInputField = ({
               sx={{
                 backgroundColor: 'background.main',
                 px: 0.5,
+                fontSize: '999px',
+                fontWeight: 400,
+                lineHeight: '0.8125rem',
+                letterSpacing: '0.11em',
+                color: '#111111',
                 '&.Mui-focused': {
                   color: 'secondary.dark',
                 },
@@ -330,12 +335,24 @@ export const NumberInputField = ({
                 }
                 sx={[
                   {
+                    minHeight: '1.25rem',
                     pr: 0,
                     borderRadius: '999px',
                     overflow: 'hidden',
-                    boxShadow: '0 1px 2px 0 rgba(214, 214, 214, 0.60) inset',
+                    backgroundColor: '#FFFFFF',
+                    boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
                     '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#D6D6D6',
                       borderRadius: '999px',
+                    },
+                    '& .MuiInputBase-input': {
+                      px: '1rem',
+                      py: '0.1875rem',
+                      fontSize: '0.6875rem',
+                      fontWeight: 400,
+                      lineHeight: 'normal',
+                      letterSpacing: '0.04em',
+                      color: '#111111',
                     },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                       borderColor: 'secondary.dark',

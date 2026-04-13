@@ -19,7 +19,10 @@ import {
   getPlanSourceId,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
 import { normalizeZoningCode } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/zoningClasses'
-import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
+import {
+  type PlanDataFeatureUpdate,
+  useAppletStore,
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 import ZoneAccordionItem from './ZoneAccordionItem'
 import ZoneClassChip from './ZoneClassChip'
 import {
@@ -31,13 +34,18 @@ import {
 
 interface Props {
   planConfId: string
+  onPendingLandUseEditsChange?: (hasPending: boolean) => void
   sx?: any
 }
 
 const CONTENT_PADDING_X = { mobile: '1.25rem', desktop: '2.5rem' } as const
 type ZoneSortValue = 'class-asc' | 'class-desc' | 'name-asc' | 'name-desc'
 
-const ZoneAccordion = ({ planConfId, sx }: Props) => {
+const ZoneAccordion = ({
+  planConfId,
+  onPendingLandUseEditsChange,
+  sx,
+}: Props) => {
   const { t } = useTranslate('hiilikartta')
   const planConf = useStore(
     useAppletStore,
@@ -67,6 +75,9 @@ const ZoneAccordion = ({ planConfId, sx }: Props) => {
   const [sortValue, setSortValue] = useState<ZoneSortValue>('name-asc')
   const [landUseEditorOpenByFeatureId, setLandUseEditorOpenByFeatureId] =
     useState<Record<string, boolean>>({})
+  const [pendingLandUseByFeatureId, setPendingLandUseByFeatureId] = useState<
+    Record<string, true>
+  >({})
 
   const accordionRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const areaNameCollator = useMemo(
@@ -172,6 +183,30 @@ const ZoneAccordion = ({ planConfId, sx }: Props) => {
       )
     )
   }, [filterOptions])
+
+  useEffect(() => {
+    const featureIds = new Set(
+      planConf?.data.features.map((feature) => feature.properties.id) ?? []
+    )
+
+    setPendingLandUseByFeatureId((previousPendingState) => {
+      const nextPendingEntries = Object.entries(previousPendingState).filter(
+        ([featureId]) => featureIds.has(featureId)
+      )
+
+      if (nextPendingEntries.length === Object.keys(previousPendingState).length) {
+        return previousPendingState
+      }
+
+      return Object.fromEntries(nextPendingEntries) as Record<string, true>
+    })
+  }, [planConf?.data.features])
+
+  useEffect(() => {
+    onPendingLandUseEditsChange?.(
+      Object.keys(pendingLandUseByFeatureId).length > 0
+    )
+  }, [onPendingLandUseEditsChange, pendingLandUseByFeatureId])
 
   const visibleFeatures = useMemo(() => {
     if (!planConf) {
@@ -381,8 +416,34 @@ const ZoneAccordion = ({ planConfId, sx }: Props) => {
     []
   )
 
+  const handleLandUsePendingChange = useCallback(
+    (featureId: string, hasPending: boolean) => {
+      setPendingLandUseByFeatureId((previousPendingState) => {
+        if (hasPending) {
+          if (previousPendingState[featureId]) {
+            return previousPendingState
+          }
+
+          return {
+            ...previousPendingState,
+            [featureId]: true,
+          }
+        }
+
+        if (!previousPendingState[featureId]) {
+          return previousPendingState
+        }
+
+        const nextPendingState = { ...previousPendingState }
+        delete nextPendingState[featureId]
+        return nextPendingState
+      })
+    },
+    []
+  )
+
   const updateFeature = useCallback(
-    (featureId: string, feature: Partial<PlanDataFeature>) => {
+    (featureId: string, feature: PlanDataFeatureUpdate) => {
       if (!planConf) {
         return
       }
@@ -600,6 +661,7 @@ const ZoneAccordion = ({ planConfId, sx }: Props) => {
               landUseEditorOpenByFeatureId[feature.properties.id] ??
               !checkIsValidLandUseDistribution(feature.properties)
             }
+            onLandUsePendingChange={handleLandUsePendingChange}
             onLandUseEditorToggle={handleLandUseEditorToggle}
             onToggle={handleAccordionToggle}
             updateFeature={updateFeature}

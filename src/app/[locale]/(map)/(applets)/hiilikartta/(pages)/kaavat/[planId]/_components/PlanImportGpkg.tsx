@@ -26,40 +26,6 @@ type PlanImportGpkgProps = {
   onPendingImportChange: (pendingImport: PendingPlanImport | null) => void
 }
 
-const sharedSelectSx = {
-  '&.MuiOutlinedInput-root': {
-    minHeight: '1.25rem',
-    borderRadius: '0.625rem',
-    backgroundColor: '#ffffff',
-  },
-  '& .MuiOutlinedInput-notchedOutline': {
-    borderColor: '#d6d6d6',
-  },
-  '& .MuiSelect-select': {
-    minHeight: '1.25rem',
-    py: '0.1875rem',
-    pl: '1rem',
-    pr: '2.75rem !important',
-    fontSize: '0.6875rem',
-    fontWeight: 400,
-    lineHeight: 'normal',
-    letterSpacing: '0.04em',
-    color: '#111111',
-  },
-  '& .MuiSelect-icon': {
-    width: '0.5rem',
-    height: '0.25rem',
-    mr: '0.75rem',
-  },
-} as const
-
-const sharedTypographySx = {
-  fontSize: '0.6875rem',
-  fontWeight: 400,
-  lineHeight: 'normal',
-  letterSpacing: '0.04em',
-} as const
-
 const PlanImportGpkg = ({
   fileBuffer,
   selectedTable,
@@ -236,18 +202,7 @@ const PlanImportGpkg = ({
           label={copy.tableLabel}
           placeholder={copy.tablePlaceholder}
           sx={{ width: '100%', mb: '1.125rem' }}
-          labelSx={{
-            mb: '0.3125rem',
-            fontSize: '0.625rem',
-            fontWeight: 400,
-            lineHeight: '0.8125rem',
-            letterSpacing: '0.11em',
-            color: '#111111',
-          }}
-          selectSx={sharedSelectSx}
-          typographySx={sharedTypographySx}
           successIndicatorMode="outside"
-          iconSx={{ mt: 0 }}
         />
       )}
 

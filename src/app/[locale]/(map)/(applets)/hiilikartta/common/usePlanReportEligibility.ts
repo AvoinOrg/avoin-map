@@ -10,6 +10,7 @@ import {
 } from './utils'
 
 type UsePlanReportEligibilityParams = {
+  hasPendingLocalLandUseEdits?: boolean
   planConf?: PlanConf
   isCalculationMutationPending?: boolean
 }
@@ -24,6 +25,7 @@ export type PlanReportEligibility = {
 }
 
 const usePlanReportEligibility = ({
+  hasPendingLocalLandUseEdits = false,
   planConf,
   isCalculationMutationPending = false,
 }: UsePlanReportEligibilityParams): PlanReportEligibility => {
@@ -80,6 +82,7 @@ const usePlanReportEligibility = ({
     planConf != null &&
     !hasNoFeatures &&
     areZonesValid &&
+    !hasPendingLocalLandUseEdits &&
     !isCalculationRunning
 
   return {

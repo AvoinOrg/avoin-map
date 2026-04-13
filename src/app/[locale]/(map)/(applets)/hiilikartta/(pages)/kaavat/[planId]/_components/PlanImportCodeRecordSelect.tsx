@@ -12,44 +12,6 @@ type PlanImportCodeRecordSelectProps = {
   sx?: SxProps<Theme>
 }
 
-const sharedSelectSx = {
-  '&.MuiOutlinedInput-root': {
-    minHeight: '1.25rem',
-    borderRadius: '0.625rem',
-    backgroundColor: '#ffffff',
-    boxShadow: 'inset 0px 0.5px 1px 0px #d9d9d9',
-  },
-  '& .MuiOutlinedInput-notchedOutline': {
-    borderColor: '#d6d6d6',
-  },
-  '& .MuiOutlinedInput-notchedOutline legend': {
-    maxWidth: 0,
-  },
-  '& .MuiSelect-select': {
-    minHeight: '1.25rem',
-    py: '0.1875rem',
-    pl: '1rem',
-    pr: '2.5rem !important',
-    fontSize: '0.6875rem',
-    fontWeight: 400,
-    lineHeight: 'normal',
-    letterSpacing: '0.04em',
-    color: '#111111',
-  },
-  '& .MuiSelect-icon': {
-    width: '0.75rem',
-    height: '0.375rem',
-    right: '0.875rem',
-  },
-} as const satisfies SxProps<Theme>
-
-const sharedTypographySx = {
-  fontSize: '0.6875rem',
-  fontWeight: 400,
-  lineHeight: 'normal',
-  letterSpacing: '0.04em',
-} as const satisfies SxProps<Theme>
-
 const PlanImportCodeRecordSelect = ({
   columns,
   selectedColumn,
@@ -89,20 +51,7 @@ const PlanImportCodeRecordSelect = ({
         },
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
-      labelSx={{
-        mb: '0.3125rem',
-        fontSize: '0.625rem',
-        fontWeight: 400,
-        lineHeight: '0.8125rem',
-        letterSpacing: '0.11em',
-        color: '#111111',
-      }}
-      selectSx={sharedSelectSx}
-      typographySx={sharedTypographySx}
       successIndicatorMode="outside"
-      iconSx={{
-        mt: 0,
-      }}
     />
   )
 }

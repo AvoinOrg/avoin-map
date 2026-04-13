@@ -2,6 +2,7 @@ import {
   type ChangeEvent,
   type KeyboardEvent,
   memo,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -12,7 +13,6 @@ import {
   Box,
   ButtonBase,
   Collapse,
-  TextField,
   Tooltip,
   Typography,
   type SelectChangeEvent,
@@ -20,10 +20,10 @@ import {
 import { useTranslate } from '@tolgee/react'
 
 import type { SelectOption } from '#/common/types/general'
-import { useDebounce } from '#/common/hooks/useDebounce'
 import TText from '#/components/common/TText'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import { NumberInputField } from '#/components/common/NumberInputField'
+import TextFieldWithLabel from '#/components/common/TextFieldWithLabel'
 import { ArrowDown, Warning } from '#/components/icons'
 
 import { POWERLINE_ZONING_CLASS_PREFIX } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/constants'
@@ -39,6 +39,7 @@ import {
   getZoningClassByCode,
   getZoningClassLandUseDefaults,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/zoningClasses'
+import type { PlanDataFeatureUpdate } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 import ZoneClassChip from './ZoneClassChip'
 import {
   getLandUseDistributionTotal,
@@ -86,9 +87,10 @@ type Props = {
   isLast: boolean
   isZoningClassesLoading: boolean
   landUseEditorOpen: boolean
+  onLandUsePendingChange: (featureId: string, hasPending: boolean) => void
   onLandUseEditorToggle: (featureId: string, nextOpen: boolean) => void
   onToggle: (featureId: string) => void
-  updateFeature: (id: string, feature: Partial<PlanDataFeature>) => void
+  updateFeature: (id: string, feature: PlanDataFeatureUpdate) => void
   zoningClasses: ZoningClass[]
   zoningCodeOptions: SelectOption[]
 }
@@ -102,37 +104,15 @@ const FIELD_LABEL_SX = {
   color: '#111111',
 } as const
 
-const TEXT_FIELD_SX = {
-  width: '100%',
-  '& .MuiOutlinedInput-root': {
-    minHeight: '1.375rem',
-    borderRadius: '0.625rem',
-    backgroundColor: '#FFFFFF',
-    boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
-  },
-  '& .MuiOutlinedInput-notchedOutline': {
-    borderColor: '#D6D6D6',
-  },
-  '& .MuiOutlinedInput-notchedOutline legend': {
-    maxWidth: 0,
-  },
-  '& .MuiOutlinedInput-input': {
-    px: '1rem',
-    py: '0.1875rem',
-    fontSize: '0.6875rem',
-    fontWeight: 400,
-    lineHeight: 'normal',
-    letterSpacing: '0.04em',
-    color: '#111111',
-  },
-} as const
-
 const NUMBER_FIELD_WIDTH = '4.5rem'
 const SUMMARY_ROW_PADDING_X = '0.375rem'
 const DETAILS_PADDING_LEFT = SUMMARY_ROW_PADDING_X
 const OPEN_ITEM_MARGIN_Y = '0.25rem'
 const OPEN_SHELL_OUTSET_X = { mobile: '1rem', desktop: '1.5rem' } as const
-const WARNING_ICON_OFFSET_X = { mobile: '-0.625rem', desktop: '-0.75rem' } as const
+const WARNING_ICON_OFFSET_X = {
+  mobile: '-0.625rem',
+  desktop: '-0.75rem',
+} as const
 const WARNING_ICON_TOP = '0.875rem'
 const NAME_INPUT_DEBOUNCE_MS = 2000
 const LAND_USE_INPUT_DEBOUNCE_MS = 2000
@@ -185,6 +165,12 @@ const numberFieldAdornmentSx = {
     pl: 0.25,
     pr: 0.625,
   },
+  '& button:first-of-type': {
+    borderTopRightRadius: '999px',
+  },
+  '& button:last-of-type': {
+    borderBottomRightRadius: '999px',
+  },
 } as const
 
 const warningTooltipSlotProps = {
@@ -204,7 +190,9 @@ const warningTooltipSlotProps = {
   },
 } as const
 
-const getLandUseDraft = (properties: PlanDataFeature['properties']): LandUseDraft => ({
+const getLandUseDraft = (
+  properties: PlanDataFeature['properties']
+): LandUseDraft => ({
   landuse_built: properties.landuse_built ?? null,
   landuse_new_open_vegetation: properties.landuse_new_open_vegetation ?? null,
   landuse_new_tree_vegetation: properties.landuse_new_tree_vegetation ?? null,
@@ -218,12 +206,152 @@ const getFeatureNameValue = (name: PlanDataFeature['properties']['name']) =>
 
 const areLandUseDraftsEqual = (draftA: LandUseDraft, draftB: LandUseDraft) =>
   draftA.landuse_built === draftB.landuse_built &&
-  draftA.landuse_new_open_vegetation ===
-    draftB.landuse_new_open_vegetation &&
+  draftA.landuse_new_open_vegetation === draftB.landuse_new_open_vegetation &&
   draftA.landuse_new_tree_vegetation === draftB.landuse_new_tree_vegetation &&
   draftA.landuse_existing === draftB.landuse_existing &&
   draftA.soil_change_new_vegetation_pct ===
     draftB.soil_change_new_vegetation_pct
+
+type ZoneNameFieldProps = {
+  ariaLabel: string
+  label: string
+  persistedName: string
+  onCommit: (nextName: string) => void
+}
+
+const ZoneNameField = memo(
+  ({ ariaLabel, label, persistedName, onCommit }: ZoneNameFieldProps) => {
+    const [nameDraft, setNameDraft] = useState(persistedName)
+    const nameDraftRef = useRef(persistedName)
+    const persistedNameRef = useRef(persistedName)
+    const isNameFocusedRef = useRef(false)
+    const pendingNameDraftRef = useRef<string | null>(null)
+    const pendingNameCommitRef = useRef<string | null>(null)
+    const commitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const onCommitRef = useRef(onCommit)
+
+    useEffect(() => {
+      onCommitRef.current = onCommit
+    }, [onCommit])
+
+    const clearCommitTimer = useCallback(() => {
+      if (commitTimerRef.current == null) {
+        return
+      }
+
+      clearTimeout(commitTimerRef.current)
+      commitTimerRef.current = null
+    }, [])
+
+    const flushNameDraft = useCallback(() => {
+      clearCommitTimer()
+
+      const nextName = pendingNameDraftRef.current ?? nameDraftRef.current
+      pendingNameDraftRef.current = null
+
+      if (nextName === persistedNameRef.current) {
+        pendingNameCommitRef.current = null
+        return
+      }
+
+      pendingNameCommitRef.current = nextName
+      onCommitRef.current(nextName)
+    }, [clearCommitTimer])
+
+    useEffect(() => {
+      persistedNameRef.current = persistedName
+
+      if (pendingNameCommitRef.current === persistedName) {
+        pendingNameCommitRef.current = null
+      }
+
+      if (pendingNameDraftRef.current === persistedName) {
+        pendingNameDraftRef.current = null
+        clearCommitTimer()
+      }
+
+      if (
+        isNameFocusedRef.current ||
+        commitTimerRef.current != null ||
+        pendingNameDraftRef.current != null ||
+        pendingNameCommitRef.current != null
+      ) {
+        return
+      }
+
+      nameDraftRef.current = persistedName
+      setNameDraft((previousNameDraft) =>
+        previousNameDraft === persistedName ? previousNameDraft : persistedName
+      )
+    }, [clearCommitTimer, persistedName])
+
+    useEffect(
+      () => () => {
+        clearCommitTimer()
+      },
+      [clearCommitTimer]
+    )
+
+    const handleNameChange = (
+      event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
+      const nextName = event.target.value
+
+      nameDraftRef.current = nextName
+      pendingNameDraftRef.current = nextName
+      setNameDraft(nextName)
+
+      clearCommitTimer()
+      commitTimerRef.current = setTimeout(() => {
+        flushNameDraft()
+      }, NAME_INPUT_DEBOUNCE_MS)
+    }
+
+    const handleNameFocus = () => {
+      isNameFocusedRef.current = true
+    }
+
+    const handleNameBlur = () => {
+      isNameFocusedRef.current = false
+      flushNameDraft()
+
+      if (pendingNameCommitRef.current != null) {
+        return
+      }
+
+      const nextPersistedName = persistedNameRef.current
+      nameDraftRef.current = nextPersistedName
+      setNameDraft((previousNameDraft) =>
+        previousNameDraft === nextPersistedName
+          ? previousNameDraft
+          : nextPersistedName
+      )
+    }
+
+    const handleNameKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Enter') {
+        return
+      }
+
+      event.preventDefault()
+      flushNameDraft()
+      ;(event.target as HTMLElement).blur()
+    }
+
+    return (
+      <TextFieldWithLabel
+        label={label}
+        ariaLabel={ariaLabel}
+        value={nameDraft}
+        onChange={handleNameChange}
+        onFocus={handleNameFocus}
+        onBlur={handleNameBlur}
+        onKeyDown={handleNameKeyDown}
+        sx={{ mt: 1.5, mr: '-1rem', ml: '-1rem', width: 'auto' }}
+      />
+    )
+  }
+)
 
 const ZoneAccordionItem = ({
   accordionRefs,
@@ -232,6 +360,7 @@ const ZoneAccordionItem = ({
   isLast,
   isZoningClassesLoading,
   landUseEditorOpen,
+  onLandUsePendingChange,
   onLandUseEditorToggle,
   onToggle,
   updateFeature,
@@ -250,8 +379,6 @@ const ZoneAccordionItem = ({
     () => getFeatureNameValue(feature.properties.name),
     [feature.properties.name]
   )
-  const [nameDraft, setNameDraft] = useState(persistedName)
-  const debouncedNameDraft = useDebounce(nameDraft, NAME_INPUT_DEBOUNCE_MS)
   const persistedLandUseDraft = useMemo(
     () => getLandUseDraft(feature.properties),
     [
@@ -262,18 +389,17 @@ const ZoneAccordionItem = ({
       feature.properties.soil_change_new_vegetation_pct,
     ]
   )
-  const [landUseDraft, setLandUseDraft] =
-    useState<LandUseDraft>(persistedLandUseDraft)
-  const debouncedLandUseDraft = useDebounce(
-    landUseDraft,
-    LAND_USE_INPUT_DEBOUNCE_MS
+  const [landUseDraft, setLandUseDraft] = useState<LandUseDraft>(
+    persistedLandUseDraft
   )
-  const nameDraftRef = useRef(nameDraft)
-  const isNameFocusedRef = useRef(false)
-  const pendingNameDraftRef = useRef<string | null>(null)
-  const pendingNameCommitRef = useRef<string | null>(null)
+  const landUseDraftRef = useRef(persistedLandUseDraft)
+  const persistedLandUseDraftRef = useRef(persistedLandUseDraft)
   const pendingLandUseDraftRef = useRef<LandUseDraft | null>(null)
   const pendingLandUseCommitRef = useRef<LandUseDraft | null>(null)
+  const landUseCommitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  )
+  const hasPendingLandUseEditsRef = useRef(false)
   const draftProperties = useMemo(
     () => ({
       ...feature.properties,
@@ -301,10 +427,12 @@ const ZoneAccordionItem = ({
       }),
     [feature.properties.zoning_code, t, zoningClasses]
   )
-
-  useEffect(() => {
-    nameDraftRef.current = nameDraft
-  }, [nameDraft])
+  const updateFeatureProperties = useCallback(
+    (properties: Partial<PlanDataFeature['properties']>) => {
+      updateFeature(feature.properties.id, { properties })
+    },
+    [feature.properties.id, updateFeature]
+  )
 
   const isPowerlineZoningClass = useMemo(() => {
     const zoningCode = feature.properties.zoning_code
@@ -335,28 +463,80 @@ const ZoneAccordionItem = ({
   ])
 
   useEffect(() => {
-    if (pendingNameCommitRef.current === persistedName) {
-      pendingNameCommitRef.current = null
-    }
+    landUseDraftRef.current = landUseDraft
+  }, [landUseDraft])
 
-    if (pendingNameDraftRef.current === persistedName) {
-      pendingNameDraftRef.current = null
-    }
-
-    if (
-      isNameFocusedRef.current ||
-      pendingNameDraftRef.current != null ||
-      pendingNameCommitRef.current != null
-    ) {
+  const clearLandUseCommitTimer = useCallback(() => {
+    if (landUseCommitTimerRef.current == null) {
       return
     }
 
-    setNameDraft((previousNameDraft) =>
-      previousNameDraft === persistedName ? previousNameDraft : persistedName
+    clearTimeout(landUseCommitTimerRef.current)
+    landUseCommitTimerRef.current = null
+  }, [])
+
+  const setHasPendingLandUseEdits = useCallback(
+    (nextHasPending: boolean) => {
+      if (hasPendingLandUseEditsRef.current === nextHasPending) {
+        return
+      }
+
+      hasPendingLandUseEditsRef.current = nextHasPending
+      onLandUsePendingChange(feature.properties.id, nextHasPending)
+    },
+    [feature.properties.id, onLandUsePendingChange]
+  )
+
+  const syncLandUsePendingState = useCallback(() => {
+    setHasPendingLandUseEdits(
+      landUseCommitTimerRef.current != null ||
+        pendingLandUseDraftRef.current != null ||
+        pendingLandUseCommitRef.current != null
     )
-  }, [persistedName])
+  }, [setHasPendingLandUseEdits])
+
+  const flushLandUseDraft = useCallback(
+    (draftToCommit?: LandUseDraft) => {
+      clearLandUseCommitTimer()
+
+      const nextDraft =
+        draftToCommit ??
+        pendingLandUseDraftRef.current ??
+        landUseDraftRef.current
+
+      pendingLandUseDraftRef.current = null
+
+      if (areLandUseDraftsEqual(nextDraft, persistedLandUseDraftRef.current)) {
+        pendingLandUseCommitRef.current = null
+        syncLandUsePendingState()
+        return
+      }
+
+      const committedDraft = { ...nextDraft }
+      pendingLandUseCommitRef.current = committedDraft
+      syncLandUsePendingState()
+      updateFeatureProperties(committedDraft)
+    },
+    [clearLandUseCommitTimer, syncLandUsePendingState, updateFeatureProperties]
+  )
+
+  const scheduleLandUseCommit = useCallback(
+    (nextDraft: LandUseDraft) => {
+      const scheduledDraft = { ...nextDraft }
+
+      pendingLandUseDraftRef.current = scheduledDraft
+      clearLandUseCommitTimer()
+      landUseCommitTimerRef.current = setTimeout(() => {
+        flushLandUseDraft(scheduledDraft)
+      }, LAND_USE_INPUT_DEBOUNCE_MS)
+      syncLandUsePendingState()
+    },
+    [clearLandUseCommitTimer, flushLandUseDraft, syncLandUsePendingState]
+  )
 
   useEffect(() => {
+    persistedLandUseDraftRef.current = persistedLandUseDraft
+
     if (
       pendingLandUseCommitRef.current != null &&
       areLandUseDraftsEqual(
@@ -369,24 +549,47 @@ const ZoneAccordionItem = ({
 
     if (
       pendingLandUseDraftRef.current != null &&
-      areLandUseDraftsEqual(pendingLandUseDraftRef.current, persistedLandUseDraft)
+      areLandUseDraftsEqual(
+        pendingLandUseDraftRef.current,
+        persistedLandUseDraft
+      )
     ) {
       pendingLandUseDraftRef.current = null
+      clearLandUseCommitTimer()
     }
 
-    if (
+    const hasPendingLandUseEdits =
+      landUseCommitTimerRef.current != null ||
       pendingLandUseDraftRef.current != null ||
       pendingLandUseCommitRef.current != null
-    ) {
+
+    setHasPendingLandUseEdits(hasPendingLandUseEdits)
+
+    if (hasPendingLandUseEdits) {
       return
     }
 
+    landUseDraftRef.current = persistedLandUseDraft
     setLandUseDraft((previousDraft) =>
       areLandUseDraftsEqual(previousDraft, persistedLandUseDraft)
         ? previousDraft
         : persistedLandUseDraft
     )
-  }, [persistedLandUseDraft])
+  }, [
+    clearLandUseCommitTimer,
+    persistedLandUseDraft,
+    setHasPendingLandUseEdits,
+  ])
+
+  useEffect(
+    () => () => {
+      clearLandUseCommitTimer()
+      pendingLandUseDraftRef.current = null
+      pendingLandUseCommitRef.current = null
+      setHasPendingLandUseEdits(false)
+    },
+    [clearLandUseCommitTimer, setHasPendingLandUseEdits]
+  )
 
   useEffect(() => {
     if (isZoningClassesLoading) {
@@ -406,13 +609,10 @@ const ZoneAccordionItem = ({
         return
       }
 
-      updateFeature(feature.properties.id, {
-        properties: {
-          ...feature.properties,
-          extras: {
-            ...feature.properties.extras,
-            hasValidZoningCode: false,
-          },
+      updateFeatureProperties({
+        extras: {
+          ...feature.properties.extras,
+          hasValidZoningCode: false,
         },
       })
       return
@@ -447,71 +647,19 @@ const ZoneAccordionItem = ({
       landUseUpdates[soilChangeKey] = landUseDefaults[soilChangeKey]
     }
 
-    updateFeature(feature.properties.id, {
-      properties: {
-        ...feature.properties,
-        zoning_code: zoningClass.code,
-        extras: {
-          ...feature.properties.extras,
-          hasValidZoningCode: true,
-        },
-        ...landUseUpdates,
+    updateFeatureProperties({
+      zoning_code: zoningClass.code,
+      extras: {
+        ...feature.properties.extras,
+        hasValidZoningCode: true,
       },
-    })
-  }, [feature.properties, isZoningClassesLoading, updateFeature, zoningClasses])
-
-  useEffect(() => {
-    const pendingNameDraft = pendingNameDraftRef.current
-
-    if (pendingNameDraft == null || debouncedNameDraft !== pendingNameDraft) {
-      return
-    }
-
-    if (debouncedNameDraft === persistedName) {
-      pendingNameDraftRef.current = null
-      return
-    }
-
-    pendingNameDraftRef.current = null
-    pendingNameCommitRef.current = debouncedNameDraft
-
-    updateFeature(feature.properties.id, {
-      properties: {
-        ...feature.properties,
-        name: debouncedNameDraft,
-      },
-    })
-  }, [debouncedNameDraft, feature.properties, persistedName, updateFeature])
-
-  useEffect(() => {
-    const pendingLandUseDraft = pendingLandUseDraftRef.current
-
-    if (
-      pendingLandUseDraft == null ||
-      !areLandUseDraftsEqual(debouncedLandUseDraft, pendingLandUseDraft)
-    ) {
-      return
-    }
-
-    if (areLandUseDraftsEqual(debouncedLandUseDraft, persistedLandUseDraft)) {
-      pendingLandUseDraftRef.current = null
-      return
-    }
-
-    pendingLandUseDraftRef.current = null
-    pendingLandUseCommitRef.current = debouncedLandUseDraft
-
-    updateFeature(feature.properties.id, {
-      properties: {
-        ...feature.properties,
-        ...debouncedLandUseDraft,
-      },
+      ...landUseUpdates,
     })
   }, [
-    debouncedLandUseDraft,
     feature.properties,
-    persistedLandUseDraft,
-    updateFeature,
+    isZoningClassesLoading,
+    updateFeatureProperties,
+    zoningClasses,
   ])
 
   const isLandUseDistributionValid = useMemo(
@@ -550,8 +698,7 @@ const ZoneAccordionItem = ({
 
     const zoningClass = getZoningClassByCode(zoningCode, zoningClasses)
     const nextHasValidZoningCode = zoningClass != null
-    const nextProperties = {
-      ...feature.properties,
+    const nextProperties: Partial<PlanDataFeature['properties']> = {
       zoning_code: zoningClass?.code ?? zoningCode,
       extras: {
         ...feature.properties.extras,
@@ -559,77 +706,31 @@ const ZoneAccordionItem = ({
       },
       ...(zoningClass ? getZoningClassLandUseDefaults(zoningClass) : {}),
     }
-    const nextLandUseDraft = getLandUseDraft(nextProperties)
+    const nextLandUseDraft = getLandUseDraft({
+      ...feature.properties,
+      ...nextProperties,
+    })
 
+    clearLandUseCommitTimer()
     pendingLandUseDraftRef.current = null
     pendingLandUseCommitRef.current = null
+    setHasPendingLandUseEdits(false)
+    landUseDraftRef.current = nextLandUseDraft
     setLandUseDraft((previousDraft) =>
       areLandUseDraftsEqual(previousDraft, nextLandUseDraft)
         ? previousDraft
         : nextLandUseDraft
     )
 
-    updateFeature(feature.properties.id, {
-      properties: nextProperties,
-    })
+    updateFeatureProperties(nextProperties)
   }
 
-  const handleNameChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const nextName = event.target.value
-
-    pendingNameDraftRef.current = nextName
-    setNameDraft(nextName)
-  }
-
-  const handleNameFocus = () => {
-    isNameFocusedRef.current = true
-  }
-
-  const handleNameBlur = () => {
-    isNameFocusedRef.current = false
-
-    if (pendingNameDraftRef.current != null) {
-      const nextName = nameDraftRef.current
-
-      pendingNameDraftRef.current = null
-
-      if (nextName === persistedName) {
-        pendingNameCommitRef.current = null
-        return
-      }
-
-      pendingNameCommitRef.current = nextName
-
-      updateFeature(feature.properties.id, {
-        properties: {
-          ...feature.properties,
-          name: nextName,
-        },
-      })
-
-      return
-    }
-
-    if (pendingNameCommitRef.current != null) {
-      return
-    }
-
-    setNameDraft((previousNameDraft) =>
-      previousNameDraft === persistedName ? previousNameDraft : persistedName
-    )
-  }
-
-  const handleNameKeyDown = (event: KeyboardEvent) => {
-    if (event.key !== 'Enter') {
-      return
-    }
-
-    event.preventDefault()
-    const target = event.target as HTMLElement
-    target.blur()
-  }
+  const handleNameCommit = useCallback(
+    (nextName: string) => {
+      updateFeatureProperties({ name: nextName })
+    },
+    [updateFeatureProperties]
+  )
 
   const handleLandUseValueChange =
     (key: LandUseFieldKey) => (nextValue: number | null) => {
@@ -637,16 +738,18 @@ const ZoneAccordionItem = ({
         return
       }
 
-      setLandUseDraft((previousDraft) => {
-        const nextDraft = {
-          ...previousDraft,
-          [key]: nextValue,
-        }
+      const nextDraft = {
+        ...landUseDraftRef.current,
+        [key]: nextValue,
+      }
 
-        pendingLandUseDraftRef.current = nextDraft
+      if (areLandUseDraftsEqual(nextDraft, landUseDraftRef.current)) {
+        return
+      }
 
-        return nextDraft
-      })
+      landUseDraftRef.current = nextDraft
+      setLandUseDraft(nextDraft)
+      scheduleLandUseCommit(nextDraft)
     }
 
   const handleSoilChangeValueChange = (nextValue: number | null) => {
@@ -654,16 +757,18 @@ const ZoneAccordionItem = ({
       return
     }
 
-    setLandUseDraft((previousDraft) => {
-      const nextDraft = {
-        ...previousDraft,
-        [soilChangeKey]: nextValue,
-      }
+    const nextDraft = {
+      ...landUseDraftRef.current,
+      [soilChangeKey]: nextValue,
+    }
 
-      pendingLandUseDraftRef.current = nextDraft
+    if (areLandUseDraftsEqual(nextDraft, landUseDraftRef.current)) {
+      return
+    }
 
-      return nextDraft
-    })
+    landUseDraftRef.current = nextDraft
+    setLandUseDraft(nextDraft)
+    scheduleLandUseCommit(nextDraft)
   }
 
   return (
@@ -741,8 +846,11 @@ const ZoneAccordionItem = ({
           sx={{
             position: 'relative',
             borderTop: expanded ? 'none' : '1px solid #D6D6D6',
-            borderBottom:
-              expanded ? 'none' : isLast ? '1px solid #D6D6D6' : 'none',
+            borderBottom: expanded
+              ? 'none'
+              : isLast
+                ? '1px solid #D6D6D6'
+                : 'none',
           }}
         >
           <ButtonBase
@@ -818,19 +926,11 @@ const ZoneAccordionItem = ({
                 pr: SUMMARY_ROW_PADDING_X,
               }}
             >
-              <Typography sx={FIELD_LABEL_SX}>
-                {t('sidebar.plan_settings.areas.rename_label')}
-              </Typography>
-
-              <TextField
-                aria-label={`${t('sidebar.plan_settings.areas.rename_label')} ${displayName}`}
-                value={nameDraft}
-                onChange={handleNameChange}
-                onFocus={handleNameFocus}
-                onBlur={handleNameBlur}
-                onKeyDown={handleNameKeyDown}
-                variant="outlined"
-                sx={TEXT_FIELD_SX}
+              <ZoneNameField
+                label={t('sidebar.plan_settings.areas.rename_label')}
+                ariaLabel={`${t('sidebar.plan_settings.areas.rename_label')} ${displayName}`}
+                persistedName={persistedName}
+                onCommit={handleNameCommit}
               />
 
               <Box sx={{ mt: '1rem' }}>
@@ -841,7 +941,7 @@ const ZoneAccordionItem = ({
                   onChange={handleZoningCodeChange}
                   successIndicatorMode="hidden"
                   value={feature.properties.zoning_code ?? ''}
-                  sx={{ mb: 0 }}
+                  sx={{ mb: 0, mr: '-1rem', ml: '-1rem', width: 'auto' }}
                   labelSx={FIELD_LABEL_SX}
                   selectSx={{
                     '&.MuiOutlinedInput-root': {
@@ -912,6 +1012,7 @@ const ZoneAccordionItem = ({
                       gap: '0.75rem',
                       px: 0,
                       py: '0.125rem',
+                      mt: '1rem',
                       textAlign: 'left',
                       ...ACCORDION_BUTTON_RESET_SX,
                     }}
@@ -930,9 +1031,10 @@ const ZoneAccordionItem = ({
                           height: 8,
                           color: '#111111',
                           flexShrink: 0,
+                          mt: '-0.1rem',
                           transform: landUseEditorOpen
-                            ? 'none'
-                            : 'rotate(180deg)',
+                            ? 'rotate(180deg)'
+                            : 'none',
                           transition: 'transform 160ms ease',
                         }}
                       />
@@ -968,6 +1070,7 @@ const ZoneAccordionItem = ({
                     >
                       <Typography
                         sx={{
+                          mt: '0.1rem',
                           fontSize: '0.625rem',
                           fontWeight: 700,
                           lineHeight: '0.875rem',
