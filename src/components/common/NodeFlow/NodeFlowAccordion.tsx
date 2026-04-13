@@ -27,6 +27,8 @@ export type NodeFlowAccordionProps = NodeFlowMarkerProps & {
   showConnectorBottom?: boolean
   sx?: SxProps<Theme>
   rowSx?: SxProps<Theme>
+  rowSxOpen?: SxProps<Theme>
+  rowSxClosed?: SxProps<Theme>
   bodySx?: SxProps<Theme>
 }
 
@@ -52,6 +54,8 @@ const NodeFlowAccordionBase = ({
   ariaLabel,
   sx,
   rowSx,
+  rowSxOpen,
+  rowSxClosed,
   bodySx,
 }: NodeFlowAccordionProps) => {
   const [internalOpen, setInternalOpen] = useState(defaultOpen)
@@ -118,7 +122,10 @@ const NodeFlowAccordionBase = ({
           ariaExpanded={isOpen}
           state="available"
           disableOuterOffset
-          rowSx={rowSx}
+          rowSx={[
+            ...(Array.isArray(rowSx) ? rowSx : rowSx ? [rowSx] : []),
+            ...(Array.isArray(rowSxClosed) ? rowSxClosed : rowSxClosed ? [rowSxClosed] : []),
+          ]}
         />
       )}
 
@@ -166,7 +173,8 @@ const NodeFlowAccordionBase = ({
                   backgroundColor: 'transparent',
                 },
               },
-              ...(Array.isArray(rowSx) ? rowSx : [rowSx]),
+              ...(Array.isArray(rowSx) ? rowSx : rowSx ? [rowSx] : []),
+              ...(Array.isArray(rowSxOpen) ? rowSxOpen : rowSxOpen ? [rowSxOpen] : []),
             ]}
           />
 
