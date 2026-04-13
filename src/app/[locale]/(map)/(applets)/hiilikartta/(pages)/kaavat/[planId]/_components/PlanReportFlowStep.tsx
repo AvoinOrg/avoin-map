@@ -20,13 +20,14 @@ import {
   NodeFlowButtonProps,
   NodeFlowButton,
 } from '#/components/common/NodeFlow'
-import { Delete, Eco, Error as ErrorIcon, InfoCircle } from '#/components/icons'
+import { Delete, Eco, Error as ErrorIcon } from '#/components/icons'
 import { pp } from '#/common/utils/general'
 
 import {
   CalculationState,
   PlanConf,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
+import { getReportCalculatedDate } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
 
 type PlanReportFlowStepProps = Pick<
   NodeFlowButtonProps,
@@ -125,9 +126,9 @@ const PlanReportFlowStepBase = ({
 
   const formattedCalculatedDate =
     reportData?.metadata.timestamp != null
-      ? new Date(reportData.metadata.timestamp).toLocaleDateString(
-          locale === 'fi' ? 'fi-FI' : locale
-        )
+      ? getReportCalculatedDate(
+          reportData.metadata.timestamp
+        )?.toLocaleDateString(locale === 'fi' ? 'fi-FI' : locale)
       : undefined
 
   const calculatedOnLabel =
@@ -353,18 +354,7 @@ const PlanReportFlowStepBase = ({
                   />
                   :
                 </Typography>
-
-                <InfoCircle
-                  sx={{
-                    position: 'absolute',
-                    top: '0.125rem',
-                    right: 0,
-                    width: 16,
-                    height: 16,
-                    color: '#A0A0A0',
-                    flexShrink: 0,
-                  }}
-                />
+                {/* Hidden until the related tooltip copy is ready. */}
               </Box>
 
               <Box
@@ -414,6 +404,9 @@ const PlanReportFlowStepBase = ({
                         fontWeight: 700,
                         lineHeight: '0.875rem',
                         letterSpacing: '0.08em',
+                      },
+                      '& .MuiSelect-select .MuiTypography-root': {
+                        color: '#F0F0F1',
                       },
                       '& .MuiSelect-icon': {
                         color: '#F0F0F1',
@@ -539,7 +532,8 @@ const PlanReportFlowStepBase = ({
               gap: '0.625rem',
               width: 'fit-content',
               maxWidth: '100%',
-              px: 0,
+              mt: 1,
+              px: 1.3,
               py: 0,
               color: '#111111',
               textAlign: 'left',

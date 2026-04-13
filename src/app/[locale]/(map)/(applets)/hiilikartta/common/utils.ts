@@ -460,6 +460,22 @@ export const processCalcQueryToReportData = (data: any): ReportData => {
   return reportData
 }
 
+export const getReportCalculatedDate = (timestamp?: number) => {
+  if (timestamp == null || Number.isNaN(timestamp)) {
+    return undefined
+  }
+
+  const normalizedTimestamp =
+    timestamp >= 1_000_000_000_000 ? timestamp : timestamp * 1000
+  const calculatedDate = new Date(normalizedTimestamp)
+
+  if (Number.isNaN(calculatedDate.getTime())) {
+    return undefined
+  }
+
+  return calculatedDate
+}
+
 export const checkIsValidLandUseDistribution = (
   properties: FeatureProperties
 ) => {
