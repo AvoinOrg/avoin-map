@@ -78,9 +78,6 @@ Use this skill when the user asks for any of the following:
 - If the user provided a Figma URL or design fidelity matters, use `figma-mcp`
   to normalize the Figma target and fetch the needed metadata, screenshots, or
   design context.
-- If the task is UI-facing, also use `ui-live-iteration` so the plan includes
-  the future edit and verification loop for desktop and mobile, but stop before
-  any implementation.
 - If the plan likely requires new or changed translation keys, consult
   `tolgee-api-upsert` specifically to map namespace, locale, and copy
   implications, but do not write to Tolgee during the planning phase.
@@ -99,8 +96,9 @@ Use this skill when the user asks for any of the following:
 - Call out regression-sensitive areas and why they are sensitive.
 - Name the files, modules, or behaviors that should remain unchanged so the
   eventual implementation stays tightly scoped.
-- Include the future verification strategy, especially the targeted visual
-  checks the implementation pass should run.
+- Include follow-up verification ideas only when they are relevant to the
+  requested plan, and do not assume browser-based visual checks unless the user
+  explicitly asked for them.
 - Separate confirmed work from open questions, assumptions, and risks.
 
 ### 6. Enforce plan-only guardrails
@@ -139,8 +137,8 @@ Use this skill when the user asks for any of the following:
 - State the `.tmp/` folder path the first time it is created.
 - Mention the `plan.md` and `history.md` paths when relevant.
 - Make it explicit that the work remains planning-only.
-- Make it explicit when the plan relied on `figma-mcp`, `ui-live-iteration`,
-  and `tolgee-api-upsert`.
+- Make it explicit when the plan relied on `figma-mcp` and
+  `tolgee-api-upsert`.
 - Make it explicit which mechanisms were inspected so the user can see the plan
   is grounded in the real implementation.
 - Make it explicit which changes are intentionally out of scope so the future
@@ -154,8 +152,6 @@ Use this skill when the user asks for any of the following:
   [scripts/init_tmp_plan_chat.mjs](scripts/init_tmp_plan_chat.mjs)
 - Figma-side inspection workflow:
   `agents/skills/figma-mcp/SKILL.md`
-- UI implementation and verification workflow to mirror in the plan:
-  `agents/skills/ui-live-iteration/SKILL.md`
 - Translation planning workflow when copy or keys are affected, using
   `tolgee-api-upsert` specifically:
   `agents/skills/tolgee-api-upsert/SKILL.md`

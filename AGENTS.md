@@ -25,14 +25,12 @@ standalone sites.
 ## Temporary chat notes
 
 - Temporary per-chat markdown notes live under `.tmp/` and remain gitignored.
-- Use the `tmp-documenting` skill when the user asks for a running temp note or
-  per-chat documentation.
 - Use the `tmp-plan` skill when the user wants a chat-specific planning folder
   with a detailed `plan.md`, a chronological `history.md`, and planning-only
   investigation without implementation yet.
-- For `tmp-documenting`, keep one markdown file per chat under `.tmp/`.
-- For `tmp-plan`, keep one chat-specific folder under `.tmp/` with `plan.md`
-  and `history.md`.
+- The `tmp-documenting` workflow keeps one markdown file per chat under `.tmp/`.
+- When using `tmp-plan`, keep one chat-specific folder under `.tmp/` with
+  `plan.md` and `history.md`.
 - Write each user instruction into the active temp note or planning history
   file verbatim.
 - If you ask the user a question, write the question and the answer verbatim
@@ -56,8 +54,8 @@ standalone sites.
   `history.md`. Use it for implementation planning, plan revisions, and design
   investigation that must stay planning-only until the user asks to implement.
   It should inspect the real code paths and mechanisms involved, keep the plan
-  scoped to only the necessary changes, and coordinate with `figma-mcp`,
-  `ui-live-iteration`, and `tolgee-api-upsert` when relevant.
+  scoped to only the necessary changes, and coordinate with `figma-mcp` and
+  `tolgee-api-upsert` when relevant.
   (file: `agents/skills/tmp-plan/SKILL.md`)
 - `figma-mcp`: Inspect Figma files and nodes through remote Figma MCP,
   normalize public Figma URLs into `fileKey` and `nodeId` inputs, and fetch
@@ -66,15 +64,12 @@ standalone sites.
 - `tolgee-api-upsert`: Add or update Tolgee translation keys via the Tolgee
   API, refresh local exports, and follow the repo’s `TText`/ICU authoring
   rules. (file: `agents/skills/tolgee-api-upsert/SKILL.md`)
-- `ui-live-iteration`: Implement and iterate on Avoin Map UI changes with
-  visual verification. (file: `agents/skills/ui-live-iteration/SKILL.md`)
 
 ## Figma MCP (Remote)
 
 - Use the `figma-mcp` skill when the task is primarily about Figma connectivity,
   credential handling, URL normalization, metadata fetches, screenshots, design
-  context, or exact asset extraction. Use `ui-live-iteration` when the Figma
-  work continues into app UI implementation.
+  context, or exact asset extraction.
 - Use the remote Figma MCP tools (`mcp__figma_remote__*`).
 - The Figma MCP endpoint is fixed at `https://mcp.figma.com/mcp`.
 - The devcontainer image includes `jq`, which is useful for safe inspection of
@@ -251,36 +246,13 @@ standalone sites.
 
 - Jest is configured, but coverage is limited (routing has unit tests).
 - Applet-specific e2e tests are not standardized yet.
-- For UI changes, prefer the repo-controlled visual runner first. The default
-  path is `yarn visual:after-edit -- <path1> <path2> ...`, which forwards to
-  the targeted visual regression runner.
-- Use `yarn visual:changed --files <comma-separated-paths>` when you explicitly
-  want changed-file targeting.
-- For every completed UI edit pass, verify the layout in both desktop and
-  mobile viewports before finalizing.
-- The visual runner defaults to `--browser-mode=auto`: non-WebGL routes stay in
-  true headless Chromium, while map/WebGL routes switch to Xvfb-backed
-  Chromium automatically.
-- Treat WebGL-capable browser launch as the default for this repo's map routes.
-  When you are not using the repo visual runner or live-browser scripts, launch
-  ad-hoc browser automation in a WebGL-compatible mode instead of plain
-  headless defaults.
-- Only force `--browser-mode=headless` when you specifically need to reproduce
-  a strict headless issue. Only force `--browser-mode=xvfb-webgl` when you want
-  to probe the WebGL-capable path directly.
-- Use `yarn visual:webgl:smoke` to confirm that the WebGL-capable browser path
-  is healthy, and `yarn visual:webgl:smoke:headless` to check whether strict
-  headless currently lacks WebGL support.
-- Prioritize the in-container Playwright visual runner for normal UI
-  verification, and use live/shared browser workflows only when the task needs
-  interactive review, shared visibility, extension state, or existing auth/app
-  state that the runner does not cover.
-- If a UI pass is still visibly off after verification, continue iterating:
-  edit, recheck in the in-container browser, and repeat until the result is
-  acceptable rather than stopping after a single pass.
-- If the in-container visual runner or browser workflow is unavailable, fall
-  back to the host shared-browser workflow rather than skipping visual
-  verification.
+- Choose verification appropriate to the task instead of assuming browser-based
+  visual testing by default.
+- Use `yarn visual:after-edit -- <path1> <path2> ...` or
+  `yarn visual:changed --files <comma-separated-paths>` when visual regression
+  coverage is explicitly needed.
+- Use browser-based verification only when the user asks for it or the task
+  clearly requires it.
 - Visual regression artifacts are stored under `.dev/visual-regression/` (gitignored).
 - Visual commands target `http://127.0.0.1:3000` first (reuse an already running `yarn dev` server when available). If the server is unreachable, the runner may temporarily start a local dev server as a fallback.
 - Do not perform a "full dev-runtime reset" on your own in this devcontainer.
@@ -293,81 +265,3 @@ standalone sites.
   you started yourself, or pause and ask the user before any broad reset.
 - Use `yarn visual:baseline` to create or refresh local visual baselines intentionally.
 - Add `--no-start` when calling `node utils/scripts/visual/run.js` directly if you want to fail instead of allowing the fallback temporary server.
-- The built-in MCP browser used by assistants is not the source of truth for
-  WebGL verification because its launcher/runtime is not repo-controlled. Use
-  the repo visual runner or the documented live-browser workflows instead.
-- For host-browser state reuse (auth/imported plans on `localhost:3000`), use the CDP snapshot sync:
-  1. Launch a dedicated Chrome profile on Windows with remote debugging enabled.
-  2. Open `http://localhost:3000` in that Chrome window and log in/import the plan.
-  3. Run `yarn browser-state:sync:localhost` in the devcontainer.
-  4. Run host-state visual commands (for example `yarn visual:after-edit:host-state -- <paths>`).
-- Host-state scripts intentionally target `http://localhost:3000` (not `127.0.0.1`) because browser storage state is origin-specific.
-- Exported browser state is sensitive (cookies + local app state). It is stored under `.dev/browser-state/` (gitignored). Use a dedicated Chrome debug profile, not your main daily profile.
-- For ad-hoc interactive Playwright scripts, use `browser.newContext({ ignoreHTTPSErrors: true, storageState: '.dev/browser-state/localhost-3000.storage-state.json' })` and target `http://localhost:3000/...` routes (not `127.0.0.1`).
-- For ad-hoc Playwright or screenshot scripts that open map pages, prefer the
-  repo visual runner first. If you need a one-off script, launch it under
-  `xvfb-run -a` and use Chromium WebGL/SwiftShader flags such as
-  `--enable-webgl`, `--ignore-gpu-blocklist`,
-  `--enable-unsafe-swiftshader`, `--use-gl=angle`, and
-  `--use-angle=swiftshader`.
-- Windows PowerShell example for starting Chrome with CDP (dedicated profile):
-  ```powershell
-  $chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
-  $profile = "$env:LOCALAPPDATA\AvoinMap-Codex-Chrome"
-  Start-Process -FilePath $chrome -ArgumentList @(
-    '--remote-debugging-port=9222',
-    '--remote-debugging-address=0.0.0.0',
-    "--user-data-dir=$profile",
-    'http://localhost:3000/fi/hiilikartta'
-  )
-  ```
-- The PowerShell host Chrome command uses a fixed `--user-data-dir` path, so it is a persistent profile by design (extensions, cache, cookies, localStorage, IndexedDB, etc. survive restarts as long as you reuse the same path).
-- Host-state visual scripts:
-  - `yarn visual:baseline:host-state`
-  - `yarn visual:changed:host-state --files <comma-separated-paths>`
-  - `yarn visual:after-edit:host-state -- <path1> <path2> ...`
-- Live shared browser control (real-time shared interaction, separate from storage-state sync):
-  - `browser-state:sync:localhost` exports a storage snapshot for visual screenshots. It does **not** provide live shared control.
-  - `browser:live:*` commands attach to a real shared browser session (host Chrome via CDP, or headed Chromium in the container).
-  - Live control metadata (lock/session/log files) is stored under `.dev/live-browser/` (gitignored).
-  - Container shared-browser profile persistence:
-    - The container browser already persists state because it uses `--user-data-dir` under `/app` (a host bind mount).
-    - The persistent host folder can be relocated with `.env` variable `LIVE_BROWSER_CONTAINER_DATA_HOST_DIR`.
-    - When unset, Docker Compose defaults to project-local `./.dev/live-browser-persist` (gitignored).
-    - The container path remains fixed at `/app/.dev/live-browser-persist`.
-  - Container browser runtime for extensions:
-    - `browser:live:container:start` prefers Google Chrome stable in the container (for easier extension install from the Chrome Web Store or manual extension workflows).
-    - If Chrome stable is unavailable, it falls back to Playwright bundled Chromium and prints a warning.
-    - Container start now enables WebGL via software rendering defaults (SwiftShader) to avoid Linux container GPU blocklist failures in map views.
-    - You can pass extra launch flags with repeated `-- --browser-arg=<flag>` (for example `-- --browser-arg=--use-angle=gl`).
-    - Window sizing controls: `-- --window-size=1600,960`, `-- --start-maximized`, or `-- --no-window-size`.
-    - Manual extension install is acceptable and extension/profile data persists when using the same profile folder.
-  - Optional `.env` example for relocating the container shared-browser persistent profile (WSL/Linux path format):
-    - `LIVE_BROWSER_CONTAINER_DATA_HOST_DIR=/mnt/c/Users/<you>/AvoinMap/live-browser-data`
-  - Turn-taking lock (recommended before interactive actions):
-    - `yarn browser:live:lock:take:codex`
-    - `yarn browser:live:lock:take:human`
-    - `yarn browser:live:lock:status`
-    - `yarn browser:live:lock:release` (defaults to `codex`; override with `-- --owner=human`)
-    - Use `-- --mode=container-headed` when locking for the container-headed workflow.
-  - Host Chrome shared-tab workflow (what you see is what Codex sees):
-    1. Launch dedicated Windows Chrome with CDP enabled (PowerShell example above).
-    2. Open `http://localhost:3000/...` in that Chrome window.
-    3. (Optional but recommended) Take a lock: `yarn browser:live:lock:take:human`
-    4. Verify attachability: `yarn browser:live:host:check`
-    5. Attach from the devcontainer: `yarn browser:live:host:attach -- --page-match hiilikartta`
-    6. If host attach is unavailable/fails, immediately switch to the container
-       headed workflow below (`browser:live:container:start` + `attach`) to
-       continue visual verification without blocking.
-  - Container headed Chromium shared-window workflow (native host window via devcontainer GUI bridge):
-    1. Start the shared browser: `yarn browser:live:container:start`
-    2. (Optional) Take a lock with `-- --mode=container-headed`
-    3. Attach from the devcontainer: `yarn browser:live:container:attach`
-    4. Stop the session: `yarn browser:live:container:stop`
-  - Quick verification options:
-    - `--screenshot-out .dev/visual-regression/report/live-check.png`
-    - `--assert-lock-owner codex` (or `human`) to enforce turn-taking
-  - Recovery:
-    - Host CDP unreachable: relaunch the dedicated host Chrome profile with `--remote-debugging-port=9222`.
-    - Stale container session file: `yarn browser:live:container:stop -- --force-clean`
-    - Stale lock: check `yarn browser:live:lock:status`, then release with `--force` if needed.
