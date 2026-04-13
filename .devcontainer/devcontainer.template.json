@@ -39,7 +39,7 @@
   "mounts": [
     "type=bind,source=${localEnv:HOME}/.ssh/sockets,target=/ssh-sockets",
     "type=bind,source=${localWorkspaceFolder}/.codex/auth.json,target=/app/.codex/auth.json,consistency=cached",
-    "type=bind,source=${localWorkspaceFolder}/.codex/credentials.json,target=/app/.codex/credentials.json,consistency=cached",
+    "type=bind,source=${localWorkspaceFolder}/.codex/.credentials.json,target=/app/.codex/.credentials.json,consistency=cached",
     "type=bind,source=${localWorkspaceFolder}/.codex/rules/default.rules,target=/app/.codex/rules/default.rules"
   ],
   "remoteEnv": {
