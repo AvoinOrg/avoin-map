@@ -9,7 +9,26 @@ import DialogTitle from '@mui/material/DialogTitle'
 import { useUIStore } from '#/common/store'
 import { useTranslate } from '@tolgee/react'
 import { ConfirmationDialogOptions } from '#/common/types/state'
-import { Typography } from '@mui/material'
+
+const actionButtonSx = {
+  typography: 'body1',
+  minWidth: '6.5rem',
+  px: 2.5,
+  py: 1,
+  borderRadius: '999px',
+  borderColor: 'neutral.main',
+  backgroundColor: 'neutral.light',
+  color: 'neutral.darker',
+  boxShadow: '1px 1px 7px 0px #EEECEC',
+  '@container (max-width: 330px)': {
+    flex: '1 1 0',
+    minWidth: 0,
+  },
+  '&:hover': {
+    backgroundColor: 'primary.lighter',
+    borderColor: 'primary.main',
+  },
+}
 
 const ConfirmationDialog = () => {
   const confirmationDialogOptions = useUIStore(
@@ -28,7 +47,7 @@ const ConfirmationDialog = () => {
         setOpen(false)
       }
     }
-  }, [confirmationDialogOptions])
+  }, [confirmationDialogOptions, open])
 
   const localOptions: ConfirmationDialogOptions = useMemo(() => {
     const options = { ...confirmationDialogOptions }
@@ -39,7 +58,7 @@ const ConfirmationDialog = () => {
       options.cancelText = t('components.confirmation_dialog.cancel')
     }
     return options
-  }, [confirmationDialogOptions])
+  }, [confirmationDialogOptions, t])
 
   const handleAccept = () => {
     setOpen(false)
@@ -61,39 +80,63 @@ const ConfirmationDialog = () => {
       onClose={handleCancel}
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
+      sx={{
+        '& .MuiDialog-paper': {
+          maxWidth: '30rem',
+          mx: 1,
+          containerType: 'inline-size',
+          borderRadius: '0.625rem',
+          border: '1px solid',
+          borderColor: 'neutral.main',
+          backgroundColor: 'neutral.lighter',
+          pt: 1,
+          // boxShadow: '1px 1px 7px 0px #EEECEC',
+        },
+      }}
     >
       {localOptions.title != null && (
-        <DialogTitle id="alert-dialog-title">{localOptions.title}</DialogTitle>
+        <DialogTitle
+          id="alert-dialog-title"
+          sx={{
+            typography: 'h2',
+            color: 'neutral.darker',
+            px: 3,
+            pt: 3,
+            pb: localOptions.content != null ? 1 : 2,
+          }}
+        >
+          {localOptions.title}
+        </DialogTitle>
       )}
       {localOptions.content != null && (
-        <DialogContent>
+        <DialogContent sx={{ px: 3, pb: 0 }}>
           <DialogContentText
-            sx={{ color: 'neutral.darker' }}
+            sx={{ typography: 'body2', color: 'neutral.darker' }}
             id="alert-dialog-description"
           >
             {localOptions.content}
           </DialogContentText>
         </DialogContent>
       )}
-      <DialogActions>
+      <DialogActions sx={{ px: 3, pb: 3, pt: 3, gap: 1.5 }}>
         <Button
           onClick={handleCancel}
           aria-label={localOptions.cancelText}
+          variant="outlined"
           disableFocusRipple
+          sx={actionButtonSx}
         >
-          <Typography sx={{ color: 'neutral.darker' }}>
-            {localOptions.cancelText}
-          </Typography>
+          {localOptions.cancelText}
         </Button>
         <Button
           onClick={handleAccept}
           aria-label={localOptions.confirmText}
           autoFocus
+          variant="outlined"
           disableFocusRipple
+          sx={actionButtonSx}
         >
-          <Typography sx={{ color: 'neutral.darker' }}>
-            {localOptions.confirmText}
-          </Typography>
+          {localOptions.confirmText}
         </Button>
       </DialogActions>
     </Dialog>
