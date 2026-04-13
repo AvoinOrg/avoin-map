@@ -27,6 +27,7 @@ import CarbonOverviewGraph from '#/app/[locale]/(map)/(applets)/hiilikartta/comp
 import ClipboardCopyWrapper from '#/components/common/ClipboardCopyWrapper'
 import { LoadingSpinner } from '#/components/Loading'
 import { useUIStore } from '#/common/store'
+import { getReportCalculatedDate } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
 
 const MAX_WIDTH = '1000px'
 
@@ -466,9 +467,9 @@ const Page = () => {
                   display: 'inline',
                 })}
               >
-                {new Date(
-                  planConfs[0].reportData.metadata.timestamp * 1000
-                ).toLocaleDateString(navigator.language)}
+                {getReportCalculatedDate(
+                  planConfs[0].reportData.metadata.timestamp
+                )?.toLocaleDateString(navigator.language)}
               </Typography>
             </Col>
           )}
