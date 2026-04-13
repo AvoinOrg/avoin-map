@@ -121,6 +121,9 @@ export const NumberInputField = ({
   onValueCommitted,
   ...rootProps
 }: NumberInputFieldProps) => {
+  const inputHeight = '2rem'
+  const spinButtonHeight = 'calc(2rem / 2)'
+  const spinButtonWidth = '1.75rem'
   const hasLabel = Boolean(label)
   const generatedId = React.useId()
   const id = idProp ?? generatedId
@@ -271,6 +274,7 @@ export const NumberInputField = ({
                       {
                         display: 'flex',
                         alignSelf: 'stretch',
+                        height: '100%',
                         maxHeight: 'unset',
                         borderLeft: '1px solid',
                         borderColor: 'divider',
@@ -278,10 +282,11 @@ export const NumberInputField = ({
                         px: 0,
                         alignItems: 'stretch',
                         '& button': {
-                          py: 0,
-                          pl: 0.5,
-                          pr: 1.25,
-                          flex: 1,
+                          p: 0,
+                          width: spinButtonWidth,
+                          minWidth: spinButtonWidth,
+                          height: spinButtonHeight,
+                          minHeight: spinButtonHeight,
                           borderRadius: 0,
                           overflow: 'hidden',
                         },
@@ -302,6 +307,7 @@ export const NumberInputField = ({
                         display: 'flex',
                         flexDirection: 'column',
                         alignSelf: 'stretch',
+                        height: '100%',
                       }}
                     >
                       <BaseNumberField.Increment
@@ -313,8 +319,11 @@ export const NumberInputField = ({
                         }
                       >
                         <KeyboardArrowUpIcon
-                          fontSize={size}
-                          sx={{ transform: 'translateY(2px)' }}
+                          fontSize="inherit"
+                          sx={{
+                            fontSize: size === 'small' ? '1rem' : '1.125rem',
+                            transform: 'translateY(1px)',
+                          }}
                         />
                       </BaseNumberField.Increment>
                       <BaseNumberField.Decrement
@@ -326,8 +335,11 @@ export const NumberInputField = ({
                         }
                       >
                         <KeyboardArrowDownIcon
-                          fontSize={size}
-                          sx={{ transform: 'translateY(-2px)' }}
+                          fontSize="inherit"
+                          sx={{
+                            fontSize: size === 'small' ? '1rem' : '1.125rem',
+                            transform: 'translateY(-1px)',
+                          }}
                         />
                       </BaseNumberField.Decrement>
                     </Box>
@@ -335,7 +347,8 @@ export const NumberInputField = ({
                 }
                 sx={[
                   {
-                    minHeight: '1.25rem',
+                    height: inputHeight,
+                    minHeight: inputHeight,
                     pr: 0,
                     borderRadius: '999px',
                     overflow: 'hidden',
@@ -346,8 +359,9 @@ export const NumberInputField = ({
                       borderRadius: '999px',
                     },
                     '& .MuiInputBase-input': {
+                      boxSizing: 'border-box',
                       px: '1rem',
-                      py: '0.1875rem',
+                      py: 0,
                       fontSize: '0.6875rem',
                       fontWeight: 400,
                       lineHeight: 'normal',
