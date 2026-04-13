@@ -4,8 +4,9 @@ import React from 'react'
 import { Box, SxProps, Theme } from '@mui/material'
 
 import FlowNode from '../FlowNode'
+import { NODE_FLOW_MARKER_CENTER_X } from './NodeFlowButton'
 
-export const NODE_FLOW_CONNECTOR_X = '0.35rem'
+export const NODE_FLOW_CONNECTOR_X = NODE_FLOW_MARKER_CENTER_X
 
 export type NodeFlowContainerProps = {
   children: React.ReactNode

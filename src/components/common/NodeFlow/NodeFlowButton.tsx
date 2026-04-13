@@ -4,6 +4,7 @@ import React from 'react'
 import { Box, SxProps, Theme, Typography } from '@mui/material'
 
 import ArrowRight from '#/components/icons/ArrowRight'
+import CheckcircleCheckedFilled from '#/components/icons/CheckcircleCheckedFilled'
 
 export type NodeFlowButtonState =
   | 'available'
@@ -12,7 +13,13 @@ export type NodeFlowButtonState =
   | 'complete'
   | 'error'
 
-export type NodeFlowButtonProps = {
+export type NodeFlowMarkerProps = {
+  completed?: boolean
+  completedIcon?: React.ReactNode
+  incompleteIcon?: React.ReactNode
+}
+
+export type NodeFlowButtonProps = NodeFlowMarkerProps & {
   title: React.ReactNode
   helper?: React.ReactNode
   helperLeading?: React.ReactNode
@@ -41,10 +48,43 @@ export const NODE_FLOW_OUTER_OFFSET = {
   desktop: '-0.875rem',
 } as const
 
+export const NODE_FLOW_ROW_INSET = {
+  mobile: '0.75rem',
+  desktop: '0.875rem',
+} as const
+
 export const NODE_FLOW_OUTER_WIDTH = {
   mobile: 'calc(100% + 1.5rem)',
   desktop: 'calc(100% + 1.75rem)',
 } as const
+
+export const NODE_FLOW_MARKER_COLOR = '#0D6044'
+export const NODE_FLOW_MARKER_BOX_WIDTH = '0.75rem'
+export const NODE_FLOW_MARKER_BOX_HEIGHT = '0.75rem'
+export const NODE_FLOW_MARKER_CENTER_X = '0.375rem'
+
+const DefaultCompletedMarker = () => (
+  <CheckcircleCheckedFilled
+    sx={{
+      width: 12,
+      height: 12,
+      color: 'currentColor',
+      flexShrink: 0,
+    }}
+  />
+)
+
+const DefaultIncompleteMarker = () => (
+  <Box
+    sx={{
+      width: 8,
+      height: 8,
+      borderRadius: '50%',
+      backgroundColor: 'currentColor',
+      flexShrink: 0,
+    }}
+  />
+)
 
 const getRowStyles = (state: NodeFlowButtonState) => {
   switch (state) {
@@ -106,6 +146,9 @@ const NodeFlowButtonBase = ({
   title,
   helper,
   helperLeading,
+  completed,
+  completedIcon,
+  incompleteIcon,
   leading,
   trailing,
   onClick,
@@ -119,8 +162,15 @@ const NodeFlowButtonBase = ({
   helperSx,
 }: NodeFlowButtonProps) => {
   const isDisabled = disabled || state === 'disabled'
+  const isCompleted = completed ?? state === 'complete'
   const isInteractive = !isDisabled && onClick != null
   const rowStyles = getRowStyles(state)
+  const resolvedMarker =
+    leading ??
+    (isCompleted
+      ? (completedIcon ?? <DefaultCompletedMarker />)
+      : (incompleteIcon ?? <DefaultIncompleteMarker />))
+  const markerColor = leading ? rowStyles.accentColor : NODE_FLOW_MARKER_COLOR
   const resolvedTrailing =
     trailing === undefined ? (
       <ArrowRight
@@ -193,7 +243,7 @@ const NodeFlowButtonBase = ({
               width: '100%',
               minWidth: 0,
               minHeight: '1.5rem',
-              px: '0.75rem',
+              px: NODE_FLOW_ROW_INSET,
               py: '0.25rem',
               borderRadius: '0.9375rem',
               border: `0.2px solid ${rowStyles.borderColor}`,
@@ -218,19 +268,20 @@ const NodeFlowButtonBase = ({
             ...(Array.isArray(rowSx) ? rowSx : [rowSx]),
           ]}
         >
-          {leading && (
-            <Box
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-                color: rowStyles.accentColor,
-              }}
-            >
-              {leading}
-            </Box>
-          )}
+          <Box
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flex: '0 0 auto',
+              width: NODE_FLOW_MARKER_BOX_WIDTH,
+              height: NODE_FLOW_MARKER_BOX_HEIGHT,
+              overflow: 'visible',
+              color: markerColor,
+            }}
+          >
+            {resolvedMarker}
+          </Box>
 
           <Typography
             sx={{

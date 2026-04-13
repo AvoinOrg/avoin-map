@@ -28,12 +28,7 @@ import {
 } from '#/components/common/NodeFlow'
 import { LoadingSpinner } from '#/components/Loading'
 import CheckcircleCheckedFilled from '#/components/icons/CheckcircleCheckedFilled'
-import {
-  Checkcircle,
-  Polygon,
-  QuestionCircleOutline,
-  Upload,
-} from '#/components/icons'
+import { QuestionCircleOutline, Upload } from '#/components/icons'
 import { getRoute } from '#/common/routing/routing-client'
 import { openLoginWindow } from '#/common/utils/auth'
 import { useUIStore } from '#/common/store'
@@ -218,17 +213,6 @@ const UploadField = ({
   )
 }
 
-const FlowStepLeadingIcon = () => (
-  <CheckcircleCheckedFilled
-    sx={{
-      width: 12,
-      height: 12,
-      color: '#0D6044',
-      flexShrink: 0,
-    }}
-  />
-)
-
 const Page = () => {
   const params = useParams<{ locale: string; planId: string }>()
   const planId = params.planId
@@ -290,13 +274,6 @@ const Page = () => {
     isCalculationMutationPending: calcPost.isPending,
   })
   const isAreasStepComplete = isReadyPlan && !hasNoFeatures && areZonesValid
-  const areasStepState = isReadyPlan
-    ? isAreasStepComplete
-      ? 'complete'
-      : 'available'
-    : 'disabled'
-  const areasStepIconColor =
-    areasStepState === 'disabled' ? 'rgba(13, 96, 68, 0.5)' : '#0D6044'
 
   const cancelPendingAutoOpen = useCallback(() => {
     if (autoOpenFrameRef.current == null) {
@@ -915,13 +892,8 @@ const Page = () => {
                 <T keyName="sidebar.plan_flow.import_title" ns="hiilikartta" />
               )
             }
-            leading={
-              isReadyPlan ? (
-                <CheckcircleCheckedFilled sx={{ width: 12, height: 12 }} />
-              ) : (
-                <Upload sx={{ width: 12, height: 14 }} />
-              )
-            }
+            completed={isReadyPlan}
+            incompleteIcon={<Upload sx={{ width: 12, height: 14 }} />}
             trailing={
               !isReadyPlan ? (
                 <InfoButton
@@ -1178,6 +1150,7 @@ const Page = () => {
           </NodeFlowAccordion>
 
           <NodeFlowButton
+            completed={isAreasStepComplete}
             state={
               isReadyPlan
                 ? areZonesValid
@@ -1187,22 +1160,6 @@ const Page = () => {
             }
             title={
               <T keyName="sidebar.plan_flow.areas_step" ns="hiilikartta" />
-            }
-            leading={
-              !areZonesValid ? (
-                <Box
-                  sx={{
-                    width: 8,
-                    height: 8,
-                    ml: 0.2,
-                    mr: 0.3,
-                    borderRadius: '50%',
-                    backgroundColor: '#065906',
-                  }}
-                />
-              ) : (
-                <FlowStepLeadingIcon />
-              )
             }
             onClick={isReadyPlan ? handleOpenAreas : undefined}
             ariaLabel={t('sidebar.plan_flow.areas_step')}

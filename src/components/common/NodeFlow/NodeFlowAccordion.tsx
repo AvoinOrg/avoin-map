@@ -7,9 +7,11 @@ import { ArrowDown, ArrowUp } from '#/components/icons'
 import NodeFlowButton, {
   NODE_FLOW_OUTER_OFFSET,
   NODE_FLOW_OUTER_WIDTH,
+  NODE_FLOW_ROW_INSET,
+  type NodeFlowMarkerProps,
 } from './NodeFlowButton'
 
-export type NodeFlowAccordionProps = {
+export type NodeFlowAccordionProps = NodeFlowMarkerProps & {
   title: React.ReactNode
   helper?: React.ReactNode
   helperLeading?: React.ReactNode
@@ -32,15 +34,15 @@ type NodeFlowAccordionComponent = React.FC<NodeFlowAccordionProps> & {
   flowNodeMarker?: string
 }
 
-const OPEN_SHELL_CONTENT_INSET = {
-  mobile: '0.75rem',
-  desktop: '0.875rem',
-} as const
+const OPEN_SHELL_CONTENT_INSET = NODE_FLOW_ROW_INSET
 
 const NodeFlowAccordionBase = ({
   title,
   helper,
   helperLeading,
+  completed,
+  completedIcon,
+  incompleteIcon,
   leading,
   trailing,
   defaultOpen = false,
@@ -106,6 +108,9 @@ const NodeFlowAccordionBase = ({
           title={title}
           helper={helper}
           helperLeading={helperLeading}
+          completed={completed}
+          completedIcon={completedIcon}
+          incompleteIcon={incompleteIcon}
           leading={leading}
           trailing={resolvedTrailing}
           onClick={handleToggle}
@@ -137,6 +142,9 @@ const NodeFlowAccordionBase = ({
             title={title}
             helper={helper}
             helperLeading={helperLeading}
+            completed={completed}
+            completedIcon={completedIcon}
+            incompleteIcon={incompleteIcon}
             leading={leading}
             trailing={resolvedTrailing}
             onClick={handleToggle}
