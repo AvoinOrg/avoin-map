@@ -280,7 +280,7 @@ const PlanReportFlowStepBase = ({
                   width: 17,
                   height: 17,
                   flexShrink: 0,
-                  mt: '0.0625rem',
+                  mt: '0.25rem',
                   borderRadius: '999px',
                   border: '1px solid #0D6044',
                   display: 'inline-flex',

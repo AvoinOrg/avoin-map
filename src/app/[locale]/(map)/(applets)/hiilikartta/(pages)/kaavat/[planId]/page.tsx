@@ -98,6 +98,8 @@ const StatusIndicator = () => (
   />
 )
 
+const PLAN_FLOW_NODE_GAP = '3rem'
+
 const StatusFieldRow = ({
   children,
   isSuccess = false,
@@ -881,7 +883,7 @@ const Page = () => {
           gap: '1.25rem',
         }}
       >
-        <NodeFlowContainer>
+        <NodeFlowContainer spacing={PLAN_FLOW_NODE_GAP}>
           <NodeFlowAccordion
             title={
               isReadyPlan ? (

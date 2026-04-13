@@ -8,8 +8,14 @@ import { NODE_FLOW_MARKER_CENTER_X } from './NodeFlowButton'
 
 export const NODE_FLOW_CONNECTOR_X = NODE_FLOW_MARKER_CENTER_X
 
+type NodeFlowContainerSpacing =
+  | string
+  | number
+  | { mobile?: string | number; desktop?: string | number }
+
 export type NodeFlowContainerProps = {
   children: React.ReactNode
+  spacing?: NodeFlowContainerSpacing
   sx?: SxProps<Theme>
 }
 
@@ -27,18 +33,20 @@ const isFlowNodeElement = (
   )
 }
 
-const NodeFlowContainer = ({ children, sx }: NodeFlowContainerProps) => {
+const NodeFlowContainer = ({
+  children,
+  spacing = '1.5rem',
+  sx,
+}: NodeFlowContainerProps) => {
   const childArray = React.Children.toArray(children)
-  const nodeGap = { mobile: '1.5rem', desktop: '1.75rem' } as const
 
   return (
     <Box
       sx={[
         {
-          '--flow-node-gap': nodeGap,
           display: 'flex',
           flexDirection: 'column',
-          gap: nodeGap,
+          gap: spacing,
           width: '100%',
         },
         ...(Array.isArray(sx) ? sx : [sx]),
@@ -68,7 +76,7 @@ const NodeFlowContainer = ({ children, sx }: NodeFlowContainerProps) => {
                   position: 'absolute',
                   left: NODE_FLOW_CONNECTOR_X,
                   top: '100%',
-                  height: 'var(--flow-node-gap, 1.5rem)',
+                  height: spacing,
                   transform: 'translateX(-50%)',
                   width: '1px',
                   backgroundColor: '#87BEA8',
