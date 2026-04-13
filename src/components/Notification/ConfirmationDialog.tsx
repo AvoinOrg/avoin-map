@@ -20,14 +20,15 @@ const actionButtonSx = {
   backgroundColor: 'neutral.light',
   color: 'neutral.darker',
   boxShadow: '1px 1px 7px 0px #EEECEC',
-  '@container (max-width: 330px)': {
-    flex: '1 1 0',
-    minWidth: 0,
-  },
   '&:hover': {
     backgroundColor: 'primary.lighter',
     borderColor: 'primary.main',
   },
+}
+
+const compactActionButtonSx = {
+  flex: '1 1 0',
+  minWidth: 0,
 }
 
 const ConfirmationDialog = () => {
@@ -35,7 +36,9 @@ const ConfirmationDialog = () => {
     (state) => state.confirmationDialogOptions
   )
   const confirmationDialogIdRef = useRef<string | null>(null)
+  const dialogPaperRef = useRef<HTMLDivElement | null>(null)
   const [open, setOpen] = React.useState(false)
+  const [shouldFillActionRow, setShouldFillActionRow] = React.useState(false)
   const { t } = useTranslate('avoin-map')
 
   useEffect(() => {
@@ -48,6 +51,35 @@ const ConfirmationDialog = () => {
       }
     }
   }, [confirmationDialogOptions, open])
+
+  useEffect(() => {
+    if (!open) {
+      setShouldFillActionRow(false)
+      return
+    }
+
+    const paperElement = dialogPaperRef.current
+    if (paperElement == null || typeof ResizeObserver === 'undefined') return
+
+    const updateActionLayout = () => {
+      const nextShouldFillActionRow = paperElement.offsetWidth <= 330
+      setShouldFillActionRow((prev) =>
+        prev === nextShouldFillActionRow ? prev : nextShouldFillActionRow
+      )
+    }
+
+    updateActionLayout()
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateActionLayout()
+    })
+
+    resizeObserver.observe(paperElement)
+
+    return () => {
+      resizeObserver.disconnect()
+    }
+  }, [open])
 
   const localOptions: ConfirmationDialogOptions = useMemo(() => {
     const options = { ...confirmationDialogOptions }
@@ -80,11 +112,15 @@ const ConfirmationDialog = () => {
       onClose={handleCancel}
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
+      slotProps={{
+        paper: {
+          ref: dialogPaperRef,
+        },
+      }}
       sx={{
         '& .MuiDialog-paper': {
           maxWidth: '30rem',
           mx: 1,
-          containerType: 'inline-size',
           borderRadius: '0.625rem',
           border: '1px solid',
           borderColor: 'neutral.main',
@@ -124,7 +160,7 @@ const ConfirmationDialog = () => {
           aria-label={localOptions.cancelText}
           variant="outlined"
           disableFocusRipple
-          sx={actionButtonSx}
+          sx={[actionButtonSx, shouldFillActionRow ? compactActionButtonSx : {}]}
         >
           {localOptions.cancelText}
         </Button>
@@ -134,7 +170,7 @@ const ConfirmationDialog = () => {
           autoFocus
           variant="outlined"
           disableFocusRipple
-          sx={actionButtonSx}
+          sx={[actionButtonSx, shouldFillActionRow ? compactActionButtonSx : {}]}
         >
           {localOptions.confirmText}
         </Button>
