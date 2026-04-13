@@ -68,18 +68,17 @@ const Page = () => {
       await updatePlanConf(planConf.id, { reportData: undefined })
     }
 
-    try {
-      await calcPost.mutateAsync(nextPlanConf)
-      router.push(
-        getRoute({
-          routeNode: routeTree.plans.plan,
-          routeTree,
-          params: {
-            routeParams: { planId: planConf.id },
-          },
-        })
-      )
-    } catch (_error) {}
+    calcPost.mutate(nextPlanConf)
+
+    router.push(
+      getRoute({
+        routeNode: routeTree.plans.plan,
+        routeTree,
+        params: {
+          routeParams: { planId: planConf.id },
+        },
+      })
+    )
   }
 
   useEffect(() => {
