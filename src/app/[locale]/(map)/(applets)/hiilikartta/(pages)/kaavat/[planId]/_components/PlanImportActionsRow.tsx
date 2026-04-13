@@ -31,7 +31,7 @@ const PlanImportActionsRow = ({
           py: 0,
           border: '0.2px solid #0A4835',
           borderRadius: '0.625rem',
-          textTransform: 'uppercase',
+          textTransform: 'none',
           fontSize: '0.625rem',
           fontWeight: 700,
           lineHeight: '0.875rem',
@@ -50,7 +50,15 @@ const PlanImportActionsRow = ({
           },
         }}
       >
-        <T keyName="sidebar.create.accept" ns="hiilikartta" />
+        <Box
+          component="span"
+          sx={{
+            display: 'inline-block',
+            transform: 'translateY(0.0625rem)',
+          }}
+        >
+          <T keyName="sidebar.create.accept" ns="hiilikartta" />
+        </Box>
       </Button>
     </Box>
   )

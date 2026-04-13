@@ -9,12 +9,7 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import {
-  Box,
-  ButtonBase,
-  Tooltip,
-  Typography,
-} from '@mui/material'
+import { Box, ButtonBase, Tooltip, Typography } from '@mui/material'
 import { T, useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
@@ -33,7 +28,12 @@ import {
 } from '#/components/common/NodeFlow'
 import { LoadingSpinner } from '#/components/Loading'
 import CheckcircleCheckedFilled from '#/components/icons/CheckcircleCheckedFilled'
-import { QuestionCircleOutline, Upload } from '#/components/icons'
+import {
+  Checkcircle,
+  Polygon,
+  QuestionCircleOutline,
+  Upload,
+} from '#/components/icons'
 import { getRoute } from '#/common/routing/routing-client'
 import { openLoginWindow } from '#/common/utils/auth'
 import { useUIStore } from '#/common/store'
@@ -179,13 +179,13 @@ const UploadField = ({
         onClick={onClick}
         sx={{
           width: '100%',
-          minHeight: '1.25rem',
+          minHeight: '2rem',
           justifyContent: 'space-between',
           alignItems: 'center',
           gap: '0.75rem',
           px: '1rem',
           py: '0.1875rem',
-          borderRadius: '0.625rem',
+          borderRadius: '999px',
           border: '0.5px solid #d6d6d6',
           backgroundColor: '#ffffff',
           boxShadow: 'inset 0px 0.5px 1px 0px #d9d9d9',
@@ -280,6 +280,7 @@ const Page = () => {
   const isReadyPlan = planConf != null
   const isDrawCreatedFirstVisit = planConf?.draftType === 'draw'
   const {
+    hasNoFeatures,
     isCalculationRunning,
     isReportActionEnabled,
     disabledTooltipKey,
@@ -288,6 +289,14 @@ const Page = () => {
     planConf,
     isCalculationMutationPending: calcPost.isPending,
   })
+  const isAreasStepComplete = isReadyPlan && !hasNoFeatures && areZonesValid
+  const areasStepState = isReadyPlan
+    ? isAreasStepComplete
+      ? 'complete'
+      : 'available'
+    : 'disabled'
+  const areasStepIconColor =
+    areasStepState === 'disabled' ? 'rgba(13, 96, 68, 0.5)' : '#0D6044'
 
   const cancelPendingAutoOpen = useCallback(() => {
     if (autoOpenFrameRef.current == null) {
@@ -721,12 +730,11 @@ const Page = () => {
         calculationState: CalculationState.NOT_STARTED,
       })
 
-      nextPlanConf =
-        clearedPlanConf ?? {
-          ...planConf,
-          reportData: undefined,
-          calculationState: CalculationState.NOT_STARTED,
-        }
+      nextPlanConf = clearedPlanConf ?? {
+        ...planConf,
+        reportData: undefined,
+        calculationState: CalculationState.NOT_STARTED,
+      }
     }
 
     try {
@@ -854,7 +862,16 @@ const Page = () => {
   ) {
     return (
       <SidebarContentBox>
-        <LoadingSpinner />
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            width: '100%',
+            mt: 9,
+          }}
+        >
+          <LoadingSpinner />
+        </Box>
       </SidebarContentBox>
     )
   }
@@ -927,11 +944,13 @@ const Page = () => {
           >
             {!isReadyPlan && (
               <>
-                <UploadField
-                  label={fileName ?? t('sidebar.create.select_file')}
-                  isSelected={fileName != null}
-                  onClick={openFilePicker}
-                />
+                <Box sx={{ width: '100%', mt: '0.25rem' }}>
+                  <UploadField
+                    label={fileName ?? t('sidebar.create.select_file')}
+                    isSelected={fileName != null}
+                    onClick={openFilePicker}
+                  />
+                </Box>
 
                 {creationPlaceholderPlanConf != null && (
                   <>
@@ -1170,13 +1189,15 @@ const Page = () => {
               <T keyName="sidebar.plan_flow.areas_step" ns="hiilikartta" />
             }
             leading={
-              isReadyPlan && !areZonesValid ? (
+              !areZonesValid ? (
                 <Box
                   sx={{
                     width: 8,
                     height: 8,
+                    ml: 0.2,
+                    mr: 0.3,
                     borderRadius: '50%',
-                    backgroundColor: '#7A3D2B',
+                    backgroundColor: '#065906',
                   }}
                 />
               ) : (

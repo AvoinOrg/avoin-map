@@ -29,6 +29,7 @@ const PlanImportShp = ({
   onSelectedNameColChange,
   onPendingImportChange,
 }: PlanImportShpProps) => {
+  const importFieldSpacing = '1rem'
   const [geojson, setGeojson] = useState<FeatureCollection>()
   const [columns, setColumns] = useState<string[]>([])
   const lastResolvedImportKeyRef = useRef<string>()
@@ -138,7 +139,7 @@ const PlanImportShp = ({
         onColumnChange={onSelectedZoningColChange}
         label={copy.zoningClassesLabel}
         placeholder={copy.zoningClassesPlaceholder}
-        sx={{ mb: '1.125rem' }}
+        sx={{ mb: importFieldSpacing }}
       />
       <PlanImportCodeRecordSelect
         columns={columns}

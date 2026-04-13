@@ -131,7 +131,28 @@ const Page = () => {
   }, [planConf?.id])
 
   if (!hasHydrated || !isLoaded || !planConf) {
-    return <LoadingSpinner />
+    return (
+      <SidebarContentBox
+        scrollFadeColor={SIDEBAR_BACKGROUND}
+        sxOuter={{ backgroundColor: SIDEBAR_BACKGROUND }}
+        sxInner={{
+          p: 0,
+          px: 0,
+          backgroundColor: SIDEBAR_BACKGROUND,
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            width: '100%',
+            mt: 9,
+          }}
+        >
+          <LoadingSpinner />
+        </Box>
+      </SidebarContentBox>
+    )
   }
 
   return (

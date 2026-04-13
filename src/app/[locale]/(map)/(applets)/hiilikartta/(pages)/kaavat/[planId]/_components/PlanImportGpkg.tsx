@@ -37,6 +37,7 @@ const PlanImportGpkg = ({
   onSelectedNameColChange,
   onPendingImportChange,
 }: PlanImportGpkgProps) => {
+  const importFieldSpacing = '1rem'
   const [gpkgFile, setGpkgFile] = useState<any>()
   const [tables, setTables] = useState<string[]>([])
   const [columns, setColumns] = useState<string[]>([])
@@ -201,7 +202,7 @@ const PlanImportGpkg = ({
           onChange={handleSelectTable}
           label={copy.tableLabel}
           placeholder={copy.tablePlaceholder}
-          sx={{ width: '100%', mb: '1.125rem' }}
+          sx={{ width: '100%', mb: importFieldSpacing }}
           successIndicatorMode="outside"
         />
       )}
@@ -212,7 +213,7 @@ const PlanImportGpkg = ({
         onColumnChange={onSelectedZoningColChange}
         label={copy.zoningClassesLabel}
         placeholder={copy.zoningClassesPlaceholder}
-        sx={{ mb: '1.125rem' }}
+        sx={{ mb: importFieldSpacing }}
       />
       <PlanImportCodeRecordSelect
         columns={columns}
