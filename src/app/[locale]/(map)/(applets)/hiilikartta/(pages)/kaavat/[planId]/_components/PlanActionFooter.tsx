@@ -9,6 +9,9 @@ import { T } from '@tolgee/react'
 import IconTextButton from '#/components/common/IconTextButton'
 import { Delete, Login } from '#/components/icons'
 
+export const PLAN_ACTION_BUTTON_COLOR = '#666666'
+export const PLAN_ACTION_BUTTON_HOVER_COLOR = '#4F4F4F'
+
 type PlanActionFooterProps = {
   showDelete?: boolean
   showCopy?: boolean
@@ -28,11 +31,11 @@ const getActionRowSx = ({
 }: {
   isDisabled?: boolean
 }) => ({
-  color: isDisabled ? 'rgba(128, 128, 128, 0.56)' : '#808080',
+  color: isDisabled ? 'rgba(102, 102, 102, 0.56)' : PLAN_ACTION_BUTTON_COLOR,
   '&:hover': isDisabled
     ? undefined
     : {
-        color: '#5f5f5f',
+        color: PLAN_ACTION_BUTTON_HOVER_COLOR,
       },
   '& .MuiButton-root.Mui-disabled': {
     color: 'inherit',

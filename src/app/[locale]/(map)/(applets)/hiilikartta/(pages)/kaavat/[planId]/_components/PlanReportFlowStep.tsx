@@ -28,6 +28,10 @@ import {
   PlanConf,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
 import { getReportCalculatedDate } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
+import {
+  PLAN_ACTION_BUTTON_COLOR,
+  PLAN_ACTION_BUTTON_HOVER_COLOR,
+} from './PlanActionFooter'
 
 type PlanReportFlowStepProps = Pick<
   NodeFlowButtonProps,
@@ -219,6 +223,9 @@ const PlanReportFlowStepBase = ({
       }
       helper={buttonHelper}
       helperLeading={buttonHelperLeading}
+      helperSx={{
+        pl: 1.6,
+      }}
       onClick={buttonOnClick}
       ariaLabel={t(buttonTitleKey)}
       disableOuterOffset
@@ -535,10 +542,10 @@ const PlanReportFlowStepBase = ({
               mt: 1,
               px: 1.3,
               py: 0,
-              color: '#111111',
+              color: PLAN_ACTION_BUTTON_COLOR,
               textAlign: 'left',
               '&:hover': {
-                color: '#0D6044',
+                color: PLAN_ACTION_BUTTON_HOVER_COLOR,
               },
             }}
           >
