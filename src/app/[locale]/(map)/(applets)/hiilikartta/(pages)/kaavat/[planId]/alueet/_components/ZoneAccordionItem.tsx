@@ -107,12 +107,12 @@ const NUMBER_FIELD_WIDTH = '4.5rem'
 const SUMMARY_ROW_PADDING_X = '0.375rem'
 const DETAILS_PADDING_LEFT = SUMMARY_ROW_PADDING_X
 const OPEN_ITEM_MARGIN_Y = '0.25rem'
-const OPEN_SHELL_OUTSET_X = { mobile: '1rem', desktop: '1.5rem' } as const
+const OPEN_SHELL_OUTSET_X = { mobile: '1.5rem', desktop: '1.5rem' } as const
 const WARNING_ICON_OFFSET_X = {
-  mobile: '-0.625rem',
-  desktop: '-0.75rem',
+  mobile: '-0.75rem',
+  desktop: '-1rem',
 } as const
-const WARNING_ICON_TOP = '0.875rem'
+const WARNING_ICON_TOP = '1rem'
 const NAME_INPUT_DEBOUNCE_MS = 2000
 const LAND_USE_INPUT_DEBOUNCE_MS = 2000
 const LAND_USE_TOTAL_VALID_COLORS = {
@@ -796,8 +796,8 @@ const ZoneAccordionItem = ({
           >
             <Warning
               sx={{
-                width: 10,
-                height: 9,
+                width: 16,
+                height: 15,
                 color: '#D8A500',
                 flexShrink: 0,
               }}
@@ -864,6 +864,7 @@ const ZoneAccordionItem = ({
             <ZoneClassChip
               code={zoningPresentation.code}
               color={zoningPresentation.color}
+              sx={{ pt: '0.2rem' }}
             />
 
             <Box

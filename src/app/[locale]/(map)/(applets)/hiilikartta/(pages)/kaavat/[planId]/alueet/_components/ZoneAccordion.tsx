@@ -38,7 +38,7 @@ interface Props {
   sx?: any
 }
 
-const CONTENT_PADDING_X = { mobile: '1.25rem', desktop: '2.5rem' } as const
+const CONTENT_PADDING_X = { mobile: '2.5rem', desktop: '2.5rem' } as const
 type ZoneSortValue = 'class-asc' | 'class-desc' | 'name-asc' | 'name-desc'
 
 const ZoneAccordion = ({
@@ -194,7 +194,9 @@ const ZoneAccordion = ({
         ([featureId]) => featureIds.has(featureId)
       )
 
-      if (nextPendingEntries.length === Object.keys(previousPendingState).length) {
+      if (
+        nextPendingEntries.length === Object.keys(previousPendingState).length
+      ) {
         return previousPendingState
       }
 
@@ -489,7 +491,7 @@ const ZoneAccordion = ({
     >
       <Box
         sx={{
-          px: { mobile: '0.5rem', desktop: '1.75rem' },
+          px: '1.75rem',
           display: 'flex',
           flexDirection: 'column',
           gap: '0.625rem',
@@ -502,7 +504,7 @@ const ZoneAccordion = ({
             lineHeight: '1.125rem',
             letterSpacing: '0.1em',
             color: '#111111',
-            ml: "0.75rem",
+            ml: '0.75rem',
           }}
         >
           {t('sidebar.plan_settings.areas.filter_label')}
@@ -558,6 +560,7 @@ const ZoneAccordion = ({
                         key={option.value}
                         code={matchingFilterOption.code}
                         color={matchingFilterOption.color}
+                        sx={{ pt: '0.1rem' }}
                       />
                     )
                   })}
@@ -587,8 +590,8 @@ const ZoneAccordion = ({
               lineHeight: '0.75rem',
               letterSpacing: '0.08em',
               color: '#111111',
-              mr: "0.75rem",
-              ml: "0.75rem",
+              mr: '0.75rem',
+              ml: '0.75rem',
             }}
           >
             {t('sidebar.plan_settings.areas.count', {

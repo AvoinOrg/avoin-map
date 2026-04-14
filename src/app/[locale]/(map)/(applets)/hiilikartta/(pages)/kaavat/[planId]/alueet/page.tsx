@@ -8,7 +8,6 @@ import { useTranslate } from '@tolgee/react'
 
 import { getRoute } from '#/common/routing/routing-client'
 import TText from '#/components/common/TText'
-import { ArrowNextBig } from '#/components/icons'
 import { LoadingSpinner } from '#/components/Loading'
 import SidebarContentBox from '#/components/Sidebar/SidebarContentBox'
 
@@ -23,8 +22,10 @@ import { calcPostMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/com
 import usePlanReportEligibility from '#/app/[locale]/(map)/(applets)/hiilikartta/common/usePlanReportEligibility'
 import ZoneAccordion from './_components/ZoneAccordion'
 
-const CONTENT_PADDING_X = { mobile: '1.25rem', desktop: '2.5rem' } as const
+const CONTENT_PADDING_X = { mobile: '2.5rem', desktop: '2.5rem' } as const
 const SIDEBAR_BACKGROUND = '#F3F3F3'
+const ACTION_BUTTON_MIN_WIDTH = '8rem'
+const ACTION_BUTTON_HEIGHT = '1.25rem'
 
 const Page = () => {
   const params = useParams<{ planId: string }>()
@@ -42,7 +43,6 @@ const Page = () => {
   const [hasPendingLandUseEdits, setHasPendingLandUseEdits] = useState(false)
   const {
     disabledTooltipKey,
-    hasNoFeatures,
     isCalculationRunning,
     isReportActionEnabled,
   } = usePlanReportEligibility({
@@ -133,7 +133,10 @@ const Page = () => {
     return (
       <SidebarContentBox
         scrollFadeColor={SIDEBAR_BACKGROUND}
-        sxOuter={{ backgroundColor: SIDEBAR_BACKGROUND }}
+        sxOuter={{
+          height: '100%',
+          backgroundColor: SIDEBAR_BACKGROUND,
+        }}
         sxInner={{
           p: 0,
           px: 0,
@@ -154,31 +157,102 @@ const Page = () => {
     )
   }
 
-  return (
+  const actionButton = (
     <Box
-      className="plan-sidebar-container"
+      component="button"
+      type="button"
+      aria-label={t('sidebar.plan_settings.areas.confirm_and_calculate')}
+      disabled={!isReportActionEnabled}
+      onClick={isReportActionEnabled ? handleSubmit : undefined}
       sx={{
-        display: 'flex',
-        flexDirection: 'column',
+        width: 'fit-content',
+        minWidth: ACTION_BUTTON_MIN_WIDTH,
+        minHeight: ACTION_BUTTON_HEIGHT,
+        px: '0.8125rem',
+        py: '0.1875rem',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.375rem',
+        border: '0.2px solid #A0A0A0',
+        borderRadius: '0.625rem',
+        backgroundColor: '#D9D9D9',
+        color: isReportActionEnabled ? '#666666' : '#808080',
+        boxShadow: 'none',
+        cursor: !isReportActionEnabled ? 'default' : 'pointer',
+        transition: 'filter 180ms cubic-bezier(.2,0,.2,1)',
+        '&:hover': isReportActionEnabled
+          ? {
+              filter: 'brightness(0.98)',
+            }
+          : undefined,
+        '&:disabled': {
+          color: '#808080',
+        },
+      }}
+    >
+      <Typography
+        component="span"
+        sx={{
+          fontFamily: 'Arimo, sans-serif',
+          fontSize: '0.625rem',
+          fontWeight: 700,
+          lineHeight: '0.875rem',
+          letterSpacing: '0.1em',
+          textAlign: 'center',
+          textTransform: 'none',
+          whiteSpace: 'nowrap',
+          color: 'inherit',
+        }}
+      >
+        <TText
+          keyName="sidebar.plan_settings.areas.confirm_and_calculate"
+          ns="hiilikartta"
+        />
+      </Typography>
+
+      {isCalculationRunning && (
+        <CircularProgress
+          size={12}
+          thickness={6}
+          sx={{
+            color: 'inherit',
+            flexShrink: 0,
+          }}
+        />
+      )}
+    </Box>
+  )
+
+  return (
+    <SidebarContentBox
+      scrollFadeColor={SIDEBAR_BACKGROUND}
+      sxOuter={{
         height: '100%',
-        width: '100%',
+        backgroundColor: SIDEBAR_BACKGROUND,
+      }}
+      sxInner={{
+        p: 0,
+        px: 0,
+        minHeight: '100%',
         backgroundColor: SIDEBAR_BACKGROUND,
       }}
     >
-      <SidebarContentBox
-        scrollFadeColor={SIDEBAR_BACKGROUND}
-        sxOuter={{ backgroundColor: SIDEBAR_BACKGROUND }}
-        sxInner={{
-          p: 0,
-          px: 0,
+      <Box
+        className="plan-sidebar-container"
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100%',
+          width: '100%',
           backgroundColor: SIDEBAR_BACKGROUND,
         }}
       >
         <Box
           sx={{
             px: CONTENT_PADDING_X,
-            pt: { mobile: '1.5rem', desktop: '2.5rem' },
-            pb: { mobile: '1.5rem', desktop: '1.75rem' },
+            pt: { mobile: '2.5rem', desktop: '2.5rem' },
+            pb: { mobile: '1.75rem', desktop: '1.75rem' },
           }}
         >
           <Typography
@@ -226,81 +300,36 @@ const Page = () => {
         <ZoneAccordion
           planConfId={planConf.id}
           onPendingLandUseEditsChange={setHasPendingLandUseEdits}
-          sx={{ pb: '1.5rem' }}
         />
-      </SidebarContentBox>
 
-      <Box
-        sx={{
-          px: CONTENT_PADDING_X,
-          py: { mobile: '1rem', desktop: '1.25rem' },
-          borderTop: '1px solid #D6D6D6',
-          backgroundColor: SIDEBAR_BACKGROUND,
-        }}
-      >
-        <Tooltip
-          title={disabledTooltipKey != null ? t(disabledTooltipKey) : ''}
-          disableHoverListener={disabledTooltipKey == null}
-          disableFocusListener={disabledTooltipKey == null}
-          disableTouchListener={disabledTooltipKey == null}
+        <Box
+          sx={{
+            mt: 'auto',
+            px: CONTENT_PADDING_X,
+            pt: '4rem',
+            pb: { mobile: '2.5rem', desktop: '2.5rem' },
+            display: 'flex',
+            justifyContent: 'flex-end',
+          }}
         >
-          <Box
-            component="button"
-            type="button"
-            aria-label={t('sidebar.plan_settings.areas.confirm_and_calculate')}
-            disabled={!isReportActionEnabled}
-            onClick={isReportActionEnabled ? handleSubmit : undefined}
-            sx={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '0.75rem',
-              p: 0,
-              border: 'none',
-              background: 'none',
-              textAlign: 'left',
-              color:
-                hasNoFeatures || !isReportActionEnabled ? '#A0A0A0' : '#111111',
-              cursor: !isReportActionEnabled ? 'default' : 'pointer',
-            }}
+          <Tooltip
+            title={disabledTooltipKey != null ? t(disabledTooltipKey) : ''}
+            disableHoverListener={disabledTooltipKey == null}
+            disableFocusListener={disabledTooltipKey == null}
+            disableTouchListener={disabledTooltipKey == null}
           >
-            <Typography
+            <Box
+              component="span"
               sx={{
-                fontSize: '0.75rem',
-                lineHeight: '1rem',
-                letterSpacing: '0.04em',
-                color: 'inherit',
+                display: 'inline-flex',
               }}
             >
-              <TText
-                keyName="sidebar.plan_settings.areas.confirm_and_calculate"
-                ns="hiilikartta"
-              />
-            </Typography>
-
-            {isCalculationRunning ? (
-              <CircularProgress
-                size={18}
-                sx={{
-                  color: 'inherit',
-                  flexShrink: 0,
-                }}
-              />
-            ) : (
-              <ArrowNextBig
-                sx={{
-                  width: 10,
-                  height: 18,
-                  color: 'inherit',
-                  flexShrink: 0,
-                }}
-              />
-            )}
-          </Box>
-        </Tooltip>
+              {actionButton}
+            </Box>
+          </Tooltip>
+        </Box>
       </Box>
-    </Box>
+    </SidebarContentBox>
   )
 }
 
