@@ -3,7 +3,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import {
   Box,
-  IconButton,
   Paper,
   Popper,
   Tooltip,
@@ -206,27 +205,40 @@ export const MapButtonStickyMenu = ({
           ]}
         >
           <Box
+            role="button"
+            tabIndex={0}
+            onClick={closeMenu}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') closeMenu()
+            }}
+            aria-label={hideLabel}
             sx={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               gap: 1,
               mb: 0.5,
+              cursor: 'pointer',
+              userSelect: 'none',
+              opacity: 1,
+              '&:hover': {
+                opacity: 0.55,
+              },
             }}
           >
             {menuTitle ? (
               <Typography
-                variant="body1"
-                sx={{ fontWeight: 600, textAlign: 'left' }}
+                variant="body7"
+                sx={{ fontWeight: 500, textAlign: 'left', color: 'text.primary' }}
               >
                 {menuTitle}
               </Typography>
             ) : (
               <Box sx={{ flex: 1 }} />
             )}
-            <IconButton size="small" onClick={closeMenu} aria-label={hideLabel}>
-              <ArrowUp sx={{ color: 'text.secondary' }} />
-            </IconButton>
+            <Box sx={{ display: 'flex', alignItems: 'center', p: '5px' }}>
+              <ArrowUp sx={{ color: 'text.primary' }} />
+            </Box>
           </Box>
           <Box>{resolvedMenuContent}</Box>
         </Paper>
