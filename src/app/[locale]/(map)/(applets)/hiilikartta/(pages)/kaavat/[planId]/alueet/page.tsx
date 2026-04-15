@@ -140,6 +140,7 @@ const Page = () => {
         sxInner={{
           p: 0,
           px: 0,
+          height: '100%',
           backgroundColor: SIDEBAR_BACKGROUND,
         }}
       >
@@ -234,6 +235,7 @@ const Page = () => {
       sxInner={{
         p: 0,
         px: 0,
+        height: '100%',
         minHeight: '100%',
         backgroundColor: SIDEBAR_BACKGROUND,
       }}
@@ -243,6 +245,7 @@ const Page = () => {
         sx={{
           display: 'flex',
           flexDirection: 'column',
+          height: '100%',
           minHeight: '100%',
           width: '100%',
           backgroundColor: SIDEBAR_BACKGROUND,

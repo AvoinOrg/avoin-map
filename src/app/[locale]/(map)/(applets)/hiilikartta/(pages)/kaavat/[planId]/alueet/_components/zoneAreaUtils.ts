@@ -3,6 +3,7 @@ import type {
   PlanDataFeature,
   ZoningClass,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
+import type { SelectOption } from '#/common/types/general'
 import {
   getZoningClassByCode,
   getZoningClassColor,
@@ -31,6 +32,11 @@ export type ZoneFilterOption = {
   value: string
 }
 
+export type ZoneClassSelectOption = SelectOption & {
+  code: string
+  color?: string
+}
+
 export const getZoneDisplayName = ({
   areaLabel,
   newAreaLabel,
@@ -51,6 +57,29 @@ export const getLandUseDistributionTotal = (properties: FeatureProperties) => {
     properties.landuse_new_tree_vegetation,
     properties.landuse_existing,
   ].reduce<number>((sum, value) => sum + Number(value ?? 0), 0)
+}
+
+export const buildZoningCodeSelectOptions = (
+  zoningClasses: ZoningClass[]
+) => {
+  const seen = new Set<string>()
+
+  return zoningClasses
+    .filter((zoningClass) => {
+      const normalizedCode = normalizeZoningCode(zoningClass.code)
+      if (seen.has(normalizedCode)) {
+        return false
+      }
+
+      seen.add(normalizedCode)
+      return true
+    })
+    .map<ZoneClassSelectOption>((zoningClass) => ({
+      code: normalizeZoningCode(zoningClass.code) || zoningClass.code,
+      color: getZoningClassColor(zoningClass.code),
+      label: zoningClass.name,
+      value: zoningClass.code,
+    }))
 }
 
 export const getZoneClassPresentation = ({

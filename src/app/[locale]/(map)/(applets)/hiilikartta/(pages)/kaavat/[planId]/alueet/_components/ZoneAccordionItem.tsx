@@ -18,7 +18,6 @@ import {
 } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
-import type { SelectOption } from '#/common/types/general'
 import TText from '#/components/common/TText'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import { NumberInputField } from '#/components/common/NumberInputField'
@@ -42,6 +41,7 @@ import type { PlanDataFeatureUpdate } from '#/app/[locale]/(map)/(applets)/hiili
 import ZoneClassChip from './ZoneClassChip'
 import {
   getLandUseDistributionTotal,
+  type ZoneClassSelectOption,
   getZoneClassPresentation,
   getZoneDisplayName,
 } from './zoneAreaUtils'
@@ -91,7 +91,7 @@ type Props = {
   onToggle: (featureId: string) => void
   updateFeature: (id: string, feature: PlanDataFeatureUpdate) => void
   zoningClasses: ZoningClass[]
-  zoningCodeOptions: SelectOption[]
+  zoningCodeOptions: ZoneClassSelectOption[]
 }
 
 const FIELD_LABEL_SX = {
@@ -108,11 +108,8 @@ const SUMMARY_ROW_PADDING_X = '0.375rem'
 const DETAILS_PADDING_LEFT = SUMMARY_ROW_PADDING_X
 const OPEN_ITEM_MARGIN_Y = '0.25rem'
 const OPEN_SHELL_OUTSET_X = { mobile: '1.5rem', desktop: '1.5rem' } as const
-const WARNING_ICON_OFFSET_X = {
-  mobile: '-0.75rem',
-  desktop: '-1rem',
-} as const
-const WARNING_ICON_TOP = '1rem'
+const WARNING_ICON_OFFSET_X = "-1rem" as const
+const WARNING_ICON_TOP = '1.05rem'
 const NAME_INPUT_DEBOUNCE_MS = 2000
 const LAND_USE_INPUT_DEBOUNCE_MS = 2000
 const LAND_USE_TOTAL_VALID_COLORS = {
@@ -188,6 +185,47 @@ const warningTooltipSlotProps = {
     },
   },
 } as const
+
+const ZoneClassSelectOptionContent = ({
+  option,
+}: {
+  option: ZoneClassSelectOption
+}) => {
+  return (
+    <Box
+      component="span"
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '0.5rem',
+        minWidth: 0,
+      }}
+    >
+      <ZoneClassChip
+        code={option.code}
+        color={option.color}
+        sx={{ flexShrink: 0, pt: '0.1rem' }}
+      />
+
+      <Typography
+        component="span"
+        sx={{
+          minWidth: 0,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          fontSize: '0.6875rem',
+          fontWeight: 400,
+          lineHeight: 'normal',
+          letterSpacing: '0.04em',
+          color: '#111111',
+        }}
+      >
+        {option.label}
+      </Typography>
+    </Box>
+  )
+}
 
 const getLandUseDraft = (
   properties: PlanDataFeature['properties']
@@ -713,6 +751,21 @@ const ZoneAccordionItem = ({
     updateFeatureProperties(nextProperties)
   }
 
+  const renderZoningCodeOption = useCallback(
+    (option: { value: string }) => {
+      const zoningCodeOption = zoningCodeOptions.find(
+        (currentOption) => currentOption.value === option.value
+      )
+
+      if (!zoningCodeOption) {
+        return option.value
+      }
+
+      return <ZoneClassSelectOptionContent option={zoningCodeOption} />
+    },
+    [zoningCodeOptions]
+  )
+
   const handleNameCommit = useCallback(
     (nextName: string) => {
       updateFeatureProperties({ name: nextName })
@@ -883,6 +936,7 @@ const ZoneAccordionItem = ({
                   fontWeight: 700,
                   lineHeight: '1.125rem',
                   letterSpacing: '0.18em',
+                  mt: '0.15rem',
                   color: '#111111',
                 }}
               >
@@ -928,6 +982,14 @@ const ZoneAccordionItem = ({
                   label={t('sidebar.plan_settings.areas.change_class_label')}
                   options={zoningCodeOptions}
                   onChange={handleZoningCodeChange}
+                  renderOption={renderZoningCodeOption}
+                  renderSelectedValue={(selectedOption, selectedValue) => {
+                    if (!selectedOption) {
+                      return selectedValue
+                    }
+
+                    return renderZoningCodeOption(selectedOption)
+                  }}
                   successIndicatorMode="hidden"
                   value={feature.properties.zoning_code ?? ''}
                   sx={{ mb: 0, mr: '-1rem', ml: '-1rem', width: 'auto' }}

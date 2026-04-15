@@ -18,7 +18,6 @@ import {
   getPlanLayerGroupId,
   getPlanSourceId,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
-import { normalizeZoningCode } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/zoningClasses'
 import {
   type PlanDataFeatureUpdate,
   useAppletStore,
@@ -26,6 +25,7 @@ import {
 import ZoneAccordionItem from './ZoneAccordionItem'
 import ZoneClassChip from './ZoneClassChip'
 import {
+  buildZoningCodeSelectOptions,
   buildZoneFilterOptions,
   featureMatchesZoneFilter,
   getZoneClassPresentation,
@@ -89,24 +89,10 @@ const ZoneAccordion = ({
     []
   )
 
-  const zoningCodeOptions = useMemo<SelectOption[]>(() => {
-    const seen = new Set<string>()
-
-    return zoningClasses
-      .filter((zoningClass) => {
-        const normalizedCode = normalizeZoningCode(zoningClass.code)
-        if (seen.has(normalizedCode)) {
-          return false
-        }
-
-        seen.add(normalizedCode)
-        return true
-      })
-      .map((zoningClass) => ({
-        label: zoningClass.name,
-        value: zoningClass.code,
-      }))
-  }, [zoningClasses])
+  const zoningCodeOptions = useMemo(
+    () => buildZoningCodeSelectOptions(zoningClasses),
+    [zoningClasses]
+  )
 
   const filterOptions = useMemo(
     () =>

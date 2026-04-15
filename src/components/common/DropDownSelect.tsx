@@ -23,6 +23,11 @@ interface Props {
   ariaLabel?: string
   allowEmpty?: boolean
   placeholder?: React.ReactNode
+  renderOption?: (option: SelectOption) => React.ReactNode
+  renderSelectedValue?: (
+    selectedOption: SelectOption | undefined,
+    selectedValue: string
+  ) => React.ReactNode
   sx?: SxProps<Theme>
   selectSx?: SxProps<Theme>
   labelSx?: SxProps<Theme>
@@ -40,6 +45,8 @@ const DropDownSelect = ({
   ariaLabel,
   allowEmpty,
   placeholder,
+  renderOption,
+  renderSelectedValue,
   sx,
   selectSx,
   labelSx,
@@ -137,6 +144,10 @@ const DropDownSelect = ({
                   sx={{
                     display: 'block',
                     color: '#a0a0a0',
+                    minWidth: 0,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   {placeholder}
@@ -147,6 +158,13 @@ const DropDownSelect = ({
             const selectedOption = options.find(
               (option) => option.value === selected
             )
+
+            if (renderSelectedValue) {
+              return renderSelectedValue(
+                selectedOption,
+                String(selected ?? '')
+              )
+            }
 
             return selectedOption?.label ?? selected
           }}
@@ -211,6 +229,7 @@ const DropDownSelect = ({
                 lineHeight: 'normal',
                 letterSpacing: '0.04em',
                 color: '#111111',
+                overflow: 'hidden',
                 '&:focus': {
                   backgroundColor: 'transparent',
                 },
@@ -276,7 +295,7 @@ const DropDownSelect = ({
                   : [typographySx]),
               ]}
             >
-              {option.label}
+              {renderOption ? renderOption(option) : option.label}
             </MenuItem>
           ))}
         </Select>

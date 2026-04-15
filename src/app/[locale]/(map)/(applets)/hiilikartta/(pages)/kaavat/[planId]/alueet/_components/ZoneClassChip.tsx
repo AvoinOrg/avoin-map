@@ -1,5 +1,7 @@
 import { Box, type SxProps, type Theme } from '@mui/material'
 
+import { getContrastColor } from '#/common/utils/styling'
+
 type Props = {
   code: string
   color?: string
@@ -15,6 +17,9 @@ const ZoneClassChip = ({
   sx,
   uppercase = true,
 }: Props) => {
+  const backgroundColor = dark ? '#111111' : (color ?? '#D9D9D9')
+  const textColor = getContrastColor(backgroundColor)
+
   return (
     <Box
       component="span"
@@ -28,8 +33,8 @@ const ZoneClassChip = ({
           px: '0.625rem',
           pt: '0.1rem',
           borderRadius: '999px',
-          backgroundColor: dark ? '#111111' : (color ?? '#D9D9D9'),
-          color: dark ? '#F0F0F1' : '#111111',
+          backgroundColor,
+          color: textColor,
           fontSize: '0.625rem',
           fontWeight: dark ? 700 : 400,
           lineHeight: '1.25rem',
