@@ -25,7 +25,7 @@ export const planDeleteMutation = (): UseMutationOptions<
         state: PlanConfState.DELETING,
       })
 
-      if (session) {
+      if (session && planConf.cloudLastSaved != null) {
         const delRes = await axios.delete(`${API_URL}/plan`, {
           headers: {
             'Content-Type': 'multipart/form-data',
