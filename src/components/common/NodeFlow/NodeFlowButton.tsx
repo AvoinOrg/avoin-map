@@ -6,15 +6,11 @@ import { Box, SxProps, Theme, Typography } from '@mui/material'
 import ArrowRight from '#/components/icons/ArrowRight'
 import CheckcircleCheckedFilled from '#/components/icons/CheckcircleCheckedFilled'
 
-export type NodeFlowButtonState =
-  | 'available'
-  | 'active'
-  | 'disabled'
-  | 'complete'
-  | 'error'
+export type NodeFlowStatus = 'incomplete' | 'complete' | 'error'
+export type NodeFlowButtonState = NodeFlowStatus
 
 export type NodeFlowMarkerProps = {
-  completed?: boolean
+  status?: NodeFlowStatus
   completedIcon?: React.ReactNode
   incompleteIcon?: React.ReactNode
 }
@@ -26,7 +22,6 @@ export type NodeFlowButtonProps = NodeFlowMarkerProps & {
   leading?: React.ReactNode
   trailing?: React.ReactNode | null
   onClick?: () => void
-  state?: NodeFlowButtonState
   disabled?: boolean
   ariaLabel?: string
   ariaExpanded?: boolean
@@ -86,18 +81,18 @@ const DefaultIncompleteMarker = () => (
   />
 )
 
-const getRowStyles = (state: NodeFlowButtonState) => {
-  switch (state) {
-    case 'active':
-      return {
-        accentColor: '#0D6044',
-        connectorColor: '#87BEA8',
-        borderColor: 'transparent',
-        backgroundColor: 'rgba(14, 97, 69, 0.2)',
-        textColor: '#111111',
-        helperColor: '#111111',
-        opacity: 1,
-      }
+type NodeFlowRowStyles = {
+  accentColor: string
+  connectorColor: string
+  borderColor: string
+  backgroundColor: string
+  textColor: string
+  helperColor: string
+  opacity: number
+}
+
+const getEnabledRowStyles = (status: NodeFlowStatus): NodeFlowRowStyles => {
+  switch (status) {
     case 'complete':
       return {
         accentColor: '#0D6044',
@@ -118,17 +113,7 @@ const getRowStyles = (state: NodeFlowButtonState) => {
         helperColor: '#5F291B',
         opacity: 1,
       }
-    case 'disabled':
-      return {
-        accentColor: 'rgba(13, 96, 68, 0.5)',
-        connectorColor: 'rgba(135, 190, 168, 0.7)',
-        borderColor: 'rgba(14, 97, 69, 0.22)',
-        backgroundColor: 'rgba(255, 255, 255, 0.14)',
-        textColor: 'rgba(17, 17, 17, 0.62)',
-        helperColor: 'rgba(17, 17, 17, 0.62)',
-        opacity: 0.8,
-      }
-    case 'available':
+    case 'incomplete':
     default:
       return {
         accentColor: '#0D6044',
@@ -142,17 +127,38 @@ const getRowStyles = (state: NodeFlowButtonState) => {
   }
 }
 
+export const getNodeFlowRowStyles = ({
+  status = 'incomplete',
+  disabled = false,
+}: {
+  status?: NodeFlowStatus
+  disabled?: boolean
+}): NodeFlowRowStyles => {
+  if (disabled) {
+    return {
+      accentColor: 'rgba(17, 17, 17, 0.4)',
+      connectorColor: 'rgba(17, 17, 17, 0.16)',
+      borderColor: 'rgba(17, 17, 17, 0.14)',
+      backgroundColor: 'rgba(17, 17, 17, 0.05)',
+      textColor: 'rgba(17, 17, 17, 0.62)',
+      helperColor: 'rgba(17, 17, 17, 0.62)',
+      opacity: 0.88,
+    }
+  }
+
+  return getEnabledRowStyles(status)
+}
+
 const NodeFlowButtonBase = ({
   title,
   helper,
   helperLeading,
-  completed,
+  status = 'incomplete',
   completedIcon,
   incompleteIcon,
   leading,
   trailing,
   onClick,
-  state = 'available',
   disabled = false,
   ariaLabel,
   ariaExpanded,
@@ -161,16 +167,16 @@ const NodeFlowButtonBase = ({
   rowSx,
   helperSx,
 }: NodeFlowButtonProps) => {
-  const isDisabled = disabled || state === 'disabled'
-  const isCompleted = completed ?? state === 'complete'
+  const isDisabled = disabled
+  const isCompleted = status === 'complete'
   const isInteractive = !isDisabled && onClick != null
-  const rowStyles = getRowStyles(state)
+  const rowStyles = getNodeFlowRowStyles({ status, disabled: isDisabled })
   const resolvedMarker =
     leading ??
     (isCompleted
       ? (completedIcon ?? <DefaultCompletedMarker />)
       : (incompleteIcon ?? <DefaultIncompleteMarker />))
-  const markerColor = leading ? rowStyles.accentColor : NODE_FLOW_MARKER_COLOR
+  const markerColor = rowStyles.accentColor
   const resolvedTrailing =
     trailing === undefined ? (
       <ArrowRight

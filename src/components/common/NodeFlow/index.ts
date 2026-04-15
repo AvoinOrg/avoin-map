@@ -16,6 +16,7 @@ export {
 export type { NodeFlowAccordionProps } from './NodeFlowAccordion'
 export type {
   NodeFlowButtonProps,
+  NodeFlowStatus,
   NodeFlowButtonState,
   NodeFlowMarkerProps,
 } from './NodeFlowButton'

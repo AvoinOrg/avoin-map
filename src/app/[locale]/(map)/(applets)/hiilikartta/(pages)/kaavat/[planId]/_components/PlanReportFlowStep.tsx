@@ -16,7 +16,7 @@ import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
 import {
   NODE_FLOW_OUTER_OFFSET,
   NODE_FLOW_OUTER_WIDTH,
-  NodeFlowButtonState,
+  NodeFlowStatus,
   NodeFlowButtonProps,
   NodeFlowButton,
 } from '#/components/common/NodeFlow'
@@ -149,7 +149,7 @@ const PlanReportFlowStepBase = ({
     planConf?.calculationState === CalculationState.CALCULATING
   const isInProgress = isCalculationRunning || isInitializing || isCalculating
 
-  let buttonState: NodeFlowButtonState = 'disabled'
+  let buttonStatus: NodeFlowStatus = 'incomplete'
   let buttonDisabled = true
   let buttonTitleKey = 'sidebar.plan_flow.calculate_report_step'
   let buttonHelper: string | undefined
@@ -157,12 +157,12 @@ const PlanReportFlowStepBase = ({
   let buttonOnClick: (() => void) | undefined
 
   if (hasFinishedReport) {
-    buttonState = 'active'
+    buttonStatus = 'complete'
     buttonDisabled = false
     buttonTitleKey = 'sidebar.plan_settings.report_preview.open_full_report'
     buttonOnClick = onOpenReport
   } else if (isInProgress) {
-    buttonState = 'active'
+    buttonStatus = 'incomplete'
     buttonDisabled = true
     buttonHelper = isInitializing
       ? t('sidebar.my_plans.calculations_starting')
@@ -175,7 +175,7 @@ const PlanReportFlowStepBase = ({
       />
     )
   } else if (isErrored) {
-    buttonState = 'error'
+    buttonStatus = 'error'
     buttonDisabled = !isReportActionEnabled
     buttonHelper = t('sidebar.my_plans.calculations_errored')
     buttonHelperLeading = (
@@ -183,14 +183,14 @@ const PlanReportFlowStepBase = ({
         sx={{
           width: 12,
           height: 12,
-          color: '#7A3D2B',
+          color: !isReportActionEnabled ? 'rgba(17, 17, 17, 0.4)' : '#7A3D2B',
           flexShrink: 0,
         }}
       />
     )
     buttonOnClick = isReportActionEnabled ? onCalculate : undefined
   } else if (planConf != null && isReportActionEnabled) {
-    buttonState = 'available'
+    buttonStatus = 'incomplete'
     buttonDisabled = false
     buttonOnClick = onCalculate
   }
@@ -202,6 +202,11 @@ const PlanReportFlowStepBase = ({
     !isReportActionEnabled
   const tooltipLabel =
     disabledTooltipKey != null ? t(disabledTooltipKey) : ''
+  const buttonAccentColor = buttonDisabled
+    ? 'rgba(17, 17, 17, 0.4)'
+    : buttonStatus === 'error'
+      ? '#7A3D2B'
+      : '#0D6044'
 
   const handleYearChange = (event: SelectChangeEvent<string>) => {
     setSelectedYear(event.target.value)
@@ -209,17 +214,19 @@ const PlanReportFlowStepBase = ({
 
   const button = (
     <NodeFlowButton
-      state={buttonState}
+      status={buttonStatus}
       disabled={buttonDisabled}
       title={<TText keyName={buttonTitleKey} ns="hiilikartta" />}
       leading={
-        <Eco
-          sx={{
-            width: 12,
-            height: 12,
-            color: buttonState === 'error' ? '#7A3D2B' : '#0D6044',
-          }}
-        />
+        hasFinishedReport ? (
+          <Eco
+            sx={{
+              width: 12,
+              height: 12,
+              color: buttonAccentColor,
+            }}
+          />
+        ) : undefined
       }
       helper={buttonHelper}
       helperLeading={buttonHelperLeading}
