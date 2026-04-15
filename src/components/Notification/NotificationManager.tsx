@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { closeSnackbar, useSnackbar } from 'notistack'
 
 import { useUIStore } from '#/common/store'
-import { IconButton, Typography } from '@mui/material'
+import { Box, IconButton, Link, Typography } from '@mui/material'
 import { Cross } from '../icons'
 import { useTranslate } from '@tolgee/react'
 
@@ -33,11 +33,40 @@ const NotificationManager = () => {
             return
           }
           updateNotification(notification.id, { shown: true })
-          enqueueSnackbar(
-            <Typography sx={{ whiteSpace: 'pre-line' }}>
-              {message}
-            </Typography>,
-            {
+
+          const linkLabel =
+            notification.link?.label ??
+            (notification.link?.keyName
+              ? t(
+                  notification.link.keyName,
+                  notification.link.ns
+                    ? { ns: notification.link.ns }
+                    : undefined
+                )
+              : undefined)
+
+          const messageNode = (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <Typography sx={{ whiteSpace: 'pre-line' }}>
+                {message}
+              </Typography>
+              {notification.link != null && linkLabel != null && (
+                <Link
+                  href={notification.link.href}
+                  underline="always"
+                  sx={{
+                    cursor: 'pointer',
+                    color: 'inherit',
+                    fontWeight: 500,
+                  }}
+                >
+                  {linkLabel}
+                </Link>
+              )}
+            </Box>
+          )
+
+          enqueueSnackbar(messageNode, {
               variant: notification.variant || 'default',
               autoHideDuration: notification.duration,
               persist: notification.persist,
