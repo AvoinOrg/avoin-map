@@ -165,3 +165,6 @@ i18n/*
 .temp
 .tmp
 .envrc
+
+.claude/*
+!.claude/settings.template.json

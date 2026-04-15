@@ -16,7 +16,8 @@
         "github.copilot-chat",
         "github.vscode-pull-request-github",
         "ms-azuretools.vscode-docker",
-        "openai.chatgpt"
+        "openai.chatgpt",
+        "anthropic.claude-code"
       ]
     }
   },
