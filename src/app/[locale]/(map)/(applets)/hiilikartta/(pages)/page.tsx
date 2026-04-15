@@ -281,10 +281,10 @@ const Page = () => {
               >
                 <Box
                   component="img"
-                  src="/files/img/hiilikartta/sidebar/nappaa-logo.png"
-                  alt="Nappaa hiilesta kiinni"
+                  src="/files/img/Avoinlogo_Pysty_Green_Rek2024.svg"
+                  alt="Avoin"
                   sx={{
-                    width: '4.4375rem',
+                    width: '3.625rem',
                     height: '2.375rem',
                     objectFit: 'contain',
                     objectPosition: 'left center',
