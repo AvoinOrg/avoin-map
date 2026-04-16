@@ -915,15 +915,24 @@ const Page = () => {
       .getState()
       .copyPlanConf(currentPlanConf.id, t('sidebar.plan_settings.copy_suffix'))
 
-    router.push(
-      getRoute({
-        routeNode: routeTree.plans.plan,
-        routeTree,
-        params: {
-          routeParams: { planId: copiedPlanConf.id },
-        },
-      })
-    )
+    const copiedPlanRoute = getRoute({
+      routeNode: routeTree.plans.plan,
+      routeTree,
+      params: {
+        routeParams: { planId: copiedPlanConf.id },
+      },
+    })
+
+    notify({
+      keyName: 'sidebar.plan_settings.copy_success',
+      ns: 'hiilikartta',
+      variant: 'success',
+      link: {
+        href: copiedPlanRoute,
+        keyName: 'sidebar.plan_settings.copy_open_link',
+        ns: 'hiilikartta',
+      },
+    })
   }
 
   const handleOpenAreas = () => {
