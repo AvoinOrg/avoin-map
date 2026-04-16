@@ -1,40 +1,40 @@
-﻿Luokka;Lyhenne;Rakennettu;Uusi_avoin_kasvipeite;Uusi_puustoinen_kasvipeite;Aiempi_maanpeite;Maaperan_muutos_uuden_kasvipeitteen_alueilla
-Asuinalueet (A);A;0,55;0,19;0,19;0,08;0,00
-Kerrostaloalueet (AK);AK;0,72;0,12;0,12;0,05;0,00
-Pientaloalueet (AP);AP;0,40;0,25;0,25;0,10;0,00
-Keskustatoiminnot (C);C;0,80;0,10;0,10;0,00;0,00
-Palvelut (P);P;0,80;0,07;0,07;0,06;0,00
-Yleiset rakennukset (Y);Y;0,80;0,07;0,07;0,06;0,00
-Elinkeinot (K);K;0,80;0,07;0,07;0,06;0,00
-Liike- ja toimistorakennukset (K);K;0,80;0,07;0,07;0,06;0,00
-Teollisuus- ja varastoalueet (T);T;0,80;0,07;0,07;0,06;0,00
-Virkistys (V);V;0,00;0,00;0,00;1,00;0,00
-Puisto, leikkipuisto (VP);VP;0,07;0,07;0,07;0,80;0,00
-Lähivirkistysalue, lähimetsä (VL);VL;0,00;0,00;0,00;1,00;0,00
-Urheilualue (VU);VU;0,25;0,13;0,13;0,50;0,00
-Retkeily- ja ulkoilualue (VR);VR;0,00;0,00;0,00;1,00;0,00
-Loma-asuminen ja matkailu (R);R;0,30;0,25;0,25;0,20;0,00
-Loma-asuntojen alue (RA);RA;0,30;0,23;0,23;0,25;0,00
-Matkailualue (RM);RM;0,40;0,27;0,27;0,07;0,00
-Liikennealue (L);L;0,60;0,20;0,20;0,00;0,00
-Yleisen tien alue( LT);LT;0,60;0,20;0,20;0,00;0,00
-Rautatien alue (LR);LR;0,60;0,20;0,20;0,00;0,00
-Erityisalue€;E;0,50;0,25;0,25;0,00;0,00
-Yhdyskuntatekniikan alueet (ET);ET;0,60;0,20;0,20;0,00;0,00
-Energiahuollon alueet (EN);EN;0,50;0,25;0,25;0,00;0,00
-Aurinkovoima-alueet (ENaur);ENaur;0,50;0,50;0,00;0,00;0,00
-Tuulivoimaloinen alueet (Entv);ENtv;0,30;0,40;0,10;0,20;0,00
-Sähkönsiirtolinjojen alueet (ENsl);Ensl;0,05;0,45;0,50;0,00;0,00
-Sähkönsiirtolinjojen johtoaukeat (ENslja);Enslja;0,10;0,90;0,00;0,00;0,00
-Sähkönsiirtolinjojen reunavyöhykkeet (Enslrv);Enslrv;0,00;0,00;1,00;0,00;0,00
-Jätteenkäsittelyalueet (EJ);EJ;0,70;0,15;0,15;0,00;0,00
-Maa-ainestenotto- ja kaivosalueet (EO);EO;0,70;0,15;0,15;0,00;0,00
-Hautausmaat (EH);EH;0,20;0,40;0,40;0,00;0,00
-Suojaviheralueet (EV);EV;0,10;0,05;0,05;0,80;0,00
-Suojelualueet (S);S;0,00;0,00;0,00;1,00;0,00
-Luonnon suojelualueet (SL);SL;0,00;0,00;0,00;1,00;0,00
-Rakennussuojelulain mukaiset suojelualueet (SR);SR;0,43;0,26;0,26;0,05;0,00
-Maa- ja metsätalous (M);M;0,00;0,00;0,00;1,00;0,00
-Maatalousalue (MT);MT;0,00;0,00;0,00;1,00;0,00
-Kotieläintalous, puutarha, kasvihuone (ME);ME;0,60;0,20;0,20;0,00;0,00
-Vesialueet (W);W;0,00;0,00;0,00;1,00;0,00
+﻿Luokka;Jarjestys;Lyhenne;Rakennettu;Uusi_avoin_kasvipeite;Uusi_puustoinen_kasvipeite;Aiempi_maanpeite;Maaperan_muutos_uuden_kasvipeitteen_alueilla
+Asuinalueet (A);1;A;0,55;0,19;0,18;0,08;0
+Kerrostaloalueet (AK);2;AK;0,72;0,12;0,11;0,05;0
+Pientaloalueet (AP);3;AP;0,4;0,25;0,25;0,1;0
+Keskustatoiminnot (C);4;C;0,8;0,1;0,1;0;0
+Palvelut (P);5;P;0,8;0,07;0,07;0,06;0
+Yleiset rakennukset (Y);6;Y;0,8;0,07;0,07;0,06;0
+Elinkeinot (K);7;K;0,8;0,07;0,07;0,06;0
+Liike- ja toimistorakennukset (K);8;K;0,8;0,07;0,07;0,06;0
+Teollisuus- ja varastoalueet (T);9;T;0,8;0,07;0,07;0,06;0
+Virkistys (V);10;V;0;0;0;1;0
+Puisto, leikkipuisto (VP);11;VP;0,07;0,07;0,06;0,8;0
+Lähivirkistysalue, lähimetsä (VL);12;VL;0;0;0;1;0
+Urheilualue (VU);13;VU;0,25;0,13;0,12;0,5;0
+Retkeily- ja ulkoilualue (VR);14;VR;0;0;0;1;0
+Loma-asuminen ja matkailu (R);15;R;0,3;0,25;0,25;0,2;0
+Loma-asuntojen alue (RA);16;RA;0,3;0,23;0,22;0,25;0
+Matkailualue (RM);17;RM;0,4;0,27;0,26;0,07;0
+Liikennealue (L);18;L;0,6;0,2;0,2;0;0
+Yleisen tien alue( LT);19;LT;0,6;0,2;0,2;0;0
+Rautatien alue (LR);20;LR;0,6;0,2;0,2;0;0
+Erityisalue (E);21;E;0,5;0,25;0,25;0;0
+Yhdyskuntatekniikan alueet (ET);22;ET;0,6;0,2;0,2;0;0
+Energiahuollon alueet (EN);23;EN;0,5;0,25;0,25;0;0
+Aurinkovoima-alueet (ENaur);24;ENaur;0,5;0,5;0;0;0
+Tuulivoimaloinen alueet (Entv);25;ENtv;0,3;0,4;0,1;0,2;0
+Sähkönsiirtolinjojen alueet (ENsl);26;ENsl;0,05;0,45;0,5;0;0
+Sähkönsiirtolinjojen johtoaukeat (ENslja);27;ENslja;0,1;0,9;0;0;0
+Sähkönsiirtolinjojen reunavyöhykkeet (ENslrv);28;ENslrv;0;0;1;0;0
+Jätteenkäsittelyalueet (EJ);29;EJ;0,7;0,15;0,15;0;0
+Maa-ainestenotto- ja kaivosalueet (EO);30;EO;0,7;0,15;0,15;0;0
+Hautausmaat (EH);31;EH;0,2;0,4;0,4;0;0
+Suojaviheralueet (EV);32;EV;0,1;0,05;0,05;0,8;0
+Suojelualueet (S);33;S;0;0;0;1;0
+Luonnon suojelualueet (SL);34;SL;0;0;0;1;0
+Rakennussuojelulain mukaiset suojelualueet (SR);35;SR;0,43;0,26;0,26;0,05;0
+Maa- ja metsätalous (M);36;M;0;0;0;1;0
+Maatalousalue (MT);37;MT;0;0;0;1;0
+Kotieläintalous, puutarha, kasvihuone (ME);38;ME;0,6;0,2;0,2;0;0
+Vesialueet (W);39;W;0;0;0;1;0
