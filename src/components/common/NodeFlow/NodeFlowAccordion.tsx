@@ -42,7 +42,7 @@ const NodeFlowAccordionBase = ({
   title,
   helper,
   helperLeading,
-  completed,
+  status,
   completedIcon,
   incompleteIcon,
   leading,
@@ -112,7 +112,7 @@ const NodeFlowAccordionBase = ({
           title={title}
           helper={helper}
           helperLeading={helperLeading}
-          completed={completed}
+          status={status}
           completedIcon={completedIcon}
           incompleteIcon={incompleteIcon}
           leading={leading}
@@ -149,7 +149,7 @@ const NodeFlowAccordionBase = ({
             title={title}
             helper={helper}
             helperLeading={helperLeading}
-            completed={completed}
+            status={status}
             completedIcon={completedIcon}
             incompleteIcon={incompleteIcon}
             leading={leading}

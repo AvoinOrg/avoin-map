@@ -1147,8 +1147,8 @@ const Page = () => {
                 <T keyName="sidebar.plan_flow.import_title" ns="hiilikartta" />
               )
             }
-            completed={isReadyPlan}
-            incompleteIcon={<Upload sx={{ width: 12, height: 14 }} />}
+            status={isReadyPlan ? 'complete' : 'incomplete'}
+            incompleteIcon={<Upload sx={{ width: 10, height: 12 }} />}
             trailing={
               !isReadyPlan ? (
                 <InfoButton
@@ -1409,10 +1409,8 @@ const Page = () => {
           </NodeFlowAccordion>
 
           <NodeFlowButton
-            completed={isAreasStepComplete}
-            state={
-              isReadyPlan ? (areZonesValid ? 'available' : 'error') : 'disabled'
-            }
+            status={isAreasStepComplete ? 'complete' : 'incomplete'}
+            disabled={!isReadyPlan}
             title={
               <T keyName="sidebar.plan_flow.areas_step" ns="hiilikartta" />
             }
