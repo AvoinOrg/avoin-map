@@ -212,7 +212,7 @@ const Page = () => {
                 >
                   <EyeButton
                     ariaLabel="Toggle vegetation carbon layer"
-                    color="#B0FF6B"
+                    color="#2D7A3A"
                     status={isVegetationLayerVisible ? 'visible' : 'hidden'}
                     sx={{
                       p: 0,
@@ -284,8 +284,8 @@ const Page = () => {
                   src="/files/img/Avoinlogo_Pysty_Green_Rek2024.svg"
                   alt="Avoin"
                   sx={{
-                    width: '3.625rem',
-                    height: '2.375rem',
+                    width: '3.5rem',
+                    height: '2.25rem',
                     objectFit: 'contain',
                     objectPosition: 'left center',
                   }}
@@ -295,8 +295,7 @@ const Page = () => {
                   src="/files/img/hiilikartta/sidebar/syke-logo.png"
                   alt="Syke"
                   sx={{
-                    width: '2.5625rem',
-                    height: '2.5rem',
+                    width: '3.1rem',
                     objectFit: 'contain',
                   }}
                 />
@@ -305,8 +304,7 @@ const Page = () => {
                   src="/files/img/hiilikartta/sidebar/luke-logo.png"
                   alt="Luke"
                   sx={{
-                    width: '2.75rem',
-                    height: '2.5rem',
+                    width: '2.8rem',
                     objectFit: 'contain',
                     objectPosition: 'right center',
                   }}
