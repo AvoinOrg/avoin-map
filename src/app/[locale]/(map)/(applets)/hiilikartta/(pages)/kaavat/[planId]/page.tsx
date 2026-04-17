@@ -929,8 +929,7 @@ const Page = () => {
       variant: 'success',
       link: {
         href: copiedPlanRoute,
-        keyName: 'sidebar.plan_settings.copy_open_link',
-        ns: 'hiilikartta',
+        label: t('sidebar.plan_settings.copy_open_link'),
       },
     })
   }
