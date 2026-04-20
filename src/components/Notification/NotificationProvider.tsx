@@ -16,6 +16,12 @@ const NotificationProvider = ({ children }: Props) => {
           '.notistack-SnackbarContainer': {
             zIndex: `${theme.zIndex.snackbar} !important`,
           },
+          '.notistack-MuiContent': {
+            alignItems: 'flex-start',
+          },
+          '#notistack-snackbar': {
+            alignItems: 'flex-start',
+          },
         })}
       />
       <SnackbarProvider

@@ -927,6 +927,7 @@ const Page = () => {
       keyName: 'sidebar.plan_settings.copy_success',
       ns: 'hiilikartta',
       variant: 'success',
+      duration: 15000,
       link: {
         href: copiedPlanRoute,
         label: t('sidebar.plan_settings.copy_open_link'),

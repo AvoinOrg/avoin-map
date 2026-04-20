@@ -163,11 +163,8 @@ export const useUIStore = create<State>()(
         },
         notify: async (notification: NotificationMessage) => {
           const newNotification: InternalNotificationMessage = {
+            ...notification,
             id: generateUUID(),
-            message: notification.message,
-            keyName: notification.keyName,
-            ns: notification.ns,
-            variant: notification.variant,
             duration: notification.duration || 6000,
             triggeredTs: new Date().getTime(),
             shown: false,

@@ -80,6 +80,7 @@ const NotificationManager = () => {
                   }}
                   sx={{
                     color: 'inherit',
+                    marginTop: '4px',
                   }}
                 >
                   <Cross sx={{ display: 'flex', height: '16px' }}></Cross>
