@@ -1,5 +1,7 @@
 FROM mcr.microsoft.com/playwright:v1.48.2-jammy AS base
 
+ARG TARGETARCH
+
 USER root
 
 RUN apt-get update && \
@@ -14,11 +16,15 @@ RUN apt-get update && \
       wget \
       xauth \
       xvfb && \
-    mkdir -p /usr/share/keyrings && \
-    wget -qO- https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg && \
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends google-chrome-stable && \
+    if [ "${TARGETARCH:-$(dpkg --print-architecture)}" = "amd64" ]; then \
+      mkdir -p /usr/share/keyrings && \
+      wget -qO- https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg && \
+      echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
+      apt-get update && \
+      apt-get install -y --no-install-recommends google-chrome-stable; \
+    else \
+      echo "Skipping Google Chrome install for unsupported architecture: ${TARGETARCH:-$(dpkg --print-architecture)}"; \
+    fi && \
     rm -rf /var/lib/apt/lists/*
 
 # The Playwright base image already ships with a UID 1000 user (`pwuser`).
@@ -54,7 +60,7 @@ RUN corepack enable && corepack prepare yarn@3.6.0 --activate
 # TODO: figure out why it's scanning root. Using different user does not help.
 RUN chmod -R 777 /root
 
-RUN mkdir -p /app /home/node/dev && \
+RUN mkdir -p /app /app/.claude /app/.codex /home/node/dev && \
     chown -R node:node /home/node /app
 
 WORKDIR /app
