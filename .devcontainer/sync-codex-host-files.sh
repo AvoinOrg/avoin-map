@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Devcontainer initialize helper for ensuring project-local Codex files exist.
+# Devcontainer initialize helper for ensuring project-local agent auth files exist.
 # These exact files are used as bind-mount sources, so never replace them.
 
 workspace_dir="${1:-}"
@@ -11,12 +11,10 @@ if [[ -z "${workspace_dir}" ]]; then
   exit 1
 fi
 
-workspace_codex_dir="${workspace_dir}/.codex"
-
 ensure_file() {
   local relative_path="$1"
   local file_mode="$2"
-  local workspace_file="${workspace_codex_dir}/${relative_path}"
+  local workspace_file="${workspace_dir}/${relative_path}"
 
   mkdir -p "$(dirname "${workspace_file}")"
 
@@ -26,8 +24,9 @@ ensure_file() {
   fi
 }
 
-mkdir -p "${workspace_codex_dir}" "${workspace_codex_dir}/rules"
+mkdir -p "${workspace_dir}/.codex" "${workspace_dir}/.codex/rules" "${workspace_dir}/.claude"
 
-ensure_file "auth.json" 600
-ensure_file ".credentials.json" 600
-ensure_file "rules/default.rules" 644
+ensure_file ".codex/auth.json" 600
+ensure_file ".codex/.credentials.json" 600
+ensure_file ".codex/rules/default.rules" 644
+ensure_file ".claude/.credentials.json" 600
