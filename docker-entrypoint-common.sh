@@ -25,6 +25,15 @@ setup_bash_history() {
     ln -s "${persistent_history}" "${shell_history}"
 }
 
+configure_git_safe_directory() {
+    if ! command -v git >/dev/null 2>&1; then
+        return
+    fi
+
+    git config --global --get-all safe.directory | grep -Fx /app >/dev/null 2>&1 || \
+        git config --global --add safe.directory /app
+}
+
 bootstrap_dev_app() {
     yarn install
     yarn visual:install
