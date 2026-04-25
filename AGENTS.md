@@ -248,20 +248,24 @@ standalone sites.
 - Applet-specific e2e tests are not standardized yet.
 - Choose verification appropriate to the task instead of assuming browser-based
   visual testing by default.
-- Use `yarn visual:after-edit -- <path1> <path2> ...` or
-  `yarn visual:changed --files <comma-separated-paths>` when visual regression
-  coverage is explicitly needed.
+- Use `yarn visual:after-edit -- --no-start <path1> <path2> ...` or
+  `yarn visual:changed -- --no-start --files <comma-separated-paths>` when
+  visual regression coverage is explicitly needed.
 - Use browser-based verification only when the user asks for it or the task
   clearly requires it.
 - Visual regression artifacts are stored under `.dev/visual-regression/` (gitignored).
-- Visual commands target `http://127.0.0.1:3000` first (reuse an already running `yarn dev` server when available). If the server is unreachable, the runner may temporarily start a local dev server as a fallback.
+- Visual commands must target the stable, already-running dev server at
+  `http://127.0.0.1:3000`. Always pass `--no-start`; agents must not start or
+  stop `yarn dev`. If `:3000` is unreachable, stop the coding task, inform the
+  user that the main dev server is unavailable, and investigate what happened
+  to that main process.
 - Do not perform a "full dev-runtime reset" on your own in this devcontainer.
   Do not mass-kill shared `next dev`/Node processes, and do not wipe generated
   runtime directories such as `.next`, `public/files`, or `public/lib` unless
   the user explicitly asks for that reset. In this environment those actions
   can break the shared dev runtime and even stop the devcontainer session you
-  are working in. Prefer safer options first: reuse the existing server, start
-  a separate dev server on another port, narrow cleanup to the specific process
-  you started yourself, or pause and ask the user before any broad reset.
+  are working in. Prefer safer options first: reuse the existing server,
+  inspect the main dev-server process and logs, or pause and ask the user
+  before any broad reset.
 - Use `yarn visual:baseline` to create or refresh local visual baselines intentionally.
-- Add `--no-start` when calling `node utils/scripts/visual/run.js` directly if you want to fail instead of allowing the fallback temporary server.
+- Add `--no-start` when calling `node utils/scripts/visual/run.js` directly.

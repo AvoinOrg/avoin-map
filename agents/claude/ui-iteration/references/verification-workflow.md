@@ -9,6 +9,8 @@ Use this reference after every meaningful UI edit pass.
 - Prefer the in-container repo-controlled visual runner first.
 - Let the runner keep its default `--browser-mode=auto` unless you are
   debugging the browser runtime itself.
+- The main dev server on `http://127.0.0.1:3000` is expected to be a stable,
+  container-managed process. Agents must not start or stop `yarn dev`.
 - If that path is unavailable, fall back to the host shared-browser workflow
   instead of skipping verification.
 - When the task is a substantial UI feature or the user asks for pics, capture
@@ -17,24 +19,28 @@ Use this reference after every meaningful UI edit pass.
 
 ## Primary visual commands
 
-- Use `yarn visual:after-edit -- <path1> <path2> ...` for the normal post-edit workflow.
-- Use `yarn visual:changed --files <comma-separated-paths>` when you specifically want changed-file targeting.
+- Use `yarn visual:after-edit -- --no-start <path1> <path2> ...` for the normal post-edit workflow.
+- Use `yarn visual:changed -- --no-start --files <comma-separated-paths>` when you specifically want changed-file targeting.
 - Use `yarn visual:baseline` only when intentionally refreshing local baselines.
 - Use `yarn visual:webgl:smoke` to probe the Xvfb-backed WebGL path directly.
 - Use `yarn visual:webgl:smoke:headless` to check whether strict headless
   currently lacks WebGL support or to confirm that headless support is present.
 
-The visual runner targets `http://127.0.0.1:3000` first and may temporarily start a local dev server if none is reachable.
+The visual runner must only target the already-running server at
+`http://127.0.0.1:3000`. Always pass `--no-start`. If the server is
+unreachable, stop the coding task, report that the main dev server is down,
+and investigate the main dev-server process and recent logs.
 
 Runtime safety:
 
+- Do not start `yarn dev`, launch a replacement Next.js server, or stop a dev
+  server from an agent session.
 - Do not mass-kill shared `next dev` or Node processes as a first response to a
   flaky dev server.
 - Do not delete `.next`, `public/files`, or `public/lib` unless the user has
   explicitly approved a full runtime reset for this environment.
-- Prefer safer recovery steps first: verify which server you are actually
-  talking to, start a separate dev server on another port, or clean up only the
-  specific process you launched yourself.
+- Prefer safer diagnosis first: verify whether `:3000` is listening, inspect
+  the main dev-server process tree, and read recent dev-server logs.
 
 Browser mode guidance:
 
@@ -67,7 +73,7 @@ Use the host-state path when the page depends on existing login state, imported 
 1. Launch the dedicated host Chrome profile with remote debugging enabled.
 2. Open `http://localhost:3000/...` in that browser and establish the needed state.
 3. Run `yarn browser-state:sync:localhost` in the devcontainer.
-4. Run a host-state visual command such as `yarn visual:after-edit:host-state -- <path1> <path2> ...`.
+4. Run a host-state visual command such as `yarn visual:after-edit:host-state -- --no-start <path1> <path2> ...`.
 
 Target `localhost:3000` for host-state workflows because browser storage is origin-specific.
 

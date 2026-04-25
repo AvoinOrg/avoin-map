@@ -57,7 +57,11 @@ Use this skill when the user asks for any of the following:
 - Run targeted visual verification for the edited files with the repo visual
   runner first.
 - Verify both desktop and mobile before considering the task complete.
-- Treat `yarn visual:after-edit -- <paths>` as the default verification path.
+- Treat `yarn visual:after-edit -- --no-start <paths>` as the default
+  verification path so the runner never starts or stops a dev server.
+- If `http://127.0.0.1:3000` is unavailable, stop the coding task, tell the
+  user the main dev server is unavailable, and investigate what happened to the
+  main dev-server process. Do not start `yarn dev` yourself.
 - Let the runner use its default `--browser-mode=auto` unless you are
   intentionally debugging strict headless behavior or forcing the Xvfb-backed
   WebGL path.
@@ -103,7 +107,8 @@ Use this skill when the user asks for any of the following:
 - Imported-plan or other browser-storage-dependent checks that do not need the
   host browser can use an in-container persistent profile workflow instead of
   host-state sync.
-- Map/WebGL pages: still start with the repo visual runner in `auto` mode; only
+- Map/WebGL pages: still use the repo visual runner in `auto` mode with
+  `--no-start`; only
   switch to live/shared browser workflows when stateful interaction or
   collaborative review is the real need.
 - Shared navigation or routing UI: inspect existing route helpers before changing links.
