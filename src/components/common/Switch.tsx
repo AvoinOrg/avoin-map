@@ -11,16 +11,17 @@ const Switch = ({ sx, ...switchProps }: SwitchProps) => {
         (theme: Theme) => ({
           width: 44,
           height: 24,
-          p: 0,
+          padding: 0,
           '& .MuiSwitch-switchBase': {
-            p: 0,
-            m: 4,
+            padding: 0,
+            margin: '2px',
             transitionDuration: '250ms',
             '&.Mui-checked': {
-              transform: 'translateX(16px)',
+              transform: 'translateX(20px)',
               color: theme.palette.common.white,
               '& + .MuiSwitch-track': {
                 backgroundColor: theme.palette.secondary.dark,
+                borderRadius: '999px',
                 opacity: 1,
                 border: 0,
               },
@@ -38,11 +39,11 @@ const Switch = ({ sx, ...switchProps }: SwitchProps) => {
           '& .MuiSwitch-thumb': {
             boxSizing: 'border-box',
             width: 20,
-            height: 16,
-            borderRadius: 8,
+            height: 20,
+            borderRadius: '50%',
           },
           '& .MuiSwitch-track': {
-            borderRadius: 24 / 2,
+            borderRadius: '999px',
             backgroundColor: theme.palette.neutral.main,
             opacity: 1,
             transition: theme.transitions.create(['background-color'], {
