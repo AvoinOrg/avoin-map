@@ -473,8 +473,7 @@ const FinlandForests = () => {
                   <Box>
                     <Box
                       sx={{
-                        backgroundColor: 'neutral.light',
-                        px: 2,
+                        backgroundColor: 'neutral.lighter',
                         py: 0.5,
                         borderRadius: 1,
                       }}
@@ -493,7 +492,7 @@ const FinlandForests = () => {
                                 component="td"
                                 sx={{
                                   py: 1,
-                                  px: 0,
+                                  pl: 2,
                                   pr: 1.5,
                                   verticalAlign: 'middle',
                                 }}
@@ -517,7 +516,7 @@ const FinlandForests = () => {
                                 component="td"
                                 sx={{
                                   py: 1,
-                                  px: 0,
+                                  pr: 2,
                                   textAlign: 'right',
                                   verticalAlign: 'middle',
                                 }}
@@ -536,46 +535,49 @@ const FinlandForests = () => {
                           ))}
                         </Box>
                       </Box>
-                    </Box>
-                    <Box
-                      component="table"
-                      sx={{
-                        width: '100%',
-                        borderCollapse: 'collapse',
-                        mt: 3,
-                      }}
-                    >
                       <Box
-                        component="tbody"
-                        sx={{ 'td:first-of-type': { pr: 1.5 } }}
+                        component="table"
+                        sx={{
+                          width: '100%',
+                          borderCollapse: 'collapse',
+                          mt: 3,
+                        }}
                       >
-                        {summaryRows.map((row) => (
-                          <Box component="tr" key={row.key}>
-                            <Box
-                              component="td"
-                              sx={{
-                                py: 1,
-                                px: 0,
-                                fontWeight: 500,
-                                verticalAlign: 'top',
-                              }}
-                            >
-                              {row.name}
+                        <Box
+                          component="tbody"
+                          sx={{
+                            'td:first-of-type': { pl: 2, pr: 1.5 },
+                            'td:last-of-type': { pr: 2 },
+                          }}
+                        >
+                          {summaryRows.map((row) => (
+                            <Box component="tr" key={row.key}>
+                              <Box
+                                component="td"
+                                sx={{
+                                  py: 1,
+                                  px: 0,
+                                  fontWeight: 500,
+                                  verticalAlign: 'top',
+                                }}
+                              >
+                                {row.name}
+                              </Box>
+                              <Box
+                                component="td"
+                                sx={{
+                                  py: 1,
+                                  px: 0,
+                                  textAlign: 'right',
+                                  whiteSpace: 'nowrap',
+                                  minWidth: 80,
+                                }}
+                              >
+                                {row.value}
+                              </Box>
                             </Box>
-                            <Box
-                              component="td"
-                              sx={{
-                                py: 1,
-                                px: 0,
-                                textAlign: 'right',
-                                whiteSpace: 'nowrap',
-                                minWidth: 80,
-                              }}
-                            >
-                              {row.value}
-                            </Box>
-                          </Box>
-                        ))}
+                          ))}
+                        </Box>
                       </Box>
                     </Box>
                   </Box>
@@ -619,7 +621,6 @@ const FinlandForests = () => {
                   sx={{
                     mt: 3,
                     mb: 6,
-                    ml: -1,
                     display: 'flex',
                     flexDirection: 'row',
                     alignItems: 'center',
@@ -627,8 +628,8 @@ const FinlandForests = () => {
                 >
                   <Star
                     sx={{
-                      height: 40,
-                      width: 'auto',
+                      width: 32,
+                      height: 32,
                       flexShrink: 0,
                     }}
                   />
@@ -657,7 +658,14 @@ const FinlandForests = () => {
                 Show carbon balance improvement potential compared to the
                 prevalent forestry practice
               </SwitchWithLabel>
-              <Box sx={{ mt: 7, p: 2, backgroundColor: 'neutral.light' }}>
+              <Box
+                sx={{
+                  mt: 7,
+                  p: 2,
+                  borderRadius: 1,
+                  backgroundColor: 'neutral.lighter',
+                }}
+              >
                 <Box>
                   <DropDownSelectWithHeader
                     label={'Choose forestry method for calculations:'}
@@ -903,7 +911,7 @@ const FinlandForests = () => {
             >
               Show graphs
             </Typography>
-            <BarChartIcon sx={{ mb: 1 }} fontSize="large" />
+            <BarChartIcon fontSize="large" />
           </Box>
         </Box>
       )}
