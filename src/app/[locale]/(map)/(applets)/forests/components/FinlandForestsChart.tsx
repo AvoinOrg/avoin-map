@@ -94,6 +94,7 @@ const MARGIN_TOP = 20
 const MARGIN_RIGHT = 0
 const MARGIN_BOTTOM = 60
 const FALLBACK_LEFT_MARGIN = 56
+const LEFT_MARGIN_SAFETY_BUFFER = 10
 const Y_TICK_FONT_SIZE = 11
 const Y_TICK_LABEL_DX = -4
 const Y_TICK_LABEL_PADDING = 2
@@ -199,25 +200,28 @@ export const FinlandForestsChart: React.FC<FinlandForestsChartProps> = ({
 
   const leftMargin = useMemo(() => {
     if (!yTickLabels.length) {
-      return FALLBACK_LEFT_MARGIN
+      return FALLBACK_LEFT_MARGIN + LEFT_MARGIN_SAFETY_BUFFER
     }
     if (typeof document === 'undefined') {
-      return FALLBACK_LEFT_MARGIN
+      return FALLBACK_LEFT_MARGIN + LEFT_MARGIN_SAFETY_BUFFER
     }
     const canvas = document.createElement('canvas')
     const context = canvas.getContext('2d')
     if (!context) {
-      return FALLBACK_LEFT_MARGIN
+      return FALLBACK_LEFT_MARGIN + LEFT_MARGIN_SAFETY_BUFFER
     }
     context.font = `${Y_TICK_FONT_SIZE}px ${tickLabelFontFamily}`
     const maxWidth = Math.max(
       ...yTickLabels.map((label) => context.measureText(label).width)
     )
     if (!Number.isFinite(maxWidth)) {
-      return FALLBACK_LEFT_MARGIN
+      return FALLBACK_LEFT_MARGIN + LEFT_MARGIN_SAFETY_BUFFER
     }
     return (
-      Math.ceil(maxWidth) + Math.abs(Y_TICK_LABEL_DX) + Y_TICK_LABEL_PADDING
+      Math.ceil(maxWidth) +
+      Math.abs(Y_TICK_LABEL_DX) +
+      Y_TICK_LABEL_PADDING +
+      LEFT_MARGIN_SAFETY_BUFFER
     )
   }, [tickLabelFontFamily, yTickLabels])
 

@@ -12,14 +12,14 @@ import Link from '#/components/common/Link'
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 // import { setOverlayMessage } from '../../OverlayMessages/OverlayMessages'
 // import * as SelectedFeatureState from './ArvometsaSelectedLayer'
-import { useMapStore, useUIStore } from '#/common/store'
+import { useMapStore } from '#/common/store'
 // import { setSearchPlaceholder } from '../../NavBar/NavBarSearch'
 import { useLocaleFormatter } from '#/common/hooks/useLocaleFormatter'
 import { FINLAND_BOUNDS } from '#/common/constants/map'
 import useSelectedFeaturesFilteredByLayer from '#/common/hooks/map/useSelectedFeaturesFilteredByLayer'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
-import { SidebarDrawerContainer } from '#/components/Sidebar/SidebarDrawerContainer'
-import { SidebarContentBox } from '#/components/Sidebar'
+import { SidebarContentBox, SimpleSidebar } from '#/components/Sidebar'
+import SidebarBackgroundContent from '#/components/common/SidebarBackgroundContent'
 import { useLayerGroup } from '#/common/hooks/map/useLayerGroup'
 import Info from '#/components/icons/Info'
 import { Star, Cross } from '#/components/icons'
@@ -46,6 +46,29 @@ import {
 
 import arvometsaLogo from './public/arvometsa_logo.png'
 // import * as Analytics from 'src/map/analytics'
+
+const graphActionButtonSx = {
+  width: '45px',
+  minWidth: '45px',
+  height: '45px',
+  borderRadius: '10px',
+  color: 'neutral.darker',
+  backgroundColor: '#ffffff',
+  boxShadow: '0px 10px 24px rgba(0, 0, 0, 0.18)',
+  transition: 'background-color 0.2s, transform 0.2s',
+  '&:hover': {
+    backgroundColor: '#f4f4f4',
+    transform: 'translateY(-1px)',
+  },
+} as const
+
+const graphChartBoxSx = {
+  mt: 3,
+  width: 'calc(100% - 0.75rem)',
+  maxWidth: '100%',
+  ml: 'auto',
+  overflow: 'visible',
+} as const
 
 // for (const sourceName of Object.keys(layerOptions)) {
 //   const layerName = `${sourceName}-fill`
@@ -99,11 +122,6 @@ const FinlandForests = () => {
     (state) => state.removeSelectedFeatures
   )
 
-  const isSidebarDrawerOpen = useUIStore((state) => state.isSidebarDrawerOpen)
-  const setIsSidebarDrawerOpen = useUIStore(
-    (state) => state.setIsSidebarDrawerOpen
-  )
-
   useLayerGroup('fi_forests', layerConf)
   const updateMapDetails = useUpdateMapDetails()
   const [hasFeature, setHasFeature] = useState(false)
@@ -123,6 +141,13 @@ const FinlandForests = () => {
   }, [filteredFeatures])
 
   const [reportPanelOpen, setReportPanelOpen] = useState(true)
+  const [isGraphPanelOpen, setIsGraphPanelOpen] = useState(false)
+
+  useEffect(() => {
+    if (!hasFeature) {
+      setIsGraphPanelOpen(false)
+    }
+  }, [hasFeature])
 
   const [forestryMethod, setForestryMethod] = useState<ForestryMethod>(
     DEFAULT_FORESTRY_METHOD
@@ -454,9 +479,222 @@ const FinlandForests = () => {
       ]
     : []
 
+  const graphPanelContent =
+    options != null ? (
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          p: SIDEBAR_PADDING_REM + 'rem',
+          backgroundColor: '#ffffff',
+        }}
+      >
+        <SwitchWithLabel
+          sx={{ mb: 7 }}
+          checked={cumulativeFlag}
+          onChange={onChangeCheckbox(setCumulativeFlag)}
+        >
+          Show cumulative carbon balance
+        </SwitchWithLabel>
+        {hasFeature && (
+          <>
+            <Box
+              sx={{
+                mt: 1,
+                backgroundColor: 'neutral.light',
+                borderRadius: 1,
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  flexWrap: 'wrap',
+                  columnGap: 0.5,
+                  rowGap: 0.5,
+                }}
+              >
+                <Box component="span">
+                  <abbr title="Carbon dioxide equivalent">
+                    CO<sub>2</sub>eq
+                  </abbr>
+                </Box>
+                <Box component="span">
+                  carbon balance (
+                  {getUnitPerArea('cbt', cumulativeFlag, perHectareFlag)})
+                </Box>
+              </Typography>
+              <Box sx={graphChartBoxSx}>
+                <FinlandForestsChart
+                  options={options.cbt.chartOptions.options}
+                  data={options.cbt.chartOptions.data}
+                />
+              </Box>
+            </Box>
+            <Box
+              sx={{
+                mt: 5,
+                backgroundColor: 'neutral.light',
+                borderRadius: 1,
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 600,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  columnGap: 0.5,
+                  rowGap: 0.5,
+                  flexWrap: 'wrap',
+                }}
+              >
+                Forest carbon stock (tons C/ha)
+                <Tooltip
+                  arrow
+                  title={
+                    <Box>
+                      multiply by 3.67 to get CO<sub>2</sub>eq amounts
+                    </Box>
+                  }
+                >
+                  <Info
+                    sx={{
+                      color: 'action.active',
+                      width: 16,
+                      height: 16,
+                      ml: 0.5,
+                      mb: 0.2,
+                    }}
+                  />
+                </Tooltip>
+              </Typography>
+              <Box sx={graphChartBoxSx}>
+                <FinlandForestsChart
+                  options={options.bio.chartOptions.options}
+                  data={options.bio.chartOptions.data}
+                />
+              </Box>
+            </Box>
+            <Box
+              sx={{
+                mt: 5,
+                backgroundColor: 'neutral.light',
+                borderRadius: 1,
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  flexWrap: 'wrap',
+                  columnGap: 0.5,
+                  rowGap: 0.5,
+                }}
+              >
+                <Box component="span">
+                  Harvested wood (
+                  {getUnitPerArea(
+                    'harvested-wood',
+                    cumulativeFlag,
+                    perHectareFlag
+                  )}
+                  )
+                </Box>
+              </Typography>
+              <Box sx={graphChartBoxSx}>
+                <FinlandForestsChart
+                  options={options.wood.chartOptions.options}
+                  data={options.wood.chartOptions.data}
+                />
+              </Box>
+            </Box>
+          </>
+        )}
+      </Box>
+    ) : null
+
+  const graphActionButton =
+    hasFeature && graphPanelContent ? (
+      <Tooltip title={isGraphPanelOpen ? 'Hide graphs' : 'Show graphs'} arrow>
+        <IconButton
+          aria-label={isGraphPanelOpen ? 'hide graphs' : 'show graphs'}
+          onClick={() => setIsGraphPanelOpen((open) => !open)}
+          sx={[
+            graphActionButtonSx,
+            isGraphPanelOpen && {
+              color: '#ffffff',
+              backgroundColor: '#0D6044',
+              '&:hover': {
+                backgroundColor: '#094832',
+              },
+            },
+          ]}
+        >
+          <BarChartIcon />
+        </IconButton>
+      </Tooltip>
+    ) : null
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-      <SidebarContentBox>
+    <SimpleSidebar
+      panels={
+        graphPanelContent && graphActionButton
+          ? {
+              mode: 'single',
+              isOpen: isGraphPanelOpen,
+              mobileMode: 'stacked',
+              mobileStackPlacement: 'before',
+              desktopActionRail: graphActionButton,
+              mobileActionRail: graphActionButton,
+              panel: {
+                content: graphPanelContent,
+                showCloseButton: true,
+                onClose: () => setIsGraphPanelOpen(false),
+                closeAriaLabel: 'close graphs panel',
+              },
+            }
+          : undefined
+      }
+    >
+      <SidebarContentBox
+        scrollFadeColor="#ffffff"
+        sxInner={{
+          pt: 0,
+          gap: { mobile: '1.5rem', desktop: '1.5rem' },
+          px: { mobile: '1rem', desktop: '1.875rem' },
+          pb: { mobile: '1.25rem', desktop: '1.5rem' },
+          backgroundColor: '#ffffff',
+        }}
+      >
+        <SidebarBackgroundContent
+          imageSrc="/files/img/green-drawings/forest.jpg"
+          imageAlt="Forest"
+          title="Forest carbon report"
+          description="Select a forest area to compare carbon balance, carbon stock, harvested wood, and forestry methods."
+          imageSx={{
+            height: '5.625rem',
+            objectPosition: 'center 45%',
+          }}
+          contentSx={{
+            px: '2.4375rem',
+            pt: '3rem',
+            pb: '3.5rem',
+            gap: '2rem',
+          }}
+          headerSx={{
+            gap: '1.5rem',
+          }}
+          descriptionSx={{
+            width: '100%',
+            maxWidth: 'none',
+          }}
+        />
+
         {options != null && (
           <Box
             sx={{
@@ -698,12 +936,12 @@ const FinlandForests = () => {
                   <Box
                     sx={{
                       display: 'flex',
-                      flexDirection: { xs: 'column', sm: 'row' },
+                      flexDirection: { mobile: 'column', desktop: 'row' },
                       alignItems: 'center',
                       justifyContent: 'start',
                       gap: 1,
                       flexWrap: 'wrap',
-                      textAlign: { xs: 'center', sm: 'left' },
+                      textAlign: { mobile: 'center', desktop: 'left' },
                     }}
                   >
                     <Typography
@@ -733,189 +971,7 @@ const FinlandForests = () => {
           </Box>
         )}
       </SidebarContentBox>
-
-      {options != null && (
-        <SidebarDrawerContainer>
-          <SidebarContentBox
-            sxOuter={{
-              width: '30rem',
-              maxWidth: '100%',
-              minWidth: 0,
-            }}
-          >
-            <SwitchWithLabel
-              sx={{ mb: 7 }}
-              checked={cumulativeFlag}
-              onChange={onChangeCheckbox(setCumulativeFlag)}
-            >
-              Show cumulative carbon balance
-            </SwitchWithLabel>
-            {hasFeature && (
-              <>
-                <Box
-                  sx={{
-                    mt: 1,
-                    backgroundColor: 'neutral.light',
-                    borderRadius: 1,
-                  }}
-                >
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontWeight: 600,
-                      display: 'flex',
-                      alignItems: 'baseline',
-                      flexWrap: 'wrap',
-                      columnGap: 0.5,
-                      rowGap: 0.5,
-                    }}
-                  >
-                    <Box component="span">
-                      <abbr title="Carbon dioxide equivalent">
-                        CO<sub>2</sub>eq
-                      </abbr>
-                    </Box>
-                    <Box component="span">
-                      carbon balance (
-                      {getUnitPerArea('cbt', cumulativeFlag, perHectareFlag)})
-                    </Box>
-                  </Typography>
-                  <Box sx={{ mt: 3 }}>
-                    <FinlandForestsChart
-                      options={options.cbt.chartOptions.options}
-                      data={options.cbt.chartOptions.data}
-                    />
-                  </Box>
-                </Box>
-                <Box
-                  sx={{
-                    mt: 5,
-                    backgroundColor: 'neutral.light',
-                    borderRadius: 1,
-                  }}
-                >
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontWeight: 600,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      columnGap: 0.5,
-                      rowGap: 0.5,
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    Forest carbon stock (tons C/ha)
-                    <Tooltip
-                      arrow
-                      title={
-                        <Box>
-                          multiply by 3.67 to get CO<sub>2</sub>eq amounts
-                        </Box>
-                      }
-                    >
-                      <Info
-                        sx={{
-                          color: 'action.active',
-                          width: 16,
-                          height: 16,
-                          ml: 0.5,
-                          mb: 0.2,
-                        }}
-                      />
-                    </Tooltip>
-                  </Typography>
-                  <Box sx={{ mt: 3 }}>
-                    <FinlandForestsChart
-                      options={options.bio.chartOptions.options}
-                      data={options.bio.chartOptions.data}
-                    />
-                  </Box>
-                </Box>
-                <Box
-                  sx={{
-                    mt: 5,
-                    backgroundColor: 'neutral.light',
-                    borderRadius: 1,
-                  }}
-                >
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontWeight: 600,
-                      display: 'flex',
-                      alignItems: 'baseline',
-                      flexWrap: 'wrap',
-                      columnGap: 0.5,
-                      rowGap: 0.5,
-                    }}
-                  >
-                    <Box component="span">
-                      Harvested wood (
-                      {getUnitPerArea(
-                        'harvested-wood',
-                        cumulativeFlag,
-                        perHectareFlag
-                      )}
-                      )
-                    </Box>
-                  </Typography>
-                  <Box sx={{ mt: 3 }}>
-                    <FinlandForestsChart
-                      options={options.wood.chartOptions.options}
-                      data={options.wood.chartOptions.data}
-                    />
-                  </Box>
-                </Box>
-              </>
-            )}
-          </SidebarContentBox>
-        </SidebarDrawerContainer>
-      )}
-      {hasFeature && !isSidebarDrawerOpen && (
-        <Box
-          sx={(theme) => ({
-            display: 'flex',
-            flexDirection: 'column',
-            pl: SIDEBAR_PADDING_REM + 'rem',
-            pr: SIDEBAR_PADDING_REM + 'rem',
-            pt: 2,
-            pb: 2,
-            position: 'sticky',
-            bottom: 0,
-            zIndex: theme.zIndex.drawer + 1,
-            borderTop: 1,
-            borderColor: 'primary.lighter',
-            backgroundColor: theme.palette.background.paper,
-          })}
-        >
-          <Box
-            onClick={() => setIsSidebarDrawerOpen(true)}
-            sx={{
-              mt: 1.3,
-              display: 'inline-flex',
-              flexDirection: 'row',
-              alignItems: 'center',
-              cursor: 'pointer',
-              color: 'neutral.dark',
-              flex: 0,
-              whiteSpace: 'nowrap',
-              alignSelf: 'flex-end',
-              gap: 0.75,
-            }}
-          >
-            <Typography
-              sx={{
-                typography: 'h3',
-              }}
-            >
-              Show graphs
-            </Typography>
-            <BarChartIcon fontSize="large" />
-          </Box>
-        </Box>
-      )}
-    </Box>
+    </SimpleSidebar>
   )
 }
 
