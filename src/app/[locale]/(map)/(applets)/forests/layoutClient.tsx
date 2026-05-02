@@ -3,7 +3,7 @@
 import React from 'react'
 
 import AppletWrapper from '#/components/common/AppletWrapper'
-import { BreadcrumbNav } from '#/components/Sidebar'
+import { BreadcrumbNav, MapLayoutSidebarBoundary } from '#/components/Sidebar'
 import { mainRouteTree } from '#/common/routing/routes/main'
 import { defaultListedLayerGroups } from '#/components/Map/layers/defaultListedLayerGroups'
 
@@ -21,7 +21,7 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
         ></BreadcrumbNav>
       }
     >
-      {children}
+      <MapLayoutSidebarBoundary>{children}</MapLayoutSidebarBoundary>
     </AppletWrapper>
   )
 }

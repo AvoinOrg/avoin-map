@@ -29,6 +29,7 @@ type SidebarHeaderConfig = {
 interface Vars {
   isSidebarOpen: boolean
   isSidebarDisabled: boolean
+  isMapLayoutSidebarDisabled: boolean
   isMapPopupOpen: boolean
   // Drawer extension state (extra content area next to the main drawer)
   isSidebarDrawerOpen: boolean
@@ -62,6 +63,7 @@ interface Vars {
 interface Actions {
   setIsSidebarOpen: (value: boolean) => void
   setIsSidebarDisabled: (value: boolean) => void
+  setIsMapLayoutSidebarDisabled: (value: boolean) => void
   setIsMapPopupOpen: (value: boolean) => void
   setIsSidebarDrawerOpen: (value: boolean) => void
   setIsSidebarDrawerOverlay: (value: boolean) => void
@@ -105,6 +107,7 @@ export const useUIStore = create<State>()(
     immer((set, get) => {
       const vars: Vars = {
         isSidebarDisabled: false,
+        isMapLayoutSidebarDisabled: false,
         isSidebarOpen: true,
         isMapPopupOpen: false,
         isSidebarDrawerOpen: false,
@@ -129,6 +132,8 @@ export const useUIStore = create<State>()(
       const actions: Actions = {
         setIsSidebarOpen: (value) => set({ isSidebarOpen: value }),
         setIsSidebarDisabled: (value) => set({ isSidebarDisabled: value }),
+        setIsMapLayoutSidebarDisabled: (value) =>
+          set({ isMapLayoutSidebarDisabled: value }),
         setIsMapPopupOpen: (value) => set({ isMapPopupOpen: value }),
         setIsSidebarDrawerOpen: (value) => set({ isSidebarDrawerOpen: value }),
         setIsSidebarDrawerOverlay: (value) =>

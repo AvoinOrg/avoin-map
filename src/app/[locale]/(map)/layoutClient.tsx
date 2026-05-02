@@ -41,11 +41,21 @@ const LayoutClient = ({
   const pathnameWithoutLocale = getPathnameWithoutLocale(pathname, locale ?? null)
   const isStandaloneHiilikartta =
     compiledApplets.length === 1 && compiledApplets[0] === 'hiilikartta'
+  const isStandaloneForests =
+    compiledApplets.length === 1 && compiledApplets[0] === 'forests'
   const useMainSidebar = pathnameWithoutLocale === '/' && !isStandaloneHiilikartta
   const useHiilikarttaHomeSidebar =
     pathnameWithoutLocale === '/hiilikartta' ||
     (isStandaloneHiilikartta && pathnameWithoutLocale === '/')
+  const useAppletOwnedSidebar =
+    pathnameWithoutLocale.startsWith('/hiilikartta/kaavat') ||
+    (isStandaloneHiilikartta && pathnameWithoutLocale.startsWith('/kaavat')) ||
+    pathnameWithoutLocale === '/forests' ||
+    (isStandaloneForests && pathnameWithoutLocale === '/')
   const sidebarVariant = useUIStore((state) => state.sidebarVariant)
+  const isMapLayoutSidebarDisabled = useUIStore(
+    (state) => state.isMapLayoutSidebarDisabled
+  )
 
   return (
     <>
@@ -66,7 +76,9 @@ const LayoutClient = ({
                     zIndex: 'drawer',
                   }}
                 >
-                  {useMainSidebar ? (
+                  {isMapLayoutSidebarDisabled || useAppletOwnedSidebar ? (
+                    children
+                  ) : useMainSidebar ? (
                     <MainSidebar>{children}</MainSidebar>
                   ) : useHiilikarttaHomeSidebar ? (
                     <HiilikarttaHomeSidebar>{children}</HiilikarttaHomeSidebar>

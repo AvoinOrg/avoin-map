@@ -11,6 +11,9 @@ type SidebarScaffoldProps = {
   children: React.ReactNode
   topContent?: React.ReactNode
   bottomContent?: React.ReactNode
+  trailingContent?: React.ReactNode
+  actionRail?: React.ReactNode
+  hideMainContainer?: boolean
   containerSx?: SxProps<Theme>
   panelSx?: SxProps<Theme>
   contentSx?: SxProps<Theme>
@@ -20,6 +23,9 @@ const SidebarScaffold = ({
   children,
   topContent,
   bottomContent,
+  trailingContent,
+  actionRail,
+  hideMainContainer = false,
   containerSx,
   panelSx,
   contentSx,
@@ -211,7 +217,7 @@ const SidebarScaffold = ({
         ref={sidebarContainerRef}
         sx={[
           (theme: Theme) => ({
-            display: 'flex',
+            display: hideMainContainer ? 'none' : 'flex',
             flexDirection: 'column',
             flex: '0 0 auto',
             width: { mobile: '100vw', desktop: '30rem' },
@@ -320,6 +326,7 @@ const SidebarScaffold = ({
           </Box>
         </Box>
       </Box>
+      {trailingContent}
       <Box
         ref={drawerSlotRef}
         className="sidebar-drawer-container"
@@ -363,6 +370,7 @@ const SidebarScaffold = ({
       >
         <Slot name="sidebar-drawer" />
       </Box>
+      {actionRail}
     </Box>
   )
 }

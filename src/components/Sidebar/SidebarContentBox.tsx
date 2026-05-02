@@ -13,6 +13,7 @@ import {
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react'
+import { useSimpleSidebarContext } from './SimpleSidebarContext'
 
 const SIDEBAR_SCROLL_FADE_HEIGHT_REM = 3
 
@@ -30,7 +31,12 @@ const SidebarContentBox = ({
   children?: React.ReactNode
 }) => {
   const isMobile = useIsMobile()
-  const isSimpleSidebar = useUIStore((state) => state.sidebarVariant === 'simple')
+  const simpleSidebarContext = useSimpleSidebarContext()
+  const isSimpleSidebarVariant = useUIStore(
+    (state) => state.sidebarVariant === 'simple'
+  )
+  const isSimpleSidebar =
+    simpleSidebarContext.isSimpleSidebar || isSimpleSidebarVariant
   const scrollContainerRef = useRef<OverlayScrollbarsComponentRef<'div'> | null>(
     null
   )
@@ -142,7 +148,9 @@ const SidebarContentBox = ({
               ...(Array.isArray(sxInner) ? sxInner : [sxInner]),
             ]}
           >
+            {simpleSidebarContext.mobileStackedContentBefore}
             {children}
+            {simpleSidebarContext.mobileStackedContentAfter}
           </Box>
         </OverlayScrollbarsComponent>
         <Box
