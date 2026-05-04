@@ -24,7 +24,7 @@ const RootLayout = ({
   children: React.ReactNode
 }) => {
   return (
-    <html lang="en" className={arimo.variable}>
+    <html lang="en" className={arimo.variable} suppressHydrationWarning>
       <body>
         <AppRouterCacheProvider>{children}</AppRouterCacheProvider>
       </body>
