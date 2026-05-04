@@ -1,4 +1,5 @@
 export { Sidebar } from './Sidebar'
+export { AppletHomeSidebar } from './AppletHomeSidebar'
 export { HiilikarttaHomeSidebar } from './HiilikarttaHomeSidebar'
 export { MainSidebar } from './MainSidebar'
 export { SimpleSidebar } from './SimpleSidebar'

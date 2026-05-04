@@ -18,6 +18,7 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
         tiles: [
           'https://server.avoin.org/data/map/hel-energiatodistukset/{z}/{x}/{y}.pbf?v=3',
         ],
+        minzoom: 11,
         maxzoom: 14,
         // Bounds source: https://koordinates.com/layer/4257-finland-11000000-administrative-regions/
         // select ST_Extent(ST_Transform(ST_SetSRID(geom,3067), 4326))

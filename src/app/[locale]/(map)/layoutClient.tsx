@@ -11,13 +11,17 @@ import UserStateHandler from './userStateHandler'
 import UIStateHandler from './uiStateHandler'
 import { SlotsProvider } from '#/components/context/slotsContext'
 import {
+  AppletHomeSidebar,
   HiilikarttaHomeSidebar,
   MainSidebar,
   Sidebar,
   SimpleSidebar,
 } from '#/components/Sidebar'
 import { FullscreenPageSlot } from '#/components/common/FullscreenPage'
-import { compiledApplets, getPathnameWithoutLocale } from '#/common/routing/routing'
+import {
+  compiledApplets,
+  getPathnameWithoutLocale,
+} from '#/common/routing/routing'
 import { useUIStore } from '#/common/store'
 // import { UserModal } from '#/components/Profile'
 // import { UiStateProvider, UserStateProvider } from '#/components/State'
@@ -38,15 +42,26 @@ const LayoutClient = ({
     setIsHydrated(true)
   }, [])
 
-  const pathnameWithoutLocale = getPathnameWithoutLocale(pathname, locale ?? null)
+  const pathnameWithoutLocale = getPathnameWithoutLocale(
+    pathname,
+    locale ?? null
+  )
   const isStandaloneHiilikartta =
     compiledApplets.length === 1 && compiledApplets[0] === 'hiilikartta'
+  const isStandaloneEnergiakartta =
+    compiledApplets.length === 1 && compiledApplets[0] === 'energiakartta'
   const isStandaloneForests =
     compiledApplets.length === 1 && compiledApplets[0] === 'forests'
-  const useMainSidebar = pathnameWithoutLocale === '/' && !isStandaloneHiilikartta
+  const useMainSidebar =
+    pathnameWithoutLocale === '/' &&
+    !isStandaloneHiilikartta &&
+    !isStandaloneEnergiakartta
   const useHiilikarttaHomeSidebar =
     pathnameWithoutLocale === '/hiilikartta' ||
     (isStandaloneHiilikartta && pathnameWithoutLocale === '/')
+  const useEnergiakarttaHomeSidebar =
+    pathnameWithoutLocale === '/energiakartta' ||
+    (isStandaloneEnergiakartta && pathnameWithoutLocale === '/')
   const useAppletOwnedSidebar =
     pathnameWithoutLocale.startsWith('/hiilikartta/kaavat') ||
     (isStandaloneHiilikartta && pathnameWithoutLocale.startsWith('/kaavat')) ||
@@ -82,6 +97,8 @@ const LayoutClient = ({
                     <MainSidebar>{children}</MainSidebar>
                   ) : useHiilikarttaHomeSidebar ? (
                     <HiilikarttaHomeSidebar>{children}</HiilikarttaHomeSidebar>
+                  ) : useEnergiakarttaHomeSidebar ? (
+                    <AppletHomeSidebar>{children}</AppletHomeSidebar>
                   ) : sidebarVariant === 'simple' ? (
                     <SimpleSidebar>{children}</SimpleSidebar>
                   ) : (
