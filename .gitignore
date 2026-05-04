@@ -158,6 +158,7 @@ i18n/*
 .dev/
 
 .codex/**
+.codex-orch/
 
 # Temp build workspace state (see utils/scripts/prebuildFolderPruneTmp.js)
 .applet-build-tmp.json
