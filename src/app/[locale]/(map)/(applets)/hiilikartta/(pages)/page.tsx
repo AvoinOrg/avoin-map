@@ -9,7 +9,7 @@ import { SidebarContentBox } from '#/components/Sidebar'
 import { getRoute } from '#/common/routing/routing-client'
 import { useMapStore } from '#/common/store'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
-import { EyeButton } from '#/components/common/EyeButton'
+import { LayerToggleRow } from '#/components/common/LayerToggleRow'
 import { IntoSlot } from '#/components/context/slotsContext'
 
 import { routeTree } from '#/common/routing/routes/hiilikartta'
@@ -202,51 +202,30 @@ const Page = () => {
               </Typography>
 
               {vegetationLayerGroup && (
-                <Box
+                <LayerToggleRow
+                  ariaLabel="Toggle vegetation carbon layer"
+                  color="#2D7A3A"
+                  status={isVegetationLayerVisible ? 'visible' : 'hidden'}
+                  label={
+                    <T keyName="sidebar.main.vegetation_layer" ns="hiilikartta" />
+                  }
+                  onToggle={() =>
+                    toggleLayerGroup(
+                      vegetationLayerGroup.id,
+                      vegetationLayerGroup.addOptions
+                    )
+                  }
                   sx={{
                     mt: { mobile: '4rem', desktop: '5.25rem' },
-                    display: 'flex',
-                    alignItems: 'center',
-                    width: '100%',
                   }}
-                >
-                  <EyeButton
-                    ariaLabel="Toggle vegetation carbon layer"
-                    color="#2D7A3A"
-                    status={isVegetationLayerVisible ? 'visible' : 'hidden'}
-                    sx={{
-                      p: 0,
-                      mr: '0.75rem',
-                    }}
-                    onClick={(event) => {
-                      event.preventDefault()
-                      toggleLayerGroup(
-                        vegetationLayerGroup.id,
-                        vegetationLayerGroup.addOptions
-                      )
-                    }}
-                  />
-                  <Typography
-                    onClick={() =>
-                      toggleLayerGroup(
-                        vegetationLayerGroup.id,
-                        vegetationLayerGroup.addOptions
-                      )
-                    }
-                    sx={{
-                      color: '#111111',
-                      flexGrow: 1,
-                      cursor: 'pointer',
-                      fontSize: '0.6875rem',
-                      fontWeight: 400,
-                      lineHeight: '1.125rem',
-                      letterSpacing: '0.1em',
-                      whiteSpace: 'normal',
-                    }}
-                  >
-                    <T keyName="sidebar.main.vegetation_layer" ns="hiilikartta" />
-                  </Typography>
-                </Box>
+                  labelSx={{
+                    color: '#111111',
+                    fontSize: '0.6875rem',
+                    fontWeight: 400,
+                    lineHeight: '1.125rem',
+                    letterSpacing: '0.1em',
+                  }}
+                />
               )}
             </Box>
 

@@ -8,6 +8,16 @@ import Popup from './Popup'
 
 const id: LayerGroupId = 'building_energy_certs'
 
+export const ENERGY_CLASS_COLORS = {
+  A: '#1F964A',
+  B: '#7DAD46',
+  C: '#CCD040',
+  D: '#FFEA43',
+  E: '#ECB234',
+  F: '#D2621F',
+  G: '#C70016',
+} as const
+
 const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   return {
     version: 8,
@@ -38,19 +48,19 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
             'match',
             ['get', 'e_luokka'],
             'A',
-            '#1F964A',
+            ENERGY_CLASS_COLORS.A,
             'B',
-            '#7DAD46',
+            ENERGY_CLASS_COLORS.B,
             'C',
-            '#CCD040',
+            ENERGY_CLASS_COLORS.C,
             'D',
-            '#FFEA43',
+            ENERGY_CLASS_COLORS.D,
             'E',
-            '#ECB234',
+            ENERGY_CLASS_COLORS.E,
             'F',
-            '#D2621F',
+            ENERGY_CLASS_COLORS.F,
             'G',
-            '#C70016',
+            ENERGY_CLASS_COLORS.G,
             'white',
           ],
           'fill-opacity': fillOpacity,

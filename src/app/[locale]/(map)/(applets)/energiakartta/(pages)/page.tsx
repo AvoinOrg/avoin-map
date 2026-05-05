@@ -4,12 +4,17 @@ import React from 'react'
 import { Box, Tooltip, Typography } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
+import { getContrastColor } from '#/common/utils/styling'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
 import { useMapStore } from '#/common/store'
+import {
+  LayerToggleRow,
+  LayerToggleRowAccordion,
+} from '#/components/common/LayerToggleRow'
 import TText from '#/components/common/TText'
 import { IntoSlot } from '#/components/context/slotsContext'
 import { SidebarContentBox } from '#/components/Sidebar'
-import { CircleArrowRight, EyeClosed, EyeOpen } from '#/components/icons'
+import { ENERGY_CLASS_COLORS } from '#/components/Map/layers/main/Buildings/BuildingEnergyCertificates/layerConf'
 import { listedEnergyClassesLayerGroup } from '../common/constants'
 
 const SIDEBAR_SIDE_PADDING = {
@@ -25,13 +30,12 @@ const ROW_LABEL_SX = {
   letterSpacing: '0.1em',
 }
 
-type LayerRowProps = {
-  labelKey: string
-  disabled?: boolean
-  isVisible?: boolean
-  tooltip: string
-  ariaLabel?: string
-  onToggle?: () => void
+const ACCORDION_TEXT_SX = {
+  color: '#111111',
+  fontSize: '0.625rem',
+  fontWeight: 400,
+  lineHeight: '1.125rem',
+  letterSpacing: '0.1em',
 }
 
 const HomeSidebarHeader = () => {
@@ -92,86 +96,6 @@ const HomeSidebarHeader = () => {
         </Typography>
       </Box>
     </Box>
-  )
-}
-
-const SidebarLayerRow = ({
-  labelKey,
-  disabled = false,
-  isVisible = false,
-  tooltip,
-  ariaLabel,
-  onToggle,
-}: LayerRowProps) => {
-  const rowContent = (
-    <Box
-      component={disabled ? 'div' : 'button'}
-      type={disabled ? undefined : 'button'}
-      role={disabled ? 'button' : undefined}
-      tabIndex={disabled ? 0 : undefined}
-      aria-disabled={disabled ? 'true' : undefined}
-      aria-label={ariaLabel}
-      onClick={disabled ? undefined : onToggle}
-      sx={{
-        width: '100%',
-        minHeight: '1.125rem',
-        p: 0,
-        display: 'flex',
-        alignItems: 'center',
-        border: 0,
-        background: 'transparent',
-        color: '#111111',
-        opacity: disabled ? 0.5 : 1,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        textAlign: 'left',
-        '&:focus-visible': {
-          outline: '2px solid #111111',
-          outlineOffset: '0.25rem',
-        },
-      }}
-    >
-      <Box
-        sx={{
-          width: '1.5rem',
-          height: '1.125rem',
-          mr: '0.3125rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-        }}
-      >
-        {isVisible ? (
-          <EyeOpen sx={{ width: '1rem', height: '1rem' }} />
-        ) : (
-          <EyeClosed sx={{ width: '1rem', height: '1rem' }} />
-        )}
-      </Box>
-      <Typography component="span" sx={{ ...ROW_LABEL_SX, flexGrow: 1 }}>
-        <TText keyName={labelKey} ns="energiakartta" />
-      </Typography>
-      <CircleArrowRight
-        sx={{
-          width: '0.75rem',
-          height: '0.75rem',
-          color: '#aeb6ad',
-          ml: '1rem',
-          flexShrink: 0,
-        }}
-      />
-    </Box>
-  )
-
-  if (!disabled) {
-    return rowContent
-  }
-
-  return (
-    <Tooltip title={tooltip} arrow placement="top">
-      <Box component="span" sx={{ display: 'block', width: '100%' }}>
-        {rowContent}
-      </Box>
-    </Tooltip>
   )
 }
 
@@ -240,6 +164,113 @@ const SidebarFooterAction = ({
   )
 }
 
+const EnergyClassChips = () => {
+  return (
+    <Box
+      aria-hidden="true"
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(7, 2.875rem)',
+        width: '100%',
+        maxWidth: '20.125rem',
+      }}
+    >
+      {Object.entries(ENERGY_CLASS_COLORS).map(([energyClass, color]) => (
+        <Box
+          key={energyClass}
+          sx={{
+            width: '2.875rem',
+            height: '2.875rem',
+            borderRadius: '5px',
+            backgroundColor: '#f4f4f4',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Box
+            sx={{
+              width: '1.91675rem',
+              height: '1.91675rem',
+              borderRadius: '50%',
+              backgroundColor: color,
+              color: getContrastColor(color),
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1rem',
+              fontWeight: 700,
+              lineHeight: 1,
+              letterSpacing: '0.1em',
+            }}
+          >
+            {energyClass}
+          </Box>
+        </Box>
+      ))}
+    </Box>
+  )
+}
+
+const EnergyClassesAccordionContent = () => {
+  return (
+    <Box
+      sx={{
+        pt: '2.125rem',
+      }}
+    >
+      <EnergyClassChips />
+      <Box
+        sx={{
+          mt: '2.875rem',
+          mx: '2rem',
+          maxWidth: '15.875rem',
+        }}
+      >
+        {[
+          'sidebar.front_page.energy_classes.body_1',
+          'sidebar.front_page.energy_classes.body_2',
+          'sidebar.front_page.energy_classes.body_3',
+        ].map((keyName) => (
+          <Typography
+            key={keyName}
+            sx={{
+              ...ACCORDION_TEXT_SX,
+              mb: '1.125rem',
+            }}
+          >
+            <TText keyName={keyName} ns="energiakartta" />
+          </Typography>
+        ))}
+        <Typography
+          sx={{
+            ...ACCORDION_TEXT_SX,
+            mb: '1.125rem',
+            fontStyle: 'italic',
+          }}
+        >
+          <TText
+            keyName="sidebar.front_page.energy_classes.note"
+            ns="energiakartta"
+          />
+        </Typography>
+        <Typography
+          sx={{
+            ...ACCORDION_TEXT_SX,
+            textDecoration: 'underline',
+            textUnderlineOffset: '0.125rem',
+          }}
+        >
+          <TText
+            keyName="sidebar.front_page.energy_classes.definitions"
+            ns="energiakartta"
+          />
+        </Typography>
+      </Box>
+    </Box>
+  )
+}
+
 const Page = () => {
   const { t } = useTranslate('energiakartta')
   const toggleLayerGroup = useMapStore((state) => state.toggleLayerGroup)
@@ -278,7 +309,7 @@ const Page = () => {
           sx={{
             px: SIDEBAR_SIDE_PADDING,
             pt: { mobile: '2.25rem', desktop: '3.0625rem' },
-            pb: { mobile: '2rem', desktop: '2rem' },
+            pb: { mobile: '7rem', desktop: '7rem' },
             display: 'flex',
             flexDirection: 'column',
             minHeight: '100%',
@@ -324,10 +355,15 @@ const Page = () => {
               maxWidth: '19.625rem',
             }}
           >
-            <SidebarLayerRow
-              labelKey="sidebar.front_page.layers.energy_classes"
-              isVisible={isEnergyClassesLayerVisible}
-              tooltip={upcomingTooltip}
+            <LayerToggleRowAccordion
+              label={
+                <TText
+                  keyName="sidebar.front_page.layers.energy_classes"
+                  ns="energiakartta"
+                />
+              }
+              status={isEnergyClassesLayerVisible ? 'visible' : 'hidden'}
+              expanded={isEnergyClassesLayerVisible}
               ariaLabel={toggleEnergyClassesAria}
               onToggle={() =>
                 toggleLayerGroup(
@@ -335,25 +371,37 @@ const Page = () => {
                   listedEnergyClassesLayerGroup.addOptions
                 )
               }
-            />
-            <SidebarLayerRow
-              labelKey="sidebar.front_page.layers.heating"
-              disabled
-              tooltip={upcomingTooltip}
-              ariaLabel={t('sidebar.front_page.layers.heating')}
-            />
-            <SidebarLayerRow
-              labelKey="sidebar.front_page.layers.ventilation"
-              disabled
-              tooltip={upcomingTooltip}
-              ariaLabel={t('sidebar.front_page.layers.ventilation')}
-            />
-            <SidebarLayerRow
-              labelKey="sidebar.front_page.layers.other_energy_sources"
-              disabled
-              tooltip={upcomingTooltip}
-              ariaLabel={t('sidebar.front_page.layers.other_energy_sources')}
-            />
+              labelSx={ROW_LABEL_SX}
+            >
+              <EnergyClassesAccordionContent />
+            </LayerToggleRowAccordion>
+            {[
+              {
+                keyName: 'sidebar.front_page.layers.heating',
+                ariaLabel: t('sidebar.front_page.layers.heating'),
+              },
+              {
+                keyName: 'sidebar.front_page.layers.ventilation',
+                ariaLabel: t('sidebar.front_page.layers.ventilation'),
+              },
+              {
+                keyName: 'sidebar.front_page.layers.other_energy_sources',
+                ariaLabel: t('sidebar.front_page.layers.other_energy_sources'),
+              },
+            ].map(({ keyName, ariaLabel }) => (
+              <Tooltip key={keyName} title={upcomingTooltip} arrow placement="top">
+                <Box component="span" sx={{ display: 'block', width: '100%' }}>
+                  <LayerToggleRow
+                    label={<TText keyName={keyName} ns="energiakartta" />}
+                    status="hidden"
+                    disabled
+                    ariaLabel={ariaLabel}
+                    onToggle={() => {}}
+                    labelSx={ROW_LABEL_SX}
+                  />
+                </Box>
+              </Tooltip>
+            ))}
           </Box>
         </Box>
       </SidebarContentBox>
