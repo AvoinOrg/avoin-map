@@ -4,6 +4,7 @@ services:
       context: .
       target: app
     env_file: ./.env
+    shm_size: '1gb'
     ports:
       - '${DEV_PORT}:3000'
     volumes:
@@ -14,6 +15,7 @@ services:
       - node-dev:/home/node/dev
     environment:
       NODE_ENV: development
+      NODE_OPTIONS: '--max-old-space-size=6144'
       HOST_MACHINE: host.docker.internal
       DEVCONTAINER_KEEPALIVE: '1'
     extra_hosts:
