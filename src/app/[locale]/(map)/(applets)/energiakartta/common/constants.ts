@@ -1,5 +1,5 @@
 import { LayerOrderLevel, ListedLayerGroup } from '#/common/types/map'
-import buildingEnergyCertificatesLayerConf from '#/components/Map/layers/main/Buildings/BuildingEnergyCertificates/layerConf'
+import energymapBuildingPolygonsLayerConf from '#/app/[locale]/(map)/(applets)/energiakartta/layers/buildingPolygonsLayerConf'
 import {
   listedMmlKiinteistojaotusLayerGroup,
   listedMmlKiinteistotunnuksetLayerGroup,
@@ -11,9 +11,9 @@ import {
 } from '#/components/Map/layers/defaultListedLayerGroups'
 
 export const listedEnergyClassesLayerGroup: ListedLayerGroup = {
-  id: buildingEnergyCertificatesLayerConf.id,
+  id: energymapBuildingPolygonsLayerConf.id,
   addOptions: {
-    layerConf: buildingEnergyCertificatesLayerConf,
+    layerConf: energymapBuildingPolygonsLayerConf,
     layerOrderOptions: {
       layerOrderLevel: LayerOrderLevel.LAYER,
     },
