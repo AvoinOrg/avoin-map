@@ -57,7 +57,7 @@ standalone sites.
   scoped to only the necessary changes, and coordinate with `figma-mcp` and
   `tolgee-api-upsert` when relevant.
   (file: `agents/skills/tmp-plan/SKILL.md`)
-- `figma-mcp`: Inspect Figma files and nodes through remote Figma MCP,
+- `figma-mcp`: Inspect Figma files and nodes through the global HTTP Figma MCP,
   normalize public Figma URLs into `fileKey` and `nodeId` inputs, and fetch
   metadata, screenshots, design context, or exact asset URLs. (file:
   `agents/skills/figma-mcp/SKILL.md`)
@@ -65,13 +65,21 @@ standalone sites.
   API, refresh local exports, and follow the repo’s `TText`/ICU authoring
   rules. (file: `agents/skills/tolgee-api-upsert/SKILL.md`)
 
-## Figma MCP (Remote)
+## Figma MCP (Global HTTP)
 
 - Use the `figma-mcp` skill when the task is primarily about Figma connectivity,
   credential handling, URL normalization, metadata fetches, screenshots, design
   context, or exact asset extraction.
-- Use the remote Figma MCP tools (`mcp__figma_remote__*`).
-- The Figma MCP endpoint is fixed at `https://mcp.figma.com/mcp`.
+- Use the default tool-style Figma MCP aliases first: `mcp__figma__*`.
+- Those aliases must point at the global HTTP Figma MCP endpoint:
+  `https://mcp.figma.com/mcp`.
+- Do not try local, localhost, desktop, or non-HTTP Figma MCP transports unless
+  the user explicitly asks for a local transport.
+- If `mcp__figma__*` aliases are not exposed in the current Codex session, call
+  the same global HTTP endpoint directly with JSON-RPC and the Figma MCP
+  credential from `.codex/.credentials.json`; absence of aliases is not itself
+  a Figma access block.
+- `figma_remote` / `mcp__figma_remote__*` is a legacy alias only.
 - The devcontainer image includes `jq`, which is useful for safe inspection of
   `.codex/.credentials.json` and quick MCP response parsing.
 - When a user shares a public Figma URL, do not pass the full URL to MCP tools.

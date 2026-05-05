@@ -3,7 +3,9 @@ model_reasoning_effort = "xhigh"
 personality = "pragmatic"
 
 [network_access]
-# Allow local MCP endpoints (e.g. Figma MCP on host machine / devcontainer host gateway).
+# Figma MCP should use the global HTTP endpoint configured below, not a local
+# host/desktop MCP server. Keep local network access only for app/devcontainer
+# commands that need localhost.
 allowed_domains = [
   "host.docker.internal",
   "localhost",
@@ -18,4 +20,6 @@ approval_policy = "on-request"
 network_access = true
 
 [mcp_servers.figma]
+# Produces tool-style aliases such as mcp__figma__get_metadata when Codex
+# exposes MCP tools to an agent.
 url = "https://mcp.figma.com/mcp"

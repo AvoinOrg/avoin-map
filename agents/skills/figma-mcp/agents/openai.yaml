@@ -6,8 +6,8 @@ interface:
 dependencies:
   tools:
     - type: "mcp"
-      value: "figma_remote"
-      description: "Remote Figma MCP server"
+      value: "figma"
+      description: "Global HTTP Figma MCP server"
       transport: "streamable_http"
       url: "https://mcp.figma.com/mcp"
 

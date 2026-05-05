@@ -5,18 +5,35 @@ connectivity checks, or URL normalization.
 
 ## Credential sources
 
-- Remote Figma MCP credentials live in `.codex/.credentials.json`.
-- The remote MCP endpoint is fixed at `https://mcp.figma.com/mcp`.
+- Global HTTP Figma MCP credentials live in `.codex/.credentials.json`.
+- The global HTTP MCP endpoint is fixed at `https://mcp.figma.com/mcp`.
+- The default Codex MCP server name is `figma`. When Codex exposes tool-style
+  MCP aliases, use `mcp__figma__*` first.
+- `figma_remote` is a legacy alias from earlier runs. Use it only to recover
+  existing credentials or when the session exposes only `mcp__figma_remote__*`.
 - There is no design-specific MCP URL. The shared Figma URL is converted into
   MCP tool arguments such as `fileKey` and `nodeId`.
 
+## Codex MCP config
+
+Use this Codex config shape for the default tool-style Figma MCP endpoint:
+
+```toml
+[mcp_servers.figma]
+url = "https://mcp.figma.com/mcp"
+```
+
+That server name is what produces `mcp__figma__*` aliases when Codex makes the
+MCP tools available to the agent. Do not configure a localhost or desktop Figma
+MCP server unless a task explicitly asks for a local transport.
+
 ## Safe `jq` checks
 
-List configured remote Figma MCP entries without printing the token:
+List configured global Figma MCP entries without printing the token:
 
 ```bash
 jq 'to_entries[]
-  | select(.value.server_name == "figma_remote")
+  | select(.value.server_name == "figma" and .value.server_url == "https://mcp.figma.com/mcp")
   | {
       credential_key: .key,
       server_name: .value.server_name,
@@ -26,17 +43,20 @@ jq 'to_entries[]
     }' .codex/.credentials.json
 ```
 
-Load the remote access token into a shell variable without echoing it:
+If only the legacy `figma_remote` credential exists, duplicate or re-login it as
+`figma` before expecting `mcp__figma__*` tool aliases to authenticate.
+
+Load the global access token into a shell variable without echoing it:
 
 ```bash
 TOKEN=$(jq -r 'to_entries[]
-  | select(.value.server_name == "figma_remote")
+  | select(.value.server_name == "figma" and .value.server_url == "https://mcp.figma.com/mcp")
   | .value.access_token' .codex/.credentials.json)
 ```
 
 ## Quick connectivity checks
 
-Remote MCP initialize example:
+Global HTTP MCP initialize example:
 
 ```bash
 curl -sS https://mcp.figma.com/mcp \
@@ -82,7 +102,7 @@ node agents/skills/figma-mcp/scripts/figma-url-to-mcp-target.js \
 ```
 
 The script prints the normalized `fileKey`, raw `node-id`, MCP `nodeId`,
-the fixed remote MCP endpoint, and ready-to-use tool arguments.
+the fixed global HTTP MCP endpoint, and ready-to-use tool arguments.
 
 ## Example MCP tool calls
 
@@ -130,8 +150,10 @@ curl -sS https://mcp.figma.com/mcp \
 
 ## Notes on response shape
 
-- The remote MCP endpoint responds as `text/event-stream`.
+- The global HTTP MCP endpoint responds as `text/event-stream`.
 - When probing it manually, inspect the `data: ...` lines to read the JSON-RPC
   result.
-- If the task is inside Codex and MCP tools are available directly, prefer the
-  tools over manual `curl`.
+- If the task is inside Codex and `mcp__figma__*` tools are available directly,
+  prefer those tool-style aliases over manual `curl`.
+- If the aliases are not exposed but credentials exist, manual JSON-RPC calls to
+  the same global HTTP endpoint are the expected fallback.
