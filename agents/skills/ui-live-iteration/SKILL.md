@@ -59,9 +59,22 @@ Use this skill when the user asks for any of the following:
 - Verify both desktop and mobile before considering the task complete.
 - Treat `yarn visual:after-edit -- --no-start <paths>` as the default
   verification path so the runner never starts or stops a dev server.
-- If `http://127.0.0.1:3000` is unavailable, stop the coding task, tell the
-  user the main dev server is unavailable, and investigate what happened to the
-  main dev-server process. Do not start `yarn dev` yourself.
+- Run repo visual commands inside the project `app` container whenever the
+  caller is the host or the `codex-agent` container:
+  `docker compose -f /workspace/project/docker-compose.dev.yml --project-directory /workspace/project exec app sh -lc 'cd /app && yarn visual:after-edit -- --no-start <paths>'`.
+  Inside that container, `http://127.0.0.1:3000` is the correct app URL.
+- If you need to inspect the app from the host or the `codex-agent` container,
+  read `DEV_PORT` from `.env` and target `http://127.0.0.1:${DEV_PORT}` or
+  `http://localhost:${DEV_PORT}`. Do not probe `127.0.0.1:3000` from outside
+  the `app` container.
+- If the expected dev server is unavailable in the correct namespace, stop the
+  coding task, tell the user the main dev server is unavailable, and investigate
+  what happened to the main dev-server process. Do not start `yarn dev`
+  yourself.
+- If the visual runner reports `missing-baseline` and the current screenshots
+  are otherwise valid, generate local baselines from the existing dev server
+  inside the `app` container with `yarn visual:baseline -- --no-start`, then
+  rerun the changed visual check.
 - Let the runner use its default `--browser-mode=auto` unless you are
   intentionally debugging strict headless behavior or forcing the Xvfb-backed
   WebGL path.

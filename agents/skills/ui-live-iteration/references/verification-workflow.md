@@ -9,27 +9,46 @@ Use this reference after every meaningful UI edit pass.
 - Prefer the in-container repo-controlled visual runner first.
 - Let the runner keep its default `--browser-mode=auto` unless you are
   debugging the browser runtime itself.
-- The main dev server on `http://127.0.0.1:3000` is expected to be a stable,
-  container-managed process. Agents must not start or stop `yarn dev`.
-- If that path is unavailable, fall back to the host shared-browser workflow
-  instead of skipping verification.
+- The main dev server is a stable, container-managed process. Agents must not
+  start or stop `yarn dev`.
+- Network namespace matters:
+  - Inside the project `app` container, use `http://127.0.0.1:3000`.
+  - From the host or the `codex-agent` container, read `DEV_PORT` from `.env`
+    and use `http://127.0.0.1:${DEV_PORT}` or `http://localhost:${DEV_PORT}`.
+  - Do not probe `http://127.0.0.1:3000` from outside the `app` container.
+- If the correct path for the current namespace is unavailable, fall back to the
+  host shared-browser workflow instead of skipping verification.
 - When the task is a substantial UI feature or the user asks for pics, capture
   a small representative set of picture snapshots under `.tmp/` after the final
   iteration pass.
 
 ## Primary visual commands
 
-- Use `yarn visual:after-edit -- --no-start <path1> <path2> ...` for the normal post-edit workflow.
+- Run normal repo visual commands inside the project `app` container:
+  `docker compose -f /workspace/project/docker-compose.dev.yml --project-directory /workspace/project exec app sh -lc 'cd /app && yarn visual:after-edit -- --no-start <path1> <path2> ...'`.
 - Use `yarn visual:changed -- --no-start --files <comma-separated-paths>` when you specifically want changed-file targeting.
 - Use `yarn visual:baseline` only when intentionally refreshing local baselines.
 - Use `yarn visual:webgl:smoke` to probe the Xvfb-backed WebGL path directly.
 - Use `yarn visual:webgl:smoke:headless` to check whether strict headless
   currently lacks WebGL support or to confirm that headless support is present.
 
-The visual runner must only target the already-running server at
-`http://127.0.0.1:3000`. Always pass `--no-start`. If the server is
-unreachable, stop the coding task, report that the main dev server is down,
-and investigate the main dev-server process and recent logs.
+The visual runner must only target the already-running server. When run inside
+the `app` container, that server is `http://127.0.0.1:3000`. Always pass
+`--no-start`. If the server is unreachable in the correct namespace, stop the
+coding task, report that the main dev server is down, and investigate the main
+dev-server process and recent logs.
+
+Missing baselines:
+
+- `missing-baseline` means the runner captured a current screenshot but had no
+  local baseline image to compare it against.
+- If the current screenshot is valid and the only visual-runner blocker is
+  missing baselines, generate local baselines inside the `app` container:
+  `yarn visual:baseline -- --no-start`.
+- Then rerun the changed check, for example:
+  `yarn visual:after-edit -- --no-start <path1> <path2> ...`.
+- Baseline generation is a local visual-test artifact refresh, not proof by
+  itself; the changed check still needs to pass afterward.
 
 Runtime safety:
 
