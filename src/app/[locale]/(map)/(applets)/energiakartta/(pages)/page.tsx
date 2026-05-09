@@ -4,7 +4,6 @@ import React from 'react'
 import { Box, Tooltip, Typography } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
-import { getContrastColor } from '#/common/utils/styling'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
 import { useMapStore } from '#/common/store'
 import {
@@ -14,8 +13,8 @@ import {
 import TText from '#/components/common/TText'
 import { IntoSlot } from '#/components/context/slotsContext'
 import { SidebarContentBox } from '#/components/Sidebar'
-import { ENERGY_CLASS_COLORS } from '#/components/Map/layers/main/Buildings/BuildingEnergyCertificates/layerConf'
-import { listedEnergyClassesLayerGroup } from '../common/constants'
+import { HEATING_ENERGY_SOURCE_COLORS } from '../layers/heatingLayerConf'
+import { listedHeatingLayerGroup } from '../common/constants'
 
 const SIDEBAR_SIDE_PADDING = {
   mobile: '1.5rem',
@@ -42,6 +41,45 @@ const ACCORDION_TEXT_SX = {
   lineHeight: '1.125rem',
   letterSpacing: '0.1em',
 }
+
+const HEATING_LEGEND_ITEMS = [
+  {
+    keyName: 'sidebar.front_page.heating.legend.geothermal',
+    color: HEATING_ENERGY_SOURCE_COLORS.geothermal,
+  },
+  {
+    keyName: 'sidebar.front_page.heating.legend.district_heating',
+    color: HEATING_ENERGY_SOURCE_COLORS.districtHeating,
+  },
+  {
+    keyName: 'sidebar.front_page.heating.legend.electricity',
+    color: HEATING_ENERGY_SOURCE_COLORS.electricity,
+  },
+  {
+    keyName: 'sidebar.front_page.heating.legend.solar',
+    color: HEATING_ENERGY_SOURCE_COLORS.solar,
+  },
+  {
+    keyName: 'sidebar.front_page.heating.legend.other',
+    color: HEATING_ENERGY_SOURCE_COLORS.other,
+  },
+] as const
+
+const ENERGY_CLASSES_DISABLED_ROW = {
+  keyName: 'sidebar.front_page.layers.energy_classes',
+  ariaKeyName: 'sidebar.front_page.aria.energy_classes_upcoming',
+} as const
+
+const LOWER_DISABLED_LAYER_ROWS = [
+  {
+    keyName: 'sidebar.front_page.layers.ventilation',
+    ariaKeyName: 'sidebar.front_page.aria.ventilation_upcoming',
+  },
+  {
+    keyName: 'sidebar.front_page.layers.other_energy_sources',
+    ariaKeyName: 'sidebar.front_page.aria.other_energy_sources_upcoming',
+  },
+] as const
 
 const HomeSidebarHeader = () => {
   return (
@@ -169,108 +207,86 @@ const SidebarFooterAction = ({
   )
 }
 
-const EnergyClassChips = () => {
+const HeatingLegendSwatch = ({ color }: { color: string }) => {
   return (
     <Box
       aria-hidden="true"
       sx={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(7, 2.875rem)',
-        width: '100%',
-        maxWidth: '20.125rem',
+        width: '2.125rem',
+        height: '0.875rem',
+        borderRadius: '999px',
+        backgroundColor: color,
+        position: 'relative',
+        flexShrink: 0,
+        boxShadow: '0px 1px 1px rgba(189, 189, 189, 0.25)',
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          top: '50%',
+          right: '0.25rem',
+          width: '0.375rem',
+          height: '0.375rem',
+          borderRadius: '50%',
+          backgroundColor: '#ffffff',
+          transform: 'translateY(-50%)',
+        },
       }}
-    >
-      {Object.entries(ENERGY_CLASS_COLORS).map(([energyClass, color]) => (
-        <Box
-          key={energyClass}
-          sx={{
-            width: '2.875rem',
-            height: '2.875rem',
-            borderRadius: '5px',
-            backgroundColor: '#f4f4f4',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Box
-            sx={{
-              width: '1.91675rem',
-              height: '1.91675rem',
-              borderRadius: '50%',
-              backgroundColor: color,
-              color: getContrastColor(color),
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '1rem',
-              fontWeight: 700,
-              lineHeight: 1,
-              letterSpacing: '0.1em',
-            }}
-          >
-            {energyClass}
-          </Box>
-        </Box>
-      ))}
-    </Box>
+    />
   )
 }
 
-const EnergyClassesAccordionContent = () => {
+const HeatingAccordionContent = () => {
   return (
     <Box
       sx={{
         pt: '2.125rem',
+        mx: '2rem',
+        maxWidth: '15.875rem',
       }}
     >
-      <EnergyClassChips />
-      <Box
+      <Typography
         sx={{
-          mt: '2.875rem',
-          mx: '2rem',
-          maxWidth: '15.875rem',
+          ...ACCORDION_TEXT_SX,
+          mb: '2.5rem',
         }}
       >
-        {[
-          'sidebar.front_page.energy_classes.body_1',
-          'sidebar.front_page.energy_classes.body_2',
-          'sidebar.front_page.energy_classes.body_3',
-        ].map((keyName) => (
-          <Typography
+        <TText keyName="sidebar.front_page.heating.body" ns="energiakartta" />
+      </Typography>
+      <Box
+        component="ul"
+        sx={{
+          m: 0,
+          p: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1.25rem',
+          listStyle: 'none',
+        }}
+      >
+        {HEATING_LEGEND_ITEMS.map(({ keyName, color }) => (
+          <Box
             key={keyName}
+            component="li"
             sx={{
-              ...ACCORDION_TEXT_SX,
-              mb: '1.125rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.625rem',
+              minHeight: '0.875rem',
             }}
           >
-            <TText keyName={keyName} ns="energiakartta" />
-          </Typography>
+            <HeatingLegendSwatch color={color} />
+            <Typography
+              component="span"
+              sx={{
+                ...ACCORDION_TEXT_SX,
+                fontSize: '0.6875rem',
+                lineHeight: '0.875rem',
+              }}
+            >
+              <TText keyName={keyName} ns="energiakartta" />
+            </Typography>
+          </Box>
         ))}
-        <Typography
-          sx={{
-            ...ACCORDION_TEXT_SX,
-            mb: '1.125rem',
-            fontStyle: 'italic',
-          }}
-        >
-          <TText
-            keyName="sidebar.front_page.energy_classes.note"
-            ns="energiakartta"
-          />
-        </Typography>
-        <Typography
-          sx={{
-            ...ACCORDION_TEXT_SX,
-            textDecoration: 'underline',
-            textUnderlineOffset: '0.125rem',
-          }}
-        >
-          <TText
-            keyName="sidebar.front_page.energy_classes.definitions"
-            ns="energiakartta"
-          />
-        </Typography>
       </Box>
     </Box>
   )
@@ -280,13 +296,11 @@ const Page = () => {
   const { t } = useTranslate('energiakartta')
   const toggleLayerGroup = useMapStore((state) => state.toggleLayerGroup)
   const visibleLayerGroupIds = useVisibleLayerGroupIds()
-  const isEnergyClassesLayerVisible = visibleLayerGroupIds.includes(
-    listedEnergyClassesLayerGroup.id
+  const isHeatingLayerVisible = visibleLayerGroupIds.includes(
+    listedHeatingLayerGroup.id
   )
   const upcomingTooltip = t('sidebar.front_page.upcoming_tooltip')
-  const toggleEnergyClassesAria = t(
-    'sidebar.front_page.aria.toggle_energy_classes'
-  )
+  const toggleHeatingAria = t('sidebar.front_page.aria.toggle_heating')
   const footerLabel = t('sidebar.front_page.footer.edit_building_details')
 
   return (
@@ -359,47 +373,51 @@ const Page = () => {
               maxWidth: '19.625rem',
             }}
           >
+            <Tooltip title={upcomingTooltip} arrow placement="top">
+              <Box component="span" sx={{ display: 'block', width: '100%' }}>
+                <LayerToggleRow
+                  label={
+                    <TText
+                      keyName={ENERGY_CLASSES_DISABLED_ROW.keyName}
+                      ns="energiakartta"
+                    />
+                  }
+                  status="hidden"
+                  disabled
+                  ariaLabel={t(ENERGY_CLASSES_DISABLED_ROW.ariaKeyName)}
+                  onToggle={() => {}}
+                  labelSx={ROW_LABEL_SX}
+                />
+              </Box>
+            </Tooltip>
             <LayerToggleRowAccordion
               label={
                 <TText
-                  keyName="sidebar.front_page.layers.energy_classes"
+                  keyName="sidebar.front_page.layers.heating"
                   ns="energiakartta"
                 />
               }
-              status={isEnergyClassesLayerVisible ? 'visible' : 'hidden'}
-              expanded={isEnergyClassesLayerVisible}
-              ariaLabel={toggleEnergyClassesAria}
+              status={isHeatingLayerVisible ? 'visible' : 'hidden'}
+              expanded={isHeatingLayerVisible}
+              ariaLabel={toggleHeatingAria}
               onToggle={() =>
                 toggleLayerGroup(
-                  listedEnergyClassesLayerGroup.id,
-                  listedEnergyClassesLayerGroup.addOptions
+                  listedHeatingLayerGroup.id,
+                  listedHeatingLayerGroup.addOptions
                 )
               }
               labelSx={ROW_LABEL_SX}
             >
-              <EnergyClassesAccordionContent />
+              <HeatingAccordionContent />
             </LayerToggleRowAccordion>
-            {[
-              {
-                keyName: 'sidebar.front_page.layers.heating',
-                ariaLabel: t('sidebar.front_page.layers.heating'),
-              },
-              {
-                keyName: 'sidebar.front_page.layers.ventilation',
-                ariaLabel: t('sidebar.front_page.layers.ventilation'),
-              },
-              {
-                keyName: 'sidebar.front_page.layers.other_energy_sources',
-                ariaLabel: t('sidebar.front_page.layers.other_energy_sources'),
-              },
-            ].map(({ keyName, ariaLabel }) => (
+            {LOWER_DISABLED_LAYER_ROWS.map(({ keyName, ariaKeyName }) => (
               <Tooltip key={keyName} title={upcomingTooltip} arrow placement="top">
                 <Box component="span" sx={{ display: 'block', width: '100%' }}>
                   <LayerToggleRow
                     label={<TText keyName={keyName} ns="energiakartta" />}
                     status="hidden"
                     disabled
-                    ariaLabel={ariaLabel}
+                    ariaLabel={t(ariaKeyName)}
                     onToggle={() => {}}
                     labelSx={ROW_LABEL_SX}
                   />

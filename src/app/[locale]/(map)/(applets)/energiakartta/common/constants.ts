@@ -1,5 +1,5 @@
 import { LayerOrderLevel, ListedLayerGroup } from '#/common/types/map'
-import energymapBuildingPolygonsLayerConf from '#/app/[locale]/(map)/(applets)/energiakartta/layers/buildingPolygonsLayerConf'
+import energymapHeatingLayerConf from '#/app/[locale]/(map)/(applets)/energiakartta/layers/heatingLayerConf'
 import {
   listedMmlKiinteistojaotusLayerGroup,
   listedMmlKiinteistotunnuksetLayerGroup,
@@ -10,17 +10,17 @@ import {
   listedOsmBackgroundLayerGroup,
 } from '#/components/Map/layers/defaultListedLayerGroups'
 
-export const listedEnergyClassesLayerGroup: ListedLayerGroup = {
-  id: energymapBuildingPolygonsLayerConf.id,
+export const listedHeatingLayerGroup: ListedLayerGroup = {
+  id: energymapHeatingLayerConf.id,
   addOptions: {
-    layerConf: energymapBuildingPolygonsLayerConf,
+    layerConf: energymapHeatingLayerConf,
     layerOrderOptions: {
       layerOrderLevel: LayerOrderLevel.LAYER,
     },
     isHidden: true,
   },
   translationNs: 'energiakartta',
-  nameTranslationKey: 'sidebar.front_page.layers.energy_classes',
+  nameTranslationKey: 'sidebar.front_page.layers.heating',
 }
 
 export const listedLayerGroups: ListedLayerGroup[] = [
@@ -35,7 +35,7 @@ export const listedLayerGroups: ListedLayerGroup[] = [
   listedMmlMaastokarttaLayerGroup,
   listedMmlOrtokuvaLayerGroup,
   listedMmlSelkokarttaLayerGroup,
-  listedEnergyClassesLayerGroup,
+  listedHeatingLayerGroup,
   listedMmlKiinteistojaotusLayerGroup,
   listedMmlKiinteistotunnuksetLayerGroup,
 ]
