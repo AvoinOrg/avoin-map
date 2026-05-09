@@ -30,6 +30,11 @@ Use this skill when the user asks for any of the following:
 
 - Inspect the route, component, and nearby patterns before editing.
 - Identify whether the work is shared UI or applet-specific UI.
+- For narrow spacing/alignment changes, keep context gathering deliberately
+  small: read the target component, its tests, one primary consumer, and the
+  verification reference. Do not read old feature plans, unrelated layer files,
+  visual-runner internals, or broad applet histories unless the first-pass
+  evidence shows they are relevant.
 - Read [references/project-ui-rules.md](references/project-ui-rules.md) for local conventions.
 - Read [references/verification-workflow.md](references/verification-workflow.md) before final verification.
 - If the task includes Figma, use `figma-mcp` for the Figma-side workflow and
@@ -57,6 +62,10 @@ Use this skill when the user asks for any of the following:
 - Run targeted visual verification for the edited files with the repo visual
   runner first.
 - Verify both desktop and mobile before considering the task complete.
+- For layout-stability fixes, add a focused geometry spot check when visual
+  diffs alone do not prove that elements stayed in the same position. Keep the
+  check inline unless it repeats across multiple tasks; if it does repeat,
+  promote the recipe or a small helper into the project skill/reference docs.
 - Treat `yarn visual:after-edit -- --no-start <paths>` as the default
   verification path so the runner never starts or stops a dev server.
 - Run repo visual commands inside the project `app` container whenever the
@@ -105,6 +114,9 @@ Use this skill when the user asks for any of the following:
 - Make the next smallest correction.
 - Re-run targeted verification after each meaningful UI pass, using the same
   browser mode unless the verification itself is what you are debugging.
+- When checking that a removed style or selector is absent, make the shell
+  command express "absence is success" so successful logs are not marked as
+  failed. For example: `! rg -n "old-selector" path/to/file`.
 - Stop only when the layout, styling, responsive behavior, and requested
   snapshot capture are complete.
 
