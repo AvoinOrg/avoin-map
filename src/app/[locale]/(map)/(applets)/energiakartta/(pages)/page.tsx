@@ -22,6 +22,11 @@ const SIDEBAR_SIDE_PADDING = {
   desktop: '1.875rem',
 }
 
+const SIDEBAR_CONTENT_VERTICAL_PADDING = {
+  mobile: '2.25rem',
+  desktop: '3.0625rem',
+}
+
 const ROW_LABEL_SX = {
   color: '#111111',
   fontSize: '0.6875rem',
@@ -308,11 +313,10 @@ const Page = () => {
         <Box
           sx={{
             px: SIDEBAR_SIDE_PADDING,
-            pt: { mobile: '2.25rem', desktop: '3.0625rem' },
-            pb: { mobile: '7rem', desktop: '7rem' },
+            pt: SIDEBAR_CONTENT_VERTICAL_PADDING,
+            pb: SIDEBAR_CONTENT_VERTICAL_PADDING,
             display: 'flex',
             flexDirection: 'column',
-            minHeight: '100%',
           }}
         >
           <Typography
