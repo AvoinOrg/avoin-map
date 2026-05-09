@@ -68,6 +68,13 @@ const LABEL_SX = {
   whiteSpace: 'normal',
 }
 
+const ACCORDION_ROW_HORIZONTAL_PADDING_REM = 0.375
+const ACCORDION_ROW_HORIZONTAL_PADDING = `${ACCORDION_ROW_HORIZONTAL_PADDING_REM}rem`
+const ACCORDION_ROW_HORIZONTAL_MARGIN = `-${ACCORDION_ROW_HORIZONTAL_PADDING_REM}rem`
+const ACCORDION_ROW_WIDTH = `calc(100% + ${
+  ACCORDION_ROW_HORIZONTAL_PADDING_REM * 2
+}rem)`
+
 const ColoredVisibleIcon = ({ color }: { color: string }) => {
   const contrastColor = getContrastColor(color)
 
@@ -209,34 +216,43 @@ export const LayerToggleRowAccordion = ({
 
   return (
     <Box sx={{ width: '100%' }}>
-      <ToggleRowButton
-        {...props}
-        expanded={expanded}
-        controls={contentId}
-        rowSx={[
-          expanded
-            ? {
-                backgroundColor: '#e6efff',
-                borderRadius: '20px',
-                px: '0.125rem',
-              }
-            : {},
-          ...(Array.isArray(rowSx) ? rowSx : [rowSx]),
-        ]}
+      <Box
+        sx={{
+          mx: ACCORDION_ROW_HORIZONTAL_MARGIN,
+          width: ACCORDION_ROW_WIDTH,
+        }}
       >
-        <CircleArrowRight
-          aria-hidden="true"
-          sx={{
-            width: '0.75rem',
-            height: '0.75rem',
-            color: '#aeb6ad',
-            ml: '1rem',
-            flexShrink: 0,
-            transform: expanded ? 'rotate(-90deg)' : 'rotate(90deg)',
-            transition: 'transform 160ms ease',
-          }}
-        />
-      </ToggleRowButton>
+        <ToggleRowButton
+          {...props}
+          expanded={expanded}
+          controls={contentId}
+          rowSx={[
+            {
+              px: ACCORDION_ROW_HORIZONTAL_PADDING,
+            },
+            expanded
+              ? {
+                  backgroundColor: '#e6efff',
+                  borderRadius: '20px',
+                }
+              : {},
+            ...(Array.isArray(rowSx) ? rowSx : [rowSx]),
+          ]}
+        >
+          <CircleArrowRight
+            aria-hidden="true"
+            sx={{
+              width: '0.75rem',
+              height: '0.75rem',
+              color: '#aeb6ad',
+              ml: '1rem',
+              flexShrink: 0,
+              transform: expanded ? 'rotate(-90deg)' : 'rotate(90deg)',
+              transition: 'transform 160ms ease',
+            }}
+          />
+        </ToggleRowButton>
+      </Box>
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <Box
           id={contentId}
