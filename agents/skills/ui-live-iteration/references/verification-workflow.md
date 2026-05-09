@@ -85,31 +85,6 @@ actually implemented.
 - Keep the set curated. The goal is a readable artifact trail, not exhaustive
   frame dumping.
 
-## Geometry spot checks
-
-Use a small Playwright geometry spot check for spacing/alignment tasks where the
-acceptance criterion is "nothing moves" between two UI states. This is useful
-for accordions, hover/focus highlights, selected-row pills, and icon-button
-state changes.
-
-- Run the check inside the `app` container and target
-  `http://127.0.0.1:3000` there.
-- Cover desktop and mobile when the changed surface is responsive.
-- Measure the stable children before and after the interaction, then fail when
-  any important x/y delta exceeds a small tolerance such as `0.5px`.
-- Prefer measuring semantic or structural elements that are already stable in
-  the component, such as the button, icon slot, label, and final action icon.
-- Keep one-off geometry checks inline in the agent run. Promote them into a
-  reusable project helper only after the same check pattern is needed in
-  multiple tasks.
-
-When checking for absence, remember that `rg` exits `1` when it finds no
-matches. If no matches means success, write the command so logs stay green:
-
-```bash
-! rg -n "old-expanded-only-padding" src/components/common/LayerToggleRow.tsx
-```
-
 ## Host-state visual workflow
 
 Use the host-state path when the page depends on existing login state, imported plans, or other browser-origin state on `http://localhost:3000`.
