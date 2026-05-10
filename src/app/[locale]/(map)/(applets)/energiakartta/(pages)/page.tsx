@@ -14,7 +14,13 @@ import SquishedSwitchWithLabel from '#/components/common/SquishedSwitchWithLabel
 import TText from '#/components/common/TText'
 import { IntoSlot } from '#/components/context/slotsContext'
 import { SidebarContentBox } from '#/components/Sidebar'
-import { HEATING_ENERGY_SOURCE_COLORS } from '../layers/heatingLayerConf'
+import {
+  ENERGYMAP_HEATING_LAYER_GROUP_ID,
+  ENERGYMAP_HEATING_LAYER_IDS,
+  HEATING_ENERGY_SOURCE_COLORS,
+  HeatingEnergySourceFilterKey,
+  getHeatingEnergySourceFilter,
+} from '../layers/heatingLayerConf'
 import { listedHeatingLayerGroup } from '../common/constants'
 
 const SIDEBAR_SIDE_PADDING = {
@@ -45,35 +51,44 @@ const ACCORDION_TEXT_SX = {
 
 const HEATING_SWITCH_ITEMS = [
   {
+    id: 'geothermal',
     keyName: 'sidebar.front_page.heating.legend.geothermal',
     color: HEATING_ENERGY_SOURCE_COLORS.geothermal,
   },
   {
+    id: 'districtHeating',
     keyName: 'sidebar.front_page.heating.legend.district_heating',
     color: HEATING_ENERGY_SOURCE_COLORS.districtHeating,
   },
   {
+    id: 'electricity',
     keyName: 'sidebar.front_page.heating.legend.electricity',
     color: HEATING_ENERGY_SOURCE_COLORS.electricity,
   },
   {
+    id: 'solar',
     keyName: 'sidebar.front_page.heating.legend.solar',
     color: HEATING_ENERGY_SOURCE_COLORS.solar,
   },
   {
+    id: 'other',
     keyName: 'sidebar.front_page.heating.legend.other',
     color: HEATING_ENERGY_SOURCE_COLORS.other,
   },
-] as const
+] as const satisfies readonly {
+  id: HeatingEnergySourceFilterKey
+  keyName: string
+  color: string
+}[]
 
-type HeatingSwitchKey = (typeof HEATING_SWITCH_ITEMS)[number]['keyName']
+type HeatingSwitchKey = (typeof HEATING_SWITCH_ITEMS)[number]['id']
 
 type HeatingSwitchState = Record<HeatingSwitchKey, boolean>
 
 const INITIAL_HEATING_SWITCH_STATE = HEATING_SWITCH_ITEMS.reduce(
-  (state, { keyName }) => ({
+  (state, { id }) => ({
     ...state,
-    [keyName]: true,
+    [id]: true,
   }),
   {} as HeatingSwitchState
 )
@@ -226,7 +241,7 @@ const HeatingAccordionContent = ({
 }: {
   heatingSwitchState: HeatingSwitchState
   onHeatingSwitchChange: (
-    keyName: HeatingSwitchKey
+    id: HeatingSwitchKey
   ) => React.ChangeEventHandler<HTMLInputElement>
 }) => {
   const { t } = useTranslate('energiakartta')
@@ -258,9 +273,9 @@ const HeatingAccordionContent = ({
           listStyle: 'none',
         }}
       >
-        {HEATING_SWITCH_ITEMS.map(({ keyName, color }) => (
+        {HEATING_SWITCH_ITEMS.map(({ id, keyName, color }) => (
           <Box
-            key={keyName}
+            key={id}
             component="li"
             sx={{
               width: '100%',
@@ -270,10 +285,10 @@ const HeatingAccordionContent = ({
             }}
           >
             <SquishedSwitchWithLabel
-              checked={heatingSwitchState[keyName]}
+              checked={heatingSwitchState[id]}
               checkedTrackColor={color}
               ariaLabel={t(keyName)}
-              onChange={onHeatingSwitchChange(keyName)}
+              onChange={onHeatingSwitchChange(id)}
               sx={{ width: '100%' }}
               labelSx={{
                 ...ACCORDION_TEXT_SX,
@@ -293,9 +308,28 @@ const HeatingAccordionContent = ({
 const Page = () => {
   const { t } = useTranslate('energiakartta')
   const toggleLayerGroup = useMapStore((state) => state.toggleLayerGroup)
+  const setFilter = useMapStore((state) => state.setFilter)
+  const isHeatingLayerGroupRegistered = useMapStore((state) =>
+    ENERGYMAP_HEATING_LAYER_IDS.every((layerId) =>
+      Boolean(
+        state._layerGroups[ENERGYMAP_HEATING_LAYER_GROUP_ID]?.layers[layerId]
+      )
+    )
+  )
   const visibleLayerGroupIds = useVisibleLayerGroupIds()
   const [heatingSwitchState, setHeatingSwitchState] = React.useState(
     INITIAL_HEATING_SWITCH_STATE
+  )
+  const activeHeatingFilterKeys = React.useMemo<HeatingEnergySourceFilterKey[]>(
+    () =>
+      HEATING_SWITCH_ITEMS.filter(({ id }) => heatingSwitchState[id]).map(
+        ({ id }) => id
+      ),
+    [heatingSwitchState]
+  )
+  const heatingFilter = React.useMemo(
+    () => getHeatingEnergySourceFilter(activeHeatingFilterKeys),
+    [activeHeatingFilterKeys]
   )
   const isHeatingLayerVisible = visibleLayerGroupIds.includes(
     listedHeatingLayerGroup.id
@@ -304,13 +338,25 @@ const Page = () => {
   const toggleHeatingAria = t('sidebar.front_page.aria.toggle_heating')
   const footerLabel = t('sidebar.front_page.footer.edit_building_details')
   const handleHeatingSwitchChange =
-    (keyName: HeatingSwitchKey): React.ChangeEventHandler<HTMLInputElement> =>
+    (id: HeatingSwitchKey): React.ChangeEventHandler<HTMLInputElement> =>
     (event) => {
       setHeatingSwitchState((currentState) => ({
         ...currentState,
-        [keyName]: event.target.checked,
+        [id]: event.target.checked,
       }))
     }
+
+  React.useEffect(() => {
+    if (!isHeatingLayerGroupRegistered) {
+      return
+    }
+
+    void Promise.all(
+      ENERGYMAP_HEATING_LAYER_IDS.map((layerId) =>
+        setFilter(layerId, heatingFilter)
+      )
+    )
+  }, [heatingFilter, isHeatingLayerGroupRegistered, setFilter])
 
   return (
     <>
