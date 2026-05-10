@@ -1,14 +1,9 @@
-import {
-  ExtendedStyleSpecification,
-  LayerConf,
-} from '#/common/types/map'
-
-const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
+import { ExtendedStyleSpecification, LayerConf } from '#/common/types/map'
+import { ENERGYMAP_GEOSERVER_URL } from './geoServer'
 
 export const ENERGYMAP_HEATING_LAYER_GROUP_ID = 'energymap_heating'
 const ENERGYMAP_BUILDING_POLYGONS_WORKSPACE = 'sandbox_energiakartta'
-const ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER =
-  'energymap_building_polygons'
+const ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER = 'energymap_building_polygons'
 export const HEATING_ENERGY_SOURCE_PROPERTY = 'heating_energy_source'
 
 export const HEATING_ENERGY_SOURCE_COLORS = {
@@ -28,7 +23,7 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
         type: 'vector',
         scheme: 'tms',
         tiles: [
-          `${SERVER_URL}/gwc/service/tms/1.0.0/${ENERGYMAP_BUILDING_POLYGONS_WORKSPACE}:${ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER}@EPSG:900913@pbf/{z}/{x}/{y}.pbf`,
+          `${ENERGYMAP_GEOSERVER_URL}/gwc/service/tms/1.0.0/${ENERGYMAP_BUILDING_POLYGONS_WORKSPACE}:${ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER}@EPSG:900913@pbf/{z}/{x}/{y}.pbf`,
         ],
         minzoom: 5,
         maxzoom: 14,
