@@ -10,6 +10,7 @@ import {
   LayerToggleRow,
   LayerToggleRowAccordion,
 } from '#/components/common/LayerToggleRow'
+import SquishedSwitchWithLabel from '#/components/common/SquishedSwitchWithLabel'
 import TText from '#/components/common/TText'
 import { IntoSlot } from '#/components/context/slotsContext'
 import { SidebarContentBox } from '#/components/Sidebar'
@@ -42,7 +43,7 @@ const ACCORDION_TEXT_SX = {
   letterSpacing: '0.1em',
 }
 
-const HEATING_LEGEND_ITEMS = [
+const HEATING_SWITCH_ITEMS = [
   {
     keyName: 'sidebar.front_page.heating.legend.geothermal',
     color: HEATING_ENERGY_SOURCE_COLORS.geothermal,
@@ -64,6 +65,18 @@ const HEATING_LEGEND_ITEMS = [
     color: HEATING_ENERGY_SOURCE_COLORS.other,
   },
 ] as const
+
+type HeatingSwitchKey = (typeof HEATING_SWITCH_ITEMS)[number]['keyName']
+
+type HeatingSwitchState = Record<HeatingSwitchKey, boolean>
+
+const INITIAL_HEATING_SWITCH_STATE = HEATING_SWITCH_ITEMS.reduce(
+  (state, { keyName }) => ({
+    ...state,
+    [keyName]: true,
+  }),
+  {} as HeatingSwitchState
+)
 
 const ENERGY_CLASSES_DISABLED_ROW = {
   keyName: 'sidebar.front_page.layers.energy_classes',
@@ -207,35 +220,17 @@ const SidebarFooterAction = ({
   )
 }
 
-const HeatingLegendSwatch = ({ color }: { color: string }) => {
-  return (
-    <Box
-      aria-hidden="true"
-      sx={{
-        width: '2.125rem',
-        height: '0.875rem',
-        borderRadius: '999px',
-        backgroundColor: color,
-        position: 'relative',
-        flexShrink: 0,
-        boxShadow: '0px 1px 1px rgba(189, 189, 189, 0.25)',
-        '&::after': {
-          content: '""',
-          position: 'absolute',
-          top: '50%',
-          right: '0.25rem',
-          width: '0.375rem',
-          height: '0.375rem',
-          borderRadius: '50%',
-          backgroundColor: '#ffffff',
-          transform: 'translateY(-50%)',
-        },
-      }}
-    />
-  )
-}
+const HeatingAccordionContent = ({
+  heatingSwitchState,
+  onHeatingSwitchChange,
+}: {
+  heatingSwitchState: HeatingSwitchState
+  onHeatingSwitchChange: (
+    keyName: HeatingSwitchKey
+  ) => React.ChangeEventHandler<HTMLInputElement>
+}) => {
+  const { t } = useTranslate('energiakartta')
 
-const HeatingAccordionContent = () => {
   return (
     <Box
       sx={{
@@ -263,28 +258,31 @@ const HeatingAccordionContent = () => {
           listStyle: 'none',
         }}
       >
-        {HEATING_LEGEND_ITEMS.map(({ keyName, color }) => (
+        {HEATING_SWITCH_ITEMS.map(({ keyName, color }) => (
           <Box
             key={keyName}
             component="li"
             sx={{
+              width: '100%',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.625rem',
               minHeight: '0.875rem',
             }}
           >
-            <HeatingLegendSwatch color={color} />
-            <Typography
-              component="span"
-              sx={{
+            <SquishedSwitchWithLabel
+              checked={heatingSwitchState[keyName]}
+              checkedTrackColor={color}
+              ariaLabel={t(keyName)}
+              onChange={onHeatingSwitchChange(keyName)}
+              sx={{ width: '100%' }}
+              labelSx={{
                 ...ACCORDION_TEXT_SX,
                 fontSize: '0.6875rem',
                 lineHeight: '0.875rem',
               }}
             >
               <TText keyName={keyName} ns="energiakartta" />
-            </Typography>
+            </SquishedSwitchWithLabel>
           </Box>
         ))}
       </Box>
@@ -296,12 +294,23 @@ const Page = () => {
   const { t } = useTranslate('energiakartta')
   const toggleLayerGroup = useMapStore((state) => state.toggleLayerGroup)
   const visibleLayerGroupIds = useVisibleLayerGroupIds()
+  const [heatingSwitchState, setHeatingSwitchState] = React.useState(
+    INITIAL_HEATING_SWITCH_STATE
+  )
   const isHeatingLayerVisible = visibleLayerGroupIds.includes(
     listedHeatingLayerGroup.id
   )
   const upcomingTooltip = t('sidebar.front_page.upcoming_tooltip')
   const toggleHeatingAria = t('sidebar.front_page.aria.toggle_heating')
   const footerLabel = t('sidebar.front_page.footer.edit_building_details')
+  const handleHeatingSwitchChange =
+    (keyName: HeatingSwitchKey): React.ChangeEventHandler<HTMLInputElement> =>
+    (event) => {
+      setHeatingSwitchState((currentState) => ({
+        ...currentState,
+        [keyName]: event.target.checked,
+      }))
+    }
 
   return (
     <>
@@ -408,10 +417,18 @@ const Page = () => {
               }
               labelSx={ROW_LABEL_SX}
             >
-              <HeatingAccordionContent />
+              <HeatingAccordionContent
+                heatingSwitchState={heatingSwitchState}
+                onHeatingSwitchChange={handleHeatingSwitchChange}
+              />
             </LayerToggleRowAccordion>
             {LOWER_DISABLED_LAYER_ROWS.map(({ keyName, ariaKeyName }) => (
-              <Tooltip key={keyName} title={upcomingTooltip} arrow placement="top">
+              <Tooltip
+                key={keyName}
+                title={upcomingTooltip}
+                arrow
+                placement="top"
+              >
                 <Box component="span" sx={{ display: 'block', width: '100%' }}>
                   <LayerToggleRow
                     label={<TText keyName={keyName} ns="energiakartta" />}
