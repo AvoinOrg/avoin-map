@@ -21,6 +21,9 @@ ensure_file() {
   if [[ ! -e "${workspace_file}" ]]; then
     touch "${workspace_file}"
     chmod "${file_mode}" "${workspace_file}"
+  elif [[ ! -f "${workspace_file}" ]]; then
+    echo "Expected ${workspace_file} to be a regular file." >&2
+    exit 1
   fi
 }
 
