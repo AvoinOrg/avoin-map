@@ -129,15 +129,14 @@ const HomeSidebarHeader = () => {
       >
         <Box
           component="img"
-          src="/files/img/energiakartta/sidebar/main-hero.jpg"
+          src="/files/img/energiakartta/sidebar/main-hero-header-crop.jpg"
           alt=""
           aria-hidden="true"
           sx={{
             position: 'absolute',
-            top: '-120.68%',
-            left: 0,
+            inset: 0,
             width: '100%',
-            height: '354%',
+            height: '100%',
             objectFit: 'cover',
             display: 'block',
           }}
