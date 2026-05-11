@@ -7,12 +7,18 @@ import {
   ENERGYMAP_BUILDING_TYPE_FILTER_ALL,
   ENERGYMAP_DEFAULT_CONSTRUCTION_DECADE,
 } from '../layers/buildingPolygonsLayerConf'
+import { ENERGY_CERTIFICATE_CLASS_CODES } from '../layers/energyCertificateLayerConf'
 import type {
   EnergymapBuildingFilterState,
   EnergymapBuildingTypeFilter,
 } from '../layers/buildingPolygonsLayerConf'
+import type { EnergyCertificateClassCode } from '../layers/energyCertificateLayerConf'
 
-type Vars = EnergymapBuildingFilterState
+type EnergyCertificateClassFilterState = {
+  activeEnergyCertificateClasses: EnergyCertificateClassCode[]
+}
+
+type Vars = EnergymapBuildingFilterState & EnergyCertificateClassFilterState
 
 type Actions = {
   setBuildingTypeFilter: (
@@ -23,6 +29,17 @@ type Actions = {
     showBuildingsFromSelectedDecade: boolean
   ) => void
   setShowOnlySelectedDecade: (showOnlySelectedDecade: boolean) => void
+  setEnergyCertificateClassActive: (
+    classCode: EnergyCertificateClassCode,
+    isActive: boolean
+  ) => void
+  toggleEnergyCertificateClass: (
+    classCode: EnergyCertificateClassCode
+  ) => void
+  setActiveEnergyCertificateClasses: (
+    activeEnergyCertificateClasses: EnergyCertificateClassCode[]
+  ) => void
+  resetEnergyCertificateClassFilters: () => void
   resetBuildingFilters: () => void
 }
 
@@ -33,6 +50,7 @@ const initialBuildingFilterState: Vars = {
   selectedConstructionDecade: ENERGYMAP_DEFAULT_CONSTRUCTION_DECADE,
   showBuildingsFromSelectedDecade: true,
   showOnlySelectedDecade: false,
+  activeEnergyCertificateClasses: [...ENERGY_CERTIFICATE_CLASS_CODES],
 }
 
 export const useAppletStore = create<State>()(
@@ -63,6 +81,57 @@ export const useAppletStore = create<State>()(
           setShowOnlySelectedDecade: (showOnlySelectedDecade) => {
             set((state) => {
               state.showOnlySelectedDecade = showOnlySelectedDecade
+            })
+          },
+          setEnergyCertificateClassActive: (classCode, isActive) => {
+            set((state) => {
+              const classSet = new Set(state.activeEnergyCertificateClasses)
+
+              if (isActive) {
+                classSet.add(classCode)
+              } else {
+                classSet.delete(classCode)
+              }
+
+              state.activeEnergyCertificateClasses =
+                ENERGY_CERTIFICATE_CLASS_CODES.filter((candidateClassCode) =>
+                  classSet.has(candidateClassCode)
+                )
+            })
+          },
+          toggleEnergyCertificateClass: (classCode) => {
+            set((state) => {
+              const classSet = new Set(state.activeEnergyCertificateClasses)
+
+              if (classSet.has(classCode)) {
+                classSet.delete(classCode)
+              } else {
+                classSet.add(classCode)
+              }
+
+              state.activeEnergyCertificateClasses =
+                ENERGY_CERTIFICATE_CLASS_CODES.filter((candidateClassCode) =>
+                  classSet.has(candidateClassCode)
+                )
+            })
+          },
+          setActiveEnergyCertificateClasses: (
+            activeEnergyCertificateClasses
+          ) => {
+            set((state) => {
+              const classSet = new Set(activeEnergyCertificateClasses)
+
+              state.activeEnergyCertificateClasses =
+                ENERGY_CERTIFICATE_CLASS_CODES.filter((classCode) =>
+                  classSet.has(classCode)
+                )
+            })
+          },
+          resetEnergyCertificateClassFilters: () => {
+            set((state) => {
+              state.activeEnergyCertificateClasses = [
+                ...initialBuildingFilterState.activeEnergyCertificateClasses,
+              ]
             })
           },
           resetBuildingFilters: () => {

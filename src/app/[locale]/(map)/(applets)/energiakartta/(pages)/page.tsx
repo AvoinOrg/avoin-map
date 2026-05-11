@@ -4,8 +4,11 @@ import React from 'react'
 import { Box, Tooltip, Typography } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
+import { MAP_BOTTOM_LEFT_FLOATING_CONTROLS_SLOT } from '#/common/constants/map'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
-import { useMapStore } from '#/common/store'
+import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
+import { useMapStore, useUIStore } from '#/common/store'
+import type { LayerGroupAddOptionsWithOrderLevel } from '#/common/types/map'
 import {
   LayerToggleRow,
   LayerToggleRowAccordion,
@@ -14,6 +17,8 @@ import SquishedSwitchWithLabel from '#/components/common/SquishedSwitchWithLabel
 import TText from '#/components/common/TText'
 import { IntoSlot } from '#/components/context/slotsContext'
 import { SidebarContentBox } from '#/components/Sidebar'
+import EnergyCertificateClassControls from '../components/EnergyCertificateClassControls'
+import EnergyClassesAccordionContent from '../components/EnergyClassesAccordionContent'
 import {
   ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID,
   ENERGYMAP_BUILDING_POLYGONS_LAYER_IDS,
@@ -21,13 +26,24 @@ import {
   getEnergymapBuildingFilter,
 } from '../layers/buildingPolygonsLayerConf'
 import {
+  ENERGYMAP_ENERGY_CERTIFICATE_FILL_LAYER_ID,
+  ENERGYMAP_ENERGY_CERTIFICATE_LAYER_GROUP_ID,
+  ENERGYMAP_ENERGY_CERTIFICATE_LAYER_IDS,
+  ENERGYMAP_ENERGY_CERTIFICATE_OUTLINE_LAYER_ID,
+  getEnergyCertificateFillColorExpression,
+} from '../layers/energyCertificateLayerConf'
+import {
   ENERGYMAP_HEATING_LAYER_GROUP_ID,
   ENERGYMAP_HEATING_LAYER_IDS,
   HEATING_ENERGY_SOURCE_COLORS,
   HeatingEnergySourceFilterKey,
   getHeatingEnergySourceFilter,
 } from '../layers/heatingLayerConf'
-import { listedHeatingLayerGroup } from '../common/constants'
+import {
+  ENERGYMAP_MAIN_LAYER_GROUP_IDS,
+  listedEnergyCertificateLayerGroup,
+  listedHeatingLayerGroup,
+} from '../common/constants'
 import { useAppletStore } from '../state/appletStore'
 
 const SIDEBAR_SIDE_PADDING = {
@@ -99,11 +115,6 @@ const INITIAL_HEATING_SWITCH_STATE = HEATING_SWITCH_ITEMS.reduce(
   }),
   {} as HeatingSwitchState
 )
-
-const ENERGY_CLASSES_DISABLED_ROW = {
-  keyName: 'sidebar.front_page.layers.energy_classes',
-  ariaKeyName: 'sidebar.front_page.aria.energy_classes_upcoming',
-} as const
 
 const LOWER_DISABLED_LAYER_ROWS = [
   {
@@ -313,8 +324,19 @@ const HeatingAccordionContent = ({
 
 const Page = () => {
   const { t } = useTranslate('energiakartta')
-  const toggleLayerGroup = useMapStore((state) => state.toggleLayerGroup)
   const setFilter = useMapStore((state) => state.setFilter)
+  const setPaintProperty = useMapStore((state) => state.setPaintProperty)
+  const isMobile = useIsMobile('desktop')
+  const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
+  const isEnergyCertificateLayerGroupRegistered = useMapStore((state) =>
+    ENERGYMAP_ENERGY_CERTIFICATE_LAYER_IDS.every((layerId) =>
+      Boolean(
+        state._layerGroups[ENERGYMAP_ENERGY_CERTIFICATE_LAYER_GROUP_ID]?.layers[
+          layerId
+        ]
+      )
+    )
+  )
   const isHeatingLayerGroupRegistered = useMapStore((state) =>
     ENERGYMAP_HEATING_LAYER_IDS.every((layerId) =>
       Boolean(
@@ -341,9 +363,17 @@ const Page = () => {
   const showOnlySelectedDecade = useAppletStore(
     (state) => state.showOnlySelectedDecade
   )
+  const activeEnergyCertificateClasses = useAppletStore(
+    (state) => state.activeEnergyCertificateClasses
+  )
   const visibleLayerGroupIds = useVisibleLayerGroupIds()
   const [heatingSwitchState, setHeatingSwitchState] = React.useState(
     INITIAL_HEATING_SWITCH_STATE
+  )
+  const energyCertificateFillColorExpression = React.useMemo(
+    () =>
+      getEnergyCertificateFillColorExpression(activeEnergyCertificateClasses),
+    [activeEnergyCertificateClasses]
   )
   const activeHeatingFilterKeys = React.useMemo<HeatingEnergySourceFilterKey[]>(
     () =>
@@ -378,9 +408,52 @@ const Page = () => {
   const isHeatingLayerVisible = visibleLayerGroupIds.includes(
     listedHeatingLayerGroup.id
   )
+  const isEnergyCertificateLayerVisible = visibleLayerGroupIds.includes(
+    listedEnergyCertificateLayerGroup.id
+  )
+  const shouldShowMobileEnergyCertificateControls =
+    isMobile && !isSidebarOpen && isEnergyCertificateLayerVisible
   const upcomingTooltip = t('sidebar.front_page.upcoming_tooltip')
+  const toggleEnergyClassesAria = t(
+    'sidebar.front_page.aria.toggle_energy_classes'
+  )
   const toggleHeatingAria = t('sidebar.front_page.aria.toggle_heating')
   const footerLabel = t('sidebar.front_page.footer.edit_building_details')
+  const toggleEnergymapMainLayerGroup = React.useCallback(
+    async (
+      layerGroupId: string,
+      addOptions: LayerGroupAddOptionsWithOrderLevel
+    ) => {
+      const {
+        _layerGroups,
+        disableLayerGroup,
+        enableLayerGroup,
+      } = useMapStore.getState()
+
+      const targetLayerGroup = _layerGroups[layerGroupId]
+
+      if (targetLayerGroup && !targetLayerGroup.isHidden) {
+        await disableLayerGroup(layerGroupId)
+        return
+      }
+
+      for (const mainLayerGroupId of ENERGYMAP_MAIN_LAYER_GROUP_IDS) {
+        if (mainLayerGroupId === layerGroupId) {
+          continue
+        }
+
+        const currentLayerGroup =
+          useMapStore.getState()._layerGroups[mainLayerGroupId]
+
+        if (currentLayerGroup && !currentLayerGroup.isHidden) {
+          await disableLayerGroup(mainLayerGroupId)
+        }
+      }
+
+      await enableLayerGroup(layerGroupId, addOptions)
+    },
+    []
+  )
   const handleHeatingSwitchChange =
     (id: HeatingSwitchKey): React.ChangeEventHandler<HTMLInputElement> =>
     (event) => {
@@ -403,6 +476,45 @@ const Page = () => {
   }, [buildingFilter, isBuildingLayerGroupRegistered, setFilter])
 
   React.useEffect(() => {
+    if (!isEnergyCertificateLayerGroupRegistered) {
+      return
+    }
+
+    void Promise.all(
+      ENERGYMAP_ENERGY_CERTIFICATE_LAYER_IDS.map((layerId) =>
+        setFilter(layerId, buildingFilter)
+      )
+    )
+  }, [
+    buildingFilter,
+    isEnergyCertificateLayerGroupRegistered,
+    setFilter,
+  ])
+
+  React.useEffect(() => {
+    if (!isEnergyCertificateLayerGroupRegistered) {
+      return
+    }
+
+    void Promise.all([
+      setPaintProperty(
+        ENERGYMAP_ENERGY_CERTIFICATE_FILL_LAYER_ID,
+        'fill-color',
+        energyCertificateFillColorExpression
+      ),
+      setPaintProperty(
+        ENERGYMAP_ENERGY_CERTIFICATE_OUTLINE_LAYER_ID,
+        'line-color',
+        energyCertificateFillColorExpression
+      ),
+    ])
+  }, [
+    energyCertificateFillColorExpression,
+    isEnergyCertificateLayerGroupRegistered,
+    setPaintProperty,
+  ])
+
+  React.useEffect(() => {
     if (!isHeatingLayerGroupRegistered) {
       return
     }
@@ -422,6 +534,14 @@ const Page = () => {
       <IntoSlot name="sidebar-footer">
         <SidebarFooterAction tooltip={upcomingTooltip} label={footerLabel} />
       </IntoSlot>
+      {shouldShowMobileEnergyCertificateControls && (
+        <IntoSlot name={MAP_BOTTOM_LEFT_FLOATING_CONTROLS_SLOT}>
+          <EnergyCertificateClassControls
+            variant="mobile"
+            orientation="vertical"
+          />
+        </IntoSlot>
+      )}
       <SidebarContentBox
         sxOuter={{
           height: '100%',
@@ -484,23 +604,26 @@ const Page = () => {
               maxWidth: '19.625rem',
             }}
           >
-            <Tooltip title={upcomingTooltip} arrow placement="top">
-              <Box component="span" sx={{ display: 'block', width: '100%' }}>
-                <LayerToggleRow
-                  label={
-                    <TText
-                      keyName={ENERGY_CLASSES_DISABLED_ROW.keyName}
-                      ns="energiakartta"
-                    />
-                  }
-                  status="hidden"
-                  disabled
-                  ariaLabel={t(ENERGY_CLASSES_DISABLED_ROW.ariaKeyName)}
-                  onToggle={() => {}}
-                  labelSx={ROW_LABEL_SX}
+            <LayerToggleRowAccordion
+              label={
+                <TText
+                  keyName="sidebar.front_page.layers.energy_classes"
+                  ns="energiakartta"
                 />
-              </Box>
-            </Tooltip>
+              }
+              status={isEnergyCertificateLayerVisible ? 'visible' : 'hidden'}
+              expanded={isEnergyCertificateLayerVisible}
+              ariaLabel={toggleEnergyClassesAria}
+              onToggle={() => {
+                void toggleEnergymapMainLayerGroup(
+                  listedEnergyCertificateLayerGroup.id,
+                  listedEnergyCertificateLayerGroup.addOptions
+                )
+              }}
+              labelSx={ROW_LABEL_SX}
+            >
+              <EnergyClassesAccordionContent />
+            </LayerToggleRowAccordion>
             <LayerToggleRowAccordion
               label={
                 <TText
@@ -511,12 +634,12 @@ const Page = () => {
               status={isHeatingLayerVisible ? 'visible' : 'hidden'}
               expanded={isHeatingLayerVisible}
               ariaLabel={toggleHeatingAria}
-              onToggle={() =>
-                toggleLayerGroup(
+              onToggle={() => {
+                void toggleEnergymapMainLayerGroup(
                   listedHeatingLayerGroup.id,
                   listedHeatingLayerGroup.addOptions
                 )
-              }
+              }}
               labelSx={ROW_LABEL_SX}
             >
               <HeatingAccordionContent

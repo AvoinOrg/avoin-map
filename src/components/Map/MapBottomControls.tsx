@@ -16,6 +16,7 @@ import { useMapStore, useUIStore } from '#/common/store'
 import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
 import { IntoSlot } from '#/components/context/slotsContext'
 import { AttributionInfo, Cookie } from '#/components/icons'
+import MapBottomLeftFloatingControlsSlot from './MapBottomLeftFloatingControlsSlot'
 
 const INITIAL_PANEL_MAX_WIDTH_PX = 480
 const MIN_INLINE_PANEL_WIDTH_PX = 120
@@ -281,6 +282,7 @@ const MapBottomControls = () => {
     showInfoButton: boolean
   }) => (
     <>
+      <MapBottomLeftFloatingControlsSlot />
       {showInfoButton && isPanelOpen && sanitizedAttributionHtml && (
         <Box
           sx={(theme) => ({
