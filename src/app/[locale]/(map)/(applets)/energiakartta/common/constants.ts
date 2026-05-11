@@ -35,7 +35,7 @@ export const listedLayerGroups: ListedLayerGroup[] = [
   listedMmlMaastokarttaLayerGroup,
   listedMmlOrtokuvaLayerGroup,
   listedMmlSelkokarttaLayerGroup,
-  listedHeatingLayerGroup,
   listedMmlKiinteistojaotusLayerGroup,
   listedMmlKiinteistotunnuksetLayerGroup,
+  listedHeatingLayerGroup,
 ]
