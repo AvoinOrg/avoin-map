@@ -4,12 +4,17 @@ import { useTranslate } from '@tolgee/react'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 
 import { Cross } from '#/components/icons'
-import { ListedLayerGroup } from '#/common/types/map'
+import { ListedLayerGroup, ListedLayerMenuItem } from '#/common/types/map'
+import {
+  isListedLayerAccordionItem,
+  isListedLayerGroup,
+} from '#/common/utils/listedLayerGroups'
+import LayerMenuAccordion from '#/components/common/LayerMenuAccordion'
 import LayerItem from './LayerItem'
 
 type Props = {
   headerLabel?: string
-  items: ListedLayerGroup[]
+  items: ListedLayerMenuItem[]
   visibleLayerGroupIds: string[]
   opacityLabel: string
   onOpacityChange?: (layerGroupId: string, opacity: number) => void
@@ -18,6 +23,114 @@ type Props = {
   onClose: () => void
   listSx?: SxProps<Theme>
   scrollMaxHeight?: string
+}
+
+type LayerMenuItemsProps = Pick<
+  Props,
+  | 'visibleLayerGroupIds'
+  | 'opacityLabel'
+  | 'onOpacityChange'
+  | 'onToggleLayer'
+  | 'onInfoToggle'
+> & {
+  items: ListedLayerMenuItem[]
+}
+
+const LayerMenuAccordionRow = ({
+  item,
+  children,
+  onInfoToggle,
+}: {
+  item: Extract<ListedLayerMenuItem, { type: 'accordion' }>
+  children?: React.ReactNode
+  onInfoToggle?: () => void
+}) => {
+  const { t } = useTranslate(item.translationNs)
+  const ContentComponent = item.ContentComponent
+  const title = t(item.titleTranslationKey, item.title)
+  const ariaLabel = item.ariaLabelTranslationKey
+    ? t(item.ariaLabelTranslationKey, item.ariaLabel)
+    : (item.ariaLabel ?? title)
+
+  return (
+    <LayerMenuAccordion
+      id={`layer-menu-accordion-${item.id}`}
+      title={title}
+      ariaLabel={ariaLabel}
+      defaultExpanded={item.defaultExpanded}
+      backgroundImageSrc={item.backgroundImageSrc}
+      onTransitionEnd={onInfoToggle}
+    >
+      {item.content}
+      {ContentComponent && <ContentComponent />}
+      {children}
+    </LayerMenuAccordion>
+  )
+}
+
+const LayerMenuItems = ({
+  items,
+  visibleLayerGroupIds,
+  opacityLabel,
+  onOpacityChange,
+  onToggleLayer,
+  onInfoToggle,
+}: LayerMenuItemsProps) => {
+  return (
+    <>
+      {items.map((item) => {
+        if (isListedLayerGroup(item)) {
+          return (
+            <LayerItem
+              key={item.id}
+              layerGroup={item}
+              isSelected={visibleLayerGroupIds.includes(item.id)}
+              showOpacitySlider={item.styleOptions?.showOpacitySlider}
+              opacityLabel={opacityLabel}
+              onOpacityChange={onOpacityChange}
+              onInfoToggle={onInfoToggle}
+              onSelect={(_id) => {
+                onToggleLayer(item)
+              }}
+            />
+          )
+        }
+
+        if (isListedLayerAccordionItem(item)) {
+          return (
+            <LayerMenuAccordionRow
+              key={item.id}
+              item={item}
+              onInfoToggle={onInfoToggle}
+            >
+              {item.items && item.items.length > 0 && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'stretch',
+                    gap: '1.5rem',
+                    pt: '1.5rem',
+                  }}
+                >
+                  <LayerMenuItems
+                    items={item.items}
+                    visibleLayerGroupIds={visibleLayerGroupIds}
+                    opacityLabel={opacityLabel}
+                    onOpacityChange={onOpacityChange}
+                    onToggleLayer={onToggleLayer}
+                    onInfoToggle={onInfoToggle}
+                  />
+                </Box>
+              )}
+            </LayerMenuAccordionRow>
+          )
+        }
+
+        return null
+      })}
+    </>
+  )
 }
 
 const LayerMenuContent = ({
@@ -36,7 +149,12 @@ const LayerMenuContent = ({
 
   return (
     <Box
-      sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        minHeight: 0,
+      }}
     >
       <Box
         sx={{
@@ -100,20 +218,14 @@ const LayerMenuContent = ({
             ...(Array.isArray(listSx) ? listSx : [listSx]),
           ]}
         >
-          {items.map((layerGroup) => (
-            <LayerItem
-              key={layerGroup.id}
-              layerGroup={layerGroup}
-              isSelected={visibleLayerGroupIds.includes(layerGroup.id)}
-              showOpacitySlider={layerGroup.styleOptions?.showOpacitySlider}
-              opacityLabel={opacityLabel}
-              onOpacityChange={onOpacityChange}
-              onInfoToggle={onInfoToggle}
-              onSelect={(_id) => {
-                onToggleLayer(layerGroup)
-              }}
-            />
-          ))}
+          <LayerMenuItems
+            items={items}
+            visibleLayerGroupIds={visibleLayerGroupIds}
+            opacityLabel={opacityLabel}
+            onOpacityChange={onOpacityChange}
+            onToggleLayer={onToggleLayer}
+            onInfoToggle={onInfoToggle}
+          />
         </Box>
       </OverlayScrollbarsComponent>
     </Box>

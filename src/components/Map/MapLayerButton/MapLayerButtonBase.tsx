@@ -1,4 +1,10 @@
-import React, { ReactNode, useCallback, useEffect, useMemo, useRef } from 'react'
+import React, {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react'
 import { ClickAwayListener, Paper, Popper } from '@mui/material'
 import type { Instance, Placement, VirtualElement } from '@popperjs/core'
 import { alpha, SxProps, Theme } from '@mui/material/styles'
@@ -7,6 +13,10 @@ import { useTranslate } from '@tolgee/react'
 import { useMapStore, useUIStore } from '#/common/store'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
 import { LayerOrderLevel, ListedLayerGroup } from '#/common/types/map'
+import {
+  getListedLayerMenuOrderLevel,
+  isListedLayerGroup,
+} from '#/common/utils/listedLayerGroups'
 import { MapMenuState } from '#/common/types/state'
 import { Layers } from '#/components/icons'
 import { MapButton } from '../MapButton'
@@ -72,9 +82,7 @@ const MapLayerButtonBase = ({
 
   const filteredLayerGroups = useMemo(() => {
     return listedLayerGroups.filter((layerGroup) =>
-      shownLayerLevels.includes(
-        layerGroup.addOptions.layerOrderOptions.layerOrderLevel
-      )
+      shownLayerLevels.includes(getListedLayerMenuOrderLevel(layerGroup))
     )
   }, [listedLayerGroups, shownLayerLevels])
 
@@ -194,7 +202,9 @@ const MapLayerButtonBase = ({
               opacityLabel={opacityLabel}
               onOpacityChange={handleOpacityChange}
               onToggleLayer={(layerGroup: ListedLayerGroup) => {
-                toggleLayerGroup(layerGroup.id, layerGroup.addOptions)
+                if (isListedLayerGroup(layerGroup)) {
+                  toggleLayerGroup(layerGroup.id, layerGroup.addOptions)
+                }
               }}
               onInfoToggle={handlePopperUpdate}
               onClose={handleCloseMenu}

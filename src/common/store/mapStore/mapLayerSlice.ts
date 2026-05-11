@@ -28,7 +28,7 @@ import {
   SearchableDataOpts,
   DataSearchOpts,
   LayerOrderLevel,
-  ListedLayerGroup,
+  ListedLayerMenuItem,
   QueuePriority,
   SelectionSource,
 } from '#/common/types/map'
@@ -45,6 +45,7 @@ import {
   getSourceJson,
   isMatchingSource,
 } from '#/common/utils/map'
+import { flattenLayerBackedListedLayerItems } from '#/common/utils/listedLayerGroups'
 import type { MapStoreHelpers, MapStateCreator } from './mapStore'
 
 let imageRenderCanvas: HTMLCanvasElement | null = null
@@ -53,7 +54,7 @@ const imageRenderSize = 24
 
 export type MapLayerVars = {
   searchableDatas: Record<string, SearchableDataOpts>
-  listedLayerGroups: ListedLayerGroup[]
+  listedLayerGroups: ListedLayerMenuItem[]
   _images: Record<string, ImageOptions>
   _layerGroups: LayerGroups
   _layerInstances: Record<string, LayerSpecification>
@@ -76,7 +77,7 @@ export type MapLayerActions = {
     _queueOptions?: QueueOptions
   ) => Promise<FeatureCollection | null>
   setListedLayerGroups: (
-    listedLayerGroups: ListedLayerGroup[],
+    listedLayerGroups: ListedLayerMenuItem[],
     resetVisibility?: boolean,
     _queueOptions?: QueueOptions
   ) => Promise<void>
@@ -236,7 +237,7 @@ export const createMapLayerSlice: (
 
     setListedLayerGroups: helpers.queueableFnInit(
       async (
-        listedLayerGroups: ListedLayerGroup[],
+        listedLayerGroups: ListedLayerMenuItem[],
         resetVisibility?: boolean
       ) => {
         const {
@@ -247,13 +248,17 @@ export const createMapLayerSlice: (
           enableLayerGroup,
         } = get()
 
-        const oldVisibleIds = []
+        const oldLayerBackedItems =
+          flattenLayerBackedListedLayerItems(oldListedLayerGroups)
+        const layerBackedItems =
+          flattenLayerBackedListedLayerItems(listedLayerGroups)
+        const oldVisibleIds: string[] = []
 
-        for (const oldLg of oldListedLayerGroups) {
+        for (const oldLg of oldLayerBackedItems) {
           if (_layerGroups[oldLg.id] == null) {
             continue
           }
-          if (!listedLayerGroups.some((lg) => lg.id === oldLg.id)) {
+          if (!layerBackedItems.some((lg) => lg.id === oldLg.id)) {
             await removeLayerGroup(oldLg.id)
           } else {
             // if there are previously visible background layers, keep them visible
@@ -263,11 +268,14 @@ export const createMapLayerSlice: (
           }
         }
 
-        for (const lg of listedLayerGroups) {
-          const oldLg = oldListedLayerGroups.find((old) => old.id === lg.id)
+        for (const lg of layerBackedItems) {
+          const oldLg = oldLayerBackedItems.find((old) => old.id === lg.id)
           if (oldLg == null || _layerGroups[oldLg.id] == null) {
             // if there are old visible ids, then overwrite visibility of the addOptions
-            if (oldVisibleIds.length > 0) {
+            if (
+              oldVisibleIds.length > 0 &&
+              lg.addOptions.layerOrderOptions.disableOthersInGroup
+            ) {
               await addLayerGroup(
                 lg.id,
                 { ...lg.addOptions, isHidden: true },

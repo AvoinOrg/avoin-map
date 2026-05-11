@@ -15,6 +15,12 @@ import TText from '#/components/common/TText'
 import { IntoSlot } from '#/components/context/slotsContext'
 import { SidebarContentBox } from '#/components/Sidebar'
 import {
+  ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID,
+  ENERGYMAP_BUILDING_POLYGONS_LAYER_IDS,
+  combineMapFilters,
+  getEnergymapBuildingFilter,
+} from '../layers/buildingPolygonsLayerConf'
+import {
   ENERGYMAP_HEATING_LAYER_GROUP_ID,
   ENERGYMAP_HEATING_LAYER_IDS,
   HEATING_ENERGY_SOURCE_COLORS,
@@ -22,6 +28,7 @@ import {
   getHeatingEnergySourceFilter,
 } from '../layers/heatingLayerConf'
 import { listedHeatingLayerGroup } from '../common/constants'
+import { useAppletStore } from '../state/appletStore'
 
 const SIDEBAR_SIDE_PADDING = {
   mobile: '1.5rem',
@@ -315,6 +322,25 @@ const Page = () => {
       )
     )
   )
+  const isBuildingLayerGroupRegistered = useMapStore((state) =>
+    ENERGYMAP_BUILDING_POLYGONS_LAYER_IDS.every((layerId) =>
+      Boolean(
+        state._layerGroups[ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID]?.layers[
+          layerId
+        ]
+      )
+    )
+  )
+  const buildingTypeFilter = useAppletStore((state) => state.buildingTypeFilter)
+  const selectedConstructionDecade = useAppletStore(
+    (state) => state.selectedConstructionDecade
+  )
+  const showBuildingsFromSelectedDecade = useAppletStore(
+    (state) => state.showBuildingsFromSelectedDecade
+  )
+  const showOnlySelectedDecade = useAppletStore(
+    (state) => state.showOnlySelectedDecade
+  )
   const visibleLayerGroupIds = useVisibleLayerGroupIds()
   const [heatingSwitchState, setHeatingSwitchState] = React.useState(
     INITIAL_HEATING_SWITCH_STATE
@@ -329,6 +355,25 @@ const Page = () => {
   const heatingFilter = React.useMemo(
     () => getHeatingEnergySourceFilter(activeHeatingFilterKeys),
     [activeHeatingFilterKeys]
+  )
+  const buildingFilter = React.useMemo(
+    () =>
+      getEnergymapBuildingFilter({
+        buildingTypeFilter,
+        selectedConstructionDecade,
+        showBuildingsFromSelectedDecade,
+        showOnlySelectedDecade,
+      }),
+    [
+      buildingTypeFilter,
+      selectedConstructionDecade,
+      showBuildingsFromSelectedDecade,
+      showOnlySelectedDecade,
+    ]
+  )
+  const combinedHeatingFilter = React.useMemo(
+    () => combineMapFilters([buildingFilter, heatingFilter]),
+    [buildingFilter, heatingFilter]
   )
   const isHeatingLayerVisible = visibleLayerGroupIds.includes(
     listedHeatingLayerGroup.id
@@ -346,16 +391,28 @@ const Page = () => {
     }
 
   React.useEffect(() => {
+    if (!isBuildingLayerGroupRegistered) {
+      return
+    }
+
+    void Promise.all(
+      ENERGYMAP_BUILDING_POLYGONS_LAYER_IDS.map((layerId) =>
+        setFilter(layerId, buildingFilter)
+      )
+    )
+  }, [buildingFilter, isBuildingLayerGroupRegistered, setFilter])
+
+  React.useEffect(() => {
     if (!isHeatingLayerGroupRegistered) {
       return
     }
 
     void Promise.all(
       ENERGYMAP_HEATING_LAYER_IDS.map((layerId) =>
-        setFilter(layerId, heatingFilter)
+        setFilter(layerId, combinedHeatingFilter)
       )
     )
-  }, [heatingFilter, isHeatingLayerGroupRegistered, setFilter])
+  }, [combinedHeatingFilter, isHeatingLayerGroupRegistered, setFilter])
 
   return (
     <>

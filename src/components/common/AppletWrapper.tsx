@@ -9,7 +9,7 @@ import { useTolgee } from '@tolgee/react'
 import { Box } from '@mui/material'
 
 import { useMapStore, useUIStore } from '#/common/store'
-import { ListedLayerGroup, MapContext } from '#/common/types/map'
+import { ListedLayerMenuItem, MapContext } from '#/common/types/map'
 import { useExclusiveLayerGroups } from '#/common/hooks/map/useExclusiveLayerGroups'
 import { defaultListedLayerGroups } from '../Map/layers/defaultListedLayerGroups'
 import { IntoSlot } from '#/components/context/slotsContext'
@@ -24,7 +24,7 @@ type BaseAppletWrapperProps = {
   isNavbarHidden?: boolean
   searchCountryCodes?: string[]
   disableDefaultFitbounds?: boolean
-  listedLayerGroups?: ListedLayerGroup[]
+  listedLayerGroups?: ListedLayerMenuItem[]
   sx?: any
 }
 
@@ -158,11 +158,7 @@ const AppletWrapper = ({
       // Reset to default on unmount
       setSidebarHeaderConfig({ title: 'avoin map' })
     }
-  }, [
-    sidebarHeaderTitle,
-    sidebarHeaderBackgroundImage,
-    setSidebarHeaderConfig,
-  ])
+  }, [sidebarHeaderTitle, sidebarHeaderBackgroundImage, setSidebarHeaderConfig])
 
   const isTolgeeReady = () => {
     if (

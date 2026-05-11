@@ -2,6 +2,10 @@ import type { FilterSpecification } from 'maplibre-gl'
 
 import { ExtendedStyleSpecification, LayerConf } from '#/common/types/map'
 import { ENERGYMAP_GEOSERVER_URL } from './geoServer'
+import {
+  ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
+  ENERGYMAP_BUILDING_POLYGONS_WORKSPACE,
+} from './buildingPolygonsLayerConf'
 
 export const ENERGYMAP_HEATING_LAYER_GROUP_ID = 'energymap_heating'
 export const ENERGYMAP_HEATING_FILL_LAYER_ID = `${ENERGYMAP_HEATING_LAYER_GROUP_ID}-fill`
@@ -10,8 +14,6 @@ export const ENERGYMAP_HEATING_LAYER_IDS = [
   ENERGYMAP_HEATING_FILL_LAYER_ID,
   ENERGYMAP_HEATING_OUTLINE_LAYER_ID,
 ] as const
-const ENERGYMAP_BUILDING_POLYGONS_WORKSPACE = 'sandbox_energiakartta'
-const ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER = 'energymap_building_polygons'
 export const HEATING_ENERGY_SOURCE_PROPERTY = 'heating_energy_source'
 
 export const HEATING_ENERGY_SOURCE_COLORS = {

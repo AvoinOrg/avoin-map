@@ -133,6 +133,9 @@ const DropDownSelect = ({
           id={selectId}
           labelId={labelId}
           aria-label={ariaLabel ?? label}
+          SelectDisplayProps={{
+            'aria-label': ariaLabel ?? label,
+          }}
           value={currentValue}
           onChange={onChange}
           displayEmpty={placeholder != null}
@@ -160,10 +163,7 @@ const DropDownSelect = ({
             )
 
             if (renderSelectedValue) {
-              return renderSelectedValue(
-                selectedOption,
-                String(selected ?? '')
-              )
+              return renderSelectedValue(selectedOption, String(selected ?? ''))
             }
 
             return selectedOption?.label ?? selected

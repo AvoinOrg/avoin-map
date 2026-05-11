@@ -1,5 +1,5 @@
 import type { Feature, FeatureCollection } from 'geojson'
-import type { ReactNode } from 'react'
+import type { ComponentType, ReactNode } from 'react'
 import type {
   StyleSpecification,
   LayerSpecification,
@@ -52,6 +52,31 @@ export type ListedLayerGroup = {
   infoElement?: ReactNode
   styleOptions?: ListedLayerGroupStyleOptions
 }
+
+export type ListedLayerAccordionItem = {
+  id: string
+  type: 'accordion'
+  menuOrderLevel: LayerOrderLevel
+  translationNs: string
+  titleTranslationKey: string
+  title?: string
+  ariaLabelTranslationKey?: string
+  ariaLabel?: string
+  backgroundImageSrc?: string
+  defaultExpanded?: boolean
+  addOptions?: LayerGroupAddOptionsWithOrderLevel
+  content?: ReactNode
+  ContentComponent?: ComponentType
+  items?: ListedLayerMenuItem[]
+}
+
+export type ListedLayerMenuItem = ListedLayerGroup | ListedLayerAccordionItem
+
+export type ListedLayerBackedMenuItem =
+  | ListedLayerGroup
+  | (ListedLayerAccordionItem & {
+      addOptions: LayerGroupAddOptionsWithOrderLevel
+    })
 
 export type LayerGroupOptions = {
   id: string
@@ -228,8 +253,7 @@ export type MapDims = {
 }
 
 // Compatible with hydration.
-export interface SerializableLayerGroupAddOptions
-  extends BaseLayerGroupAddOptions {
+export interface SerializableLayerGroupAddOptions extends BaseLayerGroupAddOptions {
   layerConf?: SerializableLayerConf
   dataUpdateMutator?: DataUpdateMutator
 }
@@ -242,8 +266,7 @@ export interface LayerGroupAddOptions extends BaseLayerGroupAddOptions {
   persist?: false
 }
 
-export interface LayerGroupAddOptionsWithOrderLevel
-  extends BaseLayerGroupAddOptions {
+export interface LayerGroupAddOptionsWithOrderLevel extends BaseLayerGroupAddOptions {
   layerOrderOptions: LayerOrderOptions
   layerConf?: LayerConf
   persist?: false

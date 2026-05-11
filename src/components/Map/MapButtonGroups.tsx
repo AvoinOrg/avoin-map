@@ -32,6 +32,7 @@ import {
 } from './MapLayerButton'
 import { MapButton } from './MapButton'
 import { LayerOrderLevel } from '#/common/types/map'
+import { hasListedLayerMenuOrderLevel } from '#/common/utils/listedLayerGroups'
 import { MapButtonStickyMenu } from './MapButtonStickyMenu'
 import { MapUserButtons } from './MapUserButtons'
 import { CorridorBufferMenu } from './CorridorBufferMenu'
@@ -91,20 +92,19 @@ export const MapButtons = ({ isVertical }: Props) => {
 
   const hasBackgroundLayers = useMemo(
     () =>
-      listedLayerGroups.some(
-        (layerGroup) =>
-          layerGroup.addOptions.layerOrderOptions.layerOrderLevel ===
-          LayerOrderLevel.BACKGROUND
+      listedLayerGroups.some((layerGroup) =>
+        hasListedLayerMenuOrderLevel(layerGroup, LayerOrderLevel.BACKGROUND)
       ),
     [listedLayerGroups]
   )
 
   const hasBackgroundOverlayLayers = useMemo(
     () =>
-      listedLayerGroups.some(
-        (layerGroup) =>
-          layerGroup.addOptions.layerOrderOptions.layerOrderLevel ===
+      listedLayerGroups.some((layerGroup) =>
+        hasListedLayerMenuOrderLevel(
+          layerGroup,
           LayerOrderLevel.BACKGROUND_OVERLAY
+        )
       ),
     [listedLayerGroups]
   )
