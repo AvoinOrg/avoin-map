@@ -1,0 +1,4 @@
+interface:
+  display_name: "GeoServer Data Probe"
+  short_description: "Inspect GeoServer layers, TileJSON fields, and vector tile properties"
+  default_prompt: "Use $geoserver-data-probe to verify live GeoServer layer metadata and vector tile properties before changing map layer configs."
