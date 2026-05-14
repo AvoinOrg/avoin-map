@@ -9,7 +9,7 @@ import {
 describe('Energiakartta energy certificate layer config', () => {
   it('uses the documented joined energy certificate field and A-G class values', () => {
     expect(ENERGY_CERTIFICATE_CLASS_PROPERTY).toBe(
-      'energy_certificate_e_class'
+      'energy_certificate_class'
     )
     expect(ENERGY_CERTIFICATE_CLASS_CODES).toEqual([
       'A',
