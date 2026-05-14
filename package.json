@@ -196,5 +196,5 @@
       "react-app"
     ]
   },
-  "packageManager": "yarn@3.6.0"
+  "packageManager": "yarn@4.12.0"
 }
