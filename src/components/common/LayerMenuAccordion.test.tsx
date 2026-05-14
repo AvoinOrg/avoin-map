@@ -1,4 +1,5 @@
 import React from 'react'
+import '@testing-library/jest-dom'
 import { ThemeProvider } from '@mui/material/styles'
 import { fireEvent, render, screen } from '@testing-library/react'
 
@@ -64,5 +65,40 @@ describe('LayerMenuAccordion', () => {
     fireEvent.click(button)
 
     expect(button.getAttribute('aria-expanded')).toBe('false')
+  })
+
+  it('shows the bottom separator by default and can hide it for a last accordion', () => {
+    const { rerender } = renderWithTheme(
+      <LayerMenuAccordion
+        id="separator-filters"
+        title="Rakennus tasot"
+        ariaLabel="Toggle separator filters"
+        defaultExpanded
+      >
+        <div>Separated content</div>
+      </LayerMenuAccordion>
+    )
+
+    expect(screen.getByRole('region')).toHaveStyle({
+      borderBottom: '1px solid #D6D6D6',
+    })
+
+    rerender(
+      <ThemeProvider theme={theme}>
+        <LayerMenuAccordion
+          id="separator-filters"
+          title="Rakennus tasot"
+          ariaLabel="Toggle separator filters"
+          defaultExpanded
+          showBottomSeparator={false}
+        >
+          <div>Separated content</div>
+        </LayerMenuAccordion>
+      </ThemeProvider>
+    )
+
+    expect(screen.getByRole('region')).not.toHaveStyle({
+      borderBottom: '1px solid #D6D6D6',
+    })
   })
 })

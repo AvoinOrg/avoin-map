@@ -7,7 +7,7 @@ import { useTranslate } from '@tolgee/react'
 
 import DropDownSelectInset from '#/components/common/DropDownSelectInset'
 import DropDownSelectWithLabel from '#/components/common/DropDownSelectWithLabel'
-import SquishedSwitchWithLabel from '#/components/common/SquishedSwitchWithLabel'
+import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 import type { SelectOption } from '#/common/types/general'
 import {
   ENERGYMAP_BUILDING_TYPE_CODES,
@@ -34,6 +34,21 @@ const DROPDOWN_LABEL_SX = {
   fontWeight: 700,
   lineHeight: '1.125rem',
   letterSpacing: '0.1em',
+}
+
+const SWITCH_SX = {
+  width: '100%',
+}
+
+const SWITCH_CONTROL_SX = {
+  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+    backgroundColor: '#075CFF',
+  },
+}
+
+const SWITCH_LABEL_SX = {
+  ...CONTROL_TEXT_SX,
+  ml: '0.625rem',
 }
 
 const BackgroundBuildingFiltersAccordionContent = () => {
@@ -158,30 +173,34 @@ const BackgroundBuildingFiltersAccordionContent = () => {
           px: '0.25rem',
         }}
       >
-        <SquishedSwitchWithLabel
+        <SwitchWithLabel
           checked={showBuildingsFromSelectedDecade}
-          checkedTrackColor="#075CFF"
           ariaLabel={t(
             'sidebar.background_filters.construction_year.show_from_decade'
           )}
+          inputProps={{ role: 'switch' }}
           onChange={(event) =>
             setShowBuildingsFromSelectedDecade(event.target.checked)
           }
-          labelSx={CONTROL_TEXT_SX}
+          sx={SWITCH_SX}
+          controlSx={SWITCH_CONTROL_SX}
+          labelSx={SWITCH_LABEL_SX}
         >
           {t('sidebar.background_filters.construction_year.show_from_decade')}
-        </SquishedSwitchWithLabel>
-        <SquishedSwitchWithLabel
+        </SwitchWithLabel>
+        <SwitchWithLabel
           checked={showOnlySelectedDecade}
-          checkedTrackColor="#075CFF"
           ariaLabel={t(
             'sidebar.background_filters.construction_year.show_only_decade'
           )}
+          inputProps={{ role: 'switch' }}
           onChange={(event) => setShowOnlySelectedDecade(event.target.checked)}
-          labelSx={CONTROL_TEXT_SX}
+          sx={SWITCH_SX}
+          controlSx={SWITCH_CONTROL_SX}
+          labelSx={SWITCH_LABEL_SX}
         >
           {t('sidebar.background_filters.construction_year.show_only_decade')}
-        </SquishedSwitchWithLabel>
+        </SwitchWithLabel>
       </Box>
     </Box>
   )

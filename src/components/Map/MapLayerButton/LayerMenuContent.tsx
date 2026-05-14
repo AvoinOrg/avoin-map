@@ -10,6 +10,7 @@ import {
   isListedLayerGroup,
 } from '#/common/utils/listedLayerGroups'
 import LayerMenuAccordion from '#/components/common/LayerMenuAccordion'
+import TText from '#/components/common/TText'
 import LayerItem from './LayerItem'
 
 type Props = {
@@ -34,32 +35,53 @@ type LayerMenuItemsProps = Pick<
   | 'onInfoToggle'
 > & {
   items: ListedLayerMenuItem[]
+  layerGroupSegmentSx?: SxProps<Theme>
+}
+
+const LAYER_GROUP_SEGMENT_SX: SxProps<Theme> = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'stretch',
+  gap: '1.5rem',
+  width: '100%',
+  px: 3,
+  py: 4,
+}
+
+const NESTED_LAYER_GROUP_SEGMENT_SX: SxProps<Theme> = {
+  ...LAYER_GROUP_SEGMENT_SX,
+  px: 0,
+  py: 0,
 }
 
 const LayerMenuAccordionRow = ({
   item,
   children,
   onInfoToggle,
+  showBottomSeparator,
 }: {
   item: Extract<ListedLayerMenuItem, { type: 'accordion' }>
   children?: React.ReactNode
   onInfoToggle?: () => void
+  showBottomSeparator: boolean
 }) => {
   const { t } = useTranslate(item.translationNs)
   const ContentComponent = item.ContentComponent
-  const title = t(item.titleTranslationKey, item.title)
   const ariaLabel = item.ariaLabelTranslationKey
-    ? t(item.ariaLabelTranslationKey, item.ariaLabel)
-    : (item.ariaLabel ?? title)
+    ? t(item.ariaLabelTranslationKey)
+    : t(item.titleTranslationKey)
 
   return (
     <LayerMenuAccordion
       id={`layer-menu-accordion-${item.id}`}
-      title={title}
+      title={
+        <TText keyName={item.titleTranslationKey} ns={item.translationNs} />
+      }
       ariaLabel={ariaLabel}
       defaultExpanded={item.defaultExpanded}
       backgroundImageSrc={item.backgroundImageSrc}
       onTransitionEnd={onInfoToggle}
+      showBottomSeparator={showBottomSeparator}
     >
       {item.content}
       {ContentComponent && <ContentComponent />}
@@ -75,62 +97,92 @@ const LayerMenuItems = ({
   onOpacityChange,
   onToggleLayer,
   onInfoToggle,
+  layerGroupSegmentSx = LAYER_GROUP_SEGMENT_SX,
 }: LayerMenuItemsProps) => {
-  return (
-    <>
-      {items.map((item) => {
-        if (isListedLayerGroup(item)) {
-          return (
-            <LayerItem
-              key={item.id}
-              layerGroup={item}
-              isSelected={visibleLayerGroupIds.includes(item.id)}
-              showOpacitySlider={item.styleOptions?.showOpacitySlider}
-              opacityLabel={opacityLabel}
-              onOpacityChange={onOpacityChange}
-              onInfoToggle={onInfoToggle}
-              onSelect={(_id) => {
-                onToggleLayer(item)
-              }}
-            />
-          )
-        }
+  const renderedItems: React.ReactNode[] = []
+  let layerGroupSegment: ListedLayerGroup[] = []
 
-        if (isListedLayerAccordionItem(item)) {
-          return (
-            <LayerMenuAccordionRow
-              key={item.id}
-              item={item}
-              onInfoToggle={onInfoToggle}
-            >
-              {item.items && item.items.length > 0 && (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'stretch',
-                    gap: '1.5rem',
-                    pt: '1.5rem',
-                  }}
-                >
-                  <LayerMenuItems
-                    items={item.items}
-                    visibleLayerGroupIds={visibleLayerGroupIds}
-                    opacityLabel={opacityLabel}
-                    onOpacityChange={onOpacityChange}
-                    onToggleLayer={onToggleLayer}
-                    onInfoToggle={onInfoToggle}
-                  />
-                </Box>
-              )}
-            </LayerMenuAccordionRow>
-          )
-        }
-
-        return null
-      })}
-    </>
+  const renderLayerItem = (item: ListedLayerGroup) => (
+    <LayerItem
+      key={item.id}
+      layerGroup={item}
+      isSelected={visibleLayerGroupIds.includes(item.id)}
+      showOpacitySlider={item.styleOptions?.showOpacitySlider}
+      opacityLabel={opacityLabel}
+      onOpacityChange={onOpacityChange}
+      onInfoToggle={onInfoToggle}
+      onSelect={(_id) => {
+        onToggleLayer(item)
+      }}
+    />
   )
+
+  const flushLayerGroupSegment = () => {
+    if (layerGroupSegment.length === 0) {
+      return
+    }
+
+    const segmentItems = layerGroupSegment
+    const firstItem = segmentItems[0]
+    const lastItem = segmentItems[segmentItems.length - 1]
+
+    renderedItems.push(
+      <Box
+        key={`layer-group-segment-${firstItem.id}-${lastItem.id}`}
+        sx={layerGroupSegmentSx}
+      >
+        {segmentItems.map(renderLayerItem)}
+      </Box>
+    )
+
+    layerGroupSegment = []
+  }
+
+  items.forEach((item, index) => {
+    if (isListedLayerGroup(item)) {
+      layerGroupSegment.push(item)
+      return
+    }
+
+    if (isListedLayerAccordionItem(item)) {
+      flushLayerGroupSegment()
+
+      renderedItems.push(
+        <LayerMenuAccordionRow
+          key={item.id}
+          item={item}
+          onInfoToggle={onInfoToggle}
+          showBottomSeparator={index < items.length - 1}
+        >
+          {item.items && item.items.length > 0 && (
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'stretch',
+                gap: '1.5rem',
+                pt: '1.5rem',
+              }}
+            >
+              <LayerMenuItems
+                items={item.items}
+                visibleLayerGroupIds={visibleLayerGroupIds}
+                opacityLabel={opacityLabel}
+                onOpacityChange={onOpacityChange}
+                onToggleLayer={onToggleLayer}
+                onInfoToggle={onInfoToggle}
+                layerGroupSegmentSx={NESTED_LAYER_GROUP_SEGMENT_SX}
+              />
+            </Box>
+          )}
+        </LayerMenuAccordionRow>
+      )
+    }
+  })
+
+  flushLayerGroupSegment()
+
+  return <>{renderedItems}</>
 }
 
 const LayerMenuContent = ({
@@ -210,10 +262,7 @@ const LayerMenuContent = ({
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'stretch',
-              gap: '1.5rem',
               width: '100%',
-              px: 3,
-              py: 4,
             },
             ...(Array.isArray(listSx) ? listSx : [listSx]),
           ]}

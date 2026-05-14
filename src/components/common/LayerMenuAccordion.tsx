@@ -13,6 +13,7 @@ type Props = {
   expanded?: boolean
   onExpandedChange?: (expanded: boolean) => void
   onTransitionEnd?: () => void
+  showBottomSeparator?: boolean
   sx?: SxProps<Theme>
   headerSx?: SxProps<Theme>
   contentSx?: SxProps<Theme>
@@ -28,6 +29,7 @@ const LayerMenuAccordion = ({
   expanded,
   onExpandedChange,
   onTransitionEnd,
+  showBottomSeparator = true,
   sx,
   headerSx,
   contentSx,
@@ -156,7 +158,9 @@ const LayerMenuAccordion = ({
           aria-labelledby={buttonId}
           sx={[
             {
-              borderBottom: '1px solid #D6D6D6',
+              ...(showBottomSeparator
+                ? { borderBottom: '1px solid #D6D6D6' }
+                : {}),
             },
             ...(Array.isArray(contentSx)
               ? contentSx

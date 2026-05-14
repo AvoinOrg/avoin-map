@@ -48,7 +48,7 @@ export type State = Vars & Actions
 const initialBuildingFilterState: Vars = {
   buildingTypeFilter: ENERGYMAP_BUILDING_TYPE_FILTER_ALL,
   selectedConstructionDecade: ENERGYMAP_DEFAULT_CONSTRUCTION_DECADE,
-  showBuildingsFromSelectedDecade: true,
+  showBuildingsFromSelectedDecade: false,
   showOnlySelectedDecade: false,
   activeEnergyCertificateClasses: [...ENERGY_CERTIFICATE_CLASS_CODES],
 }
