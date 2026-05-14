@@ -19,7 +19,8 @@ export const ENERGYMAP_BUILDING_KEY_PROPERTY = 'building_key'
 export const ENERGYMAP_BUILDING_TYPE_PROPERTY = 'main_purpose'
 export const ENERGYMAP_BUILDING_COMPLETION_DATE_PROPERTY = 'completion_date'
 export const ENERGYMAP_BUILDING_TYPE_FILTER_ALL = 'all'
-export const ENERGYMAP_DEFAULT_CONSTRUCTION_DECADE = 1970
+export const ENERGYMAP_CONSTRUCTION_YEAR_FILTER_ANY = 'any'
+export const ENERGYMAP_DEFAULT_SELECTED_CONSTRUCTION_DECADE = null
 
 export const ENERGYMAP_BUILDING_TYPE_CODES = [
   '01',
@@ -38,9 +39,11 @@ export type EnergymapBuildingTypeFilter =
   | typeof ENERGYMAP_BUILDING_TYPE_FILTER_ALL
   | EnergymapBuildingTypeCode
 
+export type EnergymapSelectedConstructionDecade = number | null
+
 export type EnergymapBuildingFilterState = {
   buildingTypeFilter: EnergymapBuildingTypeFilter
-  selectedConstructionDecade: number
+  selectedConstructionDecade: EnergymapSelectedConstructionDecade
   showBuildingsFromSelectedDecade: boolean
   showOnlySelectedDecade: boolean
 }
@@ -132,6 +135,10 @@ export const getEnergymapConstructionYearFilter = ({
   | 'showBuildingsFromSelectedDecade'
   | 'showOnlySelectedDecade'
 >): FilterSpecification | null => {
+  if (selectedConstructionDecade == null) {
+    return null
+  }
+
   if (showOnlySelectedDecade) {
     return [
       'all',

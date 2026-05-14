@@ -5,6 +5,7 @@ import {
   ENERGYMAP_BUILDING_TYPE_CODES,
   ENERGYMAP_BUILDING_TYPE_FILTER_ALL,
   ENERGYMAP_BUILDING_TYPE_PROPERTY,
+  ENERGYMAP_DEFAULT_SELECTED_CONSTRUCTION_DECADE,
   combineMapFilters,
   getConstructionDecadeOptions,
   getEnergymapBuildingFilter,
@@ -45,9 +46,22 @@ describe('Energiakartta building polygon filters', () => {
     expect(
       getEnergymapBuildingFilter({
         buildingTypeFilter: ENERGYMAP_BUILDING_TYPE_FILTER_ALL,
-        selectedConstructionDecade: 1970,
+        selectedConstructionDecade:
+          ENERGYMAP_DEFAULT_SELECTED_CONSTRUCTION_DECADE,
         showBuildingsFromSelectedDecade: false,
         showOnlySelectedDecade: false,
+      })
+    ).toEqual(ENERGYMAP_BUILDING_MATCH_ALL_FILTER)
+  })
+
+  it('does not apply a construction-year filter when no construction decade is selected', () => {
+    expect(
+      getEnergymapBuildingFilter({
+        buildingTypeFilter: ENERGYMAP_BUILDING_TYPE_FILTER_ALL,
+        selectedConstructionDecade:
+          ENERGYMAP_DEFAULT_SELECTED_CONSTRUCTION_DECADE,
+        showBuildingsFromSelectedDecade: true,
+        showOnlySelectedDecade: true,
       })
     ).toEqual(ENERGYMAP_BUILDING_MATCH_ALL_FILTER)
   })
@@ -56,7 +70,8 @@ describe('Energiakartta building polygon filters', () => {
     expect(
       getEnergymapBuildingFilter({
         buildingTypeFilter: '06',
-        selectedConstructionDecade: 1970,
+        selectedConstructionDecade:
+          ENERGYMAP_DEFAULT_SELECTED_CONSTRUCTION_DECADE,
         showBuildingsFromSelectedDecade: false,
         showOnlySelectedDecade: false,
       })
@@ -87,12 +102,12 @@ describe('Energiakartta building polygon filters', () => {
     ])
   })
 
-  it('lets selected-decade-only mode win when both year switches are enabled', () => {
+  it('filters only buildings from the selected decade', () => {
     expect(
       getEnergymapBuildingFilter({
         buildingTypeFilter: ENERGYMAP_BUILDING_TYPE_FILTER_ALL,
         selectedConstructionDecade: 1970,
-        showBuildingsFromSelectedDecade: true,
+        showBuildingsFromSelectedDecade: false,
         showOnlySelectedDecade: true,
       })
     ).toEqual([

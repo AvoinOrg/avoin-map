@@ -13,6 +13,7 @@ import {
   ENERGYMAP_BUILDING_TYPE_CODES,
   ENERGYMAP_BUILDING_TYPE_FILTER_ALL,
   ENERGYMAP_CONSTRUCTION_DECADE_OPTIONS,
+  ENERGYMAP_CONSTRUCTION_YEAR_FILTER_ANY,
 } from '../layers/buildingPolygonsLayerConf'
 import type { EnergymapBuildingTypeFilter } from '../layers/buildingPolygonsLayerConf'
 import { useAppletStore } from '../state/appletStore'
@@ -91,20 +92,43 @@ const BackgroundBuildingFiltersAccordionContent = () => {
   )
 
   const decadeOptions = React.useMemo<SelectOption[]>(
-    () =>
-      ENERGYMAP_CONSTRUCTION_DECADE_OPTIONS.map((option) => ({
+    () => [
+      {
+        value: ENERGYMAP_CONSTRUCTION_YEAR_FILTER_ANY,
+        label: t('sidebar.background_filters.construction_year.any'),
+      },
+      ...ENERGYMAP_CONSTRUCTION_DECADE_OPTIONS.map((option) => ({
         value: option.value,
         label: option.label,
       })),
-    []
+    ],
+    [t]
   )
+  const constructionDecadeSelectValue =
+    selectedConstructionDecade == null
+      ? ENERGYMAP_CONSTRUCTION_YEAR_FILTER_ANY
+      : String(selectedConstructionDecade)
+  const hasSelectedConstructionDecade = selectedConstructionDecade != null
 
   const handleBuildingTypeChange = (event: SelectChangeEvent) => {
     setBuildingTypeFilter(event.target.value as EnergymapBuildingTypeFilter)
   }
 
   const handleConstructionDecadeChange = (event: SelectChangeEvent) => {
-    setSelectedConstructionDecade(Number(event.target.value))
+    const selectedValue = event.target.value
+
+    if (selectedValue === ENERGYMAP_CONSTRUCTION_YEAR_FILTER_ANY) {
+      setSelectedConstructionDecade(null)
+      return
+    }
+
+    const selectedDecade = Number(selectedValue)
+
+    if (Number.isNaN(selectedDecade)) {
+      return
+    }
+
+    setSelectedConstructionDecade(selectedDecade)
   }
 
   return (
@@ -158,7 +182,7 @@ const BackgroundBuildingFiltersAccordionContent = () => {
       />
 
       <DropDownSelectInset
-        value={String(selectedConstructionDecade)}
+        value={constructionDecadeSelectValue}
         options={decadeOptions}
         onChange={handleConstructionDecadeChange}
         label={t('sidebar.background_filters.construction_year.label')}
@@ -182,6 +206,7 @@ const BackgroundBuildingFiltersAccordionContent = () => {
           onChange={(event) =>
             setShowBuildingsFromSelectedDecade(event.target.checked)
           }
+          disabled={!hasSelectedConstructionDecade}
           sx={SWITCH_SX}
           controlSx={SWITCH_CONTROL_SX}
           labelSx={SWITCH_LABEL_SX}
@@ -195,6 +220,7 @@ const BackgroundBuildingFiltersAccordionContent = () => {
           )}
           inputProps={{ role: 'switch' }}
           onChange={(event) => setShowOnlySelectedDecade(event.target.checked)}
+          disabled={!hasSelectedConstructionDecade}
           sx={SWITCH_SX}
           controlSx={SWITCH_CONTROL_SX}
           labelSx={SWITCH_LABEL_SX}

@@ -5,11 +5,12 @@ import { immer } from 'zustand/middleware/immer'
 import { commonDevtools } from '#/common/store/shared-devtools'
 import {
   ENERGYMAP_BUILDING_TYPE_FILTER_ALL,
-  ENERGYMAP_DEFAULT_CONSTRUCTION_DECADE,
+  ENERGYMAP_DEFAULT_SELECTED_CONSTRUCTION_DECADE,
 } from '../layers/buildingPolygonsLayerConf'
 import { ENERGY_CERTIFICATE_CLASS_CODES } from '../layers/energyCertificateLayerConf'
 import type {
   EnergymapBuildingFilterState,
+  EnergymapSelectedConstructionDecade,
   EnergymapBuildingTypeFilter,
 } from '../layers/buildingPolygonsLayerConf'
 import type { EnergyCertificateClassCode } from '../layers/energyCertificateLayerConf'
@@ -24,7 +25,9 @@ type Actions = {
   setBuildingTypeFilter: (
     buildingTypeFilter: EnergymapBuildingTypeFilter
   ) => void
-  setSelectedConstructionDecade: (selectedConstructionDecade: number) => void
+  setSelectedConstructionDecade: (
+    selectedConstructionDecade: EnergymapSelectedConstructionDecade
+  ) => void
   setShowBuildingsFromSelectedDecade: (
     showBuildingsFromSelectedDecade: boolean
   ) => void
@@ -47,7 +50,7 @@ export type State = Vars & Actions
 
 const initialBuildingFilterState: Vars = {
   buildingTypeFilter: ENERGYMAP_BUILDING_TYPE_FILTER_ALL,
-  selectedConstructionDecade: ENERGYMAP_DEFAULT_CONSTRUCTION_DECADE,
+  selectedConstructionDecade: ENERGYMAP_DEFAULT_SELECTED_CONSTRUCTION_DECADE,
   showBuildingsFromSelectedDecade: false,
   showOnlySelectedDecade: false,
   activeEnergyCertificateClasses: [...ENERGY_CERTIFICATE_CLASS_CODES],
@@ -68,19 +71,43 @@ export const useAppletStore = create<State>()(
           setSelectedConstructionDecade: (selectedConstructionDecade) => {
             set((state) => {
               state.selectedConstructionDecade = selectedConstructionDecade
+
+              if (selectedConstructionDecade == null) {
+                state.showBuildingsFromSelectedDecade = false
+                state.showOnlySelectedDecade = false
+              }
             })
           },
           setShowBuildingsFromSelectedDecade: (
             showBuildingsFromSelectedDecade
           ) => {
             set((state) => {
-              state.showBuildingsFromSelectedDecade =
-                showBuildingsFromSelectedDecade
+              if (
+                !showBuildingsFromSelectedDecade ||
+                state.selectedConstructionDecade == null
+              ) {
+                state.showBuildingsFromSelectedDecade = false
+                state.showOnlySelectedDecade = false
+                return
+              }
+
+              state.showBuildingsFromSelectedDecade = true
+              state.showOnlySelectedDecade = false
             })
           },
           setShowOnlySelectedDecade: (showOnlySelectedDecade) => {
             set((state) => {
-              state.showOnlySelectedDecade = showOnlySelectedDecade
+              if (
+                !showOnlySelectedDecade ||
+                state.selectedConstructionDecade == null
+              ) {
+                state.showBuildingsFromSelectedDecade = false
+                state.showOnlySelectedDecade = false
+                return
+              }
+
+              state.showBuildingsFromSelectedDecade = false
+              state.showOnlySelectedDecade = true
             })
           },
           setEnergyCertificateClassActive: (classCode, isActive) => {
