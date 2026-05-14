@@ -79,7 +79,26 @@ describe('LayerMenuAccordion', () => {
       </LayerMenuAccordion>
     )
 
-    expect(screen.getByRole('region')).toHaveStyle({
+    const button = screen.getByRole('button', {
+      name: 'Toggle separator filters',
+    })
+    const region = screen.getByRole('region')
+    const separator = region.querySelector('[aria-hidden="true"]')
+
+    expect(button).toHaveStyle({
+      padding: '0px',
+    })
+    expect(region).toHaveStyle({
+      paddingLeft: '24px',
+      paddingRight: '24px',
+      boxSizing: 'border-box',
+      width: '100%',
+    })
+    expect(region).not.toHaveStyle({
+      borderBottom: '1px solid #D6D6D6',
+    })
+    expect(separator).toBeInTheDocument()
+    expect(separator).toHaveStyle({
       borderBottom: '1px solid #D6D6D6',
     })
 
@@ -97,8 +116,36 @@ describe('LayerMenuAccordion', () => {
       </ThemeProvider>
     )
 
-    expect(screen.getByRole('region')).not.toHaveStyle({
+    const regionWithoutSeparator = screen.getByRole('region')
+
+    expect(regionWithoutSeparator).toHaveStyle({
+      paddingLeft: '24px',
+      paddingRight: '24px',
+    })
+    expect(regionWithoutSeparator).not.toHaveStyle({
       borderBottom: '1px solid #D6D6D6',
+    })
+    expect(
+      regionWithoutSeparator.querySelector('[aria-hidden="true"]')
+    ).toBeNull()
+  })
+
+  it('allows content padding to be overridden through contentSx', () => {
+    renderWithTheme(
+      <LayerMenuAccordion
+        id="flush-content-filters"
+        title="Rakennus tasot"
+        ariaLabel="Toggle flush content filters"
+        defaultExpanded
+        contentSx={{ px: 0 }}
+      >
+        <div>Flush content</div>
+      </LayerMenuAccordion>
+    )
+
+    expect(screen.getByRole('region')).toHaveStyle({
+      paddingLeft: '0px',
+      paddingRight: '0px',
     })
   })
 })

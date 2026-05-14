@@ -136,8 +136,39 @@ describe('LayerMenuContent', () => {
   it('hides the bottom separator when the final menu item is an accordion', () => {
     renderWithTheme([normalLayer, accordionLayer])
 
-    expect(screen.getByRole('region')).not.toHaveStyle({
+    const region = screen.getByRole('region')
+
+    expect(region).toHaveStyle({
+      paddingLeft: '24px',
+      paddingRight: '24px',
+    })
+    expect(region).not.toHaveStyle({
       borderBottom: '1px solid #D6D6D6',
     })
+    expect(region.querySelector('[aria-hidden="true"]')).toBeNull()
+  })
+
+  it('uses shared padded accordion content and inset separator through the listed menu path', () => {
+    renderWithTheme([accordionLayer, normalLayer])
+
+    const region = screen.getByRole('region')
+    const separator = region.querySelector('[aria-hidden="true"]')
+
+    expect(region).toHaveStyle({
+      paddingLeft: '24px',
+      paddingRight: '24px',
+    })
+    expect(region).not.toHaveStyle({
+      borderBottom: '1px solid #D6D6D6',
+    })
+    expect(separator).toBeInTheDocument()
+    expect(separator).toHaveStyle({
+      borderBottom: '1px solid #D6D6D6',
+    })
+    expect(
+      screen.getByRole('button', {
+        name: 'Toggle layer test-ns:layers.normal',
+      })
+    ).toBeInTheDocument()
   })
 })

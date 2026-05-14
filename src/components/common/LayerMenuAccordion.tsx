@@ -19,6 +19,9 @@ type Props = {
   contentSx?: SxProps<Theme>
 }
 
+// Mirrors standalone layer-group row segments in LayerMenuContent.
+const LAYER_MENU_ACCORDION_CONTENT_PX = 3
+
 const LayerMenuAccordion = ({
   id,
   title,
@@ -158,9 +161,9 @@ const LayerMenuAccordion = ({
           aria-labelledby={buttonId}
           sx={[
             {
-              ...(showBottomSeparator
-                ? { borderBottom: '1px solid #D6D6D6' }
-                : {}),
+              width: '100%',
+              boxSizing: 'border-box',
+              px: LAYER_MENU_ACCORDION_CONTENT_PX,
             },
             ...(Array.isArray(contentSx)
               ? contentSx
@@ -170,6 +173,14 @@ const LayerMenuAccordion = ({
           ]}
         >
           {children}
+          {showBottomSeparator && (
+            <Box
+              aria-hidden="true"
+              sx={{
+                borderBottom: '1px solid #D6D6D6',
+              }}
+            />
+          )}
         </Box>
       </Collapse>
     </Box>
