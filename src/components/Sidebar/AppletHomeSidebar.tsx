@@ -3,20 +3,23 @@
 import React from 'react'
 import { SxProps, Theme } from '@mui/material'
 
-import { HIILIKARTTA_HOME_FLOATING_GUTTER_PX } from '#/common/constants/map'
+import {
+  HIILIKARTTA_HOME_FLOATING_GUTTER_PX,
+  MAP_CONTROL_EDGE_GUTTER_PX,
+} from '#/common/constants/map'
 import { useUIStore } from '#/common/store'
 import { Slot } from '../context/slotsContext'
 import SidebarScaffold from './SidebarScaffold'
 import SidebarToggleButton from './SidebarToggleButton'
 
-export const AppletHomeSidebar = ({
-  sx,
-  children,
-}: {
+export type AppletHomeSidebarProps = {
   sx?: SxProps<Theme>
   children: React.ReactNode
-}) => {
+}
+
+export const AppletHomeSidebar = ({ sx, children }: AppletHomeSidebarProps) => {
   const floatingGutter = `${HIILIKARTTA_HOME_FLOATING_GUTTER_PX}px`
+  const toggleGutter = `${MAP_CONTROL_EDGE_GUTTER_PX}px`
   const isSidebarDisabled = useUIStore((state) => state.isSidebarDisabled)
   const isSidebarHeaderHidden = useUIStore(
     (state) => state.isSidebarHeaderHidden
@@ -34,8 +37,8 @@ export const AppletHomeSidebar = ({
     <>
       <SidebarToggleButton
         sx={{
-          right: { mobile: '1rem', desktop: floatingGutter },
-          bottom: { mobile: '1rem', desktop: floatingGutter },
+          right: { mobile: '1rem', desktop: toggleGutter },
+          bottom: { mobile: '1rem', desktop: toggleGutter },
         }}
       />
       <SidebarScaffold

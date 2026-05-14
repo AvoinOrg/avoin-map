@@ -7,6 +7,7 @@ import { useRef, useState } from 'react'
 import { useElementSize } from '#/common/hooks/ui/useResizeObserver'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import { getPathnameWithoutLocale } from '#/common/routing/routing'
+import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
 // import { useDebounce } from '#/common/hooks/useDebounce'
 // import {
 //   MAP_SEARCH_BAR_HORIZONTAL_MODE_WIDTH,
@@ -70,8 +71,12 @@ export const MapActionsWrapper = () => {
   // }, [minMapWidth, debouncedHorizontalWidth])
 
   const isSearchOpen = activeMapMenu === 'search'
-  const pathnameWithoutLocale = getPathnameWithoutLocale(pathname, locale ?? null)
-  const hideForMainSidebarMobile = pathnameWithoutLocale === '/' && isMobile && isSidebarOpen
+  const pathnameWithoutLocale = getPathnameWithoutLocale(
+    pathname,
+    locale ?? null
+  )
+  const hideForMainSidebarMobile =
+    pathnameWithoutLocale === '/' && isMobile && isSidebarOpen
 
   if (hideForMainSidebarMobile) {
     return null
@@ -83,8 +88,8 @@ export const MapActionsWrapper = () => {
       className="map-actions-wrapper"
       sx={(theme) => ({
         position: 'absolute',
-        top: theme.spacing(2),
-        right: theme.spacing(2),
+        top: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
+        right: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
         display: 'flex',
         flexDirection: 'column',
         gap: theme.spacing(1),

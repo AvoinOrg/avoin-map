@@ -6,12 +6,15 @@ import { Box, Button } from '@mui/material'
 import { useParams, usePathname } from 'next/navigation'
 
 import {
-  HIILIKARTTA_HOME_FLOATING_GUTTER_PX,
   MAIN_SIDEBAR_BOTTOM_CONTROLS_SLOT,
   MAIN_SIDEBAR_TOP_CONTROLS_SLOT,
+  MAP_CONTROL_EDGE_GUTTER_PX,
 } from '#/common/constants/map'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
-import { compiledApplets, getPathnameWithoutLocale } from '#/common/routing/routing'
+import {
+  compiledApplets,
+  getPathnameWithoutLocale,
+} from '#/common/routing/routing'
 import { useMapStore, useUIStore } from '#/common/store'
 import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
 import { IntoSlot } from '#/components/context/slotsContext'
@@ -20,7 +23,6 @@ import MapBottomLeftFloatingControlsSlot from './MapBottomLeftFloatingControlsSl
 
 const INITIAL_PANEL_MAX_WIDTH_PX = 480
 const MIN_INLINE_PANEL_WIDTH_PX = 120
-const CONTROL_EDGE_GUTTER_PX = 16
 const PANEL_GAP_PX = 8
 
 type MainSidebarPlacement =
@@ -39,13 +41,13 @@ const MapBottomControls = () => {
   const isMobile = useIsMobile('desktop')
   const pathname = usePathname()
   const { locale } = useParams()
-  const pathnameWithoutLocale = getPathnameWithoutLocale(pathname, locale ?? null)
+  const pathnameWithoutLocale = getPathnameWithoutLocale(
+    pathname,
+    locale ?? null
+  )
   const isStandaloneHiilikartta =
     compiledApplets.length === 1 && compiledApplets[0] === 'hiilikartta'
   const isMainPage = pathnameWithoutLocale === '/' && !isStandaloneHiilikartta
-  const isHiilikarttaHomePage =
-    pathnameWithoutLocale === '/hiilikartta' ||
-    (isStandaloneHiilikartta && pathnameWithoutLocale === '/')
   const useMainSidebarBottomSlot = isMainPage && isSidebarOpen && !isMobile
   const useMainSidebarTopSlot = isMainPage && isSidebarOpen && isMobile
   const useMobileFixedInfoOnly = isMainPage && !isSidebarOpen && isMobile
@@ -55,11 +57,11 @@ const MapBottomControls = () => {
     INITIAL_PANEL_MAX_WIDTH_PX
   )
   const [panelLeftOffset, setPanelLeftOffset] = useState<number>(84)
-  const [overlayPanelLeftOffset, setOverlayPanelLeftOffset] = useState<number>(0)
+  const [overlayPanelLeftOffset, setOverlayPanelLeftOffset] =
+    useState<number>(0)
   const [panelLayout, setPanelLayout] = useState<PanelLayout>('inline-right')
-  const [slotPlacement, setSlotPlacement] = useState<MainSidebarPlacement | null>(
-    null
-  )
+  const [slotPlacement, setSlotPlacement] =
+    useState<MainSidebarPlacement | null>(null)
   const controlsRef = useRef<HTMLDivElement | null>(null)
   const buttonRowRef = useRef<HTMLDivElement | null>(null)
 
@@ -71,12 +73,8 @@ const MapBottomControls = () => {
     [mapAttributionHtml]
   )
 
-  const controlEdgeGutterPx =
-    !isMobile && isHiilikarttaHomePage
-      ? HIILIKARTTA_HOME_FLOATING_GUTTER_PX
-      : CONTROL_EDGE_GUTTER_PX
-  const spacingLeftPx = controlEdgeGutterPx
-  const spacingBottomPx = controlEdgeGutterPx
+  const spacingLeftPx = MAP_CONTROL_EDGE_GUTTER_PX
+  const spacingBottomPx = MAP_CONTROL_EDGE_GUTTER_PX
 
   const leftOffsetPx = isMobile
     ? spacingLeftPx
@@ -114,22 +112,24 @@ const MapBottomControls = () => {
       ) as HTMLElement | null
 
       nextSlotPlacement =
-        (wrapperEl?.dataset
-          .mainSidebarControlsSlotWrapper as MainSidebarPlacement | undefined) ??
-        null
+        (wrapperEl?.dataset.mainSidebarControlsSlotWrapper as
+          | MainSidebarPlacement
+          | undefined) ?? null
 
       if (frameEl) {
         const frameRect = frameEl.getBoundingClientRect()
         const inlinePanelStartX = controlsRect.left + nextPanelLeftOffset
         const inlineAvailableWidth = Math.floor(
-          frameRect.right - inlinePanelStartX - CONTROL_EDGE_GUTTER_PX
+          frameRect.right - inlinePanelStartX - MAP_CONTROL_EDGE_GUTTER_PX
         )
-        const overlayStartX = frameRect.left + CONTROL_EDGE_GUTTER_PX
+        const overlayStartX = frameRect.left + MAP_CONTROL_EDGE_GUTTER_PX
         const overlayAvailableWidth = Math.floor(
-          frameRect.right - overlayStartX - CONTROL_EDGE_GUTTER_PX
+          frameRect.right - overlayStartX - MAP_CONTROL_EDGE_GUTTER_PX
         )
 
-        nextOverlayPanelLeftOffset = Math.floor(overlayStartX - controlsRect.left)
+        nextOverlayPanelLeftOffset = Math.floor(
+          overlayStartX - controlsRect.left
+        )
         nextPanelLayout =
           nextSlotPlacement === 'overlay-sidebar' ||
           inlineAvailableWidth < MIN_INLINE_PANEL_WIDTH_PX
@@ -162,12 +162,18 @@ const MapBottomControls = () => {
       }
     }
 
-    setSlotPlacement((prev) => (prev === nextSlotPlacement ? prev : nextSlotPlacement))
+    setSlotPlacement((prev) =>
+      prev === nextSlotPlacement ? prev : nextSlotPlacement
+    )
     setOverlayPanelLeftOffset((prev) =>
       prev === nextOverlayPanelLeftOffset ? prev : nextOverlayPanelLeftOffset
     )
-    setPanelLayout((prev) => (prev === nextPanelLayout ? prev : nextPanelLayout))
-    setPanelMaxWidth((prev) => (prev === nextPanelMaxWidth ? prev : nextPanelMaxWidth))
+    setPanelLayout((prev) =>
+      prev === nextPanelLayout ? prev : nextPanelLayout
+    )
+    setPanelMaxWidth((prev) =>
+      prev === nextPanelMaxWidth ? prev : nextPanelMaxWidth
+    )
   }, [spacingLeftPx, useMainSidebarBottomSlot])
 
   useEffect(() => {
@@ -291,7 +297,8 @@ const MapBottomControls = () => {
               panelLayout === 'overlay-sidebar'
                 ? `${overlayPanelLeftOffset}px`
                 : `${panelLeftOffset}px`,
-            bottom: panelLayout === 'overlay-sidebar' ? 'calc(100% + 0.5rem)' : 0,
+            bottom:
+              panelLayout === 'overlay-sidebar' ? 'calc(100% + 0.5rem)' : 0,
             pointerEvents: 'auto',
             width: 'max-content',
             maxWidth: `${panelMaxWidth}px`,
