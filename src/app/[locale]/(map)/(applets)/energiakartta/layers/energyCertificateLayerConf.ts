@@ -1,11 +1,6 @@
 import type { ExpressionSpecification } from 'maplibre-gl'
 
-import { ExtendedStyleSpecification, LayerConf } from '#/common/types/map'
-import { ENERGYMAP_GEOSERVER_URL } from './geoServer'
-import {
-  ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
-  ENERGYMAP_BUILDING_POLYGONS_WORKSPACE,
-} from './buildingPolygonsLayerConf'
+import type { ExtendedLayerSpecification } from '#/common/types/map'
 
 export const ENERGYMAP_ENERGY_CERTIFICATE_LAYER_GROUP_ID =
   'energymap_energy_certificates'
@@ -15,6 +10,8 @@ export const ENERGYMAP_ENERGY_CERTIFICATE_LAYER_IDS = [
   ENERGYMAP_ENERGY_CERTIFICATE_FILL_LAYER_ID,
   ENERGYMAP_ENERGY_CERTIFICATE_OUTLINE_LAYER_ID,
 ] as const
+export const ENERGYMAP_ENERGY_CERTIFICATE_FILL_OPACITY = 0.62
+export const ENERGYMAP_ENERGY_CERTIFICATE_OUTLINE_OPACITY = 0.35
 
 export const ENERGY_CERTIFICATE_CLASS_PROPERTY = 'energy_certificate_class'
 export const ENERGY_CERTIFICATE_INACTIVE_COLOR = '#BFBFBF'
@@ -73,56 +70,45 @@ export const getEnergyCertificateFillColorExpression = (
   return expression as unknown as ExpressionSpecification
 }
 
-const getStyle = async (): Promise<ExtendedStyleSpecification> => {
+export const createEnergymapEnergyCertificateLayers = ({
+  sourceId,
+  sourceLayer,
+}: {
+  sourceId: string
+  sourceLayer: string
+}): ExtendedLayerSpecification[] => {
   const fillColorExpression = getEnergyCertificateFillColorExpression(
     ENERGY_CERTIFICATE_CLASS_CODES
   )
 
-  return {
-    version: 8,
-    name: ENERGYMAP_ENERGY_CERTIFICATE_LAYER_GROUP_ID,
-    sources: {
-      [ENERGYMAP_ENERGY_CERTIFICATE_LAYER_GROUP_ID]: {
-        type: 'vector',
-        scheme: 'tms',
-        tiles: [
-          `${ENERGYMAP_GEOSERVER_URL}/gwc/service/tms/1.0.0/${ENERGYMAP_BUILDING_POLYGONS_WORKSPACE}:${ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER}@EPSG:900913@pbf/{z}/{x}/{y}.pbf`,
-        ],
-        minzoom: 5,
-        maxzoom: 14,
-        bounds: [19, 59, 32, 71],
+  return [
+    {
+      id: ENERGYMAP_ENERGY_CERTIFICATE_FILL_LAYER_ID,
+      source: sourceId,
+      'source-layer': sourceLayer,
+      type: 'fill',
+      layout: {
+        visibility: 'none',
+      },
+      paint: {
+        'fill-color': fillColorExpression,
+        'fill-opacity': 0,
       },
     },
-    layers: [
-      {
-        id: ENERGYMAP_ENERGY_CERTIFICATE_FILL_LAYER_ID,
-        source: ENERGYMAP_ENERGY_CERTIFICATE_LAYER_GROUP_ID,
-        'source-layer': ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
-        type: 'fill',
-        paint: {
-          'fill-color': fillColorExpression,
-          'fill-opacity': 0.62,
-        },
+    {
+      id: ENERGYMAP_ENERGY_CERTIFICATE_OUTLINE_LAYER_ID,
+      source: sourceId,
+      'source-layer': sourceLayer,
+      type: 'line',
+      minzoom: 11,
+      layout: {
+        visibility: 'none',
       },
-      {
-        id: ENERGYMAP_ENERGY_CERTIFICATE_OUTLINE_LAYER_ID,
-        source: ENERGYMAP_ENERGY_CERTIFICATE_LAYER_GROUP_ID,
-        'source-layer': ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
-        type: 'line',
-        minzoom: 11,
-        paint: {
-          'line-color': fillColorExpression,
-          'line-opacity': 0.35,
-          'line-width': 0.75,
-        },
+      paint: {
+        'line-color': fillColorExpression,
+        'line-opacity': 0,
+        'line-width': 0.75,
       },
-    ],
-  }
+    },
+  ]
 }
-
-const layerConf: LayerConf = {
-  id: ENERGYMAP_ENERGY_CERTIFICATE_LAYER_GROUP_ID,
-  style: getStyle,
-}
-
-export default layerConf

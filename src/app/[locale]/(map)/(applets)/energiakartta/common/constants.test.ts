@@ -1,5 +1,6 @@
 import { LayerOrderLevel } from '#/common/types/map'
 import {
+  flattenLayerBackedListedLayerItems,
   getListedLayerMenuOrderLevel,
   isLayerBackedListedLayerItem,
   isListedLayerAccordionItem,
@@ -11,8 +12,6 @@ import {
 import {
   ENERGYMAP_MAIN_LAYER_GROUP_IDS,
   listedBackgroundBuildingFiltersAccordion,
-  listedEnergyCertificateLayerGroup,
-  listedHeatingLayerGroup,
   listedLayerGroups,
 } from './constants'
 import { ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID } from '../layers/buildingPolygonsLayerConf'
@@ -23,21 +22,6 @@ const getListedLayerGroupIndex = (layerGroupId: string) =>
   listedLayerGroups.findIndex((layerGroup) => layerGroup.id === layerGroupId)
 
 describe('Energiakartta listed layer groups', () => {
-  it('keeps energy certificates and heating in the normal data layer order level', () => {
-    expect(
-      listedEnergyCertificateLayerGroup.addOptions.layerOrderOptions
-        ?.layerOrderLevel
-    ).toBe(LayerOrderLevel.LAYER)
-    expect(
-      listedHeatingLayerGroup.addOptions.layerOrderOptions?.layerOrderLevel
-    ).toBe(LayerOrderLevel.LAYER)
-  })
-
-  it('keeps energy certificates and heating hidden until their rows are enabled', () => {
-    expect(listedEnergyCertificateLayerGroup.addOptions.isHidden).toBe(true)
-    expect(listedHeatingLayerGroup.addOptions.isHidden).toBe(true)
-  })
-
   it('shows the building filter accordion in background overlays while drawing as a data layer', () => {
     expect(
       isListedLayerAccordionItem(listedBackgroundBuildingFiltersAccordion)
@@ -83,22 +67,16 @@ describe('Energiakartta listed layer groups', () => {
     )
   })
 
-  it('registers energy certificates and heating after cadastral background overlays', () => {
-    const energyCertificateIndex = getListedLayerGroupIndex(
-      listedEnergyCertificateLayerGroup.id
-    )
-    const heatingIndex = getListedLayerGroupIndex(listedHeatingLayerGroup.id)
-    const cadastralBoundariesIndex = getListedLayerGroupIndex(
-      listedMmlKiinteistojaotusLayerGroup.id
-    )
-    const propertyIdentifiersIndex = getListedLayerGroupIndex(
-      listedMmlKiinteistotunnuksetLayerGroup.id
-    )
+  it('registers only the shared building item for Energiakartta building vector tiles', () => {
+    const layerBackedIds = flattenLayerBackedListedLayerItems(
+      listedLayerGroups
+    ).map((item) => item.id)
 
-    expect(energyCertificateIndex).toBeGreaterThan(cadastralBoundariesIndex)
-    expect(energyCertificateIndex).toBeGreaterThan(propertyIdentifiersIndex)
-    expect(heatingIndex).toBeGreaterThan(cadastralBoundariesIndex)
-    expect(heatingIndex).toBeGreaterThan(propertyIdentifiersIndex)
+    expect(layerBackedIds).toContain(ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID)
+    expect(layerBackedIds).not.toContain(
+      ENERGYMAP_ENERGY_CERTIFICATE_LAYER_GROUP_ID
+    )
+    expect(layerBackedIds).not.toContain(ENERGYMAP_HEATING_LAYER_GROUP_ID)
   })
 
   it('keeps cadastral rows below and outside the building filter accordion', () => {

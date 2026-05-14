@@ -1,15 +1,41 @@
+import type { ExtendedStyleSpecification } from '#/common/types/map'
 import {
+  ENERGYMAP_ENERGY_CERTIFICATE_FILL_LAYER_ID,
+  ENERGYMAP_ENERGY_CERTIFICATE_LAYER_IDS,
+  ENERGYMAP_ENERGY_CERTIFICATE_OUTLINE_LAYER_ID,
+} from './energyCertificateLayerConf'
+import {
+  ENERGYMAP_HEATING_FILL_LAYER_ID,
+  ENERGYMAP_HEATING_LAYER_IDS,
+  ENERGYMAP_HEATING_OUTLINE_LAYER_ID,
+} from './heatingLayerConf'
+import energymapBuildingPolygonsLayerConf, {
   ENERGYMAP_BUILDING_COMPLETION_DATE_PROPERTY,
+  ENERGYMAP_BUILDING_POLYGONS_FILL_LAYER_ID,
+  ENERGYMAP_BUILDING_POLYGONS_LAYER_IDS,
+  ENERGYMAP_BUILDING_POLYGONS_OUTLINE_LAYER_ID,
+  ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
+  ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
   ENERGYMAP_BUILDING_KEY_PROPERTY,
   ENERGYMAP_BUILDING_MATCH_ALL_FILTER,
   ENERGYMAP_BUILDING_TYPE_CODES,
   ENERGYMAP_BUILDING_TYPE_FILTER_ALL,
   ENERGYMAP_BUILDING_TYPE_PROPERTY,
   ENERGYMAP_DEFAULT_SELECTED_CONSTRUCTION_DECADE,
+  ENERGYMAP_SHARED_BUILDING_LAYER_IDS,
   combineMapFilters,
   getConstructionDecadeOptions,
   getEnergymapBuildingFilter,
 } from './buildingPolygonsLayerConf'
+
+const getSharedBuildingStyle =
+  async (): Promise<ExtendedStyleSpecification> => {
+    expect(typeof energymapBuildingPolygonsLayerConf.style).toBe('function')
+
+    return await (
+      energymapBuildingPolygonsLayerConf.style as () => Promise<ExtendedStyleSpecification>
+    )()
+  }
 
 describe('Energiakartta building polygon filters', () => {
   it('uses documented building field names and RYTJ main purpose codes', () => {
@@ -154,5 +180,83 @@ describe('Energiakartta building polygon filters', () => {
       ['==', ['get', ENERGYMAP_BUILDING_TYPE_PROPERTY], '05'],
       ['==', ['get', 'heating_energy_source'], '01'],
     ])
+  })
+})
+
+describe('Energiakartta shared building polygon layer config', () => {
+  it('registers one vector source for all base and thematic building layers', async () => {
+    const style = await getSharedBuildingStyle()
+    const sourceIds = Object.keys(style.sources)
+    const sharedSource = style.sources[
+      ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID
+    ] as { tiles?: string[] }
+
+    expect(sourceIds).toEqual([ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID])
+    expect(style.sources[ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID]).toMatchObject({
+      type: 'vector',
+      scheme: 'tms',
+      minzoom: 5,
+      maxzoom: 14,
+      bounds: [19, 59, 32, 71],
+    })
+    expect(sharedSource.tiles?.[0]).toContain(
+      'sandbox_energiakartta:energymap_building_polygons@EPSG:900913@pbf'
+    )
+  })
+
+  it('puts base, energy certificate, and heating layers on the shared source-layer', async () => {
+    const style = await getSharedBuildingStyle()
+    const layerIds = style.layers.map((layer) => layer.id)
+
+    expect(layerIds).toEqual(
+      expect.arrayContaining(ENERGYMAP_BUILDING_POLYGONS_LAYER_IDS)
+    )
+    expect(layerIds).toEqual(
+      expect.arrayContaining(ENERGYMAP_ENERGY_CERTIFICATE_LAYER_IDS)
+    )
+    expect(layerIds).toEqual(expect.arrayContaining(ENERGYMAP_HEATING_LAYER_IDS))
+    expect(ENERGYMAP_SHARED_BUILDING_LAYER_IDS).toEqual([
+      ...ENERGYMAP_BUILDING_POLYGONS_LAYER_IDS,
+      ...ENERGYMAP_ENERGY_CERTIFICATE_LAYER_IDS,
+      ...ENERGYMAP_HEATING_LAYER_IDS,
+    ])
+
+    for (const layerId of ENERGYMAP_SHARED_BUILDING_LAYER_IDS) {
+      const layer = style.layers.find((candidate) => candidate.id === layerId)
+
+      expect(layer).toMatchObject({
+        source: ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
+        'source-layer': ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
+      })
+    }
+  })
+
+  it('keeps the base building layer filtered on match-all and thematic layers initially transparent', async () => {
+    const style = await getSharedBuildingStyle()
+    const baseFill = style.layers.find(
+      (layer) => layer.id === ENERGYMAP_BUILDING_POLYGONS_FILL_LAYER_ID
+    ) as any
+    const baseOutline = style.layers.find(
+      (layer) => layer.id === ENERGYMAP_BUILDING_POLYGONS_OUTLINE_LAYER_ID
+    ) as any
+    const energyFill = style.layers.find(
+      (layer) => layer.id === ENERGYMAP_ENERGY_CERTIFICATE_FILL_LAYER_ID
+    ) as any
+    const energyOutline = style.layers.find(
+      (layer) => layer.id === ENERGYMAP_ENERGY_CERTIFICATE_OUTLINE_LAYER_ID
+    ) as any
+    const heatingFill = style.layers.find(
+      (layer) => layer.id === ENERGYMAP_HEATING_FILL_LAYER_ID
+    ) as any
+    const heatingOutline = style.layers.find(
+      (layer) => layer.id === ENERGYMAP_HEATING_OUTLINE_LAYER_ID
+    ) as any
+
+    expect(baseFill?.filter).toEqual(ENERGYMAP_BUILDING_MATCH_ALL_FILTER)
+    expect(baseOutline?.filter).toEqual(ENERGYMAP_BUILDING_MATCH_ALL_FILTER)
+    expect(energyFill?.paint?.['fill-opacity']).toBe(0)
+    expect(energyOutline?.paint?.['line-opacity']).toBe(0)
+    expect(heatingFill?.paint?.['fill-opacity']).toBe(0)
+    expect(heatingOutline?.paint?.['line-opacity']).toBe(0)
   })
 })

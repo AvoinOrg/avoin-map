@@ -1,7 +1,15 @@
+import * as heatingLayerConfModule from './heatingLayerConf'
 import {
+  ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
+  ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
+} from './buildingPolygonsLayerConf'
+import {
+  ENERGYMAP_HEATING_FILL_LAYER_ID,
+  ENERGYMAP_HEATING_FILL_OPACITY,
   HEATING_ENERGY_SOURCE_CODES,
   HEATING_ENERGY_SOURCE_EXPLICIT_CODES,
   HEATING_ENERGY_SOURCE_PROPERTY,
+  createEnergymapHeatingLayers,
   getHeatingEnergySourceFilter,
 } from './heatingLayerConf'
 
@@ -79,5 +87,28 @@ describe('getHeatingEnergySourceFilter', () => {
   it('keeps geothermal heat pump code 1101 out of the explicit geothermal bucket', () => {
     expect(HEATING_ENERGY_SOURCE_CODES.geothermal).toBe('09')
     expect(HEATING_ENERGY_SOURCE_EXPLICIT_CODES).not.toContain('1101')
+  })
+
+  it('exposes shared-layer helpers instead of an independent layer config', () => {
+    expect('default' in heatingLayerConfModule).toBe(false)
+
+    const layers = createEnergymapHeatingLayers({
+      sourceId: ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
+      sourceLayer: ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
+    })
+    const fillLayer = layers.find(
+      (layer) => layer.id === ENERGYMAP_HEATING_FILL_LAYER_ID
+    ) as any
+
+    expect(layers).toHaveLength(2)
+    expect(
+      layers.every(
+        (layer) =>
+          layer.source === ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID &&
+          layer['source-layer'] === ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER
+      )
+    ).toBe(true)
+    expect(fillLayer?.paint?.['fill-opacity']).toBe(0)
+    expect(ENERGYMAP_HEATING_FILL_OPACITY).toBe(0.6)
   })
 })

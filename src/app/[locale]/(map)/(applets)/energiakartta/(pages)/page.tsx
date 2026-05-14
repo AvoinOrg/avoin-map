@@ -8,7 +8,6 @@ import { MAP_BOTTOM_LEFT_FLOATING_CONTROLS_SLOT } from '#/common/constants/map'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import { useMapStore, useUIStore } from '#/common/store'
-import type { LayerGroupAddOptionsWithOrderLevel } from '#/common/types/map'
 import {
   LayerToggleRow,
   LayerToggleRowAccordion,
@@ -22,28 +21,29 @@ import EnergyClassesAccordionContent from '../components/EnergyClassesAccordionC
 import {
   ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID,
   ENERGYMAP_BUILDING_POLYGONS_LAYER_IDS,
+  ENERGYMAP_SHARED_BUILDING_LAYER_IDS,
   combineMapFilters,
   getEnergymapBuildingFilter,
 } from '../layers/buildingPolygonsLayerConf'
 import {
+  ENERGYMAP_ENERGY_CERTIFICATE_FILL_OPACITY,
   ENERGYMAP_ENERGY_CERTIFICATE_FILL_LAYER_ID,
-  ENERGYMAP_ENERGY_CERTIFICATE_LAYER_GROUP_ID,
   ENERGYMAP_ENERGY_CERTIFICATE_LAYER_IDS,
   ENERGYMAP_ENERGY_CERTIFICATE_OUTLINE_LAYER_ID,
+  ENERGYMAP_ENERGY_CERTIFICATE_OUTLINE_OPACITY,
   getEnergyCertificateFillColorExpression,
 } from '../layers/energyCertificateLayerConf'
 import {
-  ENERGYMAP_HEATING_LAYER_GROUP_ID,
+  ENERGYMAP_HEATING_FILL_OPACITY,
+  ENERGYMAP_HEATING_FILL_LAYER_ID,
   ENERGYMAP_HEATING_LAYER_IDS,
+  ENERGYMAP_HEATING_OUTLINE_LAYER_ID,
+  ENERGYMAP_HEATING_OUTLINE_OPACITY,
   HEATING_ENERGY_SOURCE_COLORS,
   HeatingEnergySourceFilterKey,
   getHeatingEnergySourceFilter,
 } from '../layers/heatingLayerConf'
-import {
-  ENERGYMAP_MAIN_LAYER_GROUP_IDS,
-  listedEnergyCertificateLayerGroup,
-  listedHeatingLayerGroup,
-} from '../common/constants'
+import { listedBackgroundBuildingFiltersAccordion } from '../common/constants'
 import { useAppletStore } from '../state/appletStore'
 
 const SIDEBAR_SIDE_PADDING = {
@@ -126,6 +126,13 @@ const LOWER_DISABLED_LAYER_ROWS = [
     ariaKeyName: 'sidebar.front_page.aria.other_energy_sources_upcoming',
   },
 ] as const
+
+type EnergymapMainThematicMode = 'energyCertificates' | 'heating'
+
+const ENERGY_CERTIFICATE_THEMATIC_MODE: EnergymapMainThematicMode =
+  'energyCertificates'
+const HEATING_THEMATIC_MODE: EnergymapMainThematicMode = 'heating'
+const INACTIVE_THEMATIC_OPACITY = 0
 
 const HomeSidebarHeader = () => {
   return (
@@ -325,27 +332,13 @@ const HeatingAccordionContent = ({
 const Page = () => {
   const { t } = useTranslate('energiakartta')
   const setFilter = useMapStore((state) => state.setFilter)
+  const setLayoutProperty = useMapStore((state) => state.setLayoutProperty)
   const setPaintProperty = useMapStore((state) => state.setPaintProperty)
+  const enableLayerGroup = useMapStore((state) => state.enableLayerGroup)
   const isMobile = useIsMobile('desktop')
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
-  const isEnergyCertificateLayerGroupRegistered = useMapStore((state) =>
-    ENERGYMAP_ENERGY_CERTIFICATE_LAYER_IDS.every((layerId) =>
-      Boolean(
-        state._layerGroups[ENERGYMAP_ENERGY_CERTIFICATE_LAYER_GROUP_ID]?.layers[
-          layerId
-        ]
-      )
-    )
-  )
-  const isHeatingLayerGroupRegistered = useMapStore((state) =>
-    ENERGYMAP_HEATING_LAYER_IDS.every((layerId) =>
-      Boolean(
-        state._layerGroups[ENERGYMAP_HEATING_LAYER_GROUP_ID]?.layers[layerId]
-      )
-    )
-  )
-  const isBuildingLayerGroupRegistered = useMapStore((state) =>
-    ENERGYMAP_BUILDING_POLYGONS_LAYER_IDS.every((layerId) =>
+  const isSharedBuildingLayerGroupRegistered = useMapStore((state) =>
+    ENERGYMAP_SHARED_BUILDING_LAYER_IDS.every((layerId) =>
       Boolean(
         state._layerGroups[ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID]?.layers[
           layerId
@@ -370,6 +363,8 @@ const Page = () => {
   const [heatingSwitchState, setHeatingSwitchState] = React.useState(
     INITIAL_HEATING_SWITCH_STATE
   )
+  const [activeThematicMode, setActiveThematicMode] =
+    React.useState<EnergymapMainThematicMode | null>(null)
   const energyCertificateFillColorExpression = React.useMemo(
     () =>
       getEnergyCertificateFillColorExpression(activeEnergyCertificateClasses),
@@ -405,12 +400,15 @@ const Page = () => {
     () => combineMapFilters([buildingFilter, heatingFilter]),
     [buildingFilter, heatingFilter]
   )
-  const isHeatingLayerVisible = visibleLayerGroupIds.includes(
-    listedHeatingLayerGroup.id
+  const isSharedBuildingLayerGroupVisible = visibleLayerGroupIds.includes(
+    ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID
   )
-  const isEnergyCertificateLayerVisible = visibleLayerGroupIds.includes(
-    listedEnergyCertificateLayerGroup.id
-  )
+  const isHeatingLayerVisible =
+    isSharedBuildingLayerGroupVisible &&
+    activeThematicMode === HEATING_THEMATIC_MODE
+  const isEnergyCertificateLayerVisible =
+    isSharedBuildingLayerGroupVisible &&
+    activeThematicMode === ENERGY_CERTIFICATE_THEMATIC_MODE
   const shouldShowMobileEnergyCertificateControls =
     isMobile && !isSidebarOpen && isEnergyCertificateLayerVisible
   const upcomingTooltip = t('sidebar.front_page.upcoming_tooltip')
@@ -419,40 +417,26 @@ const Page = () => {
   )
   const toggleHeatingAria = t('sidebar.front_page.aria.toggle_heating')
   const footerLabel = t('sidebar.front_page.footer.edit_building_details')
-  const toggleEnergymapMainLayerGroup = React.useCallback(
-    async (
-      layerGroupId: string,
-      addOptions: LayerGroupAddOptionsWithOrderLevel
-    ) => {
-      const {
-        _layerGroups,
-        disableLayerGroup,
-        enableLayerGroup,
-      } = useMapStore.getState()
+  const toggleThematicMode = React.useCallback(
+    async (mode: EnergymapMainThematicMode) => {
+      const isModeCurrentlyVisible =
+        isSharedBuildingLayerGroupVisible && activeThematicMode === mode
+      const nextMode = isModeCurrentlyVisible ? null : mode
 
-      const targetLayerGroup = _layerGroups[layerGroupId]
-
-      if (targetLayerGroup && !targetLayerGroup.isHidden) {
-        await disableLayerGroup(layerGroupId)
-        return
+      if (nextMode && !isSharedBuildingLayerGroupVisible) {
+        await enableLayerGroup(
+          ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID,
+          listedBackgroundBuildingFiltersAccordion.addOptions
+        )
       }
 
-      for (const mainLayerGroupId of ENERGYMAP_MAIN_LAYER_GROUP_IDS) {
-        if (mainLayerGroupId === layerGroupId) {
-          continue
-        }
-
-        const currentLayerGroup =
-          useMapStore.getState()._layerGroups[mainLayerGroupId]
-
-        if (currentLayerGroup && !currentLayerGroup.isHidden) {
-          await disableLayerGroup(mainLayerGroupId)
-        }
-      }
-
-      await enableLayerGroup(layerGroupId, addOptions)
+      setActiveThematicMode(nextMode)
     },
-    []
+    [
+      activeThematicMode,
+      enableLayerGroup,
+      isSharedBuildingLayerGroupVisible,
+    ]
   )
   const handleHeatingSwitchChange =
     (id: HeatingSwitchKey): React.ChangeEventHandler<HTMLInputElement> =>
@@ -464,7 +448,7 @@ const Page = () => {
     }
 
   React.useEffect(() => {
-    if (!isBuildingLayerGroupRegistered) {
+    if (!isSharedBuildingLayerGroupRegistered) {
       return
     }
 
@@ -473,10 +457,10 @@ const Page = () => {
         setFilter(layerId, buildingFilter)
       )
     )
-  }, [buildingFilter, isBuildingLayerGroupRegistered, setFilter])
+  }, [buildingFilter, isSharedBuildingLayerGroupRegistered, setFilter])
 
   React.useEffect(() => {
-    if (!isEnergyCertificateLayerGroupRegistered) {
+    if (!isSharedBuildingLayerGroupRegistered) {
       return
     }
 
@@ -487,12 +471,12 @@ const Page = () => {
     )
   }, [
     buildingFilter,
-    isEnergyCertificateLayerGroupRegistered,
+    isSharedBuildingLayerGroupRegistered,
     setFilter,
   ])
 
   React.useEffect(() => {
-    if (!isEnergyCertificateLayerGroupRegistered) {
+    if (!isSharedBuildingLayerGroupRegistered) {
       return
     }
 
@@ -510,12 +494,12 @@ const Page = () => {
     ])
   }, [
     energyCertificateFillColorExpression,
-    isEnergyCertificateLayerGroupRegistered,
+    isSharedBuildingLayerGroupRegistered,
     setPaintProperty,
   ])
 
   React.useEffect(() => {
-    if (!isHeatingLayerGroupRegistered) {
+    if (!isSharedBuildingLayerGroupRegistered) {
       return
     }
 
@@ -524,7 +508,71 @@ const Page = () => {
         setFilter(layerId, combinedHeatingFilter)
       )
     )
-  }, [combinedHeatingFilter, isHeatingLayerGroupRegistered, setFilter])
+  }, [combinedHeatingFilter, isSharedBuildingLayerGroupRegistered, setFilter])
+
+  React.useEffect(() => {
+    if (!isSharedBuildingLayerGroupRegistered) {
+      return
+    }
+
+    const energyCertificatesVisible =
+      isSharedBuildingLayerGroupVisible &&
+      activeThematicMode === ENERGY_CERTIFICATE_THEMATIC_MODE
+    const heatingVisible =
+      isSharedBuildingLayerGroupVisible &&
+      activeThematicMode === HEATING_THEMATIC_MODE
+
+    void Promise.all([
+      ...ENERGYMAP_ENERGY_CERTIFICATE_LAYER_IDS.map((layerId) =>
+        setLayoutProperty(
+          layerId,
+          'visibility',
+          energyCertificatesVisible ? 'visible' : 'none'
+        )
+      ),
+      setPaintProperty(
+        ENERGYMAP_ENERGY_CERTIFICATE_FILL_LAYER_ID,
+        'fill-opacity',
+        energyCertificatesVisible
+          ? ENERGYMAP_ENERGY_CERTIFICATE_FILL_OPACITY
+          : INACTIVE_THEMATIC_OPACITY
+      ),
+      setPaintProperty(
+        ENERGYMAP_ENERGY_CERTIFICATE_OUTLINE_LAYER_ID,
+        'line-opacity',
+        energyCertificatesVisible
+          ? ENERGYMAP_ENERGY_CERTIFICATE_OUTLINE_OPACITY
+          : INACTIVE_THEMATIC_OPACITY
+      ),
+      ...ENERGYMAP_HEATING_LAYER_IDS.map((layerId) =>
+        setLayoutProperty(
+          layerId,
+          'visibility',
+          heatingVisible ? 'visible' : 'none'
+        )
+      ),
+      setPaintProperty(
+        ENERGYMAP_HEATING_FILL_LAYER_ID,
+        'fill-opacity',
+        heatingVisible
+          ? ENERGYMAP_HEATING_FILL_OPACITY
+          : INACTIVE_THEMATIC_OPACITY
+      ),
+      setPaintProperty(
+        ENERGYMAP_HEATING_OUTLINE_LAYER_ID,
+        'line-opacity',
+        heatingVisible
+          ? ENERGYMAP_HEATING_OUTLINE_OPACITY
+          : INACTIVE_THEMATIC_OPACITY
+      ),
+    ])
+  }, [
+    activeThematicMode,
+    isSharedBuildingLayerGroupRegistered,
+    isSharedBuildingLayerGroupVisible,
+    setLayoutProperty,
+    setPaintProperty,
+  ])
 
   return (
     <>
@@ -615,10 +663,7 @@ const Page = () => {
               expanded={isEnergyCertificateLayerVisible}
               ariaLabel={toggleEnergyClassesAria}
               onToggle={() => {
-                void toggleEnergymapMainLayerGroup(
-                  listedEnergyCertificateLayerGroup.id,
-                  listedEnergyCertificateLayerGroup.addOptions
-                )
+                void toggleThematicMode(ENERGY_CERTIFICATE_THEMATIC_MODE)
               }}
               labelSx={ROW_LABEL_SX}
             >
@@ -635,10 +680,7 @@ const Page = () => {
               expanded={isHeatingLayerVisible}
               ariaLabel={toggleHeatingAria}
               onToggle={() => {
-                void toggleEnergymapMainLayerGroup(
-                  listedHeatingLayerGroup.id,
-                  listedHeatingLayerGroup.addOptions
-                )
+                void toggleThematicMode(HEATING_THEMATIC_MODE)
               }}
               labelSx={ROW_LABEL_SX}
             >

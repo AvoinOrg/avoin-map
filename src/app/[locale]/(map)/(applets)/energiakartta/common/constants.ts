@@ -1,14 +1,10 @@
-import {
-  LayerOrderLevel,
-  ListedLayerGroup,
-  ListedLayerMenuItem,
-} from '#/common/types/map'
+import { LayerOrderLevel, ListedLayerMenuItem } from '#/common/types/map'
 import BackgroundBuildingFiltersAccordionContent from '#/app/[locale]/(map)/(applets)/energiakartta/components/BackgroundBuildingFiltersAccordionContent'
 import energymapBuildingPolygonsLayerConf from '#/app/[locale]/(map)/(applets)/energiakartta/layers/buildingPolygonsLayerConf'
-import energymapEnergyCertificateLayerConf, {
+import {
   ENERGYMAP_ENERGY_CERTIFICATE_LAYER_GROUP_ID,
 } from '#/app/[locale]/(map)/(applets)/energiakartta/layers/energyCertificateLayerConf'
-import energymapHeatingLayerConf, {
+import {
   ENERGYMAP_HEATING_LAYER_GROUP_ID,
 } from '#/app/[locale]/(map)/(applets)/energiakartta/layers/heatingLayerConf'
 import {
@@ -20,32 +16,6 @@ import {
   listedMmlTaustakarttaLayerGroup,
   listedOsmBackgroundLayerGroup,
 } from '#/components/Map/layers/defaultListedLayerGroups'
-
-export const listedHeatingLayerGroup: ListedLayerGroup = {
-  id: energymapHeatingLayerConf.id,
-  addOptions: {
-    layerConf: energymapHeatingLayerConf,
-    layerOrderOptions: {
-      layerOrderLevel: LayerOrderLevel.LAYER,
-    },
-    isHidden: true,
-  },
-  translationNs: 'energiakartta',
-  nameTranslationKey: 'sidebar.front_page.layers.heating',
-}
-
-export const listedEnergyCertificateLayerGroup: ListedLayerGroup = {
-  id: energymapEnergyCertificateLayerConf.id,
-  addOptions: {
-    layerConf: energymapEnergyCertificateLayerConf,
-    layerOrderOptions: {
-      layerOrderLevel: LayerOrderLevel.LAYER,
-    },
-    isHidden: true,
-  },
-  translationNs: 'energiakartta',
-  nameTranslationKey: 'sidebar.front_page.layers.energy_classes',
-}
 
 export const ENERGYMAP_MAIN_LAYER_GROUP_IDS = [
   ENERGYMAP_ENERGY_CERTIFICATE_LAYER_GROUP_ID,
@@ -87,6 +57,4 @@ export const listedLayerGroups: ListedLayerMenuItem[] = [
   listedBackgroundBuildingFiltersAccordion,
   listedMmlKiinteistojaotusLayerGroup,
   listedMmlKiinteistotunnuksetLayerGroup,
-  listedEnergyCertificateLayerGroup,
-  listedHeatingLayerGroup,
 ]

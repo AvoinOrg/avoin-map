@@ -1,8 +1,16 @@
+import * as energyCertificateLayerConfModule from './energyCertificateLayerConf'
+import {
+  ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
+  ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
+} from './buildingPolygonsLayerConf'
 import {
   ENERGY_CERTIFICATE_CLASS_CODES,
   ENERGY_CERTIFICATE_CLASS_COLORS,
   ENERGY_CERTIFICATE_CLASS_PROPERTY,
   ENERGY_CERTIFICATE_INACTIVE_COLOR,
+  ENERGYMAP_ENERGY_CERTIFICATE_FILL_LAYER_ID,
+  ENERGYMAP_ENERGY_CERTIFICATE_FILL_OPACITY,
+  createEnergymapEnergyCertificateLayers,
   getEnergyCertificateFillColorExpression,
 } from './energyCertificateLayerConf'
 
@@ -73,5 +81,28 @@ describe('Energiakartta energy certificate layer config', () => {
     expect((expression as unknown[]).at(-1)).toBe(
       ENERGY_CERTIFICATE_INACTIVE_COLOR
     )
+  })
+
+  it('exposes shared-layer helpers instead of an independent layer config', () => {
+    expect('default' in energyCertificateLayerConfModule).toBe(false)
+
+    const layers = createEnergymapEnergyCertificateLayers({
+      sourceId: ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
+      sourceLayer: ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
+    })
+    const fillLayer = layers.find(
+      (layer) => layer.id === ENERGYMAP_ENERGY_CERTIFICATE_FILL_LAYER_ID
+    ) as any
+
+    expect(layers).toHaveLength(2)
+    expect(
+      layers.every(
+        (layer) =>
+          layer.source === ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID &&
+          layer['source-layer'] === ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER
+      )
+    ).toBe(true)
+    expect(fillLayer?.paint?.['fill-opacity']).toBe(0)
+    expect(ENERGYMAP_ENERGY_CERTIFICATE_FILL_OPACITY).toBe(0.62)
   })
 })

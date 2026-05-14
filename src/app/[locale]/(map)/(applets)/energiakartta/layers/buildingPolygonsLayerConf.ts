@@ -1,19 +1,41 @@
 import type { ExpressionSpecification, FilterSpecification } from 'maplibre-gl'
 
 import { ExtendedStyleSpecification, LayerConf } from '#/common/types/map'
-import { ENERGYMAP_GEOSERVER_URL } from './geoServer'
+import {
+  ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
+  ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
+  ENERGYMAP_BUILDING_POLYGONS_WORKSPACE,
+  createEnergymapBuildingPolygonsSource,
+  getEnergymapBuildingPolygonsTileUrl,
+} from './buildingSource'
+import {
+  ENERGYMAP_ENERGY_CERTIFICATE_LAYER_IDS,
+  createEnergymapEnergyCertificateLayers,
+} from './energyCertificateLayerConf'
+import {
+  ENERGYMAP_HEATING_LAYER_IDS,
+  createEnergymapHeatingLayers,
+} from './heatingLayerConf'
 
 export const ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID =
-  'energymap_building_polygons'
+  ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID
 export const ENERGYMAP_BUILDING_POLYGONS_FILL_LAYER_ID = `${ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID}-fill`
 export const ENERGYMAP_BUILDING_POLYGONS_OUTLINE_LAYER_ID = `${ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID}-outline`
 export const ENERGYMAP_BUILDING_POLYGONS_LAYER_IDS = [
   ENERGYMAP_BUILDING_POLYGONS_FILL_LAYER_ID,
   ENERGYMAP_BUILDING_POLYGONS_OUTLINE_LAYER_ID,
 ] as const
-export const ENERGYMAP_BUILDING_POLYGONS_WORKSPACE = 'sandbox_energiakartta'
-export const ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER =
-  'energymap_building_polygons'
+export const ENERGYMAP_SHARED_BUILDING_LAYER_IDS = [
+  ...ENERGYMAP_BUILDING_POLYGONS_LAYER_IDS,
+  ...ENERGYMAP_ENERGY_CERTIFICATE_LAYER_IDS,
+  ...ENERGYMAP_HEATING_LAYER_IDS,
+] as const
+export {
+  ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
+  ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
+  ENERGYMAP_BUILDING_POLYGONS_WORKSPACE,
+  getEnergymapBuildingPolygonsTileUrl,
+}
 
 export const ENERGYMAP_BUILDING_KEY_PROPERTY = 'building_key'
 export const ENERGYMAP_BUILDING_TYPE_PROPERTY = 'main_purpose'
@@ -172,23 +194,16 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
     version: 8,
     name: ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID,
     sources: {
-      [ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID]: {
-        type: 'vector',
-        scheme: 'tms',
-        tiles: [
-          `${ENERGYMAP_GEOSERVER_URL}/gwc/service/tms/1.0.0/${ENERGYMAP_BUILDING_POLYGONS_WORKSPACE}:${ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER}@EPSG:900913@pbf/{z}/{x}/{y}.pbf`,
-        ],
-        minzoom: 5,
-        maxzoom: 14,
-        bounds: [19, 59, 32, 71],
-      },
+      [ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID]:
+        createEnergymapBuildingPolygonsSource(),
     },
     layers: [
       {
         id: ENERGYMAP_BUILDING_POLYGONS_FILL_LAYER_ID,
-        source: ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID,
+        source: ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
         'source-layer': ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
         type: 'fill',
+        filter: ENERGYMAP_BUILDING_MATCH_ALL_FILTER,
         paint: {
           'fill-color': '#7DAD46',
           'fill-opacity': 0.45,
@@ -196,16 +211,25 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
       },
       {
         id: ENERGYMAP_BUILDING_POLYGONS_OUTLINE_LAYER_ID,
-        source: ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID,
+        source: ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
         'source-layer': ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
         type: 'line',
         minzoom: 11,
+        filter: ENERGYMAP_BUILDING_MATCH_ALL_FILTER,
         paint: {
           'line-color': '#111111',
           'line-opacity': 0.65,
           'line-width': 1,
         },
       },
+      ...createEnergymapEnergyCertificateLayers({
+        sourceId: ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
+        sourceLayer: ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
+      }),
+      ...createEnergymapHeatingLayers({
+        sourceId: ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
+        sourceLayer: ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
+      }),
     ],
   }
 }
