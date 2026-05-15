@@ -1,0 +1,1273 @@
+import {
+  ENERGY_CERTIFICATE_CLASS_CODES,
+  ENERGY_CERTIFICATE_CLASS_PROPERTY,
+} from '../layers/energyCertificateLayerConf'
+import {
+  ENERGYMAP_BUILDING_COMPLETION_DATE_PROPERTY,
+  ENERGYMAP_BUILDING_TYPE_CODES,
+  ENERGYMAP_BUILDING_TYPE_PROPERTY,
+} from '../layers/buildingPolygonsLayerConf'
+import { HEATING_ENERGY_SOURCE_PROPERTY } from '../layers/heatingLayerConf'
+import type { EnergyCertificateClassCode } from '../layers/energyCertificateLayerConf'
+import type { EnergymapSelectedBuilding } from './types'
+
+export type EnergymapBuildingInfoPanelId =
+  | 'energyConsumption'
+  | 'renovationRecommendations'
+  | 'buildingDetails'
+
+export type EnergymapBuildingInfoValueStatus =
+  | 'real'
+  | 'estimate'
+  | 'missing'
+  | 'placeholder'
+
+export type EnergymapBuildingInfoTextParam = string | number
+
+export type EnergymapBuildingInfoText =
+  | {
+      type: 'translation'
+      keyName: string
+      params?: Record<string, EnergymapBuildingInfoTextParam>
+    }
+  | {
+      type: 'plain'
+      text: string
+    }
+  | {
+      type: 'sequence'
+      parts: EnergymapBuildingInfoText[]
+      separator: string
+    }
+
+export type EnergymapBuildingInfoValue = {
+  text: EnergymapBuildingInfoText
+  status: EnergymapBuildingInfoValueStatus
+  sourceProperties?: string[]
+  unitKey?: string
+  note?: EnergymapBuildingInfoText
+}
+
+export type EnergymapBuildingInfoRow = EnergymapBuildingInfoValue & {
+  id: string
+  label: EnergymapBuildingInfoText
+}
+
+export type EnergymapBuildingInfoMetricValue = EnergymapBuildingInfoValue & {
+  id: 'annualTotal' | 'perSquareMeter' | 'savingsPercent'
+  label: EnergymapBuildingInfoText
+}
+
+export type EnergymapBuildingInfoMetric = {
+  id: 'total' | 'heating' | 'electricity' | 'waterHeating'
+  label: EnergymapBuildingInfoText
+  values: EnergymapBuildingInfoMetricValue[]
+}
+
+export type EnergymapBuildingInfoScenario = {
+  id: EnergymapEnergyMeasure
+  label: EnergymapBuildingInfoText
+  values: EnergymapBuildingInfoMetricValue[]
+}
+
+export type EnergymapBuildingInfoNote = {
+  id: string
+  text: EnergymapBuildingInfoText
+  status: EnergymapBuildingInfoValueStatus
+  sourceProperties?: string[]
+}
+
+export type EnergymapBuildingInfoSection = {
+  id: string
+  title?: EnergymapBuildingInfoText
+  description?: EnergymapBuildingInfoText
+  rows?: EnergymapBuildingInfoRow[]
+  metrics?: EnergymapBuildingInfoMetric[]
+  scenarios?: EnergymapBuildingInfoScenario[]
+  notes?: EnergymapBuildingInfoNote[]
+}
+
+export type EnergymapBuildingInfoPanel = {
+  id: EnergymapBuildingInfoPanelId
+  title: EnergymapBuildingInfoText
+  description?: EnergymapBuildingInfoText
+  sections: EnergymapBuildingInfoSection[]
+}
+
+export type EnergymapEnergyScenarioPrefix =
+  | 'awhp'
+  | 'delec'
+  | 'distr'
+  | 'elecb'
+  | 'gshp'
+  | 'oil'
+  | 'wood'
+
+export type EnergymapEnergyMeasure =
+  | 'default'
+  | 'aahp'
+  | 'solar'
+  | 'windows'
+
+export type EnergymapEnergyEstimateType = 'total' | 'heat' | 'elec'
+
+export type CreateEnergymapBuildingInfoPanelsOptions = {
+  selectedBuilding: EnergymapSelectedBuilding | null
+  locale: string
+}
+
+const TRANSLATION_PREFIX = 'sidebar.building_info'
+const HEATING_METHOD_PROPERTY = 'heating_method'
+const FLOOR_AREA_PROPERTY = 'floor_area'
+const GROSS_FLOOR_AREA_PROPERTY = 'gross_floor_area'
+const TOTAL_AREA_PROPERTY = 'total_area'
+const VOLUME_PROPERTY = 'volume'
+const PERMANENT_BUILDING_IDENTIFIER_PROPERTY =
+  'permanent_building_identifier'
+const ADDRESS_FIN_PROPERTY = 'address_fin'
+const POSTAL_CODE_PROPERTY = 'postal_code'
+const POSTAL_OFFICE_FIN_PROPERTY = 'postal_office_fin'
+
+const HEATING_METHOD_CODES = [
+  '01',
+  '02',
+  '03',
+  '04',
+  '05',
+  '06',
+  '07',
+  '99',
+] as const
+
+const HEATING_ENERGY_SOURCE_CODES = [
+  '01',
+  '02',
+  '03',
+  '04',
+  '07',
+  '09',
+  '10',
+  '99',
+] as const
+
+const PUBLISHED_SCENARIO_MEASURES_BY_PREFIX: Record<
+  EnergymapEnergyScenarioPrefix,
+  readonly EnergymapEnergyMeasure[]
+> = {
+  awhp: ['default', 'solar', 'windows'],
+  delec: ['default', 'aahp', 'solar', 'windows'],
+  distr: ['default', 'aahp', 'solar', 'windows'],
+  elecb: ['default', 'aahp', 'solar', 'windows'],
+  gshp: ['default', 'solar', 'windows'],
+  oil: ['default', 'aahp', 'solar', 'windows'],
+  wood: ['default', 'aahp', 'solar', 'windows'],
+}
+
+const translationText = (
+  keyName: string,
+  params?: Record<string, EnergymapBuildingInfoTextParam>
+): EnergymapBuildingInfoText => ({
+  type: 'translation',
+  keyName,
+  ...(params == null ? {} : { params }),
+})
+
+const plainText = (text: string): EnergymapBuildingInfoText => ({
+  type: 'plain',
+  text,
+})
+
+const sequenceText = (
+  parts: EnergymapBuildingInfoText[],
+  separator = ', '
+): EnergymapBuildingInfoText => ({
+  type: 'sequence',
+  parts,
+  separator,
+})
+
+const key = (suffix: string) => `${TRANSLATION_PREFIX}.${suffix}`
+
+const placeholderValue = ({
+  keyName,
+  sourceProperties,
+}: {
+  keyName: string
+  sourceProperties?: string[]
+}): EnergymapBuildingInfoValue => ({
+  text: translationText(keyName),
+  status: 'placeholder',
+  ...(sourceProperties == null ? {} : { sourceProperties }),
+})
+
+const missingValue = ({
+  keyName = key('placeholders.missing_value'),
+  sourceProperties,
+}: {
+  keyName?: string
+  sourceProperties?: string[]
+} = {}): EnergymapBuildingInfoValue => ({
+  text: translationText(keyName),
+  status: 'missing',
+  ...(sourceProperties == null ? {} : { sourceProperties }),
+})
+
+const realValue = ({
+  text,
+  sourceProperties,
+  unitKey,
+  note,
+}: {
+  text: EnergymapBuildingInfoText
+  sourceProperties: string[]
+  unitKey?: string
+  note?: EnergymapBuildingInfoText
+}): EnergymapBuildingInfoValue => ({
+  text,
+  status: 'real',
+  sourceProperties,
+  ...(unitKey == null ? {} : { unitKey }),
+  ...(note == null ? {} : { note }),
+})
+
+const estimateValue = ({
+  text,
+  sourceProperties,
+  unitKey,
+  note,
+}: {
+  text: EnergymapBuildingInfoText
+  sourceProperties: string[]
+  unitKey?: string
+  note?: EnergymapBuildingInfoText
+}): EnergymapBuildingInfoValue => ({
+  text,
+  status: 'estimate',
+  sourceProperties,
+  ...(unitKey == null ? {} : { unitKey }),
+  ...(note == null ? {} : { note }),
+})
+
+const row = ({
+  id,
+  labelKey,
+  value,
+}: {
+  id: string
+  labelKey: string
+  value: EnergymapBuildingInfoValue
+}): EnergymapBuildingInfoRow => ({
+  id,
+  label: translationText(labelKey),
+  ...value,
+})
+
+const metricValue = ({
+  id,
+  labelKey,
+  value,
+}: {
+  id: EnergymapBuildingInfoMetricValue['id']
+  labelKey: string
+  value: EnergymapBuildingInfoValue
+}): EnergymapBuildingInfoMetricValue => ({
+  id,
+  label: translationText(labelKey),
+  ...value,
+})
+
+const note = ({
+  id,
+  keyName,
+  status,
+  sourceProperties,
+}: {
+  id: string
+  keyName: string
+  status: EnergymapBuildingInfoValueStatus
+  sourceProperties?: string[]
+}): EnergymapBuildingInfoNote => ({
+  id,
+  text: translationText(keyName),
+  status,
+  ...(sourceProperties == null ? {} : { sourceProperties }),
+})
+
+const getStringProperty = (
+  properties: EnergymapSelectedBuilding['properties'],
+  propertyName: string
+): string | null => {
+  const value = properties[propertyName]
+
+  if (typeof value === 'string') {
+    const trimmedValue = value.trim()
+    return trimmedValue === '' ? null : trimmedValue
+  }
+
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return String(value)
+  }
+
+  return null
+}
+
+const getCodeProperty = (
+  properties: EnergymapSelectedBuilding['properties'],
+  propertyName: string
+): string | null => {
+  const value = properties[propertyName]
+
+  if (typeof value === 'number' && Number.isInteger(value)) {
+    return String(value).padStart(2, '0')
+  }
+
+  return getStringProperty(properties, propertyName)
+}
+
+const getNumberProperty = (
+  properties: EnergymapSelectedBuilding['properties'],
+  propertyName: string
+): number | null => {
+  const value = properties[propertyName]
+
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value
+  }
+
+  if (typeof value === 'string') {
+    const parsedValue = Number(value.trim().replace(',', '.'))
+    return Number.isFinite(parsedValue) ? parsedValue : null
+  }
+
+  return null
+}
+
+const getPositiveNumberProperty = (
+  properties: EnergymapSelectedBuilding['properties'],
+  propertyName: string
+) => {
+  const value = getNumberProperty(properties, propertyName)
+  return value != null && value > 0 ? value : null
+}
+
+const formatNumber = ({
+  value,
+  locale,
+  maximumFractionDigits = 0,
+  minimumFractionDigits = 0,
+}: {
+  value: number
+  locale: string
+  maximumFractionDigits?: number
+  minimumFractionDigits?: number
+}) =>
+  new Intl.NumberFormat(locale, {
+    maximumFractionDigits,
+    minimumFractionDigits,
+  }).format(value)
+
+export const formatYearFromDate = (value: unknown): string | null => {
+  if (typeof value !== 'string' && typeof value !== 'number') {
+    return null
+  }
+
+  const valueAsString = String(value).trim()
+  const leadingYearMatch = valueAsString.match(/^(\d{4})/)
+
+  if (leadingYearMatch != null) {
+    return leadingYearMatch[1]
+  }
+
+  const timestamp = Date.parse(valueAsString)
+
+  if (!Number.isFinite(timestamp)) {
+    return null
+  }
+
+  return String(new Date(timestamp).getUTCFullYear())
+}
+
+export const composeEnergymapBuildingAddress = (
+  properties: EnergymapSelectedBuilding['properties']
+): string | null => {
+  const address = getStringProperty(properties, ADDRESS_FIN_PROPERTY)
+  const postalCode = getStringProperty(properties, POSTAL_CODE_PROPERTY)
+  const postalOffice = getStringProperty(properties, POSTAL_OFFICE_FIN_PROPERTY)
+  const postalAddress = [postalCode, postalOffice].filter(Boolean).join(' ')
+
+  if (address == null && postalAddress === '') {
+    return null
+  }
+
+  if (address == null) {
+    return postalAddress
+  }
+
+  if (postalAddress === '') {
+    return address
+  }
+
+  return `${address}, ${postalAddress}`
+}
+
+export const resolveCurrentEnergyScenarioPrefix = ({
+  heatingEnergySource,
+  heatingMethod,
+}: {
+  heatingEnergySource: string | null
+  heatingMethod: string | null
+}): EnergymapEnergyScenarioPrefix | null => {
+  if (heatingEnergySource === '01') {
+    return 'distr'
+  }
+
+  if (heatingEnergySource === '02') {
+    return 'oil'
+  }
+
+  if (heatingEnergySource === '07') {
+    return 'wood'
+  }
+
+  if (heatingEnergySource === '09') {
+    return 'gshp'
+  }
+
+  if (heatingEnergySource === '04' && heatingMethod === '01') {
+    return 'elecb'
+  }
+
+  if (heatingEnergySource === '04' && heatingMethod === '03') {
+    return 'delec'
+  }
+
+  return null
+}
+
+const getScenarioProperty = ({
+  prefix,
+  measure,
+  estimateType,
+}: {
+  prefix: EnergymapEnergyScenarioPrefix
+  measure: EnergymapEnergyMeasure
+  estimateType: EnergymapEnergyEstimateType
+}) => `${prefix}_${measure}_${estimateType}`
+
+const isScenarioMeasurePublished = ({
+  prefix,
+  measure,
+}: {
+  prefix: EnergymapEnergyScenarioPrefix
+  measure: EnergymapEnergyMeasure
+}) => PUBLISHED_SCENARIO_MEASURES_BY_PREFIX[prefix].includes(measure)
+
+const getUnsupportedEstimateValue = (sourceProperties: string[]) =>
+  missingValue({
+    keyName: key('placeholders.unsupported_energy_estimate'),
+    sourceProperties,
+  })
+
+const getPerSquareMeterEstimateValue = ({
+  properties,
+  prefix,
+  measure,
+  estimateType,
+  locale,
+}: {
+  properties: EnergymapSelectedBuilding['properties']
+  prefix: EnergymapEnergyScenarioPrefix | null
+  measure: EnergymapEnergyMeasure
+  estimateType: EnergymapEnergyEstimateType
+  locale: string
+}): EnergymapBuildingInfoValue => {
+  if (prefix == null) {
+    return getUnsupportedEstimateValue([
+      HEATING_METHOD_PROPERTY,
+      HEATING_ENERGY_SOURCE_PROPERTY,
+    ])
+  }
+
+  const sourceProperty = getScenarioProperty({
+    prefix,
+    measure,
+    estimateType,
+  })
+
+  if (!isScenarioMeasurePublished({ prefix, measure })) {
+    return placeholderValue({
+      keyName: key('placeholders.not_published'),
+      sourceProperties: [sourceProperty],
+    })
+  }
+
+  const perSquareMeterValue = getNumberProperty(properties, sourceProperty)
+
+  if (perSquareMeterValue == null) {
+    return missingValue({ sourceProperties: [sourceProperty] })
+  }
+
+  return estimateValue({
+    text: plainText(
+      formatNumber({
+        value: perSquareMeterValue,
+        locale,
+        maximumFractionDigits: 1,
+      })
+    ),
+    unitKey: key('units.kwh_per_square_meter_year'),
+    sourceProperties: [sourceProperty],
+    note: translationText(key('panels.energy.note.estimated')),
+  })
+}
+
+const getAnnualEstimateValue = ({
+  properties,
+  prefix,
+  measure,
+  estimateType,
+  locale,
+}: {
+  properties: EnergymapSelectedBuilding['properties']
+  prefix: EnergymapEnergyScenarioPrefix | null
+  measure: EnergymapEnergyMeasure
+  estimateType: EnergymapEnergyEstimateType
+  locale: string
+}): EnergymapBuildingInfoValue => {
+  if (prefix == null) {
+    return getUnsupportedEstimateValue([
+      HEATING_METHOD_PROPERTY,
+      HEATING_ENERGY_SOURCE_PROPERTY,
+    ])
+  }
+
+  const sourceProperty = getScenarioProperty({
+    prefix,
+    measure,
+    estimateType,
+  })
+
+  if (!isScenarioMeasurePublished({ prefix, measure })) {
+    return placeholderValue({
+      keyName: key('placeholders.not_published'),
+      sourceProperties: [sourceProperty],
+    })
+  }
+
+  const perSquareMeterValue = getNumberProperty(properties, sourceProperty)
+  const floorArea = getPositiveNumberProperty(properties, FLOOR_AREA_PROPERTY)
+
+  if (perSquareMeterValue == null) {
+    return missingValue({
+      sourceProperties: [sourceProperty, FLOOR_AREA_PROPERTY],
+    })
+  }
+
+  if (floorArea == null) {
+    return missingValue({
+      sourceProperties: [sourceProperty, FLOOR_AREA_PROPERTY],
+    })
+  }
+
+  return estimateValue({
+    text: plainText(
+      formatNumber({
+        value: perSquareMeterValue * floorArea,
+        locale,
+        maximumFractionDigits: 0,
+      })
+    ),
+    unitKey: key('units.kwh_per_year'),
+    sourceProperties: [sourceProperty, FLOOR_AREA_PROPERTY],
+    note: translationText(key('panels.energy.note.estimated')),
+  })
+}
+
+const createEnergyMetric = ({
+  id,
+  seriesKey,
+  estimateType,
+  properties,
+  prefix,
+  locale,
+}: {
+  id: EnergymapBuildingInfoMetric['id']
+  seriesKey: string
+  estimateType: EnergymapEnergyEstimateType
+  properties: EnergymapSelectedBuilding['properties']
+  prefix: EnergymapEnergyScenarioPrefix | null
+  locale: string
+}): EnergymapBuildingInfoMetric => ({
+  id,
+  label: translationText(seriesKey),
+  values: [
+    metricValue({
+      id: 'annualTotal',
+      labelKey: key('panels.energy.metric.annual_total'),
+      value: getAnnualEstimateValue({
+        properties,
+        prefix,
+        measure: 'default',
+        estimateType,
+        locale,
+      }),
+    }),
+    metricValue({
+      id: 'perSquareMeter',
+      labelKey: key('panels.energy.metric.per_square_meter'),
+      value: getPerSquareMeterEstimateValue({
+        properties,
+        prefix,
+        measure: 'default',
+        estimateType,
+        locale,
+      }),
+    }),
+  ],
+})
+
+const createWaterHeatingMetric = (): EnergymapBuildingInfoMetric => ({
+  id: 'waterHeating',
+  label: translationText(key('panels.energy.series.water_heating')),
+  values: [
+    metricValue({
+      id: 'annualTotal',
+      labelKey: key('panels.energy.metric.annual_total'),
+      value: placeholderValue({
+        keyName: key('placeholders.not_published'),
+      }),
+    }),
+    metricValue({
+      id: 'perSquareMeter',
+      labelKey: key('panels.energy.metric.per_square_meter'),
+      value: placeholderValue({
+        keyName: key('placeholders.not_published'),
+      }),
+    }),
+  ],
+})
+
+const getCodeLabelValue = ({
+  codeValue,
+  codeType,
+  knownCodes,
+  sourceProperty,
+}: {
+  codeValue: string | null
+  codeType: 'main_purpose' | 'heating_method' | 'heating_energy_source'
+  knownCodes: readonly string[]
+  sourceProperty: string
+}): EnergymapBuildingInfoValue => {
+  if (codeValue == null) {
+    return missingValue({ sourceProperties: [sourceProperty] })
+  }
+
+  if (knownCodes.includes(codeValue)) {
+    return realValue({
+      text: translationText(key(`codes.${codeType}.${codeValue}`)),
+      sourceProperties: [sourceProperty],
+    })
+  }
+
+  return realValue({
+    text: translationText(key('placeholders.unknown_code'), {
+      code: codeValue,
+    }),
+    sourceProperties: [sourceProperty],
+  })
+}
+
+const getHeatingValue = (
+  properties: EnergymapSelectedBuilding['properties']
+): EnergymapBuildingInfoValue => {
+  const methodCode = getCodeProperty(properties, HEATING_METHOD_PROPERTY)
+  const sourceCode = getCodeProperty(properties, HEATING_ENERGY_SOURCE_PROPERTY)
+  const methodValue = getCodeLabelValue({
+    codeValue: methodCode,
+    codeType: 'heating_method',
+    knownCodes: HEATING_METHOD_CODES,
+    sourceProperty: HEATING_METHOD_PROPERTY,
+  })
+  const sourceValue = getCodeLabelValue({
+    codeValue: sourceCode,
+    codeType: 'heating_energy_source',
+    knownCodes: HEATING_ENERGY_SOURCE_CODES,
+    sourceProperty: HEATING_ENERGY_SOURCE_PROPERTY,
+  })
+  const realParts = [sourceValue, methodValue].filter(
+    (value) => value.status === 'real'
+  )
+
+  if (realParts.length === 0) {
+    return missingValue({
+      sourceProperties: [HEATING_ENERGY_SOURCE_PROPERTY, HEATING_METHOD_PROPERTY],
+    })
+  }
+
+  return realValue({
+    text: sequenceText(realParts.map((part) => part.text)),
+    sourceProperties: realParts.flatMap((part) => part.sourceProperties ?? []),
+  })
+}
+
+const getEnergyCertificateClassValue = (
+  properties: EnergymapSelectedBuilding['properties']
+): EnergymapBuildingInfoValue => {
+  const classCode = getStringProperty(properties, ENERGY_CERTIFICATE_CLASS_PROPERTY)
+
+  if (classCode == null) {
+    return missingValue({ sourceProperties: [ENERGY_CERTIFICATE_CLASS_PROPERTY] })
+  }
+
+  if (
+    ENERGY_CERTIFICATE_CLASS_CODES.includes(
+      classCode as EnergyCertificateClassCode
+    )
+  ) {
+    return realValue({
+      text: plainText(classCode),
+      sourceProperties: [ENERGY_CERTIFICATE_CLASS_PROPERTY],
+    })
+  }
+
+  return realValue({
+    text: translationText(key('placeholders.unknown_code'), {
+      code: classCode,
+    }),
+    sourceProperties: [ENERGY_CERTIFICATE_CLASS_PROPERTY],
+  })
+}
+
+const getYearValue = (
+  properties: EnergymapSelectedBuilding['properties']
+): EnergymapBuildingInfoValue => {
+  const year = formatYearFromDate(
+    properties[ENERGYMAP_BUILDING_COMPLETION_DATE_PROPERTY]
+  )
+
+  if (year == null) {
+    return missingValue({
+      sourceProperties: [ENERGYMAP_BUILDING_COMPLETION_DATE_PROPERTY],
+    })
+  }
+
+  return realValue({
+    text: plainText(year),
+    sourceProperties: [ENERGYMAP_BUILDING_COMPLETION_DATE_PROPERTY],
+  })
+}
+
+const getAddressValue = (
+  properties: EnergymapSelectedBuilding['properties']
+): EnergymapBuildingInfoValue => {
+  const address = composeEnergymapBuildingAddress(properties)
+
+  if (address == null) {
+    return missingValue({
+      sourceProperties: [
+        ADDRESS_FIN_PROPERTY,
+        POSTAL_CODE_PROPERTY,
+        POSTAL_OFFICE_FIN_PROPERTY,
+      ],
+    })
+  }
+
+  return realValue({
+    text: plainText(address),
+    sourceProperties: [
+      ADDRESS_FIN_PROPERTY,
+      POSTAL_CODE_PROPERTY,
+      POSTAL_OFFICE_FIN_PROPERTY,
+    ],
+  })
+}
+
+const getStringValue = ({
+  properties,
+  propertyName,
+}: {
+  properties: EnergymapSelectedBuilding['properties']
+  propertyName: string
+}): EnergymapBuildingInfoValue => {
+  const value = getStringProperty(properties, propertyName)
+
+  if (value == null) {
+    return missingValue({ sourceProperties: [propertyName] })
+  }
+
+  return realValue({
+    text: plainText(value),
+    sourceProperties: [propertyName],
+  })
+}
+
+const getMeasurementValue = ({
+  properties,
+  propertyName,
+  unitKey,
+  locale,
+}: {
+  properties: EnergymapSelectedBuilding['properties']
+  propertyName: string
+  unitKey: string
+  locale: string
+}): EnergymapBuildingInfoValue => {
+  const value = getPositiveNumberProperty(properties, propertyName)
+
+  if (value == null) {
+    return missingValue({ sourceProperties: [propertyName] })
+  }
+
+  return realValue({
+    text: plainText(
+      formatNumber({
+        value,
+        locale,
+        maximumFractionDigits: 1,
+      })
+    ),
+    unitKey,
+    sourceProperties: [propertyName],
+  })
+}
+
+const createPlaceholderRow = ({
+  id,
+  labelKey,
+  placeholderKey = key('placeholders.not_published'),
+}: {
+  id: string
+  labelKey: string
+  placeholderKey?: string
+}) =>
+  row({
+    id,
+    labelKey,
+    value: placeholderValue({ keyName: placeholderKey }),
+  })
+
+const createEnergyConsumptionPanel = ({
+  properties,
+  prefix,
+  locale,
+}: {
+  properties: EnergymapSelectedBuilding['properties']
+  prefix: EnergymapEnergyScenarioPrefix | null
+  locale: string
+}): EnergymapBuildingInfoPanel => ({
+  id: 'energyConsumption',
+  title: translationText(key('panels.energy.title')),
+  description: translationText(key('panels.energy.description')),
+  sections: [
+    {
+      id: 'estimatedConsumption',
+      title: translationText(key('panels.energy.sections.estimated_consumption')),
+      metrics: [
+        createEnergyMetric({
+          id: 'total',
+          seriesKey: key('panels.energy.series.total'),
+          estimateType: 'total',
+          properties,
+          prefix,
+          locale,
+        }),
+        createEnergyMetric({
+          id: 'heating',
+          seriesKey: key('panels.energy.series.heating'),
+          estimateType: 'heat',
+          properties,
+          prefix,
+          locale,
+        }),
+        createEnergyMetric({
+          id: 'electricity',
+          seriesKey: key('panels.energy.series.electricity'),
+          estimateType: 'elec',
+          properties,
+          prefix,
+          locale,
+        }),
+        createWaterHeatingMetric(),
+      ],
+      notes: [
+        note({
+          id: 'estimatedConsumption',
+          keyName: key('panels.energy.note.estimated'),
+          status: 'estimate',
+        }),
+      ],
+    },
+    {
+      id: 'calculationContext',
+      title: translationText(key('panels.energy.sections.calculation_context')),
+      rows: [
+        createPlaceholderRow({
+          id: 'referenceYear',
+          labelKey: key('panels.energy.rows.reference_year'),
+          placeholderKey: key('panels.energy.note.reference_year_unavailable'),
+        }),
+        createPlaceholderRow({
+          id: 'costMode',
+          labelKey: key('panels.energy.rows.cost_mode'),
+          placeholderKey: key('placeholders.demo_not_verified'),
+        }),
+        createPlaceholderRow({
+          id: 'co2Mode',
+          labelKey: key('panels.energy.rows.co2_mode'),
+          placeholderKey: key('placeholders.demo_not_verified'),
+        }),
+        createPlaceholderRow({
+          id: 'waterHeatingSplit',
+          labelKey: key('panels.energy.rows.water_heating_split'),
+        }),
+      ],
+      notes: [
+        note({
+          id: 'userCoefficients',
+          keyName: key('panels.energy.note.user_coefficients_demo'),
+          status: 'placeholder',
+        }),
+      ],
+    },
+  ],
+})
+
+const getSavingsPercentValue = ({
+  properties,
+  prefix,
+  measure,
+  locale,
+}: {
+  properties: EnergymapSelectedBuilding['properties']
+  prefix: EnergymapEnergyScenarioPrefix | null
+  measure: EnergymapEnergyMeasure
+  locale: string
+}): EnergymapBuildingInfoValue => {
+  if (prefix == null) {
+    return getUnsupportedEstimateValue([
+      HEATING_METHOD_PROPERTY,
+      HEATING_ENERGY_SOURCE_PROPERTY,
+    ])
+  }
+
+  const baselineProperty = getScenarioProperty({
+    prefix,
+    measure: 'default',
+    estimateType: 'total',
+  })
+  const measureProperty = getScenarioProperty({
+    prefix,
+    measure,
+    estimateType: 'total',
+  })
+
+  if (!isScenarioMeasurePublished({ prefix, measure })) {
+    return placeholderValue({
+      keyName: key('placeholders.not_published'),
+      sourceProperties: [baselineProperty, measureProperty],
+    })
+  }
+
+  const baselineValue = getNumberProperty(properties, baselineProperty)
+  const measureValue = getNumberProperty(properties, measureProperty)
+
+  if (baselineValue == null || baselineValue <= 0 || measureValue == null) {
+    return missingValue({ sourceProperties: [baselineProperty, measureProperty] })
+  }
+
+  const savings = (baselineValue - measureValue) / baselineValue
+  const savingsText = new Intl.NumberFormat(locale, {
+    maximumFractionDigits: 0,
+    style: 'percent',
+  }).format(Math.abs(savings))
+  const keyName =
+    savings >= 0
+      ? key('panels.renovation.savings_less')
+      : key('panels.renovation.savings_more')
+
+  return estimateValue({
+    text: translationText(keyName, {
+      percent: `${savings >= 0 ? '-' : '+'}${savingsText}`,
+    }),
+    sourceProperties: [baselineProperty, measureProperty],
+    note: translationText(key('panels.energy.note.estimated')),
+  })
+}
+
+const createRenovationScenario = ({
+  properties,
+  prefix,
+  measure,
+  locale,
+}: {
+  properties: EnergymapSelectedBuilding['properties']
+  prefix: EnergymapEnergyScenarioPrefix | null
+  measure: EnergymapEnergyMeasure
+  locale: string
+}): EnergymapBuildingInfoScenario => ({
+  id: measure,
+  label: translationText(key(`panels.renovation.measures.${measure}`)),
+  values: [
+    metricValue({
+      id: 'annualTotal',
+      labelKey: key('panels.energy.metric.annual_total'),
+      value: getAnnualEstimateValue({
+        properties,
+        prefix,
+        measure,
+        estimateType: 'total',
+        locale,
+      }),
+    }),
+    metricValue({
+      id: 'perSquareMeter',
+      labelKey: key('panels.energy.metric.per_square_meter'),
+      value: getPerSquareMeterEstimateValue({
+        properties,
+        prefix,
+        measure,
+        estimateType: 'total',
+        locale,
+      }),
+    }),
+    metricValue({
+      id: 'savingsPercent',
+      labelKey: key('panels.renovation.metric.savings'),
+      value: getSavingsPercentValue({
+        properties,
+        prefix,
+        measure,
+        locale,
+      }),
+    }),
+  ],
+})
+
+const createRenovationRecommendationsPanel = ({
+  properties,
+  prefix,
+  locale,
+}: {
+  properties: EnergymapSelectedBuilding['properties']
+  prefix: EnergymapEnergyScenarioPrefix | null
+  locale: string
+}): EnergymapBuildingInfoPanel => ({
+  id: 'renovationRecommendations',
+  title: translationText(key('panels.renovation.title')),
+  description: translationText(key('panels.renovation.description')),
+  sections: [
+    {
+      id: 'publishedRecommendations',
+      rows: [
+        createPlaceholderRow({
+          id: 'renovationRecommendations',
+          labelKey: key(
+            'panels.renovation.sections.renovation_recommendations'
+          ),
+        }),
+        createPlaceholderRow({
+          id: 'energyRecommendations',
+          labelKey: key('panels.renovation.sections.energy_recommendations'),
+        }),
+        createPlaceholderRow({
+          id: 'energyCertificateRecommendations',
+          labelKey: key(
+            'panels.renovation.sections.energy_certificate_recommendations'
+          ),
+        }),
+      ],
+    },
+    {
+      id: 'scenarioComparison',
+      title: translationText(
+        key('panels.renovation.sections.scenario_comparison')
+      ),
+      description: translationText(
+        key('panels.renovation.scenario_comparison_description')
+      ),
+      scenarios: (['aahp', 'solar', 'windows'] as const).map((measure) =>
+        createRenovationScenario({
+          properties,
+          prefix,
+          measure,
+          locale,
+        })
+      ),
+      notes: [
+        note({
+          id: 'scenarioEstimate',
+          keyName: key('panels.renovation.note.scenario_estimate'),
+          status: 'estimate',
+        }),
+      ],
+    },
+  ],
+})
+
+const createBuildingDetailsPanel = ({
+  properties,
+  locale,
+}: {
+  properties: EnergymapSelectedBuilding['properties']
+  locale: string
+}): EnergymapBuildingInfoPanel => ({
+  id: 'buildingDetails',
+  title: translationText(key('panels.building.title')),
+  sections: [
+    {
+      id: 'identity',
+      rows: [
+        row({
+          id: 'address',
+          labelKey: key('panels.building.rows.address'),
+          value: getAddressValue(properties),
+        }),
+        row({
+          id: 'buildingIdentifier',
+          labelKey: key('panels.building.rows.building_identifier'),
+          value: getStringValue({
+            properties,
+            propertyName: PERMANENT_BUILDING_IDENTIFIER_PROPERTY,
+          }),
+        }),
+        createPlaceholderRow({
+          id: 'propertyIdentifier',
+          labelKey: key('panels.building.rows.property_identifier'),
+        }),
+        row({
+          id: 'constructionYear',
+          labelKey: key('panels.building.rows.construction_year'),
+          value: getYearValue(properties),
+        }),
+        row({
+          id: 'buildingType',
+          labelKey: key('panels.building.rows.building_type'),
+          value: getCodeLabelValue({
+            codeValue: getCodeProperty(properties, ENERGYMAP_BUILDING_TYPE_PROPERTY),
+            codeType: 'main_purpose',
+            knownCodes: ENERGYMAP_BUILDING_TYPE_CODES,
+            sourceProperty: ENERGYMAP_BUILDING_TYPE_PROPERTY,
+          }),
+        }),
+      ],
+    },
+    {
+      id: 'energyCertificate',
+      rows: [
+        row({
+          id: 'energyClass',
+          labelKey: key('panels.building.rows.energy_class'),
+          value: getEnergyCertificateClassValue(properties),
+        }),
+        createPlaceholderRow({
+          id: 'energyCertificateValidity',
+          labelKey: key('panels.building.rows.energy_certificate_validity'),
+        }),
+        createPlaceholderRow({
+          id: 'previousEnergyClass',
+          labelKey: key('panels.building.rows.previous_energy_class'),
+        }),
+        createPlaceholderRow({
+          id: 'energyClassMeasures',
+          labelKey: key('panels.building.rows.energy_class_measures'),
+        }),
+        createPlaceholderRow({
+          id: 'plannedMeasures',
+          labelKey: key('panels.building.rows.planned_measures'),
+        }),
+      ],
+    },
+    {
+      id: 'technicalDetails',
+      rows: [
+        row({
+          id: 'heating',
+          labelKey: key('panels.building.rows.heating'),
+          value: getHeatingValue(properties),
+        }),
+        row({
+          id: 'floorArea',
+          labelKey: key('panels.building.rows.floor_area'),
+          value: getMeasurementValue({
+            properties,
+            propertyName: FLOOR_AREA_PROPERTY,
+            unitKey: key('units.square_meters'),
+            locale,
+          }),
+        }),
+        createPlaceholderRow({
+          id: 'heatedNetArea',
+          labelKey: key('panels.building.rows.heated_net_area'),
+        }),
+        row({
+          id: 'grossFloorArea',
+          labelKey: key('panels.building.rows.gross_floor_area'),
+          value: getMeasurementValue({
+            properties,
+            propertyName: GROSS_FLOOR_AREA_PROPERTY,
+            unitKey: key('units.square_meters'),
+            locale,
+          }),
+        }),
+        row({
+          id: 'totalArea',
+          labelKey: key('panels.building.rows.total_area'),
+          value: getMeasurementValue({
+            properties,
+            propertyName: TOTAL_AREA_PROPERTY,
+            unitKey: key('units.square_meters'),
+            locale,
+          }),
+        }),
+        row({
+          id: 'volume',
+          labelKey: key('panels.building.rows.volume'),
+          value: getMeasurementValue({
+            properties,
+            propertyName: VOLUME_PROPERTY,
+            unitKey: key('units.cubic_meters'),
+            locale,
+          }),
+        }),
+        createPlaceholderRow({
+          id: 'ventilation',
+          labelKey: key('panels.building.rows.ventilation'),
+        }),
+        createPlaceholderRow({
+          id: 'plotTenure',
+          labelKey: key('panels.building.rows.plot_tenure'),
+        }),
+        createPlaceholderRow({
+          id: 'residentCount',
+          labelKey: key('panels.building.rows.resident_count'),
+        }),
+      ],
+    },
+  ],
+})
+
+export const createEnergymapBuildingInfoPanels = ({
+  selectedBuilding,
+  locale,
+}: CreateEnergymapBuildingInfoPanelsOptions): EnergymapBuildingInfoPanel[] | null => {
+  if (selectedBuilding == null) {
+    return null
+  }
+
+  const { properties } = selectedBuilding
+  const heatingMethod = getCodeProperty(properties, HEATING_METHOD_PROPERTY)
+  const heatingEnergySource = getCodeProperty(
+    properties,
+    HEATING_ENERGY_SOURCE_PROPERTY
+  )
+  const prefix = resolveCurrentEnergyScenarioPrefix({
+    heatingEnergySource,
+    heatingMethod,
+  })
+
+  return [
+    createEnergyConsumptionPanel({ properties, prefix, locale }),
+    createRenovationRecommendationsPanel({ properties, prefix, locale }),
+    createBuildingDetailsPanel({ properties, locale }),
+  ]
+}
