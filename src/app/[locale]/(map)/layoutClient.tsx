@@ -11,7 +11,6 @@ import UserStateHandler from './userStateHandler'
 import UIStateHandler from './uiStateHandler'
 import { SlotsProvider } from '#/components/context/slotsContext'
 import {
-  AppletHomeSidebar,
   HiilikarttaHomeSidebar,
   MainSidebar,
   Sidebar,
@@ -59,12 +58,11 @@ const LayoutClient = ({
   const useHiilikarttaHomeSidebar =
     pathnameWithoutLocale === '/hiilikartta' ||
     (isStandaloneHiilikartta && pathnameWithoutLocale === '/')
-  const useEnergiakarttaHomeSidebar =
-    pathnameWithoutLocale === '/energiakartta' ||
-    (isStandaloneEnergiakartta && pathnameWithoutLocale === '/')
   const useAppletOwnedSidebar =
     pathnameWithoutLocale.startsWith('/hiilikartta/kaavat') ||
     (isStandaloneHiilikartta && pathnameWithoutLocale.startsWith('/kaavat')) ||
+    pathnameWithoutLocale === '/energiakartta' ||
+    (isStandaloneEnergiakartta && pathnameWithoutLocale === '/') ||
     pathnameWithoutLocale === '/forests' ||
     (isStandaloneForests && pathnameWithoutLocale === '/')
   const sidebarVariant = useUIStore((state) => state.sidebarVariant)
@@ -97,8 +95,6 @@ const LayoutClient = ({
                     <MainSidebar>{children}</MainSidebar>
                   ) : useHiilikarttaHomeSidebar ? (
                     <HiilikarttaHomeSidebar>{children}</HiilikarttaHomeSidebar>
-                  ) : useEnergiakarttaHomeSidebar ? (
-                    <AppletHomeSidebar>{children}</AppletHomeSidebar>
                   ) : sidebarVariant === 'simple' ? (
                     <SimpleSidebar>{children}</SimpleSidebar>
                   ) : (

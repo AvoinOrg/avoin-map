@@ -14,10 +14,19 @@ import SidebarToggleButton from './SidebarToggleButton'
 
 export type AppletHomeSidebarProps = {
   sx?: SxProps<Theme>
+  trailingContent?: React.ReactNode
+  actionRail?: React.ReactNode
+  hideMainContainer?: boolean
   children: React.ReactNode
 }
 
-export const AppletHomeSidebar = ({ sx, children }: AppletHomeSidebarProps) => {
+export const AppletHomeSidebar = ({
+  sx,
+  trailingContent,
+  actionRail,
+  hideMainContainer = false,
+  children,
+}: AppletHomeSidebarProps) => {
   const floatingGutter = `${HIILIKARTTA_HOME_FLOATING_GUTTER_PX}px`
   const toggleGutter = `${MAP_CONTROL_EDGE_GUTTER_PX}px`
   const isSidebarDisabled = useUIStore((state) => state.isSidebarDisabled)
@@ -44,6 +53,9 @@ export const AppletHomeSidebar = ({ sx, children }: AppletHomeSidebarProps) => {
       <SidebarScaffold
         topContent={topContent}
         bottomContent={<Slot name="sidebar-footer" />}
+        trailingContent={trailingContent}
+        actionRail={actionRail}
+        hideMainContainer={hideMainContainer}
         containerSx={[
           {
             pt: { mobile: 0, desktop: floatingGutter },

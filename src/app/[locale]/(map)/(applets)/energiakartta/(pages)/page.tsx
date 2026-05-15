@@ -3,6 +3,7 @@
 import React from 'react'
 import { Box, Tooltip, Typography } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
+import { useParams } from 'next/navigation'
 
 import { MAP_BOTTOM_LEFT_FLOATING_CONTROLS_SLOT } from '#/common/constants/map'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
@@ -15,9 +16,15 @@ import {
 import SquishedSwitchWithLabel from '#/components/common/SquishedSwitchWithLabel'
 import TText from '#/components/common/TText'
 import { IntoSlot } from '#/components/context/slotsContext'
-import { SidebarContentBox } from '#/components/Sidebar'
+import { AppletHomeSidebar, SidebarContentBox } from '#/components/Sidebar'
 import EnergyCertificateClassControls from '../components/EnergyCertificateClassControls'
 import EnergyClassesAccordionContent from '../components/EnergyClassesAccordionContent'
+import {
+  BuildingInfoActionRail,
+  BuildingInfoDesktopSidebar,
+} from '../components/BuildingInfoSidebar'
+import type { BuildingInfoDesktopMode } from '../components/BuildingInfoSidebar'
+import { createEnergymapBuildingInfoPanels } from '../common/buildingInfo'
 import {
   areEnergymapSelectedBuildingsEqual,
   toEnergymapSelectedBuilding,
@@ -335,13 +342,17 @@ const HeatingAccordionContent = ({
 
 const Page = () => {
   const { t } = useTranslate('energiakartta')
+  const params = useParams<{ locale?: string | string[] }>()
+  const locale = typeof params.locale === 'string' ? params.locale : 'fi'
   const setFilter = useMapStore((state) => state.setFilter)
   const setLayoutProperty = useMapStore((state) => state.setLayoutProperty)
   const setPaintProperty = useMapStore((state) => state.setPaintProperty)
   const enableLayerGroup = useMapStore((state) => state.enableLayerGroup)
+  const setSelectedFeatures = useMapStore((state) => state.setSelectedFeatures)
   const selectedFeatures = useMapStore((state) => state.selectedFeatures)
   const isMobile = useIsMobile('desktop')
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
+  const setIsSidebarOpen = useUIStore((state) => state.setIsSidebarOpen)
   const isSharedBuildingLayerGroupRegistered = useMapStore((state) =>
     ENERGYMAP_SHARED_BUILDING_LAYER_IDS.every((layerId) =>
       Boolean(
@@ -377,6 +388,11 @@ const Page = () => {
   )
   const [activeThematicMode, setActiveThematicMode] =
     React.useState<EnergymapMainThematicMode | null>(null)
+  const [activeBuildingInfoMode, setActiveBuildingInfoMode] =
+    React.useState<BuildingInfoDesktopMode>('twoPanel')
+  const [isBuildingInfoCollapsed, setIsBuildingInfoCollapsed] =
+    React.useState(false)
+  const previousSelectedBuildingKeyRef = React.useRef<string | null>(null)
   const energyCertificateFillColorExpression = React.useMemo(
     () =>
       getEnergyCertificateFillColorExpression(activeEnergyCertificateClasses),
@@ -419,6 +435,18 @@ const Page = () => {
         .find((building) => building != null) ?? null,
     [selectedFeatures]
   )
+  const buildingInfoPanels = React.useMemo(
+    () =>
+      createEnergymapBuildingInfoPanels({
+        selectedBuilding,
+        locale,
+      }),
+    [locale, selectedBuilding]
+  )
+  const selectedBuildingKey = selectedBuilding?.buildingKey ?? null
+  const hasDesktopBuildingInfo = !isMobile && buildingInfoPanels != null
+  const isBuildingInfoExpanded =
+    hasDesktopBuildingInfo && !isBuildingInfoCollapsed
   const isSharedBuildingLayerGroupVisible = visibleLayerGroupIds.includes(
     ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID
   )
@@ -436,6 +464,15 @@ const Page = () => {
   )
   const toggleHeatingAria = t('sidebar.front_page.aria.toggle_heating')
   const footerLabel = t('sidebar.front_page.footer.edit_building_details')
+  const buildingInfoAriaLabels = React.useMemo(
+    () => ({
+      close: t('sidebar.building_info.aria.close'),
+      collapse: t('sidebar.building_info.aria.collapse'),
+      overview: t('sidebar.building_info.aria.open_overview'),
+      renovation: t('sidebar.building_info.aria.open_renovation'),
+    }),
+    [t]
+  )
   const toggleThematicMode = React.useCallback(
     async (mode: EnergymapMainThematicMode) => {
       const isModeCurrentlyVisible =
@@ -465,6 +502,41 @@ const Page = () => {
         [id]: event.target.checked,
       }))
     }
+  const handleBuildingInfoModeChange = React.useCallback(
+    (mode: BuildingInfoDesktopMode) => {
+      setActiveBuildingInfoMode(mode)
+      setIsBuildingInfoCollapsed(false)
+      setIsSidebarOpen(true)
+    },
+    [setIsSidebarOpen]
+  )
+  const handleCollapseBuildingInfo = React.useCallback(() => {
+    setIsBuildingInfoCollapsed(true)
+    setIsSidebarOpen(true)
+  }, [setIsSidebarOpen])
+  const handleCloseBuildingInfo = React.useCallback(() => {
+    setIsSidebarOpen(true)
+    setSelectedFeatures([])
+  }, [setIsSidebarOpen, setSelectedFeatures])
+
+  React.useEffect(() => {
+    if (selectedBuildingKey == null) {
+      previousSelectedBuildingKeyRef.current = null
+      setActiveBuildingInfoMode('twoPanel')
+      setIsBuildingInfoCollapsed(false)
+      return
+    }
+
+    if (previousSelectedBuildingKeyRef.current !== selectedBuildingKey) {
+      previousSelectedBuildingKeyRef.current = selectedBuildingKey
+      setActiveBuildingInfoMode('twoPanel')
+      setIsBuildingInfoCollapsed(false)
+    }
+
+    if (!isMobile) {
+      setIsSidebarOpen(true)
+    }
+  }, [isMobile, selectedBuildingKey, setIsSidebarOpen])
 
   React.useEffect(() => {
     if (
@@ -616,8 +688,31 @@ const Page = () => {
     setPaintProperty,
   ])
 
+  const buildingInfoTrailingContent =
+    isBuildingInfoExpanded && buildingInfoPanels != null ? (
+      <BuildingInfoDesktopSidebar
+        mode={activeBuildingInfoMode}
+        panels={buildingInfoPanels}
+        ariaLabels={buildingInfoAriaLabels}
+        onClose={handleCloseBuildingInfo}
+        onCollapse={handleCollapseBuildingInfo}
+      />
+    ) : null
+  const buildingInfoActionRail = hasDesktopBuildingInfo ? (
+    <BuildingInfoActionRail
+      activeMode={activeBuildingInfoMode}
+      isCollapsed={isBuildingInfoCollapsed}
+      ariaLabels={buildingInfoAriaLabels}
+      onModeChange={handleBuildingInfoModeChange}
+    />
+  ) : null
+
   return (
-    <>
+    <AppletHomeSidebar
+      hideMainContainer={isBuildingInfoExpanded}
+      trailingContent={buildingInfoTrailingContent}
+      actionRail={buildingInfoActionRail}
+    >
       <IntoSlot name="sidebar-header">
         <HomeSidebarHeader />
       </IntoSlot>
@@ -753,7 +848,7 @@ const Page = () => {
           </Box>
         </Box>
       </SidebarContentBox>
-    </>
+    </AppletHomeSidebar>
   )
 }
 
