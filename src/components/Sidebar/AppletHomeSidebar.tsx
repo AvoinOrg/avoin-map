@@ -14,6 +14,7 @@ import SidebarToggleButton from './SidebarToggleButton'
 
 export type AppletHomeSidebarProps = {
   sx?: SxProps<Theme>
+  sidebarToggleSx?: SxProps<Theme>
   trailingContent?: React.ReactNode
   actionRail?: React.ReactNode
   hideMainContainer?: boolean
@@ -22,6 +23,7 @@ export type AppletHomeSidebarProps = {
 
 export const AppletHomeSidebar = ({
   sx,
+  sidebarToggleSx,
   trailingContent,
   actionRail,
   hideMainContainer = false,
@@ -45,10 +47,15 @@ export const AppletHomeSidebar = ({
   return (
     <>
       <SidebarToggleButton
-        sx={{
-          right: { mobile: '1rem', desktop: toggleGutter },
-          bottom: { mobile: '1rem', desktop: toggleGutter },
-        }}
+        sx={[
+          {
+            right: { mobile: '1rem', desktop: toggleGutter },
+            bottom: { mobile: '1rem', desktop: toggleGutter },
+          },
+          ...(Array.isArray(sidebarToggleSx)
+            ? sidebarToggleSx
+            : [sidebarToggleSx]),
+        ]}
       />
       <SidebarScaffold
         topContent={topContent}

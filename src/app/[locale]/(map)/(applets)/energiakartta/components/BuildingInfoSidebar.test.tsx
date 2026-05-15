@@ -7,7 +7,10 @@ import theme from '#/common/style/theme/theme'
 import {
   BuildingInfoActionRail,
   BuildingInfoDesktopSidebar,
+  BuildingInfoMobileActionRow,
+  BuildingInfoMobileSidebar,
   BuildingInfoText,
+  getBuildingInfoPanelIds,
   getBuildingInfoDesktopPanelIds,
 } from './BuildingInfoSidebar'
 import type {
@@ -114,6 +117,11 @@ const ariaLabels = {
   collapse: 'Collapse building information',
 }
 
+const modeAriaLabels = {
+  overview: 'Open energy and building information',
+  renovation: 'Open renovation recommendations',
+}
+
 describe('BuildingInfoSidebar', () => {
   it('recursively renders sequence text and translation descriptors', () => {
     render(
@@ -153,8 +161,14 @@ describe('BuildingInfoSidebar', () => {
       'energyConsumption',
       'buildingDetails',
     ])
+    expect(getBuildingInfoPanelIds('twoPanel')).toEqual([
+      'energyConsumption',
+      'buildingDetails',
+    ])
     expect(
-      screen.getAllByTestId(/building-info-panel-/).map((panel) => panel.dataset.panelId)
+      screen
+        .getAllByTestId(/building-info-panel-/)
+        .map((panel) => panel.dataset.panelId)
     ).toEqual(['energyConsumption', 'buildingDetails'])
     expect(
       screen.queryByTestId('building-info-panel-renovationRecommendations')
@@ -173,7 +187,9 @@ describe('BuildingInfoSidebar', () => {
     )
 
     expect(
-      screen.getAllByTestId(/building-info-panel-/).map((panel) => panel.dataset.panelId)
+      screen
+        .getAllByTestId(/building-info-panel-/)
+        .map((panel) => panel.dataset.panelId)
     ).toEqual([
       'energyConsumption',
       'renovationRecommendations',
@@ -222,10 +238,7 @@ describe('BuildingInfoSidebar', () => {
       <BuildingInfoActionRail
         activeMode="twoPanel"
         isCollapsed={true}
-        ariaLabels={{
-          overview: 'Open energy and building information',
-          renovation: 'Open renovation recommendations',
-        }}
+        ariaLabels={modeAriaLabels}
         onModeChange={onModeChange}
       />
     )
@@ -243,5 +256,134 @@ describe('BuildingInfoSidebar', () => {
     )
 
     expect(onModeChange).toHaveBeenCalledWith('threePanel')
+  })
+
+  it('stacks only the energy and building panels in mobile two-panel mode', () => {
+    renderWithTheme(
+      <BuildingInfoMobileSidebar
+        mode="twoPanel"
+        panels={panels}
+        ariaLabels={ariaLabels}
+        onClose={jest.fn()}
+        onCollapse={jest.fn()}
+      />
+    )
+
+    expect(screen.getByTestId('building-info-mobile-sidebar')).toHaveAttribute(
+      'data-building-info-mode',
+      'twoPanel'
+    )
+    expect(
+      screen
+        .getAllByTestId(/building-info-panel-/)
+        .map((panel) => panel.dataset.panelId)
+    ).toEqual(['energyConsumption', 'buildingDetails'])
+    expect(
+      screen.queryByTestId('building-info-panel-renovationRecommendations')
+    ).not.toBeInTheDocument()
+  })
+
+  it('stacks all panels in mobile three-panel mode and preserves metadata', () => {
+    renderWithTheme(
+      <BuildingInfoMobileSidebar
+        mode="threePanel"
+        panels={panels}
+        ariaLabels={ariaLabels}
+        onClose={jest.fn()}
+        onCollapse={jest.fn()}
+      />
+    )
+
+    expect(
+      screen
+        .getAllByTestId(/building-info-panel-/)
+        .map((panel) => panel.dataset.panelId)
+    ).toEqual([
+      'energyConsumption',
+      'renovationRecommendations',
+      'buildingDetails',
+    ])
+    const value = screen.getByText('value.part_a').closest('[data-status]')
+
+    expect(value).toHaveTextContent('value.part_a / plain value + value.part_b')
+    expect(value).toHaveAttribute('data-status', 'estimate')
+    expect(value).toHaveAttribute(
+      'data-source-properties',
+      'distr_default_total,floor_area'
+    )
+  })
+
+  it('keeps mobile collapse and close controls independent', () => {
+    const onCollapse = jest.fn()
+    const onClose = jest.fn()
+
+    renderWithTheme(
+      <BuildingInfoMobileSidebar
+        mode="twoPanel"
+        panels={panels}
+        ariaLabels={ariaLabels}
+        onClose={onClose}
+        onCollapse={onCollapse}
+      />
+    )
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Collapse building information' })
+    )
+    expect(onCollapse).toHaveBeenCalledTimes(1)
+    expect(onClose).not.toHaveBeenCalled()
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Close building information' })
+    )
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps mobile mode buttons reachable and marks active state', () => {
+    const onModeChange = jest.fn()
+
+    const { rerender } = renderWithTheme(
+      <BuildingInfoMobileActionRow
+        activeMode="threePanel"
+        isCollapsed={false}
+        ariaLabels={modeAriaLabels}
+        onModeChange={onModeChange}
+      />
+    )
+
+    expect(
+      screen.getByRole('button', {
+        name: 'Open energy and building information',
+      })
+    ).toHaveAttribute('aria-pressed', 'false')
+    expect(
+      screen.getByRole('button', {
+        name: 'Open renovation recommendations',
+      })
+    ).toHaveAttribute('aria-pressed', 'true')
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Open energy and building information',
+      })
+    )
+    expect(onModeChange).toHaveBeenCalledWith('twoPanel')
+
+    rerender(
+      <ThemeProvider theme={theme}>
+        <BuildingInfoMobileActionRow
+          activeMode="threePanel"
+          isCollapsed={true}
+          ariaLabels={modeAriaLabels}
+          onModeChange={onModeChange}
+        />
+      </ThemeProvider>
+    )
+
+    expect(
+      screen.getByRole('button', {
+        name: 'Open renovation recommendations',
+      })
+    ).toHaveAttribute('aria-pressed', 'false')
   })
 })

@@ -1,7 +1,14 @@
 'use client'
 
 import React from 'react'
-import { Box, IconButton, Theme, Tooltip, Typography } from '@mui/material'
+import {
+  Box,
+  IconButton,
+  SxProps,
+  Theme,
+  Tooltip,
+  Typography,
+} from '@mui/material'
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft'
 
 import TText from '#/components/common/TText'
@@ -37,12 +44,16 @@ type BuildingInfoDesktopSidebarProps = {
   onCollapse: () => void
 }
 
+type BuildingInfoMobileSidebarProps = BuildingInfoDesktopSidebarProps
+
 type BuildingInfoActionRailProps = {
   activeMode: BuildingInfoDesktopMode
   isCollapsed: boolean
   ariaLabels: Pick<BuildingInfoActionLabels, 'overview' | 'renovation'>
   onModeChange: (mode: BuildingInfoDesktopMode) => void
 }
+
+type BuildingInfoMobileActionRowProps = BuildingInfoActionRailProps
 
 const PANEL_IDS_BY_MODE: Record<
   BuildingInfoDesktopMode,
@@ -95,6 +106,10 @@ const PANEL_CONTENT_WIDTHS: Record<EnergymapBuildingInfoPanelId, string> = {
   buildingDetails: '16.25rem',
 }
 
+export const BUILDING_INFO_MOBILE_ACTION_BOTTOM_OFFSET =
+  'calc(env(safe-area-inset-bottom, 0px) + 26px)'
+export const BUILDING_INFO_MOBILE_TOGGLE_RIGHT_OFFSET = '35px'
+
 const textSx = {
   fontSize: '0.625rem',
   lineHeight: '1.125rem',
@@ -132,9 +147,11 @@ const actionButtonSx = ({
   },
 })
 
-export const getBuildingInfoDesktopPanelIds = (
+export const getBuildingInfoPanelIds = (
   mode: BuildingInfoDesktopMode
 ) => PANEL_IDS_BY_MODE[mode]
+
+export const getBuildingInfoDesktopPanelIds = getBuildingInfoPanelIds
 
 const getSourcePropertiesData = (sourceProperties?: string[]) =>
   sourceProperties == null || sourceProperties.length === 0
@@ -519,6 +536,91 @@ const getPanelContentSx = ({
   }
 }
 
+const getVisibleBuildingInfoPanels = ({
+  mode,
+  panels,
+}: {
+  mode: BuildingInfoDesktopMode
+  panels: EnergymapBuildingInfoPanel[]
+}) => {
+  const panelsById = new Map(panels.map((panel) => [panel.id, panel]))
+
+  return getBuildingInfoPanelIds(mode)
+    .map((panelId) => panelsById.get(panelId))
+    .filter((panel): panel is EnergymapBuildingInfoPanel => panel != null)
+}
+
+const getDesktopPanelAccentColor = ({
+  mode,
+  panelId,
+}: {
+  mode: BuildingInfoDesktopMode
+  panelId: EnergymapBuildingInfoPanelId
+}) =>
+  mode === 'threePanel' && panelId === 'buildingDetails'
+    ? '#111111'
+    : PANEL_ACCENTS[panelId]
+
+const BuildingInfoPanelBody = ({
+  panel,
+  titleId,
+  accentColor,
+  sx,
+}: {
+  panel: EnergymapBuildingInfoPanel
+  titleId: string
+  accentColor: string
+  sx?: SxProps<Theme>
+}) => (
+  <Box
+    sx={[
+      {
+        boxSizing: 'border-box',
+      },
+      ...(Array.isArray(sx) ? sx : [sx]),
+    ]}
+  >
+    <Typography
+      id={titleId}
+      sx={{
+        fontSize: '0.75rem',
+        fontWeight: 400,
+        lineHeight: '1.125rem',
+        letterSpacing: '0.1em',
+        color: accentColor,
+        textTransform: 'uppercase',
+        whiteSpace: 'normal',
+      }}
+    >
+      <BuildingInfoText text={panel.title} />
+    </Typography>
+    <Box
+      sx={{
+        mt: '1.375rem',
+        borderTop: '0.3px solid #cfcfcf',
+      }}
+    />
+    {panel.description != null && (
+      <Typography
+        sx={{
+          ...textSx,
+          mt: '1.875rem',
+          color: '#111111',
+        }}
+      >
+        <BuildingInfoText text={panel.description} />
+      </Typography>
+    )}
+    {panel.sections.map((section) => (
+      <BuildingInfoSectionBlock
+        key={section.id}
+        section={section}
+        accentColor={accentColor}
+      />
+    ))}
+  </Box>
+)
+
 const BuildingInfoPanelColumn = ({
   panel,
   mode,
@@ -527,10 +629,10 @@ const BuildingInfoPanelColumn = ({
   mode: BuildingInfoDesktopMode
 }) => {
   const titleId = React.useId()
-  const accentColor =
-    mode === 'threePanel' && panel.id === 'buildingDetails'
-      ? '#111111'
-      : PANEL_ACCENTS[panel.id]
+  const accentColor = getDesktopPanelAccentColor({
+    mode,
+    panelId: panel.id,
+  })
 
   return (
     <Box
@@ -548,7 +650,10 @@ const BuildingInfoPanelColumn = ({
         overflow: 'hidden',
       }}
     >
-      <Box
+      <BuildingInfoPanelBody
+        panel={panel}
+        titleId={titleId}
+        accentColor={accentColor}
         sx={{
           height: '100%',
           minHeight: 0,
@@ -560,46 +665,7 @@ const BuildingInfoPanelColumn = ({
           boxSizing: 'border-box',
           ...getPanelContentSx({ mode, panelId: panel.id }),
         }}
-      >
-        <Typography
-          id={titleId}
-          sx={{
-            fontSize: '0.75rem',
-            fontWeight: 400,
-            lineHeight: '1.125rem',
-            letterSpacing: '0.1em',
-            color: accentColor,
-            textTransform: 'uppercase',
-            whiteSpace: 'normal',
-          }}
-        >
-          <BuildingInfoText text={panel.title} />
-        </Typography>
-        <Box
-          sx={{
-            mt: '1.375rem',
-            borderTop: '0.3px solid #cfcfcf',
-          }}
-        />
-        {panel.description != null && (
-          <Typography
-            sx={{
-              ...textSx,
-              mt: '1.875rem',
-              color: '#111111',
-            }}
-          >
-            <BuildingInfoText text={panel.description} />
-          </Typography>
-        )}
-        {panel.sections.map((section) => (
-          <BuildingInfoSectionBlock
-            key={section.id}
-            section={section}
-            accentColor={accentColor}
-          />
-        ))}
-      </Box>
+      />
     </Box>
   )
 }
@@ -656,13 +722,10 @@ export const BuildingInfoDesktopSidebar = ({
   onClose,
   onCollapse,
 }: BuildingInfoDesktopSidebarProps) => {
-  const panelsById = React.useMemo(
-    () => new Map(panels.map((panel) => [panel.id, panel])),
-    [panels]
+  const visiblePanels = React.useMemo(
+    () => getVisibleBuildingInfoPanels({ mode, panels }),
+    [mode, panels]
   )
-  const visiblePanels = getBuildingInfoDesktopPanelIds(mode)
-    .map((panelId) => panelsById.get(panelId))
-    .filter((panel): panel is EnergymapBuildingInfoPanel => panel != null)
 
   if (visiblePanels.length === 0) {
     return null
@@ -692,6 +755,133 @@ export const BuildingInfoDesktopSidebar = ({
         onClose={onClose}
         onCollapse={onCollapse}
       />
+    </Box>
+  )
+}
+
+const BuildingInfoMobileChrome = ({
+  ariaLabels,
+  onClose,
+  onCollapse,
+}: {
+  ariaLabels: Pick<BuildingInfoActionLabels, 'close' | 'collapse'>
+  onClose: () => void
+  onCollapse: () => void
+}) => (
+  <Box
+    sx={(theme) => ({
+      position: 'fixed',
+      top: 'calc(env(safe-area-inset-top, 0px) + 26px)',
+      right: BUILDING_INFO_MOBILE_TOGGLE_RIGHT_OFFSET,
+      zIndex: theme.zIndex.drawer + 13,
+      display: 'flex',
+      gap: '4px',
+      pointerEvents: 'auto',
+    })}
+  >
+    <Tooltip title={ariaLabels.collapse} arrow placement="bottom">
+      <IconButton
+        aria-label={ariaLabels.collapse}
+        onClick={onCollapse}
+        size="small"
+        sx={chromeButtonSx}
+      >
+        <KeyboardDoubleArrowLeftIcon sx={{ fontSize: '1.05rem' }} />
+      </IconButton>
+    </Tooltip>
+    <Tooltip title={ariaLabels.close} arrow placement="bottom">
+      <IconButton
+        aria-label={ariaLabels.close}
+        onClick={onClose}
+        size="small"
+        sx={chromeButtonSx}
+      >
+        <Cross sx={{ width: '0.75rem', height: '0.75rem' }} />
+      </IconButton>
+    </Tooltip>
+  </Box>
+)
+
+const BuildingInfoMobilePanelSection = ({
+  panel,
+  index,
+  panelCount,
+}: {
+  panel: EnergymapBuildingInfoPanel
+  index: number
+  panelCount: number
+}) => {
+  const titleId = React.useId()
+
+  return (
+    <Box
+      component="section"
+      aria-labelledby={titleId}
+      data-testid={`building-info-panel-${panel.id}`}
+      data-panel-id={panel.id}
+      sx={{
+        width: '100%',
+        minWidth: 0,
+        backgroundColor: PANEL_BACKGROUNDS[panel.id],
+      }}
+    >
+      <BuildingInfoPanelBody
+        panel={panel}
+        titleId={titleId}
+        accentColor={PANEL_ACCENTS[panel.id]}
+        sx={{
+          width: 'min(16.25rem, calc(100vw - 6rem))',
+          maxWidth: '100%',
+          mx: 'auto',
+          pt: index === 0 ? '7.5rem' : '6.25rem',
+          pb: index === panelCount - 1 ? '8rem' : '5rem',
+        }}
+      />
+    </Box>
+  )
+}
+
+export const BuildingInfoMobileSidebar = ({
+  mode,
+  panels,
+  ariaLabels,
+  onClose,
+  onCollapse,
+}: BuildingInfoMobileSidebarProps) => {
+  const visiblePanels = React.useMemo(
+    () => getVisibleBuildingInfoPanels({ mode, panels }),
+    [mode, panels]
+  )
+
+  if (visiblePanels.length === 0) {
+    return null
+  }
+
+  return (
+    <Box
+      data-testid="building-info-mobile-sidebar"
+      data-building-info-mode={mode}
+      sx={{
+        position: 'relative',
+        width: '100%',
+        minHeight: '100%',
+        backgroundColor: '#f9f9f9',
+        pointerEvents: 'auto',
+      }}
+    >
+      <BuildingInfoMobileChrome
+        ariaLabels={ariaLabels}
+        onClose={onClose}
+        onCollapse={onCollapse}
+      />
+      {visiblePanels.map((panel, index) => (
+        <BuildingInfoMobilePanelSection
+          key={panel.id}
+          panel={panel}
+          index={index}
+          panelCount={visiblePanels.length}
+        />
+      ))}
     </Box>
   )
 }
@@ -788,6 +978,65 @@ export const BuildingInfoActionRail = ({
         </IconButton>
       </Tooltip>
       <Tooltip title={ariaLabels.renovation} arrow placement="right">
+        <IconButton
+          aria-label={ariaLabels.renovation}
+          aria-pressed={activeMode === 'threePanel' && !isCollapsed}
+          onClick={() => onModeChange('threePanel')}
+          size="small"
+          sx={actionButtonSx({
+            active: activeMode === 'threePanel' && !isCollapsed,
+          })}
+        >
+          <ThreePanelIcon />
+        </IconButton>
+      </Tooltip>
+    </Box>
+  )
+}
+
+export const BuildingInfoMobileActionRow = ({
+  activeMode,
+  isCollapsed,
+  ariaLabels,
+  onModeChange,
+}: BuildingInfoMobileActionRowProps) => {
+  return (
+    <Box
+      data-testid="building-info-mobile-action-row"
+      sx={(theme) => ({
+        position: 'fixed',
+        right: '90px',
+        bottom: BUILDING_INFO_MOBILE_ACTION_BOTTOM_OFFSET,
+        zIndex: theme.zIndex.drawer + 12,
+        display: 'flex',
+        flexDirection: 'row',
+        gap: '10px',
+        pointerEvents: 'auto',
+      })}
+    >
+      <Tooltip title={ariaLabels.overview} arrow placement="top">
+        <IconButton
+          aria-label={ariaLabels.overview}
+          aria-pressed={activeMode === 'twoPanel' && !isCollapsed}
+          onClick={() => onModeChange('twoPanel')}
+          size="small"
+          sx={actionButtonSx({
+            active: activeMode === 'twoPanel' && !isCollapsed,
+          })}
+        >
+          <Box
+            component="img"
+            src="/files/img/energiakartta/sidebar/building-info-two-panel.svg"
+            alt=""
+            aria-hidden="true"
+            sx={{
+              width: '26.8px',
+              height: '21.8px',
+            }}
+          />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title={ariaLabels.renovation} arrow placement="top">
         <IconButton
           aria-label={ariaLabels.renovation}
           aria-pressed={activeMode === 'threePanel' && !isCollapsed}
