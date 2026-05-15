@@ -8,20 +8,30 @@ import {
   ENERGYMAP_DEFAULT_SELECTED_CONSTRUCTION_DECADE,
 } from '../layers/buildingPolygonsLayerConf'
 import { ENERGY_CERTIFICATE_CLASS_CODES } from '../layers/energyCertificateLayerConf'
+import { areEnergymapSelectedBuildingsEqual } from '../common/utils'
 import type {
   EnergymapBuildingFilterState,
   EnergymapSelectedConstructionDecade,
   EnergymapBuildingTypeFilter,
 } from '../layers/buildingPolygonsLayerConf'
+import type { EnergymapSelectedBuilding } from '../common/types'
 import type { EnergyCertificateClassCode } from '../layers/energyCertificateLayerConf'
 
 type EnergyCertificateClassFilterState = {
   activeEnergyCertificateClasses: EnergyCertificateClassCode[]
 }
 
-type Vars = EnergymapBuildingFilterState & EnergyCertificateClassFilterState
+type SelectedBuildingState = {
+  selectedBuilding: EnergymapSelectedBuilding | null
+}
+
+type Vars = EnergymapBuildingFilterState &
+  EnergyCertificateClassFilterState &
+  SelectedBuildingState
 
 type Actions = {
+  setSelectedBuilding: (selectedBuilding: EnergymapSelectedBuilding) => void
+  clearSelectedBuilding: () => void
   setBuildingTypeFilter: (
     buildingTypeFilter: EnergymapBuildingTypeFilter
   ) => void
@@ -54,6 +64,7 @@ const initialBuildingFilterState: Vars = {
   showBuildingsFromSelectedDecade: false,
   showOnlySelectedDecade: false,
   activeEnergyCertificateClasses: [...ENERGY_CERTIFICATE_CLASS_CODES],
+  selectedBuilding: null,
 }
 
 export const useAppletStore = create<State>()(
@@ -63,6 +74,25 @@ export const useAppletStore = create<State>()(
         const vars = initialBuildingFilterState
 
         const actions: Actions = {
+          setSelectedBuilding: (selectedBuilding) => {
+            set((state) => {
+              if (
+                areEnergymapSelectedBuildingsEqual(
+                  state.selectedBuilding,
+                  selectedBuilding
+                )
+              ) {
+                return
+              }
+
+              state.selectedBuilding = selectedBuilding
+            })
+          },
+          clearSelectedBuilding: () => {
+            set((state) => {
+              state.selectedBuilding = null
+            })
+          },
           setBuildingTypeFilter: (buildingTypeFilter) => {
             set((state) => {
               state.buildingTypeFilter = buildingTypeFilter

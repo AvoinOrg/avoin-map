@@ -14,6 +14,8 @@ import energymapBuildingPolygonsLayerConf, {
   ENERGYMAP_BUILDING_POLYGONS_FILL_LAYER_ID,
   ENERGYMAP_BUILDING_POLYGONS_LAYER_IDS,
   ENERGYMAP_BUILDING_POLYGONS_OUTLINE_LAYER_ID,
+  ENERGYMAP_BUILDING_POLYGONS_SELECTED_FILL_LAYER_ID,
+  ENERGYMAP_BUILDING_POLYGONS_SELECTED_OUTLINE_LAYER_ID,
   ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
   ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
   ENERGYMAP_BUILDING_KEY_PROPERTY,
@@ -198,13 +200,14 @@ describe('Energiakartta shared building polygon layer config', () => {
       minzoom: 5,
       maxzoom: 14,
       bounds: [19, 59, 32, 71],
+      promoteId: ENERGYMAP_BUILDING_KEY_PROPERTY,
     })
     expect(sharedSource.tiles?.[0]).toContain(
       'sandbox_energiakartta:energymap_building_polygons@EPSG:900913@pbf'
     )
   })
 
-  it('puts base, energy certificate, and heating layers on the shared source-layer', async () => {
+  it('puts base, selected-highlight, energy certificate, and heating layers on the shared source-layer', async () => {
     const style = await getSharedBuildingStyle()
     const layerIds = style.layers.map((layer) => layer.id)
 
@@ -258,5 +261,86 @@ describe('Energiakartta shared building polygon layer config', () => {
     expect(energyOutline?.paint?.['line-opacity']).toBe(0)
     expect(heatingFill?.paint?.['fill-opacity']).toBe(0)
     expect(heatingOutline?.paint?.['line-opacity']).toBe(0)
+  })
+
+  it('opts the base fill into selection and pointer hover', async () => {
+    const style = await getSharedBuildingStyle()
+    const baseFill = style.layers.find(
+      (layer) => layer.id === ENERGYMAP_BUILDING_POLYGONS_FILL_LAYER_ID
+    ) as any
+
+    expect(baseFill?.selectable).toBe(true)
+    expect(baseFill?.hoverPointer).toBe(true)
+  })
+
+  it('keeps selected-highlight layer ids compatible with map layer-name parsing', () => {
+    expect(
+      ENERGYMAP_BUILDING_POLYGONS_SELECTED_FILL_LAYER_ID.split('-')
+    ).toHaveLength(2)
+    expect(
+      ENERGYMAP_BUILDING_POLYGONS_SELECTED_OUTLINE_LAYER_ID.split('-')
+    ).toHaveLength(2)
+  })
+
+  it('renders selected-building highlight layers above thematic building layers', async () => {
+    const style = await getSharedBuildingStyle()
+    const layerIds = style.layers.map((layer) => layer.id)
+    const selectedFill = style.layers.find(
+      (layer) => layer.id === ENERGYMAP_BUILDING_POLYGONS_SELECTED_FILL_LAYER_ID
+    ) as any
+    const selectedOutline = style.layers.find(
+      (layer) =>
+        layer.id === ENERGYMAP_BUILDING_POLYGONS_SELECTED_OUTLINE_LAYER_ID
+    ) as any
+    const lastThematicLayerIndex = Math.max(
+      ...[
+        ...ENERGYMAP_ENERGY_CERTIFICATE_LAYER_IDS,
+        ...ENERGYMAP_HEATING_LAYER_IDS,
+      ].map((layerId) => layerIds.indexOf(layerId))
+    )
+
+    expect(layerIds.indexOf(ENERGYMAP_BUILDING_POLYGONS_SELECTED_FILL_LAYER_ID))
+      .toBeGreaterThan(lastThematicLayerIndex)
+    expect(
+      layerIds.indexOf(ENERGYMAP_BUILDING_POLYGONS_SELECTED_OUTLINE_LAYER_ID)
+    ).toBeGreaterThan(
+      layerIds.indexOf(ENERGYMAP_BUILDING_POLYGONS_SELECTED_FILL_LAYER_ID)
+    )
+    expect(selectedFill).toMatchObject({
+      source: ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
+      'source-layer': ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
+      type: 'fill',
+      filter: ENERGYMAP_BUILDING_MATCH_ALL_FILTER,
+      paint: {
+        'fill-color': '#FFFFFF',
+        'fill-opacity': [
+          'case',
+          ['boolean', ['feature-state', 'selected'], false],
+          0.18,
+          0,
+        ],
+      },
+    })
+    expect(selectedOutline).toMatchObject({
+      source: ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
+      'source-layer': ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
+      type: 'line',
+      filter: ENERGYMAP_BUILDING_MATCH_ALL_FILTER,
+      paint: {
+        'line-color': '#111111',
+        'line-opacity': [
+          'case',
+          ['boolean', ['feature-state', 'selected'], false],
+          1,
+          0,
+        ],
+        'line-width': [
+          'case',
+          ['boolean', ['feature-state', 'selected'], false],
+          3.25,
+          0,
+        ],
+      },
+    })
   })
 })

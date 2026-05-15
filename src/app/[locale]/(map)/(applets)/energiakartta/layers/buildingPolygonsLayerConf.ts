@@ -2,6 +2,7 @@ import type { ExpressionSpecification, FilterSpecification } from 'maplibre-gl'
 
 import { ExtendedStyleSpecification, LayerConf } from '#/common/types/map'
 import {
+  ENERGYMAP_BUILDING_KEY_PROPERTY,
   ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
   ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
   ENERGYMAP_BUILDING_POLYGONS_WORKSPACE,
@@ -21,9 +22,13 @@ export const ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID =
   ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID
 export const ENERGYMAP_BUILDING_POLYGONS_FILL_LAYER_ID = `${ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID}-fill`
 export const ENERGYMAP_BUILDING_POLYGONS_OUTLINE_LAYER_ID = `${ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID}-outline`
+export const ENERGYMAP_BUILDING_POLYGONS_SELECTED_FILL_LAYER_ID = `${ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID}_selected_fill-fill`
+export const ENERGYMAP_BUILDING_POLYGONS_SELECTED_OUTLINE_LAYER_ID = `${ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID}_selected_outline-outline`
 export const ENERGYMAP_BUILDING_POLYGONS_LAYER_IDS = [
   ENERGYMAP_BUILDING_POLYGONS_FILL_LAYER_ID,
   ENERGYMAP_BUILDING_POLYGONS_OUTLINE_LAYER_ID,
+  ENERGYMAP_BUILDING_POLYGONS_SELECTED_FILL_LAYER_ID,
+  ENERGYMAP_BUILDING_POLYGONS_SELECTED_OUTLINE_LAYER_ID,
 ] as const
 export const ENERGYMAP_SHARED_BUILDING_LAYER_IDS = [
   ...ENERGYMAP_BUILDING_POLYGONS_LAYER_IDS,
@@ -34,10 +39,10 @@ export {
   ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
   ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
   ENERGYMAP_BUILDING_POLYGONS_WORKSPACE,
+  ENERGYMAP_BUILDING_KEY_PROPERTY,
   getEnergymapBuildingPolygonsTileUrl,
 }
 
-export const ENERGYMAP_BUILDING_KEY_PROPERTY = 'building_key'
 export const ENERGYMAP_BUILDING_TYPE_PROPERTY = 'main_purpose'
 export const ENERGYMAP_BUILDING_COMPLETION_DATE_PROPERTY = 'completion_date'
 export const ENERGYMAP_BUILDING_TYPE_FILTER_ALL = 'all'
@@ -116,6 +121,33 @@ const completionYearExpression: ExpressionSpecification = [
   ],
   -1,
 ]
+
+const selectedFeatureStateExpression = [
+  'boolean',
+  ['feature-state', 'selected'],
+  false,
+] as ExpressionSpecification
+
+const selectedBuildingFillOpacityExpression = [
+  'case',
+  selectedFeatureStateExpression,
+  0.18,
+  0,
+] as ExpressionSpecification
+
+const selectedBuildingOutlineOpacityExpression = [
+  'case',
+  selectedFeatureStateExpression,
+  1,
+  0,
+] as ExpressionSpecification
+
+const selectedBuildingOutlineWidthExpression = [
+  'case',
+  selectedFeatureStateExpression,
+  3.25,
+  0,
+] as ExpressionSpecification
 
 export const combineMapFilters = (
   filters: (FilterSpecification | null | undefined | false)[]
@@ -208,6 +240,8 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
           'fill-color': '#7DAD46',
           'fill-opacity': 0.45,
         },
+        selectable: true,
+        hoverPointer: true,
       },
       {
         id: ENERGYMAP_BUILDING_POLYGONS_OUTLINE_LAYER_ID,
@@ -230,6 +264,30 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
         sourceId: ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
         sourceLayer: ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
       }),
+      {
+        id: ENERGYMAP_BUILDING_POLYGONS_SELECTED_FILL_LAYER_ID,
+        source: ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
+        'source-layer': ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
+        type: 'fill',
+        filter: ENERGYMAP_BUILDING_MATCH_ALL_FILTER,
+        paint: {
+          'fill-color': '#FFFFFF',
+          'fill-opacity': selectedBuildingFillOpacityExpression,
+        },
+      },
+      {
+        id: ENERGYMAP_BUILDING_POLYGONS_SELECTED_OUTLINE_LAYER_ID,
+        source: ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
+        'source-layer': ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
+        type: 'line',
+        minzoom: 11,
+        filter: ENERGYMAP_BUILDING_MATCH_ALL_FILTER,
+        paint: {
+          'line-color': '#111111',
+          'line-opacity': selectedBuildingOutlineOpacityExpression,
+          'line-width': selectedBuildingOutlineWidthExpression,
+        },
+      },
     ],
   }
 }

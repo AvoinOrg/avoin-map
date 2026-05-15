@@ -1,9 +1,24 @@
 import { ENERGYMAP_DEFAULT_SELECTED_CONSTRUCTION_DECADE } from '../layers/buildingPolygonsLayerConf'
+import type { EnergymapSelectedBuilding } from '../common/types'
 import { useAppletStore } from './appletStore'
+
+const selectedBuilding: EnergymapSelectedBuilding = {
+  id: '9da63bcd-bb54-447c-b991-8eec8f8c5666',
+  buildingKey: '9da63bcd-bb54-447c-b991-8eec8f8c5666',
+  source: 'energymap_building_polygons',
+  sourceLayer: 'energymap_building_polygons',
+  layerId: 'energymap_building_polygons-fill',
+  properties: {
+    building_key: '9da63bcd-bb54-447c-b991-8eec8f8c5666',
+    permanent_building_identifier: '101614422K',
+    main_purpose: '05',
+  },
+}
 
 describe('Energiakartta applet store building filters', () => {
   beforeEach(() => {
     useAppletStore.getState().resetBuildingFilters()
+    useAppletStore.getState().clearSelectedBuilding()
   })
 
   it('defaults to no selected construction decade with both switches off', () => {
@@ -14,6 +29,7 @@ describe('Energiakartta applet store building filters', () => {
     )
     expect(state.showBuildingsFromSelectedDecade).toBe(false)
     expect(state.showOnlySelectedDecade).toBe(false)
+    expect(state.selectedBuilding).toBeNull()
   })
 
   it('resets to no selected construction decade with both switches off', () => {
@@ -101,6 +117,43 @@ describe('Energiakartta applet store building filters', () => {
 
     const state = useAppletStore.getState()
 
+    expect(state.selectedConstructionDecade).toBe(
+      ENERGYMAP_DEFAULT_SELECTED_CONSTRUCTION_DECADE
+    )
+    expect(state.showBuildingsFromSelectedDecade).toBe(false)
+    expect(state.showOnlySelectedDecade).toBe(false)
+  })
+
+  it('stores and clears the selected building mirror without touching filters', () => {
+    useAppletStore.getState().setSelectedConstructionDecade(1970)
+    useAppletStore.getState().setShowBuildingsFromSelectedDecade(true)
+
+    useAppletStore.getState().setSelectedBuilding(selectedBuilding)
+
+    expect(useAppletStore.getState().selectedBuilding).toEqual(
+      selectedBuilding
+    )
+
+    useAppletStore.getState().clearSelectedBuilding()
+
+    const state = useAppletStore.getState()
+
+    expect(state.selectedBuilding).toBeNull()
+    expect(state.selectedConstructionDecade).toBe(1970)
+    expect(state.showBuildingsFromSelectedDecade).toBe(true)
+    expect(state.showOnlySelectedDecade).toBe(false)
+  })
+
+  it('keeps the selected building while resetting building filters', () => {
+    useAppletStore.getState().setSelectedConstructionDecade(1970)
+    useAppletStore.getState().setShowOnlySelectedDecade(true)
+    useAppletStore.getState().setSelectedBuilding(selectedBuilding)
+
+    useAppletStore.getState().resetBuildingFilters()
+
+    const state = useAppletStore.getState()
+
+    expect(state.selectedBuilding).toEqual(selectedBuilding)
     expect(state.selectedConstructionDecade).toBe(
       ENERGYMAP_DEFAULT_SELECTED_CONSTRUCTION_DECADE
     )

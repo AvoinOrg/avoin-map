@@ -19,6 +19,10 @@ import { SidebarContentBox } from '#/components/Sidebar'
 import EnergyCertificateClassControls from '../components/EnergyCertificateClassControls'
 import EnergyClassesAccordionContent from '../components/EnergyClassesAccordionContent'
 import {
+  areEnergymapSelectedBuildingsEqual,
+  toEnergymapSelectedBuilding,
+} from '../common/utils'
+import {
   ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID,
   ENERGYMAP_BUILDING_POLYGONS_LAYER_IDS,
   ENERGYMAP_SHARED_BUILDING_LAYER_IDS,
@@ -335,6 +339,7 @@ const Page = () => {
   const setLayoutProperty = useMapStore((state) => state.setLayoutProperty)
   const setPaintProperty = useMapStore((state) => state.setPaintProperty)
   const enableLayerGroup = useMapStore((state) => state.enableLayerGroup)
+  const selectedFeatures = useMapStore((state) => state.selectedFeatures)
   const isMobile = useIsMobile('desktop')
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
   const isSharedBuildingLayerGroupRegistered = useMapStore((state) =>
@@ -358,6 +363,13 @@ const Page = () => {
   )
   const activeEnergyCertificateClasses = useAppletStore(
     (state) => state.activeEnergyCertificateClasses
+  )
+  const selectedBuilding = useAppletStore((state) => state.selectedBuilding)
+  const setSelectedBuilding = useAppletStore(
+    (state) => state.setSelectedBuilding
+  )
+  const clearSelectedBuilding = useAppletStore(
+    (state) => state.clearSelectedBuilding
   )
   const visibleLayerGroupIds = useVisibleLayerGroupIds()
   const [heatingSwitchState, setHeatingSwitchState] = React.useState(
@@ -399,6 +411,13 @@ const Page = () => {
   const combinedHeatingFilter = React.useMemo(
     () => combineMapFilters([buildingFilter, heatingFilter]),
     [buildingFilter, heatingFilter]
+  )
+  const selectedEnergymapBuilding = React.useMemo(
+    () =>
+      selectedFeatures
+        .map(toEnergymapSelectedBuilding)
+        .find((building) => building != null) ?? null,
+    [selectedFeatures]
   )
   const isSharedBuildingLayerGroupVisible = visibleLayerGroupIds.includes(
     ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID
@@ -446,6 +465,29 @@ const Page = () => {
         [id]: event.target.checked,
       }))
     }
+
+  React.useEffect(() => {
+    if (
+      areEnergymapSelectedBuildingsEqual(
+        selectedBuilding,
+        selectedEnergymapBuilding
+      )
+    ) {
+      return
+    }
+
+    if (selectedEnergymapBuilding == null) {
+      clearSelectedBuilding()
+      return
+    }
+
+    setSelectedBuilding(selectedEnergymapBuilding)
+  }, [
+    clearSelectedBuilding,
+    selectedBuilding,
+    selectedEnergymapBuilding,
+    setSelectedBuilding,
+  ])
 
   React.useEffect(() => {
     if (!isSharedBuildingLayerGroupRegistered) {
