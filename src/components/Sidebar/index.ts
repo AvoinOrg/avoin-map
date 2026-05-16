@@ -1,4 +1,23 @@
 export { Sidebar } from './Sidebar'
+export { SidebarRoot } from './SidebarRoot'
+export { HomeSidebar } from './HomeSidebar'
+export { FloatingSidebar } from './FloatingSidebar'
+export { PanelSidebar } from './PanelSidebar'
+export {
+  resolveSidebarRootFallback,
+} from './sidebarRootFallback'
+export type {
+  ResolveSidebarRootFallbackInput,
+  SidebarRootFallbackKind,
+} from './sidebarRootFallback'
+export type { HomeSidebarProps } from './HomeSidebar'
+export type {
+  FloatingSidebarFooterMode,
+  FloatingSidebarHeaderMode,
+  FloatingSidebarProps,
+  FloatingSidebarWidth,
+} from './FloatingSidebar'
+export type { PanelSidebarProps } from './PanelSidebar'
 export { SidebarBoundary } from './SidebarBoundary'
 export type { SidebarBoundaryProps } from './SidebarBoundary'
 export {
