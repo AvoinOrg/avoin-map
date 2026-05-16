@@ -8,6 +8,7 @@ export type SidebarSlotName =
   | 'header'
   | 'footer'
   | 'actionRail'
+  | 'floatingTrailing'
   | 'headerChildren'
 
 export type SidebarWidthToken = 'default' | 'compact' | 'wide'
@@ -22,6 +23,10 @@ export type SidebarMobileStackPlacement = 'before' | 'after'
 
 export type SidebarActionRailPlacement = 'inside' | 'outside'
 
+export type SidebarFloatingContentMode = 'default' | 'fullscreenPanel'
+
+export type SidebarFloatingTogglePlacement = 'default' | 'bottomActionRow'
+
 export type SidebarNoneConfig = Record<string, never>
 
 export type SidebarHomeConfig = {
@@ -32,6 +37,8 @@ export type SidebarHomeConfig = {
 export type SidebarFloatingConfig = SidebarHomeConfig & {
   mobileMode?: SidebarMobileMode
   actionRailPlacement?: SidebarActionRailPlacement
+  floatingContentMode?: SidebarFloatingContentMode
+  floatingTogglePlacement?: SidebarFloatingTogglePlacement
 }
 
 export type SidebarPanelConfig = SidebarHomeConfig & {
@@ -63,6 +70,8 @@ export type SidebarRuntimeOptions = {
   visiblePanels?: SidebarPanelId[]
   mainPanelVisible?: boolean
   actionRailPlacement?: SidebarActionRailPlacement
+  floatingContentMode?: SidebarFloatingContentMode
+  floatingTogglePlacement?: SidebarFloatingTogglePlacement
 }
 
 export type SidebarRuntimeOptionsPatch = Partial<SidebarRuntimeOptions>

@@ -57,7 +57,15 @@ export const useSlotContent = (name: SlotKey): boolean => {
 }
 
 /** Host-side: place this where content should land */
-export const Slot = ({ name }: { name: SlotKey }) => {
+export const Slot = ({
+  name,
+  className,
+  style,
+}: {
+  name: SlotKey
+  className?: string
+  style?: React.CSSProperties
+}) => {
   const context = useContext(SlotsContext)
   if (!context) throw new Error('Wrap your app with <SlotsProvider>')
   const { slots, bumpRevision } = context
@@ -83,7 +91,7 @@ export const Slot = ({ name }: { name: SlotKey }) => {
     [bumpRevision, slots, name]
   )
 
-  return <div ref={setRef} />
+  return <div ref={setRef} className={className} style={style} />
 }
 
 /** Consumer-side: portal children into a named slot, if/when it exists */

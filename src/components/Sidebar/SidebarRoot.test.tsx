@@ -11,6 +11,7 @@ import { SidebarRoot } from './SidebarRoot'
 import type { ResolveSidebarRootFallbackInput } from './sidebarRootFallback'
 import {
   IntoSidebarActionRailSlot,
+  IntoSidebarFloatingTrailingSlot,
   IntoSidebarHeaderChildrenSlot,
   IntoSidebarPanelSlot,
 } from './sidebarSlots'
@@ -173,6 +174,75 @@ describe('SidebarRoot', () => {
 
     expect(screen.getByText('Stable child')).toBeInTheDocument()
     expect(mountCount).toBe(1)
+  })
+
+  it('hosts scoped floating compatibility slots without remounting on runtime option changes', async () => {
+    let mountCount = 0
+
+    const Child = () => {
+      useEffect(() => {
+        mountCount += 1
+      }, [])
+
+      return (
+        <>
+          <IntoSidebarFloatingTrailingSlot>
+            <div>Scoped floating trailing</div>
+          </IntoSidebarFloatingTrailingSlot>
+          <IntoSidebarActionRailSlot>
+            <button type="button">Scoped floating action</button>
+          </IntoSidebarActionRailSlot>
+          <div>Stable floating child</div>
+        </>
+      )
+    }
+
+    renderRoot({
+      children: (
+        <SidebarBoundary
+          id="energiakartta-floating"
+          mode="floating"
+          config={{ width: 'compact' }}
+          initialRuntimeOptions={{
+            mainPanelVisible: true,
+            chrome: 'visible',
+            floatingContentMode: 'default',
+            floatingTogglePlacement: 'default',
+          }}
+        >
+          <Child />
+        </SidebarBoundary>
+      ),
+      fallback: {
+        ...fallbackContext,
+        pathnameWithoutLocale: '/energiakartta',
+      },
+    })
+
+    expect(await screen.findByText('Stable floating child')).toBeInTheDocument()
+    expect(screen.getByText('Scoped floating trailing')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Scoped floating action' })
+    ).toBeInTheDocument()
+    const mountCountAfterActivation = mountCount
+
+    act(() => {
+      useUIStore
+        .getState()
+        .setSidebarBoundaryRuntimeOptions('energiakartta-floating', {
+          mainPanelVisible: false,
+          chrome: 'hidden',
+          floatingContentMode: 'fullscreenPanel',
+          floatingTogglePlacement: 'bottomActionRow',
+        })
+    })
+
+    expect(screen.getByText('Stable floating child')).toBeInTheDocument()
+    expect(screen.getByText('Scoped floating trailing')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Scoped floating action' })
+    ).toBeInTheDocument()
+    expect(mountCount).toBe(mountCountAfterActivation)
   })
 
   it('hosts scoped panel slots, header children, and a closed panel action rail', async () => {

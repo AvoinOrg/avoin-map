@@ -62,6 +62,18 @@ export const SidebarActionRailSlot = ({
   boundaryId: SidebarBoundaryId
 }) => <SidebarSlotHost boundaryId={boundaryId} slot="actionRail" />
 
+// TODO F026.6: remove after Energiakartta building info moves to PanelSidebar slots.
+export const SidebarFloatingTrailingSlot = ({
+  boundaryId,
+}: {
+  boundaryId: SidebarBoundaryId
+}) => (
+  <Slot
+    name={getSidebarSlotKey({ boundaryId, slot: 'floatingTrailing' })}
+    style={{ display: 'contents' }}
+  />
+)
+
 export const SidebarPanelSlot = ({
   boundaryId,
   panelId,
@@ -114,6 +126,16 @@ export const IntoSidebarActionRailSlot = ({
   children: React.ReactNode
 }) => (
   <IntoSidebarNamedSlot slot="actionRail">{children}</IntoSidebarNamedSlot>
+)
+
+export const IntoSidebarFloatingTrailingSlot = ({
+  children,
+}: {
+  children: React.ReactNode
+}) => (
+  <IntoSidebarNamedSlot slot="floatingTrailing">
+    {children}
+  </IntoSidebarNamedSlot>
 )
 
 export const IntoSidebarPanelSlot = ({

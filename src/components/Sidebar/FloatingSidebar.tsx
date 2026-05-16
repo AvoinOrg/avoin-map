@@ -16,6 +16,7 @@ import SidebarScaffold from './SidebarScaffold'
 import {
   SidebarActionRailSlot,
   SidebarFooterSlot,
+  SidebarFloatingTrailingSlot,
   SidebarHeaderChildrenSlot,
   SidebarHeaderSlot,
 } from './sidebarSlots'
@@ -24,6 +25,12 @@ import SidebarToggleButton from './SidebarToggleButton'
 export type FloatingSidebarWidth = 'default' | 'compact'
 export type FloatingSidebarHeaderMode = 'auto' | 'default' | 'custom' | 'none'
 export type FloatingSidebarFooterMode = 'none' | 'slot'
+export type FloatingSidebarContentMode = 'default' | 'fullscreenPanel'
+export type FloatingSidebarTogglePlacement = 'default' | 'bottomActionRow'
+
+const FLOATING_BOTTOM_ACTION_ROW_TOGGLE_RIGHT = '35px'
+const FLOATING_BOTTOM_ACTION_ROW_BOTTOM =
+  'calc(env(safe-area-inset-bottom, 0px) + 26px)'
 
 export type FloatingSidebarProps = {
   sx?: SxProps<Theme>
@@ -37,6 +44,8 @@ export type FloatingSidebarProps = {
   headerMode?: FloatingSidebarHeaderMode
   footerMode?: FloatingSidebarFooterMode
   chromeHidden?: boolean
+  contentMode?: FloatingSidebarContentMode
+  togglePlacement?: FloatingSidebarTogglePlacement
   children: React.ReactNode
 }
 
@@ -73,6 +82,8 @@ export const FloatingSidebar = ({
   headerMode = 'auto',
   footerMode = 'none',
   chromeHidden = false,
+  contentMode = 'default',
+  togglePlacement = 'default',
   children,
 }: FloatingSidebarProps) => {
   const floatingGutter = `${HIILIKARTTA_HOME_FLOATING_GUTTER_PX}px`
@@ -121,6 +132,15 @@ export const FloatingSidebar = ({
     ) : (
       actionRail
     )
+  const resolvedTrailingContent =
+    boundaryId != null ? (
+      <>
+        <SidebarFloatingTrailingSlot boundaryId={boundaryId} />
+        {trailingContent}
+      </>
+    ) : (
+      trailingContent
+    )
 
   return (
     <>
@@ -132,6 +152,19 @@ export const FloatingSidebar = ({
                 bottom: { mobile: '1rem', desktop: toggleGutter },
               }
             : undefined,
+          togglePlacement === 'bottomActionRow'
+            ? (theme: Theme) => ({
+                right: {
+                  mobile: FLOATING_BOTTOM_ACTION_ROW_TOGGLE_RIGHT,
+                  desktop: FLOATING_BOTTOM_ACTION_ROW_TOGGLE_RIGHT,
+                },
+                bottom: {
+                  mobile: FLOATING_BOTTOM_ACTION_ROW_BOTTOM,
+                  desktop: FLOATING_BOTTOM_ACTION_ROW_BOTTOM,
+                },
+                zIndex: theme.zIndex.drawer + 12,
+              })
+            : undefined,
           ...(Array.isArray(sidebarToggleSx)
             ? sidebarToggleSx
             : [sidebarToggleSx]),
@@ -140,10 +173,19 @@ export const FloatingSidebar = ({
       <SidebarScaffold
         topContent={topContent}
         bottomContent={bottomContent}
-        trailingContent={trailingContent}
+        trailingContent={resolvedTrailingContent}
         actionRail={resolvedActionRail}
         hideMainContainer={hideMainContainer}
-        contentSx={contentSx}
+        contentSx={[
+          contentMode === 'fullscreenPanel'
+            ? {
+                overflow: 'hidden',
+                minHeight: 0,
+                backgroundColor: '#f9f9f9',
+              }
+            : undefined,
+          ...(Array.isArray(contentSx) ? contentSx : [contentSx]),
+        ]}
         containerSx={[
           width === 'compact'
             ? {

@@ -14,7 +14,9 @@ export type { HomeSidebarProps } from './HomeSidebar'
 export type {
   FloatingSidebarFooterMode,
   FloatingSidebarHeaderMode,
+  FloatingSidebarContentMode,
   FloatingSidebarProps,
+  FloatingSidebarTogglePlacement,
   FloatingSidebarWidth,
 } from './FloatingSidebar'
 export type { PanelSidebarProps } from './PanelSidebar'
@@ -35,11 +37,13 @@ export {
   SidebarHeaderSlot,
   SidebarHeaderChildrenSlot,
   SidebarFooterSlot,
+  SidebarFloatingTrailingSlot,
   SidebarActionRailSlot,
   SidebarPanelSlot,
   IntoSidebarHeaderSlot,
   IntoSidebarHeaderChildrenSlot,
   IntoSidebarFooterSlot,
+  IntoSidebarFloatingTrailingSlot,
   IntoSidebarActionRailSlot,
   IntoSidebarPanelSlot,
 } from './sidebarSlots'
@@ -58,6 +62,8 @@ export type {
   SidebarBoundaryUpdate,
   SidebarChromeToken,
   SidebarFloatingConfig,
+  SidebarFloatingContentMode,
+  SidebarFloatingTogglePlacement,
   SidebarHomeConfig,
   SidebarMode,
   SidebarMobileMode,

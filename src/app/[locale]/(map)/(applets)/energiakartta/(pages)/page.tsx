@@ -16,12 +16,18 @@ import {
 import SquishedSwitchWithLabel from '#/components/common/SquishedSwitchWithLabel'
 import TText from '#/components/common/TText'
 import { IntoSlot } from '#/components/context/slotsContext'
-import { AppletHomeSidebar, SidebarContentBox } from '#/components/Sidebar'
+import {
+  IntoSidebarActionRailSlot,
+  IntoSidebarFloatingTrailingSlot,
+  IntoSidebarFooterSlot,
+  IntoSidebarHeaderSlot,
+  SidebarContentBox,
+  useSidebarBoundaryRuntimeOptions,
+} from '#/components/Sidebar'
+import type { SidebarRuntimeOptions } from '#/components/Sidebar'
 import EnergyCertificateClassControls from '../components/EnergyCertificateClassControls'
 import EnergyClassesAccordionContent from '../components/EnergyClassesAccordionContent'
 import {
-  BUILDING_INFO_MOBILE_ACTION_BOTTOM_OFFSET,
-  BUILDING_INFO_MOBILE_TOGGLE_RIGHT_OFFSET,
   BuildingInfoActionRail,
   BuildingInfoDesktopSidebar,
   BuildingInfoMobileActionRow,
@@ -738,46 +744,47 @@ const Page = () => {
       onModeChange={handleBuildingInfoModeChange}
     />
   ) : null
+  const sidebarRuntimeOptions = React.useMemo<SidebarRuntimeOptions>(
+    () => ({
+      mainPanelVisible: !isDesktopBuildingInfoExpanded,
+      chrome: isMobileBuildingInfoExpanded ? 'hidden' : 'visible',
+      floatingContentMode: isMobileBuildingInfoExpanded
+        ? 'fullscreenPanel'
+        : 'default',
+      floatingTogglePlacement: hasMobileBuildingInfo
+        ? 'bottomActionRow'
+        : 'default',
+    }),
+    [
+      hasMobileBuildingInfo,
+      isDesktopBuildingInfoExpanded,
+      isMobileBuildingInfoExpanded,
+    ]
+  )
+
+  useSidebarBoundaryRuntimeOptions(sidebarRuntimeOptions)
 
   return (
-    <AppletHomeSidebar
-      sidebarToggleSx={
-        hasMobileBuildingInfo
-          ? (theme) => ({
-              right: {
-                mobile: BUILDING_INFO_MOBILE_TOGGLE_RIGHT_OFFSET,
-                desktop: BUILDING_INFO_MOBILE_TOGGLE_RIGHT_OFFSET,
-              },
-              bottom: {
-                mobile: BUILDING_INFO_MOBILE_ACTION_BOTTOM_OFFSET,
-                desktop: BUILDING_INFO_MOBILE_ACTION_BOTTOM_OFFSET,
-              },
-              zIndex: theme.zIndex.drawer + 12,
-            })
-          : undefined
-      }
-      hideMainContainer={isDesktopBuildingInfoExpanded}
-      trailingContent={buildingInfoTrailingContent}
-      actionRail={buildingInfoActionRail}
-      contentSx={
-        isMobileBuildingInfoExpanded
-          ? {
-              overflow: 'hidden',
-              minHeight: 0,
-              backgroundColor: '#f9f9f9',
-            }
-          : undefined
-      }
-    >
+    <>
       {shouldShowHomeSidebarChrome && (
-        <IntoSlot name="sidebar-header">
+        <IntoSidebarHeaderSlot>
           <HomeSidebarHeader />
-        </IntoSlot>
+        </IntoSidebarHeaderSlot>
       )}
       {shouldShowHomeSidebarChrome && (
-        <IntoSlot name="sidebar-footer">
+        <IntoSidebarFooterSlot>
           <SidebarFooterAction tooltip={upcomingTooltip} label={footerLabel} />
-        </IntoSlot>
+        </IntoSidebarFooterSlot>
+      )}
+      {buildingInfoTrailingContent != null && (
+        <IntoSidebarFloatingTrailingSlot>
+          {buildingInfoTrailingContent}
+        </IntoSidebarFloatingTrailingSlot>
+      )}
+      {buildingInfoActionRail != null && (
+        <IntoSidebarActionRailSlot>
+          {buildingInfoActionRail}
+        </IntoSidebarActionRailSlot>
       )}
       {shouldShowMobileEnergyCertificateControls && (
         <IntoSlot name={MAP_BOTTOM_LEFT_FLOATING_CONTROLS_SLOT}>
@@ -921,7 +928,7 @@ const Page = () => {
           </Box>
         </SidebarContentBox>
       )}
-    </AppletHomeSidebar>
+    </>
   )
 }
 
