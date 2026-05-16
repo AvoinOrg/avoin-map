@@ -759,6 +759,15 @@ const Page = () => {
       hideMainContainer={isDesktopBuildingInfoExpanded}
       trailingContent={buildingInfoTrailingContent}
       actionRail={buildingInfoActionRail}
+      contentSx={
+        isMobileBuildingInfoExpanded
+          ? {
+              overflow: 'hidden',
+              minHeight: 0,
+              backgroundColor: '#f9f9f9',
+            }
+          : undefined
+      }
     >
       {shouldShowHomeSidebarChrome && (
         <IntoSlot name="sidebar-header">

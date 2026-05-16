@@ -9,11 +9,14 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
+import ConstructionIcon from '@mui/icons-material/Construction'
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft'
+import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 
 import TText from '#/components/common/TText'
 import { Cross } from '#/components/icons'
 import type {
+  EnergymapEnergyMeasure,
   EnergymapBuildingInfoMetric,
   EnergymapBuildingInfoMetricValue,
   EnergymapBuildingInfoNote,
@@ -106,6 +109,78 @@ const PANEL_CONTENT_WIDTHS: Record<EnergymapBuildingInfoPanelId, string> = {
   buildingDetails: '16.25rem',
 }
 
+const SIDEBAR_ASSET_BASE = '/files/img/energiakartta/sidebar'
+
+const BUILDING_INFO_ASSETS = {
+  energyLightning: `${SIDEBAR_ASSET_BASE}/building-info-energy-lightning.svg`,
+  renovationIconCenter: `${SIDEBAR_ASSET_BASE}/building-info-renovation-icon-center.svg`,
+  renovationIconArcLower: `${SIDEBAR_ASSET_BASE}/building-info-renovation-icon-arc-lower.svg`,
+  renovationIconArcUpper: `${SIDEBAR_ASSET_BASE}/building-info-renovation-icon-arc-upper.svg`,
+  renovationBuilding: `${SIDEBAR_ASSET_BASE}/building-info-renovation-building.svg`,
+  renovationBuildingSmallA: `${SIDEBAR_ASSET_BASE}/building-info-renovation-building-small-a.svg`,
+  renovationBuildingSmallB: `${SIDEBAR_ASSET_BASE}/building-info-renovation-building-small-b.svg`,
+  warningBase: `${SIDEBAR_ASSET_BASE}/building-info-warning-base.svg`,
+  warningLine: `${SIDEBAR_ASSET_BASE}/building-info-warning-line.svg`,
+  warningDot: `${SIDEBAR_ASSET_BASE}/building-info-warning-dot.svg`,
+} as const
+
+const BUILDING_INFO_GRAPHIC_DIMENSIONS = {
+  renovationBuilding: {
+    width: 238.82421875,
+    height: 300.0000305175781,
+  },
+  renovationBuildingSmallA: {
+    width: 109.861328125,
+    height: 138.0028076171875,
+  },
+  renovationBuildingSmallB: {
+    width: 114.9908218383789,
+    height: 138.00025939941406,
+  },
+} as const
+
+type BuildingInfoGraphicDimensions =
+  (typeof BUILDING_INFO_GRAPHIC_DIMENSIONS)[
+    keyof typeof BUILDING_INFO_GRAPHIC_DIMENSIONS
+  ]
+
+const BUILDING_INFO_SCROLL_OPTIONS = {
+  overflow: { x: 'hidden', y: 'scroll' },
+  scrollbars: {
+    theme: 'os-theme-dark',
+    visibility: 'auto',
+    autoHide: 'scroll',
+    autoHideDelay: 600,
+  },
+} as const
+
+const RENOVATION_SCENARIO_GRAPHICS: Partial<
+  Record<
+    EnergymapEnergyMeasure,
+    {
+      src: string
+      dimensions: BuildingInfoGraphicDimensions
+      testId: string
+    }
+  >
+> = {
+  aahp: {
+    src: BUILDING_INFO_ASSETS.renovationBuildingSmallA,
+    dimensions: BUILDING_INFO_GRAPHIC_DIMENSIONS.renovationBuildingSmallA,
+    testId: 'building-info-graphic-renovation-building-small-a',
+  },
+  solar: {
+    src: BUILDING_INFO_ASSETS.renovationBuildingSmallB,
+    dimensions: BUILDING_INFO_GRAPHIC_DIMENSIONS.renovationBuildingSmallB,
+    testId: 'building-info-graphic-renovation-building-small-b',
+  },
+  windows: {
+    src: BUILDING_INFO_ASSETS.renovationBuildingSmallA,
+    dimensions: BUILDING_INFO_GRAPHIC_DIMENSIONS.renovationBuildingSmallA,
+    testId: 'building-info-graphic-renovation-building-small-a',
+  },
+}
+
 export const BUILDING_INFO_MOBILE_ACTION_BOTTOM_OFFSET =
   'calc(env(safe-area-inset-bottom, 0px) + 26px)'
 export const BUILDING_INFO_MOBILE_TOGGLE_RIGHT_OFFSET = '35px'
@@ -158,6 +233,237 @@ const getSourcePropertiesData = (sourceProperties?: string[]) =>
     ? undefined
     : sourceProperties.join(',')
 
+const isUnavailableValueStatus = (
+  status: EnergymapBuildingInfoValueStatus
+) => status === 'missing' || status === 'placeholder'
+
+const VISUALLY_HIDDEN_STYLE: React.CSSProperties = {
+  position: 'absolute',
+  width: 1,
+  height: 1,
+  padding: 0,
+  margin: -1,
+  overflow: 'hidden',
+  clip: 'rect(0, 0, 0, 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
+}
+
+const isPlainEnergyClassText = (text: EnergymapBuildingInfoText) =>
+  text.type === 'plain' && /^[A-G]$/i.test(text.text.trim())
+
+const BuildingInfoScrollArea = ({
+  children,
+  testId,
+  sx,
+}: {
+  children: React.ReactNode
+  testId: string
+  sx?: SxProps<Theme>
+}) => (
+  <Box
+    sx={[
+      {
+        position: 'relative',
+        height: '100%',
+        minHeight: 0,
+        width: '100%',
+        minWidth: 0,
+      },
+      ...(Array.isArray(sx) ? sx : [sx]),
+    ]}
+  >
+    <OverlayScrollbarsComponent
+      className="osScroll"
+      data-testid={testId}
+      options={BUILDING_INFO_SCROLL_OPTIONS}
+      style={{
+        height: '100%',
+        minHeight: 0,
+        width: '100%',
+      }}
+    >
+      {children}
+    </OverlayScrollbarsComponent>
+  </Box>
+)
+
+const BuildingInfoDecorativeImage = ({
+  src,
+  width,
+  height,
+  sx,
+}: {
+  src: string
+  width: string
+  height: string
+  sx?: SxProps<Theme>
+}) => (
+  <Box
+    component="img"
+    src={src}
+    alt=""
+    aria-hidden="true"
+    sx={[
+      {
+        display: 'block',
+        width,
+        height,
+        flexShrink: 0,
+      },
+      ...(Array.isArray(sx) ? sx : [sx]),
+    ]}
+  />
+)
+
+const getFigmaDimensionData = (dimension: number) =>
+  Number(dimension.toFixed(3)).toString()
+
+const getFigmaDimensionCss = (dimension: number) =>
+  `${getFigmaDimensionData(dimension)}px`
+
+const BuildingInfoFigmaGraphic = ({
+  src,
+  dimensions,
+  maxWidth = '100%',
+  testId,
+  sx,
+}: {
+  src: string
+  dimensions: BuildingInfoGraphicDimensions
+  maxWidth?: string
+  testId: string
+  sx?: SxProps<Theme>
+}) => (
+  <Box
+    aria-hidden="true"
+    data-testid={testId}
+    data-figma-width={getFigmaDimensionData(dimensions.width)}
+    data-figma-height={getFigmaDimensionData(dimensions.height)}
+    sx={[
+      {
+        position: 'relative',
+        display: 'block',
+        width: `min(${getFigmaDimensionCss(dimensions.width)}, ${maxWidth})`,
+        aspectRatio: `${dimensions.width} / ${dimensions.height}`,
+        flexShrink: 0,
+      },
+      ...(Array.isArray(sx) ? sx : [sx]),
+    ]}
+  >
+    <Box
+      component="img"
+      src={src}
+      alt=""
+      aria-hidden="true"
+      sx={{
+        position: 'absolute',
+        inset: 0,
+        display: 'block',
+        width: '100%',
+        height: '100%',
+      }}
+    />
+  </Box>
+)
+
+const RenovationIcon = ({
+  width = '32px',
+  height = '26px',
+  sx,
+}: {
+  width?: string
+  height?: string
+  sx?: SxProps<Theme>
+}) => (
+  <Box
+    aria-hidden="true"
+    sx={[
+      {
+        position: 'relative',
+        width,
+        height,
+        flexShrink: 0,
+      },
+      ...(Array.isArray(sx) ? sx : [sx]),
+    ]}
+  >
+    <BuildingInfoDecorativeImage
+      src={BUILDING_INFO_ASSETS.renovationIconCenter}
+      width="33.55%"
+      height="61.23%"
+      sx={{
+        position: 'absolute',
+        top: '19.4%',
+        left: '34.84%',
+      }}
+    />
+    <BuildingInfoDecorativeImage
+      src={BUILDING_INFO_ASSETS.renovationIconArcLower}
+      width="90.32%"
+      height="44%"
+      sx={{
+        position: 'absolute',
+        left: 0,
+        bottom: 0,
+      }}
+    />
+    <BuildingInfoDecorativeImage
+      src={BUILDING_INFO_ASSETS.renovationIconArcUpper}
+      width="90.32%"
+      height="44%"
+      sx={{
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        transform: 'rotate(180deg)',
+      }}
+    />
+  </Box>
+)
+
+const WarningIcon = () => (
+  <Box
+    aria-hidden="true"
+    sx={{
+      position: 'relative',
+      width: '14.04px',
+      height: '12.96px',
+      flex: '0 0 auto',
+      mt: '0.125rem',
+    }}
+  >
+    <BuildingInfoDecorativeImage
+      src={BUILDING_INFO_ASSETS.warningBase}
+      width="100%"
+      height="100%"
+      sx={{ position: 'absolute', inset: 0 }}
+    />
+    <BuildingInfoDecorativeImage
+      src={BUILDING_INFO_ASSETS.warningLine}
+      width="1px"
+      height="6px"
+      sx={{
+        position: 'absolute',
+        top: '30.54%',
+        left: '50%',
+        transform: 'translateX(-50%)',
+      }}
+    />
+    <BuildingInfoDecorativeImage
+      src={BUILDING_INFO_ASSETS.warningDot}
+      width="1px"
+      height="1px"
+      sx={{
+        position: 'absolute',
+        left: '50%',
+        bottom: '11.57%',
+        transform: 'translateX(-50%)',
+      }}
+    />
+  </Box>
+)
+
 export const BuildingInfoText = ({
   text,
 }: {
@@ -192,10 +498,18 @@ export const BuildingInfoText = ({
 const BuildingInfoValueText = ({
   value,
   align = 'right',
+  variant = 'default',
 }: {
   value: EnergymapBuildingInfoValue
   align?: 'left' | 'right'
+  variant?: 'default' | 'energyClassBadge'
 }) => {
+  const isUnavailable = isUnavailableValueStatus(value.status)
+  const shouldRenderEnergyClassBadge =
+    variant === 'energyClassBadge' &&
+    value.status === 'real' &&
+    isPlainEnergyClassText(value.text)
+
   return (
     <Box
       component="span"
@@ -204,7 +518,7 @@ const BuildingInfoValueText = ({
       sx={{
         display: 'inline-flex',
         flexWrap: 'wrap',
-        alignItems: 'baseline',
+        alignItems: shouldRenderEnergyClassBadge ? 'center' : 'baseline',
         justifyContent: align === 'right' ? 'flex-end' : 'flex-start',
         gap: '0.25rem',
         minWidth: 0,
@@ -213,9 +527,83 @@ const BuildingInfoValueText = ({
         textAlign: align,
         wordBreak: 'break-word',
         ...STATUS_SX[value.status],
+        ...(isUnavailable && {
+          alignItems: 'center',
+          color: '#5f5f5f',
+          fontStyle: 'normal',
+          textDecoration: 'none',
+        }),
       }}
     >
-      <BuildingInfoText text={value.text} />
+      {isUnavailable ? (
+        <Tooltip
+          title={
+            <Box component="span">
+              <BuildingInfoText text={value.text} />
+            </Box>
+          }
+          arrow
+          enterTouchDelay={0}
+          leaveTouchDelay={5000}
+          placement="top"
+        >
+          <Box
+            component="span"
+            tabIndex={0}
+            sx={{
+              position: 'relative',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '1.25rem',
+              height: '1.25rem',
+              borderRadius: '50%',
+              color: '#5f5f5f',
+              cursor: 'help',
+              outline: 'none',
+              '&:focus-visible': {
+                outline: '2px solid #111111',
+                outlineOffset: '2px',
+              },
+            }}
+          >
+            <ConstructionIcon
+              data-testid="building-info-unavailable-value-icon"
+              aria-hidden="true"
+              sx={{ fontSize: '1rem' }}
+            />
+            <Box
+              component="span"
+              data-testid="building-info-unavailable-value-reason"
+              style={VISUALLY_HIDDEN_STYLE}
+            >
+              <BuildingInfoText text={value.text} />
+            </Box>
+          </Box>
+        </Tooltip>
+      ) : shouldRenderEnergyClassBadge ? (
+        <Box
+          component="span"
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '1.625rem',
+            height: '1.625rem',
+            borderRadius: '50%',
+            border: '1.2px solid #8bd600',
+            backgroundColor: '#f4ffe6',
+            color: '#111111',
+            fontSize: '0.75rem',
+            lineHeight: 1,
+            letterSpacing: '0.1em',
+          }}
+        >
+          <BuildingInfoText text={value.text} />
+        </Box>
+      ) : (
+        <BuildingInfoText text={value.text} />
+      )}
       {value.unitKey != null && (
         <Box
           component="span"
@@ -239,20 +627,40 @@ const BuildingInfoNoteText = ({
     EnergymapBuildingInfoNote,
     'text' | 'status' | 'sourceProperties'
   >
-}) => (
-  <Typography
-    data-status={note.status}
-    data-source-properties={getSourcePropertiesData(note.sourceProperties)}
-    sx={{
-      mt: '0.5rem',
-      ...textSx,
-      maxWidth: '100%',
-      ...STATUS_SX[note.status],
-    }}
-  >
-    <BuildingInfoText text={note.text} />
-  </Typography>
-)
+}) => {
+  const showWarningIcon = note.status === 'placeholder'
+
+  return (
+    <Box
+      data-status={note.status}
+      data-source-properties={getSourcePropertiesData(note.sourceProperties)}
+      sx={{
+        mt: '0.5rem',
+        display: showWarningIcon ? 'flex' : 'block',
+        alignItems: 'flex-start',
+        gap: '0.5625rem',
+        maxWidth: '100%',
+        ...STATUS_SX[note.status],
+      }}
+    >
+      {showWarningIcon && <WarningIcon />}
+      <Typography
+        sx={{
+          ...textSx,
+          maxWidth: '100%',
+          ...STATUS_SX[note.status],
+          ...(showWarningIcon && {
+            color: '#111111',
+            fontStyle: 'normal',
+            textDecoration: 'none',
+          }),
+        }}
+      >
+        <BuildingInfoText text={note.text} />
+      </Typography>
+    </Box>
+  )
+}
 
 const BuildingInfoRow = ({ row }: { row: EnergymapBuildingInfoRow }) => (
   <Box
@@ -281,7 +689,10 @@ const BuildingInfoRow = ({ row }: { row: EnergymapBuildingInfoRow }) => (
         textAlign: 'right',
       }}
     >
-      <BuildingInfoValueText value={row} />
+      <BuildingInfoValueText
+        value={row}
+        variant={row.id === 'energyClass' ? 'energyClassBadge' : 'default'}
+      />
       {row.note != null && (
         <BuildingInfoNoteText
           note={{
@@ -376,6 +787,7 @@ const BuildingInfoScenarioBlock = ({
   const remainingValues = scenario.values.filter(
     (value) => value.id !== 'savingsPercent'
   )
+  const graphic = RENOVATION_SCENARIO_GRAPHICS[scenario.id]
 
   return (
     <Box
@@ -394,15 +806,17 @@ const BuildingInfoScenarioBlock = ({
           gap: '1rem',
         }}
       >
-        <Typography
-          sx={{
-            ...textSx,
-            color: '#111111',
-            fontWeight: 700,
-          }}
-        >
-          <BuildingInfoText text={scenario.label} />
-        </Typography>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography
+            sx={{
+              ...textSx,
+              color: '#111111',
+              fontWeight: 700,
+            }}
+          >
+            <BuildingInfoText text={scenario.label} />
+          </Typography>
+        </Box>
         {savingsValue != null && (
           <Box
             sx={{
@@ -419,10 +833,32 @@ const BuildingInfoScenarioBlock = ({
           </Box>
         )}
       </Box>
-      <Box sx={{ mt: '1rem' }}>
-        {remainingValues.map((value) => (
-          <BuildingInfoMetricValueRow key={value.id} value={value} />
-        ))}
+      <Box
+        sx={{
+          mt: '1rem',
+          display: 'flex',
+          flexDirection: { mobile: 'column', desktop: 'row' },
+          alignItems: { mobile: 'stretch', desktop: 'flex-start' },
+          gap: { mobile: '1rem', desktop: '1.25rem' },
+        }}
+      >
+        <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>
+          {remainingValues.map((value) => (
+            <BuildingInfoMetricValueRow key={value.id} value={value} />
+          ))}
+        </Box>
+        {graphic != null && (
+          <BuildingInfoFigmaGraphic
+            src={graphic.src}
+            dimensions={graphic.dimensions}
+            maxWidth="38vw"
+            testId={graphic.testId}
+            sx={{
+              alignSelf: { mobile: 'center', desktop: 'flex-start' },
+              mt: { mobile: '0.25rem', desktop: '-2.5rem' },
+            }}
+          />
+        )}
       </Box>
     </Box>
   )
@@ -434,52 +870,65 @@ const BuildingInfoSectionBlock = ({
 }: {
   section: EnergymapBuildingInfoSection
   accentColor: string
-}) => (
-  <Box
-    data-section-id={section.id}
-    sx={{
-      mt: '2.25rem',
-    }}
-  >
-    {section.title != null && (
-      <Typography
-        sx={{
-          ...textSx,
-          mb: '1rem',
-          color: accentColor,
-          textTransform: 'uppercase',
-        }}
-      >
-        <BuildingInfoText text={section.title} />
-      </Typography>
-    )}
-    {section.description != null && (
-      <Typography
-        sx={{
-          ...textSx,
-          mb: '1.25rem',
-          color: '#111111',
-        }}
-      >
-        <BuildingInfoText text={section.description} />
-      </Typography>
-    )}
-    {section.rows?.map((row) => <BuildingInfoRow key={row.id} row={row} />)}
-    {section.metrics?.map((metric) => (
-      <BuildingInfoMetricBlock
-        key={metric.id}
-        metric={metric}
-        accentColor={accentColor}
-      />
-    ))}
-    {section.scenarios?.map((scenario) => (
-      <BuildingInfoScenarioBlock key={scenario.id} scenario={scenario} />
-    ))}
-    {section.notes?.map((note) => (
-      <BuildingInfoNoteText key={note.id} note={note} />
-    ))}
-  </Box>
-)
+}) => {
+  const showComparisonIcon = section.id === 'scenarioComparison'
+
+  return (
+    <Box
+      data-section-id={section.id}
+      sx={{
+        mt: '2.25rem',
+      }}
+    >
+      {showComparisonIcon && (
+        <RenovationIcon
+          width="31px"
+          height="25px"
+          sx={{
+            mb: '2.125rem',
+          }}
+        />
+      )}
+      {section.title != null && (
+        <Typography
+          sx={{
+            ...textSx,
+            mb: '1rem',
+            color: accentColor,
+            textTransform: 'uppercase',
+          }}
+        >
+          <BuildingInfoText text={section.title} />
+        </Typography>
+      )}
+      {section.description != null && (
+        <Typography
+          sx={{
+            ...textSx,
+            mb: '1.25rem',
+            color: '#111111',
+          }}
+        >
+          <BuildingInfoText text={section.description} />
+        </Typography>
+      )}
+      {section.rows?.map((row) => <BuildingInfoRow key={row.id} row={row} />)}
+      {section.metrics?.map((metric) => (
+        <BuildingInfoMetricBlock
+          key={metric.id}
+          metric={metric}
+          accentColor={accentColor}
+        />
+      ))}
+      {section.scenarios?.map((scenario) => (
+        <BuildingInfoScenarioBlock key={scenario.id} scenario={scenario} />
+      ))}
+      {section.notes?.map((note) => (
+        <BuildingInfoNoteText key={note.id} note={note} />
+      ))}
+    </Box>
+  )
+}
 
 const getPanelWidth = ({
   mode,
@@ -561,6 +1010,64 @@ const getDesktopPanelAccentColor = ({
     ? '#111111'
     : PANEL_ACCENTS[panelId]
 
+const BuildingInfoPanelHeadingGraphic = ({
+  panelId,
+}: {
+  panelId: EnergymapBuildingInfoPanelId
+}) => {
+  if (panelId === 'energyConsumption') {
+    return (
+      <BuildingInfoDecorativeImage
+        src={BUILDING_INFO_ASSETS.energyLightning}
+        width="18px"
+        height="28px"
+        sx={{
+          position: 'absolute',
+          top: '3.125rem',
+          left: 0,
+        }}
+      />
+    )
+  }
+
+  if (panelId === 'renovationRecommendations') {
+    return (
+      <RenovationIcon
+        sx={{
+          position: 'absolute',
+          top: '3.25rem',
+          left: 0,
+        }}
+      />
+    )
+  }
+
+  return null
+}
+
+const BuildingInfoPanelHeroGraphic = ({
+  panelId,
+}: {
+  panelId: EnergymapBuildingInfoPanelId
+}) => {
+  if (panelId !== 'renovationRecommendations') {
+    return null
+  }
+
+  return (
+    <BuildingInfoFigmaGraphic
+      src={BUILDING_INFO_ASSETS.renovationBuilding}
+      dimensions={BUILDING_INFO_GRAPHIC_DIMENSIONS.renovationBuilding}
+      testId="building-info-graphic-renovation-building"
+      sx={{
+        mt: '2.75rem',
+        mb: '2.75rem',
+        mx: 'auto',
+      }}
+    />
+  )
+}
+
 const BuildingInfoPanelBody = ({
   panel,
   titleId,
@@ -576,10 +1083,12 @@ const BuildingInfoPanelBody = ({
     sx={[
       {
         boxSizing: 'border-box',
+        position: 'relative',
       },
       ...(Array.isArray(sx) ? sx : [sx]),
     ]}
   >
+    <BuildingInfoPanelHeadingGraphic panelId={panel.id} />
     <Typography
       id={titleId}
       sx={{
@@ -600,11 +1109,13 @@ const BuildingInfoPanelBody = ({
         borderTop: '0.3px solid #cfcfcf',
       }}
     />
+    <BuildingInfoPanelHeroGraphic panelId={panel.id} />
     {panel.description != null && (
       <Typography
         sx={{
           ...textSx,
-          mt: '1.875rem',
+          mt:
+            panel.id === 'renovationRecommendations' ? 0 : '1.875rem',
           color: '#111111',
         }}
       >
@@ -650,22 +1161,20 @@ const BuildingInfoPanelColumn = ({
         overflow: 'hidden',
       }}
     >
-      <BuildingInfoPanelBody
-        panel={panel}
-        titleId={titleId}
-        accentColor={accentColor}
-        sx={{
-          height: '100%',
-          minHeight: 0,
-          overflowY: 'auto',
-          overflowX: 'hidden',
-          pt: '7.375rem',
-          pb: '4rem',
-          pr: '1rem',
-          boxSizing: 'border-box',
-          ...getPanelContentSx({ mode, panelId: panel.id }),
-        }}
-      />
+      <BuildingInfoScrollArea testId={`building-info-scroll-${panel.id}`}>
+        <BuildingInfoPanelBody
+          panel={panel}
+          titleId={titleId}
+          accentColor={accentColor}
+          sx={{
+            minHeight: '100%',
+            pt: '7.375rem',
+            pb: '4rem',
+            boxSizing: 'border-box',
+            ...getPanelContentSx({ mode, panelId: panel.id }),
+          }}
+        />
+      </BuildingInfoScrollArea>
     </Box>
   )
 }
@@ -864,7 +1373,8 @@ export const BuildingInfoMobileSidebar = ({
       sx={{
         position: 'relative',
         width: '100%',
-        minHeight: '100%',
+        height: '100%',
+        minHeight: 0,
         backgroundColor: '#f9f9f9',
         pointerEvents: 'auto',
       }}
@@ -874,14 +1384,24 @@ export const BuildingInfoMobileSidebar = ({
         onClose={onClose}
         onCollapse={onCollapse}
       />
-      {visiblePanels.map((panel, index) => (
-        <BuildingInfoMobilePanelSection
-          key={panel.id}
-          panel={panel}
-          index={index}
-          panelCount={visiblePanels.length}
-        />
-      ))}
+      <BuildingInfoScrollArea testId="building-info-mobile-scroll">
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: '100%',
+          }}
+        >
+          {visiblePanels.map((panel, index) => (
+            <BuildingInfoMobilePanelSection
+              key={panel.id}
+              panel={panel}
+              index={index}
+              panelCount={visiblePanels.length}
+            />
+          ))}
+        </Box>
+      </BuildingInfoScrollArea>
     </Box>
   )
 }

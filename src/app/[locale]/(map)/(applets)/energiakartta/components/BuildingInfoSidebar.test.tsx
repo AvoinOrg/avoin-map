@@ -1,7 +1,7 @@
 import React from 'react'
 import '@testing-library/jest-dom'
 import { ThemeProvider } from '@mui/material/styles'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 
 import theme from '#/common/style/theme/theme'
 import {
@@ -33,6 +33,41 @@ jest.mock('@tolgee/react', () => {
         'span',
         null,
         params?.code == null ? keyName : `${keyName}:${params.code}`
+      ),
+  }
+})
+
+jest.mock('overlayscrollbars-react', () => {
+  const React = require('react')
+
+  return {
+    OverlayScrollbarsComponent: ({
+      children,
+      className,
+      options,
+      style,
+      ...props
+    }: {
+      children: React.ReactNode
+      className?: string
+      options?: {
+        scrollbars?: {
+          autoHide?: string
+          visibility?: string
+        }
+      }
+      style?: React.CSSProperties
+    }) =>
+      React.createElement(
+        'div',
+        {
+          ...props,
+          className,
+          style,
+          'data-auto-hide': options?.scrollbars?.autoHide,
+          'data-scrollbar-visibility': options?.scrollbars?.visibility,
+        },
+        children
       ),
   }
 })
@@ -84,13 +119,58 @@ const panels: EnergymapBuildingInfoPanel[] = [
             unitKey: 'unit.kwh',
           },
         ],
+        notes: [
+          {
+            id: 'placeholderNote',
+            text: translation('note.placeholder'),
+            status: 'placeholder',
+          },
+        ],
       },
     ],
   },
   {
     id: 'renovationRecommendations',
     title: translation('panel.renovation.title'),
-    sections: [],
+    description: translation('panel.renovation.description'),
+    sections: [
+      {
+        id: 'scenarioComparison',
+        title: translation('section.scenario.title'),
+        description: translation('section.scenario.description'),
+        scenarios: [
+          {
+            id: 'aahp',
+            label: translation('scenario.aahp.label'),
+            values: [
+              {
+                id: 'annualTotal',
+                label: translation('metric.annual.label'),
+                text: plain('12000'),
+                status: 'estimate',
+                sourceProperties: ['aahp_total'],
+                unitKey: 'unit.kwh',
+              },
+              {
+                id: 'perSquareMeter',
+                label: translation('metric.square.label'),
+                text: plain('34'),
+                status: 'estimate',
+                sourceProperties: ['aahp_square'],
+                unitKey: 'unit.kwh_square',
+              },
+              {
+                id: 'savingsPercent',
+                label: translation('metric.savings.label'),
+                text: plain('-12%'),
+                status: 'estimate',
+                sourceProperties: ['default_total', 'aahp_total'],
+              },
+            ],
+          },
+        ],
+      },
+    ],
   },
   {
     id: 'buildingDetails',
@@ -105,6 +185,20 @@ const panels: EnergymapBuildingInfoPanel[] = [
             text: translation('value.missing'),
             status: 'missing',
             sourceProperties: ['main_purpose'],
+          },
+          {
+            id: 'placeholderRow',
+            label: translation('row.placeholder.label'),
+            text: translation('value.placeholder'),
+            status: 'placeholder',
+            sourceProperties: ['planned_measure'],
+          },
+          {
+            id: 'energyClass',
+            label: translation('row.energy_class.label'),
+            text: plain('B'),
+            status: 'real',
+            sourceProperties: ['energy_certificate_class'],
           },
         ],
       },
@@ -205,6 +299,127 @@ describe('BuildingInfoSidebar', () => {
     )
   })
 
+  it('uses overlay scroll areas for each desktop panel', () => {
+    renderWithTheme(
+      <BuildingInfoDesktopSidebar
+        mode="threePanel"
+        panels={panels}
+        ariaLabels={ariaLabels}
+        onClose={jest.fn()}
+        onCollapse={jest.fn()}
+      />
+    )
+
+    const scrollAreas = screen.getAllByTestId(/^building-info-scroll-/)
+
+    expect(scrollAreas).toHaveLength(3)
+    scrollAreas.forEach((scrollArea) => {
+      expect(scrollArea).toHaveClass('osScroll')
+      expect(scrollArea).toHaveAttribute('data-auto-hide', 'scroll')
+      expect(scrollArea).toHaveAttribute('data-scrollbar-visibility', 'auto')
+    })
+  })
+
+  it('renders the Figma panel graphics from sidebar assets', () => {
+    renderWithTheme(
+      <BuildingInfoDesktopSidebar
+        mode="threePanel"
+        panels={panels}
+        ariaLabels={ariaLabels}
+        onClose={jest.fn()}
+        onCollapse={jest.fn()}
+      />
+    )
+
+    expect(
+      document.querySelector(
+        'img[src="/files/img/energiakartta/sidebar/building-info-energy-lightning.svg"]'
+      )
+    ).toBeInTheDocument()
+    expect(
+      document.querySelector(
+        'img[src="/files/img/energiakartta/sidebar/building-info-renovation-icon-center.svg"]'
+      )
+    ).toBeInTheDocument()
+    expect(
+      document.querySelector(
+        'img[src="/files/img/energiakartta/sidebar/building-info-renovation-building.svg"]'
+      )
+    ).toBeInTheDocument()
+    expect(
+      screen.getByTestId('building-info-graphic-renovation-building')
+    ).toHaveAttribute('data-figma-height', '300')
+    expect(
+      document.querySelector(
+        'img[src="/files/img/energiakartta/sidebar/building-info-renovation-building-small-a.svg"]'
+      )
+    ).toBeInTheDocument()
+    expect(
+      screen.getByTestId('building-info-graphic-renovation-building-small-a')
+    ).toHaveAttribute('data-figma-height', '138.003')
+    expect(
+      document.querySelector(
+        'img[src="/files/img/energiakartta/sidebar/building-info-warning-base.svg"]'
+      )
+    ).toBeInTheDocument()
+  })
+
+  it('shows unavailable values as construction icons with reason tooltips', async () => {
+    renderWithTheme(
+      <BuildingInfoDesktopSidebar
+        mode="twoPanel"
+        panels={panels}
+        ariaLabels={ariaLabels}
+        onClose={jest.fn()}
+        onCollapse={jest.fn()}
+      />
+    )
+
+    const missingValue = document.querySelector(
+      '[data-row-id="missingRow"] [data-status="missing"]'
+    )
+    const placeholderValue = document.querySelector(
+      '[data-row-id="placeholderRow"] [data-status="placeholder"]'
+    )
+
+    expect(missingValue).toBeInTheDocument()
+    expect(missingValue).toHaveAttribute('data-source-properties', 'main_purpose')
+    expect(placeholderValue).toBeInTheDocument()
+    expect(placeholderValue).toHaveAttribute(
+      'data-source-properties',
+      'planned_measure'
+    )
+    expect(
+      within(missingValue as HTMLElement).getByTestId(
+        'building-info-unavailable-value-icon'
+      )
+    ).toBeInTheDocument()
+    expect(
+      within(placeholderValue as HTMLElement).getByTestId(
+        'building-info-unavailable-value-icon'
+      )
+    ).toBeInTheDocument()
+    expect(
+      within(missingValue as HTMLElement).getByTestId(
+        'building-info-unavailable-value-reason'
+      )
+    ).toHaveStyle({ position: 'absolute', width: '1px' })
+    expect(
+      within(placeholderValue as HTMLElement).getByTestId(
+        'building-info-unavailable-value-reason'
+      )
+    ).toHaveStyle({ position: 'absolute', width: '1px' })
+
+    const tooltipTrigger = missingValue?.querySelector('[tabindex="0"]')
+
+    expect(tooltipTrigger).toBeInTheDocument()
+    fireEvent.mouseOver(tooltipTrigger as Element)
+
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+      'value.missing'
+    )
+  })
+
   it('calls collapse and close without coupling the two actions', () => {
     const onCollapse = jest.fn()
     const onClose = jest.fn()
@@ -281,6 +496,29 @@ describe('BuildingInfoSidebar', () => {
     expect(
       screen.queryByTestId('building-info-panel-renovationRecommendations')
     ).not.toBeInTheDocument()
+  })
+
+  it('uses one auto-hiding overlay scroll area for mobile stacked panels', () => {
+    renderWithTheme(
+      <BuildingInfoMobileSidebar
+        mode="threePanel"
+        panels={panels}
+        ariaLabels={ariaLabels}
+        onClose={jest.fn()}
+        onCollapse={jest.fn()}
+      />
+    )
+
+    const scrollAreas = screen.getAllByTestId(/building-info.*scroll/)
+
+    expect(scrollAreas).toHaveLength(1)
+    expect(screen.getByTestId('building-info-mobile-scroll')).toHaveClass(
+      'osScroll'
+    )
+    expect(screen.getByTestId('building-info-mobile-scroll')).toHaveAttribute(
+      'data-auto-hide',
+      'scroll'
+    )
   })
 
   it('stacks all panels in mobile three-panel mode and preserves metadata', () => {
