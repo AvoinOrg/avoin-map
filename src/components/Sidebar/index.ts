@@ -1,4 +1,51 @@
 export { Sidebar } from './Sidebar'
+export { SidebarBoundary } from './SidebarBoundary'
+export type { SidebarBoundaryProps } from './SidebarBoundary'
+export {
+  SidebarBoundaryProvider,
+  useNullableSidebarBoundaryContext,
+  useSidebarBoundaryContext,
+} from './sidebarBoundaryContext'
+export type { SidebarBoundaryContextValue } from './sidebarBoundaryContext'
+export {
+  getSidebarSlotKey,
+  SidebarSlotHost,
+  SidebarHeaderSlot,
+  SidebarFooterSlot,
+  SidebarActionRailSlot,
+  SidebarPanelSlot,
+  IntoSidebarHeaderSlot,
+  IntoSidebarFooterSlot,
+  IntoSidebarActionRailSlot,
+  IntoSidebarPanelSlot,
+} from './sidebarSlots'
+export type {
+  SidebarNamedSlotKeyInput,
+  SidebarPanelSlotKeyInput,
+  SidebarSlotKeyInput,
+} from './sidebarSlots'
+export type {
+  RegisterSidebarBoundaryInput,
+  SidebarActionRailPlacement,
+  SidebarBoundaryConfig,
+  SidebarBoundaryId,
+  SidebarBoundaryRegistration,
+  SidebarBoundaryRegistry,
+  SidebarBoundaryUpdate,
+  SidebarChromeToken,
+  SidebarFloatingConfig,
+  SidebarHomeConfig,
+  SidebarMode,
+  SidebarMobileMode,
+  SidebarNoneConfig,
+  SidebarPanelConfig,
+  SidebarPanelId,
+  SidebarPanelLayout,
+  SidebarRuntimeOptions,
+  SidebarRuntimeOptionsPatch,
+  SidebarSlotName,
+  SidebarWidthToken,
+} from '#/common/types/sidebar'
 export { AppletHomeSidebar } from './AppletHomeSidebar'
 export { HiilikarttaHomeSidebar } from './HiilikarttaHomeSidebar'
 export { MainSidebar } from './MainSidebar'

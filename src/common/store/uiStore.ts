@@ -12,6 +12,13 @@ import {
   MapMenuState,
   NotificationMessage,
 } from '#/common/types/state'
+import type {
+  RegisterSidebarBoundaryInput,
+  SidebarBoundaryId,
+  SidebarBoundaryRegistry,
+  SidebarBoundaryUpdate,
+  SidebarRuntimeOptionsPatch,
+} from '#/common/types/sidebar'
 import { generateUUID } from '../utils/general'
 import { MapDims } from '../types/map'
 import { devtools } from 'zustand/middleware'
@@ -40,6 +47,8 @@ interface Vars {
   isSidebarLoading: boolean
   sidebarWidth: number | undefined
   sidebarVariant: SidebarVariant
+  sidebarBoundaries: SidebarBoundaryRegistry
+  _sidebarBoundaryRegistrationOrder: number
   isSidebarHeaderHidden: boolean
   sidebarHeaderConfig: SidebarHeaderConfig
   confirmationDialogOptions: InternalConfirmationDialogOptions
@@ -82,6 +91,17 @@ interface Actions {
   setIsLoginModalOpen: (isOpen: boolean) => void
   setSidebarWidth: (pixels: number) => void
   setSidebarVariant: (variant: SidebarVariant) => void
+  registerSidebarBoundary: (input: RegisterSidebarBoundaryInput) => void
+  updateSidebarBoundary: (
+    id: SidebarBoundaryId,
+    patch: SidebarBoundaryUpdate
+  ) => void
+  setSidebarBoundaryRuntimeOptions: (
+    id: SidebarBoundaryId,
+    patch: SidebarRuntimeOptionsPatch
+  ) => void
+  resetSidebarBoundaryRuntimeOptions: (id: SidebarBoundaryId) => void
+  unregisterSidebarBoundary: (id: SidebarBoundaryId) => void
   setIsSidebarHeaderHidden: (hidden: boolean) => void
   setSidebarHeaderConfig: (config: SidebarHeaderConfig) => void
   triggerConfirmationDialog: (
@@ -118,6 +138,8 @@ export const useUIStore = create<State>()(
         isSidebarLoading: false,
         sidebarWidth: undefined,
         sidebarVariant: 'default',
+        sidebarBoundaries: {},
+        _sidebarBoundaryRegistrationOrder: 0,
         isSidebarHeaderHidden: false,
         sidebarHeaderConfig: { title: '' },
         confirmationDialogOptions: { id: null },
@@ -150,6 +172,86 @@ export const useUIStore = create<State>()(
         },
         setSidebarVariant: (variant: SidebarVariant) =>
           set({ sidebarVariant: variant }),
+        registerSidebarBoundary: (input: RegisterSidebarBoundaryInput) => {
+          set((state) => {
+            const existingBoundary = state.sidebarBoundaries[input.id]
+
+            if (existingBoundary != null) {
+              existingBoundary.mode = input.mode
+              existingBoundary.depth = input.depth
+              existingBoundary.config = input.config
+              if (input.runtimeOptions != null) {
+                existingBoundary.runtimeOptions = input.runtimeOptions
+              }
+              return
+            }
+
+            state._sidebarBoundaryRegistrationOrder += 1
+            state.sidebarBoundaries[input.id] = {
+              id: input.id,
+              mode: input.mode,
+              depth: input.depth,
+              config: input.config,
+              runtimeOptions: input.runtimeOptions ?? {},
+              registrationOrder: state._sidebarBoundaryRegistrationOrder,
+            }
+          })
+        },
+        updateSidebarBoundary: (
+          id: SidebarBoundaryId,
+          patch: SidebarBoundaryUpdate
+        ) => {
+          set((state) => {
+            const boundary = state.sidebarBoundaries[id]
+
+            if (boundary == null) {
+              return
+            }
+
+            if (patch.mode != null) {
+              boundary.mode = patch.mode
+            }
+            if (patch.depth != null) {
+              boundary.depth = patch.depth
+            }
+            if ('config' in patch) {
+              boundary.config = patch.config
+            }
+          })
+        },
+        setSidebarBoundaryRuntimeOptions: (
+          id: SidebarBoundaryId,
+          patch: SidebarRuntimeOptionsPatch
+        ) => {
+          set((state) => {
+            const boundary = state.sidebarBoundaries[id]
+
+            if (boundary == null) {
+              return
+            }
+
+            boundary.runtimeOptions = {
+              ...boundary.runtimeOptions,
+              ...patch,
+            }
+          })
+        },
+        resetSidebarBoundaryRuntimeOptions: (id: SidebarBoundaryId) => {
+          set((state) => {
+            const boundary = state.sidebarBoundaries[id]
+
+            if (boundary == null) {
+              return
+            }
+
+            boundary.runtimeOptions = {}
+          })
+        },
+        unregisterSidebarBoundary: (id: SidebarBoundaryId) => {
+          set((state) => {
+            delete state.sidebarBoundaries[id]
+          })
+        },
         setIsSidebarHeaderHidden: (hidden: boolean) =>
           set({ isSidebarHeaderHidden: hidden }),
         setSidebarHeaderConfig: (config: SidebarHeaderConfig) =>
