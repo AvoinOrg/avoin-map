@@ -8,17 +8,11 @@ import { SlotsProvider } from '#/components/context/slotsContext'
 
 import { SidebarBoundary } from './SidebarBoundary'
 import { SidebarRoot } from './SidebarRoot'
-import type { ResolveSidebarRootFallbackInput } from './sidebarRootFallback'
 import {
   IntoSidebarActionRailSlot,
   IntoSidebarHeaderChildrenSlot,
   IntoSidebarPanelSlot,
 } from './sidebarSlots'
-
-jest.mock('next/navigation', () => ({
-  usePathname: () => '/',
-  useParams: () => ({ locale: 'fi' }),
-}))
 
 jest.mock('#/common/store', () => ({
   useUIStore: jest.requireActual('#/common/store/uiStore').useUIStore,
@@ -30,25 +24,13 @@ jest.mock('#/common/hooks/ui/useIsMobile', () => ({
   useIsMobile: () => mockIsMobile,
 }))
 
-const fallbackContext: ResolveSidebarRootFallbackInput = {
-  pathnameWithoutLocale: '/',
-  compiledApplets: ['main', 'hiilikartta'],
-  sidebarVariant: 'default',
-  isMapLayoutSidebarDisabled: false,
-}
-
 const resetUIStore = () => {
   useUIStore.setState({
     sidebarBoundaries: {},
     _sidebarBoundaryRegistrationOrder: 0,
     isSidebarOpen: true,
     isSidebarDisabled: false,
-    isMapLayoutSidebarDisabled: false,
-    isSidebarDrawerOpen: false,
-    isSidebarDrawerOverlay: false,
-    isSidebarHeaderHidden: false,
     isSidebarLoading: false,
-    sidebarVariant: 'default',
     sidebarHeaderConfig: { title: 'Test sidebar' },
     sidebarWidth: undefined,
   })
@@ -77,16 +59,10 @@ const seedBoundary = ({
   })
 }
 
-const renderRoot = ({
-  children,
-  fallback = fallbackContext,
-}: {
-  children: React.ReactNode
-  fallback?: ResolveSidebarRootFallbackInput
-}) =>
+const renderRoot = ({ children }: { children: React.ReactNode }) =>
   render(
     <SlotsProvider>
-      <SidebarRoot fallbackContext={fallback}>{children}</SidebarRoot>
+      <SidebarRoot>{children}</SidebarRoot>
     </SlotsProvider>
   )
 
@@ -96,7 +72,16 @@ describe('SidebarRoot', () => {
     resetUIStore()
   })
 
-  it('lets an active none boundary override the compatibility fallback', () => {
+  it('renders raw children when no boundary is registered', () => {
+    renderRoot({ children: <div>Raw child</div> })
+
+    expect(screen.getByText('Raw child')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: /hide sidebar/i })
+    ).not.toBeInTheDocument()
+  })
+
+  it('renders raw children for an active none boundary', () => {
     seedBoundary({ id: 'none-boundary', mode: 'none' })
 
     renderRoot({ children: <div>Raw child</div> })
@@ -107,16 +92,10 @@ describe('SidebarRoot', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('lets an active boundary override a fallback that would render no shell', () => {
+  it('renders the active floating boundary shell', () => {
     seedBoundary({ id: 'floating-boundary', mode: 'floating' })
 
-    renderRoot({
-      children: <div>Floating child</div>,
-      fallback: {
-        ...fallbackContext,
-        pathnameWithoutLocale: '/energiakartta',
-      },
-    })
+    renderRoot({ children: <div>Floating child</div> })
 
     expect(screen.getByText('Floating child')).toBeInTheDocument()
     expect(
@@ -134,10 +113,6 @@ describe('SidebarRoot', () => {
           <div>Floating child</div>
         </SidebarBoundary>
       ),
-      fallback: {
-        ...fallbackContext,
-        pathnameWithoutLocale: '/luonnonmetsakartat',
-      },
     })
 
     expect(await screen.findByText('Scoped breadcrumb')).toBeInTheDocument()
@@ -221,10 +196,6 @@ describe('SidebarRoot', () => {
           <Child />
         </SidebarBoundary>
       ),
-      fallback: {
-        ...fallbackContext,
-        pathnameWithoutLocale: '/energiakartta',
-      },
     })
 
     expect(await screen.findByText('Stable panel child')).toBeInTheDocument()
@@ -320,10 +291,6 @@ describe('SidebarRoot', () => {
           <Child />
         </SidebarBoundary>
       ),
-      fallback: {
-        ...fallbackContext,
-        pathnameWithoutLocale: '/energiakartta',
-      },
     })
 
     expect(

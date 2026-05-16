@@ -62,6 +62,18 @@ export const SidebarActionRailSlot = ({
   boundaryId: SidebarBoundaryId
 }) => <SidebarSlotHost boundaryId={boundaryId} slot="actionRail" />
 
+export const SidebarTopControlsSlot = ({
+  boundaryId,
+}: {
+  boundaryId: SidebarBoundaryId
+}) => <SidebarSlotHost boundaryId={boundaryId} slot="topControls" />
+
+export const SidebarBottomControlsSlot = ({
+  boundaryId,
+}: {
+  boundaryId: SidebarBoundaryId
+}) => <SidebarSlotHost boundaryId={boundaryId} slot="bottomControls" />
+
 export const SidebarPanelSlot = ({
   boundaryId,
   panelId,
@@ -114,6 +126,22 @@ export const IntoSidebarActionRailSlot = ({
   children: React.ReactNode
 }) => (
   <IntoSidebarNamedSlot slot="actionRail">{children}</IntoSidebarNamedSlot>
+)
+
+export const IntoSidebarTopControlsSlot = ({
+  children,
+}: {
+  children: React.ReactNode
+}) => (
+  <IntoSidebarNamedSlot slot="topControls">{children}</IntoSidebarNamedSlot>
+)
+
+export const IntoSidebarBottomControlsSlot = ({
+  children,
+}: {
+  children: React.ReactNode
+}) => (
+  <IntoSidebarNamedSlot slot="bottomControls">{children}</IntoSidebarNamedSlot>
 )
 
 export const IntoSidebarPanelSlot = ({

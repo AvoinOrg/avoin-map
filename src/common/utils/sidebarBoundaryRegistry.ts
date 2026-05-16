@@ -2,6 +2,7 @@ import type {
   SidebarBoundaryId,
   SidebarBoundaryRegistration,
   SidebarBoundaryRegistry,
+  SidebarMode,
 } from '#/common/types/sidebar'
 
 export const selectActiveSidebarBoundary = (
@@ -30,3 +31,7 @@ export const selectActiveSidebarBoundary = (
 export const selectActiveSidebarBoundaryId = (
   boundaries: SidebarBoundaryRegistry
 ): SidebarBoundaryId | undefined => selectActiveSidebarBoundary(boundaries)?.id
+
+export const selectActiveSidebarMode = (
+  boundaries: SidebarBoundaryRegistry
+): SidebarMode | undefined => selectActiveSidebarBoundary(boundaries)?.mode

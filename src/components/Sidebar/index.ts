@@ -1,15 +1,7 @@
-export { Sidebar } from './Sidebar'
 export { SidebarRoot } from './SidebarRoot'
 export { HomeSidebar } from './HomeSidebar'
 export { FloatingSidebar } from './FloatingSidebar'
 export { PanelSidebar } from './PanelSidebar'
-export {
-  resolveSidebarRootFallback,
-} from './sidebarRootFallback'
-export type {
-  ResolveSidebarRootFallbackInput,
-  SidebarRootFallbackKind,
-} from './sidebarRootFallback'
 export type { HomeSidebarProps } from './HomeSidebar'
 export type {
   FloatingSidebarFooterMode,
@@ -36,11 +28,15 @@ export {
   SidebarHeaderChildrenSlot,
   SidebarFooterSlot,
   SidebarActionRailSlot,
+  SidebarTopControlsSlot,
+  SidebarBottomControlsSlot,
   SidebarPanelSlot,
   IntoSidebarHeaderSlot,
   IntoSidebarHeaderChildrenSlot,
   IntoSidebarFooterSlot,
   IntoSidebarActionRailSlot,
+  IntoSidebarTopControlsSlot,
+  IntoSidebarBottomControlsSlot,
   IntoSidebarPanelSlot,
 } from './sidebarSlots'
 export type {
@@ -71,9 +67,6 @@ export type {
   SidebarSlotName,
   SidebarWidthToken,
 } from '#/common/types/sidebar'
-export { AppletHomeSidebar } from './AppletHomeSidebar'
-export { HiilikarttaHomeSidebar } from './HiilikarttaHomeSidebar'
-export { MainSidebar } from './MainSidebar'
 export { SimpleSidebar } from './SimpleSidebar'
 export type {
   SimpleSidebarPanelsConfig,
@@ -82,10 +75,7 @@ export type {
   SimpleSidebarMobilePanel,
   SimpleSidebarMobileStackPlacement,
 } from './SimpleSidebar'
-export { default as MapLayoutSidebarBoundary } from './MapLayoutSidebarBoundary'
 export { default as SidebarToggleButton } from './SidebarToggleButton'
 export { default as SidebarHeader } from './SidebarHeader'
 export { default as BreadcrumbNav } from './BreadcrumbNav'
 export { default as SidebarContentBox } from './SidebarContentBox'
-export { default as SidebarVariantBoundary } from './SidebarVariantBoundary'
-export { default as SidebarHeaderVisibilityBoundary } from './SidebarHeaderVisibilityBoundary'

@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useMemo } from 'react'
-import { useParams, usePathname } from 'next/navigation'
 
 import { useUIStore } from '#/common/store'
 import type {
@@ -11,23 +10,14 @@ import type {
   SidebarRuntimeOptions,
 } from '#/common/types/sidebar'
 import { selectActiveSidebarBoundary } from '#/common/utils/sidebarBoundaryRegistry'
-import {
-  compiledApplets,
-  getPathnameWithoutLocale,
-} from '#/common/routing/routing'
 
 import FloatingSidebar from './FloatingSidebar'
 import type { FloatingSidebarWidth } from './FloatingSidebar'
 import HomeSidebar from './HomeSidebar'
 import PanelSidebar from './PanelSidebar'
-import {
-  resolveSidebarRootFallback,
-} from './sidebarRootFallback'
-import type { ResolveSidebarRootFallbackInput } from './sidebarRootFallback'
 
 export type SidebarRootProps = {
   children?: React.ReactNode
-  fallbackContext?: ResolveSidebarRootFallbackInput
 }
 
 const mergeBoundaryOptions = (
@@ -41,108 +31,52 @@ const getFloatingWidth = (
   options: SidebarRuntimeOptions | SidebarFloatingConfig
 ): FloatingSidebarWidth => (options.width === 'compact' ? 'compact' : 'default')
 
-const getFallbackContext = ({
-  pathname,
-  locale,
-  sidebarVariant,
-  isMapLayoutSidebarDisabled,
-}: {
-  pathname: string
-  locale: string | string[] | null
-  sidebarVariant: ResolveSidebarRootFallbackInput['sidebarVariant']
-  isMapLayoutSidebarDisabled: boolean
-}): ResolveSidebarRootFallbackInput => ({
-  pathnameWithoutLocale: getPathnameWithoutLocale(pathname, locale),
-  compiledApplets,
-  sidebarVariant,
-  isMapLayoutSidebarDisabled,
-})
-
-export const SidebarRoot = ({
-  children,
-  fallbackContext,
-}: SidebarRootProps) => {
-  const pathname = usePathname()
-  const { locale } = useParams()
+export const SidebarRoot = ({ children }: SidebarRootProps) => {
   const sidebarBoundaries = useUIStore((state) => state.sidebarBoundaries)
-  const sidebarVariant = useUIStore((state) => state.sidebarVariant)
-  const isMapLayoutSidebarDisabled = useUIStore(
-    (state) => state.isMapLayoutSidebarDisabled
-  )
   const activeBoundary = useMemo(
     () => selectActiveSidebarBoundary(sidebarBoundaries),
     [sidebarBoundaries]
   )
 
-  if (activeBoundary != null) {
-    const options = mergeBoundaryOptions(activeBoundary)
-
-    if (activeBoundary.mode === 'none') {
-      return <>{children}</>
-    }
-
-    if (activeBoundary.mode === 'home') {
-      return <HomeSidebar>{children}</HomeSidebar>
-    }
-
-    if (activeBoundary.mode === 'floating') {
-      const width = getFloatingWidth(options)
-
-      return (
-        <FloatingSidebar
-          boundaryId={activeBoundary.id}
-          width={width}
-          headerMode={width === 'compact' ? 'custom' : 'default'}
-          footerMode="slot"
-          chromeHidden={options.chrome === 'hidden'}
-          hideMainContainer={options.mainPanelVisible === false}
-        >
-          {children}
-        </FloatingSidebar>
-      )
-    }
-
-    return (
-      <PanelSidebar
-        boundaryId={activeBoundary.id}
-        options={options as SidebarPanelConfig}
-      >
-        {children}
-      </PanelSidebar>
-    )
-  }
-
-  const resolvedFallbackContext =
-    fallbackContext ??
-    getFallbackContext({
-      pathname,
-      locale: locale ?? null,
-      sidebarVariant,
-      isMapLayoutSidebarDisabled,
-    })
-  const fallback = resolveSidebarRootFallback(resolvedFallbackContext)
-
-  if (fallback === 'none') {
+  if (activeBoundary == null) {
     return <>{children}</>
   }
 
-  if (fallback === 'home') {
+  const options = mergeBoundaryOptions(activeBoundary)
+
+  if (activeBoundary.mode === 'none') {
+    return <>{children}</>
+  }
+
+  if (activeBoundary.mode === 'home') {
     return <HomeSidebar>{children}</HomeSidebar>
   }
 
-  if (fallback === 'floating-compact') {
+  if (activeBoundary.mode === 'floating') {
+    const width = getFloatingWidth(options)
+
     return (
-      <FloatingSidebar width="compact" headerMode="custom" footerMode="slot">
+      <FloatingSidebar
+        boundaryId={activeBoundary.id}
+        width={width}
+        headerMode={width === 'compact' ? 'custom' : 'default'}
+        footerMode="slot"
+        chromeHidden={options.chrome === 'hidden'}
+        hideMainContainer={options.mainPanelVisible === false}
+      >
         {children}
       </FloatingSidebar>
     )
   }
 
-  if (fallback === 'panel-simple') {
-    return <PanelSidebar>{children}</PanelSidebar>
-  }
-
-  return <FloatingSidebar>{children}</FloatingSidebar>
+  return (
+    <PanelSidebar
+      boundaryId={activeBoundary.id}
+      options={options as SidebarPanelConfig}
+    >
+      {children}
+    </PanelSidebar>
+  )
 }
 
 export default SidebarRoot

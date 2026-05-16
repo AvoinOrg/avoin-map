@@ -9,7 +9,6 @@ import {
 } from '#/common/constants/map'
 import { useUIStore } from '#/common/store'
 import type { SidebarBoundaryId } from '#/common/types/sidebar'
-import { Slot, useSlotContent } from '../context/slotsContext'
 
 import SidebarHeader from './SidebarHeader'
 import SidebarScaffold from './SidebarScaffold'
@@ -22,7 +21,7 @@ import {
 import SidebarToggleButton from './SidebarToggleButton'
 
 export type FloatingSidebarWidth = 'default' | 'compact'
-export type FloatingSidebarHeaderMode = 'auto' | 'default' | 'custom' | 'none'
+export type FloatingSidebarHeaderMode = 'default' | 'custom' | 'none'
 export type FloatingSidebarFooterMode = 'none' | 'slot'
 
 export type FloatingSidebarProps = {
@@ -41,25 +40,15 @@ export type FloatingSidebarProps = {
 }
 
 const getCustomHeaderSlot = (boundaryId?: SidebarBoundaryId) =>
-  boundaryId != null ? (
-    <SidebarHeaderSlot boundaryId={boundaryId} />
-  ) : (
-    <Slot name="sidebar-header" />
-  )
+  boundaryId != null ? <SidebarHeaderSlot boundaryId={boundaryId} /> : null
 
 const getFooterSlot = (boundaryId?: SidebarBoundaryId) =>
-  boundaryId != null ? (
-    <SidebarFooterSlot boundaryId={boundaryId} />
-  ) : (
-    <Slot name="sidebar-footer" />
-  )
+  boundaryId != null ? <SidebarFooterSlot boundaryId={boundaryId} /> : null
 
 const getDefaultHeaderChildrenSlot = (boundaryId?: SidebarBoundaryId) =>
   boundaryId != null ? (
     <SidebarHeaderChildrenSlot boundaryId={boundaryId} />
-  ) : (
-    <Slot name="sidebar-header-children" />
-  )
+  ) : null
 
 export const FloatingSidebar = ({
   sx,
@@ -70,7 +59,7 @@ export const FloatingSidebar = ({
   hideMainContainer = false,
   boundaryId,
   width = 'default',
-  headerMode = 'auto',
+  headerMode = 'default',
   footerMode = 'none',
   chromeHidden = false,
   children,
@@ -78,27 +67,14 @@ export const FloatingSidebar = ({
   const floatingGutter = `${HIILIKARTTA_HOME_FLOATING_GUTTER_PX}px`
   const toggleGutter = `${MAP_CONTROL_EDGE_GUTTER_PX}px`
   const isSidebarDisabled = useUIStore((state) => state.isSidebarDisabled)
-  const isSidebarHeaderHidden = useUIStore(
-    (state) => state.isSidebarHeaderHidden
-  )
   const sidebarHeaderConfig = useUIStore((state) => state.sidebarHeaderConfig)
-  const hasLegacyCustomHeader = useSlotContent('sidebar-header')
 
   if (isSidebarDisabled) {
     return <>{children}</>
   }
 
-  const resolvedHeaderMode =
-    headerMode === 'auto'
-      ? hasLegacyCustomHeader
-        ? 'custom'
-        : 'default'
-      : headerMode
-
   const topContent =
-    chromeHidden ||
-    isSidebarHeaderHidden ||
-    resolvedHeaderMode === 'none' ? null : resolvedHeaderMode === 'custom' ? (
+    chromeHidden || headerMode === 'none' ? null : headerMode === 'custom' ? (
       getCustomHeaderSlot(boundaryId)
     ) : (
       <SidebarHeader

@@ -12,7 +12,6 @@ import { useMapStore, useUIStore } from '#/common/store'
 import { ListedLayerMenuItem, MapContext } from '#/common/types/map'
 import { useExclusiveLayerGroups } from '#/common/hooks/map/useExclusiveLayerGroups'
 import { defaultListedLayerGroups } from '../Map/layers/defaultListedLayerGroups'
-import { IntoSlot } from '#/components/context/slotsContext'
 import { FINLAND_BOUNDS } from '#/common/constants/map'
 import { useNullableSidebarBoundaryContext } from '#/components/Sidebar/sidebarBoundaryContext'
 import {
@@ -193,27 +192,17 @@ const AppletWrapper = ({
       {stateMapContext === mapContext && isTolgeeReady() && (
         <>
           {/* Portal custom header element if provided */}
-          {sidebarHeaderElement && (
-            sidebarBoundaryContext != null ? (
-              <IntoSidebarHeaderSlot>
-                {sidebarHeaderElement}
-              </IntoSidebarHeaderSlot>
-            ) : (
-              <IntoSlot name="sidebar-header">{sidebarHeaderElement}</IntoSlot>
-            )
+          {sidebarHeaderElement && sidebarBoundaryContext != null && (
+            <IntoSidebarHeaderSlot>
+              {sidebarHeaderElement}
+            </IntoSidebarHeaderSlot>
           )}
 
           {/* Portal header children to slot inside default SidebarHeader */}
-          {sidebarHeaderChildren && (
-            sidebarBoundaryContext != null ? (
-              <IntoSidebarHeaderChildrenSlot>
-                {sidebarHeaderChildren}
-              </IntoSidebarHeaderChildrenSlot>
-            ) : (
-              <IntoSlot name="sidebar-header-children">
-                {sidebarHeaderChildren}
-              </IntoSlot>
-            )
+          {sidebarHeaderChildren && sidebarBoundaryContext != null && (
+            <IntoSidebarHeaderChildrenSlot>
+              {sidebarHeaderChildren}
+            </IntoSidebarHeaderChildrenSlot>
           )}
 
           {children}

@@ -9,6 +9,8 @@ export type SidebarSlotName =
   | 'footer'
   | 'actionRail'
   | 'headerChildren'
+  | 'topControls'
+  | 'bottomControls'
 
 export type SidebarWidthToken = 'default' | 'compact' | 'wide'
 

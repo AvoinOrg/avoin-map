@@ -7,7 +7,6 @@ import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrow
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import { useUIStore } from '#/common/store'
 import type { SidebarActionRailPlacement } from '#/common/types/sidebar'
-import { Slot } from '../context/slotsContext'
 import { ArrowLeft, Cross } from '../icons'
 import SidebarToggleButton from './SidebarToggleButton'
 import SidebarScaffold from './SidebarScaffold'
@@ -325,7 +324,7 @@ export const SimpleSidebar = ({
   hideMainContainer = false,
   panels,
   children,
-  headerChildren = <Slot name="sidebar-header-children" />,
+  headerChildren,
 }: {
   sx?: SxProps<Theme>
   sidebarToggleSx?: SxProps<Theme>

@@ -3,22 +3,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DOMPurify from 'dompurify'
 import { Box, Button } from '@mui/material'
-import { useParams, usePathname } from 'next/navigation'
 
 import {
-  MAIN_SIDEBAR_BOTTOM_CONTROLS_SLOT,
-  MAIN_SIDEBAR_TOP_CONTROLS_SLOT,
   MAP_CONTROL_EDGE_GUTTER_PX,
 } from '#/common/constants/map'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
-import {
-  compiledApplets,
-  getPathnameWithoutLocale,
-} from '#/common/routing/routing'
 import { useMapStore, useUIStore } from '#/common/store'
 import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
+import {
+  selectActiveSidebarBoundaryId,
+  selectActiveSidebarMode,
+} from '#/common/utils/sidebarBoundaryRegistry'
 import { IntoSlot } from '#/components/context/slotsContext'
 import { AttributionInfo, Cookie } from '#/components/icons'
+import { getSidebarSlotKey } from '#/components/Sidebar/sidebarSlots'
 import MapBottomLeftFloatingControlsSlot from './MapBottomLeftFloatingControlsSlot'
 
 const INITIAL_PANEL_MAX_WIDTH_PX = 480
@@ -38,19 +36,31 @@ const MapBottomControls = () => {
   const mapAttributionHtml = useMapStore((state) => state.mapAttributionHtml)
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
   const sidebarWidth = useUIStore((state) => state.sidebarWidth)
-  const isMobile = useIsMobile('desktop')
-  const pathname = usePathname()
-  const { locale } = useParams()
-  const pathnameWithoutLocale = getPathnameWithoutLocale(
-    pathname,
-    locale ?? null
+  const activeSidebarId = useUIStore((state) =>
+    selectActiveSidebarBoundaryId(state.sidebarBoundaries)
   )
-  const isStandaloneHiilikartta =
-    compiledApplets.length === 1 && compiledApplets[0] === 'hiilikartta'
-  const isMainPage = pathnameWithoutLocale === '/' && !isStandaloneHiilikartta
-  const useMainSidebarBottomSlot = isMainPage && isSidebarOpen && !isMobile
-  const useMainSidebarTopSlot = isMainPage && isSidebarOpen && isMobile
-  const useMobileFixedInfoOnly = isMainPage && !isSidebarOpen && isMobile
+  const activeSidebarMode = useUIStore((state) =>
+    selectActiveSidebarMode(state.sidebarBoundaries)
+  )
+  const isMobile = useIsMobile('desktop')
+  const isHomeSidebarActive = activeSidebarMode === 'home'
+  const useMainSidebarBottomSlot =
+    isHomeSidebarActive && activeSidebarId != null && isSidebarOpen && !isMobile
+  const useMainSidebarTopSlot =
+    isHomeSidebarActive && activeSidebarId != null && isSidebarOpen && isMobile
+  const useMobileFixedInfoOnly =
+    isHomeSidebarActive && !isSidebarOpen && isMobile
+  const mainSidebarTopControlsSlot =
+    activeSidebarId != null
+      ? getSidebarSlotKey({ boundaryId: activeSidebarId, slot: 'topControls' })
+      : undefined
+  const mainSidebarBottomControlsSlot =
+    activeSidebarId != null
+      ? getSidebarSlotKey({
+          boundaryId: activeSidebarId,
+          slot: 'bottomControls',
+        })
+      : undefined
 
   const [isPanelOpen, setIsPanelOpen] = useState(true)
   const [panelMaxWidth, setPanelMaxWidth] = useState<number>(
@@ -347,12 +357,12 @@ const MapBottomControls = () => {
     </>
   )
 
-  if (useMainSidebarTopSlot) {
+  if (useMainSidebarTopSlot && mainSidebarTopControlsSlot != null) {
     return (
-      <IntoSlot name={MAIN_SIDEBAR_TOP_CONTROLS_SLOT}>
+      <IntoSlot name={mainSidebarTopControlsSlot}>
         <Box
           ref={controlsRef}
-          data-main-sidebar-top-controls-inner="true"
+          data-main-sidebar-top-control-inner="true"
           sx={(theme) => ({
             position: 'relative',
             width: 'max-content',
@@ -366,12 +376,12 @@ const MapBottomControls = () => {
     )
   }
 
-  if (useMainSidebarBottomSlot) {
+  if (useMainSidebarBottomSlot && mainSidebarBottomControlsSlot != null) {
     return (
-      <IntoSlot name={MAIN_SIDEBAR_BOTTOM_CONTROLS_SLOT}>
+      <IntoSlot name={mainSidebarBottomControlsSlot}>
         <Box
           ref={controlsRef}
-          data-main-sidebar-bottom-controls-inner="true"
+          data-main-sidebar-bottom-control-inner="true"
           sx={(theme) => ({
             position: 'relative',
             width: 'max-content',

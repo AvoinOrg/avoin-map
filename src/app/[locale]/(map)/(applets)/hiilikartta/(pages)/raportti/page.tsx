@@ -12,6 +12,7 @@ import { T, useTranslate } from '@tolgee/react'
 import { getRoute } from '#/common/routing/routing-client'
 import MultiSelectAutocomplete from '#/components/common/MultiSelectAutocomplete'
 import { FullscreenPage } from '#/components/common/FullscreenPage'
+import { SidebarBoundary } from '#/components/Sidebar'
 import { FetchStatus, SelectOption } from '#/common/types/general'
 import { Download as DownloadIcon, Link as LinkIcon } from '#/components/icons'
 
@@ -328,16 +329,17 @@ const Page = () => {
   //   setMapLibraryMode('maplibre')
   // }, [])
   return (
-    <FullscreenPage
-      sx={(theme) => ({
-        backgroundColor: theme.palette.neutral.lighter,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'auto',
-        pb: theme.spacing(20),
-        alignItems: 'center',
-      })}
-    >
+    <SidebarBoundary id="hiilikartta-report-none" mode="none">
+      <FullscreenPage
+        sx={(theme) => ({
+          backgroundColor: theme.palette.neutral.lighter,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'auto',
+          pb: theme.spacing(20),
+          alignItems: 'center',
+        })}
+      >
       <Section
         sx={(theme) => ({
           backgroundColor: theme.palette.primary.dark,
@@ -529,7 +531,7 @@ const Page = () => {
               </Box>
               <Typography
                 sx={(theme) => ({
-                  typography: theme.typography.body7,
+                  typography: 'body7',
                   display: 'inline-flex',
                   alignItems: 'center',
                   fontWeight: '700',
@@ -555,7 +557,7 @@ const Page = () => {
               </Box>
               <Typography
                 sx={(theme) => ({
-                  typography: theme.typography.body7,
+                  typography: 'body7',
                   display: 'inline-flex',
                   alignItems: 'center',
                   fontWeight: '700',
@@ -643,7 +645,8 @@ const Page = () => {
           </Section>
         </Col>
       )}
-    </FullscreenPage>
+      </FullscreenPage>
+    </SidebarBoundary>
   )
 }
 

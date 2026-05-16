@@ -6,6 +6,7 @@ import type {
 import {
   selectActiveSidebarBoundary,
   selectActiveSidebarBoundaryId,
+  selectActiveSidebarMode,
 } from './sidebarBoundaryRegistry'
 
 const boundary = ({
@@ -37,10 +38,12 @@ describe('sidebar boundary registry selection', () => {
       id: 'parent',
       depth: 0,
       registrationOrder: 1,
+      mode: 'panel',
     })
 
     expect(selectActiveSidebarBoundary({ parent })).toBe(parent)
     expect(selectActiveSidebarBoundaryId({ parent })).toBe('parent')
+    expect(selectActiveSidebarMode({ parent })).toBe('panel')
   })
 
   it('selects a child boundary over its parent', () => {

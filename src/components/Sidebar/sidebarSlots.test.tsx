@@ -9,13 +9,17 @@ import { SidebarBoundary } from './SidebarBoundary'
 import {
   getSidebarSlotKey,
   IntoSidebarActionRailSlot,
+  IntoSidebarBottomControlsSlot,
   IntoSidebarHeaderChildrenSlot,
   IntoSidebarHeaderSlot,
   IntoSidebarPanelSlot,
+  IntoSidebarTopControlsSlot,
   SidebarActionRailSlot,
+  SidebarBottomControlsSlot,
   SidebarHeaderChildrenSlot,
   SidebarHeaderSlot,
   SidebarPanelSlot,
+  SidebarTopControlsSlot,
 } from './sidebarSlots'
 
 const resetSidebarBoundaryRegistry = () => {
@@ -58,6 +62,18 @@ describe('sidebar scoped slots', () => {
     expect(
       getSidebarSlotKey({
         boundaryId: 'boundary-a',
+        slot: 'topControls',
+      })
+    ).toBe('sidebar:boundary-a:topControls')
+    expect(
+      getSidebarSlotKey({
+        boundaryId: 'boundary-a',
+        slot: 'bottomControls',
+      })
+    ).toBe('sidebar:boundary-a:bottomControls')
+    expect(
+      getSidebarSlotKey({
+        boundaryId: 'boundary-a',
         slot: 'panel',
         panelId: 'secondary',
       })
@@ -70,12 +86,20 @@ describe('sidebar scoped slots', () => {
         <SidebarBoundary id="parent" mode="floating">
           <SidebarHeaderSlot boundaryId="parent" />
           <SidebarHeaderChildrenSlot boundaryId="parent" />
+          <SidebarTopControlsSlot boundaryId="parent" />
+          <SidebarBottomControlsSlot boundaryId="parent" />
           <IntoSidebarHeaderSlot>
             <button type="button">Parent header</button>
           </IntoSidebarHeaderSlot>
           <IntoSidebarHeaderChildrenSlot>
             <span>Parent header children</span>
           </IntoSidebarHeaderChildrenSlot>
+          <IntoSidebarTopControlsSlot>
+            <button type="button">Parent top control</button>
+          </IntoSidebarTopControlsSlot>
+          <IntoSidebarBottomControlsSlot>
+            <button type="button">Parent bottom control</button>
+          </IntoSidebarBottomControlsSlot>
 
           <SidebarBoundary id="child" mode="panel">
             <SidebarActionRailSlot boundaryId="child" />
@@ -99,6 +123,12 @@ describe('sidebar scoped slots', () => {
       screen.getByRole('button', { name: 'Parent header' })
     ).toBeInTheDocument()
     expect(screen.getByText('Parent header children')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Parent top control' })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Parent bottom control' })
+    ).toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: 'Child header' })
     ).toBeInTheDocument()

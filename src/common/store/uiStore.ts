@@ -1,6 +1,5 @@
 'use client'
 
-import React from 'react'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { enableMapSet } from 'immer'
@@ -26,7 +25,6 @@ import { commonDevtools } from './shared-devtools'
 import { waitFor } from '../utils/store'
 
 type PopupModalViewMode = 'constrained' | 'fullscreen' | 'full-height'
-export type SidebarVariant = 'default' | 'simple'
 
 type SidebarHeaderConfig = {
   title: string
@@ -36,20 +34,14 @@ type SidebarHeaderConfig = {
 interface Vars {
   isSidebarOpen: boolean
   isSidebarDisabled: boolean
-  isMapLayoutSidebarDisabled: boolean
   isMapPopupOpen: boolean
-  // Drawer extension state (extra content area next to the main drawer)
-  isSidebarDrawerOpen: boolean
-  isSidebarDrawerOverlay: boolean
   notifications: Record<string, InternalNotificationMessage>
   isNavbarHidden: boolean
   isLoginModalOpen: boolean
   isSidebarLoading: boolean
   sidebarWidth: number | undefined
-  sidebarVariant: SidebarVariant
   sidebarBoundaries: SidebarBoundaryRegistry
   _sidebarBoundaryRegistrationOrder: number
-  isSidebarHeaderHidden: boolean
   sidebarHeaderConfig: SidebarHeaderConfig
   confirmationDialogOptions: InternalConfirmationDialogOptions
   isBaseDomainForApplet: boolean
@@ -72,10 +64,7 @@ interface Vars {
 interface Actions {
   setIsSidebarOpen: (value: boolean) => void
   setIsSidebarDisabled: (value: boolean) => void
-  setIsMapLayoutSidebarDisabled: (value: boolean) => void
   setIsMapPopupOpen: (value: boolean) => void
-  setIsSidebarDrawerOpen: (value: boolean) => void
-  setIsSidebarDrawerOverlay: (value: boolean) => void
   startSidebarLoading: (loaderId: string) => void
   stopSidebarLoading: (loaderId: string) => void
   notify: (notification: NotificationMessage) => Promise<void>
@@ -84,13 +73,8 @@ interface Actions {
     notification: Partial<InternalNotificationMessage>
   ) => Promise<void>
   setIsNavbarHidden: (value: boolean) => void
-  setSidebarHeaderElement: undefined | ((value: React.JSX.Element) => void)
-  setSidebarHeaderElementSetter: (
-    setter: (value: React.JSX.Element) => void
-  ) => void
   setIsLoginModalOpen: (isOpen: boolean) => void
   setSidebarWidth: (pixels: number) => void
-  setSidebarVariant: (variant: SidebarVariant) => void
   registerSidebarBoundary: (input: RegisterSidebarBoundaryInput) => void
   updateSidebarBoundary: (
     id: SidebarBoundaryId,
@@ -102,7 +86,6 @@ interface Actions {
   ) => void
   resetSidebarBoundaryRuntimeOptions: (id: SidebarBoundaryId) => void
   unregisterSidebarBoundary: (id: SidebarBoundaryId) => void
-  setIsSidebarHeaderHidden: (hidden: boolean) => void
   setSidebarHeaderConfig: (config: SidebarHeaderConfig) => void
   triggerConfirmationDialog: (
     options: ConfirmationDialogOptions
@@ -127,20 +110,15 @@ export const useUIStore = create<State>()(
     immer((set, get) => {
       const vars: Vars = {
         isSidebarDisabled: false,
-        isMapLayoutSidebarDisabled: false,
         isSidebarOpen: true,
         isMapPopupOpen: false,
-        isSidebarDrawerOpen: false,
-        isSidebarDrawerOverlay: false,
         isLoginModalOpen: false,
         isNavbarHidden: false,
         notifications: {},
         isSidebarLoading: false,
         sidebarWidth: undefined,
-        sidebarVariant: 'default',
         sidebarBoundaries: {},
         _sidebarBoundaryRegistrationOrder: 0,
-        isSidebarHeaderHidden: false,
         sidebarHeaderConfig: { title: '' },
         confirmationDialogOptions: { id: null },
         isBaseDomainForApplet: false,
@@ -154,24 +132,14 @@ export const useUIStore = create<State>()(
       const actions: Actions = {
         setIsSidebarOpen: (value) => set({ isSidebarOpen: value }),
         setIsSidebarDisabled: (value) => set({ isSidebarDisabled: value }),
-        setIsMapLayoutSidebarDisabled: (value) =>
-          set({ isMapLayoutSidebarDisabled: value }),
         setIsMapPopupOpen: (value) => set({ isMapPopupOpen: value }),
-        setIsSidebarDrawerOpen: (value) => set({ isSidebarDrawerOpen: value }),
-        setIsSidebarDrawerOverlay: (value) =>
-          set({ isSidebarDrawerOverlay: value }),
         setIsLoginModalOpen: (isOpen: boolean) => {
           set({ isLoginModalOpen: isOpen })
         },
         setIsNavbarHidden: (value) => set({ isNavbarHidden: value }),
-        setSidebarHeaderElement: undefined,
-        setSidebarHeaderElementSetter: (setter) =>
-          set({ setSidebarHeaderElement: setter }),
         setSidebarWidth(pixels: number) {
           set({ sidebarWidth: pixels })
         },
-        setSidebarVariant: (variant: SidebarVariant) =>
-          set({ sidebarVariant: variant }),
         registerSidebarBoundary: (input: RegisterSidebarBoundaryInput) => {
           set((state) => {
             const existingBoundary = state.sidebarBoundaries[input.id]
@@ -252,8 +220,6 @@ export const useUIStore = create<State>()(
             delete state.sidebarBoundaries[id]
           })
         },
-        setIsSidebarHeaderHidden: (hidden: boolean) =>
-          set({ isSidebarHeaderHidden: hidden }),
         setSidebarHeaderConfig: (config: SidebarHeaderConfig) =>
           set({ sidebarHeaderConfig: config }),
         startSidebarLoading: (loaderId: string) => {

@@ -1,11 +1,10 @@
 'use client'
 
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Box, SxProps, Theme } from '@mui/material'
 
 import { useUIStore } from '#/common/store'
 import { LoadingSpinner } from '../Loading'
-import { Slot } from '../context/slotsContext'
 
 type SidebarScaffoldProps = {
   children: React.ReactNode
@@ -32,126 +31,14 @@ const SidebarScaffold = ({
 }: SidebarScaffoldProps) => {
   const isSidebarDisabled = useUIStore((state) => state.isSidebarDisabled)
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
-  const isSidebarDrawerOpen = useUIStore((state) => state.isSidebarDrawerOpen)
   const setSidebarWidth = useUIStore((state) => state.setSidebarWidth)
   const isSidebarLoading = useUIStore((state) => state.isSidebarLoading)
 
   const sidebarRef = useRef<HTMLDivElement | null>(null)
   const sidebarContainerRef = useRef<HTMLDivElement | null>(null)
-  const drawerSlotRef = useRef<HTMLDivElement | null>(null)
-
-  const isSidebarDrawerOverlay = useUIStore(
-    (state) => state.isSidebarDrawerOverlay
-  )
-  const setIsSidebarDrawerOverlay = useUIStore(
-    (state) => state.setIsSidebarDrawerOverlay
-  )
-  const [overlayWidth, setOverlayWidth] = useState<number | null>(null)
-  const [sidebarContainerWidth, setSidebarContainerWidth] = useState<number>(0)
-  const isDrawerOverlayRef = useRef(isSidebarDrawerOverlay)
-  const drawerNaturalWidthRef = useRef(0)
-
-  const closeExtraDrawerWithSidebar = true
-
-  const clearOverlay = useCallback(() => {
-    if (isDrawerOverlayRef.current) {
-      isDrawerOverlayRef.current = false
-      setIsSidebarDrawerOverlay(false)
-    }
-    setOverlayWidth((prev) => (prev === null ? prev : null))
-  }, [setIsSidebarDrawerOverlay])
-
-  const applyOverlay = useCallback(
-    (width: number) => {
-      if (!isDrawerOverlayRef.current) {
-        isDrawerOverlayRef.current = true
-        setIsSidebarDrawerOverlay(true)
-      }
-      setOverlayWidth((prev) => (prev === width ? prev : width))
-    },
-    [setIsSidebarDrawerOverlay]
-  )
-
-  const getDrawerTransform = useCallback(
-    (
-      sidebarOpen: boolean,
-      drawerOpen: boolean,
-      isOverlay: boolean,
-      panelWidth: number
-    ) => {
-      if (sidebarOpen && drawerOpen) {
-        return 'translateX(0)'
-      }
-
-      if (isOverlay) {
-        return 'translateX(-100%)'
-      }
-
-      return `translateX(calc(-100% - ${panelWidth}px))`
-    },
-    []
-  )
-
-  const evaluateLayout = useCallback(() => {
-    const sidebarEl = sidebarRef.current
-    const containerEl = sidebarContainerRef.current
-    const slotEl = drawerSlotRef.current
-
-    if (!sidebarEl || !containerEl || !slotEl) {
-      drawerNaturalWidthRef.current = 0
-      clearOverlay()
-      return
-    }
-
-    const panelWidth = containerEl.getBoundingClientRect().width
-    setSidebarContainerWidth(panelWidth)
-    const wasOverlay = isDrawerOverlayRef.current
-    const slotChild = slotEl.firstElementChild as HTMLElement | null
-    const measuredSlotWidth = slotChild
-      ? slotChild.getBoundingClientRect().width
-      : slotEl.getBoundingClientRect().width
-
-    if (measuredSlotWidth <= 0) {
-      drawerNaturalWidthRef.current = 0
-      clearOverlay()
-      return
-    }
-
-    if (!wasOverlay || drawerNaturalWidthRef.current === 0) {
-      drawerNaturalWidthRef.current = measuredSlotWidth
-    }
-
-    const naturalDrawerWidth =
-      drawerNaturalWidthRef.current || measuredSlotWidth
-    const slotWidthForDecision = wasOverlay
-      ? naturalDrawerWidth
-      : measuredSlotWidth
-
-    const fallbackWidth = slotWidthForDecision + panelWidth
-    const windowWidth =
-      typeof window !== 'undefined' ? window.innerWidth : fallbackWidth
-    const parentWidth = sidebarEl.parentElement?.getBoundingClientRect().width
-    const availableWidth = Math.min(windowWidth, parentWidth ?? windowWidth)
-
-    const totalWidth = panelWidth + slotWidthForDecision
-    const shouldOverlay = totalWidth > availableWidth
-
-    if (shouldOverlay) {
-      const targetWidth = Math.min(
-        availableWidth,
-        Math.max(panelWidth, naturalDrawerWidth)
-      )
-      applyOverlay(targetWidth)
-      return
-    }
-
-    drawerNaturalWidthRef.current = measuredSlotWidth
-    clearOverlay()
-  }, [applyOverlay, clearOverlay])
 
   useEffect(() => {
     const measure = () => {
-      evaluateLayout()
       if (sidebarRef.current) {
         setSidebarWidth(sidebarRef.current.getBoundingClientRect().width)
       }
@@ -171,9 +58,6 @@ const SidebarScaffold = ({
       if (sidebarContainerRef.current) {
         observer.observe(sidebarContainerRef.current)
       }
-      if (drawerSlotRef.current) {
-        observer.observe(drawerSlotRef.current)
-      }
     }
 
     window.addEventListener('resize', measure)
@@ -185,11 +69,7 @@ const SidebarScaffold = ({
       }
       window.removeEventListener('resize', measure)
     }
-  }, [evaluateLayout, setSidebarWidth])
-
-  useEffect(() => {
-    evaluateLayout()
-  }, [evaluateLayout, isSidebarDrawerOpen, isSidebarOpen])
+  }, [setSidebarWidth])
 
   if (isSidebarDisabled) {
     return <>{children}</>
@@ -327,49 +207,6 @@ const SidebarScaffold = ({
         </Box>
       </Box>
       {trailingContent}
-      <Box
-        ref={drawerSlotRef}
-        className="sidebar-drawer-container"
-        sx={[
-          (theme: Theme) => ({
-            display: 'flex',
-            flex: 1,
-            alignItems: 'stretch',
-            pointerEvents: isSidebarOpen ? 'auto' : 'none',
-            position: 'relative',
-            minHeight: 0,
-            zIndex: theme.zIndex.drawer - 1,
-            transform: getDrawerTransform(
-              isSidebarOpen,
-              isSidebarDrawerOpen,
-              isSidebarDrawerOverlay,
-              sidebarContainerWidth
-            ),
-            transition: 'transform 220ms cubic-bezier(.2,0,.2,1)',
-            willChange: 'transform',
-          }),
-          isSidebarDrawerOverlay &&
-            ((theme: Theme) => ({
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              height: '100%',
-              width: overlayWidth != null ? `${overlayWidth}px` : '100%',
-              zIndex: theme.zIndex.drawer + 2,
-              pointerEvents: 'auto',
-              '& > *': {
-                width: '100%',
-                maxWidth: '100%',
-              },
-            })),
-          !isSidebarOpen &&
-            closeExtraDrawerWithSidebar && {
-              pointerEvents: 'none',
-            },
-        ]}
-      >
-        <Slot name="sidebar-drawer" />
-      </Box>
       {actionRail}
     </Box>
   )
