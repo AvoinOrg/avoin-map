@@ -308,10 +308,12 @@ export const SimpleSidebar = ({
   sx,
   panels,
   children,
+  headerChildren = <Slot name="sidebar-header-children" />,
 }: {
   sx?: SxProps<Theme>
   panels?: SimpleSidebarPanelsConfig
   children: React.ReactNode
+  headerChildren?: React.ReactNode
 }) => {
   const isMobile = useIsMobile()
   const [internalMobilePanel, setInternalMobilePanel] =
@@ -378,7 +380,7 @@ export const SimpleSidebar = ({
           typography: 'body2',
         }}
       >
-        <Slot name="sidebar-header-children" />
+        {headerChildren}
       </Box>
     </Box>
   )

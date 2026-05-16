@@ -8,9 +8,11 @@ import { SlotsProvider } from '#/components/context/slotsContext'
 import { SidebarBoundary } from './SidebarBoundary'
 import {
   getSidebarSlotKey,
+  IntoSidebarActionRailSlot,
   IntoSidebarHeaderChildrenSlot,
   IntoSidebarHeaderSlot,
   IntoSidebarPanelSlot,
+  SidebarActionRailSlot,
   SidebarHeaderChildrenSlot,
   SidebarHeaderSlot,
   SidebarPanelSlot,
@@ -76,8 +78,12 @@ describe('sidebar scoped slots', () => {
           </IntoSidebarHeaderChildrenSlot>
 
           <SidebarBoundary id="child" mode="panel">
+            <SidebarActionRailSlot boundaryId="child" />
             <SidebarHeaderSlot boundaryId="child" />
             <SidebarPanelSlot boundaryId="child" panelId="secondary" />
+            <IntoSidebarActionRailSlot>
+              <button type="button">Child action</button>
+            </IntoSidebarActionRailSlot>
             <IntoSidebarHeaderSlot>
               <button type="button">Child header</button>
             </IntoSidebarHeaderSlot>
@@ -95,6 +101,9 @@ describe('sidebar scoped slots', () => {
     expect(screen.getByText('Parent header children')).toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: 'Child header' })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Child action' })
     ).toBeInTheDocument()
     expect(screen.getByText('Child panel')).toBeInTheDocument()
   })

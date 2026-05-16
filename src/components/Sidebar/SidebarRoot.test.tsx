@@ -9,7 +9,11 @@ import { SlotsProvider } from '#/components/context/slotsContext'
 import { SidebarBoundary } from './SidebarBoundary'
 import { SidebarRoot } from './SidebarRoot'
 import type { ResolveSidebarRootFallbackInput } from './sidebarRootFallback'
-import { IntoSidebarHeaderChildrenSlot } from './sidebarSlots'
+import {
+  IntoSidebarActionRailSlot,
+  IntoSidebarHeaderChildrenSlot,
+  IntoSidebarPanelSlot,
+} from './sidebarSlots'
 
 jest.mock('next/navigation', () => ({
   usePathname: () => '/',
@@ -169,5 +173,109 @@ describe('SidebarRoot', () => {
 
     expect(screen.getByText('Stable child')).toBeInTheDocument()
     expect(mountCount).toBe(1)
+  })
+
+  it('hosts scoped panel slots, header children, and a closed panel action rail', async () => {
+    renderRoot({
+      children: (
+        <SidebarBoundary
+          id="route-panel"
+          mode="panel"
+          config={{ panelLayout: 'double' }}
+          initialRuntimeOptions={{
+            visiblePanels: [],
+            activePanel: 'main',
+            mobileMode: 'stacked',
+          }}
+        >
+          <IntoSidebarHeaderChildrenSlot>
+            <span>Panel breadcrumb</span>
+          </IntoSidebarHeaderChildrenSlot>
+          <IntoSidebarPanelSlot panelId="main">
+            <span>Main panel slot content</span>
+          </IntoSidebarPanelSlot>
+          <IntoSidebarPanelSlot panelId="secondary">
+            <span>Secondary panel slot content</span>
+          </IntoSidebarPanelSlot>
+          <IntoSidebarActionRailSlot>
+            <button type="button">Toggle graph panel</button>
+          </IntoSidebarActionRailSlot>
+        </SidebarBoundary>
+      ),
+    })
+
+    expect(await screen.findByText('Panel breadcrumb')).toBeInTheDocument()
+    expect(screen.getByText('Main panel slot content')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Toggle graph panel' })
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText('Secondary panel slot content')
+    ).not.toBeInTheDocument()
+
+    act(() => {
+      useUIStore
+        .getState()
+        .setSidebarBoundaryRuntimeOptions('route-panel', {
+          visiblePanels: ['secondary'],
+          activePanel: 'secondary',
+        })
+    })
+
+    expect(
+      await screen.findByText('Secondary panel slot content')
+    ).toBeInTheDocument()
+  })
+
+  it('keeps a panel boundary child mounted when panel runtime options open', async () => {
+    let mountCount = 0
+
+    const Child = () => {
+      useEffect(() => {
+        mountCount += 1
+      }, [])
+
+      return (
+        <>
+          <IntoSidebarPanelSlot panelId="main">
+            <span>Stable panel child</span>
+          </IntoSidebarPanelSlot>
+          <IntoSidebarPanelSlot panelId="secondary">
+            <span>Runtime secondary child</span>
+          </IntoSidebarPanelSlot>
+        </>
+      )
+    }
+
+    renderRoot({
+      children: (
+        <SidebarBoundary
+          id="stable-panel"
+          mode="panel"
+          config={{ panelLayout: 'double' }}
+          initialRuntimeOptions={{
+            visiblePanels: [],
+            activePanel: 'main',
+          }}
+        >
+          <Child />
+        </SidebarBoundary>
+      ),
+    })
+
+    expect(await screen.findByText('Stable panel child')).toBeInTheDocument()
+    const mountCountAfterActivation = mountCount
+
+    act(() => {
+      useUIStore
+        .getState()
+        .setSidebarBoundaryRuntimeOptions('stable-panel', {
+          visiblePanels: ['secondary'],
+          activePanel: 'secondary',
+        })
+    })
+
+    expect(await screen.findByText('Runtime secondary child')).toBeInTheDocument()
+    expect(mountCount).toBe(mountCountAfterActivation)
   })
 })

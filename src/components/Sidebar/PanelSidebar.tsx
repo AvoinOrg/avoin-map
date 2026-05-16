@@ -16,6 +16,7 @@ import type {
 } from './SimpleSidebar'
 import {
   SidebarActionRailSlot,
+  SidebarHeaderChildrenSlot,
   SidebarPanelSlot,
 } from './sidebarSlots'
 
@@ -58,18 +59,34 @@ const getScopedPanelsConfig = ({
   }
 
   const visiblePanels = options?.visiblePanels ?? []
-  const extraPanels = visiblePanels.filter(
+  const visibleExtraPanels = visiblePanels.filter(
     (panelId): panelId is Exclude<SidebarPanelId, 'main'> =>
       panelId === 'secondary' || panelId === 'tertiary'
   )
+  const capacityPanels: Exclude<SidebarPanelId, 'main'>[] =
+    options?.panelLayout === 'triple'
+      ? ['secondary', 'tertiary']
+      : options?.panelLayout === 'double'
+        ? ['secondary']
+        : options?.panelLayout === 'single'
+          ? []
+          : visibleExtraPanels
 
-  if (extraPanels.length === 0) {
+  if (capacityPanels.length === 0) {
     return undefined
   }
 
   const scopedActionRail = <SidebarActionRailSlot boundaryId={boundaryId} />
+  const openExtraPanels = capacityPanels.filter((panelId) =>
+    visibleExtraPanels.includes(panelId)
+  )
 
-  if (extraPanels.includes('secondary') && extraPanels.includes('tertiary')) {
+  if (
+    capacityPanels.includes('secondary') &&
+    capacityPanels.includes('tertiary') &&
+    openExtraPanels.includes('secondary') &&
+    openExtraPanels.includes('tertiary')
+  ) {
     return {
       mode: 'double',
       mobileMode: options?.mobileMode,
@@ -85,12 +102,13 @@ const getScopedPanelsConfig = ({
     }
   }
 
-  const panelId = extraPanels[0]
+  const panelId = openExtraPanels[0] ?? capacityPanels[0]
 
   return {
     mode: 'single',
-    isOpen: true,
+    isOpen: openExtraPanels.includes(panelId),
     mobileMode: options?.mobileMode,
+    mobileStackPlacement: options?.mobileStackPlacement,
     mobileActivePanel: toSingleMobilePanel(options?.activePanel, panelId),
     desktopActionRail: scopedActionRail,
     mobileActionRail: scopedActionRail,
@@ -111,9 +129,17 @@ export const PanelSidebar = ({
     () => getScopedPanelsConfig({ boundaryId, options }),
     [boundaryId, options]
   )
+  const headerChildren =
+    boundaryId != null ? (
+      <SidebarHeaderChildrenSlot boundaryId={boundaryId} />
+    ) : undefined
 
   return (
-    <SimpleSidebar sx={sx} panels={panels ?? scopedPanels}>
+    <SimpleSidebar
+      sx={sx}
+      panels={panels ?? scopedPanels}
+      headerChildren={headerChildren}
+    >
       {boundaryId != null && (
         <SidebarPanelSlot boundaryId={boundaryId} panelId="main" />
       )}

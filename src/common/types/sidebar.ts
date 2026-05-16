@@ -18,6 +18,8 @@ export type SidebarPanelLayout = 'single' | 'double' | 'triple'
 
 export type SidebarMobileMode = 'stacked' | 'buttons'
 
+export type SidebarMobileStackPlacement = 'before' | 'after'
+
 export type SidebarActionRailPlacement = 'inside' | 'outside'
 
 export type SidebarNoneConfig = Record<string, never>
@@ -35,6 +37,7 @@ export type SidebarFloatingConfig = SidebarHomeConfig & {
 export type SidebarPanelConfig = SidebarHomeConfig & {
   panelLayout?: SidebarPanelLayout
   mobileMode?: SidebarMobileMode
+  mobileStackPlacement?: SidebarMobileStackPlacement
   activePanel?: SidebarPanelId
   visiblePanels?: SidebarPanelId[]
   mainPanelVisible?: boolean
@@ -55,6 +58,7 @@ export type SidebarRuntimeOptions = {
   chrome?: SidebarChromeToken
   panelLayout?: SidebarPanelLayout
   mobileMode?: SidebarMobileMode
+  mobileStackPlacement?: SidebarMobileStackPlacement
   activePanel?: SidebarPanelId
   visiblePanels?: SidebarPanelId[]
   mainPanelVisible?: boolean

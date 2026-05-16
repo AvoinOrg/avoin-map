@@ -19,6 +19,7 @@ import type {
 import {
   SidebarBoundaryProvider,
   useNullableSidebarBoundaryContext,
+  useSidebarBoundaryContext,
 } from './sidebarBoundaryContext'
 
 const useIsomorphicLayoutEffect =
@@ -129,6 +130,39 @@ export const SidebarBoundary = <M extends SidebarMode = SidebarMode,>({
       {children}
     </SidebarBoundaryProvider>
   )
+}
+
+export const useSidebarBoundaryRuntimeOptions = (
+  runtimeOptions: SidebarRuntimeOptions
+) => {
+  const { boundaryId } = useSidebarBoundaryContext()
+  const isBoundaryRegistered = useUIStore(
+    (state) => state.sidebarBoundaries[boundaryId] != null
+  )
+  const setSidebarBoundaryRuntimeOptions = useUIStore(
+    (state) => state.setSidebarBoundaryRuntimeOptions
+  )
+  const resetSidebarBoundaryRuntimeOptions = useUIStore(
+    (state) => state.resetSidebarBoundaryRuntimeOptions
+  )
+
+  useIsomorphicLayoutEffect(() => {
+    if (!isBoundaryRegistered) {
+      return
+    }
+
+    setSidebarBoundaryRuntimeOptions(boundaryId, runtimeOptions)
+
+    return () => {
+      resetSidebarBoundaryRuntimeOptions(boundaryId)
+    }
+  }, [
+    boundaryId,
+    isBoundaryRegistered,
+    resetSidebarBoundaryRuntimeOptions,
+    runtimeOptions,
+    setSidebarBoundaryRuntimeOptions,
+  ])
 }
 
 export default SidebarBoundary

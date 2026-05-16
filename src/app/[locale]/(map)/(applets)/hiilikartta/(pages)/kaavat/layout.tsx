@@ -2,13 +2,26 @@
 
 import React from 'react'
 
-import { MapLayoutSidebarBoundary, SimpleSidebar } from '#/components/Sidebar'
+import { routeTree } from '#/common/routing/routes/hiilikartta'
+import {
+  BreadcrumbNav,
+  IntoSidebarHeaderChildrenSlot,
+  IntoSidebarPanelSlot,
+  SidebarBoundary,
+} from '#/components/Sidebar'
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <MapLayoutSidebarBoundary>
-      <SimpleSidebar>{children}</SimpleSidebar>
-    </MapLayoutSidebarBoundary>
+    <SidebarBoundary
+      id="hiilikartta-kaavat-panel"
+      mode="panel"
+      config={{ panelLayout: 'single' }}
+    >
+      <IntoSidebarHeaderChildrenSlot>
+        <BreadcrumbNav routeTree={routeTree} collapseIfRoot />
+      </IntoSidebarHeaderChildrenSlot>
+      <IntoSidebarPanelSlot panelId="main">{children}</IntoSidebarPanelSlot>
+    </SidebarBoundary>
   )
 }
 

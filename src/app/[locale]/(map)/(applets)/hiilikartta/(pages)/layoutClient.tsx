@@ -54,7 +54,10 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
   const isHiilikarttaRoot =
     pathnameWithoutLocale === '/hiilikartta' ||
     (isStandaloneHiilikartta && pathnameWithoutLocale === '/')
-  const showBreadcrumbNav = !isHiilikarttaRoot
+  const isHiilikarttaKaavat =
+    pathnameWithoutLocale.startsWith('/hiilikartta/kaavat') ||
+    (isStandaloneHiilikartta && pathnameWithoutLocale.startsWith('/kaavat'))
+  const showBreadcrumbNav = !isHiilikarttaRoot && !isHiilikarttaKaavat
 
   const planConfStatsQuery = useQuery({
     ...planStatsQuery(),
@@ -178,7 +181,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // Preload zoning classes on applet load
     getZoningClasses().catch(() => {})
-    
+
     return () => {
       removeSignOutAction('hiilikartta')
     }

@@ -2,9 +2,13 @@ import React from 'react'
 import { render } from '@testing-library/react'
 
 import { useUIStore } from '#/common/store/uiStore'
+import type { SidebarRuntimeOptions } from '#/common/types/sidebar'
 import { selectActiveSidebarBoundaryId } from '#/common/utils/sidebarBoundaryRegistry'
 
-import { SidebarBoundary } from './SidebarBoundary'
+import {
+  SidebarBoundary,
+  useSidebarBoundaryRuntimeOptions,
+} from './SidebarBoundary'
 
 const resetSidebarBoundaryRegistry = () => {
   useUIStore.setState({
@@ -25,6 +29,16 @@ const NestedBoundaries = ({ showChild }: { showChild: boolean }) => (
     )}
   </SidebarBoundary>
 )
+
+const RuntimeOptionsWriter = ({
+  runtimeOptions,
+}: {
+  runtimeOptions: SidebarRuntimeOptions
+}) => {
+  useSidebarBoundaryRuntimeOptions(runtimeOptions)
+
+  return null
+}
 
 describe('SidebarBoundary', () => {
   beforeEach(() => {
@@ -73,5 +87,43 @@ describe('SidebarBoundary', () => {
         panelLayout: 'double',
       },
     })
+  })
+
+  it('writes and resets scoped runtime options from a boundary child', () => {
+    const RuntimeBoundary = ({ showWriter }: { showWriter: boolean }) => (
+      <SidebarBoundary id="runtime-boundary" mode="panel">
+        {showWriter && (
+          <RuntimeOptionsWriter
+            runtimeOptions={{
+              panelLayout: 'double',
+              visiblePanels: ['secondary'],
+              activePanel: 'secondary',
+              mobileMode: 'stacked',
+              mobileStackPlacement: 'before',
+            }}
+          />
+        )}
+      </SidebarBoundary>
+    )
+
+    const { rerender } = render(<RuntimeBoundary showWriter />)
+
+    expect(
+      useUIStore.getState().sidebarBoundaries['runtime-boundary']
+        ?.runtimeOptions
+    ).toEqual({
+      panelLayout: 'double',
+      visiblePanels: ['secondary'],
+      activePanel: 'secondary',
+      mobileMode: 'stacked',
+      mobileStackPlacement: 'before',
+    })
+
+    rerender(<RuntimeBoundary showWriter={false} />)
+
+    expect(
+      useUIStore.getState().sidebarBoundaries['runtime-boundary']
+        ?.runtimeOptions
+    ).toEqual({})
   })
 })

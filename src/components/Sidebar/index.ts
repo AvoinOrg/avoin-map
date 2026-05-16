@@ -18,7 +18,10 @@ export type {
   FloatingSidebarWidth,
 } from './FloatingSidebar'
 export type { PanelSidebarProps } from './PanelSidebar'
-export { SidebarBoundary } from './SidebarBoundary'
+export {
+  SidebarBoundary,
+  useSidebarBoundaryRuntimeOptions,
+} from './SidebarBoundary'
 export type { SidebarBoundaryProps } from './SidebarBoundary'
 export {
   SidebarBoundaryProvider,
@@ -58,6 +61,7 @@ export type {
   SidebarHomeConfig,
   SidebarMode,
   SidebarMobileMode,
+  SidebarMobileStackPlacement,
   SidebarNoneConfig,
   SidebarPanelConfig,
   SidebarPanelId,
