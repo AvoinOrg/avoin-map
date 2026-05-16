@@ -8,8 +8,10 @@ import { SlotsProvider } from '#/components/context/slotsContext'
 import { SidebarBoundary } from './SidebarBoundary'
 import {
   getSidebarSlotKey,
+  IntoSidebarHeaderChildrenSlot,
   IntoSidebarHeaderSlot,
   IntoSidebarPanelSlot,
+  SidebarHeaderChildrenSlot,
   SidebarHeaderSlot,
   SidebarPanelSlot,
 } from './sidebarSlots'
@@ -48,6 +50,12 @@ describe('sidebar scoped slots', () => {
     expect(
       getSidebarSlotKey({
         boundaryId: 'boundary-a',
+        slot: 'headerChildren',
+      })
+    ).toBe('sidebar:boundary-a:headerChildren')
+    expect(
+      getSidebarSlotKey({
+        boundaryId: 'boundary-a',
         slot: 'panel',
         panelId: 'secondary',
       })
@@ -59,9 +67,13 @@ describe('sidebar scoped slots', () => {
       <SlotsProvider>
         <SidebarBoundary id="parent" mode="floating">
           <SidebarHeaderSlot boundaryId="parent" />
+          <SidebarHeaderChildrenSlot boundaryId="parent" />
           <IntoSidebarHeaderSlot>
             <button type="button">Parent header</button>
           </IntoSidebarHeaderSlot>
+          <IntoSidebarHeaderChildrenSlot>
+            <span>Parent header children</span>
+          </IntoSidebarHeaderChildrenSlot>
 
           <SidebarBoundary id="child" mode="panel">
             <SidebarHeaderSlot boundaryId="child" />
@@ -80,6 +92,7 @@ describe('sidebar scoped slots', () => {
     expect(
       screen.getByRole('button', { name: 'Parent header' })
     ).toBeInTheDocument()
+    expect(screen.getByText('Parent header children')).toBeInTheDocument()
     expect(
       screen.getByRole('button', { name: 'Child header' })
     ).toBeInTheDocument()

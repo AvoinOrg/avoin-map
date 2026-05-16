@@ -16,6 +16,7 @@ import SidebarScaffold from './SidebarScaffold'
 import {
   SidebarActionRailSlot,
   SidebarFooterSlot,
+  SidebarHeaderChildrenSlot,
   SidebarHeaderSlot,
 } from './sidebarSlots'
 import SidebarToggleButton from './SidebarToggleButton'
@@ -51,6 +52,13 @@ const getFooterSlot = (boundaryId?: SidebarBoundaryId) =>
     <SidebarFooterSlot boundaryId={boundaryId} />
   ) : (
     <Slot name="sidebar-footer" />
+  )
+
+const getDefaultHeaderChildrenSlot = (boundaryId?: SidebarBoundaryId) =>
+  boundaryId != null ? (
+    <SidebarHeaderChildrenSlot boundaryId={boundaryId} />
+  ) : (
+    <Slot name="sidebar-header-children" />
   )
 
 export const FloatingSidebar = ({
@@ -97,7 +105,7 @@ export const FloatingSidebar = ({
         title={sidebarHeaderConfig.title}
         backgroundImage={sidebarHeaderConfig.backgroundImage}
       >
-        <Slot name="sidebar-header-children" />
+        {getDefaultHeaderChildrenSlot(boundaryId)}
       </SidebarHeader>
     )
 

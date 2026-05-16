@@ -6,8 +6,10 @@ import { useUIStore } from '#/common/store/uiStore'
 import type { SidebarMode, SidebarRuntimeOptions } from '#/common/types/sidebar'
 import { SlotsProvider } from '#/components/context/slotsContext'
 
+import { SidebarBoundary } from './SidebarBoundary'
 import { SidebarRoot } from './SidebarRoot'
 import type { ResolveSidebarRootFallbackInput } from './sidebarRootFallback'
+import { IntoSidebarHeaderChildrenSlot } from './sidebarSlots'
 
 jest.mock('next/navigation', () => ({
   usePathname: () => '/',
@@ -113,6 +115,26 @@ describe('SidebarRoot', () => {
     expect(
       screen.getByRole('button', { name: /hide sidebar/i })
     ).toBeInTheDocument()
+  })
+
+  it('hosts scoped header children for a default floating boundary', async () => {
+    renderRoot({
+      children: (
+        <SidebarBoundary id="route-floating" mode="floating">
+          <IntoSidebarHeaderChildrenSlot>
+            <span>Scoped breadcrumb</span>
+          </IntoSidebarHeaderChildrenSlot>
+          <div>Floating child</div>
+        </SidebarBoundary>
+      ),
+      fallback: {
+        ...fallbackContext,
+        pathnameWithoutLocale: '/luonnonmetsakartat',
+      },
+    })
+
+    expect(await screen.findByText('Scoped breadcrumb')).toBeInTheDocument()
+    expect(screen.getByText('Floating child')).toBeInTheDocument()
   })
 
   it('keeps the child subtree mounted when runtime options change within one mode', () => {

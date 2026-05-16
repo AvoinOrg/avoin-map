@@ -4,7 +4,11 @@ export type SidebarMode = 'none' | 'home' | 'floating' | 'panel'
 
 export type SidebarPanelId = 'main' | 'secondary' | 'tertiary'
 
-export type SidebarSlotName = 'header' | 'footer' | 'actionRail'
+export type SidebarSlotName =
+  | 'header'
+  | 'footer'
+  | 'actionRail'
+  | 'headerChildren'
 
 export type SidebarWidthToken = 'default' | 'compact' | 'wide'
 

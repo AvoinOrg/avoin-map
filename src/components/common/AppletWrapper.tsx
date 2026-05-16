@@ -14,6 +14,11 @@ import { useExclusiveLayerGroups } from '#/common/hooks/map/useExclusiveLayerGro
 import { defaultListedLayerGroups } from '../Map/layers/defaultListedLayerGroups'
 import { IntoSlot } from '#/components/context/slotsContext'
 import { FINLAND_BOUNDS } from '#/common/constants/map'
+import { useNullableSidebarBoundaryContext } from '#/components/Sidebar/sidebarBoundaryContext'
+import {
+  IntoSidebarHeaderChildrenSlot,
+  IntoSidebarHeaderSlot,
+} from '#/components/Sidebar/sidebarSlots'
 
 type BaseAppletWrapperProps = {
   children: React.ReactNode
@@ -61,6 +66,7 @@ const AppletWrapper = ({
   sx,
 }: AppletWrapperProps) => {
   const tolgee = useTolgee(['update'])
+  const sidebarBoundaryContext = useNullableSidebarBoundaryContext()
 
   const setMapContext = useMapStore((state) => state.setMapContext)
   const stateMapContext = useMapStore((state) => state.mapContext)
@@ -188,14 +194,26 @@ const AppletWrapper = ({
         <>
           {/* Portal custom header element if provided */}
           {sidebarHeaderElement && (
-            <IntoSlot name="sidebar-header">{sidebarHeaderElement}</IntoSlot>
+            sidebarBoundaryContext != null ? (
+              <IntoSidebarHeaderSlot>
+                {sidebarHeaderElement}
+              </IntoSidebarHeaderSlot>
+            ) : (
+              <IntoSlot name="sidebar-header">{sidebarHeaderElement}</IntoSlot>
+            )
           )}
 
           {/* Portal header children to slot inside default SidebarHeader */}
           {sidebarHeaderChildren && (
-            <IntoSlot name="sidebar-header-children">
-              {sidebarHeaderChildren}
-            </IntoSlot>
+            sidebarBoundaryContext != null ? (
+              <IntoSidebarHeaderChildrenSlot>
+                {sidebarHeaderChildren}
+              </IntoSidebarHeaderChildrenSlot>
+            ) : (
+              <IntoSlot name="sidebar-header-children">
+                {sidebarHeaderChildren}
+              </IntoSlot>
+            )
           )}
 
           {children}

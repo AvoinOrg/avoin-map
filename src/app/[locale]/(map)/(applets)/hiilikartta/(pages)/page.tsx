@@ -5,12 +5,16 @@ import { Box, Typography } from '@mui/material'
 import { T, useTranslate } from '@tolgee/react'
 import { useRouter } from 'next/navigation'
 
-import { SidebarContentBox } from '#/components/Sidebar'
+import {
+  IntoSidebarFooterSlot,
+  IntoSidebarHeaderSlot,
+  SidebarBoundary,
+  SidebarContentBox,
+} from '#/components/Sidebar'
 import { getRoute } from '#/common/routing/routing-client'
 import { useMapStore } from '#/common/store'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
 import { LayerToggleRow } from '#/components/common/LayerToggleRow'
-import { IntoSlot } from '#/components/context/slotsContext'
 
 import { routeTree } from '#/common/routing/routes/hiilikartta'
 import { listedLayerGroups } from '../common/constants'
@@ -93,11 +97,15 @@ const Page = () => {
     visibleLayerGroupIds.includes(vegetationLayerGroup.id)
 
   return (
-    <>
-      <IntoSlot name="sidebar-header">
+    <SidebarBoundary
+      id="hiilikartta-home"
+      mode="floating"
+      config={{ width: 'compact' }}
+    >
+      <IntoSidebarHeaderSlot>
         <HomeSidebarHeader />
-      </IntoSlot>
-      <IntoSlot name="sidebar-footer">
+      </IntoSidebarHeaderSlot>
+      <IntoSidebarFooterSlot>
         <Box
           component="button"
           type="button"
@@ -149,7 +157,7 @@ const Page = () => {
             Luo Kaava & laske hiilivaikutukset
           </Typography>
         </Box>
-      </IntoSlot>
+      </IntoSidebarFooterSlot>
       <SidebarContentBox
         sxOuter={{
           height: '100%',
@@ -293,7 +301,7 @@ const Page = () => {
           </Box>
         </Box>
       </SidebarContentBox>
-    </>
+    </SidebarBoundary>
   )
 }
 

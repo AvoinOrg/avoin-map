@@ -44,6 +44,12 @@ export const SidebarHeaderSlot = ({
   boundaryId: SidebarBoundaryId
 }) => <SidebarSlotHost boundaryId={boundaryId} slot="header" />
 
+export const SidebarHeaderChildrenSlot = ({
+  boundaryId,
+}: {
+  boundaryId: SidebarBoundaryId
+}) => <SidebarSlotHost boundaryId={boundaryId} slot="headerChildren" />
+
 export const SidebarFooterSlot = ({
   boundaryId,
 }: {
@@ -87,6 +93,14 @@ export const IntoSidebarHeaderSlot = ({
 }: {
   children: React.ReactNode
 }) => <IntoSidebarNamedSlot slot="header">{children}</IntoSidebarNamedSlot>
+
+export const IntoSidebarHeaderChildrenSlot = ({
+  children,
+}: {
+  children: React.ReactNode
+}) => (
+  <IntoSidebarNamedSlot slot="headerChildren">{children}</IntoSidebarNamedSlot>
+)
 
 export const IntoSidebarFooterSlot = ({
   children,
