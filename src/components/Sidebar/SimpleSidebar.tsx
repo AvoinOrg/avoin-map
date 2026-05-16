@@ -6,6 +6,7 @@ import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrow
 
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import { useUIStore } from '#/common/store'
+import type { SidebarActionRailPlacement } from '#/common/types/sidebar'
 import { Slot } from '../context/slotsContext'
 import { ArrowLeft, Cross } from '../icons'
 import SidebarToggleButton from './SidebarToggleButton'
@@ -18,6 +19,7 @@ export type SimpleSidebarMobileStackPlacement = 'before' | 'after'
 
 export type SimpleSidebarPanelConfig = {
   content: React.ReactNode
+  desktopWidth?: string
   showBackButton?: boolean
   onBack?: () => void
   backAriaLabel?: string
@@ -43,6 +45,7 @@ type SimpleSidebarSinglePanelsConfig = {
     panel: Extract<SimpleSidebarMobilePanel, 'main' | 'a'>
   ) => void
   mobileNavigation?: React.ReactNode
+  mobileStackRender?: 'context' | 'direct'
 }
 
 type SimpleSidebarDoublePanelConfig = SimpleSidebarPanelConfig
@@ -59,6 +62,8 @@ type SimpleSidebarDoublePanelsConfig = {
     panel: Extract<SimpleSidebarMobilePanel, 'a' | 'b'>
   ) => void
   mobileNavigation?: React.ReactNode
+  desktopMainPanelVisible?: boolean
+  mobileMainPanelVisible?: boolean
 }
 
 export type SimpleSidebarPanelsConfig =
@@ -68,6 +73,9 @@ export type SimpleSidebarPanelsConfig =
 
 const DESKTOP_MAIN_WIDTH_REM = 23.75
 const DESKTOP_PANEL_WIDTH_REM = 23.75
+const BOTTOM_ACTION_ROW_TOGGLE_RIGHT = '35px'
+const BOTTOM_ACTION_ROW_BOTTOM =
+  'calc(env(safe-area-inset-bottom, 0px) + 26px)'
 
 const panelChromeButtonSx = {
   pointerEvents: 'auto',
@@ -155,6 +163,7 @@ const DesktopPanelBox = ({
   defaultCloseAriaLabel: string
 }) => {
   const isSidebarOpen = useUIStore((s) => s.isSidebarOpen)
+  const width = panel.desktopWidth ?? `${DESKTOP_PANEL_WIDTH_REM}rem`
   const hasChrome =
     shouldShowAction(panel.showBackButton, panel.onBack) ||
     shouldShowAction(panel.showCloseButton, panel.onClose)
@@ -165,8 +174,8 @@ const DesktopPanelBox = ({
         display: 'flex',
         flexDirection: 'column',
         flex: '0 0 auto',
-        width: `${DESKTOP_PANEL_WIDTH_REM}rem`,
-        maxWidth: `min(${DESKTOP_PANEL_WIDTH_REM}rem, 100vw)`,
+        width,
+        maxWidth: `min(${width}, 100vw)`,
         height: '100%',
         pt: 0,
         pb: 0,
@@ -306,11 +315,27 @@ const getMobileMode = (panels?: SimpleSidebarPanelsConfig) => {
 
 export const SimpleSidebar = ({
   sx,
+  sidebarToggleSx,
+  panelSx,
+  contentSx,
+  topContent,
+  bottomContent,
+  actionRail,
+  actionRailPlacement = 'inside',
+  hideMainContainer = false,
   panels,
   children,
   headerChildren = <Slot name="sidebar-header-children" />,
 }: {
   sx?: SxProps<Theme>
+  sidebarToggleSx?: SxProps<Theme>
+  panelSx?: SxProps<Theme>
+  contentSx?: SxProps<Theme>
+  topContent?: React.ReactNode
+  bottomContent?: React.ReactNode
+  actionRail?: React.ReactNode
+  actionRailPlacement?: SidebarActionRailPlacement
+  hideMainContainer?: boolean
   panels?: SimpleSidebarPanelsConfig
   children: React.ReactNode
   headerChildren?: React.ReactNode
@@ -410,41 +435,84 @@ export const SimpleSidebar = ({
       </>
     ) : null
 
-  const desktopActionRail =
-    !isMobile &&
+  const panelDesktopActionRail =
     (panels?.mode === 'single' || panels?.mode === 'double') &&
-    panels.desktopActionRail ? (
-      <Box
-        sx={(theme) => ({
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 1,
-          pt: 2,
-          pl: 1,
-          zIndex: theme.zIndex.drawer + 1,
-          pointerEvents: 'auto',
-        })}
-      >
-        {panels.desktopActionRail}
-      </Box>
+    panels.desktopActionRail
+      ? panels.desktopActionRail
+      : null
+  const panelMobileActionRail =
+    (panels?.mode === 'single' || panels?.mode === 'double') &&
+    panels.mobileActionRail
+      ? panels.mobileActionRail
+      : null
+  const desktopActionRailContent =
+    panelDesktopActionRail != null || actionRail != null ? (
+      <>
+        {panelDesktopActionRail}
+        {actionRail}
+      </>
+    ) : null
+  const mobileActionRailContent =
+    panelMobileActionRail != null || actionRail != null ? (
+      <>
+        {panelMobileActionRail}
+        {actionRail}
+      </>
+    ) : null
+
+  const desktopActionRail =
+    !isMobile && desktopActionRailContent != null ? (
+      actionRailPlacement === 'outside' ? (
+        desktopActionRailContent
+      ) : (
+        <Box
+          sx={(theme) => ({
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 1,
+            pt: 2,
+            pl: 1,
+            zIndex: theme.zIndex.drawer + 1,
+            pointerEvents: 'auto',
+          })}
+        >
+          {desktopActionRailContent}
+        </Box>
+      )
     ) : null
 
   const mobileActionRail =
-    isMobile &&
-    (panels?.mode === 'single' || panels?.mode === 'double') &&
-    panels.mobileActionRail ? (
-      <Box
-        sx={(theme) => ({
-          position: 'absolute',
-          top: '4.75rem',
-          right: '0.75rem',
-          zIndex: theme.zIndex.drawer + 2,
-          pointerEvents: 'auto',
-        })}
-      >
-        {panels.mobileActionRail}
-      </Box>
+    isMobile && mobileActionRailContent != null ? (
+      actionRailPlacement === 'outside' ? (
+        mobileActionRailContent
+      ) : (
+        <Box
+          sx={(theme) => ({
+            position:
+              actionRailPlacement === 'bottomActionRow' ? 'fixed' : 'absolute',
+            top:
+              actionRailPlacement === 'bottomActionRow'
+                ? 'auto'
+                : '4.75rem',
+            right:
+              actionRailPlacement === 'bottomActionRow'
+                ? '90px'
+                : '0.75rem',
+            bottom:
+              actionRailPlacement === 'bottomActionRow'
+                ? BOTTOM_ACTION_ROW_BOTTOM
+                : 'auto',
+            zIndex: theme.zIndex.drawer + 12,
+            display: 'flex',
+            flexDirection: 'row',
+            gap: '10px',
+            pointerEvents: 'auto',
+          })}
+        >
+          {mobileActionRailContent}
+        </Box>
+      )
     ) : null
 
   const mobileDoubleBackHeader =
@@ -455,11 +523,14 @@ export const SimpleSidebar = ({
       />
     ) : null
 
+  const renderSingleMobileStackDirect =
+    panels?.mode === 'single' && panels.mobileStackRender === 'direct'
   const mobileStackedContent =
     isMobile &&
     panels?.mode === 'single' &&
     panels.isOpen &&
     mobileMode === 'stacked' &&
+    !renderSingleMobileStackDirect &&
     singlePanel ? (
       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
         {singlePanel.content}
@@ -468,19 +539,28 @@ export const SimpleSidebar = ({
   const mobileStackPlacement =
     panels?.mode === 'single' ? panels.mobileStackPlacement ?? 'after' : 'after'
 
-  const mobileButtonsContent =
+  const mobileSingleDirectStackedContent =
+    isMobile &&
+    panels?.mode === 'single' &&
+    panels.isOpen &&
+    mobileMode === 'stacked' &&
+    renderSingleMobileStackDirect &&
+    singlePanel ? (
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'auto',
+          width: '100%',
+        }}
+      >
+        {singlePanel.content}
+      </Box>
+    ) : null
+
+  const mobileButtonsPanelContent =
     isMobile && mobileMode === 'buttons' ? (
       <>
-        <Box
-          sx={{
-            display:
-              panels?.mode !== 'double' && resolvedMobileActivePanel === 'main'
-                ? 'contents'
-                : 'none',
-          }}
-        >
-          {children}
-        </Box>
         {isSinglePanelOpen && singlePanel && (
           <Box
             sx={{
@@ -523,26 +603,36 @@ export const SimpleSidebar = ({
     panels?.mode === 'double' &&
     doublePanelA &&
     doublePanelB ? (
-      <>
-        <Box sx={{ display: 'none' }}>{children}</Box>
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'auto',
-            width: '100%',
-          }}
-        >
-          {doublePanelA.content}
-          {doublePanelB.content}
-        </Box>
-      </>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'auto',
+          width: '100%',
+        }}
+      >
+        {doublePanelA.content}
+        {doublePanelB.content}
+      </Box>
     ) : null
 
-  const mobileContent =
-    isMobile && mobileMode === 'buttons'
-      ? mobileButtonsContent
-      : mobileDoubleStackedContent ?? children
+  const mobileStackedContentBefore =
+    mobileStackPlacement === 'before' ? mobileSingleDirectStackedContent : null
+  const mobileStackedContentAfter =
+    mobileStackPlacement === 'after'
+      ? (mobileDoubleStackedContent ?? mobileSingleDirectStackedContent)
+      : mobileDoubleStackedContent
+  const shouldShowMobileMainContent =
+    !isMobile ||
+    mobileMode !== 'buttons' ||
+    (panels?.mode !== 'double' && resolvedMobileActivePanel === 'main')
+  const shouldShowStackedMobileMainContent =
+    !isMobile ||
+    mobileMode !== 'stacked' ||
+    panels?.mode !== 'double' ||
+    panels.mobileMainPanelVisible === true
+  const isMainContentVisible =
+    shouldShowMobileMainContent && shouldShowStackedMobileMainContent
 
   const mobilePanelNavigation =
     isMobile &&
@@ -562,6 +652,20 @@ export const SimpleSidebar = ({
       </>
     ) : null
 
+  const resolvedTopContent =
+    topContent === undefined ? breadcrumbArea : topContent
+  const resolvedBottomContent =
+    bottomContent != null || mobilePanelNavigation != null ? (
+      <>
+        {bottomContent}
+        {mobilePanelNavigation}
+      </>
+    ) : undefined
+  const shouldHideMainContainer =
+    !isMobile &&
+    (hideMainContainer ||
+      (panels?.mode === 'double' && panels.desktopMainPanelVisible !== true))
+
   return (
     <SimpleSidebarProvider
       value={{
@@ -572,18 +676,37 @@ export const SimpleSidebar = ({
           mobileStackPlacement === 'after' ? mobileStackedContent : undefined,
       }}
     >
-      <SidebarToggleButton />
+      <SidebarToggleButton
+        sx={[
+          actionRailPlacement === 'bottomActionRow'
+            ? (theme: Theme) => ({
+                right: {
+                  mobile: BOTTOM_ACTION_ROW_TOGGLE_RIGHT,
+                  desktop: BOTTOM_ACTION_ROW_TOGGLE_RIGHT,
+                },
+                bottom: {
+                  mobile: BOTTOM_ACTION_ROW_BOTTOM,
+                  desktop: BOTTOM_ACTION_ROW_BOTTOM,
+                },
+                zIndex: theme.zIndex.drawer + 12,
+              })
+            : undefined,
+          ...(Array.isArray(sidebarToggleSx)
+            ? sidebarToggleSx
+            : [sidebarToggleSx]),
+        ]}
+      />
       <SidebarScaffold
         topContent={
           <>
-            {breadcrumbArea}
+            {resolvedTopContent}
             {mobileDoubleBackHeader}
           </>
         }
-        bottomContent={mobilePanelNavigation}
+        bottomContent={resolvedBottomContent}
         trailingContent={desktopTrailing}
         actionRail={isMobile ? mobileActionRail : desktopActionRail}
-        hideMainContainer={!isMobile && panelsMode === 'double'}
+        hideMainContainer={shouldHideMainContainer}
         containerSx={[
           {
             pt: { mobile: 0, desktop: 0 },
@@ -597,16 +720,27 @@ export const SimpleSidebar = ({
           },
           ...(Array.isArray(sx) ? sx : [sx]),
         ]}
-        panelSx={{
-          borderRadius: { mobile: 0, desktop: 0 },
-          backgroundColor: '#ffffff',
-        }}
-        contentSx={{
-          backgroundColor: 'inherit',
-          flexDirection: 'column',
-        }}
+        panelSx={[
+          {
+            borderRadius: { mobile: 0, desktop: 0 },
+            backgroundColor: '#ffffff',
+          },
+          ...(Array.isArray(panelSx) ? panelSx : [panelSx]),
+        ]}
+        contentSx={[
+          {
+            backgroundColor: 'inherit',
+            flexDirection: 'column',
+          },
+          ...(Array.isArray(contentSx) ? contentSx : [contentSx]),
+        ]}
       >
-        {isMobile ? mobileContent : children}
+        {mobileStackedContentBefore}
+        <Box sx={{ display: isMainContentVisible ? 'contents' : 'none' }}>
+          {children}
+        </Box>
+        {mobileStackedContentAfter}
+        {mobileButtonsPanelContent}
       </SidebarScaffold>
     </SimpleSidebarProvider>
   )

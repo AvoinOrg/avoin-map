@@ -96,8 +96,6 @@ export const SidebarRoot = ({
           footerMode="slot"
           chromeHidden={options.chrome === 'hidden'}
           hideMainContainer={options.mainPanelVisible === false}
-          contentMode={options.floatingContentMode}
-          togglePlacement={options.floatingTogglePlacement}
         >
           {children}
         </FloatingSidebar>

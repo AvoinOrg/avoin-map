@@ -9,12 +9,10 @@ import { SidebarBoundary } from './SidebarBoundary'
 import {
   getSidebarSlotKey,
   IntoSidebarActionRailSlot,
-  IntoSidebarFloatingTrailingSlot,
   IntoSidebarHeaderChildrenSlot,
   IntoSidebarHeaderSlot,
   IntoSidebarPanelSlot,
   SidebarActionRailSlot,
-  SidebarFloatingTrailingSlot,
   SidebarHeaderChildrenSlot,
   SidebarHeaderSlot,
   SidebarPanelSlot,
@@ -54,12 +52,6 @@ describe('sidebar scoped slots', () => {
     expect(
       getSidebarSlotKey({
         boundaryId: 'boundary-a',
-        slot: 'floatingTrailing',
-      })
-    ).toBe('sidebar:boundary-a:floatingTrailing')
-    expect(
-      getSidebarSlotKey({
-        boundaryId: 'boundary-a',
         slot: 'headerChildren',
       })
     ).toBe('sidebar:boundary-a:headerChildren')
@@ -87,15 +79,11 @@ describe('sidebar scoped slots', () => {
 
           <SidebarBoundary id="child" mode="panel">
             <SidebarActionRailSlot boundaryId="child" />
-            <SidebarFloatingTrailingSlot boundaryId="child" />
             <SidebarHeaderSlot boundaryId="child" />
             <SidebarPanelSlot boundaryId="child" panelId="secondary" />
             <IntoSidebarActionRailSlot>
               <button type="button">Child action</button>
             </IntoSidebarActionRailSlot>
-            <IntoSidebarFloatingTrailingSlot>
-              <span>Child floating trailing</span>
-            </IntoSidebarFloatingTrailingSlot>
             <IntoSidebarHeaderSlot>
               <button type="button">Child header</button>
             </IntoSidebarHeaderSlot>
@@ -117,7 +105,6 @@ describe('sidebar scoped slots', () => {
     expect(
       screen.getByRole('button', { name: 'Child action' })
     ).toBeInTheDocument()
-    expect(screen.getByText('Child floating trailing')).toBeInTheDocument()
     expect(screen.getByText('Child panel')).toBeInTheDocument()
   })
 })

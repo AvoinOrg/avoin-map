@@ -18,9 +18,9 @@ import TText from '#/components/common/TText'
 import { IntoSlot } from '#/components/context/slotsContext'
 import {
   IntoSidebarActionRailSlot,
-  IntoSidebarFloatingTrailingSlot,
   IntoSidebarFooterSlot,
   IntoSidebarHeaderSlot,
+  IntoSidebarPanelSlot,
   SidebarContentBox,
   useSidebarBoundaryRuntimeOptions,
 } from '#/components/Sidebar'
@@ -29,12 +29,17 @@ import EnergyCertificateClassControls from '../components/EnergyCertificateClass
 import EnergyClassesAccordionContent from '../components/EnergyClassesAccordionContent'
 import {
   BuildingInfoActionRail,
-  BuildingInfoDesktopSidebar,
+  BuildingInfoDesktopChrome,
   BuildingInfoMobileActionRow,
-  BuildingInfoMobileSidebar,
+  BuildingInfoMobileChrome,
+  BuildingInfoPanelSlotContent,
+  getBuildingInfoPanelIds,
 } from '../components/BuildingInfoSidebar'
 import type { BuildingInfoDesktopMode } from '../components/BuildingInfoSidebar'
-import { createEnergymapBuildingInfoPanels } from '../common/buildingInfo'
+import {
+  createEnergymapBuildingInfoPanels,
+  type EnergymapBuildingInfoPanelId,
+} from '../common/buildingInfo'
 import {
   areEnergymapSelectedBuildingsEqual,
   toEnergymapSelectedBuilding,
@@ -222,9 +227,11 @@ const HomeSidebarHeader = () => {
 const SidebarFooterAction = ({
   tooltip,
   label,
+  reserveActionRow,
 }: {
   tooltip: string
   label: string
+  reserveActionRow?: boolean
 }) => {
   return (
     <Tooltip title={tooltip} arrow placement="top">
@@ -237,7 +244,11 @@ const SidebarFooterAction = ({
         sx={{
           width: '100%',
           height: '5rem',
-          px: { mobile: '1.625rem', desktop: '1.625rem' },
+          pl: { mobile: '1.625rem', desktop: '1.625rem' },
+          pr: {
+            mobile: reserveActionRow ? '12rem' : '1.625rem',
+            desktop: '1.625rem',
+          },
           display: 'flex',
           alignItems: 'center',
           gap: '1.25rem',
@@ -267,6 +278,7 @@ const SidebarFooterAction = ({
         />
         <Typography
           sx={{
+            minWidth: 0,
             color: '#111111',
             fontSize: '0.6875rem',
             fontWeight: 700,
@@ -463,6 +475,13 @@ const Page = () => {
       }),
     [locale, selectedBuilding]
   )
+  const buildingInfoPanelsById = React.useMemo(
+    () =>
+      new Map(
+        (buildingInfoPanels ?? []).map((panel) => [panel.id, panel])
+      ),
+    [buildingInfoPanels]
+  )
   const selectedBuildingKey = selectedBuilding?.buildingKey ?? null
   const hasBuildingInfo = buildingInfoPanels != null
   const activeBuildingInfoModeNeedsMobileLayout =
@@ -480,7 +499,9 @@ const Page = () => {
     hasDesktopBuildingInfo && !isBuildingInfoCollapsed
   const isMobileBuildingInfoExpanded =
     hasMobileBuildingInfo && !isBuildingInfoCollapsed
-  const shouldShowHomeSidebarChrome = !isMobileBuildingInfoExpanded
+  const isBuildingInfoExpanded =
+    isDesktopBuildingInfoExpanded || isMobileBuildingInfoExpanded
+  const shouldShowHomeSidebarChrome = !isBuildingInfoExpanded
   const isSharedBuildingLayerGroupVisible = visibleLayerGroupIds.includes(
     ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID
   )
@@ -719,50 +740,109 @@ const Page = () => {
     setPaintProperty,
   ])
 
-  const buildingInfoTrailingContent =
-    isDesktopBuildingInfoExpanded && buildingInfoPanels != null ? (
-      <BuildingInfoDesktopSidebar
-        mode={activeBuildingInfoMode}
-        panels={buildingInfoPanels}
-        ariaLabels={buildingInfoAriaLabels}
-        onClose={handleCloseBuildingInfo}
-        onCollapse={handleCollapseBuildingInfo}
-      />
-    ) : null
+  const visibleBuildingInfoPanelIds = React.useMemo(
+    () =>
+      isBuildingInfoExpanded
+        ? getBuildingInfoPanelIds(activeBuildingInfoMode)
+        : [],
+    [activeBuildingInfoMode, isBuildingInfoExpanded]
+  )
+  const buildingInfoPanelPresentation = shouldUseBuildingInfoMobileLayout
+    ? 'mobile'
+    : 'desktop'
   const buildingInfoActionRail = hasDesktopBuildingInfo ? (
-    <BuildingInfoActionRail
-      activeMode={activeBuildingInfoMode}
-      isCollapsed={isBuildingInfoCollapsed}
-      ariaLabels={buildingInfoAriaLabels}
-      onModeChange={handleBuildingInfoModeChange}
-    />
+    <>
+      {isDesktopBuildingInfoExpanded && (
+        <BuildingInfoDesktopChrome
+          mode={activeBuildingInfoMode}
+          ariaLabels={buildingInfoAriaLabels}
+          onClose={handleCloseBuildingInfo}
+          onCollapse={handleCollapseBuildingInfo}
+        />
+      )}
+      <BuildingInfoActionRail
+        activeMode={activeBuildingInfoMode}
+        isCollapsed={isBuildingInfoCollapsed}
+        ariaLabels={buildingInfoAriaLabels}
+        onModeChange={handleBuildingInfoModeChange}
+      />
+    </>
   ) : hasMobileBuildingInfo ? (
-    <BuildingInfoMobileActionRow
-      activeMode={activeBuildingInfoMode}
-      isCollapsed={isBuildingInfoCollapsed}
-      ariaLabels={buildingInfoAriaLabels}
-      onModeChange={handleBuildingInfoModeChange}
-    />
+    <>
+      {isMobileBuildingInfoExpanded && (
+        <BuildingInfoMobileChrome
+          ariaLabels={buildingInfoAriaLabels}
+          onClose={handleCloseBuildingInfo}
+          onCollapse={handleCollapseBuildingInfo}
+        />
+      )}
+      <BuildingInfoMobileActionRow
+        activeMode={activeBuildingInfoMode}
+        isCollapsed={isBuildingInfoCollapsed}
+        ariaLabels={buildingInfoAriaLabels}
+        onModeChange={handleBuildingInfoModeChange}
+      />
+    </>
   ) : null
   const sidebarRuntimeOptions = React.useMemo<SidebarRuntimeOptions>(
-    () => ({
-      mainPanelVisible: !isDesktopBuildingInfoExpanded,
-      chrome: isMobileBuildingInfoExpanded ? 'hidden' : 'visible',
-      floatingContentMode: isMobileBuildingInfoExpanded
-        ? 'fullscreenPanel'
-        : 'default',
-      floatingTogglePlacement: hasMobileBuildingInfo
-        ? 'bottomActionRow'
-        : 'default',
-    }),
-    [
-      hasMobileBuildingInfo,
-      isDesktopBuildingInfoExpanded,
-      isMobileBuildingInfoExpanded,
-    ]
+    () => {
+      const expandedVisiblePanels =
+        activeBuildingInfoMode === 'threePanel'
+          ? (['main', 'secondary', 'tertiary'] as const)
+          : (['main', 'tertiary'] as const)
+
+      return {
+        width: isBuildingInfoExpanded ? 'wide' : 'compact',
+        chrome: isBuildingInfoExpanded ? 'hidden' : 'visible',
+        panelLayout: isBuildingInfoExpanded
+          ? activeBuildingInfoMode === 'threePanel'
+            ? 'triple'
+            : 'double'
+          : 'single',
+        visiblePanels: isBuildingInfoExpanded
+          ? [...expandedVisiblePanels]
+          : ['main'],
+        activePanel: isBuildingInfoExpanded
+          ? activeBuildingInfoMode === 'threePanel'
+            ? 'secondary'
+            : 'tertiary'
+          : 'main',
+        mainPanelVisible: true,
+        mobileMode: 'stacked',
+        mobileStackPlacement: 'after',
+        actionRailPlacement: hasMobileBuildingInfo
+          ? 'bottomActionRow'
+          : 'outside',
+      }
+    },
+    [activeBuildingInfoMode, hasMobileBuildingInfo, isBuildingInfoExpanded]
   )
 
   useSidebarBoundaryRuntimeOptions(sidebarRuntimeOptions)
+
+  const renderBuildingInfoPanelSlotContent = (
+    panelId: EnergymapBuildingInfoPanelId
+  ) => {
+    if (!isBuildingInfoExpanded) {
+      return null
+    }
+
+    const panel = buildingInfoPanelsById.get(panelId)
+
+    if (panel == null) {
+      return null
+    }
+
+    return (
+      <BuildingInfoPanelSlotContent
+        panel={panel}
+        mode={activeBuildingInfoMode}
+        presentation={buildingInfoPanelPresentation}
+        mobileIndex={visibleBuildingInfoPanelIds.indexOf(panelId)}
+        mobilePanelCount={visibleBuildingInfoPanelIds.length}
+      />
+    )
+  }
 
   return (
     <>
@@ -773,13 +853,12 @@ const Page = () => {
       )}
       {shouldShowHomeSidebarChrome && (
         <IntoSidebarFooterSlot>
-          <SidebarFooterAction tooltip={upcomingTooltip} label={footerLabel} />
+          <SidebarFooterAction
+            tooltip={upcomingTooltip}
+            label={footerLabel}
+            reserveActionRow={hasMobileBuildingInfo}
+          />
         </IntoSidebarFooterSlot>
-      )}
-      {buildingInfoTrailingContent != null && (
-        <IntoSidebarFloatingTrailingSlot>
-          {buildingInfoTrailingContent}
-        </IntoSidebarFloatingTrailingSlot>
       )}
       {buildingInfoActionRail != null && (
         <IntoSidebarActionRailSlot>
@@ -794,140 +873,142 @@ const Page = () => {
           />
         </IntoSlot>
       )}
-      {isMobileBuildingInfoExpanded && buildingInfoPanels != null ? (
-        <BuildingInfoMobileSidebar
-          mode={activeBuildingInfoMode}
-          panels={buildingInfoPanels}
-          ariaLabels={buildingInfoAriaLabels}
-          onClose={handleCloseBuildingInfo}
-          onCollapse={handleCollapseBuildingInfo}
-        />
-      ) : (
-        <SidebarContentBox
-          sxOuter={{
-            height: '100%',
-          }}
-          scrollbarSide="left"
-          sxInner={{
-            p: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            minHeight: '100%',
-            height: '100%',
-          }}
-        >
-          <Box
-            sx={{
-              px: SIDEBAR_SIDE_PADDING,
-              pt: SIDEBAR_CONTENT_VERTICAL_PADDING,
-              pb: SIDEBAR_CONTENT_VERTICAL_PADDING,
+      <IntoSidebarPanelSlot panelId="main">
+        {isBuildingInfoExpanded ? (
+          renderBuildingInfoPanelSlotContent('energyConsumption')
+        ) : (
+          <SidebarContentBox
+            sxOuter={{
+              height: '100%',
+            }}
+            scrollbarSide="left"
+            sxInner={{
+              p: 0,
               display: 'flex',
               flexDirection: 'column',
+              minHeight: '100%',
+              height: '100%',
             }}
           >
-            <Typography
-              sx={{
-                maxWidth: '18.1875rem',
-                color: '#111111',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                lineHeight: '1.25rem',
-                letterSpacing: '0.15em',
-                textTransform: 'uppercase',
-              }}
-            >
-              <TText keyName="sidebar.front_page.heading" ns="energiakartta" />
-            </Typography>
-
-            <Typography
-              sx={{
-                mt: { mobile: '3rem', desktop: '3.75rem' },
-                maxWidth: '18.1875rem',
-                color: '#111111',
-                fontSize: '0.75rem',
-                fontWeight: 400,
-                lineHeight: '1.125rem',
-                letterSpacing: '0.05em',
-              }}
-            >
-              <TText
-                keyName="sidebar.front_page.description"
-                ns="energiakartta"
-              />
-            </Typography>
-
             <Box
               sx={{
-                mt: { mobile: '4rem', desktop: '6.875rem' },
+                px: SIDEBAR_SIDE_PADDING,
+                pt: SIDEBAR_CONTENT_VERTICAL_PADDING,
+                pb: SIDEBAR_CONTENT_VERTICAL_PADDING,
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '2.25rem',
-                maxWidth: '19.625rem',
               }}
             >
-              <LayerToggleRowAccordion
-                label={
-                  <TText
-                    keyName="sidebar.front_page.layers.energy_classes"
-                    ns="energiakartta"
-                  />
-                }
-                status={isEnergyCertificateLayerVisible ? 'visible' : 'hidden'}
-                expanded={isEnergyCertificateLayerVisible}
-                ariaLabel={toggleEnergyClassesAria}
-                onToggle={() => {
-                  void toggleThematicMode(ENERGY_CERTIFICATE_THEMATIC_MODE)
+              <Typography
+                sx={{
+                  maxWidth: '18.1875rem',
+                  color: '#111111',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  lineHeight: '1.25rem',
+                  letterSpacing: '0.15em',
+                  textTransform: 'uppercase',
                 }}
-                labelSx={ROW_LABEL_SX}
               >
-                <EnergyClassesAccordionContent />
-              </LayerToggleRowAccordion>
-              <LayerToggleRowAccordion
-                label={
-                  <TText
-                    keyName="sidebar.front_page.layers.heating"
-                    ns="energiakartta"
-                  />
-                }
-                status={isHeatingLayerVisible ? 'visible' : 'hidden'}
-                expanded={isHeatingLayerVisible}
-                ariaLabel={toggleHeatingAria}
-                onToggle={() => {
-                  void toggleThematicMode(HEATING_THEMATIC_MODE)
+                <TText keyName="sidebar.front_page.heading" ns="energiakartta" />
+              </Typography>
+
+              <Typography
+                sx={{
+                  mt: { mobile: '3rem', desktop: '3.75rem' },
+                  maxWidth: '18.1875rem',
+                  color: '#111111',
+                  fontSize: '0.75rem',
+                  fontWeight: 400,
+                  lineHeight: '1.125rem',
+                  letterSpacing: '0.05em',
                 }}
-                labelSx={ROW_LABEL_SX}
               >
-                <HeatingAccordionContent
-                  heatingSwitchState={heatingSwitchState}
-                  onHeatingSwitchChange={handleHeatingSwitchChange}
+                <TText
+                  keyName="sidebar.front_page.description"
+                  ns="energiakartta"
                 />
-              </LayerToggleRowAccordion>
-              {LOWER_DISABLED_LAYER_ROWS.map(({ keyName, ariaKeyName }) => (
-                <Tooltip
-                  key={keyName}
-                  title={upcomingTooltip}
-                  arrow
-                  placement="top"
-                >
-                  <Box
-                    component="span"
-                    sx={{ display: 'block', width: '100%' }}
-                  >
-                    <LayerToggleRow
-                      label={<TText keyName={keyName} ns="energiakartta" />}
-                      status="hidden"
-                      disabled
-                      ariaLabel={t(ariaKeyName)}
-                      onToggle={() => {}}
-                      labelSx={ROW_LABEL_SX}
+              </Typography>
+
+              <Box
+                sx={{
+                  mt: { mobile: '4rem', desktop: '6.875rem' },
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '2.25rem',
+                  maxWidth: '19.625rem',
+                }}
+              >
+                <LayerToggleRowAccordion
+                  label={
+                    <TText
+                      keyName="sidebar.front_page.layers.energy_classes"
+                      ns="energiakartta"
                     />
-                  </Box>
-                </Tooltip>
-              ))}
+                  }
+                  status={isEnergyCertificateLayerVisible ? 'visible' : 'hidden'}
+                  expanded={isEnergyCertificateLayerVisible}
+                  ariaLabel={toggleEnergyClassesAria}
+                  onToggle={() => {
+                    void toggleThematicMode(ENERGY_CERTIFICATE_THEMATIC_MODE)
+                  }}
+                  labelSx={ROW_LABEL_SX}
+                >
+                  <EnergyClassesAccordionContent />
+                </LayerToggleRowAccordion>
+                <LayerToggleRowAccordion
+                  label={
+                    <TText
+                      keyName="sidebar.front_page.layers.heating"
+                      ns="energiakartta"
+                    />
+                  }
+                  status={isHeatingLayerVisible ? 'visible' : 'hidden'}
+                  expanded={isHeatingLayerVisible}
+                  ariaLabel={toggleHeatingAria}
+                  onToggle={() => {
+                    void toggleThematicMode(HEATING_THEMATIC_MODE)
+                  }}
+                  labelSx={ROW_LABEL_SX}
+                >
+                  <HeatingAccordionContent
+                    heatingSwitchState={heatingSwitchState}
+                    onHeatingSwitchChange={handleHeatingSwitchChange}
+                  />
+                </LayerToggleRowAccordion>
+                {LOWER_DISABLED_LAYER_ROWS.map(({ keyName, ariaKeyName }) => (
+                  <Tooltip
+                    key={keyName}
+                    title={upcomingTooltip}
+                    arrow
+                    placement="top"
+                  >
+                    <Box
+                      component="span"
+                      sx={{ display: 'block', width: '100%' }}
+                    >
+                      <LayerToggleRow
+                        label={<TText keyName={keyName} ns="energiakartta" />}
+                        status="hidden"
+                        disabled
+                        ariaLabel={t(ariaKeyName)}
+                        onToggle={() => {}}
+                        labelSx={ROW_LABEL_SX}
+                      />
+                    </Box>
+                  </Tooltip>
+                ))}
+              </Box>
             </Box>
-          </Box>
-        </SidebarContentBox>
-      )}
+          </SidebarContentBox>
+        )}
+      </IntoSidebarPanelSlot>
+      <IntoSidebarPanelSlot panelId="secondary">
+        {renderBuildingInfoPanelSlotContent('renovationRecommendations')}
+      </IntoSidebarPanelSlot>
+      <IntoSidebarPanelSlot panelId="tertiary">
+        {renderBuildingInfoPanelSlotContent('buildingDetails')}
+      </IntoSidebarPanelSlot>
     </>
   )
 }

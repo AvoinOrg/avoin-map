@@ -58,6 +58,14 @@ type BuildingInfoActionRailProps = {
 
 type BuildingInfoMobileActionRowProps = BuildingInfoActionRailProps
 
+type BuildingInfoPanelSlotContentProps = {
+  panel: EnergymapBuildingInfoPanel
+  mode: BuildingInfoDesktopMode
+  presentation?: 'desktop' | 'mobile'
+  mobileIndex?: number
+  mobilePanelCount?: number
+}
+
 const PANEL_IDS_BY_MODE: Record<
   BuildingInfoDesktopMode,
   EnergymapBuildingInfoPanelId[]
@@ -181,8 +189,6 @@ const RENOVATION_SCENARIO_GRAPHICS: Partial<
   },
 }
 
-export const BUILDING_INFO_MOBILE_ACTION_BOTTOM_OFFSET =
-  'calc(env(safe-area-inset-bottom, 0px) + 26px)'
 export const BUILDING_INFO_MOBILE_TOGGLE_RIGHT_OFFSET = '35px'
 
 const textSx = {
@@ -1132,7 +1138,7 @@ const BuildingInfoPanelBody = ({
   </Box>
 )
 
-const BuildingInfoPanelColumn = ({
+const BuildingInfoDesktopPanelSection = ({
   panel,
   mode,
 }: {
@@ -1152,8 +1158,7 @@ const BuildingInfoPanelColumn = ({
       data-testid={`building-info-panel-${panel.id}`}
       data-panel-id={panel.id}
       sx={{
-        flex: `0 0 ${getPanelWidth({ mode, panelId: panel.id })}`,
-        width: getPanelWidth({ mode, panelId: panel.id }),
+        width: '100%',
         minWidth: 0,
         height: '100%',
         minHeight: 0,
@@ -1179,7 +1184,27 @@ const BuildingInfoPanelColumn = ({
   )
 }
 
-const BuildingInfoChrome = ({
+const BuildingInfoPanelColumn = ({
+  panel,
+  mode,
+}: {
+  panel: EnergymapBuildingInfoPanel
+  mode: BuildingInfoDesktopMode
+}) => (
+  <Box
+    sx={{
+      flex: `0 0 ${getPanelWidth({ mode, panelId: panel.id })}`,
+      width: getPanelWidth({ mode, panelId: panel.id }),
+      minWidth: 0,
+      height: '100%',
+      minHeight: 0,
+    }}
+  >
+    <BuildingInfoDesktopPanelSection panel={panel} mode={mode} />
+  </Box>
+)
+
+export const BuildingInfoDesktopChrome = ({
   mode,
   ariaLabels,
   onClose,
@@ -1191,15 +1216,16 @@ const BuildingInfoChrome = ({
   onCollapse: () => void
 }) => (
   <Box
-    sx={{
+    data-testid="building-info-desktop-chrome"
+    sx={(theme) => ({
       position: 'absolute',
       top: mode === 'twoPanel' ? '35px' : '50px',
       right: mode === 'twoPanel' ? '60px' : '70px',
-      zIndex: 3,
+      zIndex: theme.zIndex.drawer + 13,
       display: 'flex',
       gap: '4px',
       pointerEvents: 'auto',
-    }}
+    })}
   >
     <Tooltip title={ariaLabels.collapse} arrow placement="bottom">
       <IconButton
@@ -1258,7 +1284,7 @@ export const BuildingInfoDesktopSidebar = ({
       {visiblePanels.map((panel) => (
         <BuildingInfoPanelColumn key={panel.id} panel={panel} mode={mode} />
       ))}
-      <BuildingInfoChrome
+      <BuildingInfoDesktopChrome
         mode={mode}
         ariaLabels={ariaLabels}
         onClose={onClose}
@@ -1268,7 +1294,7 @@ export const BuildingInfoDesktopSidebar = ({
   )
 }
 
-const BuildingInfoMobileChrome = ({
+export const BuildingInfoMobileChrome = ({
   ariaLabels,
   onClose,
   onCollapse,
@@ -1348,6 +1374,26 @@ const BuildingInfoMobilePanelSection = ({
       />
     </Box>
   )
+}
+
+export const BuildingInfoPanelSlotContent = ({
+  panel,
+  mode,
+  presentation = 'desktop',
+  mobileIndex = 0,
+  mobilePanelCount = 1,
+}: BuildingInfoPanelSlotContentProps) => {
+  if (presentation === 'mobile') {
+    return (
+      <BuildingInfoMobilePanelSection
+        panel={panel}
+        index={mobileIndex}
+        panelCount={mobilePanelCount}
+      />
+    )
+  }
+
+  return <BuildingInfoDesktopPanelSection panel={panel} mode={mode} />
 }
 
 export const BuildingInfoMobileSidebar = ({
@@ -1523,16 +1569,12 @@ export const BuildingInfoMobileActionRow = ({
   return (
     <Box
       data-testid="building-info-mobile-action-row"
-      sx={(theme) => ({
-        position: 'fixed',
-        right: '90px',
-        bottom: BUILDING_INFO_MOBILE_ACTION_BOTTOM_OFFSET,
-        zIndex: theme.zIndex.drawer + 12,
+      sx={{
         display: 'flex',
         flexDirection: 'row',
         gap: '10px',
         pointerEvents: 'auto',
-      })}
+      }}
     >
       <Tooltip title={ariaLabels.overview} arrow placement="top">
         <IconButton

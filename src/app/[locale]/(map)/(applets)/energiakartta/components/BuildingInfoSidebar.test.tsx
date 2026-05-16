@@ -6,9 +6,11 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import theme from '#/common/style/theme/theme'
 import {
   BuildingInfoActionRail,
+  BuildingInfoDesktopChrome,
   BuildingInfoDesktopSidebar,
   BuildingInfoMobileActionRow,
   BuildingInfoMobileSidebar,
+  BuildingInfoPanelSlotContent,
   BuildingInfoText,
   getBuildingInfoPanelIds,
   getBuildingInfoDesktopPanelIds,
@@ -320,6 +322,43 @@ describe('BuildingInfoSidebar', () => {
     })
   })
 
+  it('renders a single desktop panel body for scoped panel slots', () => {
+    renderWithTheme(
+      <BuildingInfoPanelSlotContent
+        mode="twoPanel"
+        panel={panels[2]}
+        presentation="desktop"
+      />
+    )
+
+    expect(
+      screen
+        .getAllByTestId(/building-info-panel-/)
+        .map((panel) => panel.dataset.panelId)
+    ).toEqual(['buildingDetails'])
+    expect(screen.getByTestId('building-info-scroll-buildingDetails')).toHaveClass(
+      'osScroll'
+    )
+  })
+
+  it('renders a single mobile panel section for scoped panel slots', () => {
+    renderWithTheme(
+      <BuildingInfoPanelSlotContent
+        mode="threePanel"
+        panel={panels[1]}
+        presentation="mobile"
+        mobileIndex={1}
+        mobilePanelCount={3}
+      />
+    )
+
+    expect(screen.getByTestId('building-info-panel-renovationRecommendations'))
+      .toHaveAttribute('data-panel-id', 'renovationRecommendations')
+    expect(
+      screen.queryByTestId('building-info-mobile-scroll')
+    ).not.toBeInTheDocument()
+  })
+
   it('renders the Figma panel graphics from sidebar assets', () => {
     renderWithTheme(
       <BuildingInfoDesktopSidebar
@@ -444,6 +483,22 @@ describe('BuildingInfoSidebar', () => {
       screen.getByRole('button', { name: 'Close building information' })
     )
     expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps migrated desktop chrome above generic panel bodies', () => {
+    renderWithTheme(
+      <BuildingInfoDesktopChrome
+        mode="threePanel"
+        ariaLabels={ariaLabels}
+        onClose={jest.fn()}
+        onCollapse={jest.fn()}
+      />
+    )
+
+    expect(screen.getByTestId('building-info-desktop-chrome')).toHaveStyle({
+      pointerEvents: 'auto',
+      zIndex: String(theme.zIndex.drawer + 13),
+    })
   })
 
   it('keeps both tab buttons available in collapsed state', () => {

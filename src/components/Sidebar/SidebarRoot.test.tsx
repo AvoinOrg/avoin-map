@@ -11,7 +11,6 @@ import { SidebarRoot } from './SidebarRoot'
 import type { ResolveSidebarRootFallbackInput } from './sidebarRootFallback'
 import {
   IntoSidebarActionRailSlot,
-  IntoSidebarFloatingTrailingSlot,
   IntoSidebarHeaderChildrenSlot,
   IntoSidebarPanelSlot,
 } from './sidebarSlots'
@@ -25,8 +24,10 @@ jest.mock('#/common/store', () => ({
   useUIStore: jest.requireActual('#/common/store/uiStore').useUIStore,
 }))
 
+let mockIsMobile = false
+
 jest.mock('#/common/hooks/ui/useIsMobile', () => ({
-  useIsMobile: () => false,
+  useIsMobile: () => mockIsMobile,
 }))
 
 const fallbackContext: ResolveSidebarRootFallbackInput = {
@@ -91,6 +92,7 @@ const renderRoot = ({
 
 describe('SidebarRoot', () => {
   beforeEach(() => {
+    mockIsMobile = false
     resetUIStore()
   })
 
@@ -176,7 +178,7 @@ describe('SidebarRoot', () => {
     expect(mountCount).toBe(1)
   })
 
-  it('hosts scoped floating compatibility slots without remounting on runtime option changes', async () => {
+  it('hosts Energiakartta panel slots without remounting on runtime option changes', async () => {
     let mountCount = 0
 
     const Child = () => {
@@ -186,13 +188,19 @@ describe('SidebarRoot', () => {
 
       return (
         <>
-          <IntoSidebarFloatingTrailingSlot>
-            <div>Scoped floating trailing</div>
-          </IntoSidebarFloatingTrailingSlot>
+          <IntoSidebarPanelSlot panelId="main">
+            <div>Scoped energy panel</div>
+          </IntoSidebarPanelSlot>
+          <IntoSidebarPanelSlot panelId="secondary">
+            <div>Scoped renovation panel</div>
+          </IntoSidebarPanelSlot>
+          <IntoSidebarPanelSlot panelId="tertiary">
+            <div>Scoped details panel</div>
+          </IntoSidebarPanelSlot>
           <IntoSidebarActionRailSlot>
-            <button type="button">Scoped floating action</button>
+            <button type="button">Scoped building action</button>
           </IntoSidebarActionRailSlot>
-          <div>Stable floating child</div>
+          <div>Stable panel child</div>
         </>
       )
     }
@@ -201,13 +209,13 @@ describe('SidebarRoot', () => {
       children: (
         <SidebarBoundary
           id="energiakartta-floating"
-          mode="floating"
-          config={{ width: 'compact' }}
+          mode="panel"
+          config={{ width: 'compact', panelLayout: 'single' }}
           initialRuntimeOptions={{
-            mainPanelVisible: true,
+            panelLayout: 'single',
+            visiblePanels: ['main'],
+            activePanel: 'main',
             chrome: 'visible',
-            floatingContentMode: 'default',
-            floatingTogglePlacement: 'default',
           }}
         >
           <Child />
@@ -219,10 +227,10 @@ describe('SidebarRoot', () => {
       },
     })
 
-    expect(await screen.findByText('Stable floating child')).toBeInTheDocument()
-    expect(screen.getByText('Scoped floating trailing')).toBeInTheDocument()
+    expect(await screen.findByText('Stable panel child')).toBeInTheDocument()
+    expect(screen.getByText('Scoped energy panel')).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Scoped floating action' })
+      screen.getByRole('button', { name: 'Scoped building action' })
     ).toBeInTheDocument()
     const mountCountAfterActivation = mountCount
 
@@ -230,17 +238,144 @@ describe('SidebarRoot', () => {
       useUIStore
         .getState()
         .setSidebarBoundaryRuntimeOptions('energiakartta-floating', {
-          mainPanelVisible: false,
+          width: 'wide',
           chrome: 'hidden',
-          floatingContentMode: 'fullscreenPanel',
-          floatingTogglePlacement: 'bottomActionRow',
+          panelLayout: 'double',
+          visiblePanels: ['main', 'tertiary'],
+          activePanel: 'tertiary',
+          actionRailPlacement: 'outside',
         })
     })
 
-    expect(screen.getByText('Stable floating child')).toBeInTheDocument()
-    expect(screen.getByText('Scoped floating trailing')).toBeInTheDocument()
+    expect(screen.getByText('Scoped energy panel')).toBeInTheDocument()
+    expect(screen.getByText('Scoped details panel')).toBeInTheDocument()
+    expect(screen.queryByText('Scoped renovation panel')).not.toBeInTheDocument()
+    expect(mountCount).toBe(mountCountAfterActivation)
+
+    act(() => {
+      useUIStore
+        .getState()
+        .setSidebarBoundaryRuntimeOptions('energiakartta-floating', {
+          width: 'wide',
+          chrome: 'hidden',
+          panelLayout: 'triple',
+          visiblePanels: ['main', 'secondary', 'tertiary'],
+          activePanel: 'secondary',
+          actionRailPlacement: 'bottomActionRow',
+        })
+    })
+
+    expect(screen.getByText('Stable panel child')).toBeInTheDocument()
+    expect(screen.getByText('Scoped energy panel')).toBeInTheDocument()
+    expect(screen.getByText('Scoped renovation panel')).toBeInTheDocument()
+    expect(screen.getByText('Scoped details panel')).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Scoped floating action' })
+      screen.getByRole('button', { name: 'Scoped building action' })
+    ).toBeInTheDocument()
+    expect(mountCount).toBe(mountCountAfterActivation)
+  })
+
+  it('keeps the Energiakartta child subtree mounted when mobile stacked panels open', async () => {
+    mockIsMobile = true
+    let mountCount = 0
+
+    const Child = () => {
+      useEffect(() => {
+        mountCount += 1
+      }, [])
+
+      return (
+        <>
+          <IntoSidebarPanelSlot panelId="main">
+            <div>Scoped mobile energy panel</div>
+          </IntoSidebarPanelSlot>
+          <IntoSidebarPanelSlot panelId="secondary">
+            <div>Scoped mobile renovation panel</div>
+          </IntoSidebarPanelSlot>
+          <IntoSidebarPanelSlot panelId="tertiary">
+            <div>Scoped mobile details panel</div>
+          </IntoSidebarPanelSlot>
+          <IntoSidebarActionRailSlot>
+            <button type="button">Scoped mobile building action</button>
+          </IntoSidebarActionRailSlot>
+          <div>Stable mobile panel child</div>
+        </>
+      )
+    }
+
+    renderRoot({
+      children: (
+        <SidebarBoundary
+          id="energiakartta-floating"
+          mode="panel"
+          config={{ width: 'compact', panelLayout: 'single' }}
+          initialRuntimeOptions={{
+            panelLayout: 'single',
+            visiblePanels: ['main'],
+            activePanel: 'main',
+            chrome: 'visible',
+            mobileMode: 'stacked',
+          }}
+        >
+          <Child />
+        </SidebarBoundary>
+      ),
+      fallback: {
+        ...fallbackContext,
+        pathnameWithoutLocale: '/energiakartta',
+      },
+    })
+
+    expect(
+      await screen.findByText('Stable mobile panel child')
+    ).toBeInTheDocument()
+    expect(screen.getByText('Scoped mobile energy panel')).toBeInTheDocument()
+    const mountCountAfterActivation = mountCount
+
+    act(() => {
+      useUIStore
+        .getState()
+        .setSidebarBoundaryRuntimeOptions('energiakartta-floating', {
+          width: 'wide',
+          chrome: 'hidden',
+          panelLayout: 'double',
+          visiblePanels: ['main', 'tertiary'],
+          activePanel: 'tertiary',
+          mobileMode: 'stacked',
+          actionRailPlacement: 'bottomActionRow',
+        })
+    })
+
+    expect(screen.getByText('Stable mobile panel child')).toBeInTheDocument()
+    expect(screen.getByText('Scoped mobile energy panel')).toBeInTheDocument()
+    expect(screen.getByText('Scoped mobile details panel')).toBeInTheDocument()
+    expect(
+      screen.queryByText('Scoped mobile renovation panel')
+    ).not.toBeInTheDocument()
+    expect(mountCount).toBe(mountCountAfterActivation)
+
+    act(() => {
+      useUIStore
+        .getState()
+        .setSidebarBoundaryRuntimeOptions('energiakartta-floating', {
+          width: 'wide',
+          chrome: 'hidden',
+          panelLayout: 'triple',
+          visiblePanels: ['main', 'secondary', 'tertiary'],
+          activePanel: 'secondary',
+          mobileMode: 'stacked',
+          actionRailPlacement: 'bottomActionRow',
+        })
+    })
+
+    expect(screen.getByText('Stable mobile panel child')).toBeInTheDocument()
+    expect(screen.getByText('Scoped mobile energy panel')).toBeInTheDocument()
+    expect(
+      screen.getByText('Scoped mobile renovation panel')
+    ).toBeInTheDocument()
+    expect(screen.getByText('Scoped mobile details panel')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Scoped mobile building action' })
     ).toBeInTheDocument()
     expect(mountCount).toBe(mountCountAfterActivation)
   })
