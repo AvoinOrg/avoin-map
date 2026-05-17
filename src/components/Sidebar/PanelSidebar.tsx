@@ -51,6 +51,7 @@ const panelSlotContent = ({
 const FULL_WIDTH_MAIN_PANEL_WIDTH = '30.5556vw'
 const FULL_WIDTH_SECONDARY_PANEL_WIDTH = '38.8889vw'
 const FULL_WIDTH_TERTIARY_PANEL_WIDTH = '30.5556vw'
+const WIDE_SINGLE_MAIN_PANEL_WIDTH = 'min(1440px, 100vw)'
 const DEFAULT_PANEL_WIDTH = '23.75rem'
 
 const hasFullWidthPanelLayout = (options?: SidebarPanelOptions) => {
@@ -65,9 +66,25 @@ const hasFullWidthPanelLayout = (options?: SidebarPanelOptions) => {
   )
 }
 
-const getMainPanelWidth = (options?: SidebarPanelOptions) =>
+const hasWideSingleMainPanelLayout = (options?: SidebarPanelOptions) => {
+  const visiblePanels = options?.visiblePanels ?? ['main']
+
+  return (
+    options?.width === 'wide' &&
+    options.chrome === 'hidden' &&
+    options.panelLayout === 'single' &&
+    visiblePanels.length === 1 &&
+    visiblePanels.includes('main')
+  )
+}
+
+export const getPanelSidebarMainPanelWidth = (
+  options?: SidebarPanelOptions
+) =>
   hasFullWidthPanelLayout(options)
     ? FULL_WIDTH_MAIN_PANEL_WIDTH
+    : hasWideSingleMainPanelLayout(options)
+      ? WIDE_SINGLE_MAIN_PANEL_WIDTH
     : DEFAULT_PANEL_WIDTH
 
 const getExtraPanelWidth = ({
@@ -199,7 +216,7 @@ const getPanelSidebarSx = (
   options?: SidebarPanelOptions
 ): SxProps<Theme> => {
   const floatingGutter = `${HIILIKARTTA_HOME_FLOATING_GUTTER_PX}px`
-  const mainPanelWidth = getMainPanelWidth(options)
+  const mainPanelWidth = getPanelSidebarMainPanelWidth(options)
   const hiddenChromeHeightSx =
     options?.chrome === 'hidden'
       ? {

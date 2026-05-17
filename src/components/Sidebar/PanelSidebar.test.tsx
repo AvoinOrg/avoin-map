@@ -5,7 +5,10 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { useUIStore } from '#/common/store/uiStore'
 import { SlotsProvider } from '#/components/context/slotsContext'
 
-import { PanelSidebar } from './PanelSidebar'
+import {
+  PanelSidebar,
+  getPanelSidebarMainPanelWidth,
+} from './PanelSidebar'
 import { PanelSidebarPageContainer } from './PanelSidebarPageContainer'
 import { PanelSidebarTabContainer } from './PanelSidebarTabContainer'
 import { SidebarBoundary } from './SidebarBoundary'
@@ -194,6 +197,33 @@ describe('PanelSidebar generic tab helpers', () => {
 
     expect(await screen.findByText('First panel content')).toBeInTheDocument()
     expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
+  })
+
+  it('resolves wide hidden single main width without changing default or triple widths', () => {
+    expect(
+      getPanelSidebarMainPanelWidth({
+        width: 'wide',
+        chrome: 'hidden',
+        panelLayout: 'single',
+        visiblePanels: ['main'],
+      })
+    ).toBe('min(1440px, 100vw)')
+    expect(getPanelSidebarMainPanelWidth()).toBe('23.75rem')
+    expect(
+      getPanelSidebarMainPanelWidth({
+        width: 'compact',
+        panelLayout: 'single',
+        visiblePanels: ['main'],
+      })
+    ).toBe('23.75rem')
+    expect(
+      getPanelSidebarMainPanelWidth({
+        width: 'wide',
+        chrome: 'hidden',
+        panelLayout: 'triple',
+        visiblePanels: ['main', 'secondary', 'tertiary'],
+      })
+    ).toBe('30.5556vw')
   })
 })
 

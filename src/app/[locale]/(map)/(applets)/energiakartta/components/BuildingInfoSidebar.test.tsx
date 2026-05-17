@@ -384,8 +384,27 @@ describe('BuildingInfoSidebar', () => {
         .getAllByTestId(/building-info-panel-/)
         .map((panel) => panel.dataset.panelId)
     ).toEqual(['energyConsumption', 'buildingDetails'])
+    expect(screen.getByTestId('building-info-grid')).toHaveAttribute(
+      'data-building-info-grid-layout',
+      'basic'
+    )
+    expect(
+      screen.getByTestId('building-info-grid-section-basic-energy')
+    ).toHaveAttribute('data-grid-area', 'energy')
+    expect(
+      screen.getByTestId('building-info-grid-section-basic-building-details')
+    ).toHaveAttribute('data-grid-area', 'details')
     expect(
       screen.queryByTestId('building-info-panel-renovationRecommendations')
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByTestId('building-info-grid-section-top-renovation')
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByTestId('building-info-grid-section-bottom-wide')
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByTestId('building-info-grid-section-bottom-right')
     ).not.toBeInTheDocument()
     expect(screen.getAllByTestId('panel-sidebar-page-scroll')).toHaveLength(1)
     expect(screen.queryByTestId(/^building-info-scroll-/)).not.toBeInTheDocument()
@@ -423,6 +442,48 @@ describe('BuildingInfoSidebar', () => {
       'renovationRecommendations',
       'buildingDetails',
     ])
+    expect(
+      screen
+        .getAllByTestId(/building-info-panel-/)
+        .map((panel) => panel.dataset.panelId)
+    ).toEqual([
+      'energyConsumption',
+      'renovationRecommendations',
+      'buildingDetails',
+    ])
+    expect(screen.getByTestId('building-info-grid')).toHaveAttribute(
+      'data-building-info-grid-layout',
+      'renovation'
+    )
+    expect(
+      screen.getByTestId('building-info-grid-section-top-energy')
+    ).toHaveAttribute('data-grid-area', 'energy')
+    expect(
+      screen.getByTestId('building-info-grid-section-top-renovation')
+    ).toHaveAttribute('data-grid-area', 'renovation')
+    expect(
+      screen.getByTestId('building-info-grid-section-top-building-details')
+    ).toHaveAttribute('data-grid-area', 'details')
+    expect(
+      screen.getByTestId('building-info-grid-section-bottom-wide')
+    ).toHaveAttribute('data-grid-area', 'comparison')
+    expect(
+      screen.getByTestId('building-info-grid-section-bottom-right')
+    ).toHaveAttribute('data-grid-area', 'effectiveness')
+    expect(
+      screen.getByTestId('building-info-renovation-comparison-wide')
+    ).toBeInTheDocument()
+  })
+
+  it('keeps the mobile tab page on the F028.2 stacked sections', async () => {
+    mockIsMobile = true
+
+    renderBuildingInfoTabs({ activeTabId: 'renovation' })
+
+    expect(
+      await screen.findByTestId('building-info-tab-page-renovation')
+    ).toBeInTheDocument()
+    expect(screen.queryByTestId('building-info-grid')).not.toBeInTheDocument()
     expect(
       screen
         .getAllByTestId(/building-info-panel-/)

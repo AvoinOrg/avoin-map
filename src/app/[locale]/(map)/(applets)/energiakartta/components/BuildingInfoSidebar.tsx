@@ -11,6 +11,7 @@ import {
 } from '@mui/material'
 import ConstructionIcon from '@mui/icons-material/Construction'
 
+import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import TText from '#/components/common/TText'
 import { PanelSidebarPageContainer } from '#/components/Sidebar/PanelSidebarPageContainer'
 import { PanelSidebarTabContainer } from '#/components/Sidebar/PanelSidebarTabContainer'
@@ -124,6 +125,29 @@ const PANEL_CONTENT_WIDTHS: Record<EnergymapBuildingInfoPanelId, string> = {
   renovationRecommendations: '26.875rem',
   buildingDetails: '16.25rem',
 }
+
+const DESKTOP_GRID_MAX_WIDTHS: Record<BuildingInfoTabId, string> = {
+  basic: '760px',
+  renovation: '1440px',
+}
+
+const DESKTOP_GRID_MIN_HEIGHTS: Record<BuildingInfoTabId, string> = {
+  basic: '1256px',
+  renovation: '2365px',
+}
+
+const DESKTOP_GRID_SECTION_MIN_HEIGHTS = {
+  basic: '1256px',
+  renovationTop: '1300px',
+  renovationBottom: '1065px',
+} as const
+
+const RENOVATION_DESKTOP_GRID_COLUMNS = '440fr 560fr 440fr'
+const BASIC_DESKTOP_GRID_COLUMNS = 'minmax(0, 1fr) minmax(0, 1fr)'
+const DESKTOP_HEADING_TOP = '7.375rem'
+const DESKTOP_SECTION_BOTTOM_PADDING = '6.5rem'
+const DESKTOP_HEADING_GRAPHIC_TOP = '-4.25rem'
+const DESKTOP_HEADING_DIVIDER_MARGIN_TOP = '0.75rem'
 
 const SIDEBAR_ASSET_BASE = '/files/img/energiakartta/sidebar'
 
@@ -1174,7 +1198,7 @@ const BuildingInfoPanelHeadingGraphic = ({
         height="28px"
         sx={{
           position: 'absolute',
-          top: '3.125rem',
+          top: 'var(--building-info-heading-graphic-top, 3.125rem)',
           left: 0,
         }}
       />
@@ -1186,7 +1210,7 @@ const BuildingInfoPanelHeadingGraphic = ({
       <RenovationIcon
         sx={{
           position: 'absolute',
-          top: '3.25rem',
+          top: 'var(--building-info-heading-graphic-top, 3.25rem)',
           left: 0,
         }}
       />
@@ -1223,11 +1247,17 @@ const BuildingInfoPanelBody = ({
   panel,
   titleId,
   accentColor,
+  sections = panel.sections,
+  showDescription = true,
+  showHeroGraphic = true,
   sx,
 }: {
   panel: EnergymapBuildingInfoPanel
   titleId: string
   accentColor: string
+  sections?: EnergymapBuildingInfoSection[]
+  showDescription?: boolean
+  showHeroGraphic?: boolean
   sx?: SxProps<Theme>
 }) => (
   <Box
@@ -1256,12 +1286,12 @@ const BuildingInfoPanelBody = ({
     </Typography>
     <Box
       sx={{
-        mt: '1.375rem',
+        mt: 'var(--building-info-heading-divider-mt, 1.375rem)',
         borderTop: '0.3px solid #cfcfcf',
       }}
     />
-    <BuildingInfoPanelHeroGraphic panelId={panel.id} />
-    {panel.description != null && (
+    {showHeroGraphic && <BuildingInfoPanelHeroGraphic panelId={panel.id} />}
+    {showDescription && panel.description != null && (
       <Typography
         sx={{
           ...textSx,
@@ -1273,7 +1303,7 @@ const BuildingInfoPanelBody = ({
         <BuildingInfoText text={panel.description} />
       </Typography>
     )}
-    {panel.sections.map((section) => (
+    {sections.map((section) => (
       <BuildingInfoSectionBlock
         key={section.id}
         section={section}
@@ -1294,7 +1324,7 @@ const getTabPagePanelAccentColor = ({
     ? '#111111'
     : PANEL_ACCENTS[panelId]
 
-const getTabPagePanelContentSx = ({
+const getStackedTabPagePanelContentSx = ({
   panelId,
   index,
   panelCount,
@@ -1319,16 +1349,45 @@ const getTabPagePanelContentSx = ({
   },
 })
 
-const BuildingInfoTabPageSection = ({
+const getDesktopGridPanelContentSx = ({
+  tabId,
+  panelId,
+}: {
+  tabId: BuildingInfoTabId
+  panelId: EnergymapBuildingInfoPanelId
+}): SxProps<Theme> => ({
+  width: `min(${PANEL_CONTENT_WIDTHS[panelId]}, calc(100% - 3rem))`,
+  maxWidth: '100%',
+  pt: DESKTOP_HEADING_TOP,
+  pb: DESKTOP_SECTION_BOTTOM_PADDING,
+  mx:
+    tabId === 'renovation' && panelId === 'buildingDetails'
+      ? undefined
+      : 'auto',
+  ml:
+    tabId === 'renovation' && panelId === 'buildingDetails'
+      ? '4.375rem'
+      : undefined,
+  '--building-info-heading-graphic-top': DESKTOP_HEADING_GRAPHIC_TOP,
+  '--building-info-heading-divider-mt': DESKTOP_HEADING_DIVIDER_MARGIN_TOP,
+})
+
+const BuildingInfoPanelSection = ({
   panel,
   tabId,
-  index,
-  panelCount,
+  bodySx,
+  sections,
+  showDescription,
+  showHeroGraphic,
+  sx,
 }: {
   panel: EnergymapBuildingInfoPanel
   tabId: BuildingInfoTabId
-  index: number
-  panelCount: number
+  bodySx?: SxProps<Theme>
+  sections?: EnergymapBuildingInfoSection[]
+  showDescription?: boolean
+  showHeroGraphic?: boolean
+  sx?: SxProps<Theme>
 }) => {
   const titleId = React.useId()
   const accentColor = getTabPagePanelAccentColor({
@@ -1342,6 +1401,43 @@ const BuildingInfoTabPageSection = ({
       aria-labelledby={titleId}
       data-testid={`building-info-panel-${panel.id}`}
       data-panel-id={panel.id}
+      sx={[
+        {
+          width: '100%',
+          minWidth: 0,
+          minHeight: 0,
+          backgroundColor: 'inherit',
+          flexShrink: 0,
+        },
+        ...(Array.isArray(sx) ? sx : [sx]),
+      ]}
+    >
+      <BuildingInfoPanelBody
+        panel={panel}
+        titleId={titleId}
+        accentColor={accentColor}
+        sections={sections}
+        showDescription={showDescription}
+        showHeroGraphic={showHeroGraphic}
+        sx={bodySx}
+      />
+    </Box>
+  )
+}
+
+const BuildingInfoStackedTabPageSection = ({
+  panel,
+  tabId,
+  index,
+  panelCount,
+}: {
+  panel: EnergymapBuildingInfoPanel
+  tabId: BuildingInfoTabId
+  index: number
+  panelCount: number
+}) => {
+  return (
+    <Box
       sx={{
         width: '100%',
         minWidth: 0,
@@ -1349,11 +1445,10 @@ const BuildingInfoTabPageSection = ({
         flexShrink: 0,
       }}
     >
-      <BuildingInfoPanelBody
+      <BuildingInfoPanelSection
         panel={panel}
-        titleId={titleId}
-        accentColor={accentColor}
-        sx={getTabPagePanelContentSx({
+        tabId={tabId}
+        bodySx={getStackedTabPagePanelContentSx({
           panelId: panel.id,
           index,
           panelCount,
@@ -1363,6 +1458,328 @@ const BuildingInfoTabPageSection = ({
   )
 }
 
+const BuildingInfoDesktopGrid = ({
+  tabId,
+  children,
+}: {
+  tabId: BuildingInfoTabId
+  children: React.ReactNode
+}) => (
+  <Box
+    data-testid="building-info-grid"
+    data-building-info-grid-layout={tabId}
+    sx={{
+      display: 'grid',
+      width: `min(${DESKTOP_GRID_MAX_WIDTHS[tabId]}, 100vw)`,
+      maxWidth: '100%',
+      minHeight: DESKTOP_GRID_MIN_HEIGHTS[tabId],
+      backgroundColor: '#f9f9f9',
+      ...(tabId === 'renovation'
+        ? {
+            gridTemplateColumns: RENOVATION_DESKTOP_GRID_COLUMNS,
+            gridTemplateRows: `${DESKTOP_GRID_SECTION_MIN_HEIGHTS.renovationTop} ${DESKTOP_GRID_SECTION_MIN_HEIGHTS.renovationBottom}`,
+            gridTemplateAreas: `
+              "energy renovation details"
+              "comparison comparison effectiveness"
+            `,
+          }
+        : {
+            gridTemplateColumns: BASIC_DESKTOP_GRID_COLUMNS,
+            gridTemplateRows: DESKTOP_GRID_SECTION_MIN_HEIGHTS.basic,
+            gridTemplateAreas: '"energy details"',
+          }),
+    }}
+  >
+    {children}
+  </Box>
+)
+
+const BuildingInfoDesktopGridSection = ({
+  slot,
+  gridArea,
+  panelId,
+  backgroundColor,
+  minHeight,
+  children,
+}: {
+  slot: string
+  gridArea: string
+  panelId?: EnergymapBuildingInfoPanelId
+  backgroundColor: string
+  minHeight: string
+  children?: React.ReactNode
+}) => (
+  <Box
+    data-testid={`building-info-grid-section-${slot}`}
+    data-grid-area={gridArea}
+    data-grid-slot={slot}
+    data-panel-id={panelId}
+    sx={{
+      gridArea,
+      minWidth: 0,
+      minHeight,
+      backgroundColor,
+    }}
+  >
+    {children}
+  </Box>
+)
+
+const getRenovationComparisonSection = (
+  panel?: EnergymapBuildingInfoPanel
+) => panel?.sections.find((section) => section.id === 'scenarioComparison')
+
+const BuildingInfoRenovationComparisonWide = ({
+  panel,
+}: {
+  panel: EnergymapBuildingInfoPanel
+}) => {
+  const titleId = React.useId()
+  const section = getRenovationComparisonSection(panel)
+
+  return (
+    <Box
+      component="section"
+      aria-labelledby={titleId}
+      data-testid="building-info-renovation-comparison-wide"
+      data-panel-id={panel.id}
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: '440fr 560fr',
+        minHeight: '100%',
+      }}
+    >
+      <Box
+        sx={{
+          width: 'min(22.5rem, calc(100% - 5rem))',
+          maxWidth: '100%',
+          ml: '5rem',
+          pt: '7.5rem',
+          pb: DESKTOP_SECTION_BOTTOM_PADDING,
+          boxSizing: 'border-box',
+        }}
+      >
+        <RenovationIcon width="31px" height="25px" />
+        {section?.title != null && (
+          <Typography
+            id={titleId}
+            sx={{
+              mt: '2rem',
+              fontSize: '0.75rem',
+              fontWeight: 400,
+              lineHeight: '1.125rem',
+              letterSpacing: '0.1em',
+              color: PANEL_ACCENTS.renovationRecommendations,
+              textTransform: 'uppercase',
+            }}
+          >
+            <BuildingInfoText text={section.title} />
+          </Typography>
+        )}
+        <Box
+          sx={{
+            mt: '1.875rem',
+            borderTop: '0.3px solid #cfcfcf',
+          }}
+        />
+        {section?.description != null && (
+          <Typography
+            sx={{
+              ...textSx,
+              mt: '1.875rem',
+              maxWidth: '20.375rem',
+              color: '#111111',
+            }}
+          >
+            <BuildingInfoText text={section.description} />
+          </Typography>
+        )}
+      </Box>
+      <Box
+        sx={{
+          width: `min(${PANEL_CONTENT_WIDTHS.renovationRecommendations}, calc(100% - 4rem))`,
+          maxWidth: '100%',
+          ml: '3.75rem',
+          pt: '16.875rem',
+          pb: DESKTOP_SECTION_BOTTOM_PADDING,
+          boxSizing: 'border-box',
+        }}
+      >
+        {section?.scenarios?.map((scenario) => (
+          <BuildingInfoScenarioBlock key={scenario.id} scenario={scenario} />
+        ))}
+      </Box>
+    </Box>
+  )
+}
+
+const BuildingInfoRenovationEffectivenessContent = ({
+  panel,
+}: {
+  panel: EnergymapBuildingInfoPanel
+}) => {
+  const notes =
+    getRenovationComparisonSection(panel)?.notes?.filter(
+      (note) => note.status !== 'missing'
+    ) ?? []
+
+  if (notes.length === 0) {
+    return null
+  }
+
+  return (
+    <Box
+      data-testid="building-info-renovation-effectiveness-content"
+      sx={{
+        width: `min(${PANEL_CONTENT_WIDTHS.buildingDetails}, calc(100% - 4rem))`,
+        maxWidth: '100%',
+        ml: '4.375rem',
+        pt: DESKTOP_HEADING_TOP,
+        pb: DESKTOP_SECTION_BOTTOM_PADDING,
+      }}
+    >
+      {notes.map((note) => (
+        <BuildingInfoNoteText key={note.id} note={note} />
+      ))}
+    </Box>
+  )
+}
+
+const BuildingInfoDesktopTabPageContent = ({
+  tabId,
+  panelsById,
+}: {
+  tabId: BuildingInfoTabId
+  panelsById: Map<EnergymapBuildingInfoPanelId, EnergymapBuildingInfoPanel>
+}) => {
+  const energyPanel = panelsById.get('energyConsumption')
+  const renovationPanel = panelsById.get('renovationRecommendations')
+  const buildingPanel = panelsById.get('buildingDetails')
+  const renovationTopSections =
+    renovationPanel?.sections.filter(
+      (section) => section.id !== 'scenarioComparison'
+    ) ?? []
+
+  return (
+    <BuildingInfoDesktopGrid tabId={tabId}>
+      {energyPanel != null && (
+        <BuildingInfoDesktopGridSection
+          slot={tabId === 'renovation' ? 'top-energy' : 'basic-energy'}
+          gridArea="energy"
+          panelId={energyPanel.id}
+          backgroundColor={PANEL_BACKGROUNDS.energyConsumption}
+          minHeight={
+            tabId === 'renovation'
+              ? DESKTOP_GRID_SECTION_MIN_HEIGHTS.renovationTop
+              : DESKTOP_GRID_SECTION_MIN_HEIGHTS.basic
+          }
+        >
+          <BuildingInfoPanelSection
+            panel={energyPanel}
+            tabId={tabId}
+            sx={{ minHeight: '100%', height: '100%' }}
+            bodySx={getDesktopGridPanelContentSx({
+              tabId,
+              panelId: energyPanel.id,
+            })}
+          />
+        </BuildingInfoDesktopGridSection>
+      )}
+      {tabId === 'renovation' && renovationPanel != null && (
+        <BuildingInfoDesktopGridSection
+          slot="top-renovation"
+          gridArea="renovation"
+          panelId={renovationPanel.id}
+          backgroundColor={PANEL_BACKGROUNDS.renovationRecommendations}
+          minHeight={DESKTOP_GRID_SECTION_MIN_HEIGHTS.renovationTop}
+        >
+          <BuildingInfoPanelSection
+            panel={renovationPanel}
+            tabId={tabId}
+            sections={renovationTopSections}
+            sx={{ minHeight: '100%', height: '100%' }}
+            bodySx={getDesktopGridPanelContentSx({
+              tabId,
+              panelId: renovationPanel.id,
+            })}
+          />
+        </BuildingInfoDesktopGridSection>
+      )}
+      {buildingPanel != null && (
+        <BuildingInfoDesktopGridSection
+          slot={
+            tabId === 'renovation'
+              ? 'top-building-details'
+              : 'basic-building-details'
+          }
+          gridArea="details"
+          panelId={buildingPanel.id}
+          backgroundColor={PANEL_BACKGROUNDS.buildingDetails}
+          minHeight={
+            tabId === 'renovation'
+              ? DESKTOP_GRID_SECTION_MIN_HEIGHTS.renovationTop
+              : DESKTOP_GRID_SECTION_MIN_HEIGHTS.basic
+          }
+        >
+          <BuildingInfoPanelSection
+            panel={buildingPanel}
+            tabId={tabId}
+            sx={{ minHeight: '100%', height: '100%' }}
+            bodySx={getDesktopGridPanelContentSx({
+              tabId,
+              panelId: buildingPanel.id,
+            })}
+          />
+        </BuildingInfoDesktopGridSection>
+      )}
+      {tabId === 'renovation' && renovationPanel != null && (
+        <>
+          <BuildingInfoDesktopGridSection
+            slot="bottom-wide"
+            gridArea="comparison"
+            panelId={renovationPanel.id}
+            backgroundColor={PANEL_BACKGROUNDS.energyConsumption}
+            minHeight={DESKTOP_GRID_SECTION_MIN_HEIGHTS.renovationBottom}
+          >
+            <BuildingInfoRenovationComparisonWide panel={renovationPanel} />
+          </BuildingInfoDesktopGridSection>
+          <BuildingInfoDesktopGridSection
+            slot="bottom-right"
+            gridArea="effectiveness"
+            panelId={renovationPanel.id}
+            backgroundColor={PANEL_BACKGROUNDS.buildingDetails}
+            minHeight={DESKTOP_GRID_SECTION_MIN_HEIGHTS.renovationBottom}
+          >
+            <BuildingInfoRenovationEffectivenessContent
+              panel={renovationPanel}
+            />
+          </BuildingInfoDesktopGridSection>
+        </>
+      )}
+    </BuildingInfoDesktopGrid>
+  )
+}
+
+const BuildingInfoStackedTabPageContent = ({
+  tabId,
+  panels,
+}: {
+  tabId: BuildingInfoTabId
+  panels: EnergymapBuildingInfoPanel[]
+}) => (
+  <>
+    {panels.map((panel, index) => (
+      <BuildingInfoStackedTabPageSection
+        key={panel.id}
+        panel={panel}
+        tabId={tabId}
+        index={index}
+        panelCount={panels.length}
+      />
+    ))}
+  </>
+)
+
 const BuildingInfoTabPageContent = ({
   tabId,
   panels,
@@ -1370,8 +1787,12 @@ const BuildingInfoTabPageContent = ({
   tabId: BuildingInfoTabId
   panels: EnergymapBuildingInfoPanel[]
 }) => {
+  const isMobile = useIsMobile()
   const panelsById = React.useMemo(
-    () => new Map(panels.map((panel) => [panel.id, panel])),
+    () =>
+      new Map<EnergymapBuildingInfoPanelId, EnergymapBuildingInfoPanel>(
+        panels.map((panel) => [panel.id, panel])
+      ),
     [panels]
   )
   const visiblePanels = React.useMemo(
@@ -1393,15 +1814,17 @@ const BuildingInfoTabPageContent = ({
         backgroundColor: '#f9f9f9',
       }}
     >
-      {visiblePanels.map((panel, index) => (
-        <BuildingInfoTabPageSection
-          key={panel.id}
-          panel={panel}
+      {isMobile ? (
+        <BuildingInfoStackedTabPageContent
           tabId={tabId}
-          index={index}
-          panelCount={visiblePanels.length}
+          panels={visiblePanels}
         />
-      ))}
+      ) : (
+        <BuildingInfoDesktopTabPageContent
+          tabId={tabId}
+          panelsById={panelsById}
+        />
+      )}
     </Box>
   )
 }
@@ -1505,6 +1928,40 @@ export const getBuildingInfoTabIdForMode = (
 export const getBuildingInfoModeForTabId = (tabId: BuildingInfoTabId) =>
   MODE_BY_TAB_ID[tabId]
 
+const getBuildingInfoPageControlsSx = (
+  tabId: BuildingInfoTabId
+): SxProps<Theme> => ({
+  position: { desktop: 'absolute' },
+  top: { desktop: tabId === 'renovation' ? '50px' : '35px' },
+  right: { desktop: tabId === 'renovation' ? '120px' : 'auto' },
+  left: {
+    desktop:
+      tabId === 'renovation'
+        ? 'auto'
+        : 'min(624px, calc(100% - 116px))',
+  },
+  gap: { desktop: '4px' },
+  px: { desktop: 0 },
+  py: { desktop: 0 },
+  backgroundColor: { desktop: 'transparent' },
+  borderBottom: { desktop: 0 },
+  zIndex: 2,
+  '& .MuiIconButton-root': {
+    width: { desktop: '36px' },
+    minWidth: { desktop: '36px' },
+    height: { desktop: '36px' },
+    borderRadius: { desktop: '5px' },
+    backgroundColor: { desktop: '#f4f4f4' },
+    boxShadow: { desktop: 'none' },
+    '&:hover': {
+      backgroundColor: { desktop: '#ffffff' },
+    },
+  },
+  '& .MuiSvgIcon-root': {
+    fontSize: { desktop: '1rem' },
+  },
+})
+
 export const BuildingInfoTabPages = ({
   panels,
   ariaLabels,
@@ -1528,6 +1985,7 @@ export const BuildingInfoTabPages = ({
         contentSx={{
           backgroundColor: '#f9f9f9',
         }}
+        controlsSx={getBuildingInfoPageControlsSx('basic')}
       >
         <BuildingInfoTabPageContent tabId="basic" panels={panels} />
       </PanelSidebarPageContainer>
@@ -1546,6 +2004,7 @@ export const BuildingInfoTabPages = ({
         contentSx={{
           backgroundColor: '#f9f9f9',
         }}
+        controlsSx={getBuildingInfoPageControlsSx('renovation')}
       >
         <BuildingInfoTabPageContent tabId="renovation" panels={panels} />
       </PanelSidebarPageContainer>
