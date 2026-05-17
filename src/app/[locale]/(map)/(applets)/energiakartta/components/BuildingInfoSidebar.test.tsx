@@ -3,23 +3,32 @@ import '@testing-library/jest-dom'
 import { ThemeProvider } from '@mui/material/styles'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 
+import { useUIStore } from '#/common/store/uiStore'
 import theme from '#/common/style/theme/theme'
+import { PanelSidebar } from '#/components/Sidebar/PanelSidebar'
 import {
   BuildingInfoActionRail,
-  BuildingInfoDesktopChrome,
-  BuildingInfoDesktopSidebar,
-  BuildingInfoMobileActionRow,
-  BuildingInfoMobilePanelStack,
-  BuildingInfoMobileSidebar,
-  BuildingInfoPanelSlotContent,
+  BuildingInfoTabPages,
   BuildingInfoText,
   getBuildingInfoPanelIds,
-  getBuildingInfoDesktopPanelIds,
+  getBuildingInfoTabPanelIds,
 } from './BuildingInfoSidebar'
+import { getEnergymapBuildingInfoSidebarRuntimeOptions } from '../common/buildingInfoSidebarRuntime'
 import type {
   EnergymapBuildingInfoPanel,
   EnergymapBuildingInfoText,
 } from '../common/buildingInfo'
+import type { BuildingInfoTabId } from './BuildingInfoSidebar'
+
+jest.mock('#/common/store', () => ({
+  useUIStore: jest.requireActual('#/common/store/uiStore').useUIStore,
+}))
+
+let mockIsMobile = false
+
+jest.mock('#/common/hooks/ui/useIsMobile', () => ({
+  useIsMobile: () => mockIsMobile,
+}))
 
 jest.mock('@tolgee/react', () => {
   const React = require('react')
@@ -54,9 +63,14 @@ jest.mock('overlayscrollbars-react', () => {
       children: React.ReactNode
       className?: string
       options?: {
+        overflow?: {
+          x?: string
+          y?: string
+        }
         scrollbars?: {
           autoHide?: string
           visibility?: string
+          theme?: string
         }
       }
       style?: React.CSSProperties
@@ -69,6 +83,9 @@ jest.mock('overlayscrollbars-react', () => {
           style,
           'data-auto-hide': options?.scrollbars?.autoHide,
           'data-scrollbar-visibility': options?.scrollbars?.visibility,
+          'data-scrollbar-theme': options?.scrollbars?.theme,
+          'data-overflow-x': options?.overflow?.x,
+          'data-overflow-y': options?.overflow?.y,
         },
         children
       ),
@@ -91,6 +108,18 @@ const plain = (text: string): EnergymapBuildingInfoText => ({
 
 const renderWithTheme = (ui: React.ReactElement) => {
   return render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>)
+}
+
+const resetUIStore = () => {
+  useUIStore.setState({
+    sidebarBoundaries: {},
+    _sidebarBoundaryRegistrationOrder: 0,
+    isSidebarOpen: true,
+    isSidebarDisabled: false,
+    isSidebarLoading: false,
+    sidebarHeaderConfig: { title: 'Test sidebar' },
+    sidebarWidth: undefined,
+  })
 }
 
 const panels: EnergymapBuildingInfoPanel[] = [
@@ -268,14 +297,38 @@ const panels: EnergymapBuildingInfoPanel[] = [
 const ariaLabels = {
   close: 'Close building information',
   collapse: 'Collapse building information',
-}
-
-const modeAriaLabels = {
   overview: 'Open energy and building information',
   renovation: 'Open renovation recommendations',
 }
 
+const renderBuildingInfoTabs = ({
+  activeTabId,
+  onClose = jest.fn(),
+  onCollapse = jest.fn(),
+}: {
+  activeTabId?: BuildingInfoTabId
+  onClose?: () => void
+  onCollapse?: (tabId: BuildingInfoTabId) => void
+} = {}) => {
+  return renderWithTheme(
+    <PanelSidebar>
+      <BuildingInfoTabPages
+        panels={panels}
+        ariaLabels={ariaLabels}
+        activeTabId={activeTabId}
+        onClose={onClose}
+        onCollapse={onCollapse}
+      />
+    </PanelSidebar>
+  )
+}
+
 describe('BuildingInfoSidebar', () => {
+  beforeEach(() => {
+    mockIsMobile = false
+    resetUIStore()
+  })
+
   it('recursively renders sequence text and translation descriptors', () => {
     render(
       <BuildingInfoText
@@ -299,22 +352,30 @@ describe('BuildingInfoSidebar', () => {
     )
   })
 
-  it('shows only the energy and building panels in two-panel mode', () => {
-    renderWithTheme(
-      <BuildingInfoDesktopSidebar
-        mode="twoPanel"
-        panels={panels}
-        ariaLabels={ariaLabels}
-        onClose={jest.fn()}
-        onCollapse={jest.fn()}
-      />
-    )
+  it('renders the basic building information tab through PanelSidebar', async () => {
+    renderBuildingInfoTabs()
 
-    expect(getBuildingInfoDesktopPanelIds('twoPanel')).toEqual([
+    expect(
+      await screen.findByTestId('building-info-tab-page-basic')
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('tablist', { name: /sidebar panel tabs/i })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('tab', {
+        name: 'Open energy and building information',
+      })
+    ).toHaveAttribute('aria-selected', 'true')
+    expect(
+      screen.getByRole('tab', {
+        name: 'Open renovation recommendations',
+      })
+    ).toHaveAttribute('aria-selected', 'false')
+    expect(getBuildingInfoPanelIds('twoPanel')).toEqual([
       'energyConsumption',
       'buildingDetails',
     ])
-    expect(getBuildingInfoPanelIds('twoPanel')).toEqual([
+    expect(getBuildingInfoTabPanelIds('basic')).toEqual([
       'energyConsumption',
       'buildingDetails',
     ])
@@ -326,19 +387,42 @@ describe('BuildingInfoSidebar', () => {
     expect(
       screen.queryByTestId('building-info-panel-renovationRecommendations')
     ).not.toBeInTheDocument()
+    expect(screen.getAllByTestId('panel-sidebar-page-scroll')).toHaveLength(1)
+    expect(screen.queryByTestId(/^building-info-scroll-/)).not.toBeInTheDocument()
   })
 
-  it('shows all panels in three-panel mode and preserves value metadata', () => {
-    renderWithTheme(
-      <BuildingInfoDesktopSidebar
-        mode="threePanel"
-        panels={panels}
-        ariaLabels={ariaLabels}
-        onClose={jest.fn()}
-        onCollapse={jest.fn()}
-      />
+  it('switches to the renovation recommendation tab', async () => {
+    renderBuildingInfoTabs()
+
+    fireEvent.click(
+      await screen.findByRole('tab', {
+        name: 'Open renovation recommendations',
+      })
     )
 
+    expect(
+      await screen.findByTestId('building-info-tab-page-renovation')
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('tab', {
+        name: 'Open energy and building information',
+      })
+    ).toHaveAttribute('aria-selected', 'false')
+    expect(
+      screen.getByRole('tab', {
+        name: 'Open renovation recommendations',
+      })
+    ).toHaveAttribute('aria-selected', 'true')
+    expect(getBuildingInfoPanelIds('threePanel')).toEqual([
+      'energyConsumption',
+      'renovationRecommendations',
+      'buildingDetails',
+    ])
+    expect(getBuildingInfoTabPanelIds('renovation')).toEqual([
+      'energyConsumption',
+      'renovationRecommendations',
+      'buildingDetails',
+    ])
     expect(
       screen
         .getAllByTestId(/building-info-panel-/)
@@ -348,6 +432,62 @@ describe('BuildingInfoSidebar', () => {
       'renovationRecommendations',
       'buildingDetails',
     ])
+  })
+
+  it('can open on the requested tab after collapsed-tab selection', async () => {
+    renderBuildingInfoTabs({ activeTabId: 'renovation' })
+
+    expect(
+      await screen.findByTestId('building-info-tab-page-renovation')
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('tab', {
+        name: 'Open renovation recommendations',
+      })
+    ).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it('calls page-level collapse and close controls independently', async () => {
+    const onCollapse = jest.fn()
+    const onClose = jest.fn()
+
+    renderBuildingInfoTabs({ onCollapse, onClose })
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Collapse building information' })
+    )
+    expect(onCollapse).toHaveBeenCalledWith('basic')
+    expect(onClose).not.toHaveBeenCalled()
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Close building information' })
+    )
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('reports the active renovation tab when collapsing that page', async () => {
+    const onCollapse = jest.fn()
+
+    renderBuildingInfoTabs({ onCollapse })
+
+    fireEvent.click(
+      await screen.findByRole('tab', {
+        name: 'Open renovation recommendations',
+      })
+    )
+    await screen.findByTestId('building-info-tab-page-renovation')
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Collapse building information' })
+    )
+
+    expect(onCollapse).toHaveBeenCalledWith('renovation')
+  })
+
+  it('preserves value metadata in tab-page panel bodies', async () => {
+    renderBuildingInfoTabs({ activeTabId: 'renovation' })
+
+    await screen.findByTestId('building-info-tab-page-renovation')
     const value = screen.getByText('value.part_a').closest('[data-status]')
 
     expect(value).toHaveTextContent('value.part_a / plain value + value.part_b')
@@ -358,100 +498,20 @@ describe('BuildingInfoSidebar', () => {
     )
   })
 
-  it('uses overlay scroll areas for each desktop panel', () => {
-    renderWithTheme(
-      <BuildingInfoDesktopSidebar
-        mode="threePanel"
-        panels={panels}
-        ariaLabels={ariaLabels}
-        onClose={jest.fn()}
-        onCollapse={jest.fn()}
-      />
-    )
+  it('renders the Figma panel graphics from sidebar assets', async () => {
+    renderBuildingInfoTabs({ activeTabId: 'renovation' })
 
-    const scrollAreas = screen.getAllByTestId(/^building-info-scroll-/)
-
-    expect(scrollAreas).toHaveLength(3)
-    scrollAreas.forEach((scrollArea) => {
-      expect(scrollArea).toHaveClass('osScroll')
-      expect(scrollArea).toHaveAttribute('data-auto-hide', 'leave')
-      expect(scrollArea).toHaveAttribute('data-scrollbar-visibility', 'auto')
-    })
-  })
-
-  it('reserves the desktop three-panel bottom control band outside panel bodies', () => {
-    renderWithTheme(
-      <BuildingInfoDesktopSidebar
-        mode="threePanel"
-        panels={panels}
-        ariaLabels={ariaLabels}
-        onClose={jest.fn()}
-        onCollapse={jest.fn()}
-      />
-    )
-
-    screen.getAllByTestId(/building-info-panel-/).forEach((panel) => {
-      expect(panel).toHaveStyle({
-        flex: '0 0 calc(100% - 71px)',
-        height: 'calc(100% - 71px)',
-        maxHeight: 'calc(100% - 71px)',
-      })
-    })
-  })
-
-  it('renders a single desktop panel body for scoped panel slots', () => {
-    renderWithTheme(
-      <BuildingInfoPanelSlotContent
-        mode="twoPanel"
-        panel={panels[2]}
-        presentation="desktop"
-      />
-    )
-
+    await screen.findByTestId('building-info-tab-page-renovation')
     expect(
-      screen
-        .getAllByTestId(/building-info-panel-/)
-        .map((panel) => panel.dataset.panelId)
-    ).toEqual(['buildingDetails'])
-    expect(screen.getByTestId('building-info-scroll-buildingDetails')).toHaveClass(
-      'osScroll'
-    )
-    expect(screen.getByTestId('building-info-panel-buildingDetails')).toHaveStyle(
-      {
-        flex: '1 1 auto',
-      }
-    )
-  })
-
-  it('renders a single mobile panel section for scoped panel slots', () => {
-    renderWithTheme(
-      <BuildingInfoPanelSlotContent
-        mode="threePanel"
-        panel={panels[1]}
-        presentation="mobile"
-        mobileIndex={1}
-        mobilePanelCount={3}
-      />
-    )
-
-    expect(screen.getByTestId('building-info-panel-renovationRecommendations'))
-      .toHaveAttribute('data-panel-id', 'renovationRecommendations')
+      document.querySelector(
+        'img[src="/files/img/energiakartta/sidebar/building-info-two-panel.svg"]'
+      )
+    ).toBeInTheDocument()
     expect(
-      screen.queryByTestId('building-info-mobile-scroll')
-    ).not.toBeInTheDocument()
-  })
-
-  it('renders the Figma panel graphics from sidebar assets', () => {
-    renderWithTheme(
-      <BuildingInfoDesktopSidebar
-        mode="threePanel"
-        panels={panels}
-        ariaLabels={ariaLabels}
-        onClose={jest.fn()}
-        onCollapse={jest.fn()}
-      />
-    )
-
+      document.querySelector(
+        'img[src="/files/img/energiakartta/sidebar/building-info-three-panel-left.svg"]'
+      )
+    ).toBeInTheDocument()
     expect(
       document.querySelector(
         'img[src="/files/img/energiakartta/sidebar/building-info-energy-lightning.svg"]'
@@ -486,16 +546,9 @@ describe('BuildingInfoSidebar', () => {
   })
 
   it('shows unavailable values as construction icons with reason tooltips', async () => {
-    renderWithTheme(
-      <BuildingInfoDesktopSidebar
-        mode="twoPanel"
-        panels={panels}
-        ariaLabels={ariaLabels}
-        onClose={jest.fn()}
-        onCollapse={jest.fn()}
-      />
-    )
+    renderBuildingInfoTabs()
 
+    await screen.findByTestId('building-info-tab-page-basic')
     const missingValue = document.querySelector(
       '[data-row-id="missingRow"] [data-status="missing"]'
     )
@@ -525,11 +578,6 @@ describe('BuildingInfoSidebar', () => {
         'building-info-unavailable-value-reason'
       )
     ).toHaveStyle({ position: 'absolute', width: '1px' })
-    expect(
-      within(placeholderValue as HTMLElement).getByTestId(
-        'building-info-unavailable-value-reason'
-      )
-    ).toHaveStyle({ position: 'absolute', width: '1px' })
 
     const tooltipTrigger = missingValue?.querySelector('[tabindex="0"]')
 
@@ -541,17 +589,10 @@ describe('BuildingInfoSidebar', () => {
     )
   })
 
-  it('renders the building address as a stacked sub-header instead of a table row', () => {
-    renderWithTheme(
-      <BuildingInfoDesktopSidebar
-        mode="twoPanel"
-        panels={panels}
-        ariaLabels={ariaLabels}
-        onClose={jest.fn()}
-        onCollapse={jest.fn()}
-      />
-    )
+  it('renders the building address as a stacked sub-header instead of a table row', async () => {
+    renderBuildingInfoTabs()
 
+    await screen.findByTestId('building-info-tab-page-basic')
     const addressSubheader = document.querySelector(
       '[data-building-subheader-row-id="address"]'
     ) as HTMLElement | null
@@ -572,17 +613,10 @@ describe('BuildingInfoSidebar', () => {
     ).toHaveStyle({ fontWeight: '700' })
   })
 
-  it('keeps labels and section titles regular while values stay bold', () => {
-    renderWithTheme(
-      <BuildingInfoDesktopSidebar
-        mode="threePanel"
-        panels={panels}
-        ariaLabels={ariaLabels}
-        onClose={jest.fn()}
-        onCollapse={jest.fn()}
-      />
-    )
+  it('keeps labels and section titles regular while values stay bold', async () => {
+    renderBuildingInfoTabs({ activeTabId: 'renovation' })
 
+    await screen.findByTestId('building-info-tab-page-renovation')
     expect(screen.getByText('scenario.aahp.label').closest('p')).toHaveStyle({
       fontWeight: '400',
     })
@@ -594,57 +628,14 @@ describe('BuildingInfoSidebar', () => {
     })
   })
 
-  it('calls collapse and close without coupling the two actions', () => {
-    const onCollapse = jest.fn()
-    const onClose = jest.fn()
-
-    renderWithTheme(
-      <BuildingInfoDesktopSidebar
-        mode="twoPanel"
-        panels={panels}
-        ariaLabels={ariaLabels}
-        onClose={onClose}
-        onCollapse={onCollapse}
-      />
-    )
-
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Collapse building information' })
-    )
-    expect(onCollapse).toHaveBeenCalledTimes(1)
-    expect(onClose).not.toHaveBeenCalled()
-
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Close building information' })
-    )
-    expect(onClose).toHaveBeenCalledTimes(1)
-  })
-
-  it('keeps migrated desktop chrome above generic panel bodies', () => {
-    renderWithTheme(
-      <BuildingInfoDesktopChrome
-        mode="threePanel"
-        ariaLabels={ariaLabels}
-        onClose={jest.fn()}
-        onCollapse={jest.fn()}
-      />
-    )
-
-    expect(screen.getByTestId('building-info-desktop-chrome')).toHaveStyle({
-      position: 'fixed',
-      pointerEvents: 'auto',
-      zIndex: String(theme.zIndex.drawer + 13),
-    })
-  })
-
-  it('keeps both tab buttons available in collapsed state', () => {
+  it('keeps both collapsed reopen buttons available without owning expanded tab switching', () => {
     const onModeChange = jest.fn()
 
     renderWithTheme(
       <BuildingInfoActionRail
         activeMode="twoPanel"
         isCollapsed={true}
-        ariaLabels={modeAriaLabels}
+        ariaLabels={ariaLabels}
         onModeChange={onModeChange}
       />
     )
@@ -668,196 +659,33 @@ describe('BuildingInfoSidebar', () => {
     expect(onModeChange).toHaveBeenCalledWith('threePanel')
   })
 
-  it('renders desktop tab buttons as a row when requested', () => {
-    renderWithTheme(
-      <BuildingInfoActionRail
-        activeMode="twoPanel"
-        isCollapsed={false}
-        orientation="row"
-        ariaLabels={modeAriaLabels}
-        onModeChange={jest.fn()}
-      />
-    )
+  it('keeps expanded building info runtime on the main panel only', () => {
+    const desktopOptions = getEnergymapBuildingInfoSidebarRuntimeOptions({
+      hasBuildingInfo: true,
+      isBuildingInfoCollapsed: false,
+      isMobile: false,
+    })
+    const mobileOptions = getEnergymapBuildingInfoSidebarRuntimeOptions({
+      hasBuildingInfo: true,
+      isBuildingInfoCollapsed: false,
+      isMobile: true,
+    })
 
-    expect(screen.getByTestId('building-info-action-rail')).toHaveAttribute(
-      'data-orientation',
-      'row'
-    )
-    expect(
-      screen.getByRole('button', {
-        name: 'Open energy and building information',
-      })
-    ).toHaveAttribute('aria-pressed', 'true')
-    expect(
-      screen.getByRole('button', {
-        name: 'Open renovation recommendations',
-      })
-    ).toHaveAttribute('aria-pressed', 'false')
-  })
-
-  it('stacks only the energy and building panels in mobile two-panel mode', () => {
-    renderWithTheme(
-      <BuildingInfoMobileSidebar
-        mode="twoPanel"
-        panels={panels}
-        ariaLabels={ariaLabels}
-        onClose={jest.fn()}
-        onCollapse={jest.fn()}
-      />
-    )
-
-    expect(screen.getByTestId('building-info-mobile-sidebar')).toHaveAttribute(
-      'data-building-info-mode',
-      'twoPanel'
-    )
-    expect(
-      screen
-        .getAllByTestId(/building-info-panel-/)
-        .map((panel) => panel.dataset.panelId)
-    ).toEqual(['energyConsumption', 'buildingDetails'])
-    expect(
-      screen.queryByTestId('building-info-panel-renovationRecommendations')
-    ).not.toBeInTheDocument()
-  })
-
-  it('uses one auto-hiding overlay scroll area for mobile stacked panels', () => {
-    renderWithTheme(
-      <BuildingInfoMobileSidebar
-        mode="threePanel"
-        panels={panels}
-        ariaLabels={ariaLabels}
-        onClose={jest.fn()}
-        onCollapse={jest.fn()}
-      />
-    )
-
-    const scrollAreas = screen.getAllByTestId(/building-info.*scroll/)
-
-    expect(scrollAreas).toHaveLength(1)
-    expect(screen.getByTestId('building-info-mobile-scroll')).toHaveClass(
-      'osScroll'
-    )
-    expect(screen.getByTestId('building-info-mobile-scroll')).toHaveAttribute(
-      'data-auto-hide',
-      'scroll'
-    )
-  })
-
-  it('renders mobile scoped selected-building content through one overlay stack', () => {
-    renderWithTheme(
-      <BuildingInfoMobilePanelStack mode="threePanel" panels={panels} />
-    )
-
-    expect(screen.getByTestId('building-info-mobile-scroll')).toHaveClass(
-      'osScroll'
-    )
-    expect(screen.getAllByTestId(/building-info-panel-/)).toHaveLength(3)
-  })
-
-  it('stacks all panels in mobile three-panel mode and preserves metadata', () => {
-    renderWithTheme(
-      <BuildingInfoMobileSidebar
-        mode="threePanel"
-        panels={panels}
-        ariaLabels={ariaLabels}
-        onClose={jest.fn()}
-        onCollapse={jest.fn()}
-      />
-    )
-
-    expect(
-      screen
-        .getAllByTestId(/building-info-panel-/)
-        .map((panel) => panel.dataset.panelId)
-    ).toEqual([
-      'energyConsumption',
-      'renovationRecommendations',
-      'buildingDetails',
-    ])
-    const value = screen.getByText('value.part_a').closest('[data-status]')
-
-    expect(value).toHaveTextContent('value.part_a / plain value + value.part_b')
-    expect(value).toHaveAttribute('data-status', 'estimate')
-    expect(value).toHaveAttribute(
-      'data-source-properties',
-      'distr_default_total,floor_area'
-    )
-  })
-
-  it('keeps mobile collapse and close controls independent', () => {
-    const onCollapse = jest.fn()
-    const onClose = jest.fn()
-
-    renderWithTheme(
-      <BuildingInfoMobileSidebar
-        mode="twoPanel"
-        panels={panels}
-        ariaLabels={ariaLabels}
-        onClose={onClose}
-        onCollapse={onCollapse}
-      />
-    )
-
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Collapse building information' })
-    )
-    expect(onCollapse).toHaveBeenCalledTimes(1)
-    expect(onClose).not.toHaveBeenCalled()
-
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Close building information' })
-    )
-    expect(onClose).toHaveBeenCalledTimes(1)
-  })
-
-  it('keeps mobile mode buttons reachable and marks active state', () => {
-    const onModeChange = jest.fn()
-
-    const { rerender } = renderWithTheme(
-      <BuildingInfoMobileActionRow
-        activeMode="threePanel"
-        isCollapsed={false}
-        ariaLabels={modeAriaLabels}
-        onModeChange={onModeChange}
-      />
-    )
-
-    expect(
-      screen.getByRole('button', {
-        name: 'Open energy and building information',
-      })
-    ).toHaveAttribute('aria-pressed', 'false')
-    expect(
-      screen.getByRole('button', {
-        name: 'Open renovation recommendations',
-      })
-    ).toHaveAttribute('aria-pressed', 'true')
-    expect(
-      screen.getByTestId('building-info-mobile-action-row')
-    ).toHaveAttribute('data-orientation', 'row')
-
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: 'Open energy and building information',
-      })
-    )
-    expect(onModeChange).toHaveBeenCalledWith('twoPanel')
-
-    rerender(
-      <ThemeProvider theme={theme}>
-        <BuildingInfoMobileActionRow
-          activeMode="threePanel"
-          isCollapsed={true}
-          ariaLabels={modeAriaLabels}
-          onModeChange={onModeChange}
-        />
-      </ThemeProvider>
-    )
-
-    expect(
-      screen.getByRole('button', {
-        name: 'Open renovation recommendations',
-      })
-    ).toHaveAttribute('aria-pressed', 'false')
+    expect(desktopOptions).toMatchObject({
+      width: 'wide',
+      chrome: 'hidden',
+      panelLayout: 'single',
+      visiblePanels: ['main'],
+      activePanel: 'main',
+      actionRailPlacement: 'fixedRightActionColumn',
+    })
+    expect(mobileOptions).toMatchObject({
+      panelLayout: 'single',
+      visiblePanels: ['main'],
+      activePanel: 'main',
+      actionRailPlacement: 'bottomActionRow',
+    })
+    expect(desktopOptions.visiblePanels).not.toContain('secondary')
+    expect(desktopOptions.visiblePanels).not.toContain('tertiary')
   })
 })

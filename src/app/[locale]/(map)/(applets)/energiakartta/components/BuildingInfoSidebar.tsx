@@ -10,12 +10,11 @@ import {
   Typography,
 } from '@mui/material'
 import ConstructionIcon from '@mui/icons-material/Construction'
-import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft'
-import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 
-import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
 import TText from '#/components/common/TText'
-import { Cross } from '#/components/icons'
+import { PanelSidebarPageContainer } from '#/components/Sidebar/PanelSidebarPageContainer'
+import { PanelSidebarTabContainer } from '#/components/Sidebar/PanelSidebarTabContainer'
+import { useNullablePanelSidebarTabsContext } from '#/components/Sidebar/PanelSidebarTabsContext'
 import type {
   EnergymapEnergyMeasure,
   EnergymapBuildingInfoMetric,
@@ -32,6 +31,7 @@ import type {
 } from '../common/buildingInfo'
 
 export type BuildingInfoDesktopMode = 'twoPanel' | 'threePanel'
+export type BuildingInfoTabId = 'basic' | 'renovation'
 
 type BuildingInfoActionLabels = {
   close: string
@@ -40,20 +40,13 @@ type BuildingInfoActionLabels = {
   renovation: string
 }
 
-type BuildingInfoDesktopSidebarProps = {
-  mode: BuildingInfoDesktopMode
+type BuildingInfoTabPagesProps = {
   panels: EnergymapBuildingInfoPanel[]
-  ariaLabels: Pick<BuildingInfoActionLabels, 'close' | 'collapse'>
+  ariaLabels: BuildingInfoActionLabels
+  activeTabId?: BuildingInfoTabId
   onClose: () => void
-  onCollapse: () => void
+  onCollapse: (tabId: BuildingInfoTabId) => void
 }
-
-type BuildingInfoMobileSidebarProps = BuildingInfoDesktopSidebarProps
-
-type BuildingInfoMobilePanelStackProps = Pick<
-  BuildingInfoMobileSidebarProps,
-  'mode' | 'panels'
->
 
 type BuildingInfoActionRailProps = {
   activeMode: BuildingInfoDesktopMode
@@ -61,16 +54,6 @@ type BuildingInfoActionRailProps = {
   orientation?: 'row' | 'column'
   ariaLabels: Pick<BuildingInfoActionLabels, 'overview' | 'renovation'>
   onModeChange: (mode: BuildingInfoDesktopMode) => void
-}
-
-type BuildingInfoMobileActionRowProps = BuildingInfoActionRailProps
-
-type BuildingInfoPanelSlotContentProps = {
-  panel: EnergymapBuildingInfoPanel
-  mode: BuildingInfoDesktopMode
-  presentation?: 'desktop' | 'mobile'
-  mobileIndex?: number
-  mobilePanelCount?: number
 }
 
 const PANEL_IDS_BY_MODE: Record<
@@ -83,6 +66,24 @@ const PANEL_IDS_BY_MODE: Record<
     'renovationRecommendations',
     'buildingDetails',
   ],
+}
+
+const PANEL_IDS_BY_TAB_ID: Record<
+  BuildingInfoTabId,
+  EnergymapBuildingInfoPanelId[]
+> = {
+  basic: PANEL_IDS_BY_MODE.twoPanel,
+  renovation: PANEL_IDS_BY_MODE.threePanel,
+}
+
+const TAB_ID_BY_MODE: Record<BuildingInfoDesktopMode, BuildingInfoTabId> = {
+  twoPanel: 'basic',
+  threePanel: 'renovation',
+}
+
+const MODE_BY_TAB_ID: Record<BuildingInfoTabId, BuildingInfoDesktopMode> = {
+  basic: 'twoPanel',
+  renovation: 'threePanel',
 }
 
 const STATUS_SX = {
@@ -159,26 +160,6 @@ type BuildingInfoGraphicDimensions =
     keyof typeof BUILDING_INFO_GRAPHIC_DIMENSIONS
   ]
 
-const BUILDING_INFO_DESKTOP_SCROLL_OPTIONS = {
-  overflow: { x: 'hidden', y: 'scroll' },
-  scrollbars: {
-    theme: 'os-theme-dark',
-    visibility: 'auto',
-    autoHide: 'leave',
-    autoHideDelay: 600,
-  },
-} as const
-
-const BUILDING_INFO_MOBILE_SCROLL_OPTIONS = {
-  overflow: { x: 'hidden', y: 'scroll' },
-  scrollbars: {
-    theme: 'os-theme-dark',
-    visibility: 'auto',
-    autoHide: 'scroll',
-    autoHideDelay: 600,
-  },
-} as const
-
 const RENOVATION_SCENARIO_GRAPHICS: Partial<
   Record<
     EnergymapEnergyMeasure,
@@ -206,30 +187,13 @@ const RENOVATION_SCENARIO_GRAPHICS: Partial<
   },
 }
 
-export const BUILDING_INFO_MOBILE_TOGGLE_RIGHT_OFFSET = '35px'
 const BUILDING_INFO_ACTION_BUTTON_SIZE_PX = 45
 const BUILDING_INFO_ACTION_BUTTON_GAP_PX = 10
-const BUILDING_INFO_DESKTOP_CONTROL_BOTTOM_INSET_PX =
-  MAP_CONTROL_EDGE_GUTTER_PX +
-  BUILDING_INFO_ACTION_BUTTON_SIZE_PX +
-  BUILDING_INFO_ACTION_BUTTON_GAP_PX
 
 const textSx = {
   fontSize: '0.625rem',
   lineHeight: '1.125rem',
   letterSpacing: '0.1em',
-} as const
-
-const chromeButtonSx = {
-  width: '36px',
-  height: '36px',
-  borderRadius: '5px',
-  color: '#111111',
-  backgroundColor: '#f4f4f4',
-  boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.12)',
-  '&:hover': {
-    backgroundColor: '#e8d0ff',
-  },
 } as const
 
 const actionButtonSx = ({
@@ -250,12 +214,6 @@ const actionButtonSx = ({
     backgroundColor: active ? '#dec0fb' : '#ffffff',
   },
 })
-
-export const getBuildingInfoPanelIds = (
-  mode: BuildingInfoDesktopMode
-) => PANEL_IDS_BY_MODE[mode]
-
-export const getBuildingInfoDesktopPanelIds = getBuildingInfoPanelIds
 
 const getSourcePropertiesData = (sourceProperties?: string[]) =>
   sourceProperties == null || sourceProperties.length === 0
@@ -280,59 +238,6 @@ const VISUALLY_HIDDEN_STYLE: React.CSSProperties = {
 
 const isPlainEnergyClassText = (text: EnergymapBuildingInfoText) =>
   text.type === 'plain' && /^[A-G]$/i.test(text.text.trim())
-
-const BuildingInfoScrollArea = ({
-  children,
-  testId,
-  presentation = 'desktop',
-  sx,
-}: {
-  children: React.ReactNode
-  testId: string
-  presentation?: 'desktop' | 'mobile'
-  sx?: SxProps<Theme>
-}) => (
-  <Box
-    sx={[
-      {
-        position: 'relative',
-        height: '100%',
-        minHeight: 0,
-        width: '100%',
-        minWidth: 0,
-        '& .buildingInfoScroll .os-scrollbar': {
-          '--os-track-bg': 'transparent',
-          '--os-track-bg-hover': 'transparent',
-          '--os-track-bg-active': 'transparent',
-        },
-        '& .buildingInfoScroll [data-overlayscrollbars-viewport]': {
-          height: '100% !important',
-          minHeight: 0,
-          width: '100%',
-        },
-      },
-      ...(Array.isArray(sx) ? sx : [sx]),
-    ]}
-  >
-    <OverlayScrollbarsComponent
-      className="osScroll buildingInfoScroll"
-      data-testid={testId}
-      options={
-        presentation === 'desktop'
-          ? BUILDING_INFO_DESKTOP_SCROLL_OPTIONS
-          : BUILDING_INFO_MOBILE_SCROLL_OPTIONS
-      }
-      style={{
-        height: '100%',
-        minHeight: 0,
-        width: '100%',
-        display: 'block',
-      }}
-    >
-      {children}
-    </OverlayScrollbarsComponent>
-  </Box>
-)
 
 const BuildingInfoDecorativeImage = ({
   src,
@@ -1256,86 +1161,6 @@ const BuildingInfoSectionBlock = ({
   )
 }
 
-const getPanelWidth = ({
-  mode,
-  panelId,
-}: {
-  mode: BuildingInfoDesktopMode
-  panelId: EnergymapBuildingInfoPanelId
-}) => {
-  if (mode === 'twoPanel') {
-    return '23.75rem'
-  }
-
-  if (panelId === 'renovationRecommendations') {
-    return '38.8889%'
-  }
-
-  return '30.5556%'
-}
-
-const getPanelContentSx = ({
-  mode,
-  panelId,
-}: {
-  mode: BuildingInfoDesktopMode
-  panelId: EnergymapBuildingInfoPanelId
-}) => {
-  if (mode === 'twoPanel') {
-    return {
-      ml: panelId === 'energyConsumption' ? '3rem' : '3.75rem',
-      width:
-        panelId === 'energyConsumption'
-          ? '16.25rem'
-          : PANEL_CONTENT_WIDTHS[panelId],
-    }
-  }
-
-  if (panelId === 'energyConsumption') {
-    return {
-      ml: 'clamp(2.5rem, 5.56vw, 5rem)',
-      width: 'min(17.625rem, calc(100% - 5rem))',
-    }
-  }
-
-  if (panelId === 'renovationRecommendations') {
-    return {
-      ml: 'clamp(2.5rem, 4.17vw, 3.75rem)',
-      width: 'min(26.875rem, calc(100% - 5rem))',
-    }
-  }
-
-  return {
-    ml: 'clamp(2.5rem, 4.86vw, 4.375rem)',
-    width: 'min(16.25rem, calc(100% - 5rem))',
-  }
-}
-
-const getVisibleBuildingInfoPanels = ({
-  mode,
-  panels,
-}: {
-  mode: BuildingInfoDesktopMode
-  panels: EnergymapBuildingInfoPanel[]
-}) => {
-  const panelsById = new Map(panels.map((panel) => [panel.id, panel]))
-
-  return getBuildingInfoPanelIds(mode)
-    .map((panelId) => panelsById.get(panelId))
-    .filter((panel): panel is EnergymapBuildingInfoPanel => panel != null)
-}
-
-const getDesktopPanelAccentColor = ({
-  mode,
-  panelId,
-}: {
-  mode: BuildingInfoDesktopMode
-  panelId: EnergymapBuildingInfoPanelId
-}) =>
-  mode === 'threePanel' && panelId === 'buildingDetails'
-    ? '#111111'
-    : PANEL_ACCENTS[panelId]
-
 const BuildingInfoPanelHeadingGraphic = ({
   panelId,
 }: {
@@ -1458,224 +1283,58 @@ const BuildingInfoPanelBody = ({
   </Box>
 )
 
-const BuildingInfoDesktopPanelSection = ({
+const getTabPagePanelAccentColor = ({
+  tabId,
+  panelId,
+}: {
+  tabId: BuildingInfoTabId
+  panelId: EnergymapBuildingInfoPanelId
+}) =>
+  tabId === 'renovation' && panelId === 'buildingDetails'
+    ? '#111111'
+    : PANEL_ACCENTS[panelId]
+
+const getTabPagePanelContentSx = ({
+  panelId,
+  index,
+  panelCount,
+}: {
+  panelId: EnergymapBuildingInfoPanelId
+  index: number
+  panelCount: number
+}): SxProps<Theme> => ({
+  width: {
+    mobile: 'min(16.25rem, calc(100vw - 6rem))',
+    desktop: `min(${PANEL_CONTENT_WIDTHS[panelId]}, calc(100% - 5rem))`,
+  },
+  maxWidth: '100%',
+  mx: 'auto',
+  pt: {
+    mobile: index === 0 ? '7.5rem' : '6.25rem',
+    desktop: index === 0 ? '6.25rem' : '5rem',
+  },
+  pb: {
+    mobile: index === panelCount - 1 ? '8rem' : '5rem',
+    desktop: index === panelCount - 1 ? '6.5rem' : '5rem',
+  },
+})
+
+const BuildingInfoTabPageSection = ({
   panel,
-  mode,
-}: {
-  panel: EnergymapBuildingInfoPanel
-  mode: BuildingInfoDesktopMode
-}) => {
-  const titleId = React.useId()
-  const accentColor = getDesktopPanelAccentColor({
-    mode,
-    panelId: panel.id,
-  })
-  const desktopPanelHeight =
-    mode === 'threePanel'
-      ? `calc(100% - ${BUILDING_INFO_DESKTOP_CONTROL_BOTTOM_INSET_PX}px)`
-      : '100%'
-
-  return (
-    <Box
-      component="section"
-      aria-labelledby={titleId}
-      data-testid={`building-info-panel-${panel.id}`}
-      data-panel-id={panel.id}
-      sx={{
-        flex: mode === 'threePanel' ? `0 0 ${desktopPanelHeight}` : '1 1 auto',
-        width: '100%',
-        minWidth: 0,
-        height: desktopPanelHeight,
-        maxHeight: desktopPanelHeight,
-        minHeight: 0,
-        backgroundColor: PANEL_BACKGROUNDS[panel.id],
-        overflow: 'hidden',
-      }}
-    >
-      <BuildingInfoScrollArea
-        testId={`building-info-scroll-${panel.id}`}
-        presentation="desktop"
-      >
-        <BuildingInfoPanelBody
-          panel={panel}
-          titleId={titleId}
-          accentColor={accentColor}
-          sx={{
-            minHeight: '100%',
-            pt: '7.375rem',
-            pb: '4rem',
-            boxSizing: 'border-box',
-            ...getPanelContentSx({ mode, panelId: panel.id }),
-          }}
-        />
-      </BuildingInfoScrollArea>
-    </Box>
-  )
-}
-
-const BuildingInfoPanelColumn = ({
-  panel,
-  mode,
-}: {
-  panel: EnergymapBuildingInfoPanel
-  mode: BuildingInfoDesktopMode
-}) => (
-  <Box
-    sx={{
-      flex: `0 0 ${getPanelWidth({ mode, panelId: panel.id })}`,
-      width: getPanelWidth({ mode, panelId: panel.id }),
-      minWidth: 0,
-      height: '100%',
-      minHeight: 0,
-    }}
-  >
-    <BuildingInfoDesktopPanelSection panel={panel} mode={mode} />
-  </Box>
-)
-
-export const BuildingInfoDesktopChrome = ({
-  mode,
-  ariaLabels,
-  onClose,
-  onCollapse,
-}: {
-  mode: BuildingInfoDesktopMode
-  ariaLabels: Pick<BuildingInfoActionLabels, 'close' | 'collapse'>
-  onClose: () => void
-  onCollapse: () => void
-}) => (
-  <Box
-    data-testid="building-info-desktop-chrome"
-    sx={(theme) => ({
-      position: 'fixed',
-      top: mode === 'twoPanel' ? '35px' : '50px',
-      right: mode === 'twoPanel' ? '60px' : '70px',
-      zIndex: theme.zIndex.drawer + 13,
-      display: 'flex',
-      gap: '4px',
-      pointerEvents: 'auto',
-    })}
-  >
-    <Tooltip title={ariaLabels.collapse} arrow placement="bottom">
-      <IconButton
-        aria-label={ariaLabels.collapse}
-        onClick={onCollapse}
-        size="small"
-        sx={chromeButtonSx}
-      >
-        <KeyboardDoubleArrowLeftIcon sx={{ fontSize: '1.05rem' }} />
-      </IconButton>
-    </Tooltip>
-    <Tooltip title={ariaLabels.close} arrow placement="bottom">
-      <IconButton
-        aria-label={ariaLabels.close}
-        onClick={onClose}
-        size="small"
-        sx={chromeButtonSx}
-      >
-        <Cross sx={{ width: '0.75rem', height: '0.75rem' }} />
-      </IconButton>
-    </Tooltip>
-  </Box>
-)
-
-export const BuildingInfoDesktopSidebar = ({
-  mode,
-  panels,
-  ariaLabels,
-  onClose,
-  onCollapse,
-}: BuildingInfoDesktopSidebarProps) => {
-  const visiblePanels = React.useMemo(
-    () => getVisibleBuildingInfoPanels({ mode, panels }),
-    [mode, panels]
-  )
-
-  if (visiblePanels.length === 0) {
-    return null
-  }
-
-  return (
-    <Box
-      data-testid="building-info-desktop-sidebar"
-      data-building-info-mode={mode}
-      sx={{
-        position: 'relative',
-        display: 'flex',
-        height: '100%',
-        minHeight: 0,
-        width: mode === 'twoPanel' ? '47.5rem' : '100vw',
-        maxWidth: '100vw',
-        overflow: 'hidden',
-        pointerEvents: 'auto',
-      }}
-    >
-      {visiblePanels.map((panel) => (
-        <BuildingInfoPanelColumn key={panel.id} panel={panel} mode={mode} />
-      ))}
-      <BuildingInfoDesktopChrome
-        mode={mode}
-        ariaLabels={ariaLabels}
-        onClose={onClose}
-        onCollapse={onCollapse}
-      />
-    </Box>
-  )
-}
-
-export const BuildingInfoMobileChrome = ({
-  ariaLabels,
-  onClose,
-  onCollapse,
-}: {
-  ariaLabels: Pick<BuildingInfoActionLabels, 'close' | 'collapse'>
-  onClose: () => void
-  onCollapse: () => void
-}) => (
-  <Box
-    sx={(theme) => ({
-      position: 'fixed',
-      top: 'calc(env(safe-area-inset-top, 0px) + 26px)',
-      right: BUILDING_INFO_MOBILE_TOGGLE_RIGHT_OFFSET,
-      zIndex: theme.zIndex.drawer + 13,
-      display: 'flex',
-      gap: '4px',
-      pointerEvents: 'auto',
-    })}
-  >
-    <Tooltip title={ariaLabels.collapse} arrow placement="bottom">
-      <IconButton
-        aria-label={ariaLabels.collapse}
-        onClick={onCollapse}
-        size="small"
-        sx={chromeButtonSx}
-      >
-        <KeyboardDoubleArrowLeftIcon sx={{ fontSize: '1.05rem' }} />
-      </IconButton>
-    </Tooltip>
-    <Tooltip title={ariaLabels.close} arrow placement="bottom">
-      <IconButton
-        aria-label={ariaLabels.close}
-        onClick={onClose}
-        size="small"
-        sx={chromeButtonSx}
-      >
-        <Cross sx={{ width: '0.75rem', height: '0.75rem' }} />
-      </IconButton>
-    </Tooltip>
-  </Box>
-)
-
-const BuildingInfoMobilePanelSection = ({
-  panel,
+  tabId,
   index,
   panelCount,
 }: {
   panel: EnergymapBuildingInfoPanel
+  tabId: BuildingInfoTabId
   index: number
   panelCount: number
 }) => {
   const titleId = React.useId()
+  const accentColor = getTabPagePanelAccentColor({
+    tabId,
+    panelId: panel.id,
+  })
 
   return (
     <Box
@@ -1687,121 +1346,112 @@ const BuildingInfoMobilePanelSection = ({
         width: '100%',
         minWidth: 0,
         backgroundColor: PANEL_BACKGROUNDS[panel.id],
+        flexShrink: 0,
       }}
     >
       <BuildingInfoPanelBody
         panel={panel}
         titleId={titleId}
-        accentColor={PANEL_ACCENTS[panel.id]}
-        sx={{
-          width: 'min(16.25rem, calc(100vw - 6rem))',
-          maxWidth: '100%',
-          mx: 'auto',
-          pt: index === 0 ? '7.5rem' : '6.25rem',
-          pb: index === panelCount - 1 ? '8rem' : '5rem',
-        }}
+        accentColor={accentColor}
+        sx={getTabPagePanelContentSx({
+          panelId: panel.id,
+          index,
+          panelCount,
+        })}
       />
     </Box>
   )
 }
 
-export const BuildingInfoPanelSlotContent = ({
-  panel,
-  mode,
-  presentation = 'desktop',
-  mobileIndex = 0,
-  mobilePanelCount = 1,
-}: BuildingInfoPanelSlotContentProps) => {
-  if (presentation === 'mobile') {
-    return (
-      <BuildingInfoMobilePanelSection
-        panel={panel}
-        index={mobileIndex}
-        panelCount={mobilePanelCount}
-      />
-    )
-  }
-
-  return <BuildingInfoDesktopPanelSection panel={panel} mode={mode} />
-}
-
-export const BuildingInfoMobilePanelStack = ({
-  mode,
+const BuildingInfoTabPageContent = ({
+  tabId,
   panels,
-}: BuildingInfoMobilePanelStackProps) => {
+}: {
+  tabId: BuildingInfoTabId
+  panels: EnergymapBuildingInfoPanel[]
+}) => {
+  const panelsById = React.useMemo(
+    () => new Map(panels.map((panel) => [panel.id, panel])),
+    [panels]
+  )
   const visiblePanels = React.useMemo(
-    () => getVisibleBuildingInfoPanels({ mode, panels }),
-    [mode, panels]
+    () =>
+      PANEL_IDS_BY_TAB_ID[tabId]
+        .map((panelId) => panelsById.get(panelId))
+        .filter((panel): panel is EnergymapBuildingInfoPanel => panel != null),
+    [panelsById, tabId]
   )
-
-  if (visiblePanels.length === 0) {
-    return null
-  }
-
-  return (
-    <BuildingInfoScrollArea
-      testId="building-info-mobile-scroll"
-      presentation="mobile"
-      sx={{ flex: '1 1 auto' }}
-    >
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          minHeight: '100%',
-        }}
-      >
-        {visiblePanels.map((panel, index) => (
-          <BuildingInfoMobilePanelSection
-            key={panel.id}
-            panel={panel}
-            index={index}
-            panelCount={visiblePanels.length}
-          />
-        ))}
-      </Box>
-    </BuildingInfoScrollArea>
-  )
-}
-
-export const BuildingInfoMobileSidebar = ({
-  mode,
-  panels,
-  ariaLabels,
-  onClose,
-  onCollapse,
-}: BuildingInfoMobileSidebarProps) => {
-  const visiblePanels = React.useMemo(
-    () => getVisibleBuildingInfoPanels({ mode, panels }),
-    [mode, panels]
-  )
-
-  if (visiblePanels.length === 0) {
-    return null
-  }
 
   return (
     <Box
-      data-testid="building-info-mobile-sidebar"
-      data-building-info-mode={mode}
+      data-testid={`building-info-tab-page-${tabId}`}
+      data-building-info-tab-id={tabId}
       sx={{
-        position: 'relative',
-        width: '100%',
-        height: '100%',
-        minHeight: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100%',
         backgroundColor: '#f9f9f9',
-        pointerEvents: 'auto',
       }}
     >
-      <BuildingInfoMobileChrome
-        ariaLabels={ariaLabels}
-        onClose={onClose}
-        onCollapse={onCollapse}
-      />
-      <BuildingInfoMobilePanelStack mode={mode} panels={panels} />
+      {visiblePanels.map((panel, index) => (
+        <BuildingInfoTabPageSection
+          key={panel.id}
+          panel={panel}
+          tabId={tabId}
+          index={index}
+          panelCount={visiblePanels.length}
+        />
+      ))}
     </Box>
   )
 }
+
+const BuildingInfoActiveTabSync = ({
+  activeTabId,
+}: {
+  activeTabId?: BuildingInfoTabId
+}) => {
+  const tabsContext = useNullablePanelSidebarTabsContext()
+  const setActiveTabId = tabsContext?.setActiveTabId
+  const lastAppliedActiveTabId = React.useRef<BuildingInfoTabId | undefined>()
+  const hasActiveTab =
+    activeTabId != null &&
+    tabsContext?.tabs.some((tab) => tab.tabId === activeTabId) === true
+
+  React.useEffect(() => {
+    if (
+      activeTabId == null ||
+      !hasActiveTab ||
+      lastAppliedActiveTabId.current === activeTabId
+    ) {
+      return
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setActiveTabId?.(activeTabId)
+      lastAppliedActiveTabId.current = activeTabId
+    }, 0)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [activeTabId, hasActiveTab, setActiveTabId])
+
+  return null
+}
+
+const TwoPanelIcon = () => (
+  <Box
+    component="img"
+    src="/files/img/energiakartta/sidebar/building-info-two-panel.svg"
+    alt=""
+    aria-hidden="true"
+    sx={{
+      width: '26.8px',
+      height: '21.8px',
+    }}
+  />
+)
 
 const ThreePanelIcon = () => (
   <Box
@@ -1841,6 +1491,68 @@ const ThreePanelIcon = () => (
   </Box>
 )
 
+export const getBuildingInfoPanelIds = (
+  mode: BuildingInfoDesktopMode
+) => PANEL_IDS_BY_MODE[mode]
+
+export const getBuildingInfoTabPanelIds = (tabId: BuildingInfoTabId) =>
+  PANEL_IDS_BY_TAB_ID[tabId]
+
+export const getBuildingInfoTabIdForMode = (
+  mode: BuildingInfoDesktopMode
+) => TAB_ID_BY_MODE[mode]
+
+export const getBuildingInfoModeForTabId = (tabId: BuildingInfoTabId) =>
+  MODE_BY_TAB_ID[tabId]
+
+export const BuildingInfoTabPages = ({
+  panels,
+  ariaLabels,
+  activeTabId,
+  onClose,
+  onCollapse,
+}: BuildingInfoTabPagesProps) => (
+  <>
+    <BuildingInfoActiveTabSync activeTabId={activeTabId} />
+    <PanelSidebarTabContainer
+      tabId="basic"
+      tabName={ariaLabels.overview}
+      tabAriaLabel={ariaLabels.overview}
+      tabIcon={<TwoPanelIcon />}
+    >
+      <PanelSidebarPageContainer
+        closeAriaLabel={ariaLabels.close}
+        collapseAriaLabel={ariaLabels.collapse}
+        onClose={onClose}
+        onCollapse={() => onCollapse('basic')}
+        contentSx={{
+          backgroundColor: '#f9f9f9',
+        }}
+      >
+        <BuildingInfoTabPageContent tabId="basic" panels={panels} />
+      </PanelSidebarPageContainer>
+    </PanelSidebarTabContainer>
+    <PanelSidebarTabContainer
+      tabId="renovation"
+      tabName={ariaLabels.renovation}
+      tabAriaLabel={ariaLabels.renovation}
+      tabIcon={<ThreePanelIcon />}
+    >
+      <PanelSidebarPageContainer
+        closeAriaLabel={ariaLabels.close}
+        collapseAriaLabel={ariaLabels.collapse}
+        onClose={onClose}
+        onCollapse={() => onCollapse('renovation')}
+        contentSx={{
+          backgroundColor: '#f9f9f9',
+        }}
+      >
+        <BuildingInfoTabPageContent tabId="renovation" panels={panels} />
+      </PanelSidebarPageContainer>
+    </PanelSidebarTabContainer>
+  </>
+)
+
 export const BuildingInfoActionRail = ({
   activeMode,
   isCollapsed,
@@ -1871,75 +1583,10 @@ export const BuildingInfoActionRail = ({
             active: activeMode === 'twoPanel' && !isCollapsed,
           })}
         >
-          <Box
-            component="img"
-            src="/files/img/energiakartta/sidebar/building-info-two-panel.svg"
-            alt=""
-            aria-hidden="true"
-            sx={{
-              width: '26.8px',
-              height: '21.8px',
-            }}
-          />
+          <TwoPanelIcon />
         </IconButton>
       </Tooltip>
       <Tooltip title={ariaLabels.renovation} arrow placement={tooltipPlacement}>
-        <IconButton
-          aria-label={ariaLabels.renovation}
-          aria-pressed={activeMode === 'threePanel' && !isCollapsed}
-          onClick={() => onModeChange('threePanel')}
-          size="small"
-          sx={actionButtonSx({
-            active: activeMode === 'threePanel' && !isCollapsed,
-          })}
-        >
-          <ThreePanelIcon />
-        </IconButton>
-      </Tooltip>
-    </Box>
-  )
-}
-
-export const BuildingInfoMobileActionRow = ({
-  activeMode,
-  isCollapsed,
-  ariaLabels,
-  onModeChange,
-}: BuildingInfoMobileActionRowProps) => {
-  return (
-    <Box
-      data-testid="building-info-mobile-action-row"
-      data-orientation="row"
-      sx={{
-        display: 'flex',
-        flexDirection: 'row',
-        gap: `${BUILDING_INFO_ACTION_BUTTON_GAP_PX}px`,
-        pointerEvents: 'auto',
-      }}
-    >
-      <Tooltip title={ariaLabels.overview} arrow placement="top">
-        <IconButton
-          aria-label={ariaLabels.overview}
-          aria-pressed={activeMode === 'twoPanel' && !isCollapsed}
-          onClick={() => onModeChange('twoPanel')}
-          size="small"
-          sx={actionButtonSx({
-            active: activeMode === 'twoPanel' && !isCollapsed,
-          })}
-        >
-          <Box
-            component="img"
-            src="/files/img/energiakartta/sidebar/building-info-two-panel.svg"
-            alt=""
-            aria-hidden="true"
-            sx={{
-              width: '26.8px',
-              height: '21.8px',
-            }}
-          />
-        </IconButton>
-      </Tooltip>
-      <Tooltip title={ariaLabels.renovation} arrow placement="top">
         <IconButton
           aria-label={ariaLabels.renovation}
           aria-pressed={activeMode === 'threePanel' && !isCollapsed}

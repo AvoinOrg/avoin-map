@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Box, Tooltip, Typography, useMediaQuery } from '@mui/material'
+import { Box, Tooltip, Typography } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 import { useParams } from 'next/navigation'
 
@@ -24,23 +24,22 @@ import {
   SidebarContentBox,
   useSidebarBoundaryRuntimeOptions,
 } from '#/components/Sidebar'
-import type { SidebarRuntimeOptions } from '#/components/Sidebar'
 import EnergyCertificateClassControls from '../components/EnergyCertificateClassControls'
 import EnergyClassesAccordionContent from '../components/EnergyClassesAccordionContent'
 import {
   BuildingInfoActionRail,
-  BuildingInfoDesktopChrome,
-  BuildingInfoMobileActionRow,
-  BuildingInfoMobileChrome,
-  BuildingInfoMobilePanelStack,
-  BuildingInfoPanelSlotContent,
-  getBuildingInfoPanelIds,
+  BuildingInfoTabPages,
+  getBuildingInfoModeForTabId,
+  getBuildingInfoTabIdForMode,
 } from '../components/BuildingInfoSidebar'
-import type { BuildingInfoDesktopMode } from '../components/BuildingInfoSidebar'
+import type {
+  BuildingInfoDesktopMode,
+  BuildingInfoTabId,
+} from '../components/BuildingInfoSidebar'
+import { createEnergymapBuildingInfoPanels } from '../common/buildingInfo'
 import {
-  createEnergymapBuildingInfoPanels,
-  type EnergymapBuildingInfoPanelId,
-} from '../common/buildingInfo'
+  getEnergymapBuildingInfoSidebarRuntimeOptions,
+} from '../common/buildingInfoSidebarRuntime'
 import {
   areEnergymapSelectedBuildingsEqual,
   toEnergymapSelectedBuilding,
@@ -160,10 +159,6 @@ const ENERGY_CERTIFICATE_THEMATIC_MODE: EnergymapMainThematicMode =
   'energyCertificates'
 const HEATING_THEMATIC_MODE: EnergymapMainThematicMode = 'heating'
 const INACTIVE_THEMATIC_OPACITY = 0
-const BUILDING_INFO_DESKTOP_MIN_WIDTH_BY_MODE = {
-  twoPanel: 840,
-  threePanel: 1180,
-} as const satisfies Record<BuildingInfoDesktopMode, number>
 
 const HomeSidebarHeader = () => {
   return (
@@ -378,12 +373,6 @@ const Page = () => {
   const setSelectedFeatures = useMapStore((state) => state.setSelectedFeatures)
   const selectedFeatures = useMapStore((state) => state.selectedFeatures)
   const isMobile = useIsMobile('desktop')
-  const isTwoPanelBuildingInfoTooNarrow = useMediaQuery(
-    `(max-width:${BUILDING_INFO_DESKTOP_MIN_WIDTH_BY_MODE.twoPanel - 0.02}px)`
-  )
-  const isThreePanelBuildingInfoTooNarrow = useMediaQuery(
-    `(max-width:${BUILDING_INFO_DESKTOP_MIN_WIDTH_BY_MODE.threePanel - 0.02}px)`
-  )
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
   const setIsSidebarOpen = useUIStore((state) => state.setIsSidebarOpen)
   const isSharedBuildingLayerGroupRegistered = useMapStore((state) =>
@@ -476,32 +465,9 @@ const Page = () => {
       }),
     [locale, selectedBuilding]
   )
-  const buildingInfoPanelsById = React.useMemo(
-    () =>
-      new Map(
-        (buildingInfoPanels ?? []).map((panel) => [panel.id, panel])
-      ),
-    [buildingInfoPanels]
-  )
   const selectedBuildingKey = selectedBuilding?.buildingKey ?? null
   const hasBuildingInfo = buildingInfoPanels != null
-  const activeBuildingInfoModeNeedsMobileLayout =
-    activeBuildingInfoMode === 'twoPanel'
-      ? isTwoPanelBuildingInfoTooNarrow
-      : isThreePanelBuildingInfoTooNarrow
-  const shouldUseBuildingInfoMobileLayout =
-    hasBuildingInfo &&
-    (isMobile || activeBuildingInfoModeNeedsMobileLayout)
-  const hasDesktopBuildingInfo =
-    hasBuildingInfo && !shouldUseBuildingInfoMobileLayout
-  const hasMobileBuildingInfo =
-    hasBuildingInfo && shouldUseBuildingInfoMobileLayout
-  const isDesktopBuildingInfoExpanded =
-    hasDesktopBuildingInfo && !isBuildingInfoCollapsed
-  const isMobileBuildingInfoExpanded =
-    hasMobileBuildingInfo && !isBuildingInfoCollapsed
-  const isBuildingInfoExpanded =
-    isDesktopBuildingInfoExpanded || isMobileBuildingInfoExpanded
+  const isBuildingInfoExpanded = hasBuildingInfo && !isBuildingInfoCollapsed
   const shouldShowHomeSidebarChrome = !isBuildingInfoExpanded
   const isSharedBuildingLayerGroupVisible = visibleLayerGroupIds.includes(
     ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID
@@ -566,10 +532,16 @@ const Page = () => {
     },
     [setIsSidebarOpen]
   )
-  const handleCollapseBuildingInfo = React.useCallback(() => {
-    setIsBuildingInfoCollapsed(true)
-    setIsSidebarOpen(true)
-  }, [setIsSidebarOpen])
+  const handleCollapseBuildingInfo = React.useCallback(
+    (tabId?: BuildingInfoTabId) => {
+      if (tabId != null) {
+        setActiveBuildingInfoMode(getBuildingInfoModeForTabId(tabId))
+      }
+      setIsBuildingInfoCollapsed(true)
+      setIsSidebarOpen(true)
+    },
+    [setIsSidebarOpen]
+  )
   const handleCloseBuildingInfo = React.useCallback(() => {
     setIsSidebarOpen(true)
     setSelectedFeatures([])
@@ -741,129 +713,27 @@ const Page = () => {
     setPaintProperty,
   ])
 
-  const visibleBuildingInfoPanelIds = React.useMemo(
-    () =>
-      isBuildingInfoExpanded
-        ? getBuildingInfoPanelIds(activeBuildingInfoMode)
-        : [],
-    [activeBuildingInfoMode, isBuildingInfoExpanded]
-  )
-  const buildingInfoPanelPresentation = shouldUseBuildingInfoMobileLayout
-    ? 'mobile'
-    : 'desktop'
-  const buildingInfoActionRail = hasDesktopBuildingInfo ? (
-    <>
-      {isDesktopBuildingInfoExpanded && (
-        <BuildingInfoDesktopChrome
-          mode={activeBuildingInfoMode}
-          ariaLabels={buildingInfoAriaLabels}
-          onClose={handleCloseBuildingInfo}
-          onCollapse={handleCollapseBuildingInfo}
-        />
-      )}
+  const buildingInfoActionRail =
+    hasBuildingInfo && isBuildingInfoCollapsed ? (
       <BuildingInfoActionRail
         activeMode={activeBuildingInfoMode}
         isCollapsed={isBuildingInfoCollapsed}
-        orientation={isBuildingInfoCollapsed ? 'column' : 'row'}
+        orientation={isMobile ? 'row' : 'column'}
         ariaLabels={buildingInfoAriaLabels}
         onModeChange={handleBuildingInfoModeChange}
       />
-    </>
-  ) : hasMobileBuildingInfo ? (
-    <>
-      {isMobileBuildingInfoExpanded && (
-        <BuildingInfoMobileChrome
-          ariaLabels={buildingInfoAriaLabels}
-          onClose={handleCloseBuildingInfo}
-          onCollapse={handleCollapseBuildingInfo}
-        />
-      )}
-      <BuildingInfoMobileActionRow
-        activeMode={activeBuildingInfoMode}
-        isCollapsed={isBuildingInfoCollapsed}
-        ariaLabels={buildingInfoAriaLabels}
-        onModeChange={handleBuildingInfoModeChange}
-      />
-    </>
-  ) : null
-  const sidebarRuntimeOptions = React.useMemo<SidebarRuntimeOptions>(
-    () => {
-      const expandedVisiblePanels =
-        activeBuildingInfoMode === 'threePanel'
-          ? (['main', 'secondary', 'tertiary'] as const)
-          : (['main', 'tertiary'] as const)
-
-      return {
-        width: isBuildingInfoExpanded ? 'wide' : 'compact',
-        chrome: isBuildingInfoExpanded ? 'hidden' : 'visible',
-        panelLayout: isBuildingInfoExpanded
-          ? activeBuildingInfoMode === 'threePanel'
-            ? 'triple'
-            : 'double'
-          : 'single',
-        visiblePanels: isBuildingInfoExpanded
-          ? [...expandedVisiblePanels]
-          : ['main'],
-        activePanel: isBuildingInfoExpanded
-          ? activeBuildingInfoMode === 'threePanel'
-            ? 'secondary'
-            : 'tertiary'
-          : 'main',
-        mainPanelVisible: true,
-        mobileMode: 'stacked',
-        mobileStackPlacement: 'after',
-        actionRailPlacement: hasMobileBuildingInfo
-          ? 'bottomActionRow'
-          : hasDesktopBuildingInfo
-            ? isBuildingInfoCollapsed
-              ? 'fixedRightActionColumn'
-              : 'fixedBottomActionRow'
-            : 'inside',
-      }
-    },
-    [
-      activeBuildingInfoMode,
-      hasDesktopBuildingInfo,
-      hasMobileBuildingInfo,
-      isBuildingInfoCollapsed,
-      isBuildingInfoExpanded,
-    ]
+    ) : null
+  const sidebarRuntimeOptions = React.useMemo(
+    () =>
+      getEnergymapBuildingInfoSidebarRuntimeOptions({
+        hasBuildingInfo,
+        isBuildingInfoCollapsed,
+        isMobile,
+      }),
+    [hasBuildingInfo, isBuildingInfoCollapsed, isMobile]
   )
 
   useSidebarBoundaryRuntimeOptions(sidebarRuntimeOptions)
-
-  const renderBuildingInfoPanelSlotContent = (
-    panelId: EnergymapBuildingInfoPanelId
-  ) => {
-    if (!isBuildingInfoExpanded) {
-      return null
-    }
-
-    if (buildingInfoPanelPresentation === 'mobile') {
-      return panelId === 'energyConsumption' && buildingInfoPanels != null ? (
-        <BuildingInfoMobilePanelStack
-          mode={activeBuildingInfoMode}
-          panels={buildingInfoPanels}
-        />
-      ) : null
-    }
-
-    const panel = buildingInfoPanelsById.get(panelId)
-
-    if (panel == null) {
-      return null
-    }
-
-    return (
-      <BuildingInfoPanelSlotContent
-        panel={panel}
-        mode={activeBuildingInfoMode}
-        presentation={buildingInfoPanelPresentation}
-        mobileIndex={visibleBuildingInfoPanelIds.indexOf(panelId)}
-        mobilePanelCount={visibleBuildingInfoPanelIds.length}
-      />
-    )
-  }
 
   return (
     <>
@@ -877,7 +747,9 @@ const Page = () => {
           <SidebarFooterAction
             tooltip={upcomingTooltip}
             label={footerLabel}
-            reserveActionRow={hasMobileBuildingInfo}
+            reserveActionRow={
+              hasBuildingInfo && isBuildingInfoCollapsed && isMobile
+            }
           />
         </IntoSidebarFooterSlot>
       )}
@@ -895,8 +767,15 @@ const Page = () => {
         </IntoSlot>
       )}
       <IntoSidebarPanelSlot panelId="main">
-        {isBuildingInfoExpanded ? (
-          renderBuildingInfoPanelSlotContent('energyConsumption')
+        {isBuildingInfoExpanded && buildingInfoPanels != null ? (
+          <BuildingInfoTabPages
+            key={selectedBuildingKey}
+            panels={buildingInfoPanels}
+            ariaLabels={buildingInfoAriaLabels}
+            activeTabId={getBuildingInfoTabIdForMode(activeBuildingInfoMode)}
+            onClose={handleCloseBuildingInfo}
+            onCollapse={handleCollapseBuildingInfo}
+          />
         ) : (
           <SidebarContentBox
             sxOuter={{
@@ -1023,12 +902,6 @@ const Page = () => {
             </Box>
           </SidebarContentBox>
         )}
-      </IntoSidebarPanelSlot>
-      <IntoSidebarPanelSlot panelId="secondary">
-        {renderBuildingInfoPanelSlotContent('renovationRecommendations')}
-      </IntoSidebarPanelSlot>
-      <IntoSidebarPanelSlot panelId="tertiary">
-        {renderBuildingInfoPanelSlotContent('buildingDetails')}
       </IntoSidebarPanelSlot>
     </>
   )
