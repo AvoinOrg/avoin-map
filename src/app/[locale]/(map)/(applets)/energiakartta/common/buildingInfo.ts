@@ -77,8 +77,16 @@ export type EnergymapBuildingInfoNote = {
   sourceProperties?: string[]
 }
 
+export type EnergymapBuildingInfoSectionVariant =
+  | 'default'
+  | 'buildingSubheader'
+  | 'energyCertificate'
+  | 'previousEnergyClass'
+  | 'measureList'
+
 export type EnergymapBuildingInfoSection = {
   id: string
+  variant?: EnergymapBuildingInfoSectionVariant
   title?: EnergymapBuildingInfoText
   description?: EnergymapBuildingInfoText
   rows?: EnergymapBuildingInfoRow[]
@@ -119,9 +127,6 @@ export type CreateEnergymapBuildingInfoPanelsOptions = {
 const TRANSLATION_PREFIX = 'sidebar.building_info'
 const HEATING_METHOD_PROPERTY = 'heating_method'
 const FLOOR_AREA_PROPERTY = 'floor_area'
-const GROSS_FLOOR_AREA_PROPERTY = 'gross_floor_area'
-const TOTAL_AREA_PROPERTY = 'total_area'
-const VOLUME_PROPERTY = 'volume'
 const PERMANENT_BUILDING_IDENTIFIER_PROPERTY =
   'permanent_building_identifier'
 const ADDRESS_FIN_PROPERTY = 'address_fin'
@@ -1115,13 +1120,19 @@ const createBuildingDetailsPanel = ({
   title: translationText(key('panels.building.title')),
   sections: [
     {
-      id: 'identity',
+      id: 'buildingSubheader',
+      variant: 'buildingSubheader',
       rows: [
         row({
           id: 'address',
           labelKey: key('panels.building.rows.address'),
           value: getAddressValue(properties),
         }),
+      ],
+    },
+    {
+      id: 'identity',
+      rows: [
         row({
           id: 'buildingIdentifier',
           labelKey: key('panels.building.rows.building_identifier'),
@@ -1153,6 +1164,7 @@ const createBuildingDetailsPanel = ({
     },
     {
       id: 'energyCertificate',
+      variant: 'energyCertificate',
       rows: [
         row({
           id: 'energyClass',
@@ -1163,6 +1175,12 @@ const createBuildingDetailsPanel = ({
           id: 'energyCertificateValidity',
           labelKey: key('panels.building.rows.energy_certificate_validity'),
         }),
+      ],
+    },
+    {
+      id: 'previousEnergyClass',
+      variant: 'previousEnergyClass',
+      rows: [
         createPlaceholderRow({
           id: 'previousEnergyClass',
           labelKey: key('panels.building.rows.previous_energy_class'),
@@ -1171,6 +1189,12 @@ const createBuildingDetailsPanel = ({
           id: 'energyClassMeasures',
           labelKey: key('panels.building.rows.energy_class_measures'),
         }),
+      ],
+    },
+    {
+      id: 'plannedMeasures',
+      variant: 'measureList',
+      rows: [
         createPlaceholderRow({
           id: 'plannedMeasures',
           labelKey: key('panels.building.rows.planned_measures'),
@@ -1185,49 +1209,9 @@ const createBuildingDetailsPanel = ({
           labelKey: key('panels.building.rows.heating'),
           value: getHeatingValue(properties),
         }),
-        row({
-          id: 'floorArea',
-          labelKey: key('panels.building.rows.floor_area'),
-          value: getMeasurementValue({
-            properties,
-            propertyName: FLOOR_AREA_PROPERTY,
-            unitKey: key('units.square_meters'),
-            locale,
-          }),
-        }),
         createPlaceholderRow({
           id: 'heatedNetArea',
           labelKey: key('panels.building.rows.heated_net_area'),
-        }),
-        row({
-          id: 'grossFloorArea',
-          labelKey: key('panels.building.rows.gross_floor_area'),
-          value: getMeasurementValue({
-            properties,
-            propertyName: GROSS_FLOOR_AREA_PROPERTY,
-            unitKey: key('units.square_meters'),
-            locale,
-          }),
-        }),
-        row({
-          id: 'totalArea',
-          labelKey: key('panels.building.rows.total_area'),
-          value: getMeasurementValue({
-            properties,
-            propertyName: TOTAL_AREA_PROPERTY,
-            unitKey: key('units.square_meters'),
-            locale,
-          }),
-        }),
-        row({
-          id: 'volume',
-          labelKey: key('panels.building.rows.volume'),
-          value: getMeasurementValue({
-            properties,
-            propertyName: VOLUME_PROPERTY,
-            unitKey: key('units.cubic_meters'),
-            locale,
-          }),
         }),
         createPlaceholderRow({
           id: 'ventilation',

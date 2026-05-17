@@ -32,6 +32,7 @@ import {
   BuildingInfoDesktopChrome,
   BuildingInfoMobileActionRow,
   BuildingInfoMobileChrome,
+  BuildingInfoMobilePanelStack,
   BuildingInfoPanelSlotContent,
   getBuildingInfoPanelIds,
 } from '../components/BuildingInfoSidebar'
@@ -825,6 +826,15 @@ const Page = () => {
   ) => {
     if (!isBuildingInfoExpanded) {
       return null
+    }
+
+    if (buildingInfoPanelPresentation === 'mobile') {
+      return panelId === 'energyConsumption' && buildingInfoPanels != null ? (
+        <BuildingInfoMobilePanelStack
+          mode={activeBuildingInfoMode}
+          panels={buildingInfoPanels}
+        />
+      ) : null
     }
 
     const panel = buildingInfoPanelsById.get(panelId)

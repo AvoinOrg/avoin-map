@@ -104,6 +104,19 @@ const getPanel = (
 const getRows = (panel: EnergymapBuildingInfoPanel) =>
   panel.sections.flatMap((section) => section.rows ?? [])
 
+const getSection = (
+  panel: EnergymapBuildingInfoPanel,
+  sectionId: string
+) => {
+  const section = panel.sections.find((candidate) => candidate.id === sectionId)
+
+  if (section == null) {
+    throw new Error(`Section not found: ${sectionId}`)
+  }
+
+  return section
+}
+
 const getRow = (
   panel: EnergymapBuildingInfoPanel,
   rowId: string
@@ -221,6 +234,40 @@ describe('Energiakartta building info model', () => {
       locale: 'en-US',
     })
     const buildingPanel = getPanel(panels ?? [], 'buildingDetails')
+
+    expect(
+      buildingPanel.sections.map((section) => ({
+        id: section.id,
+        variant: section.variant ?? 'default',
+      }))
+    ).toEqual([
+      { id: 'buildingSubheader', variant: 'buildingSubheader' },
+      { id: 'identity', variant: 'default' },
+      { id: 'energyCertificate', variant: 'energyCertificate' },
+      { id: 'previousEnergyClass', variant: 'previousEnergyClass' },
+      { id: 'plannedMeasures', variant: 'measureList' },
+      { id: 'technicalDetails', variant: 'default' },
+    ])
+
+    expect(getSection(buildingPanel, 'identity').rows?.map((row) => row.id))
+      .not.toContain('address')
+    expect(
+      getSection(buildingPanel, 'energyCertificate').rows?.map((row) => row.id)
+    ).toEqual(['energyClass', 'energyCertificateValidity'])
+    expect(
+      getSection(buildingPanel, 'previousEnergyClass').rows?.map(
+        (row) => row.id
+      )
+    ).toEqual(['previousEnergyClass', 'energyClassMeasures'])
+    expect(
+      getSection(buildingPanel, 'technicalDetails').rows?.map((row) => row.id)
+    ).toEqual([
+      'heating',
+      'heatedNetArea',
+      'ventilation',
+      'plotTenure',
+      'residentCount',
+    ])
 
     const address = getRow(buildingPanel, 'address')
     expect(address.status).toBe('real')
@@ -410,7 +457,7 @@ describe('Energiakartta building info model', () => {
     const buildingPanel = getPanel(panels ?? [], 'buildingDetails')
     const constructionYear = getRow(buildingPanel, 'constructionYear')
     const energyClass = getRow(buildingPanel, 'energyClass')
-    const floorArea = getRow(buildingPanel, 'floorArea')
+    const heatedNetArea = getRow(buildingPanel, 'heatedNetArea')
     const buildingType = getRow(buildingPanel, 'buildingType')
 
     expect(constructionYear.status).toBe('missing')
@@ -425,10 +472,10 @@ describe('Energiakartta building info model', () => {
       `${translationPrefix}.placeholders.missing_value`
     )
 
-    expect(floorArea.status).toBe('missing')
+    expect(heatedNetArea.status).toBe('placeholder')
     expectTranslation(
-      floorArea.text,
-      `${translationPrefix}.placeholders.missing_value`
+      heatedNetArea.text,
+      `${translationPrefix}.placeholders.not_published`
     )
 
     expect(buildingType.status).toBe('real')

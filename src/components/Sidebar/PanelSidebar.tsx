@@ -123,6 +123,18 @@ const getScopedPanelsConfig = ({
   }
 
   const scopedActionRail = <SidebarActionRailSlot boundaryId={boundaryId} />
+  const panelLocalScrollContentSx =
+    options?.chrome === 'hidden'
+      ? {
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          height: '100%',
+          maxHeight: '100%',
+          minHeight: 0,
+          width: '100%',
+        }
+      : undefined
   const openExtraPanels = capacityPanels.filter((panelId) =>
     visibleExtraPanels.includes(panelId)
   )
@@ -146,10 +158,12 @@ const getScopedPanelsConfig = ({
       panelA: {
         content: panelSlotContent({ boundaryId, panelId: 'secondary' }),
         desktopWidth: getExtraPanelWidth({ panelId: 'secondary', options }),
+        desktopContentSx: panelLocalScrollContentSx,
       },
       panelB: {
         content: panelSlotContent({ boundaryId, panelId: 'tertiary' }),
         desktopWidth: getExtraPanelWidth({ panelId: 'tertiary', options }),
+        desktopContentSx: panelLocalScrollContentSx,
       },
     }
   }
@@ -168,6 +182,7 @@ const getScopedPanelsConfig = ({
     panel: {
       content: panelSlotContent({ boundaryId, panelId }),
       desktopWidth: getExtraPanelWidth({ panelId, options }),
+      desktopContentSx: panelLocalScrollContentSx,
     },
   }
 }
@@ -178,6 +193,14 @@ const getPanelSidebarSx = (
 ): SxProps<Theme> => {
   const floatingGutter = `${HIILIKARTTA_HOME_FLOATING_GUTTER_PX}px`
   const mainPanelWidth = getMainPanelWidth(options)
+  const hiddenChromeHeightSx =
+    options?.chrome === 'hidden'
+      ? {
+          height: '100dvh',
+          maxHeight: '100dvh',
+          minHeight: 0,
+        }
+      : undefined
 
   return [
     options?.width === 'compact'
@@ -195,6 +218,7 @@ const getPanelSidebarSx = (
           width: { mobile: '100vw', desktop: mainPanelWidth },
           maxWidth: { mobile: '100vw', desktop: `min(${mainPanelWidth}, 100vw)` },
         },
+    hiddenChromeHeightSx,
     ...(Array.isArray(sx) ? sx : [sx]),
   ]
 }
@@ -271,7 +295,11 @@ export const PanelSidebar = ({
         options?.chrome === 'hidden'
           ? {
               overflow: 'hidden',
+              height: '100%',
+              maxHeight: '100%',
               minHeight: 0,
+              width: '100%',
+              alignItems: 'stretch',
             }
           : undefined
       }

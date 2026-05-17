@@ -9,6 +9,7 @@ import {
   BuildingInfoDesktopChrome,
   BuildingInfoDesktopSidebar,
   BuildingInfoMobileActionRow,
+  BuildingInfoMobilePanelStack,
   BuildingInfoMobileSidebar,
   BuildingInfoPanelSlotContent,
   BuildingInfoText,
@@ -179,7 +180,24 @@ const panels: EnergymapBuildingInfoPanel[] = [
     title: translation('panel.building.title'),
     sections: [
       {
-        id: 'buildingRows',
+        id: 'buildingSubheader',
+        variant: 'buildingSubheader',
+        rows: [
+          {
+            id: 'address',
+            label: translation('row.address.label'),
+            text: plain('Test address 1'),
+            status: 'real',
+            sourceProperties: [
+              'address_fin',
+              'postal_code',
+              'postal_office_fin',
+            ],
+          },
+        ],
+      },
+      {
+        id: 'identity',
         rows: [
           {
             id: 'missingRow',
@@ -195,12 +213,51 @@ const panels: EnergymapBuildingInfoPanel[] = [
             status: 'placeholder',
             sourceProperties: ['planned_measure'],
           },
+        ],
+      },
+      {
+        id: 'energyCertificate',
+        variant: 'energyCertificate',
+        rows: [
           {
             id: 'energyClass',
             label: translation('row.energy_class.label'),
             text: plain('B'),
             status: 'real',
             sourceProperties: ['energy_certificate_class'],
+          },
+        ],
+      },
+      {
+        id: 'previousEnergyClass',
+        variant: 'previousEnergyClass',
+        rows: [
+          {
+            id: 'previousEnergyClass',
+            label: translation('row.previous_energy_class.label'),
+            text: translation('value.placeholder'),
+            status: 'placeholder',
+            sourceProperties: ['previous_energy_certificate_class'],
+          },
+          {
+            id: 'energyClassMeasures',
+            label: translation('row.energy_class_measures.label'),
+            text: translation('value.placeholder'),
+            status: 'placeholder',
+            sourceProperties: ['energy_class_measure'],
+          },
+        ],
+      },
+      {
+        id: 'plannedMeasures',
+        variant: 'measureList',
+        rows: [
+          {
+            id: 'plannedMeasures',
+            label: translation('row.planned_measures.label'),
+            text: translation('value.placeholder'),
+            status: 'placeholder',
+            sourceProperties: ['planned_measure'],
           },
         ],
       },
@@ -317,7 +374,7 @@ describe('BuildingInfoSidebar', () => {
     expect(scrollAreas).toHaveLength(3)
     scrollAreas.forEach((scrollArea) => {
       expect(scrollArea).toHaveClass('osScroll')
-      expect(scrollArea).toHaveAttribute('data-auto-hide', 'scroll')
+      expect(scrollArea).toHaveAttribute('data-auto-hide', 'leave')
       expect(scrollArea).toHaveAttribute('data-scrollbar-visibility', 'auto')
     })
   })
@@ -338,6 +395,11 @@ describe('BuildingInfoSidebar', () => {
     ).toEqual(['buildingDetails'])
     expect(screen.getByTestId('building-info-scroll-buildingDetails')).toHaveClass(
       'osScroll'
+    )
+    expect(screen.getByTestId('building-info-panel-buildingDetails')).toHaveStyle(
+      {
+        flex: '1 1 auto',
+      }
     )
   })
 
@@ -459,6 +521,59 @@ describe('BuildingInfoSidebar', () => {
     )
   })
 
+  it('renders the building address as a stacked sub-header instead of a table row', () => {
+    renderWithTheme(
+      <BuildingInfoDesktopSidebar
+        mode="twoPanel"
+        panels={panels}
+        ariaLabels={ariaLabels}
+        onClose={jest.fn()}
+        onCollapse={jest.fn()}
+      />
+    )
+
+    const addressSubheader = document.querySelector(
+      '[data-building-subheader-row-id="address"]'
+    ) as HTMLElement | null
+
+    expect(addressSubheader).toBeInTheDocument()
+    expect(
+      document.querySelector('[data-row-id="address"]')
+    ).not.toBeInTheDocument()
+    expect(
+      within(addressSubheader as HTMLElement)
+        .getByText(/row.address.label/)
+        .closest('p')
+    ).toHaveStyle({ fontWeight: '400' })
+    expect(
+      within(addressSubheader as HTMLElement)
+        .getByText('Test address 1')
+        .closest('[data-status]')
+    ).toHaveStyle({ fontWeight: '700' })
+  })
+
+  it('keeps labels and section titles regular while values stay bold', () => {
+    renderWithTheme(
+      <BuildingInfoDesktopSidebar
+        mode="threePanel"
+        panels={panels}
+        ariaLabels={ariaLabels}
+        onClose={jest.fn()}
+        onCollapse={jest.fn()}
+      />
+    )
+
+    expect(screen.getByText('scenario.aahp.label').closest('p')).toHaveStyle({
+      fontWeight: '400',
+    })
+    expect(screen.getByText('panel.renovation.title').closest('p')).toHaveStyle({
+      fontWeight: '400',
+    })
+    expect(screen.getByText('12000').closest('[data-status]')).toHaveStyle({
+      fontWeight: '700',
+    })
+  })
+
   it('calls collapse and close without coupling the two actions', () => {
     const onCollapse = jest.fn()
     const onClose = jest.fn()
@@ -574,6 +689,17 @@ describe('BuildingInfoSidebar', () => {
       'data-auto-hide',
       'scroll'
     )
+  })
+
+  it('renders mobile scoped selected-building content through one overlay stack', () => {
+    renderWithTheme(
+      <BuildingInfoMobilePanelStack mode="threePanel" panels={panels} />
+    )
+
+    expect(screen.getByTestId('building-info-mobile-scroll')).toHaveClass(
+      'osScroll'
+    )
+    expect(screen.getAllByTestId(/building-info-panel-/)).toHaveLength(3)
   })
 
   it('stacks all panels in mobile three-panel mode and preserves metadata', () => {

@@ -19,6 +19,7 @@ export type SimpleSidebarMobileStackPlacement = 'before' | 'after'
 export type SimpleSidebarPanelConfig = {
   content: React.ReactNode
   desktopWidth?: string
+  desktopContentSx?: SxProps<Theme>
   showBackButton?: boolean
   onBack?: () => void
   backAriaLabel?: string
@@ -202,12 +203,17 @@ const DesktopPanelBox = ({
           defaultCloseAriaLabel={defaultCloseAriaLabel}
         />
         <Box
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            overflow: 'auto',
-            pt: hasChrome ? '4rem' : 0,
-          }}
+          sx={[
+            {
+              position: 'absolute',
+              inset: 0,
+              overflow: 'auto',
+              pt: hasChrome ? '4rem' : 0,
+            },
+            ...(Array.isArray(panel.desktopContentSx)
+              ? panel.desktopContentSx
+              : [panel.desktopContentSx]),
+          ]}
         >
           {panel.content}
         </Box>

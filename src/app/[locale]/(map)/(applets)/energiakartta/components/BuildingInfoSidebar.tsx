@@ -49,6 +49,11 @@ type BuildingInfoDesktopSidebarProps = {
 
 type BuildingInfoMobileSidebarProps = BuildingInfoDesktopSidebarProps
 
+type BuildingInfoMobilePanelStackProps = Pick<
+  BuildingInfoMobileSidebarProps,
+  'mode' | 'panels'
+>
+
 type BuildingInfoActionRailProps = {
   activeMode: BuildingInfoDesktopMode
   isCollapsed: boolean
@@ -152,7 +157,17 @@ type BuildingInfoGraphicDimensions =
     keyof typeof BUILDING_INFO_GRAPHIC_DIMENSIONS
   ]
 
-const BUILDING_INFO_SCROLL_OPTIONS = {
+const BUILDING_INFO_DESKTOP_SCROLL_OPTIONS = {
+  overflow: { x: 'hidden', y: 'scroll' },
+  scrollbars: {
+    theme: 'os-theme-dark',
+    visibility: 'auto',
+    autoHide: 'leave',
+    autoHideDelay: 600,
+  },
+} as const
+
+const BUILDING_INFO_MOBILE_SCROLL_OPTIONS = {
   overflow: { x: 'hidden', y: 'scroll' },
   scrollbars: {
     theme: 'os-theme-dark',
@@ -261,10 +276,12 @@ const isPlainEnergyClassText = (text: EnergymapBuildingInfoText) =>
 const BuildingInfoScrollArea = ({
   children,
   testId,
+  presentation = 'desktop',
   sx,
 }: {
   children: React.ReactNode
   testId: string
+  presentation?: 'desktop' | 'mobile'
   sx?: SxProps<Theme>
 }) => (
   <Box
@@ -275,18 +292,33 @@ const BuildingInfoScrollArea = ({
         minHeight: 0,
         width: '100%',
         minWidth: 0,
+        '& .buildingInfoScroll .os-scrollbar': {
+          '--os-track-bg': 'transparent',
+          '--os-track-bg-hover': 'transparent',
+          '--os-track-bg-active': 'transparent',
+        },
+        '& .buildingInfoScroll [data-overlayscrollbars-viewport]': {
+          height: '100% !important',
+          minHeight: 0,
+          width: '100%',
+        },
       },
       ...(Array.isArray(sx) ? sx : [sx]),
     ]}
   >
     <OverlayScrollbarsComponent
-      className="osScroll"
+      className="osScroll buildingInfoScroll"
       data-testid={testId}
-      options={BUILDING_INFO_SCROLL_OPTIONS}
+      options={
+        presentation === 'desktop'
+          ? BUILDING_INFO_DESKTOP_SCROLL_OPTIONS
+          : BUILDING_INFO_MOBILE_SCROLL_OPTIONS
+      }
       style={{
         height: '100%',
         minHeight: 0,
         width: '100%',
+        display: 'block',
       }}
     >
       {children}
@@ -712,6 +744,270 @@ const BuildingInfoRow = ({ row }: { row: EnergymapBuildingInfoRow }) => (
   </Box>
 )
 
+const BuildingInfoSectionDivider = () => (
+  <Box
+    sx={{
+      borderTop: '0.3px solid #cfcfcf',
+    }}
+  />
+)
+
+const BuildingInfoStackedValue = ({
+  row,
+}: {
+  row: EnergymapBuildingInfoRow
+}) => (
+  <Box
+    data-building-subheader-row-id={row.id}
+    sx={{
+      mt: '1rem',
+    }}
+  >
+    <Typography
+      sx={{
+        fontSize: '0.75rem',
+        fontWeight: 400,
+        lineHeight: '1.125rem',
+        letterSpacing: '0.1em',
+        color: '#111111',
+      }}
+    >
+      <BuildingInfoText text={row.label} />
+      :
+    </Typography>
+    <Typography
+      component="div"
+      sx={{
+        fontSize: '0.75rem',
+        lineHeight: '1.125rem',
+        letterSpacing: '0.1em',
+        color: '#111111',
+      }}
+    >
+      <BuildingInfoValueText value={row} align="left" />
+    </Typography>
+  </Box>
+)
+
+const BuildingInfoSectionLine = ({
+  row,
+  valueVariant = 'default',
+}: {
+  row: EnergymapBuildingInfoRow
+  valueVariant?: 'default' | 'energyClassBadge'
+}) => (
+  <Box
+    data-section-row-id={row.id}
+    sx={{
+      display: 'grid',
+      gridTemplateColumns: 'minmax(0, 1fr) minmax(0, auto)',
+      columnGap: '1rem',
+      alignItems: 'start',
+      minWidth: 0,
+    }}
+  >
+    <Typography
+      sx={{
+        ...textSx,
+        color: '#111111',
+      }}
+    >
+      <BuildingInfoText text={row.label} />
+    </Typography>
+    <Typography
+      component="div"
+      sx={{
+        ...textSx,
+        minWidth: 0,
+        textAlign: 'right',
+      }}
+    >
+      <BuildingInfoValueText value={row} variant={valueVariant} />
+    </Typography>
+  </Box>
+)
+
+const BuildingInfoBuildingSubheaderSection = ({
+  section,
+}: {
+  section: EnergymapBuildingInfoSection
+}) => {
+  const addressRow = section.rows?.[0]
+
+  if (addressRow == null) {
+    return null
+  }
+
+  return (
+    <Box
+      data-section-id={section.id}
+      sx={{
+        mt: '1rem',
+        mb: '1.75rem',
+      }}
+    >
+      <BuildingInfoStackedValue row={addressRow} />
+    </Box>
+  )
+}
+
+const BuildingInfoEnergyCertificateSection = ({
+  section,
+}: {
+  section: EnergymapBuildingInfoSection
+}) => {
+  const energyClassRow = section.rows?.find((row) => row.id === 'energyClass')
+  const validityRow = section.rows?.find(
+    (row) => row.id === 'energyCertificateValidity'
+  )
+  const rows = [energyClassRow, validityRow].filter(
+    (row): row is EnergymapBuildingInfoRow => row != null
+  )
+
+  if (rows.length === 0) {
+    return null
+  }
+
+  return (
+    <Box
+      data-section-id={section.id}
+      sx={{
+        mt: '1.75rem',
+      }}
+    >
+      <BuildingInfoSectionDivider />
+      <Box
+        sx={{
+          py: '0.875rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.25rem',
+        }}
+      >
+        {rows.map((row) => (
+          <BuildingInfoSectionLine
+            key={row.id}
+            row={row}
+            valueVariant={
+              row.id === 'energyClass' ? 'energyClassBadge' : 'default'
+            }
+          />
+        ))}
+      </Box>
+    </Box>
+  )
+}
+
+const BuildingInfoPreviousEnergyClassSection = ({
+  section,
+}: {
+  section: EnergymapBuildingInfoSection
+}) => {
+  const previousClassRow = section.rows?.find(
+    (row) => row.id === 'previousEnergyClass'
+  )
+  const measuresRow = section.rows?.find(
+    (row) => row.id === 'energyClassMeasures'
+  )
+
+  if (previousClassRow == null && measuresRow == null) {
+    return null
+  }
+
+  return (
+    <Box
+      data-section-id={section.id}
+      sx={{
+        mt: '1.75rem',
+      }}
+    >
+      <BuildingInfoSectionDivider />
+      <Box sx={{ py: '0.875rem' }}>
+        {previousClassRow != null && (
+          <BuildingInfoSectionLine
+            row={previousClassRow}
+            valueVariant="energyClassBadge"
+          />
+        )}
+        {measuresRow != null && (
+          <Box
+            data-section-row-id={measuresRow.id}
+            sx={{
+              mt: '1.375rem',
+            }}
+          >
+            <Typography
+              sx={{
+                ...textSx,
+                color: '#111111',
+              }}
+            >
+              <BuildingInfoText text={measuresRow.label} />
+            </Typography>
+            <Typography
+              component="div"
+              sx={{
+                ...textSx,
+                mt: '0.375rem',
+                color: '#111111',
+              }}
+            >
+              <BuildingInfoValueText value={measuresRow} align="left" />
+            </Typography>
+          </Box>
+        )}
+      </Box>
+    </Box>
+  )
+}
+
+const BuildingInfoMeasureListSection = ({
+  section,
+}: {
+  section: EnergymapBuildingInfoSection
+}) => {
+  const rows = section.rows ?? []
+
+  if (rows.length === 0) {
+    return null
+  }
+
+  return (
+    <Box
+      data-section-id={section.id}
+      sx={{
+        mt: '1.75rem',
+      }}
+    >
+      <BuildingInfoSectionDivider />
+      <Box sx={{ py: '0.875rem' }}>
+        {rows.map((row) => (
+          <Box key={row.id} data-section-row-id={row.id}>
+            <Typography
+              sx={{
+                ...textSx,
+                color: '#111111',
+              }}
+            >
+              <BuildingInfoText text={row.label} />
+            </Typography>
+            <Typography
+              component="div"
+              sx={{
+                ...textSx,
+                mt: '0.375rem',
+                color: '#111111',
+              }}
+            >
+              <BuildingInfoValueText value={row} align="left" />
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  )
+}
+
 const BuildingInfoMetricValueRow = ({
   value,
 }: {
@@ -765,7 +1061,7 @@ const BuildingInfoMetricBlock = ({
       <Typography
         sx={{
           fontSize: '0.5625rem',
-          fontWeight: 700,
+          fontWeight: 400,
           lineHeight: '0.875rem',
           letterSpacing: '0.18em',
           color: metric.id === 'total' ? '#ffffff' : '#111111',
@@ -817,7 +1113,7 @@ const BuildingInfoScenarioBlock = ({
             sx={{
               ...textSx,
               color: '#111111',
-              fontWeight: 700,
+              fontWeight: 400,
             }}
           >
             <BuildingInfoText text={scenario.label} />
@@ -878,6 +1174,22 @@ const BuildingInfoSectionBlock = ({
   accentColor: string
 }) => {
   const showComparisonIcon = section.id === 'scenarioComparison'
+
+  if (section.variant === 'buildingSubheader') {
+    return <BuildingInfoBuildingSubheaderSection section={section} />
+  }
+
+  if (section.variant === 'energyCertificate') {
+    return <BuildingInfoEnergyCertificateSection section={section} />
+  }
+
+  if (section.variant === 'previousEnergyClass') {
+    return <BuildingInfoPreviousEnergyClassSection section={section} />
+  }
+
+  if (section.variant === 'measureList') {
+    return <BuildingInfoMeasureListSection section={section} />
+  }
 
   return (
     <Box
@@ -1158,6 +1470,7 @@ const BuildingInfoDesktopPanelSection = ({
       data-testid={`building-info-panel-${panel.id}`}
       data-panel-id={panel.id}
       sx={{
+        flex: '1 1 auto',
         width: '100%',
         minWidth: 0,
         height: '100%',
@@ -1166,7 +1479,10 @@ const BuildingInfoDesktopPanelSection = ({
         overflow: 'hidden',
       }}
     >
-      <BuildingInfoScrollArea testId={`building-info-scroll-${panel.id}`}>
+      <BuildingInfoScrollArea
+        testId={`building-info-scroll-${panel.id}`}
+        presentation="desktop"
+      >
         <BuildingInfoPanelBody
           panel={panel}
           titleId={titleId}
@@ -1396,6 +1712,45 @@ export const BuildingInfoPanelSlotContent = ({
   return <BuildingInfoDesktopPanelSection panel={panel} mode={mode} />
 }
 
+export const BuildingInfoMobilePanelStack = ({
+  mode,
+  panels,
+}: BuildingInfoMobilePanelStackProps) => {
+  const visiblePanels = React.useMemo(
+    () => getVisibleBuildingInfoPanels({ mode, panels }),
+    [mode, panels]
+  )
+
+  if (visiblePanels.length === 0) {
+    return null
+  }
+
+  return (
+    <BuildingInfoScrollArea
+      testId="building-info-mobile-scroll"
+      presentation="mobile"
+      sx={{ flex: '1 1 auto' }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100%',
+        }}
+      >
+        {visiblePanels.map((panel, index) => (
+          <BuildingInfoMobilePanelSection
+            key={panel.id}
+            panel={panel}
+            index={index}
+            panelCount={visiblePanels.length}
+          />
+        ))}
+      </Box>
+    </BuildingInfoScrollArea>
+  )
+}
+
 export const BuildingInfoMobileSidebar = ({
   mode,
   panels,
@@ -1430,24 +1785,7 @@ export const BuildingInfoMobileSidebar = ({
         onClose={onClose}
         onCollapse={onCollapse}
       />
-      <BuildingInfoScrollArea testId="building-info-mobile-scroll">
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            minHeight: '100%',
-          }}
-        >
-          {visiblePanels.map((panel, index) => (
-            <BuildingInfoMobilePanelSection
-              key={panel.id}
-              panel={panel}
-              index={index}
-              panelCount={visiblePanels.length}
-            />
-          ))}
-        </Box>
-      </BuildingInfoScrollArea>
+      <BuildingInfoMobilePanelStack mode={mode} panels={panels} />
     </Box>
   )
 }

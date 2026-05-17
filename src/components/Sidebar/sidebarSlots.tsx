@@ -81,7 +81,10 @@ export const SidebarPanelSlot = ({
   boundaryId: SidebarBoundaryId
   panelId: SidebarPanelId
 }) => (
-  <SidebarSlotHost boundaryId={boundaryId} slot="panel" panelId={panelId} />
+  <Slot
+    name={getSidebarSlotKey({ boundaryId, slot: 'panel', panelId })}
+    style={{ display: 'contents' }}
+  />
 )
 
 const IntoSidebarNamedSlot = ({
