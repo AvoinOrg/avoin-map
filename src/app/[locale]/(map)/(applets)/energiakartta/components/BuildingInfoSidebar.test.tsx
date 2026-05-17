@@ -493,6 +493,39 @@ describe('BuildingInfoSidebar', () => {
       'renovationRecommendations',
       'buildingDetails',
     ])
+    expect(screen.getAllByTestId('panel-sidebar-page-scroll')).toHaveLength(1)
+    expect(screen.queryByTestId(/^building-info-scroll-/)).not.toBeInTheDocument()
+    expect(screen.getByTestId('panel-sidebar-page-scroll')).toHaveAttribute(
+      'data-overflow-y',
+      'scroll'
+    )
+    expect(screen.getByTestId('panel-sidebar-page-scroll')).toHaveAttribute(
+      'data-scrollbar-visibility',
+      'auto'
+    )
+    expect(screen.getByTestId('panel-sidebar-page-scroll')).toHaveAttribute(
+      'data-auto-hide',
+      'leave'
+    )
+    expect(screen.getByTestId('panel-sidebar-page-scroll')).toHaveClass('osLeft')
+  })
+
+  it('keeps the mobile basic tab stacked without the desktop grid', async () => {
+    mockIsMobile = true
+
+    renderBuildingInfoTabs()
+
+    expect(
+      await screen.findByTestId('building-info-tab-page-basic')
+    ).toBeInTheDocument()
+    expect(screen.queryByTestId('building-info-grid')).not.toBeInTheDocument()
+    expect(
+      screen
+        .getAllByTestId(/building-info-panel-/)
+        .map((panel) => panel.dataset.panelId)
+    ).toEqual(['energyConsumption', 'buildingDetails'])
+    expect(screen.getAllByTestId('panel-sidebar-page-scroll')).toHaveLength(1)
+    expect(screen.queryByTestId(/^building-info-scroll-/)).not.toBeInTheDocument()
   })
 
   it('can open on the requested tab after collapsed-tab selection', async () => {
@@ -741,6 +774,8 @@ describe('BuildingInfoSidebar', () => {
       actionRailPlacement: 'fixedRightActionColumn',
     })
     expect(mobileOptions).toMatchObject({
+      width: 'wide',
+      chrome: 'hidden',
       panelLayout: 'single',
       visiblePanels: ['main'],
       activePanel: 'main',
@@ -748,5 +783,7 @@ describe('BuildingInfoSidebar', () => {
     })
     expect(desktopOptions.visiblePanels).not.toContain('secondary')
     expect(desktopOptions.visiblePanels).not.toContain('tertiary')
+    expect(mobileOptions.visiblePanels).not.toContain('secondary')
+    expect(mobileOptions.visiblePanels).not.toContain('tertiary')
   })
 })

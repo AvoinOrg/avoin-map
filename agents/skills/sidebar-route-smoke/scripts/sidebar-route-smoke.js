@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+const fs = require('fs')
 const path = require('path')
 
 const {
@@ -14,6 +15,7 @@ const {
 
 const DEFAULT_BASE_URL = 'http://127.0.0.1:3000'
 const DEFAULT_TIMEOUT_MS = 30000
+const F0284_OUTPUT_DIR = path.resolve(process.cwd(), '.tmp/f0284')
 
 const VIEWPORTS = {
   desktop: { width: 1440, height: 900 },
@@ -23,11 +25,12 @@ const VIEWPORTS = {
 const HELP_TEXT = `\
 Usage:
   node agents/skills/sidebar-route-smoke/scripts/sidebar-route-smoke.js --scenario sidebar-root
+  node agents/skills/sidebar-route-smoke/scripts/sidebar-route-smoke.js --scenario energiakartta-selected-building-tabs
   node agents/skills/sidebar-route-smoke/scripts/sidebar-route-smoke.js --route /fi/energiakartta --viewport both --expect-sidebar yes
 
 Options:
   --base-url <url>            Target app URL (default: ${DEFAULT_BASE_URL})
-  --scenario <name>           Built-in scenario: sidebar-root
+  --scenario <name>           Built-in scenario: sidebar-root|energiakartta-selected-building-tabs
   --route <path>              Route path to check. Can be repeated or comma-separated.
   --viewport <name>           desktop|mobile|both (default: desktop)
   --expect-sidebar <state>    yes|no|auto (default: auto)
@@ -80,6 +83,16 @@ const SIDEBAR_ROOT_SCENARIO = [
     route: '/fi/hiilikartta/raportti',
     viewports: ['desktop'],
     expectSidebar: 'no',
+  },
+]
+
+const ENERGYMAP_SELECTED_BUILDING_TABS_SCENARIO = [
+  {
+    id: 'energiakartta-selected-building-tabs',
+    route: '/fi/energiakartta',
+    viewports: ['mobile'],
+    expectSidebar: 'yes',
+    selectedBuildingTabs: true,
   },
 ]
 
@@ -220,11 +233,19 @@ const buildChecks = (args) => {
   const checks = []
 
   for (const scenario of args.scenarios) {
-    if (scenario !== 'sidebar-root') {
+    if (
+      scenario !== 'sidebar-root' &&
+      scenario !== 'energiakartta-selected-building-tabs'
+    ) {
       throw new Error(`Unknown scenario: ${scenario}`)
     }
 
-    for (const item of SIDEBAR_ROOT_SCENARIO) {
+    const scenarioItems =
+      scenario === 'energiakartta-selected-building-tabs'
+        ? ENERGYMAP_SELECTED_BUILDING_TABS_SCENARIO
+        : SIDEBAR_ROOT_SCENARIO
+
+    for (const item of scenarioItems) {
       for (const viewport of item.viewports) {
         checks.push({
           ...item,
@@ -312,6 +333,557 @@ const collectRuntimeTextFlags = async (page) =>
     }
   })
 
+const ensureWebpackRequire = async (page) =>
+  page.evaluate(() => {
+    if (window.__avoin_req) {
+      return true
+    }
+
+    if (!Array.isArray(window.webpackChunk_N_E)) {
+      return false
+    }
+
+    window.webpackChunk_N_E.push([
+      [Math.random()],
+      {},
+      (req) => {
+        window.__avoin_req = req
+      },
+    ])
+
+    return Boolean(window.__avoin_req)
+  })
+
+const seedEnergymapSelectedBuilding = async (page) =>
+  page.evaluate(async () => {
+    const req = window.__avoin_req
+    if (typeof req !== 'function') {
+      return { ok: false, reason: 'Next.js webpack require was unavailable' }
+    }
+
+    const { useMapInstanceStore } = req(
+      '(app-pages-browser)/./src/common/store/mapStore/mapInstanceStore.ts'
+    )
+    const { useMapStore } = req(
+      '(app-pages-browser)/./src/common/store/mapStore/mapStore.ts'
+    )
+    const { useUIStore } = req(
+      '(app-pages-browser)/./src/common/store/uiStore.ts'
+    )
+    const { useAppletStore } = req(
+      '(app-pages-browser)/./src/app/[locale]/(map)/(applets)/energiakartta/state/appletStore.ts'
+    )
+
+    const map = useMapInstanceStore.getState()._map
+    if (!map) {
+      return { ok: false, reason: 'Map instance was not available' }
+    }
+
+    const waitForMapIdle = () =>
+      new Promise((resolve) => {
+        const timeoutId = window.setTimeout(resolve, 2500)
+        map.once('idle', () => {
+          window.clearTimeout(timeoutId)
+          resolve()
+        })
+      })
+    const wait = (ms) =>
+      new Promise((resolve) => {
+        window.setTimeout(resolve, ms)
+      })
+
+    map.jumpTo({ center: [24.9384, 60.1699], zoom: 15.5 })
+
+    let features = []
+    for (let attempt = 0; attempt < 6; attempt += 1) {
+      await waitForMapIdle()
+      await wait(700)
+      features = map.queryRenderedFeatures(undefined, {
+        layers: ['energymap_building_polygons-fill'],
+      })
+      if (features.length > 0) {
+        break
+      }
+    }
+
+    if (features.length === 0) {
+      return { ok: false, reason: 'No rendered building features found' }
+    }
+
+    const feature =
+      features.find((candidate) => candidate.properties?.building_key) ??
+      features[0]
+    const properties = { ...(feature.properties ?? {}) }
+    const idValue = feature.id ?? properties.building_key
+    const buildingKey = properties.building_key ?? idValue
+
+    if (idValue == null || buildingKey == null) {
+      return { ok: false, reason: 'Rendered feature had no stable id' }
+    }
+
+    const selectedBuilding = {
+      id: String(idValue),
+      buildingKey: String(buildingKey),
+      source: feature.source,
+      sourceLayer: feature.sourceLayer,
+      layerId: feature.layer?.id,
+      properties,
+    }
+
+    useMapStore.getState().setSelectedFeatures([feature], false)
+    useAppletStore.getState().setSelectedBuilding(selectedBuilding)
+    useUIStore.getState().setIsSidebarOpen(true)
+
+    return {
+      ok: true,
+      id: selectedBuilding.id,
+      buildingKey: selectedBuilding.buildingKey,
+      address: properties.address_fin ?? null,
+      layerId: feature.layer?.id ?? null,
+      source: feature.source ?? null,
+      sourceLayer: feature.sourceLayer ?? null,
+    }
+  })
+
+const rectToPlain = (rect) =>
+  rect == null
+    ? null
+    : {
+        x: Math.round(rect.x * 100) / 100,
+        y: Math.round(rect.y * 100) / 100,
+        width: Math.round(rect.width * 100) / 100,
+        height: Math.round(rect.height * 100) / 100,
+        right: Math.round((rect.x + rect.width) * 100) / 100,
+        bottom: Math.round((rect.y + rect.height) * 100) / 100,
+      }
+
+const readEnergymapSelectedBuildingState = async (page, label) =>
+  page.evaluate((stateLabel) => {
+    const isVisible = (element) => {
+      if (!(element instanceof HTMLElement)) {
+        return false
+      }
+
+      const style = getComputedStyle(element)
+      return (
+        style.display !== 'none' &&
+        style.visibility !== 'hidden' &&
+        element.getClientRects().length > 0
+      )
+    }
+    const read = (selector) => {
+      const element = document.querySelector(selector)
+      if (!element || !isVisible(element)) {
+        return null
+      }
+
+      const rect = element.getBoundingClientRect()
+      const style = getComputedStyle(element)
+
+      return {
+        selector,
+        rect: {
+          x: rect.x,
+          y: rect.y,
+          width: rect.width,
+          height: rect.height,
+          right: rect.right,
+          bottom: rect.bottom,
+        },
+        style: {
+          display: style.display,
+          overflowX: style.overflowX,
+          overflowY: style.overflowY,
+          position: style.position,
+        },
+        attributes: Object.fromEntries(
+          Array.from(element.attributes).map((attribute) => [
+            attribute.name,
+            attribute.value,
+          ])
+        ),
+      }
+    }
+    const visibleElements = (selector) =>
+      Array.from(document.querySelectorAll(selector)).filter(isVisible)
+    const activePageScrolls = visibleElements(
+      '[data-testid="panel-sidebar-page-scroll"]'
+    )
+    const oldScrolls = visibleElements('[data-testid^="building-info-scroll-"]')
+    const gridCount = visibleElements('[data-testid="building-info-grid"]').length
+    const activePageScroll = activePageScrolls[0]
+    const scrollableAncestors = []
+    const panelBodyRects = visibleElements(
+      '[data-testid^="building-info-panel-"] > div'
+    ).map((element) => {
+      const rect = element.getBoundingClientRect()
+      return {
+        panelId:
+          element.parentElement?.getAttribute('data-panel-id') ??
+          element.parentElement?.getAttribute('data-testid') ??
+          null,
+        rect: {
+          x: rect.x,
+          y: rect.y,
+          width: rect.width,
+          height: rect.height,
+          right: rect.right,
+          bottom: rect.bottom,
+        },
+      }
+    })
+
+    if (activePageScroll != null) {
+      for (
+        let element = activePageScroll.parentElement;
+        element != null && element !== document.body;
+        element = element.parentElement
+      ) {
+        const style = getComputedStyle(element)
+        if (
+          /(auto|scroll)/.test(style.overflowY) &&
+          element.scrollHeight > element.clientHeight + 2
+        ) {
+          scrollableAncestors.push({
+            className: element.className,
+            testId: element.getAttribute('data-testid'),
+            overflowY: style.overflowY,
+            scrollHeight: element.scrollHeight,
+            clientHeight: element.clientHeight,
+          })
+        }
+      }
+    }
+    const selectedBuilding =
+      window.__avoin_req?.(
+        '(app-pages-browser)/./src/app/[locale]/(map)/(applets)/energiakartta/state/appletStore.ts'
+      )?.useAppletStore.getState().selectedBuilding ?? null
+
+    return {
+      label: stateLabel,
+      viewport: {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      },
+      activeTab:
+        document
+          .querySelector('[role="tab"][aria-selected="true"]')
+          ?.getAttribute('aria-controls') ?? null,
+      pageScrollCount: activePageScrolls.length,
+      oldScrollCount: oldScrolls.length,
+      gridCount,
+      panelOrder: visibleElements('[data-testid^="building-info-panel-"]').map(
+        (element) => element.getAttribute('data-panel-id')
+      ),
+      pageScrollClassName: activePageScroll?.className ?? null,
+      scrollableAncestors,
+      panelBodyRects,
+      controls: read('.panel-sidebar-page-container-controls'),
+      tabRail: read('[data-testid="panel-sidebar-tab-rail"]'),
+      sidebarActionRail: read('[data-testid="sidebar-action-rail"]'),
+      buildingActionRail: read('[data-testid="building-info-action-rail"]'),
+      toggle: read('.sidebar-toggle-button'),
+      cookieButton: read('button[aria-label="Cookie settings"]'),
+      attributionButton: read(
+        'button[aria-label="Toggle attribution information"]'
+      ),
+      selectedBuildingState:
+        selectedBuilding == null
+          ? null
+          : {
+              id: selectedBuilding.id,
+              buildingKey: selectedBuilding.buildingKey,
+            },
+    }
+  }, label)
+
+const normalizeSelectedBuildingState = (state) => {
+  const normalizeNode = (node) =>
+    node == null
+      ? null
+      : {
+          ...node,
+          rect: rectToPlain(node.rect),
+        }
+
+  return {
+    ...state,
+    controls: normalizeNode(state.controls),
+    tabRail: normalizeNode(state.tabRail),
+    sidebarActionRail: normalizeNode(state.sidebarActionRail),
+    buildingActionRail: normalizeNode(state.buildingActionRail),
+    toggle: normalizeNode(state.toggle),
+    cookieButton: normalizeNode(state.cookieButton),
+    attributionButton: normalizeNode(state.attributionButton),
+    panelBodyRects: state.panelBodyRects.map((item) => ({
+      ...item,
+      rect: rectToPlain(item.rect),
+    })),
+  }
+}
+
+const scrollEnergymapBuildingInfoPage = async (page, scrollTop) =>
+  page.evaluate((requestedScrollTop) => {
+    const root = document.querySelector(
+      '[data-testid="panel-sidebar-page-scroll"]'
+    )
+    if (!root) {
+      return { ok: false, reason: 'panel sidebar page scroll root missing' }
+    }
+
+    const candidates = [root, ...Array.from(root.querySelectorAll('*'))]
+    const scroller = candidates.find(
+      (element) => element.scrollHeight > element.clientHeight + 10
+    )
+
+    if (!scroller) {
+      return { ok: false, reason: 'scrollable page element missing' }
+    }
+
+    scroller.scrollTop = requestedScrollTop
+    scroller.dispatchEvent(new Event('scroll', { bubbles: true }))
+
+    return {
+      ok: true,
+      scrollTop: scroller.scrollTop,
+      scrollHeight: scroller.scrollHeight,
+      clientHeight: scroller.clientHeight,
+    }
+  }, scrollTop)
+
+const settlePointer = async (page) => {
+  await page.keyboard.press('Escape').catch(() => {})
+  await page.mouse.move(20, 20).catch(() => {})
+  await page.waitForTimeout(150)
+}
+
+const assertPanelState = ({ state, expectedPanels, errors }) => {
+  const panelOrder = state.panelOrder.join(',')
+  if (panelOrder !== expectedPanels.join(',')) {
+    errors.push(
+      `${state.label}: expected panel order ${expectedPanels.join(',')}, got ${panelOrder}`
+    )
+  }
+  if (state.pageScrollCount !== 1) {
+    errors.push(
+      `${state.label}: expected one visible panel-sidebar-page-scroll, got ${state.pageScrollCount}`
+    )
+  }
+  if (state.oldScrollCount !== 0) {
+    errors.push(
+      `${state.label}: expected zero old building-info-scroll-* hosts, got ${state.oldScrollCount}`
+    )
+  }
+  if (state.gridCount !== 0) {
+    errors.push(`${state.label}: mobile rendered building-info-grid`)
+  }
+  if (!String(state.pageScrollClassName ?? '').includes('osLeft')) {
+    errors.push(`${state.label}: active page scroll did not use left-side class`)
+  }
+  if (state.scrollableAncestors.length > 0) {
+    errors.push(
+      `${state.label}: active page scroll had scrollable ancestors ${JSON.stringify(
+        state.scrollableAncestors
+      )}`
+    )
+  }
+
+  const tooWideBody = state.panelBodyRects.find(
+    (item) => item.rect.width > state.viewport.width - 72
+  )
+  if (tooWideBody != null) {
+    errors.push(
+      `${state.label}: panel content body was too wide for mobile (${tooWideBody.rect.width}px)`
+    )
+  }
+}
+
+const assertNoOverlap = ({ state, a, b, errors }) => {
+  const first = state[a]
+  const second = state[b]
+  if (!first?.rect || !second?.rect) {
+    return
+  }
+
+  if (boxesOverlap(first.rect, second.rect)) {
+    errors.push(`${state.label}: ${a} overlaps ${b}`)
+  }
+}
+
+const runEnergymapSelectedBuildingTabsCheck = async ({ page, errors }) => {
+  fs.mkdirSync(F0284_OUTPUT_DIR, { recursive: true })
+
+  await page.waitForSelector('canvas.maplibregl-canvas', { timeout: 90000 })
+  await page.waitForTimeout(3500)
+
+  const hasWebpackRequire = await ensureWebpackRequire(page)
+  if (!hasWebpackRequire) {
+    errors.push('could not access Next.js webpack require for selected-building setup')
+    return null
+  }
+
+  const seed = await seedEnergymapSelectedBuilding(page)
+  if (!seed.ok) {
+    errors.push(`could not seed selected building: ${seed.reason}`)
+    return { seed }
+  }
+
+  await page.waitForSelector('[data-testid="building-info-tab-page-basic"]', {
+    timeout: 90000,
+  })
+  await page.waitForSelector('[data-testid="panel-sidebar-tab-rail"]', {
+    timeout: 90000,
+  })
+  await page.waitForTimeout(500)
+
+  const screenshot = async (name) => {
+    const outputPath = path.join(F0284_OUTPUT_DIR, name)
+    await settlePointer(page)
+    await page.screenshot({ path: outputPath, fullPage: false })
+    return outputPath
+  }
+
+  const screenshots = []
+  screenshots.push(await screenshot('selected-building-mobile-basic.png'))
+  const basic = normalizeSelectedBuildingState(
+    await readEnergymapSelectedBuildingState(page, 'mobile-basic')
+  )
+  assertPanelState({
+    state: basic,
+    expectedPanels: ['energyConsumption', 'buildingDetails'],
+    errors,
+  })
+  assertNoOverlap({ state: basic, a: 'controls', b: 'sidebarActionRail', errors })
+  assertNoOverlap({ state: basic, a: 'sidebarActionRail', b: 'toggle', errors })
+
+  await page.locator('[role="tab"]').nth(1).click()
+  await page.waitForSelector('[data-testid="building-info-tab-page-renovation"]')
+  await page.waitForTimeout(300)
+  const renovation = normalizeSelectedBuildingState(
+    await readEnergymapSelectedBuildingState(page, 'mobile-renovation')
+  )
+  assertPanelState({
+    state: renovation,
+    expectedPanels: [
+      'energyConsumption',
+      'renovationRecommendations',
+      'buildingDetails',
+    ],
+    errors,
+  })
+  assertNoOverlap({
+    state: renovation,
+    a: 'controls',
+    b: 'sidebarActionRail',
+    errors,
+  })
+  assertNoOverlap({
+    state: renovation,
+    a: 'sidebarActionRail',
+    b: 'toggle',
+    errors,
+  })
+
+  const scrollResult = await scrollEnergymapBuildingInfoPage(page, 1800)
+  if (!scrollResult.ok) {
+    errors.push(`could not scroll mobile renovation page: ${scrollResult.reason}`)
+  } else if (scrollResult.scrollTop <= 0) {
+    errors.push('mobile renovation page did not scroll down')
+  }
+  await page.waitForTimeout(300)
+  screenshots.push(await screenshot('selected-building-mobile-renovation-lower.png'))
+
+  await page
+    .locator('.panel-sidebar-page-container-controls button')
+    .first()
+    .click()
+  await page.waitForSelector('[data-testid="building-info-action-rail"]', {
+    timeout: 90000,
+  })
+  await page.waitForTimeout(300)
+  screenshots.push(await screenshot('selected-building-mobile-collapsed.png'))
+  const collapsed = normalizeSelectedBuildingState(
+    await readEnergymapSelectedBuildingState(page, 'mobile-collapsed')
+  )
+  if (collapsed.pageScrollCount !== 0) {
+    errors.push(
+      `mobile-collapsed: expected expanded tab pages to be removed, got ${collapsed.pageScrollCount} page scrolls`
+    )
+  }
+  if (collapsed.buildingActionRail == null) {
+    errors.push('mobile-collapsed: expected collapsed building-info action rail')
+  }
+  if (collapsed.selectedBuildingState == null) {
+    errors.push('mobile-collapsed: selected building was not preserved')
+  }
+  assertNoOverlap({
+    state: collapsed,
+    a: 'buildingActionRail',
+    b: 'toggle',
+    errors,
+  })
+
+  await page.locator('[data-testid="building-info-action-rail"] button').nth(1).click()
+  await page.waitForSelector('[data-testid="building-info-tab-page-renovation"]')
+  await page.waitForTimeout(300)
+  const reopened = normalizeSelectedBuildingState(
+    await readEnergymapSelectedBuildingState(page, 'mobile-reopened-renovation')
+  )
+  assertPanelState({
+    state: reopened,
+    expectedPanels: [
+      'energyConsumption',
+      'renovationRecommendations',
+      'buildingDetails',
+    ],
+    errors,
+  })
+
+  await page.locator('.panel-sidebar-page-container-controls button').nth(1).click()
+  await page.waitForSelector('[data-testid="building-info-tab-page-renovation"]', {
+    state: 'detached',
+    timeout: 90000,
+  })
+  await page
+    .waitForFunction(() => {
+      const store = window.__avoin_req?.(
+        '(app-pages-browser)/./src/app/[locale]/(map)/(applets)/energiakartta/state/appletStore.ts'
+      )?.useAppletStore
+
+      return store?.getState().selectedBuilding == null
+    })
+    .catch(() => {})
+  await page.waitForTimeout(500)
+  screenshots.push(await screenshot('selected-building-mobile-closed.png'))
+  const closed = normalizeSelectedBuildingState(
+    await readEnergymapSelectedBuildingState(page, 'mobile-closed')
+  )
+  if (closed.pageScrollCount !== 0) {
+    errors.push(
+      `mobile-closed: expected no expanded page scrolls, got ${closed.pageScrollCount}`
+    )
+  }
+  if (closed.buildingActionRail != null) {
+    errors.push('mobile-closed: collapsed building-info action rail remained')
+  }
+  if (closed.selectedBuildingState != null) {
+    errors.push('mobile-closed: selected building store was not cleared')
+  }
+
+  return {
+    seed,
+    screenshots,
+    scrollResult,
+    states: {
+      basic,
+      renovation,
+      collapsed,
+      reopened,
+      closed,
+    },
+  }
+}
+
 const runCheck = async ({ browser, args, check }) => {
   const page = await browser.newPage({ viewport: VIEWPORTS[check.viewport] })
   const consoleErrors = []
@@ -325,6 +897,7 @@ const runCheck = async ({ browser, args, check }) => {
   const url = toUrl({ baseUrl: args.baseUrl, route: check.route })
   const errors = []
   const warnings = []
+  let selectedBuildingTabs = null
 
   try {
     const response = await page.goto(url, {
@@ -401,6 +974,13 @@ const runCheck = async ({ browser, args, check }) => {
       }
     }
 
+    if (check.selectedBuildingTabs) {
+      selectedBuildingTabs = await runEnergymapSelectedBuildingTabsCheck({
+        page,
+        errors,
+      })
+    }
+
     return {
       id: check.id,
       route: check.route,
@@ -418,6 +998,7 @@ const runCheck = async ({ browser, args, check }) => {
         visible: mainSidebarRootVisible,
       },
       mapControls: mapControlStats,
+      selectedBuildingTabs,
       errors,
       warnings,
     }
