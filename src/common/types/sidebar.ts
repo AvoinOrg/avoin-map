@@ -26,6 +26,8 @@ export type SidebarActionRailPlacement =
   | 'inside'
   | 'outside'
   | 'bottomActionRow'
+  | 'fixedBottomActionRow'
+  | 'fixedRightActionColumn'
 
 export type SidebarNoneConfig = Record<string, never>
 

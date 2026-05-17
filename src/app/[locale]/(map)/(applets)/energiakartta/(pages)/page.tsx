@@ -764,6 +764,7 @@ const Page = () => {
       <BuildingInfoActionRail
         activeMode={activeBuildingInfoMode}
         isCollapsed={isBuildingInfoCollapsed}
+        orientation={isBuildingInfoCollapsed ? 'column' : 'row'}
         ariaLabels={buildingInfoAriaLabels}
         onModeChange={handleBuildingInfoModeChange}
       />
@@ -813,10 +814,20 @@ const Page = () => {
         mobileStackPlacement: 'after',
         actionRailPlacement: hasMobileBuildingInfo
           ? 'bottomActionRow'
-          : 'outside',
+          : hasDesktopBuildingInfo
+            ? isBuildingInfoCollapsed
+              ? 'fixedRightActionColumn'
+              : 'fixedBottomActionRow'
+            : 'inside',
       }
     },
-    [activeBuildingInfoMode, hasMobileBuildingInfo, isBuildingInfoExpanded]
+    [
+      activeBuildingInfoMode,
+      hasDesktopBuildingInfo,
+      hasMobileBuildingInfo,
+      isBuildingInfoCollapsed,
+      isBuildingInfoExpanded,
+    ]
   )
 
   useSidebarBoundaryRuntimeOptions(sidebarRuntimeOptions)

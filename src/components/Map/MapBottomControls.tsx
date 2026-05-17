@@ -72,6 +72,8 @@ const MapBottomControls = () => {
   const [panelLayout, setPanelLayout] = useState<PanelLayout>('inline-right')
   const [slotPlacement, setSlotPlacement] =
     useState<MainSidebarPlacement | null>(null)
+  const [buttonRowWidth, setButtonRowWidth] = useState<number>(0)
+  const [viewportWidth, setViewportWidth] = useState<number | null>(null)
   const controlsRef = useRef<HTMLDivElement | null>(null)
   const buttonRowRef = useRef<HTMLDivElement | null>(null)
 
@@ -86,11 +88,19 @@ const MapBottomControls = () => {
   const spacingLeftPx = MAP_CONTROL_EDGE_GUTTER_PX
   const spacingBottomPx = MAP_CONTROL_EDGE_GUTTER_PX
 
-  const leftOffsetPx = isMobile
+  const desiredLeftOffsetPx = isMobile
     ? spacingLeftPx
     : isSidebarOpen
       ? (sidebarWidth ?? 0) + spacingLeftPx
       : spacingLeftPx
+  const hasRoomForDesiredLeftOffset =
+    isMobile ||
+    viewportWidth == null ||
+    buttonRowWidth <= 0 ||
+    desiredLeftOffsetPx + buttonRowWidth <= viewportWidth - spacingLeftPx
+  const leftOffsetPx = hasRoomForDesiredLeftOffset
+    ? desiredLeftOffsetPx
+    : spacingLeftPx
 
   const updatePanelLayout = useCallback(() => {
     const controlsEl = controlsRef.current
@@ -103,6 +113,14 @@ const MapBottomControls = () => {
     const controlsRect = controlsEl.getBoundingClientRect()
     const buttonRowRect = buttonRowEl.getBoundingClientRect()
     const nextPanelLeftOffset = Math.floor(buttonRowRect.width + PANEL_GAP_PX)
+    const nextButtonRowWidth = Math.ceil(buttonRowRect.width)
+
+    setViewportWidth((prev) =>
+      prev === window.innerWidth ? prev : window.innerWidth
+    )
+    setButtonRowWidth((prev) =>
+      prev === nextButtonRowWidth ? prev : nextButtonRowWidth
+    )
 
     setPanelLeftOffset((prev) =>
       prev === nextPanelLeftOffset ? prev : nextPanelLeftOffset
@@ -403,7 +421,9 @@ const MapBottomControls = () => {
         left: leftOffsetPx,
         bottom: spacingBottomPx,
         pointerEvents: 'none',
-        zIndex: theme.zIndex.mapButtons,
+        zIndex: hasRoomForDesiredLeftOffset
+          ? theme.zIndex.mapButtons
+          : theme.zIndex.drawer + 12,
         transition:
           'left 220ms cubic-bezier(.2,0,.2,1), bottom 220ms cubic-bezier(.2,0,.2,1)',
       })}

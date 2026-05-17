@@ -232,7 +232,7 @@ describe('SidebarRoot', () => {
           panelLayout: 'triple',
           visiblePanels: ['main', 'secondary', 'tertiary'],
           activePanel: 'secondary',
-          actionRailPlacement: 'bottomActionRow',
+          actionRailPlacement: 'fixedBottomActionRow',
         })
     })
 
@@ -243,6 +243,46 @@ describe('SidebarRoot', () => {
     expect(
       screen.getByRole('button', { name: 'Scoped building action' })
     ).toBeInTheDocument()
+    expect(screen.getByTestId('sidebar-action-rail')).toHaveAttribute(
+      'data-sidebar-action-rail-placement',
+      'fixedBottomActionRow'
+    )
+    expect(screen.getByTestId('sidebar-action-rail')).toHaveAttribute(
+      'data-sidebar-action-rail-fixed',
+      'true'
+    )
+    expect(mountCount).toBe(mountCountAfterActivation)
+
+    act(() => {
+      useUIStore
+        .getState()
+        .setSidebarBoundaryRuntimeOptions('energiakartta-floating', {
+          width: 'compact',
+          chrome: 'visible',
+          panelLayout: 'single',
+          visiblePanels: ['main'],
+          activePanel: 'main',
+          actionRailPlacement: 'fixedRightActionColumn',
+        })
+    })
+
+    expect(screen.getByText('Stable panel child')).toBeInTheDocument()
+    expect(screen.getByText('Scoped energy panel')).toBeInTheDocument()
+    expect(
+      screen.queryByText('Scoped renovation panel')
+    ).not.toBeInTheDocument()
+    expect(screen.queryByText('Scoped details panel')).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Scoped building action' })
+    ).toBeInTheDocument()
+    expect(screen.getByTestId('sidebar-action-rail')).toHaveAttribute(
+      'data-sidebar-action-rail-placement',
+      'fixedRightActionColumn'
+    )
+    expect(screen.getByTestId('sidebar-action-rail')).toHaveAttribute(
+      'data-sidebar-action-rail-fixed',
+      'true'
+    )
     expect(mountCount).toBe(mountCountAfterActivation)
   })
 

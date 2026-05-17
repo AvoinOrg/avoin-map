@@ -379,6 +379,26 @@ describe('BuildingInfoSidebar', () => {
     })
   })
 
+  it('reserves the desktop three-panel bottom control band outside panel bodies', () => {
+    renderWithTheme(
+      <BuildingInfoDesktopSidebar
+        mode="threePanel"
+        panels={panels}
+        ariaLabels={ariaLabels}
+        onClose={jest.fn()}
+        onCollapse={jest.fn()}
+      />
+    )
+
+    screen.getAllByTestId(/building-info-panel-/).forEach((panel) => {
+      expect(panel).toHaveStyle({
+        flex: '0 0 calc(100% - 71px)',
+        height: 'calc(100% - 71px)',
+        maxHeight: 'calc(100% - 71px)',
+      })
+    })
+  })
+
   it('renders a single desktop panel body for scoped panel slots', () => {
     renderWithTheme(
       <BuildingInfoPanelSlotContent
@@ -611,6 +631,7 @@ describe('BuildingInfoSidebar', () => {
     )
 
     expect(screen.getByTestId('building-info-desktop-chrome')).toHaveStyle({
+      position: 'fixed',
       pointerEvents: 'auto',
       zIndex: String(theme.zIndex.drawer + 13),
     })
@@ -633,6 +654,10 @@ describe('BuildingInfoSidebar', () => {
         name: 'Open energy and building information',
       })
     ).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByTestId('building-info-action-rail')).toHaveAttribute(
+      'data-orientation',
+      'column'
+    )
 
     fireEvent.click(
       screen.getByRole('button', {
@@ -641,6 +666,33 @@ describe('BuildingInfoSidebar', () => {
     )
 
     expect(onModeChange).toHaveBeenCalledWith('threePanel')
+  })
+
+  it('renders desktop tab buttons as a row when requested', () => {
+    renderWithTheme(
+      <BuildingInfoActionRail
+        activeMode="twoPanel"
+        isCollapsed={false}
+        orientation="row"
+        ariaLabels={modeAriaLabels}
+        onModeChange={jest.fn()}
+      />
+    )
+
+    expect(screen.getByTestId('building-info-action-rail')).toHaveAttribute(
+      'data-orientation',
+      'row'
+    )
+    expect(
+      screen.getByRole('button', {
+        name: 'Open energy and building information',
+      })
+    ).toHaveAttribute('aria-pressed', 'true')
+    expect(
+      screen.getByRole('button', {
+        name: 'Open renovation recommendations',
+      })
+    ).toHaveAttribute('aria-pressed', 'false')
   })
 
   it('stacks only the energy and building panels in mobile two-panel mode', () => {
@@ -780,6 +832,9 @@ describe('BuildingInfoSidebar', () => {
         name: 'Open renovation recommendations',
       })
     ).toHaveAttribute('aria-pressed', 'true')
+    expect(
+      screen.getByTestId('building-info-mobile-action-row')
+    ).toHaveAttribute('data-orientation', 'row')
 
     fireEvent.click(
       screen.getByRole('button', {

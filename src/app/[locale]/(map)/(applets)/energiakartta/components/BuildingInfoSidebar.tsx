@@ -13,6 +13,7 @@ import ConstructionIcon from '@mui/icons-material/Construction'
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 
+import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
 import TText from '#/components/common/TText'
 import { Cross } from '#/components/icons'
 import type {
@@ -57,6 +58,7 @@ type BuildingInfoMobilePanelStackProps = Pick<
 type BuildingInfoActionRailProps = {
   activeMode: BuildingInfoDesktopMode
   isCollapsed: boolean
+  orientation?: 'row' | 'column'
   ariaLabels: Pick<BuildingInfoActionLabels, 'overview' | 'renovation'>
   onModeChange: (mode: BuildingInfoDesktopMode) => void
 }
@@ -205,6 +207,12 @@ const RENOVATION_SCENARIO_GRAPHICS: Partial<
 }
 
 export const BUILDING_INFO_MOBILE_TOGGLE_RIGHT_OFFSET = '35px'
+const BUILDING_INFO_ACTION_BUTTON_SIZE_PX = 45
+const BUILDING_INFO_ACTION_BUTTON_GAP_PX = 10
+const BUILDING_INFO_DESKTOP_CONTROL_BOTTOM_INSET_PX =
+  MAP_CONTROL_EDGE_GUTTER_PX +
+  BUILDING_INFO_ACTION_BUTTON_SIZE_PX +
+  BUILDING_INFO_ACTION_BUTTON_GAP_PX
 
 const textSx = {
   fontSize: '0.625rem',
@@ -229,9 +237,9 @@ const actionButtonSx = ({
 }: {
   active: boolean
 }) => ({
-  width: '45px',
-  height: '45px',
-  minWidth: '45px',
+  width: `${BUILDING_INFO_ACTION_BUTTON_SIZE_PX}px`,
+  height: `${BUILDING_INFO_ACTION_BUTTON_SIZE_PX}px`,
+  minWidth: `${BUILDING_INFO_ACTION_BUTTON_SIZE_PX}px`,
   borderRadius: '10px',
   backgroundColor: active ? '#e8d0ff' : '#f4f4f4',
   color: '#111111',
@@ -1462,6 +1470,10 @@ const BuildingInfoDesktopPanelSection = ({
     mode,
     panelId: panel.id,
   })
+  const desktopPanelHeight =
+    mode === 'threePanel'
+      ? `calc(100% - ${BUILDING_INFO_DESKTOP_CONTROL_BOTTOM_INSET_PX}px)`
+      : '100%'
 
   return (
     <Box
@@ -1470,10 +1482,11 @@ const BuildingInfoDesktopPanelSection = ({
       data-testid={`building-info-panel-${panel.id}`}
       data-panel-id={panel.id}
       sx={{
-        flex: '1 1 auto',
+        flex: mode === 'threePanel' ? `0 0 ${desktopPanelHeight}` : '1 1 auto',
         width: '100%',
         minWidth: 0,
-        height: '100%',
+        height: desktopPanelHeight,
+        maxHeight: desktopPanelHeight,
         minHeight: 0,
         backgroundColor: PANEL_BACKGROUNDS[panel.id],
         overflow: 'hidden',
@@ -1534,7 +1547,7 @@ export const BuildingInfoDesktopChrome = ({
   <Box
     data-testid="building-info-desktop-chrome"
     sx={(theme) => ({
-      position: 'absolute',
+      position: 'fixed',
       top: mode === 'twoPanel' ? '35px' : '50px',
       right: mode === 'twoPanel' ? '60px' : '70px',
       zIndex: theme.zIndex.drawer + 13,
@@ -1831,35 +1844,24 @@ const ThreePanelIcon = () => (
 export const BuildingInfoActionRail = ({
   activeMode,
   isCollapsed,
+  orientation = 'column',
   ariaLabels,
   onModeChange,
 }: BuildingInfoActionRailProps) => {
-  const isExpanded = !isCollapsed
+  const tooltipPlacement = orientation === 'row' ? 'top' : 'right'
 
   return (
     <Box
       data-testid="building-info-action-rail"
-      sx={(theme) => ({
-        position: isExpanded ? 'absolute' : 'relative',
-        left: isExpanded && activeMode === 'twoPanel' ? '772px' : 'auto',
-        right: isExpanded && activeMode === 'threePanel' ? '70px' : 'auto',
-        top:
-          isExpanded && activeMode === 'twoPanel'
-            ? '46px'
-            : isExpanded
-              ? '100px'
-              : 'auto',
-        zIndex: theme.zIndex.drawer + 3,
+      data-orientation={orientation}
+      sx={{
         display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
-        pt: isExpanded ? 0 : '2.875rem',
-        pl: isExpanded ? 0 : '0.75rem',
-        pr: isExpanded ? 0 : '0.75rem',
+        flexDirection: orientation,
+        gap: `${BUILDING_INFO_ACTION_BUTTON_GAP_PX}px`,
         pointerEvents: 'auto',
-      })}
+      }}
     >
-      <Tooltip title={ariaLabels.overview} arrow placement="right">
+      <Tooltip title={ariaLabels.overview} arrow placement={tooltipPlacement}>
         <IconButton
           aria-label={ariaLabels.overview}
           aria-pressed={activeMode === 'twoPanel' && !isCollapsed}
@@ -1881,7 +1883,7 @@ export const BuildingInfoActionRail = ({
           />
         </IconButton>
       </Tooltip>
-      <Tooltip title={ariaLabels.renovation} arrow placement="right">
+      <Tooltip title={ariaLabels.renovation} arrow placement={tooltipPlacement}>
         <IconButton
           aria-label={ariaLabels.renovation}
           aria-pressed={activeMode === 'threePanel' && !isCollapsed}
@@ -1907,10 +1909,11 @@ export const BuildingInfoMobileActionRow = ({
   return (
     <Box
       data-testid="building-info-mobile-action-row"
+      data-orientation="row"
       sx={{
         display: 'flex',
         flexDirection: 'row',
-        gap: '10px',
+        gap: `${BUILDING_INFO_ACTION_BUTTON_GAP_PX}px`,
         pointerEvents: 'auto',
       }}
     >

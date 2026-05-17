@@ -4,6 +4,7 @@ import React from 'react'
 import { Box, IconButton, SxProps, Theme } from '@mui/material'
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft'
 
+import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import { useUIStore } from '#/common/store'
 import type { SidebarActionRailPlacement } from '#/common/types/sidebar'
@@ -73,9 +74,27 @@ export type SimpleSidebarPanelsConfig =
 
 const DESKTOP_MAIN_WIDTH_REM = 23.75
 const DESKTOP_PANEL_WIDTH_REM = 23.75
+const SIDEBAR_TOGGLE_BUTTON_SIZE_PX = 45
+const ACTION_RAIL_GAP_PX = 10
 const BOTTOM_ACTION_ROW_TOGGLE_RIGHT = '35px'
 const BOTTOM_ACTION_ROW_BOTTOM =
   'calc(env(safe-area-inset-bottom, 0px) + 26px)'
+const FIXED_BOTTOM_ACTION_ROW_RIGHT_PX =
+  MAP_CONTROL_EDGE_GUTTER_PX +
+  SIDEBAR_TOGGLE_BUTTON_SIZE_PX +
+  ACTION_RAIL_GAP_PX
+const FIXED_RIGHT_ACTION_COLUMN_TOP_PX =
+  MAP_CONTROL_EDGE_GUTTER_PX +
+  SIDEBAR_TOGGLE_BUTTON_SIZE_PX +
+  ACTION_RAIL_GAP_PX
+const FIXED_RIGHT_ACTION_COLUMN_RIGHT_PX =
+  MAP_CONTROL_EDGE_GUTTER_PX +
+  SIDEBAR_TOGGLE_BUTTON_SIZE_PX +
+  ACTION_RAIL_GAP_PX
+type FixedSidebarActionRailPlacement = Extract<
+  SidebarActionRailPlacement,
+  'fixedBottomActionRow' | 'fixedRightActionColumn'
+>
 
 const panelChromeButtonSx = {
   pointerEvents: 'auto',
@@ -318,6 +337,40 @@ const getMobileMode = (panels?: SimpleSidebarPanelsConfig) => {
   return 'stacked'
 }
 
+const isFixedActionRailPlacement = (
+  placement: SidebarActionRailPlacement
+): placement is FixedSidebarActionRailPlacement =>
+  placement === 'fixedBottomActionRow' ||
+  placement === 'fixedRightActionColumn'
+
+const getFixedActionRailSx = (
+  placement: FixedSidebarActionRailPlacement
+): SxProps<Theme> => {
+  if (placement === 'fixedBottomActionRow') {
+    return (theme: Theme) => ({
+      position: 'fixed',
+      right: `${FIXED_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
+      bottom: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
+      zIndex: theme.zIndex.drawer + 12,
+      display: 'flex',
+      flexDirection: 'row',
+      gap: `${ACTION_RAIL_GAP_PX}px`,
+      pointerEvents: 'auto',
+    })
+  }
+
+  return (theme: Theme) => ({
+    position: 'fixed',
+    top: `${FIXED_RIGHT_ACTION_COLUMN_TOP_PX}px`,
+    right: `${FIXED_RIGHT_ACTION_COLUMN_RIGHT_PX}px`,
+    zIndex: theme.zIndex.drawer + 12,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: `${ACTION_RAIL_GAP_PX}px`,
+    pointerEvents: 'auto',
+  })
+}
+
 export const SimpleSidebar = ({
   sx,
   sidebarToggleSx,
@@ -471,16 +524,25 @@ export const SimpleSidebar = ({
         desktopActionRailContent
       ) : (
         <Box
-          sx={(theme) => ({
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 1,
-            pt: 2,
-            pl: 1,
-            zIndex: theme.zIndex.drawer + 1,
-            pointerEvents: 'auto',
-          })}
+          data-testid="sidebar-action-rail"
+          data-sidebar-action-rail-placement={actionRailPlacement}
+          data-sidebar-action-rail-fixed={
+            isFixedActionRailPlacement(actionRailPlacement) ? 'true' : undefined
+          }
+          sx={
+            isFixedActionRailPlacement(actionRailPlacement)
+              ? getFixedActionRailSx(actionRailPlacement)
+              : (theme: Theme) => ({
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 1,
+                  pt: 2,
+                  pl: 1,
+                  zIndex: theme.zIndex.drawer + 1,
+                  pointerEvents: 'auto',
+                })
+          }
         >
           {desktopActionRailContent}
         </Box>
@@ -493,27 +555,41 @@ export const SimpleSidebar = ({
         mobileActionRailContent
       ) : (
         <Box
-          sx={(theme) => ({
-            position:
-              actionRailPlacement === 'bottomActionRow' ? 'fixed' : 'absolute',
-            top:
-              actionRailPlacement === 'bottomActionRow'
-                ? 'auto'
-                : '4.75rem',
-            right:
-              actionRailPlacement === 'bottomActionRow'
-                ? '90px'
-                : '0.75rem',
-            bottom:
-              actionRailPlacement === 'bottomActionRow'
-                ? BOTTOM_ACTION_ROW_BOTTOM
-                : 'auto',
-            zIndex: theme.zIndex.drawer + 12,
-            display: 'flex',
-            flexDirection: 'row',
-            gap: '10px',
-            pointerEvents: 'auto',
-          })}
+          data-testid="sidebar-action-rail"
+          data-sidebar-action-rail-placement={actionRailPlacement}
+          data-sidebar-action-rail-fixed={
+            isFixedActionRailPlacement(actionRailPlacement) ||
+            actionRailPlacement === 'bottomActionRow'
+              ? 'true'
+              : undefined
+          }
+          sx={
+            isFixedActionRailPlacement(actionRailPlacement)
+              ? getFixedActionRailSx(actionRailPlacement)
+              : (theme: Theme) => ({
+                  position:
+                    actionRailPlacement === 'bottomActionRow'
+                      ? 'fixed'
+                      : 'absolute',
+                  top:
+                    actionRailPlacement === 'bottomActionRow'
+                      ? 'auto'
+                      : '4.75rem',
+                  right:
+                    actionRailPlacement === 'bottomActionRow'
+                      ? '90px'
+                      : '0.75rem',
+                  bottom:
+                    actionRailPlacement === 'bottomActionRow'
+                      ? BOTTOM_ACTION_ROW_BOTTOM
+                      : 'auto',
+                  zIndex: theme.zIndex.drawer + 12,
+                  display: 'flex',
+                  flexDirection: 'row',
+                  gap: '10px',
+                  pointerEvents: 'auto',
+                })
+          }
         >
           {mobileActionRailContent}
         </Box>
