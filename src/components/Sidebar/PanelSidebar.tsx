@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { Box } from '@mui/material'
 import type { SxProps, Theme } from '@mui/material'
 
 import {
@@ -18,6 +19,11 @@ import type {
   SimpleSidebarMobilePanel,
   SimpleSidebarPanelsConfig,
 } from './SimpleSidebar'
+import { PanelSidebarTabIconButton } from './PanelSidebarTabIconButton'
+import {
+  PanelSidebarTabsContext,
+  type PanelSidebarTabMetadata,
+} from './PanelSidebarTabsContext'
 import {
   SidebarActionRailSlot,
   SidebarFooterSlot,
@@ -94,9 +100,11 @@ const toDoubleMobilePanel = (
 const getScopedPanelsConfig = ({
   boundaryId,
   options,
+  actionRail,
 }: {
   boundaryId?: SidebarBoundaryId
   options?: SidebarPanelOptions
+  actionRail?: React.ReactNode
 }): SimpleSidebarPanelsConfig | undefined => {
   if (boundaryId == null) {
     return undefined
@@ -122,7 +130,6 @@ const getScopedPanelsConfig = ({
     return undefined
   }
 
-  const scopedActionRail = <SidebarActionRailSlot boundaryId={boundaryId} />
   const panelLocalScrollContentSx =
     options?.chrome === 'hidden'
       ? {
@@ -153,8 +160,8 @@ const getScopedPanelsConfig = ({
         options?.mainPanelVisible !== false && visiblePanels.includes('main'),
       mobileMainPanelVisible:
         options?.mainPanelVisible !== false && visiblePanels.includes('main'),
-      desktopActionRail: scopedActionRail,
-      mobileActionRail: scopedActionRail,
+      desktopActionRail: actionRail,
+      mobileActionRail: actionRail,
       panelA: {
         content: panelSlotContent({ boundaryId, panelId: 'secondary' }),
         desktopWidth: getExtraPanelWidth({ panelId: 'secondary', options }),
@@ -177,8 +184,8 @@ const getScopedPanelsConfig = ({
     mobileStackPlacement: options?.mobileStackPlacement,
     mobileStackRender: 'direct',
     mobileActivePanel: toSingleMobilePanel(options?.activePanel, panelId),
-    desktopActionRail: scopedActionRail,
-    mobileActionRail: scopedActionRail,
+    desktopActionRail: actionRail,
+    mobileActionRail: actionRail,
     panel: {
       content: panelSlotContent({ boundaryId, panelId }),
       desktopWidth: getExtraPanelWidth({ panelId, options }),
@@ -238,6 +245,85 @@ const getPanelSidebarToggleSx = (
   }
 }
 
+const areTabMetadataEqual = (
+  previous: PanelSidebarTabMetadata,
+  next: PanelSidebarTabMetadata
+) =>
+  previous.tabId === next.tabId &&
+  previous.tabName === next.tabName &&
+  previous.tabAriaLabel === next.tabAriaLabel &&
+  previous.tabIcon === next.tabIcon &&
+  previous.tabButtonSx === next.tabButtonSx &&
+  previous.tabIconSx === next.tabIconSx &&
+  previous.tabButtonId === next.tabButtonId &&
+  previous.tabPanelId === next.tabPanelId
+
+const getPanelSidebarContentSx = ({
+  options,
+  hasTabs,
+}: {
+  options?: SidebarPanelOptions
+  hasTabs: boolean
+}): SxProps<Theme> | undefined => {
+  if (!hasTabs && options?.chrome !== 'hidden') {
+    return undefined
+  }
+
+  return {
+    overflow: 'hidden',
+    height: '100%',
+    maxHeight: '100%',
+    minHeight: 0,
+    width: '100%',
+    alignItems: 'stretch',
+  }
+}
+
+const PanelSidebarTabRail = ({
+  tabs,
+  activeTabId,
+  onTabChange,
+}: {
+  tabs: PanelSidebarTabMetadata[]
+  activeTabId?: string
+  onTabChange: (tabId: string) => void
+}) => {
+  if (tabs.length < 2) {
+    return null
+  }
+
+  return (
+    <Box
+      role="tablist"
+      aria-label="Sidebar panel tabs"
+      data-testid="panel-sidebar-tab-rail"
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 1,
+        pointerEvents: 'auto',
+      }}
+    >
+      {tabs.map((tab) => (
+        <PanelSidebarTabIconButton
+          key={tab.tabId}
+          tabId={tab.tabId}
+          tabName={tab.tabName}
+          ariaLabel={tab.tabAriaLabel}
+          icon={tab.tabIcon}
+          selected={tab.tabId === activeTabId}
+          buttonId={tab.tabButtonId}
+          controlsId={tab.tabPanelId}
+          onSelect={onTabChange}
+          sx={tab.tabButtonSx}
+          iconSx={tab.tabIconSx}
+        />
+      ))}
+    </Box>
+  )
+}
+
 export const PanelSidebar = ({
   sx,
   panels,
@@ -245,17 +331,112 @@ export const PanelSidebar = ({
   options,
   children,
 }: PanelSidebarProps) => {
+  const [tabs, setTabs] = useState<PanelSidebarTabMetadata[]>([])
+  const [activeTabId, setActiveTabId] = useState<string | undefined>()
+  const resolvedActiveTabId = activeTabId ?? tabs[0]?.tabId
+
+  const registerTab = useCallback((tab: PanelSidebarTabMetadata) => {
+    setTabs((currentTabs) => {
+      const tabIndex = currentTabs.findIndex(
+        (currentTab) => currentTab.tabId === tab.tabId
+      )
+
+      if (tabIndex === -1) {
+        return [...currentTabs, tab]
+      }
+
+      if (areTabMetadataEqual(currentTabs[tabIndex], tab)) {
+        return currentTabs
+      }
+
+      return currentTabs.map((currentTab, index) =>
+        index === tabIndex ? tab : currentTab
+      )
+    })
+  }, [])
+
+  const unregisterTab = useCallback((tabId: string) => {
+    setTabs((currentTabs) =>
+      currentTabs.filter((currentTab) => currentTab.tabId !== tabId)
+    )
+  }, [])
+
+  useEffect(() => {
+    const firstTabId = tabs[0]?.tabId
+
+    if (firstTabId == null) {
+      if (activeTabId !== undefined) {
+        setActiveTabId(undefined)
+      }
+      return
+    }
+
+    if (
+      activeTabId == null ||
+      !tabs.some((tab) => tab.tabId === activeTabId)
+    ) {
+      setActiveTabId(firstTabId)
+    }
+  }, [activeTabId, tabs])
+
+  const tabsContextValue = useMemo(
+    () => ({
+      tabs,
+      activeTabId,
+      resolvedActiveTabId,
+      setActiveTabId,
+      registerTab,
+      unregisterTab,
+    }),
+    [activeTabId, registerTab, resolvedActiveTabId, tabs, unregisterTab]
+  )
+
+  const scopedActionRailSlot = useMemo(
+    () =>
+      boundaryId != null ? (
+        <SidebarActionRailSlot boundaryId={boundaryId} />
+      ) : undefined,
+    [boundaryId]
+  )
+  const tabRail = useMemo(
+    () =>
+      tabs.length >= 2 ? (
+        <PanelSidebarTabRail
+          tabs={tabs}
+          activeTabId={resolvedActiveTabId}
+          onTabChange={setActiveTabId}
+        />
+      ) : undefined,
+    [resolvedActiveTabId, tabs]
+  )
+  const combinedActionRail = useMemo(() => {
+    if (tabRail == null && scopedActionRailSlot == null) {
+      return undefined
+    }
+
+    if (scopedActionRailSlot != null) {
+      return (
+        <>
+          {tabRail}
+          {scopedActionRailSlot}
+        </>
+      )
+    }
+
+    return tabRail
+  }, [scopedActionRailSlot, tabRail])
   const scopedPanels = useMemo(
-    () => getScopedPanelsConfig({ boundaryId, options }),
-    [boundaryId, options]
+    () =>
+      getScopedPanelsConfig({
+        boundaryId,
+        options,
+        actionRail: combinedActionRail,
+      }),
+    [boundaryId, combinedActionRail, options]
   )
   const headerChildren =
     boundaryId != null ? (
       <SidebarHeaderChildrenSlot boundaryId={boundaryId} />
-    ) : undefined
-  const scopedActionRail =
-    boundaryId != null ? (
-      <SidebarActionRailSlot boundaryId={boundaryId} />
     ) : undefined
   const scopedTopContent =
     options?.chrome === 'hidden'
@@ -271,44 +452,38 @@ export const PanelSidebar = ({
         : undefined
 
   return (
-    <SimpleSidebar
-      sx={getPanelSidebarSx(sx, options)}
-      sidebarToggleSx={getPanelSidebarToggleSx(options)}
-      panels={panels ?? scopedPanels}
-      headerChildren={headerChildren}
-      topContent={scopedTopContent}
-      bottomContent={scopedBottomContent}
-      actionRail={
-        panels == null && scopedPanels == null ? scopedActionRail : undefined
-      }
-      actionRailPlacement={options?.actionRailPlacement}
-      hideMainContainer={options?.mainPanelVisible === false}
-      panelSx={
-        options?.width === 'compact'
-          ? {
-              borderRadius: { mobile: 0, desktop: '10px' },
-              backgroundColor: '#f4f4f4',
-            }
-          : undefined
-      }
-      contentSx={
-        options?.chrome === 'hidden'
-          ? {
-              overflow: 'hidden',
-              height: '100%',
-              maxHeight: '100%',
-              minHeight: 0,
-              width: '100%',
-              alignItems: 'stretch',
-            }
-          : undefined
-      }
-    >
-      {boundaryId != null && (
-        <SidebarPanelSlot boundaryId={boundaryId} panelId="main" />
-      )}
-      {children}
-    </SimpleSidebar>
+    <PanelSidebarTabsContext.Provider value={tabsContextValue}>
+      <SimpleSidebar
+        sx={getPanelSidebarSx(sx, options)}
+        sidebarToggleSx={getPanelSidebarToggleSx(options)}
+        panels={panels ?? scopedPanels}
+        headerChildren={headerChildren}
+        topContent={scopedTopContent}
+        bottomContent={scopedBottomContent}
+        actionRail={
+          panels == null && scopedPanels == null ? combinedActionRail : undefined
+        }
+        actionRailPlacement={options?.actionRailPlacement}
+        hideMainContainer={options?.mainPanelVisible === false}
+        panelSx={
+          options?.width === 'compact'
+            ? {
+                borderRadius: { mobile: 0, desktop: '10px' },
+                backgroundColor: '#f4f4f4',
+              }
+            : undefined
+        }
+        contentSx={getPanelSidebarContentSx({
+          options,
+          hasTabs: tabs.length > 0,
+        })}
+      >
+        {boundaryId != null && (
+          <SidebarPanelSlot boundaryId={boundaryId} panelId="main" />
+        )}
+        {children}
+      </SimpleSidebar>
+    </PanelSidebarTabsContext.Provider>
   )
 }
 

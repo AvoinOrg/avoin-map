@@ -2,6 +2,13 @@ export { SidebarRoot } from './SidebarRoot'
 export { HomeSidebar } from './HomeSidebar'
 export { FloatingSidebar } from './FloatingSidebar'
 export { PanelSidebar } from './PanelSidebar'
+export { PanelSidebarPageContainer } from './PanelSidebarPageContainer'
+export { PanelSidebarTabContainer } from './PanelSidebarTabContainer'
+export {
+  PanelSidebarDefaultTabIcon,
+  PanelSidebarTabIconButton,
+  getPanelSidebarTabAccessibleLabel,
+} from './PanelSidebarTabIconButton'
 export type { HomeSidebarProps } from './HomeSidebar'
 export type {
   FloatingSidebarFooterMode,
@@ -10,6 +17,12 @@ export type {
   FloatingSidebarWidth,
 } from './FloatingSidebar'
 export type { PanelSidebarProps } from './PanelSidebar'
+export type { PanelSidebarPageContainerProps } from './PanelSidebarPageContainer'
+export type { PanelSidebarTabContainerProps } from './PanelSidebarTabContainer'
+export type {
+  PanelSidebarDefaultTabIconProps,
+  PanelSidebarTabIconButtonProps,
+} from './PanelSidebarTabIconButton'
 export {
   SidebarBoundary,
   useSidebarBoundaryRuntimeOptions,

@@ -52,6 +52,12 @@ const SIDEBAR_ROOT_SCENARIO = [
     expectSidebar: 'yes',
   },
   {
+    id: 'hiilikartta-kaavat-panel',
+    route: '/fi/hiilikartta/kaavat',
+    viewports: ['desktop', 'mobile'],
+    expectSidebar: 'yes',
+  },
+  {
     id: 'luonnonmetsakartat-root',
     route: '/fi/luonnonmetsakartat',
     viewports: ['desktop', 'mobile'],
