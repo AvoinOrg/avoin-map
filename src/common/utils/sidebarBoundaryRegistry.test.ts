@@ -38,12 +38,12 @@ describe('sidebar boundary registry selection', () => {
       id: 'parent',
       depth: 0,
       registrationOrder: 1,
-      mode: 'panel',
+      mode: 'simple',
     })
 
     expect(selectActiveSidebarBoundary({ parent })).toBe(parent)
     expect(selectActiveSidebarBoundaryId({ parent })).toBe('parent')
-    expect(selectActiveSidebarMode({ parent })).toBe('panel')
+    expect(selectActiveSidebarMode({ parent })).toBe('simple')
   })
 
   it('selects a child boundary over its parent', () => {

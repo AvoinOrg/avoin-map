@@ -11,7 +11,7 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   return (
     <SidebarBoundary
       id="forests-panel"
-      mode="panel"
+      mode="simple"
       config={{ panelLayout: 'single' }}
     >
       <AppletWrapper

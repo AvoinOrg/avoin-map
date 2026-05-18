@@ -23,7 +23,7 @@ const activeBoundaryId = () =>
 const NestedBoundaries = ({ showChild }: { showChild: boolean }) => (
   <SidebarBoundary id="parent" mode="floating">
     {showChild && (
-      <SidebarBoundary id="child" mode="panel">
+      <SidebarBoundary id="child" mode="simple">
         Child content
       </SidebarBoundary>
     )}
@@ -71,7 +71,7 @@ describe('SidebarBoundary', () => {
     rerender(
       <SidebarBoundary
         id="boundary"
-        mode="panel"
+        mode="simple"
         config={{
           panelLayout: 'double',
         }}
@@ -82,7 +82,7 @@ describe('SidebarBoundary', () => {
       useUIStore.getState().sidebarBoundaries.boundary?.registrationOrder
     ).toBe(registrationOrder)
     expect(useUIStore.getState().sidebarBoundaries.boundary).toMatchObject({
-      mode: 'panel',
+      mode: 'simple',
       config: {
         panelLayout: 'double',
       },
@@ -91,7 +91,7 @@ describe('SidebarBoundary', () => {
 
   it('writes and resets scoped runtime options from a boundary child', () => {
     const RuntimeBoundary = ({ showWriter }: { showWriter: boolean }) => (
-      <SidebarBoundary id="runtime-boundary" mode="panel">
+      <SidebarBoundary id="runtime-boundary" mode="simple">
         {showWriter && (
           <RuntimeOptionsWriter
             runtimeOptions={{

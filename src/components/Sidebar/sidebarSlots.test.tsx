@@ -101,7 +101,7 @@ describe('sidebar scoped slots', () => {
             <button type="button">Parent bottom control</button>
           </IntoSidebarBottomControlsSlot>
 
-          <SidebarBoundary id="child" mode="panel">
+          <SidebarBoundary id="child" mode="simple">
             <SidebarActionRailSlot boundaryId="child" />
             <SidebarHeaderSlot boundaryId="child" />
             <SidebarPanelSlot boundaryId="child" panelId="secondary" />

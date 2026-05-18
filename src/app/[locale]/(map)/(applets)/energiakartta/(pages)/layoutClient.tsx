@@ -13,12 +13,9 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
   return (
     <SidebarBoundary
       id="energiakartta-floating"
-      mode="panel"
+      mode="floating"
       config={{
         width: 'compact',
-        panelLayout: 'single',
-        visiblePanels: ['main'],
-        activePanel: 'main',
       }}
     >
       <AppletWrapper

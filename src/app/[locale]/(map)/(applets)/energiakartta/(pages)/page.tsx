@@ -3,7 +3,6 @@
 import React from 'react'
 import { Box, Tooltip, Typography } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
-import { useParams } from 'next/navigation'
 
 import { MAP_BOTTOM_LEFT_FLOATING_CONTROLS_SLOT } from '#/common/constants/map'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
@@ -17,33 +16,12 @@ import SquishedSwitchWithLabel from '#/components/common/SquishedSwitchWithLabel
 import TText from '#/components/common/TText'
 import { IntoSlot } from '#/components/context/slotsContext'
 import {
-  IntoSidebarActionRailSlot,
   IntoSidebarFooterSlot,
   IntoSidebarHeaderSlot,
-  IntoSidebarPanelSlot,
   SidebarContentBox,
-  useSidebarBoundaryRuntimeOptions,
 } from '#/components/Sidebar'
 import EnergyCertificateClassControls from '../components/EnergyCertificateClassControls'
 import EnergyClassesAccordionContent from '../components/EnergyClassesAccordionContent'
-import {
-  BuildingInfoActionRail,
-  BuildingInfoTabPages,
-  getBuildingInfoModeForTabId,
-  getBuildingInfoTabIdForMode,
-} from '../components/BuildingInfoSidebar'
-import type {
-  BuildingInfoDesktopMode,
-  BuildingInfoTabId,
-} from '../components/BuildingInfoSidebar'
-import { createEnergymapBuildingInfoPanels } from '../common/buildingInfo'
-import {
-  getEnergymapBuildingInfoSidebarRuntimeOptions,
-} from '../common/buildingInfoSidebarRuntime'
-import {
-  areEnergymapSelectedBuildingsEqual,
-  toEnergymapSelectedBuilding,
-} from '../common/utils'
 import {
   ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID,
   ENERGYMAP_BUILDING_POLYGONS_LAYER_IDS,
@@ -364,17 +342,12 @@ const HeatingAccordionContent = ({
 
 const Page = () => {
   const { t } = useTranslate('energiakartta')
-  const params = useParams<{ locale?: string | string[] }>()
-  const locale = typeof params.locale === 'string' ? params.locale : 'fi'
   const setFilter = useMapStore((state) => state.setFilter)
   const setLayoutProperty = useMapStore((state) => state.setLayoutProperty)
   const setPaintProperty = useMapStore((state) => state.setPaintProperty)
   const enableLayerGroup = useMapStore((state) => state.enableLayerGroup)
-  const setSelectedFeatures = useMapStore((state) => state.setSelectedFeatures)
-  const selectedFeatures = useMapStore((state) => state.selectedFeatures)
   const isMobile = useIsMobile('desktop')
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
-  const setIsSidebarOpen = useUIStore((state) => state.setIsSidebarOpen)
   const isSharedBuildingLayerGroupRegistered = useMapStore((state) =>
     ENERGYMAP_SHARED_BUILDING_LAYER_IDS.every((layerId) =>
       Boolean(
@@ -397,24 +370,12 @@ const Page = () => {
   const activeEnergyCertificateClasses = useAppletStore(
     (state) => state.activeEnergyCertificateClasses
   )
-  const selectedBuilding = useAppletStore((state) => state.selectedBuilding)
-  const setSelectedBuilding = useAppletStore(
-    (state) => state.setSelectedBuilding
-  )
-  const clearSelectedBuilding = useAppletStore(
-    (state) => state.clearSelectedBuilding
-  )
   const visibleLayerGroupIds = useVisibleLayerGroupIds()
   const [heatingSwitchState, setHeatingSwitchState] = React.useState(
     INITIAL_HEATING_SWITCH_STATE
   )
   const [activeThematicMode, setActiveThematicMode] =
     React.useState<EnergymapMainThematicMode | null>(null)
-  const [activeBuildingInfoMode, setActiveBuildingInfoMode] =
-    React.useState<BuildingInfoDesktopMode>('twoPanel')
-  const [isBuildingInfoCollapsed, setIsBuildingInfoCollapsed] =
-    React.useState(false)
-  const previousSelectedBuildingKeyRef = React.useRef<string | null>(null)
   const energyCertificateFillColorExpression = React.useMemo(
     () =>
       getEnergyCertificateFillColorExpression(activeEnergyCertificateClasses),
@@ -450,25 +411,6 @@ const Page = () => {
     () => combineMapFilters([buildingFilter, heatingFilter]),
     [buildingFilter, heatingFilter]
   )
-  const selectedEnergymapBuilding = React.useMemo(
-    () =>
-      selectedFeatures
-        .map(toEnergymapSelectedBuilding)
-        .find((building) => building != null) ?? null,
-    [selectedFeatures]
-  )
-  const buildingInfoPanels = React.useMemo(
-    () =>
-      createEnergymapBuildingInfoPanels({
-        selectedBuilding,
-        locale,
-      }),
-    [locale, selectedBuilding]
-  )
-  const selectedBuildingKey = selectedBuilding?.buildingKey ?? null
-  const hasBuildingInfo = buildingInfoPanels != null
-  const isBuildingInfoExpanded = hasBuildingInfo && !isBuildingInfoCollapsed
-  const shouldShowHomeSidebarChrome = !isBuildingInfoExpanded
   const isSharedBuildingLayerGroupVisible = visibleLayerGroupIds.includes(
     ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID
   )
@@ -486,15 +428,6 @@ const Page = () => {
   )
   const toggleHeatingAria = t('sidebar.front_page.aria.toggle_heating')
   const footerLabel = t('sidebar.front_page.footer.edit_building_details')
-  const buildingInfoAriaLabels = React.useMemo(
-    () => ({
-      close: t('sidebar.building_info.aria.close'),
-      collapse: t('sidebar.building_info.aria.collapse'),
-      overview: t('sidebar.building_info.aria.open_overview'),
-      renovation: t('sidebar.building_info.aria.open_renovation'),
-    }),
-    [t]
-  )
   const toggleThematicMode = React.useCallback(
     async (mode: EnergymapMainThematicMode) => {
       const isModeCurrentlyVisible =
@@ -524,67 +457,6 @@ const Page = () => {
         [id]: event.target.checked,
       }))
     }
-  const handleBuildingInfoModeChange = React.useCallback(
-    (mode: BuildingInfoDesktopMode) => {
-      setActiveBuildingInfoMode(mode)
-      setIsBuildingInfoCollapsed(false)
-      setIsSidebarOpen(true)
-    },
-    [setIsSidebarOpen]
-  )
-  const handleCollapseBuildingInfo = React.useCallback(
-    (tabId?: BuildingInfoTabId) => {
-      if (tabId != null) {
-        setActiveBuildingInfoMode(getBuildingInfoModeForTabId(tabId))
-      }
-      setIsBuildingInfoCollapsed(true)
-      setIsSidebarOpen(true)
-    },
-    [setIsSidebarOpen]
-  )
-  const handleCloseBuildingInfo = React.useCallback(() => {
-    setIsSidebarOpen(true)
-    setSelectedFeatures([])
-  }, [setIsSidebarOpen, setSelectedFeatures])
-
-  React.useEffect(() => {
-    if (selectedBuildingKey == null) {
-      previousSelectedBuildingKeyRef.current = null
-      setActiveBuildingInfoMode('twoPanel')
-      setIsBuildingInfoCollapsed(false)
-      return
-    }
-
-    if (previousSelectedBuildingKeyRef.current !== selectedBuildingKey) {
-      previousSelectedBuildingKeyRef.current = selectedBuildingKey
-      setActiveBuildingInfoMode('twoPanel')
-      setIsBuildingInfoCollapsed(false)
-      setIsSidebarOpen(true)
-    }
-  }, [selectedBuildingKey, setIsSidebarOpen])
-
-  React.useEffect(() => {
-    if (
-      areEnergymapSelectedBuildingsEqual(
-        selectedBuilding,
-        selectedEnergymapBuilding
-      )
-    ) {
-      return
-    }
-
-    if (selectedEnergymapBuilding == null) {
-      clearSelectedBuilding()
-      return
-    }
-
-    setSelectedBuilding(selectedEnergymapBuilding)
-  }, [
-    clearSelectedBuilding,
-    selectedBuilding,
-    selectedEnergymapBuilding,
-    setSelectedBuilding,
-  ])
 
   React.useEffect(() => {
     if (!isSharedBuildingLayerGroupRegistered) {
@@ -713,51 +585,14 @@ const Page = () => {
     setPaintProperty,
   ])
 
-  const buildingInfoActionRail =
-    hasBuildingInfo && isBuildingInfoCollapsed ? (
-      <BuildingInfoActionRail
-        activeMode={activeBuildingInfoMode}
-        isCollapsed={isBuildingInfoCollapsed}
-        orientation={isMobile ? 'row' : 'column'}
-        ariaLabels={buildingInfoAriaLabels}
-        onModeChange={handleBuildingInfoModeChange}
-      />
-    ) : null
-  const sidebarRuntimeOptions = React.useMemo(
-    () =>
-      getEnergymapBuildingInfoSidebarRuntimeOptions({
-        hasBuildingInfo,
-        isBuildingInfoCollapsed,
-        isMobile,
-      }),
-    [hasBuildingInfo, isBuildingInfoCollapsed, isMobile]
-  )
-
-  useSidebarBoundaryRuntimeOptions(sidebarRuntimeOptions)
-
   return (
     <>
-      {shouldShowHomeSidebarChrome && (
-        <IntoSidebarHeaderSlot>
-          <HomeSidebarHeader />
-        </IntoSidebarHeaderSlot>
-      )}
-      {shouldShowHomeSidebarChrome && (
-        <IntoSidebarFooterSlot>
-          <SidebarFooterAction
-            tooltip={upcomingTooltip}
-            label={footerLabel}
-            reserveActionRow={
-              hasBuildingInfo && isBuildingInfoCollapsed && isMobile
-            }
-          />
-        </IntoSidebarFooterSlot>
-      )}
-      {buildingInfoActionRail != null && (
-        <IntoSidebarActionRailSlot>
-          {buildingInfoActionRail}
-        </IntoSidebarActionRailSlot>
-      )}
+      <IntoSidebarHeaderSlot>
+        <HomeSidebarHeader />
+      </IntoSidebarHeaderSlot>
+      <IntoSidebarFooterSlot>
+        <SidebarFooterAction tooltip={upcomingTooltip} label={footerLabel} />
+      </IntoSidebarFooterSlot>
       {shouldShowMobileEnergyCertificateControls && (
         <IntoSlot name={MAP_BOTTOM_LEFT_FLOATING_CONTROLS_SLOT}>
           <EnergyCertificateClassControls
@@ -766,143 +601,127 @@ const Page = () => {
           />
         </IntoSlot>
       )}
-      <IntoSidebarPanelSlot panelId="main">
-        {isBuildingInfoExpanded && buildingInfoPanels != null ? (
-          <BuildingInfoTabPages
-            key={selectedBuildingKey}
-            panels={buildingInfoPanels}
-            ariaLabels={buildingInfoAriaLabels}
-            activeTabId={getBuildingInfoTabIdForMode(activeBuildingInfoMode)}
-            onClose={handleCloseBuildingInfo}
-            onCollapse={handleCollapseBuildingInfo}
-          />
-        ) : (
-          <SidebarContentBox
-            sxOuter={{
-              height: '100%',
-            }}
-            scrollbarSide="left"
-            sxInner={{
-              p: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              minHeight: '100%',
-              height: '100%',
+      <SidebarContentBox
+        sxOuter={{
+          height: '100%',
+        }}
+        scrollbarSide="left"
+        sxInner={{
+          p: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100%',
+          height: '100%',
+        }}
+      >
+        <Box
+          sx={{
+            px: SIDEBAR_SIDE_PADDING,
+            pt: SIDEBAR_CONTENT_VERTICAL_PADDING,
+            pb: SIDEBAR_CONTENT_VERTICAL_PADDING,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <Typography
+            sx={{
+              maxWidth: '18.1875rem',
+              color: '#111111',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              lineHeight: '1.25rem',
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase',
             }}
           >
-            <Box
-              sx={{
-                px: SIDEBAR_SIDE_PADDING,
-                pt: SIDEBAR_CONTENT_VERTICAL_PADDING,
-                pb: SIDEBAR_CONTENT_VERTICAL_PADDING,
-                display: 'flex',
-                flexDirection: 'column',
-              }}
-            >
-              <Typography
-                sx={{
-                  maxWidth: '18.1875rem',
-                  color: '#111111',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  lineHeight: '1.25rem',
-                  letterSpacing: '0.15em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                <TText keyName="sidebar.front_page.heading" ns="energiakartta" />
-              </Typography>
+            <TText keyName="sidebar.front_page.heading" ns="energiakartta" />
+          </Typography>
 
-              <Typography
-                sx={{
-                  mt: { mobile: '3rem', desktop: '3.75rem' },
-                  maxWidth: '18.1875rem',
-                  color: '#111111',
-                  fontSize: '0.75rem',
-                  fontWeight: 400,
-                  lineHeight: '1.125rem',
-                  letterSpacing: '0.05em',
-                }}
-              >
+          <Typography
+            sx={{
+              mt: { mobile: '3rem', desktop: '3.75rem' },
+              maxWidth: '18.1875rem',
+              color: '#111111',
+              fontSize: '0.75rem',
+              fontWeight: 400,
+              lineHeight: '1.125rem',
+              letterSpacing: '0.05em',
+            }}
+          >
+            <TText
+              keyName="sidebar.front_page.description"
+              ns="energiakartta"
+            />
+          </Typography>
+
+          <Box
+            sx={{
+              mt: { mobile: '4rem', desktop: '6.875rem' },
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '2.25rem',
+              maxWidth: '19.625rem',
+            }}
+          >
+            <LayerToggleRowAccordion
+              label={
                 <TText
-                  keyName="sidebar.front_page.description"
+                  keyName="sidebar.front_page.layers.energy_classes"
                   ns="energiakartta"
                 />
-              </Typography>
-
-              <Box
-                sx={{
-                  mt: { mobile: '4rem', desktop: '6.875rem' },
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '2.25rem',
-                  maxWidth: '19.625rem',
-                }}
+              }
+              status={isEnergyCertificateLayerVisible ? 'visible' : 'hidden'}
+              expanded={isEnergyCertificateLayerVisible}
+              ariaLabel={toggleEnergyClassesAria}
+              onToggle={() => {
+                void toggleThematicMode(ENERGY_CERTIFICATE_THEMATIC_MODE)
+              }}
+              labelSx={ROW_LABEL_SX}
+            >
+              <EnergyClassesAccordionContent />
+            </LayerToggleRowAccordion>
+            <LayerToggleRowAccordion
+              label={
+                <TText
+                  keyName="sidebar.front_page.layers.heating"
+                  ns="energiakartta"
+                />
+              }
+              status={isHeatingLayerVisible ? 'visible' : 'hidden'}
+              expanded={isHeatingLayerVisible}
+              ariaLabel={toggleHeatingAria}
+              onToggle={() => {
+                void toggleThematicMode(HEATING_THEMATIC_MODE)
+              }}
+              labelSx={ROW_LABEL_SX}
+            >
+              <HeatingAccordionContent
+                heatingSwitchState={heatingSwitchState}
+                onHeatingSwitchChange={handleHeatingSwitchChange}
+              />
+            </LayerToggleRowAccordion>
+            {LOWER_DISABLED_LAYER_ROWS.map(({ keyName, ariaKeyName }) => (
+              <Tooltip
+                key={keyName}
+                title={upcomingTooltip}
+                arrow
+                placement="top"
               >
-                <LayerToggleRowAccordion
-                  label={
-                    <TText
-                      keyName="sidebar.front_page.layers.energy_classes"
-                      ns="energiakartta"
-                    />
-                  }
-                  status={isEnergyCertificateLayerVisible ? 'visible' : 'hidden'}
-                  expanded={isEnergyCertificateLayerVisible}
-                  ariaLabel={toggleEnergyClassesAria}
-                  onToggle={() => {
-                    void toggleThematicMode(ENERGY_CERTIFICATE_THEMATIC_MODE)
-                  }}
-                  labelSx={ROW_LABEL_SX}
-                >
-                  <EnergyClassesAccordionContent />
-                </LayerToggleRowAccordion>
-                <LayerToggleRowAccordion
-                  label={
-                    <TText
-                      keyName="sidebar.front_page.layers.heating"
-                      ns="energiakartta"
-                    />
-                  }
-                  status={isHeatingLayerVisible ? 'visible' : 'hidden'}
-                  expanded={isHeatingLayerVisible}
-                  ariaLabel={toggleHeatingAria}
-                  onToggle={() => {
-                    void toggleThematicMode(HEATING_THEMATIC_MODE)
-                  }}
-                  labelSx={ROW_LABEL_SX}
-                >
-                  <HeatingAccordionContent
-                    heatingSwitchState={heatingSwitchState}
-                    onHeatingSwitchChange={handleHeatingSwitchChange}
+                <Box component="span" sx={{ display: 'block', width: '100%' }}>
+                  <LayerToggleRow
+                    label={<TText keyName={keyName} ns="energiakartta" />}
+                    status="hidden"
+                    disabled
+                    ariaLabel={t(ariaKeyName)}
+                    onToggle={() => {}}
+                    labelSx={ROW_LABEL_SX}
                   />
-                </LayerToggleRowAccordion>
-                {LOWER_DISABLED_LAYER_ROWS.map(({ keyName, ariaKeyName }) => (
-                  <Tooltip
-                    key={keyName}
-                    title={upcomingTooltip}
-                    arrow
-                    placement="top"
-                  >
-                    <Box
-                      component="span"
-                      sx={{ display: 'block', width: '100%' }}
-                    >
-                      <LayerToggleRow
-                        label={<TText keyName={keyName} ns="energiakartta" />}
-                        status="hidden"
-                        disabled
-                        ariaLabel={t(ariaKeyName)}
-                        onToggle={() => {}}
-                        labelSx={ROW_LABEL_SX}
-                      />
-                    </Box>
-                  </Tooltip>
-                ))}
-              </Box>
-            </Box>
-          </SidebarContentBox>
-        )}
-      </IntoSidebarPanelSlot>
+                </Box>
+              </Tooltip>
+            ))}
+          </Box>
+        </Box>
+      </SidebarContentBox>
     </>
   )
 }

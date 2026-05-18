@@ -14,11 +14,11 @@ import type {
   SidebarPanelId,
 } from '#/common/types/sidebar'
 
-import SimpleSidebar from './SimpleSidebar'
+import SimpleSidebarBase from './SimpleSidebarBase'
 import type {
   SimpleSidebarMobilePanel,
   SimpleSidebarPanelsConfig,
-} from './SimpleSidebar'
+} from './SimpleSidebarBase'
 import { PanelSidebarTabIconButton } from './PanelSidebarTabIconButton'
 import {
   PanelSidebarTabsContext,
@@ -470,7 +470,7 @@ export const PanelSidebar = ({
 
   return (
     <PanelSidebarTabsContext.Provider value={tabsContextValue}>
-      <SimpleSidebar
+      <SimpleSidebarBase
         sx={getPanelSidebarSx(sx, options)}
         sidebarToggleSx={getPanelSidebarToggleSx(options)}
         panels={panels ?? scopedPanels}
@@ -499,7 +499,7 @@ export const PanelSidebar = ({
           <SidebarPanelSlot boundaryId={boundaryId} panelId="main" />
         )}
         {children}
-      </SimpleSidebar>
+      </SimpleSidebarBase>
     </PanelSidebarTabsContext.Provider>
   )
 }

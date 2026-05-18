@@ -1,6 +1,6 @@
 export type SidebarBoundaryId = string
 
-export type SidebarMode = 'none' | 'home' | 'floating' | 'panel'
+export type SidebarMode = 'none' | 'home' | 'floating' | 'simple'
 
 export type SidebarPanelId = 'main' | 'secondary' | 'tertiary'
 
@@ -51,11 +51,13 @@ export type SidebarPanelConfig = SidebarHomeConfig & {
   actionRailPlacement?: SidebarActionRailPlacement
 }
 
+export type SidebarSimpleConfig = SidebarPanelConfig
+
 export type SidebarModeConfigMap = {
   none: SidebarNoneConfig
   home: SidebarHomeConfig
   floating: SidebarFloatingConfig
-  panel: SidebarPanelConfig
+  simple: SidebarSimpleConfig
 }
 
 export type SidebarBoundaryConfig<M extends SidebarMode = SidebarMode> =

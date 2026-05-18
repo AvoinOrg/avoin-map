@@ -145,7 +145,7 @@ describe('PanelSidebar generic tab helpers', () => {
   it('registers tab containers rendered through a scoped panel slot', async () => {
     render(
       <SlotsProvider>
-        <SidebarBoundary id="slot-panel" mode="panel">
+        <SidebarBoundary id="slot-panel" mode="simple">
           <PanelSidebar boundaryId="slot-panel">
             <IntoSidebarPanelSlot panelId="main">
               <PanelSidebarTabContainer tabId="layers" tabName="Layers">

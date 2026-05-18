@@ -6,15 +6,15 @@ import { useUIStore } from '#/common/store'
 import type {
   SidebarBoundaryRegistration,
   SidebarFloatingConfig,
-  SidebarPanelConfig,
   SidebarRuntimeOptions,
+  SidebarSimpleConfig,
 } from '#/common/types/sidebar'
 import { selectActiveSidebarBoundary } from '#/common/utils/sidebarBoundaryRegistry'
 
 import FloatingSidebar from './FloatingSidebar'
 import type { FloatingSidebarWidth } from './FloatingSidebar'
 import HomeSidebar from './HomeSidebar'
-import PanelSidebar from './PanelSidebar'
+import SimpleSidebar from './SimpleSidebar'
 
 export type SidebarRootProps = {
   children?: React.ReactNode
@@ -69,14 +69,18 @@ export const SidebarRoot = ({ children }: SidebarRootProps) => {
     )
   }
 
-  return (
-    <PanelSidebar
-      boundaryId={activeBoundary.id}
-      options={options as SidebarPanelConfig}
-    >
-      {children}
-    </PanelSidebar>
-  )
+  if (activeBoundary.mode === 'simple') {
+    return (
+      <SimpleSidebar
+        boundaryId={activeBoundary.id}
+        options={options as SidebarSimpleConfig}
+      >
+        {children}
+      </SimpleSidebar>
+    )
+  }
+
+  return <>{children}</>
 }
 
 export default SidebarRoot

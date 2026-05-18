@@ -14,7 +14,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <SidebarBoundary
       id="hiilikartta-kaavat-panel"
-      mode="panel"
+      mode="simple"
       config={{ panelLayout: 'single' }}
     >
       <IntoSidebarHeaderChildrenSlot>

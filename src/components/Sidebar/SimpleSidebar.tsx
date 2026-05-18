@@ -1,830 +1,515 @@
 'use client'
 
-import React from 'react'
-import { Box, IconButton, SxProps, Theme } from '@mui/material'
-import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { Box } from '@mui/material'
+import type { SxProps, Theme } from '@mui/material'
 
-import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
-import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
-import { useUIStore } from '#/common/store'
-import type { SidebarActionRailPlacement } from '#/common/types/sidebar'
-import { ArrowLeft, Cross } from '../icons'
-import SidebarToggleButton from './SidebarToggleButton'
-import SidebarScaffold from './SidebarScaffold'
-import { SimpleSidebarProvider } from './SimpleSidebarContext'
+import {
+  HIILIKARTTA_HOME_FLOATING_GUTTER_PX,
+  MAP_CONTROL_EDGE_GUTTER_PX,
+} from '#/common/constants/map'
+import type {
+  SidebarBoundaryId,
+  SidebarPanelId,
+  SidebarSimpleConfig as SidebarSimpleOptions,
+} from '#/common/types/sidebar'
 
-export type SimpleSidebarMobileMode = 'stacked' | 'buttons'
-export type SimpleSidebarMobilePanel = 'main' | 'a' | 'b'
-export type SimpleSidebarMobileStackPlacement = 'before' | 'after'
+import SimpleSidebarBase from './SimpleSidebarBase'
+import type {
+  SimpleSidebarMobilePanel,
+  SimpleSidebarPanelsConfig,
+} from './SimpleSidebarBase'
+import { PanelSidebarTabIconButton } from './PanelSidebarTabIconButton'
+import {
+  PanelSidebarTabsContext,
+  type PanelSidebarTabMetadata,
+} from './PanelSidebarTabsContext'
+import {
+  SidebarActionRailSlot,
+  SidebarFooterSlot,
+  SidebarHeaderChildrenSlot,
+  SidebarHeaderSlot,
+  SidebarPanelSlot,
+} from './sidebarSlots'
 
-export type SimpleSidebarPanelConfig = {
-  content: React.ReactNode
-  desktopWidth?: string
-  desktopContentSx?: SxProps<Theme>
-  showBackButton?: boolean
-  onBack?: () => void
-  backAriaLabel?: string
-  showCloseButton?: boolean
-  onClose?: () => void
-  closeAriaLabel?: string
+export type SimpleSidebarProps = {
+  sx?: SxProps<Theme>
+  panels?: SimpleSidebarPanelsConfig
+  boundaryId?: SidebarBoundaryId
+  options?: SidebarSimpleOptions
+  children: React.ReactNode
 }
 
-type SimpleSidebarDefaultPanelsConfig = {
-  mode?: 'default'
-}
-
-type SimpleSidebarSinglePanelsConfig = {
-  mode: 'single'
-  isOpen: boolean
-  panel: SimpleSidebarPanelConfig
-  desktopActionRail?: React.ReactNode
-  mobileActionRail?: React.ReactNode
-  mobileMode?: SimpleSidebarMobileMode
-  mobileStackPlacement?: SimpleSidebarMobileStackPlacement
-  mobileActivePanel?: Extract<SimpleSidebarMobilePanel, 'main' | 'a'>
-  onMobileActivePanelChange?: (
-    panel: Extract<SimpleSidebarMobilePanel, 'main' | 'a'>
-  ) => void
-  mobileNavigation?: React.ReactNode
-  mobileStackRender?: 'context' | 'direct'
-}
-
-type SimpleSidebarDoublePanelConfig = SimpleSidebarPanelConfig
-
-type SimpleSidebarDoublePanelsConfig = {
-  mode: 'double'
-  panelA: SimpleSidebarPanelConfig
-  panelB: SimpleSidebarDoublePanelConfig
-  desktopActionRail?: React.ReactNode
-  mobileActionRail?: React.ReactNode
-  mobileMode?: SimpleSidebarMobileMode
-  mobileActivePanel?: Extract<SimpleSidebarMobilePanel, 'a' | 'b'>
-  onMobileActivePanelChange?: (
-    panel: Extract<SimpleSidebarMobilePanel, 'a' | 'b'>
-  ) => void
-  mobileNavigation?: React.ReactNode
-  desktopMainPanelVisible?: boolean
-  mobileMainPanelVisible?: boolean
-}
-
-export type SimpleSidebarPanelsConfig =
-  | SimpleSidebarDefaultPanelsConfig
-  | SimpleSidebarSinglePanelsConfig
-  | SimpleSidebarDoublePanelsConfig
-
-const DESKTOP_MAIN_WIDTH_REM = 23.75
-const DESKTOP_PANEL_WIDTH_REM = 23.75
-const SIDEBAR_TOGGLE_BUTTON_SIZE_PX = 45
-const ACTION_RAIL_GAP_PX = 10
-const BOTTOM_ACTION_ROW_TOGGLE_RIGHT = '35px'
-const BOTTOM_ACTION_ROW_BOTTOM =
-  'calc(env(safe-area-inset-bottom, 0px) + 26px)'
-const FIXED_BOTTOM_ACTION_ROW_RIGHT_PX =
-  MAP_CONTROL_EDGE_GUTTER_PX +
-  SIDEBAR_TOGGLE_BUTTON_SIZE_PX +
-  ACTION_RAIL_GAP_PX
-const FIXED_RIGHT_ACTION_COLUMN_TOP_PX =
-  MAP_CONTROL_EDGE_GUTTER_PX +
-  SIDEBAR_TOGGLE_BUTTON_SIZE_PX +
-  ACTION_RAIL_GAP_PX
-const FIXED_RIGHT_ACTION_COLUMN_RIGHT_PX =
-  MAP_CONTROL_EDGE_GUTTER_PX +
-  SIDEBAR_TOGGLE_BUTTON_SIZE_PX +
-  ACTION_RAIL_GAP_PX
-type FixedSidebarActionRailPlacement = Extract<
-  SidebarActionRailPlacement,
-  'fixedBottomActionRow' | 'fixedRightActionColumn'
->
-
-const panelChromeButtonSx = {
-  pointerEvents: 'auto',
-  width: '45px',
-  minWidth: '45px',
-  height: '45px',
-  borderRadius: '10px',
-  color: 'neutral.darker',
-  backgroundColor: '#ffffff',
-  boxShadow: '0px 10px 24px rgba(0, 0, 0, 0.18)',
-  transition: 'background-color 0.2s, transform 0.2s',
-  '&:hover': {
-    backgroundColor: '#f4f4f4',
-    transform: 'translateY(-1px)',
-  },
-} as const
-
-const shouldShowAction = (showButton?: boolean, handler?: () => void) => {
-  return handler != null && showButton !== false
-}
-
-const PanelChrome = ({
-  panel,
-  defaultBackAriaLabel,
-  defaultCloseAriaLabel,
+const panelSlotContent = ({
+  boundaryId,
+  panelId,
 }: {
-  panel: SimpleSidebarPanelConfig
-  defaultBackAriaLabel: string
-  defaultCloseAriaLabel: string
-}) => {
-  const showBack = shouldShowAction(panel.showBackButton, panel.onBack)
-  const showClose = shouldShowAction(panel.showCloseButton, panel.onClose)
+  boundaryId: SidebarBoundaryId
+  panelId: SidebarPanelId
+}) => <SidebarPanelSlot boundaryId={boundaryId} panelId={panelId} />
 
-  if (!showBack && !showClose) return null
+const FULL_WIDTH_MAIN_PANEL_WIDTH = '30.5556vw'
+const FULL_WIDTH_SECONDARY_PANEL_WIDTH = '38.8889vw'
+const FULL_WIDTH_TERTIARY_PANEL_WIDTH = '30.5556vw'
+const WIDE_SINGLE_MAIN_PANEL_WIDTH = 'min(1440px, 100vw)'
+const DEFAULT_PANEL_WIDTH = '23.75rem'
+
+const hasFullWidthPanelLayout = (options?: SidebarSimpleOptions) => {
+  const visiblePanels = options?.visiblePanels ?? []
 
   return (
-    <Box
-      sx={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        display: 'flex',
-        justifyContent: 'flex-end',
-        alignItems: 'center',
-        gap: 0.75,
-        px: 1.5,
-        pt: 1.25,
-        pb: 0.5,
-        zIndex: 5,
-        pointerEvents: 'none',
-      }}
-    >
-      {showBack && (
-        <IconButton
-          aria-label={panel.backAriaLabel ?? defaultBackAriaLabel}
-          onClick={panel.onBack}
-          size="small"
-          sx={panelChromeButtonSx}
-        >
-          <KeyboardDoubleArrowLeftIcon sx={{ fontSize: '1.45rem' }} />
-        </IconButton>
-      )}
-      {showClose ? (
-        <IconButton
-          aria-label={panel.closeAriaLabel ?? defaultCloseAriaLabel}
-          onClick={panel.onClose}
-          size="small"
-          sx={panelChromeButtonSx}
-        >
-          <Cross sx={{ width: '1rem', height: '1rem' }} />
-        </IconButton>
-      ) : null}
-    </Box>
+    options?.width === 'wide' &&
+    options.panelLayout === 'triple' &&
+    visiblePanels.includes('main') &&
+    visiblePanels.includes('secondary') &&
+    visiblePanels.includes('tertiary')
   )
 }
 
-const DesktopPanelBox = ({
-  panel,
-  defaultBackAriaLabel,
-  defaultCloseAriaLabel,
+const hasWideSingleMainPanelLayout = (options?: SidebarSimpleOptions) => {
+  const visiblePanels = options?.visiblePanels ?? ['main']
+
+  return (
+    options?.width === 'wide' &&
+    options.chrome === 'hidden' &&
+    options.panelLayout === 'single' &&
+    visiblePanels.length === 1 &&
+    visiblePanels.includes('main')
+  )
+}
+
+export const getPanelSidebarMainPanelWidth = (
+  options?: SidebarSimpleOptions
+) =>
+  hasFullWidthPanelLayout(options)
+    ? FULL_WIDTH_MAIN_PANEL_WIDTH
+    : hasWideSingleMainPanelLayout(options)
+      ? WIDE_SINGLE_MAIN_PANEL_WIDTH
+    : DEFAULT_PANEL_WIDTH
+
+const getExtraPanelWidth = ({
+  panelId,
+  options,
 }: {
-  panel: SimpleSidebarPanelConfig
-  defaultBackAriaLabel: string
-  defaultCloseAriaLabel: string
+  panelId: Exclude<SidebarPanelId, 'main'>
+  options?: SidebarSimpleOptions
 }) => {
-  const isSidebarOpen = useUIStore((s) => s.isSidebarOpen)
-  const width = panel.desktopWidth ?? `${DESKTOP_PANEL_WIDTH_REM}rem`
-  const hasChrome =
-    shouldShowAction(panel.showBackButton, panel.onBack) ||
-    shouldShowAction(panel.showCloseButton, panel.onClose)
+  if (!hasFullWidthPanelLayout(options)) {
+    return DEFAULT_PANEL_WIDTH
+  }
+
+  return panelId === 'secondary'
+    ? FULL_WIDTH_SECONDARY_PANEL_WIDTH
+    : FULL_WIDTH_TERTIARY_PANEL_WIDTH
+}
+
+const toSingleMobilePanel = (
+  activePanel: SidebarPanelId | undefined,
+  panelId: SidebarPanelId
+): Extract<SimpleSidebarMobilePanel, 'main' | 'a'> =>
+  activePanel === panelId ? 'a' : 'main'
+
+const toDoubleMobilePanel = (
+  activePanel: SidebarPanelId | undefined
+): Extract<SimpleSidebarMobilePanel, 'a' | 'b'> =>
+  activePanel === 'tertiary' ? 'b' : 'a'
+
+const getScopedPanelsConfig = ({
+  boundaryId,
+  options,
+  actionRail,
+}: {
+  boundaryId?: SidebarBoundaryId
+  options?: SidebarSimpleOptions
+  actionRail?: React.ReactNode
+}): SimpleSidebarPanelsConfig | undefined => {
+  if (boundaryId == null) {
+    return undefined
+  }
+
+  const visiblePanels = options?.visiblePanels ?? ['main']
+  const visibleExtraPanels = visiblePanels.filter(
+    (panelId): panelId is Exclude<SidebarPanelId, 'main'> =>
+      panelId === 'secondary' || panelId === 'tertiary'
+  )
+  const capacityPanels: Exclude<SidebarPanelId, 'main'>[] =
+    options?.panelLayout === 'triple'
+      ? ['secondary', 'tertiary']
+      : options?.panelLayout === 'double'
+        ? visibleExtraPanels.length > 0
+          ? [visibleExtraPanels[0]]
+          : ['secondary']
+        : options?.panelLayout === 'single'
+          ? []
+          : visibleExtraPanels
+
+  if (capacityPanels.length === 0) {
+    return undefined
+  }
+
+  const panelLocalScrollContentSx =
+    options?.chrome === 'hidden'
+      ? {
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          height: '100%',
+          maxHeight: '100%',
+          minHeight: 0,
+          width: '100%',
+        }
+      : undefined
+  const openExtraPanels = capacityPanels.filter((panelId) =>
+    visibleExtraPanels.includes(panelId)
+  )
+
+  if (
+    capacityPanels.includes('secondary') &&
+    capacityPanels.includes('tertiary') &&
+    openExtraPanels.includes('secondary') &&
+    openExtraPanels.includes('tertiary')
+  ) {
+    return {
+      mode: 'double',
+      mobileMode: options?.mobileMode,
+      mobileActivePanel: toDoubleMobilePanel(options?.activePanel),
+      desktopMainPanelVisible:
+        options?.mainPanelVisible !== false && visiblePanels.includes('main'),
+      mobileMainPanelVisible:
+        options?.mainPanelVisible !== false && visiblePanels.includes('main'),
+      desktopActionRail: actionRail,
+      mobileActionRail: actionRail,
+      panelA: {
+        content: panelSlotContent({ boundaryId, panelId: 'secondary' }),
+        desktopWidth: getExtraPanelWidth({ panelId: 'secondary', options }),
+        desktopContentSx: panelLocalScrollContentSx,
+      },
+      panelB: {
+        content: panelSlotContent({ boundaryId, panelId: 'tertiary' }),
+        desktopWidth: getExtraPanelWidth({ panelId: 'tertiary', options }),
+        desktopContentSx: panelLocalScrollContentSx,
+      },
+    }
+  }
+
+  const panelId = openExtraPanels[0] ?? capacityPanels[0]
+
+  return {
+    mode: 'single',
+    isOpen: openExtraPanels.includes(panelId),
+    mobileMode: options?.mobileMode,
+    mobileStackPlacement: options?.mobileStackPlacement,
+    mobileStackRender: 'direct',
+    mobileActivePanel: toSingleMobilePanel(options?.activePanel, panelId),
+    desktopActionRail: actionRail,
+    mobileActionRail: actionRail,
+    panel: {
+      content: panelSlotContent({ boundaryId, panelId }),
+      desktopWidth: getExtraPanelWidth({ panelId, options }),
+      desktopContentSx: panelLocalScrollContentSx,
+    },
+  }
+}
+
+const getPanelSidebarSx = (
+  sx: SxProps<Theme> | undefined,
+  options?: SidebarSimpleOptions
+): SxProps<Theme> => {
+  const floatingGutter = `${HIILIKARTTA_HOME_FLOATING_GUTTER_PX}px`
+  const mainPanelWidth = getPanelSidebarMainPanelWidth(options)
+  const hiddenChromeHeightSx =
+    options?.chrome === 'hidden'
+      ? {
+          height: '100dvh',
+          maxHeight: '100dvh',
+          minHeight: 0,
+        }
+      : undefined
+
+  return [
+    options?.width === 'compact'
+      ? {
+          pt: { mobile: 0, desktop: floatingGutter },
+          pb: { mobile: 0, desktop: floatingGutter },
+          ml: { mobile: 0, desktop: floatingGutter },
+          width: { mobile: '100vw', desktop: DEFAULT_PANEL_WIDTH },
+          maxWidth: {
+            mobile: '100vw',
+            desktop: `min(${DEFAULT_PANEL_WIDTH}, calc(100vw - ${floatingGutter}))`,
+          },
+        }
+      : {
+          width: { mobile: '100vw', desktop: mainPanelWidth },
+          maxWidth: { mobile: '100vw', desktop: `min(${mainPanelWidth}, 100vw)` },
+        },
+    hiddenChromeHeightSx,
+    ...(Array.isArray(sx) ? sx : [sx]),
+  ]
+}
+
+const getPanelSidebarToggleSx = (
+  options?: SidebarSimpleOptions
+): SxProps<Theme> | undefined => {
+  if (options?.width !== 'compact') {
+    return undefined
+  }
+
+  const toggleGutter = `${MAP_CONTROL_EDGE_GUTTER_PX}px`
+
+  return {
+    right: { mobile: '1rem', desktop: toggleGutter },
+    bottom: { mobile: '1rem', desktop: toggleGutter },
+  }
+}
+
+const areTabMetadataEqual = (
+  previous: PanelSidebarTabMetadata,
+  next: PanelSidebarTabMetadata
+) =>
+  previous.tabId === next.tabId &&
+  previous.tabName === next.tabName &&
+  previous.tabAriaLabel === next.tabAriaLabel &&
+  previous.tabIcon === next.tabIcon &&
+  previous.tabButtonSx === next.tabButtonSx &&
+  previous.tabIconSx === next.tabIconSx &&
+  previous.tabButtonId === next.tabButtonId &&
+  previous.tabPanelId === next.tabPanelId
+
+const getPanelSidebarContentSx = ({
+  options,
+  hasTabs,
+}: {
+  options?: SidebarSimpleOptions
+  hasTabs: boolean
+}): SxProps<Theme> | undefined => {
+  if (!hasTabs && options?.chrome !== 'hidden') {
+    return undefined
+  }
+
+  return {
+    overflow: 'hidden',
+    height: '100%',
+    maxHeight: '100%',
+    minHeight: 0,
+    width: '100%',
+    alignItems: 'stretch',
+  }
+}
+
+const PanelSidebarTabRail = ({
+  tabs,
+  activeTabId,
+  onTabChange,
+}: {
+  tabs: PanelSidebarTabMetadata[]
+  activeTabId?: string
+  onTabChange: (tabId: string) => void
+}) => {
+  if (tabs.length < 2) {
+    return null
+  }
 
   return (
     <Box
-      sx={(theme) => ({
+      role="tablist"
+      aria-label="Sidebar panel tabs"
+      data-testid="panel-sidebar-tab-rail"
+      sx={{
         display: 'flex',
         flexDirection: 'column',
-        flex: '0 0 auto',
-        width,
-        maxWidth: `min(${width}, 100vw)`,
-        height: '100%',
-        pt: 0,
-        pb: 0,
-        ml: 0,
-        zIndex: theme.zIndex.drawer + 1,
-        pointerEvents: isSidebarOpen ? 'auto' : 'none',
-        visibility: isSidebarOpen ? 'visible' : 'hidden',
-      })}
-    >
-      <Box
-        sx={{
-          position: 'relative',
-          flex: 1,
-          minHeight: 0,
-          borderRadius: 0,
-          overflow: 'hidden',
-          backgroundColor: '#ffffff',
-          boxShadow: '0 2px 6px rgba(17, 17, 17, 0.06)',
-          borderLeft: '1px solid rgba(17, 17, 17, 0.08)',
-        }}
-      >
-        <PanelChrome
-          panel={panel}
-          defaultBackAriaLabel={defaultBackAriaLabel}
-          defaultCloseAriaLabel={defaultCloseAriaLabel}
-        />
-        <Box
-          sx={[
-            {
-              position: 'absolute',
-              inset: 0,
-              overflow: 'auto',
-              pt: hasChrome ? '4rem' : 0,
-            },
-            ...(Array.isArray(panel.desktopContentSx)
-              ? panel.desktopContentSx
-              : [panel.desktopContentSx]),
-          ]}
-        >
-          {panel.content}
-        </Box>
-      </Box>
-    </Box>
-  )
-}
-
-const MobileDoubleBackButton = ({
-  onBack,
-  ariaLabel,
-}: {
-  onBack: () => void
-  ariaLabel?: string
-}) => {
-  return (
-    <Box
-      sx={(theme) => ({
-        position: 'sticky',
-        top: 0,
-        zIndex: 5,
-        display: 'flex',
         alignItems: 'center',
-        p: 1,
-        backgroundColor: '#ffffff',
-        borderBottom: `1px solid ${theme.palette.neutral.main}`,
-      })}
+        gap: 1,
+        pointerEvents: 'auto',
+      }}
     >
-      <IconButton
-        aria-label={ariaLabel ?? 'back to main sidebar'}
-        onClick={onBack}
-        size="small"
-        sx={panelChromeButtonSx}
-      >
-        <KeyboardDoubleArrowLeftIcon sx={{ fontSize: '1.45rem' }} />
-      </IconButton>
+      {tabs.map((tab) => (
+        <PanelSidebarTabIconButton
+          key={tab.tabId}
+          tabId={tab.tabId}
+          tabName={tab.tabName}
+          ariaLabel={tab.tabAriaLabel}
+          icon={tab.tabIcon}
+          selected={tab.tabId === activeTabId}
+          buttonId={tab.tabButtonId}
+          controlsId={tab.tabPanelId}
+          onSelect={onTabChange}
+          sx={tab.tabButtonSx}
+          iconSx={tab.tabIconSx}
+        />
+      ))}
     </Box>
   )
-}
-
-const MobilePanelNavigation = ({
-  activePanel,
-  availablePanels,
-  onChange,
-}: {
-  activePanel: SimpleSidebarMobilePanel
-  availablePanels: SimpleSidebarMobilePanel[]
-  onChange: (panel: SimpleSidebarMobilePanel) => void
-}) => {
-  return (
-    <Box
-      sx={(theme) => ({
-        display: 'flex',
-        gap: 0.5,
-        p: 1,
-        borderTop: `1px solid ${theme.palette.neutral.main}`,
-        backgroundColor: '#ffffff',
-      })}
-    >
-      {availablePanels.includes('main') && (
-        <IconButton
-          aria-label="show main sidebar panel"
-          onClick={() => onChange('main')}
-          size="small"
-          disabled={activePanel === 'main'}
-          sx={panelChromeButtonSx}
-        >
-          <ArrowLeft sx={{ width: '1rem', height: '1rem' }} />
-        </IconButton>
-      )}
-      {availablePanels.includes('a') && (
-        <IconButton
-          aria-label="show sidebar panel a"
-          onClick={() => onChange('a')}
-          size="small"
-          disabled={activePanel === 'a'}
-          sx={{ ...panelChromeButtonSx, typography: 'caption' }}
-        >
-          A
-        </IconButton>
-      )}
-      {availablePanels.includes('b') && (
-        <IconButton
-          aria-label="show sidebar panel b"
-          onClick={() => onChange('b')}
-          size="small"
-          disabled={activePanel === 'b'}
-          sx={{ ...panelChromeButtonSx, typography: 'caption' }}
-        >
-          B
-        </IconButton>
-      )}
-    </Box>
-  )
-}
-
-const getMobileMode = (panels?: SimpleSidebarPanelsConfig) => {
-  if (panels?.mode === 'single' || panels?.mode === 'double') {
-    return panels.mobileMode ?? 'stacked'
-  }
-
-  return 'stacked'
-}
-
-const isFixedActionRailPlacement = (
-  placement: SidebarActionRailPlacement
-): placement is FixedSidebarActionRailPlacement =>
-  placement === 'fixedBottomActionRow' ||
-  placement === 'fixedRightActionColumn'
-
-const getFixedActionRailSx = (
-  placement: FixedSidebarActionRailPlacement
-): SxProps<Theme> => {
-  if (placement === 'fixedBottomActionRow') {
-    return (theme: Theme) => ({
-      position: 'fixed',
-      right: `${FIXED_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
-      bottom: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
-      zIndex: theme.zIndex.drawer + 12,
-      display: 'flex',
-      flexDirection: 'row',
-      gap: `${ACTION_RAIL_GAP_PX}px`,
-      pointerEvents: 'auto',
-    })
-  }
-
-  return (theme: Theme) => ({
-    position: 'fixed',
-    top: `${FIXED_RIGHT_ACTION_COLUMN_TOP_PX}px`,
-    right: `${FIXED_RIGHT_ACTION_COLUMN_RIGHT_PX}px`,
-    zIndex: theme.zIndex.drawer + 12,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: `${ACTION_RAIL_GAP_PX}px`,
-    pointerEvents: 'auto',
-  })
 }
 
 export const SimpleSidebar = ({
   sx,
-  sidebarToggleSx,
-  panelSx,
-  contentSx,
-  topContent,
-  bottomContent,
-  actionRail,
-  actionRailPlacement = 'inside',
-  hideMainContainer = false,
   panels,
+  boundaryId,
+  options,
   children,
-  headerChildren,
-}: {
-  sx?: SxProps<Theme>
-  sidebarToggleSx?: SxProps<Theme>
-  panelSx?: SxProps<Theme>
-  contentSx?: SxProps<Theme>
-  topContent?: React.ReactNode
-  bottomContent?: React.ReactNode
-  actionRail?: React.ReactNode
-  actionRailPlacement?: SidebarActionRailPlacement
-  hideMainContainer?: boolean
-  panels?: SimpleSidebarPanelsConfig
-  children: React.ReactNode
-  headerChildren?: React.ReactNode
-}) => {
-  const isMobile = useIsMobile()
-  const [internalMobilePanel, setInternalMobilePanel] =
-    React.useState<SimpleSidebarMobilePanel>('main')
+}: SimpleSidebarProps) => {
+  const [tabs, setTabs] = useState<PanelSidebarTabMetadata[]>([])
+  const [activeTabId, setActiveTabId] = useState<string | undefined>()
+  const resolvedActiveTabId = activeTabId ?? tabs[0]?.tabId
 
-  const panelsMode = panels?.mode ?? 'default'
-  const mobileMode = getMobileMode(panels)
+  const registerTab = useCallback((tab: PanelSidebarTabMetadata) => {
+    setTabs((currentTabs) => {
+      const tabIndex = currentTabs.findIndex(
+        (currentTab) => currentTab.tabId === tab.tabId
+      )
 
-  React.useEffect(() => {
-    setInternalMobilePanel(panelsMode === 'double' ? 'a' : 'main')
-  }, [panelsMode])
+      if (tabIndex === -1) {
+        return [...currentTabs, tab]
+      }
 
-  const singlePanel = panels?.mode === 'single' ? panels.panel : null
-  const isSinglePanelOpen = panels?.mode === 'single' && panels.isOpen
-  const doublePanelA = panels?.mode === 'double' ? panels.panelA : null
-  const doublePanelB = panels?.mode === 'double' ? panels.panelB : null
+      if (areTabMetadataEqual(currentTabs[tabIndex], tab)) {
+        return currentTabs
+      }
 
-  const setMobileActivePanel = (panel: SimpleSidebarMobilePanel) => {
-    if (panels?.mode === 'single' && (panel === 'main' || panel === 'a')) {
-      panels.onMobileActivePanelChange?.(panel)
+      return currentTabs.map((currentTab, index) =>
+        index === tabIndex ? tab : currentTab
+      )
+    })
+  }, [])
+
+  const unregisterTab = useCallback((tabId: string) => {
+    setTabs((currentTabs) =>
+      currentTabs.filter((currentTab) => currentTab.tabId !== tabId)
+    )
+  }, [])
+
+  useEffect(() => {
+    const firstTabId = tabs[0]?.tabId
+
+    if (firstTabId == null) {
+      if (activeTabId !== undefined) {
+        setActiveTabId(undefined)
+      }
+      return
     }
 
-    if (panels?.mode === 'double' && (panel === 'a' || panel === 'b')) {
-      panels.onMobileActivePanelChange?.(panel)
+    if (
+      activeTabId == null ||
+      !tabs.some((tab) => tab.tabId === activeTabId)
+    ) {
+      setActiveTabId(firstTabId)
     }
+  }, [activeTabId, tabs])
 
-    setInternalMobilePanel(panel)
-  }
-
-  const mobileActivePanel =
-    panels?.mode === 'single'
-      ? panels.mobileActivePanel ?? internalMobilePanel
-      : panels?.mode === 'double'
-        ? panels.mobileActivePanel ?? internalMobilePanel
-        : 'main'
-
-  let resolvedMobileActivePanel = mobileActivePanel
-  if (panels?.mode === 'single' && !panels.isOpen) {
-    resolvedMobileActivePanel = 'main'
-  }
-  if (panels?.mode === 'double' && mobileActivePanel === 'main') {
-    resolvedMobileActivePanel = 'a'
-  }
-
-  const breadcrumbArea = (
-    <Box
-      sx={{
-        flexShrink: 0,
-        display: 'flex',
-        alignItems: 'center',
-        px: { mobile: '1rem', desktop: '1.875rem' },
-        pt: { mobile: '1rem', desktop: '1.375rem' },
-        pb: { mobile: '0.9rem', desktop: '1.375rem' },
-        color: 'neutral.darker',
-        backgroundColor: '#ffffff',
-      }}
-    >
-      <Box
-        sx={{
-          width: '100%',
-          minHeight: '1.5rem',
-          display: 'flex',
-          alignItems: 'center',
-          typography: 'body2',
-        }}
-      >
-        {headerChildren}
-      </Box>
-    </Box>
+  const tabsContextValue = useMemo(
+    () => ({
+      tabs,
+      activeTabId,
+      resolvedActiveTabId,
+      setActiveTabId,
+      registerTab,
+      unregisterTab,
+    }),
+    [activeTabId, registerTab, resolvedActiveTabId, tabs, unregisterTab]
   )
 
-  const desktopTrailing =
-    !isMobile && isSinglePanelOpen && singlePanel ? (
-      <DesktopPanelBox
-        panel={singlePanel}
-        defaultBackAriaLabel="back from extra sidebar panel"
-        defaultCloseAriaLabel="close extra sidebar panel"
-      />
-    ) : !isMobile &&
-      panels?.mode === 'double' &&
-      doublePanelA &&
-      doublePanelB ? (
-      <>
-        <DesktopPanelBox
-          panel={doublePanelA}
-          defaultBackAriaLabel="back from first extra sidebar panel"
-          defaultCloseAriaLabel="close first extra sidebar panel"
+  const scopedActionRailSlot = useMemo(
+    () =>
+      boundaryId != null ? (
+        <SidebarActionRailSlot boundaryId={boundaryId} />
+      ) : undefined,
+    [boundaryId]
+  )
+  const tabRail = useMemo(
+    () =>
+      tabs.length >= 2 ? (
+        <PanelSidebarTabRail
+          tabs={tabs}
+          activeTabId={resolvedActiveTabId}
+          onTabChange={setActiveTabId}
         />
-        <DesktopPanelBox
-          panel={doublePanelB}
-          defaultBackAriaLabel="back to main sidebar"
-          defaultCloseAriaLabel="close extra sidebar panels"
-        />
-      </>
-    ) : null
+      ) : undefined,
+    [resolvedActiveTabId, tabs]
+  )
+  const combinedActionRail = useMemo(() => {
+    if (tabRail == null && scopedActionRailSlot == null) {
+      return undefined
+    }
 
-  const panelDesktopActionRail =
-    (panels?.mode === 'single' || panels?.mode === 'double') &&
-    panels.desktopActionRail
-      ? panels.desktopActionRail
-      : null
-  const panelMobileActionRail =
-    (panels?.mode === 'single' || panels?.mode === 'double') &&
-    panels.mobileActionRail
-      ? panels.mobileActionRail
-      : null
-  const desktopActionRailContent =
-    panelDesktopActionRail != null || actionRail != null ? (
-      <>
-        {panelDesktopActionRail}
-        {actionRail}
-      </>
-    ) : null
-  const mobileActionRailContent =
-    panelMobileActionRail != null || actionRail != null ? (
-      <>
-        {panelMobileActionRail}
-        {actionRail}
-      </>
-    ) : null
-
-  const desktopActionRail =
-    !isMobile && desktopActionRailContent != null ? (
-      actionRailPlacement === 'outside' ? (
-        desktopActionRailContent
-      ) : (
-        <Box
-          data-testid="sidebar-action-rail"
-          data-sidebar-action-rail-placement={actionRailPlacement}
-          data-sidebar-action-rail-fixed={
-            isFixedActionRailPlacement(actionRailPlacement) ? 'true' : undefined
-          }
-          sx={
-            isFixedActionRailPlacement(actionRailPlacement)
-              ? getFixedActionRailSx(actionRailPlacement)
-              : (theme: Theme) => ({
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 1,
-                  pt: 2,
-                  pl: 1,
-                  zIndex: theme.zIndex.drawer + 1,
-                  pointerEvents: 'auto',
-                })
-          }
-        >
-          {desktopActionRailContent}
-        </Box>
+    if (scopedActionRailSlot != null) {
+      return (
+        <>
+          {tabRail}
+          {scopedActionRailSlot}
+        </>
       )
-    ) : null
+    }
 
-  const mobileActionRail =
-    isMobile && mobileActionRailContent != null ? (
-      actionRailPlacement === 'outside' ? (
-        mobileActionRailContent
-      ) : (
-        <Box
-          data-testid="sidebar-action-rail"
-          data-sidebar-action-rail-placement={actionRailPlacement}
-          data-sidebar-action-rail-fixed={
-            isFixedActionRailPlacement(actionRailPlacement) ||
-            actionRailPlacement === 'bottomActionRow'
-              ? 'true'
-              : undefined
-          }
-          sx={
-            isFixedActionRailPlacement(actionRailPlacement)
-              ? getFixedActionRailSx(actionRailPlacement)
-              : (theme: Theme) => ({
-                  position:
-                    actionRailPlacement === 'bottomActionRow'
-                      ? 'fixed'
-                      : 'absolute',
-                  top:
-                    actionRailPlacement === 'bottomActionRow'
-                      ? 'auto'
-                      : '4.75rem',
-                  right:
-                    actionRailPlacement === 'bottomActionRow'
-                      ? '90px'
-                      : '0.75rem',
-                  bottom:
-                    actionRailPlacement === 'bottomActionRow'
-                      ? BOTTOM_ACTION_ROW_BOTTOM
-                      : 'auto',
-                  zIndex: theme.zIndex.drawer + 12,
-                  display: 'flex',
-                  flexDirection: 'row',
-                  gap: '10px',
-                  pointerEvents: 'auto',
-                })
-          }
-        >
-          {mobileActionRailContent}
-        </Box>
-      )
-    ) : null
-
-  const mobileDoubleBackHeader =
-    isMobile && panels?.mode === 'double' && doublePanelB?.onBack ? (
-      <MobileDoubleBackButton
-        onBack={doublePanelB.onBack}
-        ariaLabel={doublePanelB.backAriaLabel}
-      />
-    ) : null
-
-  const renderSingleMobileStackDirect =
-    panels?.mode === 'single' && panels.mobileStackRender === 'direct'
-  const mobileStackedContent =
-    isMobile &&
-    panels?.mode === 'single' &&
-    panels.isOpen &&
-    mobileMode === 'stacked' &&
-    !renderSingleMobileStackDirect &&
-    singlePanel ? (
-      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-        {singlePanel.content}
-      </Box>
+    return tabRail
+  }, [scopedActionRailSlot, tabRail])
+  const scopedPanels = useMemo(
+    () =>
+      getScopedPanelsConfig({
+        boundaryId,
+        options,
+        actionRail: combinedActionRail,
+      }),
+    [boundaryId, combinedActionRail, options]
+  )
+  const headerChildren =
+    boundaryId != null ? (
+      <SidebarHeaderChildrenSlot boundaryId={boundaryId} />
     ) : undefined
-  const mobileStackPlacement =
-    panels?.mode === 'single' ? panels.mobileStackPlacement ?? 'after' : 'after'
-
-  const mobileSingleDirectStackedContent =
-    isMobile &&
-    panels?.mode === 'single' &&
-    panels.isOpen &&
-    mobileMode === 'stacked' &&
-    renderSingleMobileStackDirect &&
-    singlePanel ? (
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'auto',
-          width: '100%',
-        }}
-      >
-        {singlePanel.content}
-      </Box>
-    ) : null
-
-  const mobileButtonsPanelContent =
-    isMobile && mobileMode === 'buttons' ? (
-      <>
-        {isSinglePanelOpen && singlePanel && (
-          <Box
-            sx={{
-              display: resolvedMobileActivePanel === 'a' ? 'block' : 'none',
-              overflow: 'auto',
-              width: '100%',
-            }}
-          >
-            {singlePanel.content}
-          </Box>
-        )}
-        {doublePanelA && (
-          <Box
-            sx={{
-              display: resolvedMobileActivePanel === 'a' ? 'block' : 'none',
-              overflow: 'auto',
-              width: '100%',
-            }}
-          >
-            {doublePanelA.content}
-          </Box>
-        )}
-        {doublePanelB && (
-          <Box
-            sx={{
-              display: resolvedMobileActivePanel === 'b' ? 'block' : 'none',
-              overflow: 'auto',
-              width: '100%',
-            }}
-          >
-            {doublePanelB.content}
-          </Box>
-        )}
-      </>
-    ) : null
-
-  const mobileDoubleStackedContent =
-    isMobile &&
-    mobileMode === 'stacked' &&
-    panels?.mode === 'double' &&
-    doublePanelA &&
-    doublePanelB ? (
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'auto',
-          width: '100%',
-        }}
-      >
-        {doublePanelA.content}
-        {doublePanelB.content}
-      </Box>
-    ) : null
-
-  const mobileStackedContentBefore =
-    mobileStackPlacement === 'before' ? mobileSingleDirectStackedContent : null
-  const mobileStackedContentAfter =
-    mobileStackPlacement === 'after'
-      ? (mobileDoubleStackedContent ?? mobileSingleDirectStackedContent)
-      : mobileDoubleStackedContent
-  const shouldShowMobileMainContent =
-    !isMobile ||
-    mobileMode !== 'buttons' ||
-    (panels?.mode !== 'double' && resolvedMobileActivePanel === 'main')
-  const shouldShowStackedMobileMainContent =
-    !isMobile ||
-    mobileMode !== 'stacked' ||
-    panels?.mode !== 'double' ||
-    panels.mobileMainPanelVisible === true
-  const isMainContentVisible =
-    shouldShowMobileMainContent && shouldShowStackedMobileMainContent
-
-  const mobilePanelNavigation =
-    isMobile &&
-    mobileMode === 'buttons' &&
-    ((panels?.mode === 'single' && panels.isOpen) ||
-      panels?.mode === 'double') ? (
-      <>
-        {panels.mobileNavigation ?? (
-          <MobilePanelNavigation
-            activePanel={resolvedMobileActivePanel}
-            availablePanels={
-              panels.mode === 'double' ? ['a', 'b'] : ['main', 'a']
-            }
-            onChange={setMobileActivePanel}
-          />
-        )}
-      </>
-    ) : null
-
-  const resolvedTopContent =
-    topContent === undefined ? breadcrumbArea : topContent
-  const resolvedBottomContent =
-    bottomContent != null || mobilePanelNavigation != null ? (
-      <>
-        {bottomContent}
-        {mobilePanelNavigation}
-      </>
-    ) : undefined
-  const shouldHideMainContainer =
-    !isMobile &&
-    (hideMainContainer ||
-      (panels?.mode === 'double' && panels.desktopMainPanelVisible !== true))
+  const scopedTopContent =
+    options?.chrome === 'hidden'
+      ? null
+      : options?.width === 'compact' && boundaryId != null
+        ? <SidebarHeaderSlot boundaryId={boundaryId} />
+        : undefined
+  const scopedBottomContent =
+    options?.chrome === 'hidden'
+      ? null
+      : options?.width === 'compact' && boundaryId != null
+        ? <SidebarFooterSlot boundaryId={boundaryId} />
+        : undefined
 
   return (
-    <SimpleSidebarProvider
-      value={{
-        isSimpleSidebar: true,
-        mobileStackedContentBefore:
-          mobileStackPlacement === 'before' ? mobileStackedContent : undefined,
-        mobileStackedContentAfter:
-          mobileStackPlacement === 'after' ? mobileStackedContent : undefined,
-      }}
-    >
-      <SidebarToggleButton
-        sx={[
-          actionRailPlacement === 'bottomActionRow'
-            ? (theme: Theme) => ({
-                right: {
-                  mobile: BOTTOM_ACTION_ROW_TOGGLE_RIGHT,
-                  desktop: BOTTOM_ACTION_ROW_TOGGLE_RIGHT,
-                },
-                bottom: {
-                  mobile: BOTTOM_ACTION_ROW_BOTTOM,
-                  desktop: BOTTOM_ACTION_ROW_BOTTOM,
-                },
-                zIndex: theme.zIndex.drawer + 12,
-              })
-            : undefined,
-          ...(Array.isArray(sidebarToggleSx)
-            ? sidebarToggleSx
-            : [sidebarToggleSx]),
-        ]}
-      />
-      <SidebarScaffold
-        topContent={
-          <>
-            {resolvedTopContent}
-            {mobileDoubleBackHeader}
-          </>
+    <PanelSidebarTabsContext.Provider value={tabsContextValue}>
+      <SimpleSidebarBase
+        sx={getPanelSidebarSx(sx, options)}
+        sidebarToggleSx={getPanelSidebarToggleSx(options)}
+        panels={panels ?? scopedPanels}
+        headerChildren={headerChildren}
+        topContent={scopedTopContent}
+        bottomContent={scopedBottomContent}
+        actionRail={
+          panels == null && scopedPanels == null ? combinedActionRail : undefined
         }
-        bottomContent={resolvedBottomContent}
-        trailingContent={desktopTrailing}
-        actionRail={isMobile ? mobileActionRail : desktopActionRail}
-        hideMainContainer={shouldHideMainContainer}
-        containerSx={[
-          {
-            pt: { mobile: 0, desktop: 0 },
-            pb: { mobile: 0, desktop: 0 },
-            ml: { mobile: 0, desktop: 0 },
-            width: { mobile: '100vw', desktop: `${DESKTOP_MAIN_WIDTH_REM}rem` },
-            maxWidth: {
-              mobile: '100vw',
-              desktop: `min(${DESKTOP_MAIN_WIDTH_REM}rem, 100vw)`,
-            },
-          },
-          ...(Array.isArray(sx) ? sx : [sx]),
-        ]}
-        panelSx={[
-          {
-            borderRadius: { mobile: 0, desktop: 0 },
-            backgroundColor: '#ffffff',
-          },
-          ...(Array.isArray(panelSx) ? panelSx : [panelSx]),
-        ]}
-        contentSx={[
-          {
-            backgroundColor: 'inherit',
-            flexDirection: 'column',
-          },
-          ...(Array.isArray(contentSx) ? contentSx : [contentSx]),
-        ]}
+        actionRailPlacement={options?.actionRailPlacement}
+        hideMainContainer={options?.mainPanelVisible === false}
+        panelSx={
+          options?.width === 'compact'
+            ? {
+                borderRadius: { mobile: 0, desktop: '10px' },
+                backgroundColor: '#f4f4f4',
+              }
+            : undefined
+        }
+        contentSx={getPanelSidebarContentSx({
+          options,
+          hasTabs: tabs.length > 0,
+        })}
       >
-        {mobileStackedContentBefore}
-        <Box sx={{ display: isMainContentVisible ? 'contents' : 'none' }}>
-          {children}
-        </Box>
-        {mobileStackedContentAfter}
-        {mobileButtonsPanelContent}
-      </SidebarScaffold>
-    </SimpleSidebarProvider>
+        {boundaryId != null && (
+          <SidebarPanelSlot boundaryId={boundaryId} panelId="main" />
+        )}
+        {children}
+      </SimpleSidebarBase>
+    </PanelSidebarTabsContext.Provider>
   )
 }
+
+export type {
+  SimpleSidebarMobileMode,
+  SimpleSidebarMobilePanel,
+  SimpleSidebarMobileStackPlacement,
+  SimpleSidebarPanelConfig,
+  SimpleSidebarPanelsConfig,
+} from './SimpleSidebarBase'
 
 export default SimpleSidebar

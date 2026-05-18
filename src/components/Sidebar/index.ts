@@ -77,11 +77,13 @@ export type {
   SidebarPanelLayout,
   SidebarRuntimeOptions,
   SidebarRuntimeOptionsPatch,
+  SidebarSimpleConfig,
   SidebarSlotName,
   SidebarWidthToken,
 } from '#/common/types/sidebar'
 export { SimpleSidebar } from './SimpleSidebar'
 export type {
+  SimpleSidebarProps,
   SimpleSidebarPanelsConfig,
   SimpleSidebarPanelConfig,
   SimpleSidebarMobileMode,

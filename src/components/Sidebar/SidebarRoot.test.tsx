@@ -153,7 +153,7 @@ describe('SidebarRoot', () => {
     expect(mountCount).toBe(1)
   })
 
-  it('hosts Energiakartta panel slots without remounting on runtime option changes', async () => {
+  it('hosts simple scoped panel slots without remounting on runtime option changes', async () => {
     let mountCount = 0
 
     const Child = () => {
@@ -183,8 +183,8 @@ describe('SidebarRoot', () => {
     renderRoot({
       children: (
         <SidebarBoundary
-          id="energiakartta-floating"
-          mode="panel"
+          id="simple-boundary"
+          mode="simple"
           config={{ width: 'compact', panelLayout: 'single' }}
           initialRuntimeOptions={{
             panelLayout: 'single',
@@ -208,7 +208,7 @@ describe('SidebarRoot', () => {
     act(() => {
       useUIStore
         .getState()
-        .setSidebarBoundaryRuntimeOptions('energiakartta-floating', {
+        .setSidebarBoundaryRuntimeOptions('simple-boundary', {
           width: 'wide',
           chrome: 'hidden',
           panelLayout: 'double',
@@ -226,7 +226,7 @@ describe('SidebarRoot', () => {
     act(() => {
       useUIStore
         .getState()
-        .setSidebarBoundaryRuntimeOptions('energiakartta-floating', {
+        .setSidebarBoundaryRuntimeOptions('simple-boundary', {
           width: 'wide',
           chrome: 'hidden',
           panelLayout: 'triple',
@@ -256,7 +256,7 @@ describe('SidebarRoot', () => {
     act(() => {
       useUIStore
         .getState()
-        .setSidebarBoundaryRuntimeOptions('energiakartta-floating', {
+        .setSidebarBoundaryRuntimeOptions('simple-boundary', {
           width: 'compact',
           chrome: 'visible',
           panelLayout: 'single',
@@ -286,7 +286,7 @@ describe('SidebarRoot', () => {
     expect(mountCount).toBe(mountCountAfterActivation)
   })
 
-  it('keeps the Energiakartta child subtree mounted when mobile stacked panels open', async () => {
+  it('keeps the simple child subtree mounted when mobile stacked panels open', async () => {
     mockIsMobile = true
     let mountCount = 0
 
@@ -317,8 +317,8 @@ describe('SidebarRoot', () => {
     renderRoot({
       children: (
         <SidebarBoundary
-          id="energiakartta-floating"
-          mode="panel"
+          id="simple-mobile-boundary"
+          mode="simple"
           config={{ width: 'compact', panelLayout: 'single' }}
           initialRuntimeOptions={{
             panelLayout: 'single',
@@ -342,7 +342,7 @@ describe('SidebarRoot', () => {
     act(() => {
       useUIStore
         .getState()
-        .setSidebarBoundaryRuntimeOptions('energiakartta-floating', {
+        .setSidebarBoundaryRuntimeOptions('simple-mobile-boundary', {
           width: 'wide',
           chrome: 'hidden',
           panelLayout: 'double',
@@ -364,7 +364,7 @@ describe('SidebarRoot', () => {
     act(() => {
       useUIStore
         .getState()
-        .setSidebarBoundaryRuntimeOptions('energiakartta-floating', {
+        .setSidebarBoundaryRuntimeOptions('simple-mobile-boundary', {
           width: 'wide',
           chrome: 'hidden',
           panelLayout: 'triple',
@@ -392,7 +392,7 @@ describe('SidebarRoot', () => {
       children: (
         <SidebarBoundary
           id="route-panel"
-          mode="panel"
+          mode="simple"
           config={{ panelLayout: 'double' }}
           initialRuntimeOptions={{
             visiblePanels: [],
@@ -439,7 +439,7 @@ describe('SidebarRoot', () => {
     ).toBeInTheDocument()
   })
 
-  it('keeps a panel boundary child mounted when panel runtime options open', async () => {
+  it('keeps a simple boundary child mounted when panel runtime options open', async () => {
     let mountCount = 0
 
     const Child = () => {
@@ -463,7 +463,7 @@ describe('SidebarRoot', () => {
       children: (
         <SidebarBoundary
           id="stable-panel"
-          mode="panel"
+          mode="simple"
           config={{ panelLayout: 'double' }}
           initialRuntimeOptions={{
             visiblePanels: [],

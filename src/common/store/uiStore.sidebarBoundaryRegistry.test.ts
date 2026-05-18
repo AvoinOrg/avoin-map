@@ -24,7 +24,7 @@ describe('uiStore sidebar boundary registry', () => {
     })
     useUIStore.getState().registerSidebarBoundary({
       id: 'child',
-      mode: 'panel',
+      mode: 'simple',
       depth: 1,
     })
 
@@ -43,7 +43,7 @@ describe('uiStore sidebar boundary registry', () => {
     })
     useUIStore.getState().registerSidebarBoundary({
       id: 'child',
-      mode: 'panel',
+      mode: 'simple',
       depth: 1,
     })
 
@@ -52,7 +52,7 @@ describe('uiStore sidebar boundary registry', () => {
     expect(activeBoundaryId()).toBe('child')
     expect(useUIStore.getState().sidebarBoundaries.child).toMatchObject({
       id: 'child',
-      mode: 'panel',
+      mode: 'simple',
       depth: 1,
     })
   })
@@ -87,7 +87,7 @@ describe('uiStore sidebar boundary registry', () => {
       useUIStore.getState().sidebarBoundaries.first?.registrationOrder
 
     useUIStore.getState().updateSidebarBoundary('first', {
-      mode: 'panel',
+      mode: 'simple',
       config: {
         panelLayout: 'double',
       },
@@ -98,7 +98,7 @@ describe('uiStore sidebar boundary registry', () => {
       useUIStore.getState().sidebarBoundaries.first?.registrationOrder
     ).toBe(firstOrder)
     expect(useUIStore.getState().sidebarBoundaries.first).toMatchObject({
-      mode: 'panel',
+      mode: 'simple',
       config: {
         panelLayout: 'double',
       },
@@ -121,7 +121,7 @@ describe('uiStore sidebar boundary registry', () => {
 
     useUIStore.getState().registerSidebarBoundary({
       id: 'first',
-      mode: 'panel',
+      mode: 'simple',
       depth: 0,
       runtimeOptions: {
         activePanel: 'secondary',
@@ -133,7 +133,7 @@ describe('uiStore sidebar boundary registry', () => {
       useUIStore.getState().sidebarBoundaries.first?.registrationOrder
     ).toBe(firstOrder)
     expect(useUIStore.getState().sidebarBoundaries.first).toMatchObject({
-      mode: 'panel',
+      mode: 'simple',
       runtimeOptions: {
         activePanel: 'secondary',
       },
@@ -143,7 +143,7 @@ describe('uiStore sidebar boundary registry', () => {
   it('keeps runtime updates scoped to the target boundary id', () => {
     useUIStore.getState().registerSidebarBoundary({
       id: 'first',
-      mode: 'panel',
+      mode: 'simple',
       depth: 0,
       runtimeOptions: {
         activePanel: 'main',
@@ -151,7 +151,7 @@ describe('uiStore sidebar boundary registry', () => {
     })
     useUIStore.getState().registerSidebarBoundary({
       id: 'second',
-      mode: 'panel',
+      mode: 'simple',
       depth: 1,
       runtimeOptions: {
         activePanel: 'secondary',
