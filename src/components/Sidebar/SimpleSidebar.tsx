@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo } from 'react'
+import React from 'react'
 import type { SxProps, Theme } from '@mui/material'
 
 import {
@@ -9,17 +9,11 @@ import {
 } from '#/common/constants/map'
 import type {
   SidebarBoundaryId,
-  SidebarPanelId,
   SidebarSimpleConfig as SidebarSimpleOptions,
 } from '#/common/types/sidebar'
 
 import SimpleSidebarBase from './SimpleSidebarBase'
-import type {
-  SimpleSidebarMobilePanel,
-  SimpleSidebarPanelsConfig,
-} from './SimpleSidebarBase'
 import {
-  SidebarActionRailSlot,
   SidebarFooterSlot,
   SidebarHeaderChildrenSlot,
   SidebarHeaderSlot,
@@ -28,75 +22,14 @@ import {
 
 export type SimpleSidebarProps = {
   sx?: SxProps<Theme>
-  panels?: SimpleSidebarPanelsConfig
   boundaryId?: SidebarBoundaryId
   options?: SidebarSimpleOptions
+  mobileStackedContentBefore?: React.ReactNode
+  mobileStackedContentAfter?: React.ReactNode
   children: React.ReactNode
 }
 
-const panelSlotContent = ({
-  boundaryId,
-  panelId,
-}: {
-  boundaryId: SidebarBoundaryId
-  panelId: SidebarPanelId
-}) => <SidebarPanelSlot boundaryId={boundaryId} panelId={panelId} />
-
 const DEFAULT_PANEL_WIDTH = '23.75rem'
-
-const toSecondaryMobilePanel = (
-  activePanel: SidebarPanelId | undefined
-): Extract<SimpleSidebarMobilePanel, 'main' | 'a'> =>
-  activePanel === 'secondary' ? 'a' : 'main'
-
-const getSimpleSidebarSecondaryPanelConfig = ({
-  boundaryId,
-  options,
-  actionRail,
-}: {
-  boundaryId?: SidebarBoundaryId
-  options?: SidebarSimpleOptions
-  actionRail?: React.ReactNode
-}): SimpleSidebarPanelsConfig | undefined => {
-  if (boundaryId == null) {
-    return undefined
-  }
-
-  if (options?.panelLayout !== 'double') {
-    return undefined
-  }
-
-  const visiblePanels = options.visiblePanels ?? ['main']
-  const isSecondaryVisible = visiblePanels.includes('secondary')
-  const panelLocalScrollContentSx =
-    options?.chrome === 'hidden'
-      ? {
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          height: '100%',
-          maxHeight: '100%',
-          minHeight: 0,
-          width: '100%',
-        }
-      : undefined
-
-  return {
-    mode: 'single',
-    isOpen: isSecondaryVisible,
-    mobileMode: options?.mobileMode,
-    mobileStackPlacement: options?.mobileStackPlacement,
-    mobileStackRender: 'direct',
-    mobileActivePanel: toSecondaryMobilePanel(options?.activePanel),
-    desktopActionRail: actionRail,
-    mobileActionRail: actionRail,
-    panel: {
-      content: panelSlotContent({ boundaryId, panelId: 'secondary' }),
-      desktopWidth: DEFAULT_PANEL_WIDTH,
-      desktopContentSx: panelLocalScrollContentSx,
-    },
-  }
-}
 
 const getSimpleSidebarSx = (
   sx: SxProps<Theme> | undefined,
@@ -172,27 +105,12 @@ const getSimpleSidebarContentSx = ({
 
 export const SimpleSidebar = ({
   sx,
-  panels,
   boundaryId,
   options,
+  mobileStackedContentBefore,
+  mobileStackedContentAfter,
   children,
 }: SimpleSidebarProps) => {
-  const scopedActionRailSlot = useMemo(
-    () =>
-      boundaryId != null ? (
-        <SidebarActionRailSlot boundaryId={boundaryId} />
-      ) : undefined,
-    [boundaryId]
-  )
-  const scopedPanels = useMemo(
-    () =>
-      getSimpleSidebarSecondaryPanelConfig({
-        boundaryId,
-        options,
-        actionRail: scopedActionRailSlot,
-      }),
-    [boundaryId, options, scopedActionRailSlot]
-  )
   const headerChildren =
     boundaryId != null ? (
       <SidebarHeaderChildrenSlot boundaryId={boundaryId} />
@@ -214,14 +132,11 @@ export const SimpleSidebar = ({
     <SimpleSidebarBase
       sx={getSimpleSidebarSx(sx, options)}
       sidebarToggleSx={getSimpleSidebarToggleSx(options)}
-      panels={panels ?? scopedPanels}
       headerChildren={headerChildren}
       topContent={scopedTopContent}
       bottomContent={scopedBottomContent}
-      actionRail={
-        panels == null && scopedPanels == null ? scopedActionRailSlot : undefined
-      }
-      actionRailPlacement={options?.actionRailPlacement}
+      mobileStackedContentBefore={mobileStackedContentBefore}
+      mobileStackedContentAfter={mobileStackedContentAfter}
       hideMainContainer={options?.mainPanelVisible === false}
       panelSx={
         options?.width === 'compact'

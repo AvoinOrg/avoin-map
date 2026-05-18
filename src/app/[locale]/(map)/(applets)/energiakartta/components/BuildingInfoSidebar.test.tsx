@@ -5,7 +5,10 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 
 import { useUIStore } from '#/common/store/uiStore'
 import theme from '#/common/style/theme/theme'
-import { PanelSidebar } from '#/components/Sidebar/PanelSidebar'
+import { SlotsProvider } from '#/components/context/slotsContext'
+import { SidebarRoot } from '#/components/Sidebar/SidebarRoot'
+import { SidebarPanelExtensionProvider } from '#/components/Sidebar/SidebarPanelExtensionProvider'
+import { IntoSidebarPanelExtensionPanelSlot } from '#/components/Sidebar/sidebarSlots'
 import {
   BuildingInfoActionRail,
   BuildingInfoTabPages,
@@ -315,6 +318,8 @@ const resetUIStore = () => {
   useUIStore.setState({
     sidebarBoundaries: {},
     _sidebarBoundaryRegistrationOrder: 0,
+    sidebarPanelExtensions: {},
+    _sidebarPanelExtensionRegistrationOrder: 0,
     isSidebarOpen: true,
     isSidebarDisabled: false,
     isSidebarLoading: false,
@@ -530,15 +535,24 @@ const renderBuildingInfoTabs = ({
   onCollapse?: (tabId: BuildingInfoTabId) => void
 } = {}) => {
   return renderWithTheme(
-    <PanelSidebar>
-      <BuildingInfoTabPages
-        panels={panels}
-        ariaLabels={ariaLabels}
-        activeTabId={activeTabId}
-        onClose={onClose}
-        onCollapse={onCollapse}
-      />
-    </PanelSidebar>
+    <SlotsProvider>
+      <SidebarRoot>
+        <SidebarPanelExtensionProvider
+          id="building-info-test-extension"
+          initialRuntimeOptions={{ visiblePanels: ['main'], activePanel: 'main' }}
+        >
+          <IntoSidebarPanelExtensionPanelSlot panelId="main">
+            <BuildingInfoTabPages
+              panels={panels}
+              ariaLabels={ariaLabels}
+              activeTabId={activeTabId}
+              onClose={onClose}
+              onCollapse={onCollapse}
+            />
+          </IntoSidebarPanelExtensionPanelSlot>
+        </SidebarPanelExtensionProvider>
+      </SidebarRoot>
+    </SlotsProvider>
   )
 }
 
@@ -571,14 +585,14 @@ describe('BuildingInfoSidebar', () => {
     )
   })
 
-  it('renders the basic building information tab through PanelSidebar', async () => {
+  it('renders the basic building information tab through SidebarPanelExtension', async () => {
     renderBuildingInfoTabs()
 
     expect(
       await screen.findByTestId('building-info-tab-page-basic')
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('tablist', { name: /sidebar panel tabs/i })
+      screen.getByRole('tablist', { name: /sidebar panel extension tabs/i })
     ).toBeInTheDocument()
     expect(
       screen.getByRole('tab', {
@@ -625,7 +639,7 @@ describe('BuildingInfoSidebar', () => {
     expect(
       screen.queryByTestId('building-info-grid-section-bottom-right')
     ).not.toBeInTheDocument()
-    expect(screen.getAllByTestId('panel-sidebar-page-scroll')).toHaveLength(1)
+    expect(screen.getAllByTestId('sidebar-panel-extension-page-scroll')).toHaveLength(1)
     expect(screen.queryByTestId(/^building-info-scroll-/)).not.toBeInTheDocument()
   })
 
@@ -712,21 +726,21 @@ describe('BuildingInfoSidebar', () => {
       'renovationRecommendations',
       'buildingDetails',
     ])
-    expect(screen.getAllByTestId('panel-sidebar-page-scroll')).toHaveLength(1)
+    expect(screen.getAllByTestId('sidebar-panel-extension-page-scroll')).toHaveLength(1)
     expect(screen.queryByTestId(/^building-info-scroll-/)).not.toBeInTheDocument()
-    expect(screen.getByTestId('panel-sidebar-page-scroll')).toHaveAttribute(
+    expect(screen.getByTestId('sidebar-panel-extension-page-scroll')).toHaveAttribute(
       'data-overflow-y',
       'scroll'
     )
-    expect(screen.getByTestId('panel-sidebar-page-scroll')).toHaveAttribute(
+    expect(screen.getByTestId('sidebar-panel-extension-page-scroll')).toHaveAttribute(
       'data-scrollbar-visibility',
       'auto'
     )
-    expect(screen.getByTestId('panel-sidebar-page-scroll')).toHaveAttribute(
+    expect(screen.getByTestId('sidebar-panel-extension-page-scroll')).toHaveAttribute(
       'data-auto-hide',
       'leave'
     )
-    expect(screen.getByTestId('panel-sidebar-page-scroll')).toHaveClass('osLeft')
+    expect(screen.getByTestId('sidebar-panel-extension-page-scroll')).toHaveClass('osLeft')
   })
 
   it('keeps the mobile basic tab stacked without the desktop grid', async () => {
@@ -743,7 +757,7 @@ describe('BuildingInfoSidebar', () => {
         .getAllByTestId(/building-info-panel-/)
         .map((panel) => panel.dataset.panelId)
     ).toEqual(['energyConsumption', 'buildingDetails'])
-    expect(screen.getAllByTestId('panel-sidebar-page-scroll')).toHaveLength(1)
+    expect(screen.getAllByTestId('sidebar-panel-extension-page-scroll')).toHaveLength(1)
     expect(screen.queryByTestId(/^building-info-scroll-/)).not.toBeInTheDocument()
     expect(
       screen.getByTestId('building-info-energy-consumption-section')

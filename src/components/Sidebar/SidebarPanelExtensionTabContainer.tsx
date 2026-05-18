@@ -5,11 +5,11 @@ import { Box } from '@mui/material'
 import type { SxProps, Theme } from '@mui/material'
 
 import {
-  useNullablePanelSidebarTabsContext,
-  type PanelSidebarTabMetadata,
-} from './PanelSidebarTabsContext'
+  useNullableSidebarPanelExtensionTabsContext,
+  type SidebarPanelExtensionTabMetadata,
+} from './SidebarPanelExtensionTabsContext'
 
-export type PanelSidebarTabContainerProps = {
+export type SidebarPanelExtensionTabContainerProps = {
   tabId: string
   tabName: React.ReactNode
   tabAriaLabel?: string
@@ -24,7 +24,7 @@ export type PanelSidebarTabContainerProps = {
 const normalizeDomIdPart = (value: string) =>
   value.replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-+|-+$/g, '') || 'tab'
 
-export const PanelSidebarTabContainer = ({
+export const SidebarPanelExtensionTabContainer = ({
   tabId,
   tabName,
   tabAriaLabel,
@@ -34,16 +34,16 @@ export const PanelSidebarTabContainer = ({
   keepMounted = false,
   sx,
   children,
-}: PanelSidebarTabContainerProps) => {
-  const context = useNullablePanelSidebarTabsContext()
+}: SidebarPanelExtensionTabContainerProps) => {
+  const context = useNullableSidebarPanelExtensionTabsContext()
   const registerTab = context?.registerTab
   const unregisterTab = context?.unregisterTab
   const generatedId = useId()
   const domIdPart = normalizeDomIdPart(`${tabId}-${generatedId}`)
-  const tabButtonId = `panel-sidebar-tab-${domIdPart}`
-  const tabPanelId = `panel-sidebar-tabpanel-${domIdPart}`
+  const tabButtonId = `sidebar-panel-extension-tab-${domIdPart}`
+  const tabPanelId = `sidebar-panel-extension-tabpanel-${domIdPart}`
 
-  const metadata = useMemo<PanelSidebarTabMetadata>(
+  const metadata = useMemo<SidebarPanelExtensionTabMetadata>(
     () => ({
       tabId,
       tabName,
@@ -112,7 +112,7 @@ export const PanelSidebarTabContainer = ({
       role="tabpanel"
       aria-labelledby={tabButtonId}
       hidden={!isActive}
-      data-panel-sidebar-tab-id={tabId}
+      data-sidebar-panel-extension-tab-id={tabId}
       sx={[
         {
           display: isActive ? 'flex' : 'none',
@@ -130,4 +130,4 @@ export const PanelSidebarTabContainer = ({
   )
 }
 
-export default PanelSidebarTabContainer
+export default SidebarPanelExtensionTabContainer

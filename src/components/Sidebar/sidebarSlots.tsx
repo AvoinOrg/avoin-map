@@ -4,12 +4,14 @@ import React from 'react'
 
 import type {
   SidebarBoundaryId,
+  SidebarPanelExtensionId,
   SidebarPanelId,
   SidebarSlotName,
 } from '#/common/types/sidebar'
 import { IntoSlot, Slot } from '#/components/context/slotsContext'
 
 import { useSidebarBoundaryContext } from './sidebarBoundaryContext'
+import { useSidebarPanelExtensionContext } from './sidebarPanelExtensionContext'
 
 export type SidebarNamedSlotKeyInput = {
   boundaryId: SidebarBoundaryId
@@ -26,12 +28,37 @@ export type SidebarSlotKeyInput =
   | SidebarNamedSlotKeyInput
   | SidebarPanelSlotKeyInput
 
+export type SidebarPanelExtensionNamedSlotKeyInput = {
+  extensionId: SidebarPanelExtensionId
+  slot: 'actionRail'
+}
+
+export type SidebarPanelExtensionPanelSlotKeyInput = {
+  extensionId: SidebarPanelExtensionId
+  slot: 'panel'
+  panelId: SidebarPanelId
+}
+
+export type SidebarPanelExtensionSlotKeyInput =
+  | SidebarPanelExtensionNamedSlotKeyInput
+  | SidebarPanelExtensionPanelSlotKeyInput
+
 export const getSidebarSlotKey = (input: SidebarSlotKeyInput) => {
   if (input.slot === 'panel') {
     return `sidebar:${input.boundaryId}:panel:${input.panelId}`
   }
 
   return `sidebar:${input.boundaryId}:${input.slot}`
+}
+
+export const getSidebarPanelExtensionSlotKey = (
+  input: SidebarPanelExtensionSlotKeyInput
+) => {
+  if (input.slot === 'panel') {
+    return `sidebar-panel-extension:${input.extensionId}:panel:${input.panelId}`
+  }
+
+  return `sidebar-panel-extension:${input.extensionId}:${input.slot}`
 }
 
 export const SidebarSlotHost = (props: SidebarSlotKeyInput) => (
@@ -83,6 +110,41 @@ export const SidebarPanelSlot = ({
 }) => (
   <Slot
     name={getSidebarSlotKey({ boundaryId, slot: 'panel', panelId })}
+    style={{ display: 'contents' }}
+  />
+)
+
+export const SidebarPanelExtensionSlotHost = (
+  props: SidebarPanelExtensionSlotKeyInput
+) => <Slot name={getSidebarPanelExtensionSlotKey(props)} />
+
+export const SidebarPanelExtensionActionRailSlot = ({
+  extensionId,
+}: {
+  extensionId: SidebarPanelExtensionId
+}) => (
+  <Slot
+    name={getSidebarPanelExtensionSlotKey({
+      extensionId,
+      slot: 'actionRail',
+    })}
+    style={{ display: 'contents' }}
+  />
+)
+
+export const SidebarPanelExtensionPanelSlot = ({
+  extensionId,
+  panelId,
+}: {
+  extensionId: SidebarPanelExtensionId
+  panelId: SidebarPanelId
+}) => (
+  <Slot
+    name={getSidebarPanelExtensionSlotKey({
+      extensionId,
+      slot: 'panel',
+      panelId,
+    })}
     style={{ display: 'contents' }}
   />
 )
@@ -158,6 +220,47 @@ export const IntoSidebarPanelSlot = ({
 
   return (
     <IntoSlot name={getSidebarSlotKey({ boundaryId, slot: 'panel', panelId })}>
+      {children}
+    </IntoSlot>
+  )
+}
+
+export const IntoSidebarPanelExtensionActionRailSlot = ({
+  children,
+}: {
+  children: React.ReactNode
+}) => {
+  const { extensionId } = useSidebarPanelExtensionContext()
+
+  return (
+    <IntoSlot
+      name={getSidebarPanelExtensionSlotKey({
+        extensionId,
+        slot: 'actionRail',
+      })}
+    >
+      {children}
+    </IntoSlot>
+  )
+}
+
+export const IntoSidebarPanelExtensionPanelSlot = ({
+  panelId,
+  children,
+}: {
+  panelId: SidebarPanelId
+  children: React.ReactNode
+}) => {
+  const { extensionId } = useSidebarPanelExtensionContext()
+
+  return (
+    <IntoSlot
+      name={getSidebarPanelExtensionSlotKey({
+        extensionId,
+        slot: 'panel',
+        panelId,
+      })}
+    >
       {children}
     </IntoSlot>
   )

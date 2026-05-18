@@ -9,11 +9,7 @@ import { defaultListedLayerGroups } from '#/components/Map/layers/defaultListedL
 
 const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   return (
-    <SidebarBoundary
-      id="forests-panel"
-      mode="simple"
-      config={{ panelLayout: 'single' }}
-    >
+    <SidebarBoundary id="forests-panel" mode="simple">
       <AppletWrapper
         mapContext={'forests'}
         isNavbarHidden={true}

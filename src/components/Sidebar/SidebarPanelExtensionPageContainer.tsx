@@ -9,7 +9,7 @@ import type { PartialOptions } from 'overlayscrollbars'
 
 import { Cross } from '../icons'
 
-export type PanelSidebarPageContainerProps = {
+export type SidebarPanelExtensionPageContainerProps = {
   children?: React.ReactNode
   sx?: SxProps<Theme>
   contentSx?: SxProps<Theme>
@@ -40,7 +40,7 @@ const pageControlButtonSx = {
   },
 } as const
 
-export const PanelSidebarPageContainer = ({
+export const SidebarPanelExtensionPageContainer = ({
   children,
   sx,
   contentSx,
@@ -51,9 +51,9 @@ export const PanelSidebarPageContainer = ({
   showCloseControl,
   onCollapse,
   onClose,
-  collapseAriaLabel = 'collapse panel sidebar page',
-  closeAriaLabel = 'close panel sidebar page',
-}: PanelSidebarPageContainerProps) => {
+  collapseAriaLabel = 'collapse sidebar panel extension page',
+  closeAriaLabel = 'close sidebar panel extension page',
+}: SidebarPanelExtensionPageContainerProps) => {
   const showCollapse = shouldShowAction(showCollapseControl, onCollapse)
   const showClose = shouldShowAction(showCloseControl, onClose)
   const hasControls = showCollapse || showClose
@@ -75,7 +75,7 @@ export const PanelSidebarPageContainer = ({
 
   return (
     <Box
-      className="panel-sidebar-page-container"
+      className="sidebar-panel-extension-page-container"
       sx={[
         {
           display: 'flex',
@@ -92,7 +92,7 @@ export const PanelSidebarPageContainer = ({
     >
       {hasControls && (
         <Box
-          className="panel-sidebar-page-container-controls"
+          className="sidebar-panel-extension-page-container-controls"
           sx={[
             {
               flexShrink: 0,
@@ -155,7 +155,7 @@ export const PanelSidebarPageContainer = ({
       >
         <OverlayScrollbarsComponent
           className={`osScroll${scrollbarSide === 'left' ? ' osLeft' : ''}`}
-          data-testid="panel-sidebar-page-scroll"
+          data-testid="sidebar-panel-extension-page-scroll"
           options={resolvedScrollbarOptions}
           style={{
             flex: 1,
@@ -165,7 +165,7 @@ export const PanelSidebarPageContainer = ({
           }}
         >
           <Box
-            className="panel-sidebar-page-container-inner"
+            className="sidebar-panel-extension-page-container-inner"
             sx={[
               {
                 direction: 'ltr',
@@ -186,4 +186,4 @@ export const PanelSidebarPageContainer = ({
   )
 }
 
-export default PanelSidebarPageContainer
+export default SidebarPanelExtensionPageContainer

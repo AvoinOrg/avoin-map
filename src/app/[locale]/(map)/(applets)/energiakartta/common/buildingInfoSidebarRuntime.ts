@@ -1,4 +1,4 @@
-import type { SidebarRuntimeOptions } from '#/common/types/sidebar'
+import type { SidebarPanelExtensionRuntimeOptions } from '#/common/types/sidebar'
 
 type GetEnergymapBuildingInfoSidebarRuntimeOptionsInput = {
   hasBuildingInfo: boolean
@@ -8,7 +8,7 @@ type GetEnergymapBuildingInfoSidebarRuntimeOptionsInput = {
 
 export const getEnergymapBuildingInfoSidebarRuntimeOptions = (
   input: GetEnergymapBuildingInfoSidebarRuntimeOptionsInput
-): SidebarRuntimeOptions => {
+): SidebarPanelExtensionRuntimeOptions => {
   const { hasBuildingInfo, isBuildingInfoCollapsed, isMobile } = input
   const isBuildingInfoExpanded = hasBuildingInfo && !isBuildingInfoCollapsed
 

@@ -5,6 +5,8 @@ const resetSidebarBoundaryRegistry = () => {
   useUIStore.setState({
     sidebarBoundaries: {},
     _sidebarBoundaryRegistrationOrder: 0,
+    sidebarPanelExtensions: {},
+    _sidebarPanelExtensionRegistrationOrder: 0,
   })
 }
 
@@ -203,5 +205,125 @@ describe('uiStore sidebar boundary registry', () => {
     expect(useUIStore.getState().sidebarBoundaries['none-child']?.mode).toBe(
       'none'
     )
+  })
+})
+
+describe('uiStore sidebar panel extension registry', () => {
+  beforeEach(() => {
+    resetSidebarBoundaryRegistry()
+  })
+
+  it('tracks active extension by depth and registration order', () => {
+    useUIStore.getState().registerSidebarPanelExtension({
+      id: 'parent-extension',
+      depth: 0,
+    })
+    useUIStore.getState().registerSidebarPanelExtension({
+      id: 'child-extension',
+      depth: 1,
+    })
+
+    expect(useUIStore.getState().sidebarPanelExtensions).toMatchObject({
+      'parent-extension': { id: 'parent-extension', depth: 0 },
+      'child-extension': { id: 'child-extension', depth: 1 },
+    })
+
+    useUIStore.getState().unregisterSidebarPanelExtension('child-extension')
+
+    expect(
+      useUIStore.getState().sidebarPanelExtensions['child-extension']
+    ).toBeUndefined()
+    expect(
+      useUIStore.getState().sidebarPanelExtensions['parent-extension']
+    ).toMatchObject({ id: 'parent-extension', depth: 0 })
+  })
+
+  it('patches and resets extension runtime options independently from boundaries', () => {
+    useUIStore.getState().registerSidebarBoundary({
+      id: 'simple-boundary',
+      mode: 'simple',
+      depth: 0,
+      runtimeOptions: {
+        activePanel: 'secondary',
+      },
+    })
+    useUIStore.getState().registerSidebarPanelExtension({
+      id: 'graph-extension',
+      depth: 0,
+      runtimeOptions: {
+        activePanel: 'main',
+      },
+    })
+
+    useUIStore.getState().setSidebarPanelExtensionRuntimeOptions(
+      'graph-extension',
+      {
+        visiblePanels: ['main'],
+        actionRailPlacement: 'bottomActionRow',
+      }
+    )
+
+    expect(
+      useUIStore.getState().sidebarPanelExtensions['graph-extension']
+        ?.runtimeOptions
+    ).toEqual({
+      activePanel: 'main',
+      visiblePanels: ['main'],
+      actionRailPlacement: 'bottomActionRow',
+    })
+    expect(
+      useUIStore.getState().sidebarBoundaries['simple-boundary']?.runtimeOptions
+    ).toEqual({
+      activePanel: 'secondary',
+    })
+
+    useUIStore
+      .getState()
+      .resetSidebarPanelExtensionRuntimeOptions('graph-extension')
+
+    expect(
+      useUIStore.getState().sidebarPanelExtensions['graph-extension']
+        ?.runtimeOptions
+    ).toEqual({})
+  })
+
+  it('registers tabs, switches active tab, and falls back when the active tab unregisters', () => {
+    useUIStore.getState().registerSidebarPanelExtension({
+      id: 'tab-extension',
+      depth: 0,
+    })
+
+    useUIStore.getState().registerSidebarPanelExtensionTab('tab-extension', {
+      tabId: 'first',
+      tabName: 'First',
+      tabButtonId: 'first-button',
+      tabPanelId: 'first-panel',
+    })
+    useUIStore.getState().registerSidebarPanelExtensionTab('tab-extension', {
+      tabId: 'second',
+      tabName: 'Second',
+      tabButtonId: 'second-button',
+      tabPanelId: 'second-panel',
+    })
+
+    expect(
+      useUIStore.getState().sidebarPanelExtensions['tab-extension']?.activeTabId
+    ).toBe('first')
+
+    useUIStore
+      .getState()
+      .setSidebarPanelExtensionActiveTab('tab-extension', 'second')
+
+    expect(
+      useUIStore.getState().sidebarPanelExtensions['tab-extension']?.activeTabId
+    ).toBe('second')
+
+    useUIStore
+      .getState()
+      .unregisterSidebarPanelExtensionTab('tab-extension', 'second')
+
+    expect(
+      useUIStore.getState().sidebarPanelExtensions['tab-extension']?.activeTabId
+    ).toBe('first')
   })
 })

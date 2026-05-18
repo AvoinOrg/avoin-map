@@ -2,7 +2,7 @@
 
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
-import { enableMapSet } from 'immer'
+import { castDraft, enableMapSet } from 'immer'
 
 import {
   ConfirmationDialogOptions,
@@ -13,9 +13,15 @@ import {
 } from '#/common/types/state'
 import type {
   RegisterSidebarBoundaryInput,
+  RegisterSidebarPanelExtensionInput,
   SidebarBoundaryId,
   SidebarBoundaryRegistry,
   SidebarBoundaryUpdate,
+  SidebarPanelExtensionId,
+  SidebarPanelExtensionRegistry,
+  SidebarPanelExtensionRuntimeOptionsPatch,
+  SidebarPanelExtensionTabMetadata,
+  SidebarPanelExtensionUpdate,
   SidebarRuntimeOptionsPatch,
 } from '#/common/types/sidebar'
 import { generateUUID } from '../utils/general'
@@ -31,6 +37,19 @@ type SidebarHeaderConfig = {
   backgroundImage?: string
 }
 
+const areSidebarPanelExtensionTabsEqual = (
+  previous: SidebarPanelExtensionTabMetadata,
+  next: SidebarPanelExtensionTabMetadata
+) =>
+  previous.tabId === next.tabId &&
+  previous.tabName === next.tabName &&
+  previous.tabAriaLabel === next.tabAriaLabel &&
+  previous.tabIcon === next.tabIcon &&
+  previous.tabButtonSx === next.tabButtonSx &&
+  previous.tabIconSx === next.tabIconSx &&
+  previous.tabButtonId === next.tabButtonId &&
+  previous.tabPanelId === next.tabPanelId
+
 interface Vars {
   isSidebarOpen: boolean
   isSidebarDisabled: boolean
@@ -42,6 +61,8 @@ interface Vars {
   sidebarWidth: number | undefined
   sidebarBoundaries: SidebarBoundaryRegistry
   _sidebarBoundaryRegistrationOrder: number
+  sidebarPanelExtensions: SidebarPanelExtensionRegistry
+  _sidebarPanelExtensionRegistrationOrder: number
   sidebarHeaderConfig: SidebarHeaderConfig
   confirmationDialogOptions: InternalConfirmationDialogOptions
   isBaseDomainForApplet: boolean
@@ -86,6 +107,33 @@ interface Actions {
   ) => void
   resetSidebarBoundaryRuntimeOptions: (id: SidebarBoundaryId) => void
   unregisterSidebarBoundary: (id: SidebarBoundaryId) => void
+  registerSidebarPanelExtension: (
+    input: RegisterSidebarPanelExtensionInput
+  ) => void
+  updateSidebarPanelExtension: (
+    id: SidebarPanelExtensionId,
+    patch: SidebarPanelExtensionUpdate
+  ) => void
+  setSidebarPanelExtensionRuntimeOptions: (
+    id: SidebarPanelExtensionId,
+    patch: SidebarPanelExtensionRuntimeOptionsPatch
+  ) => void
+  resetSidebarPanelExtensionRuntimeOptions: (
+    id: SidebarPanelExtensionId
+  ) => void
+  unregisterSidebarPanelExtension: (id: SidebarPanelExtensionId) => void
+  registerSidebarPanelExtensionTab: (
+    id: SidebarPanelExtensionId,
+    tab: SidebarPanelExtensionTabMetadata
+  ) => void
+  unregisterSidebarPanelExtensionTab: (
+    id: SidebarPanelExtensionId,
+    tabId: string
+  ) => void
+  setSidebarPanelExtensionActiveTab: (
+    id: SidebarPanelExtensionId,
+    tabId: string
+  ) => void
   setSidebarHeaderConfig: (config: SidebarHeaderConfig) => void
   triggerConfirmationDialog: (
     options: ConfirmationDialogOptions
@@ -119,6 +167,8 @@ export const useUIStore = create<State>()(
         sidebarWidth: undefined,
         sidebarBoundaries: {},
         _sidebarBoundaryRegistrationOrder: 0,
+        sidebarPanelExtensions: {},
+        _sidebarPanelExtensionRegistrationOrder: 0,
         sidebarHeaderConfig: { title: '' },
         confirmationDialogOptions: { id: null },
         isBaseDomainForApplet: false,
@@ -218,6 +268,168 @@ export const useUIStore = create<State>()(
         unregisterSidebarBoundary: (id: SidebarBoundaryId) => {
           set((state) => {
             delete state.sidebarBoundaries[id]
+          })
+        },
+        registerSidebarPanelExtension: (
+          input: RegisterSidebarPanelExtensionInput
+        ) => {
+          set((state) => {
+            const existingExtension = state.sidebarPanelExtensions[input.id]
+
+            if (existingExtension != null) {
+              existingExtension.depth = input.depth
+              existingExtension.config = input.config
+              if (input.runtimeOptions != null) {
+                existingExtension.runtimeOptions = input.runtimeOptions
+              }
+              return
+            }
+
+            state._sidebarPanelExtensionRegistrationOrder += 1
+            state.sidebarPanelExtensions[input.id] = {
+              id: input.id,
+              depth: input.depth,
+              config: input.config,
+              runtimeOptions: input.runtimeOptions ?? {},
+              tabs: [],
+              registrationOrder: state._sidebarPanelExtensionRegistrationOrder,
+            }
+          })
+        },
+        updateSidebarPanelExtension: (
+          id: SidebarPanelExtensionId,
+          patch: SidebarPanelExtensionUpdate
+        ) => {
+          set((state) => {
+            const extension = state.sidebarPanelExtensions[id]
+
+            if (extension == null) {
+              return
+            }
+
+            if (patch.depth != null) {
+              extension.depth = patch.depth
+            }
+            if ('config' in patch) {
+              extension.config = patch.config
+            }
+          })
+        },
+        setSidebarPanelExtensionRuntimeOptions: (
+          id: SidebarPanelExtensionId,
+          patch: SidebarPanelExtensionRuntimeOptionsPatch
+        ) => {
+          set((state) => {
+            const extension = state.sidebarPanelExtensions[id]
+
+            if (extension == null) {
+              return
+            }
+
+            extension.runtimeOptions = {
+              ...extension.runtimeOptions,
+              ...patch,
+            }
+          })
+        },
+        resetSidebarPanelExtensionRuntimeOptions: (
+          id: SidebarPanelExtensionId
+        ) => {
+          set((state) => {
+            const extension = state.sidebarPanelExtensions[id]
+
+            if (extension == null) {
+              return
+            }
+
+            extension.runtimeOptions = {}
+          })
+        },
+        unregisterSidebarPanelExtension: (id: SidebarPanelExtensionId) => {
+          set((state) => {
+            delete state.sidebarPanelExtensions[id]
+          })
+        },
+        registerSidebarPanelExtensionTab: (
+          id: SidebarPanelExtensionId,
+          tab: SidebarPanelExtensionTabMetadata
+        ) => {
+          set((state) => {
+            const extension = state.sidebarPanelExtensions[id]
+
+            if (extension == null) {
+              return
+            }
+
+            const tabIndex = extension.tabs.findIndex(
+              (currentTab) => currentTab.tabId === tab.tabId
+            )
+
+            if (tabIndex === -1) {
+              extension.tabs.push(castDraft(tab))
+            } else if (
+              !areSidebarPanelExtensionTabsEqual(
+                extension.tabs[tabIndex],
+                tab
+              )
+            ) {
+              extension.tabs[tabIndex] = castDraft(tab)
+            }
+
+            if (
+              extension.activeTabId == null ||
+              !extension.tabs.some(
+                (currentTab) => currentTab.tabId === extension.activeTabId
+              )
+            ) {
+              extension.activeTabId = extension.tabs[0]?.tabId
+            }
+          })
+        },
+        unregisterSidebarPanelExtensionTab: (
+          id: SidebarPanelExtensionId,
+          tabId: string
+        ) => {
+          set((state) => {
+            const extension = state.sidebarPanelExtensions[id]
+
+            if (extension == null) {
+              return
+            }
+
+            extension.tabs = extension.tabs.filter(
+              (currentTab) => currentTab.tabId !== tabId
+            )
+
+            if (
+              extension.activeTabId === tabId ||
+              !extension.tabs.some(
+                (currentTab) => currentTab.tabId === extension.activeTabId
+              )
+            ) {
+              extension.activeTabId = extension.tabs[0]?.tabId
+            }
+          })
+        },
+        setSidebarPanelExtensionActiveTab: (
+          id: SidebarPanelExtensionId,
+          tabId: string
+        ) => {
+          set((state) => {
+            const extension = state.sidebarPanelExtensions[id]
+
+            if (extension == null) {
+              return
+            }
+
+            if (
+              extension.tabs.length > 0 &&
+              !extension.tabs.some((tab) => tab.tabId === tabId)
+            ) {
+              return
+            }
+
+            extension.activeTabId = tabId
           })
         },
         setSidebarHeaderConfig: (config: SidebarHeaderConfig) =>

@@ -1,14 +1,18 @@
 export { SidebarRoot } from './SidebarRoot'
 export { HomeSidebar } from './HomeSidebar'
 export { FloatingSidebar } from './FloatingSidebar'
-export { PanelSidebar } from './PanelSidebar'
-export { PanelSidebarPageContainer } from './PanelSidebarPageContainer'
-export { PanelSidebarTabContainer } from './PanelSidebarTabContainer'
 export {
-  PanelSidebarDefaultTabIcon,
-  PanelSidebarTabIconButton,
-  getPanelSidebarTabAccessibleLabel,
-} from './PanelSidebarTabIconButton'
+  SidebarPanelExtension,
+  SidebarPanelExtensionTabRail,
+  getSidebarPanelExtensionMainPanelWidth,
+} from './SidebarPanelExtension'
+export { SidebarPanelExtensionPageContainer } from './SidebarPanelExtensionPageContainer'
+export { SidebarPanelExtensionTabContainer } from './SidebarPanelExtensionTabContainer'
+export {
+  SidebarPanelExtensionDefaultTabIcon,
+  SidebarPanelExtensionTabIconButton,
+  getSidebarPanelExtensionTabAccessibleLabel,
+} from './SidebarPanelExtensionTabIconButton'
 export type { HomeSidebarProps } from './HomeSidebar'
 export type {
   FloatingSidebarFooterMode,
@@ -16,18 +20,26 @@ export type {
   FloatingSidebarProps,
   FloatingSidebarWidth,
 } from './FloatingSidebar'
-export type { PanelSidebarProps } from './PanelSidebar'
-export type { PanelSidebarPageContainerProps } from './PanelSidebarPageContainer'
-export type { PanelSidebarTabContainerProps } from './PanelSidebarTabContainer'
 export type {
-  PanelSidebarDefaultTabIconProps,
-  PanelSidebarTabIconButtonProps,
-} from './PanelSidebarTabIconButton'
+  SidebarPanelExtensionProps,
+  SidebarPanelExtensionTabRailProps,
+} from './SidebarPanelExtension'
+export type { SidebarPanelExtensionPageContainerProps } from './SidebarPanelExtensionPageContainer'
+export type { SidebarPanelExtensionTabContainerProps } from './SidebarPanelExtensionTabContainer'
+export type {
+  SidebarPanelExtensionDefaultTabIconProps,
+  SidebarPanelExtensionTabIconButtonProps,
+} from './SidebarPanelExtensionTabIconButton'
 export {
   SidebarBoundary,
   useSidebarBoundaryRuntimeOptions,
 } from './SidebarBoundary'
 export type { SidebarBoundaryProps } from './SidebarBoundary'
+export {
+  SidebarPanelExtensionProvider,
+  useSidebarPanelExtensionRuntimeOptions,
+} from './SidebarPanelExtensionProvider'
+export type { SidebarPanelExtensionProviderProps } from './SidebarPanelExtensionProvider'
 export {
   SidebarBoundaryProvider,
   useNullableSidebarBoundaryContext,
@@ -35,7 +47,14 @@ export {
 } from './sidebarBoundaryContext'
 export type { SidebarBoundaryContextValue } from './sidebarBoundaryContext'
 export {
+  SidebarPanelExtensionContextProvider,
+  useNullableSidebarPanelExtensionContext,
+  useSidebarPanelExtensionContext,
+} from './sidebarPanelExtensionContext'
+export type { SidebarPanelExtensionContextValue } from './sidebarPanelExtensionContext'
+export {
   getSidebarSlotKey,
+  getSidebarPanelExtensionSlotKey,
   SidebarSlotHost,
   SidebarHeaderSlot,
   SidebarHeaderChildrenSlot,
@@ -44,6 +63,9 @@ export {
   SidebarTopControlsSlot,
   SidebarBottomControlsSlot,
   SidebarPanelSlot,
+  SidebarPanelExtensionSlotHost,
+  SidebarPanelExtensionActionRailSlot,
+  SidebarPanelExtensionPanelSlot,
   IntoSidebarHeaderSlot,
   IntoSidebarHeaderChildrenSlot,
   IntoSidebarFooterSlot,
@@ -51,14 +73,20 @@ export {
   IntoSidebarTopControlsSlot,
   IntoSidebarBottomControlsSlot,
   IntoSidebarPanelSlot,
+  IntoSidebarPanelExtensionActionRailSlot,
+  IntoSidebarPanelExtensionPanelSlot,
 } from './sidebarSlots'
 export type {
+  SidebarPanelExtensionNamedSlotKeyInput,
+  SidebarPanelExtensionPanelSlotKeyInput,
+  SidebarPanelExtensionSlotKeyInput,
   SidebarNamedSlotKeyInput,
   SidebarPanelSlotKeyInput,
   SidebarSlotKeyInput,
 } from './sidebarSlots'
 export type {
   RegisterSidebarBoundaryInput,
+  RegisterSidebarPanelExtensionInput,
   SidebarActionRailPlacement,
   SidebarBoundaryConfig,
   SidebarBoundaryId,
@@ -73,6 +101,14 @@ export type {
   SidebarMobileStackPlacement,
   SidebarNoneConfig,
   SidebarPanelConfig,
+  SidebarPanelExtensionConfig,
+  SidebarPanelExtensionId,
+  SidebarPanelExtensionRegistration,
+  SidebarPanelExtensionRegistry,
+  SidebarPanelExtensionRuntimeOptions,
+  SidebarPanelExtensionRuntimeOptionsPatch,
+  SidebarPanelExtensionTabMetadata,
+  SidebarPanelExtensionUpdate,
   SidebarPanelId,
   SidebarPanelLayout,
   SidebarRuntimeOptions,

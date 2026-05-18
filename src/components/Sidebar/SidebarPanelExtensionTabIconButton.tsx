@@ -4,11 +4,11 @@ import React from 'react'
 import { Box, IconButton, Tooltip } from '@mui/material'
 import type { SxProps, Theme } from '@mui/material'
 
-export type PanelSidebarDefaultTabIconProps = {
+export type SidebarPanelExtensionDefaultTabIconProps = {
   sx?: SxProps<Theme>
 }
 
-export type PanelSidebarTabIconButtonProps = {
+export type SidebarPanelExtensionTabIconButtonProps = {
   tabId: string
   tabName: React.ReactNode
   ariaLabel?: string
@@ -21,7 +21,7 @@ export type PanelSidebarTabIconButtonProps = {
   iconSx?: SxProps<Theme>
 }
 
-export const getPanelSidebarTabAccessibleLabel = ({
+export const getSidebarPanelExtensionTabAccessibleLabel = ({
   tabId,
   tabName,
   ariaLabel,
@@ -41,13 +41,13 @@ export const getPanelSidebarTabAccessibleLabel = ({
   return tabId
 }
 
-export const PanelSidebarDefaultTabIcon = ({
+export const SidebarPanelExtensionDefaultTabIcon = ({
   sx,
-}: PanelSidebarDefaultTabIconProps) => {
+}: SidebarPanelExtensionDefaultTabIconProps) => {
   return (
     <Box
       aria-hidden="true"
-      data-testid="panel-sidebar-default-tab-icon"
+      data-testid="sidebar-panel-extension-default-tab-icon"
       sx={[
         {
           display: 'grid',
@@ -77,7 +77,7 @@ export const PanelSidebarDefaultTabIcon = ({
   )
 }
 
-export const PanelSidebarTabIconButton = ({
+export const SidebarPanelExtensionTabIconButton = ({
   tabId,
   tabName,
   ariaLabel,
@@ -88,8 +88,8 @@ export const PanelSidebarTabIconButton = ({
   onSelect,
   sx,
   iconSx,
-}: PanelSidebarTabIconButtonProps) => {
-  const accessibleLabel = getPanelSidebarTabAccessibleLabel({
+}: SidebarPanelExtensionTabIconButtonProps) => {
+  const accessibleLabel = getSidebarPanelExtensionTabAccessibleLabel({
     tabId,
     tabName,
     ariaLabel,
@@ -154,11 +154,11 @@ export const PanelSidebarTabIconButton = ({
             ...(Array.isArray(iconSx) ? iconSx : [iconSx]),
           ]}
         >
-          {icon ?? <PanelSidebarDefaultTabIcon />}
+          {icon ?? <SidebarPanelExtensionDefaultTabIcon />}
         </Box>
       </IconButton>
     </Tooltip>
   )
 }
 
-export default PanelSidebarTabIconButton
+export default SidebarPanelExtensionTabIconButton

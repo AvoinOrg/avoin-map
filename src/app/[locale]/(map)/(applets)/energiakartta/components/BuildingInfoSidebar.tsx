@@ -24,9 +24,9 @@ import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import type { SelectOption } from '#/common/types/general'
 import DropDownSelectInset from '#/components/common/DropDownSelectInset'
 import TText from '#/components/common/TText'
-import { PanelSidebarPageContainer } from '#/components/Sidebar/PanelSidebarPageContainer'
-import { PanelSidebarTabContainer } from '#/components/Sidebar/PanelSidebarTabContainer'
-import { useNullablePanelSidebarTabsContext } from '#/components/Sidebar/PanelSidebarTabsContext'
+import { SidebarPanelExtensionPageContainer } from '#/components/Sidebar/SidebarPanelExtensionPageContainer'
+import { SidebarPanelExtensionTabContainer } from '#/components/Sidebar/SidebarPanelExtensionTabContainer'
+import { useNullableSidebarPanelExtensionTabsContext } from '#/components/Sidebar/SidebarPanelExtensionTabsContext'
 import type {
   EnergymapBuildingInfoEnergySubmetricId,
   EnergymapEnergyMeasure,
@@ -2372,7 +2372,7 @@ const BuildingInfoActiveTabSync = ({
 }: {
   activeTabId?: BuildingInfoTabId
 }) => {
-  const tabsContext = useNullablePanelSidebarTabsContext()
+  const tabsContext = useNullableSidebarPanelExtensionTabsContext()
   const setActiveTabId = tabsContext?.setActiveTabId
   const lastAppliedActiveTabId = React.useRef<BuildingInfoTabId | undefined>()
   const hasActiveTab =
@@ -2509,13 +2509,13 @@ export const BuildingInfoTabPages = ({
 }: BuildingInfoTabPagesProps) => (
   <>
     <BuildingInfoActiveTabSync activeTabId={activeTabId} />
-    <PanelSidebarTabContainer
+    <SidebarPanelExtensionTabContainer
       tabId="basic"
       tabName={ariaLabels.overview}
       tabAriaLabel={ariaLabels.overview}
       tabIcon={<TwoPanelIcon />}
     >
-      <PanelSidebarPageContainer
+      <SidebarPanelExtensionPageContainer
         closeAriaLabel={ariaLabels.close}
         collapseAriaLabel={ariaLabels.collapse}
         onClose={onClose}
@@ -2526,15 +2526,15 @@ export const BuildingInfoTabPages = ({
         controlsSx={getBuildingInfoPageControlsSx('basic')}
       >
         <BuildingInfoTabPageContent tabId="basic" panels={panels} />
-      </PanelSidebarPageContainer>
-    </PanelSidebarTabContainer>
-    <PanelSidebarTabContainer
+      </SidebarPanelExtensionPageContainer>
+    </SidebarPanelExtensionTabContainer>
+    <SidebarPanelExtensionTabContainer
       tabId="renovation"
       tabName={ariaLabels.renovation}
       tabAriaLabel={ariaLabels.renovation}
       tabIcon={<ThreePanelIcon />}
     >
-      <PanelSidebarPageContainer
+      <SidebarPanelExtensionPageContainer
         closeAriaLabel={ariaLabels.close}
         collapseAriaLabel={ariaLabels.collapse}
         onClose={onClose}
@@ -2545,8 +2545,8 @@ export const BuildingInfoTabPages = ({
         controlsSx={getBuildingInfoPageControlsSx('renovation')}
       >
         <BuildingInfoTabPageContent tabId="renovation" panels={panels} />
-      </PanelSidebarPageContainer>
-    </PanelSidebarTabContainer>
+      </SidebarPanelExtensionPageContainer>
+    </SidebarPanelExtensionTabContainer>
   </>
 )
 

@@ -381,6 +381,8 @@ export const SimpleSidebarBase = ({
   actionRail,
   actionRailPlacement = 'inside',
   hideMainContainer = false,
+  mobileStackedContentBefore,
+  mobileStackedContentAfter,
   panels,
   children,
   headerChildren,
@@ -394,6 +396,8 @@ export const SimpleSidebarBase = ({
   actionRail?: React.ReactNode
   actionRailPlacement?: SidebarActionRailPlacement
   hideMainContainer?: boolean
+  mobileStackedContentBefore?: React.ReactNode
+  mobileStackedContentAfter?: React.ReactNode
   panels?: SimpleSidebarPanelsConfig
   children: React.ReactNode
   headerChildren?: React.ReactNode
@@ -697,9 +701,9 @@ export const SimpleSidebarBase = ({
       </Box>
     ) : null
 
-  const mobileStackedContentBefore =
+  const panelMobileStackedContentBefore =
     mobileStackPlacement === 'before' ? mobileSingleDirectStackedContent : null
-  const mobileStackedContentAfter =
+  const panelMobileStackedContentAfter =
     mobileStackPlacement === 'after'
       ? (mobileDoubleStackedContent ?? mobileSingleDirectStackedContent)
       : mobileDoubleStackedContent
@@ -816,11 +820,13 @@ export const SimpleSidebarBase = ({
           ...(Array.isArray(contentSx) ? contentSx : [contentSx]),
         ]}
       >
-        {mobileStackedContentBefore}
+        {isMobile ? mobileStackedContentBefore : null}
+        {panelMobileStackedContentBefore}
         <Box sx={{ display: isMainContentVisible ? 'contents' : 'none' }}>
           {children}
         </Box>
-        {mobileStackedContentAfter}
+        {panelMobileStackedContentAfter}
+        {isMobile ? mobileStackedContentAfter : null}
         {mobileButtonsPanelContent}
       </SidebarScaffold>
     </SimpleSidebarProvider>

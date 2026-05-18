@@ -12,11 +12,7 @@ import {
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <SidebarBoundary
-      id="hiilikartta-kaavat-panel"
-      mode="simple"
-      config={{ panelLayout: 'single' }}
-    >
+    <SidebarBoundary id="hiilikartta-kaavat-panel" mode="simple">
       <IntoSidebarHeaderChildrenSlot>
         <BreadcrumbNav routeTree={routeTree} collapseIfRoot />
       </IntoSidebarHeaderChildrenSlot>

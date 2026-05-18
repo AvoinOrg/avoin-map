@@ -18,12 +18,13 @@ import { useLocaleFormatter } from '#/common/hooks/useLocaleFormatter'
 import { FINLAND_BOUNDS } from '#/common/constants/map'
 import useSelectedFeaturesFilteredByLayer from '#/common/hooks/map/useSelectedFeaturesFilteredByLayer'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
-import type { SidebarRuntimeOptions } from '#/common/types/sidebar'
+import type { SidebarPanelExtensionRuntimeOptions } from '#/common/types/sidebar'
 import {
-  IntoSidebarActionRailSlot,
+  IntoSidebarPanelExtensionActionRailSlot,
+  IntoSidebarPanelExtensionPanelSlot,
   IntoSidebarPanelSlot,
+  SidebarPanelExtensionProvider,
   SidebarContentBox,
-  useSidebarBoundaryRuntimeOptions,
 } from '#/components/Sidebar'
 import SidebarBackgroundContent from '#/components/common/SidebarBackgroundContent'
 import { useLayerGroup } from '#/common/hooks/map/useLayerGroup'
@@ -665,21 +666,25 @@ const FinlandForests = () => {
       </Tooltip>
     ) : null
 
-  const sidebarRuntimeOptions = useMemo<SidebarRuntimeOptions>(
-    () => ({
-      panelLayout: hasGraphPanel ? 'double' : 'single',
-      visiblePanels: hasGraphPanel && isGraphPanelOpen ? ['secondary'] : [],
-      activePanel: hasGraphPanel && isGraphPanelOpen ? 'secondary' : 'main',
-      mobileMode: 'stacked',
-      mobileStackPlacement: 'before',
-    }),
-    [hasGraphPanel, isGraphPanelOpen]
-  )
-
-  useSidebarBoundaryRuntimeOptions(sidebarRuntimeOptions)
+  const sidebarPanelExtensionRuntimeOptions =
+    useMemo<SidebarPanelExtensionRuntimeOptions>(
+      () => ({
+        panelLayout: 'single',
+        visiblePanels: hasGraphPanel && isGraphPanelOpen ? ['main'] : [],
+        activePanel: 'main',
+        mobileMode: 'stacked',
+        mobileStackPlacement: 'before',
+        actionRailPlacement: 'bottomActionRow',
+      }),
+      [hasGraphPanel, isGraphPanelOpen]
+    )
 
   return (
-    <>
+    <SidebarPanelExtensionProvider
+      id="forests-graph-panel-extension"
+      enabled={hasGraphPanel}
+      runtimeOptions={sidebarPanelExtensionRuntimeOptions}
+    >
       <IntoSidebarPanelSlot panelId="main">
         <SidebarContentBox
           scrollFadeColor="#ffffff"
@@ -993,16 +998,16 @@ const FinlandForests = () => {
         </SidebarContentBox>
       </IntoSidebarPanelSlot>
       {hasGraphPanel && (
-        <IntoSidebarPanelSlot panelId="secondary">
+        <IntoSidebarPanelExtensionPanelSlot panelId="main">
           {graphPanelContent}
-        </IntoSidebarPanelSlot>
+        </IntoSidebarPanelExtensionPanelSlot>
       )}
       {graphActionButton && (
-        <IntoSidebarActionRailSlot>
+        <IntoSidebarPanelExtensionActionRailSlot>
           {graphActionButton}
-        </IntoSidebarActionRailSlot>
+        </IntoSidebarPanelExtensionActionRailSlot>
       )}
-    </>
+    </SidebarPanelExtensionProvider>
   )
 }
 

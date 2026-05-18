@@ -6,13 +6,13 @@ import { useUIStore } from '#/common/store/uiStore'
 import { SlotsProvider } from '#/components/context/slotsContext'
 
 import {
-  PanelSidebar,
-  getPanelSidebarMainPanelWidth,
-} from './PanelSidebar'
-import { PanelSidebarPageContainer } from './PanelSidebarPageContainer'
-import { PanelSidebarTabContainer } from './PanelSidebarTabContainer'
-import { SidebarBoundary } from './SidebarBoundary'
-import { IntoSidebarPanelSlot } from './sidebarSlots'
+  getSidebarPanelExtensionMainPanelWidth,
+} from './SidebarPanelExtension'
+import { SidebarPanelExtensionPageContainer } from './SidebarPanelExtensionPageContainer'
+import { SidebarPanelExtensionProvider } from './SidebarPanelExtensionProvider'
+import { SidebarPanelExtensionTabContainer } from './SidebarPanelExtensionTabContainer'
+import { SidebarRoot } from './SidebarRoot'
+import { IntoSidebarPanelExtensionPanelSlot } from './sidebarSlots'
 
 jest.mock('#/common/store', () => ({
   useUIStore: jest.requireActual('#/common/store/uiStore').useUIStore,
@@ -69,6 +69,8 @@ const resetUIStore = () => {
   useUIStore.setState({
     sidebarBoundaries: {},
     _sidebarBoundaryRegistrationOrder: 0,
+    sidebarPanelExtensions: {},
+    _sidebarPanelExtensionRegistrationOrder: 0,
     isSidebarOpen: true,
     isSidebarDisabled: false,
     isSidebarLoading: false,
@@ -77,35 +79,48 @@ const resetUIStore = () => {
   })
 }
 
-const renderPanelSidebar = (children: React.ReactNode) =>
-  render(<PanelSidebar>{children}</PanelSidebar>)
+const renderSidebarPanelExtension = (children: React.ReactNode) =>
+  render(
+    <SlotsProvider>
+      <SidebarRoot>
+        <SidebarPanelExtensionProvider
+          id="test-extension"
+          initialRuntimeOptions={{ visiblePanels: ['main'], activePanel: 'main' }}
+        >
+          <IntoSidebarPanelExtensionPanelSlot panelId="main">
+            {children}
+          </IntoSidebarPanelExtensionPanelSlot>
+        </SidebarPanelExtensionProvider>
+      </SidebarRoot>
+    </SlotsProvider>
+  )
 
-describe('PanelSidebar generic tab helpers', () => {
+describe('SidebarPanelExtension generic tab helpers', () => {
   beforeEach(() => {
     mockIsMobile = false
     resetUIStore()
   })
 
   it('registers multiple tab containers, shows a tab rail, and switches panels', async () => {
-    renderPanelSidebar(
+    renderSidebarPanelExtension(
       <>
-        <PanelSidebarTabContainer tabId="summary" tabName="Summary">
+        <SidebarPanelExtensionTabContainer tabId="summary" tabName="Summary">
           <div>Summary panel content</div>
-        </PanelSidebarTabContainer>
-        <PanelSidebarTabContainer
+        </SidebarPanelExtensionTabContainer>
+        <SidebarPanelExtensionTabContainer
           tabId="details"
           tabName="Details"
           tabIcon={<span data-testid="custom-details-icon">D</span>}
         >
           <div>Details panel content</div>
-        </PanelSidebarTabContainer>
+        </SidebarPanelExtensionTabContainer>
       </>
     )
 
     expect(await screen.findByText('Summary panel content')).toBeInTheDocument()
     expect(screen.queryByText('Details panel content')).not.toBeInTheDocument()
     expect(
-      screen.getByRole('tablist', { name: /sidebar panel tabs/i })
+      screen.getByRole('tablist', { name: /sidebar panel extension tabs/i })
     ).toBeInTheDocument()
     expect(screen.getByRole('tab', { name: 'Summary' })).toHaveAttribute(
       'aria-selected',
@@ -116,7 +131,7 @@ describe('PanelSidebar generic tab helpers', () => {
       'false'
     )
     expect(screen.getByTestId('custom-details-icon')).toBeInTheDocument()
-    expect(screen.getAllByTestId('panel-sidebar-default-tab-icon')).toHaveLength(
+    expect(screen.getAllByTestId('sidebar-panel-extension-default-tab-icon')).toHaveLength(
       1
     )
 
@@ -131,10 +146,10 @@ describe('PanelSidebar generic tab helpers', () => {
   })
 
   it('renders one tab without a tab rail', async () => {
-    renderPanelSidebar(
-      <PanelSidebarTabContainer tabId="only" tabName="Only tab">
+    renderSidebarPanelExtension(
+      <SidebarPanelExtensionTabContainer tabId="only" tabName="Only tab">
         <div>Only tab content</div>
-      </PanelSidebarTabContainer>
+      </SidebarPanelExtensionTabContainer>
     )
 
     expect(await screen.findByText('Only tab content')).toBeInTheDocument()
@@ -142,21 +157,30 @@ describe('PanelSidebar generic tab helpers', () => {
     expect(screen.queryByRole('tab', { name: 'Only tab' })).not.toBeInTheDocument()
   })
 
-  it('registers tab containers rendered through a scoped panel slot', async () => {
+  it('registers tab containers rendered through an extension panel slot', async () => {
     render(
       <SlotsProvider>
-        <SidebarBoundary id="slot-panel" mode="simple">
-          <PanelSidebar boundaryId="slot-panel">
-            <IntoSidebarPanelSlot panelId="main">
-              <PanelSidebarTabContainer tabId="layers" tabName="Layers">
+        <SidebarRoot>
+          <SidebarPanelExtensionProvider
+            id="slot-extension"
+            initialRuntimeOptions={{ visiblePanels: ['main'], activePanel: 'main' }}
+          >
+            <IntoSidebarPanelExtensionPanelSlot panelId="main">
+              <SidebarPanelExtensionTabContainer
+                tabId="layers"
+                tabName="Layers"
+              >
                 <div>Layers tab content</div>
-              </PanelSidebarTabContainer>
-              <PanelSidebarTabContainer tabId="report" tabName="Report">
+              </SidebarPanelExtensionTabContainer>
+              <SidebarPanelExtensionTabContainer
+                tabId="report"
+                tabName="Report"
+              >
                 <div>Report tab content</div>
-              </PanelSidebarTabContainer>
-            </IntoSidebarPanelSlot>
-          </PanelSidebar>
-        </SidebarBoundary>
+              </SidebarPanelExtensionTabContainer>
+            </IntoSidebarPanelExtensionPanelSlot>
+          </SidebarPanelExtensionProvider>
+        </SidebarRoot>
       </SlotsProvider>
     )
 
@@ -173,14 +197,14 @@ describe('PanelSidebar generic tab helpers', () => {
   })
 
   it('falls back to the first remaining tab when the active tab unmounts', async () => {
-    const { rerender } = renderPanelSidebar(
+    const { rerender } = renderSidebarPanelExtension(
       <>
-        <PanelSidebarTabContainer tabId="first" tabName="First">
+        <SidebarPanelExtensionTabContainer tabId="first" tabName="First">
           <div>First panel content</div>
-        </PanelSidebarTabContainer>
-        <PanelSidebarTabContainer tabId="second" tabName="Second">
+        </SidebarPanelExtensionTabContainer>
+        <SidebarPanelExtensionTabContainer tabId="second" tabName="Second">
           <div>Second panel content</div>
-        </PanelSidebarTabContainer>
+        </SidebarPanelExtensionTabContainer>
       </>
     )
 
@@ -188,11 +212,20 @@ describe('PanelSidebar generic tab helpers', () => {
     expect(await screen.findByText('Second panel content')).toBeInTheDocument()
 
     rerender(
-      <PanelSidebar>
-        <PanelSidebarTabContainer tabId="first" tabName="First">
-          <div>First panel content</div>
-        </PanelSidebarTabContainer>
-      </PanelSidebar>
+      <SlotsProvider>
+        <SidebarRoot>
+          <SidebarPanelExtensionProvider
+            id="test-extension"
+            initialRuntimeOptions={{ visiblePanels: ['main'], activePanel: 'main' }}
+          >
+            <IntoSidebarPanelExtensionPanelSlot panelId="main">
+              <SidebarPanelExtensionTabContainer tabId="first" tabName="First">
+                <div>First panel content</div>
+              </SidebarPanelExtensionTabContainer>
+            </IntoSidebarPanelExtensionPanelSlot>
+          </SidebarPanelExtensionProvider>
+        </SidebarRoot>
+      </SlotsProvider>
     )
 
     expect(await screen.findByText('First panel content')).toBeInTheDocument()
@@ -201,23 +234,23 @@ describe('PanelSidebar generic tab helpers', () => {
 
   it('resolves wide hidden single main width without changing default or triple widths', () => {
     expect(
-      getPanelSidebarMainPanelWidth({
+      getSidebarPanelExtensionMainPanelWidth({
         width: 'wide',
         chrome: 'hidden',
         panelLayout: 'single',
         visiblePanels: ['main'],
       })
     ).toBe('min(1440px, 100vw)')
-    expect(getPanelSidebarMainPanelWidth()).toBe('23.75rem')
+    expect(getSidebarPanelExtensionMainPanelWidth()).toBe('23.75rem')
     expect(
-      getPanelSidebarMainPanelWidth({
+      getSidebarPanelExtensionMainPanelWidth({
         width: 'compact',
         panelLayout: 'single',
         visiblePanels: ['main'],
       })
     ).toBe('23.75rem')
     expect(
-      getPanelSidebarMainPanelWidth({
+      getSidebarPanelExtensionMainPanelWidth({
         width: 'wide',
         chrome: 'hidden',
         panelLayout: 'triple',
@@ -227,19 +260,19 @@ describe('PanelSidebar generic tab helpers', () => {
   })
 })
 
-describe('PanelSidebarPageContainer', () => {
+describe('SidebarPanelExtensionPageContainer', () => {
   beforeEach(() => {
     resetUIStore()
   })
 
   it('uses left-side OverlayScrollbars defaults', () => {
     render(
-      <PanelSidebarPageContainer>
+      <SidebarPanelExtensionPageContainer>
         <div>Scrollable page content</div>
-      </PanelSidebarPageContainer>
+      </SidebarPanelExtensionPageContainer>
     )
 
-    const scrollArea = screen.getByTestId('panel-sidebar-page-scroll')
+    const scrollArea = screen.getByTestId('sidebar-panel-extension-page-scroll')
 
     expect(scrollArea).toHaveClass('osScroll', 'osLeft')
     expect(scrollArea).toHaveAttribute('data-auto-hide', 'leave')
@@ -256,14 +289,14 @@ describe('PanelSidebarPageContainer', () => {
     const onClose = jest.fn()
 
     render(
-      <PanelSidebarPageContainer
+      <SidebarPanelExtensionPageContainer
         onCollapse={onCollapse}
         onClose={onClose}
         collapseAriaLabel="Collapse current page"
         closeAriaLabel="Close current page"
       >
         <div>Controlled page content</div>
-      </PanelSidebarPageContainer>
+      </SidebarPanelExtensionPageContainer>
     )
 
     fireEvent.click(

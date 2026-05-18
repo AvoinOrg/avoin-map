@@ -7,11 +7,13 @@ import type { SidebarMode, SidebarRuntimeOptions } from '#/common/types/sidebar'
 import { SlotsProvider } from '#/components/context/slotsContext'
 
 import { SidebarBoundary } from './SidebarBoundary'
-import { PanelSidebarTabContainer } from './PanelSidebarTabContainer'
+import { SidebarPanelExtensionProvider } from './SidebarPanelExtensionProvider'
+import { SidebarPanelExtensionTabContainer } from './SidebarPanelExtensionTabContainer'
 import { SidebarRoot } from './SidebarRoot'
 import {
-  IntoSidebarActionRailSlot,
   IntoSidebarHeaderChildrenSlot,
+  IntoSidebarPanelExtensionActionRailSlot,
+  IntoSidebarPanelExtensionPanelSlot,
   IntoSidebarPanelSlot,
 } from './sidebarSlots'
 
@@ -29,6 +31,8 @@ const resetUIStore = () => {
   useUIStore.setState({
     sidebarBoundaries: {},
     _sidebarBoundaryRegistrationOrder: 0,
+    sidebarPanelExtensions: {},
+    _sidebarPanelExtensionRegistrationOrder: 0,
     isSidebarOpen: true,
     isSidebarDisabled: false,
     isSidebarLoading: false,
@@ -67,18 +71,72 @@ const renderRoot = ({ children }: { children: React.ReactNode }) =>
     </SlotsProvider>
   )
 
+const renderMobileControlsExtension = (id: string) => (
+  <SidebarPanelExtensionProvider
+    id={id}
+    initialRuntimeOptions={{
+      visiblePanels: ['main'],
+      activePanel: 'main',
+      actionRailPlacement: 'bottomActionRow',
+    }}
+  >
+    <IntoSidebarPanelExtensionPanelSlot panelId="main">
+      <SidebarPanelExtensionTabContainer tabId="first" tabName="First">
+        <span>First {id} tab body</span>
+      </SidebarPanelExtensionTabContainer>
+      <SidebarPanelExtensionTabContainer tabId="second" tabName="Second">
+        <span>Second {id} tab body</span>
+      </SidebarPanelExtensionTabContainer>
+    </IntoSidebarPanelExtensionPanelSlot>
+  </SidebarPanelExtensionProvider>
+)
+
+const expectMobileControlsToShareSidebarToggleRow = (
+  controls: HTMLElement
+) => {
+  const toggle = document.querySelector(
+    '.sidebar-toggle-button'
+  ) as HTMLElement | null
+
+  expect(toggle).not.toBeNull()
+
+  const controlsStyle = window.getComputedStyle(controls)
+  const toggleStyle = window.getComputedStyle(toggle as HTMLElement)
+  const controlsRight = Number.parseFloat(controlsStyle.right)
+  const toggleRight = Number.parseFloat(toggleStyle.right)
+  const toggleWidth = Number.parseFloat(toggleStyle.width)
+
+  expect(controlsStyle.bottom).toBe(toggleStyle.bottom)
+  expect(controlsRight - toggleRight).toBeCloseTo(toggleWidth + 10)
+}
+
+const expectMobileControlsToReserveSidebarToggleLane = (
+  controls: HTMLElement
+) => {
+  const controlsStyle = window.getComputedStyle(controls)
+
+  expect(
+    document.querySelector('.sidebar-toggle-button')
+  ).not.toBeInTheDocument()
+  expect(controlsStyle.bottom).toBe('16px')
+  expect(controlsStyle.right).toBe('71px')
+}
+
 describe('SidebarRoot', () => {
   beforeEach(() => {
     mockIsMobile = false
     resetUIStore()
   })
 
-  it('renders raw children when no boundary is registered', () => {
+  it('renders raw children when no boundary or extension is registered', () => {
     renderRoot({ children: <div>Raw child</div> })
 
     expect(screen.getByText('Raw child')).toBeInTheDocument()
     expect(
       screen.queryByRole('button', { name: /hide sidebar/i })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByTestId('sidebar-panel-extension-root')
     ).not.toBeInTheDocument()
   })
 
@@ -120,7 +178,7 @@ describe('SidebarRoot', () => {
     expect(screen.getByText('Floating child')).toBeInTheDocument()
   })
 
-  it('keeps the child subtree mounted when runtime options change within one mode', () => {
+  it('keeps the child subtree mounted when boundary runtime options change within one mode', () => {
     let mountCount = 0
 
     const Child = () => {
@@ -154,7 +212,7 @@ describe('SidebarRoot', () => {
     expect(mountCount).toBe(1)
   })
 
-  it('hosts simple scoped main and secondary slots without remounting on runtime option changes', async () => {
+  it('renders extension slots independently of the active simple boundary without remounting children', async () => {
     let mountCount = 0
 
     const Child = () => {
@@ -163,189 +221,489 @@ describe('SidebarRoot', () => {
       }, [])
 
       return (
-        <>
+        <SidebarPanelExtensionProvider
+          id="route-extension"
+          initialRuntimeOptions={{
+            panelLayout: 'single',
+            visiblePanels: [],
+            activePanel: 'main',
+            actionRailPlacement: 'bottomActionRow',
+          }}
+        >
           <IntoSidebarPanelSlot panelId="main">
-            <div>Scoped energy panel</div>
+            <div>Base simple panel</div>
           </IntoSidebarPanelSlot>
-          <IntoSidebarPanelSlot panelId="secondary">
-            <div>Scoped renovation panel</div>
-          </IntoSidebarPanelSlot>
-          <IntoSidebarActionRailSlot>
-            <button type="button">Scoped graph action</button>
-          </IntoSidebarActionRailSlot>
-          <div>Stable panel child</div>
-        </>
+          <IntoSidebarPanelExtensionPanelSlot panelId="main">
+            <div>Extension graph panel</div>
+          </IntoSidebarPanelExtensionPanelSlot>
+          <IntoSidebarPanelExtensionActionRailSlot>
+            <button type="button">Toggle graph panel</button>
+          </IntoSidebarPanelExtensionActionRailSlot>
+          <div>Stable extension child</div>
+        </SidebarPanelExtensionProvider>
       )
     }
 
     renderRoot({
       children: (
-        <SidebarBoundary
-          id="simple-boundary"
-          mode="simple"
-          config={{ panelLayout: 'double' }}
-          initialRuntimeOptions={{
-            panelLayout: 'double',
-            visiblePanels: ['main'],
-            activePanel: 'main',
-          }}
-        >
+        <SidebarBoundary id="simple-boundary" mode="simple">
           <Child />
         </SidebarBoundary>
       ),
     })
 
-    expect(await screen.findByText('Stable panel child')).toBeInTheDocument()
-    expect(screen.getByText('Scoped energy panel')).toBeInTheDocument()
+    expect(await screen.findByText('Stable extension child')).toBeInTheDocument()
+    expect(screen.getByText('Base simple panel')).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Scoped graph action' })
+      screen.getByRole('button', { name: 'Toggle graph panel' })
     ).toBeInTheDocument()
-    expect(screen.queryByText('Scoped renovation panel')).not.toBeInTheDocument()
+    expect(screen.queryByText('Extension graph panel')).not.toBeInTheDocument()
     const mountCountAfterActivation = mountCount
 
     act(() => {
       useUIStore
         .getState()
-        .setSidebarBoundaryRuntimeOptions('simple-boundary', {
-          panelLayout: 'double',
-          visiblePanels: ['secondary'],
-          activePanel: 'secondary',
-          actionRailPlacement: 'fixedBottomActionRow',
-        })
-    })
-
-    expect(screen.getByText('Stable panel child')).toBeInTheDocument()
-    expect(screen.getByText('Scoped energy panel')).toBeInTheDocument()
-    expect(screen.getByText('Scoped renovation panel')).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: 'Scoped graph action' })
-    ).toBeInTheDocument()
-    expect(screen.getByTestId('sidebar-action-rail')).toHaveAttribute(
-      'data-sidebar-action-rail-placement',
-      'fixedBottomActionRow'
-    )
-    expect(screen.getByTestId('sidebar-action-rail')).toHaveAttribute(
-      'data-sidebar-action-rail-fixed',
-      'true'
-    )
-    expect(mountCount).toBe(mountCountAfterActivation)
-
-    act(() => {
-      useUIStore
-        .getState()
-        .setSidebarBoundaryRuntimeOptions('simple-boundary', {
-          panelLayout: 'double',
+        .setSidebarPanelExtensionRuntimeOptions('route-extension', {
           visiblePanels: ['main'],
           activePanel: 'main',
-          actionRailPlacement: 'fixedRightActionColumn',
         })
     })
 
-    expect(screen.getByText('Stable panel child')).toBeInTheDocument()
-    expect(screen.getByText('Scoped energy panel')).toBeInTheDocument()
+    expect(screen.getByText('Stable extension child')).toBeInTheDocument()
+    expect(screen.getByText('Base simple panel')).toBeInTheDocument()
+    expect(await screen.findByText('Extension graph panel')).toBeInTheDocument()
+    expect(screen.getByTestId('sidebar-panel-extension-root')).toBeInTheDocument()
     expect(
-      screen.queryByText('Scoped renovation panel')
-    ).not.toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: 'Scoped graph action' })
-    ).toBeInTheDocument()
-    expect(screen.getByTestId('sidebar-action-rail')).toHaveAttribute(
-      'data-sidebar-action-rail-placement',
-      'fixedRightActionColumn'
-    )
-    expect(screen.getByTestId('sidebar-action-rail')).toHaveAttribute(
-      'data-sidebar-action-rail-fixed',
-      'true'
+      screen.getByTestId('sidebar-panel-extension-desktop-controls')
+    ).toHaveAttribute(
+      'data-sidebar-panel-extension-control-placement',
+      'bottomActionRow'
     )
     expect(mountCount).toBe(mountCountAfterActivation)
   })
 
-  it('keeps the simple child subtree mounted when mobile stacked panels open', async () => {
+  it('renders root-owned desktop tab controls for active extension tabs', async () => {
+    renderRoot({
+      children: (
+        <SidebarPanelExtensionProvider
+          id="desktop-tabs-extension"
+          initialRuntimeOptions={{ visiblePanels: ['main'], activePanel: 'main' }}
+        >
+          <IntoSidebarPanelExtensionPanelSlot panelId="main">
+            <SidebarPanelExtensionTabContainer tabId="first" tabName="First">
+              <span>First extension tab body</span>
+            </SidebarPanelExtensionTabContainer>
+            <SidebarPanelExtensionTabContainer tabId="second" tabName="Second">
+              <span>Second extension tab body</span>
+            </SidebarPanelExtensionTabContainer>
+          </IntoSidebarPanelExtensionPanelSlot>
+        </SidebarPanelExtensionProvider>
+      ),
+    })
+
+    expect(await screen.findByText('First extension tab body')).toBeInTheDocument()
+    expect(
+      screen.getByTestId('sidebar-panel-extension-desktop-tab-rail')
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByTestId('sidebar-panel-extension-mobile-tab-rail')
+    ).not.toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'First' })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    )
+  })
+
+  it('renders root-owned mobile tab controls in the bottom action row', async () => {
     mockIsMobile = true
-    let mountCount = 0
-
-    const Child = () => {
-      useEffect(() => {
-        mountCount += 1
-      }, [])
-
-      return (
-        <>
-          <IntoSidebarPanelSlot panelId="main">
-            <div>Scoped mobile energy panel</div>
-          </IntoSidebarPanelSlot>
-          <IntoSidebarPanelSlot panelId="secondary">
-            <div>Scoped mobile renovation panel</div>
-          </IntoSidebarPanelSlot>
-          <IntoSidebarActionRailSlot>
-            <button type="button">Scoped mobile graph action</button>
-          </IntoSidebarActionRailSlot>
-          <div>Stable mobile panel child</div>
-        </>
-      )
-    }
 
     renderRoot({
       children: (
-        <SidebarBoundary
-          id="simple-mobile-boundary"
-          mode="simple"
-          config={{ panelLayout: 'double' }}
+        <SidebarPanelExtensionProvider
+          id="mobile-tabs-extension"
           initialRuntimeOptions={{
-            panelLayout: 'double',
             visiblePanels: ['main'],
             activePanel: 'main',
-            mobileMode: 'stacked',
+            actionRailPlacement: 'bottomActionRow',
           }}
         >
-          <Child />
+          <IntoSidebarPanelExtensionPanelSlot panelId="main">
+            <SidebarPanelExtensionTabContainer tabId="first" tabName="First">
+              <span>First mobile extension tab body</span>
+            </SidebarPanelExtensionTabContainer>
+            <SidebarPanelExtensionTabContainer tabId="second" tabName="Second">
+              <span>Second mobile extension tab body</span>
+            </SidebarPanelExtensionTabContainer>
+          </IntoSidebarPanelExtensionPanelSlot>
+        </SidebarPanelExtensionProvider>
+      ),
+    })
+
+    expect(
+      await screen.findByText('First mobile extension tab body')
+    ).toBeInTheDocument()
+    expect(
+      screen.getByTestId('sidebar-panel-extension-mobile-tab-rail')
+    ).toBeInTheDocument()
+    expect(
+      screen.getByTestId('sidebar-panel-extension-mobile-controls')
+    ).toHaveAttribute(
+      'data-sidebar-panel-extension-tab-placement',
+      'bottomActionRow'
+    )
+    expect(
+      screen.queryByTestId('sidebar-panel-extension-desktop-tab-rail')
+    ).not.toBeInTheDocument()
+  })
+
+  it.each([
+    {
+      label: 'simple sidebar',
+      boundary: (
+        children: React.ReactNode
+      ): React.ReactNode => (
+        <SidebarBoundary id="mobile-row-simple" mode="simple">
+          {children}
+        </SidebarBoundary>
+      ),
+    },
+    {
+      label: 'compact simple sidebar',
+      boundary: (
+        children: React.ReactNode
+      ): React.ReactNode => (
+        <SidebarBoundary
+          id="mobile-row-simple-compact"
+          mode="simple"
+          config={{ width: 'compact' }}
+        >
+          {children}
+        </SidebarBoundary>
+      ),
+    },
+    {
+      label: 'floating sidebar',
+      boundary: (
+        children: React.ReactNode
+      ): React.ReactNode => (
+        <SidebarBoundary id="mobile-row-floating" mode="floating">
+          {children}
+        </SidebarBoundary>
+      ),
+    },
+    {
+      label: 'compact floating sidebar',
+      boundary: (
+        children: React.ReactNode
+      ): React.ReactNode => (
+        <SidebarBoundary
+          id="mobile-row-floating-compact"
+          mode="floating"
+          config={{ width: 'compact' }}
+        >
+          {children}
+        </SidebarBoundary>
+      ),
+    },
+  ])(
+    'aligns mobile extension controls with the toggle row for $label',
+    async ({ label, boundary }) => {
+      mockIsMobile = true
+      const extensionId = `extension-${label.replaceAll(' ', '-')}`
+
+      renderRoot({
+        children: boundary(renderMobileControlsExtension(extensionId)),
+      })
+
+      expect(
+        await screen.findByText(`First ${extensionId} tab body`)
+      ).toBeInTheDocument()
+
+      expectMobileControlsToShareSidebarToggleRow(
+        screen.getByTestId('sidebar-panel-extension-mobile-controls')
+      )
+    }
+  )
+
+  it('anchors mobile extension controls in the reserved toggle row when no base boundary is active', async () => {
+    mockIsMobile = true
+
+    renderRoot({
+      children: renderMobileControlsExtension('extension-no-boundary'),
+    })
+
+    expect(
+      await screen.findByText('First extension-no-boundary tab body')
+    ).toBeInTheDocument()
+
+    expectMobileControlsToReserveSidebarToggleLane(
+      screen.getByTestId('sidebar-panel-extension-mobile-controls')
+    )
+  })
+
+  it('aligns mobile action-only extension controls with the toggle row', async () => {
+    mockIsMobile = true
+
+    renderRoot({
+      children: (
+        <SidebarBoundary id="mobile-row-action-only" mode="simple">
+          <SidebarPanelExtensionProvider
+            id="action-only-extension"
+            initialRuntimeOptions={{
+              visiblePanels: [],
+              activePanel: 'main',
+              actionRailPlacement: 'bottomActionRow',
+            }}
+          >
+            <IntoSidebarPanelExtensionActionRailSlot>
+              <button type="button">Toggle action-only extension</button>
+            </IntoSidebarPanelExtensionActionRailSlot>
+          </SidebarPanelExtensionProvider>
         </SidebarBoundary>
       ),
     })
 
     expect(
-      await screen.findByText('Stable mobile panel child')
+      await screen.findByRole('button', {
+        name: 'Toggle action-only extension',
+      })
     ).toBeInTheDocument()
-    expect(screen.getByText('Scoped mobile energy panel')).toBeInTheDocument()
-    expect(
-      screen.queryByText('Scoped mobile renovation panel')
-    ).not.toBeInTheDocument()
-    const mountCountAfterActivation = mountCount
 
-    act(() => {
-      useUIStore
-        .getState()
-        .setSidebarBoundaryRuntimeOptions('simple-mobile-boundary', {
-          panelLayout: 'double',
-          visiblePanels: ['secondary'],
-          activePanel: 'secondary',
-          mobileMode: 'stacked',
-          actionRailPlacement: 'bottomActionRow',
-        })
-    })
-
-    expect(screen.getByText('Stable mobile panel child')).toBeInTheDocument()
-    expect(screen.getByText('Scoped mobile energy panel')).toBeInTheDocument()
-    expect(
-      screen.getByText('Scoped mobile renovation panel')
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: 'Scoped mobile graph action' })
-    ).toBeInTheDocument()
-    expect(mountCount).toBe(mountCountAfterActivation)
+    expectMobileControlsToShareSidebarToggleRow(
+      screen.getByTestId('sidebar-panel-extension-mobile-controls')
+    )
   })
 
-  it('renders panel tab containers as ordinary simple content without a tab rail', async () => {
+  it('stacks mobile extension panels before simple sidebar content when requested', async () => {
+    mockIsMobile = true
+
+    renderRoot({
+      children: (
+        <SidebarBoundary id="simple-stacked-before" mode="simple">
+          <SidebarPanelExtensionProvider
+            id="stacked-before-extension"
+            initialRuntimeOptions={{
+              visiblePanels: ['main'],
+              activePanel: 'main',
+              mobileMode: 'stacked',
+              mobileStackPlacement: 'before',
+            }}
+          >
+            <IntoSidebarPanelSlot panelId="main">
+              <div>Base simple mobile content</div>
+            </IntoSidebarPanelSlot>
+            <IntoSidebarPanelExtensionPanelSlot panelId="main">
+              <div>Stacked extension before content</div>
+            </IntoSidebarPanelExtensionPanelSlot>
+          </SidebarPanelExtensionProvider>
+        </SidebarBoundary>
+      ),
+    })
+
+    expect(
+      await screen.findByText('Stacked extension before content')
+    ).toBeInTheDocument()
+
+    const stackedPanels = screen.getByTestId(
+      'sidebar-panel-extension-mobile-panels'
+    )
+    const sidebarContainer = document.querySelector('.sidebar-container')
+
+    expect(stackedPanels).toHaveAttribute(
+      'data-sidebar-panel-extension-mobile-render',
+      'stacked'
+    )
+    expect(stackedPanels).toHaveAttribute(
+      'data-sidebar-panel-extension-mobile-stack-placement',
+      'before'
+    )
+    expect(sidebarContainer).toContainElement(stackedPanels)
+    expect(
+      screen.queryByTestId('sidebar-panel-extension-mobile-panel-main')
+    ).toBeInTheDocument()
+
+    const contentText = sidebarContainer?.textContent ?? ''
+    expect(contentText.indexOf('Stacked extension before content')).toBeLessThan(
+      contentText.indexOf('Base simple mobile content')
+    )
+  })
+
+  it('stacks mobile extension panels after simple sidebar content when requested', async () => {
+    mockIsMobile = true
+
+    renderRoot({
+      children: (
+        <SidebarBoundary id="simple-stacked-after" mode="simple">
+          <SidebarPanelExtensionProvider
+            id="stacked-after-extension"
+            initialRuntimeOptions={{
+              visiblePanels: ['main'],
+              activePanel: 'main',
+              mobileMode: 'stacked',
+              mobileStackPlacement: 'after',
+            }}
+          >
+            <IntoSidebarPanelSlot panelId="main">
+              <div>Base simple content before extension</div>
+            </IntoSidebarPanelSlot>
+            <IntoSidebarPanelExtensionPanelSlot panelId="main">
+              <div>Stacked extension after content</div>
+            </IntoSidebarPanelExtensionPanelSlot>
+          </SidebarPanelExtensionProvider>
+        </SidebarBoundary>
+      ),
+    })
+
+    expect(
+      await screen.findByText('Stacked extension after content')
+    ).toBeInTheDocument()
+
+    const stackedPanels = screen.getByTestId(
+      'sidebar-panel-extension-mobile-panels'
+    )
+    const sidebarContainer = document.querySelector('.sidebar-container')
+
+    expect(stackedPanels).toHaveAttribute(
+      'data-sidebar-panel-extension-mobile-render',
+      'stacked'
+    )
+    expect(stackedPanels).toHaveAttribute(
+      'data-sidebar-panel-extension-mobile-stack-placement',
+      'after'
+    )
+    expect(sidebarContainer).toContainElement(stackedPanels)
+
+    const contentText = sidebarContainer?.textContent ?? ''
+    expect(
+      contentText.indexOf('Base simple content before extension')
+    ).toBeLessThan(contentText.indexOf('Stacked extension after content'))
+  })
+
+  it('keeps desktop tab rail beside the extension when action rail is fixed right', async () => {
+    renderRoot({
+      children: (
+        <SidebarPanelExtensionProvider
+          id="fixed-right-desktop-extension"
+          initialRuntimeOptions={{
+            visiblePanels: ['main'],
+            activePanel: 'main',
+            actionRailPlacement: 'fixedRightActionColumn',
+          }}
+        >
+          <IntoSidebarPanelExtensionPanelSlot panelId="main">
+            <SidebarPanelExtensionTabContainer tabId="first" tabName="First">
+              <span>First fixed desktop tab body</span>
+            </SidebarPanelExtensionTabContainer>
+            <SidebarPanelExtensionTabContainer tabId="second" tabName="Second">
+              <span>Second fixed desktop tab body</span>
+            </SidebarPanelExtensionTabContainer>
+          </IntoSidebarPanelExtensionPanelSlot>
+          <IntoSidebarPanelExtensionActionRailSlot>
+            <button type="button">Fixed right action</button>
+          </IntoSidebarPanelExtensionActionRailSlot>
+        </SidebarPanelExtensionProvider>
+      ),
+    })
+
+    expect(
+      await screen.findByText('First fixed desktop tab body')
+    ).toBeInTheDocument()
+
+    const tabRail = screen.getByTestId(
+      'sidebar-panel-extension-desktop-tab-rail'
+    )
+    const tabControls = screen.getByTestId(
+      'sidebar-panel-extension-desktop-tab-controls'
+    )
+    const actionControls = screen.getByTestId(
+      'sidebar-panel-extension-desktop-controls'
+    )
+
+    expect(tabControls).toHaveAttribute(
+      'data-sidebar-panel-extension-tab-placement',
+      'sidebar-edge'
+    )
+    expect(tabControls).toContainElement(tabRail)
+    expect(actionControls).toHaveAttribute(
+      'data-sidebar-panel-extension-control-placement',
+      'fixedRightActionColumn'
+    )
+    expect(actionControls).toContainElement(
+      screen.getByRole('button', { name: 'Fixed right action' })
+    )
+    expect(actionControls).not.toContainElement(tabRail)
+  })
+
+  it('keeps mobile tabs in the bottom row when action rail is fixed right', async () => {
+    mockIsMobile = true
+
+    renderRoot({
+      children: (
+        <SidebarPanelExtensionProvider
+          id="fixed-right-mobile-extension"
+          initialRuntimeOptions={{
+            visiblePanels: ['main'],
+            activePanel: 'main',
+            actionRailPlacement: 'fixedRightActionColumn',
+          }}
+        >
+          <IntoSidebarPanelExtensionPanelSlot panelId="main">
+            <SidebarPanelExtensionTabContainer tabId="first" tabName="First">
+              <span>First fixed mobile tab body</span>
+            </SidebarPanelExtensionTabContainer>
+            <SidebarPanelExtensionTabContainer tabId="second" tabName="Second">
+              <span>Second fixed mobile tab body</span>
+            </SidebarPanelExtensionTabContainer>
+          </IntoSidebarPanelExtensionPanelSlot>
+          <IntoSidebarPanelExtensionActionRailSlot>
+            <button type="button">Fixed mobile action</button>
+          </IntoSidebarPanelExtensionActionRailSlot>
+        </SidebarPanelExtensionProvider>
+      ),
+    })
+
+    expect(
+      await screen.findByText('First fixed mobile tab body')
+    ).toBeInTheDocument()
+
+    const tabRail = screen.getByTestId(
+      'sidebar-panel-extension-mobile-tab-rail'
+    )
+    const tabControls = screen.getByTestId(
+      'sidebar-panel-extension-mobile-controls'
+    )
+    const actionControls = screen.getByTestId(
+      'sidebar-panel-extension-mobile-action-rail'
+    )
+
+    expect(tabControls).toHaveAttribute(
+      'data-sidebar-panel-extension-tab-placement',
+      'bottomActionRow'
+    )
+    expect(tabControls).toContainElement(tabRail)
+    expect(tabControls).not.toContainElement(
+      screen.getByRole('button', { name: 'Fixed mobile action' })
+    )
+    expect(actionControls).toHaveAttribute(
+      'data-sidebar-panel-extension-control-placement',
+      'fixedRightActionColumn'
+    )
+    expect(actionControls).toContainElement(
+      screen.getByRole('button', { name: 'Fixed mobile action' })
+    )
+  })
+
+  it('renders tab containers as ordinary simple content outside an extension context', async () => {
     renderRoot({
       children: (
         <SidebarBoundary id="simple-tabs" mode="simple">
           <IntoSidebarPanelSlot panelId="main">
-            <PanelSidebarTabContainer tabId="first" tabName="First">
+            <SidebarPanelExtensionTabContainer tabId="first" tabName="First">
               <span>First simple tab body</span>
-            </PanelSidebarTabContainer>
-            <PanelSidebarTabContainer tabId="second" tabName="Second">
+            </SidebarPanelExtensionTabContainer>
+            <SidebarPanelExtensionTabContainer tabId="second" tabName="Second">
               <span>Second simple tab body</span>
-            </PanelSidebarTabContainer>
+            </SidebarPanelExtensionTabContainer>
           </IntoSidebarPanelSlot>
         </SidebarBoundary>
       ),
@@ -356,111 +714,7 @@ describe('SidebarRoot', () => {
     expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
     expect(screen.queryByRole('tab', { name: 'First' })).not.toBeInTheDocument()
     expect(
-      screen.queryByTestId('panel-sidebar-tab-rail')
+      screen.queryByTestId('sidebar-panel-extension-desktop-tab-rail')
     ).not.toBeInTheDocument()
-  })
-
-  it('hosts scoped panel slots, header children, and a closed panel action rail', async () => {
-    renderRoot({
-      children: (
-        <SidebarBoundary
-          id="route-panel"
-          mode="simple"
-          config={{ panelLayout: 'double' }}
-          initialRuntimeOptions={{
-            visiblePanels: [],
-            activePanel: 'main',
-            mobileMode: 'stacked',
-          }}
-        >
-          <IntoSidebarHeaderChildrenSlot>
-            <span>Panel breadcrumb</span>
-          </IntoSidebarHeaderChildrenSlot>
-          <IntoSidebarPanelSlot panelId="main">
-            <span>Main panel slot content</span>
-          </IntoSidebarPanelSlot>
-          <IntoSidebarPanelSlot panelId="secondary">
-            <span>Secondary panel slot content</span>
-          </IntoSidebarPanelSlot>
-          <IntoSidebarActionRailSlot>
-            <button type="button">Toggle graph panel</button>
-          </IntoSidebarActionRailSlot>
-        </SidebarBoundary>
-      ),
-    })
-
-    expect(await screen.findByText('Panel breadcrumb')).toBeInTheDocument()
-    expect(screen.getByText('Main panel slot content')).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: 'Toggle graph panel' })
-    ).toBeInTheDocument()
-    expect(
-      screen.queryByText('Secondary panel slot content')
-    ).not.toBeInTheDocument()
-
-    act(() => {
-      useUIStore
-        .getState()
-        .setSidebarBoundaryRuntimeOptions('route-panel', {
-          visiblePanels: ['secondary'],
-          activePanel: 'secondary',
-        })
-    })
-
-    expect(
-      await screen.findByText('Secondary panel slot content')
-    ).toBeInTheDocument()
-  })
-
-  it('keeps a simple boundary child mounted when panel runtime options open', async () => {
-    let mountCount = 0
-
-    const Child = () => {
-      useEffect(() => {
-        mountCount += 1
-      }, [])
-
-      return (
-        <>
-          <IntoSidebarPanelSlot panelId="main">
-            <span>Stable panel child</span>
-          </IntoSidebarPanelSlot>
-          <IntoSidebarPanelSlot panelId="secondary">
-            <span>Runtime secondary child</span>
-          </IntoSidebarPanelSlot>
-        </>
-      )
-    }
-
-    renderRoot({
-      children: (
-        <SidebarBoundary
-          id="stable-panel"
-          mode="simple"
-          config={{ panelLayout: 'double' }}
-          initialRuntimeOptions={{
-            visiblePanels: [],
-            activePanel: 'main',
-          }}
-        >
-          <Child />
-        </SidebarBoundary>
-      ),
-    })
-
-    expect(await screen.findByText('Stable panel child')).toBeInTheDocument()
-    const mountCountAfterActivation = mountCount
-
-    act(() => {
-      useUIStore
-        .getState()
-        .setSidebarBoundaryRuntimeOptions('stable-panel', {
-          visiblePanels: ['secondary'],
-          activePanel: 'secondary',
-        })
-    })
-
-    expect(await screen.findByText('Runtime secondary child')).toBeInTheDocument()
-    expect(mountCount).toBe(mountCountAfterActivation)
   })
 })

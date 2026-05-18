@@ -1,4 +1,9 @@
+import type React from 'react'
+import type { SxProps, Theme } from '@mui/material'
+
 export type SidebarBoundaryId = string
+
+export type SidebarPanelExtensionId = string
 
 export type SidebarMode = 'none' | 'home' | 'floating' | 'simple'
 
@@ -53,6 +58,8 @@ export type SidebarPanelConfig = SidebarHomeConfig & {
 
 export type SidebarSimpleConfig = SidebarPanelConfig
 
+export type SidebarPanelExtensionConfig = SidebarPanelConfig
+
 export type SidebarModeConfigMap = {
   none: SidebarNoneConfig
   home: SidebarHomeConfig
@@ -77,6 +84,22 @@ export type SidebarRuntimeOptions = {
 
 export type SidebarRuntimeOptionsPatch = Partial<SidebarRuntimeOptions>
 
+export type SidebarPanelExtensionRuntimeOptions = SidebarPanelExtensionConfig
+
+export type SidebarPanelExtensionRuntimeOptionsPatch =
+  Partial<SidebarPanelExtensionRuntimeOptions>
+
+export type SidebarPanelExtensionTabMetadata = {
+  tabId: string
+  tabName: React.ReactNode
+  tabAriaLabel?: string
+  tabIcon?: React.ReactNode
+  tabButtonSx?: SxProps<Theme>
+  tabIconSx?: SxProps<Theme>
+  tabButtonId: string
+  tabPanelId: string
+}
+
 export type SidebarBoundaryRegistration<M extends SidebarMode = SidebarMode> = {
   id: SidebarBoundaryId
   mode: M
@@ -88,6 +111,20 @@ export type SidebarBoundaryRegistration<M extends SidebarMode = SidebarMode> = {
 
 export type SidebarBoundaryRegistry = Partial<
   Record<SidebarBoundaryId, SidebarBoundaryRegistration | undefined>
+>
+
+export type SidebarPanelExtensionRegistration = {
+  id: SidebarPanelExtensionId
+  depth: number
+  config?: SidebarPanelExtensionConfig
+  runtimeOptions: SidebarPanelExtensionRuntimeOptions
+  tabs: SidebarPanelExtensionTabMetadata[]
+  activeTabId?: string
+  registrationOrder: number
+}
+
+export type SidebarPanelExtensionRegistry = Partial<
+  Record<SidebarPanelExtensionId, SidebarPanelExtensionRegistration | undefined>
 >
 
 export type RegisterSidebarBoundaryInput<
@@ -104,4 +141,16 @@ export type SidebarBoundaryUpdate<M extends SidebarMode = SidebarMode> = {
   mode?: M
   depth?: number
   config?: SidebarBoundaryConfig<M>
+}
+
+export type RegisterSidebarPanelExtensionInput = {
+  id: SidebarPanelExtensionId
+  depth: number
+  config?: SidebarPanelExtensionConfig
+  runtimeOptions?: SidebarPanelExtensionRuntimeOptions
+}
+
+export type SidebarPanelExtensionUpdate = {
+  depth?: number
+  config?: SidebarPanelExtensionConfig
 }

@@ -6,18 +6,24 @@ import { useUIStore } from '#/common/store/uiStore'
 import { SlotsProvider } from '#/components/context/slotsContext'
 
 import { SidebarBoundary } from './SidebarBoundary'
+import { SidebarPanelExtensionProvider } from './SidebarPanelExtensionProvider'
 import {
+  getSidebarPanelExtensionSlotKey,
   getSidebarSlotKey,
   IntoSidebarActionRailSlot,
   IntoSidebarBottomControlsSlot,
   IntoSidebarHeaderChildrenSlot,
   IntoSidebarHeaderSlot,
+  IntoSidebarPanelExtensionActionRailSlot,
+  IntoSidebarPanelExtensionPanelSlot,
   IntoSidebarPanelSlot,
   IntoSidebarTopControlsSlot,
   SidebarActionRailSlot,
   SidebarBottomControlsSlot,
   SidebarHeaderChildrenSlot,
   SidebarHeaderSlot,
+  SidebarPanelExtensionActionRailSlot,
+  SidebarPanelExtensionPanelSlot,
   SidebarPanelSlot,
   SidebarTopControlsSlot,
 } from './sidebarSlots'
@@ -26,6 +32,8 @@ const resetSidebarBoundaryRegistry = () => {
   useUIStore.setState({
     sidebarBoundaries: {},
     _sidebarBoundaryRegistrationOrder: 0,
+    sidebarPanelExtensions: {},
+    _sidebarPanelExtensionRegistrationOrder: 0,
   })
 }
 
@@ -78,6 +86,22 @@ describe('sidebar scoped slots', () => {
         panelId: 'secondary',
       })
     ).toBe('sidebar:boundary-a:panel:secondary')
+  })
+
+  it('builds deterministic extension-scoped slot keys', () => {
+    expect(
+      getSidebarPanelExtensionSlotKey({
+        extensionId: 'extension-a',
+        slot: 'actionRail',
+      })
+    ).toBe('sidebar-panel-extension:extension-a:actionRail')
+    expect(
+      getSidebarPanelExtensionSlotKey({
+        extensionId: 'extension-a',
+        slot: 'panel',
+        panelId: 'main',
+      })
+    ).toBe('sidebar-panel-extension:extension-a:panel:main')
   })
 
   it('portals content into the nearest sidebar boundary scoped slot', () => {
@@ -136,5 +160,38 @@ describe('sidebar scoped slots', () => {
       screen.getByRole('button', { name: 'Child action' })
     ).toBeInTheDocument()
     expect(screen.getByText('Child panel')).toBeInTheDocument()
+  })
+
+  it('portals content into extension-scoped slots independently from boundary slots', () => {
+    render(
+      <SlotsProvider>
+        <SidebarBoundary id="boundary" mode="simple">
+          <SidebarPanelSlot boundaryId="boundary" panelId="main" />
+          <IntoSidebarPanelSlot panelId="main">
+            <span>Boundary main panel</span>
+          </IntoSidebarPanelSlot>
+
+          <SidebarPanelExtensionProvider id="extension">
+            <SidebarPanelExtensionPanelSlot
+              extensionId="extension"
+              panelId="main"
+            />
+            <SidebarPanelExtensionActionRailSlot extensionId="extension" />
+            <IntoSidebarPanelExtensionPanelSlot panelId="main">
+              <span>Extension main panel</span>
+            </IntoSidebarPanelExtensionPanelSlot>
+            <IntoSidebarPanelExtensionActionRailSlot>
+              <button type="button">Extension action</button>
+            </IntoSidebarPanelExtensionActionRailSlot>
+          </SidebarPanelExtensionProvider>
+        </SidebarBoundary>
+      </SlotsProvider>
+    )
+
+    expect(screen.getByText('Boundary main panel')).toBeInTheDocument()
+    expect(screen.getByText('Extension main panel')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Extension action' })
+    ).toBeInTheDocument()
   })
 })
