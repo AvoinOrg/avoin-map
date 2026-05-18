@@ -2,9 +2,12 @@ import {
   composeEnergymapBuildingAddress,
   createEnergymapBuildingInfoPanels,
   formatYearFromDate,
+  getSelectedEnergyConsumption,
   resolveCurrentEnergyScenarioPrefix,
 } from './buildingInfo'
 import type {
+  EnergymapBuildingInfoConsumptionControls,
+  EnergymapBuildingInfoEnergySubmetricId,
   EnergymapBuildingInfoMetric,
   EnergymapBuildingInfoPanel,
   EnergymapBuildingInfoPanelId,
@@ -157,6 +160,20 @@ const getMetricValue = (
   }
 
   return value
+}
+
+const getConsumptionControls = (
+  panel: EnergymapBuildingInfoPanel
+): EnergymapBuildingInfoConsumptionControls => {
+  const controls = panel.sections.find(
+    (section) => section.id === 'estimatedConsumption'
+  )?.consumptionControls
+
+  if (controls == null) {
+    throw new Error('Consumption controls not found')
+  }
+
+  return controls
 }
 
 const getScenarios = (panel: EnergymapBuildingInfoPanel) =>
@@ -360,6 +377,171 @@ describe('Energiakartta building info model', () => {
       'distr_default_total',
       'floor_area',
     ])
+  })
+
+  it('exposes interactive consumption controls without inventing unavailable data fields', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: districtHeatingBuilding,
+      locale: 'en-US',
+    })
+    const energyPanel = getPanel(panels ?? [], 'energyConsumption')
+    const controls = getConsumptionControls(energyPanel)
+
+    expect(controls.defaultPrimaryMetricId).toBe('energy')
+    expect(controls.primaryMetrics.map((metric) => metric.id)).toEqual([
+      'energy',
+      'water',
+      'cost',
+      'co2',
+    ])
+    expect(
+      controls.primaryMetrics.map((metric) => ({
+        id: metric.id,
+        supported: metric.supported,
+        unavailableNote: metric.unavailableNote?.text,
+      }))
+    ).toEqual([
+      {
+        id: 'energy',
+        supported: true,
+        unavailableNote: undefined,
+      },
+      {
+        id: 'water',
+        supported: false,
+        unavailableNote: {
+          type: 'translation',
+          keyName: `${translationPrefix}.panels.energy.unsupported.water`,
+        },
+      },
+      {
+        id: 'cost',
+        supported: false,
+        unavailableNote: {
+          type: 'translation',
+          keyName: `${translationPrefix}.panels.energy.unsupported.cost`,
+        },
+      },
+      {
+        id: 'co2',
+        supported: false,
+        unavailableNote: {
+          type: 'translation',
+          keyName: `${translationPrefix}.panels.energy.unsupported.co2`,
+        },
+      },
+    ])
+    expect(controls.yearOptions).toEqual([])
+    expect(controls.yearUnavailableValue.status).toBe('placeholder')
+    expectTranslation(
+      controls.yearUnavailableValue.text,
+      `${translationPrefix}.panels.energy.note.reference_year_unavailable`
+    )
+  })
+
+  it('models supported energy submetrics and keeps water heating unsupported', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: districtHeatingBuilding,
+      locale: 'en-US',
+    })
+    const controls = getConsumptionControls(
+      getPanel(panels ?? [], 'energyConsumption')
+    )
+
+    expect(controls.defaultEnergySubmetricIds).toEqual([
+      'electricity',
+      'heating',
+      'waterHeating',
+    ])
+    expect(
+      controls.energySubmetrics.map((submetric) => ({
+        id: submetric.id,
+        supported: submetric.supported,
+        defaultSelected: submetric.defaultSelected,
+        annualSources: getMetricValue(submetric.metric, 'annualTotal')
+          .sourceProperties,
+        unavailableNote: submetric.unavailableNote?.text,
+      }))
+    ).toEqual([
+      {
+        id: 'electricity',
+        supported: true,
+        defaultSelected: true,
+        annualSources: ['distr_default_elec', 'floor_area'],
+        unavailableNote: undefined,
+      },
+      {
+        id: 'heating',
+        supported: true,
+        defaultSelected: true,
+        annualSources: ['distr_default_heat', 'floor_area'],
+        unavailableNote: undefined,
+      },
+      {
+        id: 'waterHeating',
+        supported: false,
+        defaultSelected: true,
+        annualSources: undefined,
+        unavailableNote: {
+          type: 'translation',
+          keyName: `${translationPrefix}.panels.energy.unsupported.water_heating`,
+        },
+      },
+    ])
+  })
+
+  it('derives the visible energy table from selected submetrics', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: districtHeatingBuilding,
+      locale: 'en-US',
+    })
+    const controls = getConsumptionControls(
+      getPanel(panels ?? [], 'energyConsumption')
+    )
+    const getAnnualText = (
+      selectedSubmetricIds: EnergymapBuildingInfoEnergySubmetricId[]
+    ): EnergymapBuildingInfoText => {
+      const text = getSelectedEnergyConsumption({
+        controls,
+        selectedSubmetricIds,
+      }).values.find((value) => value.id === 'annualTotal')?.text
+
+      if (text == null) {
+        throw new Error('Annual total text not found')
+      }
+
+      return text
+    }
+
+    expectPlainText(getAnnualText(['electricity']), '10,953')
+    expectPlainText(getAnnualText(['heating']), '156,023')
+    expectPlainText(getAnnualText(['electricity', 'heating']), '166,976')
+
+    const selectedWithWaterHeating = getSelectedEnergyConsumption({
+      controls,
+      selectedSubmetricIds: ['electricity', 'heating', 'waterHeating'],
+    })
+
+    expectPlainText(
+      selectedWithWaterHeating.values.find(
+        (value) => value.id === 'annualTotal'
+      )?.text as EnergymapBuildingInfoText,
+      '166,976'
+    )
+    expect(selectedWithWaterHeating.notes.map((note) => note.id)).toEqual([
+      'waterHeatingUnavailable',
+    ])
+
+    const noSupportedSelection = getSelectedEnergyConsumption({
+      controls,
+      selectedSubmetricIds: [],
+    }).values.find((value) => value.id === 'annualTotal')
+
+    expect(noSupportedSelection?.status).toBe('placeholder')
+    expectTranslation(
+      noSupportedSelection?.text as EnergymapBuildingInfoText,
+      `${translationPrefix}.panels.energy.unsupported.no_selected_energy_submetrics`
+    )
   })
 
   it('produces renovation scenario estimates from published baseline and measure columns', () => {

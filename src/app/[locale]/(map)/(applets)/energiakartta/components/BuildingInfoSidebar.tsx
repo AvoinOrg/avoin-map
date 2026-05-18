@@ -3,20 +3,32 @@
 import React from 'react'
 import {
   Box,
+  ButtonBase,
   IconButton,
+  SelectChangeEvent,
   SxProps,
   Theme,
   Tooltip,
   Typography,
 } from '@mui/material'
+import BoltIcon from '@mui/icons-material/Bolt'
+import Co2Icon from '@mui/icons-material/Co2'
 import ConstructionIcon from '@mui/icons-material/Construction'
+import EuroIcon from '@mui/icons-material/Euro'
+import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
+import OpacityIcon from '@mui/icons-material/Opacity'
+import WaterDropIcon from '@mui/icons-material/WaterDrop'
+import { useTranslate } from '@tolgee/react'
 
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
+import type { SelectOption } from '#/common/types/general'
+import DropDownSelectInset from '#/components/common/DropDownSelectInset'
 import TText from '#/components/common/TText'
 import { PanelSidebarPageContainer } from '#/components/Sidebar/PanelSidebarPageContainer'
 import { PanelSidebarTabContainer } from '#/components/Sidebar/PanelSidebarTabContainer'
 import { useNullablePanelSidebarTabsContext } from '#/components/Sidebar/PanelSidebarTabsContext'
 import type {
+  EnergymapBuildingInfoEnergySubmetricId,
   EnergymapEnergyMeasure,
   EnergymapBuildingInfoMetric,
   EnergymapBuildingInfoMetricValue,
@@ -29,7 +41,10 @@ import type {
   EnergymapBuildingInfoText,
   EnergymapBuildingInfoValue,
   EnergymapBuildingInfoValueStatus,
+  EnergymapBuildingInfoPrimaryMetric,
+  EnergymapBuildingInfoPrimaryMetricId,
 } from '../common/buildingInfo'
+import { getSelectedEnergyConsumption } from '../common/buildingInfo'
 
 export type BuildingInfoDesktopMode = 'twoPanel' | 'threePanel'
 export type BuildingInfoTabId = 'basic' | 'renovation'
@@ -219,6 +234,19 @@ const textSx = {
   lineHeight: '1.125rem',
   letterSpacing: '0.1em',
 } as const
+
+const energyControlTextSx = {
+  fontSize: '0.5625rem',
+  fontWeight: 700,
+  lineHeight: '0.875rem',
+  letterSpacing: 0,
+} as const
+
+const ENERGY_PRIMARY_METRIC_ORDER: readonly EnergymapBuildingInfoPrimaryMetricId[] =
+  ['energy', 'water', 'cost', 'co2']
+
+const ENERGY_SUBMETRIC_ORDER: readonly EnergymapBuildingInfoEnergySubmetricId[] =
+  ['electricity', 'heating', 'waterHeating']
 
 const actionButtonSx = ({
   active,
@@ -438,6 +466,56 @@ const WarningIcon = () => (
     />
   </Box>
 )
+
+const EnergyPrimaryMetricIcon = ({
+  metricId,
+  active,
+}: {
+  metricId: EnergymapBuildingInfoPrimaryMetricId
+  active: boolean
+}) => {
+  const iconSx = {
+    fontSize: metricId === 'co2' ? '0.875rem' : '0.8125rem',
+    color: active ? '#ffffff' : '#111111',
+  } as const
+
+  if (metricId === 'water') {
+    return <OpacityIcon aria-hidden="true" sx={iconSx} />
+  }
+
+  if (metricId === 'cost') {
+    return <EuroIcon aria-hidden="true" sx={iconSx} />
+  }
+
+  if (metricId === 'co2') {
+    return <Co2Icon aria-hidden="true" sx={iconSx} />
+  }
+
+  return <BoltIcon aria-hidden="true" sx={iconSx} />
+}
+
+const EnergySubmetricIcon = ({
+  submetricId,
+  selected,
+}: {
+  submetricId: EnergymapBuildingInfoEnergySubmetricId
+  selected: boolean
+}) => {
+  const iconSx = {
+    fontSize: submetricId === 'heating' ? '0.875rem' : '0.75rem',
+    color: selected ? '#ffffff' : '#075cff',
+  } as const
+
+  if (submetricId === 'heating') {
+    return <LocalFireDepartmentIcon aria-hidden="true" sx={iconSx} />
+  }
+
+  if (submetricId === 'waterHeating') {
+    return <WaterDropIcon aria-hidden="true" sx={iconSx} />
+  }
+
+  return <BoltIcon aria-hidden="true" sx={iconSx} />
+}
 
 export const BuildingInfoText = ({
   text,
@@ -970,6 +1048,457 @@ const BuildingInfoMetricValueRow = ({
   </Box>
 )
 
+const getPrimaryMetricButtonWidth = ({
+  metricId,
+  active,
+}: {
+  metricId: EnergymapBuildingInfoPrimaryMetricId
+  active: boolean
+}) => {
+  if (active) {
+    return metricId === 'energy' ? '140px' : '104px'
+  }
+
+  return metricId === 'co2' ? '38px' : '34px'
+}
+
+const BuildingInfoPrimaryMetricButton = ({
+  metric,
+  active,
+  onClick,
+}: {
+  metric: EnergymapBuildingInfoPrimaryMetric
+  active: boolean
+  onClick: () => void
+}) => {
+  const { t } = useTranslate('energiakartta')
+  const label = (
+    <Box component="span">
+      <BuildingInfoText text={metric.label} />
+    </Box>
+  )
+  const button = (
+    <ButtonBase
+      component="button"
+      type="button"
+      aria-label={t(metric.ariaLabelKey)}
+      aria-pressed={active}
+      data-primary-metric-id={metric.id}
+      onClick={onClick}
+      sx={{
+        width: getPrimaryMetricButtonWidth({ metricId: metric.id, active }),
+        minWidth: getPrimaryMetricButtonWidth({ metricId: metric.id, active }),
+        height: active ? '24px' : '20px',
+        minHeight: active ? '24px' : '20px',
+        px: active ? '0.625rem' : 0,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: active ? '0.5rem' : 0,
+        borderRadius: active ? '15px' : '10px',
+        border: active ? '0.5px solid #075cff' : 0,
+        backgroundColor: active ? '#075cff' : '#f0f0f0',
+        color: active ? '#ffffff' : '#111111',
+        boxShadow: active
+          ? '0 1px 4px rgba(2, 2, 2, 0.25)'
+          : 'none',
+        transition:
+          'width 160ms ease, background-color 160ms ease, color 160ms ease',
+        '&:hover': {
+          backgroundColor: active ? '#075cff' : '#e8e8e8',
+        },
+        '&:focus-visible': {
+          outline: '2px solid #111111',
+          outlineOffset: '2px',
+        },
+      }}
+    >
+      <EnergyPrimaryMetricIcon metricId={metric.id} active={active} />
+      {active && (
+        <Typography
+          component="span"
+          sx={{
+            ...energyControlTextSx,
+            color: '#ffffff',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {label}
+        </Typography>
+      )}
+    </ButtonBase>
+  )
+
+  if (active) {
+    return button
+  }
+
+  return (
+    <Tooltip title={label} arrow placement="top">
+      {button}
+    </Tooltip>
+  )
+}
+
+const BuildingInfoEnergySubmetricButton = ({
+  submetric,
+  selected,
+  onClick,
+}: {
+  submetric: NonNullable<
+    EnergymapBuildingInfoSection['consumptionControls']
+  >['energySubmetrics'][number]
+  selected: boolean
+  onClick: () => void
+}) => {
+  const { t } = useTranslate('energiakartta')
+
+  return (
+    <ButtonBase
+      component="button"
+      type="button"
+      aria-label={t(submetric.ariaLabelKey)}
+      aria-pressed={selected}
+      data-energy-submetric-id={submetric.id}
+      onClick={onClick}
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+        gap: '0.5rem',
+        width: 'fit-content',
+        maxWidth: '100%',
+        minHeight: '20px',
+        p: 0,
+        color: '#111111',
+        textAlign: 'left',
+        '&:focus-visible': {
+          outline: '2px solid #111111',
+          outlineOffset: '3px',
+        },
+      }}
+    >
+      <Box
+        component="span"
+        sx={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '28px',
+          minWidth: '28px',
+          height: '20px',
+          borderRadius: '10px',
+          border: '0.5px solid #075cff',
+          backgroundColor: selected ? '#075cff' : 'transparent',
+          color: selected ? '#ffffff' : '#075cff',
+        }}
+      >
+        <EnergySubmetricIcon submetricId={submetric.id} selected={selected} />
+      </Box>
+      <Typography
+        component="span"
+        sx={{
+          ...energyControlTextSx,
+          color: '#111111',
+          maxWidth: '12rem',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        <BuildingInfoText text={submetric.label} />
+      </Typography>
+    </ButtonBase>
+  )
+}
+
+const BuildingInfoUnsupportedPrimaryMetricPanel = ({
+  metric,
+}: {
+  metric: EnergymapBuildingInfoPrimaryMetric
+}) => {
+  if (metric.unavailableNote == null) {
+    return null
+  }
+
+  return (
+    <Box
+      data-testid="building-info-unsupported-primary-metric"
+      data-primary-metric-id={metric.id}
+      sx={{
+        mt: '1.5rem',
+        borderTop: '0.3px solid #d7d7d7',
+        pt: '0.75rem',
+      }}
+    >
+      <BuildingInfoNoteText note={metric.unavailableNote} />
+    </Box>
+  )
+}
+
+const BuildingInfoEnergyConsumptionSection = ({
+  section,
+  accentColor,
+}: {
+  section: EnergymapBuildingInfoSection
+  accentColor: string
+}) => {
+  const controls = section.consumptionControls
+  const { t } = useTranslate('energiakartta')
+  const [activePrimaryMetricId, setActivePrimaryMetricId] =
+    React.useState<EnergymapBuildingInfoPrimaryMetricId>(
+      controls?.defaultPrimaryMetricId ?? 'energy'
+    )
+  const [selectedEnergySubmetricIds, setSelectedEnergySubmetricIds] =
+    React.useState<EnergymapBuildingInfoEnergySubmetricId[]>(
+      controls?.defaultEnergySubmetricIds ?? []
+    )
+  const [selectedYear, setSelectedYear] = React.useState(
+    controls?.yearOptions[0]?.value ?? ''
+  )
+
+  React.useEffect(() => {
+    if (controls == null) {
+      return
+    }
+
+    const validPrimaryMetricIds = new Set(
+      controls.primaryMetrics.map((metric) => metric.id)
+    )
+    const validSubmetricIds = new Set(
+      controls.energySubmetrics.map((submetric) => submetric.id)
+    )
+
+    setActivePrimaryMetricId((current) =>
+      validPrimaryMetricIds.has(current)
+        ? current
+        : controls.defaultPrimaryMetricId
+    )
+    setSelectedEnergySubmetricIds((current) => {
+      const next = current.filter((id) => validSubmetricIds.has(id))
+      return next.length > 0 ? next : controls.defaultEnergySubmetricIds
+    })
+    setSelectedYear((current) =>
+      controls.yearOptions.some((option) => option.value === current)
+        ? current
+        : controls.yearOptions[0]?.value ?? ''
+    )
+  }, [controls])
+
+  if (controls == null) {
+    return null
+  }
+
+  const primaryMetricById = new Map(
+    controls.primaryMetrics.map((metric) => [metric.id, metric])
+  )
+  const sortedPrimaryMetrics = ENERGY_PRIMARY_METRIC_ORDER.map((metricId) =>
+    primaryMetricById.get(metricId)
+  ).filter(
+    (metric): metric is EnergymapBuildingInfoPrimaryMetric => metric != null
+  )
+  const energySubmetricById = new Map(
+    controls.energySubmetrics.map((submetric) => [submetric.id, submetric])
+  )
+  const sortedEnergySubmetrics = ENERGY_SUBMETRIC_ORDER.map((submetricId) =>
+    energySubmetricById.get(submetricId)
+  ).filter(
+    (
+      submetric
+    ): submetric is NonNullable<
+      EnergymapBuildingInfoSection['consumptionControls']
+    >['energySubmetrics'][number] => submetric != null
+  )
+  const activePrimaryMetric =
+    primaryMetricById.get(activePrimaryMetricId) ??
+    primaryMetricById.get(controls.defaultPrimaryMetricId)
+  const yearOptions: SelectOption[] = controls.yearOptions.map((option) => ({
+    label: option.label,
+    value: option.value,
+  }))
+  const selectedEnergyConsumption = getSelectedEnergyConsumption({
+    controls,
+    selectedSubmetricIds: selectedEnergySubmetricIds,
+  })
+  const selectedSubmetricIds = new Set(selectedEnergySubmetricIds)
+  const unavailableNotes = [
+    ...selectedEnergyConsumption.notes,
+    ...(section.notes ?? []),
+  ]
+  const yearPlaceholder = (
+    <Box
+      component="span"
+      data-status={controls.yearUnavailableValue.status}
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        maxWidth: '100%',
+        minWidth: 0,
+        height: '0.875rem',
+        px: '0.625rem',
+        borderRadius: '999px',
+        backgroundColor: '#dbdbdb',
+        color: '#5f5f5f',
+        fontSize: '0.625rem',
+        fontWeight: 700,
+        lineHeight: '0.875rem',
+        letterSpacing: 0,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <TText
+        keyName="sidebar.building_info.panels.energy.controls.year_unavailable"
+        ns="energiakartta"
+      />
+    </Box>
+  )
+
+  const toggleEnergySubmetric = (
+    submetricId: EnergymapBuildingInfoEnergySubmetricId
+  ) => {
+    setSelectedEnergySubmetricIds((current) =>
+      current.includes(submetricId)
+        ? current.filter((id) => id !== submetricId)
+        : [...current, submetricId]
+    )
+  }
+
+  const handleYearChange = (event: SelectChangeEvent) => {
+    setSelectedYear(event.target.value)
+  }
+
+  return (
+    <Box
+      data-section-id={section.id}
+      data-testid="building-info-energy-consumption-section"
+      sx={{
+        mt: '2.25rem',
+      }}
+    >
+      {section.title != null && (
+        <Typography
+          sx={{
+            ...textSx,
+            mb: '1rem',
+            color: accentColor,
+            textTransform: 'uppercase',
+          }}
+        >
+          <BuildingInfoText text={section.title} />
+        </Typography>
+      )}
+      <DropDownSelectInset
+        value={selectedYear}
+        options={yearOptions}
+        disabled={yearOptions.length === 0}
+        allowEmpty
+        placeholder={yearPlaceholder}
+        ariaLabel={t('sidebar.building_info.panels.energy.controls.year_aria_label')}
+        label={
+          <TText
+            keyName="sidebar.building_info.panels.energy.metric.annual_total"
+            ns="energiakartta"
+          />
+        }
+        onChange={handleYearChange}
+        sx={{
+          mt: '1.125rem',
+          maxWidth: '284px',
+          gap: '0.875rem',
+        }}
+        selectWrapperSx={{
+          width: '90px',
+        }}
+        selectSx={{
+          '&.MuiOutlinedInput-root': {
+            height: '22px',
+            backgroundColor: '#f0f0f0',
+          },
+          '.MuiSelect-select': {
+            fontWeight: 700,
+            letterSpacing: 0,
+          },
+          '&.Mui-disabled': {
+            opacity: 1,
+          },
+          '&.Mui-disabled .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#dbdbdb',
+          },
+        }}
+        labelSx={{
+          textAlign: 'right',
+          letterSpacing: 0,
+        }}
+      />
+      <Box
+        data-testid="building-info-primary-metric-row"
+        sx={{
+          mt: '1.5rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '5px',
+          width: '260px',
+          maxWidth: '100%',
+          minHeight: '24px',
+        }}
+      >
+        {sortedPrimaryMetrics.map((metric) => (
+          <BuildingInfoPrimaryMetricButton
+            key={metric.id}
+            metric={metric}
+            active={metric.id === activePrimaryMetricId}
+            onClick={() => setActivePrimaryMetricId(metric.id)}
+          />
+        ))}
+      </Box>
+      {activePrimaryMetric?.id === 'energy' ? (
+        <>
+          <Box
+            data-testid="building-info-energy-submetric-row"
+            sx={{
+              mt: '1.5rem',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              gap: '1.25rem',
+            }}
+          >
+            {sortedEnergySubmetrics.map((submetric) => (
+              <BuildingInfoEnergySubmetricButton
+                key={submetric.id}
+                submetric={submetric}
+                selected={selectedSubmetricIds.has(submetric.id)}
+                onClick={() => toggleEnergySubmetric(submetric.id)}
+              />
+            ))}
+          </Box>
+          <Box
+            data-testid="building-info-energy-consumption-values"
+            sx={{
+              mt: '1.5rem',
+            }}
+          >
+            {selectedEnergyConsumption.values.map((value) => (
+              <BuildingInfoMetricValueRow key={value.id} value={value} />
+            ))}
+          </Box>
+          {unavailableNotes.map((note) => (
+            <BuildingInfoNoteText key={note.id} note={note} />
+          ))}
+        </>
+      ) : activePrimaryMetric != null ? (
+        <BuildingInfoUnsupportedPrimaryMetricPanel
+          metric={activePrimaryMetric}
+        />
+      ) : null}
+    </Box>
+  )
+}
+
 const BuildingInfoMetricBlock = ({
   metric,
   accentColor,
@@ -1126,6 +1655,15 @@ const BuildingInfoSectionBlock = ({
 
   if (section.variant === 'measureList') {
     return <BuildingInfoMeasureListSection section={section} />
+  }
+
+  if (section.consumptionControls != null) {
+    return (
+      <BuildingInfoEnergyConsumptionSection
+        section={section}
+        accentColor={accentColor}
+      />
+    )
   }
 
   return (

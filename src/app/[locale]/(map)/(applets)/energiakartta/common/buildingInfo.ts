@@ -64,6 +64,56 @@ export type EnergymapBuildingInfoMetric = {
   values: EnergymapBuildingInfoMetricValue[]
 }
 
+export type EnergymapBuildingInfoPrimaryMetricId =
+  | 'energy'
+  | 'water'
+  | 'cost'
+  | 'co2'
+
+export type EnergymapBuildingInfoEnergySubmetricId =
+  | 'electricity'
+  | 'heating'
+  | 'waterHeating'
+
+export type EnergymapBuildingInfoYearOption = {
+  value: string
+  label: string
+}
+
+export type EnergymapBuildingInfoPrimaryMetric = {
+  id: EnergymapBuildingInfoPrimaryMetricId
+  label: EnergymapBuildingInfoText
+  ariaLabelKey: string
+  supported: boolean
+  unavailableNote?: EnergymapBuildingInfoNote
+}
+
+export type EnergymapBuildingInfoEnergySubmetric = {
+  id: EnergymapBuildingInfoEnergySubmetricId
+  label: EnergymapBuildingInfoText
+  ariaLabelKey: string
+  supported: boolean
+  defaultSelected: boolean
+  metric: EnergymapBuildingInfoMetric
+  unavailableNote?: EnergymapBuildingInfoNote
+}
+
+export type EnergymapBuildingInfoConsumptionControls = {
+  defaultPrimaryMetricId: EnergymapBuildingInfoPrimaryMetricId
+  primaryMetrics: EnergymapBuildingInfoPrimaryMetric[]
+  defaultEnergySubmetricIds: EnergymapBuildingInfoEnergySubmetricId[]
+  energySubmetrics: EnergymapBuildingInfoEnergySubmetric[]
+  yearOptions: EnergymapBuildingInfoYearOption[]
+  yearUnavailableValue: EnergymapBuildingInfoValue
+  combinedEnergyMetric: EnergymapBuildingInfoMetric
+  emptyEnergyMetric: EnergymapBuildingInfoMetric
+}
+
+export type EnergymapBuildingInfoSelectedEnergyConsumption = {
+  values: EnergymapBuildingInfoMetricValue[]
+  notes: EnergymapBuildingInfoNote[]
+}
+
 export type EnergymapBuildingInfoScenario = {
   id: EnergymapEnergyMeasure
   label: EnergymapBuildingInfoText
@@ -91,6 +141,7 @@ export type EnergymapBuildingInfoSection = {
   description?: EnergymapBuildingInfoText
   rows?: EnergymapBuildingInfoRow[]
   metrics?: EnergymapBuildingInfoMetric[]
+  consumptionControls?: EnergymapBuildingInfoConsumptionControls
   scenarios?: EnergymapBuildingInfoScenario[]
   notes?: EnergymapBuildingInfoNote[]
 }
@@ -652,6 +703,166 @@ const createWaterHeatingMetric = (): EnergymapBuildingInfoMetric => ({
   ],
 })
 
+const createEmptyEnergyMetric = (): EnergymapBuildingInfoMetric => ({
+  id: 'total',
+  label: translationText(key('panels.energy.series.total')),
+  values: [
+    metricValue({
+      id: 'annualTotal',
+      labelKey: key('panels.energy.metric.annual_total'),
+      value: placeholderValue({
+        keyName: key('panels.energy.unsupported.no_selected_energy_submetrics'),
+      }),
+    }),
+    metricValue({
+      id: 'perSquareMeter',
+      labelKey: key('panels.energy.metric.per_square_meter'),
+      value: placeholderValue({
+        keyName: key('panels.energy.unsupported.no_selected_energy_submetrics'),
+      }),
+    }),
+  ],
+})
+
+const ENERGY_SUBMETRIC_ORDER: readonly EnergymapBuildingInfoEnergySubmetricId[] =
+  ['electricity', 'heating', 'waterHeating']
+
+export const getSelectedEnergyConsumption = ({
+  controls,
+  selectedSubmetricIds,
+}: {
+  controls: EnergymapBuildingInfoConsumptionControls
+  selectedSubmetricIds: readonly EnergymapBuildingInfoEnergySubmetricId[]
+}): EnergymapBuildingInfoSelectedEnergyConsumption => {
+  const selectedIds = new Set(selectedSubmetricIds)
+  const submetricById = new Map(
+    controls.energySubmetrics.map((submetric) => [submetric.id, submetric])
+  )
+  const selectedSubmetrics = ENERGY_SUBMETRIC_ORDER.map((id) =>
+    submetricById.get(id)
+  ).filter(
+    (submetric): submetric is EnergymapBuildingInfoEnergySubmetric =>
+      submetric != null && selectedIds.has(submetric.id)
+  )
+  const selectedSupportedSubmetrics = selectedSubmetrics.filter(
+    (submetric) => submetric.supported
+  )
+  const selectedUnsupportedNotes = selectedSubmetrics
+    .map((submetric) => submetric.unavailableNote)
+    .filter((note): note is EnergymapBuildingInfoNote => note != null)
+  const supportedIds = new Set(
+    selectedSupportedSubmetrics.map((submetric) => submetric.id)
+  )
+  const metric =
+    supportedIds.has('electricity') && supportedIds.has('heating')
+      ? controls.combinedEnergyMetric
+      : selectedSupportedSubmetrics[0]?.metric ?? controls.emptyEnergyMetric
+
+  return {
+    values: metric.values,
+    notes: selectedUnsupportedNotes,
+  }
+}
+
+const createUnsupportedPrimaryMetric = ({
+  id,
+  labelKey,
+  unavailableNoteKey,
+}: {
+  id: Exclude<EnergymapBuildingInfoPrimaryMetricId, 'energy'>
+  labelKey: string
+  unavailableNoteKey: string
+}): EnergymapBuildingInfoPrimaryMetric => ({
+  id,
+  label: translationText(labelKey),
+  ariaLabelKey: labelKey,
+  supported: false,
+  unavailableNote: note({
+    id: `${id}Unavailable`,
+    keyName: unavailableNoteKey,
+    status: 'placeholder',
+  }),
+})
+
+const createConsumptionControls = ({
+  totalMetric,
+  heatingMetric,
+  electricityMetric,
+  waterHeatingMetric,
+}: {
+  totalMetric: EnergymapBuildingInfoMetric
+  heatingMetric: EnergymapBuildingInfoMetric
+  electricityMetric: EnergymapBuildingInfoMetric
+  waterHeatingMetric: EnergymapBuildingInfoMetric
+}): EnergymapBuildingInfoConsumptionControls => {
+  const waterHeatingUnavailableNote = note({
+    id: 'waterHeatingUnavailable',
+    keyName: key('panels.energy.unsupported.water_heating'),
+    status: 'placeholder',
+  })
+
+  return {
+    defaultPrimaryMetricId: 'energy',
+    primaryMetrics: [
+      {
+        id: 'energy',
+        label: translationText(key('panels.energy.primary.energy')),
+        ariaLabelKey: key('panels.energy.primary.energy'),
+        supported: true,
+      },
+      createUnsupportedPrimaryMetric({
+        id: 'water',
+        labelKey: key('panels.energy.primary.water'),
+        unavailableNoteKey: key('panels.energy.unsupported.water'),
+      }),
+      createUnsupportedPrimaryMetric({
+        id: 'cost',
+        labelKey: key('panels.energy.primary.cost'),
+        unavailableNoteKey: key('panels.energy.unsupported.cost'),
+      }),
+      createUnsupportedPrimaryMetric({
+        id: 'co2',
+        labelKey: key('panels.energy.primary.co2'),
+        unavailableNoteKey: key('panels.energy.unsupported.co2'),
+      }),
+    ],
+    defaultEnergySubmetricIds: ['electricity', 'heating', 'waterHeating'],
+    energySubmetrics: [
+      {
+        id: 'electricity',
+        label: translationText(key('panels.energy.series.electricity')),
+        ariaLabelKey: key('panels.energy.series.electricity'),
+        supported: true,
+        defaultSelected: true,
+        metric: electricityMetric,
+      },
+      {
+        id: 'heating',
+        label: translationText(key('panels.energy.series.heating')),
+        ariaLabelKey: key('panels.energy.series.heating'),
+        supported: true,
+        defaultSelected: true,
+        metric: heatingMetric,
+      },
+      {
+        id: 'waterHeating',
+        label: translationText(key('panels.energy.series.water_heating')),
+        ariaLabelKey: key('panels.energy.series.water_heating'),
+        supported: false,
+        defaultSelected: true,
+        metric: waterHeatingMetric,
+        unavailableNote: waterHeatingUnavailableNote,
+      },
+    ],
+    yearOptions: [],
+    yearUnavailableValue: placeholderValue({
+      keyName: key('panels.energy.note.reference_year_unavailable'),
+    }),
+    combinedEnergyMetric: totalMetric,
+    emptyEnergyMetric: createEmptyEnergyMetric(),
+  }
+}
+
 const getCodeLabelValue = ({
   codeValue,
   codeType,
@@ -859,83 +1070,91 @@ const createEnergyConsumptionPanel = ({
   properties: EnergymapSelectedBuilding['properties']
   prefix: EnergymapEnergyScenarioPrefix | null
   locale: string
-}): EnergymapBuildingInfoPanel => ({
-  id: 'energyConsumption',
-  title: translationText(key('panels.energy.title')),
-  description: translationText(key('panels.energy.description')),
-  sections: [
-    {
-      id: 'estimatedConsumption',
-      title: translationText(key('panels.energy.sections.estimated_consumption')),
-      metrics: [
-        createEnergyMetric({
-          id: 'total',
-          seriesKey: key('panels.energy.series.total'),
-          estimateType: 'total',
-          properties,
-          prefix,
-          locale,
+}): EnergymapBuildingInfoPanel => {
+  const totalMetric = createEnergyMetric({
+    id: 'total',
+    seriesKey: key('panels.energy.series.total'),
+    estimateType: 'total',
+    properties,
+    prefix,
+    locale,
+  })
+  const heatingMetric = createEnergyMetric({
+    id: 'heating',
+    seriesKey: key('panels.energy.series.heating'),
+    estimateType: 'heat',
+    properties,
+    prefix,
+    locale,
+  })
+  const electricityMetric = createEnergyMetric({
+    id: 'electricity',
+    seriesKey: key('panels.energy.series.electricity'),
+    estimateType: 'elec',
+    properties,
+    prefix,
+    locale,
+  })
+  const waterHeatingMetric = createWaterHeatingMetric()
+
+  return {
+    id: 'energyConsumption',
+    title: translationText(key('panels.energy.title')),
+    description: translationText(key('panels.energy.description')),
+    sections: [
+      {
+        id: 'estimatedConsumption',
+        title: translationText(
+          key('panels.energy.sections.estimated_consumption')
+        ),
+        metrics: [
+          totalMetric,
+          heatingMetric,
+          electricityMetric,
+          waterHeatingMetric,
+        ],
+        consumptionControls: createConsumptionControls({
+          totalMetric,
+          heatingMetric,
+          electricityMetric,
+          waterHeatingMetric,
         }),
-        createEnergyMetric({
-          id: 'heating',
-          seriesKey: key('panels.energy.series.heating'),
-          estimateType: 'heat',
-          properties,
-          prefix,
-          locale,
-        }),
-        createEnergyMetric({
-          id: 'electricity',
-          seriesKey: key('panels.energy.series.electricity'),
-          estimateType: 'elec',
-          properties,
-          prefix,
-          locale,
-        }),
-        createWaterHeatingMetric(),
-      ],
-      notes: [
-        note({
-          id: 'estimatedConsumption',
-          keyName: key('panels.energy.note.estimated'),
-          status: 'estimate',
-        }),
-      ],
-    },
-    {
-      id: 'calculationContext',
-      title: translationText(key('panels.energy.sections.calculation_context')),
-      rows: [
-        createPlaceholderRow({
-          id: 'referenceYear',
-          labelKey: key('panels.energy.rows.reference_year'),
-          placeholderKey: key('panels.energy.note.reference_year_unavailable'),
-        }),
-        createPlaceholderRow({
-          id: 'costMode',
-          labelKey: key('panels.energy.rows.cost_mode'),
-          placeholderKey: key('placeholders.demo_not_verified'),
-        }),
-        createPlaceholderRow({
-          id: 'co2Mode',
-          labelKey: key('panels.energy.rows.co2_mode'),
-          placeholderKey: key('placeholders.demo_not_verified'),
-        }),
-        createPlaceholderRow({
-          id: 'waterHeatingSplit',
-          labelKey: key('panels.energy.rows.water_heating_split'),
-        }),
-      ],
-      notes: [
-        note({
-          id: 'userCoefficients',
-          keyName: key('panels.energy.note.user_coefficients_demo'),
-          status: 'placeholder',
-        }),
-      ],
-    },
-  ],
-})
+        notes: [
+          note({
+            id: 'estimatedConsumption',
+            keyName: key('panels.energy.note.estimated'),
+            status: 'estimate',
+          }),
+        ],
+      },
+      {
+        id: 'calculationContext',
+        title: translationText(key('panels.energy.sections.calculation_context')),
+        rows: [
+          createPlaceholderRow({
+            id: 'referenceYear',
+            labelKey: key('panels.energy.rows.reference_year'),
+            placeholderKey: key('panels.energy.note.reference_year_unavailable'),
+          }),
+          createPlaceholderRow({
+            id: 'costMode',
+            labelKey: key('panels.energy.rows.cost_mode'),
+            placeholderKey: key('placeholders.not_published'),
+          }),
+          createPlaceholderRow({
+            id: 'co2Mode',
+            labelKey: key('panels.energy.rows.co2_mode'),
+            placeholderKey: key('placeholders.not_published'),
+          }),
+          createPlaceholderRow({
+            id: 'waterHeatingSplit',
+            labelKey: key('panels.energy.rows.water_heating_split'),
+          }),
+        ],
+      },
+    ],
+  }
+}
 
 const getSavingsPercentValue = ({
   properties,

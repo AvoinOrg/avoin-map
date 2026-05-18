@@ -15,8 +15,11 @@ import {
 } from './BuildingInfoSidebar'
 import { getEnergymapBuildingInfoSidebarRuntimeOptions } from '../common/buildingInfoSidebarRuntime'
 import type {
+  EnergymapBuildingInfoConsumptionControls,
+  EnergymapBuildingInfoMetric,
   EnergymapBuildingInfoPanel,
   EnergymapBuildingInfoText,
+  EnergymapBuildingInfoValue,
 } from '../common/buildingInfo'
 import type { BuildingInfoTabId } from './BuildingInfoSidebar'
 
@@ -46,6 +49,9 @@ jest.mock('@tolgee/react', () => {
         null,
         params?.code == null ? keyName : `${keyName}:${params.code}`
       ),
+    useTranslate: () => ({
+      t: (keyName: string) => keyName,
+    }),
   }
 })
 
@@ -106,6 +112,201 @@ const plain = (text: string): EnergymapBuildingInfoText => ({
   text,
 })
 
+const metricValue = ({
+  id,
+  labelKey,
+  text,
+  status = 'estimate',
+  sourceProperties,
+  unitKey = 'unit.kwh',
+}: {
+  id: 'annualTotal' | 'perSquareMeter'
+  labelKey: string
+  text: EnergymapBuildingInfoText
+  status?: EnergymapBuildingInfoValue['status']
+  sourceProperties?: string[]
+  unitKey?: string
+}) => ({
+  id,
+  label: translation(labelKey),
+  text,
+  status,
+  ...(sourceProperties == null ? {} : { sourceProperties }),
+  unitKey,
+})
+
+const createEnergyMetric = ({
+  id,
+  labelKey,
+  annualText,
+  squareText,
+  annualSources,
+  squareSources,
+  status = 'estimate',
+}: {
+  id: EnergymapBuildingInfoMetric['id']
+  labelKey: string
+  annualText: EnergymapBuildingInfoText
+  squareText: EnergymapBuildingInfoText
+  annualSources?: string[]
+  squareSources?: string[]
+  status?: EnergymapBuildingInfoValue['status']
+}): EnergymapBuildingInfoMetric => ({
+  id,
+  label: translation(labelKey),
+  values: [
+    metricValue({
+      id: 'annualTotal',
+      labelKey: 'panels.energy.metric.annual_total',
+      text: annualText,
+      status,
+      sourceProperties: annualSources,
+    }),
+    metricValue({
+      id: 'perSquareMeter',
+      labelKey: 'panels.energy.metric.per_square_meter',
+      text: squareText,
+      status,
+      sourceProperties: squareSources,
+      unitKey: 'unit.kwh_square',
+    }),
+  ],
+})
+
+const totalEnergyMetric = createEnergyMetric({
+  id: 'total',
+  labelKey: 'panels.energy.series.total',
+  annualText: plain('100'),
+  squareText: plain('10'),
+  annualSources: ['distr_default_total', 'floor_area'],
+  squareSources: ['distr_default_total'],
+})
+
+const heatingEnergyMetric = createEnergyMetric({
+  id: 'heating',
+  labelKey: 'panels.energy.series.heating',
+  annualText: plain('70'),
+  squareText: plain('7'),
+  annualSources: ['distr_default_heat', 'floor_area'],
+  squareSources: ['distr_default_heat'],
+})
+
+const electricityEnergyMetric = createEnergyMetric({
+  id: 'electricity',
+  labelKey: 'panels.energy.series.electricity',
+  annualText: plain('30'),
+  squareText: plain('3'),
+  annualSources: ['distr_default_elec', 'floor_area'],
+  squareSources: ['distr_default_elec'],
+})
+
+const waterHeatingEnergyMetric = createEnergyMetric({
+  id: 'waterHeating',
+  labelKey: 'panels.energy.series.water_heating',
+  annualText: translation('value.water_heating_unavailable'),
+  squareText: translation('value.water_heating_unavailable'),
+})
+
+const emptyEnergyMetric = createEnergyMetric({
+  id: 'total',
+  labelKey: 'panels.energy.series.total',
+  annualText: translation(
+    'sidebar.building_info.panels.energy.unsupported.no_selected_energy_submetrics'
+  ),
+  squareText: translation(
+    'sidebar.building_info.panels.energy.unsupported.no_selected_energy_submetrics'
+  ),
+  status: 'placeholder',
+})
+
+const consumptionControls: EnergymapBuildingInfoConsumptionControls = {
+  defaultPrimaryMetricId: 'energy',
+  primaryMetrics: [
+    {
+      id: 'energy',
+      label: translation('sidebar.building_info.panels.energy.primary.energy'),
+      ariaLabelKey: 'sidebar.building_info.panels.energy.primary.energy',
+      supported: true,
+    },
+    {
+      id: 'water',
+      label: translation('sidebar.building_info.panels.energy.primary.water'),
+      ariaLabelKey: 'sidebar.building_info.panels.energy.primary.water',
+      supported: false,
+      unavailableNote: {
+        id: 'waterUnavailable',
+        text: translation('sidebar.building_info.panels.energy.unsupported.water'),
+        status: 'placeholder',
+      },
+    },
+    {
+      id: 'cost',
+      label: translation('sidebar.building_info.panels.energy.primary.cost'),
+      ariaLabelKey: 'sidebar.building_info.panels.energy.primary.cost',
+      supported: false,
+      unavailableNote: {
+        id: 'costUnavailable',
+        text: translation('sidebar.building_info.panels.energy.unsupported.cost'),
+        status: 'placeholder',
+      },
+    },
+    {
+      id: 'co2',
+      label: translation('sidebar.building_info.panels.energy.primary.co2'),
+      ariaLabelKey: 'sidebar.building_info.panels.energy.primary.co2',
+      supported: false,
+      unavailableNote: {
+        id: 'co2Unavailable',
+        text: translation('sidebar.building_info.panels.energy.unsupported.co2'),
+        status: 'placeholder',
+      },
+    },
+  ],
+  defaultEnergySubmetricIds: ['electricity', 'heating', 'waterHeating'],
+  energySubmetrics: [
+    {
+      id: 'electricity',
+      label: translation('panels.energy.series.electricity'),
+      ariaLabelKey: 'panels.energy.series.electricity',
+      supported: true,
+      defaultSelected: true,
+      metric: electricityEnergyMetric,
+    },
+    {
+      id: 'heating',
+      label: translation('panels.energy.series.heating'),
+      ariaLabelKey: 'panels.energy.series.heating',
+      supported: true,
+      defaultSelected: true,
+      metric: heatingEnergyMetric,
+    },
+    {
+      id: 'waterHeating',
+      label: translation('panels.energy.series.water_heating'),
+      ariaLabelKey: 'panels.energy.series.water_heating',
+      supported: false,
+      defaultSelected: true,
+      metric: waterHeatingEnergyMetric,
+      unavailableNote: {
+        id: 'waterHeatingUnavailable',
+        text: translation(
+          'sidebar.building_info.panels.energy.unsupported.water_heating'
+        ),
+        status: 'placeholder',
+      },
+    },
+  ],
+  yearOptions: [],
+  yearUnavailableValue: {
+    text: translation(
+      'sidebar.building_info.panels.energy.note.reference_year_unavailable'
+    ),
+    status: 'placeholder',
+  },
+  combinedEnergyMetric: totalEnergyMetric,
+  emptyEnergyMetric,
+}
+
 const renderWithTheme = (ui: React.ReactElement) => {
   return render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>)
 }
@@ -128,6 +329,24 @@ const panels: EnergymapBuildingInfoPanel[] = [
     title: translation('panel.energy.title'),
     description: translation('panel.energy.description'),
     sections: [
+      {
+        id: 'estimatedConsumption',
+        title: translation('section.energy.estimated.title'),
+        metrics: [
+          totalEnergyMetric,
+          heatingEnergyMetric,
+          electricityEnergyMetric,
+          waterHeatingEnergyMetric,
+        ],
+        consumptionControls,
+        notes: [
+          {
+            id: 'estimatedConsumption',
+            text: translation('note.energy.estimated'),
+            status: 'estimate',
+          },
+        ],
+      },
       {
         id: 'energyRows',
         rows: [
@@ -526,6 +745,173 @@ describe('BuildingInfoSidebar', () => {
     ).toEqual(['energyConsumption', 'buildingDetails'])
     expect(screen.getAllByTestId('panel-sidebar-page-scroll')).toHaveLength(1)
     expect(screen.queryByTestId(/^building-info-scroll-/)).not.toBeInTheDocument()
+    expect(
+      screen.getByTestId('building-info-energy-consumption-section')
+    ).toBeInTheDocument()
+  })
+
+  it('renders the interactive energy controls in the basic tab', async () => {
+    renderBuildingInfoTabs()
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    const energyPanel = screen.getByTestId(
+      'building-info-panel-energyConsumption'
+    )
+    const yearSelect = within(energyPanel).getByRole('combobox', {
+      name: 'sidebar.building_info.panels.energy.controls.year_aria_label',
+    })
+    const energyButton = within(energyPanel).getByRole('button', {
+      name: 'sidebar.building_info.panels.energy.primary.energy',
+    })
+    const waterButton = within(energyPanel).getByRole('button', {
+      name: 'sidebar.building_info.panels.energy.primary.water',
+    })
+
+    expect(yearSelect).toHaveAttribute('aria-disabled', 'true')
+    expect(energyButton).toHaveAttribute('aria-pressed', 'true')
+    expect(energyButton).toHaveTextContent(
+      'sidebar.building_info.panels.energy.primary.energy'
+    )
+    expect(waterButton).toHaveAttribute('aria-pressed', 'false')
+    expect(waterButton).not.toHaveTextContent(
+      'sidebar.building_info.panels.energy.primary.water'
+    )
+    expect(
+      within(energyPanel).getByRole('button', {
+        name: 'panels.energy.series.electricity',
+      })
+    ).toHaveAttribute('aria-pressed', 'true')
+    expect(
+      within(energyPanel).getByRole('button', {
+        name: 'panels.energy.series.heating',
+      })
+    ).toHaveAttribute('aria-pressed', 'true')
+    expect(
+      within(energyPanel).getByRole('button', {
+        name: 'panels.energy.series.water_heating',
+      })
+    ).toHaveAttribute('aria-pressed', 'true')
+    expect(
+      within(energyPanel).getByTestId('building-info-energy-consumption-values')
+    ).toHaveTextContent('100')
+    expect(energyPanel).toHaveTextContent(
+      'sidebar.building_info.panels.energy.unsupported.water_heating'
+    )
+  })
+
+  it('updates the energy value table when submetrics are toggled', async () => {
+    renderBuildingInfoTabs()
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    const energyPanel = screen.getByTestId(
+      'building-info-panel-energyConsumption'
+    )
+    const values = within(energyPanel).getByTestId(
+      'building-info-energy-consumption-values'
+    )
+
+    fireEvent.click(
+      within(energyPanel).getByRole('button', {
+        name: 'panels.energy.series.heating',
+      })
+    )
+    expect(values).toHaveTextContent('30')
+    expect(values).not.toHaveTextContent('100')
+    expect(energyPanel).toHaveTextContent(
+      'sidebar.building_info.panels.energy.unsupported.water_heating'
+    )
+
+    fireEvent.click(
+      within(energyPanel).getByRole('button', {
+        name: 'panels.energy.series.water_heating',
+      })
+    )
+    expect(values).toHaveTextContent('30')
+    expect(energyPanel).not.toHaveTextContent(
+      'sidebar.building_info.panels.energy.unsupported.water_heating'
+    )
+
+    fireEvent.click(
+      within(energyPanel).getByRole('button', {
+        name: 'panels.energy.series.electricity',
+      })
+    )
+    expect(values).toHaveTextContent(
+      'sidebar.building_info.panels.energy.unsupported.no_selected_energy_submetrics'
+    )
+  })
+
+  it('shows truthful missing-data panels for unsupported primary metrics', async () => {
+    renderBuildingInfoTabs()
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    const energyPanel = screen.getByTestId(
+      'building-info-panel-energyConsumption'
+    )
+
+    fireEvent.click(
+      within(energyPanel).getByRole('button', {
+        name: 'sidebar.building_info.panels.energy.primary.water',
+      })
+    )
+
+    const waterButton = within(energyPanel).getByRole('button', {
+      name: 'sidebar.building_info.panels.energy.primary.water',
+    })
+    expect(waterButton).toHaveAttribute('aria-pressed', 'true')
+    expect(waterButton).toHaveTextContent(
+      'sidebar.building_info.panels.energy.primary.water'
+    )
+    expect(
+      within(energyPanel).getByTestId('building-info-unsupported-primary-metric')
+    ).toHaveTextContent(
+      'sidebar.building_info.panels.energy.unsupported.water'
+    )
+    expect(
+      within(energyPanel).queryByTestId('building-info-energy-submetric-row')
+    ).not.toBeInTheDocument()
+
+    fireEvent.click(
+      within(energyPanel).getByRole('button', {
+        name: 'sidebar.building_info.panels.energy.primary.cost',
+      })
+    )
+    expect(
+      within(energyPanel).getByTestId('building-info-unsupported-primary-metric')
+    ).toHaveTextContent('sidebar.building_info.panels.energy.unsupported.cost')
+
+    fireEvent.click(
+      within(energyPanel).getByRole('button', {
+        name: 'sidebar.building_info.panels.energy.primary.co2',
+      })
+    )
+    expect(
+      within(energyPanel).getByTestId('building-info-unsupported-primary-metric')
+    ).toHaveTextContent('sidebar.building_info.panels.energy.unsupported.co2')
+  })
+
+  it('renders the same interactive energy section in the renovation tab', async () => {
+    renderBuildingInfoTabs()
+
+    fireEvent.click(
+      await screen.findByRole('tab', {
+        name: 'Open renovation recommendations',
+      })
+    )
+
+    await screen.findByTestId('building-info-tab-page-renovation')
+    const energyPanel = screen.getByTestId(
+      'building-info-panel-energyConsumption'
+    )
+
+    expect(
+      within(energyPanel).getByTestId('building-info-energy-consumption-section')
+    ).toBeInTheDocument()
+    expect(
+      within(energyPanel).getByRole('button', {
+        name: 'panels.energy.series.water_heating',
+      })
+    ).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('can open on the requested tab after collapsed-tab selection', async () => {
