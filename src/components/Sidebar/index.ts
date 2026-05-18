@@ -82,14 +82,7 @@ export type {
   SidebarWidthToken,
 } from '#/common/types/sidebar'
 export { SimpleSidebar } from './SimpleSidebar'
-export type {
-  SimpleSidebarProps,
-  SimpleSidebarPanelsConfig,
-  SimpleSidebarPanelConfig,
-  SimpleSidebarMobileMode,
-  SimpleSidebarMobilePanel,
-  SimpleSidebarMobileStackPlacement,
-} from './SimpleSidebar'
+export type { SimpleSidebarProps } from './SimpleSidebar'
 export { default as SidebarToggleButton } from './SidebarToggleButton'
 export { default as SidebarHeader } from './SidebarHeader'
 export { default as BreadcrumbNav } from './BreadcrumbNav'

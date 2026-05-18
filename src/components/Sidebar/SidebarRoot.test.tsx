@@ -7,6 +7,7 @@ import type { SidebarMode, SidebarRuntimeOptions } from '#/common/types/sidebar'
 import { SlotsProvider } from '#/components/context/slotsContext'
 
 import { SidebarBoundary } from './SidebarBoundary'
+import { PanelSidebarTabContainer } from './PanelSidebarTabContainer'
 import { SidebarRoot } from './SidebarRoot'
 import {
   IntoSidebarActionRailSlot,
@@ -153,7 +154,7 @@ describe('SidebarRoot', () => {
     expect(mountCount).toBe(1)
   })
 
-  it('hosts simple scoped panel slots without remounting on runtime option changes', async () => {
+  it('hosts simple scoped main and secondary slots without remounting on runtime option changes', async () => {
     let mountCount = 0
 
     const Child = () => {
@@ -169,11 +170,8 @@ describe('SidebarRoot', () => {
           <IntoSidebarPanelSlot panelId="secondary">
             <div>Scoped renovation panel</div>
           </IntoSidebarPanelSlot>
-          <IntoSidebarPanelSlot panelId="tertiary">
-            <div>Scoped details panel</div>
-          </IntoSidebarPanelSlot>
           <IntoSidebarActionRailSlot>
-            <button type="button">Scoped building action</button>
+            <button type="button">Scoped graph action</button>
           </IntoSidebarActionRailSlot>
           <div>Stable panel child</div>
         </>
@@ -185,12 +183,11 @@ describe('SidebarRoot', () => {
         <SidebarBoundary
           id="simple-boundary"
           mode="simple"
-          config={{ width: 'compact', panelLayout: 'single' }}
+          config={{ panelLayout: 'double' }}
           initialRuntimeOptions={{
-            panelLayout: 'single',
+            panelLayout: 'double',
             visiblePanels: ['main'],
             activePanel: 'main',
-            chrome: 'visible',
           }}
         >
           <Child />
@@ -201,36 +198,17 @@ describe('SidebarRoot', () => {
     expect(await screen.findByText('Stable panel child')).toBeInTheDocument()
     expect(screen.getByText('Scoped energy panel')).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Scoped building action' })
+      screen.getByRole('button', { name: 'Scoped graph action' })
     ).toBeInTheDocument()
+    expect(screen.queryByText('Scoped renovation panel')).not.toBeInTheDocument()
     const mountCountAfterActivation = mountCount
 
     act(() => {
       useUIStore
         .getState()
         .setSidebarBoundaryRuntimeOptions('simple-boundary', {
-          width: 'wide',
-          chrome: 'hidden',
           panelLayout: 'double',
-          visiblePanels: ['main', 'tertiary'],
-          activePanel: 'tertiary',
-          actionRailPlacement: 'outside',
-        })
-    })
-
-    expect(screen.getByText('Scoped energy panel')).toBeInTheDocument()
-    expect(screen.getByText('Scoped details panel')).toBeInTheDocument()
-    expect(screen.queryByText('Scoped renovation panel')).not.toBeInTheDocument()
-    expect(mountCount).toBe(mountCountAfterActivation)
-
-    act(() => {
-      useUIStore
-        .getState()
-        .setSidebarBoundaryRuntimeOptions('simple-boundary', {
-          width: 'wide',
-          chrome: 'hidden',
-          panelLayout: 'triple',
-          visiblePanels: ['main', 'secondary', 'tertiary'],
+          visiblePanels: ['secondary'],
           activePanel: 'secondary',
           actionRailPlacement: 'fixedBottomActionRow',
         })
@@ -239,9 +217,8 @@ describe('SidebarRoot', () => {
     expect(screen.getByText('Stable panel child')).toBeInTheDocument()
     expect(screen.getByText('Scoped energy panel')).toBeInTheDocument()
     expect(screen.getByText('Scoped renovation panel')).toBeInTheDocument()
-    expect(screen.getByText('Scoped details panel')).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Scoped building action' })
+      screen.getByRole('button', { name: 'Scoped graph action' })
     ).toBeInTheDocument()
     expect(screen.getByTestId('sidebar-action-rail')).toHaveAttribute(
       'data-sidebar-action-rail-placement',
@@ -257,9 +234,7 @@ describe('SidebarRoot', () => {
       useUIStore
         .getState()
         .setSidebarBoundaryRuntimeOptions('simple-boundary', {
-          width: 'compact',
-          chrome: 'visible',
-          panelLayout: 'single',
+          panelLayout: 'double',
           visiblePanels: ['main'],
           activePanel: 'main',
           actionRailPlacement: 'fixedRightActionColumn',
@@ -271,9 +246,8 @@ describe('SidebarRoot', () => {
     expect(
       screen.queryByText('Scoped renovation panel')
     ).not.toBeInTheDocument()
-    expect(screen.queryByText('Scoped details panel')).not.toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Scoped building action' })
+      screen.getByRole('button', { name: 'Scoped graph action' })
     ).toBeInTheDocument()
     expect(screen.getByTestId('sidebar-action-rail')).toHaveAttribute(
       'data-sidebar-action-rail-placement',
@@ -303,11 +277,8 @@ describe('SidebarRoot', () => {
           <IntoSidebarPanelSlot panelId="secondary">
             <div>Scoped mobile renovation panel</div>
           </IntoSidebarPanelSlot>
-          <IntoSidebarPanelSlot panelId="tertiary">
-            <div>Scoped mobile details panel</div>
-          </IntoSidebarPanelSlot>
           <IntoSidebarActionRailSlot>
-            <button type="button">Scoped mobile building action</button>
+            <button type="button">Scoped mobile graph action</button>
           </IntoSidebarActionRailSlot>
           <div>Stable mobile panel child</div>
         </>
@@ -319,12 +290,11 @@ describe('SidebarRoot', () => {
         <SidebarBoundary
           id="simple-mobile-boundary"
           mode="simple"
-          config={{ width: 'compact', panelLayout: 'single' }}
+          config={{ panelLayout: 'double' }}
           initialRuntimeOptions={{
-            panelLayout: 'single',
+            panelLayout: 'double',
             visiblePanels: ['main'],
             activePanel: 'main',
-            chrome: 'visible',
             mobileMode: 'stacked',
           }}
         >
@@ -337,38 +307,17 @@ describe('SidebarRoot', () => {
       await screen.findByText('Stable mobile panel child')
     ).toBeInTheDocument()
     expect(screen.getByText('Scoped mobile energy panel')).toBeInTheDocument()
+    expect(
+      screen.queryByText('Scoped mobile renovation panel')
+    ).not.toBeInTheDocument()
     const mountCountAfterActivation = mountCount
 
     act(() => {
       useUIStore
         .getState()
         .setSidebarBoundaryRuntimeOptions('simple-mobile-boundary', {
-          width: 'wide',
-          chrome: 'hidden',
           panelLayout: 'double',
-          visiblePanels: ['main', 'tertiary'],
-          activePanel: 'tertiary',
-          mobileMode: 'stacked',
-          actionRailPlacement: 'bottomActionRow',
-        })
-    })
-
-    expect(screen.getByText('Stable mobile panel child')).toBeInTheDocument()
-    expect(screen.getByText('Scoped mobile energy panel')).toBeInTheDocument()
-    expect(screen.getByText('Scoped mobile details panel')).toBeInTheDocument()
-    expect(
-      screen.queryByText('Scoped mobile renovation panel')
-    ).not.toBeInTheDocument()
-    expect(mountCount).toBe(mountCountAfterActivation)
-
-    act(() => {
-      useUIStore
-        .getState()
-        .setSidebarBoundaryRuntimeOptions('simple-mobile-boundary', {
-          width: 'wide',
-          chrome: 'hidden',
-          panelLayout: 'triple',
-          visiblePanels: ['main', 'secondary', 'tertiary'],
+          visiblePanels: ['secondary'],
           activePanel: 'secondary',
           mobileMode: 'stacked',
           actionRailPlacement: 'bottomActionRow',
@@ -380,11 +329,35 @@ describe('SidebarRoot', () => {
     expect(
       screen.getByText('Scoped mobile renovation panel')
     ).toBeInTheDocument()
-    expect(screen.getByText('Scoped mobile details panel')).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Scoped mobile building action' })
+      screen.getByRole('button', { name: 'Scoped mobile graph action' })
     ).toBeInTheDocument()
     expect(mountCount).toBe(mountCountAfterActivation)
+  })
+
+  it('renders panel tab containers as ordinary simple content without a tab rail', async () => {
+    renderRoot({
+      children: (
+        <SidebarBoundary id="simple-tabs" mode="simple">
+          <IntoSidebarPanelSlot panelId="main">
+            <PanelSidebarTabContainer tabId="first" tabName="First">
+              <span>First simple tab body</span>
+            </PanelSidebarTabContainer>
+            <PanelSidebarTabContainer tabId="second" tabName="Second">
+              <span>Second simple tab body</span>
+            </PanelSidebarTabContainer>
+          </IntoSidebarPanelSlot>
+        </SidebarBoundary>
+      ),
+    })
+
+    expect(await screen.findByText('First simple tab body')).toBeInTheDocument()
+    expect(screen.getByText('Second simple tab body')).toBeInTheDocument()
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
+    expect(screen.queryByRole('tab', { name: 'First' })).not.toBeInTheDocument()
+    expect(
+      screen.queryByTestId('panel-sidebar-tab-rail')
+    ).not.toBeInTheDocument()
   })
 
   it('hosts scoped panel slots, header children, and a closed panel action rail', async () => {
