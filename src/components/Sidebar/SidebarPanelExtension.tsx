@@ -24,6 +24,7 @@ export type SidebarPanelExtensionProps = {
   extensionId: SidebarPanelExtensionId
   options?: SidebarPanelExtensionRuntimeOptions
   sidebarOffset?: number
+  visible?: boolean
   desktopTabRail?: React.ReactNode
   mobileTabRail?: React.ReactNode
   suppressMobileStackedPanels?: boolean
@@ -34,6 +35,7 @@ export type SidebarPanelExtensionTabRailProps = {
   tabs: SidebarPanelExtensionTabMetadata[]
   activeTabId?: string
   placement: 'desktop' | 'mobile'
+  orientation?: 'column' | 'row'
   onTabChange: (tabId: string) => void
 }
 
@@ -41,6 +43,7 @@ const FULL_WIDTH_MAIN_PANEL_WIDTH = '30.5556vw'
 const FULL_WIDTH_SECONDARY_PANEL_WIDTH = '38.8889vw'
 const FULL_WIDTH_TERTIARY_PANEL_WIDTH = '30.5556vw'
 const WIDE_SINGLE_MAIN_PANEL_WIDTH = 'min(1440px, calc(100vw - 4rem))'
+const FULLSCREEN_MAIN_PANEL_WIDTH = '100vw'
 const DEFAULT_PANEL_WIDTH = '23.75rem'
 const SIDEBAR_TOGGLE_BUTTON_SIZE_PX = 45
 const ACTION_RAIL_GAP_PX = 10
@@ -65,6 +68,10 @@ const FIXED_RIGHT_ACTION_COLUMN_RIGHT_PX =
 const PANEL_ORDER: SidebarPanelId[] = ['main', 'secondary', 'tertiary']
 
 const toSxArray = (sx?: SxProps<Theme>) => (Array.isArray(sx) ? sx : [sx])
+
+const isFullscreenLayout = (
+  options?: SidebarPanelExtensionRuntimeOptions
+) => options?.layoutMode === 'fullscreen'
 
 const hasFullWidthPanelLayout = (
   options?: SidebarPanelExtensionRuntimeOptions
@@ -96,12 +103,23 @@ const hasWideSingleMainPanelLayout = (
 
 export const getSidebarPanelExtensionMainPanelWidth = (
   options?: SidebarPanelExtensionRuntimeOptions
-) =>
-  hasFullWidthPanelLayout(options)
-    ? FULL_WIDTH_MAIN_PANEL_WIDTH
-    : hasWideSingleMainPanelLayout(options)
-      ? WIDE_SINGLE_MAIN_PANEL_WIDTH
-      : DEFAULT_PANEL_WIDTH
+) => {
+  if (options?.desktopMainPanelWidth != null) {
+    return options.desktopMainPanelWidth
+  }
+
+  if (isFullscreenLayout(options)) {
+    return FULLSCREEN_MAIN_PANEL_WIDTH
+  }
+
+  if (hasFullWidthPanelLayout(options)) {
+    return FULL_WIDTH_MAIN_PANEL_WIDTH
+  }
+
+  return hasWideSingleMainPanelLayout(options)
+    ? WIDE_SINGLE_MAIN_PANEL_WIDTH
+    : DEFAULT_PANEL_WIDTH
+}
 
 const getSidebarPanelExtensionPanelWidth = ({
   panelId,
@@ -232,9 +250,13 @@ const SidebarPanelExtensionDesktopPanel = ({
   )
 }
 
-const getDesktopControlsSx = (
+const getDesktopControlsSx = ({
+  placement,
+  sidebarOffset,
+}: {
   placement: SidebarActionRailPlacement
-): SxProps<Theme> => {
+  sidebarOffset: number
+}): SxProps<Theme> => {
   if (placement === 'fixedBottomActionRow') {
     return (theme: Theme) => ({
       position: 'fixed',
@@ -262,6 +284,19 @@ const getDesktopControlsSx = (
     })
   }
 
+  if (placement === 'sidebarEdgeActionColumn') {
+    return (theme: Theme) => ({
+      position: 'fixed',
+      top: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
+      left: `${Math.max(0, sidebarOffset) + MAP_CONTROL_EDGE_GUTTER_PX}px`,
+      zIndex: theme.zIndex.drawer + 12,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: `${ACTION_RAIL_GAP_PX}px`,
+      pointerEvents: 'auto',
+    })
+  }
+
   return (theme: Theme) => ({
     display: 'flex',
     flexDirection: 'column',
@@ -274,19 +309,38 @@ const getDesktopControlsSx = (
   })
 }
 
-const getDesktopTabControlsSx = (): SxProps<Theme> => (theme: Theme) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  gap: 1,
-  pt: 2,
-  pl: 1,
-  zIndex: theme.zIndex.drawer + 3,
-  pointerEvents: 'auto',
-})
+const getDesktopTabControlsSx = (
+  layoutMode?: SidebarPanelExtensionRuntimeOptions['layoutMode']
+): SxProps<Theme> => {
+  if (layoutMode === 'fullscreen') {
+    return (theme: Theme) => ({
+      position: 'fixed',
+      right: `${FIXED_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
+      bottom: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
+      zIndex: theme.zIndex.drawer + 12,
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: `${ACTION_RAIL_GAP_PX}px`,
+      pointerEvents: 'auto',
+    })
+  }
+
+  return (theme: Theme) => ({
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 1,
+    pt: 2,
+    pl: 1,
+    zIndex: theme.zIndex.drawer + 3,
+    pointerEvents: 'auto',
+  })
+}
 
 const getMobileActionRailSx = (
-  placement: SidebarActionRailPlacement
+  placement: SidebarActionRailPlacement,
+  visible: boolean
 ): SxProps<Theme> => {
   if (placement === 'fixedRightActionColumn') {
     return (theme: Theme) => ({
@@ -298,6 +352,7 @@ const getMobileActionRailSx = (
       flexDirection: 'column',
       gap: `${ACTION_RAIL_GAP_PX}px`,
       pointerEvents: 'auto',
+      ...getVisibilitySx(visible),
     })
   }
 
@@ -311,29 +366,44 @@ const getMobileActionRailSx = (
     alignItems: 'center',
     gap: `${ACTION_RAIL_GAP_PX}px`,
     pointerEvents: 'auto',
+    ...getVisibilitySx(visible),
   })
 }
 
-const getMobileTabControlsSx = (): SxProps<Theme> => (theme: Theme) => ({
-  position: 'fixed',
-  right: `${MOBILE_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
-  bottom: `${MOBILE_BOTTOM_ACTION_ROW_BOTTOM_PX}px`,
-  zIndex: theme.zIndex.drawer + 12,
-  display: 'flex',
-  flexDirection: 'row',
-  alignItems: 'center',
-  gap: `${ACTION_RAIL_GAP_PX}px`,
-  pointerEvents: 'auto',
-})
+const getMobileTabControlsSx =
+  (visible: boolean): SxProps<Theme> =>
+  (theme: Theme) => ({
+    position: 'fixed',
+    right: `${MOBILE_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
+    bottom: `${MOBILE_BOTTOM_ACTION_ROW_BOTTOM_PX}px`,
+    zIndex: theme.zIndex.drawer + 12,
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: `${ACTION_RAIL_GAP_PX}px`,
+    pointerEvents: 'auto',
+    ...getVisibilitySx(visible),
+  })
 
 const shouldRenderActionRailInMobileTabRow = (
   placement: SidebarActionRailPlacement
 ) => placement === 'bottomActionRow'
 
+const getVisibilitySx = (visible: boolean) =>
+  visible
+    ? {
+        visibility: 'visible' as const,
+      }
+    : {
+        visibility: 'hidden' as const,
+        pointerEvents: 'none' as const,
+      }
+
 export const SidebarPanelExtensionTabRail = ({
   tabs,
   activeTabId,
   placement,
+  orientation,
   onTabChange,
 }: SidebarPanelExtensionTabRailProps) => {
   if (tabs.length < 2) {
@@ -347,7 +417,8 @@ export const SidebarPanelExtensionTabRail = ({
       data-testid={`sidebar-panel-extension-${placement}-tab-rail`}
       sx={{
         display: 'flex',
-        flexDirection: placement === 'desktop' ? 'column' : 'row',
+        flexDirection:
+          orientation ?? (placement === 'desktop' ? 'column' : 'row'),
         alignItems: 'center',
         gap: 1,
         pointerEvents: 'auto',
@@ -376,10 +447,12 @@ const SidebarPanelExtensionMobilePanels = ({
   extensionId,
   options,
   variant,
+  visible = true,
 }: {
   extensionId: SidebarPanelExtensionId
   options?: SidebarPanelExtensionRuntimeOptions
   variant: 'overlay' | 'stacked'
+  visible?: boolean
 }) => {
   const visiblePanels = getVisiblePanels(options)
   const activeMobilePanel = getActiveMobilePanel({ options, visiblePanels })
@@ -403,27 +476,30 @@ const SidebarPanelExtensionMobilePanels = ({
           : undefined
       }
       sx={(theme) =>
-        variant === 'overlay'
-          ? {
-              position: 'fixed',
-              inset: 0,
-              zIndex: theme.zIndex.drawer + 4,
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'auto',
-              minHeight: 0,
-              backgroundColor: '#ffffff',
-              pointerEvents: 'auto',
-            }
-          : {
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'auto',
-              width: '100%',
-              minHeight: 0,
-              backgroundColor: '#ffffff',
-              pointerEvents: 'auto',
-            }
+        ({
+          ...(variant === 'overlay'
+            ? {
+                position: 'fixed',
+                inset: 0,
+                zIndex: theme.zIndex.drawer + 4,
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'auto',
+                minHeight: 0,
+                backgroundColor: '#ffffff',
+                pointerEvents: 'auto',
+              }
+            : {
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'auto',
+                width: '100%',
+                minHeight: 0,
+                backgroundColor: '#ffffff',
+                pointerEvents: 'auto',
+              }),
+          ...getVisibilitySx(visible),
+        })
       }
     >
       {mobilePanels.map((panelId) => (
@@ -471,12 +547,14 @@ export const SidebarPanelExtension = ({
   extensionId,
   options,
   sidebarOffset = 0,
+  visible = true,
   desktopTabRail,
   mobileTabRail,
   suppressMobileStackedPanels = false,
   sx,
 }: SidebarPanelExtensionProps) => {
   const isMobile = useIsMobile()
+  const fullscreen = isFullscreenLayout(options)
   const visiblePanels = getVisiblePanels(options)
   const mobileMode = options?.mobileMode ?? 'stacked'
   const actionRailPlacement = options?.actionRailPlacement ?? 'inside'
@@ -503,6 +581,7 @@ export const SidebarPanelExtension = ({
             extensionId={extensionId}
             options={options}
             variant="overlay"
+            visible={visible}
           />
         )}
         {shouldRenderMobileTabControls && (
@@ -512,7 +591,7 @@ export const SidebarPanelExtension = ({
             data-sidebar-panel-extension-control-placement={
               renderMobileActionRailInTabRow ? actionRailPlacement : undefined
             }
-            sx={getMobileTabControlsSx()}
+            sx={getMobileTabControlsSx(visible)}
           >
             {mobileTabRail}
             {renderMobileActionRailInTabRow && (
@@ -526,7 +605,7 @@ export const SidebarPanelExtension = ({
             data-sidebar-panel-extension-control-placement={
               actionRailPlacement
             }
-            sx={getMobileActionRailSx(actionRailPlacement)}
+            sx={getMobileActionRailSx(actionRailPlacement, visible)}
           >
             <SidebarPanelExtensionActionRailSlot extensionId={extensionId} />
           </Box>
@@ -543,14 +622,18 @@ export const SidebarPanelExtension = ({
           position: 'fixed',
           top: 0,
           bottom: 0,
-          left: `${Math.max(0, sidebarOffset)}px`,
+          left: fullscreen ? 0 : `${Math.max(0, sidebarOffset)}px`,
+          right: fullscreen ? 0 : 'auto',
           display: 'flex',
           flexDirection: 'row',
+          width: fullscreen ? '100vw' : 'auto',
           height: '100dvh',
           maxWidth: '100vw',
           minHeight: 0,
+          overflow: fullscreen ? 'hidden' : 'visible',
           zIndex: theme.zIndex.drawer + 2,
           pointerEvents: 'none',
+          ...getVisibilitySx(visible),
         }),
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
@@ -559,8 +642,10 @@ export const SidebarPanelExtension = ({
       {desktopTabRail != null && (
         <Box
           data-testid="sidebar-panel-extension-desktop-tab-controls"
-          data-sidebar-panel-extension-tab-placement="sidebar-edge"
-          sx={getDesktopTabControlsSx()}
+          data-sidebar-panel-extension-tab-placement={
+            fullscreen ? 'bottomActionRow' : 'sidebar-edge'
+          }
+          sx={getDesktopTabControlsSx(options?.layoutMode)}
         >
           {desktopTabRail}
         </Box>
@@ -568,7 +653,10 @@ export const SidebarPanelExtension = ({
       <Box
         data-testid="sidebar-panel-extension-desktop-controls"
         data-sidebar-panel-extension-control-placement={actionRailPlacement}
-        sx={getDesktopControlsSx(actionRailPlacement)}
+        sx={getDesktopControlsSx({
+          placement: actionRailPlacement,
+          sidebarOffset,
+        })}
       >
         <SidebarPanelExtensionActionRailSlot extensionId={extensionId} />
       </Box>

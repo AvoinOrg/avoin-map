@@ -529,6 +529,16 @@ const Page = () => {
     },
     [setIsSidebarOpen]
   )
+  const handleBuildingInfoActiveTabChange = React.useCallback(
+    (tabId: BuildingInfoTabId) => {
+      const nextMode = getBuildingInfoModeForTabId(tabId)
+
+      setActiveBuildingInfoMode((currentMode) =>
+        currentMode === nextMode ? currentMode : nextMode
+      )
+    },
+    []
+  )
   const handleCollapseBuildingInfo = React.useCallback(
     (tabId: BuildingInfoTabId) => {
       setActiveBuildingInfoMode(getBuildingInfoModeForTabId(tabId))
@@ -724,8 +734,14 @@ const Page = () => {
         hasBuildingInfo,
         isBuildingInfoCollapsed,
         isMobile,
+        activeMode: activeBuildingInfoMode,
       }),
-    [hasBuildingInfo, isBuildingInfoCollapsed, isMobile]
+    [
+      activeBuildingInfoMode,
+      hasBuildingInfo,
+      isBuildingInfoCollapsed,
+      isMobile,
+    ]
   )
 
   return (
@@ -753,6 +769,7 @@ const Page = () => {
             panels={buildingInfoPanels}
             ariaLabels={buildingInfoAriaLabels}
             activeTabId={getBuildingInfoTabIdForMode(activeBuildingInfoMode)}
+            onActiveTabChange={handleBuildingInfoActiveTabChange}
             onClose={handleCloseBuildingInfo}
             onCollapse={handleCollapseBuildingInfo}
           />

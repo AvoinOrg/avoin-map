@@ -10,6 +10,7 @@ import {
 } from './SidebarPanelExtension'
 import { SidebarPanelExtensionPageContainer } from './SidebarPanelExtensionPageContainer'
 import { SidebarPanelExtensionProvider } from './SidebarPanelExtensionProvider'
+import { SidebarPanelExtensionTabIconButton } from './SidebarPanelExtensionTabIconButton'
 import { SidebarPanelExtensionTabContainer } from './SidebarPanelExtensionTabContainer'
 import { SidebarRoot } from './SidebarRoot'
 import { IntoSidebarPanelExtensionPanelSlot } from './sidebarSlots'
@@ -309,6 +310,45 @@ describe('SidebarPanelExtension generic tab helpers', () => {
         visiblePanels: ['main', 'secondary', 'tertiary'],
       })
     ).toBe('30.5556vw')
+  })
+
+  it('uses opt-in custom and fullscreen main panel widths', () => {
+    expect(
+      getSidebarPanelExtensionMainPanelWidth({
+        width: 'wide',
+        chrome: 'hidden',
+        panelLayout: 'single',
+        visiblePanels: ['main'],
+        desktopMainPanelWidth: '760px',
+      })
+    ).toBe('760px')
+    expect(
+      getSidebarPanelExtensionMainPanelWidth({
+        width: 'wide',
+        chrome: 'hidden',
+        panelLayout: 'single',
+        visiblePanels: ['main'],
+        layoutMode: 'fullscreen',
+      })
+    ).toBe('100vw')
+  })
+
+  it('styles selected tab icon buttons with a light gray background', () => {
+    render(
+      <SidebarPanelExtensionTabIconButton
+        tabId="summary"
+        tabName="Summary"
+        selected
+      />
+    )
+
+    const selectedTab = screen.getByRole('tab', { name: 'Summary' })
+
+    expect(selectedTab).toHaveStyle({
+      backgroundColor: '#e8e8e8',
+      color: '#111111',
+      borderColor: '#d8d8d8',
+    })
   })
 })
 

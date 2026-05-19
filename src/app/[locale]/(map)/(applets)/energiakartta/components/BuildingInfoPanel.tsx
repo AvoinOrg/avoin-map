@@ -60,6 +60,7 @@ type BuildingInfoTabPagesProps = {
   panels: EnergymapBuildingInfoPanel[]
   ariaLabels: BuildingInfoActionLabels
   activeTabId?: BuildingInfoTabId
+  onActiveTabChange?: (tabId: BuildingInfoTabId) => void
   onClose: () => void
   onCollapse: (tabId: BuildingInfoTabId) => void
 }
@@ -2369,15 +2370,19 @@ const BuildingInfoTabPageContent = ({
 
 const BuildingInfoActiveTabSync = ({
   activeTabId,
+  onActiveTabChange,
 }: {
   activeTabId?: BuildingInfoTabId
+  onActiveTabChange?: (tabId: BuildingInfoTabId) => void
 }) => {
   const tabsContext = useNullableSidebarPanelExtensionTabsContext()
   const setActiveTabId = tabsContext?.setActiveTabId
   const lastAppliedActiveTabId = React.useRef<BuildingInfoTabId | undefined>()
+  const lastNotifiedActiveTabId = React.useRef<BuildingInfoTabId | undefined>()
   const hasActiveTab =
     activeTabId != null &&
     tabsContext?.tabs.some((tab) => tab.tabId === activeTabId) === true
+  const resolvedActiveTabId = tabsContext?.resolvedActiveTabId
 
   React.useEffect(() => {
     if (
@@ -2397,6 +2402,26 @@ const BuildingInfoActiveTabSync = ({
       window.clearTimeout(timeoutId)
     }
   }, [activeTabId, hasActiveTab, setActiveTabId])
+
+  React.useEffect(() => {
+    if (
+      !isBuildingInfoTabId(resolvedActiveTabId) ||
+      lastNotifiedActiveTabId.current === resolvedActiveTabId
+    ) {
+      return
+    }
+
+    if (
+      activeTabId != null &&
+      resolvedActiveTabId !== activeTabId &&
+      lastAppliedActiveTabId.current !== activeTabId
+    ) {
+      return
+    }
+
+    lastNotifiedActiveTabId.current = resolvedActiveTabId
+    onActiveTabChange?.(resolvedActiveTabId)
+  }, [activeTabId, onActiveTabChange, resolvedActiveTabId])
 
   return null
 }
@@ -2466,6 +2491,9 @@ export const getBuildingInfoTabIdForMode = (
 export const getBuildingInfoModeForTabId = (tabId: BuildingInfoTabId) =>
   MODE_BY_TAB_ID[tabId]
 
+const isBuildingInfoTabId = (tabId?: string): tabId is BuildingInfoTabId =>
+  tabId === 'basic' || tabId === 'renovation'
+
 const getBuildingInfoPageControlsSx = (
   tabId: BuildingInfoTabId
 ): SxProps<Theme> => ({
@@ -2504,11 +2532,15 @@ export const BuildingInfoTabPages = ({
   panels,
   ariaLabels,
   activeTabId,
+  onActiveTabChange,
   onClose,
   onCollapse,
 }: BuildingInfoTabPagesProps) => (
   <>
-    <BuildingInfoActiveTabSync activeTabId={activeTabId} />
+    <BuildingInfoActiveTabSync
+      activeTabId={activeTabId}
+      onActiveTabChange={onActiveTabChange}
+    />
     <SidebarPanelExtensionTabContainer
       tabId="basic"
       tabName={ariaLabels.overview}
@@ -2574,6 +2606,7 @@ export const BuildingInfoActionRail = ({
         <IconButton
           aria-label={ariaLabels.overview}
           aria-pressed={activeMode === 'twoPanel' && !isCollapsed}
+          data-building-info-mode="twoPanel"
           onClick={() => onModeChange('twoPanel')}
           size="small"
           sx={actionButtonSx({
@@ -2587,6 +2620,7 @@ export const BuildingInfoActionRail = ({
         <IconButton
           aria-label={ariaLabels.renovation}
           aria-pressed={activeMode === 'threePanel' && !isCollapsed}
+          data-building-info-mode="threePanel"
           onClick={() => onModeChange('threePanel')}
           size="small"
           sx={actionButtonSx({

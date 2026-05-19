@@ -379,6 +379,137 @@ describe('SidebarRoot', () => {
     )
   })
 
+  it('hides and restores active extension chrome with the sidebar toggle state', async () => {
+    renderRoot({
+      children: (
+        <SidebarPanelExtensionProvider
+          id="toggle-hidden-extension"
+          initialRuntimeOptions={{ visiblePanels: ['main'], activePanel: 'main' }}
+        >
+          <IntoSidebarPanelExtensionPanelSlot panelId="main">
+            <span>Toggle hidden extension body</span>
+          </IntoSidebarPanelExtensionPanelSlot>
+          <IntoSidebarPanelExtensionActionRailSlot>
+            <button type="button">Toggle hidden action</button>
+          </IntoSidebarPanelExtensionActionRailSlot>
+        </SidebarPanelExtensionProvider>
+      ),
+    })
+
+    expect(
+      await screen.findByText('Toggle hidden extension body')
+    ).toBeInTheDocument()
+    expect(screen.getByTestId('sidebar-panel-extension-root')).toHaveStyle({
+      visibility: 'visible',
+    })
+
+    act(() => {
+      useUIStore.getState().setIsSidebarOpen(false)
+    })
+
+    expect(screen.getByTestId('sidebar-panel-extension-root')).toHaveStyle({
+      visibility: 'hidden',
+      pointerEvents: 'none',
+    })
+    expect(screen.getByText('Toggle hidden action')).toBeInTheDocument()
+
+    act(() => {
+      useUIStore.getState().setIsSidebarOpen(true)
+    })
+
+    expect(screen.getByTestId('sidebar-panel-extension-root')).toHaveStyle({
+      visibility: 'visible',
+    })
+  })
+
+  it('renders fullscreen desktop extension tabs in the bottom action row', async () => {
+    renderRoot({
+      children: (
+        <SidebarPanelExtensionProvider
+          id="fullscreen-tabs-extension"
+          initialRuntimeOptions={{
+            visiblePanels: ['main'],
+            activePanel: 'main',
+            layoutMode: 'fullscreen',
+          }}
+        >
+          <IntoSidebarPanelExtensionPanelSlot panelId="main">
+            <SidebarPanelExtensionTabContainer tabId="first" tabName="First">
+              <span>First fullscreen tab body</span>
+            </SidebarPanelExtensionTabContainer>
+            <SidebarPanelExtensionTabContainer tabId="second" tabName="Second">
+              <span>Second fullscreen tab body</span>
+            </SidebarPanelExtensionTabContainer>
+          </IntoSidebarPanelExtensionPanelSlot>
+        </SidebarPanelExtensionProvider>
+      ),
+    })
+
+    expect(await screen.findByText('First fullscreen tab body')).toBeInTheDocument()
+
+    const root = screen.getByTestId('sidebar-panel-extension-root')
+    const panel = screen.getByTestId(
+      'sidebar-panel-extension-desktop-panel-main'
+    )
+    const tabRail = screen.getByTestId(
+      'sidebar-panel-extension-desktop-tab-rail'
+    )
+    const tabControls = screen.getByTestId(
+      'sidebar-panel-extension-desktop-tab-controls'
+    )
+
+    expect(root).toHaveStyle({ left: '0px', right: '0px', width: '100vw' })
+    expect(panel).toHaveStyle({ width: '100vw' })
+    expect(tabControls).toHaveAttribute(
+      'data-sidebar-panel-extension-tab-placement',
+      'bottomActionRow'
+    )
+    expect(tabControls).toHaveStyle({
+      position: 'fixed',
+      right: '71px',
+      bottom: '16px',
+    })
+    expect(tabRail).toHaveStyle({ flexDirection: 'row' })
+  })
+
+  it('places sidebar-edge desktop action rails beside the current sidebar edge', async () => {
+    renderRoot({
+      children: (
+        <SidebarPanelExtensionProvider
+          id="sidebar-edge-action-extension"
+          initialRuntimeOptions={{
+            visiblePanels: [],
+            activePanel: 'main',
+            actionRailPlacement: 'sidebarEdgeActionColumn',
+          }}
+        >
+          <IntoSidebarPanelExtensionActionRailSlot>
+            <button type="button">Sidebar edge action</button>
+          </IntoSidebarPanelExtensionActionRailSlot>
+        </SidebarPanelExtensionProvider>
+      ),
+    })
+
+    expect(
+      await screen.findByRole('button', { name: 'Sidebar edge action' })
+    ).toBeInTheDocument()
+
+    const actionControls = screen.getByTestId(
+      'sidebar-panel-extension-desktop-controls'
+    )
+
+    expect(actionControls).toHaveAttribute(
+      'data-sidebar-panel-extension-control-placement',
+      'sidebarEdgeActionColumn'
+    )
+    expect(actionControls).toHaveStyle({
+      position: 'fixed',
+      top: '16px',
+      left: '16px',
+      flexDirection: 'column',
+    })
+  })
+
   it('renders root-owned mobile tab controls in the bottom action row', async () => {
     mockIsMobile = true
 

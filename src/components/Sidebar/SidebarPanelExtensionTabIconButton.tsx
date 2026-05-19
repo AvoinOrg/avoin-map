@@ -114,19 +114,19 @@ export const SidebarPanelExtensionTabIconButton = ({
             minWidth: '2.75rem',
             height: '2.75rem',
             borderRadius: '0.625rem',
-            color: selected ? '#ffffff' : '#111111',
-            backgroundColor: selected ? '#111111' : '#ffffff',
+            color: '#111111',
+            backgroundColor: selected ? '#e8e8e8' : '#ffffff',
             boxShadow: selected
-              ? '0 10px 24px rgba(17, 17, 17, 0.18)'
+              ? '0 8px 18px rgba(17, 17, 17, 0.14)'
               : '0 2px 8px rgba(17, 17, 17, 0.12)',
             border: `1px solid ${
-              selected ? '#111111' : 'rgba(17, 17, 17, 0.08)'
+              selected ? '#d8d8d8' : 'rgba(17, 17, 17, 0.08)'
             }`,
             transition:
               'background-color 160ms cubic-bezier(.2,0,.2,1), color 160ms cubic-bezier(.2,0,.2,1), transform 160ms cubic-bezier(.2,0,.2,1)',
             '&:hover': {
-              color: selected ? '#ffffff' : '#111111',
-              backgroundColor: selected ? '#111111' : '#f4f4f4',
+              color: '#111111',
+              backgroundColor: selected ? '#f4f4f4' : '#f4f4f4',
               transform: 'translateY(-1px)',
             },
             '&:focus-visible': {

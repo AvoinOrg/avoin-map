@@ -23,6 +23,8 @@ export type SidebarChromeToken = 'visible' | 'hidden'
 
 export type SidebarPanelLayout = 'single' | 'double' | 'triple'
 
+export type SidebarPanelExtensionLayoutMode = 'default' | 'fullscreen'
+
 export type SidebarMobileMode = 'stacked' | 'buttons'
 
 export type SidebarMobileStackPlacement = 'before' | 'after'
@@ -33,6 +35,7 @@ export type SidebarActionRailPlacement =
   | 'bottomActionRow'
   | 'fixedBottomActionRow'
   | 'fixedRightActionColumn'
+  | 'sidebarEdgeActionColumn'
 
 export type SidebarNoneConfig = Record<string, never>
 
@@ -60,6 +63,8 @@ export type SidebarSimpleConfig = SidebarPanelConfig
 
 export type SidebarPanelExtensionConfig = SidebarPanelConfig & {
   replaceBaseSidebar?: boolean
+  layoutMode?: SidebarPanelExtensionLayoutMode
+  desktopMainPanelWidth?: string
 }
 
 export type SidebarModeConfigMap = {

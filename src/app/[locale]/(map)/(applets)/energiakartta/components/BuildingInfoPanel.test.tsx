@@ -1,7 +1,13 @@
 import React from 'react'
 import '@testing-library/jest-dom'
 import { ThemeProvider } from '@mui/material/styles'
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 
 import { useUIStore } from '#/common/store/uiStore'
 import theme from '#/common/style/theme/theme'
@@ -527,10 +533,12 @@ const ariaLabels = {
 
 const renderBuildingInfoTabs = ({
   activeTabId,
+  onActiveTabChange = jest.fn(),
   onClose = jest.fn(),
   onCollapse = jest.fn(),
 }: {
   activeTabId?: BuildingInfoTabId
+  onActiveTabChange?: (tabId: BuildingInfoTabId) => void
   onClose?: () => void
   onCollapse?: (tabId: BuildingInfoTabId) => void
 } = {}) => {
@@ -546,6 +554,7 @@ const renderBuildingInfoTabs = ({
               panels={panels}
               ariaLabels={ariaLabels}
               activeTabId={activeTabId}
+              onActiveTabChange={onActiveTabChange}
               onClose={onClose}
               onCollapse={onCollapse}
             />
@@ -706,6 +715,27 @@ describe('BuildingInfoPanel', () => {
     expect(
       screen.getByTestId('building-info-renovation-comparison-wide')
     ).toBeInTheDocument()
+  })
+
+  it('notifies page state when the active tab changes', async () => {
+    const onActiveTabChange = jest.fn()
+
+    renderBuildingInfoTabs({ onActiveTabChange })
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    await waitFor(() => {
+      expect(onActiveTabChange).toHaveBeenCalledWith('basic')
+    })
+
+    fireEvent.click(
+      screen.getByRole('tab', {
+        name: 'Open renovation recommendations',
+      })
+    )
+
+    await waitFor(() => {
+      expect(onActiveTabChange).toHaveBeenCalledWith('renovation')
+    })
   })
 
   it('keeps the mobile tab page on the F028.2 stacked sections', async () => {
@@ -941,6 +971,23 @@ describe('BuildingInfoPanel', () => {
     ).toHaveAttribute('aria-selected', 'true')
   })
 
+  it('does not report the transient first tab while restoring the requested tab', async () => {
+    const onActiveTabChange = jest.fn()
+
+    renderBuildingInfoTabs({
+      activeTabId: 'renovation',
+      onActiveTabChange,
+    })
+
+    expect(
+      await screen.findByTestId('building-info-tab-page-renovation')
+    ).toBeInTheDocument()
+    await waitFor(() => {
+      expect(onActiveTabChange).toHaveBeenCalledWith('renovation')
+    })
+    expect(onActiveTabChange).not.toHaveBeenCalledWith('basic')
+  })
+
   it('calls page-level collapse and close controls independently', async () => {
     const onCollapse = jest.fn()
     const onClose = jest.fn()
@@ -1158,12 +1205,21 @@ describe('BuildingInfoPanel', () => {
       hasBuildingInfo: true,
       isBuildingInfoCollapsed: false,
       isMobile: false,
+      activeMode: 'twoPanel',
     })
     const mobileOptions = getEnergymapBuildingInfoPanelRuntimeOptions({
       hasBuildingInfo: true,
       isBuildingInfoCollapsed: false,
       isMobile: true,
+      activeMode: 'threePanel',
     })
+    const renovationDesktopOptions =
+      getEnergymapBuildingInfoPanelRuntimeOptions({
+        hasBuildingInfo: true,
+        isBuildingInfoCollapsed: false,
+        isMobile: false,
+        activeMode: 'threePanel',
+      })
 
     expect(desktopOptions).toMatchObject({
       width: 'wide',
@@ -1171,8 +1227,10 @@ describe('BuildingInfoPanel', () => {
       panelLayout: 'single',
       visiblePanels: ['main'],
       replaceBaseSidebar: true,
+      layoutMode: 'default',
+      desktopMainPanelWidth: '760px',
       activePanel: 'main',
-      actionRailPlacement: 'fixedRightActionColumn',
+      actionRailPlacement: 'inside',
     })
     expect(mobileOptions).toMatchObject({
       width: 'wide',
@@ -1180,8 +1238,19 @@ describe('BuildingInfoPanel', () => {
       panelLayout: 'single',
       visiblePanels: ['main'],
       replaceBaseSidebar: true,
+      layoutMode: 'default',
       activePanel: 'main',
       actionRailPlacement: 'bottomActionRow',
+    })
+    expect(renovationDesktopOptions).toMatchObject({
+      width: 'wide',
+      chrome: 'hidden',
+      panelLayout: 'single',
+      visiblePanels: ['main'],
+      replaceBaseSidebar: true,
+      layoutMode: 'fullscreen',
+      activePanel: 'main',
+      actionRailPlacement: 'inside',
     })
     expect(desktopOptions.visiblePanels).not.toContain('secondary')
     expect(desktopOptions.visiblePanels).not.toContain('tertiary')
@@ -1194,16 +1263,19 @@ describe('BuildingInfoPanel', () => {
       hasBuildingInfo: true,
       isBuildingInfoCollapsed: true,
       isMobile: false,
+      activeMode: 'threePanel',
     })
     const mobileOptions = getEnergymapBuildingInfoPanelRuntimeOptions({
       hasBuildingInfo: true,
       isBuildingInfoCollapsed: true,
       isMobile: true,
+      activeMode: 'threePanel',
     })
     const emptyOptions = getEnergymapBuildingInfoPanelRuntimeOptions({
       hasBuildingInfo: false,
       isBuildingInfoCollapsed: false,
       isMobile: false,
+      activeMode: 'twoPanel',
     })
 
     expect(desktopOptions).toMatchObject({
@@ -1213,7 +1285,7 @@ describe('BuildingInfoPanel', () => {
       visiblePanels: [],
       replaceBaseSidebar: false,
       activePanel: 'main',
-      actionRailPlacement: 'fixedRightActionColumn',
+      actionRailPlacement: 'sidebarEdgeActionColumn',
     })
     expect(mobileOptions).toMatchObject({
       width: 'compact',

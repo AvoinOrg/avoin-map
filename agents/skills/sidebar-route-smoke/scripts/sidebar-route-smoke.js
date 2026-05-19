@@ -513,7 +513,7 @@ const ensureMapClickableOnMobile = async ({ page, viewport }) => {
 
   const label = await toggle.first().getAttribute('aria-label').catch(() => null)
   if (label != null && /hide sidebar/i.test(label)) {
-    await toggle.first().click()
+    await toggle.first().evaluate((element) => element.click())
     await page.waitForTimeout(450)
   }
 }
@@ -615,10 +615,7 @@ const readEnergymapBuildingClickState = async ({ page, target, label }) =>
           element.getClientRects().length > 0
         )
       }
-      const read = (selector) => {
-        const element = Array.from(document.querySelectorAll(selector)).find(
-          isVisible
-        )
+      const readElement = (element, selector) => {
         if (!element) {
           return null
         }
@@ -640,10 +637,24 @@ const readEnergymapBuildingClickState = async ({ page, target, label }) =>
             display: style.display,
             visibility: style.visibility,
             position: style.position,
+            backgroundColor: style.backgroundColor,
+            borderColor: style.borderColor,
+            color: style.color,
+            flexDirection: style.flexDirection,
           },
           text: element.textContent?.slice(0, 160) ?? '',
         }
       }
+      const read = (selector) => {
+        const element = Array.from(document.querySelectorAll(selector)).find(
+          isVisible
+        )
+
+        return readElement(element, selector)
+      }
+      const selectedTabElement = Array.from(
+        document.querySelectorAll('[role="tab"][aria-selected="true"]')
+      ).find(isVisible)
       const req = window.__avoin_req
       const selectedBuilding =
         req?.(
@@ -685,17 +696,39 @@ const readEnergymapBuildingClickState = async ({ page, target, label }) =>
         renovationPage: read(
           '[data-testid="building-info-tab-page-renovation"]'
         ),
+        viewport: {
+          width: window.innerWidth,
+          height: window.innerHeight,
+        },
         extensionRoot: read(
           '[data-testid="sidebar-panel-extension-root"], [data-testid="sidebar-panel-extension-mobile-panels"]'
         ),
+        desktopMainPanel: read(
+          '[data-testid="sidebar-panel-extension-desktop-panel-main"]'
+        ),
         baseSidebar: read('.sidebar-container, [data-main-sidebar-root="true"]'),
+        selectedTab: readElement(
+          selectedTabElement,
+          '[role="tab"][aria-selected="true"]'
+        ),
         desktopTabRail: read(
           '[data-testid="sidebar-panel-extension-desktop-tab-rail"]'
+        ),
+        desktopTabControls: read(
+          '[data-testid="sidebar-panel-extension-desktop-tab-controls"]'
+        ),
+        desktopControls: read(
+          '[data-testid="sidebar-panel-extension-desktop-controls"]'
         ),
         mobileTabRail: read(
           '[data-testid="sidebar-panel-extension-mobile-tab-rail"]'
         ),
+        mobileControls: read(
+          '[data-testid="sidebar-panel-extension-mobile-controls"]'
+        ),
         buildingActionRail: read('[data-testid="building-info-action-rail"]'),
+        sidebarToggle: read('.sidebar-toggle-button'),
+        mapActionsWrapper: read('[data-testid="map-actions-wrapper"]'),
         activeTab:
           document
             .querySelector('[role="tab"][aria-selected="true"]')
@@ -716,6 +749,137 @@ const rectToPlain = (rect) =>
         right: Math.round((rect.x + rect.width) * 100) / 100,
         bottom: Math.round((rect.y + rect.height) * 100) / 100,
       }
+
+const parseRgbColor = (value) => {
+  const match = String(value || '').match(
+    /rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)/i
+  )
+
+  if (!match) {
+    return null
+  }
+
+  return {
+    r: Number(match[1]),
+    g: Number(match[2]),
+    b: Number(match[3]),
+    a: match[4] == null ? 1 : Number(match[4]),
+  }
+}
+
+const isNear = (actual, expected, tolerance = 2) =>
+  Number.isFinite(actual) && Math.abs(actual - expected) <= tolerance
+
+const assertSelectedTabIsLightGray = ({ state, errors }) => {
+  const color = parseRgbColor(state.selectedTab?.style?.backgroundColor)
+
+  if (color == null) {
+    errors.push(`${state.label}: selected tab background color was unavailable`)
+    return
+  }
+
+  const isBlack = color.r < 40 && color.g < 40 && color.b < 40
+  const isLightGray =
+    Math.abs(color.r - color.g) <= 4 &&
+    Math.abs(color.g - color.b) <= 4 &&
+    color.r >= 220 &&
+    color.r <= 250
+
+  if (isBlack || !isLightGray) {
+    errors.push(
+      `${state.label}: expected selected tab to be light gray, got ` +
+        `${state.selectedTab?.style?.backgroundColor}`
+    )
+  }
+}
+
+const assertDesktopF032ExpandedBasic = ({ state, errors }) => {
+  assertSelectedTabIsLightGray({ state, errors })
+
+  const width = state.desktopMainPanel?.rect?.width
+  if (!Number.isFinite(width) || width < 700 || width > 900) {
+    errors.push(
+      `${state.label}: expected content-sized basic panel width, got ${width}`
+    )
+  }
+
+  const rootWidth = state.extensionRoot?.rect?.width
+  if (Number.isFinite(rootWidth) && rootWidth > 960) {
+    errors.push(
+      `${state.label}: extension root still looks viewport-wide (${rootWidth}px)`
+    )
+  }
+}
+
+const assertDesktopF032RenovationFullscreen = ({ state, errors }) => {
+  assertSelectedTabIsLightGray({ state, errors })
+
+  const viewportWidth = state.viewport?.width
+  const rootRect = state.extensionRoot?.rect
+  const panelRect = state.desktopMainPanel?.rect
+  const tabControlsRect = state.desktopTabControls?.rect
+  const tabRailRect = state.desktopTabRail?.rect
+
+  if (
+    rootRect == null ||
+    !isNear(rootRect.x, 0) ||
+    !isNear(rootRect.right, viewportWidth)
+  ) {
+    errors.push(
+      `${state.label}: fullscreen root did not span viewport, got ` +
+        `${JSON.stringify(rootRect)} for viewport ${viewportWidth}`
+    )
+  }
+
+  if (
+    panelRect == null ||
+    !isNear(panelRect.x, 0) ||
+    panelRect.width < viewportWidth - 2
+  ) {
+    errors.push(
+      `${state.label}: fullscreen panel did not cover viewport width, got ` +
+        `${JSON.stringify(panelRect)}`
+    )
+  }
+
+  if (
+    tabControlsRect == null ||
+    !isNear(tabControlsRect.bottom, state.viewport.height - 16, 3)
+  ) {
+    errors.push(
+      `${state.label}: fullscreen tab controls were not in the bottom row`
+    )
+  }
+
+  if (
+    tabRailRect == null ||
+    !(tabRailRect.width > tabRailRect.height)
+  ) {
+    errors.push(`${state.label}: fullscreen tab rail was not horizontal`)
+  }
+}
+
+const assertDesktopF032Collapsed = ({ state, errors }) => {
+  const actionRect = state.buildingActionRail?.rect
+  const sidebarRect = state.baseSidebar?.rect
+
+  if (actionRect == null || sidebarRect == null) {
+    return
+  }
+
+  if (!isNear(actionRect.x, sidebarRect.right + 16, 3)) {
+    errors.push(
+      `${state.label}: collapsed action rail x ${actionRect.x} was not ` +
+        `sidebar right ${sidebarRect.right} + 16`
+    )
+  }
+
+  if (!isNear(actionRect.y, 16, 3)) {
+    errors.push(
+      `${state.label}: collapsed action rail top ${actionRect.y} was not 16`
+    )
+  }
+}
 
 const readEnergymapSelectedBuildingState = async (page, label) =>
   page.evaluate((stateLabel) => {
@@ -1102,8 +1266,10 @@ const runEnergymapSelectedBuildingTabsCheck = async ({ page, errors }) => {
   })
 
   await page
-    .locator('[data-testid="building-info-action-rail"] button')
-    .nth(1)
+    .locator(
+      '[data-testid="building-info-action-rail"] ' +
+        '[data-building-info-mode="threePanel"]'
+    )
     .click()
   await page.waitForSelector('[data-testid="building-info-tab-page-renovation"]')
   await page.waitForTimeout(300)
@@ -1271,6 +1437,11 @@ const runEnergymapBuildingClickCheck = async ({
   if (viewport === 'mobile' && expandedBasic.mobileTabRail == null) {
     errors.push(`${viewport}: mobile tab rail was not visible`)
   }
+  if (viewport === 'desktop') {
+    assertDesktopF032ExpandedBasic({ state: expandedBasic, errors })
+  } else {
+    assertSelectedTabIsLightGray({ state: expandedBasic, errors })
+  }
 
   await page.locator('[role="tab"]').nth(1).click()
   await page.waitForSelector('[data-testid="building-info-tab-page-renovation"]')
@@ -1287,6 +1458,11 @@ const runEnergymapBuildingClickCheck = async ({
   }
   if (renovation.baseSidebar != null) {
     errors.push(`${viewport}: base sidebar became visible on renovation tab`)
+  }
+  if (viewport === 'desktop') {
+    assertDesktopF032RenovationFullscreen({ state: renovation, errors })
+  } else {
+    assertSelectedTabIsLightGray({ state: renovation, errors })
   }
 
   await page
@@ -1316,10 +1492,15 @@ const runEnergymapBuildingClickCheck = async ({
   if (collapsed.baseSidebar == null) {
     errors.push(`${viewport}: base sidebar did not return after collapse`)
   }
+  if (viewport === 'desktop') {
+    assertDesktopF032Collapsed({ state: collapsed, errors })
+  }
 
   await page
-    .locator('[data-testid="building-info-action-rail"] button')
-    .nth(1)
+    .locator(
+      '[data-testid="building-info-action-rail"] ' +
+        '[data-building-info-mode="threePanel"]'
+    )
     .click()
   await page.waitForSelector('[data-testid="building-info-tab-page-renovation"]')
   await page.waitForTimeout(300)
@@ -1335,6 +1516,53 @@ const runEnergymapBuildingClickCheck = async ({
   }
   if (reopened.baseSidebar != null) {
     errors.push(`${viewport}: base sidebar remained visible after reopening`)
+  }
+  if (viewport === 'desktop') {
+    assertDesktopF032RenovationFullscreen({ state: reopened, errors })
+  }
+
+  await page.locator('.sidebar-toggle-button').click()
+  await page.waitForTimeout(350)
+  screenshots.push(await screenshot(`${viewport}-toggle-hidden-renovation.png`))
+  const toggleHidden = await readEnergymapBuildingClickState({
+    page,
+    target,
+    label: `${viewport}-toggle-hidden-renovation`,
+  })
+
+  if (toggleHidden.extensionRoot != null) {
+    errors.push(`${viewport}: extension root remained visible after sidebar toggle hide`)
+  }
+  if (toggleHidden.buildingActionRail != null) {
+    errors.push(`${viewport}: building action rail remained visible after toggle hide`)
+  }
+  if (toggleHidden.selectedBuilding == null) {
+    errors.push(`${viewport}: selected building was cleared by toggle hide`)
+  }
+  if (toggleHidden.selectedFeaturesLength < 1) {
+    errors.push(`${viewport}: selected features were cleared by toggle hide`)
+  }
+
+  await page.locator('.sidebar-toggle-button').click()
+  await page.waitForSelector('[data-testid="building-info-tab-page-renovation"]')
+  await page.waitForTimeout(350)
+  screenshots.push(await screenshot(`${viewport}-toggle-shown-renovation.png`))
+  const toggleShown = await readEnergymapBuildingClickState({
+    page,
+    target,
+    label: `${viewport}-toggle-shown-renovation`,
+  })
+
+  if (toggleShown.renovationPage == null) {
+    errors.push(`${viewport}: renovation tab did not restore after toggle show`)
+  }
+  if (toggleShown.selectedBuilding == null) {
+    errors.push(`${viewport}: selected building was not restored after toggle show`)
+  }
+  if (viewport === 'desktop') {
+    assertDesktopF032RenovationFullscreen({ state: toggleShown, errors })
+  } else {
+    assertSelectedTabIsLightGray({ state: toggleShown, errors })
   }
 
   await page
@@ -1390,6 +1618,8 @@ const runEnergymapBuildingClickCheck = async ({
       renovation,
       collapsed,
       reopened,
+      toggleHidden,
+      toggleShown,
       closed,
     },
   }

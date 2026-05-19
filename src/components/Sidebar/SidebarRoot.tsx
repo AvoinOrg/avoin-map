@@ -56,6 +56,7 @@ const SidebarRootContent = ({ children }: SidebarRootProps) => {
     (state) => state.sidebarPanelExtensions
   )
   const sidebarWidth = useUIStore((state) => state.sidebarWidth)
+  const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
   const sidebarPanelExtensionTabs =
     useSidebarPanelExtensionTabsRegistryContext()
   const activeBoundary = useMemo(
@@ -170,6 +171,9 @@ const SidebarRootContent = ({ children }: SidebarRootProps) => {
         tabs={tabs}
         activeTabId={resolvedActiveTabId}
         placement="desktop"
+        orientation={
+          panelExtensionOptions?.layoutMode === 'fullscreen' ? 'row' : 'column'
+        }
         onTabChange={(tabId) =>
           sidebarPanelExtensionTabs.setActiveTabId(
             activePanelExtension.id,
@@ -207,6 +211,7 @@ const SidebarRootContent = ({ children }: SidebarRootProps) => {
           extensionId={activePanelExtension.id}
           options={panelExtensionOptions}
           sidebarOffset={sidebarOffset}
+          visible={isSidebarOpen}
           desktopTabRail={desktopTabRail}
           mobileTabRail={mobileTabRail}
           suppressMobileStackedPanels={shouldStackPanelExtensionInSimpleSidebar}
