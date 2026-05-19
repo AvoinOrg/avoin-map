@@ -3,6 +3,7 @@
 import React from 'react'
 import { Box, Tooltip, Typography } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
+import { useParams } from 'next/navigation'
 
 import { MAP_BOTTOM_LEFT_FLOATING_CONTROLS_SLOT } from '#/common/constants/map'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
@@ -16,12 +17,31 @@ import SquishedSwitchWithLabel from '#/components/common/SquishedSwitchWithLabel
 import TText from '#/components/common/TText'
 import { IntoSlot } from '#/components/context/slotsContext'
 import {
+  IntoSidebarPanelExtensionActionRailSlot,
+  IntoSidebarPanelExtensionPanelSlot,
   IntoSidebarFooterSlot,
   IntoSidebarHeaderSlot,
+  SidebarPanelExtensionProvider,
   SidebarContentBox,
 } from '#/components/Sidebar'
 import EnergyCertificateClassControls from '../components/EnergyCertificateClassControls'
 import EnergyClassesAccordionContent from '../components/EnergyClassesAccordionContent'
+import {
+  BuildingInfoActionRail,
+  BuildingInfoTabPages,
+  getBuildingInfoModeForTabId,
+  getBuildingInfoTabIdForMode,
+} from '../components/BuildingInfoPanel'
+import type {
+  BuildingInfoDesktopMode,
+  BuildingInfoTabId,
+} from '../components/BuildingInfoPanel'
+import { createEnergymapBuildingInfoPanels } from '../common/buildingInfo'
+import { getEnergymapBuildingInfoPanelRuntimeOptions } from '../common/buildingInfoPanelRuntime'
+import {
+  areEnergymapSelectedBuildingsEqual,
+  toEnergymapSelectedBuilding,
+} from '../common/utils'
 import {
   ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID,
   ENERGYMAP_BUILDING_POLYGONS_LAYER_IDS,
@@ -342,12 +362,17 @@ const HeatingAccordionContent = ({
 
 const Page = () => {
   const { t } = useTranslate('energiakartta')
+  const params = useParams<{ locale?: string | string[] }>()
+  const locale = typeof params.locale === 'string' ? params.locale : 'fi'
   const setFilter = useMapStore((state) => state.setFilter)
   const setLayoutProperty = useMapStore((state) => state.setLayoutProperty)
   const setPaintProperty = useMapStore((state) => state.setPaintProperty)
   const enableLayerGroup = useMapStore((state) => state.enableLayerGroup)
+  const setSelectedFeatures = useMapStore((state) => state.setSelectedFeatures)
+  const selectedFeatures = useMapStore((state) => state.selectedFeatures)
   const isMobile = useIsMobile('desktop')
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
+  const setIsSidebarOpen = useUIStore((state) => state.setIsSidebarOpen)
   const isSharedBuildingLayerGroupRegistered = useMapStore((state) =>
     ENERGYMAP_SHARED_BUILDING_LAYER_IDS.every((layerId) =>
       Boolean(
@@ -370,12 +395,24 @@ const Page = () => {
   const activeEnergyCertificateClasses = useAppletStore(
     (state) => state.activeEnergyCertificateClasses
   )
+  const selectedBuilding = useAppletStore((state) => state.selectedBuilding)
+  const setSelectedBuilding = useAppletStore(
+    (state) => state.setSelectedBuilding
+  )
+  const clearSelectedBuilding = useAppletStore(
+    (state) => state.clearSelectedBuilding
+  )
   const visibleLayerGroupIds = useVisibleLayerGroupIds()
   const [heatingSwitchState, setHeatingSwitchState] = React.useState(
     INITIAL_HEATING_SWITCH_STATE
   )
   const [activeThematicMode, setActiveThematicMode] =
     React.useState<EnergymapMainThematicMode | null>(null)
+  const [activeBuildingInfoMode, setActiveBuildingInfoMode] =
+    React.useState<BuildingInfoDesktopMode>('twoPanel')
+  const [isBuildingInfoCollapsed, setIsBuildingInfoCollapsed] =
+    React.useState(false)
+  const previousSelectedBuildingKeyRef = React.useRef<string | null>(null)
   const energyCertificateFillColorExpression = React.useMemo(
     () =>
       getEnergyCertificateFillColorExpression(activeEnergyCertificateClasses),
@@ -411,6 +448,24 @@ const Page = () => {
     () => combineMapFilters([buildingFilter, heatingFilter]),
     [buildingFilter, heatingFilter]
   )
+  const selectedEnergymapBuilding = React.useMemo(
+    () =>
+      selectedFeatures
+        .map(toEnergymapSelectedBuilding)
+        .find((building) => building != null) ?? null,
+    [selectedFeatures]
+  )
+  const buildingInfoPanels = React.useMemo(
+    () =>
+      createEnergymapBuildingInfoPanels({
+        selectedBuilding,
+        locale,
+      }),
+    [locale, selectedBuilding]
+  )
+  const selectedBuildingKey = selectedBuilding?.buildingKey ?? null
+  const hasBuildingInfo = buildingInfoPanels != null
+  const isBuildingInfoExpanded = hasBuildingInfo && !isBuildingInfoCollapsed
   const isSharedBuildingLayerGroupVisible = visibleLayerGroupIds.includes(
     ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID
   )
@@ -428,6 +483,15 @@ const Page = () => {
   )
   const toggleHeatingAria = t('sidebar.front_page.aria.toggle_heating')
   const footerLabel = t('sidebar.front_page.footer.edit_building_details')
+  const buildingInfoAriaLabels = React.useMemo(
+    () => ({
+      close: t('sidebar.building_info.aria.close'),
+      collapse: t('sidebar.building_info.aria.collapse'),
+      overview: t('sidebar.building_info.aria.open_overview'),
+      renovation: t('sidebar.building_info.aria.open_renovation'),
+    }),
+    [t]
+  )
   const toggleThematicMode = React.useCallback(
     async (mode: EnergymapMainThematicMode) => {
       const isModeCurrentlyVisible =
@@ -457,6 +521,65 @@ const Page = () => {
         [id]: event.target.checked,
       }))
     }
+  const handleBuildingInfoModeChange = React.useCallback(
+    (mode: BuildingInfoDesktopMode) => {
+      setActiveBuildingInfoMode(mode)
+      setIsBuildingInfoCollapsed(false)
+      setIsSidebarOpen(true)
+    },
+    [setIsSidebarOpen]
+  )
+  const handleCollapseBuildingInfo = React.useCallback(
+    (tabId: BuildingInfoTabId) => {
+      setActiveBuildingInfoMode(getBuildingInfoModeForTabId(tabId))
+      setIsBuildingInfoCollapsed(true)
+      setIsSidebarOpen(true)
+    },
+    [setIsSidebarOpen]
+  )
+  const handleCloseBuildingInfo = React.useCallback(() => {
+    setIsSidebarOpen(true)
+    setSelectedFeatures([])
+  }, [setIsSidebarOpen, setSelectedFeatures])
+
+  React.useEffect(() => {
+    if (selectedBuildingKey == null) {
+      previousSelectedBuildingKeyRef.current = null
+      setActiveBuildingInfoMode('twoPanel')
+      setIsBuildingInfoCollapsed(false)
+      return
+    }
+
+    if (previousSelectedBuildingKeyRef.current !== selectedBuildingKey) {
+      previousSelectedBuildingKeyRef.current = selectedBuildingKey
+      setActiveBuildingInfoMode('twoPanel')
+      setIsBuildingInfoCollapsed(false)
+      setIsSidebarOpen(true)
+    }
+  }, [selectedBuildingKey, setIsSidebarOpen])
+
+  React.useEffect(() => {
+    if (
+      areEnergymapSelectedBuildingsEqual(
+        selectedBuilding,
+        selectedEnergymapBuilding
+      )
+    ) {
+      return
+    }
+
+    if (selectedEnergymapBuilding == null) {
+      clearSelectedBuilding()
+      return
+    }
+
+    setSelectedBuilding(selectedEnergymapBuilding)
+  }, [
+    clearSelectedBuilding,
+    selectedBuilding,
+    selectedEnergymapBuilding,
+    setSelectedBuilding,
+  ])
 
   React.useEffect(() => {
     if (!isSharedBuildingLayerGroupRegistered) {
@@ -585,14 +708,61 @@ const Page = () => {
     setPaintProperty,
   ])
 
+  const buildingInfoActionRail =
+    hasBuildingInfo && isBuildingInfoCollapsed ? (
+      <BuildingInfoActionRail
+        activeMode={activeBuildingInfoMode}
+        isCollapsed={isBuildingInfoCollapsed}
+        orientation={isMobile ? 'row' : 'column'}
+        ariaLabels={buildingInfoAriaLabels}
+        onModeChange={handleBuildingInfoModeChange}
+      />
+    ) : null
+  const buildingInfoPanelRuntimeOptions = React.useMemo(
+    () =>
+      getEnergymapBuildingInfoPanelRuntimeOptions({
+        hasBuildingInfo,
+        isBuildingInfoCollapsed,
+        isMobile,
+      }),
+    [hasBuildingInfo, isBuildingInfoCollapsed, isMobile]
+  )
+
   return (
-    <>
+    <SidebarPanelExtensionProvider
+      id="energiakartta-building-info-panel"
+      enabled={hasBuildingInfo}
+      runtimeOptions={buildingInfoPanelRuntimeOptions}
+    >
       <IntoSidebarHeaderSlot>
         <HomeSidebarHeader />
       </IntoSidebarHeaderSlot>
       <IntoSidebarFooterSlot>
-        <SidebarFooterAction tooltip={upcomingTooltip} label={footerLabel} />
+        <SidebarFooterAction
+          tooltip={upcomingTooltip}
+          label={footerLabel}
+          reserveActionRow={
+            hasBuildingInfo && isBuildingInfoCollapsed && isMobile
+          }
+        />
       </IntoSidebarFooterSlot>
+      {isBuildingInfoExpanded && buildingInfoPanels != null && (
+        <IntoSidebarPanelExtensionPanelSlot panelId="main">
+          <BuildingInfoTabPages
+            key={selectedBuildingKey}
+            panels={buildingInfoPanels}
+            ariaLabels={buildingInfoAriaLabels}
+            activeTabId={getBuildingInfoTabIdForMode(activeBuildingInfoMode)}
+            onClose={handleCloseBuildingInfo}
+            onCollapse={handleCollapseBuildingInfo}
+          />
+        </IntoSidebarPanelExtensionPanelSlot>
+      )}
+      {buildingInfoActionRail != null && (
+        <IntoSidebarPanelExtensionActionRailSlot>
+          {buildingInfoActionRail}
+        </IntoSidebarPanelExtensionActionRailSlot>
+      )}
       {shouldShowMobileEnergyCertificateControls && (
         <IntoSlot name={MAP_BOTTOM_LEFT_FLOATING_CONTROLS_SLOT}>
           <EnergyCertificateClassControls
@@ -722,7 +892,7 @@ const Page = () => {
           </Box>
         </Box>
       </SidebarContentBox>
-    </>
+    </SidebarPanelExtensionProvider>
   )
 }
 

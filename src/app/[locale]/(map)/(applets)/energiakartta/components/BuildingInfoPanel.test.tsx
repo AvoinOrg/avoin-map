@@ -15,8 +15,8 @@ import {
   BuildingInfoText,
   getBuildingInfoPanelIds,
   getBuildingInfoTabPanelIds,
-} from './BuildingInfoSidebar'
-import { getEnergymapBuildingInfoSidebarRuntimeOptions } from '../common/buildingInfoSidebarRuntime'
+} from './BuildingInfoPanel'
+import { getEnergymapBuildingInfoPanelRuntimeOptions } from '../common/buildingInfoPanelRuntime'
 import type {
   EnergymapBuildingInfoConsumptionControls,
   EnergymapBuildingInfoMetric,
@@ -24,7 +24,7 @@ import type {
   EnergymapBuildingInfoText,
   EnergymapBuildingInfoValue,
 } from '../common/buildingInfo'
-import type { BuildingInfoTabId } from './BuildingInfoSidebar'
+import type { BuildingInfoTabId } from './BuildingInfoPanel'
 
 jest.mock('#/common/store', () => ({
   useUIStore: jest.requireActual('#/common/store/uiStore').useUIStore,
@@ -556,7 +556,7 @@ const renderBuildingInfoTabs = ({
   )
 }
 
-describe('BuildingInfoSidebar', () => {
+describe('BuildingInfoPanel', () => {
   beforeEach(() => {
     mockIsMobile = false
     resetUIStore()
@@ -1154,12 +1154,12 @@ describe('BuildingInfoSidebar', () => {
   })
 
   it('keeps expanded building info runtime on the main panel only', () => {
-    const desktopOptions = getEnergymapBuildingInfoSidebarRuntimeOptions({
+    const desktopOptions = getEnergymapBuildingInfoPanelRuntimeOptions({
       hasBuildingInfo: true,
       isBuildingInfoCollapsed: false,
       isMobile: false,
     })
-    const mobileOptions = getEnergymapBuildingInfoSidebarRuntimeOptions({
+    const mobileOptions = getEnergymapBuildingInfoPanelRuntimeOptions({
       hasBuildingInfo: true,
       isBuildingInfoCollapsed: false,
       isMobile: true,
@@ -1185,5 +1185,41 @@ describe('BuildingInfoSidebar', () => {
     expect(desktopOptions.visiblePanels).not.toContain('tertiary')
     expect(mobileOptions.visiblePanels).not.toContain('secondary')
     expect(mobileOptions.visiblePanels).not.toContain('tertiary')
+  })
+
+  it('keeps collapsed building info runtime action rail without visible panels', () => {
+    const desktopOptions = getEnergymapBuildingInfoPanelRuntimeOptions({
+      hasBuildingInfo: true,
+      isBuildingInfoCollapsed: true,
+      isMobile: false,
+    })
+    const mobileOptions = getEnergymapBuildingInfoPanelRuntimeOptions({
+      hasBuildingInfo: true,
+      isBuildingInfoCollapsed: true,
+      isMobile: true,
+    })
+    const emptyOptions = getEnergymapBuildingInfoPanelRuntimeOptions({
+      hasBuildingInfo: false,
+      isBuildingInfoCollapsed: false,
+      isMobile: false,
+    })
+
+    expect(desktopOptions).toMatchObject({
+      width: 'compact',
+      chrome: 'visible',
+      panelLayout: 'single',
+      visiblePanels: [],
+      activePanel: 'main',
+      actionRailPlacement: 'fixedRightActionColumn',
+    })
+    expect(mobileOptions).toMatchObject({
+      width: 'compact',
+      chrome: 'visible',
+      panelLayout: 'single',
+      visiblePanels: [],
+      activePanel: 'main',
+      actionRailPlacement: 'bottomActionRow',
+    })
+    expect(emptyOptions.visiblePanels).toEqual([])
   })
 })

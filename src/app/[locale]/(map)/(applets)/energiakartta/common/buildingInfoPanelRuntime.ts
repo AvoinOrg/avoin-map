@@ -1,13 +1,13 @@
 import type { SidebarPanelExtensionRuntimeOptions } from '#/common/types/sidebar'
 
-type GetEnergymapBuildingInfoSidebarRuntimeOptionsInput = {
+type GetEnergymapBuildingInfoPanelRuntimeOptionsInput = {
   hasBuildingInfo: boolean
   isBuildingInfoCollapsed: boolean
   isMobile: boolean
 }
 
-export const getEnergymapBuildingInfoSidebarRuntimeOptions = (
-  input: GetEnergymapBuildingInfoSidebarRuntimeOptionsInput
+export const getEnergymapBuildingInfoPanelRuntimeOptions = (
+  input: GetEnergymapBuildingInfoPanelRuntimeOptionsInput
 ): SidebarPanelExtensionRuntimeOptions => {
   const { hasBuildingInfo, isBuildingInfoCollapsed, isMobile } = input
   const isBuildingInfoExpanded = hasBuildingInfo && !isBuildingInfoCollapsed
@@ -16,9 +16,8 @@ export const getEnergymapBuildingInfoSidebarRuntimeOptions = (
     width: isBuildingInfoExpanded ? 'wide' : 'compact',
     chrome: isBuildingInfoExpanded ? 'hidden' : 'visible',
     panelLayout: 'single',
-    visiblePanels: ['main'],
+    visiblePanels: isBuildingInfoExpanded ? ['main'] : [],
     activePanel: 'main',
-    mainPanelVisible: true,
     mobileMode: 'stacked',
     mobileStackPlacement: 'after',
     actionRailPlacement: hasBuildingInfo

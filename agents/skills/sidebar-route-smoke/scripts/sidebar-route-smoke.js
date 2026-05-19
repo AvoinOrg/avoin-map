@@ -15,7 +15,10 @@ const {
 
 const DEFAULT_BASE_URL = 'http://127.0.0.1:3000'
 const DEFAULT_TIMEOUT_MS = 30000
-const F0284_OUTPUT_DIR = path.resolve(process.cwd(), '.tmp/f0284')
+const SELECTED_BUILDING_OUTPUT_DIR = path.resolve(
+  process.cwd(),
+  '.tmp/f0304-sidebar-route-smoke'
+)
 
 const VIEWPORTS = {
   desktop: { width: 1440, height: 900 },
@@ -507,7 +510,7 @@ const readEnergymapSelectedBuildingState = async (page, label) =>
     const visibleElements = (selector) =>
       Array.from(document.querySelectorAll(selector)).filter(isVisible)
     const activePageScrolls = visibleElements(
-      '[data-testid="panel-sidebar-page-scroll"]'
+      '[data-testid="sidebar-panel-extension-page-scroll"]'
     )
     const oldScrolls = visibleElements('[data-testid^="building-info-scroll-"]')
     const gridCount = visibleElements('[data-testid="building-info-grid"]').length
@@ -578,9 +581,11 @@ const readEnergymapSelectedBuildingState = async (page, label) =>
       pageScrollClassName: activePageScroll?.className ?? null,
       scrollableAncestors,
       panelBodyRects,
-      controls: read('.panel-sidebar-page-container-controls'),
-      tabRail: read('[data-testid="panel-sidebar-tab-rail"]'),
-      sidebarActionRail: read('[data-testid="sidebar-action-rail"]'),
+      controls: read('.sidebar-panel-extension-page-container-controls'),
+      tabRail: read('[data-testid="sidebar-panel-extension-mobile-tab-rail"]'),
+      sidebarActionRail: read(
+        '[data-testid="sidebar-panel-extension-mobile-controls"]'
+      ),
       buildingActionRail: read('[data-testid="building-info-action-rail"]'),
       toggle: read('.sidebar-toggle-button'),
       cookieButton: read('button[aria-label="Cookie settings"]'),
@@ -625,10 +630,13 @@ const normalizeSelectedBuildingState = (state) => {
 const scrollEnergymapBuildingInfoPage = async (page, scrollTop) =>
   page.evaluate((requestedScrollTop) => {
     const root = document.querySelector(
-      '[data-testid="panel-sidebar-page-scroll"]'
+      '[data-testid="sidebar-panel-extension-page-scroll"]'
     )
     if (!root) {
-      return { ok: false, reason: 'panel sidebar page scroll root missing' }
+      return {
+        ok: false,
+        reason: 'sidebar panel extension page scroll root missing',
+      }
     }
 
     const candidates = [root, ...Array.from(root.querySelectorAll('*'))]
@@ -666,7 +674,8 @@ const assertPanelState = ({ state, expectedPanels, errors }) => {
   }
   if (state.pageScrollCount !== 1) {
     errors.push(
-      `${state.label}: expected one visible panel-sidebar-page-scroll, got ${state.pageScrollCount}`
+      `${state.label}: expected one visible ` +
+        `sidebar-panel-extension-page-scroll, got ${state.pageScrollCount}`
     )
   }
   if (state.oldScrollCount !== 0) {
@@ -711,7 +720,7 @@ const assertNoOverlap = ({ state, a, b, errors }) => {
 }
 
 const runEnergymapSelectedBuildingTabsCheck = async ({ page, errors }) => {
-  fs.mkdirSync(F0284_OUTPUT_DIR, { recursive: true })
+  fs.mkdirSync(SELECTED_BUILDING_OUTPUT_DIR, { recursive: true })
 
   await page.waitForSelector('canvas.maplibregl-canvas', { timeout: 90000 })
   await page.waitForTimeout(3500)
@@ -731,13 +740,22 @@ const runEnergymapSelectedBuildingTabsCheck = async ({ page, errors }) => {
   await page.waitForSelector('[data-testid="building-info-tab-page-basic"]', {
     timeout: 90000,
   })
-  await page.waitForSelector('[data-testid="panel-sidebar-tab-rail"]', {
-    timeout: 90000,
-  })
+  await page.waitForSelector(
+    '[data-testid="sidebar-panel-extension-mobile-tab-rail"]',
+    {
+      timeout: 90000,
+    }
+  )
+  await page.waitForSelector(
+    '.sidebar-panel-extension-page-container-controls',
+    {
+      timeout: 90000,
+    }
+  )
   await page.waitForTimeout(500)
 
   const screenshot = async (name) => {
-    const outputPath = path.join(F0284_OUTPUT_DIR, name)
+    const outputPath = path.join(SELECTED_BUILDING_OUTPUT_DIR, name)
     await settlePointer(page)
     await page.screenshot({ path: outputPath, fullPage: false })
     return outputPath
@@ -791,10 +809,12 @@ const runEnergymapSelectedBuildingTabsCheck = async ({ page, errors }) => {
     errors.push('mobile renovation page did not scroll down')
   }
   await page.waitForTimeout(300)
-  screenshots.push(await screenshot('selected-building-mobile-renovation-lower.png'))
+  screenshots.push(
+    await screenshot('selected-building-mobile-renovation-lower.png')
+  )
 
   await page
-    .locator('.panel-sidebar-page-container-controls button')
+    .locator('.sidebar-panel-extension-page-container-controls button')
     .first()
     .click()
   await page.waitForSelector('[data-testid="building-info-action-rail"]', {
@@ -807,7 +827,8 @@ const runEnergymapSelectedBuildingTabsCheck = async ({ page, errors }) => {
   )
   if (collapsed.pageScrollCount !== 0) {
     errors.push(
-      `mobile-collapsed: expected expanded tab pages to be removed, got ${collapsed.pageScrollCount} page scrolls`
+      `mobile-collapsed: expected expanded tab pages to be removed, got ` +
+        `${collapsed.pageScrollCount} page scrolls`
     )
   }
   if (collapsed.buildingActionRail == null) {
@@ -823,7 +844,10 @@ const runEnergymapSelectedBuildingTabsCheck = async ({ page, errors }) => {
     errors,
   })
 
-  await page.locator('[data-testid="building-info-action-rail"] button').nth(1).click()
+  await page
+    .locator('[data-testid="building-info-action-rail"] button')
+    .nth(1)
+    .click()
   await page.waitForSelector('[data-testid="building-info-tab-page-renovation"]')
   await page.waitForTimeout(300)
   const reopened = normalizeSelectedBuildingState(
@@ -839,7 +863,10 @@ const runEnergymapSelectedBuildingTabsCheck = async ({ page, errors }) => {
     errors,
   })
 
-  await page.locator('.panel-sidebar-page-container-controls button').nth(1).click()
+  await page
+    .locator('.sidebar-panel-extension-page-container-controls button')
+    .nth(1)
+    .click()
   await page.waitForSelector('[data-testid="building-info-tab-page-renovation"]', {
     state: 'detached',
     timeout: 90000,
@@ -898,6 +925,7 @@ const runCheck = async ({ browser, args, check }) => {
   const errors = []
   const warnings = []
   let selectedBuildingTabs = null
+  let routeLoadFailed = false
 
   try {
     const response = await page.goto(url, {
@@ -906,12 +934,17 @@ const runCheck = async ({ browser, args, check }) => {
     })
 
     if (!response) {
+      routeLoadFailed = true
       errors.push('page.goto did not return a response')
     } else if (response.status() >= 400) {
+      routeLoadFailed = true
       errors.push(`route returned HTTP ${response.status()}`)
     }
 
-    await page.waitForSelector('body', { timeout: args.timeout })
+    await page.waitForSelector('body', {
+      state: 'attached',
+      timeout: args.timeout,
+    })
     await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {})
 
     const flags = await collectRuntimeTextFlags(page)
@@ -974,7 +1007,7 @@ const runCheck = async ({ browser, args, check }) => {
       }
     }
 
-    if (check.selectedBuildingTabs) {
+    if (check.selectedBuildingTabs && !routeLoadFailed) {
       selectedBuildingTabs = await runEnergymapSelectedBuildingTabsCheck({
         page,
         errors,
