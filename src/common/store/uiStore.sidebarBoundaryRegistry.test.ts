@@ -287,43 +287,19 @@ describe('uiStore sidebar panel extension registry', () => {
     ).toEqual({})
   })
 
-  it('registers tabs, switches active tab, and falls back when the active tab unregisters', () => {
+  it('keeps panel extension registration limited to runtime ownership', () => {
     useUIStore.getState().registerSidebarPanelExtension({
-      id: 'tab-extension',
+      id: 'tabless-extension',
       depth: 0,
     })
 
-    useUIStore.getState().registerSidebarPanelExtensionTab('tab-extension', {
-      tabId: 'first',
-      tabName: 'First',
-      tabButtonId: 'first-button',
-      tabPanelId: 'first-panel',
+    expect(
+      useUIStore.getState().sidebarPanelExtensions['tabless-extension']
+    ).toEqual({
+      id: 'tabless-extension',
+      depth: 0,
+      runtimeOptions: {},
+      registrationOrder: 1,
     })
-    useUIStore.getState().registerSidebarPanelExtensionTab('tab-extension', {
-      tabId: 'second',
-      tabName: 'Second',
-      tabButtonId: 'second-button',
-      tabPanelId: 'second-panel',
-    })
-
-    expect(
-      useUIStore.getState().sidebarPanelExtensions['tab-extension']?.activeTabId
-    ).toBe('first')
-
-    useUIStore
-      .getState()
-      .setSidebarPanelExtensionActiveTab('tab-extension', 'second')
-
-    expect(
-      useUIStore.getState().sidebarPanelExtensions['tab-extension']?.activeTabId
-    ).toBe('second')
-
-    useUIStore
-      .getState()
-      .unregisterSidebarPanelExtensionTab('tab-extension', 'second')
-
-    expect(
-      useUIStore.getState().sidebarPanelExtensions['tab-extension']?.activeTabId
-    ).toBe('first')
   })
 })

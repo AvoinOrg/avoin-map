@@ -1170,6 +1170,7 @@ describe('BuildingInfoPanel', () => {
       chrome: 'hidden',
       panelLayout: 'single',
       visiblePanels: ['main'],
+      replaceBaseSidebar: true,
       activePanel: 'main',
       actionRailPlacement: 'fixedRightActionColumn',
     })
@@ -1178,6 +1179,7 @@ describe('BuildingInfoPanel', () => {
       chrome: 'hidden',
       panelLayout: 'single',
       visiblePanels: ['main'],
+      replaceBaseSidebar: true,
       activePanel: 'main',
       actionRailPlacement: 'bottomActionRow',
     })
@@ -1209,6 +1211,7 @@ describe('BuildingInfoPanel', () => {
       chrome: 'visible',
       panelLayout: 'single',
       visiblePanels: [],
+      replaceBaseSidebar: false,
       activePanel: 'main',
       actionRailPlacement: 'fixedRightActionColumn',
     })
@@ -1217,9 +1220,11 @@ describe('BuildingInfoPanel', () => {
       chrome: 'visible',
       panelLayout: 'single',
       visiblePanels: [],
+      replaceBaseSidebar: false,
       activePanel: 'main',
       actionRailPlacement: 'bottomActionRow',
     })
     expect(emptyOptions.visiblePanels).toEqual([])
+    expect(emptyOptions.replaceBaseSidebar).toBe(false)
   })
 })

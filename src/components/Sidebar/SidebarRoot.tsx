@@ -22,6 +22,10 @@ import {
   SidebarPanelExtensionMobileStackedPanels,
   SidebarPanelExtensionTabRail,
 } from './SidebarPanelExtension'
+import {
+  SidebarPanelExtensionTabsProvider,
+  useSidebarPanelExtensionTabsRegistryContext,
+} from './SidebarPanelExtensionTabsContext'
 import SimpleSidebar from './SimpleSidebar'
 
 export type SidebarRootProps = {
@@ -46,15 +50,14 @@ const getFloatingWidth = (
   options: SidebarRuntimeOptions | SidebarFloatingConfig
 ): FloatingSidebarWidth => (options.width === 'compact' ? 'compact' : 'default')
 
-export const SidebarRoot = ({ children }: SidebarRootProps) => {
+const SidebarRootContent = ({ children }: SidebarRootProps) => {
   const sidebarBoundaries = useUIStore((state) => state.sidebarBoundaries)
   const sidebarPanelExtensions = useUIStore(
     (state) => state.sidebarPanelExtensions
   )
   const sidebarWidth = useUIStore((state) => state.sidebarWidth)
-  const setSidebarPanelExtensionActiveTab = useUIStore(
-    (state) => state.setSidebarPanelExtensionActiveTab
-  )
+  const sidebarPanelExtensionTabs =
+    useSidebarPanelExtensionTabsRegistryContext()
   const activeBoundary = useMemo(
     () => selectActiveSidebarBoundary(sidebarBoundaries),
     [sidebarBoundaries]
@@ -69,8 +72,15 @@ export const SidebarRoot = ({ children }: SidebarRootProps) => {
       : mergePanelExtensionOptions(activePanelExtension)
   const panelExtensionMobileMode =
     panelExtensionOptions?.mobileMode ?? 'stacked'
+  const panelExtensionVisiblePanels =
+    panelExtensionOptions?.visiblePanels ?? ['main']
+  const shouldReplaceBaseSidebar =
+    activePanelExtension != null &&
+    panelExtensionOptions?.replaceBaseSidebar === true &&
+    panelExtensionVisiblePanels.length > 0
   const shouldStackPanelExtensionInSimpleSidebar =
     activePanelExtension != null &&
+    !shouldReplaceBaseSidebar &&
     activeBoundary?.mode === 'simple' &&
     panelExtensionMobileMode === 'stacked'
   const mobileStackedPanelExtension =
@@ -112,7 +122,9 @@ export const SidebarRoot = ({ children }: SidebarRootProps) => {
           headerMode={width === 'compact' ? 'custom' : 'default'}
           footerMode="slot"
           chromeHidden={options.chrome === 'hidden'}
-          hideMainContainer={options.mainPanelVisible === false}
+          hideMainContainer={
+            shouldReplaceBaseSidebar || options.mainPanelVisible === false
+          }
         >
           {children}
         </FloatingSidebar>
@@ -123,7 +135,14 @@ export const SidebarRoot = ({ children }: SidebarRootProps) => {
       return (
         <SimpleSidebar
           boundaryId={activeBoundary.id}
-          options={options as SidebarSimpleConfig}
+          options={
+            {
+              ...(options as SidebarSimpleConfig),
+              mainPanelVisible: shouldReplaceBaseSidebar
+                ? false
+                : options.mainPanelVisible,
+            } as SidebarSimpleConfig
+          }
           mobileStackedContentBefore={mobileStackedPanelExtensionBefore}
           mobileStackedContentAfter={mobileStackedPanelExtensionAfter}
         >
@@ -135,36 +154,48 @@ export const SidebarRoot = ({ children }: SidebarRootProps) => {
     return <>{children}</>
   })()
 
+  const activePanelExtensionTabs =
+    activePanelExtension == null
+      ? undefined
+      : sidebarPanelExtensionTabs.registry[activePanelExtension.id]
+  const tabs = activePanelExtensionTabs?.tabs ?? []
   const resolvedActiveTabId =
-    activePanelExtension?.tabs.find(
-      (tab) => tab.tabId === activePanelExtension.activeTabId
-    )?.tabId ?? activePanelExtension?.tabs[0]?.tabId
+    tabs.find((tab) => tab.tabId === activePanelExtensionTabs?.activeTabId)
+      ?.tabId ?? tabs[0]?.tabId
   const hasPanelExtensionTabRail =
-    activePanelExtension != null && activePanelExtension.tabs.length >= 2
+    activePanelExtension != null && tabs.length >= 2
   const desktopTabRail =
     activePanelExtension != null && hasPanelExtensionTabRail ? (
       <SidebarPanelExtensionTabRail
-        tabs={activePanelExtension.tabs}
+        tabs={tabs}
         activeTabId={resolvedActiveTabId}
         placement="desktop"
         onTabChange={(tabId) =>
-          setSidebarPanelExtensionActiveTab(activePanelExtension.id, tabId)
+          sidebarPanelExtensionTabs.setActiveTabId(
+            activePanelExtension.id,
+            tabId
+          )
         }
       />
     ) : undefined
   const mobileTabRail =
     activePanelExtension != null && hasPanelExtensionTabRail ? (
       <SidebarPanelExtensionTabRail
-        tabs={activePanelExtension.tabs}
+        tabs={tabs}
         activeTabId={resolvedActiveTabId}
         placement="mobile"
         onTabChange={(tabId) =>
-          setSidebarPanelExtensionActiveTab(activePanelExtension.id, tabId)
+          sidebarPanelExtensionTabs.setActiveTabId(
+            activePanelExtension.id,
+            tabId
+          )
         }
       />
     ) : undefined
   const sidebarOffset =
-    activeBoundary != null && activeBoundary.mode !== 'none'
+    shouldReplaceBaseSidebar
+      ? 0
+      : activeBoundary != null && activeBoundary.mode !== 'none'
       ? (sidebarWidth ?? 0)
       : 0
 
@@ -184,5 +215,11 @@ export const SidebarRoot = ({ children }: SidebarRootProps) => {
     </>
   )
 }
+
+export const SidebarRoot = ({ children }: SidebarRootProps) => (
+  <SidebarPanelExtensionTabsProvider>
+    <SidebarRootContent>{children}</SidebarRootContent>
+  </SidebarPanelExtensionTabsProvider>
+)
 
 export default SidebarRoot

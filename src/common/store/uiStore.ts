@@ -2,7 +2,7 @@
 
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
-import { castDraft, enableMapSet } from 'immer'
+import { enableMapSet } from 'immer'
 
 import {
   ConfirmationDialogOptions,
@@ -20,7 +20,6 @@ import type {
   SidebarPanelExtensionId,
   SidebarPanelExtensionRegistry,
   SidebarPanelExtensionRuntimeOptionsPatch,
-  SidebarPanelExtensionTabMetadata,
   SidebarPanelExtensionUpdate,
   SidebarRuntimeOptionsPatch,
 } from '#/common/types/sidebar'
@@ -36,19 +35,6 @@ type SidebarHeaderConfig = {
   title: string
   backgroundImage?: string
 }
-
-const areSidebarPanelExtensionTabsEqual = (
-  previous: SidebarPanelExtensionTabMetadata,
-  next: SidebarPanelExtensionTabMetadata
-) =>
-  previous.tabId === next.tabId &&
-  previous.tabName === next.tabName &&
-  previous.tabAriaLabel === next.tabAriaLabel &&
-  previous.tabIcon === next.tabIcon &&
-  previous.tabButtonSx === next.tabButtonSx &&
-  previous.tabIconSx === next.tabIconSx &&
-  previous.tabButtonId === next.tabButtonId &&
-  previous.tabPanelId === next.tabPanelId
 
 interface Vars {
   isSidebarOpen: boolean
@@ -122,18 +108,6 @@ interface Actions {
     id: SidebarPanelExtensionId
   ) => void
   unregisterSidebarPanelExtension: (id: SidebarPanelExtensionId) => void
-  registerSidebarPanelExtensionTab: (
-    id: SidebarPanelExtensionId,
-    tab: SidebarPanelExtensionTabMetadata
-  ) => void
-  unregisterSidebarPanelExtensionTab: (
-    id: SidebarPanelExtensionId,
-    tabId: string
-  ) => void
-  setSidebarPanelExtensionActiveTab: (
-    id: SidebarPanelExtensionId,
-    tabId: string
-  ) => void
   setSidebarHeaderConfig: (config: SidebarHeaderConfig) => void
   triggerConfirmationDialog: (
     options: ConfirmationDialogOptions
@@ -291,7 +265,6 @@ export const useUIStore = create<State>()(
               depth: input.depth,
               config: input.config,
               runtimeOptions: input.runtimeOptions ?? {},
-              tabs: [],
               registrationOrder: state._sidebarPanelExtensionRegistrationOrder,
             }
           })
@@ -348,88 +321,6 @@ export const useUIStore = create<State>()(
         unregisterSidebarPanelExtension: (id: SidebarPanelExtensionId) => {
           set((state) => {
             delete state.sidebarPanelExtensions[id]
-          })
-        },
-        registerSidebarPanelExtensionTab: (
-          id: SidebarPanelExtensionId,
-          tab: SidebarPanelExtensionTabMetadata
-        ) => {
-          set((state) => {
-            const extension = state.sidebarPanelExtensions[id]
-
-            if (extension == null) {
-              return
-            }
-
-            const tabIndex = extension.tabs.findIndex(
-              (currentTab) => currentTab.tabId === tab.tabId
-            )
-
-            if (tabIndex === -1) {
-              extension.tabs.push(castDraft(tab))
-            } else if (
-              !areSidebarPanelExtensionTabsEqual(
-                extension.tabs[tabIndex],
-                tab
-              )
-            ) {
-              extension.tabs[tabIndex] = castDraft(tab)
-            }
-
-            if (
-              extension.activeTabId == null ||
-              !extension.tabs.some(
-                (currentTab) => currentTab.tabId === extension.activeTabId
-              )
-            ) {
-              extension.activeTabId = extension.tabs[0]?.tabId
-            }
-          })
-        },
-        unregisterSidebarPanelExtensionTab: (
-          id: SidebarPanelExtensionId,
-          tabId: string
-        ) => {
-          set((state) => {
-            const extension = state.sidebarPanelExtensions[id]
-
-            if (extension == null) {
-              return
-            }
-
-            extension.tabs = extension.tabs.filter(
-              (currentTab) => currentTab.tabId !== tabId
-            )
-
-            if (
-              extension.activeTabId === tabId ||
-              !extension.tabs.some(
-                (currentTab) => currentTab.tabId === extension.activeTabId
-              )
-            ) {
-              extension.activeTabId = extension.tabs[0]?.tabId
-            }
-          })
-        },
-        setSidebarPanelExtensionActiveTab: (
-          id: SidebarPanelExtensionId,
-          tabId: string
-        ) => {
-          set((state) => {
-            const extension = state.sidebarPanelExtensions[id]
-
-            if (extension == null) {
-              return
-            }
-
-            if (
-              extension.tabs.length > 0 &&
-              !extension.tabs.some((tab) => tab.tabId === tabId)
-            ) {
-              return
-            }
-
-            extension.activeTabId = tabId
           })
         },
         setSidebarHeaderConfig: (config: SidebarHeaderConfig) =>

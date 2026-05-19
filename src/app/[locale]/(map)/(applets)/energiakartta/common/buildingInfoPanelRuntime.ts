@@ -17,6 +17,7 @@ export const getEnergymapBuildingInfoPanelRuntimeOptions = (
     chrome: isBuildingInfoExpanded ? 'hidden' : 'visible',
     panelLayout: 'single',
     visiblePanels: isBuildingInfoExpanded ? ['main'] : [],
+    replaceBaseSidebar: isBuildingInfoExpanded,
     activePanel: 'main',
     mobileMode: 'stacked',
     mobileStackPlacement: 'after',

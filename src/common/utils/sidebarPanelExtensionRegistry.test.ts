@@ -17,7 +17,6 @@ const extension = ({
   id,
   depth,
   runtimeOptions: {},
-  tabs: [],
   registrationOrder,
 })
 

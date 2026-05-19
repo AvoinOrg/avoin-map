@@ -58,7 +58,9 @@ export type SidebarPanelConfig = SidebarHomeConfig & {
 
 export type SidebarSimpleConfig = SidebarPanelConfig
 
-export type SidebarPanelExtensionConfig = SidebarPanelConfig
+export type SidebarPanelExtensionConfig = SidebarPanelConfig & {
+  replaceBaseSidebar?: boolean
+}
 
 export type SidebarModeConfigMap = {
   none: SidebarNoneConfig
@@ -118,8 +120,6 @@ export type SidebarPanelExtensionRegistration = {
   depth: number
   config?: SidebarPanelExtensionConfig
   runtimeOptions: SidebarPanelExtensionRuntimeOptions
-  tabs: SidebarPanelExtensionTabMetadata[]
-  activeTabId?: string
   registrationOrder: number
 }
 

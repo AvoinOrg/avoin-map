@@ -145,6 +145,58 @@ describe('SidebarPanelExtension generic tab helpers', () => {
     )
   })
 
+  it('keeps inline tab React nodes out of the global UI store across rerenders', async () => {
+    const InlineTabs = ({ iconLabel }: { iconLabel: string }) => (
+      <>
+        <SidebarPanelExtensionTabContainer
+          tabId="summary"
+          tabName="Summary"
+          tabIcon={<span data-testid="summary-inline-icon">{iconLabel}</span>}
+        >
+          <div>Summary panel content</div>
+        </SidebarPanelExtensionTabContainer>
+        <SidebarPanelExtensionTabContainer
+          tabId="details"
+          tabName="Details"
+          tabIcon={<span data-testid="details-inline-icon">{iconLabel}</span>}
+        >
+          <div>Details panel content</div>
+        </SidebarPanelExtensionTabContainer>
+      </>
+    )
+
+    const { rerender } = renderSidebarPanelExtension(
+      <InlineTabs iconLabel="A" />
+    )
+
+    expect(await screen.findByText('Summary panel content')).toBeInTheDocument()
+    expect(screen.getAllByRole('tab')).toHaveLength(2)
+    expect(
+      useUIStore.getState().sidebarPanelExtensions['test-extension']
+    ).not.toHaveProperty('tabs')
+
+    rerender(
+      <SlotsProvider>
+        <SidebarRoot>
+          <SidebarPanelExtensionProvider
+            id="test-extension"
+            initialRuntimeOptions={{ visiblePanels: ['main'], activePanel: 'main' }}
+          >
+            <IntoSidebarPanelExtensionPanelSlot panelId="main">
+              <InlineTabs iconLabel="B" />
+            </IntoSidebarPanelExtensionPanelSlot>
+          </SidebarPanelExtensionProvider>
+        </SidebarRoot>
+      </SlotsProvider>
+    )
+
+    expect(await screen.findByText('Summary panel content')).toBeInTheDocument()
+    expect(screen.getAllByRole('tab')).toHaveLength(2)
+    expect(
+      useUIStore.getState().sidebarPanelExtensions['test-extension']
+    ).not.toHaveProperty('tabs')
+  })
+
   it('renders one tab without a tab rail', async () => {
     renderSidebarPanelExtension(
       <SidebarPanelExtensionTabContainer tabId="only" tabName="Only tab">
@@ -240,7 +292,7 @@ describe('SidebarPanelExtension generic tab helpers', () => {
         panelLayout: 'single',
         visiblePanels: ['main'],
       })
-    ).toBe('min(1440px, 100vw)')
+    ).toBe('min(1440px, calc(100vw - 4rem))')
     expect(getSidebarPanelExtensionMainPanelWidth()).toBe('23.75rem')
     expect(
       getSidebarPanelExtensionMainPanelWidth({

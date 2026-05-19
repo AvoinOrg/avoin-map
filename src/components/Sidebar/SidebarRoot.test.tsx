@@ -282,6 +282,71 @@ describe('SidebarRoot', () => {
     expect(mountCount).toBe(mountCountAfterActivation)
   })
 
+  it('hides floating base sidebar content while a replacement extension is expanded', async () => {
+    renderRoot({
+      children: (
+        <SidebarBoundary id="replace-floating" mode="floating">
+          <SidebarPanelExtensionProvider
+            id="replacement-extension"
+            initialRuntimeOptions={{
+              visiblePanels: ['main'],
+              activePanel: 'main',
+              replaceBaseSidebar: true,
+            }}
+          >
+            <IntoSidebarPanelExtensionPanelSlot panelId="main">
+              <div>Replacement extension content</div>
+            </IntoSidebarPanelExtensionPanelSlot>
+            <div>Underlying floating sidebar content</div>
+          </SidebarPanelExtensionProvider>
+        </SidebarBoundary>
+      ),
+    })
+
+    expect(
+      await screen.findByText('Replacement extension content')
+    ).toBeInTheDocument()
+    expect(screen.getByText('Underlying floating sidebar content')).toBeInTheDocument()
+    expect(document.querySelector('.sidebar-container')).toHaveStyle({
+      display: 'none',
+    })
+    expect(screen.getByTestId('sidebar-panel-extension-root')).toHaveStyle({
+      left: '0px',
+    })
+  })
+
+  it('restores floating base sidebar content for collapsed replacement extensions', async () => {
+    renderRoot({
+      children: (
+        <SidebarBoundary id="collapsed-replace-floating" mode="floating">
+          <SidebarPanelExtensionProvider
+            id="collapsed-replacement-extension"
+            initialRuntimeOptions={{
+              visiblePanels: [],
+              activePanel: 'main',
+              replaceBaseSidebar: true,
+            }}
+          >
+            <IntoSidebarPanelExtensionActionRailSlot>
+              <button type="button">Collapsed replacement action</button>
+            </IntoSidebarPanelExtensionActionRailSlot>
+            <div>Visible floating sidebar content</div>
+          </SidebarPanelExtensionProvider>
+        </SidebarBoundary>
+      ),
+    })
+
+    expect(
+      await screen.findByRole('button', {
+        name: 'Collapsed replacement action',
+      })
+    ).toBeInTheDocument()
+    expect(screen.getByText('Visible floating sidebar content')).toBeInTheDocument()
+    expect(document.querySelector('.sidebar-container')).not.toHaveStyle({
+      display: 'none',
+    })
+  })
+
   it('renders root-owned desktop tab controls for active extension tabs', async () => {
     renderRoot({
       children: (

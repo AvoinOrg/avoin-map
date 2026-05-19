@@ -19,6 +19,12 @@ const SELECTED_BUILDING_OUTPUT_DIR = path.resolve(
   process.cwd(),
   '.tmp/f0304-sidebar-route-smoke'
 )
+const DEFAULT_OUTPUT_DIR = path.resolve(
+  process.cwd(),
+  '.tmp/sidebar-route-smoke'
+)
+const DYNAMIC_PARAMS_MESSAGE_PATTERN =
+  /params are being enumerated|params should be unwrapped/i
 
 const VIEWPORTS = {
   desktop: { width: 1440, height: 900 },
@@ -29,6 +35,7 @@ const HELP_TEXT = `\
 Usage:
   node agents/skills/sidebar-route-smoke/scripts/sidebar-route-smoke.js --scenario sidebar-root
   node agents/skills/sidebar-route-smoke/scripts/sidebar-route-smoke.js --scenario energiakartta-selected-building-tabs
+  node agents/skills/sidebar-route-smoke/scripts/sidebar-route-smoke.js --scenario energiakartta-building-click --viewport both
   node agents/skills/sidebar-route-smoke/scripts/sidebar-route-smoke.js --route /fi/energiakartta --viewport both --expect-sidebar yes
 
 Options:
@@ -40,6 +47,7 @@ Options:
   --expect-testid <testid>    Require a visible [data-testid="<testid>"]. Can be repeated.
   --browser-mode <mode>       Browser mode (default: ${BROWSER_MODE_XVFB_WEBGL})
   --timeout <ms>              Per-route timeout (default: ${DEFAULT_TIMEOUT_MS})
+  --output-dir <path>          Directory for scenario screenshots (default: ${DEFAULT_OUTPUT_DIR})
   --help                      Show this help
 `
 
@@ -99,6 +107,24 @@ const ENERGYMAP_SELECTED_BUILDING_TABS_SCENARIO = [
   },
 ]
 
+const ENERGYMAP_BUILDING_CLICK_SCENARIO = [
+  {
+    id: 'energiakartta-building-click',
+    route: '/fi/energiakartta',
+    viewports: ['desktop', 'mobile'],
+    expectSidebar: 'yes',
+    buildingClick: true,
+    assertNoDynamicParams: true,
+  },
+  {
+    id: 'energymap-route-load',
+    route: '/en/energymap',
+    viewports: ['desktop'],
+    expectSidebar: 'yes',
+    assertNoDynamicParams: true,
+  },
+]
+
 const splitCsv = (value) =>
   String(value || '')
     .split(',')
@@ -112,6 +138,7 @@ const parseArgs = (argv) => {
     expectSidebar: 'auto',
     expectTestIds: [],
     help: false,
+    outputDir: DEFAULT_OUTPUT_DIR,
     routes: [],
     scenarios: [],
     timeout: DEFAULT_TIMEOUT_MS,
@@ -190,6 +217,15 @@ const parseArgs = (argv) => {
       continue
     }
 
+    if (token.startsWith('--output-dir=')) {
+      args.outputDir = token.slice('--output-dir='.length)
+      continue
+    }
+    if (token === '--output-dir') {
+      args.outputDir = argv[++i]
+      continue
+    }
+
     if (token.startsWith('--viewport=')) {
       args.viewport = token.slice('--viewport='.length)
       continue
@@ -204,6 +240,7 @@ const parseArgs = (argv) => {
 
   args.browserMode = normalizeBrowserMode(args.browserMode)
   args.expectSidebar = String(args.expectSidebar || 'auto').toLowerCase()
+  args.outputDir = path.resolve(process.cwd(), args.outputDir || DEFAULT_OUTPUT_DIR)
   args.viewport = String(args.viewport || 'desktop').toLowerCase()
 
   if (!['yes', 'no', 'auto'].includes(args.expectSidebar)) {
@@ -238,7 +275,8 @@ const buildChecks = (args) => {
   for (const scenario of args.scenarios) {
     if (
       scenario !== 'sidebar-root' &&
-      scenario !== 'energiakartta-selected-building-tabs'
+      scenario !== 'energiakartta-selected-building-tabs' &&
+      scenario !== 'energiakartta-building-click'
     ) {
       throw new Error(`Unknown scenario: ${scenario}`)
     }
@@ -246,7 +284,9 @@ const buildChecks = (args) => {
     const scenarioItems =
       scenario === 'energiakartta-selected-building-tabs'
         ? ENERGYMAP_SELECTED_BUILDING_TABS_SCENARIO
-        : SIDEBAR_ROOT_SCENARIO
+        : scenario === 'energiakartta-building-click'
+          ? ENERGYMAP_BUILDING_CLICK_SCENARIO
+          : SIDEBAR_ROOT_SCENARIO
 
     for (const item of scenarioItems) {
       for (const viewport of item.viewports) {
@@ -447,6 +487,223 @@ const seedEnergymapSelectedBuilding = async (page) =>
       sourceLayer: feature.sourceLayer ?? null,
     }
   })
+
+const hasDynamicParamsMessage = (messages) =>
+  messages.some((message) =>
+    DYNAMIC_PARAMS_MESSAGE_PATTERN.test(message.text ?? '')
+  )
+
+const getDynamicParamsMessages = (messages) =>
+  messages
+    .filter((message) =>
+      DYNAMIC_PARAMS_MESSAGE_PATTERN.test(message.text ?? '')
+    )
+    .map((message) => `${message.type}: ${message.text}`)
+
+const ensureMapClickableOnMobile = async ({ page, viewport }) => {
+  if (viewport !== 'mobile') {
+    return
+  }
+
+  const toggle = page.locator('.sidebar-toggle-button')
+  const toggleVisible = await isLocatorVisible(toggle, 2500)
+  if (!toggleVisible) {
+    return
+  }
+
+  const label = await toggle.first().getAttribute('aria-label').catch(() => null)
+  if (label != null && /hide sidebar/i.test(label)) {
+    await toggle.first().click()
+    await page.waitForTimeout(450)
+  }
+}
+
+const findEnergymapBuildingClickTarget = async ({ page, viewport }) =>
+  page.evaluate(async (requestedViewport) => {
+    const req = window.__avoin_req
+    if (typeof req !== 'function') {
+      return { ok: false, reason: 'Next.js webpack require was unavailable' }
+    }
+
+    const { useMapInstanceStore } = req(
+      '(app-pages-browser)/./src/common/store/mapStore/mapInstanceStore.ts'
+    )
+    const map = useMapInstanceStore.getState()._map
+    if (!map) {
+      return { ok: false, reason: 'Map instance was not available' }
+    }
+
+    const waitForMapIdle = () =>
+      new Promise((resolve) => {
+        const timeoutId = window.setTimeout(resolve, 2500)
+        map.once('idle', () => {
+          window.clearTimeout(timeoutId)
+          resolve()
+        })
+      })
+    const wait = (ms) =>
+      new Promise((resolve) => {
+        window.setTimeout(resolve, ms)
+      })
+
+    map.jumpTo({ center: [24.9384, 60.1699], zoom: 15.75 })
+
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      await waitForMapIdle()
+      await wait(500)
+
+      const width = map.getCanvas().clientWidth
+      const height = map.getCanvas().clientHeight
+      const startX =
+        requestedViewport === 'mobile'
+          ? 40
+          : Math.min(width - 80, Math.max(460, Math.round(width * 0.34)))
+      const endX = width - 60
+      const startY = requestedViewport === 'mobile' ? 100 : 120
+      const endY = height - 110
+
+      for (let y = startY; y < endY; y += 24) {
+        for (let x = startX; x < endX; x += 24) {
+          const features = map.queryRenderedFeatures([x, y], {
+            layers: ['energymap_building_polygons-fill'],
+          })
+          const feature = features.find(
+            (candidate) => candidate.properties?.building_key
+          )
+
+          if (feature) {
+            const properties = { ...(feature.properties ?? {}) }
+            const idValue = feature.id ?? properties.building_key
+
+            return {
+              ok: true,
+              point: { x, y },
+              feature: {
+                id: idValue == null ? null : String(idValue),
+                buildingKey:
+                  properties.building_key == null
+                    ? null
+                    : String(properties.building_key),
+                source: feature.source ?? null,
+                sourceLayer: feature.sourceLayer ?? null,
+                layerId: feature.layer?.id ?? null,
+                address: properties.address_fin ?? properties.address ?? null,
+              },
+            }
+          }
+        }
+      }
+
+      map.zoomTo(map.getZoom() + 0.2)
+    }
+
+    return { ok: false, reason: 'No rendered building feature found' }
+  }, viewport)
+
+const readEnergymapBuildingClickState = async ({ page, target, label }) =>
+  page.evaluate(
+    ({ stateLabel, clickTarget }) => {
+      const isVisible = (element) => {
+        if (!(element instanceof HTMLElement)) {
+          return false
+        }
+
+        const style = getComputedStyle(element)
+        return (
+          style.display !== 'none' &&
+          style.visibility !== 'hidden' &&
+          element.getClientRects().length > 0
+        )
+      }
+      const read = (selector) => {
+        const element = Array.from(document.querySelectorAll(selector)).find(
+          isVisible
+        )
+        if (!element) {
+          return null
+        }
+
+        const rect = element.getBoundingClientRect()
+        const style = getComputedStyle(element)
+
+        return {
+          selector,
+          rect: {
+            x: rect.x,
+            y: rect.y,
+            width: rect.width,
+            height: rect.height,
+            right: rect.right,
+            bottom: rect.bottom,
+          },
+          style: {
+            display: style.display,
+            visibility: style.visibility,
+            position: style.position,
+          },
+          text: element.textContent?.slice(0, 160) ?? '',
+        }
+      }
+      const req = window.__avoin_req
+      const selectedBuilding =
+        req?.(
+          '(app-pages-browser)/./src/app/[locale]/(map)/(applets)/energiakartta/state/appletStore.ts'
+        )?.useAppletStore.getState().selectedBuilding ?? null
+      const selectedFeatures =
+        req?.(
+          '(app-pages-browser)/./src/common/store/mapStore/mapStore.ts'
+        )?.useMapStore.getState().selectedFeatures ?? []
+      const map =
+        req?.(
+          '(app-pages-browser)/./src/common/store/mapStore/mapInstanceStore.ts'
+        )?.useMapInstanceStore.getState()._map ?? null
+      const selectedFeatureState =
+        map != null &&
+        clickTarget?.feature?.source != null &&
+        clickTarget.feature.id != null
+          ? map.getFeatureState({
+              source: clickTarget.feature.source,
+              id: clickTarget.feature.id,
+              ...(clickTarget.feature.sourceLayer
+                ? { sourceLayer: clickTarget.feature.sourceLayer }
+                : {}),
+            })
+          : null
+
+      return {
+        label: stateLabel,
+        selectedBuilding:
+          selectedBuilding == null
+            ? null
+            : {
+                id: selectedBuilding.id,
+                buildingKey: selectedBuilding.buildingKey,
+              },
+        selectedFeaturesLength: selectedFeatures.length,
+        selectedFeatureState,
+        basicPage: read('[data-testid="building-info-tab-page-basic"]'),
+        renovationPage: read(
+          '[data-testid="building-info-tab-page-renovation"]'
+        ),
+        extensionRoot: read(
+          '[data-testid="sidebar-panel-extension-root"], [data-testid="sidebar-panel-extension-mobile-panels"]'
+        ),
+        baseSidebar: read('.sidebar-container, [data-main-sidebar-root="true"]'),
+        desktopTabRail: read(
+          '[data-testid="sidebar-panel-extension-desktop-tab-rail"]'
+        ),
+        mobileTabRail: read(
+          '[data-testid="sidebar-panel-extension-mobile-tab-rail"]'
+        ),
+        buildingActionRail: read('[data-testid="building-info-action-rail"]'),
+        activeTab:
+          document
+            .querySelector('[role="tab"][aria-selected="true"]')
+            ?.getAttribute('aria-controls') ?? null,
+      }
+    },
+    { stateLabel: label, clickTarget: target }
+  )
 
 const rectToPlain = (rect) =>
   rect == null
@@ -911,19 +1168,256 @@ const runEnergymapSelectedBuildingTabsCheck = async ({ page, errors }) => {
   }
 }
 
+const runEnergymapBuildingClickCheck = async ({
+  page,
+  viewport,
+  outputDir,
+  errors,
+  consoleMessages,
+}) => {
+  const scenarioOutputDir = path.join(outputDir, 'energiakartta-building-click')
+  fs.mkdirSync(scenarioOutputDir, { recursive: true })
+
+  await page.waitForSelector('canvas.maplibregl-canvas', { timeout: 90000 })
+  await page.waitForTimeout(2500)
+
+  const hasWebpackRequire = await ensureWebpackRequire(page)
+  if (!hasWebpackRequire) {
+    errors.push('could not access Next.js webpack require for building click')
+    return null
+  }
+
+  await ensureMapClickableOnMobile({ page, viewport })
+
+  const target = await findEnergymapBuildingClickTarget({ page, viewport })
+  if (!target.ok) {
+    errors.push(`could not find rendered building click target: ${target.reason}`)
+    return { target }
+  }
+
+  const screenshot = async (name) => {
+    const outputPath = path.join(scenarioOutputDir, name)
+    await settlePointer(page)
+    await page.screenshot({ path: outputPath, fullPage: false })
+    return outputPath
+  }
+
+  const canvasBox = await page
+    .locator('canvas.maplibregl-canvas')
+    .first()
+    .boundingBox()
+  if (canvasBox == null) {
+    errors.push('map canvas bounding box was unavailable')
+    return { target }
+  }
+
+  const clickStartedAt = Date.now()
+  await page.mouse.click(
+    canvasBox.x + target.point.x,
+    canvasBox.y + target.point.y
+  )
+
+  let clickToPanelMs = null
+  try {
+    await page.waitForSelector('[data-testid="building-info-tab-page-basic"]', {
+      timeout: 5000,
+    })
+    clickToPanelMs = Date.now() - clickStartedAt
+  } catch (_error) {
+    clickToPanelMs = Date.now() - clickStartedAt
+    errors.push(
+      `building info basic tab did not become visible within 5000ms after click`
+    )
+  }
+
+  await page.waitForTimeout(500)
+  if (hasDynamicParamsMessage(consoleMessages)) {
+    errors.push(
+      `dynamic params warning/error was logged: ${getDynamicParamsMessages(
+        consoleMessages
+      ).join(' | ')}`
+    )
+  }
+
+  const screenshots = []
+  screenshots.push(await screenshot(`${viewport}-expanded-basic.png`))
+  const expandedBasic = await readEnergymapBuildingClickState({
+    page,
+    target,
+    label: `${viewport}-expanded-basic`,
+  })
+
+  if (expandedBasic.basicPage == null) {
+    errors.push(`${viewport}: expected building info basic tab page to be visible`)
+  }
+  if (expandedBasic.extensionRoot == null) {
+    errors.push(`${viewport}: expected sidebar panel extension to be visible`)
+  }
+  if (expandedBasic.baseSidebar != null) {
+    errors.push(`${viewport}: expected base sidebar to be hidden while expanded`)
+  }
+  if (expandedBasic.selectedBuilding == null) {
+    errors.push(`${viewport}: selected building applet state was empty`)
+  }
+  if (expandedBasic.selectedFeaturesLength < 1) {
+    errors.push(`${viewport}: selected map features were empty`)
+  }
+  if (expandedBasic.selectedFeatureState?.selected !== true) {
+    errors.push(`${viewport}: selected feature state was not marked selected`)
+  }
+  if (viewport === 'desktop' && expandedBasic.desktopTabRail == null) {
+    errors.push(`${viewport}: desktop tab rail was not visible`)
+  }
+  if (viewport === 'mobile' && expandedBasic.mobileTabRail == null) {
+    errors.push(`${viewport}: mobile tab rail was not visible`)
+  }
+
+  await page.locator('[role="tab"]').nth(1).click()
+  await page.waitForSelector('[data-testid="building-info-tab-page-renovation"]')
+  await page.waitForTimeout(300)
+  screenshots.push(await screenshot(`${viewport}-expanded-renovation.png`))
+  const renovation = await readEnergymapBuildingClickState({
+    page,
+    target,
+    label: `${viewport}-expanded-renovation`,
+  })
+
+  if (renovation.renovationPage == null) {
+    errors.push(`${viewport}: renovation tab page did not become visible`)
+  }
+  if (renovation.baseSidebar != null) {
+    errors.push(`${viewport}: base sidebar became visible on renovation tab`)
+  }
+
+  await page
+    .locator('.sidebar-panel-extension-page-container-controls button')
+    .first()
+    .click()
+  await page.waitForSelector('[data-testid="building-info-action-rail"]', {
+    timeout: 90000,
+  })
+  await page.waitForTimeout(300)
+  screenshots.push(await screenshot(`${viewport}-collapsed.png`))
+  const collapsed = await readEnergymapBuildingClickState({
+    page,
+    target,
+    label: `${viewport}-collapsed`,
+  })
+
+  if (collapsed.basicPage != null || collapsed.renovationPage != null) {
+    errors.push(`${viewport}: expanded tab page remained after collapse`)
+  }
+  if (collapsed.buildingActionRail == null) {
+    errors.push(`${viewport}: collapsed building action rail was not visible`)
+  }
+  if (collapsed.selectedBuilding == null) {
+    errors.push(`${viewport}: selected building was cleared by collapse`)
+  }
+  if (collapsed.baseSidebar == null) {
+    errors.push(`${viewport}: base sidebar did not return after collapse`)
+  }
+
+  await page
+    .locator('[data-testid="building-info-action-rail"] button')
+    .nth(1)
+    .click()
+  await page.waitForSelector('[data-testid="building-info-tab-page-renovation"]')
+  await page.waitForTimeout(300)
+  screenshots.push(await screenshot(`${viewport}-reopened-renovation.png`))
+  const reopened = await readEnergymapBuildingClickState({
+    page,
+    target,
+    label: `${viewport}-reopened-renovation`,
+  })
+
+  if (reopened.renovationPage == null) {
+    errors.push(`${viewport}: renovation tab did not reopen from action rail`)
+  }
+  if (reopened.baseSidebar != null) {
+    errors.push(`${viewport}: base sidebar remained visible after reopening`)
+  }
+
+  await page
+    .locator('.sidebar-panel-extension-page-container-controls button')
+    .nth(1)
+    .click()
+  await page.waitForSelector('[data-testid="building-info-tab-page-renovation"]', {
+    state: 'detached',
+    timeout: 90000,
+  })
+  await page
+    .waitForFunction(() => {
+      const store = window.__avoin_req?.(
+        '(app-pages-browser)/./src/app/[locale]/(map)/(applets)/energiakartta/state/appletStore.ts'
+      )?.useAppletStore
+
+      return store?.getState().selectedBuilding == null
+    })
+    .catch(() => {})
+  await page.waitForTimeout(500)
+  screenshots.push(await screenshot(`${viewport}-closed.png`))
+  const closed = await readEnergymapBuildingClickState({
+    page,
+    target,
+    label: `${viewport}-closed`,
+  })
+
+  if (closed.selectedBuilding != null) {
+    errors.push(`${viewport}: selected building remained after close`)
+  }
+  if (closed.selectedFeaturesLength !== 0) {
+    errors.push(`${viewport}: selected map features remained after close`)
+  }
+  if (closed.buildingActionRail != null) {
+    errors.push(`${viewport}: collapsed action rail remained after close`)
+  }
+  if (closed.baseSidebar == null) {
+    errors.push(`${viewport}: normal sidebar was not restored after close`)
+  }
+
+  if (clickToPanelMs != null && clickToPanelMs > 5000) {
+    errors.push(
+      `${viewport}: building info opened too slowly (${clickToPanelMs}ms)`
+    )
+  }
+
+  return {
+    target,
+    clickToPanelMs,
+    screenshots,
+    states: {
+      expandedBasic,
+      renovation,
+      collapsed,
+      reopened,
+      closed,
+    },
+  }
+}
+
 const runCheck = async ({ browser, args, check }) => {
   const page = await browser.newPage({ viewport: VIEWPORTS[check.viewport] })
-  const consoleErrors = []
+  const consoleMessages = []
 
   page.on('console', (message) => {
-    if (message.type() === 'error') {
-      consoleErrors.push(message.text())
+    if (message.type() === 'error' || message.type() === 'warning') {
+      consoleMessages.push({
+        type: message.type(),
+        text: message.text(),
+      })
     }
+  })
+  page.on('pageerror', (error) => {
+    consoleMessages.push({
+      type: 'pageerror',
+      text: error.stack || error.message,
+    })
   })
 
   const url = toUrl({ baseUrl: args.baseUrl, route: check.route })
   const errors = []
   const warnings = []
+  let buildingClick = null
   let selectedBuildingTabs = null
   let routeLoadFailed = false
 
@@ -998,20 +1492,46 @@ const runCheck = async ({ browser, args, check }) => {
       }
     }
 
-    if (consoleErrors.length > 0) {
-      warnings.push(
-        ...consoleErrors.slice(0, 5).map((text) => `console.error: ${text}`)
-      )
-      if (consoleErrors.length > 5) {
-        warnings.push(`console.error: ${consoleErrors.length - 5} more omitted`)
-      }
-    }
-
     if (check.selectedBuildingTabs && !routeLoadFailed) {
       selectedBuildingTabs = await runEnergymapSelectedBuildingTabsCheck({
         page,
         errors,
       })
+    }
+
+    if (check.buildingClick && !routeLoadFailed) {
+      buildingClick = await runEnergymapBuildingClickCheck({
+        page,
+        viewport: check.viewport,
+        outputDir: args.outputDir,
+        errors,
+        consoleMessages,
+      })
+    }
+
+    if (
+      check.assertNoDynamicParams &&
+      hasDynamicParamsMessage(consoleMessages) &&
+      !errors.some((error) => error.includes('dynamic params warning/error'))
+    ) {
+      errors.push(
+        `dynamic params warning/error was logged: ${getDynamicParamsMessages(
+          consoleMessages
+        ).join(' | ')}`
+      )
+    }
+
+    if (consoleMessages.length > 0) {
+      warnings.push(
+        ...consoleMessages
+          .slice(0, 5)
+          .map((message) => `${message.type}: ${message.text}`)
+      )
+      if (consoleMessages.length > 5) {
+        warnings.push(
+          `console/page messages: ${consoleMessages.length - 5} more omitted`
+        )
+      }
     }
 
     return {
@@ -1031,6 +1551,7 @@ const runCheck = async ({ browser, args, check }) => {
         visible: mainSidebarRootVisible,
       },
       mapControls: mapControlStats,
+      buildingClick,
       selectedBuildingTabs,
       errors,
       warnings,
