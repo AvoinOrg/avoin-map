@@ -28,6 +28,11 @@ type BaseAppletWrapperProps = {
   isNavbarHidden?: boolean
   searchCountryCodes?: string[]
   disableDefaultFitbounds?: boolean
+  defaultView?: {
+    center: [number, number]
+    zoom: number
+    duration?: number
+  }
   listedLayerGroups?: ListedLayerMenuItem[]
   sx?: any
 }
@@ -57,6 +62,7 @@ const AppletWrapper = ({
   isNavbarHidden,
   searchCountryCodes,
   disableDefaultFitbounds = false,
+  defaultView,
   listedLayerGroups,
   sidebarHeaderElement,
   sidebarHeaderTitle,
@@ -70,6 +76,7 @@ const AppletWrapper = ({
   const setMapContext = useMapStore((state) => state.setMapContext)
   const stateMapContext = useMapStore((state) => state.mapContext)
   const fitBounds = useMapStore((state) => state.fitBounds)
+  const easeTo = useMapStore((state) => state.easeTo)
 
   useExclusiveLayerGroups()
   const storeSearchCountryCodes = useUIStore(
@@ -93,6 +100,25 @@ const AppletWrapper = ({
   )
 
   useEffect(() => {
+    if (defaultView != null) {
+      easeTo({
+        options: {
+          center: defaultView.center,
+          zoom: defaultView.zoom,
+          duration: defaultView.duration ?? 0,
+        },
+        autoRelocateOptions: {
+          checkIfAutoRelocate: true,
+          disableAutoRelocate: true,
+        },
+      })
+      return
+    }
+
+    if (disableDefaultFitbounds) {
+      return
+    }
+
     fitBounds({
       bbox: FINLAND_BOUNDS,
       options: { duration: 200, lonExtra: 0.6 },
@@ -101,7 +127,7 @@ const AppletWrapper = ({
         disableAutoRelocate: true,
       },
     })
-  }, [])
+  }, [defaultView, disableDefaultFitbounds, easeTo, fitBounds])
 
   useEffect(() => {
     if (listedLayerGroups == null) {

@@ -137,6 +137,8 @@ const PANEL_BACKGROUNDS: Record<EnergymapBuildingInfoPanelId, string> = {
   buildingDetails: '#f4f4f4',
 }
 
+const RENOVATION_EFFECTIVENESS_BACKGROUND = '#f0f0f0'
+
 const PANEL_CONTENT_WIDTHS: Record<EnergymapBuildingInfoPanelId, string> = {
   energyConsumption: '17.625rem',
   renovationRecommendations: '26.875rem',
@@ -233,6 +235,7 @@ const BUILDING_INFO_ACTION_BUTTON_GAP_PX = 10
 
 const textSx = {
   fontSize: '0.625rem',
+  fontWeight: 400,
   lineHeight: '1.125rem',
   letterSpacing: '0.1em',
 } as const
@@ -477,7 +480,8 @@ const EnergyPrimaryMetricIcon = ({
   active: boolean
 }) => {
   const iconSx = {
-    fontSize: metricId === 'co2' ? '0.875rem' : '0.8125rem',
+    fontSize:
+      metricId === 'co2' ? (active ? '1.125rem' : '1rem') : '0.8125rem',
     color: active ? '#ffffff' : '#111111',
   } as const
 
@@ -1058,10 +1062,18 @@ const getPrimaryMetricButtonWidth = ({
   active: boolean
 }) => {
   if (active) {
+    if (metricId === 'co2') {
+      return '170px'
+    }
+
+    if (metricId === 'cost') {
+      return '130px'
+    }
+
     return metricId === 'energy' ? '140px' : '104px'
   }
 
-  return metricId === 'co2' ? '38px' : '34px'
+  return metricId === 'co2' ? '42px' : '32px'
 }
 
 const BuildingInfoPrimaryMetricButton = ({
@@ -1443,7 +1455,7 @@ const BuildingInfoEnergyConsumptionSection = ({
           display: 'flex',
           alignItems: 'center',
           gap: '5px',
-          width: '260px',
+          width: '284px',
           maxWidth: '100%',
           minHeight: '24px',
         }}
@@ -1788,6 +1800,7 @@ const BuildingInfoPanelBody = ({
   titleId,
   accentColor,
   sections = panel.sections,
+  footer,
   showDescription = true,
   showHeroGraphic = true,
   sx,
@@ -1796,6 +1809,7 @@ const BuildingInfoPanelBody = ({
   titleId: string
   accentColor: string
   sections?: EnergymapBuildingInfoSection[]
+  footer?: React.ReactNode
   showDescription?: boolean
   showHeroGraphic?: boolean
   sx?: SxProps<Theme>
@@ -1850,6 +1864,7 @@ const BuildingInfoPanelBody = ({
         accentColor={accentColor}
       />
     ))}
+    {footer}
   </Box>
 )
 
@@ -1916,6 +1931,7 @@ const BuildingInfoPanelSection = ({
   panel,
   tabId,
   bodySx,
+  footer,
   sections,
   showDescription,
   showHeroGraphic,
@@ -1924,6 +1940,7 @@ const BuildingInfoPanelSection = ({
   panel: EnergymapBuildingInfoPanel
   tabId: BuildingInfoTabId
   bodySx?: SxProps<Theme>
+  footer?: React.ReactNode
   sections?: EnergymapBuildingInfoSection[]
   showDescription?: boolean
   showHeroGraphic?: boolean
@@ -1957,6 +1974,7 @@ const BuildingInfoPanelSection = ({
         titleId={titleId}
         accentColor={accentColor}
         sections={sections}
+        footer={footer}
         showDescription={showDescription}
         showHeroGraphic={showHeroGraphic}
         sx={bodySx}
@@ -2069,6 +2087,23 @@ const getRenovationComparisonSection = (
   panel?: EnergymapBuildingInfoPanel
 ) => panel?.sections.find((section) => section.id === 'scenarioComparison')
 
+const BuildingInfoRenovationReferenceYearNote = () => (
+  <Typography
+    data-testid="building-info-renovation-reference-year-note"
+    sx={{
+      ...textSx,
+      mt: 'auto',
+      pt: '2rem',
+      color: '#111111',
+    }}
+  >
+    <TText
+      keyName="sidebar.building_info.panels.energy.reference_year_note_unavailable"
+      ns="energiakartta"
+    />
+  </Typography>
+)
+
 const BuildingInfoRenovationComparisonWide = ({
   panel,
 }: {
@@ -2153,37 +2188,84 @@ const BuildingInfoRenovationComparisonWide = ({
   )
 }
 
-const BuildingInfoRenovationEffectivenessContent = ({
-  panel,
-}: {
-  panel: EnergymapBuildingInfoPanel
-}) => {
-  const notes =
-    getRenovationComparisonSection(panel)?.notes?.filter(
-      (note) => note.status !== 'missing'
-    ) ?? []
-
-  if (notes.length === 0) {
-    return null
-  }
-
-  return (
-    <Box
-      data-testid="building-info-renovation-effectiveness-content"
+const BuildingInfoRenovationEffectivenessContent = () => (
+  <Box
+    data-testid="building-info-renovation-effectiveness-content"
+    sx={{
+      width: `min(${PANEL_CONTENT_WIDTHS.buildingDetails}, calc(100% - 4rem))`,
+      maxWidth: '100%',
+      ml: '4.375rem',
+      pt: '11.75rem',
+      pb: DESKTOP_SECTION_BOTTOM_PADDING,
+    }}
+  >
+    <Typography
       sx={{
-        width: `min(${PANEL_CONTENT_WIDTHS.buildingDetails}, calc(100% - 4rem))`,
-        maxWidth: '100%',
-        ml: '4.375rem',
-        pt: DESKTOP_HEADING_TOP,
-        pb: DESKTOP_SECTION_BOTTOM_PADDING,
+        fontSize: '0.75rem',
+        fontWeight: 400,
+        lineHeight: '1.125rem',
+        letterSpacing: '0.1em',
+        color: '#111111',
+        textTransform: 'uppercase',
       }}
     >
-      {notes.map((note) => (
-        <BuildingInfoNoteText key={note.id} note={note} />
-      ))}
+      <TText
+        keyName="sidebar.building_info.panels.renovation.effectiveness.title"
+        ns="energiakartta"
+      />
+    </Typography>
+    <Box
+      sx={{
+        mt: '0.75rem',
+        borderTop: '0.3px solid #cfcfcf',
+      }}
+    />
+    <Typography
+      sx={{
+        ...textSx,
+        mt: '2.5rem',
+        color: '#111111',
+        whiteSpace: 'normal',
+        '& b': {
+          fontWeight: 700,
+        },
+      }}
+    >
+      <TText
+        keyName="sidebar.building_info.panels.renovation.effectiveness.body"
+        ns="energiakartta"
+      />
+    </Typography>
+    <Box
+      aria-hidden="true"
+      data-testid="building-info-renovation-effectiveness-indicator"
+      sx={{
+        mt: '3rem',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: '0.625rem',
+      }}
+    >
+      <Box
+        sx={{
+          width: '25px',
+          height: '10px',
+          borderRadius: '5px',
+          backgroundColor: '#111111',
+        }}
+      />
+      <Box
+        sx={{
+          width: '10px',
+          height: '10px',
+          borderRadius: '50%',
+          backgroundColor: '#a0a0a0',
+        }}
+      />
     </Box>
-  )
-}
+  </Box>
+)
 
 const BuildingInfoDesktopTabPageContent = ({
   tabId,
@@ -2195,6 +2277,12 @@ const BuildingInfoDesktopTabPageContent = ({
   const energyPanel = panelsById.get('energyConsumption')
   const renovationPanel = panelsById.get('renovationRecommendations')
   const buildingPanel = panelsById.get('buildingDetails')
+  const energyTopSections =
+    tabId === 'renovation'
+      ? energyPanel?.sections.filter(
+          (section) => section.id !== 'calculationContext'
+        )
+      : energyPanel?.sections
   const renovationTopSections =
     renovationPanel?.sections.filter(
       (section) => section.id !== 'scenarioComparison'
@@ -2217,11 +2305,29 @@ const BuildingInfoDesktopTabPageContent = ({
           <BuildingInfoPanelSection
             panel={energyPanel}
             tabId={tabId}
+            sections={energyTopSections}
+            footer={
+              tabId === 'renovation' ? (
+                <BuildingInfoRenovationReferenceYearNote />
+              ) : undefined
+            }
             sx={{ minHeight: '100%', height: '100%' }}
-            bodySx={getDesktopGridPanelContentSx({
-              tabId,
-              panelId: energyPanel.id,
-            })}
+            bodySx={[
+              getDesktopGridPanelContentSx({
+                tabId,
+                panelId: energyPanel.id,
+              }),
+              ...(tabId === 'renovation'
+                ? [
+                    {
+                      display: 'flex',
+                      flexDirection: 'column',
+                      minHeight: '100%',
+                      height: '100%',
+                    },
+                  ]
+                : []),
+            ]}
           />
         </BuildingInfoDesktopGridSection>
       )}
@@ -2287,12 +2393,10 @@ const BuildingInfoDesktopTabPageContent = ({
             slot="bottom-right"
             gridArea="effectiveness"
             panelId={renovationPanel.id}
-            backgroundColor={PANEL_BACKGROUNDS.buildingDetails}
+            backgroundColor={RENOVATION_EFFECTIVENESS_BACKGROUND}
             minHeight={DESKTOP_GRID_SECTION_MIN_HEIGHTS.renovationBottom}
           >
-            <BuildingInfoRenovationEffectivenessContent
-              panel={renovationPanel}
-            />
+            <BuildingInfoRenovationEffectivenessContent />
           </BuildingInfoDesktopGridSection>
         </>
       )}

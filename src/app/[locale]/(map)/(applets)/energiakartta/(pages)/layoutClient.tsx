@@ -8,6 +8,11 @@ import AppletWrapper from '#/components/common/AppletWrapper'
 import { listedLayerGroups } from '../common/constants'
 
 const localizationNamespace = 'energiakartta'
+const HELSINKI_DEFAULT_VIEW = {
+  center: [24.9384, 60.1699] as [number, number],
+  zoom: 12,
+  duration: 0,
+}
 
 const layoutClient = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -22,6 +27,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
         mapContext={'energiakartta'}
         localizationNamespace={localizationNamespace}
         isNavbarHidden={true}
+        defaultView={HELSINKI_DEFAULT_VIEW}
         listedLayerGroups={listedLayerGroups}
         sidebarHeaderTitle={'Energiakartta'}
         sidebarHeaderChildren={

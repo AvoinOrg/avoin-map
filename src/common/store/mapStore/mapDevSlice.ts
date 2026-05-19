@@ -88,7 +88,7 @@ export const createMapDevSlice: (
         // If the overlay doesn't exist, create and turn it on
         coordPrintOverlay = document.createElement('div')
         coordPrintOverlay.style.position = 'absolute'
-        coordPrintOverlay.style.bottom = '40px'
+        coordPrintOverlay.style.bottom = '5rem'
         coordPrintOverlay.style.right = '10px'
         coordPrintOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.7)'
         coordPrintOverlay.style.color = 'white'

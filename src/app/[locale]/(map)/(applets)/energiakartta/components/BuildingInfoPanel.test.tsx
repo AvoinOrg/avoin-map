@@ -277,7 +277,7 @@ const consumptionControls: EnergymapBuildingInfoConsumptionControls = {
       },
     },
   ],
-  defaultEnergySubmetricIds: ['electricity', 'heating', 'waterHeating'],
+  defaultEnergySubmetricIds: ['electricity', 'heating'],
   energySubmetrics: [
     {
       id: 'electricity',
@@ -300,7 +300,7 @@ const consumptionControls: EnergymapBuildingInfoConsumptionControls = {
       label: translation('panels.energy.series.water_heating'),
       ariaLabelKey: 'panels.energy.series.water_heating',
       supported: false,
-      defaultSelected: true,
+      defaultSelected: false,
       metric: waterHeatingEnergyMetric,
       unavailableNote: {
         id: 'waterHeatingUnavailable',
@@ -395,6 +395,22 @@ const panels: EnergymapBuildingInfoPanel[] = [
           },
         ],
       },
+      {
+        id: 'calculationContext',
+        title: translation('section.energy.calculation_context.title'),
+        rows: [
+          {
+            id: 'referenceYear',
+            label: translation(
+              'sidebar.building_info.panels.energy.rows.reference_year'
+            ),
+            text: translation(
+              'sidebar.building_info.panels.energy.note.reference_year_unavailable'
+            ),
+            status: 'placeholder',
+          },
+        ],
+      },
     ],
   },
   {
@@ -435,6 +451,15 @@ const panels: EnergymapBuildingInfoPanel[] = [
                 sourceProperties: ['default_total', 'aahp_total'],
               },
             ],
+          },
+        ],
+        notes: [
+          {
+            id: 'scenarioEstimate',
+            text: translation(
+              'sidebar.building_info.panels.renovation.note.scenario_estimate'
+            ),
+            status: 'estimate',
           },
         ],
       },
@@ -722,8 +747,42 @@ describe('BuildingInfoPanel', () => {
       screen.getByTestId('building-info-grid-section-bottom-right')
     ).toHaveAttribute('data-grid-area', 'effectiveness')
     expect(
+      screen.getByTestId('building-info-grid-section-bottom-right')
+    ).toHaveStyle({ backgroundColor: '#f0f0f0' })
+    expect(
       screen.getByTestId('building-info-renovation-comparison-wide')
     ).toBeInTheDocument()
+    expect(
+      screen.queryByText('section.energy.calculation_context.title')
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByText(
+        'sidebar.building_info.panels.energy.rows.reference_year'
+      )
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByTestId('building-info-renovation-reference-year-note')
+    ).toHaveTextContent(
+      'sidebar.building_info.panels.energy.reference_year_note_unavailable'
+    )
+    expect(
+      screen.getByTestId('building-info-renovation-effectiveness-content')
+    ).toHaveTextContent(
+      'sidebar.building_info.panels.renovation.effectiveness.title'
+    )
+    expect(
+      screen.getByTestId('building-info-renovation-effectiveness-content')
+    ).toHaveTextContent(
+      'sidebar.building_info.panels.renovation.effectiveness.body'
+    )
+    expect(
+      screen.getByTestId('building-info-renovation-effectiveness-indicator')
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText(
+        'sidebar.building_info.panels.renovation.note.scenario_estimate'
+      )
+    ).not.toBeInTheDocument()
   })
 
   it('notifies page state when the active tab changes', async () => {
@@ -878,11 +937,11 @@ describe('BuildingInfoPanel', () => {
       within(energyPanel).getByRole('button', {
         name: 'panels.energy.series.water_heating',
       })
-    ).toHaveAttribute('aria-pressed', 'true')
+    ).toHaveAttribute('aria-pressed', 'false')
     expect(
       within(energyPanel).getByTestId('building-info-energy-consumption-values')
     ).toHaveTextContent('100')
-    expect(energyPanel).toHaveTextContent(
+    expect(energyPanel).not.toHaveTextContent(
       'sidebar.building_info.panels.energy.unsupported.water_heating'
     )
   })
@@ -905,7 +964,7 @@ describe('BuildingInfoPanel', () => {
     )
     expect(values).toHaveTextContent('30')
     expect(values).not.toHaveTextContent('100')
-    expect(energyPanel).toHaveTextContent(
+    expect(energyPanel).not.toHaveTextContent(
       'sidebar.building_info.panels.energy.unsupported.water_heating'
     )
 
@@ -915,7 +974,7 @@ describe('BuildingInfoPanel', () => {
       })
     )
     expect(values).toHaveTextContent('30')
-    expect(energyPanel).not.toHaveTextContent(
+    expect(energyPanel).toHaveTextContent(
       'sidebar.building_info.panels.energy.unsupported.water_heating'
     )
 
@@ -926,6 +985,9 @@ describe('BuildingInfoPanel', () => {
     )
     expect(values).toHaveTextContent(
       'sidebar.building_info.panels.energy.unsupported.no_selected_energy_submetrics'
+    )
+    expect(energyPanel).toHaveTextContent(
+      'sidebar.building_info.panels.energy.unsupported.water_heating'
     )
   })
 
@@ -999,7 +1061,10 @@ describe('BuildingInfoPanel', () => {
       within(energyPanel).getByRole('button', {
         name: 'panels.energy.series.water_heating',
       })
-    ).toHaveAttribute('aria-pressed', 'true')
+    ).toHaveAttribute('aria-pressed', 'false')
+    expect(energyPanel).not.toHaveTextContent(
+      'sidebar.building_info.panels.energy.unsupported.water_heating'
+    )
   })
 
   it('can open on the requested tab after collapsed-tab selection', async () => {

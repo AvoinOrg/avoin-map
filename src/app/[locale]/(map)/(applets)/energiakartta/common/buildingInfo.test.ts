@@ -451,7 +451,6 @@ describe('Energiakartta building info model', () => {
     expect(controls.defaultEnergySubmetricIds).toEqual([
       'electricity',
       'heating',
-      'waterHeating',
     ])
     expect(
       controls.energySubmetrics.map((submetric) => ({
@@ -480,7 +479,7 @@ describe('Energiakartta building info model', () => {
       {
         id: 'waterHeating',
         supported: false,
-        defaultSelected: true,
+        defaultSelected: false,
         annualSources: undefined,
         unavailableNote: {
           type: 'translation',
@@ -550,6 +549,9 @@ describe('Energiakartta building info model', () => {
       locale: 'en-US',
     })
     const renovationPanel = getPanel(panels ?? [], 'renovationRecommendations')
+    const scenarioComparison = renovationPanel.sections.find(
+      (section) => section.id === 'scenarioComparison'
+    )
     const certificateRecommendations = getRow(
       renovationPanel,
       'energyCertificateRecommendations'
@@ -563,6 +565,7 @@ describe('Energiakartta building info model', () => {
     )
 
     expect(certificateRecommendations.status).toBe('placeholder')
+    expect(scenarioComparison?.notes).toBeUndefined()
     expectTranslation(
       certificateRecommendations.text,
       `${translationPrefix}.placeholders.not_published`

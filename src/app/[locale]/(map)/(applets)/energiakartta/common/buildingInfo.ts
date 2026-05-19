@@ -826,7 +826,7 @@ const createConsumptionControls = ({
         unavailableNoteKey: key('panels.energy.unsupported.co2'),
       }),
     ],
-    defaultEnergySubmetricIds: ['electricity', 'heating', 'waterHeating'],
+    defaultEnergySubmetricIds: ['electricity', 'heating'],
     energySubmetrics: [
       {
         id: 'electricity',
@@ -849,7 +849,7 @@ const createConsumptionControls = ({
         label: translationText(key('panels.energy.series.water_heating')),
         ariaLabelKey: key('panels.energy.series.water_heating'),
         supported: false,
-        defaultSelected: true,
+        defaultSelected: false,
         metric: waterHeatingMetric,
         unavailableNote: waterHeatingUnavailableNote,
       },
@@ -1317,13 +1317,6 @@ const createRenovationRecommendationsPanel = ({
           locale,
         })
       ),
-      notes: [
-        note({
-          id: 'scenarioEstimate',
-          keyName: key('panels.renovation.note.scenario_estimate'),
-          status: 'estimate',
-        }),
-      ],
     },
   ],
 })
