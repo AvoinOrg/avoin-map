@@ -60,6 +60,7 @@ type BuildingInfoTabPagesProps = {
   panels: EnergymapBuildingInfoPanel[]
   ariaLabels: BuildingInfoActionLabels
   activeTabId?: BuildingInfoTabId
+  forceMobileLayout?: boolean
   onActiveTabChange?: (tabId: BuildingInfoTabId) => void
   onClose: () => void
   onCollapse: (tabId: BuildingInfoTabId) => void
@@ -2322,11 +2323,14 @@ const BuildingInfoStackedTabPageContent = ({
 const BuildingInfoTabPageContent = ({
   tabId,
   panels,
+  forceMobileLayout = false,
 }: {
   tabId: BuildingInfoTabId
   panels: EnergymapBuildingInfoPanel[]
+  forceMobileLayout?: boolean
 }) => {
   const isMobile = useIsMobile()
+  const useMobileLayout = isMobile || forceMobileLayout
   const panelsById = React.useMemo(
     () =>
       new Map<EnergymapBuildingInfoPanelId, EnergymapBuildingInfoPanel>(
@@ -2353,7 +2357,7 @@ const BuildingInfoTabPageContent = ({
         backgroundColor: '#f9f9f9',
       }}
     >
-      {isMobile ? (
+      {useMobileLayout ? (
         <BuildingInfoStackedTabPageContent
           tabId={tabId}
           panels={visiblePanels}
@@ -2494,44 +2498,58 @@ export const getBuildingInfoModeForTabId = (tabId: BuildingInfoTabId) =>
 const isBuildingInfoTabId = (tabId?: string): tabId is BuildingInfoTabId =>
   tabId === 'basic' || tabId === 'renovation'
 
-const getBuildingInfoPageControlsSx = (
+const getBuildingInfoPageControlsSx = ({
+  tabId,
+  forceMobileLayout = false,
+}: {
   tabId: BuildingInfoTabId
-): SxProps<Theme> => ({
-  position: { desktop: 'absolute' },
-  top: { desktop: tabId === 'renovation' ? '50px' : '35px' },
-  right: { desktop: tabId === 'renovation' ? '120px' : 'auto' },
-  left: {
-    desktop:
-      tabId === 'renovation'
-        ? 'auto'
-        : 'min(624px, calc(100% - 116px))',
-  },
-  gap: { desktop: '4px' },
-  px: { desktop: 0 },
-  py: { desktop: 0 },
-  backgroundColor: { desktop: 'transparent' },
-  borderBottom: { desktop: 0 },
-  zIndex: 2,
-  '& .MuiIconButton-root': {
-    width: { desktop: '36px' },
-    minWidth: { desktop: '36px' },
-    height: { desktop: '36px' },
-    borderRadius: { desktop: '5px' },
-    backgroundColor: { desktop: '#f4f4f4' },
-    boxShadow: { desktop: 'none' },
-    '&:hover': {
-      backgroundColor: { desktop: '#ffffff' },
+  forceMobileLayout?: boolean
+}): SxProps<Theme> | undefined => {
+  if (forceMobileLayout) {
+    return undefined
+  }
+
+  return {
+    position: { desktop: tabId === 'renovation' ? 'fixed' : 'absolute' },
+    top: { desktop: tabId === 'renovation' ? '50px' : '35px' },
+    right: { desktop: tabId === 'renovation' ? '70px' : 'auto' },
+    left: {
+      desktop:
+        tabId === 'renovation'
+          ? 'auto'
+          : 'min(624px, calc(100% - 116px))',
     },
-  },
-  '& .MuiSvgIcon-root': {
-    fontSize: { desktop: '1rem' },
-  },
-})
+    gap: { desktop: '4px' },
+    px: { desktop: 0 },
+    py: { desktop: 0 },
+    backgroundColor: { desktop: 'transparent' },
+    borderBottom: { desktop: 0 },
+    zIndex:
+      tabId === 'renovation'
+        ? (theme: Theme) => theme.zIndex.drawer + 12
+        : 2,
+    '& .MuiIconButton-root': {
+      width: { desktop: '36px' },
+      minWidth: { desktop: '36px' },
+      height: { desktop: '36px' },
+      borderRadius: { desktop: '5px' },
+      backgroundColor: { desktop: '#f4f4f4' },
+      boxShadow: { desktop: 'none' },
+      '&:hover': {
+        backgroundColor: { desktop: '#ffffff' },
+      },
+    },
+    '& .MuiSvgIcon-root': {
+      fontSize: { desktop: '1rem' },
+    },
+  }
+}
 
 export const BuildingInfoTabPages = ({
   panels,
   ariaLabels,
   activeTabId,
+  forceMobileLayout = false,
   onActiveTabChange,
   onClose,
   onCollapse,
@@ -2555,9 +2573,16 @@ export const BuildingInfoTabPages = ({
         contentSx={{
           backgroundColor: '#f9f9f9',
         }}
-        controlsSx={getBuildingInfoPageControlsSx('basic')}
+        controlsSx={getBuildingInfoPageControlsSx({
+          tabId: 'basic',
+          forceMobileLayout,
+        })}
       >
-        <BuildingInfoTabPageContent tabId="basic" panels={panels} />
+        <BuildingInfoTabPageContent
+          tabId="basic"
+          panels={panels}
+          forceMobileLayout={forceMobileLayout}
+        />
       </SidebarPanelExtensionPageContainer>
     </SidebarPanelExtensionTabContainer>
     <SidebarPanelExtensionTabContainer
@@ -2574,9 +2599,16 @@ export const BuildingInfoTabPages = ({
         contentSx={{
           backgroundColor: '#f9f9f9',
         }}
-        controlsSx={getBuildingInfoPageControlsSx('renovation')}
+        controlsSx={getBuildingInfoPageControlsSx({
+          tabId: 'renovation',
+          forceMobileLayout,
+        })}
       >
-        <BuildingInfoTabPageContent tabId="renovation" panels={panels} />
+        <BuildingInfoTabPageContent
+          tabId="renovation"
+          panels={panels}
+          forceMobileLayout={forceMobileLayout}
+        />
       </SidebarPanelExtensionPageContainer>
     </SidebarPanelExtensionTabContainer>
   </>

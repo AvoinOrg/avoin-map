@@ -3,6 +3,7 @@ import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
 
 import { useUIStore } from '#/common/store/uiStore'
+import type { SidebarPanelExtensionRuntimeOptions } from '#/common/types/sidebar'
 import { SlotsProvider } from '#/components/context/slotsContext'
 
 import {
@@ -80,13 +81,19 @@ const resetUIStore = () => {
   })
 }
 
-const renderSidebarPanelExtension = (children: React.ReactNode) =>
+const renderSidebarPanelExtension = (
+  children: React.ReactNode,
+  initialRuntimeOptions: SidebarPanelExtensionRuntimeOptions = {
+    visiblePanels: ['main'],
+    activePanel: 'main',
+  }
+) =>
   render(
     <SlotsProvider>
       <SidebarRoot>
         <SidebarPanelExtensionProvider
           id="test-extension"
-          initialRuntimeOptions={{ visiblePanels: ['main'], activePanel: 'main' }}
+          initialRuntimeOptions={initialRuntimeOptions}
         >
           <IntoSidebarPanelExtensionPanelSlot panelId="main">
             {children}
@@ -331,6 +338,78 @@ describe('SidebarPanelExtension generic tab helpers', () => {
         layoutMode: 'fullscreen',
       })
     ).toBe('100vw')
+    expect(
+      getSidebarPanelExtensionMainPanelWidth({
+        width: 'wide',
+        chrome: 'hidden',
+        panelLayout: 'single',
+        visiblePanels: ['main'],
+        layoutMode: 'fullscreen',
+        desktopMainPanelWidth: '100%',
+        desktopPanelGroupMaxWidth: '1440px',
+      })
+    ).toBe('100%')
+  })
+
+  it('centers opt-in capped fullscreen desktop panel groups', async () => {
+    renderSidebarPanelExtension(
+      <div>Fullscreen capped panel content</div>,
+      {
+        width: 'wide',
+        chrome: 'hidden',
+        panelLayout: 'single',
+        visiblePanels: ['main'],
+        activePanel: 'main',
+        layoutMode: 'fullscreen',
+        desktopMainPanelWidth: '100%',
+        desktopPanelGroupMaxWidth: '1440px',
+      }
+    )
+
+    expect(
+      await screen.findByText('Fullscreen capped panel content')
+    ).toBeInTheDocument()
+    expect(screen.getByTestId('sidebar-panel-extension-root')).toHaveStyle({
+      left: '0px',
+      right: '0px',
+      width: '100vw',
+      backgroundColor: '#ffffff',
+      pointerEvents: 'auto',
+    })
+    expect(
+      screen.getByTestId('sidebar-panel-extension-desktop-panel-group')
+    ).toHaveStyle({
+      width: 'min(1440px, 100vw)',
+      marginLeft: 'auto',
+      marginRight: 'auto',
+    })
+    expect(
+      screen.getByTestId('sidebar-panel-extension-desktop-panel-main')
+    ).toHaveStyle({ width: '100%' })
+  })
+
+  it('uses mobile extension rendering when forceMobileLayout is set on desktop', async () => {
+    renderSidebarPanelExtension(
+      <div>Forced mobile panel content</div>,
+      {
+        visiblePanels: ['main'],
+        activePanel: 'main',
+        forceMobileLayout: true,
+      }
+    )
+
+    expect(
+      await screen.findByText('Forced mobile panel content')
+    ).toBeInTheDocument()
+    expect(
+      screen.getByTestId('sidebar-panel-extension-mobile-panels')
+    ).toHaveAttribute(
+      'data-sidebar-panel-extension-mobile-render',
+      'overlay'
+    )
+    expect(
+      screen.queryByTestId('sidebar-panel-extension-root')
+    ).not.toBeInTheDocument()
   })
 
   it('styles selected tab icon buttons with a light gray background', () => {

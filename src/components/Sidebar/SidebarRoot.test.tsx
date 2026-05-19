@@ -384,7 +384,12 @@ describe('SidebarRoot', () => {
       children: (
         <SidebarPanelExtensionProvider
           id="toggle-hidden-extension"
-          initialRuntimeOptions={{ visiblePanels: ['main'], activePanel: 'main' }}
+          initialRuntimeOptions={{
+            visiblePanels: ['main'],
+            activePanel: 'main',
+            desktopPanelGroupMaxWidth: '1440px',
+            forceMobileLayout: false,
+          }}
         >
           <IntoSidebarPanelExtensionPanelSlot panelId="main">
             <span>Toggle hidden extension body</span>
@@ -431,6 +436,8 @@ describe('SidebarRoot', () => {
             visiblePanels: ['main'],
             activePanel: 'main',
             layoutMode: 'fullscreen',
+            desktopMainPanelWidth: '100%',
+            desktopPanelGroupMaxWidth: '1440px',
           }}
         >
           <IntoSidebarPanelExtensionPanelSlot panelId="main">
@@ -451,6 +458,9 @@ describe('SidebarRoot', () => {
     const panel = screen.getByTestId(
       'sidebar-panel-extension-desktop-panel-main'
     )
+    const panelGroup = screen.getByTestId(
+      'sidebar-panel-extension-desktop-panel-group'
+    )
     const tabRail = screen.getByTestId(
       'sidebar-panel-extension-desktop-tab-rail'
     )
@@ -459,7 +469,12 @@ describe('SidebarRoot', () => {
     )
 
     expect(root).toHaveStyle({ left: '0px', right: '0px', width: '100vw' })
-    expect(panel).toHaveStyle({ width: '100vw' })
+    expect(panelGroup).toHaveStyle({
+      width: 'min(1440px, 100vw)',
+      marginLeft: 'auto',
+      marginRight: 'auto',
+    })
+    expect(panel).toHaveStyle({ width: '100%' })
     expect(tabControls).toHaveAttribute(
       'data-sidebar-panel-extension-tab-placement',
       'bottomActionRow'

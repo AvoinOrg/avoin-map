@@ -250,12 +250,39 @@ const SidebarPanelExtensionDesktopPanel = ({
   )
 }
 
+const getDesktopPanelGroupSx = (
+  options?: SidebarPanelExtensionRuntimeOptions
+): SxProps<Theme> => {
+  const fullscreen = isFullscreenLayout(options)
+  const maxWidth = options?.desktopPanelGroupMaxWidth
+
+  return {
+    display: 'flex',
+    flexDirection: 'row',
+    height: '100%',
+    minHeight: 0,
+    flex: '0 0 auto',
+    pointerEvents: 'auto',
+    ...(fullscreen
+      ? {
+          width: maxWidth == null ? 'auto' : `min(${maxWidth}, 100vw)`,
+          maxWidth: '100vw',
+          mx: maxWidth == null ? 0 : 'auto',
+        }
+      : {
+          width: 'auto',
+        }),
+  }
+}
+
 const getDesktopControlsSx = ({
   placement,
   sidebarOffset,
+  layoutMode,
 }: {
   placement: SidebarActionRailPlacement
   sidebarOffset: number
+  layoutMode?: SidebarPanelExtensionRuntimeOptions['layoutMode']
 }): SxProps<Theme> => {
   if (placement === 'fixedBottomActionRow') {
     return (theme: Theme) => ({
@@ -294,6 +321,23 @@ const getDesktopControlsSx = ({
       flexDirection: 'column',
       gap: `${ACTION_RAIL_GAP_PX}px`,
       pointerEvents: 'auto',
+    })
+  }
+
+  if (layoutMode === 'fullscreen') {
+    return (theme: Theme) => ({
+      position: 'fixed',
+      right: `${FIXED_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
+      bottom: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
+      zIndex: theme.zIndex.drawer + 12,
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: `${ACTION_RAIL_GAP_PX}px`,
+      pointerEvents: 'auto',
+      '&:empty': {
+        display: 'none',
+      },
     })
   }
 
@@ -554,6 +598,7 @@ export const SidebarPanelExtension = ({
   sx,
 }: SidebarPanelExtensionProps) => {
   const isMobile = useIsMobile()
+  const useMobileLayout = isMobile || options?.forceMobileLayout === true
   const fullscreen = isFullscreenLayout(options)
   const visiblePanels = getVisiblePanels(options)
   const mobileMode = options?.mobileMode ?? 'stacked'
@@ -573,7 +618,7 @@ export const SidebarPanelExtension = ({
     />
   ))
 
-  if (isMobile) {
+  if (useMobileLayout) {
     return (
       <>
         {shouldRenderMobileOverlayPanels && (
@@ -631,14 +676,20 @@ export const SidebarPanelExtension = ({
           maxWidth: '100vw',
           minHeight: 0,
           overflow: fullscreen ? 'hidden' : 'visible',
+          backgroundColor: fullscreen ? '#ffffff' : 'transparent',
           zIndex: theme.zIndex.drawer + 2,
-          pointerEvents: 'none',
+          pointerEvents: fullscreen ? 'auto' : 'none',
           ...getVisibilitySx(visible),
         }),
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
     >
-      {desktopPanels}
+      <Box
+        data-testid="sidebar-panel-extension-desktop-panel-group"
+        sx={getDesktopPanelGroupSx(options)}
+      >
+        {desktopPanels}
+      </Box>
       {desktopTabRail != null && (
         <Box
           data-testid="sidebar-panel-extension-desktop-tab-controls"
@@ -656,6 +707,7 @@ export const SidebarPanelExtension = ({
         sx={getDesktopControlsSx({
           placement: actionRailPlacement,
           sidebarOffset,
+          layoutMode: options?.layoutMode,
         })}
       >
         <SidebarPanelExtensionActionRailSlot extensionId={extensionId} />

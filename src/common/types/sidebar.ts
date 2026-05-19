@@ -65,6 +65,8 @@ export type SidebarPanelExtensionConfig = SidebarPanelConfig & {
   replaceBaseSidebar?: boolean
   layoutMode?: SidebarPanelExtensionLayoutMode
   desktopMainPanelWidth?: string
+  desktopPanelGroupMaxWidth?: string
+  forceMobileLayout?: boolean
 }
 
 export type SidebarModeConfigMap = {

@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Box, Tooltip, Typography } from '@mui/material'
+import { Box, Tooltip, Typography, useMediaQuery } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 import { useParams } from 'next/navigation'
 
@@ -37,7 +37,10 @@ import type {
   BuildingInfoTabId,
 } from '../components/BuildingInfoPanel'
 import { createEnergymapBuildingInfoPanels } from '../common/buildingInfo'
-import { getEnergymapBuildingInfoPanelRuntimeOptions } from '../common/buildingInfoPanelRuntime'
+import {
+  getEnergymapBuildingInfoDesktopMinWidthPx,
+  getEnergymapBuildingInfoPanelRuntimeOptions,
+} from '../common/buildingInfoPanelRuntime'
 import {
   areEnergymapSelectedBuildingsEqual,
   toEnergymapSelectedBuilding,
@@ -410,6 +413,11 @@ const Page = () => {
     React.useState<EnergymapMainThematicMode | null>(null)
   const [activeBuildingInfoMode, setActiveBuildingInfoMode] =
     React.useState<BuildingInfoDesktopMode>('twoPanel')
+  const buildingInfoDesktopMinWidthPx =
+    getEnergymapBuildingInfoDesktopMinWidthPx(activeBuildingInfoMode)
+  const buildingInfoDesktopMinWidthMatches = useMediaQuery(
+    `(min-width:${buildingInfoDesktopMinWidthPx}px)`
+  )
   const [isBuildingInfoCollapsed, setIsBuildingInfoCollapsed] =
     React.useState(false)
   const previousSelectedBuildingKeyRef = React.useRef<string | null>(null)
@@ -466,6 +474,8 @@ const Page = () => {
   const selectedBuildingKey = selectedBuilding?.buildingKey ?? null
   const hasBuildingInfo = buildingInfoPanels != null
   const isBuildingInfoExpanded = hasBuildingInfo && !isBuildingInfoCollapsed
+  const useBuildingInfoMobileLayout =
+    isMobile || (hasBuildingInfo && !buildingInfoDesktopMinWidthMatches)
   const isSharedBuildingLayerGroupVisible = visibleLayerGroupIds.includes(
     ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID
   )
@@ -723,7 +733,7 @@ const Page = () => {
       <BuildingInfoActionRail
         activeMode={activeBuildingInfoMode}
         isCollapsed={isBuildingInfoCollapsed}
-        orientation={isMobile ? 'row' : 'column'}
+        orientation={useBuildingInfoMobileLayout ? 'row' : 'column'}
         ariaLabels={buildingInfoAriaLabels}
         onModeChange={handleBuildingInfoModeChange}
       />
@@ -733,14 +743,14 @@ const Page = () => {
       getEnergymapBuildingInfoPanelRuntimeOptions({
         hasBuildingInfo,
         isBuildingInfoCollapsed,
-        isMobile,
+        isMobileLayout: useBuildingInfoMobileLayout,
         activeMode: activeBuildingInfoMode,
       }),
     [
       activeBuildingInfoMode,
       hasBuildingInfo,
       isBuildingInfoCollapsed,
-      isMobile,
+      useBuildingInfoMobileLayout,
     ]
   )
 
@@ -758,7 +768,9 @@ const Page = () => {
           tooltip={upcomingTooltip}
           label={footerLabel}
           reserveActionRow={
-            hasBuildingInfo && isBuildingInfoCollapsed && isMobile
+            hasBuildingInfo &&
+            isBuildingInfoCollapsed &&
+            useBuildingInfoMobileLayout
           }
         />
       </IntoSidebarFooterSlot>
@@ -769,6 +781,7 @@ const Page = () => {
             panels={buildingInfoPanels}
             ariaLabels={buildingInfoAriaLabels}
             activeTabId={getBuildingInfoTabIdForMode(activeBuildingInfoMode)}
+            forceMobileLayout={useBuildingInfoMobileLayout}
             onActiveTabChange={handleBuildingInfoActiveTabChange}
             onClose={handleCloseBuildingInfo}
             onCollapse={handleCollapseBuildingInfo}

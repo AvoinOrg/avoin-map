@@ -27,7 +27,10 @@ const DYNAMIC_PARAMS_MESSAGE_PATTERN =
   /params are being enumerated|params should be unwrapped/i
 
 const VIEWPORTS = {
+  wideDesktop: { width: 1920, height: 1000 },
   desktop: { width: 1440, height: 900 },
+  narrowDesktop: { width: 1280, height: 900 },
+  basicNarrowDesktop: { width: 780, height: 900 },
   mobile: { width: 390, height: 844 },
 }
 
@@ -42,7 +45,7 @@ Options:
   --base-url <url>            Target app URL (default: ${DEFAULT_BASE_URL})
   --scenario <name>           Built-in scenario: sidebar-root|energiakartta-selected-building-tabs
   --route <path>              Route path to check. Can be repeated or comma-separated.
-  --viewport <name>           desktop|mobile|both (default: desktop)
+  --viewport <name>           desktop|mobile|wideDesktop|narrowDesktop|basicNarrowDesktop|both (default: desktop)
   --expect-sidebar <state>    yes|no|auto (default: auto)
   --expect-testid <testid>    Require a visible [data-testid="<testid>"]. Can be repeated.
   --browser-mode <mode>       Browser mode (default: ${BROWSER_MODE_XVFB_WEBGL})
@@ -111,7 +114,13 @@ const ENERGYMAP_BUILDING_CLICK_SCENARIO = [
   {
     id: 'energiakartta-building-click',
     route: '/fi/energiakartta',
-    viewports: ['desktop', 'mobile'],
+    viewports: [
+      'wideDesktop',
+      'desktop',
+      'narrowDesktop',
+      'basicNarrowDesktop',
+      'mobile',
+    ],
     expectSidebar: 'yes',
     buildingClick: true,
     assertNoDynamicParams: true,
@@ -241,13 +250,25 @@ const parseArgs = (argv) => {
   args.browserMode = normalizeBrowserMode(args.browserMode)
   args.expectSidebar = String(args.expectSidebar || 'auto').toLowerCase()
   args.outputDir = path.resolve(process.cwd(), args.outputDir || DEFAULT_OUTPUT_DIR)
-  args.viewport = String(args.viewport || 'desktop').toLowerCase()
+  args.viewport = String(args.viewport || 'desktop')
 
   if (!['yes', 'no', 'auto'].includes(args.expectSidebar)) {
     throw new Error('--expect-sidebar must be one of: yes, no, auto')
   }
-  if (!['desktop', 'mobile', 'both'].includes(args.viewport)) {
-    throw new Error('--viewport must be one of: desktop, mobile, both')
+  if (
+    ![
+      'desktop',
+      'mobile',
+      'wideDesktop',
+      'narrowDesktop',
+      'basicNarrowDesktop',
+      'both',
+    ].includes(args.viewport)
+  ) {
+    throw new Error(
+      '--viewport must be one of: desktop, mobile, wideDesktop, ' +
+        'narrowDesktop, basicNarrowDesktop, both'
+    )
   }
   if (!Number.isFinite(args.timeout) || args.timeout <= 0) {
     throw new Error('--timeout must be a positive number')
@@ -655,6 +676,31 @@ const readEnergymapBuildingClickState = async ({ page, target, label }) =>
       const selectedTabElement = Array.from(
         document.querySelectorAll('[role="tab"][aria-selected="true"]')
       ).find(isVisible)
+      const visibleElements = (selector) =>
+        Array.from(document.querySelectorAll(selector)).filter(isVisible)
+      const gridSections = Object.fromEntries(
+        visibleElements('[data-testid^="building-info-grid-section-"]').map(
+          (element) => {
+            const rect = element.getBoundingClientRect()
+            return [
+              element.getAttribute('data-grid-slot') ??
+                element.getAttribute('data-testid'),
+              {
+                rect: {
+                  x: rect.x,
+                  y: rect.y,
+                  width: rect.width,
+                  height: rect.height,
+                  right: rect.right,
+                  bottom: rect.bottom,
+                },
+                gridArea: element.getAttribute('data-grid-area'),
+                panelId: element.getAttribute('data-panel-id'),
+              },
+            ]
+          }
+        )
+      )
       const req = window.__avoin_req
       const selectedBuilding =
         req?.(
@@ -706,6 +752,15 @@ const readEnergymapBuildingClickState = async ({ page, target, label }) =>
         desktopMainPanel: read(
           '[data-testid="sidebar-panel-extension-desktop-panel-main"]'
         ),
+        desktopPanelGroup: read(
+          '[data-testid="sidebar-panel-extension-desktop-panel-group"]'
+        ),
+        buildingInfoGrid: read('[data-testid="building-info-grid"]'),
+        gridSections,
+        panelOrder: visibleElements('[data-testid^="building-info-panel-"]').map(
+          (element) => element.getAttribute('data-panel-id')
+        ),
+        pageControls: read('.sidebar-panel-extension-page-container-controls'),
         baseSidebar: read('.sidebar-container, [data-main-sidebar-root="true"]'),
         selectedTab: readElement(
           selectedTabElement,
@@ -770,6 +825,16 @@ const parseRgbColor = (value) => {
 const isNear = (actual, expected, tolerance = 2) =>
   Number.isFinite(actual) && Math.abs(actual - expected) <= tolerance
 
+const isDesktopLikeViewport = (viewport) => viewport !== 'mobile'
+
+const isRenovationDesktopViewport = (viewport) =>
+  viewport === 'desktop' || viewport === 'wideDesktop'
+
+const isBasicDesktopViewport = (viewport) =>
+  viewport === 'desktop' ||
+  viewport === 'wideDesktop' ||
+  viewport === 'narrowDesktop'
+
 const assertSelectedTabIsLightGray = ({ state, errors }) => {
   const color = parseRgbColor(state.selectedTab?.style?.backgroundColor)
 
@@ -793,8 +858,12 @@ const assertSelectedTabIsLightGray = ({ state, errors }) => {
   }
 }
 
-const assertDesktopF032ExpandedBasic = ({ state, errors }) => {
+const assertDesktopF033ExpandedBasic = ({ state, errors }) => {
   assertSelectedTabIsLightGray({ state, errors })
+
+  if (state.buildingInfoGrid == null) {
+    errors.push(`${state.label}: expected desktop basic grid to be visible`)
+  }
 
   const width = state.desktopMainPanel?.rect?.width
   if (!Number.isFinite(width) || width < 700 || width > 900) {
@@ -811,14 +880,42 @@ const assertDesktopF032ExpandedBasic = ({ state, errors }) => {
   }
 }
 
-const assertDesktopF032RenovationFullscreen = ({ state, errors }) => {
+const assertF033StackedBuildingInfoLayout = ({
+  state,
+  expectedPanels,
+  errors,
+}) => {
+  assertSelectedTabIsLightGray({ state, errors })
+
+  if (state.buildingInfoGrid != null) {
+    errors.push(`${state.label}: expected stacked layout without desktop grid`)
+  }
+
+  const panelOrder = state.panelOrder.join(',')
+  if (panelOrder !== expectedPanels.join(',')) {
+    errors.push(
+      `${state.label}: expected panel order ${expectedPanels.join(',')}, got ${panelOrder}`
+    )
+  }
+
+  if (state.mobileTabRail == null) {
+    errors.push(`${state.label}: expected mobile tab rail in forced mobile layout`)
+  }
+}
+
+const assertDesktopF033RenovationFullscreen = ({ state, errors }) => {
   assertSelectedTabIsLightGray({ state, errors })
 
   const viewportWidth = state.viewport?.width
   const rootRect = state.extensionRoot?.rect
   const panelRect = state.desktopMainPanel?.rect
+  const panelGroupRect = state.desktopPanelGroup?.rect
+  const gridRect = state.buildingInfoGrid?.rect
   const tabControlsRect = state.desktopTabControls?.rect
   const tabRailRect = state.desktopTabRail?.rect
+  const pageControlsRect = state.pageControls?.rect
+  const expectedGroupWidth = Math.min(1440, viewportWidth)
+  const expectedGroupX = (viewportWidth - expectedGroupWidth) / 2
 
   if (
     rootRect == null ||
@@ -832,13 +929,56 @@ const assertDesktopF032RenovationFullscreen = ({ state, errors }) => {
   }
 
   if (
-    panelRect == null ||
-    !isNear(panelRect.x, 0) ||
-    panelRect.width < viewportWidth - 2
+    panelGroupRect == null ||
+    !isNear(panelGroupRect.width, expectedGroupWidth, 3) ||
+    !isNear(panelGroupRect.x, expectedGroupX, 3)
   ) {
     errors.push(
-      `${state.label}: fullscreen panel did not cover viewport width, got ` +
+      `${state.label}: fullscreen panel group was not capped/centered, got ` +
+        `${JSON.stringify(panelGroupRect)} for viewport ${viewportWidth}`
+    )
+  }
+
+  if (
+    panelRect == null ||
+    !isNear(panelRect.x, expectedGroupX, 3) ||
+    !isNear(panelRect.width, expectedGroupWidth, 3)
+  ) {
+    errors.push(
+      `${state.label}: fullscreen main panel did not match capped group, got ` +
         `${JSON.stringify(panelRect)}`
+    )
+  }
+
+  if (
+    gridRect == null ||
+    !isNear(gridRect.width, expectedGroupWidth, 3) ||
+    !isNear(gridRect.x, expectedGroupX, 3)
+  ) {
+    errors.push(
+      `${state.label}: renovation grid did not match capped group, got ` +
+        `${JSON.stringify(gridRect)}`
+    )
+  }
+
+  const topEnergy = state.gridSections['top-energy']?.rect
+  const topRenovation = state.gridSections['top-renovation']?.rect
+  const topDetails = state.gridSections['top-building-details']?.rect
+  if (
+    topEnergy == null ||
+    topRenovation == null ||
+    topDetails == null ||
+    !isNear(topEnergy.width, 440, 4) ||
+    !isNear(topRenovation.width, 560, 4) ||
+    !isNear(topDetails.width, 440, 4)
+  ) {
+    errors.push(
+      `${state.label}: renovation grid bands were not about 440/560/440, got ` +
+        `${JSON.stringify({
+          topEnergy,
+          topRenovation,
+          topDetails,
+        })}`
     )
   }
 
@@ -857,9 +997,20 @@ const assertDesktopF032RenovationFullscreen = ({ state, errors }) => {
   ) {
     errors.push(`${state.label}: fullscreen tab rail was not horizontal`)
   }
+
+  if (
+    pageControlsRect == null ||
+    !isNear(pageControlsRect.y, 50, 4) ||
+    !isNear(pageControlsRect.right, viewportWidth - 70, 4)
+  ) {
+    errors.push(
+      `${state.label}: fullscreen page controls were not fixed to viewport top-right, got ` +
+        `${JSON.stringify(pageControlsRect)}`
+    )
+  }
 }
 
-const assertDesktopF032Collapsed = ({ state, errors }) => {
+const assertDesktopF033Collapsed = ({ state, errors }) => {
   const actionRect = state.buildingActionRail?.rect
   const sidebarRect = state.baseSidebar?.rect
 
@@ -1431,16 +1582,41 @@ const runEnergymapBuildingClickCheck = async ({
   if (expandedBasic.selectedFeatureState?.selected !== true) {
     errors.push(`${viewport}: selected feature state was not marked selected`)
   }
-  if (viewport === 'desktop' && expandedBasic.desktopTabRail == null) {
+  if (
+    isBasicDesktopViewport(viewport) &&
+    expandedBasic.desktopTabRail == null
+  ) {
     errors.push(`${viewport}: desktop tab rail was not visible`)
   }
-  if (viewport === 'mobile' && expandedBasic.mobileTabRail == null) {
+  if (
+    !isBasicDesktopViewport(viewport) &&
+    expandedBasic.mobileTabRail == null
+  ) {
     errors.push(`${viewport}: mobile tab rail was not visible`)
   }
-  if (viewport === 'desktop') {
-    assertDesktopF032ExpandedBasic({ state: expandedBasic, errors })
+  if (isBasicDesktopViewport(viewport)) {
+    assertDesktopF033ExpandedBasic({ state: expandedBasic, errors })
   } else {
-    assertSelectedTabIsLightGray({ state: expandedBasic, errors })
+    assertF033StackedBuildingInfoLayout({
+      state: expandedBasic,
+      expectedPanels: ['energyConsumption', 'buildingDetails'],
+      errors,
+    })
+  }
+
+  if (
+    isDesktopLikeViewport(viewport) &&
+    expandedBasic.sidebarToggle?.rect == null
+  ) {
+    errors.push(`${viewport}: sidebar toggle was not visible on basic tab`)
+  }
+
+  if (
+    isDesktopLikeViewport(viewport) &&
+    !isBasicDesktopViewport(viewport) &&
+    expandedBasic.mobileControls == null
+  ) {
+    errors.push(`${viewport}: forced basic mobile controls were not visible`)
   }
 
   await page.locator('[role="tab"]').nth(1).click()
@@ -1459,10 +1635,18 @@ const runEnergymapBuildingClickCheck = async ({
   if (renovation.baseSidebar != null) {
     errors.push(`${viewport}: base sidebar became visible on renovation tab`)
   }
-  if (viewport === 'desktop') {
-    assertDesktopF032RenovationFullscreen({ state: renovation, errors })
+  if (isRenovationDesktopViewport(viewport)) {
+    assertDesktopF033RenovationFullscreen({ state: renovation, errors })
   } else {
-    assertSelectedTabIsLightGray({ state: renovation, errors })
+    assertF033StackedBuildingInfoLayout({
+      state: renovation,
+      expectedPanels: [
+        'energyConsumption',
+        'renovationRecommendations',
+        'buildingDetails',
+      ],
+      errors,
+    })
   }
 
   await page
@@ -1492,8 +1676,8 @@ const runEnergymapBuildingClickCheck = async ({
   if (collapsed.baseSidebar == null) {
     errors.push(`${viewport}: base sidebar did not return after collapse`)
   }
-  if (viewport === 'desktop') {
-    assertDesktopF032Collapsed({ state: collapsed, errors })
+  if (isRenovationDesktopViewport(viewport)) {
+    assertDesktopF033Collapsed({ state: collapsed, errors })
   }
 
   await page
@@ -1517,8 +1701,18 @@ const runEnergymapBuildingClickCheck = async ({
   if (reopened.baseSidebar != null) {
     errors.push(`${viewport}: base sidebar remained visible after reopening`)
   }
-  if (viewport === 'desktop') {
-    assertDesktopF032RenovationFullscreen({ state: reopened, errors })
+  if (isRenovationDesktopViewport(viewport)) {
+    assertDesktopF033RenovationFullscreen({ state: reopened, errors })
+  } else {
+    assertF033StackedBuildingInfoLayout({
+      state: reopened,
+      expectedPanels: [
+        'energyConsumption',
+        'renovationRecommendations',
+        'buildingDetails',
+      ],
+      errors,
+    })
   }
 
   await page.locator('.sidebar-toggle-button').click()
@@ -1559,10 +1753,18 @@ const runEnergymapBuildingClickCheck = async ({
   if (toggleShown.selectedBuilding == null) {
     errors.push(`${viewport}: selected building was not restored after toggle show`)
   }
-  if (viewport === 'desktop') {
-    assertDesktopF032RenovationFullscreen({ state: toggleShown, errors })
+  if (isRenovationDesktopViewport(viewport)) {
+    assertDesktopF033RenovationFullscreen({ state: toggleShown, errors })
   } else {
-    assertSelectedTabIsLightGray({ state: toggleShown, errors })
+    assertF033StackedBuildingInfoLayout({
+      state: toggleShown,
+      expectedPanels: [
+        'energyConsumption',
+        'renovationRecommendations',
+        'buildingDetails',
+      ],
+      errors,
+    })
   }
 
   await page

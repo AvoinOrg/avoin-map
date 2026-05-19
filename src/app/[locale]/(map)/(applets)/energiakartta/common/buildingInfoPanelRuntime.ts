@@ -3,22 +3,39 @@ import type { SidebarPanelExtensionRuntimeOptions } from '#/common/types/sidebar
 type GetEnergymapBuildingInfoPanelRuntimeOptionsInput = {
   hasBuildingInfo: boolean
   isBuildingInfoCollapsed: boolean
-  isMobile: boolean
+  isMobileLayout: boolean
   activeMode: 'twoPanel' | 'threePanel'
 }
 
-const BUILDING_INFO_BASIC_DESKTOP_PANEL_WIDTH = '760px'
+export const ENERGYMAP_BUILDING_INFO_RENOVATION_DESKTOP_GROUP_WIDTH_PX = 1440
+export const ENERGYMAP_BUILDING_INFO_RENOVATION_DESKTOP_MIN_WIDTH_PX = 1360
+export const ENERGYMAP_BUILDING_INFO_BASIC_DESKTOP_PANEL_WIDTH_PX = 760
+export const ENERGYMAP_BUILDING_INFO_BASIC_DESKTOP_MIN_WIDTH_PX = 820
+
+const BUILDING_INFO_RENOVATION_DESKTOP_GROUP_WIDTH = `${ENERGYMAP_BUILDING_INFO_RENOVATION_DESKTOP_GROUP_WIDTH_PX}px`
+const BUILDING_INFO_BASIC_DESKTOP_PANEL_WIDTH = `${ENERGYMAP_BUILDING_INFO_BASIC_DESKTOP_PANEL_WIDTH_PX}px`
+
+export const getEnergymapBuildingInfoDesktopMinWidthPx = (
+  activeMode: GetEnergymapBuildingInfoPanelRuntimeOptionsInput['activeMode']
+) =>
+  activeMode === 'threePanel'
+    ? ENERGYMAP_BUILDING_INFO_RENOVATION_DESKTOP_MIN_WIDTH_PX
+    : ENERGYMAP_BUILDING_INFO_BASIC_DESKTOP_MIN_WIDTH_PX
 
 export const getEnergymapBuildingInfoPanelRuntimeOptions = (
   input: GetEnergymapBuildingInfoPanelRuntimeOptionsInput
 ): SidebarPanelExtensionRuntimeOptions => {
-  const { activeMode, hasBuildingInfo, isBuildingInfoCollapsed, isMobile } =
-    input
+  const {
+    activeMode,
+    hasBuildingInfo,
+    isBuildingInfoCollapsed,
+    isMobileLayout,
+  } = input
   const isBuildingInfoExpanded = hasBuildingInfo && !isBuildingInfoCollapsed
   const isDesktopRenovationExpanded =
-    isBuildingInfoExpanded && !isMobile && activeMode === 'threePanel'
+    isBuildingInfoExpanded && !isMobileLayout && activeMode === 'threePanel'
   const isDesktopBasicExpanded =
-    isBuildingInfoExpanded && !isMobile && activeMode === 'twoPanel'
+    isBuildingInfoExpanded && !isMobileLayout && activeMode === 'twoPanel'
 
   return {
     width: isBuildingInfoExpanded ? 'wide' : 'compact',
@@ -27,14 +44,20 @@ export const getEnergymapBuildingInfoPanelRuntimeOptions = (
     visiblePanels: isBuildingInfoExpanded ? ['main'] : [],
     replaceBaseSidebar: isBuildingInfoExpanded,
     layoutMode: isDesktopRenovationExpanded ? 'fullscreen' : 'default',
-    desktopMainPanelWidth: isDesktopBasicExpanded
-      ? BUILDING_INFO_BASIC_DESKTOP_PANEL_WIDTH
+    desktopMainPanelWidth: isDesktopRenovationExpanded
+      ? '100%'
+      : isDesktopBasicExpanded
+        ? BUILDING_INFO_BASIC_DESKTOP_PANEL_WIDTH
+        : undefined,
+    desktopPanelGroupMaxWidth: isDesktopRenovationExpanded
+      ? BUILDING_INFO_RENOVATION_DESKTOP_GROUP_WIDTH
       : undefined,
+    forceMobileLayout: isMobileLayout,
     activePanel: 'main',
     mobileMode: 'stacked',
     mobileStackPlacement: 'after',
     actionRailPlacement: hasBuildingInfo
-      ? isMobile
+      ? isMobileLayout
         ? 'bottomActionRow'
         : isBuildingInfoCollapsed
           ? 'sidebarEdgeActionColumn'

@@ -22,7 +22,13 @@ import {
   getBuildingInfoPanelIds,
   getBuildingInfoTabPanelIds,
 } from './BuildingInfoPanel'
-import { getEnergymapBuildingInfoPanelRuntimeOptions } from '../common/buildingInfoPanelRuntime'
+import {
+  ENERGYMAP_BUILDING_INFO_BASIC_DESKTOP_MIN_WIDTH_PX,
+  ENERGYMAP_BUILDING_INFO_RENOVATION_DESKTOP_GROUP_WIDTH_PX,
+  ENERGYMAP_BUILDING_INFO_RENOVATION_DESKTOP_MIN_WIDTH_PX,
+  getEnergymapBuildingInfoDesktopMinWidthPx,
+  getEnergymapBuildingInfoPanelRuntimeOptions,
+} from '../common/buildingInfoPanelRuntime'
 import type {
   EnergymapBuildingInfoConsumptionControls,
   EnergymapBuildingInfoMetric,
@@ -533,11 +539,13 @@ const ariaLabels = {
 
 const renderBuildingInfoTabs = ({
   activeTabId,
+  forceMobileLayout = false,
   onActiveTabChange = jest.fn(),
   onClose = jest.fn(),
   onCollapse = jest.fn(),
 }: {
   activeTabId?: BuildingInfoTabId
+  forceMobileLayout?: boolean
   onActiveTabChange?: (tabId: BuildingInfoTabId) => void
   onClose?: () => void
   onCollapse?: (tabId: BuildingInfoTabId) => void
@@ -554,6 +562,7 @@ const renderBuildingInfoTabs = ({
               panels={panels}
               ariaLabels={ariaLabels}
               activeTabId={activeTabId}
+              forceMobileLayout={forceMobileLayout}
               onActiveTabChange={onActiveTabChange}
               onClose={onClose}
               onCollapse={onCollapse}
@@ -792,6 +801,41 @@ describe('BuildingInfoPanel', () => {
     expect(
       screen.getByTestId('building-info-energy-consumption-section')
     ).toBeInTheDocument()
+  })
+
+  it('can force the desktop basic tab into the mobile stacked layout', async () => {
+    renderBuildingInfoTabs({ forceMobileLayout: true })
+
+    expect(
+      await screen.findByTestId('building-info-tab-page-basic')
+    ).toBeInTheDocument()
+    expect(screen.queryByTestId('building-info-grid')).not.toBeInTheDocument()
+    expect(
+      screen
+        .getAllByTestId(/building-info-panel-/)
+        .map((panel) => panel.dataset.panelId)
+    ).toEqual(['energyConsumption', 'buildingDetails'])
+  })
+
+  it('can force the desktop renovation tab into the mobile stacked layout', async () => {
+    renderBuildingInfoTabs({
+      activeTabId: 'renovation',
+      forceMobileLayout: true,
+    })
+
+    expect(
+      await screen.findByTestId('building-info-tab-page-renovation')
+    ).toBeInTheDocument()
+    expect(screen.queryByTestId('building-info-grid')).not.toBeInTheDocument()
+    expect(
+      screen
+        .getAllByTestId(/building-info-panel-/)
+        .map((panel) => panel.dataset.panelId)
+    ).toEqual([
+      'energyConsumption',
+      'renovationRecommendations',
+      'buildingDetails',
+    ])
   })
 
   it('renders the interactive energy controls in the basic tab', async () => {
@@ -1204,20 +1248,20 @@ describe('BuildingInfoPanel', () => {
     const desktopOptions = getEnergymapBuildingInfoPanelRuntimeOptions({
       hasBuildingInfo: true,
       isBuildingInfoCollapsed: false,
-      isMobile: false,
+      isMobileLayout: false,
       activeMode: 'twoPanel',
     })
     const mobileOptions = getEnergymapBuildingInfoPanelRuntimeOptions({
       hasBuildingInfo: true,
       isBuildingInfoCollapsed: false,
-      isMobile: true,
+      isMobileLayout: true,
       activeMode: 'threePanel',
     })
     const renovationDesktopOptions =
       getEnergymapBuildingInfoPanelRuntimeOptions({
         hasBuildingInfo: true,
         isBuildingInfoCollapsed: false,
-        isMobile: false,
+        isMobileLayout: false,
         activeMode: 'threePanel',
       })
 
@@ -1229,6 +1273,7 @@ describe('BuildingInfoPanel', () => {
       replaceBaseSidebar: true,
       layoutMode: 'default',
       desktopMainPanelWidth: '760px',
+      forceMobileLayout: false,
       activePanel: 'main',
       actionRailPlacement: 'inside',
     })
@@ -1239,6 +1284,7 @@ describe('BuildingInfoPanel', () => {
       visiblePanels: ['main'],
       replaceBaseSidebar: true,
       layoutMode: 'default',
+      forceMobileLayout: true,
       activePanel: 'main',
       actionRailPlacement: 'bottomActionRow',
     })
@@ -1249,6 +1295,9 @@ describe('BuildingInfoPanel', () => {
       visiblePanels: ['main'],
       replaceBaseSidebar: true,
       layoutMode: 'fullscreen',
+      desktopMainPanelWidth: '100%',
+      desktopPanelGroupMaxWidth: `${ENERGYMAP_BUILDING_INFO_RENOVATION_DESKTOP_GROUP_WIDTH_PX}px`,
+      forceMobileLayout: false,
       activePanel: 'main',
       actionRailPlacement: 'inside',
     })
@@ -1262,19 +1311,19 @@ describe('BuildingInfoPanel', () => {
     const desktopOptions = getEnergymapBuildingInfoPanelRuntimeOptions({
       hasBuildingInfo: true,
       isBuildingInfoCollapsed: true,
-      isMobile: false,
+      isMobileLayout: false,
       activeMode: 'threePanel',
     })
     const mobileOptions = getEnergymapBuildingInfoPanelRuntimeOptions({
       hasBuildingInfo: true,
       isBuildingInfoCollapsed: true,
-      isMobile: true,
+      isMobileLayout: true,
       activeMode: 'threePanel',
     })
     const emptyOptions = getEnergymapBuildingInfoPanelRuntimeOptions({
       hasBuildingInfo: false,
       isBuildingInfoCollapsed: false,
-      isMobile: false,
+      isMobileLayout: false,
       activeMode: 'twoPanel',
     })
 
@@ -1298,5 +1347,14 @@ describe('BuildingInfoPanel', () => {
     })
     expect(emptyOptions.visiblePanels).toEqual([])
     expect(emptyOptions.replaceBaseSidebar).toBe(false)
+  })
+
+  it('exports building-info desktop minimum widths for page fit checks', () => {
+    expect(getEnergymapBuildingInfoDesktopMinWidthPx('twoPanel')).toBe(
+      ENERGYMAP_BUILDING_INFO_BASIC_DESKTOP_MIN_WIDTH_PX
+    )
+    expect(getEnergymapBuildingInfoDesktopMinWidthPx('threePanel')).toBe(
+      ENERGYMAP_BUILDING_INFO_RENOVATION_DESKTOP_MIN_WIDTH_PX
+    )
   })
 })
