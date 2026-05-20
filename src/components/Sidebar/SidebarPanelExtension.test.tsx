@@ -555,19 +555,49 @@ describe('SidebarPanelExtensionPageContainer', () => {
     )
     fireEvent.click(screen.getByRole('button', { name: 'Close current page' }))
 
+    const collapseButton = screen.getByRole('button', {
+      name: 'Collapse current page',
+    })
+    const closeButton = screen.getByRole('button', {
+      name: 'Close current page',
+    })
+    const collapseIcon = collapseButton.querySelector(
+      '.MuiSvgIcon-root'
+    ) as HTMLElement
+    const collapseIconPaths = collapseIcon.querySelectorAll('path')
+    const closeIcon = closeButton.querySelector('svg') as HTMLElement
+
     expect(onCollapse).toHaveBeenCalledTimes(1)
     expect(onClose).toHaveBeenCalledTimes(1)
-    expect(
-      screen.getByRole('button', { name: 'Collapse current page' })
-    ).toHaveStyle({
+    expect(collapseButton).toHaveStyle({
+      width: '2.25rem',
+      minWidth: '2.25rem',
+      height: '2.25rem',
+      padding: '0.125rem',
       boxShadow: '0 2px 8px rgba(17, 17, 17, 0.12)',
     })
-    expect(
-      screen
-        .getByRole('button', { name: 'Collapse current page' })
-        .querySelector('.MuiSvgIcon-root') as HTMLElement
-    ).toHaveStyle({
+    expect(closeButton).toHaveStyle({
+      width: '2.25rem',
+      minWidth: '2.25rem',
+      height: '2.25rem',
+      padding: '0.125rem',
+      boxShadow: '0 2px 8px rgba(17, 17, 17, 0.12)',
+    })
+    expect(collapseIcon).toHaveStyle({
       fontSize: '1.85rem',
+    })
+    expect(collapseIcon).toHaveAttribute('aria-hidden', 'true')
+    expect(collapseIconPaths).toHaveLength(2)
+    collapseIconPaths.forEach((path) => {
+      expect(path).toHaveAttribute('fill', 'none')
+      expect(path).toHaveAttribute('stroke', 'currentColor')
+      expect(path).toHaveAttribute('stroke-linecap', 'round')
+      expect(path).toHaveAttribute('stroke-linejoin', 'round')
+      expect(path).toHaveAttribute('stroke-width', '1.7')
+    })
+    expect(closeIcon).toHaveStyle({
+      width: '1rem',
+      height: '1rem',
     })
   })
 })

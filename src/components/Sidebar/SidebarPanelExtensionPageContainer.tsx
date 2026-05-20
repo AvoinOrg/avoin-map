@@ -1,8 +1,7 @@
 'use client'
 
 import React from 'react'
-import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft'
-import { Box, IconButton, Tooltip } from '@mui/material'
+import { Box, IconButton, SvgIcon, Tooltip } from '@mui/material'
 import type { SxProps, Theme } from '@mui/material'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 import type { PartialOptions } from 'overlayscrollbars'
@@ -28,9 +27,10 @@ const shouldShowAction = (showControl?: boolean, handler?: () => void) =>
   handler != null && showControl !== false
 
 const pageControlButtonSx = {
-  width: '2.5rem',
-  minWidth: '2.5rem',
-  height: '2.5rem',
+  width: '2.25rem',
+  minWidth: '2.25rem',
+  height: '2.25rem',
+  padding: '0.125rem',
   borderRadius: '0.625rem',
   color: 'neutral.darker',
   backgroundColor: '#ffffff',
@@ -39,6 +39,32 @@ const pageControlButtonSx = {
     backgroundColor: '#f4f4f4',
   },
 } as const
+
+const CollapsePanelIcon = ({ sx }: { sx?: SxProps<Theme> }) => (
+  <SvgIcon
+    aria-hidden="true"
+    focusable="false"
+    viewBox="0 0 24 24"
+    sx={sx}
+  >
+    <path
+      d="M11 6 6 12l5 6"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.7}
+    />
+    <path
+      d="m18 6-5 6 5 6"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={1.7}
+    />
+  </SvgIcon>
+)
 
 export const SidebarPanelExtensionPageContainer = ({
   children,
@@ -117,7 +143,7 @@ export const SidebarPanelExtensionPageContainer = ({
                 size="small"
                 sx={pageControlButtonSx}
               >
-                <KeyboardDoubleArrowLeftIcon sx={{ fontSize: '1.85rem' }} />
+                <CollapsePanelIcon sx={{ fontSize: '1.85rem' }} />
               </IconButton>
             </Tooltip>
           )}
