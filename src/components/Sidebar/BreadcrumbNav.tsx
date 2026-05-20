@@ -1,37 +1,77 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { usePathname } from 'next/navigation'
 import { Box, SxProps, Theme, Typography } from '@mui/material'
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 
 import MutableLink from '#/components/common/MutableLink'
-import { getRoutesForPath } from '#/common/utils/routing'
+import { compiledApplets, getRoutesForPath } from '#/common/routing/routing'
 import { RouteForLinks, RouteTree } from '#/common/types/routing'
+import { useUIStore } from '#/common/store'
+import { mainRouteTree } from '#/common/routing/routes/main'
 
 interface Props {
   routeTree: RouteTree
   collapseIfRoot?: boolean
+  appletNamespace?: string
   sx?: SxProps<Theme>
 }
 
+const breadcrumbLabelSx = {
+  display: 'block',
+  fontSize: '0.72rem',
+  lineHeight: 1.2,
+  fontWeight: 600,
+  letterSpacing: '0.04em',
+  textTransform: 'uppercase',
+  position: 'relative',
+  top: '1px',
+} as const
+
 const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
   const pathname = usePathname()
+  const isBaseDomainForApplet = useUIStore(
+    (state) => state.isBaseDomainForApplet
+  )
+  const isStandaloneAppletBuild =
+    compiledApplets.length === 1 && !compiledApplets.includes('main')
 
-  const routes = getRoutesForPath(pathname, routeTree)
+  const { routes, usedRouteTree } = useMemo(() => {
+    if (
+      isStandaloneAppletBuild ||
+      (isBaseDomainForApplet && !mainRouteTree._conf.domain)
+    ) {
+      return {
+        routes: getRoutesForPath(pathname, routeTree),
+        usedRouteTree: routeTree,
+      }
+    }
+    return {
+      routes: getRoutesForPath(pathname, mainRouteTree),
+      usedRouteTree: mainRouteTree,
+    }
+  }, [routeTree, isBaseDomainForApplet, isStandaloneAppletBuild, pathname])
+
+  const visibleRoutes = useMemo(() => {
+    const isAppletBreadcrumbInMainApp =
+      usedRouteTree === mainRouteTree && routeTree !== mainRouteTree
+
+    return isAppletBreadcrumbInMainApp ? routes.slice(1) : routes
+  }, [routeTree, routes, usedRouteTree])
 
   const RouteElement = ({ route }: { route: RouteForLinks }) => (
     <MutableLink
       route={route.routeTree}
-      routeTree={routeTree}
+      routeTree={usedRouteTree}
       params={route.params}
       sx={{ color: 'inherit' }}
     >
       <Typography
         sx={(theme) => ({
-          display: 'inline-block',
-          typography: theme.typography.subtitle2,
+          ...breadcrumbLabelSx,
+          color: theme.palette.neutral.dark,
           '&:hover': { color: theme.palette.primary.main },
-          textTransform: 'uppercase',
         })}
+        component="span"
       >
         {route.name}
       </Typography>
@@ -42,11 +82,10 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
     <>
       <Typography
         sx={(theme) => ({
-          display: 'inline-block',
-          typography: theme.typography.subtitle2,
-          color: 'neutral.darker',
-          textTransform: 'uppercase',
+          ...breadcrumbLabelSx,
+          color: theme.palette.neutral.darker,
         })}
+        component="span"
       >
         {name}
       </Typography>
@@ -60,13 +99,12 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
         (theme) => ({
           display: 'flex',
           flexDirection: 'row',
-          alignItems: 'flex-end',
+          alignItems: 'center',
           color: theme.palette.neutral.dark,
-          minHeight: '6rem',
           width: '100%',
         }),
         ...(Array.isArray(sx) ? sx : [sx]),
-        collapseIfRoot && routes.length <= 1
+        collapseIfRoot && visibleRoutes.length <= 1
           ? {
               minHeight: '0px',
               height: '0px',
@@ -79,50 +117,70 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
           : { flexGrow: 1 },
       ]}
     >
-      {routes.length > 1 && (
+      {visibleRoutes.length > 1 && (
         <Box
           sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}
         >
           <MutableLink
-            route={routes[routes.length - 2].routeTree}
-            routeTree={routeTree}
-            params={routes[routes.length - 2].params}
+            route={visibleRoutes[visibleRoutes.length - 2].routeTree}
+            routeTree={usedRouteTree}
+            params={visibleRoutes[visibleRoutes.length - 2].params}
+            sx={{ alignItems: 'center' }}
           >
             <ArrowBackIosNewIcon
               sx={(theme) => ({
-                float: 'left',
                 cursor: 'pointer',
                 color: theme.palette.neutral.dark,
-                margin: '0 10px 0 -5px',
+                height: '0.85rem',
+                mt: 0.1,
+                ml: -1,
                 '&:hover': { color: theme.palette.neutral.main },
               })}
             ></ArrowBackIosNewIcon>
           </MutableLink>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
-            {routes.map((route) => {
-              if (route === routes[routes.length - 1]) {
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              flexDirection: 'row',
+              alignItems: 'center',
+              rowGap: '0.125rem',
+            }}
+          >
+            {visibleRoutes.map((route) => {
+              if (route === visibleRoutes[visibleRoutes.length - 1]) {
                 return (
-                  <RouteElementInert
+                  <Box
                     key={route.path}
-                    name={route.name}
-                  ></RouteElementInert>
+                    sx={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <RouteElementInert name={route.name}></RouteElementInert>
+                  </Box>
                 )
               }
               return (
                 <Box
-                  sx={(theme) => ({
-                    display: 'inline-block',
-                    lineHeight: '0',
-                    height: '18px',
-                  })}
                   key={route.path}
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                  }}
                 >
                   <RouteElement route={route}></RouteElement>
                   <Typography
                     sx={(theme) => ({
-                      display: 'inline-block',
-                      margin: '0 5px 0 5px',
+                      display: 'block',
+                      fontSize: '0.75rem',
+                      lineHeight: 1.2,
+                      color: theme.palette.neutral.dark,
+                      margin: '0 3px',
+                      position: 'relative',
+                      top: '1px',
                     })}
+                    component="span"
                   >
                     /
                   </Typography>

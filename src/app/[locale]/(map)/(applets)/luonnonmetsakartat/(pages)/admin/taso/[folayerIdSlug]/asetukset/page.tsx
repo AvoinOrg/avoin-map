@@ -11,26 +11,28 @@ import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
 import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
 import { useMapStore, useUIStore } from '#/common/store'
 import { Delete } from '#/components/icons'
-import { getRoute } from '#/common/utils/routing-client'
+import { getRoute } from '#/common/routing/routing-client'
 import IconWithText from '#/components/common/IconWithText'
 import { LoadingSpinner } from '#/components/Loading'
 import { SidebarContentBox } from '#/components/Sidebar'
 import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
-import CheckBoxWithText from '#/components/common/CheckBoxWithText'
+import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 import { useSidebarActivityLoader } from '#/common/hooks/ui/useSidebarActivityLoader'
 import BigMenuButton from '#/components/common/BigMenuButton'
 import { Upload } from '#/components/icons'
 
-import { FolayerConfState } from 'applets/luonnonmetsakartat/common/types'
-import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
-import { adminFolayerPatchMutation } from 'applets/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
-import { adminFolayerDeleteMutation } from 'applets/luonnonmetsakartat/common/queries/adminFolayerDeleteMutation'
-import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
-import { getFolayerGroupId } from 'applets/luonnonmetsakartat/common/utils'
-import FolayerUpdateShp, { FolayerUpdateShpRef } from 'applets/luonnonmetsakartat/components/FolayerUpdateShp'
+import { FolayerConfState } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
+import { adminFolayerPatchMutation } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
+import { adminFolayerDeleteMutation } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerDeleteMutation'
+import { routeTree } from '#/common/routing/routes/luonnonmetsakartat'
+import { getFolayerGroupId } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/utils'
+import FolayerUpdateShp, {
+  FolayerUpdateShpRef,
+} from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerUpdateShp'
 import FolayerImportPictures, {
   FolayerImportPicturesRef,
-} from 'applets/luonnonmetsakartat/components/FolayerImportPictures'
+} from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportPictures'
 
 const Page = () => {
   const [isFolayerReady, setIsFolayerReady] = useState(false)
@@ -39,9 +41,8 @@ const Page = () => {
   const [fileName, setFileName] = useState<string>()
   const [arrayBuffers, setArrayBuffers] = useState<ArrayBuffer[]>()
   const [isUpdateValid, setIsUpdateValid] = useState<boolean>(true)
-  const [deleteAreasNotUpdated, setDeleteAreasNotUpdated] = useState<boolean>(
-    false
-  )
+  const [deleteAreasNotUpdated, setDeleteAreasNotUpdated] =
+    useState<boolean>(false)
   const shpRef = useRef<FolayerUpdateShpRef>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const params = useParams<{ folayerIdSlug: string }>()
@@ -254,7 +255,7 @@ const Page = () => {
                 sx={{ mt: 4 }}
                 labelText={t('sidebar.admin.folayer.settings.color')}
               />
-              <CheckBoxWithText
+              <SwitchWithLabel
                 checked={adminFolayerConf.isVisible}
                 onChange={handleIsVisibleChange}
                 sx={{ mt: 4 }}
@@ -263,7 +264,7 @@ const Page = () => {
                   ns={'luonnonmetsakartat'}
                   keyName={'sidebar.admin.folayer.settings.is_visible'}
                 />
-              </CheckBoxWithText>
+              </SwitchWithLabel>
             </Box>
             {/* Import/update shapefile */}
             <Box
@@ -292,28 +293,34 @@ const Page = () => {
                 <Upload sx={{ width: '24px' }} />
               </BigMenuButton>
 
-              {fileType === 'shp' && arrayBuffers && arrayBuffers.length > 0 && (
-                <>
-                  <CheckBoxWithText
-                    checked={deleteAreasNotUpdated}
-                    onChange={(_e, checked) => setDeleteAreasNotUpdated(checked)}
-                    sx={{ mt: 5 }}
-                  >
-                    <T
-                      ns={'luonnonmetsakartat'}
-                      keyName={'sidebar.admin.folayer.settings.delete_areas_not_updated'}
-                    />
-                  </CheckBoxWithText>
-                  <Box sx={{ mt: 5 }}>
-                    <FolayerUpdateShp
-                      fileBuffers={arrayBuffers}
-                      adminFolayerConf={adminFolayerConf}
-                      onValidationChange={setIsUpdateValid}
-                      ref={shpRef}
-                    />
-                  </Box>
-                </>
-              )}
+              {fileType === 'shp' &&
+                arrayBuffers &&
+                arrayBuffers.length > 0 && (
+                  <>
+                    <SwitchWithLabel
+                      checked={deleteAreasNotUpdated}
+                      onChange={(_e, checked) =>
+                        setDeleteAreasNotUpdated(checked)
+                      }
+                      sx={{ mt: 5 }}
+                    >
+                      <T
+                        ns={'luonnonmetsakartat'}
+                        keyName={
+                          'sidebar.admin.folayer.settings.delete_areas_not_updated'
+                        }
+                      />
+                    </SwitchWithLabel>
+                    <Box sx={{ mt: 5 }}>
+                      <FolayerUpdateShp
+                        fileBuffers={arrayBuffers}
+                        adminFolayerConf={adminFolayerConf}
+                        onValidationChange={setIsUpdateValid}
+                        ref={shpRef}
+                      />
+                    </Box>
+                  </>
+                )}
             </Box>
           </Box>
         )}

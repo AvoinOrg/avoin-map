@@ -7,7 +7,6 @@
 
 // import 'ol/ol.css'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import 'maplibre-gl-draw/dist/mapbox-gl-draw.css'
 
 import React, { useState, useRef, useEffect } from 'react'
 import Box from '@mui/material/Box'
@@ -35,6 +34,7 @@ import { OverlayMessages } from './OverlayMessages'
 import { MapPopupHandler } from './MapPopupHandler'
 import { decodeUrlAndParams } from '#/common/utils/map'
 import { MapActionsWrapper } from './MapActionsWrapper'
+import MapBottomControls from './MapBottomControls'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 // const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
@@ -50,8 +50,10 @@ export const MapHandler = ({ children }: Props) => {
   // const setIsMapPopupOpen = useUIStore((state) => state.setIsMapPopupOpen)
   const { data: session } = useSession()
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
+  const sidebarWidth = useUIStore((state) => state.sidebarWidth)
+  const windowSize = useUIStore((state) => state.windowSize)
 
-  const mapDivRef = useRef<HTMLDivElement>()
+  const mapDivRef = useRef<HTMLDivElement | null>(null)
   // const mapRef = useRef<OlMap | null>(null)
   const mapLibraryRef = useRef<MapLibraryMode | null>(null)
 
@@ -66,6 +68,9 @@ export const MapHandler = ({ children }: Props) => {
   const _functionQueue = useMapStore((state) => state._functionQueue)
   const _executeFunctionQueue = useMapStore(
     (state) => state._executeFunctionQueue
+  )
+  const setMapAttributionHtml = useMapStore(
+    (state) => state.setMapAttributionHtml
   )
   const mapContext = useMapStore((state) => state.mapContext)
   const _addStaleSourceId = useMapStore((state) => state._addStaleSourceId)
@@ -180,8 +185,11 @@ export const MapHandler = ({ children }: Props) => {
 
     newMap.addControl(
       new AttributionControl({
-        compact: true,
-      })
+        compact: false,
+        customAttribution:
+          'Avoin Map hosted on <a href="https://www.netlify.com/" target="_blank">Netlify</a>',
+      }),
+      'bottom-left'
     )
 
     if (_map && _map.getStyle()) {
@@ -209,6 +217,58 @@ export const MapHandler = ({ children }: Props) => {
     newMap.on('click', mbSelectionFunction)
 
     newMap.on('load', () => {
+      const syncAttributionHtml = () => {
+        const attributionContainer = newMap
+          .getContainer()
+          .querySelector('.maplibregl-ctrl-attrib') as HTMLElement | null
+
+        if (!attributionContainer) {
+          setMapAttributionHtml('')
+          return
+        }
+
+        attributionContainer.style.display = 'none'
+        attributionContainer.setAttribute('aria-hidden', 'true')
+
+        const attributionInner = attributionContainer.querySelector(
+          '.maplibregl-ctrl-attrib-inner'
+        ) as HTMLElement | null
+
+        if (!attributionInner) {
+          setMapAttributionHtml('')
+          return
+        }
+
+        attributionInner.querySelectorAll<HTMLAnchorElement>('a').forEach((a) => {
+          a.setAttribute('target', '_blank')
+          const rel = (a.getAttribute('rel') ?? '').split(/\s+/).filter(Boolean)
+          const needed = ['noopener', 'noreferrer']
+          a.setAttribute(
+            'rel',
+            Array.from(new Set([...rel, ...needed])).join(' ')
+          )
+        })
+
+        setMapAttributionHtml(attributionInner.innerHTML.trim())
+      }
+
+      const scheduleAttributionSync = () => {
+        requestAnimationFrame(syncAttributionHtml)
+      }
+
+      syncAttributionHtml()
+      scheduleAttributionSync()
+
+      newMap.on('styledata', scheduleAttributionSync)
+      newMap.on('sourcedata', scheduleAttributionSync)
+      newMap.on('idle', scheduleAttributionSync)
+
+      newMap.once('remove', () => {
+        newMap.off('styledata', scheduleAttributionSync)
+        newMap.off('sourcedata', scheduleAttributionSync)
+        newMap.off('idle', scheduleAttributionSync)
+        setMapAttributionHtml('')
+      })
       // const createPinElement = (feature, options = {}) => {
       // Default pin styling
       //   const defaultStyle = {
@@ -782,9 +842,21 @@ export const MapHandler = ({ children }: Props) => {
 
   useEffect(() => {
     if (isLoaded) {
-      _map?.resize()
+      const frameId = window.requestAnimationFrame(() => {
+        _map?.resize()
+      })
+
+      return () => {
+        window.cancelAnimationFrame(frameId)
+      }
     }
-  }, [isSidebarOpen, isLoaded])
+  }, [
+    isSidebarOpen,
+    isLoaded,
+    sidebarWidth,
+    windowSize?.height,
+    windowSize?.width,
+  ])
 
   return (
     <>
@@ -822,6 +894,7 @@ export const MapHandler = ({ children }: Props) => {
       ></Box>
       <OverlayMessages message={overlayMessage}></OverlayMessages>
       <MapActionsWrapper></MapActionsWrapper>
+      <MapBottomControls />
       <MapPopupHandler></MapPopupHandler>
       <></>
       {children}

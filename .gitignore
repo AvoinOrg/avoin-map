@@ -103,6 +103,8 @@ typings/
 # production
 /build
 
+.fuse_hidden*
+
 # misc
 .DS_Store
 .env.local
@@ -115,7 +117,7 @@ yarn-debug.log*
 yarn-error.log*
 
 .vscode
-.devcontainer
+.devcontainer/devcontainer.json
 
 # Local Netlify folder
 .netlify
@@ -153,4 +155,17 @@ src/app/api/map/*
 # i18n files, which are downloaded dynamically
 i18n/*
 
-.dev
+.dev/
+
+.codex/**
+.codex-orch/
+
+# Temp build workspace state (see utils/scripts/prebuildFolderPruneTmp.js)
+.applet-build-tmp.json
+
+.temp
+.tmp
+.envrc
+
+.claude/*
+!.claude/settings.template.json

@@ -16,7 +16,7 @@ import {
   FolayerAreaConf,
   FolayerFeature,
   PartialFolayerFeature,
-} from 'applets/luonnonmetsakartat/common/types'
+} from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 
 type AdminFolayerConfMap = {
   [id: string]: AdminFolayerConf

@@ -1,16 +1,20 @@
 import { useParams } from 'next/navigation'
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 
 export const useLocaleFormatter = () => {
   const { locale } = useParams()
+  const numberLocale = useMemo(() => {
+    if (typeof locale !== 'string') {
+      return undefined
+    }
+
+    return locale.toLowerCase() === 'en' ? 'en-FI' : locale
+  }, [locale])
 
   const formatNumber = useCallback(
-    (
-      value: number,
-      options?: Intl.NumberFormatOptions
-    ): string => {
+    (value: number, options?: Intl.NumberFormatOptions): string => {
       try {
-        return value.toLocaleString(locale as string, options)
+        return value.toLocaleString(numberLocale, options)
       } catch (error) {
         console.error('Error formatting number with locale:', {
           locale,
@@ -22,8 +26,7 @@ export const useLocaleFormatter = () => {
         return value.toLocaleString(undefined, options)
       }
     },
-    [locale]
+    [locale, numberLocale]
   )
-
-  return { formatNumber }
+  return { formatNumber, numberLocale }
 }

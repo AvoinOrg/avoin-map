@@ -4,13 +4,17 @@ import React from 'react'
 import Button from '@mui/material/Button'
 import { styled } from '@mui/material/styles'
 import { T } from '@tolgee/react'
-import { openWindow } from '#/common/utils/modal'
+import { useParams } from 'next/navigation'
+import { openLoginWindow } from '#/common/utils/auth'
 
 const LoginButton = () => {
+  const params = useParams<{ locale?: string }>()
+
   return (
     <Button
+      aria-label="Sign in"
       sx={{ color: 'neutral.lighter', typography: 'h3', pl: 0 }}
-      onClick={() => openWindow('/en/adds/login')}
+      onClick={() => openLoginWindow(params.locale)}
     >
       <T keyName="navbar.profile.sign_in" />
     </Button>

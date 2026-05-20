@@ -17,7 +17,7 @@ const Layout = async ({ children, params }: Props) => {
 
   return (
     <TolgeeNextProvider locale={locale} locales={locales}>
-      <LayoutClient>{children}</LayoutClient>
+      <LayoutClient locale={locale}>{children}</LayoutClient>
     </TolgeeNextProvider>
   )
 }

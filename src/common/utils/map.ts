@@ -10,8 +10,15 @@ import {
 // import WebGLVectorLayerRenderer from 'ol/renderer/webgl/VectorLayer'
 // import { asArray } from 'ol/color'
 // import { packColor } from 'ol/renderer/webgl/shaders'
-import { Feature, FeatureCollection, Geometry, Position } from 'geojson'
-import type { DrawMode as MaplibreDrawMode } from 'maplibre-gl-draw'
+import {
+  Feature,
+  FeatureCollection,
+  Geometry,
+  MultiPolygon,
+  Position,
+} from 'geojson'
+import { buffer, Feature as TurfFeature, LineString, Polygon } from '@turf/turf'
+import { toMercator, toWgs84 } from '@turf/projection'
 import { AllGeoJSON, center } from '@turf/turf'
 
 import {
@@ -28,13 +35,30 @@ import {
   SelectionSource,
   ExtendedMapGeoJSONFeature,
   LayerOrderLevel,
+  LayerOptions,
+  ExtendedLayerSpecification,
+  GeneratedFillPatternOptions,
+  ColorStop,
+  AutoRelocateOptions,
+  ExtendedMaplibreDrawMode,
 } from '../types/map'
-import { clone, uniqBy } from 'lodash-es'
+import { uniqBy } from 'lodash-es'
 import { useMapStore } from '../store'
+import {
+  CANVAS_FILL_DEFAULT_BACKGROUND_COLOR,
+  CANVAS_FILL_DEFAULT_COLOR,
+  CANVAS_FILL_ZOOM_SIZE_RANGES,
+  getCanvasFillPatternOptions,
+  MAX_MERC_LAT,
+  PLACE_RANK_ZOOM_ANCHORS,
+} from '../constants/map'
+import { canvasFill } from 'maplibre_symbol_utils'
+import { colorAtValue } from './general'
 
 const EMBEDDED_PARAMS_URL_SEPARATOR = '||'
 
 export const fillOpacity = 0.65
+export const clampOpacity = (value: number) => Math.min(1, Math.max(0, value))
 
 // const defaultVectorStyles: any = {
 //   LineString: new Style({
@@ -284,6 +308,29 @@ export const getLayerGroupIdForLayer = (
   return null // return null if no group is found containing the layerId
 }
 
+export const getLayerGroupIdForSource = (
+  sourceId: string,
+  layerGroups: LayerGroups
+): string | null => {
+  for (const groupId in layerGroups) {
+    if (!Object.prototype.hasOwnProperty.call(layerGroups, groupId)) {
+      continue
+    }
+    const group = layerGroups[groupId]
+    for (const sourceKey in group.sources) {
+      if (!Object.prototype.hasOwnProperty.call(group.sources, sourceKey)) {
+        continue
+      }
+      const source = group.sources[sourceKey]
+      if (source.id === sourceId || sourceKey === sourceId) {
+        return groupId
+      }
+    }
+  }
+
+  return null
+}
+
 // A helper function for resolving a style
 // that can be either a style object or
 // a function returning a style object.
@@ -324,6 +371,20 @@ export const getAllLayerOptionsObj = (
   return allLayerOptionsObj
 }
 
+export const findLayerOptsById = (
+  id: string,
+  layerGroups: Record<string, LayerGroupOptions>
+) => {
+  for (const layerGroupId in layerGroups) {
+    const layerOptions = layerGroups[layerGroupId].layers[id]
+    if (layerOptions) {
+      return layerOptions
+    }
+  }
+
+  return undefined
+}
+
 export const findSourceOptsById = (id: string, layerGroups: LayerGroups) => {
   let sourceOptions: SourceOptions | undefined
 
@@ -340,15 +401,77 @@ export const findSourceOptsById = (id: string, layerGroups: LayerGroups) => {
   return sourceOptions
 }
 
-const getSourceData = (
+// ============================================================================
+// GeoJSON Source Mutation Manager
+// Serializes all mutations per source to prevent race conditions
+// ============================================================================
+
+class GeoJSONSourceManager {
+  private queues: globalThis.Map<string, Promise<void>> = new globalThis.Map()
+
+  /**
+   * Queue a mutation operation for a GeoJSON source.
+   * All mutations for the same source are serialized to prevent race conditions.
+   */
+  async mutate(
+    map: Map,
+    sourceId: string,
+    mutator: (features: Feature[]) => Feature[]
+  ): Promise<void> {
+    const prev = this.queues.get(sourceId) ?? Promise.resolve()
+
+    const operation = prev
+      .then(async () => {
+        const source = map.getSource(sourceId) as GeoJSONSource | undefined
+        if (!source) {
+          console.error(`Source "${sourceId}" not found`)
+          return
+        }
+
+        const data = (await source.getData()) as FeatureCollection | null
+        if (!data || data.type !== 'FeatureCollection') {
+          console.error(
+            `Source "${sourceId}" data is not a valid FeatureCollection`
+          )
+          return
+        }
+
+        const newFeatures = mutator(data.features as Feature[])
+        source.setData({ ...data, features: newFeatures })
+        map.triggerRepaint()
+      })
+      .catch((err: unknown) => {
+        console.error(`Error mutating source "${sourceId}":`, err)
+      })
+
+    this.queues.set(sourceId, operation)
+    return operation
+  }
+
+  /**
+   * Clear the queue for a specific source (useful for cleanup)
+   */
+  clearQueue(sourceId: string): void {
+    this.queues.delete(sourceId)
+  }
+}
+
+// Singleton instance for the application
+export const geoJSONSourceManager = new GeoJSONSourceManager()
+
+// ============================================================================
+// Helper functions (kept private for internal use)
+// ============================================================================
+
+const getSourceData = async (
   layerGroupId: string,
-  _mbMap: Map | null
-): GeoJSON.FeatureCollection | null => {
-  if (!_mbMap || !layerGroupId) {
+  map: Map | null
+): Promise<GeoJSON.FeatureCollection | null> => {
+  if (!map || !layerGroupId) {
     return null
   }
 
-  const originalSource = _mbMap.getSource(layerGroupId) as
+  const originalSource = map.getSource(layerGroupId) as
     | GeoJSONSource
     | undefined
 
@@ -357,109 +480,141 @@ const getSourceData = (
     return null
   }
 
-  return originalSource._data as GeoJSON.FeatureCollection
+  const sourceData = await originalSource.getData()
+
+  return sourceData as GeoJSON.FeatureCollection
 }
 
-export const addFeatureToDrawSource = (
+const getFeatureIdentifier = (
+  feature: Feature,
+  idField: string
+): string | number | null => {
+  const props = feature.properties as Record<string, any> | undefined
+  if (props && props[idField] != null) {
+    return props[idField] as string | number
+  }
+  if (feature.id != null) {
+    return feature.id as string | number
+  }
+  return null
+}
+
+const ensureIdOnFeature = (
+  feature: Feature,
+  idField: string
+): Feature | null => {
+  const identifier = getFeatureIdentifier(feature, idField)
+  if (identifier == null) {
+    return null
+  }
+  const properties = {
+    ...(feature.properties || {}),
+    [idField]: identifier,
+  }
+  return { ...feature, id: feature.id ?? identifier, properties }
+}
+
+export const addFeatureToSource = (
   feature: GeoJSON.Feature,
   layerGroupId: string,
-  _mbMap: Map | null
-) => {
-  const data = getSourceData(layerGroupId, _mbMap)
-  if (!data) {
-    return
+  map: Map | null
+): Promise<void> => {
+  if (!map) {
+    console.error('Map is not available')
+    return Promise.resolve()
   }
 
-  const newFeatures = [...clone(data.features), feature]
-
-  // Update the source with the modified features
-  const originalSource = _mbMap!.getSource(layerGroupId) as GeoJSONSource
-  originalSource.setData({ ...data, features: newFeatures })
-  _mbMap?.triggerRepaint()
+  return geoJSONSourceManager.mutate(map, layerGroupId, (features) => {
+    return [...features, feature] as Feature[]
+  })
 }
 
-export const updateFeatureInDrawSource = (
+export const updateFeatureInSource = (
   feature: Feature,
-  idField: string,
   layerGroupId: string,
-  _mbMap: Map | null
-) => {
-  const data = getSourceData(layerGroupId, _mbMap)
-  if (!data) {
-    return
+  map: Map | null
+): Promise<void> => {
+  if (!map) {
+    console.error('Map is not available')
+    return Promise.resolve()
   }
 
-  let found = false
+  return geoJSONSourceManager.mutate(map, layerGroupId, (features) => {
+    if (feature.id == null) {
+      console.error('Cannot update feature without an identifier')
+      return features
+    }
 
-  const updatedFeatures = data.features.map((f) => {
-    // Check if the current feature in the map is the one that needs to be updated
-    if (f.properties && feature.properties) {
-      const originalId = f.properties[idField]
-      const drawId = feature.properties[idField]
+    let found = false
+    const updatedFeatures = features.map((f) => {
+      const originalId = f.id
 
-      if (originalId === drawId) {
+      if (originalId != null && originalId === feature.id) {
         found = true
-        // Return a new feature object with updated geometry
-        return { ...f, geometry: feature.geometry }
+        const properties = {
+          ...(f.properties || {}),
+          ...(feature.properties || {}),
+        }
+        return {
+          ...f,
+          id: f.id ?? feature.id,
+          geometry: feature.geometry,
+          properties,
+        }
       }
-    }
-    // Return the unmodified feature
-    return f
-  })
+      return f
+    })
 
-  if (!found) {
-    if (feature.properties) {
+    if (!found) {
       console.error(
-        `Feature with id ${feature.properties[idField]} not found in the original source`
-      )
-    } else {
-      console.error(
-        'Feature properties are null, or the feature was not found in the original source.'
+        `Feature with id ${feature.id} not found in the original source`
       )
     }
-  } else {
-    // Update the source with the modified features
-    const originalSource = _mbMap!.getSource(layerGroupId) as GeoJSONSource
-    originalSource.setData({ ...data, features: updatedFeatures })
-    _mbMap?.triggerRepaint()
-  }
+
+    return updatedFeatures
+  })
 }
 
-export const deleteFeatureFromDrawSource = (
-  feature: Feature,
-  idField: string,
+export const deleteFeaturesFromSource = (
+  features: Feature[],
   layerGroupId: string,
-  _mbMap: Map | null
-) => {
-  const data = getSourceData(layerGroupId, _mbMap)
-  if (!data) {
-    return
+  map: Map | null
+): Promise<void> => {
+  if (!map) {
+    console.error('Map is not available')
+    return Promise.resolve()
   }
 
-  const updatedFeatures = data.features.filter((f) => {
-    if (f.properties && feature.properties) {
-      const originalId = f.properties[idField]
-      const drawId = feature.properties[idField]
+  return geoJSONSourceManager.mutate(map, layerGroupId, (sourceFeatures) => {
+    let featureIds = features.map((f) => {
+      if (f.id == null) {
+        console.error(
+          '[deleteFeaturesFromSource]: Cannot delete feature without an identifier: ',
+          f
+        )
+        return null
+      }
+      return f.id
+    })
 
-      return originalId !== drawId
-    }
-    // If properties are missing, keep the feature (i.e., do not delete it)
-    return true
+    return sourceFeatures.filter((f) => {
+      const originalId = f.id
+      if (originalId == null) {
+        // Keep features without identifiers
+        return true
+      }
+      return featureIds.includes(originalId) === false
+    })
   })
-
-  // Update the source with the modified features
-  const originalSource = _mbMap!.getSource(layerGroupId) as GeoJSONSource
-  originalSource.setData({ ...data, features: updatedFeatures })
-  _mbMap?.triggerRepaint()
 }
 
-export const getFeaturesFromSourceById = (
+export const getFeaturesFromSourceById = async (
   features: Feature[],
   idField: string,
   layerGroupId: string,
-  _mbMap: Map | null
+  map: Map | null
 ) => {
-  const data = getSourceData(layerGroupId, _mbMap)
+  const data = await getSourceData(layerGroupId, map)
 
   if (data) {
     // Find the corresponding original features for the selected ones
@@ -486,7 +641,7 @@ export const getFeaturesFromSourceById = (
   return [] as Feature[]
 }
 
-export const getSourceJson = (id: string, map: Map | null) => {
+export const getSourceJson = async (id: string, map: Map | null) => {
   try {
     const source = map?.getSource(id) as GeoJSONSource
 
@@ -495,35 +650,19 @@ export const getSourceJson = (id: string, map: Map | null) => {
       return null
     }
 
-    let data
-
-    if (source._data) {
-      data = source._data
-    } else if (source._options?.data) {
-      data = source._options.data
-    } else {
-      console.error(`Source "${id}" has no data.`)
-      return null
-    }
+    const data = (source as any).getData
+      ? await (source as any).getData()
+      : null
 
     if (!data || typeof data !== 'object') {
       console.error(`Source "${id}" does not contain valid JSON data.`)
       return null
     }
 
-    if (data.type !== 'FeatureCollection') {
+    if (data.type !== 'FeatureCollection' || !Array.isArray(data.features)) {
       console.error(`Source "${id}" data is not a valid FeatureCollection.`)
       return null
     }
-
-    // maplibre hallucinates irrelevant ids when the source data is queried like this.
-    // set the id to what is should be.
-    // for (const feature of data.features) {
-    //   console.log(feature)
-    //   if (feature.properties?.id) {
-    //     feature.id = feature.properties.id
-    //   }
-    // }
 
     return data as FeatureCollection
   } catch (e) {
@@ -617,7 +756,21 @@ export const fetchFeaturesByIds = ({
 
         if (sourceType != null) {
           if (sourceType === 'geojson') {
-            const featureCollection = getSourceJson(source.source, map)
+            const src = map?.getSource(source.source) as
+              | GeoJSONSource
+              | undefined
+            const rawData =
+              (src as any)?._data?.geojson ??
+              (src as any)?._data ??
+              (src as any)?._options?.data ??
+              null
+            const featureCollection =
+              rawData &&
+              typeof rawData === 'object' &&
+              rawData.type === 'FeatureCollection' &&
+              Array.isArray((rawData as any).features)
+                ? (rawData as FeatureCollection)
+                : null
 
             if (featureCollection) {
               const additionalFeature = featureCollection.features.find((f) => {
@@ -664,29 +817,195 @@ export const fetchFeaturesByIds = ({
   return features
 }
 
-export const getMaplibreDrawMode = (drawMode: DrawMode): MaplibreDrawMode => {
+export const getMaplibreDrawMode = (
+  drawMode: DrawMode
+): ExtendedMaplibreDrawMode => {
   switch (drawMode) {
     case 'polygon':
-      return 'draw_polygon'
+      return 'polygon'
     case 'edit':
-      return 'simple_select'
+      return 'select'
+    case 'corridor':
+      return 'corridor'
   }
 }
 
 // TODO: Add more modes as needed
-export const getDrawMode = (maplibreDrawMode: MaplibreDrawMode): DrawMode => {
+export const getDrawMode = (
+  maplibreDrawMode: ExtendedMaplibreDrawMode
+): DrawMode => {
   switch (maplibreDrawMode) {
-    case 'draw_polygon':
+    case 'polygon':
       return 'polygon'
-    case 'simple_select':
+    case 'select':
       return 'edit'
-    case 'direct_select':
-      return 'edit'
-    case 'static':
-      return 'edit'
+    case 'corridor':
+      return 'corridor'
     default:
       return 'edit'
   }
+}
+
+// Corridor preview/buffer helpers
+export const CORRIDOR_PREVIEW_SOURCE_ID = 'corridor-preview-src'
+export const CORRIDOR_PREVIEW_LAYER_ID = 'corridor-preview-layer'
+
+export const ensureCorridorPreviewLayers = (map: Map) => {
+  if (!map.getSource(CORRIDOR_PREVIEW_SOURCE_ID)) {
+    map.addSource(CORRIDOR_PREVIEW_SOURCE_ID, {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: [] },
+    } as any)
+  }
+  if (!map.getLayer(CORRIDOR_PREVIEW_LAYER_ID)) {
+    map.addLayer({
+      id: CORRIDOR_PREVIEW_LAYER_ID,
+      type: 'fill',
+      source: CORRIDOR_PREVIEW_SOURCE_ID,
+      layout: { visibility: 'none' },
+      paint: { 'fill-color': '#3b82f6', 'fill-opacity': 0.25 },
+    })
+  }
+}
+
+export const clearCorridorPreview = (map: maplibregl.Map) => {
+  const src = map.getSource(CORRIDOR_PREVIEW_SOURCE_ID) as any
+  if (src) {
+    src.setData({ type: 'FeatureCollection', features: [] })
+  }
+}
+
+export const setCorridorPreviewVisible = (
+  map: maplibregl.Map,
+  show: boolean
+) => {
+  if (map.getLayer(CORRIDOR_PREVIEW_LAYER_ID)) {
+    map.setLayoutProperty(
+      CORRIDOR_PREVIEW_LAYER_ID,
+      'visibility',
+      show ? 'visible' : 'none'
+    )
+  }
+}
+
+let jstsP: Promise<any> | null = null
+export const getJSTS = () =>
+  (jstsP ??= (async () => {
+    const [GeoJSONReader, GeoJSONWriter, BufferParameters, BufferOp] =
+      await Promise.all([
+        import('jsts/org/locationtech/jts/io/GeoJSONReader.js').then(
+          (m) => m.default
+        ),
+        import('jsts/org/locationtech/jts/io/GeoJSONWriter.js').then(
+          (m) => m.default
+        ),
+        import(
+          'jsts/org/locationtech/jts/operation/buffer/BufferParameters.js'
+        ).then((m) => m.default),
+        import('jsts/org/locationtech/jts/operation/buffer/BufferOp.js').then(
+          (m) => m.default
+        ),
+      ])
+    return {
+      io: { GeoJSONReader, GeoJSONWriter },
+      operation: { buffer: { BufferParameters, BufferOp } },
+    }
+  })())
+const asGeometry = (g: any) => {
+  if (!g) return null
+  if (g.type === 'Feature') return g.geometry
+  if (g.type === 'FeatureCollection') {
+    // you draw one line; take first geometry defensively
+    const f = g.features?.[0]
+    return f ? f.geometry : null
+  }
+  return g // already a geometry
+}
+
+const asFeature = (geom: any): TurfFeature<Polygon | MultiPolygon> => ({
+  type: 'Feature',
+  properties: {},
+  geometry: geom as Polygon | MultiPolygon,
+})
+
+// Round coordinates to avoid TerraDraw precision validation issues
+export const roundCoordinates = (coords: any, precision: number = 9): any => {
+  if (typeof coords[0] === 'number') {
+    return coords.map((c: number) => +c.toFixed(precision))
+  }
+  return coords.map((c: any) => roundCoordinates(c, precision))
+}
+
+export const roundFeatureCoordinates = (feature: Feature): Feature => {
+  if (feature.geometry && 'coordinates' in feature.geometry) {
+    return {
+      ...feature,
+      geometry: {
+        ...feature.geometry,
+        coordinates: roundCoordinates(feature.geometry.coordinates),
+      },
+    } as Feature
+  }
+  return feature
+}
+
+export const corridorPolygonFromLine = async (
+  line: TurfFeature<LineString>,
+  halfWidthMeters: number
+): Promise<TurfFeature<Polygon | MultiPolygon>> => {
+  // Prefer JSTS when it’s legal to load; otherwise fall back cleanly.
+  try {
+    const jsts = await getJSTS()
+
+    // PROJECT → READ GEOMETRY (not Feature!) → BUFFER → WRITE → UNPROJECT
+    const merc = toMercator(line) as any
+    const geomIn = asGeometry(merc)
+    if (!geomIn) throw new Error('GeoJSONReader: no geometry extracted')
+
+    const reader = new jsts.io.GeoJSONReader()
+    const writer = new jsts.io.GeoJSONWriter()
+
+    const jGeom = reader.read(geomIn) // JTS Geometry
+    if (!jGeom) throw new Error('GeoJSONReader returned undefined')
+
+    const params = new jsts.operation.buffer.BufferParameters()
+    params.setEndCapStyle(jsts.operation.buffer.BufferParameters.CAP_FLAT) // flat ends
+    params.setJoinStyle(jsts.operation.buffer.BufferParameters.JOIN_MITRE) // sharp bends
+    params.setMitreLimit(1) // fall back to beveled corners on very acute angles
+
+    const jBuffered = jsts.operation.buffer.BufferOp.bufferOp(
+      jGeom,
+      halfWidthMeters,
+      params
+    )
+    const geojsonGeom = writer.write(jBuffered) // Geometry JSON (not Feature)
+    const wgsGeom = toWgs84(geojsonGeom) as Polygon | MultiPolygon
+
+    // Round coordinates to avoid TerraDraw precision validation issues
+    wgsGeom.coordinates = roundCoordinates(wgsGeom.coordinates)
+
+    return asFeature(wgsGeom)
+  } catch (err) {
+    // Loud, but don’t brick drawing
+    console.warn(
+      '[corridorPolygonFromLine] JSTS failed; falling back to Turf:',
+      err
+    )
+  }
+
+  // Fallback: Turf buffer (rounded ends everywhere)
+  const km = halfWidthMeters / 1000
+  const buffered = buffer(line, km, {
+    units: 'kilometers',
+    steps: 16,
+  }) as TurfFeature<Polygon | MultiPolygon>
+
+  // Round coordinates to avoid TerraDraw precision validation issues
+  if (buffered.geometry) {
+    buffered.geometry.coordinates = roundCoordinates(buffered.geometry.coordinates)
+  }
+
+  return buffered
 }
 
 export const isLayerGroupSelectable = (
@@ -743,6 +1062,10 @@ export const getSelectableLayersForSource = (
           return false
         }
 
+        if (layer.source == null) {
+          return false
+        }
+
         const sourceMatches = isMatchingSource(
           { source: layer.source, sourceLayer: layer.sourceLayer },
           source
@@ -761,27 +1084,61 @@ export const getSelectableLayersForSource = (
   return []
 }
 
+export const getLayersForSource = (
+  source: SelectionSource,
+  layerGroups: LayerGroups
+): LayerOptions[] => {
+  let targetGroup: LayerGroupOptions | null = null
+
+  for (const groupId in layerGroups) {
+    if (layerGroups[groupId].sources[source.source]) {
+      targetGroup = layerGroups[groupId]
+      break
+    }
+  }
+
+  if (targetGroup) {
+    const layers = Object.values(targetGroup.layers).filter((layer) => {
+      if (layer.source == null) {
+        return false
+      }
+
+      const sourceMatches = isMatchingSource(
+        { source: layer.source, sourceLayer: layer.sourceLayer },
+        source
+      )
+
+      return sourceMatches
+    })
+
+    return layers
+  }
+  console.warn('[getLayersForSource]: No layers found for source', source)
+
+  return []
+}
+
 export const getMatchingDrawFeatures = (
   draw: any,
-  features: MapGeoJSONFeature[],
-  idField: string | undefined
+  features: MapGeoJSONFeature[]
 ): Feature[] => {
-  const drawData = draw.getAll()
-  const matchingFeatures = drawData.features.filter((drawFeature: Feature) => {
+  let drawFeatures: Feature[] = []
+  if (draw?.getAll) {
+    drawFeatures = draw.getAll().features
+  } else if (draw?.getSnapshot) {
+    drawFeatures = draw.getSnapshot() as any
+  }
+
+  const matchingFeatures = drawFeatures.filter((drawFeature: Feature) => {
     return features.some((feature) => {
-      if (idField) {
-        if (
-          feature.properties &&
-          feature.properties[idField] != null &&
-          drawFeature.properties &&
-          drawFeature.properties[idField] != null
-        ) {
-          return drawFeature.properties[idField] === feature.properties[idField]
-        }
+      const drawId = drawFeature.id
+      const targetId = feature.id
+
+      if (drawId == null || targetId == null) {
         return false
-      } else {
-        return drawFeature.properties?.id === feature.id
       }
+
+      return drawId === targetId
     })
   })
 
@@ -808,9 +1165,12 @@ export const isMatchingSource = (
 
   const sourceMatches = obj1.source === obj2.source
 
+  const sourceLayer1 = obj1.sourceLayer ?? obj1['source-layer']
+  const sourceLayer2 = obj2.sourceLayer ?? obj2['source-layer']
+
   const sourceLayerMatches =
-    (obj1.sourceLayer == null && obj2.sourceLayer == null) ||
-    obj1.sourceLayer === obj2.sourceLayer
+    (sourceLayer1 == null && sourceLayer2 == null) ||
+    sourceLayer1 === sourceLayer2
 
   if (sourceMatches && sourceLayerMatches) {
     return true
@@ -1150,4 +1510,327 @@ export const addLayerByOrderLevel = ({
     map.addLayer(layer)
     return
   }
+}
+
+// TODO: If we ever need deck-gl, we can update to use the fill pattern from there.
+export const applyCanvasFillPattern = (
+  map: Map | null | undefined,
+  layer: ExtendedLayerSpecification,
+  generatedFillPatternOptions: GeneratedFillPatternOptions
+) => {
+  if (!map || layer.type !== 'fill') {
+    return layer
+  }
+
+  const layerMinZoom = layer.minzoom ?? 0
+  const layerMaxZoom = layer.maxzoom ?? Infinity
+
+  const overlappingRanges = CANVAS_FILL_ZOOM_SIZE_RANGES.filter((range) => {
+    const rangeMax = range.maxZoom ?? Infinity
+    return rangeMax >= layerMinZoom && range.minZoom <= layerMaxZoom
+  })
+
+  const ranges: typeof CANVAS_FILL_ZOOM_SIZE_RANGES = overlappingRanges.length
+    ? [...overlappingRanges]
+    : [CANVAS_FILL_ZOOM_SIZE_RANGES[CANVAS_FILL_ZOOM_SIZE_RANGES.length - 1]]
+
+  if (ranges.length === 1) {
+    const loneIndex = CANVAS_FILL_ZOOM_SIZE_RANGES.findIndex(
+      (candidate) => candidate.size === ranges[0].size
+    )
+    const previous = CANVAS_FILL_ZOOM_SIZE_RANGES[loneIndex - 1]
+    const next = CANVAS_FILL_ZOOM_SIZE_RANGES[loneIndex + 1]
+    if (previous) {
+      ranges.unshift(previous)
+    } else if (next) {
+      ranges.push(next)
+    }
+  }
+
+  const getImageId = (
+    patternId: string,
+    size: number,
+    color: string,
+    backgroundColor: string
+  ) => {
+    return `${patternId}-${size}-${color}-${backgroundColor}`
+  }
+
+  ranges.forEach((range) => {
+    const imageId = getImageId(
+      generatedFillPatternOptions.patternId,
+      range.size,
+      generatedFillPatternOptions.colorRGBA || CANVAS_FILL_DEFAULT_COLOR,
+      generatedFillPatternOptions.backgroundColorRGBA ||
+        CANVAS_FILL_DEFAULT_BACKGROUND_COLOR
+    )
+    if (map.hasImage(imageId)) {
+      return
+    }
+    const options = getCanvasFillPatternOptions(
+      generatedFillPatternOptions.patternId,
+      range.size,
+      generatedFillPatternOptions.colorRGBA,
+      generatedFillPatternOptions.backgroundColorRGBA
+    )
+    if (!options) {
+      return
+    }
+
+    map.addImage(imageId, new canvasFill({ ...options }))
+  })
+
+  const basePatternId = getImageId(
+    generatedFillPatternOptions.patternId,
+    ranges[0].size,
+    generatedFillPatternOptions.colorRGBA || CANVAS_FILL_DEFAULT_COLOR,
+    generatedFillPatternOptions.backgroundColorRGBA ||
+      CANVAS_FILL_DEFAULT_BACKGROUND_COLOR
+  )
+
+  const fillPatternExpression = [
+    'step',
+    ['zoom'],
+    basePatternId,
+    ...ranges
+      .slice(1)
+      .flatMap((range) => [
+        range.minZoom,
+        getImageId(
+          generatedFillPatternOptions.patternId,
+          range.size,
+          generatedFillPatternOptions.colorRGBA || CANVAS_FILL_DEFAULT_COLOR,
+          generatedFillPatternOptions.backgroundColorRGBA ||
+            CANVAS_FILL_DEFAULT_BACKGROUND_COLOR
+        ),
+      ]),
+  ] as unknown as ExpressionSpecification
+
+  const fillPatternValue: string | ExpressionSpecification =
+    ranges.length > 1 ? fillPatternExpression : basePatternId
+
+  layer.paint = layer.paint ?? {}
+  layer.paint['fill-pattern'] = fillPatternValue
+}
+
+/**
+ * Build a MapLibre 'step' expression with N bins across [min, max].
+ * Each bin gets a color sampled from the piecewise-linear ramp defined by 'stops'.
+ */
+export const buildBinnedColorExpr = (
+  valueExpr: ExpressionSpecification,
+  stops: ColorStop[],
+  numberOfBins: number
+): ExpressionSpecification => {
+  if (!Array.isArray(stops) || stops.length < 2) {
+    throw new Error('Provide at least two stops: [{color, value}, ...].')
+  }
+  if (numberOfBins < stops.length) {
+    throw new Error('numberOfBins must be >= stops.length')
+  }
+
+  // Ensure ascending by value
+  const sorted = [...stops].sort((a, b) => a.value - b.value)
+  const min = sorted[0].value
+  const max = sorted[sorted.length - 1].value
+
+  if (max === min) {
+    const onlyColor = colorAtValue(sorted, min)
+    return ['step', ['to-number', valueExpr], onlyColor]
+  }
+
+  const range = max - min
+
+  // Uniform bin edges across [min, max]
+  const edges: number[] = []
+  for (let i = 1; i < numberOfBins; i++) {
+    edges.push(min + (range * i) / numberOfBins)
+  }
+
+  // Bin colors sampled at bin midpoints
+  const colors: string[] = []
+  for (let i = 0; i < numberOfBins; i++) {
+    const vMid = min + (range * (i + 0.5)) / numberOfBins
+    colors.push(colorAtValue(sorted, vMid))
+  }
+
+  // Build 'step' expression:
+  // ['step', valueExpr, colors[0], edges[0], colors[1], edges[1], colors[2], ...]
+  const expr: any[] = ['step', ['to-number', valueExpr], colors[0]]
+  for (let i = 0; i < edges.length; i++) {
+    expr.push(edges[i], colors[i + 1])
+  }
+  return expr as ExpressionSpecification
+}
+
+export const paddingFromVisibleViewport = (
+  container: HTMLElement,
+  vis: { width: number; height: number; centerX: number; centerY: number }
+) => {
+  const rect = container.getBoundingClientRect()
+
+  const vLeft = vis.centerX - vis.width / 2
+  const vRight = vis.centerX + vis.width / 2
+  const vTop = vis.centerY - vis.height / 2
+  const vBottom = vis.centerY + vis.height / 2
+
+  // If visible area vertically covers the container, don’t pad vertically.
+  const coversVertically = vTop <= rect.top && vBottom >= rect.bottom
+
+  const left = Math.max(0, Math.round(vLeft - rect.left))
+  const right = Math.max(0, Math.round(rect.right - vRight))
+  const top = coversVertically ? 0 : Math.max(0, Math.round(vTop - rect.top))
+  const bottom = coversVertically
+    ? 0
+    : Math.max(0, Math.round(rect.bottom - vBottom))
+
+  return { left, top, right, bottom } as const
+}
+
+const mercY = (latDeg: number) => {
+  const φ = (latDeg * Math.PI) / 180
+  return Math.log(Math.tan(Math.PI / 4 + φ / 2))
+}
+
+const invMercY = (y: number) => {
+  const φ = 2 * Math.atan(Math.exp(y)) - Math.PI / 2
+  return (φ * 180) / Math.PI
+}
+
+const clampLat = (lat: number) => {
+  return Math.max(-MAX_MERC_LAT, Math.min(MAX_MERC_LAT, lat))
+}
+
+export const expandBoundsMercY = (
+  lonMin: number,
+  lonMax: number,
+  latMin: number,
+  latMax: number,
+  lonExtra: number,
+  latExtra: number
+): [[number, number], [number, number]] => {
+  // Lon: linear → simple
+  const lonDiff = lonMax - lonMin
+  const west = lonMin - lonExtra * lonDiff
+  const east = lonMax + lonExtra * lonDiff
+
+  // Lat: expand in Mercator-Y to keep vertical centering stable
+  if (latExtra !== 0) {
+    const yMin = mercY(latMin)
+    const yMax = mercY(latMax)
+    const yDiff = yMax - yMin
+    const yMinE = yMin - latExtra * yDiff
+    const yMaxE = yMax + latExtra * yDiff
+    const south = clampLat(invMercY(yMinE))
+    const north = clampLat(invMercY(yMaxE))
+    return [
+      [west, south],
+      [east, north],
+    ]
+  } else {
+    return [
+      [west, latMin],
+      [east, latMax],
+    ]
+  }
+}
+
+export const boundsFromNominatim = (
+  opt: any
+): [number, number, number, number] | null => {
+  const bb = opt?.boundingbox // ["south","north","west","east"] as strings
+  if (!bb || bb.length !== 4) return null
+  const south = parseFloat(bb[0]),
+    north = parseFloat(bb[1])
+  const west = parseFloat(bb[2]),
+    east = parseFloat(bb[3])
+  if ([south, north, west, east].some(Number.isNaN)) return null
+  return [west, south, east, north]
+}
+
+// fallback if neither bbox nor place_rank
+export const defaultPointZoom = (opt: any): number => {
+  // Nominatim has "importance" [0..1]; use it if present
+  const imp = typeof opt?.importance === 'number' ? opt.importance : null
+  if (imp != null) return 10 + 7 * Math.min(1, Math.max(0, imp)) // ~10..17
+  return 13 // safe general default for points
+}
+
+const clamp = (n: number, a: number, b: number) => Math.min(b, Math.max(a, n))
+
+export function zoomFromPlaceOptions(
+  rank?: number,
+  opts?: { importance?: number; cls?: string; type?: string; round?: number }
+): number {
+  const { importance, cls, type, round = 2 } = opts ?? {}
+
+  if (rank == null || !isFinite(rank as number)) return 12
+  const r = clamp(rank, 0, 30)
+
+  // Piecewise-linear interpolation across anchors
+  let z: number
+  if (r <= PLACE_RANK_ZOOM_ANCHORS[0][0]) {
+    z = PLACE_RANK_ZOOM_ANCHORS[0][1]
+  } else if (r >= PLACE_RANK_ZOOM_ANCHORS.at(-1)![0]) {
+    z = PLACE_RANK_ZOOM_ANCHORS.at(-1)![1]
+  } else {
+    for (let i = 0; i < PLACE_RANK_ZOOM_ANCHORS.length - 1; i++) {
+      const [r0, z0] = PLACE_RANK_ZOOM_ANCHORS[i]
+      const [r1, z1] = PLACE_RANK_ZOOM_ANCHORS[i + 1]
+      if (r >= r0 && r <= r1) {
+        const t = (r - r0) / (r1 - r0)
+        z = z0 + t * (z1 - z0)
+        break
+      }
+    }
+    // TypeScript appeasement
+    z ??= 12
+  }
+
+  // Light, optional nudges (feel free to tweak)
+  if (typeof importance === 'number') {
+    z += (importance - 0.5) * 1.2 // about -0.6..+0.6
+  }
+  if (cls === 'amenity' || cls === 'shop' || cls === 'tourism') z += 0.4
+  if (cls === 'building') z += 0.6
+  if (cls === 'highway') z -= 0.3
+  if (cls === 'boundary' && (type === 'administrative' || type === 'country'))
+    z -= 0.5
+  if (cls === 'natural' && (type === 'peak' || type === 'volcano')) z += 0.2
+
+  return +z.toFixed(round)
+}
+
+/**
+ * Helper function to handle auto-relocate logic for map movement functions.
+ * @param autoRelocateOptions Options to check/disable auto-relocate
+ * @param isAutoRelocateDisabled Current state from the store
+ * @param setIsAutoRelocateDisabled Function to update the store state
+ * @returns true if the operation should proceed, false if it should be skipped
+ */
+export const handleAutoRelocate = (
+  autoRelocateOptions: AutoRelocateOptions | undefined
+): boolean => {
+  const { checkIfAutoRelocate = false, disableAutoRelocate = false } =
+    autoRelocateOptions ?? {}
+
+  if (!disableAutoRelocate && !checkIfAutoRelocate) {
+    return true // No auto-relocate options, proceed normally
+  }
+
+  const isAutoRelocateDisabled = useMapStore.getState().isAutoRelocateDisabled
+  const setIsAutoRelocateDisabled =
+    useMapStore.getState().setIsAutoRelocateDisabled
+
+  // If disableAutoRelocate is true, set the flag
+  if (disableAutoRelocate && !isAutoRelocateDisabled) {
+    setIsAutoRelocateDisabled(true)
+  }
+
+  // If checkIfAutoRelocate is true and relocate is disabled, skip the operation
+  if (checkIfAutoRelocate && isAutoRelocateDisabled) {
+    return false
+  }
+
+  return true
 }

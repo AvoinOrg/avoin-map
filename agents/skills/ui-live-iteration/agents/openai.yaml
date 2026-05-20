@@ -1,0 +1,4 @@
+interface:
+  display_name: "UI Live Iteration"
+  short_description: "Iterate on Avoin Map UI safely"
+  default_prompt: "Use $ui-live-iteration to make this Avoin Map UI change, verify it visually, and iterate until it is correct."

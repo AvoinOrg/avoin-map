@@ -8,6 +8,9 @@ import { LoginModal } from '#/components/Modal'
 import { ConfirmationDialog } from '#/components/Notification'
 import UserStateHandler from './userStateHandler'
 import UIStateHandler from './uiStateHandler'
+import { SlotsProvider } from '#/components/context/slotsContext'
+import { SidebarRoot } from '#/components/Sidebar'
+import { FullscreenPageSlot } from '#/components/common/FullscreenPage'
 // import { UserModal } from '#/components/Profile'
 // import { UiStateProvider, UserStateProvider } from '#/components/State'
 // import RootStyleRegistry from './emotion'
@@ -31,23 +34,26 @@ const LayoutClient = ({
       {isHydrated && (
         <UserStateHandler>
           <UIStateHandler>
-            <MapHandler>
-              {/* <UserModal /> */}
-              <Box
-                className="layout-container"
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  height: '100vh',
-                  width: '100vw',
-                  zIndex: 'drawer',
-                }}
-              >
-                {children}
-              </Box>
-              <LoginModal></LoginModal>
-              <ConfirmationDialog></ConfirmationDialog>
-            </MapHandler>
+            <SlotsProvider>
+              <MapHandler>
+                {/* <UserModal /> */}
+                <Box
+                  className="layout-container"
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '100vh',
+                    width: '100vw',
+                    zIndex: 'drawer',
+                  }}
+                >
+                  <SidebarRoot>{children}</SidebarRoot>
+                </Box>
+                <FullscreenPageSlot />
+                <LoginModal></LoginModal>
+                <ConfirmationDialog></ConfirmationDialog>
+              </MapHandler>
+            </SlotsProvider>
           </UIStateHandler>
         </UserStateHandler>
       )}

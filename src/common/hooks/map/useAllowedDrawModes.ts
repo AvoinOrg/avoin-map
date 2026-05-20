@@ -14,5 +14,9 @@ export const useAllowedDrawModes = () => {
     drawModes.push('edit')
   }
 
+  if (options.corridorEnabled) {
+    drawModes.push('corridor')
+  }
+
   return drawModes
 }

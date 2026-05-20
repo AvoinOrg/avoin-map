@@ -1,4 +1,4 @@
-import { ExpressionSpecification } from 'maplibre-gl'
+import type { ExpressionSpecification } from 'maplibre-gl'
 import GeoJSON from 'geojson'
 
 import {
@@ -14,24 +14,37 @@ import {
   FeatureCalcs,
   GraphCalcType,
   ReportData,
+  FeatureProperties,
 } from './types'
+import { CARBON_CHANGE_COLORS, CARBON_CHANGE_NO_DATA_COLOR } from './constants'
 import {
-  ZONING_CLASSES,
-  CARBON_CHANGE_COLORS,
-  CARBON_CHANGE_NO_DATA_COLOR,
-} from './constants'
+  getZoningClassByCode,
+  getZoningClassColor,
+  getZoningClasses,
+  getZoningClassesCache,
+} from './zoningClasses'
 
 export const getPlanLayerGroupId = (planId: string) => {
   return `${planId}_zoning_plan`
 }
 
-const zoningFillColorExpression = (
+export const getPlanSourceId = (planId: string) => {
+  return getPlanLayerGroupId(planId)
+}
+
+export const zoningFillColorExpression = (
   defaultColor = 'white'
 ): ExpressionSpecification => {
+  const zoningClasses = getZoningClassesCache()
+  if (zoningClasses.length === 0) {
+    return ['literal', defaultColor] as ExpressionSpecification
+  }
+
   const expression: any[] = ['match', ['get', 'zoning_code']]
 
-  ZONING_CLASSES.forEach((zoningClass) => {
-    expression.push(zoningClass.code, zoningClass.color_hex)
+  zoningClasses.forEach((zoningClass) => {
+    const color = getZoningClassColor(zoningClass.code) || defaultColor
+    expression.push(zoningClass.code, color)
   })
 
   // Default color if no match is found
@@ -41,19 +54,17 @@ const zoningFillColorExpression = (
 }
 
 export const isZoningCodeValid = (zoningCode: string) => {
-  return ZONING_CLASSES.some(
-    (zoningClassObj) => zoningClassObj.code === zoningCode
-  )
+  if (!zoningCode) {
+    return false
+  }
+
+  return getZoningClassByCode(zoningCode) != null
 }
 
 export const isZoningCodeValidExpression = () => {
-  // This array will hold the zoning codes to check
-  let validZoningCodes: string[] = []
-
-  // Populate the array with valid zoning codes
-  ZONING_CLASSES.forEach((zoningClass) => {
-    validZoningCodes.push(zoningClass.code)
-  })
+  const validZoningCodes = Array.from(
+    new Set(getZoningClassesCache().map((zoningClass) => zoningClass.code))
+  )
 
   // Return a maplibre expression that checks if the zoning code is in the list of valid codes
   // The expression uses the 'in' operator to check if the zoning code is in the array of valid codes
@@ -64,12 +75,19 @@ export const isZoningCodeValidExpression = () => {
   ] as ExpressionSpecification
 }
 
-export const createLayerConf = (
+export const createLayerConf = async (
   json: any,
   planId: string,
   featureColorCol: string
 ) => {
-  const sourceId = getPlanLayerGroupId(planId)
+  // Ensure zoning classes are loaded, as they are needed by the expressions.
+  // try {
+  //   await getZoningClasses()
+  // } catch (error) {
+  //   console.error('Failed to load zoning classes', error)
+  // }
+
+  const sourceId = getPlanSourceId(planId)
 
   const style: ExtendedStyleSpecification = {
     version: 8,
@@ -164,7 +182,6 @@ export const createLayerConf = (
   const layerConf: SerializableLayerConf = {
     id: sourceId,
     style: style,
-    useMb: true,
   }
 
   return layerConf
@@ -424,6 +441,7 @@ export const processCalcQueryToReportData = (data: any): ReportData => {
   )
   const metadata = {
     timestamp: Number(data.metadata.calculated_ts),
+    forestry_scenario: data.metadata.forestry_scenario,
     reportName: data.metadata.report_name,
     featureYears,
   }
@@ -442,17 +460,101 @@ export const processCalcQueryToReportData = (data: any): ReportData => {
   return reportData
 }
 
+export const getReportCalculatedDate = (timestamp?: number) => {
+  if (timestamp == null || Number.isNaN(timestamp)) {
+    return undefined
+  }
+
+  const normalizedTimestamp =
+    timestamp >= 1_000_000_000_000 ? timestamp : timestamp * 1000
+  const calculatedDate = new Date(normalizedTimestamp)
+
+  if (Number.isNaN(calculatedDate.getTime())) {
+    return undefined
+  }
+
+  return calculatedDate
+}
+
+export const checkIsValidLandUseDistribution = (
+  properties: FeatureProperties
+) => {
+  const hasValidZoningCode = properties.extras?.hasValidZoningCode
+
+  if (hasValidZoningCode === false) {
+    return true
+  }
+
+  const landuseBuilt = properties.landuse_built
+  const landuseNewOpenVegetation = properties.landuse_new_open_vegetation
+  const landuseNewTreeVegetation = properties.landuse_new_tree_vegetation
+  const landuseExisting = properties.landuse_existing
+
+  const requiresLandUseValues = hasValidZoningCode === true
+
+  if (
+    landuseBuilt == null &&
+    landuseNewOpenVegetation == null &&
+    landuseNewTreeVegetation == null &&
+    landuseExisting == null
+  ) {
+    return !requiresLandUseValues
+  }
+
+  if (
+    landuseBuilt == null ||
+    landuseNewOpenVegetation == null ||
+    landuseNewTreeVegetation == null ||
+    landuseExisting == null
+  ) {
+    return false
+  }
+
+  const sum =
+    landuseBuilt +
+    landuseNewOpenVegetation +
+    landuseNewTreeVegetation +
+    landuseExisting
+
+  const sumInBasisPoints =
+    Math.round(landuseBuilt * 100) +
+    Math.round(landuseNewOpenVegetation * 100) +
+    Math.round(landuseNewTreeVegetation * 100) +
+    Math.round(landuseExisting * 100)
+
+  return sumInBasisPoints === 100 * 100
+}
+
+export const stripFeatureExtras = <G extends GeoJSON.Geometry | null>(
+  data: GeoJSON.FeatureCollection<G, FeatureProperties>
+) => ({
+  ...data,
+  features: data.features.map((feature) => {
+    if (!feature.properties) {
+      return feature
+    }
+
+    const { extras, ...properties } = feature.properties
+    return {
+      ...feature,
+      properties: properties as FeatureProperties,
+    }
+  }),
+})
+
 export const checkIsValidZoningCode = (zoningCode: string | null) => {
   if (zoningCode == null) {
     return false
   }
 
-  for (let zoning of ZONING_CLASSES) {
+  const normalized = zoningCode.trim().toUpperCase()
+
+  for (let zoning of getZoningClassesCache()) {
     // Split the code by comma and trim spaces, then check if zoningCode is one of them
     const codes = zoning.code
       .split(',')
       .map((code) => code.trim().toUpperCase())
-    if (codes.includes(zoningCode.trim().toUpperCase())) {
+    if (codes.includes(normalized)) {
       return true
     }
   }

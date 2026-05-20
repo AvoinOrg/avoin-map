@@ -8,10 +8,16 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import { Box, Typography, Autocomplete, TextField, Tooltip } from '@mui/material'
+import {
+  Box,
+  Typography,
+  Autocomplete,
+  TextField,
+  Tooltip,
+} from '@mui/material'
 import BigMenuButton from '#/components/common/BigMenuButton'
 import { Upload } from '#/components/icons'
-import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { FolayerAreaConf } from '../common/types'
 import { T, useTranslate } from '@tolgee/react'
 import { FixedSizeList, ListChildComponentProps } from 'react-window'
@@ -102,7 +108,12 @@ const FolayerImportPictures = forwardRef<
   )
 
   // Memoized area options and lookups
-  type AreaOption = { id: string; label: string; municipality: string; name: string }
+  type AreaOption = {
+    id: string
+    label: string
+    municipality: string
+    name: string
+  }
   const features = areaConf?.data?.features ?? []
   const areaOptionsAll: AreaOption[] = useMemo(() => {
     const list = features
@@ -265,8 +276,8 @@ const FolayerImportPictures = forwardRef<
 
   useImperativeHandle(ref, () => ({
     getValues: (cb) => {
-  // Allow partial saves: return mapped images even if some folders are unmatched
-  if (mapping.bulkImages.length === 0) {
+      // Allow partial saves: return mapped images even if some folders are unmatched
+      if (mapping.bulkImages.length === 0) {
         cb(null)
         return
       }
@@ -278,9 +289,9 @@ const FolayerImportPictures = forwardRef<
     const fList = e.target.files
     if (!fList) return
     const arr = Array.from(fList)
-  // Replace previous selection entirely
-  setManualMappings({})
-  setFiles(arr)
+    // Replace previous selection entirely
+    setManualMappings({})
+    setFiles(arr)
     // Label from top-level of the latest selection
     const first = arr[0] as any
     const relFirst: string = first?.webkitRelativePath || first?.name || ''
@@ -318,7 +329,9 @@ const FolayerImportPictures = forwardRef<
     const count = imgs.length
     const manualVal = manualMappings[folder]
     const currentId =
-      manualVal === null ? undefined : manualVal || mapping.resolvedByFolder[folder]
+      manualVal === null
+        ? undefined
+        : manualVal || mapping.resolvedByFolder[folder]
     const currentValue = currentId ? optionsById.get(currentId) || null : null
 
     return (
@@ -338,12 +351,20 @@ const FolayerImportPictures = forwardRef<
         <Tooltip title={folder} placement="top-start" enterDelay={200} arrow>
           <Typography
             typography="body7"
-            sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+            sx={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
           >
             {folder}
           </Typography>
         </Tooltip>
-        <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'right' }}>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ textAlign: 'right' }}
+        >
           {count}
         </Typography>
         <Autocomplete
@@ -380,7 +401,9 @@ const FolayerImportPictures = forwardRef<
           renderInput={(params) => (
             <TextField
               {...params}
-              placeholder={t('sidebar.admin.folayer.settings.picture.select_area')}
+              placeholder={t(
+                'sidebar.admin.folayer.settings.picture.select_area'
+              )}
               sx={{
                 '& .MuiInputBase-input': (theme) => ({
                   typography: 'body7',
@@ -395,8 +418,13 @@ const FolayerImportPictures = forwardRef<
 
   return (
     <Box>
-      <BigMenuButton variant="outlined" component="label" sx={{ width: '100%', minHeight: '60px' }}>
-        {selectedFolderLabel || t('sidebar.admin.folayer.settings.picture.select_folder')}
+      <BigMenuButton
+        variant="outlined"
+        component="label"
+        sx={{ width: '100%', minHeight: '60px' }}
+      >
+        {selectedFolderLabel ||
+          t('sidebar.admin.folayer.settings.picture.select_folder')}
         <input
           hidden
           multiple
@@ -415,9 +443,15 @@ const FolayerImportPictures = forwardRef<
       {groups.size > 0 && (
         <Box sx={{ mt: 3 }}>
           <Typography variant="body2">
-            <T ns="luonnonmetsakartat" keyName={'sidebar.admin.folayer.settings.picture.areas'} />
+            <T
+              ns="luonnonmetsakartat"
+              keyName={'sidebar.admin.folayer.settings.picture.areas'}
+            />
             : {totalAreas} •{' '}
-            <T ns="luonnonmetsakartat" keyName={'sidebar.admin.folayer.settings.picture.images'} />
+            <T
+              ns="luonnonmetsakartat"
+              keyName={'sidebar.admin.folayer.settings.picture.images'}
+            />
             : {totalImages}
           </Typography>
         </Box>
@@ -458,7 +492,11 @@ const FolayerImportPictures = forwardRef<
             <Typography variant="caption" color="text.secondary">
               {t('sidebar.admin.folayer.settings.picture.folders')}
             </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'left' }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ textAlign: 'left' }}
+            >
               {t('sidebar.admin.folayer.settings.picture.images')}
             </Typography>
             <Typography variant="caption" color="text.secondary">
@@ -467,7 +505,12 @@ const FolayerImportPictures = forwardRef<
           </Box>
 
           <Box sx={{ width: '100%' }}>
-            <FixedSizeList height={listHeight} itemCount={rowOrder.length} itemSize={rowHeight} width="100%">
+            <FixedSizeList
+              height={listHeight}
+              itemCount={rowOrder.length}
+              itemSize={rowHeight}
+              width="100%"
+            >
               {Row}
             </FixedSizeList>
           </Box>

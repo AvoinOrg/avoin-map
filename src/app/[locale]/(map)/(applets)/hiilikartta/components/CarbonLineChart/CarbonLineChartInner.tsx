@@ -160,8 +160,7 @@ const CarbonLineChartInner = ({
   }
 
   const margin = { top: 40, right: 40, bottom: 40, left: 80 }
-  const innerWidth = width - margin.left - margin.right
-  const innerHeight = height - margin.top - margin.bottom
+  const yAxisUnitOffset = 10
 
   const getValue = (d: DataItem) => {
     if (unitType === 'ha') {
@@ -184,21 +183,9 @@ const CarbonLineChartInner = ({
   }
   // const formatDate = (year: string) => localData.toString()
 
-  const xScale = scaleLinear({
-    range: [0, innerWidth],
-    domain: extent(localData[0], (d) => +getYear(d)) as [number, number],
-    nice: true,
-  })
-
   const yMax = Math.max(
     ...localData.flat().map((d) => getValue(d)) // Flattens all data and maps to the value
   )
-
-  const yScale = scaleLinear({
-    range: [innerHeight, 0],
-    domain: [-5, yMax],
-    nice: true,
-  })
 
   const yAxisFormatter = useMemo(() => {
     // TODO: adjust the locale dynamically
@@ -232,9 +219,27 @@ const CarbonLineChartInner = ({
     longestLabelWidth
   )
 
-  // Update the left margin
-  const leftMarginPadding = 30 // Adjust padding as needed
-  margin.left = Math.max(40, longestLabelWidth + leftMarginPadding)
+  // Make room for both y-axis values and the unit label on the bottom left.
+  const leftMarginPadding = 40
+  margin.left = Math.max(
+    40,
+    Math.ceil(longestLabelWidth + leftMarginPadding + yAxisUnitOffset)
+  )
+
+  const innerWidth = width - margin.left - margin.right
+  const innerHeight = height - margin.top - margin.bottom
+
+  const xScale = scaleLinear({
+    range: [0, innerWidth],
+    domain: extent(localData[0], (d) => +getYear(d)) as [number, number],
+    nice: true,
+  })
+
+  const yScale = scaleLinear({
+    range: [innerHeight, 0],
+    domain: [-5, yMax],
+    nice: true,
+  })
 
   const handleTooltip = useCallback(
     (
@@ -313,6 +318,15 @@ const CarbonLineChartInner = ({
                   <div
                     key={`legend-${i}`}
                     onClick={() => toggleLineVisibility(i)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        toggleLineVisibility(i)
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Toggle chart series ${String(label.text)}`}
                     style={{
                       cursor: 'pointer',
                       marginRight: '2rem',
@@ -390,7 +404,7 @@ const CarbonLineChartInner = ({
             })}
           />
           <text
-            x={-10} // Adjust as necessary for horizontal positioning
+            x={-yAxisUnitOffset}
             y={height - margin.bottom - 18} // Adjust for vertical positioning
             style={{ textAnchor: 'end', ...textStyle }}
           >

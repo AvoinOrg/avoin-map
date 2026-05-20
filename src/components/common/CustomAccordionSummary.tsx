@@ -8,17 +8,30 @@ const CustomAccordionSummary = ({
   expandIcon = <ArrowDown />,
   sx,
   children,
+  'aria-label': ariaLabel,
   ...accordionSummaryProps
 }: AccordionSummaryProps & { children: React.ReactNode }) => {
   return (
     <AccordionSummary
+      aria-label={ariaLabel}
       expandIcon={expandIcon}
+      disableRipple
+      disableTouchRipple
       sx={[
         {
           '& .MuiAccordionSummary-content': {
             width: '100%',
             display: 'flex',
             flexGrow: 1,
+          },
+          '&.Mui-focusVisible': {
+            backgroundColor: 'transparent',
+          },
+          '&:active': {
+            backgroundColor: 'transparent',
+          },
+          '& .MuiTouchRipple-root': {
+            display: 'none',
           },
         },
         ...(Array.isArray(sx) ? sx : [sx]),

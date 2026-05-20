@@ -4,10 +4,15 @@ import axios from 'axios'
 import { FeatureCollection } from 'geojson'
 import { area as turfArea } from '@turf/turf'
 
-import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 
-import { CalculationState, PlanConf, ReportData } from '../types'
-import { processCalcQueryToReportData } from '../utils'
+import {
+  CalculationState,
+  PlanConf,
+  PlanConfState,
+  ReportData,
+} from '../types'
+import { processCalcQueryToReportData, stripFeatureExtras } from '../utils'
 import { useSession } from 'next-auth/react'
 
 const API_URL = process.env.NEXT_PUBLIC_HIILIKARTTA_API_URL
@@ -41,6 +46,9 @@ export const planQuery = (
         if (response.data.report_data != null) {
           reportData = processCalcQueryToReportData(response.data.report_data)
         }
+        const planData = stripFeatureExtras(
+          response.data.data
+        ) as PlanConf['data']
 
         let calculationState: CalculationState = CalculationState.NOT_STARTED
 
@@ -58,34 +66,39 @@ export const planQuery = (
           }
         }
 
+        const forestryScenario =
+          response.data.forestry_scenario ??
+          response.data.metadata?.forestry_scenario
+
         const planConf = {
-          id: response.data.id,
+          id: response.data.visible_id ?? response.data.id,
           name: response.data.name,
-          serverId: serverId,
-          status: FetchStatus.FETCHED,
+          serverId: response.data.id ?? serverId,
           created: response.data.created_ts * 1000,
-          calculationState: response.data.calculation_status,
+          state: PlanConfState.IDLE,
+          calculationState,
           cloudLastSaved: response.data.saved_ts * 1000,
           localLastSaved: response.data.saved_ts * 1000,
           localLastEdited: response.data.saved_ts * 1000,
           userId: response.data.user_id,
-          data: response.data.data,
+          forestryScenario,
+          importState: 'confirmed' as const,
+          data: planData,
           areaHa: turfArea(response.data.data as FeatureCollection) / 10000,
           reportData: reportData,
         }
 
         const planConfs = useAppletStore.getState().planConfs
-        if (Object.keys(planConfs).includes(serverId)) {
+        if (Object.keys(planConfs).includes(planConf.id)) {
           if (
-            planConfs[serverId].localLastEdited != null &&
-            (planConfs[serverId].localLastEdited ?? 0) <=
+            planConfs[planConf.id].localLastEdited != null &&
+            (planConfs[planConf.id].localLastEdited ?? 0) <=
               planConf.cloudLastSaved
           ) {
-            const updatedPlanConf = await updatePlanConf(serverId, planConf)
+            const updatedPlanConf = await updatePlanConf(planConf.id, planConf)
             return updatedPlanConf
           }
         } else {
-          planConf.data = response.data.data
           const newPlanConf = await addPlanConf(planConf)
           return newPlanConf
         }

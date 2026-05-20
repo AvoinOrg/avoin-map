@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, IconButton } from '@mui/material'
+import { Box, IconButton, SxProps, Theme } from '@mui/material'
 import { EyeClosed, EyeOpen } from '#/components/icons'
 import LoadingHorizontal from '#/components/Loading/LoadingHorizontal'
 import { getContrastColor } from '#/common/utils/styling'
@@ -9,13 +9,30 @@ interface EyeButtonProps {
   onClick: (e: React.MouseEvent) => void
   color: string
   status: LayerGroupStatus
+  ariaLabel?: string
+  sx?: SxProps<Theme>
 }
 
-export const EyeButton = ({ onClick, color, status }: EyeButtonProps) => {
+export const EyeButton = ({
+  onClick,
+  color,
+  status,
+  ariaLabel,
+  sx,
+}: EyeButtonProps) => {
   const contrastColor = getContrastColor(color)
 
   return (
-    <IconButton onClick={onClick} sx={{ mr: 1 }}>
+    <IconButton
+      onClick={onClick}
+      aria-label={ariaLabel ?? 'Toggle layer visibility'}
+      sx={[
+        {
+          mr: 1,
+        },
+        ...(Array.isArray(sx) ? sx : [sx]),
+      ]}
+    >
       {status === 'processing' && (
         <Box
           sx={{

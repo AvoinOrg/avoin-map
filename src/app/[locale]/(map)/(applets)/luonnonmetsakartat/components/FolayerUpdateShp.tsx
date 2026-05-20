@@ -3,7 +3,7 @@ import { Feature, FeatureCollection } from 'geojson'
 import { useTranslate, T } from '@tolgee/react'
 import { SelectChangeEvent, Box, Typography } from '@mui/material'
 
-import DropDownSelect from '#/components/common/DropDownSelect'
+import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import { useUIStore } from '#/common/store'
 
 import FolayerImportCodeRecordSelect from './FolayerImportCodeRecordSelect'
@@ -424,7 +424,7 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
                 pt: 1,
               })}
             >
-              <DropDownSelect
+              <DropDownSelectWithHeader
                 label={t('sidebar.admin.create.indexing_strategy_label')}
                 value={indexingStrategy}
                 onChange={() => {}}

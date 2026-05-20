@@ -1,0 +1,15 @@
+interface:
+  display_name: "Figma MCP"
+  short_description: "Inspect Figma nodes via MCP"
+  default_prompt: "Use $figma-mcp to verify Figma MCP access, normalize this Figma URL, and fetch the node metadata or design context I need."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "figma"
+      description: "Global HTTP Figma MCP server"
+      transport: "streamable_http"
+      url: "https://mcp.figma.com/mcp"
+
+policy:
+  allow_implicit_invocation: true

@@ -15,43 +15,62 @@ const UIStateHandler = ({ children }: { children?: React.ReactNode }) => {
   const setWindowSize = useUIStore((state) => state.setWindowSize)
 
   useEffect(() => {
-    const handleResize = () => {
-      if (typeof window !== 'undefined') {
-        setWindowSize({ width: window.innerWidth, height: window.innerHeight })
-      }
+    if (typeof window === 'undefined') return
+
+    // Window resize can fire rapidly while layout is still settling. Debounce
+    // the burst and commit the measurement in rAF so map centering calculations
+    // read a stable viewport size.
+    const DEBOUNCE_MS = 100
+    let timeoutId: number | undefined
+    let rafId: number | undefined
+
+    const apply = () => {
+      setWindowSize({ width: window.innerWidth, height: window.innerHeight })
     }
 
-    handleResize()
+    const handleResize = () => {
+      if (timeoutId) window.clearTimeout(timeoutId)
+      timeoutId = window.setTimeout(() => {
+        if (rafId) window.cancelAnimationFrame(rafId)
+        rafId = window.requestAnimationFrame(apply)
+      }, DEBOUNCE_MS)
+    }
+
+    // initial size
+    apply()
     window.addEventListener('resize', handleResize)
 
     return () => {
       window.removeEventListener('resize', handleResize)
+      if (timeoutId) window.clearTimeout(timeoutId)
+      if (rafId) window.cancelAnimationFrame(rafId)
     }
   }, [setWindowSize])
 
   useEffect(() => {
-    const currentActualSidebarWidth = isSidebarOpen ? sidebarWidth || 0 : 0
-    const visibleMapWidth = windowSize.width - currentActualSidebarWidth
+    if (windowSize == null) return
+    if (windowSize.width === 0 || windowSize.height === 0) return
+    if (sidebarWidth == null) return
 
-    const visibleMapCenterX = visibleMapWidth / 2 + currentActualSidebarWidth
-    const visibleMapCenterY = windowSize.height / 2
-
-    const minMapWidth = windowSize.width - (sidebarWidth || 0)
-    const minMapCenterX = minMapWidth / 2 + (sidebarWidth || 0)
-    const minMapCenterY = windowSize.height / 2
+    const isFullscreenSidebar = sidebarWidth >= windowSize.width - 1
+    const visibleSidebarWidth =
+      isSidebarOpen && !isFullscreenSidebar ? sidebarWidth : 0
+    const minSidebarWidth = isFullscreenSidebar ? 0 : sidebarWidth
+    const visibleMapWidth = Math.max(0, windowSize.width - visibleSidebarWidth)
+    const minMapWidth = Math.max(0, windowSize.width - minSidebarWidth)
 
     setMapDims({
       visible: {
         width: visibleMapWidth,
         height: windowSize.height,
-        centerX: visibleMapCenterX,
-        centerY: visibleMapCenterY,
+        centerX: visibleMapWidth / 2 + visibleSidebarWidth,
+        centerY: windowSize.height / 2,
       },
       min: {
         width: minMapWidth,
         height: windowSize.height,
-        centerX: minMapCenterX,
-        centerY: minMapCenterY,
+        centerX: minMapWidth / 2 + minSidebarWidth,
+        centerY: windowSize.height / 2,
       },
     })
   }, [windowSize, sidebarWidth, isSidebarOpen, setMapDims])

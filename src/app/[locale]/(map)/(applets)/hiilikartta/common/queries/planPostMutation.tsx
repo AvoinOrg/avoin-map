@@ -2,7 +2,8 @@ import { UseMutationOptions } from '@tanstack/react-query'
 import axios from 'axios'
 import JSZip from 'jszip'
 import { PlanConf, PlanConfState } from '../types'
-import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
+import { stripFeatureExtras } from '../utils'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 import { useSession } from 'next-auth/react'
 
 const API_URL = process.env.NEXT_PUBLIC_HIILIKARTTA_API_URL
@@ -24,7 +25,8 @@ export const planPostMutation = (): UseMutationOptions<
     mutationFn: async (planConf: PlanConf) => {
       updatePlanConf(planConf.id, { state: PlanConfState.SAVING })
       const zip = new JSZip()
-      zip.file('file', JSON.stringify(planConf.data))
+      const sanitizedData = stripFeatureExtras(planConf.data)
+      zip.file('file', JSON.stringify(sanitizedData))
       const zipBlob = await zip.generateAsync({ type: 'blob' })
 
       const formData = new FormData()
@@ -39,6 +41,7 @@ export const planPostMutation = (): UseMutationOptions<
           id: planConf.serverId,
           name: planConf.name,
           visible_id: planConf.id,
+          forestry_scenario: planConf.forestryScenario,
         },
       })
 

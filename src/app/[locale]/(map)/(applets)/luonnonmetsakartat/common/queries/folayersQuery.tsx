@@ -4,7 +4,7 @@ import axios from 'axios'
 import { FeatureCollection } from 'geojson'
 import { area as turfArea } from '@turf/turf'
 
-import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { useSession } from 'next-auth/react'
 import { AdminFolayerConf, FolayerConf, FolayerConfState } from '../types'
 

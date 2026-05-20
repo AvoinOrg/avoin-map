@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react'
 
 import { useMapStore } from '#/common/store/mapStore'
 
-import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 import { PlanConfState, PlanConf } from '../types'
 import { getPlanLayerGroupId } from '../utils'
 
@@ -25,7 +25,7 @@ export const planDeleteMutation = (): UseMutationOptions<
         state: PlanConfState.DELETING,
       })
 
-      if (session) {
+      if (session && planConf.cloudLastSaved != null) {
         const delRes = await axios.delete(`${API_URL}/plan`, {
           headers: {
             'Content-Type': 'multipart/form-data',

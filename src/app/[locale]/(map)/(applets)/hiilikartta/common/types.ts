@@ -6,6 +6,8 @@ export interface ReportData {
   totals: CalcFeatureCollection
   metadata: {
     timestamp: number
+    forestry_scenario?: number
+    reportName?: string
     featureYears: string[]
   }
   agg: { totals: FeatureCalcs }
@@ -25,6 +27,8 @@ export interface PlanConf extends NewPlanConf {
   userId?: string
   areSettingsValid?: boolean
   isHidden?: boolean
+  draftType?: 'import' | 'draw'
+  importState?: PlanImportState
 }
 
 export interface ExternalPlanConf {
@@ -77,18 +81,61 @@ export type NewPlanConf = {
   data: PlanData
   calculationState?: CalculationState
   reportData?: ReportData
+  draftType?: 'import' | 'draw'
+  importState?: PlanImportState
+  forestryScenario?: ForestryScenarioId
 }
+
+export type PlanImportState =
+  | 'awaiting-file'
+  | 'awaiting-confirm'
+  | 'confirmed'
+
+export type ForestryScenarioId = 1 | 2 | 3
 
 export type FileType = 'shp' | 'geojson' | 'gpkg'
 
+export type CreationPlaceholderPlanConfStatus = Exclude<
+  PlanImportState,
+  'confirmed'
+>
+
+export type CreationPlaceholderPlanFile = {
+  storageKey: string
+  fileName: string
+  fileType?: FileType
+  size?: number
+}
+
+export interface CreationPlaceholderPlanConf {
+  id: string
+  created: number
+  name?: string
+  status: CreationPlaceholderPlanConfStatus
+  file?: CreationPlaceholderPlanFile
+  selectedTable?: string
+  selectedZoningCol?: string
+  selectedNameCol?: string
+}
+
 export const ZONING_CODE_COL = 'zoning_code'
-export interface FeatureProperties {
+
+export type FeatureProperties = {
   id: string
   name: string | number
   area_ha: number
   zoning_code: string | null
   old_zoning_code?: string
   old_id?: string | number
+  geometry_mode?: 'polygon' | 'corridor'
+  landuse_built?: number | null
+  landuse_new_open_vegetation?: number | null
+  landuse_new_tree_vegetation?: number | null
+  landuse_existing?: number | null
+  soil_change_new_vegetation_pct?: number | null
+  extras?: {
+    hasValidZoningCode: boolean
+  }
 }
 
 export const featureCols = [
@@ -139,6 +186,16 @@ export type CarbonChangeColorItem = {
 }
 
 export type GraphCalcType = 'ground' | 'bio' | 'total'
+
+export type ZoningClass = {
+  name: string
+  code: string
+  landuse_built?: number
+  landuse_new_open_vegetation?: number
+  landuse_new_tree_vegetation?: number
+  landuse_existing?: number
+  soil_change_new_vegetation_pct?: number
+}
 
 export interface MapGraphCalcFeature extends CalcFeature {
   properties: CalcFeatureProperties & {

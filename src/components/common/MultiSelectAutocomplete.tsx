@@ -15,6 +15,7 @@ interface Props {
     newValue: SelectOption[]
   ) => void
   placeholder?: string
+  ariaLabel?: string
   sx?: SxProps<Theme>
   textFieldSx?: SxProps<Theme>
   optionSx?: SxProps<Theme>
@@ -26,6 +27,7 @@ const MultiSelectAutocomplete = ({
   options,
   onChange,
   placeholder,
+  ariaLabel,
   sx,
   textFieldSx,
   optionSx,
@@ -89,6 +91,8 @@ const MultiSelectAutocomplete = ({
       renderInput={(params) => {
         return (
           <TextField
+            {...params}
+            aria-label={ariaLabel ?? placeholder ?? 'Multi-select input'}
             placeholder={placeholder}
             sx={{
               border: '1px solid',
@@ -104,7 +108,6 @@ const MultiSelectAutocomplete = ({
               },
               ...textFieldSx,
             }}
-            {...params}
           />
         )
       }}

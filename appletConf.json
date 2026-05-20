@@ -1,0 +1,20 @@
+{
+  "main": {
+    "localeNs": "avoin-map",
+    "langs": ["en", "fi"]
+  },
+  "hiilikartta": {
+    "localeNs": "hiilikartta",
+    "langs": ["fi"],
+    "domains": ["test2.map.avoin.org", "hiilikartta.avoin.org"]
+  },
+  "luonnonmetsakartat": {
+    "localeNs": "luonnonmetsakartat",
+    "langs": ["fi"],
+    "domains": ["luonnonmetsakarta.netlify.app", "luonnonmetsakartat.avoin.org"]
+  },
+  "energiakartta": {
+    "localeNs": "energiakartta",
+    "langs": ["fi", "en"]
+  }
+}

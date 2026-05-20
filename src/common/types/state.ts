@@ -22,11 +22,21 @@ export type RouteState =
   | 'denied'
   | 'login'
 
+export type NotificationLink = {
+  href: string
+  keyName?: string
+  ns?: string
+  label?: string
+}
+
 export type NotificationMessage = {
-  message: string
+  message?: string
+  keyName?: string
+  ns?: string
   variant: 'default' | 'success' | 'error' | 'info' | 'warning'
   duration?: number
   persist?: boolean
+  link?: NotificationLink
 }
 
 export interface InternalNotificationMessage extends NotificationMessage {

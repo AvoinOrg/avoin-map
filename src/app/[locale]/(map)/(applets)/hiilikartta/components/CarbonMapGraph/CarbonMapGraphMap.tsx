@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Map, GeoJSONSource } from 'maplibre-gl'
+import { Map, GeoJSONSource, StyleSpecification } from 'maplibre-gl'
 import {
   Box,
   Button,
@@ -24,10 +24,14 @@ import {
   MapGraphData,
   MapGraphDataSelectOption,
   ZONING_CODE_COL,
-} from 'applets/hiilikartta/common/types'
-import { isZoningCodeValidExpression } from 'applets/hiilikartta/common/utils'
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
+import {
+  isZoningCodeValidExpression,
+  zoningFillColorExpression,
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
 import { mergeArraysAlternate, pp } from '#/common/utils/general'
 import { Cross } from '#/components/icons'
+import { osmBackgroundLayerConf } from '#/components/Map/layers/common/OSM/background'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 // const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
@@ -86,162 +90,109 @@ const CarbonMapGraphMap = ({
   }, [datas])
 
   useEffect(() => {
-    if (map.current) return // Initialize the map only once
+    let isCancelled = false
+    let mapInstance: Map | null = null
 
-    map.current = new Map({
-      container: mapContainer.current!,
-      style: {
-        version: 8,
-        glyphs: `${SERVER_URL}/www/font/{fontstack}/{range}.pbf`,
-        // glyphs: `https://api.mapbox.com/fonts/v1/{fontstack}/{range}.pbf?access_token=${MAPBOX_ACCESS_TOKEN}`,
-        sources: {
-          osm: {
-            type: 'raster',
-            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-            tileSize: 256,
-            attribution:
-              '© <a target="_top" rel="noopener" href="https://openstreetmap.org/">OpenStreetMap</a>, under the <a target="_top" rel="noopener" href="https://operations.osmfoundation.org/policies/tiles/">tile usage policy</a>.',
-          },
-        },
-        layers: [
-          {
-            id: 'osm',
-            type: 'raster',
-            source: 'osm',
-          },
-        ],
-      },
-      center: [0, 0], // Specify the initial map center coordinates
-      zoom: 2, // Specify the initial zoom level
-    })
+    const initMap = async () => {
+      if (map.current || !mapContainer.current) return // Initialize the map only once
 
-    map.current.on('load', () => {
-      setMapIsLoaded(true)
-    })
+      setMapIsLoaded(false)
+
+      const styleDefinition = osmBackgroundLayerConf.style
+      const baseStyle =
+        typeof styleDefinition === 'function'
+          ? await styleDefinition()
+          : styleDefinition
+
+      if (isCancelled || !mapContainer.current) return
+
+      const style = {
+        ...baseStyle,
+        ...(baseStyle.glyphs == null && SERVER_URL
+          ? { glyphs: `${SERVER_URL}/www/font/{fontstack}/{range}.pbf` }
+          : {}),
+      } as StyleSpecification
+
+      mapInstance = new Map({
+        container: mapContainer.current,
+        style,
+        center: [0, 0], // Specify the initial map center coordinates
+        zoom: 2, // Specify the initial zoom level
+      })
+
+      map.current = mapInstance
+
+      mapInstance.on('load', () => {
+        if (isCancelled) return
+        setMapIsLoaded(true)
+        mapInstance?.resize()
+      })
+    }
+
+    initMap()
 
     return () => {
-      map.current?.remove() // Clean up the map instance on unmount
+      isCancelled = true
+      if (mapInstance) {
+        mapInstance.remove()
+      }
+      if (map.current === mapInstance) {
+        map.current = null
+      }
     }
   }, [])
 
   useEffect(() => {
-    if (mapIsLoaded) {
-      // Remove old GeoJSON data
-      const dataIds = datas.map((data) => data.id)
-      // Check if bounds need to be reset
-      if (
-        allDataIds.current.length != dataIds.length ||
-        !dataIds.every((dataId) => allDataIds.current.includes(dataId))
-      ) {
-        const bounds = getCombinedBoundsInLngLat(datas.map((data) => data.data))
-        if (bounds) {
-          const paddedBounds = addPaddingToLngLatBounds(bounds, 1)
-          map.current?.setMaxBounds(paddedBounds)
-          map.current?.fitBounds(bounds, {
-            padding: 20,
-          })
-        }
+    if (!mapIsLoaded || !map.current) {
+      return
+    }
+
+    // Remove old GeoJSON data
+    const dataIds = datas.map((data) => data.id)
+    // Check if bounds need to be reset
+    if (
+      allDataIds.current.length != dataIds.length ||
+      !dataIds.every((dataId) => allDataIds.current.includes(dataId))
+    ) {
+      const bounds = getCombinedBoundsInLngLat(datas.map((data) => data.data))
+      if (bounds) {
+        const paddedBounds = addPaddingToLngLatBounds(bounds, 1)
+        // map.current?.setMaxBounds(paddedBounds)
+        map.current?.fitBounds(bounds, {
+          padding: 20,
+        })
       }
-      allDataIds.current.forEach((dataId) => {
-        if (!dataIds.includes(dataId)) {
-          map.current!.removeLayer(`carbon-graph-layer-${dataId}`)
-          map.current!.removeLayer(`carbon-graph-layer-${dataId}-symbol`)
-          map.current!.removeSource(`carbon-graph-source-${dataId}`)
-        }
-      })
+    }
+    allDataIds.current.forEach((dataId) => {
+      if (!dataIds.includes(dataId)) {
+        map.current!.removeLayer(`carbon-graph-layer-${dataId}`)
+        map.current!.removeLayer(`carbon-graph-layer-${dataId}-symbol`)
+        map.current!.removeSource(`carbon-graph-source-${dataId}`)
+      }
+    })
 
-      allDataIds.current = dataIds
+    allDataIds.current = dataIds
 
-      datas.forEach((data) => {
-        const sourceId = `carbon-graph-source-${data.id}`
-        const layerId = `carbon-graph-layer-${data.id}`
+    datas.forEach((data) => {
+      const sourceId = `carbon-graph-source-${data.id}`
+      const layerId = `carbon-graph-layer-${data.id}`
 
-        if (map.current!.getSource(sourceId)) {
-          ;(map.current!.getSource(sourceId) as GeoJSONSource).setData(
-            data.data
+      if (map.current!.getSource(sourceId)) {
+        ;(map.current!.getSource(sourceId) as GeoJSONSource).setData(data.data)
+
+        if (data.id === activeDataOption.id) {
+          map.current!.setLayoutProperty(layerId, 'visibility', 'visible')
+          map.current!.setLayoutProperty(
+            `${layerId}-symbol`,
+            'visibility',
+            'visible'
           )
-
-          if (data.id === activeDataOption.id) {
-            map.current!.setLayoutProperty(layerId, 'visibility', 'visible')
-            map.current!.setLayoutProperty(
-              `${layerId}-symbol`,
-              'visibility',
-              'visible'
-            )
-            map.current!.setFilter(layerId, ['!=', 'isHidden', true])
-            map.current!.setFilter(`${layerId}-symbol`, [
-              '!=',
-              'isHidden',
-              true,
-            ])
-            if (activeDataOption.isCurrent) {
-              map.current!.setFilter(`${layerId}-symbol`, [
-                '!=',
-                'isHidden',
-                false,
-              ])
-            }
-            map.current!.setPaintProperty(layerId, 'fill-color', [
-              'get',
-              activeDataOption.isCurrent ? 'colorNochange' : 'color',
-            ])
-          } else {
-            map.current!.setLayoutProperty(layerId, 'visibility', 'none')
-            map.current!.setLayoutProperty(
-              `${layerId}-symbol`,
-              'visibility',
-              'none'
-            )
-          }
-        } else {
-          map.current!.addSource(sourceId, {
-            type: 'geojson',
-            data: data.data,
-          })
-
-          map.current!.addLayer({
-            id: layerId,
-            type: 'fill',
-            source: sourceId,
-            layout: {
-              visibility: data.id === activeDataOption.id ? 'visible' : 'none',
-            },
-            paint: {
-              'fill-color': [
-                'get',
-                activeDataOption.isCurrent ? 'colorNochange' : 'color',
-              ],
-              'fill-opacity': 0.9,
-              'fill-outline-color': '#274AFF',
-            },
-          })
-
-          map.current!.addLayer({
-            id: `${layerId}-symbol`,
-            source: sourceId,
-            type: 'symbol',
-            layout: {
-              'symbol-placement': 'point',
-              'text-size': 20,
-              'text-font': ['Open Sans Regular'],
-              'text-field': [
-                'case',
-                ['==', ['get', ZONING_CODE_COL], 'none'],
-                '',
-                isZoningCodeValidExpression(),
-                ['get', ZONING_CODE_COL],
-                '!',
-              ],
-            },
-            paint: {
-              'text-color': 'black',
-              'text-halo-blur': 1,
-              'text-halo-color': 'rgb(242,243,240)',
-              'text-halo-width': 2,
-            },
-            minzoom: 12,
-          })
-
+          map.current!.setFilter(layerId, ['!=', 'isHidden', true])
+          map.current!.setFilter(`${layerId}-symbol`, [
+            '!=',
+            'isHidden',
+            true,
+          ])
           if (activeDataOption.isCurrent) {
             map.current!.setFilter(`${layerId}-symbol`, [
               '!=',
@@ -249,9 +200,74 @@ const CarbonMapGraphMap = ({
               false,
             ])
           }
+          map.current!.setPaintProperty(
+            layerId,
+            'fill-color',
+            zoningFillColorExpression()
+          )
+        } else {
+          map.current!.setLayoutProperty(layerId, 'visibility', 'none')
+          map.current!.setLayoutProperty(
+            `${layerId}-symbol`,
+            'visibility',
+            'none'
+          )
         }
-      })
-    }
+      } else {
+        map.current!.addSource(sourceId, {
+          type: 'geojson',
+          data: data.data,
+        })
+
+        map.current!.addLayer({
+          id: layerId,
+          type: 'fill',
+          source: sourceId,
+          layout: {
+            visibility: data.id === activeDataOption.id ? 'visible' : 'none',
+          },
+          paint: {
+            'fill-color': zoningFillColorExpression(),
+            'fill-opacity': 0.9,
+            'fill-outline-color': '#274AFF',
+          },
+        })
+
+        map.current!.addLayer({
+          id: `${layerId}-symbol`,
+          source: sourceId,
+          type: 'symbol',
+          layout: {
+            'symbol-placement': 'point',
+            'text-size': 20,
+            'text-font': ['Open Sans Regular'],
+            'text-field': [
+              'case',
+              ['==', ['get', ZONING_CODE_COL], 'none'],
+              '',
+              isZoningCodeValidExpression(),
+              ['get', ZONING_CODE_COL],
+              '!',
+            ],
+          },
+          paint: {
+            'text-color': 'black',
+            'text-halo-blur': 1,
+            'text-halo-color': 'rgb(242,243,240)',
+            'text-halo-width': 2,
+          },
+          minzoom: 12,
+        })
+
+        if (activeDataOption.isCurrent) {
+          map.current!.setFilter(`${layerId}-symbol`, [
+            '!=',
+            'isHidden',
+            false,
+          ])
+        }
+      }
+    })
   }, [mapIsLoaded, datas, activeDataOption])
 
   useEffect(() => {
@@ -330,6 +346,7 @@ const CarbonMapGraphMap = ({
         }}
       >
         <DropDownSelectMinimal
+          ariaLabel="Select map graph year"
           value={activeYear}
           options={featureYears.map((year) => ({
             label: year,
@@ -375,6 +392,7 @@ const CarbonMapGraphMap = ({
                 }),
             }}
             key={option.id + option.isCurrent}
+            aria-label={`Show map graph data for ${option.name}`}
             onClick={() => handlePlanSelectClick(option)}
           >
             <Typography
@@ -434,7 +452,18 @@ const CarbonMapGraphMap = ({
               }}
             >
               <Box
-                sx={{ display: 'inline' }}
+                component="button"
+                type="button"
+                aria-label="Close map graph tooltip"
+                sx={{
+                  display: 'inline',
+                  p: 0,
+                  m: 0,
+                  border: 'none',
+                  background: 'none',
+                  color: 'inherit',
+                  cursor: 'pointer',
+                }}
                 onClick={() =>
                   setTooltip((prev: any) => ({ ...prev, visible: false }))
                 }

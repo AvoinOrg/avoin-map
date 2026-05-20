@@ -8,15 +8,15 @@ import {
   Theme,
   Typography,
 } from '@mui/material'
-import { styled } from '@mui/material/styles'
 
-import DownIcon from '#/components/icons/DownIcon'
+import ArrowDown from '#/components/icons/ArrowDown'
 import { SelectOption } from '#/common/types/general'
 
 interface Props {
   value: any
   options: SelectOption[]
   onChange: (event: SelectChangeEvent<string>) => void
+  ariaLabel?: string
   sx?: SxProps<Theme>
   optionSx?: SxProps<Theme>
   iconSx?: SxProps<Theme>
@@ -27,6 +27,7 @@ const DropDownSelectMinimal = ({
   value,
   options,
   onChange,
+  ariaLabel,
   sx,
   optionSx,
   iconSx,
@@ -37,9 +38,10 @@ const DropDownSelectMinimal = ({
   return (
     <FormControl variant={'standard'}>
       <Select
+        aria-label={ariaLabel}
         value={value == null ? '' : value}
         onChange={onChange}
-        IconComponent={StyledDownIcon}
+        IconComponent={ArrowDown}
         disableUnderline={true}
         MenuProps={{
           anchorOrigin: {
@@ -52,37 +54,54 @@ const DropDownSelectMinimal = ({
           },
           PaperProps: {
             sx: {
-              // You can define the top position to make it nearer to the top of the anchor element
-              m: 0, // This negative margin will pull the menu up closer to the Select
-              p: 0,
-              '& .MuiList-root': {
-                m: 0,
-                p: 0,
-              },
+              mt: 0.5,
+              borderRadius: '0.625rem',
+              border: '0.5px solid #D6D6D6',
+              boxShadow: '0px 8px 24px rgba(17, 17, 17, 0.12)',
             },
           },
         }}
-        sx={{
-          '.MuiSelect-icon': {
-            mt: 0.2,
-            ...(iconSx as Record<string, any>),
-          },
-          '& .MuiSelect-select': {
+        sx={[
+          {
+            '.MuiSelect-icon': {
+              top: '50%',
+              transform: 'translateY(-50%)',
+              width: '0.75rem',
+              height: '0.375rem',
+              mr: "0.4rem",
+              mt: "0.2rem",
+              ...(iconSx as Record<string, any>),
+            },
+            '.MuiSelect-iconOpen': {
+              transform: 'translateY(-50%) rotate(180deg)',
+            },
+            '& .MuiSelect-select': {
+              m: 0,
+              p: 0,
+              fontSize: '0.6875rem',
+              fontWeight: 400,
+              lineHeight: 'normal',
+              letterSpacing: '0.04em',
+              color: '#111111',
+            },
+
+            '& .MuiSelect-select:focus': {
+              backgroundColor: 'transparent',
+            },
             m: 0,
             p: 0,
           },
-
-          '& .MuiSelect-select:focus': {
-            backgroundColor: 'transparent',
-          },
-          m: 0,
-          p: 0,
           ...(Array.isArray(sx) ? sx : [sx]),
-        }}
+        ]}
       >
         {hasEmpty && <option key={''} value={''}></option>}
         {options.map((option) => (
           <MenuItem
+            aria-label={
+              typeof option.label === 'string'
+                ? option.label
+                : String(option.value)
+            }
             sx={{
               m: 0,
               p: 0,
@@ -97,6 +116,11 @@ const DropDownSelectMinimal = ({
                   pl: 1,
                   pt: 0.5,
                   pb: 0.5,
+                  fontSize: '0.6875rem',
+                  fontWeight: 400,
+                  lineHeight: 'normal',
+                  letterSpacing: '0.04em',
+                  color: '#111111',
                 },
                 ...(Array.isArray(optionSx) ? optionSx : [optionSx]),
               ]}
@@ -109,10 +133,5 @@ const DropDownSelectMinimal = ({
     </FormControl>
   )
 }
-
-const StyledDownIcon = styled(DownIcon)(({ theme }) => ({
-  margin: '6px 0 0 0',
-  height: '10px',
-}))
 
 export default DropDownSelectMinimal

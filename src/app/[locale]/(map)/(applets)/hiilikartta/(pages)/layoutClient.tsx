@@ -1,16 +1,20 @@
+// Client-side layout for the Hiilikartta applet; coordinates session state,
+// plan sync, and the shared map UI shell.
 'use client'
 
 import React, { useEffect } from 'react'
-import { Box } from '@mui/material'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
+import { useParams, usePathname } from 'next/navigation'
 
-import { routeTree } from '../common/routes'
-import { Sidebar, SidebarHeader } from '#/components/Sidebar'
-import { BreadcrumbNav } from '#/components/Sidebar'
+import { routeTree } from '#/common/routing/routes/hiilikartta'
+import { compiledApplets } from '#/common/routing/routing'
 import AppletWrapper from '#/components/common/AppletWrapper'
+import BreadcrumbNav from '#/components/Sidebar/BreadcrumbNav'
 import { useUserStore } from '#/common/store/userStore'
+import { getPathnameWithoutLocale } from '#/common/routing/routing'
 
+import { listedLayerGroups } from '../common/constants'
 import { planStatsQuery } from '../common/queries/planStatsQuery'
 import { planQueries } from '../common/queries/planQueries'
 import { useAppletStore } from '../state/appletStore'
@@ -19,11 +23,14 @@ import {
   PlaceholderPlanConf,
   GlobalState,
 } from '../common/types'
+import { getZoningClasses } from '../common/zoningClasses'
 
 const localizationNamespace = 'hiilikartta'
 
 const layoutClient = ({ children }: { children: React.ReactNode }) => {
   const { data: session, status } = useSession()
+  const pathname = usePathname()
+  const { locale } = useParams()
   const addSignOutAction = useUserStore((state) => state.addSignOutAction)
   const removeSignOutAction = useUserStore((state) => state.removeSignOutAction)
 
@@ -41,6 +48,16 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
   const [planConfsToFetch, setPlanConfsToFetch] = React.useState<
     PlaceholderPlanConf[]
   >([])
+  const pathnameWithoutLocale = getPathnameWithoutLocale(pathname, locale ?? null)
+  const isStandaloneHiilikartta =
+    compiledApplets.length === 1 && compiledApplets[0] === 'hiilikartta'
+  const isHiilikarttaRoot =
+    pathnameWithoutLocale === '/hiilikartta' ||
+    (isStandaloneHiilikartta && pathnameWithoutLocale === '/')
+  const isHiilikarttaKaavat =
+    pathnameWithoutLocale.startsWith('/hiilikartta/kaavat') ||
+    (isStandaloneHiilikartta && pathnameWithoutLocale.startsWith('/kaavat'))
+  const showBreadcrumbNav = !isHiilikarttaRoot && !isHiilikarttaKaavat
 
   const planConfStatsQuery = useQuery({
     ...planStatsQuery(),
@@ -49,6 +66,10 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
 
   const planQs = useQueries(planQueries(planConfsToFetch))
 
+  // Plan conf hydration flow:
+  // 1) sync session -> local plans + fetch stats
+  // 2) decide which plans to fetch based on server stats
+  // 3) kick off per-plan fetches and clear loading state when done
   useEffect(() => {
     clearPlaceholderPlanConfs()
 
@@ -144,6 +165,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
     }
   }, [planQs])
 
+  // Register sign-out cleanup so user-owned plans are cleared on logout.
   useEffect(() => {
     if (session?.user?.id != null) {
       addSignOutAction('hiilikartta', () => {
@@ -157,6 +179,9 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
   }, [planConfs, session?.user?.id])
 
   useEffect(() => {
+    // Preload zoning classes on applet load
+    getZoningClasses().catch(() => {})
+
     return () => {
       removeSignOutAction('hiilikartta')
     }
@@ -166,24 +191,21 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
     <AppletWrapper
       mapContext={'hiilikartta'}
       localizationNamespace={localizationNamespace}
+      listedLayerGroups={listedLayerGroups}
+      sidebarHeaderTitle={'Hiilikartta'}
+      sidebarHeaderBackgroundImage={'/files/img/hiilikartta/zoning.jpg'}
+      sidebarHeaderChildren={
+        showBreadcrumbNav ? (
+          <BreadcrumbNav routeTree={routeTree} collapseIfRoot />
+        ) : undefined
+      }
       sx={{
         pt: 0,
         display: 'flex',
         flexDirection: 'column',
       }}
     >
-      <Sidebar
-        sx={{ width: '30rem' }}
-        headerElement={
-          <SidebarHeader title={'Hiilikartta'} sx={{}}>
-            <Box sx={{ mt: 8, width: '100%' }}>
-              <BreadcrumbNav routeTree={routeTree}></BreadcrumbNav>
-            </Box>
-          </SidebarHeader>
-        }
-      >
-        {children}
-      </Sidebar>
+      {children}
     </AppletWrapper>
   )
 }

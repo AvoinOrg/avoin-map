@@ -10,7 +10,7 @@ import {
   FolayerConfState,
   IndexingStrategy,
 } from '../types'
-import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { useUIStore } from '#/common/store'
 import { useTranslate } from '@tolgee/react'
 
@@ -120,7 +120,7 @@ export const adminFolayerPostMutation = (): UseMutationOptions<
       notify({
         message: `${t('notifications.folayer_creation_error')}`,
         variant: 'error',
-  persist: true,
+        persist: true,
       })
     },
     retry: 3,

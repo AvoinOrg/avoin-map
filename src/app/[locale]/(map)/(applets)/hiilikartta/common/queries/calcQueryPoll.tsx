@@ -1,5 +1,5 @@
 import { UseQueryOptions } from '@tanstack/react-query'
-import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 import axios from 'axios'
 import { CalculationState, PlanConf, ReportData } from '../types'
 import { processCalcQueryToReportData } from '../utils'

@@ -31,7 +31,10 @@
       ],
       "@i18n/*": [
         "i18n/*"
-      ]
+      ],
+      "map/*": [
+        "src/app/[locale]/(map)/*"
+      ],
     },
     "plugins": [
       {
@@ -42,7 +45,8 @@
   "include": [
     "src",
     ".next/types/**/*.ts",
-    "localeConf.json"
+    "appletConf.json",
+    "src/types/**/*.d.ts"
   ],
   "exclude": [
     "node_modules"

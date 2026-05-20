@@ -5,12 +5,53 @@
 'use client'
 
 import React, { useEffect, useRef } from 'react'
-import { useMapStore, useUIStore } from '#/common/store'
-import { ListedLayerGroup, MapContext } from '#/common/types/map'
 import { useTolgee } from '@tolgee/react'
 import { Box } from '@mui/material'
+
+import { useMapStore, useUIStore } from '#/common/store'
+import { ListedLayerMenuItem, MapContext } from '#/common/types/map'
 import { useExclusiveLayerGroups } from '#/common/hooks/map/useExclusiveLayerGroups'
 import { defaultListedLayerGroups } from '../Map/layers/defaultListedLayerGroups'
+import { FINLAND_BOUNDS } from '#/common/constants/map'
+import { useNullableSidebarBoundaryContext } from '#/components/Sidebar/sidebarBoundaryContext'
+import {
+  IntoSidebarHeaderChildrenSlot,
+  IntoSidebarHeaderSlot,
+} from '#/components/Sidebar/sidebarSlots'
+
+type BaseAppletWrapperProps = {
+  children: React.ReactNode
+  mapContext: MapContext
+  localizationNamespace?: string
+  subPath?: string
+  // defaultLanguage?: string
+  isNavbarHidden?: boolean
+  searchCountryCodes?: string[]
+  disableDefaultFitbounds?: boolean
+  defaultView?: {
+    center: [number, number]
+    zoom: number
+    duration?: number
+  }
+  listedLayerGroups?: ListedLayerMenuItem[]
+  sx?: any
+}
+
+type AppletWrapperProps = BaseAppletWrapperProps &
+  (
+    | {
+        sidebarHeaderElement?: React.ReactNode
+        sidebarHeaderTitle?: never
+        sidebarHeaderChildren?: never
+        sidebarHeaderBackgroundImage?: never
+      }
+    | {
+        sidebarHeaderElement?: never
+        sidebarHeaderTitle?: string
+        sidebarHeaderChildren?: React.ReactNode
+        sidebarHeaderBackgroundImage?: string
+      }
+  )
 
 const AppletWrapper = ({
   children,
@@ -20,23 +61,23 @@ const AppletWrapper = ({
   // defaultLanguage,
   isNavbarHidden,
   searchCountryCodes,
+  disableDefaultFitbounds = false,
+  defaultView,
   listedLayerGroups,
+  sidebarHeaderElement,
+  sidebarHeaderTitle,
+  sidebarHeaderChildren,
+  sidebarHeaderBackgroundImage,
   sx,
-}: {
-  children: React.ReactNode
-  mapContext: MapContext
-  localizationNamespace?: string
-  subPath?: string
-  // defaultLanguage?: string
-  isNavbarHidden?: boolean
-  searchCountryCodes?: string[]
-  listedLayerGroups?: ListedLayerGroup[]
-  sx?: any
-}) => {
+}: AppletWrapperProps) => {
   const tolgee = useTolgee(['update'])
+  const sidebarBoundaryContext = useNullableSidebarBoundaryContext()
 
   const setMapContext = useMapStore((state) => state.setMapContext)
   const stateMapContext = useMapStore((state) => state.mapContext)
+  const fitBounds = useMapStore((state) => state.fitBounds)
+  const easeTo = useMapStore((state) => state.easeTo)
+
   useExclusiveLayerGroups()
   const storeSearchCountryCodes = useUIStore(
     (state) => state.searchCountryCodes
@@ -50,10 +91,43 @@ const AppletWrapper = ({
     (state) => state.setIsBaseDomainForApplet
   )
   const setIsNavbarHidden = useUIStore((state) => state.setIsNavbarHidden)
+  const setSidebarHeaderConfig = useUIStore(
+    (state) => state.setSidebarHeaderConfig
+  )
 
   const setListedLayerGroups = useMapStore(
     (state) => state.setListedLayerGroups
   )
+
+  useEffect(() => {
+    if (defaultView != null) {
+      easeTo({
+        options: {
+          center: defaultView.center,
+          zoom: defaultView.zoom,
+          duration: defaultView.duration ?? 0,
+        },
+        autoRelocateOptions: {
+          checkIfAutoRelocate: true,
+          disableAutoRelocate: true,
+        },
+      })
+      return
+    }
+
+    if (disableDefaultFitbounds) {
+      return
+    }
+
+    fitBounds({
+      bbox: FINLAND_BOUNDS,
+      options: { duration: 200, lonExtra: 0.6 },
+      autoRelocateOptions: {
+        checkIfAutoRelocate: true,
+        disableAutoRelocate: true,
+      },
+    })
+  }, [defaultView, disableDefaultFitbounds, easeTo, fitBounds])
 
   useEffect(() => {
     if (listedLayerGroups == null) {
@@ -104,6 +178,19 @@ const AppletWrapper = ({
     }
   }, [])
 
+  // Update sidebar header title when it changes
+  useEffect(() => {
+    setSidebarHeaderConfig({
+      title: sidebarHeaderTitle || 'avoin map',
+      backgroundImage: sidebarHeaderBackgroundImage,
+    })
+
+    return () => {
+      // Reset to default on unmount
+      setSidebarHeaderConfig({ title: 'avoin map' })
+    }
+  }, [sidebarHeaderTitle, sidebarHeaderBackgroundImage, setSidebarHeaderConfig])
+
   const isTolgeeReady = () => {
     if (
       localizationNamespace != null &&
@@ -118,8 +205,35 @@ const AppletWrapper = ({
   }
 
   return (
-    <Box sx={{ height: '100%', ...sx }} className={'applet-wrapper'}>
-      {stateMapContext === mapContext && isTolgeeReady() && children}
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+        minHeight: 0,
+        ...sx,
+      }}
+      className={'applet-wrapper'}
+    >
+      {stateMapContext === mapContext && isTolgeeReady() && (
+        <>
+          {/* Portal custom header element if provided */}
+          {sidebarHeaderElement && sidebarBoundaryContext != null && (
+            <IntoSidebarHeaderSlot>
+              {sidebarHeaderElement}
+            </IntoSidebarHeaderSlot>
+          )}
+
+          {/* Portal header children to slot inside default SidebarHeader */}
+          {sidebarHeaderChildren && sidebarBoundaryContext != null && (
+            <IntoSidebarHeaderChildrenSlot>
+              {sidebarHeaderChildren}
+            </IntoSidebarHeaderChildrenSlot>
+          )}
+
+          {children}
+        </>
+      )}
     </Box>
   )
 }

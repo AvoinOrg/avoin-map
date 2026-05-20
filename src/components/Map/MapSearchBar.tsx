@@ -1,10 +1,11 @@
 'use client'
 
-import React, { useState, useEffect, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import {
   Autocomplete,
   Box,
   Collapse,
+  CircularProgress,
   IconButton,
   TextField,
   Typography,
@@ -13,24 +14,49 @@ import { debounce } from 'lodash-es'
 import { useTranslate } from '@tolgee/react'
 import axios from 'axios'
 import { useParams } from 'next/navigation'
+import { bbox as turfBBox } from '@turf/turf'
 
 import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
 import { useMapStore, useUIStore } from '#/common/store'
 import Search from '#/components/icons/Search'
 import {
+  boundsFromNominatim,
   defaultFeatureDisplayPattern,
+  defaultPointZoom,
   getFeatureCenterCoordinates,
+  zoomFromPlaceOptions,
 } from '#/common/utils/map'
 import { MapMenuState } from '#/common/types/state'
 
 const mapMenuState: MapMenuState = 'search'
+
+export const MAP_SEARCH_BAR_VERTICAL_MODE_WIDTH = 40
+export const MAP_SEARCH_BAR_HORIZONTAL_MODE_WIDTH = 300
+const SEARCH_DEBOUNCE_MS = 300
+const MIN_REMOTE_QUERY_LENGTH = 3
+const MAX_LOCAL_RESULTS = 25
+const MAX_REMOTE_RESULTS = 5
+const MAX_REMOTE_CACHE_SIZE = 50
+
+type LocalSearchIndexEntry = {
+  feature: any
+  searchText: string
+  displayNameArr: string[]
+  datasetName: string
+  appendDatasetName: boolean
+  getCoordinates: (feature: any) => [number, number] | null
+  place_id: string
+}
 
 export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [value, setValue] = useState('')
   const [inputValue, setInputValue] = useState('')
   const [isFocused, setIsFocused] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const fetchCounter = React.useRef(0)
+  const remoteCacheRef = useRef<Map<string, any[]>>(new Map())
+  const remoteRequestRef = useRef<AbortController | null>(null)
   const { locale } = useParams()
   const searchInputRef = useRef<HTMLInputElement>(null)
   const activeMapMenu = useUIStore((state) => state.activeMapMenu)
@@ -40,6 +66,8 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
   const map = useMapInstanceStore((state) => state._map)
   const searchableDatas = useMapStore((state) => state.searchableDatas)
   const searchCountryCodes = useUIStore((state) => state.searchCountryCodes)
+  const fitBounds = useMapStore((state) => state.fitBounds)
+  const flyTo = useMapStore((state) => state.flyTo)
 
   const isActive = useMemo(() => {
     return activeMapMenu === mapMenuState
@@ -63,31 +91,10 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
     [searchableDatas]
   )
 
-  const debouncedSearch = useMemo(
-    () =>
-      debounce((query: string) => {
-        handleSearch(query)
-      }, 300),
-    [enabledSearchableDatas]
-  )
+  const localSearchIndex = useMemo(() => {
+    const entries: LocalSearchIndexEntry[] = []
 
-  useEffect(() => {
-    if (inputValue) {
-      debouncedSearch(inputValue)
-    } else {
-      setSearchResults([])
-    }
-    return () => {
-      debouncedSearch.cancel()
-    }
-  }, [inputValue, debouncedSearch])
-
-  const performLocalSearch = (query: string) => {
-    if (!query || !enabledSearchableDatas) return []
-    const lowerCaseQuery = query.toLowerCase()
-    const localResults: any[] = []
-
-    Object.values(enabledSearchableDatas).forEach((source) => {
+    enabledSearchableDatas.forEach((source) => {
       const {
         data,
         name: datasetName,
@@ -96,82 +103,235 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
         getCoordinates = getFeatureCenterCoordinates,
         displayPattern = defaultFeatureDisplayPattern,
       } = source
-      if (data?.features) {
-        data.features.forEach((feature) => {
-          const properties = feature.properties
-          if (!properties) return
 
-          const isMatch = fields
-            ? fields.some(
-                (field) =>
-                  properties[field] &&
-                  String(properties[field])
-                    .toLowerCase()
-                    .includes(lowerCaseQuery)
-              )
-            : Object.values(properties).some(
-                (value) =>
-                  value && String(value).toLowerCase().includes(lowerCaseQuery)
-              )
+      if (!data?.features) return
 
-          if (isMatch) {
-            const coords = getCoordinates(feature)
-            const displayNameArr = displayPattern(feature, fields)
-            if (appendDatasetName) {
-              displayNameArr.push(`(${datasetName})`)
-            }
+      data.features.forEach((feature) => {
+        const properties = feature.properties
+        if (!properties) return
 
-            if (coords) {
-              localResults.push({
-                // ...feature,
-                isLocal: true,
-                lon: coords[0],
-                lat: coords[1],
-                displayNameArr: displayNameArr,
-                datasetName: datasetName,
-                place_id:
-                  feature.id ||
-                  feature.properties?.id ||
-                  `${datasetName}-${displayNameArr.join('-')}`,
-              })
-            }
-          }
+        const values = (
+          fields && fields.length > 0
+            ? fields.map((field) => properties[field])
+            : Object.values(properties)
+        ).filter((value) => value != null && value !== '')
+
+        if (values.length === 0) return
+
+        const searchText = values
+          .map((value) => String(value).toLowerCase())
+          .join(' ')
+        const displayNameArr = displayPattern(feature, fields)
+
+        entries.push({
+          feature,
+          searchText,
+          displayNameArr,
+          datasetName,
+          appendDatasetName,
+          getCoordinates,
+          place_id:
+            feature.id ||
+            feature.properties?.id ||
+            `${datasetName}-${displayNameArr.join('-')}`,
         })
-      }
-    })
-    return localResults
-  }
-
-  const handleSearch = async (query: string) => {
-    if (!query) return
-    const currentFetchId = ++fetchCounter.current
-
-    const localResults = performLocalSearch(query)
-
-    try {
-      let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-        query
-      )}&addressdetails=1&limit=5`
-      if (searchCountryCodes.length > 0) {
-        url += `&countrycodes=${searchCountryCodes.join(',')}`
-      }
-      const res = await axios.get(url, {
-        headers: { 'Accept-Language': locale || 'en' },
       })
-      if (currentFetchId === fetchCounter.current) {
-        setSearchResults([...localResults, ...res.data])
+    })
+
+    return entries
+  }, [enabledSearchableDatas])
+
+  const performLocalSearch = useCallback(
+    (query: string) => {
+      if (!query) return []
+      const lowerCaseQuery = query.toLowerCase()
+      const localResults: any[] = []
+
+      for (const entry of localSearchIndex) {
+        if (!entry.searchText.includes(lowerCaseQuery)) {
+          continue
+        }
+
+        const coords = entry.getCoordinates(entry.feature)
+        if (!coords) {
+          continue
+        }
+
+        const bbox = (entry.feature as any).bbox
+          ? ((entry.feature as any).bbox as [number, number, number, number])
+          : entry.feature.geometry
+            ? (turfBBox(entry.feature as any) as [
+                number,
+                number,
+                number,
+                number,
+              ])
+            : null
+
+        const displayNameArr = entry.appendDatasetName
+          ? [...entry.displayNameArr, `(${entry.datasetName})`]
+          : entry.displayNameArr
+
+        localResults.push({
+          isLocal: true,
+          lon: coords[0],
+          lat: coords[1],
+          bbox,
+          displayNameArr,
+          datasetName: entry.datasetName,
+          place_id: entry.place_id,
+        })
+
+        if (localResults.length >= MAX_LOCAL_RESULTS) {
+          break
+        }
       }
-    } catch (e) {
+
+      return localResults
+    },
+    [localSearchIndex]
+  )
+
+  const handleSearch = useCallback(
+    async (rawQuery: string) => {
+      const query = rawQuery.trim()
+      if (!query) {
+        setIsLoading(false)
+        return
+      }
+      const currentFetchId = ++fetchCounter.current
+
+      const localResults = performLocalSearch(query)
+
       if (currentFetchId === fetchCounter.current) {
         setSearchResults(localResults)
       }
-    }
-  }
 
-  const handleSelect = (event: any, option: any) => {
-    if (option && map) {
-      const { lon, lat } = option
-      map.flyTo({ center: [parseFloat(lon), parseFloat(lat)], zoom: 13 })
+      if (query.length < MIN_REMOTE_QUERY_LENGTH) {
+        if (currentFetchId === fetchCounter.current) {
+          setIsLoading(false)
+        }
+        return
+      }
+
+      const cacheKey = `${locale || 'en'}|${searchCountryCodes.join(
+        ','
+      )}|${query}`
+      const cachedResults = remoteCacheRef.current.get(cacheKey)
+      if (cachedResults) {
+        if (currentFetchId === fetchCounter.current) {
+          setSearchResults([...localResults, ...cachedResults])
+          setIsLoading(false)
+        }
+        return
+      }
+
+      remoteRequestRef.current?.abort()
+      const controller = new AbortController()
+      remoteRequestRef.current = controller
+      if (currentFetchId === fetchCounter.current) {
+        setIsLoading(true)
+      }
+
+      try {
+        let url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          query
+        )}&addressdetails=1&limit=${MAX_REMOTE_RESULTS}`
+        if (searchCountryCodes.length > 0) {
+          url += `&countrycodes=${searchCountryCodes.join(',')}`
+        }
+        const res = await axios.get(url, {
+          headers: { 'Accept-Language': locale || 'en' },
+          signal: controller.signal,
+        })
+        if (controller.signal.aborted) return
+
+        remoteCacheRef.current.set(cacheKey, res.data)
+        if (remoteCacheRef.current.size > MAX_REMOTE_CACHE_SIZE) {
+          const oldestKey = remoteCacheRef.current.keys().next().value
+          if (oldestKey) {
+            remoteCacheRef.current.delete(oldestKey)
+          }
+        }
+
+        if (currentFetchId === fetchCounter.current) {
+          setSearchResults([...localResults, ...res.data])
+          setIsLoading(false)
+        }
+      } catch (e) {
+        if (controller.signal.aborted) return
+        if (currentFetchId === fetchCounter.current) {
+          setSearchResults(localResults)
+          setIsLoading(false)
+        }
+      }
+    },
+    [locale, performLocalSearch, searchCountryCodes]
+  )
+
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((query: string) => {
+        handleSearch(query)
+      }, SEARCH_DEBOUNCE_MS),
+    [handleSearch]
+  )
+
+  useEffect(() => {
+    const query = inputValue.trim()
+    if (query) {
+      debouncedSearch(query)
+    } else {
+      setSearchResults([])
+      setIsLoading(false)
+    }
+    return () => {
+      debouncedSearch.cancel()
+    }
+  }, [inputValue, debouncedSearch])
+
+  const handleSelect = (_event: any, option: any) => {
+    if (!option || !map) return
+
+    // try to build a bbox
+    let bbox: [number, number, number, number] | null = null
+
+    if (option.isLocal) {
+      bbox = option.bbox || null
+    } else {
+      bbox = boundsFromNominatim(option)
+    }
+
+    if (bbox) {
+      // Use your store fitBounds (handles sidebar padding)
+      // Small extras are fine horizontally; keep latExtra 0 to avoid Mercator bias
+      fitBounds({
+        bbox: [bbox[2], bbox[0], bbox[3], bbox[1]],
+        options: {
+          // your order: [lonMax, lonMin, latMax, latMin]
+          duration: 1200,
+          lonExtra: 0.05,
+          latExtra: 0, // keep 0; rely on padding for vertical margin
+        },
+      })
+      return
+    }
+
+    // point fallback
+    const lon = parseFloat(option.lon ?? option.lon ?? option.lng)
+    const lat = parseFloat(option.lat ?? option.latitude)
+    if (Number.isFinite(lon) && Number.isFinite(lat)) {
+      let z = defaultPointZoom(option)
+
+      if (option.place_rank != null) {
+        z = zoomFromPlaceOptions(option.place_rank, {
+          importance: option.importance,
+          cls: option.class,
+          type: option.type,
+        })
+      }
+
+      flyTo({ options: { center: [lon, lat], zoom: z, duration: 900 } })
     }
   }
 
@@ -179,14 +339,18 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
     <Box
       sx={{
         position: 'relative',
-        width: isVertical && !isActive ? '40px' : '300px',
+        width:
+          isVertical && !isActive
+            ? MAP_SEARCH_BAR_VERTICAL_MODE_WIDTH
+            : MAP_SEARCH_BAR_HORIZONTAL_MODE_WIDTH,
         height: '40px',
-        transition: `width ${isActive ? '0.2s' : '0.2s'} ease-in-out`,
+        // transition: `width ${isActive ? '0.2s' : '0.2s'} ease-in-out`,
         zIndex: isFocused ? (theme) => theme.zIndex.drawer + 5 : 'auto',
         right: 0,
         backgroundColor: 'neutral.light',
         marginLeft: 'auto',
         borderRadius: '0.3125rem',
+        pointerEvents: 'auto',
         overflow: 'hidden',
         '&:hover': {
           opacity: 1,
@@ -267,10 +431,26 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
                 zIndex: theme.zIndex.drawer + 4,
               }),
             },
+            clearIndicator: {
+              // If the input is already empty, treat the clear button as "close" in vertical mode.
+              // Use capture so we don't override MUI's built-in clear handler when there's text.
+              onMouseDownCapture: (e: React.MouseEvent<HTMLElement>) => {
+                if (isVertical && !inputValue.trim()) {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setValue('')
+                  setInputValue('')
+                  setSearchResults([])
+                  setMapMenuState(mapMenuState, false)
+                  searchInputRef.current?.blur()
+                }
+              },
+            },
           }}
           renderInput={(params) => (
             <TextField
               {...params}
+              aria-label={t('map.search.placeholder')}
               inputRef={searchInputRef}
               size="small"
               variant="outlined"
@@ -296,13 +476,32 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
                   startAdornment: (
                     <>
                       {params.InputProps.startAdornment}
-                      <Search
-                        sx={{
-                          color: 'action.active',
-                          width: '24px',
-                          height: '26px',
-                        }}
-                      />
+                      {isLoading ? (
+                        <Box
+                          sx={{
+                            width: '24px',
+                            height: '24px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <CircularProgress
+                            size={18}
+                            sx={{
+                              color: 'action.active',
+                            }}
+                          />
+                        </Box>
+                      ) : (
+                        <Search
+                          sx={{
+                            color: 'action.active',
+                            width: '24px',
+                            height: '24px',
+                          }}
+                        />
+                      )}
                     </>
                   ),
                 },
@@ -366,6 +565,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
       {isVertical && !isActive && (
         <IconButton
           onClick={() => setMapMenuState(mapMenuState, true)}
+          aria-label="Open search"
           sx={{
             backgroundColor: 'transparent',
             width: '40px',

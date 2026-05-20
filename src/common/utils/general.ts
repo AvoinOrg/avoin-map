@@ -1,4 +1,5 @@
 import { round } from 'lodash-es'
+import { ColorStop } from '../types/map'
 
 //TODO: FIX PP to format numbers correctly
 export const pp = (x: number, precision = 2) => round(x, precision)
@@ -45,4 +46,50 @@ export const mergeArraysAlternate = <T>(a: T[], b: T[]) => {
   }
 
   return result
+}
+
+export const hexToRgb = (hex: string): [number, number, number] => {
+  const h = hex.replace('#', '').trim()
+  const n =
+    h.length === 3
+      ? h
+          .split('')
+          .map((ch) => ch + ch)
+          .join('')
+      : h
+  const r = parseInt(n.slice(0, 2), 16)
+  const g = parseInt(n.slice(2, 4), 16)
+  const b = parseInt(n.slice(4, 6), 16)
+  return [r, g, b]
+}
+
+const lerp = (a: number, b: number, t: number) => {
+  return a + (b - a) * t
+}
+
+export const lerpColor = (c0: string, c1: string, t: number): string => {
+  const [r0, g0, b0] = hexToRgb(c0)
+  const [r1, g1, b1] = hexToRgb(c1)
+  const r = Math.round(lerp(r0, r1, t))
+  const g = Math.round(lerp(g0, g1, t))
+  const b = Math.round(lerp(b0, b1, t))
+  return `rgba(${r},${g},${b},1)`
+}
+
+export const colorAtValue = (stops: ColorStop[], v: number): string => {
+  // assumes stops sorted by value
+  if (v <= stops[0].value) return stops[0].color
+  const last = stops[stops.length - 1]
+  if (v >= last.value) return last.color
+  // find bracketing segment
+  let i = 0
+  while (
+    i < stops.length - 1 &&
+    !(v >= stops[i].value && v <= stops[i + 1].value)
+  )
+    i++
+  const a = stops[i],
+    b = stops[i + 1]
+  const t = (v - a.value) / (b.value - a.value)
+  return lerpColor(a.color, b.color, t)
 }

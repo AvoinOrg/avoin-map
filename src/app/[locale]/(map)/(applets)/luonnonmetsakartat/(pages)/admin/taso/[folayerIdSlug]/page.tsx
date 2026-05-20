@@ -19,12 +19,12 @@ import { SidebarContentBox } from '#/components/Sidebar'
 import { ArrowNextBig } from '#/components/icons'
 import MutableLink from '#/components/common/MutableLink'
 
-import { adminFolayerPatchMutation } from 'applets/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
-import SearchTable from 'applets/luonnonmetsakartat/components/SearchTable'
-import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
-import { FolayerConfState } from 'applets/luonnonmetsakartat/common/types'
-import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
-import { getFolayerCentroidSourceId } from 'applets/luonnonmetsakartat/common/utils'
+import { adminFolayerPatchMutation } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
+import SearchTable from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/SearchTable'
+import { routeTree } from '#/common/routing/routes/luonnonmetsakartat'
+import { FolayerConfState } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
+import { getFolayerCentroidSourceId } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/utils'
 
 const Page = () => {
   const [isFolayerReady, setIsFolayerReady] = useState(false)

@@ -1,7 +1,7 @@
 import { UseQueryOptions } from '@tanstack/react-query'
 import axios from 'axios'
 
-import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { useSession } from 'next-auth/react'
 import { FolayerConfState, FolayerAreaConf } from '../types'
 import { getFolayerCentroidSourceLayer } from '../utils'

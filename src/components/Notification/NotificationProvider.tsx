@@ -1,5 +1,6 @@
 import React from 'react'
 import { SnackbarProvider } from 'notistack'
+import { GlobalStyles } from '@mui/material'
 
 import NotificationManager from './NotificationManager'
 
@@ -9,19 +10,34 @@ type Props = {
 
 const NotificationProvider = ({ children }: Props) => {
   return (
-    <SnackbarProvider
-      maxSnack={3}
-      anchorOrigin={{
-        vertical: 'bottom',
-        horizontal: 'right',
-      }}
-      // Components={{
-      //   reportComplete: ReportCompleteSnackbar,
-      // }}
-    >
-      <NotificationManager />
-      {children}
-    </SnackbarProvider>
+    <>
+      <GlobalStyles
+        styles={(theme) => ({
+          '.notistack-SnackbarContainer': {
+            zIndex: `${theme.zIndex.snackbar} !important`,
+          },
+          '.notistack-MuiContent': {
+            alignItems: 'flex-start',
+          },
+          '#notistack-snackbar': {
+            alignItems: 'flex-start',
+          },
+        })}
+      />
+      <SnackbarProvider
+        maxSnack={3}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        // Components={{
+        //   reportComplete: ReportCompleteSnackbar,
+        // }}
+      >
+        <NotificationManager />
+        {children}
+      </SnackbarProvider>
+    </>
   )
 }
 

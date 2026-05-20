@@ -1,0 +1,25 @@
+model = "gpt-5.3-codex"
+model_reasoning_effort = "xhigh"
+personality = "pragmatic"
+
+[network_access]
+# Figma MCP should use the global HTTP endpoint configured below, not a local
+# host/desktop MCP server. Keep local network access only for app/devcontainer
+# commands that need localhost.
+allowed_domains = [
+  "host.docker.internal",
+  "localhost",
+  "127.0.0.1",
+]
+allow_local_binding = true
+
+sandbox_mode    = "workspace-write"
+approval_policy = "on-request"
+
+[sandbox_workspace_write]
+network_access = true
+
+[mcp_servers.figma]
+# Produces tool-style aliases such as mcp__figma__get_metadata when Codex
+# exposes MCP tools to an agent.
+url = "https://mcp.figma.com/mcp"

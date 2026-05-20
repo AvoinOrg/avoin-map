@@ -9,6 +9,7 @@ type BigMenuButtonProps = ButtonProps & {
 const BigMenuButton = ({
   children,
   sx,
+  'aria-label': ariaLabel,
   ...buttonProps
 }: BigMenuButtonProps) => {
   const theme = useTheme()
@@ -18,6 +19,12 @@ const BigMenuButton = ({
       variant="contained"
       component="label"
       color="primary"
+      aria-label={
+        ariaLabel ??
+        (typeof children === 'string' || typeof children === 'number'
+          ? String(children)
+          : undefined)
+      }
       {...buttonProps} // This spreads all other props, allowing them to override defaults
       sx={[
         {

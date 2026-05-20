@@ -1,52 +1,102 @@
-import { Box, Typography } from '@mui/material'
+import { Box, SxProps, Theme, Typography } from '@mui/material'
 import React from 'react'
 
 interface Props {
   children?: React.ReactNode
   title: string
-  sx?: any
+  backgroundImage?: string
+  sx?: SxProps<Theme>
 }
 
-const SidebarHeader = ({ children, title, sx }: Props) => {
+const SidebarHeader = ({ children, title, backgroundImage, sx }: Props) => {
   return (
     <Box
       className="sidebar-header"
-      sx={{
-        backgroundColor: 'neutral.light',
-        display: 'flex',
-        border: 1,
-        borderColor: 'primary.dark',
-        flexDirection: 'column',
-        flexShrink: 0,
-        minHeight: 8,
-        ...sx,
-      }}
+      sx={[
+        {
+          display: 'flex',
+          flexDirection: 'column',
+          flexShrink: 0,
+          mb: { mobile: 0.75, desktop: 1 },
+          color: 'neutral.darker',
+          zIndex: (theme: Theme) => theme.zIndex.drawer + 4,
+        },
+        ...(Array.isArray(sx) ? sx : [sx]),
+      ]}
     >
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          flexGrow: 1,
-          pr: 5,
+          position: 'relative',
+          minHeight: { mobile: '5.25rem', desktop: '5.75rem' },
+          mx: 0.75,
+          mt: 0.75,
+          borderRadius: '10px',
+          border: '0.2px solid #ffffff',
+          overflow: 'hidden',
+          backgroundColor: '#f4f4f4',
+          boxSizing: 'border-box',
         }}
       >
-        <Typography
-          sx={{ width: '100%', textAlign: 'end', mt: 4, whiteSpace: 'nowrap' }}
-          variant="h2"
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: backgroundImage
+              ? `url(${backgroundImage})`
+              : 'linear-gradient(90deg, #f4f4f4 0%, #f4f4f4 100%)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            background:
+              'linear-gradient(90deg, rgba(255, 255, 255, 0.9) 17.5%, rgba(255, 255, 255, 0) 100%)',
+          }}
+        />
+        <Box
+          sx={{
+            position: 'relative',
+            zIndex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+            px: { mobile: '1rem', desktop: '1.1rem' },
+          }}
         >
-          {title}
-        </Typography>
-      </Box>
-      <Box
-        sx={{
-          pl: 5,
-          pb: 4,
-          pr: 5,
-          maxWidth: sx?.width ? sx.width : '100%',
-        }}
-      >
-        {children}
+          <Box
+            sx={{
+              flex: 1,
+              display: 'flex',
+              width: '100%',
+              flexDirection: 'column',
+            }}
+          >
+            <Box sx={{ flex: 1, width: '100%' }}></Box>
+            <Typography
+              sx={{
+                textAlign: 'left',
+                whiteSpace: 'normal',
+                minHeight: '16px',
+                lineHeight: 1.1,
+                fontSize: { mobile: '1rem', desktop: '1.06rem' },
+                fontWeight: 700,
+                letterSpacing: '0.06rem',
+                textTransform: 'uppercase',
+              }}
+              variant="h3"
+            >
+              {title}
+            </Typography>
+            <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>{children}</Box>
+          </Box>
+          {/* {children && (
+            <Box sx={{ width: '100%', pb: 0.45 }}>
+            </Box>
+          )} */}
+        </Box>
       </Box>
     </Box>
   )

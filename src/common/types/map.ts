@@ -1,5 +1,5 @@
 import type { Feature, FeatureCollection } from 'geojson'
-import type { ReactNode } from 'react'
+import type { ComponentType, ReactNode } from 'react'
 import type {
   StyleSpecification,
   LayerSpecification,
@@ -12,7 +12,7 @@ import type {
   SourceSpecification,
   GeoJSONSourceSpecification,
 } from 'maplibre-gl'
-import type MaplibreDraw from 'maplibre-gl-draw'
+import type { TerraDraw } from 'terra-draw'
 
 import type { MapStoreActions } from '#/common/store/mapStore'
 import { StoreApi, UseBoundStore } from 'zustand'
@@ -34,6 +34,11 @@ export type SelectionSource = {
 
 export type SourceType = SourceSpecification['type']
 
+export type ListedLayerGroupStyleOptions = {
+  defaultOpacity?: number
+  showOpacitySlider?: boolean
+}
+
 export type ListedLayerGroup = {
   id: string
   // orderLevel: LayerOrderLevel
@@ -44,7 +49,34 @@ export type ListedLayerGroup = {
   description?: string
   descriptionTranslationKey?: string
   thumbnail?: string
+  infoElement?: ReactNode
+  styleOptions?: ListedLayerGroupStyleOptions
 }
+
+export type ListedLayerAccordionItem = {
+  id: string
+  type: 'accordion'
+  menuOrderLevel: LayerOrderLevel
+  translationNs: string
+  titleTranslationKey: string
+  title?: string
+  ariaLabelTranslationKey?: string
+  ariaLabel?: string
+  backgroundImageSrc?: string
+  defaultExpanded?: boolean
+  addOptions?: LayerGroupAddOptionsWithOrderLevel
+  content?: ReactNode
+  ContentComponent?: ComponentType
+  items?: ListedLayerMenuItem[]
+}
+
+export type ListedLayerMenuItem = ListedLayerGroup | ListedLayerAccordionItem
+
+export type ListedLayerBackedMenuItem =
+  | ListedLayerGroup
+  | (ListedLayerAccordionItem & {
+      addOptions: LayerGroupAddOptionsWithOrderLevel
+    })
 
 export type LayerGroupOptions = {
   id: string
@@ -66,10 +98,11 @@ export type LayerEventHandlers = Record<
 
 export type LayerOptions = {
   id: string
-  source: string
+  source?: string
   sourceLayer?: string
   name: string
   layerType: LayerType
+  activeOn: ActiveOnOption
   selectable: boolean
   multiSelectable: boolean
   hoverPointer: boolean
@@ -160,23 +193,30 @@ export const isStandardSourceOptions = (
 export type LayerGroups = Record<string, LayerGroupOptions>
 
 export interface LayerGroupDrawOptions {
-  idField?: string
   polygonEnabled?: boolean
   editEnabled?: boolean
-  deleteEnabled?: boolean
+  deleteOptions?: {
+    enabled: boolean
+    deleteOutsideDrawMode?: boolean
+  }
+  corridorEnabled?: boolean
+  corridorHalfWidthMeters?: number
   featureAddMutator?: (feature: Feature) => Feature
   featureUpdateMutator?: (feature: Feature) => Feature
 }
 
 export interface MapDrawOptions extends LayerGroupDrawOptions {
   layerGroupId: string | null
-  draw: MaplibreDraw | null
   isEnabled: boolean
+  currentMode?: DrawMode | null
   originalStyles?: Record<string, any>
-  handleDrawCreate?: (e: any) => void
-  handleDrawUpdate?: (e: any) => void
-  handleDrawDelete?: (e: any) => void
-  handleSelectionChange?: (e: any) => void
+  handleDrawFinish?: (...args: any[]) => Promise<void>
+  handleDrawUpdate?: (...args: any[]) => void
+  handleSelectionChange?: (...args: any[]) => void
+  handleDeselectionChange?: (...args: any[]) => void
+  handleModeChange?: (...args: any[]) => void
+  corridorHalfWidthMeters?: number
+  drawGeneration: number
 }
 
 export enum LayerOrderLevel {
@@ -213,8 +253,7 @@ export type MapDims = {
 }
 
 // Compatible with hydration.
-export interface SerializableLayerGroupAddOptions
-  extends BaseLayerGroupAddOptions {
+export interface SerializableLayerGroupAddOptions extends BaseLayerGroupAddOptions {
   layerConf?: SerializableLayerConf
   dataUpdateMutator?: DataUpdateMutator
 }
@@ -227,8 +266,7 @@ export interface LayerGroupAddOptions extends BaseLayerGroupAddOptions {
   persist?: false
 }
 
-export interface LayerGroupAddOptionsWithOrderLevel
-  extends BaseLayerGroupAddOptions {
+export interface LayerGroupAddOptionsWithOrderLevel extends BaseLayerGroupAddOptions {
   layerOrderOptions: LayerOrderOptions
   layerConf?: LayerConf
   persist?: false
@@ -263,13 +301,48 @@ export type LayerGroupId =
   | 'terramonitor'
   | 'mml_taustakartta'
 
-export type ExtendedLayerSpecification = LayerSpecification & {
-  source: string
-  sourceLayer?: string
-  selectable?: boolean // whether a feature can be highlighted
-  multiSelectable?: boolean // whether multiple features can be highlighted
-  hoverPointer?: boolean // whether the pointer should change to a pointer when hovering over the layer
+export type ActiveOnOption =
+  | 'always'
+  | 'hover'
+  | 'selected'
+  | 'hover-or-selected'
+
+// export type ExtendedLayerSpecification = LayerSpecification & {
+//   source: string
+//   'source-layer': string
+//   activeOn?: ActiveOnOption
+//   selectable?: boolean // whether a feature can be highlighted
+//   multiSelectable?: boolean // whether multiple features can be highlighted
+//   hoverPointer?: boolean // whether the pointer should change to a pointer when hovering over the layer
+// }
+
+export type CanvasFillImageId =
+  | 'DiagonalCross'
+  | 'Cross'
+  | 'ForwardDiagonal'
+  | 'BackwardDiagonal'
+  | 'Vertical'
+  | 'Horizontal'
+
+export type GeneratedFillPatternOptions = {
+  patternId: CanvasFillImageId
+  colorRGBA?: string
+  backgroundColorRGBA?: string
 }
+
+type LayerExtras = {
+  source?: string
+  'source-layer'?: string
+  activeOn?: ActiveOnOption
+  generatedFillPatternOptions?: GeneratedFillPatternOptions
+  selectable?: boolean
+  multiSelectable?: boolean
+  hoverPointer?: boolean
+}
+
+type ExtendEachLayerSpec<T> = T extends any ? T & LayerExtras : never
+
+export type ExtendedLayerSpecification = ExtendEachLayerSpec<LayerSpecification>
 
 export type StoreSourceSpecification = Omit<
   GeoJSONSourceSpecification,
@@ -437,12 +510,19 @@ export const isGeoJSONSource = (source: any): source is GeoJSONSource => {
   return source != null && 'setData' in source // or other appropriate conditions
 }
 
-export type DrawMode = 'polygon' | 'edit'
+export type DrawMode = 'polygon' | 'edit' | 'corridor'
+
+export type ExtendedMaplibreDrawMode = 'polygon' | 'select' | 'corridor'
 
 export type FitBoundsOptions = {
   duration?: number
   lonExtra?: number
   latExtra?: number
+}
+
+export type AutoRelocateOptions = {
+  checkIfAutoRelocate?: boolean
+  disableAutoRelocate?: boolean
 }
 
 export type ImageOptions = {
@@ -462,3 +542,5 @@ export type SearchableDataOpts = DataSearchOpts & {
   data: FeatureCollection
   enabled: boolean
 }
+
+export type ColorStop = { color: string; value: number }

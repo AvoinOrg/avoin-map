@@ -9,7 +9,7 @@ import { flattenDeep } from 'lodash-es'
 import { useTranslate } from '@tolgee/react'
 import { Feature, FeatureCollection } from 'geojson'
 
-import { getRoute } from '#/common/utils/routing-client'
+import { getRoute } from '#/common/routing/routing-client'
 import { getGeoJsonArea } from '#/common/utils/gis'
 import { generateUUID } from '#/common/utils/general'
 import BigMenuButton from '#/components/common/BigMenuButton'
@@ -19,11 +19,11 @@ import { Upload } from '#/components/icons'
 import {
   FeatureProperties,
   IndexingStrategy,
-} from 'applets/luonnonmetsakartat/common/types'
-import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
-import FolayerImportShp from 'applets/luonnonmetsakartat/components/FolayerImportShp'
-import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
-import { adminFolayerPostMutation } from 'applets/luonnonmetsakartat/common/queries/adminFolayerPostMutation'
+} from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
+import { routeTree } from '#/common/routing/routes/luonnonmetsakartat'
+import FolayerImportShp from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportShp'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
+import { adminFolayerPostMutation } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerPostMutation'
 import { useMutation } from '@tanstack/react-query'
 import { useSidebarActivityLoader } from '#/common/hooks/ui/useSidebarActivityLoader'
 

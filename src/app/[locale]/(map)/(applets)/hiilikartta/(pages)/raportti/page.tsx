@@ -1,5 +1,5 @@
 'use client'
-import React, { useContext, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState, use } from 'react'
 
 import useStore from '#/common/hooks/useStore'
 import MutableLink from '#/components/common/MutableLink'
@@ -9,23 +9,26 @@ import { styled, SxProps } from '@mui/system'
 import { Box, Theme, Typography, useMediaQuery, useTheme } from '@mui/material'
 import { T, useTranslate } from '@tolgee/react'
 
-import { getRoute } from '#/common/utils/routing-client'
+import { getRoute } from '#/common/routing/routing-client'
 import MultiSelectAutocomplete from '#/components/common/MultiSelectAutocomplete'
+import { FullscreenPage } from '#/components/common/FullscreenPage'
+import { SidebarBoundary } from '#/components/Sidebar'
 import { FetchStatus, SelectOption } from '#/common/types/general'
-import { Link as LinkIcon } from '#/components/icons'
+import { Download as DownloadIcon, Link as LinkIcon } from '#/components/icons'
 
-import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
-import { routeTree } from 'applets/hiilikartta/common/routes'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
+import { routeTree } from '#/common/routing/routes/hiilikartta'
 import {
   GlobalState,
   PlanConfWithReportData,
-} from 'applets/hiilikartta/common/types'
-import CarbonMapGraph from 'applets/hiilikartta/components/CarbonMapGraph'
-import { CarbonLineChart } from 'applets/hiilikartta/components/CarbonLineChart'
-import CarbonOverviewGraph from 'applets/hiilikartta/components/CarbonOverviewGraph'
+} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
+import CarbonMapGraph from '#/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonMapGraph'
+import { CarbonLineChart } from '#/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonLineChart'
+import CarbonOverviewGraph from '#/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonOverviewGraph'
 import ClipboardCopyWrapper from '#/components/common/ClipboardCopyWrapper'
 import { LoadingSpinner } from '#/components/Loading'
 import { useUIStore } from '#/common/store'
+import { getReportCalculatedDate } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
 
 const MAX_WIDTH = '1000px'
 
@@ -35,7 +38,7 @@ enum ErrorState {
   NO_DATA = 'NO_DATA',
 }
 
-const Page = ({ params }: { params: { planIdSlug: string } }) => {
+const Page = () => {
   const searchParams = useSearchParams()
   const globalState = useStore(useAppletStore, (state) => state.globalState)
   const notify = useUIStore((state) => state.notify)
@@ -61,6 +64,7 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
 
   const [planConfs, setPlanConfs] = useState<PlanConfWithReportData[]>([])
   const [prevPageId, setPrevPageId] = useState<string>()
+  const [prevPageStep, setPrevPageStep] = useState<'plan' | 'areas'>('plan')
   const [errorState, setErrorState] = useState<ErrorState>()
   const [isLoaded, setIsLoaded] = useState(false)
   const [featureYears, setFeatureYears] = useState<string[]>([])
@@ -223,12 +227,15 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
       }
 
       const paramPrevPageId = searchParams.get('prevPageId')
+      const paramPrevPageStep = searchParams.get('prevPageStep')
       if (paramPrevPageId != null) {
         if (allPlanConfs[paramPrevPageId] != null) {
           setPrevPageId(paramPrevPageId)
+          setPrevPageStep(paramPrevPageStep === 'areas' ? 'areas' : 'plan')
         } else {
           const newSearchParams = new URLSearchParams(searchParams)
           newSearchParams.delete('prevPageId')
+          newSearchParams.delete('prevPageStep')
 
           // Use router.replace to update the URL without adding a new history entry
           router.replace(
@@ -268,8 +275,46 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
   const fullUrl = useMemo(() => {
     const newSearchParams = new URLSearchParams(searchParams)
     newSearchParams.delete('prevPageId')
+    newSearchParams.delete('prevPageStep')
     return `${window.location.origin}${pathName}?${newSearchParams.toString()}`
   }, [pathName, searchParams])
+
+  const handleDownloadGeoJson = () => {
+    if (planConfs.length === 0) {
+      return
+    }
+
+    const geoJsonData =
+      planConfs.length === 1
+        ? planConfs[0].reportData.areas
+        : {
+            type: 'FeatureCollection',
+            features: planConfs.flatMap((planConf) =>
+              planConf.reportData.areas.features.map((feature) => ({
+                ...feature,
+                properties: {
+                  ...feature.properties,
+                  plan_id: planConf.serverId,
+                  plan_name: planConf.name,
+                },
+              }))
+            ),
+          }
+
+    const jsonString = JSON.stringify(geoJsonData, null, 2)
+    const blob = new Blob([jsonString], { type: 'application/geo+json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    const baseName =
+      planConfs.length === 1 ? planConfs[0].name : 'hiilikartta-report'
+    const safeName = baseName.replace(/[\\/]/g, '-')
+    link.href = url
+    link.download = `${safeName || 'report'}.geojson`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
 
   // useEffect(() => {
   //   const planLayerGroupId = getPlanLayerGroupId(params.planIdSlug)
@@ -284,22 +329,17 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
   //   setMapLibraryMode('maplibre')
   // }, [])
   return (
-    <Box
-      sx={(theme) => ({
-        position: 'absolute',
-        top: 0,
-        bottom: 0,
-        left: 0,
-        right: 0,
-        width: '100vw',
-        backgroundColor: theme.palette.neutral.lighter,
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'auto',
-        pb: theme.spacing(20),
-        alignItems: 'center',
-      })}
-    >
+    <SidebarBoundary id="hiilikartta-report-none" mode="none">
+      <FullscreenPage
+        sx={(theme) => ({
+          backgroundColor: theme.palette.neutral.lighter,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'auto',
+          pb: theme.spacing(20),
+          alignItems: 'center',
+        })}
+      >
       <Section
         sx={(theme) => ({
           backgroundColor: theme.palette.primary.dark,
@@ -334,7 +374,13 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
             <T keyName={'report.header.title'} ns={'hiilikartta'}></T>
           </Typography>
           <MutableLink
-            route={prevPageId != null ? routeTree.plans.plan : routeTree}
+            route={
+              prevPageId != null
+                ? prevPageStep === 'areas'
+                  ? routeTree.plans.plan.areas
+                  : routeTree.plans.plan
+                : routeTree
+            }
             routeTree={routeTree}
             params={
               prevPageId != null ? { routeParams: { planId: prevPageId } } : {}
@@ -423,9 +469,9 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
                   display: 'inline',
                 })}
               >
-                {new Date(
-                  planConfs[0].reportData.metadata.timestamp * 1000
-                ).toLocaleDateString(navigator.language)}
+                {getReportCalculatedDate(
+                  planConfs[0].reportData.metadata.timestamp
+                )?.toLocaleDateString(navigator.language)}
               </Typography>
             </Col>
           )}
@@ -448,28 +494,81 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
             minHeight: '4.75rem',
           }}
         >
-          <ClipboardCopyWrapper textToCopy={fullUrl}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              columnGap: 3,
+            }}
+          >
             <Box
+              component="button"
+              type="button"
+              aria-label="Download report data as GeoJSON"
+              disabled={planConfs.length === 0}
+              onClick={handleDownloadGeoJson}
               sx={{
-                display: 'flex',
-                flexDirection: 'row',
+                display: 'inline-flex',
+                alignItems: 'center',
+                columnGap: 1.5,
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                color: 'inherit',
+                textAlign: 'left',
                 '&:hover': {
                   cursor: 'pointer',
                 },
+                '&:disabled': {
+                  cursor: 'not-allowed',
+                  opacity: 0.6,
+                },
               }}
             >
+              <Box sx={{ display: 'inline-flex' }}>
+                <DownloadIcon sx={{ width: 14, height: 20, mt: '-2px' }} />
+              </Box>
               <Typography
                 sx={(theme) => ({
-                  typography: theme.typography.body7,
-                  display: 'inline',
+                  typography: 'body7',
+                  display: 'inline-flex',
+                  alignItems: 'center',
                   fontWeight: '700',
+                  textAlign: 'left',
+                  minHeight: '2rem',
+                })}
+              >
+                <T keyName="report.download_geojson" ns={'hiilikartta'}></T>
+              </Typography>
+            </Box>
+            <ClipboardCopyWrapper
+              ariaLabel="Copy report link"
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                columnGap: 1.5,
+                textAlign: 'left',
+              }}
+              textToCopy={fullUrl}
+            >
+              <Box sx={{ display: 'inline-flex' }}>
+                <LinkIcon />
+              </Box>
+              <Typography
+                sx={(theme) => ({
+                  typography: 'body7',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  fontWeight: '700',
+                  textAlign: 'left',
+                  minHeight: '2rem',
                 })}
               >
                 <T keyName="report.copy_link" ns={'hiilikartta'}></T>
               </Typography>
-              <LinkIcon sx={{ ml: 1.5, mt: 0.2 }} />
-            </Box>
-          </ClipboardCopyWrapper>
+            </ClipboardCopyWrapper>
+          </Box>
         </Row>
       </Section>
       {!isLoaded && (
@@ -546,7 +645,8 @@ const Page = ({ params }: { params: { planIdSlug: string } }) => {
           </Section>
         </Col>
       )}
-    </Box>
+      </FullscreenPage>
+    </SidebarBoundary>
   )
 }
 

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   id="Green"
+   x="0px"
+   y="0px"
+   viewBox="15 54 281.81 186"
+   style="enable-background:new 15 54 281.81 186;"
+   xml:space="preserve"
+   sodipodi:docname="Avoinlogo_Pysty_Green_Rek2024.svg"
+   inkscape:version="1.0.2-2 (e86c870879, 2021-01-15)"><metadata
+   id="metadata535"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata><defs
+   id="defs533" /><sodipodi:namedview
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1"
+   objecttolerance="10"
+   gridtolerance="10"
+   guidetolerance="10"
+   inkscape:pageopacity="0"
+   inkscape:pageshadow="2"
+   inkscape:window-width="1303"
+   inkscape:window-height="969"
+   id="namedview531"
+   showgrid="false"
+   showguides="true"
+   inkscape:guide-bbox="true"
+   inkscape:zoom="1.7711562"
+   inkscape:cx="194.7811"
+   inkscape:cy="222.92175"
+   inkscape:window-x="0"
+   inkscape:window-y="0"
+   inkscape:window-maximized="0"
+   inkscape:current-layer="Green" />
+<style
+   type="text/css"
+   id="style498">
+	.st0{clip-path:url(#SVGID_2_);}
+	.st1{fill:#126A42;}
+</style>
+<g
+   id="g528">
+	<defs
+   id="defs501">
+		<rect
+   id="SVGID_1_"
+   width="311.81"
+   height="297.64" />
+	</defs>
+	<clipPath
+   id="SVGID_2_">
+		<use
+   xlink:href="#SVGID_1_"
+   style="overflow:visible;"
+   id="use503" />
+	</clipPath>
+	<g
+   class="st0"
+   clip-path="url(#SVGID_2_)"
+   id="g510">
+		<path
+   class="st1"
+   d="M221.71,99.91c6.06-34.53-28.78-58.25-63.87-25.89c-1.09,1-2.77,1-3.86,0    c-39.51-36.42-78.69-1.81-59.59,39.31c0.46,0.99,1.66,1.37,2.6,0.81c20-11.92,40.97-19.82,61.23-22.88    c24.05-3.62,44.98-0.13,60.73,9.86C220.04,101.82,221.49,101.18,221.71,99.91z"
+   id="path506" />
+		<path
+   class="st1"
+   d="M112.7,137.87c17.05,18.52,37.63,29.68,43.39,29.68c5.76,0,32.57-17.18,49.72-36.73    c4.67-5.33,8.25-10.69,10.87-15.97c0.4-0.81,0.12-1.77-0.61-2.3c-10.95-7.86-28.83-11.17-40.11-11.73    C142.13,99.16,101.19,125.36,112.7,137.87z"
+   id="path508" />
+	</g>
+	<g
+   class="st0"
+   clip-path="url(#SVGID_2_)"
+   id="g526">
+		<path
+   d="M78.96,199.99h-0.13c-1.32,0-2.39,1.07-2.39,2.39v4.13c-3.56-4-8.74-6.52-14.51-6.52c-10.72,0-19.41,8.69-19.41,19.41    c0,10.72,8.69,19.41,19.41,19.41c5.77,0,10.95-2.52,14.51-6.52v4.13c0,1.32,1.07,2.39,2.39,2.39h0.13c1.32,0,2.39-1.07,2.39-2.39    v-34.05C81.35,201.06,80.28,199.99,78.96,199.99z M61.93,233.91c-8,0-14.51-6.51-14.51-14.51c0-8,6.51-14.51,14.51-14.51    c8,0,14.51,6.51,14.51,14.51C76.44,227.41,69.93,233.91,61.93,233.91z"
+   id="path512" />
+		<path
+   d="M187.1,219.41c0,10.72-8.69,19.41-19.41,19.41s-19.41-8.69-19.41-19.41s8.69-19.41,19.41-19.41S187.1,208.68,187.1,219.41    z M182.2,219.41c0-8-6.51-14.51-14.51-14.51s-14.51,6.51-14.51,14.51c0,8,6.51,14.51,14.51,14.51S182.2,227.41,182.2,219.41z"
+   id="path514" />
+		<g
+   id="g520">
+			<path
+   d="M207.81,238.97h-0.72c-1.16,0-2.09-0.94-2.09-2.09v-24.05c0-1.16,0.94-2.09,2.09-2.09h0.72c1.16,0,2.09,0.94,2.09,2.09     v24.05C209.9,238.03,208.97,238.97,207.81,238.97z"
+   id="path516" />
+			<circle
+   cx="207.45"
+   cy="202.59"
+   r="2.75"
+   id="circle518" />
+		</g>
+		<path
+   d="M134.88,200.27l-0.11-0.06c-1.19-0.58-2.62-0.09-3.19,1.1l-14.41,29.54l-14.41-29.54c-0.58-1.19-2.01-1.68-3.19-1.1    l-0.11,0.06c-1.19,0.58-1.68,2.01-1.1,3.19l16.6,34.03c0.43,0.87,1.31,1.37,2.22,1.34c0.91,0.03,1.8-0.47,2.22-1.34l16.6-34.03    C136.56,202.28,136.07,200.85,134.88,200.27z"
+   id="path522" />
+		<path
+   d="M269.29,221.86c0-1.71,0-4.75,0-4.79c-0.22-10.53-8.83-17.08-19.41-17.08c-5.77,0-10.95,1.95-14.51,5.43v-1.13    c0-1.31-0.99-2.45-2.29-2.53c-1.43-0.09-2.62,1.04-2.62,2.45v32.15c0,0,0,0,0,0c0,0.01,0,0.03,0,0.04c0,1.33,1.08,2.4,2.4,2.4    h0.05l0,0l0,0h0.05c1.33,0,2.4-1.07,2.4-2.4c0-3.66,0-10.62,0-14.56c0-1.73,0-4.79,0-4.83c0.24-7.79,6.66-12.13,14.5-12.13    c7.85,0,14.26,4.34,14.5,12.13c0,0.04,0,3.12,0,4.88c0,3.95,0,10.87,0,14.51c0,1.33,1.08,2.4,2.4,2.4h0.1c1.33,0,2.4-1.07,2.4-2.4    C269.29,232.75,269.29,225.78,269.29,221.86z"
+   id="path524" />
+	</g>
+</g>
+<text
+   xml:space="preserve"
+   style="font-style:normal;font-weight:normal;font-size:20.2533px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.506332"
+   x="279.84479"
+   y="214.85547"
+   id="text4471"><tspan
+     sodipodi:role="line"
+     id="tspan4469"
+     x="279.84479"
+     y="214.85547"
+     style="stroke-width:0.506332">®</tspan></text></svg>

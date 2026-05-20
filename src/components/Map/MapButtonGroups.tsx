@@ -1,6 +1,7 @@
+// Map toolbar buttons and draw controls grouped by map state and layout.
 'use client'
 
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 import ButtonGroup, { ButtonGroupProps } from '@mui/material/ButtonGroup'
 import ExploreIcon from '@mui/icons-material/ExploreOutlined'
 import DoneIcon from '@mui/icons-material/Done'
@@ -19,14 +20,22 @@ import {
   Delete,
   LayersDark,
   Layers,
+  Line,
 } from '#/components/icons'
 import { useIsDrawEnabled } from '#/common/hooks/map/useIsDrawEnabled'
 import { useAllowedDrawModes } from '#/common/hooks/map/useAllowedDrawModes'
 import { useSelectedDrawFeatures } from '#/common/hooks/map/useSelectedDrawFeature'
 import { useIsDrawDeleteAllowed } from '#/common/hooks/map/useIsDrawDeleteAllowed'
-import { MapLayerButton } from './MapLayerButton'
+import {
+  MapLayerButtonHorizontal,
+  MapLayerButtonVertical,
+} from './MapLayerButton'
 import { MapButton } from './MapButton'
 import { LayerOrderLevel } from '#/common/types/map'
+import { hasListedLayerMenuOrderLevel } from '#/common/utils/listedLayerGroups'
+import { MapButtonStickyMenu } from './MapButtonStickyMenu'
+import { MapUserButtons } from './MapUserButtons'
+import { CorridorBufferMenu } from './CorridorBufferMenu'
 
 const IS_DEV = process.env.NODE_ENV === 'development'
 
@@ -46,6 +55,7 @@ export const MapButtons = ({ isVertical }: Props) => {
   const isDrawEnabled = useIsDrawEnabled()
   const allowedDrawModes = useAllowedDrawModes()
   const selectedDrawFeatures = useSelectedDrawFeatures()
+  const selectedFeatures = useMapStore((state) => state.selectedFeatures)
   const isDrawDeleteAllowed = useIsDrawDeleteAllowed()
   const listedLayerGroups = useMapStore((state) => state.listedLayerGroups)
   const { t } = useTranslate('avoin-map')
@@ -61,7 +71,11 @@ export const MapButtons = ({ isVertical }: Props) => {
   // }, [])
 
   const handleDrawDeleteClick = () => {
-    deleteDrawFeatures(selectedDrawFeatures)
+    if (drawMode != null) {
+      deleteDrawFeatures(selectedDrawFeatures)
+    } else {
+      deleteDrawFeatures(selectedFeatures)
+    }
   }
 
   // const handleKeyPress = (event: KeyboardEvent) => {
@@ -78,23 +92,25 @@ export const MapButtons = ({ isVertical }: Props) => {
 
   const hasBackgroundLayers = useMemo(
     () =>
-      listedLayerGroups.some(
-        (layerGroup) =>
-          layerGroup.addOptions.layerOrderOptions.layerOrderLevel ===
-          LayerOrderLevel.BACKGROUND
+      listedLayerGroups.some((layerGroup) =>
+        hasListedLayerMenuOrderLevel(layerGroup, LayerOrderLevel.BACKGROUND)
       ),
     [listedLayerGroups]
   )
 
   const hasBackgroundOverlayLayers = useMemo(
     () =>
-      listedLayerGroups.some(
-        (layerGroup) =>
-          layerGroup.addOptions.layerOrderOptions.layerOrderLevel ===
+      listedLayerGroups.some((layerGroup) =>
+        hasListedLayerMenuOrderLevel(
+          layerGroup,
           LayerOrderLevel.BACKGROUND_OVERLAY
+        )
       ),
     [listedLayerGroups]
   )
+  const LayerMenuButton = isVertical
+    ? MapLayerButtonVertical
+    : MapLayerButtonHorizontal
 
   return (
     <Box
@@ -102,24 +118,31 @@ export const MapButtons = ({ isVertical }: Props) => {
         display: 'flex',
         flexDirection: isVertical ? 'column' : 'row',
         gap: 1,
+        pointerEvents: 'auto',
       }}
     >
+      <MapButtonGroup
+        orientation={isVertical ? 'vertical' : 'horizontal'}
+        isVertical={isVertical}
+      >
+        <MapUserButtons isVertical={isVertical} />
+      </MapButtonGroup>
       {isDrawEnabled && isDrawDeleteAllowed && (
         <MapButtonGroup
           orientation={isVertical ? 'vertical' : 'horizontal'}
           isVertical={isVertical}
         >
-          {drawMode != null && (
-            <MapButton
-              onClick={handleDrawDeleteClick}
-              size="small"
-              disabled={selectedDrawFeatures.length === 0}
-              tooltip={t('map.buttons.draw_delete')}
-              isVertical={isVertical}
-            >
-              <Delete />
-            </MapButton>
-          )}
+          <MapButton
+            onClick={handleDrawDeleteClick}
+            size="small"
+            disabled={
+              selectedDrawFeatures.length === 0 && selectedFeatures.length === 0
+            }
+            tooltip={t('map.buttons.draw_delete')}
+            isVertical={isVertical}
+          >
+            <Delete />
+          </MapButton>
         </MapButtonGroup>
       )}
       {isDrawEnabled && (
@@ -158,6 +181,27 @@ export const MapButtons = ({ isVertical }: Props) => {
               <Polygon />
             </MapButton>
           )}
+          {allowedDrawModes.includes('corridor') && (
+            <MapButtonStickyMenu
+              isVertical={isVertical}
+              isActive={drawMode === 'corridor'}
+              menuContent={<CorridorBufferMenu />}
+              showTooltip={t(
+                'map.buttons.corridor_menu_show',
+                'Show corridor menu'
+              )}
+              menuTitle={t('map.menus.corridor.title', 'Corridor')}
+            >
+              <MapButton
+                onClick={() => setDrawMode('corridor')}
+                size="small"
+                tooltip={t('map.buttons.draw_corridor', 'Draw corridor')}
+                isVertical={isVertical}
+              >
+                <Line />
+              </MapButton>
+            </MapButtonStickyMenu>
+          )}
         </MapButtonGroup>
       )}
       {(hasBackgroundLayers || hasBackgroundOverlayLayers) && (
@@ -166,8 +210,7 @@ export const MapButtons = ({ isVertical }: Props) => {
           isVertical={isVertical}
         >
           {hasBackgroundLayers && (
-            <MapLayerButton
-              isVertical={isVertical}
+            <LayerMenuButton
               shownLayerLevels={[LayerOrderLevel.BACKGROUND]}
               headerLabel={t('map.menus.background_layers')}
               tooltipLabel={t('map.buttons.background_layers')}
@@ -176,8 +219,7 @@ export const MapButtons = ({ isVertical }: Props) => {
             />
           )}
           {hasBackgroundOverlayLayers && (
-            <MapLayerButton
-              isVertical={isVertical}
+            <LayerMenuButton
               shownLayerLevels={[LayerOrderLevel.BACKGROUND_OVERLAY]}
               headerLabel={t('map.menus.background_overlay_layers')}
               tooltipLabel={t('map.buttons.background_overlay_layers')}
@@ -273,21 +315,28 @@ const MapButtonGroup = ({ isVertical, sx, ...props }: MapButtonGroupProps) => (
   <ButtonGroup
     {...props}
     sx={{
-      // This rule handles a single button in the group, ensuring all corners are rounded.
-      '& .MuiButton-root': {
+      '& > .MuiButton-root, & > *:not(style) .MuiButton-root': {
+        border: 0,
+        borderRadius: 0,
+      },
+      '& .MuiButtonGroup-grouped': {
         border: 0,
       },
-      '& .MuiButton-root:first-of-type': {
+      '& .MuiButtonGroup-middleButton, & .MuiButtonGroup-lastButton': {
+        marginLeft: 0,
+        marginTop: 0,
+      },
+      '& > .MuiButton-root:first-child, & > *:not(style):first-child .MuiButton-root': {
         borderTopLeftRadius: '0.3125rem',
         borderBottomLeftRadius: isVertical ? 0 : '0.3125rem',
         borderTopRightRadius: isVertical ? '0.3125rem' : 0,
       },
-      '& .MuiButton-root:last-of-type': {
+      '& > .MuiButton-root:last-child, & > *:not(style):last-child .MuiButton-root': {
         borderTopRightRadius: isVertical ? 0 : '0.3125rem',
         borderBottomLeftRadius: isVertical ? '0.3125rem' : 0,
         borderBottomRightRadius: '0.3125rem',
       },
-      '& .MuiButton-root:only-child': {
+      '& > .MuiButton-root:only-child, & > *:not(style):only-child .MuiButton-root': {
         borderRadius: '0.3125rem',
       },
       ...sx,

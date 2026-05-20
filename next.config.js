@@ -2,6 +2,9 @@ const path = require('path')
 const CopyPlugin = require('copy-webpack-plugin')
 // const { execSync } = require('child_process')
 
+const DEBUG_CLIENT_ERRORS =
+  process.env.NEXT_PUBLIC_DEBUG_CLIENT_ERRORS === '1'
+
 const getNextAuthUrl = () => {
   let baseUrl = ''
   if (process.env.NEXTAUTH_URL != null) {
@@ -46,7 +49,9 @@ const nextConfig = {
   compiler: {
     styledComponents: true,
   },
+  devIndicators: false,
   reactStrictMode: true,
+  productionBrowserSourceMaps: DEBUG_CLIENT_ERRORS,
   modularizeImports: {
     '@mui/material': {
       transform: '@mui/material/{{member}}',
@@ -80,6 +85,9 @@ const nextConfig = {
   //   localeDetection: true,
   //   defaultLocale: 'en',
   // },
+  experimental: {
+    serverMinification: !DEBUG_CLIENT_ERRORS,
+  },
   env: {
     NEXTAUTH_URL: getNextAuthUrl(),
   },
@@ -104,6 +112,34 @@ const nextConfig = {
     config,
     { buildId, dev, isServer, defaultLoaders, nextRuntime, webpack }
   ) => {
+    if (!dev && DEBUG_CLIENT_ERRORS) {
+      // Keep production bundles readable for client-side crash debugging.
+      config.optimization = {
+        ...(config.optimization || {}),
+        minimize: false,
+        minimizer: [],
+      }
+      config.devtool = 'source-map'
+
+      // next-intl ships minified production bundles with stripped error
+      // messages. For debug builds, swap to development bundles.
+      const nextIntlClientEntry = require.resolve('next-intl')
+      const nextIntlNavigationEntry = require.resolve('next-intl/navigation')
+      config.resolve.alias = {
+        ...(config.resolve.alias || {}),
+        'next-intl$': path.join(
+          path.dirname(nextIntlClientEntry),
+          'development',
+          'index.react-client.js'
+        ),
+        'next-intl/navigation$': path.join(
+          path.dirname(nextIntlNavigationEntry),
+          'development',
+          'navigation.react-client.js'
+        ),
+      }
+    }
+
     config.resolve.alias['@i18n'] = path.resolve(__dirname, 'i18n')
     // Important: return the modified config
     // Inside the webpack configuration function

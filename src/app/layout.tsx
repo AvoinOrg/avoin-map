@@ -2,6 +2,8 @@ import React from 'react'
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 import type { Metadata } from 'next'
 
+import { arimo } from '#/common/style/theme/fonts'
+
 export const metadata: Metadata = {
   icons: {
     icon: '/files/favicon.ico',
@@ -22,7 +24,7 @@ const RootLayout = ({
   children: React.ReactNode
 }) => {
   return (
-    <html lang="en">
+    <html lang="en" className={arimo.variable} suppressHydrationWarning>
       <body>
         <AppRouterCacheProvider>{children}</AppRouterCacheProvider>
       </body>

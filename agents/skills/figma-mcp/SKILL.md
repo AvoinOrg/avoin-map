@@ -1,0 +1,106 @@
+---
+name: figma-mcp
+description: Inspect Figma files and nodes through the global HTTP Figma MCP server. Use when the user shares a Figma URL, asks whether Figma MCP is reachable, wants node metadata, screenshots, design context, or exact asset URLs, or needs help converting a public Figma URL into MCP fileKey and nodeId inputs.
+---
+
+# Figma MCP
+
+## Overview
+
+Use this skill for Figma access checks, node inspection, and asset retrieval.
+
+The default route is the global HTTP Figma MCP server configured as the Codex
+MCP server named `figma`. In tool form, try `mcp__figma__*` first. Do not look
+for a local, localhost, desktop, or non-HTTP Figma MCP server unless the user
+explicitly asks for that.
+
+Keep this skill focused on the MCP workflow. If the task turns into app UI
+implementation, continue with `ui-live-iteration`.
+
+## Use This Skill
+
+Use this skill when the user asks for any of the following:
+
+- Check whether the global HTTP Figma MCP endpoint is reachable
+- Inspect a public Figma design URL or pasted node link
+- Extract `fileKey` and `nodeId` from a shared Figma URL
+- Fetch node metadata, screenshots, or design context
+- Find exact child image or vector assets for implementation
+
+## Workflow
+
+### 1. Use the global HTTP MCP endpoint
+
+- Use the global HTTP Figma MCP server at `https://mcp.figma.com/mcp`.
+- The Codex MCP server name should be `figma`, which exposes tool-style calls as
+  `mcp__figma__*` when the MCP tools are available in the session.
+- If `mcp__figma__*` tool aliases are not exposed, keep using the same global
+  HTTP endpoint through the JSON-RPC examples in
+  [references/credentials-and-url-workflow.md](references/credentials-and-url-workflow.md).
+  Missing tool aliases are not by themselves a Figma access block.
+- If the user explicitly needs Figma inspection or comparison and the remote
+  Figma MCP path is unavailable, stop immediately and report that the task is
+  blocked on Figma access. Do not quietly continue from stale notes or earlier
+  screenshots unless the user explicitly approves that fallback.
+
+### 2. Normalize the shared URL
+
+- Do not pass the full public Figma URL directly when the MCP tool accepts
+  separate `fileKey` and `nodeId` arguments.
+- Extract the `fileKey` from the URL path.
+- If the URL is a branch URL of the form
+  `/design/<fileKey>/branch/<branchKey>/...`, use the branch key as the MCP
+  `fileKey`.
+- Extract `node-id` from the query string and convert `3277-5180` into
+  `3277:5180`.
+- Use [scripts/figma-url-to-mcp-target.js](scripts/figma-url-to-mcp-target.js)
+  when you want deterministic parsing and a ready-to-use MCP target summary.
+
+### 3. Handle credentials safely
+
+- Global HTTP Figma MCP credentials live in `.codex/.credentials.json`.
+- The preferred credential entry has `server_name: "figma"` and
+  `server_url: "https://mcp.figma.com/mcp"`.
+- `figma_remote` is a legacy alias only. Do not prefer it over `figma`.
+- Treat that file as sensitive. Read only the fields you need, and do not print
+  access tokens in user-facing output.
+- Use `jq` or a short Node script to inspect non-secret fields such as
+  `server_name`, `server_url`, and `expires_at`.
+
+### 4. Pick the right MCP tool
+
+- Prefer tool-style MCP aliases in this order: `mcp__figma__*` first; legacy
+  `mcp__figma_remote__*` only if the session exposes it and `mcp__figma__*` is
+  unavailable.
+- `whoami` or `tools/list`: quick reachability checks for the global HTTP server
+- `get_metadata`: inspect the shared node tree and child IDs
+- `get_design_context`: fetch code-oriented context, screenshot, and asset URLs
+- `get_screenshot`: capture a visual reference of the selected node
+- `get_variable_defs`: inspect variables when the design depends on them
+
+### 5. Fetch exact assets when fidelity matters
+
+- Start with `get_metadata` on the shared frame or component.
+- Identify the exact child image or vector node instead of exporting the whole
+  frame blindly.
+- Call `get_design_context` on that child node to retrieve the asset URLs.
+- Download the returned asset into repo assets rather than recreating it by
+  hand.
+- Use screenshots as reference or fallback, not as substitutes for exact
+  exported assets.
+
+## Output Expectations
+
+- Report the normalized `fileKey` and `nodeId`.
+- State that you used the global HTTP Figma MCP server.
+- Call out any access limitation clearly, such as missing credentials, an
+  invalid node ID, or failure to reach `https://mcp.figma.com/mcp`.
+- If Figma access was required but unavailable, say that you stopped because of
+  the Figma access block.
+- If the task becomes UI implementation work, switch to `ui-live-iteration` for
+  the edit and verification loop.
+
+## References
+
+- [references/credentials-and-url-workflow.md](references/credentials-and-url-workflow.md)
+- [scripts/figma-url-to-mcp-target.js](scripts/figma-url-to-mcp-target.js)

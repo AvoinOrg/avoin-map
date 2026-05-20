@@ -1,0 +1,18 @@
+services:
+  app:
+    build:
+      context: .
+      target: app
+    env_file: ./.env
+    environment:
+      NODE_ENV: production
+    ports:
+      - '${DEV_PORT}:3000'
+    volumes:
+      - .:/app:z
+    networks:
+      - climate-map-network
+
+networks:
+  climate-map-network:
+    external: true

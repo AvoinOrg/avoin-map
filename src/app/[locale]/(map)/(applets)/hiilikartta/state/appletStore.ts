@@ -14,10 +14,13 @@ import { queryClient } from '#/common/queries/queryClient'
 import { useUserStore } from '#/common/store/userStore'
 import { useMapStore } from '#/common/store'
 import { commonDevtools } from '#/common/store/shared-devtools'
+import { createIndexedDbStorage } from '#/common/utils/store'
 
-import { getPlanLayerGroupId } from '../common/utils'
+import { getPlanLayerGroupId, stripFeatureExtras } from '../common/utils'
+import { DEFAULT_FORESTRY_SCENARIO } from '../common/constants'
 import {
   CalculationState,
+  CreationPlaceholderPlanConf,
   NewPlanConf,
   PlanConf,
   PlanDataFeature,
@@ -34,7 +37,14 @@ type Vars = {
   planConfs: { [key: string]: PlanConf }
   externalPlanConfs: { [key: string]: ExternalPlanConf }
   placeholderPlanConfs: { [key: string]: PlaceholderPlanConf }
+  creationPlaceholderPlanConfs: {
+    [key: string]: CreationPlaceholderPlanConf
+  }
   globalState: GlobalState
+}
+
+export type PlanDataFeatureUpdate = Omit<Partial<PlanDataFeature>, 'properties'> & {
+  properties?: Partial<PlanDataFeature['properties']>
 }
 
 type Actions = {
@@ -47,7 +57,7 @@ type Actions = {
   updatePlanConfDataFeature: (
     planId: string,
     featureId: string,
-    feature: Partial<PlanDataFeature>
+    feature: PlanDataFeatureUpdate
   ) => Promise<PlanDataFeature | null>
   copyPlanConf: (planId: string, nameSuffix?: string) => Promise<PlanConf>
   addExternalPlanConf: (
@@ -68,6 +78,16 @@ type Actions = {
   ) => Promise<PlaceholderPlanConf | null>
   deletePlaceholderPlanConf: (serverId: string) => Promise<void>
   clearPlaceholderPlanConfs: () => Promise<void>
+  addCreationPlaceholderPlanConf: (
+    creationPlaceholderPlanConf?: Partial<CreationPlaceholderPlanConf>
+  ) => Promise<CreationPlaceholderPlanConf>
+  updateCreationPlaceholderPlanConf: (
+    id: string,
+    creationPlaceholderPlanConf:
+      | Partial<CreationPlaceholderPlanConf>
+      | undefined
+  ) => Promise<CreationPlaceholderPlanConf | null>
+  deleteCreationPlaceholderPlanConf: (id: string) => Promise<void>
   updateGlobalState: (globalState: GlobalState) => void
 }
 
@@ -80,6 +100,7 @@ export const useAppletStore = create<Vars & Actions>()(
           planConfs: {},
           externalPlanConfs: {},
           placeholderPlanConfs: {},
+          creationPlaceholderPlanConfs: {},
           globalState: GlobalState.INITIALIZING,
         }
 
@@ -107,6 +128,7 @@ export const useAppletStore = create<Vars & Actions>()(
               created,
               reportData: undefined,
               calculationState: CalculationState.NOT_STARTED,
+              forestryScenario: DEFAULT_FORESTRY_SCENARIO,
               localLastEdited: created,
               userId: userId,
               state: PlanConfState.IDLE,
@@ -188,7 +210,7 @@ export const useAppletStore = create<Vars & Actions>()(
           updatePlanConfDataFeature: async (
             planId: string,
             featureId: string,
-            feature: Partial<PlanDataFeature>
+            feature: PlanDataFeatureUpdate
           ) => {
             const planConf = get().planConfs[planId]
             if (!planConf) {
@@ -256,6 +278,11 @@ export const useAppletStore = create<Vars & Actions>()(
               name: `${planConf.name}${nameSuffix != null && ' ' + nameSuffix}`,
               areaHa: planConf.areaHa,
               data: cloneDeep(planConf.data),
+              forestryScenario: planConf.forestryScenario,
+              importState:
+                planConf.importState === 'confirmed'
+                  ? planConf.importState
+                  : undefined,
             }
             const copiedPlanConf = await addPlanConf(newPlanConf)
             return copiedPlanConf
@@ -342,6 +369,69 @@ export const useAppletStore = create<Vars & Actions>()(
               state.placeholderPlanConfs = {}
             })
           },
+
+          addCreationPlaceholderPlanConf: async (
+            creationPlaceholderPlanConf
+          ) => {
+            const created = creationPlaceholderPlanConf?.created ?? Date.now()
+            const id = creationPlaceholderPlanConf?.id ?? generateShortId()
+
+            const nextCreationPlaceholderPlanConf: CreationPlaceholderPlanConf =
+              {
+                id,
+                created,
+                status: 'awaiting-file',
+                ...creationPlaceholderPlanConf,
+              }
+
+            await set((state) => {
+              state.creationPlaceholderPlanConfs[id] =
+                nextCreationPlaceholderPlanConf
+            })
+
+            return nextCreationPlaceholderPlanConf
+          },
+
+          updateCreationPlaceholderPlanConf: async (
+            id: string,
+            creationPlaceholderPlanConf:
+              | Partial<CreationPlaceholderPlanConf>
+              | undefined
+          ) => {
+            const oldCreationPlaceholderPlanConf =
+              get().creationPlaceholderPlanConfs[id]
+
+            if (oldCreationPlaceholderPlanConf == null) {
+              console.error(
+                'Unable to update non-existing creationPlaceholderPlanConf'
+              )
+              return null
+            }
+
+            let updatedCreationPlaceholderPlanConf =
+              oldCreationPlaceholderPlanConf
+
+            if (creationPlaceholderPlanConf != null) {
+              updatedCreationPlaceholderPlanConf = {
+                ...oldCreationPlaceholderPlanConf,
+                ...creationPlaceholderPlanConf,
+              }
+            }
+
+            await set((state) => {
+              state.creationPlaceholderPlanConfs[id] =
+                updatedCreationPlaceholderPlanConf
+            })
+
+            return updatedCreationPlaceholderPlanConf
+          },
+
+          deleteCreationPlaceholderPlanConf: async (id: string) => {
+            set((state) => {
+              delete state.creationPlaceholderPlanConfs[id]
+            })
+          },
+
           updateGlobalState: (globalState: GlobalState) => {
             if (globalState !== get().globalState) {
               set((state) => {
@@ -355,7 +445,16 @@ export const useAppletStore = create<Vars & Actions>()(
     ),
     {
       name: 'hiilikarttaStore', // name of item in the storage (must be unique)
-      storage: createJSONStorage(() => sessionStorage), // (optional) by default the 'localStorage' is used
+      storage: createJSONStorage(
+        createIndexedDbStorage({
+          dbName: 'hiilikartta-store',
+          storeName: 'hiilikartta',
+        })
+      ),
+      partialize: (state) => ({
+        planConfs: state.planConfs,
+        creationPlaceholderPlanConfs: state.creationPlaceholderPlanConfs,
+      }),
       onRehydrateStorage: (state) => {
         return (state, error) => {
           if (error) {
@@ -366,7 +465,13 @@ export const useAppletStore = create<Vars & Actions>()(
           }
           if (state) {
             state.globalState = GlobalState.INITIALIZING
+            state.creationPlaceholderPlanConfs =
+              state.creationPlaceholderPlanConfs ?? {}
             for (const planId of Object.keys(state.planConfs)) {
+              const planConf = state.planConfs[planId]
+              if (planConf?.data) {
+                planConf.data = stripFeatureExtras(planConf.data)
+              }
               if (
                 state.planConfs[planId].calculationState ===
                 CalculationState.INITIALIZING

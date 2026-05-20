@@ -7,8 +7,13 @@ import {
   ThemeOptions,
   alpha,
 } from '@mui/material/styles'
-import { Arimo } from 'next/font/google'
-import { SCROLLBAR_WIDTH_REM } from './constants'
+import {
+  DESKTOP_BREAKPOINT_KEY,
+  MOBILE_BREAKPOINT_KEY,
+  MOBILE_BREAKPOINT_PX,
+  SCROLLBAR_WIDTH_REM,
+} from './constants'
+import { ARIMO_FONT_FAMILY } from './fonts'
 
 //extending palette to add background color
 
@@ -53,32 +58,24 @@ declare module '@mui/material/styles' {
   interface ThemeOptions {
     zIndex?: Partial<ZIndex> | undefined
   }
+
+  interface BreakpointOverrides {
+    mobile: true
+    desktop: true
+  }
 }
 
 declare module '@mui/material/Typography' {
   interface TypographyPropsVariantOverrides {
     buttonSmall: true
+    h7: true
+    h8: true
+    h9: true
+    body7: true
   }
 }
 
 const defaultTheme = createTheme()
-
-export const arimo = Arimo({
-  weight: ['400', '500', '700'],
-  subsets: ['latin'],
-  display: 'swap',
-  fallback: [
-    'Arial',
-    'BlinkMacSystemFont',
-    'Segoe UI',
-    'Oxygen',
-    'Ubuntu',
-    'Cantarell',
-    'Fira Sans',
-    'Droid Sans',
-    'Helvetica Neue',
-  ],
-})
 
 const palette = {
   primary: {
@@ -103,17 +100,29 @@ const shape = {
   borderRadius: 0,
 }
 
+const breakpoints: ThemeOptions['breakpoints'] = {
+  values: {
+    [MOBILE_BREAKPOINT_KEY]: 0,
+    [DESKTOP_BREAKPOINT_KEY]: MOBILE_BREAKPOINT_PX,
+    xs: 0,
+    sm: MOBILE_BREAKPOINT_PX,
+    md: 900,
+    lg: 1200,
+    xl: 1536,
+  },
+}
+
 const zIndex = {
   modal: 1500,
   snackbar: 1600,
-  MapButtons: 1300,
+  mapButtons: 1300,
   drawer: 1400,
   appBar: 1400,
   zpopup: 1500,
 }
 
 const fonts = {
-  primary: arimo.style.fontFamily,
+  primary: ARIMO_FONT_FAMILY,
 }
 
 const typography = {
@@ -263,6 +272,17 @@ const components = {
       },
     },
   },
+  MuiTooltip: {
+    defaultProps: {
+      arrow: false,
+    },
+    styleOverrides: {
+      tooltip: {
+        borderRadius: '0.5rem',
+        padding: '0.5rem 0.75rem',
+      },
+    },
+  },
   MuiCssBaseline: {
     styleOverrides: {
       '*': {
@@ -299,8 +319,7 @@ const components = {
         margin: 0,
         padding: 0,
         overflow: 'hidden',
-        fontFamily:
-          "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif",
+        fontFamily: fonts.primary,
         WebkitFontSmoothing: 'antialiased',
         MozOsxFontSmoothing: 'grayscale',
       },
@@ -329,7 +348,7 @@ const components = {
       '.osScroll .os-scrollbar-vertical': {
         Scroll: 0,
         left: 'auto',
-        zIndex: 10,
+        zIndex: 0,
       },
       '.osScroll .os-scrollbar-corner': {
         Scroll: 0,
@@ -338,6 +357,7 @@ const components = {
 
       // Match the natives: darker @70%, hover @90%
       '.osScroll .os-scrollbar': {
+        zIndex: 0,
         '--os-size': `${SCROLLBAR_WIDTH_REM}rem`,
         '--os-track-bg': 'transparent',
         '--os-track-bg-hover': 'transparent',
@@ -349,7 +369,7 @@ const components = {
         '--os-handle-bg-active': alpha(palette.neutral.dark, 0.9),
 
         '--os-padding-perpendicular': '0px',
-        '--os-padding-axis': '0px',
+        '--os-padding-axis': '4px',
       },
       '.osLeft .os-scrollbar-handle': {
         borderRadius: '7px',
@@ -414,6 +434,7 @@ const components = {
 
 export default createTheme({
   palette,
+  breakpoints,
   components,
   typography,
   zIndex,

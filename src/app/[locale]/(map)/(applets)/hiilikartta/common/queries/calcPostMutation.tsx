@@ -2,7 +2,8 @@ import { UseMutationOptions } from '@tanstack/react-query'
 import axios from 'axios'
 import JSZip from 'jszip'
 import { CalculationState, PlanConfState, PlanConf } from '../types'
-import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
+import { stripFeatureExtras } from '../utils'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 import { useUIStore } from '#/common/store'
 import { useTranslate } from '@tolgee/react'
 import { useSession } from 'next-auth/react'
@@ -31,11 +32,15 @@ export const calcPostMutation = (): UseMutationOptions<
         state: PlanConfState.SAVING,
       })
       const zip = new JSZip()
-      zip.file('file', JSON.stringify(planConf.data))
+      const sanitizedData = stripFeatureExtras(planConf.data)
+      zip.file('file', JSON.stringify(sanitizedData))
       const zipBlob = await zip.generateAsync({ type: 'blob' })
 
       const formData = new FormData()
       formData.append('file', zipBlob, 'file.zip')
+
+      const userAgent =
+        typeof window !== 'undefined' ? window.navigator.userAgent : 'unknown'
 
       const postRes = await axios.post(`${API_URL}/calculation`, formData, {
         headers: {
@@ -43,11 +48,13 @@ export const calcPostMutation = (): UseMutationOptions<
           ...(session?.accessToken
             ? { Authorization: `Bearer ${session.accessToken}` }
             : {}),
+          'X-User-Agent': userAgent,
         },
         params: {
           id: planConf.serverId,
           name: planConf.name,
           visible_id: planConf.id,
+          forestry_scenario: planConf.forestryScenario,
         },
       })
 

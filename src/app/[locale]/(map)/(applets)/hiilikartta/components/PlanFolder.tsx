@@ -60,6 +60,13 @@ const PlanFolder = ({
     }
   }
 
+  const handleSyncKeyDown = (event: React.KeyboardEvent) => {
+    if (!isSaveEnabled) return
+    if (event.key === 'Enter' || event.key === ' ') {
+      handleSyncClick(event)
+    }
+  }
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
       <Box
@@ -95,6 +102,15 @@ const PlanFolder = ({
         >
           <Box
             onClick={isSaveEnabled ? handleSyncClick : undefined}
+            role="button"
+            tabIndex={isSaveEnabled ? 0 : undefined}
+            aria-disabled={!isSaveEnabled ? 'true' : undefined}
+            aria-label={
+              planPost.isPending
+                ? `Saving plan ${planConf.name}`
+                : `Save plan ${planConf.name}`
+            }
+            onKeyDown={handleSyncKeyDown}
             sx={{
               display: 'inline-flex',
               flexDirection: 'row',
@@ -195,6 +211,10 @@ const PlanFolder = ({
               textSx={{ typography: 'h2', color: 'neutral.darker' }}
               value={planConf.name}
               onChange={handleNameChange}
+              textFieldAriaLabel={`Plan name for ${planConf.name}`}
+              editButtonAriaLabel={`Edit plan name ${planConf.name}`}
+              saveButtonAriaLabel={`Save plan name ${planConf.name}`}
+              cancelButtonAriaLabel={`Cancel editing plan name ${planConf.name}`}
             />
           ) : (
             <Typography sx={{ typography: 'h2', color: 'neutral.darker' }}>

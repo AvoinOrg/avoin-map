@@ -7,19 +7,19 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useParams } from 'next/navigation'
 
 import { useUIStore } from '#/common/store/uiStore'
-import { getRoute } from '#/common/utils/routing-client'
-import { getPathnameWithoutLocale } from '#/common/utils/routing'
+import { getRoute } from '#/common/routing/routing-client'
+import { getPathnameWithoutLocale } from '#/common/routing/routing'
 import { useExclusiveLayerGroups } from '#/common/hooks/map/useExclusiveLayerGroups'
 
-import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
-import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
-import { adminVerificationQuery } from 'applets/luonnonmetsakartat/common/queries/adminVerificationQuery'
+import { routeTree } from '#/common/routing/routes/luonnonmetsakartat'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
+import { adminVerificationQuery } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminVerificationQuery'
 import { SidebarContentBox } from '#/components/Sidebar'
 import { Box, Typography } from '@mui/material'
 import { Star } from '#/components/icons'
 import { T } from '@tolgee/react'
-import { AdminVerificationStatus } from 'applets/luonnonmetsakartat/common/types'
-import LoadingBlocker from 'applets/luonnonmetsakartat/components/LoadingBlocker'
+import { AdminVerificationStatus } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
+import LoadingBlocker from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/LoadingBlocker'
 
 enum LocalState {
   Loading = 'loading',

@@ -1,0 +1,17 @@
+{
+  "name": "climate-map",
+  "dockerComposeFile": [
+    "../docker-compose.dev.yml"
+  ],
+  "service": "app",
+  "workspaceFolder": "/app",
+  "initializeCommand": [
+    "bash",
+    "-lc",
+    "'${localWorkspaceFolder}/.devcontainer/sync-codex-host-files.sh' '${localWorkspaceFolder}' && '${localWorkspaceFolder}/.devcontainer/ensure-docker-network.sh' climate-map-network"
+  ],
+  "runServices": [
+    "app"
+  ],
+  "remoteUser": "node"
+}

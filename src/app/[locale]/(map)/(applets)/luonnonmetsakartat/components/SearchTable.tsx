@@ -164,12 +164,13 @@ const SearchTable = ({
     } else {
       if ('coordinates' in feature.geometry) {
         flyTo({
-          // @ts-ignore
-          center: {
-            lng: feature.geometry.coordinates[0],
-            lat: feature.geometry.coordinates[1],
+          options: {
+            center: {
+              lng: feature.geometry.coordinates[0] as number,
+              lat: feature.geometry.coordinates[1] as number,
+            },
+            zoom: 12,
           },
-          zoom: 12,
         })
       }
       addSelectedFeaturesByIds({

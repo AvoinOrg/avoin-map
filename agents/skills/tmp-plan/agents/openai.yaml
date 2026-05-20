@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tmp Plan"
+  short_description: "Keep a per-chat tmp planning workspace"
+  default_prompt: "Use $tmp-plan to create or update a `.tmp` chat workspace with `plan.md` and `history.md`, inspect the real code paths and mechanisms involved, coordinate with `figma-mcp` and `tolgee-api-upsert` when relevant, and keep the work planning-only with no implementation yet."

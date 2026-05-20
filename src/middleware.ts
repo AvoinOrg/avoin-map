@@ -1,13 +1,13 @@
 import { NextResponse, NextRequest } from 'next/server'
-import { pathnames } from '#/common/navigation/navigation'
 import {
   DEFAULT_LOCALE,
-  DEFAULT_NS,
-  getLocalesForNs,
+  getLocalesForApplet,
 } from '#/common/navigation/tolgee/shared'
+import { compiledApplets } from './common/routing/routing'
+import { MAIN_NAMESPACE } from './common/routing/routes/main'
 
 // If you don't use domain-based detection anymore, remove this import.
-import conf from '../localeConf.json' assert { type: 'json' }
+import conf from '../appletConf.json' assert { type: 'json' }
 
 // ---------- helpers ----------
 const SKIP_PREFIXES = new Set([
@@ -43,25 +43,38 @@ function redirectPreserveQuery(req: NextRequest, toPath: string) {
 // })()
 
 const KNOWN_APPLETS = new Set(
-  Object.keys((conf as any).default || conf).filter(
-    (k) => ((conf as any).default || conf)[k].applet
-  )
+  Object.keys((conf as any).default || conf).filter((k) => k !== MAIN_NAMESPACE)
 )
 
+const APPLET_PATH_ALIASES: Record<string, string> = {
+  energymap: 'energiakartta',
+}
+
 function findAppletFromSegment(seg: string): string | null {
+  const normalized = seg.toLowerCase()
+
   // First try canonical namespace
-  if (KNOWN_APPLETS.has(seg)) return seg
+  if (KNOWN_APPLETS.has(normalized)) return normalized
+  if (APPLET_PATH_ALIASES[normalized] != null) {
+    return APPLET_PATH_ALIASES[normalized]
+  }
+
   // Fallback: your `pathnames` alias mapping (if slugs differ from ns)
-  const hit = Object.entries(pathnames).find(([, p]) => {
-    const first = p.replace(/^\//, '').split('/')[0]?.toLowerCase()
-    return first === seg.toLowerCase()
-  })
-  return hit ? hit[0] : null
+  return null
+  // const hit = Object.entries(pathnames).find(([, p]) => {
+  //   const first = p.replace(/^\//, '').split('/')[0]?.toLowerCase()
+  //   return first === seg.toLowerCase()
+  // })
+  // console.log('hit', hit)
+  // return hit ? hit[0] : null
 }
 
 // Standalone applet? (env controls it)
 function getActiveAppletNs(): string | null {
-  return process.env.NEXT_PUBLIC_APPLET_NAMESPACE || null
+  if (compiledApplets.length === 1 && compiledApplets[0] !== MAIN_NAMESPACE) {
+    return compiledApplets[0]
+  }
+  return null
 }
 
 export function middleware(req: NextRequest) {
@@ -98,8 +111,8 @@ export function middleware(req: NextRequest) {
   }
   // ----------------- Standalone APPLET site -----------------
   if (envNs) {
-    const allowed = new Set<string>(getLocalesForNs(envNs))
-    const def = getLocalesForNs(envNs)[0] ?? DEFAULT_LOCALE
+    const allowed = new Set<string>(getLocalesForApplet(envNs))
+    const def = getLocalesForApplet(envNs)[0] ?? DEFAULT_LOCALE
 
     // Make the locale visible in the URL (redirect)
     if (pathname === '/') return redirectPreserveQuery(req, `/${def}`)
@@ -134,9 +147,10 @@ export function middleware(req: NextRequest) {
   const probe = hasLocale ? segments[1] : segments[0]
   const targetNs = probe ? findAppletFromSegment(probe) : null
   const isApplet = !!targetNs
+  const isAppletAlias = probe != null && targetNs != null && probe !== targetNs
 
   if (isApplet) {
-    const localesForNs = getLocalesForNs(targetNs!)
+    const localesForNs = getLocalesForApplet(targetNs!)
 
     if (!hasLocale) {
       // "/applet/..." (no locale) -> "/<appletDefault>/applet/..."
@@ -152,11 +166,18 @@ export function middleware(req: NextRequest) {
     }
 
     // url is correct, the applet includes the locale
+    if (isAppletAlias) {
+      const tail = segments.length > 2 ? `/${segments.slice(2).join('/')}` : ''
+      return NextResponse.rewrite(
+        new URL(`/${locale}/${targetNs}${tail}`, req.url)
+      )
+    }
+
     return NextResponse.next()
   }
 
   // No applet path detected
-  const localesForNs = getLocalesForNs(DEFAULT_NS)
+  const localesForNs = getLocalesForApplet(MAIN_NAMESPACE)
 
   if (hasLocale) {
     if (!localesForNs.includes(locale!)) {

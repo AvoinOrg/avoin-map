@@ -1,4 +1,85 @@
-import { CarbonChangeColorItem } from './types'
+// Hiilikartta applet constants for layers, zoning codes, and color ramps.
+import React from 'react'
+import { LayerOrderLevel, ListedLayerGroup } from '#/common/types/map'
+import {
+  listedMmlKiinteistojaotusLayerGroup,
+  listedMmlKiinteistotunnuksetLayerGroup,
+  listedMmlMaastokarttaLayerGroup,
+  listedMmlOrtokuvaLayerGroup,
+  listedMmlSelkokarttaLayerGroup,
+  listedMmlTaustakarttaLayerGroup,
+  listedOsmBackgroundLayerGroup,
+} from '#/components/Map/layers/defaultListedLayerGroups'
+import LayerLegend from '#/components/common/LayerLegend'
+import { vegetationCO2LayerConf } from '../layers/vegetationCO2'
+import { CarbonChangeColorItem, ForestryScenarioId } from './types'
+
+const listedHiilikarttaKasvillisuudenHiiliLayerGroup: ListedLayerGroup = {
+  id: vegetationCO2LayerConf.id,
+  addOptions: {
+    layerConf: vegetationCO2LayerConf,
+    layerOrderOptions: {
+      layerOrderLevel: LayerOrderLevel.BACKGROUND_OVERLAY,
+    },
+    isHidden: false,
+  },
+  translationNs: 'hiilikartta',
+  nameTranslationKey: 'layers.vegetation_co2.name',
+  thumbnail: '/files/img/layer-thumbnails/osm/background.jpg',
+  infoElement: React.createElement(LayerLegend, {
+    items: [
+      {
+        color: '#FFFFFF',
+        translationNs: 'hiilikartta',
+        labelTranslationKey: 'layer.vegetation_co2.legend.bin0',
+      },
+      // {
+      //   color: '#DDF5D0',
+      //   translationNs: 'hiilikartta',
+      //   labelTranslationKey: 'layer.vegetation_co2.legend.bin1',
+      // },
+      // {
+      //   color: '#B6EFA5',
+      //   translationNs: 'hiilikartta',
+      //   labelTranslationKey: 'layer.vegetation_co2.legend.bin2',
+      // },
+      // {
+      //   color: '#7DE46F',
+      //   translationNs: 'hiilikartta',
+      //   labelTranslationKey: 'layer.vegetation_co2.legend.bin3',
+      // },
+      {
+        color: '#2ECC40',
+        translationNs: 'hiilikartta',
+        labelTranslationKey: 'layer.vegetation_co2.legend.bin4',
+      },
+    ],
+  }),
+  styleOptions: {
+    showOpacitySlider: true,
+    defaultOpacity: 0.6,
+  },
+}
+
+export const listedLayerGroups: ListedLayerGroup[] = [
+  {
+    ...listedOsmBackgroundLayerGroup,
+    addOptions: {
+      ...listedOsmBackgroundLayerGroup.addOptions,
+      isHidden: false,
+    },
+  },
+  listedMmlTaustakarttaLayerGroup,
+  listedMmlMaastokarttaLayerGroup,
+  listedMmlOrtokuvaLayerGroup,
+  listedMmlSelkokarttaLayerGroup,
+  listedHiilikarttaKasvillisuudenHiiliLayerGroup,
+  listedMmlKiinteistojaotusLayerGroup,
+  listedMmlKiinteistotunnuksetLayerGroup,
+]
+
+export const CUSTOM_ZONING_CODE = 'OMA'
+export const POWERLINE_ZONING_CLASS_PREFIX = 'ENs'
 
 export const CARBON_CHANGE_COLORS: CarbonChangeColorItem[] = [
   { min: -1000, max: -500, color: '#C54032' },
@@ -14,191 +95,41 @@ export const CARBON_CHANGE_COLORS: CarbonChangeColorItem[] = [
 
 export const CARBON_CHANGE_NO_DATA_COLOR = '#D9D9D9'
 
-export const ZONING_CLASSES = [
+export const DEFAULT_FORESTRY_SCENARIO: ForestryScenarioId = 1
+
+export const FORESTRY_SCENARIOS = [
   {
-    name: 'Asuinalueet',
-    code: 'A',
-    color_hex: '#C6AA76',
-    color_pantone: '466',
+    id: 1 as ForestryScenarioId,
+    code: 'managed_forestry',
   },
   {
-    name: 'Kerrostaloalueet',
-    code: 'AK',
-    color_hex: '#AD7C59',
-    color_pantone: '4645',
+    id: 2 as ForestryScenarioId,
+    code: 'no_logging',
   },
   {
-    name: 'Pientaloalueet',
-    code: 'AP',
-    color_hex: '#C6AA76',
-    color_pantone: '466',
+    id: 3 as ForestryScenarioId,
+    code: 'recreational_forest',
   },
-  {
-    name: 'Keskustatoiminnot',
-    code: 'C',
-    color_hex: '#BF0D3E',
-    color_pantone: '193',
-  },
-  {
-    name: 'Palvelut',
-    code: 'P',
-    color_hex: '#ECA154',
-    color_pantone: '157',
-  },
-  {
-    name: 'Elinkeinot',
-    code: 'K',
-    color_hex: '#ECA154',
-    color_pantone: '157',
-  },
-  {
-    name: 'Liike- ja toimistorakennukset',
-    code: 'KL',
-    color_hex: '#ECA154',
-    color_pantone: '157',
-  },
-  {
-    name: 'Teollisuus- ja varastoalueet',
-    code: 'T',
-    color_hex: '#651D32',
-    color_pantone: '421',
-  },
-  {
-    name: 'Virkistys',
-    code: 'V',
-    color_hex: '#64A70B ',
-    color_pantone: '369',
-  },
-  {
-    name: 'Puisto, leikkipuisto',
-    code: 'VP',
-    color_hex: '#64A70B ',
-    color_pantone: '369',
-  },
-  {
-    name: 'Lähivirkistysalue, lähimetsä',
-    code: 'VL',
-    color_hex: '#64A70B ',
-    color_pantone: '369',
-  },
-  {
-    name: 'Urheilualue',
-    code: 'VU',
-    color_hex: '#64A70B ',
-    color_pantone: '369',
-  },
-  {
-    name: 'Retkeily- ja ulkoilualue',
-    code: 'VR',
-    color_hex: '#64A70B ',
-    color_pantone: '369',
-  },
-  {
-    name: 'Loma-asuminen ja matkailu',
-    code: 'R',
-    color_hex: '#FED141',
-    color_pantone: '122',
-  },
-  {
-    name: 'Loma-asuntojen alue',
-    code: 'RA',
-    color_hex: '#FED141',
-    color_pantone: '122',
-  },
-  {
-    name: 'Matkailualue',
-    code: 'RM',
-    color_hex: '#FED141',
-    color_pantone: '122',
-  },
-  {
-    name: 'Liikennealue',
-    code: 'L',
-    color_hex: '#ECC7CD',
-    color_pantone: '196',
-  },
-  {
-    name: 'Erityisalue',
-    code: 'E',
-    color_hex: '#F1A7DC ',
-    color_pantone: '236',
-  },
-  {
-    name: 'Yhdyskuntatekniikan alueet',
-    code: 'ET',
-    color_hex: '#F1A7DC ',
-    color_pantone: '236',
-  },
-  {
-    name: 'Energiahuollon alueet',
-    code: 'EN',
-    color_hex: '#F1A7DC ',
-    color_pantone: '236',
-  },
-  {
-    name: 'Jätteenkäsittelyalueet',
-    code: 'EJ',
-    color_hex: '#F1A7DC ',
-    color_pantone: '236',
-  },
-  {
-    name: 'Maa-ainestenotto- ja kaivosalueet',
-    code: 'EO',
-    color_hex: '#F1A7DC ',
-    color_pantone: '236',
-  },
-  {
-    name: 'Hautausmaat',
-    code: 'EH',
-    color_hex: '#2DCCD3 ',
-    color_pantone: '319',
-  },
-  {
-    name: 'Suojaviheralueet',
-    code: 'EV',
-    color_hex: '#2DCCD3        ',
-    color_pantone: '319',
-  },
-  {
-    name: 'Suojelualueet',
-    code: 'S',
-    color_hex: '#9CDBD9',
-    color_pantone: '324',
-  },
-  {
-    name: 'Luonnon suojelualueet',
-    code: 'SL',
-    color_hex: '#9CDBD9',
-    color_pantone: '324',
-  },
-  {
-    name: 'Rakennussuojelulain mukaiset suojelualueet',
-    code: 'SR',
-    color_hex: '#9CDBD9',
-    color_pantone: '324',
-  },
-  {
-    name: 'Maa- ja metsätalous',
-    code: 'M',
-    color_hex: '#D0DF00',
-    color_pantone: '389',
-  },
-  {
-    name: 'Maatalousalue',
-    code: 'MT',
-    color_hex: '#E3E48D',
-    color_pantone: '587',
-  },
-  {
-    name: 'Kotielintalous, puutarha, kasvihuone',
-    code: 'ME',
-    color_hex: '#ADA400',
-    color_pantone: '398',
-  },
-  {
-    name: 'Vesialueet',
-    code: 'W',
-    color_hex: '#B9D9EB',
-    color_pantone: '290',
-  },
-]
+] as const
+
+export const ZONING_CLASS_COLORS_BY_CODE: Record<string, string> = {
+  [CUSTOM_ZONING_CODE]: '#3bf63eff',
+  A: '#C6AA76',
+  AK: '#AC9F75',
+  C: '#BF0D3E',
+  P: '#ECA154',
+  Y: '#ECA154',
+  K: '#ECA154',
+  T: '#651D32',
+  V: '#91C368',
+  R: '#FED141',
+  L: '#E5D381',
+  E: '#E4C2CA',
+  EH: '#2DCCD3',
+  EV: '#2DCCD3',
+  S: '#9CDBD9',
+  M: '#D0DF00',
+  MT: '#E3E48D',
+  ME: '#ADA400',
+  W: '#B9D9EB',
+}

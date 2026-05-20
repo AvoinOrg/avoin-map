@@ -11,11 +11,11 @@ import BigMenuButton from '#/components/common/BigMenuButton'
 import { SidebarContentBox } from '#/components/Sidebar'
 import { LoadingSpinner } from '#/components/Loading'
 
-import AdminFolayerItem from 'applets/luonnonmetsakartat/components/AdminFolayerItem'
-import { routeTree } from 'applets/luonnonmetsakartat/common/routes'
-import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
-import { adminFolayersQuery } from 'applets/luonnonmetsakartat/common/queries/adminFolayersQuery'
-import { AdminFolayerConf } from 'applets/luonnonmetsakartat/common/types'
+import AdminFolayerItem from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/AdminFolayerItem'
+import { routeTree } from '#/common/routing/routes/luonnonmetsakartat'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
+import { adminFolayersQuery } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayersQuery'
+import { AdminFolayerConf } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 
 const Page = () => {
   const adminFolayerConfs = useAppletStore((state) => state.adminFolayerConfs)
