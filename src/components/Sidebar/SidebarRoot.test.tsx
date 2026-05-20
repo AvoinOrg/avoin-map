@@ -470,9 +470,10 @@ describe('SidebarRoot', () => {
 
     expect(root).toHaveStyle({ left: '0px', right: '0px', width: '100vw' })
     expect(panelGroup).toHaveStyle({
-      width: 'min(1440px, 100vw)',
-      marginLeft: 'auto',
-      marginRight: 'auto',
+      width: '100vw',
+      maxWidth: '100vw',
+      marginLeft: '0px',
+      marginRight: '0px',
     })
     expect(panel).toHaveStyle({ width: '100%' })
     expect(tabControls).toHaveAttribute(

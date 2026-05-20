@@ -20,6 +20,7 @@ import OpacityIcon from '@mui/icons-material/Opacity'
 import WaterDropIcon from '@mui/icons-material/WaterDrop'
 import { useTranslate } from '@tolgee/react'
 
+import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import type { SelectOption } from '#/common/types/general'
 import DropDownSelectInset from '#/components/common/DropDownSelectInset'
@@ -61,6 +62,7 @@ type BuildingInfoTabPagesProps = {
   ariaLabels: BuildingInfoActionLabels
   activeTabId?: BuildingInfoTabId
   forceMobileLayout?: boolean
+  isDesktopFullscreenLayout?: boolean
   onActiveTabChange?: (tabId: BuildingInfoTabId) => void
   onClose: () => void
   onCollapse: (tabId: BuildingInfoTabId) => void
@@ -142,7 +144,7 @@ const RENOVATION_EFFECTIVENESS_BACKGROUND = '#f0f0f0'
 const PANEL_CONTENT_WIDTHS: Record<EnergymapBuildingInfoPanelId, string> = {
   energyConsumption: '17.625rem',
   renovationRecommendations: '26.875rem',
-  buildingDetails: '16.25rem',
+  buildingDetails: '17.625rem',
 }
 
 const DESKTOP_GRID_MAX_WIDTHS: Record<BuildingInfoTabId, string> = {
@@ -481,7 +483,7 @@ const EnergyPrimaryMetricIcon = ({
 }) => {
   const iconSx = {
     fontSize:
-      metricId === 'co2' ? (active ? '1.125rem' : '1rem') : '0.8125rem',
+      metricId === 'co2' ? (active ? '1.4rem' : '1.25rem') : '0.8125rem',
     color: active ? '#ffffff' : '#111111',
   } as const
 
@@ -1905,24 +1907,15 @@ const getStackedTabPagePanelContentSx = ({
 })
 
 const getDesktopGridPanelContentSx = ({
-  tabId,
   panelId,
 }: {
-  tabId: BuildingInfoTabId
   panelId: EnergymapBuildingInfoPanelId
 }): SxProps<Theme> => ({
   width: `min(${PANEL_CONTENT_WIDTHS[panelId]}, calc(100% - 3rem))`,
   maxWidth: '100%',
   pt: DESKTOP_HEADING_TOP,
   pb: DESKTOP_SECTION_BOTTOM_PADDING,
-  mx:
-    tabId === 'renovation' && panelId === 'buildingDetails'
-      ? undefined
-      : 'auto',
-  ml:
-    tabId === 'renovation' && panelId === 'buildingDetails'
-      ? '4.375rem'
-      : undefined,
+  mx: 'auto',
   '--building-info-heading-graphic-top': DESKTOP_HEADING_GRAPHIC_TOP,
   '--building-info-heading-divider-mt': DESKTOP_HEADING_DIVIDER_MARGIN_TOP,
 })
@@ -2030,6 +2023,7 @@ const BuildingInfoDesktopGrid = ({
       display: 'grid',
       width: `min(${DESKTOP_GRID_MAX_WIDTHS[tabId]}, 100vw)`,
       maxWidth: '100%',
+      mx: 'auto',
       minHeight: DESKTOP_GRID_MIN_HEIGHTS[tabId],
       backgroundColor: '#f9f9f9',
       ...(tabId === 'renovation'
@@ -2314,7 +2308,6 @@ const BuildingInfoDesktopTabPageContent = ({
             sx={{ minHeight: '100%', height: '100%' }}
             bodySx={[
               getDesktopGridPanelContentSx({
-                tabId,
                 panelId: energyPanel.id,
               }),
               ...(tabId === 'renovation'
@@ -2345,7 +2338,6 @@ const BuildingInfoDesktopTabPageContent = ({
             sections={renovationTopSections}
             sx={{ minHeight: '100%', height: '100%' }}
             bodySx={getDesktopGridPanelContentSx({
-              tabId,
               panelId: renovationPanel.id,
             })}
           />
@@ -2372,7 +2364,6 @@ const BuildingInfoDesktopTabPageContent = ({
             tabId={tabId}
             sx={{ minHeight: '100%', height: '100%' }}
             bodySx={getDesktopGridPanelContentSx({
-              tabId,
               panelId: buildingPanel.id,
             })}
           />
@@ -2603,49 +2594,35 @@ const isBuildingInfoTabId = (tabId?: string): tabId is BuildingInfoTabId =>
   tabId === 'basic' || tabId === 'renovation'
 
 const getBuildingInfoPageControlsSx = ({
-  tabId,
   forceMobileLayout = false,
+  isDesktopFullscreenLayout = false,
 }: {
-  tabId: BuildingInfoTabId
   forceMobileLayout?: boolean
+  isDesktopFullscreenLayout?: boolean
 }): SxProps<Theme> | undefined => {
   if (forceMobileLayout) {
     return undefined
   }
 
   return {
-    position: { desktop: tabId === 'renovation' ? 'fixed' : 'absolute' },
-    top: { desktop: tabId === 'renovation' ? '50px' : '35px' },
-    right: { desktop: tabId === 'renovation' ? '70px' : 'auto' },
-    left: {
-      desktop:
-        tabId === 'renovation'
-          ? 'auto'
-          : 'min(624px, calc(100% - 116px))',
-    },
-    gap: { desktop: '4px' },
-    px: { desktop: 0 },
-    py: { desktop: 0 },
-    backgroundColor: { desktop: 'transparent' },
-    borderBottom: { desktop: 0 },
-    zIndex:
-      tabId === 'renovation'
-        ? (theme: Theme) => theme.zIndex.drawer + 12
-        : 2,
-    '& .MuiIconButton-root': {
-      width: { desktop: '36px' },
-      minWidth: { desktop: '36px' },
-      height: { desktop: '36px' },
-      borderRadius: { desktop: '5px' },
-      backgroundColor: { desktop: '#f4f4f4' },
-      boxShadow: { desktop: 'none' },
-      '&:hover': {
-        backgroundColor: { desktop: '#ffffff' },
-      },
-    },
-    '& .MuiSvgIcon-root': {
-      fontSize: { desktop: '1rem' },
-    },
+    position: isDesktopFullscreenLayout ? 'fixed' : 'absolute',
+    top: isDesktopFullscreenLayout
+      ? `${MAP_CONTROL_EDGE_GUTTER_PX}px`
+      : '35px',
+    right: isDesktopFullscreenLayout
+      ? `${MAP_CONTROL_EDGE_GUTTER_PX}px`
+      : 'auto',
+    left: isDesktopFullscreenLayout
+      ? 'auto'
+      : 'min(624px, calc(100% - 116px))',
+    gap: '4px',
+    px: 0,
+    py: 0,
+    backgroundColor: 'transparent',
+    borderBottom: 0,
+    zIndex: isDesktopFullscreenLayout
+      ? (theme: Theme) => theme.zIndex.drawer + 14
+      : 2,
   }
 }
 
@@ -2654,6 +2631,7 @@ export const BuildingInfoTabPages = ({
   ariaLabels,
   activeTabId,
   forceMobileLayout = false,
+  isDesktopFullscreenLayout = false,
   onActiveTabChange,
   onClose,
   onCollapse,
@@ -2678,8 +2656,8 @@ export const BuildingInfoTabPages = ({
           backgroundColor: '#f9f9f9',
         }}
         controlsSx={getBuildingInfoPageControlsSx({
-          tabId: 'basic',
           forceMobileLayout,
+          isDesktopFullscreenLayout,
         })}
       >
         <BuildingInfoTabPageContent
@@ -2704,8 +2682,8 @@ export const BuildingInfoTabPages = ({
           backgroundColor: '#f9f9f9',
         }}
         controlsSx={getBuildingInfoPageControlsSx({
-          tabId: 'renovation',
           forceMobileLayout,
+          isDesktopFullscreenLayout,
         })}
       >
         <BuildingInfoTabPageContent

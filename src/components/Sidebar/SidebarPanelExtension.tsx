@@ -64,6 +64,9 @@ const FIXED_RIGHT_ACTION_COLUMN_RIGHT_PX =
   MAP_CONTROL_EDGE_GUTTER_PX +
   SIDEBAR_TOGGLE_BUTTON_SIZE_PX +
   ACTION_RAIL_GAP_PX
+const DEFAULT_MAP_BUTTONS_Z_INDEX = 1300
+const DEFAULT_FULLSCREEN_DRAWER_Z_INDEX = 1400
+const NON_FULLSCREEN_PANEL_EXTENSION_Z_INDEX_GAP = 20
 
 const PANEL_ORDER: SidebarPanelId[] = ['main', 'secondary', 'tertiary']
 
@@ -72,6 +75,32 @@ const toSxArray = (sx?: SxProps<Theme>) => (Array.isArray(sx) ? sx : [sx])
 const isFullscreenLayout = (
   options?: SidebarPanelExtensionRuntimeOptions
 ) => options?.layoutMode === 'fullscreen'
+
+const getMapButtonsZIndex = (theme: Theme) =>
+  theme.zIndex.mapButtons ?? DEFAULT_MAP_BUTTONS_Z_INDEX
+
+const getFullscreenDrawerZIndex = (theme: Theme) =>
+  Math.max(
+    theme.zIndex.drawer ?? DEFAULT_FULLSCREEN_DRAWER_Z_INDEX,
+    getMapButtonsZIndex(theme) + 100
+  )
+
+const getDesktopPanelExtensionZIndex = ({
+  theme,
+  layoutMode,
+  fullscreenOffset = 0,
+  defaultOffset = 0,
+}: {
+  theme: Theme
+  layoutMode?: SidebarPanelExtensionRuntimeOptions['layoutMode']
+  fullscreenOffset?: number
+  defaultOffset?: number
+}) =>
+  layoutMode === 'fullscreen'
+    ? getFullscreenDrawerZIndex(theme) + fullscreenOffset
+    : getMapButtonsZIndex(theme) -
+      NON_FULLSCREEN_PANEL_EXTENSION_Z_INDEX_GAP +
+      defaultOffset
 
 const hasFullWidthPanelLayout = (
   options?: SidebarPanelExtensionRuntimeOptions
@@ -192,10 +221,12 @@ const getPanelContentSx = (
 
 const SidebarPanelExtensionDesktopPanel = ({
   extensionId,
+  isFirstVisiblePanel,
   panelId,
   options,
 }: {
   extensionId: SidebarPanelExtensionId
+  isFirstVisiblePanel: boolean
   panelId: SidebarPanelId
   options?: SidebarPanelExtensionRuntimeOptions
 }) => {
@@ -214,7 +245,12 @@ const SidebarPanelExtensionDesktopPanel = ({
         maxWidth: `min(${width}, 100vw)`,
         height: '100%',
         minHeight: 0,
-        zIndex: theme.zIndex.drawer + 2,
+        zIndex: getDesktopPanelExtensionZIndex({
+          theme,
+          layoutMode: options?.layoutMode,
+          fullscreenOffset: 2,
+          defaultOffset: 2,
+        }),
         pointerEvents: 'auto',
       })}
     >
@@ -226,8 +262,12 @@ const SidebarPanelExtensionDesktopPanel = ({
           borderRadius: 0,
           overflow: 'hidden',
           backgroundColor: '#ffffff',
-          boxShadow: '0 2px 6px rgba(17, 17, 17, 0.06)',
-          borderLeft: '1px solid rgba(17, 17, 17, 0.08)',
+          boxShadow: isFirstVisiblePanel
+            ? 'none'
+            : '0 2px 6px rgba(17, 17, 17, 0.06)',
+          borderLeft: isFirstVisiblePanel
+            ? 0
+            : '1px solid rgba(17, 17, 17, 0.08)',
         }}
       >
         <Box
@@ -254,7 +294,6 @@ const getDesktopPanelGroupSx = (
   options?: SidebarPanelExtensionRuntimeOptions
 ): SxProps<Theme> => {
   const fullscreen = isFullscreenLayout(options)
-  const maxWidth = options?.desktopPanelGroupMaxWidth
 
   return {
     display: 'flex',
@@ -265,9 +304,9 @@ const getDesktopPanelGroupSx = (
     pointerEvents: 'auto',
     ...(fullscreen
       ? {
-          width: maxWidth == null ? 'auto' : `min(${maxWidth}, 100vw)`,
+          width: '100vw',
           maxWidth: '100vw',
-          mx: maxWidth == null ? 0 : 'auto',
+          mx: 0,
         }
       : {
           width: 'auto',
@@ -289,7 +328,12 @@ const getDesktopControlsSx = ({
       position: 'fixed',
       right: `${FIXED_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
       bottom: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
-      zIndex: theme.zIndex.drawer + 12,
+      zIndex: getDesktopPanelExtensionZIndex({
+        theme,
+        layoutMode,
+        fullscreenOffset: 12,
+        defaultOffset: 3,
+      }),
       display: 'flex',
       flexDirection: 'row',
       alignItems: 'center',
@@ -303,7 +347,12 @@ const getDesktopControlsSx = ({
       position: 'fixed',
       top: `${FIXED_RIGHT_ACTION_COLUMN_TOP_PX}px`,
       right: `${FIXED_RIGHT_ACTION_COLUMN_RIGHT_PX}px`,
-      zIndex: theme.zIndex.drawer + 12,
+      zIndex: getDesktopPanelExtensionZIndex({
+        theme,
+        layoutMode,
+        fullscreenOffset: 12,
+        defaultOffset: 3,
+      }),
       display: 'flex',
       flexDirection: 'column',
       gap: `${ACTION_RAIL_GAP_PX}px`,
@@ -316,7 +365,12 @@ const getDesktopControlsSx = ({
       position: 'fixed',
       top: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
       left: `${Math.max(0, sidebarOffset) + MAP_CONTROL_EDGE_GUTTER_PX}px`,
-      zIndex: theme.zIndex.drawer + 12,
+      zIndex: getDesktopPanelExtensionZIndex({
+        theme,
+        layoutMode,
+        fullscreenOffset: 12,
+        defaultOffset: 3,
+      }),
       display: 'flex',
       flexDirection: 'column',
       gap: `${ACTION_RAIL_GAP_PX}px`,
@@ -329,7 +383,12 @@ const getDesktopControlsSx = ({
       position: 'fixed',
       right: `${FIXED_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
       bottom: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
-      zIndex: theme.zIndex.drawer + 12,
+      zIndex: getDesktopPanelExtensionZIndex({
+        theme,
+        layoutMode,
+        fullscreenOffset: 12,
+        defaultOffset: 3,
+      }),
       display: 'flex',
       flexDirection: 'row',
       alignItems: 'center',
@@ -348,7 +407,12 @@ const getDesktopControlsSx = ({
     gap: 1,
     pt: 2,
     pl: 1,
-    zIndex: theme.zIndex.drawer + 3,
+    zIndex: getDesktopPanelExtensionZIndex({
+      theme,
+      layoutMode,
+      fullscreenOffset: 3,
+      defaultOffset: 3,
+    }),
     pointerEvents: 'auto',
   })
 }
@@ -361,7 +425,12 @@ const getDesktopTabControlsSx = (
       position: 'fixed',
       right: `${FIXED_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
       bottom: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
-      zIndex: theme.zIndex.drawer + 12,
+      zIndex: getDesktopPanelExtensionZIndex({
+        theme,
+        layoutMode,
+        fullscreenOffset: 12,
+        defaultOffset: 3,
+      }),
       display: 'flex',
       flexDirection: 'row',
       alignItems: 'center',
@@ -377,7 +446,12 @@ const getDesktopTabControlsSx = (
     gap: 1,
     pt: 2,
     pl: 1,
-    zIndex: theme.zIndex.drawer + 3,
+    zIndex: getDesktopPanelExtensionZIndex({
+      theme,
+      layoutMode,
+      fullscreenOffset: 3,
+      defaultOffset: 3,
+    }),
     pointerEvents: 'auto',
   })
 }
@@ -609,10 +683,11 @@ export const SidebarPanelExtension = ({
     mobileTabRail != null || renderMobileActionRailInTabRow
   const shouldRenderMobileOverlayPanels =
     mobileMode !== 'stacked' || !suppressMobileStackedPanels
-  const desktopPanels = visiblePanels.map((panelId) => (
+  const desktopPanels = visiblePanels.map((panelId, index) => (
     <SidebarPanelExtensionDesktopPanel
       key={panelId}
       extensionId={extensionId}
+      isFirstVisiblePanel={index === 0}
       panelId={panelId}
       options={options}
     />
@@ -677,7 +752,11 @@ export const SidebarPanelExtension = ({
           minHeight: 0,
           overflow: fullscreen ? 'hidden' : 'visible',
           backgroundColor: fullscreen ? '#ffffff' : 'transparent',
-          zIndex: theme.zIndex.drawer + 2,
+          zIndex: getDesktopPanelExtensionZIndex({
+            theme,
+            layoutMode: options?.layoutMode,
+            fullscreenOffset: 2,
+          }),
           pointerEvents: fullscreen ? 'auto' : 'none',
           ...getVisibilitySx(visible),
         }),

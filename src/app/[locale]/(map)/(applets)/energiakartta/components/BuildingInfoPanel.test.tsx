@@ -24,7 +24,7 @@ import {
 } from './BuildingInfoPanel'
 import {
   ENERGYMAP_BUILDING_INFO_BASIC_DESKTOP_MIN_WIDTH_PX,
-  ENERGYMAP_BUILDING_INFO_RENOVATION_DESKTOP_GROUP_WIDTH_PX,
+  ENERGYMAP_BUILDING_INFO_RENOVATION_DESKTOP_PANEL_WIDTH_PX,
   ENERGYMAP_BUILDING_INFO_RENOVATION_DESKTOP_MIN_WIDTH_PX,
   getEnergymapBuildingInfoDesktopMinWidthPx,
   getEnergymapBuildingInfoPanelRuntimeOptions,
@@ -565,12 +565,14 @@ const ariaLabels = {
 const renderBuildingInfoTabs = ({
   activeTabId,
   forceMobileLayout = false,
+  isDesktopFullscreenLayout = false,
   onActiveTabChange = jest.fn(),
   onClose = jest.fn(),
   onCollapse = jest.fn(),
 }: {
   activeTabId?: BuildingInfoTabId
   forceMobileLayout?: boolean
+  isDesktopFullscreenLayout?: boolean
   onActiveTabChange?: (tabId: BuildingInfoTabId) => void
   onClose?: () => void
   onCollapse?: (tabId: BuildingInfoTabId) => void
@@ -588,6 +590,7 @@ const renderBuildingInfoTabs = ({
               ariaLabels={ariaLabels}
               activeTabId={activeTabId}
               forceMobileLayout={forceMobileLayout}
+              isDesktopFullscreenLayout={isDesktopFullscreenLayout}
               onActiveTabChange={onActiveTabChange}
               onClose={onClose}
               onCollapse={onCollapse}
@@ -783,6 +786,24 @@ describe('BuildingInfoPanel', () => {
         'sidebar.building_info.panels.renovation.note.scenario_estimate'
       )
     ).not.toBeInTheDocument()
+
+    const energyBody = screen.getByTestId(
+      'building-info-panel-energyConsumption'
+    ).firstElementChild as HTMLElement
+    const buildingDetailsBody = screen.getByTestId(
+      'building-info-panel-buildingDetails'
+    ).firstElementChild as HTMLElement
+
+    expect(energyBody).toHaveStyle({
+      width: 'min(17.625rem, calc(100% - 3rem))',
+      marginLeft: 'auto',
+      marginRight: 'auto',
+    })
+    expect(buildingDetailsBody).toHaveStyle({
+      width: 'min(17.625rem, calc(100% - 3rem))',
+      marginLeft: 'auto',
+      marginRight: 'auto',
+    })
   })
 
   it('notifies page state when the active tab changes', async () => {
@@ -1040,6 +1061,36 @@ describe('BuildingInfoPanel', () => {
     ).toHaveTextContent('sidebar.building_info.panels.energy.unsupported.co2')
   })
 
+  it('sizes CO2 primary metric icons to match the other metric symbols', async () => {
+    renderBuildingInfoTabs()
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    const energyPanel = screen.getByTestId(
+      'building-info-panel-energyConsumption'
+    )
+    const co2Button = within(energyPanel).getByRole('button', {
+      name: 'sidebar.building_info.panels.energy.primary.co2',
+    })
+
+    expect(
+      co2Button.querySelector('.MuiSvgIcon-root') as HTMLElement
+    ).toHaveStyle({
+      fontSize: '1.25rem',
+    })
+
+    fireEvent.click(co2Button)
+
+    expect(
+      within(energyPanel)
+        .getByRole('button', {
+          name: 'sidebar.building_info.panels.energy.primary.co2',
+        })
+        .querySelector('.MuiSvgIcon-root') as HTMLElement
+    ).toHaveStyle({
+      fontSize: '1.4rem',
+    })
+  })
+
   it('renders the same interactive energy section in the renovation tab', async () => {
     renderBuildingInfoTabs()
 
@@ -1114,6 +1165,33 @@ describe('BuildingInfoPanel', () => {
       screen.getByRole('button', { name: 'Close building information' })
     )
     expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('places fullscreen page controls in the viewport top-right', async () => {
+    renderBuildingInfoTabs({ isDesktopFullscreenLayout: true })
+
+    await screen.findByTestId('building-info-tab-page-basic')
+
+    const controls = document.querySelector(
+      '.sidebar-panel-extension-page-container-controls'
+    ) as HTMLElement
+    const collapseButton = screen.getByRole('button', {
+      name: 'Collapse building information',
+    })
+
+    expect(controls).toHaveStyle({
+      position: 'fixed',
+      top: '16px',
+      right: '16px',
+    })
+    expect(collapseButton).toHaveStyle({
+      boxShadow: '0 2px 8px rgba(17, 17, 17, 0.12)',
+    })
+    expect(
+      collapseButton.querySelector('.MuiSvgIcon-root') as HTMLElement
+    ).toHaveStyle({
+      fontSize: '1.85rem',
+    })
   })
 
   it('reports the active renovation tab when collapsing that page', async () => {
@@ -1359,17 +1437,54 @@ describe('BuildingInfoPanel', () => {
       panelLayout: 'single',
       visiblePanels: ['main'],
       replaceBaseSidebar: true,
-      layoutMode: 'fullscreen',
-      desktopMainPanelWidth: '100%',
-      desktopPanelGroupMaxWidth: `${ENERGYMAP_BUILDING_INFO_RENOVATION_DESKTOP_GROUP_WIDTH_PX}px`,
+      layoutMode: 'default',
+      desktopMainPanelWidth: `${ENERGYMAP_BUILDING_INFO_RENOVATION_DESKTOP_PANEL_WIDTH_PX}px`,
       forceMobileLayout: false,
       activePanel: 'main',
       actionRailPlacement: 'inside',
     })
+    expect(renovationDesktopOptions).not.toHaveProperty(
+      'desktopPanelGroupMaxWidth'
+    )
     expect(desktopOptions.visiblePanels).not.toContain('secondary')
     expect(desktopOptions.visiblePanels).not.toContain('tertiary')
     expect(mobileOptions.visiblePanels).not.toContain('secondary')
     expect(mobileOptions.visiblePanels).not.toContain('tertiary')
+  })
+
+  it('uses explicit desktop fullscreen fallback without forcing mobile layout', () => {
+    const fullscreenFallbackOptions =
+      getEnergymapBuildingInfoPanelRuntimeOptions({
+        hasBuildingInfo: true,
+        isBuildingInfoCollapsed: false,
+        isMobileLayout: false,
+        isDesktopFullscreenFallback: true,
+        activeMode: 'threePanel',
+      })
+    const mobileOptions = getEnergymapBuildingInfoPanelRuntimeOptions({
+      hasBuildingInfo: true,
+      isBuildingInfoCollapsed: false,
+      isMobileLayout: true,
+      isDesktopFullscreenFallback: true,
+      activeMode: 'threePanel',
+    })
+
+    expect(fullscreenFallbackOptions).toMatchObject({
+      width: 'wide',
+      chrome: 'hidden',
+      visiblePanels: ['main'],
+      replaceBaseSidebar: true,
+      layoutMode: 'fullscreen',
+      forceMobileLayout: false,
+      activePanel: 'main',
+    })
+    expect(fullscreenFallbackOptions.desktopMainPanelWidth).toBeUndefined()
+    expect(fullscreenFallbackOptions.desktopPanelGroupMaxWidth).toBeUndefined()
+    expect(mobileOptions).toMatchObject({
+      layoutMode: 'default',
+      forceMobileLayout: true,
+      actionRailPlacement: 'bottomActionRow',
+    })
   })
 
   it('keeps collapsed building info runtime action rail without visible panels', () => {

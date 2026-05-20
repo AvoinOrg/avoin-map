@@ -82,6 +82,7 @@ export const MapActionsWrapper = () => {
     <Box
       ref={wrapperRef}
       className="map-actions-wrapper"
+      data-testid="map-actions-wrapper"
       sx={(theme) => ({
         position: 'absolute',
         top: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,

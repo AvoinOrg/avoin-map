@@ -25,6 +25,12 @@ const DEFAULT_OUTPUT_DIR = path.resolve(
 )
 const DYNAMIC_PARAMS_MESSAGE_PATTERN =
   /params are being enumerated|params should be unwrapped/i
+const MAPLIBRE_RENDER_TIMEOUT_MS = 90000
+const MAPLIBRE_RENDER_SETTLE_MS = 5000
+const MAPLIBRE_TILE_WAIT_TIMEOUT_MS = 15000
+const MAPLIBRE_TILE_QUIET_MS = 1000
+const TILE_REQUEST_PATTERN =
+  /(?:\/geoserver\/|\/gwc\/service\/tms\/|\/tiles?\/|\.pbf(?:\?|$)|\.mvt(?:\?|$))/i
 
 const VIEWPORTS = {
   wideDesktop: { width: 1920, height: 1000 },
@@ -418,6 +424,187 @@ const ensureWebpackRequire = async (page) =>
     return Boolean(window.__avoin_req)
   })
 
+const createTileNetworkMonitor = (page) => {
+  const activeRequests = new Set()
+  let seen = 0
+  let lastChangeAt = Date.now()
+
+  const isTileRequest = (request) => TILE_REQUEST_PATTERN.test(request.url())
+  const onRequest = (request) => {
+    if (!isTileRequest(request)) {
+      return
+    }
+
+    activeRequests.add(request)
+    seen += 1
+    lastChangeAt = Date.now()
+  }
+  const onDone = (request) => {
+    if (activeRequests.delete(request)) {
+      lastChangeAt = Date.now()
+    }
+  }
+
+  page.on('request', onRequest)
+  page.on('requestfinished', onDone)
+  page.on('requestfailed', onDone)
+
+  const snapshot = () => ({
+    seen,
+    inflight: activeRequests.size,
+    pendingUrls: Array.from(activeRequests)
+      .slice(0, 5)
+      .map((request) => request.url()),
+  })
+
+  return {
+    dispose: () => {
+      page.off('request', onRequest)
+      page.off('requestfinished', onDone)
+      page.off('requestfailed', onDone)
+    },
+    snapshot,
+    waitForQuiet: async ({
+      quietMs = MAPLIBRE_TILE_QUIET_MS,
+      requireSeen = false,
+      timeout = MAPLIBRE_TILE_WAIT_TIMEOUT_MS,
+    } = {}) => {
+      const startedAt = Date.now()
+
+      while (Date.now() - startedAt < timeout) {
+        const quietFor = Date.now() - lastChangeAt
+        if (
+          (!requireSeen || seen > 0) &&
+          activeRequests.size === 0 &&
+          quietFor >= quietMs
+        ) {
+          return {
+            ok: true,
+            quietFor,
+            ...snapshot(),
+          }
+        }
+
+        await new Promise((resolve) => {
+          setTimeout(resolve, 100)
+        })
+      }
+
+      return {
+        ok: false,
+        quietFor: Date.now() - lastChangeAt,
+        ...snapshot(),
+      }
+    },
+  }
+}
+
+const waitForMapLibreRendered = async ({
+  page,
+  settleMs = MAPLIBRE_RENDER_SETTLE_MS,
+  timeout = MAPLIBRE_RENDER_TIMEOUT_MS,
+} = {}) => {
+  await page.waitForSelector('canvas.maplibregl-canvas', { timeout })
+
+  const hasWebpackRequire = await ensureWebpackRequire(page)
+  if (!hasWebpackRequire) {
+    throw new Error('could not access Next.js webpack require for MapLibre state')
+  }
+
+  const result = await page.evaluate(
+    async ({ requestedSettleMs, requestedTimeout }) => {
+      const wait = (ms) =>
+        new Promise((resolve) => {
+          window.setTimeout(resolve, ms)
+        })
+      const startedAt = Date.now()
+
+      const getMap = () => {
+        const req = window.__avoin_req
+        if (typeof req !== 'function') {
+          return null
+        }
+
+        try {
+          const { useMapInstanceStore } = req(
+            '(app-pages-browser)/./src/common/store/mapStore/mapInstanceStore.ts'
+          )
+          return useMapInstanceStore.getState()._map ?? null
+        } catch (_error) {
+          return null
+        }
+      }
+
+      const waitForNextRenderOrIdle = (map) =>
+        new Promise((resolve) => {
+          let resolved = false
+          const finish = () => {
+            if (resolved) {
+              return
+            }
+            resolved = true
+            window.clearTimeout(timeoutId)
+            resolve()
+          }
+          const timeoutId = window.setTimeout(finish, 2500)
+
+          if (typeof map.once === 'function') {
+            map.once('render', finish)
+            map.once('idle', finish)
+          } else {
+            finish()
+          }
+        })
+
+      while (Date.now() - startedAt < requestedTimeout) {
+        const map = getMap()
+        const canvas = map?.getCanvas?.()
+        const hasCanvasSize =
+          canvas != null && canvas.clientWidth > 0 && canvas.clientHeight > 0
+        const styleLoaded =
+          map == null || typeof map.isStyleLoaded !== 'function'
+            ? false
+            : map.isStyleLoaded()
+
+        if (map != null && hasCanvasSize && styleLoaded) {
+          await waitForNextRenderOrIdle(map)
+          await wait(requestedSettleMs)
+
+          return {
+            ok: true,
+            center:
+              typeof map.getCenter === 'function'
+                ? [map.getCenter().lng, map.getCenter().lat]
+                : null,
+            loaded:
+              typeof map.loaded === 'function' ? map.loaded() : null,
+            styleLoaded,
+            tilesLoaded:
+              typeof map.areTilesLoaded === 'function'
+                ? map.areTilesLoaded()
+                : null,
+            zoom: typeof map.getZoom === 'function' ? map.getZoom() : null,
+          }
+        }
+
+        await wait(100)
+      }
+
+      return {
+        ok: false,
+        reason: 'Timed out waiting for MapLibre map state to render',
+      }
+    },
+    { requestedSettleMs: settleMs, requestedTimeout: timeout }
+  )
+
+  if (!result.ok) {
+    throw new Error(result.reason)
+  }
+
+  return result
+}
+
 const seedEnergymapSelectedBuilding = async (page) =>
   page.evaluate(async () => {
     const req = window.__avoin_req
@@ -455,13 +642,32 @@ const seedEnergymapSelectedBuilding = async (page) =>
       new Promise((resolve) => {
         window.setTimeout(resolve, ms)
       })
+    const waitForActiveTiles = async () => {
+      await waitForMapIdle()
+      const startedAt = Date.now()
+
+      while (Date.now() - startedAt < 5000) {
+        if (
+          typeof map.areTilesLoaded !== 'function' ||
+          map.areTilesLoaded()
+        ) {
+          return true
+        }
+
+        await wait(250)
+      }
+
+      return typeof map.areTilesLoaded === 'function'
+        ? map.areTilesLoaded()
+        : true
+    }
 
     map.jumpTo({ center: [24.9384, 60.1699], zoom: 15.5 })
 
     let features = []
     for (let attempt = 0; attempt < 6; attempt += 1) {
-      await waitForMapIdle()
-      await wait(700)
+      await waitForActiveTiles()
+      await wait(250)
       features = map.queryRenderedFeatures(undefined, {
         layers: ['energymap_building_polygons-fill'],
       })
@@ -566,12 +772,31 @@ const findEnergymapBuildingClickTarget = async ({ page, viewport }) =>
       new Promise((resolve) => {
         window.setTimeout(resolve, ms)
       })
+    const waitForActiveTiles = async () => {
+      await waitForMapIdle()
+      const startedAt = Date.now()
+
+      while (Date.now() - startedAt < 5000) {
+        if (
+          typeof map.areTilesLoaded !== 'function' ||
+          map.areTilesLoaded()
+        ) {
+          return true
+        }
+
+        await wait(250)
+      }
+
+      return typeof map.areTilesLoaded === 'function'
+        ? map.areTilesLoaded()
+        : true
+    }
 
     map.jumpTo({ center: [24.9384, 60.1699], zoom: 15.75 })
 
     for (let attempt = 0; attempt < 10; attempt += 1) {
-      await waitForMapIdle()
-      await wait(500)
+      await waitForActiveTiles()
+      await wait(250)
 
       const width = map.getCanvas().clientWidth
       const height = map.getCanvas().clientHeight
@@ -657,14 +882,19 @@ const readEnergymapBuildingClickState = async ({ page, target, label }) =>
           style: {
             display: style.display,
             visibility: style.visibility,
-            position: style.position,
-            backgroundColor: style.backgroundColor,
-            borderColor: style.borderColor,
-            color: style.color,
-            flexDirection: style.flexDirection,
-          },
-          text: element.textContent?.slice(0, 160) ?? '',
-        }
+          position: style.position,
+          backgroundColor: style.backgroundColor,
+          boxShadow: style.boxShadow,
+          borderLeftColor: style.borderLeftColor,
+          borderLeftStyle: style.borderLeftStyle,
+          borderLeftWidth: style.borderLeftWidth,
+          borderColor: style.borderColor,
+          color: style.color,
+          flexDirection: style.flexDirection,
+          zIndex: style.zIndex,
+        },
+        text: element.textContent?.slice(0, 160) ?? '',
+      }
       }
       const read = (selector) => {
         const element = Array.from(document.querySelectorAll(selector)).find(
@@ -752,6 +982,9 @@ const readEnergymapBuildingClickState = async ({ page, target, label }) =>
         desktopMainPanel: read(
           '[data-testid="sidebar-panel-extension-desktop-panel-main"]'
         ),
+        desktopMainPanelSurface: read(
+          '[data-testid="sidebar-panel-extension-desktop-panel-main"] > div'
+        ),
         desktopPanelGroup: read(
           '[data-testid="sidebar-panel-extension-desktop-panel-group"]'
         ),
@@ -827,13 +1060,26 @@ const isNear = (actual, expected, tolerance = 2) =>
 
 const isDesktopLikeViewport = (viewport) => viewport !== 'mobile'
 
-const isRenovationDesktopViewport = (viewport) =>
-  viewport === 'desktop' || viewport === 'wideDesktop'
+const isRenovationDefaultDesktopViewport = (viewport) =>
+  viewport === 'wideDesktop'
 
-const isBasicDesktopViewport = (viewport) =>
+const isRenovationFullscreenDesktopViewport = (viewport) =>
+  viewport === 'desktop' ||
+  viewport === 'narrowDesktop' ||
+  viewport === 'basicNarrowDesktop'
+
+const isBasicDefaultDesktopViewport = (viewport) =>
   viewport === 'desktop' ||
   viewport === 'wideDesktop' ||
   viewport === 'narrowDesktop'
+
+const isBasicFullscreenDesktopViewport = (viewport) =>
+  viewport === 'basicNarrowDesktop'
+
+const parseZIndex = (value) => {
+  const number = Number(value)
+  return Number.isFinite(number) ? number : null
+}
 
 const assertSelectedTabIsLightGray = ({ state, errors }) => {
   const color = parseRgbColor(state.selectedTab?.style?.backgroundColor)
@@ -858,8 +1104,53 @@ const assertSelectedTabIsLightGray = ({ state, errors }) => {
   }
 }
 
-const assertDesktopF033ExpandedBasic = ({ state, errors }) => {
+const assertLeftmostPanelHasNoLeftDecoration = ({ state, errors }) => {
+  const surfaceStyle = state.desktopMainPanelSurface?.style
+
+  if (surfaceStyle == null) {
+    return
+  }
+
+  if (surfaceStyle.borderLeftWidth !== '0px') {
+    errors.push(
+      `${state.label}: leftmost panel still had a left border ` +
+        `${surfaceStyle.borderLeftWidth} ${surfaceStyle.borderLeftStyle}`
+    )
+  }
+
+  if (surfaceStyle.boxShadow !== 'none') {
+    errors.push(
+      `${state.label}: leftmost panel still had a left-edge shadow ` +
+        `${surfaceStyle.boxShadow}`
+    )
+  }
+}
+
+const assertMapControlsAboveNonFullscreenExtension = ({ state, errors }) => {
+  const mapZIndex = parseZIndex(state.mapActionsWrapper?.style?.zIndex)
+  const extensionZIndex = parseZIndex(state.extensionRoot?.style?.zIndex)
+
+  if (state.mapActionsWrapper == null) {
+    errors.push(`${state.label}: map actions wrapper was not visible`)
+    return
+  }
+
+  if (
+    mapZIndex != null &&
+    extensionZIndex != null &&
+    mapZIndex <= extensionZIndex
+  ) {
+    errors.push(
+      `${state.label}: map controls z-index ${mapZIndex} was not above ` +
+        `non-fullscreen extension z-index ${extensionZIndex}`
+    )
+  }
+}
+
+const assertDesktopF035ExpandedBasicDefault = ({ state, errors }) => {
   assertSelectedTabIsLightGray({ state, errors })
+  assertLeftmostPanelHasNoLeftDecoration({ state, errors })
+  assertMapControlsAboveNonFullscreenExtension({ state, errors })
 
   if (state.buildingInfoGrid == null) {
     errors.push(`${state.label}: expected desktop basic grid to be visible`)
@@ -878,9 +1169,16 @@ const assertDesktopF033ExpandedBasic = ({ state, errors }) => {
       `${state.label}: extension root still looks viewport-wide (${rootWidth}px)`
     )
   }
+
+  const gridWidth = state.buildingInfoGrid?.rect?.width
+  if (!Number.isFinite(gridWidth) || gridWidth < 730 || gridWidth > 790) {
+    errors.push(
+      `${state.label}: expected basic grid around 760px wide, got ${gridWidth}`
+    )
+  }
 }
 
-const assertF033StackedBuildingInfoLayout = ({
+const assertF035StackedBuildingInfoLayout = ({
   state,
   expectedPanels,
   errors,
@@ -903,8 +1201,63 @@ const assertF033StackedBuildingInfoLayout = ({
   }
 }
 
-const assertDesktopF033RenovationFullscreen = ({ state, errors }) => {
+const assertDesktopF035ExpandedRenovationDefault = ({ state, errors }) => {
   assertSelectedTabIsLightGray({ state, errors })
+  assertLeftmostPanelHasNoLeftDecoration({ state, errors })
+  assertMapControlsAboveNonFullscreenExtension({ state, errors })
+
+  const viewportWidth = state.viewport?.width
+  const rootRect = state.extensionRoot?.rect
+  const panelRect = state.desktopMainPanel?.rect
+  const gridRect = state.buildingInfoGrid?.rect
+  const tabRailRect = state.desktopTabRail?.rect
+  const pageControlsPosition = state.pageControls?.style?.position
+
+  if (state.buildingInfoGrid == null) {
+    errors.push(`${state.label}: expected desktop renovation grid to be visible`)
+  }
+
+  if (!Number.isFinite(panelRect?.width) || !isNear(panelRect.width, 1440, 3)) {
+    errors.push(
+      `${state.label}: expected content-sized renovation panel width, got ` +
+        `${JSON.stringify(panelRect)}`
+    )
+  }
+
+  if (!Number.isFinite(gridRect?.width) || !isNear(gridRect.width, 1440, 3)) {
+    errors.push(
+      `${state.label}: expected renovation grid around 1440px wide, got ` +
+        `${JSON.stringify(gridRect)}`
+    )
+  }
+
+  if (Number.isFinite(rootRect?.width) && rootRect.width >= viewportWidth - 8) {
+    errors.push(
+      `${state.label}: non-fullscreen renovation root looked viewport-wide ` +
+        `${JSON.stringify(rootRect)}`
+    )
+  }
+
+  if (
+    tabRailRect == null ||
+    !(tabRailRect.height > tabRailRect.width)
+  ) {
+    errors.push(`${state.label}: non-fullscreen tab rail was not vertical`)
+  }
+
+  if (pageControlsPosition === 'fixed') {
+    errors.push(`${state.label}: non-fullscreen page controls were fixed`)
+  }
+}
+
+const assertDesktopF035Fullscreen = ({
+  state,
+  errors,
+  expectedGridMaxWidth,
+  tabId,
+}) => {
+  assertSelectedTabIsLightGray({ state, errors })
+  assertLeftmostPanelHasNoLeftDecoration({ state, errors })
 
   const viewportWidth = state.viewport?.width
   const rootRect = state.extensionRoot?.rect
@@ -914,8 +1267,8 @@ const assertDesktopF033RenovationFullscreen = ({ state, errors }) => {
   const tabControlsRect = state.desktopTabControls?.rect
   const tabRailRect = state.desktopTabRail?.rect
   const pageControlsRect = state.pageControls?.rect
-  const expectedGroupWidth = Math.min(1440, viewportWidth)
-  const expectedGroupX = (viewportWidth - expectedGroupWidth) / 2
+  const expectedGridWidth = Math.min(expectedGridMaxWidth, viewportWidth)
+  const expectedGridX = (viewportWidth - expectedGridWidth) / 2
 
   if (
     rootRect == null ||
@@ -930,56 +1283,62 @@ const assertDesktopF033RenovationFullscreen = ({ state, errors }) => {
 
   if (
     panelGroupRect == null ||
-    !isNear(panelGroupRect.width, expectedGroupWidth, 3) ||
-    !isNear(panelGroupRect.x, expectedGroupX, 3)
+    !isNear(panelGroupRect.width, viewportWidth, 3) ||
+    !isNear(panelGroupRect.x, 0, 3)
   ) {
     errors.push(
-      `${state.label}: fullscreen panel group was not capped/centered, got ` +
+      `${state.label}: fullscreen panel group did not span viewport, got ` +
         `${JSON.stringify(panelGroupRect)} for viewport ${viewportWidth}`
     )
   }
 
   if (
     panelRect == null ||
-    !isNear(panelRect.x, expectedGroupX, 3) ||
-    !isNear(panelRect.width, expectedGroupWidth, 3)
+    !isNear(panelRect.x, 0, 3) ||
+    !isNear(panelRect.width, viewportWidth, 3)
   ) {
     errors.push(
-      `${state.label}: fullscreen main panel did not match capped group, got ` +
+      `${state.label}: fullscreen main panel did not span viewport, got ` +
         `${JSON.stringify(panelRect)}`
     )
   }
 
   if (
     gridRect == null ||
-    !isNear(gridRect.width, expectedGroupWidth, 3) ||
-    !isNear(gridRect.x, expectedGroupX, 3)
+    !isNear(gridRect.width, expectedGridWidth, 3) ||
+    !isNear(gridRect.x, expectedGridX, 3)
   ) {
     errors.push(
-      `${state.label}: renovation grid did not match capped group, got ` +
+      `${state.label}: fullscreen ${tabId} grid was not centered/capped, got ` +
         `${JSON.stringify(gridRect)}`
     )
   }
 
-  const topEnergy = state.gridSections['top-energy']?.rect
-  const topRenovation = state.gridSections['top-renovation']?.rect
-  const topDetails = state.gridSections['top-building-details']?.rect
-  if (
-    topEnergy == null ||
-    topRenovation == null ||
-    topDetails == null ||
-    !isNear(topEnergy.width, 440, 4) ||
-    !isNear(topRenovation.width, 560, 4) ||
-    !isNear(topDetails.width, 440, 4)
-  ) {
-    errors.push(
-      `${state.label}: renovation grid bands were not about 440/560/440, got ` +
-        `${JSON.stringify({
-          topEnergy,
-          topRenovation,
-          topDetails,
-        })}`
-    )
+  if (tabId === 'renovation') {
+    const topEnergy = state.gridSections['top-energy']?.rect
+    const topRenovation = state.gridSections['top-renovation']?.rect
+    const topDetails = state.gridSections['top-building-details']?.rect
+    const expectedEnergyWidth = expectedGridWidth * (440 / 1440)
+    const expectedRenovationWidth = expectedGridWidth * (560 / 1440)
+    const expectedDetailsWidth = expectedGridWidth * (440 / 1440)
+
+    if (
+      topEnergy == null ||
+      topRenovation == null ||
+      topDetails == null ||
+      !isNear(topEnergy.width, expectedEnergyWidth, 4) ||
+      !isNear(topRenovation.width, expectedRenovationWidth, 4) ||
+      !isNear(topDetails.width, expectedDetailsWidth, 4)
+    ) {
+      errors.push(
+        `${state.label}: renovation grid bands did not keep 440/560/440 ` +
+          `proportions, got ${JSON.stringify({
+            topEnergy,
+            topRenovation,
+            topDetails,
+          })}`
+      )
+    }
   }
 
   if (
@@ -1000,8 +1359,8 @@ const assertDesktopF033RenovationFullscreen = ({ state, errors }) => {
 
   if (
     pageControlsRect == null ||
-    !isNear(pageControlsRect.y, 50, 4) ||
-    !isNear(pageControlsRect.right, viewportWidth - 70, 4)
+    !isNear(pageControlsRect.y, 16, 4) ||
+    !isNear(pageControlsRect.right, viewportWidth - 16, 4)
   ) {
     errors.push(
       `${state.label}: fullscreen page controls were not fixed to viewport top-right, got ` +
@@ -1010,7 +1369,7 @@ const assertDesktopF033RenovationFullscreen = ({ state, errors }) => {
   }
 }
 
-const assertDesktopF033Collapsed = ({ state, errors }) => {
+const assertDesktopF035Collapsed = ({ state, errors }) => {
   const actionRect = state.buildingActionRail?.rect
   const sidebarRect = state.baseSidebar?.rect
 
@@ -1294,12 +1653,11 @@ const assertNoOverlap = ({ state, a, b, errors }) => {
 const runEnergymapSelectedBuildingTabsCheck = async ({ page, errors }) => {
   fs.mkdirSync(SELECTED_BUILDING_OUTPUT_DIR, { recursive: true })
 
-  await page.waitForSelector('canvas.maplibregl-canvas', { timeout: 90000 })
-  await page.waitForTimeout(3500)
-
-  const hasWebpackRequire = await ensureWebpackRequire(page)
-  if (!hasWebpackRequire) {
-    errors.push('could not access Next.js webpack require for selected-building setup')
+  let mapReady = null
+  try {
+    mapReady = await waitForMapLibreRendered({ page })
+  } catch (error) {
+    errors.push(error.message)
     return null
   }
 
@@ -1472,6 +1830,7 @@ const runEnergymapSelectedBuildingTabsCheck = async ({ page, errors }) => {
   }
 
   return {
+    mapReady,
     seed,
     screenshots,
     scrollResult,
@@ -1491,25 +1850,41 @@ const runEnergymapBuildingClickCheck = async ({
   outputDir,
   errors,
   consoleMessages,
+  warnings = [],
 }) => {
   const scenarioOutputDir = path.join(outputDir, 'energiakartta-building-click')
   fs.mkdirSync(scenarioOutputDir, { recursive: true })
 
-  await page.waitForSelector('canvas.maplibregl-canvas', { timeout: 90000 })
-  await page.waitForTimeout(2500)
-
-  const hasWebpackRequire = await ensureWebpackRequire(page)
-  if (!hasWebpackRequire) {
-    errors.push('could not access Next.js webpack require for building click')
+  let mapReady = null
+  try {
+    mapReady = await waitForMapLibreRendered({ page })
+  } catch (error) {
+    errors.push(error.message)
     return null
   }
 
   await ensureMapClickableOnMobile({ page, viewport })
 
-  const target = await findEnergymapBuildingClickTarget({ page, viewport })
+  const tileMonitor = createTileNetworkMonitor(page)
+  let target = null
+  let tileNetwork = null
+  try {
+    target = await findEnergymapBuildingClickTarget({ page, viewport })
+    tileNetwork = await tileMonitor.waitForQuiet()
+  } finally {
+    tileMonitor.dispose()
+  }
+
+  if (tileNetwork != null && !tileNetwork.ok) {
+    warnings.push(
+      `${viewport}: map tile requests did not go quiet before interaction ` +
+        `(${tileNetwork.inflight} still in flight)`
+    )
+  }
+
   if (!target.ok) {
     errors.push(`could not find rendered building click target: ${target.reason}`)
-    return { target }
+    return { mapReady, target, tileNetwork }
   }
 
   const screenshot = async (name) => {
@@ -1583,21 +1958,28 @@ const runEnergymapBuildingClickCheck = async ({
     errors.push(`${viewport}: selected feature state was not marked selected`)
   }
   if (
-    isBasicDesktopViewport(viewport) &&
+    isDesktopLikeViewport(viewport) &&
     expandedBasic.desktopTabRail == null
   ) {
     errors.push(`${viewport}: desktop tab rail was not visible`)
   }
   if (
-    !isBasicDesktopViewport(viewport) &&
+    !isDesktopLikeViewport(viewport) &&
     expandedBasic.mobileTabRail == null
   ) {
     errors.push(`${viewport}: mobile tab rail was not visible`)
   }
-  if (isBasicDesktopViewport(viewport)) {
-    assertDesktopF033ExpandedBasic({ state: expandedBasic, errors })
+  if (isBasicDefaultDesktopViewport(viewport)) {
+    assertDesktopF035ExpandedBasicDefault({ state: expandedBasic, errors })
+  } else if (isBasicFullscreenDesktopViewport(viewport)) {
+    assertDesktopF035Fullscreen({
+      state: expandedBasic,
+      errors,
+      expectedGridMaxWidth: 760,
+      tabId: 'basic',
+    })
   } else {
-    assertF033StackedBuildingInfoLayout({
+    assertF035StackedBuildingInfoLayout({
       state: expandedBasic,
       expectedPanels: ['energyConsumption', 'buildingDetails'],
       errors,
@@ -1609,14 +1991,6 @@ const runEnergymapBuildingClickCheck = async ({
     expandedBasic.sidebarToggle?.rect == null
   ) {
     errors.push(`${viewport}: sidebar toggle was not visible on basic tab`)
-  }
-
-  if (
-    isDesktopLikeViewport(viewport) &&
-    !isBasicDesktopViewport(viewport) &&
-    expandedBasic.mobileControls == null
-  ) {
-    errors.push(`${viewport}: forced basic mobile controls were not visible`)
   }
 
   await page.locator('[role="tab"]').nth(1).click()
@@ -1635,10 +2009,17 @@ const runEnergymapBuildingClickCheck = async ({
   if (renovation.baseSidebar != null) {
     errors.push(`${viewport}: base sidebar became visible on renovation tab`)
   }
-  if (isRenovationDesktopViewport(viewport)) {
-    assertDesktopF033RenovationFullscreen({ state: renovation, errors })
+  if (isRenovationDefaultDesktopViewport(viewport)) {
+    assertDesktopF035ExpandedRenovationDefault({ state: renovation, errors })
+  } else if (isRenovationFullscreenDesktopViewport(viewport)) {
+    assertDesktopF035Fullscreen({
+      state: renovation,
+      errors,
+      expectedGridMaxWidth: 1440,
+      tabId: 'renovation',
+    })
   } else {
-    assertF033StackedBuildingInfoLayout({
+    assertF035StackedBuildingInfoLayout({
       state: renovation,
       expectedPanels: [
         'energyConsumption',
@@ -1676,8 +2057,8 @@ const runEnergymapBuildingClickCheck = async ({
   if (collapsed.baseSidebar == null) {
     errors.push(`${viewport}: base sidebar did not return after collapse`)
   }
-  if (isRenovationDesktopViewport(viewport)) {
-    assertDesktopF033Collapsed({ state: collapsed, errors })
+  if (isDesktopLikeViewport(viewport)) {
+    assertDesktopF035Collapsed({ state: collapsed, errors })
   }
 
   await page
@@ -1701,10 +2082,17 @@ const runEnergymapBuildingClickCheck = async ({
   if (reopened.baseSidebar != null) {
     errors.push(`${viewport}: base sidebar remained visible after reopening`)
   }
-  if (isRenovationDesktopViewport(viewport)) {
-    assertDesktopF033RenovationFullscreen({ state: reopened, errors })
+  if (isRenovationDefaultDesktopViewport(viewport)) {
+    assertDesktopF035ExpandedRenovationDefault({ state: reopened, errors })
+  } else if (isRenovationFullscreenDesktopViewport(viewport)) {
+    assertDesktopF035Fullscreen({
+      state: reopened,
+      errors,
+      expectedGridMaxWidth: 1440,
+      tabId: 'renovation',
+    })
   } else {
-    assertF033StackedBuildingInfoLayout({
+    assertF035StackedBuildingInfoLayout({
       state: reopened,
       expectedPanels: [
         'energyConsumption',
@@ -1753,10 +2141,17 @@ const runEnergymapBuildingClickCheck = async ({
   if (toggleShown.selectedBuilding == null) {
     errors.push(`${viewport}: selected building was not restored after toggle show`)
   }
-  if (isRenovationDesktopViewport(viewport)) {
-    assertDesktopF033RenovationFullscreen({ state: toggleShown, errors })
+  if (isRenovationDefaultDesktopViewport(viewport)) {
+    assertDesktopF035ExpandedRenovationDefault({ state: toggleShown, errors })
+  } else if (isRenovationFullscreenDesktopViewport(viewport)) {
+    assertDesktopF035Fullscreen({
+      state: toggleShown,
+      errors,
+      expectedGridMaxWidth: 1440,
+      tabId: 'renovation',
+    })
   } else {
-    assertF033StackedBuildingInfoLayout({
+    assertF035StackedBuildingInfoLayout({
       state: toggleShown,
       expectedPanels: [
         'energyConsumption',
@@ -1812,7 +2207,9 @@ const runEnergymapBuildingClickCheck = async ({
   }
 
   return {
+    mapReady,
     target,
+    tileNetwork,
     clickToPanelMs,
     screenshots,
     states: {
@@ -1938,6 +2335,7 @@ const runCheck = async ({ browser, args, check }) => {
         outputDir: args.outputDir,
         errors,
         consoleMessages,
+        warnings,
       })
     }
 

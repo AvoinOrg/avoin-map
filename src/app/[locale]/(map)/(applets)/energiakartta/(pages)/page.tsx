@@ -474,8 +474,9 @@ const Page = () => {
   const selectedBuildingKey = selectedBuilding?.buildingKey ?? null
   const hasBuildingInfo = buildingInfoPanels != null
   const isBuildingInfoExpanded = hasBuildingInfo && !isBuildingInfoCollapsed
-  const useBuildingInfoMobileLayout =
-    isMobile || (hasBuildingInfo && !buildingInfoDesktopMinWidthMatches)
+  const useBuildingInfoMobileLayout = isMobile
+  const useBuildingInfoDesktopFullscreenFallback =
+    isBuildingInfoExpanded && !isMobile && !buildingInfoDesktopMinWidthMatches
   const isSharedBuildingLayerGroupVisible = visibleLayerGroupIds.includes(
     ENERGYMAP_BUILDING_POLYGONS_LAYER_GROUP_ID
   )
@@ -744,12 +745,15 @@ const Page = () => {
         hasBuildingInfo,
         isBuildingInfoCollapsed,
         isMobileLayout: useBuildingInfoMobileLayout,
+        isDesktopFullscreenFallback:
+          useBuildingInfoDesktopFullscreenFallback,
         activeMode: activeBuildingInfoMode,
       }),
     [
       activeBuildingInfoMode,
       hasBuildingInfo,
       isBuildingInfoCollapsed,
+      useBuildingInfoDesktopFullscreenFallback,
       useBuildingInfoMobileLayout,
     ]
   )
@@ -782,6 +786,10 @@ const Page = () => {
             ariaLabels={buildingInfoAriaLabels}
             activeTabId={getBuildingInfoTabIdForMode(activeBuildingInfoMode)}
             forceMobileLayout={useBuildingInfoMobileLayout}
+            isDesktopFullscreenLayout={
+              buildingInfoPanelRuntimeOptions.layoutMode === 'fullscreen' &&
+              !useBuildingInfoMobileLayout
+            }
             onActiveTabChange={handleBuildingInfoActiveTabChange}
             onClose={handleCloseBuildingInfo}
             onCollapse={handleCollapseBuildingInfo}

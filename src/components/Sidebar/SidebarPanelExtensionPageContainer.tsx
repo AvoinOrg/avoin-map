@@ -34,7 +34,7 @@ const pageControlButtonSx = {
   borderRadius: '0.625rem',
   color: 'neutral.darker',
   backgroundColor: '#ffffff',
-  boxShadow: '0px 8px 20px rgba(0, 0, 0, 0.14)',
+  boxShadow: '0 2px 8px rgba(17, 17, 17, 0.12)',
   '&:hover': {
     backgroundColor: '#f4f4f4',
   },
@@ -117,7 +117,7 @@ export const SidebarPanelExtensionPageContainer = ({
                 size="small"
                 sx={pageControlButtonSx}
               >
-                <KeyboardDoubleArrowLeftIcon sx={{ fontSize: '1.35rem' }} />
+                <KeyboardDoubleArrowLeftIcon sx={{ fontSize: '1.85rem' }} />
               </IconButton>
             </Tooltip>
           )}

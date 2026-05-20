@@ -1,7 +1,9 @@
 import React from 'react'
 import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
+import { ThemeProvider } from '@mui/material/styles'
 
+import theme from '#/common/style/theme/theme'
 import { useUIStore } from '#/common/store/uiStore'
 import type { SidebarPanelExtensionRuntimeOptions } from '#/common/types/sidebar'
 import { SlotsProvider } from '#/components/context/slotsContext'
@@ -89,18 +91,20 @@ const renderSidebarPanelExtension = (
   }
 ) =>
   render(
-    <SlotsProvider>
-      <SidebarRoot>
-        <SidebarPanelExtensionProvider
-          id="test-extension"
-          initialRuntimeOptions={initialRuntimeOptions}
-        >
-          <IntoSidebarPanelExtensionPanelSlot panelId="main">
-            {children}
-          </IntoSidebarPanelExtensionPanelSlot>
-        </SidebarPanelExtensionProvider>
-      </SidebarRoot>
-    </SlotsProvider>
+    <ThemeProvider theme={theme}>
+      <SlotsProvider>
+        <SidebarRoot>
+          <SidebarPanelExtensionProvider
+            id="test-extension"
+            initialRuntimeOptions={initialRuntimeOptions}
+          >
+            <IntoSidebarPanelExtensionPanelSlot panelId="main">
+              {children}
+            </IntoSidebarPanelExtensionPanelSlot>
+          </SidebarPanelExtensionProvider>
+        </SidebarRoot>
+      </SlotsProvider>
+    </ThemeProvider>
   )
 
 describe('SidebarPanelExtension generic tab helpers', () => {
@@ -351,9 +355,9 @@ describe('SidebarPanelExtension generic tab helpers', () => {
     ).toBe('100%')
   })
 
-  it('centers opt-in capped fullscreen desktop panel groups', async () => {
+  it('keeps fullscreen desktop panel groups viewport-wide', async () => {
     renderSidebarPanelExtension(
-      <div>Fullscreen capped panel content</div>,
+      <div>Fullscreen viewport panel content</div>,
       {
         width: 'wide',
         chrome: 'hidden',
@@ -361,13 +365,12 @@ describe('SidebarPanelExtension generic tab helpers', () => {
         visiblePanels: ['main'],
         activePanel: 'main',
         layoutMode: 'fullscreen',
-        desktopMainPanelWidth: '100%',
         desktopPanelGroupMaxWidth: '1440px',
       }
     )
 
     expect(
-      await screen.findByText('Fullscreen capped panel content')
+      await screen.findByText('Fullscreen viewport panel content')
     ).toBeInTheDocument()
     expect(screen.getByTestId('sidebar-panel-extension-root')).toHaveStyle({
       left: '0px',
@@ -375,17 +378,94 @@ describe('SidebarPanelExtension generic tab helpers', () => {
       width: '100vw',
       backgroundColor: '#ffffff',
       pointerEvents: 'auto',
+      zIndex: `${theme.zIndex.drawer + 2}`,
     })
     expect(
       screen.getByTestId('sidebar-panel-extension-desktop-panel-group')
     ).toHaveStyle({
-      width: 'min(1440px, 100vw)',
-      marginLeft: 'auto',
-      marginRight: 'auto',
+      width: '100vw',
+      maxWidth: '100vw',
+      marginLeft: '0px',
+      marginRight: '0px',
     })
     expect(
       screen.getByTestId('sidebar-panel-extension-desktop-panel-main')
-    ).toHaveStyle({ width: '100%' })
+    ).toHaveStyle({ width: '100vw' })
+  })
+
+  it('keeps non-fullscreen desktop extension chrome below map controls', async () => {
+    renderSidebarPanelExtension(
+      <>
+        <SidebarPanelExtensionTabContainer tabId="first" tabName="First">
+          <div>First z-index content</div>
+        </SidebarPanelExtensionTabContainer>
+        <SidebarPanelExtensionTabContainer tabId="second" tabName="Second">
+          <div>Second z-index content</div>
+        </SidebarPanelExtensionTabContainer>
+      </>,
+      {
+        width: 'wide',
+        chrome: 'hidden',
+        panelLayout: 'single',
+        visiblePanels: ['main'],
+        activePanel: 'main',
+        desktopMainPanelWidth: '760px',
+      }
+    )
+
+    expect(await screen.findByText('First z-index content')).toBeInTheDocument()
+
+    const nonFullscreenRootZIndex = theme.zIndex.mapButtons - 20
+
+    expect(screen.getByTestId('sidebar-panel-extension-root')).toHaveStyle({
+      zIndex: `${nonFullscreenRootZIndex}`,
+    })
+    expect(
+      screen.getByTestId('sidebar-panel-extension-desktop-panel-main')
+    ).toHaveStyle({
+      zIndex: `${nonFullscreenRootZIndex + 2}`,
+    })
+    expect(
+      screen.getByTestId('sidebar-panel-extension-desktop-tab-controls')
+    ).toHaveStyle({
+      zIndex: `${nonFullscreenRootZIndex + 3}`,
+    })
+    expect(
+      screen.getByTestId('sidebar-panel-extension-desktop-controls')
+    ).toHaveStyle({
+      zIndex: `${nonFullscreenRootZIndex + 3}`,
+    })
+  })
+
+  it('removes left-edge decoration from the first visible desktop panel', async () => {
+    renderSidebarPanelExtension(
+      <div>First panel content</div>,
+      {
+        panelLayout: 'double',
+        visiblePanels: ['main', 'secondary'],
+        activePanel: 'main',
+      }
+    )
+
+    expect(await screen.findByText('First panel content')).toBeInTheDocument()
+
+    const firstPanelSurface = screen.getByTestId(
+      'sidebar-panel-extension-desktop-panel-main'
+    ).firstElementChild as HTMLElement
+    const secondPanelSurface = screen.getByTestId(
+      'sidebar-panel-extension-desktop-panel-secondary'
+    ).firstElementChild as HTMLElement
+
+    expect(window.getComputedStyle(firstPanelSurface).borderLeftWidth).toBe(
+      '0px'
+    )
+    expect(window.getComputedStyle(firstPanelSurface).boxShadow).toBe('none')
+    expect(window.getComputedStyle(secondPanelSurface).borderLeftWidth).toBe(
+      '1px'
+    )
+    expect(window.getComputedStyle(secondPanelSurface).boxShadow).toBe(
+      '0 2px 6px rgba(17, 17, 17, 0.06)'
+    )
   })
 
   it('uses mobile extension rendering when forceMobileLayout is set on desktop', async () => {
@@ -477,5 +557,17 @@ describe('SidebarPanelExtensionPageContainer', () => {
 
     expect(onCollapse).toHaveBeenCalledTimes(1)
     expect(onClose).toHaveBeenCalledTimes(1)
+    expect(
+      screen.getByRole('button', { name: 'Collapse current page' })
+    ).toHaveStyle({
+      boxShadow: '0 2px 8px rgba(17, 17, 17, 0.12)',
+    })
+    expect(
+      screen
+        .getByRole('button', { name: 'Collapse current page' })
+        .querySelector('.MuiSvgIcon-root') as HTMLElement
+    ).toHaveStyle({
+      fontSize: '1.85rem',
+    })
   })
 })
