@@ -1,6 +1,10 @@
 import type { ExpressionSpecification } from 'maplibre-gl'
 
 import type { ExtendedLayerSpecification } from '#/common/types/map'
+import {
+  ENERGYMAP_BUILDING_POLYGONS_LAYER_MAX_ZOOM,
+  ENERGYMAP_BUILDING_POLYGONS_LAYER_MIN_ZOOM,
+} from './buildingSource'
 
 export const ENERGYMAP_ENERGY_CERTIFICATE_LAYER_GROUP_ID =
   'energymap_energy_certificates'
@@ -87,6 +91,8 @@ export const createEnergymapEnergyCertificateLayers = ({
       source: sourceId,
       'source-layer': sourceLayer,
       type: 'fill',
+      minzoom: ENERGYMAP_BUILDING_POLYGONS_LAYER_MIN_ZOOM,
+      maxzoom: ENERGYMAP_BUILDING_POLYGONS_LAYER_MAX_ZOOM,
       layout: {
         visibility: 'none',
       },
@@ -100,7 +106,8 @@ export const createEnergymapEnergyCertificateLayers = ({
       source: sourceId,
       'source-layer': sourceLayer,
       type: 'line',
-      minzoom: 11,
+      minzoom: ENERGYMAP_BUILDING_POLYGONS_LAYER_MIN_ZOOM,
+      maxzoom: ENERGYMAP_BUILDING_POLYGONS_LAYER_MAX_ZOOM,
       layout: {
         visibility: 'none',
       },

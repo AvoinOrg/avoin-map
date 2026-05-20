@@ -1291,11 +1291,12 @@ describe('BuildingInfoPanel', () => {
       'data-source-properties',
       'planned_measure'
     )
-    expect(
-      within(missingValue as HTMLElement).getByTestId(
-        'building-info-unavailable-value-icon'
-      )
-    ).toBeInTheDocument()
+    const missingValueIcon = within(missingValue as HTMLElement).getByTestId(
+      'building-info-unavailable-value-icon'
+    )
+
+    expect(missingValueIcon).toBeInTheDocument()
+    expect(missingValueIcon).toHaveStyle({ color: '#9E9E9E' })
     expect(
       within(placeholderValue as HTMLElement).getByTestId(
         'building-info-unavailable-value-icon'

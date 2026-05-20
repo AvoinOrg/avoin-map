@@ -1,5 +1,9 @@
 import type { ExtendedStyleSpecification } from '#/common/types/map'
 import {
+  ENERGYMAP_BUILDING_POLYGONS_SOURCE_MAX_ZOOM,
+  ENERGYMAP_BUILDING_POLYGONS_SOURCE_MIN_ZOOM,
+} from './buildingSource'
+import {
   ENERGYMAP_ENERGY_CERTIFICATE_FILL_LAYER_ID,
   ENERGYMAP_ENERGY_CERTIFICATE_LAYER_IDS,
   ENERGYMAP_ENERGY_CERTIFICATE_OUTLINE_LAYER_ID,
@@ -12,7 +16,9 @@ import {
 import energymapBuildingPolygonsLayerConf, {
   ENERGYMAP_BUILDING_COMPLETION_DATE_PROPERTY,
   ENERGYMAP_BUILDING_POLYGONS_FILL_LAYER_ID,
+  ENERGYMAP_BUILDING_POLYGONS_LAYER_MAX_ZOOM,
   ENERGYMAP_BUILDING_POLYGONS_LAYER_IDS,
+  ENERGYMAP_BUILDING_POLYGONS_LAYER_MIN_ZOOM,
   ENERGYMAP_BUILDING_POLYGONS_OUTLINE_LAYER_ID,
   ENERGYMAP_BUILDING_POLYGONS_SELECTED_FILL_LAYER_ID,
   ENERGYMAP_BUILDING_POLYGONS_SELECTED_OUTLINE_LAYER_ID,
@@ -197,8 +203,8 @@ describe('Energiakartta shared building polygon layer config', () => {
     expect(style.sources[ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID]).toMatchObject({
       type: 'vector',
       scheme: 'tms',
-      minzoom: 5,
-      maxzoom: 14,
+      minzoom: ENERGYMAP_BUILDING_POLYGONS_SOURCE_MIN_ZOOM,
+      maxzoom: ENERGYMAP_BUILDING_POLYGONS_SOURCE_MAX_ZOOM,
       bounds: [19, 59, 32, 71],
       promoteId: ENERGYMAP_BUILDING_KEY_PROPERTY,
     })
@@ -230,6 +236,19 @@ describe('Energiakartta shared building polygon layer config', () => {
       expect(layer).toMatchObject({
         source: ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
         'source-layer': ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
+      })
+    }
+  })
+
+  it('gates every shared building rendering layer to the published polygon zoom range', async () => {
+    const style = await getSharedBuildingStyle()
+
+    for (const layerId of ENERGYMAP_SHARED_BUILDING_LAYER_IDS) {
+      const layer = style.layers.find((candidate) => candidate.id === layerId)
+
+      expect(layer).toMatchObject({
+        minzoom: ENERGYMAP_BUILDING_POLYGONS_LAYER_MIN_ZOOM,
+        maxzoom: ENERGYMAP_BUILDING_POLYGONS_LAYER_MAX_ZOOM,
       })
     }
   })

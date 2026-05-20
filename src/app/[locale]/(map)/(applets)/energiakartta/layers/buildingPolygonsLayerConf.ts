@@ -3,6 +3,8 @@ import type { ExpressionSpecification, FilterSpecification } from 'maplibre-gl'
 import { ExtendedStyleSpecification, LayerConf } from '#/common/types/map'
 import {
   ENERGYMAP_BUILDING_KEY_PROPERTY,
+  ENERGYMAP_BUILDING_POLYGONS_LAYER_MAX_ZOOM,
+  ENERGYMAP_BUILDING_POLYGONS_LAYER_MIN_ZOOM,
   ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
   ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
   ENERGYMAP_BUILDING_POLYGONS_WORKSPACE,
@@ -40,6 +42,8 @@ export {
   ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
   ENERGYMAP_BUILDING_POLYGONS_WORKSPACE,
   ENERGYMAP_BUILDING_KEY_PROPERTY,
+  ENERGYMAP_BUILDING_POLYGONS_LAYER_MAX_ZOOM,
+  ENERGYMAP_BUILDING_POLYGONS_LAYER_MIN_ZOOM,
   getEnergymapBuildingPolygonsTileUrl,
 }
 
@@ -235,6 +239,8 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
         source: ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
         'source-layer': ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
         type: 'fill',
+        minzoom: ENERGYMAP_BUILDING_POLYGONS_LAYER_MIN_ZOOM,
+        maxzoom: ENERGYMAP_BUILDING_POLYGONS_LAYER_MAX_ZOOM,
         filter: ENERGYMAP_BUILDING_MATCH_ALL_FILTER,
         paint: {
           'fill-color': '#7DAD46',
@@ -248,7 +254,8 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
         source: ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
         'source-layer': ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
         type: 'line',
-        minzoom: 11,
+        minzoom: ENERGYMAP_BUILDING_POLYGONS_LAYER_MIN_ZOOM,
+        maxzoom: ENERGYMAP_BUILDING_POLYGONS_LAYER_MAX_ZOOM,
         filter: ENERGYMAP_BUILDING_MATCH_ALL_FILTER,
         paint: {
           'line-color': '#111111',
@@ -269,6 +276,8 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
         source: ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
         'source-layer': ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
         type: 'fill',
+        minzoom: ENERGYMAP_BUILDING_POLYGONS_LAYER_MIN_ZOOM,
+        maxzoom: ENERGYMAP_BUILDING_POLYGONS_LAYER_MAX_ZOOM,
         filter: ENERGYMAP_BUILDING_MATCH_ALL_FILTER,
         paint: {
           'fill-color': '#FFFFFF',
@@ -280,7 +289,8 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
         source: ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
         'source-layer': ENERGYMAP_BUILDING_POLYGONS_SOURCE_LAYER,
         type: 'line',
-        minzoom: 11,
+        minzoom: ENERGYMAP_BUILDING_POLYGONS_LAYER_MIN_ZOOM,
+        maxzoom: ENERGYMAP_BUILDING_POLYGONS_LAYER_MAX_ZOOM,
         filter: ENERGYMAP_BUILDING_MATCH_ALL_FILTER,
         paint: {
           'line-color': '#111111',

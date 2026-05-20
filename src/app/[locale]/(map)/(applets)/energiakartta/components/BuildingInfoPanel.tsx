@@ -169,6 +169,7 @@ const DESKTOP_HEADING_TOP = '7.375rem'
 const DESKTOP_SECTION_BOTTOM_PADDING = '6.5rem'
 const DESKTOP_HEADING_GRAPHIC_TOP = '-4.25rem'
 const DESKTOP_HEADING_DIVIDER_MARGIN_TOP = '0.75rem'
+const UNAVAILABLE_VALUE_ICON_COLOR = '#9E9E9E'
 
 const SIDEBAR_ASSET_BASE = '/files/img/energiakartta/sidebar'
 
@@ -631,7 +632,10 @@ const BuildingInfoValueText = ({
             <ConstructionIcon
               data-testid="building-info-unavailable-value-icon"
               aria-hidden="true"
-              sx={{ fontSize: '1rem' }}
+              sx={{
+                color: UNAVAILABLE_VALUE_ICON_COLOR,
+                fontSize: '1rem',
+              }}
             />
             <Box
               component="span"
