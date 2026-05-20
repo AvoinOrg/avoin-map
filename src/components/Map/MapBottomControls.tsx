@@ -3,23 +3,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DOMPurify from 'dompurify'
 import { Box, Button } from '@mui/material'
-import { useParams, usePathname } from 'next/navigation'
 
 import {
-  HIILIKARTTA_HOME_FLOATING_GUTTER_PX,
-  MAIN_SIDEBAR_BOTTOM_CONTROLS_SLOT,
-  MAIN_SIDEBAR_TOP_CONTROLS_SLOT,
+  MAP_CONTROL_EDGE_GUTTER_PX,
 } from '#/common/constants/map'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
-import { compiledApplets, getPathnameWithoutLocale } from '#/common/routing/routing'
 import { useMapStore, useUIStore } from '#/common/store'
 import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
+import {
+  selectActiveSidebarBoundaryId,
+  selectActiveSidebarMode,
+} from '#/common/utils/sidebarBoundaryRegistry'
 import { IntoSlot } from '#/components/context/slotsContext'
 import { AttributionInfo, Cookie } from '#/components/icons'
+import { getSidebarSlotKey } from '#/components/Sidebar/sidebarSlots'
+import MapBottomLeftFloatingControlsSlot from './MapBottomLeftFloatingControlsSlot'
 
 const INITIAL_PANEL_MAX_WIDTH_PX = 480
 const MIN_INLINE_PANEL_WIDTH_PX = 120
-const CONTROL_EDGE_GUTTER_PX = 16
 const PANEL_GAP_PX = 8
 
 type MainSidebarPlacement =
@@ -35,30 +36,44 @@ const MapBottomControls = () => {
   const mapAttributionHtml = useMapStore((state) => state.mapAttributionHtml)
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
   const sidebarWidth = useUIStore((state) => state.sidebarWidth)
+  const activeSidebarId = useUIStore((state) =>
+    selectActiveSidebarBoundaryId(state.sidebarBoundaries)
+  )
+  const activeSidebarMode = useUIStore((state) =>
+    selectActiveSidebarMode(state.sidebarBoundaries)
+  )
   const isMobile = useIsMobile('desktop')
-  const pathname = usePathname()
-  const { locale } = useParams()
-  const pathnameWithoutLocale = getPathnameWithoutLocale(pathname, locale ?? null)
-  const isStandaloneHiilikartta =
-    compiledApplets.length === 1 && compiledApplets[0] === 'hiilikartta'
-  const isMainPage = pathnameWithoutLocale === '/' && !isStandaloneHiilikartta
-  const isHiilikarttaHomePage =
-    pathnameWithoutLocale === '/hiilikartta' ||
-    (isStandaloneHiilikartta && pathnameWithoutLocale === '/')
-  const useMainSidebarBottomSlot = isMainPage && isSidebarOpen && !isMobile
-  const useMainSidebarTopSlot = isMainPage && isSidebarOpen && isMobile
-  const useMobileFixedInfoOnly = isMainPage && !isSidebarOpen && isMobile
+  const isHomeSidebarActive = activeSidebarMode === 'home'
+  const useMainSidebarBottomSlot =
+    isHomeSidebarActive && activeSidebarId != null && isSidebarOpen && !isMobile
+  const useMainSidebarTopSlot =
+    isHomeSidebarActive && activeSidebarId != null && isSidebarOpen && isMobile
+  const useMobileFixedInfoOnly =
+    isHomeSidebarActive && !isSidebarOpen && isMobile
+  const mainSidebarTopControlsSlot =
+    activeSidebarId != null
+      ? getSidebarSlotKey({ boundaryId: activeSidebarId, slot: 'topControls' })
+      : undefined
+  const mainSidebarBottomControlsSlot =
+    activeSidebarId != null
+      ? getSidebarSlotKey({
+          boundaryId: activeSidebarId,
+          slot: 'bottomControls',
+        })
+      : undefined
 
   const [isPanelOpen, setIsPanelOpen] = useState(true)
   const [panelMaxWidth, setPanelMaxWidth] = useState<number>(
     INITIAL_PANEL_MAX_WIDTH_PX
   )
   const [panelLeftOffset, setPanelLeftOffset] = useState<number>(84)
-  const [overlayPanelLeftOffset, setOverlayPanelLeftOffset] = useState<number>(0)
+  const [overlayPanelLeftOffset, setOverlayPanelLeftOffset] =
+    useState<number>(0)
   const [panelLayout, setPanelLayout] = useState<PanelLayout>('inline-right')
-  const [slotPlacement, setSlotPlacement] = useState<MainSidebarPlacement | null>(
-    null
-  )
+  const [slotPlacement, setSlotPlacement] =
+    useState<MainSidebarPlacement | null>(null)
+  const [buttonRowWidth, setButtonRowWidth] = useState<number>(0)
+  const [viewportWidth, setViewportWidth] = useState<number | null>(null)
   const controlsRef = useRef<HTMLDivElement | null>(null)
   const buttonRowRef = useRef<HTMLDivElement | null>(null)
 
@@ -70,18 +85,22 @@ const MapBottomControls = () => {
     [mapAttributionHtml]
   )
 
-  const controlEdgeGutterPx =
-    !isMobile && isHiilikarttaHomePage
-      ? HIILIKARTTA_HOME_FLOATING_GUTTER_PX
-      : CONTROL_EDGE_GUTTER_PX
-  const spacingLeftPx = controlEdgeGutterPx
-  const spacingBottomPx = controlEdgeGutterPx
+  const spacingLeftPx = MAP_CONTROL_EDGE_GUTTER_PX
+  const spacingBottomPx = MAP_CONTROL_EDGE_GUTTER_PX
 
-  const leftOffsetPx = isMobile
+  const desiredLeftOffsetPx = isMobile
     ? spacingLeftPx
     : isSidebarOpen
       ? (sidebarWidth ?? 0) + spacingLeftPx
       : spacingLeftPx
+  const hasRoomForDesiredLeftOffset =
+    isMobile ||
+    viewportWidth == null ||
+    buttonRowWidth <= 0 ||
+    desiredLeftOffsetPx + buttonRowWidth <= viewportWidth - spacingLeftPx
+  const leftOffsetPx = hasRoomForDesiredLeftOffset
+    ? desiredLeftOffsetPx
+    : spacingLeftPx
 
   const updatePanelLayout = useCallback(() => {
     const controlsEl = controlsRef.current
@@ -94,6 +113,14 @@ const MapBottomControls = () => {
     const controlsRect = controlsEl.getBoundingClientRect()
     const buttonRowRect = buttonRowEl.getBoundingClientRect()
     const nextPanelLeftOffset = Math.floor(buttonRowRect.width + PANEL_GAP_PX)
+    const nextButtonRowWidth = Math.ceil(buttonRowRect.width)
+
+    setViewportWidth((prev) =>
+      prev === window.innerWidth ? prev : window.innerWidth
+    )
+    setButtonRowWidth((prev) =>
+      prev === nextButtonRowWidth ? prev : nextButtonRowWidth
+    )
 
     setPanelLeftOffset((prev) =>
       prev === nextPanelLeftOffset ? prev : nextPanelLeftOffset
@@ -113,22 +140,24 @@ const MapBottomControls = () => {
       ) as HTMLElement | null
 
       nextSlotPlacement =
-        (wrapperEl?.dataset
-          .mainSidebarControlsSlotWrapper as MainSidebarPlacement | undefined) ??
-        null
+        (wrapperEl?.dataset.mainSidebarControlsSlotWrapper as
+          | MainSidebarPlacement
+          | undefined) ?? null
 
       if (frameEl) {
         const frameRect = frameEl.getBoundingClientRect()
         const inlinePanelStartX = controlsRect.left + nextPanelLeftOffset
         const inlineAvailableWidth = Math.floor(
-          frameRect.right - inlinePanelStartX - CONTROL_EDGE_GUTTER_PX
+          frameRect.right - inlinePanelStartX - MAP_CONTROL_EDGE_GUTTER_PX
         )
-        const overlayStartX = frameRect.left + CONTROL_EDGE_GUTTER_PX
+        const overlayStartX = frameRect.left + MAP_CONTROL_EDGE_GUTTER_PX
         const overlayAvailableWidth = Math.floor(
-          frameRect.right - overlayStartX - CONTROL_EDGE_GUTTER_PX
+          frameRect.right - overlayStartX - MAP_CONTROL_EDGE_GUTTER_PX
         )
 
-        nextOverlayPanelLeftOffset = Math.floor(overlayStartX - controlsRect.left)
+        nextOverlayPanelLeftOffset = Math.floor(
+          overlayStartX - controlsRect.left
+        )
         nextPanelLayout =
           nextSlotPlacement === 'overlay-sidebar' ||
           inlineAvailableWidth < MIN_INLINE_PANEL_WIDTH_PX
@@ -161,12 +190,18 @@ const MapBottomControls = () => {
       }
     }
 
-    setSlotPlacement((prev) => (prev === nextSlotPlacement ? prev : nextSlotPlacement))
+    setSlotPlacement((prev) =>
+      prev === nextSlotPlacement ? prev : nextSlotPlacement
+    )
     setOverlayPanelLeftOffset((prev) =>
       prev === nextOverlayPanelLeftOffset ? prev : nextOverlayPanelLeftOffset
     )
-    setPanelLayout((prev) => (prev === nextPanelLayout ? prev : nextPanelLayout))
-    setPanelMaxWidth((prev) => (prev === nextPanelMaxWidth ? prev : nextPanelMaxWidth))
+    setPanelLayout((prev) =>
+      prev === nextPanelLayout ? prev : nextPanelLayout
+    )
+    setPanelMaxWidth((prev) =>
+      prev === nextPanelMaxWidth ? prev : nextPanelMaxWidth
+    )
   }, [spacingLeftPx, useMainSidebarBottomSlot])
 
   useEffect(() => {
@@ -281,6 +316,7 @@ const MapBottomControls = () => {
     showInfoButton: boolean
   }) => (
     <>
+      <MapBottomLeftFloatingControlsSlot />
       {showInfoButton && isPanelOpen && sanitizedAttributionHtml && (
         <Box
           sx={(theme) => ({
@@ -289,7 +325,8 @@ const MapBottomControls = () => {
               panelLayout === 'overlay-sidebar'
                 ? `${overlayPanelLeftOffset}px`
                 : `${panelLeftOffset}px`,
-            bottom: panelLayout === 'overlay-sidebar' ? 'calc(100% + 0.5rem)' : 0,
+            bottom:
+              panelLayout === 'overlay-sidebar' ? 'calc(100% + 0.5rem)' : 0,
             pointerEvents: 'auto',
             width: 'max-content',
             maxWidth: `${panelMaxWidth}px`,
@@ -338,12 +375,12 @@ const MapBottomControls = () => {
     </>
   )
 
-  if (useMainSidebarTopSlot) {
+  if (useMainSidebarTopSlot && mainSidebarTopControlsSlot != null) {
     return (
-      <IntoSlot name={MAIN_SIDEBAR_TOP_CONTROLS_SLOT}>
+      <IntoSlot name={mainSidebarTopControlsSlot}>
         <Box
           ref={controlsRef}
-          data-main-sidebar-top-controls-inner="true"
+          data-main-sidebar-top-control-inner="true"
           sx={(theme) => ({
             position: 'relative',
             width: 'max-content',
@@ -357,12 +394,12 @@ const MapBottomControls = () => {
     )
   }
 
-  if (useMainSidebarBottomSlot) {
+  if (useMainSidebarBottomSlot && mainSidebarBottomControlsSlot != null) {
     return (
-      <IntoSlot name={MAIN_SIDEBAR_BOTTOM_CONTROLS_SLOT}>
+      <IntoSlot name={mainSidebarBottomControlsSlot}>
         <Box
           ref={controlsRef}
-          data-main-sidebar-bottom-controls-inner="true"
+          data-main-sidebar-bottom-control-inner="true"
           sx={(theme) => ({
             position: 'relative',
             width: 'max-content',
@@ -384,7 +421,9 @@ const MapBottomControls = () => {
         left: leftOffsetPx,
         bottom: spacingBottomPx,
         pointerEvents: 'none',
-        zIndex: theme.zIndex.mapButtons,
+        zIndex: hasRoomForDesiredLeftOffset
+          ? theme.zIndex.mapButtons
+          : theme.zIndex.drawer + 12,
         transition:
           'left 220ms cubic-bezier(.2,0,.2,1), bottom 220ms cubic-bezier(.2,0,.2,1)',
       })}

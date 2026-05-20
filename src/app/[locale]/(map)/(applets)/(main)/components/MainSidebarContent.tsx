@@ -11,11 +11,13 @@ import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react'
 
 import MutableLink from '#/components/common/MutableLink'
-import { Slot } from '#/components/context/slotsContext'
 import {
-  MAIN_SIDEBAR_BOTTOM_CONTROLS_SLOT,
-  MAIN_SIDEBAR_TOP_CONTROLS_SLOT,
-} from '#/common/constants/map'
+  useSidebarBoundaryContext,
+} from '#/components/Sidebar/sidebarBoundaryContext'
+import {
+  SidebarBottomControlsSlot,
+  SidebarTopControlsSlot,
+} from '#/components/Sidebar/sidebarSlots'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import { mainRouteTree } from '#/common/routing/routes/main'
 import { SCROLLBAR_WIDTH_REM } from '#/common/style/theme/constants'
@@ -103,6 +105,7 @@ type ScrollState = {
 const MainSidebarContent = () => {
   const { t } = useTranslate('avoin-map')
   const isMobile = useIsMobile('desktop')
+  const { boundaryId } = useSidebarBoundaryContext()
   const scrollContainerRef = useRef<OverlayScrollbarsComponentRef<'div'> | null>(null)
   const visibleFrameRef = useRef<HTMLDivElement | null>(null)
   const leftColumnRef = useRef<HTMLDivElement | null>(null)
@@ -1309,7 +1312,7 @@ const MainSidebarContent = () => {
           </Box>
 
           <Box
-            data-main-sidebar-top-controls="true"
+            data-main-sidebar-top-control-area="true"
             sx={{
               position: 'absolute',
               top: 'auto',
@@ -1326,7 +1329,7 @@ const MainSidebarContent = () => {
                 pointerEvents: 'auto',
               }}
             >
-              <Slot name={MAIN_SIDEBAR_TOP_CONTROLS_SLOT} />
+              <SidebarTopControlsSlot boundaryId={boundaryId} />
             </Box>
           </Box>
 
@@ -1351,7 +1354,7 @@ const MainSidebarContent = () => {
                 pointerEvents: 'none',
               }}
             >
-              <Slot name={MAIN_SIDEBAR_BOTTOM_CONTROLS_SLOT} />
+              <SidebarBottomControlsSlot boundaryId={boundaryId} />
             </Box>
           </Box>
         </Box>

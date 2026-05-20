@@ -4,7 +4,7 @@ import AppletLayout from '#/components/common/AppletLayout'
 import LayoutClient from './layoutClient'
 
 export const metadata: Metadata = {
-  title: 'Luonnonmetsakartat',
+  title: 'Energiakartta',
 }
 
 const Layout = ({ children }: { children: React.ReactNode }) => {

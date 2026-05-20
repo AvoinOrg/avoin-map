@@ -1,21 +1,23 @@
 'use client'
 
 import React, { useEffect, useRef } from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
+import { Box } from '@mui/material'
+import type { SxProps, Theme } from '@mui/material'
 
 import { useUIStore } from '#/common/store'
+import { LoadingSpinner } from '../Loading'
 
 import SidebarToggleButton from './SidebarToggleButton'
 
-export const MainSidebar = ({
-  sx,
-  children,
-}: {
+export type HomeSidebarProps = {
   sx?: SxProps<Theme>
   children: React.ReactNode
-}) => {
+}
+
+export const HomeSidebar = ({ sx, children }: HomeSidebarProps) => {
   const isSidebarDisabled = useUIStore((state) => state.isSidebarDisabled)
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
+  const isSidebarLoading = useUIStore((state) => state.isSidebarLoading)
   const setSidebarWidth = useUIStore((state) => state.setSidebarWidth)
 
   const sidebarPanelRef = useRef<HTMLDivElement | null>(null)
@@ -109,6 +111,7 @@ export const MainSidebar = ({
         >
           <Box
             sx={{
+              position: 'relative',
               display: 'flex',
               flexDirection: 'column',
               flex: 1,
@@ -116,6 +119,23 @@ export const MainSidebar = ({
               height: '100%',
             }}
           >
+            {isSidebarLoading && (
+              <Box
+                sx={(theme) => ({
+                  position: 'absolute',
+                  inset: 0,
+                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: theme.zIndex.drawer + 10,
+                  borderRadius: { mobile: 0, desktop: '10px' },
+                  pointerEvents: 'auto',
+                })}
+              >
+                <LoadingSpinner size="5rem" />
+              </Box>
+            )}
             {children}
           </Box>
         </Box>
@@ -124,4 +144,4 @@ export const MainSidebar = ({
   )
 }
 
-export default MainSidebar
+export default HomeSidebar

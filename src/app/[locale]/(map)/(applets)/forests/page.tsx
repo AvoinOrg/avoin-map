@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useLayoutEffect } from 'react'
+import React, { useState, useEffect, useLayoutEffect, useMemo } from 'react'
 import { Box, IconButton, Tooltip, Typography } from '@mui/material'
 import BarChartIcon from '@mui/icons-material/BarChart'
 import Image from 'next/image'
@@ -18,7 +18,14 @@ import { useLocaleFormatter } from '#/common/hooks/useLocaleFormatter'
 import { FINLAND_BOUNDS } from '#/common/constants/map'
 import useSelectedFeaturesFilteredByLayer from '#/common/hooks/map/useSelectedFeaturesFilteredByLayer'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
-import { SidebarContentBox, SimpleSidebar } from '#/components/Sidebar'
+import type { SidebarPanelExtensionRuntimeOptions } from '#/common/types/sidebar'
+import {
+  IntoSidebarPanelExtensionActionRailSlot,
+  IntoSidebarPanelExtensionPanelSlot,
+  IntoSidebarPanelSlot,
+  SidebarPanelExtensionProvider,
+  SidebarContentBox,
+} from '#/components/Sidebar'
 import SidebarBackgroundContent from '#/components/common/SidebarBackgroundContent'
 import { useLayerGroup } from '#/common/hooks/map/useLayerGroup'
 import Info from '#/components/icons/Info'
@@ -489,13 +496,30 @@ const FinlandForests = () => {
           backgroundColor: '#ffffff',
         }}
       >
-        <SwitchWithLabel
-          sx={{ mb: 7 }}
-          checked={cumulativeFlag}
-          onChange={onChangeCheckbox(setCumulativeFlag)}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 1,
+            mb: 7,
+          }}
         >
-          Show cumulative carbon balance
-        </SwitchWithLabel>
+          <SwitchWithLabel
+            sx={{ flex: 1, minWidth: 0 }}
+            checked={cumulativeFlag}
+            onChange={onChangeCheckbox(setCumulativeFlag)}
+          >
+            Show cumulative carbon balance
+          </SwitchWithLabel>
+          <IconButton
+            aria-label="close graphs panel"
+            onClick={() => setIsGraphPanelOpen(false)}
+            size="small"
+            sx={graphActionButtonSx}
+          >
+            <Cross sx={{ width: '1rem', height: '1rem' }} />
+          </IconButton>
+        </Box>
         {hasFeature && (
           <>
             <Box
@@ -618,8 +642,10 @@ const FinlandForests = () => {
       </Box>
     ) : null
 
+  const hasGraphPanel = hasFeature && graphPanelContent != null
+
   const graphActionButton =
-    hasFeature && graphPanelContent ? (
+    hasGraphPanel ? (
       <Tooltip title={isGraphPanelOpen ? 'Hide graphs' : 'Show graphs'} arrow>
         <IconButton
           aria-label={isGraphPanelOpen ? 'hide graphs' : 'show graphs'}
@@ -640,338 +666,348 @@ const FinlandForests = () => {
       </Tooltip>
     ) : null
 
-  return (
-    <SimpleSidebar
-      panels={
-        graphPanelContent && graphActionButton
-          ? {
-              mode: 'single',
-              isOpen: isGraphPanelOpen,
-              mobileMode: 'stacked',
-              mobileStackPlacement: 'before',
-              desktopActionRail: graphActionButton,
-              mobileActionRail: graphActionButton,
-              panel: {
-                content: graphPanelContent,
-                showCloseButton: true,
-                onClose: () => setIsGraphPanelOpen(false),
-                closeAriaLabel: 'close graphs panel',
-              },
-            }
-          : undefined
-      }
-    >
-      <SidebarContentBox
-        scrollFadeColor="#ffffff"
-        sxInner={{
-          pt: 0,
-          gap: { mobile: '1.5rem', desktop: '1.5rem' },
-          px: { mobile: '1rem', desktop: '1.875rem' },
-          pb: { mobile: '1.25rem', desktop: '1.5rem' },
-          backgroundColor: '#ffffff',
-        }}
-      >
-        <SidebarBackgroundContent
-          imageSrc="/files/img/green-drawings/forest.jpg"
-          imageAlt="Forest"
-          title="Forest carbon report"
-          description="Select a forest area to compare carbon balance, carbon stock, harvested wood, and forestry methods."
-          imageSx={{
-            height: '5.625rem',
-            objectPosition: 'center 45%',
-          }}
-          contentSx={{
-            px: '2.4375rem',
-            pt: '3rem',
-            pb: '3.5rem',
-            gap: '2rem',
-          }}
-          headerSx={{
-            gap: '1.5rem',
-          }}
-          descriptionSx={{
-            width: '100%',
-            maxWidth: 'none',
-          }}
-        />
+  const sidebarPanelExtensionRuntimeOptions =
+    useMemo<SidebarPanelExtensionRuntimeOptions>(
+      () => ({
+        panelLayout: 'single',
+        visiblePanels: hasGraphPanel && isGraphPanelOpen ? ['main'] : [],
+        activePanel: 'main',
+        mobileMode: 'stacked',
+        mobileStackPlacement: 'before',
+        actionRailPlacement: 'bottomActionRow',
+      }),
+      [hasGraphPanel, isGraphPanelOpen]
+    )
 
-        {options != null && (
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              flex: 1,
-              minHeight: 0,
+  return (
+    <SidebarPanelExtensionProvider
+      id="forests-graph-panel-extension"
+      enabled={hasGraphPanel}
+      runtimeOptions={sidebarPanelExtensionRuntimeOptions}
+    >
+      <IntoSidebarPanelSlot panelId="main">
+        <SidebarContentBox
+          scrollFadeColor="#ffffff"
+          sxInner={{
+            pt: 0,
+            gap: { mobile: '1.5rem', desktop: '1.5rem' },
+            px: { mobile: '1rem', desktop: '1.875rem' },
+            pb: { mobile: '1.25rem', desktop: '1.5rem' },
+            backgroundColor: '#ffffff',
+          }}
+        >
+          <SidebarBackgroundContent
+            imageSrc="/files/img/green-drawings/forest.jpg"
+            imageAlt="Forest"
+            title="Forest carbon report"
+            description="Select a forest area to compare carbon balance, carbon stock, harvested wood, and forestry methods."
+            imageSx={{
+              height: '5.625rem',
+              objectPosition: 'center 45%',
             }}
-          >
-            {/* TODO: enable headerTable */}
-            <Box>
-              {hasFeature ? (
-                <Box>
+            contentSx={{
+              px: '2.4375rem',
+              pt: '3rem',
+              pb: '3.5rem',
+              gap: '2rem',
+            }}
+            headerSx={{
+              gap: '1.5rem',
+            }}
+            descriptionSx={{
+              width: '100%',
+              maxWidth: 'none',
+            }}
+          />
+
+          {options != null && (
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                flex: 1,
+                minHeight: 0,
+              }}
+            >
+              {/* TODO: enable headerTable */}
+              <Box>
+                {hasFeature ? (
                   <Box>
-                    <Box
-                      sx={{
-                        backgroundColor: 'neutral.lighter',
-                        py: 0.5,
-                        borderRadius: 1,
-                      }}
-                    >
+                    <Box>
                       <Box
-                        component="table"
                         sx={{
-                          width: '100%',
-                          borderCollapse: 'collapse',
-                        }}
-                      >
-                        <Box component="tbody">
-                          {selectedAreaRows.map((row) => (
-                            <Box component="tr" key={row.id}>
-                              <Box
-                                component="td"
-                                sx={{
-                                  py: 1,
-                                  pl: 2,
-                                  pr: 1.5,
-                                  verticalAlign: 'middle',
-                                }}
-                              >
-                                {row.display}
-                              </Box>
-                              <Box
-                                component="td"
-                                sx={{
-                                  py: 1,
-                                  px: 0,
-                                  textAlign: 'right',
-                                  whiteSpace: 'nowrap',
-                                  minWidth: 80,
-                                  verticalAlign: 'middle',
-                                }}
-                              >
-                                {row.area}
-                              </Box>
-                              <Box
-                                component="td"
-                                sx={{
-                                  py: 1,
-                                  pr: 2,
-                                  textAlign: 'right',
-                                  verticalAlign: 'middle',
-                                }}
-                              >
-                                <IconButton
-                                  size="small"
-                                  aria-label={`Remove ${row.label}`}
-                                  onClick={() =>
-                                    handleDeselectFeature(row.feature)
-                                  }
-                                >
-                                  <Cross sx={{ width: 14, height: 14 }} />
-                                </IconButton>
-                              </Box>
-                            </Box>
-                          ))}
-                        </Box>
-                      </Box>
-                      <Box
-                        component="table"
-                        sx={{
-                          width: '100%',
-                          borderCollapse: 'collapse',
-                          mt: 3,
+                          backgroundColor: 'neutral.lighter',
+                          py: 0.5,
+                          borderRadius: 1,
                         }}
                       >
                         <Box
-                          component="tbody"
+                          component="table"
                           sx={{
-                            'td:first-of-type': { pl: 2, pr: 1.5 },
-                            'td:last-of-type': { pr: 2 },
+                            width: '100%',
+                            borderCollapse: 'collapse',
                           }}
                         >
-                          {summaryRows.map((row) => (
-                            <Box component="tr" key={row.key}>
-                              <Box
-                                component="td"
-                                sx={{
-                                  py: 1,
-                                  px: 0,
-                                  fontWeight: 500,
-                                  verticalAlign: 'top',
-                                }}
-                              >
-                                {row.name}
+                          <Box component="tbody">
+                            {selectedAreaRows.map((row) => (
+                              <Box component="tr" key={row.id}>
+                                <Box
+                                  component="td"
+                                  sx={{
+                                    py: 1,
+                                    pl: 2,
+                                    pr: 1.5,
+                                    verticalAlign: 'middle',
+                                  }}
+                                >
+                                  {row.display}
+                                </Box>
+                                <Box
+                                  component="td"
+                                  sx={{
+                                    py: 1,
+                                    px: 0,
+                                    textAlign: 'right',
+                                    whiteSpace: 'nowrap',
+                                    minWidth: 80,
+                                    verticalAlign: 'middle',
+                                  }}
+                                >
+                                  {row.area}
+                                </Box>
+                                <Box
+                                  component="td"
+                                  sx={{
+                                    py: 1,
+                                    pr: 2,
+                                    textAlign: 'right',
+                                    verticalAlign: 'middle',
+                                  }}
+                                >
+                                  <IconButton
+                                    size="small"
+                                    aria-label={`Remove ${row.label}`}
+                                    onClick={() =>
+                                      handleDeselectFeature(row.feature)
+                                    }
+                                  >
+                                    <Cross sx={{ width: 14, height: 14 }} />
+                                  </IconButton>
+                                </Box>
                               </Box>
-                              <Box
-                                component="td"
-                                sx={{
-                                  py: 1,
-                                  px: 0,
-                                  textAlign: 'right',
-                                  whiteSpace: 'nowrap',
-                                  minWidth: 80,
-                                }}
-                              >
-                                {row.value}
+                            ))}
+                          </Box>
+                        </Box>
+                        <Box
+                          component="table"
+                          sx={{
+                            width: '100%',
+                            borderCollapse: 'collapse',
+                            mt: 3,
+                          }}
+                        >
+                          <Box
+                            component="tbody"
+                            sx={{
+                              'td:first-of-type': { pl: 2, pr: 1.5 },
+                              'td:last-of-type': { pr: 2 },
+                            }}
+                          >
+                            {summaryRows.map((row) => (
+                              <Box component="tr" key={row.key}>
+                                <Box
+                                  component="td"
+                                  sx={{
+                                    py: 1,
+                                    px: 0,
+                                    fontWeight: 500,
+                                    verticalAlign: 'top',
+                                  }}
+                                >
+                                  {row.name}
+                                </Box>
+                                <Box
+                                  component="td"
+                                  sx={{
+                                    py: 1,
+                                    px: 0,
+                                    textAlign: 'right',
+                                    whiteSpace: 'nowrap',
+                                    minWidth: 80,
+                                  }}
+                                >
+                                  {row.value}
+                                </Box>
                               </Box>
-                            </Box>
-                          ))}
+                            ))}
+                          </Box>
                         </Box>
                       </Box>
                     </Box>
-                  </Box>
-                  <Box sx={{ mt: 2 }}>
-                    <Typography
-                      variant="body2"
-                      component="span"
-                      sx={{
-                        fontStyle: 'italic',
-                        display: 'inline',
-                      }}
-                    >
-                      Equals{' '}
-                      {formatNumber(
-                        options.averageCarbonBalanceOverall /
-                          CO2_TONS_PER_PERSON,
-                        {
-                          maximumFractionDigits: 0,
-                        }
-                      )}{' '}
-                      times average 👤 CO₂ emissions
-                      <Tooltip
-                        arrow
-                        title="10.7 tonnes of CO₂ equivalents per capita. EU-27, 2022."
+                    <Box sx={{ mt: 2 }}>
+                      <Typography
+                        variant="body2"
+                        component="span"
+                        sx={{
+                          fontStyle: 'italic',
+                          display: 'inline',
+                        }}
                       >
-                        <Info
-                          sx={{
-                            color: 'action.active',
-                            width: 16,
-                            height: 16,
-                            ml: 1,
-                            mb: '-3px',
-                          }}
-                        />
-                      </Tooltip>
-                    </Typography>
+                        Equals{' '}
+                        {formatNumber(
+                          options.averageCarbonBalanceOverall /
+                            CO2_TONS_PER_PERSON,
+                          {
+                            maximumFractionDigits: 0,
+                          }
+                        )}{' '}
+                        times average 👤 CO₂ emissions
+                        <Tooltip
+                          arrow
+                          title="10.7 tonnes of CO₂ equivalents per capita. EU-27, 2022."
+                        >
+                          <Info
+                            sx={{
+                              color: 'action.active',
+                              width: 16,
+                              height: 16,
+                              ml: 1,
+                              mb: '-3px',
+                            }}
+                          />
+                        </Tooltip>
+                      </Typography>
+                    </Box>
                   </Box>
-                </Box>
-              ) : (
-                <Box
-                  sx={{
-                    mt: 3,
-                    mb: 6,
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Star
-                    sx={{
-                      width: 32,
-                      height: 32,
-                      flexShrink: 0,
-                    }}
-                  />
-                  <Typography variant="body2" sx={{ ml: 1.5 }}>
-                    Select a forest area to explore its carbon report. You can
-                    zoom in and out to view different levels.
-                  </Typography>
-                </Box>
-              )}
-              <SwitchWithLabel
-                sx={{ mt: 7 }}
-                checked={perHectareFlag}
-                onChange={(event) => {
-                  onChangeCheckbox(setPerHectareFlag)(event)
-                  setReportPanelOpen(true)
-                }}
-              >
-                Show values per hectare
-              </SwitchWithLabel>
-              <SwitchWithLabel
-                sx={{ mt: 2 }}
-                checked={carbonBalanceDifferenceFlag}
-                onChange={onChangeCheckbox(setCarbonBalanceDifferenceFlag)}
-                disabled={forestryMethod === TRADITIONAL_FORESTRY_METHOD}
-              >
-                Show carbon balance improvement potential compared to the
-                prevalent forestry practice
-              </SwitchWithLabel>
-              <Box
-                sx={{
-                  mt: 7,
-                  p: 2,
-                  borderRadius: 1,
-                  backgroundColor: 'neutral.lighter',
-                }}
-              >
-                <Box>
-                  <DropDownSelectWithHeader
-                    label={'Choose forestry method for calculations:'}
-                    value={forestryMethod.toString()}
-                    options={[
-                      {
-                        value: ForestryMethod.eihakata + '',
-                        label: 'No cuttings',
-                      },
-                      {
-                        value: ForestryMethod.jatkuva + '',
-                        label: 'Continuous cover forestry',
-                      },
-                      {
-                        value: ForestryMethod.tasaikainen + '',
-                        label: 'Thin from below - extended rotation',
-                      },
-                      {
-                        value: ForestryMethod.vapaa + '',
-                        label: 'Unrestricted',
-                      },
-                    ]}
-                    onChange={(event) => {
-                      setForestryMethod(Number(event.target.value))
-                    }}
-                    sx={{ width: '100%' }}
-                  />
-                </Box>
-                <Box sx={{ mt: 2 }}>
+                ) : (
                   <Box
                     sx={{
+                      mt: 3,
+                      mb: 6,
                       display: 'flex',
-                      flexDirection: { mobile: 'column', desktop: 'row' },
+                      flexDirection: 'row',
                       alignItems: 'center',
-                      justifyContent: 'start',
-                      gap: 1,
-                      flexWrap: 'wrap',
-                      textAlign: { mobile: 'center', desktop: 'left' },
                     }}
                   >
-                    <Typography
-                      typography="body2"
-                      sx={{ fontSize: '0.675rem' }}
-                    >
-                      Scientific forest model by
+                    <Star
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        flexShrink: 0,
+                      }}
+                    />
+                    <Typography variant="body2" sx={{ ml: 1.5 }}>
+                      Select a forest area to explore its carbon report. You can
+                      zoom in and out to view different levels.
                     </Typography>
-                    <Link
-                      href="https://arvometsa.fi"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      sx={{ display: 'inline-flex', alignItems: 'center' }}
+                  </Box>
+                )}
+                <SwitchWithLabel
+                  sx={{ mt: 7 }}
+                  checked={perHectareFlag}
+                  onChange={(event) => {
+                    onChangeCheckbox(setPerHectareFlag)(event)
+                    setReportPanelOpen(true)
+                  }}
+                >
+                  Show values per hectare
+                </SwitchWithLabel>
+                <SwitchWithLabel
+                  sx={{ mt: 2 }}
+                  checked={carbonBalanceDifferenceFlag}
+                  onChange={onChangeCheckbox(setCarbonBalanceDifferenceFlag)}
+                  disabled={forestryMethod === TRADITIONAL_FORESTRY_METHOD}
+                >
+                  Show carbon balance improvement potential compared to the
+                  prevalent forestry practice
+                </SwitchWithLabel>
+                <Box
+                  sx={{
+                    mt: 7,
+                    p: 2,
+                    borderRadius: 1,
+                    backgroundColor: 'neutral.lighter',
+                  }}
+                >
+                  <Box>
+                    <DropDownSelectWithHeader
+                      label={'Choose forestry method for calculations:'}
+                      value={forestryMethod.toString()}
+                      options={[
+                        {
+                          value: ForestryMethod.eihakata + '',
+                          label: 'No cuttings',
+                        },
+                        {
+                          value: ForestryMethod.jatkuva + '',
+                          label: 'Continuous cover forestry',
+                        },
+                        {
+                          value: ForestryMethod.tasaikainen + '',
+                          label: 'Thin from below - extended rotation',
+                        },
+                        {
+                          value: ForestryMethod.vapaa + '',
+                          label: 'Unrestricted',
+                        },
+                      ]}
+                      onChange={(event) => {
+                        setForestryMethod(Number(event.target.value))
+                      }}
+                      sx={{ width: '100%' }}
+                    />
+                  </Box>
+                  <Box sx={{ mt: 2 }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: { mobile: 'column', desktop: 'row' },
+                        alignItems: 'center',
+                        justifyContent: 'start',
+                        gap: 1,
+                        flexWrap: 'wrap',
+                        textAlign: { mobile: 'center', desktop: 'left' },
+                      }}
                     >
-                      <Image
-                        alt="Arvometsä"
-                        src={arvometsaLogo}
-                        width={arvometsaLogo.width}
-                        height={arvometsaLogo.height}
-                        style={{ width: 100, height: 'auto' }}
-                      />
-                    </Link>
+                      <Typography
+                        typography="body2"
+                        sx={{ fontSize: '0.675rem' }}
+                      >
+                        Scientific forest model by
+                      </Typography>
+                      <Link
+                        href="https://arvometsa.fi"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{ display: 'inline-flex', alignItems: 'center' }}
+                      >
+                        <Image
+                          alt="Arvometsä"
+                          src={arvometsaLogo}
+                          width={arvometsaLogo.width}
+                          height={arvometsaLogo.height}
+                          style={{ width: 100, height: 'auto' }}
+                        />
+                      </Link>
+                    </Box>
                   </Box>
                 </Box>
               </Box>
             </Box>
-          </Box>
-        )}
-      </SidebarContentBox>
-    </SimpleSidebar>
+          )}
+        </SidebarContentBox>
+      </IntoSidebarPanelSlot>
+      {hasGraphPanel && (
+        <IntoSidebarPanelExtensionPanelSlot panelId="main">
+          {graphPanelContent}
+        </IntoSidebarPanelExtensionPanelSlot>
+      )}
+      {graphActionButton && (
+        <IntoSidebarPanelExtensionActionRailSlot>
+          {graphActionButton}
+        </IntoSidebarPanelExtensionActionRailSlot>
+      )}
+    </SidebarPanelExtensionProvider>
   )
 }
 

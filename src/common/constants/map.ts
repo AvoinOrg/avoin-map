@@ -4,9 +4,9 @@ import { lineOptions } from 'maplibre_symbol_utils'
 export const MAX_MERC_LAT = 85.05112878
 
 export const FINLAND_BOUNDS = [31.6, 19.0, 70.1, 59.3]
-export const MAIN_SIDEBAR_BOTTOM_CONTROLS_SLOT =
-  'main-sidebar-bottom-controls'
-export const MAIN_SIDEBAR_TOP_CONTROLS_SLOT = 'main-sidebar-top-controls'
+export const MAP_BOTTOM_LEFT_FLOATING_CONTROLS_SLOT =
+  'map-bottom-left-floating-controls'
+export const MAP_CONTROL_EDGE_GUTTER_PX = 16
 export const HIILIKARTTA_HOME_FLOATING_GUTTER_PX = 10
 
 export type CanvasFillOptions = {

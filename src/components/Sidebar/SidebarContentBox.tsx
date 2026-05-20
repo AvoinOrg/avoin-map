@@ -5,7 +5,6 @@ import { Box, SxProps, Theme } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 import type { EventListeners } from 'overlayscrollbars'
 
-import { useUIStore } from '#/common/store'
 import {
   MOBILE_SIDEBAR_PADDING_REM,
   SIDEBAR_PADDING_REM,
@@ -32,11 +31,7 @@ const SidebarContentBox = ({
 }) => {
   const isMobile = useIsMobile()
   const simpleSidebarContext = useSimpleSidebarContext()
-  const isSimpleSidebarVariant = useUIStore(
-    (state) => state.sidebarVariant === 'simple'
-  )
-  const isSimpleSidebar =
-    simpleSidebarContext.isSimpleSidebar || isSimpleSidebarVariant
+  const isSimpleSidebar = simpleSidebarContext.isSimpleSidebar
   const scrollContainerRef = useRef<OverlayScrollbarsComponentRef<'div'> | null>(
     null
   )

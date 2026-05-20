@@ -1,6 +1,7 @@
 import { Button, SxProps, Theme } from '@mui/material'
 import { useRef } from 'react'
 import MenuOpenIcon from '@mui/icons-material/MenuOpen'
+import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
 import { MapPinGlobe } from '#/components/icons'
 import { useUIStore } from '../../common/store'
 
@@ -33,8 +34,8 @@ const SidebarToggleButton = ({ sx }: Props) => {
           p: 0,
           display: 'inline-flex',
           position: 'fixed',
-          right: theme.spacing(2),
-          bottom: theme.spacing(2),
+          right: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
+          bottom: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
           width: '45px',
           minWidth: '45px',
           height: '45px',
@@ -59,7 +60,9 @@ const SidebarToggleButton = ({ sx }: Props) => {
       size="large"
     >
       {isSidebarOpen ? (
-        <MapPinGlobe sx={{ width: '2rem', height: '2rem', mt: -0.4, mr: -0.42 }} />
+        <MapPinGlobe
+          sx={{ width: '2rem', height: '2rem', mt: -0.4, mr: -0.42 }}
+        />
       ) : (
         <MenuOpenIcon sx={{ fontSize: '1.75rem' }} />
       )}

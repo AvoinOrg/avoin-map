@@ -13,6 +13,7 @@ import { ArrowDown } from '#/components/icons'
 import { useLayerGroupOpacity } from '#/common/hooks/map/useLayerGroupOpacity'
 import { ListedLayerGroup } from '#/common/types/map'
 import { clampOpacity } from '#/common/utils/map'
+import TText from '#/components/common/TText'
 
 type LayerItemProps = {
   layerGroup: ListedLayerGroup
@@ -34,7 +35,7 @@ const LayerItem = ({
   onInfoToggle,
 }: LayerItemProps) => {
   const { t } = useTranslate(layerGroup.translationNs)
-  const name = t(layerGroup.nameTranslationKey, layerGroup.name)
+  const name = t(layerGroup.nameTranslationKey)
   const infoCardRadius = '0.3125rem'
   const baseShadow = '0 2px 4px 0 rgba(0, 0, 0, 0.10)'
   const headerHeight = 20
@@ -162,7 +163,10 @@ const LayerItem = ({
             minWidth: 0,
           }}
         >
-          {name}
+          <TText
+            keyName={layerGroup.nameTranslationKey}
+            ns={layerGroup.translationNs}
+          />
         </Typography>
         {hasInfo && (
           <IconButton

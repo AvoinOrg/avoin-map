@@ -46,9 +46,19 @@ const KNOWN_APPLETS = new Set(
   Object.keys((conf as any).default || conf).filter((k) => k !== MAIN_NAMESPACE)
 )
 
+const APPLET_PATH_ALIASES: Record<string, string> = {
+  energymap: 'energiakartta',
+}
+
 function findAppletFromSegment(seg: string): string | null {
+  const normalized = seg.toLowerCase()
+
   // First try canonical namespace
-  if (KNOWN_APPLETS.has(seg)) return seg
+  if (KNOWN_APPLETS.has(normalized)) return normalized
+  if (APPLET_PATH_ALIASES[normalized] != null) {
+    return APPLET_PATH_ALIASES[normalized]
+  }
+
   // Fallback: your `pathnames` alias mapping (if slugs differ from ns)
   return null
   // const hit = Object.entries(pathnames).find(([, p]) => {
@@ -137,6 +147,7 @@ export function middleware(req: NextRequest) {
   const probe = hasLocale ? segments[1] : segments[0]
   const targetNs = probe ? findAppletFromSegment(probe) : null
   const isApplet = !!targetNs
+  const isAppletAlias = probe != null && targetNs != null && probe !== targetNs
 
   if (isApplet) {
     const localesForNs = getLocalesForApplet(targetNs!)
@@ -155,6 +166,13 @@ export function middleware(req: NextRequest) {
     }
 
     // url is correct, the applet includes the locale
+    if (isAppletAlias) {
+      const tail = segments.length > 2 ? `/${segments.slice(2).join('/')}` : ''
+      return NextResponse.rewrite(
+        new URL(`/${locale}/${targetNs}${tail}`, req.url)
+      )
+    }
+
     return NextResponse.next()
   }
 

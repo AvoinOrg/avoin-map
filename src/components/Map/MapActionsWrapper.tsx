@@ -1,12 +1,12 @@
 import { Box } from '@mui/material'
-import { useParams, usePathname } from 'next/navigation'
 import { MapButtons } from './MapButtonGroups'
 import { MapSearchBar } from './MapSearchBar'
 import { useUIStore } from '#/common/store'
 import { useRef, useState } from 'react'
 import { useElementSize } from '#/common/hooks/ui/useResizeObserver'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
-import { getPathnameWithoutLocale } from '#/common/routing/routing'
+import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
+import { selectActiveSidebarMode } from '#/common/utils/sidebarBoundaryRegistry'
 // import { useDebounce } from '#/common/hooks/useDebounce'
 // import {
 //   MAP_SEARCH_BAR_HORIZONTAL_MODE_WIDTH,
@@ -21,9 +21,10 @@ export const MapActionsWrapper = () => {
   const minMapWidth = useUIStore((state) => state.mapDims.min?.width)
   const activeMapMenu = useUIStore((state) => state.activeMapMenu)
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
+  const activeSidebarMode = useUIStore((state) =>
+    selectActiveSidebarMode(state.sidebarBoundaries)
+  )
   const isMobile = useIsMobile('desktop')
-  const pathname = usePathname()
-  const { locale } = useParams()
   const wrapperRef = useRef<HTMLDivElement>(null)
   const { width: wrapperWidth, height: wrapperHeight } =
     useElementSize(wrapperRef)
@@ -70,8 +71,8 @@ export const MapActionsWrapper = () => {
   // }, [minMapWidth, debouncedHorizontalWidth])
 
   const isSearchOpen = activeMapMenu === 'search'
-  const pathnameWithoutLocale = getPathnameWithoutLocale(pathname, locale ?? null)
-  const hideForMainSidebarMobile = pathnameWithoutLocale === '/' && isMobile && isSidebarOpen
+  const hideForMainSidebarMobile =
+    activeSidebarMode === 'home' && isMobile && isSidebarOpen
 
   if (hideForMainSidebarMobile) {
     return null
@@ -81,10 +82,11 @@ export const MapActionsWrapper = () => {
     <Box
       ref={wrapperRef}
       className="map-actions-wrapper"
+      data-testid="map-actions-wrapper"
       sx={(theme) => ({
         position: 'absolute',
-        top: theme.spacing(2),
-        right: theme.spacing(2),
+        top: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
+        right: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
         display: 'flex',
         flexDirection: 'column',
         gap: theme.spacing(1),
