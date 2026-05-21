@@ -74,6 +74,12 @@ const SearchTable = ({
     label: t('components.search_table.sort_relevancy'),
   }
   const [sortKey, setSortKey] = React.useState<SortKey>(relevancySortKey)
+  const sortFieldAriaLabel = t(
+    'components.search_table.sort_field_aria_label'
+  )
+  const sortDirectionAriaLabel = isAscending
+    ? t('components.search_table.sort_direction_ascending_aria_label')
+    : t('components.search_table.sort_direction_descending_aria_label')
 
   // Debounce the search term update
   const debouncedSetSearchTerm = React.useMemo(
@@ -222,6 +228,8 @@ const SearchTable = ({
         {row.getVisibleCells().map((cell) => (
           <Box
             key={cell.id}
+            component="button"
+            type="button"
             onClick={() => handleClick(cell.row.original)}
             sx={{
               flex: 1,
@@ -229,16 +237,37 @@ const SearchTable = ({
               height: '100%',
               display: 'flex',
               alignItems: 'center',
-              '&': { cursor: 'pointer' },
+              width: '100%',
+              minWidth: 0,
+              border: 0,
+              color: 'inherit',
+              font: 'inherit',
+              textAlign: 'left',
+              cursor: 'pointer',
               backgroundColor: isSelected ? 'action.selected' : 'transparent',
               '&:hover': {
                 backgroundColor: isSelected
                   ? 'action.selected'
                   : 'action.hover',
               },
+              '&:focus-visible': {
+                outline: '2px solid',
+                outlineColor: 'neutral.darker',
+                outlineOffset: '-2px',
+              },
             }}
           >
-            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            <Box
+              component="span"
+              sx={{
+                minWidth: 0,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            </Box>
           </Box>
         ))}
       </Box>
@@ -253,10 +282,13 @@ const SearchTable = ({
           display: 'flex',
           justifyContent: 'flex-end',
           alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 1,
           mb: 1,
         }}
       >
         <Select
+          aria-label={sortFieldAriaLabel}
           value={sortKey.key}
           onChange={handleSortKeyChange}
           variant="standard"
@@ -271,6 +303,8 @@ const SearchTable = ({
               padding: '0 !important',
               paddingRight: '0 !important',
               minWidth: '0 !important',
+              maxWidth: '100%',
+              whiteSpace: 'normal',
             },
             '& .MuiInputBase-input': {
               padding: '0 !important',
@@ -294,12 +328,30 @@ const SearchTable = ({
           ))}
         </Select>
         <Box
+          component="button"
+          type="button"
+          aria-label={sortDirectionAriaLabel}
           sx={{
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'center',
             cursor: 'pointer',
             userSelect: 'none',
-            ml: 1,
+            p: 0.5,
+            minWidth: '2rem',
+            minHeight: '2rem',
+            border: 0,
+            borderRadius: '50%',
+            background: 'transparent',
+            color: 'inherit',
+            '&:hover': {
+              backgroundColor: 'action.hover',
+            },
+            '&:focus-visible': {
+              outline: '2px solid',
+              outlineColor: 'neutral.darker',
+              outlineOffset: '2px',
+            },
           }}
           onClick={toggleSortOrder}
         >
@@ -325,8 +377,12 @@ const SearchTable = ({
           fullWidth
           value={searchTerm}
           onChange={handleSearchChange}
-          sx={{ typography: 'body2', fontSize: '30px' }}
+          sx={{ typography: 'body2' }}
           slotProps={{
+            htmlInput: {
+              'aria-label':
+                searchPlaceholder || t('components.search_table.search'),
+            },
             input: {
               sx: {
                 typography: 'body2',

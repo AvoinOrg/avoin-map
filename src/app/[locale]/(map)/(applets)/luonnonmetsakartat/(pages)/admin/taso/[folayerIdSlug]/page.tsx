@@ -70,7 +70,13 @@ const Page = () => {
         )}
         {isFolayerReady && (
           <Box>
-            <Typography sx={{ typography: 'h2' }}>
+            <Typography
+              sx={{
+                typography: 'h2',
+                overflowWrap: 'anywhere',
+                wordBreak: 'break-word',
+              }}
+            >
               {adminFolayerConf.name}
             </Typography>
           </Box>
@@ -88,7 +94,11 @@ const Page = () => {
             route={routeTree.admin.folayer.settings}
             routeTree={routeTree}
             params={{ routeParams: { folayerId: adminFolayerConf.id } }}
-            sx={{ alignItems: 'center' }}
+            sx={{
+              alignItems: 'center',
+              display: 'inline-flex',
+              minWidth: 0,
+            }}
           >
             <Typography
               sx={{
@@ -96,6 +106,8 @@ const Page = () => {
                 fontWeight: 500,
                 textDecoration: 'underline',
                 textUnderlineOffset: '0.1em',
+                minWidth: 0,
+                overflowWrap: 'anywhere',
               }}
             >
               <T
@@ -119,7 +131,11 @@ const Page = () => {
             route={routeTree.admin.folayer.pictures}
             routeTree={routeTree}
             params={{ routeParams: { folayerId: adminFolayerConf.id } }}
-            sx={{ alignItems: 'center' }}
+            sx={{
+              alignItems: 'center',
+              display: 'inline-flex',
+              minWidth: 0,
+            }}
           >
             <Typography
               sx={{
@@ -127,6 +143,8 @@ const Page = () => {
                 fontWeight: 500,
                 textDecoration: 'underline',
                 textUnderlineOffset: '0.1em',
+                minWidth: 0,
+                overflowWrap: 'anywhere',
               }}
             >
               <T

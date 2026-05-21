@@ -31,6 +31,17 @@ interface FolayerUpdateShpProps {
   onValidationChange?: (isValid: boolean) => void
 }
 
+const UPDATE_CARD_SX = {
+  backgroundColor: 'neutral.light',
+  borderLeft: '1px solid',
+  borderColor: 'neutral.main',
+  pl: { mobile: 2, desktop: 2.5 },
+  pr: { mobile: 1.5, desktop: 2 },
+  pb: { mobile: 2, desktop: 2.5 },
+  pt: { mobile: 1.5, desktop: 2 },
+  borderRadius: '0.3125rem',
+}
+
 const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
   ({ fileBuffers, adminFolayerConf, onValidationChange }, ref) => {
     const { t } = useTranslate('luonnonmetsakartat')
@@ -416,13 +427,7 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
               {t('sidebar.admin.create.column_selection_header')}
             </Typography>
             <Box
-              sx={(theme) => ({
-                backgroundColor: theme.palette.neutral.light,
-                borderLeft: `1px solid ${theme.palette.neutral.main}`,
-                pl: 2,
-                pb: 2,
-                pt: 1,
-              })}
+              sx={UPDATE_CARD_SX}
             >
               <DropDownSelectWithHeader
                 label={t('sidebar.admin.create.indexing_strategy_label')}

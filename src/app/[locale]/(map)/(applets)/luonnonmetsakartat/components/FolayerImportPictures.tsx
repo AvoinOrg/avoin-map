@@ -21,6 +21,7 @@ import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakarta
 import { FolayerAreaConf } from '../common/types'
 import { T, useTranslate } from '@tolgee/react'
 import { FixedSizeList, ListChildComponentProps } from 'react-window'
+import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 
 const LISTBOX_PADDING = 8 // px
 
@@ -95,6 +96,7 @@ const FolayerImportPictures = forwardRef<
   FolayerImportPicturesProps
 >(({ folayerId, onValidationChange }, ref) => {
   const { t } = useTranslate('luonnonmetsakartat')
+  const isMobile = useIsMobile()
   const inputRef = useRef<HTMLInputElement>(null)
   const [files, setFiles] = useState<File[]>([])
   const [selectedFolderLabel, setSelectedFolderLabel] = useState<string>()
@@ -319,7 +321,7 @@ const FolayerImportPictures = forwardRef<
   }, [unmatchedFolders, groups])
 
   // Virtualized rows
-  const rowHeight = 56
+  const rowHeight = isMobile ? 92 : 56
   const maxListHeight = 500
   const listHeight = Math.min(rowOrder.length * rowHeight, maxListHeight)
 
@@ -340,7 +342,10 @@ const FolayerImportPictures = forwardRef<
         style={style}
         sx={{
           display: 'grid',
-          gridTemplateColumns: '1fr auto 1.5fr',
+          gridTemplateColumns: {
+            mobile: 'minmax(0, 1fr) auto',
+            desktop: 'minmax(0, 1fr) auto minmax(0, 1.5fr)',
+          },
           alignItems: 'center',
           gap: 2,
           py: 1,
@@ -392,6 +397,10 @@ const FolayerImportPictures = forwardRef<
           }}
           clearOnEscape
           disableClearable={false}
+          sx={{
+            gridColumn: { mobile: '1 / -1', desktop: 'auto' },
+            minWidth: 0,
+          }}
           onChange={(_e, newValue) => {
             setManualMappings((prev) => ({
               ...prev,
@@ -405,6 +414,7 @@ const FolayerImportPictures = forwardRef<
                 'sidebar.admin.folayer.settings.picture.select_area'
               )}
               sx={{
+                minWidth: 0,
                 '& .MuiInputBase-input': (theme) => ({
                   typography: 'body7',
                 }),
@@ -421,10 +431,27 @@ const FolayerImportPictures = forwardRef<
       <BigMenuButton
         variant="outlined"
         component="label"
-        sx={{ width: '100%', minHeight: '60px' }}
+        aria-label={
+          selectedFolderLabel ||
+          t('sidebar.admin.folayer.settings.picture.select_folder')
+        }
+        sx={{ width: '100%', minHeight: '60px', gap: 2 }}
       >
-        {selectedFolderLabel ||
-          t('sidebar.admin.folayer.settings.picture.select_folder')}
+        <Box
+          component="span"
+          sx={{
+            minWidth: 0,
+            overflow: selectedFolderLabel ? 'hidden' : 'visible',
+            overflowWrap: 'anywhere',
+            textOverflow: selectedFolderLabel ? 'ellipsis' : 'clip',
+            whiteSpace: selectedFolderLabel ? 'nowrap' : 'normal',
+            lineHeight: 1.2,
+            textAlign: 'left',
+          }}
+        >
+          {selectedFolderLabel ||
+            t('sidebar.admin.folayer.settings.picture.select_folder')}
+        </Box>
         <input
           hidden
           multiple
@@ -437,7 +464,7 @@ const FolayerImportPictures = forwardRef<
           onChange={handleFolderInput}
           ref={inputRef}
         />
-        <Upload sx={{ width: '24px' }} />
+        <Upload sx={{ width: '24px', flexShrink: 0 }} />
       </BigMenuButton>
 
       {groups.size > 0 && (
@@ -481,7 +508,10 @@ const FolayerImportPictures = forwardRef<
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: '1fr auto 1.5fr',
+              gridTemplateColumns: {
+                mobile: 'minmax(0, 1fr) auto',
+                desktop: 'minmax(0, 1fr) auto minmax(0, 1.5fr)',
+              },
               alignItems: 'center',
               gap: 2,
               py: 0.75,
@@ -499,7 +529,11 @@ const FolayerImportPictures = forwardRef<
             >
               {t('sidebar.admin.folayer.settings.picture.images')}
             </Typography>
-            <Typography variant="caption" color="text.secondary">
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ gridColumn: { mobile: '1 / -1', desktop: 'auto' } }}
+            >
               {t('sidebar.admin.folayer.settings.picture.areas')}
             </Typography>
           </Box>

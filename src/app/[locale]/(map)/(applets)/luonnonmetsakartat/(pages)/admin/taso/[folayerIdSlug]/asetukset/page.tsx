@@ -7,7 +7,10 @@ import { T, useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
 import { SaveOutlined } from '@mui/icons-material'
 
-import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
+import {
+  MOBILE_SIDEBAR_PADDING_REM,
+  SIDEBAR_PADDING_REM,
+} from '#/common/style/theme/constants'
 import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
 import { useMapStore, useUIStore } from '#/common/store'
 import { Delete } from '#/components/icons'
@@ -30,9 +33,12 @@ import { getFolayerGroupId } from '#/app/[locale]/(map)/(applets)/luonnonmetsaka
 import FolayerUpdateShp, {
   FolayerUpdateShpRef,
 } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerUpdateShp'
-import FolayerImportPictures, {
-  FolayerImportPicturesRef,
-} from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportPictures'
+
+const FORM_CARD_SX = {
+  backgroundColor: 'neutral.light',
+  p: { mobile: 2.5, desktop: 4 },
+  borderRadius: '0.3125rem',
+}
 
 const Page = () => {
   const [isFolayerReady, setIsFolayerReady] = useState(false)
@@ -204,9 +210,31 @@ const Page = () => {
     }
   }
 
+  const saveLabel = t('sidebar.admin.folayer.settings.save')
+  const updateFileLabel =
+    fileName || t('sidebar.admin.folayer.settings.update_with_file')
+  const isSaveDisabled = Boolean(
+    fileType && arrayBuffers?.length && !isUpdateValid
+  )
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-      <SidebarContentBox sxOuter={{ position: 'relative' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%',
+        height: '100%',
+        minHeight: 0,
+      }}
+    >
+      <SidebarContentBox
+        sxOuter={{
+          position: 'relative',
+          flex: '1 1 auto',
+          minHeight: 0,
+          height: 'auto',
+        }}
+      >
         {!isFolayerReady &&
           adminFolayerConf.state !== FolayerConfState.Deleting && (
             <Box sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -235,12 +263,10 @@ const Page = () => {
               ></T>
             </IconWithText>
             <Box
-              sx={(theme) => ({
-                backgroundColor: theme.palette.neutral.light,
-                p: 4,
-                borderRadius: '0.3125rem',
+              sx={{
+                ...FORM_CARD_SX,
                 mt: 6,
-              })}
+              }}
             >
               <TextFieldWithHeader
                 headerText={t('sidebar.admin.folayer.settings.name.header')}
@@ -268,20 +294,31 @@ const Page = () => {
             </Box>
             {/* Import/update shapefile */}
             <Box
-              sx={(theme) => ({
-                backgroundColor: theme.palette.neutral.light,
-                p: 4,
-                borderRadius: '0.3125rem',
+              sx={{
+                ...FORM_CARD_SX,
                 mt: 6,
-              })}
+              }}
             >
               <BigMenuButton
                 variant="outlined"
                 component="label"
-                sx={{ width: '100%', minHeight: '60px' }}
+                aria-label={updateFileLabel}
+                sx={{ width: '100%', minHeight: '60px', gap: 2 }}
               >
-                {fileName ||
-                  t('sidebar.admin.folayer.settings.update_with_file')}
+                <Box
+                  component="span"
+                  sx={{
+                    minWidth: 0,
+                    overflow: fileName ? 'hidden' : 'visible',
+                    overflowWrap: 'anywhere',
+                    textOverflow: fileName ? 'ellipsis' : 'clip',
+                    whiteSpace: fileName ? 'nowrap' : 'normal',
+                    lineHeight: 1.2,
+                    textAlign: 'left',
+                  }}
+                >
+                  {updateFileLabel}
+                </Box>
                 <input
                   hidden
                   accept=".zip"
@@ -290,7 +327,7 @@ const Page = () => {
                   onChange={handleFileInput}
                   ref={inputRef}
                 />
-                <Upload sx={{ width: '24px' }} />
+                <Upload sx={{ width: '24px', flexShrink: 0 }} />
               </BigMenuButton>
 
               {fileType === 'shp' &&
@@ -330,55 +367,52 @@ const Page = () => {
           sx={(theme) => ({
             display: 'flex',
             flexDirection: 'column',
-            pl: SIDEBAR_PADDING_REM + 'rem',
-            pr: SIDEBAR_PADDING_REM + 'rem',
+            pl: {
+              mobile: MOBILE_SIDEBAR_PADDING_REM + 'rem',
+              desktop: SIDEBAR_PADDING_REM + 'rem',
+            },
+            pr: {
+              mobile: MOBILE_SIDEBAR_PADDING_REM + 'rem',
+              desktop: SIDEBAR_PADDING_REM + 'rem',
+            },
             pt: 2,
             pb: 2,
+            flexShrink: 0,
             zIndex: theme.zIndex.drawer + 1,
             borderTop: 1,
             borderColor: 'primary.lighter',
           })}
         >
           <Box
-            onClick={(event) => {
-              if (fileType && arrayBuffers?.length && !isUpdateValid) {
-                event.preventDefault()
-                event.stopPropagation()
-                // @ts-ignore
-                event.nativeEvent?.stopImmediatePropagation?.()
-                return
-              }
-              handleSaveClick(event)
-            }}
+            component="button"
+            type="button"
+            disabled={isSaveDisabled}
+            aria-label={saveLabel}
+            onClick={isSaveDisabled ? undefined : handleSaveClick}
             sx={{
               mt: 1.3,
               display: 'inline-flex',
               flexDirection: 'row',
-              cursor:
-                fileType && arrayBuffers?.length
-                  ? isUpdateValid
-                    ? 'pointer'
-                    : 'not-allowed'
-                  : 'pointer',
+              p: 0,
+              border: 0,
+              background: 'transparent',
+              font: 'inherit',
+              textAlign: 'left',
+              cursor: isSaveDisabled ? 'not-allowed' : 'pointer',
               '&:hover': {
-                cursor:
-                  fileType && arrayBuffers?.length
-                    ? isUpdateValid
-                      ? 'pointer'
-                      : 'not-allowed'
-                    : 'pointer',
+                cursor: isSaveDisabled ? 'not-allowed' : 'pointer',
               },
-              color: 'neutral.dark',
+              '&:focus-visible': {
+                outline: '2px solid',
+                outlineColor: 'neutral.darker',
+                outlineOffset: '0.25rem',
+              },
+              color: isSaveDisabled ? 'neutral.main' : 'neutral.darker',
               flex: '0',
               whiteSpace: 'nowrap',
               alignSelf: 'flex-start',
               width: '100%',
-              opacity:
-                fileType && arrayBuffers?.length
-                  ? isUpdateValid
-                    ? 1
-                    : 0.5
-                  : 1,
+              opacity: isSaveDisabled ? 0.5 : 1,
             }}
           >
             <Box sx={{ mr: 1.7, display: 'flex', alignItems: 'center' }}>
@@ -389,10 +423,7 @@ const Page = () => {
                   ml: 1,
                 }}
               >
-                <T
-                  keyName={'sidebar.admin.folayer.settings.save'}
-                  ns={'luonnonmetsakartat'}
-                />
+                {saveLabel}
               </Typography>
             </Box>
           </Box>

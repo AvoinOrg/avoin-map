@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useRef, useEffect, useState, ChangeEvent, use } from 'react'
-import { Box, Button } from '@mui/material'
+import { Box } from '@mui/material'
 import { useRouter } from 'next/navigation'
 import { buffer } from '@turf/turf'
 import booleanValid from '@turf/boolean-valid'
@@ -226,12 +226,27 @@ const Page = () => {
       <BigMenuButton
         variant="outlined"
         component="label"
-        sx={(theme) => ({
+        aria-label={fileName || t('sidebar.admin.create.select_file')}
+        sx={{
           width: '100%',
           minHeight: '60px',
-        })}
+          gap: 2,
+        }}
       >
-        {fileName ? fileName : t('sidebar.admin.create.select_file')}
+        <Box
+          component="span"
+          sx={{
+            minWidth: 0,
+            overflow: fileName ? 'hidden' : 'visible',
+            overflowWrap: 'anywhere',
+            textOverflow: fileName ? 'ellipsis' : 'clip',
+            whiteSpace: fileName ? 'nowrap' : 'normal',
+            lineHeight: 1.2,
+            textAlign: 'left',
+          }}
+        >
+          {fileName ? fileName : t('sidebar.admin.create.select_file')}
+        </Box>
         <input
           hidden
           accept=".zip"
@@ -240,7 +255,7 @@ const Page = () => {
           onChange={handleFileInput}
           ref={inputRef}
         />
-        <Upload sx={{ width: '24px' }} />
+        <Upload sx={{ width: '24px', flexShrink: 0 }} />
       </BigMenuButton>
 
       {fileType === 'shp' && arrayBuffers && arrayBuffers?.length > 0 && (

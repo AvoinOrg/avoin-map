@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo } from 'react'
 import Box from '@mui/material/Box'
-import { T } from '@tolgee/react'
+import { T, useTranslate } from '@tolgee/react'
 import { useQuery } from '@tanstack/react-query'
 
 import MutableLink from '#/components/common/MutableLink'
@@ -18,6 +18,7 @@ import { adminFolayersQuery } from '#/app/[locale]/(map)/(applets)/luonnonmetsak
 import { AdminFolayerConf } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 
 const Page = () => {
+  const { t } = useTranslate('luonnonmetsakartat')
   const adminFolayerConfs = useAppletStore((state) => state.adminFolayerConfs)
 
   const { refetch: adminFolayerRefetch, isLoading } = useQuery({
@@ -45,9 +46,25 @@ const Page = () => {
           width: '100%',
         }}
       >
-        <BigMenuButton color="primary" sx={{ pl: 3, pr: 3 }}>
-          <T keyName={'sidebar.admin.upload'} ns={'luonnonmetsakartat'}></T>
-          <Upload />
+        <BigMenuButton
+          color="primary"
+          aria-label={t('sidebar.admin.upload')}
+          sx={{ pl: 3, pr: 3, gap: 2 }}
+        >
+          <Box
+            component="span"
+            sx={{
+              minWidth: 0,
+              overflow: 'hidden',
+              overflowWrap: 'anywhere',
+              whiteSpace: 'normal',
+              lineHeight: 1.2,
+              textAlign: 'left',
+            }}
+          >
+            <T keyName={'sidebar.admin.upload'} ns={'luonnonmetsakartat'}></T>
+          </Box>
+          <Upload sx={{ flexShrink: 0 }} />
         </BigMenuButton>
       </MutableLink>
       {isLoading && (

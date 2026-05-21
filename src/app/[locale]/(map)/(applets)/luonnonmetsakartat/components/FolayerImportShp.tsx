@@ -35,6 +35,12 @@ interface FolayerImportShpProps {
   isInitializing: boolean
 }
 
+const FORM_CARD_SX = {
+  backgroundColor: 'neutral.light',
+  p: { mobile: 2.5, desktop: 4 },
+  borderRadius: '0.3125rem',
+}
+
 const FolayerImportShp = ({
   fileBuffers,
   onFinish,
@@ -360,11 +366,7 @@ const FolayerImportShp = ({
       {columns.length > 0 && (
         <>
           <Box
-            sx={(theme) => ({
-              backgroundColor: theme.palette.neutral.light,
-              p: 4,
-              borderRadius: '0.3125rem',
-            })}
+            sx={FORM_CARD_SX}
           >
             <DropDownSelectWithHeader
               label={t('sidebar.admin.create.indexing_strategy_label')}
@@ -441,38 +443,40 @@ const FolayerImportShp = ({
               sx={{ mt: 4, width: '100%' }}
             />
           </Box>
-          <TextFieldWithHeader
-            headerText={t('sidebar.admin.create.name.header')}
-            value={folayerNameValue}
-            onChange={handleFolayerNameChange}
-            placeholderText={t('sidebar.admin.create.name.placeholder')}
-            disabled={isInitializing}
-            sx={{ mt: 7 }}
-          ></TextFieldWithHeader>
-          <ColorPickerWithPopover
-            color={folayerColorValue}
-            onChange={handleColorChange}
-            sx={{ mt: 5 }}
-            labelText={t('sidebar.admin.folayer.settings.color')}
-          ></ColorPickerWithPopover>
-          <SwitchWithLabel
-            checked={isVisible}
-            onChange={handleIsVisibleChange}
-            sx={{ mt: 4.5 }}
-            disabled={isInitializing}
-          >
-            <T
-              ns={'luonnonmetsakartat'}
-              keyName={'sidebar.admin.create.is_visible'}
-            ></T>
-          </SwitchWithLabel>
-          {/* <TextFieldWithHeader
-            headerText={t('sidebar.admin.create.description.header')}
-            value={folayerDescriptionValue}
-            onChange={handleFolayerDescriptionChange}
-            placeholderText={t('sidebar.admin.create.description.placeholder')}
-            sx={{ mt: 2.5 }}
-          ></TextFieldWithHeader> */}
+          <Box sx={{ ...FORM_CARD_SX, mt: { mobile: 3, desktop: 5 } }}>
+            <TextFieldWithHeader
+              headerText={t('sidebar.admin.create.name.header')}
+              value={folayerNameValue}
+              onChange={handleFolayerNameChange}
+              placeholderText={t('sidebar.admin.create.name.placeholder')}
+              disabled={isInitializing}
+              sx={{ mt: 0 }}
+            ></TextFieldWithHeader>
+            <ColorPickerWithPopover
+              color={folayerColorValue}
+              onChange={handleColorChange}
+              sx={{ mt: { mobile: 2.5, desktop: 4 } }}
+              labelText={t('sidebar.admin.folayer.settings.color')}
+            ></ColorPickerWithPopover>
+            <SwitchWithLabel
+              checked={isVisible}
+              onChange={handleIsVisibleChange}
+              sx={{ mt: { mobile: 2.5, desktop: 4 } }}
+              disabled={isInitializing}
+            >
+              <T
+                ns={'luonnonmetsakartat'}
+                keyName={'sidebar.admin.create.is_visible'}
+              ></T>
+            </SwitchWithLabel>
+            {/* <TextFieldWithHeader
+              headerText={t('sidebar.admin.create.description.header')}
+              value={folayerDescriptionValue}
+              onChange={handleFolayerDescriptionChange}
+              placeholderText={t('sidebar.admin.create.description.placeholder')}
+              sx={{ mt: 2.5 }}
+            ></TextFieldWithHeader> */}
+          </Box>
         </>
       )}
       <FolayerImportActionsRow

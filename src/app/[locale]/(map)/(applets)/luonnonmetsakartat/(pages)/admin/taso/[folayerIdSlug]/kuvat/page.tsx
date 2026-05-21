@@ -3,11 +3,14 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Box, Typography } from '@mui/material'
 import { useParams } from 'next/navigation'
-import { T, useTranslate } from '@tolgee/react'
+import { useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
 import { SaveOutlined } from '@mui/icons-material'
 
-import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
+import {
+  MOBILE_SIDEBAR_PADDING_REM,
+  SIDEBAR_PADDING_REM,
+} from '#/common/style/theme/constants'
 import { useUIStore } from '#/common/store'
 import { useSidebarActivityLoader } from '#/common/hooks/ui/useSidebarActivityLoader'
 import { SidebarContentBox } from '#/components/Sidebar'
@@ -79,6 +82,7 @@ const Page = () => {
 
   const isFolayerReady =
     adminFolayerConf && adminFolayerConf.state === FolayerConfState.Idle
+  const saveLabel = t('sidebar.admin.folayer.pictures.save')
 
   return (
     <Box
@@ -89,7 +93,14 @@ const Page = () => {
         height: '100%',
       }}
     >
-      <SidebarContentBox sxOuter={{ position: 'relative', flex: 1 }}>
+      <SidebarContentBox
+        sxOuter={{
+          position: 'relative',
+          flex: '1 1 auto',
+          minHeight: 0,
+          height: 'auto',
+        }}
+      >
         {!isFolayerReady && (
           <Box sx={{ display: 'flex', justifyContent: 'center' }}>
             <LoadingSpinner></LoadingSpinner>
@@ -117,23 +128,43 @@ const Page = () => {
           sx={(theme) => ({
             display: 'flex',
             flexDirection: 'column',
-            pl: SIDEBAR_PADDING_REM + 'rem',
-            pr: SIDEBAR_PADDING_REM + 'rem',
+            pl: {
+              mobile: MOBILE_SIDEBAR_PADDING_REM + 'rem',
+              desktop: SIDEBAR_PADDING_REM + 'rem',
+            },
+            pr: {
+              mobile: MOBILE_SIDEBAR_PADDING_REM + 'rem',
+              desktop: SIDEBAR_PADDING_REM + 'rem',
+            },
             pt: 2,
             pb: 2,
+            flexShrink: 0,
             zIndex: theme.zIndex.drawer + 1,
             borderTop: 1,
             borderColor: 'primary.lighter',
           })}
         >
           <Box
+            component="button"
+            type="button"
+            aria-label={saveLabel}
             onClick={handleSaveClick}
             sx={{
               mt: 1.3,
               display: 'inline-flex',
               flexDirection: 'row',
+              p: 0,
+              border: 0,
+              background: 'transparent',
+              font: 'inherit',
+              textAlign: 'left',
               cursor: 'pointer',
-              color: 'neutral.dark',
+              '&:focus-visible': {
+                outline: '2px solid',
+                outlineColor: 'neutral.darker',
+                outlineOffset: '0.25rem',
+              },
+              color: 'neutral.darker',
               flex: '0',
               whiteSpace: 'nowrap',
               alignSelf: 'flex-start',
@@ -148,10 +179,7 @@ const Page = () => {
                   ml: 1,
                 }}
               >
-                <T
-                  keyName={'sidebar.admin.folayer.pictures.save'}
-                  ns={'luonnonmetsakartat'}
-                />
+                {saveLabel}
               </Typography>
             </Box>
           </Box>
