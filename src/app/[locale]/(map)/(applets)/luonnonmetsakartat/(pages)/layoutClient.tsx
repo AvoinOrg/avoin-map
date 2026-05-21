@@ -11,7 +11,7 @@ const localizationNamespace = 'luonnonmetsakartat'
 
 const layoutClient = ({ children }: { children: React.ReactNode }) => {
   return (
-    <SidebarBoundary id="luonnonmetsakartat-floating" mode="floating">
+    <SidebarBoundary id="luonnonmetsakartat-simple" mode="simple">
       <AppletWrapper
         mapContext={'luonnonmetsakartat'}
         localizationNamespace={localizationNamespace}
