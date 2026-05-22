@@ -17,6 +17,7 @@ import { FolayerFeature } from './types'
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 const GS_WORKSPACE =
   process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE
+const FOLAYER_LABEL_TEXT_PADDING_PX = 40
 
 export const getFolayerIdWithoutHyphens = (layerId: string) => {
   return layerId.replace(/-/g, '')
@@ -212,6 +213,7 @@ export const createFolayerConf = async ({
           'text-anchor': 'center',
           'text-justify': 'center',
           'text-allow-overlap': false,
+          'text-padding': FOLAYER_LABEL_TEXT_PADDING_PX,
           'text-max-width': 10, // Wrap text after about 10 characters
           'text-offset': [0, 0.2], // Small offset to center text better
         },
