@@ -15,6 +15,12 @@ const DEFAULT_XVFB_SERVER_ARGS = '-screen 0 1440x900x24 -ac -nolisten tcp +exten
 
 const BASE_CHROMIUM_ARGS = ['--no-sandbox', '--disable-dev-shm-usage']
 
+const HEADLESS_CHROMIUM_ARGS = [
+  ...BASE_CHROMIUM_ARGS,
+  '--disable-webgl',
+  '--disable-3d-apis',
+]
+
 const WEBGL_CHROMIUM_ARGS = [
   ...BASE_CHROMIUM_ARGS,
   '--enable-webgl',
@@ -122,7 +128,7 @@ const getChromiumLaunchOptions = ({ browserMode }) => {
   if (effectiveMode === BROWSER_MODE_HEADLESS) {
     return {
       headless: true,
-      args: [...BASE_CHROMIUM_ARGS],
+      args: [...HEADLESS_CHROMIUM_ARGS],
     }
   }
 
@@ -216,6 +222,7 @@ module.exports = {
   BROWSER_MODE_HEADLESS,
   BROWSER_MODE_XVFB_WEBGL,
   DEFAULT_XVFB_SERVER_ARGS,
+  HEADLESS_CHROMIUM_ARGS,
   SUPPORTED_BROWSER_MODES,
   WEBGL_CHROMIUM_ARGS,
   assertWebGLAvailable,

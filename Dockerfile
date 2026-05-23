@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/playwright:v1.48.2-jammy AS base
+FROM mcr.microsoft.com/playwright:v1.58.1-jammy AS base
 
 ARG TARGETARCH
 

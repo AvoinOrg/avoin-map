@@ -1,4 +1,5 @@
 const path = require('path')
+const fs = require('fs')
 const CopyPlugin = require('copy-webpack-plugin')
 // const { execSync } = require('child_process')
 
@@ -43,6 +44,23 @@ const getNextAuthUrl = () => {
   return baseUrl
 }
 
+const resolveNextIntlDevelopmentEntry = (entry, developmentFile) => {
+  const productionEntry = require.resolve(entry)
+  const entryDir = path.dirname(productionEntry)
+  const candidates = [
+    path.join(entryDir, 'development', developmentFile),
+    path.join(path.dirname(entryDir), 'development', developmentFile),
+  ]
+
+  const candidate = candidates.find((filename) => fs.existsSync(filename))
+  if (candidate) return candidate
+
+  console.warn(
+    `next.config.js: could not resolve ${entry} development bundle; using ${productionEntry}`
+  )
+  return productionEntry
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // emotion: true,
@@ -64,9 +82,6 @@ const nextConfig = {
     },
   },
   transpilePackages: ['lodash-es'],
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   trailingSlash: false,
   // i18n: {
   //   locales: ['en', 'fi'],
@@ -123,18 +138,14 @@ const nextConfig = {
 
       // next-intl ships minified production bundles with stripped error
       // messages. For debug builds, swap to development bundles.
-      const nextIntlClientEntry = require.resolve('next-intl')
-      const nextIntlNavigationEntry = require.resolve('next-intl/navigation')
       config.resolve.alias = {
         ...(config.resolve.alias || {}),
-        'next-intl$': path.join(
-          path.dirname(nextIntlClientEntry),
-          'development',
+        'next-intl$': resolveNextIntlDevelopmentEntry(
+          'next-intl',
           'index.react-client.js'
         ),
-        'next-intl/navigation$': path.join(
-          path.dirname(nextIntlNavigationEntry),
-          'development',
+        'next-intl/navigation$': resolveNextIntlDevelopmentEntry(
+          'next-intl/navigation',
           'navigation.react-client.js'
         ),
       }

@@ -142,8 +142,12 @@ const main = () => {
   try {
     run(
       process.execPath,
-      [path.join(tmpRoot, 'node_modules', 'next', 'dist', 'bin', 'next'), 'build'],
-      { cwd: tmpRoot, env: process.env }
+      [
+        path.join(tmpRoot, 'node_modules', 'next', 'dist', 'bin', 'next'),
+        'build',
+        '--webpack',
+      ],
+      { cwd: tmpRoot, env: { ...process.env, NODE_ENV: 'production' } }
     )
 
     copyArtifactsBack(tmpRoot)

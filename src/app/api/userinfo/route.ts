@@ -1,9 +1,8 @@
 import { getToken } from 'next-auth/jwt'
-import type { NextApiRequest } from 'next'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import axios from 'axios'
 
-const getDataFromUserInfo = async (_req: NextApiRequest, token: {}) => {
+const getDataFromUserInfo = async (token: string) => {
   try {
     const response = await axios.get(
       `${process.env.NEXT_PUBLIC_ZITADEL_ISSUER}/oidc/v1/userinfo`,
@@ -18,15 +17,15 @@ const getDataFromUserInfo = async (_req: NextApiRequest, token: {}) => {
   } catch (error) {
     console.error(error)
 
-    return new Response(error?.toString() || null, {
+    return new Response(error instanceof Error ? error.message : String(error), {
       status: 500,
     })
   }
 }
 
-const handler = async (req: NextApiRequest) => {
+const handler = async (req: NextRequest) => {
   const token = await getToken({ req })
-  if (!token?.accessToken) {
+  if (typeof token?.accessToken !== 'string') {
     return new Response(null, {
       status: 401,
     })
@@ -34,7 +33,7 @@ const handler = async (req: NextApiRequest) => {
 
   switch (req.method) {
     case 'GET':
-      return await getDataFromUserInfo(req, token?.accessToken)
+      return await getDataFromUserInfo(token.accessToken)
     default:
       return new Response(null, {
         status: 405,

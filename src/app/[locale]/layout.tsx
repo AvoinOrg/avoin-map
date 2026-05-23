@@ -1,5 +1,4 @@
 import React from 'react'
-import { Metadata } from 'next'
 
 import LayoutClient from './layoutClient'
 import { getStaticData, getLocaleObj } from '#/common/navigation/tolgee/shared'
@@ -7,8 +6,7 @@ import { TolgeeNextProvider } from '#/common/navigation/tolgee/client'
 
 type Props = {
   children: React.ReactNode
-  params: { locale: string }
-  resolvedUrl: string
+  params: Promise<{ locale: string }>
 }
 
 const Layout = async ({ children, params }: Props) => {

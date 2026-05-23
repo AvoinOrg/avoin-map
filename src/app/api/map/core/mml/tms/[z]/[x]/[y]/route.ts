@@ -4,7 +4,7 @@ export const runtime = 'edge' // optional: run at the CDN edge
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { z: string; x: string; y: string } },
+  { params }: { params: Promise<{ z: string; x: string; y: string }> }
 ) {
   const { z, x, y } = await params
   const layer = req.nextUrl.searchParams.get('layer')

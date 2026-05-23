@@ -1,9 +1,7 @@
-import {
-  createLocalizedPathnamesNavigation,
-  Pathnames,
-} from 'next-intl/navigation'
+import { createNavigation } from 'next-intl/navigation'
+import { defineRouting, type Pathnames } from 'next-intl/routing'
 
-import { LOCALES } from '#/common/navigation/tolgee/shared'
+import { DEFAULT_LOCALE, LOCALES } from '#/common/navigation/tolgee/shared'
 import { generatePathNames } from '#/common/routing/routing'
 import { RouteTree } from '#/common/types/routing'
 
@@ -17,12 +15,21 @@ const routeTrees: RouteTree[] = requireRouteTrees.keys().map((key: string) => {
 const mainPathnames = { '/': '/' } satisfies Pathnames<typeof LOCALES>
 const generatedPathnames = generatePathNames(routeTrees)
 const pathnames = { ...mainPathnames, ...generatedPathnames }
+const defaultRoutingLocale = LOCALES.includes(DEFAULT_LOCALE)
+  ? DEFAULT_LOCALE
+  : (LOCALES[0] ?? DEFAULT_LOCALE)
 
 export { pathnames }
+
+export const routing = defineRouting({
+  locales: LOCALES,
+  defaultLocale: defaultRoutingLocale,
+  pathnames,
+})
 
 export const {
   Link: NextIntlLink,
   redirect,
   usePathname,
   useRouter,
-} = createLocalizedPathnamesNavigation({ locales: LOCALES, pathnames })
+} = createNavigation(routing)

@@ -1,5 +1,5 @@
 import React from 'react'
-import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v16-appRouter'
 import type { Metadata } from 'next'
 
 import { arimo } from '#/common/style/theme/fonts'
