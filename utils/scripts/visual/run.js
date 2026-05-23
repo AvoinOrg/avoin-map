@@ -13,7 +13,11 @@ const {
   DEFAULT_VIEWPORTS,
   VISUAL_DIRS,
 } = require('../../visual/constants')
-const { buildVisualScenarios } = require('../../visual/scenarios')
+const {
+  DEFAULT_SCENARIO_SET,
+  SUPPORTED_SCENARIO_SETS,
+  buildVisualScenarios,
+} = require('../../visual/scenarios')
 const { resolveImpactedScenarios } = require('../../visual/impactMap')
 const {
   buildPlaywrightContextOptions,
@@ -29,6 +33,9 @@ const {
   resolveBrowserMode,
 } = require('./browserRuntime')
 
+const DEFAULT_MIN_NON_WHITE_PIXELS = 500
+const VISUAL_CONTENT_WHITE_THRESHOLD = 248
+
 const HELP_TEXT = `\
 Usage:
   node utils/scripts/visual/run.js --mode=baseline [--base-url=http://127.0.0.1:3000]
@@ -38,6 +45,7 @@ Usage:
 Options:
   --mode baseline|changed     Run baseline generation or regression check
   --browser-mode <mode>       Browser mode: ${SUPPORTED_BROWSER_MODES.join('|')} (default: ${BROWSER_MODE_AUTO})
+  --scenario-set <set>        Scenario set: ${SUPPORTED_SCENARIO_SETS.join('|')} (default: ${DEFAULT_SCENARIO_SET})
   --files <csv>               Comma-separated changed files for targeted mode
   --base-url <url>            Base URL for the running Next.js app
   --storage-state <path>      Playwright storage state JSON (cookies/localStorage/IndexedDB)
@@ -47,7 +55,10 @@ Options:
 
 Behavior:
   The runner probes --base-url first and reuses an existing dev server when reachable.
+  Browser navigation remaps http://127.0.0.1:<port> to http://localhost:<port>
+  because the current Next.js dev HMR path does not hydrate reliably at numeric loopback.
   It only spawns a temporary server with --start-command as a fallback (unless --no-start is set).
+  Captures fail when the screenshot is blank or near-blank after visual masks are applied.
   Browser mode "auto" switches WebGL scenarios to Xvfb-backed Chromium and keeps
   non-WebGL scenarios in true headless mode.
 `
@@ -73,6 +84,7 @@ const parseArgs = (argv) => {
   const args = {
     mode: null,
     browserMode: BROWSER_MODE_AUTO,
+    scenarioSet: process.env.VISUAL_SCENARIO_SET || DEFAULT_SCENARIO_SET,
     files: [],
     baseUrl: null,
     storageState: null,
@@ -110,6 +122,16 @@ const parseArgs = (argv) => {
     }
     if (token === '--browser-mode') {
       args.browserMode = argv[i + 1]
+      i++
+      continue
+    }
+
+    if (token.startsWith('--scenario-set=')) {
+      args.scenarioSet = token.slice('--scenario-set='.length)
+      continue
+    }
+    if (token === '--scenario-set') {
+      args.scenarioSet = argv[i + 1]
       i++
       continue
     }
@@ -166,6 +188,22 @@ const parseArgs = (argv) => {
 const getDefaultBaseUrl = () => {
   const port = process.env.DEV_PORT || '3000'
   return `http://127.0.0.1:${port}`
+}
+
+const trimTrailingSlash = (value) => String(value || '').replace(/\/+$/, '')
+
+const getBrowserCaptureBaseUrl = (baseUrl) => {
+  try {
+    const url = new URL(baseUrl)
+    if (url.hostname === '127.0.0.1') {
+      url.hostname = 'localhost'
+      return trimTrailingSlash(url.toString())
+    }
+  } catch {
+    // Relative and non-standard URLs are left as they are.
+  }
+
+  return trimTrailingSlash(baseUrl)
 }
 
 const fileExists = (targetPath) => {
@@ -308,6 +346,65 @@ const loadDiffLibs = () => {
 
 const readPng = ({ PNG, filePath }) => PNG.sync.read(fs.readFileSync(filePath))
 
+const analyzeScreenshotContent = ({ filePath }) => {
+  const { PNG } = loadDiffLibs()
+  const png = readPng({ PNG, filePath })
+  let nonWhitePixels = 0
+  let nonTransparentPixels = 0
+  const colorSample = new Set()
+
+  for (let index = 0; index < png.data.length; index += 4) {
+    const red = png.data[index]
+    const green = png.data[index + 1]
+    const blue = png.data[index + 2]
+    const alpha = png.data[index + 3]
+
+    if (alpha > 0) {
+      nonTransparentPixels += 1
+      if (
+        red <= VISUAL_CONTENT_WHITE_THRESHOLD ||
+        green <= VISUAL_CONTENT_WHITE_THRESHOLD ||
+        blue <= VISUAL_CONTENT_WHITE_THRESHOLD
+      ) {
+        nonWhitePixels += 1
+      }
+    }
+
+    if (colorSample.size < 12) {
+      colorSample.add(`${red},${green},${blue},${alpha}`)
+    }
+  }
+
+  const totalPixels = png.width * png.height
+  return {
+    width: png.width,
+    height: png.height,
+    totalPixels,
+    nonTransparentPixels,
+    nonWhitePixels,
+    nonWhiteRatio: totalPixels > 0 ? nonWhitePixels / totalPixels : 0,
+    colorSample: Array.from(colorSample),
+  }
+}
+
+const assertScreenshotHasContent = ({ currentPath, scenario, viewport }) => {
+  const screenshotContent = analyzeScreenshotContent({ filePath: currentPath })
+  const minNonWhitePixels =
+    typeof scenario.minNonWhitePixels === 'number'
+      ? scenario.minNonWhitePixels
+      : DEFAULT_MIN_NON_WHITE_PIXELS
+
+  if (screenshotContent.nonWhitePixels < minNonWhitePixels) {
+    throw new Error(
+      `Screenshot content check failed for ${scenario.id}/${viewport.id}: ` +
+        `${screenshotContent.nonWhitePixels} non-white pixels; expected at least ${minNonWhitePixels}. ` +
+        'This usually means the app shell did not render or a mask hid all visible content.'
+    )
+  }
+
+  return screenshotContent
+}
+
 const createBlankPng = ({ PNG, width, height }) => {
   const png = new PNG({ width, height })
   png.data.fill(0)
@@ -381,6 +478,48 @@ const applyStabilityStyles = async ({ page, maskSelectors }) => {
   })
 }
 
+const waitForMapActionsToSettle = async ({ page }) => {
+  try {
+    await page.waitForFunction(
+      () => {
+        const mapActions = document.querySelector('.map-actions-wrapper')
+        if (!mapActions) {
+          return true
+        }
+
+        return !Array.from(
+          mapActions.querySelectorAll('button[disabled]')
+        ).some((button) => (button.textContent || '').trim().length === 0)
+      },
+      null,
+      { timeout: 10000 }
+    )
+  } catch {
+    // Continue to screenshot; the pixel content check still catches unusable captures.
+  }
+}
+
+const gotoScenario = async ({ page, scenario, attempts = 3 }) => {
+  let lastError = null
+
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await page.goto(scenario.url, {
+        waitUntil: 'domcontentloaded',
+        timeout: 60000,
+      })
+    } catch (error) {
+      lastError = error
+      if (attempt === attempts) {
+        break
+      }
+      await delay(1000 * attempt)
+    }
+  }
+
+  throw lastError
+}
+
 const captureScreenshot = async ({
   browser,
   scenario,
@@ -398,16 +537,31 @@ const captureScreenshot = async ({
   const page = await context.newPage()
 
   try {
-    await page.goto(scenario.url, {
-      waitUntil: 'domcontentloaded',
-      timeout: 60000,
-    })
+    const response = await gotoScenario({ page, scenario })
+    const status = response ? response.status() : null
+    if (status && status >= 400) {
+      throw new Error(`Route returned HTTP ${status} for ${scenario.url}`)
+    }
 
     try {
       await page.waitForSelector(scenario.waitFor || 'body', { timeout: 15000 })
     } catch {
       // keep going; some routes may still render late/conditionally
     }
+
+    await page.waitForFunction(
+      () => {
+        const textLength = document.body?.innerText?.trim().length || 0
+        return (
+          textLength > 0 ||
+          !!document.querySelector(
+            '#map, .layout-container, .map-actions-wrapper, main, [data-testid]'
+          )
+        )
+      },
+      null,
+      { timeout: 15000 }
+    )
 
     try {
       await page.evaluate(async () => {
@@ -419,6 +573,7 @@ const captureScreenshot = async ({
       // ignore
     }
 
+    await waitForMapActionsToSettle({ page })
     await page.waitForTimeout(DEFAULT_SETTLE_MS)
     await applyStabilityStyles({ page, maskSelectors: scenario.maskSelectors })
     await page.waitForTimeout(200)
@@ -430,6 +585,8 @@ const captureScreenshot = async ({
       animations: 'disabled',
       caret: 'hide',
     })
+
+    return assertScreenshotHasContent({ currentPath, scenario, viewport })
   } finally {
     await context.close()
   }
@@ -447,7 +604,11 @@ const printSummary = ({ report }) => {
   const lines = []
   lines.push(`Mode: ${report.mode}`)
   lines.push(`Base URL: ${report.baseUrl}`)
+  if (report.browserCaptureBaseUrl && report.browserCaptureBaseUrl !== report.baseUrl) {
+    lines.push(`Browser capture URL: ${report.browserCaptureBaseUrl}`)
+  }
   lines.push(`Browser mode: ${report.browserMode.effective} (requested: ${report.browserMode.requested})`)
+  lines.push(`Scenario set: ${report.scenarioSet}`)
   if (report.storageStatePath) {
     lines.push(`Storage state: ${report.storageStatePath}`)
   }
@@ -489,19 +650,23 @@ const run = async () => {
   }
 
   const baseUrl = args.baseUrl || getDefaultBaseUrl()
+  const browserCaptureBaseUrl = getBrowserCaptureBaseUrl(baseUrl)
   const storageStatePath = args.storageState
     ? validateStorageStateFile({ storageStatePath: args.storageState })
     : null
 
   if (storageStatePath) {
     warnOnStorageStateOriginMismatch({
-      baseUrl,
+      baseUrl: browserCaptureBaseUrl,
       storageStatePath,
       logger: (message) => console.warn(message),
     })
   }
 
-  const allScenarios = buildVisualScenarios({ baseUrl })
+  const allScenarios = buildVisualScenarios({
+    baseUrl: browserCaptureBaseUrl,
+    scenarioSet: args.scenarioSet,
+  })
 
   const changedFiles = args.files.length > 0 ? args.files : collectChangedFilesFromGit()
   const impact =
@@ -544,6 +709,12 @@ const run = async () => {
     noStart: args.noStart,
     startCommand: args.startCommand,
   })
+  if (browserCaptureBaseUrl !== baseUrl && !(await isServerAvailable(browserCaptureBaseUrl))) {
+    throw new Error(
+      `Browser capture URL is not reachable at ${browserCaptureBaseUrl}; ` +
+        `server probe URL was ${baseUrl}.`
+    )
+  }
 
   const { chromium } = requireOrThrow({
     id: '@playwright/test',
@@ -585,7 +756,7 @@ const run = async () => {
         safeUnlink(diffPath)
 
         try {
-          await captureScreenshot({
+          const screenshotContent = await captureScreenshot({
             browser,
             scenario,
             viewport,
@@ -604,6 +775,7 @@ const run = async () => {
               currentPath,
               diffPath,
               mismatchPixels: 0,
+              screenshotContent,
             })
             continue
           }
@@ -618,6 +790,7 @@ const run = async () => {
               currentPath,
               diffPath,
               mismatchPixels: 0,
+              screenshotContent,
             })
             continue
           }
@@ -638,6 +811,7 @@ const run = async () => {
             currentPath,
             diffPath,
             mismatchPixels: comparison.mismatchPixels,
+            screenshotContent,
             dimensions: {
               baseline: comparison.baselineSize,
               current: comparison.currentSize,
@@ -674,6 +848,8 @@ const run = async () => {
       effective: effectiveBrowserMode,
     },
     baseUrl,
+    browserCaptureBaseUrl,
+    scenarioSet: args.scenarioSet,
     storageStatePath,
     changedFiles,
     selectedScenarioIds: selectedScenarios.map((scenario) => scenario.id),
