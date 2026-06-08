@@ -1,97 +1,153 @@
 import React from 'react'
-import { Modal, Box, IconButton, SxProps, Theme } from '@mui/material'
-import CloseIcon from '@mui/icons-material/Close'
+import { Dialog as BaseDialog } from '@base-ui/react/dialog'
+import { css, cx } from 'styled-system/css'
+
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+import { visuallyHiddenClass } from '#/components/common/formControlStyles'
+import { Cross } from '#/components/icons'
 
 type Props = {
   children: React.ReactNode
   modalBody: React.ReactNode
-  sx?: SxProps<Theme>
-  textContainerSx?: SxProps<Theme>
+  sx?: PandaStyleProp
+  textContainerSx?: PandaStyleProp
   triggerAriaLabel?: string
 }
+
+const triggerClass = css({
+  background: 'none',
+  border: 'none',
+  p: 0,
+  m: 0,
+  color: 'inherit',
+  textAlign: 'inherit',
+  '&:hover': { cursor: 'pointer' },
+  '&:focus-visible': {
+    outline: '2px solid var(--colors-secondary-dark)',
+    outlineOffset: '2px',
+  },
+})
+
+const backdropClass = css({
+  position: 'fixed',
+  inset: 0,
+  zIndex: 'modal',
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+})
+
+const viewportClass = css({
+  position: 'fixed',
+  inset: 0,
+  zIndex: 'modal',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  overflow: 'auto',
+})
+
+const popupClass = css({
+  position: 'relative',
+  width: '100%',
+  maxHeight: '100vh',
+  overflow: 'auto',
+  backgroundColor: 'background.paper',
+  boxShadow: '24',
+  p: 4,
+  border: 'none',
+  outline: 'none',
+  desktop: {
+    width: '800px',
+    maxHeight: '80vh',
+  },
+})
+
+const closeButtonClass = css({
+  position: 'absolute',
+  right: 8,
+  top: 8,
+  width: '2.5rem',
+  height: '2.5rem',
+  p: 0,
+  border: 'none',
+  background: 'transparent',
+  color: 'inherit',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  cursor: 'pointer',
+  '&:focus-visible': {
+    outline: '2px solid var(--colors-secondary-dark)',
+    outlineOffset: '2px',
+  },
+})
+
+const bodyClass = css({
+  mt: 2,
+})
 
 const ClickableModal = ({
   modalBody,
   children,
   sx,
+  textContainerSx,
   triggerAriaLabel = 'Open modal',
 }: Props) => {
   const [open, setOpen] = React.useState(false)
-
-  const handleClose = () => {
-    setOpen(false)
-  }
+  const titleId = React.useId()
+  const descriptionId = React.useId()
 
   return (
-    <>
-      <Box
-        component="button"
+    <BaseDialog.Root open={open} onOpenChange={setOpen}>
+      <BaseDialog.Trigger
         type="button"
         aria-label={triggerAriaLabel}
-        sx={[
-          {
-            background: 'none',
-            border: 'none',
-            p: 0,
-            m: 0,
-            color: 'inherit',
-            textAlign: 'inherit',
-            '&:hover': { cursor: 'pointer' },
-          },
-          ...(Array.isArray(sx) ? sx : [sx]),
-        ]}
-        onClick={() => setOpen(true)}
+        className={cx(triggerClass, css(...pandaStylePropsToArray(sx)))}
+        style={mergePandaStyleProps({ sx })}
       >
         {children}
-      </Box>
+      </BaseDialog.Trigger>
 
-      <Modal
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-        sx={{ border: 'none', outline: 'none' }}
-      >
-        <Box
-          sx={[
-            {
-              position: 'absolute' as const,
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: {
-                xs: '100%',
-                md: '800px',
-              },
-              maxHeight: {
-                xs: '100vh',
-                md: '80vh',
-              },
-              overflow: 'auto',
-              bgcolor: 'background.paper',
-              boxShadow: 24,
-              p: 4,
-              border: 'none',
-              outline: 'none',
-            },
-            ...(Array.isArray(sx) ? sx : [sx]),
-          ]}
-        >
-          <IconButton
-            aria-label="close"
-            onClick={handleClose}
-            sx={{
-              position: 'absolute',
-              right: 8,
-              top: 8,
-            }}
+      <BaseDialog.Portal>
+        <BaseDialog.Backdrop className={backdropClass} />
+        <BaseDialog.Viewport className={viewportClass}>
+          <BaseDialog.Popup
+            aria-labelledby={titleId}
+            aria-describedby={descriptionId}
+            className={cx(popupClass, css(...pandaStylePropsToArray(sx)))}
+            style={mergePandaStyleProps({ sx })}
           >
-            <CloseIcon />
-          </IconButton>
-          <Box sx={{ mt: 2 }}>{modalBody}</Box>
-        </Box>
-      </Modal>
-    </>
+            <BaseDialog.Title id={titleId} className={visuallyHiddenClass}>
+              {triggerAriaLabel}
+            </BaseDialog.Title>
+            <BaseDialog.Close
+              type="button"
+              aria-label="close"
+              className={closeButtonClass}
+            >
+              <Cross sx={{ width: '1rem', height: '1rem' }} />
+            </BaseDialog.Close>
+            <BaseDialog.Description
+              id={descriptionId}
+              render={
+                <div
+                  className={cx(
+                    bodyClass,
+                    css(...pandaStylePropsToArray(textContainerSx))
+                  )}
+                  style={mergePandaStyleProps({ sx: textContainerSx })}
+                />
+              }
+            >
+              {modalBody}
+            </BaseDialog.Description>
+          </BaseDialog.Popup>
+        </BaseDialog.Viewport>
+      </BaseDialog.Portal>
+    </BaseDialog.Root>
   )
 }
 

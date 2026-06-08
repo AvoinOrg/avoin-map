@@ -1,3 +1,4 @@
+import '#/test/baseUiTestPolyfills'
 import React, { useState } from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
 
@@ -7,20 +8,32 @@ import {
   LayerToggleRowLink,
 } from '#/components/common/LayerToggleRow'
 
+type MockMutableLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
+  children: React.ReactNode
+  route?: unknown
+  routeTree?: unknown
+  params?: unknown
+}
+
 jest.mock('#/components/common/MutableLink', () => {
-  const React = require('react')
   const MockMutableLink = ({
     children,
     onClick,
-    route,
-    routeTree,
-    params,
+    route: _route,
+    routeTree: _routeTree,
+    params: _params,
     ...props
-  }: any) => (
-    <a href="#mock-link" onClick={onClick} {...props}>
-      {children}
-    </a>
-  )
+  }: MockMutableLinkProps) => {
+    void _route
+    void _routeTree
+    void _params
+
+    return (
+      <a href="#mock-link" onClick={onClick} {...props}>
+        {children}
+      </a>
+    )
+  }
 
   return {
     __esModule: true,
@@ -63,6 +76,20 @@ describe('LayerToggleRow', () => {
 
     expect(onToggle).not.toHaveBeenCalled()
   })
+
+  it('renders a progress indicator while processing', () => {
+    render(
+      <LayerToggleRow
+        label="Layer"
+        status="processing"
+        ariaLabel="Toggle processing layer"
+        onToggle={() => {}}
+      />
+    )
+
+    expect(screen.getByRole('progressbar', { name: 'Loading' }))
+      .toBeInTheDocument()
+  })
 })
 
 describe('LayerToggleRowAccordion', () => {
@@ -90,10 +117,12 @@ describe('LayerToggleRowAccordion', () => {
     })
 
     expect(button.getAttribute('aria-expanded')).toBe('false')
+    expect(screen.queryByText('Accordion content')).toBeNull()
 
     fireEvent.click(button)
 
     expect(button.getAttribute('aria-expanded')).toBe('true')
+    expect(screen.getByRole('region')).toHaveTextContent('Accordion content')
   })
 })
 

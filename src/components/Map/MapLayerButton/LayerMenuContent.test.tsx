@@ -7,29 +7,43 @@ import theme from '#/common/style/theme/theme'
 import { LayerOrderLevel, ListedLayerMenuItem } from '#/common/types/map'
 import LayerMenuContent from './LayerMenuContent'
 
+function mockTText({ keyName, ns }: { keyName: string; ns?: string }) {
+  return React.createElement(
+    'span',
+    {
+      'data-testid': 'tolgee-target',
+      'data-key-name': keyName,
+      'data-ns': ns,
+    },
+    `${ns}:${keyName}`
+  )
+}
+
+function mockOverlayScrollbarsComponent({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return React.createElement('div', null, children)
+}
+
+function mockNextImage({
+  alt,
+  ...props
+}: React.ImgHTMLAttributes<HTMLImageElement> & { alt: string }) {
+  return React.createElement('img', { alt, ...props })
+}
+
 jest.mock('@tolgee/react', () => ({
   useTranslate: (ns?: string) => ({
     t: (key: string) => `${ns ?? 'default'}:${key}`,
   }),
 }))
 
-jest.mock('#/components/common/TText', () => {
-  const react = require('react')
-
-  return {
-    __esModule: true,
-    default: ({ keyName, ns }: { keyName: string; ns?: string }) =>
-      react.createElement(
-        'span',
-        {
-          'data-testid': 'tolgee-target',
-          'data-key-name': keyName,
-          'data-ns': ns,
-        },
-        `${ns}:${keyName}`
-      ),
-  }
-})
+jest.mock('#/components/common/TText', () => ({
+  __esModule: true,
+  default: mockTText,
+}))
 
 jest.mock('#/common/hooks/map/useLayerGroupOpacity', () => ({
   useLayerGroupOpacity: () => undefined,
@@ -39,27 +53,14 @@ jest.mock('#/common/utils/map', () => ({
   clampOpacity: (opacity: number) => opacity,
 }))
 
-jest.mock('overlayscrollbars-react', () => {
-  const react = require('react')
+jest.mock('overlayscrollbars-react', () => ({
+  OverlayScrollbarsComponent: mockOverlayScrollbarsComponent,
+}))
 
-  return {
-    OverlayScrollbarsComponent: ({
-      children,
-    }: {
-      children: React.ReactNode
-    }) => react.createElement('div', null, children),
-  }
-})
-
-jest.mock('next/image', () => {
-  const react = require('react')
-
-  return {
-    __esModule: true,
-    default: ({ alt, ...props }: any) =>
-      react.createElement('img', { alt, ...props }),
-  }
-})
+jest.mock('next/image', () => ({
+  __esModule: true,
+  default: mockNextImage,
+}))
 
 const normalLayer: ListedLayerMenuItem = {
   id: 'normal-layer',
@@ -139,8 +140,8 @@ describe('LayerMenuContent', () => {
     const region = screen.getByRole('region')
 
     expect(region).toHaveStyle({
-      paddingLeft: '24px',
-      paddingRight: '24px',
+      paddingLeft: '1.5rem',
+      paddingRight: '1.5rem',
     })
     expect(region).not.toHaveStyle({
       borderBottom: '1px solid #D6D6D6',
@@ -155,8 +156,8 @@ describe('LayerMenuContent', () => {
     const separator = region.querySelector('[aria-hidden="true"]')
 
     expect(region).toHaveStyle({
-      paddingLeft: '24px',
-      paddingRight: '24px',
+      paddingLeft: '1.5rem',
+      paddingRight: '1.5rem',
     })
     expect(region).not.toHaveStyle({
       borderBottom: '1px solid #D6D6D6',

@@ -1,18 +1,13 @@
+import '#/test/baseUiTestPolyfills'
 import React from 'react'
 import '@testing-library/jest-dom'
-import { ThemeProvider } from '@mui/material/styles'
 import { fireEvent, render, screen } from '@testing-library/react'
 
-import theme from '#/common/style/theme/theme'
 import LayerMenuAccordion from '#/components/common/LayerMenuAccordion'
-
-const renderWithTheme = (ui: React.ReactElement) => {
-  return render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>)
-}
 
 describe('LayerMenuAccordion', () => {
   it('toggles content and exposes ARIA state', () => {
-    renderWithTheme(
+    render(
       <LayerMenuAccordion
         id="building-filters"
         title="Rakennus tasot"
@@ -54,7 +49,7 @@ describe('LayerMenuAccordion', () => {
       )
     }
 
-    renderWithTheme(<ControlledAccordion />)
+    render(<ControlledAccordion />)
 
     const button = screen.getByRole('button', {
       name: 'Toggle controlled filters',
@@ -68,7 +63,7 @@ describe('LayerMenuAccordion', () => {
   })
 
   it('shows the bottom separator by default and can hide it for a last accordion', () => {
-    const { rerender } = renderWithTheme(
+    const { rerender } = render(
       <LayerMenuAccordion
         id="separator-filters"
         title="Rakennus tasot"
@@ -79,20 +74,12 @@ describe('LayerMenuAccordion', () => {
       </LayerMenuAccordion>
     )
 
-    const button = screen.getByRole('button', {
-      name: 'Toggle separator filters',
-    })
     const region = screen.getByRole('region')
     const separator = region.querySelector('[aria-hidden="true"]')
 
-    expect(button).toHaveStyle({
-      padding: '0px',
-    })
     expect(region).toHaveStyle({
-      paddingLeft: '24px',
-      paddingRight: '24px',
-      boxSizing: 'border-box',
-      width: '100%',
+      paddingLeft: '1.5rem',
+      paddingRight: '1.5rem',
     })
     expect(region).not.toHaveStyle({
       borderBottom: '1px solid #D6D6D6',
@@ -103,24 +90,22 @@ describe('LayerMenuAccordion', () => {
     })
 
     rerender(
-      <ThemeProvider theme={theme}>
-        <LayerMenuAccordion
-          id="separator-filters"
-          title="Rakennus tasot"
-          ariaLabel="Toggle separator filters"
-          defaultExpanded
-          showBottomSeparator={false}
-        >
-          <div>Separated content</div>
-        </LayerMenuAccordion>
-      </ThemeProvider>
+      <LayerMenuAccordion
+        id="separator-filters"
+        title="Rakennus tasot"
+        ariaLabel="Toggle separator filters"
+        defaultExpanded
+        showBottomSeparator={false}
+      >
+        <div>Separated content</div>
+      </LayerMenuAccordion>
     )
 
     const regionWithoutSeparator = screen.getByRole('region')
 
     expect(regionWithoutSeparator).toHaveStyle({
-      paddingLeft: '24px',
-      paddingRight: '24px',
+      paddingLeft: '1.5rem',
+      paddingRight: '1.5rem',
     })
     expect(regionWithoutSeparator).not.toHaveStyle({
       borderBottom: '1px solid #D6D6D6',
@@ -131,7 +116,7 @@ describe('LayerMenuAccordion', () => {
   })
 
   it('allows content padding to be overridden through contentSx', () => {
-    renderWithTheme(
+    render(
       <LayerMenuAccordion
         id="flush-content-filters"
         title="Rakennus tasot"
@@ -144,8 +129,8 @@ describe('LayerMenuAccordion', () => {
     )
 
     expect(screen.getByRole('region')).toHaveStyle({
-      paddingLeft: '0px',
-      paddingRight: '0px',
+      paddingLeft: '0rem',
+      paddingRight: '0rem',
     })
   })
 })

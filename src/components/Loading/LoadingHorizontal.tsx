@@ -1,56 +1,57 @@
 import * as React from 'react'
-import Box from '@mui/material/Box'
-import { SxProps, Theme } from '@mui/material'
+import { css, cx } from 'styled-system/css'
+
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
 
 type Props = {
-  sx?: SxProps<Theme>
-}
+  sx?: PandaStyleProp
+} & Omit<React.SVGProps<SVGSVGElement>, 'color'>
 
-const LoadingHorizontal = (props: Props) => (
-  <Box
-    component="svg"
+const LoadingHorizontal = ({ sx, className, style, ...props }: Props) => (
+  <svg
     xmlns="http://www.w3.org/2000/svg"
     width={24}
     height={24}
     fill="none"
     viewBox="0 0 24 24"
+    role="progressbar"
+    aria-label={props['aria-label'] ?? 'Loading'}
+    className={cx(css(...pandaStylePropsToArray(sx)), className)}
+    style={mergePandaStyleProps({ sx, style })}
     {...props}
   >
-    <style>
-      {`
-        .spinner_S1WN{
-          animation: spinner_MGfb .8s linear infinite;
-          animation-delay: -.8s
-        }
-        .spinner_Km9P{
-          animation-delay: -.65s
-        }
-        .spinner_JApP{
-          animation-delay: -.5s
-        }
-        @keyframes spinner_MGfb{
-          93.75%, 100%{
-            opacity: .2
-          }
-        }
-      `}
-    </style>
-    <circle className="spinner_S1WN" cx="4" cy="12" r="3" fill="currentColor" />
-    <circle
-      className="spinner_S1WN spinner_Km9P"
-      cx="12"
-      cy="12"
-      r="3"
-      fill="currentColor"
-    />
-    <circle
-      className="spinner_S1WN spinner_JApP"
-      cx="20"
-      cy="12"
-      r="3"
-      fill="currentColor"
-    />
-  </Box>
+    <circle cx="4" cy="12" r="3" fill="currentColor">
+      <animate
+        attributeName="opacity"
+        values="1;1;0.2;1"
+        dur="0.8s"
+        begin="-0.8s"
+        repeatCount="indefinite"
+      />
+    </circle>
+    <circle cx="12" cy="12" r="3" fill="currentColor">
+      <animate
+        attributeName="opacity"
+        values="1;1;0.2;1"
+        dur="0.8s"
+        begin="-0.65s"
+        repeatCount="indefinite"
+      />
+    </circle>
+    <circle cx="20" cy="12" r="3" fill="currentColor">
+      <animate
+        attributeName="opacity"
+        values="1;1;0.2;1"
+        dur="0.8s"
+        begin="-0.5s"
+        repeatCount="indefinite"
+      />
+    </circle>
+  </svg>
 )
 
 export default LoadingHorizontal

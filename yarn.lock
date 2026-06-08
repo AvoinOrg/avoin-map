@@ -9928,7 +9928,6 @@ __metadata:
     next: "npm:^16.2.4"
     next-auth: "npm:^4.24.14"
     next-intl: "npm:^4.9.1"
-    notistack: "npm:^3.0.1"
     ol: "npm:^7.2.2"
     ol-mapbox-style: "npm:^9.5.0"
     overlayscrollbars: "npm:^2.12.0"
@@ -9981,13 +9980,6 @@ __metadata:
     kind-of: "npm:^6.0.2"
     shallow-clone: "npm:^3.0.0"
   checksum: 10/770f912fe4e6f21873c8e8fbb1e99134db3b93da32df271d00589ea4a29dbe83a9808a322c93f3bcaf8584b8b4fa6fc269fc8032efbaa6728e0c9886c74467d2
-  languageName: node
-  linkType: hard
-
-"clsx@npm:^1.1.0":
-  version: 1.2.1
-  resolution: "clsx@npm:1.2.1"
-  checksum: 10/5ded6f61f15f1fa0350e691ccec43a28b12fb8e64c8e94715f2a937bc3722d4c3ed41d6e945c971fc4dcc2a7213a43323beaf2e1c28654af63ba70c9968a8643
   languageName: node
   linkType: hard
 
@@ -10623,13 +10615,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"csstype@npm:^3.0.10, csstype@npm:^3.2.2":
-  version: 3.2.3
-  resolution: "csstype@npm:3.2.3"
-  checksum: 10/ad41baf7e2ffac65ab544d79107bf7cd1a4bb9bab9ac3302f59ab4ba655d5e30942a8ae46e10ba160c6f4ecea464cc95b975ca2fefbdeeacd6ac63f12f99fe1f
-  languageName: node
-  linkType: hard
-
 "csstype@npm:^3.0.2":
   version: 3.1.2
   resolution: "csstype@npm:3.1.2"
@@ -10641,6 +10626,13 @@ __metadata:
   version: 3.1.3
   resolution: "csstype@npm:3.1.3"
   checksum: 10/f593cce41ff5ade23f44e77521e3a1bcc2c64107041e1bf6c3c32adc5187d0d60983292fda326154d20b01079e24931aa5b08e4467cc488b60bb1e7f6d478ade
+  languageName: node
+  linkType: hard
+
+"csstype@npm:^3.2.2":
+  version: 3.2.3
+  resolution: "csstype@npm:3.2.3"
+  checksum: 10/ad41baf7e2ffac65ab544d79107bf7cd1a4bb9bab9ac3302f59ab4ba655d5e30942a8ae46e10ba160c6f4ecea464cc95b975ca2fefbdeeacd6ac63f12f99fe1f
   languageName: node
   linkType: hard
 
@@ -13766,15 +13758,6 @@ __metadata:
     pify: "npm:^2.0.0"
     pinkie-promise: "npm:^2.0.0"
   checksum: 10/18109d6b9d55643d2b98b59c3cfae7073ccfe39829632f353d516cc124d836c2ddebe48a23f04af63d66a621b6d86dd4cbd7e6af906f2458a7fe510ffc4bd424
-  languageName: node
-  linkType: hard
-
-"goober@npm:^2.0.33":
-  version: 2.1.14
-  resolution: "goober@npm:2.1.14"
-  peerDependencies:
-    csstype: ^3.0.10
-  checksum: 10/372f18333ef64c403d29be7c1175cc9cd74cb947ec52cd42fbb1cf3f9870ac1dfec9c7671192cbf47ebc0ec17d8b05b6ef9a2b92952397d5b555a692381d5eaa
   languageName: node
   linkType: hard
 
@@ -17404,19 +17387,6 @@ __metadata:
   version: 6.1.0
   resolution: "normalize-url@npm:6.1.0"
   checksum: 10/5ae699402c9d5ffa330adc348fcd6fc6e6a155ab7c811b96e30b7ecab60ceef821d8f86443869671dda71bbc47f4b9625739c82ad247e883e9aefe875bfb8659
-  languageName: node
-  linkType: hard
-
-"notistack@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "notistack@npm:3.0.1"
-  dependencies:
-    clsx: "npm:^1.1.0"
-    goober: "npm:^2.0.33"
-  peerDependencies:
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0
-    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
-  checksum: 10/be6ca9e1c2f06118fe0545eaaf91f2f260efe5b1ff3b3f6575a346d5c9f88666e7f13ef4369a56037a2c89c030c191f034f6e6b5a28be704540a23442e2d19a9
   languageName: node
   linkType: hard
 

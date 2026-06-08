@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react'
 import { Box, Typography } from '@mui/material'
-import { T, useTranslate } from '@tolgee/react'
+import { useTranslate } from '@tolgee/react'
 import { useRouter } from 'next/navigation'
 
 import {
@@ -15,6 +15,7 @@ import { getRoute } from '#/common/routing/routing-client'
 import { useMapStore } from '#/common/store'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
 import { LayerToggleRow } from '#/components/common/LayerToggleRow'
+import TText from '#/components/common/TText'
 
 import { routeTree } from '#/common/routing/routes/hiilikartta'
 import { listedLayerGroups } from '../common/constants'
@@ -23,6 +24,11 @@ import PlanOutlineIcon from '../components/PlanOutlineIcon'
 const HOME_SIDEBAR_HEADER_PADDING_REM = 0.75
 const HOME_SIDEBAR_LEFT_WALL_REM = 2
 const HOME_SIDEBAR_LOGO_ROW_PADDING_REM = 0.5
+
+const HiilikarttaText = TText as React.ComponentType<{
+  keyName: string
+  ns: 'hiilikartta'
+}>
 
 const HomeSidebarHeader = () => {
   return (
@@ -210,30 +216,32 @@ const Page = () => {
               </Typography>
 
               {vegetationLayerGroup && (
-                <LayerToggleRow
-                  ariaLabel="Toggle vegetation carbon layer"
-                  color="#2D7A3A"
-                  status={isVegetationLayerVisible ? 'visible' : 'hidden'}
-                  label={
-                    <T keyName="sidebar.main.vegetation_layer" ns="hiilikartta" />
-                  }
-                  onToggle={() =>
-                    toggleLayerGroup(
-                      vegetationLayerGroup.id,
-                      vegetationLayerGroup.addOptions
-                    )
-                  }
-                  sx={{
-                    mt: { mobile: '4rem', desktop: '5.25rem' },
-                  }}
-                  labelSx={{
-                    color: '#111111',
-                    fontSize: '0.6875rem',
-                    fontWeight: 400,
-                    lineHeight: '1.125rem',
-                    letterSpacing: '0.1em',
-                  }}
-                />
+                <Box sx={{ mt: { mobile: '4rem', desktop: '5.25rem' } }}>
+                  <LayerToggleRow
+                    ariaLabel="Toggle vegetation carbon layer"
+                    color="#2D7A3A"
+                    status={isVegetationLayerVisible ? 'visible' : 'hidden'}
+                    label={
+                      <HiilikarttaText
+                        keyName="sidebar.main.vegetation_layer"
+                        ns="hiilikartta"
+                      />
+                    }
+                    onToggle={() =>
+                      toggleLayerGroup(
+                        vegetationLayerGroup.id,
+                        vegetationLayerGroup.addOptions
+                      )
+                    }
+                    labelSx={{
+                      color: '#111111',
+                      fontSize: '0.6875rem',
+                      fontWeight: 400,
+                      lineHeight: '1.125rem',
+                      letterSpacing: '0.1em',
+                    }}
+                  />
+                </Box>
               )}
             </Box>
 
@@ -249,7 +257,10 @@ const Page = () => {
                   maxWidth: '18.625rem',
                 }}
               >
-                <T keyName="sidebar.main.attribution" ns="hiilikartta" />
+                <HiilikarttaText
+                  keyName="sidebar.main.attribution"
+                  ns="hiilikartta"
+                />
               </Typography>
 
               <Box

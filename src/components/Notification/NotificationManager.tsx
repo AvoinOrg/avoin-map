@@ -1,13 +1,60 @@
 import React, { useEffect } from 'react'
-import { closeSnackbar, useSnackbar } from 'notistack'
+import { Toast as BaseToast } from '@base-ui/react/toast'
+import { css } from 'styled-system/css'
 
-import { useUIStore } from '#/common/store'
-import { Box, IconButton, Link, Typography } from '@mui/material'
-import { Cross } from '../icons'
+import { useUIStore } from '#/common/store/uiStore'
 import { useTranslate } from '@tolgee/react'
 
+const messageContentClass = css({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4px',
+})
+
+const messageClass = css({
+  whiteSpace: 'pre-line',
+  fontFamily: 'var(--font-arimo)',
+  fontSize: '0.875rem',
+  fontWeight: 400,
+  lineHeight: 'normal',
+  letterSpacing: '0.0875rem',
+})
+
+const linkClass = css({
+  cursor: 'pointer',
+  color: 'inherit',
+  fontFamily: 'var(--font-arimo)',
+  fontSize: '0.875rem',
+  fontWeight: 500,
+  lineHeight: 'normal',
+  letterSpacing: '0.0875rem',
+  textDecoration: 'underline',
+})
+
+const NotificationContent = ({
+  message,
+  link,
+}: {
+  message: string
+  link?: {
+    href: string
+    label: string
+  }
+}) => {
+  return (
+    <div className={messageContentClass}>
+      <span className={messageClass}>{message}</span>
+      {link != null && (
+        <a className={linkClass} href={link.href}>
+          {link.label}
+        </a>
+      )}
+    </div>
+  )
+}
+
 const NotificationManager = () => {
-  const { enqueueSnackbar } = useSnackbar()
+  const toastManager = BaseToast.useToastManager()
   const { t } = useTranslate('avoin-map')
   const notifications = useUIStore((state) => state.notifications)
   const updateNotification = useUIStore((state) => state.updateNotification)
@@ -45,53 +92,29 @@ const NotificationManager = () => {
                 )
               : undefined)
 
-          const messageNode = (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <Typography sx={{ whiteSpace: 'pre-line' }}>
-                {message}
-              </Typography>
-              {notification.link != null && linkLabel != null && (
-                <Link
-                  href={notification.link.href}
-                  underline="always"
-                  sx={{
-                    cursor: 'pointer',
-                    color: 'inherit',
-                    fontWeight: 500,
-                  }}
-                >
-                  {linkLabel}
-                </Link>
-              )}
-            </Box>
-          )
-
-          enqueueSnackbar(messageNode, {
-              variant: notification.variant || 'default',
-              autoHideDuration: notification.duration,
-              persist: notification.persist,
-              hideIconVariant: true,
-              action: (key) => (
-                <IconButton
-                  size="small"
-                  aria-label="Close notification"
-                  onClick={() => {
-                    closeSnackbar(key)
-                  }}
-                  sx={{
-                    color: 'inherit',
-                    marginTop: '4px',
-                  }}
-                >
-                  <Cross sx={{ display: 'flex', height: '16px' }}></Cross>
-                </IconButton>
-              ),
-            }
-          )
+          toastManager.add({
+            id: notification.id,
+            type: notification.variant || 'default',
+            timeout: notification.persist ? 0 : notification.duration,
+            priority: notification.variant === 'error' ? 'high' : 'low',
+            description: (
+              <NotificationContent
+                message={message}
+                link={
+                  notification.link != null && linkLabel != null
+                    ? {
+                        href: notification.link.href,
+                        label: linkLabel,
+                      }
+                    : undefined
+                }
+              />
+            ),
+          })
         }
       })
     }
-  }, [notifications, enqueueSnackbar, t, updateNotification])
+  }, [notifications, toastManager, t, updateNotification])
 
   return <></>
 }

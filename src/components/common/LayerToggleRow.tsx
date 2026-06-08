@@ -1,8 +1,14 @@
 import React, { useId } from 'react'
-import { Box, Collapse, SxProps, Theme, Typography } from '@mui/material'
+import { Collapsible as BaseCollapsible } from '@base-ui/react/collapsible'
+import { css, cx } from 'styled-system/css'
 
 import { LayerGroupStatus } from '#/common/hooks/map/useLayerGroup'
 import { getContrastColor } from '#/common/utils/styling'
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
 import LoadingHorizontal from '#/components/Loading/LoadingHorizontal'
 import MutableLink from '#/components/common/MutableLink'
 import { CircleArrowRight, EyeClosed, EyeOpen } from '#/components/icons'
@@ -16,10 +22,10 @@ type SharedLayerToggleRowProps = {
   disabled?: boolean
   ariaLabel?: string
   color?: string
-  sx?: SxProps<Theme>
-  rowSx?: SxProps<Theme>
-  labelSx?: SxProps<Theme>
-  iconSx?: SxProps<Theme>
+  sx?: PandaStyleProp
+  rowSx?: PandaStyleProp
+  labelSx?: PandaStyleProp
+  iconSx?: PandaStyleProp
 }
 
 type LayerToggleRowProps = SharedLayerToggleRowProps
@@ -27,16 +33,16 @@ type LayerToggleRowProps = SharedLayerToggleRowProps
 type LayerToggleRowAccordionProps = SharedLayerToggleRowProps & {
   expanded: boolean
   children: React.ReactNode
-  contentSx?: SxProps<Theme>
+  contentSx?: PandaStyleProp
 }
 
 type LayerToggleRowLinkProps = SharedLayerToggleRowProps & {
   linkAriaLabel: string
   linkProps: Omit<MutableLinkProps, 'children'>
-  linkSx?: SxProps<Theme>
+  linkSx?: PandaStyleProp
 }
 
-const BASE_ROW_SX = {
+const baseRowClass = css({
   width: '100%',
   minHeight: '1.125rem',
   p: 0,
@@ -56,17 +62,18 @@ const BASE_ROW_SX = {
     opacity: 0.5,
     cursor: 'not-allowed',
   },
-}
+})
 
-const LABEL_SX = {
+const labelClass = css({
   color: '#111111',
   flexGrow: 1,
+  fontFamily: 'var(--font-arimo)',
   fontSize: '0.6875rem',
   fontWeight: 400,
   lineHeight: '1.125rem',
   letterSpacing: '0.1em',
   whiteSpace: 'normal',
-}
+})
 
 const ACCORDION_ROW_HORIZONTAL_PADDING_REM = 0.375
 const ACCORDION_ROW_HORIZONTAL_PADDING = `${ACCORDION_ROW_HORIZONTAL_PADDING_REM}rem`
@@ -75,20 +82,58 @@ const ACCORDION_ROW_WIDTH = `calc(100% + ${
   ACCORDION_ROW_HORIZONTAL_PADDING_REM * 2
 }rem)`
 
+const coloredVisibleIconClass = css({
+  width: 32,
+  height: 24,
+  borderRadius: '50%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  border: '1px solid',
+})
+
+const iconBoxClass = css({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flexShrink: 0,
+})
+
+const rootClass = css({
+  width: '100%',
+})
+
+const accordionRowWrapperClass = css({
+  mx: ACCORDION_ROW_HORIZONTAL_MARGIN,
+  width: ACCORDION_ROW_WIDTH,
+})
+
+const accordionPanelClass = css({
+  width: '100%',
+  overflow: 'hidden',
+  height: 'var(--collapsible-panel-height)',
+  opacity: 1,
+  transition: 'height 160ms ease, opacity 160ms ease',
+  '&[data-closed]': {
+    height: 0,
+    opacity: 0,
+  },
+})
+
+const linkRowClass = css({
+  width: '100%',
+  display: 'flex',
+  alignItems: 'center',
+})
+
 const ColoredVisibleIcon = ({ color }: { color: string }) => {
   const contrastColor = getContrastColor(color)
 
   return (
-    <Box
-      sx={{
-        width: 32,
-        height: 24,
-        borderRadius: '50%',
+    <span
+      className={coloredVisibleIconClass}
+      style={{
         background: color,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        border: '1px solid',
         borderColor: contrastColor,
       }}
     >
@@ -99,7 +144,7 @@ const ColoredVisibleIcon = ({ color }: { color: string }) => {
           color: contrastColor,
         }}
       />
-    </Box>
+    </span>
   )
 }
 
@@ -110,9 +155,9 @@ const LayerStatusIcon = ({
 }: {
   status: LayerGroupStatus
   color?: string
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
 }) => {
-  const iconBoxSx = color
+  const iconBoxStyle = color
     ? {
         width: '32px',
         height: '24px',
@@ -133,24 +178,19 @@ const LayerStatusIcon = ({
       }
 
   return (
-    <Box
-      sx={[
-        {
-          ...iconBoxSx,
-          mr: color ? '0.75rem' : '0.3125rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
+    <span
+      className={cx(iconBoxClass, css(...pandaStylePropsToArray(sx)))}
+      style={{
+        ...iconBoxStyle,
+        marginRight: color ? '0.75rem' : '0.3125rem',
+        ...mergePandaStyleProps({ sx }),
+      }}
     >
       {status === 'processing' && <LoadingHorizontal sx={iconSx} />}
       {status === 'hidden' && <EyeClosed sx={iconSx} />}
       {status === 'visible' &&
         (color ? <ColoredVisibleIcon color={color} /> : <EyeOpen sx={iconSx} />)}
-    </Box>
+    </span>
   )
 }
 
@@ -168,35 +208,55 @@ const ToggleRowButton = ({
   children,
   expanded,
   controls,
+  collapsibleTrigger = false,
 }: SharedLayerToggleRowProps & {
   children?: React.ReactNode
   expanded?: boolean
   controls?: string
+  collapsibleTrigger?: boolean
 }) => {
-  return (
-    <Box
-      component="button"
-      type="button"
-      aria-label={ariaLabel}
-      aria-disabled={disabled ? 'true' : undefined}
-      aria-expanded={expanded}
-      aria-controls={controls}
-      onClick={disabled ? undefined : onToggle}
-      sx={[
-        BASE_ROW_SX,
-        ...(Array.isArray(rowSx) ? rowSx : [rowSx]),
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
-    >
+  const buttonSx = [
+    ...pandaStylePropsToArray(rowSx),
+    ...pandaStylePropsToArray(sx),
+  ]
+  const sharedProps = {
+    type: 'button' as const,
+    'aria-label': ariaLabel,
+    'aria-disabled': disabled || undefined,
+    'aria-expanded': expanded,
+    'aria-controls': controls,
+    className: cx(
+      baseRowClass,
+      css(...pandaStylePropsToArray(rowSx)),
+      css(...pandaStylePropsToArray(sx))
+    ),
+    style: mergePandaStyleProps({ sx: buttonSx }),
+  }
+  const contents = (
+    <>
       <LayerStatusIcon status={status} color={color} sx={iconSx} />
-      <Typography
-        component="span"
-        sx={[LABEL_SX, ...(Array.isArray(labelSx) ? labelSx : [labelSx])]}
+      <span
+        className={cx(labelClass, css(...pandaStylePropsToArray(labelSx)))}
+        style={mergePandaStyleProps({ sx: labelSx })}
       >
         {label}
-      </Typography>
+      </span>
       {children}
-    </Box>
+    </>
+  )
+
+  if (collapsibleTrigger) {
+    return (
+      <BaseCollapsible.Trigger {...sharedProps}>
+        {contents}
+      </BaseCollapsible.Trigger>
+    )
+  }
+
+  return (
+    <button {...sharedProps} onClick={disabled ? undefined : onToggle}>
+      {contents}
+    </button>
   )
 }
 
@@ -215,17 +275,22 @@ export const LayerToggleRowAccordion = ({
   const contentId = `layer-toggle-row-accordion-${generatedId}`
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <Box
-        sx={{
-          mx: ACCORDION_ROW_HORIZONTAL_MARGIN,
-          width: ACCORDION_ROW_WIDTH,
-        }}
-      >
+    <BaseCollapsible.Root
+      open={expanded}
+      disabled={props.disabled}
+      onOpenChange={(nextExpanded) => {
+        if (nextExpanded !== expanded && !props.disabled) {
+          props.onToggle()
+        }
+      }}
+      className={rootClass}
+    >
+      <div className={accordionRowWrapperClass}>
         <ToggleRowButton
           {...props}
           expanded={expanded}
           controls={contentId}
+          collapsibleTrigger
           rowSx={[
             {
               px: ACCORDION_ROW_HORIZONTAL_PADDING,
@@ -236,7 +301,7 @@ export const LayerToggleRowAccordion = ({
                   borderRadius: '20px',
                 }
               : {},
-            ...(Array.isArray(rowSx) ? rowSx : [rowSx]),
+            ...pandaStylePropsToArray(rowSx),
           ]}
         >
           <CircleArrowRight
@@ -252,21 +317,19 @@ export const LayerToggleRowAccordion = ({
             }}
           />
         </ToggleRowButton>
-      </Box>
-      <Collapse in={expanded} timeout="auto" unmountOnExit>
-        <Box
-          id={contentId}
-          sx={[
-            {
-              width: '100%',
-            },
-            ...(Array.isArray(contentSx) ? contentSx : [contentSx]),
-          ]}
-        >
-          {children}
-        </Box>
-      </Collapse>
-    </Box>
+      </div>
+      <BaseCollapsible.Panel
+        id={contentId}
+        role="region"
+        className={cx(
+          accordionPanelClass,
+          css(...pandaStylePropsToArray(contentSx))
+        )}
+        style={mergePandaStyleProps({ sx: contentSx })}
+      >
+        {children}
+      </BaseCollapsible.Panel>
+    </BaseCollapsible.Root>
   )
 }
 
@@ -286,15 +349,9 @@ export const LayerToggleRowLink = ({
   linkSx,
 }: LayerToggleRowLinkProps) => {
   return (
-    <Box
-      sx={[
-        {
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
+    <div
+      className={cx(linkRowClass, css(...pandaStylePropsToArray(sx)))}
+      style={mergePandaStyleProps({ sx })}
     >
       <ToggleRowButton
         label={label}
@@ -318,22 +375,24 @@ export const LayerToggleRowLink = ({
           event.stopPropagation()
           linkProps.onClick?.(event)
         }}
-        sx={{
-          width: '2.5rem',
-          height: '2.5rem',
-          ml: '0.5rem',
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#111111',
-          borderRadius: '50%',
-          '&:focus-visible': {
-            outline: '2px solid #111111',
-            outlineOffset: '-0.25rem',
+        sx={[
+          {
+            width: '2.5rem',
+            height: '2.5rem',
+            ml: '0.5rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#111111',
+            borderRadius: '50%',
+            '&:focus-visible': {
+              outline: '2px solid #111111',
+              outlineOffset: '-0.25rem',
+            },
           },
-          ...(linkProps.sx as object),
-          ...(linkSx as object),
-        }}
+          ...pandaStylePropsToArray(linkProps.sx),
+          ...pandaStylePropsToArray(linkSx),
+        ]}
       >
         <CircleArrowRight
           aria-hidden="true"
@@ -344,6 +403,6 @@ export const LayerToggleRowLink = ({
           }}
         />
       </MutableLink>
-    </Box>
+    </div>
   )
 }

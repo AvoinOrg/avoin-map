@@ -1,82 +1,152 @@
 import React, { useEffect, useMemo, useRef } from 'react'
-import Button from '@mui/material/Button'
-import Dialog from '@mui/material/Dialog'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-import DialogTitle from '@mui/material/DialogTitle'
+import { AlertDialog as BaseAlertDialog } from '@base-ui/react/alert-dialog'
+import { css, cx } from 'styled-system/css'
 
-import { useUIStore } from '#/common/store'
+import { useUIStore } from '#/common/store/uiStore'
 import { useTranslate } from '@tolgee/react'
 import { ConfirmationDialogOptions } from '#/common/types/state'
 
-const actionButtonSx = {
-  typography: 'body1',
+const backdropClass = css({
+  position: 'fixed',
+  inset: 0,
+  zIndex: 'modal',
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+})
+
+const viewportClass = css({
+  position: 'fixed',
+  inset: 0,
+  zIndex: 'modal',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  p: 1,
+})
+
+const popupClass = css({
+  maxWidth: '30rem',
+  width: 'min(30rem, calc(100vw - 1rem))',
+  mx: 1,
+  borderRadius: '0.625rem',
+  border: '1px solid',
+  borderColor: 'neutral.main',
+  backgroundColor: 'neutral.lighter',
+  pt: 1,
+  outline: 'none',
+})
+
+const titleClass = css({
+  color: 'neutral.darker',
+  fontFamily: 'var(--font-arimo)',
+  fontSize: '1.125rem',
+  fontWeight: 700,
+  lineHeight: 'normal',
+  letterSpacing: '0.1125rem',
+  px: 3,
+  pt: 3,
+})
+
+const titleWithContentClass = css({
+  pb: 1,
+})
+
+const titleWithoutContentClass = css({
+  pb: 2,
+})
+
+const contentClass = css({
+  px: 3,
+  pb: 0,
+})
+
+const descriptionClass = css({
+  m: 0,
+  color: 'neutral.darker',
+  fontFamily: 'var(--font-arimo)',
+  fontSize: '0.875rem',
+  fontWeight: 400,
+  lineHeight: 'normal',
+  letterSpacing: '0.0875rem',
+})
+
+const actionsClass = css({
+  px: 3,
+  pb: 3,
+  pt: 3,
+  display: 'flex',
+  justifyContent: 'flex-end',
+  gap: 1.5,
+})
+
+const actionButtonClass = css({
+  fontFamily: 'var(--font-arimo)',
+  fontSize: '0.875rem',
+  fontWeight: 700,
+  lineHeight: 'normal',
+  letterSpacing: '0.0875rem',
   minWidth: '6.5rem',
   px: 2.5,
   py: 1,
   borderRadius: '999px',
+  border: '1px solid',
   borderColor: 'neutral.main',
   backgroundColor: 'neutral.light',
   color: 'neutral.darker',
   boxShadow: '1px 1px 7px 0px #EEECEC',
+  cursor: 'pointer',
   '&:hover': {
     backgroundColor: 'primary.lighter',
     borderColor: 'primary.main',
   },
-}
+  '&:focus-visible': {
+    outline: '2px solid var(--colors-secondary-dark)',
+    outlineOffset: '2px',
+  },
+})
 
-const compactActionButtonSx = {
+const compactActionButtonClass = css({
   flex: '1 1 0',
   minWidth: 0,
-}
+})
 
 const ConfirmationDialog = () => {
   const confirmationDialogOptions = useUIStore(
     (state) => state.confirmationDialogOptions
   )
-  const confirmationDialogIdRef = useRef<string | null>(null)
-  const dialogPaperRef = useRef<HTMLDivElement | null>(null)
-  const [open, setOpen] = React.useState(false)
+  const dialogPopupRef = useRef<HTMLDivElement | null>(null)
+  const [dismissedDialogId, setDismissedDialogId] = React.useState<
+    string | null
+  >(null)
   const [shouldFillActionRow, setShouldFillActionRow] = React.useState(false)
   const { t } = useTranslate('avoin-map')
-
-  useEffect(() => {
-    if (confirmationDialogOptions) {
-      if (confirmationDialogIdRef.current != confirmationDialogOptions.id) {
-        confirmationDialogIdRef.current = confirmationDialogOptions.id
-        setOpen(true)
-      } else if (confirmationDialogOptions.id == null && open) {
-        setOpen(false)
-      }
-    }
-  }, [confirmationDialogOptions, open])
+  const currentDialogId = confirmationDialogOptions.id
+  const open = currentDialogId != null && currentDialogId !== dismissedDialogId
 
   useEffect(() => {
     if (!open) {
-      setShouldFillActionRow(false)
       return
     }
 
-    const paperElement = dialogPaperRef.current
-    if (paperElement == null || typeof ResizeObserver === 'undefined') return
+    const popupElement = dialogPopupRef.current
+    if (popupElement == null || typeof ResizeObserver === 'undefined') return
 
     const updateActionLayout = () => {
-      const nextShouldFillActionRow = paperElement.offsetWidth <= 330
+      const nextShouldFillActionRow = popupElement.offsetWidth <= 330
       setShouldFillActionRow((prev) =>
         prev === nextShouldFillActionRow ? prev : nextShouldFillActionRow
       )
     }
 
-    updateActionLayout()
+    const animationFrame = requestAnimationFrame(updateActionLayout)
 
     const resizeObserver = new ResizeObserver(() => {
       updateActionLayout()
     })
 
-    resizeObserver.observe(paperElement)
+    resizeObserver.observe(popupElement)
 
     return () => {
+      cancelAnimationFrame(animationFrame)
       resizeObserver.disconnect()
     }
   }, [open])
@@ -93,89 +163,85 @@ const ConfirmationDialog = () => {
   }, [confirmationDialogOptions, t])
 
   const handleAccept = () => {
-    setOpen(false)
+    setDismissedDialogId(currentDialogId)
+    setShouldFillActionRow(false)
     if (localOptions.onConfirm) {
       localOptions.onConfirm()
     }
   }
 
   const handleCancel = () => {
-    setOpen(false)
+    setDismissedDialogId(currentDialogId)
+    setShouldFillActionRow(false)
     if (localOptions.onCancel != null) {
       localOptions.onCancel()
     }
   }
 
   return (
-    <Dialog
+    <BaseAlertDialog.Root
       open={open}
-      onClose={handleCancel}
-      aria-labelledby="alert-dialog-title"
-      aria-describedby="alert-dialog-description"
-      slotProps={{
-        paper: {
-          ref: dialogPaperRef,
-        },
-      }}
-      sx={{
-        '& .MuiDialog-paper': {
-          maxWidth: '30rem',
-          mx: 1,
-          borderRadius: '0.625rem',
-          border: '1px solid',
-          borderColor: 'neutral.main',
-          backgroundColor: 'neutral.lighter',
-          pt: 1,
-          // boxShadow: '1px 1px 7px 0px #EEECEC',
-        },
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen && open) {
+          handleCancel()
+        }
       }}
     >
-      {localOptions.title != null && (
-        <DialogTitle
-          id="alert-dialog-title"
-          sx={{
-            typography: 'h2',
-            color: 'neutral.darker',
-            px: 3,
-            pt: 3,
-            pb: localOptions.content != null ? 1 : 2,
-          }}
-        >
-          {localOptions.title}
-        </DialogTitle>
-      )}
-      {localOptions.content != null && (
-        <DialogContent sx={{ px: 3, pb: 0 }}>
-          <DialogContentText
-            sx={{ typography: 'body2', color: 'neutral.darker' }}
-            id="alert-dialog-description"
-          >
-            {localOptions.content}
-          </DialogContentText>
-        </DialogContent>
-      )}
-      <DialogActions sx={{ px: 3, pb: 3, pt: 3, gap: 1.5 }}>
-        <Button
+      <BaseAlertDialog.Portal>
+        <BaseAlertDialog.Backdrop
+          className={backdropClass}
           onClick={handleCancel}
-          aria-label={localOptions.cancelText}
-          variant="outlined"
-          disableFocusRipple
-          sx={[actionButtonSx, shouldFillActionRow ? compactActionButtonSx : {}]}
-        >
-          {localOptions.cancelText}
-        </Button>
-        <Button
-          onClick={handleAccept}
-          aria-label={localOptions.confirmText}
-          autoFocus
-          variant="outlined"
-          disableFocusRipple
-          sx={[actionButtonSx, shouldFillActionRow ? compactActionButtonSx : {}]}
-        >
-          {localOptions.confirmText}
-        </Button>
-      </DialogActions>
-    </Dialog>
+        />
+        <BaseAlertDialog.Viewport className={viewportClass}>
+          <BaseAlertDialog.Popup ref={dialogPopupRef} className={popupClass}>
+            {localOptions.title != null && (
+              <BaseAlertDialog.Title
+                className={cx(
+                  titleClass,
+                  localOptions.content != null
+                    ? titleWithContentClass
+                    : titleWithoutContentClass
+                )}
+              >
+                {localOptions.title}
+              </BaseAlertDialog.Title>
+            )}
+            {localOptions.content != null && (
+              <div className={contentClass}>
+                <BaseAlertDialog.Description className={descriptionClass}>
+                  {localOptions.content}
+                </BaseAlertDialog.Description>
+              </div>
+            )}
+            <div className={actionsClass}>
+              <button
+                type="button"
+                onClick={handleCancel}
+                aria-label={localOptions.cancelText}
+                className={cx(
+                  actionButtonClass,
+                  shouldFillActionRow && compactActionButtonClass
+                )}
+              >
+                {localOptions.cancelText}
+              </button>
+              <button
+                type="button"
+                onClick={handleAccept}
+                aria-label={localOptions.confirmText}
+                autoFocus
+                className={cx(
+                  actionButtonClass,
+                  shouldFillActionRow && compactActionButtonClass
+                )}
+              >
+                {localOptions.confirmText}
+              </button>
+            </div>
+          </BaseAlertDialog.Popup>
+        </BaseAlertDialog.Viewport>
+      </BaseAlertDialog.Portal>
+    </BaseAlertDialog.Root>
   )
 }
 

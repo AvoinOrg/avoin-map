@@ -1,25 +1,44 @@
 import React from 'react'
 import type { SVGProps } from 'react'
-import { Box } from '@mui/material'
+import { css, cx } from 'styled-system/css'
+
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
 
 type Props = SVGProps<SVGSVGElement> & {
   color?: string
   borderColor?: string
   height?: number
-  sx?: any
+  sx?: PandaStyleProp
 }
 
-const SvgFolder = ({ color, borderColor, height = 86, sx }: Props) => {
+const svgClass = css({
+  filter: 'drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.15))',
+})
+
+const SvgFolder = ({
+  color,
+  borderColor,
+  height = 86,
+  sx,
+  className,
+  style,
+  ...props
+}: Props) => {
   // Default height set to 86
   const bottomY = 11 + height // Compute the y-coordinate for the bottom part
 
   return (
-    <Box
-      component="svg"
+    <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox={`9 5 348 ${height + 10}`} // Dynamic viewBox based on height
       fill="none"
-      sx={{ filter: 'drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.15))', ...sx }}
+      className={cx(svgClass, css(...pandaStylePropsToArray(sx)), className)}
+      style={mergePandaStyleProps({ sx, style })}
+      {...props}
     >
       <g>
         <path
@@ -32,7 +51,7 @@ const SvgFolder = ({ color, borderColor, height = 86, sx }: Props) => {
           fill={color}
         />
       </g>
-    </Box>
+    </svg>
   )
 }
 
