@@ -1,9 +1,14 @@
 'use client'
 
 import React, { useMemo } from 'react'
-import { Box, ButtonBase, SxProps, Theme, Typography } from '@mui/material'
+import { css, cx } from 'styled-system/css'
 
 import CheckcircleCheckedFilled from '#/components/icons/CheckcircleCheckedFilled'
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
 
 export type FlowNodeState = 'active' | 'available' | 'disabled' | 'complete'
 
@@ -20,9 +25,9 @@ export type FlowNodeProps = {
   disabled?: boolean
   onChange?: (expanded: boolean) => void
   children?: React.ReactNode
-  sx?: SxProps<Theme>
-  contentSx?: SxProps<Theme>
-  bodySx?: SxProps<Theme>
+  sx?: PandaStyleProp
+  contentSx?: PandaStyleProp
+  bodySx?: PandaStyleProp
   ariaLabel?: string
   showConnector?: boolean
 }
@@ -99,135 +104,136 @@ const FlowNodeBase = ({
     }
 
     return (
-      <Box
-        sx={{
+      <span
+        className={css({
           width: 8,
           height: 8,
           borderRadius: '50%',
           backgroundColor: stateStyles.markerColor,
-        }}
+        })}
       />
     )
   })()
 
   const headerContent = (
-    <Box
-      sx={{
+    <div
+      className={css({
         display: 'flex',
         alignItems: 'center',
         gap: '0.625rem',
         width: '100%',
         minWidth: 0,
-      }}
+      })}
     >
       {leading && (
-        <Box
-          sx={{
+        <span
+          className={css({
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
             color: stateStyles.markerColor,
-          }}
+          })}
         >
           {leading}
-        </Box>
+        </span>
       )}
 
-      <Box
-        sx={{
+      <span
+        className={css({
           minWidth: 0,
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
           gap: description || helper ? '0.125rem' : 0,
-        }}
+        })}
       >
-        <Typography
-          sx={{
+        <span
+          className={css({
             fontSize: '0.625rem',
             fontWeight: 700,
             lineHeight: '1.125rem',
             letterSpacing: '0.1em',
             color: stateStyles.titleColor,
             whiteSpace: 'normal',
-          }}
+          })}
         >
           {title}
-        </Typography>
+        </span>
         {description && (
-          <Typography
-            sx={{
+          <span
+            className={css({
               fontSize: '0.625rem',
               fontWeight: 400,
               lineHeight: '0.875rem',
               letterSpacing: '0.04em',
               color: stateStyles.titleColor,
               whiteSpace: 'normal',
-            }}
+            })}
           >
             {description}
-          </Typography>
+          </span>
         )}
         {helper && (
-          <Typography
-            sx={{
+          <span
+            className={css({
               fontSize: '0.625rem',
               fontWeight: 400,
               lineHeight: '0.875rem',
               letterSpacing: '0.04em',
               color: stateStyles.titleColor,
               whiteSpace: 'normal',
-            }}
+            })}
           >
             {helper}
-          </Typography>
+          </span>
         )}
-      </Box>
+      </span>
 
       {trailing && (
-        <Box
-          sx={{
+        <span
+          className={css({
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
             color: stateStyles.titleColor,
-          }}
+          })}
         >
           {trailing}
-        </Box>
+        </span>
       )}
-    </Box>
+    </div>
   )
 
   return (
-    <Box
-      sx={[
-        {
+    <div
+      className={cx(
+        css({
           display: 'flex',
           alignItems: 'flex-start',
           gap: '0.75rem',
           position: 'relative',
           width: '100%',
           color: '#111111',
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
+        }),
+        css(...pandaStylePropsToArray(sx))
+      )}
+      style={mergePandaStyleProps({ sx })}
     >
-      <Box
-        sx={{
+      <div
+        className={css({
           position: 'relative',
           width: '0.5rem',
           flexShrink: 0,
           display: 'flex',
           justifyContent: 'center',
           pt: state === 'active' ? '0.5rem' : '0.4375rem',
-        }}
+        })}
       >
         {showConnector && (
-          <Box
-            sx={{
+          <span
+            className={css({
               position: 'absolute',
               left: '50%',
               top: state === 'complete' ? '0.6rem' : '0.5rem',
@@ -235,12 +241,12 @@ const FlowNodeBase = ({
               transform: 'translateX(-50%)',
               width: '1px',
               backgroundColor: stateStyles.connectorColor,
-            }}
+            })}
           />
         )}
 
-        <Box
-          sx={{
+        <span
+          className={css({
             position: 'relative',
             zIndex: 1,
             display: 'inline-flex',
@@ -248,34 +254,41 @@ const FlowNodeBase = ({
             justifyContent: 'center',
             width: state === 'complete' ? 12 : 8,
             height: state === 'complete' ? 12 : 8,
-          }}
+          })}
         >
           {marker}
-        </Box>
-      </Box>
+        </span>
+      </div>
 
-      <Box
-        sx={[
-          {
+      <div
+        className={cx(
+          css({
             flex: 1,
             minWidth: 0,
-          },
-          ...(Array.isArray(contentSx) ? contentSx : [contentSx]),
-        ]}
+          }),
+          css(...pandaStylePropsToArray(contentSx))
+        )}
+        style={mergePandaStyleProps({ sx: contentSx })}
       >
         {isInteractive ? (
-          <ButtonBase
-            onClick={onClick}
+          <button
+            type="button"
+            onClick={() => onClick()}
             aria-label={
               ariaLabel ??
               (typeof title === 'string' || typeof title === 'number'
                 ? String(title)
                 : undefined)
             }
-            sx={{
+            className={css({
               width: '100%',
               justifyContent: 'flex-start',
               textAlign: 'left',
+              border: 0,
+              appearance: 'none',
+              display: 'inline-flex',
+              cursor: 'pointer',
+              font: 'inherit',
               borderRadius: state === 'active' ? '0.9375rem' : 0,
               px: state === 'active' ? '0.75rem' : 0,
               py: state === 'active' ? '0.125rem' : 0,
@@ -284,13 +297,17 @@ const FlowNodeBase = ({
                   ? stateStyles.headerBackgroundColor
                   : 'transparent',
               color: 'inherit',
-            }}
+              '&:focus-visible': {
+                outline: '2px solid rgba(17,17,17,0.4)',
+                outlineOffset: '2px',
+              },
+            })}
           >
             {headerContent}
-          </ButtonBase>
+          </button>
         ) : (
-          <Box
-            sx={{
+          <div
+            className={css({
               borderRadius: state === 'active' ? '0.9375rem' : 0,
               px: state === 'active' ? '0.75rem' : 0,
               py: state === 'active' ? '0.125rem' : 0,
@@ -298,30 +315,31 @@ const FlowNodeBase = ({
                 state === 'active'
                   ? stateStyles.headerBackgroundColor
                   : 'transparent',
-            }}
+            })}
           >
             {headerContent}
-          </Box>
+          </div>
         )}
 
         {hasBody && (
-          <Box
-            sx={[
-              {
+          <div
+            className={cx(
+              css({
                 pt: '1rem',
                 pl: '0.0625rem',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '1rem',
-              },
-              ...(Array.isArray(bodySx) ? bodySx : [bodySx]),
-            ]}
+              }),
+              css(...pandaStylePropsToArray(bodySx))
+            )}
+            style={mergePandaStyleProps({ sx: bodySx })}
           >
             {children}
-          </Box>
+          </div>
         )}
-      </Box>
-    </Box>
+      </div>
+    </div>
   )
 }
 

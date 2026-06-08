@@ -1,16 +1,20 @@
-import { Box, SxProps, Theme } from '@mui/material'
+import { css, cx } from 'styled-system/css'
 
-type Props = {
-  sx?: SxProps<Theme>
-}
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+import type { IconProps } from './types'
 
-const LayersDark = (props: Props) => (
-  <Box
-    component="svg"
+
+const LayersDark = ({ sx, className, style, ...props }: IconProps) => (
+  <svg
     xmlns="http://www.w3.org/2000/svg"
     width={24}
     height={24}
     viewBox="0 0 24 24"
+    className={cx(css(...pandaStylePropsToArray(sx)), className)}
+    style={mergePandaStyleProps({ sx, style })}
     fill="none"
     {...props}
   >
@@ -33,7 +37,7 @@ const LayersDark = (props: Props) => (
         d="M11.5 24.096 0 15.161l1.722-1.323 9.778 7.57 9.778-7.57L23 15.16l-11.5 8.935Zm0-6.225L0 8.935 11.5 0 23 8.935l-11.5 8.936Z"
       />
     </g>
-  </Box>
+  </svg>
 )
 
 export default LayersDark

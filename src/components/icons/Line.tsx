@@ -1,16 +1,19 @@
-import React from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
+import { css, cx } from 'styled-system/css'
 
-type Props = {
-  sx?: SxProps<Theme>
-}
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+import type { IconProps } from './types'
 
-const Line = (props: Props) => (
-  <Box
-    component="svg"
+
+const Line = ({ sx, className, style, ...props }: IconProps) => (
+  <svg
     width="24"
     height="24"
     viewBox="0 0 30 27"
+    className={cx(css(...pandaStylePropsToArray(sx)), className)}
+    style={mergePandaStyleProps({ sx, style })}
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     {...props}
@@ -36,7 +39,7 @@ const Line = (props: Props) => (
       stroke="currentColor"
       strokeWidth="2"
     />
-  </Box>
+  </svg>
 )
 
 export default Line

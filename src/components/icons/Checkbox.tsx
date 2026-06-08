@@ -1,16 +1,19 @@
-import React from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
+import { css, cx } from 'styled-system/css'
 
-type Props = {
-  sx?: SxProps<Theme>
-}
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+import type { IconProps } from './types'
 
-const Checkbox = (props: Props) => (
-  <Box
-    component={'svg'}
+
+const Checkbox = ({ sx, className, style, ...props }: IconProps) => (
+  <svg
     width={24}
     height={24}
     viewBox="0 0 24 24"
+    className={cx(css(...pandaStylePropsToArray(sx)), className)}
+    style={mergePandaStyleProps({ sx, style })}
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     {...props}
@@ -25,7 +28,7 @@ const Checkbox = (props: Props) => (
       stroke="currentColor"
       strokeWidth="2"
     />
-  </Box>
+  </svg>
 )
 
 export default Checkbox

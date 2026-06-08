@@ -6,7 +6,7 @@
 
 import React, { useEffect, useRef } from 'react'
 import { useTolgee } from '@tolgee/react'
-import { Box } from '@mui/material'
+import { css, cx } from 'styled-system/css'
 
 import { useMapStore, useUIStore } from '#/common/store'
 import { ListedLayerMenuItem, MapContext } from '#/common/types/map'
@@ -18,6 +18,11 @@ import {
   IntoSidebarHeaderChildrenSlot,
   IntoSidebarHeaderSlot,
 } from '#/components/Sidebar/sidebarSlots'
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
 
 type BaseAppletWrapperProps = {
   children: React.ReactNode
@@ -34,7 +39,7 @@ type BaseAppletWrapperProps = {
     duration?: number
   }
   listedLayerGroups?: ListedLayerMenuItem[]
-  sx?: any
+  sx?: PandaStyleProp
 }
 
 type AppletWrapperProps = BaseAppletWrapperProps &
@@ -205,15 +210,18 @@ const AppletWrapper = ({
   }
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        flex: 1,
-        minHeight: 0,
-        ...sx,
-      }}
-      className={'applet-wrapper'}
+    <div
+      className={cx(
+        'applet-wrapper',
+        css({
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          minHeight: 0,
+        }),
+        css(...pandaStylePropsToArray(sx))
+      )}
+      style={mergePandaStyleProps({ sx })}
     >
       {stateMapContext === mapContext && isTolgeeReady() && (
         <>
@@ -234,7 +242,7 @@ const AppletWrapper = ({
           {children}
         </>
       )}
-    </Box>
+    </div>
   )
 }
 

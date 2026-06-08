@@ -226,10 +226,10 @@ const Page = () => {
       <BigMenuButton
         variant="outlined"
         component="label"
-        sx={(theme) => ({
+        sx={{
           width: '100%',
           minHeight: '60px',
-        })}
+        }}
       >
         {fileName ? fileName : t('sidebar.admin.create.select_file')}
         <input

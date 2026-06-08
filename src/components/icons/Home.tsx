@@ -1,16 +1,20 @@
-import { Box, SxProps, Theme } from '@mui/material'
+import { css, cx } from 'styled-system/css'
 
-type Props = {
-  sx?: SxProps<Theme>
-}
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+import type { IconProps } from './types'
 
-const Home = (props: Props) => (
-  <Box
-    component="svg"
+
+const Home = ({ sx, className, style, ...props }: IconProps) => (
+  <svg
     xmlns="http://www.w3.org/2000/svg"
     width={14}
     height={15}
     viewBox="0 0 14 15"
+    className={cx(css(...pandaStylePropsToArray(sx)), className)}
+    style={mergePandaStyleProps({ sx, style })}
     fill="none"
     {...props}
   >
@@ -19,7 +23,7 @@ const Home = (props: Props) => (
       stroke="currentColor"
       strokeWidth={1.2}
     />
-  </Box>
+  </svg>
 )
 
 export default Home

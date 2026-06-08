@@ -1,22 +1,25 @@
-import * as React from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
+import { css, cx } from 'styled-system/css'
 
-type Props = {
-  sx?: SxProps<Theme>
-}
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+import type { IconProps } from './types'
 
-const Descending = (props: Props) => (
-  <Box
-    component="svg"
+
+const Descending = ({ sx, className, style, ...props }: IconProps) => (
+  <svg
     xmlns="http://www.w3.org/2000/svg"
     width={23}
     height={24}
     fill="none"
     viewBox="0 0 23 24"
+    className={cx(css(...pandaStylePropsToArray(sx)), className)}
+    style={mergePandaStyleProps({ sx, style })}
     {...props}
   >
     <path d="M0 1H23M0 21H10M0 10.4118H16.5" stroke="currentColor" strokeWidth="2" />
-  </Box>
+  </svg>
 )
 
 export default Descending

@@ -1,17 +1,20 @@
-import { Box, SxProps, Theme } from '@mui/material';
+import { css, cx } from 'styled-system/css'
 
-type Props = {
-  sx?: SxProps<Theme>;
-};
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+import type { IconProps } from './types'
 
-const Search = (props: Props) => (
-  <Box
-    component="svg"
+const Search = ({ sx, className, style, ...props }: IconProps) => (
+  <svg
     xmlns="http://www.w3.org/2000/svg"
     width={26}
     height={26}
     fill="none"
     viewBox="0 0 26 26"
+    className={cx(css(...pandaStylePropsToArray(sx)), className)}
+    style={mergePandaStyleProps({ sx, style })}
     {...props}
   >
     <g stroke="currentColor" strokeWidth={2}>
@@ -23,7 +26,7 @@ const Search = (props: Props) => (
       />
       <path d="m17 17 8 8" />
     </g>
-  </Box>
-);
+  </svg>
+)
 
-export default Search;
+export default Search

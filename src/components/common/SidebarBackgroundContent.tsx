@@ -1,7 +1,13 @@
 'use client'
 
 import React from 'react'
-import { Box, SxProps, Theme, Typography } from '@mui/material'
+import { css, cx } from 'styled-system/css'
+
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
 
 type SidebarBackgroundContentProps = {
   imageSrc: string
@@ -10,12 +16,12 @@ type SidebarBackgroundContentProps = {
   description?: React.ReactNode
   children?: React.ReactNode
   actions?: React.ReactNode
-  sx?: SxProps<Theme>
-  imageSx?: SxProps<Theme>
-  contentSx?: SxProps<Theme>
-  headerSx?: SxProps<Theme>
-  descriptionSx?: SxProps<Theme>
-  actionsSx?: SxProps<Theme>
+  sx?: PandaStyleProp
+  imageSx?: PandaStyleProp
+  contentSx?: PandaStyleProp
+  headerSx?: PandaStyleProp
+  descriptionSx?: PandaStyleProp
+  actionsSx?: PandaStyleProp
 }
 
 const SidebarBackgroundContent = ({
@@ -33,110 +39,113 @@ const SidebarBackgroundContent = ({
   actionsSx,
 }: SidebarBackgroundContentProps) => {
   return (
-    <Box
-      sx={[
-        {
+    <div
+      className={cx(
+        css({
           width: '100%',
           overflow: 'hidden',
           borderRadius: '1.25rem',
           backgroundColor: '#e4f6d5',
           color: '#111111',
           boxShadow: 'none',
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
+        }),
+        css(...pandaStylePropsToArray(sx))
+      )}
+      style={mergePandaStyleProps({ sx })}
     >
-      <Box
-        component="img"
+      <img
         src={imageSrc}
         alt={imageAlt}
-        sx={[
-          {
+        className={cx(
+          css({
             display: 'block',
             width: '100%',
             height: '4.375rem',
             objectFit: 'cover',
             objectPosition: 'center',
-          },
-          ...(Array.isArray(imageSx) ? imageSx : [imageSx]),
-        ]}
+          }),
+          css(...pandaStylePropsToArray(imageSx))
+        )}
+        style={mergePandaStyleProps({ sx: imageSx })}
       />
-      <Box
-        sx={[
-          {
+      <div
+        className={cx(
+          css({
             display: 'flex',
             flexDirection: 'column',
             gap: 1.5,
             px: '1.25rem',
             pt: '1.125rem',
             pb: '1.25rem',
-          },
-          ...(Array.isArray(contentSx) ? contentSx : [contentSx]),
-        ]}
+          }),
+          css(...pandaStylePropsToArray(contentSx))
+        )}
+        style={mergePandaStyleProps({ sx: contentSx })}
       >
         {(title || description) && (
-          <Box
-            sx={[
-              {
+          <div
+            className={cx(
+              css({
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 0.8,
-              },
-              ...(Array.isArray(headerSx) ? headerSx : [headerSx]),
-            ]}
+              }),
+              css(...pandaStylePropsToArray(headerSx))
+            )}
+            style={mergePandaStyleProps({ sx: headerSx })}
           >
             {title && (
-              <Typography
-                sx={{
+              <span
+                className={css({
                   fontSize: '0.625rem',
                   fontWeight: 700,
                   lineHeight: '1.125rem',
                   letterSpacing: '0.1em',
                   color: 'inherit',
                   textTransform: 'uppercase',
-                }}
+                })}
               >
                 {title}
-              </Typography>
+              </span>
             )}
             {description && (
-              <Typography
-                sx={[
-                  {
+              <span
+                className={cx(
+                  css({
                     fontSize: '0.625rem',
                     fontWeight: 400,
                     lineHeight: '1.125rem',
                     letterSpacing: '0.1em',
                     color: 'inherit',
                     maxWidth: '24ch',
-                  },
-                  ...(Array.isArray(descriptionSx)
-                    ? descriptionSx
-                    : [descriptionSx]),
-                ]}
+                  }),
+                  css(...pandaStylePropsToArray(descriptionSx))
+                )}
+                style={mergePandaStyleProps({ sx: descriptionSx })}
               >
                 {description}
-              </Typography>
+              </span>
             )}
-          </Box>
+          </div>
         )}
         {children}
         {actions && (
-          <Box
-            sx={[
-              {
+          <div
+            className={cx(
+              css({
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 1,
-              },
-              ...(Array.isArray(actionsSx) ? actionsSx : [actionsSx]),
-            ]}
+              }),
+              css(...pandaStylePropsToArray(actionsSx))
+            )}
+            style={mergePandaStyleProps({ sx: actionsSx })}
           >
             {actions}
-          </Box>
+          </div>
         )}
-      </Box>
-    </Box>
+      </div>
+    </div>
   )
 }
 

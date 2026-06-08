@@ -1,10 +1,15 @@
 'use client'
 
 import React from 'react'
-import { Box, SxProps, Theme, Typography } from '@mui/material'
+import { css, cx } from 'styled-system/css'
 
 import ArrowRight from '#/components/icons/ArrowRight'
 import CheckcircleCheckedFilled from '#/components/icons/CheckcircleCheckedFilled'
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
 
 export type NodeFlowStatus = 'incomplete' | 'complete' | 'error'
 export type NodeFlowButtonState = NodeFlowStatus
@@ -25,13 +30,14 @@ export type NodeFlowButtonProps = NodeFlowMarkerProps & {
   disabled?: boolean
   ariaLabel?: string
   ariaExpanded?: boolean
+  state?: 'active' | 'available'
   showConnector?: boolean
   showConnectorTop?: boolean
   showConnectorBottom?: boolean
   disableOuterOffset?: boolean
-  sx?: SxProps<Theme>
-  rowSx?: SxProps<Theme>
-  helperSx?: SxProps<Theme>
+  sx?: PandaStyleProp
+  rowSx?: PandaStyleProp
+  helperSx?: PandaStyleProp
 }
 
 type NodeFlowButtonComponent = React.FC<NodeFlowButtonProps> & {
@@ -70,14 +76,14 @@ const DefaultCompletedMarker = () => (
 )
 
 const DefaultIncompleteMarker = () => (
-  <Box
-    sx={{
+  <span
+    className={css({
       width: 8,
       height: 8,
       borderRadius: '50%',
       backgroundColor: 'currentColor',
       flexShrink: 0,
-    }}
+    })}
   />
 )
 
@@ -202,31 +208,32 @@ const NodeFlowButtonBase = ({
   }
 
   return (
-    <Box
-      sx={[
-        {
+    <div
+      className={cx(
+        css({
           position: 'relative',
           width: '100%',
           minWidth: 0,
           color: '#111111',
-        },
+        }),
         !disableOuterOffset
-          ? {
+          ? css({
               ml: NODE_FLOW_OUTER_OFFSET,
               width: NODE_FLOW_OUTER_WIDTH,
-            }
+            })
           : undefined,
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
+        css(...pandaStylePropsToArray(sx))
+      )}
+      style={mergePandaStyleProps({ sx })}
     >
-      <Box
-        sx={{
+      <div
+        className={css({
           position: 'relative',
           width: '100%',
           minWidth: 0,
-        }}
+        })}
       >
-        <Box
+        <div
           onClick={isInteractive ? onClick : undefined}
           onKeyDown={handleKeyDown}
           role={isInteractive ? 'button' : undefined}
@@ -239,8 +246,8 @@ const NodeFlowButtonBase = ({
               ? String(title)
               : undefined)
           }
-          sx={[
-            {
+          className={cx(
+            css({
               position: 'relative',
               zIndex: 1,
               display: 'flex',
@@ -270,12 +277,13 @@ const NodeFlowButtonBase = ({
                     outlineOffset: '2px',
                   }
                 : undefined,
-            },
-            ...(Array.isArray(rowSx) ? rowSx : [rowSx]),
-          ]}
+            }),
+            css(...pandaStylePropsToArray(rowSx))
+          )}
+          style={mergePandaStyleProps({ sx: rowSx })}
         >
-          <Box
-            sx={{
+          <span
+            className={css({
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -284,13 +292,13 @@ const NodeFlowButtonBase = ({
               height: NODE_FLOW_MARKER_BOX_HEIGHT,
               overflow: 'visible',
               color: markerColor,
-            }}
+            })}
           >
             {resolvedMarker}
-          </Box>
+          </span>
 
-          <Typography
-            sx={{
+          <span
+            className={css({
               flex: 1,
               minWidth: 0,
               fontSize: '0.625rem',
@@ -299,31 +307,31 @@ const NodeFlowButtonBase = ({
               letterSpacing: '0.1em',
               color: 'inherit',
               whiteSpace: 'normal',
-            }}
+            })}
           >
             {title}
-          </Typography>
+          </span>
 
           {resolvedTrailing != null && (
-            <Box
-              sx={{
+            <span
+              className={css({
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0,
                 color: rowStyles.accentColor,
-              }}
+              })}
             >
               {resolvedTrailing}
-            </Box>
+            </span>
           )}
-        </Box>
-      </Box>
+        </div>
+      </div>
 
       {helper && (
-        <Box
-          sx={[
-            {
+        <div
+          className={cx(
+            css({
               display: 'flex',
               alignItems: 'center',
               gap: '0.5rem',
@@ -331,39 +339,40 @@ const NodeFlowButtonBase = ({
               pt: '0.625rem',
               pl: '0.25rem',
               color: rowStyles.helperColor,
-            },
-            ...(Array.isArray(helperSx) ? helperSx : [helperSx]),
-          ]}
+            }),
+            css(...pandaStylePropsToArray(helperSx))
+          )}
+          style={mergePandaStyleProps({ sx: helperSx })}
         >
           {helperLeading && (
-            <Box
-              sx={{
+            <span
+              className={css({
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0,
                 color: 'inherit',
-              }}
+              })}
             >
               {helperLeading}
-            </Box>
+            </span>
           )}
 
-          <Typography
-            sx={{
+          <span
+            className={css({
               minWidth: 0,
               fontSize: '0.625rem',
               fontWeight: 400,
               lineHeight: '1.125rem',
               letterSpacing: '0.1em',
               color: 'inherit',
-            }}
+            })}
           >
             {helper}
-          </Typography>
-        </Box>
+          </span>
+        </div>
       )}
-    </Box>
+    </div>
   )
 }
 

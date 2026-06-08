@@ -1,17 +1,23 @@
 import * as React from 'react'
-import { Box, Typography, SxProps, Theme } from '@mui/material'
+import { css, cx } from 'styled-system/css'
+
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
 
 interface IconWithTextProps {
-  icon: React.ReactElement
+  icon: React.ReactElement<{ sx?: unknown }>
   onClick?: (
     event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>
   ) => void
   children?: React.ReactNode
   isIconOnRight?: boolean
   ariaLabel?: string
-  sx?: SxProps<Theme>
-  iconSx?: SxProps<Theme>
-  textSx?: SxProps<Theme>
+  sx?: PandaStyleProp
+  iconSx?: PandaStyleProp
+  textSx?: PandaStyleProp
   disabled?: boolean
 }
 
@@ -27,20 +33,18 @@ const IconWithText = ({
   disabled = false,
 }: IconWithTextProps) => {
   const textElement = (
-    <Typography
-      sx={[
-        // Base styles for text can be added here if needed
-        ...(Array.isArray(textSx) ? textSx : [textSx]),
-      ]}
+    <span
+      className={css(...pandaStylePropsToArray(textSx))}
+      style={mergePandaStyleProps({ sx: textSx })}
     >
       {children}
-    </Typography>
+    </span>
   )
 
   const iconWithStyles = React.cloneElement(icon, {
     sx: [
-      isIconOnRight ? { ml: 1 } : { mr: 1 }, // Default margin for spacing
-      ...(Array.isArray(iconSx) ? iconSx : [iconSx]),
+      isIconOnRight ? { ml: 1 } : { mr: 1 },
+      ...pandaStylePropsToArray(iconSx),
     ],
   })
 
@@ -54,7 +58,7 @@ const IconWithText = ({
   const isInteractive = !!onClick && !disabled
 
   return (
-    <Box
+    <span
       onClick={isInteractive ? onClick : undefined}
       onKeyDown={isInteractive ? handleKeyPress : undefined}
       aria-label={
@@ -65,25 +69,26 @@ const IconWithText = ({
               : undefined)
           : undefined
       }
-      role={onClick ? 'button' : undefined} // Role is button only if onClick is provided
+      role={onClick ? 'button' : undefined}
       tabIndex={isInteractive ? 0 : -1}
-      aria-disabled={disabled} // aria-disabled can still be relevant even if not interactive via onClick
-      sx={[
-        {
-          display: 'inline-flex', // Makes the box only as wide as its content
+      aria-disabled={disabled}
+      className={cx(
+        css({
+          display: 'inline-flex',
           flexDirection: 'row',
           alignItems: 'center',
           flex: 0,
           cursor: isInteractive
             ? 'pointer'
             : disabled && onClick
-            ? 'not-allowed'
-            : 'default',
-          opacity: disabled && onClick ? 0.5 : 1, // Opacity change only if it was meant to be clickable but is disabled
+              ? 'not-allowed'
+              : 'default',
+          opacity: disabled && onClick ? 0.5 : 1,
           userSelect: 'none',
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
+        }),
+        css(...pandaStylePropsToArray(sx))
+      )}
+      style={mergePandaStyleProps({ sx })}
     >
       {isIconOnRight ? (
         <>
@@ -96,7 +101,7 @@ const IconWithText = ({
           {textElement}
         </>
       )}
-    </Box>
+    </span>
   )
 }
 

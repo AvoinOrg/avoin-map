@@ -331,14 +331,14 @@ const Page = () => {
   return (
     <SidebarBoundary id="hiilikartta-report-none" mode="none">
       <FullscreenPage
-        sx={(theme) => ({
-          backgroundColor: theme.palette.neutral.lighter,
+        sx={{
+          backgroundColor: 'neutral.lighter',
           display: 'flex',
           flexDirection: 'column',
           overflow: 'auto',
-          pb: theme.spacing(20),
+          pb: 20,
           alignItems: 'center',
-        })}
+        }}
       >
       <Section
         sx={(theme) => ({

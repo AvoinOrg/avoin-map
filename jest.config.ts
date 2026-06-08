@@ -100,6 +100,7 @@ const config: Config = {
     // ...
     '^applets/(.*)$': '<rootDir>/src/app/[locale]/(applets)/$1',
     '^#/(.*)$': '<rootDir>/src/$1',
+    '^styled-system/css$': '<rootDir>/src/test/styledSystemCssMock.ts',
   },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader

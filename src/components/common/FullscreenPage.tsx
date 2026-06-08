@@ -1,52 +1,61 @@
 'use client'
 
 import React from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
+import { css, cx } from 'styled-system/css'
 
 import { IntoSlot, Slot } from '#/components/context/slotsContext'
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
 
 const FULLSCREEN_PAGE_SLOT = 'fullscreen-page'
 
 type FullscreenPageProps = {
   children: React.ReactNode
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
 }
 
 export const FullscreenPageSlot = () => {
   return (
-    <Box
-      className="fullscreen-page-slot"
-      sx={(theme) => ({
-        position: 'fixed',
-        inset: 0,
-        zIndex: theme.zIndex.modal,
-        display: 'flex',
-        pointerEvents: 'none',
-        flexDirection: 'column',
-        minHeight: 0,
-        minWidth: 0,
-      })}
+    <div
+      className={cx(
+        'fullscreen-page-slot',
+        css({
+          position: 'fixed',
+          inset: 0,
+          zIndex: 'modal',
+          display: 'flex',
+          pointerEvents: 'none',
+          flexDirection: 'column',
+          minHeight: 0,
+          minWidth: 0,
+        })
+      )}
     >
       <Slot name={FULLSCREEN_PAGE_SLOT} />
-    </Box>
+    </div>
   )
 }
 
 export const FullscreenPage = ({ children, sx }: FullscreenPageProps) => {
   return (
     <IntoSlot name={FULLSCREEN_PAGE_SLOT}>
-      <Box
-        className="fullscreen-page"
-        sx={{
-          position: 'absolute',
-          inset: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          minHeight: 0,
-          minWidth: 0,
-          pointerEvents: 'auto',
-        }}
+      <div
+        className={cx(
+          'fullscreen-page',
+          css({
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: 0,
+            minWidth: 0,
+            pointerEvents: 'auto',
+          })
+        )}
       >
         <OverlayScrollbarsComponent
           className="osScroll"
@@ -66,10 +75,10 @@ export const FullscreenPage = ({ children, sx }: FullscreenPageProps) => {
           }}
           defer
         >
-          <Box
-            className="fullscreen-page-inner"
-            sx={[
-              {
+          <div
+            className={cx(
+              'fullscreen-page-inner',
+              css({
                 display: 'flex',
                 flexDirection: 'column',
                 minHeight: '100%',
@@ -77,14 +86,15 @@ export const FullscreenPage = ({ children, sx }: FullscreenPageProps) => {
                 '& > *': {
                   flexShrink: 0,
                 },
-              },
-              ...(Array.isArray(sx) ? sx : [sx]),
-            ]}
+              }),
+              css(...pandaStylePropsToArray(sx))
+            )}
+            style={mergePandaStyleProps({ sx })}
           >
             {children}
-          </Box>
+          </div>
         </OverlayScrollbarsComponent>
-      </Box>
+      </div>
     </IntoSlot>
   )
 }

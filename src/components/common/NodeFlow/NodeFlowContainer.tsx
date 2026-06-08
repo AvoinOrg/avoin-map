@@ -1,8 +1,13 @@
 'use client'
 
 import React from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
+import { css, cx } from 'styled-system/css'
 
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
 import FlowNode from '../FlowNode'
 import { NODE_FLOW_MARKER_CENTER_X } from './NodeFlowButton'
 
@@ -16,7 +21,7 @@ type NodeFlowContainerSpacing =
 export type NodeFlowContainerProps = {
   children: React.ReactNode
   spacing?: NodeFlowContainerSpacing
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
 }
 
 const isFlowNodeElement = (
@@ -41,16 +46,17 @@ const NodeFlowContainer = ({
   const childArray = React.Children.toArray(children)
 
   return (
-    <Box
-      sx={[
-        {
+    <div
+      className={cx(
+        css({
           display: 'flex',
           flexDirection: 'column',
           gap: spacing,
           width: '100%',
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
+        }),
+        css(...pandaStylePropsToArray(sx))
+      )}
+      style={mergePandaStyleProps({ sx })}
     >
       {childArray.map((child, index) => {
         if (!isFlowNodeElement(child)) {
@@ -60,19 +66,19 @@ const NodeFlowContainer = ({
         const nextChild = childArray[index + 1]
 
         return (
-          <Box
+          <div
             key={index}
-            sx={{
+            className={css({
               position: 'relative',
               width: '100%',
               minWidth: 0,
-            }}
+            })}
           >
             {child}
 
             {isFlowNodeElement(nextChild) && (
-              <Box
-                sx={{
+              <div
+                className={css({
                   position: 'absolute',
                   left: NODE_FLOW_CONNECTOR_X,
                   top: '100%',
@@ -81,13 +87,13 @@ const NodeFlowContainer = ({
                   width: '1px',
                   backgroundColor: '#87BEA8',
                   pointerEvents: 'none',
-                }}
+                })}
               />
             )}
-          </Box>
+          </div>
         )
       })}
-    </Box>
+    </div>
   )
 }
 

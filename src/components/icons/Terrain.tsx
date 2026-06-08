@@ -1,16 +1,19 @@
-import * as React from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
+import { css, cx } from 'styled-system/css'
 
-type Props = {
-  sx?: SxProps<Theme>
-}
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+import type { IconProps } from './types'
 
-const Terrain = (props: Props) => (
-  <Box
-    component={"svg"}
+
+const Terrain = ({ sx, className, style, ...props }: IconProps) => (
+  <svg
     width={24}
     height={24}
     viewBox="0 0 24 24"
+    className={cx(css(...pandaStylePropsToArray(sx)), className)}
+    style={mergePandaStyleProps({ sx, style })}
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     {...props}
@@ -53,7 +56,7 @@ const Terrain = (props: Props) => (
       fill="currentColor"
       mask="url(#path-4-outside-1_14_521)"
     />
-  </Box>
+  </svg>
 )
 
 export default Terrain

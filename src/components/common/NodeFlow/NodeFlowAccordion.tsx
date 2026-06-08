@@ -1,9 +1,14 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
+import { css, cx } from 'styled-system/css'
 
 import { ArrowDown, ArrowUp } from '#/components/icons'
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
 import NodeFlowButton, {
   NODE_FLOW_OUTER_OFFSET,
   NODE_FLOW_OUTER_WIDTH,
@@ -25,11 +30,11 @@ export type NodeFlowAccordionProps = NodeFlowMarkerProps & {
   showConnector?: boolean
   showConnectorTop?: boolean
   showConnectorBottom?: boolean
-  sx?: SxProps<Theme>
-  rowSx?: SxProps<Theme>
-  rowSxOpen?: SxProps<Theme>
-  rowSxClosed?: SxProps<Theme>
-  bodySx?: SxProps<Theme>
+  sx?: PandaStyleProp
+  rowSx?: PandaStyleProp
+  rowSxOpen?: PandaStyleProp
+  rowSxClosed?: PandaStyleProp
+  bodySx?: PandaStyleProp
 }
 
 type NodeFlowAccordionComponent = React.FC<NodeFlowAccordionProps> & {
@@ -95,17 +100,18 @@ const NodeFlowAccordionBase = ({
   }
 
   return (
-    <Box
-      sx={[
-        {
+    <div
+      className={cx(
+        css({
           ml: NODE_FLOW_OUTER_OFFSET,
           width: NODE_FLOW_OUTER_WIDTH,
           minWidth: 0,
           transition:
             'margin 160ms cubic-bezier(.2,0,.2,1), width 160ms cubic-bezier(.2,0,.2,1)',
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
+        }),
+        css(...pandaStylePropsToArray(sx))
+      )}
+      style={mergePandaStyleProps({ sx })}
     >
       {!isOpen && (
         <NodeFlowButton
@@ -123,15 +129,15 @@ const NodeFlowAccordionBase = ({
           state="available"
           disableOuterOffset
           rowSx={[
-            ...(Array.isArray(rowSx) ? rowSx : rowSx ? [rowSx] : []),
-            ...(Array.isArray(rowSxClosed) ? rowSxClosed : rowSxClosed ? [rowSxClosed] : []),
+            ...pandaStylePropsToArray(rowSx),
+            ...pandaStylePropsToArray(rowSxClosed),
           ]}
         />
       )}
 
       {isOpen && (
-        <Box
-          sx={{
+        <div
+          className={css({
             position: 'relative',
             width: '100%',
             minWidth: 0,
@@ -143,7 +149,7 @@ const NodeFlowAccordionBase = ({
             backgroundColor: 'rgba(255, 255, 255, 0.78)',
             boxShadow:
               'inset 0px 0.5px 1px 0px rgba(217, 217, 217, 0.7), 0px 4px 16px 0px rgba(17, 17, 17, 0.03)',
-          }}
+          })}
         >
           <NodeFlowButton
             title={title}
@@ -173,30 +179,31 @@ const NodeFlowAccordionBase = ({
                   backgroundColor: 'transparent',
                 },
               },
-              ...(Array.isArray(rowSx) ? rowSx : rowSx ? [rowSx] : []),
-              ...(Array.isArray(rowSxOpen) ? rowSxOpen : rowSxOpen ? [rowSxOpen] : []),
+              ...pandaStylePropsToArray(rowSx),
+              ...pandaStylePropsToArray(rowSxOpen),
             ]}
           />
 
           {children != null && (
-            <Box
-              sx={[
-                {
+            <div
+              className={cx(
+                css({
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '1rem',
                   width: '100%',
                   pt: '1rem',
-                },
-                ...(Array.isArray(bodySx) ? bodySx : [bodySx]),
-              ]}
+                }),
+                css(...pandaStylePropsToArray(bodySx))
+              )}
+              style={mergePandaStyleProps({ sx: bodySx })}
             >
               {children}
-            </Box>
+            </div>
           )}
-        </Box>
+        </div>
       )}
-    </Box>
+    </div>
   )
 }
 

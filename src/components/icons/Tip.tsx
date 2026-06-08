@@ -1,17 +1,21 @@
-import { Box, SxProps, Theme } from '@mui/material'
+import { css, cx } from 'styled-system/css'
 
-type Props = {
-  sx?: SxProps<Theme>
-}
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+import type { IconProps } from './types'
 
-const Tip = (props: Props) => (
-  <Box
-    component="svg"
+
+const Tip = ({ sx, className, style, ...props }: IconProps) => (
+  <svg
     xmlns="http://www.w3.org/2000/svg"
     width={24}
     height={23}
     fill="none"
     viewBox="0 0 24 23"
+    className={cx(css(...pandaStylePropsToArray(sx)), className)}
+    style={mergePandaStyleProps({ sx, style })}
     {...props}
   >
     <path
@@ -69,7 +73,7 @@ const Tip = (props: Props) => (
       strokeLinecap="round"
       strokeLinejoin="round"
     />
-  </Box>
+  </svg>
 )
 
 export default Tip

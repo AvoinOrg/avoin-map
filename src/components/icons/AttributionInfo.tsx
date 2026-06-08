@@ -1,8 +1,11 @@
-import { Box, SxProps, Theme } from '@mui/material'
+import { css, cx } from 'styled-system/css'
 
-type Props = {
-  sx?: SxProps<Theme>
-}
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+import type { IconProps } from './types'
+
 
 // Figma node 2838:38811
 // MCP asset refs: http://localhost:3845/assets/e52c85d6ea917fc353d5ccb3d25dfc5389398752.svg
@@ -15,14 +18,15 @@ export const ATTRIBUTION_INFO_ICON_SVG = `
 </svg>
 `.trim()
 
-const AttributionInfo = (props: Props) => (
-  <Box
-    component="svg"
+const AttributionInfo = ({ sx, className, style, ...props }: IconProps) => (
+  <svg
     xmlns="http://www.w3.org/2000/svg"
     width={16}
     height={16}
     fill="none"
     viewBox="0 0 16 16"
+    className={cx(css(...pandaStylePropsToArray(sx)), className)}
+    style={mergePandaStyleProps({ sx, style })}
     {...props}
   >
     <circle cx="8" cy="8" r="6.4" stroke="currentColor" strokeWidth="1.2" />
@@ -33,7 +37,7 @@ const AttributionInfo = (props: Props) => (
       strokeLinecap="round"
     />
     <circle cx="8" cy="11" r="0.75" fill="currentColor" />
-  </Box>
+  </svg>
 )
 
 export default AttributionInfo

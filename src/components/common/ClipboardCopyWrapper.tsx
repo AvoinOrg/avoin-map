@@ -1,8 +1,13 @@
 import React from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
+import { css, cx } from 'styled-system/css'
 
 import { useUIStore } from '#/common/store'
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
 
 type Props = {
   textToCopy: string
@@ -11,7 +16,7 @@ type Props = {
   onFailText?: string
   ariaLabel?: string
   disabled?: boolean
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
 }
 
 const ClipboardCopyWrapper = ({
@@ -31,37 +36,37 @@ const ClipboardCopyWrapper = ({
       await navigator.clipboard.writeText(textToCopy)
       const text = onSuccessText || t('general.messages.clipboard_success')
       notify({ message: text, variant: 'info' })
-    } catch (err) {
+    } catch {
       const text = onFailText || t('general.messages.clipboard_fail')
       notify({ message: text, variant: 'error' })
     }
   }
 
   return (
-    <Box
-      component="button"
+    <button
       type="button"
       aria-label={ariaLabel ?? 'Copy to clipboard'}
       aria-disabled={disabled ? 'true' : undefined}
+      disabled={disabled}
       onClick={disabled ? undefined : copyToClipboard}
-      sx={[
-        {
+      className={cx(
+        css({
           background: 'none',
           border: 'none',
           p: 0,
           m: 0,
           color: 'inherit',
           textAlign: 'inherit',
-          '&:hover': {
-            cursor: disabled ? 'not-allowed' : 'pointer',
-          },
+          font: 'inherit',
           opacity: disabled ? 0.6 : 1,
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
+          cursor: disabled ? 'not-allowed' : 'pointer',
+        }),
+        css(...pandaStylePropsToArray(sx))
+      )}
+      style={mergePandaStyleProps({ sx })}
     >
       {children}
-    </Box>
+    </button>
   )
 }
 

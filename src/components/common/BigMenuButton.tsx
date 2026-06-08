@@ -1,72 +1,128 @@
 import * as React from 'react'
-import { Button, SxProps, Theme, useTheme, ButtonProps } from '@mui/material'
+import { Button as BaseButton } from '@base-ui/react/button'
+import { css, cx } from 'styled-system/css'
 
-type BigMenuButtonProps = ButtonProps & {
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+
+type BaseButtonProps = React.ComponentProps<typeof BaseButton>
+
+type BigMenuButtonProps = Omit<
+  BaseButtonProps,
+  'children' | 'className' | 'style' | 'color' | 'render'
+> & {
   children: React.ReactNode
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
+  className?: string
+  style?: React.CSSProperties
+  color?: string
+  variant?: string
+  component?: 'button' | 'label'
 }
+
+const bigMenuButtonClassName = ({
+  sx,
+  className,
+}: {
+  sx?: PandaStyleProp
+  className?: string
+}) =>
+  cx(
+    css({
+      textStyle: 'body1',
+      width: '100%',
+      height: '60px',
+      margin: '0 0 0 0',
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      borderRadius: '5px',
+      backgroundColor: '#FBFBFB',
+      border: '0.5px solid #D9D9D9',
+      boxShadow: '1px 1px 7px 0px #EEECEC',
+      color: 'inherit',
+      pl: 3,
+      pr: 3,
+      cursor: 'pointer',
+      textDecoration: 'none',
+      appearance: 'none',
+      outline: 'none !important',
+      '&:focus': {
+        outline: 'none !important',
+        border: '0.5px solid #D9D9D9',
+        boxShadow: '1px 1px 7px 0px #EEECEC',
+      },
+      '&:active': {
+        outline: 'none !important',
+        backgroundColor: 'primary.light',
+        boxShadow: '1px 1px 7px 0px #EEECEC',
+      },
+      '&:hover': {
+        backgroundColor: 'primary.lighter',
+        borderColor: 'primary.main',
+      },
+      '&:focus-visible': {
+        outline: 'none !important',
+        border: '0.5px solid #C7C9B8',
+        boxShadow: '1px 1px 7px 0px #EEECEC',
+      },
+      '&:disabled, &[aria-disabled="true"]': {
+        cursor: 'not-allowed',
+        opacity: 0.6,
+      },
+    }),
+    css(...pandaStylePropsToArray(sx)),
+    className
+  )
 
 const BigMenuButton = ({
   children,
   sx,
+  className,
+  style,
+  component = 'label',
+  color: _color,
+  variant: _variant,
   'aria-label': ariaLabel,
   ...buttonProps
 }: BigMenuButtonProps) => {
-  const theme = useTheme()
+  void _color
+  void _variant
+
+  const resolvedAriaLabel =
+    ariaLabel ??
+    (typeof children === 'string' || typeof children === 'number'
+      ? String(children)
+      : undefined)
+
+  const resolvedClassName = bigMenuButtonClassName({ sx, className })
+  const resolvedStyle = mergePandaStyleProps({ sx, style })
+
+  if (component === 'label') {
+    return (
+      <label
+        {...(buttonProps as React.ComponentPropsWithoutRef<'label'>)}
+        aria-label={resolvedAriaLabel}
+        className={resolvedClassName}
+        style={resolvedStyle}
+      >
+        {children}
+      </label>
+    )
+  }
 
   return (
-    <Button
-      variant="contained"
-      component="label"
-      color="primary"
-      aria-label={
-        ariaLabel ??
-        (typeof children === 'string' || typeof children === 'number'
-          ? String(children)
-          : undefined)
-      }
-      {...buttonProps} // This spreads all other props, allowing them to override defaults
-      sx={[
-        {
-          typography: 'body1',
-          width: '100%',
-          height: '60px',
-          margin: '0 0 0 0',
-          justifyContent: 'space-between',
-          borderRadius: '5px',
-          backgroundColor: '#FBFBFB',
-          border: `0.5px solid ${theme.palette.neutral.main}`,
-          boxShadow: '1px 1px 7px 0px #EEECEC',
-          pl: 3,
-          pr: 3,
-          outline: 'none !important',
-          // Reset browser/MUI focus styles
-          '&:focus': {
-            outline: 'none !important',
-            border: `0.5px solid ${theme.palette.neutral.main}`,
-            boxShadow: '1px 1px 7px 0px #EEECEC',
-          },
-          '&:active': {
-            outline: 'none !important',
-            backgroundColor: theme.palette.primary.light,
-            boxShadow: '1px 1px 7px 0px #EEECEC',
-          },
-          '&:hover': {
-            backgroundColor: theme.palette.primary.lighter,
-            borderColor: theme.palette.primary.main,
-          },
-          // Override all MUI focus-related classes
-          '&.Mui-focusVisible, &.Mui-focused, &:focus-visible': {
-            outline: 'none !important',
-            border: `0.5px solid ${theme.palette.primary.main}`,
-            boxShadow: '1px 1px 7px 0px #EEECEC',
-          },
-        },
-        ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
-      ]}
+    <BaseButton
+      {...buttonProps}
+      aria-label={resolvedAriaLabel}
+      className={resolvedClassName}
+      style={resolvedStyle}
     >
       {children}
-    </Button>
+    </BaseButton>
   )
 }
 

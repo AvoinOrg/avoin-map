@@ -1,28 +1,59 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
-import {
-  Box,
-  ButtonProps,
-  Button,
-  ClickAwayListener,
-  IconButton,
-  SxProps,
-  Theme,
-  Tooltip,
-  Typography,
-} from '@mui/material'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Button as BaseButton } from '@base-ui/react/button'
+import { Tooltip } from '@base-ui/react/tooltip'
+import { css, cx } from 'styled-system/css'
 
 import QuestionCircleOutline from '#/components/icons/QuestionCircleOutline'
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
 
-type IconTextButtonProps = ButtonProps & {
-  icon: React.ReactElement
+type BaseButtonProps = React.ComponentProps<typeof BaseButton>
+type TooltipOpenChangeHandler = NonNullable<
+  React.ComponentProps<typeof Tooltip.Root>['onOpenChange']
+>
+type HelperOpenState = 'closed' | 'hover' | 'focus' | 'pinned'
+
+type IconTextButtonProps = Omit<
+  BaseButtonProps,
+  'children' | 'className' | 'style' | 'color'
+> & {
+  icon: React.ReactElement<{ sx?: unknown }>
   text: React.ReactNode
   helperText?: React.ReactNode
   helperAriaLabel?: string
-  textSx?: SxProps<Theme>
-  iconWrapperSx?: SxProps<Theme>
+  sx?: PandaStyleProp
+  textSx?: PandaStyleProp
+  iconWrapperSx?: PandaStyleProp
 }
+
+const tooltipPopupClassName = css({
+  zIndex: 'popup',
+  maxWidth: 'min(18.75rem, calc(100vw - 1rem))',
+  borderRadius: '4px',
+  backgroundColor: 'rgba(97, 97, 97, 0.92)',
+  color: 'common.white',
+  px: '0.5rem',
+  py: '0.25rem',
+  fontSize: '0.6875rem',
+  lineHeight: 1.4,
+  boxShadow: '0 2px 8px rgba(17, 17, 17, 0.18)',
+})
+
+const tooltipPositionerClassName = css({
+  zIndex: 'popup',
+})
+
+const tooltipArrowClassName = css({
+  width: '0.5rem',
+  height: '0.5rem',
+  backgroundColor: 'rgba(97, 97, 97, 0.92)',
+  transform: 'rotate(45deg)',
+})
 
 const IconTextButton = ({
   icon,
@@ -35,8 +66,12 @@ const IconTextButton = ({
   'aria-label': ariaLabel,
   ...buttonProps
 }: IconTextButtonProps) => {
-  const [isHelperOpen, setIsHelperOpen] = useState(false)
+  const [helperOpenState, setHelperOpenState] =
+    useState<HelperOpenState>('closed')
+  const helperTriggerRef = useRef<HTMLButtonElement | null>(null)
+  const helperPopupRef = useRef<HTMLDivElement | null>(null)
   const isDisabled = Boolean(buttonProps.disabled)
+  const isHelperOpen = !isDisabled && helperOpenState !== 'closed'
 
   const resolvedAriaLabel = useMemo(() => {
     if (ariaLabel) {
@@ -57,50 +92,120 @@ const IconTextButton = ({
         height: 14,
         color: 'inherit',
       },
-      ...((icon.props.sx
-        ? Array.isArray(icon.props.sx)
-          ? icon.props.sx
-          : [icon.props.sx]
-        : []) as SxProps<Theme>[]),
+      ...pandaStylePropsToArray(icon.props.sx as PandaStyleProp),
     ],
   })
 
+  const handleHelperOpenChange: TooltipOpenChangeHandler = useCallback(
+    (open, eventDetails) => {
+      if (isDisabled) {
+        setHelperOpenState('closed')
+        return
+      }
+
+      if (eventDetails.reason === 'trigger-press') {
+        return
+      }
+
+      if (
+        eventDetails.reason === 'outside-press' ||
+        eventDetails.reason === 'escape-key' ||
+        eventDetails.reason === 'disabled'
+      ) {
+        setHelperOpenState('closed')
+        return
+      }
+
+      setHelperOpenState((currentState) => {
+        if (currentState === 'pinned') {
+          return currentState
+        }
+
+        if (!open) {
+          return 'closed'
+        }
+
+        if (eventDetails.reason === 'trigger-focus') {
+          return 'focus'
+        }
+
+        return 'hover'
+      })
+    },
+    [isDisabled]
+  )
+
+  useEffect(() => {
+    if (!isHelperOpen) {
+      return
+    }
+
+    const closeOnOutsidePointerDown = (event: PointerEvent) => {
+      const target = event.target
+
+      if (!(target instanceof Node)) {
+        return
+      }
+
+      if (
+        helperTriggerRef.current?.contains(target) ||
+        helperPopupRef.current?.contains(target)
+      ) {
+        return
+      }
+
+      setHelperOpenState('closed')
+    }
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setHelperOpenState('closed')
+      }
+    }
+
+    document.addEventListener('pointerdown', closeOnOutsidePointerDown, true)
+    document.addEventListener('keydown', closeOnEscape, true)
+
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsidePointerDown, true)
+      document.removeEventListener('keydown', closeOnEscape, true)
+    }
+  }, [isHelperOpen])
+
   return (
-    <Box
-      sx={[
-        {
+    <div
+      className={cx(
+        css({
           width: '100%',
           minHeight: '1.125rem',
           display: 'flex',
           alignItems: 'center',
           gap: '0.75rem',
-          color: '#111111',
-          ...(isDisabled
+          color: isDisabled ? 'rgba(47,68,23,0.45)' : '#111111',
+          '&:hover': !isDisabled
             ? {
-                color: 'rgba(47,68,23,0.45)',
+                color: '#0D6044',
               }
-            : {
-                '&:hover': {
-                  color: '#0D6044',
-                },
-              }),
-          '& .MuiIconButton-root.Mui-disabled': {
+            : undefined,
+          '& [data-helper-trigger][disabled]': {
             color: 'rgba(47,68,23,0.35)',
           },
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
+        }),
+        css(...pandaStylePropsToArray(sx))
+      )}
+      style={mergePandaStyleProps({ sx })}
     >
-      <Button
+      <BaseButton
         aria-label={resolvedAriaLabel}
-        color="inherit"
         {...buttonProps}
-        sx={{
+        className={css({
           flex: 1,
           minWidth: 0,
           minHeight: '1.125rem',
           px: 0,
           py: 0,
+          border: 0,
+          display: 'inline-flex',
           justifyContent: 'flex-start',
           alignItems: 'center',
           textTransform: 'none',
@@ -108,27 +213,34 @@ const IconTextButton = ({
           color: 'inherit',
           backgroundColor: 'transparent',
           boxShadow: 'none',
+          font: 'inherit',
+          cursor: isDisabled ? 'default' : 'pointer',
           '&:hover': {
             backgroundColor: 'transparent',
             boxShadow: 'none',
           },
-          '&.Mui-disabled': {
+          '&:disabled': {
             color: 'inherit',
+            cursor: 'default',
           },
-        }}
+          '&:focus-visible': {
+            outline: '2px solid rgba(17,17,17,0.4)',
+            outlineOffset: '2px',
+          },
+        })}
       >
-        <Box
-          sx={{
+        <span
+          className={css({
             display: 'flex',
             alignItems: 'center',
             gap: '1rem',
             minWidth: 0,
             flex: 1,
-          }}
+          })}
         >
-          <Box
-            sx={[
-              {
+          <span
+            className={cx(
+              css({
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'flex-start',
@@ -137,17 +249,16 @@ const IconTextButton = ({
                 minWidth: '1.125rem',
                 height: '1.125rem',
                 color: '#0D6044',
-              },
-              ...(Array.isArray(iconWrapperSx)
-                ? iconWrapperSx
-                : [iconWrapperSx]),
-            ]}
+              }),
+              css(...pandaStylePropsToArray(iconWrapperSx))
+            )}
+            style={mergePandaStyleProps({ sx: iconWrapperSx })}
           >
             {iconElement}
-          </Box>
-          <Typography
-            sx={[
-              {
+          </span>
+          <span
+            className={cx(
+              css({
                 fontSize: '0.625rem',
                 fontWeight: 700,
                 color: 'inherit',
@@ -156,61 +267,89 @@ const IconTextButton = ({
                 lineHeight: '1.125rem',
                 letterSpacing: '0.1em',
                 textTransform: 'none',
-              },
-              ...(Array.isArray(textSx) ? textSx : [textSx]),
-            ]}
+              }),
+              css(...pandaStylePropsToArray(textSx))
+            )}
+            style={mergePandaStyleProps({ sx: textSx })}
           >
             {text}
-          </Typography>
-        </Box>
-      </Button>
+          </span>
+        </span>
+      </BaseButton>
 
       {helperText && (
-        <ClickAwayListener onClickAway={() => setIsHelperOpen(false)}>
-          <Box
-            sx={{
-              flexShrink: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '1rem',
-              minWidth: '1rem',
-              height: '1.125rem',
-            }}
+        <span
+          className={css({
+            flexShrink: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '1rem',
+            minWidth: '1rem',
+            height: '1.125rem',
+          })}
+        >
+          <Tooltip.Root
+            open={isHelperOpen}
+            onOpenChange={handleHelperOpenChange}
+            disabled={isDisabled}
           >
-            <Tooltip
-              title={helperText}
-              open={isHelperOpen}
-              onOpen={() => setIsHelperOpen(true)}
-              onClose={() => setIsHelperOpen(false)}
-              arrow
-              placement="top"
+            <Tooltip.Trigger
+              ref={helperTriggerRef}
+              data-helper-trigger
+              type="button"
+              aria-label={helperAriaLabel ?? 'Show more information'}
+              disabled={isDisabled}
+              delay={0}
+              closeDelay={0}
+              onClick={(event) => {
+                event.preventDefault()
+                event.stopPropagation()
+                setHelperOpenState((currentState) =>
+                  currentState === 'pinned' ? 'closed' : 'pinned'
+                )
+              }}
+              className={css({
+                color: '#95a086',
+                p: 0,
+                width: '1rem',
+                height: '1rem',
+                border: 0,
+                borderRadius: '50%',
+                backgroundColor: 'transparent',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: isDisabled ? 'default' : 'pointer',
+                '&:focus-visible': {
+                  outline: '2px solid rgba(17,17,17,0.4)',
+                  outlineOffset: '2px',
+                },
+              })}
             >
-              <IconButton
-                size="small"
-                aria-label={helperAriaLabel ?? 'Show more information'}
-                disabled={isDisabled}
-                onMouseEnter={() => setIsHelperOpen(true)}
-                onMouseLeave={() => setIsHelperOpen(false)}
-                onClick={(event) => {
-                  event.preventDefault()
-                  event.stopPropagation()
-                  setIsHelperOpen((prev) => !prev)
-                }}
-                sx={{
-                  color: '#95a086',
-                  p: 0,
-                  width: '1rem',
-                  height: '1rem',
-                }}
+              <QuestionCircleOutline sx={{ width: 16, height: 16 }} />
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Positioner
+                side="top"
+                positionMethod="fixed"
+                sideOffset={6}
+                collisionPadding={8}
+                className={tooltipPositionerClassName}
               >
-                <QuestionCircleOutline sx={{ width: 16, height: 16 }} />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        </ClickAwayListener>
+                <Tooltip.Popup
+                  ref={helperPopupRef}
+                  className={tooltipPopupClassName}
+                >
+                  {helperText}
+                  <Tooltip.Arrow className={tooltipArrowClassName} />
+                </Tooltip.Popup>
+              </Tooltip.Positioner>
+            </Tooltip.Portal>
+          </Tooltip.Root>
+        </span>
       )}
-    </Box>
+    </div>
   )
 }
 

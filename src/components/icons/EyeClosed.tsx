@@ -1,23 +1,27 @@
-import { Box, SxProps, Theme } from '@mui/material'
+import { css, cx } from 'styled-system/css'
 
-type Props = {
-  sx?: SxProps<Theme>
-}
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+import type { IconProps } from './types'
 
-const EyeClosed = (props: Props) => (
-  <Box
-    component="svg"
+
+const EyeClosed = ({ sx, className, style, ...props }: IconProps) => (
+  <svg
     xmlns="http://www.w3.org/2000/svg"
     width={24}
     height={24}
     viewBox="0 0 26 15"
+    className={cx(css(...pandaStylePropsToArray(sx)), className)}
+    style={mergePandaStyleProps({ sx, style })}
     fill="none"
     {...props}
   >
     <g stroke="currentColor" strokeLinecap="square" strokeLinejoin="round" strokeWidth={2}>
       <path d="M2 2s2.852 5 11 5 11-5 11-5M13.5 10.889V14m6.177-4L21 12.667M7.765 10 6 12.667" />
     </g>
-  </Box>
+  </svg>
 )
 
 export default EyeClosed

@@ -1,19 +1,30 @@
 import React from 'react'
-import { LinkProps as MuiLinkProps, Link as MuiLink } from '@mui/material'
-import { LinkProps as NextLinkProps } from 'next/link'
+import { css, cx } from 'styled-system/css'
 
 import { NextIntlLink } from '#/common/navigation/navigation'
 import { useUIStore } from '#/common/store'
 import { Params, RouteTree } from '#/common/types/routing'
 import { getRoute } from '#/common/routing/routing-client'
 import { useGetRoute } from '#/common/hooks/routing/useGetRoute'
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
 
-type LinkProps = Omit<MuiLinkProps & NextLinkProps, 'href'> & {
+type NextIntlLinkProps = React.ComponentProps<typeof NextIntlLink>
+
+type LinkProps = Omit<NextIntlLinkProps, 'href' | 'className' | 'style'> & {
   route: RouteTree
   routeTree: RouteTree
   params?: Params
   removeSteps?: number
   removeStepsFromRoot?: number
+  sx?: PandaStyleProp
+  className?: string
+  style?: React.CSSProperties
+  underline?: 'none' | 'hover' | 'always'
+  color?: React.CSSProperties['color']
 }
 
 /**
@@ -27,6 +38,10 @@ const MutableLink = ({
   params = {},
   removeSteps = 0,
   removeStepsFromRoot = 0,
+  className,
+  style,
+  underline = 'none',
+  color = 'inherit',
   ...props
 }: LinkProps) => {
   const { routeParams = {}, queryParams = {} } = params
@@ -42,46 +57,40 @@ const MutableLink = ({
     removeSteps
   )
 
+  const href = isBaseDomainForApplet
+    ? parsedRoute
+    : getRoute({
+        routeNode: route,
+        routeTree: routeTree,
+        params: params,
+        removeSteps: removeSteps,
+        removeStepsFromRoot: removeStepsFromRoot,
+      })
+
   return (
-    <>
-      {isBaseDomainForApplet ? (
-        <MuiLink
-          component={NextIntlLink}
-          sx={{
-            display: 'inline-flex',
-            color: 'inherit',
-            textDecoration: 'none',
-            ...sx,
-          }}
-          prefetch={true}
-          {...props}
-          href={parsedRoute}
-        >
-          {children}
-        </MuiLink>
-      ) : (
-        <MuiLink
-          component={NextIntlLink}
-          sx={{
-            display: 'inline-flex',
-            color: 'inherit',
-            textDecoration: 'none',
-            ...sx,
-          }}
-          prefetch={true}
-          {...props}
-          href={getRoute({
-            routeNode: route,
-            routeTree: routeTree,
-            params: params,
-            removeSteps: removeSteps,
-            removeStepsFromRoot: removeStepsFromRoot,
-          })}
-        >
-          {children}
-        </MuiLink>
+    <NextIntlLink
+      className={cx(
+        css({
+          display: 'inline-flex',
+          color,
+          textDecoration: underline === 'always' ? 'underline' : 'none',
+          '&:hover':
+            underline === 'hover'
+              ? {
+                  textDecoration: 'underline',
+                }
+              : undefined,
+        }),
+        css(...pandaStylePropsToArray(sx)),
+        className
       )}
-    </>
+      style={mergePandaStyleProps({ sx, style })}
+      prefetch={true}
+      {...props}
+      href={href as NextIntlLinkProps['href']}
+    >
+      {children}
+    </NextIntlLink>
   )
 }
 

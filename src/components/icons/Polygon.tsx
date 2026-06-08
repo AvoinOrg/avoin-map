@@ -1,16 +1,20 @@
-import { Box, SxProps, Theme } from '@mui/material';
+import { css, cx } from 'styled-system/css'
 
-type Props = {
-  sx?: SxProps<Theme>;
-};
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+import type { IconProps } from './types'
 
-const Polygon = (props: Props) => (
-  <Box
-    component="svg"
+
+const Polygon = ({ sx, className, style, ...props }: IconProps) => (
+  <svg
     xmlns="http://www.w3.org/2000/svg"
     width={30}
     height={32}
     viewBox="0 0 30 32"
+    className={cx(css(...pandaStylePropsToArray(sx)), className)}
+    style={mergePandaStyleProps({ sx, style })}
     fill="none"
     {...props}
   >
@@ -41,7 +45,7 @@ const Polygon = (props: Props) => (
       strokeWidth={2}
     />
     <path d="M6 11L23 25" stroke="currentColor" strokeWidth={2} />
-  </Box>
+  </svg>
 );
 
 export default Polygon;

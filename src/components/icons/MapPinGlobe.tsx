@@ -1,20 +1,24 @@
-import { Box, SxProps, Theme } from '@mui/material'
+import { css, cx } from 'styled-system/css'
 
-type Props = {
-  sx?: SxProps<Theme>
-}
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+import type { IconProps } from './types'
+
 
 // Exact Figma vectors from Energiakartta map-toggle icon (nodes 2838:65003 / 2838:65004).
 // Paths and stroke widths are copied from exported SVG assets; placement matches the Figma group.
-const MapPinGlobe = ({ sx }: Props) => (
-  <Box
-    component="svg"
+const MapPinGlobe = ({ sx, className, style, ...props }: IconProps) => (
+  <svg
     xmlns="http://www.w3.org/2000/svg"
     width={24}
     height={24}
     fill="none"
     viewBox="0 0 24 24"
-    sx={sx}
+    className={cx(css(...pandaStylePropsToArray(sx)), className)}
+    style={mergePandaStyleProps({ sx, style })}
+    {...props}
   >
     <g transform="translate(1.375 0.59145)">
       <g transform="translate(-0.3 4.95)">
@@ -60,7 +64,7 @@ const MapPinGlobe = ({ sx }: Props) => (
         strokeWidth={0.6}
       />
     </g>
-  </Box>
+  </svg>
 )
 
 export default MapPinGlobe

@@ -1,17 +1,20 @@
-import * as React from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
+import { css, cx } from 'styled-system/css'
 
-type Props = {
-  sx?: SxProps<Theme>
-}
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+import type { IconProps } from './types'
 
-const ArrowUp = (props: Props) => (
-  <Box
-    component="svg"
+
+const ArrowUp = ({ sx, className, style, ...props }: IconProps) => (
+  <svg
     xmlns="http://www.w3.org/2000/svg"
     width={17}
     height={9}
     viewBox="0 0 9 4.58579"
+    className={cx(css(...pandaStylePropsToArray(sx)), className)}
+    style={mergePandaStyleProps({ sx, style })}
     fill="none"
     {...props}
   >
@@ -20,7 +23,7 @@ const ArrowUp = (props: Props) => (
       stroke="currentColor"
       strokeLinecap="round"
     />
-  </Box>
+  </svg>
 )
 
 export default ArrowUp
