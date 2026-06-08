@@ -11,24 +11,17 @@ const NUMBER_FIELD_WIDTH = '6rem'
 
 const numberFieldInputSx = {
   width: NUMBER_FIELD_WIDTH,
-  '&.MuiOutlinedInput-root': {
-    minHeight: '1.5rem',
-    borderRadius: '999px',
-    backgroundColor: '#FFFFFF',
-    boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
-  },
-  '& .MuiOutlinedInput-notchedOutline': {
-    borderColor: '#D6D6D6',
-    borderRadius: '999px',
-  },
-  '& .MuiInputBase-input': {
-    px: '0.625rem',
-    py: '0.125rem',
-    fontSize: '0.6875rem',
-    lineHeight: 'normal',
-    letterSpacing: '0.04em',
-    textAlign: 'center',
-  },
+  minHeight: '1.5rem',
+  height: '1.5rem',
+  borderRadius: '999px',
+  backgroundColor: '#FFFFFF',
+  boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
+  px: '0.625rem',
+  py: '0.125rem',
+  fontSize: '0.6875rem',
+  lineHeight: 'normal',
+  letterSpacing: '0.04em',
+  textAlign: 'center',
 } as const
 
 const numberFieldAdornmentSx = {

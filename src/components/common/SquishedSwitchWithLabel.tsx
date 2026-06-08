@@ -1,15 +1,16 @@
 import * as React from 'react'
-import { SwitchProps, SxProps, Theme } from '@mui/material'
 
+import type { PandaStyleProp } from '#/common/style/panda'
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
+import type { SwitchProps } from '#/components/common/Switch'
 
 type SquishedSwitchWithLabelProps = Omit<SwitchProps, 'sx'> & {
   children?: React.ReactNode
   ariaLabel?: string
   checkedTrackColor?: string
-  sx?: SxProps<Theme>
-  controlSx?: SxProps<Theme>
-  labelSx?: SxProps<Theme>
+  sx?: PandaStyleProp
+  controlSx?: PandaStyleProp
+  labelSx?: PandaStyleProp
 }
 
 const SquishedSwitchWithLabel = ({
@@ -26,10 +27,14 @@ const SquishedSwitchWithLabel = ({
     <SwitchWithLabel
       {...rest}
       ariaLabel={ariaLabel}
+      checkedTrackColor={checkedTrackColor}
       inputProps={{
         ...inputProps,
         role: 'switch',
       }}
+      thumbSize="0.375rem"
+      thumbMargin="0.25rem"
+      thumbTranslateX="1.25rem"
       sx={[
         {
           m: 0,
@@ -41,53 +46,12 @@ const SquishedSwitchWithLabel = ({
         ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
       ]}
       controlSx={[
-        (theme: Theme) => ({
-          width: '2.125rem',
-          height: '0.875rem',
-          padding: 0,
+        {
+          '--switch-width': '2.125rem',
+          '--switch-height': '0.875rem',
           flexShrink: 0,
-          '& .MuiSwitch-switchBase': {
-            padding: 0,
-            margin: '0.25rem',
-            transitionDuration: '250ms',
-            '&.Mui-checked': {
-              transform: 'translateX(20px)',
-              color: theme.palette.common.white,
-              '& + .MuiSwitch-track': {
-                backgroundColor:
-                  checkedTrackColor ?? theme.palette.secondary.dark,
-                borderRadius: '999px',
-                opacity: 1,
-                border: 0,
-              },
-              '&.Mui-disabled + .MuiSwitch-track': {
-                opacity: 0.5,
-              },
-            },
-            '&.Mui-disabled .MuiSwitch-thumb': {
-              backgroundColor: theme.palette.action.disabled,
-            },
-            '&.Mui-disabled + .MuiSwitch-track': {
-              opacity: 0.3,
-            },
-          },
-          '& .MuiSwitch-thumb': {
-            boxSizing: 'border-box',
-            width: '0.375rem',
-            height: '0.375rem',
-            borderRadius: '50%',
-            backgroundColor: theme.palette.common.white,
-          },
-          '& .MuiSwitch-track': {
-            borderRadius: '999px',
-            backgroundColor: theme.palette.neutral.main,
-            opacity: 1,
-            boxShadow: '0px 1px 1px rgba(189, 189, 189, 0.25)',
-            transition: theme.transitions.create(['background-color'], {
-              duration: 250,
-            }),
-          },
-        }),
+          boxShadow: '0px 1px 1px rgba(189, 189, 189, 0.25)',
+        },
         ...(Array.isArray(controlSx)
           ? controlSx
           : controlSx

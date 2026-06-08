@@ -1434,18 +1434,13 @@ const BuildingInfoEnergyConsumptionSection = ({
           width: '90px',
         }}
         selectSx={{
-          '&.MuiOutlinedInput-root': {
-            height: '22px',
-            backgroundColor: '#f0f0f0',
-          },
-          '.MuiSelect-select': {
-            fontWeight: 700,
-            letterSpacing: 0,
-          },
-          '&.Mui-disabled': {
+          height: '22px',
+          minHeight: '22px',
+          backgroundColor: '#f0f0f0',
+          fontWeight: 700,
+          letterSpacing: 0,
+          '&[data-disabled]': {
             opacity: 1,
-          },
-          '&.Mui-disabled .MuiOutlinedInput-notchedOutline': {
             borderColor: '#dbdbdb',
           },
         }}

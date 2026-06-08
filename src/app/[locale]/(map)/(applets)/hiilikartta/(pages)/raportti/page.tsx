@@ -423,12 +423,15 @@ const Page = () => {
             ></T>
           </Typography>
           <MultiSelectAutocomplete
-            sx={(theme) => ({
+            sx={{
               width: '21rem',
-              [theme.breakpoints.down('md')]: {
+              mobile: {
                 width: '100%',
               },
-            })}
+              desktop: {
+                width: '21rem',
+              },
+            }}
             value={planConfs.map((planConf) => ({
               value: planConf.serverId,
               label: planConf.name,

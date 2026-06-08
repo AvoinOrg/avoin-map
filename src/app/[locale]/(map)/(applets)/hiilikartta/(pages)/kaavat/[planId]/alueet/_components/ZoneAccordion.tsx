@@ -604,21 +604,13 @@ const ZoneAccordion = ({
                 backgroundColor: '#D9D9D9',
                 boxShadow: '0px 1px 1px 0px rgba(189, 189, 189, 0.25)',
                 color: '#111111',
-                '& .MuiSelect-select': {
-                  pl: '0.75rem',
-                  pr: '1.75rem !important',
-                  py: '0.3125rem',
-                  fontSize: '0.5rem',
-                  fontWeight: 700,
-                  lineHeight: '1rem',
-                  letterSpacing: '0.1em',
-                },
-                '& .MuiSelect-icon': {
-                  right: '0.625rem',
-                  top: 'calc(50% - 0.21875rem)',
-                  width: '0.6875rem',
-                  height: '0.4375rem',
-                },
+                pl: '0.75rem',
+                pr: '0.625rem',
+                py: '0.3125rem',
+                fontSize: '0.5rem',
+                fontWeight: 700,
+                lineHeight: '1rem',
+                letterSpacing: '0.1em',
               }}
               optionSx={{
                 fontSize: '0.5rem',

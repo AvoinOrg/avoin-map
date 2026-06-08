@@ -1,18 +1,37 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { Box, TextField, Typography, SxProps, Theme } from '@mui/material'
-import { debounce } from 'lodash-es' // Or from 'lodash' or 'lodash.debounce'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { Field as BaseField } from '@base-ui/react/field'
+import { Input as BaseInput } from '@base-ui/react/input'
+import { debounce } from 'lodash-es'
+import { css, cx } from 'styled-system/css'
 
-interface TextFieldWithHeaderProps {
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+import type { NativeInputProps } from './formControlEvents'
+import { sharedInputControlStyle } from './formControlStyles'
+
+type TextFieldWithHeaderProps = Omit<
+  NativeInputProps,
+  | 'value'
+  | 'onChange'
+  | 'placeholder'
+  | 'name'
+  | 'disabled'
+  | 'required'
+  | 'size'
+> & {
   headerText: string
   placeholderText?: string
   ariaLabel?: string
-  value: string // Controlled value from parent
-  onChange: (value: string) => void // MODIFIED: Receives debounced string value
-  debounceTimeout?: number // Optional: allow parent to configure timeout
-  name?: string // Optional: pass name attribute to TextField
-  sx?: SxProps<Theme>
-  headerSx?: SxProps<Theme>
-  textSx?: SxProps<Theme>
+  value: string
+  onChange: (value: string) => void
+  debounceTimeout?: number
+  name?: string
+  sx?: PandaStyleProp
+  headerSx?: PandaStyleProp
+  textSx?: PandaStyleProp
   required?: boolean
   fullWidth?: boolean
   disabled?: boolean
@@ -22,9 +41,76 @@ interface TextFieldWithHeaderProps {
   rows?: number
   minRows?: number
   maxRows?: number
-  // Allow any other TextField props to be passed
-  [key: string]: any
 }
+
+const wrapperClass = css({
+  display: 'flex',
+  flexDirection: 'column',
+  mb: 2,
+})
+
+const headerClass = css({
+  mb: 1,
+  fontFamily: 'var(--font-arimo)',
+  fontSize: '0.875rem',
+  fontWeight: 700,
+  lineHeight: 'normal',
+  letterSpacing: '0.0875rem',
+  color: '#111111',
+})
+
+const inputClass = css(sharedInputControlStyle, {
+  border: '0.5px solid',
+  borderColor: 'neutral.main',
+  backgroundColor: 'neutral.light',
+  color: 'neutral.darker',
+  boxShadow: '0px 4px 7px 0px rgba(217, 217, 217, 0.50) inset',
+  px: '1rem',
+  py: '0.75rem',
+  fontSize: '0.9rem',
+  letterSpacing: '1.1px',
+  '&::placeholder': {
+    fontFamily: 'var(--font-arimo)',
+    fontSize: '1rem',
+    opacity: 1,
+    color: 'neutral.dark',
+    letterSpacing: '1.1px',
+  },
+})
+
+const textareaClass = css(sharedInputControlStyle, {
+  border: '0.5px solid',
+  borderColor: 'neutral.main',
+  backgroundColor: 'neutral.light',
+  color: 'neutral.darker',
+  boxShadow: '0px 4px 7px 0px rgba(217, 217, 217, 0.50) inset',
+  px: '1rem',
+  py: '0.75rem',
+  fontSize: '0.9rem',
+  letterSpacing: '1.1px',
+  resize: 'vertical',
+  borderRadius: '1rem',
+  minHeight: '2.5rem',
+  '&::placeholder': {
+    fontFamily: 'var(--font-arimo)',
+    fontSize: '1rem',
+    opacity: 1,
+    color: 'neutral.dark',
+    letterSpacing: '1.1px',
+  },
+})
+
+const helperClass = css({
+  mt: '0.25rem',
+  ml: 0,
+  fontFamily: 'var(--font-arimo)',
+  fontSize: '0.75rem',
+  lineHeight: '1rem',
+  color: 'neutral.dark',
+  '&[data-error]': {
+    color: 'error.main',
+  },
+})
 
 const TextFieldWithHeader = ({
   headerText,
@@ -32,7 +118,7 @@ const TextFieldWithHeader = ({
   ariaLabel,
   value: propValue,
   onChange: onParentChange,
-  debounceTimeout = 300, // Default 300ms debounce
+  debounceTimeout = 300,
   name,
   sx,
   headerSx,
@@ -46,36 +132,30 @@ const TextFieldWithHeader = ({
   rows,
   minRows,
   maxRows,
+  id,
   ...restTextFieldProps
 }: TextFieldWithHeaderProps) => {
   const [internalValue, setInternalValue] = useState(propValue)
+  const lastPropValueRef = useRef(propValue)
+  const generatedId = React.useId()
+  const inputId = id ?? generatedId
+  const helperId = helperText ? `${inputId}-helper` : undefined
 
-  // Update internalValue if propValue changes from parent
   useEffect(() => {
-    if (propValue !== internalValue) {
-      // Only update if different to avoid loops if parent updates from debounced change
+    if (propValue !== lastPropValueRef.current) {
+      lastPropValueRef.current = propValue
       setInternalValue(propValue)
     }
   }, [propValue])
 
-  // Use a ref to store the latest onParentChange callback
-  // This avoids re-creating the debounced function if onParentChange changes frequently
-  // (though typically it shouldn't if memoized correctly in parent)
-  const onParentChangeRef = useRef(onParentChange)
-  useEffect(() => {
-    onParentChangeRef.current = onParentChange
-  }, [onParentChange])
-
-  const debouncedParentOnChange = useCallback(
-    debounce((newValue: string) => {
-      if (onParentChangeRef.current) {
-        onParentChangeRef.current(newValue)
-      }
-    }, debounceTimeout),
-    [debounceTimeout] // Re-create debounced function if timeout changes
+  const debouncedParentOnChange = useMemo(
+    () =>
+      debounce((newValue: string) => {
+        onParentChange(newValue)
+      }, debounceTimeout),
+    [debounceTimeout, onParentChange]
   )
 
-  // Cleanup debounced function on unmount
   useEffect(() => {
     return () => {
       debouncedParentOnChange.cancel()
@@ -86,94 +166,94 @@ const TextFieldWithHeader = ({
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const newValue = event.target.value
-    setInternalValue(newValue) // Update internal state immediately for responsive UI
-    debouncedParentOnChange(newValue) // Call the debounced parent onChange with the new value
+    setInternalValue(newValue)
+    debouncedParentOnChange(newValue)
   }
 
-  const textFieldFinalProps: any = {
-    value: internalValue, // TextField uses internalValue for immediate updates
-    onChange: handleInputChange, // Use the local handler
-    placeholder: placeholderText,
-    fullWidth,
-    disabled,
-    error,
-    helperText,
-    multiline,
+  const commonControlProps = {
+    ...restTextFieldProps,
+    id: inputId,
     name,
-    ...restTextFieldProps, // Spread other TextField compatible props
-  }
-
-  // Conditionally add row-related props only if multiline is true and they are defined
-  if (multiline) {
-    if (rows !== undefined) textFieldFinalProps.rows = rows
-    if (minRows !== undefined) textFieldFinalProps.minRows = minRows
-    if (maxRows !== undefined) textFieldFinalProps.maxRows = maxRows
-  }
+    placeholder: placeholderText,
+    disabled,
+    required,
+    'aria-label': ariaLabel ?? headerText,
+    'aria-invalid': error || undefined,
+    'aria-describedby': helperId,
+  } as const
 
   return (
-    <Box
-      sx={[
-        {
-          display: 'flex',
-          flexDirection: 'column',
-          mb: 2,
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
+    <BaseField.Root
+      disabled={disabled}
+      invalid={error}
+      name={name}
+      className={cx(wrapperClass, css(...pandaStylePropsToArray(sx)))}
+      style={{
+        width: fullWidth ? '100%' : undefined,
+        ...mergePandaStyleProps({ sx }),
+      }}
     >
-      <Typography
-        variant="body1"
-        sx={[
-          {
-            mb: 1,
-          },
-          ...(Array.isArray(headerSx) ? headerSx : [headerSx]),
-        ]}
-      >
-        {headerText}
-        {required && ' *'}
-      </Typography>
-      <TextField
-        {...textFieldFinalProps}
-        aria-label={ariaLabel ?? headerText}
-        sx={[
-          {
-            '& .MuiOutlinedInput-root': {
-              borderRadius: '999px',
-              border: '0.5px solid',
-              borderColor: 'neutral.main',
-              backgroundColor: 'neutral.light',
-              boxShadow: '0px 4px 7px 0px rgba(217, 217, 217, 0.50) inset',
-              '& fieldset': { border: 'none', borderRadius: '999px' },
-              '&:hover fieldset': { border: 'none' },
-              '&.Mui-focused fieldset': { border: 'none' },
-              '&.MuiInputBase-multiline': { padding: '12px 14px' }, // Example padding
-            },
-            '& .MuiInputBase-input': {
-              fontFamily: 'Arimo',
-              fontSize: '0.9rem',
-              color: 'neutral.darker',
-              fontStyle: 'normal',
-              fontWeight: 400,
-              lineHeight: 'normal',
-              letterSpacing: '1.1px',
-              opacity: 1,
-              '&.MuiInputBase-inputMultiline': {
-                // Specific styles for multiline input if needed
-              },
-            },
-            '& .MuiInputBase-input::-moz-placeholder': {
-              typography: 'body1',
-              fontSize: '1rem',
-              opacity: 1,
-              color: 'neutral.dark',
-              letterSpacing: '1.1px',
-            },
-          },
-          ...(Array.isArray(textSx) ? textSx : [textSx]),
-        ]}
-      />
-    </Box>
+      {ariaLabel ? (
+        <span
+          className={cx(headerClass, css(...pandaStylePropsToArray(headerSx)))}
+          style={mergePandaStyleProps({ sx: headerSx })}
+        >
+          {headerText}
+          {required && ' *'}
+        </span>
+      ) : (
+        <BaseField.Label
+          className={cx(headerClass, css(...pandaStylePropsToArray(headerSx)))}
+          style={mergePandaStyleProps({ sx: headerSx })}
+        >
+          {headerText}
+          {required && ' *'}
+        </BaseField.Label>
+      )}
+      {multiline ? (
+        <textarea
+          {...(commonControlProps as React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
+          value={internalValue}
+          onChange={handleInputChange}
+          rows={rows}
+          style={{
+            minHeight: minRows ? `${minRows * 1.5}rem` : undefined,
+            maxHeight: maxRows ? `${maxRows * 1.5}rem` : undefined,
+            ...mergePandaStyleProps({ sx: textSx }),
+          }}
+          className={cx(textareaClass, css(...pandaStylePropsToArray(textSx)))}
+        />
+      ) : (
+        <BaseInput
+          {...(commonControlProps as React.ComponentPropsWithoutRef<typeof BaseInput>)}
+          value={internalValue}
+          render={(inputProps) => (
+            <input
+              {...inputProps}
+              value={internalValue}
+              onChange={(event) => {
+                inputProps.onChange?.(event)
+                handleInputChange(event)
+              }}
+              className={cx(
+                inputClass,
+                css(...pandaStylePropsToArray(textSx))
+              )}
+              style={mergePandaStyleProps({ sx: textSx })}
+            />
+          )}
+        />
+      )}
+      {helperText !== undefined && (
+        <BaseField.Description
+          id={helperId}
+          data-error={error ? '' : undefined}
+          className={helperClass}
+        >
+          {helperText}
+        </BaseField.Description>
+      )}
+    </BaseField.Root>
   )
 }
 

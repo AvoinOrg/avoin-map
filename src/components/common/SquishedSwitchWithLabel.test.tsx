@@ -1,17 +1,12 @@
+import '#/test/baseUiTestPolyfills'
 import React from 'react'
-import { ThemeProvider } from '@mui/material/styles'
 import { fireEvent, render, screen } from '@testing-library/react'
 
-import theme from '#/common/style/theme/theme'
 import SquishedSwitchWithLabel from '#/components/common/SquishedSwitchWithLabel'
-
-const renderWithTheme = (ui: React.ReactElement) => {
-  return render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>)
-}
 
 describe('SquishedSwitchWithLabel', () => {
   it('uses a visible text label as the accessible switch name', () => {
-    renderWithTheme(
+    render(
       <SquishedSwitchWithLabel checked onChange={() => {}}>
         Maalämpö
       </SquishedSwitchWithLabel>
@@ -21,7 +16,7 @@ describe('SquishedSwitchWithLabel', () => {
   })
 
   it('supports an explicit accessible label for non-string content', () => {
-    renderWithTheme(
+    render(
       <SquishedSwitchWithLabel
         checked
         ariaLabel="Kaukolämpö"
@@ -37,7 +32,7 @@ describe('SquishedSwitchWithLabel', () => {
   it('calls onChange when clicked', () => {
     const onChange = jest.fn()
 
-    renderWithTheme(
+    render(
       <SquishedSwitchWithLabel checked onChange={onChange}>
         Sähkölämmitys
       </SquishedSwitchWithLabel>
@@ -46,21 +41,20 @@ describe('SquishedSwitchWithLabel', () => {
     fireEvent.click(screen.getByRole('switch', { name: 'Sähkölämmitys' }))
 
     expect(onChange).toHaveBeenCalledTimes(1)
+    expect(onChange.mock.calls[0][0].target.checked).toBe(false)
   })
 
   it('renders disabled switches as disabled controls', () => {
-    renderWithTheme(
+    render(
       <SquishedSwitchWithLabel checked disabled onChange={() => {}}>
         Aurinkolämmitys
       </SquishedSwitchWithLabel>
     )
 
     expect(
-      (
-        screen.getByRole('switch', {
-          name: 'Aurinkolämmitys',
-        }) as HTMLInputElement
-      ).disabled
-    ).toBe(true)
+      screen.getByRole('switch', {
+        name: 'Aurinkolämmitys',
+      })
+    ).toHaveAttribute('aria-disabled', 'true')
   })
 })

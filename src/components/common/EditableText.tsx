@@ -1,29 +1,114 @@
-import React, { useLayoutEffect, useState } from 'react'
+import React, { useLayoutEffect, useRef, useState } from 'react'
+import { Input as BaseInput } from '@base-ui/react/input'
+import { css, cx } from 'styled-system/css'
+
+import type { PandaStyleProp } from '#/common/style/panda'
 import {
-  SxProps,
-  Theme,
-  TextField,
-  Typography,
-  Box,
-  InputAdornment,
-  IconButton,
-} from '@mui/material'
-import EditIcon from '@mui/icons-material/Edit'
-import CheckIcon from '@mui/icons-material/Check'
-import CloseIcon from '@mui/icons-material/Close'
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+import { CheckcircleChecked, Cross, EditDocument } from '#/components/icons'
 
 interface Props {
   value: string
-  onChange: (event: any) => void
+  onChange: (event: { target: { value: string } }) => void
   valueAppendix?: string
   editButtonAriaLabel?: string
   saveButtonAriaLabel?: string
   cancelButtonAriaLabel?: string
   textFieldAriaLabel?: string
-  sx?: SxProps<Theme>
-  textSx?: SxProps<Theme>
-  iconSx?: SxProps<Theme>
+  sx?: PandaStyleProp
+  textSx?: PandaStyleProp
+  iconSx?: PandaStyleProp
 }
+
+const wrapperClass = css({
+  display: 'flex',
+  alignItems: 'start',
+  width: '100%',
+  justifyContent: 'flex-start',
+})
+
+const textClass = css({
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+})
+
+const iconButtonClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  ml: 1,
+  p: 0,
+  height: '100%',
+  border: 0,
+  backgroundColor: 'transparent',
+  color: 'neutral.dark',
+  cursor: 'pointer',
+  lineHeight: 0,
+  '&:hover': {
+    color: 'neutral.darker',
+  },
+  '&:focus-visible': {
+    outline: '2px solid var(--colors-secondary-dark)',
+    outlineOffset: '2px',
+  },
+})
+
+const inputShellClass = css({
+  display: 'flex',
+  alignItems: 'center',
+  width: '100%',
+  borderRadius: '999px',
+  border: '0.5px solid #D6D6D6',
+  backgroundColor: '#FFFFFF',
+  overflow: 'hidden',
+  '&:focus-within': {
+    borderColor: 'secondary.dark',
+  },
+})
+
+const inputClass = css({
+  flex: 1,
+  minWidth: 0,
+  border: 0,
+  outline: 'none',
+  backgroundColor: 'transparent',
+  color: '#111111',
+  fontFamily: 'var(--font-arimo)',
+  fontSize: '0.875rem',
+  lineHeight: 'normal',
+  p: '0.375rem 0.75rem',
+})
+
+const adornmentClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  flexShrink: 0,
+  gap: '0.25rem',
+  pr: '0.5rem',
+})
+
+const actionButtonClass = css({
+  p: 0,
+  m: 0,
+  background: 'none',
+  border: 'none',
+  height: '100%',
+  color: 'neutral.dark',
+  cursor: 'pointer',
+  display: 'inline-flex',
+  alignItems: 'center',
+  lineHeight: 0,
+  '&:hover': {
+    color: 'neutral.darker',
+  },
+  '&:focus-visible': {
+    outline: '2px solid var(--colors-secondary-dark)',
+    outlineOffset: '2px',
+  },
+})
 
 const EditableText = ({
   value,
@@ -39,33 +124,38 @@ const EditableText = ({
 }: Props) => {
   const [internalValue, setInternalValue] = useState(value)
   const [isValueFocused, setIsInputFocused] = useState(false)
-  const isCanceledRef = React.useRef(false)
+  const isCanceledRef = useRef(false)
+  const inputRef = useRef<HTMLInputElement | null>(null)
 
   useLayoutEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Keep the edit buffer aligned with external value updates.
     setInternalValue(value)
   }, [value])
 
-  const handleCancel = (event: any) => {
+  React.useEffect(() => {
+    if (isValueFocused) {
+      inputRef.current?.focus()
+      inputRef.current?.select()
+    }
+  }, [isValueFocused])
+
+  const commitValue = (nextValue: string) => {
+    setIsInputFocused(false)
+    if (nextValue !== value) {
+      onChange({ target: { value: nextValue } })
+    }
+  }
+
+  const handleCancel = (event: React.SyntheticEvent) => {
     isCanceledRef.current = true
-    setInternalValue(value) // Revert to original value
+    setInternalValue(value)
     setIsInputFocused(false)
     event.stopPropagation()
   }
 
-  const handleAccept = (event: any) => {
-    if (internalValue !== value) {
-      handleChange({ target: { value: internalValue } })
-    } else {
-      setIsInputFocused(false)
-    }
+  const handleAccept = (event: React.SyntheticEvent) => {
+    commitValue(internalValue)
     event.stopPropagation()
-  }
-
-  const handleChange = (event: any) => {
-    setIsInputFocused(false)
-    if (event.target.value !== value) {
-      onChange(event)
-    }
   }
 
   const handleBlur = () => {
@@ -74,191 +164,102 @@ const EditableText = ({
         isCanceledRef.current = false
         return
       }
-      if (internalValue !== value) {
-        handleChange({ target: { value: internalValue } })
-      } else {
-        setIsInputFocused(false)
-      }
-    }, 100) // Delay to allow click event to be registered
+      commitValue(internalValue)
+    }, 100)
   }
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
-      if (internalValue !== value) {
-        handleChange({ target: { value: internalValue } })
-      } else {
-        setIsInputFocused(false)
-      }
+      event.preventDefault()
+      commitValue(internalValue)
     }
   }
 
-  const handleEditClick = (event: any) => {
+  const handleEditClick = (event: React.SyntheticEvent) => {
     event.stopPropagation()
     setIsInputFocused(true)
   }
 
-  const handleEditKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      handleEditClick(event)
-    }
-  }
-
-  const handleInputChange = (event: any) => {
-    setInternalValue(event.target.value)
-  }
-
   return (
-    <Box
-      sx={[
-        {
-          display: 'flex',
-          alignItems: 'start',
-          width: '100%',
-          justifyContent: 'flex-start',
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
+    <div
+      className={cx(wrapperClass, css(...pandaStylePropsToArray(sx)))}
+      style={mergePandaStyleProps({ sx })}
     >
       {!isValueFocused ? (
         <>
-          <Typography
-            sx={[
-              {
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                // float: "left",
-              },
-              ...(Array.isArray(textSx) ? textSx : [textSx]),
-            ]}
-            // onClick={(event) => {
-            //   event?.stopPropagation()
-            //   setIsInputFocused(true)
-            // }}
+          <span
+            className={cx(textClass, css(...pandaStylePropsToArray(textSx)))}
+            style={mergePandaStyleProps({ sx: textSx })}
           >
             {`${value}${valueAppendix ?? ''}`}
-          </Typography>
-          <IconButton
-            disableRipple
+          </span>
+          <button
+            type="button"
             onClick={handleEditClick}
             aria-label={editButtonAriaLabel}
-            component="span"
-            role="button"
-            tabIndex={0}
-            onKeyDown={handleEditKeyDown}
-            sx={{ ml: 1, p: 0, height: '100%' }}
+            className={iconButtonClass}
           >
-            <EditIcon
+            <EditDocument
               sx={[
                 {
-                  fontSize: '19px',
-                  color: 'neutral.dark',
-                  '&:hover': {
-                    color: 'neutral.darker',
-                  },
+                  width: '19px',
+                  height: '19px',
                 },
-                ...(Array.isArray(iconSx) ? iconSx : [iconSx]),
+                ...pandaStylePropsToArray(iconSx),
               ]}
+              aria-hidden="true"
             />
-          </IconButton>
+          </button>
         </>
       ) : (
-        <TextField
-          autoFocus
-          sx={{
-            p: 0,
-            m: 0,
-            width: '100%',
-            '& .MuiOutlinedInput-root': {
-              borderRadius: '999px',
-            },
-            '& .MuiOutlinedInput-notchedOutline': {
-              borderRadius: '999px',
-            },
-          }}
-          value={internalValue}
-          onChange={handleInputChange}
-          onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
+        <span
+          className={inputShellClass}
           onClick={(event) => event.stopPropagation()}
-          variant="outlined"
-          aria-label={textFieldAriaLabel}
-          onFocus={(event) => {
-            event.stopPropagation()
-          }}
-          slotProps={{
-            htmlInput: {
-              'aria-label': textFieldAriaLabel,
-            },
-            input: {
-              sx: [
-                { m: 0, p: 0, height: '100%' },
-                ...(Array.isArray(textSx) ? textSx : [textSx]),
-              ],
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Box
-                    component="button"
-                    type="button"
-                    aria-label={saveButtonAriaLabel}
-                    sx={{
-                      p: 0,
-                      m: 0,
-                      background: 'none',
-                      border: 'none',
-                      height: '100%',
-                      color: 'neutral.dark',
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      '&:hover': {
-                        color: 'neutral.darker',
-                      },
-                    }}
-                    onClick={handleAccept}
-                  >
-                    <CheckIcon
-                      sx={[
-                        { fontSize: '19px' },
-                        ...(Array.isArray(iconSx) ? iconSx : [iconSx]),
-                      ]}
-                    />
-                  </Box>
-                  <Box
-                    component="button"
-                    type="button"
-                    aria-label={cancelButtonAriaLabel}
-                    sx={{
-                      p: 0,
-                      m: 0,
-                      background: 'none',
-                      border: 'none',
-                      height: '100%',
-                      color: 'neutral.dark',
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      '&:hover': {
-                        color: 'neutral.darker',
-                      },
-                    }}
-                    onClick={handleCancel}
-                  >
-                    <CloseIcon
-                      sx={[
-                        { fontSize: '19px' },
-                        ...(Array.isArray(iconSx) ? iconSx : [iconSx]),
-                      ]}
-                    />
-                  </Box>
-                </InputAdornment>
-              ),
-            },
-          }}
-        />
+          onFocus={(event) => event.stopPropagation()}
+        >
+          <BaseInput
+            ref={inputRef}
+            value={internalValue}
+            onChange={(event) => setInternalValue(event.target.value)}
+            onBlur={handleBlur}
+            onKeyDown={handleKeyDown}
+            aria-label={textFieldAriaLabel}
+            className={cx(inputClass, css(...pandaStylePropsToArray(textSx)))}
+            style={mergePandaStyleProps({ sx: textSx })}
+          />
+          <span className={adornmentClass}>
+            <button
+              type="button"
+              aria-label={saveButtonAriaLabel}
+              className={actionButtonClass}
+              onClick={handleAccept}
+            >
+              <CheckcircleChecked
+                sx={[
+                  { width: '19px', height: '19px' },
+                  ...pandaStylePropsToArray(iconSx),
+                ]}
+                aria-hidden="true"
+              />
+            </button>
+            <button
+              type="button"
+              aria-label={cancelButtonAriaLabel}
+              className={actionButtonClass}
+              onClick={handleCancel}
+            >
+              <Cross
+                sx={[
+                  { width: '19px', height: '19px' },
+                  ...pandaStylePropsToArray(iconSx),
+                ]}
+                aria-hidden="true"
+              />
+            </button>
+          </span>
+        </span>
       )}
-    </Box>
+    </div>
   )
 }
 

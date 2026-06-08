@@ -1,22 +1,48 @@
 import * as React from 'react'
-import {
-  FormControlLabel,
-  SwitchProps,
-  Typography,
-  SxProps,
-  Theme,
-} from '@mui/material'
+import { css, cx } from 'styled-system/css'
 
-import Switch from '#/components/common/Switch'
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+import Switch, { type SwitchProps } from '#/components/common/Switch'
 
 type SwitchWithLabelProps = Omit<SwitchProps, 'sx'> & {
   children?: React.ReactNode
   ariaLabel?: string
-  sx?: SxProps<Theme> // For the entire FormControlLabel wrapper
-  controlSx?: SxProps<Theme>
-  labelSx?: SxProps<Theme>
+  sx?: PandaStyleProp
+  controlSx?: PandaStyleProp
+  labelSx?: PandaStyleProp
   required?: boolean
 }
+
+const wrapperClass = css({
+  m: 0,
+  display: 'flex',
+  flexDirection: 'row',
+  alignItems: 'center',
+  cursor: 'pointer',
+  '&[data-disabled]': {
+    cursor: 'not-allowed',
+  },
+})
+
+const labelClass = css({
+  color: 'neutral.darker',
+  userSelect: 'none',
+  ml: 2,
+  opacity: 1,
+  fontFamily: 'var(--font-arimo)',
+  fontSize: '0.875rem',
+  fontWeight: 400,
+  lineHeight: 'normal',
+  letterSpacing: '0.0875rem',
+  '[data-disabled] &': {
+    color: 'text.disabled',
+    opacity: 0.8,
+  },
+})
 
 const SwitchWithLabel = ({
   children,
@@ -26,65 +52,40 @@ const SwitchWithLabel = ({
   labelSx,
   disabled,
   required = false,
+  inputProps,
   ...rest
 }: SwitchWithLabelProps) => {
-  const { inputProps: switchInputProps, ...switchRest } = rest
   const resolvedAriaLabel =
-    switchInputProps?.['aria-label'] ??
+    inputProps?.['aria-label'] ??
     ariaLabel ??
     (typeof children === 'string' || typeof children === 'number'
       ? String(children)
       : undefined)
 
   return (
-    <FormControlLabel
-      sx={[
-        {
-          m: 0,
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          '&:hover': {
-            cursor: disabled ? 'not-allowed' : 'pointer',
-          },
-        },
-        ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
-      ]}
-      control={
-        <Switch
-          sx={controlSx}
-          disabled={disabled}
-          aria-label={resolvedAriaLabel}
-          inputProps={{
-            ...switchInputProps,
-            'aria-label': resolvedAriaLabel,
-          }}
-          {...switchRest}
-        />
-      }
-      label={
-        <Typography
-          variant="body2"
-          sx={[
-            {
-              color: (theme: Theme) =>
-                disabled
-                  ? theme.palette.text.disabled
-                  : (theme.palette.neutral.darker ??
-                    theme.palette.text.primary),
-              userSelect: 'none',
-              ml: 2,
-              opacity: disabled ? 0.8 : 1,
-            },
-            ...(Array.isArray(labelSx) ? labelSx : labelSx ? [labelSx] : []),
-          ]}
-        >
-          {children}
-          {required && ' *'}
-        </Typography>
-      }
-      disabled={disabled}
-    />
+    <label
+      className={cx(wrapperClass, css(...pandaStylePropsToArray(sx)))}
+      data-disabled={disabled ? '' : undefined}
+      style={mergePandaStyleProps({ sx })}
+    >
+      <Switch
+        sx={controlSx}
+        disabled={disabled}
+        aria-label={resolvedAriaLabel}
+        inputProps={{
+          ...inputProps,
+          'aria-label': resolvedAriaLabel,
+        }}
+        {...rest}
+      />
+      <span
+        className={cx(labelClass, css(...pandaStylePropsToArray(labelSx)))}
+        style={mergePandaStyleProps({ sx: labelSx })}
+      >
+        {children}
+        {required && ' *'}
+      </span>
+    </label>
   )
 }
 

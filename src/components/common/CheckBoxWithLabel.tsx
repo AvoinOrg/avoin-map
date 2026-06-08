@@ -1,32 +1,98 @@
 import * as React from 'react'
-import {
-  Checkbox,
-  Typography,
-  SxProps,
-  Theme,
-  FormControlLabel, // Import FormControlLabel
-} from '@mui/material'
+import { Checkbox as BaseCheckbox } from '@base-ui/react/checkbox'
+import { css, cx } from 'styled-system/css'
 
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
 import CheckboxIcon from '#/components/icons/Checkbox'
 import CheckboxCheckedIcon from '#/components/icons/CheckboxChecked'
+import {
+  createCheckedChangeEvent,
+  type FormCheckedChangeEvent,
+} from './formControlEvents'
 
-interface CheckBoxWithLabelProps {
+type CheckBoxWithLabelProps = Omit<
+  React.ComponentPropsWithoutRef<typeof BaseCheckbox.Root>,
+  'children' | 'className' | 'onCheckedChange' | 'onChange' | 'style'
+> & {
   checked: boolean
   onChange: (
-    event: React.SyntheticEvent<Element, Event>,
+    event: FormCheckedChangeEvent,
     checked: boolean
   ) => void
   children?: React.ReactNode
-  sx?: SxProps<Theme> // For the entire FormControlLabel wrapper
-  checkboxSx?: SxProps<Theme> // Specific sx for the Checkbox component itself
-  iconSx?: SxProps<Theme>
-  iconCheckedSx?: SxProps<Theme>
-  textSx?: SxProps<Theme>
-  disabled?: boolean
-  required?: boolean
-  // Allow any other props to be passed to the underlying MUI Checkbox
-  [key: string]: any
+  sx?: PandaStyleProp
+  checkboxSx?: PandaStyleProp
+  iconSx?: PandaStyleProp
+  iconCheckedSx?: PandaStyleProp
+  textSx?: PandaStyleProp
+  inputProps?: React.InputHTMLAttributes<HTMLInputElement> & {
+    ref?: React.Ref<HTMLInputElement>
+  }
+  style?: React.CSSProperties
 }
+
+const wrapperClass = css({
+  m: 0,
+  display: 'flex',
+  flexDirection: 'row',
+  alignItems: 'center',
+  cursor: 'pointer',
+  '&[data-disabled]': {
+    cursor: 'not-allowed',
+  },
+})
+
+const rootClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: '1.5rem',
+  height: '1.5rem',
+  p: 0,
+  border: 0,
+  backgroundColor: 'transparent',
+  color: 'neutral.darker',
+  flexShrink: 0,
+  outline: 'none',
+  cursor: 'pointer',
+  '&[data-disabled]': {
+    cursor: 'not-allowed',
+    color: 'text.disabled',
+    opacity: 0.6,
+  },
+  '&[data-focus-visible]': {
+    outline: '2px solid var(--colors-secondary-dark)',
+    outlineOffset: '2px',
+    borderRadius: '0.125rem',
+  },
+})
+
+const indicatorClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  lineHeight: 0,
+})
+
+const textClass = css({
+  color: 'neutral.darker',
+  userSelect: 'none',
+  ml: 2,
+  opacity: 1,
+  fontFamily: 'var(--font-arimo)',
+  fontSize: '0.875rem',
+  fontWeight: 400,
+  lineHeight: 'normal',
+  letterSpacing: '0.0875rem',
+  '[data-disabled] &': {
+    color: 'text.disabled',
+    opacity: 0.8,
+  },
+})
 
 const CheckBoxWithLabel = ({
   checked,
@@ -39,108 +105,93 @@ const CheckBoxWithLabel = ({
   textSx,
   disabled = false,
   required = false,
-  ...rest // Captures other props for the MUI Checkbox (e.g., name, value)
+  inputProps,
+  name,
+  value,
+  style,
+  ...checkboxRest
 }: CheckBoxWithLabelProps) => {
-  const { inputProps: checkboxInputProps, ...checkboxRest } = rest
   const resolvedAriaLabel =
-    checkboxInputProps?.['aria-label'] ??
+    inputProps?.['aria-label'] ??
+    checkboxRest['aria-label'] ??
     (typeof children === 'string' || typeof children === 'number'
       ? String(children)
       : undefined)
 
+  const handleCheckedChange = React.useCallback<
+    NonNullable<
+      React.ComponentPropsWithoutRef<
+        typeof BaseCheckbox.Root
+      >['onCheckedChange']
+    >
+  >(
+    (nextChecked, eventDetails) => {
+      const nextCheckedBoolean = Boolean(nextChecked)
+      const changeEvent = createCheckedChangeEvent({
+        checked: nextCheckedBoolean,
+        name,
+        value,
+        eventDetails,
+      })
+
+      onChange(changeEvent, nextCheckedBoolean)
+    },
+    [name, onChange, value]
+  )
+
   return (
-    <FormControlLabel
-      sx={[
-        {
-          m: 0,
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          '&:hover': {
-            cursor: disabled ? 'not-allowed' : 'pointer',
-          },
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
-      control={
-        <Checkbox
-          icon={
-            <CheckboxIcon
-              sx={[
-                {
-                  backgroundColor: 'transparent', // Default icon style
-                  color: (theme: Theme) =>
-                    disabled
-                      ? theme.palette.text.disabled
-                      : (theme.palette as any)?.neutral?.darker ??
-                        theme.palette.text.primary,
-                  opacity: disabled ? 0.6 : 1,
-                },
-                ...(Array.isArray(iconSx) ? iconSx : [iconSx]), // User-provided icon styles
-              ]}
-            />
-          }
-          checkedIcon={
+    <label
+      className={cx(wrapperClass, css(...pandaStylePropsToArray(sx)))}
+      data-disabled={disabled ? '' : undefined}
+      style={mergePandaStyleProps({ sx, style })}
+    >
+      <BaseCheckbox.Root
+        {...checkboxRest}
+        checked={checked}
+        disabled={disabled}
+        required={required}
+        name={name}
+        value={value}
+        inputRef={inputProps?.ref}
+        aria-label={resolvedAriaLabel}
+        className={cx(rootClass, css(...pandaStylePropsToArray(checkboxSx)))}
+        style={mergePandaStyleProps({ sx: checkboxSx })}
+        onCheckedChange={handleCheckedChange}
+      >
+        <span
+          className={indicatorClass}
+          aria-hidden="true"
+        >
+          {checked ? (
             <CheckboxCheckedIcon
               sx={[
                 {
-                  backgroundColor: (theme: Theme) =>
-                    disabled
-                      ? theme.palette.action.disabledBackground
-                      : '#97C68B',
-                  color: (theme: Theme) =>
-                    disabled
-                      ? theme.palette.text.disabled
-                      : (theme.palette as any)?.neutral?.darker ??
-                        theme.palette.text.primary,
+                  backgroundColor: disabled ? 'action.disabledBackground' : '#97C68B',
+                  color: disabled ? 'text.disabled' : 'neutral.darker',
                   opacity: disabled ? 0.6 : 1,
                 },
-                ...(Array.isArray(iconCheckedSx) // User-provided checked icon styles
-                  ? iconCheckedSx
-                  : [iconCheckedSx]),
+                ...pandaStylePropsToArray(iconCheckedSx),
               ]}
             />
-          }
-          sx={[
-            {
-              p: 0, // Maintain zero padding from original Checkbox style
-            },
-            ...(Array.isArray(checkboxSx) ? checkboxSx : [checkboxSx]), // User-provided Checkbox styles
-          ]}
-          disabled={disabled}
-          aria-label={resolvedAriaLabel}
-          inputProps={{
-            ...checkboxInputProps,
-            'aria-label': resolvedAriaLabel,
-          }}
-          {...checkboxRest} // Spread other props like 'name', 'value'
-        />
-      }
-      label={
-        <Typography
-          variant="body2"
-          sx={[
-            {
-              color: (theme: Theme) =>
-                disabled
-                  ? theme.palette.text.disabled
-                  : (theme.palette as any)?.neutral?.darker ??
-                    theme.palette.text.primary,
-              userSelect: 'none',
-              ml: 2,
-              opacity: disabled ? 0.8 : 1,
-            },
-            ...(Array.isArray(textSx) ? textSx : [textSx]),
-          ]}
-        >
-          {children}
-          {required && ' *'}
-        </Typography>
-      }
-      checked={checked}
-      onChange={onChange}
-      disabled={disabled}
-    />
+          ) : (
+            <CheckboxIcon
+              sx={[
+                {
+                  backgroundColor: 'transparent',
+                  color: disabled ? 'text.disabled' : 'neutral.darker',
+                  opacity: disabled ? 0.6 : 1,
+                },
+                ...pandaStylePropsToArray(iconSx),
+              ]}
+            />
+          )}
+        </span>
+      </BaseCheckbox.Root>
+      <span className={cx(textClass, css(...pandaStylePropsToArray(textSx)))} style={mergePandaStyleProps({ sx: textSx })}>
+        {children}
+        {required && ' *'}
+      </span>
+    </label>
   )
 }
 

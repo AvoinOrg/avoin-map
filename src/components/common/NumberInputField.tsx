@@ -1,31 +1,19 @@
 import React from 'react'
 import { NumberField as BaseNumberField } from '@base-ui/react/number-field'
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
-import {
-  Box,
-  FormControl,
-  FormHelperText,
-  IconButton,
-  InputAdornment,
-  InputLabel,
-  OutlinedInput,
-} from '@mui/material'
-import type { SxProps, Theme } from '@mui/material/styles'
 import { useTranslate } from '@tolgee/react'
+import { css, cx } from 'styled-system/css'
+
 import { useLocaleFormatter } from '#/common/hooks/useLocaleFormatter'
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+import { ArrowDown, ArrowUp } from '#/components/icons'
 
 type BaseNumberFieldRootProps = React.ComponentPropsWithoutRef<
   typeof BaseNumberField.Root
 >
-
-type SSRInitialFilledComponent = ((props: BaseNumberFieldRootProps) => null) & {
-  muiName?: string
-}
-
-// Ensures the InputLabel shrinks correctly during SSR.
-const SSRInitialFilled: SSRInitialFilledComponent = () => null
-SSRInitialFilled.muiName = 'Input'
 
 const getStepPrecision = (stepValue: number) => {
   if (!Number.isFinite(stepValue)) {
@@ -80,17 +68,139 @@ type NumberInputFieldProps = Omit<
   helperText?: React.ReactNode
   size?: 'small' | 'medium'
   error?: boolean
-  containerSx?: SxProps<Theme>
-  formControlSx?: SxProps<Theme>
-  inputRowSx?: SxProps<Theme>
-  inputSx?: SxProps<Theme>
-  adornmentSx?: SxProps<Theme>
-  helperTextSx?: SxProps<Theme>
+  containerSx?: PandaStyleProp
+  formControlSx?: PandaStyleProp
+  inputRowSx?: PandaStyleProp
+  inputSx?: PandaStyleProp
+  adornmentSx?: PandaStyleProp
+  helperTextSx?: PandaStyleProp
   inputSlotProps?: React.ComponentPropsWithoutRef<'input'>
   minValue?: number
   maxValue?: number
   incrementStepValue?: number
 }
+
+const containerClass = css({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 1,
+})
+
+const inputRowClass = css({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 1,
+})
+
+const rootClass = css({
+  minWidth: 0,
+})
+
+const labelClass = css({
+  display: 'inline-block',
+  mb: '0.25rem',
+  px: 0.5,
+  backgroundColor: 'background.main',
+  color: '#111111',
+  fontFamily: 'var(--font-arimo)',
+  fontSize: '0.625rem',
+  fontWeight: 400,
+  lineHeight: '0.8125rem',
+  letterSpacing: '0.11em',
+})
+
+const groupClass = css({
+  display: 'flex',
+  alignItems: 'stretch',
+  width: '100%',
+  minWidth: 0,
+  height: '2rem',
+  minHeight: '2rem',
+  borderRadius: '999px',
+  border: '0.5px solid #D6D6D6',
+  overflow: 'hidden',
+  backgroundColor: '#FFFFFF',
+  boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
+  '&:focus-within': {
+    borderColor: 'secondary.dark',
+  },
+  '&[data-disabled]': {
+    opacity: 0.7,
+  },
+})
+
+const inputClass = css({
+  boxSizing: 'border-box',
+  flex: 1,
+  minWidth: 0,
+  width: '100%',
+  border: 0,
+  outline: 'none',
+  backgroundColor: 'transparent',
+  px: '1rem',
+  py: 0,
+  fontFamily: 'var(--font-arimo)',
+  fontSize: '0.6875rem',
+  fontWeight: 400,
+  lineHeight: 'normal',
+  letterSpacing: '0.04em',
+  color: '#111111',
+  '&:disabled': {
+    color: 'text.disabled',
+    cursor: 'not-allowed',
+  },
+})
+
+const stepperClass = css({
+  display: 'flex',
+  flexDirection: 'column',
+  alignSelf: 'stretch',
+  height: '100%',
+  borderLeft: '1px solid',
+  borderColor: 'divider',
+})
+
+const stepperButtonClass = css({
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  p: 0,
+  width: '1.75rem',
+  minWidth: '1.75rem',
+  height: '1rem',
+  minHeight: '1rem',
+  border: 0,
+  backgroundColor: 'transparent',
+  color: '#111111',
+  cursor: 'pointer',
+  lineHeight: 0,
+  '&:hover': {
+    backgroundColor: 'primary.lighter',
+  },
+  '&:disabled, &[data-disabled]': {
+    cursor: 'not-allowed',
+    color: 'text.disabled',
+    opacity: 0.6,
+  },
+  '&:first-of-type': {
+    borderTopRightRadius: '999px',
+  },
+  '&:last-of-type': {
+    borderBottomRightRadius: '999px',
+  },
+})
+
+const helperClass = css({
+  mt: '0.25rem',
+  ml: 0,
+  fontFamily: 'var(--font-arimo)',
+  fontSize: '0.75rem',
+  lineHeight: '1rem',
+  color: 'neutral.dark',
+  '&[data-error]': {
+    color: 'error.main',
+  },
+})
 
 export const NumberInputField = ({
   label,
@@ -121,10 +231,6 @@ export const NumberInputField = ({
   onValueCommitted,
   ...rootProps
 }: NumberInputFieldProps) => {
-  const inputHeight = '2rem'
-  const spinButtonHeight = 'calc(2rem / 2)'
-  const spinButtonWidth = '1.75rem'
-  const hasLabel = Boolean(label)
   const generatedId = React.useId()
   const id = idProp ?? generatedId
   const { t } = useTranslate('avoin-map')
@@ -151,12 +257,13 @@ export const NumberInputField = ({
       return
     }
     if (normalizedValue !== localValue) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Base UI keeps a local editing value for controlled number fields.
       setLocalValue(normalizedValue)
     }
   }, [isControlled, normalizedValue, localValue])
 
   const handleValueChange = React.useCallback<
-    BaseNumberFieldRootProps['onValueChange']
+    NonNullable<BaseNumberFieldRootProps['onValueChange']>
   >(
     (nextValue, details) => {
       if (isControlled) {
@@ -168,25 +275,13 @@ export const NumberInputField = ({
   )
 
   return (
-    <Box
-      sx={[
-        {
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 1,
-        },
-        ...(Array.isArray(containerSx) ? containerSx : [containerSx]),
-      ]}
+    <div
+      className={cx(containerClass, css(...pandaStylePropsToArray(containerSx)))}
+      style={mergePandaStyleProps({ sx: containerSx })}
     >
-      <Box
-        sx={[
-          {
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1,
-          },
-          ...(Array.isArray(inputRowSx) ? inputRowSx : [inputRowSx]),
-        ]}
+      <div
+        className={cx(inputRowClass, css(...pandaStylePropsToArray(inputRowSx)))}
+        style={mergePandaStyleProps({ sx: inputRowSx })}
       >
         <BaseNumberField.Root
           {...rootProps}
@@ -202,198 +297,76 @@ export const NumberInputField = ({
           format={effectiveFormat}
           onValueChange={handleValueChange}
           onValueCommitted={onValueCommitted}
-          render={(props, state) => (
-            <FormControl
-              size={size}
-              ref={props.ref}
-              disabled={state.disabled}
-              required={state.required}
-              error={error}
-              variant="outlined"
-              sx={[
-                {
-                  minWidth: 0,
-                },
-                ...(Array.isArray(formControlSx)
-                  ? formControlSx
-                  : [formControlSx]),
-              ]}
-            >
-              {props.children}
-            </FormControl>
-          )}
+          className={cx(rootClass, css(...pandaStylePropsToArray(formControlSx)))}
+          style={mergePandaStyleProps({ sx: formControlSx })}
         >
-          <SSRInitialFilled
-            {...rootProps}
-            id={id}
-            value={normalizedValue}
-            defaultValue={normalizedDefaultValue}
-          />
-          {hasLabel && (
-            <InputLabel
+          {label && (
+            <label
               htmlFor={id}
-              sx={{
-                backgroundColor: 'background.main',
-                px: 0.5,
-                fontSize: '999px',
-                fontWeight: 400,
-                lineHeight: '0.8125rem',
-                letterSpacing: '0.11em',
-                color: '#111111',
-                '&.Mui-focused': {
-                  color: 'secondary.dark',
-                },
-              }}
+              className={labelClass}
             >
               {label}
-            </InputLabel>
+            </label>
           )}
-          <BaseNumberField.Input
-            id={id}
-            render={(props, state) => (
-              <OutlinedInput
-                label={label}
-                size={size}
-                inputRef={props.ref}
-                value={state.inputValue}
-                onBlur={props.onBlur}
-                onChange={props.onChange}
-                onKeyUp={props.onKeyUp}
-                onKeyDown={props.onKeyDown}
-                onFocus={props.onFocus}
-                slotProps={{
-                  input: {
-                    ...props,
-                    ...inputSlotProps,
-                  },
-                }}
-                endAdornment={
-                  <InputAdornment
-                    position="end"
-                    sx={[
-                      {
-                        display: 'flex',
-                        alignSelf: 'stretch',
-                        height: '100%',
-                        maxHeight: 'unset',
-                        borderLeft: '1px solid',
-                        borderColor: 'divider',
-                        ml: 0,
-                        px: 0,
-                        alignItems: 'stretch',
-                        '& button': {
-                          p: 0,
-                          width: spinButtonWidth,
-                          minWidth: spinButtonWidth,
-                          height: spinButtonHeight,
-                          minHeight: spinButtonHeight,
-                          borderRadius: 0,
-                          overflow: 'hidden',
-                        },
-                        '& button:first-of-type': {
-                          borderTopRightRadius: '999px',
-                        },
-                        '& button:last-of-type': {
-                          borderBottomRightRadius: '999px',
-                        },
-                      },
-                      ...(Array.isArray(adornmentSx)
-                        ? adornmentSx
-                        : [adornmentSx]),
-                    ]}
-                  >
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignSelf: 'stretch',
-                        height: '100%',
-                      }}
-                    >
-                      <BaseNumberField.Increment
-                        render={
-                          <IconButton
-                            size={size}
-                            aria-label={t('components.number_input.increase')}
-                          />
-                        }
-                      >
-                        <KeyboardArrowUpIcon
-                          fontSize="inherit"
-                          sx={{
-                            fontSize: size === 'small' ? '1rem' : '1.125rem',
-                            transform: 'translateY(1px)',
-                          }}
-                        />
-                      </BaseNumberField.Increment>
-                      <BaseNumberField.Decrement
-                        render={
-                          <IconButton
-                            size={size}
-                            aria-label={t('components.number_input.decrease')}
-                          />
-                        }
-                      >
-                        <KeyboardArrowDownIcon
-                          fontSize="inherit"
-                          sx={{
-                            fontSize: size === 'small' ? '1rem' : '1.125rem',
-                            transform: 'translateY(-1px)',
-                          }}
-                        />
-                      </BaseNumberField.Decrement>
-                    </Box>
-                  </InputAdornment>
-                }
-                sx={[
-                  {
-                    height: inputHeight,
-                    minHeight: inputHeight,
-                    pr: 0,
-                    borderRadius: '999px',
-                    overflow: 'hidden',
-                    backgroundColor: '#FFFFFF',
-                    boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#D6D6D6',
-                      borderRadius: '999px',
-                    },
-                    '& .MuiInputBase-input': {
-                      boxSizing: 'border-box',
-                      px: '1rem',
-                      py: 0,
-                      fontSize: '0.6875rem',
-                      fontWeight: 400,
-                      lineHeight: 'normal',
-                      letterSpacing: '0.04em',
-                      color: '#111111',
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: 'secondary.dark',
-                    },
-                  },
-                  ...(Array.isArray(inputSx) ? inputSx : [inputSx]),
-                ]}
-              />
-            )}
-          />
+          <BaseNumberField.Group
+            data-size={size}
+            data-error={error ? '' : undefined}
+            className={cx(groupClass, css(...pandaStylePropsToArray(inputSx)))}
+            style={mergePandaStyleProps({ sx: inputSx })}
+          >
+            <BaseNumberField.Input
+              {...inputSlotProps}
+              id={id}
+              aria-invalid={error || undefined}
+              className={inputClass}
+            />
+            <div
+              className={cx(
+                stepperClass,
+                css(...pandaStylePropsToArray(adornmentSx))
+              )}
+              style={mergePandaStyleProps({ sx: adornmentSx })}
+            >
+              <BaseNumberField.Increment
+                aria-label={t('components.number_input.increase')}
+                className={stepperButtonClass}
+              >
+                <ArrowUp
+                  sx={{
+                    width: size === 'small' ? '0.75rem' : '0.875rem',
+                    height: size === 'small' ? '0.75rem' : '0.875rem',
+                  }}
+                  aria-hidden="true"
+                />
+              </BaseNumberField.Increment>
+              <BaseNumberField.Decrement
+                aria-label={t('components.number_input.decrease')}
+                className={stepperButtonClass}
+              >
+                <ArrowDown
+                  sx={{
+                    width: size === 'small' ? '0.75rem' : '0.875rem',
+                    height: size === 'small' ? '0.75rem' : '0.875rem',
+                  }}
+                  aria-hidden="true"
+                />
+              </BaseNumberField.Decrement>
+            </div>
+          </BaseNumberField.Group>
           {helperText !== undefined && (
-            <FormHelperText
-              sx={[
-                {
-                  ml: 0,
-                  '&:empty': { mt: 0 },
-                },
-                ...(Array.isArray(helperTextSx)
-                  ? helperTextSx
-                  : [helperTextSx]),
-              ]}
+            <div
+              data-error={error ? '' : undefined}
+              className={cx(
+                helperClass,
+                css(...pandaStylePropsToArray(helperTextSx))
+              )}
+              style={mergePandaStyleProps({ sx: helperTextSx })}
             >
               {helperText}
-            </FormHelperText>
+            </div>
           )}
         </BaseNumberField.Root>
-      </Box>
-    </Box>
+      </div>
+    </div>
   )
 }

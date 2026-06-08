@@ -1,17 +1,25 @@
 import React, { type ReactNode } from 'react'
-import {
-  Box,
-  Checkbox,
-  MenuItem,
-  OutlinedInput,
-  Select,
-  type SelectChangeEvent,
-  type SxProps,
-  type Theme,
-  Typography,
-} from '@mui/material'
+import { Select as BaseSelect } from '@base-ui/react/select'
+import { css, cx } from 'styled-system/css'
 
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
 import ArrowDown from '#/components/icons/ArrowDown'
+import CheckboxIcon from '#/components/icons/Checkbox'
+import CheckboxCheckedIcon from '#/components/icons/CheckboxChecked'
+import {
+  createSelectionEvent,
+  type FormSelectionEvent,
+} from './formControlEvents'
+import {
+  sharedFloatingPositionerClass,
+  sharedSelectItemClass,
+  sharedSelectPopupStyle,
+  sharedSelectTriggerFocusStyle,
+} from './formControlStyles'
 
 export type DropDownMultiSelectOption = {
   value: string
@@ -24,8 +32,9 @@ export type DropDownMultiSelectOption = {
 type Props = {
   value: string[]
   options: DropDownMultiSelectOption[]
-  onChange: (event: SelectChangeEvent<string[]>) => void
+  onChange: (event: FormSelectionEvent<string[]>) => void
   ariaLabel?: string
+  name?: string
   placeholder?: ReactNode
   renderValue?: (
     selected: string[],
@@ -35,20 +44,105 @@ type Props = {
     option: DropDownMultiSelectOption,
     selected: boolean
   ) => ReactNode
-  sx?: SxProps<Theme>
-  selectSx?: SxProps<Theme>
-  menuPaperSx?: SxProps<Theme>
-  menuItemSx?: SxProps<Theme>
-  checkboxSx?: SxProps<Theme>
-  iconSx?: SxProps<Theme>
+  sx?: PandaStyleProp
+  selectSx?: PandaStyleProp
+  menuPaperSx?: PandaStyleProp
+  menuItemSx?: PandaStyleProp
+  checkboxSx?: PandaStyleProp
+  iconSx?: PandaStyleProp
   disabled?: boolean
 }
+
+const wrapperClass = css({
+  width: '100%',
+  minWidth: 0,
+  borderRadius: '999px',
+})
+
+const triggerClass = css({
+  boxSizing: 'border-box',
+  width: '100%',
+  minWidth: 0,
+  minHeight: '2rem',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: '0.5rem',
+  borderRadius: '999px',
+  border: '0.5px solid #D6D6D6',
+  backgroundColor: '#FFFFFF',
+  boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
+  color: '#111111',
+  py: '0.375rem',
+  pl: '1rem',
+  pr: '0.875rem',
+  cursor: 'pointer',
+  ...sharedSelectTriggerFocusStyle,
+  '&[data-disabled]': {
+    cursor: 'not-allowed',
+    color: 'text.disabled',
+    opacity: 0.7,
+  },
+})
+
+const valueClass = css({
+  display: 'block',
+  minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+  fontFamily: 'var(--font-arimo)',
+  fontSize: '0.6875rem',
+  fontWeight: 400,
+  lineHeight: 'normal',
+  letterSpacing: '0.04em',
+  color: '#111111',
+})
+
+const placeholderClass = css({
+  display: 'block',
+  color: '#A0A0A0',
+})
+
+const iconClass = css({
+  width: '0.75rem',
+  height: '0.375rem',
+  flexShrink: 0,
+  color: 'currentColor',
+  transition: 'transform 150ms ease',
+  '[data-open] &': {
+    transform: 'rotate(180deg)',
+  },
+})
+
+const popupClass = css(sharedSelectPopupStyle, {
+  mt: 0.5,
+})
+
+const itemContentClass = css({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.375rem',
+  width: '100%',
+  minWidth: 0,
+})
+
+const defaultLabelClass = css({
+  flex: 1,
+  minWidth: 0,
+  fontFamily: 'var(--font-arimo)',
+  fontSize: '0.6875rem',
+  lineHeight: '1rem',
+  letterSpacing: '0.04em',
+  color: '#111111',
+})
 
 const DropDownMultiSelect = ({
   value,
   options,
   onChange,
   ariaLabel,
+  name,
   placeholder,
   renderValue,
   renderOptionContent,
@@ -60,202 +154,130 @@ const DropDownMultiSelect = ({
   iconSx,
   disabled,
 }: Props) => {
+  const selectedOptions = options.filter((option) => value.includes(option.value))
+
+  const handleValueChange = React.useCallback(
+    (nextValue: string[] | null, eventDetails: { event?: Event }) => {
+      onChange(
+        createSelectionEvent({
+          value: nextValue ?? [],
+          name,
+          eventDetails,
+        })
+      )
+    },
+    [name, onChange]
+  )
+
+  const renderSelectedSummary = () => {
+    if (renderValue) {
+      return renderValue(value, selectedOptions)
+    }
+
+    if (selectedOptions.length === 0) {
+      return <span className={placeholderClass}>{placeholder}</span>
+    }
+
+    return selectedOptions
+      .map((option) =>
+        typeof option.label === 'string' ? option.label : option.value
+      )
+      .join(', ')
+  }
+
   return (
-    <Box
-      sx={[
-        {
-          width: '100%',
-          minWidth: 0,
-          borderRadius: '999px',
-        },
-        ...(Array.isArray(sx) ? sx : [sx]),
-      ]}
+    <div
+      className={cx(wrapperClass, css(...pandaStylePropsToArray(sx)))}
+      style={mergePandaStyleProps({ sx })}
     >
-      <Select
+      <BaseSelect.Root
         multiple
-        displayEmpty
-        aria-label={ariaLabel}
         value={value}
-        onChange={onChange}
+        name={name}
         disabled={disabled}
-        input={<OutlinedInput notched={false} />}
-        IconComponent={ArrowDown}
-        renderValue={(selected) => {
-          const selectedValues = selected as string[]
-          const selectedOptions = options.filter((option) =>
-            selectedValues.includes(option.value)
-          )
-
-          if (renderValue) {
-            return renderValue(selectedValues, selectedOptions)
-          }
-
-          if (selectedOptions.length === 0) {
-            return (
-              <Box
-                component="span"
-                sx={{
-                  display: 'block',
-                  color: '#A0A0A0',
-                }}
-              >
-                {placeholder}
-              </Box>
-            )
-          }
-
-          return (
-            <Typography
-              component="span"
-              sx={{
-                display: 'block',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                fontSize: '0.6875rem',
-                fontWeight: 400,
-                lineHeight: 'normal',
-                letterSpacing: '0.04em',
-                color: '#111111',
-              }}
-            >
-              {selectedOptions
-                .map((option) =>
-                  typeof option.label === 'string' ? option.label : option.value
-                )
-                .join(', ')}
-            </Typography>
-          )
-        }}
-        MenuProps={{
-          anchorOrigin: {
-            vertical: 'bottom',
-            horizontal: 'left',
-          },
-          transformOrigin: {
-            vertical: 'top',
-            horizontal: 'left',
-          },
-          PaperProps: {
-            sx: [
-              {
-                mt: 0.5,
-                borderRadius: '0.625rem',
-                border: '0.5px solid #D6D6D6',
-                boxShadow: '0px 8px 24px rgba(17, 17, 17, 0.12)',
-              },
-              ...(Array.isArray(menuPaperSx) ? menuPaperSx : [menuPaperSx]),
-            ],
-          },
-        }}
-        sx={[
-          {
-            '&.MuiOutlinedInput-root': {
-              borderRadius: '999px',
-              minHeight: '2rem',
-              backgroundColor: '#FFFFFF',
-              boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
-            },
-            '& .MuiOutlinedInput-notchedOutline': {
-              borderColor: '#D6D6D6',
-              borderRadius: '999px',
-            },
-            '& .MuiOutlinedInput-notchedOutline legend': {
-              maxWidth: 0,
-            },
-            '& .MuiSelect-select': {
-              display: 'flex',
-              alignItems: 'center',
-              py: '0.375rem',
-              pl: '1rem',
-              pr: '2.5rem !important',
-              fontSize: '0.6875rem',
-              fontWeight: 400,
-              lineHeight: 'normal',
-              letterSpacing: '0.04em',
-              color: '#111111',
-            },
-            '& .MuiSelect-icon': {
-              top: '50%',
-              transform: 'translateY(-50%)',
-              width: '0.75rem',
-              height: '0.375rem',
-              mr: "0.4rem",
-              ...(iconSx as Record<string, unknown>),
-            },
-            '& .MuiSelect-iconOpen': {
-              transform: 'translateY(-50%) rotate(180deg)',
-            },
-          },
-          ...(Array.isArray(selectSx) ? selectSx : [selectSx]),
-        ]}
+        onValueChange={handleValueChange}
       >
-        {options.map((option) => {
-          const isSelected = value.includes(option.value)
-
-          return (
-            <MenuItem
-              key={option.value}
-              value={option.value}
-              aria-label={
-                option.ariaLabel ??
-                (typeof option.label === 'string'
-                  ? option.label
-                  : String(option.value))
-              }
-              sx={[
-                {
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.375rem',
-                  py: '0.5rem',
-                },
-                ...(Array.isArray(menuItemSx) ? menuItemSx : [menuItemSx]),
-              ]}
-            >
-              {renderOptionContent ? (
-                renderOptionContent(option, isSelected)
-              ) : (
-                <>
-                  <Checkbox
-                    checked={isSelected}
-                    sx={[
-                      {
-                        p: 0,
-                        mr: '0.25rem',
-                        '& .MuiSvgIcon-root': {
-                          fontSize: '1rem',
-                        },
-                      },
-                      ...(Array.isArray(checkboxSx)
-                        ? checkboxSx
-                        : [checkboxSx]),
-                    ]}
-                  />
-
-                  {option.leading}
-
-                  <Typography
-                    sx={{
-                      flex: 1,
-                      minWidth: 0,
-                      fontSize: '0.6875rem',
-                      lineHeight: '1rem',
-                      letterSpacing: '0.04em',
-                      color: '#111111',
-                    }}
-                  >
-                    {option.label}
-                  </Typography>
-
-                  {option.trailing}
-                </>
+        <BaseSelect.Trigger
+          aria-label={ariaLabel}
+          className={cx(triggerClass, css(...pandaStylePropsToArray(selectSx)))}
+          style={mergePandaStyleProps({ sx: selectSx })}
+        >
+          <span className={valueClass}>{renderSelectedSummary()}</span>
+          <BaseSelect.Icon
+            className={cx(iconClass, css(...pandaStylePropsToArray(iconSx)))}
+            style={mergePandaStyleProps({ sx: iconSx })}
+            aria-hidden="true"
+          >
+            <ArrowDown />
+          </BaseSelect.Icon>
+        </BaseSelect.Trigger>
+        <BaseSelect.Portal>
+          <BaseSelect.Positioner
+            sideOffset={4}
+            align="start"
+            alignItemWithTrigger={false}
+            className={sharedFloatingPositionerClass}
+          >
+            <BaseSelect.Popup
+              className={cx(
+                popupClass,
+                css(...pandaStylePropsToArray(menuPaperSx))
               )}
-            </MenuItem>
-          )
-        })}
-      </Select>
-    </Box>
+              style={mergePandaStyleProps({ sx: menuPaperSx })}
+            >
+              <BaseSelect.List>
+                {options.map((option) => {
+                  const isSelected = value.includes(option.value)
+
+                  return (
+                    <BaseSelect.Item
+                      key={option.value}
+                      value={option.value}
+                      aria-label={
+                        option.ariaLabel ??
+                        (typeof option.label === 'string'
+                          ? option.label
+                          : String(option.value))
+                      }
+                      className={cx(
+                        sharedSelectItemClass,
+                        css(...pandaStylePropsToArray(menuItemSx))
+                      )}
+                      style={mergePandaStyleProps({ sx: menuItemSx })}
+                    >
+                      {renderOptionContent ? (
+                        renderOptionContent(option, isSelected)
+                      ) : (
+                        <span className={itemContentClass}>
+                          <span
+                            className={css(...pandaStylePropsToArray(checkboxSx))}
+                            style={mergePandaStyleProps({ sx: checkboxSx })}
+                            aria-hidden="true"
+                          >
+                            {isSelected ? (
+                              <CheckboxCheckedIcon
+                                sx={{ width: '1rem', height: '1rem' }}
+                              />
+                            ) : (
+                              <CheckboxIcon sx={{ width: '1rem', height: '1rem' }} />
+                            )}
+                          </span>
+                          {option.leading}
+                          <span className={defaultLabelClass}>
+                            {option.label}
+                          </span>
+                          {option.trailing}
+                        </span>
+                      )}
+                    </BaseSelect.Item>
+                  )
+                })}
+              </BaseSelect.List>
+            </BaseSelect.Popup>
+          </BaseSelect.Positioner>
+        </BaseSelect.Portal>
+      </BaseSelect.Root>
+    </div>
   )
 }
 

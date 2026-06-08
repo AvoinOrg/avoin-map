@@ -136,24 +136,17 @@ const ACCORDION_BUTTON_RESET_SX = {
 
 const numberFieldInputSx = {
   width: NUMBER_FIELD_WIDTH,
-  '&.MuiOutlinedInput-root': {
-    minHeight: '1.5rem',
-    borderRadius: '999px',
-    backgroundColor: '#FFFFFF',
-    boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
-  },
-  '& .MuiOutlinedInput-notchedOutline': {
-    borderColor: '#D6D6D6',
-    borderRadius: '999px',
-  },
-  '& .MuiInputBase-input': {
-    px: '0.625rem',
-    py: '0.125rem',
-    fontSize: '0.6875rem',
-    lineHeight: 'normal',
-    letterSpacing: '0.04em',
-    textAlign: 'center',
-  },
+  minHeight: '1.5rem',
+  height: '1.5rem',
+  borderRadius: '999px',
+  backgroundColor: '#FFFFFF',
+  boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
+  px: '0.625rem',
+  py: '0.125rem',
+  fontSize: '0.6875rem',
+  lineHeight: 'normal',
+  letterSpacing: '0.04em',
+  textAlign: 'center',
 } as const
 
 const numberFieldAdornmentSx = {
@@ -995,34 +988,23 @@ const ZoneAccordionItem = ({
                   sx={{ mb: 0, mr: '-1rem', ml: '-1rem', width: 'auto' }}
                   labelSx={FIELD_LABEL_SX}
                   selectSx={{
-                    '&.MuiOutlinedInput-root': {
-                      minHeight: '1.375rem',
-                      borderRadius: '0.625rem',
-                      backgroundColor: '#FFFFFF',
-                      boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
-                    },
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#D6D6D6',
-                    },
-                    '& .MuiOutlinedInput-notchedOutline legend': {
-                      maxWidth: 0,
-                    },
-                    '& .MuiSelect-select': {
-                      minHeight: '1.375rem',
-                      py: '0.1875rem',
-                      pl: '0.75rem',
-                      pr: '2.25rem !important',
-                      fontSize: '0.6875rem',
-                      fontWeight: 400,
-                      lineHeight: 'normal',
-                      letterSpacing: '0.04em',
-                      color: '#111111',
-                    },
-                    '& .MuiSelect-icon': {
-                      width: '0.75rem',
-                      height: '0.375rem',
-                      right: '0.875rem',
-                    },
+                    minHeight: '1.375rem',
+                    height: '1.375rem',
+                    borderRadius: '0.625rem',
+                    backgroundColor: '#FFFFFF',
+                    boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
+                    py: '0.1875rem',
+                    pl: '0.75rem',
+                    pr: '0.875rem',
+                    fontSize: '0.6875rem',
+                    fontWeight: 400,
+                    lineHeight: 'normal',
+                    letterSpacing: '0.04em',
+                    color: '#111111',
+                  }}
+                  iconSx={{
+                    width: '0.75rem',
+                    height: '0.375rem',
                   }}
                   typographySx={{
                     fontSize: '0.6875rem',

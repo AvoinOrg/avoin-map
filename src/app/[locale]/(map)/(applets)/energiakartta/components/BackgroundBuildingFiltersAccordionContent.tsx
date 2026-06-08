@@ -41,12 +41,6 @@ const SWITCH_SX = {
   width: '100%',
 }
 
-const SWITCH_CONTROL_SX = {
-  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-    backgroundColor: '#075CFF',
-  },
-}
-
 const SWITCH_LABEL_SX = {
   ...CONTROL_TEXT_SX,
   ml: '0.625rem',
@@ -157,22 +151,18 @@ const BackgroundBuildingFiltersAccordionContent = () => {
         }}
         labelSx={DROPDOWN_LABEL_SX}
         selectSx={{
-          '&.MuiOutlinedInput-root': {
-            height: '1.25rem',
-            backgroundColor: 'common.white',
-            boxShadow: 'inset 0px 1px 2px 0px rgba(214, 214, 214, 0.3)',
-          },
-          '.MuiSelect-select': {
-            minHeight: '1.125rem',
-            py: '0 !important',
-            fontSize: '0.625rem',
-            letterSpacing: '0.1em',
-          },
-          '.MuiSelect-icon': {
-            width: '0.5rem',
-            height: '0.25rem',
-            mr: '0.75rem',
-          },
+          height: '1.25rem',
+          minHeight: '1.25rem',
+          backgroundColor: 'common.white',
+          boxShadow: 'inset 0px 1px 2px 0px rgba(214, 214, 214, 0.3)',
+          py: 0,
+          fontSize: '0.625rem',
+          letterSpacing: '0.1em',
+        }}
+        iconSx={{
+          width: '0.5rem',
+          height: '0.25rem',
+          mr: '0.75rem',
         }}
         typographySx={{
           maxWidth: '14rem',
@@ -208,7 +198,7 @@ const BackgroundBuildingFiltersAccordionContent = () => {
           }
           disabled={!hasSelectedConstructionDecade}
           sx={SWITCH_SX}
-          controlSx={SWITCH_CONTROL_SX}
+          checkedTrackColor="#075CFF"
           labelSx={SWITCH_LABEL_SX}
         >
           {t('sidebar.background_filters.construction_year.show_from_decade')}
@@ -222,7 +212,7 @@ const BackgroundBuildingFiltersAccordionContent = () => {
           onChange={(event) => setShowOnlySelectedDecade(event.target.checked)}
           disabled={!hasSelectedConstructionDecade}
           sx={SWITCH_SX}
-          controlSx={SWITCH_CONTROL_SX}
+          checkedTrackColor="#075CFF"
           labelSx={SWITCH_LABEL_SX}
         >
           {t('sidebar.background_filters.construction_year.show_only_decade')}

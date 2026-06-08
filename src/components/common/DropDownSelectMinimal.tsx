@@ -1,136 +1,176 @@
-import React, { useState } from 'react'
-import {
-  FormControl,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-  SxProps,
-  Theme,
-  Typography,
-} from '@mui/material'
+import React from 'react'
+import { Select as BaseSelect } from '@base-ui/react/select'
+import { css, cx } from 'styled-system/css'
 
-import ArrowDown from '#/components/icons/ArrowDown'
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
 import { SelectOption } from '#/common/types/general'
+import ArrowDown from '#/components/icons/ArrowDown'
+import {
+  createSelectionEvent,
+  type FormSelectionEvent,
+} from './formControlEvents'
+import {
+  sharedFloatingPositionerClass,
+  sharedSelectItemClass,
+  sharedSelectPopupStyle,
+  sharedSelectTriggerFocusStyle,
+} from './formControlStyles'
 
 interface Props {
-  value: any
+  value: string | null | undefined
   options: SelectOption[]
-  onChange: (event: SelectChangeEvent<string>) => void
+  onChange: (event: FormSelectionEvent<string>) => void
   ariaLabel?: string
-  sx?: SxProps<Theme>
-  optionSx?: SxProps<Theme>
-  iconSx?: SxProps<Theme>
-  isIconOnTheRight?: boolean // added prop
+  name?: string
+  sx?: PandaStyleProp
+  optionSx?: PandaStyleProp
+  iconSx?: PandaStyleProp
+  isIconOnTheRight?: boolean
 }
+
+const triggerClass = css({
+  m: 0,
+  p: 0,
+  border: 0,
+  backgroundColor: 'transparent',
+  color: '#111111',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '0.4rem',
+  minWidth: 0,
+  cursor: 'pointer',
+  fontFamily: 'var(--font-arimo)',
+  fontSize: '0.6875rem',
+  fontWeight: 400,
+  lineHeight: 'normal',
+  letterSpacing: '0.04em',
+  borderRadius: '0.125rem',
+  ...sharedSelectTriggerFocusStyle,
+})
+
+const valueClass = css({
+  minWidth: 0,
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  whiteSpace: 'nowrap',
+})
+
+const iconClass = css({
+  width: '0.75rem',
+  height: '0.375rem',
+  flexShrink: 0,
+  color: 'currentColor',
+  transition: 'transform 150ms ease',
+  '[data-open] &': {
+    transform: 'rotate(180deg)',
+  },
+})
+
+const popupClass = css(sharedSelectPopupStyle, {
+  mt: 0.5,
+})
 
 const DropDownSelectMinimal = ({
   value,
   options,
   onChange,
   ariaLabel,
+  name,
   sx,
   optionSx,
   iconSx,
   isIconOnTheRight = true,
 }: Props) => {
-  const [hasEmpty, setHasEmpty] = useState(value == null)
+  const currentValue = value == null ? '' : String(value)
+  const hasEmpty = value == null
+
+  const handleValueChange = React.useCallback(
+    (nextValue: string | null, eventDetails: { event?: Event }) => {
+      onChange(
+        createSelectionEvent({
+          value: nextValue == null ? '' : String(nextValue),
+          name,
+          eventDetails,
+        })
+      )
+    },
+    [name, onChange]
+  )
 
   return (
-    <FormControl variant={'standard'}>
-      <Select
+    <BaseSelect.Root
+      value={currentValue}
+      name={name}
+      onValueChange={handleValueChange}
+    >
+      <BaseSelect.Trigger
         aria-label={ariaLabel}
-        value={value == null ? '' : value}
-        onChange={onChange}
-        IconComponent={ArrowDown}
-        disableUnderline={true}
-        MenuProps={{
-          anchorOrigin: {
-            vertical: 'bottom',
-            horizontal: 'left',
-          },
-          transformOrigin: {
-            vertical: 'top',
-            horizontal: 'left',
-          },
-          PaperProps: {
-            sx: {
-              mt: 0.5,
-              borderRadius: '0.625rem',
-              border: '0.5px solid #D6D6D6',
-              boxShadow: '0px 8px 24px rgba(17, 17, 17, 0.12)',
-            },
-          },
+        className={cx(triggerClass, css(...pandaStylePropsToArray(sx)))}
+        style={{
+          flexDirection: isIconOnTheRight ? undefined : 'row-reverse',
+          ...mergePandaStyleProps({ sx }),
         }}
-        sx={[
-          {
-            '.MuiSelect-icon': {
-              top: '50%',
-              transform: 'translateY(-50%)',
-              width: '0.75rem',
-              height: '0.375rem',
-              mr: "0.4rem",
-              mt: "0.2rem",
-              ...(iconSx as Record<string, any>),
-            },
-            '.MuiSelect-iconOpen': {
-              transform: 'translateY(-50%) rotate(180deg)',
-            },
-            '& .MuiSelect-select': {
-              m: 0,
-              p: 0,
-              fontSize: '0.6875rem',
-              fontWeight: 400,
-              lineHeight: 'normal',
-              letterSpacing: '0.04em',
-              color: '#111111',
-            },
-
-            '& .MuiSelect-select:focus': {
-              backgroundColor: 'transparent',
-            },
-            m: 0,
-            p: 0,
-          },
-          ...(Array.isArray(sx) ? sx : [sx]),
-        ]}
       >
-        {hasEmpty && <option key={''} value={''}></option>}
-        {options.map((option) => (
-          <MenuItem
-            aria-label={
-              typeof option.label === 'string'
-                ? option.label
-                : String(option.value)
-            }
-            sx={{
-              m: 0,
-              p: 0,
-            }}
-            key={option.value}
-            value={option.value}
-          >
-            <Typography
-              sx={[
-                {
-                  textAlign: 'left',
-                  pl: 1,
-                  pt: 0.5,
-                  pb: 0.5,
-                  fontSize: '0.6875rem',
-                  fontWeight: 400,
-                  lineHeight: 'normal',
-                  letterSpacing: '0.04em',
-                  color: '#111111',
-                },
-                ...(Array.isArray(optionSx) ? optionSx : [optionSx]),
-              ]}
-            >
-              {option.label}
-            </Typography>
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
+        <BaseSelect.Value className={valueClass}>
+          {(selectedValue) => {
+            const selectedOption = options.find(
+              (option) => option.value === selectedValue
+            )
+            return selectedOption?.label ?? selectedValue
+          }}
+        </BaseSelect.Value>
+        <BaseSelect.Icon
+          className={cx(iconClass, css(...pandaStylePropsToArray(iconSx)))}
+          style={mergePandaStyleProps({ sx: iconSx })}
+          aria-hidden="true"
+        >
+          <ArrowDown />
+        </BaseSelect.Icon>
+      </BaseSelect.Trigger>
+      <BaseSelect.Portal>
+        <BaseSelect.Positioner
+          sideOffset={4}
+          align="start"
+          alignItemWithTrigger={false}
+          className={sharedFloatingPositionerClass}
+        >
+          <BaseSelect.Popup className={popupClass}>
+            <BaseSelect.List>
+              {hasEmpty && (
+                <BaseSelect.Item
+                  key=""
+                  value=""
+                  aria-label="Empty selection"
+                  className={sharedSelectItemClass}
+                />
+              )}
+              {options.map((option) => (
+                <BaseSelect.Item
+                  key={option.value}
+                  value={option.value}
+                  aria-label={
+                    typeof option.label === 'string'
+                      ? option.label
+                      : String(option.value)
+                  }
+                  className={cx(
+                    sharedSelectItemClass,
+                    css(...pandaStylePropsToArray(optionSx))
+                  )}
+                  style={mergePandaStyleProps({ sx: optionSx })}
+                >
+                  {option.label}
+                </BaseSelect.Item>
+              ))}
+            </BaseSelect.List>
+          </BaseSelect.Popup>
+        </BaseSelect.Positioner>
+      </BaseSelect.Portal>
+    </BaseSelect.Root>
   )
 }
 

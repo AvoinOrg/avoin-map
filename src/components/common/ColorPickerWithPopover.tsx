@@ -1,36 +1,94 @@
-import React, { useState, useEffect } from 'react' // Import useEffect
-import {
-  Popover,
-  Box,
-  Typography,
-  SxProps,
-  Theme,
-  PopoverProps,
-  BoxProps,
-} from '@mui/material'
+import React, { useState } from 'react'
+import { Popover as BasePopover } from '@base-ui/react/popover'
 import { HexColorPicker } from 'react-colorful'
+import { css, cx } from 'styled-system/css'
 
-// Props interface remains the same
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+
+const HexColorPickerComponent = HexColorPicker as React.ComponentType<{
+  color: string
+  onChange: (newColor: string) => void
+  style?: React.CSSProperties
+}>
+
+type ColorBoxProps = Omit<
+  React.HTMLAttributes<HTMLSpanElement>,
+  'onClick' | 'style' | 'aria-describedby'
+>
+
+type BasePopoverProps = Pick<
+  React.ComponentPropsWithoutRef<typeof BasePopover.Root>,
+  'modal' | 'defaultOpen'
+>
+
 interface ColorPickerWithPopoverProps {
   color: string
   onChange: (newColor: string) => void
   labelText?: string
   ariaLabel?: string
-  sx?: SxProps<Theme>
-  colorBoxSx?: SxProps<Theme>
-  labelSx?: SxProps<Theme>
-  popoverSx?: SxProps<Theme>
-  pickerContainerSx?: SxProps<Theme>
-  popoverProps?: Omit<
-    PopoverProps,
-    'open' | 'anchorEl' | 'onClose' | 'sx' | 'children'
-  >
-  colorBoxProps?: Omit<BoxProps, 'onClick' | 'sx' | 'aria-describedby'>
+  sx?: PandaStyleProp
+  colorBoxSx?: PandaStyleProp
+  labelSx?: PandaStyleProp
+  popoverSx?: PandaStyleProp
+  pickerContainerSx?: PandaStyleProp
+  popoverProps?: BasePopoverProps
+  colorBoxProps?: ColorBoxProps
 }
 
+const triggerClass = css({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 2,
+  p: 0,
+  m: 0,
+  border: 'none',
+  background: 'none',
+  color: 'inherit',
+  textAlign: 'inherit',
+  cursor: 'pointer',
+  '&:focus-visible': {
+    outline: '2px solid var(--colors-secondary-dark)',
+    outlineOffset: '2px',
+  },
+})
+
+const swatchClass = css({
+  width: 24,
+  height: 24,
+  border: '2.4px solid rgb(0, 0, 0)',
+  borderRadius: '2px',
+  flexShrink: 0,
+})
+
+const labelClass = css({
+  userSelect: 'none',
+  color: 'neutral.darker',
+  fontFamily: 'var(--font-arimo)',
+  fontSize: '0.875rem',
+  fontWeight: 400,
+  lineHeight: 'normal',
+  letterSpacing: '0.0875rem',
+})
+
+const positionerClass = css({
+  zIndex: 'modal',
+})
+
+const popupClass = css({
+  padding: '14px',
+  borderRadius: '0.625rem',
+  backgroundColor: '#FFFFFF',
+  boxShadow: '0px 8px 24px rgba(17, 17, 17, 0.12)',
+  outline: 'none',
+})
+
 const ColorPickerWithPopover = ({
-  color, // The final color value from the parent
-  onChange, // The callback to update the parent's state
+  color,
+  onChange,
   labelText,
   ariaLabel,
   sx,
@@ -41,133 +99,80 @@ const ColorPickerWithPopover = ({
   popoverProps,
   colorBoxProps,
 }: ColorPickerWithPopoverProps) => {
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
-  // Internal state to hold the color while the popover is open
+  const [open, setOpen] = useState(Boolean(popoverProps?.defaultOpen))
   const [internalColor, setInternalColor] = useState<string>(color)
+  const generatedId = React.useId()
+  const id = open ? `${generatedId}-color-picker-popover` : undefined
 
-  const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
-    // Reset internal color to the current parent color when opening
-    setInternalColor(color)
-    setAnchorEl(event.currentTarget)
-  }
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setInternalColor(color)
+      setOpen(true)
+      return
+    }
 
-  const handleClose = () => {
-    setAnchorEl(null)
-    // Only call the parent's onChange when closing, if the color actually changed
+    setOpen(false)
     if (internalColor !== color) {
       onChange(internalColor)
     }
   }
 
-  // Effect to update internal color if the external color prop changes while popover is closed
-  useEffect(() => {
-    if (!anchorEl) {
-      setInternalColor(color)
-    }
-  }, [color, anchorEl])
-
-  const open = Boolean(anchorEl)
-  const id = open ? 'color-picker-popover' : undefined
-
   return (
-    <>
-      {/* Root container - unchanged */}
-      <Box
-        component="button"
+    <BasePopover.Root
+      {...popoverProps}
+      open={open}
+      onOpenChange={handleOpenChange}
+    >
+      <BasePopover.Trigger
         type="button"
         aria-label={ariaLabel ?? labelText ?? 'Open color picker'}
-        sx={[
-          {
-            display: 'flex',
-            alignItems: 'center',
-            gap: 2,
-            p: 0,
-            m: 0,
-            border: 'none',
-            background: 'none',
-            color: 'inherit',
-            textAlign: 'inherit',
-            cursor: 'pointer',
-          },
-          ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
-        ]}
-        onClick={handleOpen}
         aria-describedby={id}
+        className={cx(triggerClass, css(...pandaStylePropsToArray(sx)))}
+        style={mergePandaStyleProps({ sx })}
       >
-        {/* Color Box Trigger - uses the final 'color' prop */}
-        <Box
-          sx={[
-            {
-              width: 24,
-              height: 24,
-              backgroundColor: color, // Display the final color
-              border: '2.4px solid rgb(0, 0, 0)',
-              borderRadius: '2px',
-            },
-            ...(Array.isArray(colorBoxSx)
-              ? colorBoxSx
-              : colorBoxSx
-              ? [colorBoxSx]
-              : []),
-          ]}
+        <span
+          className={cx(swatchClass, css(...pandaStylePropsToArray(colorBoxSx)))}
+          style={{
+            backgroundColor: color,
+            ...mergePandaStyleProps({ sx: colorBoxSx }),
+          }}
           {...colorBoxProps}
         />
-        {/* Label Text - unchanged */}
         {labelText && (
-          <Typography
-            variant="body2"
-            sx={[
-              { userSelect: 'none', color: 'neutral.darker' },
-              ...(Array.isArray(labelSx) ? labelSx : labelSx ? [labelSx] : []),
-            ]}
+          <span
+            className={cx(labelClass, css(...pandaStylePropsToArray(labelSx)))}
+            style={mergePandaStyleProps({ sx: labelSx })}
           >
             {labelText}
-          </Typography>
+          </span>
         )}
-      </Box>
-
-      {/* Popover */}
-      <Popover
-        id={id}
-        open={open}
-        anchorEl={anchorEl}
-        onClose={handleClose} // handleClose now triggers the final onChange
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'left',
-        }}
-        sx={[
-          { '& .MuiPaper-root': { padding: '14px' } },
-          ...(Array.isArray(popoverSx)
-            ? popoverSx
-            : popoverSx
-            ? [popoverSx]
-            : []),
-        ]}
-        {...popoverProps}
-      >
-        <Box
-          sx={[
-            ...(Array.isArray(pickerContainerSx)
-              ? pickerContainerSx
-              : pickerContainerSx
-              ? [pickerContainerSx]
-              : []),
-          ]}
+      </BasePopover.Trigger>
+      <BasePopover.Portal>
+        <BasePopover.Positioner
+          side="bottom"
+          align="start"
+          sideOffset={4}
+          className={positionerClass}
         >
-          {/* HexColorPicker now updates the internal state */}
-          <HexColorPicker
-            style={{ width: '200px' }}
-            color={internalColor} // Picker controlled by internal state
-            onChange={setInternalColor} // Update internal state directly
-          />
-        </Box>
-      </Popover>
-    </>
+          <BasePopover.Popup
+            id={id}
+            className={cx(popupClass, css(...pandaStylePropsToArray(popoverSx)))}
+            style={mergePandaStyleProps({ sx: popoverSx })}
+          >
+            <div
+              className={css(...pandaStylePropsToArray(pickerContainerSx))}
+              style={mergePandaStyleProps({ sx: pickerContainerSx })}
+            >
+              <HexColorPickerComponent
+                style={{ width: '200px' }}
+                color={internalColor}
+                onChange={setInternalColor}
+              />
+            </div>
+          </BasePopover.Popup>
+        </BasePopover.Positioner>
+      </BasePopover.Portal>
+    </BasePopover.Root>
   )
 }
 
