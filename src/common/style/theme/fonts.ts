@@ -17,5 +17,3 @@ export const arimo = Arimo({
     'Helvetica Neue',
   ],
 })
-
-export const ARIMO_FONT_FAMILY = 'var(--font-arimo)'

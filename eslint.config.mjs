@@ -21,6 +21,8 @@ const eslintConfig = defineConfig([
     'coverage/**',
     'i18n/**',
     'public/**',
+    'styled-system/**',
+    'styled-system-static/**',
     'legacy/map/map.ts',
   ]),
 ])

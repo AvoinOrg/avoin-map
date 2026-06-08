@@ -7,13 +7,15 @@ import {
   ThemeOptions,
   alpha,
 } from '@mui/material/styles'
+import { SCROLLBAR_WIDTH_REM } from './constants'
 import {
-  DESKTOP_BREAKPOINT_KEY,
-  MOBILE_BREAKPOINT_KEY,
-  MOBILE_BREAKPOINT_PX,
-  SCROLLBAR_WIDTH_REM,
-} from './constants'
-import { ARIMO_FONT_FAMILY } from './fonts'
+  APP_FONT_FAMILY,
+  appBreakpoints,
+  appPalette,
+  appShape,
+  appTypography,
+  appZIndex,
+} from './tokens'
 
 //extending palette to add background color
 
@@ -77,141 +79,17 @@ declare module '@mui/material/Typography' {
 
 const defaultTheme = createTheme()
 
-const palette = {
-  primary: {
-    main: '#C7C9B8',
-    dark: '#AFB29A',
-    light: '#D7D9CC',
-    lighter: '#EBECE6',
-  },
-  secondary: { dark: '#274AFF', main: '#5d77ff', light: '#b3bfff' },
-  neutral: {
-    main: '#D9D9D9',
-    light: '#F6F4F4',
-    dark: '#A0A0A0',
-    darker: '#000000',
-    lighter: '#FFFFFF',
-  },
-  info: { dark: '#EA7101', main: '#F09C4D' },
-  warning: { main: '#EA7101' },
-}
+const palette = appPalette
 
-const shape = {
-  borderRadius: 0,
-}
+const shape = appShape
 
 const breakpoints: ThemeOptions['breakpoints'] = {
-  values: {
-    [MOBILE_BREAKPOINT_KEY]: 0,
-    [DESKTOP_BREAKPOINT_KEY]: MOBILE_BREAKPOINT_PX,
-    xs: 0,
-    sm: MOBILE_BREAKPOINT_PX,
-    md: 900,
-    lg: 1200,
-    xl: 1536,
-  },
+  values: appBreakpoints,
 }
 
-const zIndex = {
-  modal: 1500,
-  snackbar: 1600,
-  mapButtons: 1300,
-  drawer: 1400,
-  appBar: 1400,
-  zpopup: 1500,
-}
+const zIndex = appZIndex
 
-const fonts = {
-  primary: ARIMO_FONT_FAMILY,
-}
-
-const typography = {
-  fontFamily: fonts.primary,
-  body1: {
-    fontFamily: fonts.primary,
-    fontSize: '0.875rem',
-    fontWeight: 700,
-    lineHeight: 'normal',
-    letterSpacing: '0.0875rem',
-  },
-  body2: {
-    fontFamily: fonts.primary,
-    fontSize: '0.875rem',
-    fontWeight: 400,
-    lineHeight: 'normal',
-    letterSpacing: '0.0875rem',
-  },
-  body7: {
-    fontFamily: fonts.primary,
-    fontSize: '0.75rem',
-    fontWeight: 400,
-    lineHeight: 'normal',
-    letterSpacing: '0.075rem',
-  },
-  h1: {
-    fontFamily: fonts.primary,
-    fontSize: '1.5rem',
-    fontWeight: 700,
-    lineHeight: 'normal',
-    letterSpacing: '0.15rem',
-  },
-  h2: {
-    fontFamily: fonts.primary,
-    fontSize: '1.125rem',
-    fontWeight: 700,
-    lineHeight: 'normal',
-    letterSpacing: '0.1125rem',
-  },
-  h3: {
-    fontFamily: fonts.primary,
-    fontSize: '1rem',
-    fontWeight: 700,
-    lineHeight: '1.625rem',
-    letterSpacing: '0.1rem',
-  },
-  h4: {
-    fontFamily: fonts.primary,
-    fontSize: '1rem',
-    fontWeight: 400,
-    lineHeight: '1.625rem',
-    letterSpacing: '0.1rem',
-  },
-  h5: {
-    fontFamily: fonts.primary,
-    fontSize: '1rem',
-    fontWeight: 400,
-    lineHeight: 'normal',
-    letterSpacing: '0.1rem',
-  },
-  h6: {
-    fontFamily: fonts.primary,
-    fontSize: '0.875rem',
-    fontWeight: 400,
-    lineHeight: '1.625rem',
-    letterSpacing: '0.0875rem',
-  },
-  h7: {
-    fontFamily: fonts.primary,
-    fontSize: '0.875rem',
-    fontWeight: 700,
-    lineHeight: '1.625rem',
-    letterSpacing: '0.0875rem',
-  },
-  h8: {
-    fontFamily: fonts.primary,
-    fontSize: '0.875rem',
-    fontWeight: 400,
-    lineHeight: 'normal',
-    letterSpacing: '0.0875rem',
-  },
-  h9: {
-    fontFamily: fonts.primary,
-    fontSize: '0.875rem',
-    fontWeight: 700,
-    lineHeight: 'normal',
-    letterSpacing: '0.0875rem',
-  },
-}
+const typography = appTypography
 
 const defaultShadows: ThemeOptions['shadows'] = [...defaultTheme.shadows]
 
@@ -230,7 +108,7 @@ const components = {
   MuiButton: {
     variants: [
       {
-        props: { variant: 'contained' as 'contained' },
+        props: { variant: 'contained' as const },
         style: {
           backgroundColor: palette.neutral.light, // Replace with your desired color for the button
           borderColor: palette.neutral.main,
@@ -238,7 +116,7 @@ const components = {
         },
       },
       {
-        props: { variant: 'outlined' as 'outlined' },
+        props: { variant: 'outlined' as const },
         style: {
           backgroundColor: palette.neutral.light, // Replace with your desired color for the button
           borderColor: palette.neutral.main,
@@ -249,12 +127,12 @@ const components = {
     ],
     styleOverrides: {
       root: {
-        textTransform: 'none' as 'none',
+        textTransform: 'none' as const,
       },
     },
   },
   MuiTypography: {
-    defaultProps: { variant: 'inherit' as 'inherit' }, // <- key: do not reset sizes in children
+    defaultProps: { variant: 'inherit' as const }, // <- key: do not reset sizes in children
   },
   MuiLink: {
     styleOverrides: {
@@ -267,7 +145,7 @@ const components = {
         fontSize: 'inherit',
         lineHeight: 'inherit',
         letterSpacing: 'inherit',
-        textTransform: 'inherit' as 'inherit',
+        textTransform: 'inherit' as const,
         fontWeight: 'inherit',
       },
     },
@@ -319,7 +197,7 @@ const components = {
         margin: 0,
         padding: 0,
         overflow: 'hidden',
-        fontFamily: fonts.primary,
+        fontFamily: APP_FONT_FAMILY,
         WebkitFontSmoothing: 'antialiased',
         MozOsxFontSmoothing: 'grayscale',
       },

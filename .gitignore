@@ -74,6 +74,8 @@ typings/
 
 # next.js build output
 .next
+styled-system/
+styled-system-static/
 
 # nuxt.js build output
 .nuxt

@@ -3,6 +3,7 @@ import { AppRouterCacheProvider } from '@mui/material-nextjs/v16-appRouter'
 import type { Metadata } from 'next'
 
 import { arimo } from '#/common/style/theme/fonts'
+import '../../styled-system/styles.css'
 
 export const metadata: Metadata = {
   icons: {
