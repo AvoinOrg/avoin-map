@@ -1,6 +1,9 @@
-import React, { useState } from 'react'
-import { Box, Collapse, IconButton, Typography, useTheme } from '@mui/material'
+import React, { useId, useState } from 'react'
+import { Collapsible as BaseCollapsible } from '@base-ui/react/collapsible'
+import { css } from 'styled-system/css'
+
 import { EyeButton } from '#/components/common/EyeButton'
+import { Box } from '#/components/common/PandaBox'
 import { useLayerGroup } from '#/common/hooks/map/useLayerGroup'
 import { LayerConf } from '#/common/types/map'
 import { ArrowDown, ArrowUp } from '#/components/icons'
@@ -14,13 +17,24 @@ interface AccordionItemProps {
   children?: React.ReactNode
 }
 
+const panelClass = css({
+  overflow: 'hidden',
+  height: 'var(--collapsible-panel-height)',
+  opacity: 1,
+  transition: 'height 180ms ease, opacity 180ms ease',
+  '&[data-closed]': {
+    height: 0,
+    opacity: 0,
+  },
+})
+
 export const AccordionItem = ({
   layerConf,
   name,
   color,
   children,
 }: AccordionItemProps) => {
-  const theme = useTheme()
+  const generatedId = useId()
   const [isExpanded, setIsExpanded] = useState(false)
   const [layerGroupStatus, setEnabled] = useLayerGroup(
     layerConf.id,
@@ -52,11 +66,13 @@ export const AccordionItem = ({
   }
 
   return (
-    <>
+    <BaseCollapsible.Root open={isExpanded}>
       <Box
         onClick={handleToggleExpand}
         role={children ? 'button' : undefined}
         tabIndex={children ? 0 : undefined}
+        aria-controls={children ? generatedId : undefined}
+        aria-expanded={children ? isExpanded : undefined}
         aria-label={
           children
             ? `${isExpanded ? 'Collapse' : 'Expand'} ${name}`
@@ -89,10 +105,11 @@ export const AccordionItem = ({
             layerGroupStatus === 'visible' ? 'Hide layer' : 'Show layer'
           }`}
         />
-        <Typography
+        <Box
+          component="span"
           sx={{
+            display: 'block',
             flexGrow: 1,
-            typography: 'body1',
             fontSize: '0.6875rem',
             fontStyle: 'normal',
             fontWeight: 700,
@@ -102,7 +119,7 @@ export const AccordionItem = ({
           }}
         >
           {name}
-        </Typography>
+        </Box>
         {children && (
           <Box
             sx={{
@@ -116,10 +133,14 @@ export const AccordionItem = ({
         )}
       </Box>
       {children && (
-        <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+        <BaseCollapsible.Panel
+          id={generatedId}
+          role="region"
+          className={panelClass}
+          keepMounted={false}
+        >
           <Box
             sx={{
-              typography: 'body2',
               fontSize: '0.6875rem',
               fontStyle: 'normal',
               fontWeight: 400,
@@ -133,8 +154,8 @@ export const AccordionItem = ({
           >
             {children}
           </Box>
-        </Collapse>
+        </BaseCollapsible.Panel>
       )}
-    </>
+    </BaseCollapsible.Root>
   )
 }

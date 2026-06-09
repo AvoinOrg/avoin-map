@@ -1,69 +1,83 @@
 'use client'
 
 import React from 'react'
-import { Table, TableBody, TableCell, TableRow, Box } from '@mui/material'
-import { styled } from '@mui/material/styles'
+import { css } from 'styled-system/css'
 
 import { gtkTurveVaratLuonnontilaisuusluokka } from './constants'
 import { PopupProps } from '#/common/types/map'
+import { PopupTable } from '#/components/Map/layers/main/PopupTable'
+
+const photoContainerClass = css({
+  overflow: 'scroll',
+  maxHeight: '500px',
+})
+
+const photoClass = css({
+  maxWidth: '400px',
+  maxHeight: '300px',
+})
+
+type BogPhoto = {
+  kuva_id: string | number
+  kuvausaika: string
+  kuvaaja: string
+}
 
 const Popup = ({ features }: PopupProps) => {
   const p = features[0].properties
 
   return (
     <>
-      <Table size={'small'}>
-        <TableBody>
-          <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>{p.suon_nimi}</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Surveyed</TableCell>
-            <TableCell>{p.tutkimusvuosi}</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Area</TableCell>
-            <TableCell>{p.suon_pinta_ala_ha}</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Peat volume</TableCell>
-            <TableCell>{p.suon_turvemaara_mm3}</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>Average peat depth</TableCell>
-            <TableCell>{p.turvekerroksen_keskisyvyys_m}</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>
-              Evaluation of how close the bog is to its natural state (class{' '}
-              {p.luonnontilaisuusluokka === -1 ? '?' : p.luonnontilaisuusluokka}{' '}
-              out of 5)
-            </TableCell>
-            <TableCell>
-              {gtkTurveVaratLuonnontilaisuusluokka[p.luonnontilaisuusluokka]}
-            </TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
+      <PopupTable>
+        <tr>
+          <td>Name</td>
+          <td>{p.suon_nimi}</td>
+        </tr>
+        <tr>
+          <td>Surveyed</td>
+          <td>{p.tutkimusvuosi}</td>
+        </tr>
+        <tr>
+          <td>Area</td>
+          <td>{p.suon_pinta_ala_ha}</td>
+        </tr>
+        <tr>
+          <td>Peat volume</td>
+          <td>{p.suon_turvemaara_mm3}</td>
+        </tr>
+        <tr>
+          <td>Average peat depth</td>
+          <td>{p.turvekerroksen_keskisyvyys_m}</td>
+        </tr>
+        <tr>
+          <td>
+            Evaluation of how close the bog is to its natural state (class{' '}
+            {p.luonnontilaisuusluokka === -1 ? '?' : p.luonnontilaisuusluokka}{' '}
+            out of 5)
+          </td>
+          <td>
+            {gtkTurveVaratLuonnontilaisuusluokka[p.luonnontilaisuusluokka]}
+          </td>
+        </tr>
+      </PopupTable>
       {p.photos_json && <PhotoContainer photoJson={p.photos_json} />}
     </>
   )
 }
 
 const PhotoContainer = ({ photoJson }: { photoJson: string }) => {
-  const photos = JSON.parse(photoJson)
+  const photos = JSON.parse(photoJson) as BogPhoto[]
 
   return (
-    <Box sx={{ overflow: 'scroll', maxHeight: '500px' }}>
-      {photos.map((photo: any) => {
+    <div className={photoContainerClass}>
+      {photos.map((photo) => {
         const { kuva_id, kuvausaika, kuvaaja } = photo
         const imageURL = `https://gtkdata.gtk.fi/Turvevarojen_tilinpito/Turve_valokuvat/${kuva_id}.jpg`
 
         return (
-          <p>
-            <a target="_blank" href={imageURL}>
-              <Photo src={imageURL} />
+          <p key={kuva_id}>
+            <a target="_blank" rel="noopener noreferrer" href={imageURL}>
+              <Photo src={imageURL} alt="" />
             </a>
             <br />
             Date:{' '}
@@ -73,13 +87,14 @@ const PhotoContainer = ({ photoJson }: { photoJson: string }) => {
           </p>
         )
       })}
-    </Box>
+    </div>
   )
 }
 
-const Photo = styled('img')({
-  maxWidth: '400px',
-  maxHeight: '300px',
-})
+const Photo = (props: React.ImgHTMLAttributes<HTMLImageElement>) =>
+  React.createElement('img', {
+    className: photoClass,
+    ...props,
+  })
 
 export default Popup

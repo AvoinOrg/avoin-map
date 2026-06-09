@@ -1,8 +1,8 @@
 import React from 'react'
-import { Table, TableBody, TableCell, TableRow } from '@mui/material'
 
 import { pp } from '#/common/utils/general'
 import { PopupProps } from '#/common/types/map'
+import { PopupTable } from '#/components/Map/layers/main/PopupTable'
 
 interface IBuildingSchemaVRK {
   building_id: string
@@ -48,17 +48,17 @@ const Popup = ({ features }: PopupProps) => {
 
     vrk = (
       <>
-        <TableRow>
-          <TableCell>
+        <tr>
+          <td>
             <address>
               {p.street} {p.house_number}, {p.postal_code}
             </address>
-          </TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Building ID</TableCell>
-          <TableCell>{p.building_id}</TableCell>
-        </TableRow>
+          </td>
+        </tr>
+        <tr>
+          <td>Building ID</td>
+          <td>{p.building_id}</td>
+        </tr>
       </>
     )
   }
@@ -68,7 +68,7 @@ const Popup = ({ features }: PopupProps) => {
     const approxArea = 0.888 * p.st_area
     const approxVolume = 3.5 * approxArea
 
-    const floorCountCodes: any = {
+    const floorCountCodes: Record<number, string> = {
       0: 'Unspecified',
       1: '1 or 2 floors',
       2: '3 or more floors',
@@ -77,38 +77,31 @@ const Popup = ({ features }: PopupProps) => {
 
     nls = (
       <>
-        <TableRow>
-          <TableCell>Floor count</TableCell>
-          <TableCell>{floorCount}</TableCell>
-        </TableRow>
+        <tr>
+          <td>Floor count</td>
+          <td>{floorCount}</td>
+        </tr>
         {approxArea > 1 && (
-          <TableRow>
-            <TableCell>Estimated floorage</TableCell>
-            <TableCell>
+          <tr>
+            <td>Estimated floorage</td>
+            <td>
               {pp(approxArea, 2)} m<sup>2</sup> per floor
-            </TableCell>
-          </TableRow>
+            </td>
+          </tr>
         )}
         {approxArea > 1 && approxVolume && (
-          <TableRow>
-            <TableCell>Estimated volume</TableCell>
-            <TableCell>
+          <tr>
+            <td>Estimated volume</td>
+            <td>
               {pp(approxVolume, 2)} m<sup>3</sup> per floor
-            </TableCell>
-          </TableRow>
+            </td>
+          </tr>
         )}
       </>
     )
   }
 
-  return (
-    <Table size={'small'}>
-      <TableBody>
-        {vrk}
-        {nls}
-      </TableBody>
-    </Table>
-  )
+  return <PopupTable>{vrk}{nls}</PopupTable>
 }
 
 export default Popup

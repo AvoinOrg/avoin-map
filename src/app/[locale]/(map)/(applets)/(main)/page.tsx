@@ -1,4 +1,3 @@
-/** @jsxImportSource @emotion/react */
 'use client'
 
 import AppletWrapper from '#/components/common/AppletWrapper'

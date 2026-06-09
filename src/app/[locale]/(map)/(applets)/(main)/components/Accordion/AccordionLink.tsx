@@ -1,5 +1,6 @@
 import React from 'react'
-import { Box, Typography } from '@mui/material'
+import { css } from 'styled-system/css'
+
 import Link from '#/components/common/Link'
 import { ArrowRight } from '#/components/icons'
 
@@ -7,6 +8,15 @@ interface AccordionLinkProps {
   href: string
   name: string
 }
+
+const linkTextClass = css({
+  flexGrow: 1,
+  fontSize: '0.825rem',
+  fontStyle: 'normal',
+  fontWeight: 700,
+  lineHeight: 'normal',
+  letterSpacing: '0.06875rem',
+})
 
 export const AccordionLink = ({ href, name }: AccordionLinkProps) => {
   return (
@@ -27,19 +37,7 @@ export const AccordionLink = ({ href, name }: AccordionLinkProps) => {
         },
       }}
     >
-      <Typography
-        sx={{
-          flexGrow: 1,
-          typography: 'h9',
-          fontSize: '0.825rem',
-          fontStyle: 'normal',
-          fontWeight: 700,
-          lineHeight: 'normal',
-          letterSpacing: '0.06875rem',
-        }}
-      >
-        {name}
-      </Typography>
+      <span className={linkTextClass}>{name}</span>
       <ArrowRight sx={{ height: '17px' }} />
     </Link>
   )

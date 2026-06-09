@@ -3,14 +3,14 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { useTranslate } from '@tolgee/react'
-import { Box, IconButton, Typography } from '@mui/material'
-import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded'
-import KeyboardArrowUpRoundedIcon from '@mui/icons-material/KeyboardArrowUpRounded'
 import type { EventListeners } from 'overlayscrollbars'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react'
 
+import type { PandaStyleProp } from '#/common/style/panda'
+import { Box } from '#/components/common/PandaBox'
 import MutableLink from '#/components/common/MutableLink'
+import { ArrowDown, ArrowUp } from '#/components/icons'
 import {
   useSidebarBoundaryContext,
 } from '#/components/Sidebar/sidebarBoundaryContext'
@@ -101,6 +101,27 @@ type ScrollState = {
   canScrollUp: boolean
   canScrollDown: boolean
 }
+
+const Text = ({
+  children,
+  sx,
+}: {
+  children: React.ReactNode
+  sx?: PandaStyleProp
+}) => (
+  <Box
+    component="span"
+    sx={[
+      {
+        display: 'block',
+        m: 0,
+      },
+      ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
+    ]}
+  >
+    {children}
+  </Box>
+)
 
 const MainSidebarContent = () => {
   const { t } = useTranslate('avoin-map')
@@ -254,11 +275,13 @@ const MainSidebarContent = () => {
   }, [updateScrollHint])
 
   useEffect(() => {
-    updateBottomControlsPlacement()
-
     if (typeof window === 'undefined') {
       return
     }
+
+    const animationFrameId = window.requestAnimationFrame(
+      updateBottomControlsPlacement
+    )
 
     const resizeObserver =
       typeof ResizeObserver !== 'undefined'
@@ -280,6 +303,7 @@ const MainSidebarContent = () => {
     window.addEventListener('resize', updateBottomControlsPlacement)
 
     return () => {
+      window.cancelAnimationFrame(animationFrameId)
       resizeObserver?.disconnect()
       window.removeEventListener('resize', updateBottomControlsPlacement)
     }
@@ -311,8 +335,8 @@ const MainSidebarContent = () => {
         minHeight: 0,
         display: 'flex',
         flexDirection: 'column',
-        px: { mobile: 2, desktop: 0 },
-        py: { mobile: 2, desktop: 0 },
+        px: isMobile ? 2 : 0,
+        py: isMobile ? 2 : 0,
       }}
     >
       <Box
@@ -326,19 +350,10 @@ const MainSidebarContent = () => {
         <Box
           sx={{
             position: 'absolute',
-            top: { mobile: `-${MOBILE_SPILL_REM}rem`, desktop: `-${DESKTOP_TOP_SPILL_REM}rem` },
-            left: {
-              mobile: `-${MOBILE_SPILL_REM}rem`,
-              desktop: `-${DESKTOP_LEFT_SPILL_REM}rem`,
-            },
-            right: {
-              mobile: `-${MOBILE_SPILL_REM}rem`,
-              desktop: `-${DESKTOP_RIGHT_SPILL_REM}rem`,
-            },
-            bottom: {
-              mobile: `-${MOBILE_SPILL_REM}rem`,
-              desktop: `-${DESKTOP_BOTTOM_SPILL_REM}rem`,
-            },
+            top: `-${isMobile ? MOBILE_SPILL_REM : DESKTOP_TOP_SPILL_REM}rem`,
+            left: `-${isMobile ? MOBILE_SPILL_REM : DESKTOP_LEFT_SPILL_REM}rem`,
+            right: `-${isMobile ? MOBILE_SPILL_REM : DESKTOP_RIGHT_SPILL_REM}rem`,
+            bottom: `-${isMobile ? MOBILE_SPILL_REM : DESKTOP_BOTTOM_SPILL_REM}rem`,
             pointerEvents: 'none',
           }}
         />
@@ -355,21 +370,18 @@ const MainSidebarContent = () => {
           <Box
             sx={{
               position: 'absolute',
-              top: { mobile: `-${MOBILE_SPILL_REM}rem`, desktop: `-${DESKTOP_TOP_SPILL_REM}rem` },
-              left: {
-                mobile: `-${MOBILE_SPILL_REM}rem`,
-                desktop: `-${DESKTOP_LEFT_SPILL_REM}rem`,
-              },
-              right: {
-                mobile: `-${MOBILE_SPILL_REM}rem`,
-                desktop: `-${DESKTOP_RIGHT_SPILL_REM}rem`,
-              },
-              bottom: {
-                mobile: `-${MOBILE_SPILL_REM}rem`,
-                desktop: `-${DESKTOP_BOTTOM_SPILL_REM}rem`,
-              },
+              top: `-${isMobile ? MOBILE_SPILL_REM : DESKTOP_TOP_SPILL_REM}rem`,
+              left: `-${
+                isMobile ? MOBILE_SPILL_REM : DESKTOP_LEFT_SPILL_REM
+              }rem`,
+              right: `-${
+                isMobile ? MOBILE_SPILL_REM : DESKTOP_RIGHT_SPILL_REM
+              }rem`,
+              bottom: `-${
+                isMobile ? MOBILE_SPILL_REM : DESKTOP_BOTTOM_SPILL_REM
+              }rem`,
               minHeight: 0,
-              pointerEvents: { mobile: 'auto', desktop: 'none' },
+              pointerEvents: isMobile ? 'auto' : 'none',
               backgroundColor: 'transparent',
               '& .os-scrollbar-vertical': {
                 left: 0,
@@ -402,23 +414,19 @@ const MainSidebarContent = () => {
                 sx={{
                   direction: 'ltr',
                   minHeight: '100%',
-                  pointerEvents: { mobile: 'auto', desktop: 'none' },
-                  pt: {
-                    mobile: `${MOBILE_SPILL_REM}rem`,
-                    desktop: `${DESKTOP_TOP_SPILL_REM}rem`,
-                  },
-                  pr: {
-                    mobile: `${MOBILE_SPILL_REM}rem`,
-                    desktop: `${DESKTOP_RIGHT_SPILL_REM}rem`,
-                  },
-                  pl: {
-                    mobile: `${MOBILE_SPILL_REM}rem`,
-                    desktop: `${DESKTOP_LEFT_SPILL_REM}rem`,
-                  },
-                  pb: {
-                    mobile: `${MOBILE_SPILL_REM}rem`,
-                    desktop: `${DESKTOP_BOTTOM_SPILL_REM}rem`,
-                  },
+                  pointerEvents: isMobile ? 'auto' : 'none',
+                  pt: `${
+                    isMobile ? MOBILE_SPILL_REM : DESKTOP_TOP_SPILL_REM
+                  }rem`,
+                  pr: `${
+                    isMobile ? MOBILE_SPILL_REM : DESKTOP_RIGHT_SPILL_REM
+                  }rem`,
+                  pl: `${
+                    isMobile ? MOBILE_SPILL_REM : DESKTOP_LEFT_SPILL_REM
+                  }rem`,
+                  pb: `${
+                    isMobile ? MOBILE_SPILL_REM : DESKTOP_BOTTOM_SPILL_REM
+                  }rem`,
                 }}
               >
                 <Box
@@ -426,12 +434,12 @@ const MainSidebarContent = () => {
                   sx={{
                     display: 'flex',
                     flexDirection: 'column',
-                    pointerEvents: { mobile: 'auto', desktop: 'none' },
+                    pointerEvents: isMobile ? 'auto' : 'none',
                   }}
                 >
               <Box
                 sx={{
-                  display: { mobile: 'none', desktop: 'flex' },
+                  display: isMobile ? 'none' : 'flex',
                   alignItems: 'flex-start',
                   gap: `${BUBBLE_GAP_REM}rem`,
                   pointerEvents: 'none',
@@ -479,7 +487,7 @@ const MainSidebarContent = () => {
                         style={{ objectFit: 'contain' }}
                       />
                     </Box>
-                    <Typography
+                    <Text
                       sx={{
                         mt: 10,
                         fontWeight: 700,
@@ -493,7 +501,7 @@ const MainSidebarContent = () => {
                       }}
                     >
                       {t('sidebar.main.intro.title')}
-                    </Typography>
+                    </Text>
                   </Box>
 
                   <Box
@@ -512,7 +520,7 @@ const MainSidebarContent = () => {
                       pointerEvents: 'auto',
                     }}
                   >
-                    <Typography
+                    <Text
                       sx={{
                         maxWidth: '14.25rem',
                         fontSize: '0.75rem',
@@ -523,8 +531,8 @@ const MainSidebarContent = () => {
                       }}
                     >
                       {t('sidebar.main.contact.lead')}
-                    </Typography>
-                    <Typography
+                    </Text>
+                    <Text
                       sx={{
                         mt: 3.25,
                         maxWidth: '9.625rem',
@@ -536,8 +544,8 @@ const MainSidebarContent = () => {
                       }}
                     >
                       {t('sidebar.main.contact.follow_up')}
-                    </Typography>
-                    <Typography
+                    </Text>
+                    <Text
                       sx={{
                         mt: 3,
                         maxWidth: '9.125rem',
@@ -549,8 +557,8 @@ const MainSidebarContent = () => {
                       }}
                     >
                       {t('sidebar.main.contact.tools')}
-                    </Typography>
-                    <Typography
+                    </Text>
+                    <Text
                       sx={{
                         mt: 'auto',
                         fontSize: '0.6875rem',
@@ -562,7 +570,7 @@ const MainSidebarContent = () => {
                       }}
                     >
                       {t('sidebar.main.contact.cta')}
-                    </Typography>
+                    </Text>
                     <Box
                       sx={{
                         position: 'absolute',
@@ -659,7 +667,7 @@ const MainSidebarContent = () => {
                               pb: 2.5,
                             }}
                           >
-                            <Typography
+                            <Text
                               sx={{
                                 fontSize: '0.75rem',
                                 lineHeight: '1.125rem',
@@ -670,8 +678,8 @@ const MainSidebarContent = () => {
                               }}
                             >
                               {t(titleKey)}
-                            </Typography>
-                            <Typography
+                            </Text>
+                            <Text
                               sx={{
                                 mt: 4,
                                 fontSize: '0.75rem',
@@ -685,7 +693,7 @@ const MainSidebarContent = () => {
                               }}
                             >
                               {t(descriptionKey)}
-                            </Typography>
+                            </Text>
                           </Box>
                         </Box>
                       </MutableLink>
@@ -773,7 +781,7 @@ const MainSidebarContent = () => {
                                   'linear-gradient(90deg, rgba(255,255,255,0.9) 17.5%, rgba(255,255,255,0) 100%)',
                               }}
                             />
-                            <Typography
+                            <Text
                               sx={{
                                 position: 'absolute',
                                 left: '2rem',
@@ -794,7 +802,7 @@ const MainSidebarContent = () => {
                               }}
                             >
                               {t(titleKey)}
-                            </Typography>
+                            </Text>
                           </Box>
                           <Box
                             sx={{
@@ -803,7 +811,7 @@ const MainSidebarContent = () => {
                               pb: 2.5,
                             }}
                           >
-                            <Typography
+                            <Text
                               sx={{
                                 fontSize: '0.75rem',
                                 lineHeight: '1rem',
@@ -815,7 +823,7 @@ const MainSidebarContent = () => {
                               }}
                             >
                               {t(descriptionKey)}
-                            </Typography>
+                            </Text>
                           </Box>
                         </Box>
                       </MutableLink>
@@ -826,7 +834,7 @@ const MainSidebarContent = () => {
 
               <Box
                 sx={{
-                  display: { mobile: 'flex', desktop: 'none' },
+                  display: isMobile ? 'flex' : 'none',
                   flexDirection: 'column',
                   gap: `${BUBBLE_GAP_REM}rem`,
                 }}
@@ -861,7 +869,7 @@ const MainSidebarContent = () => {
                       style={{ objectFit: 'contain' }}
                     />
                   </Box>
-                  <Typography
+                  <Text
                     sx={{
                       mt: 10,
                       fontWeight: 700,
@@ -875,7 +883,7 @@ const MainSidebarContent = () => {
                     }}
                   >
                     {t('sidebar.main.intro.title')}
-                  </Typography>
+                  </Text>
                 </Box>
 
                 {APPLET_BUBBLES.filter((bubble) => bubble.id === 'buildings').map(
@@ -946,7 +954,7 @@ const MainSidebarContent = () => {
                                 'linear-gradient(90deg, rgba(255,255,255,0.9) 17.5%, rgba(255,255,255,0) 100%)',
                             }}
                           />
-                          <Typography
+                          <Text
                             sx={{
                               position: 'absolute',
                               left: '2rem',
@@ -967,7 +975,7 @@ const MainSidebarContent = () => {
                             }}
                           >
                             {t(titleKey)}
-                          </Typography>
+                          </Text>
                         </Box>
                         <Box
                           sx={{
@@ -976,7 +984,7 @@ const MainSidebarContent = () => {
                             pb: 2.5,
                           }}
                         >
-                          <Typography
+                          <Text
                             sx={{
                               fontSize: '0.75rem',
                               lineHeight: '1rem',
@@ -988,7 +996,7 @@ const MainSidebarContent = () => {
                             }}
                           >
                             {t(descriptionKey)}
-                          </Typography>
+                          </Text>
                         </Box>
                       </Box>
                     </MutableLink>
@@ -1010,7 +1018,7 @@ const MainSidebarContent = () => {
                     boxShadow: '0 14px 30px rgba(0, 0, 0, 0.16)',
                   }}
                 >
-                  <Typography
+                  <Text
                     sx={{
                       maxWidth: '14.25rem',
                       fontSize: '0.75rem',
@@ -1021,8 +1029,8 @@ const MainSidebarContent = () => {
                     }}
                   >
                     {t('sidebar.main.contact.lead')}
-                  </Typography>
-                  <Typography
+                  </Text>
+                  <Text
                     sx={{
                       mt: 3.25,
                       maxWidth: '9.625rem',
@@ -1034,8 +1042,8 @@ const MainSidebarContent = () => {
                     }}
                   >
                     {t('sidebar.main.contact.follow_up')}
-                  </Typography>
-                  <Typography
+                  </Text>
+                  <Text
                     sx={{
                       mt: 3,
                       maxWidth: '9.125rem',
@@ -1047,8 +1055,8 @@ const MainSidebarContent = () => {
                     }}
                   >
                     {t('sidebar.main.contact.tools')}
-                  </Typography>
-                  <Typography
+                  </Text>
+                  <Text
                     sx={{
                       mt: 'auto',
                       fontSize: '0.6875rem',
@@ -1060,7 +1068,7 @@ const MainSidebarContent = () => {
                     }}
                   >
                     {t('sidebar.main.contact.cta')}
-                  </Typography>
+                  </Text>
                   <Box
                     sx={{
                       position: 'absolute',
@@ -1149,7 +1157,7 @@ const MainSidebarContent = () => {
                                 'linear-gradient(90deg, rgba(255,255,255,0.9) 17.5%, rgba(255,255,255,0) 100%)',
                             }}
                           />
-                          <Typography
+                          <Text
                             sx={{
                               position: 'absolute',
                               left: '2rem',
@@ -1170,7 +1178,7 @@ const MainSidebarContent = () => {
                             }}
                           >
                             {t(titleKey)}
-                          </Typography>
+                          </Text>
                         </Box>
                         <Box
                           sx={{
@@ -1179,7 +1187,7 @@ const MainSidebarContent = () => {
                             pb: 2.5,
                           }}
                         >
-                          <Typography
+                          <Text
                             sx={{
                               fontSize: '0.75rem',
                               lineHeight: '1rem',
@@ -1191,7 +1199,7 @@ const MainSidebarContent = () => {
                             }}
                           >
                             {t(descriptionKey)}
-                          </Typography>
+                          </Text>
                         </Box>
                       </Box>
                     </MutableLink>
@@ -1273,7 +1281,7 @@ const MainSidebarContent = () => {
                             pb: 2.5,
                           }}
                         >
-                          <Typography
+                          <Text
                             sx={{
                               fontSize: '0.75rem',
                               lineHeight: '1.125rem',
@@ -1284,8 +1292,8 @@ const MainSidebarContent = () => {
                             }}
                           >
                             {t(titleKey)}
-                          </Typography>
-                          <Typography
+                          </Text>
+                          <Text
                             sx={{
                               mt: 4,
                               fontSize: '0.75rem',
@@ -1299,7 +1307,7 @@ const MainSidebarContent = () => {
                             }}
                           >
                             {t(descriptionKey)}
-                          </Typography>
+                          </Text>
                         </Box>
                       </Box>
                     </MutableLink>
@@ -1318,7 +1326,7 @@ const MainSidebarContent = () => {
               top: 'auto',
               left: 0,
               bottom: 0,
-              display: { mobile: 'block', desktop: 'none' },
+              display: isMobile ? 'block' : 'none',
               pointerEvents: 'none',
               zIndex: 3,
             }}
@@ -1337,10 +1345,7 @@ const MainSidebarContent = () => {
             sx={{
               position: 'absolute',
               left: `${controlsSlotLeftPx}px`,
-              bottom: {
-                mobile: `${BUBBLE_GAP_REM}rem`,
-                desktop: 0,
-              },
+              bottom: isMobile ? `${BUBBLE_GAP_REM}rem` : 0,
               pointerEvents: 'none',
               zIndex: 3,
               transition: 'left 220ms cubic-bezier(.2,0,.2,1)',
@@ -1360,53 +1365,79 @@ const MainSidebarContent = () => {
         </Box>
 
         {scrollState.canScrollUp && (
-          <IconButton
+          <Box
+            component="button"
+            type="button"
             onClick={handleScrollUp}
             aria-label={t('sidebar.main.scroll_up_hint.aria_label')}
             sx={{
               position: 'absolute',
-              top: { mobile: `${BUBBLE_GAP_REM}rem`, desktop: 0 },
+              top: isMobile ? `${BUBBLE_GAP_REM}rem` : 0,
               left: '50%',
               transform: 'translate(-50%, 0)',
               width: '2.375rem',
               height: '2.375rem',
+              p: 0,
+              border: 0,
+              borderRadius: '50%',
               backgroundColor: 'rgba(79, 79, 79, 0.95)',
               color: 'common.white',
               boxShadow: '0 10px 24px rgba(0, 0, 0, 0.24)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
               pointerEvents: 'auto',
               zIndex: 4,
               '&:hover': {
                 backgroundColor: '#3f3f3f',
               },
+              '&:focus-visible': {
+                outline: '2px solid #ffffff',
+                outlineOffset: '2px',
+              },
             }}
           >
-            <KeyboardArrowUpRoundedIcon />
-          </IconButton>
+            <ArrowUp sx={{ width: '1rem', height: '0.55rem' }} />
+          </Box>
         )}
 
         {scrollState.canScrollDown && (
-          <IconButton
+          <Box
+            component="button"
+            type="button"
             onClick={handleScrollDown}
             aria-label={t('sidebar.main.scroll_hint.aria_label')}
             sx={{
               position: 'absolute',
-              bottom: { mobile: `${BUBBLE_GAP_REM}rem`, desktop: 0 },
+              bottom: isMobile ? `${BUBBLE_GAP_REM}rem` : 0,
               left: '50%',
               transform: 'translate(-50%, 0)',
               width: '2.375rem',
               height: '2.375rem',
+              p: 0,
+              border: 0,
+              borderRadius: '50%',
               backgroundColor: 'rgba(79, 79, 79, 0.95)',
               color: 'common.white',
               boxShadow: '0 10px 24px rgba(0, 0, 0, 0.24)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
               pointerEvents: 'auto',
               zIndex: 4,
               '&:hover': {
                 backgroundColor: '#3f3f3f',
               },
+              '&:focus-visible': {
+                outline: '2px solid #ffffff',
+                outlineOffset: '2px',
+              },
             }}
           >
-            <KeyboardArrowDownRoundedIcon />
-          </IconButton>
+            <ArrowDown sx={{ width: '1rem', height: '0.55rem' }} />
+          </Box>
         )}
       </Box>
     </Box>

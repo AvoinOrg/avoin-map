@@ -1,8 +1,17 @@
 import React from 'react'
-import { Table, TableBody, TableCell, TableRow, Box } from '@mui/material'
+import { css } from 'styled-system/css'
 
 import { pp } from '#/common/utils/general'
 import { PopupProps } from '#/common/types/map'
+import { PopupTable } from '#/components/Map/layers/main/PopupTable'
+
+const rootClass = css({
+  lineHeight: 1,
+})
+
+const compactCellClass = css({
+  lineHeight: 0.5,
+})
 
 const Popup = ({ features }: PopupProps) => {
   const p = features[0].properties || features[0]
@@ -29,7 +38,7 @@ const Popup = ({ features }: PopupProps) => {
   }
 
   return (
-    <Box sx={{ lineHeight: 1 }}>
+    <div className={rootClass}>
       <p>
         <b>Tree plantation (Global Forest Watch)</b>
       </p>
@@ -37,49 +46,52 @@ const Popup = ({ features }: PopupProps) => {
       <p>{type_text}</p>
       {isPeat && <p>Tropical peatland</p>}
 
-      <Table size={'small'}>
-        <TableBody>
-          {isPeat && (
-            <>
-              <TableRow>
-                <TableCell>Average peat depth</TableCell>
-                <TableCell>{avg_peatdepth.toFixed(1)} metres</TableCell>
-              </TableRow>
-            </>
-          )}
-          <TableRow>
-            <TableCell>Area</TableCell>
-            <TableCell>{pp(area_ha, 3)}</TableCell>
-          </TableRow>
-          {isPeat && (
-            <TableRow>
-              <TableCell>Emission reduction potential when ground water level is raised by 40 cm</TableCell>
-              <TableCell>{pp(19.4 * area_ha)} tons CO2e/year</TableCell>
-            </TableRow>
-          )}
-          <TableRow>
-            <TableCell>Landsat source ID</TableCell>
-            <TableCell>
-              <code>{image}</code>
-            </TableCell>
-          </TableRow>
-          {imageObjs.length > 0 && (
-            <TableRow>
-              <TableCell>Potential Landsat source images</TableCell>
-              <TableCell sx={{ lineHeight: 0.5 }}>
-                {imageObjs.map((imageObj) => (
-                  <p>
-                    <a target="_blank" href={imageObj.url}>
-                      {imageObj.title}
-                    </a>
-                  </p>
-                ))}
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </Box>
+      <PopupTable>
+        {isPeat && (
+          <tr>
+            <td>Average peat depth</td>
+            <td>{avg_peatdepth.toFixed(1)} metres</td>
+          </tr>
+        )}
+        <tr>
+          <td>Area</td>
+          <td>{pp(area_ha, 3)}</td>
+        </tr>
+        {isPeat && (
+          <tr>
+            <td>
+              Emission reduction potential when ground water level is raised by
+              40 cm
+            </td>
+            <td>{pp(19.4 * area_ha)} tons CO2e/year</td>
+          </tr>
+        )}
+        <tr>
+          <td>Landsat source ID</td>
+          <td>
+            <code>{image}</code>
+          </td>
+        </tr>
+        {imageObjs.length > 0 && (
+          <tr>
+            <td>Potential Landsat source images</td>
+            <td className={compactCellClass}>
+              {imageObjs.map((imageObj) => (
+                <p key={imageObj.url}>
+                  <a
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href={imageObj.url}
+                  >
+                    {imageObj.title}
+                  </a>
+                </p>
+              ))}
+            </td>
+          </tr>
+        )}
+      </PopupTable>
+    </div>
   )
 }
 
