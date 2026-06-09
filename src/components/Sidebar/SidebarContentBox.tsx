@@ -1,20 +1,44 @@
 'use client'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
-import { alpha } from '@mui/material/styles'
 import type { EventListeners } from 'overlayscrollbars'
 
+import type { PandaStyleProp } from '#/common/style/panda'
 import {
   MOBILE_SIDEBAR_PADDING_REM,
   SIDEBAR_PADDING_REM,
 } from '#/common/style/theme/constants'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
+import { Box } from '#/components/common/PandaBox'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react'
 import { useSimpleSidebarContext } from './SimpleSidebarContext'
 
 const SIDEBAR_SCROLL_FADE_HEIGHT_REM = 3
+
+const withAlpha = (color: string, opacity: number) => {
+  const hex = color.trim()
+  const match = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(hex)
+
+  if (!match) {
+    return color
+  }
+
+  const raw = match[1]
+  const expanded =
+    raw.length === 3
+      ? raw
+          .split('')
+          .map((char) => `${char}${char}`)
+          .join('')
+      : raw
+  const int = Number.parseInt(expanded, 16)
+  const r = (int >> 16) & 255
+  const g = (int >> 8) & 255
+  const b = int & 255
+
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`
+}
 
 const SidebarContentBox = ({
   sxOuter,
@@ -23,8 +47,8 @@ const SidebarContentBox = ({
   scrollbarSide = 'right',
   children,
 }: {
-  sxOuter?: SxProps<Theme>
-  sxInner?: SxProps<Theme>
+  sxOuter?: PandaStyleProp
+  sxInner?: PandaStyleProp
   scrollFadeColor?: string
   scrollbarSide?: 'left' | 'right'
   children?: React.ReactNode
@@ -170,7 +194,7 @@ const SidebarContentBox = ({
                   },
                 }
               : {
-                  background: `linear-gradient(180deg, ${alpha(scrollFadeColor, 0.98)} 0%, ${alpha(scrollFadeColor, 0.92)} 28%, ${alpha(scrollFadeColor, 0.72)} 52%, ${alpha(scrollFadeColor, 0.34)} 78%, ${alpha(scrollFadeColor, 0)} 100%)`,
+                  background: `linear-gradient(180deg, ${withAlpha(scrollFadeColor, 0.98)} 0%, ${withAlpha(scrollFadeColor, 0.92)} 28%, ${withAlpha(scrollFadeColor, 0.72)} 52%, ${withAlpha(scrollFadeColor, 0.34)} 78%, ${withAlpha(scrollFadeColor, 0)} 100%)`,
                 }),
           }}
         />

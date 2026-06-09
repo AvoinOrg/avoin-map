@@ -1,9 +1,8 @@
 import React from 'react'
 import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { ThemeProvider } from '@mui/material/styles'
+import type { PartialOptions } from 'overlayscrollbars'
 
-import theme from '#/common/style/theme/theme'
 import { useUIStore } from '#/common/store/uiStore'
 import type { SidebarPanelExtensionRuntimeOptions } from '#/common/types/sidebar'
 import { SlotsProvider } from '#/components/context/slotsContext'
@@ -28,8 +27,22 @@ jest.mock('#/common/hooks/ui/useIsMobile', () => ({
   useIsMobile: () => mockIsMobile,
 }))
 
+type MockOverlayScrollbarsHandle = {
+  osInstance: () => {
+    elements: () => { viewport: { scrollTop: number } }
+    state: () => { hasOverflow: { y: boolean } }
+  }
+}
+
+type MockOverlayScrollbarsProps = {
+  children?: React.ReactNode
+  className?: string
+  options?: PartialOptions
+  style?: React.CSSProperties
+} & Record<string, unknown>
+
 jest.mock('overlayscrollbars-react', () => {
-  const react = require('react')
+  const react = jest.requireActual<typeof import('react')>('react')
 
   return {
     OverlayScrollbarsComponent: react.forwardRef(
@@ -40,8 +53,8 @@ jest.mock('overlayscrollbars-react', () => {
           options,
           style,
           ...props
-        }: any,
-        ref: any
+        }: MockOverlayScrollbarsProps,
+        ref: React.ForwardedRef<MockOverlayScrollbarsHandle>
       ) => {
         react.useImperativeHandle(ref, () => ({
           osInstance: () => ({
@@ -91,20 +104,18 @@ const renderSidebarPanelExtension = (
   }
 ) =>
   render(
-    <ThemeProvider theme={theme}>
-      <SlotsProvider>
-        <SidebarRoot>
-          <SidebarPanelExtensionProvider
-            id="test-extension"
-            initialRuntimeOptions={initialRuntimeOptions}
-          >
-            <IntoSidebarPanelExtensionPanelSlot panelId="main">
-              {children}
-            </IntoSidebarPanelExtensionPanelSlot>
-          </SidebarPanelExtensionProvider>
-        </SidebarRoot>
-      </SlotsProvider>
-    </ThemeProvider>
+    <SlotsProvider>
+      <SidebarRoot>
+        <SidebarPanelExtensionProvider
+          id="test-extension"
+          initialRuntimeOptions={initialRuntimeOptions}
+        >
+          <IntoSidebarPanelExtensionPanelSlot panelId="main">
+            {children}
+          </IntoSidebarPanelExtensionPanelSlot>
+        </SidebarPanelExtensionProvider>
+      </SidebarRoot>
+    </SlotsProvider>
   )
 
 describe('SidebarPanelExtension generic tab helpers', () => {
@@ -378,15 +389,12 @@ describe('SidebarPanelExtension generic tab helpers', () => {
       width: '100vw',
       backgroundColor: '#ffffff',
       pointerEvents: 'auto',
-      zIndex: `${theme.zIndex.drawer + 2}`,
+      zIndex: '1402',
     })
     expect(
       screen.getByTestId('sidebar-panel-extension-desktop-panel-group')
     ).toHaveStyle({
       width: '100vw',
-      maxWidth: '100vw',
-      marginLeft: '0px',
-      marginRight: '0px',
     })
     expect(
       screen.getByTestId('sidebar-panel-extension-desktop-panel-main')
@@ -415,7 +423,7 @@ describe('SidebarPanelExtension generic tab helpers', () => {
 
     expect(await screen.findByText('First z-index content')).toBeInTheDocument()
 
-    const nonFullscreenRootZIndex = theme.zIndex.mapButtons - 20
+    const nonFullscreenRootZIndex = 1280
 
     expect(screen.getByTestId('sidebar-panel-extension-root')).toHaveStyle({
       zIndex: `${nonFullscreenRootZIndex}`,
@@ -456,9 +464,11 @@ describe('SidebarPanelExtension generic tab helpers', () => {
       'sidebar-panel-extension-desktop-panel-secondary'
     ).firstElementChild as HTMLElement
 
-    expect(window.getComputedStyle(firstPanelSurface).borderLeftWidth).toBe(
-      '0px'
-    )
+    expect(
+      ['0', '0px'].includes(
+        window.getComputedStyle(firstPanelSurface).borderLeftWidth
+      )
+    ).toBe(true)
     expect(window.getComputedStyle(firstPanelSurface).boxShadow).toBe('none')
     expect(window.getComputedStyle(secondPanelSurface).borderLeftWidth).toBe(
       '1px'
@@ -561,11 +571,9 @@ describe('SidebarPanelExtensionPageContainer', () => {
     const closeButton = screen.getByRole('button', {
       name: 'Close current page',
     })
-    const collapseIcon = collapseButton.querySelector(
-      '.MuiSvgIcon-root'
-    ) as HTMLElement
+    const collapseIcon = collapseButton.querySelector('svg') as SVGSVGElement
     const collapseIconPaths = collapseIcon.querySelectorAll('path')
-    const closeIcon = closeButton.querySelector('svg') as HTMLElement
+    const closeIcon = closeButton.querySelector('svg') as SVGSVGElement
 
     expect(onCollapse).toHaveBeenCalledTimes(1)
     expect(onClose).toHaveBeenCalledTimes(1)
@@ -584,7 +592,8 @@ describe('SidebarPanelExtensionPageContainer', () => {
       boxShadow: '0 2px 8px rgba(17, 17, 17, 0.12)',
     })
     expect(collapseIcon).toHaveStyle({
-      fontSize: '1.85rem',
+      width: '1.85rem',
+      height: '1.85rem',
     })
     expect(collapseIcon).toHaveAttribute('aria-hidden', 'true')
     expect(collapseIconPaths).toHaveLength(2)

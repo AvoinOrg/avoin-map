@@ -1,14 +1,20 @@
 'use client'
 
 import React from 'react'
-import { Box, IconButton, SxProps, Theme } from '@mui/material'
-import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft'
+import { Button as BaseButton } from '@base-ui/react/button'
+import { css, cx } from 'styled-system/css'
 
 import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import { useUIStore } from '#/common/store'
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
 import type { SidebarActionRailPlacement } from '#/common/types/sidebar'
-import { ArrowLeft, Cross } from '../icons'
+import { ArrowLeft, Cross, DoubleChevronLeft } from '../icons'
+import { Box } from '#/components/common/PandaBox'
 import SidebarToggleButton from './SidebarToggleButton'
 import SidebarScaffold from './SidebarScaffold'
 import { SimpleSidebarProvider } from './SimpleSidebarContext'
@@ -20,7 +26,7 @@ export type SimpleSidebarMobileStackPlacement = 'before' | 'after'
 export type SimpleSidebarPanelConfig = {
   content: React.ReactNode
   desktopWidth?: string
-  desktopContentSx?: SxProps<Theme>
+  desktopContentSx?: PandaStyleProp
   showBackButton?: boolean
   onBack?: () => void
   backAriaLabel?: string
@@ -112,6 +118,31 @@ const panelChromeButtonSx = {
   },
 } as const
 
+type PanelChromeButtonProps = Omit<
+  React.ComponentProps<typeof BaseButton>,
+  'className' | 'style' | 'color'
+> & {
+  sx?: PandaStyleProp
+}
+
+const PanelChromeButton = ({
+  sx,
+  children,
+  type = 'button',
+  ...props
+}: PanelChromeButtonProps) => (
+  <BaseButton
+    {...props}
+    type={type}
+    className={cx(
+      css(panelChromeButtonSx, ...pandaStylePropsToArray(sx))
+    )}
+    style={mergePandaStyleProps({ sx })}
+  >
+    {children}
+  </BaseButton>
+)
+
 const shouldShowAction = (showButton?: boolean, handler?: () => void) => {
   return handler != null && showButton !== false
 }
@@ -149,24 +180,22 @@ const PanelChrome = ({
       }}
     >
       {showBack && (
-        <IconButton
+        <PanelChromeButton
           aria-label={panel.backAriaLabel ?? defaultBackAriaLabel}
           onClick={panel.onBack}
-          size="small"
           sx={panelChromeButtonSx}
         >
-          <KeyboardDoubleArrowLeftIcon sx={{ fontSize: '1.45rem' }} />
-        </IconButton>
+          <DoubleChevronLeft sx={{ width: '1.45rem', height: '1.45rem' }} />
+        </PanelChromeButton>
       )}
       {showClose ? (
-        <IconButton
+        <PanelChromeButton
           aria-label={panel.closeAriaLabel ?? defaultCloseAriaLabel}
           onClick={panel.onClose}
-          size="small"
           sx={panelChromeButtonSx}
         >
           <Cross sx={{ width: '1rem', height: '1rem' }} />
-        </IconButton>
+        </PanelChromeButton>
       ) : null}
     </Box>
   )
@@ -189,7 +218,7 @@ const DesktopPanelBox = ({
 
   return (
     <Box
-      sx={(theme) => ({
+      sx={{
         display: 'flex',
         flexDirection: 'column',
         flex: '0 0 auto',
@@ -199,10 +228,10 @@ const DesktopPanelBox = ({
         pt: 0,
         pb: 0,
         ml: 0,
-        zIndex: theme.zIndex.drawer + 1,
+        zIndex: 'calc(var(--z-index-drawer) + 1)',
         pointerEvents: isSidebarOpen ? 'auto' : 'none',
         visibility: isSidebarOpen ? 'visible' : 'hidden',
-      })}
+      }}
     >
       <Box
         sx={{
@@ -250,7 +279,7 @@ const MobileDoubleBackButton = ({
 }) => {
   return (
     <Box
-      sx={(theme) => ({
+      sx={{
         position: 'sticky',
         top: 0,
         zIndex: 5,
@@ -258,17 +287,16 @@ const MobileDoubleBackButton = ({
         alignItems: 'center',
         p: 1,
         backgroundColor: '#ffffff',
-        borderBottom: `1px solid ${theme.palette.neutral.main}`,
-      })}
+        borderBottom: '1px solid var(--colors-neutral-main)',
+      }}
     >
-      <IconButton
+      <PanelChromeButton
         aria-label={ariaLabel ?? 'back to main sidebar'}
         onClick={onBack}
-        size="small"
         sx={panelChromeButtonSx}
       >
-        <KeyboardDoubleArrowLeftIcon sx={{ fontSize: '1.45rem' }} />
-      </IconButton>
+        <DoubleChevronLeft sx={{ width: '1.45rem', height: '1.45rem' }} />
+      </PanelChromeButton>
     </Box>
   )
 }
@@ -284,46 +312,43 @@ const MobilePanelNavigation = ({
 }) => {
   return (
     <Box
-      sx={(theme) => ({
+      sx={{
         display: 'flex',
         gap: 0.5,
         p: 1,
-        borderTop: `1px solid ${theme.palette.neutral.main}`,
+        borderTop: '1px solid var(--colors-neutral-main)',
         backgroundColor: '#ffffff',
-      })}
+      }}
     >
       {availablePanels.includes('main') && (
-        <IconButton
+        <PanelChromeButton
           aria-label="show main sidebar panel"
           onClick={() => onChange('main')}
-          size="small"
           disabled={activePanel === 'main'}
           sx={panelChromeButtonSx}
         >
           <ArrowLeft sx={{ width: '1rem', height: '1rem' }} />
-        </IconButton>
+        </PanelChromeButton>
       )}
       {availablePanels.includes('a') && (
-        <IconButton
+        <PanelChromeButton
           aria-label="show sidebar panel a"
           onClick={() => onChange('a')}
-          size="small"
           disabled={activePanel === 'a'}
           sx={{ ...panelChromeButtonSx, typography: 'caption' }}
         >
           A
-        </IconButton>
+        </PanelChromeButton>
       )}
       {availablePanels.includes('b') && (
-        <IconButton
+        <PanelChromeButton
           aria-label="show sidebar panel b"
           onClick={() => onChange('b')}
-          size="small"
           disabled={activePanel === 'b'}
           sx={{ ...panelChromeButtonSx, typography: 'caption' }}
         >
           B
-        </IconButton>
+        </PanelChromeButton>
       )}
     </Box>
   )
@@ -345,30 +370,30 @@ const isFixedActionRailPlacement = (
 
 const getFixedActionRailSx = (
   placement: FixedSidebarActionRailPlacement
-): SxProps<Theme> => {
+): PandaStyleProp => {
   if (placement === 'fixedBottomActionRow') {
-    return (theme: Theme) => ({
+    return {
       position: 'fixed',
       right: `${FIXED_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
       bottom: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
-      zIndex: theme.zIndex.drawer + 12,
+      zIndex: 'calc(var(--z-index-drawer) + 12)',
       display: 'flex',
       flexDirection: 'row',
       gap: `${ACTION_RAIL_GAP_PX}px`,
       pointerEvents: 'auto',
-    })
+    }
   }
 
-  return (theme: Theme) => ({
+  return {
     position: 'fixed',
     top: `${FIXED_RIGHT_ACTION_COLUMN_TOP_PX}px`,
     right: `${FIXED_RIGHT_ACTION_COLUMN_RIGHT_PX}px`,
-    zIndex: theme.zIndex.drawer + 12,
+    zIndex: 'calc(var(--z-index-drawer) + 12)',
     display: 'flex',
     flexDirection: 'column',
     gap: `${ACTION_RAIL_GAP_PX}px`,
     pointerEvents: 'auto',
-  })
+  }
 }
 
 export const SimpleSidebarBase = ({
@@ -381,21 +406,33 @@ export const SimpleSidebarBase = ({
   actionRail,
   actionRailPlacement = 'inside',
   hideMainContainer = false,
+  desktopWidth = `${DESKTOP_MAIN_WIDTH_REM}rem`,
+  desktopMaxWidth = `min(${DESKTOP_MAIN_WIDTH_REM}rem, 100vw)`,
+  desktopGutter = '0',
+  desktopPaddingBlock = '0',
+  desktopPanelBorderRadius = '0',
+  panelBackgroundColor = '#ffffff',
   mobileStackedContentBefore,
   mobileStackedContentAfter,
   panels,
   children,
   headerChildren,
 }: {
-  sx?: SxProps<Theme>
-  sidebarToggleSx?: SxProps<Theme>
-  panelSx?: SxProps<Theme>
-  contentSx?: SxProps<Theme>
+  sx?: PandaStyleProp
+  sidebarToggleSx?: PandaStyleProp
+  panelSx?: PandaStyleProp
+  contentSx?: PandaStyleProp
   topContent?: React.ReactNode
   bottomContent?: React.ReactNode
   actionRail?: React.ReactNode
   actionRailPlacement?: SidebarActionRailPlacement
   hideMainContainer?: boolean
+  desktopWidth?: string
+  desktopMaxWidth?: string
+  desktopGutter?: string
+  desktopPaddingBlock?: string
+  desktopPanelBorderRadius?: string
+  panelBackgroundColor?: string
   mobileStackedContentBefore?: React.ReactNode
   mobileStackedContentAfter?: React.ReactNode
   panels?: SimpleSidebarPanelsConfig
@@ -404,14 +441,22 @@ export const SimpleSidebarBase = ({
 }) => {
   const isMobile = useIsMobile()
   const [internalMobilePanel, setInternalMobilePanel] =
-    React.useState<SimpleSidebarMobilePanel>('main')
+    React.useState<SimpleSidebarMobilePanel | null>(null)
 
   const panelsMode = panels?.mode ?? 'default'
   const mobileMode = getMobileMode(panels)
-
-  React.useEffect(() => {
-    setInternalMobilePanel(panelsMode === 'double' ? 'a' : 'main')
-  }, [panelsMode])
+  const defaultMobilePanel: SimpleSidebarMobilePanel =
+    panelsMode === 'double' ? 'a' : 'main'
+  const internalMobilePanelIsAvailable =
+    internalMobilePanel == null
+      ? false
+      : panelsMode === 'double'
+        ? internalMobilePanel === 'a' || internalMobilePanel === 'b'
+        : internalMobilePanel === 'main' || internalMobilePanel === 'a'
+  const effectiveInternalMobilePanel: SimpleSidebarMobilePanel =
+    internalMobilePanelIsAvailable && internalMobilePanel != null
+      ? internalMobilePanel
+      : defaultMobilePanel
 
   const singlePanel = panels?.mode === 'single' ? panels.panel : null
   const isSinglePanelOpen = panels?.mode === 'single' && panels.isOpen
@@ -430,11 +475,11 @@ export const SimpleSidebarBase = ({
     setInternalMobilePanel(panel)
   }
 
-  const mobileActivePanel =
+  const mobileActivePanel: SimpleSidebarMobilePanel =
     panels?.mode === 'single'
-      ? panels.mobileActivePanel ?? internalMobilePanel
+      ? panels.mobileActivePanel ?? effectiveInternalMobilePanel
       : panels?.mode === 'double'
-        ? panels.mobileActivePanel ?? internalMobilePanel
+        ? panels.mobileActivePanel ?? effectiveInternalMobilePanel
         : 'main'
 
   let resolvedMobileActivePanel = mobileActivePanel
@@ -536,16 +581,16 @@ export const SimpleSidebarBase = ({
           sx={
             isFixedActionRailPlacement(actionRailPlacement)
               ? getFixedActionRailSx(actionRailPlacement)
-              : (theme: Theme) => ({
+              : {
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   gap: 1,
                   pt: 2,
                   pl: 1,
-                  zIndex: theme.zIndex.drawer + 1,
+                  zIndex: 'calc(var(--z-index-drawer) + 1)',
                   pointerEvents: 'auto',
-                })
+                }
           }
         >
           {desktopActionRailContent}
@@ -570,7 +615,7 @@ export const SimpleSidebarBase = ({
           sx={
             isFixedActionRailPlacement(actionRailPlacement)
               ? getFixedActionRailSx(actionRailPlacement)
-              : (theme: Theme) => ({
+              : {
                   position:
                     actionRailPlacement === 'bottomActionRow'
                       ? 'fixed'
@@ -587,12 +632,12 @@ export const SimpleSidebarBase = ({
                     actionRailPlacement === 'bottomActionRow'
                       ? BOTTOM_ACTION_ROW_BOTTOM
                       : 'auto',
-                  zIndex: theme.zIndex.drawer + 12,
+                  zIndex: 'calc(var(--z-index-drawer) + 12)',
                   display: 'flex',
                   flexDirection: 'row',
                   gap: '10px',
                   pointerEvents: 'auto',
-                })
+                }
           }
         >
           {mobileActionRailContent}
@@ -764,17 +809,11 @@ export const SimpleSidebarBase = ({
       <SidebarToggleButton
         sx={[
           actionRailPlacement === 'bottomActionRow'
-            ? (theme: Theme) => ({
-                right: {
-                  mobile: BOTTOM_ACTION_ROW_TOGGLE_RIGHT,
-                  desktop: BOTTOM_ACTION_ROW_TOGGLE_RIGHT,
-                },
-                bottom: {
-                  mobile: BOTTOM_ACTION_ROW_BOTTOM,
-                  desktop: BOTTOM_ACTION_ROW_BOTTOM,
-                },
-                zIndex: theme.zIndex.drawer + 12,
-              })
+            ? {
+                right: BOTTOM_ACTION_ROW_TOGGLE_RIGHT,
+                bottom: BOTTOM_ACTION_ROW_BOTTOM,
+                zIndex: 'calc(var(--z-index-drawer) + 12)',
+              }
             : undefined,
           ...(Array.isArray(sidebarToggleSx)
             ? sidebarToggleSx
@@ -792,26 +831,14 @@ export const SimpleSidebarBase = ({
         trailingContent={desktopTrailing}
         actionRail={isMobile ? mobileActionRail : desktopActionRail}
         hideMainContainer={shouldHideMainContainer}
-        containerSx={[
-          {
-            pt: { mobile: 0, desktop: 0 },
-            pb: { mobile: 0, desktop: 0 },
-            ml: { mobile: 0, desktop: 0 },
-            width: { mobile: '100vw', desktop: `${DESKTOP_MAIN_WIDTH_REM}rem` },
-            maxWidth: {
-              mobile: '100vw',
-              desktop: `min(${DESKTOP_MAIN_WIDTH_REM}rem, 100vw)`,
-            },
-          },
-          ...(Array.isArray(sx) ? sx : [sx]),
-        ]}
-        panelSx={[
-          {
-            borderRadius: { mobile: 0, desktop: 0 },
-            backgroundColor: '#ffffff',
-          },
-          ...(Array.isArray(panelSx) ? panelSx : [panelSx]),
-        ]}
+        containerSx={sx}
+        desktopWidth={desktopWidth}
+        desktopMaxWidth={desktopMaxWidth}
+        desktopGutter={desktopGutter}
+        desktopPaddingBlock={desktopPaddingBlock}
+        desktopPanelBorderRadius={desktopPanelBorderRadius}
+        panelBackgroundColor={panelBackgroundColor}
+        panelSx={panelSx}
         contentSx={[
           {
             backgroundColor: 'inherit',

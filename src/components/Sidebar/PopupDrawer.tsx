@@ -1,7 +1,8 @@
 'use client'
 
 import React from 'react'
-import { Box } from '@mui/material'
+
+import { Box } from '#/components/common/PandaBox'
 
 interface Props {
   open: boolean
@@ -12,12 +13,12 @@ const PopupDrawer = ({ open, children }: Props) => {
   return (
     <Box
       className="popup-drawer-container"
-      sx={(theme) => ({
+      sx={{
         transition: 'width 1s linear',
-        zIndex: theme.zIndex.popup,
+        zIndex: 'popup',
         width: open ? 'auto' : '0px',
         display: 'flex',
-      })}
+      }}
     >
       {open && children}
     </Box>

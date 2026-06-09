@@ -1,5 +1,6 @@
 import React from 'react'
 import { T } from '@tolgee/react'
+import type { TProps } from '@tolgee/react'
 
 // Repo-wide Tolgee ICU rich-text helpers for JSX-rendered translations.
 const defaultParams = {
@@ -9,7 +10,8 @@ const defaultParams = {
   b: <b />,
 }
 
-type TTextProps = React.ComponentProps<typeof T>
+type TTextProps = TProps
+const TolgeeText = T as (props: TProps) => React.ReactElement
 
 const TText = React.memo((props: TTextProps) => {
   const mergedParams = React.useMemo(
@@ -17,7 +19,8 @@ const TText = React.memo((props: TTextProps) => {
     [props.params]
   )
 
-  return <T {...props} params={mergedParams} />
+  return <TolgeeText {...props} params={mergedParams} />
 })
+TText.displayName = 'TText'
 
 export default TText

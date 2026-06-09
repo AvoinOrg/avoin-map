@@ -22,6 +22,7 @@ import { useTranslate } from '@tolgee/react'
 
 import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
+import type { PandaStyleProp } from '#/common/style/panda'
 import type { SelectOption } from '#/common/types/general'
 import DropDownSelectInset from '#/components/common/DropDownSelectInset'
 import TText from '#/components/common/TText'
@@ -2280,6 +2281,22 @@ const BuildingInfoDesktopTabPageContent = ({
     renovationPanel?.sections.filter(
       (section) => section.id !== 'scenarioComparison'
     ) ?? []
+  const energyPanelBodySx =
+    energyPanel != null
+      ? getDesktopGridPanelContentSx({
+          panelId: energyPanel.id,
+        })
+      : undefined
+  const resolvedEnergyPanelBodySx: SxProps<Theme> | undefined =
+    tabId === 'renovation' && energyPanelBodySx != null
+      ? {
+          ...(energyPanelBodySx as Record<string, unknown>),
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100%',
+          height: '100%',
+        }
+      : energyPanelBodySx
 
   return (
     <BuildingInfoDesktopGrid tabId={tabId}>
@@ -2305,21 +2322,7 @@ const BuildingInfoDesktopTabPageContent = ({
               ) : undefined
             }
             sx={{ minHeight: '100%', height: '100%' }}
-            bodySx={[
-              getDesktopGridPanelContentSx({
-                panelId: energyPanel.id,
-              }),
-              ...(tabId === 'renovation'
-                ? [
-                    {
-                      display: 'flex',
-                      flexDirection: 'column',
-                      minHeight: '100%',
-                      height: '100%',
-                    },
-                  ]
-                : []),
-            ]}
+            bodySx={resolvedEnergyPanelBodySx}
           />
         </BuildingInfoDesktopGridSection>
       )}
@@ -2475,8 +2478,12 @@ const BuildingInfoActiveTabSync = ({
 }) => {
   const tabsContext = useNullableSidebarPanelExtensionTabsContext()
   const setActiveTabId = tabsContext?.setActiveTabId
-  const lastAppliedActiveTabId = React.useRef<BuildingInfoTabId | undefined>()
-  const lastNotifiedActiveTabId = React.useRef<BuildingInfoTabId | undefined>()
+  const lastAppliedActiveTabId = React.useRef<
+    BuildingInfoTabId | undefined
+  >(undefined)
+  const lastNotifiedActiveTabId = React.useRef<
+    BuildingInfoTabId | undefined
+  >(undefined)
   const hasActiveTab =
     activeTabId != null &&
     tabsContext?.tabs.some((tab) => tab.tabId === activeTabId) === true
@@ -2598,7 +2605,7 @@ const getBuildingInfoPageControlsSx = ({
 }: {
   forceMobileLayout?: boolean
   isDesktopFullscreenLayout?: boolean
-}): SxProps<Theme> | undefined => {
+}): PandaStyleProp => {
   if (forceMobileLayout) {
     return undefined
   }
@@ -2620,7 +2627,7 @@ const getBuildingInfoPageControlsSx = ({
     backgroundColor: 'transparent',
     borderBottom: 0,
     zIndex: isDesktopFullscreenLayout
-      ? (theme: Theme) => theme.zIndex.drawer + 14
+      ? 'calc(var(--z-index-drawer) + 14)'
       : 2,
   }
 }

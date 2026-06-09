@@ -1,19 +1,18 @@
-import React, { useEffect, useState } from 'react'
-import {
-  Box,
-  Collapse,
-  IconButton,
-  Slider,
-  Typography,
-} from '@mui/material'
+import React, { useEffect, useRef, useState } from 'react'
+import { Button as BaseButton } from '@base-ui/react/button'
+import { Collapsible as BaseCollapsible } from '@base-ui/react/collapsible'
+import { Slider as BaseSlider } from '@base-ui/react/slider'
+import { css } from 'styled-system/css'
 import Image from 'next/image'
 import { useTranslate } from '@tolgee/react'
 
 import { ArrowDown } from '#/components/icons'
+import { Box } from '#/components/common/PandaBox'
 import { useLayerGroupOpacity } from '#/common/hooks/map/useLayerGroupOpacity'
 import { ListedLayerGroup } from '#/common/types/map'
 import { clampOpacity } from '#/common/utils/map'
 import TText from '#/components/common/TText'
+import styles from './LayerItem.module.css'
 
 type LayerItemProps = {
   layerGroup: ListedLayerGroup
@@ -47,6 +46,7 @@ const LayerItem = ({
   )
   const resolvedOpacity = storedOpacity ?? defaultOpacity
   const [isInfoOpen, setIsInfoOpen] = useState(false)
+  const hasHandledInitialInfoStateRef = useRef(false)
   const hasInfo = Boolean(layerGroup.infoElement)
   const infoId = `layer-info-${layerGroup.id}`
 
@@ -65,14 +65,28 @@ const LayerItem = ({
     storedOpacity,
   ])
 
-  const handleOpacityChange = (_event: Event, value: number | number[]) => {
-    if (!onOpacityChange) {
+  const handleSliderValueChange = (nextValue: number) => {
+    onOpacityChange?.(layerGroup.id, nextValue)
+  }
+
+  useEffect(() => {
+    if (!hasInfo || !onInfoToggle) {
       return
     }
 
-    const nextValue = Array.isArray(value) ? value[0] : value
-    onOpacityChange(layerGroup.id, nextValue)
-  }
+    if (!hasHandledInitialInfoStateRef.current) {
+      hasHandledInitialInfoStateRef.current = true
+      return
+    }
+
+    const animationFrameId = window.requestAnimationFrame(() => {
+      onInfoToggle()
+    })
+
+    return () => {
+      window.cancelAnimationFrame(animationFrameId)
+    }
+  }, [hasInfo, isInfoOpen, onInfoToggle])
 
   const imageMarginTop = hasInfo && isInfoOpen ? 0 : imageSpacing
 
@@ -81,6 +95,7 @@ const LayerItem = ({
       component="button"
       type="button"
       aria-label={`Toggle layer ${name}`}
+      aria-pressed={isSelected}
       onClick={() => onSelect(layerGroup.id)}
       sx={{
         p: 0,
@@ -96,6 +111,8 @@ const LayerItem = ({
       }}
     >
       <Box
+        data-layer-selected={isSelected ? 'true' : 'false'}
+        className={styles.imageFrame}
         sx={{
           position: 'relative',
           borderRadius: infoCardRadius,
@@ -104,27 +121,6 @@ const LayerItem = ({
           width: '100%',
           aspectRatio: '3 / 1',
           boxShadow: baseShadow,
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            inset: 0,
-            borderRadius: infoCardRadius,
-            borderStyle: 'solid',
-            borderWidth: isSelected ? 2 : 0,
-            borderColor: (theme) =>
-              isSelected ? theme.palette.secondary.dark : 'transparent',
-            boxSizing: 'border-box',
-            pointerEvents: 'none',
-            transition: 'border-color 0.2s ease, border-width 0.2s ease',
-            zIndex: 1,
-          },
-          '&:hover::after': {
-            borderWidth: 3,
-            borderColor: (theme) =>
-              isSelected
-                ? theme.palette.secondary.dark
-                : theme.palette.primary.main,
-          },
         }}
       >
         <Image
@@ -154,9 +150,10 @@ const LayerItem = ({
           minHeight: headerHeight,
         }}
       >
-        <Typography
+        <Box
+          component="span"
           sx={{
-            typography: 'h4',
+            textStyle: 'h4',
             whiteSpace: 'normal',
             overflowWrap: 'break-word',
             flex: 1,
@@ -167,26 +164,35 @@ const LayerItem = ({
             keyName={layerGroup.nameTranslationKey}
             ns={layerGroup.translationNs}
           />
-        </Typography>
+        </Box>
         {hasInfo && (
-          <IconButton
-            size="small"
+          <BaseButton
+            type="button"
             aria-label={`${name} info`}
             aria-expanded={isInfoOpen}
             aria-controls={infoId}
             onClick={() => setIsInfoOpen((prev) => !prev)}
-            sx={{
+            className={css({
               p: 0,
               width: 30,
               height: 30,
+              border: 0,
               borderRadius: '50%',
               backgroundColor: 'common.white',
               color: '#075CFF',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.12)',
+              cursor: 'pointer',
               '&:hover': {
                 backgroundColor: 'common.white',
               },
-            }}
+              '&:focus-visible': {
+                outline: '2px solid var(--colors-secondary-dark)',
+                outlineOffset: '2px',
+              },
+            })}
           >
             <ArrowDown
               sx={{
@@ -196,66 +202,115 @@ const LayerItem = ({
                 height: 5,
               }}
             />
-          </IconButton>
+          </BaseButton>
         )}
       </Box>
       {hasInfo && (
-        <Collapse
-          in={isInfoOpen}
-          timeout="auto"
-          unmountOnExit
-          onEntered={onInfoToggle}
-          onExited={onInfoToggle}
-        >
-          <Box
-            id={infoId}
-            sx={{
-              mt: imageSpacing,
-              mb: `-${infoOverlap}`,
-              width: '100%',
-              backgroundColor: 'common.white',
-              color: 'text.primary',
-              boxShadow: baseShadow,
-              borderRadius: infoCardRadius,
-              position: 'relative',
-              zIndex: 0,
-            }}
-          >
+        <BaseCollapsible.Root open={isInfoOpen}>
+          <BaseCollapsible.Panel keepMounted={false}>
             <Box
+              id={infoId}
               sx={{
-                px: 1,
-                pt: 1,
-                pb: `calc(${infoOverlap} + 0.5rem)`,
+                mt: imageSpacing,
+                mb: `-${infoOverlap}`,
+                width: '100%',
+                backgroundColor: 'common.white',
+                color: 'neutral.darker',
+                boxShadow: baseShadow,
+                borderRadius: infoCardRadius,
+                position: 'relative',
+                zIndex: 0,
               }}
             >
-              {layerGroup.infoElement}
+              <Box
+                sx={{
+                  px: 1,
+                  pt: 1,
+                  pb: `calc(${infoOverlap} + 0.5rem)`,
+                }}
+              >
+                {layerGroup.infoElement}
+              </Box>
             </Box>
-          </Box>
-        </Collapse>
+          </BaseCollapsible.Panel>
+        </BaseCollapsible.Root>
       )}
       {renderImage()}
       {showOpacitySlider && (
         <Box sx={{ mt: 1.25, px: '1rem', position: 'relative', zIndex: 3 }}>
-          <Slider
-            size="small"
+          <BaseSlider.Root
             min={0}
             max={1}
             step={0.05}
             value={resolvedOpacity}
-            valueLabelDisplay="auto"
-            valueLabelFormat={(value) => `${Math.round(value * 100)}%`}
-            onChange={handleOpacityChange}
-            aria-label={opacityLabel || 'Opacity'}
-            sx={{
+            onValueChange={handleSliderValueChange}
+            className={css({
               width: '100%',
-              overflow: 'visible',
               position: 'relative',
               zIndex: 3,
-              '& .MuiSlider-valueLabel': {
-                zIndex: 4,
-              },
-            }}
-          />
+              display: 'grid',
+              gridTemplateColumns: '1fr auto',
+              gap: '0.5rem',
+              alignItems: 'center',
+            })}
+          >
+            <BaseSlider.Control
+              className={css({
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                height: '1rem',
+                cursor: 'pointer',
+              })}
+            >
+              <BaseSlider.Track
+                className={css({
+                  width: '100%',
+                  height: '0.25rem',
+                  borderRadius: '999px',
+                  backgroundColor: 'neutral.main',
+                })}
+              >
+                <BaseSlider.Indicator
+                  className={css({
+                    height: '100%',
+                    borderRadius: '999px',
+                    backgroundColor: 'secondary.dark',
+                  })}
+                />
+              </BaseSlider.Track>
+              <BaseSlider.Thumb
+                getAriaLabel={() => opacityLabel || 'Opacity'}
+                getAriaValueText={(_formattedValue, value) =>
+                  `${Math.round(value * 100)}%`
+                }
+                className={css({
+                  width: '0.875rem',
+                  height: '0.875rem',
+                  borderRadius: '50%',
+                  backgroundColor: '#ffffff',
+                  border: '2px solid var(--colors-secondary-dark)',
+                  boxShadow: '0 1px 3px rgba(17, 17, 17, 0.2)',
+                  '&:focus-visible': {
+                    outline: '2px solid var(--colors-secondary-dark)',
+                    outlineOffset: '2px',
+                  },
+                })}
+              />
+            </BaseSlider.Control>
+            <span
+              className={css({
+                minWidth: '2.25rem',
+                textAlign: 'right',
+                fontSize: '0.625rem',
+                lineHeight: 1,
+                letterSpacing: '0.04em',
+                color: 'neutral.darker',
+              })}
+            >
+              {Math.round(resolvedOpacity * 100)}%
+            </span>
+          </BaseSlider.Root>
         </Box>
       )}
     </Box>

@@ -2,17 +2,13 @@
 'use client'
 
 import { useMemo } from 'react'
-import ButtonGroup, { ButtonGroupProps } from '@mui/material/ButtonGroup'
-import ExploreIcon from '@mui/icons-material/ExploreOutlined'
-import DoneIcon from '@mui/icons-material/Done'
-import { Box } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
 import { useMapStore } from '#/common/store'
+import type { PandaStyleProp } from '#/common/style/panda'
+import { Box } from '#/components/common/PandaBox'
 import { useDrawMode } from '#/common/hooks/map/useDrawMode'
 import {
-  Terrain,
-  Bullseye,
   Minus,
   Plus,
   Polygon,
@@ -21,6 +17,8 @@ import {
   LayersDark,
   Layers,
   Line,
+  Compass,
+  CheckcircleChecked,
 } from '#/components/icons'
 import { useIsDrawEnabled } from '#/common/hooks/map/useIsDrawEnabled'
 import { useAllowedDrawModes } from '#/common/hooks/map/useAllowedDrawModes'
@@ -47,7 +45,6 @@ export const MapButtons = ({ isVertical }: Props) => {
   const mapResetNorth = useMapStore((state) => state.mapResetNorth)
   const mapZoomIn = useMapStore((state) => state.mapZoomIn)
   const mapZoomOut = useMapStore((state) => state.mapZoomOut)
-  const mapRelocate = useMapStore((state) => state.mapRelocate)
   const setDrawMode = useMapStore((state) => state.setDrawMode)
   const disableDraw = useMapStore((state) => state.disableDraw)
   const deleteDrawFeatures = useMapStore((state) => state.deleteDrawFeatures)
@@ -154,10 +151,10 @@ export const MapButtons = ({ isVertical }: Props) => {
             <MapButton
               onClick={() => disableDraw()}
               size="small"
-              tooltip={t('map.buttons.disable_draw')}
-              isVertical={isVertical}
-            >
-              <DoneIcon />
+            tooltip={t('map.buttons.disable_draw')}
+            isVertical={isVertical}
+          >
+              <CheckcircleChecked sx={{ width: '1.35rem', height: '1.35rem' }} />
             </MapButton>
           )}
           {allowedDrawModes.includes('edit') && (
@@ -186,16 +183,13 @@ export const MapButtons = ({ isVertical }: Props) => {
               isVertical={isVertical}
               isActive={drawMode === 'corridor'}
               menuContent={<CorridorBufferMenu />}
-              showTooltip={t(
-                'map.buttons.corridor_menu_show',
-                'Show corridor menu'
-              )}
-              menuTitle={t('map.menus.corridor.title', 'Corridor')}
+              showTooltip={t('map.buttons.corridor_menu_show')}
+              menuTitle={t('map.menus.corridor.title')}
             >
               <MapButton
                 onClick={() => setDrawMode('corridor')}
                 size="small"
-                tooltip={t('map.buttons.draw_corridor', 'Draw corridor')}
+                tooltip={t('map.buttons.draw_corridor')}
                 isVertical={isVertical}
               >
                 <Line />
@@ -239,16 +233,8 @@ export const MapButtons = ({ isVertical }: Props) => {
           tooltip={t('map.buttons.reset_north')}
           isVertical={isVertical}
         >
-          <ExploreIcon sx={{ fontSize: '27px' }} />
+          <Compass sx={{ width: '27px', height: '27px' }} />
         </MapButton>
-        {/* <MapButton
-          onClick={mapRelocate}
-          size="small"
-          tooltip={t('map.buttons.relocate')}
-          isVertical={isVertical}
-        >
-          <Bullseye />
-        </MapButton> */}
         <MapButton
           onClick={mapZoomIn}
           size="small"
@@ -307,39 +293,46 @@ export const MapButtons = ({ isVertical }: Props) => {
   )
 }
 
-interface MapButtonGroupProps extends ButtonGroupProps {
+interface MapButtonGroupProps extends React.HTMLAttributes<HTMLDivElement> {
   isVertical?: boolean
+  orientation?: 'vertical' | 'horizontal'
+  sx?: PandaStyleProp
 }
 
-const MapButtonGroup = ({ isVertical, sx, ...props }: MapButtonGroupProps) => (
-  <ButtonGroup
+const MapButtonGroup = ({
+  isVertical,
+  orientation,
+  sx,
+  ...props
+}: MapButtonGroupProps) => (
+  <Box
     {...props}
-    sx={{
-      '& > .MuiButton-root, & > *:not(style) .MuiButton-root': {
-        border: 0,
-        borderRadius: 0,
+    data-map-button-group-orientation={orientation}
+    sx={[
+      {
+        display: 'inline-flex',
+        flexDirection: isVertical ? 'column' : 'row',
+        alignItems: 'stretch',
+        pointerEvents: 'auto',
+        '& > .map-button': {
+          border: 0,
+          borderRadius: 0,
+        },
+        '& > .map-button:first-of-type': {
+          borderTopLeftRadius: '0.3125rem',
+          borderBottomLeftRadius: isVertical ? 0 : '0.3125rem',
+          borderTopRightRadius: isVertical ? '0.3125rem' : 0,
+        },
+        '& > .map-button:last-of-type': {
+          borderTopRightRadius: isVertical ? 0 : '0.3125rem',
+          borderBottomLeftRadius: isVertical ? '0.3125rem' : 0,
+          borderBottomRightRadius: '0.3125rem',
+        },
+        '& > .map-button:only-of-type': {
+          borderRadius: '0.3125rem',
+        },
       },
-      '& .MuiButtonGroup-grouped': {
-        border: 0,
-      },
-      '& .MuiButtonGroup-middleButton, & .MuiButtonGroup-lastButton': {
-        marginLeft: 0,
-        marginTop: 0,
-      },
-      '& > .MuiButton-root:first-child, & > *:not(style):first-child .MuiButton-root': {
-        borderTopLeftRadius: '0.3125rem',
-        borderBottomLeftRadius: isVertical ? 0 : '0.3125rem',
-        borderTopRightRadius: isVertical ? '0.3125rem' : 0,
-      },
-      '& > .MuiButton-root:last-child, & > *:not(style):last-child .MuiButton-root': {
-        borderTopRightRadius: isVertical ? 0 : '0.3125rem',
-        borderBottomLeftRadius: isVertical ? '0.3125rem' : 0,
-        borderBottomRightRadius: '0.3125rem',
-      },
-      '& > .MuiButton-root:only-child, & > *:not(style):only-child .MuiButton-root': {
-        borderRadius: '0.3125rem',
-      },
-      ...sx,
-    }}
+      ...(Array.isArray(sx) ? sx : [sx]),
+    ]}
   />
 )

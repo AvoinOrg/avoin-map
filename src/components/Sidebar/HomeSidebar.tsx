@@ -1,17 +1,26 @@
 'use client'
 
 import React, { useEffect, useRef } from 'react'
-import { Box } from '@mui/material'
-import type { SxProps, Theme } from '@mui/material'
+import { css, cx } from 'styled-system/css'
 
 import { useUIStore } from '#/common/store'
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
 import { LoadingSpinner } from '../Loading'
 
 import SidebarToggleButton from './SidebarToggleButton'
+import styles from './SidebarScaffold.module.css'
 
 export type HomeSidebarProps = {
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
   children: React.ReactNode
+}
+
+type HomeSidebarCssVars = React.CSSProperties & {
+  [key: `--sidebar-${string}`]: string
 }
 
 export const HomeSidebar = ({ sx, children }: HomeSidebarProps) => {
@@ -55,91 +64,54 @@ export const HomeSidebar = ({ sx, children }: HomeSidebarProps) => {
     return <>{children}</>
   }
 
+  const containerVars: HomeSidebarCssVars = {
+    '--sidebar-mobile-width': '100vw',
+    '--sidebar-mobile-max-width': '100vw',
+    '--sidebar-mobile-padding-block': '0',
+    '--sidebar-mobile-margin-left': '0',
+    '--sidebar-desktop-width': '42rem',
+    '--sidebar-desktop-max-width': 'min(42rem, calc(100vw - 2rem))',
+    '--sidebar-desktop-padding-block': '1rem',
+    '--sidebar-desktop-margin-left': '1rem',
+    '--sidebar-desktop-closed-gutter': '1rem',
+    '--sidebar-desktop-panel-radius': '10px',
+    '--sidebar-panel-background': '#f4f4f4',
+    '--sidebar-content-background': '#f4f4f4',
+  }
+
   return (
     <>
       <SidebarToggleButton />
-      <Box
-        sx={{
-          zIndex: 'drawer',
-          display: 'inline-flex',
-          flexDirection: 'row',
-          height: '100%',
-          width: 'max-content',
-          maxWidth: '100%',
-          minWidth: 0,
-          minHeight: 0,
-          position: 'relative',
-          boxSizing: 'border-box',
-          pointerEvents: 'none',
-        }}
-      >
-        <Box
+      <div className={styles.sidebarRoot}>
+        <div
           ref={sidebarPanelRef}
-          sx={[
-            (theme: Theme) => ({
-              display: 'flex',
-              flexDirection: 'column',
-              flex: '0 0 auto',
-              width: { mobile: '100vw', desktop: '42rem' },
-              maxWidth: {
-                mobile: '100vw',
-                desktop: 'min(42rem, calc(100vw - 2rem))',
-              },
-              flexShrink: 0,
-              minWidth: 0,
-              height: '100%',
-              minHeight: 0,
-              zIndex: theme.zIndex.drawer + 1,
-              pt: { mobile: 0, desktop: 2 },
-              pb: { mobile: 0, desktop: 2 },
-              ml: { mobile: 0, desktop: 2 },
-              pointerEvents: 'none',
-              transform: isSidebarOpen
-                ? 'translateX(0)'
-                : {
-                    mobile: 'translateX(calc(-100% - 4px))',
-                    desktop: `translateX(calc(-100% - ${theme.spacing(2)} - 4px))`,
-                  },
-              transition: isSidebarOpen
-                ? 'transform 220ms cubic-bezier(.2,0,.2,1), visibility 0ms linear 0ms'
-                : 'transform 220ms cubic-bezier(.2,0,.2,1), visibility 0ms linear 220ms',
-              willChange: 'transform',
-              visibility: isSidebarOpen ? 'visible' : 'hidden',
-            }),
-            ...(Array.isArray(sx) ? sx : [sx]),
-          ]}
+          className={cx(
+            'sidebar-container',
+            styles.sidebarContainer,
+            styles.homeSidebarContainer,
+            css(...pandaStylePropsToArray(sx))
+          )}
+          data-open={isSidebarOpen ? 'true' : 'false'}
+          style={mergePandaStyleProps({
+            sx,
+            style: containerVars,
+          })}
         >
-          <Box
-            sx={{
-              position: 'relative',
-              display: 'flex',
-              flexDirection: 'column',
-              flex: 1,
-              minHeight: 0,
-              height: '100%',
-            }}
-          >
+          <div className={styles.homeSidebarPanelFrame}>
             {isSidebarLoading && (
-              <Box
-                sx={(theme) => ({
-                  position: 'absolute',
-                  inset: 0,
-                  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  zIndex: theme.zIndex.drawer + 10,
-                  borderRadius: { mobile: 0, desktop: '10px' },
-                  pointerEvents: 'auto',
-                })}
+              <div
+                className={cx(
+                  styles.loadingOverlay,
+                  styles.homeLoadingOverlay
+                )}
               >
                 <LoadingSpinner size="5rem" />
-              </Box>
+              </div>
             )}
             {children}
-          </Box>
-        </Box>
-      </Box>
+          </div>
+        </div>
+      </div>
     </>
   )
 }

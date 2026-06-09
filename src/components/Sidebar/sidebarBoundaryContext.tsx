@@ -20,7 +20,10 @@ export const SidebarBoundaryProvider = ({
   children: React.ReactNode
 }) => {
   const memoizedValue = useMemo(
-    () => value,
+    () => ({
+      boundaryId: value.boundaryId,
+      depth: value.depth,
+    }),
     [value.boundaryId, value.depth]
   )
 

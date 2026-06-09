@@ -367,6 +367,15 @@ const isLocatorVisible = async (locator, timeout = 1200) => {
   }
 }
 
+const waitForLocatorVisible = async (locator, timeout = 12000) => {
+  try {
+    await locator.first().waitFor({ state: 'visible', timeout })
+    return true
+  } catch (_error) {
+    return false
+  }
+}
+
 const countVisible = async (locator) => {
   const count = await locator.count()
   let visible = 0
@@ -2286,6 +2295,25 @@ const runCheck = async ({ browser, args, check }) => {
     const mapControlButtons = page.locator(
       '[aria-label="Cookie settings"], [aria-label="Toggle attribution information"]'
     )
+
+    if (check.expectSidebar === 'yes') {
+      await waitForLocatorVisible(
+        sidebarToggle,
+        Math.min(args.timeout, 12000)
+      )
+    }
+    if (check.expectMainSidebarRoot) {
+      await waitForLocatorVisible(
+        mainSidebarRoot,
+        Math.min(args.timeout, 12000)
+      )
+    }
+    for (const testId of check.expectTestIds || []) {
+      await waitForLocatorVisible(
+        page.locator(`[data-testid="${testId}"]`),
+        Math.min(args.timeout, 12000)
+      )
+    }
 
     const sidebarToggleVisible = await isLocatorVisible(sidebarToggle)
     const sidebarContainerVisible = await isLocatorVisible(sidebarContainer)

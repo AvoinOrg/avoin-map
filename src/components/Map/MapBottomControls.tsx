@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import DOMPurify from 'dompurify'
-import { Box, Button } from '@mui/material'
+import { Button as BaseButton } from '@base-ui/react/button'
+import { css } from 'styled-system/css'
 
 import {
   MAP_CONTROL_EDGE_GUTTER_PX,
@@ -15,6 +16,7 @@ import {
   selectActiveSidebarMode,
 } from '#/common/utils/sidebarBoundaryRegistry'
 import { IntoSlot } from '#/components/context/slotsContext'
+import { Box } from '#/components/common/PandaBox'
 import { AttributionInfo, Cookie } from '#/components/icons'
 import { getSidebarSlotKey } from '#/components/Sidebar/sidebarSlots'
 import MapBottomLeftFloatingControlsSlot from './MapBottomLeftFloatingControlsSlot'
@@ -22,6 +24,36 @@ import MapBottomLeftFloatingControlsSlot from './MapBottomLeftFloatingControlsSl
 const INITIAL_PANEL_MAX_WIDTH_PX = 480
 const MIN_INLINE_PANEL_WIDTH_PX = 120
 const PANEL_GAP_PX = 8
+
+const bottomControlButtonClass = css({
+  width: '2.125rem',
+  minWidth: '2.125rem',
+  height: '2.125rem',
+  border: 0,
+  p: 0,
+  borderRadius: '0.3125rem',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: 'rgba(79, 79, 79, 0.85)',
+  backgroundColor: 'rgba(244, 244, 244, 0.9)',
+  boxShadow: 'inset 2px 2px 2px rgba(177, 177, 177, 0.25)',
+  cursor: 'pointer',
+  '&:disabled': {
+    color: 'rgba(79, 79, 79, 0.55)',
+    backgroundColor: 'rgba(244, 244, 244, 0.9)',
+    opacity: 0.75,
+    cursor: 'default',
+  },
+  '&:focus-visible': {
+    outline: '2px solid var(--colors-secondary-dark)',
+    outlineOffset: '2px',
+  },
+  '& svg': {
+    width: '1.15rem',
+    height: '1.15rem',
+  },
+})
 
 type MainSidebarPlacement =
   | 'under-left'
@@ -246,66 +278,26 @@ const MapBottomControls = () => {
   ])
 
   const cookieButton = (
-    <Button
+    <BaseButton
       type="button"
       aria-label="Cookie settings"
       disabled={true}
       tabIndex={-1}
-      sx={{
-        width: '2.125rem',
-        minWidth: '2.125rem',
-        height: '2.125rem',
-        border: 0,
-        p: 0,
-        borderRadius: '0.3125rem',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'rgba(79, 79, 79, 0.55)',
-        backgroundColor: 'rgba(244, 244, 244, 0.9)',
-        boxShadow: 'inset 2px 2px 2px rgba(177, 177, 177, 0.25)',
-        opacity: 0.75,
-        '&.Mui-disabled': {
-          color: 'rgba(79, 79, 79, 0.55)',
-          backgroundColor: 'rgba(244, 244, 244, 0.9)',
-          opacity: 0.75,
-        },
-        '& svg': {
-          width: '1.15rem',
-          height: '1.15rem',
-        },
-      }}
+      className={bottomControlButtonClass}
     >
       <Cookie />
-    </Button>
+    </BaseButton>
   )
 
   const infoButton = (
-    <Button
+    <BaseButton
       type="button"
       onClick={() => setIsPanelOpen((prev) => !prev)}
       aria-label="Toggle attribution information"
-      sx={{
-        width: '2.125rem',
-        minWidth: '2.125rem',
-        height: '2.125rem',
-        border: 0,
-        p: 0,
-        borderRadius: '0.3125rem',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'rgba(79, 79, 79, 0.85)',
-        backgroundColor: 'rgba(244, 244, 244, 0.9)',
-        boxShadow: 'inset 2px 2px 2px rgba(177, 177, 177, 0.25)',
-        '& svg': {
-          width: '1.15rem',
-          height: '1.15rem',
-        },
-      }}
+      className={bottomControlButtonClass}
     >
       <AttributionInfo />
-    </Button>
+    </BaseButton>
   )
 
   const renderControls = ({
@@ -319,7 +311,7 @@ const MapBottomControls = () => {
       <MapBottomLeftFloatingControlsSlot />
       {showInfoButton && isPanelOpen && sanitizedAttributionHtml && (
         <Box
-          sx={(theme) => ({
+          sx={{
             position: 'absolute',
             left:
               panelLayout === 'overlay-sidebar'
@@ -337,7 +329,7 @@ const MapBottomControls = () => {
             backgroundColor: '#4F4F4F',
             boxShadow: 'inset 2px 2px 2px rgba(0, 0, 0, 0.1)',
             fontSize: '0.5rem',
-            fontFamily: theme.typography.fontFamily,
+            fontFamily: 'var(--font-arimo)',
             fontWeight: 400,
             lineHeight: '0.75rem',
             letterSpacing: '0.05rem',
@@ -355,19 +347,19 @@ const MapBottomControls = () => {
               letterSpacing: 'inherit',
               textDecoration: 'underline',
             },
-          })}
+          }}
           dangerouslySetInnerHTML={{ __html: sanitizedAttributionHtml }}
         />
       )}
       <Box
         ref={buttonRowRef}
         data-main-sidebar-controls-row-placement={slotPlacement ?? undefined}
-        sx={(theme) => ({
+        sx={{
           display: 'flex',
           alignItems: 'center',
-          gap: theme.spacing(1),
+          gap: 1,
           pointerEvents: 'auto',
-        })}
+        }}
       >
         {showCookieButton ? cookieButton : null}
         {showInfoButton ? infoButton : null}
@@ -381,12 +373,12 @@ const MapBottomControls = () => {
         <Box
           ref={controlsRef}
           data-main-sidebar-top-control-inner="true"
-          sx={(theme) => ({
+          sx={{
             position: 'relative',
             width: 'max-content',
             pointerEvents: 'none',
-            zIndex: theme.zIndex.mapButtons,
-          })}
+            zIndex: 'mapButtons',
+          }}
         >
           {renderControls({ showCookieButton: true, showInfoButton: false })}
         </Box>
@@ -400,12 +392,12 @@ const MapBottomControls = () => {
         <Box
           ref={controlsRef}
           data-main-sidebar-bottom-control-inner="true"
-          sx={(theme) => ({
+          sx={{
             position: 'relative',
             width: 'max-content',
             pointerEvents: 'none',
-            zIndex: theme.zIndex.mapButtons,
-          })}
+            zIndex: 'mapButtons',
+          }}
         >
           {renderControls({ showCookieButton: true, showInfoButton: true })}
         </Box>
@@ -416,17 +408,17 @@ const MapBottomControls = () => {
   return (
     <Box
       ref={controlsRef}
-      sx={(theme) => ({
+      sx={{
         position: 'fixed',
         left: leftOffsetPx,
         bottom: spacingBottomPx,
         pointerEvents: 'none',
         zIndex: hasRoomForDesiredLeftOffset
-          ? theme.zIndex.mapButtons
-          : theme.zIndex.drawer + 12,
+          ? 'mapButtons'
+          : 'calc(var(--z-index-drawer) + 12)',
         transition:
           'left 220ms cubic-bezier(.2,0,.2,1), bottom 220ms cubic-bezier(.2,0,.2,1)',
-      })}
+      }}
     >
       {renderControls({
         showCookieButton: !useMobileFixedInfoOnly,

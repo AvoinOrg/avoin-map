@@ -1,12 +1,9 @@
 'use client'
 
 import React from 'react'
-import type { SxProps, Theme } from '@mui/material'
 
-import {
-  HIILIKARTTA_HOME_FLOATING_GUTTER_PX,
-  MAP_CONTROL_EDGE_GUTTER_PX,
-} from '#/common/constants/map'
+import { HIILIKARTTA_HOME_FLOATING_GUTTER_PX } from '#/common/constants/map'
+import type { PandaStyleProp } from '#/common/style/panda'
 import type {
   SidebarBoundaryId,
   SidebarSimpleConfig as SidebarSimpleOptions,
@@ -21,7 +18,7 @@ import {
 } from './sidebarSlots'
 
 export type SimpleSidebarProps = {
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
   boundaryId?: SidebarBoundaryId
   options?: SidebarSimpleOptions
   mobileStackedContentBefore?: React.ReactNode
@@ -32,10 +29,9 @@ export type SimpleSidebarProps = {
 const DEFAULT_PANEL_WIDTH = '23.75rem'
 
 const getSimpleSidebarSx = (
-  sx: SxProps<Theme> | undefined,
+  sx: PandaStyleProp | undefined,
   options?: SidebarSimpleOptions
-): SxProps<Theme> => {
-  const floatingGutter = `${HIILIKARTTA_HOME_FLOATING_GUTTER_PX}px`
+): PandaStyleProp => {
   const hiddenChromeHeightSx =
     options?.chrome === 'hidden'
       ? {
@@ -46,41 +42,32 @@ const getSimpleSidebarSx = (
       : undefined
 
   return [
-    options?.width === 'compact'
-      ? {
-          pt: { mobile: 0, desktop: floatingGutter },
-          pb: { mobile: 0, desktop: floatingGutter },
-          ml: { mobile: 0, desktop: floatingGutter },
-          width: { mobile: '100vw', desktop: DEFAULT_PANEL_WIDTH },
-          maxWidth: {
-            mobile: '100vw',
-            desktop: `min(${DEFAULT_PANEL_WIDTH}, calc(100vw - ${floatingGutter}))`,
-          },
-        }
-      : {
-          width: { mobile: '100vw', desktop: DEFAULT_PANEL_WIDTH },
-          maxWidth: {
-            mobile: '100vw',
-            desktop: `min(${DEFAULT_PANEL_WIDTH}, 100vw)`,
-          },
-        },
     hiddenChromeHeightSx,
     ...(Array.isArray(sx) ? sx : [sx]),
   ]
 }
 
-const getSimpleSidebarToggleSx = (
-  options?: SidebarSimpleOptions
-): SxProps<Theme> | undefined => {
+const getSimpleSidebarLayoutProps = (options?: SidebarSimpleOptions) => {
+  const floatingGutter = `${HIILIKARTTA_HOME_FLOATING_GUTTER_PX}px`
+
   if (options?.width !== 'compact') {
-    return undefined
+    return {
+      desktopWidth: DEFAULT_PANEL_WIDTH,
+      desktopMaxWidth: `min(${DEFAULT_PANEL_WIDTH}, 100vw)`,
+      desktopGutter: '0',
+      desktopPaddingBlock: '0',
+      desktopPanelBorderRadius: '0',
+      panelBackgroundColor: '#ffffff',
+    }
   }
 
-  const toggleGutter = `${MAP_CONTROL_EDGE_GUTTER_PX}px`
-
   return {
-    right: { mobile: '1rem', desktop: toggleGutter },
-    bottom: { mobile: '1rem', desktop: toggleGutter },
+    desktopWidth: DEFAULT_PANEL_WIDTH,
+    desktopMaxWidth: `min(${DEFAULT_PANEL_WIDTH}, calc(100vw - ${floatingGutter}))`,
+    desktopGutter: floatingGutter,
+    desktopPaddingBlock: floatingGutter,
+    desktopPanelBorderRadius: '10px',
+    panelBackgroundColor: '#f4f4f4',
   }
 }
 
@@ -88,7 +75,7 @@ const getSimpleSidebarContentSx = ({
   options,
 }: {
   options?: SidebarSimpleOptions
-}): SxProps<Theme> | undefined => {
+}): PandaStyleProp | undefined => {
   if (options?.chrome !== 'hidden') {
     return undefined
   }
@@ -111,6 +98,7 @@ export const SimpleSidebar = ({
   mobileStackedContentAfter,
   children,
 }: SimpleSidebarProps) => {
+  const layoutProps = getSimpleSidebarLayoutProps(options)
   const headerChildren =
     boundaryId != null ? (
       <SidebarHeaderChildrenSlot boundaryId={boundaryId} />
@@ -131,21 +119,13 @@ export const SimpleSidebar = ({
   return (
     <SimpleSidebarBase
       sx={getSimpleSidebarSx(sx, options)}
-      sidebarToggleSx={getSimpleSidebarToggleSx(options)}
+      {...layoutProps}
       headerChildren={headerChildren}
       topContent={scopedTopContent}
       bottomContent={scopedBottomContent}
       mobileStackedContentBefore={mobileStackedContentBefore}
       mobileStackedContentAfter={mobileStackedContentAfter}
       hideMainContainer={options?.mainPanelVisible === false}
-      panelSx={
-        options?.width === 'compact'
-          ? {
-              borderRadius: { mobile: 0, desktop: '10px' },
-              backgroundColor: '#f4f4f4',
-            }
-          : undefined
-      }
       contentSx={getSimpleSidebarContentSx({ options })}
     >
       {boundaryId != null && (

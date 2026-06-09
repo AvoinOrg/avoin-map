@@ -1,0 +1,28 @@
+.imageFrame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 0.3125rem;
+  border: 0 solid transparent;
+  box-sizing: border-box;
+  pointer-events: none;
+  transition:
+    border-color 0.2s ease,
+    border-width 0.2s ease;
+  z-index: 1;
+}
+
+.imageFrame:hover::after {
+  border-width: 3px;
+  border-color: var(--colors-primary-main);
+}
+
+.imageFrame[data-layer-selected="true"]::after {
+  border-width: 2px;
+  border-color: var(--colors-secondary-dark);
+}
+
+.imageFrame[data-layer-selected="true"]:hover::after {
+  border-width: 3px;
+  border-color: var(--colors-secondary-dark);
+}

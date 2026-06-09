@@ -1,18 +1,25 @@
 'use client'
 
 import React from 'react'
-import { Box, IconButton, SvgIcon, Tooltip } from '@mui/material'
-import type { SxProps, Theme } from '@mui/material'
+import { Button as BaseButton } from '@base-ui/react/button'
+import { css, cx } from 'styled-system/css'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 import type { PartialOptions } from 'overlayscrollbars'
 
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+import { Box } from '#/components/common/PandaBox'
+import SimpleTooltip from '#/components/common/SimpleTooltip'
 import { Cross } from '../icons'
 
 export type SidebarPanelExtensionPageContainerProps = {
   children?: React.ReactNode
-  sx?: SxProps<Theme>
-  contentSx?: SxProps<Theme>
-  controlsSx?: SxProps<Theme>
+  sx?: PandaStyleProp
+  contentSx?: PandaStyleProp
+  controlsSx?: PandaStyleProp
   scrollbarSide?: 'left' | 'right'
   scrollbarOptions?: PartialOptions
   showCollapseControl?: boolean
@@ -40,12 +47,37 @@ const pageControlButtonSx = {
   },
 } as const
 
-const CollapsePanelIcon = ({ sx }: { sx?: SxProps<Theme> }) => (
-  <SvgIcon
+type PageControlButtonProps = Omit<
+  React.ComponentProps<typeof BaseButton>,
+  'className' | 'style' | 'color'
+> & {
+  sx?: PandaStyleProp
+}
+
+const PageControlButton = ({
+  sx,
+  children,
+  type = 'button',
+  ...props
+}: PageControlButtonProps) => (
+  <BaseButton
+    {...props}
+    type={type}
+    className={cx(css(pageControlButtonSx, ...pandaStylePropsToArray(sx)))}
+    style={mergePandaStyleProps({ sx })}
+  >
+    {children}
+  </BaseButton>
+)
+
+const CollapsePanelIcon = ({ sx }: { sx?: PandaStyleProp }) => (
+  <svg
     aria-hidden="true"
     focusable="false"
+    xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
-    sx={sx}
+    className={css(...pandaStylePropsToArray(sx))}
+    style={mergePandaStyleProps({ sx })}
   >
     <path
       d="M11 6 6 12l5 6"
@@ -63,7 +95,7 @@ const CollapsePanelIcon = ({ sx }: { sx?: SxProps<Theme> }) => (
       strokeLinejoin="round"
       strokeWidth={1.7}
     />
-  </SvgIcon>
+  </svg>
 )
 
 export const SidebarPanelExtensionPageContainer = ({
@@ -136,28 +168,26 @@ export const SidebarPanelExtensionPageContainer = ({
           ]}
         >
           {showCollapse && (
-            <Tooltip title={collapseAriaLabel} arrow disableInteractive>
-              <IconButton
+            <SimpleTooltip title={collapseAriaLabel}>
+              <PageControlButton
                 aria-label={collapseAriaLabel}
                 onClick={onCollapse}
-                size="small"
                 sx={pageControlButtonSx}
               >
-                <CollapsePanelIcon sx={{ fontSize: '1.85rem' }} />
-              </IconButton>
-            </Tooltip>
+                <CollapsePanelIcon sx={{ width: '1.85rem', height: '1.85rem' }} />
+              </PageControlButton>
+            </SimpleTooltip>
           )}
           {showClose && (
-            <Tooltip title={closeAriaLabel} arrow disableInteractive>
-              <IconButton
+            <SimpleTooltip title={closeAriaLabel}>
+              <PageControlButton
                 aria-label={closeAriaLabel}
                 onClick={onClose}
-                size="small"
                 sx={pageControlButtonSx}
               >
                 <Cross sx={{ width: '1rem', height: '1rem' }} />
-              </IconButton>
-            </Tooltip>
+              </PageControlButton>
+            </SimpleTooltip>
           )}
         </Box>
       )}

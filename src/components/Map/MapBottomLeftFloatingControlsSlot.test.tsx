@@ -1,10 +1,8 @@
 import React from 'react'
 import '@testing-library/jest-dom'
-import { ThemeProvider } from '@mui/material/styles'
 import { render, screen } from '@testing-library/react'
 
 import { MAP_BOTTOM_LEFT_FLOATING_CONTROLS_SLOT } from '#/common/constants/map'
-import theme from '#/common/style/theme/theme'
 import {
   IntoSlot,
   SlotsProvider,
@@ -12,11 +10,7 @@ import {
 import MapBottomLeftFloatingControlsSlot from './MapBottomLeftFloatingControlsSlot'
 
 const renderWithProviders = (ui: React.ReactElement) => {
-  return render(
-    <ThemeProvider theme={theme}>
-      <SlotsProvider>{ui}</SlotsProvider>
-    </ThemeProvider>
-  )
+  return render(<SlotsProvider>{ui}</SlotsProvider>)
 }
 
 describe('MapBottomLeftFloatingControlsSlot', () => {

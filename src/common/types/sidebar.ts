@@ -1,5 +1,5 @@
 import type React from 'react'
-import type { SxProps, Theme } from '@mui/material'
+import type { PandaStyleProp } from '#/common/style/panda'
 
 export type SidebarBoundaryId = string
 
@@ -103,8 +103,8 @@ export type SidebarPanelExtensionTabMetadata = {
   tabName: React.ReactNode
   tabAriaLabel?: string
   tabIcon?: React.ReactNode
-  tabButtonSx?: SxProps<Theme>
-  tabIconSx?: SxProps<Theme>
+  tabButtonSx?: PandaStyleProp
+  tabIconSx?: PandaStyleProp
   tabButtonId: string
   tabPanelId: string
 }

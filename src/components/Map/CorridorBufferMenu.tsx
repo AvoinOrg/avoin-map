@@ -4,7 +4,7 @@ import { useTranslate } from '@tolgee/react'
 
 import { useMapStore } from '#/common/store'
 import { NumberInputField } from '#/components/common/NumberInputField'
-import { Box, Typography } from '@mui/material'
+import { Box } from '#/components/common/PandaBox'
 
 const CORRIDOR_BUFFER_STEP = 0.5
 const NUMBER_FIELD_WIDTH = '6rem'
@@ -64,7 +64,8 @@ export const CorridorBufferMenu = () => {
           gap: '0.75rem',
         }}
       >
-        <Typography
+        <Box
+          component="span"
           sx={{
             flex: 1,
             minWidth: 0,
@@ -75,7 +76,7 @@ export const CorridorBufferMenu = () => {
           }}
         >
           {corridorBufferLabel}
-        </Typography>
+        </Box>
 
         <NumberInputField
           size="small"

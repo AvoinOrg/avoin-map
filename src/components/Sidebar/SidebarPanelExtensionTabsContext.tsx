@@ -298,6 +298,7 @@ export const useNullableSidebarPanelExtensionTabsContext =
       activeTabId,
       extensionId,
       registerTab,
+      registryContext,
       resolvedActiveTabId,
       setActiveTabId,
       tabs,

@@ -1,24 +1,16 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
-import {
-  Box,
-  Paper,
-  Popper,
-  Tooltip,
-  Typography,
-} from '@mui/material'
-import type { PopperPlacementType } from '@mui/material/Popper'
-import type { SxProps, Theme } from '@mui/material/styles'
-import { alpha } from '@mui/material/styles'
-import TuneIcon from '@mui/icons-material/Tune'
+import React, { useRef, useState } from 'react'
 
 import { useTranslate } from '@tolgee/react'
 
-import { ArrowUp } from '#/components/icons'
+import type { PandaStyleProp } from '#/common/style/panda'
+import { Box } from '#/components/common/PandaBox'
+import { ArrowUp, Tune } from '#/components/icons'
 import { useUIStore } from '#/common/store'
 import { IntoSlot } from '../context/slotsContext'
 import { MAP_BUTTON_SIZE, MapButton, MapButtonProps } from './MapButton'
+import MapFloatingPanel, { type MapFloatingPlacement } from './MapFloatingPanel'
 
 type MenuContentRenderer = (helpers: {
   closeMenu: () => void
@@ -29,12 +21,14 @@ type MapButtonStickyMenuProps = {
   menuContent?: React.ReactNode | MenuContentRenderer
   isVertical: boolean
   isActive: boolean
-  paperSx?: SxProps<Theme>
-  popperSx?: SxProps<Theme>
-  placement?: PopperPlacementType
+  paperSx?: PandaStyleProp
+  popperSx?: PandaStyleProp
+  placement?: MapFloatingPlacement
   showTooltip?: string
   menuTitle?: string
 }
+
+type MapButtonClickEvent = Parameters<NonNullable<MapButtonProps['onClick']>>[0]
 
 const STICKY_MENU_SLOT_NAME = 'map-sticky-menu-toggle'
 
@@ -52,17 +46,14 @@ export const MapButtonStickyMenu = ({
   const { t } = useTranslate('avoin-map')
   const activeMapMenu = useUIStore((state) => state.activeMapMenu)
 
-  const anchorRef = useRef<HTMLButtonElement | null>(null)
-  const childDisabled = Boolean(children.props.disabled)
-  const hasRawMenuContent =
-    typeof menuContent === 'function'
-      ? true
-      : React.Children.count(menuContent) > 0
-  const [open, setOpen] = useState(
-    () => isActive && hasRawMenuContent && !childDisabled
+  const wasActiveRef = useRef(false)
+  const [anchorElement, setAnchorElement] = useState<HTMLButtonElement | null>(
+    null
   )
+  const childDisabled = Boolean(children.props.disabled)
+  const [requestedOpen, setRequestedOpen] = useState(true)
   const closeMenu = React.useCallback(() => {
-    setOpen(false)
+    setRequestedOpen(false)
   }, [])
   const resolvedMenuContent = React.useMemo(() => {
     if (typeof menuContent === 'function') {
@@ -71,29 +62,50 @@ export const MapButtonStickyMenu = ({
     return menuContent
   }, [menuContent, closeMenu])
   const hasMenuContent = React.Children.count(resolvedMenuContent) > 0
+  const suppressedByActiveMapMenu =
+    (isVertical && activeMapMenu === 'search') ||
+    activeMapMenu === 'backgroundLayers' ||
+    activeMapMenu === 'backgroundOverlayLayers'
+  React.useEffect(() => {
+    const isEnteringActiveMode = isActive && !wasActiveRef.current
+    wasActiveRef.current = isActive
 
-  useEffect(() => {
-    if (!hasMenuContent || childDisabled) {
-      setOpen(false)
+    if (
+      !isActive ||
+      !hasMenuContent ||
+      childDisabled ||
+      suppressedByActiveMapMenu
+    ) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Keep local hide/show intent synchronized with external draw/menu activation.
+      setRequestedOpen(false)
       return
     }
-    setOpen(isActive)
-  }, [isActive, hasMenuContent, childDisabled])
 
-  useEffect(() => {
-    if (isVertical && activeMapMenu === 'search') {
-      setOpen(false)
+    if (isEnteringActiveMode) {
+      setRequestedOpen(true)
     }
-  }, [activeMapMenu, isVertical])
+  }, [childDisabled, hasMenuContent, isActive, suppressedByActiveMapMenu])
 
-  useEffect(() => {
+  const open =
+    requestedOpen &&
+    isActive &&
+    hasMenuContent &&
+    !childDisabled &&
+    !suppressedByActiveMapMenu
+  const setAnchorRef = React.useCallback((node: HTMLButtonElement | null) => {
+    setAnchorElement((current) => (current === node ? current : node))
+  }, [])
+  const getAnchor = React.useCallback(() => {
     if (
-      activeMapMenu === 'backgroundLayers' ||
-      activeMapMenu === 'backgroundOverlayLayers'
+      typeof document !== 'undefined' &&
+      anchorElement &&
+      !document.body.contains(anchorElement)
     ) {
-      setOpen(false)
+      return null
     }
-  }, [activeMapMenu])
+
+    return anchorElement
+  }, [anchorElement])
 
   if (!isActive || !hasMenuContent) {
     return children
@@ -101,34 +113,25 @@ export const MapButtonStickyMenu = ({
 
   const originalOnClick = children.props.onClick
 
-  const handleChildClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleChildClick = (event: MapButtonClickEvent) => {
     if (typeof originalOnClick === 'function') {
       originalOnClick(event)
     }
 
     if (childDisabled) return
 
-    setOpen((prev) => !prev)
+    setRequestedOpen((prev) => !prev)
   }
 
   const handleToggleFromIcon = () => {
     if (childDisabled) return
-    setOpen((prev) => !prev)
+    setRequestedOpen((prev) => !prev)
   }
 
   const clonedChild = React.cloneElement(children, {
     onClick: handleChildClick,
   })
 
-  const anchorEl =
-    typeof document !== 'undefined' && anchorRef.current
-      ? document.body.contains(anchorRef.current)
-        ? anchorRef.current
-        : null
-      : anchorRef.current
-
-  const isSearchOpenVertical = isVertical && activeMapMenu === 'search'
-  const effectiveOpen = open && !isSearchOpenVertical && Boolean(anchorEl)
   const hideLabel = t('map.menu.hide')
 
   return (
@@ -142,107 +145,89 @@ export const MapButtonStickyMenu = ({
           }}
         >
           <MapButton
-            ref={anchorRef}
+            ref={setAnchorRef}
             onClick={handleToggleFromIcon}
             size="small"
             tooltip={showTooltip ?? t('map.buttons.menu.show')}
             isVertical={isVertical}
           >
-            <TuneIcon />
+            <Tune />
           </MapButton>
         </Box>
       </IntoSlot>
 
-      <Popper
-        open={effectiveOpen}
-        anchorEl={anchorEl}
+      <MapFloatingPanel
+        open={open}
+        anchor={getAnchor}
         placement={placement ?? (isVertical ? 'bottom-end' : 'bottom-start')}
-        modifiers={[
-          {
-            name: 'offset',
-            options: {
-              // Move popper up by button height so it visually
-              // replaces the toggle button instead of appearing below it.
-              offset: [0, -MAP_BUTTON_SIZE],
-            },
-          },
-          {
-            name: 'flip',
-            enabled: false,
-          },
-          {
-            name: 'preventOverflow',
-            options: {
-              padding: 16,
-              tether: false,
-            },
-          },
-        ]}
-        sx={[
-          (theme) => ({
-            zIndex: theme.zIndex.drawer - 1,
-          }),
+        offset={[0, -MAP_BUTTON_SIZE]}
+        collisionPadding={16}
+        onClose={closeMenu}
+        positionerSx={[
+          { zIndex: 'calc(var(--z-index-drawer) - 1)' },
           ...(Array.isArray(popperSx) ? popperSx : [popperSx]),
         ]}
+        paperSx={[
+          {
+            maxWidth: 'calc(100vw - 78px)',
+            maxHeight: isVertical
+              ? 'calc(100vh - 32px)'
+              : 'calc(100vh - 78px)',
+            overflowY: 'auto',
+            p: '1rem',
+            backgroundColor: isVertical
+              ? 'neutral.light'
+              : 'rgba(246, 244, 244, 0.9)',
+            borderRadius: '0.3125rem',
+            width: 'fit-content',
+            position: 'relative',
+          },
+          ...(Array.isArray(paperSx) ? paperSx : [paperSx]),
+        ]}
       >
-        <Paper
-          sx={[
-            (theme) => ({
-              maxWidth: `calc(100vw - 78px)`,
-              maxHeight: isVertical
-                ? `calc(100vh - 32px)`
-                : 'calc(100vh - 78px)',
-              overflowY: 'auto',
-              p: '1rem',
-              backgroundColor: isVertical
-                ? theme.palette.neutral.light
-                : alpha(theme.palette.neutral.light, 0.9),
-              borderRadius: '0.3125rem',
-              width: 'fit-content',
-              position: 'relative',
-            }),
-            ...(Array.isArray(paperSx) ? paperSx : [paperSx]),
-          ]}
+        <Box
+          role="button"
+          tabIndex={0}
+          onClick={closeMenu}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') closeMenu()
+          }}
+          aria-label={hideLabel}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 1,
+            mb: 0.5,
+            cursor: 'pointer',
+            userSelect: 'none',
+            opacity: 1,
+            '&:hover': {
+              opacity: 0.55,
+            },
+          }}
         >
-          <Box
-            role="button"
-            tabIndex={0}
-            onClick={closeMenu}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') closeMenu()
-            }}
-            aria-label={hideLabel}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 1,
-              mb: 0.5,
-              cursor: 'pointer',
-              userSelect: 'none',
-              opacity: 1,
-              '&:hover': {
-                opacity: 0.55,
-              },
-            }}
-          >
-            {menuTitle ? (
-              <Typography
-                variant="body7"
-                sx={{ fontWeight: 500, textAlign: 'left', color: 'text.primary' }}
-              >
-                {menuTitle}
-              </Typography>
-            ) : (
-              <Box sx={{ flex: 1 }} />
-            )}
-            <Box sx={{ display: 'flex', alignItems: 'center', p: '5px' }}>
-              <ArrowUp sx={{ color: 'text.primary' }} />
+          {menuTitle ? (
+            <Box
+              component="span"
+              sx={{
+                textStyle: 'body7',
+                fontWeight: 500,
+                textAlign: 'left',
+                color: 'neutral.darker',
+              }}
+            >
+              {menuTitle}
             </Box>
+          ) : (
+            <Box sx={{ flex: 1 }} />
+          )}
+          <Box sx={{ display: 'flex', alignItems: 'center', p: '5px' }}>
+            <ArrowUp sx={{ color: 'neutral.darker' }} />
           </Box>
-          <Box>{resolvedMenuContent}</Box>
-        </Paper>
-      </Popper>
+        </Box>
+        <Box>{resolvedMenuContent}</Box>
+      </MapFloatingPanel>
     </>
   )
 }

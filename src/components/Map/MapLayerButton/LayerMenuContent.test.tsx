@@ -1,9 +1,7 @@
 import React from 'react'
 import '@testing-library/jest-dom'
-import { ThemeProvider } from '@mui/material/styles'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
-import theme from '#/common/style/theme/theme'
 import { LayerOrderLevel, ListedLayerMenuItem } from '#/common/types/map'
 import LayerMenuContent from './LayerMenuContent'
 
@@ -87,24 +85,25 @@ const accordionLayer: ListedLayerMenuItem = {
   content: <div>Accordion body</div>,
 }
 
-const renderWithTheme = (items: ListedLayerMenuItem[]) => {
+const renderContent = (
+  items: ListedLayerMenuItem[],
+  visibleLayerGroupIds: string[] = []
+) => {
   return render(
-    <ThemeProvider theme={theme}>
-      <LayerMenuContent
-        headerLabel="Layers"
-        items={items}
-        visibleLayerGroupIds={[]}
-        opacityLabel="Opacity"
-        onToggleLayer={() => {}}
-        onClose={() => {}}
-      />
-    </ThemeProvider>
+    <LayerMenuContent
+      headerLabel="Layers"
+      items={items}
+      visibleLayerGroupIds={visibleLayerGroupIds}
+      opacityLabel="Opacity"
+      onToggleLayer={() => {}}
+      onClose={() => {}}
+    />
   )
 }
 
 describe('LayerMenuContent', () => {
   it('renders standalone and accordion titles through Tolgee JSX targets', () => {
-    renderWithTheme([normalLayer, accordionLayer])
+    renderContent([normalLayer, accordionLayer])
 
     expect(screen.getByText('test-ns:layers.normal')).toHaveAttribute(
       'data-key-name',
@@ -135,7 +134,7 @@ describe('LayerMenuContent', () => {
   })
 
   it('hides the bottom separator when the final menu item is an accordion', () => {
-    renderWithTheme([normalLayer, accordionLayer])
+    renderContent([normalLayer, accordionLayer])
 
     const region = screen.getByRole('region')
 
@@ -150,7 +149,7 @@ describe('LayerMenuContent', () => {
   })
 
   it('uses shared padded accordion content and inset separator through the listed menu path', () => {
-    renderWithTheme([accordionLayer, normalLayer])
+    renderContent([accordionLayer, normalLayer])
 
     const region = screen.getByRole('region')
     const separator = region.querySelector('[aria-hidden="true"]')
@@ -171,5 +170,49 @@ describe('LayerMenuContent', () => {
         name: 'Toggle layer test-ns:layers.normal',
       })
     ).toBeInTheDocument()
+  })
+
+  it('marks visible layer cards as selected toggle buttons', () => {
+    renderContent([normalLayer], ['normal-layer'])
+
+    const toggle = screen.getByRole('button', {
+      name: 'Toggle layer test-ns:layers.normal',
+    })
+
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+    expect(toggle.querySelector('[data-layer-selected="true"]')).not.toBeNull()
+  })
+
+  it('requests a layer-menu position update only when layer info opens or closes', async () => {
+    const onInfoToggle = jest.fn()
+
+    render(
+      <LayerMenuContent
+        headerLabel="Layers"
+        items={[
+          {
+            ...normalLayer,
+            infoElement: <div>Layer info</div>,
+          },
+        ]}
+        visibleLayerGroupIds={[]}
+        opacityLabel="Opacity"
+        onToggleLayer={() => {}}
+        onClose={() => {}}
+        onInfoToggle={onInfoToggle}
+      />
+    )
+
+    expect(onInfoToggle).not.toHaveBeenCalled()
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'test-ns:layers.normal info',
+      })
+    )
+
+    await waitFor(() => {
+      expect(onInfoToggle).toHaveBeenCalledTimes(1)
+    })
   })
 })

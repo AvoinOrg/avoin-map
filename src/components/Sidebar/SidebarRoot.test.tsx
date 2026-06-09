@@ -307,9 +307,10 @@ describe('SidebarRoot', () => {
       await screen.findByText('Replacement extension content')
     ).toBeInTheDocument()
     expect(screen.getByText('Underlying floating sidebar content')).toBeInTheDocument()
-    expect(document.querySelector('.sidebar-container')).toHaveStyle({
-      display: 'none',
-    })
+    expect(document.querySelector('.sidebar-container')).toHaveAttribute(
+      'data-hidden-main',
+      'true'
+    )
     expect(screen.getByTestId('sidebar-panel-extension-root')).toHaveStyle({
       left: '0px',
     })
@@ -342,9 +343,9 @@ describe('SidebarRoot', () => {
       })
     ).toBeInTheDocument()
     expect(screen.getByText('Visible floating sidebar content')).toBeInTheDocument()
-    expect(document.querySelector('.sidebar-container')).not.toHaveStyle({
-      display: 'none',
-    })
+    expect(document.querySelector('.sidebar-container')).not.toHaveAttribute(
+      'data-hidden-main'
+    )
   })
 
   it('renders root-owned desktop tab controls for active extension tabs', async () => {
@@ -471,9 +472,6 @@ describe('SidebarRoot', () => {
     expect(root).toHaveStyle({ left: '0px', right: '0px', width: '100vw' })
     expect(panelGroup).toHaveStyle({
       width: '100vw',
-      maxWidth: '100vw',
-      marginLeft: '0px',
-      marginRight: '0px',
     })
     expect(panel).toHaveStyle({ width: '100%' })
     expect(tabControls).toHaveAttribute(

@@ -1,11 +1,10 @@
 'use client'
 
 import React from 'react'
-import { Box } from '@mui/material'
-import type { SxProps, Theme } from '@mui/material'
 
 import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
+import type { PandaStyleProp } from '#/common/style/panda'
 import type {
   SidebarActionRailPlacement,
   SidebarPanelExtensionId,
@@ -13,6 +12,7 @@ import type {
   SidebarPanelExtensionTabMetadata,
   SidebarPanelId,
 } from '#/common/types/sidebar'
+import { Box } from '#/components/common/PandaBox'
 
 import { SidebarPanelExtensionTabIconButton } from './SidebarPanelExtensionTabIconButton'
 import {
@@ -28,7 +28,7 @@ export type SidebarPanelExtensionProps = {
   desktopTabRail?: React.ReactNode
   mobileTabRail?: React.ReactNode
   suppressMobileStackedPanels?: boolean
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
 }
 
 export type SidebarPanelExtensionTabRailProps = {
@@ -67,38 +67,31 @@ const FIXED_RIGHT_ACTION_COLUMN_RIGHT_PX =
 const DEFAULT_MAP_BUTTONS_Z_INDEX = 1300
 const DEFAULT_FULLSCREEN_DRAWER_Z_INDEX = 1400
 const NON_FULLSCREEN_PANEL_EXTENSION_Z_INDEX_GAP = 20
+const FULLSCREEN_DRAWER_Z_INDEX = Math.max(
+  DEFAULT_FULLSCREEN_DRAWER_Z_INDEX,
+  DEFAULT_MAP_BUTTONS_Z_INDEX + 100
+)
 
 const PANEL_ORDER: SidebarPanelId[] = ['main', 'secondary', 'tertiary']
 
-const toSxArray = (sx?: SxProps<Theme>) => (Array.isArray(sx) ? sx : [sx])
+const toSxArray = (sx?: PandaStyleProp) => (Array.isArray(sx) ? sx : [sx])
 
 const isFullscreenLayout = (
   options?: SidebarPanelExtensionRuntimeOptions
 ) => options?.layoutMode === 'fullscreen'
 
-const getMapButtonsZIndex = (theme: Theme) =>
-  theme.zIndex.mapButtons ?? DEFAULT_MAP_BUTTONS_Z_INDEX
-
-const getFullscreenDrawerZIndex = (theme: Theme) =>
-  Math.max(
-    theme.zIndex.drawer ?? DEFAULT_FULLSCREEN_DRAWER_Z_INDEX,
-    getMapButtonsZIndex(theme) + 100
-  )
-
 const getDesktopPanelExtensionZIndex = ({
-  theme,
   layoutMode,
   fullscreenOffset = 0,
   defaultOffset = 0,
 }: {
-  theme: Theme
   layoutMode?: SidebarPanelExtensionRuntimeOptions['layoutMode']
   fullscreenOffset?: number
   defaultOffset?: number
 }) =>
   layoutMode === 'fullscreen'
-    ? getFullscreenDrawerZIndex(theme) + fullscreenOffset
-    : getMapButtonsZIndex(theme) -
+    ? FULLSCREEN_DRAWER_Z_INDEX + fullscreenOffset
+    : DEFAULT_MAP_BUTTONS_Z_INDEX -
       NON_FULLSCREEN_PANEL_EXTENSION_Z_INDEX_GAP +
       defaultOffset
 
@@ -206,7 +199,7 @@ const getActiveMobilePanel = ({
 
 const getPanelContentSx = (
   options?: SidebarPanelExtensionRuntimeOptions
-): SxProps<Theme> | undefined =>
+): PandaStyleProp | undefined =>
   options?.chrome === 'hidden'
     ? {
         display: 'flex',
@@ -237,7 +230,7 @@ const SidebarPanelExtensionDesktopPanel = ({
     <Box
       data-testid={`sidebar-panel-extension-desktop-panel-${panelId}`}
       data-sidebar-panel-extension-panel-id={panelId}
-      sx={(theme) => ({
+      sx={{
         display: 'flex',
         flexDirection: 'column',
         flex: '0 0 auto',
@@ -246,13 +239,12 @@ const SidebarPanelExtensionDesktopPanel = ({
         height: '100%',
         minHeight: 0,
         zIndex: getDesktopPanelExtensionZIndex({
-          theme,
           layoutMode: options?.layoutMode,
           fullscreenOffset: 2,
           defaultOffset: 2,
         }),
         pointerEvents: 'auto',
-      })}
+      }}
     >
       <Box
         sx={{
@@ -292,7 +284,7 @@ const SidebarPanelExtensionDesktopPanel = ({
 
 const getDesktopPanelGroupSx = (
   options?: SidebarPanelExtensionRuntimeOptions
-): SxProps<Theme> => {
+): PandaStyleProp => {
   const fullscreen = isFullscreenLayout(options)
 
   return {
@@ -322,14 +314,13 @@ const getDesktopControlsSx = ({
   placement: SidebarActionRailPlacement
   sidebarOffset: number
   layoutMode?: SidebarPanelExtensionRuntimeOptions['layoutMode']
-}): SxProps<Theme> => {
+}): PandaStyleProp => {
   if (placement === 'fixedBottomActionRow') {
-    return (theme: Theme) => ({
+    return {
       position: 'fixed',
       right: `${FIXED_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
       bottom: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
       zIndex: getDesktopPanelExtensionZIndex({
-        theme,
         layoutMode,
         fullscreenOffset: 12,
         defaultOffset: 3,
@@ -339,16 +330,15 @@ const getDesktopControlsSx = ({
       alignItems: 'center',
       gap: `${ACTION_RAIL_GAP_PX}px`,
       pointerEvents: 'auto',
-    })
+    }
   }
 
   if (placement === 'fixedRightActionColumn') {
-    return (theme: Theme) => ({
+    return {
       position: 'fixed',
       top: `${FIXED_RIGHT_ACTION_COLUMN_TOP_PX}px`,
       right: `${FIXED_RIGHT_ACTION_COLUMN_RIGHT_PX}px`,
       zIndex: getDesktopPanelExtensionZIndex({
-        theme,
         layoutMode,
         fullscreenOffset: 12,
         defaultOffset: 3,
@@ -357,16 +347,15 @@ const getDesktopControlsSx = ({
       flexDirection: 'column',
       gap: `${ACTION_RAIL_GAP_PX}px`,
       pointerEvents: 'auto',
-    })
+    }
   }
 
   if (placement === 'sidebarEdgeActionColumn') {
-    return (theme: Theme) => ({
+    return {
       position: 'fixed',
       top: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
       left: `${Math.max(0, sidebarOffset) + MAP_CONTROL_EDGE_GUTTER_PX}px`,
       zIndex: getDesktopPanelExtensionZIndex({
-        theme,
         layoutMode,
         fullscreenOffset: 12,
         defaultOffset: 3,
@@ -375,16 +364,15 @@ const getDesktopControlsSx = ({
       flexDirection: 'column',
       gap: `${ACTION_RAIL_GAP_PX}px`,
       pointerEvents: 'auto',
-    })
+    }
   }
 
   if (layoutMode === 'fullscreen') {
-    return (theme: Theme) => ({
+    return {
       position: 'fixed',
       right: `${FIXED_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
       bottom: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
       zIndex: getDesktopPanelExtensionZIndex({
-        theme,
         layoutMode,
         fullscreenOffset: 12,
         defaultOffset: 3,
@@ -397,10 +385,10 @@ const getDesktopControlsSx = ({
       '&:empty': {
         display: 'none',
       },
-    })
+    }
   }
 
-  return (theme: Theme) => ({
+  return {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -408,25 +396,23 @@ const getDesktopControlsSx = ({
     pt: 2,
     pl: 1,
     zIndex: getDesktopPanelExtensionZIndex({
-      theme,
       layoutMode,
       fullscreenOffset: 3,
       defaultOffset: 3,
     }),
     pointerEvents: 'auto',
-  })
+  }
 }
 
 const getDesktopTabControlsSx = (
   layoutMode?: SidebarPanelExtensionRuntimeOptions['layoutMode']
-): SxProps<Theme> => {
+): PandaStyleProp => {
   if (layoutMode === 'fullscreen') {
-    return (theme: Theme) => ({
+    return {
       position: 'fixed',
       right: `${FIXED_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
       bottom: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
       zIndex: getDesktopPanelExtensionZIndex({
-        theme,
         layoutMode,
         fullscreenOffset: 12,
         defaultOffset: 3,
@@ -436,10 +422,10 @@ const getDesktopTabControlsSx = (
       alignItems: 'center',
       gap: `${ACTION_RAIL_GAP_PX}px`,
       pointerEvents: 'auto',
-    })
+    }
   }
 
-  return (theme: Theme) => ({
+  return {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -447,54 +433,53 @@ const getDesktopTabControlsSx = (
     pt: 2,
     pl: 1,
     zIndex: getDesktopPanelExtensionZIndex({
-      theme,
       layoutMode,
       fullscreenOffset: 3,
       defaultOffset: 3,
     }),
     pointerEvents: 'auto',
-  })
+  }
 }
 
 const getMobileActionRailSx = (
   placement: SidebarActionRailPlacement,
   visible: boolean
-): SxProps<Theme> => {
+): PandaStyleProp => {
   if (placement === 'fixedRightActionColumn') {
-    return (theme: Theme) => ({
+    return {
       position: 'fixed',
       top: `${FIXED_RIGHT_ACTION_COLUMN_TOP_PX}px`,
       right: `${FIXED_RIGHT_ACTION_COLUMN_RIGHT_PX}px`,
-      zIndex: theme.zIndex.drawer + 12,
+      zIndex: DEFAULT_FULLSCREEN_DRAWER_Z_INDEX + 12,
       display: 'flex',
       flexDirection: 'column',
       gap: `${ACTION_RAIL_GAP_PX}px`,
       pointerEvents: 'auto',
       ...getVisibilitySx(visible),
-    })
+    }
   }
 
-  return (theme: Theme) => ({
+  return {
     position: 'fixed',
     right: `${MOBILE_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
     bottom: `${MOBILE_BOTTOM_ACTION_ROW_BOTTOM_PX}px`,
-    zIndex: theme.zIndex.drawer + 12,
+    zIndex: DEFAULT_FULLSCREEN_DRAWER_Z_INDEX + 12,
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
     gap: `${ACTION_RAIL_GAP_PX}px`,
     pointerEvents: 'auto',
     ...getVisibilitySx(visible),
-  })
+  }
 }
 
 const getMobileTabControlsSx =
-  (visible: boolean): SxProps<Theme> =>
-  (theme: Theme) => ({
+  (visible: boolean): PandaStyleProp =>
+  ({
     position: 'fixed',
     right: `${MOBILE_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
     bottom: `${MOBILE_BOTTOM_ACTION_ROW_BOTTOM_PX}px`,
-    zIndex: theme.zIndex.drawer + 12,
+    zIndex: DEFAULT_FULLSCREEN_DRAWER_Z_INDEX + 12,
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
@@ -593,32 +578,30 @@ const SidebarPanelExtensionMobilePanels = ({
           ? (options?.mobileStackPlacement ?? 'after')
           : undefined
       }
-      sx={(theme) =>
-        ({
-          ...(variant === 'overlay'
-            ? {
-                position: 'fixed',
-                inset: 0,
-                zIndex: theme.zIndex.drawer + 4,
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'auto',
-                minHeight: 0,
-                backgroundColor: '#ffffff',
-                pointerEvents: 'auto',
-              }
-            : {
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'auto',
-                width: '100%',
-                minHeight: 0,
-                backgroundColor: '#ffffff',
-                pointerEvents: 'auto',
-              }),
-          ...getVisibilitySx(visible),
-        })
-      }
+      sx={{
+        ...(variant === 'overlay'
+          ? {
+              position: 'fixed',
+              inset: 0,
+              zIndex: DEFAULT_FULLSCREEN_DRAWER_Z_INDEX + 4,
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'auto',
+              minHeight: 0,
+              backgroundColor: '#ffffff',
+              pointerEvents: 'auto',
+            }
+          : {
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'auto',
+              width: '100%',
+              minHeight: 0,
+              backgroundColor: '#ffffff',
+              pointerEvents: 'auto',
+            }),
+        ...getVisibilitySx(visible),
+      }}
     >
       {mobilePanels.map((panelId) => (
         <Box
@@ -738,7 +721,7 @@ export const SidebarPanelExtension = ({
     <Box
       data-testid="sidebar-panel-extension-root"
       sx={[
-        (theme: Theme) => ({
+        {
           position: 'fixed',
           top: 0,
           bottom: 0,
@@ -753,13 +736,12 @@ export const SidebarPanelExtension = ({
           overflow: fullscreen ? 'hidden' : 'visible',
           backgroundColor: fullscreen ? '#ffffff' : 'transparent',
           zIndex: getDesktopPanelExtensionZIndex({
-            theme,
             layoutMode: options?.layoutMode,
             fullscreenOffset: 2,
           }),
           pointerEvents: fullscreen ? 'auto' : 'none',
           ...getVisibilitySx(visible),
-        }),
+        },
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
     >

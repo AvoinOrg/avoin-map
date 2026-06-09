@@ -1,10 +1,17 @@
 'use client'
 
 import React, { useEffect, useRef } from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
+import { css, cx } from 'styled-system/css'
 
 import { useUIStore } from '#/common/store'
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
 import { LoadingSpinner } from '../Loading'
+
+import styles from './SidebarScaffold.module.css'
 
 type SidebarScaffoldProps = {
   children: React.ReactNode
@@ -13,9 +20,22 @@ type SidebarScaffoldProps = {
   trailingContent?: React.ReactNode
   actionRail?: React.ReactNode
   hideMainContainer?: boolean
-  containerSx?: SxProps<Theme>
-  panelSx?: SxProps<Theme>
-  contentSx?: SxProps<Theme>
+  containerSx?: PandaStyleProp
+  panelSx?: PandaStyleProp
+  contentSx?: PandaStyleProp
+  mobileWidth?: string
+  mobileMaxWidth?: string
+  desktopWidth?: string
+  desktopMaxWidth?: string
+  desktopGutter?: string
+  desktopPaddingBlock?: string
+  desktopPanelBorderRadius?: string
+  panelBackgroundColor?: string
+  contentBackgroundColor?: string
+}
+
+type SidebarScaffoldCssVars = React.CSSProperties & {
+  [key: `--sidebar-${string}`]: string
 }
 
 const SidebarScaffold = ({
@@ -28,6 +48,15 @@ const SidebarScaffold = ({
   containerSx,
   panelSx,
   contentSx,
+  mobileWidth = '100vw',
+  mobileMaxWidth = '100vw',
+  desktopWidth = '30rem',
+  desktopMaxWidth = 'min(30rem, calc(100vw - 2rem))',
+  desktopGutter = '1rem',
+  desktopPaddingBlock = desktopGutter,
+  desktopPanelBorderRadius = '10px',
+  panelBackgroundColor = '#f4f4f4',
+  contentBackgroundColor = panelBackgroundColor,
 }: SidebarScaffoldProps) => {
   const isSidebarDisabled = useUIStore((state) => state.isSidebarDisabled)
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
@@ -75,140 +104,76 @@ const SidebarScaffold = ({
     return <>{children}</>
   }
 
+  const containerVars: SidebarScaffoldCssVars = {
+    '--sidebar-mobile-width': mobileWidth,
+    '--sidebar-mobile-max-width': mobileMaxWidth,
+    '--sidebar-mobile-padding-block': '0',
+    '--sidebar-mobile-margin-left': '0',
+    '--sidebar-desktop-width': desktopWidth,
+    '--sidebar-desktop-max-width': desktopMaxWidth,
+    '--sidebar-desktop-padding-block': desktopPaddingBlock,
+    '--sidebar-desktop-margin-left': desktopGutter,
+    '--sidebar-desktop-closed-gutter': desktopGutter,
+    '--sidebar-desktop-panel-radius': desktopPanelBorderRadius,
+    '--sidebar-panel-background': panelBackgroundColor,
+    '--sidebar-content-background': contentBackgroundColor,
+  }
+
   return (
-    <Box
+    <div
       ref={sidebarRef}
-      sx={{
-        zIndex: 'drawer',
-        display: 'inline-flex',
-        flexDirection: 'row',
-        height: '100%',
-        width: 'max-content',
-        maxWidth: '100%',
-        minWidth: 0,
-        minHeight: 0,
-        position: 'relative',
-        boxSizing: 'border-box',
-        pointerEvents: 'none',
-      }}
+      className={styles.sidebarRoot}
     >
-      <Box
-        className="sidebar-container"
+      <div
+        className={cx(
+          'sidebar-container',
+          styles.sidebarContainer,
+          css(...pandaStylePropsToArray(containerSx))
+        )}
         ref={sidebarContainerRef}
-        sx={[
-          (theme: Theme) => ({
-            display: hideMainContainer ? 'none' : 'flex',
-            flexDirection: 'column',
-            flex: '0 0 auto',
-            width: { mobile: '100vw', desktop: '30rem' },
-            maxWidth: {
-              mobile: '100vw',
-              desktop: 'min(30rem, calc(100vw - 2rem))',
-            },
-            flexShrink: 0,
-            minWidth: 0,
-            height: '100%',
-            minHeight: 0,
-            zIndex: theme.zIndex.drawer + 1,
-            pt: { mobile: 0, desktop: 2 },
-            pb: { mobile: 0, desktop: 2 },
-            ml: { mobile: 0, desktop: 2 },
-            pointerEvents: isSidebarOpen ? 'auto' : 'none',
-            transform: isSidebarOpen
-              ? 'translateX(0)'
-              : {
-                  mobile: 'translateX(calc(-100% - 4px))',
-                  desktop: `translateX(calc(-100% - ${theme.spacing(2)} - 4px))`,
-                },
-            transition: isSidebarOpen
-              ? 'transform 220ms cubic-bezier(.2,0,.2,1), visibility 0ms linear 0ms'
-              : 'transform 220ms cubic-bezier(.2,0,.2,1), visibility 0ms linear 220ms',
-            willChange: 'transform',
-            visibility: isSidebarOpen ? 'visible' : 'hidden',
-          }),
-          ...(Array.isArray(containerSx) ? containerSx : [containerSx]),
-        ]}
+        data-open={isSidebarOpen ? 'true' : 'false'}
+        data-hidden-main={hideMainContainer ? 'true' : undefined}
+        style={mergePandaStyleProps({
+          sx: containerSx,
+          style: containerVars,
+        })}
       >
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'row',
-            flex: 1,
-            minHeight: 0,
-          }}
-        >
-          <Box
-            sx={{
-              position: 'relative',
-              width: '100%',
-              overflow: 'hidden',
-              boxSizing: 'border-box',
-            }}
-          >
-            <Box
-              sx={[
-                {
-                  position: 'absolute',
-                  inset: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  minWidth: 0,
-                  whiteSpace: 'normal',
-                  borderRadius: { mobile: 0, desktop: '10px' },
-                  overflow: 'hidden',
-                  backgroundColor: '#f4f4f4',
-                  boxShadow: 'none',
-                },
-                ...(Array.isArray(panelSx) ? panelSx : [panelSx]),
-              ]}
+        <div className={styles.sidebarBodyRow}>
+          <div className={styles.sidebarPanelFrame}>
+            <div
+              className={cx(
+                styles.sidebarPanel,
+                css(...pandaStylePropsToArray(panelSx))
+              )}
+              style={mergePandaStyleProps({ sx: panelSx })}
             >
               {topContent}
               {isSidebarLoading && (
-                <Box
-                  sx={(theme) => ({
-                    position: 'absolute',
-                    inset: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: theme.zIndex.drawer + 10,
-                    borderRadius: 'inherit',
-                  })}
-                >
+                <div className={styles.loadingOverlay}>
                   <LoadingSpinner size="5rem" />
-                </Box>
+                </div>
               )}
-              <Box
-                sx={[
-                  {
-                    overflow: 'auto',
-                    display: 'flex',
-                    flexGrow: 1,
-                    backgroundColor: '#f4f4f4',
-                  },
-                  ...(Array.isArray(contentSx) ? contentSx : [contentSx]),
-                ]}
+              <div
+                className={cx(
+                  styles.sidebarContent,
+                  css(...pandaStylePropsToArray(contentSx))
+                )}
+                style={mergePandaStyleProps({ sx: contentSx })}
               >
                 {children}
-              </Box>
+              </div>
               {bottomContent && (
-                <Box
-                  sx={{
-                    flexShrink: 0,
-                    backgroundColor: '#f4f4f4',
-                  }}
-                >
+                <div className={styles.sidebarBottomContent}>
                   {bottomContent}
-                </Box>
+                </div>
               )}
-            </Box>
-          </Box>
-        </Box>
-      </Box>
+            </div>
+          </div>
+        </div>
+      </div>
       {trailingContent}
       {actionRail}
-    </Box>
+    </div>
   )
 }
 

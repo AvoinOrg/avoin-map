@@ -1,8 +1,11 @@
 import React from 'react'
-import { Box, IconButton, SxProps, Theme, Typography } from '@mui/material'
+import { Button as BaseButton } from '@base-ui/react/button'
+import { css } from 'styled-system/css'
 import { useTranslate } from '@tolgee/react'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 
+import type { PandaStyleProp } from '#/common/style/panda'
+import { Box } from '#/components/common/PandaBox'
 import { Cross } from '#/components/icons'
 import { ListedLayerGroup, ListedLayerMenuItem } from '#/common/types/map'
 import {
@@ -22,7 +25,7 @@ type Props = {
   onToggleLayer: (layerGroup: ListedLayerGroup) => void
   onInfoToggle?: () => void
   onClose: () => void
-  listSx?: SxProps<Theme>
+  listSx?: PandaStyleProp
   scrollMaxHeight?: string
 }
 
@@ -35,10 +38,10 @@ type LayerMenuItemsProps = Pick<
   | 'onInfoToggle'
 > & {
   items: ListedLayerMenuItem[]
-  layerGroupSegmentSx?: SxProps<Theme>
+  layerGroupSegmentSx?: PandaStyleProp
 }
 
-const LAYER_GROUP_SEGMENT_SX: SxProps<Theme> = {
+const LAYER_GROUP_SEGMENT_SX: PandaStyleProp = {
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'stretch',
@@ -48,7 +51,7 @@ const LAYER_GROUP_SEGMENT_SX: SxProps<Theme> = {
   py: 4,
 }
 
-const NESTED_LAYER_GROUP_SEGMENT_SX: SxProps<Theme> = {
+const NESTED_LAYER_GROUP_SEGMENT_SX: PandaStyleProp = {
   ...LAYER_GROUP_SEGMENT_SX,
   px: 0,
   py: 0,
@@ -111,7 +114,7 @@ const LayerMenuItems = ({
       opacityLabel={opacityLabel}
       onOpacityChange={onOpacityChange}
       onInfoToggle={onInfoToggle}
-      onSelect={(_id) => {
+      onSelect={() => {
         onToggleLayer(item)
       }}
     />
@@ -222,20 +225,40 @@ const LayerMenuContent = ({
         }}
       >
         {headerLabel ? (
-          <Typography variant="h3" sx={{ textAlign: 'left' }}>
+          <Box component="h2" sx={{ m: 0, textStyle: 'h3', textAlign: 'left' }}>
             {headerLabel}
-          </Typography>
+          </Box>
         ) : (
           <Box sx={{ flex: 1 }} />
         )}
-        <IconButton
-          size="small"
-          aria-label={t('map.buttons.menu.close', 'Close menu')}
+        <BaseButton
+          type="button"
+          aria-label={t('map.buttons.menu.close')}
           onClick={onClose}
-          sx={{ p: 0.5, mr: 0, width: 32, height: 32 }}
+          className={css({
+            p: 0.5,
+            mr: 0,
+            width: 32,
+            height: 32,
+            border: 0,
+            borderRadius: '0.3125rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'transparent',
+            color: 'neutral.darker',
+            cursor: 'pointer',
+            '&:hover': {
+              backgroundColor: 'neutral.main',
+            },
+            '&:focus-visible': {
+              outline: '2px solid var(--colors-secondary-dark)',
+              outlineOffset: '2px',
+            },
+          })}
         >
           <Cross sx={{ width: 18, height: 18 }} />
-        </IconButton>
+        </BaseButton>
       </Box>
       <OverlayScrollbarsComponent
         className="osScroll"

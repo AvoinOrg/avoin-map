@@ -9,7 +9,6 @@
 import 'maplibre-gl/dist/maplibre-gl.css'
 
 import React, { useState, useRef, useEffect } from 'react'
-import Box from '@mui/material/Box'
 // import { Map as OlMap, View, MapBrowserEvent } from 'ol'
 // import * as proj from 'ol/proj'
 // import { Layer, Tile as TileLayer, Vector as VectorLayer } from 'ol/layer'
@@ -35,6 +34,7 @@ import { MapPopupHandler } from './MapPopupHandler'
 import { decodeUrlAndParams } from '#/common/utils/map'
 import { MapActionsWrapper } from './MapActionsWrapper'
 import MapBottomControls from './MapBottomControls'
+import { Box } from '#/components/common/PandaBox'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 // const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN

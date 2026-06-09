@@ -1,24 +1,18 @@
 'use client'
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
-import {
-  Autocomplete,
-  Box,
-  Collapse,
-  CircularProgress,
-  IconButton,
-  TextField,
-  Typography,
-} from '@mui/material'
-import { debounce } from 'lodash-es'
+import { Button as BaseButton } from '@base-ui/react/button'
+import { css, cx } from 'styled-system/css'
 import { useTranslate } from '@tolgee/react'
 import axios from 'axios'
 import { useParams } from 'next/navigation'
-import { bbox as turfBBox } from '@turf/turf'
+import type { BBox, Feature, Geometry } from 'geojson'
 
 import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
 import { useMapStore, useUIStore } from '#/common/store'
-import Search from '#/components/icons/Search'
+import { Box } from '#/components/common/PandaBox'
+import { LoadingSpinner } from '#/components/Loading'
+import { Cross, Search } from '#/components/icons'
 import {
   boundsFromNominatim,
   defaultFeatureDisplayPattern,
@@ -39,26 +33,125 @@ const MAX_REMOTE_RESULTS = 5
 const MAX_REMOTE_CACHE_SIZE = 50
 
 type LocalSearchIndexEntry = {
-  feature: any
+  feature: Feature
   searchText: string
   displayNameArr: string[]
   datasetName: string
   appendDatasetName: boolean
-  getCoordinates: (feature: any) => [number, number] | null
-  place_id: string
+  getCoordinates: (feature: Feature) => [number, number] | null
+  place_id: string | number
+}
+
+type LocalSearchResult = {
+  isLocal: true
+  lon: number
+  lat: number
+  bbox: [number, number, number, number] | null
+  displayNameArr: string[]
+  datasetName: string
+  place_id: string | number
+}
+
+type RemoteSearchResult = {
+  isLocal?: false
+  place_id?: string | number
+  display_name?: string
+  lon?: string | number
+  lat?: string | number
+  lng?: string | number
+  latitude?: string | number
+  boundingbox?: [string, string, string, string]
+  address?: Record<string, string | undefined>
+  name?: string
+  place_rank?: number
+  importance?: number
+  class?: string
+  type?: string
+}
+
+type SearchResult = LocalSearchResult | RemoteSearchResult
+
+const isFourNumberBbox = (
+  bbox: BBox | undefined
+): bbox is [number, number, number, number] =>
+  Array.isArray(bbox) &&
+  bbox.length === 4 &&
+  bbox.every((value) => typeof value === 'number')
+
+const isRemoteSearchResult = (
+  option: SearchResult
+): option is RemoteSearchResult => option.isLocal !== true
+
+const extendBboxFromCoordinates = (
+  coordinates: unknown,
+  bbox: [number, number, number, number]
+) => {
+  if (!Array.isArray(coordinates)) {
+    return
+  }
+
+  const [x, y] = coordinates
+  if (typeof x === 'number' && typeof y === 'number') {
+    bbox[0] = Math.min(bbox[0], x)
+    bbox[1] = Math.min(bbox[1], y)
+    bbox[2] = Math.max(bbox[2], x)
+    bbox[3] = Math.max(bbox[3], y)
+    return
+  }
+
+  coordinates.forEach((child) => {
+    extendBboxFromCoordinates(child, bbox)
+  })
+}
+
+const extendBboxFromGeometry = (
+  geometry: Geometry,
+  bbox: [number, number, number, number]
+) => {
+  if (geometry.type === 'GeometryCollection') {
+    geometry.geometries.forEach((childGeometry) => {
+      extendBboxFromGeometry(childGeometry, bbox)
+    })
+    return
+  }
+
+  extendBboxFromCoordinates(geometry.coordinates, bbox)
+}
+
+const getFeatureBbox = (
+  feature: Feature
+): [number, number, number, number] | null => {
+  if (isFourNumberBbox(feature.bbox)) {
+    return feature.bbox
+  }
+
+  if (!feature.geometry) {
+    return null
+  }
+
+  const bbox: [number, number, number, number] = [
+    Infinity,
+    Infinity,
+    -Infinity,
+    -Infinity,
+  ]
+  extendBboxFromGeometry(feature.geometry, bbox)
+
+  return bbox.every(Number.isFinite) ? bbox : null
 }
 
 export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
-  const [searchResults, setSearchResults] = useState<any[]>([])
-  const [value, setValue] = useState('')
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [inputValue, setInputValue] = useState('')
   const [isFocused, setIsFocused] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const fetchCounter = React.useRef(0)
-  const remoteCacheRef = useRef<Map<string, any[]>>(new Map())
+  const remoteCacheRef = useRef<Map<string, RemoteSearchResult[]>>(new Map())
   const remoteRequestRef = useRef<AbortController | null>(null)
   const { locale } = useParams()
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const popupRef = useRef<HTMLDivElement>(null)
   const activeMapMenu = useUIStore((state) => state.activeMapMenu)
   const setMapMenuState = useUIStore((state) => state.setMapMenuState)
 
@@ -123,6 +216,8 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
           .join(' ')
         const displayNameArr = displayPattern(feature, fields)
 
+        const propertyId = properties.id
+
         entries.push({
           feature,
           searchText,
@@ -132,7 +227,9 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
           getCoordinates,
           place_id:
             feature.id ||
-            feature.properties?.id ||
+            (typeof propertyId === 'string' || typeof propertyId === 'number'
+              ? propertyId
+              : undefined) ||
             `${datasetName}-${displayNameArr.join('-')}`,
         })
       })
@@ -145,7 +242,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
     (query: string) => {
       if (!query) return []
       const lowerCaseQuery = query.toLowerCase()
-      const localResults: any[] = []
+      const localResults: LocalSearchResult[] = []
 
       for (const entry of localSearchIndex) {
         if (!entry.searchText.includes(lowerCaseQuery)) {
@@ -157,16 +254,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
           continue
         }
 
-        const bbox = (entry.feature as any).bbox
-          ? ((entry.feature as any).bbox as [number, number, number, number])
-          : entry.feature.geometry
-            ? (turfBBox(entry.feature as any) as [
-                number,
-                number,
-                number,
-                number,
-              ])
-            : null
+        const bbox = getFeatureBbox(entry.feature)
 
         const displayNameArr = entry.appendDatasetName
           ? [...entry.displayNameArr, `(${entry.datasetName})`]
@@ -240,7 +328,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
         if (searchCountryCodes.length > 0) {
           url += `&countrycodes=${searchCountryCodes.join(',')}`
         }
-        const res = await axios.get(url, {
+        const res = await axios.get<RemoteSearchResult[]>(url, {
           headers: { 'Accept-Language': locale || 'en' },
           signal: controller.signal,
         })
@@ -258,7 +346,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
           setSearchResults([...localResults, ...res.data])
           setIsLoading(false)
         }
-      } catch (e) {
+      } catch {
         if (controller.signal.aborted) return
         if (currentFetchId === fetchCounter.current) {
           setSearchResults(localResults)
@@ -269,28 +357,31 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
     [locale, performLocalSearch, searchCountryCodes]
   )
 
-  const debouncedSearch = useMemo(
-    () =>
-      debounce((query: string) => {
-        handleSearch(query)
-      }, SEARCH_DEBOUNCE_MS),
-    [handleSearch]
-  )
-
   useEffect(() => {
     const query = inputValue.trim()
-    if (query) {
-      debouncedSearch(query)
-    } else {
-      setSearchResults([])
-      setIsLoading(false)
-    }
-    return () => {
-      debouncedSearch.cancel()
-    }
-  }, [inputValue, debouncedSearch])
 
-  const handleSelect = (_event: any, option: any) => {
+    if (!query) {
+      remoteRequestRef.current?.abort()
+      const clearSearchTimeout = window.setTimeout(() => {
+        setSearchResults([])
+        setIsLoading(false)
+      }, 0)
+
+      return () => {
+        window.clearTimeout(clearSearchTimeout)
+      }
+    }
+
+    const searchTimeout = window.setTimeout(() => {
+      void handleSearch(query)
+    }, SEARCH_DEBOUNCE_MS)
+
+    return () => {
+      window.clearTimeout(searchTimeout)
+    }
+  }, [inputValue, handleSearch])
+
+  const handleSelect = (option: SearchResult) => {
     if (!option || !map) return
 
     // try to build a bbox
@@ -298,7 +389,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
 
     if (option.isLocal) {
       bbox = option.bbox || null
-    } else {
+    } else if (isRemoteSearchResult(option)) {
       bbox = boundsFromNominatim(option)
     }
 
@@ -318,12 +409,16 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
     }
 
     // point fallback
-    const lon = parseFloat(option.lon ?? option.lon ?? option.lng)
-    const lat = parseFloat(option.lat ?? option.latitude)
+    const lon = option.isLocal
+      ? option.lon
+      : Number.parseFloat(String(option.lon ?? option.lng ?? ''))
+    const lat = option.isLocal
+      ? option.lat
+      : Number.parseFloat(String(option.lat ?? option.latitude ?? ''))
     if (Number.isFinite(lon) && Number.isFinite(lat)) {
       let z = defaultPointZoom(option)
 
-      if (option.place_rank != null) {
+      if (isRemoteSearchResult(option) && option.place_rank != null) {
         z = zoomFromPlaceOptions(option.place_rank, {
           importance: option.importance,
           cls: option.class,
@@ -333,6 +428,143 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
 
       flyTo({ options: { center: [lon, lat], zoom: z, duration: 900 } })
     }
+  }
+
+  const getOptionLabel = (option: SearchResult | string) => {
+    if (typeof option === 'string') return option
+    if (option.isLocal) {
+      return option.displayNameArr.join(' - ') || ''
+    }
+    return option.display_name || ''
+  }
+
+  const selectOption = (option: SearchResult) => {
+    const nextValue = getOptionLabel(option)
+    setInputValue(nextValue)
+    setHighlightedIndex(-1)
+    handleSelect(option)
+  }
+
+  const expanded = !isVertical || isActive
+  const showPopup = expanded && searchResults.length > 0 && isFocused
+
+  const handleInputBlur = () => {
+    setIsFocused(false)
+    setTimeout(() => {
+      if (
+        isVertical &&
+        !inputValue &&
+        !popupRef.current?.contains(document.activeElement)
+      ) {
+        setMapMenuState(mapMenuState, false)
+      }
+    }, 200)
+  }
+
+  const clearOrClose = () => {
+    if (isVertical && !inputValue.trim()) {
+      setInputValue('')
+      setSearchResults([])
+      setMapMenuState(mapMenuState, false)
+      searchInputRef.current?.blur()
+      return
+    }
+
+    setInputValue('')
+    setSearchResults([])
+    setHighlightedIndex(-1)
+    searchInputRef.current?.focus()
+  }
+
+  const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      setHighlightedIndex((current) =>
+        searchResults.length === 0
+          ? -1
+          : Math.min(current + 1, searchResults.length - 1)
+      )
+      return
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      setHighlightedIndex((current) =>
+        searchResults.length === 0 ? -1 : Math.max(current - 1, 0)
+      )
+      return
+    }
+
+    if (event.key === 'Enter' && highlightedIndex >= 0) {
+      event.preventDefault()
+      selectOption(searchResults[highlightedIndex])
+      return
+    }
+
+    if (event.key === 'Escape') {
+      if (isVertical && !inputValue.trim()) {
+        setMapMenuState(mapMenuState, false)
+      }
+      setHighlightedIndex(-1)
+    }
+  }
+
+  const renderOptionContent = (option: SearchResult) => {
+    if (option.isLocal) {
+      const [mainText, ...otherParts] = option.displayNameArr
+      const secondaryText = otherParts.join(' - ')
+
+      return (
+        <span>
+          <span className={css({ display: 'block', textStyle: 'body1' })}>
+            {mainText}
+          </span>
+          <span
+            className={css({
+              display: 'block',
+              textStyle: 'body2',
+              color: 'neutral.dark',
+            })}
+          >
+            {secondaryText}
+          </span>
+        </span>
+      )
+    }
+
+    const { address, name } = option
+    const addressParts = [
+      address?.road,
+      address?.neighbourhood,
+      address?.suburb,
+      address?.city_district,
+      address?.city,
+      address?.state,
+      address?.country,
+    ].filter(Boolean)
+    const uniqueAddressParts = [...new Set(addressParts)]
+    const nameIndex = uniqueAddressParts.indexOf(name)
+
+    if (nameIndex > -1) {
+      uniqueAddressParts.splice(nameIndex, 1)
+    }
+
+    return (
+      <span>
+        <span className={css({ display: 'block', textStyle: 'body1' })}>
+          {name}
+        </span>
+        <span
+          className={css({
+            display: 'block',
+            textStyle: 'body2',
+            color: 'neutral.dark',
+          })}
+        >
+          {uniqueAddressParts.join(', ')}
+        </span>
+      </span>
+    )
   }
 
   return (
@@ -345,239 +577,213 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
             : MAP_SEARCH_BAR_HORIZONTAL_MODE_WIDTH,
         height: '40px',
         // transition: `width ${isActive ? '0.2s' : '0.2s'} ease-in-out`,
-        zIndex: isFocused ? (theme) => theme.zIndex.drawer + 5 : 'auto',
+        zIndex: isFocused ? 'calc(var(--z-index-drawer) + 5)' : 'auto',
         right: 0,
         backgroundColor: 'neutral.light',
         marginLeft: 'auto',
         borderRadius: '0.3125rem',
         pointerEvents: 'auto',
-        overflow: 'hidden',
+        overflow: expanded ? 'visible' : 'hidden',
         '&:hover': {
           opacity: 1,
         },
       }}
     >
-      <Collapse
-        in={!isVertical || isActive}
-        orientation="horizontal"
-        sx={{
-          width: '300px',
-          ...(isVertical && {
-            position: 'absolute',
-            top: 0,
-            right: 0,
-          }),
-        }}
-        timeout={{ appear: 0, enter: 0, exit: 0 }}
-        easing={{
-          enter: 'ease-in-out',
-          exit: 'ease-in-out',
-        }}
-      >
-        <Autocomplete
-          sx={{ width: '300px' }}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => {
-            setIsFocused(false)
-            // Add a small delay to allow click on options before collapsing
-            setTimeout(() => {
-              if (
-                isVertical &&
-                !inputValue &&
-                !document.activeElement?.closest('.MuiAutocomplete-popper')
-              ) {
-                setMapMenuState(mapMenuState, false)
-              }
-            }, 200)
+      {expanded && (
+        <Box
+          sx={{
+            width: '300px',
+            ...(isVertical && {
+              position: 'absolute',
+              top: 0,
+              right: 0,
+            }),
           }}
-          freeSolo
-          options={searchResults}
-          getOptionLabel={(option) => {
-            if (typeof option === 'string') return option
-            if (option.isLocal) {
-              return option.displayNameArr.join(' - ') || ''
-            }
-            return option.display_name || ''
-          }}
-          filterOptions={(x) => x} // disable built-in filtering
-          inputValue={inputValue}
-          onInputChange={(_e, newInputValue) => setInputValue(newInputValue)}
-          value={value}
-          onChange={(_e, newValue) => {
-            if (typeof newValue === 'object' && newValue !== null) {
-              if (newValue.isLocal) {
-                setValue(newValue.displayNameArr.join(' - ') || '')
-              } else {
-                setValue(newValue.display_name || '')
-              }
-            } else {
-              setValue(newValue || '')
-            }
-            handleSelect(_e, newValue)
-          }}
-          slotProps={{
-            paper: {
-              sx: {
-                opacity: isVertical ? 1 : 0.9,
-                mt: '-0.3125rem',
-                borderRadius: '0.3125rem',
-                borderTopLeftRadius: 0,
-                borderTopRightRadius: 0,
-                backgroundColor: 'neutral.light',
-              },
-            },
-            popper: {
-              sx: (theme) => ({
-                zIndex: theme.zIndex.drawer + 4,
-              }),
-            },
-            clearIndicator: {
-              // If the input is already empty, treat the clear button as "close" in vertical mode.
-              // Use capture so we don't override MUI's built-in clear handler when there's text.
-              onMouseDownCapture: (e: React.MouseEvent<HTMLElement>) => {
-                if (isVertical && !inputValue.trim()) {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  setValue('')
-                  setInputValue('')
-                  setSearchResults([])
-                  setMapMenuState(mapMenuState, false)
-                  searchInputRef.current?.blur()
-                }
-              },
-            },
-          }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              aria-label={t('map.search.placeholder')}
-              inputRef={searchInputRef}
-              size="small"
-              variant="outlined"
-              placeholder={t('map.search.placeholder')}
+        >
+          <Box
+            sx={{
+              width: '300px',
+              height: '40px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+              px: '0.5rem',
+              backgroundColor: 'neutral.light',
+              opacity: 0.9,
+              borderRadius: '0.3125rem',
+              boxSizing: 'border-box',
+            }}
+          >
+            <Box
+              component="span"
               sx={{
-                '& .MuiOutlinedInput-root': {
-                  backgroundColor: 'neutral.light',
-                  typography: 'body2',
-                  opacity: 0.9,
-                  borderRadius: '0.3125rem',
-                  height: '40px',
-                  '&.Mui-focused': {
-                    boxShadow: 'none',
-                  },
-                  '& fieldset': {
-                    border: 'none',
-                  },
-                },
+                width: '24px',
+                height: '24px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'neutral.dark',
+                flexShrink: 0,
               }}
-              slotProps={{
-                input: {
-                  ...params.InputProps,
-                  startAdornment: (
-                    <>
-                      {params.InputProps.startAdornment}
-                      {isLoading ? (
-                        <Box
-                          sx={{
-                            width: '24px',
-                            height: '24px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <CircularProgress
-                            size={18}
-                            sx={{
-                              color: 'action.active',
-                            }}
-                          />
-                        </Box>
-                      ) : (
-                        <Search
-                          sx={{
-                            color: 'action.active',
-                            width: '24px',
-                            height: '24px',
-                          }}
-                        />
-                      )}
-                    </>
-                  ),
-                },
+            >
+              {isLoading ? (
+                <LoadingSpinner size="18px" sx={{ color: 'neutral.dark' }} />
+              ) : (
+                <Search sx={{ width: '24px', height: '24px' }} />
+              )}
+            </Box>
+            <input
+              ref={searchInputRef}
+              aria-label={t('map.search.placeholder')}
+              placeholder={t('map.search.placeholder')}
+              value={inputValue}
+              onFocus={() => setIsFocused(true)}
+              onBlur={handleInputBlur}
+              onKeyDown={handleInputKeyDown}
+              onChange={(event) => {
+                setInputValue(event.target.value)
+                setHighlightedIndex(-1)
               }}
+              className={css({
+                flex: 1,
+                minWidth: 0,
+                height: '100%',
+                border: 0,
+                outline: 0,
+                backgroundColor: 'transparent',
+                color: 'neutral.darker',
+                textStyle: 'body2',
+                '&::placeholder': {
+                  color: 'neutral.dark',
+                  opacity: 1,
+                },
+              })}
             />
+            <BaseButton
+              type="button"
+              aria-label={inputValue.trim() ? 'Clear search' : 'Close search'}
+              onMouseDown={(event) => {
+                event.preventDefault()
+              }}
+              onClick={clearOrClose}
+              className={css({
+                width: '1.75rem',
+                height: '1.75rem',
+                border: 0,
+                borderRadius: '50%',
+                p: 0,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'transparent',
+                color: 'neutral.dark',
+                cursor: 'pointer',
+                opacity: inputValue.trim() || isVertical ? 1 : 0,
+                pointerEvents: inputValue.trim() || isVertical ? 'auto' : 'none',
+                '&:hover': {
+                  backgroundColor: 'neutral.main',
+                },
+                '&:focus-visible': {
+                  outline: '2px solid var(--colors-secondary-dark)',
+                  outlineOffset: '2px',
+                },
+              })}
+            >
+              <Cross sx={{ width: '0.75rem', height: '0.75rem' }} />
+            </BaseButton>
+          </Box>
+          {showPopup && (
+            <Box
+              ref={popupRef}
+              role="listbox"
+              sx={{
+                position: 'absolute',
+                top: '40px',
+                left: 0,
+                right: 0,
+                zIndex: 'calc(var(--z-index-drawer) + 4)',
+                mt: '-0.3125rem',
+                borderRadius: '0 0 0.3125rem 0.3125rem',
+                backgroundColor: 'neutral.light',
+                opacity: isVertical ? 1 : 0.9,
+                boxShadow: '0 8px 20px rgba(17, 17, 17, 0.16)',
+                overflow: 'hidden',
+              }}
+            >
+              {searchResults.map((option, index) => (
+                <BaseButton
+                  key={
+                    option.place_id ||
+                    (isRemoteSearchResult(option)
+                      ? option.display_name
+                      : undefined) ||
+                    index
+                  }
+                  type="button"
+                  role="option"
+                  aria-selected={highlightedIndex === index}
+                  onMouseDown={(event) => {
+                    event.preventDefault()
+                  }}
+                  onMouseEnter={() => setHighlightedIndex(index)}
+                  onClick={() => selectOption(option)}
+                  className={cx(
+                    css({
+                      width: '100%',
+                      border: 0,
+                      p: '0.625rem 0.75rem',
+                      display: 'block',
+                      backgroundColor:
+                        highlightedIndex === index
+                          ? 'neutral.main'
+                          : 'transparent',
+                      color: 'neutral.darker',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      '&:hover': {
+                        backgroundColor: 'neutral.main',
+                      },
+                      '&:focus-visible': {
+                        outline: '2px solid var(--colors-secondary-dark)',
+                        outlineOffset: '-2px',
+                      },
+                    })
+                  )}
+                >
+                  {renderOptionContent(option)}
+                </BaseButton>
+              ))}
+            </Box>
           )}
-          renderOption={(props, option) => {
-            if (option.isLocal) {
-              const [mainText, ...otherParts] = option.displayNameArr
-              const secondaryText = otherParts.join(' - ')
-              return (
-                <Box component="li" {...props} key={option.place_id}>
-                  <div>
-                    <Typography variant="body1">{mainText}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {secondaryText}
-                    </Typography>
-                  </div>
-                </Box>
-              )
-            }
-
-            // Nominatim result rendering
-            const { address, name } = option
-            const addressParts = [
-              address.road,
-              address.neighbourhood,
-              address.suburb,
-              address.city_district,
-              address.city,
-              address.state,
-              address.country,
-            ].filter(Boolean)
-
-            // Create a set to keep unique parts, then convert back to array
-            const uniqueAddressParts = [...new Set(addressParts)]
-
-            // Remove the main name from address parts if it's present to avoid duplication
-            const nameIndex = uniqueAddressParts.indexOf(name)
-            if (nameIndex > -1) {
-              uniqueAddressParts.splice(nameIndex, 1)
-            }
-
-            return (
-              <Box
-                component="li"
-                {...props}
-                key={option.place_id || option.display_name}
-              >
-                <div>
-                  <Typography variant="body1">{name}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {uniqueAddressParts.join(', ')}
-                  </Typography>
-                </div>
-              </Box>
-            )
-          }}
-        />
-      </Collapse>
+        </Box>
+      )}
       {isVertical && !isActive && (
-        <IconButton
+        <BaseButton
+          type="button"
           onClick={() => setMapMenuState(mapMenuState, true)}
           aria-label="Open search"
-          sx={{
+          className={css({
             backgroundColor: 'transparent',
             width: '40px',
             height: '40px',
+            border: 0,
+            p: 0,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             borderRadius: 0,
+            cursor: 'pointer',
             '&:hover': {
-              backgroundColor: 'neutral.main',
+              backgroundColor: 'var(--colors-neutral-main)',
             },
-          }}
+            '&:focus-visible': {
+              outline: '2px solid var(--colors-secondary-dark)',
+              outlineOffset: '2px',
+            },
+          })}
         >
-          <Search sx={{ color: 'action.active' }} />
-        </IconButton>
+          <Search sx={{ color: 'neutral.dark' }} />
+        </BaseButton>
       )}
     </Box>
   )

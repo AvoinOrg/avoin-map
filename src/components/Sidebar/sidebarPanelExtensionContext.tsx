@@ -20,7 +20,10 @@ export const SidebarPanelExtensionContextProvider = ({
   children: React.ReactNode
 }) => {
   const memoizedValue = useMemo(
-    () => value,
+    () => ({
+      extensionId: value.extensionId,
+      depth: value.depth,
+    }),
     [value.depth, value.extensionId]
   )
 

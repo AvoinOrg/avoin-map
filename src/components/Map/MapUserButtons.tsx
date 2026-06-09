@@ -2,9 +2,11 @@
 
 import { useMemo } from 'react'
 import { useParams, usePathname, useSearchParams } from 'next/navigation'
-import { Box, MenuItem, MenuList, Typography } from '@mui/material'
+import { Button as BaseButton } from '@base-ui/react/button'
+import { css } from 'styled-system/css'
 
 import { useRouter } from '#/common/navigation/navigation'
+import { Box } from '#/components/common/PandaBox'
 import { getLocalesForApplet } from '#/common/navigation/tolgee/shared'
 import { useUIStore } from '#/common/store'
 import { getRoute } from '#/common/routing/routing-client'
@@ -175,25 +177,21 @@ export const MapUserButtons = ({ isVertical }: Props) => {
     en: 'Language menu',
   })
 
-  const menuItemSx = {
-    px: 2.5,
-    py: 1.25,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 2,
-    typography: 'body1',
-  }
-
   const localeMenuContent =
     supportedLocales.length > 1
       ? ({ closeMenu }: { closeMenu: () => void }) => (
           <Box sx={{ minWidth: '10rem' }}>
-            <MenuList aria-label={languageMenuLabel} sx={{ py: 1 }}>
+            <Box
+              role="menu"
+              aria-label={languageMenuLabel}
+              sx={{ display: 'flex', flexDirection: 'column', py: 1 }}
+            >
               {supportedLocales.map((supportedLocale) => (
-                <MenuItem
+                <BaseButton
                   key={supportedLocale}
-                  selected={supportedLocale === locale}
+                  type="button"
+                  role="menuitem"
+                  aria-current={supportedLocale === locale ? 'true' : undefined}
                   aria-label={getLocaleName({
                     localeCode: supportedLocale,
                     displayLocale: locale,
@@ -206,9 +204,33 @@ export const MapUserButtons = ({ isVertical }: Props) => {
                       })
                     }
                   }}
-                  sx={menuItemSx}
+                  className={css({
+                    px: 2.5,
+                    py: 1.25,
+                    border: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 2,
+                    textStyle: 'body1',
+                    width: '100%',
+                    backgroundColor:
+                      supportedLocale === locale
+                        ? 'neutral.main'
+                        : 'transparent',
+                    color: 'neutral.darker',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      backgroundColor: 'neutral.main',
+                    },
+                    '&:focus-visible': {
+                      outline: '2px solid var(--colors-secondary-dark)',
+                      outlineOffset: '-2px',
+                    },
+                  })}
                 >
-                  <Typography
+                  <Box
                     component="span"
                     sx={{
                       fontWeight: supportedLocale === locale ? 600 : 400,
@@ -218,11 +240,11 @@ export const MapUserButtons = ({ isVertical }: Props) => {
                       localeCode: supportedLocale,
                       displayLocale: locale,
                     })}
-                  </Typography>
-                  <Typography
+                  </Box>
+                  <Box
                     component="span"
                     sx={{
-                      color: 'text.secondary',
+                      color: 'neutral.dark',
                       fontSize: '0.75rem',
                       fontWeight: 600,
                       letterSpacing: '0.08em',
@@ -230,10 +252,10 @@ export const MapUserButtons = ({ isVertical }: Props) => {
                     }}
                   >
                     {supportedLocale}
-                  </Typography>
-                </MenuItem>
+                  </Box>
+                </BaseButton>
               ))}
-            </MenuList>
+            </Box>
           </Box>
         )
       : undefined

@@ -2,9 +2,11 @@
 
 import React from 'react'
 import { useParams } from 'next/navigation'
-import { Box, Divider, MenuItem, MenuList, Typography } from '@mui/material'
-import { T, useTranslate } from '@tolgee/react'
+import { Button as BaseButton } from '@base-ui/react/button'
+import { css } from 'styled-system/css'
+import { useTranslate } from '@tolgee/react'
 
+import { Box } from '#/components/common/PandaBox'
 import { Login } from '#/components/icons'
 import { useUserStore } from '#/common/store/userStore'
 import { UserAuthState, UserDataState } from '#/common/types/state'
@@ -16,6 +18,25 @@ import { MapButtonMenu } from './MapButtonMenu'
 
 const PROFILE_URL =
   process.env.NEXT_PUBLIC_ZITADEL_ISSUER + '/ui/console/users/me'
+
+const menuItemClass = css({
+  width: '100%',
+  border: 0,
+  backgroundColor: 'transparent',
+  color: 'neutral.darker',
+  textAlign: 'left',
+  px: 3,
+  py: 1.5,
+  textStyle: 'body1',
+  cursor: 'pointer',
+  '&:hover': {
+    backgroundColor: 'neutral.main',
+  },
+  '&:focus-visible': {
+    outline: '2px solid var(--colors-secondary-dark)',
+    outlineOffset: '-2px',
+  },
+})
 
 type Props = {
   isVertical: boolean
@@ -43,14 +64,8 @@ export const MapLoginButton = ({ isVertical }: Props) => {
     (isAuthenticated && userDataState !== UserDataState.Fetched)
 
   const tooltipLabel = isAuthenticated
-    ? t('navbar.profile.settings', 'Profile settings')
-    : t('navbar.profile.sign_in', 'Sign in')
-
-  const menuItemSx = {
-    px: 3,
-    py: 1.5,
-    typography: 'body1',
-  }
+    ? t('navbar.profile.settings')
+    : t('navbar.profile.sign_in')
 
   if (isLoading) {
     return (
@@ -88,33 +103,41 @@ export const MapLoginButton = ({ isVertical }: Props) => {
           backgroundColor: 'inherit',
         }}
       >
-        <Typography variant="h3" sx={{ textAlign: 'left' }}>
-          {userData?.name || t('map.buttons.account', 'Account')}
-        </Typography>
+        <Box component="h2" sx={{ m: 0, textStyle: 'h3', textAlign: 'left' }}>
+          {userData?.name || t('map.buttons.account')}
+        </Box>
       </Box>
-      <Divider />
-      <MenuList aria-label={t('map.buttons.account', 'Account menu')} sx={{ py: 1 }}>
-        <MenuItem
+      <Box component="hr" sx={{ m: 0, border: 0, borderTop: '1px solid var(--colors-neutral-main)' }} />
+      <Box
+        role="menu"
+        aria-label={t('map.buttons.account')}
+        sx={{ display: 'flex', flexDirection: 'column', py: 1 }}
+      >
+        <BaseButton
+          type="button"
+          role="menuitem"
           aria-label={t('navbar.profile.settings')}
           onClick={() => {
             openWindow(PROFILE_URL)
             closeMenu()
           }}
-          sx={menuItemSx}
+          className={menuItemClass}
         >
-          <T keyName="navbar.profile.settings" />
-        </MenuItem>
-        <MenuItem
+          {t('navbar.profile.settings')}
+        </BaseButton>
+        <BaseButton
+          type="button"
+          role="menuitem"
           aria-label={t('navbar.profile.sign_out')}
           onClick={() => {
             signOut()
             closeMenu()
           }}
-          sx={menuItemSx}
+          className={menuItemClass}
         >
-          <T keyName="navbar.profile.sign_out" />
-        </MenuItem>
-      </MenuList>
+          {t('navbar.profile.sign_out')}
+        </BaseButton>
+      </Box>
     </Box>
   )
 

@@ -1,19 +1,20 @@
 import React, { useMemo } from 'react'
 import { usePathname } from 'next/navigation'
-import { Box, SxProps, Theme, Typography } from '@mui/material'
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 
+import type { PandaStyleProp } from '#/common/style/panda'
 import MutableLink from '#/components/common/MutableLink'
+import { Box } from '#/components/common/PandaBox'
 import { compiledApplets, getRoutesForPath } from '#/common/routing/routing'
 import { RouteForLinks, RouteTree } from '#/common/types/routing'
 import { useUIStore } from '#/common/store'
 import { mainRouteTree } from '#/common/routing/routes/main'
+import { ArrowLeft } from '#/components/icons'
 
 interface Props {
   routeTree: RouteTree
   collapseIfRoot?: boolean
   appletNamespace?: string
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
 }
 
 const breadcrumbLabelSx = {
@@ -65,30 +66,30 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
       params={route.params}
       sx={{ color: 'inherit' }}
     >
-      <Typography
-        sx={(theme) => ({
-          ...breadcrumbLabelSx,
-          color: theme.palette.neutral.dark,
-          '&:hover': { color: theme.palette.primary.main },
-        })}
+      <Box
         component="span"
+        sx={{
+          ...breadcrumbLabelSx,
+          color: 'neutral.dark',
+          '&:hover': { color: 'primary.main' },
+        }}
       >
         {route.name}
-      </Typography>
+      </Box>
     </MutableLink>
   )
 
   const RouteElementInert = ({ name }: { name: string }) => (
     <>
-      <Typography
-        sx={(theme) => ({
-          ...breadcrumbLabelSx,
-          color: theme.palette.neutral.darker,
-        })}
+      <Box
         component="span"
+        sx={{
+          ...breadcrumbLabelSx,
+          color: 'neutral.darker',
+        }}
       >
         {name}
-      </Typography>
+      </Box>
     </>
   )
 
@@ -96,13 +97,13 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
     <Box
       className="breadcrumb-nav"
       sx={[
-        (theme) => ({
+        {
           display: 'flex',
           flexDirection: 'row',
           alignItems: 'center',
-          color: theme.palette.neutral.dark,
+          color: 'neutral.dark',
           width: '100%',
-        }),
+        },
         ...(Array.isArray(sx) ? sx : [sx]),
         collapseIfRoot && visibleRoutes.length <= 1
           ? {
@@ -127,16 +128,17 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
             params={visibleRoutes[visibleRoutes.length - 2].params}
             sx={{ alignItems: 'center' }}
           >
-            <ArrowBackIosNewIcon
-              sx={(theme) => ({
+            <ArrowLeft
+              sx={{
                 cursor: 'pointer',
-                color: theme.palette.neutral.dark,
+                color: 'neutral.dark',
+                width: '0.85rem',
                 height: '0.85rem',
                 mt: 0.1,
                 ml: -1,
-                '&:hover': { color: theme.palette.neutral.main },
-              })}
-            ></ArrowBackIosNewIcon>
+                '&:hover': { color: 'neutral.main' },
+              }}
+            />
           </MutableLink>
           <Box
             sx={{
@@ -170,20 +172,20 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
                   }}
                 >
                   <RouteElement route={route}></RouteElement>
-                  <Typography
-                    sx={(theme) => ({
+                  <Box
+                    component="span"
+                    sx={{
                       display: 'block',
                       fontSize: '0.75rem',
                       lineHeight: 1.2,
-                      color: theme.palette.neutral.dark,
+                      color: 'neutral.dark',
                       margin: '0 3px',
                       position: 'relative',
                       top: '1px',
-                    })}
-                    component="span"
+                    }}
                   >
                     /
-                  </Typography>
+                  </Box>
                 </Box>
               )
             })}

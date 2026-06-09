@@ -77,11 +77,14 @@ export const SidebarPanelExtensionProvider = ({
     config,
     runtimeOptions: runtimeOptions ?? initialRuntimeOptions,
   })
-  latestRegistration.current = {
-    depth,
-    config,
-    runtimeOptions: runtimeOptions ?? initialRuntimeOptions,
-  }
+
+  useIsomorphicLayoutEffect(() => {
+    latestRegistration.current = {
+      depth,
+      config,
+      runtimeOptions: runtimeOptions ?? initialRuntimeOptions,
+    }
+  })
 
   useIsomorphicLayoutEffect(() => {
     if (!enabled) {

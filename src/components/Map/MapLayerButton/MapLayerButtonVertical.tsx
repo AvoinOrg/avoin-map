@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useCallback, useMemo } from 'react'
-import { useTheme } from '@mui/material/styles'
 
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import MapLayerButtonBase, { MapLayerButtonProps } from './MapLayerButtonBase'
@@ -13,11 +12,10 @@ const MapLayerButtonVertical = ({
   headerLabel,
   icon,
 }: MapLayerButtonProps) => {
-  const theme = useTheme()
   const isMobile = useIsMobile()
   const verticalMenuWidth = '26rem'
-  const verticalTopOffset = parseFloat(theme.spacing(2))
-  const headerHeight = theme.spacing(5)
+  const verticalTopOffset = 16
+  const headerHeight = '2.5rem'
 
   const popperOffset = useMemo<[number, number]>(
     () => (isMobile ? [0, 0] : [0, 8]),
@@ -26,7 +24,7 @@ const MapLayerButtonVertical = ({
   const popperPadding = isMobile ? 0 : 16
 
   const resolveAnchorEl = useCallback(
-    (anchorRef: React.RefObject<HTMLButtonElement>) => ({
+    (anchorRef: React.RefObject<HTMLButtonElement | null>) => ({
       getBoundingClientRect: () => {
         const anchorRect = anchorRef.current?.getBoundingClientRect()
         const left = isMobile ? 0 : anchorRect?.left ?? 0
@@ -66,7 +64,7 @@ const MapLayerButtonVertical = ({
       minWidth: isMobile ? '100vw' : verticalMenuWidth,
       ...(isMobile && { borderRadius: 0 }),
     }),
-    [isMobile, theme, verticalMenuWidth]
+    [isMobile, verticalMenuWidth]
   )
 
   const placement = isMobile ? 'bottom-start' : 'left-start'

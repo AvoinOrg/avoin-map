@@ -1,12 +1,9 @@
 'use client'
 
 import React from 'react'
-import type { SxProps, Theme } from '@mui/material'
 
-import {
-  HIILIKARTTA_HOME_FLOATING_GUTTER_PX,
-  MAP_CONTROL_EDGE_GUTTER_PX,
-} from '#/common/constants/map'
+import { HIILIKARTTA_HOME_FLOATING_GUTTER_PX } from '#/common/constants/map'
+import type { PandaStyleProp } from '#/common/style/panda'
 import { useUIStore } from '#/common/store'
 import type { SidebarBoundaryId } from '#/common/types/sidebar'
 
@@ -25,9 +22,9 @@ export type FloatingSidebarHeaderMode = 'default' | 'custom' | 'none'
 export type FloatingSidebarFooterMode = 'none' | 'slot'
 
 export type FloatingSidebarProps = {
-  sx?: SxProps<Theme>
-  sidebarToggleSx?: SxProps<Theme>
-  contentSx?: SxProps<Theme>
+  sx?: PandaStyleProp
+  sidebarToggleSx?: PandaStyleProp
+  contentSx?: PandaStyleProp
   trailingContent?: React.ReactNode
   actionRail?: React.ReactNode
   hideMainContainer?: boolean
@@ -65,7 +62,6 @@ export const FloatingSidebar = ({
   children,
 }: FloatingSidebarProps) => {
   const floatingGutter = `${HIILIKARTTA_HOME_FLOATING_GUTTER_PX}px`
-  const toggleGutter = `${MAP_CONTROL_EDGE_GUTTER_PX}px`
   const isSidebarDisabled = useUIStore((state) => state.isSidebarDisabled)
   const sidebarHeaderConfig = useUIStore((state) => state.sidebarHeaderConfig)
 
@@ -100,17 +96,7 @@ export const FloatingSidebar = ({
   return (
     <>
       <SidebarToggleButton
-        sx={[
-          width === 'compact'
-            ? {
-                right: { mobile: '1rem', desktop: toggleGutter },
-                bottom: { mobile: '1rem', desktop: toggleGutter },
-              }
-            : undefined,
-          ...(Array.isArray(sidebarToggleSx)
-            ? sidebarToggleSx
-            : [sidebarToggleSx]),
-        ]}
+        sx={sidebarToggleSx}
       />
       <SidebarScaffold
         topContent={topContent}
@@ -119,21 +105,17 @@ export const FloatingSidebar = ({
         actionRail={resolvedActionRail}
         hideMainContainer={hideMainContainer}
         contentSx={contentSx}
-        containerSx={[
+        containerSx={sx}
+        desktopWidth={width === 'compact' ? '23.75rem' : undefined}
+        desktopMaxWidth={
           width === 'compact'
-            ? {
-                pt: { mobile: 0, desktop: floatingGutter },
-                pb: { mobile: 0, desktop: floatingGutter },
-                ml: { mobile: 0, desktop: floatingGutter },
-                width: { mobile: '100vw', desktop: '23.75rem' },
-                maxWidth: {
-                  mobile: '100vw',
-                  desktop: `min(23.75rem, calc(100vw - ${floatingGutter}))`,
-                },
-              }
-            : undefined,
-          ...(Array.isArray(sx) ? sx : [sx]),
-        ]}
+            ? `min(23.75rem, calc(100vw - ${floatingGutter}))`
+            : undefined
+        }
+        desktopGutter={width === 'compact' ? floatingGutter : undefined}
+        desktopPaddingBlock={
+          width === 'compact' ? floatingGutter : undefined
+        }
       >
         {children}
       </SidebarScaffold>

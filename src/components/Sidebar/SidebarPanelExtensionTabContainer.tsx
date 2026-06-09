@@ -1,9 +1,9 @@
 'use client'
 
 import React, { useEffect, useId, useMemo } from 'react'
-import { Box } from '@mui/material'
-import type { SxProps, Theme } from '@mui/material'
 
+import type { PandaStyleProp } from '#/common/style/panda'
+import { Box } from '#/components/common/PandaBox'
 import {
   useNullableSidebarPanelExtensionTabsContext,
   type SidebarPanelExtensionTabMetadata,
@@ -14,10 +14,10 @@ export type SidebarPanelExtensionTabContainerProps = {
   tabName: React.ReactNode
   tabAriaLabel?: string
   tabIcon?: React.ReactNode
-  tabButtonSx?: SxProps<Theme>
-  tabIconSx?: SxProps<Theme>
+  tabButtonSx?: PandaStyleProp
+  tabIconSx?: PandaStyleProp
   keepMounted?: boolean
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
   children?: React.ReactNode
 }
 

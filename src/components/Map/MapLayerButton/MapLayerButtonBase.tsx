@@ -1,16 +1,14 @@
 import React, {
   ReactNode,
   useCallback,
-  useEffect,
   useMemo,
   useRef,
+  useState,
 } from 'react'
-import { ClickAwayListener, Paper, Popper } from '@mui/material'
-import type { Instance, Placement, VirtualElement } from '@popperjs/core'
-import { alpha, SxProps, Theme } from '@mui/material/styles'
 import { useTranslate } from '@tolgee/react'
 
 import { useMapStore, useUIStore } from '#/common/store'
+import type { PandaStyleProp } from '#/common/style/panda'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
 import { LayerOrderLevel, ListedLayerGroup } from '#/common/types/map'
 import {
@@ -20,9 +18,11 @@ import {
 import { MapMenuState } from '#/common/types/state'
 import { Layers } from '#/components/icons'
 import { MapButton } from '../MapButton'
+import MapFloatingPanel, {
+  type MapFloatingResolvedAnchor,
+  type MapFloatingPlacement,
+} from '../MapFloatingPanel'
 import LayerMenuContent from './LayerMenuContent'
-
-type AnchorEl = HTMLElement | VirtualElement | null
 
 type Props = {
   isVertical: boolean
@@ -31,12 +31,14 @@ type Props = {
   tooltipLabel: string
   headerLabel?: string
   icon?: React.ReactNode
-  placement: Placement
+  placement: MapFloatingPlacement
   popperOffset: [number, number]
   popperPadding: number
-  resolveAnchorEl: (anchorRef: React.RefObject<HTMLButtonElement>) => AnchorEl
-  paperSx?: SxProps<Theme>
-  listSx?: SxProps<Theme>
+  resolveAnchorEl: (
+    anchorRef: React.RefObject<HTMLButtonElement | null>
+  ) => MapFloatingResolvedAnchor
+  paperSx?: PandaStyleProp
+  listSx?: PandaStyleProp
   scrollMaxHeight?: string
 }
 
@@ -72,7 +74,7 @@ const MapLayerButtonBase = ({
   const activeMapMenu = useUIStore((state) => state.activeMapMenu)
   const setMapMenuState = useUIStore((state) => state.setMapMenuState)
   const anchorRef = useRef<HTMLButtonElement>(null)
-  const popperRef = useRef<Instance | null>(null)
+  const [, requestPositionUpdate] = useState(0)
   const { t } = useTranslate('avoin-map')
   const opacityLabel = t('map.menus.layer_opacity')
 
@@ -98,34 +100,13 @@ const MapLayerButtonBase = ({
   }
 
   const handlePopperUpdate = useCallback(() => {
-    popperRef.current?.update()
+    requestPositionUpdate((current) => current + 1)
   }, [])
 
-  const anchorEl = resolveAnchorEl(anchorRef)
-
-  useEffect(() => {
-    if (!isActive) {
-      return
-    }
-    popperRef.current?.update()
-  }, [
-    isActive,
-    anchorEl,
-    placement,
-    popperOffset[0],
-    popperOffset[1],
-    popperPadding,
-  ])
-
-  const handleClose = (event: Event | React.SyntheticEvent) => {
-    if (
-      anchorRef.current &&
-      anchorRef.current.contains(event.target as HTMLElement)
-    ) {
-      return
-    }
-    setMapMenuState(mapMenuState, false)
-  }
+  const getAnchor = useCallback(
+    () => resolveAnchorEl(anchorRef),
+    [resolveAnchorEl]
+  )
 
   const handleCloseMenu = () => {
     setMapMenuState(mapMenuState, false)
@@ -145,75 +126,50 @@ const MapLayerButtonBase = ({
       >
         {icon || <Layers />}
       </MapButton>
-      <Popper
+      <MapFloatingPanel
         open={isActive}
-        anchorEl={anchorEl}
-        popperRef={popperRef}
+        anchor={getAnchor}
         placement={placement}
-        modifiers={[
+        offset={popperOffset}
+        collisionPadding={popperPadding}
+        onClose={handleCloseMenu}
+        positionerSx={{ zIndex: 'calc(var(--z-index-drawer) + 3)' }}
+        paperSx={[
           {
-            name: 'offset',
-            options: {
-              offset: popperOffset,
-            },
+            maxWidth: 'calc(100vw - 78px)',
+            maxHeight: isVertical
+              ? 'calc(100vh - 32px)'
+              : 'calc(100vh - 78px)',
+            overflow: 'hidden',
+            p: 0,
+            backgroundColor: isVertical
+              ? 'neutral.light'
+              : 'rgba(246, 244, 244, 0.9)',
+            borderRadius: '0.3125rem',
+            display: 'flex',
+            flexDirection: 'column',
+            width: 'fit-content',
           },
-          {
-            name: 'flip',
-            enabled: false,
-          },
-          {
-            name: 'preventOverflow',
-            options: {
-              padding: popperPadding,
-              tether: true,
-              altAxis: true,
-            },
-          },
+          ...(Array.isArray(paperSx) ? paperSx : [paperSx]),
         ]}
-        sx={(theme) => ({
-          zIndex: theme.zIndex.drawer + 3,
-        })}
       >
-        <Paper
-          sx={[
-            (theme) => ({
-              maxWidth: `calc(100vw - 78px)`,
-              maxHeight: isVertical
-                ? `calc(100vh - 32px)`
-                : 'calc(100vh - 78px)',
-              overflow: 'hidden',
-              p: 0,
-              backgroundColor: isVertical
-                ? theme.palette.neutral.light
-                : alpha(theme.palette.neutral.light, 0.9),
-              borderRadius: '0.3125rem',
-              display: 'flex',
-              flexDirection: 'column',
-              width: 'fit-content',
-            }),
-            ...(Array.isArray(paperSx) ? paperSx : [paperSx]),
-          ]}
-        >
-          <ClickAwayListener onClickAway={handleClose}>
-            <LayerMenuContent
-              headerLabel={headerLabel}
-              items={filteredLayerGroups}
-              visibleLayerGroupIds={visibleLayerGroupIds}
-              opacityLabel={opacityLabel}
-              onOpacityChange={handleOpacityChange}
-              onToggleLayer={(layerGroup: ListedLayerGroup) => {
-                if (isListedLayerGroup(layerGroup)) {
-                  toggleLayerGroup(layerGroup.id, layerGroup.addOptions)
-                }
-              }}
-              onInfoToggle={handlePopperUpdate}
-              onClose={handleCloseMenu}
-              listSx={listSx}
-              scrollMaxHeight={scrollMaxHeight}
-            />
-          </ClickAwayListener>
-        </Paper>
-      </Popper>
+        <LayerMenuContent
+          headerLabel={headerLabel}
+          items={filteredLayerGroups}
+          visibleLayerGroupIds={visibleLayerGroupIds}
+          opacityLabel={opacityLabel}
+          onOpacityChange={handleOpacityChange}
+          onToggleLayer={(layerGroup: ListedLayerGroup) => {
+            if (isListedLayerGroup(layerGroup)) {
+              toggleLayerGroup(layerGroup.id, layerGroup.addOptions)
+            }
+          }}
+          onInfoToggle={handlePopperUpdate}
+          onClose={handleCloseMenu}
+          listSx={listSx}
+          scrollMaxHeight={scrollMaxHeight}
+        />
+      </MapFloatingPanel>
     </>
   )
 }

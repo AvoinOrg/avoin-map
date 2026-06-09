@@ -1,11 +1,19 @@
 'use client'
 
 import React from 'react'
-import { Box, IconButton, Tooltip } from '@mui/material'
-import type { SxProps, Theme } from '@mui/material'
+import { Button as BaseButton } from '@base-ui/react/button'
+import { css, cx } from 'styled-system/css'
+
+import type { PandaStyleObject, PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+import { Box } from '#/components/common/PandaBox'
+import SimpleTooltip from '#/components/common/SimpleTooltip'
 
 export type SidebarPanelExtensionDefaultTabIconProps = {
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
 }
 
 export type SidebarPanelExtensionTabIconButtonProps = {
@@ -17,8 +25,8 @@ export type SidebarPanelExtensionTabIconButtonProps = {
   buttonId?: string
   controlsId?: string
   onSelect?: (tabId: string) => void
-  sx?: SxProps<Theme>
-  iconSx?: SxProps<Theme>
+  sx?: PandaStyleProp
+  iconSx?: PandaStyleProp
 }
 
 export const getSidebarPanelExtensionTabAccessibleLabel = ({
@@ -40,6 +48,37 @@ export const getSidebarPanelExtensionTabAccessibleLabel = ({
 
   return tabId
 }
+
+const getTabIconButtonSx = (selected: boolean): PandaStyleObject => ({
+  width: '2.75rem',
+  minWidth: '2.75rem',
+  height: '2.75rem',
+  p: 0,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  cursor: 'pointer',
+  borderRadius: '0.625rem',
+  color: '#111111',
+  backgroundColor: selected ? '#e8e8e8' : '#ffffff',
+  boxShadow: selected
+    ? '0 8px 18px rgba(17, 17, 17, 0.14)'
+    : '0 2px 8px rgba(17, 17, 17, 0.12)',
+  border: `1px solid ${
+    selected ? '#d8d8d8' : 'rgba(17, 17, 17, 0.08)'
+  }`,
+  transition:
+    'background-color 160ms cubic-bezier(.2,0,.2,1), color 160ms cubic-bezier(.2,0,.2,1), transform 160ms cubic-bezier(.2,0,.2,1)',
+  '&:hover': {
+    color: '#111111',
+    backgroundColor: '#f4f4f4',
+    transform: 'translateY(-1px)',
+  },
+  '&:focus-visible': {
+    outline: '2px solid var(--colors-primary-main)',
+    outlineOffset: '2px',
+  },
+})
 
 export const SidebarPanelExtensionDefaultTabIcon = ({
   sx,
@@ -96,10 +135,12 @@ export const SidebarPanelExtensionTabIconButton = ({
   })
   const tooltipTitle =
     tabName == null || tabName === '' ? accessibleLabel : tabName
+  const buttonSx = getTabIconButtonSx(selected)
 
   return (
-    <Tooltip title={tooltipTitle} placement="right" arrow disableInteractive>
-      <IconButton
+    <SimpleTooltip title={tooltipTitle} side="right">
+      <BaseButton
+        type="button"
         id={buttonId}
         aria-label={accessibleLabel}
         aria-selected={selected}
@@ -107,35 +148,12 @@ export const SidebarPanelExtensionTabIconButton = ({
         role="tab"
         tabIndex={selected ? 0 : -1}
         onClick={() => onSelect?.(tabId)}
-        size="small"
-        sx={[
-          (theme: Theme) => ({
-            width: '2.75rem',
-            minWidth: '2.75rem',
-            height: '2.75rem',
-            borderRadius: '0.625rem',
-            color: '#111111',
-            backgroundColor: selected ? '#e8e8e8' : '#ffffff',
-            boxShadow: selected
-              ? '0 8px 18px rgba(17, 17, 17, 0.14)'
-              : '0 2px 8px rgba(17, 17, 17, 0.12)',
-            border: `1px solid ${
-              selected ? '#d8d8d8' : 'rgba(17, 17, 17, 0.08)'
-            }`,
-            transition:
-              'background-color 160ms cubic-bezier(.2,0,.2,1), color 160ms cubic-bezier(.2,0,.2,1), transform 160ms cubic-bezier(.2,0,.2,1)',
-            '&:hover': {
-              color: '#111111',
-              backgroundColor: selected ? '#f4f4f4' : '#f4f4f4',
-              transform: 'translateY(-1px)',
-            },
-            '&:focus-visible': {
-              outline: `2px solid ${theme.palette.primary.main}`,
-              outlineOffset: '2px',
-            },
-          }),
-          ...(Array.isArray(sx) ? sx : [sx]),
-        ]}
+        className={cx(
+          css(buttonSx, ...pandaStylePropsToArray(sx))
+        )}
+        style={mergePandaStyleProps({
+          sx: [buttonSx, ...pandaStylePropsToArray(sx)],
+        })}
       >
         <Box
           component="span"
@@ -151,13 +169,13 @@ export const SidebarPanelExtensionTabIconButton = ({
                 height: '1.25rem',
               },
             },
-            ...(Array.isArray(iconSx) ? iconSx : [iconSx]),
+            ...pandaStylePropsToArray(iconSx),
           ]}
         >
           {icon ?? <SidebarPanelExtensionDefaultTabIcon />}
         </Box>
-      </IconButton>
-    </Tooltip>
+      </BaseButton>
+    </SimpleTooltip>
   )
 }
 

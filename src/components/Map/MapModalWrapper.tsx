@@ -1,15 +1,18 @@
 'use client'
 
 import React, { ReactNode, useEffect, useRef } from 'react'
-import Box from '@mui/material/Box'
-import { SxProps, Theme } from '@mui/material'
 import { useUIStore } from '#/common/store'
+import type { PandaStyleProp } from '#/common/style/panda'
+import { Box } from '#/components/common/PandaBox'
 
 interface MapModalWrapperProps {
   children: ReactNode
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
   minWidthBeforeFullScreen?: number // Mininum width before collapsing to full screen width.
 }
+
+const ELEVATION_SHADOW_24 =
+  '0px 11px 15px -7px rgba(0, 0, 0, 0.2), 0px 24px 38px 3px rgba(0, 0, 0, 0.14), 0px 9px 46px 8px rgba(0, 0, 0, 0.12)'
 
 export const MapModalWrapper = ({
   children,
@@ -27,8 +30,6 @@ export const MapModalWrapper = ({
       return
     }
 
-    let observer: ResizeObserver | undefined
-
     const checkViewMode = () => {
       if (minMapDims.width <= minWidthBeforeFullScreen) {
         setPopupModalViewMode('fullscreen')
@@ -44,15 +45,13 @@ export const MapModalWrapper = ({
 
     checkViewMode()
 
-    observer = new ResizeObserver(checkViewMode)
+    const observer = new ResizeObserver(checkViewMode)
     observer.observe(element)
 
     return () => {
-      if (observer) {
-        observer.disconnect()
-      }
+      observer.disconnect()
     }
-  }, [minMapDims, wrapperRef.current, minWidthBeforeFullScreen])
+  }, [minMapDims, minWidthBeforeFullScreen, setPopupModalViewMode])
 
   return (
     <>
@@ -75,7 +74,7 @@ export const MapModalWrapper = ({
                   left: minMapDims.centerX,
                   top: minMapDims.centerY,
                   transform: 'translate(-50%, -50%)',
-                  boxShadow: 24,
+                  boxShadow: ELEVATION_SHADOW_24,
                 }
               : null,
             popupModalViewMode === 'fullscreen'
@@ -99,7 +98,7 @@ export const MapModalWrapper = ({
                   left: minMapDims.centerX,
                   top: minMapDims.centerY,
                   transform: 'translate(-50%, -50%)',
-                  boxShadow: 24,
+                  boxShadow: ELEVATION_SHADOW_24,
                   '& > *': {
                     borderRadius: '0 !important',
                     maxHeight: '100% !important',

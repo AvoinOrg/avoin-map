@@ -1,12 +1,11 @@
 'use client'
 
-import React, { useEffect, useRef, useState, ReactElement } from 'react'
-import { Box, ClickAwayListener, Paper, Popper } from '@mui/material'
-import type { PopperPlacementType } from '@mui/material/Popper'
-import type { SxProps, Theme } from '@mui/material/styles'
-import { alpha } from '@mui/material/styles'
+import React, { useRef, useState, ReactElement } from 'react'
 
+import type { PandaStyleProp } from '#/common/style/panda'
+import { Box } from '#/components/common/PandaBox'
 import { MapButtonProps } from './MapButton'
+import MapFloatingPanel, { type MapFloatingPlacement } from './MapFloatingPanel'
 
 type MenuContentRenderer = (helpers: { closeMenu: () => void }) => React.ReactNode
 
@@ -14,10 +13,12 @@ type MapButtonMenuProps = {
   children: ReactElement<MapButtonProps>
   menuContent?: React.ReactNode | MenuContentRenderer
   isVertical: boolean
-  placement?: PopperPlacementType
-  paperSx?: SxProps<Theme>
-  popperSx?: SxProps<Theme>
+  placement?: MapFloatingPlacement
+  paperSx?: PandaStyleProp
+  popperSx?: PandaStyleProp
 }
+
+type MapButtonClickEvent = Parameters<NonNullable<MapButtonProps['onClick']>>[0]
 
 export const MapButtonMenu = ({
   children,
@@ -28,25 +29,15 @@ export const MapButtonMenu = ({
   popperSx,
 }: MapButtonMenuProps) => {
   const anchorRef = useRef<HTMLButtonElement | null>(null)
-  const [open, setOpen] = useState(false)
-  const closeMenu = () => setOpen(false)
+  const [requestedOpen, setRequestedOpen] = useState(false)
+  const closeMenu = () => setRequestedOpen(false)
   const resolvedMenuContent =
     typeof menuContent === 'function' ? menuContent({ closeMenu }) : menuContent
 
   const hasMenuContent = React.Children.count(resolvedMenuContent) > 0
   const childDisabled = Boolean(children.props.disabled)
-
-  useEffect(() => {
-    if (!hasMenuContent && open) {
-      setOpen(false)
-    }
-  }, [hasMenuContent, open])
-
-  useEffect(() => {
-    if (childDisabled && open) {
-      setOpen(false)
-    }
-  }, [childDisabled, open])
+  const open = requestedOpen && hasMenuContent && !childDisabled
+  const getAnchor = React.useCallback(() => anchorRef.current, [])
 
   if (!hasMenuContent) {
     return children
@@ -65,30 +56,20 @@ export const MapButtonMenu = ({
     if (typeof childRef === 'function') {
       childRef(node)
     } else if (typeof childRef === 'object') {
+      // eslint-disable-next-line react-hooks/immutability -- preserve a cloned trigger's existing object ref.
       ;(childRef as React.MutableRefObject<HTMLButtonElement | null>).current =
         node
     }
   }
 
-  const handleButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleButtonClick = (event: MapButtonClickEvent) => {
     if (typeof originalOnClick === 'function') {
       originalOnClick(event)
     }
 
     if (childDisabled) return
 
-    setOpen((prev) => !prev)
-  }
-
-  const handleClose = (event: MouseEvent | TouchEvent) => {
-    if (
-      anchorRef.current &&
-      event.target instanceof HTMLElement &&
-      anchorRef.current.contains(event.target)
-    ) {
-      return
-    }
-    setOpen(false)
+    setRequestedOpen((prev) => !prev)
   }
 
   const clonedChild = React.cloneElement(children, {
@@ -101,59 +82,33 @@ export const MapButtonMenu = ({
   return (
     <>
       {clonedChild}
-      <Popper
+      <MapFloatingPanel
         open={open}
-        anchorEl={anchorRef.current}
+        anchor={getAnchor}
         placement={placement ?? (isVertical ? 'left-end' : 'bottom-start')}
-        modifiers={[
+        offset={[0, 8]}
+        collisionPadding={16}
+        onClose={closeMenu}
+        positionerSx={popperSx}
+        paperSx={[
           {
-            name: 'offset',
-            options: {
-              offset: [0, 8],
-            },
+            maxWidth: 'calc(100vw - 78px)',
+            maxHeight: isVertical
+              ? 'calc(100vh - 32px)'
+              : 'calc(100vh - 78px)',
+            overflowY: 'auto',
+            p: '1rem',
+            backgroundColor: isVertical
+              ? 'neutral.light'
+              : 'rgba(246, 244, 244, 0.9)',
+            borderRadius: '0.3125rem',
+            width: 'fit-content',
           },
-          {
-            name: 'flip',
-            enabled: false,
-          },
-          {
-            name: 'preventOverflow',
-            options: {
-              padding: 16,
-              tether: false,
-            },
-          },
-        ]}
-        sx={[
-          (theme) => ({
-            zIndex: theme.zIndex.drawer + 3,
-          }),
-          ...(Array.isArray(popperSx) ? popperSx : [popperSx]),
+          ...(Array.isArray(paperSx) ? paperSx : [paperSx]),
         ]}
       >
-        <Paper
-          sx={[
-            (theme) => ({
-              maxWidth: `calc(100vw - 78px)`,
-              maxHeight: isVertical
-                ? `calc(100vh - 32px)`
-                : 'calc(100vh - 78px)',
-              overflowY: 'auto',
-              p: '1rem',
-              backgroundColor: isVertical
-                ? theme.palette.neutral.light
-                : alpha(theme.palette.neutral.light, 0.9),
-              borderRadius: '0.3125rem',
-              width: 'fit-content',
-            }),
-            ...(Array.isArray(paperSx) ? paperSx : [paperSx]),
-          ]}
-        >
-          <ClickAwayListener onClickAway={handleClose}>
-            <Box>{resolvedMenuContent}</Box>
-          </ClickAwayListener>
-        </Paper>
-      </Popper>
+        <Box>{resolvedMenuContent}</Box>
+      </MapFloatingPanel>
     </>
   )
 }

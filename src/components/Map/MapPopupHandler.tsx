@@ -1,14 +1,32 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
-import Box from '@mui/material/Box'
-import { Modal } from '@mui/material'
+import React, { useMemo } from 'react'
+import { Dialog as BaseDialog } from '@base-ui/react/dialog'
+import { css } from 'styled-system/css'
 
 import { useMapStore } from '#/common/store/mapStore'
 import { useUIStore } from '#/common/store'
 
+const backdropClass = css({
+  position: 'fixed',
+  inset: 0,
+  backgroundColor: 'transparent',
+  pointerEvents: 'none',
+})
+
+const popupClass = css({
+  position: 'fixed',
+  inset: 0,
+  zIndex: 'modal',
+  pointerEvents: 'none',
+  outline: 'none',
+})
+
+const popupContentClass = css({
+  pointerEvents: 'auto',
+})
+
 export const MapPopupHandler = () => {
-  const [isActive, setIsActive] = useState(false)
   const activePopupData = useMapStore((state) => state.activePopupData)
   const removeSelectedFeatures = useMapStore(
     (state) => state.removeSelectedFeatures
@@ -24,17 +42,7 @@ export const MapPopupHandler = () => {
     return newPopupData
   }, [activePopupData])
 
-  useEffect(() => {
-    if (!popupData) {
-      setIsActive(false)
-      return
-    }
-
-    setIsActive(true)
-  }, [popupData])
-
   const handleClose = () => {
-    setIsActive(false)
     if (popupData?.features) {
       removeSelectedFeatures({ features: popupData.features })
     }
@@ -43,39 +51,35 @@ export const MapPopupHandler = () => {
   return (
     <>
       {popupData && popupData.type === 'modal' && (
-        <Modal
-          open={isActive}
-          onClose={handleClose}
-          aria-labelledby="map-popup-modal-title"
-          aria-describedby="map-popup-modal-description"
-          disableEnforceFocus={popupModalViewMode !== 'fullscreen'}
-          slotProps={{
-            backdrop: {
-              sx: {
-                backgroundColor: 'transparent',
-                pointerEvents: 'none',
-              },
-            },
+        <BaseDialog.Root
+          open={true}
+          onOpenChange={(nextOpen) => {
+            if (!nextOpen) {
+              handleClose()
+            }
           }}
-          sx={{
-            zIndex: 'modal',
-            pointerEvents: 'none',
-          }}
+          modal={popupModalViewMode === 'fullscreen'}
+          disablePointerDismissal
         >
-          <Box
-            sx={{
-              pointerEvents: 'auto',
-            }}
-          >
-            {popupData && (
-              <popupData.component
-                features={popupData.features}
-                onClose={handleClose}
-                {...popupData.componentProps}
-              />
-            )}
-          </Box>
-        </Modal>
+          <BaseDialog.Portal>
+            <BaseDialog.Backdrop className={backdropClass} />
+            <BaseDialog.Popup
+              aria-labelledby="map-popup-modal-title"
+              aria-describedby="map-popup-modal-description"
+              className={popupClass}
+            >
+              <div className={popupContentClass}>
+                {popupData && (
+                  <popupData.component
+                    features={popupData.features}
+                    onClose={handleClose}
+                    {...popupData.componentProps}
+                  />
+                )}
+              </div>
+            </BaseDialog.Popup>
+          </BaseDialog.Portal>
+        </BaseDialog.Root>
       )}
     </>
   )
