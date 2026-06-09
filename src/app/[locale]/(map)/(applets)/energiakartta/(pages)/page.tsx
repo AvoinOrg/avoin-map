@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import { Box, Tooltip, Typography, useMediaQuery } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 import { useParams } from 'next/navigation'
 
@@ -9,12 +8,16 @@ import { MAP_BOTTOM_LEFT_FLOATING_CONTROLS_SLOT } from '#/common/constants/map'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import { useMapStore, useUIStore } from '#/common/store'
+import type { PandaStyleProp } from '#/common/style/panda'
+import type { FormCheckedChangeEvent } from '#/components/common/formControlEvents'
 import {
   LayerToggleRow,
   LayerToggleRowAccordion,
 } from '#/components/common/LayerToggleRow'
 import SquishedSwitchWithLabel from '#/components/common/SquishedSwitchWithLabel'
+import SimpleTooltip from '#/components/common/SimpleTooltip'
 import TText from '#/components/common/TText'
+import { Box } from '#/components/common/PandaBox'
 import { IntoSlot } from '#/components/context/slotsContext'
 import {
   IntoSidebarPanelExtensionActionRailSlot,
@@ -129,7 +132,54 @@ const HEATING_SWITCH_ITEMS = [
   id: HeatingEnergySourceFilterKey
   keyName: string
   color: string
-}[]
+  }[]
+
+const useWindowMatchMedia = (query: string): boolean => {
+  const getSnapshot = React.useCallback(() => {
+    return typeof window === 'undefined' ? false : window.matchMedia(query).matches
+  }, [query])
+  const subscribe = React.useCallback(
+    (onStoreChange: () => void) => {
+      if (typeof window === 'undefined') {
+        return () => {}
+      }
+
+      const mediaQueryList = window.matchMedia(query)
+      mediaQueryList.addEventListener('change', onStoreChange)
+
+      return () => {
+        mediaQueryList.removeEventListener('change', onStoreChange)
+      }
+    },
+    [query]
+  )
+
+  return React.useSyncExternalStore(subscribe, getSnapshot, () => false)
+}
+
+type SidebarTextProps = {
+  sx?: PandaStyleProp
+  children?: React.ReactNode
+} & React.ComponentPropsWithoutRef<'p'>
+
+const SidebarText = ({
+  sx,
+  children,
+  ...props
+}: SidebarTextProps) => (
+  <Box
+    component="p"
+    {...props}
+    sx={[
+      {
+        m: 0,
+      },
+      ...(Array.isArray(sx) ? sx : [sx]),
+    ]}
+  >
+    {children}
+  </Box>
+)
 
 type HeatingSwitchKey = (typeof HEATING_SWITCH_ITEMS)[number]['id']
 
@@ -162,11 +212,13 @@ const HEATING_THEMATIC_MODE: EnergymapMainThematicMode = 'heating'
 const INACTIVE_THEMATIC_OPACITY = 0
 
 const HomeSidebarHeader = () => {
+  const isMobile = useIsMobile()
+
   return (
     <Box
       sx={{
-        px: { mobile: '0.625rem', desktop: '0.625rem' },
-        pt: { mobile: '0.625rem', desktop: '0.75rem' },
+        px: '0.625rem',
+        pt: isMobile ? '0.625rem' : '0.75rem',
         flexShrink: 0,
       }}
     >
@@ -201,7 +253,7 @@ const HomeSidebarHeader = () => {
               'linear-gradient(90deg, rgba(255, 255, 255, 0.9) 17.5%, rgba(255, 255, 255, 0) 100%)',
           }}
         />
-        <Typography
+        <SidebarText
           sx={{
             position: 'relative',
             zIndex: 1,
@@ -215,7 +267,7 @@ const HomeSidebarHeader = () => {
           }}
         >
           <TText keyName="sidebar.front_page.header.title" ns="energiakartta" />
-        </Typography>
+        </SidebarText>
       </Box>
     </Box>
   )
@@ -230,8 +282,10 @@ const SidebarFooterAction = ({
   label: string
   reserveActionRow?: boolean
 }) => {
+  const isMobile = useIsMobile()
+
   return (
-    <Tooltip title={tooltip} arrow placement="top">
+    <SimpleTooltip title={tooltip} side="top">
       <Box
         component="span"
         role="button"
@@ -241,15 +295,12 @@ const SidebarFooterAction = ({
         sx={{
           width: '100%',
           height: '5rem',
-          pl: { mobile: '1.625rem', desktop: '1.625rem' },
-          pr: {
-            mobile: reserveActionRow ? '12rem' : '1.625rem',
-            desktop: '1.625rem',
-          },
+          pl: '1.625rem',
+          pr: isMobile && reserveActionRow ? '12rem' : '1.625rem',
           display: 'flex',
           alignItems: 'center',
           gap: '1.25rem',
-          borderRadius: { mobile: 0, desktop: '6px 6px 10px 10px' },
+          borderRadius: isMobile ? 0 : '6px 6px 10px 10px',
           background:
             'linear-gradient(90deg, #f8fff2 0%, #d9ffbd 48%, #b0ff6b 100%)',
           color: '#111111',
@@ -273,7 +324,7 @@ const SidebarFooterAction = ({
             flexShrink: 0,
           }}
         />
-        <Typography
+        <SidebarText
           sx={{
             minWidth: 0,
             color: '#111111',
@@ -287,9 +338,9 @@ const SidebarFooterAction = ({
             keyName="sidebar.front_page.footer.edit_building_details"
             ns="energiakartta"
           />
-        </Typography>
+        </SidebarText>
       </Box>
-    </Tooltip>
+    </SimpleTooltip>
   )
 }
 
@@ -300,7 +351,7 @@ const HeatingAccordionContent = ({
   heatingSwitchState: HeatingSwitchState
   onHeatingSwitchChange: (
     id: HeatingSwitchKey
-  ) => React.ChangeEventHandler<HTMLInputElement>
+  ) => (event: FormCheckedChangeEvent, checked: boolean) => void
 }) => {
   const { t } = useTranslate('energiakartta')
 
@@ -312,14 +363,14 @@ const HeatingAccordionContent = ({
         maxWidth: '15.875rem',
       }}
     >
-      <Typography
+      <SidebarText
         sx={{
           ...ACCORDION_TEXT_SX,
           mb: '2.5rem',
         }}
       >
         <TText keyName="sidebar.front_page.heating.body" ns="energiakartta" />
-      </Typography>
+      </SidebarText>
       <Box
         component="ul"
         sx={{
@@ -415,7 +466,7 @@ const Page = () => {
     React.useState<BuildingInfoDesktopMode>('twoPanel')
   const buildingInfoDesktopMinWidthPx =
     getEnergymapBuildingInfoDesktopMinWidthPx(activeBuildingInfoMode)
-  const buildingInfoDesktopMinWidthMatches = useMediaQuery(
+  const buildingInfoDesktopMinWidthMatches = useWindowMatchMedia(
     `(min-width:${buildingInfoDesktopMinWidthPx}px)`
   )
   const [isBuildingInfoCollapsed, setIsBuildingInfoCollapsed] =
@@ -475,6 +526,14 @@ const Page = () => {
   const hasBuildingInfo = buildingInfoPanels != null
   const isBuildingInfoExpanded = hasBuildingInfo && !isBuildingInfoCollapsed
   const useBuildingInfoMobileLayout = isMobile
+  const sidebarSidePadding = isMobile
+    ? SIDEBAR_SIDE_PADDING.mobile
+    : SIDEBAR_SIDE_PADDING.desktop
+  const sidebarContentVerticalPadding = isMobile
+    ? SIDEBAR_CONTENT_VERTICAL_PADDING.mobile
+    : SIDEBAR_CONTENT_VERTICAL_PADDING.desktop
+  const sidebarDescriptionMarginTop = isMobile ? '3rem' : '3.75rem'
+  const sidebarLayerListMarginTop = isMobile ? '4rem' : '6.875rem'
   const useBuildingInfoDesktopFullscreenFallback =
     isBuildingInfoExpanded && !isMobile && !buildingInfoDesktopMinWidthMatches
   const isSharedBuildingLayerGroupVisible = visibleLayerGroupIds.includes(
@@ -525,11 +584,11 @@ const Page = () => {
     ]
   )
   const handleHeatingSwitchChange =
-    (id: HeatingSwitchKey): React.ChangeEventHandler<HTMLInputElement> =>
-    (event) => {
+    (id: HeatingSwitchKey) =>
+    (_event: FormCheckedChangeEvent, checked: boolean) => {
       setHeatingSwitchState((currentState) => ({
         ...currentState,
-        [id]: event.target.checked,
+        [id]: checked,
       }))
     }
   const handleBuildingInfoModeChange = React.useCallback(
@@ -563,6 +622,7 @@ const Page = () => {
     setSelectedFeatures([])
   }, [setIsSidebarOpen, setSelectedFeatures])
 
+  /* eslint-disable react-hooks/set-state-in-effect -- Keep local UI state in sync with selection state. */
   React.useEffect(() => {
     if (selectedBuildingKey == null) {
       previousSelectedBuildingKeyRef.current = null
@@ -578,6 +638,7 @@ const Page = () => {
       setIsSidebarOpen(true)
     }
   }, [selectedBuildingKey, setIsSidebarOpen])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   React.useEffect(() => {
     if (
@@ -816,6 +877,8 @@ const Page = () => {
         scrollbarSide="left"
         sxInner={{
           p: 0,
+          px: 0,
+          py: 0,
           display: 'flex',
           flexDirection: 'column',
           minHeight: '100%',
@@ -824,14 +887,14 @@ const Page = () => {
       >
         <Box
           sx={{
-            px: SIDEBAR_SIDE_PADDING,
-            pt: SIDEBAR_CONTENT_VERTICAL_PADDING,
-            pb: SIDEBAR_CONTENT_VERTICAL_PADDING,
+            px: sidebarSidePadding,
+            pt: sidebarContentVerticalPadding,
+            pb: sidebarContentVerticalPadding,
             display: 'flex',
             flexDirection: 'column',
           }}
         >
-          <Typography
+          <SidebarText
             sx={{
               maxWidth: '18.1875rem',
               color: '#111111',
@@ -843,11 +906,11 @@ const Page = () => {
             }}
           >
             <TText keyName="sidebar.front_page.heading" ns="energiakartta" />
-          </Typography>
+          </SidebarText>
 
-          <Typography
+          <SidebarText
             sx={{
-              mt: { mobile: '3rem', desktop: '3.75rem' },
+              mt: sidebarDescriptionMarginTop,
               maxWidth: '18.1875rem',
               color: '#111111',
               fontSize: '0.75rem',
@@ -860,11 +923,11 @@ const Page = () => {
               keyName="sidebar.front_page.description"
               ns="energiakartta"
             />
-          </Typography>
+          </SidebarText>
 
           <Box
             sx={{
-              mt: { mobile: '4rem', desktop: '6.875rem' },
+              mt: sidebarLayerListMarginTop,
               display: 'flex',
               flexDirection: 'column',
               gap: '2.25rem',
@@ -909,11 +972,10 @@ const Page = () => {
               />
             </LayerToggleRowAccordion>
             {LOWER_DISABLED_LAYER_ROWS.map(({ keyName, ariaKeyName }) => (
-              <Tooltip
+              <SimpleTooltip
                 key={keyName}
                 title={upcomingTooltip}
-                arrow
-                placement="top"
+                side="top"
               >
                 <Box component="span" sx={{ display: 'block', width: '100%' }}>
                   <LayerToggleRow
@@ -925,7 +987,7 @@ const Page = () => {
                     labelSx={ROW_LABEL_SX}
                   />
                 </Box>
-              </Tooltip>
+              </SimpleTooltip>
             ))}
           </Box>
         </Box>

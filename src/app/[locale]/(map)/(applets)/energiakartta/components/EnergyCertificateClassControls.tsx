@@ -1,9 +1,10 @@
 'use client'
 
 import React from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
+import type { PandaStyleProp } from '#/common/style/panda'
+import { Box } from '#/components/common/PandaBox'
 import {
   ENERGY_CERTIFICATE_CLASS_CODES,
   ENERGY_CERTIFICATE_CLASS_COLORS,
@@ -18,7 +19,7 @@ type EnergyCertificateClassControlsOrientation = 'horizontal' | 'vertical'
 type Props = {
   variant?: EnergyCertificateClassControlsVariant
   orientation?: EnergyCertificateClassControlsOrientation
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
 }
 
 const DESKTOP_ACTIVE_TILE_BACKGROUND = '#F4F4F4'

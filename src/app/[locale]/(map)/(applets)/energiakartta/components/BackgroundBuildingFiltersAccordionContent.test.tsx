@@ -1,9 +1,7 @@
 import React from 'react'
-import '@testing-library/jest-dom'
-import { ThemeProvider } from '@mui/material/styles'
+import '#/test/baseUiTestPolyfills'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 
-import theme from '#/common/style/theme/theme'
 import { ENERGYMAP_DEFAULT_SELECTED_CONSTRUCTION_DECADE } from '../layers/buildingPolygonsLayerConf'
 import { useAppletStore } from '../state/appletStore'
 import BackgroundBuildingFiltersAccordionContent from './BackgroundBuildingFiltersAccordionContent'
@@ -39,12 +37,25 @@ jest.mock('@tolgee/react', () => {
   }
 })
 
-const renderWithTheme = (ui: React.ReactElement) => {
-  return render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>)
-}
-
 const getConstructionYearSelect = () =>
   screen.getByRole('combobox', { name: 'Construction year filter' })
+
+const getBuildingTypeSelect = () =>
+  screen.getByRole('combobox', { name: 'Building type filter' })
+
+const openSelectOptionList = async () => {
+  const listbox = await screen.findByRole('listbox')
+  return listbox
+}
+
+const selectRenderedOption = async (label: string) => {
+  const listbox = await openSelectOptionList()
+  const option = within(listbox).getByRole('option', { name: label })
+  fireEvent.mouseMove(option)
+  fireEvent.click(option)
+
+  return option
+}
 
 describe('BackgroundBuildingFiltersAccordionContent', () => {
   const originalGetBoundingClientRect =
@@ -73,22 +84,51 @@ describe('BackgroundBuildingFiltersAccordionContent', () => {
     useAppletStore.getState().resetBuildingFilters()
   })
 
+  it('updates store values when building type and decade are selected from rendered popovers', async () => {
+    const { rerender } = render(<BackgroundBuildingFiltersAccordionContent />)
+
+    const buildingTypeSelect = getBuildingTypeSelect()
+    const constructionYearSelect = getConstructionYearSelect()
+
+    fireEvent.click(buildingTypeSelect)
+    await selectRenderedOption('Residential')
+
+    expect(buildingTypeSelect).toHaveTextContent('Residential')
+    expect(useAppletStore.getState().buildingTypeFilter).toBe('01')
+
+    rerender(<BackgroundBuildingFiltersAccordionContent />)
+    expect(buildingTypeSelect).toHaveTextContent('Residential')
+
+    fireEvent.click(constructionYearSelect)
+    await selectRenderedOption('1900 - 1909')
+
+    expect(constructionYearSelect).toHaveTextContent('1900 - 1909')
+    expect(useAppletStore.getState().selectedConstructionDecade).toBe(1900)
+
+    expect(
+      screen.getByRole('switch', { name: 'Show from decade' })
+    ).not.toHaveAttribute('aria-disabled', 'true')
+    expect(
+      screen.getByRole('switch', { name: 'Show only decade' })
+    ).not.toHaveAttribute('aria-disabled', 'true')
+  })
+
   it('renders Any year as the default and first construction-year option', async () => {
-    renderWithTheme(<BackgroundBuildingFiltersAccordionContent />)
+    render(<BackgroundBuildingFiltersAccordionContent />)
 
     const constructionYearSelect = getConstructionYearSelect()
 
     expect(constructionYearSelect).toHaveTextContent('Any year')
     expect(
       screen.getByRole('switch', { name: 'Show from decade' })
-    ).toBeDisabled()
+    ).toHaveAttribute('aria-disabled', 'true')
     expect(
       screen.getByRole('switch', { name: 'Show only decade' })
-    ).toBeDisabled()
+    ).toHaveAttribute('aria-disabled', 'true')
 
-    fireEvent.mouseDown(constructionYearSelect)
+    fireEvent.click(constructionYearSelect)
 
-    const listbox = await screen.findByRole('listbox')
+    const listbox = await openSelectOptionList()
     const options = within(listbox).getAllByRole('option')
 
     expect(options[0]).toHaveTextContent('Any year')
@@ -98,7 +138,7 @@ describe('BackgroundBuildingFiltersAccordionContent', () => {
   it('keeps the construction-year switches exclusive in rendered state and store state', () => {
     useAppletStore.getState().setSelectedConstructionDecade(1970)
 
-    renderWithTheme(<BackgroundBuildingFiltersAccordionContent />)
+    render(<BackgroundBuildingFiltersAccordionContent />)
 
     const showFromSwitch = screen.getByRole('switch', {
       name: 'Show from decade',
@@ -107,8 +147,8 @@ describe('BackgroundBuildingFiltersAccordionContent', () => {
       name: 'Show only decade',
     })
 
-    expect(showFromSwitch).not.toBeDisabled()
-    expect(showOnlySwitch).not.toBeDisabled()
+    expect(showFromSwitch).not.toHaveAttribute('aria-disabled', 'true')
+    expect(showOnlySwitch).not.toHaveAttribute('aria-disabled', 'true')
 
     fireEvent.click(showFromSwitch)
 
@@ -142,7 +182,7 @@ describe('BackgroundBuildingFiltersAccordionContent', () => {
     useAppletStore.getState().setSelectedConstructionDecade(1970)
     useAppletStore.getState().setShowOnlySelectedDecade(true)
 
-    renderWithTheme(<BackgroundBuildingFiltersAccordionContent />)
+    render(<BackgroundBuildingFiltersAccordionContent />)
 
     const constructionYearSelect = getConstructionYearSelect()
     const showFromSwitch = screen.getByRole('switch', {
@@ -154,14 +194,19 @@ describe('BackgroundBuildingFiltersAccordionContent', () => {
 
     expect(showOnlySwitch).toBeChecked()
 
-    fireEvent.mouseDown(constructionYearSelect)
-    fireEvent.click(await screen.findByRole('option', { name: 'Any year' }))
+    fireEvent.click(constructionYearSelect)
+    const listbox = await openSelectOptionList()
+    const anyYearOption = within(listbox).getByRole('option', {
+      name: 'Any year',
+    })
+    fireEvent.mouseMove(anyYearOption)
+    fireEvent.click(anyYearOption)
 
     expect(constructionYearSelect).toHaveTextContent('Any year')
     expect(showFromSwitch).not.toBeChecked()
     expect(showOnlySwitch).not.toBeChecked()
-    expect(showFromSwitch).toBeDisabled()
-    expect(showOnlySwitch).toBeDisabled()
+    expect(showFromSwitch).toHaveAttribute('aria-disabled', 'true')
+    expect(showOnlySwitch).toHaveAttribute('aria-disabled', 'true')
     expect(useAppletStore.getState().selectedConstructionDecade).toBe(
       ENERGYMAP_DEFAULT_SELECTED_CONSTRUCTION_DECADE
     )

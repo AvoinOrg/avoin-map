@@ -43,6 +43,7 @@ interface Props {
   typographySx?: PandaStyleProp
   disabled?: boolean
   successIndicatorMode?: 'outside' | 'hidden'
+  disablePortal?: boolean
 }
 
 const wrapperClass = css({
@@ -165,6 +166,7 @@ const DropDownSelect = ({
   typographySx,
   disabled,
   successIndicatorMode = 'hidden',
+  disablePortal = false,
 }: Props) => {
   const { t } = useTranslate('avoin-map')
   const generatedId = React.useId()
@@ -208,6 +210,77 @@ const DropDownSelect = ({
       )
     },
     [name, onChange]
+  )
+
+  const selectPopup = (
+    <BaseSelect.Positioner
+      sideOffset={4}
+      align="start"
+      alignItemWithTrigger={false}
+      className={sharedFloatingPositionerClass}
+    >
+      <BaseSelect.Popup className={popupClass}>
+        <BaseSelect.List>
+          {hasInvalidValue && (
+            <BaseSelect.Item
+              key={`invalid-${currentValue}`}
+              value={currentValue}
+              aria-label={`Invalid value ${currentValue}`}
+              className={cx(
+                sharedSelectItemClass,
+                css(...pandaStylePropsToArray(typographySx))
+              )}
+              style={mergePandaStyleProps({ sx: typographySx })}
+            >
+              <span className={itemTextClass}>
+                <i>
+                  {t('components.drop_down_select.invalid_value')}
+                  {` (${currentValue})`}
+                </i>
+              </span>
+            </BaseSelect.Item>
+          )}
+          {useEmpty && (
+            <BaseSelect.Item
+              key="empty-selection"
+              value=""
+              aria-label="Empty selection"
+              className={cx(
+                sharedSelectItemClass,
+                css(...pandaStylePropsToArray(typographySx))
+              )}
+              style={mergePandaStyleProps({ sx: typographySx })}
+            >
+              <span className={itemTextClass}>
+                <i>
+                  {t('components.drop_down_select.empty_selection')}
+                </i>
+              </span>
+            </BaseSelect.Item>
+          )}
+          {options.map((option) => (
+            <BaseSelect.Item
+              key={`option-${option.value}`}
+              value={option.value}
+              aria-label={
+                typeof option.label === 'string'
+                  ? option.label
+                  : String(option.value)
+              }
+              className={cx(
+                sharedSelectItemClass,
+                css(...pandaStylePropsToArray(typographySx))
+              )}
+              style={mergePandaStyleProps({ sx: typographySx })}
+            >
+              <span className={itemTextClass}>
+                {renderOption ? renderOption(option) : option.label}
+              </span>
+            </BaseSelect.Item>
+          ))}
+        </BaseSelect.List>
+      </BaseSelect.Popup>
+    </BaseSelect.Positioner>
   )
 
   return (
@@ -261,76 +334,11 @@ const DropDownSelect = ({
               <ArrowDown />
             </BaseSelect.Icon>
           </BaseSelect.Trigger>
-          <BaseSelect.Portal>
-            <BaseSelect.Positioner
-              sideOffset={4}
-              align="start"
-              alignItemWithTrigger={false}
-              className={sharedFloatingPositionerClass}
-            >
-              <BaseSelect.Popup className={popupClass}>
-                <BaseSelect.List>
-                  {hasInvalidValue && (
-                    <BaseSelect.Item
-                      key={`invalid-${currentValue}`}
-                      value={currentValue}
-                      aria-label={`Invalid value ${currentValue}`}
-                      className={cx(
-                        sharedSelectItemClass,
-                        css(...pandaStylePropsToArray(typographySx))
-                      )}
-                      style={mergePandaStyleProps({ sx: typographySx })}
-                    >
-                      <span className={itemTextClass}>
-                        <i>
-                          {t('components.drop_down_select.invalid_value')}
-                          {` (${currentValue})`}
-                        </i>
-                      </span>
-                    </BaseSelect.Item>
-                  )}
-                  {useEmpty && (
-                    <BaseSelect.Item
-                      key="empty-selection"
-                      value=""
-                      aria-label="Empty selection"
-                      className={cx(
-                        sharedSelectItemClass,
-                        css(...pandaStylePropsToArray(typographySx))
-                      )}
-                      style={mergePandaStyleProps({ sx: typographySx })}
-                    >
-                      <span className={itemTextClass}>
-                        <i>
-                          {t('components.drop_down_select.empty_selection')}
-                        </i>
-                      </span>
-                    </BaseSelect.Item>
-                  )}
-                  {options.map((option) => (
-                    <BaseSelect.Item
-                      key={`option-${option.value}`}
-                      value={option.value}
-                      aria-label={
-                        typeof option.label === 'string'
-                          ? option.label
-                          : String(option.value)
-                      }
-                      className={cx(
-                        sharedSelectItemClass,
-                        css(...pandaStylePropsToArray(typographySx))
-                      )}
-                      style={mergePandaStyleProps({ sx: typographySx })}
-                    >
-                      <span className={itemTextClass}>
-                        {renderOption ? renderOption(option) : option.label}
-                      </span>
-                    </BaseSelect.Item>
-                  ))}
-                </BaseSelect.List>
-              </BaseSelect.Popup>
-            </BaseSelect.Positioner>
-          </BaseSelect.Portal>
+          {disablePortal ? (
+            selectPopup
+          ) : (
+            <BaseSelect.Portal>{selectPopup}</BaseSelect.Portal>
+          )}
         </BaseSelect.Root>
       </div>
       {hasValidSelection && successIndicatorMode === 'outside' && (

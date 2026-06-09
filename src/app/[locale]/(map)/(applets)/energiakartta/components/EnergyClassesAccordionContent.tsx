@@ -1,7 +1,9 @@
 'use client'
 
 import React from 'react'
-import { Box, Typography } from '@mui/material'
+
+import type { PandaStyleProp } from '#/common/style/panda'
+import { Box } from '#/components/common/PandaBox'
 
 import TText from '#/components/common/TText'
 import {
@@ -18,17 +20,43 @@ const ACCORDION_TEXT_SX = {
   letterSpacing: '0.1em',
 }
 
+type EnergyClassTextProps = {
+  component?: React.ElementType
+  sx?: PandaStyleProp
+  children?: React.ReactNode
+} & React.ComponentPropsWithoutRef<'p'>
+
+const EnergyClassText = ({
+  component,
+  sx,
+  children,
+  ...props
+}: EnergyClassTextProps) => (
+  <Box
+    component={component ?? 'p'}
+    sx={[
+      {
+        m: 0,
+      },
+      ...(Array.isArray(sx) ? sx : [sx]),
+    ]}
+    {...props}
+  >
+    {children}
+  </Box>
+)
+
 const EnergyClassesAccordionContent = () => {
   const [showDefinitions, setShowDefinitions] = React.useState(false)
 
   return (
-    <Box
-      sx={{
-        pt: '2.125rem',
-        mx: '2rem',
-        maxWidth: '15.875rem',
-      }}
-    >
+      <Box
+        sx={{
+          pt: '2.125rem',
+          mx: '2rem',
+          maxWidth: '15.875rem',
+        }}
+      >
       <EnergyCertificateClassControls
         sx={{
           mb: '2.75rem',
@@ -45,30 +73,30 @@ const EnergyClassesAccordionContent = () => {
           gap: '1.125rem',
         }}
       >
-        <Typography sx={ACCORDION_TEXT_SX}>
+        <EnergyClassText sx={ACCORDION_TEXT_SX}>
           <TText
             keyName="sidebar.front_page.energy_classes.body_1"
             ns="energiakartta"
           />
-        </Typography>
-        <Typography sx={ACCORDION_TEXT_SX}>
+        </EnergyClassText>
+        <EnergyClassText sx={ACCORDION_TEXT_SX}>
           <TText
             keyName="sidebar.front_page.energy_classes.body_2"
             ns="energiakartta"
           />
-        </Typography>
-        <Typography sx={ACCORDION_TEXT_SX}>
+        </EnergyClassText>
+        <EnergyClassText sx={ACCORDION_TEXT_SX}>
           <TText
             keyName="sidebar.front_page.energy_classes.body_3"
             ns="energiakartta"
           />
-        </Typography>
-        <Typography sx={{ ...ACCORDION_TEXT_SX, fontWeight: 700 }}>
+        </EnergyClassText>
+        <EnergyClassText sx={{ ...ACCORDION_TEXT_SX, fontWeight: 700 }}>
           <TText
             keyName="sidebar.front_page.energy_classes.note"
             ns="energiakartta"
           />
-        </Typography>
+        </EnergyClassText>
       </Box>
 
       {showDefinitions && (
@@ -115,7 +143,8 @@ const EnergyClassesAccordionContent = () => {
               >
                 {classCode}
               </Box>
-              <Typography
+              <EnergyClassText
+                component="span"
                 sx={{
                   ...ACCORDION_TEXT_SX,
                   lineHeight: '1rem',
@@ -125,7 +154,7 @@ const EnergyClassesAccordionContent = () => {
                   keyName={`sidebar.front_page.energy_classes.class_definitions.${classCode}`}
                   ns="energiakartta"
                 />
-              </Typography>
+              </EnergyClassText>
             </Box>
           ))}
         </Box>
@@ -153,7 +182,7 @@ const EnergyClassesAccordionContent = () => {
           },
         }}
       >
-        <Typography
+        <EnergyClassText
           component="span"
           sx={{
             ...ACCORDION_TEXT_SX,
@@ -170,7 +199,7 @@ const EnergyClassesAccordionContent = () => {
             }
             ns="energiakartta"
           />
-        </Typography>
+        </EnergyClassText>
       </Box>
     </Box>
   )

@@ -1,10 +1,10 @@
 'use client'
 
 import React from 'react'
-import { Box } from '@mui/material'
-import type { SelectChangeEvent } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
+import type { FormSelectionEvent } from '#/components/common/formControlEvents'
+import { Box } from '#/components/common/PandaBox'
 import DropDownSelectInset from '#/components/common/DropDownSelectInset'
 import DropDownSelectWithLabel from '#/components/common/DropDownSelectWithLabel'
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
@@ -104,19 +104,39 @@ const BackgroundBuildingFiltersAccordionContent = () => {
       : String(selectedConstructionDecade)
   const hasSelectedConstructionDecade = selectedConstructionDecade != null
 
-  const handleBuildingTypeChange = (event: SelectChangeEvent) => {
-    setBuildingTypeFilter(event.target.value as EnergymapBuildingTypeFilter)
+  const handleBuildingTypeChange = (event: FormSelectionEvent<string>) => {
+    const selectedValue = String(event.target.value)
+    const isValidType = Object.prototype.hasOwnProperty.call(
+      {
+        [ENERGYMAP_BUILDING_TYPE_FILTER_ALL]: true,
+        ...Object.fromEntries(
+          ENERGYMAP_BUILDING_TYPE_CODES.map((code) => [code, true])
+        ),
+      },
+      selectedValue
+    )
+
+    if (!isValidType) {
+      return
+    }
+
+    setBuildingTypeFilter(selectedValue as EnergymapBuildingTypeFilter)
   }
 
-  const handleConstructionDecadeChange = (event: SelectChangeEvent) => {
-    const selectedValue = event.target.value
+  const handleConstructionDecadeChange = (
+    event: FormSelectionEvent<string>
+  ) => {
+    const selectedValue = String(event.target.value)
+    const selectedValueDigits = selectedValue.match(/\d{4}/)?.[0]
 
     if (selectedValue === ENERGYMAP_CONSTRUCTION_YEAR_FILTER_ANY) {
       setSelectedConstructionDecade(null)
       return
     }
 
-    const selectedDecade = Number(selectedValue)
+    const selectedDecade = Number(
+      selectedValueDigits != null ? selectedValueDigits : selectedValue
+    )
 
     if (Number.isNaN(selectedDecade)) {
       return
@@ -142,6 +162,7 @@ const BackgroundBuildingFiltersAccordionContent = () => {
         value={buildingTypeFilter}
         options={buildingTypeOptions}
         onChange={handleBuildingTypeChange}
+        disablePortal
         label={t('sidebar.background_filters.building_types.label')}
         ariaLabel={t('sidebar.background_filters.building_types.aria_label')}
         headerSx={{
@@ -175,6 +196,7 @@ const BackgroundBuildingFiltersAccordionContent = () => {
         value={constructionDecadeSelectValue}
         options={decadeOptions}
         onChange={handleConstructionDecadeChange}
+        disablePortal
         label={t('sidebar.background_filters.construction_year.label')}
         ariaLabel={t('sidebar.background_filters.construction_year.aria_label')}
       />

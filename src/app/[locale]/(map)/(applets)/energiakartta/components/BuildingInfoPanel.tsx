@@ -1,30 +1,22 @@
 'use client'
 
 import React from 'react'
-import {
-  Box,
-  ButtonBase,
-  IconButton,
-  SelectChangeEvent,
-  SxProps,
-  Theme,
-  Tooltip,
-  Typography,
-} from '@mui/material'
-import BoltIcon from '@mui/icons-material/Bolt'
-import Co2Icon from '@mui/icons-material/Co2'
-import ConstructionIcon from '@mui/icons-material/Construction'
-import EuroIcon from '@mui/icons-material/Euro'
-import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
-import OpacityIcon from '@mui/icons-material/Opacity'
-import WaterDropIcon from '@mui/icons-material/WaterDrop'
+import { Button as BaseButton } from '@base-ui/react/button'
 import { useTranslate } from '@tolgee/react'
+import { css, cx } from 'styled-system/css'
 
 import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
-import type { PandaStyleProp } from '#/common/style/panda'
+import type { PandaStyleObject, PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
 import type { SelectOption } from '#/common/types/general'
 import DropDownSelectInset from '#/components/common/DropDownSelectInset'
+import type { FormSelectionEvent } from '#/components/common/formControlEvents'
+import { Box } from '#/components/common/PandaBox'
+import SimpleTooltip from '#/components/common/SimpleTooltip'
 import TText from '#/components/common/TText'
 import { SidebarPanelExtensionPageContainer } from '#/components/Sidebar/SidebarPanelExtensionPageContainer'
 import { SidebarPanelExtensionTabContainer } from '#/components/Sidebar/SidebarPanelExtensionTabContainer'
@@ -297,6 +289,161 @@ const VISUALLY_HIDDEN_STYLE: React.CSSProperties = {
   border: 0,
 }
 
+type BuildingInfoTextElementProps<T extends React.ElementType = 'p'> = {
+  component?: T
+  sx?: PandaStyleProp
+  children?: React.ReactNode
+} & Omit<
+  React.ComponentPropsWithoutRef<T>,
+  'children' | 'className' | 'color' | 'component' | 'style' | 'sx'
+>
+
+const BuildingInfoTextElement = <T extends React.ElementType = 'p'>({
+  component,
+  sx,
+  children,
+  ...props
+}: BuildingInfoTextElementProps<T>) => (
+  <Box
+    component={(component ?? 'p') as React.ElementType}
+    {...props}
+    sx={[
+      {
+        m: 0,
+      },
+      ...pandaStylePropsToArray(sx),
+    ]}
+  >
+    {children}
+  </Box>
+)
+
+const buildingInfoButtonResetSx: PandaStyleObject = {
+  m: 0,
+  border: 0,
+  appearance: 'none',
+  backgroundColor: 'transparent',
+  font: 'inherit',
+  textDecoration: 'none',
+  cursor: 'pointer',
+  '&:disabled': {
+    cursor: 'default',
+  },
+}
+
+type BuildingInfoButtonProps = Omit<
+  React.ComponentProps<typeof BaseButton>,
+  'className' | 'color' | 'style'
+> & {
+  sx?: PandaStyleProp
+  className?: string
+  style?: React.CSSProperties
+}
+
+const BuildingInfoButton = React.forwardRef<
+  HTMLButtonElement,
+  BuildingInfoButtonProps
+>(
+  (
+    { sx, className, style, type = 'button', children, ...props },
+    ref
+  ) => {
+    const buttonSx = [buildingInfoButtonResetSx, ...pandaStylePropsToArray(sx)]
+
+    return (
+      <BaseButton
+        {...props}
+        type={type}
+        ref={ref}
+        className={cx(css(...buttonSx), className)}
+        style={mergePandaStyleProps({ sx, style })}
+      >
+        {children}
+      </BaseButton>
+    )
+  }
+)
+
+BuildingInfoButton.displayName = 'BuildingInfoButton'
+
+type BuildingInfoSvgIconProps = Omit<
+  React.SVGProps<SVGSVGElement>,
+  'color' | 'style'
+> & {
+  sx?: PandaStyleProp
+}
+
+const BuildingInfoSvgIcon = ({
+  sx,
+  children,
+  viewBox = '0 0 24 24',
+  ...props
+}: BuildingInfoSvgIconProps) => (
+  <Box
+    component="svg"
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox={viewBox}
+    focusable="false"
+    {...props}
+    sx={[
+      {
+        display: 'inline-block',
+        width: '1em',
+        height: '1em',
+        flexShrink: 0,
+        fill: 'currentColor',
+        fontSize: '1rem',
+      },
+      ...pandaStylePropsToArray(sx),
+    ]}
+  >
+    {children}
+  </Box>
+)
+
+const BoltIcon = (props: BuildingInfoSvgIconProps) => (
+  <BuildingInfoSvgIcon {...props}>
+    <path d="M11 21h-1l1-7H7.5c-.58 0-.57-.32-.38-.66s.05-.08.07-.12C8.48 10.94 10.42 7.54 13 3h1l-1 7h3.5c.49 0 .56.33.47.51l-.07.15C12.96 17.55 11 21 11 21" />
+  </BuildingInfoSvgIcon>
+)
+
+const Co2Icon = (props: BuildingInfoSvgIconProps) => (
+  <BuildingInfoSvgIcon {...props}>
+    <path d="M14 9h-3c-.55 0-1 .45-1 1v4c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1m-.5 4.5h-2v-3h2zM8 13v1c0 .55-.45 1-1 1H4c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v1H6.5v-.5h-2v3h2V13zm12.5 2.5h-2v1h3V18H17v-2.5c0-.55.45-1 1-1h2v-1h-3V12h3.5c.55 0 1 .45 1 1v1.5c0 .55-.45 1-1 1" />
+  </BuildingInfoSvgIcon>
+)
+
+const ConstructionIcon = (props: BuildingInfoSvgIconProps) => (
+  <BuildingInfoSvgIcon {...props}>
+    <path d="m13.7826 15.1719 2.1213-2.1213 5.9963 5.9962-2.1213 2.1213zM17.5 10c1.93 0 3.5-1.57 3.5-3.5 0-.58-.16-1.12-.41-1.6l-2.7 2.7-1.49-1.49 2.7-2.7c-.48-.25-1.02-.41-1.6-.41C15.57 3 14 4.57 14 6.5c0 .41.08.8.21 1.16l-1.85 1.85-1.78-1.78.71-.71-1.41-1.41L12 3.49c-1.17-1.17-3.07-1.17-4.24 0L4.22 7.03l1.41 1.41H2.81l-.71.71 3.54 3.54.71-.71V9.15l1.41 1.41.71-.71 1.78 1.78-7.41 7.41 2.12 2.12L16.34 9.79c.36.13.75.21 1.16.21" />
+  </BuildingInfoSvgIcon>
+)
+
+const EuroIcon = (props: BuildingInfoSvgIconProps) => (
+  <BuildingInfoSvgIcon {...props}>
+    <path d="M15 18.5c-2.51 0-4.68-1.42-5.76-3.5H15l1-2H8.58c-.05-.33-.08-.66-.08-1s.03-.67.08-1H15l1-2H9.24C10.32 6.92 12.5 5.5 15 5.5c1.61 0 3.09.59 4.23 1.57L21 5.3C19.41 3.87 17.3 3 15 3c-3.92 0-7.24 2.51-8.48 6H3l-1 2h4.06c-.04.33-.06.66-.06 1s.02.67.06 1H3l-1 2h4.52c1.24 3.49 4.56 6 8.48 6 2.31 0 4.41-.87 6-2.3l-1.78-1.77c-1.13.98-2.6 1.57-4.22 1.57" />
+  </BuildingInfoSvgIcon>
+)
+
+const LocalFireDepartmentIcon = (props: BuildingInfoSvgIconProps) => (
+  <BuildingInfoSvgIcon {...props}>
+    <path d="m12 12.9-2.13 2.09c-.56.56-.87 1.29-.87 2.07C9 18.68 10.35 20 12 20s3-1.32 3-2.94c0-.78-.31-1.52-.87-2.07z" />
+    <path d="m16 6-.44.55C14.38 8.02 12 7.19 12 5.3V2S4 6 4 13c0 2.92 1.56 5.47 3.89 6.86-.56-.79-.89-1.76-.89-2.8 0-1.32.52-2.56 1.47-3.5L12 10.1l3.53 3.47c.95.93 1.47 2.17 1.47 3.5 0 1.02-.31 1.96-.85 2.75 1.89-1.15 3.29-3.06 3.71-5.3.66-3.55-1.07-6.9-3.86-8.52" />
+  </BuildingInfoSvgIcon>
+)
+
+const OpacityIcon = (props: BuildingInfoSvgIconProps) => (
+  <BuildingInfoSvgIcon {...props}>
+    <path d="M17.66 8 12 2.35 6.34 8C4.78 9.56 4 11.64 4 13.64s.78 4.11 2.34 5.67 3.61 2.35 5.66 2.35 4.1-.79 5.66-2.35S20 15.64 20 13.64 19.22 9.56 17.66 8M6 14c.01-2 .62-3.27 1.76-4.4L12 5.27l4.24 4.38C17.38 10.77 17.99 12 18 14z" />
+  </BuildingInfoSvgIcon>
+)
+
+const WaterDropIcon = (props: BuildingInfoSvgIconProps) => (
+  <BuildingInfoSvgIcon {...props}>
+    <path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8M7.83 14c.37 0 .67.26.74.62.41 2.22 2.28 2.98 3.64 2.87.43-.02.79.32.79.75 0 .4-.32.73-.72.75-2.13.13-4.62-1.09-5.19-4.12-.08-.45.28-.87.74-.87" />
+  </BuildingInfoSvgIcon>
+)
+
 const isPlainEnergyClassText = (text: EnergymapBuildingInfoText) =>
   text.type === 'plain' && /^[A-G]$/i.test(text.text.trim())
 
@@ -309,7 +456,7 @@ const BuildingInfoDecorativeImage = ({
   src: string
   width: string
   height: string
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
 }) => (
   <Box
     component="img"
@@ -345,7 +492,7 @@ const BuildingInfoFigmaGraphic = ({
   dimensions: BuildingInfoGraphicDimensions
   maxWidth?: string
   testId: string
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
 }) => (
   <Box
     aria-hidden="true"
@@ -386,7 +533,7 @@ const RenovationIcon = ({
 }: {
   width?: string
   height?: string
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
 }) => (
   <Box
     aria-hidden="true"
@@ -490,18 +637,42 @@ const EnergyPrimaryMetricIcon = ({
   } as const
 
   if (metricId === 'water') {
-    return <OpacityIcon aria-hidden="true" sx={iconSx} />
+    return (
+      <OpacityIcon
+        data-primary-metric-icon-id={metricId}
+        aria-hidden="true"
+        sx={iconSx}
+      />
+    )
   }
 
   if (metricId === 'cost') {
-    return <EuroIcon aria-hidden="true" sx={iconSx} />
+    return (
+      <EuroIcon
+        data-primary-metric-icon-id={metricId}
+        aria-hidden="true"
+        sx={iconSx}
+      />
+    )
   }
 
   if (metricId === 'co2') {
-    return <Co2Icon aria-hidden="true" sx={iconSx} />
+    return (
+      <Co2Icon
+        data-primary-metric-icon-id={metricId}
+        aria-hidden="true"
+        sx={iconSx}
+      />
+    )
   }
 
-  return <BoltIcon aria-hidden="true" sx={iconSx} />
+  return (
+    <BoltIcon
+      data-primary-metric-icon-id={metricId}
+      aria-hidden="true"
+      sx={iconSx}
+    />
+  )
 }
 
 const EnergySubmetricIcon = ({
@@ -599,16 +770,13 @@ const BuildingInfoValueText = ({
       }}
     >
       {isUnavailable ? (
-        <Tooltip
+        <SimpleTooltip
           title={
             <Box component="span">
               <BuildingInfoText text={value.text} />
             </Box>
           }
-          arrow
-          enterTouchDelay={0}
-          leaveTouchDelay={5000}
-          placement="top"
+          side="top"
         >
           <Box
             component="span"
@@ -646,7 +814,7 @@ const BuildingInfoValueText = ({
               <BuildingInfoText text={value.text} />
             </Box>
           </Box>
-        </Tooltip>
+        </SimpleTooltip>
       ) : shouldRenderEnergyClassBadge ? (
         <Box
           component="span"
@@ -710,7 +878,7 @@ const BuildingInfoNoteText = ({
       }}
     >
       {showWarningIcon && <WarningIcon />}
-      <Typography
+      <BuildingInfoTextElement
         sx={{
           ...textSx,
           maxWidth: '100%',
@@ -723,7 +891,7 @@ const BuildingInfoNoteText = ({
         }}
       >
         <BuildingInfoText text={note.text} />
-      </Typography>
+      </BuildingInfoTextElement>
     </Box>
   )
 }
@@ -739,15 +907,15 @@ const BuildingInfoRow = ({ row }: { row: EnergymapBuildingInfoRow }) => (
       py: '0.875rem',
     }}
   >
-    <Typography
+    <BuildingInfoTextElement
       sx={{
         ...textSx,
         color: '#111111',
       }}
     >
       <BuildingInfoText text={row.label} />
-    </Typography>
-    <Typography
+    </BuildingInfoTextElement>
+    <BuildingInfoTextElement
       component="div"
       sx={{
         ...textSx,
@@ -768,7 +936,7 @@ const BuildingInfoRow = ({ row }: { row: EnergymapBuildingInfoRow }) => (
           }}
         />
       )}
-    </Typography>
+    </BuildingInfoTextElement>
   </Box>
 )
 
@@ -791,7 +959,7 @@ const BuildingInfoStackedValue = ({
       mt: '1rem',
     }}
   >
-    <Typography
+    <BuildingInfoTextElement
       sx={{
         fontSize: '0.75rem',
         fontWeight: 400,
@@ -802,8 +970,8 @@ const BuildingInfoStackedValue = ({
     >
       <BuildingInfoText text={row.label} />
       :
-    </Typography>
-    <Typography
+    </BuildingInfoTextElement>
+    <BuildingInfoTextElement
       component="div"
       sx={{
         fontSize: '0.75rem',
@@ -813,7 +981,7 @@ const BuildingInfoStackedValue = ({
       }}
     >
       <BuildingInfoValueText value={row} align="left" />
-    </Typography>
+    </BuildingInfoTextElement>
   </Box>
 )
 
@@ -834,15 +1002,15 @@ const BuildingInfoSectionLine = ({
       minWidth: 0,
     }}
   >
-    <Typography
+    <BuildingInfoTextElement
       sx={{
         ...textSx,
         color: '#111111',
       }}
     >
       <BuildingInfoText text={row.label} />
-    </Typography>
-    <Typography
+    </BuildingInfoTextElement>
+    <BuildingInfoTextElement
       component="div"
       sx={{
         ...textSx,
@@ -851,7 +1019,7 @@ const BuildingInfoSectionLine = ({
       }}
     >
       <BuildingInfoValueText value={row} variant={valueVariant} />
-    </Typography>
+    </BuildingInfoTextElement>
   </Box>
 )
 
@@ -964,15 +1132,15 @@ const BuildingInfoPreviousEnergyClassSection = ({
               mt: '1.375rem',
             }}
           >
-            <Typography
+            <BuildingInfoTextElement
               sx={{
                 ...textSx,
                 color: '#111111',
               }}
             >
               <BuildingInfoText text={measuresRow.label} />
-            </Typography>
-            <Typography
+            </BuildingInfoTextElement>
+            <BuildingInfoTextElement
               component="div"
               sx={{
                 ...textSx,
@@ -981,7 +1149,7 @@ const BuildingInfoPreviousEnergyClassSection = ({
               }}
             >
               <BuildingInfoValueText value={measuresRow} align="left" />
-            </Typography>
+            </BuildingInfoTextElement>
           </Box>
         )}
       </Box>
@@ -1011,15 +1179,15 @@ const BuildingInfoMeasureListSection = ({
       <Box sx={{ py: '0.875rem' }}>
         {rows.map((row) => (
           <Box key={row.id} data-section-row-id={row.id}>
-            <Typography
+            <BuildingInfoTextElement
               sx={{
                 ...textSx,
                 color: '#111111',
               }}
             >
               <BuildingInfoText text={row.label} />
-            </Typography>
-            <Typography
+            </BuildingInfoTextElement>
+            <BuildingInfoTextElement
               component="div"
               sx={{
                 ...textSx,
@@ -1028,7 +1196,7 @@ const BuildingInfoMeasureListSection = ({
               }}
             >
               <BuildingInfoValueText value={row} align="left" />
-            </Typography>
+            </BuildingInfoTextElement>
           </Box>
         ))}
       </Box>
@@ -1052,12 +1220,12 @@ const BuildingInfoMetricValueRow = ({
       py: '0.625rem',
     }}
   >
-    <Typography sx={{ ...textSx, color: '#111111' }}>
+    <BuildingInfoTextElement sx={{ ...textSx, color: '#111111' }}>
       <BuildingInfoText text={value.label} />
-    </Typography>
-    <Typography component="div" sx={{ ...textSx, textAlign: 'right' }}>
+    </BuildingInfoTextElement>
+    <BuildingInfoTextElement component="div" sx={{ ...textSx, textAlign: 'right' }}>
       <BuildingInfoValueText value={value} />
-    </Typography>
+    </BuildingInfoTextElement>
   </Box>
 )
 
@@ -1099,8 +1267,7 @@ const BuildingInfoPrimaryMetricButton = ({
     </Box>
   )
   const button = (
-    <ButtonBase
-      component="button"
+    <BuildingInfoButton
       type="button"
       aria-label={t(metric.ariaLabelKey)}
       aria-pressed={active}
@@ -1136,7 +1303,7 @@ const BuildingInfoPrimaryMetricButton = ({
     >
       <EnergyPrimaryMetricIcon metricId={metric.id} active={active} />
       {active && (
-        <Typography
+        <BuildingInfoTextElement
           component="span"
           sx={{
             ...energyControlTextSx,
@@ -1147,9 +1314,9 @@ const BuildingInfoPrimaryMetricButton = ({
           }}
         >
           {label}
-        </Typography>
+        </BuildingInfoTextElement>
       )}
-    </ButtonBase>
+    </BuildingInfoButton>
   )
 
   if (active) {
@@ -1157,9 +1324,9 @@ const BuildingInfoPrimaryMetricButton = ({
   }
 
   return (
-    <Tooltip title={label} arrow placement="top">
+    <SimpleTooltip title={label} side="top">
       {button}
-    </Tooltip>
+    </SimpleTooltip>
   )
 }
 
@@ -1177,8 +1344,7 @@ const BuildingInfoEnergySubmetricButton = ({
   const { t } = useTranslate('energiakartta')
 
   return (
-    <ButtonBase
-      component="button"
+    <BuildingInfoButton
       type="button"
       aria-label={t(submetric.ariaLabelKey)}
       aria-pressed={selected}
@@ -1218,7 +1384,7 @@ const BuildingInfoEnergySubmetricButton = ({
       >
         <EnergySubmetricIcon submetricId={submetric.id} selected={selected} />
       </Box>
-      <Typography
+      <BuildingInfoTextElement
         component="span"
         sx={{
           ...energyControlTextSx,
@@ -1230,8 +1396,8 @@ const BuildingInfoEnergySubmetricButton = ({
         }}
       >
         <BuildingInfoText text={submetric.label} />
-      </Typography>
-    </ButtonBase>
+      </BuildingInfoTextElement>
+    </BuildingInfoButton>
   )
 }
 
@@ -1280,6 +1446,7 @@ const BuildingInfoEnergyConsumptionSection = ({
     controls?.yearOptions[0]?.value ?? ''
   )
 
+  /* eslint-disable react-hooks/set-state-in-effect -- Keep local control state valid when the selected building data changes. */
   React.useEffect(() => {
     if (controls == null) {
       return
@@ -1307,6 +1474,7 @@ const BuildingInfoEnergyConsumptionSection = ({
         : controls.yearOptions[0]?.value ?? ''
     )
   }, [controls])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (controls == null) {
     return null
@@ -1388,7 +1556,7 @@ const BuildingInfoEnergyConsumptionSection = ({
     )
   }
 
-  const handleYearChange = (event: SelectChangeEvent) => {
+  const handleYearChange = (event: FormSelectionEvent<string>) => {
     setSelectedYear(event.target.value)
   }
 
@@ -1401,7 +1569,7 @@ const BuildingInfoEnergyConsumptionSection = ({
       }}
     >
       {section.title != null && (
-        <Typography
+        <BuildingInfoTextElement
           sx={{
             ...textSx,
             mb: '1rem',
@@ -1410,7 +1578,7 @@ const BuildingInfoEnergyConsumptionSection = ({
           }}
         >
           <BuildingInfoText text={section.title} />
-        </Typography>
+        </BuildingInfoTextElement>
       )}
       <DropDownSelectInset
         value={selectedYear}
@@ -1540,7 +1708,7 @@ const BuildingInfoMetricBlock = ({
         backgroundColor: metric.id === 'total' ? accentColor : 'transparent',
       }}
     >
-      <Typography
+      <BuildingInfoTextElement
         sx={{
           fontSize: '0.5625rem',
           fontWeight: 400,
@@ -1550,7 +1718,7 @@ const BuildingInfoMetricBlock = ({
         }}
       >
         <BuildingInfoText text={metric.label} />
-      </Typography>
+      </BuildingInfoTextElement>
     </Box>
     <Box sx={{ mt: '0.75rem' }}>
       {metric.values.map((value) => (
@@ -1591,7 +1759,7 @@ const BuildingInfoScenarioBlock = ({
         }}
       >
         <Box sx={{ minWidth: 0 }}>
-          <Typography
+          <BuildingInfoTextElement
             sx={{
               ...textSx,
               color: '#111111',
@@ -1599,7 +1767,7 @@ const BuildingInfoScenarioBlock = ({
             }}
           >
             <BuildingInfoText text={scenario.label} />
-          </Typography>
+          </BuildingInfoTextElement>
         </Box>
         {savingsValue != null && (
           <Box
@@ -1611,9 +1779,9 @@ const BuildingInfoScenarioBlock = ({
               whiteSpace: 'nowrap',
             }}
           >
-            <Typography sx={{ ...textSx, color: '#a347ff' }}>
+            <BuildingInfoTextElement sx={{ ...textSx, color: '#a347ff' }}>
               <BuildingInfoValueText value={savingsValue} />
-            </Typography>
+            </BuildingInfoTextElement>
           </Box>
         )}
       </Box>
@@ -1699,7 +1867,7 @@ const BuildingInfoSectionBlock = ({
         />
       )}
       {section.title != null && (
-        <Typography
+        <BuildingInfoTextElement
           sx={{
             ...textSx,
             mb: '1rem',
@@ -1708,10 +1876,10 @@ const BuildingInfoSectionBlock = ({
           }}
         >
           <BuildingInfoText text={section.title} />
-        </Typography>
+        </BuildingInfoTextElement>
       )}
       {section.description != null && (
-        <Typography
+        <BuildingInfoTextElement
           sx={{
             ...textSx,
             mb: '1.25rem',
@@ -1719,7 +1887,7 @@ const BuildingInfoSectionBlock = ({
           }}
         >
           <BuildingInfoText text={section.description} />
-        </Typography>
+        </BuildingInfoTextElement>
       )}
       {section.rows?.map((row) => <BuildingInfoRow key={row.id} row={row} />)}
       {section.metrics?.map((metric) => (
@@ -1741,19 +1909,26 @@ const BuildingInfoSectionBlock = ({
 
 const BuildingInfoPanelHeadingGraphic = ({
   panelId,
+  isMobileLayout = false,
 }: {
   panelId: EnergymapBuildingInfoPanelId
+  isMobileLayout?: boolean
 }) => {
+  const headingGraphicLeft = isMobileLayout
+    ? 'var(--building-info-heading-graphic-left, 1.5rem)'
+    : 'var(--building-info-heading-graphic-left, 0px)'
+
   if (panelId === 'energyConsumption') {
     return (
       <BuildingInfoDecorativeImage
         src={BUILDING_INFO_ASSETS.energyLightning}
         width="18px"
         height="28px"
+        data-testid="building-info-heading-graphic-energyConsumption"
         sx={{
           position: 'absolute',
           top: 'var(--building-info-heading-graphic-top, 3.125rem)',
-          left: 0,
+          left: headingGraphicLeft,
         }}
       />
     )
@@ -1762,10 +1937,11 @@ const BuildingInfoPanelHeadingGraphic = ({
   if (panelId === 'renovationRecommendations') {
     return (
       <RenovationIcon
+        data-testid="building-info-heading-graphic-renovationRecommendations"
         sx={{
           position: 'absolute',
           top: 'var(--building-info-heading-graphic-top, 3.25rem)',
-          left: 0,
+          left: headingGraphicLeft,
         }}
       />
     )
@@ -1805,6 +1981,7 @@ const BuildingInfoPanelBody = ({
   footer,
   showDescription = true,
   showHeroGraphic = true,
+  isMobileLayout = false,
   sx,
 }: {
   panel: EnergymapBuildingInfoPanel
@@ -1814,7 +1991,8 @@ const BuildingInfoPanelBody = ({
   footer?: React.ReactNode
   showDescription?: boolean
   showHeroGraphic?: boolean
-  sx?: SxProps<Theme>
+  isMobileLayout?: boolean
+  sx?: PandaStyleProp
 }) => (
   <Box
     sx={[
@@ -1825,8 +2003,11 @@ const BuildingInfoPanelBody = ({
       ...(Array.isArray(sx) ? sx : [sx]),
     ]}
   >
-    <BuildingInfoPanelHeadingGraphic panelId={panel.id} />
-    <Typography
+    <BuildingInfoPanelHeadingGraphic
+      panelId={panel.id}
+      isMobileLayout={isMobileLayout}
+    />
+    <BuildingInfoTextElement
       id={titleId}
       sx={{
         fontSize: '0.75rem',
@@ -1839,7 +2020,7 @@ const BuildingInfoPanelBody = ({
       }}
     >
       <BuildingInfoText text={panel.title} />
-    </Typography>
+    </BuildingInfoTextElement>
     <Box
       sx={{
         mt: 'var(--building-info-heading-divider-mt, 1.375rem)',
@@ -1848,7 +2029,7 @@ const BuildingInfoPanelBody = ({
     />
     {showHeroGraphic && <BuildingInfoPanelHeroGraphic panelId={panel.id} />}
     {showDescription && panel.description != null && (
-      <Typography
+      <BuildingInfoTextElement
         sx={{
           ...textSx,
           mt:
@@ -1857,7 +2038,7 @@ const BuildingInfoPanelBody = ({
         }}
       >
         <BuildingInfoText text={panel.description} />
-      </Typography>
+      </BuildingInfoTextElement>
     )}
     {sections.map((section) => (
       <BuildingInfoSectionBlock
@@ -1885,32 +2066,45 @@ const getStackedTabPagePanelContentSx = ({
   panelId,
   index,
   panelCount,
+  isMobileLayout,
 }: {
   panelId: EnergymapBuildingInfoPanelId
   index: number
   panelCount: number
-}): SxProps<Theme> => ({
-  width: {
-    mobile: 'min(16.25rem, calc(100vw - 6rem))',
-    desktop: `min(${PANEL_CONTENT_WIDTHS[panelId]}, calc(100% - 5rem))`,
-  },
-  maxWidth: '100%',
-  mx: 'auto',
-  pt: {
-    mobile: index === 0 ? '7.5rem' : '6.25rem',
-    desktop: index === 0 ? '6.25rem' : '5rem',
-  },
-  pb: {
-    mobile: index === panelCount - 1 ? '8rem' : '5rem',
-    desktop: index === panelCount - 1 ? '6.5rem' : '5rem',
-  },
-})
+  isMobileLayout: boolean
+}): PandaStyleProp => {
+  const isFirstPanel = index === 0
+  const isLastPanel = index === panelCount - 1
+
+  return {
+    width: isMobileLayout
+      ? 'min(16.25rem, calc(100vw - 6rem))'
+      : `min(${PANEL_CONTENT_WIDTHS[panelId]}, calc(100% - 5rem))`,
+    maxWidth: '100%',
+    mx: 'auto',
+    pt: isMobileLayout
+      ? isFirstPanel
+        ? '7.5rem'
+        : '6.25rem'
+      : isFirstPanel
+        ? '6.25rem'
+        : '5rem',
+    pb: isMobileLayout
+      ? isLastPanel
+        ? '8rem'
+        : '5rem'
+      : isLastPanel
+        ? '6.5rem'
+        : '5rem',
+    '--building-info-heading-graphic-left': isMobileLayout ? '1.5rem' : '0px',
+  }
+}
 
 const getDesktopGridPanelContentSx = ({
   panelId,
 }: {
   panelId: EnergymapBuildingInfoPanelId
-}): SxProps<Theme> => ({
+}): PandaStyleProp => ({
   width: `min(${PANEL_CONTENT_WIDTHS[panelId]}, calc(100% - 3rem))`,
   maxWidth: '100%',
   pt: DESKTOP_HEADING_TOP,
@@ -1918,6 +2112,7 @@ const getDesktopGridPanelContentSx = ({
   mx: 'auto',
   '--building-info-heading-graphic-top': DESKTOP_HEADING_GRAPHIC_TOP,
   '--building-info-heading-divider-mt': DESKTOP_HEADING_DIVIDER_MARGIN_TOP,
+  '--building-info-heading-graphic-left': '0px',
 })
 
 const BuildingInfoPanelSection = ({
@@ -1928,16 +2123,18 @@ const BuildingInfoPanelSection = ({
   sections,
   showDescription,
   showHeroGraphic,
+  isMobileLayout,
   sx,
 }: {
   panel: EnergymapBuildingInfoPanel
   tabId: BuildingInfoTabId
-  bodySx?: SxProps<Theme>
+  bodySx?: PandaStyleProp
   footer?: React.ReactNode
   sections?: EnergymapBuildingInfoSection[]
   showDescription?: boolean
   showHeroGraphic?: boolean
-  sx?: SxProps<Theme>
+  isMobileLayout?: boolean
+  sx?: PandaStyleProp
 }) => {
   const titleId = React.useId()
   const accentColor = getTabPagePanelAccentColor({
@@ -1970,6 +2167,7 @@ const BuildingInfoPanelSection = ({
         footer={footer}
         showDescription={showDescription}
         showHeroGraphic={showHeroGraphic}
+        isMobileLayout={isMobileLayout}
         sx={bodySx}
       />
     </Box>
@@ -1981,11 +2179,13 @@ const BuildingInfoStackedTabPageSection = ({
   tabId,
   index,
   panelCount,
+  isMobileLayout,
 }: {
   panel: EnergymapBuildingInfoPanel
   tabId: BuildingInfoTabId
   index: number
   panelCount: number
+  isMobileLayout: boolean
 }) => {
   return (
     <Box
@@ -1999,10 +2199,12 @@ const BuildingInfoStackedTabPageSection = ({
       <BuildingInfoPanelSection
         panel={panel}
         tabId={tabId}
+        isMobileLayout={isMobileLayout}
         bodySx={getStackedTabPagePanelContentSx({
           panelId: panel.id,
           index,
           panelCount,
+          isMobileLayout,
         })}
       />
     </Box>
@@ -2082,7 +2284,7 @@ const getRenovationComparisonSection = (
 ) => panel?.sections.find((section) => section.id === 'scenarioComparison')
 
 const BuildingInfoRenovationReferenceYearNote = () => (
-  <Typography
+  <BuildingInfoTextElement
     data-testid="building-info-renovation-reference-year-note"
     sx={{
       ...textSx,
@@ -2095,7 +2297,7 @@ const BuildingInfoRenovationReferenceYearNote = () => (
       keyName="sidebar.building_info.panels.energy.reference_year_note_unavailable"
       ns="energiakartta"
     />
-  </Typography>
+  </BuildingInfoTextElement>
 )
 
 const BuildingInfoRenovationComparisonWide = ({
@@ -2130,7 +2332,7 @@ const BuildingInfoRenovationComparisonWide = ({
       >
         <RenovationIcon width="31px" height="25px" />
         {section?.title != null && (
-          <Typography
+          <BuildingInfoTextElement
             id={titleId}
             sx={{
               mt: '2rem',
@@ -2143,7 +2345,7 @@ const BuildingInfoRenovationComparisonWide = ({
             }}
           >
             <BuildingInfoText text={section.title} />
-          </Typography>
+          </BuildingInfoTextElement>
         )}
         <Box
           sx={{
@@ -2152,7 +2354,7 @@ const BuildingInfoRenovationComparisonWide = ({
           }}
         />
         {section?.description != null && (
-          <Typography
+          <BuildingInfoTextElement
             sx={{
               ...textSx,
               mt: '1.875rem',
@@ -2161,7 +2363,7 @@ const BuildingInfoRenovationComparisonWide = ({
             }}
           >
             <BuildingInfoText text={section.description} />
-          </Typography>
+          </BuildingInfoTextElement>
         )}
       </Box>
       <Box
@@ -2193,7 +2395,7 @@ const BuildingInfoRenovationEffectivenessContent = () => (
       pb: DESKTOP_SECTION_BOTTOM_PADDING,
     }}
   >
-    <Typography
+    <BuildingInfoTextElement
       sx={{
         fontSize: '0.75rem',
         fontWeight: 400,
@@ -2207,14 +2409,14 @@ const BuildingInfoRenovationEffectivenessContent = () => (
         keyName="sidebar.building_info.panels.renovation.effectiveness.title"
         ns="energiakartta"
       />
-    </Typography>
+    </BuildingInfoTextElement>
     <Box
       sx={{
         mt: '0.75rem',
         borderTop: '0.3px solid #cfcfcf',
       }}
     />
-    <Typography
+    <BuildingInfoTextElement
       sx={{
         ...textSx,
         mt: '2.5rem',
@@ -2229,7 +2431,7 @@ const BuildingInfoRenovationEffectivenessContent = () => (
         keyName="sidebar.building_info.panels.renovation.effectiveness.body"
         ns="energiakartta"
       />
-    </Typography>
+    </BuildingInfoTextElement>
     <Box
       aria-hidden="true"
       data-testid="building-info-renovation-effectiveness-indicator"
@@ -2287,7 +2489,7 @@ const BuildingInfoDesktopTabPageContent = ({
           panelId: energyPanel.id,
         })
       : undefined
-  const resolvedEnergyPanelBodySx: SxProps<Theme> | undefined =
+  const resolvedEnergyPanelBodySx: PandaStyleProp =
     tabId === 'renovation' && energyPanelBodySx != null
       ? {
           ...(energyPanelBodySx as Record<string, unknown>),
@@ -2400,9 +2602,11 @@ const BuildingInfoDesktopTabPageContent = ({
 const BuildingInfoStackedTabPageContent = ({
   tabId,
   panels,
+  isMobileLayout,
 }: {
   tabId: BuildingInfoTabId
   panels: EnergymapBuildingInfoPanel[]
+  isMobileLayout: boolean
 }) => (
   <>
     {panels.map((panel, index) => (
@@ -2412,6 +2616,7 @@ const BuildingInfoStackedTabPageContent = ({
         tabId={tabId}
         index={index}
         panelCount={panels.length}
+        isMobileLayout={isMobileLayout}
       />
     ))}
   </>
@@ -2458,6 +2663,7 @@ const BuildingInfoTabPageContent = ({
         <BuildingInfoStackedTabPageContent
           tabId={tabId}
           panels={visiblePanels}
+          isMobileLayout={useMobileLayout}
         />
       ) : (
         <BuildingInfoDesktopTabPageContent
@@ -2722,34 +2928,32 @@ export const BuildingInfoActionRail = ({
         pointerEvents: 'auto',
       }}
     >
-      <Tooltip title={ariaLabels.overview} arrow placement={tooltipPlacement}>
-        <IconButton
+      <SimpleTooltip title={ariaLabels.overview} side={tooltipPlacement}>
+        <BuildingInfoButton
           aria-label={ariaLabels.overview}
           aria-pressed={activeMode === 'twoPanel' && !isCollapsed}
           data-building-info-mode="twoPanel"
           onClick={() => onModeChange('twoPanel')}
-          size="small"
           sx={actionButtonSx({
             active: activeMode === 'twoPanel' && !isCollapsed,
           })}
         >
           <TwoPanelIcon />
-        </IconButton>
-      </Tooltip>
-      <Tooltip title={ariaLabels.renovation} arrow placement={tooltipPlacement}>
-        <IconButton
+        </BuildingInfoButton>
+      </SimpleTooltip>
+      <SimpleTooltip title={ariaLabels.renovation} side={tooltipPlacement}>
+        <BuildingInfoButton
           aria-label={ariaLabels.renovation}
           aria-pressed={activeMode === 'threePanel' && !isCollapsed}
           data-building-info-mode="threePanel"
           onClick={() => onModeChange('threePanel')}
-          size="small"
           sx={actionButtonSx({
             active: activeMode === 'threePanel' && !isCollapsed,
           })}
         >
           <ThreePanelIcon />
-        </IconButton>
-      </Tooltip>
+        </BuildingInfoButton>
+      </SimpleTooltip>
     </Box>
   )
 }

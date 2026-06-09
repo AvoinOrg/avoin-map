@@ -1,7 +1,7 @@
 import React from 'react'
-import '@testing-library/jest-dom'
-import { ThemeProvider } from '@mui/material/styles'
+import '#/test/baseUiTestPolyfills'
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -10,7 +10,6 @@ import {
 } from '@testing-library/react'
 
 import { useUIStore } from '#/common/store/uiStore'
-import theme from '#/common/style/theme/theme'
 import { SlotsProvider } from '#/components/context/slotsContext'
 import { SidebarRoot } from '#/components/Sidebar/SidebarRoot'
 import { SidebarPanelExtensionProvider } from '#/components/Sidebar/SidebarPanelExtensionProvider'
@@ -49,7 +48,7 @@ jest.mock('#/common/hooks/ui/useIsMobile', () => ({
 }))
 
 jest.mock('@tolgee/react', () => {
-  const React = require('react')
+  const react = jest.requireActual<typeof import('react')>('react')
 
   return {
     T: ({
@@ -59,7 +58,7 @@ jest.mock('@tolgee/react', () => {
       keyName: string
       params?: Record<string, string | number>
     }) =>
-      React.createElement(
+      react.createElement(
         'span',
         null,
         params?.code == null ? keyName : `${keyName}:${params.code}`
@@ -71,7 +70,7 @@ jest.mock('@tolgee/react', () => {
 })
 
 jest.mock('overlayscrollbars-react', () => {
-  const React = require('react')
+  const react = jest.requireActual<typeof import('react')>('react')
 
   return {
     OverlayScrollbarsComponent: ({
@@ -96,7 +95,7 @@ jest.mock('overlayscrollbars-react', () => {
       }
       style?: React.CSSProperties
     }) =>
-      React.createElement(
+      react.createElement(
         'div',
         {
           ...props,
@@ -320,10 +319,6 @@ const consumptionControls: EnergymapBuildingInfoConsumptionControls = {
   },
   combinedEnergyMetric: totalEnergyMetric,
   emptyEnergyMetric,
-}
-
-const renderWithTheme = (ui: React.ReactElement) => {
-  return render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>)
 }
 
 const resetUIStore = () => {
@@ -577,7 +572,7 @@ const renderBuildingInfoTabs = ({
   onClose?: () => void
   onCollapse?: (tabId: BuildingInfoTabId) => void
 } = {}) => {
-  return renderWithTheme(
+  return render(
     <SlotsProvider>
       <SidebarRoot>
         <SidebarPanelExtensionProvider
@@ -661,6 +656,7 @@ describe('BuildingInfoPanel', () => {
     expect(
       screen
         .getAllByTestId(/building-info-panel-/)
+        .filter((panel) => panel.dataset.panelId != null)
         .map((panel) => panel.dataset.panelId)
     ).toEqual(['energyConsumption', 'buildingDetails'])
     expect(screen.getByTestId('building-info-grid')).toHaveAttribute(
@@ -724,6 +720,7 @@ describe('BuildingInfoPanel', () => {
     expect(
       screen
         .getAllByTestId(/building-info-panel-/)
+        .filter((panel) => panel.dataset.panelId != null)
         .map((panel) => panel.dataset.panelId)
     ).toEqual([
       'energyConsumption',
@@ -839,6 +836,7 @@ describe('BuildingInfoPanel', () => {
     expect(
       screen
         .getAllByTestId(/building-info-panel-/)
+        .filter((panel) => panel.dataset.panelId != null)
         .map((panel) => panel.dataset.panelId)
     ).toEqual([
       'energyConsumption',
@@ -874,6 +872,7 @@ describe('BuildingInfoPanel', () => {
     expect(
       screen
         .getAllByTestId(/building-info-panel-/)
+        .filter((panel) => panel.dataset.panelId != null)
         .map((panel) => panel.dataset.panelId)
     ).toEqual(['energyConsumption', 'buildingDetails'])
     expect(screen.getAllByTestId('sidebar-panel-extension-page-scroll')).toHaveLength(1)
@@ -893,6 +892,7 @@ describe('BuildingInfoPanel', () => {
     expect(
       screen
         .getAllByTestId(/building-info-panel-/)
+        .filter((panel) => panel.dataset.panelId != null)
         .map((panel) => panel.dataset.panelId)
     ).toEqual(['energyConsumption', 'buildingDetails'])
   })
@@ -910,12 +910,32 @@ describe('BuildingInfoPanel', () => {
     expect(
       screen
         .getAllByTestId(/building-info-panel-/)
+        .filter((panel) => panel.dataset.panelId != null)
         .map((panel) => panel.dataset.panelId)
     ).toEqual([
       'energyConsumption',
       'renovationRecommendations',
       'buildingDetails',
     ])
+  })
+
+  it('uses mobile content insets and heading-graphic offset in stacked layouts', async () => {
+    renderBuildingInfoTabs({ forceMobileLayout: true })
+
+    const energyPanel = (await screen.findByTestId(
+      'building-info-panel-energyConsumption'
+    )) as HTMLElement
+
+    const energyPanelBody = energyPanel.firstElementChild
+
+    expect(energyPanelBody).not.toBeNull()
+
+    expect(energyPanelBody).toHaveStyle({
+      width: 'min(16.25rem, calc(100vw - 6rem))',
+      marginLeft: 'auto',
+      marginRight: 'auto',
+      '--building-info-heading-graphic-left': '1.5rem',
+    })
   })
 
   it('renders the interactive energy controls in the basic tab', async () => {
@@ -935,7 +955,7 @@ describe('BuildingInfoPanel', () => {
       name: 'sidebar.building_info.panels.energy.primary.water',
     })
 
-    expect(yearSelect).toHaveAttribute('aria-disabled', 'true')
+    expect(yearSelect).toHaveAttribute('data-disabled')
     expect(energyButton).toHaveAttribute('aria-pressed', 'true')
     expect(energyButton).toHaveTextContent(
       'sidebar.building_info.panels.energy.primary.energy'
@@ -1073,7 +1093,9 @@ describe('BuildingInfoPanel', () => {
     })
 
     expect(
-      co2Button.querySelector('.MuiSvgIcon-root') as HTMLElement
+      co2Button.querySelector(
+        '[data-primary-metric-icon-id="co2"]'
+      ) as HTMLElement
     ).toHaveStyle({
       fontSize: '1.25rem',
     })
@@ -1085,7 +1107,9 @@ describe('BuildingInfoPanel', () => {
         .getByRole('button', {
           name: 'sidebar.building_info.panels.energy.primary.co2',
         })
-        .querySelector('.MuiSvgIcon-root') as HTMLElement
+        .querySelector(
+          '[data-primary-metric-icon-id="co2"]'
+        ) as HTMLElement
     ).toHaveStyle({
       fontSize: '1.4rem',
     })
@@ -1188,9 +1212,10 @@ describe('BuildingInfoPanel', () => {
       boxShadow: '0 2px 8px rgba(17, 17, 17, 0.12)',
     })
     expect(
-      collapseButton.querySelector('.MuiSvgIcon-root') as HTMLElement
+      collapseButton.querySelector('svg') as unknown as HTMLElement
     ).toHaveStyle({
-      fontSize: '1.85rem',
+      width: '1.85rem',
+      height: '1.85rem',
     })
   })
 
@@ -1311,11 +1336,13 @@ describe('BuildingInfoPanel', () => {
     const tooltipTrigger = missingValue?.querySelector('[tabindex="0"]')
 
     expect(tooltipTrigger).toBeInTheDocument()
-    fireEvent.mouseOver(tooltipTrigger as Element)
+    await act(async () => {
+      ;(tooltipTrigger as HTMLElement).focus()
+    })
 
-    expect(await screen.findByRole('tooltip')).toHaveTextContent(
-      'value.missing'
-    )
+    await waitFor(() => {
+      expect(screen.getAllByText('value.missing').length).toBeGreaterThan(1)
+    })
   })
 
   it('renders the building address as a stacked sub-header instead of a table row', async () => {
@@ -1360,7 +1387,7 @@ describe('BuildingInfoPanel', () => {
   it('keeps both collapsed reopen buttons available without owning expanded tab switching', () => {
     const onModeChange = jest.fn()
 
-    renderWithTheme(
+    render(
       <BuildingInfoActionRail
         activeMode="twoPanel"
         isCollapsed={true}
