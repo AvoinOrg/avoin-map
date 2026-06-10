@@ -7,6 +7,14 @@ import {
   mergePandaStyleProps,
   pandaStylePropsToArray,
 } from '#/common/style/pandaStyleProps'
+import {
+  TOOLTIP_ARROW_PADDING,
+  TOOLTIP_COLLISION_PADDING,
+  TOOLTIP_SIDE_OFFSET,
+  tooltipArrowClass,
+  tooltipPopupClass,
+  tooltipPositionerClass,
+} from '#/components/common/tooltipStyles'
 
 type HintSide = 'top' | 'right' | 'bottom' | 'left'
 type HintAlign = 'start' | 'center' | 'end'
@@ -29,6 +37,7 @@ type BaseTipParts = {
     align?: HintAlign
     sideOffset?: number
     collisionPadding?: number
+    arrowPadding?: number
     positionMethod?: 'fixed' | 'absolute'
     className?: string
     children?: React.ReactNode
@@ -58,35 +67,12 @@ type HintProps = {
   children: React.ReactElement
 }
 
-const positionerClass = css({
-  zIndex: 'popup',
-})
-
-const popupClass = css({
-  maxWidth: 'min(18.75rem, calc(100vw - 1rem))',
-  borderRadius: '4px',
-  backgroundColor: 'rgba(97, 97, 97, 0.92)',
-  color: '#ffffff',
-  px: '0.5rem',
-  py: '0.25rem',
-  fontSize: '0.6875rem',
-  lineHeight: 1.4,
-  boxShadow: '0 2px 8px rgba(17, 17, 17, 0.18)',
-})
-
-const arrowClass = css({
-  width: '0.5rem',
-  height: '0.5rem',
-  backgroundColor: 'rgba(97, 97, 97, 0.92)',
-  transform: 'rotate(45deg)',
-})
-
 const Hint = ({
   title,
   side = 'top',
   align = 'center',
   disabled,
-  sideOffset = 6,
+  sideOffset = TOOLTIP_SIDE_OFFSET,
   popupSx,
   arrowSx,
   children,
@@ -103,17 +89,24 @@ const Hint = ({
           side={side}
           align={align}
           sideOffset={sideOffset}
-          collisionPadding={8}
+          collisionPadding={TOOLTIP_COLLISION_PADDING}
+          arrowPadding={TOOLTIP_ARROW_PADDING}
           positionMethod="fixed"
-          className={positionerClass}
+          className={tooltipPositionerClass}
         >
           <BaseTip.Popup
-            className={cx(popupClass, css(...pandaStylePropsToArray(popupSx)))}
+            className={cx(
+              tooltipPopupClass,
+              css(...pandaStylePropsToArray(popupSx))
+            )}
             style={mergePandaStyleProps({ styleProps: popupSx })}
           >
             {title}
             <BaseTip.Arrow
-              className={cx(arrowClass, css(...pandaStylePropsToArray(arrowSx)))}
+              className={cx(
+                tooltipArrowClass,
+                css(...pandaStylePropsToArray(arrowSx))
+              )}
               style={mergePandaStyleProps({ styleProps: arrowSx })}
             />
           </BaseTip.Popup>

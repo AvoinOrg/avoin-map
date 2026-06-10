@@ -143,6 +143,7 @@ jest.mock('@base-ui/react/tooltip', () => {
   const Positioner = ({
     children,
     collisionPadding: _collisionPadding,
+    arrowPadding: _arrowPadding,
     positionMethod: _positionMethod,
     side: _side,
     sideOffset: _sideOffset,
@@ -150,6 +151,7 @@ jest.mock('@base-ui/react/tooltip', () => {
   }: React.PropsWithChildren<
     React.HTMLAttributes<HTMLDivElement> & {
       collisionPadding?: number
+      arrowPadding?: number
       positionMethod?: string
       side?: string
       sideOffset?: number
@@ -157,6 +159,7 @@ jest.mock('@base-ui/react/tooltip', () => {
   >) => {
     const context = React.useContext(TooltipContext)
     void _collisionPadding
+    void _arrowPadding
     void _positionMethod
     void _side
     void _sideOffset

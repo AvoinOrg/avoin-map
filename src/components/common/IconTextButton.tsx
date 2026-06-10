@@ -11,6 +11,14 @@ import {
   mergePandaStyleProps,
   pandaStylePropsToArray,
 } from '#/common/style/pandaStyleProps'
+import {
+  TOOLTIP_ARROW_PADDING,
+  TOOLTIP_COLLISION_PADDING,
+  TOOLTIP_SIDE_OFFSET,
+  tooltipArrowClass,
+  tooltipPopupClass,
+  tooltipPositionerClass,
+} from '#/components/common/tooltipStyles'
 
 type BaseButtonProps = React.ComponentProps<typeof BaseButton>
 type TooltipOpenChangeHandler = NonNullable<
@@ -30,30 +38,6 @@ type IconTextButtonProps = Omit<
   textSx?: PandaStyleProp
   iconWrapperSx?: PandaStyleProp
 }
-
-const tooltipPopupClassName = css({
-  zIndex: 'popup',
-  maxWidth: 'min(18.75rem, calc(100vw - 1rem))',
-  borderRadius: '4px',
-  backgroundColor: 'rgba(97, 97, 97, 0.92)',
-  color: 'common.white',
-  px: '0.5rem',
-  py: '0.25rem',
-  fontSize: '0.6875rem',
-  lineHeight: 1.4,
-  boxShadow: '0 2px 8px rgba(17, 17, 17, 0.18)',
-})
-
-const tooltipPositionerClassName = css({
-  zIndex: 'popup',
-})
-
-const tooltipArrowClassName = css({
-  width: '0.5rem',
-  height: '0.5rem',
-  backgroundColor: 'rgba(97, 97, 97, 0.92)',
-  transform: 'rotate(45deg)',
-})
 
 const IconTextButton = ({
   icon,
@@ -333,16 +317,17 @@ const IconTextButton = ({
               <Tooltip.Positioner
                 side="top"
                 positionMethod="fixed"
-                sideOffset={6}
-                collisionPadding={8}
-                className={tooltipPositionerClassName}
+                sideOffset={TOOLTIP_SIDE_OFFSET}
+                collisionPadding={TOOLTIP_COLLISION_PADDING}
+                arrowPadding={TOOLTIP_ARROW_PADDING}
+                className={tooltipPositionerClass}
               >
                 <Tooltip.Popup
                   ref={helperPopupRef}
-                  className={tooltipPopupClassName}
+                  className={tooltipPopupClass}
                 >
                   {helperText}
-                  <Tooltip.Arrow className={tooltipArrowClassName} />
+                  <Tooltip.Arrow className={tooltipArrowClass} />
                 </Tooltip.Popup>
               </Tooltip.Positioner>
             </Tooltip.Portal>
