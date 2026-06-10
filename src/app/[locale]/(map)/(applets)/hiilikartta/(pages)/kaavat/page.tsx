@@ -1,17 +1,18 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
-import { Box, SelectChangeEvent, Typography } from '@mui/material'
 import { T, useTranslate } from '@tolgee/react'
 import { useRouter } from 'next/navigation'
 
 import useStore from '#/common/hooks/useStore'
+import { Box } from '#/components/common/PandaBox'
 import { SidebarContentBox } from '#/components/Sidebar'
 import { useMapStore } from '#/common/store'
 import { getRoute } from '#/common/routing/routing-client'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
 import SidebarBackgroundContent from '#/components/common/SidebarBackgroundContent'
 import IconTextButton from '#/components/common/IconTextButton'
+import type { FormSelectionEvent } from '#/components/common/formControlEvents'
 
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 import { routeTree } from '#/common/routing/routes/hiilikartta'
@@ -137,7 +138,7 @@ const Page = () => {
     sortedPlanEntries.length > 0 ||
     Object.keys(placeholderPlanConfs ?? {}).length > 0
 
-  const handleSortChange = (event: SelectChangeEvent<string>) => {
+  const handleSortChange = (event: FormSelectionEvent<string>) => {
     setSortOrder(event.target.value as SortOption)
   }
 
@@ -304,8 +305,10 @@ const Page = () => {
               gap: '0.75rem',
             }}
           >
-            <Typography
+            <Box
+              component="h2"
               sx={{
+                m: 0,
                 color: '#111111',
                 fontSize: '0.625rem',
                 fontWeight: 700,
@@ -315,7 +318,7 @@ const Page = () => {
               }}
             >
               <T keyName="sidebar.my_plans.title" ns="hiilikartta" />
-            </Typography>
+            </Box>
             <Box
               sx={{
                 display: 'flex',
@@ -331,7 +334,8 @@ const Page = () => {
                   flexShrink: 0,
                 }}
               />
-              <Typography
+              <Box
+                component="span"
                 sx={{
                   color: '#111111',
                   fontSize: '0.625rem',
@@ -341,7 +345,7 @@ const Page = () => {
                 }}
               >
                 {visiblePlanCountLabel}
-              </Typography>
+              </Box>
             </Box>
           </Box>
 

@@ -1,13 +1,14 @@
 'use client'
 
 import React from 'react'
-import { Box, SxProps, Theme, Typography } from '@mui/material'
-import FolderCopyOutlinedIcon from '@mui/icons-material/FolderCopyOutlined'
-import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined'
 import { T } from '@tolgee/react'
 
+import type { PandaStyleProp } from '#/common/style/panda'
+import { Box } from '#/components/common/PandaBox'
 import IconTextButton from '#/components/common/IconTextButton'
 import { Delete, Login } from '#/components/icons'
+import SaveIcon from '#/app/[locale]/(map)/(applets)/hiilikartta/components/SaveIcon'
+import PlanCopyIcon from './PlanCopyIcon'
 
 export const PLAN_ACTION_BUTTON_COLOR = '#666666'
 export const PLAN_ACTION_BUTTON_HOVER_COLOR = '#4F4F4F'
@@ -23,7 +24,7 @@ type PlanActionFooterProps = {
   onDelete?: () => void
   onCopy?: () => void
   onCloudAction?: () => void
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
 }
 
 const getActionRowSx = ({
@@ -37,12 +38,6 @@ const getActionRowSx = ({
     : {
         color: PLAN_ACTION_BUTTON_HOVER_COLOR,
       },
-  '& .MuiButton-root.Mui-disabled': {
-    color: 'inherit',
-  },
-  '& .MuiIconButton-root.Mui-disabled': {
-    color: 'inherit',
-  },
 })
 
 const ACTION_TEXT_SX = {
@@ -108,7 +103,7 @@ const PlanActionFooter = ({
       >
         {showCopy && (
           <IconTextButton
-            icon={<FolderCopyOutlinedIcon sx={{ width: 13, height: 13 }} />}
+            icon={<PlanCopyIcon sx={{ width: 13, height: 13 }} />}
             text={<T keyName="sidebar.plan_settings.copy" ns="hiilikartta" />}
             onClick={onCopy}
             sx={getActionRowSx({})}
@@ -135,7 +130,7 @@ const PlanActionFooter = ({
               disabled={isCloudActionDisabled}
               icon={
                 cloudActionKind === 'save' ? (
-                  <SaveOutlinedIcon sx={{ width: 13, height: 13 }} />
+                  <SaveIcon sx={{ width: 13, height: 13 }} />
                 ) : (
                   <Login sx={{ width: 15, height: 13 }} />
                 )
@@ -150,8 +145,10 @@ const PlanActionFooter = ({
             />
 
             {lastSavedLabel && (
-              <Typography
+              <Box
+                component="p"
                 sx={{
+                  m: 0,
                   pl: '2rem',
                   pt: '0.1875rem',
                   fontSize: '0.5rem',
@@ -162,7 +159,7 @@ const PlanActionFooter = ({
                 }}
               >
                 {lastSavedLabel}
-              </Typography>
+              </Box>
             )}
           </Box>
         )}

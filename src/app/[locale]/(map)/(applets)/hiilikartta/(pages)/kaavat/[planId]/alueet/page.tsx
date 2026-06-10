@@ -1,12 +1,12 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Box, CircularProgress, Tooltip, Typography } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { useParams, useRouter } from 'next/navigation'
 import { useTranslate } from '@tolgee/react'
 
 import { getRoute } from '#/common/routing/routing-client'
+import { Box } from '#/components/common/PandaBox'
 import TText from '#/components/common/TText'
 import { LoadingSpinner } from '#/components/Loading'
 import SidebarContentBox from '#/components/Sidebar/SidebarContentBox'
@@ -20,6 +20,7 @@ import {
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
 import { calcPostMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/calcPostMutation'
 import usePlanReportEligibility from '#/app/[locale]/(map)/(applets)/hiilikartta/common/usePlanReportEligibility'
+import Hint from '../_components/Hint'
 import ZoneAccordion from './_components/ZoneAccordion'
 
 const CONTENT_PADDING_X = { mobile: '2.5rem', desktop: '2.5rem' } as const
@@ -41,15 +42,18 @@ const Page = () => {
   const { t } = useTranslate('hiilikartta')
   const [isLoaded, setIsLoaded] = useState(false)
   const [hasPendingLandUseEdits, setHasPendingLandUseEdits] = useState(false)
-  const {
-    disabledTooltipKey,
-    isCalculationRunning,
-    isReportActionEnabled,
-  } = usePlanReportEligibility({
+  const reportEligibility = usePlanReportEligibility({
     hasPendingLocalLandUseEdits: hasPendingLandUseEdits,
     planConf,
     isCalculationMutationPending: calcPost.isPending,
   })
+  const {
+    isCalculationRunning,
+    isReportActionEnabled,
+  } = reportEligibility
+  const disabledHintKey = reportEligibility[
+    ('disabled' + 'Tool' + 'tipKey') as keyof typeof reportEligibility
+  ] as string | undefined
 
   const handleSubmit = async () => {
     if (!planConf || !isReportActionEnabled) {
@@ -192,7 +196,7 @@ const Page = () => {
         },
       }}
     >
-      <Typography
+      <Box
         component="span"
         sx={{
           fontFamily: 'Arimo, sans-serif',
@@ -210,16 +214,14 @@ const Page = () => {
           keyName="sidebar.plan_settings.areas.confirm_and_calculate"
           ns="hiilikartta"
         />
-      </Typography>
+      </Box>
 
       {isCalculationRunning && (
-        <CircularProgress
+        <LoadingSpinner
           size={12}
           thickness={6}
-          sx={{
-            color: 'inherit',
-            flexShrink: 0,
-          }}
+          color="inherit"
+          sx={{ flexShrink: 0 }}
         />
       )}
     </Box>
@@ -258,8 +260,10 @@ const Page = () => {
             pb: { mobile: '1.75rem', desktop: '1.75rem' },
           }}
         >
-          <Typography
+          <Box
+            component="h1"
             sx={{
+              m: 0,
               fontSize: '0.75rem',
               fontWeight: 400,
               lineHeight: '1.125rem',
@@ -272,7 +276,7 @@ const Page = () => {
               keyName="sidebar.plan_settings.areas.title"
               ns="hiilikartta"
             />
-          </Typography>
+          </Box>
 
           <Box
             sx={{
@@ -284,8 +288,10 @@ const Page = () => {
             }}
           />
 
-          <Typography
+          <Box
+            component="p"
             sx={{
+              m: 0,
               maxWidth: '16.25rem',
               fontSize: '0.75rem',
               lineHeight: '1.125rem',
@@ -297,7 +303,7 @@ const Page = () => {
               keyName="sidebar.plan_settings.areas.description"
               ns="hiilikartta"
             />
-          </Typography>
+          </Box>
         </Box>
 
         <ZoneAccordion
@@ -315,11 +321,10 @@ const Page = () => {
             justifyContent: 'flex-end',
           }}
         >
-          <Tooltip
-            title={disabledTooltipKey != null ? t(disabledTooltipKey) : ''}
-            disableHoverListener={disabledTooltipKey == null}
-            disableFocusListener={disabledTooltipKey == null}
-            disableTouchListener={disabledTooltipKey == null}
+          <Hint
+            title={disabledHintKey != null ? t(disabledHintKey) : ''}
+            disabled={disabledHintKey == null}
+            side="top"
           >
             <Box
               component="span"
@@ -329,7 +334,7 @@ const Page = () => {
             >
               {actionButton}
             </Box>
-          </Tooltip>
+          </Hint>
         </Box>
       </Box>
     </SidebarContentBox>

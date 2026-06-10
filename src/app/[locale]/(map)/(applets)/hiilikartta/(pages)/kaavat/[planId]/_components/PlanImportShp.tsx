@@ -32,7 +32,7 @@ const PlanImportShp = ({
   const importFieldSpacing = '1rem'
   const [geojson, setGeojson] = useState<FeatureCollection>()
   const [columns, setColumns] = useState<string[]>([])
-  const lastResolvedImportKeyRef = useRef<string>()
+  const lastResolvedImportKeyRef = useRef<string | undefined>(undefined)
 
   useEffect(() => {
     setGeojson(undefined)

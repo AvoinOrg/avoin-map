@@ -1,12 +1,12 @@
-import { Box, type SxProps, type Theme } from '@mui/material'
-
+import type { PandaStyleProp } from '#/common/style/panda'
+import { Box } from '#/components/common/PandaBox'
 import { getContrastColor } from '#/common/utils/styling'
 
 type Props = {
   code: string
   color?: string
   dark?: boolean
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
   uppercase?: boolean
 }
 

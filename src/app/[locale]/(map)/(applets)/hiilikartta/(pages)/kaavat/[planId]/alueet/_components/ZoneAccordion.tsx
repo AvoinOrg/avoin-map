@@ -1,15 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Box, type SelectChangeEvent, Typography } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
+import type { PandaStyleProp } from '#/common/style/panda'
 import useStore from '#/common/hooks/useStore'
 import useSelectedFeaturesFilteredBySource from '#/common/hooks/map/useSelectedFeaturesFilteredBySource'
 import { useMapStore } from '#/common/store'
 import type { SelectOption } from '#/common/types/general'
+import { Box } from '#/components/common/PandaBox'
 import DropDownMultiSelect, {
   type DropDownMultiSelectOption,
 } from '#/components/common/DropDownMultiSelect'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
+import type { FormSelectionEvent } from '#/components/common/formControlEvents'
 
 import type { PlanDataFeature } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
 import { useZoningClasses } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/useZoningClasses'
@@ -35,7 +37,7 @@ import {
 interface Props {
   planConfId: string
   onPendingLandUseEditsChange?: (hasPending: boolean) => void
-  sx?: any
+  sx?: PandaStyleProp
 }
 
 const CONTENT_PADDING_X = { mobile: '2.5rem', desktop: '2.5rem' } as const
@@ -111,7 +113,8 @@ const ZoneAccordion = ({
         label: option.label,
         leading: <ZoneClassChip code={option.code} color={option.color} />,
         trailing: (
-          <Typography
+          <Box
+            component="span"
             sx={{
               fontSize: '0.625rem',
               lineHeight: '0.875rem',
@@ -120,7 +123,7 @@ const ZoneAccordion = ({
             }}
           >
             {option.count}
-          </Typography>
+          </Box>
         ),
       })),
     [filterOptions]
@@ -383,14 +386,11 @@ const ZoneAccordion = ({
     ]
   )
 
-  const handleFilterChange = (event: SelectChangeEvent<string[]>) => {
-    const value = event.target.value
-    setSelectedFilterValues(
-      typeof value === 'string' ? value.split(',') : value
-    )
+  const handleFilterChange = (event: FormSelectionEvent<string[]>) => {
+    setSelectedFilterValues(event.target.value)
   }
 
-  const handleSortChange = (event: SelectChangeEvent<string>) => {
+  const handleSortChange = (event: FormSelectionEvent<string>) => {
     setSortValue(event.target.value as ZoneSortValue)
   }
 
@@ -483,8 +483,10 @@ const ZoneAccordion = ({
           gap: '0.625rem',
         }}
       >
-        <Typography
+        <Box
+          component="p"
           sx={{
+            m: 0,
             fontSize: '0.625rem',
             fontWeight: 400,
             lineHeight: '1.125rem',
@@ -494,7 +496,7 @@ const ZoneAccordion = ({
           }}
         >
           {t('sidebar.plan_settings.areas.filter_label')}
-        </Typography>
+        </Box>
 
         <Box
           sx={{
@@ -552,7 +554,8 @@ const ZoneAccordion = ({
                   })}
 
                   {selectedOptions.length > visibleChips.length && (
-                    <Typography
+                    <Box
+                      component="span"
                       sx={{
                         fontSize: '0.625rem',
                         lineHeight: '0.875rem',
@@ -562,15 +565,17 @@ const ZoneAccordion = ({
                       }}
                     >
                       +{selectedOptions.length - visibleChips.length}
-                    </Typography>
+                    </Box>
                   )}
                 </Box>
               )
             }}
           />
 
-          <Typography
+          <Box
+            component="p"
             sx={{
+              m: 0,
               alignSelf: 'flex-end',
               fontSize: '0.5rem',
               lineHeight: '0.75rem',
@@ -583,7 +588,7 @@ const ZoneAccordion = ({
             {t('sidebar.plan_settings.areas.count', {
               count: visibleFeatures.length,
             })}
-          </Typography>
+          </Box>
 
           <Box
             sx={{

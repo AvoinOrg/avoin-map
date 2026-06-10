@@ -1,18 +1,12 @@
 'use client'
 
 import React, { useEffect, useMemo, useState } from 'react'
-import {
-  Box,
-  ButtonBase,
-  CircularProgress,
-  Tooltip,
-  Typography,
-} from '@mui/material'
-import { SelectChangeEvent } from '@mui/material/Select'
 import { useTranslate } from '@tolgee/react'
 
+import { Box } from '#/components/common/PandaBox'
 import TText from '#/components/common/TText'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
+import type { FormSelectionEvent } from '#/components/common/formControlEvents'
 import {
   NODE_FLOW_OUTER_OFFSET,
   NODE_FLOW_OUTER_WIDTH,
@@ -20,6 +14,7 @@ import {
   NodeFlowButtonProps,
   NodeFlowButton,
 } from '#/components/common/NodeFlow'
+import { LoadingSpinner } from '#/components/Loading'
 import { Delete, Eco, Error as ErrorIcon } from '#/components/icons'
 import { pp } from '#/common/utils/general'
 
@@ -32,6 +27,7 @@ import {
   PLAN_ACTION_BUTTON_COLOR,
   PLAN_ACTION_BUTTON_HOVER_COLOR,
 } from './PlanActionFooter'
+import Hint from './Hint'
 
 type PlanReportFlowStepProps = Pick<
   NodeFlowButtonProps,
@@ -40,7 +36,7 @@ type PlanReportFlowStepProps = Pick<
   planConf?: PlanConf
   locale: string
   isReportActionEnabled: boolean
-  disabledTooltipKey?: string
+  disabledHintKey?: string
   isCalculationRunning: boolean
   onCalculate: () => void
   onOpenReport: () => void
@@ -59,7 +55,7 @@ const PlanReportFlowStepBase = ({
   planConf,
   locale,
   isReportActionEnabled,
-  disabledTooltipKey,
+  disabledHintKey,
   isCalculationRunning,
   onCalculate,
   onOpenReport,
@@ -168,10 +164,11 @@ const PlanReportFlowStepBase = ({
       ? t('sidebar.my_plans.calculations_starting')
       : t('sidebar.my_plans.calculations_in_progress')
     buttonHelperLeading = (
-      <CircularProgress
+      <LoadingSpinner
         size={12}
         thickness={7}
-        sx={{ color: '#274AFF', flexShrink: 0 }}
+        color="#274AFF"
+        sx={{ flexShrink: 0 }}
       />
     )
   } else if (isErrored) {
@@ -195,20 +192,19 @@ const PlanReportFlowStepBase = ({
     buttonOnClick = onCalculate
   }
 
-  const shouldShowTooltip =
-    disabledTooltipKey != null &&
+  const shouldShowHint =
+    disabledHintKey != null &&
     !hasFinishedReport &&
     !isInProgress &&
     !isReportActionEnabled
-  const tooltipLabel =
-    disabledTooltipKey != null ? t(disabledTooltipKey) : ''
+  const hintLabel = disabledHintKey != null ? t(disabledHintKey) : ''
   const buttonAccentColor = buttonDisabled
     ? 'rgba(17, 17, 17, 0.4)'
     : buttonStatus === 'error'
       ? '#7A3D2B'
       : '#0D6044'
 
-  const handleYearChange = (event: SelectChangeEvent<string>) => {
+  const handleYearChange = (event: FormSelectionEvent<string>) => {
     setSelectedYear(event.target.value)
   }
 
@@ -251,10 +247,10 @@ const PlanReportFlowStepBase = ({
         width: NODE_FLOW_OUTER_WIDTH,
       }}
     >
-      {shouldShowTooltip ? (
-        <Tooltip title={tooltipLabel} arrow placement="top">
+      {shouldShowHint ? (
+        <Hint title={hintLabel} side="top">
           <Box sx={{ width: '100%' }}>{button}</Box>
-        </Tooltip>
+        </Hint>
       ) : (
         button
       )}
@@ -309,8 +305,10 @@ const PlanReportFlowStepBase = ({
                   minWidth: 0,
                 }}
               >
-                <Typography
+                <Box
+                  component="p"
                   sx={{
+                    m: 0,
                     fontSize: '0.625rem',
                     fontWeight: 400,
                     lineHeight: '1.125rem',
@@ -320,11 +318,13 @@ const PlanReportFlowStepBase = ({
                   }}
                 >
                   {reportLabel}
-                </Typography>
+                </Box>
 
                 {calculatedOnLabel != null && (
-                  <Typography
+                  <Box
+                    component="p"
                     sx={{
+                      m: 0,
                       fontSize: '0.625rem',
                       fontWeight: 400,
                       lineHeight: '1.125rem',
@@ -334,7 +334,7 @@ const PlanReportFlowStepBase = ({
                     }}
                   >
                     {calculatedOnLabel}
-                  </Typography>
+                  </Box>
                 )}
               </Box>
             </Box>
@@ -353,8 +353,10 @@ const PlanReportFlowStepBase = ({
                   pr: '1.25rem',
                 }}
               >
-                <Typography
+                <Box
+                  component="p"
                   sx={{
+                    m: 0,
                     fontSize: '0.75rem',
                     fontWeight: 400,
                     lineHeight: '1.125rem',
@@ -367,7 +369,7 @@ const PlanReportFlowStepBase = ({
                     ns="hiilikartta"
                   />
                   :
-                </Typography>
+                </Box>
                 {/* Hidden until the related tooltip copy is ready. */}
               </Box>
 
@@ -379,7 +381,8 @@ const PlanReportFlowStepBase = ({
                   gap: '0.75rem',
                 }}
               >
-                <Typography
+                <Box
+                  component="span"
                   sx={{
                     fontSize: '0.625rem',
                     fontWeight: 400,
@@ -392,7 +395,7 @@ const PlanReportFlowStepBase = ({
                     keyName="sidebar.plan_settings.report_preview.on_year"
                     ns="hiilikartta"
                   />
-                </Typography>
+                </Box>
 
                 {selectedYear != null && (
                   <DropDownSelectMinimal
@@ -453,7 +456,8 @@ const PlanReportFlowStepBase = ({
                     borderTop: '1px solid rgba(17, 17, 17, 0.14)',
                   }}
                 >
-                  <Typography
+                  <Box
+                    component="span"
                     sx={{
                       fontSize: '0.625rem',
                       fontWeight: 400,
@@ -466,9 +470,10 @@ const PlanReportFlowStepBase = ({
                       keyName="sidebar.plan_settings.report_preview.carbon_eqv_unit"
                       ns="hiilikartta"
                     />
-                  </Typography>
+                  </Box>
 
-                  <Typography
+                  <Box
+                    component="span"
                     sx={{
                       fontSize: '0.75rem',
                       fontWeight: 700,
@@ -479,7 +484,7 @@ const PlanReportFlowStepBase = ({
                     }}
                   >
                     {pp(totalChange, 0)}
-                  </Typography>
+                  </Box>
                 </Box>
               )}
 
@@ -494,7 +499,8 @@ const PlanReportFlowStepBase = ({
                     borderTop: '1px solid rgba(17, 17, 17, 0.14)',
                   }}
                 >
-                  <Typography
+                  <Box
+                    component="span"
                     sx={{
                       fontSize: '0.625rem',
                       fontWeight: 400,
@@ -507,9 +513,10 @@ const PlanReportFlowStepBase = ({
                       keyName="sidebar.plan_settings.report_preview.carbon_eqv_unit_hectare"
                       ns="hiilikartta"
                     />
-                  </Typography>
+                  </Box>
 
-                  <Typography
+                  <Box
+                    component="span"
                     sx={{
                       fontSize: '0.75rem',
                       fontWeight: 700,
@@ -520,13 +527,14 @@ const PlanReportFlowStepBase = ({
                     }}
                   >
                     {pp(perHectareChange, 0)}
-                  </Typography>
+                  </Box>
                 </Box>
               )}
             </Box>
           </Box>
 
-          <ButtonBase
+          <Box
+            component="button"
             type="button"
             aria-label={t(
               'sidebar.plan_settings.report_preview.reset_and_recalculate'
@@ -539,13 +547,22 @@ const PlanReportFlowStepBase = ({
               gap: '0.625rem',
               width: 'fit-content',
               maxWidth: '100%',
-              mt: 1,
-              px: 1.3,
+              mt: '0.5rem',
+              px: '0.65rem',
               py: 0,
+              border: 0,
+              borderRadius: '0.125rem',
+              backgroundColor: 'transparent',
               color: PLAN_ACTION_BUTTON_COLOR,
               textAlign: 'left',
+              font: 'inherit',
+              cursor: 'pointer',
               '&:hover': {
                 color: PLAN_ACTION_BUTTON_HOVER_COLOR,
+              },
+              '&:focus-visible': {
+                outline: '2px solid rgba(17,17,17,0.4)',
+                outlineOffset: '2px',
               },
             }}
           >
@@ -557,7 +574,8 @@ const PlanReportFlowStepBase = ({
                 flexShrink: 0,
               }}
             />
-            <Typography
+            <Box
+              component="span"
               sx={{
                 fontSize: '0.625rem',
                 fontWeight: 700,
@@ -570,8 +588,8 @@ const PlanReportFlowStepBase = ({
                 keyName="sidebar.plan_settings.report_preview.reset_and_recalculate"
                 ns="hiilikartta"
               />
-            </Typography>
-          </ButtonBase>
+            </Box>
+          </Box>
         </>
       )}
     </Box>

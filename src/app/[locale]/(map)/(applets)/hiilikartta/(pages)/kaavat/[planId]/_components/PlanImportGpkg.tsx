@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { SelectChangeEvent } from '@mui/material'
 import { FeatureCollection } from 'geojson'
 
 import { roundFeatureCoordinates } from '#/common/utils/map'
+import type { FormSelectionEvent } from '#/components/common/formControlEvents'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import PlanImportCodeRecordSelect from './PlanImportCodeRecordSelect'
 import { PendingPlanImport } from './planImportTypes'
@@ -41,7 +41,7 @@ const PlanImportGpkg = ({
   const [gpkgFile, setGpkgFile] = useState<any>()
   const [tables, setTables] = useState<string[]>([])
   const [columns, setColumns] = useState<string[]>([])
-  const lastResolvedImportKeyRef = useRef<string>()
+  const lastResolvedImportKeyRef = useRef<string | undefined>(undefined)
 
   const activeTable = useMemo(() => {
     if (selectedTable != null && tables.includes(selectedTable)) {
@@ -186,7 +186,7 @@ const PlanImportGpkg = ({
     selectedZoningCol,
   ])
 
-  const handleSelectTable = (event: SelectChangeEvent) => {
+  const handleSelectTable = (event: FormSelectionEvent<string>) => {
     onSelectedTableChange(event.target.value || undefined)
   }
 

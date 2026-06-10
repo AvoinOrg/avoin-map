@@ -1,6 +1,6 @@
-import { SelectChangeEvent, SxProps, Theme } from '@mui/material'
-
+import type { PandaStyleProp } from '#/common/style/panda'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
+import type { FormSelectionEvent } from '#/components/common/formControlEvents'
 
 type PlanImportCodeRecordSelectProps = {
   columns: string[]
@@ -9,7 +9,7 @@ type PlanImportCodeRecordSelectProps = {
   allowEmpty?: boolean
   label: string
   placeholder: string
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
 }
 
 const PlanImportCodeRecordSelect = ({
@@ -21,7 +21,7 @@ const PlanImportCodeRecordSelect = ({
   placeholder,
   sx,
 }: PlanImportCodeRecordSelectProps) => {
-  const handleSelectColumn = (event: SelectChangeEvent) => {
+  const handleSelectColumn = (event: FormSelectionEvent<string>) => {
     const { value } = event.target
 
     if (value === '' || value === null) {

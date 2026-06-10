@@ -8,12 +8,12 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import { Box, ButtonBase, Tooltip, Typography } from '@mui/material'
 import { T, useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
 import { useParams, useRouter } from 'next/navigation'
 
+import { Box } from '#/components/common/PandaBox'
 import { SidebarContentBox } from '#/components/Sidebar'
 import SidebarBackgroundContent from '#/components/common/SidebarBackgroundContent'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
@@ -68,6 +68,7 @@ import PlanActionFooter from './_components/PlanActionFooter'
 import PlanImportGpkg from './_components/PlanImportGpkg'
 import PlanImportShp from './_components/PlanImportShp'
 import { PendingPlanImport } from './_components/planImportTypes'
+import Hint from './_components/Hint'
 
 const getFileType = (fileName: string): FileType | undefined => {
   const extension = fileName.split('.').pop()?.toLowerCase()
@@ -137,25 +138,37 @@ const InfoButton = ({
   tooltip: React.ReactNode
 }) => {
   return (
-    <Tooltip title={tooltip} arrow placement="top">
-      <ButtonBase
+    <Hint title={tooltip} side="top">
+      <Box
+        component="button"
+        type="button"
         aria-label={ariaLabel}
         sx={{
           width: '1rem',
           height: '1rem',
           minWidth: '1rem',
+          p: 0,
+          border: 0,
           color: '#7b8670',
           borderRadius: '999px',
+          backgroundColor: 'transparent',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          '&:focus-visible': {
+            outline: '2px solid rgba(17,17,17,0.4)',
+            outlineOffset: '2px',
+          },
         }}
         onClick={(event) => {
           event.preventDefault()
           event.stopPropagation()
         }}
-        disableRipple
       >
         <QuestionCircleOutline sx={{ width: 16, height: 16 }} />
-      </ButtonBase>
-    </Tooltip>
+      </Box>
+    </Hint>
   )
 }
 
@@ -170,13 +183,15 @@ const UploadField = ({
 }) => {
   return (
     <StatusFieldRow isSuccess={isSelected}>
-      <ButtonBase
+      <Box
+        component="button"
         type="button"
         aria-label="Select plan file to import"
         onClick={onClick}
         sx={{
           width: '100%',
           minHeight: '2rem',
+          display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           gap: '0.75rem',
@@ -187,9 +202,16 @@ const UploadField = ({
           backgroundColor: '#ffffff',
           boxShadow: 'inset 0px 0.5px 1px 0px #d9d9d9',
           textAlign: 'left',
+          font: 'inherit',
+          cursor: 'pointer',
+          '&:focus-visible': {
+            outline: '2px solid rgba(17,17,17,0.4)',
+            outlineOffset: '2px',
+          },
         }}
       >
-        <Typography
+        <Box
+          component="span"
           sx={{
             fontSize: '0.6875rem',
             fontWeight: 400,
@@ -200,7 +222,7 @@ const UploadField = ({
           }}
         >
           {label}
-        </Typography>
+        </Box>
 
         <Upload
           sx={{
@@ -210,7 +232,7 @@ const UploadField = ({
             flexShrink: 0,
           }}
         />
-      </ButtonBase>
+      </Box>
     </StatusFieldRow>
   )
 }
@@ -287,16 +309,19 @@ const Page = () => {
   const isImportCreationFlow = creationPlaceholderPlanConf != null
   const isReadyPlan = planConf != null
   const isDrawCreatedFirstVisit = planConf?.draftType === 'draw'
+  const reportEligibility = usePlanReportEligibility({
+    planConf,
+    isCalculationMutationPending: calcPost.isPending,
+  })
   const {
     hasNoFeatures,
     isCalculationRunning,
     isReportActionEnabled,
-    disabledTooltipKey,
     areZonesValid,
-  } = usePlanReportEligibility({
-    planConf,
-    isCalculationMutationPending: calcPost.isPending,
-  })
+  } = reportEligibility
+  const disabledHintKey = reportEligibility[
+    ('disabled' + 'Tool' + 'tipKey') as keyof typeof reportEligibility
+  ] as string | undefined
   const isAreasStepComplete = isReadyPlan && !hasNoFeatures && areZonesValid
   const dateTimeLocale = useMemo(() => {
     if (locale == null) {
@@ -1432,7 +1457,7 @@ const Page = () => {
             locale={locale}
             isCalculationRunning={isCalculationRunning}
             isReportActionEnabled={isReportActionEnabled}
-            disabledTooltipKey={disabledTooltipKey}
+            disabledHintKey={disabledHintKey}
             onCalculate={handleCalculateReport}
             onOpenReport={handleOpenReport}
             onResetReportAndRecalculate={handleResetReportAndRecalculate}
