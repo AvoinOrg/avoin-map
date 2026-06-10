@@ -16,6 +16,7 @@ import {
   isListedLayerGroup,
 } from '#/common/utils/listedLayerGroups'
 import { MapMenuState } from '#/common/types/state'
+import { dropdownSelectPopupSelector } from '#/components/common/formControlStyles'
 import { Layers } from '#/components/icons'
 import { MapButton } from '../MapButton'
 import MapFloatingPanel, {
@@ -134,6 +135,7 @@ const MapLayerButtonBase = ({
         collisionPadding={popperPadding}
         onClose={handleCloseMenu}
         positionerSx={{ zIndex: 'calc(var(--z-index-drawer) + 3)' }}
+        ignoreOutsideClickSelectors={[dropdownSelectPopupSelector]}
         paperSx={[
           {
             maxWidth: 'calc(100vw - 78px)',

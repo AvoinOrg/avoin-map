@@ -21,6 +21,37 @@ export const sharedFloatingPositionerClass = css({
   zIndex: 'modal',
 })
 
+export const dropdownSelectPopupSelector = '[data-dropdown-select-popup]'
+
+export const sharedSelectIconClass = css({
+  width: '0.75rem',
+  height: '0.375rem',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flex: '0 0 auto',
+  color: 'currentColor',
+  lineHeight: 0,
+  transform: 'rotate(0deg)',
+  transformOrigin: 'center',
+  transition: 'transform 150ms ease',
+  '&&[data-popup-open]': {
+    transform: 'rotate(180deg)',
+  },
+  '& > svg': {
+    width: '100%',
+    height: '100%',
+    display: 'block',
+    flexShrink: 0,
+  },
+})
+
+export const sharedSelectArrowIconStyle = {
+  width: '100%',
+  height: '100%',
+  display: 'block',
+} as const
+
 export const sharedSelectPopupStyle = {
   minWidth: 'var(--anchor-width)',
   maxHeight: '18rem',

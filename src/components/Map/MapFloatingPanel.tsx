@@ -35,6 +35,7 @@ type MapFloatingPanelProps = {
   onClose: () => void
   paperSx?: PandaStyleProp
   positionerSx?: PandaStyleProp
+  ignoreOutsideClickSelectors?: string[]
   children: React.ReactNode
 }
 
@@ -88,12 +89,20 @@ export const MapFloatingPanel = ({
   onClose,
   paperSx,
   positionerSx,
+  ignoreOutsideClickSelectors = [],
   children,
 }: MapFloatingPanelProps) => {
   const popupRef = useRef<HTMLDivElement | null>(null)
   const { side, align } = getSideAndAlign(placement)
   const resolvedAnchor = resolveFloatingAnchor(anchor)
   const mounted = open && resolvedAnchor != null
+  const hasIgnoredPopupOpen = React.useCallback(
+    () =>
+      ignoreOutsideClickSelectors.some((selector) =>
+        document.querySelector(selector)
+      ),
+    [ignoreOutsideClickSelectors]
+  )
 
   useEffect(() => {
     if (!mounted) {
@@ -110,10 +119,17 @@ export const MapFloatingPanel = ({
       const currentAnchor = resolveFloatingAnchor(anchor)
       const anchorElement =
         currentAnchor instanceof Element ? currentAnchor : null
+      const isIgnoredOutsideTarget = ignoreOutsideClickSelectors.some(
+        (selector) =>
+          target instanceof Element
+            ? target.closest(selector) != null
+            : target.parentElement?.closest(selector) != null
+      )
 
       if (
         popupRef.current?.contains(target) ||
-        anchorElement?.contains(target)
+        anchorElement?.contains(target) ||
+        isIgnoredOutsideTarget
       ) {
         return
       }
@@ -122,6 +138,10 @@ export const MapFloatingPanel = ({
     }
 
     const closeOnEscape = (event: KeyboardEvent) => {
+      if (hasIgnoredPopupOpen()) {
+        return
+      }
+
       if (event.key === 'Escape') {
         onClose()
       }
@@ -134,7 +154,7 @@ export const MapFloatingPanel = ({
       document.removeEventListener('pointerdown', closeOnPointerDown, true)
       document.removeEventListener('keydown', closeOnEscape, true)
     }
-  }, [anchor, mounted, onClose])
+  }, [anchor, hasIgnoredPopupOpen, ignoreOutsideClickSelectors, mounted, onClose])
 
   if (!mounted) {
     return null
@@ -145,6 +165,10 @@ export const MapFloatingPanel = ({
       open={mounted}
       onOpenChange={(nextOpen) => {
         if (!nextOpen) {
+          if (hasIgnoredPopupOpen()) {
+            return
+          }
+
           onClose()
         }
       }}

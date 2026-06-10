@@ -162,7 +162,6 @@ const BackgroundBuildingFiltersAccordionContent = () => {
         value={buildingTypeFilter}
         options={buildingTypeOptions}
         onChange={handleBuildingTypeChange}
-        disablePortal
         label={t('sidebar.background_filters.building_types.label')}
         ariaLabel={t('sidebar.background_filters.building_types.aria_label')}
         headerSx={{
@@ -183,7 +182,6 @@ const BackgroundBuildingFiltersAccordionContent = () => {
         iconSx={{
           width: '0.5rem',
           height: '0.25rem',
-          mr: '0.75rem',
         }}
         typographySx={{
           maxWidth: '14rem',
@@ -196,7 +194,6 @@ const BackgroundBuildingFiltersAccordionContent = () => {
         value={constructionDecadeSelectValue}
         options={decadeOptions}
         onChange={handleConstructionDecadeChange}
-        disablePortal
         label={t('sidebar.background_filters.construction_year.label')}
         ariaLabel={t('sidebar.background_filters.construction_year.aria_label')}
       />

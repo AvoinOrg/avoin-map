@@ -15,6 +15,8 @@ import {
 } from './formControlEvents'
 import {
   sharedFloatingPositionerClass,
+  sharedSelectArrowIconStyle,
+  sharedSelectIconClass,
   sharedSelectItemClass,
   sharedSelectPopupStyle,
   sharedSelectTriggerFocusStyle,
@@ -57,17 +59,6 @@ const valueClass = css({
   overflow: 'hidden',
   textOverflow: 'ellipsis',
   whiteSpace: 'nowrap',
-})
-
-const iconClass = css({
-  width: '0.75rem',
-  height: '0.375rem',
-  flexShrink: 0,
-  color: 'currentColor',
-  transition: 'transform 150ms ease',
-  '[data-open] &': {
-    transform: 'rotate(180deg)',
-  },
 })
 
 const popupClass = css(sharedSelectPopupStyle, {
@@ -124,11 +115,14 @@ const DropDownSelectMinimal = ({
           }}
         </BaseSelect.Value>
         <BaseSelect.Icon
-          className={cx(iconClass, css(...pandaStylePropsToArray(iconSx)))}
+          className={cx(
+            sharedSelectIconClass,
+            css(...pandaStylePropsToArray(iconSx))
+          )}
           style={mergePandaStyleProps({ styleProps: iconSx })}
           aria-hidden="true"
         >
-          <ArrowDown />
+          <ArrowDown style={sharedSelectArrowIconStyle} />
         </BaseSelect.Icon>
       </BaseSelect.Trigger>
       <BaseSelect.Portal>
@@ -137,8 +131,9 @@ const DropDownSelectMinimal = ({
           align="start"
           alignItemWithTrigger={false}
           className={sharedFloatingPositionerClass}
+          data-dropdown-select-popup=""
         >
-          <BaseSelect.Popup className={popupClass}>
+          <BaseSelect.Popup className={popupClass} data-dropdown-select-popup="">
             <BaseSelect.List>
               {hasEmpty && (
                 <BaseSelect.Item

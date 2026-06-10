@@ -16,6 +16,8 @@ import {
 } from './formControlEvents'
 import {
   sharedFloatingPositionerClass,
+  sharedSelectArrowIconStyle,
+  sharedSelectIconClass,
   sharedSelectItemClass,
   sharedSelectPopupStyle,
   sharedSelectTriggerFocusStyle,
@@ -87,6 +89,7 @@ const triggerClass = css({
 
 const valueClass = css({
   display: 'block',
+  flex: '1 1 auto',
   minWidth: 0,
   overflow: 'hidden',
   textOverflow: 'ellipsis',
@@ -102,17 +105,6 @@ const valueClass = css({
 const placeholderClass = css({
   display: 'block',
   color: '#A0A0A0',
-})
-
-const iconClass = css({
-  width: '0.75rem',
-  height: '0.375rem',
-  flexShrink: 0,
-  color: 'currentColor',
-  transition: 'transform 150ms ease',
-  '[data-open] &': {
-    transform: 'rotate(180deg)',
-  },
 })
 
 const popupClass = css(sharedSelectPopupStyle, {
@@ -204,11 +196,14 @@ const DropDownMultiSelect = ({
         >
           <span className={valueClass}>{renderSelectedSummary()}</span>
           <BaseSelect.Icon
-            className={cx(iconClass, css(...pandaStylePropsToArray(iconSx)))}
+            className={cx(
+              sharedSelectIconClass,
+              css(...pandaStylePropsToArray(iconSx))
+            )}
             style={mergePandaStyleProps({ styleProps: iconSx })}
             aria-hidden="true"
           >
-            <ArrowDown />
+            <ArrowDown style={sharedSelectArrowIconStyle} />
           </BaseSelect.Icon>
         </BaseSelect.Trigger>
         <BaseSelect.Portal>
@@ -217,8 +212,10 @@ const DropDownMultiSelect = ({
             align="start"
             alignItemWithTrigger={false}
             className={sharedFloatingPositionerClass}
+            data-dropdown-select-popup=""
           >
             <BaseSelect.Popup
+              data-dropdown-select-popup=""
               className={cx(
                 popupClass,
                 css(...pandaStylePropsToArray(menuPaperSx))
