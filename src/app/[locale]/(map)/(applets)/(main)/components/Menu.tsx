@@ -40,7 +40,7 @@ export const Menu = () => {
   const { t } = useTranslate('avoin-map')
 
   return (
-    <SidebarContentBox sxInner={{ p: 0 }}>
+    <SidebarContentBox innerStyleProps={{ p: 0 }}>
       <ImgAccordion
         title={t('sidebar.forests')}
         img="/files/img/green-drawings/forest-mountains.jpg"

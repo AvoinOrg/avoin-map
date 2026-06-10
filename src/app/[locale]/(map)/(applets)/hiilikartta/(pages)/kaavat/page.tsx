@@ -208,7 +208,7 @@ const Page = () => {
   return (
     <SidebarContentBox
       scrollFadeColor="#ffffff"
-      sxInner={{
+      innerStyleProps={{
         pt: 0,
         gap: { mobile: '1.5rem', desktop: '1.5rem' },
         px: { mobile: '1rem', desktop: '1.875rem' },
@@ -250,7 +250,7 @@ const Page = () => {
                   src={IMPORT_PLAN_ICON_SRC}
                   alt=""
                   aria-hidden="true"
-                  sx={{
+                  styleProps={{
                     width: '0.75rem',
                     height: '0.90625rem',
                     display: 'block',
@@ -269,7 +269,7 @@ const Page = () => {
                   src={DRAW_PLAN_ICON_SRC}
                   alt=""
                   aria-hidden="true"
-                  sx={{
+                  styleProps={{
                     width: '1.0125rem',
                     height: '0.75rem',
                     display: 'block',
@@ -289,7 +289,7 @@ const Page = () => {
 
       {hasPlansSection && (
         <Box
-          sx={{
+          styleProps={{
             display: 'flex',
             flexDirection: 'column',
             gap: { mobile: '1rem', desktop: '1.125rem' },
@@ -299,7 +299,7 @@ const Page = () => {
           }}
         >
           <Box
-            sx={{
+            styleProps={{
               display: 'flex',
               flexDirection: 'column',
               gap: '0.75rem',
@@ -307,7 +307,7 @@ const Page = () => {
           >
             <Box
               component="h2"
-              sx={{
+              styleProps={{
                 m: 0,
                 color: '#111111',
                 fontSize: '0.625rem',
@@ -320,7 +320,7 @@ const Page = () => {
               <T keyName="sidebar.my_plans.title" ns="hiilikartta" />
             </Box>
             <Box
-              sx={{
+              styleProps={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.75rem',
@@ -329,14 +329,14 @@ const Page = () => {
             >
               <PlanOutlineIcon
                 variant="large"
-                sx={{
+                styleProps={{
                   color: '#0D6044',
                   flexShrink: 0,
                 }}
               />
               <Box
                 component="span"
-                sx={{
+                styleProps={{
                   color: '#111111',
                   fontSize: '0.625rem',
                   fontWeight: 700,
@@ -350,7 +350,7 @@ const Page = () => {
           </Box>
 
           <Box
-            sx={{
+            styleProps={{
               display: 'flex',
               flexDirection: 'column',
               borderRadius: '0.75rem',
@@ -360,7 +360,7 @@ const Page = () => {
             }}
           >
             <Box
-              sx={{
+              styleProps={{
                 display: 'flex',
                 justifyContent: 'flex-end',
                 alignItems: 'center',
@@ -391,7 +391,7 @@ const Page = () => {
                     label: t('sidebar.kaavat.sort_z_a'),
                   },
                 ]}
-                sx={{
+                styleProps={{
                   minWidth: '7.25rem',
                   ml: 'auto',
                   borderRadius: '999px',
@@ -424,7 +424,7 @@ const Page = () => {
             </Box>
 
             <Box
-              sx={{
+              styleProps={{
                 display: 'flex',
                 flexDirection: 'column',
                 px: { mobile: '1.125rem', desktop: '1.25rem' },
@@ -435,7 +435,7 @@ const Page = () => {
               {sortedPlanEntries.map((planEntry) => (
                 <Box
                   key={planEntry.id}
-                  sx={{
+                  styleProps={{
                     width: '100%',
                     borderBottom:
                       '1px solid rgba(13, 96, 68, 0.12)',
@@ -465,7 +465,7 @@ const Page = () => {
                 Object.keys(placeholderPlanConfs).map((planConfId) => (
                   <Box
                     key={planConfId}
-                    sx={{
+                    styleProps={{
                       width: '100%',
                       borderBottom:
                         '1px solid rgba(13, 96, 68, 0.12)',

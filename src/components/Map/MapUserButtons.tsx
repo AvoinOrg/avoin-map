@@ -180,11 +180,11 @@ export const MapUserButtons = ({ isVertical }: Props) => {
   const localeMenuContent =
     supportedLocales.length > 1
       ? ({ closeMenu }: { closeMenu: () => void }) => (
-          <Box sx={{ minWidth: '10rem' }}>
+          <Box styleProps={{ minWidth: '10rem' }}>
             <Box
               role="menu"
               aria-label={languageMenuLabel}
-              sx={{ display: 'flex', flexDirection: 'column', py: 1 }}
+              styleProps={{ display: 'flex', flexDirection: 'column', py: 1 }}
             >
               {supportedLocales.map((supportedLocale) => (
                 <BaseButton
@@ -232,7 +232,7 @@ export const MapUserButtons = ({ isVertical }: Props) => {
                 >
                   <Box
                     component="span"
-                    sx={{
+                    styleProps={{
                       fontWeight: supportedLocale === locale ? 600 : 400,
                     }}
                   >
@@ -243,7 +243,7 @@ export const MapUserButtons = ({ isVertical }: Props) => {
                   </Box>
                   <Box
                     component="span"
-                    sx={{
+                    styleProps={{
                       color: 'neutral.dark',
                       fontSize: '0.75rem',
                       fontWeight: 600,
@@ -286,7 +286,7 @@ export const MapUserButtons = ({ isVertical }: Props) => {
           tooltip={supportedLocales.length > 1 ? languageButtonLabel : undefined}
           aria-label={`${languageButtonLabel}: ${shownLocale}`}
           isVertical={isVertical}
-          sx={{
+          styleProps={{
             fontSize: '0.95rem',
             fontWeight: 500,
             letterSpacing: '0.04em',

@@ -24,7 +24,7 @@ type PlanActionFooterProps = {
   onDelete?: () => void
   onCopy?: () => void
   onCloudAction?: () => void
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 const getActionRowSx = ({
@@ -66,7 +66,7 @@ const PlanActionFooter = ({
   onDelete,
   onCopy,
   onCloudAction,
-  sx,
+  styleProps,
 }: PlanActionFooterProps) => {
   if (!showDelete && !showCopy && !showCloudAction) {
     return null
@@ -74,25 +74,25 @@ const PlanActionFooter = ({
 
   return (
     <Box
-      sx={[
+      styleProps={[
         {
           display: 'flex',
           flexDirection: 'column',
           gap: '1.75rem',
           width: '100%',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
       ]}
     >
       <Box
-        sx={{
+        styleProps={{
           width: '100%',
           borderTop: '0.5px solid rgba(13, 96, 68, 0.22)',
         }}
       />
 
       <Box
-        sx={{
+        styleProps={{
           display: 'flex',
           flexDirection: 'column',
           gap: '0.8125rem',
@@ -103,10 +103,10 @@ const PlanActionFooter = ({
       >
         {showCopy && (
           <IconTextButton
-            icon={<PlanCopyIcon sx={{ width: 13, height: 13 }} />}
+            icon={<PlanCopyIcon styleProps={{ width: 13, height: 13 }} />}
             text={<T keyName="sidebar.plan_settings.copy" ns="hiilikartta" />}
             onClick={onCopy}
-            sx={getActionRowSx({})}
+            styleProps={getActionRowSx({})}
             textSx={ACTION_TEXT_SX}
             iconWrapperSx={ACTION_ICON_WRAPPER_SX}
           />
@@ -114,30 +114,30 @@ const PlanActionFooter = ({
 
         {showDelete && (
           <IconTextButton
-            icon={<Delete sx={{ width: 12, height: 12 }} />}
+            icon={<Delete styleProps={{ width: 12, height: 12 }} />}
             text={<T keyName="sidebar.plan_settings.delete" ns="hiilikartta" />}
             onClick={onDelete}
-            sx={getActionRowSx({})}
+            styleProps={getActionRowSx({})}
             textSx={ACTION_TEXT_SX}
             iconWrapperSx={ACTION_ICON_WRAPPER_SX}
           />
         )}
 
         {showCloudAction && cloudActionLabel && (
-          <Box sx={{ width: '100%' }}>
+          <Box styleProps={{ width: '100%' }}>
             <IconTextButton
               aria-label={cloudActionLabel}
               disabled={isCloudActionDisabled}
               icon={
                 cloudActionKind === 'save' ? (
-                  <SaveIcon sx={{ width: 13, height: 13 }} />
+                  <SaveIcon styleProps={{ width: 13, height: 13 }} />
                 ) : (
-                  <Login sx={{ width: 15, height: 13 }} />
+                  <Login styleProps={{ width: 15, height: 13 }} />
                 )
               }
               text={cloudActionLabel}
               onClick={onCloudAction}
-              sx={getActionRowSx({
+              styleProps={getActionRowSx({
                 isDisabled: isCloudActionDisabled,
               })}
               textSx={ACTION_TEXT_SX}
@@ -147,7 +147,7 @@ const PlanActionFooter = ({
             {lastSavedLabel && (
               <Box
                 component="p"
-                sx={{
+                styleProps={{
                   m: 0,
                   pl: '2rem',
                   pt: '0.1875rem',

@@ -19,7 +19,7 @@ type LoadingSpinnerColor =
 
 interface LoadingSpinnerProps
   extends Omit<React.HTMLAttributes<HTMLSpanElement>, 'color' | 'children'> {
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   size?: number | string
   color?: LoadingSpinnerColor
   variant?: 'determinate' | 'indeterminate'
@@ -66,7 +66,7 @@ const sizeToCssValue = (size: number | string) => {
 }
 
 export const LoadingSpinner = ({
-  sx,
+  styleProps,
   size = '4rem',
   color = 'primary',
   variant = 'indeterminate',
@@ -92,12 +92,12 @@ export const LoadingSpinner = ({
       aria-valuemin={variant === 'determinate' ? 0 : undefined}
       aria-valuemax={variant === 'determinate' ? 100 : undefined}
       aria-valuenow={variant === 'determinate' ? normalizedValue : undefined}
-      className={cx(spinnerClass, css(...pandaStylePropsToArray(sx)), className)}
+      className={cx(spinnerClass, css(...pandaStylePropsToArray(styleProps)), className)}
       style={{
         width: resolvedSize,
         height: resolvedSize,
         color: colorToCssValue(color),
-        ...mergePandaStyleProps({ sx, style }),
+        ...mergePandaStyleProps({ styleProps, style }),
       }}
       {...rest}
     >

@@ -48,11 +48,11 @@ const CarbonLineChart = ({ data, featureYears, planNames }: Props) => {
   }
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <Box sx={{ mt: { xs: 0, md: 2.5 }, ml: { xs: 0, md: 2.5 } }}>
+    <Box styleProps={{ width: '100%' }}>
+      <Box styleProps={{ mt: { xs: 0, md: 2.5 }, ml: { xs: 0, md: 2.5 } }}>
         <Box
           component="h2"
-          sx={{
+          styleProps={{
             m: 0,
             typography: 'h1',
             display: 'inline',
@@ -62,7 +62,7 @@ const CarbonLineChart = ({ data, featureYears, planNames }: Props) => {
         </Box>
       </Box>
       <Box
-        sx={{
+        styleProps={{
           display: 'inline-flex',
           flexDirection: 'row',
           mt: 10,
@@ -72,7 +72,7 @@ const CarbonLineChart = ({ data, featureYears, planNames }: Props) => {
         <StyledToggleButton
           type="button"
           aria-label="ha"
-          sx={{ typography: 'body7', letterSpacing: 'normal' }}
+          styleProps={{ typography: 'body7', letterSpacing: 'normal' }}
           aria-pressed={unitType === 'ha'}
           data-selected={unitType === 'ha' ? 'true' : undefined}
           onClick={(event) => handleUnitTypeChange(event, 'ha')}
@@ -85,7 +85,7 @@ const CarbonLineChart = ({ data, featureYears, planNames }: Props) => {
         <StyledToggleButton
           type="button"
           aria-label="total"
-          sx={{
+          styleProps={{
             typography: 'body7',
             letterSpacing: 'normal',
             ml: 0.5,
@@ -100,7 +100,7 @@ const CarbonLineChart = ({ data, featureYears, planNames }: Props) => {
           />
         </StyledToggleButton>
       </Box>
-      <Box ref={boxRef} sx={{ width: '100%', overflowX: 'auto', pb: 2.5 }}>
+      <Box ref={boxRef} styleProps={{ width: '100%', overflowX: 'auto', pb: 2.5 }}>
         <CarbonLineChartInner
           data={data}
           featureYears={featureYears}
@@ -116,14 +116,14 @@ const CarbonLineChart = ({ data, featureYears, planNames }: Props) => {
 
 const StyledToggleButton = ({
   children,
-  sx,
+  styleProps,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }) => (
   <Box
     component="button"
-    sx={[
+    styleProps={[
       {
         borderRadius: '0.3125rem',
         border: '1px solid',
@@ -151,7 +151,7 @@ const StyledToggleButton = ({
           outlineOffset: '2px',
         },
       },
-      ...(Array.isArray(sx) ? sx : [sx]),
+      ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
     ]}
     {...props}
   >

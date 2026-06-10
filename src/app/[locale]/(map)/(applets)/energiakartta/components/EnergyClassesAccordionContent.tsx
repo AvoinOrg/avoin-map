@@ -22,23 +22,23 @@ const ACCORDION_TEXT_SX = {
 
 type EnergyClassTextProps = {
   component?: React.ElementType
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   children?: React.ReactNode
 } & React.ComponentPropsWithoutRef<'p'>
 
 const EnergyClassText = ({
   component,
-  sx,
+  styleProps,
   children,
   ...props
 }: EnergyClassTextProps) => (
   <Box
     component={component ?? 'p'}
-    sx={[
+    styleProps={[
       {
         m: 0,
       },
-      ...(Array.isArray(sx) ? sx : [sx]),
+      ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
     ]}
     {...props}
   >
@@ -51,14 +51,14 @@ const EnergyClassesAccordionContent = () => {
 
   return (
       <Box
-        sx={{
+        styleProps={{
           pt: '2.125rem',
           mx: '2rem',
           maxWidth: '15.875rem',
         }}
       >
       <EnergyCertificateClassControls
-        sx={{
+        styleProps={{
           mb: '2.75rem',
           ml: '-2rem',
           width: '20.125rem',
@@ -67,31 +67,31 @@ const EnergyClassesAccordionContent = () => {
       />
 
       <Box
-        sx={{
+        styleProps={{
           display: 'flex',
           flexDirection: 'column',
           gap: '1.125rem',
         }}
       >
-        <EnergyClassText sx={ACCORDION_TEXT_SX}>
+        <EnergyClassText styleProps={ACCORDION_TEXT_SX}>
           <TText
             keyName="sidebar.front_page.energy_classes.body_1"
             ns="energiakartta"
           />
         </EnergyClassText>
-        <EnergyClassText sx={ACCORDION_TEXT_SX}>
+        <EnergyClassText styleProps={ACCORDION_TEXT_SX}>
           <TText
             keyName="sidebar.front_page.energy_classes.body_2"
             ns="energiakartta"
           />
         </EnergyClassText>
-        <EnergyClassText sx={ACCORDION_TEXT_SX}>
+        <EnergyClassText styleProps={ACCORDION_TEXT_SX}>
           <TText
             keyName="sidebar.front_page.energy_classes.body_3"
             ns="energiakartta"
           />
         </EnergyClassText>
-        <EnergyClassText sx={{ ...ACCORDION_TEXT_SX, fontWeight: 700 }}>
+        <EnergyClassText styleProps={{ ...ACCORDION_TEXT_SX, fontWeight: 700 }}>
           <TText
             keyName="sidebar.front_page.energy_classes.note"
             ns="energiakartta"
@@ -102,7 +102,7 @@ const EnergyClassesAccordionContent = () => {
       {showDefinitions && (
         <Box
           component="ul"
-          sx={{
+          styleProps={{
             mt: '2rem',
             mb: 0,
             p: 0,
@@ -116,7 +116,7 @@ const EnergyClassesAccordionContent = () => {
             <Box
               key={classCode}
               component="li"
-              sx={{
+              styleProps={{
                 display: 'grid',
                 gridTemplateColumns: '1.75rem minmax(0, 1fr)',
                 columnGap: '0.75rem',
@@ -126,7 +126,7 @@ const EnergyClassesAccordionContent = () => {
               <Box
                 component="span"
                 aria-hidden="true"
-                sx={{
+                styleProps={{
                   width: '1.75rem',
                   height: '1.75rem',
                   borderRadius: '50%',
@@ -145,7 +145,7 @@ const EnergyClassesAccordionContent = () => {
               </Box>
               <EnergyClassText
                 component="span"
-                sx={{
+                styleProps={{
                   ...ACCORDION_TEXT_SX,
                   lineHeight: '1rem',
                 }}
@@ -164,7 +164,7 @@ const EnergyClassesAccordionContent = () => {
         component="button"
         type="button"
         onClick={() => setShowDefinitions((value) => !value)}
-        sx={{
+        styleProps={{
           mt: '2.25rem',
           p: 0,
           border: 0,
@@ -184,7 +184,7 @@ const EnergyClassesAccordionContent = () => {
       >
         <EnergyClassText
           component="span"
-          sx={{
+          styleProps={{
             ...ACCORDION_TEXT_SX,
             color: 'inherit',
             textDecoration: 'inherit',

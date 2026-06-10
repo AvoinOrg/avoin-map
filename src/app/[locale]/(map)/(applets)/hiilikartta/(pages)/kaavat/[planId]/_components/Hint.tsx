@@ -109,12 +109,12 @@ const Hint = ({
         >
           <BaseTip.Popup
             className={cx(popupClass, css(...pandaStylePropsToArray(popupSx)))}
-            style={mergePandaStyleProps({ sx: popupSx })}
+            style={mergePandaStyleProps({ styleProps: popupSx })}
           >
             {title}
             <BaseTip.Arrow
               className={cx(arrowClass, css(...pandaStylePropsToArray(arrowSx)))}
-              style={mergePandaStyleProps({ sx: arrowSx })}
+              style={mergePandaStyleProps({ styleProps: arrowSx })}
             />
           </BaseTip.Popup>
         </BaseTip.Positioner>

@@ -22,11 +22,11 @@ type IconTextButtonProps = Omit<
   BaseButtonProps,
   'children' | 'className' | 'style' | 'color'
 > & {
-  icon: React.ReactElement<{ sx?: unknown }>
+  icon: React.ReactElement<{ styleProps?: unknown }>
   text: React.ReactNode
   helperText?: React.ReactNode
   helperAriaLabel?: string
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   textSx?: PandaStyleProp
   iconWrapperSx?: PandaStyleProp
 }
@@ -60,7 +60,7 @@ const IconTextButton = ({
   text,
   helperText,
   helperAriaLabel,
-  sx,
+  styleProps,
   textSx,
   iconWrapperSx,
   'aria-label': ariaLabel,
@@ -86,13 +86,13 @@ const IconTextButton = ({
   }, [ariaLabel, text])
 
   const iconElement = React.cloneElement(icon, {
-    sx: [
+    styleProps: [
       {
         width: 14,
         height: 14,
         color: 'inherit',
       },
-      ...pandaStylePropsToArray(icon.props.sx as PandaStyleProp),
+      ...pandaStylePropsToArray(icon.props.styleProps as PandaStyleProp),
     ],
   })
 
@@ -191,9 +191,9 @@ const IconTextButton = ({
             color: 'rgba(47,68,23,0.35)',
           },
         }),
-        css(...pandaStylePropsToArray(sx))
+        css(...pandaStylePropsToArray(styleProps))
       )}
-      style={mergePandaStyleProps({ sx })}
+      style={mergePandaStyleProps({ styleProps })}
     >
       <BaseButton
         aria-label={resolvedAriaLabel}
@@ -252,7 +252,7 @@ const IconTextButton = ({
               }),
               css(...pandaStylePropsToArray(iconWrapperSx))
             )}
-            style={mergePandaStyleProps({ sx: iconWrapperSx })}
+            style={mergePandaStyleProps({ styleProps: iconWrapperSx })}
           >
             {iconElement}
           </span>
@@ -270,7 +270,7 @@ const IconTextButton = ({
               }),
               css(...pandaStylePropsToArray(textSx))
             )}
-            style={mergePandaStyleProps({ sx: textSx })}
+            style={mergePandaStyleProps({ styleProps: textSx })}
           >
             {text}
           </span>
@@ -327,7 +327,7 @@ const IconTextButton = ({
                 },
               })}
             >
-              <QuestionCircleOutline sx={{ width: 16, height: 16 }} />
+              <QuestionCircleOutline styleProps={{ width: 16, height: 16 }} />
             </Tooltip.Trigger>
             <Tooltip.Portal>
               <Tooltip.Positioner

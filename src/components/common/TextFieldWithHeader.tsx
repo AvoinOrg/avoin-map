@@ -29,7 +29,7 @@ type TextFieldWithHeaderProps = Omit<
   onChange: (value: string) => void
   debounceTimeout?: number
   name?: string
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   headerSx?: PandaStyleProp
   textSx?: PandaStyleProp
   required?: boolean
@@ -120,7 +120,7 @@ const TextFieldWithHeader = ({
   onChange: onParentChange,
   debounceTimeout = 300,
   name,
-  sx,
+  styleProps,
   headerSx,
   textSx,
   required = false,
@@ -187,16 +187,16 @@ const TextFieldWithHeader = ({
       disabled={disabled}
       invalid={error}
       name={name}
-      className={cx(wrapperClass, css(...pandaStylePropsToArray(sx)))}
+      className={cx(wrapperClass, css(...pandaStylePropsToArray(styleProps)))}
       style={{
         width: fullWidth ? '100%' : undefined,
-        ...mergePandaStyleProps({ sx }),
+        ...mergePandaStyleProps({ styleProps }),
       }}
     >
       {ariaLabel ? (
         <span
           className={cx(headerClass, css(...pandaStylePropsToArray(headerSx)))}
-          style={mergePandaStyleProps({ sx: headerSx })}
+          style={mergePandaStyleProps({ styleProps: headerSx })}
         >
           {headerText}
           {required && ' *'}
@@ -204,7 +204,7 @@ const TextFieldWithHeader = ({
       ) : (
         <BaseField.Label
           className={cx(headerClass, css(...pandaStylePropsToArray(headerSx)))}
-          style={mergePandaStyleProps({ sx: headerSx })}
+          style={mergePandaStyleProps({ styleProps: headerSx })}
         >
           {headerText}
           {required && ' *'}
@@ -219,7 +219,7 @@ const TextFieldWithHeader = ({
           style={{
             minHeight: minRows ? `${minRows * 1.5}rem` : undefined,
             maxHeight: maxRows ? `${maxRows * 1.5}rem` : undefined,
-            ...mergePandaStyleProps({ sx: textSx }),
+            ...mergePandaStyleProps({ styleProps: textSx }),
           }}
           className={cx(textareaClass, css(...pandaStylePropsToArray(textSx)))}
         />
@@ -239,7 +239,7 @@ const TextFieldWithHeader = ({
                 inputClass,
                 css(...pandaStylePropsToArray(textSx))
               )}
-              style={mergePandaStyleProps({ sx: textSx })}
+              style={mergePandaStyleProps({ styleProps: textSx })}
             />
           )}
         />

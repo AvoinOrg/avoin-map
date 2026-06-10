@@ -8,7 +8,7 @@ interface Props {
   onColumnChange: (column: string | undefined) => void
   allowEmpty?: boolean
   label?: string
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 const FolayerImportCodeRecordSelect = ({
@@ -17,7 +17,7 @@ const FolayerImportCodeRecordSelect = ({
   onColumnChange,
   allowEmpty,
   label,
-  sx,
+  styleProps,
 }: Props) => {
   const handleSelectColumn = (event: FormSelectionEvent<string>) => {
     const { value } = event.target
@@ -34,7 +34,7 @@ const FolayerImportCodeRecordSelect = ({
     <>
       {columns.length > 0 && (
         <DropDownSelectWithHeader
-          sx={[...(Array.isArray(sx) ? sx : [sx])]}
+          styleProps={[...(Array.isArray(styleProps) ? styleProps : [styleProps])]}
           value={selectedColumn}
           options={columns.map((col) => {
             return { value: col, label: col }

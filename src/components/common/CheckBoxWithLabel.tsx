@@ -24,7 +24,7 @@ type CheckBoxWithLabelProps = Omit<
     checked: boolean
   ) => void
   children?: React.ReactNode
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   checkboxSx?: PandaStyleProp
   iconSx?: PandaStyleProp
   iconCheckedSx?: PandaStyleProp
@@ -98,7 +98,7 @@ const CheckBoxWithLabel = ({
   checked,
   onChange,
   children,
-  sx,
+  styleProps,
   checkboxSx,
   iconSx,
   iconCheckedSx,
@@ -141,9 +141,9 @@ const CheckBoxWithLabel = ({
 
   return (
     <label
-      className={cx(wrapperClass, css(...pandaStylePropsToArray(sx)))}
+      className={cx(wrapperClass, css(...pandaStylePropsToArray(styleProps)))}
       data-disabled={disabled ? '' : undefined}
-      style={mergePandaStyleProps({ sx, style })}
+      style={mergePandaStyleProps({ styleProps, style })}
     >
       <BaseCheckbox.Root
         {...checkboxRest}
@@ -155,7 +155,7 @@ const CheckBoxWithLabel = ({
         inputRef={inputProps?.ref}
         aria-label={resolvedAriaLabel}
         className={cx(rootClass, css(...pandaStylePropsToArray(checkboxSx)))}
-        style={mergePandaStyleProps({ sx: checkboxSx })}
+        style={mergePandaStyleProps({ styleProps: checkboxSx })}
         onCheckedChange={handleCheckedChange}
       >
         <span
@@ -164,7 +164,7 @@ const CheckBoxWithLabel = ({
         >
           {checked ? (
             <CheckboxCheckedIcon
-              sx={[
+              styleProps={[
                 {
                   backgroundColor: disabled ? 'action.disabledBackground' : '#97C68B',
                   color: disabled ? 'text.disabled' : 'neutral.darker',
@@ -175,7 +175,7 @@ const CheckBoxWithLabel = ({
             />
           ) : (
             <CheckboxIcon
-              sx={[
+              styleProps={[
                 {
                   backgroundColor: 'transparent',
                   color: disabled ? 'text.disabled' : 'neutral.darker',
@@ -187,7 +187,7 @@ const CheckBoxWithLabel = ({
           )}
         </span>
       </BaseCheckbox.Root>
-      <span className={cx(textClass, css(...pandaStylePropsToArray(textSx)))} style={mergePandaStyleProps({ sx: textSx })}>
+      <span className={cx(textClass, css(...pandaStylePropsToArray(textSx)))} style={mergePandaStyleProps({ styleProps: textSx })}>
         {children}
         {required && ' *'}
       </span>

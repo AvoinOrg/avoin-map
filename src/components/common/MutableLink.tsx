@@ -20,7 +20,7 @@ type LinkProps = Omit<NextIntlLinkProps, 'href' | 'className' | 'style'> & {
   params?: Params
   removeSteps?: number
   removeStepsFromRoot?: number
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   className?: string
   style?: React.CSSProperties
   underline?: 'none' | 'hover' | 'always'
@@ -31,7 +31,7 @@ type LinkProps = Omit<NextIntlLinkProps, 'href' | 'className' | 'style'> & {
  * A link that can be used in applets with their own domain.
  */
 const MutableLink = ({
-  sx,
+  styleProps,
   children,
   route,
   routeTree,
@@ -81,10 +81,10 @@ const MutableLink = ({
                 }
               : undefined,
         }),
-        css(...pandaStylePropsToArray(sx)),
+        css(...pandaStylePropsToArray(styleProps)),
         className
       )}
-      style={mergePandaStyleProps({ sx, style })}
+      style={mergePandaStyleProps({ styleProps, style })}
       prefetch={true}
       {...props}
       href={href as NextIntlLinkProps['href']}

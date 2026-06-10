@@ -80,22 +80,22 @@ const Page = () => {
 
   return (
     <Box
-      sx={{
+      styleProps={{
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
         height: '100%',
       }}
     >
-      <SidebarContentBox sxOuter={{ position: 'relative', flex: 1 }}>
+      <SidebarContentBox outerStyleProps={{ position: 'relative', flex: 1 }}>
         {!isFolayerReady && (
-          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Box styleProps={{ display: 'flex', justifyContent: 'center' }}>
             <LoadingSpinner></LoadingSpinner>
           </Box>
         )}
         {isFolayerReady && (
           <Box
-            sx={{
+            styleProps={{
               display: 'flex',
               flexDirection: 'column',
               pb: 5,
@@ -112,7 +112,7 @@ const Page = () => {
       </SidebarContentBox>
       {isReadyToSave && (
         <Box
-          sx={{
+          styleProps={{
             display: 'flex',
             flexDirection: 'column',
             pl: SIDEBAR_PADDING_REM + 'rem',
@@ -128,7 +128,7 @@ const Page = () => {
             keyName="sidebar.admin.folayer.pictures.save"
             ariaLabel={t('sidebar.admin.folayer.pictures.save')}
             onClick={handleSaveClick}
-            sx={{
+            styleProps={{
               mt: 1.3,
               alignSelf: 'flex-start',
               width: '100%',

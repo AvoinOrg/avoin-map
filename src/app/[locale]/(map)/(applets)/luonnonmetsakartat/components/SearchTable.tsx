@@ -41,7 +41,7 @@ interface Props {
   source: SelectionSource
   sortKeys?: SortKey[]
   searchPlaceholder?: string
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 const columns: ColumnDef<FolayerFeature>[] = [
@@ -67,7 +67,7 @@ const SearchTable = ({
   searchPlaceholder,
   source,
   sortKeys = [],
-  sx,
+  styleProps,
 }: Props) => {
   const { t } = useTranslate('avoin-map')
   const addSelectedFeaturesByIds = useMapStore(
@@ -221,7 +221,7 @@ const SearchTable = ({
     )
     return (
       <Box
-        sx={{
+        styleProps={{
           display: 'flex',
           alignItems: 'center', // Center text vertically
           borderBottom: '1px solid',
@@ -235,7 +235,7 @@ const SearchTable = ({
           <Box
             key={cell.id}
             onClick={() => handleClick(cell.row.original)}
-            sx={{
+            styleProps={{
               flex: 1,
               p: 1,
               height: '100%',
@@ -258,10 +258,10 @@ const SearchTable = ({
   }
 
   return (
-    <Box sx={[...(Array.isArray(sx) ? sx : [sx])]}>
+    <Box styleProps={[...(Array.isArray(styleProps) ? styleProps : [styleProps])]}>
       {/* sorting button */}
       <Box
-        sx={{
+        styleProps={{
           display: 'flex',
           justifyContent: 'flex-end',
           alignItems: 'center',
@@ -276,7 +276,7 @@ const SearchTable = ({
             value: key.key,
             label: key.label,
           }))}
-          sx={{
+          styleProps={{
             typography: 'body7',
             textAlign: 'right',
             display: 'inline-flex',
@@ -295,7 +295,7 @@ const SearchTable = ({
                   'components.search_table.sort_direction_descending_aria_label'
                 )
           }
-          sx={{
+          styleProps={{
             display: 'flex',
             alignItems: 'center',
             cursor: 'pointer',
@@ -315,15 +315,15 @@ const SearchTable = ({
           onClick={toggleSortOrder}
         >
           {isAscending ? (
-            <Ascending sx={{ height: 18 }} />
+            <Ascending styleProps={{ height: 18 }} />
           ) : (
-            <Descending sx={{ height: 18 }} />
+            <Descending styleProps={{ height: 18 }} />
           )}
         </Box>
       </Box>
       {/* Search input */}
       <Box
-        sx={{
+        styleProps={{
           display: 'flex',
           alignItems: 'center',
           mb: 1,
@@ -332,7 +332,7 @@ const SearchTable = ({
       >
         <Box
           component="label"
-          sx={{
+          styleProps={{
             display: 'flex',
             alignItems: 'center',
             width: '100%',
@@ -341,7 +341,7 @@ const SearchTable = ({
             typography: 'body2',
           }}
         >
-          <Search sx={{ mr: 1, height: 20, color: 'neutral.dark' }} />
+          <Search styleProps={{ mr: 1, height: 20, color: 'neutral.dark' }} />
           <Box
             component="input"
             type="search"
@@ -349,7 +349,7 @@ const SearchTable = ({
           placeholder={searchPlaceholder || t('components.search_table.search')}
             value={searchTerm}
             onChange={handleSearchChange}
-            sx={{
+            styleProps={{
               width: '100%',
               minWidth: 0,
               border: 0,
@@ -380,7 +380,7 @@ const SearchTable = ({
 
       {/* Separate Box for the scrollable, virtualized rows */}
       <Box
-        sx={{
+        styleProps={{
           width: '100%',
           overflow: 'auto',
           borderRadius: 1,

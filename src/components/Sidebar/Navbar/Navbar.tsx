@@ -10,7 +10,7 @@ export const Navbar = () => {
   return (
     <Box
       className="navbar-container"
-      sx={{
+      styleProps={{
         zIndex: 'appBar',
         width: '100%',
         minWidth: '200px',
@@ -26,7 +26,7 @@ export const Navbar = () => {
         pl: SIDEBAR_PADDING_REM + 'rem',
       }}
     >
-      <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+      <Box styleProps={{ display: 'flex', flexDirection: 'row' }}>
         <UserButtons></UserButtons>
       </Box>
     </Box>

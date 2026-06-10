@@ -122,7 +122,7 @@ const NotificationViewport = () => {
                   close(toast.id)
                 }}
               >
-                <Cross sx={{ display: 'flex', height: '16px' }} />
+                <Cross styleProps={{ display: 'flex', height: '16px' }} />
               </button>
             </BaseToast.Content>
           </BaseToast.Root>

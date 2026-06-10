@@ -7,13 +7,13 @@ import {
 import type { IconProps } from './types'
 
 
-const DownIcon = ({ sx, className, style, ...props }: IconProps) => (
+const DownIcon = ({ styleProps, className, style, ...props }: IconProps) => (
   <svg
     width={17}
     height={11}
     viewBox="0 0 17 11"
-    className={cx(css(...pandaStylePropsToArray(sx)), className)}
-    style={mergePandaStyleProps({ sx, style })}
+    className={cx(css(...pandaStylePropsToArray(styleProps)), className)}
+    style={mergePandaStyleProps({ styleProps, style })}
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     {...props}

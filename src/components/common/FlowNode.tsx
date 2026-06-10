@@ -25,7 +25,7 @@ export type FlowNodeProps = {
   disabled?: boolean
   onChange?: (expanded: boolean) => void
   children?: React.ReactNode
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   contentSx?: PandaStyleProp
   bodySx?: PandaStyleProp
   ariaLabel?: string
@@ -46,7 +46,7 @@ const FlowNodeBase = ({
   state = 'available',
   disabled = false,
   children,
-  sx,
+  styleProps,
   contentSx,
   bodySx,
   ariaLabel,
@@ -94,7 +94,7 @@ const FlowNodeBase = ({
     if (state === 'complete') {
       return (
         <CheckcircleCheckedFilled
-          sx={{
+          styleProps={{
             width: 12,
             height: 12,
             color: '#2C8E74',
@@ -217,9 +217,9 @@ const FlowNodeBase = ({
           width: '100%',
           color: '#111111',
         }),
-        css(...pandaStylePropsToArray(sx))
+        css(...pandaStylePropsToArray(styleProps))
       )}
-      style={mergePandaStyleProps({ sx })}
+      style={mergePandaStyleProps({ styleProps })}
     >
       <div
         className={css({
@@ -268,7 +268,7 @@ const FlowNodeBase = ({
           }),
           css(...pandaStylePropsToArray(contentSx))
         )}
-        style={mergePandaStyleProps({ sx: contentSx })}
+        style={mergePandaStyleProps({ styleProps: contentSx })}
       >
         {isInteractive ? (
           <button
@@ -333,7 +333,7 @@ const FlowNodeBase = ({
               }),
               css(...pandaStylePropsToArray(bodySx))
             )}
-            style={mergePandaStyleProps({ sx: bodySx })}
+            style={mergePandaStyleProps({ styleProps: bodySx })}
           >
             {children}
           </div>

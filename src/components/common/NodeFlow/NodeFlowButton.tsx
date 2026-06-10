@@ -35,7 +35,7 @@ export type NodeFlowButtonProps = NodeFlowMarkerProps & {
   showConnectorTop?: boolean
   showConnectorBottom?: boolean
   disableOuterOffset?: boolean
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   rowSx?: PandaStyleProp
   helperSx?: PandaStyleProp
 }
@@ -66,7 +66,7 @@ export const NODE_FLOW_MARKER_CENTER_X = '0.375rem'
 
 const DefaultCompletedMarker = () => (
   <CheckcircleCheckedFilled
-    sx={{
+    styleProps={{
       width: 12,
       height: 12,
       color: 'currentColor',
@@ -169,7 +169,7 @@ const NodeFlowButtonBase = ({
   ariaLabel,
   ariaExpanded,
   disableOuterOffset = false,
-  sx,
+  styleProps,
   rowSx,
   helperSx,
 }: NodeFlowButtonProps) => {
@@ -186,7 +186,7 @@ const NodeFlowButtonBase = ({
   const resolvedTrailing =
     trailing === undefined ? (
       <ArrowRight
-        sx={{
+        styleProps={{
           width: '0.375rem',
           height: '0.625rem',
           color: 'inherit',
@@ -222,9 +222,9 @@ const NodeFlowButtonBase = ({
               width: NODE_FLOW_OUTER_WIDTH,
             })
           : undefined,
-        css(...pandaStylePropsToArray(sx))
+        css(...pandaStylePropsToArray(styleProps))
       )}
-      style={mergePandaStyleProps({ sx })}
+      style={mergePandaStyleProps({ styleProps })}
     >
       <div
         className={css({
@@ -280,7 +280,7 @@ const NodeFlowButtonBase = ({
             }),
             css(...pandaStylePropsToArray(rowSx))
           )}
-          style={mergePandaStyleProps({ sx: rowSx })}
+          style={mergePandaStyleProps({ styleProps: rowSx })}
         >
           <span
             className={css({
@@ -342,7 +342,7 @@ const NodeFlowButtonBase = ({
             }),
             css(...pandaStylePropsToArray(helperSx))
           )}
-          style={mergePandaStyleProps({ sx: helperSx })}
+          style={mergePandaStyleProps({ styleProps: helperSx })}
         >
           {helperLeading && (
             <span

@@ -8,10 +8,10 @@ import {
 } from '#/common/style/pandaStyleProps'
 
 type Props = {
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 } & Omit<React.SVGProps<SVGSVGElement>, 'color'>
 
-const LoadingHorizontal = ({ sx, className, style, ...props }: Props) => (
+const LoadingHorizontal = ({ styleProps, className, style, ...props }: Props) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={24}
@@ -20,8 +20,8 @@ const LoadingHorizontal = ({ sx, className, style, ...props }: Props) => (
     viewBox="0 0 24 24"
     role="progressbar"
     aria-label={props['aria-label'] ?? 'Loading'}
-    className={cx(css(...pandaStylePropsToArray(sx)), className)}
-    style={mergePandaStyleProps({ sx, style })}
+    className={cx(css(...pandaStylePropsToArray(styleProps)), className)}
+    style={mergePandaStyleProps({ styleProps, style })}
     {...props}
   >
     <circle cx="4" cy="12" r="3" fill="currentColor">

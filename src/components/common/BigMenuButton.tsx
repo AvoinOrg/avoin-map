@@ -15,7 +15,7 @@ type BigMenuButtonProps = Omit<
   'children' | 'className' | 'style' | 'color' | 'render'
 > & {
   children: React.ReactNode
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   className?: string
   style?: React.CSSProperties
   color?: string
@@ -24,10 +24,10 @@ type BigMenuButtonProps = Omit<
 }
 
 const bigMenuButtonClassName = ({
-  sx,
+  styleProps,
   className,
 }: {
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   className?: string
 }) =>
   cx(
@@ -74,13 +74,13 @@ const bigMenuButtonClassName = ({
         opacity: 0.6,
       },
     }),
-    css(...pandaStylePropsToArray(sx)),
+    css(...pandaStylePropsToArray(styleProps)),
     className
   )
 
 const BigMenuButton = ({
   children,
-  sx,
+  styleProps,
   className,
   style,
   component = 'label',
@@ -98,8 +98,8 @@ const BigMenuButton = ({
       ? String(children)
       : undefined)
 
-  const resolvedClassName = bigMenuButtonClassName({ sx, className })
-  const resolvedStyle = mergePandaStyleProps({ sx, style })
+  const resolvedClassName = bigMenuButtonClassName({ styleProps, className })
+  const resolvedStyle = mergePandaStyleProps({ styleProps, style })
 
   if (component === 'label') {
     return (

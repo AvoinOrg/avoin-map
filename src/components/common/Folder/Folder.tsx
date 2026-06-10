@@ -20,7 +20,7 @@ const defaultHeight = 86
 type Props = {
   height?: number
   children?: React.ReactNode
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 const rootClass = css({
@@ -72,7 +72,7 @@ const resolveTokenColor = (color: string) => {
   return color
 }
 
-const splitFolderStyles = (sx?: PandaStyleProp) => {
+const splitFolderStyles = (styleProps?: PandaStyleProp) => {
   const paddingStyles: PandaStyleObject = {}
   const mainStyles: PandaStyleObject = {}
   const paddingStyleRecord = paddingStyles as Record<string, unknown>
@@ -81,7 +81,7 @@ const splitFolderStyles = (sx?: PandaStyleProp) => {
   let borderColor = appPalette.neutral.main
   let backgroundColor = appPalette.neutral.lighter
 
-  pandaStylePropsToArray(sx).forEach((styleObject) => {
+  pandaStylePropsToArray(styleProps).forEach((styleObject) => {
     Object.entries(styleObject).forEach(([key, value]) => {
       if (typeof value === 'string') {
         if (key === 'color') {
@@ -115,14 +115,14 @@ const splitFolderStyles = (sx?: PandaStyleProp) => {
   }
 }
 
-const Folder = ({ height = defaultHeight, children, sx }: Props) => {
+const Folder = ({ height = defaultHeight, children, styleProps }: Props) => {
   const { backgroundColor, borderColor, mainStyles, paddingStyles } =
-    splitFolderStyles(sx)
+    splitFolderStyles(styleProps)
 
   return (
     <div
       className={cx(rootClass, css(mainStyles))}
-      style={mergePandaStyleProps({ sx: mainStyles })}
+      style={mergePandaStyleProps({ styleProps: mainStyles })}
     >
       <SvgFolder
         height={height}
@@ -135,7 +135,7 @@ const Folder = ({ height = defaultHeight, children, sx }: Props) => {
           css(paddingStyles),
           'folder-content'
         )}
-        style={mergePandaStyleProps({ sx: paddingStyles })}
+        style={mergePandaStyleProps({ styleProps: paddingStyles })}
       >
         {children}
       </div>

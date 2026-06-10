@@ -4,7 +4,7 @@ import { Box } from '#/components/common/PandaBox'
 const LoadingBlocker = () => {
   return (
     <Box
-      sx={{
+      styleProps={{
         display: 'flex',
         flexDirection: 'row',
         width: '100%',

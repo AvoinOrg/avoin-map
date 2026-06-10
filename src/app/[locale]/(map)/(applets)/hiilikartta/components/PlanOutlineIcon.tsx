@@ -2,7 +2,7 @@ import { Box } from '#/components/common/PandaBox'
 import type { PandaStyleProp } from '#/common/style/panda'
 
 type Props = {
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   variant?: 'small' | 'large'
 }
 
@@ -13,7 +13,7 @@ const SMALL_VIEWBOX = '0 0 12 9'
 const SMALL_PATH =
   'M11.5 4.62504V1C11.5 0.723858 11.2761 0.5 11 0.5H1C0.723858 0.5 0.5 0.723858 0.5 1V8C0.5 8.27614 0.723857 8.5 1 8.5H5.66878C5.86956 8.5 6.05087 8.37989 6.12918 8.195L6.9321 6.29931C6.9944 6.15221 7.12325 6.04374 7.27881 6.00741L11.1137 5.11194C11.34 5.05911 11.5 4.85738 11.5 4.62504Z'
 
-const PlanOutlineIcon = ({ sx, variant = 'small' }: Props) => {
+const PlanOutlineIcon = ({ styleProps, variant = 'small' }: Props) => {
   const isLarge = variant === 'large'
 
   return (
@@ -22,13 +22,13 @@ const PlanOutlineIcon = ({ sx, variant = 'small' }: Props) => {
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox={isLarge ? LARGE_VIEWBOX : SMALL_VIEWBOX}
-      sx={[
+      styleProps={[
         {
           display: 'block',
           width: isLarge ? '1rem' : '0.8125rem',
           height: isLarge ? '0.75rem' : '0.625rem',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
       ]}
     >
       <path

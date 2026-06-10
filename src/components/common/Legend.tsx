@@ -10,7 +10,7 @@ import {
 
 interface LegendProps {
   children: React.ReactNode
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 const rootClass = css({
@@ -31,13 +31,13 @@ const legendClass = css({
   pt: 1,
 })
 
-export const Legend = ({ children, sx }: LegendProps) => {
+export const Legend = ({ children, styleProps }: LegendProps) => {
   const { t } = useTranslate('avoin-map')
 
   return (
     <div
-      className={cx(rootClass, css(...pandaStylePropsToArray(sx)))}
-      style={mergePandaStyleProps({ sx })}
+      className={cx(rootClass, css(...pandaStylePropsToArray(styleProps)))}
+      style={mergePandaStyleProps({ styleProps })}
     >
       <div className={titleClass}>{t('sidebar.legend.title')}</div>
       <legend className={legendClass}>{children}</legend>

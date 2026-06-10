@@ -132,7 +132,7 @@ const LayerMenuItems = ({
     renderedItems.push(
       <Box
         key={`layer-group-segment-${firstItem.id}-${lastItem.id}`}
-        sx={layerGroupSegmentSx}
+        styleProps={layerGroupSegmentSx}
       >
         {segmentItems.map(renderLayerItem)}
       </Box>
@@ -159,7 +159,7 @@ const LayerMenuItems = ({
         >
           {item.items && item.items.length > 0 && (
             <Box
-              sx={{
+              styleProps={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'stretch',
@@ -204,7 +204,7 @@ const LayerMenuContent = ({
 
   return (
     <Box
-      sx={{
+      styleProps={{
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
@@ -212,7 +212,7 @@ const LayerMenuContent = ({
       }}
     >
       <Box
-        sx={{
+        styleProps={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -225,11 +225,11 @@ const LayerMenuContent = ({
         }}
       >
         {headerLabel ? (
-          <Box component="h2" sx={{ m: 0, textStyle: 'h3', textAlign: 'left' }}>
+          <Box component="h2" styleProps={{ m: 0, textStyle: 'h3', textAlign: 'left' }}>
             {headerLabel}
           </Box>
         ) : (
-          <Box sx={{ flex: 1 }} />
+          <Box styleProps={{ flex: 1 }} />
         )}
         <BaseButton
           type="button"
@@ -257,7 +257,7 @@ const LayerMenuContent = ({
             },
           })}
         >
-          <Cross sx={{ width: 18, height: 18 }} />
+          <Cross styleProps={{ width: 18, height: 18 }} />
         </BaseButton>
       </Box>
       <OverlayScrollbarsComponent
@@ -280,7 +280,7 @@ const LayerMenuContent = ({
         defer
       >
         <Box
-          sx={[
+          styleProps={[
             {
               display: 'flex',
               flexDirection: 'column',

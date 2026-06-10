@@ -199,7 +199,7 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
           <BreadcrumbNav routeTree={routeTree} collapseIfRoot />
         ) : undefined
       }
-      sx={{
+      styleProps={{
         pt: 0,
         display: 'flex',
         flexDirection: 'column',

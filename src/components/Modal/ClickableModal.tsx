@@ -13,7 +13,7 @@ import { Cross } from '#/components/icons'
 type Props = {
   children: React.ReactNode
   modalBody: React.ReactNode
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   textContainerSx?: PandaStyleProp
   triggerAriaLabel?: string
 }
@@ -92,7 +92,7 @@ const bodyClass = css({
 const ClickableModal = ({
   modalBody,
   children,
-  sx,
+  styleProps,
   textContainerSx,
   triggerAriaLabel = 'Open modal',
 }: Props) => {
@@ -105,8 +105,8 @@ const ClickableModal = ({
       <BaseDialog.Trigger
         type="button"
         aria-label={triggerAriaLabel}
-        className={cx(triggerClass, css(...pandaStylePropsToArray(sx)))}
-        style={mergePandaStyleProps({ sx })}
+        className={cx(triggerClass, css(...pandaStylePropsToArray(styleProps)))}
+        style={mergePandaStyleProps({ styleProps })}
       >
         {children}
       </BaseDialog.Trigger>
@@ -117,8 +117,8 @@ const ClickableModal = ({
           <BaseDialog.Popup
             aria-labelledby={titleId}
             aria-describedby={descriptionId}
-            className={cx(popupClass, css(...pandaStylePropsToArray(sx)))}
-            style={mergePandaStyleProps({ sx })}
+            className={cx(popupClass, css(...pandaStylePropsToArray(styleProps)))}
+            style={mergePandaStyleProps({ styleProps })}
           >
             <BaseDialog.Title id={titleId} className={visuallyHiddenClass}>
               {triggerAriaLabel}
@@ -128,7 +128,7 @@ const ClickableModal = ({
               aria-label="close"
               className={closeButtonClass}
             >
-              <Cross sx={{ width: '1rem', height: '1rem' }} />
+              <Cross styleProps={{ width: '1rem', height: '1rem' }} />
             </BaseDialog.Close>
             <BaseDialog.Description
               id={descriptionId}
@@ -138,7 +138,7 @@ const ClickableModal = ({
                     bodyClass,
                     css(...pandaStylePropsToArray(textContainerSx))
                   )}
-                  style={mergePandaStyleProps({ sx: textContainerSx })}
+                  style={mergePandaStyleProps({ styleProps: textContainerSx })}
                 />
               }
             >

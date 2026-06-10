@@ -13,7 +13,7 @@ type NextIntlLinkProps = React.ComponentProps<typeof NextIntlLink>
 
 type LinkProps = Omit<NextIntlLinkProps, 'href' | 'className' | 'style'> & {
   href: string | UrlObject
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   className?: string
   style?: React.CSSProperties
   underline?: 'none' | 'hover' | 'always'
@@ -26,7 +26,7 @@ type LinkProps = Omit<NextIntlLinkProps, 'href' | 'className' | 'style'> & {
  */
 const Link = ({
   href,
-  sx,
+  styleProps,
   children,
   className,
   style,
@@ -48,10 +48,10 @@ const Link = ({
                 }
               : undefined,
         }),
-        css(...pandaStylePropsToArray(sx)),
+        css(...pandaStylePropsToArray(styleProps)),
         className
       )}
-      style={mergePandaStyleProps({ sx, style })}
+      style={mergePandaStyleProps({ styleProps, style })}
       prefetch={true}
       {...props}
       href={href as NextIntlLinkProps['href']}

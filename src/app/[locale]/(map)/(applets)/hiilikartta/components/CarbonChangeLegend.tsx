@@ -13,22 +13,22 @@ import { ArrowDown, ArrowUp } from '#/components/icons'
 const NUMBER_OF_ITEMS = CARBON_CHANGE_COLORS.length + 1
 const FLEX_BASIS = 100 / NUMBER_OF_ITEMS + '%'
 
-type Props = { sx?: PandaStyleProp }
+type Props = { styleProps?: PandaStyleProp }
 
-const CarbonChangeLegend = ({ sx }: Props) => {
+const CarbonChangeLegend = ({ styleProps }: Props) => {
   return (
     <>
-      <Box sx={{ display: { xs: 'none', md: 'contents' } }}>
-        <CarbonChangeLegendWide sx={sx}></CarbonChangeLegendWide>
+      <Box styleProps={{ display: { xs: 'none', md: 'contents' } }}>
+        <CarbonChangeLegendWide styleProps={styleProps}></CarbonChangeLegendWide>
       </Box>
-      <Box sx={{ display: { xs: 'contents', md: 'none' } }}>
-        <CarbonChangeLegendNarrow sx={sx}></CarbonChangeLegendNarrow>
+      <Box styleProps={{ display: { xs: 'contents', md: 'none' } }}>
+        <CarbonChangeLegendNarrow styleProps={styleProps}></CarbonChangeLegendNarrow>
       </Box>
     </>
   )
 }
 
-const CarbonChangeLegendWide = ({ sx }: Props) => {
+const CarbonChangeLegendWide = ({ styleProps }: Props) => {
   const { t } = useTranslate('hiilikartta')
   const noChangeTextRef = useRef<HTMLDivElement>(null)
 
@@ -57,17 +57,17 @@ const CarbonChangeLegendWide = ({ sx }: Props) => {
 
   return (
     <Box
-      sx={[
+      styleProps={[
         {
           display: 'flex',
           flexDirection: 'column',
           width: '100%',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
       ]}
     >
       <Box
-        sx={{
+        styleProps={{
           display: 'flex',
           flexDirection: 'row',
           width: '100%',
@@ -88,7 +88,7 @@ const CarbonChangeLegendWide = ({ sx }: Props) => {
         ))}
       </Box>
       <Box
-        sx={{
+        styleProps={{
           display: 'flex',
           flexDirection: 'row',
           position: 'relative',
@@ -98,7 +98,7 @@ const CarbonChangeLegendWide = ({ sx }: Props) => {
         }}
       >
         <Box
-          sx={{
+          styleProps={{
             position: 'absolute',
             top: 0,
             left: 0, // Aligns to the far left
@@ -116,7 +116,7 @@ const CarbonChangeLegendWide = ({ sx }: Props) => {
               keyName={'report.carbon_change_legend.title'}
             />
           </b>
-          <Box sx={{ mt: 0.7 }}>
+          <Box styleProps={{ mt: 0.7 }}>
             <TText
               ns={'hiilikartta'}
               keyName={'report.carbon_change_legend.unit'}
@@ -126,7 +126,7 @@ const CarbonChangeLegendWide = ({ sx }: Props) => {
         <Box
           component="span"
           ref={noChangeTextRef}
-          sx={{
+          styleProps={{
             position: 'absolute',
             top: 1,
             left: `calc((100% / ${NUMBER_OF_ITEMS}) * 5)`, // Aligns with the 6th item
@@ -143,7 +143,7 @@ const CarbonChangeLegendWide = ({ sx }: Props) => {
         </Box>
         <Box
           component="span"
-          sx={{
+          styleProps={{
             position: 'absolute',
             top: 1,
             right: thirdTextRight,
@@ -163,7 +163,7 @@ const CarbonChangeLegendWide = ({ sx }: Props) => {
         </Box>
         <Box
           component="span"
-          sx={{
+          styleProps={{
             position: 'absolute',
             top: 1,
             left: fourthTextLeft,
@@ -185,7 +185,7 @@ const CarbonChangeLegendWide = ({ sx }: Props) => {
   )
 }
 
-const CarbonChangeLegendNarrow = ({ sx }: Props) => {
+const CarbonChangeLegendNarrow = ({ styleProps }: Props) => {
   const { t } = useTranslate('hiilikartta')
   const legendItemsRef = useRef<HTMLDivElement>(null)
 
@@ -216,13 +216,13 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
 
   return (
     <Box
-      sx={[
+      styleProps={[
         { display: 'flex', flexDirection: 'column' },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
       ]}
     >
       <Box
-        sx={{
+        styleProps={{
           typography: 'body7',
           fontSize: '0.75rem',
           lineHeight: 'normal',
@@ -238,7 +238,7 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
             keyName={'report.carbon_change_legend.title'}
           />
         </b>
-        <Box sx={{ mt: 0.7 }}>
+        <Box styleProps={{ mt: 0.7 }}>
           <TText
             ns={'hiilikartta'}
             keyName={'report.carbon_change_legend.unit'}
@@ -246,7 +246,7 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
         </Box>
       </Box>
       <Box
-        sx={[
+        styleProps={[
           {
             display: 'flex',
             flexDirection: 'row',
@@ -255,7 +255,7 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
         ]}
       >
         <Box
-          sx={{
+          styleProps={{
             display: 'flex',
             flexDirection: 'row',
             position: 'relative',
@@ -268,7 +268,7 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
         >
           <Box
             component="span"
-            sx={{
+            styleProps={{
               position: 'absolute',
               top: noChangeTextTop,
               typography: 'body1',
@@ -286,7 +286,7 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
             />
           </Box>
           <Box
-            sx={{
+            styleProps={{
               position: 'absolute',
               top: growTop,
               left: 'auto',
@@ -301,7 +301,7 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
           >
             <Box
               component="span"
-              sx={{
+              styleProps={{
                 typography: 'body1',
                 fontSize: '0.5rem',
                 lineHeight: 'normal',
@@ -314,7 +314,7 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
               />
             </Box>
             <ArrowUp
-              sx={{
+              styleProps={{
                 fontSize: '1rem',
                 height: 'auto',
                 width: '1rem',
@@ -323,7 +323,7 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
             />
           </Box>
           <Box
-            sx={{
+            styleProps={{
               position: 'absolute',
               top: shrinkTop,
               left: 'auto',
@@ -336,7 +336,7 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
           >
             <Box
               component="span"
-              sx={{
+              styleProps={{
                 typography: 'body1',
                 fontSize: '0.5rem',
                 lineHeight: 'normal',
@@ -349,7 +349,7 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
               />
             </Box>
             <ArrowDown
-              sx={{
+              styleProps={{
                 fontSize: '1rem',
                 height: 'auto',
                 width: '1rem',
@@ -360,7 +360,7 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
         </Box>
         <Box
           ref={legendItemsRef}
-          sx={{
+          styleProps={{
             display: 'flex',
             flexDirection: 'column',
             width: '100%',
@@ -388,7 +388,7 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
 const LegendItem = ({ color, label }: { color: string; label: string }) => {
   return (
     <Box
-      sx={{
+      styleProps={{
         flexGrow: 0,
         flexShrink: 0,
         flexBasis: FLEX_BASIS,
@@ -398,7 +398,7 @@ const LegendItem = ({ color, label }: { color: string; label: string }) => {
     >
       <Box
         component="span"
-        sx={{
+        styleProps={{
           typography: 'body2',
           fontSize: '0.625rem',
           fontStyle: 'normal',
@@ -409,7 +409,7 @@ const LegendItem = ({ color, label }: { color: string; label: string }) => {
         {label}
       </Box>
       <Box
-        sx={{
+        styleProps={{
           mt: '0.44rem',
           width: '100%',
           height: '0.625rem',
@@ -429,7 +429,7 @@ const LegendItemNarrow = ({
 }) => {
   return (
     <Box
-      sx={{
+      styleProps={{
         display: 'flex',
         flexDirection: 'row',
         mt: '0.78rem',
@@ -437,7 +437,7 @@ const LegendItemNarrow = ({
       }}
     >
       <Box
-        sx={{
+        styleProps={{
           width: '2.34rem',
           height: '0.46rem',
           backgroundColor: color,
@@ -446,7 +446,7 @@ const LegendItemNarrow = ({
       ></Box>
       <Box
         component="span"
-        sx={{
+        styleProps={{
           typography: 'body2',
           fontSize: '0.625rem',
           fontStyle: 'normal',

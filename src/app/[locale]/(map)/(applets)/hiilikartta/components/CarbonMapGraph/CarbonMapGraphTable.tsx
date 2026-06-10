@@ -66,11 +66,11 @@ const CarbonMapGraphTable = ({ datas, activeYear }: Props) => {
   }, [datas])
 
   return (
-    <Box sx={{ mt: 4, overflowX: 'scroll' }}>
+    <Box styleProps={{ mt: 4, overflowX: 'scroll' }}>
       <Box
         component="table"
         aria-label="simple table"
-        sx={{
+        styleProps={{
           borderCollapse: 'collapse',
           width: '100%',
           '& th, & td': {
@@ -84,7 +84,7 @@ const CarbonMapGraphTable = ({ datas, activeYear }: Props) => {
           <Box component="tr">
             <Box
               component="th"
-              sx={{
+              styleProps={{
                 typography: 'h8',
                 color: 'secondary.dark',
                 verticalAlign: 'top',
@@ -96,7 +96,7 @@ const CarbonMapGraphTable = ({ datas, activeYear }: Props) => {
             {datas.map((data, index) => (
               <Box
                 component="th"
-                sx={{
+                styleProps={{
                   typography: 'h7',
                   lineHeight: 'normal',
                   verticalAlign: 'top',
@@ -126,7 +126,7 @@ const CarbonMapGraphTable = ({ datas, activeYear }: Props) => {
             ))}
           </Box>
           <Box component="tr" key={'co2_total'}>
-            <FirstColumnCell sx={{ typography: 'body7' }}>
+            <FirstColumnCell styleProps={{ typography: 'body7' }}>
               <TText
                 ns="hiilikartta"
                 keyName="report.map_graph.unit_co2_total_compared"
@@ -138,7 +138,7 @@ const CarbonMapGraphTable = ({ datas, activeYear }: Props) => {
               </DataCell>
             ))}
           </Box>
-          <Box component="tr" sx={{ height: '2rem' }}></Box>
+          <Box component="tr" styleProps={{ height: '2rem' }}></Box>
         </Box>
         <Box component="thead">
           <Box component="tr">
@@ -146,7 +146,7 @@ const CarbonMapGraphTable = ({ datas, activeYear }: Props) => {
             {datas.map((data, index) => (
               <Box
                 component="th"
-                sx={{
+                styleProps={{
                   typography: 'h7',
                   lineHeight: 'normal',
                   verticalAlign: 'top',
@@ -179,7 +179,7 @@ const CarbonMapGraphTable = ({ datas, activeYear }: Props) => {
             ))}
           </Box>
           <Box component="tr" key={'co2_total'}>
-            <FirstColumnCell sx={{ typography: 'body7' }}>
+            <FirstColumnCell styleProps={{ typography: 'body7' }}>
               <TText
                 ns="hiilikartta"
                 keyName="report.map_graph.unit_co2_total_compared"
@@ -199,12 +199,12 @@ const CarbonMapGraphTable = ({ datas, activeYear }: Props) => {
 
 const FirstColumnCell = ({
   children,
-  sx,
+  styleProps,
 }: {
   children: React.ReactNode
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }) => (
-  <Box component="th" scope="row" sx={[{ typography: 'body7' }, ...(Array.isArray(sx) ? sx : [sx])]}>
+  <Box component="th" scope="row" styleProps={[{ typography: 'body7' }, ...(Array.isArray(styleProps) ? styleProps : [styleProps])]}>
     {children}
   </Box>
 )
@@ -212,7 +212,7 @@ const FirstColumnCell = ({
 const DataCell = ({ children }: { children: React.ReactNode }) => (
   <Box
     component="td"
-    sx={{
+    styleProps={{
       typography: 'h2',
       fontSize: '1.25rem',
       letterSpacing: '0.125rem',

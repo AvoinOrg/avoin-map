@@ -202,7 +202,7 @@ const PlanImportGpkg = ({
           onChange={handleSelectTable}
           label={copy.tableLabel}
           placeholder={copy.tablePlaceholder}
-          sx={{ width: '100%', mb: importFieldSpacing }}
+          styleProps={{ width: '100%', mb: importFieldSpacing }}
           successIndicatorMode="outside"
         />
       )}
@@ -213,7 +213,7 @@ const PlanImportGpkg = ({
         onColumnChange={onSelectedZoningColChange}
         label={copy.zoningClassesLabel}
         placeholder={copy.zoningClassesPlaceholder}
-        sx={{ mb: importFieldSpacing }}
+        styleProps={{ mb: importFieldSpacing }}
       />
       <PlanImportCodeRecordSelect
         columns={columns}

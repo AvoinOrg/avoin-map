@@ -35,7 +35,7 @@ const FolayerImportActionsRow = ({
 }) => {
   return (
     <Box
-      sx={{
+      styleProps={{
         minHeight: '25px',
         display: 'flex',
         flexDirection: 'row',

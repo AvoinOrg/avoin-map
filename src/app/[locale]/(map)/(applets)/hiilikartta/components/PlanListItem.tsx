@@ -33,7 +33,7 @@ const getStatusDisplay = ({
           <LoadingSpinner
             size={10}
             thickness={7}
-            sx={{ color: 'inherit', flexShrink: 0 }}
+            styleProps={{ color: 'inherit', flexShrink: 0 }}
             color="inherit"
           />
         ),
@@ -46,7 +46,7 @@ const getStatusDisplay = ({
           <LoadingSpinner
             size={10}
             thickness={7}
-            sx={{ color: 'inherit', flexShrink: 0 }}
+            styleProps={{ color: 'inherit', flexShrink: 0 }}
             color="inherit"
           />
         ),
@@ -57,7 +57,7 @@ const getStatusDisplay = ({
         color: '#7A3D2B',
         icon: (
           <ErrorIcon
-            sx={{ width: '0.625rem', height: '0.625rem', color: 'inherit' }}
+            styleProps={{ width: '0.625rem', height: '0.625rem', color: 'inherit' }}
           />
         ),
         text: t('sidebar.my_plans.calculations_errored'),
@@ -67,7 +67,7 @@ const getStatusDisplay = ({
         color: '#0D6044',
         icon: (
           <Info
-            sx={{ width: '0.625rem', height: '0.625rem', color: 'inherit' }}
+            styleProps={{ width: '0.625rem', height: '0.625rem', color: 'inherit' }}
           />
         ),
         text: t('sidebar.my_plans.calculations_finished'),
@@ -98,7 +98,7 @@ const PlanListItem = ({
           color: statusColor,
           icon: (
             <Info
-              sx={{ width: '0.625rem', height: '0.625rem', color: 'inherit' }}
+              styleProps={{ width: '0.625rem', height: '0.625rem', color: 'inherit' }}
             />
           ),
           text: statusText,
@@ -116,7 +116,7 @@ const PlanListItem = ({
       routeTree={routeTree}
       params={{ routeParams: { planId } }}
       aria-label={`Open plan ${name}`}
-      sx={{
+      styleProps={{
         width: '100%',
         display: 'flex',
         alignItems: 'flex-start',
@@ -136,7 +136,7 @@ const PlanListItem = ({
       }}
     >
       <Box
-        sx={{
+        styleProps={{
           display: 'grid',
           gridTemplateColumns: '0.8125rem minmax(0, 1fr)',
           columnGap: '0.875rem',
@@ -146,7 +146,7 @@ const PlanListItem = ({
         }}
       >
         <Box
-          sx={{
+          styleProps={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -155,7 +155,7 @@ const PlanListItem = ({
           }}
         >
           <PlanOutlineIcon
-            sx={{
+            styleProps={{
               flexShrink: 0,
               color: 'inherit',
             }}
@@ -163,7 +163,7 @@ const PlanListItem = ({
         </Box>
         <Box
           component="span"
-          sx={{
+          styleProps={{
             fontSize: '0.625rem',
             fontWeight: 700,
             lineHeight: '1rem',
@@ -181,7 +181,7 @@ const PlanListItem = ({
         {statusDisplay && (
           <>
             <Box
-              sx={{
+              styleProps={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -193,7 +193,7 @@ const PlanListItem = ({
             </Box>
             <Box
               component="span"
-              sx={{
+              styleProps={{
                 fontSize: '0.5rem',
                 fontWeight: 400,
                 lineHeight: '0.875rem',
@@ -210,7 +210,7 @@ const PlanListItem = ({
 
       <Box
         className="plan-list-item-arrow"
-        sx={{
+        styleProps={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -221,7 +221,7 @@ const PlanListItem = ({
         }}
       >
         <CircleArrowRight
-          sx={{
+          styleProps={{
             width: '1.0625rem',
             height: '1.0625rem',
             color: 'inherit',

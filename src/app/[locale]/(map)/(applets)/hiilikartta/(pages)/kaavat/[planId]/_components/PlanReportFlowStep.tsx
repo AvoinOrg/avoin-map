@@ -168,7 +168,7 @@ const PlanReportFlowStepBase = ({
         size={12}
         thickness={7}
         color="#274AFF"
-        sx={{ flexShrink: 0 }}
+        styleProps={{ flexShrink: 0 }}
       />
     )
   } else if (isErrored) {
@@ -177,7 +177,7 @@ const PlanReportFlowStepBase = ({
     buttonHelper = t('sidebar.my_plans.calculations_errored')
     buttonHelperLeading = (
       <ErrorIcon
-        sx={{
+        styleProps={{
           width: 12,
           height: 12,
           color: !isReportActionEnabled ? 'rgba(17, 17, 17, 0.4)' : '#7A3D2B',
@@ -216,7 +216,7 @@ const PlanReportFlowStepBase = ({
       leading={
         hasFinishedReport ? (
           <Eco
-            sx={{
+            styleProps={{
               width: 12,
               height: 12,
               color: buttonAccentColor,
@@ -237,7 +237,7 @@ const PlanReportFlowStepBase = ({
 
   return (
     <Box
-      sx={{
+      styleProps={{
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
@@ -249,7 +249,7 @@ const PlanReportFlowStepBase = ({
     >
       {shouldShowHint ? (
         <Hint title={hintLabel} side="top">
-          <Box sx={{ width: '100%' }}>{button}</Box>
+          <Box styleProps={{ width: '100%' }}>{button}</Box>
         </Hint>
       ) : (
         button
@@ -258,7 +258,7 @@ const PlanReportFlowStepBase = ({
       {hasFinishedReport && (
         <>
           <Box
-            sx={{
+            styleProps={{
               display: 'flex',
               flexDirection: 'column',
               gap: '0.9375rem',
@@ -272,14 +272,14 @@ const PlanReportFlowStepBase = ({
             }}
           >
             <Box
-              sx={{
+              styleProps={{
                 display: 'flex',
                 alignItems: 'flex-start',
                 gap: '0.6875rem',
               }}
             >
               <Box
-                sx={{
+                styleProps={{
                   width: 17,
                   height: 17,
                   flexShrink: 0,
@@ -292,7 +292,7 @@ const PlanReportFlowStepBase = ({
                 }}
               >
                 <Eco
-                  sx={{
+                  styleProps={{
                     width: 9,
                     height: 9,
                     color: '#0D6044',
@@ -301,13 +301,13 @@ const PlanReportFlowStepBase = ({
               </Box>
 
               <Box
-                sx={{
+                styleProps={{
                   minWidth: 0,
                 }}
               >
                 <Box
                   component="p"
-                  sx={{
+                  styleProps={{
                     m: 0,
                     fontSize: '0.625rem',
                     fontWeight: 400,
@@ -323,7 +323,7 @@ const PlanReportFlowStepBase = ({
                 {calculatedOnLabel != null && (
                   <Box
                     component="p"
-                    sx={{
+                    styleProps={{
                       m: 0,
                       fontSize: '0.625rem',
                       fontWeight: 400,
@@ -340,14 +340,14 @@ const PlanReportFlowStepBase = ({
             </Box>
 
             <Box
-              sx={{
+              styleProps={{
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '0.625rem',
               }}
             >
               <Box
-                sx={{
+                styleProps={{
                   position: 'relative',
                   minHeight: '2.25rem',
                   pr: '1.25rem',
@@ -355,7 +355,7 @@ const PlanReportFlowStepBase = ({
               >
                 <Box
                   component="p"
-                  sx={{
+                  styleProps={{
                     m: 0,
                     fontSize: '0.75rem',
                     fontWeight: 400,
@@ -374,7 +374,7 @@ const PlanReportFlowStepBase = ({
               </Box>
 
               <Box
-                sx={{
+                styleProps={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
@@ -383,7 +383,7 @@ const PlanReportFlowStepBase = ({
               >
                 <Box
                   component="span"
-                  sx={{
+                  styleProps={{
                     fontSize: '0.625rem',
                     fontWeight: 400,
                     lineHeight: '1.125rem',
@@ -406,7 +406,7 @@ const PlanReportFlowStepBase = ({
                       value: year,
                       label: year,
                     }))}
-                    sx={{
+                    styleProps={{
                       minWidth: '5.625rem',
                       borderRadius: '999px',
                       backgroundColor: '#111111',
@@ -440,14 +440,14 @@ const PlanReportFlowStepBase = ({
             </Box>
 
             <Box
-              sx={{
+              styleProps={{
                 display: 'flex',
                 flexDirection: 'column',
               }}
             >
               {totalChange != null && (
                 <Box
-                  sx={{
+                  styleProps={{
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'baseline',
@@ -458,7 +458,7 @@ const PlanReportFlowStepBase = ({
                 >
                   <Box
                     component="span"
-                    sx={{
+                    styleProps={{
                       fontSize: '0.625rem',
                       fontWeight: 400,
                       lineHeight: '1.125rem',
@@ -474,7 +474,7 @@ const PlanReportFlowStepBase = ({
 
                   <Box
                     component="span"
-                    sx={{
+                    styleProps={{
                       fontSize: '0.75rem',
                       fontWeight: 700,
                       lineHeight: '1.125rem',
@@ -490,7 +490,7 @@ const PlanReportFlowStepBase = ({
 
               {perHectareChange != null && (
                 <Box
-                  sx={{
+                  styleProps={{
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'baseline',
@@ -501,7 +501,7 @@ const PlanReportFlowStepBase = ({
                 >
                   <Box
                     component="span"
-                    sx={{
+                    styleProps={{
                       fontSize: '0.625rem',
                       fontWeight: 400,
                       lineHeight: '1.125rem',
@@ -517,7 +517,7 @@ const PlanReportFlowStepBase = ({
 
                   <Box
                     component="span"
-                    sx={{
+                    styleProps={{
                       fontSize: '0.75rem',
                       fontWeight: 700,
                       lineHeight: '1.125rem',
@@ -540,7 +540,7 @@ const PlanReportFlowStepBase = ({
               'sidebar.plan_settings.report_preview.reset_and_recalculate'
             )}
             onClick={onResetReportAndRecalculate}
-            sx={{
+            styleProps={{
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'flex-start',
@@ -567,7 +567,7 @@ const PlanReportFlowStepBase = ({
             }}
           >
             <Delete
-              sx={{
+              styleProps={{
                 width: 12,
                 height: 12,
                 color: 'inherit',
@@ -576,7 +576,7 @@ const PlanReportFlowStepBase = ({
             />
             <Box
               component="span"
-              sx={{
+              styleProps={{
                 fontSize: '0.625rem',
                 fontWeight: 700,
                 lineHeight: '1rem',

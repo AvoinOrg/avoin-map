@@ -18,7 +18,7 @@ import {
 } from './sidebarSlots'
 
 export type SimpleSidebarProps = {
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   boundaryId?: SidebarBoundaryId
   options?: SidebarSimpleOptions
   mobileStackedContentBefore?: React.ReactNode
@@ -29,7 +29,7 @@ export type SimpleSidebarProps = {
 const DEFAULT_PANEL_WIDTH = '23.75rem'
 
 const getSimpleSidebarSx = (
-  sx: PandaStyleProp | undefined,
+  styleProps: PandaStyleProp | undefined,
   options?: SidebarSimpleOptions
 ): PandaStyleProp => {
   const hiddenChromeHeightSx =
@@ -43,7 +43,7 @@ const getSimpleSidebarSx = (
 
   return [
     hiddenChromeHeightSx,
-    ...(Array.isArray(sx) ? sx : [sx]),
+    ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
   ]
 }
 
@@ -91,7 +91,7 @@ const getSimpleSidebarContentSx = ({
 }
 
 export const SimpleSidebar = ({
-  sx,
+  styleProps,
   boundaryId,
   options,
   mobileStackedContentBefore,
@@ -118,7 +118,7 @@ export const SimpleSidebar = ({
 
   return (
     <SimpleSidebarBase
-      sx={getSimpleSidebarSx(sx, options)}
+      styleProps={getSimpleSidebarSx(styleProps, options)}
       {...layoutProps}
       headerChildren={headerChildren}
       topContent={scopedTopContent}

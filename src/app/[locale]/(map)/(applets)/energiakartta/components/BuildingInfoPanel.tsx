@@ -291,27 +291,27 @@ const VISUALLY_HIDDEN_STYLE: React.CSSProperties = {
 
 type BuildingInfoTextElementProps<T extends React.ElementType = 'p'> = {
   component?: T
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   children?: React.ReactNode
 } & Omit<
   React.ComponentPropsWithoutRef<T>,
-  'children' | 'className' | 'color' | 'component' | 'style' | 'sx'
+  'children' | 'className' | 'color' | 'component' | 'style' | 'styleProps'
 >
 
 const BuildingInfoTextElement = <T extends React.ElementType = 'p'>({
   component,
-  sx,
+  styleProps,
   children,
   ...props
 }: BuildingInfoTextElementProps<T>) => (
   <Box
     component={(component ?? 'p') as React.ElementType}
     {...props}
-    sx={[
+    styleProps={[
       {
         m: 0,
       },
-      ...pandaStylePropsToArray(sx),
+      ...pandaStylePropsToArray(styleProps),
     ]}
   >
     {children}
@@ -335,7 +335,7 @@ type BuildingInfoButtonProps = Omit<
   React.ComponentProps<typeof BaseButton>,
   'className' | 'color' | 'style'
 > & {
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   className?: string
   style?: React.CSSProperties
 }
@@ -345,10 +345,10 @@ const BuildingInfoButton = React.forwardRef<
   BuildingInfoButtonProps
 >(
   (
-    { sx, className, style, type = 'button', children, ...props },
+    { styleProps, className, style, type = 'button', children, ...props },
     ref
   ) => {
-    const buttonSx = [buildingInfoButtonResetSx, ...pandaStylePropsToArray(sx)]
+    const buttonSx = [buildingInfoButtonResetSx, ...pandaStylePropsToArray(styleProps)]
 
     return (
       <BaseButton
@@ -356,7 +356,7 @@ const BuildingInfoButton = React.forwardRef<
         type={type}
         ref={ref}
         className={cx(css(...buttonSx), className)}
-        style={mergePandaStyleProps({ sx, style })}
+        style={mergePandaStyleProps({ styleProps, style })}
       >
         {children}
       </BaseButton>
@@ -370,11 +370,11 @@ type BuildingInfoSvgIconProps = Omit<
   React.SVGProps<SVGSVGElement>,
   'color' | 'style'
 > & {
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 const BuildingInfoSvgIcon = ({
-  sx,
+  styleProps,
   children,
   viewBox = '0 0 24 24',
   ...props
@@ -385,7 +385,7 @@ const BuildingInfoSvgIcon = ({
     viewBox={viewBox}
     focusable="false"
     {...props}
-    sx={[
+    styleProps={[
       {
         display: 'inline-block',
         width: '1em',
@@ -394,7 +394,7 @@ const BuildingInfoSvgIcon = ({
         fill: 'currentColor',
         fontSize: '1rem',
       },
-      ...pandaStylePropsToArray(sx),
+      ...pandaStylePropsToArray(styleProps),
     ]}
   >
     {children}
@@ -451,26 +451,26 @@ const BuildingInfoDecorativeImage = ({
   src,
   width,
   height,
-  sx,
+  styleProps,
 }: {
   src: string
   width: string
   height: string
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }) => (
   <Box
     component="img"
     src={src}
     alt=""
     aria-hidden="true"
-    sx={[
+    styleProps={[
       {
         display: 'block',
         width,
         height,
         flexShrink: 0,
       },
-      ...(Array.isArray(sx) ? sx : [sx]),
+      ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
     ]}
   />
 )
@@ -486,20 +486,20 @@ const BuildingInfoFigmaGraphic = ({
   dimensions,
   maxWidth = '100%',
   testId,
-  sx,
+  styleProps,
 }: {
   src: string
   dimensions: BuildingInfoGraphicDimensions
   maxWidth?: string
   testId: string
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }) => (
   <Box
     aria-hidden="true"
     data-testid={testId}
     data-figma-width={getFigmaDimensionData(dimensions.width)}
     data-figma-height={getFigmaDimensionData(dimensions.height)}
-    sx={[
+    styleProps={[
       {
         position: 'relative',
         display: 'block',
@@ -507,7 +507,7 @@ const BuildingInfoFigmaGraphic = ({
         aspectRatio: `${dimensions.width} / ${dimensions.height}`,
         flexShrink: 0,
       },
-      ...(Array.isArray(sx) ? sx : [sx]),
+      ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
     ]}
   >
     <Box
@@ -515,7 +515,7 @@ const BuildingInfoFigmaGraphic = ({
       src={src}
       alt=""
       aria-hidden="true"
-      sx={{
+      styleProps={{
         position: 'absolute',
         inset: 0,
         display: 'block',
@@ -529,29 +529,29 @@ const BuildingInfoFigmaGraphic = ({
 const RenovationIcon = ({
   width = '32px',
   height = '26px',
-  sx,
+  styleProps,
 }: {
   width?: string
   height?: string
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }) => (
   <Box
     aria-hidden="true"
-    sx={[
+    styleProps={[
       {
         position: 'relative',
         width,
         height,
         flexShrink: 0,
       },
-      ...(Array.isArray(sx) ? sx : [sx]),
+      ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
     ]}
   >
     <BuildingInfoDecorativeImage
       src={BUILDING_INFO_ASSETS.renovationIconCenter}
       width="33.55%"
       height="61.23%"
-      sx={{
+      styleProps={{
         position: 'absolute',
         top: '19.4%',
         left: '34.84%',
@@ -561,7 +561,7 @@ const RenovationIcon = ({
       src={BUILDING_INFO_ASSETS.renovationIconArcLower}
       width="90.32%"
       height="44%"
-      sx={{
+      styleProps={{
         position: 'absolute',
         left: 0,
         bottom: 0,
@@ -571,7 +571,7 @@ const RenovationIcon = ({
       src={BUILDING_INFO_ASSETS.renovationIconArcUpper}
       width="90.32%"
       height="44%"
-      sx={{
+      styleProps={{
         position: 'absolute',
         top: 0,
         right: 0,
@@ -584,7 +584,7 @@ const RenovationIcon = ({
 const WarningIcon = () => (
   <Box
     aria-hidden="true"
-    sx={{
+    styleProps={{
       position: 'relative',
       width: '14.04px',
       height: '12.96px',
@@ -596,13 +596,13 @@ const WarningIcon = () => (
       src={BUILDING_INFO_ASSETS.warningBase}
       width="100%"
       height="100%"
-      sx={{ position: 'absolute', inset: 0 }}
+      styleProps={{ position: 'absolute', inset: 0 }}
     />
     <BuildingInfoDecorativeImage
       src={BUILDING_INFO_ASSETS.warningLine}
       width="1px"
       height="6px"
-      sx={{
+      styleProps={{
         position: 'absolute',
         top: '30.54%',
         left: '50%',
@@ -613,7 +613,7 @@ const WarningIcon = () => (
       src={BUILDING_INFO_ASSETS.warningDot}
       width="1px"
       height="1px"
-      sx={{
+      styleProps={{
         position: 'absolute',
         left: '50%',
         bottom: '11.57%',
@@ -641,7 +641,7 @@ const EnergyPrimaryMetricIcon = ({
       <OpacityIcon
         data-primary-metric-icon-id={metricId}
         aria-hidden="true"
-        sx={iconSx}
+        styleProps={iconSx}
       />
     )
   }
@@ -651,7 +651,7 @@ const EnergyPrimaryMetricIcon = ({
       <EuroIcon
         data-primary-metric-icon-id={metricId}
         aria-hidden="true"
-        sx={iconSx}
+        styleProps={iconSx}
       />
     )
   }
@@ -661,7 +661,7 @@ const EnergyPrimaryMetricIcon = ({
       <Co2Icon
         data-primary-metric-icon-id={metricId}
         aria-hidden="true"
-        sx={iconSx}
+        styleProps={iconSx}
       />
     )
   }
@@ -670,7 +670,7 @@ const EnergyPrimaryMetricIcon = ({
     <BoltIcon
       data-primary-metric-icon-id={metricId}
       aria-hidden="true"
-      sx={iconSx}
+      styleProps={iconSx}
     />
   )
 }
@@ -688,14 +688,14 @@ const EnergySubmetricIcon = ({
   } as const
 
   if (submetricId === 'heating') {
-    return <LocalFireDepartmentIcon aria-hidden="true" sx={iconSx} />
+    return <LocalFireDepartmentIcon aria-hidden="true" styleProps={iconSx} />
   }
 
   if (submetricId === 'waterHeating') {
-    return <WaterDropIcon aria-hidden="true" sx={iconSx} />
+    return <WaterDropIcon aria-hidden="true" styleProps={iconSx} />
   }
 
-  return <BoltIcon aria-hidden="true" sx={iconSx} />
+  return <BoltIcon aria-hidden="true" styleProps={iconSx} />
 }
 
 export const BuildingInfoText = ({
@@ -749,7 +749,7 @@ const BuildingInfoValueText = ({
       component="span"
       data-status={value.status}
       data-source-properties={getSourcePropertiesData(value.sourceProperties)}
-      sx={{
+      styleProps={{
         display: 'inline-flex',
         flexWrap: 'wrap',
         alignItems: shouldRenderEnergyClassBadge ? 'center' : 'baseline',
@@ -781,7 +781,7 @@ const BuildingInfoValueText = ({
           <Box
             component="span"
             tabIndex={0}
-            sx={{
+            styleProps={{
               position: 'relative',
               display: 'inline-flex',
               alignItems: 'center',
@@ -801,7 +801,7 @@ const BuildingInfoValueText = ({
             <ConstructionIcon
               data-testid="building-info-unavailable-value-icon"
               aria-hidden="true"
-              sx={{
+              styleProps={{
                 color: UNAVAILABLE_VALUE_ICON_COLOR,
                 fontSize: '1rem',
               }}
@@ -818,7 +818,7 @@ const BuildingInfoValueText = ({
       ) : shouldRenderEnergyClassBadge ? (
         <Box
           component="span"
-          sx={{
+          styleProps={{
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -841,7 +841,7 @@ const BuildingInfoValueText = ({
       {value.unitKey != null && (
         <Box
           component="span"
-          sx={{
+          styleProps={{
             fontSize: '0.625rem',
             fontWeight: 400,
             lineHeight: '1.125rem',
@@ -868,7 +868,7 @@ const BuildingInfoNoteText = ({
     <Box
       data-status={note.status}
       data-source-properties={getSourcePropertiesData(note.sourceProperties)}
-      sx={{
+      styleProps={{
         mt: '0.5rem',
         display: showWarningIcon ? 'flex' : 'block',
         alignItems: 'flex-start',
@@ -879,7 +879,7 @@ const BuildingInfoNoteText = ({
     >
       {showWarningIcon && <WarningIcon />}
       <BuildingInfoTextElement
-        sx={{
+        styleProps={{
           ...textSx,
           maxWidth: '100%',
           ...STATUS_SX[note.status],
@@ -899,7 +899,7 @@ const BuildingInfoNoteText = ({
 const BuildingInfoRow = ({ row }: { row: EnergymapBuildingInfoRow }) => (
   <Box
     data-row-id={row.id}
-    sx={{
+    styleProps={{
       display: 'grid',
       gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
       columnGap: '1rem',
@@ -908,7 +908,7 @@ const BuildingInfoRow = ({ row }: { row: EnergymapBuildingInfoRow }) => (
     }}
   >
     <BuildingInfoTextElement
-      sx={{
+      styleProps={{
         ...textSx,
         color: '#111111',
       }}
@@ -917,7 +917,7 @@ const BuildingInfoRow = ({ row }: { row: EnergymapBuildingInfoRow }) => (
     </BuildingInfoTextElement>
     <BuildingInfoTextElement
       component="div"
-      sx={{
+      styleProps={{
         ...textSx,
         minWidth: 0,
         textAlign: 'right',
@@ -942,7 +942,7 @@ const BuildingInfoRow = ({ row }: { row: EnergymapBuildingInfoRow }) => (
 
 const BuildingInfoSectionDivider = () => (
   <Box
-    sx={{
+    styleProps={{
       borderTop: '0.3px solid #cfcfcf',
     }}
   />
@@ -955,12 +955,12 @@ const BuildingInfoStackedValue = ({
 }) => (
   <Box
     data-building-subheader-row-id={row.id}
-    sx={{
+    styleProps={{
       mt: '1rem',
     }}
   >
     <BuildingInfoTextElement
-      sx={{
+      styleProps={{
         fontSize: '0.75rem',
         fontWeight: 400,
         lineHeight: '1.125rem',
@@ -973,7 +973,7 @@ const BuildingInfoStackedValue = ({
     </BuildingInfoTextElement>
     <BuildingInfoTextElement
       component="div"
-      sx={{
+      styleProps={{
         fontSize: '0.75rem',
         lineHeight: '1.125rem',
         letterSpacing: '0.1em',
@@ -994,7 +994,7 @@ const BuildingInfoSectionLine = ({
 }) => (
   <Box
     data-section-row-id={row.id}
-    sx={{
+    styleProps={{
       display: 'grid',
       gridTemplateColumns: 'minmax(0, 1fr) minmax(0, auto)',
       columnGap: '1rem',
@@ -1003,7 +1003,7 @@ const BuildingInfoSectionLine = ({
     }}
   >
     <BuildingInfoTextElement
-      sx={{
+      styleProps={{
         ...textSx,
         color: '#111111',
       }}
@@ -1012,7 +1012,7 @@ const BuildingInfoSectionLine = ({
     </BuildingInfoTextElement>
     <BuildingInfoTextElement
       component="div"
-      sx={{
+      styleProps={{
         ...textSx,
         minWidth: 0,
         textAlign: 'right',
@@ -1037,7 +1037,7 @@ const BuildingInfoBuildingSubheaderSection = ({
   return (
     <Box
       data-section-id={section.id}
-      sx={{
+      styleProps={{
         mt: '1rem',
         mb: '1.75rem',
       }}
@@ -1067,13 +1067,13 @@ const BuildingInfoEnergyCertificateSection = ({
   return (
     <Box
       data-section-id={section.id}
-      sx={{
+      styleProps={{
         mt: '1.75rem',
       }}
     >
       <BuildingInfoSectionDivider />
       <Box
-        sx={{
+        styleProps={{
           py: '0.875rem',
           display: 'flex',
           flexDirection: 'column',
@@ -1113,12 +1113,12 @@ const BuildingInfoPreviousEnergyClassSection = ({
   return (
     <Box
       data-section-id={section.id}
-      sx={{
+      styleProps={{
         mt: '1.75rem',
       }}
     >
       <BuildingInfoSectionDivider />
-      <Box sx={{ py: '0.875rem' }}>
+      <Box styleProps={{ py: '0.875rem' }}>
         {previousClassRow != null && (
           <BuildingInfoSectionLine
             row={previousClassRow}
@@ -1128,12 +1128,12 @@ const BuildingInfoPreviousEnergyClassSection = ({
         {measuresRow != null && (
           <Box
             data-section-row-id={measuresRow.id}
-            sx={{
+            styleProps={{
               mt: '1.375rem',
             }}
           >
             <BuildingInfoTextElement
-              sx={{
+              styleProps={{
                 ...textSx,
                 color: '#111111',
               }}
@@ -1142,7 +1142,7 @@ const BuildingInfoPreviousEnergyClassSection = ({
             </BuildingInfoTextElement>
             <BuildingInfoTextElement
               component="div"
-              sx={{
+              styleProps={{
                 ...textSx,
                 mt: '0.375rem',
                 color: '#111111',
@@ -1171,16 +1171,16 @@ const BuildingInfoMeasureListSection = ({
   return (
     <Box
       data-section-id={section.id}
-      sx={{
+      styleProps={{
         mt: '1.75rem',
       }}
     >
       <BuildingInfoSectionDivider />
-      <Box sx={{ py: '0.875rem' }}>
+      <Box styleProps={{ py: '0.875rem' }}>
         {rows.map((row) => (
           <Box key={row.id} data-section-row-id={row.id}>
             <BuildingInfoTextElement
-              sx={{
+              styleProps={{
                 ...textSx,
                 color: '#111111',
               }}
@@ -1189,7 +1189,7 @@ const BuildingInfoMeasureListSection = ({
             </BuildingInfoTextElement>
             <BuildingInfoTextElement
               component="div"
-              sx={{
+              styleProps={{
                 ...textSx,
                 mt: '0.375rem',
                 color: '#111111',
@@ -1211,7 +1211,7 @@ const BuildingInfoMetricValueRow = ({
 }) => (
   <Box
     data-metric-value-id={value.id}
-    sx={{
+    styleProps={{
       display: 'grid',
       gridTemplateColumns: 'minmax(0, 1fr) minmax(0, auto)',
       columnGap: '0.75rem',
@@ -1220,10 +1220,10 @@ const BuildingInfoMetricValueRow = ({
       py: '0.625rem',
     }}
   >
-    <BuildingInfoTextElement sx={{ ...textSx, color: '#111111' }}>
+    <BuildingInfoTextElement styleProps={{ ...textSx, color: '#111111' }}>
       <BuildingInfoText text={value.label} />
     </BuildingInfoTextElement>
-    <BuildingInfoTextElement component="div" sx={{ ...textSx, textAlign: 'right' }}>
+    <BuildingInfoTextElement component="div" styleProps={{ ...textSx, textAlign: 'right' }}>
       <BuildingInfoValueText value={value} />
     </BuildingInfoTextElement>
   </Box>
@@ -1273,7 +1273,7 @@ const BuildingInfoPrimaryMetricButton = ({
       aria-pressed={active}
       data-primary-metric-id={metric.id}
       onClick={onClick}
-      sx={{
+      styleProps={{
         width: getPrimaryMetricButtonWidth({ metricId: metric.id, active }),
         minWidth: getPrimaryMetricButtonWidth({ metricId: metric.id, active }),
         height: active ? '24px' : '20px',
@@ -1305,7 +1305,7 @@ const BuildingInfoPrimaryMetricButton = ({
       {active && (
         <BuildingInfoTextElement
           component="span"
-          sx={{
+          styleProps={{
             ...energyControlTextSx,
             color: '#ffffff',
             overflow: 'hidden',
@@ -1350,7 +1350,7 @@ const BuildingInfoEnergySubmetricButton = ({
       aria-pressed={selected}
       data-energy-submetric-id={submetric.id}
       onClick={onClick}
-      sx={{
+      styleProps={{
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'flex-start',
@@ -1369,7 +1369,7 @@ const BuildingInfoEnergySubmetricButton = ({
     >
       <Box
         component="span"
-        sx={{
+        styleProps={{
           display: 'inline-flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -1386,7 +1386,7 @@ const BuildingInfoEnergySubmetricButton = ({
       </Box>
       <BuildingInfoTextElement
         component="span"
-        sx={{
+        styleProps={{
           ...energyControlTextSx,
           color: '#111111',
           maxWidth: '12rem',
@@ -1414,7 +1414,7 @@ const BuildingInfoUnsupportedPrimaryMetricPanel = ({
     <Box
       data-testid="building-info-unsupported-primary-metric"
       data-primary-metric-id={metric.id}
-      sx={{
+      styleProps={{
         mt: '1.5rem',
         borderTop: '0.3px solid #d7d7d7',
         pt: '0.75rem',
@@ -1520,7 +1520,7 @@ const BuildingInfoEnergyConsumptionSection = ({
     <Box
       component="span"
       data-status={controls.yearUnavailableValue.status}
-      sx={{
+      styleProps={{
         display: 'inline-flex',
         alignItems: 'center',
         maxWidth: '100%',
@@ -1564,13 +1564,13 @@ const BuildingInfoEnergyConsumptionSection = ({
     <Box
       data-section-id={section.id}
       data-testid="building-info-energy-consumption-section"
-      sx={{
+      styleProps={{
         mt: '2.25rem',
       }}
     >
       {section.title != null && (
         <BuildingInfoTextElement
-          sx={{
+          styleProps={{
             ...textSx,
             mb: '1rem',
             color: accentColor,
@@ -1594,7 +1594,7 @@ const BuildingInfoEnergyConsumptionSection = ({
           />
         }
         onChange={handleYearChange}
-        sx={{
+        styleProps={{
           mt: '1.125rem',
           maxWidth: '284px',
           gap: '0.875rem',
@@ -1620,7 +1620,7 @@ const BuildingInfoEnergyConsumptionSection = ({
       />
       <Box
         data-testid="building-info-primary-metric-row"
-        sx={{
+        styleProps={{
           mt: '1.5rem',
           display: 'flex',
           alignItems: 'center',
@@ -1643,7 +1643,7 @@ const BuildingInfoEnergyConsumptionSection = ({
         <>
           <Box
             data-testid="building-info-energy-submetric-row"
-            sx={{
+            styleProps={{
               mt: '1.5rem',
               display: 'flex',
               flexDirection: 'column',
@@ -1662,7 +1662,7 @@ const BuildingInfoEnergyConsumptionSection = ({
           </Box>
           <Box
             data-testid="building-info-energy-consumption-values"
-            sx={{
+            styleProps={{
               mt: '1.5rem',
             }}
           >
@@ -1692,12 +1692,12 @@ const BuildingInfoMetricBlock = ({
 }) => (
   <Box
     data-metric-id={metric.id}
-    sx={{
+    styleProps={{
       mt: '1.5rem',
     }}
   >
     <Box
-      sx={{
+      styleProps={{
         display: 'inline-flex',
         alignItems: 'center',
         maxWidth: '100%',
@@ -1709,7 +1709,7 @@ const BuildingInfoMetricBlock = ({
       }}
     >
       <BuildingInfoTextElement
-        sx={{
+        styleProps={{
           fontSize: '0.5625rem',
           fontWeight: 400,
           lineHeight: '0.875rem',
@@ -1720,7 +1720,7 @@ const BuildingInfoMetricBlock = ({
         <BuildingInfoText text={metric.label} />
       </BuildingInfoTextElement>
     </Box>
-    <Box sx={{ mt: '0.75rem' }}>
+    <Box styleProps={{ mt: '0.75rem' }}>
       {metric.values.map((value) => (
         <BuildingInfoMetricValueRow key={value.id} value={value} />
       ))}
@@ -1744,23 +1744,23 @@ const BuildingInfoScenarioBlock = ({
   return (
     <Box
       data-scenario-id={scenario.id}
-      sx={{
+      styleProps={{
         mt: '2rem',
         pt: '1.25rem',
         borderTop: '0.3px solid #cfcfcf',
       }}
     >
       <Box
-        sx={{
+        styleProps={{
           display: 'flex',
           alignItems: 'flex-start',
           justifyContent: 'space-between',
           gap: '1rem',
         }}
       >
-        <Box sx={{ minWidth: 0 }}>
+        <Box styleProps={{ minWidth: 0 }}>
           <BuildingInfoTextElement
-            sx={{
+            styleProps={{
               ...textSx,
               color: '#111111',
               fontWeight: 400,
@@ -1771,7 +1771,7 @@ const BuildingInfoScenarioBlock = ({
         </Box>
         {savingsValue != null && (
           <Box
-            sx={{
+            styleProps={{
               px: '0.75rem',
               py: '0.125rem',
               borderRadius: '12px',
@@ -1779,14 +1779,14 @@ const BuildingInfoScenarioBlock = ({
               whiteSpace: 'nowrap',
             }}
           >
-            <BuildingInfoTextElement sx={{ ...textSx, color: '#a347ff' }}>
+            <BuildingInfoTextElement styleProps={{ ...textSx, color: '#a347ff' }}>
               <BuildingInfoValueText value={savingsValue} />
             </BuildingInfoTextElement>
           </Box>
         )}
       </Box>
       <Box
-        sx={{
+        styleProps={{
           mt: '1rem',
           display: 'flex',
           flexDirection: { mobile: 'column', desktop: 'row' },
@@ -1794,7 +1794,7 @@ const BuildingInfoScenarioBlock = ({
           gap: { mobile: '1rem', desktop: '1.25rem' },
         }}
       >
-        <Box sx={{ flex: '1 1 auto', minWidth: 0 }}>
+        <Box styleProps={{ flex: '1 1 auto', minWidth: 0 }}>
           {remainingValues.map((value) => (
             <BuildingInfoMetricValueRow key={value.id} value={value} />
           ))}
@@ -1805,7 +1805,7 @@ const BuildingInfoScenarioBlock = ({
             dimensions={graphic.dimensions}
             maxWidth="38vw"
             testId={graphic.testId}
-            sx={{
+            styleProps={{
               alignSelf: { mobile: 'center', desktop: 'flex-start' },
               mt: { mobile: '0.25rem', desktop: '-2.5rem' },
             }}
@@ -1853,7 +1853,7 @@ const BuildingInfoSectionBlock = ({
   return (
     <Box
       data-section-id={section.id}
-      sx={{
+      styleProps={{
         mt: '2.25rem',
       }}
     >
@@ -1861,14 +1861,14 @@ const BuildingInfoSectionBlock = ({
         <RenovationIcon
           width="31px"
           height="25px"
-          sx={{
+          styleProps={{
             mb: '2.125rem',
           }}
         />
       )}
       {section.title != null && (
         <BuildingInfoTextElement
-          sx={{
+          styleProps={{
             ...textSx,
             mb: '1rem',
             color: accentColor,
@@ -1880,7 +1880,7 @@ const BuildingInfoSectionBlock = ({
       )}
       {section.description != null && (
         <BuildingInfoTextElement
-          sx={{
+          styleProps={{
             ...textSx,
             mb: '1.25rem',
             color: '#111111',
@@ -1925,7 +1925,7 @@ const BuildingInfoPanelHeadingGraphic = ({
         width="18px"
         height="28px"
         data-testid="building-info-heading-graphic-energyConsumption"
-        sx={{
+        styleProps={{
           position: 'absolute',
           top: 'var(--building-info-heading-graphic-top, 3.125rem)',
           left: headingGraphicLeft,
@@ -1938,7 +1938,7 @@ const BuildingInfoPanelHeadingGraphic = ({
     return (
       <RenovationIcon
         data-testid="building-info-heading-graphic-renovationRecommendations"
-        sx={{
+        styleProps={{
           position: 'absolute',
           top: 'var(--building-info-heading-graphic-top, 3.25rem)',
           left: headingGraphicLeft,
@@ -1964,7 +1964,7 @@ const BuildingInfoPanelHeroGraphic = ({
       src={BUILDING_INFO_ASSETS.renovationBuilding}
       dimensions={BUILDING_INFO_GRAPHIC_DIMENSIONS.renovationBuilding}
       testId="building-info-graphic-renovation-building"
-      sx={{
+      styleProps={{
         mt: '2.75rem',
         mb: '2.75rem',
         mx: 'auto',
@@ -1982,7 +1982,7 @@ const BuildingInfoPanelBody = ({
   showDescription = true,
   showHeroGraphic = true,
   isMobileLayout = false,
-  sx,
+  styleProps,
 }: {
   panel: EnergymapBuildingInfoPanel
   titleId: string
@@ -1992,15 +1992,15 @@ const BuildingInfoPanelBody = ({
   showDescription?: boolean
   showHeroGraphic?: boolean
   isMobileLayout?: boolean
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }) => (
   <Box
-    sx={[
+    styleProps={[
       {
         boxSizing: 'border-box',
         position: 'relative',
       },
-      ...(Array.isArray(sx) ? sx : [sx]),
+      ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
     ]}
   >
     <BuildingInfoPanelHeadingGraphic
@@ -2009,7 +2009,7 @@ const BuildingInfoPanelBody = ({
     />
     <BuildingInfoTextElement
       id={titleId}
-      sx={{
+      styleProps={{
         fontSize: '0.75rem',
         fontWeight: 400,
         lineHeight: '1.125rem',
@@ -2022,7 +2022,7 @@ const BuildingInfoPanelBody = ({
       <BuildingInfoText text={panel.title} />
     </BuildingInfoTextElement>
     <Box
-      sx={{
+      styleProps={{
         mt: 'var(--building-info-heading-divider-mt, 1.375rem)',
         borderTop: '0.3px solid #cfcfcf',
       }}
@@ -2030,7 +2030,7 @@ const BuildingInfoPanelBody = ({
     {showHeroGraphic && <BuildingInfoPanelHeroGraphic panelId={panel.id} />}
     {showDescription && panel.description != null && (
       <BuildingInfoTextElement
-        sx={{
+        styleProps={{
           ...textSx,
           mt:
             panel.id === 'renovationRecommendations' ? 0 : '1.875rem',
@@ -2124,7 +2124,7 @@ const BuildingInfoPanelSection = ({
   showDescription,
   showHeroGraphic,
   isMobileLayout,
-  sx,
+  styleProps,
 }: {
   panel: EnergymapBuildingInfoPanel
   tabId: BuildingInfoTabId
@@ -2134,7 +2134,7 @@ const BuildingInfoPanelSection = ({
   showDescription?: boolean
   showHeroGraphic?: boolean
   isMobileLayout?: boolean
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }) => {
   const titleId = React.useId()
   const accentColor = getTabPagePanelAccentColor({
@@ -2148,7 +2148,7 @@ const BuildingInfoPanelSection = ({
       aria-labelledby={titleId}
       data-testid={`building-info-panel-${panel.id}`}
       data-panel-id={panel.id}
-      sx={[
+      styleProps={[
         {
           width: '100%',
           minWidth: 0,
@@ -2156,7 +2156,7 @@ const BuildingInfoPanelSection = ({
           backgroundColor: 'inherit',
           flexShrink: 0,
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
       ]}
     >
       <BuildingInfoPanelBody
@@ -2168,7 +2168,7 @@ const BuildingInfoPanelSection = ({
         showDescription={showDescription}
         showHeroGraphic={showHeroGraphic}
         isMobileLayout={isMobileLayout}
-        sx={bodySx}
+        styleProps={bodySx}
       />
     </Box>
   )
@@ -2189,7 +2189,7 @@ const BuildingInfoStackedTabPageSection = ({
 }) => {
   return (
     <Box
-      sx={{
+      styleProps={{
         width: '100%',
         minWidth: 0,
         backgroundColor: PANEL_BACKGROUNDS[panel.id],
@@ -2221,7 +2221,7 @@ const BuildingInfoDesktopGrid = ({
   <Box
     data-testid="building-info-grid"
     data-building-info-grid-layout={tabId}
-    sx={{
+    styleProps={{
       display: 'grid',
       width: `min(${DESKTOP_GRID_MAX_WIDTHS[tabId]}, 100vw)`,
       maxWidth: '100%',
@@ -2268,7 +2268,7 @@ const BuildingInfoDesktopGridSection = ({
     data-grid-area={gridArea}
     data-grid-slot={slot}
     data-panel-id={panelId}
-    sx={{
+    styleProps={{
       gridArea,
       minWidth: 0,
       minHeight,
@@ -2286,7 +2286,7 @@ const getRenovationComparisonSection = (
 const BuildingInfoRenovationReferenceYearNote = () => (
   <BuildingInfoTextElement
     data-testid="building-info-renovation-reference-year-note"
-    sx={{
+    styleProps={{
       ...textSx,
       mt: 'auto',
       pt: '2rem',
@@ -2314,14 +2314,14 @@ const BuildingInfoRenovationComparisonWide = ({
       aria-labelledby={titleId}
       data-testid="building-info-renovation-comparison-wide"
       data-panel-id={panel.id}
-      sx={{
+      styleProps={{
         display: 'grid',
         gridTemplateColumns: '440fr 560fr',
         minHeight: '100%',
       }}
     >
       <Box
-        sx={{
+        styleProps={{
           width: 'min(22.5rem, calc(100% - 5rem))',
           maxWidth: '100%',
           ml: '5rem',
@@ -2334,7 +2334,7 @@ const BuildingInfoRenovationComparisonWide = ({
         {section?.title != null && (
           <BuildingInfoTextElement
             id={titleId}
-            sx={{
+            styleProps={{
               mt: '2rem',
               fontSize: '0.75rem',
               fontWeight: 400,
@@ -2348,14 +2348,14 @@ const BuildingInfoRenovationComparisonWide = ({
           </BuildingInfoTextElement>
         )}
         <Box
-          sx={{
+          styleProps={{
             mt: '1.875rem',
             borderTop: '0.3px solid #cfcfcf',
           }}
         />
         {section?.description != null && (
           <BuildingInfoTextElement
-            sx={{
+            styleProps={{
               ...textSx,
               mt: '1.875rem',
               maxWidth: '20.375rem',
@@ -2367,7 +2367,7 @@ const BuildingInfoRenovationComparisonWide = ({
         )}
       </Box>
       <Box
-        sx={{
+        styleProps={{
           width: `min(${PANEL_CONTENT_WIDTHS.renovationRecommendations}, calc(100% - 4rem))`,
           maxWidth: '100%',
           ml: '3.75rem',
@@ -2387,7 +2387,7 @@ const BuildingInfoRenovationComparisonWide = ({
 const BuildingInfoRenovationEffectivenessContent = () => (
   <Box
     data-testid="building-info-renovation-effectiveness-content"
-    sx={{
+    styleProps={{
       width: `min(${PANEL_CONTENT_WIDTHS.buildingDetails}, calc(100% - 4rem))`,
       maxWidth: '100%',
       ml: '4.375rem',
@@ -2396,7 +2396,7 @@ const BuildingInfoRenovationEffectivenessContent = () => (
     }}
   >
     <BuildingInfoTextElement
-      sx={{
+      styleProps={{
         fontSize: '0.75rem',
         fontWeight: 400,
         lineHeight: '1.125rem',
@@ -2411,13 +2411,13 @@ const BuildingInfoRenovationEffectivenessContent = () => (
       />
     </BuildingInfoTextElement>
     <Box
-      sx={{
+      styleProps={{
         mt: '0.75rem',
         borderTop: '0.3px solid #cfcfcf',
       }}
     />
     <BuildingInfoTextElement
-      sx={{
+      styleProps={{
         ...textSx,
         mt: '2.5rem',
         color: '#111111',
@@ -2435,7 +2435,7 @@ const BuildingInfoRenovationEffectivenessContent = () => (
     <Box
       aria-hidden="true"
       data-testid="building-info-renovation-effectiveness-indicator"
-      sx={{
+      styleProps={{
         mt: '3rem',
         display: 'flex',
         justifyContent: 'center',
@@ -2444,7 +2444,7 @@ const BuildingInfoRenovationEffectivenessContent = () => (
       }}
     >
       <Box
-        sx={{
+        styleProps={{
           width: '25px',
           height: '10px',
           borderRadius: '5px',
@@ -2452,7 +2452,7 @@ const BuildingInfoRenovationEffectivenessContent = () => (
         }}
       />
       <Box
-        sx={{
+        styleProps={{
           width: '10px',
           height: '10px',
           borderRadius: '50%',
@@ -2523,7 +2523,7 @@ const BuildingInfoDesktopTabPageContent = ({
                 <BuildingInfoRenovationReferenceYearNote />
               ) : undefined
             }
-            sx={{ minHeight: '100%', height: '100%' }}
+            styleProps={{ minHeight: '100%', height: '100%' }}
             bodySx={resolvedEnergyPanelBodySx}
           />
         </BuildingInfoDesktopGridSection>
@@ -2540,7 +2540,7 @@ const BuildingInfoDesktopTabPageContent = ({
             panel={renovationPanel}
             tabId={tabId}
             sections={renovationTopSections}
-            sx={{ minHeight: '100%', height: '100%' }}
+            styleProps={{ minHeight: '100%', height: '100%' }}
             bodySx={getDesktopGridPanelContentSx({
               panelId: renovationPanel.id,
             })}
@@ -2566,7 +2566,7 @@ const BuildingInfoDesktopTabPageContent = ({
           <BuildingInfoPanelSection
             panel={buildingPanel}
             tabId={tabId}
-            sx={{ minHeight: '100%', height: '100%' }}
+            styleProps={{ minHeight: '100%', height: '100%' }}
             bodySx={getDesktopGridPanelContentSx({
               panelId: buildingPanel.id,
             })}
@@ -2652,7 +2652,7 @@ const BuildingInfoTabPageContent = ({
     <Box
       data-testid={`building-info-tab-page-${tabId}`}
       data-building-info-tab-id={tabId}
-      sx={{
+      styleProps={{
         display: 'flex',
         flexDirection: 'column',
         minHeight: '100%',
@@ -2743,7 +2743,7 @@ const TwoPanelIcon = () => (
     src="/files/img/energiakartta/sidebar/building-info-two-panel.svg"
     alt=""
     aria-hidden="true"
-    sx={{
+    styleProps={{
       width: '26.8px',
       height: '21.8px',
     }}
@@ -2752,7 +2752,7 @@ const TwoPanelIcon = () => (
 
 const ThreePanelIcon = () => (
   <Box
-    sx={{
+    styleProps={{
       position: 'relative',
       width: '18.75px',
       height: '19.5px',
@@ -2764,7 +2764,7 @@ const ThreePanelIcon = () => (
       src="/files/img/energiakartta/sidebar/building-info-three-panel-left.svg"
       alt=""
       aria-hidden="true"
-      sx={{
+      styleProps={{
         position: 'absolute',
         top: '8px',
         left: 0,
@@ -2777,7 +2777,7 @@ const ThreePanelIcon = () => (
       src="/files/img/energiakartta/sidebar/building-info-three-panel-right.svg"
       alt=""
       aria-hidden="true"
-      sx={{
+      styleProps={{
         position: 'absolute',
         top: '1px',
         right: 0,
@@ -2921,7 +2921,7 @@ export const BuildingInfoActionRail = ({
     <Box
       data-testid="building-info-action-rail"
       data-orientation={orientation}
-      sx={{
+      styleProps={{
         display: 'flex',
         flexDirection: orientation,
         gap: `${BUILDING_INFO_ACTION_BUTTON_GAP_PX}px`,
@@ -2934,7 +2934,7 @@ export const BuildingInfoActionRail = ({
           aria-pressed={activeMode === 'twoPanel' && !isCollapsed}
           data-building-info-mode="twoPanel"
           onClick={() => onModeChange('twoPanel')}
-          sx={actionButtonSx({
+          styleProps={actionButtonSx({
             active: activeMode === 'twoPanel' && !isCollapsed,
           })}
         >
@@ -2947,7 +2947,7 @@ export const BuildingInfoActionRail = ({
           aria-pressed={activeMode === 'threePanel' && !isCollapsed}
           data-building-info-mode="threePanel"
           onClick={() => onModeChange('threePanel')}
-          sx={actionButtonSx({
+          styleProps={actionButtonSx({
             active: activeMode === 'threePanel' && !isCollapsed,
           })}
         >

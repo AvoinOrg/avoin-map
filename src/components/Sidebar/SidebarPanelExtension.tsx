@@ -28,7 +28,7 @@ export type SidebarPanelExtensionProps = {
   desktopTabRail?: React.ReactNode
   mobileTabRail?: React.ReactNode
   suppressMobileStackedPanels?: boolean
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 export type SidebarPanelExtensionTabRailProps = {
@@ -74,7 +74,7 @@ const FULLSCREEN_DRAWER_Z_INDEX = Math.max(
 
 const PANEL_ORDER: SidebarPanelId[] = ['main', 'secondary', 'tertiary']
 
-const toSxArray = (sx?: PandaStyleProp) => (Array.isArray(sx) ? sx : [sx])
+const toSxArray = (styleProps?: PandaStyleProp) => (Array.isArray(styleProps) ? styleProps : [styleProps])
 
 const isFullscreenLayout = (
   options?: SidebarPanelExtensionRuntimeOptions
@@ -230,7 +230,7 @@ const SidebarPanelExtensionDesktopPanel = ({
     <Box
       data-testid={`sidebar-panel-extension-desktop-panel-${panelId}`}
       data-sidebar-panel-extension-panel-id={panelId}
-      sx={{
+      styleProps={{
         display: 'flex',
         flexDirection: 'column',
         flex: '0 0 auto',
@@ -247,7 +247,7 @@ const SidebarPanelExtensionDesktopPanel = ({
       }}
     >
       <Box
-        sx={{
+        styleProps={{
           position: 'relative',
           flex: 1,
           minHeight: 0,
@@ -263,7 +263,7 @@ const SidebarPanelExtensionDesktopPanel = ({
         }}
       >
         <Box
-          sx={[
+          styleProps={[
             {
               position: 'absolute',
               inset: 0,
@@ -518,7 +518,7 @@ export const SidebarPanelExtensionTabRail = ({
       role="tablist"
       aria-label="Sidebar panel extension tabs"
       data-testid={`sidebar-panel-extension-${placement}-tab-rail`}
-      sx={{
+      styleProps={{
         display: 'flex',
         flexDirection:
           orientation ?? (placement === 'desktop' ? 'column' : 'row'),
@@ -538,7 +538,7 @@ export const SidebarPanelExtensionTabRail = ({
           buttonId={tab.tabButtonId}
           controlsId={tab.tabPanelId}
           onSelect={onTabChange}
-          sx={tab.tabButtonSx}
+          styleProps={tab.tabButtonSx}
           iconSx={tab.tabIconSx}
         />
       ))}
@@ -578,7 +578,7 @@ const SidebarPanelExtensionMobilePanels = ({
           ? (options?.mobileStackPlacement ?? 'after')
           : undefined
       }
-      sx={{
+      styleProps={{
         ...(variant === 'overlay'
           ? {
               position: 'fixed',
@@ -608,7 +608,7 @@ const SidebarPanelExtensionMobilePanels = ({
           key={panelId}
           data-testid={`sidebar-panel-extension-mobile-panel-${panelId}`}
           data-sidebar-panel-extension-panel-id={panelId}
-          sx={[
+          styleProps={[
             {
               display: 'flex',
               flexDirection: 'column',
@@ -652,7 +652,7 @@ export const SidebarPanelExtension = ({
   desktopTabRail,
   mobileTabRail,
   suppressMobileStackedPanels = false,
-  sx,
+  styleProps,
 }: SidebarPanelExtensionProps) => {
   const isMobile = useIsMobile()
   const useMobileLayout = isMobile || options?.forceMobileLayout === true
@@ -694,7 +694,7 @@ export const SidebarPanelExtension = ({
             data-sidebar-panel-extension-control-placement={
               renderMobileActionRailInTabRow ? actionRailPlacement : undefined
             }
-            sx={getMobileTabControlsSx(visible)}
+            styleProps={getMobileTabControlsSx(visible)}
           >
             {mobileTabRail}
             {renderMobileActionRailInTabRow && (
@@ -708,7 +708,7 @@ export const SidebarPanelExtension = ({
             data-sidebar-panel-extension-control-placement={
               actionRailPlacement
             }
-            sx={getMobileActionRailSx(actionRailPlacement, visible)}
+            styleProps={getMobileActionRailSx(actionRailPlacement, visible)}
           >
             <SidebarPanelExtensionActionRailSlot extensionId={extensionId} />
           </Box>
@@ -720,7 +720,7 @@ export const SidebarPanelExtension = ({
   return (
     <Box
       data-testid="sidebar-panel-extension-root"
-      sx={[
+      styleProps={[
         {
           position: 'fixed',
           top: 0,
@@ -742,12 +742,12 @@ export const SidebarPanelExtension = ({
           pointerEvents: fullscreen ? 'auto' : 'none',
           ...getVisibilitySx(visible),
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
       ]}
     >
       <Box
         data-testid="sidebar-panel-extension-desktop-panel-group"
-        sx={getDesktopPanelGroupSx(options)}
+        styleProps={getDesktopPanelGroupSx(options)}
       >
         {desktopPanels}
       </Box>
@@ -757,7 +757,7 @@ export const SidebarPanelExtension = ({
           data-sidebar-panel-extension-tab-placement={
             fullscreen ? 'bottomActionRow' : 'sidebar-edge'
           }
-          sx={getDesktopTabControlsSx(options?.layoutMode)}
+          styleProps={getDesktopTabControlsSx(options?.layoutMode)}
         >
           {desktopTabRail}
         </Box>
@@ -765,7 +765,7 @@ export const SidebarPanelExtension = ({
       <Box
         data-testid="sidebar-panel-extension-desktop-controls"
         data-sidebar-panel-extension-control-placement={actionRailPlacement}
-        sx={getDesktopControlsSx({
+        styleProps={getDesktopControlsSx({
           placement: actionRailPlacement,
           sidebarOffset,
           layoutMode: options?.layoutMode,

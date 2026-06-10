@@ -30,7 +30,7 @@ export type NodeFlowAccordionProps = NodeFlowMarkerProps & {
   showConnector?: boolean
   showConnectorTop?: boolean
   showConnectorBottom?: boolean
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   rowSx?: PandaStyleProp
   rowSxOpen?: PandaStyleProp
   rowSxClosed?: PandaStyleProp
@@ -57,7 +57,7 @@ const NodeFlowAccordionBase = ({
   onOpenChange,
   children,
   ariaLabel,
-  sx,
+  styleProps,
   rowSx,
   rowSxOpen,
   rowSxClosed,
@@ -70,7 +70,7 @@ const NodeFlowAccordionBase = ({
     trailing === undefined ? (
       isOpen ? (
         <ArrowUp
-          sx={{
+          styleProps={{
             width: '0.5625rem',
             height: '0.286625rem',
             color: 'inherit',
@@ -78,7 +78,7 @@ const NodeFlowAccordionBase = ({
         />
       ) : (
         <ArrowDown
-          sx={{
+          styleProps={{
             width: '0.5625rem',
             height: '0.286625rem',
             color: 'inherit',
@@ -109,9 +109,9 @@ const NodeFlowAccordionBase = ({
           transition:
             'margin 160ms cubic-bezier(.2,0,.2,1), width 160ms cubic-bezier(.2,0,.2,1)',
         }),
-        css(...pandaStylePropsToArray(sx))
+        css(...pandaStylePropsToArray(styleProps))
       )}
-      style={mergePandaStyleProps({ sx })}
+      style={mergePandaStyleProps({ styleProps })}
     >
       {!isOpen && (
         <NodeFlowButton
@@ -196,7 +196,7 @@ const NodeFlowAccordionBase = ({
                 }),
                 css(...pandaStylePropsToArray(bodySx))
               )}
-              style={mergePandaStyleProps({ sx: bodySx })}
+              style={mergePandaStyleProps({ styleProps: bodySx })}
             >
               {children}
             </div>

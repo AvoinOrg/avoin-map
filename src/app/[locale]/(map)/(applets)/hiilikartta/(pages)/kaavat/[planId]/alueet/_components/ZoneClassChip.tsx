@@ -6,7 +6,7 @@ type Props = {
   code: string
   color?: string
   dark?: boolean
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   uppercase?: boolean
 }
 
@@ -14,7 +14,7 @@ const ZoneClassChip = ({
   code,
   color,
   dark = false,
-  sx,
+  styleProps,
   uppercase = true,
 }: Props) => {
   const backgroundColor = dark ? '#111111' : (color ?? '#D9D9D9')
@@ -23,7 +23,7 @@ const ZoneClassChip = ({
   return (
     <Box
       component="span"
-      sx={[
+      styleProps={[
         {
           display: 'inline-flex',
           alignItems: 'center',
@@ -42,7 +42,7 @@ const ZoneClassChip = ({
           textTransform: uppercase ? 'uppercase' : 'none',
           whiteSpace: 'nowrap',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
       ]}
     >
       {code}

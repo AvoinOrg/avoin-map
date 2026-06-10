@@ -13,6 +13,7 @@ type MockMutableLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
   route?: unknown
   routeTree?: unknown
   params?: unknown
+  styleProps?: unknown
 }
 
 jest.mock('#/components/common/MutableLink', () => {
@@ -22,11 +23,13 @@ jest.mock('#/components/common/MutableLink', () => {
     route: _route,
     routeTree: _routeTree,
     params: _params,
+    styleProps: _styleProps,
     ...props
   }: MockMutableLinkProps) => {
     void _route
     void _routeTree
     void _params
+    void _styleProps
 
     return (
       <a href="#mock-link" onClick={onClick} {...props}>

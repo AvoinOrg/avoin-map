@@ -5,11 +5,11 @@ import { render, screen } from '@testing-library/react'
 import LoadingHorizontal from './LoadingHorizontal'
 
 describe('LoadingHorizontal', () => {
-  it('renders a progressbar and maps Panda sx to inline style', () => {
+  it('renders a progressbar and maps Panda styleProps to inline style', () => {
     render(
       <LoadingHorizontal
         aria-label="Loading row"
-        sx={{ width: 16, height: 16, color: 'text.secondary' }}
+        styleProps={{ width: 16, height: 16, color: 'text.secondary' }}
       />
     )
 

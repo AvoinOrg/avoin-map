@@ -7,14 +7,14 @@ import {
 import type { IconProps } from './types'
 
 
-const Bullseye = ({ sx, className, style, ...props }: IconProps) => (
+const Bullseye = ({ styleProps, className, style, ...props }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={23}
     height={23}
     viewBox="0 0 23 23"
-    className={cx(css(...pandaStylePropsToArray(sx)), className)}
-    style={mergePandaStyleProps({ sx, style })}
+    className={cx(css(...pandaStylePropsToArray(styleProps)), className)}
+    style={mergePandaStyleProps({ styleProps, style })}
     fill="none"
     {...props}
   >

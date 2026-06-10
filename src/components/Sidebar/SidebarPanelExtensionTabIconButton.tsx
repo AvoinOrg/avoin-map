@@ -13,7 +13,7 @@ import { Box } from '#/components/common/PandaBox'
 import SimpleTooltip from '#/components/common/SimpleTooltip'
 
 export type SidebarPanelExtensionDefaultTabIconProps = {
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 export type SidebarPanelExtensionTabIconButtonProps = {
@@ -25,7 +25,7 @@ export type SidebarPanelExtensionTabIconButtonProps = {
   buttonId?: string
   controlsId?: string
   onSelect?: (tabId: string) => void
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   iconSx?: PandaStyleProp
 }
 
@@ -81,13 +81,13 @@ const getTabIconButtonSx = (selected: boolean): PandaStyleObject => ({
 })
 
 export const SidebarPanelExtensionDefaultTabIcon = ({
-  sx,
+  styleProps,
 }: SidebarPanelExtensionDefaultTabIconProps) => {
   return (
     <Box
       aria-hidden="true"
       data-testid="sidebar-panel-extension-default-tab-icon"
-      sx={[
+      styleProps={[
         {
           display: 'grid',
           gridTemplateColumns: 'repeat(2, 0.375rem)',
@@ -97,14 +97,14 @@ export const SidebarPanelExtensionDefaultTabIcon = ({
           justifyContent: 'center',
           color: 'currentColor',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
       ]}
     >
       {[0, 1, 2, 3].map((index) => (
         <Box
           key={index}
           component="span"
-          sx={{
+          styleProps={{
             width: '0.375rem',
             height: '0.375rem',
             borderRadius: '50%',
@@ -125,7 +125,7 @@ export const SidebarPanelExtensionTabIconButton = ({
   buttonId,
   controlsId,
   onSelect,
-  sx,
+  styleProps,
   iconSx,
 }: SidebarPanelExtensionTabIconButtonProps) => {
   const accessibleLabel = getSidebarPanelExtensionTabAccessibleLabel({
@@ -149,15 +149,15 @@ export const SidebarPanelExtensionTabIconButton = ({
         tabIndex={selected ? 0 : -1}
         onClick={() => onSelect?.(tabId)}
         className={cx(
-          css(buttonSx, ...pandaStylePropsToArray(sx))
+          css(buttonSx, ...pandaStylePropsToArray(styleProps))
         )}
         style={mergePandaStyleProps({
-          sx: [buttonSx, ...pandaStylePropsToArray(sx)],
+          styleProps: [buttonSx, ...pandaStylePropsToArray(styleProps)],
         })}
       >
         <Box
           component="span"
-          sx={[
+          styleProps={[
             {
               display: 'inline-flex',
               alignItems: 'center',

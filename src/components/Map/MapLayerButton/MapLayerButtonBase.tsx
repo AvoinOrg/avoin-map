@@ -120,7 +120,7 @@ const MapLayerButtonBase = ({
         size="small"
         tooltip={tooltipLabel}
         isVertical={isVertical}
-        sx={{
+        styleProps={{
           backgroundColor: isActive ? 'neutral.main' : 'neutral.light',
         }}
       >

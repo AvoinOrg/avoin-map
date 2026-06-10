@@ -134,7 +134,7 @@ const SidebarScaffold = ({
         data-open={isSidebarOpen ? 'true' : 'false'}
         data-hidden-main={hideMainContainer ? 'true' : undefined}
         style={mergePandaStyleProps({
-          sx: containerSx,
+          styleProps: containerSx,
           style: containerVars,
         })}
       >
@@ -145,7 +145,7 @@ const SidebarScaffold = ({
                 styles.sidebarPanel,
                 css(...pandaStylePropsToArray(panelSx))
               )}
-              style={mergePandaStyleProps({ sx: panelSx })}
+              style={mergePandaStyleProps({ styleProps: panelSx })}
             >
               {topContent}
               {isSidebarLoading && (
@@ -158,7 +158,7 @@ const SidebarScaffold = ({
                   styles.sidebarContent,
                   css(...pandaStylePropsToArray(contentSx))
                 )}
-                style={mergePandaStyleProps({ sx: contentSx })}
+                style={mergePandaStyleProps({ styleProps: contentSx })}
               >
                 {children}
               </div>

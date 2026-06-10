@@ -113,10 +113,10 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
 
   return (
     <Box>
-      <Box sx={{ mt: { xs: 0, md: 2.5 }, ml: { xs: 0, md: 2.5 } }}>
+      <Box styleProps={{ mt: { xs: 0, md: 2.5 }, ml: { xs: 0, md: 2.5 } }}>
         <Box
           component="h2"
-          sx={{
+          styleProps={{
             m: 0,
             typography: 'h1',
             display: 'inline',
@@ -126,7 +126,7 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
         </Box>
       </Box>
       <Box
-        sx={{
+        styleProps={{
           display: 'flex',
           flexDirection: { xs: 'column', md: 'row' },
           flexWrap: { xs: 'wrap', md: 'nowrap' },
@@ -136,7 +136,7 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
         <StyledToggleButton
           type="button"
           aria-label="total"
-          sx={{
+          styleProps={{
             mr: { xs: 0, md: '0.75rem' },
             typography: 'h5',
             letterSpacing: 'normal',
@@ -153,7 +153,7 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
         <StyledToggleButton
           type="button"
           aria-label="bio"
-          sx={{
+          styleProps={{
             mr: { xs: 0, md: '0.75rem' },
             typography: 'h5',
             letterSpacing: 'normal',
@@ -170,7 +170,7 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
         <StyledToggleButton
           type="button"
           aria-label="ground"
-          sx={{ typography: 'h5', letterSpacing: 'normal' }}
+          styleProps={{ typography: 'h5', letterSpacing: 'normal' }}
           aria-pressed={calcType === 'ground'}
           data-selected={calcType === 'ground' ? 'true' : undefined}
           onClick={() => handleCalcTypeChange('ground')}
@@ -182,7 +182,7 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
         </StyledToggleButton>
       </Box>
       <Box
-        sx={{
+        styleProps={{
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
           border: '1px solid',
@@ -197,7 +197,7 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
       >
         <Box
           component="span"
-          sx={{
+          styleProps={{
             typography: 'h5',
             letterSpacing: 'normal',
             width: 'auto',
@@ -213,7 +213,7 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
           options={areaTypeOptions}
           value={areaType}
           onChange={handleAreaTypeChange}
-          sx={{ width: '100%', maxWidth: '300px' }}
+          styleProps={{ width: '100%', maxWidth: '300px' }}
           selectSx={{
             borderRadius: '0.3125rem',
             height: '2.5rem',
@@ -225,7 +225,7 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
         ></DropDownSelectWithHeader>
       </Box>
       <CarbonChangeLegend
-        sx={{
+        styleProps={{
           backgroundColor: 'rgba(217, 217, 217, 0.90)',
           borderRadius: '0.3125rem',
           pl: { xs: '0.75rem', md: '3rem' },
@@ -247,7 +247,7 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
       />
       <CarbonMapGraphTable datas={localDatas} activeYear={activeYear} />
       <Box
-        sx={{
+        styleProps={{
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-end',
@@ -263,14 +263,14 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
 
 const StyledToggleButton = ({
   children,
-  sx,
+  styleProps,
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }) => (
   <Box
     component="button"
-    sx={[
+    styleProps={[
       {
         borderRadius: '0.3125rem',
         border: '1px solid',
@@ -298,7 +298,7 @@ const StyledToggleButton = ({
           outlineOffset: '2px',
         },
       },
-      ...(Array.isArray(sx) ? sx : [sx]),
+      ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
     ]}
     {...props}
   >

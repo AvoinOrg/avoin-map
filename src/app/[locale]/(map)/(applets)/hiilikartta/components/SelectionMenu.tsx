@@ -10,10 +10,10 @@ interface Props {
   value: string | undefined
   onChange: (event: FormSelectionEvent<string>) => void
   label?: string
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
-const SelectionMenu = ({ id, options, value, onChange, sx, label }: Props) => {
+const SelectionMenu = ({ id, options, value, onChange, styleProps, label }: Props) => {
   return (
     <DropDownSelectWithHeader
       name={id}
@@ -22,7 +22,7 @@ const SelectionMenu = ({ id, options, value, onChange, sx, label }: Props) => {
       value={value}
       options={options.map((option) => ({ label: option, value: option }))}
       onChange={onChange}
-      sx={sx}
+      styleProps={styleProps}
     />
   )
 }

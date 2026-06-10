@@ -277,11 +277,11 @@ export const NumberInputField = ({
   return (
     <div
       className={cx(containerClass, css(...pandaStylePropsToArray(containerSx)))}
-      style={mergePandaStyleProps({ sx: containerSx })}
+      style={mergePandaStyleProps({ styleProps: containerSx })}
     >
       <div
         className={cx(inputRowClass, css(...pandaStylePropsToArray(inputRowSx)))}
-        style={mergePandaStyleProps({ sx: inputRowSx })}
+        style={mergePandaStyleProps({ styleProps: inputRowSx })}
       >
         <BaseNumberField.Root
           {...rootProps}
@@ -298,7 +298,7 @@ export const NumberInputField = ({
           onValueChange={handleValueChange}
           onValueCommitted={onValueCommitted}
           className={cx(rootClass, css(...pandaStylePropsToArray(formControlSx)))}
-          style={mergePandaStyleProps({ sx: formControlSx })}
+          style={mergePandaStyleProps({ styleProps: formControlSx })}
         >
           {label && (
             <label
@@ -312,7 +312,7 @@ export const NumberInputField = ({
             data-size={size}
             data-error={error ? '' : undefined}
             className={cx(groupClass, css(...pandaStylePropsToArray(inputSx)))}
-            style={mergePandaStyleProps({ sx: inputSx })}
+            style={mergePandaStyleProps({ styleProps: inputSx })}
           >
             <BaseNumberField.Input
               {...inputSlotProps}
@@ -325,14 +325,14 @@ export const NumberInputField = ({
                 stepperClass,
                 css(...pandaStylePropsToArray(adornmentSx))
               )}
-              style={mergePandaStyleProps({ sx: adornmentSx })}
+              style={mergePandaStyleProps({ styleProps: adornmentSx })}
             >
               <BaseNumberField.Increment
                 aria-label={t('components.number_input.increase')}
                 className={stepperButtonClass}
               >
                 <ArrowUp
-                  sx={{
+                  styleProps={{
                     width: size === 'small' ? '0.75rem' : '0.875rem',
                     height: size === 'small' ? '0.75rem' : '0.875rem',
                   }}
@@ -344,7 +344,7 @@ export const NumberInputField = ({
                 className={stepperButtonClass}
               >
                 <ArrowDown
-                  sx={{
+                  styleProps={{
                     width: size === 'small' ? '0.75rem' : '0.875rem',
                     height: size === 'small' ? '0.75rem' : '0.875rem',
                   }}
@@ -360,7 +360,7 @@ export const NumberInputField = ({
                 helperClass,
                 css(...pandaStylePropsToArray(helperTextSx))
               )}
-              style={mergePandaStyleProps({ sx: helperTextSx })}
+              style={mergePandaStyleProps({ styleProps: helperTextSx })}
             >
               {helperText}
             </div>

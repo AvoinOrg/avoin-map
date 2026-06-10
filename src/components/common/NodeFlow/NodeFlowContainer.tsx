@@ -21,7 +21,7 @@ type NodeFlowContainerSpacing =
 export type NodeFlowContainerProps = {
   children: React.ReactNode
   spacing?: NodeFlowContainerSpacing
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 const isFlowNodeElement = (
@@ -41,7 +41,7 @@ const isFlowNodeElement = (
 const NodeFlowContainer = ({
   children,
   spacing = '1.5rem',
-  sx,
+  styleProps,
 }: NodeFlowContainerProps) => {
   const childArray = React.Children.toArray(children)
 
@@ -54,9 +54,9 @@ const NodeFlowContainer = ({
           gap: spacing,
           width: '100%',
         }),
-        css(...pandaStylePropsToArray(sx))
+        css(...pandaStylePropsToArray(styleProps))
       )}
-      style={mergePandaStyleProps({ sx })}
+      style={mergePandaStyleProps({ styleProps })}
     >
       {childArray.map((child, index) => {
         if (!isFlowNodeElement(child)) {

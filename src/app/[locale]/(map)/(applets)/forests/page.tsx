@@ -1,21 +1,27 @@
 'use client'
 
 import React, { useState, useEffect, useLayoutEffect, useMemo } from 'react'
-import { Box, IconButton, Tooltip, Typography } from '@mui/material'
-import BarChartIcon from '@mui/icons-material/BarChart'
+import { Button as BaseButton } from '@base-ui/react/button'
 import Image from 'next/image'
 import { MapGeoJSONFeature } from 'maplibre-gl'
+import { css, cx } from 'styled-system/css'
 
 import { getCombinedBounds } from '#/common/utils/map'
 import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
+import type { PandaStyleProp } from '#/common/style/panda'
+import {
+  mergePandaStyleProps,
+  pandaStylePropsToArray,
+} from '#/common/style/pandaStyleProps'
+import { Box } from '#/components/common/PandaBox'
 import Link from '#/components/common/Link'
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
+import SimpleTooltip from '#/components/common/SimpleTooltip'
 // import { setOverlayMessage } from '../../OverlayMessages/OverlayMessages'
 // import * as SelectedFeatureState from './ArvometsaSelectedLayer'
 import { useMapStore } from '#/common/store'
 // import { setSearchPlaceholder } from '../../NavBar/NavBarSearch'
 import { useLocaleFormatter } from '#/common/hooks/useLocaleFormatter'
-import { FINLAND_BOUNDS } from '#/common/constants/map'
 import useSelectedFeaturesFilteredByLayer from '#/common/hooks/map/useSelectedFeaturesFilteredByLayer'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import type { SidebarPanelExtensionRuntimeOptions } from '#/common/types/sidebar'
@@ -77,6 +83,127 @@ const graphChartBoxSx = {
   overflow: 'visible',
 } as const
 
+type TypographyProps = Omit<
+  React.HTMLAttributes<HTMLElement>,
+  'color'
+> & {
+  component?: React.ElementType
+  variant?: string
+  typography?: string
+  styleProps?: PandaStyleProp
+}
+
+const Typography = ({
+  component = 'p',
+  variant,
+  typography,
+  styleProps,
+  children,
+  ...props
+}: TypographyProps) => (
+  <Box
+    component={component}
+    styleProps={[
+      { m: 0, textStyle: typography ?? variant ?? 'body2' },
+      ...pandaStylePropsToArray(styleProps),
+    ]}
+    {...props}
+  >
+    {children}
+  </Box>
+)
+
+type TooltipProps = {
+  title?: React.ReactNode
+  arrow?: boolean
+  children: React.ReactElement
+}
+
+const Tooltip = ({ title, children }: TooltipProps) => (
+  <SimpleTooltip title={title}>{children}</SimpleTooltip>
+)
+
+type IconButtonProps = Omit<
+  React.ComponentProps<typeof BaseButton>,
+  'className' | 'style' | 'color'
+> & {
+  styleProps?: PandaStyleProp
+  size?: 'small' | 'medium'
+}
+
+const iconButtonBaseStyle = {
+  m: 0,
+  p: 0,
+  border: 0,
+  width: '2rem',
+  minWidth: '2rem',
+  height: '2rem',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: '50%',
+  color: 'inherit',
+  backgroundColor: 'transparent',
+  cursor: 'pointer',
+  '&:hover': {
+    backgroundColor: 'action.hover',
+  },
+  '&:focus-visible': {
+    outline: '2px solid var(--colors-secondary-main)',
+    outlineOffset: '2px',
+  },
+} as const
+
+const IconButton = ({
+  styleProps,
+  children,
+  type = 'button',
+  size,
+  ...props
+}: IconButtonProps) => (
+  <BaseButton
+    {...props}
+    type={type}
+    className={cx(
+      css(
+        iconButtonBaseStyle,
+        size === 'small' && {
+          width: '1.75rem',
+          minWidth: '1.75rem',
+          height: '1.75rem',
+        },
+        ...pandaStylePropsToArray(styleProps)
+      )
+    )}
+    style={mergePandaStyleProps({ styleProps })}
+  >
+    {children}
+  </BaseButton>
+)
+
+const BarChartIcon = () => (
+  <svg
+    aria-hidden="true"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+  >
+    <path
+      d="M5 20V10M12 20V4M19 20v-7"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <path
+      d="M4 20h16"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+  </svg>
+)
+
 // for (const sourceName of Object.keys(layerOptions)) {
 //   const layerName = `${sourceName}-fill`
 //   // eslint-disable-next-line no-loop-func
@@ -124,7 +251,6 @@ const graphChartBoxSx = {
 
 const FinlandForests = () => {
   const enableLayerGroup = useMapStore((state) => state.enableLayerGroup)
-  const fitBounds = useMapStore((state) => state.fitBounds)
   const removeSelectedFeatures = useMapStore(
     (state) => state.removeSelectedFeatures
   )
@@ -342,7 +468,7 @@ const FinlandForests = () => {
             Property with forest{' '}
             <Box
               component="span"
-              sx={{
+              styleProps={{
                 fontWeight: 600,
                 display: 'inline-block',
                 whiteSpace: 'nowrap',
@@ -364,7 +490,7 @@ const FinlandForests = () => {
             Forest parcel{' '}
             <Box
               component="span"
-              sx={{
+              styleProps={{
                 fontWeight: 600,
                 display: 'inline-block',
                 whiteSpace: 'nowrap',
@@ -432,7 +558,7 @@ const FinlandForests = () => {
           name: (
             <Box
               component="span"
-              sx={{
+              styleProps={{
                 display: 'inline-flex',
                 alignItems: 'flex-start',
                 columnGap: 0.5,
@@ -442,7 +568,7 @@ const FinlandForests = () => {
               <Typography
                 component="span"
                 variant="body2"
-                sx={{ fontWeight: 'inherit', lineHeight: 1.4 }}
+                styleProps={{ fontWeight: 'inherit', lineHeight: 1.4 }}
               >
                 Average carbon balance
                 <Tooltip
@@ -451,7 +577,7 @@ const FinlandForests = () => {
                     <Box>
                       <Box
                         component="ul"
-                        sx={{ m: 0, pl: 2, '& li': { mb: 0.5 } }}
+                        styleProps={{ m: 0, pl: 2, '& li': { mb: 0.5 } }}
                       >
                         <li>Assuming even-age forestry</li>
                         <li>
@@ -464,7 +590,7 @@ const FinlandForests = () => {
                   }
                 >
                   <Info
-                    sx={{
+                    styleProps={{
                       color: 'action.active',
                       width: 16,
                       height: 16,
@@ -489,7 +615,7 @@ const FinlandForests = () => {
   const graphPanelContent =
     options != null ? (
       <Box
-        sx={{
+        styleProps={{
           display: 'flex',
           flexDirection: 'column',
           p: SIDEBAR_PADDING_REM + 'rem',
@@ -497,7 +623,7 @@ const FinlandForests = () => {
         }}
       >
         <Box
-          sx={{
+          styleProps={{
             display: 'flex',
             alignItems: 'flex-start',
             gap: 1,
@@ -505,7 +631,7 @@ const FinlandForests = () => {
           }}
         >
           <SwitchWithLabel
-            sx={{ flex: 1, minWidth: 0 }}
+            styleProps={{ flex: 1, minWidth: 0 }}
             checked={cumulativeFlag}
             onChange={onChangeCheckbox(setCumulativeFlag)}
           >
@@ -515,15 +641,15 @@ const FinlandForests = () => {
             aria-label="close graphs panel"
             onClick={() => setIsGraphPanelOpen(false)}
             size="small"
-            sx={graphActionButtonSx}
+            styleProps={graphActionButtonSx}
           >
-            <Cross sx={{ width: '1rem', height: '1rem' }} />
+            <Cross styleProps={{ width: '1rem', height: '1rem' }} />
           </IconButton>
         </Box>
         {hasFeature && (
           <>
             <Box
-              sx={{
+              styleProps={{
                 mt: 1,
                 backgroundColor: 'neutral.light',
                 borderRadius: 1,
@@ -531,7 +657,7 @@ const FinlandForests = () => {
             >
               <Typography
                 variant="body2"
-                sx={{
+                styleProps={{
                   fontWeight: 600,
                   display: 'flex',
                   alignItems: 'baseline',
@@ -550,7 +676,7 @@ const FinlandForests = () => {
                   {getUnitPerArea('cbt', cumulativeFlag, perHectareFlag)})
                 </Box>
               </Typography>
-              <Box sx={graphChartBoxSx}>
+              <Box styleProps={graphChartBoxSx}>
                 <FinlandForestsChart
                   options={options.cbt.chartOptions.options}
                   data={options.cbt.chartOptions.data}
@@ -558,7 +684,7 @@ const FinlandForests = () => {
               </Box>
             </Box>
             <Box
-              sx={{
+              styleProps={{
                 mt: 5,
                 backgroundColor: 'neutral.light',
                 borderRadius: 1,
@@ -566,7 +692,7 @@ const FinlandForests = () => {
             >
               <Typography
                 variant="body2"
-                sx={{
+                styleProps={{
                   fontWeight: 600,
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -585,7 +711,7 @@ const FinlandForests = () => {
                   }
                 >
                   <Info
-                    sx={{
+                    styleProps={{
                       color: 'action.active',
                       width: 16,
                       height: 16,
@@ -595,7 +721,7 @@ const FinlandForests = () => {
                   />
                 </Tooltip>
               </Typography>
-              <Box sx={graphChartBoxSx}>
+              <Box styleProps={graphChartBoxSx}>
                 <FinlandForestsChart
                   options={options.bio.chartOptions.options}
                   data={options.bio.chartOptions.data}
@@ -603,7 +729,7 @@ const FinlandForests = () => {
               </Box>
             </Box>
             <Box
-              sx={{
+              styleProps={{
                 mt: 5,
                 backgroundColor: 'neutral.light',
                 borderRadius: 1,
@@ -611,7 +737,7 @@ const FinlandForests = () => {
             >
               <Typography
                 variant="body2"
-                sx={{
+                styleProps={{
                   fontWeight: 600,
                   display: 'flex',
                   alignItems: 'baseline',
@@ -630,7 +756,7 @@ const FinlandForests = () => {
                   )
                 </Box>
               </Typography>
-              <Box sx={graphChartBoxSx}>
+              <Box styleProps={graphChartBoxSx}>
                 <FinlandForestsChart
                   options={options.wood.chartOptions.options}
                   data={options.wood.chartOptions.data}
@@ -650,7 +776,7 @@ const FinlandForests = () => {
         <IconButton
           aria-label={isGraphPanelOpen ? 'hide graphs' : 'show graphs'}
           onClick={() => setIsGraphPanelOpen((open) => !open)}
-          sx={[
+          styleProps={[
             graphActionButtonSx,
             isGraphPanelOpen && {
               color: '#ffffff',
@@ -688,7 +814,7 @@ const FinlandForests = () => {
       <IntoSidebarPanelSlot panelId="main">
         <SidebarContentBox
           scrollFadeColor="#ffffff"
-          sxInner={{
+          innerStyleProps={{
             pt: 0,
             gap: { mobile: '1.5rem', desktop: '1.5rem' },
             px: { mobile: '1rem', desktop: '1.875rem' },
@@ -722,7 +848,7 @@ const FinlandForests = () => {
 
           {options != null && (
             <Box
-              sx={{
+              styleProps={{
                 display: 'flex',
                 flexDirection: 'column',
                 flex: 1,
@@ -735,7 +861,7 @@ const FinlandForests = () => {
                   <Box>
                     <Box>
                       <Box
-                        sx={{
+                        styleProps={{
                           backgroundColor: 'neutral.lighter',
                           py: 0.5,
                           borderRadius: 1,
@@ -743,7 +869,7 @@ const FinlandForests = () => {
                       >
                         <Box
                           component="table"
-                          sx={{
+                          styleProps={{
                             width: '100%',
                             borderCollapse: 'collapse',
                           }}
@@ -753,7 +879,7 @@ const FinlandForests = () => {
                               <Box component="tr" key={row.id}>
                                 <Box
                                   component="td"
-                                  sx={{
+                                  styleProps={{
                                     py: 1,
                                     pl: 2,
                                     pr: 1.5,
@@ -764,7 +890,7 @@ const FinlandForests = () => {
                                 </Box>
                                 <Box
                                   component="td"
-                                  sx={{
+                                  styleProps={{
                                     py: 1,
                                     px: 0,
                                     textAlign: 'right',
@@ -777,7 +903,7 @@ const FinlandForests = () => {
                                 </Box>
                                 <Box
                                   component="td"
-                                  sx={{
+                                  styleProps={{
                                     py: 1,
                                     pr: 2,
                                     textAlign: 'right',
@@ -791,7 +917,7 @@ const FinlandForests = () => {
                                       handleDeselectFeature(row.feature)
                                     }
                                   >
-                                    <Cross sx={{ width: 14, height: 14 }} />
+                                    <Cross styleProps={{ width: 14, height: 14 }} />
                                   </IconButton>
                                 </Box>
                               </Box>
@@ -800,7 +926,7 @@ const FinlandForests = () => {
                         </Box>
                         <Box
                           component="table"
-                          sx={{
+                          styleProps={{
                             width: '100%',
                             borderCollapse: 'collapse',
                             mt: 3,
@@ -808,16 +934,16 @@ const FinlandForests = () => {
                         >
                           <Box
                             component="tbody"
-                            sx={{
-                              'td:first-of-type': { pl: 2, pr: 1.5 },
-                              'td:last-of-type': { pr: 2 },
+                            styleProps={{
+                              '& td:first-of-type': { pl: 2, pr: 1.5 },
+                              '& td:last-of-type': { pr: 2 },
                             }}
                           >
                             {summaryRows.map((row) => (
                               <Box component="tr" key={row.key}>
                                 <Box
                                   component="td"
-                                  sx={{
+                                  styleProps={{
                                     py: 1,
                                     px: 0,
                                     fontWeight: 500,
@@ -828,7 +954,7 @@ const FinlandForests = () => {
                                 </Box>
                                 <Box
                                   component="td"
-                                  sx={{
+                                  styleProps={{
                                     py: 1,
                                     px: 0,
                                     textAlign: 'right',
@@ -844,11 +970,11 @@ const FinlandForests = () => {
                         </Box>
                       </Box>
                     </Box>
-                    <Box sx={{ mt: 2 }}>
+                    <Box styleProps={{ mt: 2 }}>
                       <Typography
                         variant="body2"
                         component="span"
-                        sx={{
+                        styleProps={{
                           fontStyle: 'italic',
                           display: 'inline',
                         }}
@@ -867,7 +993,7 @@ const FinlandForests = () => {
                           title="10.7 tonnes of CO₂ equivalents per capita. EU-27, 2022."
                         >
                           <Info
-                            sx={{
+                            styleProps={{
                               color: 'action.active',
                               width: 16,
                               height: 16,
@@ -881,7 +1007,7 @@ const FinlandForests = () => {
                   </Box>
                 ) : (
                   <Box
-                    sx={{
+                    styleProps={{
                       mt: 3,
                       mb: 6,
                       display: 'flex',
@@ -890,20 +1016,20 @@ const FinlandForests = () => {
                     }}
                   >
                     <Star
-                      sx={{
+                      styleProps={{
                         width: 32,
                         height: 32,
                         flexShrink: 0,
                       }}
                     />
-                    <Typography variant="body2" sx={{ ml: 1.5 }}>
+                    <Typography variant="body2" styleProps={{ ml: 1.5 }}>
                       Select a forest area to explore its carbon report. You can
                       zoom in and out to view different levels.
                     </Typography>
                   </Box>
                 )}
                 <SwitchWithLabel
-                  sx={{ mt: 7 }}
+                  styleProps={{ mt: 7 }}
                   checked={perHectareFlag}
                   onChange={(event) => {
                     onChangeCheckbox(setPerHectareFlag)(event)
@@ -913,7 +1039,7 @@ const FinlandForests = () => {
                   Show values per hectare
                 </SwitchWithLabel>
                 <SwitchWithLabel
-                  sx={{ mt: 2 }}
+                  styleProps={{ mt: 2 }}
                   checked={carbonBalanceDifferenceFlag}
                   onChange={onChangeCheckbox(setCarbonBalanceDifferenceFlag)}
                   disabled={forestryMethod === TRADITIONAL_FORESTRY_METHOD}
@@ -922,7 +1048,7 @@ const FinlandForests = () => {
                   prevalent forestry practice
                 </SwitchWithLabel>
                 <Box
-                  sx={{
+                  styleProps={{
                     mt: 7,
                     p: 2,
                     borderRadius: 1,
@@ -954,12 +1080,12 @@ const FinlandForests = () => {
                       onChange={(event) => {
                         setForestryMethod(Number(event.target.value))
                       }}
-                      sx={{ width: '100%' }}
+                      styleProps={{ width: '100%' }}
                     />
                   </Box>
-                  <Box sx={{ mt: 2 }}>
+                  <Box styleProps={{ mt: 2 }}>
                     <Box
-                      sx={{
+                      styleProps={{
                         display: 'flex',
                         flexDirection: { mobile: 'column', desktop: 'row' },
                         alignItems: 'center',
@@ -971,7 +1097,7 @@ const FinlandForests = () => {
                     >
                       <Typography
                         typography="body2"
-                        sx={{ fontSize: '0.675rem' }}
+                        styleProps={{ fontSize: '0.675rem' }}
                       >
                         Scientific forest model by
                       </Typography>
@@ -979,7 +1105,7 @@ const FinlandForests = () => {
                         href="https://arvometsa.fi"
                         target="_blank"
                         rel="noopener noreferrer"
-                        sx={{ display: 'inline-flex', alignItems: 'center' }}
+                        styleProps={{ display: 'inline-flex', alignItems: 'center' }}
                       >
                         <Image
                           alt="Arvometsä"

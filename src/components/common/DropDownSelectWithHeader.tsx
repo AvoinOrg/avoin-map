@@ -51,22 +51,22 @@ const DropDownSelectWithHeader = ({
   labelAction,
   headerSx,
   labelSx,
-  sx,
+  styleProps,
   ...rest
 }: DropDownSelectWithHeaderProps) => {
   return (
     <div
-      className={cx(wrapperClass, css(...pandaStylePropsToArray(sx)))}
-      style={mergePandaStyleProps({ sx })}
+      className={cx(wrapperClass, css(...pandaStylePropsToArray(styleProps)))}
+      style={mergePandaStyleProps({ styleProps })}
     >
       {label && (
         <div
           className={cx(headerClass, css(...pandaStylePropsToArray(headerSx)))}
-          style={mergePandaStyleProps({ sx: headerSx })}
+          style={mergePandaStyleProps({ styleProps: headerSx })}
         >
           <span
             className={cx(labelClass, css(...pandaStylePropsToArray(labelSx)))}
-            style={mergePandaStyleProps({ sx: labelSx })}
+            style={mergePandaStyleProps({ styleProps: labelSx })}
           >
             {label}
           </span>
@@ -74,7 +74,7 @@ const DropDownSelectWithHeader = ({
         </div>
       )}
       <DropDownSelect
-        sx={{ width: '100%' }}
+        styleProps={{ width: '100%' }}
         {...rest}
         ariaLabel={ariaLabel ?? (typeof label === 'string' ? label : undefined)}
         label={undefined}

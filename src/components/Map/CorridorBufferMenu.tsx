@@ -55,9 +55,9 @@ export const CorridorBufferMenu = () => {
   const corridorBufferLabel = t('map.menus.corridor.corridor_buffer')
 
   return (
-    <Box sx={{ pt: 2 }}>
+    <Box styleProps={{ pt: 2 }}>
       <Box
-        sx={{
+        styleProps={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -66,7 +66,7 @@ export const CorridorBufferMenu = () => {
       >
         <Box
           component="span"
-          sx={{
+          styleProps={{
             flex: 1,
             minWidth: 0,
             fontSize: '0.625rem',

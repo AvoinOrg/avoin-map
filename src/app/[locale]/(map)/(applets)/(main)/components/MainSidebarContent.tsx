@@ -104,19 +104,19 @@ type ScrollState = {
 
 const Text = ({
   children,
-  sx,
+  styleProps,
 }: {
   children: React.ReactNode
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }) => (
   <Box
     component="span"
-    sx={[
+    styleProps={[
       {
         display: 'block',
         m: 0,
       },
-      ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
+      ...(Array.isArray(styleProps) ? styleProps : styleProps ? [styleProps] : []),
     ]}
   >
     {children}
@@ -330,7 +330,7 @@ const MainSidebarContent = () => {
   return (
     <Box
       data-main-sidebar-root="true"
-      sx={{
+      styleProps={{
         flex: 1,
         minHeight: 0,
         display: 'flex',
@@ -340,7 +340,7 @@ const MainSidebarContent = () => {
       }}
     >
       <Box
-        sx={{
+        styleProps={{
           position: 'relative',
           flex: 1,
           height: '100%',
@@ -348,7 +348,7 @@ const MainSidebarContent = () => {
         }}
       >
         <Box
-          sx={{
+          styleProps={{
             position: 'absolute',
             top: `-${isMobile ? MOBILE_SPILL_REM : DESKTOP_TOP_SPILL_REM}rem`,
             left: `-${isMobile ? MOBILE_SPILL_REM : DESKTOP_LEFT_SPILL_REM}rem`,
@@ -360,7 +360,7 @@ const MainSidebarContent = () => {
         <Box
           ref={visibleFrameRef}
           data-main-sidebar-visible-frame="true"
-          sx={{
+          styleProps={{
             position: 'absolute',
             inset: 0,
             minHeight: 0,
@@ -368,7 +368,7 @@ const MainSidebarContent = () => {
           }}
         >
           <Box
-            sx={{
+            styleProps={{
               position: 'absolute',
               top: `-${isMobile ? MOBILE_SPILL_REM : DESKTOP_TOP_SPILL_REM}rem`,
               left: `-${
@@ -411,7 +411,7 @@ const MainSidebarContent = () => {
               }}
             >
               <Box
-                sx={{
+                styleProps={{
                   direction: 'ltr',
                   minHeight: '100%',
                   pointerEvents: isMobile ? 'auto' : 'none',
@@ -431,14 +431,14 @@ const MainSidebarContent = () => {
               >
                 <Box
                   data-main-sidebar-interactive-surface="true"
-                  sx={{
+                  styleProps={{
                     display: 'flex',
                     flexDirection: 'column',
                     pointerEvents: isMobile ? 'auto' : 'none',
                   }}
                 >
               <Box
-                sx={{
+                styleProps={{
                   display: isMobile ? 'none' : 'flex',
                   alignItems: 'flex-start',
                   gap: `${BUBBLE_GAP_REM}rem`,
@@ -447,7 +447,7 @@ const MainSidebarContent = () => {
               >
                 <Box
                   ref={leftColumnRef}
-                  sx={{
+                  styleProps={{
                     flex: 1,
                     minWidth: 0,
                     display: 'flex',
@@ -457,7 +457,7 @@ const MainSidebarContent = () => {
                   }}
                 >
                   <Box
-                    sx={{
+                    styleProps={{
                       position: 'relative',
                       display: 'flex',
                       flexDirection: 'column',
@@ -473,7 +473,7 @@ const MainSidebarContent = () => {
                     }}
                   >
                     <Box
-                      sx={{
+                      styleProps={{
                         position: 'relative',
                         width: '6rem',
                         height: '0.85rem',
@@ -488,7 +488,7 @@ const MainSidebarContent = () => {
                       />
                     </Box>
                     <Text
-                      sx={{
+                      styleProps={{
                         mt: 10,
                         fontWeight: 700,
                         fontSize: '1rem',
@@ -505,7 +505,7 @@ const MainSidebarContent = () => {
                   </Box>
 
                   <Box
-                    sx={{
+                    styleProps={{
                       position: 'relative',
                       display: 'flex',
                       flexDirection: 'column',
@@ -521,7 +521,7 @@ const MainSidebarContent = () => {
                     }}
                   >
                     <Text
-                      sx={{
+                      styleProps={{
                         maxWidth: '14.25rem',
                         fontSize: '0.75rem',
                         lineHeight: '1rem',
@@ -533,7 +533,7 @@ const MainSidebarContent = () => {
                       {t('sidebar.main.contact.lead')}
                     </Text>
                     <Text
-                      sx={{
+                      styleProps={{
                         mt: 3.25,
                         maxWidth: '9.625rem',
                         fontSize: '0.6875rem',
@@ -546,7 +546,7 @@ const MainSidebarContent = () => {
                       {t('sidebar.main.contact.follow_up')}
                     </Text>
                     <Text
-                      sx={{
+                      styleProps={{
                         mt: 3,
                         maxWidth: '9.125rem',
                         fontSize: '0.6875rem',
@@ -559,7 +559,7 @@ const MainSidebarContent = () => {
                       {t('sidebar.main.contact.tools')}
                     </Text>
                     <Text
-                      sx={{
+                      styleProps={{
                         mt: 'auto',
                         fontSize: '0.6875rem',
                         lineHeight: '1rem',
@@ -572,7 +572,7 @@ const MainSidebarContent = () => {
                       {t('sidebar.main.contact.cta')}
                     </Text>
                     <Box
-                      sx={{
+                      styleProps={{
                         position: 'absolute',
                         right: 2.25,
                         bottom: 1.625,
@@ -607,14 +607,14 @@ const MainSidebarContent = () => {
                         key={id}
                         route={route}
                         routeTree={mainRouteTree}
-                        sx={{
+                        styleProps={{
                           display: 'flex',
                           width: '100%',
                           pointerEvents: 'auto',
                         }}
                       >
                         <Box
-                          sx={{
+                          styleProps={{
                             position: 'relative',
                             display: 'flex',
                             flexDirection: 'column',
@@ -635,7 +635,7 @@ const MainSidebarContent = () => {
                           }}
                         >
                           <Box
-                            sx={{
+                            styleProps={{
                               position: 'absolute',
                               left: 0,
                               right: 0,
@@ -656,7 +656,7 @@ const MainSidebarContent = () => {
                             />
                           </Box>
                           <Box
-                            sx={{
+                            styleProps={{
                               position: 'relative',
                               zIndex: 1,
                               display: 'flex',
@@ -668,7 +668,7 @@ const MainSidebarContent = () => {
                             }}
                           >
                             <Text
-                              sx={{
+                              styleProps={{
                                 fontSize: '0.75rem',
                                 lineHeight: '1.125rem',
                                 letterSpacing: '0.075rem',
@@ -680,7 +680,7 @@ const MainSidebarContent = () => {
                               {t(titleKey)}
                             </Text>
                             <Text
-                              sx={{
+                              styleProps={{
                                 mt: 4,
                                 fontSize: '0.75rem',
                                 lineHeight: '1rem',
@@ -703,7 +703,7 @@ const MainSidebarContent = () => {
 
                 <Box
                   ref={rightColumnRef}
-                  sx={{
+                  styleProps={{
                     flex: 1,
                     minWidth: 0,
                     display: 'flex',
@@ -728,14 +728,14 @@ const MainSidebarContent = () => {
                         key={id}
                         route={route}
                         routeTree={mainRouteTree}
-                        sx={{
+                        styleProps={{
                           display: 'flex',
                           width: '100%',
                           pointerEvents: 'auto',
                         }}
                       >
                         <Box
-                          sx={{
+                          styleProps={{
                             position: 'relative',
                             display: 'flex',
                             flexDirection: 'column',
@@ -756,7 +756,7 @@ const MainSidebarContent = () => {
                           }}
                         >
                           <Box
-                            sx={{
+                            styleProps={{
                               position: 'relative',
                               height: '6.25rem',
                               overflow: 'hidden',
@@ -774,7 +774,7 @@ const MainSidebarContent = () => {
                               }}
                             />
                             <Box
-                              sx={{
+                              styleProps={{
                                 position: 'absolute',
                                 inset: 0,
                                 background:
@@ -782,7 +782,7 @@ const MainSidebarContent = () => {
                               }}
                             />
                             <Text
-                              sx={{
+                              styleProps={{
                                 position: 'absolute',
                                 left: '2rem',
                                 top: 0,
@@ -805,14 +805,14 @@ const MainSidebarContent = () => {
                             </Text>
                           </Box>
                           <Box
-                            sx={{
+                            styleProps={{
                               px: 4,
                               pt: 4.5,
                               pb: 2.5,
                             }}
                           >
                             <Text
-                              sx={{
+                              styleProps={{
                                 fontSize: '0.75rem',
                                 lineHeight: '1rem',
                                 letterSpacing: '0.075rem',
@@ -833,14 +833,14 @@ const MainSidebarContent = () => {
               </Box>
 
               <Box
-                sx={{
+                styleProps={{
                   display: isMobile ? 'flex' : 'none',
                   flexDirection: 'column',
                   gap: `${BUBBLE_GAP_REM}rem`,
                 }}
               >
                 <Box
-                  sx={{
+                  styleProps={{
                     position: 'relative',
                     display: 'flex',
                     flexDirection: 'column',
@@ -855,7 +855,7 @@ const MainSidebarContent = () => {
                   }}
                 >
                   <Box
-                    sx={{
+                    styleProps={{
                       position: 'relative',
                       width: '6rem',
                       height: '0.85rem',
@@ -870,7 +870,7 @@ const MainSidebarContent = () => {
                     />
                   </Box>
                   <Text
-                    sx={{
+                    styleProps={{
                       mt: 10,
                       fontWeight: 700,
                       fontSize: '1rem',
@@ -902,13 +902,13 @@ const MainSidebarContent = () => {
                       key={id}
                       route={route}
                       routeTree={mainRouteTree}
-                      sx={{
+                      styleProps={{
                         display: 'flex',
                         width: '100%',
                       }}
                     >
                       <Box
-                        sx={{
+                        styleProps={{
                           position: 'relative',
                           display: 'flex',
                           flexDirection: 'column',
@@ -929,7 +929,7 @@ const MainSidebarContent = () => {
                         }}
                       >
                         <Box
-                          sx={{
+                          styleProps={{
                             position: 'relative',
                             height: '6.25rem',
                             overflow: 'hidden',
@@ -947,7 +947,7 @@ const MainSidebarContent = () => {
                             }}
                           />
                           <Box
-                            sx={{
+                            styleProps={{
                               position: 'absolute',
                               inset: 0,
                               background:
@@ -955,7 +955,7 @@ const MainSidebarContent = () => {
                             }}
                           />
                           <Text
-                            sx={{
+                            styleProps={{
                               position: 'absolute',
                               left: '2rem',
                               top: 0,
@@ -978,14 +978,14 @@ const MainSidebarContent = () => {
                           </Text>
                         </Box>
                         <Box
-                          sx={{
+                          styleProps={{
                             px: 4,
                             pt: 4.5,
                             pb: 2.5,
                           }}
                         >
                           <Text
-                            sx={{
+                            styleProps={{
                               fontSize: '0.75rem',
                               lineHeight: '1rem',
                               letterSpacing: '0.075rem',
@@ -1004,7 +1004,7 @@ const MainSidebarContent = () => {
                 )}
 
                 <Box
-                  sx={{
+                  styleProps={{
                     position: 'relative',
                     display: 'flex',
                     flexDirection: 'column',
@@ -1019,7 +1019,7 @@ const MainSidebarContent = () => {
                   }}
                 >
                   <Text
-                    sx={{
+                    styleProps={{
                       maxWidth: '14.25rem',
                       fontSize: '0.75rem',
                       lineHeight: '1rem',
@@ -1031,7 +1031,7 @@ const MainSidebarContent = () => {
                     {t('sidebar.main.contact.lead')}
                   </Text>
                   <Text
-                    sx={{
+                    styleProps={{
                       mt: 3.25,
                       maxWidth: '9.625rem',
                       fontSize: '0.6875rem',
@@ -1044,7 +1044,7 @@ const MainSidebarContent = () => {
                     {t('sidebar.main.contact.follow_up')}
                   </Text>
                   <Text
-                    sx={{
+                    styleProps={{
                       mt: 3,
                       maxWidth: '9.125rem',
                       fontSize: '0.6875rem',
@@ -1057,7 +1057,7 @@ const MainSidebarContent = () => {
                     {t('sidebar.main.contact.tools')}
                   </Text>
                   <Text
-                    sx={{
+                    styleProps={{
                       mt: 'auto',
                       fontSize: '0.6875rem',
                       lineHeight: '1rem',
@@ -1070,7 +1070,7 @@ const MainSidebarContent = () => {
                     {t('sidebar.main.contact.cta')}
                   </Text>
                   <Box
-                    sx={{
+                    styleProps={{
                       position: 'absolute',
                       right: 2.25,
                       bottom: 1.625,
@@ -1105,13 +1105,13 @@ const MainSidebarContent = () => {
                       key={id}
                       route={route}
                       routeTree={mainRouteTree}
-                      sx={{
+                      styleProps={{
                         display: 'flex',
                         width: '100%',
                       }}
                     >
                       <Box
-                        sx={{
+                        styleProps={{
                           position: 'relative',
                           display: 'flex',
                           flexDirection: 'column',
@@ -1132,7 +1132,7 @@ const MainSidebarContent = () => {
                         }}
                       >
                         <Box
-                          sx={{
+                          styleProps={{
                             position: 'relative',
                             height: '6.25rem',
                             overflow: 'hidden',
@@ -1150,7 +1150,7 @@ const MainSidebarContent = () => {
                             }}
                           />
                           <Box
-                            sx={{
+                            styleProps={{
                               position: 'absolute',
                               inset: 0,
                               background:
@@ -1158,7 +1158,7 @@ const MainSidebarContent = () => {
                             }}
                           />
                           <Text
-                            sx={{
+                            styleProps={{
                               position: 'absolute',
                               left: '2rem',
                               top: 0,
@@ -1181,14 +1181,14 @@ const MainSidebarContent = () => {
                           </Text>
                         </Box>
                         <Box
-                          sx={{
+                          styleProps={{
                             px: 4,
                             pt: 4.5,
                             pb: 2.5,
                           }}
                         >
                           <Text
-                            sx={{
+                            styleProps={{
                               fontSize: '0.75rem',
                               lineHeight: '1rem',
                               letterSpacing: '0.075rem',
@@ -1222,13 +1222,13 @@ const MainSidebarContent = () => {
                       key={id}
                       route={route}
                       routeTree={mainRouteTree}
-                      sx={{
+                      styleProps={{
                         display: 'flex',
                         width: '100%',
                       }}
                     >
                       <Box
-                        sx={{
+                        styleProps={{
                           position: 'relative',
                           display: 'flex',
                           flexDirection: 'column',
@@ -1249,7 +1249,7 @@ const MainSidebarContent = () => {
                         }}
                       >
                         <Box
-                          sx={{
+                          styleProps={{
                             position: 'absolute',
                             left: 0,
                             right: 0,
@@ -1270,7 +1270,7 @@ const MainSidebarContent = () => {
                           />
                         </Box>
                         <Box
-                          sx={{
+                          styleProps={{
                             position: 'relative',
                             zIndex: 1,
                             display: 'flex',
@@ -1282,7 +1282,7 @@ const MainSidebarContent = () => {
                           }}
                         >
                           <Text
-                            sx={{
+                            styleProps={{
                               fontSize: '0.75rem',
                               lineHeight: '1.125rem',
                               letterSpacing: '0.075rem',
@@ -1294,7 +1294,7 @@ const MainSidebarContent = () => {
                             {t(titleKey)}
                           </Text>
                           <Text
-                            sx={{
+                            styleProps={{
                               mt: 4,
                               fontSize: '0.75rem',
                               lineHeight: '1rem',
@@ -1321,7 +1321,7 @@ const MainSidebarContent = () => {
 
           <Box
             data-main-sidebar-top-control-area="true"
-            sx={{
+            styleProps={{
               position: 'absolute',
               top: 'auto',
               left: 0,
@@ -1332,7 +1332,7 @@ const MainSidebarContent = () => {
             }}
           >
             <Box
-              sx={{
+              styleProps={{
                 width: 'max-content',
                 pointerEvents: 'auto',
               }}
@@ -1342,7 +1342,7 @@ const MainSidebarContent = () => {
           </Box>
 
           <Box
-            sx={{
+            styleProps={{
               position: 'absolute',
               left: `${controlsSlotLeftPx}px`,
               bottom: isMobile ? `${BUBBLE_GAP_REM}rem` : 0,
@@ -1353,7 +1353,7 @@ const MainSidebarContent = () => {
           >
             <Box
               data-main-sidebar-controls-slot-wrapper={controlsPlacement}
-              sx={{
+              styleProps={{
                 position: 'relative',
                 width: 'max-content',
                 pointerEvents: 'none',
@@ -1370,7 +1370,7 @@ const MainSidebarContent = () => {
             type="button"
             onClick={handleScrollUp}
             aria-label={t('sidebar.main.scroll_up_hint.aria_label')}
-            sx={{
+            styleProps={{
               position: 'absolute',
               top: isMobile ? `${BUBBLE_GAP_REM}rem` : 0,
               left: '50%',
@@ -1398,7 +1398,7 @@ const MainSidebarContent = () => {
               },
             }}
           >
-            <ArrowUp sx={{ width: '1rem', height: '0.55rem' }} />
+            <ArrowUp styleProps={{ width: '1rem', height: '0.55rem' }} />
           </Box>
         )}
 
@@ -1408,7 +1408,7 @@ const MainSidebarContent = () => {
             type="button"
             onClick={handleScrollDown}
             aria-label={t('sidebar.main.scroll_hint.aria_label')}
-            sx={{
+            styleProps={{
               position: 'absolute',
               bottom: isMobile ? `${BUBBLE_GAP_REM}rem` : 0,
               left: '50%',
@@ -1436,7 +1436,7 @@ const MainSidebarContent = () => {
               },
             }}
           >
-            <ArrowDown sx={{ width: '1rem', height: '0.55rem' }} />
+            <ArrowDown styleProps={{ width: '1rem', height: '0.55rem' }} />
           </Box>
         )}
       </Box>

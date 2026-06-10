@@ -41,14 +41,14 @@ const withAlpha = (color: string, opacity: number) => {
 }
 
 const SidebarContentBox = ({
-  sxOuter,
-  sxInner,
+  outerStyleProps,
+  innerStyleProps,
   scrollFadeColor = '#f4f4f4',
   scrollbarSide = 'right',
   children,
 }: {
-  sxOuter?: PandaStyleProp
-  sxInner?: PandaStyleProp
+  outerStyleProps?: PandaStyleProp
+  innerStyleProps?: PandaStyleProp
   scrollFadeColor?: string
   scrollbarSide?: 'left' | 'right'
   children?: React.ReactNode
@@ -100,7 +100,7 @@ const SidebarContentBox = ({
   return (
     <Box
       className="sidebar-children-container"
-      sx={[
+      styleProps={[
         {
           flexDirection: 'column',
           height: '100%',
@@ -110,11 +110,11 @@ const SidebarContentBox = ({
           minHeight: 0,
           maxWidth: '100%',
         },
-        ...(Array.isArray(sxOuter) ? sxOuter : [sxOuter]),
+        ...(Array.isArray(outerStyleProps) ? outerStyleProps : [outerStyleProps]),
       ]}
     >
       <Box
-        sx={{
+        styleProps={{
           position: 'relative',
           flex: 1,
           minHeight: 0,
@@ -152,7 +152,7 @@ const SidebarContentBox = ({
         >
           <Box
             className="sidebar-children-container-inner"
-            sx={[
+            styleProps={[
               {
                 direction: 'ltr',
                 display: 'flex',
@@ -164,7 +164,7 @@ const SidebarContentBox = ({
                   ? MOBILE_SIDEBAR_PADDING_REM + 'rem'
                   : SIDEBAR_PADDING_REM + 'rem',
               },
-              ...(Array.isArray(sxInner) ? sxInner : [sxInner]),
+              ...(Array.isArray(innerStyleProps) ? innerStyleProps : [innerStyleProps]),
             ]}
           >
             {simpleSidebarContext.mobileStackedContentBefore}
@@ -174,7 +174,7 @@ const SidebarContentBox = ({
         </OverlayScrollbarsComponent>
         <Box
           aria-hidden="true"
-          sx={{
+          styleProps={{
             position: 'absolute',
             top: 0,
             left: 0,

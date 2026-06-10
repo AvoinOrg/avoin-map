@@ -30,7 +30,7 @@ interface ColorPickerWithPopoverProps {
   onChange: (newColor: string) => void
   labelText?: string
   ariaLabel?: string
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   colorBoxSx?: PandaStyleProp
   labelSx?: PandaStyleProp
   popoverSx?: PandaStyleProp
@@ -91,7 +91,7 @@ const ColorPickerWithPopover = ({
   onChange,
   labelText,
   ariaLabel,
-  sx,
+  styleProps,
   colorBoxSx,
   labelSx,
   popoverSx,
@@ -127,21 +127,21 @@ const ColorPickerWithPopover = ({
         type="button"
         aria-label={ariaLabel ?? labelText ?? 'Open color picker'}
         aria-describedby={id}
-        className={cx(triggerClass, css(...pandaStylePropsToArray(sx)))}
-        style={mergePandaStyleProps({ sx })}
+        className={cx(triggerClass, css(...pandaStylePropsToArray(styleProps)))}
+        style={mergePandaStyleProps({ styleProps })}
       >
         <span
           className={cx(swatchClass, css(...pandaStylePropsToArray(colorBoxSx)))}
           style={{
             backgroundColor: color,
-            ...mergePandaStyleProps({ sx: colorBoxSx }),
+            ...mergePandaStyleProps({ styleProps: colorBoxSx }),
           }}
           {...colorBoxProps}
         />
         {labelText && (
           <span
             className={cx(labelClass, css(...pandaStylePropsToArray(labelSx)))}
-            style={mergePandaStyleProps({ sx: labelSx })}
+            style={mergePandaStyleProps({ styleProps: labelSx })}
           >
             {labelText}
           </span>
@@ -157,11 +157,11 @@ const ColorPickerWithPopover = ({
           <BasePopover.Popup
             id={id}
             className={cx(popupClass, css(...pandaStylePropsToArray(popoverSx)))}
-            style={mergePandaStyleProps({ sx: popoverSx })}
+            style={mergePandaStyleProps({ styleProps: popoverSx })}
           >
             <div
               className={css(...pandaStylePropsToArray(pickerContainerSx))}
-              style={mergePandaStyleProps({ sx: pickerContainerSx })}
+              style={mergePandaStyleProps({ styleProps: pickerContainerSx })}
             >
               <HexColorPickerComponent
                 style={{ width: '200px' }}

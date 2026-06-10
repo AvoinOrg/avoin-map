@@ -20,6 +20,35 @@ import {
 import { ForestryMethod, LayerLevel } from './types'
 import { ColorStop } from '#/common/types/map'
 
+type LegacyChartTooltipItem = {
+  datasetIndex?: number
+  yLabel?: number | string
+}
+
+type LegacyChartDataset = {
+  label?: string
+  data?: unknown
+}
+
+type LegacyChartData = {
+  datasets?: LegacyChartDataset[]
+}
+
+type LegacyChart = {
+  data?: LegacyChartData
+  options: {
+    tooltips?: {
+      callbacks?: {
+        label?: (
+          tooltipItem: LegacyChartTooltipItem,
+          data: LegacyChartData
+        ) => string
+      }
+    }
+  }
+  update: () => void
+}
+
 export const stepsToLinear = (min: number, max: number, steps: string[]) => {
   const step = (max - min) / (steps.length - 1)
   const res: any[] = []
@@ -384,8 +413,8 @@ export const getChartProps = (
   }
 
   const labelCallback = function (
-    tooltipItem: Chart.ChartTooltipItem,
-    data: Chart.ChartData
+    tooltipItem: LegacyChartTooltipItem,
+    data: LegacyChartData
   ) {
     if (
       data &&
@@ -407,7 +436,7 @@ export const getChartProps = (
     return ''
   }
 
-  const chartUpdateFunction = (chart: Chart) => {
+  const chartUpdateFunction = (chart: LegacyChart) => {
     if (
       datasets &&
       datasets.length > 0 &&
@@ -416,7 +445,7 @@ export const getChartProps = (
       chart.options.tooltips &&
       chart.options.tooltips.callbacks
     ) {
-      chart.data.datasets.forEach((ds: Chart.ChartDataSets, i: number) => {
+      chart.data.datasets.forEach((ds: LegacyChartDataset, i: number) => {
         ds.data = datasets[i].data
       })
       chart.options.tooltips.callbacks.label = labelCallback

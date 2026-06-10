@@ -275,7 +275,7 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
   return (
     <MapModalWrapper minWidthBeforeFullScreen={minWidthBeforeFullScreen}>
       <Box
-        sx={{
+        styleProps={{
           backgroundColor: '#3E3E3E',
           color: '#A9E7CB',
           minWidth: minWidthBeforeFullScreen + 'px',
@@ -289,7 +289,7 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
         }}
       >
         <Box
-          sx={{
+          styleProps={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
@@ -309,7 +309,7 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
             type="button"
             aria-label="close"
             onClick={handleClose}
-            sx={{
+            styleProps={{
               // Position to top-right if preferred, or remove for default flow if title is on left
               // position: 'absolute',
               // right: (theme) => theme.spacing(1),
@@ -338,7 +338,7 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
         </Box>
         {feature && (
           <Box
-            sx={{
+            styleProps={{
               // Let this section handle scrolling
               overflowY: 'auto',
               // Critical: allow flex child to shrink below content size to avoid squeezing footer
@@ -364,7 +364,7 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
               placeholderText={t('sidebar.admin.area.name.placeholder')}
               value={currentFormState.name}
               onChange={handleNameChange}
-              sx={{ textTransform: 'uppercase' }}
+              styleProps={{ textTransform: 'uppercase' }}
             ></TextFieldWithHeader>
 
             <TextFieldWithHeader
@@ -372,14 +372,14 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
               placeholderText={t('sidebar.admin.area.region.placeholder')}
               value={currentFormState.region}
               onChange={handleRegionChange}
-              sx={{}}
+              styleProps={{}}
             ></TextFieldWithHeader>
             <TextFieldWithHeader
               headerText={t('sidebar.admin.area.municipality.header')}
               placeholderText={t('sidebar.admin.area.municipality.placeholder')}
               value={currentFormState.municipality}
               onChange={handleMunicipalityChange}
-              sx={{}}
+              styleProps={{}}
             ></TextFieldWithHeader>
             <TextFieldWithHeader
               headerText={t('sidebar.admin.area.description.header')}
@@ -395,15 +395,15 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
               // }}
             ></TextFieldWithHeader>
             {pictures.length > 0 && (
-              <Box sx={{ mt: 2 }}>
-                <Box component="p" sx={{ m: 0 }}>
+              <Box styleProps={{ mt: 2 }}>
+                <Box component="p" styleProps={{ m: 0 }}>
                   <TText
                     ns="luonnonmetsakartat"
                     keyName={'sidebar.admin.area.pictures.header'}
                   ></TText>
                 </Box>
                 <Box
-                  sx={{
+                  styleProps={{
                     mt: 1,
                     '& img': {
                       display: 'block',
@@ -429,7 +429,7 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
           </Box>
         )}
         <Box
-          sx={{
+          styleProps={{
             display: 'flex',
             flexDirection: 'row',
             height: '5.5rem',
@@ -447,7 +447,7 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
               keyName="sidebar.admin.folayer.settings.save"
               ariaLabel={t('sidebar.admin.folayer.settings.save')}
               onClick={handleSaveClick}
-              sx={{
+              styleProps={{
                 flex: '0',
                 justifyContent: 'center',
               }}
@@ -456,7 +456,7 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
         </Box>
         {localAdminFolayerAreaPatchMutation.isPending && (
           <Box
-            sx={{
+            styleProps={{
               position: 'absolute',
               top: 0,
               left: 0,

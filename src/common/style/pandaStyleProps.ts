@@ -241,23 +241,23 @@ const applyStyleEntry = (
 }
 
 export const pandaStylePropsToArray = (
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 ): PandaStyleObject[] => {
-  if (sx == null) {
+  if (styleProps == null) {
     return []
   }
 
-  const styles = Array.isArray(sx) ? sx : [sx]
+  const styles = Array.isArray(styleProps) ? styleProps : [styleProps]
 
   return styles.filter(isPlainObject) as PandaStyleObject[]
 }
 
 export const pandaStylePropsToCssStyle = (
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 ): React.CSSProperties | undefined => {
   const style: React.CSSProperties = {}
 
-  pandaStylePropsToArray(sx).forEach((styleObject) => {
+  pandaStylePropsToArray(styleProps).forEach((styleObject) => {
     Object.entries(styleObject as StyleRecord).forEach(([key, value]) => {
       applyStyleEntry(style, key, value)
     })
@@ -267,24 +267,24 @@ export const pandaStylePropsToCssStyle = (
 }
 
 export const mergePandaStyleProps = ({
-  sx,
+  styleProps,
   style,
 }: {
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   style?: React.CSSProperties
 }): React.CSSProperties | undefined => {
-  const sxStyle = pandaStylePropsToCssStyle(sx)
+  const stylePropsStyle = pandaStylePropsToCssStyle(styleProps)
 
-  if (sxStyle == null) {
+  if (stylePropsStyle == null) {
     return style
   }
 
   if (style == null) {
-    return sxStyle
+    return stylePropsStyle
   }
 
   return {
-    ...sxStyle,
+    ...stylePropsStyle,
     ...style,
   }
 }

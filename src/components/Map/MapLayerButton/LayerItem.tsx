@@ -97,7 +97,7 @@ const LayerItem = ({
       aria-label={`Toggle layer ${name}`}
       aria-pressed={isSelected}
       onClick={() => onSelect(layerGroup.id)}
-      sx={{
+      styleProps={{
         p: 0,
         m: 0,
         width: '100%',
@@ -113,7 +113,7 @@ const LayerItem = ({
       <Box
         data-layer-selected={isSelected ? 'true' : 'false'}
         className={styles.imageFrame}
-        sx={{
+        styleProps={{
           position: 'relative',
           borderRadius: infoCardRadius,
           overflow: 'hidden',
@@ -140,9 +140,9 @@ const LayerItem = ({
   )
 
   return (
-    <Box sx={{ width: '100%', textAlign: 'left' }}>
+    <Box styleProps={{ width: '100%', textAlign: 'left' }}>
       <Box
-        sx={{
+        styleProps={{
           display: 'flex',
           alignItems: 'center',
           gap: 0.5,
@@ -152,7 +152,7 @@ const LayerItem = ({
       >
         <Box
           component="span"
-          sx={{
+          styleProps={{
             textStyle: 'h4',
             whiteSpace: 'normal',
             overflowWrap: 'break-word',
@@ -195,7 +195,7 @@ const LayerItem = ({
             })}
           >
             <ArrowDown
-              sx={{
+              styleProps={{
                 transform: isInfoOpen ? 'rotate(180deg)' : 'rotate(0deg)',
                 transition: 'transform 0.2s ease',
                 width: 9,
@@ -210,7 +210,7 @@ const LayerItem = ({
           <BaseCollapsible.Panel keepMounted={false}>
             <Box
               id={infoId}
-              sx={{
+              styleProps={{
                 mt: imageSpacing,
                 mb: `-${infoOverlap}`,
                 width: '100%',
@@ -223,7 +223,7 @@ const LayerItem = ({
               }}
             >
               <Box
-                sx={{
+                styleProps={{
                   px: 1,
                   pt: 1,
                   pb: `calc(${infoOverlap} + 0.5rem)`,
@@ -237,7 +237,7 @@ const LayerItem = ({
       )}
       {renderImage()}
       {showOpacitySlider && (
-        <Box sx={{ mt: 1.25, px: '1rem', position: 'relative', zIndex: 3 }}>
+        <Box styleProps={{ mt: 1.25, px: '1rem', position: 'relative', zIndex: 3 }}>
           <BaseSlider.Root
             min={0}
             max={1}

@@ -1,5 +1,4 @@
 import React from 'react'
-import { AppRouterCacheProvider } from '@mui/material-nextjs/v16-appRouter'
 import type { Metadata } from 'next'
 
 import { arimo } from '#/common/style/theme/fonts'
@@ -15,8 +14,6 @@ export const metadata: Metadata = {
 
 // import { UserModal } from '#/components/Profile'
 // import { UiStateProvider, UserStateProvider } from '#/components/State'
-// import RootStyleRegistry from './emotion'
-
 const RootLayout = ({
   // Layouts must accept a children prop.
   // This will be populated with nested layouts or pages
@@ -26,9 +23,7 @@ const RootLayout = ({
 }) => {
   return (
     <html lang="en" className={arimo.variable} suppressHydrationWarning>
-      <body>
-        <AppRouterCacheProvider>{children}</AppRouterCacheProvider>
-      </body>
+      <body>{children}</body>
     </html>
   )
 }

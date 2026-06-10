@@ -24,7 +24,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
             routeTree={routeTree}
           ></BreadcrumbNav>
         }
-        sx={{
+        styleProps={{
           pt: 0,
           display: 'flex',
           flexDirection: 'column',

@@ -11,4 +11,4 @@ export type PandaStyleProp =
   | undefined
 
 // Import `css` and `cx` directly from `styled-system/css` in migrated files.
-// Use `css(baseStyle, overrideStyle)` as the Panda equivalent of MUI sx arrays.
+// Use `css(baseStyle, overrideStyle)` for Panda style object composition.

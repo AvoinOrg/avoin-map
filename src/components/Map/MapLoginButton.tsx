@@ -75,7 +75,7 @@ export const MapLoginButton = ({ isVertical }: Props) => {
         isVertical={isVertical}
         aria-label={tooltipLabel}
       >
-        <LoadingHorizontal sx={{ color: 'text.secondary' }} />
+        <LoadingHorizontal styleProps={{ color: 'text.secondary' }} />
       </MapButton>
     )
   }
@@ -94,24 +94,24 @@ export const MapLoginButton = ({ isVertical }: Props) => {
   }
 
   const menuContent = ({ closeMenu }: { closeMenu: () => void }) => (
-    <Box sx={{ minWidth: '12rem' }}>
+    <Box styleProps={{ minWidth: '12rem' }}>
       <Box
-        sx={{
+        styleProps={{
           px: 3,
           py: 2,
           boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.10)',
           backgroundColor: 'inherit',
         }}
       >
-        <Box component="h2" sx={{ m: 0, textStyle: 'h3', textAlign: 'left' }}>
+        <Box component="h2" styleProps={{ m: 0, textStyle: 'h3', textAlign: 'left' }}>
           {userData?.name || t('map.buttons.account')}
         </Box>
       </Box>
-      <Box component="hr" sx={{ m: 0, border: 0, borderTop: '1px solid var(--colors-neutral-main)' }} />
+      <Box component="hr" styleProps={{ m: 0, border: 0, borderTop: '1px solid var(--colors-neutral-main)' }} />
       <Box
         role="menu"
         aria-label={t('map.buttons.account')}
-        sx={{ display: 'flex', flexDirection: 'column', py: 1 }}
+        styleProps={{ display: 'flex', flexDirection: 'column', py: 1 }}
       >
         <BaseButton
           type="button"

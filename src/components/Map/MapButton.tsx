@@ -17,7 +17,7 @@ export interface MapButtonProps
   extends Omit<BaseButtonProps, 'className' | 'style' | 'color'> {
   tooltip?: string
   isVertical?: boolean
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   className?: string
   style?: React.CSSProperties
   size?: 'small' | 'medium' | 'large'
@@ -29,7 +29,7 @@ export const MapButton = forwardRef<HTMLButtonElement, MapButtonProps>(
       children,
       tooltip,
       isVertical,
-      sx,
+      styleProps,
       className,
       style,
       'aria-label': ariaLabel,
@@ -80,11 +80,11 @@ export const MapButton = forwardRef<HTMLButtonElement, MapButtonProps>(
                 flexShrink: 0,
               },
             },
-            ...pandaStylePropsToArray(sx)
+            ...pandaStylePropsToArray(styleProps)
           ),
           className
         )}
-        style={mergePandaStyleProps({ sx, style })}
+        style={mergePandaStyleProps({ styleProps, style })}
         ref={ref}
       >
         {children}

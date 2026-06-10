@@ -17,7 +17,7 @@ export type SidebarPanelExtensionTabContainerProps = {
   tabButtonSx?: PandaStyleProp
   tabIconSx?: PandaStyleProp
   keepMounted?: boolean
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   children?: React.ReactNode
 }
 
@@ -32,7 +32,7 @@ export const SidebarPanelExtensionTabContainer = ({
   tabButtonSx,
   tabIconSx,
   keepMounted = false,
-  sx,
+  styleProps,
   children,
 }: SidebarPanelExtensionTabContainerProps) => {
   const context = useNullableSidebarPanelExtensionTabsContext()
@@ -79,7 +79,7 @@ export const SidebarPanelExtensionTabContainer = ({
   if (context == null) {
     return (
       <Box
-        sx={[
+        styleProps={[
           {
             display: 'flex',
             flexDirection: 'column',
@@ -87,7 +87,7 @@ export const SidebarPanelExtensionTabContainer = ({
             minHeight: 0,
             width: '100%',
           },
-          ...(Array.isArray(sx) ? sx : [sx]),
+          ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
         ]}
       >
         {children}
@@ -113,7 +113,7 @@ export const SidebarPanelExtensionTabContainer = ({
       aria-labelledby={tabButtonId}
       hidden={!isActive}
       data-sidebar-panel-extension-tab-id={tabId}
-      sx={[
+      styleProps={[
         {
           display: isActive ? 'flex' : 'none',
           flexDirection: 'column',
@@ -122,7 +122,7 @@ export const SidebarPanelExtensionTabContainer = ({
           minWidth: 0,
           width: '100%',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
       ]}
     >
       {children}

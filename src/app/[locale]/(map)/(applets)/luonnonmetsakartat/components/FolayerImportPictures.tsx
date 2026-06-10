@@ -141,7 +141,7 @@ const AreaPicker = ({
   }
 
   return (
-    <Box sx={{ position: 'relative', minWidth: 0 }}>
+    <Box styleProps={{ position: 'relative', minWidth: 0 }}>
       <Box
         component="input"
         role="combobox"
@@ -158,7 +158,7 @@ const AreaPicker = ({
           setIsOpen(true)
         }}
         onKeyDown={handleKeyDown}
-        sx={{
+        styleProps={{
           width: '100%',
           minWidth: 0,
           height: '2rem',
@@ -186,7 +186,7 @@ const AreaPicker = ({
         <Box
           id={listboxId}
           role="listbox"
-          sx={{
+          styleProps={{
             position: 'absolute',
             zIndex: 'popup',
             top: 'calc(100% + 0.25rem)',
@@ -213,7 +213,7 @@ const AreaPicker = ({
                 aria-selected={value?.id === option.id}
                 onClick={() => handleSelect(option)}
                 onMouseEnter={() => setActiveIndex(index)}
-                sx={{
+                styleProps={{
                   width: '100%',
                   border: 0,
                   backgroundColor:
@@ -236,7 +236,7 @@ const AreaPicker = ({
               </Box>
             ))
           ) : (
-            <Box sx={{ px: 1.5, py: 1, typography: 'body7' }}>
+            <Box styleProps={{ px: 1.5, py: 1, typography: 'body7' }}>
               {noOptionsText}
             </Box>
           )}
@@ -481,7 +481,7 @@ const FolayerImportPictures = forwardRef<
       <Box
         key={folder}
         style={style as React.CSSProperties}
-        sx={{
+        styleProps={{
           display: 'grid',
           gridTemplateColumns: '1fr auto 1.5fr',
           alignItems: 'center',
@@ -494,7 +494,7 @@ const FolayerImportPictures = forwardRef<
         <SimpleTooltip title={folder} side="top" align="start">
           <Box
             component="span"
-            sx={{
+            styleProps={{
               typography: 'body7',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -506,7 +506,7 @@ const FolayerImportPictures = forwardRef<
         </SimpleTooltip>
         <Box
           component="span"
-          sx={{
+          styleProps={{
             textAlign: 'right',
             typography: 'caption',
             color: 'text.secondary',
@@ -539,7 +539,7 @@ const FolayerImportPictures = forwardRef<
       <BigMenuButton
         variant="outlined"
         component="label"
-        sx={{ width: '100%', minHeight: '60px' }}
+        styleProps={{ width: '100%', minHeight: '60px' }}
       >
         {selectedFolderLabel ||
           t('sidebar.admin.folayer.settings.picture.select_folder')}
@@ -552,12 +552,12 @@ const FolayerImportPictures = forwardRef<
           onChange={handleFolderInput}
           ref={inputRef}
         />
-        <Upload sx={{ width: '24px' }} />
+        <Upload styleProps={{ width: '24px' }} />
       </BigMenuButton>
 
       {groups.size > 0 && (
-        <Box sx={{ mt: 3 }}>
-          <Box component="p" sx={{ typography: 'body2', m: 0 }}>
+        <Box styleProps={{ mt: 3 }}>
+          <Box component="p" styleProps={{ typography: 'body2', m: 0 }}>
             <TText
               ns="luonnonmetsakartat"
               keyName={'sidebar.admin.folayer.settings.picture.areas'}
@@ -573,10 +573,10 @@ const FolayerImportPictures = forwardRef<
       )}
 
       {unmatchedFolders.length > 0 && (
-        <Box sx={{ mt: 4 }}>
+        <Box styleProps={{ mt: 4 }}>
           <Box
             component="p"
-            sx={{ m: 0, typography: 'body2', color: 'error.main', mb: 1 }}
+            styleProps={{ m: 0, typography: 'body2', color: 'error.main', mb: 1 }}
           >
             <TText
               ns="luonnonmetsakartat"
@@ -595,9 +595,9 @@ const FolayerImportPictures = forwardRef<
       )}
 
       {groups.size > 0 && features.length ? (
-        <Box sx={{ mt: 2 }}>
+        <Box styleProps={{ mt: 2 }}>
           <Box
-            sx={{
+            styleProps={{
               display: 'grid',
               gridTemplateColumns: '1fr auto 1.5fr',
               alignItems: 'center',
@@ -609,13 +609,13 @@ const FolayerImportPictures = forwardRef<
           >
             <Box
               component="span"
-              sx={{ typography: 'caption', color: 'text.secondary' }}
+              styleProps={{ typography: 'caption', color: 'text.secondary' }}
             >
               {t('sidebar.admin.folayer.settings.picture.folders')}
             </Box>
             <Box
               component="span"
-              sx={{
+              styleProps={{
                 textAlign: 'left',
                 typography: 'caption',
                 color: 'text.secondary',
@@ -625,13 +625,13 @@ const FolayerImportPictures = forwardRef<
             </Box>
             <Box
               component="span"
-              sx={{ typography: 'caption', color: 'text.secondary' }}
+              styleProps={{ typography: 'caption', color: 'text.secondary' }}
             >
               {t('sidebar.admin.folayer.settings.picture.areas')}
             </Box>
           </Box>
 
-          <Box sx={{ width: '100%' }}>
+          <Box styleProps={{ width: '100%' }}>
             <TypedFixedSizeList
               height={listHeight}
               itemCount={rowOrder.length}

@@ -16,7 +16,7 @@ type Props = {
   onFailText?: string
   ariaLabel?: string
   disabled?: boolean
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 const ClipboardCopyWrapper = ({
@@ -26,7 +26,7 @@ const ClipboardCopyWrapper = ({
   onFailText,
   ariaLabel,
   disabled,
-  sx,
+  styleProps,
 }: Props) => {
   const { t } = useTranslate('avoin-map')
   const notify = useUIStore((state) => state.notify)
@@ -61,9 +61,9 @@ const ClipboardCopyWrapper = ({
           opacity: disabled ? 0.6 : 1,
           cursor: disabled ? 'not-allowed' : 'pointer',
         }),
-        css(...pandaStylePropsToArray(sx))
+        css(...pandaStylePropsToArray(styleProps))
       )}
-      style={mergePandaStyleProps({ sx })}
+      style={mergePandaStyleProps({ styleProps })}
     >
       {children}
     </button>

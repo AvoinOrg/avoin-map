@@ -10,7 +10,7 @@
  * - Stacked and grouped bar chart modes
  * - Interactive tooltips with hover effects
  * - Chart.js-compatible API through the exported Bar component
- * - Themeable using MUI theme
+ * - Styled with the shared Panda theme tokens
  *
  * Usage:
  * ```tsx
@@ -26,7 +26,6 @@
 'use client'
 
 import React, { useMemo, useRef, useEffect, useState, useCallback } from 'react'
-import { Box, useTheme } from '@mui/material'
 import { AxisBottom, AxisLeft } from '@visx/axis'
 import { GridRows } from '@visx/grid'
 import { Group } from '@visx/group'
@@ -37,6 +36,8 @@ import { localPoint } from '@visx/event'
 import { LegendOrdinal } from '@visx/legend'
 import { scaleOrdinal } from '@visx/scale'
 import { pp } from '#/common/utils/general'
+import { APP_FONT_FAMILY } from '#/common/style/theme/tokens'
+import { Box } from '#/components/common/PandaBox'
 
 export interface ChartDataset {
   label: string
@@ -47,6 +48,15 @@ export interface ChartDataset {
 export interface ChartData {
   labels: string[]
   datasets: ChartDataset[]
+}
+
+interface ChartJsTooltipItem {
+  datasetIndex?: number
+  yLabel?: number | string
+}
+
+interface ChartJsData {
+  datasets?: ChartDataset[]
 }
 
 export interface ChartOptions {
@@ -63,13 +73,13 @@ export interface ChartOptions {
         ticks: {
           maxTicksLimit: number
           beginAtZero: boolean
-          callback: (value: any, index: any, values: any) => string
+          callback: (value: number, index: number, values: number[]) => string
         }
       }
     }
     tooltips: {
       callbacks: {
-        label: (tooltipItem: any, data: any) => string
+        label: (tooltipItem: ChartJsTooltipItem, data: ChartJsData) => string
       }
     }
   }
@@ -98,6 +108,21 @@ const LEFT_MARGIN_SAFETY_BUFFER = 10
 const Y_TICK_FONT_SIZE = 11
 const Y_TICK_LABEL_DX = -4
 const Y_TICK_LABEL_PADDING = 2
+const CHART_TEXT_PRIMARY = 'rgba(0, 0, 0, 0.87)'
+const CHART_TEXT_SECONDARY = 'rgba(0, 0, 0, 0.6)'
+const CHART_DIVIDER = 'rgba(0, 0, 0, 0.12)'
+
+// VisX currently ships React 18-oriented component return types.
+type VisxCompatProps = Record<string, unknown>
+const AxisBottomCompat = AxisBottom as unknown as React.ComponentType<VisxCompatProps>
+const AxisLeftCompat = AxisLeft as unknown as React.ComponentType<VisxCompatProps>
+const GridRowsCompat = GridRows as unknown as React.ComponentType<VisxCompatProps>
+const GroupCompat = Group as unknown as React.ComponentType<VisxCompatProps>
+const LegendOrdinalCompat =
+  LegendOrdinal as unknown as React.ComponentType<VisxCompatProps>
+const TooltipWithBoundsCompat =
+  TooltipWithBounds as unknown as React.ComponentType<VisxCompatProps>
+const VisxBarCompat = VisxBar as unknown as React.ComponentType<VisxCompatProps>
 
 export const FinlandForestsChart: React.FC<FinlandForestsChartProps> = ({
   options,
@@ -105,7 +130,6 @@ export const FinlandForestsChart: React.FC<FinlandForestsChartProps> = ({
   width = 500,
   height = 300,
 }) => {
-  const theme = useTheme()
   const {
     tooltipData,
     tooltipLeft,
@@ -196,7 +220,7 @@ export const FinlandForestsChart: React.FC<FinlandForestsChartProps> = ({
     [yTickFormatter, yTicks]
   )
 
-  const tickLabelFontFamily = theme.typography?.fontFamily ?? 'sans-serif'
+  const tickLabelFontFamily = APP_FONT_FAMILY
 
   const leftMargin = useMemo(() => {
     if (!yTickLabels.length) {
@@ -271,33 +295,33 @@ export const FinlandForestsChart: React.FC<FinlandForestsChartProps> = ({
   }
 
   return (
-    <Box sx={{ position: 'relative', width: '100%', isolation: 'isolate' }}>
+    <Box styleProps={{ position: 'relative', width: '100%', isolation: 'isolate' }}>
       {/* Legend */}
       <Box
-        sx={{
+        styleProps={{
           display: 'flex',
           justifyContent: 'flex-start',
           flexWrap: 'wrap',
           gap: 2,
         }}
       >
-        <LegendOrdinal
+        <LegendOrdinalCompat
           scale={legendScale}
           direction="row"
           itemMargin="0 15px 0 0"
           labelMargin="0 0 0 8px"
           shapeMargin="0"
         >
-          {(labels) => (
+          {(labels: Array<{ text: string; value: string }>) => (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-              {labels.map((label, i) => (
+              {labels.map((label, i: number) => (
                 <div
                   key={`legend-${i}`}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     fontSize: '13px',
-                    color: theme.palette.text.primary,
+                    color: CHART_TEXT_PRIMARY,
                   }}
                 >
                   <div
@@ -314,7 +338,7 @@ export const FinlandForestsChart: React.FC<FinlandForestsChartProps> = ({
               ))}
             </div>
           )}
-        </LegendOrdinal>
+        </LegendOrdinalCompat>
       </Box>
 
       <svg
@@ -324,13 +348,13 @@ export const FinlandForestsChart: React.FC<FinlandForestsChartProps> = ({
           shapeRendering: 'crispEdges',
         }}
       >
-        <Group left={leftMargin} top={MARGIN_TOP}>
+        <GroupCompat left={leftMargin} top={MARGIN_TOP}>
           {/* Grid */}
-          <GridRows
+          <GridRowsCompat
             scale={yScale}
             width={xMax}
             strokeDasharray="2,2"
-            stroke={theme.palette.divider}
+            stroke={CHART_DIVIDER}
             strokeOpacity={0.3}
             pointerEvents="none"
           />
@@ -343,7 +367,7 @@ export const FinlandForestsChart: React.FC<FinlandForestsChartProps> = ({
             if (isStacked) {
               // Stacked bars
               return (
-                <Group key={`bar-group-${i}`}>
+                <GroupCompat key={`bar-group-${i}`}>
                   {datasets.map((dataset, j) => {
                     const value = dataPoint[dataset.label] as number
                     const baseValue =
@@ -354,7 +378,7 @@ export const FinlandForestsChart: React.FC<FinlandForestsChartProps> = ({
                     const barY = yScale(baseValue + (value > 0 ? value : 0))
 
                     return (
-                      <VisxBar
+                      <VisxBarCompat
                         key={`bar-${i}-${j}`}
                         x={barGroupX}
                         y={barY}
@@ -377,7 +401,7 @@ export const FinlandForestsChart: React.FC<FinlandForestsChartProps> = ({
                       />
                     )
                   })}
-                </Group>
+                </GroupCompat>
               )
             } else {
               // Grouped bars
@@ -385,7 +409,7 @@ export const FinlandForestsChart: React.FC<FinlandForestsChartProps> = ({
               const barGroupWidth = groupWidth / datasets.length
 
               return (
-                <Group key={`bar-group-${i}`}>
+                <GroupCompat key={`bar-group-${i}`}>
                   {datasets.map((dataset, j) => {
                     const value = dataPoint[dataset.label] as number
                     const barHeight = Math.abs(
@@ -395,7 +419,7 @@ export const FinlandForestsChart: React.FC<FinlandForestsChartProps> = ({
                     const barX = barGroupX + j * barGroupWidth
 
                     return (
-                      <VisxBar
+                      <VisxBarCompat
                         key={`bar-${i}-${j}`}
                         x={barX}
                         y={barY}
@@ -418,19 +442,19 @@ export const FinlandForestsChart: React.FC<FinlandForestsChartProps> = ({
                       />
                     )
                   })}
-                </Group>
+                </GroupCompat>
               )
             }
           })}
 
           {/* X Axis */}
-          <AxisBottom
+          <AxisBottomCompat
             top={yMax}
             scale={xScale}
-            stroke={theme.palette.text.secondary}
-            tickStroke={theme.palette.text.secondary}
+            stroke={CHART_TEXT_SECONDARY}
+            tickStroke={CHART_TEXT_SECONDARY}
             tickLabelProps={() => ({
-              fill: theme.palette.text.primary,
+              fill: CHART_TEXT_PRIMARY,
               fontSize: 11,
               textAnchor: 'middle',
               style: {
@@ -440,7 +464,7 @@ export const FinlandForestsChart: React.FC<FinlandForestsChartProps> = ({
             })}
             label={chartOptions.scales.x.scaleLabel.labelString}
             labelProps={{
-              fill: theme.palette.text.primary,
+              fill: CHART_TEXT_PRIMARY,
               fontSize: 12,
               textAnchor: 'middle',
               style: {
@@ -452,12 +476,12 @@ export const FinlandForestsChart: React.FC<FinlandForestsChartProps> = ({
           />
 
           {/* Y Axis */}
-          <AxisLeft
+          <AxisLeftCompat
             scale={yScale}
-            stroke={theme.palette.text.secondary}
-            tickStroke={theme.palette.text.secondary}
+            stroke={CHART_TEXT_SECONDARY}
+            tickStroke={CHART_TEXT_SECONDARY}
             tickLabelProps={() => ({
-              fill: theme.palette.text.primary,
+              fill: CHART_TEXT_PRIMARY,
               fontSize: Y_TICK_FONT_SIZE,
               textAnchor: 'end',
               dx: Y_TICK_LABEL_DX,
@@ -466,16 +490,16 @@ export const FinlandForestsChart: React.FC<FinlandForestsChartProps> = ({
               },
             })}
             tickValues={yTicks}
-            tickFormat={(value, index) =>
+            tickFormat={(value: number, index: number) =>
               yTickFormatter(value as number, index, yTicks)
             }
           />
-        </Group>
+        </GroupCompat>
       </svg>
 
       {/* Tooltip */}
       {tooltipOpen && tooltipData && (
-        <TooltipWithBounds
+        <TooltipWithBoundsCompat
           top={tooltipTop}
           left={tooltipLeft}
           style={{
@@ -502,7 +526,7 @@ export const FinlandForestsChart: React.FC<FinlandForestsChartProps> = ({
               {tooltipData.datasetLabel}: {pp(tooltipData.value, 2)} {unit}
             </span>
           </div>
-        </TooltipWithBounds>
+        </TooltipWithBoundsCompat>
       )}
     </Box>
   )
@@ -537,7 +561,7 @@ export const ResponsiveFinlandForestsChart: React.FC<
   }, [])
 
   return (
-    <Box ref={containerRef} sx={{ width: '100%', pl: 0 }}>
+    <Box ref={containerRef} styleProps={{ width: '100%', pl: 0 }}>
       <FinlandForestsChart {...props} {...dimensions} />
     </Box>
   )
@@ -550,19 +574,12 @@ export interface BarProps {
 }
 
 export const Bar: React.FC<BarProps> = ({ options: chartJsOptions, data }) => {
-  // Extract unit from tooltip callback if available
-  const unit = useMemo(() => {
-    // Try to extract unit from the label callback
-    // In the original implementation, unit is embedded in the callback
-    return ''
-  }, [chartJsOptions])
-
   const chartOptions: ChartOptions = {
     data,
     options: chartJsOptions,
   }
 
-  return <ResponsiveFinlandForestsChart options={chartOptions} unit={unit} />
+  return <ResponsiveFinlandForestsChart options={chartOptions} unit="" />
 }
 
 export default FinlandForestsChart

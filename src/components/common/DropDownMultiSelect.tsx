@@ -44,7 +44,7 @@ type Props = {
     option: DropDownMultiSelectOption,
     selected: boolean
   ) => ReactNode
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   selectSx?: PandaStyleProp
   menuPaperSx?: PandaStyleProp
   menuItemSx?: PandaStyleProp
@@ -146,7 +146,7 @@ const DropDownMultiSelect = ({
   placeholder,
   renderValue,
   renderOptionContent,
-  sx,
+  styleProps,
   selectSx,
   menuPaperSx,
   menuItemSx,
@@ -187,8 +187,8 @@ const DropDownMultiSelect = ({
 
   return (
     <div
-      className={cx(wrapperClass, css(...pandaStylePropsToArray(sx)))}
-      style={mergePandaStyleProps({ sx })}
+      className={cx(wrapperClass, css(...pandaStylePropsToArray(styleProps)))}
+      style={mergePandaStyleProps({ styleProps })}
     >
       <BaseSelect.Root
         multiple
@@ -200,12 +200,12 @@ const DropDownMultiSelect = ({
         <BaseSelect.Trigger
           aria-label={ariaLabel}
           className={cx(triggerClass, css(...pandaStylePropsToArray(selectSx)))}
-          style={mergePandaStyleProps({ sx: selectSx })}
+          style={mergePandaStyleProps({ styleProps: selectSx })}
         >
           <span className={valueClass}>{renderSelectedSummary()}</span>
           <BaseSelect.Icon
             className={cx(iconClass, css(...pandaStylePropsToArray(iconSx)))}
-            style={mergePandaStyleProps({ sx: iconSx })}
+            style={mergePandaStyleProps({ styleProps: iconSx })}
             aria-hidden="true"
           >
             <ArrowDown />
@@ -223,7 +223,7 @@ const DropDownMultiSelect = ({
                 popupClass,
                 css(...pandaStylePropsToArray(menuPaperSx))
               )}
-              style={mergePandaStyleProps({ sx: menuPaperSx })}
+              style={mergePandaStyleProps({ styleProps: menuPaperSx })}
             >
               <BaseSelect.List>
                 {options.map((option) => {
@@ -243,7 +243,7 @@ const DropDownMultiSelect = ({
                         sharedSelectItemClass,
                         css(...pandaStylePropsToArray(menuItemSx))
                       )}
-                      style={mergePandaStyleProps({ sx: menuItemSx })}
+                      style={mergePandaStyleProps({ styleProps: menuItemSx })}
                     >
                       {renderOptionContent ? (
                         renderOptionContent(option, isSelected)
@@ -251,15 +251,15 @@ const DropDownMultiSelect = ({
                         <span className={itemContentClass}>
                           <span
                             className={css(...pandaStylePropsToArray(checkboxSx))}
-                            style={mergePandaStyleProps({ sx: checkboxSx })}
+                            style={mergePandaStyleProps({ styleProps: checkboxSx })}
                             aria-hidden="true"
                           >
                             {isSelected ? (
                               <CheckboxCheckedIcon
-                                sx={{ width: '1rem', height: '1rem' }}
+                                styleProps={{ width: '1rem', height: '1rem' }}
                               />
                             ) : (
-                              <CheckboxIcon sx={{ width: '1rem', height: '1rem' }} />
+                              <CheckboxIcon styleProps={{ width: '1rem', height: '1rem' }} />
                             )}
                           </span>
                           {option.leading}

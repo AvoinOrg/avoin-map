@@ -21,7 +21,7 @@ type Props = {
   onExpandedChange?: (expanded: boolean) => void
   onTransitionEnd?: () => void
   showBottomSeparator?: boolean
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   headerSx?: PandaStyleProp
   contentSx?: PandaStyleProp
 }
@@ -122,7 +122,7 @@ const LayerMenuAccordion = ({
   onExpandedChange,
   onTransitionEnd,
   showBottomSeparator = true,
-  sx,
+  styleProps,
   headerSx,
   contentSx,
 }: Props) => {
@@ -148,8 +148,8 @@ const LayerMenuAccordion = ({
     <BaseCollapsible.Root
       open={isExpanded}
       onOpenChange={handleOpenChange}
-      className={cx(rootClass, css(...pandaStylePropsToArray(sx)))}
-      style={mergePandaStyleProps({ sx })}
+      className={cx(rootClass, css(...pandaStylePropsToArray(styleProps)))}
+      style={mergePandaStyleProps({ styleProps })}
     >
       <BaseCollapsible.Trigger
         id={buttonId}
@@ -160,13 +160,13 @@ const LayerMenuAccordion = ({
         className={cx(triggerClass, css(...pandaStylePropsToArray(headerSx)))}
         style={{
           backgroundImage,
-          ...mergePandaStyleProps({ sx: headerSx }),
+          ...mergePandaStyleProps({ styleProps: headerSx }),
         }}
       >
         <span className={titleClass}>{title}</span>
         <span aria-hidden="true" className={arrowContainerClass}>
           <ArrowDown
-            sx={{
+            styleProps={{
               width: 9,
               height: 5,
               color: '#075CFF',
@@ -195,7 +195,7 @@ const LayerMenuAccordion = ({
           style={{
             paddingLeft: layerMenuAccordionContentPadding,
             paddingRight: layerMenuAccordionContentPadding,
-            ...mergePandaStyleProps({ sx: contentSx }),
+            ...mergePandaStyleProps({ styleProps: contentSx }),
           }}
         >
           {children}

@@ -12,7 +12,7 @@ type Props = SVGProps<SVGSVGElement> & {
   color?: string
   borderColor?: string
   height?: number
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 const svgClass = css({
@@ -23,7 +23,7 @@ const SvgFolder = ({
   color,
   borderColor,
   height = 86,
-  sx,
+  styleProps,
   className,
   style,
   ...props
@@ -36,8 +36,8 @@ const SvgFolder = ({
       xmlns="http://www.w3.org/2000/svg"
       viewBox={`9 5 348 ${height + 10}`} // Dynamic viewBox based on height
       fill="none"
-      className={cx(svgClass, css(...pandaStylePropsToArray(sx)), className)}
-      style={mergePandaStyleProps({ sx, style })}
+      className={cx(svgClass, css(...pandaStylePropsToArray(styleProps)), className)}
+      style={mergePandaStyleProps({ styleProps, style })}
       {...props}
     >
       <g>

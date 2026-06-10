@@ -111,7 +111,7 @@ export const MapButtons = ({ isVertical }: Props) => {
 
   return (
     <Box
-      sx={{
+      styleProps={{
         display: 'flex',
         flexDirection: isVertical ? 'column' : 'row',
         gap: 1,
@@ -154,7 +154,7 @@ export const MapButtons = ({ isVertical }: Props) => {
             tooltip={t('map.buttons.disable_draw')}
             isVertical={isVertical}
           >
-              <CheckcircleChecked sx={{ width: '1.35rem', height: '1.35rem' }} />
+              <CheckcircleChecked styleProps={{ width: '1.35rem', height: '1.35rem' }} />
             </MapButton>
           )}
           {allowedDrawModes.includes('edit') && (
@@ -233,7 +233,7 @@ export const MapButtons = ({ isVertical }: Props) => {
           tooltip={t('map.buttons.reset_north')}
           isVertical={isVertical}
         >
-          <Compass sx={{ width: '27px', height: '27px' }} />
+          <Compass styleProps={{ width: '27px', height: '27px' }} />
         </MapButton>
         <MapButton
           onClick={mapZoomIn}
@@ -296,19 +296,19 @@ export const MapButtons = ({ isVertical }: Props) => {
 interface MapButtonGroupProps extends React.HTMLAttributes<HTMLDivElement> {
   isVertical?: boolean
   orientation?: 'vertical' | 'horizontal'
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 const MapButtonGroup = ({
   isVertical,
   orientation,
-  sx,
+  styleProps,
   ...props
 }: MapButtonGroupProps) => (
   <Box
     {...props}
     data-map-button-group-orientation={orientation}
-    sx={[
+    styleProps={[
       {
         display: 'inline-flex',
         flexDirection: isVertical ? 'column' : 'row',
@@ -332,7 +332,7 @@ const MapButtonGroup = ({
           borderRadius: '0.3125rem',
         },
       },
-      ...(Array.isArray(sx) ? sx : [sx]),
+      ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
     ]}
   />
 )

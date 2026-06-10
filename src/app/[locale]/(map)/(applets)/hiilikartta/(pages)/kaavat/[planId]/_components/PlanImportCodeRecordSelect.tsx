@@ -9,7 +9,7 @@ type PlanImportCodeRecordSelectProps = {
   allowEmpty?: boolean
   label: string
   placeholder: string
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 const PlanImportCodeRecordSelect = ({
@@ -19,7 +19,7 @@ const PlanImportCodeRecordSelect = ({
   allowEmpty,
   label,
   placeholder,
-  sx,
+  styleProps,
 }: PlanImportCodeRecordSelectProps) => {
   const handleSelectColumn = (event: FormSelectionEvent<string>) => {
     const { value } = event.target
@@ -44,12 +44,12 @@ const PlanImportCodeRecordSelect = ({
       allowEmpty={allowEmpty}
       label={label}
       placeholder={placeholder}
-      sx={[
+      styleProps={[
         {
           width: '100%',
           mb: 0,
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
       ]}
       successIndicatorMode="outside"
     />

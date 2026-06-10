@@ -22,7 +22,7 @@ export const AccordionLink = ({ href, name }: AccordionLinkProps) => {
   return (
     <Link
       href={href}
-      sx={{
+      styleProps={{
         display: 'flex',
         alignItems: 'center',
         width: '100%',
@@ -38,7 +38,7 @@ export const AccordionLink = ({ href, name }: AccordionLinkProps) => {
       }}
     >
       <span className={linkTextClass}>{name}</span>
-      <ArrowRight sx={{ height: '17px' }} />
+      <ArrowRight styleProps={{ height: '17px' }} />
     </Link>
   )
 }

@@ -25,7 +25,7 @@ interface Props {
   ) => void
   placeholder?: string
   ariaLabel?: string
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   textFieldSx?: PandaStyleProp
   optionSx?: PandaStyleProp
   chipSx?: PandaStyleProp
@@ -146,7 +146,7 @@ const MultiSelectAutocomplete = ({
   onChange,
   placeholder,
   ariaLabel,
-  sx,
+  styleProps,
   textFieldSx,
   optionSx,
   chipSx,
@@ -165,8 +165,8 @@ const MultiSelectAutocomplete = ({
 
   return (
     <div
-      className={cx(rootClass, css(...pandaStylePropsToArray(sx)))}
-      style={mergePandaStyleProps({ sx })}
+      className={cx(rootClass, css(...pandaStylePropsToArray(styleProps)))}
+      style={mergePandaStyleProps({ styleProps })}
     >
       <BaseCombobox.Root
         multiple
@@ -185,7 +185,7 @@ const MultiSelectAutocomplete = ({
             inputShellClass,
             css(...pandaStylePropsToArray(textFieldSx))
           )}
-          style={mergePandaStyleProps({ sx: textFieldSx })}
+          style={mergePandaStyleProps({ styleProps: textFieldSx })}
         >
           <BaseCombobox.Chips className={chipsClass}>
             {value.map((option) => (
@@ -195,7 +195,7 @@ const MultiSelectAutocomplete = ({
                   chipClass,
                   css(...pandaStylePropsToArray(chipSx))
                 )}
-                style={mergePandaStyleProps({ sx: chipSx })}
+                style={mergePandaStyleProps({ styleProps: chipSx })}
               >
                 <span className={chipTextClass}>{option.label}</span>
                 <BaseCombobox.ChipRemove
@@ -203,7 +203,7 @@ const MultiSelectAutocomplete = ({
                   className={chipRemoveClass}
                 >
                   <Cross
-                    sx={{ height: '20px', minHeight: '20px', minWidth: '20px' }}
+                    styleProps={{ height: '20px', minHeight: '20px', minWidth: '20px' }}
                     aria-hidden="true"
                   />
                 </BaseCombobox.ChipRemove>
@@ -233,7 +233,7 @@ const MultiSelectAutocomplete = ({
                       sharedSelectItemClass,
                       css(...pandaStylePropsToArray(optionSx))
                     )}
-                    style={mergePandaStyleProps({ sx: optionSx })}
+                    style={mergePandaStyleProps({ styleProps: optionSx })}
                   >
                     {option.label}
                   </BaseCombobox.Item>

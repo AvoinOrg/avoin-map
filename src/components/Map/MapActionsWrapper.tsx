@@ -30,7 +30,7 @@ export const MapActionsWrapper = () => {
     <Box
       className="map-actions-wrapper"
       data-testid="map-actions-wrapper"
-      sx={{
+      styleProps={{
         position: 'absolute',
         top: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
         right: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
@@ -47,7 +47,7 @@ export const MapActionsWrapper = () => {
           {isVertical ? (
             <>
               <Box
-                sx={{
+                styleProps={{
                   display: 'flex',
                   flexDirection: 'row',
                   gap: '0.5rem',
@@ -58,7 +58,7 @@ export const MapActionsWrapper = () => {
                 <MapSearchBar isVertical={isVertical} />
               </Box>
               <Box
-                sx={{
+                styleProps={{
                   display: 'flex',
                   flexDirection: 'row',
                   gap: '0.5rem',
@@ -67,7 +67,7 @@ export const MapActionsWrapper = () => {
                 }}
               >
                 <Box
-                  sx={{
+                  styleProps={{
                     marginTop: isSearchOpen
                       ? 0
                       : `calc(-${MAP_BUTTON_SIZE}px - 0.5rem)`,
@@ -81,7 +81,7 @@ export const MapActionsWrapper = () => {
           ) : (
             <>
               <Box
-                sx={{
+                styleProps={{
                   display: 'flex',
                   flexDirection: 'row',
                   gap: '0.5rem',
@@ -93,7 +93,7 @@ export const MapActionsWrapper = () => {
                 <MapButtons isVertical={isVertical} />
               </Box>
               <Box
-                sx={{
+                styleProps={{
                   display: 'flex',
                   justifyContent: 'flex-end',
                   pointerEvents: 'auto',

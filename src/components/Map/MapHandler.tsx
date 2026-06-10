@@ -864,7 +864,7 @@ export const MapHandler = ({ children }: Props) => {
         ref={mapDivRef}
         id="map"
         className="ol-map"
-        sx={{
+        styleProps={{
           position: 'absolute',
           top: 0,
           bottom: 0,
@@ -876,7 +876,7 @@ export const MapHandler = ({ children }: Props) => {
         ref={mapDivRef}
         id="map"
         // className={'ol-map'}
-        sx={{
+        styleProps={{
           position: 'absolute',
           top: 0,
           bottom: 0,

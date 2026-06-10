@@ -210,24 +210,24 @@ const Page = () => {
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-      <SidebarContentBox sxOuter={{ position: 'relative' }}>
+    <Box styleProps={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+      <SidebarContentBox outerStyleProps={{ position: 'relative' }}>
         {!isFolayerReady &&
           adminFolayerConf?.state !== FolayerConfState.Deleting && (
-            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+            <Box styleProps={{ display: 'flex', justifyContent: 'center' }}>
               <LoadingSpinner></LoadingSpinner>
             </Box>
           )}
         {isFolayerReady && (
           <Box
-            sx={{
+            styleProps={{
               display: 'flex',
               flexDirection: 'column',
               pb: 5,
             }}
           >
             <IconWithText
-              sx={{ alignSelf: 'flex-end', color: 'neutral.dark' }}
+              styleProps={{ alignSelf: 'flex-end', color: 'neutral.dark' }}
               icon={<Delete />}
               isIconOnRight={true}
               onClick={handleDeleteClick}
@@ -240,7 +240,7 @@ const Page = () => {
               ></TText>
             </IconWithText>
             <Box
-              sx={{
+              styleProps={{
                 backgroundColor: 'neutral.light',
                 p: 4,
                 borderRadius: '0.3125rem',
@@ -252,18 +252,18 @@ const Page = () => {
                 value={adminFolayerConf.name}
                 onChange={handleNameChange}
                 placeholderText={adminFolayerConf.name}
-                sx={{ mt: 2 }}
+                styleProps={{ mt: 2 }}
               />
               <ColorPickerWithPopover
                 color={adminFolayerConf.colorCode}
                 onChange={handleColorChange}
-                sx={{ mt: 4 }}
+                styleProps={{ mt: 4 }}
                 labelText={t('sidebar.admin.folayer.settings.color')}
               />
               <SwitchWithLabel
                 checked={adminFolayerConf.isVisible}
                 onChange={handleIsVisibleChange}
-                sx={{ mt: 4 }}
+                styleProps={{ mt: 4 }}
               >
                 <TText
                   ns={'luonnonmetsakartat'}
@@ -273,7 +273,7 @@ const Page = () => {
             </Box>
             {/* Import/update shapefile */}
             <Box
-              sx={{
+              styleProps={{
                 backgroundColor: 'neutral.light',
                 p: 4,
                 borderRadius: '0.3125rem',
@@ -283,7 +283,7 @@ const Page = () => {
               <BigMenuButton
                 variant="outlined"
                 component="label"
-                sx={{ width: '100%', minHeight: '60px' }}
+                styleProps={{ width: '100%', minHeight: '60px' }}
               >
                 {fileName ||
                   t('sidebar.admin.folayer.settings.update_with_file')}
@@ -295,7 +295,7 @@ const Page = () => {
                   onChange={handleFileInput}
                   ref={inputRef}
                 />
-                <Upload sx={{ width: '24px' }} />
+                <Upload styleProps={{ width: '24px' }} />
               </BigMenuButton>
 
               {fileType === 'shp' &&
@@ -307,7 +307,7 @@ const Page = () => {
                       onChange={(_e, checked) =>
                         setDeleteAreasNotUpdated(checked)
                       }
-                      sx={{ mt: 5 }}
+                      styleProps={{ mt: 5 }}
                     >
                       <TText
                         ns={'luonnonmetsakartat'}
@@ -316,7 +316,7 @@ const Page = () => {
                         }
                       />
                     </SwitchWithLabel>
-                    <Box sx={{ mt: 5 }}>
+                    <Box styleProps={{ mt: 5 }}>
                       <FolayerUpdateShp
                         fileBuffers={arrayBuffers}
                         adminFolayerConf={adminFolayerConf}
@@ -332,7 +332,7 @@ const Page = () => {
       </SidebarContentBox>
       {adminFolayerConf && (adminFolayerConf.unsyncedChanges || fileName) && (
         <Box
-          sx={{
+          styleProps={{
             display: 'flex',
             flexDirection: 'column',
             pl: SIDEBAR_PADDING_REM + 'rem',
@@ -357,7 +357,7 @@ const Page = () => {
               }
               handleSaveClick(event)
             }}
-            sx={{
+            styleProps={{
               mt: 1.3,
               alignSelf: 'flex-start',
               width: '100%',

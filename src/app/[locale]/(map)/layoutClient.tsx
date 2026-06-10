@@ -1,11 +1,11 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Box } from '@mui/material'
 
 import { MapHandler } from '#/components/Map'
 import { LoginModal } from '#/components/Modal'
 import { ConfirmationDialog } from '#/components/Notification'
+import { Box } from '#/components/common/PandaBox'
 import UserStateHandler from './userStateHandler'
 import UIStateHandler from './uiStateHandler'
 import { SlotsProvider } from '#/components/context/slotsContext'
@@ -13,7 +13,6 @@ import { SidebarRoot } from '#/components/Sidebar'
 import { FullscreenPageSlot } from '#/components/common/FullscreenPage'
 // import { UserModal } from '#/components/Profile'
 // import { UiStateProvider, UserStateProvider } from '#/components/State'
-// import RootStyleRegistry from './emotion'
 
 const LayoutClient = ({
   // Layouts must accept a children prop.
@@ -39,7 +38,7 @@ const LayoutClient = ({
                 {/* <UserModal /> */}
                 <Box
                   className="layout-container"
-                  sx={{
+                  styleProps={{
                     display: 'flex',
                     flexDirection: 'column',
                     height: '100vh',

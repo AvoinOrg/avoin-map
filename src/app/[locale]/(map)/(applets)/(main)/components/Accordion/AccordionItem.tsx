@@ -79,7 +79,7 @@ export const AccordionItem = ({
             : undefined
         }
         onKeyDown={handleHeaderKeyDown}
-        sx={{
+        styleProps={{
           display: 'flex',
           alignItems: 'center',
           width: '100%',
@@ -107,7 +107,7 @@ export const AccordionItem = ({
         />
         <Box
           component="span"
-          sx={{
+          styleProps={{
             display: 'block',
             flexGrow: 1,
             fontSize: '0.6875rem',
@@ -122,7 +122,7 @@ export const AccordionItem = ({
         </Box>
         {children && (
           <Box
-            sx={{
+            styleProps={{
               color: 'text.secondary',
               display: 'flex',
               alignItems: 'center',
@@ -140,7 +140,7 @@ export const AccordionItem = ({
           keepMounted={false}
         >
           <Box
-            sx={{
+            styleProps={{
               fontSize: '0.6875rem',
               fontStyle: 'normal',
               fontWeight: 400,

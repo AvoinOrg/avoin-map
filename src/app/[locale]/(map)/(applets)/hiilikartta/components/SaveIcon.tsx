@@ -4,10 +4,10 @@ import { Box } from '#/components/common/PandaBox'
 import type { PandaStyleProp } from '#/common/style/panda'
 
 type Props = {
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
-const SaveIcon = ({ sx }: Props) => {
+const SaveIcon = ({ styleProps }: Props) => {
   return (
     <Box
       component="svg"
@@ -15,14 +15,14 @@ const SaveIcon = ({ sx }: Props) => {
       viewBox="0 0 24 24"
       fill="none"
       aria-hidden="true"
-      sx={[
+      styleProps={[
         {
           width: '1.5rem',
           height: '1.5rem',
           display: 'inline-block',
           flexShrink: 0,
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
       ]}
     >
       <path

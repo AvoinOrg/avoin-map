@@ -7,13 +7,13 @@ import {
 import type { IconProps } from './types'
 
 
-const Upload = ({ sx, className, style, ...props }: IconProps) => (
+const Upload = ({ styleProps, className, style, ...props }: IconProps) => (
   <svg
     width={16}
     height={22}
     viewBox="0 0 16 22"
-    className={cx(css(...pandaStylePropsToArray(sx)), className)}
-    style={mergePandaStyleProps({ sx, style })}
+    className={cx(css(...pandaStylePropsToArray(styleProps)), className)}
+    style={mergePandaStyleProps({ styleProps, style })}
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     {...props}

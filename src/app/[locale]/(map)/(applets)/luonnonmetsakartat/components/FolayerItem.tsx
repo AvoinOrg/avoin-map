@@ -18,7 +18,7 @@ const FolayerItem = ({ conf }: { conf: FolayerConf }) => {
       color={conf.colorCode}
       ariaLabel={`Toggle ${conf.name}`}
       onToggle={() => setIsEnabled(layerGroupStatus === 'hidden')}
-      sx={{ mb: 1 }}
+      styleProps={{ mb: 1 }}
       labelSx={{ ml: 1 }}
     />
   )

@@ -15,7 +15,7 @@ import SidebarToggleButton from './SidebarToggleButton'
 import styles from './SidebarScaffold.module.css'
 
 export type HomeSidebarProps = {
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   children: React.ReactNode
 }
 
@@ -23,7 +23,7 @@ type HomeSidebarCssVars = React.CSSProperties & {
   [key: `--sidebar-${string}`]: string
 }
 
-export const HomeSidebar = ({ sx, children }: HomeSidebarProps) => {
+export const HomeSidebar = ({ styleProps, children }: HomeSidebarProps) => {
   const isSidebarDisabled = useUIStore((state) => state.isSidebarDisabled)
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
   const isSidebarLoading = useUIStore((state) => state.isSidebarLoading)
@@ -89,11 +89,11 @@ export const HomeSidebar = ({ sx, children }: HomeSidebarProps) => {
             'sidebar-container',
             styles.sidebarContainer,
             styles.homeSidebarContainer,
-            css(...pandaStylePropsToArray(sx))
+            css(...pandaStylePropsToArray(styleProps))
           )}
           data-open={isSidebarOpen ? 'true' : 'false'}
           style={mergePandaStyleProps({
-            sx,
+            styleProps,
             style: containerVars,
           })}
         >

@@ -165,11 +165,11 @@ export const createMapDevSlice: (
           const img = new Image()
           img.onload = () => {
             // Calculate the top-left corner of the 256x256 box from the center
-            const sx = fullCanvas.width / 2 - boxSize / 2
+            const sourceX = fullCanvas.width / 2 - boxSize / 2
             const sy = fullCanvas.height / 2 - boxSize / 2
 
             // Draw the cropped 256x256 image onto the temporary canvas
-            ctx.drawImage(img, sx, sy, boxSize, boxSize, 0, 0, boxSize, boxSize)
+            ctx.drawImage(img, sourceX, sy, boxSize, boxSize, 0, 0, boxSize, boxSize)
 
             const isJpg =
               options.filename?.endsWith('.jpg') ||

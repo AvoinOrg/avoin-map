@@ -9,15 +9,15 @@ import type { IconProps } from './types'
 
 // Exact Figma vectors from Energiakartta map-toggle icon (nodes 2838:65003 / 2838:65004).
 // Paths and stroke widths are copied from exported SVG assets; placement matches the Figma group.
-const MapPinGlobe = ({ sx, className, style, ...props }: IconProps) => (
+const MapPinGlobe = ({ styleProps, className, style, ...props }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={24}
     height={24}
     fill="none"
     viewBox="0 0 24 24"
-    className={cx(css(...pandaStylePropsToArray(sx)), className)}
-    style={mergePandaStyleProps({ sx, style })}
+    className={cx(css(...pandaStylePropsToArray(styleProps)), className)}
+    style={mergePandaStyleProps({ styleProps, style })}
     {...props}
   >
     <g transform="translate(1.375 0.59145)">

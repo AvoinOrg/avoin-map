@@ -12,7 +12,7 @@ const UserButtons = () => {
   const userAuthState = useUserStore((state) => state.userAuthState)
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+    <Box styleProps={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
       {[UserAuthState.Authenticated, UserAuthState.Loading].includes(
         userAuthState
       ) ? (

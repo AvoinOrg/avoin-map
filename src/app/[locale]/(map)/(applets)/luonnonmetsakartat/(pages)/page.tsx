@@ -39,13 +39,13 @@ const Page = () => {
   return (
     <SidebarContentBox>
       {isLoading && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+        <Box styleProps={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
           <LoadingSpinner />
         </Box>
       )}
-      <Box sx={{ ml: '-0.7rem' }}>
+      <Box styleProps={{ ml: '-0.7rem' }}>
         {!isLoading && folayerConfsArray.length > 0 && (
-          <Box sx={{ width: '100%', mt: 5, pb: 4 }}>
+          <Box styleProps={{ width: '100%', mt: 5, pb: 4 }}>
             {folayerConfsArray.map((conf) => (
               <FolayerItem key={conf.id} conf={conf} />
             ))}
@@ -55,7 +55,7 @@ const Page = () => {
           !isLoading &&
           (!folayerConfsArray || folayerConfsArray.length === 0) && (
             <Box
-              sx={{
+              styleProps={{
                 display: 'flex',
                 flexDirection: 'row',
                 mt: 3,
@@ -63,11 +63,11 @@ const Page = () => {
               }}
             >
               <Eco
-                sx={{ width: 50, height: 'auto', flexShrink: 0, mt: -0.5 }}
+                styleProps={{ width: 50, height: 'auto', flexShrink: 0, mt: -0.5 }}
               ></Eco>
               <Box
                 component="p"
-                sx={{
+                styleProps={{
                   m: 0,
                   display: 'inline-flex',
                   typography: 'body2',

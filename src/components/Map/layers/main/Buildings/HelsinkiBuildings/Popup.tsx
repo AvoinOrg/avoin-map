@@ -535,7 +535,7 @@ const Popup = ({ features, onClose }: PopupProps) => {
   return (
     <MapModalWrapper minWidthBeforeFullScreen={500}>
       <Box
-        sx={{
+        styleProps={{
           backgroundColor: '#3E3E3E',
           color: '#A9E7CB',
           width: '100%',
@@ -550,7 +550,7 @@ const Popup = ({ features, onClose }: PopupProps) => {
       >
         {/* Header bar */}
         <Box
-          sx={{
+          styleProps={{
             display: 'flex',
             alignItems: 'center',
             height: '4.0rem',
@@ -565,7 +565,7 @@ const Popup = ({ features, onClose }: PopupProps) => {
             type="button"
             aria-label="close"
             onClick={onClose}
-            sx={{
+            styleProps={{
               p: 1,
               border: 0,
               borderRadius: '50%',
@@ -590,7 +590,7 @@ const Popup = ({ features, onClose }: PopupProps) => {
 
         {/* Scroll body */}
         <Box
-          sx={{
+          styleProps={{
             overflowY: 'auto',
             flexGrow: 1,
             minHeight: 0, // Allow flex child to shrink

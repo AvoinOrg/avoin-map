@@ -33,7 +33,7 @@ const HiilikarttaText = TText as React.ComponentType<{
 const HomeSidebarHeader = () => {
   return (
     <Box
-      sx={{
+      styleProps={{
         px: `${HOME_SIDEBAR_HEADER_PADDING_REM}rem`,
         pt: '0.625rem',
         pb: '0.5rem',
@@ -41,7 +41,7 @@ const HomeSidebarHeader = () => {
       }}
     >
       <Box
-        sx={{
+        styleProps={{
           position: 'relative',
           minHeight: '6.25rem',
           borderRadius: '0.625rem',
@@ -53,7 +53,7 @@ const HomeSidebarHeader = () => {
         }}
       >
         <Box
-          sx={{
+          styleProps={{
             position: 'absolute',
             inset: 0,
             background:
@@ -62,7 +62,7 @@ const HomeSidebarHeader = () => {
         />
         <Box
           component="h1"
-          sx={{
+          styleProps={{
             m: 0,
             position: 'relative',
             zIndex: 1,
@@ -118,7 +118,7 @@ const Page = () => {
           onClick={() =>
             router.push(getRoute({ routeNode: routeTree.plans, routeTree }))
           }
-          sx={{
+          styleProps={{
             width: '100%',
             height: '5rem',
             px: `${HOME_SIDEBAR_LEFT_WALL_REM}rem`,
@@ -139,7 +139,7 @@ const Page = () => {
         >
           <PlanOutlineIcon
             variant="large"
-            sx={{
+            styleProps={{
               width: '1.375rem',
               height: '1rem',
               flexShrink: 0,
@@ -148,7 +148,7 @@ const Page = () => {
           />
           <Box
             component="span"
-            sx={{
+            styleProps={{
               fontSize: '0.6875rem',
               fontWeight: 700,
               lineHeight: '0.8125rem',
@@ -162,11 +162,11 @@ const Page = () => {
         </Box>
       </IntoSidebarFooterSlot>
       <SidebarContentBox
-        sxOuter={{
+        outerStyleProps={{
           height: '100%',
         }}
         scrollbarSide="left"
-        sxInner={{
+        innerStyleProps={{
           p: 0,
           display: 'flex',
           flexDirection: 'column',
@@ -175,7 +175,7 @@ const Page = () => {
         }}
       >
         <Box
-          sx={{
+          styleProps={{
             display: 'flex',
             flexDirection: 'column',
             minHeight: '100%',
@@ -183,7 +183,7 @@ const Page = () => {
           }}
         >
           <Box
-            sx={{
+            styleProps={{
               display: 'flex',
               flexDirection: 'column',
               flex: 1,
@@ -198,7 +198,7 @@ const Page = () => {
             <Box>
               <Box
                 component="p"
-                sx={{
+                styleProps={{
                   m: 0,
                   mt: { mobile: '1.125rem', desktop: '1.25rem' },
                   color: '#111111',
@@ -215,7 +215,7 @@ const Page = () => {
               </Box>
 
               {vegetationLayerGroup && (
-                <Box sx={{ mt: { mobile: '4rem', desktop: '5.25rem' } }}>
+                <Box styleProps={{ mt: { mobile: '4rem', desktop: '5.25rem' } }}>
                   <LayerToggleRow
                     ariaLabel="Toggle vegetation carbon layer"
                     color="#2D7A3A"
@@ -244,10 +244,10 @@ const Page = () => {
               )}
             </Box>
 
-            <Box sx={{ mt: 'auto', pt: { mobile: '2.5rem', desktop: '3rem' } }}>
+            <Box styleProps={{ mt: 'auto', pt: { mobile: '2.5rem', desktop: '3rem' } }}>
               <Box
                 component="p"
-                sx={{
+                styleProps={{
                   m: 0,
                   color: '#111111',
                   fontSize: '0.625rem',
@@ -265,7 +265,7 @@ const Page = () => {
               </Box>
 
               <Box
-                sx={{
+                styleProps={{
                   mt: { mobile: '2.5rem', desktop: '3rem' },
                   width: '100%',
                   px: {
@@ -282,7 +282,7 @@ const Page = () => {
                   component="img"
                   src="/files/img/Avoinlogo_Pysty_Green_Rek2024.svg"
                   alt="Avoin"
-                  sx={{
+                  styleProps={{
                     width: '3.5rem',
                     height: '2.25rem',
                     objectFit: 'contain',
@@ -293,7 +293,7 @@ const Page = () => {
                   component="img"
                   src="/files/img/hiilikartta/sidebar/syke-logo.png"
                   alt="Syke"
-                  sx={{
+                  styleProps={{
                     width: '3.1rem',
                     objectFit: 'contain',
                   }}
@@ -302,7 +302,7 @@ const Page = () => {
                   component="img"
                   src="/files/img/hiilikartta/sidebar/luke-logo.png"
                   alt="Luke"
-                  sx={{
+                  styleProps={{
                     width: '2.8rem',
                     objectFit: 'contain',
                     objectPosition: 'right center',

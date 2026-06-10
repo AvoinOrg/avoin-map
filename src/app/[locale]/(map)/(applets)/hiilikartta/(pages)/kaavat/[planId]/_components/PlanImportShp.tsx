@@ -139,7 +139,7 @@ const PlanImportShp = ({
         onColumnChange={onSelectedZoningColChange}
         label={copy.zoningClassesLabel}
         placeholder={copy.zoningClassesPlaceholder}
-        sx={{ mb: importFieldSpacing }}
+        styleProps={{ mb: importFieldSpacing }}
       />
       <PlanImportCodeRecordSelect
         columns={columns}

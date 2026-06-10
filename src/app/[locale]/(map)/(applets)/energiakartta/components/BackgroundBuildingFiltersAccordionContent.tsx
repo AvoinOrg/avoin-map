@@ -147,7 +147,7 @@ const BackgroundBuildingFiltersAccordionContent = () => {
 
   return (
     <Box
-      sx={{
+      styleProps={{
         pt: '2.375rem',
         pb: '2.875rem',
         px: '0.25rem',
@@ -202,7 +202,7 @@ const BackgroundBuildingFiltersAccordionContent = () => {
       />
 
       <Box
-        sx={{
+        styleProps={{
           display: 'flex',
           flexDirection: 'column',
           gap: '1.5rem',
@@ -219,7 +219,7 @@ const BackgroundBuildingFiltersAccordionContent = () => {
             setShowBuildingsFromSelectedDecade(event.target.checked)
           }
           disabled={!hasSelectedConstructionDecade}
-          sx={SWITCH_SX}
+          styleProps={SWITCH_SX}
           checkedTrackColor="#075CFF"
           labelSx={SWITCH_LABEL_SX}
         >
@@ -233,7 +233,7 @@ const BackgroundBuildingFiltersAccordionContent = () => {
           inputProps={{ role: 'switch' }}
           onChange={(event) => setShowOnlySelectedDecade(event.target.checked)}
           disabled={!hasSelectedConstructionDecade}
-          sx={SWITCH_SX}
+          styleProps={SWITCH_SX}
           checkedTrackColor="#075CFF"
           labelSx={SWITCH_LABEL_SX}
         >

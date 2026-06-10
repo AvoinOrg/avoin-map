@@ -288,7 +288,7 @@ const CarbonLineChartInner = ({
   }, [tooltipData])
 
   const chartLegend = (
-    <Box sx={{ mt: 1, ml: 2 }}>
+    <Box styleProps={{ mt: 1, ml: 2 }}>
       <LegendOrdinal
         scale={colorScale}
         labelFormat={(label) => localPlanNames[parseInt(label, 10)]}
@@ -492,26 +492,26 @@ const CarbonLineChartInner = ({
           left={tooltipLeft}
           style={tooltipStyles}
         >
-          <Box component="p" sx={{ m: 0, mb: 1.5, ml: '18px', typography: 'body2' }}>
+          <Box component="p" styleProps={{ m: 0, mb: 1.5, ml: '18px', typography: 'body2' }}>
             {t('report.carbon_line_chart.tooltip_year')}
             <b>{` ${sortedTooltipData[0].year}`}</b>
           </Box>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <Box styleProps={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {sortedTooltipData.map(
               (d) =>
                 d.lineIndex != null && (
                   <Box
                     key={d.lineIndex}
-                    sx={{
+                    styleProps={{
                       display: 'flex',
                       flexDirection: 'row',
                       justifyContent: 'space-between',
                       width: '100%',
                     }}
                   >
-                    <Box sx={{}}>
+                    <Box styleProps={{}}>
                       <Box
-                        sx={{
+                        styleProps={{
                           width: '10px',
                           height: '10px',
                           backgroundColor: getColorForIndex(d.lineIndex),
@@ -521,7 +521,7 @@ const CarbonLineChartInner = ({
                       ></Box>
                       <Box
                         component="span"
-                        sx={{
+                        styleProps={{
                           display: 'inline-block',
                           typography: 'body2',
                           textOverflow: 'ellipsis',
@@ -533,7 +533,7 @@ const CarbonLineChartInner = ({
                     </Box>
                     <Box
                       component="span"
-                      sx={{ ml: 1, display: 'inline', typography: 'body2' }}
+                      styleProps={{ ml: 1, display: 'inline', typography: 'body2' }}
                     >
                       <b>{`${pp(getValue(d), 2)} `}</b>
                       {`${units[unitType]}`}

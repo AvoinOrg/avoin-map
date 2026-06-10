@@ -23,15 +23,15 @@ export const COOKIE_ICON_SVG = `
 </svg>
 `.trim()
 
-const Cookie = ({ sx, className, style, ...props }: IconProps) => (
+const Cookie = ({ styleProps, className, style, ...props }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={26}
     height={26}
     fill="none"
     viewBox="0 0 26 26"
-    className={cx(css(...pandaStylePropsToArray(sx)), className)}
-    style={mergePandaStyleProps({ sx, style })}
+    className={cx(css(...pandaStylePropsToArray(styleProps)), className)}
+    style={mergePandaStyleProps({ styleProps, style })}
     {...props}
   >
     <circle cx="13" cy="13" r="8.8" stroke="currentColor" strokeWidth="1.4" />

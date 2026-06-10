@@ -14,19 +14,19 @@ const ReadMoreModal = () => {
       triggerAriaLabel="Open calculation method details"
       modalBody={
         <Box>
-          <Box component="p" sx={{ m: 0, typography: 'body1', mb: 2 }}>
+          <Box component="p" styleProps={{ m: 0, typography: 'body1', mb: 2 }}>
             <TText
               ns="hiilikartta"
               keyName="report.general.read_more_about_calc.meta"
             ></TText>
             <Link
               href={'https://www.syke.fi/hankkeet/hiilikartta'}
-              sx={{ typography: 'body2' }}
+              styleProps={{ typography: 'body2' }}
             >
               <u>https://syke.fi/hankkeet/hiilikartta</u>
             </Link>
           </Box>
-          <Box component="p" sx={{ m: 0, typography: 'body2' }}>
+          <Box component="p" styleProps={{ m: 0, typography: 'body2' }}>
             <TText
               ns="hiilikartta"
               keyName={'report.general.read_more_about_calc.text'}
@@ -35,7 +35,7 @@ const ReadMoreModal = () => {
         </Box>
       }
     >
-      <Box component="span" sx={{ display: 'inline', typography: 'body2' }}>
+      <Box component="span" styleProps={{ display: 'inline', typography: 'body2' }}>
         <u>
           <TText
             ns="hiilikartta"

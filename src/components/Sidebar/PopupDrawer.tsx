@@ -13,7 +13,7 @@ const PopupDrawer = ({ open, children }: Props) => {
   return (
     <Box
       className="popup-drawer-container"
-      sx={{
+      styleProps={{
         transition: 'width 1s linear',
         zIndex: 'popup',
         width: open ? 'auto' : '0px',

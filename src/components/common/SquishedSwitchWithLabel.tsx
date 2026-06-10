@@ -4,11 +4,11 @@ import type { PandaStyleProp } from '#/common/style/panda'
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 import type { SwitchProps } from '#/components/common/Switch'
 
-type SquishedSwitchWithLabelProps = Omit<SwitchProps, 'sx'> & {
+type SquishedSwitchWithLabelProps = Omit<SwitchProps, 'styleProps'> & {
   children?: React.ReactNode
   ariaLabel?: string
   checkedTrackColor?: string
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   controlSx?: PandaStyleProp
   labelSx?: PandaStyleProp
 }
@@ -17,7 +17,7 @@ const SquishedSwitchWithLabel = ({
   children,
   ariaLabel,
   checkedTrackColor,
-  sx,
+  styleProps,
   controlSx,
   labelSx,
   inputProps,
@@ -35,7 +35,7 @@ const SquishedSwitchWithLabel = ({
       thumbSize="0.375rem"
       thumbMargin="0.25rem"
       thumbTranslateX="1.25rem"
-      sx={[
+      styleProps={[
         {
           m: 0,
           width: '100%',
@@ -43,7 +43,7 @@ const SquishedSwitchWithLabel = ({
           display: 'flex',
           alignItems: 'center',
         },
-        ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
+        ...(Array.isArray(styleProps) ? styleProps : styleProps ? [styleProps] : []),
       ]}
       controlSx={[
         {

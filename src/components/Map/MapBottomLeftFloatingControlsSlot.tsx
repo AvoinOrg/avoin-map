@@ -8,7 +8,7 @@ export const MapBottomLeftFloatingControlsSlot = () => {
   return (
     <Box
       data-map-bottom-left-floating-controls-slot="true"
-      sx={{
+      styleProps={{
         position: 'absolute',
         left: '0.5rem',
         bottom: 'calc(100% + 2.5rem)',

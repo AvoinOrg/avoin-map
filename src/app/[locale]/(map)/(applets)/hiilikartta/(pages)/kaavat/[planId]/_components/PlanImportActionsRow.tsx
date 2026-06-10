@@ -50,7 +50,7 @@ const PlanImportActionsRow = ({
 }) => {
   return (
     <Box
-      sx={{
+      styleProps={{
         display: 'flex',
         justifyContent: 'flex-end',
         mt: 4,
@@ -65,7 +65,7 @@ const PlanImportActionsRow = ({
       >
         <Box
           component="span"
-          sx={{
+          styleProps={{
             display: 'inline-block',
             transform: 'translateY(0.0625rem)',
           }}

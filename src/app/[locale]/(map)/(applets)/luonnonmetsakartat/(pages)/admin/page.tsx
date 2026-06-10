@@ -38,26 +38,26 @@ const Page = () => {
       <MutableLink
         route={routeTree.admin.import}
         routeTree={routeTree}
-        sx={{
+        styleProps={{
           display: 'flex',
           color: 'inherit',
           textDecoration: 'none',
           width: '100%',
         }}
       >
-        <BigMenuButton color="primary" sx={{ pl: 3, pr: 3 }}>
+        <BigMenuButton color="primary" styleProps={{ pl: 3, pr: 3 }}>
           <TText keyName={'sidebar.admin.upload'} ns={'luonnonmetsakartat'} />
           <Upload />
         </BigMenuButton>
       </MutableLink>
       {isLoading && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 5 }}>
+        <Box styleProps={{ display: 'flex', justifyContent: 'center', mt: 5 }}>
           <LoadingSpinner />
         </Box>
       )}
-      <Box sx={{ ml: '-0.7rem', mr: '-0.5rem' }}>
+      <Box styleProps={{ ml: '-0.7rem', mr: '-0.5rem' }}>
         {!isLoading && adminFolayerConfsArray.length > 0 && (
-          <Box sx={{ width: '100%', mt: 7, pb: 4 }}>
+          <Box styleProps={{ width: '100%', mt: 7, pb: 4 }}>
             {adminFolayerConfsArray.map((conf) => (
               <AdminFolayerItem key={conf.id} conf={conf} />
             ))}
@@ -68,14 +68,14 @@ const Page = () => {
       {/* <Box>
         {isLoading && <LoadingSpinner></LoadingSpinner>}
         {!isLoading && adminFolayerConfsArray.length > 0 && (
-          <Box sx={{ width: '100%', mt: 2 }}>
+          <Box styleProps={{ width: '100%', mt: 2 }}>
             {adminFolayerConfsArray.map((conf) => (
               <ListItem key={conf.id} disablePadding>
                 <MutableLink
                   route={routeTree.admin.folayer}
                   routeParams={{ folayerIdSlug: conf.id }}
                   routeTree={routeTree}
-                  sx={{
+                  styleProps={{
                     display: 'flex',
                     color: 'inherit',
                     textDecoration: 'none',

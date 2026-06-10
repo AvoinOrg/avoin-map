@@ -311,7 +311,7 @@ const MapBottomControls = () => {
       <MapBottomLeftFloatingControlsSlot />
       {showInfoButton && isPanelOpen && sanitizedAttributionHtml && (
         <Box
-          sx={{
+          styleProps={{
             position: 'absolute',
             left:
               panelLayout === 'overlay-sidebar'
@@ -354,7 +354,7 @@ const MapBottomControls = () => {
       <Box
         ref={buttonRowRef}
         data-main-sidebar-controls-row-placement={slotPlacement ?? undefined}
-        sx={{
+        styleProps={{
           display: 'flex',
           alignItems: 'center',
           gap: 1,
@@ -373,7 +373,7 @@ const MapBottomControls = () => {
         <Box
           ref={controlsRef}
           data-main-sidebar-top-control-inner="true"
-          sx={{
+          styleProps={{
             position: 'relative',
             width: 'max-content',
             pointerEvents: 'none',
@@ -392,7 +392,7 @@ const MapBottomControls = () => {
         <Box
           ref={controlsRef}
           data-main-sidebar-bottom-control-inner="true"
-          sx={{
+          styleProps={{
             position: 'relative',
             width: 'max-content',
             pointerEvents: 'none',
@@ -408,7 +408,7 @@ const MapBottomControls = () => {
   return (
     <Box
       ref={controlsRef}
-      sx={{
+      styleProps={{
         position: 'fixed',
         left: leftOffsetPx,
         bottom: spacingBottomPx,

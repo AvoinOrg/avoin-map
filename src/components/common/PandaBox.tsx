@@ -9,7 +9,7 @@ import {
 
 type PandaBoxOwnProps<T extends React.ElementType> = {
   component?: T
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   className?: string
   style?: React.CSSProperties
 }
@@ -24,7 +24,7 @@ export type PandaBoxProps<T extends React.ElementType = 'div'> =
 const PandaBoxInner = <T extends React.ElementType = 'div'>(
   {
     component,
-    sx,
+    styleProps,
     className,
     style,
     ...props
@@ -36,8 +36,8 @@ const PandaBoxInner = <T extends React.ElementType = 'div'>(
   return React.createElement(Component, {
     ...props,
     ref,
-    className: cx(css(...pandaStylePropsToArray(sx)), className),
-    style: mergePandaStyleProps({ sx, style }),
+    className: cx(css(...pandaStylePropsToArray(styleProps)), className),
+    style: mergePandaStyleProps({ styleProps, style }),
   })
 }
 

@@ -18,7 +18,7 @@ export type SwitchProps = Omit<
   React.ComponentPropsWithoutRef<typeof BaseSwitch.Root>,
   'children' | 'className' | 'onCheckedChange' | 'onChange' | 'style'
 > & {
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   onChange?: (event: FormCheckedChangeEvent, checked: boolean) => void
   inputProps?: React.InputHTMLAttributes<HTMLInputElement> & {
     ref?: React.Ref<HTMLInputElement>
@@ -88,7 +88,7 @@ const thumbClass = css({
 })
 
 const Switch = ({
-  sx,
+  styleProps,
   onChange,
   inputProps,
   checkedTrackColor,
@@ -130,10 +130,10 @@ const Switch = ({
       name={name}
       value={value}
       inputRef={inputProps?.ref}
-      className={cx(switchClass, css(...pandaStylePropsToArray(sx)))}
+      className={cx(switchClass, css(...pandaStylePropsToArray(styleProps)))}
       style={{
         ...cssVariables,
-        ...mergePandaStyleProps({ sx, style }),
+        ...mergePandaStyleProps({ styleProps, style }),
       }}
       onCheckedChange={handleCheckedChange}
     >

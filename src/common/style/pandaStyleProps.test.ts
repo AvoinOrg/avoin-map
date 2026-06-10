@@ -19,7 +19,7 @@ describe('pandaStyleProps', () => {
     ).toEqual([first, second])
   })
 
-  it('converts common flat sx overrides to rendered inline styles', () => {
+  it('converts common flat styleProps overrides to rendered inline styles', () => {
     expect(
       pandaStylePropsToCssStyle([
         { width: '1rem', height: 22, color: 'text.secondary' },
@@ -59,10 +59,10 @@ describe('pandaStyleProps', () => {
     })
   })
 
-  it('lets explicit style props override sx bridge styles', () => {
+  it('lets explicit style props override styleProps bridge styles', () => {
     expect(
       mergePandaStyleProps({
-        sx: { color: 'neutral.dark', width: 10 },
+        styleProps: { color: 'neutral.dark', width: 10 },
         style: { color: 'rgb(1, 2, 3)' },
       })
     ).toEqual(

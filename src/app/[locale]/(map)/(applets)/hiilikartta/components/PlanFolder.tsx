@@ -64,9 +64,9 @@ const PlanFolder = ({
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+    <Box styleProps={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
       <Box
-        sx={{
+        styleProps={{
           display: 'flex',
           position: 'relative',
           flexDirection: 'row',
@@ -108,7 +108,7 @@ const PlanFolder = ({
                 : `Save plan ${planConf.name}`
             }
             onKeyDown={handleSyncKeyDown}
-            sx={{
+            styleProps={{
               display: 'inline-flex',
               flexDirection: 'row',
               alignItems: 'end',
@@ -128,21 +128,21 @@ const PlanFolder = ({
               <>
                 <Box
                   component="span"
-                  sx={{ display: 'inline', typography: 'body7', mr: 0.5 }}
+                  styleProps={{ display: 'inline', typography: 'body7', mr: 0.5 }}
                 >
                   <TText
                     ns="hiilikartta"
                     keyName="sidebar.plan_settings.last_saved"
                   />
                 </Box>
-                <Box component="span" sx={{ display: 'inline', typography: 'body7' }}>
+                <Box component="span" styleProps={{ display: 'inline', typography: 'body7' }}>
                   {new Date(planConf.cloudLastSaved).toLocaleString()}
                 </Box>
               </>
             )}
             {!planConf.cloudLastSaved && !planPost.isPending && (
               <>
-                <Box component="span" sx={{ display: 'inline', typography: 'body7' }}>
+                <Box component="span" styleProps={{ display: 'inline', typography: 'body7' }}>
                   <TText
                     ns="hiilikartta"
                     keyName="sidebar.plan_settings.save_plan"
@@ -152,7 +152,7 @@ const PlanFolder = ({
             )}
             {planPost.isPending && (
               <>
-                <Box component="span" sx={{ display: 'inline', typography: 'body7' }}>
+                <Box component="span" styleProps={{ display: 'inline', typography: 'body7' }}>
                   <TText
                     ns="hiilikartta"
                     keyName="sidebar.plan_settings.saving_plan"
@@ -164,12 +164,12 @@ const PlanFolder = ({
               <LoadingSpinner
                 color="secondary"
                 size={15}
-                sx={{ height: '12px', ml: '4px', mr: '3px', mb: '1px' }}
+                styleProps={{ height: '12px', ml: '4px', mr: '3px', mb: '1px' }}
               />
             )}
             {!planPost.isPending && (
               <SaveIcon
-                sx={{
+                styleProps={{
                   ml: '4px',
                   mb: '-3px',
                   color:
@@ -182,7 +182,7 @@ const PlanFolder = ({
             {planPost.isError && !planPost.isPending && (
               <>
                 <Exclamation
-                  sx={{ height: '1.1rem', mb: '0.5px', color: 'warning.dark' }}
+                  styleProps={{ height: '1.1rem', mb: '0.5px', color: 'warning.dark' }}
                 ></Exclamation>
               </>
               )}
@@ -192,7 +192,7 @@ const PlanFolder = ({
 
       <Folder height={height}>
         <Box
-          sx={{
+          styleProps={{
             pt: 2,
             pl: 3,
             pb: 3,
@@ -217,7 +217,7 @@ const PlanFolder = ({
           ) : (
             <Box
               component="h2"
-              sx={{ m: 0, typography: 'h2', color: 'neutral.darker' }}
+              styleProps={{ m: 0, typography: 'h2', color: 'neutral.darker' }}
             >
               {planConf.name}
             </Box>
@@ -227,7 +227,7 @@ const PlanFolder = ({
             planConf.calculationState
           ) && (
             <Box
-              sx={{
+              styleProps={{
                 display: 'flex',
                 flexDirection: 'row',
                 alignItems: 'flex-end',
@@ -240,7 +240,7 @@ const PlanFolder = ({
               ].includes(planConf.calculationState) && (
                 <>
                   <Box
-                    sx={{
+                    styleProps={{
                       typography: 'h7',
                       color: 'secondary.dark',
                       lineHeight: '1',
@@ -260,14 +260,14 @@ const PlanFolder = ({
                   <LoadingSpinner
                     color="secondary"
                     size={25}
-                    sx={{ height: '10px' }}
+                    styleProps={{ height: '10px' }}
                   />
                 </>
               )}
               {planConf.calculationState === CalculationState.ERRORED && (
                 <>
                   <Box
-                    sx={{
+                    styleProps={{
                       typography: 'h7',
                       color: 'warning.dark',
                       lineHeight: '1',
@@ -279,14 +279,14 @@ const PlanFolder = ({
                     />
                   </Box>
                   <ErrorIcon
-                    sx={{ color: 'warning.dark', height: '24px' }}
+                    styleProps={{ color: 'warning.dark', height: '24px' }}
                   ></ErrorIcon>
                 </>
               )}
               {planConf.calculationState === CalculationState.FINISHED && (
                 <>
                   <Box
-                    sx={{
+                    styleProps={{
                       typography: 'h7',
                       color: 'secondary.dark',
                       lineHeight: '1',
@@ -297,7 +297,7 @@ const PlanFolder = ({
                       ns={'hiilikartta'}
                     />
                   </Box>
-                  <Info sx={{ color: 'secondary.dark', height: '24px' }}></Info>
+                  <Info styleProps={{ color: 'secondary.dark', height: '24px' }}></Info>
                 </>
               )}
             </Box>

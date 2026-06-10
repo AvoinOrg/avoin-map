@@ -569,7 +569,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
 
   return (
     <Box
-      sx={{
+      styleProps={{
         position: 'relative',
         width:
           isVertical && !isActive
@@ -591,7 +591,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
     >
       {expanded && (
         <Box
-          sx={{
+          styleProps={{
             width: '300px',
             ...(isVertical && {
               position: 'absolute',
@@ -601,7 +601,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
           }}
         >
           <Box
-            sx={{
+            styleProps={{
               width: '300px',
               height: '40px',
               display: 'flex',
@@ -616,7 +616,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
           >
             <Box
               component="span"
-              sx={{
+              styleProps={{
                 width: '24px',
                 height: '24px',
                 display: 'flex',
@@ -627,9 +627,9 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
               }}
             >
               {isLoading ? (
-                <LoadingSpinner size="18px" sx={{ color: 'neutral.dark' }} />
+                <LoadingSpinner size="18px" styleProps={{ color: 'neutral.dark' }} />
               ) : (
-                <Search sx={{ width: '24px', height: '24px' }} />
+                <Search styleProps={{ width: '24px', height: '24px' }} />
               )}
             </Box>
             <input
@@ -689,14 +689,14 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
                 },
               })}
             >
-              <Cross sx={{ width: '0.75rem', height: '0.75rem' }} />
+              <Cross styleProps={{ width: '0.75rem', height: '0.75rem' }} />
             </BaseButton>
           </Box>
           {showPopup && (
             <Box
               ref={popupRef}
               role="listbox"
-              sx={{
+              styleProps={{
                 position: 'absolute',
                 top: '40px',
                 left: 0,
@@ -782,7 +782,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
             },
           })}
         >
-          <Search sx={{ color: 'neutral.dark' }} />
+          <Search styleProps={{ color: 'neutral.dark' }} />
         </BaseButton>
       )}
     </Box>

@@ -8,14 +8,14 @@ import {
 } from '#/common/style/pandaStyleProps'
 
 interface IconWithTextProps {
-  icon: React.ReactElement<{ sx?: unknown }>
+  icon: React.ReactElement<{ styleProps?: unknown }>
   onClick?: (
     event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>
   ) => void
   children?: React.ReactNode
   isIconOnRight?: boolean
   ariaLabel?: string
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   iconSx?: PandaStyleProp
   textSx?: PandaStyleProp
   disabled?: boolean
@@ -27,7 +27,7 @@ const IconWithText = ({
   children,
   isIconOnRight = false,
   ariaLabel,
-  sx,
+  styleProps,
   iconSx,
   textSx,
   disabled = false,
@@ -35,14 +35,14 @@ const IconWithText = ({
   const textElement = (
     <span
       className={css(...pandaStylePropsToArray(textSx))}
-      style={mergePandaStyleProps({ sx: textSx })}
+      style={mergePandaStyleProps({ styleProps: textSx })}
     >
       {children}
     </span>
   )
 
   const iconWithStyles = React.cloneElement(icon, {
-    sx: [
+    styleProps: [
       isIconOnRight ? { ml: 1 } : { mr: 1 },
       ...pandaStylePropsToArray(iconSx),
     ],
@@ -86,9 +86,9 @@ const IconWithText = ({
           opacity: disabled && onClick ? 0.5 : 1,
           userSelect: 'none',
         }),
-        css(...pandaStylePropsToArray(sx))
+        css(...pandaStylePropsToArray(styleProps))
       )}
-      style={mergePandaStyleProps({ sx })}
+      style={mergePandaStyleProps({ styleProps })}
     >
       {isIconOnRight ? (
         <>

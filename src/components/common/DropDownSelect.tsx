@@ -36,7 +36,7 @@ interface Props {
     selectedOption: SelectOption | undefined,
     selectedValue: string
   ) => React.ReactNode
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   selectSx?: PandaStyleProp
   labelSx?: PandaStyleProp
   iconSx?: PandaStyleProp
@@ -159,7 +159,7 @@ const DropDownSelect = ({
   placeholder,
   renderOption,
   renderSelectedValue,
-  sx,
+  styleProps,
   selectSx,
   labelSx,
   iconSx,
@@ -230,7 +230,7 @@ const DropDownSelect = ({
                 sharedSelectItemClass,
                 css(...pandaStylePropsToArray(typographySx))
               )}
-              style={mergePandaStyleProps({ sx: typographySx })}
+              style={mergePandaStyleProps({ styleProps: typographySx })}
             >
               <span className={itemTextClass}>
                 <i>
@@ -249,7 +249,7 @@ const DropDownSelect = ({
                 sharedSelectItemClass,
                 css(...pandaStylePropsToArray(typographySx))
               )}
-              style={mergePandaStyleProps({ sx: typographySx })}
+              style={mergePandaStyleProps({ styleProps: typographySx })}
             >
               <span className={itemTextClass}>
                 <i>
@@ -271,7 +271,7 @@ const DropDownSelect = ({
                 sharedSelectItemClass,
                 css(...pandaStylePropsToArray(typographySx))
               )}
-              style={mergePandaStyleProps({ sx: typographySx })}
+              style={mergePandaStyleProps({ styleProps: typographySx })}
             >
               <span className={itemTextClass}>
                 {renderOption ? renderOption(option) : option.label}
@@ -285,12 +285,12 @@ const DropDownSelect = ({
 
   return (
     <div
-      className={cx(wrapperClass, css(...pandaStylePropsToArray(sx)))}
+      className={cx(wrapperClass, css(...pandaStylePropsToArray(styleProps)))}
       style={{
         display: successIndicatorMode === 'outside' ? 'flex' : undefined,
         alignItems: successIndicatorMode === 'outside' ? 'center' : undefined,
         gap: successIndicatorMode === 'outside' ? '0.5rem' : undefined,
-        ...mergePandaStyleProps({ sx }),
+        ...mergePandaStyleProps({ styleProps }),
       }}
     >
       <div className={formControlClass}>
@@ -302,7 +302,7 @@ const DropDownSelect = ({
               floatingLabelClass,
               css(...pandaStylePropsToArray(labelSx))
             )}
-            style={mergePandaStyleProps({ sx: labelSx })}
+            style={mergePandaStyleProps({ styleProps: labelSx })}
           >
             {label}
           </label>
@@ -321,14 +321,14 @@ const DropDownSelect = ({
               triggerClass,
               css(...pandaStylePropsToArray(selectSx))
             )}
-            style={mergePandaStyleProps({ sx: selectSx })}
+            style={mergePandaStyleProps({ styleProps: selectSx })}
           >
             <BaseSelect.Value className={valueClass}>
               {(selectedValue) => renderSelectedContent(selectedValue)}
             </BaseSelect.Value>
             <BaseSelect.Icon
               className={cx(iconClass, css(...pandaStylePropsToArray(iconSx)))}
-              style={mergePandaStyleProps({ sx: iconSx })}
+              style={mergePandaStyleProps({ styleProps: iconSx })}
               aria-hidden="true"
             >
               <ArrowDown />
@@ -343,7 +343,7 @@ const DropDownSelect = ({
       </div>
       {hasValidSelection && successIndicatorMode === 'outside' && (
         <CheckcircleCheckedFilled
-          sx={{
+          styleProps={{
             width: 12,
             height: 12,
             color: '#2C8E74',

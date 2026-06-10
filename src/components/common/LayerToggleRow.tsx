@@ -22,7 +22,7 @@ type SharedLayerToggleRowProps = {
   disabled?: boolean
   ariaLabel?: string
   color?: string
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   rowSx?: PandaStyleProp
   labelSx?: PandaStyleProp
   iconSx?: PandaStyleProp
@@ -138,7 +138,7 @@ const ColoredVisibleIcon = ({ color }: { color: string }) => {
       }}
     >
       <EyeOpen
-        sx={{
+        styleProps={{
           width: 24,
           height: 24,
           color: contrastColor,
@@ -151,11 +151,11 @@ const ColoredVisibleIcon = ({ color }: { color: string }) => {
 const LayerStatusIcon = ({
   status,
   color,
-  sx,
+  styleProps,
 }: {
   status: LayerGroupStatus
   color?: string
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }) => {
   const iconBoxStyle = color
     ? {
@@ -179,17 +179,17 @@ const LayerStatusIcon = ({
 
   return (
     <span
-      className={cx(iconBoxClass, css(...pandaStylePropsToArray(sx)))}
+      className={cx(iconBoxClass, css(...pandaStylePropsToArray(styleProps)))}
       style={{
         ...iconBoxStyle,
         marginRight: color ? '0.75rem' : '0.3125rem',
-        ...mergePandaStyleProps({ sx }),
+        ...mergePandaStyleProps({ styleProps }),
       }}
     >
-      {status === 'processing' && <LoadingHorizontal sx={iconSx} />}
-      {status === 'hidden' && <EyeClosed sx={iconSx} />}
+      {status === 'processing' && <LoadingHorizontal styleProps={iconSx} />}
+      {status === 'hidden' && <EyeClosed styleProps={iconSx} />}
       {status === 'visible' &&
-        (color ? <ColoredVisibleIcon color={color} /> : <EyeOpen sx={iconSx} />)}
+        (color ? <ColoredVisibleIcon color={color} /> : <EyeOpen styleProps={iconSx} />)}
     </span>
   )
 }
@@ -201,7 +201,7 @@ const ToggleRowButton = ({
   disabled = false,
   ariaLabel,
   color,
-  sx,
+  styleProps,
   rowSx,
   labelSx,
   iconSx,
@@ -217,7 +217,7 @@ const ToggleRowButton = ({
 }) => {
   const buttonSx = [
     ...pandaStylePropsToArray(rowSx),
-    ...pandaStylePropsToArray(sx),
+    ...pandaStylePropsToArray(styleProps),
   ]
   const sharedProps = {
     type: 'button' as const,
@@ -228,16 +228,16 @@ const ToggleRowButton = ({
     className: cx(
       baseRowClass,
       css(...pandaStylePropsToArray(rowSx)),
-      css(...pandaStylePropsToArray(sx))
+      css(...pandaStylePropsToArray(styleProps))
     ),
-    style: mergePandaStyleProps({ sx: buttonSx }),
+    style: mergePandaStyleProps({ styleProps: buttonSx }),
   }
   const contents = (
     <>
-      <LayerStatusIcon status={status} color={color} sx={iconSx} />
+      <LayerStatusIcon status={status} color={color} styleProps={iconSx} />
       <span
         className={cx(labelClass, css(...pandaStylePropsToArray(labelSx)))}
-        style={mergePandaStyleProps({ sx: labelSx })}
+        style={mergePandaStyleProps({ styleProps: labelSx })}
       >
         {label}
       </span>
@@ -306,7 +306,7 @@ export const LayerToggleRowAccordion = ({
         >
           <CircleArrowRight
             aria-hidden="true"
-            sx={{
+            styleProps={{
               width: '0.75rem',
               height: '0.75rem',
               color: '#aeb6ad',
@@ -325,7 +325,7 @@ export const LayerToggleRowAccordion = ({
           accordionPanelClass,
           css(...pandaStylePropsToArray(contentSx))
         )}
-        style={mergePandaStyleProps({ sx: contentSx })}
+        style={mergePandaStyleProps({ styleProps: contentSx })}
       >
         {children}
       </BaseCollapsible.Panel>
@@ -340,7 +340,7 @@ export const LayerToggleRowLink = ({
   disabled = false,
   ariaLabel,
   color,
-  sx,
+  styleProps,
   rowSx,
   labelSx,
   iconSx,
@@ -348,10 +348,16 @@ export const LayerToggleRowLink = ({
   linkProps,
   linkSx,
 }: LayerToggleRowLinkProps) => {
+  const {
+    onClick: linkOnClick,
+    styleProps: linkStyleProps,
+    ...restLinkProps
+  } = linkProps
+
   return (
     <div
-      className={cx(linkRowClass, css(...pandaStylePropsToArray(sx)))}
-      style={mergePandaStyleProps({ sx })}
+      className={cx(linkRowClass, css(...pandaStylePropsToArray(styleProps)))}
+      style={mergePandaStyleProps({ styleProps })}
     >
       <ToggleRowButton
         label={label}
@@ -363,19 +369,19 @@ export const LayerToggleRowLink = ({
         rowSx={rowSx}
         labelSx={labelSx}
         iconSx={iconSx}
-        sx={{
+        styleProps={{
           flexGrow: 1,
           minWidth: 0,
         }}
       />
       <MutableLink
-        {...linkProps}
+        {...restLinkProps}
         aria-label={linkAriaLabel}
         onClick={(event) => {
           event.stopPropagation()
-          linkProps.onClick?.(event)
+          linkOnClick?.(event)
         }}
-        sx={[
+        styleProps={[
           {
             width: '2.5rem',
             height: '2.5rem',
@@ -390,13 +396,13 @@ export const LayerToggleRowLink = ({
               outlineOffset: '-0.25rem',
             },
           },
-          ...pandaStylePropsToArray(linkProps.sx),
+          ...pandaStylePropsToArray(linkStyleProps),
           ...pandaStylePropsToArray(linkSx),
         ]}
       >
         <CircleArrowRight
           aria-hidden="true"
-          sx={{
+          styleProps={{
             width: '1.5rem',
             height: '1.5rem',
             color: 'currentColor',

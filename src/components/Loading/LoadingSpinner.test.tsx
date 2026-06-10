@@ -18,13 +18,13 @@ describe('LoadingSpinner', () => {
     expect(spinner).not.toHaveAttribute('aria-valuenow')
   })
 
-  it('renders determinate progress metadata and supports sx overrides', () => {
+  it('renders determinate progress metadata and supports styleProps overrides', () => {
     render(
       <LoadingSpinner
         variant="determinate"
         value={42}
         size="3rem"
-        sx={{ color: 'warning.main', mt: 1 }}
+        styleProps={{ color: 'warning.main', mt: 1 }}
       />
     )
 

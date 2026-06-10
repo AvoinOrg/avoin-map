@@ -7,13 +7,13 @@ import {
 import type { IconProps } from './types'
 
 
-const Sandwich = ({ sx, className, style, ...props }: IconProps) => (
+const Sandwich = ({ styleProps, className, style, ...props }: IconProps) => (
   <svg
     width="44"
     height="16"
     viewBox="0 0 44 16"
-    className={cx(css(...pandaStylePropsToArray(sx)), className)}
-    style={mergePandaStyleProps({ sx, style })}
+    className={cx(css(...pandaStylePropsToArray(styleProps)), className)}
+    style={mergePandaStyleProps({ styleProps, style })}
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     {...props}

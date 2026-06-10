@@ -17,7 +17,7 @@ interface Props {
   saveButtonAriaLabel?: string
   cancelButtonAriaLabel?: string
   textFieldAriaLabel?: string
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   textSx?: PandaStyleProp
   iconSx?: PandaStyleProp
 }
@@ -118,7 +118,7 @@ const EditableText = ({
   saveButtonAriaLabel = 'Save text',
   cancelButtonAriaLabel = 'Cancel text editing',
   textFieldAriaLabel = 'Editable text',
-  sx,
+  styleProps,
   textSx,
   iconSx,
 }: Props) => {
@@ -182,14 +182,14 @@ const EditableText = ({
 
   return (
     <div
-      className={cx(wrapperClass, css(...pandaStylePropsToArray(sx)))}
-      style={mergePandaStyleProps({ sx })}
+      className={cx(wrapperClass, css(...pandaStylePropsToArray(styleProps)))}
+      style={mergePandaStyleProps({ styleProps })}
     >
       {!isValueFocused ? (
         <>
           <span
             className={cx(textClass, css(...pandaStylePropsToArray(textSx)))}
-            style={mergePandaStyleProps({ sx: textSx })}
+            style={mergePandaStyleProps({ styleProps: textSx })}
           >
             {`${value}${valueAppendix ?? ''}`}
           </span>
@@ -200,7 +200,7 @@ const EditableText = ({
             className={iconButtonClass}
           >
             <EditDocument
-              sx={[
+              styleProps={[
                 {
                   width: '19px',
                   height: '19px',
@@ -225,7 +225,7 @@ const EditableText = ({
             onKeyDown={handleKeyDown}
             aria-label={textFieldAriaLabel}
             className={cx(inputClass, css(...pandaStylePropsToArray(textSx)))}
-            style={mergePandaStyleProps({ sx: textSx })}
+            style={mergePandaStyleProps({ styleProps: textSx })}
           />
           <span className={adornmentClass}>
             <button
@@ -235,7 +235,7 @@ const EditableText = ({
               onClick={handleAccept}
             >
               <CheckcircleChecked
-                sx={[
+                styleProps={[
                   { width: '19px', height: '19px' },
                   ...pandaStylePropsToArray(iconSx),
                 ]}
@@ -249,7 +249,7 @@ const EditableText = ({
               onClick={handleCancel}
             >
               <Cross
-                sx={[
+                styleProps={[
                   { width: '19px', height: '19px' },
                   ...pandaStylePropsToArray(iconSx),
                 ]}

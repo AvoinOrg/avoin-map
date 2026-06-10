@@ -140,7 +140,7 @@ export const MapButtonStickyMenu = ({
 
       <IntoSlot name={STICKY_MENU_SLOT_NAME}>
         <Box
-          sx={{
+          styleProps={{
             visibility: open ? 'hidden' : 'visible',
           }}
         >
@@ -193,7 +193,7 @@ export const MapButtonStickyMenu = ({
             if (e.key === 'Enter' || e.key === ' ') closeMenu()
           }}
           aria-label={hideLabel}
-          sx={{
+          styleProps={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -210,7 +210,7 @@ export const MapButtonStickyMenu = ({
           {menuTitle ? (
             <Box
               component="span"
-              sx={{
+              styleProps={{
                 textStyle: 'body7',
                 fontWeight: 500,
                 textAlign: 'left',
@@ -220,10 +220,10 @@ export const MapButtonStickyMenu = ({
               {menuTitle}
             </Box>
           ) : (
-            <Box sx={{ flex: 1 }} />
+            <Box styleProps={{ flex: 1 }} />
           )}
-          <Box sx={{ display: 'flex', alignItems: 'center', p: '5px' }}>
-            <ArrowUp sx={{ color: 'neutral.darker' }} />
+          <Box styleProps={{ display: 'flex', alignItems: 'center', p: '5px' }}>
+            <ArrowUp styleProps={{ color: 'neutral.darker' }} />
           </Box>
         </Box>
         <Box>{resolvedMenuContent}</Box>

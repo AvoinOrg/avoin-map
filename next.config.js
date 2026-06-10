@@ -63,7 +63,6 @@ const resolveNextIntlDevelopmentEntry = (entry, developmentFile) => {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // emotion: true,
   compiler: {
     styledComponents: true,
   },
@@ -71,14 +70,8 @@ const nextConfig = {
   reactStrictMode: true,
   productionBrowserSourceMaps: DEBUG_CLIENT_ERRORS,
   modularizeImports: {
-    '@mui/material': {
-      transform: '@mui/material/{{member}}',
-    },
     ol: {
       transform: 'ol/{{member}}',
-    },
-    '@mui/icons-material/?(((\\w*)?/?)*)': {
-      transform: '@mui/icons-material/{{ matches.[1] }}/{{member}}',
     },
   },
   transpilePackages: ['lodash-es'],

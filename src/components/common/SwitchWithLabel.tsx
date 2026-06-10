@@ -8,10 +8,10 @@ import {
 } from '#/common/style/pandaStyleProps'
 import Switch, { type SwitchProps } from '#/components/common/Switch'
 
-type SwitchWithLabelProps = Omit<SwitchProps, 'sx'> & {
+type SwitchWithLabelProps = Omit<SwitchProps, 'styleProps'> & {
   children?: React.ReactNode
   ariaLabel?: string
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   controlSx?: PandaStyleProp
   labelSx?: PandaStyleProp
   required?: boolean
@@ -47,7 +47,7 @@ const labelClass = css({
 const SwitchWithLabel = ({
   children,
   ariaLabel,
-  sx,
+  styleProps,
   controlSx,
   labelSx,
   disabled,
@@ -64,12 +64,12 @@ const SwitchWithLabel = ({
 
   return (
     <label
-      className={cx(wrapperClass, css(...pandaStylePropsToArray(sx)))}
+      className={cx(wrapperClass, css(...pandaStylePropsToArray(styleProps)))}
       data-disabled={disabled ? '' : undefined}
-      style={mergePandaStyleProps({ sx })}
+      style={mergePandaStyleProps({ styleProps })}
     >
       <Switch
-        sx={controlSx}
+        styleProps={controlSx}
         disabled={disabled}
         aria-label={resolvedAriaLabel}
         inputProps={{
@@ -80,7 +80,7 @@ const SwitchWithLabel = ({
       />
       <span
         className={cx(labelClass, css(...pandaStylePropsToArray(labelSx)))}
-        style={mergePandaStyleProps({ sx: labelSx })}
+        style={mergePandaStyleProps({ styleProps: labelSx })}
       >
         {children}
         {required && ' *'}

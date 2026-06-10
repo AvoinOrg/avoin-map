@@ -16,7 +16,7 @@ interface EyeButtonProps {
   color: string
   status: LayerGroupStatus
   ariaLabel?: string
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 const iconFrameClassName = css({
@@ -32,7 +32,7 @@ export const EyeButton = ({
   color,
   status,
   ariaLabel,
-  sx,
+  styleProps,
 }: EyeButtonProps) => {
   const contrastColor = getContrastColor(color)
 
@@ -62,18 +62,18 @@ export const EyeButton = ({
             outlineOffset: '2px',
           },
         }),
-        css(...pandaStylePropsToArray(sx))
+        css(...pandaStylePropsToArray(styleProps))
       )}
-      style={mergePandaStyleProps({ sx })}
+      style={mergePandaStyleProps({ styleProps })}
     >
       {status === 'processing' && (
         <span className={iconFrameClassName}>
-          <LoadingHorizontal sx={{ width: '24px', height: '24px' }} />
+          <LoadingHorizontal styleProps={{ width: '24px', height: '24px' }} />
         </span>
       )}
       {status === 'hidden' && (
         <span className={iconFrameClassName}>
-          <EyeClosed sx={{ width: '24px', height: '24px' }} />
+          <EyeClosed styleProps={{ width: '24px', height: '24px' }} />
         </span>
       )}
       {status === 'visible' && (
@@ -91,7 +91,7 @@ export const EyeButton = ({
           })}
         >
           <EyeOpen
-            sx={{
+            styleProps={{
               width: 24,
               height: 24,
               color: contrastColor,

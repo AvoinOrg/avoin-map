@@ -17,7 +17,7 @@ export type LayerLegendItem = {
 
 type Props = {
   items: LayerLegendItem[]
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 const rootClass = css({
@@ -63,10 +63,10 @@ const LayerLegendItemRow = ({ item }: { item: LayerLegendItem }) => {
   )
 }
 
-const LayerLegend = ({ items, sx }: Props) => (
+const LayerLegend = ({ items, styleProps }: Props) => (
   <div
-    className={cx(rootClass, css(...pandaStylePropsToArray(sx)))}
-    style={mergePandaStyleProps({ sx })}
+    className={cx(rootClass, css(...pandaStylePropsToArray(styleProps)))}
+    style={mergePandaStyleProps({ styleProps })}
   >
     {items.map((item, index) => (
       <LayerLegendItemRow key={`${item.color}-${index}`} item={item} />

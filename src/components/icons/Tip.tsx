@@ -7,15 +7,15 @@ import {
 import type { IconProps } from './types'
 
 
-const Tip = ({ sx, className, style, ...props }: IconProps) => (
+const Tip = ({ styleProps, className, style, ...props }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={24}
     height={23}
     fill="none"
     viewBox="0 0 24 23"
-    className={cx(css(...pandaStylePropsToArray(sx)), className)}
-    style={mergePandaStyleProps({ sx, style })}
+    className={cx(css(...pandaStylePropsToArray(styleProps)), className)}
+    style={mergePandaStyleProps({ styleProps, style })}
     {...props}
   >
     <path

@@ -17,7 +17,7 @@ type TextFieldWithLabelProps = Omit<
 > & {
   label: React.ReactNode
   ariaLabel?: string
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   labelSx?: PandaStyleProp
   textFieldSx?: PandaStyleProp
   trailing?: React.ReactNode
@@ -88,7 +88,7 @@ const trailingClass = css({
 const TextFieldWithLabel = ({
   label,
   ariaLabel,
-  sx,
+  styleProps,
   labelSx,
   textFieldSx,
   trailing,
@@ -125,17 +125,17 @@ const TextFieldWithLabel = ({
 
   return (
     <BaseField.Root
-      className={cx(wrapperClass, css(...pandaStylePropsToArray(sx)))}
+      className={cx(wrapperClass, css(...pandaStylePropsToArray(styleProps)))}
       style={{
         width: fullWidth ? '100%' : undefined,
-        ...mergePandaStyleProps({ sx }),
+        ...mergePandaStyleProps({ styleProps }),
       }}
     >
       <div className={headerClass}>
         {ariaLabel ? (
           <span
             className={cx(labelClass, css(...pandaStylePropsToArray(labelSx)))}
-            style={mergePandaStyleProps({ sx: labelSx })}
+            style={mergePandaStyleProps({ styleProps: labelSx })}
           >
             {label}
           </span>
@@ -143,7 +143,7 @@ const TextFieldWithLabel = ({
           <BaseField.Label
             htmlFor={inputId}
             className={cx(labelClass, css(...pandaStylePropsToArray(labelSx)))}
-            style={mergePandaStyleProps({ sx: labelSx })}
+            style={mergePandaStyleProps({ styleProps: labelSx })}
           >
             {label}
           </BaseField.Label>
@@ -166,7 +166,7 @@ const TextFieldWithLabel = ({
               style={{
                 minHeight: minRows ? `${minRows * 1.5}rem` : undefined,
                 maxHeight: maxRows ? `${maxRows * 1.5}rem` : undefined,
-                ...mergePandaStyleProps({ sx: textFieldSx }),
+                ...mergePandaStyleProps({ styleProps: textFieldSx }),
               }}
             />
           ) : (
@@ -181,7 +181,7 @@ const TextFieldWithLabel = ({
                 inputClass,
                 css(...pandaStylePropsToArray(textFieldSx))
               )}
-              style={mergePandaStyleProps({ sx: textFieldSx })}
+              style={mergePandaStyleProps({ styleProps: textFieldSx })}
             />
           )}
         </div>

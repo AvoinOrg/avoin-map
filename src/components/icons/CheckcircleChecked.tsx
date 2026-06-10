@@ -13,7 +13,7 @@ type Props = IconProps & {
 
 const CheckcircleChecked = ({
   fillColor = 'gray',
-  sx,
+  styleProps,
   className,
   style,
   ...props
@@ -23,8 +23,8 @@ const CheckcircleChecked = ({
     width={23}
     height={23}
     viewBox="0 0 23 23"
-    className={cx(css(...pandaStylePropsToArray(sx)), className)}
-    style={mergePandaStyleProps({ sx, style })}
+    className={cx(css(...pandaStylePropsToArray(styleProps)), className)}
+    style={mergePandaStyleProps({ styleProps, style })}
     fill="none"
     {...props}
   >

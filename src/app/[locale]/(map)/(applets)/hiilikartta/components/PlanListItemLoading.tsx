@@ -4,15 +4,15 @@ import React from 'react'
 import { Box } from '#/components/common/PandaBox'
 import type { PandaStyleProp } from '#/common/style/panda'
 
-const SkeletonBox = ({ sx }: { sx: PandaStyleProp }) => (
+const SkeletonBox = ({ styleProps }: { styleProps: PandaStyleProp }) => (
   <Box
     aria-hidden="true"
-    sx={[
+    styleProps={[
       {
         flexShrink: 0,
         backgroundColor: 'rgba(17, 17, 17, 0.06)',
       },
-      ...(Array.isArray(sx) ? sx : [sx]),
+      ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
     ]}
   />
 )
@@ -20,7 +20,7 @@ const SkeletonBox = ({ sx }: { sx: PandaStyleProp }) => (
 const PlanListItemLoading = () => {
   return (
     <Box
-      sx={{
+      styleProps={{
         display: 'flex',
         alignItems: 'flex-start',
         justifyContent: 'space-between',
@@ -29,7 +29,7 @@ const PlanListItemLoading = () => {
       }}
     >
       <Box
-        sx={{
+        styleProps={{
           display: 'flex',
           alignItems: 'flex-start',
           gap: '0.875rem',
@@ -38,7 +38,7 @@ const PlanListItemLoading = () => {
         }}
       >
         <SkeletonBox
-          sx={{
+          styleProps={{
             width: '0.75rem',
             height: '0.5625rem',
             borderRadius: '0.2rem',
@@ -48,7 +48,7 @@ const PlanListItemLoading = () => {
           }}
         />
         <Box
-          sx={{
+          styleProps={{
             display: 'flex',
             flexDirection: 'column',
             gap: '0.375rem',
@@ -57,14 +57,14 @@ const PlanListItemLoading = () => {
           }}
         >
           <SkeletonBox
-            sx={{
+            styleProps={{
               width: '40%',
               height: '1rem',
               backgroundColor: 'rgba(17, 17, 17, 0.08)',
             }}
           />
           <SkeletonBox
-            sx={{
+            styleProps={{
               width: '58%',
               height: '0.875rem',
               backgroundColor: 'rgba(17, 17, 17, 0.06)',
@@ -74,7 +74,7 @@ const PlanListItemLoading = () => {
       </Box>
 
       <SkeletonBox
-        sx={{
+        styleProps={{
           width: '1rem',
           height: '1rem',
           borderRadius: '50%',

@@ -26,7 +26,7 @@ interface Props {
   onChange: (event: FormSelectionEvent<string>) => void
   ariaLabel?: string
   name?: string
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   optionSx?: PandaStyleProp
   iconSx?: PandaStyleProp
   isIconOnTheRight?: boolean
@@ -80,7 +80,7 @@ const DropDownSelectMinimal = ({
   onChange,
   ariaLabel,
   name,
-  sx,
+  styleProps,
   optionSx,
   iconSx,
   isIconOnTheRight = true,
@@ -109,10 +109,10 @@ const DropDownSelectMinimal = ({
     >
       <BaseSelect.Trigger
         aria-label={ariaLabel}
-        className={cx(triggerClass, css(...pandaStylePropsToArray(sx)))}
+        className={cx(triggerClass, css(...pandaStylePropsToArray(styleProps)))}
         style={{
           flexDirection: isIconOnTheRight ? undefined : 'row-reverse',
-          ...mergePandaStyleProps({ sx }),
+          ...mergePandaStyleProps({ styleProps }),
         }}
       >
         <BaseSelect.Value className={valueClass}>
@@ -125,7 +125,7 @@ const DropDownSelectMinimal = ({
         </BaseSelect.Value>
         <BaseSelect.Icon
           className={cx(iconClass, css(...pandaStylePropsToArray(iconSx)))}
-          style={mergePandaStyleProps({ sx: iconSx })}
+          style={mergePandaStyleProps({ styleProps: iconSx })}
           aria-hidden="true"
         >
           <ArrowDown />
@@ -161,7 +161,7 @@ const DropDownSelectMinimal = ({
                     sharedSelectItemClass,
                     css(...pandaStylePropsToArray(optionSx))
                   )}
-                  style={mergePandaStyleProps({ sx: optionSx })}
+                  style={mergePandaStyleProps({ styleProps: optionSx })}
                 >
                   {option.label}
                 </BaseSelect.Item>

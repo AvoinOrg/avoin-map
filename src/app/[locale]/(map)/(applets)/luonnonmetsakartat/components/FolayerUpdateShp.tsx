@@ -412,11 +412,11 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
       <>
         {columns.length > 0 && (
           <>
-            <Box component="h4" sx={{ m: 0, typography: 'h4', mb: 2 }}>
+            <Box component="h4" styleProps={{ m: 0, typography: 'h4', mb: 2 }}>
               {t('sidebar.admin.create.column_selection_header')}
             </Box>
             <Box
-              sx={{
+              styleProps={{
                 backgroundColor: 'neutral.light',
                 borderLeft: '1px solid',
                 borderColor: 'neutral.main',
@@ -442,7 +442,7 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
                     ),
                   },
                 ]}
-                sx={{ width: '100%' }}
+                styleProps={{ width: '100%' }}
               />
               <FolayerImportCodeRecordSelect
                 columns={columns}
@@ -456,7 +456,7 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
                       )
                 }
                 allowEmpty={true}
-                sx={{ mt: 4, width: '100%' }}
+                styleProps={{ mt: 4, width: '100%' }}
               />
               <FolayerImportCodeRecordSelect
                 columns={columns}
@@ -464,7 +464,7 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
                 onColumnChange={handleNameColChange}
                 label={t('sidebar.admin.create.select_folayer_name_record')}
                 allowEmpty={true}
-                sx={{ mt: 4, width: '100%' }}
+                styleProps={{ mt: 4, width: '100%' }}
               />
               <FolayerImportCodeRecordSelect
                 columns={columns}
@@ -474,7 +474,7 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
                   'sidebar.admin.create.select_folayer_municipality_record'
                 )}
                 allowEmpty={true}
-                sx={{ mt: 4, width: '100%' }}
+                styleProps={{ mt: 4, width: '100%' }}
               />
               <FolayerImportCodeRecordSelect
                 columns={columns}
@@ -482,7 +482,7 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
                 onColumnChange={handleRegionColChange}
                 label={t('sidebar.admin.create.select_folayer_region_record')}
                 allowEmpty={true}
-                sx={{ mt: 4, width: '100%' }}
+                styleProps={{ mt: 4, width: '100%' }}
               />
               <FolayerImportCodeRecordSelect
                 columns={columns}
@@ -492,7 +492,7 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
                   'sidebar.admin.create.select_folayer_description_record'
                 )}
                 allowEmpty={true}
-                sx={{ mt: 4, width: '100%' }}
+                styleProps={{ mt: 4, width: '100%' }}
               />
               <FolayerImportCodeRecordSelect
                 columns={columns}
@@ -500,7 +500,7 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
                 onColumnChange={handleAreaColChange}
                 label={t('sidebar.admin.create.select_folayer_area_record')}
                 allowEmpty={true}
-                sx={{ mt: 4, width: '100%' }}
+                styleProps={{ mt: 4, width: '100%' }}
               />
             </Box>
           </>

@@ -22,7 +22,7 @@ export const OverlayMessages = ({ message }: { message: OverlayMessage | null })
 
   return (
     <Box
-      sx={{
+      styleProps={{
         position: 'absolute',
         top: 0,
         right: 0,
@@ -35,7 +35,7 @@ export const OverlayMessages = ({ message }: { message: OverlayMessage | null })
       }}
     >
       <Box
-        sx={{
+        styleProps={{
           margin: 'auto',
           padding: '10px',
           textAlign: 'center',

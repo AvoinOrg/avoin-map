@@ -92,7 +92,7 @@ export const LoginModal = () => {
             className={closeButtonClass}
             aria-label="Close login modal"
           >
-            <Cross sx={{ width: '1.5rem', height: '1.5rem' }} />
+            <Cross styleProps={{ width: '1.5rem', height: '1.5rem' }} />
           </BaseDialog.Close>
 
           <iframe

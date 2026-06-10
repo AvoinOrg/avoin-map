@@ -323,7 +323,7 @@ const Page = () => {
   return (
     <SidebarBoundary id="hiilikartta-report-none" mode="none">
       <FullscreenPage
-        sx={{
+        styleProps={{
           backgroundColor: 'neutral.lighter',
           display: 'flex',
           flexDirection: 'column',
@@ -333,7 +333,7 @@ const Page = () => {
         }}
       >
       <Section
-        sx={{
+        styleProps={{
           backgroundColor: 'primary.dark',
           pt: 10,
           pb: 4,
@@ -349,7 +349,7 @@ const Page = () => {
         }}
       >
         <Row
-          sx={{
+          styleProps={{
             xs: {
               flexDirection: 'column-reverse',
               flexWrap: 'wrap',
@@ -366,7 +366,7 @@ const Page = () => {
         >
           <Box
             component="h1"
-            sx={{
+            styleProps={{
               m: 0,
               typography: 'h1',
               display: 'inline',
@@ -397,7 +397,7 @@ const Page = () => {
           >
             <Box
               component="span"
-              sx={{
+              styleProps={{
                 typography: 'body1',
                 display: 'inline',
                 color: 'neutral.light',
@@ -410,7 +410,7 @@ const Page = () => {
           </MutableLink>
         </Row>
         <Row
-          sx={{
+          styleProps={{
             mt: 4,
             justifyContent: 'flex-start',
             flexWrap: 'wrap',
@@ -418,7 +418,7 @@ const Page = () => {
         >
           <Box
             component="span"
-            sx={{
+            styleProps={{
               typography: 'h3',
               lineHeight: '1.375rem',
               display: 'inline-flex',
@@ -437,7 +437,7 @@ const Page = () => {
             />
           </Box>
           <MultiSelectAutocomplete
-            sx={{
+            styleProps={{
               width: '21rem',
               mobile: {
                 width: '100%',
@@ -457,7 +457,7 @@ const Page = () => {
 
           {planConfs.length === 1 && (
             <Col
-              sx={{
+              styleProps={{
                 flex: 1,
                 alignItems: 'end',
                 letterSpacing: '0.075rem',
@@ -472,7 +472,7 @@ const Page = () => {
             >
               <Box
                 component="span"
-                sx={{
+                styleProps={{
                   display: 'inline',
                   typography: 'body7',
                   flexWrap: 'no-wrap',
@@ -486,7 +486,7 @@ const Page = () => {
               </Box>
               <Box
                 component="span"
-                sx={{
+                styleProps={{
                   typography: 'body7',
                   display: 'inline',
                 }}
@@ -500,7 +500,7 @@ const Page = () => {
         </Row>
       </Section>
       <Section
-        sx={{
+        styleProps={{
           width: '100%',
           backgroundColor: 'primary.light',
           px: 4,
@@ -513,14 +513,14 @@ const Page = () => {
         }}
       >
         <Row
-          sx={{
+          styleProps={{
             justifyContent: 'flex-end',
             alignItems: 'center',
             minHeight: '4.75rem',
           }}
         >
           <Box
-            sx={{
+            styleProps={{
               display: 'flex',
               flexDirection: 'row',
               alignItems: 'center',
@@ -533,7 +533,7 @@ const Page = () => {
               aria-label="Download report data as GeoJSON"
               disabled={planConfs.length === 0}
               onClick={handleDownloadGeoJson}
-              sx={{
+              styleProps={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 columnGap: 1.5,
@@ -551,12 +551,12 @@ const Page = () => {
                 },
               }}
             >
-              <Box sx={{ display: 'inline-flex' }}>
-                <DownloadIcon sx={{ width: 14, height: 20, mt: '-2px' }} />
+              <Box styleProps={{ display: 'inline-flex' }}>
+                <DownloadIcon styleProps={{ width: 14, height: 20, mt: '-2px' }} />
               </Box>
               <Box
                 component="span"
-                sx={{
+                styleProps={{
                   typography: 'body7',
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -570,7 +570,7 @@ const Page = () => {
             </Box>
             <ClipboardCopyWrapper
               ariaLabel="Copy report link"
-              sx={{
+              styleProps={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 columnGap: 1.5,
@@ -578,12 +578,12 @@ const Page = () => {
               }}
               textToCopy={fullUrl}
             >
-              <Box sx={{ display: 'inline-flex' }}>
+              <Box styleProps={{ display: 'inline-flex' }}>
                 <LinkIcon />
               </Box>
               <Box
                 component="span"
-                sx={{
+                styleProps={{
                   typography: 'body7',
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -600,7 +600,7 @@ const Page = () => {
       </Section>
       {!isLoaded && (
         <Box
-          sx={{
+          styleProps={{
             mt: 18,
             display: 'flex',
             flexDirection: 'row',
@@ -611,18 +611,18 @@ const Page = () => {
         </Box>
       )}
       {isLoaded && planConfs.length > 0 && featureYears.length > 0 && (
-        <Col sx={{ maxWidth: MAX_WIDTH, p: 3 }}>
+        <Col styleProps={{ maxWidth: MAX_WIDTH, p: 3 }}>
           <Section>
             <CarbonOverviewGraph
               planConfs={planConfs}
               featureYears={featureYears}
-              sx={{ maxWidth: MAX_WIDTH, width: '100%', mt: 5 }}
+              styleProps={{ maxWidth: MAX_WIDTH, width: '100%', mt: 5 }}
             />
           </Section>
-          <Breaker sx={{ mt: 8 }} />
+          <Breaker styleProps={{ mt: 8 }} />
 
           <Section
-            sx={{
+            styleProps={{
               mt: { xs: 8, md: 14 },
               border: { xs: 'none', md: '1px solid' },
               borderColor: { md: 'primary.dark' },
@@ -637,7 +637,7 @@ const Page = () => {
               borderRadius: '0.3125rem',
             }}
           >
-            <Row sx={{ mb: 4 }}>
+            <Row styleProps={{ mb: 4 }}>
               <Col>
                 <CarbonMapGraph
                   planConfs={planConfs}
@@ -647,7 +647,7 @@ const Page = () => {
             </Row>
           </Section>
           <Section
-            sx={{
+            styleProps={{
               mt: { xs: 4, md: 8 },
               border: { xs: 'none', md: '1px solid' },
               borderColor: { md: 'primary.dark' },
@@ -679,14 +679,14 @@ const Page = () => {
 
 const Section = ({
   children,
-  sx,
+  styleProps,
 }: {
   children: React.ReactNode
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }) => (
   <Box
     component="section"
-    sx={[
+    styleProps={[
       {
         display: 'flex',
         flexDirection: 'column',
@@ -694,36 +694,36 @@ const Section = ({
         alignItems: 'center',
         width: '100%',
       },
-      ...(Array.isArray(sx) ? sx : [sx]),
+      ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
     ]}
   >
     {children}
   </Box>
 )
 
-const Breaker = ({ sx }: { sx?: PandaStyleProp }) => (
+const Breaker = ({ styleProps }: { styleProps?: PandaStyleProp }) => (
   <Box
-    sx={[
+    styleProps={[
       {
         width: '100%',
         borderTop: '3px solid',
         borderTopColor: 'primary.light',
         display: { xs: 'block', md: 'none' },
       },
-      ...(Array.isArray(sx) ? sx : [sx]),
+      ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
     ]}
   />
 )
 
 const Row = ({
   children,
-  sx,
+  styleProps,
 }: {
   children: React.ReactNode
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }) => (
   <Box
-    sx={[
+    styleProps={[
       {
         display: 'flex',
         flexDirection: 'row',
@@ -731,7 +731,7 @@ const Row = ({
         width: '100%',
         maxWidth: MAX_WIDTH,
       },
-      ...(Array.isArray(sx) ? sx : [sx]),
+      ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
     ]}
   >
     {children}
@@ -740,20 +740,20 @@ const Row = ({
 
 const Col = ({
   children,
-  sx,
+  styleProps,
 }: {
   children: React.ReactNode
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }) => (
   <Box
-    sx={[
+    styleProps={[
       {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-start',
         width: '100%',
       },
-      ...(Array.isArray(sx) ? sx : [sx]),
+      ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
     ]}
   >
     {children}

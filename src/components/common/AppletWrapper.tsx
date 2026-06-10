@@ -39,7 +39,7 @@ type BaseAppletWrapperProps = {
     duration?: number
   }
   listedLayerGroups?: ListedLayerMenuItem[]
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 type AppletWrapperProps = BaseAppletWrapperProps &
@@ -73,7 +73,7 @@ const AppletWrapper = ({
   sidebarHeaderTitle,
   sidebarHeaderChildren,
   sidebarHeaderBackgroundImage,
-  sx,
+  styleProps,
 }: AppletWrapperProps) => {
   const tolgee = useTolgee(['update'])
   const sidebarBoundaryContext = useNullableSidebarBoundaryContext()
@@ -219,9 +219,9 @@ const AppletWrapper = ({
           flex: 1,
           minHeight: 0,
         }),
-        css(...pandaStylePropsToArray(sx))
+        css(...pandaStylePropsToArray(styleProps))
       )}
-      style={mergePandaStyleProps({ sx })}
+      style={mergePandaStyleProps({ styleProps })}
     >
       {stateMapContext === mapContext && isTolgeeReady() && (
         <>

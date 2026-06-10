@@ -158,23 +158,23 @@ const useWindowMatchMedia = (query: string): boolean => {
 }
 
 type SidebarTextProps = {
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   children?: React.ReactNode
 } & React.ComponentPropsWithoutRef<'p'>
 
 const SidebarText = ({
-  sx,
+  styleProps,
   children,
   ...props
 }: SidebarTextProps) => (
   <Box
     component="p"
     {...props}
-    sx={[
+    styleProps={[
       {
         m: 0,
       },
-      ...(Array.isArray(sx) ? sx : [sx]),
+      ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
     ]}
   >
     {children}
@@ -216,14 +216,14 @@ const HomeSidebarHeader = () => {
 
   return (
     <Box
-      sx={{
+      styleProps={{
         px: '0.625rem',
         pt: isMobile ? '0.625rem' : '0.75rem',
         flexShrink: 0,
       }}
     >
       <Box
-        sx={{
+        styleProps={{
           position: 'relative',
           height: '6.25rem',
           border: '0.2px solid #ffffff',
@@ -236,7 +236,7 @@ const HomeSidebarHeader = () => {
           src="/files/img/energiakartta/sidebar/main-hero-header-crop.jpg"
           alt=""
           aria-hidden="true"
-          sx={{
+          styleProps={{
             position: 'absolute',
             inset: 0,
             width: '100%',
@@ -246,7 +246,7 @@ const HomeSidebarHeader = () => {
           }}
         />
         <Box
-          sx={{
+          styleProps={{
             position: 'absolute',
             inset: 0,
             background:
@@ -254,7 +254,7 @@ const HomeSidebarHeader = () => {
           }}
         />
         <SidebarText
-          sx={{
+          styleProps={{
             position: 'relative',
             zIndex: 1,
             pt: '2.625rem',
@@ -292,7 +292,7 @@ const SidebarFooterAction = ({
         tabIndex={0}
         aria-disabled="true"
         aria-label={label}
-        sx={{
+        styleProps={{
           width: '100%',
           height: '5rem',
           pl: '1.625rem',
@@ -318,14 +318,14 @@ const SidebarFooterAction = ({
           src="/files/img/energiakartta/sidebar/edit-building-details.svg"
           alt=""
           aria-hidden="true"
-          sx={{
+          styleProps={{
             width: '1.90625rem',
             height: '1.3125rem',
             flexShrink: 0,
           }}
         />
         <SidebarText
-          sx={{
+          styleProps={{
             minWidth: 0,
             color: '#111111',
             fontSize: '0.6875rem',
@@ -357,14 +357,14 @@ const HeatingAccordionContent = ({
 
   return (
     <Box
-      sx={{
+      styleProps={{
         pt: '2.125rem',
         mx: '2rem',
         maxWidth: '15.875rem',
       }}
     >
       <SidebarText
-        sx={{
+        styleProps={{
           ...ACCORDION_TEXT_SX,
           mb: '2.5rem',
         }}
@@ -373,7 +373,7 @@ const HeatingAccordionContent = ({
       </SidebarText>
       <Box
         component="ul"
-        sx={{
+        styleProps={{
           m: 0,
           p: 0,
           display: 'flex',
@@ -386,7 +386,7 @@ const HeatingAccordionContent = ({
           <Box
             key={id}
             component="li"
-            sx={{
+            styleProps={{
               width: '100%',
               display: 'flex',
               alignItems: 'center',
@@ -398,7 +398,7 @@ const HeatingAccordionContent = ({
               checkedTrackColor={color}
               ariaLabel={t(keyName)}
               onChange={onHeatingSwitchChange(id)}
-              sx={{ width: '100%' }}
+              styleProps={{ width: '100%' }}
               labelSx={{
                 ...ACCORDION_TEXT_SX,
                 fontSize: '0.6875rem',
@@ -871,11 +871,11 @@ const Page = () => {
         </IntoSlot>
       )}
       <SidebarContentBox
-        sxOuter={{
+        outerStyleProps={{
           height: '100%',
         }}
         scrollbarSide="left"
-        sxInner={{
+        innerStyleProps={{
           p: 0,
           px: 0,
           py: 0,
@@ -886,7 +886,7 @@ const Page = () => {
         }}
       >
         <Box
-          sx={{
+          styleProps={{
             px: sidebarSidePadding,
             pt: sidebarContentVerticalPadding,
             pb: sidebarContentVerticalPadding,
@@ -895,7 +895,7 @@ const Page = () => {
           }}
         >
           <SidebarText
-            sx={{
+            styleProps={{
               maxWidth: '18.1875rem',
               color: '#111111',
               fontSize: '0.75rem',
@@ -909,7 +909,7 @@ const Page = () => {
           </SidebarText>
 
           <SidebarText
-            sx={{
+            styleProps={{
               mt: sidebarDescriptionMarginTop,
               maxWidth: '18.1875rem',
               color: '#111111',
@@ -926,7 +926,7 @@ const Page = () => {
           </SidebarText>
 
           <Box
-            sx={{
+            styleProps={{
               mt: sidebarLayerListMarginTop,
               display: 'flex',
               flexDirection: 'column',
@@ -977,7 +977,7 @@ const Page = () => {
                 title={upcomingTooltip}
                 side="top"
               >
-                <Box component="span" sx={{ display: 'block', width: '100%' }}>
+                <Box component="span" styleProps={{ display: 'block', width: '100%' }}>
                   <LayerToggleRow
                     label={<TText keyName={keyName} ns="energiakartta" />}
                     status="hidden"

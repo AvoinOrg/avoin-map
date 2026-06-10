@@ -320,7 +320,7 @@ const CarbonMapGraphMap = ({
       <Box ref={mapContainer} style={{ height: '100%', width: '100%' }} />
 
       <Box
-        sx={{
+        styleProps={{
           position: 'absolute',
           bottom: '0.75rem',
           left: '50%',
@@ -349,7 +349,7 @@ const CarbonMapGraphMap = ({
       </Box>
 
       <Box
-        sx={{
+        styleProps={{
           position: 'absolute',
           top: '0.75rem',
           left: '0.75rem',
@@ -362,7 +362,7 @@ const CarbonMapGraphMap = ({
           <Box
             component="button"
             type="button"
-            sx={{
+            styleProps={{
               borderRadius: '0.3125rem',
               border: 'none',
               color: 'neutral.darker',
@@ -397,7 +397,7 @@ const CarbonMapGraphMap = ({
           >
             <Box
               component="span"
-              sx={{
+              styleProps={{
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
@@ -413,7 +413,7 @@ const CarbonMapGraphMap = ({
         ))}
       </Box>
       <Box
-        sx={{
+        styleProps={{
           display: tooltip.visible ? 'flex' : 'none',
           flexDirection: 'column',
           position: 'absolute',
@@ -441,7 +441,7 @@ const CarbonMapGraphMap = ({
         {tooltip.feature && (
           <>
             <Box
-              sx={{
+              styleProps={{
                 alignSelf: 'flex-end',
                 flexDirection: 'row',
                 cursor: 'pointer',
@@ -456,7 +456,7 @@ const CarbonMapGraphMap = ({
                 component="button"
                 type="button"
                 aria-label="Close map graph tooltip"
-                sx={{
+                styleProps={{
                   display: 'inline',
                   p: 0,
                   m: 0,
@@ -469,18 +469,18 @@ const CarbonMapGraphMap = ({
                   setTooltip((prev) => ({ ...prev, visible: false }))
                 }
               >
-                <Cross sx={{ width: '15px', height: '15px' }}></Cross>
+                <Cross styleProps={{ width: '15px', height: '15px' }}></Cross>
               </Box>
             </Box>
             <Box
-              sx={{
+              styleProps={{
                 display: 'flex',
                 flexDirection: 'column',
               }}
             >
               <Box
                 component="table"
-                sx={{
+                styleProps={{
                   borderCollapse: 'collapse',
                   '& th, & td': {
                     borderBottom: 'none',
@@ -555,27 +555,27 @@ const CarbonMapGraphMap = ({
 }
 
 const FirstColumnCell = ({ children }: { children: React.ReactNode }) => (
-  <Box component="th" scope="row" sx={{ typography: 'body7' }}>
+  <Box component="th" scope="row" styleProps={{ typography: 'body7' }}>
     {children}
   </Box>
 )
 
 const DataCell = ({
   children,
-  sx,
+  styleProps,
 }: {
   children: React.ReactNode
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }) => (
   <Box
     component="td"
-    sx={[
+    styleProps={[
       {
         typography: 'body7',
         fontWeight: 'bold',
         letterSpacing: '0.125rem',
       },
-      ...(Array.isArray(sx) ? sx : [sx]),
+      ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
     ]}
   >
     {children}

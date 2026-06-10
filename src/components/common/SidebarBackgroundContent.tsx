@@ -16,7 +16,7 @@ type SidebarBackgroundContentProps = {
   description?: React.ReactNode
   children?: React.ReactNode
   actions?: React.ReactNode
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   imageSx?: PandaStyleProp
   contentSx?: PandaStyleProp
   headerSx?: PandaStyleProp
@@ -31,7 +31,7 @@ const SidebarBackgroundContent = ({
   description,
   children,
   actions,
-  sx,
+  styleProps,
   imageSx,
   contentSx,
   headerSx,
@@ -49,9 +49,9 @@ const SidebarBackgroundContent = ({
           color: '#111111',
           boxShadow: 'none',
         }),
-        css(...pandaStylePropsToArray(sx))
+        css(...pandaStylePropsToArray(styleProps))
       )}
-      style={mergePandaStyleProps({ sx })}
+      style={mergePandaStyleProps({ styleProps })}
     >
       <img
         src={imageSrc}
@@ -66,7 +66,7 @@ const SidebarBackgroundContent = ({
           }),
           css(...pandaStylePropsToArray(imageSx))
         )}
-        style={mergePandaStyleProps({ sx: imageSx })}
+        style={mergePandaStyleProps({ styleProps: imageSx })}
       />
       <div
         className={cx(
@@ -80,7 +80,7 @@ const SidebarBackgroundContent = ({
           }),
           css(...pandaStylePropsToArray(contentSx))
         )}
-        style={mergePandaStyleProps({ sx: contentSx })}
+        style={mergePandaStyleProps({ styleProps: contentSx })}
       >
         {(title || description) && (
           <div
@@ -92,7 +92,7 @@ const SidebarBackgroundContent = ({
               }),
               css(...pandaStylePropsToArray(headerSx))
             )}
-            style={mergePandaStyleProps({ sx: headerSx })}
+            style={mergePandaStyleProps({ styleProps: headerSx })}
           >
             {title && (
               <span
@@ -121,7 +121,7 @@ const SidebarBackgroundContent = ({
                   }),
                   css(...pandaStylePropsToArray(descriptionSx))
                 )}
-                style={mergePandaStyleProps({ sx: descriptionSx })}
+                style={mergePandaStyleProps({ styleProps: descriptionSx })}
               >
                 {description}
               </span>
@@ -139,7 +139,7 @@ const SidebarBackgroundContent = ({
               }),
               css(...pandaStylePropsToArray(actionsSx))
             )}
-            style={mergePandaStyleProps({ sx: actionsSx })}
+            style={mergePandaStyleProps({ styleProps: actionsSx })}
           >
             {actions}
           </div>

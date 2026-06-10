@@ -182,7 +182,7 @@ const ZoneClassSelectOptionContent = ({
   return (
     <Box
       component="span"
-      sx={{
+      styleProps={{
         display: 'inline-flex',
         alignItems: 'center',
         gap: '0.5rem',
@@ -192,12 +192,12 @@ const ZoneClassSelectOptionContent = ({
       <ZoneClassChip
         code={option.code}
         color={option.color}
-        sx={{ flexShrink: 0, pt: '0.1rem' }}
+        styleProps={{ flexShrink: 0, pt: '0.1rem' }}
       />
 
       <Box
         component="span"
-        sx={{
+        styleProps={{
           minWidth: 0,
           overflow: 'hidden',
           textOverflow: 'ellipsis',
@@ -361,7 +361,7 @@ const ZoneNameField = memo(
         onChange={handleNameChange}
         onFocus={handleNameFocus}
         onBlur={handleNameBlur}
-        sx={{ mt: 1.5, mr: '-1rem', ml: '-1rem', width: 'auto' }}
+        styleProps={{ mt: 1.5, mr: '-1rem', ml: '-1rem', width: 'auto' }}
       />
     )
   }
@@ -689,7 +689,7 @@ const ZoneAccordionItem = ({
   const landUseDistributionHint = !isLandUseDistributionValid ? (
     <Box
       component="p"
-      sx={{
+      styleProps={{
         m: 0,
         maxWidth: '12.5rem',
         fontSize: '0.75rem',
@@ -808,7 +808,7 @@ const ZoneAccordionItem = ({
         accordionRefs.current[feature.properties.id] =
           node as HTMLDivElement | null
       }}
-      sx={{
+      styleProps={{
         position: 'relative',
         my: expanded ? OPEN_ITEM_MARGIN_Y : 0,
       }}
@@ -825,7 +825,7 @@ const ZoneAccordionItem = ({
         >
           <Box
             component="span"
-            sx={{
+            styleProps={{
               position: 'absolute',
               left: WARNING_ICON_OFFSET_X,
               top: WARNING_ICON_TOP,
@@ -837,7 +837,7 @@ const ZoneAccordionItem = ({
             }}
           >
             <Warning
-              sx={{
+              styleProps={{
                 width: 16,
                 height: 15,
                 color: '#D8A500',
@@ -849,7 +849,7 @@ const ZoneAccordionItem = ({
       )}
 
       <Box
-        sx={{
+        styleProps={{
           position: 'relative',
           '&::before': expanded
             ? {
@@ -873,7 +873,7 @@ const ZoneAccordionItem = ({
         }}
       >
         <Box
-          sx={{
+          styleProps={{
             position: 'relative',
             borderTop: expanded ? 'none' : '1px solid #D6D6D6',
             borderBottom: expanded
@@ -890,7 +890,7 @@ const ZoneAccordionItem = ({
             aria-expanded={expanded}
             aria-controls={`zone-panel-${feature.properties.id}`}
             id={`zone-toggle-${feature.properties.id}`}
-            sx={{
+            styleProps={{
               width: '100%',
               display: 'flex',
               alignItems: 'center',
@@ -905,11 +905,11 @@ const ZoneAccordionItem = ({
             <ZoneClassChip
               code={zoningPresentation.code}
               color={zoningPresentation.color}
-              sx={{ pt: '0.2rem' }}
+              styleProps={{ pt: '0.2rem' }}
             />
 
             <Box
-              sx={{
+              styleProps={{
                 minWidth: 0,
                 flex: 1,
                 overflow: 'hidden',
@@ -917,7 +917,7 @@ const ZoneAccordionItem = ({
             >
               <Box
                 component="span"
-                sx={{
+                styleProps={{
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
@@ -934,7 +934,7 @@ const ZoneAccordionItem = ({
             </Box>
 
             <ArrowDown
-              sx={{
+              styleProps={{
                 width: 12,
                 height: 8,
                 color: '#111111',
@@ -952,7 +952,7 @@ const ZoneAccordionItem = ({
               aria-labelledby={`zone-toggle-${feature.properties.id}`}
             >
               <Box
-                sx={{
+                styleProps={{
                   pb: '0.875rem',
                   pl: DETAILS_PADDING_LEFT,
                   pr: SUMMARY_ROW_PADDING_X,
@@ -965,7 +965,7 @@ const ZoneAccordionItem = ({
                   onCommit={handleNameCommit}
                 />
 
-                <Box sx={{ mt: '1rem' }}>
+                <Box styleProps={{ mt: '1rem' }}>
                   <DropDownSelectWithHeader
                     ariaLabel={`${t('sidebar.plan_settings.areas.change_class_label')} ${displayName}`}
                     label={t('sidebar.plan_settings.areas.change_class_label')}
@@ -981,7 +981,7 @@ const ZoneAccordionItem = ({
                     }}
                     successIndicatorMode="hidden"
                     value={feature.properties.zoning_code ?? ''}
-                    sx={{ mb: 0, mr: '-1rem', ml: '-1rem', width: 'auto' }}
+                    styleProps={{ mb: 0, mr: '-1rem', ml: '-1rem', width: 'auto' }}
                     labelSx={FIELD_LABEL_SX}
                     selectSx={{
                       minHeight: '1.375rem',
@@ -1013,7 +1013,7 @@ const ZoneAccordionItem = ({
 
                 {hasValidZoningCode && (
                   <Box
-                    sx={{
+                    styleProps={{
                       mt: '1rem',
                       display: 'flex',
                       flexDirection: 'column',
@@ -1032,7 +1032,7 @@ const ZoneAccordionItem = ({
                           !landUseEditorOpen
                         )
                       }
-                      sx={{
+                      styleProps={{
                         width: '100%',
                         display: 'flex',
                         alignItems: 'center',
@@ -1046,7 +1046,7 @@ const ZoneAccordionItem = ({
                       }}
                     >
                       <Box
-                        sx={{
+                        styleProps={{
                           display: 'flex',
                           minWidth: 0,
                           alignItems: 'center',
@@ -1054,7 +1054,7 @@ const ZoneAccordionItem = ({
                         }}
                       >
                         <ArrowDown
-                          sx={{
+                          styleProps={{
                             width: 12,
                             height: 8,
                             color: '#111111',
@@ -1069,7 +1069,7 @@ const ZoneAccordionItem = ({
 
                         <Box
                           component="span"
-                          sx={{
+                          styleProps={{
                             ...FIELD_LABEL_SX,
                             mb: 0,
                           }}
@@ -1081,7 +1081,7 @@ const ZoneAccordionItem = ({
                       </Box>
 
                       <Box
-                        sx={{
+                        styleProps={{
                           display: 'inline-flex',
                           flexShrink: 0,
                           alignItems: 'center',
@@ -1101,7 +1101,7 @@ const ZoneAccordionItem = ({
                       >
                         <Box
                           component="span"
-                          sx={{
+                          styleProps={{
                             mt: '0.1rem',
                             fontSize: '0.625rem',
                             fontWeight: 700,
@@ -1125,14 +1125,14 @@ const ZoneAccordionItem = ({
                           >
                             <Box
                               component="span"
-                              sx={{
+                              styleProps={{
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                               }}
                             >
                               <Warning
-                                sx={{
+                                styleProps={{
                                   width: 10,
                                   height: 9,
                                   color: '#8D6A00',
@@ -1148,7 +1148,7 @@ const ZoneAccordionItem = ({
                     <BaseCollapsible.Root open={landUseEditorOpen}>
                       <BaseCollapsible.Panel keepMounted={false}>
                         <Box
-                          sx={{
+                          styleProps={{
                             display: 'flex',
                             flexDirection: 'column',
                             gap: '0.875rem',
@@ -1158,7 +1158,7 @@ const ZoneAccordionItem = ({
                           {landUseFields.map((field) => (
                             <Box
                               key={field.key}
-                              sx={{
+                              styleProps={{
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'space-between',
@@ -1167,7 +1167,7 @@ const ZoneAccordionItem = ({
                             >
                               <Box
                                 component="span"
-                                sx={{
+                                styleProps={{
                                   flex: 1,
                                   minWidth: 0,
                                   fontSize: '0.625rem',
@@ -1204,7 +1204,7 @@ const ZoneAccordionItem = ({
                           ))}
 
                           <Box
-                            sx={{
+                            styleProps={{
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'space-between',
@@ -1214,7 +1214,7 @@ const ZoneAccordionItem = ({
                           >
                             <Box
                               component="span"
-                              sx={{
+                              styleProps={{
                                 flex: 1,
                                 minWidth: 0,
                                 fontSize: '0.625rem',

@@ -33,22 +33,22 @@ const Page = () => {
     adminFolayerConf && adminFolayerConf.state === FolayerConfState.Idle
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+    <Box styleProps={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
       <SidebarContentBox>
         {!isFolayerReady && (
-          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Box styleProps={{ display: 'flex', justifyContent: 'center' }}>
             <LoadingSpinner></LoadingSpinner>
           </Box>
         )}
         {isFolayerReady && (
           <Box>
-            <Box component="h2" sx={{ typography: 'h2', m: 0 }}>
+            <Box component="h2" styleProps={{ typography: 'h2', m: 0 }}>
               {adminFolayerConf.name}
             </Box>
           </Box>
         )}
         <Box
-          sx={{
+          styleProps={{
             display: 'flex',
             flexDirection: 'row',
             mt: 4,
@@ -60,11 +60,11 @@ const Page = () => {
             route={routeTree.admin.folayer.settings}
             routeTree={routeTree}
             params={{ routeParams: { folayerId: adminFolayerConf.id } }}
-            sx={{ alignItems: 'center' }}
+            styleProps={{ alignItems: 'center' }}
           >
             <Box
               component="span"
-              sx={{
+              styleProps={{
                 typography: 'h6',
                 fontWeight: 500,
                 textDecoration: 'underline',
@@ -76,11 +76,11 @@ const Page = () => {
                 ns={'luonnonmetsakartat'}
               ></TText>
             </Box>
-            <ArrowNextBig sx={{ ml: 1, height: '1.2rem' }}></ArrowNextBig>
+            <ArrowNextBig styleProps={{ ml: 1, height: '1.2rem' }}></ArrowNextBig>
           </MutableLink>
         </Box>
         <Box
-          sx={{
+          styleProps={{
             display: 'flex',
             flexDirection: 'row',
             mt: 2,
@@ -92,11 +92,11 @@ const Page = () => {
             route={routeTree.admin.folayer.pictures}
             routeTree={routeTree}
             params={{ routeParams: { folayerId: adminFolayerConf.id } }}
-            sx={{ alignItems: 'center' }}
+            styleProps={{ alignItems: 'center' }}
           >
             <Box
               component="span"
-              sx={{
+              styleProps={{
                 typography: 'h6',
                 fontWeight: 500,
                 textDecoration: 'underline',
@@ -108,11 +108,11 @@ const Page = () => {
                 ns={'luonnonmetsakartat'}
               ></TText>
             </Box>
-            <ArrowNextBig sx={{ ml: 1, height: '1.2rem' }}></ArrowNextBig>
+            <ArrowNextBig styleProps={{ ml: 1, height: '1.2rem' }}></ArrowNextBig>
           </MutableLink>
         </Box>
 
-        <Box component="h3" sx={{ mt: 7, typography: 'h3', mb: 0 }}>
+        <Box component="h3" styleProps={{ mt: 7, typography: 'h3', mb: 0 }}>
           <TText
             ns={'luonnonmetsakartat'}
             keyName={'sidebar.admin.folayer.all_areas_title'}
@@ -120,7 +120,7 @@ const Page = () => {
         </Box>
         {folayerAreaConf?.data && (
           <SearchTable
-            sx={{ mt: 2, pb: 5 }}
+            styleProps={{ mt: 2, pb: 5 }}
             data={folayerAreaConf.data.features}
             source={{
               source: getFolayerCentroidSourceId(params.folayerIdSlug, true),

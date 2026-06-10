@@ -6,15 +6,15 @@ import {
 } from '#/common/style/pandaStyleProps'
 import type { IconProps } from '#/components/icons/types'
 
-const SaveIcon = ({ sx, className, style, ...props }: IconProps) => (
+const SaveIcon = ({ styleProps, className, style, ...props }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={24}
     height={24}
     viewBox="0 0 24 24"
     fill="none"
-    className={cx(css(...pandaStylePropsToArray(sx)), className)}
-    style={mergePandaStyleProps({ sx, style })}
+    className={cx(css(...pandaStylePropsToArray(styleProps)), className)}
+    style={mergePandaStyleProps({ styleProps, style })}
     aria-hidden="true"
     {...props}
   >

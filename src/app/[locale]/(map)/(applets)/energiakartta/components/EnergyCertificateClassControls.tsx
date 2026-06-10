@@ -19,7 +19,7 @@ type EnergyCertificateClassControlsOrientation = 'horizontal' | 'vertical'
 type Props = {
   variant?: EnergyCertificateClassControlsVariant
   orientation?: EnergyCertificateClassControlsOrientation
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 const DESKTOP_ACTIVE_TILE_BACKGROUND = '#F4F4F4'
@@ -36,7 +36,7 @@ const getClassButtonAriaLabel = ({
 const EnergyCertificateClassControls = ({
   variant = 'desktop',
   orientation = 'horizontal',
-  sx,
+  styleProps,
 }: Props) => {
   const { t } = useTranslate('energiakartta')
   const activeEnergyCertificateClasses = useAppletStore(
@@ -61,7 +61,7 @@ const EnergyCertificateClassControls = ({
     <Box
       component="ul"
       aria-label={layerLabel}
-      sx={[
+      styleProps={[
         {
           m: 0,
           p: 0,
@@ -71,7 +71,7 @@ const EnergyCertificateClassControls = ({
           listStyle: 'none',
           pointerEvents: 'auto',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
       ]}
     >
       {ENERGY_CERTIFICATE_CLASS_CODES.map((classCode) => {
@@ -87,7 +87,7 @@ const EnergyCertificateClassControls = ({
           <Box
             key={classCode}
             component="li"
-            sx={{
+            styleProps={{
               width: buttonSize,
               height: buttonSize,
               flex: '0 0 auto',
@@ -103,7 +103,7 @@ const EnergyCertificateClassControls = ({
               aria-pressed={isActive}
               data-energy-certificate-class={classCode}
               onClick={() => toggleEnergyCertificateClass(classCode)}
-              sx={{
+              styleProps={{
                 width: buttonSize,
                 minWidth: buttonSize,
                 height: buttonSize,
@@ -131,7 +131,7 @@ const EnergyCertificateClassControls = ({
               <Box
                 component="span"
                 aria-hidden="true"
-                sx={{
+                styleProps={{
                   width: innerSize,
                   height: innerSize,
                   borderRadius: '50%',

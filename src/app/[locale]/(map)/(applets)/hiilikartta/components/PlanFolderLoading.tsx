@@ -14,10 +14,10 @@ const PlanFolder = ({
   height: number
 }) => {
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+    <Box styleProps={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
       <Folder height={height}>
         <Box
-          sx={{
+          styleProps={{
             pt: 2,
             pl: 3,
             pb: 3,

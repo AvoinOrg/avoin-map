@@ -15,7 +15,7 @@ const FULLSCREEN_PAGE_SLOT = 'fullscreen-page'
 
 type FullscreenPageProps = {
   children: React.ReactNode
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 export const FullscreenPageSlot = () => {
@@ -40,7 +40,7 @@ export const FullscreenPageSlot = () => {
   )
 }
 
-export const FullscreenPage = ({ children, sx }: FullscreenPageProps) => {
+export const FullscreenPage = ({ children, styleProps }: FullscreenPageProps) => {
   return (
     <IntoSlot name={FULLSCREEN_PAGE_SLOT}>
       <div
@@ -87,9 +87,9 @@ export const FullscreenPage = ({ children, sx }: FullscreenPageProps) => {
                   flexShrink: 0,
                 },
               }),
-              css(...pandaStylePropsToArray(sx))
+              css(...pandaStylePropsToArray(styleProps))
             )}
-            style={mergePandaStyleProps({ sx })}
+            style={mergePandaStyleProps({ styleProps })}
           >
             {children}
           </div>

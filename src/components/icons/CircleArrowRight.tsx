@@ -7,13 +7,13 @@ import {
 import type { IconProps } from './types'
 
 
-const CircleArrowRight = ({ sx, className, style, ...props }: IconProps) => (
+const CircleArrowRight = ({ styleProps, className, style, ...props }: IconProps) => (
   <svg
     width={24}
     height={24}
     viewBox="0 0 12 12"
-    className={cx(css(...pandaStylePropsToArray(sx)), className)}
-    style={mergePandaStyleProps({ sx, style })}
+    className={cx(css(...pandaStylePropsToArray(styleProps)), className)}
+    style={mergePandaStyleProps({ styleProps, style })}
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     {...props}

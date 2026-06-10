@@ -137,11 +137,11 @@ const Page = () => {
     return (
       <SidebarContentBox
         scrollFadeColor={SIDEBAR_BACKGROUND}
-        sxOuter={{
+        outerStyleProps={{
           height: '100%',
           backgroundColor: SIDEBAR_BACKGROUND,
         }}
-        sxInner={{
+        innerStyleProps={{
           p: 0,
           px: 0,
           height: '100%',
@@ -149,7 +149,7 @@ const Page = () => {
         }}
       >
         <Box
-          sx={{
+          styleProps={{
             display: 'flex',
             justifyContent: 'center',
             width: '100%',
@@ -169,7 +169,7 @@ const Page = () => {
       aria-label={t('sidebar.plan_settings.areas.confirm_and_calculate')}
       disabled={!isReportActionEnabled}
       onClick={isReportActionEnabled ? handleSubmit : undefined}
-      sx={{
+      styleProps={{
         width: 'fit-content',
         minWidth: ACTION_BUTTON_MIN_WIDTH,
         minHeight: ACTION_BUTTON_HEIGHT,
@@ -198,7 +198,7 @@ const Page = () => {
     >
       <Box
         component="span"
-        sx={{
+        styleProps={{
           fontFamily: 'Arimo, sans-serif',
           fontSize: '0.625rem',
           fontWeight: 700,
@@ -221,7 +221,7 @@ const Page = () => {
           size={12}
           thickness={6}
           color="inherit"
-          sx={{ flexShrink: 0 }}
+          styleProps={{ flexShrink: 0 }}
         />
       )}
     </Box>
@@ -230,11 +230,11 @@ const Page = () => {
   return (
     <SidebarContentBox
       scrollFadeColor={SIDEBAR_BACKGROUND}
-      sxOuter={{
+      outerStyleProps={{
         height: '100%',
         backgroundColor: SIDEBAR_BACKGROUND,
       }}
-      sxInner={{
+      innerStyleProps={{
         p: 0,
         px: 0,
         height: '100%',
@@ -244,7 +244,7 @@ const Page = () => {
     >
       <Box
         className="plan-sidebar-container"
-        sx={{
+        styleProps={{
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
@@ -254,7 +254,7 @@ const Page = () => {
         }}
       >
         <Box
-          sx={{
+          styleProps={{
             px: CONTENT_PADDING_X,
             pt: { mobile: '2.5rem', desktop: '2.5rem' },
             pb: { mobile: '1.75rem', desktop: '1.75rem' },
@@ -262,7 +262,7 @@ const Page = () => {
         >
           <Box
             component="h1"
-            sx={{
+            styleProps={{
               m: 0,
               fontSize: '0.75rem',
               fontWeight: 400,
@@ -279,7 +279,7 @@ const Page = () => {
           </Box>
 
           <Box
-            sx={{
+            styleProps={{
               mt: '0.5rem',
               mb: '1rem',
               height: '1px',
@@ -290,7 +290,7 @@ const Page = () => {
 
           <Box
             component="p"
-            sx={{
+            styleProps={{
               m: 0,
               maxWidth: '16.25rem',
               fontSize: '0.75rem',
@@ -312,7 +312,7 @@ const Page = () => {
         />
 
         <Box
-          sx={{
+          styleProps={{
             mt: 'auto',
             px: CONTENT_PADDING_X,
             pt: '4rem',
@@ -328,7 +328,7 @@ const Page = () => {
           >
             <Box
               component="span"
-              sx={{
+              styleProps={{
                 display: 'inline-flex',
               }}
             >

@@ -12,10 +12,10 @@ type DropDownSelectProps = React.ComponentProps<typeof DropDownSelect>
 
 type DropDownSelectInsetProps = Omit<
   DropDownSelectProps,
-  'label' | 'labelSx' | 'sx'
+  'label' | 'labelSx' | 'styleProps'
 > & {
   label: React.ReactNode
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   labelSx?: PandaStyleProp
   selectWrapperSx?: PandaStyleProp
 }
@@ -65,7 +65,7 @@ const labelClass = css({
 const DropDownSelectInset = ({
   label,
   ariaLabel,
-  sx,
+  styleProps,
   labelSx,
   selectSx,
   selectWrapperSx,
@@ -74,14 +74,14 @@ const DropDownSelectInset = ({
 }: DropDownSelectInsetProps) => {
   return (
     <div
-      className={cx(wrapperClass, css(...pandaStylePropsToArray(sx)))}
-      style={mergePandaStyleProps({ sx })}
+      className={cx(wrapperClass, css(...pandaStylePropsToArray(styleProps)))}
+      style={mergePandaStyleProps({ styleProps })}
     >
       <DropDownSelect
         {...rest}
         ariaLabel={ariaLabel ?? (typeof label === 'string' ? label : undefined)}
         label={undefined}
-        sx={[
+        styleProps={[
           {
             width: '8.25rem',
             flexShrink: 0,
@@ -115,7 +115,7 @@ const DropDownSelectInset = ({
       />
       <span
         className={cx(labelClass, css(...pandaStylePropsToArray(labelSx)))}
-        style={mergePandaStyleProps({ sx: labelSx })}
+        style={mergePandaStyleProps({ styleProps: labelSx })}
       >
         {label}
       </span>

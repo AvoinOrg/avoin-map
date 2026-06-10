@@ -101,7 +101,7 @@ const AreaModal = ({
   return (
     <MapModalWrapper minWidthBeforeFullScreen={minWidthBeforeFullScreen}>
       <Box
-        sx={{
+        styleProps={{
           backgroundColor: '#3E3E3E',
           color: '#A9E7CB',
           width: '100%',
@@ -116,7 +116,7 @@ const AreaModal = ({
       >
         {/* Header / close */}
         <Box
-          sx={{
+          styleProps={{
             position: 'sticky',
             top: 0,
             zIndex: 10,
@@ -125,7 +125,7 @@ const AreaModal = ({
           }}
         >
           <Box
-            sx={{
+            styleProps={{
               position: 'absolute',
               top: 0,
               left: 0,
@@ -141,7 +141,7 @@ const AreaModal = ({
               type="button"
               aria-label="close"
               onClick={onClose}
-              sx={{
+              styleProps={{
                 width: '2.5rem',
                 height: '2.5rem',
                 display: 'inline-flex',
@@ -161,14 +161,14 @@ const AreaModal = ({
                 },
               }}
             >
-              <Cross sx={{ height: '1rem' }} />
+              <Cross styleProps={{ height: '1rem' }} />
             </Box>
           </Box>
         </Box>
 
         {/* Scroll body — no padding so the right column can bleed to edges */}
         <Box
-          sx={{
+          styleProps={{
             overflowY: 'auto', // Changed from 'scroll' to 'auto'
             flexGrow: 1,
             height: '100%',
@@ -184,7 +184,7 @@ const AreaModal = ({
         >
           {properties ? (
             <Box
-              sx={{
+              styleProps={{
                 display: 'grid',
                 width: '100%',
                 // Let content define height; right side can fill row height on md+
@@ -202,7 +202,7 @@ const AreaModal = ({
             >
               {/* Left/content — has padding */}
               <Box
-                sx={{
+                styleProps={{
                   minWidth: 0,
                   pt: { mobile: 5.5, desktop: 5 }, // Adjusted padding
                   pb: 4,
@@ -211,7 +211,7 @@ const AreaModal = ({
                 }}
               >
                 <Box
-                  sx={{
+                  styleProps={{
                     display: 'flex',
                     flexWrap: 'wrap',
                     alignItems: 'baseline', // align when side-by-side
@@ -222,7 +222,7 @@ const AreaModal = ({
                 >
                   <Box
                     component="h2"
-                    sx={{
+                    styleProps={{
                       typography: 'h2',
                       m: 0,
                       textTransform: 'uppercase',
@@ -237,7 +237,7 @@ const AreaModal = ({
 
                   <Box
                     component="p"
-                    sx={{
+                    styleProps={{
                       typography: 'h6',
                       m: 0,
                       textTransform: 'uppercase',
@@ -256,7 +256,7 @@ const AreaModal = ({
                 <Box>
                   <Box
                     component="p"
-                    sx={{
+                    styleProps={{
                       typography: 'h6',
                       textTransform: 'uppercase',
                       mt: 0,
@@ -273,10 +273,10 @@ const AreaModal = ({
                 </Box>
 
                 {properties.description && (
-                  <Box sx={{ mt: 4 }}>
+                  <Box styleProps={{ mt: 4 }}>
                     <Box
                       component="p"
-                      sx={{
+                      styleProps={{
                         typography: 'body1',
                         m: 0,
                         overflowWrap: 'anywhere',
@@ -293,10 +293,10 @@ const AreaModal = ({
               {hasPictures && (
                 <Box
                   className="area-modal-right"
-                  sx={{ minWidth: 0, minHeight: '30rem' }}
+                  styleProps={{ minWidth: 0, minHeight: '30rem' }}
                 >
                   <Box
-                    sx={{
+                    styleProps={{
                       position: 'relative',
                       width: '100%',
                       // Keep visible on narrow screens; on md+ fill the row height
@@ -310,14 +310,14 @@ const AreaModal = ({
                     {/* Embla viewport */}
                     <Box
                       ref={emblaRef}
-                      sx={{ width: '100%', height: '100%', overflow: 'hidden' }}
+                      styleProps={{ width: '100%', height: '100%', overflow: 'hidden' }}
                     >
                       {/* Embla container */}
-                      <Box sx={{ display: 'flex', height: '100%' }}>
+                      <Box styleProps={{ display: 'flex', height: '100%' }}>
                         {largeSrcs.map((src, idx) => (
                           <Box
                             key={idx}
-                            sx={{
+                            styleProps={{
                               position: 'relative',
                               flex: '0 0 100%',
                               width: '100%',
@@ -329,7 +329,7 @@ const AreaModal = ({
                               src={src}
                               alt={`picture-${idx}`}
                               onClick={() => setLightboxIndex(idx)}
-                              sx={{
+                              styleProps={{
                                 position: 'absolute',
                                 inset: 0,
                                 width: '100%',
@@ -349,7 +349,7 @@ const AreaModal = ({
                       component="button"
                       type="button"
                       onClick={scrollPrev}
-                      sx={{
+                      styleProps={{
                         position: 'absolute',
                         top: '50%',
                         left: 8,
@@ -374,13 +374,13 @@ const AreaModal = ({
                       }}
                       aria-label="Previous image"
                     >
-                      <ArrowLeft sx={{ width: '0.8rem', height: '1.2rem' }} />
+                      <ArrowLeft styleProps={{ width: '0.8rem', height: '1.2rem' }} />
                     </Box>
                     <Box
                       component="button"
                       type="button"
                       onClick={scrollNext}
-                      sx={{
+                      styleProps={{
                         position: 'absolute',
                         top: '50%',
                         right: 8,
@@ -405,12 +405,12 @@ const AreaModal = ({
                       }}
                       aria-label="Next image"
                     >
-                      <ArrowRight sx={{ width: '0.8rem', height: '1.2rem' }} />
+                      <ArrowRight styleProps={{ width: '0.8rem', height: '1.2rem' }} />
                     </Box>
 
                     {/* Dots */}
                     <Box
-                      sx={{
+                      styleProps={{
                         position: 'absolute',
                         bottom: 8,
                         left: '50%',
@@ -429,7 +429,7 @@ const AreaModal = ({
                           component="button"
                           onClick={() => scrollTo(i)}
                           aria-label={`Go to image ${i + 1}`}
-                          sx={{
+                          styleProps={{
                             width: 10,
                             height: 10,
                             p: 0,
@@ -458,7 +458,7 @@ const AreaModal = ({
               />
             </Box>
           ) : (
-            <Box component="p" id="area-modal-description" sx={{ m: 0 }}>
+            <Box component="p" id="area-modal-description" styleProps={{ m: 0 }}>
               <TText keyName="no_features_selected" ns="luonnonmetsakartat" />
             </Box>
           )}

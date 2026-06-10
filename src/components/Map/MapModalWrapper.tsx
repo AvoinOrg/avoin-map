@@ -7,7 +7,7 @@ import { Box } from '#/components/common/PandaBox'
 
 interface MapModalWrapperProps {
   children: ReactNode
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   minWidthBeforeFullScreen?: number // Mininum width before collapsing to full screen width.
 }
 
@@ -16,7 +16,7 @@ const ELEVATION_SHADOW_24 =
 
 export const MapModalWrapper = ({
   children,
-  sx,
+  styleProps,
   minWidthBeforeFullScreen = 500,
 }: MapModalWrapperProps) => {
   const minMapDims = useUIStore((state) => state.mapDims.min)
@@ -59,7 +59,7 @@ export const MapModalWrapper = ({
         <Box
           className="map-modal-wrapper"
           ref={wrapperRef}
-          sx={[
+          styleProps={[
             {
               position: 'absolute',
               outline: 'none',
@@ -106,8 +106,8 @@ export const MapModalWrapper = ({
                 }
               : null,
 
-            // Merge with sx prop passed to the component
-            ...(Array.isArray(sx) ? sx : [sx]),
+            // Merge with styleProps prop passed to the component
+            ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
           ]}
         >
           {children}

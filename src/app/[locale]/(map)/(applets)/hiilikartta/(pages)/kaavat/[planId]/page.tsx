@@ -89,7 +89,7 @@ const getPlanNameFromFileName = (fileName: string) =>
 
 const StatusIndicator = () => (
   <CheckcircleCheckedFilled
-    sx={{
+    styleProps={{
       width: 12,
       height: 12,
       color: '#2C8E74',
@@ -110,7 +110,7 @@ const StatusFieldRow = ({
 }) => {
   return (
     <Box
-      sx={{
+      styleProps={{
         display: 'flex',
         alignItems: 'center',
         gap: '0.5rem',
@@ -118,7 +118,7 @@ const StatusFieldRow = ({
       }}
     >
       <Box
-        sx={{
+        styleProps={{
           flex: 1,
           minWidth: 0,
         }}
@@ -143,7 +143,7 @@ const InfoButton = ({
         component="button"
         type="button"
         aria-label={ariaLabel}
-        sx={{
+        styleProps={{
           width: '1rem',
           height: '1rem',
           minWidth: '1rem',
@@ -166,7 +166,7 @@ const InfoButton = ({
           event.stopPropagation()
         }}
       >
-        <QuestionCircleOutline sx={{ width: 16, height: 16 }} />
+        <QuestionCircleOutline styleProps={{ width: 16, height: 16 }} />
       </Box>
     </Hint>
   )
@@ -188,7 +188,7 @@ const UploadField = ({
         type="button"
         aria-label="Select plan file to import"
         onClick={onClick}
-        sx={{
+        styleProps={{
           width: '100%',
           minHeight: '2rem',
           display: 'flex',
@@ -212,7 +212,7 @@ const UploadField = ({
       >
         <Box
           component="span"
-          sx={{
+          styleProps={{
             fontSize: '0.6875rem',
             fontWeight: 400,
             lineHeight: 'normal',
@@ -225,7 +225,7 @@ const UploadField = ({
         </Box>
 
         <Upload
-          sx={{
+          styleProps={{
             width: 9,
             height: 10,
             color: '#474747',
@@ -1129,7 +1129,7 @@ const Page = () => {
     return (
       <SidebarContentBox>
         <Box
-          sx={{
+          styleProps={{
             display: 'flex',
             justifyContent: 'center',
             width: '100%',
@@ -1145,7 +1145,7 @@ const Page = () => {
   return (
     <SidebarContentBox
       scrollFadeColor="#ffffff"
-      sxInner={{
+      innerStyleProps={{
         pt: 0,
         gap: { mobile: '1.5rem', desktop: '1.5rem' },
         px: { mobile: '1rem', desktop: '1.875rem' },
@@ -1156,7 +1156,7 @@ const Page = () => {
       <SidebarBackgroundContent
         imageSrc="/files/img/hiilikartta/sidebar/kaavat-hero.png"
         imageAlt="Hiilikartta kaavat"
-        sx={{
+        styleProps={{
           width: '100%',
         }}
         imageSx={{
@@ -1182,7 +1182,7 @@ const Page = () => {
               )
             }
             status={isReadyPlan ? 'complete' : 'incomplete'}
-            incompleteIcon={<Upload sx={{ width: 10, height: 12 }} />}
+            incompleteIcon={<Upload styleProps={{ width: 10, height: 12 }} />}
             trailing={
               !isReadyPlan ? (
                 <InfoButton
@@ -1209,7 +1209,7 @@ const Page = () => {
           >
             {!isReadyPlan && (
               <>
-                <Box sx={{ width: '100%', mt: '0.rem' }}>
+                <Box styleProps={{ width: '100%', mt: '0.rem' }}>
                   <UploadField
                     label={fileName ?? t('sidebar.create.select_file')}
                     isSelected={fileName != null}
@@ -1220,7 +1220,7 @@ const Page = () => {
                 {creationPlaceholderPlanConf != null && (
                   <>
                     {creationPlaceholderPlanConf.file != null && (
-                      <Box sx={{ width: '100%', mt: '1rem', mb: '1rem' }}>
+                      <Box styleProps={{ width: '100%', mt: '1rem', mb: '1rem' }}>
                         <TextFieldWithLabel
                           label={
                             <T
@@ -1401,7 +1401,7 @@ const Page = () => {
 
             {isReadyPlan && (
               <>
-                <Box sx={{ width: '100%' }}>
+                <Box styleProps={{ width: '100%' }}>
                   <TextFieldWithLabel
                     label={
                       <T
@@ -1436,7 +1436,7 @@ const Page = () => {
                   }
                   placeholder={t('sidebar.plan_flow.forestry_scenario_label')}
                   successIndicatorMode="outside"
-                  sx={{ width: '100%' }}
+                  styleProps={{ width: '100%' }}
                 />
               </>
             )}
@@ -1477,7 +1477,7 @@ const Page = () => {
           onDelete={handleDeleteClick}
           onCopy={handleCopyClick}
           onCloudAction={handleCloudAction}
-          sx={{
+          styleProps={{
             mt: '2.5rem',
             ml: NODE_FLOW_OUTER_OFFSET,
             width: NODE_FLOW_OUTER_WIDTH,

@@ -13,10 +13,10 @@ type Props = {
   year: string
   width: number
   height: number
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
-const GeomGraphic = ({ calcFeatures, year, width, height, sx }: Props) => {
+const GeomGraphic = ({ calcFeatures, year, width, height, styleProps }: Props) => {
   const projection = geoMercator().fitSize([width, height], calcFeatures)
   const pathGenerator = geoPath().projection(projection)
 
@@ -29,7 +29,7 @@ const GeomGraphic = ({ calcFeatures, year, width, height, sx }: Props) => {
       width={width}
       height={height}
       viewBox={`0 ${viewBoxY} ${width} ${height}`}
-      sx={[...(Array.isArray(sx) ? sx : [sx])]}
+      styleProps={[...(Array.isArray(styleProps) ? styleProps : [styleProps])]}
     >
       <rect x={0} y={0} width={width} height={height} fill={'none'} rx={14} />
       <g>

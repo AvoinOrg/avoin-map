@@ -22,7 +22,7 @@ export type FloatingSidebarHeaderMode = 'default' | 'custom' | 'none'
 export type FloatingSidebarFooterMode = 'none' | 'slot'
 
 export type FloatingSidebarProps = {
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   sidebarToggleSx?: PandaStyleProp
   contentSx?: PandaStyleProp
   trailingContent?: React.ReactNode
@@ -48,7 +48,7 @@ const getDefaultHeaderChildrenSlot = (boundaryId?: SidebarBoundaryId) =>
   ) : null
 
 export const FloatingSidebar = ({
-  sx,
+  styleProps,
   sidebarToggleSx,
   contentSx,
   trailingContent,
@@ -96,7 +96,7 @@ export const FloatingSidebar = ({
   return (
     <>
       <SidebarToggleButton
-        sx={sidebarToggleSx}
+        styleProps={sidebarToggleSx}
       />
       <SidebarScaffold
         topContent={topContent}
@@ -105,7 +105,7 @@ export const FloatingSidebar = ({
         actionRail={resolvedActionRail}
         hideMainContainer={hideMainContainer}
         contentSx={contentSx}
-        containerSx={sx}
+        containerSx={styleProps}
         desktopWidth={width === 'compact' ? '23.75rem' : undefined}
         desktopMaxWidth={
           width === 'compact'

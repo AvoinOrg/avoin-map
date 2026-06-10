@@ -109,7 +109,7 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
           {localState === LocalState.NoUser && (
             <SidebarContentBox>
               <Box
-                sx={{
+                styleProps={{
                   display: 'flex',
                   flexDirection: 'row',
                   mt: 3,
@@ -117,11 +117,11 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
                 }}
               >
                 <Star
-                  sx={{ height: 40, width: 'auto', flexShrink: 0, mt: 0.5 }}
+                  styleProps={{ height: 40, width: 'auto', flexShrink: 0, mt: 0.5 }}
                 ></Star>
                 <Box
                   component="p"
-                  sx={{
+                  styleProps={{
                     m: 0,
                     display: 'inline-flex',
                     typography: 'body2',
@@ -139,11 +139,11 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
           )}
           {localState === LocalState.Errored && (
             <SidebarContentBox>
-              <Box sx={{ display: 'flex', flexDirection: 'row', mt: 3 }}>
-                {/* <Star sx={{ height: 40, width: 'auto' }}></Star> */}
+              <Box styleProps={{ display: 'flex', flexDirection: 'row', mt: 3 }}>
+                {/* <Star styleProps={{ height: 40, width: 'auto' }}></Star> */}
                 <Box
                   component="p"
-                  sx={{
+                  styleProps={{
                     m: 0,
                     display: 'inline-flex',
                     typography: 'body2',
@@ -160,11 +160,11 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
           )}
           {localState === LocalState.Rejected && (
             <SidebarContentBox>
-              <Box sx={{ display: 'flex', flexDirection: 'row', mt: 3 }}>
-                {/* <Star sx={{ height: 40, width: 'auto' }}></Star> */}
+              <Box styleProps={{ display: 'flex', flexDirection: 'row', mt: 3 }}>
+                {/* <Star styleProps={{ height: 40, width: 'auto' }}></Star> */}
                 <Box
                   component="p"
-                  sx={{
+                  styleProps={{
                     m: 0,
                     display: 'inline-flex',
                     typography: 'body2',

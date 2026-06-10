@@ -37,7 +37,7 @@ import {
 interface Props {
   planConfId: string
   onPendingLandUseEditsChange?: (hasPending: boolean) => void
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 const CONTENT_PADDING_X = { mobile: '2.5rem', desktop: '2.5rem' } as const
@@ -46,7 +46,7 @@ type ZoneSortValue = 'class-asc' | 'class-desc' | 'name-asc' | 'name-desc'
 const ZoneAccordion = ({
   planConfId,
   onPendingLandUseEditsChange,
-  sx,
+  styleProps,
 }: Props) => {
   const { t } = useTranslate('hiilikartta')
   const planConf = useStore(
@@ -115,7 +115,7 @@ const ZoneAccordion = ({
         trailing: (
           <Box
             component="span"
-            sx={{
+            styleProps={{
               fontSize: '0.625rem',
               lineHeight: '0.875rem',
               letterSpacing: '0.04em',
@@ -465,18 +465,18 @@ const ZoneAccordion = ({
 
   return (
     <Box
-      sx={[
+      styleProps={[
         {
           display: 'flex',
           flexDirection: 'column',
           gap: { mobile: '1.25rem', desktop: '1.5rem' },
           width: '100%',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
       ]}
     >
       <Box
-        sx={{
+        styleProps={{
           px: '1.75rem',
           display: 'flex',
           flexDirection: 'column',
@@ -485,7 +485,7 @@ const ZoneAccordion = ({
       >
         <Box
           component="p"
-          sx={{
+          styleProps={{
             m: 0,
             fontSize: '0.625rem',
             fontWeight: 400,
@@ -499,7 +499,7 @@ const ZoneAccordion = ({
         </Box>
 
         <Box
-          sx={{
+          styleProps={{
             display: 'flex',
             flexDirection: 'column',
             gap: '0.25rem',
@@ -517,7 +517,7 @@ const ZoneAccordion = ({
                   <ZoneClassChip
                     code={t('sidebar.plan_settings.areas.filter_all')}
                     dark
-                    sx={{ minWidth: 0 }}
+                    styleProps={{ minWidth: 0 }}
                     uppercase={false}
                   />
                 )
@@ -527,7 +527,7 @@ const ZoneAccordion = ({
 
               return (
                 <Box
-                  sx={{
+                  styleProps={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.375rem',
@@ -548,7 +548,7 @@ const ZoneAccordion = ({
                         key={option.value}
                         code={matchingFilterOption.code}
                         color={matchingFilterOption.color}
-                        sx={{ pt: '0.1rem' }}
+                        styleProps={{ pt: '0.1rem' }}
                       />
                     )
                   })}
@@ -556,7 +556,7 @@ const ZoneAccordion = ({
                   {selectedOptions.length > visibleChips.length && (
                     <Box
                       component="span"
-                      sx={{
+                      styleProps={{
                         fontSize: '0.625rem',
                         lineHeight: '0.875rem',
                         letterSpacing: '0.04em',
@@ -574,7 +574,7 @@ const ZoneAccordion = ({
 
           <Box
             component="p"
-            sx={{
+            styleProps={{
               m: 0,
               alignSelf: 'flex-end',
               fontSize: '0.5rem',
@@ -591,7 +591,7 @@ const ZoneAccordion = ({
           </Box>
 
           <Box
-            sx={{
+            styleProps={{
               display: 'flex',
               justifyContent: 'flex-end',
               pt: '0.5rem',
@@ -602,7 +602,7 @@ const ZoneAccordion = ({
               onChange={handleSortChange}
               ariaLabel={t('sidebar.plan_settings.areas.sort_label')}
               options={sortOptions}
-              sx={{
+              styleProps={{
                 minWidth: '7.5rem',
                 ml: 'auto',
                 borderRadius: '999px',
@@ -634,7 +634,7 @@ const ZoneAccordion = ({
         </Box>
       </Box>
 
-      <Box sx={{ px: CONTENT_PADDING_X }}>
+      <Box styleProps={{ px: CONTENT_PADDING_X }}>
         {visibleFeatures.map((feature, index) => (
           <ZoneAccordionItem
             key={feature.properties.id}

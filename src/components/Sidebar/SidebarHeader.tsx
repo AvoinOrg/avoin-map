@@ -7,14 +7,14 @@ interface Props {
   children?: React.ReactNode
   title: string
   backgroundImage?: string
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
-const SidebarHeader = ({ children, title, backgroundImage, sx }: Props) => {
+const SidebarHeader = ({ children, title, backgroundImage, styleProps }: Props) => {
   return (
     <Box
       className="sidebar-header"
-      sx={[
+      styleProps={[
         {
           display: 'flex',
           flexDirection: 'column',
@@ -23,11 +23,11 @@ const SidebarHeader = ({ children, title, backgroundImage, sx }: Props) => {
           color: 'neutral.darker',
           zIndex: 'calc(var(--z-index-drawer) + 4)',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
       ]}
     >
       <Box
-        sx={{
+        styleProps={{
           position: 'relative',
           minHeight: 'clamp(5.25rem, 8vw, 5.75rem)',
           mx: 0.75,
@@ -40,7 +40,7 @@ const SidebarHeader = ({ children, title, backgroundImage, sx }: Props) => {
         }}
       >
         <Box
-          sx={{
+          styleProps={{
             position: 'absolute',
             inset: 0,
             backgroundImage: backgroundImage
@@ -51,7 +51,7 @@ const SidebarHeader = ({ children, title, backgroundImage, sx }: Props) => {
           }}
         />
         <Box
-          sx={{
+          styleProps={{
             position: 'absolute',
             inset: 0,
             background:
@@ -59,7 +59,7 @@ const SidebarHeader = ({ children, title, backgroundImage, sx }: Props) => {
           }}
         />
         <Box
-          sx={{
+          styleProps={{
             position: 'relative',
             zIndex: 1,
             display: 'flex',
@@ -70,17 +70,17 @@ const SidebarHeader = ({ children, title, backgroundImage, sx }: Props) => {
           }}
         >
           <Box
-            sx={{
+            styleProps={{
               flex: 1,
               display: 'flex',
               width: '100%',
               flexDirection: 'column',
             }}
           >
-            <Box sx={{ flex: 1, width: '100%' }}></Box>
+            <Box styleProps={{ flex: 1, width: '100%' }}></Box>
             <Box
               component="h2"
-              sx={{
+              styleProps={{
                 m: 0,
                 textAlign: 'left',
                 whiteSpace: 'normal',
@@ -94,10 +94,10 @@ const SidebarHeader = ({ children, title, backgroundImage, sx }: Props) => {
             >
               {title}
             </Box>
-            <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>{children}</Box>
+            <Box styleProps={{ flex: 1, display: 'flex', alignItems: 'center' }}>{children}</Box>
           </Box>
           {/* {children && (
-            <Box sx={{ width: '100%', pb: 0.45 }}>
+            <Box styleProps={{ width: '100%', pb: 0.45 }}>
             </Box>
           )} */}
         </Box>

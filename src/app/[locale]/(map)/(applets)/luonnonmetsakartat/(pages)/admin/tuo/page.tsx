@@ -208,7 +208,7 @@ const Page = () => {
       <BigMenuButton
         variant="outlined"
         component="label"
-        sx={{
+        styleProps={{
           width: '100%',
           minHeight: '60px',
         }}
@@ -222,11 +222,11 @@ const Page = () => {
           onChange={handleFileInput}
           ref={inputRef}
         />
-        <Upload sx={{ width: '24px' }} />
+        <Upload styleProps={{ width: '24px' }} />
       </BigMenuButton>
 
       {fileType === 'shp' && arrayBuffers && arrayBuffers?.length > 0 && (
-        <Box sx={{ mt: 5 }}>
+        <Box styleProps={{ mt: 5 }}>
           <FolayerImportShp
             fileBuffers={arrayBuffers}
             onFinish={handleFinish}

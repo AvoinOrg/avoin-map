@@ -14,7 +14,7 @@ const Page = () => {
         localizationNamespace={'avoin-map'}
         isNavbarHidden={true}
         listedLayerGroups={defaultListedLayerGroups}
-        sx={{
+        styleProps={{
           pt: 0,
           display: 'flex',
           flexDirection: 'column',

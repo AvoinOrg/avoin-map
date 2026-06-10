@@ -14,7 +14,7 @@ interface Props {
   routeTree: RouteTree
   collapseIfRoot?: boolean
   appletNamespace?: string
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 const breadcrumbLabelSx = {
@@ -28,7 +28,7 @@ const breadcrumbLabelSx = {
   top: '1px',
 } as const
 
-const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
+const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, styleProps }: Props) => {
   const pathname = usePathname()
   const isBaseDomainForApplet = useUIStore(
     (state) => state.isBaseDomainForApplet
@@ -64,11 +64,11 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
       route={route.routeTree}
       routeTree={usedRouteTree}
       params={route.params}
-      sx={{ color: 'inherit' }}
+      styleProps={{ color: 'inherit' }}
     >
       <Box
         component="span"
-        sx={{
+        styleProps={{
           ...breadcrumbLabelSx,
           color: 'neutral.dark',
           '&:hover': { color: 'primary.main' },
@@ -83,7 +83,7 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
     <>
       <Box
         component="span"
-        sx={{
+        styleProps={{
           ...breadcrumbLabelSx,
           color: 'neutral.darker',
         }}
@@ -96,7 +96,7 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
   return (
     <Box
       className="breadcrumb-nav"
-      sx={[
+      styleProps={[
         {
           display: 'flex',
           flexDirection: 'row',
@@ -104,7 +104,7 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
           color: 'neutral.dark',
           width: '100%',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
         collapseIfRoot && visibleRoutes.length <= 1
           ? {
               minHeight: '0px',
@@ -120,16 +120,16 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
     >
       {visibleRoutes.length > 1 && (
         <Box
-          sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}
+          styleProps={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}
         >
           <MutableLink
             route={visibleRoutes[visibleRoutes.length - 2].routeTree}
             routeTree={usedRouteTree}
             params={visibleRoutes[visibleRoutes.length - 2].params}
-            sx={{ alignItems: 'center' }}
+            styleProps={{ alignItems: 'center' }}
           >
             <ArrowLeft
-              sx={{
+              styleProps={{
                 cursor: 'pointer',
                 color: 'neutral.dark',
                 width: '0.85rem',
@@ -141,7 +141,7 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
             />
           </MutableLink>
           <Box
-            sx={{
+            styleProps={{
               display: 'flex',
               flexWrap: 'wrap',
               flexDirection: 'row',
@@ -154,7 +154,7 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
                 return (
                   <Box
                     key={route.path}
-                    sx={{
+                    styleProps={{
                       display: 'inline-flex',
                       alignItems: 'center',
                     }}
@@ -166,7 +166,7 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
               return (
                 <Box
                   key={route.path}
-                  sx={{
+                  styleProps={{
                     display: 'inline-flex',
                     alignItems: 'center',
                   }}
@@ -174,7 +174,7 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
                   <RouteElement route={route}></RouteElement>
                   <Box
                     component="span"
-                    sx={{
+                    styleProps={{
                       display: 'block',
                       fontSize: '0.75rem',
                       lineHeight: 1.2,

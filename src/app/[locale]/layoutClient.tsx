@@ -3,17 +3,21 @@
 import React from 'react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { SessionProvider } from 'next-auth/react'
-import { ThemeProvider } from '@mui/material/styles'
-import CssBaseline from '@mui/material/CssBaseline'
 import { NextIntlClientProvider } from 'next-intl'
 
-import { theme } from '#/common/style/theme'
 import { queryClient } from '#/common/queries/queryClient'
 import { NotificationProvider } from '#/components/Notification'
 // import { UserModal } from '#/components/Profile'
 // import { UiStateProvider, UserStateProvider } from '#/components/State'
-// import RootStyleRegistry from './emotion'
 import 'overlayscrollbars/overlayscrollbars.css'
+
+const QueryClientProviderCompat = QueryClientProvider as unknown as React.ComponentType<{
+  children?: React.ReactNode
+  client: typeof queryClient
+}>
+const SessionProviderCompat = SessionProvider as unknown as React.ComponentType<{
+  children?: React.ReactNode
+}>
 
 const LayoutClient = ({
   // Layouts must accept a children prop.
@@ -28,16 +32,13 @@ const LayoutClient = ({
     // TODO: Does this even do anything? Figure it out.
     // Supposedly the locale needs to be supplied
     <NextIntlClientProvider locale={locale}>
-      <SessionProvider>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <NotificationProvider>
-            <QueryClientProvider client={queryClient}>
-              {children}
-            </QueryClientProvider>
-          </NotificationProvider>
-        </ThemeProvider>
-      </SessionProvider>
+      <SessionProviderCompat>
+        <NotificationProvider>
+          <QueryClientProviderCompat client={queryClient}>
+            {children}
+          </QueryClientProviderCompat>
+        </NotificationProvider>
+      </SessionProviderCompat>
     </NextIntlClientProvider>
   )
 }

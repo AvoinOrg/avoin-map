@@ -17,7 +17,7 @@ interface SaveActionButtonProps {
   ariaLabel: string
   onClick: React.MouseEventHandler<HTMLButtonElement>
   disabled?: boolean
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 const buttonClass = css({
@@ -56,7 +56,7 @@ const SaveActionButton = ({
   ariaLabel,
   onClick,
   disabled,
-  sx,
+  styleProps,
 }: SaveActionButtonProps) => {
   return (
     <BaseButton
@@ -64,8 +64,8 @@ const SaveActionButton = ({
       aria-label={ariaLabel}
       disabled={disabled}
       onClick={onClick}
-      className={cx(buttonClass, css(...pandaStylePropsToArray(sx)))}
-      style={mergePandaStyleProps({ sx })}
+      className={cx(buttonClass, css(...pandaStylePropsToArray(styleProps)))}
+      style={mergePandaStyleProps({ styleProps })}
     >
       <SaveIcon />
       <span className={labelClass}>

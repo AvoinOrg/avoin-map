@@ -1,12 +1,8 @@
 'use client'
 
 import React, { useEffect } from 'react'
-import { Box, Button, Container, Stack, Typography } from '@mui/material'
-import CssBaseline from '@mui/material/CssBaseline'
-import { ThemeProvider, alpha } from '@mui/material/styles'
 import NextLink from 'next/link'
-
-import { theme } from '#/common/style/theme'
+import { css } from 'styled-system/css'
 
 type Props = {
   error: Error & { digest?: string }
@@ -16,171 +12,234 @@ type Props = {
 const monoFontFamily =
   'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace'
 
+const pageClass = css({
+  height: '100vh',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  overflow: 'hidden',
+  px: 3,
+  py: 6,
+  backgroundColor: 'neutral.lighter',
+  color: 'neutral.darker',
+})
+
+const containerClass = css({
+  height: '100%',
+  minHeight: 0,
+  width: '100%',
+  mx: 'auto',
+  display: 'flex',
+  flexDirection: 'column',
+})
+
+const summaryClass = css({
+  minHeight: 0,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+})
+
+const summaryStackClass = css({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 2,
+  textAlign: 'center',
+  alignItems: 'center',
+})
+
+const titleClass = css({
+  m: 0,
+  textStyle: 'h2',
+})
+
+const bodyClass = css({
+  m: 0,
+  maxWidth: '32.5rem',
+  textStyle: 'body2',
+})
+
+const digestClass = css({
+  m: 0,
+  color: 'neutral.dark',
+  textStyle: 'body7',
+})
+
+const actionsClass = css({
+  display: 'flex',
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  justifyContent: 'center',
+  gap: 1.5,
+  pt: 1,
+})
+
+const buttonBaseClass = css({
+  m: 0,
+  px: 2,
+  py: 1,
+  minHeight: '2.25rem',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  border: '1px solid var(--colors-neutral-main)',
+  borderRadius: '4px',
+  backgroundColor: 'neutral.light',
+  color: 'neutral.darker',
+  boxShadow: 'button',
+  textDecoration: 'none',
+  textStyle: 'body2',
+  cursor: 'pointer',
+  appearance: 'none',
+  '&:hover': {
+    backgroundColor: 'neutral.lighter',
+  },
+  '&:focus-visible': {
+    outline: '2px solid var(--colors-secondary-main)',
+    outlineOffset: '2px',
+  },
+})
+
+const debugPanelClass = css({
+  flex: '1 1 auto',
+  minHeight: 0,
+  width: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  overflow: 'hidden',
+  border: '1px solid var(--colors-neutral-main)',
+  backgroundColor: 'neutral.light',
+  boxShadow: 'button',
+})
+
+const debugHeaderClass = css({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 1,
+  px: 2,
+  py: 1.5,
+  borderBottom: '1px solid var(--colors-neutral-main)',
+  borderLeft: '4px solid var(--colors-error-main)',
+  backgroundColor: 'rgba(211, 47, 47, 0.08)',
+})
+
+const debugTitleClass = css({
+  m: 0,
+  textStyle: 'h7',
+})
+
+const debugDigestClass = css({
+  m: 0,
+  ml: 'auto',
+  color: 'neutral.dark',
+  textStyle: 'body7',
+  fontFamily: monoFontFamily,
+})
+
+const debugBodyClass = css({
+  flex: '1 1 auto',
+  minHeight: 0,
+  overflow: 'auto',
+  p: 2,
+})
+
+const errorMessageClass = css({
+  p: 1.5,
+  border: '1px solid rgba(211, 47, 47, 0.35)',
+  backgroundColor: 'rgba(211, 47, 47, 0.06)',
+})
+
+const errorMessageTextClass = css({
+  m: 0,
+  color: 'inherit',
+  fontFamily: monoFontFamily,
+  textStyle: 'body7',
+  whiteSpace: 'pre-wrap',
+  wordBreak: 'break-word',
+})
+
+const stackClass = css({
+  mt: 2,
+  mb: 0,
+  p: 1.5,
+  overflow: 'auto',
+  backgroundColor: 'neutral.lighter',
+  border: '1px solid var(--colors-neutral-main)',
+  fontFamily: monoFontFamily,
+  textStyle: 'body7',
+  whiteSpace: 'pre',
+  lineHeight: 1.6,
+})
+
 const Error = ({ error, reset }: Props) => {
   const isDev = process.env.NODE_ENV !== 'production'
 
   useEffect(() => {
-    // Ensure the error shows in the console even if the boundary catches it
+    // Ensure the error shows in the console even if the boundary catches it.
     console.error(error)
   }, [error])
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Box
-        component="main"
-        sx={(theme) => ({
-          height: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-          px: 3,
-          py: 6,
-          bgcolor: theme.palette.neutral.lighter,
-          color: theme.palette.neutral.darker,
-        })}
+    <main className={pageClass}>
+      <section
+        className={containerClass}
+        style={{ maxWidth: isDev ? '56rem' : '37.5rem' }}
       >
-        <Container
-          maxWidth={isDev ? 'md' : 'sm'}
-          sx={{
-            height: '100%',
-            minHeight: 0,
-            display: 'flex',
-            flexDirection: 'column',
+        <div
+          className={summaryClass}
+          style={{
+            flex: isDev ? '0 0 auto' : '1 1 auto',
+            paddingBottom: isDev ? '1.5rem' : 0,
           }}
         >
-          <Box
-            sx={{
-              flex: isDev ? '0 0 auto' : '1 1 auto',
-              minHeight: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              pb: isDev ? 3 : 0,
-            }}
-          >
-            <Stack spacing={2} sx={{ textAlign: 'center', alignItems: 'center' }}>
-              <Typography variant="h2">Something went wrong</Typography>
-              <Typography variant="body2" sx={{ maxWidth: 520 }}>
-                Please try again. If the problem persists, return to the home
-                page.
-              </Typography>
+          <div className={summaryStackClass}>
+            <h1 className={titleClass}>Something went wrong</h1>
+            <p className={bodyClass}>
+              Please try again. If the problem persists, return to the home
+              page.
+            </p>
 
-              {!isDev && error.digest && (
-                <Typography
-                  variant="body7"
-                  sx={(theme) => ({ color: theme.palette.neutral.dark })}
-                >
-                  Error ID: {error.digest}
-                </Typography>
+            {!isDev && error.digest && (
+              <p className={digestClass}>Error ID: {error.digest}</p>
+            )}
+
+            <div className={actionsClass}>
+              <button
+                type="button"
+                className={buttonBaseClass}
+                onClick={() => reset()}
+              >
+                Try again
+              </button>
+              <NextLink href="/" className={buttonBaseClass}>
+                Go to home
+              </NextLink>
+            </div>
+          </div>
+        </div>
+
+        {isDev && (
+          <section className={debugPanelClass} aria-label="Debug details">
+            <div className={debugHeaderClass}>
+              <h2 className={debugTitleClass}>Debug details</h2>
+              {error.digest && (
+                <p className={debugDigestClass}>Error ID: {error.digest}</p>
               )}
+            </div>
 
-              <Stack direction="row" spacing={1.5} sx={{ pt: 1 }}>
-                <Button type="button" variant="contained" onClick={() => reset()}>
-                  Try again
-                </Button>
-                <Button component={NextLink} href="/" variant="outlined">
-                  Go to home
-                </Button>
-              </Stack>
-            </Stack>
-          </Box>
+            <div className={debugBodyClass}>
+              <div className={errorMessageClass}>
+                <p className={errorMessageTextClass}>
+                  {error.name}: {error.message}
+                </p>
+              </div>
 
-          {isDev && (
-            <Box
-              sx={(theme) => ({
-                flex: '1 1 auto',
-                minHeight: 0,
-                width: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden',
-                border: `1px solid ${theme.palette.neutral.main}`,
-                bgcolor: theme.palette.neutral.light,
-                boxShadow: '1px 1px 7px 0px #EEECEC',
-              })}
-            >
-              <Box
-                sx={(theme) => ({
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  px: 2,
-                  py: 1.5,
-                  borderBottom: `1px solid ${theme.palette.neutral.main}`,
-                  borderLeft: `4px solid ${theme.palette.error.main}`,
-                  bgcolor: alpha(theme.palette.error.main, 0.08),
-                })}
-              >
-                <Typography variant="h7">Debug details</Typography>
-                {error.digest && (
-                  <Typography
-                    variant="body7"
-                    sx={(theme) => ({
-                      ml: 'auto',
-                      color: theme.palette.neutral.dark,
-                      fontFamily: monoFontFamily,
-                    })}
-                  >
-                    Error ID: {error.digest}
-                  </Typography>
-                )}
-              </Box>
-
-              <Box
-                sx={{
-                  flex: '1 1 auto',
-                  minHeight: 0,
-                  overflow: 'auto',
-                  p: 2,
-                }}
-              >
-                <Box
-                  sx={(theme) => ({
-                    p: 1.5,
-                    border: `1px solid ${alpha(theme.palette.error.main, 0.35)}`,
-                    bgcolor: alpha(theme.palette.error.main, 0.06),
-                  })}
-                >
-                  <Typography
-                    component="div"
-                    variant="body7"
-                    sx={{
-                      fontFamily: monoFontFamily,
-                      whiteSpace: 'pre-wrap',
-                      wordBreak: 'break-word',
-                      color: 'inherit',
-                    }}
-                  >
-                    {error.name}: {error.message}
-                  </Typography>
-                </Box>
-
-                {error.stack && (
-                  <Box
-                    component="pre"
-                    sx={(theme) => ({
-                      mt: 2,
-                      mb: 0,
-                      p: 1.5,
-                      bgcolor: theme.palette.neutral.lighter,
-                      border: `1px solid ${theme.palette.neutral.main}`,
-                      typography: 'body7',
-                      fontFamily: monoFontFamily,
-                      whiteSpace: 'pre',
-                      lineHeight: 1.6,
-                    })}
-                  >
-                    {error.stack}
-                  </Box>
-                )}
-              </Box>
-            </Box>
-          )}
-        </Container>
-      </Box>
-    </ThemeProvider>
+              {error.stack && <pre className={stackClass}>{error.stack}</pre>}
+            </div>
+          </section>
+        )}
+      </section>
+    </main>
   )
 }
 

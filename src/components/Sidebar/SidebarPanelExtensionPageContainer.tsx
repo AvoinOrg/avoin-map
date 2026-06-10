@@ -17,7 +17,7 @@ import { Cross } from '../icons'
 
 export type SidebarPanelExtensionPageContainerProps = {
   children?: React.ReactNode
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
   contentSx?: PandaStyleProp
   controlsSx?: PandaStyleProp
   scrollbarSide?: 'left' | 'right'
@@ -51,11 +51,11 @@ type PageControlButtonProps = Omit<
   React.ComponentProps<typeof BaseButton>,
   'className' | 'style' | 'color'
 > & {
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 const PageControlButton = ({
-  sx,
+  styleProps,
   children,
   type = 'button',
   ...props
@@ -63,21 +63,21 @@ const PageControlButton = ({
   <BaseButton
     {...props}
     type={type}
-    className={cx(css(pageControlButtonSx, ...pandaStylePropsToArray(sx)))}
-    style={mergePandaStyleProps({ sx })}
+    className={cx(css(pageControlButtonSx, ...pandaStylePropsToArray(styleProps)))}
+    style={mergePandaStyleProps({ styleProps })}
   >
     {children}
   </BaseButton>
 )
 
-const CollapsePanelIcon = ({ sx }: { sx?: PandaStyleProp }) => (
+const CollapsePanelIcon = ({ styleProps }: { styleProps?: PandaStyleProp }) => (
   <svg
     aria-hidden="true"
     focusable="false"
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
-    className={css(...pandaStylePropsToArray(sx))}
-    style={mergePandaStyleProps({ sx })}
+    className={css(...pandaStylePropsToArray(styleProps))}
+    style={mergePandaStyleProps({ styleProps })}
   >
     <path
       d="M11 6 6 12l5 6"
@@ -100,7 +100,7 @@ const CollapsePanelIcon = ({ sx }: { sx?: PandaStyleProp }) => (
 
 export const SidebarPanelExtensionPageContainer = ({
   children,
-  sx,
+  styleProps,
   contentSx,
   controlsSx,
   scrollbarSide = 'left',
@@ -134,7 +134,7 @@ export const SidebarPanelExtensionPageContainer = ({
   return (
     <Box
       className="sidebar-panel-extension-page-container"
-      sx={[
+      styleProps={[
         {
           display: 'flex',
           flexDirection: 'column',
@@ -145,13 +145,13 @@ export const SidebarPanelExtensionPageContainer = ({
           height: '100%',
           backgroundColor: '#ffffff',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
       ]}
     >
       {hasControls && (
         <Box
           className="sidebar-panel-extension-page-container-controls"
-          sx={[
+          styleProps={[
             {
               flexShrink: 0,
               display: 'flex',
@@ -172,9 +172,9 @@ export const SidebarPanelExtensionPageContainer = ({
               <PageControlButton
                 aria-label={collapseAriaLabel}
                 onClick={onCollapse}
-                sx={pageControlButtonSx}
+                styleProps={pageControlButtonSx}
               >
-                <CollapsePanelIcon sx={{ width: '1.85rem', height: '1.85rem' }} />
+                <CollapsePanelIcon styleProps={{ width: '1.85rem', height: '1.85rem' }} />
               </PageControlButton>
             </SimpleTooltip>
           )}
@@ -183,16 +183,16 @@ export const SidebarPanelExtensionPageContainer = ({
               <PageControlButton
                 aria-label={closeAriaLabel}
                 onClick={onClose}
-                sx={pageControlButtonSx}
+                styleProps={pageControlButtonSx}
               >
-                <Cross sx={{ width: '1rem', height: '1rem' }} />
+                <Cross styleProps={{ width: '1rem', height: '1rem' }} />
               </PageControlButton>
             </SimpleTooltip>
           )}
         </Box>
       )}
       <Box
-        sx={{
+        styleProps={{
           position: 'relative',
           flex: 1,
           minHeight: 0,
@@ -222,7 +222,7 @@ export const SidebarPanelExtensionPageContainer = ({
         >
           <Box
             className="sidebar-panel-extension-page-container-inner"
-            sx={[
+            styleProps={[
               {
                 direction: 'ltr',
                 display: 'flex',

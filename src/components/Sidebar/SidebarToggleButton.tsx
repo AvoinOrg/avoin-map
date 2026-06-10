@@ -12,7 +12,7 @@ import { MapPinGlobe, Sandwich } from '#/components/icons'
 import { useUIStore } from '../../common/store'
 
 interface Props {
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
 const sidebarToggleButtonSx = {
@@ -47,7 +47,7 @@ const sidebarToggleButtonSx = {
   },
 } as const
 
-const SidebarToggleButton = ({ sx }: Props) => {
+const SidebarToggleButton = ({ styleProps }: Props) => {
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
   const setIsSidebarOpen = useUIStore((state) => state.setIsSidebarOpen)
   const isSidebarDisabled = useUIStore((state) => state.isSidebarDisabled)
@@ -67,19 +67,19 @@ const SidebarToggleButton = ({ sx }: Props) => {
       onClick={toggleSidebar}
       className={cx(
         'sidebar-toggle-button',
-        css(sidebarToggleButtonSx, ...pandaStylePropsToArray(sx))
+        css(sidebarToggleButtonSx, ...pandaStylePropsToArray(styleProps))
       )}
       style={mergePandaStyleProps({
-        sx: [sidebarToggleButtonSx, ...pandaStylePropsToArray(sx)],
+        styleProps: [sidebarToggleButtonSx, ...pandaStylePropsToArray(styleProps)],
       })}
       aria-label={isSidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
     >
       {isSidebarOpen ? (
         <MapPinGlobe
-          sx={{ width: '2rem', height: '2rem', mt: -0.4, mr: -0.42 }}
+          styleProps={{ width: '2rem', height: '2rem', mt: -0.4, mr: -0.42 }}
         />
       ) : (
-        <Sandwich sx={{ width: '1.75rem', height: '1rem' }} />
+        <Sandwich styleProps={{ width: '1.75rem', height: '1rem' }} />
       )}
     </BaseButton>
   )

@@ -7,14 +7,14 @@ import {
 import type { IconProps } from './types'
 
 
-const Home = ({ sx, className, style, ...props }: IconProps) => (
+const Home = ({ styleProps, className, style, ...props }: IconProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={14}
     height={15}
     viewBox="0 0 14 15"
-    className={cx(css(...pandaStylePropsToArray(sx)), className)}
-    style={mergePandaStyleProps({ sx, style })}
+    className={cx(css(...pandaStylePropsToArray(styleProps)), className)}
+    style={mergePandaStyleProps({ styleProps, style })}
     fill="none"
     {...props}
   >

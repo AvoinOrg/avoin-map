@@ -168,12 +168,12 @@ export const MapFloatingPanel = ({
             positionerBaseClass,
             css(...pandaStylePropsToArray(positionerSx))
           )}
-          style={mergePandaStyleProps({ sx: positionerSx })}
+          style={mergePandaStyleProps({ styleProps: positionerSx })}
         >
           <BasePopover.Popup
             ref={popupRef}
             className={cx(popupBaseClass, css(...pandaStylePropsToArray(paperSx)))}
-            style={mergePandaStyleProps({ sx: paperSx })}
+            style={mergePandaStyleProps({ styleProps: paperSx })}
           >
             {children}
           </BasePopover.Popup>

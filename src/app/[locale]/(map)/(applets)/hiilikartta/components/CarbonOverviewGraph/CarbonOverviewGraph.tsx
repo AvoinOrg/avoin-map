@@ -15,10 +15,10 @@ import ReadMoreModal from '../ReadMoreModal'
 type Props = {
   planConfs: PlanConfWithReportData[]
   featureYears: string[]
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }
 
-const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
+const CarbonOverviewGraph = ({ planConfs, featureYears, styleProps }: Props) => {
   const [activeYear, setActiveYear] = useState(featureYears[1])
 
   const handleYearChange = (event: FormSelectionEvent<string>) => {
@@ -26,13 +26,13 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
   }
 
   return (
-    <Box sx={[...(Array.isArray(sx) ? sx : [sx])]}>
+    <Box styleProps={[...(Array.isArray(styleProps) ? styleProps : [styleProps])]}>
       <Row>
         <Col>
-          <Row sx={{ justifyContent: 'flex-start' }}>
+          <Row styleProps={{ justifyContent: 'flex-start' }}>
             <Box
               component="h2"
-              sx={{
+              styleProps={{
                 m: 0,
                 typography: 'h1',
                 display: 'inline',
@@ -44,7 +44,7 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
               ></TText>{' '}
             </Box>
             {/* <Info
-              sx={{
+              styleProps={{
                 height: '1.1rem',
                 mt: 'auto',
                 mb: '0.28rem',
@@ -52,10 +52,10 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
               }}
             ></Info> */}
           </Row>
-          <Row sx={{ justifyContent: 'flex-start', mt: 0.5 }}>
+          <Row styleProps={{ justifyContent: 'flex-start', mt: 0.5 }}>
             <Box
               component="span"
-              sx={{
+              styleProps={{
                 typography: 'h1',
                 display: 'inline',
               }}
@@ -86,7 +86,7 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
         </Col>
       </Row>
       <Row
-        sx={{
+        styleProps={{
           mt: 3,
           mb: 5,
           flexWrap: 'wrap',
@@ -97,7 +97,7 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
         {planConfs.map((planConf) => {
           return (
             <Row
-              sx={{
+              styleProps={{
                 flex: { xs: 1, md: 0.5 },
                 maxWidth: '500px',
                 border: '1px solid',
@@ -112,7 +112,7 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
               key={planConf.serverId}
             >
               <Col>
-                <Box component="span" sx={{ typography: 'h8' }}>
+                <Box component="span" styleProps={{ typography: 'h8' }}>
                   <TText
                     keyName="report.overview_graph.plan"
                     ns="hiilikartta"
@@ -120,7 +120,7 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
                 </Box>
                 <Box
                   component="span"
-                  sx={{
+                  styleProps={{
                     typography: 'h7',
                     display: 'inline',
                     textOverflow: 'ellipsis',
@@ -130,19 +130,19 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
                 >
                   {planConf?.name}
                 </Box>
-                <Box component="span" sx={{ typography: 'h5', mt: 2 }}>
+                <Box component="span" styleProps={{ typography: 'h5', mt: 2 }}>
                   <TText
                     keyName="report.overview_graph.carbon_stock_decreases"
                     ns="hiilikartta"
                   ></TText>
                 </Box>
-                <Box component="span" sx={{ mt: 4, typography: 'h5' }}>
+                <Box component="span" styleProps={{ mt: 4, typography: 'h5' }}>
                   <TText
                     keyName="report.overview_graph.carbon_eqv_unit"
                     ns="hiilikartta"
                   ></TText>
                 </Box>
-                <Box component="span" sx={{ mt: 1, typography: 'h1' }}>
+                <Box component="span" styleProps={{ mt: 1, typography: 'h1' }}>
                   {pp(
                     planConf.reportData.agg.totals.bio_carbon_total_diff[
                       activeYear
@@ -153,13 +153,13 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
                     0
                   )}
                 </Box>
-                <Box component="span" sx={{ mt: 3, typography: 'h5' }}>
+                <Box component="span" styleProps={{ mt: 3, typography: 'h5' }}>
                   <TText
                     keyName="report.overview_graph.carbon_eqv_unit_hectare"
                     ns="hiilikartta"
                   ></TText>
                 </Box>
-                <Box component="span" sx={{ mt: 1, typography: 'h1' }}>
+                <Box component="span" styleProps={{ mt: 1, typography: 'h1' }}>
                   {pp(
                     planConf.reportData.agg.totals.bio_carbon_ha_diff[
                       activeYear
@@ -171,13 +171,13 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
                   )}
                 </Box>
               </Col>
-              <Col sx={{ ml: 2 }}>
+              <Col styleProps={{ ml: 2 }}>
                 <GeomGraphic
                   calcFeatures={planConf.reportData.areas}
                   year={activeYear}
                   width={120}
                   height={200}
-                  sx={{ mt: 3 }}
+                  styleProps={{ mt: 3 }}
                 ></GeomGraphic>
               </Col>
             </Row>
@@ -185,7 +185,7 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
         })}
       </Row>
       <CarbonChangeLegend></CarbonChangeLegend>
-      <Col sx={{ alignItems: 'flex-end', mt: 2 }}>
+      <Col styleProps={{ alignItems: 'flex-end', mt: 2 }}>
         <ReadMoreModal></ReadMoreModal>
       </Col>
     </Box>
@@ -196,20 +196,20 @@ export default CarbonOverviewGraph
 
 const Row = ({
   children,
-  sx,
+  styleProps,
 }: {
   children: React.ReactNode
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }) => (
   <Box
-    sx={[
+    styleProps={[
       {
         display: 'flex',
         flexDirection: 'row',
         justifyContent: 'space-between',
         width: '100%',
       },
-      ...(Array.isArray(sx) ? sx : [sx]),
+      ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
     ]}
   >
     {children}
@@ -218,20 +218,20 @@ const Row = ({
 
 const Col = ({
   children,
-  sx,
+  styleProps,
 }: {
   children: React.ReactNode
-  sx?: PandaStyleProp
+  styleProps?: PandaStyleProp
 }) => (
   <Box
-    sx={[
+    styleProps={[
       {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-start',
         width: '100%',
       },
-      ...(Array.isArray(sx) ? sx : [sx]),
+      ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
     ]}
   >
     {children}
