@@ -496,9 +496,9 @@ export const SimpleSidebarBase = ({
         flexShrink: 0,
         display: 'flex',
         alignItems: 'center',
-        px: { mobile: '1rem', desktop: '1.875rem' },
-        pt: { mobile: '1rem', desktop: '1.375rem' },
-        pb: { mobile: '0.9rem', desktop: '1.375rem' },
+        px: isMobile ? '1rem' : '1.875rem',
+        pt: isMobile ? '1rem' : '1.375rem',
+        pb: isMobile ? '0.9rem' : '1.375rem',
         color: 'neutral.darker',
         backgroundColor: '#ffffff',
       }}

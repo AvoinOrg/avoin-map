@@ -5,6 +5,7 @@ import { T, useTranslate } from '@tolgee/react'
 import { useRouter } from 'next/navigation'
 
 import useStore from '#/common/hooks/useStore'
+import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import { Box } from '#/components/common/PandaBox'
 import { SidebarContentBox } from '#/components/Sidebar'
 import { useMapStore } from '#/common/store'
@@ -71,6 +72,7 @@ const getCreationPlaceholderDisplayName = ({
 const Page = () => {
   const { t } = useTranslate('hiilikartta')
   const router = useRouter()
+  const isMobile = useIsMobile()
   const [sortOrder, setSortOrder] = useState<SortOption>('newest')
   const planConfs = useStore(useAppletStore, (state) => state.planConfs)
   const placeholderPlanConfs = useStore(
@@ -205,16 +207,26 @@ const Page = () => {
     )
   }
 
+  const sidebarInnerPadding = isMobile
+    ? {
+        pt: 0,
+        gap: '1.5rem',
+        px: '1rem',
+        pb: '1.25rem',
+        backgroundColor: '#ffffff',
+      }
+    : {
+        pt: 0,
+        gap: '1.5rem',
+        px: '1.875rem',
+        pb: '1.5rem',
+        backgroundColor: '#ffffff',
+      }
+
   return (
     <SidebarContentBox
       scrollFadeColor="#ffffff"
-      innerStyleProps={{
-        pt: 0,
-        gap: { mobile: '1.5rem', desktop: '1.5rem' },
-        px: { mobile: '1rem', desktop: '1.875rem' },
-        pb: { mobile: '1.25rem', desktop: '1.5rem' },
-        backgroundColor: '#ffffff',
-      }}
+      innerStyleProps={sidebarInnerPadding}
     >
       <SidebarBackgroundContent
         imageSrc="/files/img/hiilikartta/sidebar/kaavat-hero.png"
