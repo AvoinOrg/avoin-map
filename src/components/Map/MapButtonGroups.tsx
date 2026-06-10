@@ -3,9 +3,9 @@
 
 import { useMemo } from 'react'
 import { useTranslate } from '@tolgee/react'
+import { css, cx } from 'styled-system/css'
 
 import { useMapStore } from '#/common/store'
-import type { PandaStyleProp } from '#/common/style/panda'
 import { Box } from '#/components/common/PandaBox'
 import { useDrawMode } from '#/common/hooks/map/useDrawMode'
 import {
@@ -296,43 +296,55 @@ export const MapButtons = ({ isVertical }: Props) => {
 interface MapButtonGroupProps extends React.HTMLAttributes<HTMLDivElement> {
   isVertical?: boolean
   orientation?: 'vertical' | 'horizontal'
-  styleProps?: PandaStyleProp
 }
+
+const mapButtonGroupBase = css({
+  display: 'inline-flex',
+  alignItems: 'stretch',
+  pointerEvents: 'auto',
+  '& > .map-button': {
+    border: 0,
+    borderRadius: 0,
+  },
+})
+
+const mapButtonGroupVertical = css({
+  flexDirection: 'column',
+  '& > .map-button:first-of-type': {
+    borderTopLeftRadius: '0.3125rem',
+    borderTopRightRadius: '0.3125rem',
+  },
+  '& > .map-button:last-of-type': {
+    borderBottomLeftRadius: '0.3125rem',
+    borderBottomRightRadius: '0.3125rem',
+  },
+})
+
+const mapButtonGroupHorizontal = css({
+  flexDirection: 'row',
+  '& > .map-button:first-of-type': {
+    borderTopLeftRadius: '0.3125rem',
+    borderBottomLeftRadius: '0.3125rem',
+  },
+  '& > .map-button:last-of-type': {
+    borderTopRightRadius: '0.3125rem',
+    borderBottomRightRadius: '0.3125rem',
+  },
+})
 
 const MapButtonGroup = ({
   isVertical,
   orientation,
-  styleProps,
+  className,
   ...props
 }: MapButtonGroupProps) => (
   <Box
     {...props}
+    className={cx(
+      className,
+      mapButtonGroupBase,
+      isVertical ? mapButtonGroupVertical : mapButtonGroupHorizontal
+    )}
     data-map-button-group-orientation={orientation}
-    styleProps={[
-      {
-        display: 'inline-flex',
-        flexDirection: isVertical ? 'column' : 'row',
-        alignItems: 'stretch',
-        pointerEvents: 'auto',
-        '& > .map-button': {
-          border: 0,
-          borderRadius: 0,
-        },
-        '& > .map-button:first-of-type': {
-          borderTopLeftRadius: '0.3125rem',
-          borderBottomLeftRadius: isVertical ? 0 : '0.3125rem',
-          borderTopRightRadius: isVertical ? '0.3125rem' : 0,
-        },
-        '& > .map-button:last-of-type': {
-          borderTopRightRadius: isVertical ? 0 : '0.3125rem',
-          borderBottomLeftRadius: isVertical ? '0.3125rem' : 0,
-          borderBottomRightRadius: '0.3125rem',
-        },
-        '& > .map-button:only-of-type': {
-          borderRadius: '0.3125rem',
-        },
-      },
-      ...(Array.isArray(styleProps) ? styleProps : [styleProps]),
-    ]}
   />
 )
