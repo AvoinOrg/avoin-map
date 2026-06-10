@@ -1,7 +1,8 @@
-import { Box, SxProps, Theme } from '@mui/material'
+import { Box } from '#/components/common/PandaBox'
+import type { PandaStyleProp } from '#/common/style/panda'
 
 type Props = {
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
   variant?: 'small' | 'large'
 }
 

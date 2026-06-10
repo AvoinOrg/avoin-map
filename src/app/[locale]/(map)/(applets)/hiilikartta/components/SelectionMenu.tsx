@@ -1,35 +1,29 @@
 import * as React from 'react'
-import InputLabel from '@mui/material/InputLabel'
-import FormControl from '@mui/material/FormControl'
-import Select, { SelectChangeEvent } from '@mui/material/Select'
+
+import type { PandaStyleProp } from '#/common/style/panda'
+import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
+import type { FormSelectionEvent } from '#/components/common/formControlEvents'
 
 interface Props {
   id: string
   options: string[]
   value: string | undefined
-  onChange: (event: SelectChangeEvent) => void
+  onChange: (event: FormSelectionEvent<string>) => void
   label?: string
-  sx?: any
+  sx?: PandaStyleProp
 }
 
 const SelectionMenu = ({ id, options, value, onChange, sx, label }: Props) => {
   return (
-    <FormControl variant="filled" sx={sx}>
-      {label && <InputLabel id={`${id}-label`}>{label}</InputLabel>}
-      <Select
-        labelId={`${id}-label`}
-        id={`${id}`}
-        aria-label={label ?? id}
-        value={value}
-        onChange={onChange}
-      >
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </Select>
-    </FormControl>
+    <DropDownSelectWithHeader
+      name={id}
+      label={label}
+      ariaLabel={label ?? id}
+      value={value}
+      options={options.map((option) => ({ label: option, value: option }))}
+      onChange={onChange}
+      sx={sx}
+    />
   )
 }
 

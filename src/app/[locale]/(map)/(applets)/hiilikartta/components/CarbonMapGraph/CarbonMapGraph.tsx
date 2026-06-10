@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { Box, SelectChangeEvent, ToggleButton, Typography } from '@mui/material'
+import React, { useMemo, useState } from 'react'
 import { cloneDeep } from 'lodash-es'
 import { useTranslate } from '@tolgee/react'
-import { styled } from '@mui/material/styles'
 
+import { Box } from '#/components/common/PandaBox'
+import type { PandaStyleProp } from '#/common/style/panda'
+import type { FormSelectionEvent } from '#/components/common/formControlEvents'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import TText from '#/components/common/TText'
 
@@ -38,56 +39,50 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
       id: planConfs[0].serverId,
       isCurrent: false,
     })
-  const [useCurrent, setUseCurrent] = useState(false)
   const [activeYear, setActiveYear] = useState(featureYears[1])
   const [calcType, setCalcType] = React.useState<GraphCalcType>('total')
   const [areaType, setAreaType] = React.useState<string>('all')
-  const [localDatas, setLocalDatas] = useState<MapGraphData[]>([])
   const { zoningClasses, isLoading: isZoningClassesLoading } =
     useZoningClasses()
 
-  const handleCalcTypeChange = (
-    _event: React.MouseEvent<HTMLElement>,
-    newCalcType: GraphCalcType
-  ) => {
+  const handleCalcTypeChange = (newCalcType: GraphCalcType) => {
     setCalcType(newCalcType)
   }
 
-  const handleAreaTypeChange = (event: SelectChangeEvent<string>) => {
+  const handleAreaTypeChange = (event: FormSelectionEvent<string>) => {
     setAreaType(event.target.value)
   }
 
   const datas = useMemo(() => {
-    let datas = planConfs.map((planConf) => ({
+    const datas = planConfs.map((planConf) => ({
       id: planConf.serverId,
       name: planConf.name,
       data: planConf.reportData.areas,
     }))
 
-    const dataIds = datas.map((data) => data.id)
-    if (!dataIds.includes(activePlanConfOption.id)) {
-      setActivePlanConfOption({ id: dataIds[0], isCurrent: false })
-      useCurrent && setUseCurrent(false)
-    }
-
     return cloneDeep(datas)
   }, [planConfs])
 
-  useEffect(() => {
-    if (datas.length === 0 || isZoningClassesLoading) return
-    const newDatas = updateDataWithColor({
+  const activeDataOption = useMemo(() => {
+    const dataIds = datas.map((data) => data.id)
+    return dataIds.includes(activePlanConfOption.id)
+      ? activePlanConfOption
+      : { id: dataIds[0] ?? '', isCurrent: false }
+  }, [activePlanConfOption, datas])
+
+  const localDatas = useMemo(() => {
+    if (datas.length === 0 || isZoningClassesLoading) return []
+    return updateDataWithColor({
       datas,
       year: activeYear,
       calcType,
       areaType,
     })
-    setLocalDatas(newDatas)
   }, [
     datas,
     activeYear,
     calcType,
     areaType,
-    zoningClasses,
     isZoningClassesLoading,
   ])
 
@@ -119,14 +114,16 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
   return (
     <Box>
       <Box sx={{ mt: { xs: 0, md: 2.5 }, ml: { xs: 0, md: 2.5 } }}>
-        <Typography
-          sx={(theme) => ({
-            typography: theme.typography.h1,
+        <Box
+          component="h2"
+          sx={{
+            m: 0,
+            typography: 'h1',
             display: 'inline',
-          })}
+          }}
         >
           <TText keyName="report.map_graph.title" ns={'hiilikartta'}></TText>
-        </Typography>
+        </Box>
       </Box>
       <Box
         sx={{
@@ -137,15 +134,16 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
         }}
       >
         <StyledToggleButton
-          value="total"
+          type="button"
           aria-label="total"
           sx={{
             mr: { xs: 0, md: '0.75rem' },
             typography: 'h5',
             letterSpacing: 'normal',
           }}
-          selected={calcType === 'total'}
-          onChange={handleCalcTypeChange}
+          aria-pressed={calcType === 'total'}
+          data-selected={calcType === 'total' ? 'true' : undefined}
+          onClick={() => handleCalcTypeChange('total')}
         >
           <TText
             ns="hiilikartta"
@@ -153,15 +151,16 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
           ></TText>
         </StyledToggleButton>
         <StyledToggleButton
-          value="bio"
+          type="button"
           aria-label="bio"
           sx={{
             mr: { xs: 0, md: '0.75rem' },
             typography: 'h5',
             letterSpacing: 'normal',
           }}
-          selected={calcType === 'bio'}
-          onChange={handleCalcTypeChange}
+          aria-pressed={calcType === 'bio'}
+          data-selected={calcType === 'bio' ? 'true' : undefined}
+          onClick={() => handleCalcTypeChange('bio')}
         >
           <TText
             ns="hiilikartta"
@@ -169,11 +168,12 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
           ></TText>
         </StyledToggleButton>
         <StyledToggleButton
-          value="ground"
+          type="button"
           aria-label="ground"
           sx={{ typography: 'h5', letterSpacing: 'normal' }}
-          selected={calcType === 'ground'}
-          onChange={handleCalcTypeChange}
+          aria-pressed={calcType === 'ground'}
+          data-selected={calcType === 'ground' ? 'true' : undefined}
+          onClick={() => handleCalcTypeChange('ground')}
         >
           <TText
             ns="hiilikartta"
@@ -195,7 +195,8 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
           pr: '1.25rem',
         }}
       >
-        <Typography
+        <Box
+          component="span"
           sx={{
             typography: 'h5',
             letterSpacing: 'normal',
@@ -207,7 +208,7 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
             ns="hiilikartta"
             keyName={'report.map_graph.select_zoning_type'}
           ></TText>
-        </Typography>
+        </Box>
         <DropDownSelectWithHeader
           options={areaTypeOptions}
           value={areaType}
@@ -239,9 +240,8 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
         activeYear={activeYear}
         featureYears={featureYears}
         setActiveYear={setActiveYear}
-        activeDataOption={activePlanConfOption}
+        activeDataOption={activeDataOption}
         setActiveDataOption={setActivePlanConfOption}
-        setUseCurrent={setUseCurrent}
         activeCalcType={calcType}
         activeAreaType={areaType}
       />
@@ -261,27 +261,50 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
   )
 }
 
-const StyledToggleButton = styled(ToggleButton)(({ theme }) => ({
-  borderRadius: '0.3125rem',
-  border: '1px solid',
-  borderColor: theme.palette.neutral.main,
-  backgroundColor: theme.palette.neutral.lighter,
-  color: theme.palette.neutral.darker,
-  flexGrow: 1,
-  flexShrink: 1,
-  whiteSpace: 'normal',
-  textTransform: 'none',
-  wordBreak: 'break-word',
-  marginBottom: '0.75rem',
-  paddingLeft: '1.25rem',
-  paddingRight: '1.25rem',
-  textAlign: 'left',
-  display: 'flex',
-  justifyContent: 'flex-start',
-  '&.Mui-selected': {
-    backgroundColor: theme.palette.neutral.light,
-  },
-}))
+const StyledToggleButton = ({
+  children,
+  sx,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  sx?: PandaStyleProp
+}) => (
+  <Box
+    component="button"
+    sx={[
+      {
+        borderRadius: '0.3125rem',
+        border: '1px solid',
+        borderColor: 'neutral.main',
+        backgroundColor: 'neutral.lighter',
+        color: 'neutral.darker',
+        flexGrow: 1,
+        flexShrink: 1,
+        whiteSpace: 'normal',
+        textTransform: 'none',
+        wordBreak: 'break-word',
+        mb: '0.75rem',
+        pl: '1.25rem',
+        pr: '1.25rem',
+        py: '0.375rem',
+        textAlign: 'left',
+        display: 'flex',
+        justifyContent: 'flex-start',
+        cursor: 'pointer',
+        '&[data-selected="true"]': {
+          backgroundColor: 'neutral.light',
+        },
+        '&:focus-visible': {
+          outline: '2px solid rgba(39, 74, 255, 0.45)',
+          outlineOffset: '2px',
+        },
+      },
+      ...(Array.isArray(sx) ? sx : [sx]),
+    ]}
+    {...props}
+  >
+    {children}
+  </Box>
+)
 
 const updateDataWithColor = ({
   datas,

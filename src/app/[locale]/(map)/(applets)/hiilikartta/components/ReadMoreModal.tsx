@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Typography } from '@mui/material'
+import { Box } from '#/components/common/PandaBox'
 import Link from '#/components/common/Link'
 import TText from '#/components/common/TText'
 import { ClickableModal } from '#/components/Modal'
@@ -14,7 +14,7 @@ const ReadMoreModal = () => {
       triggerAriaLabel="Open calculation method details"
       modalBody={
         <Box>
-          <Typography sx={{ typography: 'body1', mb: 2 }}>
+          <Box component="p" sx={{ m: 0, typography: 'body1', mb: 2 }}>
             <TText
               ns="hiilikartta"
               keyName="report.general.read_more_about_calc.meta"
@@ -25,24 +25,24 @@ const ReadMoreModal = () => {
             >
               <u>https://syke.fi/hankkeet/hiilikartta</u>
             </Link>
-          </Typography>
-          <Typography typography="body2">
+          </Box>
+          <Box component="p" sx={{ m: 0, typography: 'body2' }}>
             <TText
               ns="hiilikartta"
               keyName={'report.general.read_more_about_calc.text'}
             ></TText>
-          </Typography>
+          </Box>
         </Box>
       }
     >
-      <Typography sx={{ display: 'inline', typography: 'body2' }}>
+      <Box component="span" sx={{ display: 'inline', typography: 'body2' }}>
         <u>
           <TText
             ns="hiilikartta"
             keyName="report.general.read_more_about_calc"
           ></TText>
         </u>
-      </Typography>
+      </Box>
     </ClickableModal>
   )
 }

@@ -1,11 +1,12 @@
 'use client'
 
 import React from 'react'
-import { Box, CircularProgress, Typography } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
+import { Box } from '#/components/common/PandaBox'
 import MutableLink from '#/components/common/MutableLink'
 import { CircleArrowRight, Error as ErrorIcon, Info } from '#/components/icons'
+import { LoadingSpinner } from '#/components/Loading'
 import { routeTree } from '#/common/routing/routes/hiilikartta'
 
 import { CalculationState } from '../common/types'
@@ -29,10 +30,11 @@ const getStatusDisplay = ({
       return {
         color: '#0D6044',
         icon: (
-          <CircularProgress
+          <LoadingSpinner
             size={10}
             thickness={7}
             sx={{ color: 'inherit', flexShrink: 0 }}
+            color="inherit"
           />
         ),
         text: t('sidebar.my_plans.calculations_starting'),
@@ -41,10 +43,11 @@ const getStatusDisplay = ({
       return {
         color: '#0D6044',
         icon: (
-          <CircularProgress
+          <LoadingSpinner
             size={10}
             thickness={7}
             sx={{ color: 'inherit', flexShrink: 0 }}
+            color="inherit"
           />
         ),
         text: t('sidebar.my_plans.calculations_in_progress'),
@@ -158,7 +161,8 @@ const PlanListItem = ({
             }}
           />
         </Box>
-        <Typography
+        <Box
+          component="span"
           sx={{
             fontSize: '0.625rem',
             fontWeight: 700,
@@ -172,7 +176,7 @@ const PlanListItem = ({
           }}
         >
           {name}
-        </Typography>
+        </Box>
 
         {statusDisplay && (
           <>
@@ -187,7 +191,8 @@ const PlanListItem = ({
             >
               {statusDisplay.icon}
             </Box>
-            <Typography
+            <Box
+              component="span"
               sx={{
                 fontSize: '0.5rem',
                 fontWeight: 400,
@@ -198,7 +203,7 @@ const PlanListItem = ({
               }}
             >
               {statusDisplay.text}
-            </Typography>
+            </Box>
           </>
         )}
       </Box>

@@ -1,4 +1,4 @@
-import React, { use, useCallback, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { Group } from '@visx/group'
 import { scaleLinear } from '@visx/scale'
 import { AxisLeft, AxisBottom } from '@visx/axis'
@@ -12,10 +12,10 @@ import { GlyphCircle } from '@visx/glyph'
 import { useTranslate } from '@tolgee/react'
 import { scaleOrdinal } from 'd3-scale'
 import { schemeCategory10 } from 'd3-scale-chromatic'
-import { useTheme } from '@mui/material/styles'
 import { LegendOrdinal } from '@visx/legend'
-import { Box, Typography } from '@mui/material'
 
+import { Box } from '#/components/common/PandaBox'
+import { appTypography } from '#/common/style/theme/tokens'
 import { getTextWidth } from '#/common/utils/styling'
 import { pp } from '#/common/utils/general'
 
@@ -58,12 +58,11 @@ const CarbonLineChartInner = ({
     ha: t('report.carbon_line_chart.tooltip_unit_ha'),
     total: t('report.carbon_line_chart.tooltip_unit_total'),
   }
-  const theme = useTheme()
   const textStyle = {
-    fontSize: theme.typography.body2.fontSize,
-    fontFamily: theme.typography.body2.fontFamily,
-    fontWeight: theme.typography.body2.fontWeight,
-    letterSpacing: theme.typography.body2.letterSpacing,
+    fontSize: appTypography.body2.fontSize,
+    fontFamily: appTypography.body2.fontFamily,
+    fontWeight: appTypography.body2.fontWeight,
+    letterSpacing: appTypography.body2.letterSpacing,
   }
 
   const localData = useMemo(() => {
@@ -192,7 +191,7 @@ const CarbonLineChartInner = ({
     const formatter = new Intl.NumberFormat('en-FI', {
       maximumFractionDigits: 0,
     })
-    return (value: any) => formatter.format(value)
+    return (value: unknown) => formatter.format(Number(value))
   }, [])
 
   const tooltipStyles = {
@@ -288,76 +287,74 @@ const CarbonLineChartInner = ({
     }
   }, [tooltipData])
 
-  const ChartLegend = () => {
-    return (
-      <Box sx={{ mt: 1, ml: 2 }}>
-        <LegendOrdinal
-          scale={colorScale}
-          labelFormat={(label) => localPlanNames[parseInt(label, 10)]}
-          direction="row"
-          itemMargin="8px 8px 8px 0"
-          legendLabelProps={{ color: 'black' }}
-          style={{
-            paddingLeft: 0,
-            color: 'black',
-            display: 'flex',
-            flexWrap: 'wrap', // Allows wrapping
-          }}
-        >
-          {(labels) => (
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                flexWrap: 'wrap',
-              }}
-            >
-              {labels.map((label, i) => {
-                const color = getColorForIndex(i)
-                return (
-                  <div
-                    key={`legend-${i}`}
-                    onClick={() => toggleLineVisibility(i)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault()
-                        toggleLineVisibility(i)
-                      }
-                    }}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Toggle chart series ${String(label.text)}`}
-                    style={{
-                      cursor: 'pointer',
-                      marginRight: '2rem',
-                      marginTop: '1rem',
-                      display: 'flex',
-                      alignItems: 'top',
-                      width: '100%',
-                      minWidth: '500px',
-                    }}
-                  >
-                    <svg width={15} height={15}>
-                      <rect
-                        fill={lineVisibility[i] ? color : '#FFF'}
-                        width={15}
-                        height={15}
-                        stroke={color}
-                        strokeWidth={3}
-                      />
-                    </svg>
-                    <span style={{ marginLeft: 5, ...textStyle }}>
-                      {label.text}
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </LegendOrdinal>
-      </Box>
-    )
-  }
+  const chartLegend = (
+    <Box sx={{ mt: 1, ml: 2 }}>
+      <LegendOrdinal
+        scale={colorScale}
+        labelFormat={(label) => localPlanNames[parseInt(label, 10)]}
+        direction="row"
+        itemMargin="8px 8px 8px 0"
+        legendLabelProps={{ color: 'black' }}
+        style={{
+          paddingLeft: 0,
+          color: 'black',
+          display: 'flex',
+          flexWrap: 'wrap', // Allows wrapping
+        }}
+      >
+        {(labels) => (
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+            }}
+          >
+            {labels.map((label, i) => {
+              const color = getColorForIndex(i)
+              return (
+                <div
+                  key={`legend-${i}`}
+                  onClick={() => toggleLineVisibility(i)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      toggleLineVisibility(i)
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Toggle chart series ${String(label.text)}`}
+                  style={{
+                    cursor: 'pointer',
+                    marginRight: '2rem',
+                    marginTop: '1rem',
+                    display: 'flex',
+                    alignItems: 'top',
+                    width: '100%',
+                    minWidth: '500px',
+                  }}
+                >
+                  <svg width={15} height={15}>
+                    <rect
+                      fill={lineVisibility[i] ? color : '#FFF'}
+                      width={15}
+                      height={15}
+                      stroke={color}
+                      strokeWidth={3}
+                    />
+                  </svg>
+                  <span style={{ marginLeft: 5, ...textStyle }}>
+                    {label.text}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </LegendOrdinal>
+    </Box>
+  )
 
   return (
     <div style={{ position: 'relative' }}>
@@ -397,7 +394,7 @@ const CarbonLineChartInner = ({
             tickStroke={'black'}
             tickFormat={yAxisFormatter}
             tickLabelProps={(value) => ({
-              fill: value < 0 ? 'transparent' : 'black', // Hide labels below 0
+              fill: Number(value) < 0 ? 'transparent' : 'black', // Hide labels below 0
               textAnchor: 'end',
               dx: '-0.3rem',
               ...textStyle,
@@ -495,10 +492,10 @@ const CarbonLineChartInner = ({
           left={tooltipLeft}
           style={tooltipStyles}
         >
-          <Typography sx={{ mb: 1.5, ml: '18px', typography: 'body2' }}>
+          <Box component="p" sx={{ m: 0, mb: 1.5, ml: '18px', typography: 'body2' }}>
             {t('report.carbon_line_chart.tooltip_year')}
             <b>{` ${sortedTooltipData[0].year}`}</b>
-          </Typography>
+          </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {sortedTooltipData.map(
               (d) =>
@@ -522,7 +519,8 @@ const CarbonLineChartInner = ({
                           mr: 1,
                         }}
                       ></Box>
-                      <Typography
+                      <Box
+                        component="span"
                         sx={{
                           display: 'inline-block',
                           typography: 'body2',
@@ -531,21 +529,22 @@ const CarbonLineChartInner = ({
                           whiteSpace: 'nowrap',
                           maxWidth: '250px',
                         }}
-                      >{`${localPlanNames[d.lineIndex]}:`}</Typography>
+                      >{`${localPlanNames[d.lineIndex]}:`}</Box>
                     </Box>
-                    <Typography
+                    <Box
+                      component="span"
                       sx={{ ml: 1, display: 'inline', typography: 'body2' }}
                     >
                       <b>{`${pp(getValue(d), 2)} `}</b>
                       {`${units[unitType]}`}
-                    </Typography>
+                    </Box>
                   </Box>
                 )
             )}
           </Box>
         </TooltipWithBounds>
       )}
-      <ChartLegend />
+      {chartLegend}
     </div>
   )
 }

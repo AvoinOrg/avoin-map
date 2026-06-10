@@ -1,10 +1,10 @@
 'use client'
 
 import React, { useMemo } from 'react'
-import { Box, Typography } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 import { useRouter } from 'next/navigation'
 
+import { Box } from '#/components/common/PandaBox'
 import {
   IntoSidebarFooterSlot,
   IntoSidebarHeaderSlot,
@@ -34,19 +34,16 @@ const HomeSidebarHeader = () => {
   return (
     <Box
       sx={{
-        px: {
-          mobile: `${HOME_SIDEBAR_HEADER_PADDING_REM}rem`,
-          desktop: `${HOME_SIDEBAR_HEADER_PADDING_REM}rem`,
-        },
-        pt: { mobile: '0.625rem', desktop: '0.625rem' },
-        pb: { mobile: '0.375rem', desktop: '0.5rem' },
+        px: `${HOME_SIDEBAR_HEADER_PADDING_REM}rem`,
+        pt: '0.625rem',
+        pb: '0.5rem',
         flexShrink: 0,
       }}
     >
       <Box
         sx={{
           position: 'relative',
-          minHeight: { mobile: '6rem', desktop: '6.25rem' },
+          minHeight: '6.25rem',
           borderRadius: '0.625rem',
           overflow: 'hidden',
           backgroundImage:
@@ -63,12 +60,14 @@ const HomeSidebarHeader = () => {
               'linear-gradient(90deg, rgba(244,244,244,1) 0%, rgba(244,244,244,0.98) 24%, rgba(244,244,244,0.48) 46%, rgba(244,244,244,0) 72%)',
           }}
         />
-        <Typography
+        <Box
+          component="h1"
           sx={{
+            m: 0,
             position: 'relative',
             zIndex: 1,
             px: '1.25rem',
-            pt: { mobile: '2.5rem', desktop: '2.625rem' },
+            pt: '2.625rem',
             color: '#111111',
             fontSize: '0.75rem',
             fontWeight: 700,
@@ -78,7 +77,7 @@ const HomeSidebarHeader = () => {
           }}
         >
           Hiilikartta
-        </Typography>
+        </Box>
       </Box>
     </Box>
   )
@@ -122,16 +121,13 @@ const Page = () => {
           sx={{
             width: '100%',
             height: '5rem',
-            px: {
-              mobile: `${HOME_SIDEBAR_LEFT_WALL_REM}rem`,
-              desktop: `${HOME_SIDEBAR_LEFT_WALL_REM}rem`,
-            },
+            px: `${HOME_SIDEBAR_LEFT_WALL_REM}rem`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-start',
-            gap: { mobile: '1.375rem', desktop: '1.625rem' },
+            gap: '1.625rem',
             border: 'none',
-            borderRadius: { mobile: 0, desktop: '6px 6px 10px 10px' },
+            borderRadius: '6px 6px 10px 10px',
             backgroundColor: '#b0ff6b',
             color: '#111111',
             cursor: 'pointer',
@@ -150,7 +146,8 @@ const Page = () => {
               color: '#111111',
             }}
           />
-          <Typography
+          <Box
+            component="span"
             sx={{
               fontSize: '0.6875rem',
               fontWeight: 700,
@@ -161,7 +158,7 @@ const Page = () => {
             }}
           >
             Luo Kaava & laske hiilivaikutukset
-          </Typography>
+          </Box>
         </Box>
       </IntoSidebarFooterSlot>
       <SidebarContentBox
@@ -199,8 +196,10 @@ const Page = () => {
             }}
           >
             <Box>
-              <Typography
+              <Box
+                component="p"
                 sx={{
+                  m: 0,
                   mt: { mobile: '1.125rem', desktop: '1.25rem' },
                   color: '#111111',
                   fontSize: '0.75rem',
@@ -213,7 +212,7 @@ const Page = () => {
                 }}
               >
                 {introText}
-              </Typography>
+              </Box>
 
               {vegetationLayerGroup && (
                 <Box sx={{ mt: { mobile: '4rem', desktop: '5.25rem' } }}>
@@ -246,8 +245,10 @@ const Page = () => {
             </Box>
 
             <Box sx={{ mt: 'auto', pt: { mobile: '2.5rem', desktop: '3rem' } }}>
-              <Typography
+              <Box
+                component="p"
                 sx={{
+                  m: 0,
                   color: '#111111',
                   fontSize: '0.625rem',
                   fontWeight: 400,
@@ -261,7 +262,7 @@ const Page = () => {
                   keyName="sidebar.main.attribution"
                   ns="hiilikartta"
                 />
-              </Typography>
+              </Box>
 
               <Box
                 sx={{

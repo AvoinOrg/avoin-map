@@ -1,7 +1,21 @@
 'use client'
 
 import React from 'react'
-import { Box, Skeleton } from '@mui/material'
+import { Box } from '#/components/common/PandaBox'
+import type { PandaStyleProp } from '#/common/style/panda'
+
+const SkeletonBox = ({ sx }: { sx: PandaStyleProp }) => (
+  <Box
+    aria-hidden="true"
+    sx={[
+      {
+        flexShrink: 0,
+        backgroundColor: 'rgba(17, 17, 17, 0.06)',
+      },
+      ...(Array.isArray(sx) ? sx : [sx]),
+    ]}
+  />
+)
 
 const PlanListItemLoading = () => {
   return (
@@ -23,14 +37,13 @@ const PlanListItemLoading = () => {
           minWidth: 0,
         }}
       >
-        <Skeleton
-          variant="rounded"
+        <SkeletonBox
           sx={{
             width: '0.75rem',
             height: '0.5625rem',
             borderRadius: '0.2rem',
             mt: '0.25rem',
-            bgcolor: 'rgba(13, 96, 68, 0.12)',
+            backgroundColor: 'rgba(13, 96, 68, 0.12)',
             flexShrink: 0,
           }}
         />
@@ -43,33 +56,29 @@ const PlanListItemLoading = () => {
             minWidth: 0,
           }}
         >
-          <Skeleton
-            variant="text"
+          <SkeletonBox
             sx={{
               width: '40%',
               height: '1rem',
-              transform: 'none',
-              bgcolor: 'rgba(17, 17, 17, 0.08)',
+              backgroundColor: 'rgba(17, 17, 17, 0.08)',
             }}
           />
-          <Skeleton
-            variant="text"
+          <SkeletonBox
             sx={{
               width: '58%',
               height: '0.875rem',
-              transform: 'none',
-              bgcolor: 'rgba(17, 17, 17, 0.06)',
+              backgroundColor: 'rgba(17, 17, 17, 0.06)',
             }}
           />
         </Box>
       </Box>
 
-      <Skeleton
-        variant="circular"
+      <SkeletonBox
         sx={{
           width: '1rem',
           height: '1rem',
-          bgcolor: 'rgba(17, 17, 17, 0.08)',
+          borderRadius: '50%',
+          backgroundColor: 'rgba(17, 17, 17, 0.08)',
           flexShrink: 0,
         }}
       />

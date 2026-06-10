@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Box, SxProps, Theme, Typography } from '@mui/material'
-import { T, useTranslate } from '@tolgee/react'
-import { useTheme } from '@mui/material/styles'
-import useMediaQuery from '@mui/material/useMediaQuery'
+import { useTranslate } from '@tolgee/react'
 
+import { Box } from '#/components/common/PandaBox'
+import type { PandaStyleProp } from '#/common/style/panda'
+import TText from '#/components/common/TText'
 import {
   CARBON_CHANGE_COLORS,
   CARBON_CHANGE_NO_DATA_COLOR,
@@ -13,16 +13,18 @@ import { ArrowDown, ArrowUp } from '#/components/icons'
 const NUMBER_OF_ITEMS = CARBON_CHANGE_COLORS.length + 1
 const FLEX_BASIS = 100 / NUMBER_OF_ITEMS + '%'
 
-type Props = { sx?: SxProps<Theme> }
+type Props = { sx?: PandaStyleProp }
 
 const CarbonChangeLegend = ({ sx }: Props) => {
-  const theme = useTheme()
-  const useNarrowLayout = useMediaQuery(theme.breakpoints.down('md'))
-
-  return useNarrowLayout ? (
-    <CarbonChangeLegendNarrow sx={sx}></CarbonChangeLegendNarrow>
-  ) : (
-    <CarbonChangeLegendWide sx={sx}></CarbonChangeLegendWide>
+  return (
+    <>
+      <Box sx={{ display: { xs: 'none', md: 'contents' } }}>
+        <CarbonChangeLegendWide sx={sx}></CarbonChangeLegendWide>
+      </Box>
+      <Box sx={{ display: { xs: 'contents', md: 'none' } }}>
+        <CarbonChangeLegendNarrow sx={sx}></CarbonChangeLegendNarrow>
+      </Box>
+    </>
   )
 }
 
@@ -34,14 +36,23 @@ const CarbonChangeLegendWide = ({ sx }: Props) => {
   const [fourthTextLeft, setFourthTextLeft] = useState('0')
 
   useEffect(() => {
-    if (noChangeTextRef.current) {
-      const middleTextWidth = noChangeTextRef.current.offsetWidth
+    const element = noChangeTextRef.current
+    if (!element) return
+
+    const updatePositions = () => {
+      const middleTextWidth = element.offsetWidth
       const middleTextPosition = (100 / NUMBER_OF_ITEMS) * 5
       setThirdTextRight(`calc(${middleTextPosition}% + 1.5rem)`)
       setFourthTextLeft(
         `calc(${middleTextPosition}% + ${middleTextWidth}px + 1.5rem)`
       )
     }
+
+    updatePositions()
+    const resizeObserver = new ResizeObserver(updatePositions)
+    resizeObserver.observe(element)
+
+    return () => resizeObserver.disconnect()
   }, [])
 
   return (
@@ -100,19 +111,20 @@ const CarbonChangeLegendWide = ({ sx }: Props) => {
           }}
         >
           <b>
-            <T
+            <TText
               ns={'hiilikartta'}
               keyName={'report.carbon_change_legend.title'}
-            ></T>
+            />
           </b>
           <Box sx={{ mt: 0.7 }}>
-            <T
+            <TText
               ns={'hiilikartta'}
               keyName={'report.carbon_change_legend.unit'}
-            ></T>
+            />
           </Box>
         </Box>
-        <Typography
+        <Box
+          component="span"
           ref={noChangeTextRef}
           sx={{
             position: 'absolute',
@@ -124,12 +136,13 @@ const CarbonChangeLegendWide = ({ sx }: Props) => {
             letterSpacing: '0.05rem',
           }}
         >
-          <T
+          <TText
             ns={'hiilikartta'}
             keyName={'report.carbon_change_legend.no_change'}
-          ></T>
-        </Typography>
-        <Typography
+          />
+        </Box>
+        <Box
+          component="span"
           sx={{
             position: 'absolute',
             top: 1,
@@ -142,13 +155,14 @@ const CarbonChangeLegendWide = ({ sx }: Props) => {
             color: '#C54032',
           }}
         >
-          <T
+          <TText
             ns={'hiilikartta'}
             keyName={'report.carbon_change_legend.stores_shrink'}
-          ></T>
+          />
           {' <<'}
-        </Typography>
-        <Typography
+        </Box>
+        <Box
+          component="span"
           sx={{
             position: 'absolute',
             top: 1,
@@ -161,11 +175,11 @@ const CarbonChangeLegendWide = ({ sx }: Props) => {
           }}
         >
           {'>> '}
-          <T
+          <TText
             ns={'hiilikartta'}
             keyName={'report.carbon_change_legend.stores_expand'}
-          ></T>
-        </Typography>
+          />
+        </Box>
       </Box>
     </Box>
   )
@@ -180,8 +194,11 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
   const [shrinkTop, setShrinkTop] = useState('0')
 
   useEffect(() => {
-    if (legendItemsRef.current) {
-      const containerHeight = legendItemsRef.current.offsetHeight
+    const element = legendItemsRef.current
+    if (!element) return
+
+    const updatePositions = () => {
+      const containerHeight = element.offsetHeight
       // Assuming each item is of equal height and you want to align with the middle of the items
       const itemHeight = containerHeight / NUMBER_OF_ITEMS
       const newNoChangeTextTop = itemHeight * (NUMBER_OF_ITEMS / 2 - 0.5)
@@ -189,7 +206,13 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
       setGrowTop(`calc(${newNoChangeTextTop}px - 2rem)`)
       setShrinkTop(`calc(${newNoChangeTextTop}px + 1.5rem)`)
     }
-  }, [legendItemsRef.current?.offsetHeight])
+
+    updatePositions()
+    const resizeObserver = new ResizeObserver(updatePositions)
+    resizeObserver.observe(element)
+
+    return () => resizeObserver.disconnect()
+  }, [])
 
   return (
     <Box
@@ -210,16 +233,16 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
         }}
       >
         <b>
-          <T
+          <TText
             ns={'hiilikartta'}
             keyName={'report.carbon_change_legend.title'}
-          ></T>
+          />
         </b>
         <Box sx={{ mt: 0.7 }}>
-          <T
+          <TText
             ns={'hiilikartta'}
             keyName={'report.carbon_change_legend.unit'}
-          ></T>
+          />
         </Box>
       </Box>
       <Box
@@ -243,7 +266,8 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
             height: '100%',
           }}
         >
-          <Typography
+          <Box
+            component="span"
             sx={{
               position: 'absolute',
               top: noChangeTextTop,
@@ -256,11 +280,11 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
               pr: '1.15rem',
             }}
           >
-            <T
+            <TText
               ns={'hiilikartta'}
               keyName={'report.carbon_change_legend.no_change'}
-            ></T>
-          </Typography>
+            />
+          </Box>
           <Box
             sx={{
               position: 'absolute',
@@ -275,7 +299,8 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
               justifyContent: 'flex-end',
             }}
           >
-            <Typography
+            <Box
+              component="span"
               sx={{
                 typography: 'body1',
                 fontSize: '0.5rem',
@@ -283,11 +308,11 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
                 letterSpacing: '0.05rem',
               }}
             >
-              <T
+              <TText
                 ns={'hiilikartta'}
                 keyName={'report.carbon_change_legend.stores_expand'}
-              ></T>
-            </Typography>
+              />
+            </Box>
             <ArrowUp
               sx={{
                 fontSize: '1rem',
@@ -309,7 +334,8 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
               textAlign: 'right',
             }}
           >
-            <Typography
+            <Box
+              component="span"
               sx={{
                 typography: 'body1',
                 fontSize: '0.5rem',
@@ -317,11 +343,11 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
                 letterSpacing: '0.05rem',
               }}
             >
-              <T
+              <TText
                 ns={'hiilikartta'}
                 keyName={'report.carbon_change_legend.stores_shrink'}
-              ></T>
-            </Typography>
+              />
+            </Box>
             <ArrowDown
               sx={{
                 fontSize: '1rem',
@@ -370,7 +396,8 @@ const LegendItem = ({ color, label }: { color: string; label: string }) => {
         flexDirection: 'column',
       }}
     >
-      <Typography
+      <Box
+        component="span"
         sx={{
           typography: 'body2',
           fontSize: '0.625rem',
@@ -380,7 +407,7 @@ const LegendItem = ({ color, label }: { color: string; label: string }) => {
         }}
       >
         {label}
-      </Typography>
+      </Box>
       <Box
         sx={{
           mt: '0.44rem',
@@ -417,7 +444,8 @@ const LegendItemNarrow = ({
           mr: '0.625rem',
         }}
       ></Box>
-      <Typography
+      <Box
+        component="span"
         sx={{
           typography: 'body2',
           fontSize: '0.625rem',
@@ -428,7 +456,7 @@ const LegendItemNarrow = ({
         }}
       >
         {label}
-      </Typography>
+      </Box>
     </Box>
   )
 }

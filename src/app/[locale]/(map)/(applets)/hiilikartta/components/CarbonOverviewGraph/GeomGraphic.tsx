@@ -1,6 +1,7 @@
 import React from 'react'
 import { geoPath, geoMercator } from 'd3-geo'
-import { Box, SxProps, Theme } from '@mui/material'
+import { Box } from '#/components/common/PandaBox'
+import type { PandaStyleProp } from '#/common/style/panda'
 import { CalcFeatureCollection } from '../../common/types'
 import {
   getCarbonChangeColor,
@@ -12,7 +13,7 @@ type Props = {
   year: string
   width: number
   height: number
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
 }
 
 const GeomGraphic = ({ calcFeatures, year, width, height, sx }: Props) => {

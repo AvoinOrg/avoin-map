@@ -1,14 +1,15 @@
 'use client'
-import React, { useEffect, useMemo, useRef, useState, use } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import useStore from '#/common/hooks/useStore'
 import MutableLink from '#/components/common/MutableLink'
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
-import { map, isEqual, sortBy } from 'lodash-es'
-import { styled, SxProps } from '@mui/system'
-import { Box, Theme, Typography, useMediaQuery, useTheme } from '@mui/material'
-import { T, useTranslate } from '@tolgee/react'
+import { map, isEqual } from 'lodash-es'
+import { useTranslate } from '@tolgee/react'
 
+import { Box } from '#/components/common/PandaBox'
+import type { PandaStyleProp } from '#/common/style/panda'
+import TText from '#/components/common/TText'
 import { getRoute } from '#/common/routing/routing-client'
 import MultiSelectAutocomplete from '#/components/common/MultiSelectAutocomplete'
 import { FullscreenPage } from '#/components/common/FullscreenPage'
@@ -32,12 +33,6 @@ import { getReportCalculatedDate } from '#/app/[locale]/(map)/(applets)/hiilikar
 
 const MAX_WIDTH = '1000px'
 
-enum ErrorState {
-  NO_IDS = 'NO_IDS',
-  INVALID_IDS = 'INVALID_IDS',
-  NO_DATA = 'NO_DATA',
-}
-
 const Page = () => {
   const searchParams = useSearchParams()
   const globalState = useStore(useAppletStore, (state) => state.globalState)
@@ -45,8 +40,6 @@ const Page = () => {
   const router = useRouter()
   const pathName = usePathname()
   const { t } = useTranslate('hiilikartta')
-  const theme = useTheme()
-  const useNarrowLayout = useMediaQuery(theme.breakpoints.down('md'))
   const addedExtPlanConfIds = useRef<string[]>([])
 
   const allPlanConfs = useStore(useAppletStore, (state) => state.planConfs)
@@ -65,7 +58,6 @@ const Page = () => {
   const [planConfs, setPlanConfs] = useState<PlanConfWithReportData[]>([])
   const [prevPageId, setPrevPageId] = useState<string>()
   const [prevPageStep, setPrevPageStep] = useState<'plan' | 'areas'>('plan')
-  const [errorState, setErrorState] = useState<ErrorState>()
   const [isLoaded, setIsLoaded] = useState(false)
   const [featureYears, setFeatureYears] = useState<string[]>([])
 
@@ -89,6 +81,9 @@ const Page = () => {
       })
   }, [allPlanConfs, externalPlanConfs])
 
+  // The report route mirrors URL/store state into local selection state after
+  // external plan hydration, so these state writes need to stay effect-driven.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (
       allPlanConfs != null &&
@@ -132,7 +127,6 @@ const Page = () => {
                 )} ${id}`,
                 variant: 'error',
               })
-              setErrorState(ErrorState.NO_DATA)
             }
           } else if (foundExtPlanConfId != null) {
             if (externalPlanConfs[id].status === FetchStatus.FETCHED) {
@@ -149,7 +143,6 @@ const Page = () => {
                   )} ${id}`,
                   variant: 'error',
                 })
-                setErrorState(ErrorState.NO_DATA)
               }
             } else if (externalPlanConfs[id].status === FetchStatus.ERRORED) {
               notify({
@@ -158,7 +151,6 @@ const Page = () => {
                 )} ${id}`,
                 variant: 'error',
               })
-              setErrorState(ErrorState.NO_DATA)
             }
           } else if (foundPhPlanConfId != null) {
             if (
@@ -172,7 +164,6 @@ const Page = () => {
                 )} ${id}`,
                 variant: 'error',
               })
-              setErrorState(ErrorState.NO_DATA)
             }
           } else if (!addedExtPlanConfIds.current.includes(id)) {
             addedExtPlanConfIds.current.push(id)
@@ -251,6 +242,7 @@ const Page = () => {
       }
     }
   }, [searchParams, allPlanConfs, externalPlanConfs, globalState])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handlePlanSelectClick = (
     event: React.SyntheticEvent<Element, Event>,
@@ -341,38 +333,55 @@ const Page = () => {
         }}
       >
       <Section
-        sx={(theme) => ({
-          backgroundColor: theme.palette.primary.dark,
+        sx={{
+          backgroundColor: 'primary.dark',
           pt: 10,
           pb: 4,
           px: 4,
-          [theme.breakpoints.down('md')]: {
+          xs: {
             p: 3,
           },
-        })}
+          md: {
+            pt: 10,
+            pb: 4,
+            px: 4,
+          },
+        }}
       >
         <Row
-          sx={(theme) => ({
-            [theme.breakpoints.down('md')]: {
+          sx={{
+            xs: {
               flexDirection: 'column-reverse',
               flexWrap: 'wrap',
               alignItems: 'flex-end',
               mb: 2,
             },
-          })}
+            md: {
+              flexDirection: 'row',
+              flexWrap: 'nowrap',
+              alignItems: 'stretch',
+              mb: 0,
+            },
+          }}
         >
-          <Typography
-            sx={(theme) => ({
-              typography: theme.typography.h1,
+          <Box
+            component="h1"
+            sx={{
+              m: 0,
+              typography: 'h1',
               display: 'inline',
-              [theme.breakpoints.down('md')]: {
+              xs: {
                 width: '100%',
                 mt: 7,
               },
-            })}
+              md: {
+                width: 'auto',
+                mt: 0,
+              },
+            }}
           >
-            <T keyName={'report.header.title'} ns={'hiilikartta'}></T>
-          </Typography>
+            <TText keyName={'report.header.title'} ns={'hiilikartta'} />
+          </Box>
           <MutableLink
             route={
               prevPageId != null
@@ -386,42 +395,47 @@ const Page = () => {
               prevPageId != null ? { routeParams: { planId: prevPageId } } : {}
             }
           >
-            <Typography
-              sx={(theme) => ({
-                typography: theme.typography.body1,
+            <Box
+              component="span"
+              sx={{
+                typography: 'body1',
                 display: 'inline',
-                color: theme.palette.neutral.light,
-              })}
+                color: 'neutral.light',
+              }}
             >
               <u>
-                <T keyName={'report.header.close'} ns={'hiilikartta'}></T>
+                <TText keyName={'report.header.close'} ns={'hiilikartta'} />
               </u>
-            </Typography>
+            </Box>
           </MutableLink>
         </Row>
         <Row
-          sx={(theme) => ({
+          sx={{
             mt: 4,
             justifyContent: 'flex-start',
             flexWrap: 'wrap',
-          })}
+          }}
         >
-          <Typography
-            sx={(theme) => ({
+          <Box
+            component="span"
+            sx={{
               typography: 'h3',
               lineHeight: '1.375rem',
               display: 'inline-flex',
               maxWidth: '15rem',
-              [theme.breakpoints.down('md')]: {
+              xs: {
                 mb: 3,
               },
-            })}
+              md: {
+                mb: 0,
+              },
+            }}
           >
-            <T
+            <TText
               keyName={'report.header.compare_with_other_plans'}
               ns={'hiilikartta'}
-            ></T>
-          </Typography>
+            />
+          </Box>
           <MultiSelectAutocomplete
             sx={{
               width: '21rem',
@@ -443,52 +457,60 @@ const Page = () => {
 
           {planConfs.length === 1 && (
             <Col
-              sx={(theme) => ({
+              sx={{
                 flex: 1,
                 alignItems: 'end',
                 letterSpacing: '0.075rem',
                 color: 'neutral.lighter',
-                [theme.breakpoints.down('md')]: {
+                xs: {
                   mt: 3,
                 },
-              })}
+                md: {
+                  mt: 0,
+                },
+              }}
             >
-              <Typography
-                sx={(theme) => ({
+              <Box
+                component="span"
+                sx={{
                   display: 'inline',
                   typography: 'body7',
                   flexWrap: 'no-wrap',
-                  mt: theme.spacing(0.5),
-                })}
+                  mt: 0.5,
+                }}
               >
-                <T
+                <TText
                   keyName={'report.report_calculated_on'}
                   ns={'hiilikartta'}
-                ></T>
-              </Typography>
-              <Typography
-                sx={(theme) => ({
+                />
+              </Box>
+              <Box
+                component="span"
+                sx={{
                   typography: 'body7',
                   display: 'inline',
-                })}
+                }}
               >
                 {getReportCalculatedDate(
                   planConfs[0].reportData.metadata.timestamp
                 )?.toLocaleDateString(navigator.language)}
-              </Typography>
+              </Box>
             </Col>
           )}
         </Row>
       </Section>
       <Section
-        sx={(theme) => ({
+        sx={{
           width: '100%',
           backgroundColor: 'primary.light',
           px: 4,
-          [theme.breakpoints.down('md')]: {
+          xs: {
             px: 3,
           },
-        })}
+          md: {
+            px: 4,
+          },
+        }}
       >
         <Row
           sx={{
@@ -532,18 +554,19 @@ const Page = () => {
               <Box sx={{ display: 'inline-flex' }}>
                 <DownloadIcon sx={{ width: 14, height: 20, mt: '-2px' }} />
               </Box>
-              <Typography
-                sx={(theme) => ({
+              <Box
+                component="span"
+                sx={{
                   typography: 'body7',
                   display: 'inline-flex',
                   alignItems: 'center',
                   fontWeight: '700',
                   textAlign: 'left',
                   minHeight: '2rem',
-                })}
+                }}
               >
-                <T keyName="report.download_geojson" ns={'hiilikartta'}></T>
-              </Typography>
+                <TText keyName="report.download_geojson" ns={'hiilikartta'} />
+              </Box>
             </Box>
             <ClipboardCopyWrapper
               ariaLabel="Copy report link"
@@ -558,18 +581,19 @@ const Page = () => {
               <Box sx={{ display: 'inline-flex' }}>
                 <LinkIcon />
               </Box>
-              <Typography
-                sx={(theme) => ({
+              <Box
+                component="span"
+                sx={{
                   typography: 'body7',
                   display: 'inline-flex',
                   alignItems: 'center',
                   fontWeight: '700',
                   textAlign: 'left',
                   minHeight: '2rem',
-                })}
+                }}
               >
-                <T keyName="report.copy_link" ns={'hiilikartta'}></T>
-              </Typography>
+                <TText keyName="report.copy_link" ns={'hiilikartta'} />
+              </Box>
             </ClipboardCopyWrapper>
           </Box>
         </Row>
@@ -595,7 +619,7 @@ const Page = () => {
               sx={{ maxWidth: MAX_WIDTH, width: '100%', mt: 5 }}
             />
           </Section>
-          {useNarrowLayout && <Breaker sx={{ mt: 8 }} />}
+          <Breaker sx={{ mt: 8 }} />
 
           <Section
             sx={{
@@ -604,7 +628,7 @@ const Page = () => {
               borderColor: { md: 'primary.dark' },
               boxShadow: {
                 xs: 'none',
-                md: '1px 1px 4px 1px rgba(217, 217, 217, 0.50);',
+                md: '1px 1px 4px 1px rgba(217, 217, 217, 0.50)',
               },
               p: {
                 xs: 0,
@@ -629,7 +653,7 @@ const Page = () => {
               borderColor: { md: 'primary.dark' },
               boxShadow: {
                 xs: 'none',
-                md: '1px 1px 4px 1px rgba(217, 217, 217, 0.50);',
+                md: '1px 1px 4px 1px rgba(217, 217, 217, 0.50)',
               },
               p: {
                 xs: 0,
@@ -653,32 +677,87 @@ const Page = () => {
   )
 }
 
-const Section = styled('div')(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  alignItems: 'center',
-  width: '100%',
-}))
+const Section = ({
+  children,
+  sx,
+}: {
+  children: React.ReactNode
+  sx?: PandaStyleProp
+}) => (
+  <Box
+    component="section"
+    sx={[
+      {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+      },
+      ...(Array.isArray(sx) ? sx : [sx]),
+    ]}
+  >
+    {children}
+  </Box>
+)
 
-const Breaker = styled('div')(({ theme }) => ({
-  width: '100%',
-  borderTop: `3px solid ${theme.palette.primary.light}`,
-}))
+const Breaker = ({ sx }: { sx?: PandaStyleProp }) => (
+  <Box
+    sx={[
+      {
+        width: '100%',
+        borderTop: '3px solid',
+        borderTopColor: 'primary.light',
+        display: { xs: 'block', md: 'none' },
+      },
+      ...(Array.isArray(sx) ? sx : [sx]),
+    ]}
+  />
+)
 
-const Row = styled('div')(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  width: '100%',
-  maxWidth: MAX_WIDTH,
-}))
+const Row = ({
+  children,
+  sx,
+}: {
+  children: React.ReactNode
+  sx?: PandaStyleProp
+}) => (
+  <Box
+    sx={[
+      {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+        maxWidth: MAX_WIDTH,
+      },
+      ...(Array.isArray(sx) ? sx : [sx]),
+    ]}
+  >
+    {children}
+  </Box>
+)
 
-const Col = styled('div')(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'flex-start',
-  width: '100%',
-}))
+const Col = ({
+  children,
+  sx,
+}: {
+  children: React.ReactNode
+  sx?: PandaStyleProp
+}) => (
+  <Box
+    sx={[
+      {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-start',
+        width: '100%',
+      },
+      ...(Array.isArray(sx) ? sx : [sx]),
+    ]}
+  >
+    {children}
+  </Box>
+)
 
 export default Page

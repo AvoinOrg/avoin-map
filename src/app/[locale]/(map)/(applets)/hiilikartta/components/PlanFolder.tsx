@@ -1,19 +1,22 @@
 'use client'
 
-import React, { useEffect } from 'react'
-import { Box, Typography, CircularProgress, Tooltip } from '@mui/material'
-import { T, useTranslate } from '@tolgee/react'
-import { SaveOutlined as SaveIcon } from '@mui/icons-material'
+import React from 'react'
+import { useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
 
 import { Folder } from '#/components/common/Folder'
+import { Box } from '#/components/common/PandaBox'
+import SimpleTooltip from '#/components/common/SimpleTooltip'
+import TText from '#/components/common/TText'
 import { Error as ErrorIcon, Exclamation, Info } from '#/components/icons'
 import EditableText from '#/components/common/EditableText'
+import { LoadingSpinner } from '#/components/Loading'
 
 import { CalculationState, PlanConf } from '../common/types'
 import { useAppletStore } from '../state/appletStore'
 import { planPostMutation } from '../common/queries/planPostMutation'
+import SaveIcon from './SaveIcon'
 
 const PlanFolder = ({
   planConf,
@@ -29,31 +32,24 @@ const PlanFolder = ({
   const { status } = useSession()
   const { t } = useTranslate('hiilikartta')
 
-  const [isSaveEnabled, setIsSaveEnabled] = React.useState(false)
+  const isSaveEnabled =
+    status === 'authenticated' &&
+    !planPost.isPending &&
+    ![CalculationState.INITIALIZING, CalculationState.CALCULATING].includes(
+      planConf.calculationState
+    ) &&
+    planConf.data.features.length > 0
 
-  const handleNameChange = (event: any) => {
+  const handleNameChange = (event: { target: { value: string } }) => {
     updatePlanConf(planConf.id, { name: event.target.value })
   }
 
-  useEffect(() => {
-    if (
-      status === 'authenticated' &&
-      !planPost.isPending &&
-      ![CalculationState.INITIALIZING, CalculationState.CALCULATING].includes(
-        planConf.calculationState
-      ) &&
-      planConf.data.features.length > 0
-    ) {
-      setIsSaveEnabled(true)
-    } else {
-      setIsSaveEnabled(false)
-    }
-  }, [status, planConf, planPost.isPending])
-
-  const handleSyncClick = (event: any) => {
+  const handleSyncClick = (
+    event: React.MouseEvent<Element> | React.KeyboardEvent<Element>
+  ) => {
     event.preventDefault()
     event.stopPropagation()
-    event.nativeEvent.stopImmediatePropagation()
+    event.nativeEvent.stopImmediatePropagation?.()
 
     if (planConf) {
       planPost.mutate(planConf)
@@ -83,7 +79,7 @@ const PlanFolder = ({
               : 'neutral.darker',
         }}
       >
-        <Tooltip
+        <SimpleTooltip
           title={
             [
               CalculationState.INITIALIZING,
@@ -98,9 +94,10 @@ const PlanFolder = ({
               ? t('sidebar.my_plans.sign_in_to_save')
               : t('sidebar.my_plans.unable_to_save')
           }
-          disableHoverListener={isSaveEnabled || planPost.isPending}
+          disabled={isSaveEnabled || planPost.isPending}
         >
           <Box
+            component="span"
             onClick={isSaveEnabled ? handleSyncClick : undefined}
             role="button"
             tabIndex={isSaveEnabled ? 0 : undefined}
@@ -129,41 +126,42 @@ const PlanFolder = ({
           >
             {planConf.cloudLastSaved && !planPost.isPending && (
               <>
-                <Typography
+                <Box
+                  component="span"
                   sx={{ display: 'inline', typography: 'body7', mr: 0.5 }}
                 >
-                  <T
+                  <TText
                     ns="hiilikartta"
                     keyName="sidebar.plan_settings.last_saved"
-                  ></T>
-                </Typography>
-                <Typography sx={{ display: 'inline', typography: 'body7' }}>
+                  />
+                </Box>
+                <Box component="span" sx={{ display: 'inline', typography: 'body7' }}>
                   {new Date(planConf.cloudLastSaved).toLocaleString()}
-                </Typography>
+                </Box>
               </>
             )}
             {!planConf.cloudLastSaved && !planPost.isPending && (
               <>
-                <Typography sx={{ display: 'inline', typography: 'body7' }}>
-                  <T
+                <Box component="span" sx={{ display: 'inline', typography: 'body7' }}>
+                  <TText
                     ns="hiilikartta"
                     keyName="sidebar.plan_settings.save_plan"
-                  ></T>
-                </Typography>
+                  />
+                </Box>
               </>
             )}
             {planPost.isPending && (
               <>
-                <Typography sx={{ display: 'inline', typography: 'body7' }}>
-                  <T
+                <Box component="span" sx={{ display: 'inline', typography: 'body7' }}>
+                  <TText
                     ns="hiilikartta"
                     keyName="sidebar.plan_settings.saving_plan"
-                  ></T>
-                </Typography>
+                  />
+                </Box>
               </>
             )}
             {planPost.isPending && (
-              <CircularProgress
+              <LoadingSpinner
                 color="secondary"
                 size={15}
                 sx={{ height: '12px', ml: '4px', mr: '3px', mb: '1px' }}
@@ -187,14 +185,14 @@ const PlanFolder = ({
                   sx={{ height: '1.1rem', mb: '0.5px', color: 'warning.dark' }}
                 ></Exclamation>
               </>
-            )}
+              )}
           </Box>
-        </Tooltip>
+        </SimpleTooltip>
       </Box>
 
       <Folder height={height}>
         <Box
-          sx={(theme) => ({
+          sx={{
             pt: 2,
             pl: 3,
             pb: 3,
@@ -204,7 +202,7 @@ const PlanFolder = ({
             justifyContent: 'space-between',
             flex: '1',
             height: '100%',
-          })}
+          }}
         >
           {isNameEditable ? (
             <EditableText
@@ -217,9 +215,12 @@ const PlanFolder = ({
               cancelButtonAriaLabel={`Cancel editing plan name ${planConf.name}`}
             />
           ) : (
-            <Typography sx={{ typography: 'h2', color: 'neutral.darker' }}>
+            <Box
+              component="h2"
+              sx={{ m: 0, typography: 'h2', color: 'neutral.darker' }}
+            >
               {planConf.name}
-            </Typography>
+            </Box>
           )}
 
           {![CalculationState.NOT_STARTED].includes(
@@ -245,7 +246,7 @@ const PlanFolder = ({
                       lineHeight: '1',
                     }}
                   >
-                    <T
+                    <TText
                       keyName={
                         planConf.calculationState ===
                         CalculationState.INITIALIZING
@@ -253,10 +254,10 @@ const PlanFolder = ({
                           : 'sidebar.my_plans.calculations_in_progress'
                       }
                       ns={'hiilikartta'}
-                    ></T>
+                    />
                   </Box>
 
-                  <CircularProgress
+                  <LoadingSpinner
                     color="secondary"
                     size={25}
                     sx={{ height: '10px' }}
@@ -272,10 +273,10 @@ const PlanFolder = ({
                       lineHeight: '1',
                     }}
                   >
-                    <T
+                    <TText
                       keyName={'sidebar.my_plans.calculations_errored'}
                       ns={'hiilikartta'}
-                    ></T>
+                    />
                   </Box>
                   <ErrorIcon
                     sx={{ color: 'warning.dark', height: '24px' }}
@@ -291,10 +292,10 @@ const PlanFolder = ({
                       lineHeight: '1',
                     }}
                   >
-                    <T
+                    <TText
                       keyName={'sidebar.my_plans.calculations_finished'}
                       ns={'hiilikartta'}
-                    ></T>
+                    />
                   </Box>
                   <Info sx={{ color: 'secondary.dark', height: '24px' }}></Info>
                 </>

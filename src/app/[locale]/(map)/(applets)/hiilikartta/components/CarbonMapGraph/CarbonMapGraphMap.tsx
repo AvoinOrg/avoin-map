@@ -1,22 +1,17 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Map, GeoJSONSource, StyleSpecification } from 'maplibre-gl'
 import {
-  Box,
-  Button,
-  styled,
-  TableBody,
-  TableCell,
-  TableRow,
-  Typography,
-  Table,
-} from '@mui/material'
-import { T, useTranslate } from '@tolgee/react'
+  Map,
+  GeoJSONSource,
+  StyleSpecification,
+  type MapMouseEvent,
+} from 'maplibre-gl'
+import { useTranslate } from '@tolgee/react'
 
+import { Box } from '#/components/common/PandaBox'
+import type { PandaStyleProp } from '#/common/style/panda'
+import TText from '#/components/common/TText'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
-import {
-  addPaddingToLngLatBounds,
-  getCombinedBoundsInLngLat,
-} from '#/common/utils/gis'
+import { getCombinedBoundsInLngLat } from '#/common/utils/gis'
 
 import {
   GraphCalcType,
@@ -45,7 +40,6 @@ type Props = {
   setActiveDataOption: (option: MapGraphDataSelectOption) => void
   activeCalcType: GraphCalcType
   activeAreaType: string
-  setUseCurrent: (useCurrent: boolean) => void
 }
 
 const CarbonMapGraphMap = ({
@@ -87,7 +81,7 @@ const CarbonMapGraphMap = ({
       isCurrent: false,
     }))
     return mergeArraysAlternate(datasPlanned, datasCurrent)
-  }, [datas])
+  }, [datas, t])
 
   useEffect(() => {
     let isCancelled = false
@@ -156,7 +150,6 @@ const CarbonMapGraphMap = ({
     ) {
       const bounds = getCombinedBoundsInLngLat(datas.map((data) => data.data))
       if (bounds) {
-        const paddedBounds = addPaddingToLngLatBounds(bounds, 1)
         // map.current?.setMaxBounds(paddedBounds)
         map.current?.fitBounds(bounds, {
           padding: 20,
@@ -282,12 +275,11 @@ const CarbonMapGraphMap = ({
       map.current.on('mouseenter', layerId, handleMouseEnter)
       map.current.on('mouseleave', layerId, handleMouseLeave)
 
-      const handleFeatureClick = (e: any) => {
+      const handleFeatureClick = (e: MapMouseEvent) => {
         if (map.current != null) {
           const features = map.current.queryRenderedFeatures(e.point)
           if (features.length > 0) {
-            // @ts-ignore
-            const feature = features[0] as MapGraphCalcFeature
+            const feature = features[0] as unknown as MapGraphCalcFeature
             if (feature && feature.properties) {
               setTooltip({
                 visible: true,
@@ -311,7 +303,7 @@ const CarbonMapGraphMap = ({
         }
       }
     }
-  }, [map.current, activeDataOption.isCurrent])
+  }, [mapIsLoaded, activeDataOption.id, activeDataOption.isCurrent])
 
   const handlePlanSelectClick = (data: MapGraphDataSelectOption) => {
     setActiveDataOption(data)
@@ -367,7 +359,9 @@ const CarbonMapGraphMap = ({
         }}
       >
         {selectOptions.map((option) => (
-          <Button
+          <Box
+            component="button"
+            type="button"
             sx={{
               borderRadius: '0.3125rem',
               border: 'none',
@@ -380,9 +374,15 @@ const CarbonMapGraphMap = ({
               display: 'flex',
               justifyContent: 'flex-start',
               height: '1.75rem',
+              px: '0.5rem',
+              cursor: 'pointer',
               '&:hover': {
                 opacity: 0.95,
                 backgroundColor: 'neutral.lighter',
+              },
+              '&:focus-visible': {
+                outline: '2px solid rgba(39, 74, 255, 0.45)',
+                outlineOffset: '2px',
               },
               ...(option.id === activeDataOption.id &&
                 option.isCurrent === activeDataOption.isCurrent && {
@@ -395,7 +395,8 @@ const CarbonMapGraphMap = ({
             aria-label={`Show map graph data for ${option.name}`}
             onClick={() => handlePlanSelectClick(option)}
           >
-            <Typography
+            <Box
+              component="span"
               sx={{
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -407,8 +408,8 @@ const CarbonMapGraphMap = ({
               }}
             >
               {option.name}
-            </Typography>
-          </Button>
+            </Box>
+          </Box>
         ))}
       </Box>
       <Box
@@ -426,7 +427,7 @@ const CarbonMapGraphMap = ({
           padding: '10px',
           minWidth: '150px',
           pointerEvents: 'auto', // To allow clicking on the close button
-          '::after': {
+          '&::after': {
             content: '""',
             position: 'absolute',
             top: '-17px', // Position the pointer above the tooltip box
@@ -465,7 +466,7 @@ const CarbonMapGraphMap = ({
                   cursor: 'pointer',
                 }}
                 onClick={() =>
-                  setTooltip((prev: any) => ({ ...prev, visible: false }))
+                  setTooltip((prev) => ({ ...prev, visible: false }))
                 }
               >
                 <Cross sx={{ width: '15px', height: '15px' }}></Cross>
@@ -477,38 +478,48 @@ const CarbonMapGraphMap = ({
                 flexDirection: 'column',
               }}
             >
-              <Table>
-                <TableBody>
-                  <TableRow key={'zoning_code'}>
-                    <FirstColumnCell component="th" scope="row">
-                      <T
+              <Box
+                component="table"
+                sx={{
+                  borderCollapse: 'collapse',
+                  '& th, & td': {
+                    borderBottom: 'none',
+                    p: '6px',
+                    textAlign: 'left',
+                  },
+                }}
+              >
+                <Box component="tbody">
+                  <Box component="tr" key={'zoning_code'}>
+                    <FirstColumnCell>
+                      <TText
                         ns="hiilikartta"
                         keyName="report.map_graph.tooltip_zoning_code"
-                      ></T>
+                      />
                     </FirstColumnCell>
-                    <DataCell key={'zoning_code_val'} align="left">
+                    <DataCell key={'zoning_code_val'}>
                       {tooltip.feature.properties[ZONING_CODE_COL]}
                     </DataCell>
-                  </TableRow>
-                  <TableRow key={'area'}>
-                    <FirstColumnCell component="th" scope="row">
-                      <T
+                  </Box>
+                  <Box component="tr" key={'area'}>
+                    <FirstColumnCell>
+                      <TText
                         ns="hiilikartta"
                         keyName="report.map_graph.tooltip_area"
-                      ></T>
+                      />
                     </FirstColumnCell>
-                    <DataCell key={'zoning_code_val'} align="left">
+                    <DataCell key={'zoning_code_val'}>
                       {pp(tooltip.feature.properties.area / 10000, 2)}
                     </DataCell>
-                  </TableRow>
-                  <TableRow key={'co2_ha'}>
-                    <FirstColumnCell component="th" scope="row">
-                      <T
+                  </Box>
+                  <Box component="tr" key={'co2_ha'}>
+                    <FirstColumnCell>
+                      <TText
                         ns="hiilikartta"
                         keyName="report.map_graph.unit_co2_ha_compared"
-                      ></T>
+                      />
                     </FirstColumnCell>
-                    <DataCell key={'co2_ha_val'} align="left">
+                    <DataCell key={'co2_ha_val'}>
                       {pp(
                         activeDataOption.isCurrent
                           ? tooltip.feature.properties.valueHaNochange
@@ -516,15 +527,15 @@ const CarbonMapGraphMap = ({
                         0
                       )}
                     </DataCell>
-                  </TableRow>
-                  <TableRow key={'co2_total'}>
-                    <FirstColumnCell component="th" scope="row">
-                      <T
+                  </Box>
+                  <Box component="tr" key={'co2_total'}>
+                    <FirstColumnCell>
+                      <TText
                         ns="hiilikartta"
                         keyName="report.map_graph.unit_co2_total_compared"
-                      ></T>
+                      />
                     </FirstColumnCell>
-                    <DataCell key={'co2_total_val'} align="left">
+                    <DataCell key={'co2_total_val'}>
                       {pp(
                         activeDataOption.isCurrent
                           ? tooltip.feature.properties.valueTotalNochange
@@ -532,9 +543,9 @@ const CarbonMapGraphMap = ({
                         0
                       )}
                     </DataCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
+                  </Box>
+                </Box>
+              </Box>
             </Box>
           </>
         )}
@@ -543,18 +554,32 @@ const CarbonMapGraphMap = ({
   )
 }
 
-const FirstColumnCell = styled(TableCell)(({ theme }) => ({
-  ...theme.typography.body7,
-  borderBottom: 'none',
-  padding: '6px',
-}))
+const FirstColumnCell = ({ children }: { children: React.ReactNode }) => (
+  <Box component="th" scope="row" sx={{ typography: 'body7' }}>
+    {children}
+  </Box>
+)
 
-const DataCell = styled(TableCell)(({ theme }) => ({
-  ...theme.typography.body7,
-  fontWeight: 'bold',
-  letterSpacing: '0.125rem',
-  borderBottom: 'none',
-  padding: '6px',
-}))
+const DataCell = ({
+  children,
+  sx,
+}: {
+  children: React.ReactNode
+  sx?: PandaStyleProp
+}) => (
+  <Box
+    component="td"
+    sx={[
+      {
+        typography: 'body7',
+        fontWeight: 'bold',
+        letterSpacing: '0.125rem',
+      },
+      ...(Array.isArray(sx) ? sx : [sx]),
+    ]}
+  >
+    {children}
+  </Box>
+)
 
 export default CarbonMapGraphMap

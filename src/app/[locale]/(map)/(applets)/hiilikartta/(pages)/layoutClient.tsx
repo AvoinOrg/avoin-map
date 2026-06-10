@@ -27,7 +27,7 @@ import { getZoningClasses } from '../common/zoningClasses'
 
 const localizationNamespace = 'hiilikartta'
 
-const layoutClient = ({ children }: { children: React.ReactNode }) => {
+const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   const { data: session, status } = useSession()
   const pathname = usePathname()
   const { locale } = useParams()
@@ -210,4 +210,4 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
   )
 }
 
-export default layoutClient
+export default LayoutClient

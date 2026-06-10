@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Box, ToggleButton, Typography } from '@mui/material'
-import { styled } from '@mui/material/styles'
 
+import type { PandaStyleProp } from '#/common/style/panda'
+import { Box } from '#/components/common/PandaBox'
+import TText from '#/components/common/TText'
 import { CalcFeatureCollection, UnitType } from '../../common/types'
 import CarbonLineChartInner from './CarbonLineChartInner'
-import { T } from '@tolgee/react'
 
 interface Props {
   data: CalcFeatureCollection[]
@@ -28,13 +28,14 @@ const CarbonLineChart = ({ data, featureYears, planNames }: Props) => {
       }
     })
 
-    if (boxRef.current) {
-      resizeObserver.observe(boxRef.current)
+    const observedElement = boxRef.current
+    if (observedElement) {
+      resizeObserver.observe(observedElement)
     }
 
     return () => {
-      if (boxRef.current) {
-        resizeObserver.unobserve(boxRef.current)
+      if (observedElement) {
+        resizeObserver.unobserve(observedElement)
       }
     }
   }, [boxRef])
@@ -49,14 +50,16 @@ const CarbonLineChart = ({ data, featureYears, planNames }: Props) => {
   return (
     <Box sx={{ width: '100%' }}>
       <Box sx={{ mt: { xs: 0, md: 2.5 }, ml: { xs: 0, md: 2.5 } }}>
-        <Typography
-          sx={(theme) => ({
-            typography: theme.typography.h1,
+        <Box
+          component="h2"
+          sx={{
+            m: 0,
+            typography: 'h1',
             display: 'inline',
-          })}
+          }}
         >
-          <T keyName="report.carbon_line_chart.title" ns={'hiilikartta'}></T>{' '}
-        </Typography>
+          <TText keyName="report.carbon_line_chart.title" ns={'hiilikartta'} />{' '}
+        </Box>
       </Box>
       <Box
         sx={{
@@ -67,32 +70,34 @@ const CarbonLineChart = ({ data, featureYears, planNames }: Props) => {
         }}
       >
         <StyledToggleButton
-          value="ha"
+          type="button"
           aria-label="ha"
           sx={{ typography: 'body7', letterSpacing: 'normal' }}
-          selected={unitType === 'ha'}
-          onChange={handleUnitTypeChange}
+          aria-pressed={unitType === 'ha'}
+          data-selected={unitType === 'ha' ? 'true' : undefined}
+          onClick={(event) => handleUnitTypeChange(event, 'ha')}
         >
-          <T
+          <TText
             ns="hiilikartta"
             keyName={'report.carbon_line_chart.unit_select_ha'}
-          ></T>
+          />
         </StyledToggleButton>
         <StyledToggleButton
-          value="total"
+          type="button"
           aria-label="total"
           sx={{
             typography: 'body7',
             letterSpacing: 'normal',
             ml: 0.5,
           }}
-          selected={unitType === 'total'}
-          onChange={handleUnitTypeChange}
+          aria-pressed={unitType === 'total'}
+          data-selected={unitType === 'total' ? 'true' : undefined}
+          onClick={(event) => handleUnitTypeChange(event, 'total')}
         >
-          <T
+          <TText
             ns="hiilikartta"
             keyName={'report.carbon_line_chart.unit_select_total'}
-          ></T>
+          />
         </StyledToggleButton>
       </Box>
       <Box ref={boxRef} sx={{ width: '100%', overflowX: 'auto', pb: 2.5 }}>
@@ -109,25 +114,49 @@ const CarbonLineChart = ({ data, featureYears, planNames }: Props) => {
   )
 }
 
-const StyledToggleButton = styled(ToggleButton)(({ theme }) => ({
-  borderRadius: '0.3125rem',
-  border: '1px solid',
-  borderColor: theme.palette.primary.dark,
-  color: theme.palette.neutral.darker,
-  width: '8.5rem',
-  whiteSpace: 'normal',
-  textTransform: 'none',
-  wordBreak: 'break-word',
-  marginBottom: '0.75rem',
-  paddingLeft: '1.25rem',
-  paddingRight: '1.25rem',
-  textAlign: 'left',
-  display: 'flex',
-  justifyContent: 'flex-start',
-  '&.Mui-selected': {
-    borderColor: theme.palette.secondary.dark,
-    backgroundColor: theme.palette.neutral.lighter,
-  },
-}))
+const StyledToggleButton = ({
+  children,
+  sx,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  sx?: PandaStyleProp
+}) => (
+  <Box
+    component="button"
+    sx={[
+      {
+        borderRadius: '0.3125rem',
+        border: '1px solid',
+        borderColor: 'primary.dark',
+        backgroundColor: 'transparent',
+        color: 'neutral.darker',
+        width: '8.5rem',
+        whiteSpace: 'normal',
+        textTransform: 'none',
+        wordBreak: 'break-word',
+        mb: '0.75rem',
+        pl: '1.25rem',
+        pr: '1.25rem',
+        py: '0.375rem',
+        textAlign: 'left',
+        display: 'flex',
+        justifyContent: 'flex-start',
+        cursor: 'pointer',
+        '&[data-selected="true"]': {
+          borderColor: 'secondary.dark',
+          backgroundColor: 'neutral.lighter',
+        },
+        '&:focus-visible': {
+          outline: '2px solid rgba(39, 74, 255, 0.45)',
+          outlineOffset: '2px',
+        },
+      },
+      ...(Array.isArray(sx) ? sx : [sx]),
+    ]}
+    {...props}
+  >
+    {children}
+  </Box>
+)
 
 export default CarbonLineChart
