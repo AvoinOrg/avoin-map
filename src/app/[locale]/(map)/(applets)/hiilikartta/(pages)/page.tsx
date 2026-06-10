@@ -14,6 +14,7 @@ import {
 import { getRoute } from '#/common/routing/routing-client'
 import { useMapStore } from '#/common/store'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
+import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import { LayerToggleRow } from '#/components/common/LayerToggleRow'
 import TText from '#/components/common/TText'
 
@@ -86,9 +87,18 @@ const HomeSidebarHeader = () => {
 const Page = () => {
   const { t } = useTranslate('hiilikartta')
   const router = useRouter()
+  const isMobile = useIsMobile()
   const toggleLayerGroup = useMapStore((state) => state.toggleLayerGroup)
   const visibleLayerGroupIds = useVisibleLayerGroupIds()
   const introText = t('sidebar.main.intro')
+  const sidebarContentPadding = `${HOME_SIDEBAR_LEFT_WALL_REM}rem`
+  const ctaGap = isMobile ? '1.375rem' : '1.625rem'
+  const ctaBorderRadius = isMobile ? 0 : '6px 6px 10px 10px'
+  const introMarginTop = isMobile ? '0.75rem' : '1.25rem'
+  const vegetationLayerMarginTop = isMobile ? '4rem' : '5.25rem'
+  const attributionPaddingTop = isMobile ? '2.5rem' : '3rem'
+  const logoRowMarginTop = isMobile ? '2.5rem' : '3rem'
+  const logoRowPadding = `${HOME_SIDEBAR_LOGO_ROW_PADDING_REM}rem`
 
   const vegetationLayerGroup = useMemo(
     () =>
@@ -121,13 +131,13 @@ const Page = () => {
           styleProps={{
             width: '100%',
             height: '5rem',
-            px: `${HOME_SIDEBAR_LEFT_WALL_REM}rem`,
+            px: sidebarContentPadding,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'flex-start',
-            gap: '1.625rem',
+            gap: ctaGap,
             border: 'none',
-            borderRadius: '6px 6px 10px 10px',
+            borderRadius: ctaBorderRadius,
             backgroundColor: '#b0ff6b',
             color: '#111111',
             cursor: 'pointer',
@@ -168,6 +178,7 @@ const Page = () => {
         scrollbarSide="left"
         innerStyleProps={{
           p: 0,
+          px: 0,
           display: 'flex',
           flexDirection: 'column',
           minHeight: '100%',
@@ -187,10 +198,7 @@ const Page = () => {
               display: 'flex',
               flexDirection: 'column',
               flex: 1,
-              px: {
-                mobile: `${HOME_SIDEBAR_LEFT_WALL_REM}rem`,
-                desktop: `${HOME_SIDEBAR_LEFT_WALL_REM}rem`,
-              },
+              px: sidebarContentPadding,
               pt: 0,
               pb: '1rem',
             }}
@@ -200,7 +208,7 @@ const Page = () => {
                 component="p"
                 styleProps={{
                   m: 0,
-                  mt: { mobile: '1.125rem', desktop: '1.25rem' },
+                  mt: introMarginTop,
                   color: '#111111',
                   fontSize: '0.75rem',
                   fontWeight: 700,
@@ -215,7 +223,7 @@ const Page = () => {
               </Box>
 
               {vegetationLayerGroup && (
-                <Box styleProps={{ mt: { mobile: '4rem', desktop: '5.25rem' } }}>
+                <Box styleProps={{ mt: vegetationLayerMarginTop }}>
                   <LayerToggleRow
                     ariaLabel="Toggle vegetation carbon layer"
                     color="#2D7A3A"
@@ -244,7 +252,7 @@ const Page = () => {
               )}
             </Box>
 
-            <Box styleProps={{ mt: 'auto', pt: { mobile: '2.5rem', desktop: '3rem' } }}>
+            <Box styleProps={{ mt: 'auto', pt: attributionPaddingTop }}>
               <Box
                 component="p"
                 styleProps={{
@@ -266,12 +274,9 @@ const Page = () => {
 
               <Box
                 styleProps={{
-                  mt: { mobile: '2.5rem', desktop: '3rem' },
+                  mt: logoRowMarginTop,
                   width: '100%',
-                  px: {
-                    mobile: `${HOME_SIDEBAR_LOGO_ROW_PADDING_REM}rem`,
-                    desktop: `${HOME_SIDEBAR_LOGO_ROW_PADDING_REM}rem`,
-                  },
+                  px: logoRowPadding,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
