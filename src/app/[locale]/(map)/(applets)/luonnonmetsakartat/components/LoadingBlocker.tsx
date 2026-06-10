@@ -1,7 +1,7 @@
 import { LoadingSpinner } from '#/components/Loading/LoadingSpinner'
-import { Box } from '@mui/material'
+import { Box } from '#/components/common/PandaBox'
 
-const LoadingBlocker = ({}: {}) => {
+const LoadingBlocker = () => {
   return (
     <Box
       sx={{

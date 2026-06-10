@@ -1,13 +1,13 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
-import { Box, Typography } from '@mui/material'
 import { useParams, useRouter } from 'next/navigation'
-import { T, useTranslate } from '@tolgee/react'
+import { useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
-import { SaveOutlined } from '@mui/icons-material'
 
 import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
+import { Box } from '#/components/common/PandaBox'
+import TText from '#/components/common/TText'
 import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
 import { useMapStore, useUIStore } from '#/common/store'
 import { Delete } from '#/components/icons'
@@ -17,11 +17,16 @@ import { LoadingSpinner } from '#/components/Loading'
 import { SidebarContentBox } from '#/components/Sidebar'
 import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
+import type { FormCheckedChangeEvent } from '#/components/common/formControlEvents'
 import { useSidebarActivityLoader } from '#/common/hooks/ui/useSidebarActivityLoader'
 import BigMenuButton from '#/components/common/BigMenuButton'
 import { Upload } from '#/components/icons'
 
-import { FolayerConfState } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
+import {
+  AdminFolayerConf,
+  ColOptions,
+  FolayerConfState,
+} from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { adminFolayerPatchMutation } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
 import { adminFolayerDeleteMutation } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerDeleteMutation'
@@ -30,13 +35,15 @@ import { getFolayerGroupId } from '#/app/[locale]/(map)/(applets)/luonnonmetsaka
 import FolayerUpdateShp, {
   FolayerUpdateShpRef,
 } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerUpdateShp'
-import FolayerImportPictures, {
-  FolayerImportPicturesRef,
-} from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportPictures'
+import SaveActionButton from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/SaveActionButton'
+
+interface FolayerPatchPayload extends AdminFolayerConf {
+  rawShapefile?: ArrayBuffer
+  deleteAreasNotUpdated?: boolean
+}
 
 const Page = () => {
-  const [isFolayerReady, setIsFolayerReady] = useState(false)
-  const [isLoading, setIsLoading] = useSidebarActivityLoader()
+  const [, setIsLoading] = useSidebarActivityLoader()
   const [fileType, setFileType] = useState<'shp'>()
   const [fileName, setFileName] = useState<string>()
   const [arrayBuffers, setArrayBuffers] = useState<ArrayBuffer[]>()
@@ -50,7 +57,6 @@ const Page = () => {
   const { t } = useTranslate('luonnonmetsakartat')
 
   const removeLayerGroup = useMapStore((state) => state.removeLayerGroup)
-  const notify = useUIStore((state) => state.notify)
   const triggerConfirmationDialog = useUIStore(
     (state) => state.triggerConfirmationDialog
   )
@@ -97,13 +103,8 @@ const Page = () => {
     }
   }
 
-  useEffect(() => {
-    if (adminFolayerConf && adminFolayerConf.state === FolayerConfState.Idle) {
-      setIsFolayerReady(true)
-    } else {
-      setIsFolayerReady(false)
-    }
-  }, [adminFolayerConf])
+  const isFolayerReady =
+    adminFolayerConf && adminFolayerConf.state === FolayerConfState.Idle
 
   useEffect(() => {
     if (!localAdminFolayerPatchMutation.isPending) {
@@ -113,19 +114,16 @@ const Page = () => {
     }
   }, [localAdminFolayerPatchMutation.isPending])
 
-  // After successful save, clear uploaded file state and reset flags
-  useEffect(() => {
-    if (localAdminFolayerPatchMutation.isSuccess) {
-      setFileName(undefined)
-      setFileType(undefined)
-      setArrayBuffers(undefined)
-      setDeleteAreasNotUpdated(false)
-      setIsUpdateValid(true)
-      if (inputRef.current) {
-        inputRef.current.value = ''
-      }
+  const resetUploadedFileState = () => {
+    setFileName(undefined)
+    setFileType(undefined)
+    setArrayBuffers(undefined)
+    setDeleteAreasNotUpdated(false)
+    setIsUpdateValid(true)
+    if (inputRef.current) {
+      inputRef.current.value = ''
     }
-  }, [localAdminFolayerPatchMutation.isSuccess])
+  }
 
   const handleNameChange = (value: string) => {
     updateAdminFolayerConf(params.folayerIdSlug, {
@@ -142,7 +140,7 @@ const Page = () => {
   }
 
   const handleIsVisibleChange = (
-    _e: React.SyntheticEvent<Element, Event>,
+    _e: FormCheckedChangeEvent,
     checked: boolean
   ) => {
     updateAdminFolayerConf(params.folayerIdSlug, {
@@ -151,20 +149,25 @@ const Page = () => {
     })
   }
 
-  const handleSaveClick = async (event: any) => {
+  const handleSaveClick = async (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
     event.preventDefault()
     event.stopPropagation()
     event.nativeEvent.stopImmediatePropagation()
 
     if (adminFolayerConf) {
       // Gather shapefile colOptions and confirm validity
-      const shpValues = await new Promise<any>((resolve) => {
+      const shpValues = await new Promise<{
+        colOptions: ColOptions
+        rawShapefile: ArrayBuffer
+      } | null>((resolve) => {
         if (!shpRef.current) return resolve(null)
         shpRef.current.getValues((vals) => resolve(vals))
       })
 
       // Build payload, include raw shapefile, deleteAreasNotUpdated, and pictures when provided
-      const payload: any = {
+      const payload: FolayerPatchPayload = {
         ...adminFolayerConf,
       }
       if (fileType && arrayBuffers?.length) {
@@ -174,7 +177,9 @@ const Page = () => {
         payload.rawShapefile = shpValues?.rawShapefile || arrayBuffers[0]
         payload.deleteAreasNotUpdated = deleteAreasNotUpdated
       }
-      localAdminFolayerPatchMutation.mutate(payload)
+      localAdminFolayerPatchMutation.mutate(payload, {
+        onSuccess: resetUploadedFileState,
+      })
     }
 
     setIsLoading(true)
@@ -208,7 +213,7 @@ const Page = () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
       <SidebarContentBox sxOuter={{ position: 'relative' }}>
         {!isFolayerReady &&
-          adminFolayerConf.state !== FolayerConfState.Deleting && (
+          adminFolayerConf?.state !== FolayerConfState.Deleting && (
             <Box sx={{ display: 'flex', justifyContent: 'center' }}>
               <LoadingSpinner></LoadingSpinner>
             </Box>
@@ -229,18 +234,18 @@ const Page = () => {
               iconSx={{ height: '1.1rem' }}
               textSx={{ typography: 'h8' }}
             >
-              <T
+              <TText
                 keyName={'sidebar.admin.folayer.settings.delete'}
                 ns={'luonnonmetsakartat'}
-              ></T>
+              ></TText>
             </IconWithText>
             <Box
-              sx={(theme) => ({
-                backgroundColor: theme.palette.neutral.light,
+              sx={{
+                backgroundColor: 'neutral.light',
                 p: 4,
                 borderRadius: '0.3125rem',
                 mt: 6,
-              })}
+              }}
             >
               <TextFieldWithHeader
                 headerText={t('sidebar.admin.folayer.settings.name.header')}
@@ -260,7 +265,7 @@ const Page = () => {
                 onChange={handleIsVisibleChange}
                 sx={{ mt: 4 }}
               >
-                <T
+                <TText
                   ns={'luonnonmetsakartat'}
                   keyName={'sidebar.admin.folayer.settings.is_visible'}
                 />
@@ -268,12 +273,12 @@ const Page = () => {
             </Box>
             {/* Import/update shapefile */}
             <Box
-              sx={(theme) => ({
-                backgroundColor: theme.palette.neutral.light,
+              sx={{
+                backgroundColor: 'neutral.light',
                 p: 4,
                 borderRadius: '0.3125rem',
                 mt: 6,
-              })}
+              }}
             >
               <BigMenuButton
                 variant="outlined"
@@ -304,7 +309,7 @@ const Page = () => {
                       }
                       sx={{ mt: 5 }}
                     >
-                      <T
+                      <TText
                         ns={'luonnonmetsakartat'}
                         keyName={
                           'sidebar.admin.folayer.settings.delete_areas_not_updated'
@@ -327,24 +332,26 @@ const Page = () => {
       </SidebarContentBox>
       {adminFolayerConf && (adminFolayerConf.unsyncedChanges || fileName) && (
         <Box
-          sx={(theme) => ({
+          sx={{
             display: 'flex',
             flexDirection: 'column',
             pl: SIDEBAR_PADDING_REM + 'rem',
             pr: SIDEBAR_PADDING_REM + 'rem',
             pt: 2,
             pb: 2,
-            zIndex: theme.zIndex.drawer + 1,
+            zIndex: 'calc(var(--z-index-drawer) + 1)',
             borderTop: 1,
             borderColor: 'primary.lighter',
-          })}
+          }}
         >
-          <Box
+          <SaveActionButton
+            keyName="sidebar.admin.folayer.settings.save"
+            ariaLabel={t('sidebar.admin.folayer.settings.save')}
+            disabled={Boolean(fileType && arrayBuffers?.length && !isUpdateValid)}
             onClick={(event) => {
               if (fileType && arrayBuffers?.length && !isUpdateValid) {
                 event.preventDefault()
                 event.stopPropagation()
-                // @ts-ignore
                 event.nativeEvent?.stopImmediatePropagation?.()
                 return
               }
@@ -352,50 +359,10 @@ const Page = () => {
             }}
             sx={{
               mt: 1.3,
-              display: 'inline-flex',
-              flexDirection: 'row',
-              cursor:
-                fileType && arrayBuffers?.length
-                  ? isUpdateValid
-                    ? 'pointer'
-                    : 'not-allowed'
-                  : 'pointer',
-              '&:hover': {
-                cursor:
-                  fileType && arrayBuffers?.length
-                    ? isUpdateValid
-                      ? 'pointer'
-                      : 'not-allowed'
-                    : 'pointer',
-              },
-              color: 'neutral.dark',
-              flex: '0',
-              whiteSpace: 'nowrap',
               alignSelf: 'flex-start',
               width: '100%',
-              opacity:
-                fileType && arrayBuffers?.length
-                  ? isUpdateValid
-                    ? 1
-                    : 0.5
-                  : 1,
             }}
-          >
-            <Box sx={{ mr: 1.7, display: 'flex', alignItems: 'center' }}>
-              <SaveOutlined></SaveOutlined>
-              <Typography
-                sx={{
-                  typography: 'h3',
-                  ml: 1,
-                }}
-              >
-                <T
-                  keyName={'sidebar.admin.folayer.settings.save'}
-                  ns={'luonnonmetsakartat'}
-                />
-              </Typography>
-            </Box>
-          </Box>
+          />
         </Box>
       )}
     </Box>

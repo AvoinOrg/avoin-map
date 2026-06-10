@@ -1,8 +1,8 @@
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react'
 import { Feature, FeatureCollection } from 'geojson'
-import { useTranslate, T } from '@tolgee/react'
-import { SelectChangeEvent, Box, Typography } from '@mui/material'
+import { useTranslate } from '@tolgee/react'
 
+import { Box } from '#/components/common/PandaBox'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import { useUIStore } from '#/common/store'
 
@@ -59,7 +59,7 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
     const [regionCol, setRegionCol] = useState<string | undefined>(
       adminFolayerConf.colOptions?.regionCol
     )
-    const [indexingStrategy, setIndexingStrategy] = useState<IndexingStrategy>(
+    const [indexingStrategy] = useState<IndexingStrategy>(
       adminFolayerConf.colOptions?.indexingStrategy || 'id'
     )
 
@@ -412,17 +412,18 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
       <>
         {columns.length > 0 && (
           <>
-            <Typography variant="h4" sx={{ mb: 2 }}>
+            <Box component="h4" sx={{ m: 0, typography: 'h4', mb: 2 }}>
               {t('sidebar.admin.create.column_selection_header')}
-            </Typography>
+            </Box>
             <Box
-              sx={(theme) => ({
-                backgroundColor: theme.palette.neutral.light,
-                borderLeft: `1px solid ${theme.palette.neutral.main}`,
+              sx={{
+                backgroundColor: 'neutral.light',
+                borderLeft: '1px solid',
+                borderColor: 'neutral.main',
                 pl: 2,
                 pb: 2,
                 pt: 1,
-              })}
+              }}
             >
               <DropDownSelectWithHeader
                 label={t('sidebar.admin.create.indexing_strategy_label')}
@@ -508,5 +509,7 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
     )
   }
 )
+
+FolayerUpdateShp.displayName = 'FolayerUpdateShp'
 
 export default FolayerUpdateShp

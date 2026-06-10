@@ -1,13 +1,18 @@
 import { useState, useEffect } from 'react'
 import { Feature, FeatureCollection } from 'geojson'
-import { useTranslate, T } from '@tolgee/react'
-import { SelectChangeEvent, Box } from '@mui/material'
+import { useTranslate } from '@tolgee/react'
 
+import { Box } from '#/components/common/PandaBox'
+import TText from '#/components/common/TText'
 import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
 import { useUIStore } from '#/common/store'
+import type {
+  FormCheckedChangeEvent,
+  FormSelectionEvent,
+} from '#/components/common/formControlEvents'
 
 import FolayerImportActionsRow from './FolayerImportActionsRow'
 import FolayerImportCodeRecordSelect from './FolayerImportCodeRecordSelect'
@@ -100,8 +105,6 @@ const FolayerImportShp = ({
         columns = Object.keys(featureProperties)
       }
 
-      setColumns(columns)
-
       const findBestColumnMatch = (
         cols: string[],
         candidates: string[],
@@ -144,6 +147,9 @@ const FolayerImportShp = ({
       const municipalityCandidates = ['municipality', 'kunta']
       const regionCandidates = ['region', 'maakunta']
 
+      // Initialize the column picker defaults from the parsed upload columns.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setColumns(columns)
       setIdCol(findBestColumnMatch(columns, idCandidates))
       setNameCol(findBestColumnMatch(columns, nameCandidates))
       setDescriptionCol(findBestColumnMatch(columns, descriptionCandidates))
@@ -181,10 +187,10 @@ const FolayerImportShp = ({
     setAreaCol(newAreaCol)
   }
 
-  const handleIndexingStrategyChange = (event: SelectChangeEvent) => {
+  const handleIndexingStrategyChange = (event: FormSelectionEvent<string>) => {
     const value = event.target.value
     if (value === 'id' || value === 'name_municipality') {
-      setIndexingStrategy(value as IndexingStrategy)
+      setIndexingStrategy(value)
     } else {
       throw new Error(`Invalid indexing strategy: ${value}`)
     }
@@ -195,7 +201,7 @@ const FolayerImportShp = ({
   }
 
   const handleIsVisibleChange = (
-    _e: React.SyntheticEvent<Element, Event>,
+    _e: FormCheckedChangeEvent,
     checked: boolean
   ) => {
     setIsVisible(checked)
@@ -360,11 +366,11 @@ const FolayerImportShp = ({
       {columns.length > 0 && (
         <>
           <Box
-            sx={(theme) => ({
-              backgroundColor: theme.palette.neutral.light,
+            sx={{
+              backgroundColor: 'neutral.light',
               p: 4,
               borderRadius: '0.3125rem',
-            })}
+            }}
           >
             <DropDownSelectWithHeader
               label={t('sidebar.admin.create.indexing_strategy_label')}
@@ -461,10 +467,10 @@ const FolayerImportShp = ({
             sx={{ mt: 4.5 }}
             disabled={isInitializing}
           >
-            <T
+            <TText
               ns={'luonnonmetsakartat'}
               keyName={'sidebar.admin.create.is_visible'}
-            ></T>
+            ></TText>
           </SwitchWithLabel>
           {/* <TextFieldWithHeader
             headerText={t('sidebar.admin.create.description.header')}

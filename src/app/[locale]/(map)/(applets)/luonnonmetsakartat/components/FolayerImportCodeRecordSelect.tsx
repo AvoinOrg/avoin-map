@@ -1,6 +1,6 @@
-import { SelectChangeEvent, SxProps, Theme } from '@mui/material'
-
+import type { PandaStyleProp } from '#/common/style/panda'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
+import type { FormSelectionEvent } from '#/components/common/formControlEvents'
 
 interface Props {
   columns: string[]
@@ -8,7 +8,7 @@ interface Props {
   onColumnChange: (column: string | undefined) => void
   allowEmpty?: boolean
   label?: string
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
 }
 
 const FolayerImportCodeRecordSelect = ({
@@ -19,7 +19,7 @@ const FolayerImportCodeRecordSelect = ({
   label,
   sx,
 }: Props) => {
-  const handleSelectColumn = (event: SelectChangeEvent) => {
+  const handleSelectColumn = (event: FormSelectionEvent<string>) => {
     const { value } = event.target
 
     if (value === '' || value === null) {

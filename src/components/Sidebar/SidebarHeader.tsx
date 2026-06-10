@@ -29,7 +29,7 @@ const SidebarHeader = ({ children, title, backgroundImage, sx }: Props) => {
       <Box
         sx={{
           position: 'relative',
-          minHeight: { mobile: '5.25rem', desktop: '5.75rem' },
+          minHeight: 'clamp(5.25rem, 8vw, 5.75rem)',
           mx: 0.75,
           mt: 0.75,
           borderRadius: '10px',
@@ -64,8 +64,9 @@ const SidebarHeader = ({ children, title, backgroundImage, sx }: Props) => {
             zIndex: 1,
             display: 'flex',
             flexDirection: 'column',
-            height: '100%',
-            px: { mobile: '1rem', desktop: '1.1rem' },
+            minHeight: 'clamp(5.25rem, 8vw, 5.75rem)',
+            boxSizing: 'border-box',
+            px: '1.1rem',
           }}
         >
           <Box
@@ -85,7 +86,7 @@ const SidebarHeader = ({ children, title, backgroundImage, sx }: Props) => {
                 whiteSpace: 'normal',
                 minHeight: '16px',
                 lineHeight: 1.1,
-                fontSize: { mobile: '1rem', desktop: '1.06rem' },
+                fontSize: '1.06rem',
                 fontWeight: 700,
                 letterSpacing: '0.06rem',
                 textTransform: 'uppercase',

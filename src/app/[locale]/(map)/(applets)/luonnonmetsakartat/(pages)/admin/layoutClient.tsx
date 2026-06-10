@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
 import { usePathname, useRouter } from 'next/navigation'
@@ -15,9 +15,9 @@ import { routeTree } from '#/common/routing/routes/luonnonmetsakartat'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { adminVerificationQuery } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminVerificationQuery'
 import { SidebarContentBox } from '#/components/Sidebar'
-import { Box, Typography } from '@mui/material'
+import { Box } from '#/components/common/PandaBox'
 import { Star } from '#/components/icons'
-import { T } from '@tolgee/react'
+import TText from '#/components/common/TText'
 import { AdminVerificationStatus } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 import LoadingBlocker from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/LoadingBlocker'
 
@@ -29,18 +29,19 @@ enum LocalState {
   NoUser = 'noUser',
 }
 
-const layoutClient = ({ children }: { children: React.ReactNode }) => {
+const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   useExclusiveLayerGroups()
   const setIsNavbarHidden = useUIStore((state) => state.setIsNavbarHidden)
   const adminVerificationStatus = useAppletStore(
     (state) => state.adminVerificationStatus
   )
   const { data: session, status } = useSession()
-  const [localState, setLocalState] = useState<LocalState>(LocalState.Loading)
 
   const router = useRouter()
   const pathname = usePathname()
   const { locale } = useParams()
+  const normalizedLocale =
+    typeof locale === 'string' || Array.isArray(locale) ? locale : null
 
   const localAdminVerificationQuery = useQuery({
     ...adminVerificationQuery(),
@@ -63,25 +64,26 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
     }
   }, [session?.user?.id, status])
 
-  useEffect(() => {
+  const localState = (() => {
     if (status === 'authenticated') {
       if (adminVerificationStatus === AdminVerificationStatus.NoUser) {
-        setLocalState(LocalState.Loading)
+        return LocalState.Loading
       } else if (adminVerificationStatus === AdminVerificationStatus.Pending) {
-        setLocalState(LocalState.Loading)
+        return LocalState.Loading
       } else if (adminVerificationStatus === AdminVerificationStatus.Verified) {
-        setLocalState(LocalState.Verified)
+        return LocalState.Verified
       } else if (adminVerificationStatus === AdminVerificationStatus.Rejected) {
-        setLocalState(LocalState.Rejected)
+        return LocalState.Rejected
       } else if (adminVerificationStatus === AdminVerificationStatus.Errored) {
-        setLocalState(LocalState.Errored)
+        return LocalState.Errored
       }
     } else if (status === 'unauthenticated') {
-      setLocalState(LocalState.NoUser)
+      return LocalState.NoUser
     } else if (status === 'loading') {
-      setLocalState(LocalState.Loading)
+      return LocalState.Loading
     }
-  }, [session, status, adminVerificationStatus])
+    return LocalState.Loading
+  })()
 
   // returns the user back to admin page, if they try to navigate
   // further without being verified
@@ -91,11 +93,11 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
         routeNode: routeTree.admin,
         routeTree: routeTree,
       })
-      if (getPathnameWithoutLocale(pathname, locale) !== adminRoute) {
+      if (getPathnameWithoutLocale(pathname, normalizedLocale) !== adminRoute) {
         router.replace(adminRoute)
       }
     }
-  }, [localState, pathname, router, locale, status])
+  }, [localState, pathname, router, normalizedLocale, status])
 
   return (
     <>
@@ -117,19 +119,21 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
                 <Star
                   sx={{ height: 40, width: 'auto', flexShrink: 0, mt: 0.5 }}
                 ></Star>
-                <Typography
+                <Box
+                  component="p"
                   sx={{
+                    m: 0,
                     display: 'inline-flex',
                     typography: 'body2',
                     ml: 1.5,
                     mt: 0.5,
                   }}
                 >
-                  <T
+                  <TText
                     keyName={'sidebar.admin.log_in_hint'}
                     ns="luonnonmetsakartat"
-                  ></T>
-                </Typography>
+                  ></TText>
+                </Box>
               </Box>
             </SidebarContentBox>
           )}
@@ -137,18 +141,20 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
             <SidebarContentBox>
               <Box sx={{ display: 'flex', flexDirection: 'row', mt: 3 }}>
                 {/* <Star sx={{ height: 40, width: 'auto' }}></Star> */}
-                <Typography
+                <Box
+                  component="p"
                   sx={{
+                    m: 0,
                     display: 'inline-flex',
                     typography: 'body2',
                     mt: 0.5,
                   }}
                 >
-                  <T
+                  <TText
                     keyName={'sidebar.admin.verification_errored'}
                     ns="luonnonmetsakartat"
-                  ></T>
-                </Typography>
+                  ></TText>
+                </Box>
               </Box>
             </SidebarContentBox>
           )}
@@ -156,19 +162,21 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
             <SidebarContentBox>
               <Box sx={{ display: 'flex', flexDirection: 'row', mt: 3 }}>
                 {/* <Star sx={{ height: 40, width: 'auto' }}></Star> */}
-                <Typography
+                <Box
+                  component="p"
                   sx={{
+                    m: 0,
                     display: 'inline-flex',
                     typography: 'body2',
                     ml: 1.5,
                     mt: 0.5,
                   }}
                 >
-                  <T
+                  <TText
                     keyName={'sidebar.admin.verification_rejected'}
                     ns="luonnonmetsakartat"
-                  ></T>
-                </Typography>
+                  ></TText>
+                </Box>
               </Box>
             </SidebarContentBox>
           )}
@@ -179,4 +187,4 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
   )
 }
 
-export default layoutClient
+export default LayoutClient

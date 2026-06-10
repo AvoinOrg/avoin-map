@@ -1,10 +1,10 @@
 'use client'
 
 import React, { useEffect, useMemo } from 'react'
-import Box from '@mui/material/Box'
-import { T } from '@tolgee/react'
 import { useQuery } from '@tanstack/react-query'
 
+import { Box } from '#/components/common/PandaBox'
+import TText from '#/components/common/TText'
 import MutableLink from '#/components/common/MutableLink'
 import { Upload } from '#/components/icons'
 import BigMenuButton from '#/components/common/BigMenuButton'
@@ -46,7 +46,7 @@ const Page = () => {
         }}
       >
         <BigMenuButton color="primary" sx={{ pl: 3, pr: 3 }}>
-          <T keyName={'sidebar.admin.upload'} ns={'luonnonmetsakartat'}></T>
+          <TText keyName={'sidebar.admin.upload'} ns={'luonnonmetsakartat'} />
           <Upload />
         </BigMenuButton>
       </MutableLink>

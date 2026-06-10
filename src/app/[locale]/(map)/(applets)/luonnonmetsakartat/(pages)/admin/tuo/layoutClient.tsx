@@ -1,10 +1,9 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
-import { Box, Typography } from '@mui/material'
+import React from 'react'
 
-const layoutClient = ({ children }: { children: React.ReactNode }) => {
+const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   return children
 }
 
-export default layoutClient
+export default LayoutClient

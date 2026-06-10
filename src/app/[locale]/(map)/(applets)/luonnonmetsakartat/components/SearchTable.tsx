@@ -7,27 +7,33 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import {
-  Box,
-  TextField,
-  Theme,
-  SxProps,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-} from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 import Fuse from 'fuse.js'
 import { debounce } from 'lodash-es'
 import { FixedSizeList, ListChildComponentProps } from 'react-window'
 
+import { Box } from '#/components/common/PandaBox'
+import type { PandaStyleProp } from '#/common/style/panda'
 import { SortKey } from '#/common/types/general'
 import { Search, Ascending, Descending } from '#/components/icons'
 import { SelectionSource } from '#/common/types/map'
+import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
+import type { FormSelectionEvent } from '#/components/common/formControlEvents'
 
 import { FolayerFeature, FolayerFeatureProperties } from '../common/types'
 import { useMapStore } from '#/common/store'
 import useSelectedFeaturesFilteredBySource from '#/common/hooks/map/useSelectedFeaturesFilteredBySource'
+
+type FixedSizeListProps = {
+  height: number
+  itemCount: number
+  itemSize: number
+  width: string | number
+  children: (props: ListChildComponentProps) => React.ReactNode
+}
+
+const TypedFixedSizeList =
+  FixedSizeList as unknown as React.ComponentType<FixedSizeListProps>
 
 interface Props {
   data: FolayerFeature[] | undefined
@@ -35,7 +41,7 @@ interface Props {
   source: SelectionSource
   sortKeys?: SortKey[]
   searchPlaceholder?: string
-  sx?: SxProps<Theme>
+  sx?: PandaStyleProp
 }
 
 const columns: ColumnDef<FolayerFeature>[] = [
@@ -46,6 +52,14 @@ const columns: ColumnDef<FolayerFeature>[] = [
     header: () => 'Name',
   },
 ]
+
+const getSortableProperty = (
+  feature: FolayerFeature,
+  key: string
+): string => {
+  const value = feature.properties[key as keyof FolayerFeatureProperties]
+  return String(value ?? '').toLowerCase()
+}
 
 const SearchTable = ({
   data = [],
@@ -117,10 +131,8 @@ const SearchTable = ({
     }
 
     return [...result].sort((a, b) => {
-      // @ts-ignore
-      const keyA = a.properties[sortKey.key].toLowerCase()
-      // @ts-ignore
-      const keyB = b.properties[sortKey.key].toLowerCase()
+      const keyA = getSortableProperty(a, sortKey.key)
+      const keyB = getSortableProperty(b, sortKey.key)
       if (keyA < keyB) return isAscending ? -1 : 1
       if (keyA > keyB) return isAscending ? 1 : -1
       return 0
@@ -132,7 +144,7 @@ const SearchTable = ({
     [sortKeys]
   )
 
-  const handleSortKeyChange = (event: SelectChangeEvent<string>) => {
+  const handleSortKeyChange = (event: FormSelectionEvent<string>) => {
     const selectedKey = allSortKeys.find(
       (key) => key.key === event.target.value
     )
@@ -217,7 +229,7 @@ const SearchTable = ({
           '&:hover': { backgroundColor: 'action.hover' },
           typography: 'body7',
         }}
-        style={style}
+        style={style as React.CSSProperties}
       >
         {row.getVisibleCells().map((cell) => (
           <Box
@@ -256,50 +268,49 @@ const SearchTable = ({
           mb: 1,
         }}
       >
-        <Select
+        <DropDownSelectMinimal
           value={sortKey.key}
           onChange={handleSortKeyChange}
-          variant="standard"
-          disableUnderline
+          ariaLabel={t('components.search_table.sort_field_aria_label')}
+          options={allSortKeys.map((key) => ({
+            value: key.key,
+            label: key.label,
+          }))}
           sx={{
             typography: 'body7',
             textAlign: 'right',
-            '& .MuiSelect-icon': {
-              display: 'none', // Hides the triangle (caret)
-            },
-            '& .MuiSelect-select': {
-              padding: '0 !important',
-              paddingRight: '0 !important',
-              minWidth: '0 !important',
-            },
-            '& .MuiInputBase-input': {
-              padding: '0 !important',
-            },
             display: 'inline-flex',
             alignItems: 'center',
           }}
-        >
-          {allSortKeys.map((key) => (
-            <MenuItem
-              sx={{
-                textAlign: 'right',
-                typography: 'body7',
-                fontWeight: 500,
-              }}
-              key={key.key}
-              value={key.key}
-            >
-              {key.label}
-            </MenuItem>
-          ))}
-        </Select>
+          iconSx={{ display: 'none' }}
+          optionSx={{ textAlign: 'right', typography: 'body7', fontWeight: 500 }}
+        />
         <Box
+          component="button"
+          type="button"
+          aria-label={
+            isAscending
+              ? t('components.search_table.sort_direction_ascending_aria_label')
+              : t(
+                  'components.search_table.sort_direction_descending_aria_label'
+                )
+          }
           sx={{
             display: 'flex',
             alignItems: 'center',
             cursor: 'pointer',
             userSelect: 'none',
             ml: 1,
+            p: 0,
+            border: 0,
+            backgroundColor: 'transparent',
+            color: 'inherit',
+            borderRadius: '0.125rem',
+            '&:focus-visible': {
+              outline: '2px solid',
+              outlineColor: 'secondary.main',
+              outlineOffset: '2px',
+            },
           }}
           onClick={toggleSortOrder}
         >
@@ -319,24 +330,52 @@ const SearchTable = ({
           backgroundColor: 'background.paper',
         }}
       >
-        <TextField
-          placeholder={searchPlaceholder || t('components.search_table.search')}
-          variant="standard" // Use the standard variant for the underline style
-          fullWidth
-          value={searchTerm}
-          onChange={handleSearchChange}
-          sx={{ typography: 'body2', fontSize: '30px' }}
-          slotProps={{
-            input: {
-              sx: {
-                typography: 'body2',
-              },
-              startAdornment: (
-                <Search sx={{ mr: 1, height: 20, color: 'neutral.dark' }} />
-              ),
-            },
+        <Box
+          component="label"
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            width: '100%',
+            borderBottom: '1px solid',
+            borderColor: 'neutral.main',
+            typography: 'body2',
           }}
-        />
+        >
+          <Search sx={{ mr: 1, height: 20, color: 'neutral.dark' }} />
+          <Box
+            component="input"
+            type="search"
+            aria-label={searchPlaceholder || t('components.search_table.search')}
+          placeholder={searchPlaceholder || t('components.search_table.search')}
+            value={searchTerm}
+            onChange={handleSearchChange}
+            sx={{
+              width: '100%',
+              minWidth: 0,
+              border: 0,
+              outline: 0,
+              backgroundColor: 'transparent',
+              color: 'inherit',
+              p: 0,
+              py: 0.5,
+              fontFamily: 'inherit',
+              fontSize: 'inherit',
+              lineHeight: 'inherit',
+              '&::placeholder': {
+                color: 'neutral.dark',
+                opacity: 1,
+                fontFamily: 'var(--font-arimo)',
+                fontSize: '0.875rem',
+                fontWeight: 400,
+                lineHeight: 'normal',
+                letterSpacing: '0.0875rem',
+              },
+              '&:focus-visible': {
+                outline: 'none',
+              },
+            }}
+          />
+        </Box>
       </Box>
 
       {/* Separate Box for the scrollable, virtualized rows */}
@@ -347,14 +386,14 @@ const SearchTable = ({
           borderRadius: 1,
         }}
       >
-        <FixedSizeList
+        <TypedFixedSizeList
           height={listHeight}
           itemCount={table.getRowModel().rows.length}
           itemSize={50}
           width="100%"
         >
           {Row}
-        </FixedSizeList>
+        </TypedFixedSizeList>
       </Box>
     </Box>
   )

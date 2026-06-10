@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react'
-import { Box, Typography, IconButton } from '@mui/material'
-import { T } from '@tolgee/react'
-import { Cross } from '#/components/icons'
+import { Box } from '#/components/common/PandaBox'
+import TText from '#/components/common/TText'
+import { ArrowLeft, ArrowRight, Cross } from '#/components/icons'
 import { PopupProps } from '#/common/types/map'
 import { MapModalWrapper } from '#/components/Map/MapModalWrapper'
 import { FolayerFeatureProperties } from '../common/types'
@@ -9,7 +9,6 @@ import { useLocaleFormatter } from '#/common/hooks/useLocaleFormatter'
 import useEmblaCarousel from 'embla-carousel-react'
 import Lightbox from 'yet-another-react-lightbox'
 import 'yet-another-react-lightbox/styles.css'
-import { ChevronLeft, ChevronRight } from '@mui/icons-material'
 
 const AreaModal = ({
   features,
@@ -20,7 +19,7 @@ const AreaModal = ({
   const properties = feature?.properties
 
   const pictures: string[] = useMemo(() => {
-    const raw = (properties as any)?.pictures
+    const raw = properties?.pictures as unknown
     let arr: unknown = raw
     if (typeof raw === 'string') {
       try {
@@ -137,19 +136,39 @@ const AreaModal = ({
               pointerEvents: 'auto', // re-enable clicks for the button
             }}
           >
-            <IconButton
+            <Box
+              component="button"
+              type="button"
               aria-label="close"
               onClick={onClose}
-              sx={{ color: (theme) => theme.palette.grey[300] }}
+              sx={{
+                width: '2.5rem',
+                height: '2.5rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                p: 0,
+                border: 0,
+                borderRadius: '50%',
+                backgroundColor: 'transparent',
+                color: 'grey.300',
+                cursor: 'pointer',
+                '&:hover': { backgroundColor: 'rgba(255,255,255,0.08)' },
+                '&:focus-visible': {
+                  outline: '2px solid',
+                  outlineColor: 'secondary.main',
+                  outlineOffset: '2px',
+                },
+              }}
             >
               <Cross sx={{ height: '1rem' }} />
-            </IconButton>
+            </Box>
           </Box>
         </Box>
 
         {/* Scroll body — no padding so the right column can bleed to edges */}
         <Box
-          sx={(theme) => ({
+          sx={{
             overflowY: 'auto', // Changed from 'scroll' to 'auto'
             flexGrow: 1,
             height: '100%',
@@ -159,11 +178,9 @@ const AreaModal = ({
               '&::-webkit-scrollbar-thumb': { backgroundColor: '#878787' },
             },
             '@supports not selector(::-webkit-scrollbar)': {
-              scrollbarColor: `${
-                (theme.palette as any).neutral?.main ?? '#878787'
-              } transparent`,
+              scrollbarColor: '#878787 transparent',
             },
-          })}
+          }}
         >
           {properties ? (
             <Box
@@ -172,8 +189,10 @@ const AreaModal = ({
                 width: '100%',
                 // Let content define height; right side can fill row height on md+
                 gridTemplateColumns: {
-                  xs: '1fr',
-                  md: hasPictures ? 'minmax(0,1fr) minmax(0,1fr)' : '1fr',
+                  mobile: '1fr',
+                  desktop: hasPictures
+                    ? 'minmax(0,1fr) minmax(0,1fr)'
+                    : '1fr',
                 },
                 alignItems: 'stretch',
                 gap: 0,
@@ -185,10 +204,10 @@ const AreaModal = ({
               <Box
                 sx={{
                   minWidth: 0,
-                  pt: { xs: 5.5, md: 5 }, // Adjusted padding
+                  pt: { mobile: 5.5, desktop: 5 }, // Adjusted padding
                   pb: 4,
-                  pl: { xs: 2.6, md: 6 },
-                  pr: { xs: 2.6, md: 3 }, // creates separation from the right column
+                  pl: { mobile: 2.6, desktop: 6 },
+                  pr: { mobile: 2.6, desktop: 3 }, // creates separation from the right column
                 }}
               >
                 <Box
@@ -201,9 +220,11 @@ const AreaModal = ({
                     minWidth: 0,
                   }}
                 >
-                  <Typography
-                    variant="h2"
+                  <Box
+                    component="h2"
                     sx={{
+                      typography: 'h2',
+                      m: 0,
                       textTransform: 'uppercase',
                       overflowWrap: 'anywhere',
                       wordBreak: 'break-word',
@@ -212,28 +233,35 @@ const AreaModal = ({
                     }}
                   >
                     {properties.name}
-                  </Typography>
+                  </Box>
 
-                  <Typography
-                    variant="h6"
+                  <Box
+                    component="p"
                     sx={{
+                      typography: 'h6',
+                      m: 0,
                       textTransform: 'uppercase',
                       // On roomy screens: don't wrap -> will drop below instead of breaking words
-                      whiteSpace: { xs: 'normal', sm: 'nowrap' },
-                      overflowWrap: { xs: 'anywhere', sm: 'normal' },
-                      wordBreak: { xs: 'break-word', sm: 'normal' },
+                      whiteSpace: { mobile: 'normal', desktop: 'nowrap' },
+                      overflowWrap: { mobile: 'anywhere', desktop: 'normal' },
+                      wordBreak: { mobile: 'break-word', desktop: 'normal' },
                       flex: '0 0 auto',
-                      minWidth: { xs: 0, sm: 'max-content' }, // stay on the same line until it truly doesn't fit
+                      minWidth: { mobile: 0, desktop: 'max-content' }, // stay on the same line until it truly doesn't fit
                     }}
                   >
                     {properties.municipality}
-                  </Typography>
+                  </Box>
                 </Box>
 
                 <Box>
-                  <Typography
-                    variant="h6"
-                    sx={{ textTransform: 'uppercase', mt: 0 }}
+                  <Box
+                    component="p"
+                    sx={{
+                      typography: 'h6',
+                      textTransform: 'uppercase',
+                      mt: 0,
+                      mb: 0,
+                    }}
                   >
                     {properties.area_ha
                       ? `${formatNumber(properties.area_ha, {
@@ -241,17 +269,22 @@ const AreaModal = ({
                           maximumFractionDigits: 2,
                         })} HEHTAARIA`
                       : ''}
-                  </Typography>
+                  </Box>
                 </Box>
 
                 {properties.description && (
                   <Box sx={{ mt: 4 }}>
-                    <Typography
-                      variant="body1"
-                      sx={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
+                    <Box
+                      component="p"
+                      sx={{
+                        typography: 'body1',
+                        m: 0,
+                        overflowWrap: 'anywhere',
+                        wordBreak: 'break-word',
+                      }}
                     >
                       {properties.description}
-                    </Typography>
+                    </Box>
                   </Box>
                 )}
               </Box>
@@ -271,7 +304,7 @@ const AreaModal = ({
                       // height: { xs: 240, sm: 320, md: '100%' },
                       height: '100%',
                       overflow: 'hidden',
-                      bgcolor: '#2b2b2b',
+                      backgroundColor: '#2b2b2b',
                     }}
                   >
                     {/* Embla viewport */}
@@ -304,7 +337,6 @@ const AreaModal = ({
                                 objectFit: 'cover',
                                 cursor: 'zoom-in',
                                 userSelect: 'none',
-                                WebkitUserDrag: 'none',
                               }}
                             />
                           </Box>
@@ -313,38 +345,68 @@ const AreaModal = ({
                     </Box>
 
                     {/* Overlay arrows */}
-                    <IconButton
+                    <Box
+                      component="button"
+                      type="button"
                       onClick={scrollPrev}
-                      size="small"
                       sx={{
                         position: 'absolute',
                         top: '50%',
                         left: 8,
                         transform: 'translateY(-50%)',
-                        bgcolor: 'rgba(0,0,0,0.35)',
+                        width: '2rem',
+                        height: '2rem',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        p: 0,
+                        border: 0,
+                        borderRadius: '50%',
+                        backgroundColor: 'rgba(0,0,0,0.35)',
                         color: '#fff',
-                        '&:hover': { bgcolor: 'rgba(0,0,0,0.5)' },
+                        cursor: 'pointer',
+                        '&:hover': { backgroundColor: 'rgba(0,0,0,0.5)' },
+                        '&:focus-visible': {
+                          outline: '2px solid',
+                          outlineColor: 'secondary.main',
+                          outlineOffset: '2px',
+                        },
                       }}
                       aria-label="Previous image"
                     >
-                      <ChevronLeft />
-                    </IconButton>
-                    <IconButton
+                      <ArrowLeft sx={{ width: '0.8rem', height: '1.2rem' }} />
+                    </Box>
+                    <Box
+                      component="button"
+                      type="button"
                       onClick={scrollNext}
-                      size="small"
                       sx={{
                         position: 'absolute',
                         top: '50%',
                         right: 8,
                         transform: 'translateY(-50%)',
-                        bgcolor: 'rgba(0,0,0,0.35)',
+                        width: '2rem',
+                        height: '2rem',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        p: 0,
+                        border: 0,
+                        borderRadius: '50%',
+                        backgroundColor: 'rgba(0,0,0,0.35)',
                         color: '#fff',
-                        '&:hover': { bgcolor: 'rgba(0,0,0,0.5)' },
+                        cursor: 'pointer',
+                        '&:hover': { backgroundColor: 'rgba(0,0,0,0.5)' },
+                        '&:focus-visible': {
+                          outline: '2px solid',
+                          outlineColor: 'secondary.main',
+                          outlineOffset: '2px',
+                        },
                       }}
                       aria-label="Next image"
                     >
-                      <ChevronRight />
-                    </IconButton>
+                      <ArrowRight sx={{ width: '0.8rem', height: '1.2rem' }} />
+                    </Box>
 
                     {/* Dots */}
                     <Box
@@ -358,7 +420,7 @@ const AreaModal = ({
                         px: 1,
                         py: 0.5,
                         borderRadius: '999px',
-                        bgcolor: 'rgba(0,0,0,0.25)',
+                        backgroundColor: 'rgba(0,0,0,0.25)',
                       }}
                     >
                       {largeSrcs.map((_, i) => (
@@ -375,7 +437,7 @@ const AreaModal = ({
                             borderRadius: '50%',
                             cursor: 'pointer',
                             outline: 'none',
-                            bgcolor:
+                            backgroundColor:
                               i === selectedIndex
                                 ? '#A9E7CB'
                                 : 'rgba(255,255,255,0.6)',
@@ -396,11 +458,9 @@ const AreaModal = ({
               />
             </Box>
           ) : (
-            <Typography id="area-modal-description">
-              <T keyName="no_features_selected" ns="luonnonmetsakartat">
-                No features selected or data available.
-              </T>
-            </Typography>
+            <Box component="p" id="area-modal-description" sx={{ m: 0 }}>
+              <TText keyName="no_features_selected" ns="luonnonmetsakartat" />
+            </Box>
           )}
         </Box>
       </Box>

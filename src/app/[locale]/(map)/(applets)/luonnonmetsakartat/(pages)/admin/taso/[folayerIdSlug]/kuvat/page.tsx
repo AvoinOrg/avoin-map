@@ -1,14 +1,12 @@
 'use client'
 
 import React, { useEffect, useRef, useState } from 'react'
-import { Box, Typography } from '@mui/material'
 import { useParams } from 'next/navigation'
-import { T, useTranslate } from '@tolgee/react'
+import { useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
-import { SaveOutlined } from '@mui/icons-material'
 
 import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
-import { useUIStore } from '#/common/store'
+import { Box } from '#/components/common/PandaBox'
 import { useSidebarActivityLoader } from '#/common/hooks/ui/useSidebarActivityLoader'
 import { SidebarContentBox } from '#/components/Sidebar'
 import { adminFolayerPatchMutation } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
@@ -19,9 +17,10 @@ import FolayerImportPictures, {
 } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportPictures'
 import { FolayerConfState } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 import { LoadingSpinner } from '#/components/Loading'
+import SaveActionButton from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/SaveActionButton'
 
 const Page = () => {
-  const [isLoading, setIsLoading] = useSidebarActivityLoader()
+  const [, setIsLoading] = useSidebarActivityLoader()
   const [isReadyToSave, setIsReadyToSave] = useState(false)
   const [componentKey, setComponentKey] = useState(0)
   const picturesRef = useRef<FolayerImportPicturesRef>(null)
@@ -44,15 +43,9 @@ const Page = () => {
     }
   }, [localAdminFolayerPatchMutation.isPending])
 
-  // After successful save, reset the component state by changing its key
-  useEffect(() => {
-    if (localAdminFolayerPatchMutation.isSuccess) {
-      setIsReadyToSave(false)
-      setComponentKey((prev) => prev + 1)
-    }
-  }, [localAdminFolayerPatchMutation.isSuccess])
-
-  const handleSaveClick = async (event: any) => {
+  const handleSaveClick = async (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
     event.preventDefault()
     event.stopPropagation()
     event.nativeEvent.stopImmediatePropagation()
@@ -66,12 +59,17 @@ const Page = () => {
       )
 
       if (picValues && picValues.bulkImages?.length) {
-        const payload: any = {
-          id: adminFolayerConf.id,
+        const payload = {
+          ...adminFolayerConf,
           bulkImages: picValues.bulkImages,
           bulkAreaIds: picValues.bulkAreaIds,
         }
-        localAdminFolayerPatchMutation.mutate(payload)
+        localAdminFolayerPatchMutation.mutate(payload, {
+          onSuccess: () => {
+            setIsReadyToSave(false)
+            setComponentKey((prev) => prev + 1)
+          },
+        })
         setIsLoading(true)
       }
     }
@@ -114,47 +112,28 @@ const Page = () => {
       </SidebarContentBox>
       {isReadyToSave && (
         <Box
-          sx={(theme) => ({
+          sx={{
             display: 'flex',
             flexDirection: 'column',
             pl: SIDEBAR_PADDING_REM + 'rem',
             pr: SIDEBAR_PADDING_REM + 'rem',
             pt: 2,
             pb: 2,
-            zIndex: theme.zIndex.drawer + 1,
+            zIndex: 'calc(var(--z-index-drawer) + 1)',
             borderTop: 1,
             borderColor: 'primary.lighter',
-          })}
+          }}
         >
-          <Box
+          <SaveActionButton
+            keyName="sidebar.admin.folayer.pictures.save"
+            ariaLabel={t('sidebar.admin.folayer.pictures.save')}
             onClick={handleSaveClick}
             sx={{
               mt: 1.3,
-              display: 'inline-flex',
-              flexDirection: 'row',
-              cursor: 'pointer',
-              color: 'neutral.dark',
-              flex: '0',
-              whiteSpace: 'nowrap',
               alignSelf: 'flex-start',
               width: '100%',
             }}
-          >
-            <Box sx={{ mr: 1.7, display: 'flex', alignItems: 'center' }}>
-              <SaveOutlined></SaveOutlined>
-              <Typography
-                sx={{
-                  typography: 'h3',
-                  ml: 1,
-                }}
-              >
-                <T
-                  keyName={'sidebar.admin.folayer.pictures.save'}
-                  ns={'luonnonmetsakartat'}
-                />
-              </Typography>
-            </Box>
-          </Box>
+          />
         </Box>
       )}
     </Box>

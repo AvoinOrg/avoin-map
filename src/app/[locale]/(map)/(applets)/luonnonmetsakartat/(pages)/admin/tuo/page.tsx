@@ -1,28 +1,18 @@
 'use client'
 
-import React, { useRef, useEffect, useState, ChangeEvent, use } from 'react'
-import { Box, Button } from '@mui/material'
+import React, { useRef, useEffect, useState, ChangeEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { buffer } from '@turf/turf'
-import booleanValid from '@turf/boolean-valid'
-import { flattenDeep } from 'lodash-es'
 import { useTranslate } from '@tolgee/react'
-import { Feature, FeatureCollection } from 'geojson'
 
+import { Box } from '#/components/common/PandaBox'
 import { getRoute } from '#/common/routing/routing-client'
-import { getGeoJsonArea } from '#/common/utils/gis'
-import { generateUUID } from '#/common/utils/general'
 import BigMenuButton from '#/components/common/BigMenuButton'
 import { SidebarContentBox } from '#/components/Sidebar'
 import { Upload } from '#/components/icons'
 
-import {
-  FeatureProperties,
-  IndexingStrategy,
-} from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
+import { IndexingStrategy } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 import { routeTree } from '#/common/routing/routes/luonnonmetsakartat'
 import FolayerImportShp from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportShp'
-import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { adminFolayerPostMutation } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerPostMutation'
 import { useMutation } from '@tanstack/react-query'
 import { useSidebarActivityLoader } from '#/common/hooks/ui/useSidebarActivityLoader'
@@ -31,20 +21,12 @@ const Page = () => {
   const [fileType, setFileType] = useState<'shp'>()
   const [fileName, setFileName] = useState<string>()
   const [arrayBuffers, setArrayBuffers] = useState<ArrayBuffer[]>()
-  const [isLoading, setIsLoading] = useSidebarActivityLoader()
+  const [, setIsLoading] = useSidebarActivityLoader()
   const isInitializingRef = useRef(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const { t } = useTranslate('luonnonmetsakartat')
-  const dialogOpenedRef = useRef(false)
   const localFolayerPostMutation = useMutation(adminFolayerPostMutation())
-
-  useEffect(() => {
-    if (inputRef.current && !dialogOpenedRef.current) {
-      dialogOpenedRef.current = true
-      inputRef.current.click()
-    }
-  }, [])
 
   const initializePlan = async (params: {
     indexingStrategy: IndexingStrategy

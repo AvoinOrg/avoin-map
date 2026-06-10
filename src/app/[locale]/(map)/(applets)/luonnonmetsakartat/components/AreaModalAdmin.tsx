@@ -1,13 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Box, Typography, IconButton } from '@mui/material'
-import { T, useTranslate } from '@tolgee/react'
+import { useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
 
+import { Box } from '#/components/common/PandaBox'
+import TText from '#/components/common/TText'
 import { Cross } from '#/components/icons'
 import { PopupProps } from '#/common/types/map'
 import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
 import { MapModalWrapper } from '#/components/Map/MapModalWrapper'
-import { SaveOutlined } from '@mui/icons-material'
 import { SCROLLBAR_WIDTH_REM } from '#/common/style/theme/constants'
 import { LoadingSpinner } from '#/components/Loading'
 
@@ -19,24 +19,68 @@ import { MasonryPhotoAlbum } from 'react-photo-album'
 import "react-photo-album/masonry.css";
 import Lightbox from 'yet-another-react-lightbox'
 import 'yet-another-react-lightbox/styles.css'
+import SaveActionButton from './SaveActionButton'
 
 interface Props extends PopupProps<FolayerFeatureProperties> {
   folayerId: string
 }
 
+type PhotoItem = { src: string; width: number; height: number }
+
+type AreaFormState = {
+  featureId: string | null
+  name: string
+  description: string
+  municipality: string
+  region: string
+  hasUnsyncedChanges: boolean
+}
+
+const emptyFormState: AreaFormState = {
+  featureId: null,
+  name: '',
+  description: '',
+  municipality: '',
+  region: '',
+  hasUnsyncedChanges: false,
+}
+
+const THUMB_TARGET_W = 200
+
+const toImgproxy = (
+  url: string,
+  {
+    width = 400,
+    height,
+    resize = 'cover',
+    quality = 80,
+    dpr = 2,
+  }: {
+    width?: number
+    height?: number
+    resize?: 'cover' | 'contain' | 'fill'
+    quality?: number
+    dpr?: number
+  } = {}
+) => {
+  if (!url) return url
+  const renderUrl = url.replace('/object/', '/render/image/')
+  const params = new URLSearchParams()
+  if (width) params.set('width', String(width))
+  if (height) params.set('height', String(height))
+  if (resize) params.set('resize', resize)
+  if (quality) params.set('quality', String(quality))
+  if (dpr) params.set('dpr', String(dpr))
+  return `${renderUrl}?${params.toString()}`
+}
+
 const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
   const { t } = useTranslate('luonnonmetsakartat')
-  const updateArea = useAppletStore((state) => state.updateFolayerArea)
   const folayerAreaConf = useAppletStore(
     (state) => state.folayerAreaConfs[folayerId]
   )
 
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [municipality, setMunicipality] = useState('')
-  const [region, setRegion] = useState('')
-  const [unsyncedChanges, setUnsyncedChanges] = useState(false)
-  const [isUpdating, setIsUpdating] = useState(false)
+  const [formState, setFormState] = useState<AreaFormState>(emptyFormState)
   const localAdminFolayerAreaPatchMutation = useMutation(
     adminFolayerAreaPatchMutation()
   )
@@ -44,102 +88,101 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
   // Lightbox index state
   const [lightboxIndex, setLightboxIndex] = useState<number>(-1)
 
-  // Supabase object URL -> imgproxy render URL helper
-  const toImgproxy = (
-    url: string,
-    {
-      width = 400,
-      height,
-      resize = 'cover',
-      quality = 80,
-      dpr = 2,
-    }: {
-      width?: number
-      height?: number
-      resize?: 'cover' | 'contain' | 'fill'
-      quality?: number
-      dpr?: number
-    } = {}
-  ) => {
-    if (!url) return url
-    const renderUrl = url.replace('/object/', '/render/image/')
-    const params = new URLSearchParams()
-    if (width) params.set('width', String(width))
-    if (height) params.set('height', String(height))
-    if (resize) params.set('resize', resize)
-    if (quality) params.set('quality', String(quality))
-    if (dpr) params.set('dpr', String(dpr))
-    return `${renderUrl}?${params.toString()}`
-  }
-
   const feature = useMemo(() => {
     if (features && features.length > 0 && folayerAreaConf) {
-      const foundFeature = folayerAreaConf.data.features.find(
+      return folayerAreaConf.data.features.find(
         (f) => f.id === features[0].id
-      )
-
-      if (foundFeature) {
-        setName(foundFeature.properties.name || '')
-        setDescription(foundFeature.properties.description || '')
-        setMunicipality(foundFeature.properties.municipality || '')
-        setRegion(foundFeature.properties.region || '')
-        // setArea(foundFeature.properties.area_ha)
-
-        return foundFeature
-      }
+      ) ?? null
     }
     return null
   }, [features, folayerAreaConf])
 
+  const featureFormState = useMemo<AreaFormState>(() => {
+    if (!feature) {
+      return emptyFormState
+    }
+
+    return {
+      featureId: String(feature.id),
+      name: feature.properties.name || '',
+      description: feature.properties.description || '',
+      municipality: feature.properties.municipality || '',
+      region: feature.properties.region || '',
+      hasUnsyncedChanges: false,
+    }
+  }, [feature])
+
+  const currentFormState =
+    formState.featureId === featureFormState.featureId
+      ? formState
+      : featureFormState
+
+  const updateFormField = (
+    field: keyof Pick<
+      AreaFormState,
+      'name' | 'description' | 'municipality' | 'region'
+    >,
+    value: string
+  ) => {
+    setFormState({
+      ...currentFormState,
+      [field]: value,
+      hasUnsyncedChanges: true,
+    })
+  }
+
   // Pictures
-  const pictures: string[] = useMemo(
-    () =>
-      feature?.properties?.pictures &&
-      Array.isArray((feature as any).properties?.pictures)
-        ? ((feature as any).properties.pictures as string[])
-        : [],
-    [feature]
-  )
+  const pictures: string[] = useMemo(() => {
+    const rawPictures = feature?.properties?.pictures as unknown
+    return Array.isArray(rawPictures)
+      ? rawPictures.filter((picture): picture is string => {
+          return typeof picture === 'string'
+        })
+      : []
+  }, [feature])
 
   // Build dynamic thumbnails preserving original aspect ratio.
   // Use imgproxy with fixed width and auto height; then measure to refine ratios.
-  const THUMB_TARGET_W = 200
-  const [photos, setPhotos] = useState<
-    { src: string; width: number; height: number }[]
-  >([])
+  const picturesKey = pictures.join('\0')
+  const placeholderPhotos = useMemo(
+    () =>
+      pictures.map((u) => ({
+        src: toImgproxy(u, {
+          width: THUMB_TARGET_W,
+          quality: 80,
+          dpr: 2,
+        }),
+        width: THUMB_TARGET_W,
+        height: Math.round(THUMB_TARGET_W * 0.75),
+      })),
+    [pictures]
+  )
+  const [measuredPhotos, setMeasuredPhotos] = useState<{
+    key: string
+    photos: PhotoItem[]
+  }>({ key: '', photos: [] })
+  const photos =
+    measuredPhotos.key === picturesKey ? measuredPhotos.photos : placeholderPhotos
   const slides = useMemo(() => pictures.map((u) => ({ src: u })), [pictures])
 
   useEffect(() => {
     if (!pictures || pictures.length === 0) {
-      setPhotos([])
       return
     }
 
-    // First pass: placeholder sizes and transformed URLs (width only)
-    const initial = pictures.map((u) => ({
-      src: toImgproxy(u, {
-        width: THUMB_TARGET_W,
-        quality: 80,
-        dpr: 2,
-      }),
-      width: THUMB_TARGET_W,
-      height: Math.round(THUMB_TARGET_W * 0.75), // 4:3 fallback
-    }))
-    setPhotos(initial)
-
-    // Second pass: measure natural size to get the true aspect ratio
-    initial.forEach((p, i) => {
+    placeholderPhotos.forEach((p, i) => {
       const img = new Image()
       img.onload = () => {
         const nw = img.naturalWidth || THUMB_TARGET_W
         const nh = img.naturalHeight || Math.round(THUMB_TARGET_W * 0.75)
         const ratio = nh / (nw || 1)
         const finalH = Math.max(1, Math.round(THUMB_TARGET_W * ratio))
-        setPhotos((prev) => {
-          if (!prev[i]) return prev
-          const next = [...prev]
+        setMeasuredPhotos((prev) => {
+          const next =
+            prev.key === picturesKey ? [...prev.photos] : [...placeholderPhotos]
+          if (!next[i]) return prev
           next[i] = { src: p.src, width: THUMB_TARGET_W, height: finalH }
-          return next
+          return { key: picturesKey, photos: next }
         })
       }
       img.onerror = () => {
@@ -156,15 +199,18 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
           const nh = fb.naturalHeight || Math.round(THUMB_TARGET_W * 0.75)
           const ratio = nh / (nw || 1)
           const finalH = Math.max(1, Math.round(THUMB_TARGET_W * ratio))
-          setPhotos((prev) => {
-            if (!prev[i]) return prev
-            const next = [...prev]
+          setMeasuredPhotos((prev) => {
+            const next =
+              prev.key === picturesKey
+                ? [...prev.photos]
+                : [...placeholderPhotos]
+            if (!next[i]) return prev
             next[i] = {
               src: fallbackSrc,
               width: THUMB_TARGET_W,
               height: finalH,
             }
-            return next
+            return { key: picturesKey, photos: next }
           })
         }
         fb.onerror = () => {
@@ -174,21 +220,7 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
       }
       img.src = p.src
     })
-  }, [pictures])
-
-  useEffect(() => {
-    if (!localAdminFolayerAreaPatchMutation.isPending) {
-      setIsUpdating(false)
-    } else {
-      setIsUpdating(true)
-    }
-  }, [localAdminFolayerAreaPatchMutation.isPending])
-
-  useEffect(() => {
-    if (localAdminFolayerAreaPatchMutation.isSuccess) {
-      setUnsyncedChanges(false)
-    }
-  }, [localAdminFolayerAreaPatchMutation.isSuccess])
+  }, [placeholderPhotos, pictures, picturesKey])
 
   const handleClose = () => {
     if (onClose) {
@@ -197,38 +229,45 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
   }
 
   const handleNameChange = (value: string) => {
-    setName(value)
-    setUnsyncedChanges(true)
+    updateFormField('name', value)
   }
 
   const handleDescriptionChange = (value: string) => {
-    setDescription(value)
-    setUnsyncedChanges(true)
+    updateFormField('description', value)
   }
 
   const handleMunicipalityChange = (value: string) => {
-    setMunicipality(value)
-    setUnsyncedChanges(true)
+    updateFormField('municipality', value)
   }
 
   const handleRegionChange = (value: string) => {
-    setRegion(value)
-    setUnsyncedChanges(true)
+    updateFormField('region', value)
   }
 
   const handleSaveClick = () => {
-    localAdminFolayerAreaPatchMutation.mutate({
-      layerId: folayerId,
-      featureId: feature?.id as string,
-      properties: {
-        name: name,
-        description: description,
-        municipality: municipality,
-        region: region,
-        // area_ha: area || 0,
+    if (!feature) {
+      return
+    }
+
+    localAdminFolayerAreaPatchMutation.mutate(
+      {
+        layerId: folayerId,
+        featureId: feature.id as string,
+        properties: {
+          name: currentFormState.name,
+          description: currentFormState.description,
+          municipality: currentFormState.municipality,
+          region: currentFormState.region,
+        },
       },
-    })
-    setIsUpdating(true)
+      {
+        onSuccess: () =>
+          setFormState({
+            ...currentFormState,
+            hasUnsyncedChanges: false,
+          }),
+      }
+    )
   }
 
   const minWidthBeforeFullScreen = 600
@@ -265,7 +304,9 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
           {/* <Typography id="area-modal-title" variant="h6" component="h2">
                   {title}
                 </Typography> */}
-          <IconButton
+          <Box
+            component="button"
+            type="button"
             aria-label="close"
             onClick={handleClose}
             sx={{
@@ -273,15 +314,31 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
               // position: 'absolute',
               // right: (theme) => theme.spacing(1),
               // top: (theme) => theme.spacing(1),
-              color: (theme) => theme.palette.grey[500],
+              width: '2.5rem',
+              height: '2.5rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              p: 0,
+              border: 0,
+              borderRadius: '50%',
+              backgroundColor: 'transparent',
+              color: 'grey.500',
+              cursor: 'pointer',
+              '&:hover': { backgroundColor: 'rgba(255,255,255,0.08)' },
+              '&:focus-visible': {
+                outline: '2px solid',
+                outlineColor: 'secondary.main',
+                outlineOffset: '2px',
+              },
             }}
           >
             <Cross />
-          </IconButton>
+          </Box>
         </Box>
         {feature && (
           <Box
-            sx={(theme) => ({
+            sx={{
               // Let this section handle scrolling
               overflowY: 'auto',
               // Critical: allow flex child to shrink below content size to avoid squeezing footer
@@ -298,14 +355,14 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
                 },
               },
               '@supports not selector(::-webkit-scrollbar)': {
-                scrollbarColor: `${theme.palette.neutral.main} transparent`,
+                scrollbarColor: 'var(--colors-neutral-main) transparent',
               },
-            })}
+            }}
           >
             <TextFieldWithHeader
               headerText={t('sidebar.admin.area.name.header')}
               placeholderText={t('sidebar.admin.area.name.placeholder')}
-              value={name}
+              value={currentFormState.name}
               onChange={handleNameChange}
               sx={{ textTransform: 'uppercase' }}
             ></TextFieldWithHeader>
@@ -313,26 +370,25 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
             <TextFieldWithHeader
               headerText={t('sidebar.admin.area.region.header')}
               placeholderText={t('sidebar.admin.area.region.placeholder')}
-              value={region}
+              value={currentFormState.region}
               onChange={handleRegionChange}
               sx={{}}
             ></TextFieldWithHeader>
             <TextFieldWithHeader
               headerText={t('sidebar.admin.area.municipality.header')}
               placeholderText={t('sidebar.admin.area.municipality.placeholder')}
-              value={municipality}
+              value={currentFormState.municipality}
               onChange={handleMunicipalityChange}
               sx={{}}
             ></TextFieldWithHeader>
             <TextFieldWithHeader
               headerText={t('sidebar.admin.area.description.header')}
               placeholderText={t('sidebar.admin.area.description.placeholder')}
-              value={description}
+              value={currentFormState.description}
               onChange={handleDescriptionChange}
               multiline={true}
               rows={15}
               // textSx={{
-              //   '& .MuiInputBase-input': {
               //     minHeight: '10rem',
               //     maxHeight: '20rem',
               //   },
@@ -340,12 +396,12 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
             ></TextFieldWithHeader>
             {pictures.length > 0 && (
               <Box sx={{ mt: 2 }}>
-                <Typography>
-                  <T
+                <Box component="p" sx={{ m: 0 }}>
+                  <TText
                     ns="luonnonmetsakartat"
                     keyName={'sidebar.admin.area.pictures.header'}
-                  ></T>
-                </Typography>
+                  ></TText>
+                </Box>
                 <Box
                   sx={{
                     mt: 1,
@@ -373,7 +429,7 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
           </Box>
         )}
         <Box
-          sx={(theme) => ({
+          sx={{
             display: 'flex',
             flexDirection: 'row',
             height: '5.5rem',
@@ -384,45 +440,21 @@ const AreaModalAdmin = ({ features, folayerId, onClose }: Props) => {
             borderColor: 'neutral.dark',
             // Footer should stay at fixed height and not shrink
             flex: '0 0 auto',
-          })}
+          }}
         >
-          {feature && unsyncedChanges && (
-            <Box
+          {feature && currentFormState.hasUnsyncedChanges && (
+            <SaveActionButton
+              keyName="sidebar.admin.folayer.settings.save"
+              ariaLabel={t('sidebar.admin.folayer.settings.save')}
               onClick={handleSaveClick}
               sx={{
-                display: 'inline-flex',
-                flexDirection: 'row',
-                '&:hover': { cursor: 'pointer' },
-                color: 'neutral.dark',
                 flex: '0',
-                whiteSpace: 'nowrap',
                 justifyContent: 'center',
               }}
-            >
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <SaveOutlined></SaveOutlined>
-                <Typography
-                  sx={{
-                    typography: 'h3',
-                    ml: 1,
-                  }}
-                >
-                  <T
-                    keyName={'sidebar.admin.folayer.settings.save'}
-                    ns={'luonnonmetsakartat'}
-                  />
-                </Typography>
-              </Box>
-            </Box>
+            />
           )}
         </Box>
-        {isUpdating && (
+        {localAdminFolayerAreaPatchMutation.isPending && (
           <Box
             sx={{
               position: 'absolute',

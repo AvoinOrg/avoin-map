@@ -8,68 +8,34 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import {
-  Box,
-  Typography,
-  Autocomplete,
-  TextField,
-  Tooltip,
-} from '@mui/material'
 import BigMenuButton from '#/components/common/BigMenuButton'
 import { Upload } from '#/components/icons'
+import { Box } from '#/components/common/PandaBox'
+import SimpleTooltip from '#/components/common/SimpleTooltip'
+import TText from '#/components/common/TText'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { FolayerAreaConf } from '../common/types'
-import { T, useTranslate } from '@tolgee/react'
+import { useTranslate } from '@tolgee/react'
 import { FixedSizeList, ListChildComponentProps } from 'react-window'
 
-const LISTBOX_PADDING = 8 // px
-
-function renderRow(props: ListChildComponentProps) {
-  const { data, index, style } = props
-  return React.cloneElement(data[index] as React.ReactElement, {
-    style: {
-      ...style,
-      top: (style.top as number) + LISTBOX_PADDING,
-    },
-  })
+type FixedSizeListProps = {
+  height: number
+  itemCount: number
+  itemSize: number
+  width: string | number
+  children: (props: ListChildComponentProps) => React.ReactNode
 }
 
-const OuterElementContext = React.createContext({})
+const TypedFixedSizeList =
+  FixedSizeList as unknown as React.ComponentType<FixedSizeListProps>
 
-const OuterElementType = React.forwardRef<HTMLDivElement>((props, ref) => {
-  const outerProps = React.useContext(OuterElementContext)
-  return <div ref={ref} {...props} {...outerProps} />
-})
-
-const ListboxComponent = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLElement>
->(function ListboxComponent(props, ref) {
-  const { children, ...other } = props
-  const itemData = React.Children.toArray(children)
-  const itemCount = itemData.length
-  const itemSize = 36 // height to match body7 rows
-  const height = Math.min(itemCount, 8) * itemSize
-
-  return (
-    <div ref={ref}>
-      <OuterElementContext.Provider value={other}>
-        <FixedSizeList
-          itemData={itemData}
-          height={height + 2 * LISTBOX_PADDING}
-          width="100%"
-          outerElementType={OuterElementType}
-          innerElementType="ul"
-          itemSize={itemSize}
-          overscanCount={5}
-          itemCount={itemCount}
-        >
-          {renderRow}
-        </FixedSizeList>
-      </OuterElementContext.Provider>
-    </div>
-  )
-})
+const directoryInputProps = {
+  webkitdirectory: '',
+  directory: '',
+} as React.InputHTMLAttributes<HTMLInputElement> & {
+  webkitdirectory: string
+  directory: string
+}
 
 export interface FolayerImportPicturesValues {
   bulkImages: File[]
@@ -90,6 +56,196 @@ interface FolayerImportPicturesProps {
 const normalize = (s?: string) =>
   (s || '').toString().trim().replace(/\s+/g, ' ').toLowerCase()
 
+type AreaOption = {
+  id: string
+  label: string
+  municipality: string
+  name: string
+}
+
+interface AreaPickerProps {
+  options: AreaOption[]
+  value: AreaOption | null
+  placeholder: string
+  noOptionsText: string
+  ariaLabel: string
+  onChange: (value: AreaOption | null) => void
+}
+
+const AreaPicker = ({
+  options,
+  value,
+  placeholder,
+  noOptionsText,
+  ariaLabel,
+  onChange,
+}: AreaPickerProps) => {
+  const listboxId = React.useId()
+  const [query, setQuery] = useState(value?.label ?? '')
+  const [isOpen, setIsOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(0)
+
+  const filteredOptions = useMemo(() => {
+    const normalizedQuery = normalize(query)
+    if (!normalizedQuery) {
+      return options.slice(0, 80)
+    }
+
+    return options
+      .filter((option) =>
+        normalize(
+          `${option.label} ${option.municipality} ${option.name}`
+        ).includes(normalizedQuery)
+      )
+      .slice(0, 80)
+  }, [options, query])
+
+  const handleSelect = (option: AreaOption | null) => {
+    onChange(option)
+    setQuery(option?.label ?? '')
+    setIsOpen(false)
+  }
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      setIsOpen(true)
+      setActiveIndex((prev) =>
+        Math.min(prev + 1, Math.max(filteredOptions.length - 1, 0))
+      )
+      return
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      setActiveIndex((prev) => Math.max(prev - 1, 0))
+      return
+    }
+
+    if (event.key === 'Enter') {
+      if (isOpen && filteredOptions[activeIndex]) {
+        event.preventDefault()
+        handleSelect(filteredOptions[activeIndex])
+      }
+      return
+    }
+
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      if (query || value) {
+        handleSelect(null)
+      } else {
+        setIsOpen(false)
+      }
+    }
+  }
+
+  return (
+    <Box sx={{ position: 'relative', minWidth: 0 }}>
+      <Box
+        component="input"
+        role="combobox"
+        aria-label={ariaLabel}
+        aria-expanded={isOpen}
+        aria-controls={listboxId}
+        aria-autocomplete="list"
+        value={query}
+        placeholder={placeholder}
+        onFocus={() => setIsOpen(true)}
+        onChange={(event) => {
+          setQuery(event.target.value)
+          setActiveIndex(0)
+          setIsOpen(true)
+        }}
+        onKeyDown={handleKeyDown}
+        sx={{
+          width: '100%',
+          minWidth: 0,
+          height: '2rem',
+          border: '0.5px solid',
+          borderColor: 'neutral.main',
+          borderRadius: '999px',
+          backgroundColor: 'background.main',
+          boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
+          color: 'neutral.darker',
+          px: 1.5,
+          typography: 'body7',
+          outline: 0,
+          '&::placeholder': {
+            color: 'neutral.dark',
+            opacity: 1,
+          },
+          '&:focus-visible': {
+            outline: '2px solid',
+            outlineColor: 'secondary.main',
+            outlineOffset: '2px',
+          },
+        }}
+      />
+      {isOpen && (
+        <Box
+          id={listboxId}
+          role="listbox"
+          sx={{
+            position: 'absolute',
+            zIndex: 'popup',
+            top: 'calc(100% + 0.25rem)',
+            left: 0,
+            right: 0,
+            maxHeight: '14rem',
+            overflowY: 'auto',
+            backgroundColor: 'background.main',
+            border: '0.5px solid',
+            borderColor: 'neutral.main',
+            borderRadius: '0.5rem',
+            boxShadow: '0 8px 18px rgba(0, 0, 0, 0.18)',
+            py: 0.5,
+          }}
+          onMouseDown={(event) => event.preventDefault()}
+        >
+          {filteredOptions.length > 0 ? (
+            filteredOptions.map((option, index) => (
+              <Box
+                key={option.id}
+                component="button"
+                type="button"
+                role="option"
+                aria-selected={value?.id === option.id}
+                onClick={() => handleSelect(option)}
+                onMouseEnter={() => setActiveIndex(index)}
+                sx={{
+                  width: '100%',
+                  border: 0,
+                  backgroundColor:
+                    index === activeIndex ? 'action.hover' : 'transparent',
+                  color: 'inherit',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  px: 1.5,
+                  py: 0.75,
+                  typography: 'body7',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  '&:hover': {
+                    backgroundColor: 'action.hover',
+                  },
+                }}
+              >
+                {option.label}
+              </Box>
+            ))
+          ) : (
+            <Box sx={{ px: 1.5, py: 1, typography: 'body7' }}>
+              {noOptionsText}
+            </Box>
+          )}
+        </Box>
+      )}
+    </Box>
+  )
+}
+
 const FolayerImportPictures = forwardRef<
   FolayerImportPicturesRef,
   FolayerImportPicturesProps
@@ -101,20 +257,16 @@ const FolayerImportPictures = forwardRef<
   const [manualMappings, setManualMappings] = useState<
     Record<string, string | null | undefined>
   >({})
-  const [rowOrder, setRowOrder] = useState<string[]>([])
 
   const areaConf: FolayerAreaConf | undefined = useAppletStore(
     (s) => s.folayerAreaConfs[folayerId]
   )
 
   // Memoized area options and lookups
-  type AreaOption = {
-    id: string
-    label: string
-    municipality: string
-    name: string
-  }
-  const features = areaConf?.data?.features ?? []
+  const features = useMemo(
+    () => areaConf?.data?.features ?? [],
+    [areaConf?.data?.features]
+  )
   const areaOptionsAll: AreaOption[] = useMemo(() => {
     const list = features
       .map((feat) => {
@@ -168,7 +320,9 @@ const FolayerImportPictures = forwardRef<
     const map = new Map<string, File[]>()
     for (const f of files) {
       if (!f.type || !f.type.startsWith('image/')) continue
-      const rel = (f as any).webkitRelativePath || f.name
+      const rel =
+        (f as File & { webkitRelativePath?: string }).webkitRelativePath ||
+        f.name
       const parts = rel.split('/')
       const folder = parts.length > 1 ? parts[parts.length - 2] : ''
       if (!map.has(folder)) map.set(folder, [])
@@ -224,21 +378,12 @@ const FolayerImportPictures = forwardRef<
     return { ...result, unmatched, resolvedByFolder }
   }, [groups, featureIdByNormKey, manualMappings, features.length])
 
-  // Initial row order (unmatched first, then alpha), only when groups change
-  useEffect(() => {
+  const rowOrder = useMemo(() => {
     const folders = Array.from(groups.keys())
     if (folders.length === 0) {
-      setRowOrder([])
-      return
+      return []
     }
-    if (!features.length) return
-
-    const prevSet = new Set(rowOrder)
-    const sameSet =
-      rowOrder.length > 0 &&
-      rowOrder.length === folders.length &&
-      folders.every((f) => prevSet.has(f))
-    if (sameSet) return
+    if (!features.length) return folders.sort((a, b) => a.localeCompare(b))
 
     const autoResolvedByFolder: Record<string, boolean> = {}
     folders.forEach((folderName) => {
@@ -257,14 +402,12 @@ const FolayerImportPictures = forwardRef<
       )
     })
 
-    const sorted = folders.sort((a, b) => {
+    return folders.sort((a, b) => {
       const aUnmatched = !autoResolvedByFolder[a]
       const bUnmatched = !autoResolvedByFolder[b]
       if (aUnmatched === bUnmatched) return a.localeCompare(b)
       return aUnmatched ? -1 : 1
     })
-
-    setRowOrder(sorted)
   }, [groups, features.length, featureIdByNormKey])
 
   // Always reflect current validity
@@ -293,7 +436,7 @@ const FolayerImportPictures = forwardRef<
     setManualMappings({})
     setFiles(arr)
     // Label from top-level of the latest selection
-    const first = arr[0] as any
+    const first = arr[0] as (File & { webkitRelativePath?: string }) | undefined
     const relFirst: string = first?.webkitRelativePath || first?.name || ''
     const root = relFirst.includes('/') ? relFirst.split('/')[0] : relFirst
     setSelectedFolderLabel(root || undefined)
@@ -337,7 +480,7 @@ const FolayerImportPictures = forwardRef<
     return (
       <Box
         key={folder}
-        style={style}
+        style={style as React.CSSProperties}
         sx={{
           display: 'grid',
           gridTemplateColumns: '1fr auto 1.5fr',
@@ -348,69 +491,44 @@ const FolayerImportPictures = forwardRef<
           borderColor: 'divider',
         }}
       >
-        <Tooltip title={folder} placement="top-start" enterDelay={200} arrow>
-          <Typography
-            typography="body7"
+        <SimpleTooltip title={folder} side="top" align="start">
+          <Box
+            component="span"
             sx={{
+              typography: 'body7',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
             }}
           >
             {folder}
-          </Typography>
-        </Tooltip>
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          sx={{ textAlign: 'right' }}
+          </Box>
+        </SimpleTooltip>
+        <Box
+          component="span"
+          sx={{
+            textAlign: 'right',
+            typography: 'caption',
+            color: 'text.secondary',
+          }}
         >
           {count}
-        </Typography>
-        <Autocomplete
-          size="small"
+        </Box>
+        <AreaPicker
+          key={`${folder}-${currentValue?.id ?? 'none'}`}
           options={areaOptionsAll}
           value={currentValue}
-          isOptionEqualToValue={(o, v) => o.id === v.id}
-          getOptionLabel={(o) => o.label}
-          renderOption={(props, option) => (
-            <li {...props} key={option.id}>
-              <Typography typography="body7">{option.label}</Typography>
-            </li>
+          placeholder={t('sidebar.admin.folayer.settings.picture.select_area')}
+          noOptionsText={t(
+            'sidebar.admin.folayer.settings.picture.no_options'
           )}
-          noOptionsText={
-            <Typography typography="body7">
-              {t('sidebar.admin.folayer.settings.picture.no_options')}
-            </Typography>
-          }
-          slotProps={{
-            listbox: {
-              component: ListboxComponent as React.ComponentType<
-                React.HTMLAttributes<HTMLElement>
-              >,
-            },
-          }}
-          clearOnEscape
-          disableClearable={false}
-          onChange={(_e, newValue) => {
+          ariaLabel={t('sidebar.admin.folayer.settings.picture.select_area')}
+          onChange={(newValue) => {
             setManualMappings((prev) => ({
               ...prev,
               [folder]: newValue ? newValue.id : null,
             }))
           }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder={t(
-                'sidebar.admin.folayer.settings.picture.select_area'
-              )}
-              sx={{
-                '& .MuiInputBase-input': (theme) => ({
-                  typography: 'body7',
-                }),
-              }}
-            />
-          )}
         />
       </Box>
     )
@@ -428,10 +546,7 @@ const FolayerImportPictures = forwardRef<
         <input
           hidden
           multiple
-          // @ts-ignore non-standard attributes for directory selection
-          webkitdirectory=""
-          // @ts-ignore
-          directory=""
+          {...directoryInputProps}
           type="file"
           accept="image/*"
           onChange={handleFolderInput}
@@ -442,25 +557,28 @@ const FolayerImportPictures = forwardRef<
 
       {groups.size > 0 && (
         <Box sx={{ mt: 3 }}>
-          <Typography variant="body2">
-            <T
+          <Box component="p" sx={{ typography: 'body2', m: 0 }}>
+            <TText
               ns="luonnonmetsakartat"
               keyName={'sidebar.admin.folayer.settings.picture.areas'}
             />
             : {totalAreas} •{' '}
-            <T
+            <TText
               ns="luonnonmetsakartat"
               keyName={'sidebar.admin.folayer.settings.picture.images'}
             />
             : {totalImages}
-          </Typography>
+          </Box>
         </Box>
       )}
 
       {unmatchedFolders.length > 0 && (
         <Box sx={{ mt: 4 }}>
-          <Typography variant="body2" color="error" sx={{ mb: 1 }}>
-            <T
+          <Box
+            component="p"
+            sx={{ m: 0, typography: 'body2', color: 'error.main', mb: 1 }}
+          >
+            <TText
               ns="luonnonmetsakartat"
               keyName={
                 unmatchedFoldersCount > 1
@@ -472,7 +590,7 @@ const FolayerImportPictures = forwardRef<
                 imageCount: unmatchedImagesCount,
               }}
             />
-          </Typography>
+          </Box>
         </Box>
       )}
 
@@ -489,35 +607,46 @@ const FolayerImportPictures = forwardRef<
               borderColor: 'divider',
             }}
           >
-            <Typography variant="caption" color="text.secondary">
+            <Box
+              component="span"
+              sx={{ typography: 'caption', color: 'text.secondary' }}
+            >
               {t('sidebar.admin.folayer.settings.picture.folders')}
-            </Typography>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ textAlign: 'left' }}
+            </Box>
+            <Box
+              component="span"
+              sx={{
+                textAlign: 'left',
+                typography: 'caption',
+                color: 'text.secondary',
+              }}
             >
               {t('sidebar.admin.folayer.settings.picture.images')}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
+            </Box>
+            <Box
+              component="span"
+              sx={{ typography: 'caption', color: 'text.secondary' }}
+            >
               {t('sidebar.admin.folayer.settings.picture.areas')}
-            </Typography>
+            </Box>
           </Box>
 
           <Box sx={{ width: '100%' }}>
-            <FixedSizeList
+            <TypedFixedSizeList
               height={listHeight}
               itemCount={rowOrder.length}
               itemSize={rowHeight}
               width="100%"
             >
               {Row}
-            </FixedSizeList>
+            </TypedFixedSizeList>
           </Box>
         </Box>
       ) : null}
     </Box>
   )
 })
+
+FolayerImportPictures.displayName = 'FolayerImportPictures'
 
 export default FolayerImportPictures
