@@ -2,28 +2,19 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button as BaseButton } from '@base-ui/react/button'
-import { Tooltip } from '@base-ui/react/tooltip'
 import { css, cx } from 'styled-system/css'
 
 import QuestionCircleOutline from '#/components/icons/QuestionCircleOutline'
+import SimpleTooltip, {
+  type SimpleTooltipOpenChangeHandler,
+} from '#/components/common/SimpleTooltip'
 import type { PandaStyleProp } from '#/common/style/panda'
 import {
   mergePandaStyleProps,
   pandaStylePropsToArray,
 } from '#/common/style/pandaStyleProps'
-import {
-  TOOLTIP_ARROW_PADDING,
-  TOOLTIP_COLLISION_PADDING,
-  TOOLTIP_SIDE_OFFSET,
-  tooltipArrowClass,
-  tooltipPopupClass,
-  tooltipPositionerClass,
-} from '#/components/common/tooltipStyles'
 
 type BaseButtonProps = React.ComponentProps<typeof BaseButton>
-type TooltipOpenChangeHandler = NonNullable<
-  React.ComponentProps<typeof Tooltip.Root>['onOpenChange']
->
 type HelperOpenState = 'closed' | 'hover' | 'focus' | 'pinned'
 
 type IconTextButtonProps = Omit<
@@ -80,7 +71,7 @@ const IconTextButton = ({
     ],
   })
 
-  const handleHelperOpenChange: TooltipOpenChangeHandler = useCallback(
+  const handleHelperOpenChange: SimpleTooltipOpenChangeHandler = useCallback(
     (open, eventDetails) => {
       if (isDisabled) {
         setHelperOpenState('closed')
@@ -273,27 +264,28 @@ const IconTextButton = ({
             height: '1.125rem',
           })}
         >
-          <Tooltip.Root
+          <SimpleTooltip
+            title={helperText}
+            side="top"
             open={isHelperOpen}
             onOpenChange={handleHelperOpenChange}
-            disabled={isDisabled}
-          >
-            <Tooltip.Trigger
-              ref={helperTriggerRef}
-              data-helper-trigger
-              type="button"
-              aria-label={helperAriaLabel ?? 'Show more information'}
-              disabled={isDisabled}
-              delay={0}
-              closeDelay={0}
-              onClick={(event) => {
+            popupRef={helperPopupRef}
+            triggerProps={{
+              ref: helperTriggerRef,
+              'data-helper-trigger': true,
+              type: 'button',
+              'aria-label': helperAriaLabel ?? 'Show more information',
+              disabled: isDisabled,
+              delay: 0,
+              closeDelay: 0,
+              onClick: (event) => {
                 event.preventDefault()
                 event.stopPropagation()
                 setHelperOpenState((currentState) =>
                   currentState === 'pinned' ? 'closed' : 'pinned'
                 )
-              }}
-              className={css({
+              },
+              className: css({
                 color: '#95a086',
                 p: 0,
                 width: '1rem',
@@ -309,29 +301,11 @@ const IconTextButton = ({
                   outline: '2px solid rgba(17,17,17,0.4)',
                   outlineOffset: '2px',
                 },
-              })}
-            >
-              <QuestionCircleOutline styleProps={{ width: 16, height: 16 }} />
-            </Tooltip.Trigger>
-            <Tooltip.Portal>
-              <Tooltip.Positioner
-                side="top"
-                positionMethod="fixed"
-                sideOffset={TOOLTIP_SIDE_OFFSET}
-                collisionPadding={TOOLTIP_COLLISION_PADDING}
-                arrowPadding={TOOLTIP_ARROW_PADDING}
-                className={tooltipPositionerClass}
-              >
-                <Tooltip.Popup
-                  ref={helperPopupRef}
-                  className={tooltipPopupClass}
-                >
-                  {helperText}
-                  <Tooltip.Arrow className={tooltipArrowClass} />
-                </Tooltip.Popup>
-              </Tooltip.Positioner>
-            </Tooltip.Portal>
-          </Tooltip.Root>
+              }),
+            }}
+          >
+            <QuestionCircleOutline styleProps={{ width: 16, height: 16 }} />
+          </SimpleTooltip>
         </span>
       )}
     </div>
