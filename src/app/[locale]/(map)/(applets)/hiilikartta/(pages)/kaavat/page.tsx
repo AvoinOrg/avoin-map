@@ -238,7 +238,7 @@ const Page = () => {
           objectPosition: 'center 35%',
         }}
         contentSx={{
-          px: '2.4375rem',
+          px: '2.25rem',
           pt: '4.375rem',
           pb: '4.6875rem',
           gap: '3.75rem',
@@ -305,7 +305,7 @@ const Page = () => {
             display: 'flex',
             flexDirection: 'column',
             gap: { mobile: '1rem', desktop: '1.125rem' },
-            p: { mobile: '1rem', desktop: '1.25rem' },
+            p: '1.125rem',
             borderRadius: '1.25rem',
             backgroundColor: '#f4f4f4',
           }}
@@ -315,6 +315,7 @@ const Page = () => {
               display: 'flex',
               flexDirection: 'column',
               gap: '0.75rem',
+              p: '1.125rem',
             }}
           >
             <Box
@@ -404,7 +405,6 @@ const Page = () => {
                   },
                 ]}
                 styleProps={{
-                  minWidth: '7.25rem',
                   ml: 'auto',
                   borderRadius: '999px',
                   backgroundColor: '#d9d9d9',
@@ -412,6 +412,7 @@ const Page = () => {
                   color: '#111111',
                   pl: '0.75rem',
                   pr: '0.625rem',
+                  mr: '1.125rem',
                   py: '0.3125rem',
                   fontSize: '0.5rem',
                   fontWeight: 700,
@@ -439,7 +440,7 @@ const Page = () => {
               styleProps={{
                 display: 'flex',
                 flexDirection: 'column',
-                px: { mobile: '1.125rem', desktop: '1.25rem' },
+                px: '1.125rem',
                 pb: { mobile: '1rem', desktop: '1.125rem' },
                 pt: 0,
               }}
