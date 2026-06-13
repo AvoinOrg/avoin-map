@@ -170,10 +170,6 @@ const warningHintPopupSx = {
   boxShadow: '0px 8px 24px rgba(17, 17, 17, 0.22)',
 } as const
 
-const warningHintArrowSx = {
-  backgroundColor: '#454545',
-} as const
-
 const ZoneClassSelectOptionContent = ({
   option,
 }: {
@@ -821,7 +817,6 @@ const ZoneAccordionItem = ({
           disabled={landUseDistributionHint == null}
           sideOffset={8}
           popupSx={warningHintPopupSx}
-          arrowSx={warningHintArrowSx}
         >
           <Box
             component="span"
@@ -1121,7 +1116,6 @@ const ZoneAccordionItem = ({
                             disabled={landUseDistributionHint == null}
                             sideOffset={8}
                             popupSx={warningHintPopupSx}
-                            arrowSx={warningHintArrowSx}
                           >
                             <Box
                               component="span"

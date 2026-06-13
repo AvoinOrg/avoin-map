@@ -13,7 +13,6 @@ type HintProps = {
   disabled?: boolean
   sideOffset?: number
   popupSx?: PandaStyleProp
-  arrowSx?: PandaStyleProp
   children: React.ReactElement
 }
 
@@ -24,7 +23,6 @@ const Hint = ({
   disabled,
   sideOffset = 11,
   popupSx,
-  arrowSx,
   children,
 }: HintProps) => {
   if (title == null || title === '' || disabled) {
@@ -38,7 +36,6 @@ const Hint = ({
       align={align}
       sideOffset={sideOffset}
       popupSx={popupSx}
-      arrowSx={arrowSx}
     >
       {children}
     </SimpleTooltip>
