@@ -7,6 +7,24 @@ const scenarios = [
   { id: 'luonnonmetsakartat-root', applet: 'luonnonmetsakartat' },
 ]
 
+const fixtureScenarios = [
+  {
+    id: 'component-fixture-layer-toggle-row-hidden',
+    applet: 'component-fixtures',
+    sourceGlobs: ['src/components/common/LayerToggleRow.tsx'],
+  },
+  {
+    id: 'component-fixture-layer-toggle-row-visible',
+    applet: 'component-fixtures',
+    sourceGlobs: ['src/components/common/LayerToggleRow.tsx'],
+  },
+  {
+    id: 'component-fixture-other-component-default',
+    applet: 'component-fixtures',
+    sourceGlobs: ['src/components/common/OtherComponent.tsx'],
+  },
+]
+
 describe('resolveImpactedScenarios', () => {
   test('maps shared component changes to all scenarios', () => {
     const result = resolveImpactedScenarios({
@@ -36,5 +54,40 @@ describe('resolveImpactedScenarios', () => {
 
     expect(result.mode).toBe('all')
     expect(result.scenarioIds).toEqual(scenarios.map((scenario) => scenario.id))
+  })
+
+  test('maps component source changes to matching fixture scenarios', () => {
+    const result = resolveImpactedScenarios({
+      files: ['src/components/common/LayerToggleRow.tsx'],
+      scenarios: fixtureScenarios,
+    })
+
+    expect(result.mode).toBe('targeted')
+    expect(result.scenarioIds).toEqual([
+      'component-fixture-layer-toggle-row-hidden',
+      'component-fixture-layer-toggle-row-visible',
+    ])
+    expect(result.fileMatches['src/components/common/LayerToggleRow.tsx']).toEqual([
+      {
+        label: 'scenario-source-globs',
+        target: 'component-fixture-layer-toggle-row-hidden',
+      },
+      {
+        label: 'scenario-source-globs',
+        target: 'component-fixture-layer-toggle-row-visible',
+      },
+    ])
+  })
+
+  test('maps fixture harness changes to all fixture scenarios', () => {
+    const result = resolveImpactedScenarios({
+      files: ['src/common/component-fixtures/ComponentFixtureFrame.tsx'],
+      scenarios: fixtureScenarios,
+    })
+
+    expect(result.mode).toBe('all')
+    expect(result.scenarioIds).toEqual(
+      fixtureScenarios.map((scenario) => scenario.id)
+    )
   })
 })

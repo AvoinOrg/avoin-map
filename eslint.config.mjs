@@ -6,6 +6,12 @@ import prettier from 'eslint-config-prettier/flat'
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    files: ['utils/visual/**/*.js', '__tests__/visual/**/*.js'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
   prettier,
   globalIgnores([
     '.next/**',

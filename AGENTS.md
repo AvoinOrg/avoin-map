@@ -64,6 +64,9 @@ standalone sites.
 - `tolgee-api-upsert`: Add or update Tolgee translation keys via the Tolgee
   API, refresh local exports, and follow the repo’s `TText`/ICU authoring
   rules. (file: `agents/skills/tolgee-api-upsert/SKILL.md`)
+- `component-refactor`: Use the component fixture harness for individual
+  component refactors and migrations that need isolated before/after visual
+  checks. (file: `agents/skills/component-refactor/SKILL.md`)
 
 ## Figma MCP (Global HTTP)
 

@@ -1,0 +1,43 @@
+[
+  {
+    "id": "layer-toggle-row",
+    "label": "LayerToggleRow",
+    "description": "Representative layer visibility toggle row states.",
+    "sourceGlobs": [
+      "src/components/common/LayerToggleRow.tsx",
+      "src/components/common/LayerToggleRow.test.tsx"
+    ],
+    "states": [
+      {
+        "id": "hidden",
+        "label": "Hidden",
+        "description": "Default hidden layer status."
+      },
+      {
+        "id": "visible",
+        "label": "Visible",
+        "description": "Visible layer status with the default icon."
+      },
+      {
+        "id": "visible-colored",
+        "label": "Visible colored",
+        "description": "Visible layer status with a configured layer color."
+      },
+      {
+        "id": "processing",
+        "label": "Processing",
+        "description": "Loading state while a layer visibility change is processing."
+      },
+      {
+        "id": "disabled",
+        "label": "Disabled",
+        "description": "Disabled row that should not toggle."
+      },
+      {
+        "id": "accordion-open",
+        "label": "Accordion open",
+        "description": "Expanded accordion variant with visible child content."
+      }
+    ]
+  }
+]

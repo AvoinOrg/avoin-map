@@ -16,6 +16,15 @@ const buildImpactRules = () => [
     target: '*',
   },
   {
+    label: 'component-fixture-harness',
+    globs: [
+      'src/app/[locale]/dev/component-fixtures/**',
+      'src/common/component-fixtures/**',
+      'utils/visual/componentFixtureScenarios.js',
+    ],
+    target: '*',
+  },
+  {
     label: 'shared-ui-and-state',
     globs: ['src/components/**', 'src/common/**'],
     target: '*',
@@ -63,6 +72,11 @@ const buildImpactRules = () => [
   },
 ]
 
+const getScenarioSourceMatches = ({ file, scenarios }) =>
+  scenarios.filter((scenario) =>
+    matchesAnyGlob({ filePath: file, globs: scenario.sourceGlobs || [] })
+  )
+
 const resolveImpactedScenarios = ({ files, scenarios, rules = buildImpactRules() }) => {
   const normalizedFiles = (files || []).map(normalizePath).filter(Boolean)
 
@@ -87,8 +101,22 @@ const resolveImpactedScenarios = ({ files, scenarios, rules = buildImpactRules()
   const fileMatches = {}
   let allTriggered = false
   const targetedApplets = new Set()
+  const targetedScenarioIds = new Set()
 
   for (const file of normalizedFiles) {
+    const scenarioSourceMatches = getScenarioSourceMatches({ file, scenarios })
+
+    if (scenarioSourceMatches.length > 0) {
+      fileMatches[file] = scenarioSourceMatches.map((scenario) => ({
+        label: 'scenario-source-globs',
+        target: scenario.id,
+      }))
+      scenarioSourceMatches.forEach((scenario) =>
+        targetedScenarioIds.add(scenario.id)
+      )
+      continue
+    }
+
     const matches = rules.filter((rule) => matchesAnyGlob({ filePath: file, globs: rule.globs }))
     fileMatches[file] = matches.map((match) => ({ label: match.label, target: match.target }))
 
@@ -118,7 +146,10 @@ const resolveImpactedScenarios = ({ files, scenarios, rules = buildImpactRules()
   }
 
   const scenarioIds = scenarios
-    .filter((scenario) => targetedApplets.has(scenario.applet))
+    .filter(
+      (scenario) =>
+        targetedScenarioIds.has(scenario.id) || targetedApplets.has(scenario.applet)
+    )
     .map((scenario) => scenario.id)
 
   if (scenarioIds.length === 0) {

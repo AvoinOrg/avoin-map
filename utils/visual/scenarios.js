@@ -8,9 +8,11 @@ const MAIN_APPLET = 'main'
 const DEFAULT_MAIN_LOCALE = 'en'
 const DEFAULT_SCENARIO_SET = 'root'
 const MIGRATION_BASELINE_SCENARIO_SET = 'migration-baseline'
+const COMPONENT_FIXTURE_SCENARIO_SET = 'component-fixtures'
 const SUPPORTED_SCENARIO_SETS = [
   DEFAULT_SCENARIO_SET,
   MIGRATION_BASELINE_SCENARIO_SET,
+  COMPONENT_FIXTURE_SCENARIO_SET,
 ]
 
 const parseCompiledApplets = (raw) =>
@@ -196,6 +198,7 @@ const buildVisualScenarios = ({
 } = {}) => {
   const resolvedScenarioSet = resolveScenarioSet({ env, scenarioSet })
   const rootScenarios = buildRootVisualScenarios({ env, baseUrl })
+  const compiled = getCompiledApplets({ env })
 
   switch (resolvedScenarioSet) {
     case DEFAULT_SCENARIO_SET:
@@ -206,6 +209,19 @@ const buildVisualScenarios = ({
         env,
         rootScenarios,
       })
+    case COMPONENT_FIXTURE_SCENARIO_SET: {
+      if (!compiled.includes(MAIN_APPLET)) {
+        throw new Error(
+          'The component-fixtures visual scenario set requires a main-app build with NEXT_PUBLIC_COMPILED_APPLETS including "main".'
+        )
+      }
+
+      const {
+        buildComponentFixtureVisualScenarios,
+      } = require('./componentFixtureScenarios')
+
+      return buildComponentFixtureVisualScenarios({ baseUrl })
+    }
     default:
       return rootScenarios
   }
@@ -214,6 +230,7 @@ const buildVisualScenarios = ({
 module.exports = {
   DEFAULT_MAIN_LOCALE,
   DEFAULT_SCENARIO_SET,
+  COMPONENT_FIXTURE_SCENARIO_SET,
   MAIN_APPLET,
   MIGRATION_BASELINE_SCENARIO_SET,
   SUPPORTED_SCENARIO_SETS,
