@@ -39,5 +39,47 @@
         "description": "Expanded accordion variant with visible child content."
       }
     ]
+  },
+  {
+    "id": "button-primitives",
+    "label": "Button primitives",
+    "description": "Shared Base UI backed button primitive states.",
+    "sourceGlobs": [
+      "src/components/common/Button.tsx",
+      "src/components/common/Button.test.tsx",
+      "src/common/component-fixtures/fixtures/ButtonPrimitivesFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "button-default",
+        "label": "Button default",
+        "description": "Default contained button with decorative icon slots."
+      },
+      {
+        "id": "button-disabled",
+        "label": "Button disabled",
+        "description": "Disabled native button state."
+      },
+      {
+        "id": "button-focus-visible",
+        "label": "Button focus visible",
+        "description": "Keyboard focus-visible styling hook."
+      },
+      {
+        "id": "button-pressed",
+        "label": "Button pressed",
+        "description": "Pressed and active styling hooks supplied by ARIA/data."
+      },
+      {
+        "id": "button-anchor",
+        "label": "Button anchor",
+        "description": "Anchor render preserving link semantics."
+      },
+      {
+        "id": "icon-only",
+        "label": "Icon only",
+        "description": "Icon-only button with caller supplied accessible name."
+      }
+    ]
   }
 ]

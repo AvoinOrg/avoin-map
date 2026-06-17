@@ -1,12 +1,16 @@
 'use client'
 
+import { buttonPrimitivesFixture } from './fixtures/ButtonPrimitivesFixture'
 import { layerToggleRowFixture } from './fixtures/LayerToggleRowFixture'
 import type {
   ComponentFixture,
   ComponentFixtureStateLookup,
 } from './types'
 
-const componentFixtures: ComponentFixture[] = [layerToggleRowFixture]
+const componentFixtures: ComponentFixture[] = [
+  layerToggleRowFixture,
+  buttonPrimitivesFixture,
+]
 
 export const getComponentFixtures = () => componentFixtures
 

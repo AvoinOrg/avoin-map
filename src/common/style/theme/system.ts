@@ -8,15 +8,22 @@ export type AppSxProps = SxProps<AppTheme>
 export type AppSystemStyleObject = AppSxProps
 export type AppBoxProps = Omit<MuiSystemBoxProps, 'sx'> & { sx?: AppSxProps }
 
-export function Box({
-  sx,
-  ...props
-}: AppBoxProps) {
+export const Box = React.forwardRef<HTMLElement, AppBoxProps>(function Box(
+  {
+    sx,
+    ...props
+  },
+  ref
+) {
   const systemProps = props as MuiSystemBoxProps
   const systemSx = sx as MuiSystemBoxProps['sx']
 
-  return React.createElement(MuiSystemBox, { ...systemProps, sx: systemSx })
-}
+  return React.createElement(MuiSystemBox, {
+    ...systemProps,
+    ref,
+    sx: systemSx,
+  })
+})
 
 export const toSxArray = (sx?: AppSxProps): AppSxProps[] => {
   if (sx == null) {
