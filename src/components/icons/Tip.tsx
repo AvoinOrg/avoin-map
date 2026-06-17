@@ -1,11 +1,9 @@
-import { Box, SxProps, Theme } from '@mui/material'
-
-type Props = {
-  sx?: SxProps<Theme>
-}
+import type { SharedSvgIconProps } from './types'
+import { SharedSvgIcon } from './types'
+type Props = SharedSvgIconProps
 
 const Tip = (props: Props) => (
-  <Box
+  <SharedSvgIcon
     component="svg"
     xmlns="http://www.w3.org/2000/svg"
     width={24}
@@ -69,7 +67,7 @@ const Tip = (props: Props) => (
       strokeLinecap="round"
       strokeLinejoin="round"
     />
-  </Box>
+  </SharedSvgIcon>
 )
 
 export default Tip

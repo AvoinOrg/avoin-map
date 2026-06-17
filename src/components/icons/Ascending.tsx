@@ -1,11 +1,9 @@
-import { Box, SxProps, Theme } from '@mui/material'
-
-type Props = {
-  sx?: SxProps<Theme>
-}
+import type { SharedSvgIconProps } from './types'
+import { SharedSvgIcon } from './types'
+type Props = SharedSvgIconProps
 
 const Ascending = (props: Props) => (
-  <Box
+  <SharedSvgIcon
     component="svg"
     xmlns="http://www.w3.org/2000/svg"
     width={23}
@@ -15,7 +13,7 @@ const Ascending = (props: Props) => (
     {...props}
   >
     <path d="M0 21H23M0 1H10M0 10.4118H16.5" stroke="currentColor" strokeWidth="2" />
-  </Box>
+  </SharedSvgIcon>
 )
 
 export default Ascending

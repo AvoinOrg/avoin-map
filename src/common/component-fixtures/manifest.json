@@ -1,5 +1,32 @@
 [
   {
+    "id": "shared-svg-icons",
+    "label": "Shared SVG icons",
+    "description": "Shared icon suite coverage including size, color, and edge-case behavior.",
+    "sourceGlobs": [
+      "src/components/icons/**/*.tsx",
+      "src/components/icons/index.ts",
+      "src/common/component-fixtures/fixtures/SharedSvgIconFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "all-icons-default",
+        "label": "All icons default",
+        "description": "Default render of every icon export from the shared icon index in a compact grid."
+      },
+      {
+        "id": "color-and-size",
+        "label": "Color and size",
+        "description": "Explicit size overrides and currentColor propagation checks."
+      },
+      {
+        "id": "edge-cases",
+        "label": "Edge cases",
+        "description": "Representatives without viewBox or with path/mask-heavy structures and unusual wrappers."
+      }
+    ]
+  },
+  {
     "id": "layer-toggle-row",
     "label": "LayerToggleRow",
     "description": "Representative layer visibility toggle row states.",

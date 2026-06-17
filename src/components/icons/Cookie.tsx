@@ -1,8 +1,6 @@
-import { Box, SxProps, Theme } from '@mui/material'
-
-type Props = {
-  sx?: SxProps<Theme>
-}
+import type { SharedSvgIconProps } from './types'
+import { SharedSvgIcon } from './types'
+type Props = SharedSvgIconProps
 
 // Figma node 2838:38812
 // MCP asset refs: http://localhost:3845/assets/8208f4e1c959724cca9a8722b01a00c61e4ab34a.svg
@@ -21,7 +19,7 @@ export const COOKIE_ICON_SVG = `
 `.trim()
 
 const Cookie = (props: Props) => (
-  <Box
+  <SharedSvgIcon
     component="svg"
     xmlns="http://www.w3.org/2000/svg"
     width={26}
@@ -38,7 +36,7 @@ const Cookie = (props: Props) => (
     <circle cx="14.6" cy="13.2" r="0.95" fill="currentColor" />
     <circle cx="11.7" cy="18.2" r="1.1" fill="currentColor" />
     <circle cx="17.6" cy="16.5" r="0.9" fill="currentColor" />
-  </Box>
+  </SharedSvgIcon>
 )
 
 export default Cookie

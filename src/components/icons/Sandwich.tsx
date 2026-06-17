@@ -1,12 +1,9 @@
-import React from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
-
-type Props = {
-  sx?: SxProps<Theme>
-}
+import type { SharedSvgIconProps } from './types'
+import { SharedSvgIcon } from './types'
+type Props = SharedSvgIconProps
 
 const Sandwich = (props: Props) => (
-  <Box
+  <SharedSvgIcon
     component="svg"
     width="44"
     height="16"
@@ -17,7 +14,7 @@ const Sandwich = (props: Props) => (
   >
     <rect width="44" height="6" fill="currentColor" />
     <rect y="10" width="44" height="6" fill="currentColor" />
-  </Box>
+  </SharedSvgIcon>
 )
 
 export default Sandwich
