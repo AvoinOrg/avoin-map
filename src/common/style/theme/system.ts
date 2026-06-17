@@ -2,6 +2,7 @@ import React from 'react'
 import { Box as MuiSystemBox } from '@mui/system'
 import type { BoxProps as MuiSystemBoxProps, SxProps } from '@mui/system'
 import type { Theme as MuiTheme } from '@mui/material/styles'
+export { useTheme } from '@mui/system'
 
 export type AppTheme = MuiTheme
 export type AppSxProps = SxProps<AppTheme>

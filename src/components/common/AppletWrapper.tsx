@@ -6,7 +6,6 @@
 
 import React, { useEffect, useRef } from 'react'
 import { useTolgee } from '@tolgee/react'
-import { Box } from '@mui/material'
 
 import { useMapStore, useUIStore } from '#/common/store'
 import { ListedLayerMenuItem, MapContext } from '#/common/types/map'
@@ -18,6 +17,10 @@ import {
   IntoSidebarHeaderChildrenSlot,
   IntoSidebarHeaderSlot,
 } from '#/components/Sidebar/sidebarSlots'
+import { Box, toSxArray, type AppSxProps } from '#/common/style/theme'
+
+type AppSxItem = Exclude<NonNullable<AppSxProps>, readonly unknown[]>
+const toAppSxItemArray = (sx?: AppSxProps) => toSxArray(sx) as AppSxItem[]
 
 type BaseAppletWrapperProps = {
   children: React.ReactNode
@@ -34,7 +37,7 @@ type BaseAppletWrapperProps = {
     duration?: number
   }
   listedLayerGroups?: ListedLayerMenuItem[]
-  sx?: any
+  sx?: AppSxProps
 }
 
 type AppletWrapperProps = BaseAppletWrapperProps &
@@ -206,13 +209,15 @@ const AppletWrapper = ({
 
   return (
     <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        flex: 1,
-        minHeight: 0,
-        ...sx,
-      }}
+      sx={[
+        {
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          minHeight: 0,
+        },
+        ...toAppSxItemArray(sx),
+      ]}
       className={'applet-wrapper'}
     >
       {stateMapContext === mapContext && isTolgeeReady() && (

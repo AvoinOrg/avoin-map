@@ -1,17 +1,17 @@
 import React from 'react'
 import '@testing-library/jest-dom'
 import { render } from '@testing-library/react'
-import type { Theme as MuiTheme } from '@mui/material/styles'
-import { useTheme } from '@mui/system'
 
 import {
+  Box,
   AppThemeProvider,
   AppSxProps,
-  Box,
+  useTheme,
 } from '#/common/style/theme'
+import type { AppTheme } from '#/common/style/theme/system'
 
 const ThemeProbe = () => {
-  const theme = useTheme<MuiTheme>()
+  const theme = useTheme<AppTheme>()
 
   return (
     <pre

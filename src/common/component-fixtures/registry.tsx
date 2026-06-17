@@ -3,7 +3,10 @@
 import { actionIconTextHelpersFixture } from './fixtures/ActionIconTextHelpersFixture'
 import { buttonPrimitivesFixture } from './fixtures/ButtonPrimitivesFixture'
 import { layerToggleRowFixture } from './fixtures/LayerToggleRowFixture'
+import { fullscreenPageFixture } from './fixtures/FullscreenPageFixture'
+import { folderFixture } from './fixtures/FolderFixture'
 import { sharedSvgIconFixture } from './fixtures/SharedSvgIconFixture'
+import { sidebarBackgroundContentFixture } from './fixtures/SidebarBackgroundContentFixture'
 import type {
   ComponentFixture,
   ComponentFixtureStateLookup,
@@ -14,6 +17,9 @@ const componentFixtures: ComponentFixture[] = [
   layerToggleRowFixture,
   buttonPrimitivesFixture,
   actionIconTextHelpersFixture,
+  sidebarBackgroundContentFixture,
+  folderFixture,
+  fullscreenPageFixture,
 ]
 
 export const getComponentFixtures = () => componentFixtures

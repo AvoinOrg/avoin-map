@@ -193,5 +193,64 @@
         "description": "Disabled clipboard copy row."
       }
     ]
+  },
+  {
+    "id": "sidebar-background-content",
+    "label": "Sidebar background content",
+    "description": "Shared SidebarBackgroundContent display wrapper with image, title, description, and actions.",
+    "sourceGlobs": [
+      "src/components/common/SidebarBackgroundContent.tsx",
+      "src/common/component-fixtures/fixtures/SidebarBackgroundContentFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "default",
+        "label": "Default",
+        "description": "Default card with image, title, and description."
+      },
+      {
+        "id": "with-actions",
+        "label": "With actions",
+        "description": "Card with child content, actions, and override paths for content/header/description layers."
+      }
+    ]
+  },
+    {
+      "id": "folder",
+      "label": "Folder",
+      "description": "Shared folder shape wrapper with content slot, themed fill/stroke, and padding split.",
+    "sourceGlobs": [
+      "src/components/common/Folder/Folder.tsx",
+      "src/components/common/Folder/SvgFolder.tsx",
+      "src/common/component-fixtures/fixtures/FolderFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "default",
+        "label": "Default",
+        "description": "Default height and simple content layout."
+      },
+      {
+        "id": "custom-sx",
+        "label": "Custom styling",
+        "description": "Custom height, resolved colors, and padding routing for the folder content."
+      }
+    ]
+  },
+  {
+    "id": "fullscreen-page",
+    "label": "FullscreenPage",
+    "description": "Fullscreen slot/page layout with overlay-scroll container and pointer-event split behavior.",
+    "sourceGlobs": [
+      "src/components/common/FullscreenPage.tsx",
+      "src/common/component-fixtures/fixtures/FullscreenPageFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "scrollable",
+        "label": "Scrollable",
+        "description": "Scrollable content rendered through SlotsProvider with slot target and content."
+      }
+    ]
   }
 ]

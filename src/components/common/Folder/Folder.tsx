@@ -1,16 +1,14 @@
-// The goal of this component is to be a folder shaped div,
-// that can be styled like any other div element. This is not straightforward
-// as the folder is an SVG element.
-//
-// That is why some of the props and styling elements are
-// captured and passed to the underlying components.
 import React from 'react'
-import { Box } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
 
 import SvgFolder from './SvgFolder'
 import { resolveColor } from '#/common/utils/styling'
-import type { AppSxProps, AppTheme } from '#/common/style/theme/system'
+import {
+  Box,
+  toSxArray,
+  type AppSxProps,
+  type AppTheme,
+  useTheme,
+} from '#/common/style/theme/system'
 
 const defaultHeight = 86
 
@@ -20,27 +18,61 @@ type Props = {
   sx?: AppSxProps
 }
 
+type AppSxItem = Exclude<NonNullable<AppSxProps>, readonly unknown[]>
+const toAppSxItemArray = (sx?: AppSxProps) => toSxArray(sx) as AppSxItem[]
+
+const isStyleObject = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === 'object' && value != null && !Array.isArray(value)
+}
+
 const Folder = ({ height = defaultHeight, children, sx }: Props) => {
   const theme = useTheme<AppTheme>()
-  let color = theme.palette.neutral.darker
+  let color: string | undefined
   let borderColor = theme.palette.neutral.main
   let backgroundColor = theme.palette.neutral.lighter
 
-  // Capturing various styling props and passing them later
-  // to relevant components
-  if (sx && typeof sx === 'object') {
-    if ('color' in sx && typeof sx.color === 'string') {
-      color = resolveColor(sx.color, theme)
-    }
-    if ('borderColor' in sx && typeof sx.borderColor === 'string') {
-      borderColor = resolveColor(sx.borderColor, theme)
-    }
-    if ('backgroundColor' in sx && typeof sx.backgroundColor === 'string') {
-      backgroundColor = resolveColor(sx.backgroundColor, theme)
-    }
+  const resolvedSx = toAppSxItemArray(sx).reduce<Record<string, unknown>>(
+    (acc, style) => {
+      if (style == null) {
+        return acc
+      }
+
+      if (typeof style === 'function') {
+        const evaluated = style(theme)
+
+        if (isStyleObject(evaluated)) {
+          return { ...acc, ...evaluated }
+        }
+
+        return acc
+      }
+
+      if (isStyleObject(style)) {
+        return { ...acc, ...style }
+      }
+
+      return acc
+    },
+    {}
+  )
+
+  // Preserve legacy behavior: resolve theme-based tokens from style values.
+  if ('color' in resolvedSx && typeof resolvedSx.color === 'string') {
+    color = resolveColor(resolvedSx.color, theme)
+  }
+  if (
+    'borderColor' in resolvedSx &&
+    typeof resolvedSx.borderColor === 'string'
+  ) {
+    borderColor = resolveColor(resolvedSx.borderColor, theme)
+  }
+  if (
+    'backgroundColor' in resolvedSx &&
+    typeof resolvedSx.backgroundColor === 'string'
+  ) {
+    backgroundColor = resolveColor(resolvedSx.backgroundColor, theme)
   }
 
-  // iterating through the sx and picking out the padding props
   const paddingProps = [
     'p',
     'px',
@@ -55,35 +87,35 @@ const Folder = ({ height = defaultHeight, children, sx }: Props) => {
     'paddingLeft',
     'paddingRight',
   ]
-  const paddingStyles: Record<string, any> = {}
-  const mainStyles: Record<string, any> = {}
+  const paddingStyles: Record<string, unknown> = {}
+  const mainStyles: Record<string, unknown> = {}
 
-  if (sx && typeof sx === 'object') {
-    const typedSx = sx as Record<string, unknown>
+  Object.keys(resolvedSx).forEach((key) => {
+    const value = resolvedSx[key]
 
-    Object.keys(typedSx).forEach((key) => {
-      if (paddingProps.includes(key)) {
-        // Explicit casting as the key comes from the predefined set of keys
-        paddingStyles[key] = typedSx[key]
-      } else {
-        mainStyles[key] = typedSx[key]
-        if (mainStyles.backgroundColor != null) {
-          // deleting the backgroundColor from the main container, as it should
-          // probably be transparent
-          delete mainStyles.backgroundColor
-        }
-      }
-    })
+    if (paddingProps.includes(key)) {
+      paddingStyles[key] = value
+    } else {
+      mainStyles[key] = value
+    }
+  })
+
+  delete mainStyles.backgroundColor
+  if (color != null) {
+    delete mainStyles.color
   }
 
   return (
     <Box
-      sx={{
-        position: 'relative',
-        width: '100%',
-        display: 'inline-block',
-        ...mainStyles,
-      }}
+      sx={[
+        {
+          position: 'relative',
+          width: '100%',
+          display: 'inline-block',
+        },
+        mainStyles,
+        ...(color != null ? [{ color }] : []),
+      ]}
     >
       <SvgFolder
         height={height}
@@ -91,16 +123,18 @@ const Folder = ({ height = defaultHeight, children, sx }: Props) => {
         borderColor={borderColor}
       />
       <Box
-        sx={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          left: 0,
-          bottom: 0,
-          overflow: 'auto',
-          pt: 3,
-          ...paddingStyles,
-        }}
+        sx={[
+          {
+            position: 'absolute',
+            top: 0,
+            right: 0,
+            left: 0,
+            bottom: 0,
+            overflow: 'auto',
+            pt: 3,
+          },
+          paddingStyles,
+        ]}
         className="folder-content"
       >
         {children}

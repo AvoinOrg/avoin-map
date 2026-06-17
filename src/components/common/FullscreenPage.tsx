@@ -1,16 +1,18 @@
 'use client'
 
 import React from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 
 import { IntoSlot, Slot } from '#/components/context/slotsContext'
+import { Box, toSxArray, type AppSxProps } from '#/common/style/theme'
 
 const FULLSCREEN_PAGE_SLOT = 'fullscreen-page'
+type AppSxItem = Exclude<NonNullable<AppSxProps>, readonly unknown[]>
+const toAppSxItemArray = (sx?: AppSxProps) => toSxArray(sx) as AppSxItem[]
 
 type FullscreenPageProps = {
   children: React.ReactNode
-  sx?: SxProps<Theme>
+  sx?: AppSxProps
 }
 
 export const FullscreenPageSlot = () => {
@@ -78,7 +80,7 @@ export const FullscreenPage = ({ children, sx }: FullscreenPageProps) => {
                   flexShrink: 0,
                 },
               },
-              ...(Array.isArray(sx) ? sx : [sx]),
+              ...toAppSxItemArray(sx),
             ]}
           >
             {children}
