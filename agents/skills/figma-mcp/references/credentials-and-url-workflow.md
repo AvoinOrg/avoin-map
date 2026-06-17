@@ -8,9 +8,7 @@ connectivity checks, or URL normalization.
 - Global HTTP Figma MCP credentials live in `.codex/.credentials.json`.
 - The global HTTP MCP endpoint is fixed at `https://mcp.figma.com/mcp`.
 - The default Codex MCP server name is `figma`. When Codex exposes tool-style
-  MCP aliases, use `mcp__figma__*` first.
-- `figma_remote` is a legacy alias from earlier runs. Use it only to recover
-  existing credentials or when the session exposes only `mcp__figma_remote__*`.
+  MCP aliases, use `mcp__figma__*`.
 - There is no design-specific MCP URL. The shared Figma URL is converted into
   MCP tool arguments such as `fileKey` and `nodeId`.
 
@@ -24,8 +22,7 @@ url = "https://mcp.figma.com/mcp"
 ```
 
 That server name is what produces `mcp__figma__*` aliases when Codex makes the
-MCP tools available to the agent. Do not configure a localhost or desktop Figma
-MCP server unless a task explicitly asks for a local transport.
+MCP tools available to the agent.
 
 ## Safe `jq` checks
 
@@ -43,8 +40,11 @@ jq 'to_entries[]
     }' .codex/.credentials.json
 ```
 
-If only the legacy `figma_remote` credential exists, duplicate or re-login it as
-`figma` before expecting `mcp__figma__*` tool aliases to authenticate.
+If the `figma` credential is missing or expired, run:
+
+```bash
+codex mcp login figma --scopes mcp:connect
+```
 
 Load the global access token into a shell variable without echoing it:
 
