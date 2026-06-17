@@ -2,11 +2,10 @@
 
 import React, { useEffect } from 'react'
 import { Box, Button, Container, Stack, Typography } from '@mui/material'
-import CssBaseline from '@mui/material/CssBaseline'
-import { ThemeProvider, alpha } from '@mui/material/styles'
+import { alpha } from '@mui/material/styles'
 import NextLink from 'next/link'
 
-import { theme } from '#/common/style/theme'
+import { AppThemeProvider } from '#/common/style/theme'
 
 type Props = {
   error: Error & { digest?: string }
@@ -25,8 +24,7 @@ const Error = ({ error, reset }: Props) => {
   }, [error])
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <AppThemeProvider>
       <Box
         component="main"
         sx={(theme) => ({
@@ -180,7 +178,7 @@ const Error = ({ error, reset }: Props) => {
           )}
         </Container>
       </Box>
-    </ThemeProvider>
+    </AppThemeProvider>
   )
 }
 

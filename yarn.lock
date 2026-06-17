@@ -8995,6 +8995,7 @@ __metadata:
     "@mui/icons-material": "npm:^7.2.0"
     "@mui/material": "npm:^7.2.0"
     "@mui/material-nextjs": "npm:^9.0.0"
+    "@mui/system": "npm:^7.2.0"
     "@next/bundle-analyzer": "npm:^16.2.4"
     "@ngageoint/geopackage": "npm:^4.2.6"
     "@playwright/test": "npm:1.58.1"

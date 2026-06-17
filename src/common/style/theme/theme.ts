@@ -114,11 +114,11 @@ const breakpoints: ThemeOptions['breakpoints'] = {
 
 const zIndex = {
   modal: 1500,
+  popup: 1500,
   snackbar: 1600,
   mapButtons: 1300,
   drawer: 1400,
   appBar: 1400,
-  zpopup: 1500,
 }
 
 const fonts = {
@@ -217,7 +217,7 @@ const defaultShadows: ThemeOptions['shadows'] = [...defaultTheme.shadows]
 
 const shadows = defaultShadows.map(() => 'none') as Shadows
 
-const components = {
+const components: ThemeOptions['components'] = {
   MuiTableRow: {
     styleOverrides: {
       root: {
@@ -230,7 +230,7 @@ const components = {
   MuiButton: {
     variants: [
       {
-        props: { variant: 'contained' as 'contained' },
+        props: { variant: 'contained' },
         style: {
           backgroundColor: palette.neutral.light, // Replace with your desired color for the button
           borderColor: palette.neutral.main,
@@ -238,7 +238,7 @@ const components = {
         },
       },
       {
-        props: { variant: 'outlined' as 'outlined' },
+        props: { variant: 'outlined' },
         style: {
           backgroundColor: palette.neutral.light, // Replace with your desired color for the button
           borderColor: palette.neutral.main,
@@ -249,12 +249,12 @@ const components = {
     ],
     styleOverrides: {
       root: {
-        textTransform: 'none' as 'none',
+        textTransform: 'none',
       },
     },
   },
   MuiTypography: {
-    defaultProps: { variant: 'inherit' as 'inherit' }, // <- key: do not reset sizes in children
+    defaultProps: { variant: 'inherit' }, // <- key: do not reset sizes in children
   },
   MuiLink: {
     styleOverrides: {
@@ -267,7 +267,7 @@ const components = {
         fontSize: 'inherit',
         lineHeight: 'inherit',
         letterSpacing: 'inherit',
-        textTransform: 'inherit' as 'inherit',
+        textTransform: 'inherit',
         fontWeight: 'inherit',
       },
     },

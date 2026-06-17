@@ -3,11 +3,9 @@
 import React from 'react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { SessionProvider } from 'next-auth/react'
-import { ThemeProvider } from '@mui/material/styles'
-import CssBaseline from '@mui/material/CssBaseline'
 import { NextIntlClientProvider } from 'next-intl'
 
-import { theme } from '#/common/style/theme'
+import { AppThemeProvider } from '#/common/style/theme'
 import { queryClient } from '#/common/queries/queryClient'
 import { NotificationProvider } from '#/components/Notification'
 // import { UserModal } from '#/components/Profile'
@@ -29,14 +27,13 @@ const LayoutClient = ({
     // Supposedly the locale needs to be supplied
     <NextIntlClientProvider locale={locale}>
       <SessionProvider>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
+        <AppThemeProvider>
           <NotificationProvider>
             <QueryClientProvider client={queryClient}>
               {children}
             </QueryClientProvider>
           </NotificationProvider>
-        </ThemeProvider>
+        </AppThemeProvider>
       </SessionProvider>
     </NextIntlClientProvider>
   )

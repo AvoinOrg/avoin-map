@@ -1,8 +1,8 @@
 import React from 'react'
-import { Box } from '@mui/system'
 
 import { OverlayMessage } from '#/common/types/map'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
+import { Box } from '#/common/style/theme/system'
 
 export const OverlayMessages = ({ message }: { message: OverlayMessage | null }) => {
   const visibleLayerGroupIds = useVisibleLayerGroupIds()

@@ -6,22 +6,22 @@
 // captured and passed to the underlying components.
 import React from 'react'
 import { Box } from '@mui/material'
-import type { SxProps, Theme } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 
 import SvgFolder from './SvgFolder'
 import { resolveColor } from '#/common/utils/styling'
+import type { AppSxProps, AppTheme } from '#/common/style/theme/system'
 
 const defaultHeight = 86
 
 type Props = {
   height?: number
   children?: React.ReactNode
-  sx?: SxProps<Theme>
+  sx?: AppSxProps
 }
 
 const Folder = ({ height = defaultHeight, children, sx }: Props) => {
-  const theme = useTheme()
+  const theme = useTheme<AppTheme>()
   let color = theme.palette.neutral.darker
   let borderColor = theme.palette.neutral.main
   let backgroundColor = theme.palette.neutral.lighter
@@ -59,14 +59,14 @@ const Folder = ({ height = defaultHeight, children, sx }: Props) => {
   const mainStyles: Record<string, any> = {}
 
   if (sx && typeof sx === 'object') {
-    Object.keys(sx).forEach((key) => {
+    const typedSx = sx as Record<string, unknown>
+
+    Object.keys(typedSx).forEach((key) => {
       if (paddingProps.includes(key)) {
         // Explicit casting as the key comes from the predefined set of keys
-        paddingStyles[key as keyof SxProps<Theme>] =
-          sx[key as keyof SxProps<Theme>]
+        paddingStyles[key] = typedSx[key]
       } else {
-        mainStyles[key as keyof SxProps<Theme>] =
-          sx[key as keyof SxProps<Theme>]
+        mainStyles[key] = typedSx[key]
         if (mainStyles.backgroundColor != null) {
           // deleting the backgroundColor from the main container, as it should
           // probably be transparent
