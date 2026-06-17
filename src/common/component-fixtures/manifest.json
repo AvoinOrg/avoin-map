@@ -108,5 +108,90 @@
         "description": "Icon-only button with caller supplied accessible name."
       }
     ]
+  },
+  {
+    "id": "action-icon-text-helpers",
+    "label": "Action and icon text helpers",
+    "description": "Shared low-level action helpers for buttons, icon/text rows, eye states, and clipboard rows.",
+    "sourceGlobs": [
+      "src/components/common/BigMenuButton.tsx",
+      "src/components/common/EyeButton.tsx",
+      "src/components/common/IconTextButton.tsx",
+      "src/components/common/IconWithText.tsx",
+      "src/components/common/ClipboardCopyWrapper.tsx",
+      "src/common/component-fixtures/fixtures/ActionIconTextHelpersFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "big-menu-button-default",
+        "label": "BigMenuButton default",
+        "description": "Full-width action button with text and an upload icon."
+      },
+      {
+        "id": "big-menu-button-disabled",
+        "label": "BigMenuButton disabled",
+        "description": "Disabled full-width action button."
+      },
+      {
+        "id": "big-menu-button-label-input",
+        "label": "BigMenuButton label input",
+        "description": "Label-rendered upload action wrapping a hidden file input."
+      },
+      {
+        "id": "eye-button-hidden",
+        "label": "EyeButton hidden",
+        "description": "Hidden layer status with closed-eye icon."
+      },
+      {
+        "id": "eye-button-visible",
+        "label": "EyeButton visible",
+        "description": "Visible layer status with color swatch."
+      },
+      {
+        "id": "eye-button-processing",
+        "label": "EyeButton processing",
+        "description": "Processing layer status with loading indicator."
+      },
+      {
+        "id": "icon-text-button-default",
+        "label": "IconTextButton default",
+        "description": "Action row with icon and text."
+      },
+      {
+        "id": "icon-text-button-disabled",
+        "label": "IconTextButton disabled",
+        "description": "Disabled main action and disabled helper trigger."
+      },
+      {
+        "id": "icon-text-button-helper-open",
+        "label": "IconTextButton helper open",
+        "description": "Helper popup opened through the helper trigger."
+      },
+      {
+        "id": "icon-with-text-left-icon",
+        "label": "IconWithText left icon",
+        "description": "Interactive icon/text row with the icon on the left."
+      },
+      {
+        "id": "icon-with-text-right-icon",
+        "label": "IconWithText right icon",
+        "description": "Interactive icon/text row with the icon on the right."
+      },
+      {
+        "id": "icon-with-text-disabled",
+        "label": "IconWithText disabled",
+        "description": "Disabled interactive icon/text row."
+      },
+      {
+        "id": "clipboard-copy-wrapper-default",
+        "label": "ClipboardCopyWrapper default",
+        "description": "Enabled clipboard copy row."
+      },
+      {
+        "id": "clipboard-copy-wrapper-disabled",
+        "label": "ClipboardCopyWrapper disabled",
+        "description": "Disabled clipboard copy row."
+      }
+    ]
   }
 ]

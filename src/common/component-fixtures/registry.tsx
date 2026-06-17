@@ -1,5 +1,6 @@
 'use client'
 
+import { actionIconTextHelpersFixture } from './fixtures/ActionIconTextHelpersFixture'
 import { buttonPrimitivesFixture } from './fixtures/ButtonPrimitivesFixture'
 import { layerToggleRowFixture } from './fixtures/LayerToggleRowFixture'
 import { sharedSvgIconFixture } from './fixtures/SharedSvgIconFixture'
@@ -12,6 +13,7 @@ const componentFixtures: ComponentFixture[] = [
   sharedSvgIconFixture,
   layerToggleRowFixture,
   buttonPrimitivesFixture,
+  actionIconTextHelpersFixture,
 ]
 
 export const getComponentFixtures = () => componentFixtures

@@ -1,8 +1,14 @@
 import React from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
-import { useUIStore } from '#/common/store'
+import { type AppSxProps, toSxArray } from '#/common/style/theme'
+import { useUIStore } from '#/common/store/uiStore'
+import { ButtonBase } from '#/components/common/Button'
+
+type AppSxItem = Exclude<NonNullable<AppSxProps>, readonly unknown[]>
+
+const toAppSxItemArray = (sx?: AppSxProps) =>
+  toSxArray(sx) as AppSxItem[]
 
 type Props = {
   textToCopy: string
@@ -11,7 +17,7 @@ type Props = {
   onFailText?: string
   ariaLabel?: string
   disabled?: boolean
-  sx?: SxProps<Theme>
+  sx?: AppSxProps
 }
 
 const ClipboardCopyWrapper = ({
@@ -31,18 +37,18 @@ const ClipboardCopyWrapper = ({
       await navigator.clipboard.writeText(textToCopy)
       const text = onSuccessText || t('general.messages.clipboard_success')
       notify({ message: text, variant: 'info' })
-    } catch (err) {
+    } catch {
       const text = onFailText || t('general.messages.clipboard_fail')
       notify({ message: text, variant: 'error' })
     }
   }
 
   return (
-    <Box
-      component="button"
+    <ButtonBase
       type="button"
       aria-label={ariaLabel ?? 'Copy to clipboard'}
       aria-disabled={disabled ? 'true' : undefined}
+      disabled={disabled}
       onClick={disabled ? undefined : copyToClipboard}
       sx={[
         {
@@ -57,11 +63,11 @@ const ClipboardCopyWrapper = ({
           },
           opacity: disabled ? 0.6 : 1,
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toAppSxItemArray(sx),
       ]}
     >
       {children}
-    </Box>
+    </ButtonBase>
   )
 }
 
