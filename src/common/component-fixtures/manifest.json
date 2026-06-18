@@ -333,5 +333,119 @@
         "description": "Scrollable content rendered through SlotsProvider with slot target and content."
       }
     ]
+  },
+  {
+    "id": "text-field-with-label",
+    "label": "TextFieldWithLabel",
+    "description": "Shared labeled single-line and multiline text field states.",
+    "sourceGlobs": [
+      "src/components/common/TextFieldWithLabel.tsx",
+      "src/components/common/TextFieldWithLabel.test.tsx",
+      "src/common/component-fixtures/fixtures/TextFieldControlsFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "empty",
+        "label": "Empty",
+        "description": "Empty value with label and helper area hidden."
+      },
+      {
+        "id": "placeholder",
+        "label": "Placeholder",
+        "description": "Empty field with placeholder text."
+      },
+      {
+        "id": "value",
+        "label": "Value",
+        "description": "Populated text value."
+      },
+      {
+        "id": "focused",
+        "label": "Focused",
+        "description": "Single-line control with deterministic focus."
+      },
+      {
+        "id": "disabled",
+        "label": "Disabled",
+        "description": "Disabled state with visible inactive styling."
+      },
+      {
+        "id": "error-helper",
+        "label": "Error with helper text",
+        "description": "Error state with helper text and required marker."
+      },
+      {
+        "id": "required",
+        "label": "Required",
+        "description": "Required label marker."
+      },
+      {
+        "id": "multiline",
+        "label": "Multiline",
+        "description": "Textarea mode with row count and multiline content."
+      },
+      {
+        "id": "trailing",
+        "label": "Trailing",
+        "description": "Trailing slot with custom content."
+      }
+    ]
+  },
+  {
+    "id": "text-field-with-header",
+    "label": "TextFieldWithHeader",
+    "description": "Shared debounced header field states.",
+    "sourceGlobs": [
+      "src/components/common/TextFieldWithHeader.tsx",
+      "src/components/common/TextFieldWithHeader.test.tsx",
+      "src/common/component-fixtures/fixtures/TextFieldControlsFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "empty",
+        "label": "Empty",
+        "description": "Empty value with default header spacing."
+      },
+      {
+        "id": "placeholder",
+        "label": "Placeholder",
+        "description": "Shows only placeholder content."
+      },
+      {
+        "id": "value",
+        "label": "Value",
+        "description": "Populated field with header label."
+      },
+      {
+        "id": "focused",
+        "label": "Focused",
+        "description": "Text area is focused by default."
+      },
+      {
+        "id": "disabled",
+        "label": "Disabled",
+        "description": "Disabled field and muted content style."
+      },
+      {
+        "id": "error-helper",
+        "label": "Error with helper text",
+        "description": "Error state and helper content."
+      },
+      {
+        "id": "required",
+        "label": "Required",
+        "description": "Required marker is shown near header text."
+      },
+      {
+        "id": "multiline",
+        "label": "Multiline",
+        "description": "Textarea mode with explicit row count."
+      },
+      {
+        "id": "debounced",
+        "label": "Debounced",
+        "description": "State for local debounced update visualization."
+      }
+    ]
   }
 ]
