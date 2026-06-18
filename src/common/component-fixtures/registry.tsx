@@ -2,9 +2,11 @@
 
 import { actionIconTextHelpersFixture } from './fixtures/ActionIconTextHelpersFixture'
 import { buttonPrimitivesFixture } from './fixtures/ButtonPrimitivesFixture'
+import { dropDownMultiSelectFixture } from './fixtures/DropDownMultiSelectFixture'
 import { layerToggleRowFixture } from './fixtures/LayerToggleRowFixture'
 import { fullscreenPageFixture } from './fixtures/FullscreenPageFixture'
 import { folderFixture } from './fixtures/FolderFixture'
+import { multiSelectAutocompleteFixture } from './fixtures/MultiSelectAutocompleteFixture'
 import { sharedSvgIconFixture } from './fixtures/SharedSvgIconFixture'
 import { sidebarBackgroundContentFixture } from './fixtures/SidebarBackgroundContentFixture'
 import type {
@@ -15,6 +17,8 @@ import type {
 const componentFixtures: ComponentFixture[] = [
   sharedSvgIconFixture,
   layerToggleRowFixture,
+  dropDownMultiSelectFixture,
+  multiSelectAutocompleteFixture,
   buttonPrimitivesFixture,
   actionIconTextHelpersFixture,
   sidebarBackgroundContentFixture,

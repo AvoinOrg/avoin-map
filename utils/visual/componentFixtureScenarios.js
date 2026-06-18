@@ -32,7 +32,10 @@ const buildComponentFixtureVisualScenarios = ({ baseUrl = '' } = {}) =>
         path,
         url: joinUrl({ baseUrl, path }),
         requiresWebGL: false,
-        waitFor: COMPONENT_FIXTURE_WAIT_FOR_SELECTOR,
+        waitFor:
+          state.waitFor ||
+          fixture.waitFor ||
+          COMPONENT_FIXTURE_WAIT_FOR_SELECTOR,
         maskSelectors: [],
         minNonWhitePixels: 150,
         sourceGlobs: [...(fixture.sourceGlobs || [])],

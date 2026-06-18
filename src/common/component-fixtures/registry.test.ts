@@ -19,6 +19,7 @@ describe('component fixture registry', () => {
         id: state.id,
         label: state.label,
         description: state.description,
+        ...(state.waitFor ? { waitFor: state.waitFor } : {}),
       })),
     }))
 

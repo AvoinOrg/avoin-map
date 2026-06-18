@@ -7,6 +7,7 @@ import useSelectedFeaturesFilteredBySource from '#/common/hooks/map/useSelectedF
 import { useMapStore } from '#/common/store'
 import type { SelectOption } from '#/common/types/general'
 import DropDownMultiSelect, {
+  type DropDownMultiSelectChangeEvent,
   type DropDownMultiSelectOption,
 } from '#/components/common/DropDownMultiSelect'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
@@ -383,11 +384,8 @@ const ZoneAccordion = ({
     ]
   )
 
-  const handleFilterChange = (event: SelectChangeEvent<string[]>) => {
-    const value = event.target.value
-    setSelectedFilterValues(
-      typeof value === 'string' ? value.split(',') : value
-    )
+  const handleFilterChange = (event: DropDownMultiSelectChangeEvent) => {
+    setSelectedFilterValues(event.target.value)
   }
 
   const handleSortChange = (event: SelectChangeEvent<string>) => {

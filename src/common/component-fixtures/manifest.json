@@ -68,6 +68,87 @@
     ]
   },
   {
+    "id": "drop-down-multi-select",
+    "label": "DropDownMultiSelect",
+    "description": "Shared multi-select dropdown states.",
+    "sourceGlobs": [
+      "src/components/common/DropDownMultiSelect.tsx",
+      "src/components/common/DropDownMultiSelect.test.tsx",
+      "src/common/component-fixtures/fixtures/DropDownMultiSelectFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "placeholder",
+        "label": "Placeholder",
+        "description": "Empty value rendering a muted placeholder."
+      },
+      {
+        "id": "open",
+        "label": "Open",
+        "description": "Open menu with unchecked and checked option indicators."
+      },
+      {
+        "id": "selected-one",
+        "label": "Selected one",
+        "description": "One selected value summarized in the trigger."
+      },
+      {
+        "id": "selected-multiple",
+        "label": "Selected multiple",
+        "description": "Multiple selected values summarized in the trigger."
+      },
+      {
+        "id": "custom-option-content",
+        "label": "Custom option content",
+        "description": "Open menu using a custom option renderer."
+      },
+      {
+        "id": "disabled",
+        "label": "Disabled",
+        "description": "Disabled trigger with selected value."
+      }
+    ]
+  },
+  {
+    "id": "multi-select-autocomplete",
+    "label": "MultiSelectAutocomplete",
+    "description": "Shared multi-select autocomplete states.",
+    "sourceGlobs": [
+      "src/components/common/MultiSelectAutocomplete.tsx",
+      "src/components/common/MultiSelectAutocomplete.test.tsx",
+      "src/common/component-fixtures/fixtures/MultiSelectAutocompleteFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "empty",
+        "label": "Empty",
+        "description": "Empty autocomplete with placeholder text."
+      },
+      {
+        "id": "selected-chips",
+        "label": "Selected chips",
+        "description": "Autocomplete with selected value chips."
+      },
+      {
+        "id": "open-options",
+        "label": "Open options",
+        "description": "Open autocomplete list with matching options.",
+        "waitFor": "text=Central plan"
+      },
+      {
+        "id": "chip-delete",
+        "label": "Chip delete",
+        "description": "Selected chip with visible delete affordance."
+      },
+      {
+        "id": "no-results",
+        "label": "No results",
+        "description": "Open autocomplete list with no matching options.",
+        "waitFor": "text=components.autocomplete.no_results"
+      }
+    ]
+  },
+  {
     "id": "button-primitives",
     "label": "Button primitives",
     "description": "Shared Base UI backed button primitive states.",

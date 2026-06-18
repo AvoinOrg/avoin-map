@@ -7,12 +7,14 @@ export type ComponentFixtureStateMetadata = {
   id: ComponentFixtureStateId
   label: string
   description?: string
+  waitFor?: string
 }
 
 export type ComponentFixtureMetadata = {
   id: string
   label: string
   description?: string
+  waitFor?: string
   sourceGlobs: string[]
   states: ComponentFixtureStateMetadata[]
 }
