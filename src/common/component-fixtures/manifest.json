@@ -149,6 +149,68 @@
     ]
   },
   {
+    "id": "number-input-field",
+    "label": "NumberInputField",
+    "description": "Shared Base UI number input states.",
+    "sourceGlobs": [
+      "src/components/common/NumberInputField.tsx",
+      "src/components/common/NumberInputField.test.tsx",
+      "src/common/component-fixtures/fixtures/NumberInputFieldFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "empty",
+        "label": "Empty",
+        "description": "Empty field with a visible label."
+      },
+      {
+        "id": "value",
+        "label": "Value",
+        "description": "Populated field with default medium sizing."
+      },
+      {
+        "id": "focused",
+        "label": "Focused",
+        "description": "Focused field using the native input focus state."
+      },
+      {
+        "id": "disabled",
+        "label": "Disabled",
+        "description": "Disabled field with value and stepper controls disabled."
+      },
+      {
+        "id": "required",
+        "label": "Required",
+        "description": "Required state with label indication."
+      },
+      {
+        "id": "error-helper",
+        "label": "Error helper",
+        "description": "Error state with helper text."
+      },
+      {
+        "id": "min-max",
+        "label": "Min and max",
+        "description": "Value at max to show disabled increment control."
+      },
+      {
+        "id": "decimal-step",
+        "label": "Decimal step",
+        "description": "Decimal value with decimal step formatting."
+      },
+      {
+        "id": "increment-decrement",
+        "label": "Increment and decrement",
+        "description": "Stepper layout with visible increment and decrement buttons."
+      },
+      {
+        "id": "small",
+        "label": "Small",
+        "description": "Small size field matching compact map/sidebar call sites."
+      }
+    ]
+  },
+  {
     "id": "button-primitives",
     "label": "Button primitives",
     "description": "Shared Base UI backed button primitive states.",

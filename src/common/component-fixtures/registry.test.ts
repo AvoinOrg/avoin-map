@@ -5,6 +5,10 @@ jest.mock('#/components/common/LayerToggleRow', () => ({
   LayerToggleRowAccordion: ({ children }: { children: ReactNode }) => children,
 }))
 
+jest.mock('#/components/common/NumberInputField', () => ({
+  NumberInputField: () => null,
+}))
+
 import { componentFixtureMetadata } from './metadata'
 import { getComponentFixtures } from './registry'
 

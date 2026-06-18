@@ -7,6 +7,7 @@ import { folderFixture } from './fixtures/FolderFixture'
 import { fullscreenPageFixture } from './fixtures/FullscreenPageFixture'
 import { layerToggleRowFixture } from './fixtures/LayerToggleRowFixture'
 import { multiSelectAutocompleteFixture } from './fixtures/MultiSelectAutocompleteFixture'
+import { numberInputFieldFixture } from './fixtures/NumberInputFieldFixture'
 import { sharedSvgIconFixture } from './fixtures/SharedSvgIconFixture'
 import {
   textFieldWithHeaderFixture,
@@ -23,6 +24,7 @@ const componentFixtures: ComponentFixture[] = [
   layerToggleRowFixture,
   dropDownMultiSelectFixture,
   multiSelectAutocompleteFixture,
+  numberInputFieldFixture,
   buttonPrimitivesFixture,
   actionIconTextHelpersFixture,
   sidebarBackgroundContentFixture,

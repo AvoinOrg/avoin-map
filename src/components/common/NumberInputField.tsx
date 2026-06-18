@@ -1,31 +1,21 @@
 import React from 'react'
 import { NumberField as BaseNumberField } from '@base-ui/react/number-field'
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
-import {
-  Box,
-  FormControl,
-  FormHelperText,
-  IconButton,
-  InputAdornment,
-  InputLabel,
-  OutlinedInput,
-} from '@mui/material'
-import type { SxProps, Theme } from '@mui/material/styles'
 import { useTranslate } from '@tolgee/react'
+
 import { useLocaleFormatter } from '#/common/hooks/useLocaleFormatter'
+import { Box, toSxArray } from '#/common/style/theme/system'
+import { ArrowDown, ArrowUp } from '#/components/icons'
 
 type BaseNumberFieldRootProps = React.ComponentPropsWithoutRef<
   typeof BaseNumberField.Root
 >
+type BaseNumberFieldValueChange = NonNullable<
+  BaseNumberFieldRootProps['onValueChange']
+>
 
-type SSRInitialFilledComponent = ((props: BaseNumberFieldRootProps) => null) & {
-  muiName?: string
-}
-
-// Ensures the InputLabel shrinks correctly during SSR.
-const SSRInitialFilled: SSRInitialFilledComponent = () => null
-SSRInitialFilled.muiName = 'Input'
+type StyleProps = Parameters<typeof toSxArray>[0]
+type StyleItem = Exclude<NonNullable<StyleProps>, readonly unknown[]>
+const toStyleArray = (sx?: StyleProps) => toSxArray(sx) as StyleItem[]
 
 const getStepPrecision = (stepValue: number) => {
   if (!Number.isFinite(stepValue)) {
@@ -72,6 +62,15 @@ const normalizeStepValue = <T extends number | null | undefined>(
   return Number(nearest.toFixed(precision)) as T
 }
 
+const disabledSelector = '&:disabled, &[data-disabled], &[aria-disabled="true"]'
+
+const arrowIconSx = (size: NumberInputFieldProps['size']) =>
+  ({
+    width: size === 'small' ? 8 : 9,
+    height: size === 'small' ? 5 : 6,
+    color: 'currentColor',
+  }) satisfies StyleItem
+
 type NumberInputFieldProps = Omit<
   BaseNumberFieldRootProps,
   'children' | 'render'
@@ -80,12 +79,12 @@ type NumberInputFieldProps = Omit<
   helperText?: React.ReactNode
   size?: 'small' | 'medium'
   error?: boolean
-  containerSx?: SxProps<Theme>
-  formControlSx?: SxProps<Theme>
-  inputRowSx?: SxProps<Theme>
-  inputSx?: SxProps<Theme>
-  adornmentSx?: SxProps<Theme>
-  helperTextSx?: SxProps<Theme>
+  containerSx?: StyleProps
+  formControlSx?: StyleProps
+  inputRowSx?: StyleProps
+  inputSx?: StyleProps
+  adornmentSx?: StyleProps
+  helperTextSx?: StyleProps
   inputSlotProps?: React.ComponentPropsWithoutRef<'input'>
   minValue?: number
   maxValue?: number
@@ -121,12 +120,13 @@ export const NumberInputField = ({
   onValueCommitted,
   ...rootProps
 }: NumberInputFieldProps) => {
-  const inputHeight = '2rem'
-  const spinButtonHeight = 'calc(2rem / 2)'
-  const spinButtonWidth = '1.75rem'
+  const inputHeight = size === 'small' ? '1.5rem' : '2rem'
+  const spinButtonHeight = `calc(${inputHeight} / 2)`
+  const spinButtonWidth = size === 'small' ? '1.5rem' : '1.75rem'
   const hasLabel = Boolean(label)
   const generatedId = React.useId()
   const id = idProp ?? generatedId
+  const helperTextId = helperText !== undefined ? `${id}-helper-text` : undefined
   const { t } = useTranslate('avoin-map')
   const { numberLocale } = useLocaleFormatter()
   const effectiveMin = minValue ?? min
@@ -145,19 +145,17 @@ export const NumberInputField = ({
   const isControlled = value !== undefined
   const [localValue, setLocalValue] =
     React.useState<BaseNumberFieldRootProps['value']>(normalizedValue)
+  const inputAriaInvalid =
+    inputSlotProps?.['aria-invalid'] ?? (error ? true : undefined)
+  const inputAriaDescribedBy = [inputSlotProps?.['aria-describedby'], helperTextId]
+    .filter(Boolean)
+    .join(' ') || undefined
 
-  React.useEffect(() => {
-    if (!isControlled) {
-      return
-    }
-    if (normalizedValue !== localValue) {
-      setLocalValue(normalizedValue)
-    }
-  }, [isControlled, normalizedValue, localValue])
+  if (isControlled && normalizedValue !== localValue) {
+    setLocalValue(normalizedValue)
+  }
 
-  const handleValueChange = React.useCallback<
-    BaseNumberFieldRootProps['onValueChange']
-  >(
+  const handleValueChange = React.useCallback<BaseNumberFieldValueChange>(
     (nextValue, details) => {
       if (isControlled) {
         setLocalValue(nextValue)
@@ -169,23 +167,25 @@ export const NumberInputField = ({
 
   return (
     <Box
+      data-slot="number-input-container"
       sx={[
         {
           display: 'flex',
           flexDirection: 'column',
           gap: 1,
         },
-        ...(Array.isArray(containerSx) ? containerSx : [containerSx]),
+        ...toStyleArray(containerSx),
       ]}
     >
       <Box
+        data-slot="number-input-row"
         sx={[
           {
             display: 'flex',
             alignItems: 'center',
             gap: 1,
           },
-          ...(Array.isArray(inputRowSx) ? inputRowSx : [inputRowSx]),
+          ...toStyleArray(inputRowSx),
         ]}
       >
         <BaseNumberField.Root
@@ -203,194 +203,253 @@ export const NumberInputField = ({
           onValueChange={handleValueChange}
           onValueCommitted={onValueCommitted}
           render={(props, state) => (
-            <FormControl
-              size={size}
-              ref={props.ref}
-              disabled={state.disabled}
-              required={state.required}
-              error={error}
-              variant="outlined"
+            <Box
+              {...props}
+              data-error={error ? '' : undefined}
+              data-size={size}
+              data-slot="number-input-root"
               sx={[
                 {
                   minWidth: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 0.5,
                 },
-                ...(Array.isArray(formControlSx)
-                  ? formControlSx
-                  : [formControlSx]),
+                ...(state.disabled
+                  ? [
+                      {
+                        opacity: 0.65,
+                      } satisfies StyleItem,
+                    ]
+                  : []),
+                ...toStyleArray(formControlSx),
               ]}
             >
               {props.children}
-            </FormControl>
+            </Box>
           )}
         >
-          <SSRInitialFilled
-            {...rootProps}
-            id={id}
-            value={normalizedValue}
-            defaultValue={normalizedDefaultValue}
-          />
           {hasLabel && (
-            <InputLabel
-              htmlFor={id}
+            <Box
+              component="label"
+              data-slot="number-input-label"
+              {...({ htmlFor: id } as { htmlFor: string })}
               sx={{
-                backgroundColor: 'background.main',
-                px: 0.5,
-                fontSize: '999px',
+                width: 'fit-content',
+                fontSize: '0.6875rem',
                 fontWeight: 400,
-                lineHeight: '0.8125rem',
-                letterSpacing: '0.11em',
-                color: '#111111',
-                '&.Mui-focused': {
-                  color: 'secondary.dark',
+                lineHeight: 1.2,
+                letterSpacing: '0.04em',
+                color: error ? '#B3261E' : '#111111',
+                '[data-slot="number-input-root"]:focus-within &': {
+                  color: error ? '#B3261E' : 'secondary.dark',
                 },
               }}
             >
               {label}
-            </InputLabel>
+              {rootProps.required && (
+                <Box component="span" aria-hidden="true">
+                  {' *'}
+                </Box>
+              )}
+            </Box>
           )}
-          <BaseNumberField.Input
-            id={id}
+          <BaseNumberField.Group
             render={(props, state) => (
-              <OutlinedInput
-                label={label}
-                size={size}
-                inputRef={props.ref}
-                value={state.inputValue}
-                onBlur={props.onBlur}
-                onChange={props.onChange}
-                onKeyUp={props.onKeyUp}
-                onKeyDown={props.onKeyDown}
-                onFocus={props.onFocus}
-                slotProps={{
-                  input: {
-                    ...props,
-                    ...inputSlotProps,
-                  },
-                }}
-                endAdornment={
-                  <InputAdornment
-                    position="end"
-                    sx={[
-                      {
-                        display: 'flex',
-                        alignSelf: 'stretch',
-                        height: '100%',
-                        maxHeight: 'unset',
-                        borderLeft: '1px solid',
-                        borderColor: 'divider',
-                        ml: 0,
-                        px: 0,
-                        alignItems: 'stretch',
-                        '& button': {
-                          p: 0,
-                          width: spinButtonWidth,
-                          minWidth: spinButtonWidth,
-                          height: spinButtonHeight,
-                          minHeight: spinButtonHeight,
-                          borderRadius: 0,
-                          overflow: 'hidden',
-                        },
-                        '& button:first-of-type': {
-                          borderTopRightRadius: '999px',
-                        },
-                        '& button:last-of-type': {
-                          borderBottomRightRadius: '999px',
-                        },
-                      },
-                      ...(Array.isArray(adornmentSx)
-                        ? adornmentSx
-                        : [adornmentSx]),
-                    ]}
-                  >
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignSelf: 'stretch',
-                        height: '100%',
-                      }}
-                    >
-                      <BaseNumberField.Increment
-                        render={
-                          <IconButton
-                            size={size}
-                            aria-label={t('components.number_input.increase')}
-                          />
-                        }
-                      >
-                        <KeyboardArrowUpIcon
-                          fontSize="inherit"
-                          sx={{
-                            fontSize: size === 'small' ? '1rem' : '1.125rem',
-                            transform: 'translateY(1px)',
-                          }}
-                        />
-                      </BaseNumberField.Increment>
-                      <BaseNumberField.Decrement
-                        render={
-                          <IconButton
-                            size={size}
-                            aria-label={t('components.number_input.decrease')}
-                          />
-                        }
-                      >
-                        <KeyboardArrowDownIcon
-                          fontSize="inherit"
-                          sx={{
-                            fontSize: size === 'small' ? '1rem' : '1.125rem',
-                            transform: 'translateY(-1px)',
-                          }}
-                        />
-                      </BaseNumberField.Decrement>
-                    </Box>
-                  </InputAdornment>
-                }
+              <Box
+                {...props}
+                data-error={error ? '' : undefined}
+                data-size={size}
+                data-slot="number-input-control"
                 sx={[
                   {
+                    width: 'fit-content',
+                    minWidth: 0,
                     height: inputHeight,
                     minHeight: inputHeight,
-                    pr: 0,
-                    borderRadius: '999px',
+                    display: 'flex',
+                    alignItems: 'stretch',
                     overflow: 'hidden',
-                    backgroundColor: '#FFFFFF',
-                    boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#D6D6D6',
-                      borderRadius: '999px',
-                    },
-                    '& .MuiInputBase-input': {
-                      boxSizing: 'border-box',
-                      px: '1rem',
-                      py: 0,
-                      fontSize: '0.6875rem',
-                      fontWeight: 400,
-                      lineHeight: 'normal',
-                      letterSpacing: '0.04em',
-                      color: '#111111',
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: 'secondary.dark',
+                    border: '1px solid',
+                    borderColor: error ? '#B3261E' : '#D6D6D6',
+                    borderRadius: '999px',
+                    backgroundColor: state.disabled ? '#F2F2F2' : '#FFFFFF',
+                    boxShadow: state.disabled
+                      ? 'none'
+                      : 'inset 0px 0.5px 1px 0px #D9D9D9',
+                    transition:
+                      'border-color 120ms ease, box-shadow 120ms ease, background-color 120ms ease',
+                    '&:focus-within': {
+                      borderColor: error ? '#B3261E' : 'secondary.dark',
                     },
                   },
-                  ...(Array.isArray(inputSx) ? inputSx : [inputSx]),
+                  ...toStyleArray(inputSx),
                 ]}
-              />
+              >
+                {props.children}
+              </Box>
             )}
-          />
-          {helperText !== undefined && (
-            <FormHelperText
+          >
+            <BaseNumberField.Input
+              {...inputSlotProps}
+              id={id}
+              aria-describedby={inputAriaDescribedBy}
+              aria-invalid={inputAriaInvalid}
+              render={(props) => (
+                <Box
+                  {...props}
+                  component="input"
+                  data-slot="number-input-input"
+                  sx={{
+                    width: '100%',
+                    minWidth: 0,
+                    flex: 1,
+                    boxSizing: 'border-box',
+                    px: '1rem',
+                    py: 0,
+                    border: 0,
+                    outline: 0,
+                    appearance: 'none',
+                    backgroundColor: 'transparent',
+                    color: '#111111',
+                    font: 'inherit',
+                    fontSize: '0.6875rem',
+                    fontWeight: 400,
+                    lineHeight: 'normal',
+                    letterSpacing: '0.04em',
+                    [disabledSelector]: {
+                      color: 'text.disabled',
+                      cursor: 'default',
+                    },
+                  }}
+                />
+              )}
+            />
+            <Box
+              data-slot="number-input-adornment"
               sx={[
                 {
-                  ml: 0,
-                  '&:empty': { mt: 0 },
+                  width: spinButtonWidth,
+                  minWidth: spinButtonWidth,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignSelf: 'stretch',
+                  borderLeft: '1px solid',
+                  borderColor: 'divider',
+                  color: '#111111',
                 },
-                ...(Array.isArray(helperTextSx)
-                  ? helperTextSx
-                  : [helperTextSx]),
+                ...toStyleArray(adornmentSx),
+              ]}
+            >
+              <BaseNumberField.Increment
+                aria-label={t('components.number_input.increase')}
+                render={(props) => (
+                  <Box
+                    {...props}
+                    component="button"
+                    data-slot="number-input-increment"
+                    sx={{
+                      width: '100%',
+                      minWidth: '100%',
+                      height: spinButtonHeight,
+                      minHeight: spinButtonHeight,
+                      m: 0,
+                      p: 0,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: 0,
+                      borderRadius: 0,
+                      appearance: 'none',
+                      backgroundColor: 'transparent',
+                      color: 'inherit',
+                      cursor: 'pointer',
+                      lineHeight: 0,
+                      '&:hover': {
+                        backgroundColor: 'action.hover',
+                      },
+                      '&:focus-visible': {
+                        outline: '2px solid',
+                        outlineColor: 'secondary.dark',
+                        outlineOffset: -2,
+                      },
+                      [disabledSelector]: {
+                        color: 'text.disabled',
+                        cursor: 'default',
+                        pointerEvents: 'none',
+                      },
+                    }}
+                  >
+                    <ArrowUp aria-hidden="true" sx={arrowIconSx(size)} />
+                  </Box>
+                )}
+              />
+              <BaseNumberField.Decrement
+                aria-label={t('components.number_input.decrease')}
+                render={(props) => (
+                  <Box
+                    {...props}
+                    component="button"
+                    data-slot="number-input-decrement"
+                    sx={{
+                      width: '100%',
+                      minWidth: '100%',
+                      height: spinButtonHeight,
+                      minHeight: spinButtonHeight,
+                      m: 0,
+                      p: 0,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: 0,
+                      borderTop: '1px solid',
+                      borderTopColor: 'divider',
+                      borderRadius: 0,
+                      appearance: 'none',
+                      backgroundColor: 'transparent',
+                      color: 'inherit',
+                      cursor: 'pointer',
+                      lineHeight: 0,
+                      '&:hover': {
+                        backgroundColor: 'action.hover',
+                      },
+                      '&:focus-visible': {
+                        outline: '2px solid',
+                        outlineColor: 'secondary.dark',
+                        outlineOffset: -2,
+                      },
+                      [disabledSelector]: {
+                        color: 'text.disabled',
+                        cursor: 'default',
+                        pointerEvents: 'none',
+                      },
+                    }}
+                  >
+                    <ArrowDown aria-hidden="true" sx={arrowIconSx(size)} />
+                  </Box>
+                )}
+              />
+            </Box>
+          </BaseNumberField.Group>
+          {helperText !== undefined && (
+            <Box
+              component="p"
+              data-slot="number-input-helper"
+              id={helperTextId}
+              sx={[
+                {
+                  m: 0,
+                  minHeight: helperText ? undefined : 0,
+                  fontSize: '0.6875rem',
+                  lineHeight: 1.3,
+                  letterSpacing: '0.04em',
+                  color: error ? '#B3261E' : 'text.secondary',
+                },
+                ...toStyleArray(helperTextSx),
               ]}
             >
               {helperText}
-            </FormHelperText>
+            </Box>
           )}
         </BaseNumberField.Root>
       </Box>
