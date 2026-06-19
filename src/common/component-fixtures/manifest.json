@@ -211,6 +211,63 @@
     ]
   },
   {
+    "id": "editable-text",
+    "label": "EditableText",
+    "description": "Shared editable inline text control states.",
+    "sourceGlobs": [
+      "src/components/common/EditableText.tsx",
+      "src/components/common/EditableText.test.tsx",
+      "src/common/component-fixtures/fixtures/EditableTextFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "display",
+        "label": "Display",
+        "description": "Read-only mode with default value."
+      },
+      {
+        "id": "display-with-appendix",
+        "label": "Display with appendix",
+        "description": "Read-only mode with value appendix."
+      },
+      {
+        "id": "edit-mode",
+        "label": "Edit mode",
+        "description": "Entered edit mode through edit control activation.",
+        "waitFor": "text=Edit mode activated"
+      },
+      {
+        "id": "changed-draft",
+        "label": "Changed draft",
+        "description": "Draft value changed while edit mode is active.",
+        "waitFor": "text=Draft changed, edit mode active"
+      },
+      {
+        "id": "save-action",
+        "label": "Save action",
+        "description": "Draft is committed and component returns to display mode.",
+        "waitFor": "text=Committed:"
+      },
+      {
+        "id": "cancel-action",
+        "label": "Cancel action",
+        "description": "Draft is reverted and component returns to display mode.",
+        "waitFor": "text=Edit action canceled, value restored"
+      },
+      {
+        "id": "keyboard-activation",
+        "label": "Keyboard activation",
+        "description": "Edit mode is entered from keyboard keydown.",
+        "waitFor": "text=Edit mode entered with keyboard activation"
+      },
+      {
+        "id": "long-text-overflow",
+        "label": "Long text overflow",
+        "description": "Display text uses ellipsis in narrow space."
+      }
+    ]
+  },
+  {
     "id": "button-primitives",
     "label": "Button primitives",
     "description": "Shared Base UI backed button primitive states.",
