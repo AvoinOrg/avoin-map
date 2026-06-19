@@ -310,6 +310,50 @@
     ]
   },
   {
+    "id": "color-picker-with-popover",
+    "label": "ColorPickerWithPopover",
+    "description": "Shared color picker trigger and popover states.",
+    "sourceGlobs": [
+      "src/components/common/ColorPickerWithPopover.tsx",
+      "src/components/common/ColorPickerWithPopover.test.tsx",
+      "src/common/component-fixtures/fixtures/ColorPickerWithPopoverFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "closed-swatch",
+        "label": "Closed swatch",
+        "description": "Closed trigger with the default swatch only."
+      },
+      {
+        "id": "closed-with-label",
+        "label": "Closed with label",
+        "description": "Closed trigger with visible label text beside the swatch."
+      },
+      {
+        "id": "open-picker",
+        "label": "Open picker",
+        "description": "Open popover with the real react-colorful picker.",
+        "waitFor": ".react-colorful"
+      },
+      {
+        "id": "changed-draft",
+        "label": "Changed draft",
+        "description": "Open picker after a deterministic keyboard draft adjustment before close.",
+        "waitFor": "[data-testid=\"color-picker-draft-ready\"]"
+      },
+      {
+        "id": "committed-color",
+        "label": "Committed color",
+        "description": "Closed trigger showing a changed committed color."
+      },
+      {
+        "id": "custom-swatch",
+        "label": "Custom swatch",
+        "description": "Closed trigger with custom swatch and label styling hooks."
+      }
+    ]
+  },
+  {
     "id": "action-icon-text-helpers",
     "label": "Action and icon text helpers",
     "description": "Shared low-level action helpers for buttons, icon/text rows, eye states, and clipboard rows.",
