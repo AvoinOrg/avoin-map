@@ -2,6 +2,7 @@
 
 import { actionIconTextHelpersFixture } from './fixtures/ActionIconTextHelpersFixture'
 import { buttonPrimitivesFixture } from './fixtures/ButtonPrimitivesFixture'
+import { booleanControlsFixture } from './fixtures/BooleanControlsFixture'
 import { colorPickerWithPopoverFixture } from './fixtures/ColorPickerWithPopoverFixture'
 import { dropDownMultiSelectFixture } from './fixtures/DropDownMultiSelectFixture'
 import { flowStepPrimitivesFixture } from './fixtures/FlowStepPrimitivesFixture'
@@ -31,6 +32,7 @@ const componentFixtures: ComponentFixture[] = [
   numberInputFieldFixture,
   editableTextFixture,
   buttonPrimitivesFixture,
+  booleanControlsFixture,
   flowStepPrimitivesFixture,
   colorPickerWithPopoverFixture,
   actionIconTextHelpersFixture,

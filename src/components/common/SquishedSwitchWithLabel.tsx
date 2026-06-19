@@ -1,5 +1,12 @@
+'use client'
+
 import * as React from 'react'
-import { SwitchProps, SxProps, Theme } from '@mui/material'
+
+import {
+  AppSxProps,
+  toSxArray,
+} from '#/common/style/theme'
+import type { SwitchProps } from '#/components/common/Switch'
 
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 
@@ -7,9 +14,9 @@ type SquishedSwitchWithLabelProps = Omit<SwitchProps, 'sx'> & {
   children?: React.ReactNode
   ariaLabel?: string
   checkedTrackColor?: string
-  sx?: SxProps<Theme>
-  controlSx?: SxProps<Theme>
-  labelSx?: SxProps<Theme>
+  sx?: AppSxProps
+  controlSx?: AppSxProps
+  labelSx?: AppSxProps
 }
 
 const SquishedSwitchWithLabel = ({
@@ -38,10 +45,10 @@ const SquishedSwitchWithLabel = ({
           display: 'flex',
           alignItems: 'center',
         },
-        ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
+        ...toSxArray(sx),
       ]}
       controlSx={[
-        (theme: Theme) => ({
+        (theme) => ({
           width: '2.125rem',
           height: '0.875rem',
           padding: 0,
@@ -88,17 +95,13 @@ const SquishedSwitchWithLabel = ({
             }),
           },
         }),
-        ...(Array.isArray(controlSx)
-          ? controlSx
-          : controlSx
-            ? [controlSx]
-            : []),
+        ...toSxArray(controlSx),
       ]}
       labelSx={[
         {
           ml: '0.625rem',
         },
-        ...(Array.isArray(labelSx) ? labelSx : labelSx ? [labelSx] : []),
+        ...toSxArray(labelSx),
       ]}
     >
       {children}

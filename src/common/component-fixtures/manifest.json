@@ -346,6 +346,82 @@
     ]
   },
   {
+    "id": "boolean-controls",
+    "label": "Boolean Controls",
+    "description": "Shared boolean control states.",
+    "sourceGlobs": [
+      "src/components/common/Switch.tsx",
+      "src/components/common/SwitchWithLabel.tsx",
+      "src/components/common/SquishedSwitchWithLabel.tsx",
+      "src/components/common/CheckBoxWithLabel.tsx",
+      "src/components/common/SquishedSwitchWithLabel.test.tsx",
+      "src/components/common/CheckBoxWithLabel.test.tsx",
+      "src/common/component-fixtures/fixtures/BooleanControlsFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "switch-unchecked",
+        "label": "Switch unchecked",
+        "description": "Switch false state with visible text label."
+      },
+      {
+        "id": "switch-checked",
+        "label": "Switch checked",
+        "description": "Switch true state with visible text label."
+      },
+      {
+        "id": "switch-disabled",
+        "label": "Switch disabled",
+        "description": "Switch disabled state keeps disabled interaction disabled."
+      },
+      {
+        "id": "switch-focus-visible",
+        "label": "Switch focus visible",
+        "description": "Focus-visible styling hook applied to switch."
+      },
+      {
+        "id": "switch-required",
+        "label": "Switch required",
+        "description": "Required state renders required marker."
+      },
+      {
+        "id": "switch-non-string-label",
+        "label": "Switch non-string label",
+        "description": "Explicit aria label for custom JSX children."
+      },
+      {
+        "id": "squished-custom-track",
+        "label": "Squished switch custom track",
+        "description": "Custom track color on a compact squished switch."
+      },
+      {
+        "id": "checkbox-unchecked",
+        "label": "Checkbox unchecked",
+        "description": "Checkbox base style with unchecked icon."
+      },
+      {
+        "id": "checkbox-checked",
+        "label": "Checkbox checked",
+        "description": "Checkbox checked style with checked icon."
+      },
+      {
+        "id": "checkbox-disabled-required",
+        "label": "Checkbox disabled required",
+        "description": "Disabled checkbox with required marker."
+      },
+      {
+        "id": "checkbox-focus-visible",
+        "label": "Checkbox focus visible",
+        "description": "Focus-visible styling hook applied to checkbox."
+      },
+      {
+        "id": "checkbox-custom-icon",
+        "label": "Checkbox custom icon",
+        "description": "Checkbox with custom icon and checkedIcon props."
+      }
+    ]
+  },
+  {
     "id": "flow-step-primitives",
     "label": "Flow step primitives",
     "description": "Shared flow and step primitive states.",
