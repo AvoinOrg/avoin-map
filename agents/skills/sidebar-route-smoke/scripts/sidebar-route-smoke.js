@@ -15,6 +15,7 @@ const {
 
 const DEFAULT_BASE_URL = 'http://127.0.0.1:3000'
 const DEFAULT_TIMEOUT_MS = 30000
+const ROUTE_RENDER_SETTLE_TIMEOUT_MS = 10000
 const SELECTED_BUILDING_OUTPUT_DIR = path.resolve(
   process.cwd(),
   '.tmp/f0304-sidebar-route-smoke'
@@ -402,6 +403,60 @@ const collectRuntimeTextFlags = async (page) =>
       hasNotFound: /This page could not be found|404/i.test(text),
     }
   })
+
+const waitForRouteRenderSettled = async ({ page, expectSidebar }) => {
+  const timeout = ROUTE_RENDER_SETTLE_TIMEOUT_MS
+
+  return page
+    .waitForFunction(
+      ({ requiresSidebar }) => {
+        const bodyText = document.body?.innerText || ''
+        const hasRuntimeText =
+          /Application error|Unhandled Runtime Error|This page could not be found|404/i.test(
+            bodyText
+          )
+
+        if (hasRuntimeText) {
+          return true
+        }
+
+        const isVisible = (element) => {
+          if (!(element instanceof HTMLElement)) {
+            return false
+          }
+
+          const rect = element.getBoundingClientRect()
+          const style = window.getComputedStyle(element)
+
+          return (
+            rect.width > 0 &&
+            rect.height > 0 &&
+            style.display !== 'none' &&
+            style.visibility !== 'hidden' &&
+            style.opacity !== '0'
+          )
+        }
+
+        if (requiresSidebar) {
+          return [
+            '.sidebar-toggle-button',
+            '.sidebar-container',
+            '[data-main-sidebar-root="true"]',
+          ].some((selector) => isVisible(document.querySelector(selector)))
+        }
+
+        return (
+          document.readyState === 'complete' ||
+          bodyText.trim().length > 0 ||
+          document.querySelector('canvas.maplibregl-canvas') != null
+        )
+      },
+      { requiresSidebar: expectSidebar === 'yes' },
+      { timeout }
+    )
+    .then(() => true)
+    .catch(() => false)
+}
 
 const ensureWebpackRequire = async (page) =>
   page.evaluate(() => {
@@ -2269,6 +2324,10 @@ const runCheck = async ({ browser, args, check }) => {
       timeout: args.timeout,
     })
     await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {})
+    const routeRenderSettled = await waitForRouteRenderSettled({
+      page,
+      expectSidebar: check.expectSidebar,
+    })
 
     const flags = await collectRuntimeTextFlags(page)
     if (flags.hasApplicationError) {
@@ -2276,6 +2335,9 @@ const runCheck = async ({ browser, args, check }) => {
     }
     if (flags.hasNotFound) {
       errors.push('route rendered a not-found page')
+    }
+    if (!routeRenderSettled && !routeLoadFailed) {
+      errors.push('route did not render visible app content before timeout')
     }
 
     const sidebarToggle = page.locator('.sidebar-toggle-button')

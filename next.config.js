@@ -68,6 +68,7 @@ const nextConfig = {
     styledComponents: true,
   },
   devIndicators: false,
+  allowedDevOrigins: ['127.0.0.1'],
   reactStrictMode: true,
   productionBrowserSourceMaps: DEBUG_CLIENT_ERRORS,
   modularizeImports: {

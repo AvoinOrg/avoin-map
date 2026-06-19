@@ -61,13 +61,37 @@ const readTmpRoot = () => {
 const copyArtifactsBack = (tmpRoot) => {
   const fromNext = path.join(tmpRoot, '.next')
   const toNext = path.join(projectRoot, '.next')
+  const toNextDev = path.join(toNext, 'dev')
 
   if (!fs.existsSync(fromNext)) {
     die(`buildFromFolderPruneTmp: missing build output at ${fromNext}`)
   }
 
-  fs.rmSync(toNext, { recursive: true, force: true })
-  fs.cpSync(fromNext, toNext, { recursive: true })
+  const preserveDevOutput = fs.existsSync(toNextDev)
+
+  if (preserveDevOutput) {
+    fs.mkdirSync(toNext, { recursive: true })
+
+    for (const ent of fs.readdirSync(toNext, { withFileTypes: true })) {
+      if (ent.name === 'dev') continue
+      fs.rmSync(path.join(toNext, ent.name), { recursive: true, force: true })
+    }
+
+    for (const ent of fs.readdirSync(fromNext, { withFileTypes: true })) {
+      if (ent.name === 'dev') continue
+      const fromPath = path.join(fromNext, ent.name)
+      const toPath = path.join(toNext, ent.name)
+      fs.rmSync(toPath, { recursive: true, force: true })
+      fs.cpSync(fromPath, toPath, { recursive: true })
+    }
+
+    console.log(
+      'buildFromFolderPruneTmp: preserved existing .next/dev output while copying production build artifacts'
+    )
+  } else {
+    fs.rmSync(toNext, { recursive: true, force: true })
+    fs.cpSync(fromNext, toNext, { recursive: true })
+  }
 
   // Merge public outputs (only the generated subfolders are copied).
   const fromPublic = path.join(tmpRoot, 'public')
