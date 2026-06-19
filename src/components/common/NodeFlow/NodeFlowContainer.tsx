@@ -1,8 +1,8 @@
 'use client'
 
 import React from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
 
+import { Box, type AppSxProps, toSxArray } from '#/common/style/theme'
 import FlowNode from '../FlowNode'
 import { NODE_FLOW_MARKER_CENTER_X } from './NodeFlowButton'
 
@@ -16,7 +16,7 @@ type NodeFlowContainerSpacing =
 export type NodeFlowContainerProps = {
   children: React.ReactNode
   spacing?: NodeFlowContainerSpacing
-  sx?: SxProps<Theme>
+  sx?: AppSxProps
 }
 
 const isFlowNodeElement = (
@@ -49,7 +49,7 @@ const NodeFlowContainer = ({
           gap: spacing,
           width: '100%',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toSxArray(sx),
       ]}
     >
       {childArray.map((child, index) => {

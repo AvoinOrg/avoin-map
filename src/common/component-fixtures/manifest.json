@@ -346,6 +346,81 @@
     ]
   },
   {
+    "id": "flow-step-primitives",
+    "label": "Flow step primitives",
+    "description": "Shared flow and step primitive states.",
+    "sourceGlobs": [
+      "src/components/common/FlowNode.tsx",
+      "src/components/common/NodeFlow/NodeFlowButton.tsx",
+      "src/components/common/NodeFlow/NodeFlowAccordion.tsx",
+      "src/components/common/NodeFlow/NodeFlowContainer.tsx",
+      "src/components/common/NodeFlow/index.ts",
+      "src/common/component-fixtures/fixtures/FlowStepPrimitivesFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "node-flow-incomplete",
+        "label": "NodeFlow incomplete",
+        "description": "Incomplete step with default marker and trailing icon."
+      },
+      {
+        "id": "node-flow-complete",
+        "label": "NodeFlow complete",
+        "description": "Completed step with check marker."
+      },
+      {
+        "id": "node-flow-error",
+        "label": "NodeFlow error",
+        "description": "Error step with helper text."
+      },
+      {
+        "id": "node-flow-disabled",
+        "label": "NodeFlow disabled",
+        "description": "Disabled row is inert and visually muted."
+      },
+      {
+        "id": "node-flow-interactive",
+        "label": "NodeFlow interactive",
+        "description": "Interactive row with button semantics."
+      },
+      {
+        "id": "node-flow-helper",
+        "label": "NodeFlow helper",
+        "description": "Helper row with custom leading helper content."
+      },
+      {
+        "id": "node-flow-connected-sequence",
+        "label": "NodeFlow connected sequence",
+        "description": "Container draws connectors between adjacent flow nodes."
+      },
+      {
+        "id": "node-flow-accordion-closed",
+        "label": "NodeFlow accordion closed",
+        "description": "Uncontrolled accordion starts closed and can be opened."
+      },
+      {
+        "id": "node-flow-accordion-open",
+        "label": "NodeFlow accordion open",
+        "description": "Uncontrolled accordion starts open with visible body."
+      },
+      {
+        "id": "flow-node-available",
+        "label": "FlowNode available",
+        "description": "Available FlowNode row with description text."
+      },
+      {
+        "id": "flow-node-complete",
+        "label": "FlowNode complete",
+        "description": "Complete FlowNode row with body content."
+      },
+      {
+        "id": "flow-node-disabled",
+        "label": "FlowNode disabled",
+        "description": "Disabled FlowNode row is not interactive."
+      }
+    ]
+  },
+  {
     "id": "color-picker-with-popover",
     "label": "ColorPickerWithPopover",
     "description": "Shared color picker trigger and popover states.",

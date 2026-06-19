@@ -6,6 +6,7 @@ export { useTheme } from '@mui/system'
 
 export type AppTheme = MuiTheme
 export type AppSxProps = SxProps<AppTheme>
+type AppSxItem = Exclude<NonNullable<AppSxProps>, readonly unknown[]>
 export type AppSystemStyleObject = AppSxProps
 export type AppBoxProps = Omit<MuiSystemBoxProps, 'sx'> & { sx?: AppSxProps }
 
@@ -26,10 +27,10 @@ export const Box = React.forwardRef<HTMLElement, AppBoxProps>(function Box(
   })
 })
 
-export const toSxArray = (sx?: AppSxProps): AppSxProps[] => {
+export const toSxArray = (sx?: AppSxProps): AppSxItem[] => {
   if (sx == null) {
     return []
   }
 
-  return Array.isArray(sx) ? sx : [sx]
+  return (Array.isArray(sx) ? sx : [sx]) as AppSxItem[]
 }

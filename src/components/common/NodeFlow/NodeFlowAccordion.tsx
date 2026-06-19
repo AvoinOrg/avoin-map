@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
 
+import { Box, type AppSxProps, toSxArray } from '#/common/style/theme'
 import { ArrowDown, ArrowUp } from '#/components/icons'
 import NodeFlowButton, {
   NODE_FLOW_OUTER_OFFSET,
@@ -25,11 +25,11 @@ export type NodeFlowAccordionProps = NodeFlowMarkerProps & {
   showConnector?: boolean
   showConnectorTop?: boolean
   showConnectorBottom?: boolean
-  sx?: SxProps<Theme>
-  rowSx?: SxProps<Theme>
-  rowSxOpen?: SxProps<Theme>
-  rowSxClosed?: SxProps<Theme>
-  bodySx?: SxProps<Theme>
+  sx?: AppSxProps
+  rowSx?: AppSxProps
+  rowSxOpen?: AppSxProps
+  rowSxClosed?: AppSxProps
+  bodySx?: AppSxProps
 }
 
 type NodeFlowAccordionComponent = React.FC<NodeFlowAccordionProps> & {
@@ -104,7 +104,7 @@ const NodeFlowAccordionBase = ({
           transition:
             'margin 160ms cubic-bezier(.2,0,.2,1), width 160ms cubic-bezier(.2,0,.2,1)',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toSxArray(sx),
       ]}
     >
       {!isOpen && (
@@ -120,12 +120,8 @@ const NodeFlowAccordionBase = ({
           onClick={handleToggle}
           ariaLabel={ariaLabel}
           ariaExpanded={isOpen}
-          state="available"
           disableOuterOffset
-          rowSx={[
-            ...(Array.isArray(rowSx) ? rowSx : rowSx ? [rowSx] : []),
-            ...(Array.isArray(rowSxClosed) ? rowSxClosed : rowSxClosed ? [rowSxClosed] : []),
-          ]}
+          rowSx={[...toSxArray(rowSx), ...toSxArray(rowSxClosed)]}
         />
       )}
 
@@ -157,7 +153,6 @@ const NodeFlowAccordionBase = ({
             onClick={handleToggle}
             ariaLabel={ariaLabel}
             ariaExpanded={isOpen}
-            state="active"
             disableOuterOffset
             rowSx={[
               {
@@ -173,8 +168,8 @@ const NodeFlowAccordionBase = ({
                   backgroundColor: 'transparent',
                 },
               },
-              ...(Array.isArray(rowSx) ? rowSx : rowSx ? [rowSx] : []),
-              ...(Array.isArray(rowSxOpen) ? rowSxOpen : rowSxOpen ? [rowSxOpen] : []),
+              ...toSxArray(rowSx),
+              ...toSxArray(rowSxOpen),
             ]}
           />
 
@@ -188,7 +183,7 @@ const NodeFlowAccordionBase = ({
                   width: '100%',
                   pt: '1rem',
                 },
-                ...(Array.isArray(bodySx) ? bodySx : [bodySx]),
+                ...toSxArray(bodySx),
               ]}
             >
               {children}
