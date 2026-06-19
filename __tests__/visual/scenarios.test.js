@@ -4,6 +4,7 @@ const {
   getCompiledApplets,
   isStandaloneAppletBuild,
 } = require('../../utils/visual/scenarios')
+const { componentFixtureMetadata } = require('../../src/common/component-fixtures/metadata')
 
 describe('visual scenarios', () => {
   test('builds main-mode root scenarios for compiled applets', () => {
@@ -60,33 +61,39 @@ describe('visual scenarios', () => {
       scenarioSet: COMPONENT_FIXTURE_SCENARIO_SET,
     })
 
-    expect(scenarios.map((scenario) => scenario.id)).toEqual([
-      'component-fixture-layer-toggle-row-hidden',
-      'component-fixture-layer-toggle-row-visible',
-      'component-fixture-layer-toggle-row-visible-colored',
-      'component-fixture-layer-toggle-row-processing',
-      'component-fixture-layer-toggle-row-disabled',
-      'component-fixture-layer-toggle-row-accordion-open',
-    ])
+    const expectedFixtureScenarioIds = componentFixtureMetadata.flatMap((fixture) =>
+      fixture.states.map((state) =>
+        `component-fixture-${fixture.id}-${state.id}`
+      )
+    )
 
+    expect(scenarios.map((scenario) => scenario.id)).toEqual(
+      expectedFixtureScenarioIds
+    )
+
+    const firstFixture = componentFixtureMetadata[0]
+    const firstState = firstFixture.states[0]
     expect(scenarios[0]).toMatchObject({
       applet: 'component-fixtures',
       locale: 'en',
-      path: '/en/dev/component-fixtures/layer-toggle-row/hidden',
-      url: 'http://127.0.0.1:3000/en/dev/component-fixtures/layer-toggle-row/hidden',
+      path: `/en/dev/component-fixtures/${firstFixture.id}/${firstState.id}`,
+      url: `http://127.0.0.1:3000/en/dev/component-fixtures/${firstFixture.id}/${firstState.id}`,
       requiresWebGL: false,
       waitFor: '[data-testid="component-fixture-ready"]',
       maskSelectors: [],
-      sourceGlobs: [
-        'src/components/common/LayerToggleRow.tsx',
-        'src/components/common/LayerToggleRow.test.tsx',
-      ],
+      sourceGlobs: firstFixture.sourceGlobs,
     })
     expect(scenarios[0].tags).toEqual([
       'component-fixture',
-      'component:layer-toggle-row',
-      'state:hidden',
+      `component:${firstFixture.id}`,
+      `state:${firstState.id}`,
     ])
+    expect(scenarios.map((scenario) => scenario.id)).toContain(
+      'component-fixture-loading-feedback-spinner-size-color-variants'
+    )
+    expect(scenarios.map((scenario) => scenario.id)).toContain(
+      'component-fixture-loading-feedback-modal-overlay'
+    )
   })
 
   test('rejects component fixture scenarios for standalone applet builds', () => {

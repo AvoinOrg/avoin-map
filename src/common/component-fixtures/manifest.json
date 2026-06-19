@@ -459,10 +459,10 @@
       }
     ]
   },
-    {
-      "id": "folder",
-      "label": "Folder",
-      "description": "Shared folder shape wrapper with content slot, themed fill/stroke, and padding split.",
+  {
+    "id": "folder",
+    "label": "Folder",
+    "description": "Shared folder shape wrapper with content slot, themed fill/stroke, and padding split.",
     "sourceGlobs": [
       "src/components/common/Folder/Folder.tsx",
       "src/components/common/Folder/SvgFolder.tsx",
@@ -608,6 +608,50 @@
         "id": "debounced",
         "label": "Debounced",
         "description": "State for local debounced update visualization."
+      }
+    ]
+  },
+  {
+    "id": "loading-feedback",
+    "label": "Loading feedback",
+    "description": "Shared loading components across spinner, horizontal dots, and overlay states.",
+    "sourceGlobs": [
+      "src/components/Loading/LoadingHorizontal.tsx",
+      "src/components/Loading/LoadingSpinner.tsx",
+      "src/components/Loading/LoadingModal.tsx",
+      "src/components/Loading/LoadingSpinnerOld.tsx",
+      "src/common/component-fixtures/fixtures/LoadingFeedbackFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "horizontal-default",
+        "label": "Horizontal default",
+        "description": "Default three-dot horizontal loading animation at compact defaults."
+      },
+      {
+        "id": "horizontal-sized-color",
+        "label": "Horizontal size and color",
+        "description": "Size and currentColor overrides for compact icon-slot usage."
+      },
+      {
+        "id": "spinner-size-color-variants",
+        "label": "Spinner size and color variants",
+        "description": "Primary, secondary, warning, and inherited spinner variants with size overrides."
+      },
+      {
+        "id": "spinner-determinate",
+        "label": "Spinner determinate",
+        "description": "Determinate spinner visual state with partial progress."
+      },
+      {
+        "id": "modal-overlay",
+        "label": "Loading modal overlay",
+        "description": "Full-viewport loading modal overlay with centered secondary spinner."
+      },
+      {
+        "id": "legacy-ellipsis",
+        "label": "Legacy ellipsis spinner",
+        "description": "Compatibility ellipsis implementation for `LoadingSpinnerOld`."
       }
     ]
   }

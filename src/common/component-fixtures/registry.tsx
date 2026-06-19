@@ -6,6 +6,7 @@ import { colorPickerWithPopoverFixture } from './fixtures/ColorPickerWithPopover
 import { dropDownMultiSelectFixture } from './fixtures/DropDownMultiSelectFixture'
 import { folderFixture } from './fixtures/FolderFixture'
 import { fullscreenPageFixture } from './fixtures/FullscreenPageFixture'
+import { loadingFeedbackFixture } from './fixtures/LoadingFeedbackFixture'
 import { layerToggleRowFixture } from './fixtures/LayerToggleRowFixture'
 import { multiSelectAutocompleteFixture } from './fixtures/MultiSelectAutocompleteFixture'
 import { editableTextFixture } from './fixtures/EditableTextFixture'
@@ -36,6 +37,7 @@ const componentFixtures: ComponentFixture[] = [
   fullscreenPageFixture,
   textFieldWithLabelFixture,
   textFieldWithHeaderFixture,
+  loadingFeedbackFixture,
 ]
 
 export const getComponentFixtures = () => componentFixtures
