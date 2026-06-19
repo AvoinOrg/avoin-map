@@ -7,20 +7,35 @@ import {
   LayerToggleRowLink,
 } from '#/components/common/LayerToggleRow'
 
+type MockMutableLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
+  children?: React.ReactNode
+  route?: unknown
+  routeTree?: unknown
+  params?: unknown
+  sx?: unknown
+}
+
 jest.mock('#/components/common/MutableLink', () => {
-  const React = require('react')
   const MockMutableLink = ({
     children,
     onClick,
     route,
     routeTree,
     params,
+    sx,
     ...props
-  }: any) => (
-    <a href="#mock-link" onClick={onClick} {...props}>
-      {children}
-    </a>
-  )
+  }: MockMutableLinkProps) => {
+    void route
+    void routeTree
+    void params
+    void sx
+
+    return (
+      <a href="#mock-link" onClick={onClick} {...props}>
+        {children}
+      </a>
+    )
+  }
 
   return {
     __esModule: true,
@@ -90,10 +105,15 @@ describe('LayerToggleRowAccordion', () => {
     })
 
     expect(button.getAttribute('aria-expanded')).toBe('false')
+    expect(button.getAttribute('aria-controls')).toContain(
+      'layer-toggle-row-accordion-'
+    )
+    expect(screen.queryByText('Accordion content')).toBeNull()
 
     fireEvent.click(button)
 
     expect(button.getAttribute('aria-expanded')).toBe('true')
+    expect(screen.getByText('Accordion content')).not.toBeNull()
   })
 })
 

@@ -32,7 +32,13 @@
     "description": "Representative layer visibility toggle row states.",
     "sourceGlobs": [
       "src/components/common/LayerToggleRow.tsx",
-      "src/components/common/LayerToggleRow.test.tsx"
+      "src/components/common/LayerToggleRow.test.tsx",
+      "src/components/common/LayerMenuAccordion.tsx",
+      "src/components/common/LayerMenuAccordion.test.tsx",
+      "src/components/common/Legend.tsx",
+      "src/components/common/LegendBox.tsx",
+      "src/components/common/LayerLegend.tsx",
+      "src/common/component-fixtures/fixtures/LayerToggleRowFixture.tsx"
     ],
     "states": [
       {
@@ -61,9 +67,39 @@
         "description": "Disabled row that should not toggle."
       },
       {
+        "id": "accordion-closed",
+        "label": "Accordion closed",
+        "description": "Closed accordion variant with unmounted child content."
+      },
+      {
         "id": "accordion-open",
         "label": "Accordion open",
         "description": "Expanded accordion variant with visible child content."
+      },
+      {
+        "id": "row-link",
+        "label": "Row link",
+        "description": "Layer row with an isolated details link action."
+      },
+      {
+        "id": "layer-menu-accordion-closed",
+        "label": "Layer menu accordion closed",
+        "description": "Closed shared layer menu accordion segment."
+      },
+      {
+        "id": "layer-menu-accordion-open",
+        "label": "Layer menu accordion open",
+        "description": "Open shared layer menu accordion segment."
+      },
+      {
+        "id": "legend-basic",
+        "label": "Legend basic",
+        "description": "Simple legend container with color swatches."
+      },
+      {
+        "id": "layer-legend",
+        "label": "Layer legend",
+        "description": "Layer legend item rows with literal and translated labels."
       }
     ]
   },

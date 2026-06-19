@@ -1,13 +1,19 @@
 import React, { useId } from 'react'
-import { Box, Collapse, SxProps, Theme, Typography } from '@mui/material'
+import { Collapsible } from '@base-ui/react/collapsible'
 
 import { LayerGroupStatus } from '#/common/hooks/map/useLayerGroup'
+import { Box, toSxArray } from '#/common/style/theme'
 import { getContrastColor } from '#/common/utils/styling'
 import LoadingHorizontal from '#/components/Loading/LoadingHorizontal'
 import MutableLink from '#/components/common/MutableLink'
 import { CircleArrowRight, EyeClosed, EyeOpen } from '#/components/icons'
 
 type MutableLinkProps = React.ComponentProps<typeof MutableLink>
+type StyleProp = React.ComponentProps<typeof Box>['sx']
+type StyleItem = Exclude<NonNullable<StyleProp>, readonly unknown[]>
+
+const toStyleArray = (sx?: StyleProp) => toSxArray(sx) as StyleItem[]
+const ButtonBox = Box as React.ElementType
 
 type SharedLayerToggleRowProps = {
   label: React.ReactNode
@@ -16,10 +22,10 @@ type SharedLayerToggleRowProps = {
   disabled?: boolean
   ariaLabel?: string
   color?: string
-  sx?: SxProps<Theme>
-  rowSx?: SxProps<Theme>
-  labelSx?: SxProps<Theme>
-  iconSx?: SxProps<Theme>
+  sx?: StyleProp
+  rowSx?: StyleProp
+  labelSx?: StyleProp
+  iconSx?: StyleProp
 }
 
 type LayerToggleRowProps = SharedLayerToggleRowProps
@@ -27,13 +33,13 @@ type LayerToggleRowProps = SharedLayerToggleRowProps
 type LayerToggleRowAccordionProps = SharedLayerToggleRowProps & {
   expanded: boolean
   children: React.ReactNode
-  contentSx?: SxProps<Theme>
+  contentSx?: StyleProp
 }
 
 type LayerToggleRowLinkProps = SharedLayerToggleRowProps & {
   linkAriaLabel: string
   linkProps: Omit<MutableLinkProps, 'children'>
-  linkSx?: SxProps<Theme>
+  linkSx?: StyleProp
 }
 
 const BASE_ROW_SX = {
@@ -110,7 +116,7 @@ const LayerStatusIcon = ({
 }: {
   status: LayerGroupStatus
   color?: string
-  sx?: SxProps<Theme>
+  sx?: StyleProp
 }) => {
   const iconBoxSx = color
     ? {
@@ -143,7 +149,7 @@ const LayerStatusIcon = ({
           justifyContent: 'center',
           flexShrink: 0,
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toStyleArray(sx),
       ]}
     >
       {status === 'processing' && <LoadingHorizontal sx={iconSx} />}
@@ -174,7 +180,7 @@ const ToggleRowButton = ({
   controls?: string
 }) => {
   return (
-    <Box
+    <ButtonBox
       component="button"
       type="button"
       aria-label={ariaLabel}
@@ -184,19 +190,19 @@ const ToggleRowButton = ({
       onClick={disabled ? undefined : onToggle}
       sx={[
         BASE_ROW_SX,
-        ...(Array.isArray(rowSx) ? rowSx : [rowSx]),
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toStyleArray(rowSx),
+        ...toStyleArray(sx),
       ]}
     >
       <LayerStatusIcon status={status} color={color} sx={iconSx} />
-      <Typography
+      <Box
         component="span"
-        sx={[LABEL_SX, ...(Array.isArray(labelSx) ? labelSx : [labelSx])]}
+        sx={[LABEL_SX, ...toStyleArray(labelSx)]}
       >
         {label}
-      </Typography>
+      </Box>
       {children}
-    </Box>
+    </ButtonBox>
   )
 }
 
@@ -215,7 +221,10 @@ export const LayerToggleRowAccordion = ({
   const contentId = `layer-toggle-row-accordion-${generatedId}`
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Collapsible.Root
+      open={expanded}
+      render={(rootProps) => <Box {...rootProps} sx={{ width: '100%' }} />}
+    >
       <Box
         sx={{
           mx: ACCORDION_ROW_HORIZONTAL_MARGIN,
@@ -236,7 +245,7 @@ export const LayerToggleRowAccordion = ({
                   borderRadius: '20px',
                 }
               : {},
-            ...(Array.isArray(rowSx) ? rowSx : [rowSx]),
+            ...toStyleArray(rowSx),
           ]}
         >
           <CircleArrowRight
@@ -253,20 +262,30 @@ export const LayerToggleRowAccordion = ({
           />
         </ToggleRowButton>
       </Box>
-      <Collapse in={expanded} timeout="auto" unmountOnExit>
-        <Box
-          id={contentId}
-          sx={[
-            {
-              width: '100%',
-            },
-            ...(Array.isArray(contentSx) ? contentSx : [contentSx]),
-          ]}
-        >
-          {children}
-        </Box>
-      </Collapse>
-    </Box>
+      <Collapsible.Panel
+        id={contentId}
+        render={(panelProps) => (
+          <Box
+            {...panelProps}
+            id={contentId}
+            sx={[
+              {
+                width: '100%',
+                height: 'var(--collapsible-panel-height)',
+                overflow: 'hidden',
+                transition: 'height 160ms ease',
+                '&[data-starting-style], &[data-ending-style]': {
+                  height: 0,
+                },
+              },
+              ...toStyleArray(contentSx),
+            ]}
+          />
+        )}
+      >
+        {children}
+      </Collapsible.Panel>
+    </Collapsible.Root>
   )
 }
 
@@ -285,6 +304,13 @@ export const LayerToggleRowLink = ({
   linkProps,
   linkSx,
 }: LayerToggleRowLinkProps) => {
+  const {
+    onClick: onLinkClick,
+    onClickCapture: onLinkClickCapture,
+    sx: linkPropsSx,
+    ...restLinkProps
+  } = linkProps
+
   return (
     <Box
       sx={[
@@ -293,7 +319,7 @@ export const LayerToggleRowLink = ({
           display: 'flex',
           alignItems: 'center',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toStyleArray(sx),
       ]}
     >
       <ToggleRowButton
@@ -306,34 +332,36 @@ export const LayerToggleRowLink = ({
         rowSx={rowSx}
         labelSx={labelSx}
         iconSx={iconSx}
-        sx={{
-          flexGrow: 1,
-          minWidth: 0,
-        }}
+        sx={{ flexGrow: 1, minWidth: 0 }}
       />
       <MutableLink
-        {...linkProps}
+        {...restLinkProps}
         aria-label={linkAriaLabel}
+        onClickCapture={(event) => {
+          onLinkClickCapture?.(event)
+        }}
         onClick={(event) => {
           event.stopPropagation()
-          linkProps.onClick?.(event)
+          onLinkClick?.(event)
         }}
-        sx={{
-          width: '2.5rem',
-          height: '2.5rem',
-          ml: '0.5rem',
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#111111',
-          borderRadius: '50%',
-          '&:focus-visible': {
-            outline: '2px solid #111111',
-            outlineOffset: '-0.25rem',
+        sx={[
+          {
+            width: '2.5rem',
+            height: '2.5rem',
+            ml: '0.5rem',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#111111',
+            borderRadius: '50%',
+            '&:focus-visible': {
+              outline: '2px solid #111111',
+              outlineOffset: '-0.25rem',
+            },
           },
-          ...(linkProps.sx as object),
-          ...(linkSx as object),
-        }}
+          ...toStyleArray(linkPropsSx as StyleProp),
+          ...toStyleArray(linkSx),
+        ]}
       >
         <CircleArrowRight
           aria-hidden="true"

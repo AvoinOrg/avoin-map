@@ -27,6 +27,9 @@ describe('LayerMenuAccordion', () => {
     })
 
     expect(button.getAttribute('aria-expanded')).toBe('false')
+    expect(button.getAttribute('aria-controls')).toBe(
+      'building-filters-content'
+    )
     expect(screen.queryByText('Accordion content')).toBeNull()
 
     fireEvent.click(button)
@@ -35,6 +38,9 @@ describe('LayerMenuAccordion', () => {
     const region = screen.getByRole('region')
     expect(region.textContent).toContain('Accordion content')
     expect(region.id).toBe('building-filters-content')
+    expect(region.getAttribute('aria-labelledby')).toBe(
+      'building-filters-button'
+    )
   })
 
   it('supports controlled expanded state', () => {

@@ -1,5 +1,6 @@
 import React from 'react'
-import { Box, Typography } from '@mui/material'
+
+import { Box } from '#/common/style/theme'
 
 interface LegendBoxProps {
   color: string
@@ -18,6 +19,6 @@ export const LegendBox = ({ color, title }: LegendBoxProps) => (
         flexShrink: 0,
       }}
     />
-    <Typography>{title}</Typography>
+    <Box component="span">{title}</Box>
   </Box>
 )
