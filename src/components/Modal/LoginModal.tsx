@@ -1,82 +1,148 @@
-import React, { useEffect, useState } from 'react'
-import Box from '@mui/material/Box'
-import IconButton from '@mui/material/IconButton'
-import Close from '@mui/icons-material/Close'
+import React from 'react'
+import { Dialog } from '@base-ui/react/dialog'
 
-import { useUIStore } from '#/common/store'
+import {
+  Box,
+  type AppTheme,
+} from '#/common/style/theme/system'
+import { useUIStore } from '#/common/store/uiStore'
+import { Cross } from '#/components/icons'
 
-export const LoginModal = () => {
+type Props = {
+  iframeSrc?: string
+  iframeTitle?: string
+}
+
+const closeButtonSx = {
+  position: 'sticky',
+  top: 0,
+  alignSelf: 'flex-end',
+  width: 48,
+  height: 48,
+  minWidth: 48,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'transparent',
+  border: '1px solid transparent',
+  borderRadius: '5px',
+  color: 'inherit',
+  p: 0,
+  m: 1,
+  '&:hover': {
+    backgroundColor: 'action.hover',
+    cursor: 'pointer',
+  },
+  '&:focus-visible': {
+    outline: (theme: AppTheme) =>
+      `2px solid ${theme.palette.secondary.dark}`,
+    outlineOffset: 2,
+  },
+}
+
+export const LoginModal = ({
+  iframeSrc = '/en/adds/login',
+  iframeTitle = 'Login modal content',
+}: Props) => {
   const isLoginModalOpen = useUIStore((state) => state.isLoginModalOpen)
   const setIsLoginModalOpen = useUIStore((state) => state.setIsLoginModalOpen)
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
   const sidebarWidth = useUIStore((state) => state.sidebarWidth)
-  const [positionOffset, setPositionOffset] = useState(0)
-
-  const handleCloseClick = () => {
-    setIsLoginModalOpen(false)
-  }
-
-  useEffect(() => {
-    if (isSidebarOpen && isLoginModalOpen) {
-      setPositionOffset(sidebarWidth ? sidebarWidth / 2 : 0)
-    }
-  }, [isLoginModalOpen])
+  const positionOffset = isSidebarOpen ? (sidebarWidth ?? 0) / 2 : 0
 
   return (
-    <Box
-      className="login-modal-container"
-      sx={(theme) => ({
-        zIndex: theme.zIndex.modal,
-        position: 'fixed',
-        overflow: 'auto',
-        display: isLoginModalOpen ? 'flex' : 'none',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        margin: 0,
-        [theme.breakpoints.up('md')]: {
-          top: '50%',
-          left: `calc(50% + ${positionOffset}px)`,
-          transform: 'translate(-50%, -50%)',
-          p: 0,
-        },
-        [theme.breakpoints.down('md')]: {
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-        },
-        backgroundColor: theme.palette.neutral.lighter,
-      })}
+    <Dialog.Root
+      open={isLoginModalOpen}
+      onOpenChange={(nextOpen) => {
+        setIsLoginModalOpen(nextOpen)
+      }}
     >
-      <IconButton
-        sx={{
-          position: 'sticky',
-          top: '0',
-          right: '0',
-          alignSelf: 'flex-end',
-        }}
-        aria-label="display more actions"
-        aria-controls="actions-menu"
-        aria-haspopup="true"
-        onClick={handleCloseClick}
-        color="inherit"
-        size="large"
-      >
-        <Close sx={{ fontSize: '1.5rem' }} />
-      </IconButton>
+      <Dialog.Portal>
+        <Dialog.Backdrop
+          render={(backdropProps) => (
+            <Box
+              {...backdropProps}
+              sx={(theme) => ({
+                position: 'fixed',
+                inset: 0,
+                zIndex: theme.zIndex.modal,
+                backgroundColor: 'transparent',
+              })}
+            />
+          )}
+        />
+        <Dialog.Popup
+          aria-label="Login modal"
+          className="login-modal-container"
+          render={(popupProps) => (
+            <Box
+              {...popupProps}
+              sx={(theme) => ({
+                zIndex: theme.zIndex.modal,
+                position: 'fixed',
+                overflow: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                margin: 0,
+                top: {
+                  mobile: 0,
+                  desktop: '50%',
+                },
+                right: {
+                  mobile: 0,
+                  desktop: 'auto',
+                },
+                bottom: {
+                  mobile: 0,
+                  desktop: 'auto',
+                },
+                left: {
+                  mobile: 0,
+                  desktop: `calc(50% + ${positionOffset}px)`,
+                },
+                transform: {
+                  mobile: 'none',
+                  desktop: 'translate(-50%, -50%)',
+                },
+                p: {
+                  mobile: 0,
+                  desktop: 0,
+                },
+                backgroundColor: theme.palette.neutral.lighter,
+              })}
+            />
+          )}
+        >
+          <Dialog.Close
+            aria-label="Close login modal"
+            render={(closeProps) => (
+              <Box {...closeProps} component="button" sx={closeButtonSx}>
+                <Cross sx={{ width: 18, height: 18 }} />
+              </Box>
+            )}
+          />
 
-      <Box
-        component="iframe"
-        src="/en/adds/login" // URL of the site you want to embed
-        title="My iframe Example" // A title for the iframe
-        sx={{
-          border: 0,
-          width: '100%',
-          height: '100%', // Set the height to 100%
-          overflow: 'hidden', // Do not allow the iframe to scroll
-        }}
-      />
-    </Box>
+          <Box
+            sx={{
+              width: '100%',
+              height: '100%',
+            }}
+          >
+            <iframe
+              src={iframeSrc}
+              title={iframeTitle}
+              style={{
+                border: 0,
+                width: '100%',
+                height: '100%',
+                overflow: 'hidden',
+              }}
+            />
+          </Box>
+        </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }

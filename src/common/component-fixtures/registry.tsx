@@ -15,6 +15,7 @@ import { multiSelectAutocompleteFixture } from './fixtures/MultiSelectAutocomple
 import { editableTextFixture } from './fixtures/EditableTextFixture'
 import { numberInputFieldFixture } from './fixtures/NumberInputFieldFixture'
 import { sharedSvgIconFixture } from './fixtures/SharedSvgIconFixture'
+import { sharedModalOverlaysFixture } from './fixtures/SharedModalOverlaysFixture'
 import {
   textFieldWithHeaderFixture,
   textFieldWithLabelFixture,
@@ -44,6 +45,7 @@ const componentFixtures: ComponentFixture[] = [
   textFieldWithLabelFixture,
   textFieldWithHeaderFixture,
   loadingFeedbackFixture,
+  sharedModalOverlaysFixture,
 ]
 
 export const getComponentFixtures = () => componentFixtures

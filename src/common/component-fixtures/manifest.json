@@ -921,5 +921,55 @@
         "description": "Compatibility ellipsis implementation for `LoadingSpinnerOld`."
       }
     ]
+  },
+  {
+    "id": "shared-modal-overlays",
+    "label": "Shared modal overlays",
+    "description": "Shared modal overlay states for Base UI dialog migration coverage.",
+    "sourceGlobs": [
+      "src/components/Modal/ClickableModal.tsx",
+      "src/components/Modal/LoginModal.tsx",
+      "src/components/Modal/index.ts",
+      "src/components/Modal/ClickableModal.test.tsx",
+      "src/components/Modal/LoginModal.test.tsx",
+      "src/common/component-fixtures/fixtures/SharedModalOverlaysFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "clickable-closed-trigger",
+        "label": "Clickable closed trigger",
+        "description": "Closed ClickableModal with only the native button trigger visible."
+      },
+      {
+        "id": "clickable-open-modal",
+        "label": "Clickable open modal",
+        "description": "ClickableModal after the trigger opens the Base UI dialog popup.",
+        "waitFor": "role=dialog"
+      },
+      {
+        "id": "clickable-desktop-width",
+        "label": "Clickable desktop width",
+        "description": "Open ClickableModal with representative copy for the 800px desktop surface.",
+        "waitFor": "role=dialog"
+      },
+      {
+        "id": "clickable-mobile-fullscreen-width",
+        "label": "Clickable mobile full width",
+        "description": "Open ClickableModal state for mobile full-width and viewport-height behavior.",
+        "waitFor": "role=dialog"
+      },
+      {
+        "id": "login-desktop-sidebar-offset",
+        "label": "Login desktop sidebar offset",
+        "description": "Open LoginModal seeded from the UI store with a desktop sidebar offset.",
+        "waitFor": "role=dialog"
+      },
+      {
+        "id": "login-mobile-fullscreen",
+        "label": "Login mobile fullscreen",
+        "description": "Open LoginModal seeded from the UI store for mobile fullscreen coverage.",
+        "waitFor": "role=dialog"
+      }
+    ]
   }
 ]
