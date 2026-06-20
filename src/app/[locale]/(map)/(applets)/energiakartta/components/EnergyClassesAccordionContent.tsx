@@ -1,8 +1,8 @@
 'use client'
 
 import React from 'react'
-import { Box, Typography } from '@mui/material'
 
+import { Box } from '#/common/style/theme'
 import TText from '#/components/common/TText'
 import {
   ENERGY_CERTIFICATE_CLASS_CODES,
@@ -17,6 +17,8 @@ const ACCORDION_TEXT_SX = {
   lineHeight: '1.125rem',
   letterSpacing: '0.1em',
 }
+
+const PolymorphicBox = Box as React.ElementType
 
 const EnergyClassesAccordionContent = () => {
   const [showDefinitions, setShowDefinitions] = React.useState(false)
@@ -45,30 +47,33 @@ const EnergyClassesAccordionContent = () => {
           gap: '1.125rem',
         }}
       >
-        <Typography sx={ACCORDION_TEXT_SX}>
+        <Box component="p" sx={{ ...ACCORDION_TEXT_SX, m: 0 }}>
           <TText
             keyName="sidebar.front_page.energy_classes.body_1"
             ns="energiakartta"
           />
-        </Typography>
-        <Typography sx={ACCORDION_TEXT_SX}>
+        </Box>
+        <Box component="p" sx={{ ...ACCORDION_TEXT_SX, m: 0 }}>
           <TText
             keyName="sidebar.front_page.energy_classes.body_2"
             ns="energiakartta"
           />
-        </Typography>
-        <Typography sx={ACCORDION_TEXT_SX}>
+        </Box>
+        <Box component="p" sx={{ ...ACCORDION_TEXT_SX, m: 0 }}>
           <TText
             keyName="sidebar.front_page.energy_classes.body_3"
             ns="energiakartta"
           />
-        </Typography>
-        <Typography sx={{ ...ACCORDION_TEXT_SX, fontWeight: 700 }}>
+        </Box>
+        <Box
+          component="p"
+          sx={{ ...ACCORDION_TEXT_SX, m: 0, fontWeight: 700 }}
+        >
           <TText
             keyName="sidebar.front_page.energy_classes.note"
             ns="energiakartta"
           />
-        </Typography>
+        </Box>
       </Box>
 
       {showDefinitions && (
@@ -115,9 +120,11 @@ const EnergyClassesAccordionContent = () => {
               >
                 {classCode}
               </Box>
-              <Typography
+              <Box
+                component="p"
                 sx={{
                   ...ACCORDION_TEXT_SX,
+                  m: 0,
                   lineHeight: '1rem',
                 }}
               >
@@ -125,13 +132,13 @@ const EnergyClassesAccordionContent = () => {
                   keyName={`sidebar.front_page.energy_classes.class_definitions.${classCode}`}
                   ns="energiakartta"
                 />
-              </Typography>
+              </Box>
             </Box>
           ))}
         </Box>
       )}
 
-      <Box
+      <PolymorphicBox
         component="button"
         type="button"
         onClick={() => setShowDefinitions((value) => !value)}
@@ -153,7 +160,7 @@ const EnergyClassesAccordionContent = () => {
           },
         }}
       >
-        <Typography
+        <Box
           component="span"
           sx={{
             ...ACCORDION_TEXT_SX,
@@ -170,8 +177,8 @@ const EnergyClassesAccordionContent = () => {
             }
             ns="energiakartta"
           />
-        </Typography>
-      </Box>
+        </Box>
+      </PolymorphicBox>
     </Box>
   )
 }

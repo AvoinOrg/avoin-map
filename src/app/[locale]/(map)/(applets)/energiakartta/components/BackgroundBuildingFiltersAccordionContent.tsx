@@ -1,9 +1,9 @@
 'use client'
 
 import React from 'react'
-import { Box } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
+import { Box } from '#/common/style/theme'
 import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import DropDownSelectInset from '#/components/common/DropDownSelectInset'
 import DropDownSelectWithLabel from '#/components/common/DropDownSelectWithLabel'

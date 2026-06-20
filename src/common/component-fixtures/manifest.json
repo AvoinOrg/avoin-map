@@ -361,6 +361,55 @@
     ]
   },
   {
+    "id": "energymap-energy-class-controls",
+    "label": "Energiakartta energy class controls",
+    "description": "Energiakartta A-G energy certificate class control states.",
+    "sourceGlobs": [
+      "src/app/[locale]/(map)/(applets)/energiakartta/components/EnergyCertificateClassControls.tsx",
+      "src/app/[locale]/(map)/(applets)/energiakartta/components/EnergyCertificateClassControls.test.tsx",
+      "src/common/component-fixtures/fixtures/EnergymapFrontPageControlsFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "desktop-all-active",
+        "label": "Desktop all active",
+        "description": "Default horizontal desktop control with every class active."
+      },
+      {
+        "id": "desktop-some-inactive",
+        "label": "Desktop some inactive",
+        "description": "Horizontal desktop control with alternating inactive classes."
+      },
+      {
+        "id": "mobile-vertical",
+        "label": "Mobile vertical",
+        "description": "Floating mobile vertical control with a reduced active set."
+      }
+    ]
+  },
+  {
+    "id": "energymap-background-filters",
+    "label": "Energiakartta background filters",
+    "description": "Energiakartta background building filter control states.",
+    "sourceGlobs": [
+      "src/app/[locale]/(map)/(applets)/energiakartta/components/BackgroundBuildingFiltersAccordionContent.tsx",
+      "src/app/[locale]/(map)/(applets)/energiakartta/components/BackgroundBuildingFiltersAccordionContent.test.tsx",
+      "src/common/component-fixtures/fixtures/EnergymapFrontPageControlsFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "default-any-year",
+        "label": "Default any year",
+        "description": "Default filters with no construction decade selected."
+      },
+      {
+        "id": "selected-decade",
+        "label": "Selected decade",
+        "description": "Filters with a selected construction decade and only-decade switch active."
+      }
+    ]
+  },
+  {
     "id": "main-popup-table",
     "label": "Main popup table",
     "description": "Native table wrappers used by main map layer popups.",

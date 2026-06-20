@@ -1,9 +1,9 @@
 'use client'
 
 import React from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
+import { Box, type AppBoxProps, toSxArray } from '#/common/style/theme'
 import {
   ENERGY_CERTIFICATE_CLASS_CODES,
   ENERGY_CERTIFICATE_CLASS_COLORS,
@@ -18,11 +18,12 @@ type EnergyCertificateClassControlsOrientation = 'horizontal' | 'vertical'
 type Props = {
   variant?: EnergyCertificateClassControlsVariant
   orientation?: EnergyCertificateClassControlsOrientation
-  sx?: SxProps<Theme>
+  sx?: AppBoxProps['sx']
 }
 
 const DESKTOP_ACTIVE_TILE_BACKGROUND = '#F4F4F4'
 const MOBILE_ACTIVE_TILE_BACKGROUND = '#4F4F4F'
+const PolymorphicBox = Box as React.ElementType
 
 const getClassButtonAriaLabel = ({
   layerLabel,
@@ -70,7 +71,7 @@ const EnergyCertificateClassControls = ({
           listStyle: 'none',
           pointerEvents: 'auto',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toSxArray(sx),
       ]}
     >
       {ENERGY_CERTIFICATE_CLASS_CODES.map((classCode) => {
@@ -92,7 +93,7 @@ const EnergyCertificateClassControls = ({
               flex: '0 0 auto',
             }}
           >
-            <Box
+            <PolymorphicBox
               component="button"
               type="button"
               aria-label={getClassButtonAriaLabel({
@@ -147,7 +148,7 @@ const EnergyCertificateClassControls = ({
               >
                 {classCode}
               </Box>
-            </Box>
+            </PolymorphicBox>
           </Box>
         )
       })}

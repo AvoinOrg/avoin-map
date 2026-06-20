@@ -1,9 +1,14 @@
 import React from 'react'
 import '@testing-library/jest-dom'
-import { ThemeProvider } from '@mui/material/styles'
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 
-import theme from '#/common/style/theme/theme'
+import { AppThemeProvider } from '#/common/style/theme'
 import { ENERGYMAP_DEFAULT_SELECTED_CONSTRUCTION_DECADE } from '../layers/buildingPolygonsLayerConf'
 import { useAppletStore } from '../state/appletStore'
 import BackgroundBuildingFiltersAccordionContent from './BackgroundBuildingFiltersAccordionContent'
@@ -39,12 +44,14 @@ jest.mock('@tolgee/react', () => {
   }
 })
 
-const renderWithTheme = (ui: React.ReactElement) => {
-  return render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>)
-}
-
 const getConstructionYearSelect = () =>
   screen.getByRole('combobox', { name: 'Construction year filter' })
+
+const renderWithAppProvider = (ui: React.ReactElement) => {
+  return render(
+    <AppThemeProvider disableCssBaseline>{ui}</AppThemeProvider>
+  )
+}
 
 describe('BackgroundBuildingFiltersAccordionContent', () => {
   const originalGetBoundingClientRect =
@@ -74,7 +81,7 @@ describe('BackgroundBuildingFiltersAccordionContent', () => {
   })
 
   it('renders Any year as the default and first construction-year option', async () => {
-    renderWithTheme(<BackgroundBuildingFiltersAccordionContent />)
+    renderWithAppProvider(<BackgroundBuildingFiltersAccordionContent />)
 
     const constructionYearSelect = getConstructionYearSelect()
 
@@ -86,7 +93,7 @@ describe('BackgroundBuildingFiltersAccordionContent', () => {
       screen.getByRole('switch', { name: 'Show only decade' })
     ).toBeDisabled()
 
-    fireEvent.mouseDown(constructionYearSelect)
+    fireEvent.click(constructionYearSelect)
 
     const listbox = await screen.findByRole('listbox')
     const options = within(listbox).getAllByRole('option')
@@ -98,7 +105,7 @@ describe('BackgroundBuildingFiltersAccordionContent', () => {
   it('keeps the construction-year switches exclusive in rendered state and store state', () => {
     useAppletStore.getState().setSelectedConstructionDecade(1970)
 
-    renderWithTheme(<BackgroundBuildingFiltersAccordionContent />)
+    renderWithAppProvider(<BackgroundBuildingFiltersAccordionContent />)
 
     const showFromSwitch = screen.getByRole('switch', {
       name: 'Show from decade',
@@ -142,7 +149,7 @@ describe('BackgroundBuildingFiltersAccordionContent', () => {
     useAppletStore.getState().setSelectedConstructionDecade(1970)
     useAppletStore.getState().setShowOnlySelectedDecade(true)
 
-    renderWithTheme(<BackgroundBuildingFiltersAccordionContent />)
+    renderWithAppProvider(<BackgroundBuildingFiltersAccordionContent />)
 
     const constructionYearSelect = getConstructionYearSelect()
     const showFromSwitch = screen.getByRole('switch', {
@@ -154,10 +161,17 @@ describe('BackgroundBuildingFiltersAccordionContent', () => {
 
     expect(showOnlySwitch).toBeChecked()
 
-    fireEvent.mouseDown(constructionYearSelect)
-    fireEvent.click(await screen.findByRole('option', { name: 'Any year' }))
+    fireEvent.click(constructionYearSelect)
+    const anyYearOption = await screen.findByRole('option', { name: 'Any year' })
+    fireEvent.mouseMove(anyYearOption)
+    await waitFor(() => {
+      expect(anyYearOption.hasAttribute('data-highlighted')).toBe(true)
+    })
+    fireEvent.click(anyYearOption)
 
-    expect(constructionYearSelect).toHaveTextContent('Any year')
+    await waitFor(() => {
+      expect(constructionYearSelect).toHaveTextContent('Any year')
+    })
     expect(showFromSwitch).not.toBeChecked()
     expect(showOnlySwitch).not.toBeChecked()
     expect(showFromSwitch).toBeDisabled()

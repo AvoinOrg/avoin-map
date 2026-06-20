@@ -22,6 +22,10 @@ import { mapSearchBarFixture } from './fixtures/MapSearchBarFixture'
 import { multiSelectAutocompleteFixture } from './fixtures/MultiSelectAutocompleteFixture'
 import { notificationFeedbackFixture } from './fixtures/NotificationFeedbackFixture'
 import { editableTextFixture } from './fixtures/EditableTextFixture'
+import {
+  energymapBackgroundFiltersFixture,
+  energymapEnergyClassControlsFixture,
+} from './fixtures/EnergymapFrontPageControlsFixture'
 import { numberInputFieldFixture } from './fixtures/NumberInputFieldFixture'
 import { sharedSvgIconFixture } from './fixtures/SharedSvgIconFixture'
 import { sharedModalOverlaysFixture } from './fixtures/SharedModalOverlaysFixture'
@@ -44,6 +48,8 @@ const componentFixtures: ComponentFixture[] = [
   mapLayerMenuFixture,
   mapSearchBarFixture,
   layerToggleRowFixture,
+  energymapEnergyClassControlsFixture,
+  energymapBackgroundFiltersFixture,
   mainPopupTableFixture,
   dropDownSelectFixture,
   dropDownMultiSelectFixture,

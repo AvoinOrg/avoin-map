@@ -1,13 +1,14 @@
 'use client'
 
 import React from 'react'
-import { Box, Tooltip, Typography, useMediaQuery } from '@mui/material'
+import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip'
 import { useTranslate } from '@tolgee/react'
 import { useParams } from 'next/navigation'
 
 import { MAP_BOTTOM_LEFT_FLOATING_CONTROLS_SLOT } from '#/common/constants/map'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
+import { Box } from '#/common/style/theme'
 import { useMapStore, useUIStore } from '#/common/store'
 import {
   LayerToggleRow,
@@ -160,6 +161,120 @@ const ENERGY_CERTIFICATE_THEMATIC_MODE: EnergymapMainThematicMode =
   'energyCertificates'
 const HEATING_THEMATIC_MODE: EnergymapMainThematicMode = 'heating'
 const INACTIVE_THEMATIC_OPACITY = 0
+const PolymorphicBox = Box as React.ElementType
+
+type PageTooltipSide = React.ComponentProps<typeof BaseTooltip.Positioner>['side']
+type PageTooltipTriggerProps = Omit<
+  React.HTMLAttributes<HTMLElement>,
+  'color'
+> & {
+  ref?: React.Ref<HTMLElement>
+}
+
+const useBreakpointMatch = (query: string) => {
+  const [matches, setMatches] = React.useState(false)
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    const mediaQueryList = window.matchMedia(query)
+    const updateMatches = () => setMatches(mediaQueryList.matches)
+
+    updateMatches()
+    if (mediaQueryList.addEventListener) {
+      mediaQueryList.addEventListener('change', updateMatches)
+    } else {
+      mediaQueryList.addListener(updateMatches)
+    }
+
+    return () => {
+      if (mediaQueryList.removeEventListener) {
+        mediaQueryList.removeEventListener('change', updateMatches)
+      } else {
+        mediaQueryList.removeListener(updateMatches)
+      }
+    }
+  }, [query])
+
+  return matches
+}
+
+const PageTooltip = ({
+  title,
+  side = 'top',
+  children,
+}: {
+  title: React.ReactNode
+  side?: PageTooltipSide
+  children: (props: PageTooltipTriggerProps) => React.ReactElement
+}) => (
+  <BaseTooltip.Root>
+    <BaseTooltip.Trigger
+      delay={0}
+      closeDelay={0}
+      render={(triggerProps) => {
+        const {
+          color: ignoredColor,
+          type: ignoredType,
+          ...resolvedTriggerProps
+        } = triggerProps as PageTooltipTriggerProps & {
+          color?: string
+          type?: string
+        }
+        void ignoredColor
+        void ignoredType
+
+        return children(resolvedTriggerProps)
+      }}
+    />
+    <BaseTooltip.Portal>
+      <BaseTooltip.Positioner side={side} sideOffset={8}>
+        <BaseTooltip.Popup
+          style={{ zIndex: 1500, pointerEvents: 'none' }}
+          render={(popupProps) => (
+            <Box
+              {...popupProps}
+              role="tooltip"
+              sx={{
+                maxWidth: 240,
+                px: 1,
+                py: 0.75,
+                borderRadius: '5px',
+                backgroundColor: '#111111',
+                color: '#ffffff',
+                fontSize: '0.75rem',
+                fontWeight: 400,
+                lineHeight: 1.35,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.22)',
+              }}
+            >
+              {title}
+              <BaseTooltip.Arrow
+                render={(arrowProps) => (
+                  <Box
+                    {...arrowProps}
+                    sx={{
+                      position: 'absolute',
+                      width: 8,
+                      height: 8,
+                      backgroundColor: '#111111',
+                      transform: 'rotate(45deg)',
+                      ...(side === 'top'
+                        ? { bottom: -4, left: 'calc(50% - 4px)' }
+                        : { top: -4, left: 'calc(50% - 4px)' }),
+                    }}
+                  />
+                )}
+              />
+            </Box>
+          )}
+        />
+      </BaseTooltip.Positioner>
+    </BaseTooltip.Portal>
+  </BaseTooltip.Root>
+)
 
 const HomeSidebarHeader = () => {
   return (
@@ -179,7 +294,7 @@ const HomeSidebarHeader = () => {
           overflow: 'hidden',
         }}
       >
-        <Box
+        <PolymorphicBox
           component="img"
           src="/files/img/energiakartta/sidebar/main-hero-header-crop.jpg"
           alt=""
@@ -201,8 +316,10 @@ const HomeSidebarHeader = () => {
               'linear-gradient(90deg, rgba(255, 255, 255, 0.9) 17.5%, rgba(255, 255, 255, 0) 100%)',
           }}
         />
-        <Typography
+        <Box
+          component="p"
           sx={{
+            m: 0,
             position: 'relative',
             zIndex: 1,
             pt: '2.625rem',
@@ -215,7 +332,7 @@ const HomeSidebarHeader = () => {
           }}
         >
           <TText keyName="sidebar.front_page.header.title" ns="energiakartta" />
-        </Typography>
+        </Box>
       </Box>
     </Box>
   )
@@ -231,65 +348,72 @@ const SidebarFooterAction = ({
   reserveActionRow?: boolean
 }) => {
   return (
-    <Tooltip title={tooltip} arrow placement="top">
-      <Box
-        component="span"
-        role="button"
-        tabIndex={0}
-        aria-disabled="true"
-        aria-label={label}
-        sx={{
-          width: '100%',
-          height: '5rem',
-          pl: { mobile: '1.625rem', desktop: '1.625rem' },
-          pr: {
-            mobile: reserveActionRow ? '12rem' : '1.625rem',
-            desktop: '1.625rem',
-          },
-          display: 'flex',
-          alignItems: 'center',
-          gap: '1.25rem',
-          borderRadius: { mobile: 0, desktop: '6px 6px 10px 10px' },
-          background:
-            'linear-gradient(90deg, #f8fff2 0%, #d9ffbd 48%, #b0ff6b 100%)',
-          color: '#111111',
-          cursor: 'not-allowed',
-          opacity: 0.72,
-          boxShadow: '0px 1px 1px rgba(189, 189, 189, 0.25)',
-          '&:focus-visible': {
-            outline: '2px solid #111111',
-            outlineOffset: '-0.375rem',
-          },
-        }}
-      >
+    <PageTooltip title={tooltip} side="top">
+      {({ className, ...tooltipTriggerProps }) => (
         <Box
-          component="img"
-          src="/files/img/energiakartta/sidebar/edit-building-details.svg"
-          alt=""
-          aria-hidden="true"
+          {...tooltipTriggerProps}
+          className={[className, 'energymap-sidebar-footer-action']
+            .filter(Boolean)
+            .join(' ')}
+          component="span"
+          role="button"
+          tabIndex={0}
+          aria-disabled="true"
+          aria-label={label}
           sx={{
-            width: '1.90625rem',
-            height: '1.3125rem',
-            flexShrink: 0,
-          }}
-        />
-        <Typography
-          sx={{
-            minWidth: 0,
+            width: '100%',
+            height: '5rem',
+            pl: { mobile: '1.625rem', desktop: '1.625rem' },
+            pr: {
+              mobile: reserveActionRow ? '12rem' : '1.625rem',
+              desktop: '1.625rem',
+            },
+            display: 'flex',
+            alignItems: 'center',
+            gap: '1.25rem',
+            borderRadius: { mobile: 0, desktop: '6px 6px 10px 10px' },
+            background:
+              'linear-gradient(90deg, #f8fff2 0%, #d9ffbd 48%, #b0ff6b 100%)',
             color: '#111111',
-            fontSize: '0.6875rem',
-            fontWeight: 700,
-            lineHeight: '0.8125rem',
-            letterSpacing: '0.1em',
+            cursor: 'not-allowed',
+            opacity: 0.72,
+            boxShadow: '0px 1px 1px rgba(189, 189, 189, 0.25)',
+            '&:focus-visible': {
+              outline: '2px solid #111111',
+              outlineOffset: '-0.375rem',
+            },
           }}
         >
-          <TText
-            keyName="sidebar.front_page.footer.edit_building_details"
-            ns="energiakartta"
+          <PolymorphicBox
+            component="img"
+            src="/files/img/energiakartta/sidebar/edit-building-details.svg"
+            alt=""
+            aria-hidden="true"
+            sx={{
+              width: '1.90625rem',
+              height: '1.3125rem',
+              flexShrink: 0,
+            }}
           />
-        </Typography>
-      </Box>
-    </Tooltip>
+          <Box
+            component="span"
+            sx={{
+              minWidth: 0,
+              color: '#111111',
+              fontSize: '0.6875rem',
+              fontWeight: 700,
+              lineHeight: '0.8125rem',
+              letterSpacing: '0.1em',
+            }}
+          >
+            <TText
+              keyName="sidebar.front_page.footer.edit_building_details"
+              ns="energiakartta"
+            />
+          </Box>
+        </Box>
+      )}
+    </PageTooltip>
   )
 }
 
@@ -312,14 +436,16 @@ const HeatingAccordionContent = ({
         maxWidth: '15.875rem',
       }}
     >
-      <Typography
+      <Box
+        component="p"
         sx={{
           ...ACCORDION_TEXT_SX,
+          m: 0,
           mb: '2.5rem',
         }}
       >
         <TText keyName="sidebar.front_page.heating.body" ns="energiakartta" />
-      </Typography>
+      </Box>
       <Box
         component="ul"
         sx={{
@@ -415,7 +541,7 @@ const Page = () => {
     React.useState<BuildingInfoDesktopMode>('twoPanel')
   const buildingInfoDesktopMinWidthPx =
     getEnergymapBuildingInfoDesktopMinWidthPx(activeBuildingInfoMode)
-  const buildingInfoDesktopMinWidthMatches = useMediaQuery(
+  const buildingInfoDesktopMinWidthMatches = useBreakpointMatch(
     `(min-width:${buildingInfoDesktopMinWidthPx}px)`
   )
   const [isBuildingInfoCollapsed, setIsBuildingInfoCollapsed] =
@@ -831,8 +957,10 @@ const Page = () => {
             flexDirection: 'column',
           }}
         >
-          <Typography
+          <Box
+            component="h1"
             sx={{
+              m: 0,
               maxWidth: '18.1875rem',
               color: '#111111',
               fontSize: '0.75rem',
@@ -843,10 +971,12 @@ const Page = () => {
             }}
           >
             <TText keyName="sidebar.front_page.heading" ns="energiakartta" />
-          </Typography>
+          </Box>
 
-          <Typography
+          <Box
+            component="p"
             sx={{
+              m: 0,
               mt: { mobile: '3rem', desktop: '3.75rem' },
               maxWidth: '18.1875rem',
               color: '#111111',
@@ -860,7 +990,7 @@ const Page = () => {
               keyName="sidebar.front_page.description"
               ns="energiakartta"
             />
-          </Typography>
+          </Box>
 
           <Box
             sx={{
@@ -909,23 +1039,27 @@ const Page = () => {
               />
             </LayerToggleRowAccordion>
             {LOWER_DISABLED_LAYER_ROWS.map(({ keyName, ariaKeyName }) => (
-              <Tooltip
+              <PageTooltip
                 key={keyName}
                 title={upcomingTooltip}
-                arrow
-                placement="top"
               >
-                <Box component="span" sx={{ display: 'block', width: '100%' }}>
-                  <LayerToggleRow
-                    label={<TText keyName={keyName} ns="energiakartta" />}
-                    status="hidden"
-                    disabled
-                    ariaLabel={t(ariaKeyName)}
-                    onToggle={() => {}}
-                    labelSx={ROW_LABEL_SX}
-                  />
-                </Box>
-              </Tooltip>
+                {(tooltipTriggerProps) => (
+                  <Box
+                    {...tooltipTriggerProps}
+                    component="span"
+                    sx={{ display: 'block', width: '100%' }}
+                  >
+                    <LayerToggleRow
+                      label={<TText keyName={keyName} ns="energiakartta" />}
+                      status="hidden"
+                      disabled
+                      ariaLabel={t(ariaKeyName)}
+                      onToggle={() => {}}
+                      labelSx={ROW_LABEL_SX}
+                    />
+                  </Box>
+                )}
+              </PageTooltip>
             ))}
           </Box>
         </Box>

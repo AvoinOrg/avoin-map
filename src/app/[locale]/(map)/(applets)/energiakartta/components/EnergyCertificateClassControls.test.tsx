@@ -1,9 +1,7 @@
 import React from 'react'
 import '@testing-library/jest-dom'
-import { ThemeProvider } from '@mui/material/styles'
 import { fireEvent, render, screen } from '@testing-library/react'
 
-import theme from '#/common/style/theme/theme'
 import { ENERGY_CERTIFICATE_CLASS_CODES } from '../layers/energyCertificateLayerConf'
 import { useAppletStore } from '../state/appletStore'
 import EnergyCertificateClassControls from './EnergyCertificateClassControls'
@@ -17,17 +15,13 @@ jest.mock('@tolgee/react', () => ({
   }),
 }))
 
-const renderWithTheme = (ui: React.ReactElement) => {
-  return render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>)
-}
-
 describe('EnergyCertificateClassControls', () => {
   beforeEach(() => {
     useAppletStore.getState().resetEnergyCertificateClassFilters()
   })
 
   it('renders accessible A-G class buttons with pressed state', () => {
-    renderWithTheme(<EnergyCertificateClassControls />)
+    render(<EnergyCertificateClassControls />)
 
     for (const classCode of ENERGY_CERTIFICATE_CLASS_CODES) {
       const button = screen.getByRole('button', {
@@ -39,7 +33,7 @@ describe('EnergyCertificateClassControls', () => {
   })
 
   it('toggles only the clicked class', () => {
-    renderWithTheme(<EnergyCertificateClassControls />)
+    render(<EnergyCertificateClassControls />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Energy classes A' }))
 
@@ -60,7 +54,7 @@ describe('EnergyCertificateClassControls', () => {
   })
 
   it('uses the inactive grey style when a class is toggled off', () => {
-    renderWithTheme(<EnergyCertificateClassControls />)
+    render(<EnergyCertificateClassControls />)
 
     const button = screen.getByRole('button', { name: 'Energy classes A' })
     fireEvent.click(button)
@@ -70,7 +64,7 @@ describe('EnergyCertificateClassControls', () => {
   })
 
   it('renders vertical mobile controls without changing the shared state model', () => {
-    renderWithTheme(
+    render(
       <EnergyCertificateClassControls variant="mobile" orientation="vertical" />
     )
 
