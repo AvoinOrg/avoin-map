@@ -1,9 +1,10 @@
 'use client'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
-import { alpha } from '@mui/material/styles'
+import { alpha } from '@mui/system/colorManipulator'
 import type { EventListeners } from 'overlayscrollbars'
+import type { AppBoxProps } from '#/common/style/theme/system'
+import { Box } from '#/common/style/theme/system'
 
 import {
   MOBILE_SIDEBAR_PADDING_REM,
@@ -15,6 +16,7 @@ import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react'
 import { useSimpleSidebarContext } from './SimpleSidebarContext'
 
 const SIDEBAR_SCROLL_FADE_HEIGHT_REM = 3
+type SidebarStyleProps = AppBoxProps['sx']
 
 const SidebarContentBox = ({
   sxOuter,
@@ -23,8 +25,8 @@ const SidebarContentBox = ({
   scrollbarSide = 'right',
   children,
 }: {
-  sxOuter?: SxProps<Theme>
-  sxInner?: SxProps<Theme>
+  sxOuter?: SidebarStyleProps
+  sxInner?: SidebarStyleProps
   scrollFadeColor?: string
   scrollbarSide?: 'left' | 'right'
   children?: React.ReactNode

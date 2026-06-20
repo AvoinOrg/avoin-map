@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import type { SxProps, Theme } from '@mui/material'
+import type { AppBoxProps } from '#/common/style/theme/system'
 
 import {
   HIILIKARTTA_HOME_FLOATING_GUTTER_PX,
@@ -20,8 +20,10 @@ import {
   SidebarPanelSlot,
 } from './sidebarSlots'
 
+type SidebarStyleProps = AppBoxProps['sx']
+
 export type SimpleSidebarProps = {
-  sx?: SxProps<Theme>
+  sx?: SidebarStyleProps
   boundaryId?: SidebarBoundaryId
   options?: SidebarSimpleOptions
   mobileStackedContentBefore?: React.ReactNode
@@ -32,9 +34,9 @@ export type SimpleSidebarProps = {
 const DEFAULT_PANEL_WIDTH = '23.75rem'
 
 const getSimpleSidebarSx = (
-  sx: SxProps<Theme> | undefined,
+  sx: SidebarStyleProps | undefined,
   options?: SidebarSimpleOptions
-): SxProps<Theme> => {
+): SidebarStyleProps => {
   const floatingGutter = `${HIILIKARTTA_HOME_FLOATING_GUTTER_PX}px`
   const hiddenChromeHeightSx =
     options?.chrome === 'hidden'
@@ -71,7 +73,7 @@ const getSimpleSidebarSx = (
 
 const getSimpleSidebarToggleSx = (
   options?: SidebarSimpleOptions
-): SxProps<Theme> | undefined => {
+): SidebarStyleProps | undefined => {
   if (options?.width !== 'compact') {
     return undefined
   }
@@ -88,7 +90,7 @@ const getSimpleSidebarContentSx = ({
   options,
 }: {
   options?: SidebarSimpleOptions
-}): SxProps<Theme> | undefined => {
+}): SidebarStyleProps | undefined => {
   if (options?.chrome !== 'hidden') {
     return undefined
   }

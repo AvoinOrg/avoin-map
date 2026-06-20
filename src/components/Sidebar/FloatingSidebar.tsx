@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import type { SxProps, Theme } from '@mui/material'
+import type { AppBoxProps } from '#/common/style/theme/system'
 
 import {
   HIILIKARTTA_HOME_FLOATING_GUTTER_PX,
@@ -20,14 +20,16 @@ import {
 } from './sidebarSlots'
 import SidebarToggleButton from './SidebarToggleButton'
 
+type SidebarStyleProps = AppBoxProps['sx']
+
 export type FloatingSidebarWidth = 'default' | 'compact'
 export type FloatingSidebarHeaderMode = 'default' | 'custom' | 'none'
 export type FloatingSidebarFooterMode = 'none' | 'slot'
 
 export type FloatingSidebarProps = {
-  sx?: SxProps<Theme>
-  sidebarToggleSx?: SxProps<Theme>
-  contentSx?: SxProps<Theme>
+  sx?: SidebarStyleProps
+  sidebarToggleSx?: SidebarStyleProps
+  contentSx?: SidebarStyleProps
   trailingContent?: React.ReactNode
   actionRail?: React.ReactNode
   hideMainContainer?: boolean

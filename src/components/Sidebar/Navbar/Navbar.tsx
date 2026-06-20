@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Box } from '@mui/material'
+import { Box } from '#/common/style/theme/system'
 
 import UserButtons from './UserButtons'
 import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
@@ -11,7 +11,7 @@ export const Navbar = () => {
     <Box
       className="navbar-container"
       sx={(theme) => ({
-        zIndex: theme.zIndex.appBar,
+        zIndex: theme.zIndex?.appBar ?? 1100,
         width: '100%',
         minWidth: '200px',
         height: '100px',

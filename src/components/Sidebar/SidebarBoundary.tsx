@@ -76,12 +76,15 @@ export const SidebarBoundary = <M extends SidebarMode = SidebarMode,>({
     config,
     runtimeOptions: runtimeOptions ?? initialRuntimeOptions,
   })
-  latestRegistration.current = {
-    mode,
-    depth,
-    config,
-    runtimeOptions: runtimeOptions ?? initialRuntimeOptions,
-  }
+
+  useIsomorphicLayoutEffect(() => {
+    latestRegistration.current = {
+      mode,
+      depth,
+      config,
+      runtimeOptions: runtimeOptions ?? initialRuntimeOptions,
+    }
+  }, [config, depth, initialRuntimeOptions, mode, runtimeOptions])
 
   useIsomorphicLayoutEffect(() => {
     registerSidebarBoundary({

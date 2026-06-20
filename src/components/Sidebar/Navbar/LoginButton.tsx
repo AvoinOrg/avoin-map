@@ -1,32 +1,49 @@
 'use client'
 
 import React from 'react'
-import Button from '@mui/material/Button'
-import { styled } from '@mui/material/styles'
-import { T } from '@tolgee/react'
+import { useTranslate } from '@tolgee/react'
 import { useParams } from 'next/navigation'
 import { openLoginWindow } from '#/common/utils/auth'
+import { Box } from '#/common/style/theme/system'
+
+const nativeButtonType = {
+  type: 'button',
+} satisfies Pick<React.ButtonHTMLAttributes<HTMLButtonElement>, 'type'>
 
 const LoginButton = () => {
   const params = useParams<{ locale?: string }>()
+  const { t } = useTranslate('avoin-map')
 
   return (
-    <Button
+    <Box
+      component="button"
+      {...nativeButtonType}
       aria-label="Sign in"
-      sx={{ color: 'neutral.lighter', typography: 'h3', pl: 0 }}
+      sx={{
+        m: 0,
+        p: 0,
+        pl: 0,
+        border: 0,
+        appearance: 'none',
+        background: 'transparent',
+        color: 'neutral.lighter',
+        cursor: 'pointer',
+        font: 'inherit',
+        typography: 'h3',
+        '&:hover': {
+          textDecoration: 'underline',
+        },
+        '&:focus-visible': {
+          outline: (theme) =>
+            `2px solid ${theme.palette?.secondary?.dark ?? '#1976d2'}`,
+          outlineOffset: 3,
+        },
+      }}
       onClick={() => openLoginWindow(params.locale)}
     >
-      <T keyName="navbar.profile.sign_in" />
-    </Button>
+      {t('navbar.profile.sign_in')}
+    </Box>
   )
 }
-
-const ActionButton = styled(Button)({
-  height: 40,
-  display: 'inline',
-  width: 90,
-  margin: '0 0 0 10px',
-  fontSize: '0.9rem',
-})
 
 export default LoginButton

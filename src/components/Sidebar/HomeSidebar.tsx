@@ -1,16 +1,18 @@
 'use client'
 
 import React, { useEffect, useRef } from 'react'
-import { Box } from '@mui/material'
-import type { SxProps, Theme } from '@mui/material'
 
 import { useUIStore } from '#/common/store'
+import type { AppBoxProps } from '#/common/style/theme/system'
+import { Box } from '#/common/style/theme/system'
 import { LoadingSpinner } from '../Loading'
 
 import SidebarToggleButton from './SidebarToggleButton'
 
+type SidebarStyleProps = AppBoxProps['sx']
+
 export type HomeSidebarProps = {
-  sx?: SxProps<Theme>
+  sx?: SidebarStyleProps
   children: React.ReactNode
 }
 
@@ -76,7 +78,7 @@ export const HomeSidebar = ({ sx, children }: HomeSidebarProps) => {
         <Box
           ref={sidebarPanelRef}
           sx={[
-            (theme: Theme) => ({
+            (theme) => ({
               display: 'flex',
               flexDirection: 'column',
               flex: '0 0 auto',
@@ -89,7 +91,7 @@ export const HomeSidebar = ({ sx, children }: HomeSidebarProps) => {
               minWidth: 0,
               height: '100%',
               minHeight: 0,
-              zIndex: theme.zIndex.drawer + 1,
+              zIndex: (theme.zIndex?.drawer ?? 1200) + 1,
               pt: { mobile: 0, desktop: 2 },
               pb: { mobile: 0, desktop: 2 },
               ml: { mobile: 0, desktop: 2 },
@@ -128,7 +130,7 @@ export const HomeSidebar = ({ sx, children }: HomeSidebarProps) => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  zIndex: theme.zIndex.drawer + 10,
+                  zIndex: (theme.zIndex?.drawer ?? 1200) + 10,
                   borderRadius: { mobile: 0, desktop: '10px' },
                   pointerEvents: 'auto',
                 })}

@@ -1,11 +1,14 @@
-import { Box, SxProps, Theme, Typography } from '@mui/material'
 import React from 'react'
+import type { AppBoxProps } from '#/common/style/theme/system'
+import { Box } from '#/common/style/theme/system'
+
+type SidebarStyleProps = AppBoxProps['sx']
 
 interface Props {
   children?: React.ReactNode
   title: string
   backgroundImage?: string
-  sx?: SxProps<Theme>
+  sx?: SidebarStyleProps
 }
 
 const SidebarHeader = ({ children, title, backgroundImage, sx }: Props) => {
@@ -19,7 +22,7 @@ const SidebarHeader = ({ children, title, backgroundImage, sx }: Props) => {
           flexShrink: 0,
           mb: { mobile: 0.75, desktop: 1 },
           color: 'neutral.darker',
-          zIndex: (theme: Theme) => theme.zIndex.drawer + 4,
+          zIndex: (theme) => (theme.zIndex?.drawer ?? 1200) + 4,
         },
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
@@ -75,8 +78,10 @@ const SidebarHeader = ({ children, title, backgroundImage, sx }: Props) => {
             }}
           >
             <Box sx={{ flex: 1, width: '100%' }}></Box>
-            <Typography
+            <Box
+              component="h3"
               sx={{
+                m: 0,
                 textAlign: 'left',
                 whiteSpace: 'normal',
                 minHeight: '16px',
@@ -86,10 +91,9 @@ const SidebarHeader = ({ children, title, backgroundImage, sx }: Props) => {
                 letterSpacing: '0.06rem',
                 textTransform: 'uppercase',
               }}
-              variant="h3"
             >
               {title}
-            </Typography>
+            </Box>
             <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>{children}</Box>
           </Box>
           {/* {children && (
