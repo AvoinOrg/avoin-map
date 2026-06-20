@@ -1,11 +1,18 @@
 'use client'
 
 import React from 'react'
-import { Box, IconButton, Tooltip } from '@mui/material'
-import type { SxProps, Theme } from '@mui/material'
+
+import {
+  Box,
+  toSxArray,
+} from '#/common/style/theme/system'
+import type { AppSxProps, AppTheme } from '#/common/style/theme/system'
+import { IconButton } from '#/components/common/Button'
+
+import { SidebarPanelExtensionTooltip } from './SidebarPanelExtensionTooltip'
 
 export type SidebarPanelExtensionDefaultTabIconProps = {
-  sx?: SxProps<Theme>
+  sx?: AppSxProps
 }
 
 export type SidebarPanelExtensionTabIconButtonProps = {
@@ -17,8 +24,8 @@ export type SidebarPanelExtensionTabIconButtonProps = {
   buttonId?: string
   controlsId?: string
   onSelect?: (tabId: string) => void
-  sx?: SxProps<Theme>
-  iconSx?: SxProps<Theme>
+  sx?: AppSxProps
+  iconSx?: AppSxProps
 }
 
 export const getSidebarPanelExtensionTabAccessibleLabel = ({
@@ -58,7 +65,7 @@ export const SidebarPanelExtensionDefaultTabIcon = ({
           justifyContent: 'center',
           color: 'currentColor',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toSxArray(sx),
       ]}
     >
       {[0, 1, 2, 3].map((index) => (
@@ -98,8 +105,10 @@ export const SidebarPanelExtensionTabIconButton = ({
     tabName == null || tabName === '' ? accessibleLabel : tabName
 
   return (
-    <Tooltip title={tooltipTitle} placement="right" arrow disableInteractive>
+    <SidebarPanelExtensionTooltip title={tooltipTitle}>
+      {(tooltipTriggerProps) => (
       <IconButton
+        {...tooltipTriggerProps}
         id={buttonId}
         aria-label={accessibleLabel}
         aria-selected={selected}
@@ -107,12 +116,14 @@ export const SidebarPanelExtensionTabIconButton = ({
         role="tab"
         tabIndex={selected ? 0 : -1}
         onClick={() => onSelect?.(tabId)}
+        type="button"
         size="small"
         sx={[
-          (theme: Theme) => ({
+          (theme: AppTheme) => ({
             width: '2.75rem',
             minWidth: '2.75rem',
             height: '2.75rem',
+            p: 0,
             borderRadius: '0.625rem',
             color: '#111111',
             backgroundColor: selected ? '#e8e8e8' : '#ffffff',
@@ -134,7 +145,7 @@ export const SidebarPanelExtensionTabIconButton = ({
               outlineOffset: '2px',
             },
           }),
-          ...(Array.isArray(sx) ? sx : [sx]),
+          ...toSxArray(sx),
         ]}
       >
         <Box
@@ -151,13 +162,14 @@ export const SidebarPanelExtensionTabIconButton = ({
                 height: '1.25rem',
               },
             },
-            ...(Array.isArray(iconSx) ? iconSx : [iconSx]),
+            ...toSxArray(iconSx),
           ]}
         >
           {icon ?? <SidebarPanelExtensionDefaultTabIcon />}
         </Box>
       </IconButton>
-    </Tooltip>
+      )}
+    </SidebarPanelExtensionTooltip>
   )
 }
 

@@ -1,18 +1,24 @@
 'use client'
 
 import React from 'react'
-import { Box, IconButton, SvgIcon, Tooltip } from '@mui/material'
-import type { SxProps, Theme } from '@mui/material'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 import type { PartialOptions } from 'overlayscrollbars'
 
+import {
+  Box,
+  toSxArray,
+} from '#/common/style/theme/system'
+import type { AppSxProps } from '#/common/style/theme/system'
+import { IconButton } from '#/components/common/Button'
+
 import { Cross } from '../icons'
+import { SidebarPanelExtensionTooltip } from './SidebarPanelExtensionTooltip'
 
 export type SidebarPanelExtensionPageContainerProps = {
   children?: React.ReactNode
-  sx?: SxProps<Theme>
-  contentSx?: SxProps<Theme>
-  controlsSx?: SxProps<Theme>
+  sx?: AppSxProps
+  contentSx?: AppSxProps
+  controlsSx?: AppSxProps
   scrollbarSide?: 'left' | 'right'
   scrollbarOptions?: PartialOptions
   showCollapseControl?: boolean
@@ -40,30 +46,50 @@ const pageControlButtonSx = {
   },
 } as const
 
-const CollapsePanelIcon = ({ sx }: { sx?: SxProps<Theme> }) => (
-  <SvgIcon
+const CollapsePanelIcon = ({ sx }: { sx?: AppSxProps }) => (
+  <Box
+    component="span"
     aria-hidden="true"
-    focusable="false"
-    viewBox="0 0 24 24"
-    sx={sx}
+    data-testid="sidebar-panel-extension-collapse-icon"
+    sx={[
+      {
+        display: 'inline-flex',
+        width: '1em',
+        height: '1em',
+        flexShrink: 0,
+        color: 'currentColor',
+        fontSize: '1.5rem',
+        lineHeight: 1,
+      },
+      ...toSxArray(sx),
+    ]}
   >
-    <path
-      d="M11 6 6 12l5 6"
+    <svg
+      viewBox="0 0 24 24"
+      width="1em"
+      height="1em"
       fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={1.7}
-    />
-    <path
-      d="m18 6-5 6 5 6"
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={1.7}
-    />
-  </SvgIcon>
+      aria-hidden="true"
+      style={{ display: 'block', width: '100%', height: '100%' }}
+    >
+      <path
+        d="M11 6 6 12l5 6"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={1.7}
+      />
+      <path
+        d="m18 6-5 6 5 6"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={1.7}
+      />
+    </svg>
+  </Box>
 )
 
 export const SidebarPanelExtensionPageContainer = ({
@@ -113,7 +139,7 @@ export const SidebarPanelExtensionPageContainer = ({
           height: '100%',
           backgroundColor: '#ffffff',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toSxArray(sx),
       ]}
     >
       {hasControls && (
@@ -132,32 +158,40 @@ export const SidebarPanelExtensionPageContainer = ({
               borderBottom: '1px solid rgba(17, 17, 17, 0.08)',
               zIndex: 1,
             },
-            ...(Array.isArray(controlsSx) ? controlsSx : [controlsSx]),
+            ...toSxArray(controlsSx),
           ]}
         >
           {showCollapse && (
-            <Tooltip title={collapseAriaLabel} arrow disableInteractive>
+            <SidebarPanelExtensionTooltip title={collapseAriaLabel} side="top">
+              {(tooltipTriggerProps) => (
               <IconButton
+                {...tooltipTriggerProps}
                 aria-label={collapseAriaLabel}
                 onClick={onCollapse}
+                type="button"
                 size="small"
                 sx={pageControlButtonSx}
               >
                 <CollapsePanelIcon sx={{ fontSize: '1.85rem' }} />
               </IconButton>
-            </Tooltip>
+              )}
+            </SidebarPanelExtensionTooltip>
           )}
           {showClose && (
-            <Tooltip title={closeAriaLabel} arrow disableInteractive>
+            <SidebarPanelExtensionTooltip title={closeAriaLabel} side="top">
+              {(tooltipTriggerProps) => (
               <IconButton
+                {...tooltipTriggerProps}
                 aria-label={closeAriaLabel}
                 onClick={onClose}
+                type="button"
                 size="small"
                 sx={pageControlButtonSx}
               >
                 <Cross sx={{ width: '1rem', height: '1rem' }} />
               </IconButton>
-            </Tooltip>
+              )}
+            </SidebarPanelExtensionTooltip>
           )}
         </Box>
       )}
@@ -201,7 +235,7 @@ export const SidebarPanelExtensionPageContainer = ({
                 minHeight: '100%',
                 minWidth: 0,
               },
-              ...(Array.isArray(contentSx) ? contentSx : [contentSx]),
+              ...toSxArray(contentSx),
             ]}
           >
             {children}

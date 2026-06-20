@@ -1,8 +1,9 @@
 import React from 'react'
 import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { ThemeProvider } from '@mui/material/styles'
+import type { PartialOptions } from 'overlayscrollbars'
 
+import { AppThemeProvider } from '#/common/style/theme'
 import theme from '#/common/style/theme/theme'
 import { useUIStore } from '#/common/store/uiStore'
 import type { SidebarPanelExtensionRuntimeOptions } from '#/common/types/sidebar'
@@ -28,11 +29,19 @@ jest.mock('#/common/hooks/ui/useIsMobile', () => ({
   useIsMobile: () => mockIsMobile,
 }))
 
+type MockOverlayScrollbarsProps = React.HTMLAttributes<HTMLDivElement> & {
+  options?: PartialOptions
+  style?: React.CSSProperties
+}
+
 jest.mock('overlayscrollbars-react', () => {
-  const react = require('react')
+  const mockReact = jest.requireActual<typeof import('react')>('react')
 
   return {
-    OverlayScrollbarsComponent: react.forwardRef(
+    OverlayScrollbarsComponent: mockReact.forwardRef<
+      unknown,
+      MockOverlayScrollbarsProps
+    >(
       (
         {
           children,
@@ -40,17 +49,17 @@ jest.mock('overlayscrollbars-react', () => {
           options,
           style,
           ...props
-        }: any,
-        ref: any
+        },
+        ref
       ) => {
-        react.useImperativeHandle(ref, () => ({
+        mockReact.useImperativeHandle(ref, () => ({
           osInstance: () => ({
             elements: () => ({ viewport: { scrollTop: 0 } }),
             state: () => ({ hasOverflow: { y: false } }),
           }),
         }))
 
-        return react.createElement(
+        return mockReact.createElement(
           'div',
           {
             ...props,
@@ -83,6 +92,16 @@ const resetUIStore = () => {
   })
 }
 
+const SidebarPanelExtensionTestProviders = ({
+  children,
+}: {
+  children: React.ReactNode
+}) => (
+  <AppThemeProvider disableCssBaseline>
+    <SlotsProvider>{children}</SlotsProvider>
+  </AppThemeProvider>
+)
+
 const renderSidebarPanelExtension = (
   children: React.ReactNode,
   initialRuntimeOptions: SidebarPanelExtensionRuntimeOptions = {
@@ -91,20 +110,18 @@ const renderSidebarPanelExtension = (
   }
 ) =>
   render(
-    <ThemeProvider theme={theme}>
-      <SlotsProvider>
-        <SidebarRoot>
-          <SidebarPanelExtensionProvider
-            id="test-extension"
-            initialRuntimeOptions={initialRuntimeOptions}
-          >
-            <IntoSidebarPanelExtensionPanelSlot panelId="main">
-              {children}
-            </IntoSidebarPanelExtensionPanelSlot>
-          </SidebarPanelExtensionProvider>
-        </SidebarRoot>
-      </SlotsProvider>
-    </ThemeProvider>
+    <SidebarPanelExtensionTestProviders>
+      <SidebarRoot>
+        <SidebarPanelExtensionProvider
+          id="test-extension"
+          initialRuntimeOptions={initialRuntimeOptions}
+        >
+          <IntoSidebarPanelExtensionPanelSlot panelId="main">
+            {children}
+          </IntoSidebarPanelExtensionPanelSlot>
+        </SidebarPanelExtensionProvider>
+      </SidebarRoot>
+    </SidebarPanelExtensionTestProviders>
   )
 
 describe('SidebarPanelExtension generic tab helpers', () => {
@@ -188,7 +205,7 @@ describe('SidebarPanelExtension generic tab helpers', () => {
     ).not.toHaveProperty('tabs')
 
     rerender(
-      <SlotsProvider>
+      <SidebarPanelExtensionTestProviders>
         <SidebarRoot>
           <SidebarPanelExtensionProvider
             id="test-extension"
@@ -199,7 +216,7 @@ describe('SidebarPanelExtension generic tab helpers', () => {
             </IntoSidebarPanelExtensionPanelSlot>
           </SidebarPanelExtensionProvider>
         </SidebarRoot>
-      </SlotsProvider>
+      </SidebarPanelExtensionTestProviders>
     )
 
     expect(await screen.findByText('Summary panel content')).toBeInTheDocument()
@@ -223,7 +240,7 @@ describe('SidebarPanelExtension generic tab helpers', () => {
 
   it('registers tab containers rendered through an extension panel slot', async () => {
     render(
-      <SlotsProvider>
+      <SidebarPanelExtensionTestProviders>
         <SidebarRoot>
           <SidebarPanelExtensionProvider
             id="slot-extension"
@@ -245,7 +262,7 @@ describe('SidebarPanelExtension generic tab helpers', () => {
             </IntoSidebarPanelExtensionPanelSlot>
           </SidebarPanelExtensionProvider>
         </SidebarRoot>
-      </SlotsProvider>
+      </SidebarPanelExtensionTestProviders>
     )
 
     expect(await screen.findByText('Layers tab content')).toBeInTheDocument()
@@ -276,7 +293,7 @@ describe('SidebarPanelExtension generic tab helpers', () => {
     expect(await screen.findByText('Second panel content')).toBeInTheDocument()
 
     rerender(
-      <SlotsProvider>
+      <SidebarPanelExtensionTestProviders>
         <SidebarRoot>
           <SidebarPanelExtensionProvider
             id="test-extension"
@@ -289,7 +306,7 @@ describe('SidebarPanelExtension generic tab helpers', () => {
             </IntoSidebarPanelExtensionPanelSlot>
           </SidebarPanelExtensionProvider>
         </SidebarRoot>
-      </SlotsProvider>
+      </SidebarPanelExtensionTestProviders>
     )
 
     expect(await screen.findByText('First panel content')).toBeInTheDocument()
@@ -494,11 +511,13 @@ describe('SidebarPanelExtension generic tab helpers', () => {
 
   it('styles selected tab icon buttons with a light gray background', () => {
     render(
-      <SidebarPanelExtensionTabIconButton
-        tabId="summary"
-        tabName="Summary"
-        selected
-      />
+      <AppThemeProvider disableCssBaseline>
+        <SidebarPanelExtensionTabIconButton
+          tabId="summary"
+          tabName="Summary"
+          selected
+        />
+      </AppThemeProvider>
     )
 
     const selectedTab = screen.getByRole('tab', { name: 'Summary' })
@@ -540,14 +559,16 @@ describe('SidebarPanelExtensionPageContainer', () => {
     const onClose = jest.fn()
 
     render(
-      <SidebarPanelExtensionPageContainer
-        onCollapse={onCollapse}
-        onClose={onClose}
-        collapseAriaLabel="Collapse current page"
-        closeAriaLabel="Close current page"
-      >
-        <div>Controlled page content</div>
-      </SidebarPanelExtensionPageContainer>
+      <AppThemeProvider disableCssBaseline>
+        <SidebarPanelExtensionPageContainer
+          onCollapse={onCollapse}
+          onClose={onClose}
+          collapseAriaLabel="Collapse current page"
+          closeAriaLabel="Close current page"
+        >
+          <div>Controlled page content</div>
+        </SidebarPanelExtensionPageContainer>
+      </AppThemeProvider>
     )
 
     fireEvent.click(
@@ -561,11 +582,11 @@ describe('SidebarPanelExtensionPageContainer', () => {
     const closeButton = screen.getByRole('button', {
       name: 'Close current page',
     })
-    const collapseIcon = collapseButton.querySelector(
-      '.MuiSvgIcon-root'
-    ) as HTMLElement
+    const collapseIcon = screen.getByTestId(
+      'sidebar-panel-extension-collapse-icon'
+    )
     const collapseIconPaths = collapseIcon.querySelectorAll('path')
-    const closeIcon = closeButton.querySelector('svg') as HTMLElement
+    const closeIcon = closeButton.querySelector('svg') as SVGSVGElement
 
     expect(onCollapse).toHaveBeenCalledTimes(1)
     expect(onClose).toHaveBeenCalledTimes(1)

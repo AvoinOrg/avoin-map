@@ -17,6 +17,7 @@ import { editableTextFixture } from './fixtures/EditableTextFixture'
 import { numberInputFieldFixture } from './fixtures/NumberInputFieldFixture'
 import { sharedSvgIconFixture } from './fixtures/SharedSvgIconFixture'
 import { sharedModalOverlaysFixture } from './fixtures/SharedModalOverlaysFixture'
+import { sidebarPanelExtensionChromeFixture } from './fixtures/SidebarPanelExtensionChromeFixture'
 import {
   textFieldWithHeaderFixture,
   textFieldWithLabelFixture,
@@ -41,6 +42,7 @@ const componentFixtures: ComponentFixture[] = [
   colorPickerWithPopoverFixture,
   actionIconTextHelpersFixture,
   sidebarBackgroundContentFixture,
+  sidebarPanelExtensionChromeFixture,
   folderFixture,
   fullscreenPageFixture,
   textFieldWithLabelFixture,

@@ -19,10 +19,7 @@ export const SidebarPanelExtensionContextProvider = ({
   value: SidebarPanelExtensionContextValue
   children: React.ReactNode
 }) => {
-  const memoizedValue = useMemo(
-    () => value,
-    [value.depth, value.extensionId]
-  )
+  const memoizedValue = useMemo(() => value, [value])
 
   return (
     <SidebarPanelExtensionContext.Provider value={memoizedValue}>

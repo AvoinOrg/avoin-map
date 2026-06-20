@@ -1,8 +1,9 @@
 'use client'
 
 import React, { useEffect, useId, useMemo } from 'react'
-import { Box } from '@mui/material'
-import type { SxProps, Theme } from '@mui/material'
+
+import { Box, toSxArray } from '#/common/style/theme/system'
+import type { AppSxProps } from '#/common/style/theme/system'
 
 import {
   useNullableSidebarPanelExtensionTabsContext,
@@ -14,10 +15,10 @@ export type SidebarPanelExtensionTabContainerProps = {
   tabName: React.ReactNode
   tabAriaLabel?: string
   tabIcon?: React.ReactNode
-  tabButtonSx?: SxProps<Theme>
-  tabIconSx?: SxProps<Theme>
+  tabButtonSx?: AppSxProps
+  tabIconSx?: AppSxProps
   keepMounted?: boolean
-  sx?: SxProps<Theme>
+  sx?: AppSxProps
   children?: React.ReactNode
 }
 
@@ -87,7 +88,7 @@ export const SidebarPanelExtensionTabContainer = ({
             minHeight: 0,
             width: '100%',
           },
-          ...(Array.isArray(sx) ? sx : [sx]),
+          ...toSxArray(sx),
         ]}
       >
         {children}
@@ -122,7 +123,7 @@ export const SidebarPanelExtensionTabContainer = ({
           minWidth: 0,
           width: '100%',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toSxArray(sx),
       ]}
     >
       {children}

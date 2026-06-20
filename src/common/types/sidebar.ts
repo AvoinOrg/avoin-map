@@ -1,5 +1,6 @@
 import type React from 'react'
-import type { SxProps, Theme } from '@mui/material'
+
+import type { AppSxProps } from '#/common/style/theme/system'
 
 export type SidebarBoundaryId = string
 
@@ -103,8 +104,8 @@ export type SidebarPanelExtensionTabMetadata = {
   tabName: React.ReactNode
   tabAriaLabel?: string
   tabIcon?: React.ReactNode
-  tabButtonSx?: SxProps<Theme>
-  tabIconSx?: SxProps<Theme>
+  tabButtonSx?: AppSxProps
+  tabIconSx?: AppSxProps
   tabButtonId: string
   tabPanelId: string
 }

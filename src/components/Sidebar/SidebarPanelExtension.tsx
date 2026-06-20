@@ -1,11 +1,11 @@
 'use client'
 
 import React from 'react'
-import { Box } from '@mui/material'
-import type { SxProps, Theme } from '@mui/material'
 
 import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
+import { Box, toSxArray } from '#/common/style/theme/system'
+import type { AppSxProps, AppTheme } from '#/common/style/theme/system'
 import type {
   SidebarActionRailPlacement,
   SidebarPanelExtensionId,
@@ -28,7 +28,7 @@ export type SidebarPanelExtensionProps = {
   desktopTabRail?: React.ReactNode
   mobileTabRail?: React.ReactNode
   suppressMobileStackedPanels?: boolean
-  sx?: SxProps<Theme>
+  sx?: AppSxProps
 }
 
 export type SidebarPanelExtensionTabRailProps = {
@@ -70,16 +70,14 @@ const NON_FULLSCREEN_PANEL_EXTENSION_Z_INDEX_GAP = 20
 
 const PANEL_ORDER: SidebarPanelId[] = ['main', 'secondary', 'tertiary']
 
-const toSxArray = (sx?: SxProps<Theme>) => (Array.isArray(sx) ? sx : [sx])
-
 const isFullscreenLayout = (
   options?: SidebarPanelExtensionRuntimeOptions
 ) => options?.layoutMode === 'fullscreen'
 
-const getMapButtonsZIndex = (theme: Theme) =>
+const getMapButtonsZIndex = (theme: AppTheme) =>
   theme.zIndex.mapButtons ?? DEFAULT_MAP_BUTTONS_Z_INDEX
 
-const getFullscreenDrawerZIndex = (theme: Theme) =>
+const getFullscreenDrawerZIndex = (theme: AppTheme) =>
   Math.max(
     theme.zIndex.drawer ?? DEFAULT_FULLSCREEN_DRAWER_Z_INDEX,
     getMapButtonsZIndex(theme) + 100
@@ -91,7 +89,7 @@ const getDesktopPanelExtensionZIndex = ({
   fullscreenOffset = 0,
   defaultOffset = 0,
 }: {
-  theme: Theme
+  theme: AppTheme
   layoutMode?: SidebarPanelExtensionRuntimeOptions['layoutMode']
   fullscreenOffset?: number
   defaultOffset?: number
@@ -206,7 +204,7 @@ const getActiveMobilePanel = ({
 
 const getPanelContentSx = (
   options?: SidebarPanelExtensionRuntimeOptions
-): SxProps<Theme> | undefined =>
+): AppSxProps | undefined =>
   options?.chrome === 'hidden'
     ? {
         display: 'flex',
@@ -292,7 +290,7 @@ const SidebarPanelExtensionDesktopPanel = ({
 
 const getDesktopPanelGroupSx = (
   options?: SidebarPanelExtensionRuntimeOptions
-): SxProps<Theme> => {
+): AppSxProps => {
   const fullscreen = isFullscreenLayout(options)
 
   return {
@@ -322,9 +320,9 @@ const getDesktopControlsSx = ({
   placement: SidebarActionRailPlacement
   sidebarOffset: number
   layoutMode?: SidebarPanelExtensionRuntimeOptions['layoutMode']
-}): SxProps<Theme> => {
+}): AppSxProps => {
   if (placement === 'fixedBottomActionRow') {
-    return (theme: Theme) => ({
+    return (theme: AppTheme) => ({
       position: 'fixed',
       right: `${FIXED_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
       bottom: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
@@ -343,7 +341,7 @@ const getDesktopControlsSx = ({
   }
 
   if (placement === 'fixedRightActionColumn') {
-    return (theme: Theme) => ({
+    return (theme: AppTheme) => ({
       position: 'fixed',
       top: `${FIXED_RIGHT_ACTION_COLUMN_TOP_PX}px`,
       right: `${FIXED_RIGHT_ACTION_COLUMN_RIGHT_PX}px`,
@@ -361,7 +359,7 @@ const getDesktopControlsSx = ({
   }
 
   if (placement === 'sidebarEdgeActionColumn') {
-    return (theme: Theme) => ({
+    return (theme: AppTheme) => ({
       position: 'fixed',
       top: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
       left: `${Math.max(0, sidebarOffset) + MAP_CONTROL_EDGE_GUTTER_PX}px`,
@@ -379,7 +377,7 @@ const getDesktopControlsSx = ({
   }
 
   if (layoutMode === 'fullscreen') {
-    return (theme: Theme) => ({
+    return (theme: AppTheme) => ({
       position: 'fixed',
       right: `${FIXED_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
       bottom: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
@@ -400,7 +398,7 @@ const getDesktopControlsSx = ({
     })
   }
 
-  return (theme: Theme) => ({
+  return (theme: AppTheme) => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -419,9 +417,9 @@ const getDesktopControlsSx = ({
 
 const getDesktopTabControlsSx = (
   layoutMode?: SidebarPanelExtensionRuntimeOptions['layoutMode']
-): SxProps<Theme> => {
+): AppSxProps => {
   if (layoutMode === 'fullscreen') {
-    return (theme: Theme) => ({
+    return (theme: AppTheme) => ({
       position: 'fixed',
       right: `${FIXED_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
       bottom: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
@@ -439,7 +437,7 @@ const getDesktopTabControlsSx = (
     })
   }
 
-  return (theme: Theme) => ({
+  return (theme: AppTheme) => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -459,9 +457,9 @@ const getDesktopTabControlsSx = (
 const getMobileActionRailSx = (
   placement: SidebarActionRailPlacement,
   visible: boolean
-): SxProps<Theme> => {
+): AppSxProps => {
   if (placement === 'fixedRightActionColumn') {
-    return (theme: Theme) => ({
+    return (theme: AppTheme) => ({
       position: 'fixed',
       top: `${FIXED_RIGHT_ACTION_COLUMN_TOP_PX}px`,
       right: `${FIXED_RIGHT_ACTION_COLUMN_RIGHT_PX}px`,
@@ -474,7 +472,7 @@ const getMobileActionRailSx = (
     })
   }
 
-  return (theme: Theme) => ({
+  return (theme: AppTheme) => ({
     position: 'fixed',
     right: `${MOBILE_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
     bottom: `${MOBILE_BOTTOM_ACTION_ROW_BOTTOM_PX}px`,
@@ -489,8 +487,8 @@ const getMobileActionRailSx = (
 }
 
 const getMobileTabControlsSx =
-  (visible: boolean): SxProps<Theme> =>
-  (theme: Theme) => ({
+  (visible: boolean): AppSxProps =>
+  (theme: AppTheme) => ({
     position: 'fixed',
     right: `${MOBILE_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
     bottom: `${MOBILE_BOTTOM_ACTION_ROW_BOTTOM_PX}px`,
@@ -738,7 +736,7 @@ export const SidebarPanelExtension = ({
     <Box
       data-testid="sidebar-panel-extension-root"
       sx={[
-        (theme: Theme) => ({
+        (theme: AppTheme) => ({
           position: 'fixed',
           top: 0,
           bottom: 0,

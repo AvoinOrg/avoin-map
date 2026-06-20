@@ -727,6 +727,53 @@
     ]
   },
   {
+    "id": "sidebar-panel-extension-chrome",
+    "label": "Sidebar panel extension chrome",
+    "description": "Panel extension tabs, page controls, breadcrumbs, and popup drawer chrome states.",
+    "sourceGlobs": [
+      "src/components/Sidebar/SidebarPanelExtension.tsx",
+      "src/components/Sidebar/SidebarPanelExtensionTabIconButton.tsx",
+      "src/components/Sidebar/SidebarPanelExtensionTabContainer.tsx",
+      "src/components/Sidebar/SidebarPanelExtensionPageContainer.tsx",
+      "src/components/Sidebar/BreadcrumbNav.tsx",
+      "src/components/Sidebar/PopupDrawer.tsx",
+      "src/components/Sidebar/SidebarPanelExtensionTooltip.tsx",
+      "src/common/component-fixtures/fixtures/SidebarPanelExtensionChromeFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "tab-rail-desktop",
+        "label": "Tab rail desktop",
+        "description": "Vertical tab rail with the middle tab selected."
+      },
+      {
+        "id": "tab-rail-mobile",
+        "label": "Tab rail mobile",
+        "description": "Horizontal mobile tab rail with the middle tab selected."
+      },
+      {
+        "id": "page-container-controls",
+        "label": "Page container controls",
+        "description": "Scrollable page container with collapse and close controls."
+      },
+      {
+        "id": "breadcrumbs",
+        "label": "Breadcrumbs",
+        "description": "Route-derived breadcrumb labels and back affordance."
+      },
+      {
+        "id": "popup-drawer-open",
+        "label": "Popup drawer open",
+        "description": "Open popup drawer with mounted children."
+      },
+      {
+        "id": "popup-drawer-closed",
+        "label": "Popup drawer closed",
+        "description": "Closed popup drawer with zero-width chrome and no children."
+      }
+    ]
+  },
+  {
     "id": "folder",
     "label": "Folder",
     "description": "Shared folder shape wrapper with content slot, themed fill/stroke, and padding split.",

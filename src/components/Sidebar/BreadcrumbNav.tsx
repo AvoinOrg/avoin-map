@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react'
 import { usePathname } from 'next/navigation'
-import { Box, SxProps, Theme, Typography } from '@mui/material'
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 
 import MutableLink from '#/components/common/MutableLink'
+import { Box, toSxArray } from '#/common/style/theme/system'
+import type { AppSxProps } from '#/common/style/theme/system'
 import { compiledApplets, getRoutesForPath } from '#/common/routing/routing'
 import { RouteForLinks, RouteTree } from '#/common/types/routing'
 import { useUIStore } from '#/common/store'
@@ -13,7 +13,8 @@ interface Props {
   routeTree: RouteTree
   collapseIfRoot?: boolean
   appletNamespace?: string
-  sx?: SxProps<Theme>
+  forceRouteTree?: boolean
+  sx?: AppSxProps
 }
 
 const breadcrumbLabelSx = {
@@ -27,7 +28,39 @@ const breadcrumbLabelSx = {
   top: '1px',
 } as const
 
-const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
+const BreadcrumbBackIcon = ({ sx }: { sx?: AppSxProps }) => (
+  <Box
+    component="span"
+    aria-hidden="true"
+    sx={[
+      {
+        display: 'inline-flex',
+        width: '1em',
+        height: '1em',
+        flexShrink: 0,
+      },
+      ...toSxArray(sx),
+    ]}
+  >
+    <svg
+      viewBox="0 0 24 24"
+      width="1em"
+      height="1em"
+      fill="currentColor"
+      aria-hidden="true"
+      style={{ display: 'block', width: '100%', height: '100%' }}
+    >
+      <path d="M14.7 5.3a1 1 0 0 1 0 1.4L9.41 12l5.3 5.3a1 1 0 0 1-1.42 1.4l-6-6a1 1 0 0 1 0-1.4l6-6a1 1 0 0 1 1.42 0Z" />
+    </svg>
+  </Box>
+)
+
+const BreadcrumbNav = ({
+  routeTree,
+  collapseIfRoot = false,
+  forceRouteTree = false,
+  sx,
+}: Props) => {
   const pathname = usePathname()
   const isBaseDomainForApplet = useUIStore(
     (state) => state.isBaseDomainForApplet
@@ -37,6 +70,7 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
 
   const { routes, usedRouteTree } = useMemo(() => {
     if (
+      forceRouteTree ||
       isStandaloneAppletBuild ||
       (isBaseDomainForApplet && !mainRouteTree._conf.domain)
     ) {
@@ -49,7 +83,13 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
       routes: getRoutesForPath(pathname, mainRouteTree),
       usedRouteTree: mainRouteTree,
     }
-  }, [routeTree, isBaseDomainForApplet, isStandaloneAppletBuild, pathname])
+  }, [
+    forceRouteTree,
+    routeTree,
+    isBaseDomainForApplet,
+    isStandaloneAppletBuild,
+    pathname,
+  ])
 
   const visibleRoutes = useMemo(() => {
     const isAppletBreadcrumbInMainApp =
@@ -65,7 +105,7 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
       params={route.params}
       sx={{ color: 'inherit' }}
     >
-      <Typography
+      <Box
         sx={(theme) => ({
           ...breadcrumbLabelSx,
           color: theme.palette.neutral.dark,
@@ -74,13 +114,13 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
         component="span"
       >
         {route.name}
-      </Typography>
+      </Box>
     </MutableLink>
   )
 
   const RouteElementInert = ({ name }: { name: string }) => (
     <>
-      <Typography
+      <Box
         sx={(theme) => ({
           ...breadcrumbLabelSx,
           color: theme.palette.neutral.darker,
@@ -88,7 +128,7 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
         component="span"
       >
         {name}
-      </Typography>
+      </Box>
     </>
   )
 
@@ -103,7 +143,7 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
           color: theme.palette.neutral.dark,
           width: '100%',
         }),
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toSxArray(sx),
         collapseIfRoot && visibleRoutes.length <= 1
           ? {
               minHeight: '0px',
@@ -127,7 +167,7 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
             params={visibleRoutes[visibleRoutes.length - 2].params}
             sx={{ alignItems: 'center' }}
           >
-            <ArrowBackIosNewIcon
+            <BreadcrumbBackIcon
               sx={(theme) => ({
                 cursor: 'pointer',
                 color: theme.palette.neutral.dark,
@@ -136,7 +176,7 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
                 ml: -1,
                 '&:hover': { color: theme.palette.neutral.main },
               })}
-            ></ArrowBackIosNewIcon>
+            />
           </MutableLink>
           <Box
             sx={{
@@ -170,7 +210,7 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
                   }}
                 >
                   <RouteElement route={route}></RouteElement>
-                  <Typography
+                  <Box
                     sx={(theme) => ({
                       display: 'block',
                       fontSize: '0.75rem',
@@ -183,7 +223,7 @@ const BreadcrumbNav = ({ routeTree, collapseIfRoot = false, sx }: Props) => {
                     component="span"
                   >
                     /
-                  </Typography>
+                  </Box>
                 </Box>
               )
             })}

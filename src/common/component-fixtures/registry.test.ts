@@ -9,6 +9,15 @@ jest.mock('#/components/common/NumberInputField', () => ({
   NumberInputField: () => null,
 }))
 
+jest.mock('#/components/Sidebar/BreadcrumbNav', () => ({
+  __esModule: true,
+  default: () => null,
+}))
+
+jest.mock('#/common/hooks/ui/useIsMobile', () => ({
+  useIsMobile: () => false,
+}))
+
 import { componentFixtureMetadata } from './metadata'
 import { getComponentFixtures } from './registry'
 

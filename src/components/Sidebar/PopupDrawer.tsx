@@ -1,7 +1,8 @@
 'use client'
 
 import React from 'react'
-import { Box } from '@mui/material'
+
+import { Box } from '#/common/style/theme/system'
 
 interface Props {
   open: boolean
