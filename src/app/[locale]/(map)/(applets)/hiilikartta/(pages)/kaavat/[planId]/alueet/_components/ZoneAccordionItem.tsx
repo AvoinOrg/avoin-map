@@ -14,11 +14,11 @@ import {
   Collapse,
   Tooltip,
   Typography,
-  type SelectChangeEvent,
 } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
 import TText from '#/components/common/TText'
+import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import { NumberInputField } from '#/components/common/NumberInputField'
 import TextFieldWithLabel from '#/components/common/TextFieldWithLabel'
@@ -713,7 +713,7 @@ const ZoneAccordionItem = ({
     </Typography>
   ) : null
 
-  const handleZoningCodeChange = (event: SelectChangeEvent<string>) => {
+  const handleZoningCodeChange = (event: DropDownValueChangeEvent) => {
     const zoningCode = event.target.value
 
     if (!zoningCode) {

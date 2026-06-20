@@ -5,7 +5,6 @@ import {
   Box,
   ButtonBase,
   IconButton,
-  SelectChangeEvent,
   SxProps,
   Theme,
   Tooltip,
@@ -23,6 +22,7 @@ import { useTranslate } from '@tolgee/react'
 import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import type { SelectOption } from '#/common/types/general'
+import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import DropDownSelectInset from '#/components/common/DropDownSelectInset'
 import TText from '#/components/common/TText'
 import { SidebarPanelExtensionPageContainer } from '#/components/Sidebar/SidebarPanelExtensionPageContainer'
@@ -1387,7 +1387,7 @@ const BuildingInfoEnergyConsumptionSection = ({
     )
   }
 
-  const handleYearChange = (event: SelectChangeEvent) => {
+  const handleYearChange = (event: DropDownValueChangeEvent) => {
     setSelectedYear(event.target.value)
   }
 

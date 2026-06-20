@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Feature, FeatureCollection } from 'geojson'
 import { useTranslate, T } from '@tolgee/react'
-import { SelectChangeEvent, Box } from '@mui/material'
+import { Box } from '@mui/material'
 
+import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
@@ -181,7 +182,7 @@ const FolayerImportShp = ({
     setAreaCol(newAreaCol)
   }
 
-  const handleIndexingStrategyChange = (event: SelectChangeEvent) => {
+  const handleIndexingStrategyChange = (event: DropDownValueChangeEvent) => {
     const value = event.target.value
     if (value === 'id' || value === 'name_municipality') {
       setIndexingStrategy(value as IndexingStrategy)

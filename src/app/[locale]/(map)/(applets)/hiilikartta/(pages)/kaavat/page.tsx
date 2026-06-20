@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
-import { Box, SelectChangeEvent, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { T, useTranslate } from '@tolgee/react'
 import { useRouter } from 'next/navigation'
 
@@ -9,6 +9,7 @@ import useStore from '#/common/hooks/useStore'
 import { SidebarContentBox } from '#/components/Sidebar'
 import { useMapStore } from '#/common/store'
 import { getRoute } from '#/common/routing/routing-client'
+import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
 import SidebarBackgroundContent from '#/components/common/SidebarBackgroundContent'
 import IconTextButton from '#/components/common/IconTextButton'
@@ -137,7 +138,7 @@ const Page = () => {
     sortedPlanEntries.length > 0 ||
     Object.keys(placeholderPlanConfs ?? {}).length > 0
 
-  const handleSortChange = (event: SelectChangeEvent<string>) => {
+  const handleSortChange = (event: DropDownValueChangeEvent) => {
     setSortOrder(event.target.value as SortOption)
   }
 

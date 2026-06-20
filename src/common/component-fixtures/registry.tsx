@@ -5,6 +5,7 @@ import { buttonPrimitivesFixture } from './fixtures/ButtonPrimitivesFixture'
 import { booleanControlsFixture } from './fixtures/BooleanControlsFixture'
 import { colorPickerWithPopoverFixture } from './fixtures/ColorPickerWithPopoverFixture'
 import { dropDownMultiSelectFixture } from './fixtures/DropDownMultiSelectFixture'
+import { dropDownSelectFixture } from './fixtures/DropDownSelectFixture'
 import { flowStepPrimitivesFixture } from './fixtures/FlowStepPrimitivesFixture'
 import { folderFixture } from './fixtures/FolderFixture'
 import { fullscreenPageFixture } from './fixtures/FullscreenPageFixture'
@@ -27,6 +28,7 @@ import type {
 const componentFixtures: ComponentFixture[] = [
   sharedSvgIconFixture,
   layerToggleRowFixture,
+  dropDownSelectFixture,
   dropDownMultiSelectFixture,
   multiSelectAutocompleteFixture,
   numberInputFieldFixture,

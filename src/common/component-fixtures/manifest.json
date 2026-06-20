@@ -104,6 +104,86 @@
     ]
   },
   {
+    "id": "drop-down-select",
+    "label": "DropDownSelect",
+    "description": "Shared single-select dropdown states.",
+    "sourceGlobs": [
+      "src/components/common/DropDownSelect.tsx",
+      "src/components/common/DropDownSelectWithHeader.tsx",
+      "src/components/common/DropDownSelectWithLabel.tsx",
+      "src/components/common/DropDownSelectInset.tsx",
+      "src/components/common/DropDownSelectMinimal.tsx",
+      "src/components/common/DropDownSelectInset.test.tsx",
+      "src/common/component-fixtures/fixtures/DropDownSelectFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "placeholder",
+        "label": "Placeholder",
+        "description": "Empty value rendering a muted placeholder."
+      },
+      {
+        "id": "empty-selection",
+        "label": "Empty selection",
+        "description": "Open menu with the empty selection entry.",
+        "waitFor": "role=option"
+      },
+      {
+        "id": "invalid-value",
+        "label": "Invalid value",
+        "description": "Open menu with the invalid incoming value entry.",
+        "waitFor": "role=option"
+      },
+      {
+        "id": "selected",
+        "label": "Selected",
+        "description": "Closed stateful select with a valid selected value for keyboard checks."
+      },
+      {
+        "id": "open",
+        "label": "Open",
+        "description": "Open menu below the trigger.",
+        "waitFor": "role=option"
+      },
+      {
+        "id": "disabled",
+        "label": "Disabled",
+        "description": "Disabled select with a selected value."
+      },
+      {
+        "id": "focused",
+        "label": "Focused",
+        "description": "Focused trigger state."
+      },
+      {
+        "id": "success-indicator",
+        "label": "Success indicator",
+        "description": "Valid selection with outside success indicator."
+      },
+      {
+        "id": "header-label-action",
+        "label": "Header label action",
+        "description": "Header wrapper with label and action content."
+      },
+      {
+        "id": "inset-label",
+        "label": "Inset label",
+        "description": "Inset wrapper with select before the side label."
+      },
+      {
+        "id": "minimal-selected",
+        "label": "Minimal selected",
+        "description": "Compact minimal variant with selected value."
+      },
+      {
+        "id": "minimal-open",
+        "label": "Minimal open",
+        "description": "Compact minimal variant with the menu open.",
+        "waitFor": "role=option"
+      }
+    ]
+  },
+  {
     "id": "drop-down-multi-select",
     "label": "DropDownMultiSelect",
     "description": "Shared multi-select dropdown states.",

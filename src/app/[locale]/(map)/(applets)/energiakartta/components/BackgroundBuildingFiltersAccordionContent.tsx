@@ -2,9 +2,9 @@
 
 import React from 'react'
 import { Box } from '@mui/material'
-import type { SelectChangeEvent } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
+import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import DropDownSelectInset from '#/components/common/DropDownSelectInset'
 import DropDownSelectWithLabel from '#/components/common/DropDownSelectWithLabel'
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
@@ -110,11 +110,11 @@ const BackgroundBuildingFiltersAccordionContent = () => {
       : String(selectedConstructionDecade)
   const hasSelectedConstructionDecade = selectedConstructionDecade != null
 
-  const handleBuildingTypeChange = (event: SelectChangeEvent) => {
+  const handleBuildingTypeChange = (event: DropDownValueChangeEvent) => {
     setBuildingTypeFilter(event.target.value as EnergymapBuildingTypeFilter)
   }
 
-  const handleConstructionDecadeChange = (event: SelectChangeEvent) => {
+  const handleConstructionDecadeChange = (event: DropDownValueChangeEvent) => {
     const selectedValue = event.target.value
 
     if (selectedValue === ENERGYMAP_CONSTRUCTION_YEAR_FILTER_ANY) {

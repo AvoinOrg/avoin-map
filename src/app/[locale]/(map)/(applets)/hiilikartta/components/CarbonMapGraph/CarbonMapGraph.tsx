@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Box, SelectChangeEvent, ToggleButton, Typography } from '@mui/material'
+import { Box, ToggleButton, Typography } from '@mui/material'
 import { cloneDeep } from 'lodash-es'
 import { useTranslate } from '@tolgee/react'
 import { styled } from '@mui/material/styles'
 
+import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import TText from '#/components/common/TText'
 
@@ -53,7 +54,7 @@ const CarbonMapGraph = ({ planConfs, featureYears }: Props) => {
     setCalcType(newCalcType)
   }
 
-  const handleAreaTypeChange = (event: SelectChangeEvent<string>) => {
+  const handleAreaTypeChange = (event: DropDownValueChangeEvent) => {
     setAreaType(event.target.value)
   }
 

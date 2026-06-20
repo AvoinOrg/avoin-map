@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Box, type SelectChangeEvent, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
 import useStore from '#/common/hooks/useStore'
@@ -10,6 +10,7 @@ import DropDownMultiSelect, {
   type DropDownMultiSelectChangeEvent,
   type DropDownMultiSelectOption,
 } from '#/components/common/DropDownMultiSelect'
+import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
 
 import type { PlanDataFeature } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
@@ -388,7 +389,7 @@ const ZoneAccordion = ({
     setSelectedFilterValues(event.target.value)
   }
 
-  const handleSortChange = (event: SelectChangeEvent<string>) => {
+  const handleSortChange = (event: DropDownValueChangeEvent) => {
     setSortValue(event.target.value as ZoneSortValue)
   }
 

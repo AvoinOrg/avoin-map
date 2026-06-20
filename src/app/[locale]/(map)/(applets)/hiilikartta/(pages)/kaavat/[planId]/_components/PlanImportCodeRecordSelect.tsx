@@ -1,5 +1,6 @@
-import { SelectChangeEvent, SxProps, Theme } from '@mui/material'
+import { SxProps, Theme } from '@mui/material'
 
+import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 
 type PlanImportCodeRecordSelectProps = {
@@ -21,7 +22,7 @@ const PlanImportCodeRecordSelect = ({
   placeholder,
   sx,
 }: PlanImportCodeRecordSelectProps) => {
-  const handleSelectColumn = (event: SelectChangeEvent) => {
+  const handleSelectColumn = (event: DropDownValueChangeEvent) => {
     const { value } = event.target
 
     if (value === '' || value === null) {

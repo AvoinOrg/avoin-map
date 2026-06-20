@@ -1,14 +1,9 @@
 import React, { useState } from 'react'
 import { styled } from '@mui/material/styles'
-import {
-  Box,
-  SxProps,
-  Theme,
-  Typography,
-  SelectChangeEvent,
-} from '@mui/material'
+import { Box, SxProps, Theme, Typography } from '@mui/material'
 
 import { pp } from '#/common/utils/general'
+import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
 import TText from '#/components/common/TText'
 
@@ -26,7 +21,7 @@ type Props = {
 const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
   const [activeYear, setActiveYear] = useState(featureYears[1])
 
-  const handleYearChange = (event: SelectChangeEvent<string>) => {
+  const handleYearChange = (event: DropDownValueChangeEvent) => {
     setActiveYear(event.target.value)
   }
 

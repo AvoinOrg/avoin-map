@@ -1,6 +1,6 @@
 import React from 'react'
-import { Box, SxProps, Theme, Typography } from '@mui/material'
 
+import { Box, type AppSxProps, toSxArray } from '#/common/style/theme/system'
 import DropDownSelect from '#/components/common/DropDownSelect'
 
 type DropDownSelectProps = React.ComponentProps<typeof DropDownSelect>
@@ -10,9 +10,9 @@ type DropDownSelectInsetProps = Omit<
   'label' | 'labelSx' | 'sx'
 > & {
   label: React.ReactNode
-  sx?: SxProps<Theme>
-  labelSx?: SxProps<Theme>
-  selectWrapperSx?: SxProps<Theme>
+  sx?: AppSxProps
+  labelSx?: AppSxProps
+  selectWrapperSx?: AppSxProps
 }
 
 const DropDownSelectInset = ({
@@ -35,7 +35,7 @@ const DropDownSelectInset = ({
           minWidth: 0,
           gap: '0.875rem',
         },
-        ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
+        ...toSxArray(sx),
       ]}
     >
       <DropDownSelect
@@ -44,14 +44,10 @@ const DropDownSelectInset = ({
         label={undefined}
         sx={[
           {
-            width: '8.25rem',
+            width: '9.25rem',
             flexShrink: 0,
           },
-          ...(Array.isArray(selectWrapperSx)
-            ? selectWrapperSx
-            : selectWrapperSx
-              ? [selectWrapperSx]
-              : []),
+          ...toSxArray(selectWrapperSx),
         ]}
         selectSx={[
           {
@@ -79,7 +75,7 @@ const DropDownSelectInset = ({
               mr: '0.625rem',
             },
           },
-          ...(Array.isArray(selectSx) ? selectSx : selectSx ? [selectSx] : []),
+          ...toSxArray(selectSx),
         ]}
         renderSelectedValue={
           renderSelectedValue ??
@@ -110,7 +106,8 @@ const DropDownSelectInset = ({
           ))
         }
       />
-      <Typography
+      <Box
+        component="span"
         sx={[
           {
             flex: 1,
@@ -124,11 +121,11 @@ const DropDownSelectInset = ({
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
           },
-          ...(Array.isArray(labelSx) ? labelSx : labelSx ? [labelSx] : []),
+          ...toSxArray(labelSx),
         ]}
       >
         {label}
-      </Typography>
+      </Box>
     </Box>
   )
 }

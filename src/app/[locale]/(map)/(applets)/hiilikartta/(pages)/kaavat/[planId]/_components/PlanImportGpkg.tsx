@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { SelectChangeEvent } from '@mui/material'
 import { FeatureCollection } from 'geojson'
 
 import { roundFeatureCoordinates } from '#/common/utils/map'
+import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import PlanImportCodeRecordSelect from './PlanImportCodeRecordSelect'
 import { PendingPlanImport } from './planImportTypes'
@@ -186,7 +186,7 @@ const PlanImportGpkg = ({
     selectedZoningCol,
   ])
 
-  const handleSelectTable = (event: SelectChangeEvent) => {
+  const handleSelectTable = (event: DropDownValueChangeEvent) => {
     onSelectedTableChange(event.target.value || undefined)
   }
 

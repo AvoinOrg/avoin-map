@@ -8,9 +8,9 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import { SelectChangeEvent } from '@mui/material/Select'
 import { useTranslate } from '@tolgee/react'
 
+import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import TText from '#/components/common/TText'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
 import {
@@ -208,7 +208,7 @@ const PlanReportFlowStepBase = ({
       ? '#7A3D2B'
       : '#0D6044'
 
-  const handleYearChange = (event: SelectChangeEvent<string>) => {
+  const handleYearChange = (event: DropDownValueChangeEvent) => {
     setSelectedYear(event.target.value)
   }
 

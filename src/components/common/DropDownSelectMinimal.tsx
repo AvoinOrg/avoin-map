@@ -1,26 +1,25 @@
-import React, { useState } from 'react'
-import {
-  FormControl,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-  SxProps,
-  Theme,
-  Typography,
-} from '@mui/material'
+'use client'
 
-import ArrowDown from '#/components/icons/ArrowDown'
+import React from 'react'
+
+import { Box, type AppSxProps, toSxArray } from '#/common/style/theme/system'
 import { SelectOption } from '#/common/types/general'
+import DropDownSelect, {
+  type DropDownValueChangeEvent,
+} from '#/components/common/DropDownSelect'
 
-interface Props {
-  value: any
+type Props = {
+  value: unknown
   options: SelectOption[]
-  onChange: (event: SelectChangeEvent<string>) => void
+  onChange: (event: DropDownValueChangeEvent) => void
   ariaLabel?: string
-  sx?: SxProps<Theme>
-  optionSx?: SxProps<Theme>
-  iconSx?: SxProps<Theme>
-  isIconOnTheRight?: boolean // added prop
+  sx?: AppSxProps
+  optionSx?: AppSxProps
+  iconSx?: AppSxProps
+  isIconOnTheRight?: boolean
+  open?: boolean
+  defaultOpen?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 const DropDownSelectMinimal = ({
@@ -32,105 +31,99 @@ const DropDownSelectMinimal = ({
   optionSx,
   iconSx,
   isIconOnTheRight = true,
+  open,
+  defaultOpen,
+  onOpenChange,
 }: Props) => {
-  const [hasEmpty, setHasEmpty] = useState(value == null)
-
   return (
-    <FormControl variant={'standard'}>
-      <Select
-        aria-label={ariaLabel}
-        value={value == null ? '' : value}
+    <Box
+      sx={{
+        display: 'inline-flex',
+        minWidth: 0,
+      }}
+    >
+      <DropDownSelect
+        value={value}
+        options={options}
         onChange={onChange}
-        IconComponent={ArrowDown}
-        disableUnderline={true}
-        MenuProps={{
-          anchorOrigin: {
-            vertical: 'bottom',
-            horizontal: 'left',
-          },
-          transformOrigin: {
-            vertical: 'top',
-            horizontal: 'left',
-          },
-          PaperProps: {
-            sx: {
-              mt: 0.5,
-              borderRadius: '0.625rem',
-              border: '0.5px solid #D6D6D6',
-              boxShadow: '0px 8px 24px rgba(17, 17, 17, 0.12)',
-            },
-          },
-        }}
+        ariaLabel={ariaLabel}
+        allowEmpty={value == null}
+        open={open}
+        defaultOpen={defaultOpen}
+        onOpenChange={onOpenChange}
         sx={[
           {
-            '.MuiSelect-icon': {
-              top: '50%',
-              transform: 'translateY(-50%)',
-              width: '0.75rem',
-              height: '0.375rem',
-              mr: "0.4rem",
-              mt: "0.2rem",
-              ...(iconSx as Record<string, any>),
+            display: 'inline-flex',
+            width: 'auto',
+            minWidth: 0,
+          },
+          ...toSxArray(sx),
+        ]}
+        selectSx={{
+          width: 'auto',
+          minWidth: 0,
+          height: 'auto',
+          minHeight: 0,
+          boxShadow: 'none',
+          backgroundColor: 'transparent',
+          borderRadius: 0,
+          flexDirection: isIconOnTheRight ? 'row' : 'row-reverse',
+          '&:focus-visible .MuiOutlinedInput-notchedOutline, &[data-popup-open] .MuiOutlinedInput-notchedOutline':
+            {
+              borderColor: 'transparent',
             },
-            '.MuiSelect-iconOpen': {
-              transform: 'translateY(-50%) rotate(180deg)',
-            },
-            '& .MuiSelect-select': {
-              m: 0,
-              p: 0,
-              fontSize: '0.6875rem',
-              fontWeight: 400,
-              lineHeight: 'normal',
-              letterSpacing: '0.04em',
-              color: '#111111',
-            },
-
-            '& .MuiSelect-select:focus': {
-              backgroundColor: 'transparent',
-            },
+          '.MuiOutlinedInput-notchedOutline': {
+            borderColor: 'transparent',
+            borderWidth: 0,
+          },
+          '.MuiSelect-select': {
             m: 0,
             p: 0,
+            pr: isIconOnTheRight ? '1.25rem' : 0,
+            pl: isIconOnTheRight ? 0 : '1.25rem',
+            minHeight: 0,
+            fontSize: '0.6875rem',
+            fontWeight: 400,
+            lineHeight: 'normal',
+            letterSpacing: '0.04em',
+            color: '#111111',
           },
-          ...(Array.isArray(sx) ? sx : [sx]),
+        }}
+        iconSx={[
+          {
+            right: isIconOnTheRight ? '0.4rem' : 'auto',
+            left: isIconOnTheRight ? 'auto' : '0.4rem',
+            mr: '0.4rem',
+            mt: '0.2rem',
+          },
+          ...toSxArray(iconSx),
         ]}
-      >
-        {hasEmpty && <option key={''} value={''}></option>}
-        {options.map((option) => (
-          <MenuItem
-            aria-label={
-              typeof option.label === 'string'
-                ? option.label
-                : String(option.value)
-            }
-            sx={{
-              m: 0,
-              p: 0,
-            }}
-            key={option.value}
-            value={option.value}
-          >
-            <Typography
-              sx={[
-                {
-                  textAlign: 'left',
-                  pl: 1,
-                  pt: 0.5,
-                  pb: 0.5,
-                  fontSize: '0.6875rem',
-                  fontWeight: 400,
-                  lineHeight: 'normal',
-                  letterSpacing: '0.04em',
-                  color: '#111111',
-                },
-                ...(Array.isArray(optionSx) ? optionSx : [optionSx]),
-              ]}
-            >
-              {option.label}
-            </Typography>
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
+        typographySx={[
+          {
+            textAlign: 'left',
+            pl: 1,
+            pt: 0.5,
+            pb: 0.5,
+            fontSize: '0.6875rem',
+            fontWeight: 400,
+            lineHeight: 'normal',
+            letterSpacing: '0.04em',
+            color: '#111111',
+          },
+          ...toSxArray(optionSx),
+        ]}
+        menuItemSx={{
+          m: 0,
+          p: 0,
+        }}
+        menuPaperSx={{
+          mt: 0.5,
+          borderRadius: '0.625rem',
+          border: '0.5px solid #D6D6D6',
+          boxShadow: '0px 8px 24px rgba(17, 17, 17, 0.12)',
+        }}
+      />
+    </Box>
   )
 }
 

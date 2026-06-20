@@ -1,7 +1,7 @@
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react'
 import { Feature, FeatureCollection } from 'geojson'
 import { useTranslate, T } from '@tolgee/react'
-import { SelectChangeEvent, Box, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import { useUIStore } from '#/common/store'
