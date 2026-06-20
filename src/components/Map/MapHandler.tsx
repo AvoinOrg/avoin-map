@@ -9,7 +9,6 @@
 import 'maplibre-gl/dist/maplibre-gl.css'
 
 import React, { useState, useRef, useEffect } from 'react'
-import Box from '@mui/material/Box'
 // import { Map as OlMap, View, MapBrowserEvent } from 'ol'
 // import * as proj from 'ol/proj'
 // import { Layer, Tile as TileLayer, Vector as VectorLayer } from 'ol/layer'
@@ -29,6 +28,7 @@ import { useSession } from 'next-auth/react'
 import { useUIStore } from '../../common/store'
 import { useMapStore } from '../../common/store'
 import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
+import { Box } from '#/common/style/theme/system'
 import { EMBEDDED_PARAMS_URL_PREFIX, MapLibraryMode } from '#/common/types/map'
 import { OverlayMessages } from './OverlayMessages'
 import { MapPopupHandler } from './MapPopupHandler'
@@ -105,7 +105,7 @@ export const MapHandler = ({ children }: Props) => {
     viewSettings: { center: [number, number]; zoom?: number },
     isHybrid = false
   ) => {
-    let newMap: Map
+    void isHybrid
 
     // if (isHybrid) {
     //   const emptyStyle: StyleSpecification = {
@@ -154,14 +154,13 @@ export const MapHandler = ({ children }: Props) => {
       layers: [],
     }
 
-    newMap = new Map({
-      //@ts-ignore
+    const newMap = new Map({
       container: 'map', // container id
       style: style,
       center: viewSettings.center, // starting position [lng, lat]
       zoom: viewSettings.zoom, // starting zoom
       attributionControl: false,
-      transformRequest: (url, type) => {
+      transformRequest: (url) => {
         if (
           url.includes('requireToken=true') &&
           SERVER_URL != null &&
@@ -206,7 +205,6 @@ export const MapHandler = ({ children }: Props) => {
     const mbSelectionFunction = (e: MapLayerMouseEvent) => {
       // Set `bbox` as 5px reactangle area around clicked point.
       // Find features intersecting the bounding box.
-      // @ts-ignore
       const point = newMap.project(e.lngLat)
 
       const features = newMap.queryRenderedFeatures(point)
@@ -497,7 +495,7 @@ export const MapHandler = ({ children }: Props) => {
   ) => {
     switch (mode) {
       case 'maplibre': {
-        let newMap = initMap(viewSettings, false)
+        const newMap = initMap(viewSettings, false)
         _setMap(newMap)
 
         mapLibraryRef.current = 'maplibre'
@@ -562,7 +560,7 @@ export const MapHandler = ({ children }: Props) => {
   useEffect(() => {
     if (_map) {
       if (session && session.accessToken) {
-        _map.setTransformRequest((url, type) => {
+        _map.setTransformRequest((url) => {
           if (url.startsWith(EMBEDDED_PARAMS_URL_PREFIX)) {
             const decoded = decodeUrlAndParams(url)
             if (decoded == null) {
@@ -585,7 +583,7 @@ export const MapHandler = ({ children }: Props) => {
           return { url }
         })
       } else {
-        _map.setTransformRequest((url, type) => {
+        _map.setTransformRequest((url) => {
           if (url.startsWith(EMBEDDED_PARAMS_URL_PREFIX)) {
             const decoded = decodeUrlAndParams(url)
             if (decoded == null) {

@@ -1,8 +1,15 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  type ButtonHTMLAttributes,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import DOMPurify from 'dompurify'
-import { Box, Button } from '@mui/material'
 
 import {
   MAP_CONTROL_EDGE_GUTTER_PX,
@@ -10,6 +17,12 @@ import {
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import { useMapStore, useUIStore } from '#/common/store'
 import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
+import {
+  Box,
+  type AppSystemStyleObject,
+  toSxArray,
+} from '#/common/style/theme/system'
+import { ButtonBase } from '#/components/common/Button'
 import {
   selectActiveSidebarBoundaryId,
   selectActiveSidebarMode,
@@ -30,6 +43,50 @@ type MainSidebarPlacement =
   | 'overlay-sidebar'
 
 type PanelLayout = 'inline-right' | 'overlay-sidebar'
+
+const bottomControlButtonSx = {
+  width: '2.125rem',
+  minWidth: '2.125rem',
+  height: '2.125rem',
+  border: 0,
+  p: 0,
+  m: 0,
+  borderRadius: '0.3125rem',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  appearance: 'none',
+  backgroundColor: 'rgba(244, 244, 244, 0.9)',
+  boxShadow: 'inset 2px 2px 2px rgba(177, 177, 177, 0.25)',
+  cursor: 'pointer',
+  '& svg': {
+    width: '1.15rem',
+    height: '1.15rem',
+  },
+  '&:focus-visible': {
+    outline: '2px solid rgba(79, 79, 79, 0.85)',
+    outlineOffset: 2,
+  },
+  '&:disabled': {
+    cursor: 'default',
+    pointerEvents: 'none',
+  },
+} satisfies AppSystemStyleObject
+
+type BottomControlButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  children: ReactNode
+  sx?: AppSystemStyleObject
+}
+
+const BottomControlButton = ({
+  children,
+  sx,
+  ...props
+}: BottomControlButtonProps) => (
+  <ButtonBase {...props} sx={[bottomControlButtonSx, ...toSxArray(sx)]}>
+    {children}
+  </ButtonBase>
+)
 
 const MapBottomControls = () => {
   const _map = useMapInstanceStore((state) => state._map)
@@ -246,66 +303,40 @@ const MapBottomControls = () => {
   ])
 
   const cookieButton = (
-    <Button
+    <BottomControlButton
       type="button"
       aria-label="Cookie settings"
       disabled={true}
       tabIndex={-1}
-      sx={{
-        width: '2.125rem',
-        minWidth: '2.125rem',
-        height: '2.125rem',
-        border: 0,
-        p: 0,
-        borderRadius: '0.3125rem',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'rgba(79, 79, 79, 0.55)',
-        backgroundColor: 'rgba(244, 244, 244, 0.9)',
-        boxShadow: 'inset 2px 2px 2px rgba(177, 177, 177, 0.25)',
-        opacity: 0.75,
-        '&.Mui-disabled': {
+      sx={[
+        {
           color: 'rgba(79, 79, 79, 0.55)',
-          backgroundColor: 'rgba(244, 244, 244, 0.9)',
           opacity: 0.75,
+          '&:disabled': {
+            color: 'rgba(79, 79, 79, 0.55)',
+            backgroundColor: 'rgba(244, 244, 244, 0.9)',
+            opacity: 0.75,
+          },
         },
-        '& svg': {
-          width: '1.15rem',
-          height: '1.15rem',
-        },
-      }}
+      ]}
     >
       <Cookie />
-    </Button>
+    </BottomControlButton>
   )
 
   const infoButton = (
-    <Button
+    <BottomControlButton
       type="button"
       onClick={() => setIsPanelOpen((prev) => !prev)}
       aria-label="Toggle attribution information"
-      sx={{
-        width: '2.125rem',
-        minWidth: '2.125rem',
-        height: '2.125rem',
-        border: 0,
-        p: 0,
-        borderRadius: '0.3125rem',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'rgba(79, 79, 79, 0.85)',
-        backgroundColor: 'rgba(244, 244, 244, 0.9)',
-        boxShadow: 'inset 2px 2px 2px rgba(177, 177, 177, 0.25)',
-        '& svg': {
-          width: '1.15rem',
-          height: '1.15rem',
+      sx={[
+        {
+          color: 'rgba(79, 79, 79, 0.85)',
         },
-      }}
+      ]}
     >
       <AttributionInfo />
-    </Button>
+    </BottomControlButton>
   )
 
   const renderControls = ({
@@ -319,6 +350,7 @@ const MapBottomControls = () => {
       <MapBottomLeftFloatingControlsSlot />
       {showInfoButton && isPanelOpen && sanitizedAttributionHtml && (
         <Box
+          data-map-attribution-panel="true"
           sx={(theme) => ({
             position: 'absolute',
             left:
@@ -421,9 +453,10 @@ const MapBottomControls = () => {
         left: leftOffsetPx,
         bottom: spacingBottomPx,
         pointerEvents: 'none',
-        zIndex: hasRoomForDesiredLeftOffset
-          ? theme.zIndex.mapButtons
-          : theme.zIndex.drawer + 12,
+        zIndex:
+          isMobile || !hasRoomForDesiredLeftOffset
+            ? theme.zIndex.drawer + 13
+            : theme.zIndex.mapButtons,
         transition:
           'left 220ms cubic-bezier(.2,0,.2,1), bottom 220ms cubic-bezier(.2,0,.2,1)',
       })}

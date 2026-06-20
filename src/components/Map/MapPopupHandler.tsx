@@ -1,81 +1,90 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
-import Box from '@mui/material/Box'
-import { Modal } from '@mui/material'
+import { useCallback } from 'react'
+import { Dialog } from '@base-ui/react/dialog'
 
 import { useMapStore } from '#/common/store/mapStore'
 import { useUIStore } from '#/common/store'
+import { Box } from '#/common/style/theme/system'
 
 export const MapPopupHandler = () => {
-  const [isActive, setIsActive] = useState(false)
   const activePopupData = useMapStore((state) => state.activePopupData)
   const removeSelectedFeatures = useMapStore(
     (state) => state.removeSelectedFeatures
   )
   const popupModalViewMode = useUIStore((state) => state.popupModalViewMode)
 
-  const popupData = useMemo(() => {
-    if (!activePopupData || activePopupData.length === 0) {
-      return null
-    }
+  const popupData = activePopupData[0] ?? null
+  const isActive = popupData?.type === 'modal'
 
-    const newPopupData = activePopupData[0]
-    return newPopupData
-  }, [activePopupData])
-
-  useEffect(() => {
-    if (!popupData) {
-      setIsActive(false)
-      return
-    }
-
-    setIsActive(true)
-  }, [popupData])
-
-  const handleClose = () => {
-    setIsActive(false)
+  const handleClose = useCallback(() => {
     if (popupData?.features) {
       removeSelectedFeatures({ features: popupData.features })
     }
-  }
+  }, [popupData, removeSelectedFeatures])
 
   return (
     <>
       {popupData && popupData.type === 'modal' && (
-        <Modal
+        <Dialog.Root
           open={isActive}
-          onClose={handleClose}
-          aria-labelledby="map-popup-modal-title"
-          aria-describedby="map-popup-modal-description"
-          disableEnforceFocus={popupModalViewMode !== 'fullscreen'}
-          slotProps={{
-            backdrop: {
-              sx: {
-                backgroundColor: 'transparent',
-                pointerEvents: 'none',
-              },
-            },
-          }}
-          sx={{
-            zIndex: 'modal',
-            pointerEvents: 'none',
+          modal={popupModalViewMode === 'fullscreen' ? 'trap-focus' : false}
+          disablePointerDismissal
+          onOpenChange={(nextOpen) => {
+            if (!nextOpen && isActive) {
+              handleClose()
+            }
           }}
         >
-          <Box
-            sx={{
-              pointerEvents: 'auto',
-            }}
-          >
-            {popupData && (
-              <popupData.component
-                features={popupData.features}
-                onClose={handleClose}
-                {...popupData.componentProps}
-              />
-            )}
-          </Box>
-        </Modal>
+          <Dialog.Portal>
+            <Dialog.Backdrop
+              render={(backdropProps) => (
+                <Box
+                  {...backdropProps}
+                  sx={(theme) => ({
+                    position: 'fixed',
+                    inset: 0,
+                    zIndex: theme.zIndex.modal,
+                    backgroundColor: 'transparent',
+                    pointerEvents: 'none',
+                  })}
+                />
+              )}
+            />
+            <Dialog.Popup
+              aria-labelledby="map-popup-modal-title"
+              aria-describedby="map-popup-modal-description"
+              initialFocus={popupModalViewMode === 'fullscreen'}
+              finalFocus={false}
+              render={(popupProps) => (
+                <Box
+                  {...popupProps}
+                  sx={(theme) => ({
+                    position: 'fixed',
+                    inset: 0,
+                    zIndex: theme.zIndex.modal,
+                    outline: 'none',
+                    pointerEvents: 'none',
+                  })}
+                />
+              )}
+            >
+              <Box
+                sx={{
+                  pointerEvents: 'auto',
+                }}
+              >
+                {popupData && (
+                  <popupData.component
+                    features={popupData.features}
+                    onClose={handleClose}
+                    {...popupData.componentProps}
+                  />
+                )}
+              </Box>
+            </Dialog.Popup>
+          </Dialog.Portal>
+        </Dialog.Root>
       )}
     </>
   )
