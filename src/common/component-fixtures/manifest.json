@@ -27,6 +27,71 @@
     ]
   },
   {
+    "id": "map-button-primitives",
+    "label": "Map button primitives",
+    "description": "Reusable map button, menu, and sticky menu primitive states.",
+    "sourceGlobs": [
+      "src/components/Map/MapButton.tsx",
+      "src/components/Map/MapButtonMenu.tsx",
+      "src/components/Map/MapButtonStickyMenu.tsx",
+      "src/components/Map/CorridorBufferMenu.tsx",
+      "src/components/icons/Tune.tsx",
+      "src/common/component-fixtures/fixtures/MapButtonPrimitivesFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "default-horizontal",
+        "label": "Default horizontal",
+        "description": "Default map button with horizontal tooltip placement."
+      },
+      {
+        "id": "default-vertical",
+        "label": "Default vertical",
+        "description": "Default map button with vertical tooltip placement."
+      },
+      {
+        "id": "active",
+        "label": "Active",
+        "description": "Active styling hook supplied through caller sx."
+      },
+      {
+        "id": "disabled",
+        "label": "Disabled",
+        "description": "Disabled button styling with tooltip wrapper present."
+      },
+      {
+        "id": "tooltip-visible",
+        "label": "Tooltip visible",
+        "description": "Forced-open tooltip for deterministic visual capture.",
+        "waitFor": "[data-slot=\"map-button-tooltip\"]"
+      },
+      {
+        "id": "menu-open",
+        "label": "Menu open",
+        "description": "Default-open floating menu anchored to a map button.",
+        "waitFor": "[data-slot=\"map-button-menu-surface\"]"
+      },
+      {
+        "id": "sticky-menu-open",
+        "label": "Sticky menu open",
+        "description": "Active sticky menu with toggle rendered through the map sticky slot.",
+        "waitFor": "[data-slot=\"map-button-sticky-menu-close\"]"
+      },
+      {
+        "id": "horizontal",
+        "label": "Horizontal",
+        "description": "Horizontal menu placement below the map button.",
+        "waitFor": "[data-slot=\"map-button-menu-surface\"]"
+      },
+      {
+        "id": "vertical",
+        "label": "Vertical",
+        "description": "Vertical menu placement to the left of the map button.",
+        "waitFor": "[data-slot=\"map-button-menu-surface\"]"
+      }
+    ]
+  },
+  {
     "id": "layer-toggle-row",
     "label": "LayerToggleRow",
     "description": "Representative layer visibility toggle row states.",

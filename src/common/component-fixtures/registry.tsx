@@ -11,6 +11,7 @@ import { folderFixture } from './fixtures/FolderFixture'
 import { fullscreenPageFixture } from './fixtures/FullscreenPageFixture'
 import { loadingFeedbackFixture } from './fixtures/LoadingFeedbackFixture'
 import { layerToggleRowFixture } from './fixtures/LayerToggleRowFixture'
+import { mapButtonPrimitivesFixture } from './fixtures/MapButtonPrimitivesFixture'
 import { multiSelectAutocompleteFixture } from './fixtures/MultiSelectAutocompleteFixture'
 import { notificationFeedbackFixture } from './fixtures/NotificationFeedbackFixture'
 import { editableTextFixture } from './fixtures/EditableTextFixture'
@@ -30,6 +31,7 @@ import type {
 
 const componentFixtures: ComponentFixture[] = [
   sharedSvgIconFixture,
+  mapButtonPrimitivesFixture,
   layerToggleRowFixture,
   dropDownSelectFixture,
   dropDownMultiSelectFixture,
