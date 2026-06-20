@@ -12,6 +12,7 @@ import { fullscreenPageFixture } from './fixtures/FullscreenPageFixture'
 import { loadingFeedbackFixture } from './fixtures/LoadingFeedbackFixture'
 import { layerToggleRowFixture } from './fixtures/LayerToggleRowFixture'
 import { multiSelectAutocompleteFixture } from './fixtures/MultiSelectAutocompleteFixture'
+import { notificationFeedbackFixture } from './fixtures/NotificationFeedbackFixture'
 import { editableTextFixture } from './fixtures/EditableTextFixture'
 import { numberInputFieldFixture } from './fixtures/NumberInputFieldFixture'
 import { sharedSvgIconFixture } from './fixtures/SharedSvgIconFixture'
@@ -46,6 +47,7 @@ const componentFixtures: ComponentFixture[] = [
   textFieldWithHeaderFixture,
   loadingFeedbackFixture,
   sharedModalOverlaysFixture,
+  notificationFeedbackFixture,
 ]
 
 export const getComponentFixtures = () => componentFixtures

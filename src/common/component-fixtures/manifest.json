@@ -971,5 +971,42 @@
         "waitFor": "role=dialog"
       }
     ]
+  },
+  {
+    "id": "notification-feedback",
+    "label": "Notification feedback",
+    "description": "Global snackbar and confirmation dialog states for feedback migration coverage.",
+    "sourceGlobs": [
+      "src/components/Notification/NotificationProvider.tsx",
+      "src/components/Notification/NotificationManager.tsx",
+      "src/components/Notification/ConfirmationDialog.tsx",
+      "src/common/component-fixtures/fixtures/NotificationFeedbackFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "snackbar-visible",
+        "label": "Snackbar visible",
+        "description": "Visible default notification with a long auto-hide duration.",
+        "waitFor": "text=Fixture notification is visible."
+      },
+      {
+        "id": "snackbar-link",
+        "label": "Snackbar link",
+        "description": "Visible notification with an underlined link action.",
+        "waitFor": "text=Open fixture index"
+      },
+      {
+        "id": "snackbar-persistent",
+        "label": "Snackbar persistent",
+        "description": "Persistent notification that remains until closed.",
+        "waitFor": "text=Persistent fixture notification stays open."
+      },
+      {
+        "id": "confirmation-open",
+        "label": "Confirmation open",
+        "description": "Open confirmation dialog seeded from the UI store.",
+        "waitFor": "role=dialog"
+      }
+    ]
   }
 ]

@@ -1,14 +1,28 @@
 import React, { useEffect, useMemo, useRef } from 'react'
-import Button from '@mui/material/Button'
-import Dialog from '@mui/material/Dialog'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-import DialogTitle from '@mui/material/DialogTitle'
+import { Dialog } from '@base-ui/react/dialog'
 
-import { useUIStore } from '#/common/store'
+import { useUIStore } from '#/common/store/uiStore'
 import { useTranslate } from '@tolgee/react'
 import { ConfirmationDialogOptions } from '#/common/types/state'
+import { Box, type AppTheme } from '#/common/style/theme/system'
+
+type SystemButtonProps = React.ComponentProps<typeof Box> &
+  React.ButtonHTMLAttributes<HTMLButtonElement> &
+  React.RefAttributes<HTMLButtonElement>
+
+const titleId = 'alert-dialog-title'
+const descriptionId = 'alert-dialog-description'
+
+const assignRef = <T,>(ref: React.Ref<T> | undefined, value: T | null) => {
+  if (typeof ref === 'function') {
+    ref(value)
+    return
+  }
+
+  if (ref != null) {
+    ref.current = value
+  }
+}
 
 const actionButtonSx = {
   typography: 'body1',
@@ -16,13 +30,20 @@ const actionButtonSx = {
   px: 2.5,
   py: 1,
   borderRadius: '999px',
+  border: '1px solid',
   borderColor: 'neutral.main',
   backgroundColor: 'neutral.light',
   color: 'neutral.darker',
   boxShadow: '1px 1px 7px 0px #EEECEC',
   '&:hover': {
+    cursor: 'pointer',
     backgroundColor: 'primary.lighter',
     borderColor: 'primary.main',
+  },
+  '&:focus-visible': {
+    outline: (theme: AppTheme) =>
+      `2px solid ${theme.palette.secondary.dark}`,
+    outlineOffset: 2,
   },
 }
 
@@ -31,30 +52,106 @@ const compactActionButtonSx = {
   minWidth: 0,
 }
 
+const resetButtonSx = {
+  font: 'inherit',
+  textAlign: 'center',
+  lineHeight: 1.5,
+  m: 0,
+  '&:disabled': {
+    cursor: 'default',
+  },
+}
+
+const dialogActionButtonSx = {
+  ...resetButtonSx,
+  ...actionButtonSx,
+}
+
+const dialogPopupSx = {
+  position: 'relative',
+  width: 'calc(100vw - 1rem)',
+  maxWidth: '30rem',
+  mx: 1,
+  borderRadius: '0.625rem',
+  border: '1px solid',
+  borderColor: 'neutral.main',
+  backgroundColor: 'neutral.lighter',
+  color: 'neutral.darker',
+  pt: 1,
+  outline: 'none',
+  '&[data-ending-style]': {
+    display: 'none',
+  },
+}
+
+const backdropSx = {
+  position: 'fixed',
+  inset: 0,
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  '&[data-ending-style]': {
+    display: 'none',
+  },
+}
+
+const viewportSx = {
+  position: 'fixed',
+  inset: 0,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  overflow: 'auto',
+  p: 1,
+}
+
+const actionRowSx = {
+  px: 3,
+  pb: 3,
+  pt: 3,
+  display: 'flex',
+  justifyContent: 'flex-end',
+  gap: 1.5,
+}
+
+const compactActionRowSx = {
+  width: '100%',
+}
+
+const titleSx = {
+  typography: 'h2',
+  color: 'neutral.darker',
+  px: 3,
+  pt: 3,
+  m: 0,
+}
+
+const contentSx = {
+  px: 3,
+  pb: 0,
+}
+
+const descriptionSx = {
+  typography: 'body2',
+  color: 'neutral.darker',
+  m: 0,
+}
+
 const ConfirmationDialog = () => {
   const confirmationDialogOptions = useUIStore(
     (state) => state.confirmationDialogOptions
   )
-  const confirmationDialogIdRef = useRef<string | null>(null)
-  const dialogPaperRef = useRef<HTMLDivElement | null>(null)
-  const [open, setOpen] = React.useState(false)
+  const dialogPaperRef = useRef<HTMLElement | null>(null)
+  const confirmButtonRef = useRef<HTMLButtonElement | null>(null)
+  const handledCloseIdRef = useRef<string | null>(null)
+  const [closedDialogId, setClosedDialogId] = React.useState<string | null>(
+    null
+  )
   const [shouldFillActionRow, setShouldFillActionRow] = React.useState(false)
   const { t } = useTranslate('avoin-map')
-
-  useEffect(() => {
-    if (confirmationDialogOptions) {
-      if (confirmationDialogIdRef.current != confirmationDialogOptions.id) {
-        confirmationDialogIdRef.current = confirmationDialogOptions.id
-        setOpen(true)
-      } else if (confirmationDialogOptions.id == null && open) {
-        setOpen(false)
-      }
-    }
-  }, [confirmationDialogOptions, open])
+  const activeDialogId = confirmationDialogOptions.id
+  const open = activeDialogId != null && activeDialogId !== closedDialogId
 
   useEffect(() => {
     if (!open) {
-      setShouldFillActionRow(false)
       return
     }
 
@@ -92,90 +189,168 @@ const ConfirmationDialog = () => {
     return options
   }, [confirmationDialogOptions, t])
 
+  const closeCurrentDialog = () => {
+    setClosedDialogId(activeDialogId)
+
+    if (handledCloseIdRef.current === activeDialogId) {
+      return false
+    }
+
+    handledCloseIdRef.current = activeDialogId
+    return true
+  }
+
   const handleAccept = () => {
-    setOpen(false)
+    if (!closeCurrentDialog()) return
+
     if (localOptions.onConfirm) {
       localOptions.onConfirm()
     }
   }
 
   const handleCancel = () => {
-    setOpen(false)
+    if (!closeCurrentDialog()) return
+
     if (localOptions.onCancel != null) {
       localOptions.onCancel()
     }
   }
 
+  const ariaLabel =
+    localOptions.title == null
+      ? `${localOptions.confirmText} / ${localOptions.cancelText}`
+      : undefined
+
   return (
-    <Dialog
+    <Dialog.Root
       open={open}
-      onClose={handleCancel}
-      aria-labelledby="alert-dialog-title"
-      aria-describedby="alert-dialog-description"
-      slotProps={{
-        paper: {
-          ref: dialogPaperRef,
-        },
-      }}
-      sx={{
-        '& .MuiDialog-paper': {
-          maxWidth: '30rem',
-          mx: 1,
-          borderRadius: '0.625rem',
-          border: '1px solid',
-          borderColor: 'neutral.main',
-          backgroundColor: 'neutral.lighter',
-          pt: 1,
-          // boxShadow: '1px 1px 7px 0px #EEECEC',
-        },
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen && open) {
+          handleCancel()
+        }
       }}
     >
-      {localOptions.title != null && (
-        <DialogTitle
-          id="alert-dialog-title"
-          sx={{
-            typography: 'h2',
-            color: 'neutral.darker',
-            px: 3,
-            pt: 3,
-            pb: localOptions.content != null ? 1 : 2,
-          }}
+      <Dialog.Portal>
+        <Dialog.Backdrop
+          render={(backdropProps) => (
+            <Box
+              {...backdropProps}
+              sx={(theme) => ({
+                ...backdropSx,
+                zIndex: theme.zIndex.modal,
+              })}
+            />
+          )}
+        />
+        <Dialog.Viewport
+          render={(viewportProps) => (
+            <Box
+              {...viewportProps}
+              sx={(theme) => ({
+                ...viewportSx,
+                zIndex: theme.zIndex.modal,
+              })}
+            />
+          )}
         >
-          {localOptions.title}
-        </DialogTitle>
-      )}
-      {localOptions.content != null && (
-        <DialogContent sx={{ px: 3, pb: 0 }}>
-          <DialogContentText
-            sx={{ typography: 'body2', color: 'neutral.darker' }}
-            id="alert-dialog-description"
+          <Dialog.Popup
+            aria-label={ariaLabel}
+            aria-labelledby={localOptions.title != null ? titleId : undefined}
+            aria-describedby={
+              localOptions.content != null ? descriptionId : undefined
+            }
+            initialFocus={confirmButtonRef}
+            finalFocus={true}
+            render={(popupProps) => {
+              const { ref: popupRef, ...restPopupProps } = popupProps
+
+              return (
+                <Box
+                  {...restPopupProps}
+                  ref={(node) => {
+                    assignRef(popupRef, node)
+                    dialogPaperRef.current = node
+                  }}
+                  sx={dialogPopupSx}
+                />
+              )
+            }}
           >
-            {localOptions.content}
-          </DialogContentText>
-        </DialogContent>
-      )}
-      <DialogActions sx={{ px: 3, pb: 3, pt: 3, gap: 1.5 }}>
-        <Button
-          onClick={handleCancel}
-          aria-label={localOptions.cancelText}
-          variant="outlined"
-          disableFocusRipple
-          sx={[actionButtonSx, shouldFillActionRow ? compactActionButtonSx : {}]}
-        >
-          {localOptions.cancelText}
-        </Button>
-        <Button
-          onClick={handleAccept}
-          aria-label={localOptions.confirmText}
-          autoFocus
-          variant="outlined"
-          disableFocusRipple
-          sx={[actionButtonSx, shouldFillActionRow ? compactActionButtonSx : {}]}
-        >
-          {localOptions.confirmText}
-        </Button>
-      </DialogActions>
-    </Dialog>
+            {localOptions.title != null && (
+              <Dialog.Title
+                id={titleId}
+                render={(titleProps) => (
+                  <Box
+                    {...titleProps}
+                    component="h2"
+                    sx={[
+                      titleSx,
+                      { pb: localOptions.content != null ? 1 : 2 },
+                    ]}
+                  />
+                )}
+              >
+                {localOptions.title}
+              </Dialog.Title>
+            )}
+            {localOptions.content != null && (
+              <Box sx={contentSx}>
+                <Dialog.Description
+                  id={descriptionId}
+                  render={(descriptionProps) => (
+                    <Box
+                      {...descriptionProps}
+                      component="p"
+                      sx={descriptionSx}
+                    />
+                  )}
+                >
+                  {localOptions.content}
+                </Dialog.Description>
+              </Box>
+            )}
+            <Box
+              sx={[
+                actionRowSx,
+                shouldFillActionRow ? compactActionRowSx : {},
+              ]}
+            >
+              <Box
+                {...({
+                  component: 'button',
+                  type: 'button',
+                  onClick: handleCancel,
+                  'aria-label': localOptions.cancelText,
+                } as SystemButtonProps)}
+                sx={[
+                  dialogActionButtonSx,
+                  shouldFillActionRow ? compactActionButtonSx : {},
+                ]}
+              >
+                {localOptions.cancelText}
+              </Box>
+              <Box
+                {...({
+                  component: 'button',
+                  type: 'button',
+                  ref: (node: HTMLButtonElement | null) => {
+                    confirmButtonRef.current = node
+                  },
+                  onClick: handleAccept,
+                  'aria-label': localOptions.confirmText,
+                } as SystemButtonProps)}
+                sx={[
+                  dialogActionButtonSx,
+                  shouldFillActionRow ? compactActionButtonSx : {},
+                ]}
+              >
+                {localOptions.confirmText}
+              </Box>
+            </Box>
+          </Dialog.Popup>
+        </Dialog.Viewport>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }
 
