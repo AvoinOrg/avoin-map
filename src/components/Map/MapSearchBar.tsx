@@ -1,24 +1,25 @@
 'use client'
 
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
-import {
-  Autocomplete,
-  Box,
-  Collapse,
-  CircularProgress,
-  IconButton,
-  TextField,
-  Typography,
-} from '@mui/material'
-import { debounce } from 'lodash-es'
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+} from 'react'
 import { useTranslate } from '@tolgee/react'
 import axios from 'axios'
 import { useParams } from 'next/navigation'
-import { bbox as turfBBox } from '@turf/turf'
 
 import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
 import { useMapStore, useUIStore } from '#/common/store'
-import Search from '#/components/icons/Search'
+import {
+  Box,
+  type AppSxProps,
+  type AppTheme,
+} from '#/common/style/theme/system'
+import { IconButton } from '#/components/common/Button'
+import { Cross, Search } from '#/components/icons'
 import {
   boundsFromNominatim,
   defaultFeatureDisplayPattern,
@@ -27,6 +28,7 @@ import {
   zoomFromPlaceOptions,
 } from '#/common/utils/map'
 import { MapMenuState } from '#/common/types/state'
+import { MAP_BUTTON_SIZE, MapButton } from './MapButton'
 
 const mapMenuState: MapMenuState = 'search'
 
@@ -38,24 +40,653 @@ const MAX_LOCAL_RESULTS = 25
 const MAX_REMOTE_RESULTS = 5
 const MAX_REMOTE_CACHE_SIZE = 50
 
+type SearchableFeature = {
+  id?: string | number
+  properties?: Record<string, unknown> | null
+  geometry?: unknown
+  bbox?: [number, number, number, number]
+}
+
+type GeoJsonGeometryLike = {
+  coordinates?: unknown
+  geometries?: unknown
+}
+
 type LocalSearchIndexEntry = {
-  feature: any
+  feature: SearchableFeature
   searchText: string
   displayNameArr: string[]
   datasetName: string
   appendDatasetName: boolean
-  getCoordinates: (feature: any) => [number, number] | null
+  getCoordinates: (feature: SearchableFeature) => [number, number] | null
   place_id: string
 }
 
+export type LocalMapSearchResult = {
+  isLocal: true
+  lon: number
+  lat: number
+  bbox: [number, number, number, number] | null
+  displayNameArr: string[]
+  datasetName: string
+  place_id: string
+}
+
+export type RemoteMapSearchResult = {
+  isLocal?: false
+  place_id?: string | number
+  display_name?: string
+  name?: string
+  address?: Record<string, string | undefined>
+  boundingbox?: string[] | [string, string, string, string]
+  bbox?: [number, number, number, number]
+  lon?: string | number
+  lng?: string | number
+  lat?: string | number
+  latitude?: string | number
+  place_rank?: number | string
+  importance?: number | string
+  class?: string
+  type?: string
+}
+
+export type MapSearchResult = LocalMapSearchResult | RemoteMapSearchResult
+
+type MapSearchBarSurfaceProps = {
+  isVertical: boolean
+  isActive: boolean
+  isFocused: boolean
+  isLoading: boolean
+  inputValue: string
+  searchResults: MapSearchResult[]
+  placeholder: string
+  clearButtonAriaLabel: string
+  noResultsLabel: string
+  onOpen: () => void
+  onClose: () => void
+  onFocusChange: (isFocused: boolean) => void
+  onInputValueChange: (value: string) => void
+  onClear: () => void
+  onSelect: (
+    event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
+    result: MapSearchResult
+  ) => void
+  inputRef?: React.Ref<HTMLInputElement>
+  defaultPopupOpen?: boolean
+}
+
+type SearchInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
+  sx?: AppSxProps
+}
+
+const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
+  function SearchInput({ sx, ...props }, ref) {
+    return (
+      <Box
+        component="input"
+        ref={ref as React.Ref<HTMLElement>}
+        sx={sx}
+        {...props}
+      />
+    )
+  }
+)
+
+const assignRef = <TElement,>(
+  ref: React.Ref<TElement> | undefined,
+  value: TElement | null
+) => {
+  if (!ref) return
+  if (typeof ref === 'function') {
+    ref(value)
+    return
+  }
+  ;(ref as React.MutableRefObject<TElement | null>).current = value
+}
+
+const getSearchResultKey = (result: MapSearchResult, index: number) =>
+  String(result.place_id ?? getSearchResultLabel(result) ?? index)
+
+const getSearchResultLabel = (result: MapSearchResult) => {
+  if (result.isLocal) {
+    return result.displayNameArr.join(' - ') || ''
+  }
+
+  return result.display_name || result.name || ''
+}
+
+const extendBoundsFromCoordinates = (
+  coordinates: unknown,
+  bounds: [number, number, number, number]
+) => {
+  if (!Array.isArray(coordinates)) {
+    return
+  }
+
+  if (
+    coordinates.length >= 2 &&
+    typeof coordinates[0] === 'number' &&
+    typeof coordinates[1] === 'number'
+  ) {
+    bounds[0] = Math.min(bounds[0], coordinates[0])
+    bounds[1] = Math.min(bounds[1], coordinates[1])
+    bounds[2] = Math.max(bounds[2], coordinates[0])
+    bounds[3] = Math.max(bounds[3], coordinates[1])
+    return
+  }
+
+  coordinates.forEach((coordinateSet) => {
+    extendBoundsFromCoordinates(coordinateSet, bounds)
+  })
+}
+
+const extendBoundsFromGeometry = (
+  geometry: unknown,
+  bounds: [number, number, number, number]
+) => {
+  if (!geometry || typeof geometry !== 'object') {
+    return
+  }
+
+  const geometryLike = geometry as GeoJsonGeometryLike
+  extendBoundsFromCoordinates(geometryLike.coordinates, bounds)
+
+  if (Array.isArray(geometryLike.geometries)) {
+    geometryLike.geometries.forEach((childGeometry) => {
+      extendBoundsFromGeometry(childGeometry, bounds)
+    })
+  }
+}
+
+const getGeometryBbox = (
+  geometry: unknown
+): [number, number, number, number] | null => {
+  const bounds: [number, number, number, number] = [
+    Infinity,
+    Infinity,
+    -Infinity,
+    -Infinity,
+  ]
+
+  extendBoundsFromGeometry(geometry, bounds)
+
+  return bounds.every(Number.isFinite) ? bounds : null
+}
+
+const getRemoteAddressParts = (result: RemoteMapSearchResult) => {
+  const { address, name } = result
+
+  if (!address) {
+    return []
+  }
+
+  const addressParts = [
+    address.road,
+    address.neighbourhood,
+    address.suburb,
+    address.city_district,
+    address.city,
+    address.state,
+    address.country,
+  ].filter(Boolean) as string[]
+
+  const uniqueAddressParts = [...new Set(addressParts)]
+  const nameIndex = name ? uniqueAddressParts.indexOf(name) : -1
+
+  if (nameIndex > -1) {
+    uniqueAddressParts.splice(nameIndex, 1)
+  }
+
+  return uniqueAddressParts
+}
+
+const getSearchResultText = (result: MapSearchResult) => {
+  if (result.isLocal) {
+    const [primaryText = '', ...secondaryParts] = result.displayNameArr
+
+    return {
+      primaryText,
+      secondaryText: secondaryParts.join(' - '),
+    }
+  }
+
+  const label = getSearchResultLabel(result)
+
+  return {
+    primaryText: result.name || label,
+    secondaryText: getRemoteAddressParts(result).join(', '),
+  }
+}
+
+const mapSearchSurfaceSx = {
+  position: 'relative',
+  height: `${MAP_BUTTON_SIZE}px`,
+  backgroundColor: 'neutral.light',
+  marginLeft: 'auto',
+  borderRadius: '0.3125rem',
+  pointerEvents: 'auto',
+  overflow: 'visible',
+  '&:hover': {
+    opacity: 1,
+  },
+}
+
+const mapSearchInputRootSx = {
+  width: `${MAP_SEARCH_BAR_HORIZONTAL_MODE_WIDTH}px`,
+  height: `${MAP_BUTTON_SIZE}px`,
+  display: 'flex',
+  alignItems: 'center',
+  gap: 0.75,
+  pl: 1,
+  pr: 4.5,
+  backgroundColor: 'neutral.light',
+  opacity: 0.9,
+  borderRadius: '0.3125rem',
+  boxSizing: 'border-box',
+  '&:focus-within': {
+    boxShadow: 'none',
+  },
+}
+
+const mapSearchInputSx = {
+  minWidth: 0,
+  flex: 1,
+  height: '100%',
+  p: 0,
+  border: 0,
+  outline: 0,
+  backgroundColor: 'transparent',
+  color: 'text.primary',
+  typography: 'body2',
+  font: 'inherit',
+  '&::placeholder': {
+    color: 'text.secondary',
+    opacity: 1,
+  },
+}
+
+const mapSearchIconButtonSx = {
+  width: 24,
+  minWidth: 24,
+  height: 24,
+  m: 0,
+  p: 0,
+  border: 0,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: 'transparent',
+  color: 'action.active',
+  cursor: 'pointer',
+  borderRadius: '0.125rem',
+  '&:hover': {
+    backgroundColor: 'action.hover',
+  },
+  '&:focus-visible': {
+    outline: (theme: AppTheme) => `2px solid ${theme.palette.secondary.dark}`,
+    outlineOffset: 1,
+  },
+}
+
+const mapSearchPopupSx = {
+  width: `${MAP_SEARCH_BAR_HORIZONTAL_MODE_WIDTH}px`,
+  mt: '-0.3125rem',
+  borderRadius: '0.3125rem',
+  borderTopLeftRadius: 0,
+  borderTopRightRadius: 0,
+  backgroundColor: 'neutral.light',
+  boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.18)',
+  overflow: 'hidden',
+  outline: 0,
+}
+
+const mapSearchOptionSx = {
+  px: 1.5,
+  py: 1,
+  cursor: 'pointer',
+  outline: 0,
+  '&:hover': {
+    backgroundColor: 'neutral.main',
+  },
+  '&[aria-selected="true"]': {
+    backgroundColor: 'primary.light',
+  },
+}
+
+const mapSearchPrimaryTextSx = {
+  m: 0,
+  color: 'text.primary',
+  typography: 'body1',
+}
+
+const mapSearchSecondaryTextSx = {
+  m: 0,
+  color: 'text.secondary',
+  typography: 'body2',
+}
+
+const mapSearchSpinnerSx = {
+  width: 18,
+  height: 18,
+  borderRadius: '50%',
+  border: '2px solid',
+  borderColor: 'action.disabledBackground',
+  borderTopColor: 'action.active',
+  animation: 'map-search-spin 0.8s linear infinite',
+  '@keyframes map-search-spin': {
+    to: {
+      transform: 'rotate(360deg)',
+    },
+  },
+}
+
+export const MapSearchBarSurface = ({
+  isVertical,
+  isActive,
+  isFocused,
+  isLoading,
+  inputValue,
+  searchResults,
+  placeholder,
+  clearButtonAriaLabel,
+  noResultsLabel,
+  onOpen,
+  onClose,
+  onFocusChange,
+  onInputValueChange,
+  onClear,
+  onSelect,
+  inputRef,
+  defaultPopupOpen = false,
+}: MapSearchBarSurfaceProps) => {
+  const rootRef = useRef<HTMLElement | null>(null)
+  const popupRef = useRef<HTMLElement | null>(null)
+  const localInputRef = useRef<HTMLInputElement | null>(null)
+  const listboxId = React.useId()
+  const [popupOpen, setPopupOpen] = useState(defaultPopupOpen)
+  const [highlightedIndex, setHighlightedIndex] = useState(0)
+  const isInputVisible = !isVertical || isActive
+  const trimmedInputValue = inputValue.trim()
+  const showNoResults =
+    trimmedInputValue.length > 0 && !isLoading && searchResults.length === 0
+  const shouldShowPopup =
+    isInputVisible && popupOpen && (searchResults.length > 0 || showNoResults)
+
+  const setInputRefs = useCallback(
+    (node: HTMLInputElement | null) => {
+      localInputRef.current = node
+      assignRef(inputRef, node)
+    },
+    [inputRef]
+  )
+
+  const closeIfFocusLeft = useCallback(() => {
+    window.setTimeout(() => {
+      const activeElement = document.activeElement
+      const focusInRoot =
+        activeElement instanceof Element &&
+        (rootRef.current?.contains(activeElement) ||
+          popupRef.current?.contains(activeElement))
+
+      if (focusInRoot) {
+        return
+      }
+
+      onFocusChange(false)
+
+      if (isVertical && !inputValue.trim()) {
+        onClose()
+      }
+    }, 200)
+  }, [inputValue, isVertical, onClose, onFocusChange])
+
+  const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      setPopupOpen(true)
+      setHighlightedIndex((previous) =>
+        searchResults.length === 0
+          ? 0
+          : Math.min(previous + 1, searchResults.length - 1)
+      )
+      return
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      setPopupOpen(true)
+      setHighlightedIndex((previous) => Math.max(previous - 1, 0))
+      return
+    }
+
+    if (event.key === 'Enter' && shouldShowPopup && searchResults.length > 0) {
+      event.preventDefault()
+      const selectedResult =
+        searchResults[Math.min(highlightedIndex, searchResults.length - 1)]
+      if (selectedResult) {
+        onSelect(event, selectedResult)
+        setPopupOpen(false)
+      }
+      return
+    }
+
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      setPopupOpen(false)
+    }
+  }
+
+  if (!isInputVisible) {
+    return (
+      <Box
+        ref={rootRef}
+        sx={[
+          mapSearchSurfaceSx,
+          {
+            width: MAP_SEARCH_BAR_VERTICAL_MODE_WIDTH,
+            overflow: 'hidden',
+            zIndex: 'auto',
+          },
+        ]}
+      >
+        <MapButton
+          onClick={onOpen}
+          aria-label={placeholder}
+          sx={{
+            backgroundColor: 'transparent',
+            borderRadius: 0,
+            '&:hover': {
+              backgroundColor: 'neutral.main',
+            },
+          }}
+        >
+          <Search sx={{ color: 'action.active' }} aria-hidden="true" />
+        </MapButton>
+      </Box>
+    )
+  }
+
+  return (
+    <Box
+      ref={rootRef}
+      sx={[
+        mapSearchSurfaceSx,
+        {
+          width: MAP_SEARCH_BAR_HORIZONTAL_MODE_WIDTH,
+          zIndex: isFocused ? (theme: AppTheme) => theme.zIndex.drawer + 5 : 'auto',
+        },
+      ]}
+    >
+      <Box sx={mapSearchInputRootSx}>
+        <Box
+          component="span"
+          role={isLoading ? 'status' : undefined}
+          aria-label={isLoading ? placeholder : undefined}
+          sx={{
+            width: 24,
+            minWidth: 24,
+            height: 24,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'action.active',
+          }}
+        >
+          {isLoading ? (
+            <Box component="span" aria-hidden="true" sx={mapSearchSpinnerSx} />
+          ) : (
+            <Search
+              sx={{ width: 24, height: 24, display: 'block' }}
+              aria-hidden="true"
+            />
+          )}
+        </Box>
+
+        <SearchInput
+          ref={setInputRefs}
+          role="combobox"
+          aria-label={placeholder}
+          aria-expanded={shouldShowPopup ? 'true' : 'false'}
+          aria-haspopup="listbox"
+          aria-controls={shouldShowPopup ? listboxId : undefined}
+          aria-activedescendant={
+            shouldShowPopup && searchResults[highlightedIndex]
+              ? `${listboxId}-option-${highlightedIndex}`
+              : undefined
+          }
+          aria-autocomplete="list"
+          placeholder={placeholder}
+          value={inputValue}
+          autoComplete="off"
+          spellCheck={false}
+          onFocus={() => {
+            onFocusChange(true)
+            setPopupOpen(true)
+          }}
+          onBlur={closeIfFocusLeft}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+            onInputValueChange(event.target.value)
+            setHighlightedIndex(0)
+            setPopupOpen(true)
+          }}
+          onKeyDown={handleInputKeyDown}
+          sx={mapSearchInputSx}
+        />
+      </Box>
+
+      {shouldShowPopup && (
+        <Box
+          ref={popupRef}
+          id={listboxId}
+          role="listbox"
+          sx={[
+            mapSearchPopupSx,
+            {
+              position: 'absolute',
+              top: MAP_BUTTON_SIZE,
+              right: 0,
+              zIndex: (theme: AppTheme) => theme.zIndex.drawer + 4,
+            },
+          ]}
+        >
+          {searchResults.map((result, index) => {
+            const { primaryText, secondaryText } = getSearchResultText(result)
+            const isHighlighted = index === highlightedIndex
+
+            return (
+              <Box
+                key={getSearchResultKey(result, index)}
+                id={`${listboxId}-option-${index}`}
+                role="option"
+                aria-selected={isHighlighted ? 'true' : 'false'}
+                onMouseEnter={() => setHighlightedIndex(index)}
+                onMouseDown={(event: React.MouseEvent<HTMLElement>) => {
+                  event.preventDefault()
+                }}
+                onClick={(event: React.MouseEvent<HTMLElement>) => {
+                  onSelect(event, result)
+                  setPopupOpen(false)
+                }}
+                sx={[
+                  mapSearchOptionSx,
+                  ...(isHighlighted
+                    ? [
+                        {
+                          backgroundColor: 'neutral.main',
+                        },
+                      ]
+                    : []),
+                ]}
+              >
+                <Box>
+                  <Box component="p" sx={mapSearchPrimaryTextSx}>
+                    {primaryText}
+                  </Box>
+                  {secondaryText && (
+                    <Box component="p" sx={mapSearchSecondaryTextSx}>
+                      {secondaryText}
+                    </Box>
+                  )}
+                </Box>
+              </Box>
+            )
+          })}
+
+          {showNoResults && (
+            <Box
+              role="status"
+              sx={{
+                px: 1.5,
+                py: 1,
+                color: 'text.secondary',
+                typography: 'body2',
+              }}
+            >
+              {noResultsLabel}
+            </Box>
+          )}
+        </Box>
+      )}
+
+      <IconButton
+        type="button"
+        aria-label={clearButtonAriaLabel}
+        onMouseDown={(event: React.MouseEvent<HTMLElement>) => {
+          event.preventDefault()
+        }}
+        onClick={() => {
+          onClear()
+          setPopupOpen(false)
+          if (isVertical && !inputValue.trim()) {
+            localInputRef.current?.blur()
+          } else {
+            localInputRef.current?.focus()
+          }
+        }}
+        sx={[
+          mapSearchIconButtonSx,
+          {
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            visibility:
+              inputValue || (isVertical && isActive) ? 'visible' : 'hidden',
+          },
+        ]}
+      >
+        <Cross sx={{ width: 14, height: 14 }} aria-hidden="true" />
+      </IconButton>
+    </Box>
+  )
+}
+
 export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
-  const [searchResults, setSearchResults] = useState<any[]>([])
-  const [value, setValue] = useState('')
+  const [searchResults, setSearchResults] = useState<MapSearchResult[]>([])
   const [inputValue, setInputValue] = useState('')
   const [isFocused, setIsFocused] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const fetchCounter = React.useRef(0)
-  const remoteCacheRef = useRef<Map<string, any[]>>(new Map())
+  const fetchCounter = useRef(0)
+  const remoteCacheRef = useRef<Map<string, RemoteMapSearchResult[]>>(new Map())
   const remoteRequestRef = useRef<AbortController | null>(null)
   const { locale } = useParams()
   const searchInputRef = useRef<HTMLInputElement>(null)
@@ -69,6 +700,22 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
   const fitBounds = useMapStore((state) => state.fitBounds)
   const flyTo = useMapStore((state) => state.flyTo)
 
+  const abortRemoteSearch = useCallback(() => {
+    remoteRequestRef.current?.abort()
+    remoteRequestRef.current = null
+  }, [])
+
+  const invalidateRemoteSearch = useCallback(() => {
+    fetchCounter.current += 1
+    abortRemoteSearch()
+  }, [abortRemoteSearch])
+
+  const resetSearchResults = useCallback(() => {
+    invalidateRemoteSearch()
+    setSearchResults([])
+    setIsLoading(false)
+  }, [invalidateRemoteSearch])
+
   const isActive = useMemo(() => {
     return activeMapMenu === mapMenuState
   }, [activeMapMenu])
@@ -78,6 +725,12 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
       searchInputRef.current?.focus()
     }
   }, [isActive, isVertical])
+
+  useEffect(() => {
+    return () => {
+      remoteRequestRef.current?.abort()
+    }
+  }, [])
 
   const enabledSearchableDatas = useMemo(
     () =>
@@ -107,33 +760,35 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
       if (!data?.features) return
 
       data.features.forEach((feature) => {
-        const properties = feature.properties
+        const searchableFeature = feature as SearchableFeature
+        const properties = searchableFeature.properties
         if (!properties) return
 
         const values = (
           fields && fields.length > 0
             ? fields.map((field) => properties[field])
             : Object.values(properties)
-        ).filter((value) => value != null && value !== '')
+        ).filter((entryValue) => entryValue != null && entryValue !== '')
 
         if (values.length === 0) return
 
         const searchText = values
-          .map((value) => String(value).toLowerCase())
+          .map((entryValue) => String(entryValue).toLowerCase())
           .join(' ')
         const displayNameArr = displayPattern(feature, fields)
 
         entries.push({
-          feature,
+          feature: searchableFeature,
           searchText,
           displayNameArr,
           datasetName,
           appendDatasetName,
-          getCoordinates,
-          place_id:
-            feature.id ||
-            feature.properties?.id ||
-            `${datasetName}-${displayNameArr.join('-')}`,
+          getCoordinates: getCoordinates as LocalSearchIndexEntry['getCoordinates'],
+          place_id: String(
+            searchableFeature.id ||
+              searchableFeature.properties?.id ||
+              `${datasetName}-${displayNameArr.join('-')}`
+          ),
         })
       })
     })
@@ -145,7 +800,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
     (query: string) => {
       if (!query) return []
       const lowerCaseQuery = query.toLowerCase()
-      const localResults: any[] = []
+      const localResults: LocalMapSearchResult[] = []
 
       for (const entry of localSearchIndex) {
         if (!entry.searchText.includes(lowerCaseQuery)) {
@@ -157,15 +812,10 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
           continue
         }
 
-        const bbox = (entry.feature as any).bbox
-          ? ((entry.feature as any).bbox as [number, number, number, number])
+        const bbox = entry.feature.bbox
+          ? entry.feature.bbox
           : entry.feature.geometry
-            ? (turfBBox(entry.feature as any) as [
-                number,
-                number,
-                number,
-                number,
-              ])
+            ? getGeometryBbox(entry.feature.geometry)
             : null
 
         const displayNameArr = entry.appendDatasetName
@@ -196,7 +846,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
     async (rawQuery: string) => {
       const query = rawQuery.trim()
       if (!query) {
-        setIsLoading(false)
+        resetSearchResults()
         return
       }
       const currentFetchId = ++fetchCounter.current
@@ -209,6 +859,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
 
       if (query.length < MIN_REMOTE_QUERY_LENGTH) {
         if (currentFetchId === fetchCounter.current) {
+          abortRemoteSearch()
           setIsLoading(false)
         }
         return
@@ -220,6 +871,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
       const cachedResults = remoteCacheRef.current.get(cacheKey)
       if (cachedResults) {
         if (currentFetchId === fetchCounter.current) {
+          abortRemoteSearch()
           setSearchResults([...localResults, ...cachedResults])
           setIsLoading(false)
         }
@@ -240,7 +892,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
         if (searchCountryCodes.length > 0) {
           url += `&countrycodes=${searchCountryCodes.join(',')}`
         }
-        const res = await axios.get(url, {
+        const res = await axios.get<RemoteMapSearchResult[]>(url, {
           headers: { 'Accept-Language': locale || 'en' },
           signal: controller.signal,
         })
@@ -258,7 +910,7 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
           setSearchResults([...localResults, ...res.data])
           setIsLoading(false)
         }
-      } catch (e) {
+      } catch {
         if (controller.signal.aborted) return
         if (currentFetchId === fetchCounter.current) {
           setSearchResults(localResults)
@@ -266,34 +918,40 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
         }
       }
     },
-    [locale, performLocalSearch, searchCountryCodes]
-  )
-
-  const debouncedSearch = useMemo(
-    () =>
-      debounce((query: string) => {
-        handleSearch(query)
-      }, SEARCH_DEBOUNCE_MS),
-    [handleSearch]
+    [
+      abortRemoteSearch,
+      locale,
+      performLocalSearch,
+      resetSearchResults,
+      searchCountryCodes,
+    ]
   )
 
   useEffect(() => {
     const query = inputValue.trim()
-    if (query) {
-      debouncedSearch(query)
-    } else {
-      setSearchResults([])
-      setIsLoading(false)
+    if (!query) {
+      invalidateRemoteSearch()
+      return undefined
     }
-    return () => {
-      debouncedSearch.cancel()
-    }
-  }, [inputValue, debouncedSearch])
 
-  const handleSelect = (_event: any, option: any) => {
+    const timeoutId = window.setTimeout(() => {
+      handleSearch(query)
+    }, SEARCH_DEBOUNCE_MS)
+
+    return () => {
+      window.clearTimeout(timeoutId)
+    }
+  }, [inputValue, handleSearch, invalidateRemoteSearch])
+
+  const handleSelect = (
+    _event:
+      | React.MouseEvent<HTMLElement>
+      | React.KeyboardEvent<HTMLElement>
+      | React.SyntheticEvent<Element, Event>,
+    option: MapSearchResult | null
+  ) => {
     if (!option || !map) return
 
-    // try to build a bbox
     let bbox: [number, number, number, number] | null = null
 
     if (option.isLocal) {
@@ -303,29 +961,29 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
     }
 
     if (bbox) {
-      // Use your store fitBounds (handles sidebar padding)
-      // Small extras are fine horizontally; keep latExtra 0 to avoid Mercator bias
       fitBounds({
         bbox: [bbox[2], bbox[0], bbox[3], bbox[1]],
         options: {
-          // your order: [lonMax, lonMin, latMax, latMin]
           duration: 1200,
           lonExtra: 0.05,
-          latExtra: 0, // keep 0; rely on padding for vertical margin
+          latExtra: 0,
         },
       })
       return
     }
 
-    // point fallback
-    const lon = parseFloat(option.lon ?? option.lon ?? option.lng)
-    const lat = parseFloat(option.lat ?? option.latitude)
+    const lonValue = option.isLocal ? option.lon : option.lon ?? option.lng
+    const latValue = option.isLocal ? option.lat : option.lat ?? option.latitude
+    const lon = parseFloat(String(lonValue))
+    const lat = parseFloat(String(latValue))
     if (Number.isFinite(lon) && Number.isFinite(lat)) {
       let z = defaultPointZoom(option)
 
-      if (option.place_rank != null) {
-        z = zoomFromPlaceOptions(option.place_rank, {
-          importance: option.importance,
+      const placeRank = option.isLocal ? undefined : Number(option.place_rank)
+      if (!option.isLocal && placeRank != null && Number.isFinite(placeRank)) {
+        z = zoomFromPlaceOptions(placeRank, {
+          importance:
+            option.importance != null ? Number(option.importance) : undefined,
           cls: option.class,
           type: option.type,
         })
@@ -335,250 +993,55 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
     }
   }
 
+  const handleInputValueChange = (nextInputValue: string) => {
+    setInputValue(nextInputValue)
+
+    if (!nextInputValue.trim()) {
+      resetSearchResults()
+    }
+  }
+
+  const handleClear = () => {
+    resetSearchResults()
+
+    if (isVertical && !inputValue.trim()) {
+      setInputValue('')
+      setMapMenuState(mapMenuState, false)
+      searchInputRef.current?.blur()
+      return
+    }
+
+    setInputValue('')
+    searchInputRef.current?.focus()
+  }
+
+  const handleResultSelect = (
+    event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>,
+    result: MapSearchResult
+  ) => {
+    const label = getSearchResultLabel(result)
+    setInputValue(label)
+    handleSelect(event, result)
+  }
+
   return (
-    <Box
-      sx={{
-        position: 'relative',
-        width:
-          isVertical && !isActive
-            ? MAP_SEARCH_BAR_VERTICAL_MODE_WIDTH
-            : MAP_SEARCH_BAR_HORIZONTAL_MODE_WIDTH,
-        height: '40px',
-        // transition: `width ${isActive ? '0.2s' : '0.2s'} ease-in-out`,
-        zIndex: isFocused ? (theme) => theme.zIndex.drawer + 5 : 'auto',
-        right: 0,
-        backgroundColor: 'neutral.light',
-        marginLeft: 'auto',
-        borderRadius: '0.3125rem',
-        pointerEvents: 'auto',
-        overflow: 'hidden',
-        '&:hover': {
-          opacity: 1,
-        },
-      }}
-    >
-      <Collapse
-        in={!isVertical || isActive}
-        orientation="horizontal"
-        sx={{
-          width: '300px',
-          ...(isVertical && {
-            position: 'absolute',
-            top: 0,
-            right: 0,
-          }),
-        }}
-        timeout={{ appear: 0, enter: 0, exit: 0 }}
-        easing={{
-          enter: 'ease-in-out',
-          exit: 'ease-in-out',
-        }}
-      >
-        <Autocomplete
-          sx={{ width: '300px' }}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => {
-            setIsFocused(false)
-            // Add a small delay to allow click on options before collapsing
-            setTimeout(() => {
-              if (
-                isVertical &&
-                !inputValue &&
-                !document.activeElement?.closest('.MuiAutocomplete-popper')
-              ) {
-                setMapMenuState(mapMenuState, false)
-              }
-            }, 200)
-          }}
-          freeSolo
-          options={searchResults}
-          getOptionLabel={(option) => {
-            if (typeof option === 'string') return option
-            if (option.isLocal) {
-              return option.displayNameArr.join(' - ') || ''
-            }
-            return option.display_name || ''
-          }}
-          filterOptions={(x) => x} // disable built-in filtering
-          inputValue={inputValue}
-          onInputChange={(_e, newInputValue) => setInputValue(newInputValue)}
-          value={value}
-          onChange={(_e, newValue) => {
-            if (typeof newValue === 'object' && newValue !== null) {
-              if (newValue.isLocal) {
-                setValue(newValue.displayNameArr.join(' - ') || '')
-              } else {
-                setValue(newValue.display_name || '')
-              }
-            } else {
-              setValue(newValue || '')
-            }
-            handleSelect(_e, newValue)
-          }}
-          slotProps={{
-            paper: {
-              sx: {
-                opacity: isVertical ? 1 : 0.9,
-                mt: '-0.3125rem',
-                borderRadius: '0.3125rem',
-                borderTopLeftRadius: 0,
-                borderTopRightRadius: 0,
-                backgroundColor: 'neutral.light',
-              },
-            },
-            popper: {
-              sx: (theme) => ({
-                zIndex: theme.zIndex.drawer + 4,
-              }),
-            },
-            clearIndicator: {
-              // If the input is already empty, treat the clear button as "close" in vertical mode.
-              // Use capture so we don't override MUI's built-in clear handler when there's text.
-              onMouseDownCapture: (e: React.MouseEvent<HTMLElement>) => {
-                if (isVertical && !inputValue.trim()) {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  setValue('')
-                  setInputValue('')
-                  setSearchResults([])
-                  setMapMenuState(mapMenuState, false)
-                  searchInputRef.current?.blur()
-                }
-              },
-            },
-          }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              aria-label={t('map.search.placeholder')}
-              inputRef={searchInputRef}
-              size="small"
-              variant="outlined"
-              placeholder={t('map.search.placeholder')}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  backgroundColor: 'neutral.light',
-                  typography: 'body2',
-                  opacity: 0.9,
-                  borderRadius: '0.3125rem',
-                  height: '40px',
-                  '&.Mui-focused': {
-                    boxShadow: 'none',
-                  },
-                  '& fieldset': {
-                    border: 'none',
-                  },
-                },
-              }}
-              slotProps={{
-                input: {
-                  ...params.InputProps,
-                  startAdornment: (
-                    <>
-                      {params.InputProps.startAdornment}
-                      {isLoading ? (
-                        <Box
-                          sx={{
-                            width: '24px',
-                            height: '24px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <CircularProgress
-                            size={18}
-                            sx={{
-                              color: 'action.active',
-                            }}
-                          />
-                        </Box>
-                      ) : (
-                        <Search
-                          sx={{
-                            color: 'action.active',
-                            width: '24px',
-                            height: '24px',
-                          }}
-                        />
-                      )}
-                    </>
-                  ),
-                },
-              }}
-            />
-          )}
-          renderOption={(props, option) => {
-            if (option.isLocal) {
-              const [mainText, ...otherParts] = option.displayNameArr
-              const secondaryText = otherParts.join(' - ')
-              return (
-                <Box component="li" {...props} key={option.place_id}>
-                  <div>
-                    <Typography variant="body1">{mainText}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {secondaryText}
-                    </Typography>
-                  </div>
-                </Box>
-              )
-            }
-
-            // Nominatim result rendering
-            const { address, name } = option
-            const addressParts = [
-              address.road,
-              address.neighbourhood,
-              address.suburb,
-              address.city_district,
-              address.city,
-              address.state,
-              address.country,
-            ].filter(Boolean)
-
-            // Create a set to keep unique parts, then convert back to array
-            const uniqueAddressParts = [...new Set(addressParts)]
-
-            // Remove the main name from address parts if it's present to avoid duplication
-            const nameIndex = uniqueAddressParts.indexOf(name)
-            if (nameIndex > -1) {
-              uniqueAddressParts.splice(nameIndex, 1)
-            }
-
-            return (
-              <Box
-                component="li"
-                {...props}
-                key={option.place_id || option.display_name}
-              >
-                <div>
-                  <Typography variant="body1">{name}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {uniqueAddressParts.join(', ')}
-                  </Typography>
-                </div>
-              </Box>
-            )
-          }}
-        />
-      </Collapse>
-      {isVertical && !isActive && (
-        <IconButton
-          onClick={() => setMapMenuState(mapMenuState, true)}
-          aria-label="Open search"
-          sx={{
-            backgroundColor: 'transparent',
-            width: '40px',
-            height: '40px',
-            borderRadius: 0,
-            '&:hover': {
-              backgroundColor: 'neutral.main',
-            },
-          }}
-        >
-          <Search sx={{ color: 'action.active' }} />
-        </IconButton>
-      )}
-    </Box>
+    <MapSearchBarSurface
+      isVertical={isVertical}
+      isActive={isActive}
+      isFocused={isFocused}
+      isLoading={isLoading}
+      inputValue={inputValue}
+      searchResults={searchResults}
+      placeholder={t('map.search.placeholder')}
+      clearButtonAriaLabel={t('map.search.clear_or_close')}
+      noResultsLabel={t('components.autocomplete.no_results')}
+      onOpen={() => setMapMenuState(mapMenuState, true)}
+      onClose={() => setMapMenuState(mapMenuState, false)}
+      onFocusChange={setIsFocused}
+      onInputValueChange={handleInputValueChange}
+      onClear={handleClear}
+      onSelect={handleResultSelect}
+      inputRef={searchInputRef}
+    />
   )
 }

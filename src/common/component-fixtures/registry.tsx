@@ -17,6 +17,7 @@ import {
   mapUserButtonsFixture,
 } from './fixtures/MapLayerToolbarChromeFixture'
 import { mapButtonPrimitivesFixture } from './fixtures/MapButtonPrimitivesFixture'
+import { mapSearchBarFixture } from './fixtures/MapSearchBarFixture'
 import { multiSelectAutocompleteFixture } from './fixtures/MultiSelectAutocompleteFixture'
 import { notificationFeedbackFixture } from './fixtures/NotificationFeedbackFixture'
 import { editableTextFixture } from './fixtures/EditableTextFixture'
@@ -40,6 +41,7 @@ const componentFixtures: ComponentFixture[] = [
   mapButtonGroupsFixture,
   mapUserButtonsFixture,
   mapLayerMenuFixture,
+  mapSearchBarFixture,
   layerToggleRowFixture,
   dropDownSelectFixture,
   dropDownMultiSelectFixture,

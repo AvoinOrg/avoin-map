@@ -223,6 +223,67 @@
     ]
   },
   {
+    "id": "map-search-bar",
+    "label": "Map search bar",
+    "description": "Map search control open, loading, result, and empty states.",
+    "sourceGlobs": [
+      "src/components/Map/MapSearchBar.tsx",
+      "src/components/Map/MapActionsWrapper.tsx",
+      "src/common/component-fixtures/fixtures/MapSearchBarFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "collapsed",
+        "label": "Closed",
+        "description": "Vertical search reduced to the 40px map button."
+      },
+      {
+        "id": "open-focused",
+        "label": "Open focused",
+        "description": "Vertical search expanded with a focused input state."
+      },
+      {
+        "id": "loading",
+        "label": "Loading",
+        "description": "Search input showing the remote-loading spinner."
+      },
+      {
+        "id": "local-results",
+        "label": "Local results",
+        "description": "Local searchable data results rendered before remote data.",
+        "waitFor": "text=Helsinki City Hall"
+      },
+      {
+        "id": "remote-result",
+        "label": "Remote result",
+        "description": "Remote Nominatim-shaped result rendering.",
+        "waitFor": "text=Berlin"
+      },
+      {
+        "id": "selected",
+        "label": "Selected",
+        "description": "Selected result label remains in the input."
+      },
+      {
+        "id": "no-results",
+        "label": "No results",
+        "description": "Empty search state after a non-empty query.",
+        "waitFor": "text=No results"
+      },
+      {
+        "id": "horizontal-results",
+        "label": "Horizontal results",
+        "description": "Horizontal search mode renders inline with its listbox.",
+        "waitFor": "text=Helsinki City Hall"
+      },
+      {
+        "id": "vertical-stack-open",
+        "label": "Vertical stack open",
+        "description": "Expanded vertical search reserves layout space above toolbar buttons."
+      }
+    ]
+  },
+  {
     "id": "layer-toggle-row",
     "label": "LayerToggleRow",
     "description": "Representative layer visibility toggle row states.",
