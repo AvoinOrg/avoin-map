@@ -1,8 +1,8 @@
 'use client'
 
 import React from 'react'
-import { Box, Typography } from '@mui/material'
 
+import { Box } from '#/common/style/theme'
 import { getComponentFixtureState } from './registry'
 
 type Props = {
@@ -11,7 +11,14 @@ type Props = {
 }
 
 export const ComponentFixtureFrame = ({ fixtureId, stateId }: Props) => {
+  const [isHydrated, setIsHydrated] = React.useState(false)
   const resolved = getComponentFixtureState({ fixtureId, stateId })
+
+  React.useEffect(() => {
+    const timeoutId = window.setTimeout(() => setIsHydrated(true), 0)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [])
 
   if (!resolved) {
     return null
@@ -23,7 +30,9 @@ export const ComponentFixtureFrame = ({ fixtureId, stateId }: Props) => {
   return (
     <Box
       component="main"
-      data-testid="component-fixture-ready"
+      data-testid={
+        isHydrated ? 'component-fixture-ready' : 'component-fixture-loading'
+      }
       data-component-fixture-id={fixture.id}
       data-component-fixture-state={state.id}
       sx={{
@@ -51,19 +60,22 @@ export const ComponentFixtureFrame = ({ fixtureId, stateId }: Props) => {
             gap: 0.5,
           }}
         >
-          <Typography
+          <Box
             component="h1"
             sx={{
+              m: 0,
               fontSize: '0.875rem',
               fontWeight: 700,
               lineHeight: 1.3,
             }}
           >
             {fixture.label}: {state.label}
-          </Typography>
+          </Box>
           {state.description && (
-            <Typography
+            <Box
+              component="p"
               sx={{
+                m: 0,
                 maxWidth: 560,
                 fontSize: '0.75rem',
                 lineHeight: 1.45,
@@ -71,7 +83,7 @@ export const ComponentFixtureFrame = ({ fixtureId, stateId }: Props) => {
               }}
             >
               {state.description}
-            </Typography>
+            </Box>
           )}
         </Box>
 

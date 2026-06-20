@@ -1,8 +1,9 @@
 import React from 'react'
-import { Box, IconButton, SxProps, Theme, Typography } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 
+import { AppSxProps, Box, toSxArray } from '#/common/style/theme'
+import { IconButton } from '#/components/common/Button'
 import { Cross } from '#/components/icons'
 import { ListedLayerGroup, ListedLayerMenuItem } from '#/common/types/map'
 import {
@@ -22,7 +23,7 @@ type Props = {
   onToggleLayer: (layerGroup: ListedLayerGroup) => void
   onInfoToggle?: () => void
   onClose: () => void
-  listSx?: SxProps<Theme>
+  listSx?: AppSxProps
   scrollMaxHeight?: string
 }
 
@@ -35,10 +36,10 @@ type LayerMenuItemsProps = Pick<
   | 'onInfoToggle'
 > & {
   items: ListedLayerMenuItem[]
-  layerGroupSegmentSx?: SxProps<Theme>
+  layerGroupSegmentSx?: AppSxProps
 }
 
-const LAYER_GROUP_SEGMENT_SX: SxProps<Theme> = {
+const LAYER_GROUP_SEGMENT_SX = {
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'stretch',
@@ -46,13 +47,13 @@ const LAYER_GROUP_SEGMENT_SX: SxProps<Theme> = {
   width: '100%',
   px: 3,
   py: 4,
-}
+} satisfies AppSxProps
 
-const NESTED_LAYER_GROUP_SEGMENT_SX: SxProps<Theme> = {
+const NESTED_LAYER_GROUP_SEGMENT_SX = {
   ...LAYER_GROUP_SEGMENT_SX,
   px: 0,
   py: 0,
-}
+} satisfies AppSxProps
 
 const LayerMenuAccordionRow = ({
   item,
@@ -111,7 +112,7 @@ const LayerMenuItems = ({
       opacityLabel={opacityLabel}
       onOpacityChange={onOpacityChange}
       onInfoToggle={onInfoToggle}
-      onSelect={(_id) => {
+      onSelect={() => {
         onToggleLayer(item)
       }}
     />
@@ -222,9 +223,9 @@ const LayerMenuContent = ({
         }}
       >
         {headerLabel ? (
-          <Typography variant="h3" sx={{ textAlign: 'left' }}>
+          <Box component="h3" sx={{ m: 0, typography: 'h3', textAlign: 'left' }}>
             {headerLabel}
-          </Typography>
+          </Box>
         ) : (
           <Box sx={{ flex: 1 }} />
         )}
@@ -264,7 +265,7 @@ const LayerMenuContent = ({
               alignItems: 'stretch',
               width: '100%',
             },
-            ...(Array.isArray(listSx) ? listSx : [listSx]),
+            ...toSxArray(listSx),
           ]}
         >
           <LayerMenuItems

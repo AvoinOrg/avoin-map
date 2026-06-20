@@ -92,6 +92,137 @@
     ]
   },
   {
+    "id": "map-button-groups",
+    "label": "Map button groups",
+    "description": "Map toolbar button group orientation and draw-control states.",
+    "sourceGlobs": [
+      "src/components/Map/MapButtonGroups.tsx",
+      "src/components/Map/MapButton.tsx",
+      "src/components/icons/Check.tsx",
+      "src/components/icons/Compass.tsx",
+      "src/common/component-fixtures/fixtures/MapLayerToolbarChromeFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "horizontal-basic",
+        "label": "Horizontal basic",
+        "description": "Joined horizontal map button group."
+      },
+      {
+        "id": "vertical-basic",
+        "label": "Vertical basic",
+        "description": "Joined vertical map button group."
+      },
+      {
+        "id": "draw-enabled",
+        "label": "Draw enabled",
+        "description": "Draw/edit/delete toolbar controls in a joined group."
+      },
+      {
+        "id": "dev-hidden",
+        "label": "Development buttons hidden",
+        "description": "Representative production toolbar group without dev-only buttons."
+      }
+    ]
+  },
+  {
+    "id": "map-user-buttons",
+    "label": "Map user buttons",
+    "description": "Account, home, and language map-control states.",
+    "sourceGlobs": [
+      "src/components/Map/MapUserButtons.tsx",
+      "src/components/Map/MapLoginButton.tsx",
+      "src/components/Map/MapButtonMenu.tsx",
+      "src/common/component-fixtures/fixtures/MapLayerToolbarChromeFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "signed-out",
+        "label": "Signed out",
+        "description": "Default signed-out account and language controls."
+      },
+      {
+        "id": "signed-in-menu-open",
+        "label": "Signed in menu open",
+        "description": "Authenticated account menu surface.",
+        "waitFor": "[data-slot=\"map-button-menu-surface\"]"
+      },
+      {
+        "id": "language-menu-open",
+        "label": "Language menu open",
+        "description": "Language menu surface with selected locale styling.",
+        "waitFor": "[data-slot=\"map-button-menu-surface\"]"
+      },
+      {
+        "id": "single-locale-disabled",
+        "label": "Single locale disabled",
+        "description": "Disabled language-style map button state."
+      }
+    ]
+  },
+  {
+    "id": "map-layer-menu",
+    "label": "Map layer menu",
+    "description": "Layer button popover and layer menu row states.",
+    "sourceGlobs": [
+      "src/components/Map/MapLayerButton/MapLayerButtonBase.tsx",
+      "src/components/Map/MapLayerButton/MapLayerButtonHorizontal.tsx",
+      "src/components/Map/MapLayerButton/MapLayerButtonVertical.tsx",
+      "src/components/Map/MapLayerButton/LayerMenuContent.tsx",
+      "src/components/Map/MapLayerButton/LayerItem.tsx",
+      "src/common/component-fixtures/fixtures/MapLayerToolbarChromeFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "horizontal-closed",
+        "label": "Horizontal closed",
+        "description": "Closed horizontal layer menu button."
+      },
+      {
+        "id": "horizontal-open",
+        "label": "Horizontal open",
+        "description": "Open horizontal layer menu popover.",
+        "waitFor": "[data-slot=\"map-button-menu-surface\"]"
+      },
+      {
+        "id": "vertical-open",
+        "label": "Vertical open",
+        "description": "Open vertical layer menu popover.",
+        "waitFor": "[data-slot=\"map-button-menu-surface\"]"
+      },
+      {
+        "id": "mobile-open",
+        "label": "Mobile open",
+        "description": "Menu content constrained for mobile visual capture."
+      },
+      {
+        "id": "visible-row",
+        "label": "Visible row",
+        "description": "Selected layer thumbnail border."
+      },
+      {
+        "id": "hidden-row",
+        "label": "Hidden row",
+        "description": "Unselected layer thumbnail state."
+      },
+      {
+        "id": "processing-row",
+        "label": "Processing row",
+        "description": "Representative extra listed layer row."
+      },
+      {
+        "id": "info-open",
+        "label": "Info open",
+        "description": "Layer row with info control available."
+      },
+      {
+        "id": "opacity",
+        "label": "Opacity",
+        "description": "Layer opacity slider state."
+      }
+    ]
+  },
+  {
     "id": "layer-toggle-row",
     "label": "LayerToggleRow",
     "description": "Representative layer visibility toggle row states.",

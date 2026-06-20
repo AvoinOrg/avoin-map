@@ -100,26 +100,39 @@ const renderMapButtonMenuPopup = ({
   children,
   isVertical,
   paperSx,
+  initialFocus,
+  finalFocus,
 }: {
   children: React.ReactNode
   isVertical: boolean
   paperSx?: AppSxProps
+  initialFocus?: React.ComponentProps<typeof Popover.Popup>['initialFocus']
+  finalFocus?: React.ComponentProps<typeof Popover.Popup>['finalFocus']
 }) => (
   <Popover.Popup
-    render={(popupProps) => (
-      <Box
-        {...popupProps}
-        role={undefined}
-        data-slot="map-button-menu-surface"
-        sx={[
-          getMapButtonMenuSurfaceSx({ isVertical }),
-          ...toMapMenuSxArray(paperSx),
-        ]}
-      />
-    )}
-  >
-    <Box data-slot="map-button-menu-content">{children}</Box>
-  </Popover.Popup>
+    initialFocus={initialFocus}
+    finalFocus={finalFocus}
+    render={(popupProps) => {
+      const { children: ignoredPopupChildren, ...surfaceProps } = popupProps
+      void ignoredPopupChildren
+
+      return (
+        <Box
+          {...surfaceProps}
+          role={undefined}
+          data-slot="map-button-menu-surface"
+          sx={[
+            getMapButtonMenuSurfaceSx({ isVertical }),
+            ...toMapMenuSxArray(paperSx),
+          ]}
+        >
+          <Box key="map-button-menu-content" data-slot="map-button-menu-content">
+            {children}
+          </Box>
+        </Box>
+      )
+    }}
+  />
 )
 
 export const MapButtonMenuSurface = renderMapButtonMenuPopup
@@ -151,6 +164,8 @@ export const MapButtonMenuPositioner = ({
   popperSx,
   zIndex,
   sideOffset = mapButtonMenuOffset,
+  alignOffset,
+  collisionPadding = mapButtonMenuCollisionPadding,
   anchor,
 }: {
   children: React.ReactNode
@@ -159,6 +174,8 @@ export const MapButtonMenuPositioner = ({
   popperSx?: AppSxProps
   zIndex: (theme: AppTheme) => number
   sideOffset?: number
+  alignOffset?: number
+  collisionPadding?: number
   anchor?: PopoverPositionerProps['anchor']
 }) => {
   const { side, align } = getMapButtonMenuPlacement({
@@ -175,22 +192,31 @@ export const MapButtonMenuPositioner = ({
         side={side}
         align={align}
         sideOffset={sideOffset}
+        alignOffset={alignOffset}
         collisionAvoidance={mapButtonMenuCollisionAvoidance}
-        collisionPadding={mapButtonMenuCollisionPadding}
+        collisionPadding={collisionPadding}
         positionMethod={mapButtonMenuPositionMethod}
-        render={(positionerProps) => (
-          <Box
-            {...positionerProps}
-            data-slot="map-button-menu-positioner"
-            sx={[
-              getMapButtonMenuPositionerSx(zIndex),
-              ...toMapMenuSxArray(popperSx),
-            ]}
-          />
-        )}
-      >
-        {children}
-      </Popover.Positioner>
+        render={(positionerProps) => {
+          const {
+            children: ignoredPositionerChildren,
+            ...resolvedPositionerProps
+          } = positionerProps
+          void ignoredPositionerChildren
+
+          return (
+            <Box
+              {...resolvedPositionerProps}
+              data-slot="map-button-menu-positioner"
+              sx={[
+                getMapButtonMenuPositionerSx(zIndex),
+                ...toMapMenuSxArray(popperSx),
+              ]}
+            >
+              {children}
+            </Box>
+          )
+        }}
+      />
     </Popover.Portal>
   )
 }
@@ -260,6 +286,7 @@ export const MapButtonMenu = ({
       modal={mapButtonMenuModal}
     >
       <Popover.Trigger
+        key="map-button-menu-trigger"
         disabled={childDisabled}
         render={(triggerProps) => {
           const {
@@ -290,6 +317,7 @@ export const MapButtonMenu = ({
         }}
       />
       <MapButtonMenuPositioner
+        key="map-button-menu-positioner"
         isVertical={isVertical}
         placement={placement}
         popperSx={popperSx}

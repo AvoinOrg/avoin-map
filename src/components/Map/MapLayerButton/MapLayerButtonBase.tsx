@@ -1,13 +1,10 @@
 import React, {
   ReactNode,
   useCallback,
-  useEffect,
   useMemo,
   useRef,
 } from 'react'
-import { ClickAwayListener, Paper, Popper } from '@mui/material'
-import type { Instance, Placement, VirtualElement } from '@popperjs/core'
-import { alpha, SxProps, Theme } from '@mui/material/styles'
+import { Popover } from '@base-ui/react/popover'
 import { useTranslate } from '@tolgee/react'
 
 import { useMapStore, useUIStore } from '#/common/store'
@@ -20,9 +17,29 @@ import {
 import { MapMenuState } from '#/common/types/state'
 import { Layers } from '#/components/icons'
 import { MapButton } from '../MapButton'
+import {
+  MapButtonMenuPlacement,
+  MapButtonMenuPositioner,
+  MapButtonMenuSurface,
+  mapButtonMenuModal,
+} from '../MapButtonMenu'
 import LayerMenuContent from './LayerMenuContent'
 
-type AnchorEl = HTMLElement | VirtualElement | null
+type ResolvedAnchorEl =
+  | Element
+  | {
+      getBoundingClientRect: () => DOMRect
+    }
+  | null
+type PositionAnchorResolver = () => ResolvedAnchorEl
+type TriggerRenderProps = Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  'onClick'
+> & {
+  ref?: React.Ref<HTMLButtonElement>
+  onClick?: React.MouseEventHandler<HTMLElement>
+  color?: string
+}
 
 type Props = {
   isVertical: boolean
@@ -31,12 +48,14 @@ type Props = {
   tooltipLabel: string
   headerLabel?: string
   icon?: React.ReactNode
-  placement: Placement
+  placement: MapButtonMenuPlacement
   popperOffset: [number, number]
   popperPadding: number
-  resolveAnchorEl: (anchorRef: React.RefObject<HTMLButtonElement>) => AnchorEl
-  paperSx?: SxProps<Theme>
-  listSx?: SxProps<Theme>
+  resolveAnchorEl: (
+    anchorRef: React.RefObject<HTMLButtonElement | null>
+  ) => ResolvedAnchorEl
+  paperSx?: React.ComponentProps<typeof MapButtonMenuSurface>['paperSx']
+  listSx?: React.ComponentProps<typeof LayerMenuContent>['listSx']
   scrollMaxHeight?: string
 }
 
@@ -72,7 +91,6 @@ const MapLayerButtonBase = ({
   const activeMapMenu = useUIStore((state) => state.activeMapMenu)
   const setMapMenuState = useUIStore((state) => state.setMapMenuState)
   const anchorRef = useRef<HTMLButtonElement>(null)
-  const popperRef = useRef<Instance | null>(null)
   const { t } = useTranslate('avoin-map')
   const opacityLabel = t('map.menus.layer_opacity')
 
@@ -97,86 +115,81 @@ const MapLayerButtonBase = ({
     setMapMenuState(mapMenuState, !isActive)
   }
 
-  const handlePopperUpdate = useCallback(() => {
-    popperRef.current?.update()
-  }, [])
-
-  const anchorEl = resolveAnchorEl(anchorRef)
-
-  useEffect(() => {
-    if (!isActive) {
-      return
-    }
-    popperRef.current?.update()
-  }, [
-    isActive,
-    anchorEl,
-    placement,
-    popperOffset[0],
-    popperOffset[1],
-    popperPadding,
-  ])
-
-  const handleClose = (event: Event | React.SyntheticEvent) => {
-    if (
-      anchorRef.current &&
-      anchorRef.current.contains(event.target as HTMLElement)
-    ) {
-      return
-    }
-    setMapMenuState(mapMenuState, false)
-  }
+  const resolvePositionAnchor = useCallback<PositionAnchorResolver>(
+    () => (isActive ? resolveAnchorEl(anchorRef) : null),
+    [isActive, resolveAnchorEl]
+  )
 
   const handleCloseMenu = () => {
     setMapMenuState(mapMenuState, false)
   }
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    setMapMenuState(mapMenuState, nextOpen)
+  }
+
   return (
-    <>
-      <MapButton
-        onClick={handleToggle}
-        ref={anchorRef}
-        size="small"
-        tooltip={tooltipLabel}
-        isVertical={isVertical}
-        sx={{
-          backgroundColor: isActive ? 'neutral.main' : 'neutral.light',
+    <Popover.Root
+      open={isActive}
+      onOpenChange={handleOpenChange}
+      modal={mapButtonMenuModal}
+    >
+      <Popover.Trigger
+        key="map-layer-button-trigger"
+        render={(triggerProps) => {
+          const {
+            color: ignoredColor,
+            onClick: triggerOnClick,
+            ref: triggerRef,
+            ...resolvedTriggerProps
+          } = triggerProps as TriggerRenderProps
+          void ignoredColor
+
+          return (
+            <MapButton
+              {...resolvedTriggerProps}
+              onClick={(event) => {
+                handleToggle()
+                triggerOnClick?.(event)
+              }}
+              ref={(node) => {
+                anchorRef.current = node
+                if (typeof triggerRef === 'function') {
+                  triggerRef(node)
+                } else if (triggerRef) {
+                  ;(
+                    triggerRef as React.MutableRefObject<HTMLButtonElement | null>
+                  ).current = node
+                }
+              }}
+              size="small"
+              tooltip={tooltipLabel}
+              isVertical={isVertical}
+              aria-haspopup="menu"
+              aria-expanded={isActive ? 'true' : undefined}
+              sx={{
+                backgroundColor: isActive ? 'neutral.main' : 'neutral.light',
+              }}
+            >
+              {icon || <Layers />}
+            </MapButton>
+          )
         }}
-      >
-        {icon || <Layers />}
-      </MapButton>
-      <Popper
-        open={isActive}
-        anchorEl={anchorEl}
-        popperRef={popperRef}
+      />
+      <MapButtonMenuPositioner
+        key="map-layer-button-positioner"
+        anchor={resolvePositionAnchor}
+        isVertical={isVertical}
         placement={placement}
-        modifiers={[
-          {
-            name: 'offset',
-            options: {
-              offset: popperOffset,
-            },
-          },
-          {
-            name: 'flip',
-            enabled: false,
-          },
-          {
-            name: 'preventOverflow',
-            options: {
-              padding: popperPadding,
-              tether: true,
-              altAxis: true,
-            },
-          },
-        ]}
-        sx={(theme) => ({
-          zIndex: theme.zIndex.drawer + 3,
-        })}
+        alignOffset={popperOffset[0]}
+        sideOffset={popperOffset[1]}
+        collisionPadding={popperPadding}
+        zIndex={(theme) => theme.zIndex.drawer + 3}
       >
-        <Paper
-          sx={[
-            (theme) => ({
+        <MapButtonMenuSurface
+          isVertical={isVertical}
+          paperSx={[
+            {
               maxWidth: `calc(100vw - 78px)`,
               maxHeight: isVertical
                 ? `calc(100vh - 32px)`
@@ -184,37 +197,36 @@ const MapLayerButtonBase = ({
               overflow: 'hidden',
               p: 0,
               backgroundColor: isVertical
-                ? theme.palette.neutral.light
-                : alpha(theme.palette.neutral.light, 0.9),
+                ? 'neutral.light'
+                : 'rgba(246, 244, 244, 0.9)',
               borderRadius: '0.3125rem',
               display: 'flex',
               flexDirection: 'column',
               width: 'fit-content',
-            }),
+            },
             ...(Array.isArray(paperSx) ? paperSx : [paperSx]),
           ]}
+          initialFocus={false}
+          finalFocus={false}
         >
-          <ClickAwayListener onClickAway={handleClose}>
-            <LayerMenuContent
-              headerLabel={headerLabel}
-              items={filteredLayerGroups}
-              visibleLayerGroupIds={visibleLayerGroupIds}
-              opacityLabel={opacityLabel}
-              onOpacityChange={handleOpacityChange}
-              onToggleLayer={(layerGroup: ListedLayerGroup) => {
-                if (isListedLayerGroup(layerGroup)) {
-                  toggleLayerGroup(layerGroup.id, layerGroup.addOptions)
-                }
-              }}
-              onInfoToggle={handlePopperUpdate}
-              onClose={handleCloseMenu}
-              listSx={listSx}
-              scrollMaxHeight={scrollMaxHeight}
-            />
-          </ClickAwayListener>
-        </Paper>
-      </Popper>
-    </>
+          <LayerMenuContent
+            headerLabel={headerLabel}
+            items={filteredLayerGroups}
+            visibleLayerGroupIds={visibleLayerGroupIds}
+            opacityLabel={opacityLabel}
+            onOpacityChange={handleOpacityChange}
+            onToggleLayer={(layerGroup: ListedLayerGroup) => {
+              if (isListedLayerGroup(layerGroup)) {
+                toggleLayerGroup(layerGroup.id, layerGroup.addOptions)
+              }
+            }}
+            onClose={handleCloseMenu}
+            listSx={listSx}
+            scrollMaxHeight={scrollMaxHeight}
+          />
+        </MapButtonMenuSurface>
+      </MapButtonMenuPositioner>
+    </Popover.Root>
   )
 }
 

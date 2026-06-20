@@ -2,10 +2,11 @@
 
 import React from 'react'
 import { useParams } from 'next/navigation'
-import { Box, Divider, MenuItem, MenuList, Typography } from '@mui/material'
-import { T, useTranslate } from '@tolgee/react'
+import { useTranslate } from '@tolgee/react'
 
+import { AppSxProps, Box } from '#/common/style/theme'
 import { Login } from '#/components/icons'
+import TText from '#/components/common/TText'
 import { useUserStore } from '#/common/store/userStore'
 import { UserAuthState, UserDataState } from '#/common/types/state'
 import { openWindow } from '#/common/utils/modal'
@@ -19,9 +20,36 @@ const PROFILE_URL =
 
 type Props = {
   isVertical: boolean
+  defaultMenuOpen?: boolean
 }
 
-export const MapLoginButton = ({ isVertical }: Props) => {
+const menuItemSx = {
+  width: '100%',
+  px: 3,
+  py: 1.5,
+  m: 0,
+  border: 0,
+  backgroundColor: 'transparent',
+  color: 'text.primary',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'flex-start',
+  textAlign: 'left',
+  font: 'inherit',
+  typography: 'body1',
+  '&:hover': {
+    backgroundColor: 'action.hover',
+  },
+  '&:focus-visible': {
+    outline: (theme) => `2px solid ${theme.palette.secondary.dark}`,
+    outlineOffset: -2,
+  },
+} satisfies AppSxProps
+
+const buttonTypeProps = { type: 'button' } as const
+
+export const MapLoginButton = ({ isVertical, defaultMenuOpen }: Props) => {
   const params = useParams()
   const userAuthState = useUserStore((state) => state.userAuthState)
   const userData = useUserStore((state) => state.userData)
@@ -45,12 +73,6 @@ export const MapLoginButton = ({ isVertical }: Props) => {
   const tooltipLabel = isAuthenticated
     ? t('navbar.profile.settings', 'Profile settings')
     : t('navbar.profile.sign_in', 'Sign in')
-
-  const menuItemSx = {
-    px: 3,
-    py: 1.5,
-    typography: 'body1',
-  }
 
   if (isLoading) {
     return (
@@ -79,7 +101,7 @@ export const MapLoginButton = ({ isVertical }: Props) => {
   }
 
   const menuContent = ({ closeMenu }: { closeMenu: () => void }) => (
-    <Box sx={{ minWidth: '12rem' }}>
+    <Box key="account-menu-content" sx={{ minWidth: '12rem' }}>
       <Box
         sx={{
           px: 3,
@@ -88,13 +110,20 @@ export const MapLoginButton = ({ isVertical }: Props) => {
           backgroundColor: 'inherit',
         }}
       >
-        <Typography variant="h3" sx={{ textAlign: 'left' }}>
+        <Box component="h3" sx={{ m: 0, typography: 'h3', textAlign: 'left' }}>
           {userData?.name || t('map.buttons.account', 'Account')}
-        </Typography>
+        </Box>
       </Box>
-      <Divider />
-      <MenuList aria-label={t('map.buttons.account', 'Account menu')} sx={{ py: 1 }}>
-        <MenuItem
+      <Box role="separator" sx={{ borderTop: '1px solid', borderColor: 'divider' }} />
+      <Box
+        role="menu"
+        aria-label={t('map.buttons.account', 'Account menu')}
+        sx={{ py: 1 }}
+      >
+        <Box
+          component="button"
+          {...buttonTypeProps}
+          role="menuitem"
           aria-label={t('navbar.profile.settings')}
           onClick={() => {
             openWindow(PROFILE_URL)
@@ -102,9 +131,12 @@ export const MapLoginButton = ({ isVertical }: Props) => {
           }}
           sx={menuItemSx}
         >
-          <T keyName="navbar.profile.settings" />
-        </MenuItem>
-        <MenuItem
+          <TText keyName="navbar.profile.settings" />
+        </Box>
+        <Box
+          component="button"
+          {...buttonTypeProps}
+          role="menuitem"
           aria-label={t('navbar.profile.sign_out')}
           onClick={() => {
             signOut()
@@ -112,9 +144,9 @@ export const MapLoginButton = ({ isVertical }: Props) => {
           }}
           sx={menuItemSx}
         >
-          <T keyName="navbar.profile.sign_out" />
-        </MenuItem>
-      </MenuList>
+          <TText keyName="navbar.profile.sign_out" />
+        </Box>
+      </Box>
     </Box>
   )
 
@@ -124,6 +156,7 @@ export const MapLoginButton = ({ isVertical }: Props) => {
       placement={isVertical ? 'left-start' : 'bottom-start'}
       menuContent={menuContent}
       paperSx={{ p: 0, overflow: 'hidden' }}
+      defaultOpen={defaultMenuOpen}
     >
       <MapButton size="small" tooltip={tooltipLabel} isVertical={isVertical}>
         <Login />

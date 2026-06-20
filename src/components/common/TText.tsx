@@ -9,7 +9,17 @@ const defaultParams = {
   b: <b />,
 }
 
-type TTextProps = React.ComponentProps<typeof T>
+type TTextProps = {
+  keyName?: string
+  children?: string
+  params?: Record<string, unknown>
+  noWrap?: boolean
+  ns?: string | string[]
+  defaultValue?: string
+  language?: string
+}
+
+const TolgeeText = T as React.ComponentType<TTextProps>
 
 const TText = React.memo((props: TTextProps) => {
   const mergedParams = React.useMemo(
@@ -17,7 +27,8 @@ const TText = React.memo((props: TTextProps) => {
     [props.params]
   )
 
-  return <T {...props} params={mergedParams} />
+  return React.createElement(TolgeeText, { ...props, params: mergedParams })
 })
+TText.displayName = 'TText'
 
 export default TText

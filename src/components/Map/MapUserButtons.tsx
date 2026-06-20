@@ -2,8 +2,8 @@
 
 import { useMemo } from 'react'
 import { useParams, usePathname, useSearchParams } from 'next/navigation'
-import { Box, MenuItem, MenuList, Typography } from '@mui/material'
 
+import { AppSxProps, Box } from '#/common/style/theme'
 import { useRouter } from '#/common/navigation/navigation'
 import { getLocalesForApplet } from '#/common/navigation/tolgee/shared'
 import { useUIStore } from '#/common/store'
@@ -35,7 +35,39 @@ import { MapLoginButton } from './MapLoginButton'
 
 type Props = {
   isVertical: boolean
+  loginDefaultMenuOpen?: boolean
+  languageDefaultMenuOpen?: boolean
 }
+
+const localeMenuItemSx = {
+  width: '100%',
+  px: 2.5,
+  py: 1.25,
+  m: 0,
+  border: 0,
+  backgroundColor: 'transparent',
+  color: 'text.primary',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 2,
+  textAlign: 'left',
+  font: 'inherit',
+  typography: 'body1',
+  '&:hover': {
+    backgroundColor: 'action.hover',
+  },
+  '&:focus-visible': {
+    outline: (theme) => `2px solid ${theme.palette.secondary.dark}`,
+    outlineOffset: -2,
+  },
+  '&[aria-current="true"]': {
+    backgroundColor: 'action.selected',
+  },
+} satisfies AppSxProps
+
+const buttonTypeProps = { type: 'button' } as const
 
 const APPLET_ROUTE_TREES = {
   [ENERGIAKARTTA_NAMESPACE]: energiakarttaRouteTree,
@@ -89,7 +121,11 @@ const getLocaleName = ({
   }
 }
 
-export const MapUserButtons = ({ isVertical }: Props) => {
+export const MapUserButtons = ({
+  isVertical,
+  loginDefaultMenuOpen,
+  languageDefaultMenuOpen,
+}: Props) => {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -175,25 +211,18 @@ export const MapUserButtons = ({ isVertical }: Props) => {
     en: 'Language menu',
   })
 
-  const menuItemSx = {
-    px: 2.5,
-    py: 1.25,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 2,
-    typography: 'body1',
-  }
-
   const localeMenuContent =
     supportedLocales.length > 1
       ? ({ closeMenu }: { closeMenu: () => void }) => (
-          <Box sx={{ minWidth: '10rem' }}>
-            <MenuList aria-label={languageMenuLabel} sx={{ py: 1 }}>
+          <Box key="language-menu-content" sx={{ minWidth: '10rem' }}>
+            <Box role="menu" aria-label={languageMenuLabel} sx={{ py: 1 }}>
               {supportedLocales.map((supportedLocale) => (
-                <MenuItem
+                <Box
                   key={supportedLocale}
-                  selected={supportedLocale === locale}
+                  component="button"
+                  {...buttonTypeProps}
+                  role="menuitem"
+                  aria-current={supportedLocale === locale ? 'true' : undefined}
                   aria-label={getLocaleName({
                     localeCode: supportedLocale,
                     displayLocale: locale,
@@ -206,9 +235,9 @@ export const MapUserButtons = ({ isVertical }: Props) => {
                       })
                     }
                   }}
-                  sx={menuItemSx}
+                  sx={localeMenuItemSx}
                 >
-                  <Typography
+                  <Box
                     component="span"
                     sx={{
                       fontWeight: supportedLocale === locale ? 600 : 400,
@@ -218,8 +247,8 @@ export const MapUserButtons = ({ isVertical }: Props) => {
                       localeCode: supportedLocale,
                       displayLocale: locale,
                     })}
-                  </Typography>
-                  <Typography
+                  </Box>
+                  <Box
                     component="span"
                     sx={{
                       color: 'text.secondary',
@@ -230,10 +259,10 @@ export const MapUserButtons = ({ isVertical }: Props) => {
                     }}
                   >
                     {supportedLocale}
-                  </Typography>
-                </MenuItem>
+                  </Box>
+                </Box>
               ))}
-            </MenuList>
+            </Box>
           </Box>
         )
       : undefined
@@ -251,12 +280,16 @@ export const MapUserButtons = ({ isVertical }: Props) => {
           <Home />
         </MapButton>
       )}
-      <MapLoginButton isVertical={isVertical} />
+      <MapLoginButton
+        isVertical={isVertical}
+        defaultMenuOpen={loginDefaultMenuOpen}
+      />
       <MapButtonMenu
         isVertical={isVertical}
         placement={isVertical ? 'left-start' : 'bottom-start'}
         menuContent={localeMenuContent}
         paperSx={{ p: 0, overflow: 'hidden' }}
+        defaultOpen={languageDefaultMenuOpen}
       >
         <MapButton
           size="small"

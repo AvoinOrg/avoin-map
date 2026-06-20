@@ -1,14 +1,9 @@
-import React, { useEffect, useState } from 'react'
-import {
-  Box,
-  Collapse,
-  IconButton,
-  Slider,
-  Typography,
-} from '@mui/material'
+import React, { useEffect, useRef, useState } from 'react'
+import { Slider } from '@base-ui/react/slider'
 import Image from 'next/image'
 import { useTranslate } from '@tolgee/react'
 
+import { Box } from '#/common/style/theme'
 import { ArrowDown } from '#/components/icons'
 import { useLayerGroupOpacity } from '#/common/hooks/map/useLayerGroupOpacity'
 import { ListedLayerGroup } from '#/common/types/map'
@@ -47,8 +42,10 @@ const LayerItem = ({
   )
   const resolvedOpacity = storedOpacity ?? defaultOpacity
   const [isInfoOpen, setIsInfoOpen] = useState(false)
+  const hasToggledInfo = useRef(false)
   const hasInfo = Boolean(layerGroup.infoElement)
   const infoId = `layer-info-${layerGroup.id}`
+  const buttonTypeProps = { type: 'button' } as const
 
   useEffect(() => {
     if (!showOpacitySlider || !onOpacityChange) {
@@ -65,7 +62,16 @@ const LayerItem = ({
     storedOpacity,
   ])
 
-  const handleOpacityChange = (_event: Event, value: number | number[]) => {
+  useEffect(() => {
+    if (!hasInfo || !onInfoToggle || !hasToggledInfo.current) {
+      return
+    }
+
+    const frameId = window.requestAnimationFrame(onInfoToggle)
+    return () => window.cancelAnimationFrame(frameId)
+  }, [hasInfo, isInfoOpen, onInfoToggle])
+
+  const handleOpacityChange = (value: number | readonly number[]) => {
     if (!onOpacityChange) {
       return
     }
@@ -79,7 +85,7 @@ const LayerItem = ({
   const renderImage = () => (
     <Box
       component="button"
-      type="button"
+      {...buttonTypeProps}
       aria-label={`Toggle layer ${name}`}
       onClick={() => onSelect(layerGroup.id)}
       sx={{
@@ -111,8 +117,7 @@ const LayerItem = ({
             borderRadius: infoCardRadius,
             borderStyle: 'solid',
             borderWidth: isSelected ? 2 : 0,
-            borderColor: (theme) =>
-              isSelected ? theme.palette.secondary.dark : 'transparent',
+            borderColor: isSelected ? 'secondary.dark' : 'transparent',
             boxSizing: 'border-box',
             pointerEvents: 'none',
             transition: 'border-color 0.2s ease, border-width 0.2s ease',
@@ -120,10 +125,7 @@ const LayerItem = ({
           },
           '&:hover::after': {
             borderWidth: 3,
-            borderColor: (theme) =>
-              isSelected
-                ? theme.palette.secondary.dark
-                : theme.palette.primary.main,
+            borderColor: isSelected ? 'secondary.dark' : 'primary.main',
           },
         }}
       >
@@ -154,8 +156,10 @@ const LayerItem = ({
           minHeight: headerHeight,
         }}
       >
-        <Typography
+        <Box
+          component="h4"
           sx={{
+            m: 0,
             typography: 'h4',
             whiteSpace: 'normal',
             overflowWrap: 'break-word',
@@ -167,24 +171,42 @@ const LayerItem = ({
             keyName={layerGroup.nameTranslationKey}
             ns={layerGroup.translationNs}
           />
-        </Typography>
+        </Box>
         {hasInfo && (
-          <IconButton
-            size="small"
+          <Box
+            component="button"
+            {...buttonTypeProps}
             aria-label={`${name} info`}
             aria-expanded={isInfoOpen}
             aria-controls={infoId}
-            onClick={() => setIsInfoOpen((prev) => !prev)}
+            onClick={() => {
+              hasToggledInfo.current = true
+              setIsInfoOpen((prev) => !prev)
+            }}
             sx={{
+              appearance: 'none',
+              border: '1px solid transparent',
               p: 0,
+              m: 0,
               width: 30,
+              minWidth: 30,
               height: 30,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
               borderRadius: '50%',
               backgroundColor: 'common.white',
               color: '#075CFF',
               boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.12)',
+              cursor: 'pointer',
+              lineHeight: 1,
               '&:hover': {
                 backgroundColor: 'common.white',
+              },
+              '&:focus-visible': {
+                outline: '2px solid #075CFF',
+                outlineOffset: 2,
               },
             }}
           >
@@ -196,66 +218,142 @@ const LayerItem = ({
                 height: 5,
               }}
             />
-          </IconButton>
+          </Box>
         )}
       </Box>
-      {hasInfo && (
-        <Collapse
-          in={isInfoOpen}
-          timeout="auto"
-          unmountOnExit
-          onEntered={onInfoToggle}
-          onExited={onInfoToggle}
+      {hasInfo && isInfoOpen && (
+        <Box
+          id={infoId}
+          sx={{
+            mt: imageSpacing,
+            mb: `-${infoOverlap}`,
+            width: '100%',
+            backgroundColor: 'common.white',
+            color: 'text.primary',
+            boxShadow: baseShadow,
+            borderRadius: infoCardRadius,
+            position: 'relative',
+            zIndex: 0,
+          }}
         >
           <Box
-            id={infoId}
             sx={{
-              mt: imageSpacing,
-              mb: `-${infoOverlap}`,
-              width: '100%',
-              backgroundColor: 'common.white',
-              color: 'text.primary',
-              boxShadow: baseShadow,
-              borderRadius: infoCardRadius,
-              position: 'relative',
-              zIndex: 0,
+              px: 1,
+              pt: 1,
+              pb: `calc(${infoOverlap} + 0.5rem)`,
             }}
           >
-            <Box
-              sx={{
-                px: 1,
-                pt: 1,
-                pb: `calc(${infoOverlap} + 0.5rem)`,
-              }}
-            >
-              {layerGroup.infoElement}
-            </Box>
+            {layerGroup.infoElement}
           </Box>
-        </Collapse>
+        </Box>
       )}
       {renderImage()}
       {showOpacitySlider && (
-        <Box sx={{ mt: 1.25, px: '1rem', position: 'relative', zIndex: 3 }}>
-          <Slider
-            size="small"
+        <Box
+          sx={{
+            mt: 1.25,
+            px: '1rem',
+            position: 'relative',
+            zIndex: 3,
+            display: 'grid',
+            gridTemplateColumns: '1fr auto',
+            alignItems: 'center',
+            gap: 1,
+          }}
+        >
+          <Slider.Root
             min={0}
             max={1}
             step={0.05}
             value={resolvedOpacity}
-            valueLabelDisplay="auto"
-            valueLabelFormat={(value) => `${Math.round(value * 100)}%`}
-            onChange={handleOpacityChange}
-            aria-label={opacityLabel || 'Opacity'}
+            onValueChange={handleOpacityChange}
+            render={(rootProps) => (
+              <Box {...rootProps} sx={{ width: '100%', minWidth: 0 }} />
+            )}
+          >
+            <Slider.Control
+              render={(controlProps) => (
+                <Box
+                  {...controlProps}
+                  sx={{
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    width: '100%',
+                    height: 20,
+                    touchAction: 'none',
+                  }}
+                />
+              )}
+            >
+              <Slider.Track
+                render={(trackProps) => (
+                  <Box
+                    {...trackProps}
+                    sx={{
+                      position: 'relative',
+                      width: '100%',
+                      height: 4,
+                      borderRadius: '999px',
+                      backgroundColor: 'rgba(0, 0, 0, 0.18)',
+                    }}
+                  />
+                )}
+              >
+                <Slider.Indicator
+                  render={(indicatorProps) => (
+                    <Box
+                      {...indicatorProps}
+                      sx={{
+                        height: '100%',
+                        borderRadius: 'inherit',
+                        backgroundColor: 'primary.main',
+                      }}
+                    />
+                  )}
+                />
+                <Slider.Thumb
+                  getAriaLabel={() => opacityLabel || 'Opacity'}
+                  getAriaValueText={(_formattedValue, value) =>
+                    `${Math.round(value * 100)}%`
+                  }
+                  render={(thumbProps) => (
+                    <Box
+                      {...thumbProps}
+                      sx={{
+                        width: 16,
+                        height: 16,
+                        borderRadius: '50%',
+                        backgroundColor: 'common.white',
+                        border: '2px solid',
+                        borderColor: 'primary.main',
+                        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.22)',
+                        '&:focus-within, &:focus-visible, &[data-focus-visible="true"]':
+                          {
+                            outline: '2px solid #075CFF',
+                            outlineOffset: 2,
+                          },
+                      }}
+                    />
+                  )}
+                />
+              </Slider.Track>
+            </Slider.Control>
+          </Slider.Root>
+          <Box
+            component="span"
+            aria-hidden="true"
             sx={{
-              width: '100%',
-              overflow: 'visible',
-              position: 'relative',
-              zIndex: 3,
-              '& .MuiSlider-valueLabel': {
-                zIndex: 4,
-              },
+              minWidth: '2.5rem',
+              color: 'text.secondary',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              lineHeight: 1,
+              textAlign: 'right',
             }}
-          />
+          >
+            {Math.round(resolvedOpacity * 100)}%
+          </Box>
         </Box>
       )}
     </Box>

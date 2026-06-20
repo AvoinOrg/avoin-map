@@ -18,6 +18,60 @@ jest.mock('#/common/hooks/ui/useIsMobile', () => ({
   useIsMobile: () => false,
 }))
 
+jest.mock('#/common/hooks/map/useVisibleLayerGroupIds', () => ({
+  useVisibleLayerGroupIds: () => [],
+}))
+
+jest.mock('#/common/hooks/map/useLayerGroupOpacity', () => ({
+  useLayerGroupOpacity: () => undefined,
+}))
+
+jest.mock('#/common/hooks/map/useDrawMode', () => ({
+  useDrawMode: () => null,
+}))
+
+jest.mock('#/common/hooks/map/useIsDrawEnabled', () => ({
+  useIsDrawEnabled: () => false,
+}))
+
+jest.mock('#/common/hooks/map/useAllowedDrawModes', () => ({
+  useAllowedDrawModes: () => [],
+}))
+
+jest.mock('#/common/hooks/map/useSelectedDrawFeature', () => ({
+  useSelectedDrawFeatures: () => [],
+}))
+
+jest.mock('#/common/hooks/map/useIsDrawDeleteAllowed', () => ({
+  useIsDrawDeleteAllowed: () => false,
+}))
+
+jest.mock('#/common/utils/map', () => ({
+  clampOpacity: (opacity: number) => opacity,
+}))
+
+jest.mock('#/common/navigation/navigation', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+  }),
+}))
+
+jest.mock('#/common/store', () => ({
+  useMapStore: Object.assign(jest.fn(), {
+    setState: jest.fn(),
+  }),
+  useUIStore: Object.assign(jest.fn(), {
+    setState: jest.fn(),
+  }),
+}))
+
+jest.mock('#/common/store/userStore', () => ({
+  useUserStore: Object.assign(jest.fn(), {
+    setState: jest.fn(),
+  }),
+}))
+
 import { componentFixtureMetadata } from './metadata'
 import { getComponentFixtures } from './registry'
 
