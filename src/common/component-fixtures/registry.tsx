@@ -10,6 +10,7 @@ import { flowStepPrimitivesFixture } from './fixtures/FlowStepPrimitivesFixture'
 import { folderFixture } from './fixtures/FolderFixture'
 import { fullscreenPageFixture } from './fixtures/FullscreenPageFixture'
 import { loadingFeedbackFixture } from './fixtures/LoadingFeedbackFixture'
+import { mainPopupTableFixture } from './fixtures/MainPopupTableFixture'
 import { layerToggleRowFixture } from './fixtures/LayerToggleRowFixture'
 import {
   mapButtonGroupsFixture,
@@ -43,6 +44,7 @@ const componentFixtures: ComponentFixture[] = [
   mapLayerMenuFixture,
   mapSearchBarFixture,
   layerToggleRowFixture,
+  mainPopupTableFixture,
   dropDownSelectFixture,
   dropDownMultiSelectFixture,
   multiSelectAutocompleteFixture,

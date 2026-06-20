@@ -1,18 +1,17 @@
 import React from 'react'
-import {
-  Box,
-  Typography,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-} from '@mui/material'
+
+import { Box } from '#/common/style/theme/system'
 import { Cross } from '#/components/icons'
 import { PopupProps } from '#/common/types/map'
 import { uniqWith, isEqual } from 'lodash-es'
 import { MapModalWrapper } from '#/components/Map/MapModalWrapper'
 import { useLocaleFormatter } from '#/common/hooks/useLocaleFormatter'
+import {
+  PopupTable,
+  PopupTableBody,
+  PopupTableCell,
+  PopupTableRow,
+} from '#/components/Map/layers/main/common/PopupTable'
 
 import {
   buildingHelBhsysClass,
@@ -20,50 +19,60 @@ import {
   energyConsumption,
 } from './constants'
 
-// Variables
-let heatings,
-  heatingsL,
-  heatingsS,
-  heatingsmS,
-  tecons,
-  teconsL,
-  teconsS,
-  teconsmS,
-  tecdate,
-  tecdate_st
 // Energy prices
 const districtprice = 81
 const powerprice = 100
 const interest_rate = 0.03
 // convert to float
-const convertToFloat = (a: string) => {
+const convertToFloat = (a: string | number) => {
   // of string to float
-  let floatValue = +a
+  const floatValue = +a
   // Return float value
   return floatValue
 }
 // Emission factors [kgCO2/kWh]
 const empdp = [0.255, 0.195, 0.104, 0.104, 0.104]
+const ButtonBox = Box as React.ElementType
+
+const BoldValue = ({ children }: { children: React.ReactNode }) => (
+  <Box component="span" sx={{ fontWeight: 700 }}>
+    {children}
+  </Box>
+)
+
+type BuildingId = {
+  vtj_prt?: string | number | null
+  ratu?: string | number | null
+}
 
 const Popup = ({ features, onClose }: PopupProps) => {
   const { formatNumber } = useLocaleFormatter()
-  let buildingIds: any = []
-  const tableValues: any = {}
+  let buildingIds: BuildingId[] = []
+  const tableValues: Record<string, React.ReactNode> = {}
 
-  features.forEach((feature) => {
+  features.forEach(() => {
     const p = features[0].properties
 
     buildingIds.push({ vtj_prt: p.vtj_prt, ratu: p.ratu })
 
     // Helsinki-Testbed Variables
     const kktark = String(p.c_kayttark)
-    let docctilav = p.i_raktilav
+    const docctilav = p.i_raktilav
+    let heatings = 0
+    let heatingsL = 0
+    let heatingsS = 0
+    let heatingsmS = 0
+    let tecons = 0
+    let teconsL = 0
+    let teconsS = 0
+    let teconsmS = 0
+    let tecdate = 0
 
     // check / convert undefined values
     if (typeof p.c_valmpvm === 'undefined') {
       tecdate = 0
     } else {
-      tecdate_st = p.c_valmpvm.toString().substr(0, 4)
+      const tecdate_st = p.c_valmpvm.toString().substr(0, 4)
       tecdate = Number(tecdate_st)
     }
     // Building type: Apartment building
@@ -71,16 +80,14 @@ const Popup = ({ features, onClose }: PopupProps) => {
       tableValues['Building type'] = 'Apartment building'
     }
     if (p.c_valmpvm != null) {
-      let doccdate = p.c_valmpvm.toString().substr(0, 4)
+      const doccdate = p.c_valmpvm.toString().substr(0, 4)
       tableValues['Construction year'] = doccdate
     }
     if (p.i_raktilav != null) {
       tableValues['Heated floor area [m2]'] = formatNumber(p.i_kokala)
-      let docctilav = p.i_raktilav
     }
     if (p.i_raktilav != null) {
       tableValues['Heated volume [m3]'] = formatNumber(p.i_raktilav)
-      let docctilav = p.i_raktilav
     }
     // The house's heat source
     if (kktark == '032' || (kktark == '039' && p.c_poltaine != null)) {
@@ -180,14 +187,14 @@ const Popup = ({ features, onClose }: PopupProps) => {
         teconsmS = 0
       }
 
-      let districthconsmp = teconsL / 1000
-      let electenergyconspt = teconsS / 1000
-      let electenergyconsptm = teconsmS / 1000
+      const districthconsmp = teconsL / 1000
+      const electenergyconspt = teconsS / 1000
+      const electenergyconsptm = teconsmS / 1000
 
-      let yearcostbi =
+      const yearcostbi =
         districthconsmp * districtprice + electenergyconspt * powerprice
-      let yearcostai = electenergyconsptm * powerprice
-      let savingsum = Number(yearcostbi) - Number(yearcostai)
+      const yearcostai = electenergyconsptm * powerprice
+      const savingsum = Number(yearcostbi) - Number(yearcostai)
 
       const n = 15
       let present_value, cumulative_yield, discretes
@@ -200,23 +207,23 @@ const Popup = ({ features, onClose }: PopupProps) => {
       }
 
       tableValues['Estimated yearly heating related CO2-emissions [tCO2/a]'] = (
-        <Typography component="span" sx={{ fontWeight: 700 }}>
+        <BoldValue>
           {formatNumber(Math.round(tecons / 1000))}
-        </Typography>
+          </BoldValue>
       )
       tableValues[
         'Estimated yearly heating related CO2-emissions [kgCO2/(m3/a)]'
       ] = (
-        <Typography component="span" sx={{ fontWeight: 700 }}>
+        <BoldValue>
           {heatings}
-        </Typography>
+          </BoldValue>
       )
       tableValues[
         'Estimated yearly heating related CO2-emissions [kgCO2/kWh]'
       ] = (
-        <Typography component="span" sx={{ fontWeight: 700 }}>
+        <BoldValue>
           {formatNumber(Math.round((tecons * empdp[1]) / 1000))}
-        </Typography>
+          </BoldValue>
       )
       // payback time
       tableValues['From district heat to geothermal heat (cost savings)'] = (
@@ -226,30 +233,30 @@ const Popup = ({ features, onClose }: PopupProps) => {
         <div>
           <div>
             {buildingHePaybackClass[1]}:{' '}
-            <Typography component="span" sx={{ fontWeight: 700 }}>
+            <BoldValue>
               {formatNumber(districthconsmp, {
                 minimumFractionDigits: 3,
                 maximumFractionDigits: 3,
               })}
-            </Typography>
+          </BoldValue>
           </div>
           <div>
             {buildingHePaybackClass[2]}:{' '}
-            <Typography component="span" sx={{ fontWeight: 700 }}>
+            <BoldValue>
               {formatNumber(electenergyconspt, {
                 minimumFractionDigits: 3,
                 maximumFractionDigits: 3,
               })}
-            </Typography>
+          </BoldValue>
           </div>
           <div>
             {buildingHePaybackClass[3]}:{' '}
-            <Typography component="span" sx={{ fontWeight: 700 }}>
+            <BoldValue>
               {formatNumber(yearcostbi, {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0,
               })}
-            </Typography>
+          </BoldValue>
           </div>
         </div>
       )
@@ -257,51 +264,51 @@ const Popup = ({ features, onClose }: PopupProps) => {
         <div>
           <div>
             {buildingHePaybackClass[1]}:{' '}
-            <Typography component="span" sx={{ fontWeight: 700 }}>
+            <BoldValue>
               0
-            </Typography>
+          </BoldValue>
           </div>
           <div>
             {buildingHePaybackClass[2]}:{' '}
-            <Typography component="span" sx={{ fontWeight: 700 }}>
+            <BoldValue>
               {formatNumber(electenergyconsptm, {
                 minimumFractionDigits: 3,
                 maximumFractionDigits: 3,
               })}
-            </Typography>
+          </BoldValue>
           </div>
           <div>
             {buildingHePaybackClass[3]}:{' '}
-            <Typography component="span" sx={{ fontWeight: 700 }}>
+            <BoldValue>
               {formatNumber(yearcostai, {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0,
               })}
-            </Typography>
+          </BoldValue>
           </div>
         </div>
       )
       tableValues['Savings [€]'] = (
-        <Typography component="span" sx={{ fontWeight: 700 }}>
+        <BoldValue>
           {formatNumber(savingsum, {
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
           })}
-        </Typography>
+          </BoldValue>
       )
       tableValues['Price of district heating & electricity [€/MWh, snt/kWh]'] =
         (
-          <Typography component="span" sx={{ fontWeight: 700 }}>
+          <BoldValue>
             {formatNumber(districtprice)} & {formatNumber(powerprice / 10)}
-          </Typography>
+          </BoldValue>
         )
       tableValues['Cumulative savings (15a / Rate 3%): [€]'] = (
-        <Typography component="span" sx={{ fontWeight: 700 }}>
+        <BoldValue>
           {formatNumber(cumulative_yield, {
             minimumFractionDigits: 0,
             maximumFractionDigits: 0,
           })}
-        </Typography>
+          </BoldValue>
       )
     }
     // Oil
@@ -343,23 +350,23 @@ const Popup = ({ features, onClose }: PopupProps) => {
       }
       tableValues['Estimated yearly heating related CO2-emissions: [tCO2/a]'] =
         (
-          <Typography component="span" sx={{ fontWeight: 700 }}>
+          <BoldValue>
             {formatNumber(Math.round(tecons / 1000))}
-          </Typography>
+          </BoldValue>
         )
       tableValues[
         'Estimated yearly heating related CO2-emissions: [kgCO2/(m3/a)]'
       ] = (
-        <Typography component="span" sx={{ fontWeight: 700 }}>
+        <BoldValue>
           {formatNumber(heatings)}
-        </Typography>
+          </BoldValue>
       )
       tableValues[
         'Estimated yearly heating related CO2-emissions: [kgCO2/kWh]'
       ] = (
-        <Typography component="span" sx={{ fontWeight: 700 }}>
+        <BoldValue>
           {formatNumber(Math.round((tecons * empdp[0]) / 1000))}
-        </Typography>
+          </BoldValue>
       )
     }
     // Direct_Heating
@@ -400,23 +407,23 @@ const Popup = ({ features, onClose }: PopupProps) => {
       }
       tableValues['Estimated yearly heating related CO2-emissions: [tCO2/a]'] =
         (
-          <Typography component="span" sx={{ fontWeight: 700 }}>
+          <BoldValue>
             {formatNumber(Math.round(tecons / 1000))}
-          </Typography>
+          </BoldValue>
         )
       tableValues[
         'Estimated yearly heating related CO2-emissions: [kgCO2/(m3/a)]'
       ] = (
-        <Typography component="span" sx={{ fontWeight: 700 }}>
+        <BoldValue>
           {heatings}
-        </Typography>
+          </BoldValue>
       )
       tableValues[
         'Estimated yearly heating related CO2-emissions: [kgCO2/kWh]'
       ] = (
-        <Typography component="span" sx={{ fontWeight: 700 }}>
+        <BoldValue>
           {formatNumber(Math.round((tecons * empdp[2]) / 1000))}
-        </Typography>
+          </BoldValue>
       )
     }
     // Air-to-water heat pumpu, Ground source heat pump
@@ -457,23 +464,23 @@ const Popup = ({ features, onClose }: PopupProps) => {
       }
       tableValues['Estimated yearly heating related CO2-emissions: [tCO2/a]'] =
         (
-          <Typography component="span" sx={{ fontWeight: 700 }}>
+          <BoldValue>
             {formatNumber(Math.round(tecons / 1000))}
-          </Typography>
+          </BoldValue>
         )
       tableValues[
         'Estimated yearly heating related CO2-emissions: [kgCO2/(m3/a)]'
       ] = (
-        <Typography component="span" sx={{ fontWeight: 700 }}>
+        <BoldValue>
           {heatings}
-        </Typography>
+          </BoldValue>
       )
       tableValues[
         'Estimated yearly heating related CO2-emissions: [kgCO2/kWh]'
       ] = (
-        <Typography component="span" sx={{ fontWeight: 700 }}>
+        <BoldValue>
           {formatNumber(Math.round((tecons * empdp[3]) / 1000))}
-        </Typography>
+          </BoldValue>
       )
       // district heat price
       /*tableValues['Energy consumption reduction potential by switching to GSHP: MWh/a'] = <address>{'GSHP = Ground source heat pum'}</address>
@@ -500,26 +507,18 @@ const Popup = ({ features, onClose }: PopupProps) => {
   // remove duplicate building ids by comparing the objects
   buildingIds = uniqWith(buildingIds, isEqual)
 
-  const buildingIdString = Object.keys(buildingIds).reduce(
-    (prev: any, index: any) => {
-      const curr = buildingIds[index]
-      const val =
-        curr.vtj_prt && curr.ratu
-          ? `${curr.vtj_prt} (${curr.ratu})`
-          : curr.vtj_prt || curr.ratu
+  const buildingIdString = buildingIds.reduce((prev, curr) => {
+    const val =
+      curr.vtj_prt && curr.ratu
+        ? `${curr.vtj_prt} (${curr.ratu})`
+        : curr.vtj_prt || curr.ratu
 
-      if (val != null) {
-        if (prev !== '') {
-          prev += ', '
-        }
-
-        prev += val
-      }
-
+    if (val == null) {
       return prev
-    },
-    ''
-  )
+    }
+
+    return prev ? `${prev}, ${val}` : String(val)
+  }, '')
 
   return (
     <MapModalWrapper minWidthBeforeFullScreen={500}>
@@ -549,13 +548,36 @@ const Popup = ({ features, onClose }: PopupProps) => {
             flex: '0 0 auto', // Header should not shrink
           }}
         >
-          <IconButton
+          <ButtonBox
+            component="button"
+            type="button"
             aria-label="close"
             onClick={onClose}
-            sx={{ color: (theme) => theme.palette.grey[500] }}
+            sx={{
+              width: 40,
+              height: 40,
+              p: 0,
+              m: 0,
+              border: 0,
+              borderRadius: '50%',
+              background: 'transparent',
+              color: '#9e9e9e',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              },
+              '&:focus-visible': {
+                outline: '2px solid',
+                outlineColor: 'secondary.dark',
+                outlineOffset: '2px',
+              },
+            }}
           >
             <Cross />
-          </IconButton>
+          </ButtonBox>
         </Box>
 
         {/* Scroll body */}
@@ -566,23 +588,25 @@ const Popup = ({ features, onClose }: PopupProps) => {
             minHeight: 0, // Allow flex child to shrink
             pt: 3,
             pb: 4,
-            px: { xs: 2.6, md: 4 },
+            px: { mobile: 2.6, desktop: 4 },
             '@supports selector(::-webkit-scrollbar)': {
               '&::-webkit-scrollbar-thumb': { backgroundColor: '#878787' },
             },
             '@supports not selector(::-webkit-scrollbar)': {
-              scrollbarColor: `${
-                (theme.palette as any).neutral?.main ?? '#878787'
-              } transparent`,
+              scrollbarColor: `${theme.palette.neutral?.main ?? '#878787'} transparent`,
             },
           })}
         >
-          <Typography variant="h6" sx={{ mb: 4 }}>
+          <Box
+            component="h2"
+            id="map-popup-modal-title"
+            sx={{ m: 0, mb: 4, typography: 'h6' }}
+          >
             Building ID: {buildingIdString}
-          </Typography>
+          </Box>
 
-          <Table sx={{ width: '100%', color: 'inherit' }} size={'small'}>
-            <TableBody
+          <PopupTable sx={{ width: '100%', color: 'inherit' }}>
+            <PopupTableBody
               sx={{
                 'th, td': {
                   color: 'inherit',
@@ -606,32 +630,44 @@ const Popup = ({ features, onClose }: PopupProps) => {
                 // The <address> tag is used for complex values, render them directly
                 if (React.isValidElement(value)) {
                   return (
-                    <TableRow key={key}>
-                      <TableCell
+                    <PopupTableRow key={key}>
+                      <PopupTableCell
+                        component="th"
+                        scope="row"
                         sx={{ verticalAlign: 'top', pl: 0, width: '50%' }}
                       >
-                        <Typography sx={typographySx}>{key}</Typography>
-                      </TableCell>
-                      <TableCell>
+                        <Box component="span" sx={typographySx}>
+                          {key}
+                        </Box>
+                      </PopupTableCell>
+                      <PopupTableCell>
                         <Box sx={typographySx}>{value}</Box>
-                      </TableCell>
-                    </TableRow>
+                      </PopupTableCell>
+                    </PopupTableRow>
                   )
                 }
                 // For simple string values
                 return (
-                  <TableRow key={key}>
-                    <TableCell sx={{ pl: 0, width: '50%' }}>
-                      <Typography sx={typographySx}>{key}</Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography sx={valueTypographySx}>{value}</Typography>
-                    </TableCell>
-                  </TableRow>
+                  <PopupTableRow key={key}>
+                    <PopupTableCell
+                      component="th"
+                      scope="row"
+                      sx={{ pl: 0, width: '50%' }}
+                    >
+                      <Box component="span" sx={typographySx}>
+                        {key}
+                      </Box>
+                    </PopupTableCell>
+                    <PopupTableCell>
+                      <Box component="span" sx={valueTypographySx}>
+                        {value}
+                      </Box>
+                    </PopupTableCell>
+                  </PopupTableRow>
                 )
               })}
-            </TableBody>
-          </Table>
+            </PopupTableBody>
+          </PopupTable>
         </Box>
       </Box>
     </MapModalWrapper>

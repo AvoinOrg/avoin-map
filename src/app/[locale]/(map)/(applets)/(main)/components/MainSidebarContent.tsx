@@ -3,13 +3,15 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { useTranslate } from '@tolgee/react'
-import { Box, IconButton, Typography } from '@mui/material'
-import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded'
-import KeyboardArrowUpRoundedIcon from '@mui/icons-material/KeyboardArrowUpRounded'
 import type { EventListeners } from 'overlayscrollbars'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react'
 
+import {
+  AppSxProps,
+  Box,
+  toSxArray,
+} from '#/common/style/theme/system'
 import MutableLink from '#/components/common/MutableLink'
 import {
   useSidebarBoundaryContext,
@@ -22,6 +24,9 @@ import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import { mainRouteTree } from '#/common/routing/routes/main'
 import { SCROLLBAR_WIDTH_REM } from '#/common/style/theme/constants'
 import { RouteTree } from '#/common/types/routing'
+import { ArrowDown, ArrowUp } from '#/components/icons'
+
+const ButtonBox = Box as React.ElementType
 
 const MAIN_WORDMARK_SRC = '/files/img/main-sidebar/avoin-map-wordmark-v2.svg'
 const HIILIKARTTA_HERO_SRC = '/files/img/main-sidebar/hiilikartta-hero.svg'
@@ -101,6 +106,65 @@ type ScrollState = {
   canScrollUp: boolean
   canScrollDown: boolean
 }
+
+type SidebarTextProps = {
+  children: React.ReactNode
+  sx?: AppSxProps
+}
+
+const SidebarText = ({ children, sx }: SidebarTextProps) => (
+  <Box
+    component="span"
+    sx={[
+      {
+        display: 'block',
+        m: 0,
+      },
+      ...toSxArray(sx),
+    ]}
+  >
+    {children}
+  </Box>
+)
+
+const ScrollHintButton = ({
+  onClick,
+  ariaLabel,
+  children,
+  sx,
+}: {
+  onClick: () => void
+  ariaLabel: string
+  children: React.ReactNode
+  sx?: AppSxProps
+}) => (
+  <ButtonBox
+    component="button"
+    type="button"
+    onClick={onClick}
+    aria-label={ariaLabel}
+    sx={[
+      {
+        p: 0,
+        m: 0,
+        border: 0,
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        '&:focus-visible': {
+          outline: '2px solid',
+          outlineColor: 'secondary.dark',
+          outlineOffset: '2px',
+        },
+      },
+      ...toSxArray(sx),
+    ]}
+  >
+    {children}
+  </ButtonBox>
+)
 
 const MainSidebarContent = () => {
   const { t } = useTranslate('avoin-map')
@@ -254,11 +318,13 @@ const MainSidebarContent = () => {
   }, [updateScrollHint])
 
   useEffect(() => {
-    updateBottomControlsPlacement()
-
     if (typeof window === 'undefined') {
       return
     }
+
+    const initialPlacementUpdate = window.requestAnimationFrame(() => {
+      updateBottomControlsPlacement()
+    })
 
     const resizeObserver =
       typeof ResizeObserver !== 'undefined'
@@ -280,6 +346,7 @@ const MainSidebarContent = () => {
     window.addEventListener('resize', updateBottomControlsPlacement)
 
     return () => {
+      window.cancelAnimationFrame(initialPlacementUpdate)
       resizeObserver?.disconnect()
       window.removeEventListener('resize', updateBottomControlsPlacement)
     }
@@ -479,7 +546,7 @@ const MainSidebarContent = () => {
                         style={{ objectFit: 'contain' }}
                       />
                     </Box>
-                    <Typography
+                    <SidebarText
                       sx={{
                         mt: 10,
                         fontWeight: 700,
@@ -493,7 +560,7 @@ const MainSidebarContent = () => {
                       }}
                     >
                       {t('sidebar.main.intro.title')}
-                    </Typography>
+                    </SidebarText>
                   </Box>
 
                   <Box
@@ -512,7 +579,7 @@ const MainSidebarContent = () => {
                       pointerEvents: 'auto',
                     }}
                   >
-                    <Typography
+                    <SidebarText
                       sx={{
                         maxWidth: '14.25rem',
                         fontSize: '0.75rem',
@@ -523,8 +590,8 @@ const MainSidebarContent = () => {
                       }}
                     >
                       {t('sidebar.main.contact.lead')}
-                    </Typography>
-                    <Typography
+                    </SidebarText>
+                    <SidebarText
                       sx={{
                         mt: 3.25,
                         maxWidth: '9.625rem',
@@ -536,8 +603,8 @@ const MainSidebarContent = () => {
                       }}
                     >
                       {t('sidebar.main.contact.follow_up')}
-                    </Typography>
-                    <Typography
+                    </SidebarText>
+                    <SidebarText
                       sx={{
                         mt: 3,
                         maxWidth: '9.125rem',
@@ -549,8 +616,8 @@ const MainSidebarContent = () => {
                       }}
                     >
                       {t('sidebar.main.contact.tools')}
-                    </Typography>
-                    <Typography
+                    </SidebarText>
+                    <SidebarText
                       sx={{
                         mt: 'auto',
                         fontSize: '0.6875rem',
@@ -562,7 +629,7 @@ const MainSidebarContent = () => {
                       }}
                     >
                       {t('sidebar.main.contact.cta')}
-                    </Typography>
+                    </SidebarText>
                     <Box
                       sx={{
                         position: 'absolute',
@@ -659,7 +726,7 @@ const MainSidebarContent = () => {
                               pb: 2.5,
                             }}
                           >
-                            <Typography
+                            <SidebarText
                               sx={{
                                 fontSize: '0.75rem',
                                 lineHeight: '1.125rem',
@@ -670,8 +737,8 @@ const MainSidebarContent = () => {
                               }}
                             >
                               {t(titleKey)}
-                            </Typography>
-                            <Typography
+                            </SidebarText>
+                            <SidebarText
                               sx={{
                                 mt: 4,
                                 fontSize: '0.75rem',
@@ -685,7 +752,7 @@ const MainSidebarContent = () => {
                               }}
                             >
                               {t(descriptionKey)}
-                            </Typography>
+                            </SidebarText>
                           </Box>
                         </Box>
                       </MutableLink>
@@ -773,7 +840,7 @@ const MainSidebarContent = () => {
                                   'linear-gradient(90deg, rgba(255,255,255,0.9) 17.5%, rgba(255,255,255,0) 100%)',
                               }}
                             />
-                            <Typography
+                            <SidebarText
                               sx={{
                                 position: 'absolute',
                                 left: '2rem',
@@ -794,7 +861,7 @@ const MainSidebarContent = () => {
                               }}
                             >
                               {t(titleKey)}
-                            </Typography>
+                            </SidebarText>
                           </Box>
                           <Box
                             sx={{
@@ -803,7 +870,7 @@ const MainSidebarContent = () => {
                               pb: 2.5,
                             }}
                           >
-                            <Typography
+                            <SidebarText
                               sx={{
                                 fontSize: '0.75rem',
                                 lineHeight: '1rem',
@@ -815,7 +882,7 @@ const MainSidebarContent = () => {
                               }}
                             >
                               {t(descriptionKey)}
-                            </Typography>
+                            </SidebarText>
                           </Box>
                         </Box>
                       </MutableLink>
@@ -861,7 +928,7 @@ const MainSidebarContent = () => {
                       style={{ objectFit: 'contain' }}
                     />
                   </Box>
-                  <Typography
+                  <SidebarText
                     sx={{
                       mt: 10,
                       fontWeight: 700,
@@ -875,7 +942,7 @@ const MainSidebarContent = () => {
                     }}
                   >
                     {t('sidebar.main.intro.title')}
-                  </Typography>
+                  </SidebarText>
                 </Box>
 
                 {APPLET_BUBBLES.filter((bubble) => bubble.id === 'buildings').map(
@@ -946,7 +1013,7 @@ const MainSidebarContent = () => {
                                 'linear-gradient(90deg, rgba(255,255,255,0.9) 17.5%, rgba(255,255,255,0) 100%)',
                             }}
                           />
-                          <Typography
+                          <SidebarText
                             sx={{
                               position: 'absolute',
                               left: '2rem',
@@ -967,7 +1034,7 @@ const MainSidebarContent = () => {
                             }}
                           >
                             {t(titleKey)}
-                          </Typography>
+                          </SidebarText>
                         </Box>
                         <Box
                           sx={{
@@ -976,7 +1043,7 @@ const MainSidebarContent = () => {
                             pb: 2.5,
                           }}
                         >
-                          <Typography
+                          <SidebarText
                             sx={{
                               fontSize: '0.75rem',
                               lineHeight: '1rem',
@@ -988,7 +1055,7 @@ const MainSidebarContent = () => {
                             }}
                           >
                             {t(descriptionKey)}
-                          </Typography>
+                          </SidebarText>
                         </Box>
                       </Box>
                     </MutableLink>
@@ -1010,7 +1077,7 @@ const MainSidebarContent = () => {
                     boxShadow: '0 14px 30px rgba(0, 0, 0, 0.16)',
                   }}
                 >
-                  <Typography
+                  <SidebarText
                     sx={{
                       maxWidth: '14.25rem',
                       fontSize: '0.75rem',
@@ -1021,8 +1088,8 @@ const MainSidebarContent = () => {
                     }}
                   >
                     {t('sidebar.main.contact.lead')}
-                  </Typography>
-                  <Typography
+                  </SidebarText>
+                  <SidebarText
                     sx={{
                       mt: 3.25,
                       maxWidth: '9.625rem',
@@ -1034,8 +1101,8 @@ const MainSidebarContent = () => {
                     }}
                   >
                     {t('sidebar.main.contact.follow_up')}
-                  </Typography>
-                  <Typography
+                  </SidebarText>
+                  <SidebarText
                     sx={{
                       mt: 3,
                       maxWidth: '9.125rem',
@@ -1047,8 +1114,8 @@ const MainSidebarContent = () => {
                     }}
                   >
                     {t('sidebar.main.contact.tools')}
-                  </Typography>
-                  <Typography
+                  </SidebarText>
+                  <SidebarText
                     sx={{
                       mt: 'auto',
                       fontSize: '0.6875rem',
@@ -1060,7 +1127,7 @@ const MainSidebarContent = () => {
                     }}
                   >
                     {t('sidebar.main.contact.cta')}
-                  </Typography>
+                  </SidebarText>
                   <Box
                     sx={{
                       position: 'absolute',
@@ -1149,7 +1216,7 @@ const MainSidebarContent = () => {
                                 'linear-gradient(90deg, rgba(255,255,255,0.9) 17.5%, rgba(255,255,255,0) 100%)',
                             }}
                           />
-                          <Typography
+                          <SidebarText
                             sx={{
                               position: 'absolute',
                               left: '2rem',
@@ -1170,7 +1237,7 @@ const MainSidebarContent = () => {
                             }}
                           >
                             {t(titleKey)}
-                          </Typography>
+                          </SidebarText>
                         </Box>
                         <Box
                           sx={{
@@ -1179,7 +1246,7 @@ const MainSidebarContent = () => {
                             pb: 2.5,
                           }}
                         >
-                          <Typography
+                          <SidebarText
                             sx={{
                               fontSize: '0.75rem',
                               lineHeight: '1rem',
@@ -1191,7 +1258,7 @@ const MainSidebarContent = () => {
                             }}
                           >
                             {t(descriptionKey)}
-                          </Typography>
+                          </SidebarText>
                         </Box>
                       </Box>
                     </MutableLink>
@@ -1273,7 +1340,7 @@ const MainSidebarContent = () => {
                             pb: 2.5,
                           }}
                         >
-                          <Typography
+                          <SidebarText
                             sx={{
                               fontSize: '0.75rem',
                               lineHeight: '1.125rem',
@@ -1284,8 +1351,8 @@ const MainSidebarContent = () => {
                             }}
                           >
                             {t(titleKey)}
-                          </Typography>
-                          <Typography
+                          </SidebarText>
+                          <SidebarText
                             sx={{
                               mt: 4,
                               fontSize: '0.75rem',
@@ -1299,7 +1366,7 @@ const MainSidebarContent = () => {
                             }}
                           >
                             {t(descriptionKey)}
-                          </Typography>
+                          </SidebarText>
                         </Box>
                       </Box>
                     </MutableLink>
@@ -1360,9 +1427,9 @@ const MainSidebarContent = () => {
         </Box>
 
         {scrollState.canScrollUp && (
-          <IconButton
+          <ScrollHintButton
             onClick={handleScrollUp}
-            aria-label={t('sidebar.main.scroll_up_hint.aria_label')}
+            ariaLabel={t('sidebar.main.scroll_up_hint.aria_label')}
             sx={{
               position: 'absolute',
               top: { mobile: `${BUBBLE_GAP_REM}rem`, desktop: 0 },
@@ -1380,14 +1447,14 @@ const MainSidebarContent = () => {
               },
             }}
           >
-            <KeyboardArrowUpRoundedIcon />
-          </IconButton>
+            <ArrowUp sx={{ width: '1rem', height: '1rem' }} />
+          </ScrollHintButton>
         )}
 
         {scrollState.canScrollDown && (
-          <IconButton
+          <ScrollHintButton
             onClick={handleScrollDown}
-            aria-label={t('sidebar.main.scroll_hint.aria_label')}
+            ariaLabel={t('sidebar.main.scroll_hint.aria_label')}
             sx={{
               position: 'absolute',
               bottom: { mobile: `${BUBBLE_GAP_REM}rem`, desktop: 0 },
@@ -1405,8 +1472,8 @@ const MainSidebarContent = () => {
               },
             }}
           >
-            <KeyboardArrowDownRoundedIcon />
-          </IconButton>
+            <ArrowDown sx={{ width: '1rem', height: '1rem' }} />
+          </ScrollHintButton>
         )}
       </Box>
     </Box>

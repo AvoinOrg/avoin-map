@@ -1,8 +1,14 @@
 import React from 'react'
-import { Table, TableBody, TableCell, TableRow, Box } from '@mui/material'
+import { Box } from '#/common/style/theme/system'
 
 import { pp } from '#/common/utils/general'
 import { PopupProps } from '#/common/types/map'
+import {
+  PopupTable,
+  PopupTableBody,
+  PopupTableCell,
+  PopupTableRow,
+} from '#/components/Map/layers/main/common/PopupTable'
 
 const Popup = ({ features }: PopupProps) => {
   const p = features[0].properties || features[0]
@@ -37,48 +43,52 @@ const Popup = ({ features }: PopupProps) => {
       <p>{type_text}</p>
       {isPeat && <p>Tropical peatland</p>}
 
-      <Table size={'small'}>
-        <TableBody>
+      <PopupTable>
+        <PopupTableBody>
           {isPeat && (
             <>
-              <TableRow>
-                <TableCell>Average peat depth</TableCell>
-                <TableCell>{avg_peatdepth.toFixed(1)} metres</TableCell>
-              </TableRow>
+              <PopupTableRow>
+                <PopupTableCell>Average peat depth</PopupTableCell>
+                <PopupTableCell>{avg_peatdepth.toFixed(1)} metres</PopupTableCell>
+              </PopupTableRow>
             </>
           )}
-          <TableRow>
-            <TableCell>Area</TableCell>
-            <TableCell>{pp(area_ha, 3)}</TableCell>
-          </TableRow>
+          <PopupTableRow>
+            <PopupTableCell>Area</PopupTableCell>
+            <PopupTableCell>{pp(area_ha, 3)}</PopupTableCell>
+          </PopupTableRow>
           {isPeat && (
-            <TableRow>
-              <TableCell>Emission reduction potential when ground water level is raised by 40 cm</TableCell>
-              <TableCell>{pp(19.4 * area_ha)} tons CO2e/year</TableCell>
-            </TableRow>
+            <PopupTableRow>
+              <PopupTableCell>Emission reduction potential when ground water level is raised by 40 cm</PopupTableCell>
+              <PopupTableCell>{pp(19.4 * area_ha)} tons CO2e/year</PopupTableCell>
+            </PopupTableRow>
           )}
-          <TableRow>
-            <TableCell>Landsat source ID</TableCell>
-            <TableCell>
+          <PopupTableRow>
+            <PopupTableCell>Landsat source ID</PopupTableCell>
+            <PopupTableCell>
               <code>{image}</code>
-            </TableCell>
-          </TableRow>
+            </PopupTableCell>
+          </PopupTableRow>
           {imageObjs.length > 0 && (
-            <TableRow>
-              <TableCell>Potential Landsat source images</TableCell>
-              <TableCell sx={{ lineHeight: 0.5 }}>
+            <PopupTableRow>
+              <PopupTableCell>Potential Landsat source images</PopupTableCell>
+              <PopupTableCell sx={{ lineHeight: 0.5 }}>
                 {imageObjs.map((imageObj) => (
-                  <p>
-                    <a target="_blank" href={imageObj.url}>
+                  <p key={imageObj.url}>
+                    <a
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href={imageObj.url}
+                    >
                       {imageObj.title}
                     </a>
                   </p>
                 ))}
-              </TableCell>
-            </TableRow>
+              </PopupTableCell>
+            </PopupTableRow>
           )}
-        </TableBody>
-      </Table>
+        </PopupTableBody>
+      </PopupTable>
     </Box>
   )
 }

@@ -1,11 +1,14 @@
 import React, { useState } from 'react'
-import { Box, Collapse, IconButton, Typography, useTheme } from '@mui/material'
+import { Collapsible } from '@base-ui/react/collapsible'
+
+import { Box } from '#/common/style/theme/system'
 import { EyeButton } from '#/components/common/EyeButton'
 import { useLayerGroup } from '#/common/hooks/map/useLayerGroup'
 import { LayerConf } from '#/common/types/map'
 import { ArrowDown, ArrowUp } from '#/components/icons'
 
 const DEFAULT_COLOR = 'darkgreen'
+const ButtonBox = Box as React.ElementType
 
 interface AccordionItemProps {
   layerConf: LayerConf
@@ -20,7 +23,6 @@ export const AccordionItem = ({
   color,
   children,
 }: AccordionItemProps) => {
-  const theme = useTheme()
   const [isExpanded, setIsExpanded] = useState(false)
   const [layerGroupStatus, setEnabled] = useLayerGroup(
     layerConf.id,
@@ -37,32 +39,13 @@ export const AccordionItem = ({
     setEnabled(layerGroupStatus !== 'visible')
   }
 
-  const handleToggleExpand = () => {
-    if (children) {
-      setIsExpanded(!isExpanded)
-    }
-  }
-
-  const handleHeaderKeyDown = (event: React.KeyboardEvent) => {
-    if (!children) return
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      handleToggleExpand()
-    }
-  }
-
   return (
-    <>
+    <Collapsible.Root
+      open={isExpanded}
+      onOpenChange={setIsExpanded}
+      render={(rootProps) => <Box {...rootProps} sx={{ width: '100%' }} />}
+    >
       <Box
-        onClick={handleToggleExpand}
-        role={children ? 'button' : undefined}
-        tabIndex={children ? 0 : undefined}
-        aria-label={
-          children
-            ? `${isExpanded ? 'Collapse' : 'Expand'} ${name}`
-            : undefined
-        }
-        onKeyDown={handleHeaderKeyDown}
         sx={{
           display: 'flex',
           alignItems: 'center',
@@ -72,7 +55,6 @@ export const AccordionItem = ({
           pr: 5,
           height: 'auto',
           minHeight: '3.5rem',
-          cursor: children ? 'pointer' : 'default',
           '&:hover': {
             backgroundColor: isExpanded ? 'neutral.main' : 'neutral.light',
           },
@@ -89,34 +71,96 @@ export const AccordionItem = ({
             layerGroupStatus === 'visible' ? 'Hide layer' : 'Show layer'
           }`}
         />
-        <Typography
-          sx={{
-            flexGrow: 1,
-            typography: 'body1',
-            fontSize: '0.6875rem',
-            fontStyle: 'normal',
-            fontWeight: 700,
-            lineHeight: '1.4',
-            letterSpacing: '0.06875rem',
-            pr: 2,
-          }}
-        >
-          {name}
-        </Typography>
-        {children && (
+        {children ? (
+          <Collapsible.Trigger
+            aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${name}`}
+            render={(triggerProps) => (
+              <ButtonBox
+                {...triggerProps}
+                component="button"
+                type="button"
+                sx={{
+                  flexGrow: 1,
+                  minWidth: 0,
+                  p: 0,
+                  m: 0,
+                  border: 0,
+                  background: 'transparent',
+                  color: 'inherit',
+                  display: 'flex',
+                  alignItems: 'center',
+                  textAlign: 'left',
+                  font: 'inherit',
+                  cursor: 'pointer',
+                  '&:focus-visible': {
+                    outline: '2px solid',
+                    outlineColor: 'secondary.dark',
+                    outlineOffset: '2px',
+                  },
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={{
+                    flexGrow: 1,
+                    typography: 'body1',
+                    fontSize: '0.6875rem',
+                    fontStyle: 'normal',
+                    fontWeight: 700,
+                    lineHeight: '1.4',
+                    letterSpacing: '0.06875rem',
+                    pr: 2,
+                  }}
+                >
+                  {name}
+                </Box>
+                <Box
+                  component="span"
+                  sx={{
+                    color: 'text.secondary',
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                >
+                  {isExpanded ? <ArrowUp /> : <ArrowDown />}
+                </Box>
+              </ButtonBox>
+            )}
+          />
+        ) : (
           <Box
+            component="span"
             sx={{
-              color: 'text.secondary',
-              display: 'flex',
-              alignItems: 'center',
+              flexGrow: 1,
+              typography: 'body1',
+              fontSize: '0.6875rem',
+              fontStyle: 'normal',
+              fontWeight: 700,
+              lineHeight: '1.4',
+              letterSpacing: '0.06875rem',
+              pr: 2,
             }}
           >
-            {isExpanded ? <ArrowUp /> : <ArrowDown />}
+            {name}
           </Box>
         )}
       </Box>
       {children && (
-        <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+        <Collapsible.Panel
+          render={(panelProps) => (
+            <Box
+              {...panelProps}
+              sx={{
+                height: 'var(--collapsible-panel-height)',
+                overflow: 'hidden',
+                transition: 'height 200ms ease',
+                '&[data-starting-style], &[data-ending-style]': {
+                  height: 0,
+                },
+              }}
+            />
+          )}
+        >
           <Box
             sx={{
               typography: 'body2',
@@ -133,8 +177,8 @@ export const AccordionItem = ({
           >
             {children}
           </Box>
-        </Collapse>
+        </Collapsible.Panel>
       )}
-    </>
+    </Collapsible.Root>
   )
 }

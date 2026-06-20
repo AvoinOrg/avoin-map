@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Typography } from '@mui/material'
+import { Box } from '#/common/style/theme/system'
 import Link from '#/components/common/Link'
 import { ArrowRight } from '#/components/icons'
 
@@ -27,7 +27,8 @@ export const AccordionLink = ({ href, name }: AccordionLinkProps) => {
         },
       }}
     >
-      <Typography
+      <Box
+        component="span"
         sx={{
           flexGrow: 1,
           typography: 'h9',
@@ -39,7 +40,7 @@ export const AccordionLink = ({ href, name }: AccordionLinkProps) => {
         }}
       >
         {name}
-      </Typography>
+      </Box>
       <ArrowRight sx={{ height: '17px' }} />
     </Link>
   )

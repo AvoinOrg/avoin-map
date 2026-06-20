@@ -1,8 +1,13 @@
 import React from 'react'
-import { Table, TableBody, TableCell, TableRow } from '@mui/material'
 import { pp } from '#/common/utils/general'
 
 import { PopupProps } from '#/common/types/map'
+import {
+  PopupTable,
+  PopupTableBody,
+  PopupTableCell,
+  PopupTableRow,
+} from '#/components/Map/layers/main/common/PopupTable'
 
 const Popup = ({ features }: PopupProps) => {
   const p = features[0].properties
@@ -12,26 +17,26 @@ const Popup = ({ features }: PopupProps) => {
   const url = `https://www.energiatodistusrekisteri.fi/public_html?energiatodistus-id=${p.todistustunnus}&command=access&t=energiatodistus&p=energiatodistukset`
 
   return (
-    <Table size={'small'}>
-      <TableBody>
-        <TableRow>
-          <TableCell>Certificate ID</TableCell>
-          <TableCell>
+    <PopupTable>
+      <PopupTableBody>
+        <PopupTableRow>
+          <PopupTableCell>Certificate ID</PopupTableCell>
+          <PopupTableCell>
             <a href={url}>{p.todistustunnus}</a>
-          </TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Total energy consumption</TableCell>
-          <TableCell>{pp(energyUse)} years</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Energy use per m²</TableCell>
-          <TableCell>
+          </PopupTableCell>
+        </PopupTableRow>
+        <PopupTableRow>
+          <PopupTableCell>Total energy consumption</PopupTableCell>
+          <PopupTableCell>{pp(energyUse)} years</PopupTableCell>
+        </PopupTableRow>
+        <PopupTableRow>
+          <PopupTableCell>Energy use per m²</PopupTableCell>
+          <PopupTableCell>
             {p.e_luku} kWh per year {energyPerVolume}
-          </TableCell>
-        </TableRow>
-      </TableBody>
-    </Table>
+          </PopupTableCell>
+        </PopupTableRow>
+      </PopupTableBody>
+    </PopupTable>
   )
 }
 

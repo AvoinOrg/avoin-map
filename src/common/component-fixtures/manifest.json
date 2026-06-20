@@ -361,6 +361,27 @@
     ]
   },
   {
+    "id": "main-popup-table",
+    "label": "Main popup table",
+    "description": "Native table wrappers used by main map layer popups.",
+    "sourceGlobs": [
+      "src/components/Map/layers/main/common/PopupTable.tsx",
+      "src/common/component-fixtures/fixtures/MainPopupTableFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "light",
+        "label": "Light",
+        "description": "Default popup table on a light modal background."
+      },
+      {
+        "id": "dark-inherited",
+        "label": "Dark inherited",
+        "description": "Popup table inheriting dark modal colors and borders."
+      }
+    ]
+  },
+  {
     "id": "drop-down-select",
     "label": "DropDownSelect",
     "description": "Shared single-select dropdown states.",
