@@ -1,13 +1,12 @@
 import React, { useState } from 'react'
-import { styled } from '@mui/material/styles'
-import { Box, SxProps, Theme, Typography } from '@mui/material'
 
 import { pp } from '#/common/utils/general'
+import { Box, toSxArray } from '#/common/style/theme/system'
 import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
 import TText from '#/components/common/TText'
 
-import { PlanConfWithReportData } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
+import type { PlanConfWithReportData } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
 import GeomGraphic from './GeomGraphic'
 import CarbonChangeLegend from '../CarbonChangeLegend'
 import ReadMoreModal from '../ReadMoreModal'
@@ -15,7 +14,7 @@ import ReadMoreModal from '../ReadMoreModal'
 type Props = {
   planConfs: PlanConfWithReportData[]
   featureYears: string[]
-  sx?: SxProps<Theme>
+  sx?: React.ComponentProps<typeof Box>['sx']
 }
 
 const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
@@ -26,21 +25,22 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
   }
 
   return (
-    <Box sx={[...(Array.isArray(sx) ? sx : [sx])]}>
+    <Box sx={toSxArray(sx)}>
       <Row>
         <Col>
           <Row sx={{ justifyContent: 'flex-start' }}>
-            <Typography
-              sx={(theme) => ({
-                typography: theme.typography.h1,
+            <Box
+              component="span"
+              sx={{
+                typography: 'h1',
                 display: 'inline',
-              })}
+              }}
             >
               <TText
                 keyName="report.overview_graph.impact_on_carbon_stock"
                 ns={'hiilikartta'}
               ></TText>{' '}
-            </Typography>
+            </Box>
             {/* <Info
               sx={{
                 height: '1.1rem',
@@ -51,17 +51,18 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
             ></Info> */}
           </Row>
           <Row sx={{ justifyContent: 'flex-start', mt: 0.5 }}>
-            <Typography
-              sx={(theme) => ({
-                typography: theme.typography.h1,
+            <Box
+              component="span"
+              sx={{
+                typography: 'h1',
                 display: 'inline',
-              })}
+              }}
             >
               <TText
                 keyName="report.overview_graph.on_year"
                 ns={'hiilikartta'}
               ></TText>{' '}
-            </Typography>
+            </Box>
             <DropDownSelectMinimal
               ariaLabel="Select overview graph year"
               options={featureYears.map((featureYear) => ({
@@ -109,15 +110,16 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
               key={planConf.serverId}
             >
               <Col>
-                <Typography typography={'h8'}>
+                <Box component="span" sx={{ typography: 'h8' }}>
                   <TText
                     keyName="report.overview_graph.plan"
                     ns="hiilikartta"
                   ></TText>
-                </Typography>
-                <Typography
-                  typography={'h7'}
+                </Box>
+                <Box
+                  component="span"
                   sx={{
+                    typography: 'h7',
                     display: 'inline',
                     textOverflow: 'ellipsis',
                     overflow: 'hidden',
@@ -125,20 +127,20 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
                   }}
                 >
                   {planConf?.name}
-                </Typography>
-                <Typography typography={'h5'} sx={{ mt: 2 }}>
+                </Box>
+                <Box component="span" sx={{ mt: 2, typography: 'h5' }}>
                   <TText
                     keyName="report.overview_graph.carbon_stock_decreases"
                     ns="hiilikartta"
                   ></TText>
-                </Typography>
-                <Typography mt={4} typography={'h5'}>
+                </Box>
+                <Box component="span" sx={{ mt: 4, typography: 'h5' }}>
                   <TText
                     keyName="report.overview_graph.carbon_eqv_unit"
                     ns="hiilikartta"
                   ></TText>
-                </Typography>
-                <Typography mt={1} typography={'h1'}>
+                </Box>
+                <Box component="span" sx={{ mt: 1, typography: 'h1' }}>
                   {pp(
                     planConf.reportData.agg.totals.bio_carbon_total_diff[
                       activeYear
@@ -148,14 +150,14 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
                       ],
                     0
                   )}
-                </Typography>
-                <Typography mt={3} typography={'h5'}>
+                </Box>
+                <Box component="span" sx={{ mt: 3, typography: 'h5' }}>
                   <TText
                     keyName="report.overview_graph.carbon_eqv_unit_hectare"
                     ns="hiilikartta"
                   ></TText>
-                </Typography>
-                <Typography mt={1} typography={'h1'}>
+                </Box>
+                <Box component="span" sx={{ mt: 1, typography: 'h1' }}>
                   {pp(
                     planConf.reportData.agg.totals.bio_carbon_ha_diff[
                       activeYear
@@ -165,7 +167,7 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
                       ],
                     0
                   )}
-                </Typography>
+                </Box>
               </Col>
               <Col sx={{ ml: 2 }}>
                 <GeomGraphic
@@ -190,16 +192,39 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
 
 export default CarbonOverviewGraph
 
-const Row = styled('div')(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  width: '100%',
-}))
+type LayoutProps = {
+  children: React.ReactNode
+  sx?: React.ComponentProps<typeof Box>['sx']
+}
 
-const Col = styled('div')(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'flex-start',
-  width: '100%',
-}))
+const Row = ({ children, sx }: LayoutProps) => (
+  <Box
+    sx={[
+      {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+      },
+      ...toSxArray(sx),
+    ]}
+  >
+    {children}
+  </Box>
+)
+
+const Col = ({ children, sx }: LayoutProps) => (
+  <Box
+    sx={[
+      {
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-start',
+        width: '100%',
+      },
+      ...toSxArray(sx),
+    ]}
+  >
+    {children}
+  </Box>
+)

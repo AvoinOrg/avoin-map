@@ -529,6 +529,64 @@
     ]
   },
   {
+    "id": "hiilikartta-report-overview",
+    "label": "Hiilikartta report overview",
+    "description": "Report overview, geometry preview, carbon-change legend, and read-more modal states.",
+    "sourceGlobs": [
+      "src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonChangeLegend.tsx",
+      "src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonOverviewGraph/CarbonOverviewGraph.tsx",
+      "src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonOverviewGraph/GeomGraphic.tsx",
+      "src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonOverviewGraph/index.tsx",
+      "src/app/[locale]/(map)/(applets)/hiilikartta/components/ReadMoreModal.tsx",
+      "src/common/component-fixtures/fixtures/HiilikarttaReportOverviewFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "legend-wide",
+        "label": "Legend wide",
+        "description": "Horizontal carbon-change legend with wide viewport media forced on.",
+        "waitFor": "[data-testid=\"legend-media-ready\"]"
+      },
+      {
+        "id": "legend-narrow",
+        "label": "Legend narrow",
+        "description": "Vertical carbon-change legend with narrow viewport media forced on.",
+        "waitFor": "[data-testid=\"legend-media-ready\"]"
+      },
+      {
+        "id": "geom-negative",
+        "label": "Geometry negative",
+        "description": "Standalone geometry preview rendered with shrink colors."
+      },
+      {
+        "id": "geom-mixed",
+        "label": "Geometry mixed",
+        "description": "Standalone geometry preview with shrink, no-change, grow, and no-data colors."
+      },
+      {
+        "id": "overview-single-plan",
+        "label": "Overview single plan",
+        "description": "Overview graph with one deterministic report plan."
+      },
+      {
+        "id": "overview-multiple-plans",
+        "label": "Overview multiple plans",
+        "description": "Overview graph with two deterministic report plans and a long plan name."
+      },
+      {
+        "id": "read-more-closed",
+        "label": "Read more closed",
+        "description": "Closed read-more modal trigger."
+      },
+      {
+        "id": "read-more-open",
+        "label": "Read more open",
+        "description": "Read-more modal opened by deterministic fixture interaction.",
+        "waitFor": "role=dialog"
+      }
+    ]
+  },
+  {
     "id": "main-popup-table",
     "label": "Main popup table",
     "description": "Native table wrappers used by main map layer popups.",

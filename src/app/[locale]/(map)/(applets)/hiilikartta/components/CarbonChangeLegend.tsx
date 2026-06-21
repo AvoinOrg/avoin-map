@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Box, SxProps, Theme, Typography } from '@mui/material'
-import { T, useTranslate } from '@tolgee/react'
-import { useTheme } from '@mui/material/styles'
-import useMediaQuery from '@mui/material/useMediaQuery'
+import { useTranslate } from '@tolgee/react'
 
+import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
+import { Box, toSxArray } from '#/common/style/theme/system'
+import TText from '#/components/common/TText'
 import {
   CARBON_CHANGE_COLORS,
   CARBON_CHANGE_NO_DATA_COLOR,
@@ -13,11 +13,10 @@ import { ArrowDown, ArrowUp } from '#/components/icons'
 const NUMBER_OF_ITEMS = CARBON_CHANGE_COLORS.length + 1
 const FLEX_BASIS = 100 / NUMBER_OF_ITEMS + '%'
 
-type Props = { sx?: SxProps<Theme> }
+type Props = { sx?: React.ComponentProps<typeof Box>['sx'] }
 
 const CarbonChangeLegend = ({ sx }: Props) => {
-  const theme = useTheme()
-  const useNarrowLayout = useMediaQuery(theme.breakpoints.down('md'))
+  const useNarrowLayout = useIsMobile('md')
 
   return useNarrowLayout ? (
     <CarbonChangeLegendNarrow sx={sx}></CarbonChangeLegendNarrow>
@@ -28,7 +27,7 @@ const CarbonChangeLegend = ({ sx }: Props) => {
 
 const CarbonChangeLegendWide = ({ sx }: Props) => {
   const { t } = useTranslate('hiilikartta')
-  const noChangeTextRef = useRef<HTMLDivElement>(null)
+  const noChangeTextRef = useRef<HTMLElement>(null)
 
   const [thirdTextRight, setThirdTextRight] = useState('0')
   const [fourthTextLeft, setFourthTextLeft] = useState('0')
@@ -52,7 +51,7 @@ const CarbonChangeLegendWide = ({ sx }: Props) => {
           flexDirection: 'column',
           width: '100%',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toSxArray(sx),
       ]}
     >
       <Box
@@ -100,19 +99,20 @@ const CarbonChangeLegendWide = ({ sx }: Props) => {
           }}
         >
           <b>
-            <T
+            <TText
               ns={'hiilikartta'}
               keyName={'report.carbon_change_legend.title'}
-            ></T>
+            ></TText>
           </b>
           <Box sx={{ mt: 0.7 }}>
-            <T
+            <TText
               ns={'hiilikartta'}
               keyName={'report.carbon_change_legend.unit'}
-            ></T>
+            ></TText>
           </Box>
         </Box>
-        <Typography
+        <Box
+          component="span"
           ref={noChangeTextRef}
           sx={{
             position: 'absolute',
@@ -124,12 +124,13 @@ const CarbonChangeLegendWide = ({ sx }: Props) => {
             letterSpacing: '0.05rem',
           }}
         >
-          <T
+          <TText
             ns={'hiilikartta'}
             keyName={'report.carbon_change_legend.no_change'}
-          ></T>
-        </Typography>
-        <Typography
+          ></TText>
+        </Box>
+        <Box
+          component="span"
           sx={{
             position: 'absolute',
             top: 1,
@@ -142,13 +143,14 @@ const CarbonChangeLegendWide = ({ sx }: Props) => {
             color: '#C54032',
           }}
         >
-          <T
+          <TText
             ns={'hiilikartta'}
             keyName={'report.carbon_change_legend.stores_shrink'}
-          ></T>
+          ></TText>
           {' <<'}
-        </Typography>
-        <Typography
+        </Box>
+        <Box
+          component="span"
           sx={{
             position: 'absolute',
             top: 1,
@@ -161,11 +163,11 @@ const CarbonChangeLegendWide = ({ sx }: Props) => {
           }}
         >
           {'>> '}
-          <T
+          <TText
             ns={'hiilikartta'}
             keyName={'report.carbon_change_legend.stores_expand'}
-          ></T>
-        </Typography>
+          ></TText>
+        </Box>
       </Box>
     </Box>
   )
@@ -189,13 +191,13 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
       setGrowTop(`calc(${newNoChangeTextTop}px - 2rem)`)
       setShrinkTop(`calc(${newNoChangeTextTop}px + 1.5rem)`)
     }
-  }, [legendItemsRef.current?.offsetHeight])
+  }, [])
 
   return (
     <Box
       sx={[
         { display: 'flex', flexDirection: 'column' },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toSxArray(sx),
       ]}
     >
       <Box
@@ -210,16 +212,16 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
         }}
       >
         <b>
-          <T
+          <TText
             ns={'hiilikartta'}
             keyName={'report.carbon_change_legend.title'}
-          ></T>
+          ></TText>
         </b>
         <Box sx={{ mt: 0.7 }}>
-          <T
+          <TText
             ns={'hiilikartta'}
             keyName={'report.carbon_change_legend.unit'}
-          ></T>
+          ></TText>
         </Box>
       </Box>
       <Box
@@ -243,7 +245,8 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
             height: '100%',
           }}
         >
-          <Typography
+          <Box
+            component="span"
             sx={{
               position: 'absolute',
               top: noChangeTextTop,
@@ -256,11 +259,11 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
               pr: '1.15rem',
             }}
           >
-            <T
+            <TText
               ns={'hiilikartta'}
               keyName={'report.carbon_change_legend.no_change'}
-            ></T>
-          </Typography>
+            ></TText>
+          </Box>
           <Box
             sx={{
               position: 'absolute',
@@ -275,7 +278,8 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
               justifyContent: 'flex-end',
             }}
           >
-            <Typography
+            <Box
+              component="span"
               sx={{
                 typography: 'body1',
                 fontSize: '0.5rem',
@@ -283,11 +287,11 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
                 letterSpacing: '0.05rem',
               }}
             >
-              <T
+              <TText
                 ns={'hiilikartta'}
                 keyName={'report.carbon_change_legend.stores_expand'}
-              ></T>
-            </Typography>
+              ></TText>
+            </Box>
             <ArrowUp
               sx={{
                 fontSize: '1rem',
@@ -309,7 +313,8 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
               textAlign: 'right',
             }}
           >
-            <Typography
+            <Box
+              component="span"
               sx={{
                 typography: 'body1',
                 fontSize: '0.5rem',
@@ -317,11 +322,11 @@ const CarbonChangeLegendNarrow = ({ sx }: Props) => {
                 letterSpacing: '0.05rem',
               }}
             >
-              <T
+              <TText
                 ns={'hiilikartta'}
                 keyName={'report.carbon_change_legend.stores_shrink'}
-              ></T>
-            </Typography>
+              ></TText>
+            </Box>
             <ArrowDown
               sx={{
                 fontSize: '1rem',
@@ -370,7 +375,8 @@ const LegendItem = ({ color, label }: { color: string; label: string }) => {
         flexDirection: 'column',
       }}
     >
-      <Typography
+      <Box
+        component="span"
         sx={{
           typography: 'body2',
           fontSize: '0.625rem',
@@ -380,7 +386,7 @@ const LegendItem = ({ color, label }: { color: string; label: string }) => {
         }}
       >
         {label}
-      </Typography>
+      </Box>
       <Box
         sx={{
           mt: '0.44rem',
@@ -417,7 +423,8 @@ const LegendItemNarrow = ({
           mr: '0.625rem',
         }}
       ></Box>
-      <Typography
+      <Box
+        component="span"
         sx={{
           typography: 'body2',
           fontSize: '0.625rem',
@@ -428,7 +435,7 @@ const LegendItemNarrow = ({
         }}
       >
         {label}
-      </Typography>
+      </Box>
     </Box>
   )
 }

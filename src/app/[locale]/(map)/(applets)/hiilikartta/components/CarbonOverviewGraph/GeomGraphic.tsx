@@ -1,7 +1,7 @@
 import React from 'react'
 import { geoPath, geoMercator } from 'd3-geo'
-import { Box, SxProps, Theme } from '@mui/material'
-import { CalcFeatureCollection } from '../../common/types'
+import { Box, toSxArray } from '#/common/style/theme/system'
+import type { CalcFeatureCollection } from '../../common/types'
 import {
   getCarbonChangeColor,
   getCarbonValueForProperties,
@@ -12,8 +12,15 @@ type Props = {
   year: string
   width: number
   height: number
-  sx?: SxProps<Theme>
+  sx?: React.ComponentProps<typeof Box>['sx']
 }
+
+type SvgBoxProps = React.SVGProps<SVGSVGElement> & {
+  component: 'svg'
+  sx?: React.ComponentProps<typeof Box>['sx']
+}
+
+const SvgBox = Box as React.ElementType<SvgBoxProps>
 
 const GeomGraphic = ({ calcFeatures, year, width, height, sx }: Props) => {
   const projection = geoMercator().fitSize([width, height], calcFeatures)
@@ -23,12 +30,12 @@ const GeomGraphic = ({ calcFeatures, year, width, height, sx }: Props) => {
   const viewBoxY = bounds[0][1] // Use only the top y-coordinate of the bounds
 
   return (
-    <Box
+    <SvgBox
       component={'svg'}
       width={width}
       height={height}
       viewBox={`0 ${viewBoxY} ${width} ${height}`}
-      sx={[...(Array.isArray(sx) ? sx : [sx])]}
+      sx={toSxArray(sx)}
     >
       <rect x={0} y={0} width={width} height={height} fill={'none'} rx={14} />
       <g>
@@ -52,7 +59,7 @@ const GeomGraphic = ({ calcFeatures, year, width, height, sx }: Props) => {
           )
         })}
       </g>
-    </Box>
+    </SvgBox>
   )
 }
 
