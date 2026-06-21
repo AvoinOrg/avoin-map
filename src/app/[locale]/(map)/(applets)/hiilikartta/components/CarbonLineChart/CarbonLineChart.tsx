@@ -1,10 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { Box, ToggleButton, Typography } from '@mui/material'
-import { styled } from '@mui/material/styles'
+import React, { useEffect, useRef, useState } from 'react'
+import { useTranslate } from '@tolgee/react'
 
-import { CalcFeatureCollection, UnitType } from '../../common/types'
+import {
+  Box,
+  toSxArray,
+  type AppSystemStyleObject,
+} from '#/common/style/theme'
+import { ButtonBase } from '#/components/common/Button'
+import TText from '#/components/common/TText'
+import type { CalcFeatureCollection, UnitType } from '../../common/types'
 import CarbonLineChartInner from './CarbonLineChartInner'
-import { T } from '@tolgee/react'
 
 interface Props {
   data: CalcFeatureCollection[]
@@ -14,49 +19,97 @@ interface Props {
 
 const MIN_WIDTH = 700 // Define a minimum width for the chart
 
+const unitSelectorButtonSx = {
+  borderRadius: '0.3125rem',
+  border: '1px solid',
+  borderColor: 'primary.dark',
+  color: 'neutral.darker',
+  width: '8.5rem',
+  whiteSpace: 'normal',
+  textTransform: 'none',
+  wordBreak: 'break-word',
+  mb: '0.75rem',
+  px: '1.25rem',
+  py: '0.6875rem',
+  textAlign: 'left',
+  display: 'flex',
+  justifyContent: 'flex-start',
+  typography: 'body7',
+  letterSpacing: 'normal',
+  '&[aria-pressed="true"]': {
+    borderColor: 'secondary.dark',
+    backgroundColor: 'neutral.lighter',
+  },
+} satisfies AppSystemStyleObject
+
+type UnitSelectorButtonProps = {
+  children: React.ReactNode
+  isSelected: boolean
+  label: string
+  onClick: () => void
+  sx?: AppSystemStyleObject
+}
+
+const UnitSelectorButton = ({
+  children,
+  isSelected,
+  label,
+  onClick,
+  sx,
+}: UnitSelectorButtonProps) => (
+  <ButtonBase
+    type="button"
+    aria-label={label}
+    aria-pressed={isSelected}
+    onClick={onClick}
+    sx={[unitSelectorButtonSx, ...toSxArray(sx)]}
+  >
+    {children}
+  </ButtonBase>
+)
+
 const CarbonLineChart = ({ data, featureYears, planNames }: Props) => {
   const [width, setWidth] = useState(800) // Start with a default width
-  const [unitType, setUnitType] = React.useState<UnitType>('ha')
-  const boxRef = useRef(null) // Ref for the container Box
+  const [unitType, setUnitType] = useState<UnitType>('ha')
+  const boxRef = useRef<HTMLElement | null>(null) // Ref for the container Box
+  const { t } = useTranslate('hiilikartta')
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver((entries) => {
-      if (entries[0].contentRect.width > MIN_WIDTH) {
-        setWidth(entries[0].contentRect.width)
-      } else {
-        setWidth(MIN_WIDTH)
-      }
+      const observedWidth = entries[0]?.contentRect.width ?? MIN_WIDTH
+      setWidth(Math.max(observedWidth, MIN_WIDTH))
     })
+    const observedElement = boxRef.current
 
-    if (boxRef.current) {
-      resizeObserver.observe(boxRef.current)
+    if (observedElement) {
+      resizeObserver.observe(observedElement)
     }
 
     return () => {
-      if (boxRef.current) {
-        resizeObserver.unobserve(boxRef.current)
+      if (observedElement) {
+        resizeObserver.unobserve(observedElement)
       }
     }
-  }, [boxRef])
-
-  const handleUnitTypeChange = (
-    _event: React.MouseEvent<HTMLElement>,
-    newCalcType: UnitType
-  ) => {
-    setUnitType(newCalcType)
-  }
+  }, [])
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Box sx={{ mt: { xs: 0, md: 2.5 }, ml: { xs: 0, md: 2.5 } }}>
-        <Typography
+      <Box
+        sx={{
+          mt: { mobile: 0, desktop: 2.5 },
+          ml: { mobile: 0, desktop: 2.5 },
+        }}
+      >
+        <Box
+          component="h2"
           sx={(theme) => ({
+            m: 0,
             typography: theme.typography.h1,
             display: 'inline',
           })}
         >
-          <T keyName="report.carbon_line_chart.title" ns={'hiilikartta'}></T>{' '}
-        </Typography>
+          <TText keyName="report.carbon_line_chart.title" ns="hiilikartta" />
+        </Box>
       </Box>
       <Box
         sx={{
@@ -66,34 +119,27 @@ const CarbonLineChart = ({ data, featureYears, planNames }: Props) => {
           ml: 10,
         }}
       >
-        <StyledToggleButton
-          value="ha"
-          aria-label="ha"
-          sx={{ typography: 'body7', letterSpacing: 'normal' }}
-          selected={unitType === 'ha'}
-          onChange={handleUnitTypeChange}
+        <UnitSelectorButton
+          label={t('report.carbon_line_chart.unit_select_ha')}
+          isSelected={unitType === 'ha'}
+          onClick={() => setUnitType('ha')}
         >
-          <T
+          <TText
             ns="hiilikartta"
-            keyName={'report.carbon_line_chart.unit_select_ha'}
-          ></T>
-        </StyledToggleButton>
-        <StyledToggleButton
-          value="total"
-          aria-label="total"
-          sx={{
-            typography: 'body7',
-            letterSpacing: 'normal',
-            ml: 0.5,
-          }}
-          selected={unitType === 'total'}
-          onChange={handleUnitTypeChange}
+            keyName="report.carbon_line_chart.unit_select_ha"
+          />
+        </UnitSelectorButton>
+        <UnitSelectorButton
+          label={t('report.carbon_line_chart.unit_select_total')}
+          isSelected={unitType === 'total'}
+          onClick={() => setUnitType('total')}
+          sx={{ ml: 0.5 }}
         >
-          <T
+          <TText
             ns="hiilikartta"
-            keyName={'report.carbon_line_chart.unit_select_total'}
-          ></T>
-        </StyledToggleButton>
+            keyName="report.carbon_line_chart.unit_select_total"
+          />
+        </UnitSelectorButton>
       </Box>
       <Box ref={boxRef} sx={{ width: '100%', overflowX: 'auto', pb: 2.5 }}>
         <CarbonLineChartInner
@@ -108,26 +154,5 @@ const CarbonLineChart = ({ data, featureYears, planNames }: Props) => {
     </Box>
   )
 }
-
-const StyledToggleButton = styled(ToggleButton)(({ theme }) => ({
-  borderRadius: '0.3125rem',
-  border: '1px solid',
-  borderColor: theme.palette.primary.dark,
-  color: theme.palette.neutral.darker,
-  width: '8.5rem',
-  whiteSpace: 'normal',
-  textTransform: 'none',
-  wordBreak: 'break-word',
-  marginBottom: '0.75rem',
-  paddingLeft: '1.25rem',
-  paddingRight: '1.25rem',
-  textAlign: 'left',
-  display: 'flex',
-  justifyContent: 'flex-start',
-  '&.Mui-selected': {
-    borderColor: theme.palette.secondary.dark,
-    backgroundColor: theme.palette.neutral.lighter,
-  },
-}))
 
 export default CarbonLineChart

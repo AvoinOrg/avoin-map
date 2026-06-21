@@ -529,6 +529,59 @@
     ]
   },
   {
+    "id": "hiilikartta-carbon-line-chart",
+    "label": "Hiilikartta carbon line chart",
+    "description": "Report line chart unit toggle, VisX sizing, tooltip, legend, and minimal-data states.",
+    "sourceGlobs": [
+      "src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonLineChart/CarbonLineChart.tsx",
+      "src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonLineChart/CarbonLineChartInner.tsx",
+      "src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonLineChart/index.ts",
+      "src/common/component-fixtures/fixtures/HiilikarttaCarbonLineChartFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "outer-hectare-default",
+        "label": "Outer hectare default",
+        "description": "Full line chart with ResizeObserver sizing, hectare selected by default, two plans, and legend.",
+        "waitFor": "[data-testid=\"line-chart-outer-ready\"]"
+      },
+      {
+        "id": "outer-total-selected",
+        "label": "Outer total selected",
+        "description": "Full line chart after selecting the total unit button through fixture interaction.",
+        "waitFor": "[data-testid=\"line-chart-total-ready\"]"
+      },
+      {
+        "id": "inner-total-multiple-plans",
+        "label": "Inner total multiple plans",
+        "description": "Direct VisX chart in total mode with multiple plans and a long plan name."
+      },
+      {
+        "id": "tooltip-visible",
+        "label": "Tooltip visible",
+        "description": "Direct chart with a deterministic mouse move over the overlay to show tooltip content.",
+        "waitFor": "[data-testid=\"carbon-line-chart-tooltip\"]"
+      },
+      {
+        "id": "legend-series-hidden",
+        "label": "Legend series hidden",
+        "description": "Direct chart after toggling one legend series off through native button behavior.",
+        "waitFor": "[data-testid=\"line-chart-legend-hidden-ready\"]"
+      },
+      {
+        "id": "narrow-overflow",
+        "label": "Narrow overflow",
+        "description": "Outer line chart constrained below the chart minimum width so horizontal overflow remains available.",
+        "waitFor": "[data-testid=\"line-chart-narrow-ready\"]"
+      },
+      {
+        "id": "minimal-empty",
+        "label": "Minimal empty",
+        "description": "Direct chart with a plan name but no plottable features, covering fallback domains."
+      }
+    ]
+  },
+  {
     "id": "hiilikartta-carbon-map-graph",
     "label": "Hiilikartta carbon map graph",
     "description": "Report carbon map graph controls, MapLibre overlay, legend integration, and summary table states.",
