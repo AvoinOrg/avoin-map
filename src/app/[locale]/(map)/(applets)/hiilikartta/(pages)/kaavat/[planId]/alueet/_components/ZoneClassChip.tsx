@@ -1,4 +1,4 @@
-import { Box, type SxProps, type Theme } from '@mui/material'
+import { Box, type AppBoxProps, toSxArray } from '#/common/style/theme'
 
 import { getContrastColor } from '#/common/utils/styling'
 
@@ -6,7 +6,7 @@ type Props = {
   code: string
   color?: string
   dark?: boolean
-  sx?: SxProps<Theme>
+  sx?: AppBoxProps['sx']
   uppercase?: boolean
 }
 
@@ -23,6 +23,7 @@ const ZoneClassChip = ({
   return (
     <Box
       component="span"
+      data-slot="zone-class-chip"
       sx={[
         {
           display: 'inline-flex',
@@ -42,7 +43,7 @@ const ZoneClassChip = ({
           textTransform: uppercase ? 'uppercase' : 'none',
           whiteSpace: 'nowrap',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toSxArray(sx),
       ]}
     >
       {code}

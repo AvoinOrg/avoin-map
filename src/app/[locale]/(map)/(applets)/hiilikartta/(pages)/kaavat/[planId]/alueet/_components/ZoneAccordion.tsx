@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Box, Typography } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
+import { Box, type AppBoxProps, toSxArray } from '#/common/style/theme'
 import useStore from '#/common/hooks/useStore'
 import useSelectedFeaturesFilteredBySource from '#/common/hooks/map/useSelectedFeaturesFilteredBySource'
 import { useMapStore } from '#/common/store'
@@ -37,11 +37,244 @@ import {
 interface Props {
   planConfId: string
   onPendingLandUseEditsChange?: (hasPending: boolean) => void
-  sx?: any
+  sx?: AppBoxProps['sx']
 }
 
 const CONTENT_PADDING_X = { mobile: '2.5rem', desktop: '2.5rem' } as const
-type ZoneSortValue = 'class-asc' | 'class-desc' | 'name-asc' | 'name-desc'
+export type ZoneSortValue =
+  | 'class-asc'
+  | 'class-desc'
+  | 'name-asc'
+  | 'name-desc'
+
+export type ZoneAreaListControlsProps = {
+  countLabel: string
+  filterAllLabel: string
+  filterLabel: string
+  filterOptions: ReturnType<typeof buildZoneFilterOptions>
+  filterDefaultOpen?: boolean
+  filterOpen?: boolean
+  onFilterChange: (event: DropDownMultiSelectChangeEvent) => void
+  onFilterOpenChange?: (open: boolean) => void
+  onSortChange: (event: DropDownValueChangeEvent) => void
+  onSortOpenChange?: (open: boolean) => void
+  selectedFilterValues: string[]
+  sortDefaultOpen?: boolean
+  sortLabel: string
+  sortOpen?: boolean
+  sortOptions: SelectOption[]
+  sortValue: ZoneSortValue
+}
+
+export const ZoneAreaListControls = ({
+  countLabel,
+  filterAllLabel,
+  filterDefaultOpen,
+  filterLabel,
+  filterOpen,
+  filterOptions,
+  onFilterChange,
+  onFilterOpenChange,
+  onSortChange,
+  onSortOpenChange,
+  selectedFilterValues,
+  sortDefaultOpen,
+  sortLabel,
+  sortOpen,
+  sortOptions,
+  sortValue,
+}: ZoneAreaListControlsProps) => {
+  const filterSelectOptions = useMemo<DropDownMultiSelectOption[]>(
+    () =>
+      filterOptions.map((option) => ({
+        value: option.value,
+        label: option.label,
+        leading: <ZoneClassChip code={option.code} color={option.color} />,
+        trailing: (
+          <Box
+            component="span"
+            sx={{
+              fontSize: '0.625rem',
+              lineHeight: '0.875rem',
+              letterSpacing: '0.04em',
+              color: '#6D6D6D',
+            }}
+          >
+            {option.count}
+          </Box>
+        ),
+      })),
+    [filterOptions]
+  )
+
+  return (
+    <Box
+      data-slot="zone-area-list-controls"
+      sx={{
+        px: '1.75rem',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.625rem',
+      }}
+    >
+      <Box
+        component="span"
+        sx={{
+          fontSize: '0.625rem',
+          fontWeight: 400,
+          lineHeight: '1.125rem',
+          letterSpacing: '0.1em',
+          color: '#111111',
+          ml: '0.75rem',
+        }}
+      >
+        {filterLabel}
+      </Box>
+
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.25rem',
+        }}
+      >
+        <DropDownMultiSelect
+          ariaLabel={filterLabel}
+          value={selectedFilterValues}
+          options={filterSelectOptions}
+          onChange={onFilterChange}
+          selectSx={{ width: '100%' }}
+          open={filterOpen}
+          defaultOpen={filterDefaultOpen}
+          onOpenChange={onFilterOpenChange}
+          renderValue={(selected, selectedOptions) => {
+            if (selected.length === 0) {
+              return (
+                <ZoneClassChip
+                  code={filterAllLabel}
+                  dark
+                  sx={{ minWidth: 0 }}
+                  uppercase={false}
+                />
+              )
+            }
+
+            const visibleChips = selectedOptions.slice(0, 2)
+
+            return (
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.375rem',
+                  overflow: 'hidden',
+                }}
+              >
+                {visibleChips.map((option) => {
+                  const matchingFilterOption = filterOptions.find(
+                    (filterOption) => filterOption.value === option.value
+                  )
+
+                  if (!matchingFilterOption) {
+                    return null
+                  }
+
+                  return (
+                    <ZoneClassChip
+                      key={option.value}
+                      code={matchingFilterOption.code}
+                      color={matchingFilterOption.color}
+                      sx={{ pt: '0.1rem' }}
+                    />
+                  )
+                })}
+
+                {selectedOptions.length > visibleChips.length && (
+                  <Box
+                    component="span"
+                    sx={{
+                      fontSize: '0.625rem',
+                      lineHeight: '0.875rem',
+                      letterSpacing: '0.04em',
+                      color: '#111111',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    +{selectedOptions.length - visibleChips.length}
+                  </Box>
+                )}
+              </Box>
+            )
+          }}
+        />
+
+        <Box
+          component="span"
+          sx={{
+            alignSelf: 'flex-end',
+            fontSize: '0.5rem',
+            lineHeight: '0.75rem',
+            letterSpacing: '0.08em',
+            color: '#111111',
+            mr: '0.75rem',
+            ml: '0.75rem',
+          }}
+        >
+          {countLabel}
+        </Box>
+
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            pt: '0.5rem',
+          }}
+        >
+          <DropDownSelectMinimal
+            value={sortValue}
+            onChange={onSortChange}
+            ariaLabel={sortLabel}
+            options={sortOptions}
+            open={sortOpen}
+            defaultOpen={sortDefaultOpen}
+            onOpenChange={onSortOpenChange}
+            sx={{
+              minWidth: '7.5rem',
+              ml: 'auto',
+              borderRadius: '999px',
+              backgroundColor: '#D9D9D9',
+              boxShadow: '0px 1px 1px 0px rgba(189, 189, 189, 0.25)',
+              color: '#111111',
+            }}
+            selectedValueSx={{
+              pl: '0.75rem',
+              pr: '1.75rem',
+              py: '0.3125rem',
+              fontSize: '0.5rem',
+              fontWeight: 700,
+              lineHeight: '1rem',
+              letterSpacing: '0.1em',
+            }}
+            optionSx={{
+              fontSize: '0.5rem',
+              fontWeight: 700,
+              lineHeight: '1rem',
+              letterSpacing: '0.1em',
+              pl: 1.5,
+              pr: 1,
+            }}
+            iconSx={{
+              right: '0.625rem',
+              top: 'calc(50% - 0.21875rem)',
+              width: '0.6875rem',
+              height: '0.4375rem',
+            }}
+          />
+        </Box>
+      </Box>
+    </Box>
+  )
+}
 
 const ZoneAccordion = ({
   planConfId,
@@ -104,28 +337,6 @@ const ZoneAccordion = ({
         zoningClasses,
       }),
     [planConf?.data.features, t, zoningClasses]
-  )
-
-  const filterSelectOptions = useMemo<DropDownMultiSelectOption[]>(
-    () =>
-      filterOptions.map((option) => ({
-        value: option.value,
-        label: option.label,
-        leading: <ZoneClassChip code={option.code} color={option.color} />,
-        trailing: (
-          <Typography
-            sx={{
-              fontSize: '0.625rem',
-              lineHeight: '0.875rem',
-              letterSpacing: '0.04em',
-              color: '#6D6D6D',
-            }}
-          >
-            {option.count}
-          </Typography>
-        ),
-      })),
-    [filterOptions]
   )
 
   const sortOptions = useMemo<SelectOption[]>(
@@ -471,170 +682,23 @@ const ZoneAccordion = ({
           gap: { mobile: '1.25rem', desktop: '1.5rem' },
           width: '100%',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toSxArray(sx),
       ]}
     >
-      <Box
-        sx={{
-          px: '1.75rem',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.625rem',
-        }}
-      >
-        <Typography
-          sx={{
-            fontSize: '0.625rem',
-            fontWeight: 400,
-            lineHeight: '1.125rem',
-            letterSpacing: '0.1em',
-            color: '#111111',
-            ml: '0.75rem',
-          }}
-        >
-          {t('sidebar.plan_settings.areas.filter_label')}
-        </Typography>
-
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.25rem',
-          }}
-        >
-          <DropDownMultiSelect
-            ariaLabel={t('sidebar.plan_settings.areas.filter_label')}
-            value={selectedFilterValues}
-            options={filterSelectOptions}
-            onChange={handleFilterChange}
-            selectSx={{ width: '100%' }}
-            renderValue={(selected, selectedOptions) => {
-              if (selected.length === 0) {
-                return (
-                  <ZoneClassChip
-                    code={t('sidebar.plan_settings.areas.filter_all')}
-                    dark
-                    sx={{ minWidth: 0 }}
-                    uppercase={false}
-                  />
-                )
-              }
-
-              const visibleChips = selectedOptions.slice(0, 2)
-
-              return (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.375rem',
-                    overflow: 'hidden',
-                  }}
-                >
-                  {visibleChips.map((option) => {
-                    const matchingFilterOption = filterOptions.find(
-                      (filterOption) => filterOption.value === option.value
-                    )
-
-                    if (!matchingFilterOption) {
-                      return null
-                    }
-
-                    return (
-                      <ZoneClassChip
-                        key={option.value}
-                        code={matchingFilterOption.code}
-                        color={matchingFilterOption.color}
-                        sx={{ pt: '0.1rem' }}
-                      />
-                    )
-                  })}
-
-                  {selectedOptions.length > visibleChips.length && (
-                    <Typography
-                      sx={{
-                        fontSize: '0.625rem',
-                        lineHeight: '0.875rem',
-                        letterSpacing: '0.04em',
-                        color: '#111111',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      +{selectedOptions.length - visibleChips.length}
-                    </Typography>
-                  )}
-                </Box>
-              )
-            }}
-          />
-
-          <Typography
-            sx={{
-              alignSelf: 'flex-end',
-              fontSize: '0.5rem',
-              lineHeight: '0.75rem',
-              letterSpacing: '0.08em',
-              color: '#111111',
-              mr: '0.75rem',
-              ml: '0.75rem',
-            }}
-          >
-            {t('sidebar.plan_settings.areas.count', {
-              count: visibleFeatures.length,
-            })}
-          </Typography>
-
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              pt: '0.5rem',
-            }}
-          >
-            <DropDownSelectMinimal
-              value={sortValue}
-              onChange={handleSortChange}
-              ariaLabel={t('sidebar.plan_settings.areas.sort_label')}
-              options={sortOptions}
-              sx={{
-                minWidth: '7.5rem',
-                ml: 'auto',
-                borderRadius: '999px',
-                backgroundColor: '#D9D9D9',
-                boxShadow: '0px 1px 1px 0px rgba(189, 189, 189, 0.25)',
-                color: '#111111',
-                '& .MuiSelect-select': {
-                  pl: '0.75rem',
-                  pr: '1.75rem !important',
-                  py: '0.3125rem',
-                  fontSize: '0.5rem',
-                  fontWeight: 700,
-                  lineHeight: '1rem',
-                  letterSpacing: '0.1em',
-                },
-                '& .MuiSelect-icon': {
-                  right: '0.625rem',
-                  top: 'calc(50% - 0.21875rem)',
-                  width: '0.6875rem',
-                  height: '0.4375rem',
-                },
-              }}
-              optionSx={{
-                fontSize: '0.5rem',
-                fontWeight: 700,
-                lineHeight: '1rem',
-                letterSpacing: '0.1em',
-                pl: 1.5,
-                pr: 1,
-              }}
-              iconSx={{
-                width: '0.6875rem',
-                height: '0.4375rem',
-              }}
-            />
-          </Box>
-        </Box>
-      </Box>
+      <ZoneAreaListControls
+        countLabel={t('sidebar.plan_settings.areas.count', {
+          count: visibleFeatures.length,
+        })}
+        filterAllLabel={t('sidebar.plan_settings.areas.filter_all')}
+        filterLabel={t('sidebar.plan_settings.areas.filter_label')}
+        filterOptions={filterOptions}
+        onFilterChange={handleFilterChange}
+        onSortChange={handleSortChange}
+        selectedFilterValues={selectedFilterValues}
+        sortLabel={t('sidebar.plan_settings.areas.sort_label')}
+        sortOptions={sortOptions}
+        sortValue={sortValue}
+      />
 
       <Box sx={{ px: CONTENT_PADDING_X }}>
         {visibleFeatures.map((feature, index) => (

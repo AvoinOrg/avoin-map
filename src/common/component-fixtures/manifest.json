@@ -636,6 +636,51 @@
     ]
   },
   {
+    "id": "hiilikartta-zone-area-controls",
+    "label": "Hiilikartta zone area controls",
+    "description": "Zone class chip and area filter/sort control states for the Hiilikartta areas route.",
+    "sourceGlobs": [
+      "src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/alueet/_components/ZoneAccordion.tsx",
+      "src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/alueet/_components/ZoneClassChip.tsx",
+      "src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/alueet/_components/zoneAreaUtils.ts",
+      "src/common/component-fixtures/fixtures/HiilikarttaZoneAreaControlsFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "chip-variants",
+        "label": "Chip variants",
+        "description": "Default, dark, custom color, lower-case, and unknown zone class chip states."
+      },
+      {
+        "id": "controls-empty",
+        "label": "Controls empty",
+        "description": "Closed filter and sort controls with no selected filters."
+      },
+      {
+        "id": "filter-open",
+        "label": "Filter open",
+        "description": "Open filter menu with leading zone chips and trailing option counts.",
+        "waitFor": "role=option"
+      },
+      {
+        "id": "selected-one",
+        "label": "Selected one",
+        "description": "Closed filter control with one selected zone class chip."
+      },
+      {
+        "id": "selected-overflow",
+        "label": "Selected overflow",
+        "description": "Closed filter control with two visible chips and an overflow count."
+      },
+      {
+        "id": "sort-open",
+        "label": "Sort open",
+        "description": "Open compact sort menu using the migrated style hooks.",
+        "waitFor": "role=option"
+      }
+    ]
+  },
+  {
     "id": "hiilikartta-carbon-line-chart",
     "label": "Hiilikartta carbon line chart",
     "description": "Report line chart unit toggle, VisX sizing, tooltip, legend, and minimal-data states.",
