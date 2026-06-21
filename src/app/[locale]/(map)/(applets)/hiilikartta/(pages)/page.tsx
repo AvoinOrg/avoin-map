@@ -1,10 +1,10 @@
 'use client'
 
 import React, { useMemo } from 'react'
-import { Box, Typography } from '@mui/material'
-import { T, useTranslate } from '@tolgee/react'
+import { useTranslate } from '@tolgee/react'
 import { useRouter } from 'next/navigation'
 
+import { Box, type AppSystemStyleObject } from '#/common/style/theme'
 import {
   IntoSidebarFooterSlot,
   IntoSidebarHeaderSlot,
@@ -23,6 +23,24 @@ import PlanOutlineIcon from '../components/PlanOutlineIcon'
 const HOME_SIDEBAR_HEADER_PADDING_REM = 0.75
 const HOME_SIDEBAR_LEFT_WALL_REM = 2
 const HOME_SIDEBAR_LOGO_ROW_PADDING_REM = 0.5
+const AVOIN_LOGO_PROPS: React.ImgHTMLAttributes<HTMLImageElement> = {
+  src: '/files/img/Avoinlogo_Pysty_Green_Rek2024.svg',
+  alt: 'Avoin',
+}
+const SYKE_LOGO_PROPS: React.ImgHTMLAttributes<HTMLImageElement> = {
+  src: '/files/img/hiilikartta/sidebar/syke-logo.png',
+  alt: 'Syke',
+}
+const LUKE_LOGO_PROPS: React.ImgHTMLAttributes<HTMLImageElement> = {
+  src: '/files/img/hiilikartta/sidebar/luke-logo.png',
+  alt: 'Luke',
+}
+const ButtonBox = Box as unknown as React.ComponentType<
+  React.ComponentProps<'button'> & {
+    component?: 'button'
+    sx?: AppSystemStyleObject
+  }
+>
 
 const HomeSidebarHeader = () => {
   return (
@@ -57,8 +75,10 @@ const HomeSidebarHeader = () => {
               'linear-gradient(90deg, rgba(244,244,244,1) 0%, rgba(244,244,244,0.98) 24%, rgba(244,244,244,0.48) 46%, rgba(244,244,244,0) 72%)',
           }}
         />
-        <Typography
+        <Box
+          component="span"
           sx={{
+            display: 'block',
             position: 'relative',
             zIndex: 1,
             px: '1.25rem',
@@ -72,7 +92,7 @@ const HomeSidebarHeader = () => {
           }}
         >
           Hiilikartta
-        </Typography>
+        </Box>
       </Box>
     </Box>
   )
@@ -106,7 +126,7 @@ const Page = () => {
         <HomeSidebarHeader />
       </IntoSidebarHeaderSlot>
       <IntoSidebarFooterSlot>
-        <Box
+        <ButtonBox
           component="button"
           type="button"
           aria-label="Open plans page"
@@ -144,7 +164,8 @@ const Page = () => {
               color: '#111111',
             }}
           />
-          <Typography
+          <Box
+            component="span"
             sx={{
               fontSize: '0.6875rem',
               fontWeight: 700,
@@ -155,8 +176,8 @@ const Page = () => {
             }}
           >
             Luo Kaava & laske hiilivaikutukset
-          </Typography>
-        </Box>
+          </Box>
+        </ButtonBox>
       </IntoSidebarFooterSlot>
       <SidebarContentBox
         sxOuter={{
@@ -193,8 +214,10 @@ const Page = () => {
             }}
           >
             <Box>
-              <Typography
+              <Box
+                component="p"
                 sx={{
+                  m: 0,
                   mt: { mobile: '1.125rem', desktop: '1.25rem' },
                   color: '#111111',
                   fontSize: '0.75rem',
@@ -207,16 +230,14 @@ const Page = () => {
                 }}
               >
                 {introText}
-              </Typography>
+              </Box>
 
               {vegetationLayerGroup && (
                 <LayerToggleRow
                   ariaLabel="Toggle vegetation carbon layer"
                   color="#2D7A3A"
                   status={isVegetationLayerVisible ? 'visible' : 'hidden'}
-                  label={
-                    <T keyName="sidebar.main.vegetation_layer" ns="hiilikartta" />
-                  }
+                  label={t('sidebar.main.vegetation_layer')}
                   onToggle={() =>
                     toggleLayerGroup(
                       vegetationLayerGroup.id,
@@ -238,8 +259,10 @@ const Page = () => {
             </Box>
 
             <Box sx={{ mt: 'auto', pt: { mobile: '2.5rem', desktop: '3rem' } }}>
-              <Typography
+              <Box
+                component="p"
                 sx={{
+                  m: 0,
                   color: '#111111',
                   fontSize: '0.625rem',
                   fontWeight: 400,
@@ -249,8 +272,8 @@ const Page = () => {
                   maxWidth: '18.625rem',
                 }}
               >
-                <T keyName="sidebar.main.attribution" ns="hiilikartta" />
-              </Typography>
+                {t('sidebar.main.attribution')}
+              </Box>
 
               <Box
                 sx={{
@@ -268,8 +291,7 @@ const Page = () => {
               >
                 <Box
                   component="img"
-                  src="/files/img/Avoinlogo_Pysty_Green_Rek2024.svg"
-                  alt="Avoin"
+                  {...AVOIN_LOGO_PROPS}
                   sx={{
                     width: '3.5rem',
                     height: '2.25rem',
@@ -279,8 +301,7 @@ const Page = () => {
                 />
                 <Box
                   component="img"
-                  src="/files/img/hiilikartta/sidebar/syke-logo.png"
-                  alt="Syke"
+                  {...SYKE_LOGO_PROPS}
                   sx={{
                     width: '3.1rem',
                     objectFit: 'contain',
@@ -288,8 +309,7 @@ const Page = () => {
                 />
                 <Box
                   component="img"
-                  src="/files/img/hiilikartta/sidebar/luke-logo.png"
-                  alt="Luke"
+                  {...LUKE_LOGO_PROPS}
                   sx={{
                     width: '2.8rem',
                     objectFit: 'contain',

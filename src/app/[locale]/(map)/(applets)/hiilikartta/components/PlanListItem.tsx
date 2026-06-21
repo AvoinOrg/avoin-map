@@ -1,10 +1,11 @@
 'use client'
 
 import React from 'react'
-import { Box, CircularProgress, Typography } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
+import { Box } from '#/common/style/theme'
 import MutableLink from '#/components/common/MutableLink'
+import { LoadingSpinner } from '#/components/Loading'
 import { CircleArrowRight, Error as ErrorIcon, Info } from '#/components/icons'
 import { routeTree } from '#/common/routing/routes/hiilikartta'
 
@@ -29,9 +30,10 @@ const getStatusDisplay = ({
       return {
         color: '#0D6044',
         icon: (
-          <CircularProgress
+          <LoadingSpinner
             size={10}
             thickness={7}
+            color="inherit"
             sx={{ color: 'inherit', flexShrink: 0 }}
           />
         ),
@@ -41,9 +43,10 @@ const getStatusDisplay = ({
       return {
         color: '#0D6044',
         icon: (
-          <CircularProgress
+          <LoadingSpinner
             size={10}
             thickness={7}
+            color="inherit"
             sx={{ color: 'inherit', flexShrink: 0 }}
           />
         ),
@@ -158,7 +161,8 @@ const PlanListItem = ({
             }}
           />
         </Box>
-        <Typography
+        <Box
+          component="span"
           sx={{
             fontSize: '0.625rem',
             fontWeight: 700,
@@ -172,7 +176,7 @@ const PlanListItem = ({
           }}
         >
           {name}
-        </Typography>
+        </Box>
 
         {statusDisplay && (
           <>
@@ -187,7 +191,8 @@ const PlanListItem = ({
             >
               {statusDisplay.icon}
             </Box>
-            <Typography
+            <Box
+              component="span"
               sx={{
                 fontSize: '0.5rem',
                 fontWeight: 400,
@@ -198,7 +203,7 @@ const PlanListItem = ({
               }}
             >
               {statusDisplay.text}
-            </Typography>
+            </Box>
           </>
         )}
       </Box>

@@ -1,7 +1,33 @@
 'use client'
 
-import React from 'react'
-import { Box, Skeleton } from '@mui/material'
+import {
+  Box,
+  type AppSystemStyleObject,
+  toSxArray,
+} from '#/common/style/theme'
+
+type SkeletonBlockProps = {
+  sx?: AppSystemStyleObject
+}
+
+type AppSxItem = Exclude<NonNullable<AppSystemStyleObject>, readonly unknown[]>
+
+const toAppSxItemArray = (sx?: AppSystemStyleObject) =>
+  toSxArray(sx) as AppSxItem[]
+
+const SkeletonBlock = ({ sx }: SkeletonBlockProps) => (
+  <Box
+    aria-hidden="true"
+    sx={[
+      {
+        display: 'block',
+        flexShrink: 0,
+        borderRadius: '0.2rem',
+      },
+      ...toAppSxItemArray(sx),
+    ]}
+  />
+)
 
 const PlanListItemLoading = () => {
   return (
@@ -23,8 +49,7 @@ const PlanListItemLoading = () => {
           minWidth: 0,
         }}
       >
-        <Skeleton
-          variant="rounded"
+        <SkeletonBlock
           sx={{
             width: '0.75rem',
             height: '0.5625rem',
@@ -43,32 +68,30 @@ const PlanListItemLoading = () => {
             minWidth: 0,
           }}
         >
-          <Skeleton
-            variant="text"
+          <SkeletonBlock
             sx={{
               width: '40%',
               height: '1rem',
-              transform: 'none',
+              borderRadius: '999px',
               bgcolor: 'rgba(17, 17, 17, 0.08)',
             }}
           />
-          <Skeleton
-            variant="text"
+          <SkeletonBlock
             sx={{
               width: '58%',
               height: '0.875rem',
-              transform: 'none',
+              borderRadius: '999px',
               bgcolor: 'rgba(17, 17, 17, 0.06)',
             }}
           />
         </Box>
       </Box>
 
-      <Skeleton
-        variant="circular"
+      <SkeletonBlock
         sx={{
           width: '1rem',
           height: '1rem',
+          borderRadius: '50%',
           bgcolor: 'rgba(17, 17, 17, 0.08)',
           flexShrink: 0,
         }}

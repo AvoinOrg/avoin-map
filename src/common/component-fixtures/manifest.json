@@ -452,6 +452,83 @@
     ]
   },
   {
+    "id": "hiilikartta-display-primitives",
+    "label": "Hiilikartta display primitives",
+    "description": "Applet-local public display primitive states for the Hiilikartta remigration.",
+    "sourceGlobs": [
+      "src/app/[locale]/(map)/(applets)/hiilikartta/components/PlanOutlineIcon.tsx",
+      "src/app/[locale]/(map)/(applets)/hiilikartta/components/PlanListItem.tsx",
+      "src/app/[locale]/(map)/(applets)/hiilikartta/components/PlanListItemLoading.tsx",
+      "src/app/[locale]/(map)/(applets)/hiilikartta/components/PlanFolder.tsx",
+      "src/app/[locale]/(map)/(applets)/hiilikartta/components/PlanFolderLoading.tsx",
+      "src/app/[locale]/(map)/(applets)/hiilikartta/components/SelectionMenu.tsx",
+      "src/common/component-fixtures/fixtures/HiilikarttaDisplayPrimitivesFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "plan-outline-icons",
+        "label": "Plan outline icons",
+        "description": "Small and large plan outline icons with color and size overrides."
+      },
+      {
+        "id": "plan-list-default",
+        "label": "Plan list default",
+        "description": "Normal plan list row with a long name and arrow affordance."
+      },
+      {
+        "id": "plan-list-statuses",
+        "label": "Plan list statuses",
+        "description": "Calculation, error, finished, and custom status rows."
+      },
+      {
+        "id": "plan-list-loading",
+        "label": "Plan list loading",
+        "description": "Plan list loading placeholder row."
+      },
+      {
+        "id": "plan-folder-unsaved",
+        "label": "Plan folder unsaved",
+        "description": "Save-enabled folder with no cloud save timestamp."
+      },
+      {
+        "id": "plan-folder-last-saved",
+        "label": "Plan folder last saved",
+        "description": "Folder showing a deterministic last-saved timestamp."
+      },
+      {
+        "id": "plan-folder-editable-name",
+        "label": "Plan folder editable name",
+        "description": "Folder rendering the editable plan name affordance."
+      },
+      {
+        "id": "plan-folder-calculating",
+        "label": "Plan folder calculating",
+        "description": "Folder with calculation progress status."
+      },
+      {
+        "id": "plan-folder-errored",
+        "label": "Plan folder errored",
+        "description": "Folder with calculation error status."
+      },
+      {
+        "id": "plan-folder-loading",
+        "label": "Plan folder loading",
+        "description": "Folder loading state for cloud plan placeholders."
+      },
+      {
+        "id": "selection-menu-selected",
+        "label": "Selection menu selected",
+        "description": "Closed local selection menu with a selected option."
+      },
+      {
+        "id": "selection-menu-open",
+        "label": "Selection menu open",
+        "description": "Local selection menu opened by deterministic fixture interaction.",
+        "waitFor": "role=option"
+      }
+    ]
+  },
+  {
     "id": "main-popup-table",
     "label": "Main popup table",
     "description": "Native table wrappers used by main map layer popups.",

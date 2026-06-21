@@ -1,13 +1,11 @@
 'use client'
 
-import React, { useEffect } from 'react'
-import { Box, CircularProgress } from '@mui/material'
-
+import { Box } from '#/common/style/theme'
 import { Folder } from '#/components/common/Folder'
-import { PlaceholderPlanConf } from '../common/types'
+import { LoadingSpinner } from '#/components/Loading'
+import type { PlaceholderPlanConf } from '../common/types'
 
-const PlanFolder = ({
-  planConf,
+const PlanFolderLoading = ({
   height,
 }: {
   planConf: PlaceholderPlanConf
@@ -17,7 +15,7 @@ const PlanFolder = ({
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
       <Folder height={height}>
         <Box
-          sx={(theme) => ({
+          sx={{
             pt: 2,
             pl: 3,
             pb: 3,
@@ -27,13 +25,13 @@ const PlanFolder = ({
             justifyContent: 'space-between',
             flex: '1',
             height: '100%',
-          })}
+          }}
         >
-          <CircularProgress></CircularProgress>
+          <LoadingSpinner />
         </Box>
       </Folder>
     </Box>
   )
 }
 
-export default PlanFolder
+export default PlanFolderLoading
