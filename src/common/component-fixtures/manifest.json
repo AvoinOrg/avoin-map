@@ -681,6 +681,79 @@
     ]
   },
   {
+    "id": "hiilikartta-zone-accordion-item",
+    "label": "Hiilikartta zone accordion item",
+    "description": "Zone accordion item states for the Hiilikartta area land-use editor migration.",
+    "sourceGlobs": [
+      "src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/alueet/_components/ZoneAccordionItem.tsx",
+      "src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/alueet/_components/ZoneClassChip.tsx",
+      "src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/alueet/_components/zoneAreaUtils.ts",
+      "src/common/component-fixtures/fixtures/HiilikarttaZoneAccordionItemFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "collapsed",
+        "label": "Collapsed",
+        "description": "Collapsed item summary row with standard zoning class chip.",
+        "waitFor": "[data-testid=\"zone-item-collapsed-ready\"]"
+      },
+      {
+        "id": "expanded",
+        "label": "Expanded",
+        "description": "Expanded item with rename and zoning class controls visible.",
+        "waitFor": "[data-testid=\"zone-item-expanded-ready\"]"
+      },
+      {
+        "id": "invalid-zoning-code",
+        "label": "Invalid zoning code",
+        "description": "Expanded item with invalid zoning class warning and no land-use tooltip.",
+        "waitFor": "[data-testid=\"zone-item-invalid-zoning-code-ready\"]"
+      },
+      {
+        "id": "invalid-land-use-warning",
+        "label": "Invalid land-use warning",
+        "description": "Expanded item with invalid land-use distribution and warning badge.",
+        "waitFor": "[data-testid=\"zone-item-invalid-land-use-warning-ready\"]"
+      },
+      {
+        "id": "land-use-editor-closed",
+        "label": "Land-use editor closed",
+        "description": "Expanded item with the nested land-use editor disclosure closed.",
+        "waitFor": "[data-testid=\"zone-item-land-use-editor-closed-ready\"]"
+      },
+      {
+        "id": "land-use-editor-open",
+        "label": "Land-use editor open",
+        "description": "Expanded item with all land-use number inputs visible.",
+        "waitFor": "[data-testid=\"zone-item-land-use-editor-open-ready\"]"
+      },
+      {
+        "id": "changed-zone-name",
+        "label": "Changed zone name",
+        "description": "Expanded item after a local zone-name draft change.",
+        "waitFor": "[data-testid=\"zone-item-changed-zone-name-ready\"]"
+      },
+      {
+        "id": "changed-land-use-number",
+        "label": "Changed land-use number",
+        "description": "Expanded land-use editor after a local land-use number draft change.",
+        "waitFor": "[data-testid=\"zone-item-changed-land-use-number-ready\"]"
+      },
+      {
+        "id": "powerline-zone",
+        "label": "Powerline zone",
+        "description": "Powerline zoning class with corridor-specific land-use labels.",
+        "waitFor": "[data-testid=\"zone-item-powerline-zone-ready\"]"
+      },
+      {
+        "id": "long-name",
+        "label": "Long name",
+        "description": "Expanded item with a long area name for summary truncation.",
+        "waitFor": "[data-testid=\"zone-item-long-name-ready\"]"
+      }
+    ]
+  },
+  {
     "id": "hiilikartta-carbon-line-chart",
     "label": "Hiilikartta carbon line chart",
     "description": "Report line chart unit toggle, VisX sizing, tooltip, legend, and minimal-data states.",

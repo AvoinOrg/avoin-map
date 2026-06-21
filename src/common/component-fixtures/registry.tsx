@@ -31,6 +31,7 @@ import { hiilikarttaDisplayPrimitivesFixture } from './fixtures/HiilikarttaDispl
 import { hiilikarttaPlanImportControlsFixture } from './fixtures/HiilikarttaPlanImportControlsFixture'
 import { hiilikarttaPlanReportActionsFixture } from './fixtures/HiilikarttaPlanReportActionsFixture'
 import { hiilikarttaZoneAreaControlsFixture } from './fixtures/HiilikarttaZoneAreaControlsFixture'
+import { hiilikarttaZoneAccordionItemFixture } from './fixtures/HiilikarttaZoneAccordionItemFixture'
 import { hiilikarttaCarbonLineChartFixture } from './fixtures/HiilikarttaCarbonLineChartFixture'
 import { hiilikarttaCarbonMapGraphFixture } from './fixtures/HiilikarttaCarbonMapGraphFixture'
 import { hiilikarttaReportOverviewFixture } from './fixtures/HiilikarttaReportOverviewFixture'
@@ -60,6 +61,7 @@ const componentFixtures: ComponentFixture[] = [
   hiilikarttaPlanImportControlsFixture,
   hiilikarttaPlanReportActionsFixture,
   hiilikarttaZoneAreaControlsFixture,
+  hiilikarttaZoneAccordionItemFixture,
   hiilikarttaCarbonLineChartFixture,
   hiilikarttaCarbonMapGraphFixture,
   hiilikarttaReportOverviewFixture,
