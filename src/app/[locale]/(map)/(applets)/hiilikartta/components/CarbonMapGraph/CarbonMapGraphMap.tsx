@@ -1,28 +1,27 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Map, GeoJSONSource, StyleSpecification } from 'maplibre-gl'
+import { Map } from 'maplibre-gl'
+import type {
+  FilterSpecification,
+  GeoJSONSource,
+  MapMouseEvent,
+  StyleSpecification,
+} from 'maplibre-gl'
+import { useTranslate } from '@tolgee/react'
+
 import {
   Box,
-  Button,
-  styled,
-  TableBody,
-  TableCell,
-  TableRow,
-  Typography,
-  Table,
-} from '@mui/material'
-import { T, useTranslate } from '@tolgee/react'
-
+  toSxArray,
+  type AppSystemStyleObject,
+} from '#/common/style/theme'
+import { ButtonBase } from '#/components/common/Button'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
-import {
-  addPaddingToLngLatBounds,
-  getCombinedBoundsInLngLat,
-} from '#/common/utils/gis'
+import TText from '#/components/common/TText'
+import { getCombinedBoundsInLngLat } from '#/common/utils/gis'
 
 import {
-  GraphCalcType,
-  MapGraphCalcFeature,
-  MapGraphData,
-  MapGraphDataSelectOption,
+  type MapGraphCalcFeature,
+  type MapGraphData,
+  type MapGraphDataSelectOption,
   ZONING_CODE_COL,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
 import {
@@ -36,6 +35,59 @@ import { osmBackgroundLayerConf } from '#/components/Map/layers/common/OSM/backg
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 // const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 
+type MapGraphLayerStateParams = {
+  dataId: string
+  activeDataOption: MapGraphDataSelectOption
+}
+
+type ApplyMapGraphLayerStateParams = MapGraphLayerStateParams & {
+  mapInstance: Map
+  layerId: string
+}
+
+const visibleFeatureFilter = (): FilterSpecification =>
+  ['!=', 'isHidden', true] as FilterSpecification
+
+const getMapGraphLayerState = ({
+  dataId,
+  activeDataOption,
+}: MapGraphLayerStateParams) => {
+  const isActive = dataId === activeDataOption.id
+
+  return {
+    isActive,
+    visibility: isActive ? 'visible' : 'none',
+    fillFilter: visibleFeatureFilter(),
+    symbolFilter: visibleFeatureFilter(),
+  } as const
+}
+
+const applyMapGraphLayerState = ({
+  mapInstance,
+  dataId,
+  layerId,
+  activeDataOption,
+}: ApplyMapGraphLayerStateParams) => {
+  const layerState = getMapGraphLayerState({ dataId, activeDataOption })
+
+  mapInstance.setLayoutProperty(layerId, 'visibility', layerState.visibility)
+  mapInstance.setLayoutProperty(
+    `${layerId}-symbol`,
+    'visibility',
+    layerState.visibility
+  )
+  mapInstance.setFilter(layerId, layerState.fillFilter)
+  mapInstance.setFilter(`${layerId}-symbol`, layerState.symbolFilter)
+
+  if (layerState.isActive) {
+    mapInstance.setPaintProperty(
+      layerId,
+      'fill-color',
+      zoningFillColorExpression()
+    )
+  }
+}
+
 type Props = {
   datas: MapGraphData[]
   activeYear: string
@@ -43,9 +95,7 @@ type Props = {
   setActiveYear: (year: string) => void
   activeDataOption: MapGraphDataSelectOption
   setActiveDataOption: (option: MapGraphDataSelectOption) => void
-  activeCalcType: GraphCalcType
-  activeAreaType: string
-  setUseCurrent: (useCurrent: boolean) => void
+  mapStyle?: StyleSpecification
 }
 
 const CarbonMapGraphMap = ({
@@ -55,6 +105,7 @@ const CarbonMapGraphMap = ({
   setActiveYear,
   activeDataOption,
   setActiveDataOption,
+  mapStyle,
 }: Props) => {
   const { t } = useTranslate('hiilikartta')
   const [tooltip, setTooltip] = useState<{
@@ -68,6 +119,7 @@ const CarbonMapGraphMap = ({
     x: 0,
     y: 0,
   })
+  const mapRoot = useRef<HTMLElement>(null)
   const mapContainer = useRef<HTMLDivElement>(null)
   const map = useRef<Map | null>(null)
   const [mapIsLoaded, setMapIsLoaded] = useState(false)
@@ -87,7 +139,7 @@ const CarbonMapGraphMap = ({
       isCurrent: false,
     }))
     return mergeArraysAlternate(datasPlanned, datasCurrent)
-  }, [datas])
+  }, [datas, t])
 
   useEffect(() => {
     let isCancelled = false
@@ -98,7 +150,7 @@ const CarbonMapGraphMap = ({
 
       setMapIsLoaded(false)
 
-      const styleDefinition = osmBackgroundLayerConf.style
+      const styleDefinition = mapStyle ?? osmBackgroundLayerConf.style
       const baseStyle =
         typeof styleDefinition === 'function'
           ? await styleDefinition()
@@ -140,10 +192,16 @@ const CarbonMapGraphMap = ({
         map.current = null
       }
     }
-  }, [])
+  }, [mapStyle])
 
   useEffect(() => {
     if (!mapIsLoaded || !map.current) {
+      return
+    }
+
+    mapRoot.current?.setAttribute('data-map-graph-rendered', 'false')
+
+    if (datas.length === 0) {
       return
     }
 
@@ -156,10 +214,9 @@ const CarbonMapGraphMap = ({
     ) {
       const bounds = getCombinedBoundsInLngLat(datas.map((data) => data.data))
       if (bounds) {
-        const paddedBounds = addPaddingToLngLatBounds(bounds, 1)
-        // map.current?.setMaxBounds(paddedBounds)
         map.current?.fitBounds(bounds, {
           padding: 20,
+          duration: 0,
         })
       }
     }
@@ -174,57 +231,36 @@ const CarbonMapGraphMap = ({
     allDataIds.current = dataIds
 
     datas.forEach((data) => {
+      const mapInstance = map.current!
       const sourceId = `carbon-graph-source-${data.id}`
       const layerId = `carbon-graph-layer-${data.id}`
+      const layerState = getMapGraphLayerState({
+        dataId: data.id,
+        activeDataOption,
+      })
 
-      if (map.current!.getSource(sourceId)) {
-        ;(map.current!.getSource(sourceId) as GeoJSONSource).setData(data.data)
+      if (mapInstance.getSource(sourceId)) {
+        ;(mapInstance.getSource(sourceId) as GeoJSONSource).setData(data.data)
 
-        if (data.id === activeDataOption.id) {
-          map.current!.setLayoutProperty(layerId, 'visibility', 'visible')
-          map.current!.setLayoutProperty(
-            `${layerId}-symbol`,
-            'visibility',
-            'visible'
-          )
-          map.current!.setFilter(layerId, ['!=', 'isHidden', true])
-          map.current!.setFilter(`${layerId}-symbol`, [
-            '!=',
-            'isHidden',
-            true,
-          ])
-          if (activeDataOption.isCurrent) {
-            map.current!.setFilter(`${layerId}-symbol`, [
-              '!=',
-              'isHidden',
-              false,
-            ])
-          }
-          map.current!.setPaintProperty(
-            layerId,
-            'fill-color',
-            zoningFillColorExpression()
-          )
-        } else {
-          map.current!.setLayoutProperty(layerId, 'visibility', 'none')
-          map.current!.setLayoutProperty(
-            `${layerId}-symbol`,
-            'visibility',
-            'none'
-          )
-        }
+        applyMapGraphLayerState({
+          mapInstance,
+          dataId: data.id,
+          layerId,
+          activeDataOption,
+        })
       } else {
-        map.current!.addSource(sourceId, {
+        mapInstance.addSource(sourceId, {
           type: 'geojson',
           data: data.data,
         })
 
-        map.current!.addLayer({
+        mapInstance.addLayer({
           id: layerId,
           type: 'fill',
           source: sourceId,
+          filter: layerState.fillFilter,
           layout: {
-            visibility: data.id === activeDataOption.id ? 'visible' : 'none',
+            visibility: layerState.visibility,
           },
           paint: {
             'fill-color': zoningFillColorExpression(),
@@ -233,11 +269,13 @@ const CarbonMapGraphMap = ({
           },
         })
 
-        map.current!.addLayer({
+        mapInstance.addLayer({
           id: `${layerId}-symbol`,
           source: sourceId,
           type: 'symbol',
+          filter: layerState.symbolFilter,
           layout: {
+            visibility: layerState.visibility,
             'symbol-placement': 'point',
             'text-size': 20,
             'text-font': ['Open Sans Regular'],
@@ -258,60 +296,61 @@ const CarbonMapGraphMap = ({
           },
           minzoom: 12,
         })
-
-        if (activeDataOption.isCurrent) {
-          map.current!.setFilter(`${layerId}-symbol`, [
-            '!=',
-            'isHidden',
-            false,
-          ])
-        }
       }
     })
+
+    mapRoot.current?.setAttribute('data-map-graph-rendered', 'true')
   }, [mapIsLoaded, datas, activeDataOption])
 
   useEffect(() => {
-    if (map.current != null) {
-      const layerId = `carbon-graph-layer-${activeDataOption.id}`
-      const handleMouseEnter = () => {
-        map.current!.getCanvas().style.cursor = 'pointer'
-      }
-      const handleMouseLeave = () => {
-        map.current!.getCanvas().style.cursor = ''
-      }
-      map.current.on('mouseenter', layerId, handleMouseEnter)
-      map.current.on('mouseleave', layerId, handleMouseLeave)
+    if (!mapIsLoaded || map.current == null) {
+      return
+    }
 
-      const handleFeatureClick = (e: any) => {
-        if (map.current != null) {
-          const features = map.current.queryRenderedFeatures(e.point)
-          if (features.length > 0) {
-            // @ts-ignore
-            const feature = features[0] as MapGraphCalcFeature
-            if (feature && feature.properties) {
-              setTooltip({
-                visible: true,
-                feature: feature,
-                x: e.point.x,
-                y: e.point.y,
-              })
-            }
-          } else {
-            setTooltip((prev) => ({ ...prev, visible: false }))
+    const layerId = `carbon-graph-layer-${activeDataOption.id}`
+    if (!map.current.getLayer(layerId)) {
+      return
+    }
+
+    const handleMouseEnter = () => {
+      map.current!.getCanvas().style.cursor = 'pointer'
+    }
+    const handleMouseLeave = () => {
+      map.current!.getCanvas().style.cursor = ''
+    }
+    map.current.on('mouseenter', layerId, handleMouseEnter)
+    map.current.on('mouseleave', layerId, handleMouseLeave)
+
+    const handleFeatureClick = (e: MapMouseEvent) => {
+      if (map.current != null) {
+        const features = map.current.queryRenderedFeatures(e.point, {
+          layers: [layerId],
+        })
+        if (features.length > 0) {
+          const feature = features[0] as unknown as MapGraphCalcFeature
+          if (feature && feature.properties) {
+            setTooltip({
+              visible: true,
+              feature: feature,
+              x: e.point.x,
+              y: e.point.y,
+            })
           }
-        }
-      }
-      map.current.on('click', handleFeatureClick)
-
-      return () => {
-        if (map.current) {
-          map.current.off('click', handleFeatureClick)
-          map.current.off('mouseenter', layerId, handleMouseEnter)
-          map.current.off('mouseleave', layerId, handleMouseLeave)
+        } else {
+          setTooltip((prev) => ({ ...prev, visible: false }))
         }
       }
     }
-  }, [map.current, activeDataOption.isCurrent])
+    map.current.on('click', handleFeatureClick)
+
+    return () => {
+      if (map.current) {
+        map.current.off('click', handleFeatureClick)
+        map.current.off('mouseenter', layerId, handleMouseEnter)
+        map.current.off('mouseleave', layerId, handleMouseLeave)
+      }
+    }
+  }, [mapIsLoaded, datas, activeDataOption.id, activeDataOption.isCurrent])
 
   const handlePlanSelectClick = (data: MapGraphDataSelectOption) => {
     setActiveDataOption(data)
@@ -319,13 +358,20 @@ const CarbonMapGraphMap = ({
 
   return (
     <Box
-      style={{
+      ref={mapRoot}
+      data-map-graph-rendered="false"
+      data-testid={
+        mapIsLoaded
+          ? 'carbon-map-graph-map-ready'
+          : 'carbon-map-graph-map-loading'
+      }
+      sx={{
         height: '400px',
         width: '100%',
         position: 'relative',
       }}
     >
-      <Box ref={mapContainer} style={{ height: '100%', width: '100%' }} />
+      <Box ref={mapContainer} sx={{ height: '100%', width: '100%' }} />
 
       <Box
         sx={{
@@ -367,7 +413,7 @@ const CarbonMapGraphMap = ({
         }}
       >
         {selectOptions.map((option) => (
-          <Button
+          <ButtonBase
             sx={{
               borderRadius: '0.3125rem',
               border: 'none',
@@ -376,10 +422,13 @@ const CarbonMapGraphMap = ({
               backgroundColor: 'neutral.lighter',
               opacity: 0.85,
               mb: '0.5rem',
+              px: '0.5rem',
               maxWidth: '200px',
               display: 'flex',
               justifyContent: 'flex-start',
+              alignItems: 'center',
               height: '1.75rem',
+              minWidth: 0,
               '&:hover': {
                 opacity: 0.95,
                 backgroundColor: 'neutral.lighter',
@@ -392,10 +441,16 @@ const CarbonMapGraphMap = ({
                 }),
             }}
             key={option.id + option.isCurrent}
+            type="button"
             aria-label={`Show map graph data for ${option.name}`}
+            aria-pressed={
+              option.id === activeDataOption.id &&
+              option.isCurrent === activeDataOption.isCurrent
+            }
             onClick={() => handlePlanSelectClick(option)}
           >
-            <Typography
+            <Box
+              component="span"
               sx={{
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -407,8 +462,8 @@ const CarbonMapGraphMap = ({
               }}
             >
               {option.name}
-            </Typography>
-          </Button>
+            </Box>
+          </ButtonBase>
         ))}
       </Box>
       <Box
@@ -451,8 +506,7 @@ const CarbonMapGraphMap = ({
                 alignItems: 'start',
               }}
             >
-              <Box
-                component="button"
+              <ButtonBase
                 type="button"
                 aria-label="Close map graph tooltip"
                 sx={{
@@ -465,11 +519,11 @@ const CarbonMapGraphMap = ({
                   cursor: 'pointer',
                 }}
                 onClick={() =>
-                  setTooltip((prev: any) => ({ ...prev, visible: false }))
+                  setTooltip((prev) => ({ ...prev, visible: false }))
                 }
               >
                 <Cross sx={{ width: '15px', height: '15px' }}></Cross>
-              </Box>
+              </ButtonBase>
             </Box>
             <Box
               sx={{
@@ -477,38 +531,44 @@ const CarbonMapGraphMap = ({
                 flexDirection: 'column',
               }}
             >
-              <Table>
-                <TableBody>
-                  <TableRow key={'zoning_code'}>
+              <Box
+                component="table"
+                sx={{
+                  borderCollapse: 'collapse',
+                  borderSpacing: 0,
+                }}
+              >
+                <Box component="tbody">
+                  <Box component="tr" key={'zoning_code'}>
                     <FirstColumnCell component="th" scope="row">
-                      <T
+                      <TText
                         ns="hiilikartta"
                         keyName="report.map_graph.tooltip_zoning_code"
-                      ></T>
+                      ></TText>
                     </FirstColumnCell>
-                    <DataCell key={'zoning_code_val'} align="left">
+                    <DataCell key={'zoning_code_val'}>
                       {tooltip.feature.properties[ZONING_CODE_COL]}
                     </DataCell>
-                  </TableRow>
-                  <TableRow key={'area'}>
+                  </Box>
+                  <Box component="tr" key={'area'}>
                     <FirstColumnCell component="th" scope="row">
-                      <T
+                      <TText
                         ns="hiilikartta"
                         keyName="report.map_graph.tooltip_area"
-                      ></T>
+                      ></TText>
                     </FirstColumnCell>
-                    <DataCell key={'zoning_code_val'} align="left">
+                    <DataCell key={'zoning_code_val'}>
                       {pp(tooltip.feature.properties.area / 10000, 2)}
                     </DataCell>
-                  </TableRow>
-                  <TableRow key={'co2_ha'}>
+                  </Box>
+                  <Box component="tr" key={'co2_ha'}>
                     <FirstColumnCell component="th" scope="row">
-                      <T
+                      <TText
                         ns="hiilikartta"
                         keyName="report.map_graph.unit_co2_ha_compared"
-                      ></T>
+                      ></TText>
                     </FirstColumnCell>
-                    <DataCell key={'co2_ha_val'} align="left">
+                    <DataCell key={'co2_ha_val'}>
                       {pp(
                         activeDataOption.isCurrent
                           ? tooltip.feature.properties.valueHaNochange
@@ -516,15 +576,15 @@ const CarbonMapGraphMap = ({
                         0
                       )}
                     </DataCell>
-                  </TableRow>
-                  <TableRow key={'co2_total'}>
+                  </Box>
+                  <Box component="tr" key={'co2_total'}>
                     <FirstColumnCell component="th" scope="row">
-                      <T
+                      <TText
                         ns="hiilikartta"
                         keyName="report.map_graph.unit_co2_total_compared"
-                      ></T>
+                      ></TText>
                     </FirstColumnCell>
-                    <DataCell key={'co2_total_val'} align="left">
+                    <DataCell key={'co2_total_val'}>
                       {pp(
                         activeDataOption.isCurrent
                           ? tooltip.feature.properties.valueTotalNochange
@@ -532,9 +592,9 @@ const CarbonMapGraphMap = ({
                         0
                       )}
                     </DataCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
+                  </Box>
+                </Box>
+              </Box>
             </Box>
           </>
         )}
@@ -543,18 +603,62 @@ const CarbonMapGraphMap = ({
   )
 }
 
-const FirstColumnCell = styled(TableCell)(({ theme }) => ({
-  ...theme.typography.body7,
-  borderBottom: 'none',
-  padding: '6px',
-}))
+type TableCellProps = {
+  children: React.ReactNode
+  component?: 'td' | 'th'
+  scope?: string
+  sx?: AppSystemStyleObject
+}
 
-const DataCell = styled(TableCell)(({ theme }) => ({
-  ...theme.typography.body7,
+const firstColumnCellSx = {
+  display: 'table-cell',
+  typography: 'body7',
+  fontWeight: 400,
+  borderBottom: 'none',
+  p: '6px',
+  textAlign: 'left',
+  verticalAlign: 'middle',
+} satisfies AppSystemStyleObject
+
+const dataCellSx = {
+  display: 'table-cell',
+  typography: 'body7',
   fontWeight: 'bold',
   letterSpacing: '0.125rem',
   borderBottom: 'none',
-  padding: '6px',
-}))
+  p: '6px',
+  textAlign: 'left',
+  verticalAlign: 'middle',
+} satisfies AppSystemStyleObject
+
+const FirstColumnCell = ({
+  children,
+  component = 'td',
+  sx,
+  ...props
+}: TableCellProps) => (
+  <Box
+    {...props}
+    component={component}
+    sx={[firstColumnCellSx, ...toSxArray(sx)]}
+  >
+    {children}
+  </Box>
+)
+
+const DataCell = ({
+  children,
+  component = 'td',
+  sx,
+  ...props
+}: TableCellProps) => (
+  <Box
+    {...props}
+    component={component}
+    sx={[dataCellSx, ...toSxArray(sx)]}
+  >
+    {children}
+  </Box>
+)
 
 export default CarbonMapGraphMap

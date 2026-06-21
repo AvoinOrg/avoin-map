@@ -28,6 +28,7 @@ import {
 } from './fixtures/EnergymapFrontPageControlsFixture'
 import { energymapBuildingInfoPanelFixture } from './fixtures/EnergymapBuildingInfoPanelFixture'
 import { hiilikarttaDisplayPrimitivesFixture } from './fixtures/HiilikarttaDisplayPrimitivesFixture'
+import { hiilikarttaCarbonMapGraphFixture } from './fixtures/HiilikarttaCarbonMapGraphFixture'
 import { hiilikarttaReportOverviewFixture } from './fixtures/HiilikarttaReportOverviewFixture'
 import { numberInputFieldFixture } from './fixtures/NumberInputFieldFixture'
 import { sharedSvgIconFixture } from './fixtures/SharedSvgIconFixture'
@@ -55,6 +56,7 @@ const componentFixtures: ComponentFixture[] = [
   energymapBackgroundFiltersFixture,
   energymapBuildingInfoPanelFixture,
   hiilikarttaDisplayPrimitivesFixture,
+  hiilikarttaCarbonMapGraphFixture,
   hiilikarttaReportOverviewFixture,
   mainPopupTableFixture,
   dropDownSelectFixture,

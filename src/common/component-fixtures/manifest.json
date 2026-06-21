@@ -529,6 +529,37 @@
     ]
   },
   {
+    "id": "hiilikartta-carbon-map-graph",
+    "label": "Hiilikartta carbon map graph",
+    "description": "Report carbon map graph controls, MapLibre overlay, legend integration, and summary table states.",
+    "sourceGlobs": [
+      "src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonMapGraph/CarbonMapGraph.tsx",
+      "src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonMapGraph/CarbonMapGraphMap.tsx",
+      "src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonMapGraph/CarbonMapGraphTable.tsx",
+      "src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonMapGraph/index.tsx",
+      "src/common/component-fixtures/fixtures/HiilikarttaCarbonMapGraphFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "default-graph",
+        "label": "Default graph",
+        "description": "Full map graph with default total calculation, first comparison year, all zoning types, two plans, legend, and table.",
+        "waitFor": "[data-map-graph-rendered=\"true\"]"
+      },
+      {
+        "id": "alternate-current-filtered",
+        "label": "Alternate current filtered",
+        "description": "Full map graph initialized to the alternate year, ground-carbon calculation, V zoning filter, and current-situation plan option.",
+        "waitFor": "[data-map-graph-rendered=\"true\"]"
+      },
+      {
+        "id": "table-hidden-rows",
+        "label": "Table hidden rows",
+        "description": "Summary table using bio-carbon values for the alternate year with non-V zoning rows hidden from totals."
+      }
+    ]
+  },
+  {
     "id": "hiilikartta-report-overview",
     "label": "Hiilikartta report overview",
     "description": "Report overview, geometry preview, carbon-change legend, and read-more modal states.",

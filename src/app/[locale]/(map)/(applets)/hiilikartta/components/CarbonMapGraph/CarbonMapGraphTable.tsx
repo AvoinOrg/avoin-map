@@ -1,18 +1,14 @@
 import React, { useMemo } from 'react'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-} from '@mui/material'
-import { styled } from '@mui/material/styles'
-import { T } from '@tolgee/react'
 
+import {
+  Box,
+  toSxArray,
+  type AppSystemStyleObject,
+} from '#/common/style/theme'
+import TText from '#/components/common/TText'
 import { pp } from '#/common/utils/general'
 
-import { MapGraphData } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
+import type { MapGraphData } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
 
 type Props = {
   datas: MapGraphData[]
@@ -29,6 +25,10 @@ const CarbonMapGraphTable = ({ datas, activeYear }: Props) => {
         }
         return acc
       }, 0)
+
+      if (totalArea === 0) {
+        return { planned: 0, nochange: 0 }
+      }
 
       const weightedAreaHa = data.data.features.reduce(
         (acc, feature) => {
@@ -73,25 +73,35 @@ const CarbonMapGraphTable = ({ datas, activeYear }: Props) => {
   }, [datas])
 
   return (
-    <TableContainer sx={{ mt: 4, overFlowX: 'scroll' }}>
-      <Table
-        sx={{ borderCollapse: 'collapse', 'th, td': { border: 0 } }}
-        aria-label="simple table"
+    <Box sx={{ mt: 4, overflowX: 'auto' }}>
+      <Box
+        component="table"
+        sx={{
+          width: '100%',
+          borderCollapse: 'collapse',
+          'th, td': { border: 0 },
+        }}
+        aria-label="report carbon map graph summary table"
       >
-        <TableHead>
-          <TableRow>
-            <TableCell
+        <Box component="thead">
+          <Box component="tr">
+            <Box
+              component="th"
               sx={{
                 typography: 'h8',
                 color: 'secondary.dark',
                 verticalAlign: 'top',
+                p: '16px',
+                textAlign: 'left',
+                fontWeight: 400,
               }}
             >
-              <T ns="hiilikartta" keyName="report.map_graph.year"></T>
+              <TText ns="hiilikartta" keyName="report.map_graph.year"></TText>
               <b>{' ' + activeYear}</b>
-            </TableCell>
+            </Box>
             {datas.map((data, index) => (
-              <TableCell
+              <Box
+                component="th"
                 sx={{
                   typography: 'h7',
                   lineHeight: 'normal',
@@ -99,52 +109,52 @@ const CarbonMapGraphTable = ({ datas, activeYear }: Props) => {
                   wordBreak: 'break-word',
                   overflowWrap: 'break-word',
                   minWidth: '8rem',
+                  p: '16px',
+                  textAlign: 'left',
                 }}
                 key={index}
               >
                 {data.name}
-              </TableCell>
+              </Box>
             ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          <TableRow key={'co2_ha'}>
+          </Box>
+        </Box>
+        <Box component="tbody">
+          <Box component="tr" key={'co2_ha'}>
             <FirstColumnCell component="th" scope="row">
-              <T
+              <TText
                 ns="hiilikartta"
                 keyName="report.map_graph.unit_co2_ha_compared"
-              ></T>
+              ></TText>
             </FirstColumnCell>
             {co2HaRowData.map((rowData, index) => (
-              <DataCell key={index} align="left">
-                {pp(rowData.planned, 0)}
-              </DataCell>
+              <DataCell key={index}>{pp(rowData.planned, 0)}</DataCell>
             ))}
-          </TableRow>
-          <TableRow key={'co2_total'}>
-            <FirstColumnCell
-              sx={{ typography: 'body7' }}
-              component="th"
-              scope="row"
-            >
-              <T
+          </Box>
+          <Box component="tr" key={'co2_total'}>
+            <FirstColumnCell sx={{ typography: 'body7' }} component="th" scope="row">
+              <TText
                 ns="hiilikartta"
                 keyName="report.map_graph.unit_co2_total_compared"
-              ></T>
+              ></TText>
             </FirstColumnCell>
             {co2TotalRowData.map((rowData, index) => (
-              <DataCell key={index} align="left">
-                {pp(rowData.planned, 0)}
-              </DataCell>
+              <DataCell key={index}>{pp(rowData.planned, 0)}</DataCell>
             ))}
-          </TableRow>
-          <TableRow sx={{ height: '2rem' }}></TableRow>
-        </TableBody>
-        <TableHead>
-          <TableRow>
-            <TableCell></TableCell>
+          </Box>
+          <Box component="tr" sx={{ height: '2rem' }}>
+            <DataCell
+              colSpan={datas.length + 1}
+              sx={{ p: 0, border: 0 }}
+            />
+          </Box>
+        </Box>
+        <Box component="tbody">
+          <Box component="tr">
+            <Box component="th" sx={{ p: '16px', textAlign: 'left' }}></Box>
             {datas.map((data, index) => (
-              <TableCell
+              <Box
+                component="th"
                 sx={{
                   typography: 'h7',
                   lineHeight: 'normal',
@@ -152,62 +162,103 @@ const CarbonMapGraphTable = ({ datas, activeYear }: Props) => {
                   wordBreak: 'break-word',
                   overflowWrap: 'break-word',
                   minWidth: '8rem',
+                  p: '16px',
+                  textAlign: 'left',
                 }}
                 key={index}
               >
-                <T
+                <TText
                   ns="hiilikartta"
                   keyName="report.map_graph.table_current_situation"
-                ></T>
-              </TableCell>
+                ></TText>
+              </Box>
             ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          <TableRow key={'co2_ha'}>
+          </Box>
+        </Box>
+        <Box component="tbody">
+          <Box component="tr" key={'co2_ha'}>
             <FirstColumnCell component="th" scope="row">
-              <T
+              <TText
                 ns="hiilikartta"
                 keyName="report.map_graph.unit_co2_ha_compared"
-              ></T>
+              ></TText>
             </FirstColumnCell>
             {co2HaRowData.map((rowData, index) => (
-              <DataCell key={index} align="left">
-                {pp(rowData.nochange, 0)}
-              </DataCell>
+              <DataCell key={index}>{pp(rowData.nochange, 0)}</DataCell>
             ))}
-          </TableRow>
-          <TableRow key={'co2_total'}>
-            <FirstColumnCell
-              sx={{ typography: 'body7' }}
-              component="th"
-              scope="row"
-            >
-              <T
+          </Box>
+          <Box component="tr" key={'co2_total'}>
+            <FirstColumnCell sx={{ typography: 'body7' }} component="th" scope="row">
+              <TText
                 ns="hiilikartta"
                 keyName="report.map_graph.unit_co2_total_compared"
-              ></T>
+              ></TText>
             </FirstColumnCell>
             {co2TotalRowData.map((rowData, index) => (
-              <DataCell key={index} align="left">
-                {pp(rowData.nochange, 0)}
-              </DataCell>
+              <DataCell key={index}>{pp(rowData.nochange, 0)}</DataCell>
             ))}
-          </TableRow>
-        </TableBody>
-      </Table>
-    </TableContainer>
+          </Box>
+        </Box>
+      </Box>
+    </Box>
   )
 }
 
-const FirstColumnCell = styled(TableCell)(({ theme }) => ({
-  ...theme.typography.body7,
-}))
+type TableCellProps = {
+  children?: React.ReactNode
+  component?: 'td' | 'th'
+  colSpan?: number
+  scope?: string
+  sx?: AppSystemStyleObject
+}
 
-const DataCell = styled(TableCell)(({ theme }) => ({
-  ...theme.typography.h2,
+const firstColumnCellSx = {
+  display: 'table-cell',
+  typography: 'body7',
+  fontWeight: 400,
+  p: '16px',
+  textAlign: 'left',
+  verticalAlign: 'middle',
+} satisfies AppSystemStyleObject
+
+const dataCellSx = {
+  display: 'table-cell',
+  typography: 'h2',
   fontSize: '1.25rem',
   letterSpacing: '0.125rem',
-}))
+  p: '16px',
+  textAlign: 'left',
+  verticalAlign: 'middle',
+} satisfies AppSystemStyleObject
+
+const FirstColumnCell = ({
+  children,
+  component = 'td',
+  sx,
+  ...props
+}: TableCellProps) => (
+  <Box
+    {...props}
+    component={component}
+    sx={[firstColumnCellSx, ...toSxArray(sx)]}
+  >
+    {children}
+  </Box>
+)
+
+const DataCell = ({
+  children,
+  component = 'td',
+  sx,
+  ...props
+}: TableCellProps) => (
+  <Box
+    {...props}
+    component={component}
+    sx={[dataCellSx, ...toSxArray(sx)]}
+  >
+    {children}
+  </Box>
+)
 
 export default CarbonMapGraphTable

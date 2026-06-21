@@ -1,5 +1,23 @@
 import type { ReactNode } from 'react'
 
+jest.mock('maplibre-gl', () => {
+  class MapLibreMapMock {}
+
+  class LngLatBoundsMock {
+    extend = () => this
+  }
+
+  return {
+    __esModule: true,
+    default: {
+      Map: MapLibreMapMock,
+      LngLatBounds: LngLatBoundsMock,
+    },
+    Map: MapLibreMapMock,
+    LngLatBounds: LngLatBoundsMock,
+  }
+})
+
 jest.mock('#/components/common/LayerToggleRow', () => ({
   LayerToggleRow: () => null,
   LayerToggleRowAccordion: ({ children }: { children: ReactNode }) => children,
