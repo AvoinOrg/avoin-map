@@ -1,12 +1,12 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
-import { Box, Typography } from '@mui/material'
 import { T, useTranslate } from '@tolgee/react'
 import { useRouter } from 'next/navigation'
 
 import useStore from '#/common/hooks/useStore'
 import { SidebarContentBox } from '#/components/Sidebar'
+import { Box, type AppSystemStyleObject } from '#/common/style/theme'
 import { useMapStore } from '#/common/store'
 import { getRoute } from '#/common/routing/routing-client'
 import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
@@ -34,6 +34,9 @@ const IMPORT_PLAN_ICON_SRC =
   '/files/img/hiilikartta/sidebar/kaavat-action-upload.svg'
 const DRAW_PLAN_ICON_SRC =
   '/files/img/hiilikartta/sidebar/kaavat-action-draw.svg'
+const RouteImage = Box as unknown as React.ComponentType<
+  React.ComponentProps<'img'> & { component?: 'img'; sx?: AppSystemStyleObject }
+>
 
 type PlanListEntry =
   | {
@@ -245,7 +248,7 @@ const Page = () => {
           <>
             <IconTextButton
               icon={
-                <Box
+                <RouteImage
                   component="img"
                   src={IMPORT_PLAN_ICON_SRC}
                   alt=""
@@ -264,7 +267,7 @@ const Page = () => {
             />
             <IconTextButton
               icon={
-                <Box
+                <RouteImage
                   component="img"
                   src={DRAW_PLAN_ICON_SRC}
                   alt=""
@@ -305,7 +308,8 @@ const Page = () => {
               gap: '0.75rem',
             }}
           >
-            <Typography
+            <Box
+              component="p"
               sx={{
                 color: '#111111',
                 fontSize: '0.625rem',
@@ -313,10 +317,11 @@ const Page = () => {
                 letterSpacing: '0.1em',
                 lineHeight: '1.125rem',
                 textTransform: 'uppercase',
+                m: 0,
               }}
             >
               <T keyName="sidebar.my_plans.title" ns="hiilikartta" />
-            </Typography>
+            </Box>
             <Box
               sx={{
                 display: 'flex',
@@ -332,17 +337,19 @@ const Page = () => {
                   flexShrink: 0,
                 }}
               />
-              <Typography
+              <Box
+                component="span"
                 sx={{
                   color: '#111111',
                   fontSize: '0.625rem',
                   fontWeight: 700,
                   letterSpacing: '0.1em',
                   lineHeight: '1.125rem',
+                  m: 0,
                 }}
               >
                 {visiblePlanCountLabel}
-              </Typography>
+              </Box>
             </Box>
           </Box>
 
@@ -395,7 +402,7 @@ const Page = () => {
                   backgroundColor: '#d9d9d9',
                   boxShadow: '0px 1px 1px 0px rgba(189, 189, 189, 0.25)',
                   color: '#111111',
-                  '& .MuiSelect-select': {
+                  '& [data-slot="value"]': {
                     pl: '0.75rem',
                     pr: '1.75rem !important',
                     py: '0.3125rem',
@@ -404,7 +411,7 @@ const Page = () => {
                     lineHeight: '1rem',
                     letterSpacing: '0.1em',
                   },
-                  '& .MuiSelect-icon': {
+                  '& [data-slot="icon"]': {
                     right: '0.625rem',
                     top: 'calc(50% - 0.21875rem)',
                     width: '0.6875rem',
