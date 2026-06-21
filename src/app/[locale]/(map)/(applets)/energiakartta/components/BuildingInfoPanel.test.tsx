@@ -1,6 +1,5 @@
 import React from 'react'
 import '@testing-library/jest-dom'
-import { ThemeProvider } from '@mui/material/styles'
 import {
   fireEvent,
   render,
@@ -10,7 +9,7 @@ import {
 } from '@testing-library/react'
 
 import { useUIStore } from '#/common/store/uiStore'
-import theme from '#/common/style/theme/theme'
+import { AppThemeProvider } from '#/common/style/theme'
 import { SlotsProvider } from '#/components/context/slotsContext'
 import { SidebarRoot } from '#/components/Sidebar/SidebarRoot'
 import { SidebarPanelExtensionProvider } from '#/components/Sidebar/SidebarPanelExtensionProvider'
@@ -49,7 +48,7 @@ jest.mock('#/common/hooks/ui/useIsMobile', () => ({
 }))
 
 jest.mock('@tolgee/react', () => {
-  const React = require('react')
+  const ReactRuntime = jest.requireActual<typeof import('react')>('react')
 
   return {
     T: ({
@@ -59,7 +58,7 @@ jest.mock('@tolgee/react', () => {
       keyName: string
       params?: Record<string, string | number>
     }) =>
-      React.createElement(
+      ReactRuntime.createElement(
         'span',
         null,
         params?.code == null ? keyName : `${keyName}:${params.code}`
@@ -71,7 +70,7 @@ jest.mock('@tolgee/react', () => {
 })
 
 jest.mock('overlayscrollbars-react', () => {
-  const React = require('react')
+  const ReactRuntime = jest.requireActual<typeof import('react')>('react')
 
   return {
     OverlayScrollbarsComponent: ({
@@ -96,7 +95,7 @@ jest.mock('overlayscrollbars-react', () => {
       }
       style?: React.CSSProperties
     }) =>
-      React.createElement(
+      ReactRuntime.createElement(
         'div',
         {
           ...props,
@@ -323,7 +322,7 @@ const consumptionControls: EnergymapBuildingInfoConsumptionControls = {
 }
 
 const renderWithTheme = (ui: React.ReactElement) => {
-  return render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>)
+  return render(<AppThemeProvider disableCssBaseline>{ui}</AppThemeProvider>)
 }
 
 const resetUIStore = () => {
@@ -562,44 +561,81 @@ const ariaLabels = {
   renovation: 'Open renovation recommendations',
 }
 
-const renderBuildingInfoTabs = ({
-  activeTabId,
-  forceMobileLayout = false,
-  isDesktopFullscreenLayout = false,
-  onActiveTabChange = jest.fn(),
-  onClose = jest.fn(),
-  onCollapse = jest.fn(),
-}: {
+const getPanelsWithConsumptionControls = (
+  controls: EnergymapBuildingInfoConsumptionControls
+): EnergymapBuildingInfoPanel[] =>
+  panels.map((panel) =>
+    panel.id === 'energyConsumption'
+      ? {
+          ...panel,
+          sections: panel.sections.map((section) =>
+            section.id === 'estimatedConsumption'
+              ? { ...section, consumptionControls: controls }
+              : section
+          ),
+        }
+      : panel
+  )
+
+type RenderBuildingInfoTabsOptions = {
   activeTabId?: BuildingInfoTabId
   forceMobileLayout?: boolean
   isDesktopFullscreenLayout?: boolean
   onActiveTabChange?: (tabId: BuildingInfoTabId) => void
   onClose?: () => void
   onCollapse?: (tabId: BuildingInfoTabId) => void
-} = {}) => {
-  return renderWithTheme(
-    <SlotsProvider>
-      <SidebarRoot>
-        <SidebarPanelExtensionProvider
-          id="building-info-test-extension"
-          initialRuntimeOptions={{ visiblePanels: ['main'], activePanel: 'main' }}
-        >
-          <IntoSidebarPanelExtensionPanelSlot panelId="main">
-            <BuildingInfoTabPages
-              panels={panels}
-              ariaLabels={ariaLabels}
-              activeTabId={activeTabId}
-              forceMobileLayout={forceMobileLayout}
-              isDesktopFullscreenLayout={isDesktopFullscreenLayout}
-              onActiveTabChange={onActiveTabChange}
-              onClose={onClose}
-              onCollapse={onCollapse}
-            />
-          </IntoSidebarPanelExtensionPanelSlot>
-        </SidebarPanelExtensionProvider>
-      </SidebarRoot>
-    </SlotsProvider>
-  )
+  panels?: EnergymapBuildingInfoPanel[]
+}
+
+const createBuildingInfoTabsElement = ({
+  activeTabId,
+  forceMobileLayout = false,
+  isDesktopFullscreenLayout = false,
+  onActiveTabChange = jest.fn(),
+  onClose = jest.fn(),
+  onCollapse = jest.fn(),
+  panels: buildingInfoPanels = panels,
+}: RenderBuildingInfoTabsOptions = {}) => (
+  <SlotsProvider>
+    <SidebarRoot>
+      <SidebarPanelExtensionProvider
+        id="building-info-test-extension"
+        initialRuntimeOptions={{ visiblePanels: ['main'], activePanel: 'main' }}
+      >
+        <IntoSidebarPanelExtensionPanelSlot panelId="main">
+          <BuildingInfoTabPages
+            panels={buildingInfoPanels}
+            ariaLabels={ariaLabels}
+            activeTabId={activeTabId}
+            forceMobileLayout={forceMobileLayout}
+            isDesktopFullscreenLayout={isDesktopFullscreenLayout}
+            onActiveTabChange={onActiveTabChange}
+            onClose={onClose}
+            onCollapse={onCollapse}
+          />
+        </IntoSidebarPanelExtensionPanelSlot>
+      </SidebarPanelExtensionProvider>
+    </SidebarRoot>
+  </SlotsProvider>
+)
+
+const renderBuildingInfoTabs = (
+  options: RenderBuildingInfoTabsOptions = {}
+) => {
+  const result = renderWithTheme(createBuildingInfoTabsElement(options))
+
+  return {
+    ...result,
+    rerenderBuildingInfoTabs: (
+      nextOptions: RenderBuildingInfoTabsOptions = {}
+    ) => {
+      result.rerender(
+        <AppThemeProvider disableCssBaseline>
+          {createBuildingInfoTabsElement({ ...options, ...nextOptions })}
+        </AppThemeProvider>
+      )
+    },
+  }
 }
 
 describe('BuildingInfoPanel', () => {
@@ -935,7 +971,7 @@ describe('BuildingInfoPanel', () => {
       name: 'sidebar.building_info.panels.energy.primary.water',
     })
 
-    expect(yearSelect).toHaveAttribute('aria-disabled', 'true')
+    expect(yearSelect).toBeDisabled()
     expect(energyButton).toHaveAttribute('aria-pressed', 'true')
     expect(energyButton).toHaveTextContent(
       'sidebar.building_info.panels.energy.primary.energy'
@@ -1012,6 +1048,217 @@ describe('BuildingInfoPanel', () => {
     )
   })
 
+  it('allows deselecting every supported energy submetric', async () => {
+    renderBuildingInfoTabs()
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    const energyPanel = screen.getByTestId(
+      'building-info-panel-energyConsumption'
+    )
+    const values = within(energyPanel).getByTestId(
+      'building-info-energy-consumption-values'
+    )
+
+    fireEvent.click(
+      within(energyPanel).getByRole('button', {
+        name: 'panels.energy.series.heating',
+      })
+    )
+    fireEvent.click(
+      within(energyPanel).getByRole('button', {
+        name: 'panels.energy.series.electricity',
+      })
+    )
+
+    expect(values).toHaveTextContent(
+      'sidebar.building_info.panels.energy.unsupported.no_selected_energy_submetrics'
+    )
+    expect(
+      within(energyPanel).getByRole('button', {
+        name: 'panels.energy.series.electricity',
+      })
+    ).toHaveAttribute('aria-pressed', 'false')
+    expect(
+      within(energyPanel).getByRole('button', {
+        name: 'panels.energy.series.heating',
+      })
+    ).toHaveAttribute('aria-pressed', 'false')
+    expect(
+      within(energyPanel).getByRole('button', {
+        name: 'panels.energy.series.water_heating',
+      })
+    ).toHaveAttribute('aria-pressed', 'false')
+    expect(energyPanel).not.toHaveTextContent(
+      'sidebar.building_info.panels.energy.unsupported.water_heating'
+    )
+  })
+
+  it('normalizes energy control state when building controls change', async () => {
+    const controlsWithLegacySelections: EnergymapBuildingInfoConsumptionControls =
+      {
+        ...consumptionControls,
+        yearOptions: [
+          { value: '2021', label: '2021' },
+          { value: '2020', label: '2020' },
+        ],
+      }
+    const controlsWithoutLegacySelections: EnergymapBuildingInfoConsumptionControls =
+      {
+        ...controlsWithLegacySelections,
+        primaryMetrics: controlsWithLegacySelections.primaryMetrics.filter(
+          (metric) => metric.id !== 'water'
+        ),
+        energySubmetrics: controlsWithLegacySelections.energySubmetrics.filter(
+          (submetric) => submetric.id !== 'waterHeating'
+        ),
+        defaultEnergySubmetricIds: ['electricity', 'heating'],
+        yearOptions: [
+          { value: '2023', label: '2023' },
+          { value: '2022', label: '2022' },
+        ],
+      }
+    const controlsWithLegacyOptionsReintroduced: EnergymapBuildingInfoConsumptionControls =
+      {
+        ...controlsWithoutLegacySelections,
+        primaryMetrics: controlsWithLegacySelections.primaryMetrics,
+        yearOptions: [
+          { value: '2023', label: '2023' },
+          { value: '2020', label: '2020' },
+        ],
+      }
+    const view = renderBuildingInfoTabs({
+      panels: getPanelsWithConsumptionControls(controlsWithLegacySelections),
+    })
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    const getEnergyPanel = () =>
+      screen.getByTestId('building-info-panel-energyConsumption')
+    const yearAriaLabel =
+      'sidebar.building_info.panels.energy.controls.year_aria_label'
+
+    fireEvent.click(
+      within(getEnergyPanel()).getByRole('button', {
+        name: 'panels.energy.series.water_heating',
+      })
+    )
+    fireEvent.click(
+      within(getEnergyPanel()).getByRole('button', {
+        name: 'panels.energy.series.heating',
+      })
+    )
+    fireEvent.click(
+      within(getEnergyPanel()).getByRole('button', {
+        name: 'panels.energy.series.electricity',
+      })
+    )
+    expect(
+      within(getEnergyPanel()).getByTestId(
+        'building-info-energy-consumption-values'
+      )
+    ).toHaveTextContent(
+      'sidebar.building_info.panels.energy.unsupported.no_selected_energy_submetrics'
+    )
+
+    fireEvent.click(
+      within(getEnergyPanel()).getByRole('button', {
+        name: 'sidebar.building_info.panels.energy.primary.water',
+      })
+    )
+    fireEvent.click(
+      within(getEnergyPanel()).getByRole('combobox', {
+        name: yearAriaLabel,
+      })
+    )
+    const legacyYearOption = await screen.findByRole('option', { name: '2020' })
+    fireEvent.mouseMove(legacyYearOption)
+    await waitFor(() => {
+      expect(legacyYearOption.hasAttribute('data-highlighted')).toBe(true)
+    })
+    fireEvent.click(legacyYearOption)
+    await waitFor(() => {
+      expect(
+        within(getEnergyPanel()).getByRole('combobox', {
+          name: yearAriaLabel,
+        })
+      ).toHaveTextContent('2020')
+    })
+
+    view.rerenderBuildingInfoTabs({
+      panels: getPanelsWithConsumptionControls(
+        controlsWithoutLegacySelections
+      ),
+    })
+
+    await waitFor(() => {
+      expect(
+        within(getEnergyPanel()).getByRole('button', {
+          name: 'sidebar.building_info.panels.energy.primary.energy',
+        })
+      ).toHaveAttribute('aria-pressed', 'true')
+      expect(
+        within(getEnergyPanel()).getByRole('button', {
+          name: 'panels.energy.series.electricity',
+        })
+      ).toHaveAttribute('aria-pressed', 'true')
+      expect(
+        within(getEnergyPanel()).getByRole('button', {
+          name: 'panels.energy.series.heating',
+        })
+      ).toHaveAttribute('aria-pressed', 'true')
+      expect(
+        within(getEnergyPanel()).getByRole('combobox', {
+          name: yearAriaLabel,
+        })
+      ).toHaveTextContent('2023')
+    })
+
+    fireEvent.click(
+      within(getEnergyPanel()).getByRole('button', {
+        name: 'panels.energy.series.electricity',
+      })
+    )
+
+    const values = within(getEnergyPanel()).getByTestId(
+      'building-info-energy-consumption-values'
+    )
+    expect(values).toHaveTextContent('70')
+    expect(values).not.toHaveTextContent('30')
+    expect(
+      within(getEnergyPanel()).getByRole('button', {
+        name: 'panels.energy.series.electricity',
+      })
+    ).toHaveAttribute('aria-pressed', 'false')
+    expect(
+      within(getEnergyPanel()).getByRole('button', {
+        name: 'panels.energy.series.heating',
+      })
+    ).toHaveAttribute('aria-pressed', 'true')
+
+    view.rerenderBuildingInfoTabs({
+      panels: getPanelsWithConsumptionControls(
+        controlsWithLegacyOptionsReintroduced
+      ),
+    })
+
+    await waitFor(() => {
+      expect(
+        within(getEnergyPanel()).getByRole('button', {
+          name: 'sidebar.building_info.panels.energy.primary.energy',
+        })
+      ).toHaveAttribute('aria-pressed', 'true')
+      expect(
+        within(getEnergyPanel()).getByRole('button', {
+          name: 'sidebar.building_info.panels.energy.primary.water',
+        })
+      ).toHaveAttribute('aria-pressed', 'false')
+      expect(
+        within(getEnergyPanel()).getByRole('combobox', {
+          name: yearAriaLabel,
+        })
+      ).toHaveTextContent('2023')
+    })
+  })
+
   it('shows truthful missing-data panels for unsupported primary metrics', async () => {
     renderBuildingInfoTabs()
 
@@ -1072,21 +1319,16 @@ describe('BuildingInfoPanel', () => {
       name: 'sidebar.building_info.panels.energy.primary.co2',
     })
 
-    expect(
-      co2Button.querySelector('.MuiSvgIcon-root') as HTMLElement
-    ).toHaveStyle({
+    expect(within(co2Button).getByTestId('building-info-icon-co2')).toHaveStyle({
       fontSize: '1.25rem',
     })
 
     fireEvent.click(co2Button)
 
-    expect(
-      within(energyPanel)
-        .getByRole('button', {
-          name: 'sidebar.building_info.panels.energy.primary.co2',
-        })
-        .querySelector('.MuiSvgIcon-root') as HTMLElement
-    ).toHaveStyle({
+    const activeCo2Button = within(energyPanel).getByRole('button', {
+      name: 'sidebar.building_info.panels.energy.primary.co2',
+    })
+    expect(within(activeCo2Button).getByTestId('building-info-icon-co2')).toHaveStyle({
       fontSize: '1.4rem',
     })
   })
@@ -1188,7 +1430,9 @@ describe('BuildingInfoPanel', () => {
       boxShadow: '0 2px 8px rgba(17, 17, 17, 0.12)',
     })
     expect(
-      collapseButton.querySelector('.MuiSvgIcon-root') as HTMLElement
+      within(collapseButton).getByTestId(
+        'sidebar-panel-extension-collapse-icon'
+      )
     ).toHaveStyle({
       fontSize: '1.85rem',
     })
@@ -1311,7 +1555,7 @@ describe('BuildingInfoPanel', () => {
     const tooltipTrigger = missingValue?.querySelector('[tabindex="0"]')
 
     expect(tooltipTrigger).toBeInTheDocument()
-    fireEvent.mouseOver(tooltipTrigger as Element)
+    fireEvent.focus(tooltipTrigger as Element)
 
     expect(await screen.findByRole('tooltip')).toHaveTextContent(
       'value.missing'
@@ -1333,7 +1577,7 @@ describe('BuildingInfoPanel', () => {
     expect(
       within(addressSubheader as HTMLElement)
         .getByText(/row.address.label/)
-        .closest('p')
+        .parentElement
     ).toHaveStyle({ fontWeight: '400' })
     expect(
       within(addressSubheader as HTMLElement)
@@ -1346,10 +1590,10 @@ describe('BuildingInfoPanel', () => {
     renderBuildingInfoTabs({ activeTabId: 'renovation' })
 
     await screen.findByTestId('building-info-tab-page-renovation')
-    expect(screen.getByText('scenario.aahp.label').closest('p')).toHaveStyle({
+    expect(screen.getByText('scenario.aahp.label').parentElement).toHaveStyle({
       fontWeight: '400',
     })
-    expect(screen.getByText('panel.renovation.title').closest('p')).toHaveStyle({
+    expect(screen.getByText('panel.renovation.title').parentElement).toHaveStyle({
       fontWeight: '400',
     })
     expect(screen.getByText('12000').closest('[data-status]')).toHaveStyle({

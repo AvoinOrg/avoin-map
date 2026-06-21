@@ -1,34 +1,32 @@
 'use client'
 
 import React from 'react'
-import {
-  Box,
-  ButtonBase,
-  IconButton,
-  SxProps,
-  Theme,
-  Tooltip,
-  Typography,
-} from '@mui/material'
-import BoltIcon from '@mui/icons-material/Bolt'
-import Co2Icon from '@mui/icons-material/Co2'
-import ConstructionIcon from '@mui/icons-material/Construction'
-import EuroIcon from '@mui/icons-material/Euro'
-import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
-import OpacityIcon from '@mui/icons-material/Opacity'
-import WaterDropIcon from '@mui/icons-material/WaterDrop'
+import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip'
 import { useTranslate } from '@tolgee/react'
 
 import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
+import {
+  Box,
+  type AppSxProps,
+  type AppTheme,
+  toSxArray,
+} from '#/common/style/theme'
 import type { SelectOption } from '#/common/types/general'
+import { ButtonBase, IconButton } from '#/components/common/Button'
 import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import DropDownSelectInset from '#/components/common/DropDownSelectInset'
 import TText from '#/components/common/TText'
 import { SidebarPanelExtensionPageContainer } from '#/components/Sidebar/SidebarPanelExtensionPageContainer'
 import { SidebarPanelExtensionTabContainer } from '#/components/Sidebar/SidebarPanelExtensionTabContainer'
+import {
+  SidebarPanelExtensionTooltip as BuildingInfoTooltip,
+  type SidebarPanelExtensionTooltipSide as BuildingInfoTooltipSide,
+  type SidebarPanelExtensionTooltipTriggerProps as BuildingInfoTooltipTriggerProps,
+} from '#/components/Sidebar/SidebarPanelExtensionTooltip'
 import { useNullableSidebarPanelExtensionTabsContext } from '#/components/Sidebar/SidebarPanelExtensionTabsContext'
 import type {
+  EnergymapBuildingInfoConsumptionControls,
   EnergymapBuildingInfoEnergySubmetricId,
   EnergymapEnergyMeasure,
   EnergymapBuildingInfoMetric,
@@ -74,6 +72,13 @@ type BuildingInfoActionRailProps = {
   orientation?: 'row' | 'column'
   ariaLabels: Pick<BuildingInfoActionLabels, 'overview' | 'renovation'>
   onModeChange: (mode: BuildingInfoDesktopMode) => void
+}
+
+type BuildingInfoInlineTooltipTriggerProps = Omit<
+  React.HTMLAttributes<HTMLElement>,
+  'color'
+> & {
+  ref?: React.Ref<HTMLElement>
 }
 
 const PANEL_IDS_BY_MODE: Record<
@@ -296,6 +301,103 @@ const VISUALLY_HIDDEN_STYLE: React.CSSProperties = {
   border: 0,
 }
 
+const getBuildingInfoTooltipArrowSx = (
+  side: BuildingInfoTooltipSide
+): AppSxProps => {
+  if (side === 'right') {
+    return { left: -4, top: 'calc(50% - 4px)' }
+  }
+
+  if (side === 'left') {
+    return { right: -4, top: 'calc(50% - 4px)' }
+  }
+
+  if (side === 'bottom') {
+    return { top: -4, left: 'calc(50% - 4px)' }
+  }
+
+  return { bottom: -4, left: 'calc(50% - 4px)' }
+}
+
+const BuildingInfoInlineTooltip = ({
+  title,
+  side = 'top',
+  children,
+}: {
+  title: React.ReactNode
+  side?: BuildingInfoTooltipSide
+  children: (
+    props: BuildingInfoInlineTooltipTriggerProps
+  ) => React.ReactElement
+}) => (
+  <BaseTooltip.Root>
+    <BaseTooltip.Trigger
+      delay={0}
+      closeDelay={0}
+      render={(triggerProps) => {
+        const {
+          color: ignoredColor,
+          type: ignoredType,
+          ...resolvedTriggerProps
+        } = triggerProps as BuildingInfoInlineTooltipTriggerProps & {
+          color?: string
+          type?: string
+        }
+        void ignoredColor
+        void ignoredType
+
+        return children(resolvedTriggerProps)
+      }}
+    />
+    <BaseTooltip.Portal>
+      <BaseTooltip.Positioner
+        side={side}
+        sideOffset={8}
+        style={{ zIndex: 1500, pointerEvents: 'none' }}
+      >
+        <BaseTooltip.Popup
+          style={{ position: 'relative', pointerEvents: 'none' }}
+          render={(popupProps) => (
+            <Box
+              {...popupProps}
+              role="tooltip"
+              sx={{
+                maxWidth: 240,
+                px: 1,
+                py: 0.75,
+                borderRadius: '5px',
+                backgroundColor: '#111111',
+                color: '#ffffff',
+                fontSize: '0.75rem',
+                fontWeight: 400,
+                lineHeight: 1.35,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.22)',
+              }}
+            >
+              {title}
+              <BaseTooltip.Arrow
+                render={(arrowProps) => (
+                  <Box
+                    {...arrowProps}
+                    sx={{
+                      position: 'absolute',
+                      width: 8,
+                      height: 8,
+                      backgroundColor: '#111111',
+                      transform: 'rotate(45deg)',
+                      ...getBuildingInfoTooltipArrowSx(side),
+                    }}
+                  />
+                )}
+              />
+            </Box>
+          )}
+        />
+      </BaseTooltip.Positioner>
+    </BaseTooltip.Portal>
+  </BaseTooltip.Root>
+)
+
 const isPlainEnergyClassText = (text: EnergymapBuildingInfoText) =>
   text.type === 'plain' && /^[A-G]$/i.test(text.text.trim())
 
@@ -308,12 +410,10 @@ const BuildingInfoDecorativeImage = ({
   src: string
   width: string
   height: string
-  sx?: SxProps<Theme>
+  sx?: AppSxProps
 }) => (
   <Box
-    component="img"
-    src={src}
-    alt=""
+    component="span"
     aria-hidden="true"
     sx={[
       {
@@ -322,9 +422,20 @@ const BuildingInfoDecorativeImage = ({
         height,
         flexShrink: 0,
       },
-      ...(Array.isArray(sx) ? sx : [sx]),
+      ...toSxArray(sx),
     ]}
-  />
+  >
+    <img
+      src={src}
+      alt=""
+      aria-hidden="true"
+      style={{
+        display: 'block',
+        width: '100%',
+        height: '100%',
+      }}
+    />
+  </Box>
 )
 
 const getFigmaDimensionData = (dimension: number) =>
@@ -344,7 +455,7 @@ const BuildingInfoFigmaGraphic = ({
   dimensions: BuildingInfoGraphicDimensions
   maxWidth?: string
   testId: string
-  sx?: SxProps<Theme>
+  sx?: AppSxProps
 }) => (
   <Box
     aria-hidden="true"
@@ -359,15 +470,14 @@ const BuildingInfoFigmaGraphic = ({
         aspectRatio: `${dimensions.width} / ${dimensions.height}`,
         flexShrink: 0,
       },
-      ...(Array.isArray(sx) ? sx : [sx]),
+      ...toSxArray(sx),
     ]}
   >
-    <Box
-      component="img"
+    <img
       src={src}
       alt=""
       aria-hidden="true"
-      sx={{
+      style={{
         position: 'absolute',
         inset: 0,
         display: 'block',
@@ -385,7 +495,7 @@ const RenovationIcon = ({
 }: {
   width?: string
   height?: string
-  sx?: SxProps<Theme>
+  sx?: AppSxProps
 }) => (
   <Box
     aria-hidden="true"
@@ -396,7 +506,7 @@ const RenovationIcon = ({
         height,
         flexShrink: 0,
       },
-      ...(Array.isArray(sx) ? sx : [sx]),
+      ...toSxArray(sx),
     ]}
   >
     <BuildingInfoDecorativeImage
@@ -475,6 +585,121 @@ const WarningIcon = () => (
   </Box>
 )
 
+const BuildingInfoSvgIcon = ({
+  children,
+  sx,
+  testId,
+  viewBox = '0 0 24 24',
+}: {
+  children: React.ReactNode
+  sx?: AppSxProps
+  testId?: string
+  viewBox?: string
+}) => (
+  <Box
+    component="span"
+    aria-hidden="true"
+    data-testid={testId}
+    sx={[
+      {
+        display: 'block',
+        width: '1em',
+        height: '1em',
+        flexShrink: 0,
+        color: 'currentColor',
+        overflow: 'visible',
+      },
+      ...toSxArray(sx),
+    ]}
+  >
+    <svg
+      viewBox={viewBox}
+      focusable="false"
+      aria-hidden="true"
+      style={{
+        display: 'block',
+        width: '100%',
+        height: '100%',
+        fill: 'currentColor',
+        overflow: 'visible',
+      }}
+    >
+      {children}
+    </svg>
+  </Box>
+)
+
+const EnergyBoltIcon = ({ sx }: { sx?: AppSxProps }) => (
+  <BuildingInfoSvgIcon sx={sx} testId="building-info-icon-energy">
+    <path d="M13.25 2 4.75 13.25h5.45L8.95 22l10.3-13.15h-5.8L13.25 2Z" />
+  </BuildingInfoSvgIcon>
+)
+
+const WaterMetricIcon = ({ sx }: { sx?: AppSxProps }) => (
+  <BuildingInfoSvgIcon sx={sx} testId="building-info-icon-water">
+    <path d="M12 2.75c3.65 4.3 6 7.55 6 10.55A6 6 0 0 1 6 13.3c0-3 2.35-6.25 6-10.55Zm-3.25 10.6a3.25 3.25 0 0 0 4.4 3.05c.45-.18.52-.8.12-1.06-1.54-.96-2.5-2.2-2.88-3.73-.12-.5-.78-.62-1.08-.2-.36.52-.56 1.18-.56 1.94Z" />
+  </BuildingInfoSvgIcon>
+)
+
+const EuroMetricIcon = ({ sx }: { sx?: AppSxProps }) => (
+  <BuildingInfoSvgIcon sx={sx} testId="building-info-icon-cost">
+    <path d="M15.7 5.45c-2.75-1.35-5.9.05-6.95 2.85h5.65l-.55 1.65H8.35a8.2 8.2 0 0 0 0 1.6h4.95l-.55 1.65h-4c1.02 2.82 4.2 4.22 6.95 2.87l.62 1.78c-4.04 1.78-8.58-.55-9.62-4.65H4.55l.55-1.65h1.32a8.2 8.2 0 0 1 0-1.6H4.55L5.1 8.3h1.6c1.04-4.1 5.58-6.43 9.62-4.65l-.62 1.8Z" />
+  </BuildingInfoSvgIcon>
+)
+
+const Co2MetricIcon = ({ sx }: { sx?: AppSxProps }) => (
+  <BuildingInfoSvgIcon sx={sx} testId="building-info-icon-co2">
+    <text
+      x="2.5"
+      y="15.4"
+      fill="currentColor"
+      fontFamily="Arial, sans-serif"
+      fontSize="9.3"
+      fontWeight="700"
+      textLength="13.4"
+      lengthAdjust="spacingAndGlyphs"
+    >
+      CO
+    </text>
+    <text
+      x="16.3"
+      y="18.2"
+      fill="currentColor"
+      fontFamily="Arial, sans-serif"
+      fontSize="6.2"
+      fontWeight="700"
+    >
+      2
+    </text>
+  </BuildingInfoSvgIcon>
+)
+
+const HeatingMetricIcon = ({ sx }: { sx?: AppSxProps }) => (
+  <BuildingInfoSvgIcon sx={sx} testId="building-info-icon-heating">
+    <path d="M12.25 2.5c.2 2.72-.7 4.58-2.1 6.18-.9 1.02-1.5 1.9-1.5 3.17 0 1.05.5 1.92 1.28 2.45-.14-1.55.62-2.8 1.62-3.82.72-.72 1.2-1.5 1.28-2.7 2.1 1.48 3.42 3.48 3.42 5.96A5.2 5.2 0 0 1 11.02 19C7.75 19 5.5 16.7 5.5 13.88c0-2.45 1.32-4.02 2.68-5.6 1.25-1.45 2.48-3.02 2.38-5.47l1.69-.31Z" />
+  </BuildingInfoSvgIcon>
+)
+
+const WaterHeatingMetricIcon = ({ sx }: { sx?: AppSxProps }) => (
+  <BuildingInfoSvgIcon sx={sx} testId="building-info-icon-water-heating">
+    <path d="M12 3.2c3 3.52 4.82 6.2 4.82 8.62a4.82 4.82 0 1 1-9.64 0C7.18 9.4 9 6.72 12 3.2Z" />
+    <path
+      d="M9.2 17.95c2.32-.55 3.55-1.62 3.55-3.15 0-.77-.35-1.35-.82-1.92-.46-.55-.98-1.12-.98-1.88 1.8.78 3.08 2.2 3.08 3.88 0 1.98-1.83 3.1-4.83 3.07Z"
+      fill="#ffffff"
+      opacity="0.75"
+    />
+  </BuildingInfoSvgIcon>
+)
+
+const ConstructionUnavailableIcon = ({ sx }: { sx?: AppSxProps }) => (
+  <BuildingInfoSvgIcon
+    sx={sx}
+    testId="building-info-unavailable-value-icon"
+  >
+    <path d="M4.5 19.5h15v-2h-15v2Zm1.2-3.2h12.6l-1.45-7.55A3.88 3.88 0 0 0 13 5.5h-2a3.88 3.88 0 0 0-3.85 3.25L5.7 16.3Zm4.05-8.15h4.5l.55 2.85h-5.6l.55-2.85Zm-.9 4.45h6.3l.7 3.7h-7.7l.7-3.7Z" />
+  </BuildingInfoSvgIcon>
+)
+
 const EnergyPrimaryMetricIcon = ({
   metricId,
   active,
@@ -489,18 +714,18 @@ const EnergyPrimaryMetricIcon = ({
   } as const
 
   if (metricId === 'water') {
-    return <OpacityIcon aria-hidden="true" sx={iconSx} />
+    return <WaterMetricIcon sx={iconSx} />
   }
 
   if (metricId === 'cost') {
-    return <EuroIcon aria-hidden="true" sx={iconSx} />
+    return <EuroMetricIcon sx={iconSx} />
   }
 
   if (metricId === 'co2') {
-    return <Co2Icon aria-hidden="true" sx={iconSx} />
+    return <Co2MetricIcon sx={iconSx} />
   }
 
-  return <BoltIcon aria-hidden="true" sx={iconSx} />
+  return <EnergyBoltIcon sx={iconSx} />
 }
 
 const EnergySubmetricIcon = ({
@@ -516,15 +741,70 @@ const EnergySubmetricIcon = ({
   } as const
 
   if (submetricId === 'heating') {
-    return <LocalFireDepartmentIcon aria-hidden="true" sx={iconSx} />
+    return <HeatingMetricIcon sx={iconSx} />
   }
 
   if (submetricId === 'waterHeating') {
-    return <WaterDropIcon aria-hidden="true" sx={iconSx} />
+    return <WaterHeatingMetricIcon sx={iconSx} />
   }
 
-  return <BoltIcon aria-hidden="true" sx={iconSx} />
+  return <EnergyBoltIcon sx={iconSx} />
 }
+
+const areEnergySubmetricIdsEqual = (
+  first: readonly EnergymapBuildingInfoEnergySubmetricId[],
+  second: readonly EnergymapBuildingInfoEnergySubmetricId[]
+) =>
+  first.length === second.length &&
+  first.every((submetricId, index) => submetricId === second[index])
+
+const getDefaultEnergyYear = (
+  controls: EnergymapBuildingInfoConsumptionControls
+) => controls.yearOptions[0]?.value ?? ''
+
+const getNormalizedPrimaryMetricId = (
+  controls: EnergymapBuildingInfoConsumptionControls,
+  current: EnergymapBuildingInfoPrimaryMetricId
+) => {
+  const validPrimaryMetricIds = new Set(
+    controls.primaryMetrics.map((metric) => metric.id)
+  )
+
+  return validPrimaryMetricIds.has(current)
+    ? current
+    : controls.defaultPrimaryMetricId
+}
+
+const getNormalizedEnergySubmetricIds = (
+  controls: EnergymapBuildingInfoConsumptionControls,
+  current: readonly EnergymapBuildingInfoEnergySubmetricId[]
+) => {
+  const validSubmetricIds = new Set(
+    controls.energySubmetrics.map((submetric) => submetric.id)
+  )
+  const next = current.filter((id) => validSubmetricIds.has(id))
+
+  return areEnergySubmetricIdsEqual(current, next) ? current : next
+}
+
+const getNormalizedEnergyYear = (
+  controls: EnergymapBuildingInfoConsumptionControls,
+  current: string
+) =>
+  controls.yearOptions.some((option) => option.value === current)
+    ? current
+    : getDefaultEnergyYear(controls)
+
+const getConsumptionControlsStateKey = (
+  controls: EnergymapBuildingInfoConsumptionControls
+) =>
+  [
+    controls.defaultPrimaryMetricId,
+    controls.primaryMetrics.map((metric) => metric.id).join(','),
+    controls.defaultEnergySubmetricIds.join(','),
+    controls.energySubmetrics.map((submetric) => submetric.id).join(','),
+    controls.yearOptions.map((option) => option.value).join(','),
+  ].join('|')
 
 export const BuildingInfoText = ({
   text,
@@ -598,54 +878,52 @@ const BuildingInfoValueText = ({
       }}
     >
       {isUnavailable ? (
-        <Tooltip
+        <BuildingInfoInlineTooltip
+          side="top"
           title={
             <Box component="span">
               <BuildingInfoText text={value.text} />
             </Box>
           }
-          arrow
-          enterTouchDelay={0}
-          leaveTouchDelay={5000}
-          placement="top"
         >
-          <Box
-            component="span"
-            tabIndex={0}
-            sx={{
-              position: 'relative',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '1.25rem',
-              height: '1.25rem',
-              borderRadius: '50%',
-              color: '#5f5f5f',
-              cursor: 'help',
-              outline: 'none',
-              '&:focus-visible': {
-                outline: '2px solid #111111',
-                outlineOffset: '2px',
-              },
-            }}
-          >
-            <ConstructionIcon
-              data-testid="building-info-unavailable-value-icon"
-              aria-hidden="true"
-              sx={{
-                color: UNAVAILABLE_VALUE_ICON_COLOR,
-                fontSize: '1rem',
-              }}
-            />
+          {(triggerProps) => (
             <Box
+              {...triggerProps}
               component="span"
-              data-testid="building-info-unavailable-value-reason"
-              style={VISUALLY_HIDDEN_STYLE}
+              tabIndex={0}
+              sx={{
+                position: 'relative',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '1.25rem',
+                height: '1.25rem',
+                borderRadius: '50%',
+                color: '#5f5f5f',
+                cursor: 'help',
+                outline: 'none',
+                '&:focus-visible': {
+                  outline: '2px solid #111111',
+                  outlineOffset: '2px',
+                },
+              }}
             >
-              <BuildingInfoText text={value.text} />
+              <ConstructionUnavailableIcon
+                sx={{
+                  color: UNAVAILABLE_VALUE_ICON_COLOR,
+                  fontSize: '1rem',
+                }}
+              />
+              <Box
+                component="span"
+                data-testid="building-info-unavailable-value-reason"
+                style={VISUALLY_HIDDEN_STYLE}
+              >
+                <BuildingInfoText text={value.text} />
+              </Box>
             </Box>
-          </Box>
-        </Tooltip>
+          )}
+        </BuildingInfoInlineTooltip>
       ) : shouldRenderEnergyClassBadge ? (
         <Box
           component="span"
@@ -709,7 +987,7 @@ const BuildingInfoNoteText = ({
       }}
     >
       {showWarningIcon && <WarningIcon />}
-      <Typography
+      <Box
         sx={{
           ...textSx,
           maxWidth: '100%',
@@ -722,7 +1000,7 @@ const BuildingInfoNoteText = ({
         }}
       >
         <BuildingInfoText text={note.text} />
-      </Typography>
+      </Box>
     </Box>
   )
 }
@@ -738,15 +1016,15 @@ const BuildingInfoRow = ({ row }: { row: EnergymapBuildingInfoRow }) => (
       py: '0.875rem',
     }}
   >
-    <Typography
+    <Box
       sx={{
         ...textSx,
         color: '#111111',
       }}
     >
       <BuildingInfoText text={row.label} />
-    </Typography>
-    <Typography
+    </Box>
+    <Box
       component="div"
       sx={{
         ...textSx,
@@ -767,7 +1045,7 @@ const BuildingInfoRow = ({ row }: { row: EnergymapBuildingInfoRow }) => (
           }}
         />
       )}
-    </Typography>
+    </Box>
   </Box>
 )
 
@@ -790,7 +1068,7 @@ const BuildingInfoStackedValue = ({
       mt: '1rem',
     }}
   >
-    <Typography
+    <Box
       sx={{
         fontSize: '0.75rem',
         fontWeight: 400,
@@ -801,8 +1079,8 @@ const BuildingInfoStackedValue = ({
     >
       <BuildingInfoText text={row.label} />
       :
-    </Typography>
-    <Typography
+    </Box>
+    <Box
       component="div"
       sx={{
         fontSize: '0.75rem',
@@ -812,7 +1090,7 @@ const BuildingInfoStackedValue = ({
       }}
     >
       <BuildingInfoValueText value={row} align="left" />
-    </Typography>
+    </Box>
   </Box>
 )
 
@@ -833,15 +1111,15 @@ const BuildingInfoSectionLine = ({
       minWidth: 0,
     }}
   >
-    <Typography
+    <Box
       sx={{
         ...textSx,
         color: '#111111',
       }}
     >
       <BuildingInfoText text={row.label} />
-    </Typography>
-    <Typography
+    </Box>
+    <Box
       component="div"
       sx={{
         ...textSx,
@@ -850,7 +1128,7 @@ const BuildingInfoSectionLine = ({
       }}
     >
       <BuildingInfoValueText value={row} variant={valueVariant} />
-    </Typography>
+    </Box>
   </Box>
 )
 
@@ -963,15 +1241,15 @@ const BuildingInfoPreviousEnergyClassSection = ({
               mt: '1.375rem',
             }}
           >
-            <Typography
+            <Box
               sx={{
                 ...textSx,
                 color: '#111111',
               }}
             >
               <BuildingInfoText text={measuresRow.label} />
-            </Typography>
-            <Typography
+            </Box>
+            <Box
               component="div"
               sx={{
                 ...textSx,
@@ -980,7 +1258,7 @@ const BuildingInfoPreviousEnergyClassSection = ({
               }}
             >
               <BuildingInfoValueText value={measuresRow} align="left" />
-            </Typography>
+            </Box>
           </Box>
         )}
       </Box>
@@ -1010,15 +1288,15 @@ const BuildingInfoMeasureListSection = ({
       <Box sx={{ py: '0.875rem' }}>
         {rows.map((row) => (
           <Box key={row.id} data-section-row-id={row.id}>
-            <Typography
+            <Box
               sx={{
                 ...textSx,
                 color: '#111111',
               }}
             >
               <BuildingInfoText text={row.label} />
-            </Typography>
-            <Typography
+            </Box>
+            <Box
               component="div"
               sx={{
                 ...textSx,
@@ -1027,7 +1305,7 @@ const BuildingInfoMeasureListSection = ({
               }}
             >
               <BuildingInfoValueText value={row} align="left" />
-            </Typography>
+            </Box>
           </Box>
         ))}
       </Box>
@@ -1051,12 +1329,12 @@ const BuildingInfoMetricValueRow = ({
       py: '0.625rem',
     }}
   >
-    <Typography sx={{ ...textSx, color: '#111111' }}>
+    <Box sx={{ ...textSx, color: '#111111' }}>
       <BuildingInfoText text={value.label} />
-    </Typography>
-    <Typography component="div" sx={{ ...textSx, textAlign: 'right' }}>
+    </Box>
+    <Box component="div" sx={{ ...textSx, textAlign: 'right' }}>
       <BuildingInfoValueText value={value} />
-    </Typography>
+    </Box>
   </Box>
 )
 
@@ -1097,8 +1375,9 @@ const BuildingInfoPrimaryMetricButton = ({
       <BuildingInfoText text={metric.label} />
     </Box>
   )
-  const button = (
+  const renderButton = (triggerProps?: BuildingInfoTooltipTriggerProps) => (
     <ButtonBase
+      {...triggerProps}
       component="button"
       type="button"
       aria-label={t(metric.ariaLabelKey)}
@@ -1135,7 +1414,7 @@ const BuildingInfoPrimaryMetricButton = ({
     >
       <EnergyPrimaryMetricIcon metricId={metric.id} active={active} />
       {active && (
-        <Typography
+        <Box
           component="span"
           sx={{
             ...energyControlTextSx,
@@ -1146,19 +1425,19 @@ const BuildingInfoPrimaryMetricButton = ({
           }}
         >
           {label}
-        </Typography>
+        </Box>
       )}
     </ButtonBase>
   )
 
   if (active) {
-    return button
+    return renderButton()
   }
 
   return (
-    <Tooltip title={label} arrow placement="top">
-      {button}
-    </Tooltip>
+    <BuildingInfoTooltip title={label} side="top">
+      {(triggerProps) => renderButton(triggerProps)}
+    </BuildingInfoTooltip>
   )
 }
 
@@ -1217,7 +1496,7 @@ const BuildingInfoEnergySubmetricButton = ({
       >
         <EnergySubmetricIcon submetricId={submetric.id} selected={selected} />
       </Box>
-      <Typography
+      <Box
         component="span"
         sx={{
           ...energyControlTextSx,
@@ -1229,7 +1508,7 @@ const BuildingInfoEnergySubmetricButton = ({
         }}
       >
         <BuildingInfoText text={submetric.label} />
-      </Typography>
+      </Box>
     </ButtonBase>
   )
 }
@@ -1266,50 +1545,52 @@ const BuildingInfoEnergyConsumptionSection = ({
   accentColor: string
 }) => {
   const controls = section.consumptionControls
-  const { t } = useTranslate('energiakartta')
-  const [activePrimaryMetricId, setActivePrimaryMetricId] =
-    React.useState<EnergymapBuildingInfoPrimaryMetricId>(
-      controls?.defaultPrimaryMetricId ?? 'energy'
-    )
-  const [selectedEnergySubmetricIds, setSelectedEnergySubmetricIds] =
-    React.useState<EnergymapBuildingInfoEnergySubmetricId[]>(
-      controls?.defaultEnergySubmetricIds ?? []
-    )
-  const [selectedYear, setSelectedYear] = React.useState(
-    controls?.yearOptions[0]?.value ?? ''
-  )
-
-  React.useEffect(() => {
-    if (controls == null) {
-      return
-    }
-
-    const validPrimaryMetricIds = new Set(
-      controls.primaryMetrics.map((metric) => metric.id)
-    )
-    const validSubmetricIds = new Set(
-      controls.energySubmetrics.map((submetric) => submetric.id)
-    )
-
-    setActivePrimaryMetricId((current) =>
-      validPrimaryMetricIds.has(current)
-        ? current
-        : controls.defaultPrimaryMetricId
-    )
-    setSelectedEnergySubmetricIds((current) => {
-      const next = current.filter((id) => validSubmetricIds.has(id))
-      return next.length > 0 ? next : controls.defaultEnergySubmetricIds
-    })
-    setSelectedYear((current) =>
-      controls.yearOptions.some((option) => option.value === current)
-        ? current
-        : controls.yearOptions[0]?.value ?? ''
-    )
-  }, [controls])
 
   if (controls == null) {
     return null
   }
+
+  return (
+    <BuildingInfoEnergyConsumptionSectionContent
+      key={getConsumptionControlsStateKey(controls)}
+      section={section}
+      controls={controls}
+      accentColor={accentColor}
+    />
+  )
+}
+
+const BuildingInfoEnergyConsumptionSectionContent = ({
+  section,
+  controls,
+  accentColor,
+}: {
+  section: EnergymapBuildingInfoSection
+  controls: EnergymapBuildingInfoConsumptionControls
+  accentColor: string
+}) => {
+  const { t } = useTranslate('energiakartta')
+  const [requestedPrimaryMetricId, setRequestedPrimaryMetricId] =
+    React.useState<EnergymapBuildingInfoPrimaryMetricId>(
+      controls?.defaultPrimaryMetricId ?? 'energy'
+    )
+  const [requestedEnergySubmetricIds, setRequestedEnergySubmetricIds] =
+    React.useState<EnergymapBuildingInfoEnergySubmetricId[]>(
+      controls?.defaultEnergySubmetricIds ?? []
+    )
+  const [requestedYear, setRequestedYear] = React.useState(
+    controls?.yearOptions[0]?.value ?? ''
+  )
+
+  const activePrimaryMetricId = getNormalizedPrimaryMetricId(
+    controls,
+    requestedPrimaryMetricId
+  )
+  const selectedEnergySubmetricIds = getNormalizedEnergySubmetricIds(
+    controls,
+    requestedEnergySubmetricIds
+  )
+  const selectedYear = getNormalizedEnergyYear(controls, requestedYear)
 
   const primaryMetricById = new Map(
     controls.primaryMetrics.map((metric) => [metric.id, metric])
@@ -1380,15 +1661,21 @@ const BuildingInfoEnergyConsumptionSection = ({
   const toggleEnergySubmetric = (
     submetricId: EnergymapBuildingInfoEnergySubmetricId
   ) => {
-    setSelectedEnergySubmetricIds((current) =>
-      current.includes(submetricId)
-        ? current.filter((id) => id !== submetricId)
-        : [...current, submetricId]
-    )
+    setRequestedEnergySubmetricIds((current) => {
+      const normalized = getNormalizedEnergySubmetricIds(controls, current)
+
+      return normalized.includes(submetricId)
+        ? normalized.filter((id) => id !== submetricId)
+        : [...normalized, submetricId]
+    })
   }
 
   const handleYearChange = (event: DropDownValueChangeEvent) => {
-    setSelectedYear(event.target.value)
+    setRequestedYear(
+      event.target.value === '' && controls.yearOptions.length > 0
+        ? getDefaultEnergyYear(controls)
+        : event.target.value
+    )
   }
 
   return (
@@ -1400,7 +1687,7 @@ const BuildingInfoEnergyConsumptionSection = ({
       }}
     >
       {section.title != null && (
-        <Typography
+        <Box
           sx={{
             ...textSx,
             mb: '1rem',
@@ -1409,7 +1696,7 @@ const BuildingInfoEnergyConsumptionSection = ({
           }}
         >
           <BuildingInfoText text={section.title} />
-        </Typography>
+        </Box>
       )}
       <DropDownSelectInset
         value={selectedYear}
@@ -1434,18 +1721,16 @@ const BuildingInfoEnergyConsumptionSection = ({
           width: '90px',
         }}
         selectSx={{
-          '&.MuiOutlinedInput-root': {
-            height: '22px',
-            backgroundColor: '#f0f0f0',
-          },
-          '.MuiSelect-select': {
+          height: '22px',
+          backgroundColor: '#f0f0f0',
+          '& [data-slot="value"]': {
             fontWeight: 700,
             letterSpacing: 0,
           },
-          '&.Mui-disabled': {
+          '&:disabled, &[aria-disabled="true"]': {
             opacity: 1,
           },
-          '&.Mui-disabled .MuiOutlinedInput-notchedOutline': {
+          '&:disabled fieldset, &[aria-disabled="true"] fieldset': {
             borderColor: '#dbdbdb',
           },
         }}
@@ -1471,7 +1756,7 @@ const BuildingInfoEnergyConsumptionSection = ({
             key={metric.id}
             metric={metric}
             active={metric.id === activePrimaryMetricId}
-            onClick={() => setActivePrimaryMetricId(metric.id)}
+            onClick={() => setRequestedPrimaryMetricId(metric.id)}
           />
         ))}
       </Box>
@@ -1544,7 +1829,7 @@ const BuildingInfoMetricBlock = ({
         backgroundColor: metric.id === 'total' ? accentColor : 'transparent',
       }}
     >
-      <Typography
+      <Box
         sx={{
           fontSize: '0.5625rem',
           fontWeight: 400,
@@ -1554,7 +1839,7 @@ const BuildingInfoMetricBlock = ({
         }}
       >
         <BuildingInfoText text={metric.label} />
-      </Typography>
+      </Box>
     </Box>
     <Box sx={{ mt: '0.75rem' }}>
       {metric.values.map((value) => (
@@ -1595,7 +1880,7 @@ const BuildingInfoScenarioBlock = ({
         }}
       >
         <Box sx={{ minWidth: 0 }}>
-          <Typography
+          <Box
             sx={{
               ...textSx,
               color: '#111111',
@@ -1603,7 +1888,7 @@ const BuildingInfoScenarioBlock = ({
             }}
           >
             <BuildingInfoText text={scenario.label} />
-          </Typography>
+          </Box>
         </Box>
         {savingsValue != null && (
           <Box
@@ -1615,9 +1900,9 @@ const BuildingInfoScenarioBlock = ({
               whiteSpace: 'nowrap',
             }}
           >
-            <Typography sx={{ ...textSx, color: '#a347ff' }}>
+            <Box sx={{ ...textSx, color: '#a347ff' }}>
               <BuildingInfoValueText value={savingsValue} />
-            </Typography>
+            </Box>
           </Box>
         )}
       </Box>
@@ -1703,7 +1988,7 @@ const BuildingInfoSectionBlock = ({
         />
       )}
       {section.title != null && (
-        <Typography
+        <Box
           sx={{
             ...textSx,
             mb: '1rem',
@@ -1712,10 +1997,10 @@ const BuildingInfoSectionBlock = ({
           }}
         >
           <BuildingInfoText text={section.title} />
-        </Typography>
+        </Box>
       )}
       {section.description != null && (
-        <Typography
+        <Box
           sx={{
             ...textSx,
             mb: '1.25rem',
@@ -1723,7 +2008,7 @@ const BuildingInfoSectionBlock = ({
           }}
         >
           <BuildingInfoText text={section.description} />
-        </Typography>
+        </Box>
       )}
       {section.rows?.map((row) => <BuildingInfoRow key={row.id} row={row} />)}
       {section.metrics?.map((metric) => (
@@ -1818,7 +2103,7 @@ const BuildingInfoPanelBody = ({
   footer?: React.ReactNode
   showDescription?: boolean
   showHeroGraphic?: boolean
-  sx?: SxProps<Theme>
+  sx?: AppSxProps
 }) => (
   <Box
     sx={[
@@ -1826,11 +2111,11 @@ const BuildingInfoPanelBody = ({
         boxSizing: 'border-box',
         position: 'relative',
       },
-      ...(Array.isArray(sx) ? sx : [sx]),
+      ...toSxArray(sx),
     ]}
   >
     <BuildingInfoPanelHeadingGraphic panelId={panel.id} />
-    <Typography
+    <Box
       id={titleId}
       sx={{
         fontSize: '0.75rem',
@@ -1843,7 +2128,7 @@ const BuildingInfoPanelBody = ({
       }}
     >
       <BuildingInfoText text={panel.title} />
-    </Typography>
+    </Box>
     <Box
       sx={{
         mt: 'var(--building-info-heading-divider-mt, 1.375rem)',
@@ -1852,7 +2137,7 @@ const BuildingInfoPanelBody = ({
     />
     {showHeroGraphic && <BuildingInfoPanelHeroGraphic panelId={panel.id} />}
     {showDescription && panel.description != null && (
-      <Typography
+      <Box
         sx={{
           ...textSx,
           mt:
@@ -1861,7 +2146,7 @@ const BuildingInfoPanelBody = ({
         }}
       >
         <BuildingInfoText text={panel.description} />
-      </Typography>
+      </Box>
     )}
     {sections.map((section) => (
       <BuildingInfoSectionBlock
@@ -1893,7 +2178,7 @@ const getStackedTabPagePanelContentSx = ({
   panelId: EnergymapBuildingInfoPanelId
   index: number
   panelCount: number
-}): SxProps<Theme> => ({
+}): AppSxProps => ({
   width: {
     mobile: 'min(16.25rem, calc(100vw - 6rem))',
     desktop: `min(${PANEL_CONTENT_WIDTHS[panelId]}, calc(100% - 5rem))`,
@@ -1914,7 +2199,7 @@ const getDesktopGridPanelContentSx = ({
   panelId,
 }: {
   panelId: EnergymapBuildingInfoPanelId
-}): SxProps<Theme> => ({
+}): AppSxProps => ({
   width: `min(${PANEL_CONTENT_WIDTHS[panelId]}, calc(100% - 3rem))`,
   maxWidth: '100%',
   pt: DESKTOP_HEADING_TOP,
@@ -1936,12 +2221,12 @@ const BuildingInfoPanelSection = ({
 }: {
   panel: EnergymapBuildingInfoPanel
   tabId: BuildingInfoTabId
-  bodySx?: SxProps<Theme>
+  bodySx?: AppSxProps
   footer?: React.ReactNode
   sections?: EnergymapBuildingInfoSection[]
   showDescription?: boolean
   showHeroGraphic?: boolean
-  sx?: SxProps<Theme>
+  sx?: AppSxProps
 }) => {
   const titleId = React.useId()
   const accentColor = getTabPagePanelAccentColor({
@@ -1963,7 +2248,7 @@ const BuildingInfoPanelSection = ({
           backgroundColor: 'inherit',
           flexShrink: 0,
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toSxArray(sx),
       ]}
     >
       <BuildingInfoPanelBody
@@ -2086,7 +2371,7 @@ const getRenovationComparisonSection = (
 ) => panel?.sections.find((section) => section.id === 'scenarioComparison')
 
 const BuildingInfoRenovationReferenceYearNote = () => (
-  <Typography
+  <Box
     data-testid="building-info-renovation-reference-year-note"
     sx={{
       ...textSx,
@@ -2099,7 +2384,7 @@ const BuildingInfoRenovationReferenceYearNote = () => (
       keyName="sidebar.building_info.panels.energy.reference_year_note_unavailable"
       ns="energiakartta"
     />
-  </Typography>
+  </Box>
 )
 
 const BuildingInfoRenovationComparisonWide = ({
@@ -2134,7 +2419,7 @@ const BuildingInfoRenovationComparisonWide = ({
       >
         <RenovationIcon width="31px" height="25px" />
         {section?.title != null && (
-          <Typography
+          <Box
             id={titleId}
             sx={{
               mt: '2rem',
@@ -2147,7 +2432,7 @@ const BuildingInfoRenovationComparisonWide = ({
             }}
           >
             <BuildingInfoText text={section.title} />
-          </Typography>
+          </Box>
         )}
         <Box
           sx={{
@@ -2156,7 +2441,7 @@ const BuildingInfoRenovationComparisonWide = ({
           }}
         />
         {section?.description != null && (
-          <Typography
+          <Box
             sx={{
               ...textSx,
               mt: '1.875rem',
@@ -2165,7 +2450,7 @@ const BuildingInfoRenovationComparisonWide = ({
             }}
           >
             <BuildingInfoText text={section.description} />
-          </Typography>
+          </Box>
         )}
       </Box>
       <Box
@@ -2197,7 +2482,7 @@ const BuildingInfoRenovationEffectivenessContent = () => (
       pb: DESKTOP_SECTION_BOTTOM_PADDING,
     }}
   >
-    <Typography
+    <Box
       sx={{
         fontSize: '0.75rem',
         fontWeight: 400,
@@ -2211,14 +2496,14 @@ const BuildingInfoRenovationEffectivenessContent = () => (
         keyName="sidebar.building_info.panels.renovation.effectiveness.title"
         ns="energiakartta"
       />
-    </Typography>
+    </Box>
     <Box
       sx={{
         mt: '0.75rem',
         borderTop: '0.3px solid #cfcfcf',
       }}
     />
-    <Typography
+    <Box
       sx={{
         ...textSx,
         mt: '2.5rem',
@@ -2233,7 +2518,7 @@ const BuildingInfoRenovationEffectivenessContent = () => (
         keyName="sidebar.building_info.panels.renovation.effectiveness.body"
         ns="energiakartta"
       />
-    </Typography>
+    </Box>
     <Box
       aria-hidden="true"
       data-testid="building-info-renovation-effectiveness-indicator"
@@ -2311,9 +2596,11 @@ const BuildingInfoDesktopTabPageContent = ({
             }
             sx={{ minHeight: '100%', height: '100%' }}
             bodySx={[
-              getDesktopGridPanelContentSx({
-                panelId: energyPanel.id,
-              }),
+              ...toSxArray(
+                getDesktopGridPanelContentSx({
+                  panelId: energyPanel.id,
+                })
+              ),
               ...(tabId === 'renovation'
                 ? [
                     {
@@ -2480,8 +2767,12 @@ const BuildingInfoActiveTabSync = ({
 }) => {
   const tabsContext = useNullableSidebarPanelExtensionTabsContext()
   const setActiveTabId = tabsContext?.setActiveTabId
-  const lastAppliedActiveTabId = React.useRef<BuildingInfoTabId | undefined>()
-  const lastNotifiedActiveTabId = React.useRef<BuildingInfoTabId | undefined>()
+  const lastAppliedActiveTabId = React.useRef<BuildingInfoTabId | undefined>(
+    undefined
+  )
+  const lastNotifiedActiveTabId = React.useRef<BuildingInfoTabId | undefined>(
+    undefined
+  )
   const hasActiveTab =
     activeTabId != null &&
     tabsContext?.tabs.some((tab) => tab.tabId === activeTabId) === true
@@ -2530,12 +2821,12 @@ const BuildingInfoActiveTabSync = ({
 }
 
 const TwoPanelIcon = () => (
-  <Box
-    component="img"
+  <img
     src="/files/img/energiakartta/sidebar/building-info-two-panel.svg"
     alt=""
     aria-hidden="true"
-    sx={{
+    style={{
+      display: 'block',
       width: '26.8px',
       height: '21.8px',
     }}
@@ -2551,28 +2842,28 @@ const ThreePanelIcon = () => (
       overflow: 'visible',
     }}
   >
-    <Box
-      component="img"
+    <img
       src="/files/img/energiakartta/sidebar/building-info-three-panel-left.svg"
       alt=""
       aria-hidden="true"
-      sx={{
+      style={{
         position: 'absolute',
         top: '8px',
         left: 0,
+        display: 'block',
         width: '11.75px',
         height: '14.65px',
       }}
     />
-    <Box
-      component="img"
+    <img
       src="/files/img/energiakartta/sidebar/building-info-three-panel-right.svg"
       alt=""
       aria-hidden="true"
-      sx={{
+      style={{
         position: 'absolute',
         top: '1px',
         right: 0,
+        display: 'block',
         width: '11.75px',
         height: '14.65px',
       }}
@@ -2603,7 +2894,7 @@ const getBuildingInfoPageControlsSx = ({
 }: {
   forceMobileLayout?: boolean
   isDesktopFullscreenLayout?: boolean
-}): SxProps<Theme> | undefined => {
+}): AppSxProps | undefined => {
   if (forceMobileLayout) {
     return undefined
   }
@@ -2625,7 +2916,7 @@ const getBuildingInfoPageControlsSx = ({
     backgroundColor: 'transparent',
     borderBottom: 0,
     zIndex: isDesktopFullscreenLayout
-      ? (theme: Theme) => theme.zIndex.drawer + 14
+      ? (theme: AppTheme) => theme.zIndex.drawer + 14
       : 2,
   }
 }
@@ -2707,7 +2998,8 @@ export const BuildingInfoActionRail = ({
   ariaLabels,
   onModeChange,
 }: BuildingInfoActionRailProps) => {
-  const tooltipPlacement = orientation === 'row' ? 'top' : 'right'
+  const tooltipSide: BuildingInfoTooltipSide =
+    orientation === 'row' ? 'top' : 'right'
 
   return (
     <Box
@@ -2720,34 +3012,42 @@ export const BuildingInfoActionRail = ({
         pointerEvents: 'auto',
       }}
     >
-      <Tooltip title={ariaLabels.overview} arrow placement={tooltipPlacement}>
-        <IconButton
-          aria-label={ariaLabels.overview}
-          aria-pressed={activeMode === 'twoPanel' && !isCollapsed}
-          data-building-info-mode="twoPanel"
-          onClick={() => onModeChange('twoPanel')}
-          size="small"
-          sx={actionButtonSx({
-            active: activeMode === 'twoPanel' && !isCollapsed,
-          })}
-        >
-          <TwoPanelIcon />
-        </IconButton>
-      </Tooltip>
-      <Tooltip title={ariaLabels.renovation} arrow placement={tooltipPlacement}>
-        <IconButton
-          aria-label={ariaLabels.renovation}
-          aria-pressed={activeMode === 'threePanel' && !isCollapsed}
-          data-building-info-mode="threePanel"
-          onClick={() => onModeChange('threePanel')}
-          size="small"
-          sx={actionButtonSx({
-            active: activeMode === 'threePanel' && !isCollapsed,
-          })}
-        >
-          <ThreePanelIcon />
-        </IconButton>
-      </Tooltip>
+      <BuildingInfoTooltip title={ariaLabels.overview} side={tooltipSide}>
+        {(triggerProps) => (
+          <IconButton
+            {...triggerProps}
+            type="button"
+            aria-label={ariaLabels.overview}
+            aria-pressed={activeMode === 'twoPanel' && !isCollapsed}
+            data-building-info-mode="twoPanel"
+            onClick={() => onModeChange('twoPanel')}
+            size="small"
+            sx={actionButtonSx({
+              active: activeMode === 'twoPanel' && !isCollapsed,
+            })}
+          >
+            <TwoPanelIcon />
+          </IconButton>
+        )}
+      </BuildingInfoTooltip>
+      <BuildingInfoTooltip title={ariaLabels.renovation} side={tooltipSide}>
+        {(triggerProps) => (
+          <IconButton
+            {...triggerProps}
+            type="button"
+            aria-label={ariaLabels.renovation}
+            aria-pressed={activeMode === 'threePanel' && !isCollapsed}
+            data-building-info-mode="threePanel"
+            onClick={() => onModeChange('threePanel')}
+            size="small"
+            sx={actionButtonSx({
+              active: activeMode === 'threePanel' && !isCollapsed,
+            })}
+          >
+            <ThreePanelIcon />
+          </IconButton>
+        )}
+      </BuildingInfoTooltip>
     </Box>
   )
 }

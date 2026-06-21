@@ -26,6 +26,7 @@ import {
   energymapBackgroundFiltersFixture,
   energymapEnergyClassControlsFixture,
 } from './fixtures/EnergymapFrontPageControlsFixture'
+import { energymapBuildingInfoPanelFixture } from './fixtures/EnergymapBuildingInfoPanelFixture'
 import { numberInputFieldFixture } from './fixtures/NumberInputFieldFixture'
 import { sharedSvgIconFixture } from './fixtures/SharedSvgIconFixture'
 import { sharedModalOverlaysFixture } from './fixtures/SharedModalOverlaysFixture'
@@ -50,6 +51,7 @@ const componentFixtures: ComponentFixture[] = [
   layerToggleRowFixture,
   energymapEnergyClassControlsFixture,
   energymapBackgroundFiltersFixture,
+  energymapBuildingInfoPanelFixture,
   mainPopupTableFixture,
   dropDownSelectFixture,
   dropDownMultiSelectFixture,

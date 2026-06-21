@@ -410,6 +410,48 @@
     ]
   },
   {
+    "id": "energymap-building-info-panel",
+    "label": "Energiakartta building info panel",
+    "description": "Energiakartta building-info panel tabs, metric controls, mobile layout, and collapsed action rail.",
+    "sourceGlobs": [
+      "src/app/[locale]/(map)/(applets)/energiakartta/components/BuildingInfoPanel.tsx",
+      "src/app/[locale]/(map)/(applets)/energiakartta/components/BuildingInfoPanel.test.tsx",
+      "src/common/component-fixtures/fixtures/EnergymapBuildingInfoPanelFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "desktop-basic",
+        "label": "Desktop basic",
+        "description": "Basic two-panel tab with metric controls.",
+        "waitFor": "[data-testid=\"building-info-tab-page-basic\"]"
+      },
+      {
+        "id": "desktop-renovation",
+        "label": "Desktop renovation",
+        "description": "Renovation tab with comparison and effectiveness content.",
+        "waitFor": "[data-testid=\"building-info-tab-page-renovation\"]"
+      },
+      {
+        "id": "mobile-renovation",
+        "label": "Mobile renovation",
+        "description": "Forced stacked layout for the renovation tab.",
+        "waitFor": "[data-testid=\"building-info-tab-page-renovation\"]"
+      },
+      {
+        "id": "metric-unsupported",
+        "label": "Unsupported metric",
+        "description": "Unsupported primary metric selected by default.",
+        "waitFor": "[data-testid=\"building-info-tab-page-basic\"]"
+      },
+      {
+        "id": "action-rail-collapsed",
+        "label": "Collapsed action rail",
+        "description": "Collapsed row action rail with both reopen buttons.",
+        "waitFor": "[data-testid=\"building-info-action-rail\"]"
+      }
+    ]
+  },
+  {
     "id": "main-popup-table",
     "label": "Main popup table",
     "description": "Native table wrappers used by main map layer popups.",
