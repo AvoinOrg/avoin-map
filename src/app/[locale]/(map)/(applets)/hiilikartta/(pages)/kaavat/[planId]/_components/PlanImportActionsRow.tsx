@@ -1,6 +1,11 @@
 import React from 'react'
-import { Box, Button } from '@mui/material'
-import { T } from '@tolgee/react'
+
+import { Box } from '#/common/style/theme'
+import { Button } from '#/components/common/Button'
+import TText from '#/components/common/TText'
+
+const disabledButtonSelector =
+  '&:disabled, &[data-disabled], &[aria-disabled="true"]'
 
 const PlanImportActionsRow = ({
   onClickAccept,
@@ -26,6 +31,7 @@ const PlanImportActionsRow = ({
         sx={{
           width: 'fit-content',
           minWidth: '5.125rem',
+          minHeight: '1.25rem',
           height: '1.25rem',
           px: '0.75rem',
           py: 0,
@@ -43,7 +49,8 @@ const PlanImportActionsRow = ({
             backgroundColor: '#BCE9B4',
             boxShadow: 'none',
           },
-          '&.Mui-disabled': {
+          [disabledButtonSelector]: {
+            opacity: 1,
             borderColor: 'rgba(10, 72, 53, 0.35)',
             backgroundColor: 'rgba(188, 233, 180, 0.5)',
             color: 'rgba(17, 17, 17, 0.56)',
@@ -57,7 +64,7 @@ const PlanImportActionsRow = ({
             transform: 'translateY(0.0625rem)',
           }}
         >
-          <T keyName="sidebar.create.accept" ns="hiilikartta" />
+          <TText keyName="sidebar.create.accept" ns="hiilikartta" />
         </Box>
       </Button>
     </Box>

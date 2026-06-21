@@ -1,11 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { FeatureCollection } from 'geojson'
+import { Feature, FeatureCollection } from 'geojson'
 
 import { roundFeatureCoordinates } from '#/common/utils/map'
 import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import PlanImportCodeRecordSelect from './PlanImportCodeRecordSelect'
 import { PendingPlanImport } from './planImportTypes'
+
+type GpkgFeatureDao = {
+  columns: string[]
+}
+
+type GpkgFile = {
+  getFeatureTables: () => string[]
+  getFeatureDao: (table: string) => GpkgFeatureDao
+  iterateGeoJSONFeatures: (table: string) => Iterable<Feature>
+  close?: () => void
+}
 
 type PlanImportGpkgProps = {
   fileBuffer: ArrayBuffer
@@ -38,10 +49,16 @@ const PlanImportGpkg = ({
   onPendingImportChange,
 }: PlanImportGpkgProps) => {
   const importFieldSpacing = '1rem'
-  const [gpkgFile, setGpkgFile] = useState<any>()
-  const [tables, setTables] = useState<string[]>([])
-  const [columns, setColumns] = useState<string[]>([])
-  const lastResolvedImportKeyRef = useRef<string>()
+  const [gpkgFileState, setGpkgFileState] = useState<{
+    fileBuffer: ArrayBuffer
+    gpkgFile: GpkgFile
+  }>()
+  const lastResolvedImportKeyRef = useRef<string | undefined>(undefined)
+  const gpkgFile =
+    gpkgFileState?.fileBuffer === fileBuffer
+      ? gpkgFileState.gpkgFile
+      : undefined
+  const tables = useMemo(() => gpkgFile?.getFeatureTables() ?? [], [gpkgFile])
 
   const activeTable = useMemo(() => {
     if (selectedTable != null && tables.includes(selectedTable)) {
@@ -51,12 +68,17 @@ const PlanImportGpkg = ({
     return tables[0]
   }, [selectedTable, tables])
 
+  const columns = useMemo(() => {
+    if (activeTable == null || gpkgFile == null) {
+      return []
+    }
+
+    return gpkgFile.getFeatureDao(activeTable).columns
+  }, [activeTable, gpkgFile])
+
   useEffect(() => {
     let isMounted = true
 
-    setGpkgFile(undefined)
-    setTables([])
-    setColumns([])
     lastResolvedImportKeyRef.current = undefined
     onPendingImportChange(null)
 
@@ -66,14 +88,16 @@ const PlanImportGpkg = ({
 
       setSqljsWasmLocateFile((file) => '/lib/' + file)
 
-      const geopackage = await GeoPackageAPI.open(new Uint8Array(fileBuffer))
+      const geopackage = (await GeoPackageAPI.open(
+        new Uint8Array(fileBuffer)
+      )) as GpkgFile
 
       if (!isMounted) {
         geopackage.close?.()
         return
       }
 
-      setGpkgFile(geopackage)
+      setGpkgFileState({ fileBuffer, gpkgFile: geopackage })
     }
 
     loadGpkg().catch((error) => {
@@ -96,8 +120,6 @@ const PlanImportGpkg = ({
         ? selectedTable
         : nextTables[0]
 
-    setTables(nextTables)
-
     if (selectedTable !== nextSelectedTable) {
       onSelectedTableChange(nextSelectedTable)
     }
@@ -105,30 +127,26 @@ const PlanImportGpkg = ({
 
   useEffect(() => {
     if (activeTable == null || gpkgFile == null) {
-      setColumns([])
       lastResolvedImportKeyRef.current = undefined
       onPendingImportChange(null)
       return
     }
 
-    const featureDao = gpkgFile.getFeatureDao(activeTable)
-    const nextColumns = featureDao.columns
-
-    setColumns(nextColumns)
     lastResolvedImportKeyRef.current = undefined
 
     if (
       selectedZoningCol != null &&
-      !nextColumns.includes(selectedZoningCol)
+      !columns.includes(selectedZoningCol)
     ) {
       onSelectedZoningColChange(undefined)
     }
 
-    if (selectedNameCol != null && !nextColumns.includes(selectedNameCol)) {
+    if (selectedNameCol != null && !columns.includes(selectedNameCol)) {
       onSelectedNameColChange(undefined)
     }
   }, [
     activeTable,
+    columns,
     gpkgFile,
     onPendingImportChange,
     onSelectedNameColChange,

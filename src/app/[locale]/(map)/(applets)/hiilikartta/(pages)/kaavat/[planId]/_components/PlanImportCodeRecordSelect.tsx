@@ -1,7 +1,12 @@
-import { SxProps, Theme } from '@mui/material'
+import type React from 'react'
 
+import { toSxArray } from '#/common/style/theme'
 import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
+
+type PlanImportCodeRecordSelectSx = React.ComponentProps<
+  typeof DropDownSelectWithHeader
+>['sx']
 
 type PlanImportCodeRecordSelectProps = {
   columns: string[]
@@ -10,7 +15,7 @@ type PlanImportCodeRecordSelectProps = {
   allowEmpty?: boolean
   label: string
   placeholder: string
-  sx?: SxProps<Theme>
+  sx?: PlanImportCodeRecordSelectSx
 }
 
 const PlanImportCodeRecordSelect = ({
@@ -50,7 +55,7 @@ const PlanImportCodeRecordSelect = ({
           width: '100%',
           mb: 0,
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toSxArray(sx),
       ]}
       successIndicatorMode="outside"
     />

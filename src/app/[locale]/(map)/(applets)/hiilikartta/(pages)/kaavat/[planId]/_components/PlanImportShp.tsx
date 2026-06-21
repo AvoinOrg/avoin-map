@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Feature, FeatureCollection } from 'geojson'
 
 import { roundFeatureCoordinates } from '#/common/utils/map'
@@ -30,13 +30,28 @@ const PlanImportShp = ({
   onPendingImportChange,
 }: PlanImportShpProps) => {
   const importFieldSpacing = '1rem'
-  const [geojson, setGeojson] = useState<FeatureCollection>()
-  const [columns, setColumns] = useState<string[]>([])
-  const lastResolvedImportKeyRef = useRef<string>()
+  const [geojsonState, setGeojsonState] = useState<{
+    fileBuffer: ArrayBuffer
+    geojson: FeatureCollection
+  }>()
+  const lastResolvedImportKeyRef = useRef<string | undefined>(undefined)
+  const geojson =
+    geojsonState?.fileBuffer === fileBuffer
+      ? geojsonState.geojson
+      : undefined
+  const columns = useMemo(() => {
+    const featureProperties = geojson?.features[0]?.properties
+
+    if (featureProperties == null) {
+      return []
+    }
+
+    return Object.keys(featureProperties)
+  }, [geojson])
 
   useEffect(() => {
-    setGeojson(undefined)
-    setColumns([])
+    let isMounted = true
+
     lastResolvedImportKeyRef.current = undefined
     onPendingImportChange(null)
 
@@ -59,43 +74,41 @@ const PlanImportShp = ({
         features: allFeatures.map(roundFeatureCoordinates),
       }
 
-      setGeojson(mergedFeatureCollection)
+      if (!isMounted) {
+        return
+      }
+
+      setGeojsonState({ fileBuffer, geojson: mergedFeatureCollection })
     }
 
     loadGeojson().catch((error) => {
       console.error('Failed to load Shapefile zip', error)
     })
+
+    return () => {
+      isMounted = false
+    }
   }, [fileBuffer, onPendingImportChange])
 
   useEffect(() => {
     if (geojson == null) {
-      setColumns([])
       return
     }
 
-    const featureProperties = geojson.features[0]?.properties
-
-    if (featureProperties == null) {
-      setColumns([])
-      return
-    }
-
-    const nextColumns = Object.keys(featureProperties)
-
-    setColumns(nextColumns)
     lastResolvedImportKeyRef.current = undefined
 
     if (
       selectedZoningCol != null &&
-      !nextColumns.includes(selectedZoningCol)
+      !columns.includes(selectedZoningCol)
     ) {
       onSelectedZoningColChange(undefined)
     }
 
-    if (selectedNameCol != null && !nextColumns.includes(selectedNameCol)) {
+    if (selectedNameCol != null && !columns.includes(selectedNameCol)) {
       onSelectedNameColChange(undefined)
     }
   }, [
+    columns,
     geojson,
     onSelectedNameColChange,
     onSelectedZoningColChange,

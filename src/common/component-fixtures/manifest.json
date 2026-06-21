@@ -529,6 +529,43 @@
     ]
   },
   {
+    "id": "hiilikartta-plan-import-controls",
+    "label": "Hiilikartta plan import controls",
+    "description": "Plan detail import action and code-record selector states for the Hiilikartta authoring flow.",
+    "sourceGlobs": [
+      "src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/_components/PlanImportActionsRow.tsx",
+      "src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/_components/PlanImportCodeRecordSelect.tsx",
+      "src/common/component-fixtures/fixtures/HiilikarttaPlanImportControlsFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "accept-enabled",
+        "label": "Accept enabled",
+        "description": "Accept imported plan action when a pending import exists."
+      },
+      {
+        "id": "accept-disabled",
+        "label": "Accept disabled",
+        "description": "Disabled accept action before the import can be applied."
+      },
+      {
+        "id": "code-record-placeholder",
+        "label": "Code selector placeholder",
+        "description": "Required zoning-code selector with columns and no selection."
+      },
+      {
+        "id": "code-record-selected",
+        "label": "Code selector selected",
+        "description": "Required zoning-code selector after a valid column is selected."
+      },
+      {
+        "id": "code-record-allow-empty",
+        "label": "Optional name selector",
+        "description": "Optional area-name selector with the empty value allowed."
+      }
+    ]
+  },
+  {
     "id": "hiilikartta-carbon-line-chart",
     "label": "Hiilikartta carbon line chart",
     "description": "Report line chart unit toggle, VisX sizing, tooltip, legend, and minimal-data states.",

@@ -8,15 +8,18 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import { Box, ButtonBase, Tooltip, Typography } from '@mui/material'
-import { T, useTranslate } from '@tolgee/react'
+import { Tooltip } from '@base-ui/react/tooltip'
+import { useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
 import { useParams, useRouter } from 'next/navigation'
 
+import { Box } from '#/common/style/theme'
 import { SidebarContentBox } from '#/components/Sidebar'
 import SidebarBackgroundContent from '#/components/common/SidebarBackgroundContent'
+import { ButtonBase, IconButton } from '#/components/common/Button'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
+import TText from '#/components/common/TText'
 import TextFieldWithLabel from '#/components/common/TextFieldWithLabel'
 import {
   NodeFlowAccordion,
@@ -99,6 +102,15 @@ const StatusIndicator = () => (
 
 const PLAN_FLOW_NODE_GAP = '3rem'
 const NAME_INPUT_DEBOUNCE_MS = 2000
+type InfoButtonTooltipTriggerProps = Omit<
+  React.HTMLAttributes<HTMLButtonElement>,
+  'color'
+> & {
+  ref?: React.Ref<HTMLButtonElement>
+}
+type BaseUITriggerEvent = React.MouseEvent<HTMLElement> & {
+  preventBaseUIHandler?: () => void
+}
 
 const StatusFieldRow = ({
   children,
@@ -137,25 +149,101 @@ const InfoButton = ({
   tooltip: React.ReactNode
 }) => {
   return (
-    <Tooltip title={tooltip} arrow placement="top">
-      <ButtonBase
-        aria-label={ariaLabel}
-        sx={{
-          width: '1rem',
-          height: '1rem',
-          minWidth: '1rem',
-          color: '#7b8670',
-          borderRadius: '999px',
+    <Tooltip.Root>
+      <Tooltip.Trigger
+        delay={0}
+        closeDelay={0}
+        render={(triggerProps) => {
+          const {
+            color: ignoredColor,
+            type: ignoredType,
+            ...resolvedTriggerProps
+          } = triggerProps as InfoButtonTooltipTriggerProps & {
+            color?: string
+            type?: string
+          }
+          void ignoredColor
+          void ignoredType
+
+          return (
+            <IconButton
+              {...resolvedTriggerProps}
+              type="button"
+              size="small"
+              aria-label={ariaLabel}
+              sx={{
+                width: '1rem',
+                height: '1rem',
+                minWidth: '1rem',
+                p: 0,
+                color: '#7b8670',
+                border: 0,
+                borderRadius: '999px',
+                '&:hover': {
+                  backgroundColor: 'transparent',
+                },
+              }}
+              onClick={(event: BaseUITriggerEvent) => {
+                event.preventDefault()
+                event.stopPropagation()
+                event.preventBaseUIHandler?.()
+              }}
+            >
+              <QuestionCircleOutline
+                aria-hidden="true"
+                sx={{ width: 16, height: 16 }}
+              />
+            </IconButton>
+          )
         }}
-        onClick={(event) => {
-          event.preventDefault()
-          event.stopPropagation()
-        }}
-        disableRipple
-      >
-        <QuestionCircleOutline sx={{ width: 16, height: 16 }} />
-      </ButtonBase>
-    </Tooltip>
+      />
+      <Tooltip.Portal>
+        <Tooltip.Positioner side="top" sideOffset={8}>
+          <Tooltip.Popup
+            style={{
+              zIndex: 1500,
+              pointerEvents: 'none',
+            }}
+            render={(popupProps) => (
+              <Box
+                {...popupProps}
+                role="tooltip"
+                sx={{
+                  maxWidth: 240,
+                  px: 1,
+                  py: 0.75,
+                  borderRadius: '5px',
+                  backgroundColor: '#111111',
+                  color: '#ffffff',
+                  fontSize: '0.75rem',
+                  fontWeight: 400,
+                  lineHeight: 1.35,
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.22)',
+                }}
+              >
+                {tooltip}
+                <Tooltip.Arrow
+                  render={(arrowProps) => (
+                    <Box
+                      {...arrowProps}
+                      sx={{
+                        position: 'absolute',
+                        width: 8,
+                        height: 8,
+                        backgroundColor: '#111111',
+                        transform: 'rotate(45deg)',
+                        bottom: -4,
+                        left: 'calc(50% - 4px)',
+                      }}
+                    />
+                  )}
+                />
+              </Box>
+            )}
+          />
+        </Tooltip.Positioner>
+      </Tooltip.Portal>
+    </Tooltip.Root>
   )
 }
 
@@ -177,6 +265,7 @@ const UploadField = ({
         sx={{
           width: '100%',
           minHeight: '2rem',
+          display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           gap: '0.75rem',
@@ -189,8 +278,10 @@ const UploadField = ({
           textAlign: 'left',
         }}
       >
-        <Typography
+        <Box
+          component="span"
           sx={{
+            minWidth: 0,
             fontSize: '0.6875rem',
             fontWeight: 400,
             lineHeight: 'normal',
@@ -200,9 +291,10 @@ const UploadField = ({
           }}
         >
           {label}
-        </Typography>
+        </Box>
 
         <Upload
+          aria-hidden="true"
           sx={{
             width: 9,
             height: 10,
@@ -527,20 +619,32 @@ const Page = () => {
 
   useEffect(() => {
     if (creationPlaceholderPlanConf?.file?.storageKey == null) {
+      let isCurrent = true
+      const nextCreationPlaceholderName =
+        creationPlaceholderPlanConf?.name ?? ''
+
       clearCreationPlaceholderNameCommitTimer()
       isCreationPlaceholderNameFocusedRef.current = false
       pendingCreationPlaceholderNameDraftRef.current = null
       pendingCreationPlaceholderNameCommitRef.current = null
-      persistedCreationPlaceholderNameRef.current =
-        creationPlaceholderPlanConf?.name ?? ''
-      creationPlaceholderNameDraftRef.current =
-        creationPlaceholderPlanConf?.name ?? ''
-      setPendingImport(null)
-      setFileName(undefined)
-      setArrayBuffer(undefined)
-      setFileType(undefined)
-      setCreationPlaceholderNameDraft(creationPlaceholderPlanConf?.name ?? '')
-      return
+      persistedCreationPlaceholderNameRef.current = nextCreationPlaceholderName
+      creationPlaceholderNameDraftRef.current = nextCreationPlaceholderName
+
+      queueMicrotask(() => {
+        if (!isCurrent) {
+          return
+        }
+
+        setPendingImport(null)
+        setFileName(undefined)
+        setArrayBuffer(undefined)
+        setFileType(undefined)
+        setCreationPlaceholderNameDraft(nextCreationPlaceholderName)
+      })
+
+      return () => {
+        isCurrent = false
+      }
     }
 
     let isMounted = true
@@ -604,6 +708,8 @@ const Page = () => {
   ])
 
   useEffect(() => {
+    let isCurrent = true
+
     if (creationPlaceholderPlanConf == null) {
       clearCreationPlaceholderNameCommitTimer()
       isCreationPlaceholderNameFocusedRef.current = false
@@ -611,8 +717,15 @@ const Page = () => {
       pendingCreationPlaceholderNameCommitRef.current = null
       persistedCreationPlaceholderNameRef.current = ''
       creationPlaceholderNameDraftRef.current = ''
-      setCreationPlaceholderNameDraft('')
-      return
+      queueMicrotask(() => {
+        if (isCurrent) {
+          setCreationPlaceholderNameDraft('')
+        }
+      })
+
+      return () => {
+        isCurrent = false
+      }
     }
 
     const nextDraft =
@@ -627,7 +740,15 @@ const Page = () => {
     pendingCreationPlaceholderNameCommitRef.current = null
     persistedCreationPlaceholderNameRef.current = nextDraft
     creationPlaceholderNameDraftRef.current = nextDraft
-    setCreationPlaceholderNameDraft(nextDraft)
+    queueMicrotask(() => {
+      if (isCurrent) {
+        setCreationPlaceholderNameDraft(nextDraft)
+      }
+    })
+
+    return () => {
+      isCurrent = false
+    }
   }, [
     clearCreationPlaceholderNameCommitTimer,
     creationPlaceholderPlanConf?.id,
@@ -644,6 +765,7 @@ const Page = () => {
   }, [creationPlaceholderPlanConf?.name])
 
   useEffect(() => {
+    let isCurrent = true
     const persistedPlanName = planConf?.name ?? ''
 
     clearPlanNameCommitTimer()
@@ -652,7 +774,15 @@ const Page = () => {
     pendingPlanNameCommitRef.current = null
     persistedPlanNameRef.current = persistedPlanName
     planNameDraftRef.current = persistedPlanName
-    setPlanNameDraft(persistedPlanName)
+    queueMicrotask(() => {
+      if (isCurrent) {
+        setPlanNameDraft(persistedPlanName)
+      }
+    })
+
+    return () => {
+      isCurrent = false
+    }
   }, [clearPlanNameCommitTimer, planConf?.id])
 
   useEffect(() => {
@@ -730,19 +860,20 @@ const Page = () => {
     return t('sidebar.plan_flow.cloud_save')
   }, [planPost.isPending, status, t])
 
+  const cloudLastSaved = planConf?.cloudLastSaved
   const lastSavedLabel = useMemo(() => {
     if (
       status !== 'authenticated' ||
-      planConf?.cloudLastSaved == null ||
+      cloudLastSaved == null ||
       planPost.isPending
     ) {
       return undefined
     }
 
     return `${t('sidebar.plan_settings.last_saved')} ${new Date(
-      planConf.cloudLastSaved
+      cloudLastSaved
     ).toLocaleString(dateTimeLocale)}`
-  }, [dateTimeLocale, planConf?.cloudLastSaved, planPost.isPending, status, t])
+  }, [cloudLastSaved, dateTimeLocale, planPost.isPending, status, t])
 
   const isCloudSaveEnabled = Boolean(
     planConf &&
@@ -1153,7 +1284,10 @@ const Page = () => {
                 planConf?.name ||
                 t('sidebar.plan_flow.settings_title')
               ) : (
-                <T keyName="sidebar.plan_flow.import_title" ns="hiilikartta" />
+                <TText
+                  keyName="sidebar.plan_flow.import_title"
+                  ns="hiilikartta"
+                />
               )
             }
             status={isReadyPlan ? 'complete' : 'incomplete'}
@@ -1184,7 +1318,7 @@ const Page = () => {
           >
             {!isReadyPlan && (
               <>
-                <Box sx={{ width: '100%', mt: '0.rem' }}>
+                <Box sx={{ width: '100%', mt: 0 }}>
                   <UploadField
                     label={fileName ?? t('sidebar.create.select_file')}
                     isSelected={fileName != null}
@@ -1198,7 +1332,7 @@ const Page = () => {
                       <Box sx={{ width: '100%', mt: '1rem', mb: '1rem' }}>
                         <TextFieldWithLabel
                           label={
-                            <T
+                            <TText
                               keyName="sidebar.plan_flow.plan_name_label"
                               ns="hiilikartta"
                             />
@@ -1379,7 +1513,7 @@ const Page = () => {
                 <Box sx={{ width: '100%' }}>
                   <TextFieldWithLabel
                     label={
-                      <T
+                      <TText
                         keyName="sidebar.plan_flow.plan_name_label"
                         ns="hiilikartta"
                       />
@@ -1421,7 +1555,10 @@ const Page = () => {
             status={isAreasStepComplete ? 'complete' : 'incomplete'}
             disabled={!isReadyPlan}
             title={
-              <T keyName="sidebar.plan_flow.areas_step" ns="hiilikartta" />
+              <TText
+                keyName="sidebar.plan_flow.areas_step"
+                ns="hiilikartta"
+              />
             }
             onClick={isReadyPlan ? handleOpenAreas : undefined}
             ariaLabel={t('sidebar.plan_flow.areas_step')}
