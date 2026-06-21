@@ -1,18 +1,15 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
-import {
-  Box,
-  ButtonBase,
-  CircularProgress,
-  Tooltip,
-  Typography,
-} from '@mui/material'
+import React, { useMemo, useState } from 'react'
+import { Tooltip } from '@base-ui/react/tooltip'
 import { useTranslate } from '@tolgee/react'
 
+import { Box, type AppBoxProps, toSxArray } from '#/common/style/theme'
+import { ButtonBase } from '#/components/common/Button'
 import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import TText from '#/components/common/TText'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
+import { LoadingSpinner } from '#/components/Loading'
 import {
   NODE_FLOW_OUTER_OFFSET,
   NODE_FLOW_OUTER_WIDTH,
@@ -41,6 +38,7 @@ type PlanReportFlowStepProps = Pick<
   locale: string
   isReportActionEnabled: boolean
   disabledTooltipKey?: string
+  disabledTooltipOpen?: boolean
   isCalculationRunning: boolean
   onCalculate: () => void
   onOpenReport: () => void
@@ -51,8 +49,134 @@ type PlanReportFlowStepComponent = React.FC<PlanReportFlowStepProps> & {
   flowNodeMarker?: string
 }
 
-const getDefaultYear = (featureYears: string[]) => {
+type SelectedReportYear = {
+  reportKey: string
+  year: string
+}
+
+const EMPTY_FEATURE_YEARS: string[] = []
+
+const getDefaultYear = (featureYears: string[]): string | undefined => {
   return featureYears[1] ?? featureYears[0]
+}
+
+type ReportTextProps = {
+  children: React.ReactNode
+  component?: React.ElementType
+  sx?: AppBoxProps['sx']
+}
+
+type TooltipTriggerProps = Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  'color'
+> & {
+  ref?: React.Ref<HTMLDivElement>
+}
+
+const REPORT_TEXT_SX = {
+  m: 0,
+  fontSize: '0.625rem',
+  fontWeight: 400,
+  lineHeight: '1.125rem',
+  letterSpacing: '0.1em',
+  color: '#111111',
+}
+
+const ReportText = ({ children, component = 'span', sx }: ReportTextProps) => (
+  <Box component={component} sx={[REPORT_TEXT_SX, ...toSxArray(sx)]}>
+    {children}
+  </Box>
+)
+
+const DisabledReportTooltip = ({
+  title,
+  open,
+  children,
+}: {
+  title: React.ReactNode
+  open?: boolean
+  children: React.ReactNode
+}) => {
+  const rootProps = open === undefined ? {} : { open }
+
+  return (
+    <Tooltip.Root {...rootProps}>
+      <Tooltip.Trigger
+        delay={0}
+        closeDelay={0}
+        render={(triggerProps) => {
+          const {
+            color: ignoredColor,
+            type: ignoredType,
+            ...resolvedTriggerProps
+          } = triggerProps as TooltipTriggerProps & {
+            color?: string
+            type?: string
+          }
+          void ignoredColor
+          void ignoredType
+
+          return (
+            <Box
+              {...resolvedTriggerProps}
+              data-slot="plan-report-disabled-tooltip-trigger"
+              sx={{ width: '100%' }}
+            >
+              {children}
+            </Box>
+          )
+        }}
+      />
+      <Tooltip.Portal>
+        <Tooltip.Positioner
+          side="top"
+          sideOffset={8}
+          style={{ zIndex: 1500, pointerEvents: 'none' }}
+        >
+          <Tooltip.Popup
+            style={{ position: 'relative', pointerEvents: 'none' }}
+            render={(popupProps) => (
+              <Box
+                {...popupProps}
+                role="tooltip"
+                data-slot="plan-report-disabled-tooltip"
+                sx={{
+                  maxWidth: 240,
+                  px: 1,
+                  py: 0.75,
+                  borderRadius: '5px',
+                  backgroundColor: '#111111',
+                  color: '#ffffff',
+                  fontSize: '0.75rem',
+                  fontWeight: 400,
+                  lineHeight: 1.35,
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.22)',
+                }}
+              >
+                {title}
+                <Tooltip.Arrow
+                  render={(arrowProps) => (
+                    <Box
+                      {...arrowProps}
+                      sx={{
+                        position: 'absolute',
+                        width: 8,
+                        height: 8,
+                        bottom: -4,
+                        left: 'calc(50% - 4px)',
+                        backgroundColor: '#111111',
+                        transform: 'rotate(45deg)',
+                      }}
+                    />
+                  )}
+                />
+              </Box>
+            )}
+          />
+        </Tooltip.Positioner>
+      </Tooltip.Portal>
+    </Tooltip.Root>
+  )
 }
 
 const PlanReportFlowStepBase = ({
@@ -60,38 +184,35 @@ const PlanReportFlowStepBase = ({
   locale,
   isReportActionEnabled,
   disabledTooltipKey,
+  disabledTooltipOpen,
   isCalculationRunning,
   onCalculate,
   onOpenReport,
   onResetReportAndRecalculate,
 }: PlanReportFlowStepProps) => {
   const { t } = useTranslate('hiilikartta')
-  const [selectedYear, setSelectedYear] = useState<string>()
+  const [selectedYearState, setSelectedYearState] =
+    useState<SelectedReportYear>()
 
   const reportData = planConf?.reportData
-  const featureYears = reportData?.metadata.featureYears ?? []
+  const featureYears = reportData?.metadata.featureYears ?? EMPTY_FEATURE_YEARS
   const yearOptions = useMemo(
     () => (featureYears.length > 1 ? featureYears.slice(1) : featureYears),
     [featureYears]
   )
   const hasFinishedReport = reportData != null
-
-  useEffect(() => {
-    if (reportData == null) {
-      setSelectedYear(undefined)
-      return
-    }
-
-    const nextDefaultYear = getDefaultYear(featureYears)
-
-    setSelectedYear((currentYear) => {
-      if (currentYear != null && yearOptions.includes(currentYear)) {
-        return currentYear
-      }
-
-      return nextDefaultYear
-    })
-  }, [featureYears, reportData, yearOptions])
+  const reportSelectionKey =
+    reportData == null
+      ? undefined
+      : `${reportData.metadata.timestamp}:${featureYears.join('|')}`
+  const selectedYear =
+    reportSelectionKey != null &&
+    selectedYearState?.reportKey === reportSelectionKey &&
+    yearOptions.includes(selectedYearState.year)
+      ? selectedYearState.year
+      : reportData != null
+        ? getDefaultYear(featureYears)
+        : undefined
 
   const totals = reportData?.agg.totals
 
@@ -168,9 +289,11 @@ const PlanReportFlowStepBase = ({
       ? t('sidebar.my_plans.calculations_starting')
       : t('sidebar.my_plans.calculations_in_progress')
     buttonHelperLeading = (
-      <CircularProgress
+      <LoadingSpinner
         size={12}
         thickness={7}
+        color="inherit"
+        data-visual-mask="plan-report-spinner"
         sx={{ color: '#274AFF', flexShrink: 0 }}
       />
     )
@@ -200,8 +323,7 @@ const PlanReportFlowStepBase = ({
     !hasFinishedReport &&
     !isInProgress &&
     !isReportActionEnabled
-  const tooltipLabel =
-    disabledTooltipKey != null ? t(disabledTooltipKey) : ''
+  const tooltipLabel = disabledTooltipKey != null ? t(disabledTooltipKey) : ''
   const buttonAccentColor = buttonDisabled
     ? 'rgba(17, 17, 17, 0.4)'
     : buttonStatus === 'error'
@@ -209,7 +331,14 @@ const PlanReportFlowStepBase = ({
       : '#0D6044'
 
   const handleYearChange = (event: DropDownValueChangeEvent) => {
-    setSelectedYear(event.target.value)
+    if (reportSelectionKey == null) {
+      return
+    }
+
+    setSelectedYearState({
+      reportKey: reportSelectionKey,
+      year: event.target.value,
+    })
   }
 
   const button = (
@@ -252,9 +381,9 @@ const PlanReportFlowStepBase = ({
       }}
     >
       {shouldShowTooltip ? (
-        <Tooltip title={tooltipLabel} arrow placement="top">
-          <Box sx={{ width: '100%' }}>{button}</Box>
-        </Tooltip>
+        <DisabledReportTooltip title={tooltipLabel} open={disabledTooltipOpen}>
+          {button}
+        </DisabledReportTooltip>
       ) : (
         button
       )}
@@ -271,8 +400,7 @@ const PlanReportFlowStepBase = ({
               py: { mobile: '0.9375rem', desktop: '1rem' },
               borderRadius: '0.625rem',
               backgroundColor: '#EFFBE6',
-              boxShadow:
-                'inset 0px 0.5px 1px 0px rgba(217, 217, 217, 0.35)',
+              boxShadow: 'inset 0px 0.5px 1px 0px rgba(217, 217, 217, 0.35)',
             }}
           >
             <Box
@@ -309,32 +437,24 @@ const PlanReportFlowStepBase = ({
                   minWidth: 0,
                 }}
               >
-                <Typography
+                <ReportText
+                  component="p"
                   sx={{
-                    fontSize: '0.625rem',
-                    fontWeight: 400,
-                    lineHeight: '1.125rem',
-                    letterSpacing: '0.1em',
-                    color: '#111111',
                     wordBreak: 'break-word',
                   }}
                 >
                   {reportLabel}
-                </Typography>
+                </ReportText>
 
                 {calculatedOnLabel != null && (
-                  <Typography
+                  <ReportText
+                    component="p"
                     sx={{
-                      fontSize: '0.625rem',
-                      fontWeight: 400,
-                      lineHeight: '1.125rem',
-                      letterSpacing: '0.1em',
-                      color: '#111111',
                       wordBreak: 'break-word',
                     }}
                   >
                     {calculatedOnLabel}
-                  </Typography>
+                  </ReportText>
                 )}
               </Box>
             </Box>
@@ -353,13 +473,10 @@ const PlanReportFlowStepBase = ({
                   pr: '1.25rem',
                 }}
               >
-                <Typography
+                <ReportText
+                  component="p"
                   sx={{
                     fontSize: '0.75rem',
-                    fontWeight: 400,
-                    lineHeight: '1.125rem',
-                    letterSpacing: '0.1em',
-                    color: '#111111',
                   }}
                 >
                   <TText
@@ -367,7 +484,7 @@ const PlanReportFlowStepBase = ({
                     ns="hiilikartta"
                   />
                   :
-                </Typography>
+                </ReportText>
                 {/* Hidden until the related tooltip copy is ready. */}
               </Box>
 
@@ -379,24 +496,18 @@ const PlanReportFlowStepBase = ({
                   gap: '0.75rem',
                 }}
               >
-                <Typography
-                  sx={{
-                    fontSize: '0.625rem',
-                    fontWeight: 400,
-                    lineHeight: '1.125rem',
-                    letterSpacing: '0.1em',
-                    color: '#111111',
-                  }}
-                >
+                <ReportText>
                   <TText
                     keyName="sidebar.plan_settings.report_preview.on_year"
                     ns="hiilikartta"
                   />
-                </Typography>
+                </ReportText>
 
                 {selectedYear != null && (
                   <DropDownSelectMinimal
-                    ariaLabel={t('sidebar.plan_settings.report_preview.on_year')}
+                    ariaLabel={t(
+                      'sidebar.plan_settings.report_preview.on_year'
+                    )}
                     value={selectedYear}
                     onChange={handleYearChange}
                     options={yearOptions.map((year) => ({
@@ -407,28 +518,25 @@ const PlanReportFlowStepBase = ({
                       minWidth: '5.625rem',
                       borderRadius: '999px',
                       backgroundColor: '#111111',
-                      boxShadow:
-                        '0px 1px 1px 0px rgba(189, 189, 189, 0.25)',
+                      boxShadow: '0px 1px 1px 0px rgba(189, 189, 189, 0.25)',
                       color: '#F0F0F1',
-                      '& .MuiSelect-select': {
-                        pl: '0.75rem',
-                        pr: '1.75rem !important',
-                        py: '0.1875rem',
-                        fontSize: '0.625rem',
-                        fontWeight: 700,
-                        lineHeight: '0.875rem',
-                        letterSpacing: '0.08em',
-                      },
-                      '& .MuiSelect-select .MuiTypography-root': {
-                        color: '#F0F0F1',
-                      },
-                      '& .MuiSelect-icon': {
-                        color: '#F0F0F1',
-                        right: '0.625rem',
-                        top: 'calc(50% - 0.21875rem)',
-                        width: '0.625rem',
-                        height: '0.4375rem',
-                      },
+                    }}
+                    selectedValueSx={{
+                      pl: '0.75rem',
+                      pr: '1.75rem !important',
+                      py: '0.1875rem',
+                      fontSize: '0.625rem',
+                      fontWeight: 700,
+                      lineHeight: '0.875rem',
+                      letterSpacing: '0.08em',
+                      color: '#F0F0F1',
+                    }}
+                    iconSx={{
+                      color: '#F0F0F1',
+                      right: '0.625rem',
+                      top: 'calc(50% - 0.21875rem)',
+                      width: '0.625rem',
+                      height: '0.4375rem',
                     }}
                     optionSx={{
                       px: '0.75rem',
@@ -440,7 +548,6 @@ const PlanReportFlowStepBase = ({
                   />
                 )}
               </Box>
-
             </Box>
 
             <Box
@@ -460,33 +567,23 @@ const PlanReportFlowStepBase = ({
                     borderTop: '1px solid rgba(17, 17, 17, 0.14)',
                   }}
                 >
-                  <Typography
-                    sx={{
-                      fontSize: '0.625rem',
-                      fontWeight: 400,
-                      lineHeight: '1.125rem',
-                      letterSpacing: '0.1em',
-                      color: '#111111',
-                    }}
-                  >
+                  <ReportText>
                     <TText
                       keyName="sidebar.plan_settings.report_preview.carbon_eqv_unit"
                       ns="hiilikartta"
                     />
-                  </Typography>
+                  </ReportText>
 
-                  <Typography
+                  <ReportText
                     sx={{
                       fontSize: '0.75rem',
                       fontWeight: 700,
-                      lineHeight: '1.125rem',
                       letterSpacing: '0.3em',
-                      color: '#111111',
                       textAlign: 'right',
                     }}
                   >
                     {pp(totalChange, 0)}
-                  </Typography>
+                  </ReportText>
                 </Box>
               )}
 
@@ -501,33 +598,23 @@ const PlanReportFlowStepBase = ({
                     borderTop: '1px solid rgba(17, 17, 17, 0.14)',
                   }}
                 >
-                  <Typography
-                    sx={{
-                      fontSize: '0.625rem',
-                      fontWeight: 400,
-                      lineHeight: '1.125rem',
-                      letterSpacing: '0.1em',
-                      color: '#111111',
-                    }}
-                  >
+                  <ReportText>
                     <TText
                       keyName="sidebar.plan_settings.report_preview.carbon_eqv_unit_hectare"
                       ns="hiilikartta"
                     />
-                  </Typography>
+                  </ReportText>
 
-                  <Typography
+                  <ReportText
                     sx={{
                       fontSize: '0.75rem',
                       fontWeight: 700,
-                      lineHeight: '1.125rem',
                       letterSpacing: '0.3em',
-                      color: '#111111',
                       textAlign: 'right',
                     }}
                   >
                     {pp(perHectareChange, 0)}
-                  </Typography>
+                  </ReportText>
                 </Box>
               )}
             </Box>
@@ -564,12 +651,11 @@ const PlanReportFlowStepBase = ({
                 flexShrink: 0,
               }}
             />
-            <Typography
+            <ReportText
               sx={{
                 fontSize: '0.625rem',
                 fontWeight: 700,
                 lineHeight: '1rem',
-                letterSpacing: '0.1em',
                 color: 'inherit',
               }}
             >
@@ -577,7 +663,7 @@ const PlanReportFlowStepBase = ({
                 keyName="sidebar.plan_settings.report_preview.reset_and_recalculate"
                 ns="hiilikartta"
               />
-            </Typography>
+            </ReportText>
           </ButtonBase>
         </>
       )}
@@ -585,8 +671,7 @@ const PlanReportFlowStepBase = ({
   )
 }
 
-const PlanReportFlowStep =
-  PlanReportFlowStepBase as PlanReportFlowStepComponent
+const PlanReportFlowStep = PlanReportFlowStepBase as PlanReportFlowStepComponent
 
 PlanReportFlowStep.flowNodeMarker = 'flow-node'
 

@@ -36,7 +36,10 @@ const buildComponentFixtureVisualScenarios = ({ baseUrl = '' } = {}) =>
           state.waitFor ||
           fixture.waitFor ||
           COMPONENT_FIXTURE_WAIT_FOR_SELECTOR,
-        maskSelectors: [],
+        maskSelectors: [
+          ...(fixture.maskSelectors || []),
+          ...(state.maskSelectors || []),
+        ],
         minNonWhitePixels: 150,
         sourceGlobs: [...(fixture.sourceGlobs || [])],
         tags: [

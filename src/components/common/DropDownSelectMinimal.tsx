@@ -14,6 +14,7 @@ type Props = {
   onChange: (event: DropDownValueChangeEvent) => void
   ariaLabel?: string
   sx?: AppSxProps
+  selectedValueSx?: AppSxProps
   optionSx?: AppSxProps
   iconSx?: AppSxProps
   isIconOnTheRight?: boolean
@@ -28,6 +29,7 @@ const DropDownSelectMinimal = ({
   onChange,
   ariaLabel,
   sx,
+  selectedValueSx,
   optionSx,
   iconSx,
   isIconOnTheRight = true,
@@ -35,6 +37,8 @@ const DropDownSelectMinimal = ({
   defaultOpen,
   onOpenChange,
 }: Props) => {
+  const selectedValueSxArray = toSxArray(selectedValueSx)
+
   return (
     <Box
       sx={{
@@ -59,36 +63,41 @@ const DropDownSelectMinimal = ({
           },
           ...toSxArray(sx),
         ]}
-        selectSx={{
-          width: 'auto',
-          minWidth: 0,
-          height: 'auto',
-          minHeight: 0,
-          boxShadow: 'none',
-          backgroundColor: 'transparent',
-          borderRadius: 0,
-          flexDirection: isIconOnTheRight ? 'row' : 'row-reverse',
-          '&:focus-visible .MuiOutlinedInput-notchedOutline, &[data-popup-open] .MuiOutlinedInput-notchedOutline':
-            {
-              borderColor: 'transparent',
-            },
-          '.MuiOutlinedInput-notchedOutline': {
-            borderColor: 'transparent',
-            borderWidth: 0,
-          },
-          '.MuiSelect-select': {
-            m: 0,
-            p: 0,
-            pr: isIconOnTheRight ? '1.25rem' : 0,
-            pl: isIconOnTheRight ? 0 : '1.25rem',
+        selectSx={[
+          {
+            width: 'auto',
+            minWidth: 0,
+            height: 'auto',
             minHeight: 0,
-            fontSize: '0.6875rem',
-            fontWeight: 400,
-            lineHeight: 'normal',
-            letterSpacing: '0.04em',
-            color: '#111111',
+            boxShadow: 'none',
+            backgroundColor: 'transparent',
+            borderRadius: 0,
+            flexDirection: isIconOnTheRight ? 'row' : 'row-reverse',
+            '&:focus-visible .MuiOutlinedInput-notchedOutline, &[data-popup-open] .MuiOutlinedInput-notchedOutline':
+              {
+                borderColor: 'transparent',
+              },
+            '.MuiOutlinedInput-notchedOutline': {
+              borderColor: 'transparent',
+              borderWidth: 0,
+            },
+            '.MuiSelect-select': {
+              m: 0,
+              p: 0,
+              pr: isIconOnTheRight ? '1.25rem' : 0,
+              pl: isIconOnTheRight ? 0 : '1.25rem',
+              minHeight: 0,
+              fontSize: '0.6875rem',
+              fontWeight: 400,
+              lineHeight: 'normal',
+              letterSpacing: '0.04em',
+              color: '#111111',
+            },
           },
-        }}
+          ...selectedValueSxArray.map((selectedValueSxItem) => ({
+            '.MuiSelect-select': selectedValueSxItem,
+          })),
+        ]}
         iconSx={[
           {
             right: isIconOnTheRight ? '0.4rem' : 'auto',

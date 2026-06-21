@@ -29,6 +29,7 @@ import {
 import { energymapBuildingInfoPanelFixture } from './fixtures/EnergymapBuildingInfoPanelFixture'
 import { hiilikarttaDisplayPrimitivesFixture } from './fixtures/HiilikarttaDisplayPrimitivesFixture'
 import { hiilikarttaPlanImportControlsFixture } from './fixtures/HiilikarttaPlanImportControlsFixture'
+import { hiilikarttaPlanReportActionsFixture } from './fixtures/HiilikarttaPlanReportActionsFixture'
 import { hiilikarttaCarbonLineChartFixture } from './fixtures/HiilikarttaCarbonLineChartFixture'
 import { hiilikarttaCarbonMapGraphFixture } from './fixtures/HiilikarttaCarbonMapGraphFixture'
 import { hiilikarttaReportOverviewFixture } from './fixtures/HiilikarttaReportOverviewFixture'
@@ -41,10 +42,7 @@ import {
   textFieldWithLabelFixture,
 } from './fixtures/TextFieldControlsFixture'
 import { sidebarBackgroundContentFixture } from './fixtures/SidebarBackgroundContentFixture'
-import type {
-  ComponentFixture,
-  ComponentFixtureStateLookup,
-} from './types'
+import type { ComponentFixture, ComponentFixtureStateLookup } from './types'
 
 const componentFixtures: ComponentFixture[] = [
   sharedSvgIconFixture,
@@ -59,6 +57,7 @@ const componentFixtures: ComponentFixture[] = [
   energymapBuildingInfoPanelFixture,
   hiilikarttaDisplayPrimitivesFixture,
   hiilikarttaPlanImportControlsFixture,
+  hiilikarttaPlanReportActionsFixture,
   hiilikarttaCarbonLineChartFixture,
   hiilikarttaCarbonMapGraphFixture,
   hiilikarttaReportOverviewFixture,

@@ -105,6 +105,7 @@ describe('component fixture registry', () => {
         label: state.label,
         description: state.description,
         ...(state.waitFor ? { waitFor: state.waitFor } : {}),
+        ...(state.maskSelectors ? { maskSelectors: state.maskSelectors } : {}),
       })),
     }))
 

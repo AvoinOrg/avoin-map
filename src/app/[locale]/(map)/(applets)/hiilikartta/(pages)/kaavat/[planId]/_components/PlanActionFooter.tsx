@@ -1,13 +1,11 @@
 'use client'
 
 import React from 'react'
-import { Box, SxProps, Theme, Typography } from '@mui/material'
-import FolderCopyOutlinedIcon from '@mui/icons-material/FolderCopyOutlined'
-import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined'
-import { T } from '@tolgee/react'
 
+import { Box, type AppBoxProps } from '#/common/style/theme'
 import IconTextButton from '#/components/common/IconTextButton'
-import { Delete, Login } from '#/components/icons'
+import TText from '#/components/common/TText'
+import { Delete, FolderCopy, Login, Save } from '#/components/icons'
 
 export const PLAN_ACTION_BUTTON_COLOR = '#666666'
 export const PLAN_ACTION_BUTTON_HOVER_COLOR = '#4F4F4F'
@@ -23,25 +21,19 @@ type PlanActionFooterProps = {
   onDelete?: () => void
   onCopy?: () => void
   onCloudAction?: () => void
-  sx?: SxProps<Theme>
+  sx?: AppBoxProps['sx']
 }
 
-const getActionRowSx = ({
-  isDisabled = false,
-}: {
-  isDisabled?: boolean
-}) => ({
+const getActionRowSx = ({ isDisabled = false }: { isDisabled?: boolean }) => ({
   color: isDisabled ? 'rgba(102, 102, 102, 0.56)' : PLAN_ACTION_BUTTON_COLOR,
   '&:hover': isDisabled
     ? undefined
     : {
         color: PLAN_ACTION_BUTTON_HOVER_COLOR,
       },
-  '& .MuiButton-root.Mui-disabled': {
+  '&:disabled, &[data-disabled], &[aria-disabled="true"]': {
     color: 'inherit',
-  },
-  '& .MuiIconButton-root.Mui-disabled': {
-    color: 'inherit',
+    opacity: 1,
   },
 })
 
@@ -108,8 +100,10 @@ const PlanActionFooter = ({
       >
         {showCopy && (
           <IconTextButton
-            icon={<FolderCopyOutlinedIcon sx={{ width: 13, height: 13 }} />}
-            text={<T keyName="sidebar.plan_settings.copy" ns="hiilikartta" />}
+            icon={<FolderCopy sx={{ width: 13, height: 13 }} />}
+            text={
+              <TText keyName="sidebar.plan_settings.copy" ns="hiilikartta" />
+            }
             onClick={onCopy}
             sx={getActionRowSx({})}
             textSx={ACTION_TEXT_SX}
@@ -120,7 +114,9 @@ const PlanActionFooter = ({
         {showDelete && (
           <IconTextButton
             icon={<Delete sx={{ width: 12, height: 12 }} />}
-            text={<T keyName="sidebar.plan_settings.delete" ns="hiilikartta" />}
+            text={
+              <TText keyName="sidebar.plan_settings.delete" ns="hiilikartta" />
+            }
             onClick={onDelete}
             sx={getActionRowSx({})}
             textSx={ACTION_TEXT_SX}
@@ -135,7 +131,7 @@ const PlanActionFooter = ({
               disabled={isCloudActionDisabled}
               icon={
                 cloudActionKind === 'save' ? (
-                  <SaveOutlinedIcon sx={{ width: 13, height: 13 }} />
+                  <Save sx={{ width: 13, height: 13 }} />
                 ) : (
                   <Login sx={{ width: 15, height: 13 }} />
                 )
@@ -150,8 +146,10 @@ const PlanActionFooter = ({
             />
 
             {lastSavedLabel && (
-              <Typography
+              <Box
+                component="p"
                 sx={{
+                  m: 0,
                   pl: '2rem',
                   pt: '0.1875rem',
                   fontSize: '0.5rem',
@@ -162,7 +160,7 @@ const PlanActionFooter = ({
                 }}
               >
                 {lastSavedLabel}
-              </Typography>
+              </Box>
             )}
           </Box>
         )}

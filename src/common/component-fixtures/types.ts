@@ -8,6 +8,7 @@ export type ComponentFixtureStateMetadata = {
   label: string
   description?: string
   waitFor?: string
+  maskSelectors?: string[]
 }
 
 export type ComponentFixtureMetadata = {
@@ -15,6 +16,7 @@ export type ComponentFixtureMetadata = {
   label: string
   description?: string
   waitFor?: string
+  maskSelectors?: string[]
   sourceGlobs: string[]
   states: ComponentFixtureStateMetadata[]
 }

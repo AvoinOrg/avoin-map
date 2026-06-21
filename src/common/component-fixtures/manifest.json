@@ -566,6 +566,76 @@
     ]
   },
   {
+    "id": "hiilikartta-plan-report-actions",
+    "label": "Hiilikartta plan report actions",
+    "description": "Plan report flow and footer action states for the Hiilikartta authoring flow.",
+    "sourceGlobs": [
+      "src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/_components/PlanReportFlowStep.tsx",
+      "src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/_components/PlanActionFooter.tsx",
+      "src/common/component-fixtures/fixtures/HiilikarttaPlanReportActionsFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "report-disabled-tooltip",
+        "label": "Report disabled tooltip",
+        "description": "Incomplete report action with the disabled prerequisite tooltip forced open.",
+        "waitFor": "[data-slot=\"plan-report-disabled-tooltip\"]"
+      },
+      {
+        "id": "report-initializing",
+        "label": "Report initializing",
+        "description": "Report calculation has been queued and shows starting copy.",
+        "maskSelectors": ["[data-visual-mask=\"plan-report-spinner\"]"]
+      },
+      {
+        "id": "report-calculating",
+        "label": "Report calculating",
+        "description": "Report calculation in progress with spinner and helper text.",
+        "maskSelectors": ["[data-visual-mask=\"plan-report-spinner\"]"]
+      },
+      {
+        "id": "report-errored",
+        "label": "Report errored",
+        "description": "Errored report action remains retryable when prerequisites pass."
+      },
+      {
+        "id": "report-finished",
+        "label": "Report finished",
+        "description": "Finished report preview with calculated date, default year, metrics, and reset action."
+      },
+      {
+        "id": "report-finished-alternate-year",
+        "label": "Report finished alternate year",
+        "description": "Finished report preview where the default selectable year and metrics differ."
+      },
+      {
+        "id": "footer-copy-delete",
+        "label": "Footer copy and delete",
+        "description": "Plan footer with copy and delete actions visible."
+      },
+      {
+        "id": "footer-login-cloud",
+        "label": "Footer login cloud action",
+        "description": "Plan footer prompting a signed-out user to log in."
+      },
+      {
+        "id": "footer-save-cloud",
+        "label": "Footer save cloud action",
+        "description": "Plan footer with an enabled cloud save action."
+      },
+      {
+        "id": "footer-disabled-cloud",
+        "label": "Footer disabled cloud action",
+        "description": "Plan footer with the cloud action visible but disabled."
+      },
+      {
+        "id": "footer-last-saved",
+        "label": "Footer last saved label",
+        "description": "Plan footer with cloud save action and last-saved metadata."
+      }
+    ]
+  },
+  {
     "id": "hiilikartta-carbon-line-chart",
     "label": "Hiilikartta carbon line chart",
     "description": "Report line chart unit toggle, VisX sizing, tooltip, legend, and minimal-data states.",
