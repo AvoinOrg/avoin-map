@@ -10,7 +10,7 @@
  * - Stacked and grouped bar chart modes
  * - Interactive tooltips with hover effects
  * - Chart.js-compatible API through the exported Bar component
- * - Themeable using MUI theme
+ * - Themeable using the app theme
  *
  * Usage:
  * ```tsx
@@ -26,17 +26,29 @@
 'use client'
 
 import React, { useMemo, useRef, useEffect, useState, useCallback } from 'react'
-import { Box, useTheme } from '@mui/material'
-import { AxisBottom, AxisLeft } from '@visx/axis'
-import { GridRows } from '@visx/grid'
-import { Group } from '@visx/group'
+import { Box, type AppTheme, useTheme } from '#/common/style/theme'
+import { AxisBottom as VisxAxisBottom, AxisLeft as VisxAxisLeft } from '@visx/axis'
+import { GridRows as VisxGridRows } from '@visx/grid'
+import { Group as VisxGroup } from '@visx/group'
 import { scaleBand, scaleLinear } from '@visx/scale'
-import { Bar as VisxBar } from '@visx/shape'
-import { useTooltip, TooltipWithBounds, defaultStyles } from '@visx/tooltip'
+import { Bar as VisxShapeBar } from '@visx/shape'
+import {
+  useTooltip,
+  TooltipWithBounds as VisxTooltipWithBounds,
+  defaultStyles,
+} from '@visx/tooltip'
 import { localPoint } from '@visx/event'
-import { LegendOrdinal } from '@visx/legend'
+import { LegendOrdinal as VisxLegendOrdinal } from '@visx/legend'
 import { scaleOrdinal } from '@visx/scale'
 import { pp } from '#/common/utils/general'
+
+const AxisBottom = VisxAxisBottom as React.ElementType
+const AxisLeft = VisxAxisLeft as React.ElementType
+const GridRows = VisxGridRows as React.ElementType
+const Group = VisxGroup as React.ElementType
+const LegendOrdinal = VisxLegendOrdinal as React.ElementType
+const TooltipWithBounds = VisxTooltipWithBounds as React.ElementType
+const VisxBar = VisxShapeBar as React.ElementType
 
 export interface ChartDataset {
   label: string
@@ -63,13 +75,17 @@ export interface ChartOptions {
         ticks: {
           maxTicksLimit: number
           beginAtZero: boolean
-          callback: (value: any, index: any, values: any) => string
+          callback: (
+            value: number,
+            index: number,
+            values: number[]
+          ) => string
         }
       }
     }
     tooltips: {
       callbacks: {
-        label: (tooltipItem: any, data: any) => string
+        label: (tooltipItem: unknown, data: unknown) => string
       }
     }
   }
@@ -90,6 +106,11 @@ interface TooltipData {
   xLabel: string
 }
 
+type LegendLabel = {
+  text: string
+  value: string
+}
+
 const MARGIN_TOP = 20
 const MARGIN_RIGHT = 0
 const MARGIN_BOTTOM = 60
@@ -105,7 +126,7 @@ export const FinlandForestsChart: React.FC<FinlandForestsChartProps> = ({
   width = 500,
   height = 300,
 }) => {
-  const theme = useTheme()
+  const theme = useTheme<AppTheme>()
   const {
     tooltipData,
     tooltipLeft,
@@ -288,9 +309,9 @@ export const FinlandForestsChart: React.FC<FinlandForestsChartProps> = ({
           labelMargin="0 0 0 8px"
           shapeMargin="0"
         >
-          {(labels) => (
+          {(labels: LegendLabel[]) => (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-              {labels.map((label, i) => (
+              {labels.map((label: LegendLabel, i: number) => (
                 <div
                   key={`legend-${i}`}
                   style={{
@@ -466,8 +487,8 @@ export const FinlandForestsChart: React.FC<FinlandForestsChartProps> = ({
               },
             })}
             tickValues={yTicks}
-            tickFormat={(value, index) =>
-              yTickFormatter(value as number, index, yTicks)
+            tickFormat={(value: number, index: number) =>
+              yTickFormatter(value, index, yTicks)
             }
           />
         </Group>
@@ -551,11 +572,8 @@ export interface BarProps {
 
 export const Bar: React.FC<BarProps> = ({ options: chartJsOptions, data }) => {
   // Extract unit from tooltip callback if available
-  const unit = useMemo(() => {
-    // Try to extract unit from the label callback
-    // In the original implementation, unit is embedded in the callback
-    return ''
-  }, [chartJsOptions])
+  // In the original implementation, unit is embedded in the label callback.
+  const unit = ''
 
   const chartOptions: ChartOptions = {
     data,

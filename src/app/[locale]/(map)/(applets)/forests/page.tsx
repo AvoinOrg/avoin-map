@@ -1,21 +1,21 @@
 'use client'
 
-import React, { useState, useEffect, useLayoutEffect, useMemo } from 'react'
-import { Box, IconButton, Tooltip, Typography } from '@mui/material'
-import BarChartIcon from '@mui/icons-material/BarChart'
+import React, { useState, useEffect, useMemo } from 'react'
+import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip'
 import Image from 'next/image'
 import { MapGeoJSONFeature } from 'maplibre-gl'
 
-import { getCombinedBounds } from '#/common/utils/map'
 import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
+import { Box, toSxArray } from '#/common/style/theme'
+import type { AppSxProps } from '#/common/style/theme'
 import Link from '#/components/common/Link'
+import { IconButton } from '#/components/common/Button'
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 // import { setOverlayMessage } from '../../OverlayMessages/OverlayMessages'
 // import * as SelectedFeatureState from './ArvometsaSelectedLayer'
 import { useMapStore } from '#/common/store'
 // import { setSearchPlaceholder } from '../../NavBar/NavBarSearch'
 import { useLocaleFormatter } from '#/common/hooks/useLocaleFormatter'
-import { FINLAND_BOUNDS } from '#/common/constants/map'
 import useSelectedFeaturesFilteredByLayer from '#/common/hooks/map/useSelectedFeaturesFilteredByLayer'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import type { SidebarPanelExtensionRuntimeOptions } from '#/common/types/sidebar'
@@ -33,10 +33,10 @@ import { Star, Cross } from '#/components/icons'
 
 import { useUpdateMapDetails } from './hooks/useUpdateMapDetails'
 import { Bar as FinlandForestsChart } from './components/FinlandForestsChart'
+import type { BarProps } from './components/FinlandForestsChart'
 import {
   getTotals,
   getDatasetAttributes,
-  getChartTitle,
   getNpvText,
   getChartProps,
   getUnitPerArea,
@@ -48,11 +48,45 @@ import {
   DEFAULT_FORESTRY_METHOD,
   TRADITIONAL_FORESTRY_METHOD,
   layerOptions,
-  titleRenames,
 } from './constants'
 
 import arvometsaLogo from './public/arvometsa_logo.png'
 // import * as Analytics from 'src/map/analytics'
+
+type ForestsTooltipSide = React.ComponentProps<
+  typeof BaseTooltip.Positioner
+>['side']
+
+type ForestsTooltipTriggerProps = Omit<
+  React.HTMLAttributes<HTMLButtonElement>,
+  'color'
+> & {
+  ref?: React.Ref<HTMLButtonElement>
+}
+
+type ForestsTotals = Record<string, number> & {
+  area: number
+  f_area: number
+}
+
+type ForestsChartConfig = {
+  chartOptions: BarProps
+}
+
+type ForestsOptions = {
+  totals: ForestsTotals
+  npvText: string
+  averageCarbonBalanceText: string
+  averageCarbonBalanceOverall: number
+  cbt: ForestsChartConfig
+  bio: ForestsChartConfig
+  wood: ForestsChartConfig
+}
+
+type AreaNameParts = {
+  label: string
+  display: React.ReactNode
+}
 
 const graphActionButtonSx = {
   width: '45px',
@@ -76,6 +110,230 @@ const graphChartBoxSx = {
   ml: 'auto',
   overflow: 'visible',
 } as const
+
+const infoTooltipButtonSx = {
+  width: 20,
+  minWidth: 20,
+  height: 20,
+  p: 0,
+  border: 0,
+  borderRadius: '50%',
+  color: 'action.active',
+  verticalAlign: 'text-bottom',
+  '&:hover': {
+    backgroundColor: 'transparent',
+    color: 'neutral.darker',
+  },
+} as const
+
+const getForestsTooltipArrowSx = (
+  side: ForestsTooltipSide
+): AppSxProps => {
+  if (side === 'right') {
+    return { left: -4, top: 'calc(50% - 4px)' }
+  }
+
+  if (side === 'left') {
+    return { right: -4, top: 'calc(50% - 4px)' }
+  }
+
+  if (side === 'bottom') {
+    return { top: -4, left: 'calc(50% - 4px)' }
+  }
+
+  return { bottom: -4, left: 'calc(50% - 4px)' }
+}
+
+const ForestsTooltip = ({
+  title,
+  side = 'top',
+  children,
+}: {
+  title: React.ReactNode
+  side?: ForestsTooltipSide
+  children: (props: ForestsTooltipTriggerProps) => React.ReactElement
+}) => (
+  <BaseTooltip.Root>
+    <BaseTooltip.Trigger
+      delay={0}
+      closeDelay={0}
+      render={(triggerProps) => {
+        const {
+          color: ignoredColor,
+          type: ignoredType,
+          ...resolvedTriggerProps
+        } = triggerProps as ForestsTooltipTriggerProps & {
+          color?: string
+          type?: string
+        }
+        void ignoredColor
+        void ignoredType
+
+        return children(resolvedTriggerProps)
+      }}
+    />
+    <BaseTooltip.Portal>
+      <BaseTooltip.Positioner
+        side={side}
+        sideOffset={8}
+        style={{ zIndex: 1500, pointerEvents: 'none' }}
+      >
+        <BaseTooltip.Popup
+          style={{ position: 'relative', pointerEvents: 'none' }}
+          render={(popupProps) => (
+            <Box
+              {...popupProps}
+              role="tooltip"
+              sx={{
+                maxWidth: 260,
+                px: 1,
+                py: 0.75,
+                borderRadius: '5px',
+                backgroundColor: '#111111',
+                color: '#ffffff',
+                fontSize: '0.75rem',
+                fontWeight: 400,
+                lineHeight: 1.35,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.22)',
+              }}
+            >
+              {title}
+              <BaseTooltip.Arrow
+                render={(arrowProps) => (
+                  <Box
+                    {...arrowProps}
+                    sx={{
+                      position: 'absolute',
+                      width: 8,
+                      height: 8,
+                      backgroundColor: '#111111',
+                      transform: 'rotate(45deg)',
+                      ...getForestsTooltipArrowSx(side),
+                    }}
+                  />
+                )}
+              />
+            </Box>
+          )}
+        />
+      </BaseTooltip.Positioner>
+    </BaseTooltip.Portal>
+  </BaseTooltip.Root>
+)
+
+const ForestsInfoTooltip = ({
+  title,
+  ariaLabel,
+  sx,
+  iconSx,
+}: {
+  title: React.ReactNode
+  ariaLabel: string
+  sx?: AppSxProps
+  iconSx?: AppSxProps
+}) => (
+  <ForestsTooltip title={title}>
+    {(triggerProps) => (
+      <IconButton
+        {...triggerProps}
+        type="button"
+        size="small"
+        aria-label={ariaLabel}
+        sx={[infoTooltipButtonSx, ...toSxArray(sx)]}
+      >
+        <Info sx={[{ width: 16, height: 16 }, ...toSxArray(iconSx)]} />
+      </IconButton>
+    )}
+  </ForestsTooltip>
+)
+
+const ForestsBarChartIcon = () => (
+  <svg
+    aria-hidden="true"
+    viewBox="0 0 24 24"
+    width={24}
+    height={24}
+    style={{ display: 'block', fill: 'currentColor' }}
+  >
+    <rect x="5" y="10" width="3.5" height="9" rx="0.8" />
+    <rect x="10.25" y="5" width="3.5" height="14" rx="0.8" />
+    <rect x="15.5" y="13" width="3.5" height="6" rx="0.8" />
+  </svg>
+)
+
+const ForestsGraphPanelProvider = ({
+  hasGraphPanel,
+  renderGraphPanelContent,
+  children,
+}: {
+  hasGraphPanel: boolean
+  renderGraphPanelContent: (params: {
+    closeGraphPanel: () => void
+  }) => React.ReactNode
+  children: React.ReactNode
+}) => {
+  const [isGraphPanelOpen, setIsGraphPanelOpen] = useState(false)
+  const closeGraphPanel = () => setIsGraphPanelOpen(false)
+
+  const graphActionButton =
+    hasGraphPanel ? (
+      <ForestsTooltip title={isGraphPanelOpen ? 'Hide graphs' : 'Show graphs'}>
+        {(triggerProps) => (
+          <IconButton
+            {...triggerProps}
+            type="button"
+            aria-label={isGraphPanelOpen ? 'hide graphs' : 'show graphs'}
+            onClick={() => setIsGraphPanelOpen((open) => !open)}
+            sx={[
+              graphActionButtonSx,
+              isGraphPanelOpen && {
+                color: '#ffffff',
+                backgroundColor: '#0D6044',
+                '&:hover': {
+                  backgroundColor: '#094832',
+                },
+              },
+            ]}
+          >
+            <ForestsBarChartIcon />
+          </IconButton>
+        )}
+      </ForestsTooltip>
+    ) : null
+
+  const sidebarPanelExtensionRuntimeOptions =
+    useMemo<SidebarPanelExtensionRuntimeOptions>(
+      () => ({
+        panelLayout: 'single',
+        visiblePanels: hasGraphPanel && isGraphPanelOpen ? ['main'] : [],
+        activePanel: 'main',
+        mobileMode: 'stacked',
+        mobileStackPlacement: 'before',
+        actionRailPlacement: 'bottomActionRow',
+      }),
+      [hasGraphPanel, isGraphPanelOpen]
+    )
+
+  return (
+    <SidebarPanelExtensionProvider
+      id="forests-graph-panel-extension"
+      enabled={hasGraphPanel}
+      runtimeOptions={sidebarPanelExtensionRuntimeOptions}
+    >
+      {children}
+      {hasGraphPanel && (
+        <IntoSidebarPanelExtensionPanelSlot panelId="main">
+          {renderGraphPanelContent({ closeGraphPanel })}
+        </IntoSidebarPanelExtensionPanelSlot>
+      )}
+      {graphActionButton && (
+        <IntoSidebarPanelExtensionActionRailSlot>
+          {graphActionButton}
+        </IntoSidebarPanelExtensionActionRailSlot>
+      )}
+    </SidebarPanelExtensionProvider>
+  )
+}
 
 // for (const sourceName of Object.keys(layerOptions)) {
 //   const layerName = `${sourceName}-fill`
@@ -124,37 +382,21 @@ const graphChartBoxSx = {
 
 const FinlandForests = () => {
   const enableLayerGroup = useMapStore((state) => state.enableLayerGroup)
-  const fitBounds = useMapStore((state) => state.fitBounds)
   const removeSelectedFeatures = useMapStore(
     (state) => state.removeSelectedFeatures
   )
 
   useLayerGroup('fi_forests', layerConf)
   const updateMapDetails = useUpdateMapDetails()
-  const [hasFeature, setHasFeature] = useState(false)
-  const [options, setOptions] = useState<any>(null)
   const filteredFeatures = useSelectedFeaturesFilteredByLayer(
     Object.keys(layerOptions).map((x) => `${x}-fill`)
   )
+  const hasFeature = filteredFeatures.length > 0
   const { formatNumber } = useLocaleFormatter()
 
   useEffect(() => {
     enableLayerGroup('fi_forests', { layerConf })
-  }, [])
-
-  useLayoutEffect(() => {
-    const newHasFeature = filteredFeatures.length > 0
-    setHasFeature(newHasFeature)
-  }, [filteredFeatures])
-
-  const [reportPanelOpen, setReportPanelOpen] = useState(true)
-  const [isGraphPanelOpen, setIsGraphPanelOpen] = useState(false)
-
-  useEffect(() => {
-    if (!hasFeature) {
-      setIsGraphPanelOpen(false)
-    }
-  }, [hasFeature])
+  }, [enableLayerGroup])
 
   const [forestryMethod, setForestryMethod] = useState<ForestryMethod>(
     DEFAULT_FORESTRY_METHOD
@@ -163,9 +405,12 @@ const FinlandForests = () => {
   const [cumulativeFlag, setCumulativeFlag] = useState(true)
   const [carbonBalanceDifferenceFlag, setCarbonBalanceDifferenceFlag] =
     useState(true)
+  const effectiveCarbonBalanceDifferenceFlag =
+    forestryMethod === TRADITIONAL_FORESTRY_METHOD
+      ? false
+      : carbonBalanceDifferenceFlag
 
   // Analytics.setParams({
-  //   reportPanelOpen,
   //   forestryMethod,
   //   perHectareFlag,
   //   cumulativeFlag,
@@ -181,15 +426,12 @@ const FinlandForests = () => {
 
   // TODO: Why does commenting this out make the fill colors work?
   useEffect(() => {
-    // Eliminate confusing options (all zeroes)
-    if (
-      forestryMethod === TRADITIONAL_FORESTRY_METHOD &&
-      carbonBalanceDifferenceFlag
-    ) {
-      setCarbonBalanceDifferenceFlag(false)
-    }
-    updateMapDetails(forestryMethod, carbonBalanceDifferenceFlag)
-  }, [forestryMethod, carbonBalanceDifferenceFlag])
+    updateMapDetails(forestryMethod, effectiveCarbonBalanceDifferenceFlag)
+  }, [
+    forestryMethod,
+    effectiveCarbonBalanceDifferenceFlag,
+    updateMapDetails,
+  ])
 
   // TODO: enable overlay message and search placeholder
   // useEffect(() => {
@@ -203,27 +445,26 @@ const FinlandForests = () => {
   //   // })
   // }, [hasFeature])
 
-  useEffect(() => {
-    const newOptions: any = {}
+  const options = useMemo<ForestsOptions>(() => {
     const allFeatureProps = filteredFeatures.map((x) => x.properties)
 
-    newOptions.totals = getTotals(
+    const totals = getTotals(
       forestryMethod,
       perHectareFlag,
       allFeatureProps
-    )
+    ) as ForestsTotals
 
     const attrValues = getDatasetAttributes(
       forestryMethod,
       cumulativeFlag,
-      newOptions.totals
+      totals
     )
 
-    if (carbonBalanceDifferenceFlag) {
+    if (effectiveCarbonBalanceDifferenceFlag) {
       const traditional = getDatasetAttributes(
         TRADITIONAL_FORESTRY_METHOD,
         cumulativeFlag,
-        newOptions.totals
+        totals
       )
       for (const attr in attrValues) {
         attrValues[attr] = attrValues[attr].map(
@@ -232,51 +473,46 @@ const FinlandForests = () => {
       }
     }
 
-    const selectedLayersOfFeatures = filteredFeatures.map((x) => x.layer)
-
-    const title = getChartTitle(selectedLayersOfFeatures, allFeatureProps)
-    newOptions.npvText = getNpvText(
-      carbonBalanceDifferenceFlag,
+    const npvText = getNpvText(
+      effectiveCarbonBalanceDifferenceFlag,
       perHectareFlag,
-      newOptions.totals,
+      totals,
       formatNumber,
       forestryMethod
     )
 
-    newOptions.cbt = getChartProps(
+    const cbt = getChartProps(
       'cbt',
       cumulativeFlag,
       perHectareFlag,
       attrValues
-    )
-    newOptions.bio = getChartProps(
+    ) as ForestsChartConfig
+    const bio = getChartProps(
       'bio',
       cumulativeFlag,
       perHectareFlag,
       attrValues
-    )
-    newOptions.wood = getChartProps(
+    ) as ForestsChartConfig
+    const wood = getChartProps(
       'harvested-wood',
       cumulativeFlag,
       perHectareFlag,
       attrValues
-    )
+    ) as ForestsChartConfig
 
-    const getAverageCarbonBalanceFigure = (totals: any) => {
+    const getAverageCarbonBalanceFigure = (figureTotals: ForestsTotals) => {
       const averageCarbonBalanceDecade =
-        totals[`f${forestryMethod}_cbt1_area_mult_sum`] -
-        (carbonBalanceDifferenceFlag
-          ? totals[`f${TRADITIONAL_FORESTRY_METHOD}_cbt1_area_mult_sum`]
+        figureTotals[`f${forestryMethod}_cbt1_area_mult_sum`] -
+        (effectiveCarbonBalanceDifferenceFlag
+          ? figureTotals[`f${TRADITIONAL_FORESTRY_METHOD}_cbt1_area_mult_sum`]
           : 0)
       // per decade -> per year
       return averageCarbonBalanceDecade / 10
     }
 
-    const averageCarbonBalance = getAverageCarbonBalanceFigure(
-      newOptions.totals
-    )
+    const averageCarbonBalance = getAverageCarbonBalanceFigure(totals)
     const unit = perHectareFlag ? 'tons CO₂e/ha/y' : 'tons CO₂e/y'
-    newOptions.averageCarbonBalanceText = isNaN(averageCarbonBalance)
+    const averageCarbonBalanceText = isNaN(averageCarbonBalance)
       ? ''
       : `${averageCarbonBalance > 0 ? '+' : ''}${formatNumber(
           averageCarbonBalance,
@@ -286,21 +522,23 @@ const FinlandForests = () => {
         )} ${unit}`
 
     const totalsOverall = getTotals(forestryMethod, false, allFeatureProps)
-    newOptions.averageCarbonBalanceOverall =
-      getAverageCarbonBalanceFigure(totalsOverall)
+    const averageCarbonBalanceOverall = getAverageCarbonBalanceFigure(
+      totalsOverall as ForestsTotals
+    )
 
-    newOptions.headerTitle = titleRenames[title] || title
-
-    newOptions.bounds = getCombinedBounds(filteredFeatures)
-    newOptions.showReport = reportPanelOpen && hasFeature
-
-    setOptions(newOptions)
+    return {
+      totals,
+      npvText,
+      averageCarbonBalanceText,
+      averageCarbonBalanceOverall,
+      cbt,
+      bio,
+      wood,
+    }
   }, [
     filteredFeatures,
-    reportPanelOpen,
-    hasFeature,
     forestryMethod,
-    carbonBalanceDifferenceFlag,
+    effectiveCarbonBalanceDifferenceFlag,
     perHectareFlag,
     cumulativeFlag,
     formatNumber,
@@ -309,8 +547,11 @@ const FinlandForests = () => {
   const onChangeCheckbox = (
     callback: React.Dispatch<React.SetStateAction<boolean>>
   ) => {
-    return (event: any) => {
-      callback((event.target as HTMLInputElement).checked)
+    return (
+      _event: React.ChangeEvent<HTMLInputElement>,
+      checked: boolean
+    ) => {
+      callback(checked)
     }
   }
 
@@ -323,8 +564,8 @@ const FinlandForests = () => {
     return value
   }
 
-  const getAreaNameParts = (feature: any) => {
-    const props = feature?.properties ?? {}
+  const getAreaNameParts = (feature: MapGeoJSONFeature): AreaNameParts => {
+    const props = feature.properties ?? {}
     const nameFin = normalizeNamefin(props.namefin)
     if (nameFin) {
       return {
@@ -383,8 +624,8 @@ const FinlandForests = () => {
     }
   }
 
-  const getFeatureArea = (feature: any) => {
-    const props = feature?.properties ?? {}
+  const getFeatureArea = (feature: MapGeoJSONFeature) => {
+    const props = feature.properties ?? {}
     const areaValue =
       props.area ?? props.f_area ?? props.area_ha ?? props.area_hectares
     if (typeof areaValue === 'number') {
@@ -399,22 +640,20 @@ const FinlandForests = () => {
     removeSelectedFeatures({ features: [feature] })
   }
 
-  const selectedAreaRows = filteredFeatures.map(
-    (feature: any, index: number) => {
-      const props = feature?.properties ?? {}
-      const featureId = feature?.id ?? props.id
+  const selectedAreaRows = filteredFeatures.map((feature) => {
+    const props = feature.properties ?? {}
+    const featureId = feature.id ?? props.id
 
-      const nameParts = getAreaNameParts(feature)
+    const nameParts = getAreaNameParts(feature)
 
-      return {
-        id: String(featureId),
-        label: nameParts.label,
-        display: nameParts.display,
-        area: getFeatureArea(feature),
-        feature: feature,
-      }
+    return {
+      id: String(featureId),
+      label: nameParts.label,
+      display: nameParts.display,
+      area: getFeatureArea(feature),
+      feature: feature,
     }
-  )
+  })
 
   const summaryRows = options
     ? [
@@ -439,14 +678,17 @@ const FinlandForests = () => {
                 rowGap: 0,
               }}
             >
-              <Typography
+              <Box
                 component="span"
-                variant="body2"
-                sx={{ fontWeight: 'inherit', lineHeight: 1.4 }}
+                sx={{
+                  typography: 'body2',
+                  fontWeight: 'inherit',
+                  lineHeight: 1.4,
+                }}
               >
                 Average carbon balance
-                <Tooltip
-                  arrow
+                <ForestsInfoTooltip
+                  ariaLabel="Show average carbon balance information"
                   title={
                     <Box>
                       <Box
@@ -462,18 +704,9 @@ const FinlandForests = () => {
                       </Box>
                     </Box>
                   }
-                >
-                  <Info
-                    sx={{
-                      color: 'action.active',
-                      width: 16,
-                      height: 16,
-                      ml: 0.5,
-                      mb: '-2px',
-                    }}
-                  />
-                </Tooltip>
-              </Typography>
+                  sx={{ ml: 0.5, mb: '-2px' }}
+                />
+              </Box>
             </Box>
           ),
           value: hasFeature ? options.averageCarbonBalanceText : '',
@@ -486,7 +719,11 @@ const FinlandForests = () => {
       ]
     : []
 
-  const graphPanelContent =
+  const renderGraphPanelContent = ({
+    closeGraphPanel,
+  }: {
+    closeGraphPanel: () => void
+  }) =>
     options != null ? (
       <Box
         sx={{
@@ -506,6 +743,7 @@ const FinlandForests = () => {
         >
           <SwitchWithLabel
             sx={{ flex: 1, minWidth: 0 }}
+            controlSx={{ flexShrink: 0 }}
             checked={cumulativeFlag}
             onChange={onChangeCheckbox(setCumulativeFlag)}
           >
@@ -513,7 +751,7 @@ const FinlandForests = () => {
           </SwitchWithLabel>
           <IconButton
             aria-label="close graphs panel"
-            onClick={() => setIsGraphPanelOpen(false)}
+            onClick={closeGraphPanel}
             size="small"
             sx={graphActionButtonSx}
           >
@@ -529,9 +767,9 @@ const FinlandForests = () => {
                 borderRadius: 1,
               }}
             >
-              <Typography
-                variant="body2"
+              <Box
                 sx={{
+                  typography: 'body2',
                   fontWeight: 600,
                   display: 'flex',
                   alignItems: 'baseline',
@@ -549,7 +787,7 @@ const FinlandForests = () => {
                   carbon balance (
                   {getUnitPerArea('cbt', cumulativeFlag, perHectareFlag)})
                 </Box>
-              </Typography>
+              </Box>
               <Box sx={graphChartBoxSx}>
                 <FinlandForestsChart
                   options={options.cbt.chartOptions.options}
@@ -564,9 +802,9 @@ const FinlandForests = () => {
                 borderRadius: 1,
               }}
             >
-              <Typography
-                variant="body2"
+              <Box
                 sx={{
+                  typography: 'body2',
                   fontWeight: 600,
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -576,25 +814,16 @@ const FinlandForests = () => {
                 }}
               >
                 Forest carbon stock (tons C/ha)
-                <Tooltip
-                  arrow
+                <ForestsInfoTooltip
+                  ariaLabel="Show forest carbon stock note"
                   title={
                     <Box>
                       multiply by 3.67 to get CO<sub>2</sub>eq amounts
                     </Box>
                   }
-                >
-                  <Info
-                    sx={{
-                      color: 'action.active',
-                      width: 16,
-                      height: 16,
-                      ml: 0.5,
-                      mb: 0.2,
-                    }}
-                  />
-                </Tooltip>
-              </Typography>
+                  sx={{ ml: 0.5, mb: 0.2 }}
+                />
+              </Box>
               <Box sx={graphChartBoxSx}>
                 <FinlandForestsChart
                   options={options.bio.chartOptions.options}
@@ -609,9 +838,9 @@ const FinlandForests = () => {
                 borderRadius: 1,
               }}
             >
-              <Typography
-                variant="body2"
+              <Box
                 sx={{
+                  typography: 'body2',
                   fontWeight: 600,
                   display: 'flex',
                   alignItems: 'baseline',
@@ -629,7 +858,7 @@ const FinlandForests = () => {
                   )}
                   )
                 </Box>
-              </Typography>
+              </Box>
               <Box sx={graphChartBoxSx}>
                 <FinlandForestsChart
                   options={options.wood.chartOptions.options}
@@ -642,48 +871,13 @@ const FinlandForests = () => {
       </Box>
     ) : null
 
-  const hasGraphPanel = hasFeature && graphPanelContent != null
-
-  const graphActionButton =
-    hasGraphPanel ? (
-      <Tooltip title={isGraphPanelOpen ? 'Hide graphs' : 'Show graphs'} arrow>
-        <IconButton
-          aria-label={isGraphPanelOpen ? 'hide graphs' : 'show graphs'}
-          onClick={() => setIsGraphPanelOpen((open) => !open)}
-          sx={[
-            graphActionButtonSx,
-            isGraphPanelOpen && {
-              color: '#ffffff',
-              backgroundColor: '#0D6044',
-              '&:hover': {
-                backgroundColor: '#094832',
-              },
-            },
-          ]}
-        >
-          <BarChartIcon />
-        </IconButton>
-      </Tooltip>
-    ) : null
-
-  const sidebarPanelExtensionRuntimeOptions =
-    useMemo<SidebarPanelExtensionRuntimeOptions>(
-      () => ({
-        panelLayout: 'single',
-        visiblePanels: hasGraphPanel && isGraphPanelOpen ? ['main'] : [],
-        activePanel: 'main',
-        mobileMode: 'stacked',
-        mobileStackPlacement: 'before',
-        actionRailPlacement: 'bottomActionRow',
-      }),
-      [hasGraphPanel, isGraphPanelOpen]
-    )
+  const hasGraphPanel = hasFeature && options != null
 
   return (
-    <SidebarPanelExtensionProvider
-      id="forests-graph-panel-extension"
-      enabled={hasGraphPanel}
-      runtimeOptions={sidebarPanelExtensionRuntimeOptions}
+    <ForestsGraphPanelProvider
+      key={hasGraphPanel ? 'forests-graph-selected' : 'forests-graph-empty'}
+      hasGraphPanel={hasGraphPanel}
+      renderGraphPanelContent={renderGraphPanelContent}
     >
       <IntoSidebarPanelSlot panelId="main">
         <SidebarContentBox
@@ -845,10 +1039,10 @@ const FinlandForests = () => {
                       </Box>
                     </Box>
                     <Box sx={{ mt: 2 }}>
-                      <Typography
-                        variant="body2"
+                      <Box
                         component="span"
                         sx={{
+                          typography: 'body2',
                           fontStyle: 'italic',
                           display: 'inline',
                         }}
@@ -862,21 +1056,12 @@ const FinlandForests = () => {
                           }
                         )}{' '}
                         times average 👤 CO₂ emissions
-                        <Tooltip
-                          arrow
+                        <ForestsInfoTooltip
+                          ariaLabel="Show emissions equivalent note"
                           title="10.7 tonnes of CO₂ equivalents per capita. EU-27, 2022."
-                        >
-                          <Info
-                            sx={{
-                              color: 'action.active',
-                              width: 16,
-                              height: 16,
-                              ml: 1,
-                              mb: '-3px',
-                            }}
-                          />
-                        </Tooltip>
-                      </Typography>
+                          sx={{ ml: 1, mb: '-3px' }}
+                        />
+                      </Box>
                     </Box>
                   </Box>
                 ) : (
@@ -896,25 +1081,24 @@ const FinlandForests = () => {
                         flexShrink: 0,
                       }}
                     />
-                    <Typography variant="body2" sx={{ ml: 1.5 }}>
+                    <Box sx={{ typography: 'body2', ml: 1.5 }}>
                       Select a forest area to explore its carbon report. You can
                       zoom in and out to view different levels.
-                    </Typography>
+                    </Box>
                   </Box>
                 )}
                 <SwitchWithLabel
                   sx={{ mt: 7 }}
+                  controlSx={{ flexShrink: 0 }}
                   checked={perHectareFlag}
-                  onChange={(event) => {
-                    onChangeCheckbox(setPerHectareFlag)(event)
-                    setReportPanelOpen(true)
-                  }}
+                  onChange={onChangeCheckbox(setPerHectareFlag)}
                 >
                   Show values per hectare
                 </SwitchWithLabel>
                 <SwitchWithLabel
                   sx={{ mt: 2 }}
-                  checked={carbonBalanceDifferenceFlag}
+                  controlSx={{ flexShrink: 0 }}
+                  checked={effectiveCarbonBalanceDifferenceFlag}
                   onChange={onChangeCheckbox(setCarbonBalanceDifferenceFlag)}
                   disabled={forestryMethod === TRADITIONAL_FORESTRY_METHOD}
                 >
@@ -952,7 +1136,15 @@ const FinlandForests = () => {
                         },
                       ]}
                       onChange={(event) => {
-                        setForestryMethod(Number(event.target.value))
+                        const nextForestryMethod = Number(
+                          event.target.value
+                        ) as ForestryMethod
+                        setForestryMethod(nextForestryMethod)
+                        if (
+                          nextForestryMethod === TRADITIONAL_FORESTRY_METHOD
+                        ) {
+                          setCarbonBalanceDifferenceFlag(false)
+                        }
                       }}
                       sx={{ width: '100%' }}
                     />
@@ -969,12 +1161,11 @@ const FinlandForests = () => {
                         textAlign: { mobile: 'center', desktop: 'left' },
                       }}
                     >
-                      <Typography
-                        typography="body2"
-                        sx={{ fontSize: '0.675rem' }}
+                      <Box
+                        sx={{ typography: 'body2', fontSize: '0.675rem' }}
                       >
                         Scientific forest model by
-                      </Typography>
+                      </Box>
                       <Link
                         href="https://arvometsa.fi"
                         target="_blank"
@@ -997,17 +1188,7 @@ const FinlandForests = () => {
           )}
         </SidebarContentBox>
       </IntoSidebarPanelSlot>
-      {hasGraphPanel && (
-        <IntoSidebarPanelExtensionPanelSlot panelId="main">
-          {graphPanelContent}
-        </IntoSidebarPanelExtensionPanelSlot>
-      )}
-      {graphActionButton && (
-        <IntoSidebarPanelExtensionActionRailSlot>
-          {graphActionButton}
-        </IntoSidebarPanelExtensionActionRailSlot>
-      )}
-    </SidebarPanelExtensionProvider>
+    </ForestsGraphPanelProvider>
   )
 }
 
