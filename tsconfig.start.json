@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "allowJs": false,
+    "plugins": [],
+    "types": ["node", "vite/client"]
+  },
+  "include": [
+    "vite.start.config.mts",
+    "src/client.tsx",
+    "src/server.tsx",
+    "src/router.tsx",
+    "src/routeTree.gen.ts",
+    "src/routes/**/*.ts",
+    "src/routes/**/*.tsx",
+    "src/startBootstrapMarker.ts"
+  ],
+  "exclude": ["node_modules"]
+}

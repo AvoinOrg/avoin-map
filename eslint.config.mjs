@@ -27,6 +27,10 @@ const eslintConfig = defineConfig([
     'coverage/**',
     'i18n/**',
     'public/**',
+    '.tanstack/**',
+    '.nitro/**',
+    '.output/**',
+    'src/routeTree.gen.ts',
     'legacy/map/map.ts',
   ]),
 ])

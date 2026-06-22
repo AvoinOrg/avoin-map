@@ -13,6 +13,10 @@
     "build": "yarn run prebuild && node ./utils/scripts/buildFromFolderPruneTmp.js",
     "build-prune": "yarn run prebuild-dev && node ./utils/scripts/prebuildFolderPrune.js && NODE_ENV=production next build --webpack",
     "build-analyze": "ANALYZE=true yarn build",
+    "start:dev": "vite dev --config vite.start.config.mts",
+    "start:build": "vite build --config vite.start.config.mts",
+    "start:preview": "PORT=3002 node .output/server/index.mjs",
+    "start:typecheck": "tsc --project tsconfig.start.json --noEmit",
     "lint": "eslint .",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -62,6 +66,8 @@
     "@next/bundle-analyzer": "^16.2.4",
     "@ngageoint/geopackage": "^4.2.6",
     "@tanstack/react-query": "rc",
+    "@tanstack/react-router": "1.131.50",
+    "@tanstack/react-start": "1.131.50",
     "@tanstack/react-table": "^8.21.3",
     "@tolgee/format-icu": "^6.2.7",
     "@tolgee/react": "^6.2.7",
@@ -155,6 +161,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/react-window": "^1.8.8",
     "@types/shpjs": "^3.4.2",
+    "@vitejs/plugin-react": "4.7.0",
     "babel-loader": "^9.1.2",
     "babel-plugin-named-asset-import": "^0.3.8",
     "babel-polyfill": "^6.26.0",
@@ -185,8 +192,13 @@
     "sass": "^1.57.1",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
+    "vite": "6.4.2",
+    "vite-tsconfig-paths": "6.1.1",
     "webpack-cli": "^5.0.1",
     "webpack-dev-server": "^4.11.1"
+  },
+  "resolutions": {
+    "nitropack": "2.12.4"
   },
   "babel": {
     "presets": [

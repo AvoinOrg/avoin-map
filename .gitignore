@@ -78,6 +78,11 @@ typings/
 # nuxt.js build output
 .nuxt
 
+# TanStack Start / Nitro build output
+.tanstack/
+.output/
+.nitro/
+
 # vuepress build output
 .vuepress/dist
 
