@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Box, Typography } from '@mui/material'
 
 import { componentFixtureMetadata } from '#/common/component-fixtures/metadata'
 
@@ -20,68 +19,66 @@ const ComponentFixturesPage = async ({ params }: Props) => {
   const { locale } = await params
 
   return (
-    <Box
-      component="main"
-      sx={{
+    <main
+      style={{
         height: '100vh',
         minHeight: '100vh',
         overflow: 'auto',
-        px: { mobile: 2, desktop: 4 },
-        py: { mobile: 3, desktop: 5 },
+        padding: '40px 32px',
         backgroundColor: '#f4f6f3',
         color: '#111111',
       }}
     >
-      <Box sx={{ maxWidth: 920, mx: 'auto' }}>
-        <Typography
-          component="h1"
-          sx={{ mb: 1, fontSize: '1.25rem', fontWeight: 700 }}
+      <div style={{ maxWidth: 920, margin: '0 auto' }}>
+        <h1
+          style={{ margin: '0 0 8px', fontSize: '1.25rem', fontWeight: 700 }}
         >
           Component fixtures
-        </Typography>
-        <Typography sx={{ mb: 3, maxWidth: 620, fontSize: '0.875rem' }}>
+        </h1>
+        <p style={{ margin: '0 0 24px', maxWidth: 620, fontSize: '0.875rem' }}>
           Temporary development harness for isolated component refactor checks.
-        </Typography>
+        </p>
 
-        <Box component="ul" sx={{ m: 0, p: 0, listStyle: 'none' }}>
+        <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
           {componentFixtureMetadata.map((fixture) => (
-            <Box
-              component="li"
+            <li
               key={fixture.id}
-              sx={{
-                mb: 3,
-                p: 2,
+              style={{
+                marginBottom: 24,
+                padding: 16,
                 backgroundColor: '#ffffff',
                 border: '1px solid #cbd3c9',
-                borderRadius: 1,
+                borderRadius: 4,
               }}
             >
-              <Typography
-                component="h2"
-                sx={{ mb: 0.5, fontSize: '1rem', fontWeight: 700 }}
+              <h2
+                style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 700 }}
               >
                 {fixture.label}
-              </Typography>
+              </h2>
               {fixture.description && (
-                <Typography
-                  sx={{ mb: 1.5, fontSize: '0.8125rem', color: '#4e5a4d' }}
+                <p
+                  style={{
+                    margin: '0 0 12px',
+                    fontSize: '0.8125rem',
+                    color: '#4e5a4d',
+                  }}
                 >
                   {fixture.description}
-                </Typography>
+                </p>
               )}
-              <Box
-                component="ul"
-                sx={{
-                  m: 0,
-                  p: 0,
+              <ul
+                style={{
+                  margin: 0,
+                  padding: 0,
                   display: 'flex',
                   flexWrap: 'wrap',
-                  gap: 1,
+                  gap: 8,
                   listStyle: 'none',
                 }}
               >
                 {fixture.states.map((state) => (
-                  <Box component="li" key={state.id}>
+                  <li key={state.id}>
                     <Link
                       href={`/${locale}/dev/component-fixtures/${fixture.id}/${state.id}`}
                       style={{
@@ -96,14 +93,14 @@ const ComponentFixturesPage = async ({ params }: Props) => {
                     >
                       {state.label}
                     </Link>
-                  </Box>
+                  </li>
                 ))}
-              </Box>
-            </Box>
+              </ul>
+            </li>
           ))}
-        </Box>
-      </Box>
-    </Box>
+        </ul>
+      </div>
+    </main>
   )
 }
 

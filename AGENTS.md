@@ -14,6 +14,9 @@ standalone sites.
 - `src/components`: Shared UI and map components.
 - `src/common`: Shared hooks, routing, store, types, and utilities.
 - `utils/scripts`: Build-time helpers (translations, folder pruning, Netlify helpers).
+- `legacy/`: Archival old implementation excluded from current app builds and
+  `tsconfig.json`; full-MUI imports here are scan false positives unless this
+  tree is explicitly reactivated.
 
 ## Shared agent assets
 
@@ -200,8 +203,8 @@ standalone sites.
 - Layer configs live in `src/components/Map/layers` plus applet-specific layer
   definitions.
 - Styles use MapLibre/Mapbox expression syntax for dynamic styling.
-- UI uses MUI (Material UI). Prefer styling via the `sx` prop (including `sx`
-  arrays) to keep component styling colocated with usage.
+- UI uses Base UI plus MUI System. Prefer styling via the `sx` prop (including
+  `sx` arrays) to keep component styling colocated with usage.
 - Prefer `sx` over `styled()` / `@emotion/styled`; only use `styled` when it
   materially improves DRY/reuse or encapsulates styling that can’t be expressed
   cleanly with `sx`.

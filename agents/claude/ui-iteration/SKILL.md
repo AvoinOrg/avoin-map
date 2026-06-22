@@ -21,7 +21,7 @@ Use this skill when the user asks for any of the following:
 - Adjust spacing, sizing, typography, colors, or alignment in existing UI
 - Refine a page or component until it matches a screenshot or Figma design
 - Fix responsive layout issues
-- Implement or polish MUI-based UI in this repo
+- Implement or polish Base UI / MUI System UI in this repo
 - Verify UI changes visually, including live browser checks
 
 ## Workflow

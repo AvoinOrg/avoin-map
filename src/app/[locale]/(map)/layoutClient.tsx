@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
-import { Box } from '@mui/material'
+import React, { useSyncExternalStore } from 'react'
 
+import { Box } from '#/common/style/theme'
 import { MapHandler } from '#/components/Map'
 import { LoginModal } from '#/components/Modal'
 import { ConfirmationDialog } from '#/components/Notification'
@@ -11,9 +11,10 @@ import UIStateHandler from './uiStateHandler'
 import { SlotsProvider } from '#/components/context/slotsContext'
 import { SidebarRoot } from '#/components/Sidebar'
 import { FullscreenPageSlot } from '#/components/common/FullscreenPage'
-// import { UserModal } from '#/components/Profile'
-// import { UiStateProvider, UserStateProvider } from '#/components/State'
-// import RootStyleRegistry from './emotion'
+
+const subscribeToHydration = () => () => undefined
+const getHydratedSnapshot = () => true
+const getServerHydrationSnapshot = () => false
 
 const LayoutClient = ({
   // Layouts must accept a children prop.
@@ -22,11 +23,11 @@ const LayoutClient = ({
 }: {
   children?: React.ReactNode
 }) => {
-  const [isHydrated, setIsHydrated] = useState(false)
-
-  useEffect(() => {
-    setIsHydrated(true)
-  }, [])
+  const isHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getHydratedSnapshot,
+    getServerHydrationSnapshot
+  )
 
   return (
     <>

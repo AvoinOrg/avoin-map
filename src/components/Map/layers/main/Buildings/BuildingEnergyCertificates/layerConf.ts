@@ -7,6 +7,9 @@ import {
 import Popup from './Popup'
 
 const id: LayerGroupId = 'building_energy_certs'
+type OrderedLayerSpecification = ExtendedStyleSpecification['layers'][number] & {
+  BEFORE?: 'FILL' | 'OUTLINE' | 'LABEL'
+}
 
 export const ENERGY_CLASS_COLORS = {
   A: '#1F964A',
@@ -19,6 +22,64 @@ export const ENERGY_CLASS_COLORS = {
 } as const
 
 const getStyle = async (): Promise<ExtendedStyleSpecification> => {
+  const layers: OrderedLayerSpecification[] = [
+    {
+      id: id + '-fill',
+      source: id,
+      'source-layer': 'energiatodistukset',
+      type: 'fill',
+      paint: {
+        'fill-color': [
+          'match',
+          ['get', 'e_luokka'],
+          'A',
+          ENERGY_CLASS_COLORS.A,
+          'B',
+          ENERGY_CLASS_COLORS.B,
+          'C',
+          ENERGY_CLASS_COLORS.C,
+          'D',
+          ENERGY_CLASS_COLORS.D,
+          'E',
+          ENERGY_CLASS_COLORS.E,
+          'F',
+          ENERGY_CLASS_COLORS.F,
+          'G',
+          ENERGY_CLASS_COLORS.G,
+          'white',
+        ],
+        'fill-opacity': fillOpacity,
+      },
+      BEFORE: 'FILL',
+    },
+    {
+      id: id + '-outline',
+      source: id,
+      'source-layer': 'energiatodistukset',
+      type: 'line',
+      minzoom: 11,
+      paint: {
+        'line-opacity': 0.75,
+      },
+      BEFORE: 'OUTLINE',
+    },
+    {
+      id: id + '-symbol',
+      source: id,
+      'source-layer': 'energiatodistukset',
+      type: 'symbol',
+      minzoom: 14,
+      paint: {},
+      layout: {
+        'symbol-placement': 'point',
+        'text-font': ['Open Sans Regular'],
+        'text-size': 20,
+        'text-field': ['case', ['has', 'e_luokka'], ['get', 'e_luokka'], ''],
+      },
+      BEFORE: 'LABEL',
+    },
+  ]
+
   return {
     version: 8,
     name: id,
@@ -37,71 +98,15 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
         attribution: '<a href="https://www.hel.fi">© City of Helsinki</a>',
       },
     },
-    layers: [
-      {
-        id: id + '-fill',
-        source: id,
-        'source-layer': 'energiatodistukset',
-        type: 'fill',
-        paint: {
-          'fill-color': [
-            'match',
-            ['get', 'e_luokka'],
-            'A',
-            ENERGY_CLASS_COLORS.A,
-            'B',
-            ENERGY_CLASS_COLORS.B,
-            'C',
-            ENERGY_CLASS_COLORS.C,
-            'D',
-            ENERGY_CLASS_COLORS.D,
-            'E',
-            ENERGY_CLASS_COLORS.E,
-            'F',
-            ENERGY_CLASS_COLORS.F,
-            'G',
-            ENERGY_CLASS_COLORS.G,
-            'white',
-          ],
-          'fill-opacity': fillOpacity,
-        },
-        BEFORE: 'FILL',
-      },
-      {
-        id: id + '-outline',
-        source: id,
-        'source-layer': 'energiatodistukset',
-        type: 'line',
-        minzoom: 11,
-        paint: {
-          'line-opacity': 0.75,
-        },
-        BEFORE: 'OUTLINE',
-      },
-      {
-        id: id + '-symbol',
-        source: id,
-        'source-layer': 'energiatodistukset',
-        type: 'symbol',
-        minzoom: 14,
-        paint: {},
-        layout: {
-          'symbol-placement': 'point',
-          'text-font': ['Open Sans Regular'],
-          'text-size': 20,
-          'text-field': ['case', ['has', 'e_luokka'], ['get', 'e_luokka'], ''],
-        },
-        BEFORE: 'LABEL',
-      },
-    ],
+    layers,
   }
 }
 
-const layerConf: LayerConf = {
+const layerConf = {
   id: id,
   style: getStyle,
   popup: Popup,
   useMb: true,
-}
+} as LayerConf
 
 export default layerConf

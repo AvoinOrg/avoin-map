@@ -1,7 +1,7 @@
 import React from 'react'
-import { Box, type BoxProps, type SxProps, type Theme } from '@mui/material'
 import { type LinkProps as NextLinkProps } from 'next/link'
 
+import { Box, type AppSxProps } from '#/common/style/theme'
 import { NextIntlLink } from '#/common/navigation/navigation'
 import { useUIStore } from '#/common/store/uiStore'
 import { Params, RouteTree } from '#/common/types/routing'
@@ -12,7 +12,7 @@ type NextIntlLinkComponentProps = Omit<
   React.ComponentProps<typeof NextIntlLink>,
   'sx'
 > & {
-  sx?: SxProps<Theme>
+  sx?: AppSxProps
 }
 
 type MutableLinkProps = React.PropsWithChildren<
@@ -23,7 +23,7 @@ type MutableLinkProps = React.PropsWithChildren<
       params?: Params
       removeSteps?: number
       removeStepsFromRoot?: number
-      sx?: SxProps<Theme>
+      sx?: AppSxProps
     }
 >
 
@@ -44,6 +44,8 @@ const NextIntlLinkComponent = React.forwardRef<
 })
 
 NextIntlLinkComponent.displayName = 'NextIntlLinkComponent'
+
+const LinkBox = Box as React.ElementType
 
 /**
  * A link that can be used in applets with their own domain.
@@ -88,18 +90,18 @@ const MutableLink = ({
   const composedSx = [
     DEFAULT_LINK_SX,
     ...(Array.isArray(sx) ? sx : [sx]),
-  ].filter(Boolean) as unknown as SxProps<Theme>
+  ].filter(Boolean) as AppSxProps
 
   return (
-    <Box
+    <LinkBox
       component={NextIntlLinkComponent as React.ElementType}
-      sx={composedSx as BoxProps['sx']}
+      sx={composedSx}
       prefetch={prefetch}
       {...props}
       href={href}
     >
       {children}
-    </Box>
+    </LinkBox>
   )
 }
 

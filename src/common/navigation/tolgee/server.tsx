@@ -1,10 +1,18 @@
 import { createServerInstance, detectLanguageFromHeaders } from '@tolgee/react/server'
+import { headers } from 'next/headers'
 
-import { TolgeeBase, ALL_NS_LANGS, getStaticData } from './shared'
+import {
+  TolgeeBase,
+  ALL_NS_LANGS,
+  DEFAULT_LOCALE,
+  LOCALES,
+  getStaticData,
+} from './shared'
 
 export const { getTolgee, getTranslate, T } = createServerInstance({
-  getLocale: detectLanguageFromHeaders,
-  createTolgee: async (locale: any) =>
+  getLocale: async () =>
+    detectLanguageFromHeaders(await headers(), LOCALES) || DEFAULT_LOCALE,
+  createTolgee: async (locale: string) =>
     TolgeeBase().init({
       // load all languages on the server
       staticData: await getStaticData(ALL_NS_LANGS),

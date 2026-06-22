@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const path = require('path')
 const fs = require('fs')
 const CopyPlugin = require('copy-webpack-plugin')
@@ -72,14 +73,8 @@ const nextConfig = {
   reactStrictMode: true,
   productionBrowserSourceMaps: DEBUG_CLIENT_ERRORS,
   modularizeImports: {
-    '@mui/material': {
-      transform: '@mui/material/{{member}}',
-    },
     ol: {
       transform: 'ol/{{member}}',
-    },
-    '@mui/icons-material/?(((\\w*)?/?)*)': {
-      transform: '@mui/icons-material/{{ matches.[1] }}/{{member}}',
     },
   },
   transpilePackages: ['lodash-es'],

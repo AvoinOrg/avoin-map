@@ -1,10 +1,10 @@
 'use client'
 
 import React from 'react'
-import { Box, Button, Container, Stack, Typography } from '@mui/material'
 import NextLink from 'next/link'
 
-import { AppThemeProvider } from '#/common/style/theme'
+import { AppThemeProvider, Box } from '#/common/style/theme'
+import { Button } from '#/components/common/Button'
 
 const NotFound = () => {
   return (
@@ -22,24 +22,39 @@ const NotFound = () => {
           color: theme.palette.neutral.darker,
         })}
       >
-        <Container maxWidth="sm">
-          <Stack spacing={2} sx={{ textAlign: 'center', alignItems: 'center' }}>
-            <Typography
-              variant="h1"
+        <Box sx={{ width: '100%', maxWidth: 600 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2,
+              textAlign: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <Box
+              component="p"
               sx={(theme) => ({
-                fontSize: { xs: '3rem', sm: '4rem' },
+                m: 0,
+                typography: 'h1',
+                fontSize: { mobile: '3rem', desktop: '4rem' },
                 letterSpacing: '0.2rem',
                 color: theme.palette.neutral.dark,
               })}
             >
               404
-            </Typography>
-            <Typography variant="h2">Page not found</Typography>
-            <Typography variant="body2" sx={{ maxWidth: 520 }}>
+            </Box>
+            <Box component="h1" sx={{ m: 0, typography: 'h2' }}>
+              Page not found
+            </Box>
+            <Box
+              component="p"
+              sx={{ m: 0, maxWidth: 520, typography: 'body2' }}
+            >
               The page you are looking for does not exist or has been moved.
-            </Typography>
+            </Box>
 
-            <Stack direction="row" spacing={1.5} sx={{ pt: 1 }}>
+            <Box sx={{ display: 'flex', gap: 1.5, pt: 1 }}>
               <Button component={NextLink} href="/" variant="contained">
                 Go to home
               </Button>
@@ -50,9 +65,9 @@ const NotFound = () => {
               >
                 Go back
               </Button>
-            </Stack>
-          </Stack>
-        </Container>
+            </Box>
+          </Box>
+        </Box>
       </Box>
     </AppThemeProvider>
   )

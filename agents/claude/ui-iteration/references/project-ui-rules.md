@@ -18,7 +18,7 @@ Use this reference for local Avoin Map UI conventions before making UI edits.
 
 ## Styling rules
 
-- Prefer MUI `sx` over `styled()` for ordinary component styling.
+- Prefer MUI System `sx` over `styled()` for ordinary component styling.
 - Keep styling colocated with component usage unless extraction materially improves reuse or clarity.
 - For responsive styling, use the project breakpoints `mobile` and `desktop`, not MUI defaults like `xs` or `sm`.
 - When creating a stylable component that accepts `sx`, extend it as an array:

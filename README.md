@@ -84,6 +84,9 @@ plain HTTP request.
 - `src/common`: Shared hooks, routing, store, types, utilities.
 - `src/components`: Shared UI and map components.
 - `utils/scripts`: Build-time helpers (translations, folder pruning, Netlify helpers).
+- `legacy/`: Archival old implementation excluded from current app builds and
+  `tsconfig.json`; full-MUI imports here are scan false positives unless this
+  tree is explicitly reactivated.
 
 ## Applets and build modes
 
@@ -135,9 +138,9 @@ limitations.
 ## State, data, and map
 
 - Map rendering uses MapLibre GL JS.
-- UI components and styling are built with MUI (Material UI); prefer the `sx`
-  prop for styling over `styled()` / `@emotion/styled` and separate style sheets
-  when possible (use `styled` only when it significantly improves DRY/reuse).
+- UI components are built with Base UI and MUI System; prefer the `sx` prop for
+  styling over `styled()` / `@emotion/styled` and separate style sheets when
+  possible (use `styled` only when it significantly improves DRY/reuse).
 - Add unique `aria-label` values to icon-only buttons, custom click targets,
   and menu triggers/items that do not already expose a stable accessible name.
   This improves both accessibility and automated UI test reliability.

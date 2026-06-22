@@ -329,7 +329,7 @@ export const MapButtonGroup = ({
         '& [data-slot="map-button"]': {
           borderRadius: 0,
         },
-        '& > [data-slot="map-button"]:first-child, & > *:not(style):first-child [data-slot="map-button"]': {
+        '& > [data-slot="map-button"]:first-of-type, & > *:not(style):first-of-type [data-slot="map-button"]': {
           borderTopLeftRadius: '0.3125rem',
           borderBottomLeftRadius: isVertical ? 0 : '0.3125rem',
           borderTopRightRadius: isVertical ? '0.3125rem' : 0,

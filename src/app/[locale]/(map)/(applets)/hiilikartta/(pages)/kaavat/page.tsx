@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useMemo, useState } from 'react'
-import { T, useTranslate } from '@tolgee/react'
+import { useTranslate } from '@tolgee/react'
 import { useRouter } from 'next/navigation'
 
 import useStore from '#/common/hooks/useStore'
@@ -222,7 +222,7 @@ const Page = () => {
       <SidebarBackgroundContent
         imageSrc="/files/img/hiilikartta/sidebar/kaavat-hero.png"
         imageAlt="Hiilikartta kaavat"
-        title={<T keyName="sidebar.kaavat.title" ns="hiilikartta" />}
+        title={<TText keyName="sidebar.kaavat.title" ns="hiilikartta" />}
         description={<TText keyName="sidebar.kaavat.description" ns="hiilikartta" />}
         imageSx={{
           height: '5.625rem',
@@ -260,7 +260,9 @@ const Page = () => {
                   }}
                 />
               }
-              text={<T keyName="sidebar.plan_flow.import_title" ns="hiilikartta" />}
+              text={
+                <TText keyName="sidebar.plan_flow.import_title" ns="hiilikartta" />
+              }
               helperText={t('sidebar.create.upload_info')}
               helperAriaLabel="Show plan import information"
               onClick={handleImportClick}
@@ -280,7 +282,10 @@ const Page = () => {
                 />
               }
               text={
-                <T keyName="sidebar.plan_flow.draw_plan_action" ns="hiilikartta" />
+                <TText
+                  keyName="sidebar.plan_flow.draw_plan_action"
+                  ns="hiilikartta"
+                />
               }
               helperText={t('sidebar.create.draw_new_info')}
               helperAriaLabel="Show drawing instructions"
@@ -320,7 +325,7 @@ const Page = () => {
                 m: 0,
               }}
             >
-              <T keyName="sidebar.my_plans.title" ns="hiilikartta" />
+              <TText keyName="sidebar.my_plans.title" ns="hiilikartta" />
             </Box>
             <Box
               sx={{

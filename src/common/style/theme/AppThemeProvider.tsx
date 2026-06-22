@@ -1,10 +1,10 @@
 'use client'
 
 import React from 'react'
-import CssBaseline from '@mui/material/CssBaseline'
-import { ThemeProvider } from '@mui/material/styles'
+import { GlobalStyles, ThemeProvider } from '@mui/system'
 
-import theme from './theme'
+import theme, { appGlobalStyles } from './theme'
+import type { AppTheme } from './system'
 
 type Props = {
   children: React.ReactNode
@@ -16,8 +16,10 @@ const AppThemeProvider = ({
   disableCssBaseline = false,
 }: Props) => {
   return (
-    <ThemeProvider theme={theme}>
-      {!disableCssBaseline ? <CssBaseline /> : null}
+    <ThemeProvider<AppTheme> theme={theme}>
+      {!disableCssBaseline ? (
+        <GlobalStyles<AppTheme> styles={appGlobalStyles} />
+      ) : null}
       {children}
     </ThemeProvider>
   )

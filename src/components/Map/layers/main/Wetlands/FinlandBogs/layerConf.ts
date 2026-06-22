@@ -7,9 +7,42 @@ import {
 import Popup from './Popup'
 
 const id: LayerGroupId = 'fi_bogs'
+type OrderedLayerSpecification = ExtendedStyleSpecification['layers'][number] & {
+  BEFORE?: 'FILL' | 'OUTLINE' | 'LABEL'
+}
 
 const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   const sourceNames = ['fi_bogs', 'gtk_peat']
+  const layers: OrderedLayerSpecification[] = [
+    {
+      id: sourceNames[0] + '-fill',
+      source: sourceNames[0],
+      'source-layer': 'default',
+      type: 'fill',
+      paint: {
+        'fill-color': 'orange',
+        'fill-opacity': fillOpacity,
+      },
+    },
+    {
+      id: sourceNames[1] + '-fill',
+      source: sourceNames[1],
+      'source-layer': 'default',
+      type: 'fill',
+      paint: {
+        'fill-color': [
+          'case',
+          ['==', ['get', 'photos_json'], ['literal', null]],
+          'red',
+          'orange',
+        ],
+        // 'fill-color': fillColorFertilityClass,
+        // 'fill-color': fillRegenerationFelling,
+        'fill-opacity': fillOpacity,
+      },
+      BEFORE: 'FILL',
+    },
+  ]
 
   return {
     version: 8,
@@ -38,44 +71,15 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
           '<a href="http://www.gtk.fi/">© Geological Survey of Finland</a>',
       },
     },
-    layers: [
-      {
-        id: sourceNames[0] + '-fill',
-        source: sourceNames[0],
-        'source-layer': 'default',
-        type: 'fill',
-        paint: {
-          'fill-color': 'orange',
-          'fill-opacity': fillOpacity,
-        },
-      },
-      {
-        id: sourceNames[1] + '-fill',
-        source: sourceNames[1],
-        'source-layer': 'default',
-        type: 'fill',
-        paint: {
-          'fill-color': [
-            'case',
-            ['==', ['get', 'photos_json'], ['literal', null]],
-            'red',
-            'orange',
-          ],
-          // 'fill-color': fillColorFertilityClass,
-          // 'fill-color': fillRegenerationFelling,
-          'fill-opacity': fillOpacity,
-        },
-        BEFORE: 'FILL',
-      },
-    ],
+    layers,
   }
 }
 
-const layerConf: LayerConf = {
+const layerConf = {
   id: id,
   style: getStyle,
   popup: Popup,
   useMb: true,
-}
+} as LayerConf
 
 export default layerConf

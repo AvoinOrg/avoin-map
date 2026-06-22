@@ -1,11 +1,11 @@
 'use client'
 
 import React, { useEffect } from 'react'
-import { Box, Button, Container, Stack, Typography } from '@mui/material'
-import { alpha } from '@mui/material/styles'
+import { alpha } from '@mui/system'
 import NextLink from 'next/link'
 
-import { AppThemeProvider } from '#/common/style/theme'
+import { AppThemeProvider, Box } from '#/common/style/theme'
+import { Button } from '#/components/common/Button'
 
 type Props = {
   error: Error & { digest?: string }
@@ -39,11 +39,12 @@ const Error = ({ error, reset }: Props) => {
           color: theme.palette.neutral.darker,
         })}
       >
-        <Container
-          maxWidth={isDev ? 'md' : 'sm'}
+        <Box
           sx={{
             height: '100%',
             minHeight: 0,
+            width: '100%',
+            maxWidth: isDev ? 900 : 600,
             display: 'flex',
             flexDirection: 'column',
           }}
@@ -58,31 +59,48 @@ const Error = ({ error, reset }: Props) => {
               pb: isDev ? 3 : 0,
             }}
           >
-            <Stack spacing={2} sx={{ textAlign: 'center', alignItems: 'center' }}>
-              <Typography variant="h2">Something went wrong</Typography>
-              <Typography variant="body2" sx={{ maxWidth: 520 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
+                textAlign: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <Box component="h1" sx={{ m: 0, typography: 'h2' }}>
+                Something went wrong
+              </Box>
+              <Box
+                component="p"
+                sx={{ m: 0, maxWidth: 520, typography: 'body2' }}
+              >
                 Please try again. If the problem persists, return to the home
                 page.
-              </Typography>
+              </Box>
 
               {!isDev && error.digest && (
-                <Typography
-                  variant="body7"
-                  sx={(theme) => ({ color: theme.palette.neutral.dark })}
+                <Box
+                  component="p"
+                  sx={(theme) => ({
+                    m: 0,
+                    color: theme.palette.neutral.dark,
+                    typography: 'body7',
+                  })}
                 >
                   Error ID: {error.digest}
-                </Typography>
+                </Box>
               )}
 
-              <Stack direction="row" spacing={1.5} sx={{ pt: 1 }}>
+              <Box sx={{ display: 'flex', gap: 1.5, pt: 1 }}>
                 <Button type="button" variant="contained" onClick={() => reset()}>
                   Try again
                 </Button>
                 <Button component={NextLink} href="/" variant="outlined">
                   Go to home
                 </Button>
-              </Stack>
-            </Stack>
+              </Box>
+            </Box>
           </Box>
 
           {isDev && (
@@ -111,18 +129,20 @@ const Error = ({ error, reset }: Props) => {
                   bgcolor: alpha(theme.palette.error.main, 0.08),
                 })}
               >
-                <Typography variant="h7">Debug details</Typography>
+                <Box component="h2" sx={{ m: 0, typography: 'h7' }}>
+                  Debug details
+                </Box>
                 {error.digest && (
-                  <Typography
-                    variant="body7"
+                  <Box
                     sx={(theme) => ({
                       ml: 'auto',
                       color: theme.palette.neutral.dark,
+                      typography: 'body7',
                       fontFamily: monoFontFamily,
                     })}
                   >
                     Error ID: {error.digest}
-                  </Typography>
+                  </Box>
                 )}
               </Box>
 
@@ -141,10 +161,10 @@ const Error = ({ error, reset }: Props) => {
                     bgcolor: alpha(theme.palette.error.main, 0.06),
                   })}
                 >
-                  <Typography
+                  <Box
                     component="div"
-                    variant="body7"
                     sx={{
+                      typography: 'body7',
                       fontFamily: monoFontFamily,
                       whiteSpace: 'pre-wrap',
                       wordBreak: 'break-word',
@@ -152,7 +172,7 @@ const Error = ({ error, reset }: Props) => {
                     }}
                   >
                     {error.name}: {error.message}
-                  </Typography>
+                  </Box>
                 </Box>
 
                 {error.stack && (
@@ -176,7 +196,7 @@ const Error = ({ error, reset }: Props) => {
               </Box>
             </Box>
           )}
-        </Container>
+        </Box>
       </Box>
     </AppThemeProvider>
   )

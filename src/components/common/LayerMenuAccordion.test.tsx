@@ -1,13 +1,12 @@
 import React from 'react'
 import '@testing-library/jest-dom'
-import { ThemeProvider } from '@mui/material/styles'
 import { fireEvent, render, screen } from '@testing-library/react'
 
-import theme from '#/common/style/theme/theme'
+import { AppThemeProvider } from '#/common/style/theme'
 import LayerMenuAccordion from '#/components/common/LayerMenuAccordion'
 
 const renderWithTheme = (ui: React.ReactElement) => {
-  return render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>)
+  return render(<AppThemeProvider disableCssBaseline>{ui}</AppThemeProvider>)
 }
 
 describe('LayerMenuAccordion', () => {
@@ -109,7 +108,7 @@ describe('LayerMenuAccordion', () => {
     })
 
     rerender(
-      <ThemeProvider theme={theme}>
+      <AppThemeProvider disableCssBaseline>
         <LayerMenuAccordion
           id="separator-filters"
           title="Rakennus tasot"
@@ -119,7 +118,7 @@ describe('LayerMenuAccordion', () => {
         >
           <div>Separated content</div>
         </LayerMenuAccordion>
-      </ThemeProvider>
+      </AppThemeProvider>
     )
 
     const regionWithoutSeparator = screen.getByRole('region')

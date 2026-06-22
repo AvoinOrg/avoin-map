@@ -1,5 +1,6 @@
 import type React from 'react'
-import type { SxProps, Theme } from '@mui/material'
+
+import type { AppSxProps } from '#/common/style/theme'
 
 export type ComponentFixtureStateId = string
 
@@ -27,13 +28,13 @@ export type ComponentFixtureWrapper = React.ComponentType<{
 }>
 
 export type ComponentFixtureState = ComponentFixtureStateMetadata & {
-  canvasSx?: SxProps<Theme>
+  canvasSx?: AppSxProps
   wrapper?: ComponentFixtureWrapper
   render: () => React.ReactNode
 }
 
 export type ComponentFixture = Omit<ComponentFixtureMetadata, 'states'> & {
-  canvasSx?: SxProps<Theme>
+  canvasSx?: AppSxProps
   wrapper?: ComponentFixtureWrapper
   states: ComponentFixtureState[]
 }
