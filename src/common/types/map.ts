@@ -18,6 +18,9 @@ import type { MapStoreActions } from '#/common/store/mapStore'
 import { StoreApi, UseBoundStore } from 'zustand'
 // interface mapFunctions {}
 
+export type { ColorStop } from './color'
+export type { MapDims } from './mapDims'
+
 export const EMBEDDED_PARAMS_URL_PREFIX = 'mapparams::'
 
 export type PopupProps<P = Record<string, any>> = {
@@ -244,13 +247,6 @@ interface BaseLayerGroupAddOptions {
 }
 
 export type DataUpdateMutator = (data: FeatureCollection) => Promise<void>
-
-export type MapDims = {
-  width: number
-  height: number
-  centerX: number
-  centerY: number
-}
 
 // Compatible with hydration.
 export interface SerializableLayerGroupAddOptions extends BaseLayerGroupAddOptions {
@@ -542,5 +538,3 @@ export type SearchableDataOpts = DataSearchOpts & {
   data: FeatureCollection
   enabled: boolean
 }
-
-export type ColorStop = { color: string; value: number }

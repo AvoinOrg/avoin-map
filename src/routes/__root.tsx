@@ -8,6 +8,8 @@ import {
 } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 
+import StartShellProviders from '#/start/StartShellProviders'
+
 const RootDocument = ({ children }: Readonly<{ children: ReactNode }>) => (
   <html lang="en">
     <head>
@@ -22,7 +24,9 @@ const RootDocument = ({ children }: Readonly<{ children: ReactNode }>) => (
 
 const RootComponent = () => (
   <RootDocument>
-    <Outlet />
+    <StartShellProviders>
+      <Outlet />
+    </StartShellProviders>
   </RootDocument>
 )
 

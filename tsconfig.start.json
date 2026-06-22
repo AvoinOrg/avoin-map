@@ -17,6 +17,8 @@
     "src/routeTree.gen.ts",
     "src/routes/**/*.ts",
     "src/routes/**/*.tsx",
+    "src/start/**/*.ts",
+    "src/start/**/*.tsx",
     "src/startBootstrapMarker.ts"
   ],
   "exclude": ["node_modules"]

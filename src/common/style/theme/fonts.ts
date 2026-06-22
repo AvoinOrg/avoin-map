@@ -1,5 +1,7 @@
 import { Arimo } from 'next/font/google'
 
+export { ARIMO_FONT_FAMILY } from './fontConstants'
+
 export const arimo = Arimo({
   weight: ['400', '500', '700'],
   subsets: ['latin'],
@@ -17,5 +19,3 @@ export const arimo = Arimo({
     'Helvetica Neue',
   ],
 })
-
-export const ARIMO_FONT_FAMILY = 'var(--font-arimo)'

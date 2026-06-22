@@ -1,10 +1,11 @@
 import { Outlet, createFileRoute } from '@tanstack/react-router'
 
+import StartMapShell from '#/start/StartMapShell'
+
 const MapLayout = () => (
-  <section>
-    <p>Shared map shell scaffold</p>
+  <StartMapShell>
     <Outlet />
-  </section>
+  </StartMapShell>
 )
 
 export const Route = createFileRoute('/$locale/(map)/_map')({
