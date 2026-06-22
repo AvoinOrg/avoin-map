@@ -1,13 +1,18 @@
 import { useState, useEffect, forwardRef, useImperativeHandle } from 'react'
-import { Feature, FeatureCollection } from 'geojson'
-import { useTranslate, T } from '@tolgee/react'
-import { Box, Typography } from '@mui/material'
+import type { Feature, FeatureCollection } from 'geojson'
+import { useTranslate } from '@tolgee/react'
 
+import { Box } from '#/common/style/theme'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import { useUIStore } from '#/common/store'
+import TText from '#/components/common/TText'
 
 import FolayerImportCodeRecordSelect from './FolayerImportCodeRecordSelect'
-import { IndexingStrategy, AdminFolayerConf, ColOptions } from '../common/types'
+import type {
+  IndexingStrategy,
+  AdminFolayerConf,
+  ColOptions,
+} from '../common/types'
 import {
   folayerDataValidateColumnValues,
   folayerDataFindDuplicateIds,
@@ -32,7 +37,10 @@ interface FolayerUpdateShpProps {
 }
 
 const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
-  ({ fileBuffers, adminFolayerConf, onValidationChange }, ref) => {
+  function FolayerUpdateShp(
+    { fileBuffers, adminFolayerConf, onValidationChange },
+    ref
+  ) {
     const { t } = useTranslate('luonnonmetsakartat')
     const notify = useUIStore((state) => state.notify)
     const triggerConfirmationDialog = useUIStore(
@@ -59,7 +67,7 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
     const [regionCol, setRegionCol] = useState<string | undefined>(
       adminFolayerConf.colOptions?.regionCol
     )
-    const [indexingStrategy, setIndexingStrategy] = useState<IndexingStrategy>(
+    const [indexingStrategy] = useState<IndexingStrategy>(
       adminFolayerConf.colOptions?.indexingStrategy || 'id'
     )
 
@@ -412,9 +420,12 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
       <>
         {columns.length > 0 && (
           <>
-            <Typography variant="h4" sx={{ mb: 2 }}>
-              {t('sidebar.admin.create.column_selection_header')}
-            </Typography>
+            <Box component="h3" sx={{ typography: 'h4', m: 0, mb: 2 }}>
+              <TText
+                keyName="sidebar.admin.create.column_selection_header"
+                ns="luonnonmetsakartat"
+              />
+            </Box>
             <Box
               sx={(theme) => ({
                 backgroundColor: theme.palette.neutral.light,

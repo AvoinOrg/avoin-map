@@ -1,16 +1,23 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
-import { Box, Typography } from '@mui/material'
-import { useParams, useRouter } from 'next/navigation'
-import { T, useTranslate } from '@tolgee/react'
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type MouseEvent,
+  type SyntheticEvent,
+} from 'react'
+import { useParams, usePathname, useRouter } from 'next/navigation'
+import { useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
-import { SaveOutlined } from '@mui/icons-material'
 
+import { Box } from '#/common/style/theme'
 import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
+import { Button } from '#/components/common/Button'
 import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
 import { useMapStore, useUIStore } from '#/common/store'
-import { Delete } from '#/components/icons'
+import { Delete, Save, Upload } from '#/components/icons'
 import { getRoute } from '#/common/routing/routing-client'
 import IconWithText from '#/components/common/IconWithText'
 import { LoadingSpinner } from '#/components/Loading'
@@ -19,24 +26,39 @@ import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 import { useSidebarActivityLoader } from '#/common/hooks/ui/useSidebarActivityLoader'
 import BigMenuButton from '#/components/common/BigMenuButton'
-import { Upload } from '#/components/icons'
+import TText from '#/components/common/TText'
 
-import { FolayerConfState } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
+import {
+  FolayerConfState,
+  type AdminFolayerConf,
+  type ColOptions,
+} from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { adminFolayerPatchMutation } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
-import { adminFolayerDeleteMutation } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerDeleteMutation'
-import { routeTree } from '#/common/routing/routes/luonnonmetsakartat'
+import { useAdminFolayerDeleteMutationOptions } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerDeleteMutation'
+import {
+  APPLET_NAMESPACE,
+  routeTree,
+} from '#/common/routing/routes/luonnonmetsakartat'
+import { mainRouteTree } from '#/common/routing/routes/main'
 import { getFolayerGroupId } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/utils'
 import FolayerUpdateShp, {
-  FolayerUpdateShpRef,
+  type FolayerUpdateShpRef,
 } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerUpdateShp'
-import FolayerImportPictures, {
-  FolayerImportPicturesRef,
-} from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportPictures'
+
+type FolayerPatchPayload = AdminFolayerConf & {
+  colOptions?: ColOptions
+  rawShapefile?: ArrayBuffer
+  deleteAreasNotUpdated?: boolean
+}
+
+type FolayerUpdateValues = {
+  colOptions: ColOptions
+  rawShapefile: ArrayBuffer
+} | null
 
 const Page = () => {
-  const [isFolayerReady, setIsFolayerReady] = useState(false)
-  const [isLoading, setIsLoading] = useSidebarActivityLoader()
+  const [, setIsLoading] = useSidebarActivityLoader()
   const [fileType, setFileType] = useState<'shp'>()
   const [fileName, setFileName] = useState<string>()
   const [arrayBuffers, setArrayBuffers] = useState<ArrayBuffer[]>()
@@ -47,10 +69,10 @@ const Page = () => {
   const inputRef = useRef<HTMLInputElement>(null)
   const params = useParams<{ folayerIdSlug: string }>()
   const router = useRouter()
+  const pathname = usePathname()
   const { t } = useTranslate('luonnonmetsakartat')
 
   const removeLayerGroup = useMapStore((state) => state.removeLayerGroup)
-  const notify = useUIStore((state) => state.notify)
   const triggerConfirmationDialog = useUIStore(
     (state) => state.triggerConfirmationDialog
   )
@@ -65,10 +87,12 @@ const Page = () => {
     adminFolayerPatchMutation()
   )
   const localAdminFolayerDeleteMutation = useMutation(
-    adminFolayerDeleteMutation()
+    useAdminFolayerDeleteMutationOptions()
   )
+  const isFolayerReady =
+    adminFolayerConf?.state === FolayerConfState.Idle
 
-  const handleFileInput = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInput = async (e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) {
       return
     }
@@ -98,34 +122,23 @@ const Page = () => {
   }
 
   useEffect(() => {
-    if (adminFolayerConf && adminFolayerConf.state === FolayerConfState.Idle) {
-      setIsFolayerReady(true)
-    } else {
-      setIsFolayerReady(false)
-    }
-  }, [adminFolayerConf])
-
-  useEffect(() => {
     if (!localAdminFolayerPatchMutation.isPending) {
       setIsLoading(false)
     } else {
       setIsLoading(true)
     }
-  }, [localAdminFolayerPatchMutation.isPending])
+  }, [localAdminFolayerPatchMutation.isPending, setIsLoading])
 
-  // After successful save, clear uploaded file state and reset flags
-  useEffect(() => {
-    if (localAdminFolayerPatchMutation.isSuccess) {
-      setFileName(undefined)
-      setFileType(undefined)
-      setArrayBuffers(undefined)
-      setDeleteAreasNotUpdated(false)
-      setIsUpdateValid(true)
-      if (inputRef.current) {
-        inputRef.current.value = ''
-      }
+  const resetUpdateFileState = () => {
+    setFileName(undefined)
+    setFileType(undefined)
+    setArrayBuffers(undefined)
+    setDeleteAreasNotUpdated(false)
+    setIsUpdateValid(true)
+    if (inputRef.current) {
+      inputRef.current.value = ''
     }
-  }, [localAdminFolayerPatchMutation.isSuccess])
+  }
 
   const handleNameChange = (value: string) => {
     updateAdminFolayerConf(params.folayerIdSlug, {
@@ -142,7 +155,7 @@ const Page = () => {
   }
 
   const handleIsVisibleChange = (
-    _e: React.SyntheticEvent<Element, Event>,
+    _e: SyntheticEvent<Element, Event>,
     checked: boolean
   ) => {
     updateAdminFolayerConf(params.folayerIdSlug, {
@@ -151,20 +164,40 @@ const Page = () => {
     })
   }
 
-  const handleSaveClick = async (event: any) => {
+  const getLocalizedAdminRoute = () => {
+    const pathSegments = pathname.split('/').filter(Boolean)
+    const locale = pathSegments[0]
+    const hasAppletSegment = pathSegments[1] === APPLET_NAMESPACE
+    const adminRoute = hasAppletSegment
+      ? {
+          routeNode: mainRouteTree.luonnonmetsakartat.admin,
+          routeTree: mainRouteTree,
+        }
+      : {
+          routeNode: routeTree.admin,
+          routeTree,
+        }
+    const route = getRoute(adminRoute)
+
+    return locale != null && locale.length === 2 && route.startsWith('/')
+      ? `/${locale}${route}`
+      : route
+  }
+
+  const handleSaveClick = async (event: MouseEvent<HTMLElement>) => {
     event.preventDefault()
     event.stopPropagation()
     event.nativeEvent.stopImmediatePropagation()
 
     if (adminFolayerConf) {
       // Gather shapefile colOptions and confirm validity
-      const shpValues = await new Promise<any>((resolve) => {
+      const shpValues = await new Promise<FolayerUpdateValues>((resolve) => {
         if (!shpRef.current) return resolve(null)
         shpRef.current.getValues((vals) => resolve(vals))
       })
 
       // Build payload, include raw shapefile, deleteAreasNotUpdated, and pictures when provided
-      const payload: any = {
+      const payload: FolayerPatchPayload = {
         ...adminFolayerConf,
       }
       if (fileType && arrayBuffers?.length) {
@@ -174,7 +207,9 @@ const Page = () => {
         payload.rawShapefile = shpValues?.rawShapefile || arrayBuffers[0]
         payload.deleteAreasNotUpdated = deleteAreasNotUpdated
       }
-      localAdminFolayerPatchMutation.mutate(payload)
+      localAdminFolayerPatchMutation.mutate(payload, {
+        onSuccess: resetUpdateFileState,
+      })
     }
 
     setIsLoading(true)
@@ -186,11 +221,9 @@ const Page = () => {
         setIsLoading(true)
         localAdminFolayerDeleteMutation.mutate({
           folayerConf: adminFolayerConf,
-          callbackFn: () => {
-            removeLayerGroup(getFolayerGroupId(adminFolayerConf.id, true))
-            router.push(
-              getRoute({ routeNode: routeTree.admin, routeTree: routeTree })
-            )
+          callbackFn: async () => {
+            await removeLayerGroup(getFolayerGroupId(adminFolayerConf.id, true))
+            router.push(getLocalizedAdminRoute())
           },
         })
       }
@@ -204,16 +237,22 @@ const Page = () => {
     }
   }
 
+  const hasSelectedUpdate = fileType === 'shp' && Boolean(arrayBuffers?.length)
+  const isSaveDisabledByUpdate = hasSelectedUpdate && !isUpdateValid
+  const isDeleting = adminFolayerConf?.state === FolayerConfState.Deleting
+  const shouldShowSaveFooter = Boolean(
+    adminFolayerConf && (adminFolayerConf.unsyncedChanges || fileName)
+  )
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
       <SidebarContentBox sxOuter={{ position: 'relative' }}>
-        {!isFolayerReady &&
-          adminFolayerConf.state !== FolayerConfState.Deleting && (
-            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-              <LoadingSpinner></LoadingSpinner>
-            </Box>
-          )}
-        {isFolayerReady && (
+        {!isFolayerReady && !isDeleting && (
+          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+            <LoadingSpinner></LoadingSpinner>
+          </Box>
+        )}
+        {isFolayerReady && adminFolayerConf && (
           <Box
             sx={{
               display: 'flex',
@@ -228,11 +267,12 @@ const Page = () => {
               onClick={handleDeleteClick}
               iconSx={{ height: '1.1rem' }}
               textSx={{ typography: 'h8' }}
+              ariaLabel={t('sidebar.admin.folayer.settings.delete')}
             >
-              <T
+              <TText
                 keyName={'sidebar.admin.folayer.settings.delete'}
                 ns={'luonnonmetsakartat'}
-              ></T>
+              />
             </IconWithText>
             <Box
               sx={(theme) => ({
@@ -254,13 +294,23 @@ const Page = () => {
                 onChange={handleColorChange}
                 sx={{ mt: 4 }}
                 labelText={t('sidebar.admin.folayer.settings.color')}
+                popoverProps={{
+                  positionerProps: {
+                    style: { zIndex: 1400 },
+                  },
+                }}
+                popoverSx={(theme) => ({
+                  position: 'relative',
+                  zIndex: theme.zIndex.modal + 1,
+                })}
               />
               <SwitchWithLabel
                 checked={adminFolayerConf.isVisible}
                 onChange={handleIsVisibleChange}
                 sx={{ mt: 4 }}
+                ariaLabel={t('sidebar.admin.folayer.settings.is_visible')}
               >
-                <T
+                <TText
                   ns={'luonnonmetsakartat'}
                   keyName={'sidebar.admin.folayer.settings.is_visible'}
                 />
@@ -279,6 +329,10 @@ const Page = () => {
                 variant="outlined"
                 component="label"
                 sx={{ width: '100%', minHeight: '60px' }}
+                aria-label={
+                  fileName ??
+                  t('sidebar.admin.folayer.settings.update_with_file')
+                }
               >
                 {fileName ||
                   t('sidebar.admin.folayer.settings.update_with_file')}
@@ -303,8 +357,11 @@ const Page = () => {
                         setDeleteAreasNotUpdated(checked)
                       }
                       sx={{ mt: 5 }}
+                      ariaLabel={t(
+                        'sidebar.admin.folayer.settings.delete_areas_not_updated'
+                      )}
                     >
-                      <T
+                      <TText
                         ns={'luonnonmetsakartat'}
                         keyName={
                           'sidebar.admin.folayer.settings.delete_areas_not_updated'
@@ -325,7 +382,7 @@ const Page = () => {
           </Box>
         )}
       </SidebarContentBox>
-      {adminFolayerConf && (adminFolayerConf.unsyncedChanges || fileName) && (
+      {shouldShowSaveFooter && (
         <Box
           sx={(theme) => ({
             display: 'flex',
@@ -339,63 +396,44 @@ const Page = () => {
             borderColor: 'primary.lighter',
           })}
         >
-          <Box
-            onClick={(event) => {
-              if (fileType && arrayBuffers?.length && !isUpdateValid) {
-                event.preventDefault()
-                event.stopPropagation()
-                // @ts-ignore
-                event.nativeEvent?.stopImmediatePropagation?.()
-                return
-              }
-              handleSaveClick(event)
-            }}
+          <Button
+            type="button"
+            variant="text"
+            color="neutral"
+            disabled={isSaveDisabledByUpdate}
+            aria-label={t('sidebar.admin.folayer.settings.save')}
+            onClick={handleSaveClick}
+            startIcon={<Save />}
             sx={{
               mt: 1.3,
               display: 'inline-flex',
-              flexDirection: 'row',
-              cursor:
-                fileType && arrayBuffers?.length
-                  ? isUpdateValid
-                    ? 'pointer'
-                    : 'not-allowed'
-                  : 'pointer',
-              '&:hover': {
-                cursor:
-                  fileType && arrayBuffers?.length
-                    ? isUpdateValid
-                      ? 'pointer'
-                      : 'not-allowed'
-                    : 'pointer',
-              },
-              color: 'neutral.dark',
-              flex: '0',
-              whiteSpace: 'nowrap',
-              alignSelf: 'flex-start',
               width: '100%',
-              opacity:
-                fileType && arrayBuffers?.length
-                  ? isUpdateValid
-                    ? 1
-                    : 0.5
-                  : 1,
+              minWidth: 0,
+              minHeight: 'auto',
+              justifyContent: 'flex-start',
+              alignSelf: 'flex-start',
+              p: 0,
+              color: 'neutral.dark',
+              typography: 'h3',
+              gap: 1,
+              whiteSpace: 'nowrap',
+              '&:hover': {
+                backgroundColor: 'transparent',
+              },
+              '&:disabled, &[data-disabled], &[aria-disabled="true"]': {
+                color: 'neutral.dark',
+                backgroundColor: 'transparent',
+                opacity: 0.5,
+                cursor: 'not-allowed',
+                pointerEvents: 'auto',
+              },
             }}
           >
-            <Box sx={{ mr: 1.7, display: 'flex', alignItems: 'center' }}>
-              <SaveOutlined></SaveOutlined>
-              <Typography
-                sx={{
-                  typography: 'h3',
-                  ml: 1,
-                }}
-              >
-                <T
-                  keyName={'sidebar.admin.folayer.settings.save'}
-                  ns={'luonnonmetsakartat'}
-                />
-              </Typography>
-            </Box>
-          </Box>
+            <TText
+              keyName={'sidebar.admin.folayer.settings.save'}
+              ns={'luonnonmetsakartat'}
+            />
+          </Button>
         </Box>
       )}
     </Box>

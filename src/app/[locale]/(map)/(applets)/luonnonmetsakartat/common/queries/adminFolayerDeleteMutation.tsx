@@ -11,10 +11,10 @@ const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 
 export interface AdminFolayerDeleteInput {
   folayerConf: AdminFolayerConf
-  callbackFn?: () => void
+  callbackFn?: () => void | Promise<void>
 }
 
-export const adminFolayerDeleteMutation = (): UseMutationOptions<
+export const useAdminFolayerDeleteMutationOptions = (): UseMutationOptions<
   void,
   Error,
   AdminFolayerDeleteInput
@@ -71,7 +71,7 @@ export const adminFolayerDeleteMutation = (): UseMutationOptions<
         variant: 'error',
       })
     },
-    onSuccess: (_, params) => {
+    onSuccess: async (_, params) => {
       // Notify user of successful deletion
       notify({
         message: t('notifications.folayer_delete_success', {
@@ -80,7 +80,7 @@ export const adminFolayerDeleteMutation = (): UseMutationOptions<
         variant: 'success',
       })
 
-      params.callbackFn?.()
+      await params.callbackFn?.()
       deleteAdminFolayerConf(params.folayerConf.id)
     },
     retry: 3,
