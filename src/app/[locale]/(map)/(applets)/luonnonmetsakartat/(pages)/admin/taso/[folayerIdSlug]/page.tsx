@@ -1,25 +1,17 @@
 'use client'
 
-import React, {
-  useRef,
-  useEffect,
-  useState,
-  ChangeEvent,
-  use,
-  useMemo,
-} from 'react'
-import { Box, Typography } from '@mui/material'
-import { useParams, useRouter } from 'next/navigation'
-import { T, useTranslate } from '@tolgee/react'
-import { useMutation } from '@tanstack/react-query'
+import React from 'react'
+import { useParams } from 'next/navigation'
+import { useTranslate } from '@tolgee/react'
 
+import { Box } from '#/common/style/theme'
 import { LoadingSpinner } from '#/components/Loading'
 import { SidebarContentBox } from '#/components/Sidebar'
 
 import { ArrowNextBig } from '#/components/icons'
 import MutableLink from '#/components/common/MutableLink'
+import TText from '#/components/common/TText'
 
-import { adminFolayerPatchMutation } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
 import SearchTable from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/SearchTable'
 import { routeTree } from '#/common/routing/routes/luonnonmetsakartat'
 import { FolayerConfState } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
@@ -27,11 +19,7 @@ import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakarta
 import { getFolayerCentroidSourceId } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/utils'
 
 const Page = () => {
-  const [isFolayerReady, setIsFolayerReady] = useState(false)
-  const [isAreaCollectionReady, setIsAreaCollectionReady] = useState(false)
   const params = useParams<{ folayerIdSlug: string }>()
-  const inputRef = useRef<HTMLInputElement>(null)
-  const router = useRouter()
   const { t } = useTranslate('luonnonmetsakartat')
 
   const adminFolayerConf = useAppletStore(
@@ -40,25 +28,7 @@ const Page = () => {
   const folayerAreaConf = useAppletStore(
     (state) => state.folayerAreaConfs[params.folayerIdSlug]
   )
-
-  useEffect(() => {
-    if (adminFolayerConf && adminFolayerConf.state === FolayerConfState.Idle) {
-      setIsFolayerReady(true)
-    } else {
-      setIsFolayerReady(false)
-    }
-  }, [adminFolayerConf])
-
-  useEffect(() => {
-    if (
-      folayerAreaConf?.data &&
-      folayerAreaConf.state === FolayerConfState.Idle
-    ) {
-      setIsAreaCollectionReady(true)
-    } else {
-      setIsAreaCollectionReady(false)
-    }
-  }, [folayerAreaConf])
+  const isFolayerReady = adminFolayerConf?.state === FolayerConfState.Idle
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
@@ -68,82 +38,88 @@ const Page = () => {
             <LoadingSpinner></LoadingSpinner>
           </Box>
         )}
-        {isFolayerReady && (
+        {isFolayerReady && adminFolayerConf && (
           <Box>
-            <Typography sx={{ typography: 'h2' }}>
+            <Box component="h2" sx={{ typography: 'h2', m: 0 }}>
               {adminFolayerConf.name}
-            </Typography>
+            </Box>
           </Box>
         )}
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'row',
-            mt: 4,
-            width: '100%',
-            justifyContent: 'flex-end',
-          }}
-        >
-          <MutableLink
-            route={routeTree.admin.folayer.settings}
-            routeTree={routeTree}
-            params={{ routeParams: { folayerId: adminFolayerConf.id } }}
-            sx={{ alignItems: 'center' }}
-          >
-            <Typography
+        {isFolayerReady && adminFolayerConf && (
+          <>
+            <Box
               sx={{
-                typography: 'h6',
-                fontWeight: 500,
-                textDecoration: 'underline',
-                textUnderlineOffset: '0.1em',
+                display: 'flex',
+                flexDirection: 'row',
+                mt: 4,
+                width: '100%',
+                justifyContent: 'flex-end',
               }}
             >
-              <T
-                keyName={'sidebar.admin.folayer.open_settings'}
-                ns={'luonnonmetsakartat'}
-              ></T>
-            </Typography>
-            <ArrowNextBig sx={{ ml: 1, height: '1.2rem' }}></ArrowNextBig>
-          </MutableLink>
-        </Box>
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'row',
-            mt: 2,
-            width: '100%',
-            justifyContent: 'flex-end',
-          }}
-        >
-          <MutableLink
-            route={routeTree.admin.folayer.pictures}
-            routeTree={routeTree}
-            params={{ routeParams: { folayerId: adminFolayerConf.id } }}
-            sx={{ alignItems: 'center' }}
-          >
-            <Typography
+              <MutableLink
+                route={routeTree.admin.folayer.settings}
+                routeTree={routeTree}
+                params={{ routeParams: { folayerId: adminFolayerConf.id } }}
+                sx={{ alignItems: 'center' }}
+              >
+                <Box
+                  component="span"
+                  sx={{
+                    typography: 'h6',
+                    fontWeight: 500,
+                    textDecoration: 'underline',
+                    textUnderlineOffset: '0.1em',
+                  }}
+                >
+                  <TText
+                    keyName={'sidebar.admin.folayer.open_settings'}
+                    ns={'luonnonmetsakartat'}
+                  />
+                </Box>
+                <ArrowNextBig sx={{ ml: 1, height: '1.2rem' }}></ArrowNextBig>
+              </MutableLink>
+            </Box>
+            <Box
               sx={{
-                typography: 'h6',
-                fontWeight: 500,
-                textDecoration: 'underline',
-                textUnderlineOffset: '0.1em',
+                display: 'flex',
+                flexDirection: 'row',
+                mt: 2,
+                width: '100%',
+                justifyContent: 'flex-end',
               }}
             >
-              <T
-                keyName={'sidebar.admin.folayer.open_pictures'}
-                ns={'luonnonmetsakartat'}
-              ></T>
-            </Typography>
-            <ArrowNextBig sx={{ ml: 1, height: '1.2rem' }}></ArrowNextBig>
-          </MutableLink>
-        </Box>
+              <MutableLink
+                route={routeTree.admin.folayer.pictures}
+                routeTree={routeTree}
+                params={{ routeParams: { folayerId: adminFolayerConf.id } }}
+                sx={{ alignItems: 'center' }}
+              >
+                <Box
+                  component="span"
+                  sx={{
+                    typography: 'h6',
+                    fontWeight: 500,
+                    textDecoration: 'underline',
+                    textUnderlineOffset: '0.1em',
+                  }}
+                >
+                  <TText
+                    keyName={'sidebar.admin.folayer.open_pictures'}
+                    ns={'luonnonmetsakartat'}
+                  />
+                </Box>
+                <ArrowNextBig sx={{ ml: 1, height: '1.2rem' }}></ArrowNextBig>
+              </MutableLink>
+            </Box>
+          </>
+        )}
 
-        <Typography sx={{ mt: 7, typography: 'h3' }}>
-          <T
+        <Box component="h3" sx={{ m: 0, mt: 7, typography: 'h3' }}>
+          <TText
             ns={'luonnonmetsakartat'}
             keyName={'sidebar.admin.folayer.all_areas_title'}
-          ></T>
-        </Typography>
+          />
+        </Box>
         {folayerAreaConf?.data && (
           <SearchTable
             sx={{ mt: 2, pb: 5 }}

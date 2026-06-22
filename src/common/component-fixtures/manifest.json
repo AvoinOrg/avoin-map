@@ -391,6 +391,36 @@
     ]
   },
   {
+    "id": "luonnonmetsakartat-search-table",
+    "label": "Luonnonmetsakartat SearchTable",
+    "locale": "fi",
+    "description": "Admin natural forest area search table states for F047 remigration coverage.",
+    "sourceGlobs": [
+      "src/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/SearchTable.tsx",
+      "src/common/component-fixtures/fixtures/LuonnonmetsakartatSearchTableFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "populated",
+        "label": "Populated",
+        "description": "Default populated search table with compact search and sort controls.",
+        "waitFor": "text=North Ridge Forest"
+      },
+      {
+        "id": "selected-row",
+        "label": "Selected row",
+        "description": "Search table with map-store selection seeded for selected-row styling.",
+        "waitFor": "[data-testid=\"search-table-row-selected\"]"
+      },
+      {
+        "id": "many-rows",
+        "label": "Many rows",
+        "description": "Enough rows to exercise the virtualized list height and scroll container.",
+        "waitFor": "text=Fixture Forest 01"
+      }
+    ]
+  },
+  {
     "id": "energymap-energy-class-controls",
     "label": "Energiakartta energy class controls",
     "description": "Energiakartta A-G energy certificate class control states.",

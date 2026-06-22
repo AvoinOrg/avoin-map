@@ -1,7 +1,7 @@
 import { LoadingSpinner } from '#/components/Loading/LoadingSpinner'
-import { Box } from '@mui/material'
+import { Box } from '#/common/style/theme'
 
-const LoadingBlocker = ({}: {}) => {
+const LoadingBlocker = () => {
   return (
     <Box
       sx={{
