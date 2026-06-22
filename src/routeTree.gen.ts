@@ -8,39 +8,119 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { createFileRoute } from '@tanstack/react-router'
 
+import { Route as rootRouteImport } from './routes/__root'
+import { Route as LocaleRouteRouteImport } from './routes/$locale/route'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as LocalemapMapRouteRouteImport } from './routes/$locale/(map)/_map/route'
+import { Route as LocalemapMapappletsHiilikarttaRouteRouteImport } from './routes/$locale/(map)/_map/(applets)/hiilikartta/route'
+import { Route as LocalemapMapappletsHiilikarttaIndexRouteImport } from './routes/$locale/(map)/_map/(applets)/hiilikartta/index'
+import { Route as LocalemapMapappletsHiilikarttaKaavatPlanIdRouteImport } from './routes/$locale/(map)/_map/(applets)/hiilikartta/kaavat.$planId'
+
+const LocalemapRouteImport = createFileRoute('/$locale/(map)')()
+
+const LocaleRouteRoute = LocaleRouteRouteImport.update({
+  id: '/$locale',
+  path: '/$locale',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocalemapRoute = LocalemapRouteImport.update({
+  id: '/(map)',
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocalemapMapRouteRoute = LocalemapMapRouteRouteImport.update({
+  id: '/_map',
+  getParentRoute: () => LocalemapRoute,
+} as any)
+const LocalemapMapappletsHiilikarttaRouteRoute =
+  LocalemapMapappletsHiilikarttaRouteRouteImport.update({
+    id: '/(applets)/hiilikartta',
+    path: '/hiilikartta',
+    getParentRoute: () => LocalemapMapRouteRoute,
+  } as any)
+const LocalemapMapappletsHiilikarttaIndexRoute =
+  LocalemapMapappletsHiilikarttaIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => LocalemapMapappletsHiilikarttaRouteRoute,
+  } as any)
+const LocalemapMapappletsHiilikarttaKaavatPlanIdRoute =
+  LocalemapMapappletsHiilikarttaKaavatPlanIdRouteImport.update({
+    id: '/kaavat/$planId',
+    path: '/kaavat/$planId',
+    getParentRoute: () => LocalemapMapappletsHiilikarttaRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$locale': typeof LocaleRouteRouteWithChildren
+  '/$locale/': typeof LocalemapMapRouteRouteWithChildren
+  '/$locale/hiilikartta': typeof LocalemapMapappletsHiilikarttaRouteRouteWithChildren
+  '/$locale/hiilikartta/': typeof LocalemapMapappletsHiilikarttaIndexRoute
+  '/$locale/hiilikartta/kaavat/$planId': typeof LocalemapMapappletsHiilikarttaKaavatPlanIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$locale': typeof LocalemapMapRouteRouteWithChildren
+  '/$locale/hiilikartta': typeof LocalemapMapappletsHiilikarttaIndexRoute
+  '/$locale/hiilikartta/kaavat/$planId': typeof LocalemapMapappletsHiilikarttaKaavatPlanIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$locale': typeof LocaleRouteRouteWithChildren
+  '/$locale/(map)': typeof LocalemapRouteWithChildren
+  '/$locale/(map)/_map': typeof LocalemapMapRouteRouteWithChildren
+  '/$locale/(map)/_map/(applets)/hiilikartta': typeof LocalemapMapappletsHiilikarttaRouteRouteWithChildren
+  '/$locale/(map)/_map/(applets)/hiilikartta/': typeof LocalemapMapappletsHiilikarttaIndexRoute
+  '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId': typeof LocalemapMapappletsHiilikarttaKaavatPlanIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/$locale'
+    | '/$locale/'
+    | '/$locale/hiilikartta'
+    | '/$locale/hiilikartta/'
+    | '/$locale/hiilikartta/kaavat/$planId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/$locale'
+    | '/$locale/hiilikartta'
+    | '/$locale/hiilikartta/kaavat/$planId'
+  id:
+    | '__root__'
+    | '/'
+    | '/$locale'
+    | '/$locale/(map)'
+    | '/$locale/(map)/_map'
+    | '/$locale/(map)/_map/(applets)/hiilikartta'
+    | '/$locale/(map)/_map/(applets)/hiilikartta/'
+    | '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LocaleRouteRoute: typeof LocaleRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/$locale': {
+      id: '/$locale'
+      path: '/$locale'
+      fullPath: '/$locale'
+      preLoaderRoute: typeof LocaleRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +128,101 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$locale/(map)': {
+      id: '/$locale/(map)'
+      path: '/'
+      fullPath: '/$locale/'
+      preLoaderRoute: typeof LocalemapRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
+    '/$locale/(map)/_map': {
+      id: '/$locale/(map)/_map'
+      path: '/'
+      fullPath: '/$locale/'
+      preLoaderRoute: typeof LocalemapMapRouteRouteImport
+      parentRoute: typeof LocalemapRoute
+    }
+    '/$locale/(map)/_map/(applets)/hiilikartta': {
+      id: '/$locale/(map)/_map/(applets)/hiilikartta'
+      path: '/hiilikartta'
+      fullPath: '/$locale/hiilikartta'
+      preLoaderRoute: typeof LocalemapMapappletsHiilikarttaRouteRouteImport
+      parentRoute: typeof LocalemapMapRouteRoute
+    }
+    '/$locale/(map)/_map/(applets)/hiilikartta/': {
+      id: '/$locale/(map)/_map/(applets)/hiilikartta/'
+      path: '/'
+      fullPath: '/$locale/hiilikartta/'
+      preLoaderRoute: typeof LocalemapMapappletsHiilikarttaIndexRouteImport
+      parentRoute: typeof LocalemapMapappletsHiilikarttaRouteRoute
+    }
+    '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId': {
+      id: '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId'
+      path: '/kaavat/$planId'
+      fullPath: '/$locale/hiilikartta/kaavat/$planId'
+      preLoaderRoute: typeof LocalemapMapappletsHiilikarttaKaavatPlanIdRouteImport
+      parentRoute: typeof LocalemapMapappletsHiilikarttaRouteRoute
+    }
   }
 }
 
+interface LocalemapMapappletsHiilikarttaRouteRouteChildren {
+  LocalemapMapappletsHiilikarttaIndexRoute: typeof LocalemapMapappletsHiilikarttaIndexRoute
+  LocalemapMapappletsHiilikarttaKaavatPlanIdRoute: typeof LocalemapMapappletsHiilikarttaKaavatPlanIdRoute
+}
+
+const LocalemapMapappletsHiilikarttaRouteRouteChildren: LocalemapMapappletsHiilikarttaRouteRouteChildren =
+  {
+    LocalemapMapappletsHiilikarttaIndexRoute:
+      LocalemapMapappletsHiilikarttaIndexRoute,
+    LocalemapMapappletsHiilikarttaKaavatPlanIdRoute:
+      LocalemapMapappletsHiilikarttaKaavatPlanIdRoute,
+  }
+
+const LocalemapMapappletsHiilikarttaRouteRouteWithChildren =
+  LocalemapMapappletsHiilikarttaRouteRoute._addFileChildren(
+    LocalemapMapappletsHiilikarttaRouteRouteChildren,
+  )
+
+interface LocalemapMapRouteRouteChildren {
+  LocalemapMapappletsHiilikarttaRouteRoute: typeof LocalemapMapappletsHiilikarttaRouteRouteWithChildren
+}
+
+const LocalemapMapRouteRouteChildren: LocalemapMapRouteRouteChildren = {
+  LocalemapMapappletsHiilikarttaRouteRoute:
+    LocalemapMapappletsHiilikarttaRouteRouteWithChildren,
+}
+
+const LocalemapMapRouteRouteWithChildren =
+  LocalemapMapRouteRoute._addFileChildren(LocalemapMapRouteRouteChildren)
+
+interface LocalemapRouteChildren {
+  LocalemapMapRouteRoute: typeof LocalemapMapRouteRouteWithChildren
+}
+
+const LocalemapRouteChildren: LocalemapRouteChildren = {
+  LocalemapMapRouteRoute: LocalemapMapRouteRouteWithChildren,
+}
+
+const LocalemapRouteWithChildren = LocalemapRoute._addFileChildren(
+  LocalemapRouteChildren,
+)
+
+interface LocaleRouteRouteChildren {
+  LocalemapRoute: typeof LocalemapRouteWithChildren
+}
+
+const LocaleRouteRouteChildren: LocaleRouteRouteChildren = {
+  LocalemapRoute: LocalemapRouteWithChildren,
+}
+
+const LocaleRouteRouteWithChildren = LocaleRouteRoute._addFileChildren(
+  LocaleRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LocaleRouteRoute: LocaleRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -22,6 +22,7 @@ export default defineConfig({
         srcDirectory: 'src',
         routesDirectory: 'src/routes',
         generatedRouteTree: 'src/routeTree.gen.ts',
+        routeFileIgnorePrefix: '-',
       },
     }),
     viteReact(),

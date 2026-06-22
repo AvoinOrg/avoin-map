@@ -27,6 +27,11 @@ and the Start typecheck expects it to exist. ESLint ignores that generated file.
 Build outputs from Start/Nitro/Vite are ignored through `.tanstack/`,
 `.output/`, and `.nitro/`.
 
+Route-file conventions for the migration scaffold are documented in
+`docs/tanstack-start-route-conventions.md`. Start routes live under
+`src/routes`; do not move them into the production Next App Router tree under
+`src/app` during the dual-stack phase.
+
 Temporary pieces and later owners:
 
 - Minimal route convention and placeholder routes:
