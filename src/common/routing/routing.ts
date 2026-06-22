@@ -1,7 +1,11 @@
-import { ReadonlyURLSearchParams } from 'next/navigation'
-
 import { LOCALES } from '#/common/navigation/tolgee/shared'
-import { RouteTree, RouteObject, Params, RouteForLinks } from '../types/routing'
+import {
+  RouteTree,
+  Params,
+  RouteForLinks,
+  QueryParamRecord,
+  SearchParamsLike,
+} from '../types/routing'
 
 export const compiledApplets = (process.env.NEXT_PUBLIC_COMPILED_APPLETS || '')
   .toLowerCase()
@@ -33,65 +37,89 @@ const splitPathParts = (path: string) =>
     .map((part) => part.trim())
     .filter((part) => part.length > 0)
 
-const isDynamicPart = (part: string) =>
+export const isRouteObjectDynamicSegment = (part: string) =>
   part.startsWith('[') && part.endsWith(']')
+
+export const isStartFileDynamicSegment = (part: string) =>
+  part.startsWith('$') && part.length > 1
+
+export const getDynamicSegmentParamName = (part: string) => {
+  if (isRouteObjectDynamicSegment(part)) {
+    return part.slice(1, -1)
+  }
+
+  if (isStartFileDynamicSegment(part)) {
+    return part.slice(1)
+  }
+
+  return null
+}
+
+const isSearchParamsLike = (
+  queryParams: Params['queryParams']
+): queryParams is SearchParamsLike =>
+  queryParams != null &&
+  typeof queryParams === 'object' &&
+  typeof queryParams.toString === 'function' &&
+  (typeof queryParams.entries === 'function' ||
+    typeof queryParams.forEach === 'function')
 
 const toQueryString = (queryParams: Params['queryParams']): string => {
   if (!queryParams) {
     return ''
   }
 
-  // Handle URLSearchParams and ReadonlyURLSearchParams
-  if (
-    queryParams instanceof URLSearchParams ||
-    queryParams instanceof ReadonlyURLSearchParams
-  ) {
-    return `?${queryParams.toString()}`
+  if (isSearchParamsLike(queryParams)) {
+    const serialized = queryParams.toString()
+    return serialized ? `?${serialized}` : ''
   }
 
-  // Handle Record<string, string>
-  const parts = Object.keys(queryParams as Record<string, string>).map(
-    (key) => {
-      const value = (queryParams as Record<string, string>)[key]
+  const parts = Object.keys(queryParams as QueryParamRecord)
+    .map((key) => {
+      const value = (queryParams as QueryParamRecord)[key]
+      if (value == null) {
+        return null
+      }
+
       return `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`
-    }
-  )
+    })
+    .filter((part): part is string => part != null)
 
   return parts.length > 0 ? `?${parts.join('&')}` : ''
 }
 
-const getRouteChildren = (routeTree: RouteTree) => {
-  const children = []
+const isRouteTreeChild = (child: unknown): child is RouteTree => {
+  if (child == null || typeof child !== 'object' || !('_conf' in child)) {
+    return false
+  }
+
+  const conf = (child as { _conf?: unknown })._conf
+  return conf != null && typeof conf === 'object' && 'path' in conf
+}
+
+type RoutePathNode = Pick<RouteTree, '_conf'>
+
+const getRouteChildren = (routeTree: RouteTree): RouteTree[] => {
+  const children: RouteTree[] = []
   for (const key in routeTree) {
-    if (key.charAt(0) !== '_') {
-      children.push(routeTree[key])
+    const child = routeTree[key]
+    if (key.charAt(0) !== '_' && isRouteTreeChild(child)) {
+      children.push(child)
     }
   }
 
   return children
 }
 
-const getRouteWithoutChildren = (routeTree: RouteTree) => {
-  const keys = []
-  for (const key in routeTree) {
-    if (key.charAt(0) === '_') {
-      keys.push(key)
-    }
-  }
-
-  const route: any = {}
-  for (const key of keys) {
-    route[key] = routeTree[key]
-  }
-
-  return route
-}
+const getRouteWithoutChildren = (routeTree: RouteTree): RoutePathNode => ({
+  _conf: routeTree._conf,
+})
 
 const findRouteObjects = (
   route: RouteTree,
   routeTree: RouteTree,
-  routeObjects: RouteObject[] = []
-): any => {
+  routeObjects: RoutePathNode[] = []
+): RoutePathNode[] | undefined => {
   const currentRoute = getRouteWithoutChildren(routeTree)
   const routeObjectsCopy = [...routeObjects]
   routeObjectsCopy.push(currentRoute)
@@ -162,8 +190,8 @@ export const getRouteNoStoreCheck = ({
 
     const pathParts = splitPathParts(routePath)
     for (const part of pathParts) {
-      if (isDynamicPart(part)) {
-        const paramName = part.slice(1, -1)
+      const paramName = getDynamicSegmentParamName(part)
+      if (paramName) {
         const paramValue = routeParams[paramName]
         if (paramValue == null) {
           throw new Error(
@@ -225,8 +253,8 @@ const matchPathParts = (
     }
 
     const segment = segments[index]
-    if (isDynamicPart(part)) {
-      const paramName = part.slice(1, -1)
+    const paramName = getDynamicSegmentParamName(part)
+    if (paramName) {
       updatedParams[paramName] = segment
     } else if (part.toLowerCase() !== segment.toLowerCase()) {
       return { matched: false, nextIndex: startIndex, params }
@@ -307,12 +335,21 @@ const matchRouteNode = (
   }
 
   const matchStartIndex = hasOwnDomain ? 0 : startIndex
-  const matchResult = matchPathParts(
+  let matchResult = matchPathParts(
     conf.path,
     segments,
     matchStartIndex,
     params
   )
+
+  if (
+    !matchResult.matched &&
+    node === root &&
+    conf.isAppletRoot &&
+    splitPathParts(conf.path).length > 0
+  ) {
+    matchResult = matchPathParts('/', segments, matchStartIndex, params)
+  }
 
   if (!matchResult.matched) {
     return exploreChildren(domainContext, startIndex, params, true)
@@ -611,8 +648,9 @@ const generatePaths = (tree: RouteTree, basePath = ''): string[] => {
   paths.push(currentPath)
 
   for (const key in tree) {
-    if (key !== '_conf' && tree[key]._conf) {
-      paths.push(...generatePaths(tree[key], currentPath))
+    const child = tree[key]
+    if (key !== '_conf' && isRouteTreeChild(child)) {
+      paths.push(...generatePaths(child, currentPath))
     }
   }
 
@@ -620,7 +658,7 @@ const generatePaths = (tree: RouteTree, basePath = ''): string[] => {
 }
 
 export const generatePathNames = (
-  routeTrees: RouteTree[] | any
+  routeTrees: RouteTree[]
 ): Record<string, string> => {
   const pathnames = routeTrees.reduce(
     (acc: Record<string, string>, routeTree: RouteTree) => {

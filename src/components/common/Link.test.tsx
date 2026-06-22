@@ -2,25 +2,25 @@ import React from 'react'
 import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
 
-type MockNextIntlLinkProps = React.ComponentPropsWithoutRef<'a'> & {
+type MockAppLinkProps = React.ComponentPropsWithoutRef<'a'> & {
   href: string
   prefetch?: boolean
   sx?: unknown
 }
 
-const mockedNextIntlLink = jest.fn((props: MockNextIntlLinkProps) => props)
+const mockedAppLink = jest.fn((props: MockAppLinkProps) => props)
 
-function MockNextIntlLink(
+function MockAppLink(
   {
     children,
     href,
     sx,
     prefetch,
     ...anchorProps
-  }: MockNextIntlLinkProps,
+  }: MockAppLinkProps,
   ref: React.Ref<HTMLAnchorElement>
 ) {
-  mockedNextIntlLink({
+  mockedAppLink({
     children,
     href,
     sx,
@@ -41,10 +41,10 @@ function MockNextIntlLink(
   )
 }
 
-MockNextIntlLink.displayName = 'MockNextIntlLink'
+MockAppLink.displayName = 'MockAppLink'
 
 jest.mock('#/common/navigation/navigation', () => ({
-  NextIntlLink: React.forwardRef<HTMLAnchorElement, MockNextIntlLinkProps>(MockNextIntlLink),
+  AppLink: React.forwardRef<HTMLAnchorElement, MockAppLinkProps>(MockAppLink),
 }))
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -54,7 +54,7 @@ const Link = require('#/components/common/Link').default as typeof import(
 
 describe('Link', () => {
   afterEach(() => {
-    mockedNextIntlLink.mockClear()
+    mockedAppLink.mockClear()
   })
 
   it('renders children in a link and defaults prefetch to true', () => {
@@ -69,7 +69,7 @@ describe('Link', () => {
     expect(link).toHaveAttribute('href', '/apples')
     expect(link).toHaveAttribute('data-prefetch', 'true')
 
-    const [props] = mockedNextIntlLink.mock.calls[0]
+    const [props] = mockedAppLink.mock.calls[0]
 
     expect(props).toMatchObject({
       href: '/apples',
@@ -87,7 +87,7 @@ describe('Link', () => {
     const link = screen.getByRole('link', { name: 'Open section' })
 
     expect(link).toHaveAttribute('data-prefetch', 'false')
-    expect(mockedNextIntlLink.mock.calls[0][0].prefetch).toBe(false)
+    expect(mockedAppLink.mock.calls[0][0].prefetch).toBe(false)
   })
 
   it('passes anchor props and interaction handlers', () => {
@@ -127,6 +127,6 @@ describe('Link', () => {
     const link = screen.getByRole('link', { name: 'Styled' })
 
     expect(link).toBeInTheDocument()
-    expect(mockedNextIntlLink).toHaveBeenCalledTimes(1)
+    expect(mockedAppLink).toHaveBeenCalledTimes(1)
   })
 })

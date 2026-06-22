@@ -1,10 +1,10 @@
 'use client'
 
 import React from 'react'
-import { useParams } from 'next/navigation'
 import { useTranslate } from '@tolgee/react'
 
 import { AppSxProps, Box } from '#/common/style/theme'
+import { useAppParams } from '#/common/navigation/navigation'
 import { Login } from '#/components/icons'
 import TText from '#/components/common/TText'
 import { useUserStore } from '#/common/store/userStore'
@@ -50,7 +50,7 @@ const menuItemSx = {
 const buttonTypeProps = { type: 'button' } as const
 
 export const MapLoginButton = ({ isVertical, defaultMenuOpen }: Props) => {
-  const params = useParams()
+  const params = useAppParams()
   const userAuthState = useUserStore((state) => state.userAuthState)
   const userData = useUserStore((state) => state.userData)
   const userDataState = useUserStore((state) => state.userDataState)

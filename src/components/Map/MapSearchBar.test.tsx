@@ -26,8 +26,8 @@ jest.mock('@tolgee/react', () => ({
   }),
 }))
 
-jest.mock('next/navigation', () => ({
-  useParams: () => ({ locale: 'en' }),
+jest.mock('#/common/navigation/navigation', () => ({
+  useAppParams: () => ({ locale: 'en' }),
 }))
 
 jest.mock('axios')

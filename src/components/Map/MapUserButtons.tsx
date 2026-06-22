@@ -1,10 +1,14 @@
 'use client'
 
 import { useMemo } from 'react'
-import { useParams, usePathname, useSearchParams } from 'next/navigation'
 
 import { AppSxProps, Box } from '#/common/style/theme'
-import { useRouter } from '#/common/navigation/navigation'
+import {
+  useAppParams,
+  useAppPathname,
+  useAppRouter,
+  useAppSearchParams,
+} from '#/common/navigation/navigation'
 import { getLocalesForApplet } from '#/common/navigation/tolgee/shared'
 import { useUIStore } from '#/common/store'
 import { getRoute } from '#/common/routing/routing-client'
@@ -126,10 +130,10 @@ export const MapUserButtons = ({
   loginDefaultMenuOpen,
   languageDefaultMenuOpen,
 }: Props) => {
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-  const params = useParams()
+  const router = useAppRouter()
+  const pathname = useAppPathname()
+  const searchParams = useAppSearchParams()
+  const params = useAppParams()
   const isBaseDomainForApplet = useUIStore(
     (state) => state.isBaseDomainForApplet
   )

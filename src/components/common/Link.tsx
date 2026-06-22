@@ -1,16 +1,14 @@
 import React from 'react'
-import { type LinkProps as NextLinkProps } from 'next/link'
 
 import { Box, type AppSxProps } from '#/common/style/theme'
-import { NextIntlLink } from '#/common/navigation/navigation'
+import { AppLink, type AppLinkProps } from '#/common/navigation/navigation'
 
-type LinkComponentProps = Omit<React.ComponentProps<typeof NextIntlLink>, 'sx'> & {
+type LinkComponentProps = Omit<AppLinkProps, 'sx'> & {
   sx?: AppSxProps
 }
 
 type LinkProps = React.PropsWithChildren<
-  Omit<NextLinkProps, 'href'> & React.AnchorHTMLAttributes<HTMLAnchorElement> & {
-    href: NextLinkProps['href']
+  Omit<AppLinkProps, 'sx'> & {
     sx?: AppSxProps
   }
 >
@@ -21,14 +19,19 @@ const DEFAULT_LINK_SX = {
   textDecoration: 'none',
 }
 
-const NextIntlLinkComponent = React.forwardRef<
+const AppLinkComponent = React.forwardRef<
   HTMLAnchorElement,
   LinkComponentProps
 >((props, ref) => {
-  return <NextIntlLink {...props} ref={ref} />
+  return (
+    <AppLink
+      {...(props as React.ComponentProps<typeof AppLink>)}
+      ref={ref}
+    />
+  )
 })
 
-NextIntlLinkComponent.displayName = 'NextIntlLinkComponent'
+AppLinkComponent.displayName = 'AppLinkComponent'
 
 const LinkBox = Box as React.ElementType
 
@@ -49,7 +52,7 @@ const Link = ({
 
   return (
     <LinkBox
-      component={NextIntlLinkComponent as React.ElementType}
+      component={AppLinkComponent as React.ElementType}
       sx={composedSx}
       prefetch={prefetch}
       {...props}

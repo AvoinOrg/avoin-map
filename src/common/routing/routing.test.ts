@@ -57,6 +57,12 @@ describe('routing utils', () => {
   const routeTreeWithBase: RouteTree = cloneDeep(routeTree)
   routeTreeWithBase._conf.path = '/home'
 
+  const routeTreeWithTrailingSlashDomain: RouteTree = cloneDeep(routeTree)
+  routeTreeWithTrailingSlashDomain._conf = {
+    ...routeTreeWithTrailingSlashDomain._conf,
+    domain: 'https://example.org/',
+  }
+
   const routeTreeWithDomainReset: RouteTree = {
     _conf: { path: '/', name: 'Root' },
     muna: {
@@ -66,6 +72,29 @@ describe('routing utils', () => {
         juntti: {
           _conf: { path: 'juntti', name: 'Juntti' },
         },
+      },
+    },
+  }
+
+  const routeTreeWithStartSegments: RouteTree = {
+    _conf: { path: '/', name: 'Home' },
+    products: {
+      _conf: { path: 'products', name: 'Products' },
+      product: {
+        _conf: { path: '[productId]', name: 'Product' },
+        order: {
+          _conf: { path: 'orders/$orderId', name: 'Order' },
+        },
+      },
+    },
+  }
+
+  const appletRouteTree: RouteTree = {
+    _conf: { path: 'applet-root', name: 'Applet', isAppletRoot: true },
+    section: {
+      _conf: { path: 'section', name: 'Section' },
+      item: {
+        _conf: { path: '[itemId]', name: 'Item' },
       },
     },
   }
@@ -109,6 +138,20 @@ describe('routing utils', () => {
         },
       })
       expect(route).toBe('/products/123/order/456')
+    })
+
+    it('returns the correct route with Start-style route parameters', () => {
+      const route = getRoute({
+        routeNode: routeTreeWithStartSegments.products.product.order,
+        routeTree: routeTreeWithStartSegments,
+        params: {
+          routeParams: {
+            productId: '123',
+            orderId: '456',
+          },
+        },
+      })
+      expect(route).toBe('/products/123/orders/456')
     })
 
     it('returns the correct route with route parameters', () => {
@@ -191,6 +234,24 @@ describe('routing utils', () => {
       )
     })
 
+    it('returns the correct route with structural search params', () => {
+      const queryParams = {
+        toString: () => 'extraValue=true&sessionId=abc123',
+        entries: function* () {
+          yield ['extraValue', 'true'] as [string, string]
+          yield ['sessionId', 'abc123'] as [string, string]
+        },
+      }
+
+      const route = getRoute({
+        routeNode: routeTree.products,
+        routeTree,
+        params: { queryParams },
+      })
+
+      expect(route).toBe('/products?extraValue=true&sessionId=abc123')
+    })
+
     it('returns the correct route with query and route parameters for a route tree with a base path', () => {
       const route = getRoute({
         routeNode: routeTreeWithBase.stuff.settings,
@@ -211,6 +272,14 @@ describe('routing utils', () => {
       const route = getRoute({
         routeNode: routeTreeWithDomains.products,
         routeTree: routeTreeWithDomains,
+      })
+      expect(route).toBe('https://example.org/products')
+    })
+
+    it('trims trailing slashes from route domains', () => {
+      const route = getRoute({
+        routeNode: routeTreeWithTrailingSlashDomain.products,
+        routeTree: routeTreeWithTrailingSlashDomain,
       })
       expect(route).toBe('https://example.org/products')
     })
@@ -339,7 +408,6 @@ describe('routing utils', () => {
 
     it('returns a correct set of routes for a path', () => {
       const routes = getRoutesForPath('/products/123/order/456', routeTree)
-      console.log(JSON.stringify(routes, null, 2))
       expect(routes).toEqual([
         { name: 'Home', path: '/', routeTree: routeTree },
         { name: 'Products', path: '/products', routeTree: routeTree.products },
@@ -354,6 +422,55 @@ describe('routing utils', () => {
           params: { routeParams: { productId: '123', orderId: '456' } },
           path: '/products/123/order/456',
           routeTree: routeTree.products.product.order,
+        },
+      ])
+    })
+
+    it('returns a correct set of routes for mixed route-object and Start-style params', () => {
+      const routes = getRoutesForPath(
+        '/products/123/orders/456',
+        routeTreeWithStartSegments
+      )
+      expect(routes).toEqual([
+        { name: 'Home', path: '/', routeTree: routeTreeWithStartSegments },
+        {
+          name: 'Products',
+          path: '/products',
+          routeTree: routeTreeWithStartSegments.products,
+        },
+        {
+          name: 'Product',
+          params: { routeParams: { productId: '123' } },
+          path: '/products/123',
+          routeTree: routeTreeWithStartSegments.products.product,
+        },
+        {
+          name: 'Order',
+          params: { routeParams: { productId: '123', orderId: '456' } },
+          path: '/products/123/orders/456',
+          routeTree: routeTreeWithStartSegments.products.product.order,
+        },
+      ])
+    })
+
+    it('matches applet-root routes when the applet root segment is omitted', () => {
+      const routes = getRoutesForPath('/section/abc-123', appletRouteTree)
+      expect(routes).toEqual([
+        {
+          name: 'Applet',
+          path: '/applet-root',
+          routeTree: appletRouteTree,
+        },
+        {
+          name: 'Section',
+          path: '/applet-root/section',
+          routeTree: appletRouteTree.section,
+        },
+        {
+          name: 'Item',
+          params: { routeParams: { itemId: 'abc-123' } },
+          path: '/applet-root/section/abc-123',
+          routeTree: appletRouteTree.section.item,
         },
       ])
     })
@@ -479,6 +596,31 @@ describe('routing utils', () => {
           path: 'https://example.org/products/123',
           params: { routeParams: { productId: '123' } },
           routeTree: routeTreeWithDomains.products.product,
+        },
+      ])
+    })
+
+    it('matches domained routes when the configured domain has a trailing slash', () => {
+      const routes = getRoutesForPath(
+        'https://example.org/products/123',
+        routeTreeWithTrailingSlashDomain
+      )
+      expect(routes).toEqual([
+        {
+          name: 'Home',
+          path: 'https://example.org',
+          routeTree: routeTreeWithTrailingSlashDomain,
+        },
+        {
+          name: 'Products',
+          path: 'https://example.org/products',
+          routeTree: routeTreeWithTrailingSlashDomain.products,
+        },
+        {
+          name: 'Product',
+          path: 'https://example.org/products/123',
+          params: { routeParams: { productId: '123' } },
+          routeTree: routeTreeWithTrailingSlashDomain.products.product,
         },
       ])
     })

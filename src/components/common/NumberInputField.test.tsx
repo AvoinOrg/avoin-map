@@ -16,8 +16,8 @@ jest.mock('@tolgee/react', () => ({
   }),
 }))
 
-jest.mock('next/navigation', () => ({
-  useParams: () => ({ locale: 'en' }),
+jest.mock('#/common/navigation/navigation', () => ({
+  useAppParams: () => ({ locale: 'en' }),
 }))
 
 const renderWithTheme = (ui: React.ReactElement) =>

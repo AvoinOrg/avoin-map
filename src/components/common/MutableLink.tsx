@@ -1,22 +1,18 @@
 import React from 'react'
-import { type LinkProps as NextLinkProps } from 'next/link'
 
 import { Box, type AppSxProps } from '#/common/style/theme'
-import { NextIntlLink } from '#/common/navigation/navigation'
+import { AppLink, type AppLinkProps } from '#/common/navigation/navigation'
 import { useUIStore } from '#/common/store/uiStore'
 import { Params, RouteTree } from '#/common/types/routing'
 import { getRoute } from '#/common/routing/routing-client'
 import { useGetRoute } from '#/common/hooks/routing/useGetRoute'
 
-type NextIntlLinkComponentProps = Omit<
-  React.ComponentProps<typeof NextIntlLink>,
-  'sx'
-> & {
+type AppLinkComponentProps = Omit<AppLinkProps, 'sx'> & {
   sx?: AppSxProps
 }
 
 type MutableLinkProps = React.PropsWithChildren<
-  Omit<NextLinkProps, 'href'> &
+  Omit<AppLinkProps, 'href' | 'sx'> &
     Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> & {
       route: RouteTree
       routeTree: RouteTree
@@ -33,17 +29,22 @@ const DEFAULT_LINK_SX = {
   textDecoration: 'none',
 }
 
-const NextIntlLinkComponent = React.forwardRef<
+const AppLinkComponent = React.forwardRef<
   HTMLAnchorElement,
-  NextIntlLinkComponentProps
+  AppLinkComponentProps
 >((props, ref) => {
-  const { sx, ...nextProps } = props as NextIntlLinkComponentProps
+  const { sx, ...nextProps } = props as AppLinkComponentProps
   void sx
 
-  return <NextIntlLink {...nextProps} ref={ref} />
+  return (
+    <AppLink
+      {...(nextProps as React.ComponentProps<typeof AppLink>)}
+      ref={ref}
+    />
+  )
 })
 
-NextIntlLinkComponent.displayName = 'NextIntlLinkComponent'
+AppLinkComponent.displayName = 'AppLinkComponent'
 
 const LinkBox = Box as React.ElementType
 
@@ -94,7 +95,7 @@ const MutableLink = ({
 
   return (
     <LinkBox
-      component={NextIntlLinkComponent as React.ElementType}
+      component={AppLinkComponent as React.ElementType}
       sx={composedSx}
       prefetch={prefetch}
       {...props}

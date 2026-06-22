@@ -2,16 +2,16 @@
 
 import React from 'react'
 import { useTranslate } from '@tolgee/react'
-import { useParams } from 'next/navigation'
 import { openLoginWindow } from '#/common/utils/auth'
 import { Box } from '#/common/style/theme/system'
+import { useAppParams } from '#/common/navigation/navigation'
 
 const nativeButtonType = {
   type: 'button',
 } satisfies Pick<React.ButtonHTMLAttributes<HTMLButtonElement>, 'type'>
 
 const LoginButton = () => {
-  const params = useParams<{ locale?: string }>()
+  const params = useAppParams<{ locale?: string }>()
   const { t } = useTranslate('avoin-map')
 
   return (

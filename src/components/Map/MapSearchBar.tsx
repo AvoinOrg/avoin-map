@@ -9,8 +9,8 @@ import React, {
 } from 'react'
 import { useTranslate } from '@tolgee/react'
 import axios from 'axios'
-import { useParams } from 'next/navigation'
 
+import { useAppParams } from '#/common/navigation/navigation'
 import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
 import { useMapStore, useUIStore } from '#/common/store'
 import {
@@ -688,7 +688,13 @@ export const MapSearchBar = ({ isVertical }: { isVertical: boolean }) => {
   const fetchCounter = useRef(0)
   const remoteCacheRef = useRef<Map<string, RemoteMapSearchResult[]>>(new Map())
   const remoteRequestRef = useRef<AbortController | null>(null)
-  const { locale } = useParams()
+  const { locale: localeParam } = useAppParams()
+  const locale =
+    typeof localeParam === 'string'
+      ? localeParam
+      : Array.isArray(localeParam)
+        ? (localeParam[0] ?? 'en')
+        : 'en'
   const searchInputRef = useRef<HTMLInputElement>(null)
   const activeMapMenu = useUIStore((state) => state.activeMapMenu)
   const setMapMenuState = useUIStore((state) => state.setMapMenuState)

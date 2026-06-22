@@ -4,26 +4,26 @@ import { fireEvent, render, screen } from '@testing-library/react'
 
 import { RouteTree } from '#/common/types/routing'
 
-type MockNextIntlLinkProps = React.ComponentPropsWithoutRef<'a'> & {
+type MockAppLinkProps = React.ComponentPropsWithoutRef<'a'> & {
   href: string
   prefetch?: boolean
   sx?: unknown
 }
 
-const mockedNextIntlLink = jest.fn((props: MockNextIntlLinkProps) => props)
+const mockedAppLink = jest.fn((props: MockAppLinkProps) => props)
 let isBaseDomainForApplet = false
 
-function MockNextIntlLink(
+function MockAppLink(
   {
     children,
     href,
     sx,
     prefetch,
     ...anchorProps
-  }: MockNextIntlLinkProps,
+  }: MockAppLinkProps,
   ref: React.Ref<HTMLAnchorElement>
 ) {
-  mockedNextIntlLink({
+  mockedAppLink({
     children,
     href,
     sx,
@@ -44,7 +44,7 @@ function MockNextIntlLink(
   )
 }
 
-MockNextIntlLink.displayName = 'MockNextIntlLink'
+MockAppLink.displayName = 'MockAppLink'
 
 jest.mock('#/common/hooks/routing/useGetRoute', () => {
   const mock = jest.fn(
@@ -103,7 +103,7 @@ jest.mock('#/common/store', () => ({
 }))
 
 jest.mock('#/common/navigation/navigation', () => ({
-  NextIntlLink: React.forwardRef<HTMLAnchorElement, MockNextIntlLinkProps>(MockNextIntlLink),
+  AppLink: React.forwardRef<HTMLAnchorElement, MockAppLinkProps>(MockAppLink),
 }))
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -143,7 +143,7 @@ const routeTree: RouteTree = {
 
   describe('MutableLink', () => {
   afterEach(() => {
-    mockedNextIntlLink.mockClear()
+    mockedAppLink.mockClear()
     useUIStore.setState({ isBaseDomainForApplet: false })
   })
 
@@ -215,7 +215,7 @@ const routeTree: RouteTree = {
 
     expect(link).toHaveAttribute('href', '/section/abc-123?tab=overview')
     expect(link).toHaveAttribute('data-prefetch', 'false')
-    expect(mockedNextIntlLink.mock.calls[0][0].prefetch).toBe(false)
+    expect(mockedAppLink.mock.calls[0][0].prefetch).toBe(false)
 
     fireEvent.click(link)
 

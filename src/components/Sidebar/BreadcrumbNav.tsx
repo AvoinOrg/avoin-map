@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
-import { usePathname } from 'next/navigation'
 
 import MutableLink from '#/components/common/MutableLink'
+import { useAppPathname } from '#/common/navigation/navigation'
 import { Box, toSxArray } from '#/common/style/theme/system'
 import type { AppSxProps } from '#/common/style/theme/system'
 import { compiledApplets, getRoutesForPath } from '#/common/routing/routing'
@@ -61,7 +61,7 @@ const BreadcrumbNav = ({
   forceRouteTree = false,
   sx,
 }: Props) => {
-  const pathname = usePathname()
+  const pathname = useAppPathname()
   const isBaseDomainForApplet = useUIStore(
     (state) => state.isBaseDomainForApplet
   )
