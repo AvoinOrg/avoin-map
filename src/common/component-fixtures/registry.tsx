@@ -11,6 +11,7 @@ import { folderFixture } from './fixtures/FolderFixture'
 import { fullscreenPageFixture } from './fixtures/FullscreenPageFixture'
 import { loadingFeedbackFixture } from './fixtures/LoadingFeedbackFixture'
 import { luonnonmetsakartatAreaModalFixture } from './fixtures/LuonnonmetsakartatAreaModalFixture'
+import { luonnonmetsakartatFolayerImportControlsFixture } from './fixtures/LuonnonmetsakartatFolayerImportControlsFixture'
 import { luonnonmetsakartatSearchTableFixture } from './fixtures/LuonnonmetsakartatSearchTableFixture'
 import { mainPopupTableFixture } from './fixtures/MainPopupTableFixture'
 import { layerToggleRowFixture } from './fixtures/LayerToggleRowFixture'
@@ -57,6 +58,7 @@ const componentFixtures: ComponentFixture[] = [
   mapSearchBarFixture,
   layerToggleRowFixture,
   luonnonmetsakartatAreaModalFixture,
+  luonnonmetsakartatFolayerImportControlsFixture,
   luonnonmetsakartatSearchTableFixture,
   energymapEnergyClassControlsFixture,
   energymapBackgroundFiltersFixture,

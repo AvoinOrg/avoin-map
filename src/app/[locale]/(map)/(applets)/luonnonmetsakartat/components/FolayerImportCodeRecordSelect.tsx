@@ -1,7 +1,12 @@
-import { SxProps, Theme } from '@mui/material'
+import type React from 'react'
 
+import { toSxArray } from '#/common/style/theme'
 import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
+
+type FolayerImportCodeRecordSelectSx = React.ComponentProps<
+  typeof DropDownSelectWithHeader
+>['sx']
 
 interface Props {
   columns: string[]
@@ -9,7 +14,7 @@ interface Props {
   onColumnChange: (column: string | undefined) => void
   allowEmpty?: boolean
   label?: string
-  sx?: SxProps<Theme>
+  sx?: FolayerImportCodeRecordSelectSx
 }
 
 const FolayerImportCodeRecordSelect = ({
@@ -31,21 +36,21 @@ const FolayerImportCodeRecordSelect = ({
     onColumnChange(value as string)
   }
 
+  if (columns.length === 0) {
+    return null
+  }
+
   return (
-    <>
-      {columns.length > 0 && (
-        <DropDownSelectWithHeader
-          sx={[...(Array.isArray(sx) ? sx : [sx])]}
-          value={selectedColumn}
-          options={columns.map((col) => {
-            return { value: col, label: col }
-          })}
-          onChange={handleSelectColumn}
-          allowEmpty={allowEmpty}
-          label={label}
-        />
-      )}
-    </>
+    <DropDownSelectWithHeader
+      sx={toSxArray(sx)}
+      value={selectedColumn}
+      options={columns.map((col) => {
+        return { value: col, label: col }
+      })}
+      onChange={handleSelectColumn}
+      allowEmpty={allowEmpty}
+      label={label}
+    />
   )
 }
 

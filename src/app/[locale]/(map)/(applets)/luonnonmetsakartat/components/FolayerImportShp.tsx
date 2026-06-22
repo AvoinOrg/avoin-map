@@ -1,23 +1,31 @@
-import { useState, useEffect } from 'react'
-import { Feature, FeatureCollection } from 'geojson'
-import { useTranslate, T } from '@tolgee/react'
-import { Box } from '@mui/material'
+import { useState, useEffect, type ChangeEvent } from 'react'
+import type { Feature, FeatureCollection } from 'geojson'
+import { useTranslate } from '@tolgee/react'
 
+import { Box } from '#/common/style/theme'
 import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
 import { useUIStore } from '#/common/store'
+import TText from '#/components/common/TText'
 
 import FolayerImportActionsRow from './FolayerImportActionsRow'
 import FolayerImportCodeRecordSelect from './FolayerImportCodeRecordSelect'
-import { IndexingStrategy } from '../common/types'
+import type { IndexingStrategy } from '../common/types'
 import {
   folayerDataValidateColumnValues,
   folayerDataFindDuplicateIds,
   folayerDataFindDuplicateNameMunicipalityPairs,
 } from '../common/utils'
+
+const idCandidates = ['id', 'fid', 'oid', 'objectid', 'tunnus']
+const nameCandidates = ['name', 'nimi']
+const descriptionCandidates = ['description', 'desc', 'kuvaus']
+const areaCandidates = ['ala', 'area', 'pinta']
+const municipalityCandidates = ['municipality', 'kunta']
+const regionCandidates = ['region', 'maakunta']
 
 interface FolayerImportShpProps {
   fileBuffers: ArrayBuffer[]
@@ -34,6 +42,50 @@ interface FolayerImportShpProps {
     isVisible?: boolean
   }) => void
   isInitializing: boolean
+}
+
+const findBestColumnMatch = (
+  cols: string[],
+  candidates: string[],
+  allowPartial: boolean = false
+): string | undefined => {
+  const lowerCaseColumns = cols.map((c) => ({
+    original: c,
+    lower: c.toLowerCase(),
+  }))
+
+  // Prioritize exact matches.
+  for (const candidate of candidates) {
+    const found = lowerCaseColumns.find(
+      (c) => c.lower === candidate.toLowerCase()
+    )
+    if (found) {
+      return found.original
+    }
+  }
+
+  if (allowPartial) {
+    for (const candidate of candidates) {
+      const found = lowerCaseColumns.find((c) =>
+        c.lower.includes(candidate.toLowerCase())
+      )
+      if (found) {
+        return found.original
+      }
+    }
+  }
+
+  return undefined
+}
+
+const getFeatureColumns = (featureCollection: FeatureCollection): string[] => {
+  const featureProperties = featureCollection.features[0].properties
+
+  if (!featureProperties) {
+    return []
+  }
+
+  return Object.keys(featureProperties)
 }
 
 const FolayerImportShp = ({
@@ -63,6 +115,8 @@ const FolayerImportShp = ({
     useState<IndexingStrategy>('id')
 
   useEffect(() => {
+    let isStale = false
+
     // Load shp into geojson to validate it locally
     // TODO: Validate it locally :)
     const loadGeojson = async (fileBuffers: ArrayBuffer[]) => {
@@ -85,66 +139,13 @@ const FolayerImportShp = ({
         features: allFeatures,
       }
 
+      if (isStale) {
+        return
+      }
+
+      const columns = getFeatureColumns(mergedFeatureCollection)
       setGeojson(mergedFeatureCollection)
-    }
-
-    loadGeojson(fileBuffers)
-  }, [fileBuffers])
-
-  useEffect(() => {
-    if (geojson != null) {
-      const featureProperties = geojson.features[0].properties
-
-      // TODO: If columns null, return error to page
-      let columns: string[] = []
-      if (featureProperties) {
-        columns = Object.keys(featureProperties)
-      }
-
       setColumns(columns)
-
-      const findBestColumnMatch = (
-        cols: string[],
-        candidates: string[],
-        allowPartial: boolean = false
-      ): string | undefined => {
-        const lowerCaseColumns = cols.map((c) => ({
-          original: c,
-          lower: c.toLowerCase(),
-        }))
-
-        // Prioritize exact matches
-        for (const candidate of candidates) {
-          const found = lowerCaseColumns.find(
-            (c) => c.lower === candidate.toLowerCase()
-          )
-          if (found) {
-            return found.original
-          }
-        }
-
-        // If no exact match, and partial is allowed, try partial
-        if (allowPartial) {
-          for (const candidate of candidates) {
-            const found = lowerCaseColumns.find((c) =>
-              c.lower.includes(candidate.toLowerCase())
-            )
-            if (found) {
-              return found.original
-            }
-          }
-        }
-
-        return undefined
-      }
-
-      const idCandidates = ['id', 'fid', 'oid', 'objectid', 'tunnus']
-      const nameCandidates = ['name', 'nimi']
-      const descriptionCandidates = ['description', 'desc', 'kuvaus']
-      const areaCandidates = ['ala', 'area', 'pinta'] // Partial matches will catch variations
-      const municipalityCandidates = ['municipality', 'kunta']
-      const regionCandidates = ['region', 'maakunta']
-
       setIdCol(findBestColumnMatch(columns, idCandidates))
       setNameCol(findBestColumnMatch(columns, nameCandidates))
       setDescriptionCol(findBestColumnMatch(columns, descriptionCandidates))
@@ -152,7 +153,13 @@ const FolayerImportShp = ({
       setMunicipalityCol(findBestColumnMatch(columns, municipalityCandidates))
       setRegionCol(findBestColumnMatch(columns, regionCandidates))
     }
-  }, [geojson])
+
+    void loadGeojson(fileBuffers)
+
+    return () => {
+      isStale = true
+    }
+  }, [fileBuffers])
 
   const handleNameColChange = (newNameCol: string | undefined) => {
     setNameCol(newNameCol)
@@ -196,7 +203,7 @@ const FolayerImportShp = ({
   }
 
   const handleIsVisibleChange = (
-    _e: React.SyntheticEvent<Element, Event>,
+    _event: ChangeEvent<HTMLInputElement>,
     checked: boolean
   ) => {
     setIsVisible(checked)
@@ -461,11 +468,12 @@ const FolayerImportShp = ({
             onChange={handleIsVisibleChange}
             sx={{ mt: 4.5 }}
             disabled={isInitializing}
+            ariaLabel={t('sidebar.admin.create.is_visible')}
           >
-            <T
-              ns={'luonnonmetsakartat'}
-              keyName={'sidebar.admin.create.is_visible'}
-            ></T>
+            <TText
+              ns="luonnonmetsakartat"
+              keyName="sidebar.admin.create.is_visible"
+            />
           </SwitchWithLabel>
           {/* <TextFieldWithHeader
             headerText={t('sidebar.admin.create.description.header')}

@@ -391,6 +391,44 @@
     ]
   },
   {
+    "id": "luonnonmetsakartat-folayer-import-controls",
+    "label": "Luonnonmetsakartat folayer import controls",
+    "locale": "fi",
+    "description": "Natural forest admin import action and code-record selector states for F047 remigration coverage.",
+    "sourceGlobs": [
+      "src/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportActionsRow.tsx",
+      "src/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportCodeRecordSelect.tsx",
+      "src/common/component-fixtures/fixtures/LuonnonmetsakartatFolayerImportControlsFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "accept-enabled",
+        "label": "Accept enabled",
+        "description": "Accept imported forest-layer action when form state is valid."
+      },
+      {
+        "id": "accept-disabled",
+        "label": "Accept disabled",
+        "description": "Disabled accept action before the import can be created."
+      },
+      {
+        "id": "code-record-empty",
+        "label": "Code selector empty",
+        "description": "Selector helper returns no control when no columns are loaded."
+      },
+      {
+        "id": "code-record-selected",
+        "label": "Code selector selected",
+        "description": "Code-record selector after a matching shapefile column is selected."
+      },
+      {
+        "id": "code-record-allow-empty",
+        "label": "Optional code selector",
+        "description": "Optional code-record selector with the empty value allowed."
+      }
+    ]
+  },
+  {
     "id": "luonnonmetsakartat-search-table",
     "label": "Luonnonmetsakartat SearchTable",
     "locale": "fi",
