@@ -20,7 +20,8 @@ const buildComponentFixtureScenarioId = ({ fixtureId, stateId }) =>
 const buildComponentFixtureVisualScenarios = ({ baseUrl = '' } = {}) =>
   componentFixtureManifest.flatMap((fixture) =>
     fixture.states.map((state) => {
-      const path = `/${COMPONENT_FIXTURE_LOCALE}/dev/component-fixtures/${fixture.id}/${state.id}`
+      const locale = fixture.locale || COMPONENT_FIXTURE_LOCALE
+      const path = `/${locale}/dev/component-fixtures/${fixture.id}/${state.id}`
 
       return {
         id: buildComponentFixtureScenarioId({
@@ -28,7 +29,7 @@ const buildComponentFixtureVisualScenarios = ({ baseUrl = '' } = {}) =>
           stateId: state.id,
         }),
         applet: COMPONENT_FIXTURE_APPLET,
-        locale: COMPONENT_FIXTURE_LOCALE,
+        locale,
         path,
         url: joinUrl({ baseUrl, path }),
         requiresWebGL: false,

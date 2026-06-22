@@ -10,6 +10,7 @@ import { flowStepPrimitivesFixture } from './fixtures/FlowStepPrimitivesFixture'
 import { folderFixture } from './fixtures/FolderFixture'
 import { fullscreenPageFixture } from './fixtures/FullscreenPageFixture'
 import { loadingFeedbackFixture } from './fixtures/LoadingFeedbackFixture'
+import { luonnonmetsakartatAreaModalFixture } from './fixtures/LuonnonmetsakartatAreaModalFixture'
 import { mainPopupTableFixture } from './fixtures/MainPopupTableFixture'
 import { layerToggleRowFixture } from './fixtures/LayerToggleRowFixture'
 import {
@@ -54,6 +55,7 @@ const componentFixtures: ComponentFixture[] = [
   mapLayerMenuFixture,
   mapSearchBarFixture,
   layerToggleRowFixture,
+  luonnonmetsakartatAreaModalFixture,
   energymapEnergyClassControlsFixture,
   energymapBackgroundFiltersFixture,
   energymapBuildingInfoPanelFixture,

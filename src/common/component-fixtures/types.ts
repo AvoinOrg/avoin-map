@@ -14,6 +14,7 @@ export type ComponentFixtureStateMetadata = {
 export type ComponentFixtureMetadata = {
   id: string
   label: string
+  locale?: string
   description?: string
   waitFor?: string
   maskSelectors?: string[]

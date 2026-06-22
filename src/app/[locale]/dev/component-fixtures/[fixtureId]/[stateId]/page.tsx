@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 
 import { ComponentFixtureFrame } from '#/common/component-fixtures/ComponentFixtureFrame'
 import {
@@ -8,6 +8,7 @@ import {
 
 type Props = {
   params: Promise<{
+    locale: string
     fixtureId: string
     stateId: string
   }>
@@ -22,12 +23,16 @@ const assertDevelopmentFixtureRoute = () => {
 const ComponentFixtureStatePage = async ({ params }: Props) => {
   assertDevelopmentFixtureRoute()
 
-  const { fixtureId, stateId } = await params
+  const { locale, fixtureId, stateId } = await params
   const fixture = getComponentFixtureMetadata(fixtureId)
   const state = getComponentFixtureStateMetadata({ fixtureId, stateId })
 
   if (!fixture || !state) {
     notFound()
+  }
+
+  if (fixture.locale && fixture.locale !== locale) {
+    redirect(`/${fixture.locale}/dev/component-fixtures/${fixtureId}/${stateId}`)
   }
 
   return <ComponentFixtureFrame fixtureId={fixtureId} stateId={stateId} />

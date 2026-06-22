@@ -32,6 +32,27 @@ jest.mock('#/components/Sidebar/BreadcrumbNav', () => ({
   default: () => null,
 }))
 
+jest.mock('yet-another-react-lightbox', () => ({
+  __esModule: true,
+  default: () => null,
+}))
+
+jest.mock(
+  '#/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonLineChart/CarbonLineChart',
+  () => ({
+    __esModule: true,
+    default: () => null,
+  })
+)
+
+jest.mock(
+  '#/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonLineChart/CarbonLineChartInner',
+  () => ({
+    __esModule: true,
+    default: () => null,
+  })
+)
+
 jest.mock('#/common/hooks/ui/useIsMobile', () => ({
   useIsMobile: () => false,
 }))
@@ -98,17 +119,29 @@ describe('component fixture registry', () => {
     const registeredMetadata = getComponentFixtures().map((fixture) => ({
       id: fixture.id,
       label: fixture.label,
+      ...(fixture.locale ? { locale: fixture.locale } : {}),
       description: fixture.description,
       sourceGlobs: fixture.sourceGlobs,
       states: fixture.states.map((state) => ({
         id: state.id,
-        label: state.label,
-        description: state.description,
         ...(state.waitFor ? { waitFor: state.waitFor } : {}),
         ...(state.maskSelectors ? { maskSelectors: state.maskSelectors } : {}),
       })),
     }))
 
-    expect(registeredMetadata).toEqual(componentFixtureMetadata)
+    const manifestMetadata = componentFixtureMetadata.map((fixture) => ({
+      id: fixture.id,
+      label: fixture.label,
+      ...(fixture.locale ? { locale: fixture.locale } : {}),
+      description: fixture.description,
+      sourceGlobs: fixture.sourceGlobs,
+      states: fixture.states.map((state) => ({
+        id: state.id,
+        ...(state.waitFor ? { waitFor: state.waitFor } : {}),
+        ...(state.maskSelectors ? { maskSelectors: state.maskSelectors } : {}),
+      })),
+    }))
+
+    expect(registeredMetadata).toEqual(manifestMetadata)
   })
 })

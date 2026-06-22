@@ -1,14 +1,13 @@
 'use client'
 
 import React, { useEffect, useMemo } from 'react'
-import { Box, Typography } from '@mui/material'
-import { T } from '@tolgee/react'
 import { useQuery } from '@tanstack/react-query'
 
+import { Box } from '#/common/style/theme/system'
+import TText from '#/components/common/TText'
 import { SidebarContentBox } from '#/components/Sidebar'
 import { LoadingSpinner } from '#/components/Loading'
 
-import { routeTree } from '#/common/routing/routes/luonnonmetsakartat'
 import { useAppletStore } from '../state/appletStore'
 import { folayersQuery } from '../common/queries/folayersQuery'
 import FolayerItem from '../components/FolayerItem'
@@ -35,7 +34,7 @@ const Page = () => {
 
   useEffect(() => {
     folayerRefetch()
-  }, [])
+  }, [folayerRefetch])
 
   return (
     <SidebarContentBox>
@@ -66,15 +65,16 @@ const Page = () => {
               <Eco
                 sx={{ width: 50, height: 'auto', flexShrink: 0, mt: -0.5 }}
               ></Eco>
-              <Typography
+              <Box
+                component="span"
                 sx={{
                   display: 'inline-flex',
                   typography: 'body2',
                   ml: 1.5,
                 }}
               >
-                <T ns="luonnonmetsakartat" keyName="sidebar.main.no_data" />
-              </Typography>
+                <TText ns="luonnonmetsakartat" keyName="sidebar.main.no_data" />
+              </Box>
             </Box>
           )}
       </Box>

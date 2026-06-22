@@ -361,6 +361,36 @@
     ]
   },
   {
+    "id": "luonnonmetsakartat-area-modal",
+    "label": "Luonnonmetsakartat area modal",
+    "locale": "fi",
+    "description": "Public Luonnonmetsakartat map modal states for F047 remigration coverage.",
+    "sourceGlobs": [
+      "src/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/AreaModal.tsx",
+      "src/common/component-fixtures/fixtures/LuonnonmetsakartatAreaModalFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "with-pictures",
+        "label": "With pictures",
+        "description": "Public area modal with description text, carousel arrows, and dots.",
+        "waitFor": "[data-testid=\"luonnonmetsakartat-area-modal-fixture\"]"
+      },
+      {
+        "id": "without-pictures",
+        "label": "Without pictures",
+        "description": "Public area modal using the narrower no-picture width threshold.",
+        "waitFor": "[data-testid=\"luonnonmetsakartat-area-modal-fixture\"]"
+      },
+      {
+        "id": "no-feature",
+        "label": "No feature",
+        "description": "Fallback content when the public modal receives no selected feature.",
+        "waitFor": "[data-testid=\"luonnonmetsakartat-area-modal-fixture\"]"
+      }
+    ]
+  },
+  {
     "id": "energymap-energy-class-controls",
     "label": "Energiakartta energy class controls",
     "description": "Energiakartta A-G energy certificate class control states.",
