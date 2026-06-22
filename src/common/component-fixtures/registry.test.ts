@@ -37,6 +37,11 @@ jest.mock('yet-another-react-lightbox', () => ({
   default: () => null,
 }))
 
+jest.mock('react-photo-album', () => ({
+  __esModule: true,
+  MasonryPhotoAlbum: () => null,
+}))
+
 jest.mock(
   '#/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonLineChart/CarbonLineChart',
   () => ({

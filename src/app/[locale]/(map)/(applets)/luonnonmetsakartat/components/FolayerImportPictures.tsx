@@ -2,74 +2,66 @@
 
 import React, {
   forwardRef,
+  useCallback,
   useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
   useState,
 } from 'react'
-import {
-  Box,
-  Typography,
-  Autocomplete,
-  TextField,
-  Tooltip,
-} from '@mui/material'
-import BigMenuButton from '#/components/common/BigMenuButton'
-import { Upload } from '#/components/icons'
-import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
-import { FolayerAreaConf } from '../common/types'
-import { T, useTranslate } from '@tolgee/react'
+import { Combobox as BaseCombobox } from '@base-ui/react/combobox'
+import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip'
+import { useTranslate } from '@tolgee/react'
 import { FixedSizeList, ListChildComponentProps } from 'react-window'
 
-const LISTBOX_PADDING = 8 // px
+import {
+  Box,
+  type AppSxProps,
+  toSxArray,
+} from '#/common/style/theme/system'
+import BigMenuButton from '#/components/common/BigMenuButton'
+import { IconButton } from '#/components/common/Button'
+import TText from '#/components/common/TText'
+import { Cross, Upload } from '#/components/icons'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
+import type { FolayerAreaConf } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 
-function renderRow(props: ListChildComponentProps) {
-  const { data, index, style } = props
-  return React.cloneElement(data[index] as React.ReactElement, {
-    style: {
-      ...style,
-      top: (style.top as number) + LISTBOX_PADDING,
-    },
-  })
+const AREA_OPTION_ROW_HEIGHT = 30
+const AREA_OPTION_MAX_VISIBLE_ROWS = 7
+const autoHighlightOnOpen = 'always' as unknown as boolean
+const directoryInputAttributes = {
+  webkitdirectory: '',
+  directory: '',
+}
+const EMPTY_FEATURES: FolayerAreaConf['data']['features'] = []
+
+type ComponentSxArrayItem = Exclude<NonNullable<AppSxProps>, readonly unknown[]>
+
+const toComponentSxArray = (sx?: AppSxProps) =>
+  toSxArray(sx) as ComponentSxArrayItem[]
+
+type AreaOption = {
+  id: string
+  label: string
+  municipality: string
+  name: string
 }
 
-const OuterElementContext = React.createContext({})
+type FixedSizeListHandle = {
+  scrollToItem: (
+    index: number,
+    align?: 'auto' | 'smart' | 'center' | 'end' | 'start'
+  ) => void
+}
 
-const OuterElementType = React.forwardRef<HTMLDivElement>((props, ref) => {
-  const outerProps = React.useContext(OuterElementContext)
-  return <div ref={ref} {...props} {...outerProps} />
-})
-
-const ListboxComponent = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLElement>
->(function ListboxComponent(props, ref) {
-  const { children, ...other } = props
-  const itemData = React.Children.toArray(children)
-  const itemCount = itemData.length
-  const itemSize = 36 // height to match body7 rows
-  const height = Math.min(itemCount, 8) * itemSize
-
-  return (
-    <div ref={ref}>
-      <OuterElementContext.Provider value={other}>
-        <FixedSizeList
-          itemData={itemData}
-          height={height + 2 * LISTBOX_PADDING}
-          width="100%"
-          outerElementType={OuterElementType}
-          innerElementType="ul"
-          itemSize={itemSize}
-          overscanCount={5}
-          itemCount={itemCount}
-        >
-          {renderRow}
-        </FixedSizeList>
-      </OuterElementContext.Provider>
-    </div>
-  )
-})
+const FixedSizeListComponent = FixedSizeList as unknown as React.ComponentType<{
+  height: number
+  itemCount: number
+  itemSize: number
+  width: number | string
+  ref?: React.Ref<FixedSizeListHandle>
+  children: (props: ListChildComponentProps) => React.ReactNode
+}>
 
 export interface FolayerImportPicturesValues {
   bulkImages: File[]
@@ -82,39 +74,537 @@ export interface FolayerImportPicturesRef {
   ) => void
 }
 
+type FolayerImportPicturesFixtureState = {
+  files?: File[]
+  selectedFolderLabel?: string
+  manualMappings?: Record<string, string | null | undefined>
+  openFolder?: string
+  inputValueByFolder?: Record<string, string>
+}
+
 interface FolayerImportPicturesProps {
   folayerId: string
   onValidationChange?: (isValid: boolean) => void
+  fixtureState?: FolayerImportPicturesFixtureState
 }
 
 const normalize = (s?: string) =>
   (s || '').toString().trim().replace(/\s+/g, ' ').toLowerCase()
 
+const isAreaOptionEqual = (option: AreaOption, selected: AreaOption) =>
+  option.id === selected.id
+
+const filterAreaOption = (
+  option: AreaOption,
+  query: string,
+  itemToString?: (option: AreaOption) => string
+) => {
+  const label = itemToString?.(option) ?? option.label
+
+  return normalize(label).includes(normalize(query))
+}
+
+type FolderNameTooltipTriggerProps = Omit<
+  React.HTMLAttributes<HTMLSpanElement>,
+  'color'
+> & {
+  ref?: React.Ref<HTMLSpanElement>
+}
+
+const FolderNameTooltip = ({
+  title,
+  children,
+}: {
+  title: string
+  children: React.ReactNode
+}) => (
+  <BaseTooltip.Root>
+    <BaseTooltip.Trigger
+      delay={200}
+      closeDelay={0}
+      render={(triggerProps) => {
+        const {
+          color: ignoredColor,
+          type: ignoredType,
+          ...resolvedTriggerProps
+        } = triggerProps as FolderNameTooltipTriggerProps & {
+          color?: string
+          type?: string
+        }
+        void ignoredColor
+        void ignoredType
+
+        return (
+          <Box
+            {...resolvedTriggerProps}
+            component="span"
+            sx={{
+              minWidth: 0,
+              display: 'block',
+            }}
+          >
+            {children}
+          </Box>
+        )
+      }}
+    />
+    <BaseTooltip.Portal>
+      <BaseTooltip.Positioner side="top" align="start" sideOffset={8}>
+        <BaseTooltip.Popup
+          style={{ zIndex: 1500, pointerEvents: 'none' }}
+          render={(popupProps) => (
+            <Box
+              {...popupProps}
+              role="tooltip"
+              sx={{
+                maxWidth: 280,
+                px: 1,
+                py: 0.75,
+                borderRadius: '5px',
+                backgroundColor: '#111111',
+                color: '#ffffff',
+                fontSize: '0.75rem',
+                fontWeight: 400,
+                lineHeight: 1.35,
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.22)',
+                overflowWrap: 'anywhere',
+              }}
+            >
+              {title}
+              <BaseTooltip.Arrow
+                render={(arrowProps) => (
+                  <Box
+                    {...arrowProps}
+                    sx={{
+                      position: 'absolute',
+                      bottom: -4,
+                      left: 12,
+                      width: 8,
+                      height: 8,
+                      backgroundColor: '#111111',
+                      transform: 'rotate(45deg)',
+                    }}
+                  />
+                )}
+              />
+            </Box>
+          )}
+        />
+      </BaseTooltip.Positioner>
+    </BaseTooltip.Portal>
+  </BaseTooltip.Root>
+)
+
+type AreaSingleSelectComboboxProps = {
+  value: AreaOption | null
+  options: AreaOption[]
+  onChange: (value: AreaOption | null) => void
+  placeholder: string
+  noOptionsText: string
+  ariaLabel: string
+  open?: boolean
+  defaultOpen?: boolean
+  defaultInputValue?: string
+  sx?: AppSxProps
+}
+
+const AreaSingleSelectCombobox = ({
+  value,
+  options,
+  onChange,
+  placeholder,
+  noOptionsText,
+  ariaLabel,
+  open,
+  defaultOpen,
+  defaultInputValue,
+  sx,
+}: AreaSingleSelectComboboxProps) => {
+  const rootRef = useRef<HTMLElement | null>(null)
+  const inputRef = useRef<HTMLInputElement | null>(null)
+  const optionListRef = useRef<FixedSizeListHandle | null>(null)
+  const openIsControlled = open !== undefined
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(
+    defaultOpen ?? false
+  )
+  const [inputValue, setInputValue] = useState(
+    defaultInputValue ?? value?.label ?? ''
+  )
+  const resolvedOpen = openIsControlled ? open : uncontrolledOpen
+  const filteredOptions = useMemo(() => {
+    const inputMatchesSelectedValue =
+      value && normalize(inputValue) === normalize(value.label)
+
+    if (!inputValue.trim() || inputMatchesSelectedValue) {
+      return options
+    }
+
+    return options.filter((option) =>
+      filterAreaOption(option, inputValue, (areaOption) => areaOption.label)
+    )
+  }, [inputValue, options, value])
+  const optionListHeight =
+    Math.min(filteredOptions.length, AREA_OPTION_MAX_VISIBLE_ROWS) *
+    AREA_OPTION_ROW_HEIGHT
+
+  const setResolvedOpen = useCallback(
+    (nextOpen: boolean) => {
+      if (!openIsControlled) {
+        setUncontrolledOpen(nextOpen)
+      }
+    },
+    [openIsControlled]
+  )
+
+  const handleClear = (event: React.MouseEvent<HTMLElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+    onChange(null)
+    setInputValue('')
+    setResolvedOpen(false)
+    inputRef.current?.focus()
+  }
+
+  useEffect(() => {
+    if (!resolvedOpen || !value) {
+      return undefined
+    }
+
+    const selectedIndex = filteredOptions.findIndex((option) =>
+      isAreaOptionEqual(option, value)
+    )
+
+    if (selectedIndex < 0) {
+      return undefined
+    }
+
+    const animationFrame = window.requestAnimationFrame(() => {
+      optionListRef.current?.scrollToItem(selectedIndex, 'smart')
+    })
+
+    return () => window.cancelAnimationFrame(animationFrame)
+  }, [filteredOptions, resolvedOpen, value])
+
+  const renderOptionRow = ({ index, style }: ListChildComponentProps) => {
+    const option = filteredOptions[index]
+
+    if (!option) {
+      return null
+    }
+
+    return (
+      <BaseCombobox.Item
+        key={option.id}
+        value={option}
+        index={index}
+        render={(itemProps, itemState) => (
+          <Box
+            {...itemProps}
+            style={style as React.CSSProperties}
+            data-slot="area-select-option"
+            data-selected={itemState.selected ? '' : undefined}
+            sx={{
+              height: '100%',
+              boxSizing: 'border-box',
+              display: 'flex',
+              alignItems: 'center',
+              px: 1.5,
+              py: 0,
+              typography: 'body7',
+              color: '#111111',
+              overflowWrap: 'anywhere',
+              maxWidth: '100%',
+              cursor: 'pointer',
+              outline: 0,
+              '&[data-highlighted], &:hover, &:focus-visible': {
+                backgroundColor: 'primary.light',
+              },
+              '&[data-selected]': {
+                fontWeight: 700,
+              },
+            }}
+          >
+            {option.label}
+          </Box>
+        )}
+      />
+    )
+  }
+
+  return (
+    <Box
+      ref={rootRef}
+      sx={[
+        {
+          width: '100%',
+          minWidth: 0,
+          position: 'relative',
+        },
+        ...toComponentSxArray(sx),
+      ]}
+    >
+      <BaseCombobox.Root<AreaOption>
+        modal={false}
+        items={options}
+        filteredItems={filteredOptions}
+        value={value}
+        open={resolvedOpen}
+        virtualized
+        autoHighlight={autoHighlightOnOpen}
+        inputValue={inputValue}
+        itemToStringLabel={(option) => option.label}
+        itemToStringValue={(option) => option.id}
+        isItemEqualToValue={isAreaOptionEqual}
+        filter={filterAreaOption}
+        onOpenChange={(nextOpen) => {
+          setResolvedOpen(nextOpen)
+        }}
+        onItemHighlighted={(_, eventDetails) => {
+          if (eventDetails.index >= 0) {
+            optionListRef.current?.scrollToItem(eventDetails.index, 'smart')
+          }
+        }}
+        onInputValueChange={(nextInputValue) => {
+          setInputValue(nextInputValue)
+          setResolvedOpen(true)
+        }}
+        onValueChange={(nextValue) => {
+          const resolvedValue = nextValue ?? null
+          onChange(resolvedValue)
+          setInputValue(resolvedValue?.label ?? '')
+          setResolvedOpen(false)
+        }}
+      >
+        <Box
+          data-slot="field"
+          onMouseDown={(event) => {
+            if (
+              event.target instanceof HTMLElement &&
+              event.target.closest('[data-slot="clear-button"]')
+            ) {
+              return
+            }
+
+            setResolvedOpen(true)
+            inputRef.current?.focus()
+          }}
+          onClick={() => setResolvedOpen(true)}
+          sx={{
+            width: '100%',
+            minWidth: 0,
+            minHeight: '2.25rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.5,
+            px: 1,
+            py: 0.25,
+            border: '1px solid',
+            borderColor: 'neutral.main',
+            borderRadius: '2px',
+            backgroundColor: 'neutral.lighter',
+            cursor: 'text',
+            '&:focus-within, &:has([data-popup-open])': {
+              borderColor: 'secondary.dark',
+            },
+          }}
+        >
+          <BaseCombobox.Input
+            ref={inputRef}
+            aria-label={ariaLabel}
+            placeholder={!value && !inputValue ? placeholder : undefined}
+            render={(inputProps) => (
+              <Box
+                component="input"
+                {...inputProps}
+                role={inputProps.role ?? 'combobox'}
+                aria-expanded={
+                  inputProps['aria-expanded'] ??
+                  (resolvedOpen ? 'true' : 'false')
+                }
+                aria-haspopup={inputProps['aria-haspopup'] ?? 'listbox'}
+                onFocus={(event: React.FocusEvent<HTMLInputElement>) => {
+                  ;(
+                    inputProps.onFocus as
+                      | React.FocusEventHandler<HTMLInputElement>
+                      | undefined
+                  )?.(event)
+
+                  setResolvedOpen(true)
+                }}
+                onMouseDown={(event: React.MouseEvent<HTMLInputElement>) => {
+                  ;(
+                    inputProps.onMouseDown as
+                      | React.MouseEventHandler<HTMLInputElement>
+                      | undefined
+                  )?.(event)
+
+                  setResolvedOpen(true)
+                }}
+                onClick={(event: React.MouseEvent<HTMLInputElement>) => {
+                  ;(
+                    inputProps.onClick as
+                      | React.MouseEventHandler<HTMLInputElement>
+                      | undefined
+                  )?.(event)
+
+                  setResolvedOpen(true)
+                }}
+                onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => {
+                  ;(
+                    inputProps.onKeyDown as
+                      | React.KeyboardEventHandler<HTMLInputElement>
+                      | undefined
+                  )?.(event)
+
+                  if (event.defaultPrevented || event.key !== 'Escape') {
+                    return
+                  }
+
+                  if (resolvedOpen) {
+                    setResolvedOpen(false)
+                    return
+                  }
+
+                  if (value || inputValue) {
+                    event.preventDefault()
+                    onChange(null)
+                    setInputValue('')
+                  }
+                }}
+                data-slot="input"
+                sx={{
+                  minWidth: 0,
+                  flex: 1,
+                  border: 0,
+                  outline: 0,
+                  backgroundColor: 'transparent',
+                  typography: 'body7',
+                  color: '#111111',
+                  font: 'inherit',
+                  '&::placeholder': {
+                    typography: 'body7',
+                    color: 'neutral.dark',
+                    opacity: 1,
+                  },
+                }}
+              />
+            )}
+          />
+          {value && (
+            <IconButton
+              data-slot="clear-button"
+              type="button"
+              size="small"
+              aria-label={`${ariaLabel} clear`}
+              onClick={handleClear}
+              sx={{
+                width: '1.5rem',
+                minWidth: '1.5rem',
+                height: '1.5rem',
+                p: 0,
+                color: 'neutral.dark',
+                '& svg': {
+                  width: '0.65rem',
+                  height: '0.65rem',
+                },
+              }}
+            >
+              <Cross />
+            </IconButton>
+          )}
+        </Box>
+
+        <BaseCombobox.Portal keepMounted>
+          <BaseCombobox.Positioner
+            anchor={rootRef}
+            align="start"
+            sideOffset={4}
+            render={(positionerProps) => (
+              <Box
+                {...positionerProps}
+                data-slot="area-select-positioner"
+                sx={{
+                  zIndex: (theme) => theme.zIndex.modal + 1,
+                  width: 'var(--anchor-width)',
+                  minWidth: 'min(18rem, calc(100vw - 2rem))',
+                  maxWidth: 'min(28rem, calc(100vw - 2rem))',
+                }}
+              />
+            )}
+          >
+            <BaseCombobox.Popup
+              render={(popupProps) => (
+                <Box
+                  {...popupProps}
+                  data-slot="area-select-popup"
+                  sx={{
+                    maxHeight: 'min(18rem, calc(100vh - 2rem))',
+                    overflowY: 'hidden',
+                    border: '1px solid #D6D6D6',
+                    borderRadius: '0.25rem',
+                    backgroundColor: 'common.white',
+                    boxShadow: '0px 8px 24px rgba(17, 17, 17, 0.12)',
+                  }}
+                />
+              )}
+            >
+              <BaseCombobox.List>
+                {filteredOptions.length > 0 && (
+                  <FixedSizeListComponent
+                    ref={optionListRef}
+                    height={optionListHeight}
+                    itemCount={filteredOptions.length}
+                    itemSize={AREA_OPTION_ROW_HEIGHT}
+                    width="100%"
+                  >
+                    {renderOptionRow}
+                  </FixedSizeListComponent>
+                )}
+              </BaseCombobox.List>
+
+              <BaseCombobox.Empty
+                render={(emptyProps) => (
+                  <Box
+                    {...emptyProps}
+                    data-slot="area-select-empty"
+                    sx={{
+                      px: 1.5,
+                      py: 1,
+                      typography: 'body7',
+                      color: '#111111',
+                    }}
+                  />
+                )}
+              >
+                {noOptionsText}
+              </BaseCombobox.Empty>
+            </BaseCombobox.Popup>
+          </BaseCombobox.Positioner>
+        </BaseCombobox.Portal>
+      </BaseCombobox.Root>
+    </Box>
+  )
+}
+
 const FolayerImportPictures = forwardRef<
   FolayerImportPicturesRef,
   FolayerImportPicturesProps
->(({ folayerId, onValidationChange }, ref) => {
+>(({ folayerId, onValidationChange, fixtureState }, ref) => {
   const { t } = useTranslate('luonnonmetsakartat')
   const inputRef = useRef<HTMLInputElement>(null)
-  const [files, setFiles] = useState<File[]>([])
-  const [selectedFolderLabel, setSelectedFolderLabel] = useState<string>()
+  const [files, setFiles] = useState<File[]>(fixtureState?.files ?? [])
+  const [selectedFolderLabel, setSelectedFolderLabel] = useState<
+    string | undefined
+  >(fixtureState?.selectedFolderLabel)
   const [manualMappings, setManualMappings] = useState<
     Record<string, string | null | undefined>
-  >({})
-  const [rowOrder, setRowOrder] = useState<string[]>([])
+  >(fixtureState?.manualMappings ?? {})
 
   const areaConf: FolayerAreaConf | undefined = useAppletStore(
     (s) => s.folayerAreaConfs[folayerId]
   )
 
-  // Memoized area options and lookups
-  type AreaOption = {
-    id: string
-    label: string
-    municipality: string
-    name: string
-  }
-  const features = areaConf?.data?.features ?? []
+  const features = areaConf?.data?.features ?? EMPTY_FEATURES
   const areaOptionsAll: AreaOption[] = useMemo(() => {
     const list = features
       .map((feat) => {
@@ -122,8 +612,8 @@ const FolayerImportPictures = forwardRef<
           feat.id != null
             ? String(feat.id)
             : feat.properties?.id != null
-            ? String(feat.properties.id)
-            : undefined
+              ? String(feat.properties.id)
+              : undefined
         if (!id) return null
         const municipality = feat.properties?.municipality || ''
         const name = feat.properties?.name || ''
@@ -152,8 +642,8 @@ const FolayerImportPictures = forwardRef<
         feat.id != null
           ? String(feat.id)
           : feat.properties?.id != null
-          ? String(feat.properties.id)
-          : undefined
+            ? String(feat.properties.id)
+            : undefined
       if (!id) continue
       const municipality = normalize(feat.properties?.municipality)
       const name = normalize(feat.properties?.name)
@@ -163,12 +653,12 @@ const FolayerImportPictures = forwardRef<
     return map
   }, [features])
 
-  // Group files by bottom-level folder
   const groups = useMemo(() => {
     const map = new Map<string, File[]>()
     for (const f of files) {
       if (!f.type || !f.type.startsWith('image/')) continue
-      const rel = (f as any).webkitRelativePath || f.name
+      const rel = (f as File & { webkitRelativePath?: string })
+        .webkitRelativePath || f.name
       const parts = rel.split('/')
       const folder = parts.length > 1 ? parts[parts.length - 2] : ''
       if (!map.has(folder)) map.set(folder, [])
@@ -177,7 +667,6 @@ const FolayerImportPictures = forwardRef<
     return map
   }, [files])
 
-  // Build mapping
   const mapping = useMemo(() => {
     const result: { bulkImages: File[]; bulkAreaIds: string[] } = {
       bulkImages: [],
@@ -224,21 +713,12 @@ const FolayerImportPictures = forwardRef<
     return { ...result, unmatched, resolvedByFolder }
   }, [groups, featureIdByNormKey, manualMappings, features.length])
 
-  // Initial row order (unmatched first, then alpha), only when groups change
-  useEffect(() => {
+  const rowOrder = useMemo(() => {
     const folders = Array.from(groups.keys())
     if (folders.length === 0) {
-      setRowOrder([])
-      return
+      return []
     }
-    if (!features.length) return
-
-    const prevSet = new Set(rowOrder)
-    const sameSet =
-      rowOrder.length > 0 &&
-      rowOrder.length === folders.length &&
-      folders.every((f) => prevSet.has(f))
-    if (sameSet) return
+    if (!features.length) return []
 
     const autoResolvedByFolder: Record<string, boolean> = {}
     folders.forEach((folderName) => {
@@ -257,17 +737,14 @@ const FolayerImportPictures = forwardRef<
       )
     })
 
-    const sorted = folders.sort((a, b) => {
+    return folders.sort((a, b) => {
       const aUnmatched = !autoResolvedByFolder[a]
       const bUnmatched = !autoResolvedByFolder[b]
       if (aUnmatched === bUnmatched) return a.localeCompare(b)
       return aUnmatched ? -1 : 1
     })
-
-    setRowOrder(sorted)
   }, [groups, features.length, featureIdByNormKey])
 
-  // Always reflect current validity
   useEffect(() => {
     if (!onValidationChange) return
     const isValid = mapping.bulkImages.length > 0 && !!areaConf
@@ -276,7 +753,7 @@ const FolayerImportPictures = forwardRef<
 
   useImperativeHandle(ref, () => ({
     getValues: (cb) => {
-      // Allow partial saves: return mapped images even if some folders are unmatched
+      // Allow partial saves: return mapped images even if some folders are unmatched.
       if (mapping.bulkImages.length === 0) {
         cb(null)
         return
@@ -289,11 +766,9 @@ const FolayerImportPictures = forwardRef<
     const fList = e.target.files
     if (!fList) return
     const arr = Array.from(fList)
-    // Replace previous selection entirely
     setManualMappings({})
     setFiles(arr)
-    // Label from top-level of the latest selection
-    const first = arr[0] as any
+    const first = arr[0] as File & { webkitRelativePath?: string }
     const relFirst: string = first?.webkitRelativePath || first?.name || ''
     const root = relFirst.includes('/') ? relFirst.split('/')[0] : relFirst
     setSelectedFolderLabel(root || undefined)
@@ -318,7 +793,6 @@ const FolayerImportPictures = forwardRef<
     return count
   }, [unmatchedFolders, groups])
 
-  // Virtualized rows
   const rowHeight = 56
   const maxListHeight = 500
   const listHeight = Math.min(rowOrder.length * rowHeight, maxListHeight)
@@ -333,14 +807,17 @@ const FolayerImportPictures = forwardRef<
         ? undefined
         : manualVal || mapping.resolvedByFolder[folder]
     const currentValue = currentId ? optionsById.get(currentId) || null : null
+    const selectAreaText = t(
+      'sidebar.admin.folayer.settings.picture.select_area'
+    )
 
     return (
       <Box
         key={folder}
-        style={style}
+        style={style as unknown as React.CSSProperties}
         sx={{
           display: 'grid',
-          gridTemplateColumns: '1fr auto 1.5fr',
+          gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1.5fr)',
           alignItems: 'center',
           gap: 2,
           py: 1,
@@ -348,69 +825,47 @@ const FolayerImportPictures = forwardRef<
           borderColor: 'divider',
         }}
       >
-        <Tooltip title={folder} placement="top-start" enterDelay={200} arrow>
-          <Typography
-            typography="body7"
+        <FolderNameTooltip title={folder}>
+          <Box
+            component="span"
             sx={{
+              display: 'block',
+              minWidth: 0,
+              typography: 'body7',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
             }}
           >
             {folder}
-          </Typography>
-        </Tooltip>
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          sx={{ textAlign: 'right' }}
+          </Box>
+        </FolderNameTooltip>
+        <Box
+          component="span"
+          sx={{
+            typography: 'body7',
+            color: 'text.secondary',
+            textAlign: 'right',
+          }}
         >
           {count}
-        </Typography>
-        <Autocomplete
-          size="small"
+        </Box>
+        <AreaSingleSelectCombobox
           options={areaOptionsAll}
           value={currentValue}
-          isOptionEqualToValue={(o, v) => o.id === v.id}
-          getOptionLabel={(o) => o.label}
-          renderOption={(props, option) => (
-            <li {...props} key={option.id}>
-              <Typography typography="body7">{option.label}</Typography>
-            </li>
+          placeholder={selectAreaText}
+          ariaLabel={`${selectAreaText}: ${folder}`}
+          noOptionsText={t(
+            'sidebar.admin.folayer.settings.picture.no_options'
           )}
-          noOptionsText={
-            <Typography typography="body7">
-              {t('sidebar.admin.folayer.settings.picture.no_options')}
-            </Typography>
-          }
-          slotProps={{
-            listbox: {
-              component: ListboxComponent as React.ComponentType<
-                React.HTMLAttributes<HTMLElement>
-              >,
-            },
-          }}
-          clearOnEscape
-          disableClearable={false}
-          onChange={(_e, newValue) => {
+          open={fixtureState?.openFolder === folder ? true : undefined}
+          defaultInputValue={fixtureState?.inputValueByFolder?.[folder]}
+          onChange={(newValue) => {
             setManualMappings((prev) => ({
               ...prev,
               [folder]: newValue ? newValue.id : null,
             }))
           }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              placeholder={t(
-                'sidebar.admin.folayer.settings.picture.select_area'
-              )}
-              sx={{
-                '& .MuiInputBase-input': (theme) => ({
-                  typography: 'body7',
-                }),
-              }}
-            />
-          )}
         />
       </Box>
     )
@@ -422,16 +877,17 @@ const FolayerImportPictures = forwardRef<
         variant="outlined"
         component="label"
         sx={{ width: '100%', minHeight: '60px' }}
+        aria-label={
+          selectedFolderLabel ||
+          t('sidebar.admin.folayer.settings.picture.select_folder')
+        }
       >
         {selectedFolderLabel ||
           t('sidebar.admin.folayer.settings.picture.select_folder')}
         <input
           hidden
           multiple
-          // @ts-ignore non-standard attributes for directory selection
-          webkitdirectory=""
-          // @ts-ignore
-          directory=""
+          {...directoryInputAttributes}
           type="file"
           accept="image/*"
           onChange={handleFolderInput}
@@ -442,25 +898,28 @@ const FolayerImportPictures = forwardRef<
 
       {groups.size > 0 && (
         <Box sx={{ mt: 3 }}>
-          <Typography variant="body2">
-            <T
+          <Box component="p" sx={{ m: 0, typography: 'body2' }}>
+            <TText
               ns="luonnonmetsakartat"
               keyName={'sidebar.admin.folayer.settings.picture.areas'}
             />
             : {totalAreas} •{' '}
-            <T
+            <TText
               ns="luonnonmetsakartat"
               keyName={'sidebar.admin.folayer.settings.picture.images'}
             />
             : {totalImages}
-          </Typography>
+          </Box>
         </Box>
       )}
 
       {unmatchedFolders.length > 0 && (
         <Box sx={{ mt: 4 }}>
-          <Typography variant="body2" color="error" sx={{ mb: 1 }}>
-            <T
+          <Box
+            component="p"
+            sx={{ m: 0, mb: 1, typography: 'body2', color: 'error.main' }}
+          >
+            <TText
               ns="luonnonmetsakartat"
               keyName={
                 unmatchedFoldersCount > 1
@@ -472,7 +931,7 @@ const FolayerImportPictures = forwardRef<
                 imageCount: unmatchedImagesCount,
               }}
             />
-          </Typography>
+          </Box>
         </Box>
       )}
 
@@ -481,7 +940,7 @@ const FolayerImportPictures = forwardRef<
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: '1fr auto 1.5fr',
+              gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1.5fr)',
               alignItems: 'center',
               gap: 2,
               py: 0.75,
@@ -489,35 +948,49 @@ const FolayerImportPictures = forwardRef<
               borderColor: 'divider',
             }}
           >
-            <Typography variant="caption" color="text.secondary">
+            <Box
+              component="span"
+              sx={{ typography: 'body7', color: 'text.secondary' }}
+            >
               {t('sidebar.admin.folayer.settings.picture.folders')}
-            </Typography>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ textAlign: 'left' }}
+            </Box>
+            <Box
+              component="span"
+              sx={{
+                typography: 'body7',
+                color: 'text.secondary',
+                textAlign: 'left',
+              }}
             >
               {t('sidebar.admin.folayer.settings.picture.images')}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
+            </Box>
+            <Box
+              component="span"
+              sx={{ typography: 'body7', color: 'text.secondary' }}
+            >
               {t('sidebar.admin.folayer.settings.picture.areas')}
-            </Typography>
+            </Box>
           </Box>
 
-          <Box sx={{ width: '100%' }}>
-            <FixedSizeList
+          <Box
+            data-testid="folayer-import-pictures-mapping-list"
+            sx={{ width: '100%' }}
+          >
+            <FixedSizeListComponent
               height={listHeight}
               itemCount={rowOrder.length}
               itemSize={rowHeight}
               width="100%"
             >
               {Row}
-            </FixedSizeList>
+            </FixedSizeListComponent>
           </Box>
         </Box>
       ) : null}
     </Box>
   )
 })
+
+FolayerImportPictures.displayName = 'FolayerImportPictures'
 
 export default FolayerImportPictures

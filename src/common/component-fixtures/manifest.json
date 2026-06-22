@@ -391,6 +391,74 @@
     ]
   },
   {
+    "id": "luonnonmetsakartat-admin-pictures-area-modal",
+    "label": "Luonnonmetsakartat admin pictures and area modal",
+    "locale": "fi",
+    "description": "Natural forest admin picture mapping and editable area modal states for F047.13.5 remigration coverage.",
+    "sourceGlobs": [
+      "src/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportPictures.tsx",
+      "src/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/AreaModalAdmin.tsx",
+      "src/app/[locale]/(map)/(applets)/luonnonmetsakartat/(pages)/admin/taso/[folayerIdSlug]/kuvat/page.tsx",
+      "src/common/component-fixtures/fixtures/LuonnonmetsakartatAdminPicturesAreaModalFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "pictures-empty",
+        "label": "Pictures empty",
+        "description": "Folder upload control before a directory has been selected.",
+        "waitFor": "[data-testid=\"luonnonmetsakartat-admin-pictures-area-modal-fixture\"]"
+      },
+      {
+        "id": "pictures-matched-unmatched",
+        "label": "Pictures matched and unmatched",
+        "description": "Selected folder with image-only filtering, automatic matches, and unmatched summary.",
+        "waitFor": "[data-testid=\"folayer-import-pictures-mapping-list\"]"
+      },
+      {
+        "id": "pictures-manual-mapping",
+        "label": "Pictures manual mapping",
+        "description": "Previously unmatched folder manually mapped to a known natural forest area.",
+        "waitFor": "[data-testid=\"folayer-import-pictures-mapping-list\"]"
+      },
+      {
+        "id": "pictures-options-open",
+        "label": "Pictures options open",
+        "description": "Area combobox open with selectable area options.",
+        "waitFor": "[data-slot=\"area-select-popup\"]"
+      },
+      {
+        "id": "pictures-no-options",
+        "label": "Pictures no options",
+        "description": "Area combobox open with no matching area options.",
+        "waitFor": "[data-slot=\"area-select-empty\"]"
+      },
+      {
+        "id": "area-modal-editable",
+        "label": "Area modal editable",
+        "description": "Editable admin area modal with existing gallery pictures.",
+        "waitFor": "[data-testid=\"luonnonmetsakartat-admin-area-modal\"]"
+      },
+      {
+        "id": "area-modal-unsynced",
+        "label": "Area modal unsynced",
+        "description": "Admin area modal with unsynced save footer visible.",
+        "waitFor": "[data-testid=\"luonnonmetsakartat-admin-area-modal\"]"
+      },
+      {
+        "id": "area-modal-loading",
+        "label": "Area modal loading",
+        "description": "Admin area modal with save loading overlay visible.",
+        "waitFor": "[data-testid=\"luonnonmetsakartat-admin-area-modal\"]"
+      },
+      {
+        "id": "area-modal-lightbox",
+        "label": "Area modal lightbox",
+        "description": "Admin area modal with gallery lightbox open.",
+        "waitFor": "[data-testid=\"luonnonmetsakartat-admin-area-modal-lightbox-ready\"]"
+      }
+    ]
+  },
+  {
     "id": "luonnonmetsakartat-folayer-import-controls",
     "label": "Luonnonmetsakartat folayer import controls",
     "locale": "fi",
