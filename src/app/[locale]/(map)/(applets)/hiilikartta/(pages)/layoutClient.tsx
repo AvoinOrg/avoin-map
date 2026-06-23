@@ -5,8 +5,8 @@
 import React, { useEffect } from 'react'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
-import { useParams, usePathname } from 'next/navigation'
 
+import { useAppParams, useAppPathname } from '#/common/navigation/navigation'
 import { routeTree } from '#/common/routing/routes/hiilikartta'
 import { compiledApplets } from '#/common/routing/routing'
 import AppletWrapper from '#/components/common/AppletWrapper'
@@ -29,8 +29,8 @@ const localizationNamespace = 'hiilikartta'
 
 const layoutClient = ({ children }: { children: React.ReactNode }) => {
   const { data: session, status } = useSession()
-  const pathname = usePathname()
-  const { locale } = useParams()
+  const pathname = useAppPathname()
+  const { locale } = useAppParams()
   const addSignOutAction = useUserStore((state) => state.addSignOutAction)
   const removeSignOutAction = useUserStore((state) => state.removeSignOutAction)
 

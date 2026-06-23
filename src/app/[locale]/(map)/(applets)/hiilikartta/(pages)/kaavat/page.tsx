@@ -2,8 +2,8 @@
 
 import React, { useMemo, useState } from 'react'
 import { useTranslate } from '@tolgee/react'
-import { useRouter } from 'next/navigation'
 
+import { useAppRouter } from '#/common/navigation/navigation'
 import useStore from '#/common/hooks/useStore'
 import { SidebarContentBox } from '#/components/Sidebar'
 import { Box, type AppSystemStyleObject } from '#/common/style/theme'
@@ -73,7 +73,7 @@ const getCreationPlaceholderDisplayName = ({
 
 const Page = () => {
   const { t } = useTranslate('hiilikartta')
-  const router = useRouter()
+  const router = useAppRouter()
   const [sortOrder, setSortOrder] = useState<SortOption>('newest')
   const planConfs = useStore(useAppletStore, (state) => state.planConfs)
   const placeholderPlanConfs = useStore(

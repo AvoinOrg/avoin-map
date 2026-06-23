@@ -143,10 +143,13 @@ export const useAppPathname = () =>
     select: (state) => state.location.pathname,
   })
 
-export const useAppSearchParams = () =>
-  useRouterState({
-    select: (state) => new URLSearchParams(state.location.searchStr),
+export const useAppSearchParams = () => {
+  const searchStr = useRouterState({
+    select: (state) => state.location.searchStr,
   })
+
+  return useMemo(() => new URLSearchParams(searchStr), [searchStr])
+}
 
 export const useAppParams = <
   TParams extends AppRouteParams = AppRouteParams,

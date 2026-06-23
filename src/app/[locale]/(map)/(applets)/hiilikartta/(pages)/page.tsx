@@ -2,8 +2,8 @@
 
 import React, { useMemo } from 'react'
 import { useTranslate } from '@tolgee/react'
-import { useRouter } from 'next/navigation'
 
+import { useAppRouter } from '#/common/navigation/navigation'
 import { Box, type AppSystemStyleObject } from '#/common/style/theme'
 import {
   IntoSidebarFooterSlot,
@@ -100,7 +100,7 @@ const HomeSidebarHeader = () => {
 
 const Page = () => {
   const { t } = useTranslate('hiilikartta')
-  const router = useRouter()
+  const router = useAppRouter()
   const toggleLayerGroup = useMapStore((state) => state.toggleLayerGroup)
   const visibleLayerGroupIds = useVisibleLayerGroupIds()
   const introText = t('sidebar.main.intro')

@@ -3,9 +3,9 @@
 import React, { useEffect, useState } from 'react'
 import { Tooltip } from '@base-ui/react/tooltip'
 import { useMutation } from '@tanstack/react-query'
-import { useParams, useRouter } from 'next/navigation'
 import { useTranslate } from '@tolgee/react'
 
+import { useAppParams, useAppRouter } from '#/common/navigation/navigation'
 import { Box } from '#/common/style/theme'
 import { getRoute } from '#/common/routing/routing-client'
 import { ButtonBase } from '#/components/common/Button'
@@ -131,7 +131,7 @@ const DisabledZoneCalculateTooltip = ({
 }
 
 const Page = () => {
-  const params = useParams<{ planId: string }>()
+  const params = useAppParams<{ planId: string }>()
   const hasHydrated = useAppletStoreHasHydrated()
   const planConf = useAppletStore((state) => state.planConfs[params.planId])
   const globalState = useAppletStore((state) => state.globalState)
@@ -140,7 +140,7 @@ const Page = () => {
   )
   const updatePlanConf = useAppletStore((state) => state.updatePlanConf)
   const calcPost = useMutation(calcPostMutation())
-  const router = useRouter()
+  const router = useAppRouter()
   const { t } = useTranslate('hiilikartta')
   const [isLoaded, setIsLoaded] = useState(false)
   const [hasPendingLandUseEdits, setHasPendingLandUseEdits] = useState(false)

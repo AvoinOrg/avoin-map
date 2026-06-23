@@ -12,8 +12,8 @@ import { Tooltip } from '@base-ui/react/tooltip'
 import { useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
-import { useParams, useRouter } from 'next/navigation'
 
+import { useAppParams, useAppRouter } from '#/common/navigation/navigation'
 import { Box } from '#/common/style/theme'
 import { SidebarContentBox } from '#/components/Sidebar'
 import SidebarBackgroundContent from '#/components/common/SidebarBackgroundContent'
@@ -308,11 +308,11 @@ const UploadField = ({
 }
 
 const Page = () => {
-  const params = useParams<{ locale: string; planId: string }>()
+  const params = useAppParams<{ locale: string; planId: string }>()
   const planId = params.planId
   const locale = params.locale
   const { t } = useTranslate('hiilikartta')
-  const router = useRouter()
+  const router = useAppRouter()
   const { status } = useSession()
   const inputRef = useRef<HTMLInputElement>(null)
   const autoOpenFrameRef = useRef<number | null>(null)

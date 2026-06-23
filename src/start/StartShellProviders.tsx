@@ -26,6 +26,7 @@ const START_TOLGEE_NAMESPACES = [
   START_TOLGEE_DEFAULT_NS,
   'fi-forests',
   'energiakartta',
+  'hiilikartta',
 ] as const
 const START_TOLGEE_LANGUAGES =
   LOCALES.length > 0 ? LOCALES : [DEFAULT_LOCALE]

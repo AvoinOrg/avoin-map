@@ -10,6 +10,9 @@ const startNavigationAdapter = fileURLToPath(
 const startNextImageShim = fileURLToPath(
   new URL('./src/start/NextImage.tsx', import.meta.url)
 )
+const startMapLibreShim = fileURLToPath(
+  new URL('./src/start/maplibre-gl.ts', import.meta.url)
+)
 const maplibreSymbolUtilsEsm = fileURLToPath(
   new URL(
     './node_modules/maplibre_symbol_utils/dist/index.js',
@@ -41,11 +44,24 @@ export default defineConfig(({ mode }) => ({
     strictPort: true,
   },
   resolve: {
-    alias: {
-      '#/common/navigation/navigation': startNavigationAdapter,
-      maplibre_symbol_utils: maplibreSymbolUtilsEsm,
-      'next/image': startNextImageShim,
-    },
+    alias: [
+      {
+        find: '#/common/navigation/navigation',
+        replacement: startNavigationAdapter,
+      },
+      {
+        find: /^maplibre-gl$/,
+        replacement: startMapLibreShim,
+      },
+      {
+        find: 'maplibre_symbol_utils',
+        replacement: maplibreSymbolUtilsEsm,
+      },
+      {
+        find: 'next/image',
+        replacement: startNextImageShim,
+      },
+    ],
   },
   plugins: [
     tsconfigPaths({

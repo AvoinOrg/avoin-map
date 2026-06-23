@@ -21,7 +21,12 @@ import { Route as LocalemapMapappletsEnergiakarttaRouteRouteImport } from './rou
 import { Route as LocalemapMapappletsHiilikarttaIndexRouteImport } from './routes/$locale/(map)/_map/(applets)/hiilikartta/index'
 import { Route as LocalemapMapappletsForestsIndexRouteImport } from './routes/$locale/(map)/_map/(applets)/forests/index'
 import { Route as LocalemapMapappletsEnergiakarttaIndexRouteImport } from './routes/$locale/(map)/_map/(applets)/energiakartta/index'
-import { Route as LocalemapMapappletsHiilikarttaKaavatPlanIdRouteImport } from './routes/$locale/(map)/_map/(applets)/hiilikartta/kaavat.$planId'
+import { Route as LocalemapMapappletsHiilikarttaRaporttiRouteImport } from './routes/$locale/(map)/_map/(applets)/hiilikartta/raportti'
+import { Route as LocalemapMapappletsHiilikarttaKaavatRouteRouteImport } from './routes/$locale/(map)/_map/(applets)/hiilikartta/kaavat/route'
+import { Route as LocalemapMapappletsHiilikarttaKaavatIndexRouteImport } from './routes/$locale/(map)/_map/(applets)/hiilikartta/kaavat/index'
+import { Route as LocalemapMapappletsHiilikarttaKaavatPlanIdRouteRouteImport } from './routes/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId/route'
+import { Route as LocalemapMapappletsHiilikarttaKaavatPlanIdIndexRouteImport } from './routes/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId/index'
+import { Route as LocalemapMapappletsHiilikarttaKaavatPlanIdAlueetRouteImport } from './routes/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId/alueet'
 
 const LocalemapRouteImport = createFileRoute('/$locale/(map)')()
 
@@ -84,11 +89,41 @@ const LocalemapMapappletsEnergiakarttaIndexRoute =
     path: '/',
     getParentRoute: () => LocalemapMapappletsEnergiakarttaRouteRoute,
   } as any)
-const LocalemapMapappletsHiilikarttaKaavatPlanIdRoute =
-  LocalemapMapappletsHiilikarttaKaavatPlanIdRouteImport.update({
-    id: '/kaavat/$planId',
-    path: '/kaavat/$planId',
+const LocalemapMapappletsHiilikarttaRaporttiRoute =
+  LocalemapMapappletsHiilikarttaRaporttiRouteImport.update({
+    id: '/raportti',
+    path: '/raportti',
     getParentRoute: () => LocalemapMapappletsHiilikarttaRouteRoute,
+  } as any)
+const LocalemapMapappletsHiilikarttaKaavatRouteRoute =
+  LocalemapMapappletsHiilikarttaKaavatRouteRouteImport.update({
+    id: '/kaavat',
+    path: '/kaavat',
+    getParentRoute: () => LocalemapMapappletsHiilikarttaRouteRoute,
+  } as any)
+const LocalemapMapappletsHiilikarttaKaavatIndexRoute =
+  LocalemapMapappletsHiilikarttaKaavatIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => LocalemapMapappletsHiilikarttaKaavatRouteRoute,
+  } as any)
+const LocalemapMapappletsHiilikarttaKaavatPlanIdRouteRoute =
+  LocalemapMapappletsHiilikarttaKaavatPlanIdRouteRouteImport.update({
+    id: '/$planId',
+    path: '/$planId',
+    getParentRoute: () => LocalemapMapappletsHiilikarttaKaavatRouteRoute,
+  } as any)
+const LocalemapMapappletsHiilikarttaKaavatPlanIdIndexRoute =
+  LocalemapMapappletsHiilikarttaKaavatPlanIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => LocalemapMapappletsHiilikarttaKaavatPlanIdRouteRoute,
+  } as any)
+const LocalemapMapappletsHiilikarttaKaavatPlanIdAlueetRoute =
+  LocalemapMapappletsHiilikarttaKaavatPlanIdAlueetRouteImport.update({
+    id: '/alueet',
+    path: '/alueet',
+    getParentRoute: () => LocalemapMapappletsHiilikarttaKaavatPlanIdRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -98,18 +133,26 @@ export interface FileRoutesByFullPath {
   '/$locale/energiakartta': typeof LocalemapMapappletsEnergiakarttaRouteRouteWithChildren
   '/$locale/forests': typeof LocalemapMapappletsForestsRouteRouteWithChildren
   '/$locale/hiilikartta': typeof LocalemapMapappletsHiilikarttaRouteRouteWithChildren
+  '/$locale/hiilikartta/kaavat': typeof LocalemapMapappletsHiilikarttaKaavatRouteRouteWithChildren
+  '/$locale/hiilikartta/raportti': typeof LocalemapMapappletsHiilikarttaRaporttiRoute
   '/$locale/energiakartta/': typeof LocalemapMapappletsEnergiakarttaIndexRoute
   '/$locale/forests/': typeof LocalemapMapappletsForestsIndexRoute
   '/$locale/hiilikartta/': typeof LocalemapMapappletsHiilikarttaIndexRoute
-  '/$locale/hiilikartta/kaavat/$planId': typeof LocalemapMapappletsHiilikarttaKaavatPlanIdRoute
+  '/$locale/hiilikartta/kaavat/$planId': typeof LocalemapMapappletsHiilikarttaKaavatPlanIdRouteRouteWithChildren
+  '/$locale/hiilikartta/kaavat/': typeof LocalemapMapappletsHiilikarttaKaavatIndexRoute
+  '/$locale/hiilikartta/kaavat/$planId/alueet': typeof LocalemapMapappletsHiilikarttaKaavatPlanIdAlueetRoute
+  '/$locale/hiilikartta/kaavat/$planId/': typeof LocalemapMapappletsHiilikarttaKaavatPlanIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$locale': typeof LocalemapMapIndexRoute
+  '/$locale/hiilikartta/raportti': typeof LocalemapMapappletsHiilikarttaRaporttiRoute
   '/$locale/energiakartta': typeof LocalemapMapappletsEnergiakarttaIndexRoute
   '/$locale/forests': typeof LocalemapMapappletsForestsIndexRoute
   '/$locale/hiilikartta': typeof LocalemapMapappletsHiilikarttaIndexRoute
-  '/$locale/hiilikartta/kaavat/$planId': typeof LocalemapMapappletsHiilikarttaKaavatPlanIdRoute
+  '/$locale/hiilikartta/kaavat': typeof LocalemapMapappletsHiilikarttaKaavatIndexRoute
+  '/$locale/hiilikartta/kaavat/$planId/alueet': typeof LocalemapMapappletsHiilikarttaKaavatPlanIdAlueetRoute
+  '/$locale/hiilikartta/kaavat/$planId': typeof LocalemapMapappletsHiilikarttaKaavatPlanIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -121,10 +164,15 @@ export interface FileRoutesById {
   '/$locale/(map)/_map/(applets)/energiakartta': typeof LocalemapMapappletsEnergiakarttaRouteRouteWithChildren
   '/$locale/(map)/_map/(applets)/forests': typeof LocalemapMapappletsForestsRouteRouteWithChildren
   '/$locale/(map)/_map/(applets)/hiilikartta': typeof LocalemapMapappletsHiilikarttaRouteRouteWithChildren
+  '/$locale/(map)/_map/(applets)/hiilikartta/kaavat': typeof LocalemapMapappletsHiilikarttaKaavatRouteRouteWithChildren
+  '/$locale/(map)/_map/(applets)/hiilikartta/raportti': typeof LocalemapMapappletsHiilikarttaRaporttiRoute
   '/$locale/(map)/_map/(applets)/energiakartta/': typeof LocalemapMapappletsEnergiakarttaIndexRoute
   '/$locale/(map)/_map/(applets)/forests/': typeof LocalemapMapappletsForestsIndexRoute
   '/$locale/(map)/_map/(applets)/hiilikartta/': typeof LocalemapMapappletsHiilikarttaIndexRoute
-  '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId': typeof LocalemapMapappletsHiilikarttaKaavatPlanIdRoute
+  '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId': typeof LocalemapMapappletsHiilikarttaKaavatPlanIdRouteRouteWithChildren
+  '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/': typeof LocalemapMapappletsHiilikarttaKaavatIndexRoute
+  '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId/alueet': typeof LocalemapMapappletsHiilikarttaKaavatPlanIdAlueetRoute
+  '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId/': typeof LocalemapMapappletsHiilikarttaKaavatPlanIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -135,17 +183,25 @@ export interface FileRouteTypes {
     | '/$locale/energiakartta'
     | '/$locale/forests'
     | '/$locale/hiilikartta'
+    | '/$locale/hiilikartta/kaavat'
+    | '/$locale/hiilikartta/raportti'
     | '/$locale/energiakartta/'
     | '/$locale/forests/'
     | '/$locale/hiilikartta/'
     | '/$locale/hiilikartta/kaavat/$planId'
+    | '/$locale/hiilikartta/kaavat/'
+    | '/$locale/hiilikartta/kaavat/$planId/alueet'
+    | '/$locale/hiilikartta/kaavat/$planId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/$locale'
+    | '/$locale/hiilikartta/raportti'
     | '/$locale/energiakartta'
     | '/$locale/forests'
     | '/$locale/hiilikartta'
+    | '/$locale/hiilikartta/kaavat'
+    | '/$locale/hiilikartta/kaavat/$planId/alueet'
     | '/$locale/hiilikartta/kaavat/$planId'
   id:
     | '__root__'
@@ -157,10 +213,15 @@ export interface FileRouteTypes {
     | '/$locale/(map)/_map/(applets)/energiakartta'
     | '/$locale/(map)/_map/(applets)/forests'
     | '/$locale/(map)/_map/(applets)/hiilikartta'
+    | '/$locale/(map)/_map/(applets)/hiilikartta/kaavat'
+    | '/$locale/(map)/_map/(applets)/hiilikartta/raportti'
     | '/$locale/(map)/_map/(applets)/energiakartta/'
     | '/$locale/(map)/_map/(applets)/forests/'
     | '/$locale/(map)/_map/(applets)/hiilikartta/'
     | '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId'
+    | '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/'
+    | '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId/alueet'
+    | '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -247,12 +308,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocalemapMapappletsEnergiakarttaIndexRouteImport
       parentRoute: typeof LocalemapMapappletsEnergiakarttaRouteRoute
     }
+    '/$locale/(map)/_map/(applets)/hiilikartta/raportti': {
+      id: '/$locale/(map)/_map/(applets)/hiilikartta/raportti'
+      path: '/raportti'
+      fullPath: '/$locale/hiilikartta/raportti'
+      preLoaderRoute: typeof LocalemapMapappletsHiilikarttaRaporttiRouteImport
+      parentRoute: typeof LocalemapMapappletsHiilikarttaRouteRoute
+    }
+    '/$locale/(map)/_map/(applets)/hiilikartta/kaavat': {
+      id: '/$locale/(map)/_map/(applets)/hiilikartta/kaavat'
+      path: '/kaavat'
+      fullPath: '/$locale/hiilikartta/kaavat'
+      preLoaderRoute: typeof LocalemapMapappletsHiilikarttaKaavatRouteRouteImport
+      parentRoute: typeof LocalemapMapappletsHiilikarttaRouteRoute
+    }
+    '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/': {
+      id: '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/'
+      path: '/'
+      fullPath: '/$locale/hiilikartta/kaavat/'
+      preLoaderRoute: typeof LocalemapMapappletsHiilikarttaKaavatIndexRouteImport
+      parentRoute: typeof LocalemapMapappletsHiilikarttaKaavatRouteRoute
+    }
     '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId': {
       id: '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId'
-      path: '/kaavat/$planId'
+      path: '/$planId'
       fullPath: '/$locale/hiilikartta/kaavat/$planId'
-      preLoaderRoute: typeof LocalemapMapappletsHiilikarttaKaavatPlanIdRouteImport
-      parentRoute: typeof LocalemapMapappletsHiilikarttaRouteRoute
+      preLoaderRoute: typeof LocalemapMapappletsHiilikarttaKaavatPlanIdRouteRouteImport
+      parentRoute: typeof LocalemapMapappletsHiilikarttaKaavatRouteRoute
+    }
+    '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId/': {
+      id: '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId/'
+      path: '/'
+      fullPath: '/$locale/hiilikartta/kaavat/$planId/'
+      preLoaderRoute: typeof LocalemapMapappletsHiilikarttaKaavatPlanIdIndexRouteImport
+      parentRoute: typeof LocalemapMapappletsHiilikarttaKaavatPlanIdRouteRoute
+    }
+    '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId/alueet': {
+      id: '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId/alueet'
+      path: '/alueet'
+      fullPath: '/$locale/hiilikartta/kaavat/$planId/alueet'
+      preLoaderRoute: typeof LocalemapMapappletsHiilikarttaKaavatPlanIdAlueetRouteImport
+      parentRoute: typeof LocalemapMapappletsHiilikarttaKaavatPlanIdRouteRoute
     }
   }
 }
@@ -286,17 +382,56 @@ const LocalemapMapappletsForestsRouteRouteWithChildren =
     LocalemapMapappletsForestsRouteRouteChildren,
   )
 
+interface LocalemapMapappletsHiilikarttaKaavatPlanIdRouteRouteChildren {
+  LocalemapMapappletsHiilikarttaKaavatPlanIdAlueetRoute: typeof LocalemapMapappletsHiilikarttaKaavatPlanIdAlueetRoute
+  LocalemapMapappletsHiilikarttaKaavatPlanIdIndexRoute: typeof LocalemapMapappletsHiilikarttaKaavatPlanIdIndexRoute
+}
+
+const LocalemapMapappletsHiilikarttaKaavatPlanIdRouteRouteChildren: LocalemapMapappletsHiilikarttaKaavatPlanIdRouteRouteChildren =
+  {
+    LocalemapMapappletsHiilikarttaKaavatPlanIdAlueetRoute:
+      LocalemapMapappletsHiilikarttaKaavatPlanIdAlueetRoute,
+    LocalemapMapappletsHiilikarttaKaavatPlanIdIndexRoute:
+      LocalemapMapappletsHiilikarttaKaavatPlanIdIndexRoute,
+  }
+
+const LocalemapMapappletsHiilikarttaKaavatPlanIdRouteRouteWithChildren =
+  LocalemapMapappletsHiilikarttaKaavatPlanIdRouteRoute._addFileChildren(
+    LocalemapMapappletsHiilikarttaKaavatPlanIdRouteRouteChildren,
+  )
+
+interface LocalemapMapappletsHiilikarttaKaavatRouteRouteChildren {
+  LocalemapMapappletsHiilikarttaKaavatPlanIdRouteRoute: typeof LocalemapMapappletsHiilikarttaKaavatPlanIdRouteRouteWithChildren
+  LocalemapMapappletsHiilikarttaKaavatIndexRoute: typeof LocalemapMapappletsHiilikarttaKaavatIndexRoute
+}
+
+const LocalemapMapappletsHiilikarttaKaavatRouteRouteChildren: LocalemapMapappletsHiilikarttaKaavatRouteRouteChildren =
+  {
+    LocalemapMapappletsHiilikarttaKaavatPlanIdRouteRoute:
+      LocalemapMapappletsHiilikarttaKaavatPlanIdRouteRouteWithChildren,
+    LocalemapMapappletsHiilikarttaKaavatIndexRoute:
+      LocalemapMapappletsHiilikarttaKaavatIndexRoute,
+  }
+
+const LocalemapMapappletsHiilikarttaKaavatRouteRouteWithChildren =
+  LocalemapMapappletsHiilikarttaKaavatRouteRoute._addFileChildren(
+    LocalemapMapappletsHiilikarttaKaavatRouteRouteChildren,
+  )
+
 interface LocalemapMapappletsHiilikarttaRouteRouteChildren {
+  LocalemapMapappletsHiilikarttaKaavatRouteRoute: typeof LocalemapMapappletsHiilikarttaKaavatRouteRouteWithChildren
+  LocalemapMapappletsHiilikarttaRaporttiRoute: typeof LocalemapMapappletsHiilikarttaRaporttiRoute
   LocalemapMapappletsHiilikarttaIndexRoute: typeof LocalemapMapappletsHiilikarttaIndexRoute
-  LocalemapMapappletsHiilikarttaKaavatPlanIdRoute: typeof LocalemapMapappletsHiilikarttaKaavatPlanIdRoute
 }
 
 const LocalemapMapappletsHiilikarttaRouteRouteChildren: LocalemapMapappletsHiilikarttaRouteRouteChildren =
   {
+    LocalemapMapappletsHiilikarttaKaavatRouteRoute:
+      LocalemapMapappletsHiilikarttaKaavatRouteRouteWithChildren,
+    LocalemapMapappletsHiilikarttaRaporttiRoute:
+      LocalemapMapappletsHiilikarttaRaporttiRoute,
     LocalemapMapappletsHiilikarttaIndexRoute:
       LocalemapMapappletsHiilikarttaIndexRoute,
-    LocalemapMapappletsHiilikarttaKaavatPlanIdRoute:
-      LocalemapMapappletsHiilikarttaKaavatPlanIdRoute,
   }
 
 const LocalemapMapappletsHiilikarttaRouteRouteWithChildren =

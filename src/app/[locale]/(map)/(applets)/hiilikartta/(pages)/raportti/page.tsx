@@ -3,7 +3,11 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import useStore from '#/common/hooks/useStore'
 import MutableLink from '#/components/common/MutableLink'
-import { useSearchParams, useRouter, usePathname } from 'next/navigation'
+import {
+  useAppPathname,
+  useAppRouter,
+  useAppSearchParams,
+} from '#/common/navigation/navigation'
 import { map, isEqual } from 'lodash-es'
 import { useTranslate } from '@tolgee/react'
 
@@ -40,11 +44,11 @@ enum ErrorState {
 }
 
 const Page = () => {
-  const searchParams = useSearchParams()
+  const searchParams = useAppSearchParams()
   const globalState = useStore(useAppletStore, (state) => state.globalState)
   const notify = useUIStore((state) => state.notify)
-  const router = useRouter()
-  const pathName = usePathname()
+  const router = useAppRouter()
+  const pathName = useAppPathname()
   const { t } = useTranslate('hiilikartta')
   const addedExtPlanConfIds = useRef<string[]>([])
 
@@ -277,8 +281,15 @@ const Page = () => {
     const newSearchParams = new URLSearchParams(searchParams)
     newSearchParams.delete('prevPageId')
     newSearchParams.delete('prevPageStep')
-    return `${window.location.origin}${pathName}?${newSearchParams.toString()}`
+    const queryString = newSearchParams.toString()
+    const origin =
+      typeof window !== 'undefined' ? window.location.origin : ''
+
+    return `${origin}${pathName}${queryString ? `?${queryString}` : ''}`
   }, [pathName, searchParams])
+
+  const reportDateLocale =
+    typeof navigator !== 'undefined' ? navigator.language : undefined
 
   const handleDownloadGeoJson = () => {
     if (planConfs.length === 0) {
@@ -465,7 +476,7 @@ const Page = () => {
                 >
                   {getReportCalculatedDate(
                     planConfs[0].reportData.metadata.timestamp
-                  )?.toLocaleDateString(navigator.language)}
+                  )?.toLocaleDateString(reportDateLocale)}
                 </Box>
               </Col>
             )}

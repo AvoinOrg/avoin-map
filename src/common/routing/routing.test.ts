@@ -2,6 +2,7 @@ import { RouteTree } from '../types/routing'
 import { generatePathNames, getRouteParent, getRoutesForPath } from './routing'
 import { getRoute } from './routing-client'
 import { cloneDeep } from 'lodash-es'
+import { routeTree as hiilikarttaRouteTree } from './routes/hiilikartta'
 
 describe('routing utils', () => {
   const routeTree: RouteTree = {
@@ -250,6 +251,59 @@ describe('routing utils', () => {
       })
 
       expect(route).toBe('/products?extraValue=true&sessionId=abc123')
+    })
+
+    it('returns Hiilikartta plan routes using the planId param key', () => {
+      expect(
+        getRoute({
+          routeNode: hiilikarttaRouteTree.plans,
+          routeTree: hiilikarttaRouteTree,
+        })
+      ).toBe('/hiilikartta/kaavat')
+
+      expect(
+        getRoute({
+          routeNode: hiilikarttaRouteTree.plans.plan,
+          routeTree: hiilikarttaRouteTree,
+          params: {
+            routeParams: {
+              planId: 'plan-123',
+            },
+          },
+        })
+      ).toBe('/hiilikartta/kaavat/plan-123')
+
+      expect(
+        getRoute({
+          routeNode: hiilikarttaRouteTree.plans.plan.areas,
+          routeTree: hiilikarttaRouteTree,
+          params: {
+            routeParams: {
+              planId: 'plan-123',
+            },
+          },
+        })
+      ).toBe('/hiilikartta/kaavat/plan-123/alueet')
+    })
+
+    it('returns the Hiilikartta report route with URLSearchParams', () => {
+      const queryParams = new URLSearchParams({
+        planIds: 'server-1,server-2',
+        prevPageId: 'plan-123',
+        prevPageStep: 'areas',
+      })
+
+      const route = getRoute({
+        routeNode: hiilikarttaRouteTree.report,
+        routeTree: hiilikarttaRouteTree,
+        params: {
+          queryParams,
+        },
+      })
+
+      expect(route).toBe(
+        '/hiilikartta/raportti?planIds=server-1%2Cserver-2&prevPageId=plan-123&prevPageStep=areas'
+      )
     })
 
     it('returns the correct route with query and route parameters for a route tree with a base path', () => {
@@ -660,6 +714,38 @@ describe('routing utils', () => {
           name: 'Juntti',
           path: 'https://domain.org/kalle/juntti',
           routeTree: routeTreeWithDomainReset.muna.kalle.juntti,
+        },
+      ])
+    })
+
+    it('returns Hiilikartta routes for localized plan areas paths', () => {
+      const routes = getRoutesForPath(
+        '/fi/hiilikartta/kaavat/plan-123/alueet',
+        hiilikarttaRouteTree
+      )
+
+      expect(routes).toEqual([
+        {
+          name: 'Etusivu',
+          path: '/hiilikartta',
+          routeTree: hiilikarttaRouteTree,
+        },
+        {
+          name: 'Kaavat',
+          path: '/hiilikartta/kaavat',
+          routeTree: hiilikarttaRouteTree.plans,
+        },
+        {
+          name: 'Kaava',
+          params: { routeParams: { planId: 'plan-123' } },
+          path: '/hiilikartta/kaavat/plan-123',
+          routeTree: hiilikarttaRouteTree.plans.plan,
+        },
+        {
+          name: 'Alueet',
+          params: { routeParams: { planId: 'plan-123' } },
+          path: '/hiilikartta/kaavat/plan-123/alueet',
+          routeTree: hiilikarttaRouteTree.plans.plan.areas,
         },
       ])
     })
