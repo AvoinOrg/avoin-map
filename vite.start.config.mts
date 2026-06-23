@@ -3,6 +3,7 @@ import viteReact from '@vitejs/plugin-react'
 import { fileURLToPath } from 'node:url'
 import { defineConfig, loadEnv } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
+import type { Plugin, ResolvedConfig } from 'vite'
 
 const startNavigationAdapter = fileURLToPath(
   new URL('./src/start/navigation.tsx', import.meta.url)
@@ -33,22 +34,34 @@ const getStartPublicEnv = (mode: string) => {
   )
 }
 
-const getStartNextAuthProxyTarget = (mode: string) =>
-  process.env.START_NEXT_AUTH_PROXY_TARGET ||
-  loadEnv(mode, process.cwd(), '').START_NEXT_AUTH_PROXY_TARGET ||
-  'http://127.0.0.1:3000'
+const startServerOnlyOptimizeDeps = new Set(['better-auth'])
+
+const filterStartServerOnlyOptimizeDeps = (deps: string[] | undefined) =>
+  deps?.filter((dep) => !startServerOnlyOptimizeDeps.has(dep))
+
+const filterResolvedOptimizeDeps = (config: ResolvedConfig) => {
+  config.optimizeDeps.include = filterStartServerOnlyOptimizeDeps(
+    config.optimizeDeps.include
+  )
+
+  config.environments.client.optimizeDeps.include =
+    filterStartServerOnlyOptimizeDeps(
+      config.environments.client.optimizeDeps.include
+    )
+}
+
+const startServerOnlyDependencyOptimizerPlugin = (): Plugin => ({
+  name: 'avoin-start-server-only-dependency-optimizer',
+  enforce: 'post',
+  configResolved: filterResolvedOptimizeDeps,
+})
 
 export default defineConfig(({ mode }) => ({
   define: getStartPublicEnv(mode),
   server: {
+    host: '0.0.0.0',
     port: 3001,
     strictPort: true,
-    proxy: {
-      '/api/auth': {
-        target: getStartNextAuthProxyTarget(mode),
-        changeOrigin: true,
-      },
-    },
   },
   preview: {
     port: 3002,
@@ -87,6 +100,7 @@ export default defineConfig(({ mode }) => ({
         routeFileIgnorePrefix: '-',
       },
     }),
+    startServerOnlyDependencyOptimizerPlugin(),
     viteReact(),
   ],
 }))
