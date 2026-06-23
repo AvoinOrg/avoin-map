@@ -22,19 +22,19 @@ import {
   StyleSpecification,
   AttributionControl,
 } from 'maplibre-gl'
-import { useSession } from 'next-auth/react'
 
 // import GeoJSON from 'ol/format/GeoJSON'
 import { useUIStore } from '../../common/store'
 import { useMapStore } from '../../common/store'
+import { useAuthSession } from '#/common/auth'
 import { useMapInstanceStore } from '#/common/store/mapStore/mapInstanceStore'
 import { Box } from '#/common/style/theme/system'
-import { EMBEDDED_PARAMS_URL_PREFIX, MapLibraryMode } from '#/common/types/map'
+import { MapLibraryMode } from '#/common/types/map'
 import { OverlayMessages } from './OverlayMessages'
 import { MapPopupHandler } from './MapPopupHandler'
-import { decodeUrlAndParams } from '#/common/utils/map'
 import { MapActionsWrapper } from './MapActionsWrapper'
 import MapBottomControls from './MapBottomControls'
+import { createMapTransformRequest } from './mapAuthTransformRequest'
 
 const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
 // const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
@@ -48,7 +48,8 @@ interface Props {
 
 export const MapHandler = ({ children }: Props) => {
   // const setIsMapPopupOpen = useUIStore((state) => state.setIsMapPopupOpen)
-  const { data: session } = useSession()
+  const { data: session } = useAuthSession()
+  const accessToken = session?.accessToken
   const isSidebarOpen = useUIStore((state) => state.isSidebarOpen)
   const sidebarWidth = useUIStore((state) => state.sidebarWidth)
   const windowSize = useUIStore((state) => state.windowSize)
@@ -160,26 +161,10 @@ export const MapHandler = ({ children }: Props) => {
       center: viewSettings.center, // starting position [lng, lat]
       zoom: viewSettings.zoom, // starting zoom
       attributionControl: false,
-      transformRequest: (url) => {
-        if (
-          url.includes('requireToken=true') &&
-          SERVER_URL != null &&
-          url.includes(SERVER_URL)
-        ) {
-          if (session == null || session.accessToken == null) {
-            console.error(
-              'Maplibre: No access token provided for the request.',
-              url
-            )
-            return { url }
-          }
-
-          return {
-            url,
-            headers: { Authorization: `Bearer ${session?.accessToken}` },
-          }
-        }
-      },
+      transformRequest: createMapTransformRequest({
+        accessToken,
+        addStaleSourceId: _addStaleSourceId,
+      }),
     })
 
     newMap.addControl(
@@ -559,60 +544,16 @@ export const MapHandler = ({ children }: Props) => {
 
   useEffect(() => {
     if (_map) {
-      if (session && session.accessToken) {
-        _map.setTransformRequest((url) => {
-          if (url.startsWith(EMBEDDED_PARAMS_URL_PREFIX)) {
-            const decoded = decodeUrlAndParams(url)
-            if (decoded == null) {
-              console.error(
-                'Maplibre: Could not decode URL and parameters from',
-                url
-              )
-              return { url }
-            }
-
-            const { url: originalUrl, params } = decoded
-
-            if (params.useAccessToken) {
-              return {
-                url: originalUrl,
-                headers: { Authorization: `Bearer ${session.accessToken}` },
-              }
-            }
-          }
-          return { url }
+      _map.setTransformRequest(
+        createMapTransformRequest({
+          accessToken,
+          addStaleSourceId: _addStaleSourceId,
         })
-      } else {
-        _map.setTransformRequest((url) => {
-          if (url.startsWith(EMBEDDED_PARAMS_URL_PREFIX)) {
-            const decoded = decodeUrlAndParams(url)
-            if (decoded == null) {
-              console.error(
-                'Maplibre: Could not decode URL and parameters from',
-                url
-              )
-              return { url }
-            }
-
-            const { url: originalUrl, params } = decoded
-
-            if (params.useAccessToken) {
-              console.error(
-                'Maplibre: No access token provided for the request.',
-                originalUrl
-              )
-
-              _addStaleSourceId(originalUrl)
-
-              return { url: originalUrl }
-            }
-          }
-        })
-      }
+      )
 
       _refreshStaleSources()
     }
-  }, [_map, session?.accessToken])
+  }, [_map, accessToken, _addStaleSourceId, _refreshStaleSources])
 
   // This effect runs only when OpenLayers is used
   // It refreshes the set of popup functions whenever

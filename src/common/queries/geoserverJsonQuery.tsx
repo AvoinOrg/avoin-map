@@ -1,6 +1,6 @@
 import { FeatureCollection } from 'geojson'
 import { queryClient } from './queryClient'
-import { getSession } from 'next-auth/react'
+import { getAuthSession } from '#/common/auth'
 import axios, { AxiosRequestConfig } from 'axios'
 
 export const geoserverJsonQuery = async (
@@ -10,7 +10,7 @@ export const geoserverJsonQuery = async (
   let accessToken: string | undefined = undefined
 
   if (useAccessToken) {
-    const session = await getSession()
+    const session = await getAuthSession()
     accessToken = session?.accessToken
 
     if (!accessToken) {
@@ -58,11 +58,15 @@ export const geoserverJsonQuery = async (
             )
           }
           return jsonData as FeatureCollection
-        } catch (error: any) {
+        } catch (error: unknown) {
           // Handle Axios errors (network errors, 4xx/5xx responses)
-          const status = error.response?.status
-          const statusText = error.response?.statusText
-          const message = error.message
+          const axiosError = error as {
+            response?: { status?: number; statusText?: string }
+            message?: string
+          }
+          const status = axiosError.response?.status
+          const statusText = axiosError.response?.statusText
+          const message = axiosError.message ?? 'Unknown error'
           throw new Error(
             `[geoserverJsonQuery] Failed to fetch GeoJSON from ${dataUrl}: ${
               status ? `${status} ${statusText}` : message

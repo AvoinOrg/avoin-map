@@ -1,8 +1,6 @@
 'use client'
 
 import React, {
-  createContext,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -25,6 +23,7 @@ import type {
   AuthSession,
   AuthSessionResult,
 } from './types'
+import { AuthSessionContext } from './sessionContext'
 
 type AuthAccessTokenState =
   | {
@@ -49,8 +48,6 @@ export const authClient = createAuthClient({
   basePath: '/api/auth',
   plugins: [genericOAuthClient()],
 })
-
-const AuthSessionContext = createContext<AuthSessionResult | null>(null)
 
 const getSessionRequestKey = (session: AuthSession | null) => {
   if (!session) {
@@ -265,41 +262,4 @@ export const AuthSessionProvider = ({
       {children}
     </AuthSessionContext.Provider>
   )
-}
-
-export const StaticAuthSessionProvider = ({
-  children,
-  session,
-}: {
-  children: ReactNode
-  session: AuthSession | null
-}) => {
-  const value = useMemo<AuthSessionResult>(
-    () => ({
-      data: session,
-      status: session ? 'authenticated' : 'unauthenticated',
-      error: null,
-      isLoading: false,
-      isRefetching: false,
-      isAccessTokenLoading: false,
-      refetch: async () => undefined,
-    }),
-    [session]
-  )
-
-  return (
-    <AuthSessionContext.Provider value={value}>
-      {children}
-    </AuthSessionContext.Provider>
-  )
-}
-
-export const useAuthSession = () => {
-  const value = useContext(AuthSessionContext)
-
-  if (!value) {
-    throw new Error('useAuthSession must be used inside AuthSessionProvider')
-  }
-
-  return value
 }

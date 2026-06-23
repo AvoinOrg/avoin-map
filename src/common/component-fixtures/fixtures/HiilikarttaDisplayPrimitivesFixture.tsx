@@ -1,9 +1,9 @@
 'use client'
 
 import React from 'react'
-import { SessionProvider } from 'next-auth/react'
-import type { Session } from 'next-auth'
 
+import { StaticAuthSessionProvider } from '#/common/auth/sessionContext'
+import type { AuthSession } from '#/common/auth/types'
 import type { ComponentFixture } from '#/common/component-fixtures/types'
 import { Box } from '#/common/style/theme'
 import PlanFolder from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanFolder'
@@ -18,19 +18,20 @@ import {
   type PlanConf,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
 
-const FixtureSessionProvider = SessionProvider as unknown as React.ComponentType<{
-  session: Session
-  children: React.ReactNode
-}>
-
-const authenticatedSession: Session = {
-  expires: '2099-01-01T00:00:00.000Z',
+const authenticatedSession: AuthSession = {
+  session: {
+    id: 'fixture-session',
+    userId: 'fixture-user',
+    expiresAt: new Date('2099-01-01T00:00:00.000Z'),
+  },
   user: {
     id: 'fixture-user',
     name: 'Fixture User',
     email: 'fixture@example.test',
-    image: '',
+    image: null,
   },
+  accessToken: 'fixture-access-token',
+  accessTokenExpiresAt: new Date('2099-01-01T00:00:00.000Z'),
 }
 
 const fixturePlanFeature: PlanConf['data']['features'][number] = {
@@ -121,9 +122,9 @@ const FixtureStack = ({ children }: { children: React.ReactNode }) => {
 }
 
 const AuthenticatedFixture = ({ children }: { children: React.ReactNode }) => (
-  <FixtureSessionProvider session={authenticatedSession}>
+  <StaticAuthSessionProvider session={authenticatedSession}>
     {children}
-  </FixtureSessionProvider>
+  </StaticAuthSessionProvider>
 )
 
 const SelectionMenuOpenState = () => {
