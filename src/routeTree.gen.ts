@@ -13,8 +13,14 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LocaleRouteRouteImport } from './routes/$locale/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LocaleDevComponentFixturesRouteRouteImport } from './routes/$locale/dev/component-fixtures/route'
+import { Route as LocaleAddsLoginRouteRouteImport } from './routes/$locale/adds/login/route'
 import { Route as LocalemapMapRouteRouteImport } from './routes/$locale/(map)/_map/route'
+import { Route as LocaleDevComponentFixturesIndexRouteImport } from './routes/$locale/dev/component-fixtures/index'
+import { Route as LocaleAddsLoginIndexRouteImport } from './routes/$locale/adds/login/index'
 import { Route as LocalemapMapIndexRouteImport } from './routes/$locale/(map)/_map/index'
+import { Route as LocaleAddsLoginCallbackRouteImport } from './routes/$locale/adds/login/callback'
+import { Route as LocaleDevComponentFixturesFixtureIdStateIdRouteImport } from './routes/$locale/dev/component-fixtures/$fixtureId/$stateId'
 import { Route as LocalemapMapappletsLuonnonmetsakartatRouteRouteImport } from './routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/route'
 import { Route as LocalemapMapappletsHiilikarttaRouteRouteImport } from './routes/$locale/(map)/_map/(applets)/hiilikartta/route'
 import { Route as LocalemapMapappletsForestsRouteRouteImport } from './routes/$locale/(map)/_map/(applets)/forests/route'
@@ -53,15 +59,48 @@ const LocalemapRoute = LocalemapRouteImport.update({
   id: '/(map)',
   getParentRoute: () => LocaleRouteRoute,
 } as any)
+const LocaleDevComponentFixturesRouteRoute =
+  LocaleDevComponentFixturesRouteRouteImport.update({
+    id: '/dev/component-fixtures',
+    path: '/dev/component-fixtures',
+    getParentRoute: () => LocaleRouteRoute,
+  } as any)
+const LocaleAddsLoginRouteRoute = LocaleAddsLoginRouteRouteImport.update({
+  id: '/adds/login',
+  path: '/adds/login',
+  getParentRoute: () => LocaleRouteRoute,
+} as any)
 const LocalemapMapRouteRoute = LocalemapMapRouteRouteImport.update({
   id: '/_map',
   getParentRoute: () => LocalemapRoute,
+} as any)
+const LocaleDevComponentFixturesIndexRoute =
+  LocaleDevComponentFixturesIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => LocaleDevComponentFixturesRouteRoute,
+  } as any)
+const LocaleAddsLoginIndexRoute = LocaleAddsLoginIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LocaleAddsLoginRouteRoute,
 } as any)
 const LocalemapMapIndexRoute = LocalemapMapIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => LocalemapMapRouteRoute,
 } as any)
+const LocaleAddsLoginCallbackRoute = LocaleAddsLoginCallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
+  getParentRoute: () => LocaleAddsLoginRouteRoute,
+} as any)
+const LocaleDevComponentFixturesFixtureIdStateIdRoute =
+  LocaleDevComponentFixturesFixtureIdStateIdRouteImport.update({
+    id: '/$fixtureId/$stateId',
+    path: '/$fixtureId/$stateId',
+    getParentRoute: () => LocaleDevComponentFixturesRouteRoute,
+  } as any)
 const LocalemapMapappletsLuonnonmetsakartatRouteRoute =
   LocalemapMapappletsLuonnonmetsakartatRouteRouteImport.update({
     id: '/(applets)/luonnonmetsakartat',
@@ -205,10 +244,16 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$locale': typeof LocaleRouteRouteWithChildren
   '/$locale/': typeof LocalemapMapIndexRoute
+  '/$locale/adds/login': typeof LocaleAddsLoginRouteRouteWithChildren
+  '/$locale/dev/component-fixtures': typeof LocaleDevComponentFixturesRouteRouteWithChildren
+  '/$locale/adds/login/callback': typeof LocaleAddsLoginCallbackRoute
+  '/$locale/adds/login/': typeof LocaleAddsLoginIndexRoute
+  '/$locale/dev/component-fixtures/': typeof LocaleDevComponentFixturesIndexRoute
   '/$locale/energiakartta': typeof LocalemapMapappletsEnergiakarttaRouteRouteWithChildren
   '/$locale/forests': typeof LocalemapMapappletsForestsRouteRouteWithChildren
   '/$locale/hiilikartta': typeof LocalemapMapappletsHiilikarttaRouteRouteWithChildren
   '/$locale/luonnonmetsakartat': typeof LocalemapMapappletsLuonnonmetsakartatRouteRouteWithChildren
+  '/$locale/dev/component-fixtures/$fixtureId/$stateId': typeof LocaleDevComponentFixturesFixtureIdStateIdRoute
   '/$locale/hiilikartta/kaavat': typeof LocalemapMapappletsHiilikarttaKaavatRouteRouteWithChildren
   '/$locale/luonnonmetsakartat/admin': typeof LocalemapMapappletsLuonnonmetsakartatAdminRouteRouteWithChildren
   '/$locale/hiilikartta/raportti': typeof LocalemapMapappletsHiilikarttaRaporttiRoute
@@ -229,7 +274,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$locale/adds/login/callback': typeof LocaleAddsLoginCallbackRoute
   '/$locale': typeof LocalemapMapIndexRoute
+  '/$locale/adds/login': typeof LocaleAddsLoginIndexRoute
+  '/$locale/dev/component-fixtures': typeof LocaleDevComponentFixturesIndexRoute
+  '/$locale/dev/component-fixtures/$fixtureId/$stateId': typeof LocaleDevComponentFixturesFixtureIdStateIdRoute
   '/$locale/hiilikartta/raportti': typeof LocalemapMapappletsHiilikarttaRaporttiRoute
   '/$locale/energiakartta': typeof LocalemapMapappletsEnergiakarttaIndexRoute
   '/$locale/forests': typeof LocalemapMapappletsForestsIndexRoute
@@ -250,11 +299,17 @@ export interface FileRoutesById {
   '/$locale': typeof LocaleRouteRouteWithChildren
   '/$locale/(map)': typeof LocalemapRouteWithChildren
   '/$locale/(map)/_map': typeof LocalemapMapRouteRouteWithChildren
+  '/$locale/adds/login': typeof LocaleAddsLoginRouteRouteWithChildren
+  '/$locale/dev/component-fixtures': typeof LocaleDevComponentFixturesRouteRouteWithChildren
+  '/$locale/adds/login/callback': typeof LocaleAddsLoginCallbackRoute
   '/$locale/(map)/_map/': typeof LocalemapMapIndexRoute
+  '/$locale/adds/login/': typeof LocaleAddsLoginIndexRoute
+  '/$locale/dev/component-fixtures/': typeof LocaleDevComponentFixturesIndexRoute
   '/$locale/(map)/_map/(applets)/energiakartta': typeof LocalemapMapappletsEnergiakarttaRouteRouteWithChildren
   '/$locale/(map)/_map/(applets)/forests': typeof LocalemapMapappletsForestsRouteRouteWithChildren
   '/$locale/(map)/_map/(applets)/hiilikartta': typeof LocalemapMapappletsHiilikarttaRouteRouteWithChildren
   '/$locale/(map)/_map/(applets)/luonnonmetsakartat': typeof LocalemapMapappletsLuonnonmetsakartatRouteRouteWithChildren
+  '/$locale/dev/component-fixtures/$fixtureId/$stateId': typeof LocaleDevComponentFixturesFixtureIdStateIdRoute
   '/$locale/(map)/_map/(applets)/hiilikartta/kaavat': typeof LocalemapMapappletsHiilikarttaKaavatRouteRouteWithChildren
   '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin': typeof LocalemapMapappletsLuonnonmetsakartatAdminRouteRouteWithChildren
   '/$locale/(map)/_map/(applets)/hiilikartta/raportti': typeof LocalemapMapappletsHiilikarttaRaporttiRoute
@@ -279,10 +334,16 @@ export interface FileRouteTypes {
     | '/'
     | '/$locale'
     | '/$locale/'
+    | '/$locale/adds/login'
+    | '/$locale/dev/component-fixtures'
+    | '/$locale/adds/login/callback'
+    | '/$locale/adds/login/'
+    | '/$locale/dev/component-fixtures/'
     | '/$locale/energiakartta'
     | '/$locale/forests'
     | '/$locale/hiilikartta'
     | '/$locale/luonnonmetsakartat'
+    | '/$locale/dev/component-fixtures/$fixtureId/$stateId'
     | '/$locale/hiilikartta/kaavat'
     | '/$locale/luonnonmetsakartat/admin'
     | '/$locale/hiilikartta/raportti'
@@ -303,7 +364,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$locale/adds/login/callback'
     | '/$locale'
+    | '/$locale/adds/login'
+    | '/$locale/dev/component-fixtures'
+    | '/$locale/dev/component-fixtures/$fixtureId/$stateId'
     | '/$locale/hiilikartta/raportti'
     | '/$locale/energiakartta'
     | '/$locale/forests'
@@ -323,11 +388,17 @@ export interface FileRouteTypes {
     | '/$locale'
     | '/$locale/(map)'
     | '/$locale/(map)/_map'
+    | '/$locale/adds/login'
+    | '/$locale/dev/component-fixtures'
+    | '/$locale/adds/login/callback'
     | '/$locale/(map)/_map/'
+    | '/$locale/adds/login/'
+    | '/$locale/dev/component-fixtures/'
     | '/$locale/(map)/_map/(applets)/energiakartta'
     | '/$locale/(map)/_map/(applets)/forests'
     | '/$locale/(map)/_map/(applets)/hiilikartta'
     | '/$locale/(map)/_map/(applets)/luonnonmetsakartat'
+    | '/$locale/dev/component-fixtures/$fixtureId/$stateId'
     | '/$locale/(map)/_map/(applets)/hiilikartta/kaavat'
     | '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin'
     | '/$locale/(map)/_map/(applets)/hiilikartta/raportti'
@@ -375,6 +446,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocalemapRouteImport
       parentRoute: typeof LocaleRouteRoute
     }
+    '/$locale/dev/component-fixtures': {
+      id: '/$locale/dev/component-fixtures'
+      path: '/dev/component-fixtures'
+      fullPath: '/$locale/dev/component-fixtures'
+      preLoaderRoute: typeof LocaleDevComponentFixturesRouteRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
+    '/$locale/adds/login': {
+      id: '/$locale/adds/login'
+      path: '/adds/login'
+      fullPath: '/$locale/adds/login'
+      preLoaderRoute: typeof LocaleAddsLoginRouteRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
     '/$locale/(map)/_map': {
       id: '/$locale/(map)/_map'
       path: '/'
@@ -382,12 +467,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocalemapMapRouteRouteImport
       parentRoute: typeof LocalemapRoute
     }
+    '/$locale/dev/component-fixtures/': {
+      id: '/$locale/dev/component-fixtures/'
+      path: '/'
+      fullPath: '/$locale/dev/component-fixtures/'
+      preLoaderRoute: typeof LocaleDevComponentFixturesIndexRouteImport
+      parentRoute: typeof LocaleDevComponentFixturesRouteRoute
+    }
+    '/$locale/adds/login/': {
+      id: '/$locale/adds/login/'
+      path: '/'
+      fullPath: '/$locale/adds/login/'
+      preLoaderRoute: typeof LocaleAddsLoginIndexRouteImport
+      parentRoute: typeof LocaleAddsLoginRouteRoute
+    }
     '/$locale/(map)/_map/': {
       id: '/$locale/(map)/_map/'
       path: '/'
       fullPath: '/$locale/'
       preLoaderRoute: typeof LocalemapMapIndexRouteImport
       parentRoute: typeof LocalemapMapRouteRoute
+    }
+    '/$locale/adds/login/callback': {
+      id: '/$locale/adds/login/callback'
+      path: '/callback'
+      fullPath: '/$locale/adds/login/callback'
+      preLoaderRoute: typeof LocaleAddsLoginCallbackRouteImport
+      parentRoute: typeof LocaleAddsLoginRouteRoute
+    }
+    '/$locale/dev/component-fixtures/$fixtureId/$stateId': {
+      id: '/$locale/dev/component-fixtures/$fixtureId/$stateId'
+      path: '/$fixtureId/$stateId'
+      fullPath: '/$locale/dev/component-fixtures/$fixtureId/$stateId'
+      preLoaderRoute: typeof LocaleDevComponentFixturesFixtureIdStateIdRouteImport
+      parentRoute: typeof LocaleDevComponentFixturesRouteRoute
     }
     '/$locale/(map)/_map/(applets)/luonnonmetsakartat': {
       id: '/$locale/(map)/_map/(applets)/luonnonmetsakartat'
@@ -720,12 +833,47 @@ const LocalemapRouteWithChildren = LocalemapRoute._addFileChildren(
   LocalemapRouteChildren,
 )
 
+interface LocaleAddsLoginRouteRouteChildren {
+  LocaleAddsLoginCallbackRoute: typeof LocaleAddsLoginCallbackRoute
+  LocaleAddsLoginIndexRoute: typeof LocaleAddsLoginIndexRoute
+}
+
+const LocaleAddsLoginRouteRouteChildren: LocaleAddsLoginRouteRouteChildren = {
+  LocaleAddsLoginCallbackRoute: LocaleAddsLoginCallbackRoute,
+  LocaleAddsLoginIndexRoute: LocaleAddsLoginIndexRoute,
+}
+
+const LocaleAddsLoginRouteRouteWithChildren =
+  LocaleAddsLoginRouteRoute._addFileChildren(LocaleAddsLoginRouteRouteChildren)
+
+interface LocaleDevComponentFixturesRouteRouteChildren {
+  LocaleDevComponentFixturesIndexRoute: typeof LocaleDevComponentFixturesIndexRoute
+  LocaleDevComponentFixturesFixtureIdStateIdRoute: typeof LocaleDevComponentFixturesFixtureIdStateIdRoute
+}
+
+const LocaleDevComponentFixturesRouteRouteChildren: LocaleDevComponentFixturesRouteRouteChildren =
+  {
+    LocaleDevComponentFixturesIndexRoute: LocaleDevComponentFixturesIndexRoute,
+    LocaleDevComponentFixturesFixtureIdStateIdRoute:
+      LocaleDevComponentFixturesFixtureIdStateIdRoute,
+  }
+
+const LocaleDevComponentFixturesRouteRouteWithChildren =
+  LocaleDevComponentFixturesRouteRoute._addFileChildren(
+    LocaleDevComponentFixturesRouteRouteChildren,
+  )
+
 interface LocaleRouteRouteChildren {
   LocalemapRoute: typeof LocalemapRouteWithChildren
+  LocaleAddsLoginRouteRoute: typeof LocaleAddsLoginRouteRouteWithChildren
+  LocaleDevComponentFixturesRouteRoute: typeof LocaleDevComponentFixturesRouteRouteWithChildren
 }
 
 const LocaleRouteRouteChildren: LocaleRouteRouteChildren = {
   LocalemapRoute: LocalemapRouteWithChildren,
+  LocaleAddsLoginRouteRoute: LocaleAddsLoginRouteRouteWithChildren,
+  LocaleDevComponentFixturesRouteRoute:
+    LocaleDevComponentFixturesRouteRouteWithChildren,
 }
 
 const LocaleRouteRouteWithChildren = LocaleRouteRoute._addFileChildren(

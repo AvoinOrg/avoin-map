@@ -33,11 +33,22 @@ const getStartPublicEnv = (mode: string) => {
   )
 }
 
+const getStartNextAuthProxyTarget = (mode: string) =>
+  process.env.START_NEXT_AUTH_PROXY_TARGET ||
+  loadEnv(mode, process.cwd(), '').START_NEXT_AUTH_PROXY_TARGET ||
+  'http://127.0.0.1:3000'
+
 export default defineConfig(({ mode }) => ({
   define: getStartPublicEnv(mode),
   server: {
     port: 3001,
     strictPort: true,
+    proxy: {
+      '/api/auth': {
+        target: getStartNextAuthProxyTarget(mode),
+        changeOrigin: true,
+      },
+    },
   },
   preview: {
     port: 3002,
