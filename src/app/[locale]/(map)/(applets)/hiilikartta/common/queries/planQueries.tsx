@@ -3,8 +3,8 @@ import axios from 'axios'
 import { FeatureCollection } from 'geojson'
 import { area as turfArea } from '@turf/turf'
 import { useTranslate } from '@tolgee/react'
-import { useSession } from 'next-auth/react'
 
+import { useAuthSession } from '#/common/auth'
 import { useUIStore } from '#/common/store'
 
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
@@ -19,12 +19,13 @@ import { processCalcQueryToReportData, stripFeatureExtras } from '../utils'
 
 const API_URL = process.env.NEXT_PUBLIC_HIILIKARTTA_API_URL
 
-export const planQueries = (
+export const usePlanQueries = (
   placeholderPlanConfs: PlaceholderPlanConf[] | undefined
-): any => {
+) => {
   placeholderPlanConfs = placeholderPlanConfs || []
 
-  const { data: session } = useSession()
+  const { data: session } = useAuthSession()
+  const accessToken = session?.accessToken
   const notify = useUIStore((state) => state.notify)
   const { t } = useTranslate('hiilikartta')
   const updatePlaceholderPlanConf =
@@ -43,12 +44,19 @@ export const planQueries = (
           status: FetchStatus.FETCHING,
         })
 
+        if (!accessToken) {
+          updatePlaceholderPlanConf(placeholderPlanConf.id, {
+            status: FetchStatus.ERRORED,
+          })
+          throw new Error('Missing access token for Hiilikartta plan fetch')
+        }
+
         const response = await axios.get(`${API_URL}/plan`, {
           params: { id: placeholderPlanConf.serverId },
 
           headers: {
             'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${session?.accessToken}`,
+            Authorization: `Bearer ${accessToken}`,
           },
         })
 
@@ -119,12 +127,16 @@ export const planQueries = (
               const newPlanConf = await addPlanConf(planConf)
               return newPlanConf
             }
-          } catch (e: any) {
-            console.error(e)
+          } catch (error: unknown) {
+            console.error(error)
             updatePlaceholderPlanConf(placeholderPlanConf.id, {
               status: FetchStatus.ERRORED,
             })
-            if (e.response?.status === 401) {
+            const responseStatus = axios.isAxiosError(error)
+              ? error.response?.status
+              : undefined
+
+            if (responseStatus === 401) {
               notify({
                 message: `${t('notifications.authorized_to_fetch_plan')} ${
                   placeholderPlanConf.id
@@ -132,7 +144,7 @@ export const planQueries = (
                 variant: 'error',
               })
             }
-            if (e.response?.status === 404) {
+            if (responseStatus === 404) {
               notify({
                 message: `${t('notifications.plan_not_found')} ${
                   placeholderPlanConf.id
@@ -154,7 +166,7 @@ export const planQueries = (
   //     queryKey: ['plan', serverId],
   //     queryFn: async (context: any) => {
   //       // Add the context argument with type 'unknown'
-  //       const options = planQuery(serverId)
+  //       const options = usePlanQuery(serverId)
   //       if (options.queryFn) {
   //         return options.queryFn(context) // Pass the context argument
   //       }

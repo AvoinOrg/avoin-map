@@ -1,12 +1,14 @@
 import { UseMutationOptions } from '@tanstack/react-query'
 import axios from 'axios'
 import JSZip from 'jszip'
-import { CalculationState, PlanConfState, PlanConf } from '../types'
-import { stripFeatureExtras } from '../utils'
+import { useTranslate } from '@tolgee/react'
+
+import { useAuthSession } from '#/common/auth'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 import { useUIStore } from '#/common/store'
-import { useTranslate } from '@tolgee/react'
-import { useSession } from 'next-auth/react'
+
+import { CalculationState, PlanConfState, PlanConf } from '../types'
+import { stripFeatureExtras } from '../utils'
 
 const API_URL = process.env.NEXT_PUBLIC_HIILIKARTTA_API_URL
 
@@ -15,7 +17,7 @@ type ResponseData = {
   id: string
 }
 
-export const calcPostMutation = (): UseMutationOptions<
+export const useCalcPostMutation = (): UseMutationOptions<
   ResponseData,
   Error,
   PlanConf
@@ -23,7 +25,8 @@ export const calcPostMutation = (): UseMutationOptions<
   const updatePlanConf = useAppletStore((state) => state.updatePlanConf)
   const notify = useUIStore((state) => state.notify)
   const { t } = useTranslate('hiilikartta')
-  const { data: session } = useSession()
+  const { data: session } = useAuthSession()
+  const accessToken = session?.accessToken
 
   return {
     mutationFn: async (planConf: PlanConf) => {
@@ -45,9 +48,7 @@ export const calcPostMutation = (): UseMutationOptions<
       const postRes = await axios.post(`${API_URL}/calculation`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          ...(session?.accessToken
-            ? { Authorization: `Bearer ${session.accessToken}` }
-            : {}),
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
           'X-User-Agent': userAgent,
         },
         params: {
@@ -71,7 +72,7 @@ export const calcPostMutation = (): UseMutationOptions<
       })
       return postRes.data
     },
-    onError: (error, planConf, context) => {
+    onError: (error, planConf) => {
       notify({
         message: t('notifications.starting_calc_failed'),
         variant: 'error',

@@ -4,8 +4,8 @@ import React from 'react'
 import { Tooltip } from '@base-ui/react/tooltip'
 import { useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
-import { useSession } from 'next-auth/react'
 
+import { useAuthSession } from '#/common/auth'
 import {
   Box,
   type AppSystemStyleObject,
@@ -20,7 +20,7 @@ import { LoadingSpinner } from '#/components/Loading'
 
 import { CalculationState, PlanConf } from '../common/types'
 import { useAppletStore } from '../state/appletStore'
-import { planPostMutation } from '../common/queries/planPostMutation'
+import { usePlanPostMutation } from '../common/queries/planPostMutation'
 
 type AppSxItem = Exclude<NonNullable<AppSystemStyleObject>, readonly unknown[]>
 type SaveTooltipTriggerProps = Omit<
@@ -158,8 +158,8 @@ const PlanFolder = ({
   isNameEditable?: boolean
 }) => {
   const updatePlanConf = useAppletStore((state) => state.updatePlanConf)
-  const planPost = useMutation(planPostMutation())
-  const { status } = useSession()
+  const planPost = useMutation(usePlanPostMutation())
+  const { status } = useAuthSession()
   const { t } = useTranslate('hiilikartta')
 
   const isSaveEnabled =

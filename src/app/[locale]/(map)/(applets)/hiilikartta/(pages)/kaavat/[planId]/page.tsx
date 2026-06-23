@@ -11,8 +11,8 @@ import React, {
 import { Tooltip } from '@base-ui/react/tooltip'
 import { useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
-import { useSession } from 'next-auth/react'
 
+import { useAuthSession } from '#/common/auth'
 import { useAppParams, useAppRouter } from '#/common/navigation/navigation'
 import { Box } from '#/common/style/theme'
 import { SidebarContentBox } from '#/components/Sidebar'
@@ -59,9 +59,9 @@ import {
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/planImport'
 import { getZoningClasses } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/zoningClasses'
 import { routeTree } from '#/common/routing/routes/hiilikartta'
-import { calcPostMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/calcPostMutation'
-import { planDeleteMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/planDeleteMutation'
-import { planPostMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/planPostMutation'
+import { useCalcPostMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/calcPostMutation'
+import { usePlanDeleteMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/planDeleteMutation'
+import { usePlanPostMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/planPostMutation'
 import usePlanReportEligibility from '#/app/[locale]/(map)/(applets)/hiilikartta/common/usePlanReportEligibility'
 import useAppletStoreHasHydrated from '#/app/[locale]/(map)/(applets)/hiilikartta/common/useAppletStoreHasHydrated'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
@@ -313,7 +313,7 @@ const Page = () => {
   const locale = params.locale
   const { t } = useTranslate('hiilikartta')
   const router = useAppRouter()
-  const { status } = useSession()
+  const { status } = useAuthSession()
   const inputRef = useRef<HTMLInputElement>(null)
   const autoOpenFrameRef = useRef<number | null>(null)
   const hasAttemptedAutoOpenRef = useRef(false)
@@ -340,9 +340,9 @@ const Page = () => {
   )
   const notify = useUIStore((state) => state.notify)
 
-  const planDelete = useMutation(planDeleteMutation())
-  const planPost = useMutation(planPostMutation())
-  const calcPost = useMutation(calcPostMutation())
+  const planDelete = useMutation(usePlanDeleteMutation())
+  const planPost = useMutation(usePlanPostMutation())
+  const calcPost = useMutation(useCalcPostMutation())
 
   const [fileType, setFileType] = useState<FileType>()
   const [fileName, setFileName] = useState<string>()

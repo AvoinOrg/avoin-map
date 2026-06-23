@@ -4,8 +4,8 @@
 
 import React, { useEffect } from 'react'
 import { useQueries, useQuery } from '@tanstack/react-query'
-import { useSession } from 'next-auth/react'
 
+import { useAuthSession } from '#/common/auth'
 import { useAppParams, useAppPathname } from '#/common/navigation/navigation'
 import { routeTree } from '#/common/routing/routes/hiilikartta'
 import { compiledApplets } from '#/common/routing/routing'
@@ -15,8 +15,8 @@ import { useUserStore } from '#/common/store/userStore'
 import { getPathnameWithoutLocale } from '#/common/routing/routing'
 
 import { listedLayerGroups } from '../common/constants'
-import { planStatsQuery } from '../common/queries/planStatsQuery'
-import { planQueries } from '../common/queries/planQueries'
+import { usePlanStatsQuery } from '../common/queries/planStatsQuery'
+import { usePlanQueries } from '../common/queries/planQueries'
 import { useAppletStore } from '../state/appletStore'
 import {
   PlanConfState,
@@ -27,8 +27,9 @@ import { getZoningClasses } from '../common/zoningClasses'
 
 const localizationNamespace = 'hiilikartta'
 
-const layoutClient = ({ children }: { children: React.ReactNode }) => {
-  const { data: session, status } = useSession()
+const LayoutClient = ({ children }: { children: React.ReactNode }) => {
+  const { data: session, status } = useAuthSession()
+  const accessToken = session?.accessToken
   const pathname = useAppPathname()
   const { locale } = useAppParams()
   const addSignOutAction = useUserStore((state) => state.addSignOutAction)
@@ -60,46 +61,52 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
   const showBreadcrumbNav = !isHiilikarttaRoot && !isHiilikarttaKaavat
 
   const planConfStatsQuery = useQuery({
-    ...planStatsQuery(),
+    ...usePlanStatsQuery(),
     enabled: false,
   })
 
-  const planQs = useQueries(planQueries(planConfsToFetch))
+  const planQs = useQueries(usePlanQueries(planConfsToFetch))
 
   // Plan conf hydration flow:
   // 1) sync session -> local plans + fetch stats
   // 2) decide which plans to fetch based on server stats
   // 3) kick off per-plan fetches and clear loading state when done
   useEffect(() => {
+    if (status === 'loading') {
+      updateGlobalState(GlobalState.INITIALIZING)
+      return
+    }
+
     clearPlaceholderPlanConfs()
 
-    if (status !== 'loading') {
-      if (session?.user?.id != null) {
-        clearPlaceholderPlanConfs()
-        updateGlobalState(GlobalState.INITIALIZING)
-        planConfStatsQuery.refetch()
+    if (session?.user?.id != null) {
+      clearPlaceholderPlanConfs()
+      updateGlobalState(GlobalState.INITIALIZING)
 
-        for (const id in planConfs) {
-          if (!planConfs[id].userId) {
-            updatePlanConf(id, { userId: session.user.id })
-          } else if (planConfs[id].userId !== session.user.id) {
-            updatePlanConf(id, { isHidden: true })
-          } else if (planConfs[id].userId === session.user.id) {
-            updatePlanConf(id, { isHidden: false })
-          }
-        }
+      if (accessToken) {
+        planConfStatsQuery.refetch()
       } else {
-        for (const id in planConfs) {
-          if (planConfs[id].userId != null) {
-            updatePlanConf(id, { isHidden: true })
-          }
-        }
         updateGlobalState(GlobalState.IDLE)
       }
+
+      for (const id in planConfs) {
+        if (!planConfs[id].userId) {
+          updatePlanConf(id, { userId: session.user.id })
+        } else if (planConfs[id].userId !== session.user.id) {
+          updatePlanConf(id, { isHidden: true })
+        } else if (planConfs[id].userId === session.user.id) {
+          updatePlanConf(id, { isHidden: false })
+        }
+      }
     } else {
-      updateGlobalState(GlobalState.INITIALIZING)
+      for (const id in planConfs) {
+        if (planConfs[id].userId != null) {
+          updatePlanConf(id, { isHidden: true })
+        }
+      }
+      updateGlobalState(GlobalState.IDLE)
     }
-  }, [session?.user?.id, status])
+  }, [accessToken, session?.user?.id, status])
 
   useEffect(() => {
     const processPlanConfs = async (data: PlaceholderPlanConf[]) => {
@@ -210,4 +217,4 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
   )
 }
 
-export default layoutClient
+export default LayoutClient

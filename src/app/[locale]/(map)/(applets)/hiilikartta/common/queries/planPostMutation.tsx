@@ -1,10 +1,12 @@
 import { UseMutationOptions } from '@tanstack/react-query'
 import axios from 'axios'
 import JSZip from 'jszip'
+
+import { useAuthSession } from '#/common/auth'
+import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
+
 import { PlanConf, PlanConfState } from '../types'
 import { stripFeatureExtras } from '../utils'
-import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
-import { useSession } from 'next-auth/react'
 
 const API_URL = process.env.NEXT_PUBLIC_HIILIKARTTA_API_URL
 
@@ -13,16 +15,21 @@ type ResponseData = {
   id: string
 }
 
-export const planPostMutation = (): UseMutationOptions<
+export const usePlanPostMutation = (): UseMutationOptions<
   ResponseData,
   Error,
   PlanConf
 > => {
   const updatePlanConf = useAppletStore((state) => state.updatePlanConf)
-  const { data: session } = useSession()
+  const { data: session } = useAuthSession()
+  const accessToken = session?.accessToken
 
   return {
     mutationFn: async (planConf: PlanConf) => {
+      if (!accessToken) {
+        throw new Error('Missing access token for Hiilikartta plan save')
+      }
+
       updatePlanConf(planConf.id, { state: PlanConfState.SAVING })
       const zip = new JSZip()
       const sanitizedData = stripFeatureExtras(planConf.data)
@@ -35,7 +42,7 @@ export const planPostMutation = (): UseMutationOptions<
       const postRes = await axios.put(`${API_URL}/plan`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${session?.accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         params: {
           id: planConf.serverId,

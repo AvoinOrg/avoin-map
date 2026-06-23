@@ -1,23 +1,22 @@
 import { UseMutationOptions } from '@tanstack/react-query'
 import axios from 'axios'
-import { useSession } from 'next-auth/react'
 
-import { useMapStore } from '#/common/store/mapStore'
+import { useAuthSession } from '#/common/auth'
 
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 import { PlanConfState, PlanConf } from '../types'
-import { getPlanLayerGroupId } from '../utils'
 
 const API_URL = process.env.NEXT_PUBLIC_HIILIKARTTA_API_URL
 
-export const planDeleteMutation = (): UseMutationOptions<
+export const usePlanDeleteMutation = (): UseMutationOptions<
   void,
   Error,
   PlanConf
 > => {
   const deletePlanConf = useAppletStore((state) => state.deletePlanConf)
   const updatePlanConf = useAppletStore((state) => state.updatePlanConf)
-  const { data: session } = useSession()
+  const { data: session } = useAuthSession()
+  const accessToken = session?.accessToken
 
   return {
     mutationFn: async (planConf: PlanConf) => {
@@ -25,11 +24,15 @@ export const planDeleteMutation = (): UseMutationOptions<
         state: PlanConfState.DELETING,
       })
 
-      if (session && planConf.cloudLastSaved != null) {
+      if (planConf.cloudLastSaved != null) {
+        if (!accessToken) {
+          throw new Error('Missing access token for Hiilikartta plan delete')
+        }
+
         const delRes = await axios.delete(`${API_URL}/plan`, {
           headers: {
             'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${session?.accessToken}`,
+            Authorization: `Bearer ${accessToken}`,
           },
           params: { id: planConf.serverId },
         })

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Tooltip } from '@base-ui/react/tooltip'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslate } from '@tolgee/react'
@@ -20,7 +20,7 @@ import {
   GlobalState,
   PlanConfState,
 } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
-import { calcPostMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/calcPostMutation'
+import { useCalcPostMutation } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/queries/calcPostMutation'
 import usePlanReportEligibility from '#/app/[locale]/(map)/(applets)/hiilikartta/common/usePlanReportEligibility'
 import ZoneAccordion from './_components/ZoneAccordion'
 
@@ -139,11 +139,17 @@ const Page = () => {
     (state) => state.placeholderPlanConfs
   )
   const updatePlanConf = useAppletStore((state) => state.updatePlanConf)
-  const calcPost = useMutation(calcPostMutation())
+  const calcPost = useMutation(useCalcPostMutation())
   const router = useAppRouter()
   const { t } = useTranslate('hiilikartta')
-  const [isLoaded, setIsLoaded] = useState(false)
-  const [hasPendingLandUseEdits, setHasPendingLandUseEdits] = useState(false)
+  const [pendingLandUseEditsState, setPendingLandUseEditsState] = useState({
+    planId: params.planId,
+    hasPendingEdits: false,
+  })
+  const hasPendingLandUseEdits =
+    pendingLandUseEditsState.planId === params.planId
+      ? pendingLandUseEditsState.hasPendingEdits
+      : false
   const {
     disabledTooltipKey,
     isCalculationRunning,
@@ -153,6 +159,30 @@ const Page = () => {
     planConf,
     isCalculationMutationPending: calcPost.isPending,
   })
+  const isLoaded = useMemo(() => {
+    if (!hasHydrated || !planConf) {
+      return false
+    }
+
+    if (globalState === GlobalState.IDLE && planConf.isHidden) {
+      return false
+    }
+
+    return (
+      planConf.state == null ||
+      [PlanConfState.IDLE, PlanConfState.SAVING].includes(planConf.state)
+    )
+  }, [globalState, hasHydrated, planConf])
+
+  const handlePendingLandUseEditsChange = useCallback(
+    (hasPendingEdits: boolean) => {
+      setPendingLandUseEditsState({
+        planId: params.planId,
+        hasPendingEdits,
+      })
+    },
+    [params.planId]
+  )
 
   const handleSubmit = async () => {
     if (!planConf || !isReportActionEnabled) {
@@ -186,7 +216,6 @@ const Page = () => {
 
   useEffect(() => {
     if (!hasHydrated) {
-      setIsLoaded(false)
       return
     }
 
@@ -200,25 +229,12 @@ const Page = () => {
         router.push(getRoute({ routeNode: routeTree.plans, routeTree }))
       }
 
-      setIsLoaded(false)
       return
     }
 
     if (globalState === GlobalState.IDLE && planConf.isHidden) {
       router.push(getRoute({ routeNode: routeTree, routeTree }))
-      setIsLoaded(false)
-      return
     }
-
-    if (
-      planConf.state == null ||
-      [PlanConfState.IDLE, PlanConfState.SAVING].includes(planConf.state)
-    ) {
-      setIsLoaded(true)
-      return
-    }
-
-    setIsLoaded(false)
   }, [
     globalState,
     hasHydrated,
@@ -227,10 +243,6 @@ const Page = () => {
     placeholderPlanConfs,
     router,
   ])
-
-  useEffect(() => {
-    setHasPendingLandUseEdits(false)
-  }, [planConf?.id])
 
   if (!hasHydrated || !isLoaded || !planConf) {
     return (
@@ -413,7 +425,7 @@ const Page = () => {
 
         <ZoneAccordion
           planConfId={planConf.id}
-          onPendingLandUseEditsChange={setHasPendingLandUseEdits}
+          onPendingLandUseEditsChange={handlePendingLandUseEditsChange}
         />
 
         <Box

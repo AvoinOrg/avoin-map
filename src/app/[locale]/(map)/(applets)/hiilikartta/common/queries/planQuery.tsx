@@ -4,23 +4,23 @@ import axios from 'axios'
 import { FeatureCollection } from 'geojson'
 import { area as turfArea } from '@turf/turf'
 
+import { useAuthSession } from '#/common/auth'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/hiilikartta/state/appletStore'
 
 import {
   CalculationState,
   PlanConf,
   PlanConfState,
-  ReportData,
 } from '../types'
 import { processCalcQueryToReportData, stripFeatureExtras } from '../utils'
-import { useSession } from 'next-auth/react'
 
 const API_URL = process.env.NEXT_PUBLIC_HIILIKARTTA_API_URL
 
-export const planQuery = (
+export const usePlanQuery = (
   serverId: string
 ): UseQueryOptions<PlanConf | null> => {
-  const { data: session } = useSession()
+  const { data: session } = useAuthSession()
+  const accessToken = session?.accessToken
   const updatePlaceholderPlanConf =
     useAppletStore.getState().updatePlaceholderPlanConf
   const deletePlaceholderPlanConf =
@@ -32,12 +32,18 @@ export const planQuery = (
     queryKey: ['plan', serverId],
     queryFn: async () => {
       updatePlaceholderPlanConf(serverId, { status: FetchStatus.FETCHING })
+
+      if (!accessToken) {
+        updatePlaceholderPlanConf(serverId, { status: FetchStatus.ERRORED })
+        throw new Error('Missing access token for Hiilikartta plan fetch')
+      }
+
       const response = await axios.get(`${API_URL}/plan`, {
         params: { id: serverId },
 
         headers: {
           'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${session?.accessToken}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       })
 
