@@ -1,16 +1,18 @@
-import { Outlet, createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 
-import HiilikarttaLayoutClient from 'applets/hiilikartta/(pages)/layoutClient'
-
-const HiilikarttaLayout = () => (
-  <HiilikarttaLayoutClient>
-    <Outlet />
-  </HiilikarttaLayoutClient>
-)
+import { guardAppletLocale } from '#/start/appletRouteGuards'
+import { HiilikarttaLayout } from '#/start/appletRouteComponents'
 
 export const Route = createFileRoute(
   '/$locale/(map)/_map/(applets)/hiilikartta'
 )({
+  beforeLoad: ({ params, location }) => {
+    guardAppletLocale({
+      namespace: 'hiilikartta',
+      locale: params.locale,
+      location,
+    })
+  },
   head: () => ({
     meta: [
       {

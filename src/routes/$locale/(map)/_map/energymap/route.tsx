@@ -3,9 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { guardAppletLocale } from '#/start/appletRouteGuards'
 import { EnergiakarttaLayout } from '#/start/appletRouteComponents'
 
-export const Route = createFileRoute(
-  '/$locale/(map)/_map/(applets)/energiakartta'
-)({
+export const Route = createFileRoute('/$locale/(map)/_map/energymap')({
   beforeLoad: ({ params, location }) => {
     guardAppletLocale({
       namespace: 'energiakartta',

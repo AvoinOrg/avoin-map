@@ -156,7 +156,7 @@ const AppletWrapper = ({
     // Split the path into segments based on "/"
     const segments = path.split('/').filter(Boolean) // filter(Boolean) removes any empty strings from the array
 
-    if (segments.length > 1) {
+    if (segments.length > 0 && appletPath && appletPath !== 'main') {
       setIsBaseDomainForApplet(segments[1] !== appletPath)
     }
 

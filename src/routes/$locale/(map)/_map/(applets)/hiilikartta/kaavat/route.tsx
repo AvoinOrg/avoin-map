@@ -1,15 +1,9 @@
-import { Outlet, createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 
-import HiilikarttaPlansLayout from 'applets/hiilikartta/(pages)/kaavat/layout'
-
-const HiilikarttaKaavatLayout = () => (
-  <HiilikarttaPlansLayout>
-    <Outlet />
-  </HiilikarttaPlansLayout>
-)
+import { HiilikarttaPlansLayoutRoute } from '#/start/appletRouteComponents'
 
 export const Route = createFileRoute(
   '/$locale/(map)/_map/(applets)/hiilikartta/kaavat'
 )({
-  component: HiilikarttaKaavatLayout,
+  component: HiilikarttaPlansLayoutRoute,
 })

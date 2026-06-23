@@ -1,16 +1,18 @@
-import { Outlet, createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 
-import LuonnonmetsakartatLayoutClient from 'applets/luonnonmetsakartat/(pages)/layoutClient'
-
-const LuonnonmetsakartatLayout = () => (
-  <LuonnonmetsakartatLayoutClient>
-    <Outlet />
-  </LuonnonmetsakartatLayoutClient>
-)
+import { guardAppletLocale } from '#/start/appletRouteGuards'
+import { LuonnonmetsakartatLayout } from '#/start/appletRouteComponents'
 
 export const Route = createFileRoute(
   '/$locale/(map)/_map/(applets)/luonnonmetsakartat'
 )({
+  beforeLoad: ({ params, location }) => {
+    guardAppletLocale({
+      namespace: 'luonnonmetsakartat',
+      locale: params.locale,
+      location,
+    })
+  },
   head: () => ({
     meta: [
       {

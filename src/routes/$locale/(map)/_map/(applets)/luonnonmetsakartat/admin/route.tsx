@@ -1,12 +1,6 @@
-import { Outlet, createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 
-import LuonnonmetsakartatAdminLayoutClient from 'applets/luonnonmetsakartat/(pages)/admin/layoutClient'
-
-const LuonnonmetsakartatAdminLayout = () => (
-  <LuonnonmetsakartatAdminLayoutClient>
-    <Outlet />
-  </LuonnonmetsakartatAdminLayoutClient>
-)
+import { LuonnonmetsakartatAdminLayout } from '#/start/appletRouteComponents'
 
 export const Route = createFileRoute(
   '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin'

@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { LuonnonmetsakartatFolayerPicturesRoute } from '#/start/appletRouteComponents'
 
 export const Route = createFileRoute(
-  '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/taso/$folayerIdSlug/kuvat'
+  '/$locale/(map)/_map/admin/taso/$folayerIdSlug/kuvat'
 )({
   head: () => ({
     meta: [
