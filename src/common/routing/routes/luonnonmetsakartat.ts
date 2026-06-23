@@ -23,7 +23,7 @@ export const routeTree: RouteTree = {
     },
     folayer: {
       _conf: {
-        path: 'taso/[folayerId]',
+        path: 'taso/[folayerIdSlug]',
         name: 'Karttataso',
       },
       settings: {

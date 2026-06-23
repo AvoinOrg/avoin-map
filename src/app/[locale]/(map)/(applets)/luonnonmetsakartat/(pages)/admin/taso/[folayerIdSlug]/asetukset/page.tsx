@@ -8,7 +8,6 @@ import {
   type MouseEvent,
   type SyntheticEvent,
 } from 'react'
-import { useParams, usePathname, useRouter } from 'next/navigation'
 import { useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
 
@@ -27,6 +26,11 @@ import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 import { useSidebarActivityLoader } from '#/common/hooks/ui/useSidebarActivityLoader'
 import BigMenuButton from '#/components/common/BigMenuButton'
 import TText from '#/components/common/TText'
+import {
+  useAppParams,
+  useAppPathname,
+  useAppRouter,
+} from '#/common/navigation/navigation'
 
 import {
   FolayerConfState,
@@ -67,9 +71,9 @@ const Page = () => {
     useState<boolean>(false)
   const shpRef = useRef<FolayerUpdateShpRef>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const params = useParams<{ folayerIdSlug: string }>()
-  const router = useRouter()
-  const pathname = usePathname()
+  const params = useAppParams<{ folayerIdSlug: string }>()
+  const router = useAppRouter()
+  const pathname = useAppPathname()
   const { t } = useTranslate('luonnonmetsakartat')
 
   const removeLayerGroup = useMapStore((state) => state.removeLayerGroup)

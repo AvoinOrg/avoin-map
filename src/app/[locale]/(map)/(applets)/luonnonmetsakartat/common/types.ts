@@ -1,5 +1,4 @@
-import { FeatureCollection } from '@turf/helpers'
-import { Feature, Geometry } from 'geojson'
+import type { Feature, FeatureCollection, Geometry } from 'geojson'
 
 export enum AdminVerificationStatus {
   Pending = 'pending',

@@ -4,6 +4,8 @@ import { render, screen } from '@testing-library/react'
 
 import BreadcrumbNav from './BreadcrumbNav'
 import { routeTree as hiilikarttaRouteTree } from '#/common/routing/routes/hiilikartta'
+import { routeTree as luonnonmetsakartatRouteTree } from '#/common/routing/routes/luonnonmetsakartat'
+import { mainRouteTree } from '#/common/routing/routes/main'
 import type { RouteTree } from '#/common/types/routing'
 
 let mockPathname = '/en'
@@ -116,5 +118,24 @@ describe('BreadcrumbNav', () => {
 
     expect(screen.getByText('Etusivu')).toBeInTheDocument()
     expect(screen.getByText('Kaavat')).toBeInTheDocument()
+  })
+
+  it('passes Luonnonmetsakartat folayerIdSlug params through nested admin breadcrumbs', () => {
+    mockPathname =
+      '/fi/luonnonmetsakartat/admin/taso/layer-123/asetukset'
+
+    render(<BreadcrumbNav routeTree={luonnonmetsakartatRouteTree} />)
+
+    expect(screen.getByText('Admin')).toBeInTheDocument()
+    expect(screen.getByText('Karttataso')).toBeInTheDocument()
+    expect(screen.getByText('Asetukset')).toBeInTheDocument()
+
+    expect(mockedMutableLink).toHaveBeenCalledWith(
+      expect.objectContaining({
+        route: luonnonmetsakartatRouteTree.admin.folayer,
+        routeTree: mainRouteTree,
+        params: { routeParams: { folayerIdSlug: 'layer-123' } },
+      })
+    )
   })
 })

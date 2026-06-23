@@ -3,13 +3,16 @@
 import React, { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
-import { usePathname, useRouter } from 'next/navigation'
-import { useParams } from 'next/navigation'
 
 import { useUIStore } from '#/common/store/uiStore'
 import { getRoute } from '#/common/routing/routing-client'
 import { getPathnameWithoutLocale } from '#/common/routing/routing'
 import { useExclusiveLayerGroups } from '#/common/hooks/map/useExclusiveLayerGroups'
+import {
+  useAppParams,
+  useAppPathname,
+  useAppRouter,
+} from '#/common/navigation/navigation'
 
 import { routeTree } from '#/common/routing/routes/luonnonmetsakartat'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
@@ -37,9 +40,9 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   )
   const { data: session, status } = useSession()
 
-  const router = useRouter()
-  const pathname = usePathname()
-  const { locale } = useParams<{ locale: string }>()
+  const router = useAppRouter()
+  const pathname = useAppPathname()
+  const { locale } = useAppParams<{ locale: string }>()
 
   const { refetch: refetchAdminVerification } = useQuery({
     ...adminVerificationQuery(),

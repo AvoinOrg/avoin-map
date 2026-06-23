@@ -1,7 +1,6 @@
 'use client'
 
 import React from 'react'
-import { useParams } from 'next/navigation'
 import { useTranslate } from '@tolgee/react'
 
 import { Box } from '#/common/style/theme'
@@ -17,9 +16,10 @@ import { routeTree } from '#/common/routing/routes/luonnonmetsakartat'
 import { FolayerConfState } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { getFolayerCentroidSourceId } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/utils'
+import { useAppParams } from '#/common/navigation/navigation'
 
 const Page = () => {
-  const params = useParams<{ folayerIdSlug: string }>()
+  const params = useAppParams<{ folayerIdSlug: string }>()
   const { t } = useTranslate('luonnonmetsakartat')
 
   const adminFolayerConf = useAppletStore(
@@ -59,7 +59,9 @@ const Page = () => {
               <MutableLink
                 route={routeTree.admin.folayer.settings}
                 routeTree={routeTree}
-                params={{ routeParams: { folayerId: adminFolayerConf.id } }}
+                params={{
+                  routeParams: { folayerIdSlug: adminFolayerConf.id },
+                }}
                 sx={{ alignItems: 'center' }}
               >
                 <Box
@@ -91,7 +93,9 @@ const Page = () => {
               <MutableLink
                 route={routeTree.admin.folayer.pictures}
                 routeTree={routeTree}
-                params={{ routeParams: { folayerId: adminFolayerConf.id } }}
+                params={{
+                  routeParams: { folayerIdSlug: adminFolayerConf.id },
+                }}
                 sx={{ alignItems: 'center' }}
               >
                 <Box

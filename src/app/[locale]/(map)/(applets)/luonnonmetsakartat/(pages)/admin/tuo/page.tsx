@@ -1,12 +1,15 @@
 'use client'
 
 import { useRef, useEffect, useState, type ChangeEvent } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
 import { useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
 
 import { Box } from '#/common/style/theme'
 import { getRoute } from '#/common/routing/routing-client'
+import {
+  useAppPathname,
+  useAppRouter,
+} from '#/common/navigation/navigation'
 import BigMenuButton from '#/components/common/BigMenuButton'
 import { SidebarContentBox } from '#/components/Sidebar'
 import { Upload } from '#/components/icons'
@@ -28,8 +31,8 @@ const Page = () => {
   const [, setIsLoading] = useSidebarActivityLoader()
   const isInitializingRef = useRef(false)
   const inputRef = useRef<HTMLInputElement>(null)
-  const router = useRouter()
-  const pathname = usePathname()
+  const router = useAppRouter()
+  const pathname = useAppPathname()
   const { t } = useTranslate('luonnonmetsakartat')
   const dialogOpenedRef = useRef(false)
   const localFolayerPostMutation = useMutation(adminFolayerPostMutation())
@@ -106,7 +109,7 @@ const Page = () => {
         ...folayerRoute,
         params: {
           routeParams: {
-            folayerId: id,
+            folayerIdSlug: id,
           },
         },
       })

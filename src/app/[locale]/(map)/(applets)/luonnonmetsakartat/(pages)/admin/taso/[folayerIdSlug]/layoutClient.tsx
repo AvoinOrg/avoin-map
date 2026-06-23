@@ -2,16 +2,16 @@
 
 import React, { useEffect } from 'react'
 import { useStore } from 'zustand'
-import { useParams } from 'next/navigation'
 
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { useAdminFolayer } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/hooks/useAdminFolayer'
 import { getFolayerGroupId } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/utils'
 import { useExclusiveLayerGroups } from '#/common/hooks/map/useExclusiveLayerGroups'
+import { useAppParams } from '#/common/navigation/navigation'
 
 const LayoutClient = ({ children }: { children: React.ReactNode }) => {
-  const params = useParams()
-  const folayerId = params.folayerIdSlug as string
+  const params = useAppParams<{ folayerIdSlug: string }>()
+  const folayerId = params.folayerIdSlug
   const adminFolayerConf = useStore(
     useAppletStore,
     (state) => state.adminFolayerConfs[folayerId]

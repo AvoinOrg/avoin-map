@@ -3,6 +3,7 @@ import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
 
 import { RouteTree } from '#/common/types/routing'
+import { routeTree as luonnonmetsakartatRouteTree } from '#/common/routing/routes/luonnonmetsakartat'
 
 type MockAppLinkProps = React.ComponentPropsWithoutRef<'a'> & {
   href: string
@@ -163,6 +164,27 @@ const routeTree: RouteTree = {
     const link = screen.getByRole('link', { name: 'Open item' })
 
     expect(link).toHaveAttribute('href', '/applet-root/section/abc-123?tab=overview')
+  })
+
+  it('builds Luonnonmetsakartat folayer links with folayerIdSlug route params', () => {
+    ;useUIStore.setState({ isBaseDomainForApplet: false })
+
+    render(
+      <MutableLink
+        route={luonnonmetsakartatRouteTree.admin.folayer.settings}
+        routeTree={luonnonmetsakartatRouteTree}
+        params={{ routeParams: { folayerIdSlug: 'layer-123' } }}
+      >
+        Open settings
+      </MutableLink>
+    )
+
+    const link = screen.getByRole('link', { name: 'Open settings' })
+
+    expect(link).toHaveAttribute(
+      'href',
+      '/luonnonmetsakartat/admin/taso/layer-123/asetukset'
+    )
   })
 
   it('uses useGetRoute and strips applet root on base-domain mode', () => {

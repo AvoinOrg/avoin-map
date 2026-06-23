@@ -23,7 +23,7 @@ const AdminFolayerItem = ({ conf }: { conf: AdminFolayerConf }) => {
       linkAriaLabel={`Open ${conf.name}`}
       linkProps={{
         route: routeTree.admin.folayer,
-        params: { routeParams: { folayerId: conf.id } },
+        params: { routeParams: { folayerIdSlug: conf.id } },
         routeTree,
       }}
     />

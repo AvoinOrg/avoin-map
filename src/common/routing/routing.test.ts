@@ -3,6 +3,7 @@ import { generatePathNames, getRouteParent, getRoutesForPath } from './routing'
 import { getRoute } from './routing-client'
 import { cloneDeep } from 'lodash-es'
 import { routeTree as hiilikarttaRouteTree } from './routes/hiilikartta'
+import { routeTree as luonnonmetsakartatRouteTree } from './routes/luonnonmetsakartat'
 
 describe('routing utils', () => {
   const routeTree: RouteTree = {
@@ -304,6 +305,58 @@ describe('routing utils', () => {
       expect(route).toBe(
         '/hiilikartta/raportti?planIds=server-1%2Cserver-2&prevPageId=plan-123&prevPageStep=areas'
       )
+    })
+
+    it('returns Luonnonmetsakartat folayer routes using the folayerIdSlug param key', () => {
+      expect(
+        getRoute({
+          routeNode: luonnonmetsakartatRouteTree.admin.folayer,
+          routeTree: luonnonmetsakartatRouteTree,
+          params: {
+            routeParams: {
+              folayerIdSlug: 'layer-123',
+            },
+          },
+        })
+      ).toBe('/luonnonmetsakartat/admin/taso/layer-123')
+
+      expect(
+        getRoute({
+          routeNode: luonnonmetsakartatRouteTree.admin.folayer.settings,
+          routeTree: luonnonmetsakartatRouteTree,
+          params: {
+            routeParams: {
+              folayerIdSlug: 'layer-123',
+            },
+          },
+        })
+      ).toBe('/luonnonmetsakartat/admin/taso/layer-123/asetukset')
+
+      expect(
+        getRoute({
+          routeNode: luonnonmetsakartatRouteTree.admin.folayer.pictures,
+          routeTree: luonnonmetsakartatRouteTree,
+          params: {
+            routeParams: {
+              folayerIdSlug: 'layer-123',
+            },
+          },
+        })
+      ).toBe('/luonnonmetsakartat/admin/taso/layer-123/kuvat')
+    })
+
+    it('throws for Luonnonmetsakartat folayer routes when only the old folayerId param key is provided', () => {
+      expect(() =>
+        getRoute({
+          routeNode: luonnonmetsakartatRouteTree.admin.folayer,
+          routeTree: luonnonmetsakartatRouteTree,
+          params: {
+            routeParams: {
+              folayerId: 'layer-123',
+            },
+          },
+        })
+      ).toThrowError('Not enough params provided')
     })
 
     it('returns the correct route with query and route parameters for a route tree with a base path', () => {
@@ -746,6 +799,38 @@ describe('routing utils', () => {
           params: { routeParams: { planId: 'plan-123' } },
           path: '/hiilikartta/kaavat/plan-123/alueet',
           routeTree: hiilikarttaRouteTree.plans.plan.areas,
+        },
+      ])
+    })
+
+    it('returns Luonnonmetsakartat routes with folayerIdSlug params for localized pictures paths', () => {
+      const routes = getRoutesForPath(
+        '/fi/luonnonmetsakartat/admin/taso/layer-123/kuvat',
+        luonnonmetsakartatRouteTree
+      )
+
+      expect(routes).toEqual([
+        {
+          name: 'Etusivu',
+          path: '/luonnonmetsakartat',
+          routeTree: luonnonmetsakartatRouteTree,
+        },
+        {
+          name: 'Admin',
+          path: '/luonnonmetsakartat/admin',
+          routeTree: luonnonmetsakartatRouteTree.admin,
+        },
+        {
+          name: 'Karttataso',
+          params: { routeParams: { folayerIdSlug: 'layer-123' } },
+          path: '/luonnonmetsakartat/admin/taso/layer-123',
+          routeTree: luonnonmetsakartatRouteTree.admin.folayer,
+        },
+        {
+          name: 'Kuvat',
+          params: { routeParams: { folayerIdSlug: 'layer-123' } },
+          path: '/luonnonmetsakartat/admin/taso/layer-123/kuvat',
+          routeTree: luonnonmetsakartatRouteTree.admin.folayer.pictures,
         },
       ])
     })

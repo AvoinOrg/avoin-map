@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState, type MouseEvent } from 'react'
-import { useParams } from 'next/navigation'
 import { useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
 
@@ -20,13 +19,14 @@ import FolayerImportPictures, {
 } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportPictures'
 import { FolayerConfState } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 import { LoadingSpinner } from '#/components/Loading'
+import { useAppParams } from '#/common/navigation/navigation'
 
 const Page = () => {
   const [, setIsLoading] = useSidebarActivityLoader()
   const [isReadyToSave, setIsReadyToSave] = useState(false)
   const [componentKey, setComponentKey] = useState(0)
   const picturesRef = useRef<FolayerImportPicturesRef>(null)
-  const params = useParams<{ folayerIdSlug: string }>()
+  const params = useAppParams<{ folayerIdSlug: string }>()
   const { t } = useTranslate('luonnonmetsakartat')
 
   const adminFolayerConf = useAppletStore(
