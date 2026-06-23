@@ -2,7 +2,7 @@ import React from 'react'
 
 import LayoutClient from './layoutClient'
 import { getStaticData, getLocaleObj } from '#/common/navigation/tolgee/shared'
-import { TolgeeNextProvider } from '#/common/navigation/tolgee/client'
+import { TolgeeAppProvider } from '#/common/navigation/tolgee/client'
 
 type Props = {
   children: React.ReactNode
@@ -11,12 +11,12 @@ type Props = {
 
 const Layout = async ({ children, params }: Props) => {
   const { locale } = await params
-  const locales = await getStaticData(getLocaleObj(locale))
+  const staticData = await getStaticData(getLocaleObj(locale))
 
   return (
-    <TolgeeNextProvider locale={locale} locales={locales}>
+    <TolgeeAppProvider locale={locale} staticData={staticData}>
       <LayoutClient locale={locale}>{children}</LayoutClient>
-    </TolgeeNextProvider>
+    </TolgeeAppProvider>
   )
 }
 

@@ -8,26 +8,30 @@ import { useEffect } from 'react'
 import { useAppRouter } from '#/common/navigation/navigation'
 
 type Props = {
-  locales: TolgeeStaticData
+  staticData: TolgeeStaticData
   locale: string
   children: React.ReactNode
 }
 
 const tolgee = TolgeeBase().init()
 
-export const TolgeeNextProvider = ({ locale, locales, children }: Props) => {
+export const TolgeeAppProvider = ({
+  locale,
+  staticData,
+  children,
+}: Props) => {
   // synchronize SSR and client first render
-  const tolgeeSSR = useTolgeeSSR(tolgee, locale, locales)
-  const router = useAppRouter()
+  const tolgeeSSR = useTolgeeSSR(tolgee, locale, staticData)
+  const appRouter = useAppRouter()
 
   useEffect(() => {
     const { unsubscribe } = tolgeeSSR.on('permanentChange', () => {
       // refresh page when there is a translation update
-      router.refresh()
+      appRouter.refresh()
     })
 
     return () => unsubscribe()
-  }, [tolgeeSSR, router])
+  }, [tolgeeSSR, appRouter])
 
   return (
     <TolgeeProvider
