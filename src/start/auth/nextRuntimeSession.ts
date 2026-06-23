@@ -1,4 +1,4 @@
-import { getNextCompatibleStartAuth } from './nextCompatServer'
+import { getNextRuntimeStartAuth } from './nextRuntimeServer'
 import {
   appendStartAuthSetCookieHeaders,
   getStartAccessTokenFromAuth,
@@ -13,22 +13,22 @@ type StartAuthRequestInput = {
 
 export { appendStartAuthSetCookieHeaders, normalizeStartAuthUser }
 
-export const getNextCompatibleStartAuthSession = ({
+export const getNextRuntimeStartAuthSession = ({
   request,
   headers,
 }: StartAuthRequestInput) =>
   getStartAuthSessionFromAuth({
-    auth: getNextCompatibleStartAuth(),
+    auth: getNextRuntimeStartAuth(),
     request,
     headers,
   })
 
-export const getNextCompatibleStartAccessToken = ({
+export const getNextRuntimeStartAccessToken = ({
   request,
   headers,
 }: StartAuthRequestInput) =>
   getStartAccessTokenFromAuth({
-    auth: getNextCompatibleStartAuth(),
+    auth: getNextRuntimeStartAuth(),
     request,
     headers,
   })

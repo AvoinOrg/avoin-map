@@ -26,10 +26,14 @@ If you need auth flows, also set:
 
 ```bash
 NEXT_PUBLIC_ZITADEL_ISSUER=
+ZITADEL_ISSUER=
 ZITADEL_CLIENT_ID=
 ZITADEL_CLIENT_SECRET=
-NEXTAUTH_URL=
-NEXTAUTH_SECRET=
+BETTER_AUTH_URL=
+BETTER_AUTH_SECRET=
+BETTER_AUTH_TRUSTED_ORIGINS=
+# Optional when the Zitadel app registration uses a non-default callback.
+# ZITADEL_REDIRECT_URI=
 ```
 
 Run the development app:

@@ -35,26 +35,23 @@ describe('resolveStartAuthEnv', () => {
     expect(env.zitadelIssuer).toBe('https://public-issuer.example.org')
   })
 
-  it('falls back to legacy local auth env during the dual-stack migration', () => {
+  it('uses stable Better Auth development defaults when local values are absent', () => {
     const env = resolveStartAuthEnv({
       ...baseEnv,
       BETTER_AUTH_SECRET: undefined,
       BETTER_AUTH_URL: undefined,
-      NEXTAUTH_SECRET: 'legacy-nextauth-secret-32-characters',
-      NEXTAUTH_URL: 'http://localhost:3000',
     })
 
     expect(env.betterAuthSecret).toBe(
-      'legacy-nextauth-secret-32-characters'
+      'start-better-auth-development-secret-do-not-use-in-production'
     )
     expect(env.betterAuthUrl).toBe('http://localhost:3000')
   })
 
-  it('uses a stable development secret when the legacy local secret is too short', () => {
+  it('uses a stable development secret when the Better Auth secret is absent', () => {
     const env = resolveStartAuthEnv({
       ...baseEnv,
       BETTER_AUTH_SECRET: undefined,
-      NEXTAUTH_SECRET: 'secret',
     })
 
     expect(env.betterAuthSecret).toBe(
@@ -101,7 +98,6 @@ describe('resolveStartAuthEnv', () => {
       resolveStartAuthEnv({
         ...baseEnv,
         BETTER_AUTH_SECRET: '',
-        NEXTAUTH_SECRET: '',
         NODE_ENV: 'production',
       })
     ).toThrow('Start Better Auth requires BETTER_AUTH_SECRET')
@@ -112,7 +108,6 @@ describe('resolveStartAuthEnv', () => {
       resolveStartAuthEnv({
         ...baseEnv,
         BETTER_AUTH_URL: '',
-        NEXTAUTH_URL: 'http://localhost:3000',
         NODE_ENV: 'production',
       })
     ).toThrow('Start Better Auth requires BETTER_AUTH_URL')

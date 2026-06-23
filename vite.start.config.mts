@@ -11,9 +11,6 @@ const startNavigationAdapter = fileURLToPath(
 const startNextImageShim = fileURLToPath(
   new URL('./src/start/NextImage.tsx', import.meta.url)
 )
-const startNextAuthReactCompat = fileURLToPath(
-  new URL('./src/start/auth/nextAuthReactCompat.tsx', import.meta.url)
-)
 const startMapLibreShim = fileURLToPath(
   new URL('./src/start/maplibre-gl.ts', import.meta.url)
 )
@@ -87,10 +84,6 @@ export default defineConfig(({ mode }) => ({
       {
         find: 'next/image',
         replacement: startNextImageShim,
-      },
-      {
-        find: /^next-auth\/react$/,
-        replacement: startNextAuthReactCompat,
       },
     ],
   },

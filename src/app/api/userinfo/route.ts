@@ -1,11 +1,10 @@
-import { getToken } from 'next-auth/jwt'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { getStartAuthEnv } from '#/start/auth/env'
 import {
   appendStartAuthSetCookieHeaders,
-  getNextCompatibleStartAccessToken,
-} from '#/start/auth/nextCompatSession'
+  getNextRuntimeStartAccessToken,
+} from '#/start/auth/nextRuntimeSession'
 
 const getDataFromUserInfo = async ({
   responseHeaders = new Headers(),
@@ -55,7 +54,7 @@ const handler = async (req: NextRequest) => {
       })
   }
 
-  const startToken = await getNextCompatibleStartAccessToken({ request: req })
+  const startToken = await getNextRuntimeStartAccessToken({ request: req })
   const responseHeaders = new Headers()
 
   appendStartAuthSetCookieHeaders({
@@ -68,12 +67,6 @@ const handler = async (req: NextRequest) => {
       responseHeaders,
       token: startToken.accessToken,
     })
-  }
-
-  const token = await getToken({ req })
-
-  if (typeof token?.accessToken === 'string') {
-    return await getDataFromUserInfo({ token: token.accessToken })
   }
 
   switch (startToken.error) {

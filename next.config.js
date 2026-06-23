@@ -7,44 +7,6 @@ const CopyPlugin = require('copy-webpack-plugin')
 const DEBUG_CLIENT_ERRORS =
   process.env.NEXT_PUBLIC_DEBUG_CLIENT_ERRORS === '1'
 
-const getNextAuthUrl = () => {
-  let baseUrl = ''
-  if (process.env.NEXTAUTH_URL != null) {
-    baseUrl = `${process.env.NEXTAUTH_URL}`
-  } else if (process.env.URL != null) {
-    baseUrl = `${process.env.URL}`
-  } else if (process.env.DEPLOY_PRIME_URL != null) {
-    baseUrl = `${process.env.DEPLOY_PRIME_URL}`
-  } else if (process.env.DOMAIN != null) {
-    baseUrl = `${process.env.DOMAIN}`
-  } else if (process.env.REACT_APP_URL != null) {
-    baseUrl = `${process.env.REACT_APP_URL}`
-  } else if (process.env.REACT_APP_DOMAIN != null) {
-    baseUrl = `${process.env.REACT_APP_DOMAIN}`
-  } else if (process.env.NEXT_PUBLIC_URL != null) {
-    baseUrl = `${process.env.NEXT_PUBLIC_URL}`
-  } else if (process.env.NEXT_PUBLIC_DOMAIN != null) {
-    baseUrl = `${process.env.NEXT_PUBLIC_DOMAIN}`
-  } else if (process.env.VERCEL_URL != null) {
-    baseUrl = `${process.env.VERCEL_URL}`
-  } else if (process.env.VERCEL_DOMAIN != null) {
-    baseUrl = `${process.env.VERCEL_DOMAIN}`
-  } else {
-    const port = process.env.DEV_PORT || 3000
-    baseUrl = `http://localhost:${port}`
-  }
-
-  if (!baseUrl.startsWith('https://') && !baseUrl.startsWith('http://')) {
-    if (baseUrl.includes('localhost')) {
-      baseUrl = `http://${baseUrl}`
-    } else {
-      baseUrl = `https://${baseUrl}`
-    }
-  }
-
-  return baseUrl
-}
-
 const resolveNextIntlDevelopmentEntry = (entry, developmentFile) => {
   const productionEntry = require.resolve(entry)
   const entryDir = path.dirname(productionEntry)
@@ -99,9 +61,6 @@ const nextConfig = {
   experimental: {
     serverMinification: !DEBUG_CLIENT_ERRORS,
   },
-  env: {
-    NEXTAUTH_URL: getNextAuthUrl(),
-  },
   // rewrites: async () => {
   //   return {
   //     beforeFiles: [
@@ -119,10 +78,7 @@ const nextConfig = {
   //     ],
   //   }
   // },
-  webpack: (
-    config,
-    { buildId, dev, isServer, defaultLoaders, nextRuntime, webpack }
-  ) => {
+  webpack: (config, { dev, webpack }) => {
     if (!dev && DEBUG_CLIENT_ERRORS) {
       // Keep production bundles readable for client-side crash debugging.
       config.optimization = {

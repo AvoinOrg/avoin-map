@@ -30,15 +30,11 @@ const getRequired = ({
 const getRequiredExplicitUnlessDevelopment = ({
   env,
   key,
-  fallbackKey,
   developmentFallback,
-  isUsableFallback = () => true,
 }: {
   env: EnvSource
   key: string
-  fallbackKey?: string
   developmentFallback: string
-  isUsableFallback?: (value: string) => boolean
 }) => {
   const explicitValue = getOptional({ env, key })
 
@@ -47,14 +43,6 @@ const getRequiredExplicitUnlessDevelopment = ({
   }
 
   if (env.NODE_ENV !== 'production') {
-    const fallbackValue = fallbackKey
-      ? getOptional({ env, key: fallbackKey })
-      : null
-
-    if (fallbackValue && isUsableFallback(fallbackValue)) {
-      return fallbackValue
-    }
-
     return developmentFallback
   }
 
@@ -97,7 +85,6 @@ const getBetterAuthUrl = (env: EnvSource) =>
   getRequiredExplicitUnlessDevelopment({
     env,
     key: 'BETTER_AUTH_URL',
-    fallbackKey: 'NEXTAUTH_URL',
     developmentFallback: LOCAL_BETTER_AUTH_URL,
   })
 
@@ -105,25 +92,15 @@ const getBetterAuthSecret = (env: EnvSource) =>
   getRequiredExplicitUnlessDevelopment({
     env,
     key: 'BETTER_AUTH_SECRET',
-    fallbackKey: 'NEXTAUTH_SECRET',
     developmentFallback:
       'start-better-auth-development-secret-do-not-use-in-production',
-    isUsableFallback: (value) => value.length >= 32,
   })
 
 const getDefaultZitadelRedirectBaseUrl = ({
   betterAuthUrl,
-  env,
 }: {
   betterAuthUrl: string
-  env: EnvSource
 }) => {
-  const nextAuthOrigin = getOrigin(getOptional({ env, key: 'NEXTAUTH_URL' }))
-
-  if (nextAuthOrigin) {
-    return nextAuthOrigin
-  }
-
   const betterAuthOrigin = getOrigin(betterAuthUrl)
 
   if (
@@ -155,7 +132,7 @@ const getZitadelRedirectUri = ({
   }
 
   return `${stripTrailingSlash(
-    getDefaultZitadelRedirectBaseUrl({ betterAuthUrl, env })
+    getDefaultZitadelRedirectBaseUrl({ betterAuthUrl })
   )}${LEGACY_ZITADEL_CALLBACK_PATH}`
 }
 
@@ -168,7 +145,6 @@ const getLocalDevelopmentTrustedOrigins = (env: EnvSource) => {
   const origins = [
     LOCAL_BETTER_AUTH_URL,
     getOrigin(getOptional({ env, key: 'BETTER_AUTH_URL' })),
-    getOrigin(getOptional({ env, key: 'NEXTAUTH_URL' })),
   ]
 
   if (devPort && /^\d+$/.test(devPort)) {

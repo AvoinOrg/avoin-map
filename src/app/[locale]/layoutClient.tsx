@@ -5,7 +5,6 @@ import {
   QueryClientProvider,
   type QueryClientProviderProps,
 } from '@tanstack/react-query'
-import { SessionProvider, type SessionProviderProps } from 'next-auth/react'
 import { NextIntlClientProvider } from 'next-intl'
 
 import { AuthSessionProvider } from '#/common/auth'
@@ -14,8 +13,6 @@ import { queryClient } from '#/common/queries/queryClient'
 import { NotificationProvider } from '#/components/Notification'
 import 'overlayscrollbars/overlayscrollbars.css'
 
-const NextAuthCompatibilitySessionProvider =
-  SessionProvider as React.ComponentType<SessionProviderProps>
 const StableQueryClientProvider =
   QueryClientProvider as React.ComponentType<QueryClientProviderProps>
 
@@ -32,18 +29,15 @@ const LayoutClient = ({
     // TODO: Does this even do anything? Figure it out.
     // Supposedly the locale needs to be supplied
     <NextIntlClientProvider locale={locale}>
-      {/* NextAuth remains for unmigrated Next-runtime consumers; Better Auth powers the migrated app-shell user handoff. */}
-      <NextAuthCompatibilitySessionProvider>
-        <AuthSessionProvider>
-          <AppThemeProvider>
-            <NotificationProvider>
-              <StableQueryClientProvider client={queryClient}>
-                {children}
-              </StableQueryClientProvider>
-            </NotificationProvider>
-          </AppThemeProvider>
-        </AuthSessionProvider>
-      </NextAuthCompatibilitySessionProvider>
+      <AuthSessionProvider>
+        <AppThemeProvider>
+          <NotificationProvider>
+            <StableQueryClientProvider client={queryClient}>
+              {children}
+            </StableQueryClientProvider>
+          </NotificationProvider>
+        </AppThemeProvider>
+      </AuthSessionProvider>
     </NextIntlClientProvider>
   )
 }
