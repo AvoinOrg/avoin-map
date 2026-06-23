@@ -7,7 +7,15 @@
     "jsx": "react-jsx",
     "allowJs": false,
     "plugins": [],
-    "types": ["node", "vite/client"]
+    "types": ["node", "vite/client"],
+    "paths": {
+      "#/common/navigation/navigation": ["src/start/navigation.tsx"],
+      "next/image": ["src/start/NextImage.tsx"],
+      "applets/*": ["src/app/[locale]/(map)/(applets)/*"],
+      "#/*": ["src/*"],
+      "@i18n/*": ["i18n/*"],
+      "map/*": ["src/app/[locale]/(map)/*"]
+    }
   },
   "include": [
     "vite.start.config.mts",
@@ -19,6 +27,9 @@
     "src/routes/**/*.tsx",
     "src/start/**/*.ts",
     "src/start/**/*.tsx",
+    "src/start/**/*.d.ts",
+    "src/common/types/**/*.d.ts",
+    "src/app/[locale]/(map)/(applets)/forests/**/*.d.ts",
     "src/startBootstrapMarker.ts"
   ],
   "exclude": ["node_modules"]

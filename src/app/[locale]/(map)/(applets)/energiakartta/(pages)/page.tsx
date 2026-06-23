@@ -3,11 +3,11 @@
 import React from 'react'
 import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip'
 import { useTranslate } from '@tolgee/react'
-import { useParams } from 'next/navigation'
 
 import { MAP_BOTTOM_LEFT_FLOATING_CONTROLS_SLOT } from '#/common/constants/map'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
+import { useAppParams } from '#/common/navigation/navigation'
 import { Box } from '#/common/style/theme'
 import { useMapStore, useUIStore } from '#/common/store'
 import {
@@ -489,10 +489,15 @@ const HeatingAccordionContent = ({
   )
 }
 
-const Page = () => {
+type PageProps = {
+  locale?: string
+}
+
+const Page = ({ locale: localeProp }: PageProps) => {
   const { t } = useTranslate('energiakartta')
-  const params = useParams<{ locale?: string | string[] }>()
-  const locale = typeof params.locale === 'string' ? params.locale : 'fi'
+  const params = useAppParams<{ locale?: string | string[] }>()
+  const locale =
+    localeProp ?? (typeof params.locale === 'string' ? params.locale : 'fi')
   const setFilter = useMapStore((state) => state.setFilter)
   const setLayoutProperty = useMapStore((state) => state.setLayoutProperty)
   const setPaintProperty = useMapStore((state) => state.setPaintProperty)

@@ -14,8 +14,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LocaleRouteRouteImport } from './routes/$locale/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LocalemapMapRouteRouteImport } from './routes/$locale/(map)/_map/route'
+import { Route as LocalemapMapIndexRouteImport } from './routes/$locale/(map)/_map/index'
 import { Route as LocalemapMapappletsHiilikarttaRouteRouteImport } from './routes/$locale/(map)/_map/(applets)/hiilikartta/route'
+import { Route as LocalemapMapappletsForestsRouteRouteImport } from './routes/$locale/(map)/_map/(applets)/forests/route'
+import { Route as LocalemapMapappletsEnergiakarttaRouteRouteImport } from './routes/$locale/(map)/_map/(applets)/energiakartta/route'
 import { Route as LocalemapMapappletsHiilikarttaIndexRouteImport } from './routes/$locale/(map)/_map/(applets)/hiilikartta/index'
+import { Route as LocalemapMapappletsForestsIndexRouteImport } from './routes/$locale/(map)/_map/(applets)/forests/index'
+import { Route as LocalemapMapappletsEnergiakarttaIndexRouteImport } from './routes/$locale/(map)/_map/(applets)/energiakartta/index'
 import { Route as LocalemapMapappletsHiilikarttaKaavatPlanIdRouteImport } from './routes/$locale/(map)/_map/(applets)/hiilikartta/kaavat.$planId'
 
 const LocalemapRouteImport = createFileRoute('/$locale/(map)')()
@@ -38,10 +43,27 @@ const LocalemapMapRouteRoute = LocalemapMapRouteRouteImport.update({
   id: '/_map',
   getParentRoute: () => LocalemapRoute,
 } as any)
+const LocalemapMapIndexRoute = LocalemapMapIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LocalemapMapRouteRoute,
+} as any)
 const LocalemapMapappletsHiilikarttaRouteRoute =
   LocalemapMapappletsHiilikarttaRouteRouteImport.update({
     id: '/(applets)/hiilikartta',
     path: '/hiilikartta',
+    getParentRoute: () => LocalemapMapRouteRoute,
+  } as any)
+const LocalemapMapappletsForestsRouteRoute =
+  LocalemapMapappletsForestsRouteRouteImport.update({
+    id: '/(applets)/forests',
+    path: '/forests',
+    getParentRoute: () => LocalemapMapRouteRoute,
+  } as any)
+const LocalemapMapappletsEnergiakarttaRouteRoute =
+  LocalemapMapappletsEnergiakarttaRouteRouteImport.update({
+    id: '/(applets)/energiakartta',
+    path: '/energiakartta',
     getParentRoute: () => LocalemapMapRouteRoute,
   } as any)
 const LocalemapMapappletsHiilikarttaIndexRoute =
@@ -49,6 +71,18 @@ const LocalemapMapappletsHiilikarttaIndexRoute =
     id: '/',
     path: '/',
     getParentRoute: () => LocalemapMapappletsHiilikarttaRouteRoute,
+  } as any)
+const LocalemapMapappletsForestsIndexRoute =
+  LocalemapMapappletsForestsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => LocalemapMapappletsForestsRouteRoute,
+  } as any)
+const LocalemapMapappletsEnergiakarttaIndexRoute =
+  LocalemapMapappletsEnergiakarttaIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => LocalemapMapappletsEnergiakarttaRouteRoute,
   } as any)
 const LocalemapMapappletsHiilikarttaKaavatPlanIdRoute =
   LocalemapMapappletsHiilikarttaKaavatPlanIdRouteImport.update({
@@ -60,14 +94,20 @@ const LocalemapMapappletsHiilikarttaKaavatPlanIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$locale': typeof LocaleRouteRouteWithChildren
-  '/$locale/': typeof LocalemapMapRouteRouteWithChildren
+  '/$locale/': typeof LocalemapMapIndexRoute
+  '/$locale/energiakartta': typeof LocalemapMapappletsEnergiakarttaRouteRouteWithChildren
+  '/$locale/forests': typeof LocalemapMapappletsForestsRouteRouteWithChildren
   '/$locale/hiilikartta': typeof LocalemapMapappletsHiilikarttaRouteRouteWithChildren
+  '/$locale/energiakartta/': typeof LocalemapMapappletsEnergiakarttaIndexRoute
+  '/$locale/forests/': typeof LocalemapMapappletsForestsIndexRoute
   '/$locale/hiilikartta/': typeof LocalemapMapappletsHiilikarttaIndexRoute
   '/$locale/hiilikartta/kaavat/$planId': typeof LocalemapMapappletsHiilikarttaKaavatPlanIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/$locale': typeof LocalemapMapRouteRouteWithChildren
+  '/$locale': typeof LocalemapMapIndexRoute
+  '/$locale/energiakartta': typeof LocalemapMapappletsEnergiakarttaIndexRoute
+  '/$locale/forests': typeof LocalemapMapappletsForestsIndexRoute
   '/$locale/hiilikartta': typeof LocalemapMapappletsHiilikarttaIndexRoute
   '/$locale/hiilikartta/kaavat/$planId': typeof LocalemapMapappletsHiilikarttaKaavatPlanIdRoute
 }
@@ -77,7 +117,12 @@ export interface FileRoutesById {
   '/$locale': typeof LocaleRouteRouteWithChildren
   '/$locale/(map)': typeof LocalemapRouteWithChildren
   '/$locale/(map)/_map': typeof LocalemapMapRouteRouteWithChildren
+  '/$locale/(map)/_map/': typeof LocalemapMapIndexRoute
+  '/$locale/(map)/_map/(applets)/energiakartta': typeof LocalemapMapappletsEnergiakarttaRouteRouteWithChildren
+  '/$locale/(map)/_map/(applets)/forests': typeof LocalemapMapappletsForestsRouteRouteWithChildren
   '/$locale/(map)/_map/(applets)/hiilikartta': typeof LocalemapMapappletsHiilikarttaRouteRouteWithChildren
+  '/$locale/(map)/_map/(applets)/energiakartta/': typeof LocalemapMapappletsEnergiakarttaIndexRoute
+  '/$locale/(map)/_map/(applets)/forests/': typeof LocalemapMapappletsForestsIndexRoute
   '/$locale/(map)/_map/(applets)/hiilikartta/': typeof LocalemapMapappletsHiilikarttaIndexRoute
   '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId': typeof LocalemapMapappletsHiilikarttaKaavatPlanIdRoute
 }
@@ -87,13 +132,19 @@ export interface FileRouteTypes {
     | '/'
     | '/$locale'
     | '/$locale/'
+    | '/$locale/energiakartta'
+    | '/$locale/forests'
     | '/$locale/hiilikartta'
+    | '/$locale/energiakartta/'
+    | '/$locale/forests/'
     | '/$locale/hiilikartta/'
     | '/$locale/hiilikartta/kaavat/$planId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/$locale'
+    | '/$locale/energiakartta'
+    | '/$locale/forests'
     | '/$locale/hiilikartta'
     | '/$locale/hiilikartta/kaavat/$planId'
   id:
@@ -102,7 +153,12 @@ export interface FileRouteTypes {
     | '/$locale'
     | '/$locale/(map)'
     | '/$locale/(map)/_map'
+    | '/$locale/(map)/_map/'
+    | '/$locale/(map)/_map/(applets)/energiakartta'
+    | '/$locale/(map)/_map/(applets)/forests'
     | '/$locale/(map)/_map/(applets)/hiilikartta'
+    | '/$locale/(map)/_map/(applets)/energiakartta/'
+    | '/$locale/(map)/_map/(applets)/forests/'
     | '/$locale/(map)/_map/(applets)/hiilikartta/'
     | '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId'
   fileRoutesById: FileRoutesById
@@ -142,11 +198,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocalemapMapRouteRouteImport
       parentRoute: typeof LocalemapRoute
     }
+    '/$locale/(map)/_map/': {
+      id: '/$locale/(map)/_map/'
+      path: '/'
+      fullPath: '/$locale/'
+      preLoaderRoute: typeof LocalemapMapIndexRouteImport
+      parentRoute: typeof LocalemapMapRouteRoute
+    }
     '/$locale/(map)/_map/(applets)/hiilikartta': {
       id: '/$locale/(map)/_map/(applets)/hiilikartta'
       path: '/hiilikartta'
       fullPath: '/$locale/hiilikartta'
       preLoaderRoute: typeof LocalemapMapappletsHiilikarttaRouteRouteImport
+      parentRoute: typeof LocalemapMapRouteRoute
+    }
+    '/$locale/(map)/_map/(applets)/forests': {
+      id: '/$locale/(map)/_map/(applets)/forests'
+      path: '/forests'
+      fullPath: '/$locale/forests'
+      preLoaderRoute: typeof LocalemapMapappletsForestsRouteRouteImport
+      parentRoute: typeof LocalemapMapRouteRoute
+    }
+    '/$locale/(map)/_map/(applets)/energiakartta': {
+      id: '/$locale/(map)/_map/(applets)/energiakartta'
+      path: '/energiakartta'
+      fullPath: '/$locale/energiakartta'
+      preLoaderRoute: typeof LocalemapMapappletsEnergiakarttaRouteRouteImport
       parentRoute: typeof LocalemapMapRouteRoute
     }
     '/$locale/(map)/_map/(applets)/hiilikartta/': {
@@ -155,6 +232,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/$locale/hiilikartta/'
       preLoaderRoute: typeof LocalemapMapappletsHiilikarttaIndexRouteImport
       parentRoute: typeof LocalemapMapappletsHiilikarttaRouteRoute
+    }
+    '/$locale/(map)/_map/(applets)/forests/': {
+      id: '/$locale/(map)/_map/(applets)/forests/'
+      path: '/'
+      fullPath: '/$locale/forests/'
+      preLoaderRoute: typeof LocalemapMapappletsForestsIndexRouteImport
+      parentRoute: typeof LocalemapMapappletsForestsRouteRoute
+    }
+    '/$locale/(map)/_map/(applets)/energiakartta/': {
+      id: '/$locale/(map)/_map/(applets)/energiakartta/'
+      path: '/'
+      fullPath: '/$locale/energiakartta/'
+      preLoaderRoute: typeof LocalemapMapappletsEnergiakarttaIndexRouteImport
+      parentRoute: typeof LocalemapMapappletsEnergiakarttaRouteRoute
     }
     '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId': {
       id: '/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId'
@@ -165,6 +256,35 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface LocalemapMapappletsEnergiakarttaRouteRouteChildren {
+  LocalemapMapappletsEnergiakarttaIndexRoute: typeof LocalemapMapappletsEnergiakarttaIndexRoute
+}
+
+const LocalemapMapappletsEnergiakarttaRouteRouteChildren: LocalemapMapappletsEnergiakarttaRouteRouteChildren =
+  {
+    LocalemapMapappletsEnergiakarttaIndexRoute:
+      LocalemapMapappletsEnergiakarttaIndexRoute,
+  }
+
+const LocalemapMapappletsEnergiakarttaRouteRouteWithChildren =
+  LocalemapMapappletsEnergiakarttaRouteRoute._addFileChildren(
+    LocalemapMapappletsEnergiakarttaRouteRouteChildren,
+  )
+
+interface LocalemapMapappletsForestsRouteRouteChildren {
+  LocalemapMapappletsForestsIndexRoute: typeof LocalemapMapappletsForestsIndexRoute
+}
+
+const LocalemapMapappletsForestsRouteRouteChildren: LocalemapMapappletsForestsRouteRouteChildren =
+  {
+    LocalemapMapappletsForestsIndexRoute: LocalemapMapappletsForestsIndexRoute,
+  }
+
+const LocalemapMapappletsForestsRouteRouteWithChildren =
+  LocalemapMapappletsForestsRouteRoute._addFileChildren(
+    LocalemapMapappletsForestsRouteRouteChildren,
+  )
 
 interface LocalemapMapappletsHiilikarttaRouteRouteChildren {
   LocalemapMapappletsHiilikarttaIndexRoute: typeof LocalemapMapappletsHiilikarttaIndexRoute
@@ -185,10 +305,18 @@ const LocalemapMapappletsHiilikarttaRouteRouteWithChildren =
   )
 
 interface LocalemapMapRouteRouteChildren {
+  LocalemapMapIndexRoute: typeof LocalemapMapIndexRoute
+  LocalemapMapappletsEnergiakarttaRouteRoute: typeof LocalemapMapappletsEnergiakarttaRouteRouteWithChildren
+  LocalemapMapappletsForestsRouteRoute: typeof LocalemapMapappletsForestsRouteRouteWithChildren
   LocalemapMapappletsHiilikarttaRouteRoute: typeof LocalemapMapappletsHiilikarttaRouteRouteWithChildren
 }
 
 const LocalemapMapRouteRouteChildren: LocalemapMapRouteRouteChildren = {
+  LocalemapMapIndexRoute: LocalemapMapIndexRoute,
+  LocalemapMapappletsEnergiakarttaRouteRoute:
+    LocalemapMapappletsEnergiakarttaRouteRouteWithChildren,
+  LocalemapMapappletsForestsRouteRoute:
+    LocalemapMapappletsForestsRouteRouteWithChildren,
   LocalemapMapappletsHiilikarttaRouteRoute:
     LocalemapMapappletsHiilikarttaRouteRouteWithChildren,
 }

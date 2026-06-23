@@ -1,17 +1,10 @@
 import { Outlet, createFileRoute } from '@tanstack/react-router'
 
-import { startRouteScaffoldLabel } from '../-helpers/scaffoldLabels'
-
 const LocaleLayout = () => {
   const { locale } = Route.useParams()
+  void locale
 
-  return (
-    <main>
-      <p>{startRouteScaffoldLabel}</p>
-      <p>Locale scaffold: {locale}</p>
-      <Outlet />
-    </main>
-  )
+  return <Outlet />
 }
 
 export const Route = createFileRoute('/$locale')({
