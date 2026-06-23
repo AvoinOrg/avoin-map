@@ -8,9 +8,6 @@ import type { Plugin, ResolvedConfig } from 'vite'
 const startNavigationAdapter = fileURLToPath(
   new URL('./src/start/navigation.tsx', import.meta.url)
 )
-const startNextImageShim = fileURLToPath(
-  new URL('./src/start/NextImage.tsx', import.meta.url)
-)
 const startMapLibreShim = fileURLToPath(
   new URL('./src/start/maplibre-gl.ts', import.meta.url)
 )
@@ -80,10 +77,6 @@ export default defineConfig(({ mode }) => ({
       {
         find: 'maplibre_symbol_utils',
         replacement: maplibreSymbolUtilsEsm,
-      },
-      {
-        find: 'next/image',
-        replacement: startNextImageShim,
       },
     ],
   },

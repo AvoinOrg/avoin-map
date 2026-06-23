@@ -10,7 +10,6 @@
     "types": ["node", "vite/client"],
     "paths": {
       "#/common/navigation/navigation": ["src/start/navigation.tsx"],
-      "next/image": ["src/start/NextImage.tsx"],
       "applets/*": ["src/app/[locale]/(map)/(applets)/*"],
       "#/*": ["src/*"],
       "@i18n/*": ["i18n/*"],

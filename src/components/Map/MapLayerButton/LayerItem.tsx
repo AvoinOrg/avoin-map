@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { Slider } from '@base-ui/react/slider'
-import Image from 'next/image'
 import { useTranslate } from '@tolgee/react'
 
 import { Box } from '#/common/style/theme'
+import FrameworkImage from '#/components/common/FrameworkImage'
 import { ArrowDown } from '#/components/icons'
 import { useLayerGroupOpacity } from '#/common/hooks/map/useLayerGroupOpacity'
 import { ListedLayerGroup } from '#/common/types/map'
@@ -129,7 +129,7 @@ const LayerItem = ({
           },
         }}
       >
-        <Image
+        <FrameworkImage
           src={layerGroup.thumbnail || ''}
           alt={name}
           width={256}

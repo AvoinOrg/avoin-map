@@ -1,12 +1,13 @@
 import React from 'react'
 import { Accordion } from '@base-ui/react/accordion'
-import Image, { StaticImageData } from 'next/image'
 
+import type { ImageSource } from '#/common/types/image'
 import { Box } from '#/common/style/theme/system'
+import FrameworkImage from '#/components/common/FrameworkImage'
 
 interface Props {
   title: string
-  img: string | StaticImageData
+  img: ImageSource
   children: React.ReactNode
 }
 
@@ -93,7 +94,7 @@ const ImgAccordion = ({ title, img, children }: Props) => {
                   },
                 }}
               >
-                <Image
+                <FrameworkImage
                   src={img}
                   alt={title}
                   fill

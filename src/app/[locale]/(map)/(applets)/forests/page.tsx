@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip'
-import Image from 'next/image'
 import { MapGeoJSONFeature } from 'maplibre-gl'
 
 import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
 import { Box, toSxArray } from '#/common/style/theme'
 import type { AppSxProps } from '#/common/style/theme'
 import Link from '#/components/common/Link'
+import FrameworkImage from '#/components/common/FrameworkImage'
 import { IconButton } from '#/components/common/Button'
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 // import { setOverlayMessage } from '../../OverlayMessages/OverlayMessages'
@@ -1172,11 +1172,11 @@ const FinlandForests = () => {
                         rel="noopener noreferrer"
                         sx={{ display: 'inline-flex', alignItems: 'center' }}
                       >
-                        <Image
+                        <FrameworkImage
                           alt="Arvometsä"
                           src={arvometsaLogo}
-                          width={arvometsaLogo.width}
-                          height={arvometsaLogo.height}
+                          width={595}
+                          height={153}
                           style={{ width: 100, height: 'auto' }}
                         />
                       </Link>

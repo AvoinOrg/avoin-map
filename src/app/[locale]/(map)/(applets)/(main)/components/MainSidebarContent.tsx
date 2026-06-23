@@ -1,7 +1,6 @@
 'use client'
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import Image from 'next/image'
 import { useTranslate } from '@tolgee/react'
 import type { EventListeners } from 'overlayscrollbars'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
@@ -13,6 +12,7 @@ import {
   toSxArray,
 } from '#/common/style/theme/system'
 import MutableLink from '#/components/common/MutableLink'
+import FrameworkImage from '#/components/common/FrameworkImage'
 import {
   useSidebarBoundaryContext,
 } from '#/components/Sidebar/sidebarBoundaryContext'
@@ -538,7 +538,7 @@ const MainSidebarContent = () => {
                         height: '0.85rem',
                       }}
                     >
-                      <Image
+                      <FrameworkImage
                         src={MAIN_WORDMARK_SRC}
                         alt={t('sidebar.main.intro.wordmark_alt')}
                         fill
@@ -640,7 +640,7 @@ const MainSidebarContent = () => {
                         pointerEvents: 'none',
                       }}
                     >
-                      <Image
+                      <FrameworkImage
                         src={CONTACT_ILLUSTRATION_SRC}
                         alt=""
                         fill
@@ -703,7 +703,7 @@ const MainSidebarContent = () => {
                               pointerEvents: 'none',
                             }}
                           >
-                            <Image
+                            <FrameworkImage
                               src={heroSrc}
                               alt=""
                               fill
@@ -822,7 +822,7 @@ const MainSidebarContent = () => {
                               flexShrink: 0,
                             }}
                           >
-                            <Image
+                            <FrameworkImage
                               src={heroSrc}
                               alt=""
                               fill
@@ -920,7 +920,7 @@ const MainSidebarContent = () => {
                       height: '0.85rem',
                     }}
                   >
-                    <Image
+                    <FrameworkImage
                       src={MAIN_WORDMARK_SRC}
                       alt={t('sidebar.main.intro.wordmark_alt')}
                       fill
@@ -995,7 +995,7 @@ const MainSidebarContent = () => {
                             flexShrink: 0,
                           }}
                         >
-                          <Image
+                          <FrameworkImage
                             src={heroSrc}
                             alt=""
                             fill
@@ -1138,7 +1138,7 @@ const MainSidebarContent = () => {
                       pointerEvents: 'none',
                     }}
                   >
-                    <Image
+                    <FrameworkImage
                       src={CONTACT_ILLUSTRATION_SRC}
                       alt=""
                       fill
@@ -1198,7 +1198,7 @@ const MainSidebarContent = () => {
                             flexShrink: 0,
                           }}
                         >
-                          <Image
+                          <FrameworkImage
                             src={heroSrc}
                             alt=""
                             fill
@@ -1317,7 +1317,7 @@ const MainSidebarContent = () => {
                             pointerEvents: 'none',
                           }}
                         >
-                          <Image
+                          <FrameworkImage
                             src={heroSrc}
                             alt=""
                             fill

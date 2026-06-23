@@ -99,10 +99,9 @@ This folder is Start-only scaffolding for the F048 migration.
   Hiilikartta, and Luonnonmetsakartat auth consumers to `#/common/auth`.
   `F048.4.6-nextauth-cleanup-auth-parity` removed the temporary alias, legacy
   type stubs, fallback provider, dependency metadata, and obsolete env names.
-- `vite.start.config.mts` aliases `next/image` to a Start-only `<img>` shim and
-  aliases `#/common/navigation/navigation` to a TanStack Router adapter. Full
-  Next wrapper and navigation parity belongs to `F048.6` and later `F048.3`
-  siblings.
+- `vite.start.config.mts` aliases `#/common/navigation/navigation` to a
+  TanStack Router adapter. Full Next wrapper and navigation parity belongs to
+  `F048.6` and later `F048.3` siblings.
 - `vite.start.config.mts` defines loaded `NEXT_PUBLIC_*` environment variables
   for Start client code. This is a temporary Next-public-env compatibility
   bridge for migrated shared map layers and shell UI; full build/deploy parity

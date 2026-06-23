@@ -63,31 +63,6 @@ jest.mock('overlayscrollbars-react', () => {
   }
 })
 
-jest.mock('next/image', () => {
-  return {
-    __esModule: true,
-    default: ({
-      alt,
-      src,
-      width,
-      height,
-      ...props
-    }: React.ImgHTMLAttributes<HTMLImageElement> & {
-      src: string
-      width?: number
-      height?: number
-    }) => (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        alt={alt}
-        src={src}
-        width={width}
-        height={height}
-        {...props}
-      />
-    ),
-  }
-})
 
 const normalLayer: ListedLayerMenuItem = {
   id: 'normal-layer',
