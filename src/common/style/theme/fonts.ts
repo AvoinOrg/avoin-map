@@ -1,21 +1,12 @@
-import { Arimo } from 'next/font/google'
-
 export { ARIMO_FONT_FAMILY } from './fontConstants'
 
-export const arimo = Arimo({
-  weight: ['400', '500', '700'],
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-arimo',
-  fallback: [
-    'Arial',
-    'BlinkMacSystemFont',
-    'Segoe UI',
-    'Oxygen',
-    'Ubuntu',
-    'Cantarell',
-    'Fira Sans',
-    'Droid Sans',
-    'Helvetica Neue',
-  ],
-})
+export const ARIMO_FONT_VARIABLE_CLASS = 'font-arimo-variable'
+
+export const ARIMO_GOOGLE_FONTS_STYLESHEET =
+  'https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;700&display=swap'
+
+export const ARIMO_FONT_VARIABLE_STYLE = `.${ARIMO_FONT_VARIABLE_CLASS} { --font-arimo: "Arimo", Arial; }`
+
+export const arimo = {
+  variable: ARIMO_FONT_VARIABLE_CLASS,
+} as const

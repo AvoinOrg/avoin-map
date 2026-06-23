@@ -1,10 +1,4 @@
-import { Metadata } from 'next'
-
 import LayoutClient from './layoutClient'
-
-export const metadata: Metadata = {
-  title: 'Luonnonmetsakartat / Admin - Tuo karttatiedosto',
-}
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return <LayoutClient>{children}</LayoutClient>

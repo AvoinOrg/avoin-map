@@ -8,8 +8,11 @@ import {
 } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 
+import { arimo } from '#/common/style/theme/fonts'
+import { getRootHead } from '#/start/headMetadata'
+
 const RootDocument = ({ children }: Readonly<{ children: ReactNode }>) => (
-  <html lang="en">
+  <html lang="en" className={arimo.variable}>
     <head>
       <HeadContent />
     </head>
@@ -27,19 +30,6 @@ const RootComponent = () => (
 )
 
 export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      {
-        charSet: 'utf-8',
-      },
-      {
-        name: 'viewport',
-        content: 'width=device-width, initial-scale=1',
-      },
-      {
-        title: 'TanStack Start bootstrap',
-      },
-    ],
-  }),
+  head: getRootHead,
   component: RootComponent,
 })

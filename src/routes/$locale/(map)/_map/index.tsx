@@ -5,15 +5,49 @@ import {
   guardVisibleAppletRootIndexRoute,
 } from '#/start/appletRouteGuards'
 import { VisibleAppletRootRoute } from '#/start/appletRouteComponents'
+import {
+  AVOIN_MAP_TITLE,
+  ENERGIAKARTTA_TITLE,
+  getHiilikarttaHead,
+  getStaticAppletHead,
+  LUONNONMETSAKARTAT_TITLE,
+} from '#/start/headMetadata'
 
-const getVisibleRootTitle = () => {
+const getVisibleRootHead = (locale: string) => {
   const namespace = getVisibleAppletRootNamespace()
 
-  if (namespace === 'energiakartta') return 'Energiakartta'
-  if (namespace === 'hiilikartta') return 'Hiilikartta'
-  if (namespace === 'luonnonmetsakartat') return 'Luonnonmetsakartat'
+  if (namespace === 'energiakartta') {
+    return getStaticAppletHead({
+      title: ENERGIAKARTTA_TITLE,
+      umamiWebsiteId:
+        process.env.NEXT_PUBLIC_APPLETS_ENERGIAKARTTA_UMAMI_ID,
+    })
+  }
 
-  return 'Avoin Map'
+  if (namespace === 'hiilikartta') {
+    return getHiilikarttaHead({
+      locale,
+      umamiWebsiteId: process.env.NEXT_PUBLIC_APPLETS_HIILIKARTTA_UMAMI_ID,
+    })
+  }
+
+  if (namespace === 'luonnonmetsakartat') {
+    return getStaticAppletHead({
+      title: LUONNONMETSAKARTAT_TITLE,
+      umamiWebsiteId:
+        process.env.NEXT_PUBLIC_APPLETS_LUONNONMETSAKARTAT_UMAMI_ID,
+    })
+  }
+
+  return getStaticAppletHead({
+    title: AVOIN_MAP_TITLE,
+  })
+}
+
+const VisibleAppletRootComponent = () => {
+  const { locale } = Route.useParams()
+
+  return <VisibleAppletRootRoute locale={locale} />
 }
 
 export const Route = createFileRoute('/$locale/(map)/_map/')({
@@ -23,16 +57,6 @@ export const Route = createFileRoute('/$locale/(map)/_map/')({
       location,
     })
   },
-  head: () => ({
-    meta: [
-      {
-        title: getVisibleRootTitle(),
-      },
-    ],
-  }),
-  component: () => {
-    const { locale } = Route.useParams()
-
-    return <VisibleAppletRootRoute locale={locale} />
-  },
+  head: ({ params }) => getVisibleRootHead(params.locale),
+  component: VisibleAppletRootComponent,
 })
