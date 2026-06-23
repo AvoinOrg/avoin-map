@@ -7,8 +7,8 @@ import {
 } from '#/common/hooks/map/useLayerGroup'
 
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
-import { adminFolayerQuery } from '../queries/adminFolayerQuery'
-import { adminFolayerAreaQuery } from '../queries/adminFolayerAreaQuery'
+import { useAdminFolayerQueryOptions } from '../queries/adminFolayerQuery'
+import { useAdminFolayerAreaQueryOptions } from '../queries/adminFolayerAreaQuery'
 import { getFolayerGroupId, createFolayerConf } from '../utils'
 import { AdminFolayerConf } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 
@@ -26,19 +26,17 @@ export const useAdminFolayer = (
 
   const {
     refetch: folayerRefetch,
-    error: folayerError,
     isError: isFolayerError,
   } = useQuery({
-    ...adminFolayerQuery(folayerId),
+    ...useAdminFolayerQueryOptions(folayerId),
     enabled: false,
   })
 
   const {
     refetch: areasRefetch,
-    error: areasError,
     isError: isAreasError,
   } = useQuery({
-    ...adminFolayerAreaQuery(folayerId),
+    ...useAdminFolayerAreaQueryOptions(folayerId),
     enabled: false,
   })
 

@@ -21,7 +21,7 @@ import {
 } from '#/common/routing/routes/luonnonmetsakartat'
 import { mainRouteTree } from '#/common/routing/routes/main'
 import FolayerImportShp from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportShp'
-import { adminFolayerPostMutation } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerPostMutation'
+import { useAdminFolayerPostMutationOptions } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerPostMutation'
 import { useSidebarActivityLoader } from '#/common/hooks/ui/useSidebarActivityLoader'
 
 const Page = () => {
@@ -35,7 +35,9 @@ const Page = () => {
   const pathname = useAppPathname()
   const { t } = useTranslate('luonnonmetsakartat')
   const dialogOpenedRef = useRef(false)
-  const localFolayerPostMutation = useMutation(adminFolayerPostMutation())
+  const localFolayerPostMutation = useMutation(
+    useAdminFolayerPostMutationOptions()
+  )
 
   useEffect(() => {
     if (inputRef.current && !dialogOpenedRef.current) {

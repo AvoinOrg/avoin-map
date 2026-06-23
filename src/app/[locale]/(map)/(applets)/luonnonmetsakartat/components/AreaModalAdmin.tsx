@@ -12,7 +12,7 @@ import { MapModalWrapper } from '#/components/Map/MapModalWrapper'
 import { SCROLLBAR_WIDTH_REM } from '#/common/style/theme/constants'
 import { LoadingSpinner } from '#/components/Loading'
 
-import { adminFolayerAreaPatchMutation } from '../common/queries/adminFolayerAreaPatchMutation'
+import { useAdminFolayerAreaPatchMutationOptions } from '../common/queries/adminFolayerAreaPatchMutation'
 import { useAppletStore } from '../state/appletStore'
 import type { FolayerFeature, FolayerFeatureProperties } from '../common/types'
 import { MasonryPhotoAlbum } from 'react-photo-album'
@@ -87,7 +87,7 @@ const AreaModalAdminContent = ({
     fixtureState?.unsyncedChanges ?? false
   )
   const localAdminFolayerAreaPatchMutation = useMutation(
-    adminFolayerAreaPatchMutation()
+    useAdminFolayerAreaPatchMutationOptions()
   )
   const [lightboxIndex, setLightboxIndex] = useState<number>(
     fixtureState?.lightboxIndex ?? -1

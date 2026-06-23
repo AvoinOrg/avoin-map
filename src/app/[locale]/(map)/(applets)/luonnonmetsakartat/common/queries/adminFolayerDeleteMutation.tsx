@@ -1,11 +1,12 @@
 import { UseMutationOptions } from '@tanstack/react-query'
 import axios from 'axios'
-import { useSession } from 'next-auth/react'
 import { useTranslate } from '@tolgee/react'
 
+import { useAuthSession } from '#/common/auth'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { AdminFolayerConf, FolayerConfState } from '../types'
 import { useUIStore } from '#/common/store'
+import { getRequiredBearerAuthHeader } from './authHeaders'
 
 const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 
@@ -25,7 +26,8 @@ export const useAdminFolayerDeleteMutationOptions = (): UseMutationOptions<
   const updateAdminFolayerConf = useAppletStore(
     (state) => state.updateAdminFolayerConf
   )
-  const { data: session } = useSession()
+  const { data: session } = useAuthSession()
+  const { accessToken } = session ?? {}
   const notify = useUIStore((state) => state.notify)
   const { t } = useTranslate('luonnonmetsakartat')
 
@@ -37,23 +39,21 @@ export const useAdminFolayerDeleteMutationOptions = (): UseMutationOptions<
         state: FolayerConfState.Deleting,
       })
 
-      if (session) {
-        const deleteRes = await axios.delete(
-          `${API_URL}/layer/${folayerConf.id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${session?.accessToken}`,
-            },
-          }
-        )
+      const deleteRes = await axios.delete(`${API_URL}/layer/${folayerConf.id}`, {
+        headers: {
+          ...getRequiredBearerAuthHeader({
+            accessToken,
+            requestName: 'Luonnonmetsakartat folayer delete',
+          }),
+        },
+      })
 
-        if (
-          deleteRes.status !== 200 &&
-          deleteRes.status !== 204 &&
-          deleteRes.status !== 404
-        ) {
-          throw new Error('Failed to delete the folayer')
-        }
+      if (
+        deleteRes.status !== 200 &&
+        deleteRes.status !== 204 &&
+        deleteRes.status !== 404
+      ) {
+        throw new Error('Failed to delete the folayer')
       }
     },
     onError: (error, params) => {

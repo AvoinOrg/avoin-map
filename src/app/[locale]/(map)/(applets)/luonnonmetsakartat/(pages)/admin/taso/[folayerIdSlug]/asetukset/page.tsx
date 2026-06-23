@@ -38,7 +38,7 @@ import {
   type ColOptions,
 } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
-import { adminFolayerPatchMutation } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
+import { useAdminFolayerPatchMutationOptions } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
 import { useAdminFolayerDeleteMutationOptions } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerDeleteMutation'
 import {
   APPLET_NAMESPACE,
@@ -88,7 +88,7 @@ const Page = () => {
     (state) => state.updateAdminFolayerConf
   )
   const localAdminFolayerPatchMutation = useMutation(
-    adminFolayerPatchMutation()
+    useAdminFolayerPatchMutationOptions()
   )
   const localAdminFolayerDeleteMutation = useMutation(
     useAdminFolayerDeleteMutationOptions()

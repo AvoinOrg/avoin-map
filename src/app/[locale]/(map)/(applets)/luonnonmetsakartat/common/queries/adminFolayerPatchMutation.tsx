@@ -1,17 +1,15 @@
 import { UseMutationOptions, useQueryClient } from '@tanstack/react-query'
 import axios from 'axios'
-import { useSession } from 'next-auth/react'
-import { FeatureCollection } from 'geojson'
 
+import { useAuthSession } from '#/common/auth'
 import {
   AdminFolayerConf,
-  FolayerConf,
   FolayerConfState,
-  ColOptions,
 } from '../types'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { useUIStore } from '#/common/store'
 import { useTranslate } from '@tolgee/react'
+import { getRequiredBearerAuthHeader } from './authHeaders'
 
 const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 
@@ -27,7 +25,7 @@ type ResponseData = {
   id: string
 }
 
-export const adminFolayerPatchMutation = (): UseMutationOptions<
+export const useAdminFolayerPatchMutationOptions = (): UseMutationOptions<
   ResponseData,
   Error,
   MutationData
@@ -38,7 +36,8 @@ export const adminFolayerPatchMutation = (): UseMutationOptions<
   )
   const notify = useUIStore((state) => state.notify)
   const { t } = useTranslate('luonnonmetsakartat')
-  const { data: session } = useSession()
+  const { data: session } = useAuthSession()
+  const { accessToken } = session ?? {}
 
   return {
     mutationFn: async (mutationData: MutationData) => {
@@ -120,7 +119,10 @@ export const adminFolayerPatchMutation = (): UseMutationOptions<
         {
           headers: {
             'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${session?.accessToken}`,
+            ...getRequiredBearerAuthHeader({
+              accessToken,
+              requestName: 'Luonnonmetsakartat folayer update',
+            }),
           },
         }
       )
@@ -157,14 +159,14 @@ export const adminFolayerPatchMutation = (): UseMutationOptions<
       if (variables.bulkImages?.length && variables.bulkImages.length > 0) {
         notify({
           message: t('notifications.folayer_pictures_success', {
-            name: (variables as any).name || variables.id,
+            name: variables.name || variables.id,
           }),
           variant: 'success',
         })
       } else {
         notify({
           message: t('notifications.folayer_update_success', {
-            name: (variables as any).name || variables.id,
+            name: variables.name || variables.id,
           }),
           variant: 'success',
         })
@@ -187,9 +189,7 @@ export const adminFolayerPatchMutation = (): UseMutationOptions<
         // Optionally refetch normal folayer areas if present in store
         const state = useAppletStore.getState()
         const hasNormalAreas = !!state.folayerAreaConfs?.[variables.id]
-        const hasNormalConf = Array.isArray((state as any).folayerConfs)
-          ? (state as any).folayerConfs.some((c: any) => c?.id === variables.id)
-          : !!(state as any).folayerConfs?.[variables.id]
+        const hasNormalConf = !!state.folayerConfs?.[variables.id]
 
         if (hasNormalAreas || hasNormalConf) {
           await queryClient.invalidateQueries({

@@ -14,14 +14,14 @@ import { LoadingSpinner } from '#/components/Loading'
 import AdminFolayerItem from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/AdminFolayerItem'
 import { routeTree } from '#/common/routing/routes/luonnonmetsakartat'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
-import { adminFolayersQuery } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayersQuery'
+import { useAdminFolayersQueryOptions } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayersQuery'
 import { AdminFolayerConf } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 
 const Page = () => {
   const adminFolayerConfs = useAppletStore((state) => state.adminFolayerConfs)
 
   const { refetch: adminFolayerRefetch, isLoading } = useQuery({
-    ...adminFolayersQuery(),
+    ...useAdminFolayersQueryOptions(),
     enabled: false,
   })
 

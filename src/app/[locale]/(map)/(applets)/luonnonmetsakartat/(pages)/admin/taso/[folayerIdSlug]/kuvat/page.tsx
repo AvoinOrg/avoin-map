@@ -11,7 +11,7 @@ import { SidebarContentBox } from '#/components/Sidebar'
 import { Button } from '#/components/common/Button'
 import TText from '#/components/common/TText'
 import { Save } from '#/components/icons'
-import { adminFolayerPatchMutation } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
+import { useAdminFolayerPatchMutationOptions } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import FolayerImportPictures, {
   FolayerImportPicturesRef,
@@ -34,7 +34,7 @@ const Page = () => {
   )
 
   const localAdminFolayerPatchMutation = useMutation(
-    adminFolayerPatchMutation()
+    useAdminFolayerPatchMutationOptions()
   )
 
   useEffect(() => {

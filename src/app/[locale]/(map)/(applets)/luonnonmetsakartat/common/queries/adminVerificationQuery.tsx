@@ -1,14 +1,16 @@
 import axios from 'axios'
 import { UseQueryOptions } from '@tanstack/react-query'
-import { useSession } from 'next-auth/react'
 
+import { useAuthSession } from '#/common/auth'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { AdminVerificationStatus } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
 
 const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 
-export const adminVerificationQuery = (): UseQueryOptions<boolean | null> => {
-  const { data: session } = useSession()
+export const useAdminVerificationQueryOptions =
+  (): UseQueryOptions<boolean | null> => {
+  const { data: session } = useAuthSession()
+  const { accessToken } = session ?? {}
   const setAdminVerificationStatus =
     useAppletStore.getState().setAdminVerificationStatus
 
@@ -22,11 +24,16 @@ export const adminVerificationQuery = (): UseQueryOptions<boolean | null> => {
         return Promise.resolve(false)
       }
 
+      if (!accessToken) {
+        setAdminVerificationStatus(AdminVerificationStatus.Errored)
+        return null
+      }
+
       try {
         const response = await axios.get(`${API_URL}/admin/validate`, {
           headers: {
             'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${session?.accessToken}`,
+            Authorization: `Bearer ${accessToken}`,
           },
         })
 

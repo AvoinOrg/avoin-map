@@ -1,18 +1,16 @@
 import { UseMutationOptions } from '@tanstack/react-query'
 import axios from 'axios'
-import JSZip from 'jszip'
-import { useSession } from 'next-auth/react'
-import { FeatureCollection } from 'geojson'
 
+import { useAuthSession } from '#/common/auth'
 import {
   AdminFolayerConf,
   ColOptions,
   FolayerConfState,
-  IndexingStrategy,
 } from '../types'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { useUIStore } from '#/common/store'
 import { useTranslate } from '@tolgee/react'
+import { getRequiredBearerAuthHeader } from './authHeaders'
 
 const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 
@@ -29,7 +27,7 @@ type ResponseData = {
   id: string
 }
 
-export const adminFolayerPostMutation = (): UseMutationOptions<
+export const useAdminFolayerPostMutationOptions = (): UseMutationOptions<
   ResponseData,
   Error,
   MutationData
@@ -39,7 +37,8 @@ export const adminFolayerPostMutation = (): UseMutationOptions<
   )
   const notify = useUIStore((state) => state.notify)
   const { t } = useTranslate('luonnonmetsakartat')
-  const { data: session } = useSession()
+  const { data: session } = useAuthSession()
+  const { accessToken } = session ?? {}
 
   return {
     mutationFn: async (mutationData: MutationData) => {
@@ -79,7 +78,10 @@ export const adminFolayerPostMutation = (): UseMutationOptions<
       const postRes = await axios.post(`${API_URL}/layer`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${session?.accessToken}`,
+          ...getRequiredBearerAuthHeader({
+            accessToken,
+            requestName: 'Luonnonmetsakartat folayer create',
+          }),
         },
       })
 
@@ -109,7 +111,7 @@ export const adminFolayerPostMutation = (): UseMutationOptions<
 
       return { status: postRes.status, id: postRes.data.id }
     },
-    onSuccess: async (_data) => {
+    onSuccess: async () => {
       notify({
         message: t('notifications.folayer_create_success'),
         variant: 'success',

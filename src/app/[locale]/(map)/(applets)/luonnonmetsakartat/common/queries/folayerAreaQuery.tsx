@@ -2,7 +2,6 @@ import { UseQueryOptions } from '@tanstack/react-query'
 import axios from 'axios'
 
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
-import { useSession } from 'next-auth/react'
 import { FolayerConfState, FolayerAreaConf } from '../types'
 import { getFolayerCentroidSourceLayer } from '../utils'
 
@@ -38,28 +37,27 @@ export const folayerAreaQuery = (
         })
       }
 
-      // Get folayer data from API
-      // const response = await axios.get(`${API_URL}/layer/${folayerId}/areas`, {
-      //   headers: {
-      //     Authorization: `Bearer ${session?.accessToken}`,
-      //   },
-      // })
-
       const url = `${SERVER_URL}/${GS_WORKSPACE}/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=${GS_WORKSPACE}:${centroidSourceLayer}&outputFormat=application/json&srsName=EPSG:4326`
       const response = await axios.get(url)
 
       if (response.status === 200) {
-        for (const feature of response.data.features) {
+        const features = (response.data.features ||
+          []) as FolayerAreaConf['data']['features']
+
+        for (const feature of features) {
           feature.id = feature.properties.id || feature.id
-          // Decode pictures if it's a JSON-encoded string
-          const pics = (feature as any).properties?.pictures
+          const properties = feature.properties as unknown as Record<
+            string,
+            unknown
+          >
+          const pics = properties.pictures
           if (typeof pics === 'string') {
             try {
-              const parsed = JSON.parse(pics)
+              const parsed: unknown = JSON.parse(pics)
               if (Array.isArray(parsed)) {
-                ;(feature as any).properties.pictures = parsed
+                properties.pictures = parsed
               }
-            } catch (_e) {
+            } catch {
               // leave as-is if not valid JSON
             }
           }
@@ -69,7 +67,7 @@ export const folayerAreaQuery = (
           id: folayerId, // Using the same ID as the folayer
           data: {
             type: 'FeatureCollection',
-            features: response.data.features || [],
+            features,
           }, // Assuming features are in the response
           state: FolayerConfState.Idle,
         }

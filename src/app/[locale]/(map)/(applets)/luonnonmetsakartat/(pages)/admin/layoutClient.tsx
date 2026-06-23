@@ -2,8 +2,8 @@
 
 import React, { useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useSession } from 'next-auth/react'
 
+import { useAuthSession } from '#/common/auth'
 import { useUIStore } from '#/common/store/uiStore'
 import { getRoute } from '#/common/routing/routing-client'
 import { getPathnameWithoutLocale } from '#/common/routing/routing'
@@ -16,7 +16,7 @@ import {
 
 import { routeTree } from '#/common/routing/routes/luonnonmetsakartat'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
-import { adminVerificationQuery } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminVerificationQuery'
+import { useAdminVerificationQueryOptions } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminVerificationQuery'
 import { SidebarContentBox } from '#/components/Sidebar'
 import { Box } from '#/common/style/theme'
 import { Star } from '#/components/icons'
@@ -38,14 +38,18 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   const adminVerificationStatus = useAppletStore(
     (state) => state.adminVerificationStatus
   )
-  const { data: session, status } = useSession()
+  const setAdminVerificationStatus = useAppletStore(
+    (state) => state.setAdminVerificationStatus
+  )
+  const { data: session, status } = useAuthSession()
+  const { accessToken } = session ?? {}
 
   const router = useAppRouter()
   const pathname = useAppPathname()
   const { locale } = useAppParams<{ locale: string }>()
 
   const { refetch: refetchAdminVerification } = useQuery({
-    ...adminVerificationQuery(),
+    ...useAdminVerificationQueryOptions(),
     enabled: false,
   })
 
@@ -58,12 +62,23 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   }, [setIsNavbarHidden])
 
   useEffect(() => {
-    if (status !== 'loading') {
-      if (session?.user?.id != null) {
-        refetchAdminVerification()
-      }
+    if (status !== 'authenticated' || session?.user?.id == null) {
+      return
     }
-  }, [session?.user?.id, status, refetchAdminVerification])
+
+    if (!accessToken) {
+      setAdminVerificationStatus(AdminVerificationStatus.Errored)
+      return
+    }
+
+    refetchAdminVerification()
+  }, [
+    accessToken,
+    session?.user?.id,
+    status,
+    refetchAdminVerification,
+    setAdminVerificationStatus,
+  ])
 
   const localState = React.useMemo(() => {
     if (status === 'authenticated') {

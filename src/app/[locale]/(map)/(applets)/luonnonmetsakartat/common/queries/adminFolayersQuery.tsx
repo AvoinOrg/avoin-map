@@ -1,15 +1,29 @@
 import { UseQueryOptions } from '@tanstack/react-query'
 import axios from 'axios'
-import { useSession } from 'next-auth/react'
 
+import { useAuthSession } from '#/common/auth'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { AdminFolayerConf, FolayerConfState } from '../types'
+import { getRequiredBearerAuthHeader } from './authHeaders'
 
 const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 
+type AdminFolayerApiItem = {
+  id: string
+  name: string
+  description?: string | null
+  color_code?: string | null
+  is_hidden?: boolean
+  created_ts: number
+  updated_ts: number
+  col_options?: AdminFolayerConf['colOptions']
+}
+
 // For getting all folayers (if needed)
-export const adminFolayersQuery = (): UseQueryOptions<AdminFolayerConf[]> => {
-  const { data: session } = useSession()
+export const useAdminFolayersQueryOptions =
+  (): UseQueryOptions<AdminFolayerConf[]> => {
+  const { data: session } = useAuthSession()
+  const { accessToken } = session ?? {}
   const addAdminFolayerConf = useAppletStore.getState().addAdminFolayerConf
   const updateAdminFolayerConf =
     useAppletStore.getState().updateAdminFolayerConf
@@ -26,25 +40,28 @@ export const adminFolayersQuery = (): UseQueryOptions<AdminFolayerConf[]> => {
 
       const response = await axios.get(`${API_URL}/layers`, {
         headers: {
-          Authorization: `Bearer ${session?.accessToken}`,
+          ...getRequiredBearerAuthHeader({
+            accessToken,
+            requestName: 'Luonnonmetsakartat admin folayer list',
+          }),
         },
       })
 
       if (response.status === 200) {
-        const folayerConfs: AdminFolayerConf[] = response.data.map(
-          (folayer: any) => ({
-            id: folayer.id,
-            name: folayer.name,
-            description: folayer.description || '',
-            colorCode: folayer.color_code || '',
-            isVisible: !folayer.is_hidden,
-            state: FolayerConfState.Idle,
-            createdTs: folayer.created_ts,
-            updatedTs: folayer.updated_ts,
-            unsyncedChanges: false,
-            colOptions: folayer.col_options,
-          })
-        )
+        const folayerConfs: AdminFolayerConf[] = (
+          response.data as AdminFolayerApiItem[]
+        ).map((folayer) => ({
+          id: folayer.id,
+          name: folayer.name,
+          description: folayer.description || '',
+          colorCode: folayer.color_code || '',
+          isVisible: !folayer.is_hidden,
+          state: FolayerConfState.Idle,
+          createdTs: folayer.created_ts,
+          updatedTs: folayer.updated_ts,
+          unsyncedChanges: false,
+          colOptions: folayer.col_options,
+        }))
 
         for (const folayerConf of folayerConfs) {
           const existingFolayer =

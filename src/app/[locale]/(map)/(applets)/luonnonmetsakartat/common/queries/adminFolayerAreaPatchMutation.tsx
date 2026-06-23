@@ -1,11 +1,12 @@
 import { UseMutationOptions } from '@tanstack/react-query'
 import axios from 'axios'
-import { useSession } from 'next-auth/react'
 
+import { useAuthSession } from '#/common/auth'
 import { FolayerFeature, FolayerFeatureProperties } from '../types'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { useUIStore } from '#/common/store'
 import { useTranslate } from '@tolgee/react'
+import { getRequiredBearerAuthHeader } from './authHeaders'
 
 const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 
@@ -22,17 +23,19 @@ interface AreaPatchMutationPayload {
 
 type AreaPatchResponseData = FolayerFeature
 
-export const adminFolayerAreaPatchMutation = (): UseMutationOptions<
-  AreaPatchResponseData,
-  Error,
-  AreaPatchMutationPayload
-> => {
+export const useAdminFolayerAreaPatchMutationOptions =
+  (): UseMutationOptions<
+    AreaPatchResponseData,
+    Error,
+    AreaPatchMutationPayload
+  > => {
   const updateFolayerAreaInStore = useAppletStore(
     (state) => state.updateFolayerArea
   )
   const notify = useUIStore((state) => state.notify)
   const { t } = useTranslate('luonnonmetsakartat')
-  const { data: session } = useSession()
+  const { data: session } = useAuthSession()
+  const { accessToken } = session ?? {}
 
   return {
     mutationFn: async (mutationData: AreaPatchMutationPayload) => {
@@ -57,7 +60,10 @@ export const adminFolayerAreaPatchMutation = (): UseMutationOptions<
 
       const patchRes = await axios.patch<FolayerFeature>(apiUrl, formData, {
         headers: {
-          Authorization: `Bearer ${session?.accessToken}`,
+          ...getRequiredBearerAuthHeader({
+            accessToken,
+            requestName: 'Luonnonmetsakartat folayer area update',
+          }),
         },
       })
 

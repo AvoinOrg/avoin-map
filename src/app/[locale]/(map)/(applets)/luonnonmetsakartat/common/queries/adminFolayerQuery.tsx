@@ -1,16 +1,18 @@
 import { UseQueryOptions } from '@tanstack/react-query'
 import axios from 'axios'
-import { useSession } from 'next-auth/react'
 
+import { useAuthSession } from '#/common/auth'
 import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
 import { AdminFolayerConf, FolayerConfState } from '../types'
+import { getRequiredBearerAuthHeader } from './authHeaders'
 
 const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
 
-export const adminFolayerQuery = (
+export const useAdminFolayerQueryOptions = (
   folayerId: string
 ): UseQueryOptions<AdminFolayerConf | null> => {
-  const { data: session } = useSession()
+  const { data: session } = useAuthSession()
+  const { accessToken } = session ?? {}
   const updateAdminFolayerConf =
     useAppletStore.getState().updateAdminFolayerConf
   const addAdminFolayerConf = useAppletStore.getState().addAdminFolayerConf
@@ -30,7 +32,10 @@ export const adminFolayerQuery = (
       // Get folayer data from API
       const response = await axios.get(`${API_URL}/layer/${folayerId}`, {
         headers: {
-          Authorization: `Bearer ${session?.accessToken}`,
+          ...getRequiredBearerAuthHeader({
+            accessToken,
+            requestName: 'Luonnonmetsakartat admin folayer detail',
+          }),
         },
       })
 
