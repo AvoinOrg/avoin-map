@@ -6,28 +6,33 @@
 
 import React, { useEffect } from 'react'
 import axios from 'axios'
-import { useSession } from 'next-auth/react'
 import { useUserStore } from '#/common/store/userStore'
 import { useQuery } from '@tanstack/react-query'
-import { User } from 'next-auth'
 
+import {
+  AUTH_REFRESH_ERROR,
+  useAuthSession,
+  type AuthUserInfo,
+} from '#/common/auth'
 import { UserAuthState, UserDataState } from '#/common/types/state'
 
 const UserStateHandler = ({ children }: { children?: React.ReactNode }) => {
-  const { data: session, status } = useSession()
+  const { data: session, status } = useAuthSession()
   const setUserAuth = useUserStore((state) => state.setUserAuth)
   const setUserData = useUserStore((state) => state.setUserData)
   const setUserAuthState = useUserStore((state) => state.setUserAuthState)
   const setUserDataState = useUserStore((state) => state.setUserDataState)
   const signOut = useUserStore((state) => state.signOut)
+  const sessionUserId = session?.user?.id ?? null
+  const sessionError = session?.error
 
   const {
     data: user,
     error,
+    isFetching,
     isLoading,
-    refetch,
-  } = useQuery<User>({
-    queryKey: ['userinfo'],
+  } = useQuery<AuthUserInfo>({
+    queryKey: ['userinfo', sessionUserId],
     queryFn: async () => {
       try {
         const response = await axios.get('/api/userinfo')
@@ -37,40 +42,57 @@ const UserStateHandler = ({ children }: { children?: React.ReactNode }) => {
         throw new Error('Network response was not ok')
       }
     },
-    enabled: false,
+    enabled:
+      status === 'authenticated' &&
+      Boolean(sessionUserId) &&
+      sessionError !== AUTH_REFRESH_ERROR,
+    retry: false,
   })
 
   useEffect(() => {
     if (error) {
       signOut()
     }
-  }, [error])
+  }, [error, signOut])
 
   useEffect(() => {
-    if (user) {
+    if (status === 'authenticated' && user) {
       setUserData(user)
     } else {
       setUserData(null)
     }
-  }, [user])
+  }, [setUserData, status, user])
 
   useEffect(() => {
-    if (session?.error === 'RefreshAccessTokenError') {
+    if (sessionError === AUTH_REFRESH_ERROR) {
       console.debug('Session expired - signing out')
-      // Force a clean sign-out
       setUserAuth(null)
       setUserData(null)
       signOut()
+      return
     }
-    if (session?.user?.id) {
-      setUserAuth({ id: session.user.id, accessToken: session.accessToken })
+
+    if (status === 'authenticated' && sessionUserId) {
+      setUserAuth({ id: sessionUserId, accessToken: session?.accessToken })
     } else {
       setUserAuth(null)
       setUserData(null)
     }
-  }, [session])
+  }, [
+    session?.accessToken,
+    sessionError,
+    sessionUserId,
+    setUserAuth,
+    setUserData,
+    signOut,
+    status,
+  ])
 
   useEffect(() => {
+    if (sessionError === AUTH_REFRESH_ERROR) {
+      return
+    }
+
     if (status === 'unauthenticated') {
       setUserAuth(null)
       setUserData(null)
@@ -83,16 +105,33 @@ const UserStateHandler = ({ children }: { children?: React.ReactNode }) => {
       setUserData(null)
     } else if (status === 'authenticated') {
       setUserAuthState(UserAuthState.Authenticated)
-      if (!user) {
+
+      if (!sessionUserId) {
         setUserData(null)
-        setUserDataState(UserDataState.Fetching)
-        refetch()
+        setUserDataState(UserDataState.Unfetched)
       } else if (user) {
         setUserData(user)
         setUserDataState(UserDataState.Fetched)
+      } else if (isLoading || isFetching) {
+        setUserData(null)
+        setUserDataState(UserDataState.Fetching)
+      } else {
+        setUserData(null)
+        setUserDataState(UserDataState.Fetching)
       }
     }
-  }, [status, user])
+  }, [
+    isFetching,
+    isLoading,
+    sessionError,
+    sessionUserId,
+    setUserAuth,
+    setUserAuthState,
+    setUserData,
+    setUserDataState,
+    status,
+    user,
+  ])
 
   return <>{children}</>
 }

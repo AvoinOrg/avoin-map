@@ -1,13 +1,15 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect } from 'react'
-import { signIn } from 'next-auth/react'
+
+import { signInWithZitadel } from '#/common/auth'
+import { getLoginCallbackUrl } from '#/common/utils/auth'
 
 const LoginRoute = () => {
   const { locale } = Route.useParams()
 
   useEffect(() => {
-    void signIn('zitadel', {
-      callbackUrl: `/${locale}/adds/login/callback`,
+    void signInWithZitadel({
+      callbackURL: getLoginCallbackUrl(locale),
     })
   }, [locale])
 

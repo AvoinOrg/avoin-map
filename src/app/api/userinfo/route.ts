@@ -1,11 +1,22 @@
 import { getToken } from 'next-auth/jwt'
 import { NextRequest, NextResponse } from 'next/server'
-import axios from 'axios'
 
-const getDataFromUserInfo = async (token: string) => {
+import { getStartAuthEnv } from '#/start/auth/env'
+import {
+  appendStartAuthSetCookieHeaders,
+  getNextCompatibleStartAccessToken,
+} from '#/start/auth/nextCompatSession'
+
+const getDataFromUserInfo = async ({
+  responseHeaders = new Headers(),
+  token,
+}: {
+  responseHeaders?: Headers
+  token: string
+}) => {
   try {
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_ZITADEL_ISSUER}/oidc/v1/userinfo`,
+    const response = await fetch(
+      `${getStartAuthEnv().zitadelIssuer}/oidc/v1/userinfo`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -13,7 +24,18 @@ const getDataFromUserInfo = async (token: string) => {
         },
       }
     )
-    return NextResponse.json(response.data) // Axios automatically parses the JSON
+
+    if (!response.ok) {
+      return new Response(await response.text(), {
+        status: response.status,
+        statusText: response.statusText,
+        headers: responseHeaders,
+      })
+    }
+
+    return NextResponse.json(await response.json(), {
+      headers: responseHeaders,
+    })
   } catch (error) {
     console.error(error)
 
@@ -24,19 +46,46 @@ const getDataFromUserInfo = async (token: string) => {
 }
 
 const handler = async (req: NextRequest) => {
-  const token = await getToken({ req })
-  if (typeof token?.accessToken !== 'string') {
-    return new Response(null, {
-      status: 401,
-    })
-  }
-
   switch (req.method) {
     case 'GET':
-      return await getDataFromUserInfo(token.accessToken)
+      break
     default:
       return new Response(null, {
         status: 405,
+      })
+  }
+
+  const startToken = await getNextCompatibleStartAccessToken({ request: req })
+  const responseHeaders = new Headers()
+
+  appendStartAuthSetCookieHeaders({
+    target: responseHeaders,
+    source: startToken.responseHeaders,
+  })
+
+  if (startToken.ok) {
+    return await getDataFromUserInfo({
+      responseHeaders,
+      token: startToken.accessToken,
+    })
+  }
+
+  const token = await getToken({ req })
+
+  if (typeof token?.accessToken === 'string') {
+    return await getDataFromUserInfo({ token: token.accessToken })
+  }
+
+  switch (startToken.error) {
+    case 'NoSession':
+      return new Response(null, {
+        status: 401,
+        headers: responseHeaders,
+      })
+    default:
+      return new Response(null, {
+        status: 401,
+        headers: responseHeaders,
       })
   }
 }

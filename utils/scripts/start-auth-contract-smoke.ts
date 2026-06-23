@@ -14,6 +14,7 @@ type HeadersWithSetCookieList = Headers & {
 }
 
 const AUTH_BASE_URL = 'http://127.0.0.1:39051'
+const AUTH_ZITADEL_REDIRECT_URI = `${AUTH_BASE_URL}/api/auth/callback/zitadel`
 const OIDC_SCOPES = 'openid email profile offline_access'
 
 let mockIssuer = ''
@@ -80,10 +81,7 @@ const startMockOidcServer = async () =>
 
         if (grantType === 'authorization_code') {
           assert.equal(tokenBody.get('code'), 'auth-code')
-          assert.equal(
-            tokenBody.get('redirect_uri'),
-            `${AUTH_BASE_URL}/api/auth/oauth2/callback/zitadel`
-          )
+          assert.equal(tokenBody.get('redirect_uri'), AUTH_ZITADEL_REDIRECT_URI)
           assert.ok(tokenBody.get('code_verifier'))
 
           writeJson({
@@ -185,6 +183,7 @@ const runSmoke = async () => {
     process.env.ZITADEL_ISSUER = mockIssuer
     process.env.ZITADEL_CLIENT_ID = 'client-id'
     process.env.ZITADEL_CLIENT_SECRET = 'client-secret'
+    process.env.ZITADEL_REDIRECT_URI = AUTH_ZITADEL_REDIRECT_URI
 
     const auth = getStartAuth()
     const signInResponse = await auth.handler(

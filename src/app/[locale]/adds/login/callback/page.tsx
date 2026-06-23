@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useSession } from 'next-auth/react'
 
-export default function CallbackPage() {
-  const { status } = useSession()
+import { useAuthSession } from '#/common/auth'
+
+const CallbackPage = () => {
+  const { status } = useAuthSession()
 
   useEffect(() => {
     if (status === 'authenticated' && typeof window !== 'undefined') {
@@ -14,3 +15,5 @@ export default function CallbackPage() {
 
   return null
 }
+
+export default CallbackPage

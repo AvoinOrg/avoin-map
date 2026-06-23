@@ -1,24 +1,23 @@
 'use client'
 
-import { User } from 'next-auth'
-import { signOut as nextSignOut } from 'next-auth/react'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { devtools } from 'zustand/middleware'
 
+import { signOutAuth, type AuthUserInfo } from '#/common/auth'
 import { UserAuth, UserAuthState, UserDataState } from '#/common/types/state'
 import { commonDevtools } from './shared-devtools'
 
 interface Vars {
   userAuth: UserAuth | null
-  userData: User | null
+  userData: AuthUserInfo | null
   userAuthState: UserAuthState
   userDataState: UserDataState
   signOutActions: Record<string, () => void>
 }
 
 interface Actions {
-  setUserData: (userData: User | null) => void
+  setUserData: (userData: AuthUserInfo | null) => void
   setUserAuth: (userAuth: UserAuth | null) => void
   setUserAuthState: (userAuthState: UserAuthState) => void
   setUserDataState: (userDataState: UserDataState) => void
@@ -41,7 +40,7 @@ export const useUserStore = create<State>()(
       }
 
       const actions: Actions = {
-        setUserData: (userData: User | null) => {
+        setUserData: (userData: AuthUserInfo | null) => {
           set((state) => {
             state.userData = userData
           })
@@ -77,7 +76,9 @@ export const useUserStore = create<State>()(
           for (const key in get().signOutActions) {
             get().signOutActions[key]()
           }
-          nextSignOut()
+          void signOutAuth().catch((error) => {
+            console.error('Error signing out from auth provider:', error)
+          })
           set({
             userAuth: null,
             userData: null,

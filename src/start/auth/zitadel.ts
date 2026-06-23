@@ -55,7 +55,10 @@ export const mapZitadelProfileToUser = (profile: ZitadelProfile) => {
 export const buildZitadelOAuthProvider = (
   env: Pick<
     StartAuthEnv,
-    'zitadelIssuer' | 'zitadelClientId' | 'zitadelClientSecret'
+    | 'zitadelIssuer'
+    | 'zitadelClientId'
+    | 'zitadelClientSecret'
+    | 'zitadelRedirectUri'
   >
 ): GenericOAuthConfig => ({
   providerId: START_AUTH_PROVIDER_ID,
@@ -64,6 +67,7 @@ export const buildZitadelOAuthProvider = (
   requireIssuerValidation: true,
   clientId: env.zitadelClientId,
   clientSecret: env.zitadelClientSecret,
+  redirectURI: env.zitadelRedirectUri,
   scopes: [...ZITADEL_OIDC_SCOPES],
   pkce: true,
   authentication: 'basic',

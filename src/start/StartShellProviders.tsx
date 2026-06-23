@@ -8,12 +8,9 @@ import { useRouterState } from '@tanstack/react-router'
 import { TolgeeProvider } from '@tolgee/react'
 import { FormatIcu } from '@tolgee/format-icu'
 import { Tolgee } from '@tolgee/web'
-import {
-  SessionProvider,
-  type SessionProviderProps,
-} from 'next-auth/react'
 import 'overlayscrollbars/overlayscrollbars.css'
 
+import { AuthSessionProvider } from '#/common/auth'
 import {
   DEFAULT_LOCALE,
   LOCALES,
@@ -38,8 +35,6 @@ const START_TOLGEE_STATIC_DATA = Object.fromEntries(
     ])
   )
 )
-const StableSessionProvider =
-  SessionProvider as React.ComponentType<SessionProviderProps>
 const StableQueryClientProvider =
   QueryClientProvider as React.ComponentType<QueryClientProviderProps>
 
@@ -88,17 +83,12 @@ const StartTemporaryTolgeeBridge = ({ children }: Props) => {
   )
 }
 
-const StartTemporaryAuthBridge = ({ children }: Props) => {
-  // Temporary unauthenticated session provider: F048.4 owns real Start auth.
-  return <StableSessionProvider session={null}>{children}</StableSessionProvider>
-}
-
 const StartShellProviders = ({ children }: Props) => {
   const [queryClient] = useState(() => new QueryClient())
 
   return (
     <StartTemporaryTolgeeBridge>
-      <StartTemporaryAuthBridge>
+      <AuthSessionProvider>
         <AppThemeProvider>
           <NotificationProvider>
             <StableQueryClientProvider client={queryClient}>
@@ -106,7 +96,7 @@ const StartShellProviders = ({ children }: Props) => {
             </StableQueryClientProvider>
           </NotificationProvider>
         </AppThemeProvider>
-      </StartTemporaryAuthBridge>
+      </AuthSessionProvider>
     </StartTemporaryTolgeeBridge>
   )
 }

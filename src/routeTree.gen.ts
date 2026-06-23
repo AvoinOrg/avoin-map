@@ -58,6 +58,7 @@ import { Route as LocalemapMapappletsLuonnonmetsakartatAdminTasoFolayerIdSlugRou
 import { Route as LocalemapMapappletsLuonnonmetsakartatAdminTasoFolayerIdSlugIndexRouteImport } from './routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/taso/$folayerIdSlug/index'
 import { Route as LocalemapMapappletsLuonnonmetsakartatAdminTasoFolayerIdSlugKuvatRouteImport } from './routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/taso/$folayerIdSlug/kuvat'
 import { Route as LocalemapMapappletsLuonnonmetsakartatAdminTasoFolayerIdSlugAsetuksetRouteImport } from './routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/taso/$folayerIdSlug/asetukset'
+import { ServerRoute as ApiUserinfoServerRouteImport } from './routes/api/userinfo'
 import { ServerRoute as ApiAuthSplatServerRouteImport } from './routes/api/auth/$'
 
 const LocalemapRouteImport = createFileRoute('/$locale/(map)')()
@@ -341,6 +342,11 @@ const LocalemapMapappletsLuonnonmetsakartatAdminTasoFolayerIdSlugAsetuksetRoute 
         LocalemapMapappletsLuonnonmetsakartatAdminTasoFolayerIdSlugRouteRoute,
     } as any,
   )
+const ApiUserinfoServerRoute = ApiUserinfoServerRouteImport.update({
+  id: '/api/userinfo',
+  path: '/api/userinfo',
+  getParentRoute: () => rootServerRouteImport,
+} as any)
 const ApiAuthSplatServerRoute = ApiAuthSplatServerRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -610,24 +616,28 @@ export interface RootRouteChildren {
   LocaleRouteRoute: typeof LocaleRouteRouteWithChildren
 }
 export interface FileServerRoutesByFullPath {
+  '/api/userinfo': typeof ApiUserinfoServerRoute
   '/api/auth/$': typeof ApiAuthSplatServerRoute
 }
 export interface FileServerRoutesByTo {
+  '/api/userinfo': typeof ApiUserinfoServerRoute
   '/api/auth/$': typeof ApiAuthSplatServerRoute
 }
 export interface FileServerRoutesById {
   __root__: typeof rootServerRouteImport
+  '/api/userinfo': typeof ApiUserinfoServerRoute
   '/api/auth/$': typeof ApiAuthSplatServerRoute
 }
 export interface FileServerRouteTypes {
   fileServerRoutesByFullPath: FileServerRoutesByFullPath
-  fullPaths: '/api/auth/$'
+  fullPaths: '/api/userinfo' | '/api/auth/$'
   fileServerRoutesByTo: FileServerRoutesByTo
-  to: '/api/auth/$'
-  id: '__root__' | '/api/auth/$'
+  to: '/api/userinfo' | '/api/auth/$'
+  id: '__root__' | '/api/userinfo' | '/api/auth/$'
   fileServerRoutesById: FileServerRoutesById
 }
 export interface RootServerRouteChildren {
+  ApiUserinfoServerRoute: typeof ApiUserinfoServerRoute
   ApiAuthSplatServerRoute: typeof ApiAuthSplatServerRoute
 }
 
@@ -966,6 +976,13 @@ declare module '@tanstack/react-router' {
 }
 declare module '@tanstack/react-start/server' {
   interface ServerFileRoutesByPath {
+    '/api/userinfo': {
+      id: '/api/userinfo'
+      path: '/api/userinfo'
+      fullPath: '/api/userinfo'
+      preLoaderRoute: typeof ApiUserinfoServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -1307,6 +1324,7 @@ export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
 const rootServerRouteChildren: RootServerRouteChildren = {
+  ApiUserinfoServerRoute: ApiUserinfoServerRoute,
   ApiAuthSplatServerRoute: ApiAuthSplatServerRoute,
 }
 export const serverRouteTree = rootServerRouteImport

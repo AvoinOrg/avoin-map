@@ -1,5 +1,7 @@
-export const START_AUTH_PROVIDER_ID = 'zitadel'
-export const START_AUTH_REFRESH_ERROR = 'RefreshAccessTokenError'
+import { AUTH_PROVIDER_ID, AUTH_REFRESH_ERROR } from '#/common/auth/constants'
+
+export const START_AUTH_PROVIDER_ID = AUTH_PROVIDER_ID
+export const START_AUTH_REFRESH_ERROR = AUTH_REFRESH_ERROR
 
 export type StartAuthRefreshError = typeof START_AUTH_REFRESH_ERROR
 
@@ -10,6 +12,7 @@ export type StartAuthEnv = {
   zitadelIssuer: string
   zitadelClientId: string
   zitadelClientSecret: string
+  zitadelRedirectUri: string
   isProduction: boolean
 }
 

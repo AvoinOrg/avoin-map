@@ -13,6 +13,8 @@ describe('Zitadel Better Auth config', () => {
       zitadelIssuer: 'https://auth.example.org',
       zitadelClientId: 'client-id',
       zitadelClientSecret: 'client-secret',
+      zitadelRedirectUri:
+        'https://map.example.org/api/auth/callback/zitadel',
     })
 
     expect(provider).toMatchObject({
@@ -22,6 +24,7 @@ describe('Zitadel Better Auth config', () => {
       requireIssuerValidation: true,
       clientId: 'client-id',
       clientSecret: 'client-secret',
+      redirectURI: 'https://map.example.org/api/auth/callback/zitadel',
       scopes: [...ZITADEL_OIDC_SCOPES],
       pkce: true,
       authentication: 'basic',

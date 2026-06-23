@@ -1,4 +1,4 @@
-import { getStartAuth } from './server'
+import { getNextCompatibleStartAuth } from './nextCompatServer'
 import {
   appendStartAuthSetCookieHeaders,
   getStartAccessTokenFromAuth,
@@ -13,22 +13,22 @@ type StartAuthRequestInput = {
 
 export { appendStartAuthSetCookieHeaders, normalizeStartAuthUser }
 
-export const getStartAuthSession = ({
+export const getNextCompatibleStartAuthSession = ({
   request,
   headers,
 }: StartAuthRequestInput) =>
   getStartAuthSessionFromAuth({
-    auth: getStartAuth(),
+    auth: getNextCompatibleStartAuth(),
     request,
     headers,
   })
 
-export const getStartAccessToken = ({
+export const getNextCompatibleStartAccessToken = ({
   request,
   headers,
 }: StartAuthRequestInput) =>
   getStartAccessTokenFromAuth({
-    auth: getStartAuth(),
+    auth: getNextCompatibleStartAuth(),
     request,
     headers,
   })

@@ -1,9 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+
+import { useAuthSession } from '#/common/auth'
 
 const LoginCallbackRoute = () => {
-  const { status } = useSession()
+  const { status } = useAuthSession()
 
   useEffect(() => {
     if (status === 'authenticated' && typeof window !== 'undefined') {
