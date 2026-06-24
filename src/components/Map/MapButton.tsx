@@ -61,10 +61,6 @@ export const MapButton = forwardRef<HTMLButtonElement, MapButtonProps>(
             color: 'text.primary',
             boxShadow: 'none',
             opacity: 0.9,
-            '& svg': {
-              width: '1.5rem',
-              height: '1.5rem',
-            },
             '&:hover': {
               backgroundColor: 'neutral.main',
               opacity: 1,

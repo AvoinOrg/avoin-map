@@ -16,7 +16,7 @@ import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
 import { Button } from '#/components/common/Button'
 import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
 import { useMapStore, useUIStore } from '#/common/store'
-import { Delete, Save, Upload } from '#/components/icons'
+import { Delete, SaveOutlined, Upload } from '#/components/icons'
 import { getRoute } from '#/common/routing/routing-client'
 import IconWithText from '#/components/common/IconWithText'
 import { LoadingSpinner } from '#/components/Loading'
@@ -407,7 +407,7 @@ const Page = () => {
             disabled={isSaveDisabledByUpdate}
             aria-label={t('sidebar.admin.folayer.settings.save')}
             onClick={handleSaveClick}
-            startIcon={<Save />}
+            startIcon={<SaveOutlined />}
             sx={{
               mt: 1.3,
               display: 'inline-flex',

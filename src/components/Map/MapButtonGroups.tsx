@@ -9,6 +9,8 @@ import { AppSxProps, Box, toSxArray } from '#/common/style/theme'
 import { useMapStore } from '#/common/store'
 import { useDrawMode } from '#/common/hooks/map/useDrawMode'
 import {
+  Done,
+  ExploreOutlined,
   Minus,
   Plus,
   Polygon,
@@ -17,8 +19,6 @@ import {
   LayersDark,
   Layers,
   Line,
-  Check,
-  Compass,
 } from '#/components/icons'
 import { useIsDrawEnabled } from '#/common/hooks/map/useIsDrawEnabled'
 import { useAllowedDrawModes } from '#/common/hooks/map/useAllowedDrawModes'
@@ -154,7 +154,7 @@ export const MapButtons = ({ isVertical }: Props) => {
               tooltip={t('map.buttons.disable_draw')}
               isVertical={isVertical}
             >
-              <Check />
+              <Done />
             </MapButton>
           )}
           {allowedDrawModes.includes('edit') && (
@@ -236,7 +236,7 @@ export const MapButtons = ({ isVertical }: Props) => {
           tooltip={t('map.buttons.reset_north')}
           isVertical={isVertical}
         >
-          <Compass sx={{ width: 27, height: 27 }} />
+          <ExploreOutlined sx={{ fontSize: '27px' }} />
         </MapButton>
         {/* <MapButton
           onClick={mapRelocate}

@@ -5,7 +5,7 @@ import { useMutation } from '@tanstack/react-query'
 import { Box } from '#/common/style/theme/system'
 import { Button, IconButton } from '#/components/common/Button'
 import TText from '#/components/common/TText'
-import { Cross, Save } from '#/components/icons'
+import { Cross, SaveOutlined } from '#/components/icons'
 import type { PopupProps } from '#/common/types/map'
 import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
 import { MapModalWrapper } from '#/components/Map/MapModalWrapper'
@@ -383,7 +383,7 @@ const AreaModalAdminContent = ({
               color="neutral"
               aria-label={t('sidebar.admin.folayer.settings.save')}
               onClick={handleSaveClick}
-              startIcon={<Save />}
+              startIcon={<SaveOutlined />}
               sx={{
                 display: 'inline-flex',
                 minWidth: 0,

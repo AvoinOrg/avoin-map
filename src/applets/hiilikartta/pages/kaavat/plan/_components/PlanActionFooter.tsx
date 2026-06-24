@@ -5,7 +5,12 @@ import React from 'react'
 import { Box, type AppBoxProps } from '#/common/style/theme'
 import IconTextButton from '#/components/common/IconTextButton'
 import TText from '#/components/common/TText'
-import { Delete, FolderCopy, Login, Save } from '#/components/icons'
+import {
+  Delete,
+  FolderCopyOutlined,
+  Login,
+  SaveOutlined,
+} from '#/components/icons'
 
 export const PLAN_ACTION_BUTTON_COLOR = '#666666'
 export const PLAN_ACTION_BUTTON_HOVER_COLOR = '#4F4F4F'
@@ -100,7 +105,7 @@ const PlanActionFooter = ({
       >
         {showCopy && (
           <IconTextButton
-            icon={<FolderCopy sx={{ width: 13, height: 13 }} />}
+            icon={<FolderCopyOutlined sx={{ width: 13, height: 13 }} />}
             text={
               <TText keyName="sidebar.plan_settings.copy" ns="hiilikartta" />
             }
@@ -131,7 +136,7 @@ const PlanActionFooter = ({
               disabled={isCloudActionDisabled}
               icon={
                 cloudActionKind === 'save' ? (
-                  <Save sx={{ width: 13, height: 13 }} />
+                  <SaveOutlined sx={{ width: 13, height: 13 }} />
                 ) : (
                   <Login sx={{ width: 15, height: 13 }} />
                 )

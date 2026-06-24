@@ -9,8 +9,8 @@ import { useMapStore, useUIStore } from '#/common/store'
 import { useUserStore } from '#/common/store/userStore'
 import type { ComponentFixture } from '#/common/component-fixtures/types'
 import {
-  Check,
   Delete,
+  Done,
   EditDocument,
   Layers,
   LayersDark,
@@ -243,8 +243,8 @@ export const mapButtonGroupsFixture: ComponentFixture = {
   sourceGlobs: [
     'src/components/Map/MapButtonGroups.tsx',
     'src/components/Map/MapButton.tsx',
-    'src/components/icons/Check.tsx',
-    'src/components/icons/Compass.tsx',
+    'src/components/icons/Done.tsx',
+    'src/components/icons/ExploreOutlined.tsx',
     'src/common/component-fixtures/fixtures/MapLayerToolbarChromeFixture.tsx',
   ],
   wrapper: ToolbarFixtureWrapper,
@@ -292,7 +292,7 @@ export const mapButtonGroupsFixture: ComponentFixture = {
       render: () => (
         <MapButtonGroup orientation="horizontal">
           <MapButton tooltip="Disable draw" onClick={noop}>
-            <Check aria-hidden="true" />
+            <Done aria-hidden="true" />
           </MapButton>
           <MapButton tooltip="Edit" onClick={noop}>
             <EditDocument aria-hidden="true" />

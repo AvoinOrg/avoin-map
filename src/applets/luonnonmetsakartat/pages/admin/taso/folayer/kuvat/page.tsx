@@ -10,7 +10,7 @@ import { useSidebarActivityLoader } from '#/common/hooks/ui/useSidebarActivityLo
 import { SidebarContentBox } from '#/components/Sidebar'
 import { Button } from '#/components/common/Button'
 import TText from '#/components/common/TText'
-import { Save } from '#/components/icons'
+import { SaveOutlined } from '#/components/icons'
 import { useAdminFolayerPatchMutationOptions } from 'applets/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import FolayerImportPictures, {
@@ -132,7 +132,7 @@ const Page = () => {
             color="neutral"
             aria-label={t('sidebar.admin.folayer.pictures.save')}
             onClick={handleSaveClick}
-            startIcon={<Save />}
+            startIcon={<SaveOutlined />}
             sx={{
               mt: 1.3,
               display: 'inline-flex',
