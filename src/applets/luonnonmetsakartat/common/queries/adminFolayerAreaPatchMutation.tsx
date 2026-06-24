@@ -6,9 +6,10 @@ import { FolayerFeature, FolayerFeatureProperties } from '../types'
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import { useUIStore } from '#/common/store'
 import { useTranslate } from '@tolgee/react'
+import { LUONNONMETSAKARTAT_API_URL } from '../api'
 import { getRequiredBearerAuthHeader } from './authHeaders'
 
-const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
+const API_URL = LUONNONMETSAKARTAT_API_URL
 
 interface AreaPatchMutationPayload {
   layerId: string
@@ -23,12 +24,11 @@ interface AreaPatchMutationPayload {
 
 type AreaPatchResponseData = FolayerFeature
 
-export const useAdminFolayerAreaPatchMutationOptions =
-  (): UseMutationOptions<
-    AreaPatchResponseData,
-    Error,
-    AreaPatchMutationPayload
-  > => {
+export const useAdminFolayerAreaPatchMutationOptions = (): UseMutationOptions<
+  AreaPatchResponseData,
+  Error,
+  AreaPatchMutationPayload
+> => {
   const updateFolayerAreaInStore = useAppletStore(
     (state) => state.updateFolayerArea
   )

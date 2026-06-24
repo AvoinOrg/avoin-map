@@ -31,11 +31,11 @@ const appletRouteAliases = {
   hiilikartta: [
     path.join('src', 'routes', '$locale', '(map)', '_map', 'kaavat'),
     path.join('src', 'routes', '$locale', '(map)', '_map', 'raportti.tsx'),
-    path.join('src', 'routes', '$locale', 'api', 'data.ts'),
     path.join('src', 'routes', 'api', 'hiilikartta'),
   ],
   luonnonmetsakartat: [
     path.join('src', 'routes', '$locale', '(map)', '_map', 'admin'),
+    path.join('src', 'routes', 'api', 'luonnonmetsakartat'),
   ],
 }
 

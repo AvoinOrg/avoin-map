@@ -110,10 +110,10 @@ describe('request routing decisions', () => {
       ).toEqual({ type: 'passThrough' })
     })
 
-    it('passes through localized Hiilikartta applet API paths', () => {
+    it('passes through canonical API paths without locale normalization', () => {
       expect(
         decideRequestRouting({
-          url: url('/fi/hiilikartta/api/data?id=calc-1'),
+          url: url('/api/hiilikartta/calculation?id=calc-1'),
           compiledApplets: mainMode,
         })
       ).toEqual({ type: 'passThrough' })
@@ -218,19 +218,6 @@ describe('request routing decisions', () => {
         type: 'rewrite',
         pathname: '/fi/luonnonmetsakartat/admin',
         search: '?x=1',
-      })
-    })
-
-    it('rewrites standalone Hiilikartta API paths to the internal applet route', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/fi/api/data?id=calc-1'),
-          compiledApplets: ['hiilikartta'],
-        })
-      ).toEqual({
-        type: 'rewrite',
-        pathname: '/fi/hiilikartta/api/data',
-        search: '?id=calc-1',
       })
     })
 

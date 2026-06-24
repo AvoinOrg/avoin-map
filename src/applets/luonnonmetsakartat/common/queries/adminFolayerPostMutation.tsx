@@ -2,17 +2,14 @@ import { UseMutationOptions } from '@tanstack/react-query'
 import axios from 'axios'
 
 import { useAuthSession } from '#/common/auth'
-import {
-  AdminFolayerConf,
-  ColOptions,
-  FolayerConfState,
-} from '../types'
+import { AdminFolayerConf, ColOptions, FolayerConfState } from '../types'
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import { useUIStore } from '#/common/store'
 import { useTranslate } from '@tolgee/react'
+import { LUONNONMETSAKARTAT_API_URL } from '../api'
 import { getRequiredBearerAuthHeader } from './authHeaders'
 
-const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
+const API_URL = LUONNONMETSAKARTAT_API_URL
 
 type MutationData = {
   colOptions: ColOptions

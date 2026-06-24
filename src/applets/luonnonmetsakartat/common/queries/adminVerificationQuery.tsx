@@ -3,12 +3,14 @@ import { UseQueryOptions } from '@tanstack/react-query'
 
 import { useAuthSession } from '#/common/auth'
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
+import { LUONNONMETSAKARTAT_API_URL } from '../api'
 import { AdminVerificationStatus } from 'applets/luonnonmetsakartat/common/types'
 
-const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
+const API_URL = LUONNONMETSAKARTAT_API_URL
 
-export const useAdminVerificationQueryOptions =
-  (): UseQueryOptions<boolean | null> => {
+export const useAdminVerificationQueryOptions = (): UseQueryOptions<
+  boolean | null
+> => {
   const { data: session } = useAuthSession()
   const { accessToken } = session ?? {}
   const setAdminVerificationStatus =

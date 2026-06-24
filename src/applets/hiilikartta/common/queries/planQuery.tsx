@@ -7,14 +7,11 @@ import { area as turfArea } from '@turf/turf'
 import { useAuthSession } from '#/common/auth'
 import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
 
-import {
-  CalculationState,
-  PlanConf,
-  PlanConfState,
-} from '../types'
+import { HIILIKARTTA_API_URL } from '../api'
+import { CalculationState, PlanConf, PlanConfState } from '../types'
 import { processCalcQueryToReportData, stripFeatureExtras } from '../utils'
 
-const API_URL = process.env.NEXT_PUBLIC_HIILIKARTTA_API_URL
+const API_URL = HIILIKARTTA_API_URL
 
 export const usePlanQuery = (
   serverId: string

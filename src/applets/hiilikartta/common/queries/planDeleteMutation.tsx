@@ -4,9 +4,10 @@ import axios from 'axios'
 import { useAuthSession } from '#/common/auth'
 
 import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
+import { HIILIKARTTA_API_URL } from '../api'
 import { PlanConfState, PlanConf } from '../types'
 
-const API_URL = process.env.NEXT_PUBLIC_HIILIKARTTA_API_URL
+const API_URL = HIILIKARTTA_API_URL
 
 export const usePlanDeleteMutation = (): UseMutationOptions<
   void,

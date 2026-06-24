@@ -6,9 +6,10 @@ import { useAuthSession } from '#/common/auth'
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import { AdminFolayerConf, FolayerConfState } from '../types'
 import { useUIStore } from '#/common/store'
+import { LUONNONMETSAKARTAT_API_URL } from '../api'
 import { getRequiredBearerAuthHeader } from './authHeaders'
 
-const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
+const API_URL = LUONNONMETSAKARTAT_API_URL
 
 export interface AdminFolayerDeleteInput {
   folayerConf: AdminFolayerConf
@@ -39,14 +40,17 @@ export const useAdminFolayerDeleteMutationOptions = (): UseMutationOptions<
         state: FolayerConfState.Deleting,
       })
 
-      const deleteRes = await axios.delete(`${API_URL}/layer/${folayerConf.id}`, {
-        headers: {
-          ...getRequiredBearerAuthHeader({
-            accessToken,
-            requestName: 'Luonnonmetsakartat folayer delete',
-          }),
-        },
-      })
+      const deleteRes = await axios.delete(
+        `${API_URL}/layer/${folayerConf.id}`,
+        {
+          headers: {
+            ...getRequiredBearerAuthHeader({
+              accessToken,
+              requestName: 'Luonnonmetsakartat folayer delete',
+            }),
+          },
+        }
+      )
 
       if (
         deleteRes.status !== 200 &&

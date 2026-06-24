@@ -59,10 +59,9 @@ import { Route as LocalemapMapappletsLuonnonmetsakartatAdminTasoFolayerIdSlugInd
 import { Route as LocalemapMapappletsLuonnonmetsakartatAdminTasoFolayerIdSlugKuvatRouteImport } from './routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/taso/$folayerIdSlug/kuvat'
 import { Route as LocalemapMapappletsLuonnonmetsakartatAdminTasoFolayerIdSlugAsetuksetRouteImport } from './routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/taso/$folayerIdSlug/asetukset'
 import { ServerRoute as ApiUserinfoServerRouteImport } from './routes/api/userinfo'
-import { ServerRoute as ApiHiilikarttaDataServerRouteImport } from './routes/api/hiilikartta/data'
+import { ServerRoute as ApiLuonnonmetsakartatSplatServerRouteImport } from './routes/api/luonnonmetsakartat/$'
+import { ServerRoute as ApiHiilikarttaSplatServerRouteImport } from './routes/api/hiilikartta/$'
 import { ServerRoute as ApiAuthSplatServerRouteImport } from './routes/api/auth/$'
-import { ServerRoute as LocaleApiDataServerRouteImport } from './routes/$locale/api/data'
-import { ServerRoute as LocalemapMapappletsHiilikarttaApiDataServerRouteImport } from './routes/$locale/(map)/_map/(applets)/hiilikartta/api/data'
 import { ServerRoute as ApiMapCoreMmlTmsZXYServerRouteImport } from './routes/api/map/core/mml/tms/$z/$x/$y'
 
 const LocalemapRouteImport = createFileRoute('/$locale/(map)')()
@@ -351,10 +350,16 @@ const ApiUserinfoServerRoute = ApiUserinfoServerRouteImport.update({
   path: '/api/userinfo',
   getParentRoute: () => rootServerRouteImport,
 } as any)
-const ApiHiilikarttaDataServerRoute =
-  ApiHiilikarttaDataServerRouteImport.update({
-    id: '/api/hiilikartta/data',
-    path: '/api/hiilikartta/data',
+const ApiLuonnonmetsakartatSplatServerRoute =
+  ApiLuonnonmetsakartatSplatServerRouteImport.update({
+    id: '/api/luonnonmetsakartat/$',
+    path: '/api/luonnonmetsakartat/$',
+    getParentRoute: () => rootServerRouteImport,
+  } as any)
+const ApiHiilikarttaSplatServerRoute =
+  ApiHiilikarttaSplatServerRouteImport.update({
+    id: '/api/hiilikartta/$',
+    path: '/api/hiilikartta/$',
     getParentRoute: () => rootServerRouteImport,
   } as any)
 const ApiAuthSplatServerRoute = ApiAuthSplatServerRouteImport.update({
@@ -362,17 +367,6 @@ const ApiAuthSplatServerRoute = ApiAuthSplatServerRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootServerRouteImport,
 } as any)
-const LocaleApiDataServerRoute = LocaleApiDataServerRouteImport.update({
-  id: '/$locale/api/data',
-  path: '/$locale/api/data',
-  getParentRoute: () => rootServerRouteImport,
-} as any)
-const LocalemapMapappletsHiilikarttaApiDataServerRoute =
-  LocalemapMapappletsHiilikarttaApiDataServerRouteImport.update({
-    id: '/$locale/(map)/_map/(applets)/hiilikartta/api/data',
-    path: '/$locale/hiilikartta/api/data',
-    getParentRoute: () => rootServerRouteImport,
-  } as any)
 const ApiMapCoreMmlTmsZXYServerRoute =
   ApiMapCoreMmlTmsZXYServerRouteImport.update({
     id: '/api/map/core/mml/tms/$z/$x/$y',
@@ -644,62 +638,55 @@ export interface RootRouteChildren {
 }
 export interface FileServerRoutesByFullPath {
   '/api/userinfo': typeof ApiUserinfoServerRoute
-  '/$locale/api/data': typeof LocaleApiDataServerRoute
   '/api/auth/$': typeof ApiAuthSplatServerRoute
-  '/api/hiilikartta/data': typeof ApiHiilikarttaDataServerRoute
-  '/$locale/hiilikartta/api/data': typeof LocalemapMapappletsHiilikarttaApiDataServerRoute
+  '/api/hiilikartta/$': typeof ApiHiilikarttaSplatServerRoute
+  '/api/luonnonmetsakartat/$': typeof ApiLuonnonmetsakartatSplatServerRoute
   '/api/map/core/mml/tms/$z/$x/$y': typeof ApiMapCoreMmlTmsZXYServerRoute
 }
 export interface FileServerRoutesByTo {
   '/api/userinfo': typeof ApiUserinfoServerRoute
-  '/$locale/api/data': typeof LocaleApiDataServerRoute
   '/api/auth/$': typeof ApiAuthSplatServerRoute
-  '/api/hiilikartta/data': typeof ApiHiilikarttaDataServerRoute
-  '/$locale/hiilikartta/api/data': typeof LocalemapMapappletsHiilikarttaApiDataServerRoute
+  '/api/hiilikartta/$': typeof ApiHiilikarttaSplatServerRoute
+  '/api/luonnonmetsakartat/$': typeof ApiLuonnonmetsakartatSplatServerRoute
   '/api/map/core/mml/tms/$z/$x/$y': typeof ApiMapCoreMmlTmsZXYServerRoute
 }
 export interface FileServerRoutesById {
   __root__: typeof rootServerRouteImport
   '/api/userinfo': typeof ApiUserinfoServerRoute
-  '/$locale/api/data': typeof LocaleApiDataServerRoute
   '/api/auth/$': typeof ApiAuthSplatServerRoute
-  '/api/hiilikartta/data': typeof ApiHiilikarttaDataServerRoute
-  '/$locale/(map)/_map/(applets)/hiilikartta/api/data': typeof LocalemapMapappletsHiilikarttaApiDataServerRoute
+  '/api/hiilikartta/$': typeof ApiHiilikarttaSplatServerRoute
+  '/api/luonnonmetsakartat/$': typeof ApiLuonnonmetsakartatSplatServerRoute
   '/api/map/core/mml/tms/$z/$x/$y': typeof ApiMapCoreMmlTmsZXYServerRoute
 }
 export interface FileServerRouteTypes {
   fileServerRoutesByFullPath: FileServerRoutesByFullPath
   fullPaths:
     | '/api/userinfo'
-    | '/$locale/api/data'
     | '/api/auth/$'
-    | '/api/hiilikartta/data'
-    | '/$locale/hiilikartta/api/data'
+    | '/api/hiilikartta/$'
+    | '/api/luonnonmetsakartat/$'
     | '/api/map/core/mml/tms/$z/$x/$y'
   fileServerRoutesByTo: FileServerRoutesByTo
   to:
     | '/api/userinfo'
-    | '/$locale/api/data'
     | '/api/auth/$'
-    | '/api/hiilikartta/data'
-    | '/$locale/hiilikartta/api/data'
+    | '/api/hiilikartta/$'
+    | '/api/luonnonmetsakartat/$'
     | '/api/map/core/mml/tms/$z/$x/$y'
   id:
     | '__root__'
     | '/api/userinfo'
-    | '/$locale/api/data'
     | '/api/auth/$'
-    | '/api/hiilikartta/data'
-    | '/$locale/(map)/_map/(applets)/hiilikartta/api/data'
+    | '/api/hiilikartta/$'
+    | '/api/luonnonmetsakartat/$'
     | '/api/map/core/mml/tms/$z/$x/$y'
   fileServerRoutesById: FileServerRoutesById
 }
 export interface RootServerRouteChildren {
   ApiUserinfoServerRoute: typeof ApiUserinfoServerRoute
-  LocaleApiDataServerRoute: typeof LocaleApiDataServerRoute
   ApiAuthSplatServerRoute: typeof ApiAuthSplatServerRoute
-  ApiHiilikarttaDataServerRoute: typeof ApiHiilikarttaDataServerRoute
-  LocalemapMapappletsHiilikarttaApiDataServerRoute: typeof LocalemapMapappletsHiilikarttaApiDataServerRoute
+  ApiHiilikarttaSplatServerRoute: typeof ApiHiilikarttaSplatServerRoute
+  ApiLuonnonmetsakartatSplatServerRoute: typeof ApiLuonnonmetsakartatSplatServerRoute
   ApiMapCoreMmlTmsZXYServerRoute: typeof ApiMapCoreMmlTmsZXYServerRoute
 }
 
@@ -1045,11 +1032,18 @@ declare module '@tanstack/react-start/server' {
       preLoaderRoute: typeof ApiUserinfoServerRouteImport
       parentRoute: typeof rootServerRouteImport
     }
-    '/api/hiilikartta/data': {
-      id: '/api/hiilikartta/data'
-      path: '/api/hiilikartta/data'
-      fullPath: '/api/hiilikartta/data'
-      preLoaderRoute: typeof ApiHiilikarttaDataServerRouteImport
+    '/api/luonnonmetsakartat/$': {
+      id: '/api/luonnonmetsakartat/$'
+      path: '/api/luonnonmetsakartat/$'
+      fullPath: '/api/luonnonmetsakartat/$'
+      preLoaderRoute: typeof ApiLuonnonmetsakartatSplatServerRouteImport
+      parentRoute: typeof rootServerRouteImport
+    }
+    '/api/hiilikartta/$': {
+      id: '/api/hiilikartta/$'
+      path: '/api/hiilikartta/$'
+      fullPath: '/api/hiilikartta/$'
+      preLoaderRoute: typeof ApiHiilikarttaSplatServerRouteImport
       parentRoute: typeof rootServerRouteImport
     }
     '/api/auth/$': {
@@ -1057,20 +1051,6 @@ declare module '@tanstack/react-start/server' {
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatServerRouteImport
-      parentRoute: typeof rootServerRouteImport
-    }
-    '/$locale/api/data': {
-      id: '/$locale/api/data'
-      path: '/$locale/api/data'
-      fullPath: '/$locale/api/data'
-      preLoaderRoute: typeof LocaleApiDataServerRouteImport
-      parentRoute: typeof rootServerRouteImport
-    }
-    '/$locale/(map)/_map/(applets)/hiilikartta/api/data': {
-      id: '/$locale/(map)/_map/(applets)/hiilikartta/api/data'
-      path: '/$locale/hiilikartta/api/data'
-      fullPath: '/$locale/hiilikartta/api/data'
-      preLoaderRoute: typeof LocalemapMapappletsHiilikarttaApiDataServerRouteImport
       parentRoute: typeof rootServerRouteImport
     }
     '/api/map/core/mml/tms/$z/$x/$y': {
@@ -1415,11 +1395,9 @@ export const routeTree = rootRouteImport
   ._addFileTypes<FileRouteTypes>()
 const rootServerRouteChildren: RootServerRouteChildren = {
   ApiUserinfoServerRoute: ApiUserinfoServerRoute,
-  LocaleApiDataServerRoute: LocaleApiDataServerRoute,
   ApiAuthSplatServerRoute: ApiAuthSplatServerRoute,
-  ApiHiilikarttaDataServerRoute: ApiHiilikarttaDataServerRoute,
-  LocalemapMapappletsHiilikarttaApiDataServerRoute:
-    LocalemapMapappletsHiilikarttaApiDataServerRoute,
+  ApiHiilikarttaSplatServerRoute: ApiHiilikarttaSplatServerRoute,
+  ApiLuonnonmetsakartatSplatServerRoute: ApiLuonnonmetsakartatSplatServerRoute,
   ApiMapCoreMmlTmsZXYServerRoute: ApiMapCoreMmlTmsZXYServerRoute,
 }
 export const serverRouteTree = rootServerRouteImport

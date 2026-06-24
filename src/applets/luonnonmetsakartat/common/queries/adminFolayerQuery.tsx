@@ -3,10 +3,11 @@ import axios from 'axios'
 
 import { useAuthSession } from '#/common/auth'
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
+import { LUONNONMETSAKARTAT_API_URL } from '../api'
 import { AdminFolayerConf, FolayerConfState } from '../types'
 import { getRequiredBearerAuthHeader } from './authHeaders'
 
-const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
+const API_URL = LUONNONMETSAKARTAT_API_URL
 
 export const useAdminFolayerQueryOptions = (
   folayerId: string

@@ -5,10 +5,11 @@ import JSZip from 'jszip'
 import { useAuthSession } from '#/common/auth'
 import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
 
+import { HIILIKARTTA_API_URL } from '../api'
 import { PlanConf, PlanConfState } from '../types'
 import { stripFeatureExtras } from '../utils'
 
-const API_URL = process.env.NEXT_PUBLIC_HIILIKARTTA_API_URL
+const API_URL = HIILIKARTTA_API_URL
 
 type ResponseData = {
   status: string

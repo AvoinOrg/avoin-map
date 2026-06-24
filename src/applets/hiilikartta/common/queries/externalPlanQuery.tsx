@@ -2,10 +2,11 @@ import { FetchStatus } from '#/common/types/general'
 import { UseQueryOptions } from '@tanstack/react-query'
 import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
 import axios from 'axios'
-import { ExternalPlanConf, ReportData } from '../types'
+import { HIILIKARTTA_API_URL } from '../api'
+import { ExternalPlanConf } from '../types'
 import { processCalcQueryToReportData } from '../utils'
 
-const API_URL = process.env.NEXT_PUBLIC_HIILIKARTTA_API_URL
+const API_URL = HIILIKARTTA_API_URL
 
 export const externalPlanQuery = (
   serverId: string

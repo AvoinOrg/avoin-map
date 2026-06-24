@@ -2,9 +2,10 @@ import { UseQueryOptions } from '@tanstack/react-query'
 import axios from 'axios'
 
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
+import { LUONNONMETSAKARTAT_API_URL } from '../api'
 import { FolayerConf } from '../types'
 
-const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
+const API_URL = LUONNONMETSAKARTAT_API_URL
 
 type FolayerApiItem = {
   id: string

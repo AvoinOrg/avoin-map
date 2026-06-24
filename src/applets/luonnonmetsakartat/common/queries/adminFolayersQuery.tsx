@@ -3,10 +3,11 @@ import axios from 'axios'
 
 import { useAuthSession } from '#/common/auth'
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
+import { LUONNONMETSAKARTAT_API_URL } from '../api'
 import { AdminFolayerConf, FolayerConfState } from '../types'
 import { getRequiredBearerAuthHeader } from './authHeaders'
 
-const API_URL = process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL
+const API_URL = LUONNONMETSAKARTAT_API_URL
 
 type AdminFolayerApiItem = {
   id: string
@@ -20,8 +21,9 @@ type AdminFolayerApiItem = {
 }
 
 // For getting all folayers (if needed)
-export const useAdminFolayersQueryOptions =
-  (): UseQueryOptions<AdminFolayerConf[]> => {
+export const useAdminFolayersQueryOptions = (): UseQueryOptions<
+  AdminFolayerConf[]
+> => {
   const { data: session } = useAuthSession()
   const { accessToken } = session ?? {}
   const addAdminFolayerConf = useAppletStore.getState().addAdminFolayerConf

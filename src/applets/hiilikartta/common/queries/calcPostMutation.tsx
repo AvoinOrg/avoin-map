@@ -7,10 +7,11 @@ import { useAuthSession } from '#/common/auth'
 import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
 import { useUIStore } from '#/common/store'
 
+import { HIILIKARTTA_API_URL } from '../api'
 import { CalculationState, PlanConfState, PlanConf } from '../types'
 import { stripFeatureExtras } from '../utils'
 
-const API_URL = process.env.NEXT_PUBLIC_HIILIKARTTA_API_URL
+const API_URL = HIILIKARTTA_API_URL
 
 type ResponseData = {
   status: string
