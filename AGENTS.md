@@ -132,7 +132,7 @@ main app or as standalone sites.
 - TanStack Start folder routing applies; folders in parentheses are route
   groups and do not appear in the URL.
 - Route trees live in `src/common/routing/routes/*.ts` and are converted into
-  pathnames in `src/common/navigation/navigation.ts`.
+  pathnames in `src/common/navigation/navigation.tsx`.
 - Use `getRoute`/`MutableLink` for applet-aware links instead of hardcoding
   paths.
 - `src/server.tsx` normalizes locale and applet routing, handling standalone

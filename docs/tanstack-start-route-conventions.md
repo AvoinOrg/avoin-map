@@ -97,6 +97,6 @@ Start file route target convention is `$param`.
 F048.3 should verify how locale stripping, domain-based applet roots, applet
 build pruning, and breadcrumb labels flow through the existing
 `src/common/routing/routing.ts`, `src/common/routing/routing-client.ts`,
-`src/common/navigation/navigation.ts`, `src/components/common/MutableLink.tsx`,
+`src/common/navigation/navigation.tsx`, `src/components/common/MutableLink.tsx`,
 and `src/components/Sidebar/BreadcrumbNav.tsx` before replacing any runtime
 behavior.
