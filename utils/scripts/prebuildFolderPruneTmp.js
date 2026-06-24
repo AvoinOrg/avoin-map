@@ -7,6 +7,11 @@ const fs = require('fs')
 const os = require('os')
 const path = require('path')
 const { spawnSync } = require('child_process')
+const {
+  TEMP_WORKSPACE_ENV,
+  TEMP_WORKSPACE_MARKER,
+  getCompiledAppletConfig,
+} = require('./appletBuildConfig')
 
 const projectRoot = path.join(__dirname, '..', '..')
 const statePath = path.join(projectRoot, '.applet-build-tmp.json')
@@ -36,15 +41,45 @@ const shouldCopy = (srcPath) => {
   const top = parts[0]
 
   // Never copy dependencies or build outputs; we link node_modules instead.
-  if (top === 'node_modules' || top === '.next' || top === '.git') return false
+  if (
+    top === 'node_modules' ||
+    top === '.next' ||
+    top === '.output' ||
+    top === '.tanstack' ||
+    top === '.nitro' ||
+    top === '.git'
+  ) {
+    return false
+  }
 
   // Yarn berry cache can be huge, not needed for a build.
   if (top === '.yarn' && parts[1] === 'cache') return false
 
-  // Generated at build time via CopyPlugin (and gitignored).
+  // Generated at build time (and gitignored).
   if (top === 'public') return false
+  if (top === '.applet-build-tmp.json') return false
+
+  // Local agent/runtime state is not needed in the temp build workspace.
+  if (
+    top === '.codex' ||
+    top === '.codex-orch' ||
+    top === '.dev' ||
+    top === '.tmp'
+  ) {
+    return false
+  }
 
   return true
+}
+
+const isManagedTmpRoot = (tmpRoot) => {
+  if (typeof tmpRoot !== 'string') return false
+
+  const resolved = path.resolve(tmpRoot)
+  return (
+    path.dirname(resolved) === path.resolve(os.tmpdir()) &&
+    path.basename(resolved).startsWith('avoin-map-build-')
+  )
 }
 
 const ensureSymlinkedNodeModules = (tmpRoot) => {
@@ -66,7 +101,13 @@ const cleanupPreviousTmp = () => {
   try {
     const prev = JSON.parse(fs.readFileSync(statePath, 'utf8'))
     if (prev && typeof prev.tmpRoot === 'string') {
-      fs.rmSync(prev.tmpRoot, { recursive: true, force: true })
+      if (isManagedTmpRoot(prev.tmpRoot)) {
+        fs.rmSync(prev.tmpRoot, { recursive: true, force: true })
+      } else {
+        console.warn(
+          `prebuildFolderPruneTmp: refusing to remove unmanaged tmpRoot from state: ${prev.tmpRoot}`
+        )
+      }
     }
   } catch {
     // ignore; we just want to avoid leaked tmp directories when possible
@@ -78,22 +119,58 @@ const cleanupPreviousTmp = () => {
 const main = () => {
   cleanupPreviousTmp()
 
+  let buildConfig
+  try {
+    buildConfig = getCompiledAppletConfig({
+      projectRoot,
+      scriptName: 'prebuildFolderPruneTmp',
+    })
+  } catch (error) {
+    die(error.message)
+  }
+
   const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'avoin-map-build-'))
   console.log(`prebuildFolderPruneTmp: tmp=${tmpRoot}`)
 
   try {
     fs.cpSync(projectRoot, tmpRoot, { recursive: true, filter: shouldCopy })
     ensureSymlinkedNodeModules(tmpRoot)
+    fs.writeFileSync(
+      path.join(tmpRoot, TEMP_WORKSPACE_MARKER),
+      JSON.stringify(
+        {
+          sourceRoot: projectRoot,
+          tmpRoot,
+          compiledApplets: buildConfig.compiledApplets,
+          mode: buildConfig.mode,
+        },
+        null,
+        2
+      ),
+      'utf8'
+    )
 
     // Prune applet folders based on NEXT_PUBLIC_COMPILED_APPLETS.
     run(process.execPath, ['utils/scripts/prebuildFolderPrune.js'], {
       cwd: tmpRoot,
-      env: process.env,
+      env: {
+        ...process.env,
+        NEXT_PUBLIC_COMPILED_APPLETS: buildConfig.compiledApplets.join(','),
+        [TEMP_WORKSPACE_ENV]: '1',
+      },
     })
 
     fs.writeFileSync(
       statePath,
-      JSON.stringify({ tmpRoot }, null, 2),
+      JSON.stringify(
+        {
+          tmpRoot,
+          compiledApplets: buildConfig.compiledApplets,
+          mode: buildConfig.mode,
+        },
+        null,
+        2
+      ),
       'utf8'
     )
   } catch (e) {

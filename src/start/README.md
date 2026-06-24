@@ -125,12 +125,17 @@ This folder is Start-only scaffolding for the F048 migration.
   not emit an unusable multi-version `@visx/shape` package symlink layout in
   `.output/server/node_modules`.
 - There is no active Start analyzer command in this child. `yarn build-analyze`
-  still belongs to the temporary Next-owned `yarn build` path until a later
-  F048.8/F048.9 cleanup adds a Vite/Rollup analyzer or removes analyzer support.
-- `F048.8.2` owns replacing applet pruning and generated `public/files` /
-  `public/lib` preparation for Start. `F048.8.3` owns Docker and visual-runtime
-  migration to the Start preview command. `F048.8.4` owns Netlify presets,
-  publish directories, redirects, and deploy build matrix changes.
+  still shells through `yarn build` until a later F048.8/F048.9 cleanup adds a
+  Vite/Rollup analyzer or removes analyzer support.
+- `yarn build` now uses the non-destructive applet-pruned Start wrapper:
+  translations are downloaded in the live workspace, a temp workspace is
+  pruned, `utils/scripts/prepareGeneratedPublicAssets.js` creates
+  `public/files` and `public/lib/sql-wasm.wasm` in that temp workspace,
+  `yarn start:build` emits `.output`, and the wrapper copies `.output` plus
+  generated public assets back to the live workspace. `F048.8.3` owns Docker
+  and visual-runtime migration to the Start preview command. `F048.8.4` owns
+  Netlify presets, publish directories, redirects, and deploy build matrix
+  changes.
 - `vite.start.config.mts` also aliases `maplibre_symbol_utils` to the package's
   ESM entry because the package `main` bundle expects a browser-global
   `maplibregl` during Start SSR.

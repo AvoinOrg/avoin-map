@@ -11,7 +11,7 @@
     "prebuild-dev": "node ./utils/scripts/downloadTranslations.js",
     "prebuild": "yarn run prebuild-dev && node ./utils/scripts/prebuildFolderPruneTmp.js",
     "build": "yarn run prebuild && node ./utils/scripts/buildFromFolderPruneTmp.js",
-    "build-prune": "yarn run prebuild-dev && node ./utils/scripts/prebuildFolderPrune.js && NODE_ENV=production next build --webpack",
+    "build-prune": "yarn run build",
     "build-analyze": "ANALYZE=true yarn build",
     "start:dev": "vite dev --config vite.start.config.mts",
     "start:build": "vite build --config vite.start.config.mts",

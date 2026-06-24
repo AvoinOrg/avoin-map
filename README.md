@@ -111,9 +111,11 @@ standalone deployments.
   - `yarn prebuild`: downloads translations + prepares a pruned temp workspace
     (see `utils/scripts/prebuildFolderPruneTmp.js` and
     `utils/scripts/prebuildFolderPrune.js`).
-  - `yarn build`: runs `yarn prebuild`, then runs `next build` in the temp
-    workspace, then copies `.next` plus `public/files` + `public/lib` back to
-    the real workspace (see `utils/scripts/buildFromFolderPruneTmp.js`).
+  - `yarn build`: runs `yarn prebuild`, generates `public/files` and
+    `public/lib` in the temp workspace, runs the TanStack Start production
+    build, then copies `.output` plus generated `public/files` + `public/lib`
+    back to the real workspace (see
+    `utils/scripts/buildFromFolderPruneTmp.js`).
     The temp workspace path is persisted in `.applet-build-tmp.json` (gitignored);
     set `BUILD_TMP_KEEP=1` to keep the temp folder for debugging.
 - `utils/scripts/writeNetlifyRedirects.js` exists for legacy Netlify domain
@@ -130,14 +132,15 @@ standalone deployments.
 
 ## Assets and API copying
 
-`next.config.js` copies:
+`utils/scripts/prepareGeneratedPublicAssets.js` generates Start build assets:
 - `src/public/**/*` into `public/files/*`
-- `src/app/**/public/**/*` into `public/files/<applet>/*`
-- `src/app/(ui)/**/api/**/*` into `src/app/api/<applet>/*`
+- selected applet `public` folders into `public/files/<applet>/*`
+- `node_modules/rtree-sql.js/dist/sql-wasm.wasm` into
+  `public/lib/sql-wasm.wasm`
 
-`public/` and generated `src/app/api/*` entries are gitignored. Avoid dynamic
-API route segments (like `[id]`) in applet API folders due to webpack
-limitations.
+The old `next.config.js` CopyPlugin remains only for the temporary Next runtime
+during migration. There is no live `src/app/(ui)` API copy source in the Start
+build path. `public/` remains generated and gitignored.
 
 ## State, data, and map
 

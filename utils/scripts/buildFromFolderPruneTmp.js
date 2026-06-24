@@ -1,7 +1,8 @@
 // Build step for the non-destructive temp-folder pipeline:
 // - Reads the temp workspace path created by prebuildFolderPruneTmp.js
-// - Runs `next build` in the temp workspace (with applet folders already pruned)
-// - Copies build artifacts back into the real workspace (.next + public/files + public/lib)
+// - Generates public assets in the temp workspace
+// - Runs the TanStack Start production build there
+// - Copies .output, public/files, and public/lib back into the real workspace
 // - Cleans up the temp workspace unless BUILD_TMP_KEEP is set
 
 const fs = require('fs')
@@ -13,6 +14,23 @@ const statePath = path.join(projectRoot, '.applet-build-tmp.json')
 
 const KEEP_TMP =
   process.env.BUILD_TMP_KEEP === 'true' || process.env.BUILD_TMP_KEEP === '1'
+
+const REQUIRED_OUTPUT_PATHS = [
+  path.join('.output', 'server', 'index.mjs'),
+  path.join('.output', 'public'),
+  path.join('.output', 'public', 'assets'),
+  path.join('.output', 'public', '.vite', 'manifest.json'),
+]
+
+const TEXT_EXTENSIONS = new Set([
+  '.css',
+  '.html',
+  '.js',
+  '.json',
+  '.map',
+  '.mjs',
+  '.txt',
+])
 
 const die = (msg) => {
   console.error(msg)
@@ -28,7 +46,7 @@ const run = (cmd, args, opts) => {
   }
 }
 
-const readTmpRoot = () => {
+const readBuildState = () => {
   if (!fs.existsSync(statePath)) {
     die(
       `buildFromFolderPruneTmp: missing ${statePath}. Run the prebuild step first (or just run \`yarn build\`).`
@@ -55,58 +73,133 @@ const readTmpRoot = () => {
     )
   }
 
-  return tmpRoot
+  if (
+    !Array.isArray(state.compiledApplets) ||
+    state.compiledApplets.length === 0 ||
+    state.compiledApplets.some((applet) => typeof applet !== 'string')
+  ) {
+    die(
+      `buildFromFolderPruneTmp: invalid compiled applet state in ${statePath}. Re-run the prebuild step.`
+    )
+  }
+
+  return state
 }
 
-const copyArtifactsBack = (tmpRoot) => {
-  const fromNext = path.join(tmpRoot, '.next')
-  const toNext = path.join(projectRoot, '.next')
-  const toNextDev = path.join(toNext, 'dev')
+const getBuildEnv = ({ state, extra = {} }) => ({
+  ...process.env,
+  NEXT_PUBLIC_COMPILED_APPLETS: state.compiledApplets.join(','),
+  ...extra,
+})
 
-  if (!fs.existsSync(fromNext)) {
-    die(`buildFromFolderPruneTmp: missing build output at ${fromNext}`)
-  }
+const verifyStartOutputContract = (tmpRoot) => {
+  const missing = REQUIRED_OUTPUT_PATHS.filter(
+    (relativePath) => !fs.existsSync(path.join(tmpRoot, relativePath))
+  )
 
-  const preserveDevOutput = fs.existsSync(toNextDev)
-
-  if (preserveDevOutput) {
-    fs.mkdirSync(toNext, { recursive: true })
-
-    for (const ent of fs.readdirSync(toNext, { withFileTypes: true })) {
-      if (ent.name === 'dev') continue
-      fs.rmSync(path.join(toNext, ent.name), { recursive: true, force: true })
-    }
-
-    for (const ent of fs.readdirSync(fromNext, { withFileTypes: true })) {
-      if (ent.name === 'dev') continue
-      const fromPath = path.join(fromNext, ent.name)
-      const toPath = path.join(toNext, ent.name)
-      fs.rmSync(toPath, { recursive: true, force: true })
-      fs.cpSync(fromPath, toPath, { recursive: true })
-    }
-
-    console.log(
-      'buildFromFolderPruneTmp: preserved existing .next/dev output while copying production build artifacts'
+  if (missing.length > 0) {
+    die(
+      `buildFromFolderPruneTmp: Start build output is missing required path(s): ${missing.join(
+        ', '
+      )}`
     )
-  } else {
-    fs.rmSync(toNext, { recursive: true, force: true })
-    fs.cpSync(fromNext, toNext, { recursive: true })
   }
+}
 
-  // Merge public outputs (only the generated subfolders are copied).
+const copyGeneratedPublicBack = (tmpRoot) => {
   const fromPublic = path.join(tmpRoot, 'public')
-  if (!fs.existsSync(fromPublic)) return
-
   const toPublic = path.join(projectRoot, 'public')
+
   fs.mkdirSync(toPublic, { recursive: true })
 
   for (const sub of ['files', 'lib']) {
     const fromSub = path.join(fromPublic, sub)
-    if (!fs.existsSync(fromSub)) continue
+    if (!fs.existsSync(fromSub)) {
+      die(`buildFromFolderPruneTmp: missing generated public/${sub} in temp build`)
+    }
 
     const toSub = path.join(toPublic, sub)
     fs.rmSync(toSub, { recursive: true, force: true })
     fs.cpSync(fromSub, toSub, { recursive: true })
+  }
+}
+
+const copyStartOutputBack = (tmpRoot) => {
+  const fromOutput = path.join(tmpRoot, '.output')
+  const toOutput = path.join(projectRoot, '.output')
+
+  fs.rmSync(toOutput, { recursive: true, force: true })
+  fs.cpSync(fromOutput, toOutput, { recursive: true })
+}
+
+const isTextOutputFile = (filePath) => {
+  const basename = path.basename(filePath)
+  if (basename === 'manifest') return true
+
+  return TEXT_EXTENSIONS.has(path.extname(filePath))
+}
+
+const rewriteTmpPathsInStartOutput = ({ tmpRoot }) => {
+  const outputDir = path.join(projectRoot, '.output')
+  if (!fs.existsSync(outputDir)) return
+
+  let rewrittenFiles = 0
+  let rewrittenSymlinks = 0
+
+  const visit = (dir) => {
+    const entries = fs.readdirSync(dir, { withFileTypes: true })
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name)
+
+      if (entry.isSymbolicLink()) {
+        const target = fs.readlinkSync(fullPath)
+        if (!target.includes(tmpRoot)) continue
+
+        const rewrittenTarget = target.split(tmpRoot).join(projectRoot)
+        const relativeTarget = path.relative(
+          path.dirname(fullPath),
+          rewrittenTarget
+        )
+
+        fs.rmSync(fullPath, { force: true })
+        fs.symlinkSync(relativeTarget, fullPath)
+        rewrittenSymlinks += 1
+        continue
+      }
+
+      if (entry.isDirectory()) {
+        visit(fullPath)
+        continue
+      }
+
+      if (!entry.isFile() || !isTextOutputFile(fullPath)) continue
+
+      let text
+      try {
+        text = fs.readFileSync(fullPath, 'utf8')
+      } catch {
+        continue
+      }
+
+      if (!text.includes(tmpRoot)) continue
+
+      fs.writeFileSync(fullPath, text.split(tmpRoot).join(projectRoot), 'utf8')
+      rewrittenFiles += 1
+    }
+  }
+
+  visit(outputDir)
+
+  if (rewrittenFiles > 0) {
+    console.log(
+      `buildFromFolderPruneTmp: rewrote build-time tmp paths in ${rewrittenFiles} Start output file(s)`
+    )
+  }
+
+  if (rewrittenSymlinks > 0) {
+    console.log(
+      `buildFromFolderPruneTmp: rewrote build-time tmp paths in ${rewrittenSymlinks} Start output symlink(s)`
+    )
   }
 }
 
@@ -116,66 +209,26 @@ const cleanup = (tmpRoot) => {
   fs.rmSync(statePath, { force: true })
 }
 
-const rewriteTmpPathsInNextOutput = ({ tmpRoot }) => {
-  // Netlify's Next plugin reads tracing metadata from `.next` that can contain
-  // absolute paths from the build-time working directory. Because we build in a
-  // temp workspace, those paths would point to `/tmp/...` and break the plugin
-  // after we clean up the temp folder.
-  const nextDir = path.join(projectRoot, '.next')
-  if (!fs.existsSync(nextDir)) return
-
-  let rewrittenFiles = 0
-
-  const visit = (dir) => {
-    const entries = fs.readdirSync(dir, { withFileTypes: true })
-    for (const ent of entries) {
-      const full = path.join(dir, ent.name)
-      if (ent.isDirectory()) {
-        visit(full)
-        continue
-      }
-      if (!ent.isFile()) continue
-      if (!ent.name.endsWith('.json') && ent.name !== 'trace') continue
-
-      let text
-      try {
-        text = fs.readFileSync(full, 'utf8')
-      } catch {
-        continue
-      }
-
-      if (!text.includes(tmpRoot)) continue
-      fs.writeFileSync(full, text.split(tmpRoot).join(projectRoot), 'utf8')
-      rewrittenFiles += 1
-    }
-  }
-
-  visit(nextDir)
-
-  if (rewrittenFiles > 0) {
-    console.log(
-      `buildFromFolderPruneTmp: rewrote build-time tmp paths in ${rewrittenFiles} .next json file(s)`
-    )
-  }
-}
-
 const main = () => {
-  const tmpRoot = readTmpRoot()
+  const state = readBuildState()
+  const tmpRoot = state.tmpRoot
   console.log(`buildFromFolderPruneTmp: tmp=${tmpRoot}`)
 
   try {
-    run(
-      process.execPath,
-      [
-        path.join(tmpRoot, 'node_modules', 'next', 'dist', 'bin', 'next'),
-        'build',
-        '--webpack',
-      ],
-      { cwd: tmpRoot, env: { ...process.env, NODE_ENV: 'production' } }
-    )
+    run(process.execPath, ['utils/scripts/prepareGeneratedPublicAssets.js'], {
+      cwd: tmpRoot,
+      env: getBuildEnv({ state }),
+    })
 
-    copyArtifactsBack(tmpRoot)
-    rewriteTmpPathsInNextOutput({ tmpRoot })
+    run('yarn', ['start:build'], {
+      cwd: tmpRoot,
+      env: getBuildEnv({ state, extra: { NODE_ENV: 'production' } }),
+    })
+
+    verifyStartOutputContract(tmpRoot)
+    copyStartOutputBack(tmpRoot)
+    rewriteTmpPathsInStartOutput({ tmpRoot })
+    copyGeneratedPublicBack(tmpRoot)
     cleanup(tmpRoot)
   } catch (e) {
     console.error(`buildFromFolderPruneTmp: failed: ${e.message}`)

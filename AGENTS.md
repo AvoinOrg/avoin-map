@@ -120,9 +120,10 @@ standalone sites.
   - `yarn prebuild-dev`: downloads translations (writes `i18n/*`).
   - `yarn prebuild`: downloads translations + prepares a pruned temp workspace
     (see `utils/scripts/prebuildFolderPruneTmp.js`).
-  - `yarn build`: runs `yarn prebuild`, then runs `next build` in the temp
-    workspace, then copies `.next` + `public/files` + `public/lib` back to the
-    real workspace (see `utils/scripts/buildFromFolderPruneTmp.js`).
+  - `yarn build`: runs `yarn prebuild`, generates `public/files` and
+    `public/lib` in the temp workspace, runs the TanStack Start production
+    build, then copies `.output` + generated `public/files` + `public/lib` back
+    to the real workspace (see `utils/scripts/buildFromFolderPruneTmp.js`).
     The temp workspace path is tracked in `.applet-build-tmp.json` (gitignored);
     set `BUILD_TMP_KEEP=1` to keep the temp folder for debugging.
 
@@ -137,15 +138,16 @@ standalone sites.
 - `src/middleware.ts` normalizes locale and applet routing, handling standalone
   applets and domain-based URLs.
 
-## Assets and API copying
+## Generated Assets
 
-- `next.config.js` uses CopyPlugin to copy:
+- `utils/scripts/prepareGeneratedPublicAssets.js` generates Start build assets:
   - `src/public/**/*` into `public/files/*`
-  - `src/app/**/public/**/*` into `public/files/<applet>/*`
-  - `src/app/(ui)/**/api/**/*` into `src/app/api/<applet>/*`
-- `public/` and generated `src/app/api/*` entries are gitignored.
-- Avoid dynamic API routes like `[id]` in applet API folders (CopyPlugin
-  limitation).
+  - selected applet `public` folders into `public/files/<applet>/*`
+  - `node_modules/rtree-sql.js/dist/sql-wasm.wasm` into
+    `public/lib/sql-wasm.wasm`
+- The old `next.config.js` CopyPlugin remains only for the temporary Next
+  runtime during migration.
+- `public/` remains gitignored generated output.
 
 ## Localization
 
