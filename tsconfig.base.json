@@ -24,7 +24,7 @@
     "outDir": "build/",
     "paths": {
       "applets/*": [
-        "src/app/[locale]/(map)/(applets)/*"
+        "src/applets/*"
       ],
       "#/*": [
         "src/*"

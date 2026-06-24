@@ -46,15 +46,15 @@ const buildImpactRules = () => [
   {
     label: 'main-pages',
     globs: [
-      'src/app/[locale]/(map)/(applets)/(main)/**',
-      'src/app/[locale]/(map)/(applets)/forests/**',
+      'src/applets/main/**',
+      'src/applets/forests/**',
     ],
     target: 'main',
   },
   {
     label: 'hiilikartta-pages',
     globs: [
-      'src/app/[locale]/(map)/(applets)/hiilikartta/**',
+      'src/applets/hiilikartta/**',
       'src/common/routing/routes/hiilikartta.ts',
     ],
     target: 'hiilikartta',
@@ -62,7 +62,7 @@ const buildImpactRules = () => [
   {
     label: 'energiakartta-pages',
     globs: [
-      'src/app/[locale]/(map)/(applets)/energiakartta/**',
+      'src/applets/energiakartta/**',
       'src/common/routing/routes/energiakartta.ts',
     ],
     target: 'energiakartta',
@@ -70,7 +70,7 @@ const buildImpactRules = () => [
   {
     label: 'luonnonmetsakartat-pages',
     globs: [
-      'src/app/[locale]/(map)/(applets)/luonnonmetsakartat/**',
+      'src/applets/luonnonmetsakartat/**',
       'src/common/routing/routes/luonnonmetsakartat.ts',
     ],
     target: 'luonnonmetsakartat',

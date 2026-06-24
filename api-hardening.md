@@ -168,17 +168,17 @@ Expose only required public tile/glyph paths, deny unneeded OGC/admin paths, and
    2. `NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL` -> `/api/luonnonmetsakartat`
 2. Keep direct GeoServer URL usage for tiles/glyphs (`NEXT_PUBLIC_GEOSERVER_URL`) and avoid adding client-side WFS/WMS access.
 3. Update relevant files (minimum set currently identified):
-   1. hiilikartta query modules under `src/app/[locale]/(map)/(applets)/hiilikartta/common/queries/*`
-   2. luonnonmetsakartat query modules under `src/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/*`
+   1. hiilikartta query modules under `src/applets/hiilikartta/common/queries/*`
+   2. luonnonmetsakartat query modules under `src/applets/luonnonmetsakartat/common/queries/*`
    3. map sources and layer configs using `NEXT_PUBLIC_GEOSERVER_URL`:
       1. `src/components/Map/MapHandler.tsx`
       2. `src/components/Map/layers/main/Buildings/HelsinkiBuildings/layerConf.ts`
-      3. `src/app/[locale]/(map)/(applets)/forests/layers/layerConf.ts`
-      4. `src/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/utils.ts`
-      5. `src/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/adminFolayerAreaQuery.tsx`
-      6. `src/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/queries/folayerAreaQuery.tsx`
-      7. `src/app/[locale]/(map)/(applets)/hiilikartta/layers/vegetationCO2.ts`
-      8. `src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonMapGraph/CarbonMapGraphMap.tsx`
+      3. `src/applets/forests/layers/layerConf.ts`
+      4. `src/applets/luonnonmetsakartat/common/utils.ts`
+      5. `src/applets/luonnonmetsakartat/common/queries/adminFolayerAreaQuery.tsx`
+      6. `src/applets/luonnonmetsakartat/common/queries/folayerAreaQuery.tsx`
+      7. `src/applets/hiilikartta/layers/vegetationCO2.ts`
+      8. `src/applets/hiilikartta/components/CarbonMapGraph/CarbonMapGraphMap.tsx`
 
 ### Step A8: Integrate anonymous challenge only where needed
 

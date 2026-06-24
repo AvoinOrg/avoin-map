@@ -5,8 +5,8 @@ import type { StyleSpecification } from 'maplibre-gl'
 
 import type { ComponentFixture } from '#/common/component-fixtures/types'
 import { Box } from '#/common/style/theme'
-import CarbonMapGraph from '#/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonMapGraph'
-import CarbonMapGraphTable from '#/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonMapGraph/CarbonMapGraphTable'
+import CarbonMapGraph from 'applets/hiilikartta/components/CarbonMapGraph'
+import CarbonMapGraphTable from 'applets/hiilikartta/components/CarbonMapGraph/CarbonMapGraphTable'
 import type {
   CalcFeature,
   CalcFeatureCollection,
@@ -19,12 +19,12 @@ import type {
   MapGraphDataSelectOption,
   PlanConfWithReportData,
   ReportData,
-} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
-import { ZONING_CODE_COL } from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
+} from 'applets/hiilikartta/common/types'
+import { ZONING_CODE_COL } from 'applets/hiilikartta/common/types'
 import {
   getCarbonChangeColor,
   getCarbonValueForProperties,
-} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/utils'
+} from 'applets/hiilikartta/common/utils'
 
 const FEATURE_YEARS = ['2024', '2050', '2070'] as const
 
@@ -353,10 +353,10 @@ export const hiilikarttaCarbonMapGraphFixture: ComponentFixture = {
   description:
     'Report carbon map graph controls, MapLibre overlay, legend integration, and summary table states.',
   sourceGlobs: [
-    'src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonMapGraph/CarbonMapGraph.tsx',
-    'src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonMapGraph/CarbonMapGraphMap.tsx',
-    'src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonMapGraph/CarbonMapGraphTable.tsx',
-    'src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonMapGraph/index.tsx',
+    'src/applets/hiilikartta/components/CarbonMapGraph/CarbonMapGraph.tsx',
+    'src/applets/hiilikartta/components/CarbonMapGraph/CarbonMapGraphMap.tsx',
+    'src/applets/hiilikartta/components/CarbonMapGraph/CarbonMapGraphTable.tsx',
+    'src/applets/hiilikartta/components/CarbonMapGraph/index.tsx',
     'src/common/component-fixtures/fixtures/HiilikarttaCarbonMapGraphFixture.tsx',
   ],
   states: [

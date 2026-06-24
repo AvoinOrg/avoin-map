@@ -8,9 +8,9 @@ main app or as standalone sites.
 
 ## Top-level structure
 
-- `src/app`: Reusable applet and map source retained from the App Router tree.
-- `src/app/[locale]/(map)/(applets)`: Applet roots.
-- `src/app/[locale]/(map)/(applets)/(main)`: Main app pages/components.
+- `src/app`: Reusable map shell source retained from the App Router tree.
+- `src/applets`: Applet roots, including the main applet.
+- `src/applets/main`: Main app pages/components.
 - `src/components`: Shared UI and map components.
 - `src/common`: Shared hooks, routing, store, types, and utilities.
 - `utils/scripts`: Build-time helpers (translations, folder pruning, Netlify helpers).
@@ -107,7 +107,7 @@ main app or as standalone sites.
 
 ## Applets and build modes
 
-- Applets live under `src/app/[locale]/(map)/(applets)/<namespace>`.
+- Applets live under `src/applets/<namespace>`.
 - `NEXT_PUBLIC_COMPILED_APPLETS` drives both runtime routing and build-time
   pruning (see `utils/scripts/prebuildFolderPrune.js`):
   - If it includes `main`, the main app is built and only the listed applets

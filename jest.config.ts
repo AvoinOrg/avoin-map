@@ -7,7 +7,7 @@ const config: Config = {
     '^better-auth/react$': '<rootDir>/utils/test/jest/betterAuthReactMock.js',
     '^better-auth/client/plugins$':
       '<rootDir>/utils/test/jest/betterAuthClientPluginsMock.js',
-    '^applets/(.*)$': '<rootDir>/src/app/[locale]/(map)/(applets)/$1',
+    '^applets/(.*)$': '<rootDir>/src/applets/$1',
     '^map/(.*)$': '<rootDir>/src/app/[locale]/(map)/$1',
     '^#/(.*)$': '<rootDir>/src/$1',
     '^@i18n/(.*)$': '<rootDir>/i18n/$1',

@@ -6,15 +6,15 @@ import type { ComponentFixture } from '#/common/component-fixtures/types'
 import { Box } from '#/common/style/theme'
 import { useUIStore } from '#/common/store'
 import type { PopupProps } from '#/common/types/map'
-import AreaModalAdmin from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/AreaModalAdmin'
-import FolayerImportPictures from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportPictures'
+import AreaModalAdmin from 'applets/luonnonmetsakartat/components/AreaModalAdmin'
+import FolayerImportPictures from 'applets/luonnonmetsakartat/components/FolayerImportPictures'
 import {
   FolayerConfState,
   type FolayerAreaConf,
   type FolayerFeature,
   type FolayerFeatureProperties,
-} from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
-import { useAppletStore } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/state/appletStore'
+} from 'applets/luonnonmetsakartat/common/types'
+import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 
 type AreaModalFeature =
   PopupProps<FolayerFeatureProperties>['features'][number]
@@ -258,9 +258,9 @@ export const luonnonmetsakartatAdminPicturesAreaModalFixture: ComponentFixture =
   description:
     'Natural forest admin picture mapping and editable area modal states for F047.13.5 remigration coverage.',
   sourceGlobs: [
-    'src/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportPictures.tsx',
-    'src/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/AreaModalAdmin.tsx',
-    'src/app/[locale]/(map)/(applets)/luonnonmetsakartat/(pages)/admin/taso/[folayerIdSlug]/kuvat/page.tsx',
+    'src/applets/luonnonmetsakartat/components/FolayerImportPictures.tsx',
+    'src/applets/luonnonmetsakartat/components/AreaModalAdmin.tsx',
+    'src/applets/luonnonmetsakartat/pages/admin/taso/folayer/kuvat/page.tsx',
     'src/common/component-fixtures/fixtures/LuonnonmetsakartatAdminPicturesAreaModalFixture.tsx',
   ],
   wrapper: AdminFixtureWrapper,

@@ -4,14 +4,14 @@ import React from 'react'
 
 import type { ComponentFixture } from '#/common/component-fixtures/types'
 import { Box } from '#/common/style/theme'
-import CarbonLineChart from '#/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonLineChart/CarbonLineChart'
-import CarbonLineChartInner from '#/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonLineChart/CarbonLineChartInner'
+import CarbonLineChart from 'applets/hiilikartta/components/CarbonLineChart/CarbonLineChart'
+import CarbonLineChartInner from 'applets/hiilikartta/components/CarbonLineChart/CarbonLineChartInner'
 import type {
   CalcFeature,
   CalcFeatureCollection,
   CalcFeatureProperties,
   CarbonData,
-} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
+} from 'applets/hiilikartta/common/types'
 
 const FEATURE_YEARS = ['2024', '2050', '2070', '2090'] as const
 const CHART_HEIGHT = 500
@@ -369,9 +369,9 @@ export const hiilikarttaCarbonLineChartFixture: ComponentFixture = {
   description:
     'Report line chart unit toggle, VisX sizing, tooltip, legend, and minimal-data states.',
   sourceGlobs: [
-    'src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonLineChart/CarbonLineChart.tsx',
-    'src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonLineChart/CarbonLineChartInner.tsx',
-    'src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonLineChart/index.ts',
+    'src/applets/hiilikartta/components/CarbonLineChart/CarbonLineChart.tsx',
+    'src/applets/hiilikartta/components/CarbonLineChart/CarbonLineChartInner.tsx',
+    'src/applets/hiilikartta/components/CarbonLineChart/index.ts',
     'src/common/component-fixtures/fixtures/HiilikarttaCarbonLineChartFixture.tsx',
   ],
   states: [

@@ -8,9 +8,9 @@ import {
   CalculationState,
   type PlanConf,
   type ReportData,
-} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
-import PlanActionFooter from '#/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/_components/PlanActionFooter'
-import PlanReportFlowStep from '#/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/_components/PlanReportFlowStep'
+} from 'applets/hiilikartta/common/types'
+import PlanActionFooter from 'applets/hiilikartta/pages/kaavat/plan/_components/PlanActionFooter'
+import PlanReportFlowStep from 'applets/hiilikartta/pages/kaavat/plan/_components/PlanReportFlowStep'
 
 const noop = () => {}
 
@@ -126,8 +126,8 @@ export const hiilikarttaPlanReportActionsFixture: ComponentFixture = {
   description:
     'Plan report flow and footer action states for the Hiilikartta authoring flow.',
   sourceGlobs: [
-    'src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/_components/PlanReportFlowStep.tsx',
-    'src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/_components/PlanActionFooter.tsx',
+    'src/applets/hiilikartta/pages/kaavat/plan/_components/PlanReportFlowStep.tsx',
+    'src/applets/hiilikartta/pages/kaavat/plan/_components/PlanActionFooter.tsx',
     'src/common/component-fixtures/fixtures/HiilikarttaPlanReportActionsFixture.tsx',
   ],
   states: [

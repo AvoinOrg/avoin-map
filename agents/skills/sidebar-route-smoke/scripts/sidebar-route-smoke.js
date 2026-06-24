@@ -677,7 +677,7 @@ const seedEnergymapSelectedBuilding = async (page) =>
       '(app-pages-browser)/./src/common/store/uiStore.ts'
     )
     const { useAppletStore } = req(
-      '(app-pages-browser)/./src/app/[locale]/(map)/(applets)/energiakartta/state/appletStore.ts'
+      '(app-pages-browser)/./src/applets/energiakartta/state/appletStore.ts'
     )
 
     const map = useMapInstanceStore.getState()._map
@@ -989,7 +989,7 @@ const readEnergymapBuildingClickState = async ({ page, target, label }) =>
       const req = window.__avoin_req
       const selectedBuilding =
         req?.(
-          '(app-pages-browser)/./src/app/[locale]/(map)/(applets)/energiakartta/state/appletStore.ts'
+          '(app-pages-browser)/./src/applets/energiakartta/state/appletStore.ts'
         )?.useAppletStore.getState().selectedBuilding ?? null
       const selectedFeatures =
         req?.(
@@ -1545,7 +1545,7 @@ const readEnergymapSelectedBuildingState = async (page, label) =>
     }
     const selectedBuilding =
       window.__avoin_req?.(
-        '(app-pages-browser)/./src/app/[locale]/(map)/(applets)/energiakartta/state/appletStore.ts'
+        '(app-pages-browser)/./src/applets/energiakartta/state/appletStore.ts'
       )?.useAppletStore.getState().selectedBuilding ?? null
 
     return {
@@ -1861,7 +1861,7 @@ const runEnergymapSelectedBuildingTabsCheck = async ({ page, errors }) => {
   await page
     .waitForFunction(() => {
       const store = window.__avoin_req?.(
-        '(app-pages-browser)/./src/app/[locale]/(map)/(applets)/energiakartta/state/appletStore.ts'
+        '(app-pages-browser)/./src/applets/energiakartta/state/appletStore.ts'
       )?.useAppletStore
 
       return store?.getState().selectedBuilding == null
@@ -2228,7 +2228,7 @@ const runEnergymapBuildingClickCheck = async ({
   await page
     .waitForFunction(() => {
       const store = window.__avoin_req?.(
-        '(app-pages-browser)/./src/app/[locale]/(map)/(applets)/energiakartta/state/appletStore.ts'
+        '(app-pages-browser)/./src/applets/energiakartta/state/appletStore.ts'
       )?.useAppletStore
 
       return store?.getState().selectedBuilding == null

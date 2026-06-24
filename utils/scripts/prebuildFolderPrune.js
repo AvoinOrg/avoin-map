@@ -211,8 +211,8 @@ const pruneProductionOnlyStartRoutes = () => {
 
 const pushEnergiakarttaBridge = (lines) => {
   lines.push(
-    "import EnergiakarttaLayoutClient from 'applets/energiakartta/(pages)/layoutClient'",
-    "import EnergiakarttaPage from 'applets/energiakartta/(pages)/page'",
+    "import EnergiakarttaLayoutClient from 'applets/energiakartta/pages/layoutClient'",
+    "import EnergiakarttaPage from 'applets/energiakartta/pages/page'",
     '',
     'export const EnergiakarttaLayout = () => (',
     '  <EnergiakarttaLayoutClient>',
@@ -237,14 +237,14 @@ const pushEnergiakarttaBridge = (lines) => {
 
 const pushHiilikarttaBridge = (lines) => {
   lines.push(
-    "import HiilikarttaLayoutClient from 'applets/hiilikartta/(pages)/layoutClient'",
-    "import HiilikarttaPage from 'applets/hiilikartta/(pages)/page'",
-    "import HiilikarttaPlansLayout from 'applets/hiilikartta/(pages)/kaavat/layout'",
-    "import HiilikarttaPlansPage from 'applets/hiilikartta/(pages)/kaavat/page'",
-    "import HiilikarttaPlanLayout from 'applets/hiilikartta/(pages)/kaavat/[planId]/layout'",
-    "import HiilikarttaPlanPage from 'applets/hiilikartta/(pages)/kaavat/[planId]/page'",
-    "import HiilikarttaPlanAreasPage from 'applets/hiilikartta/(pages)/kaavat/[planId]/alueet/page'",
-    "import HiilikarttaReportPage from 'applets/hiilikartta/(pages)/raportti/page'",
+    "import HiilikarttaLayoutClient from 'applets/hiilikartta/pages/layoutClient'",
+    "import HiilikarttaPage from 'applets/hiilikartta/pages/page'",
+    "import HiilikarttaPlansLayout from 'applets/hiilikartta/pages/kaavat/layout'",
+    "import HiilikarttaPlansPage from 'applets/hiilikartta/pages/kaavat/page'",
+    "import HiilikarttaPlanLayout from 'applets/hiilikartta/pages/kaavat/plan/layout'",
+    "import HiilikarttaPlanPage from 'applets/hiilikartta/pages/kaavat/plan/page'",
+    "import HiilikarttaPlanAreasPage from 'applets/hiilikartta/pages/kaavat/plan/alueet/page'",
+    "import HiilikarttaReportPage from 'applets/hiilikartta/pages/raportti/page'",
     '',
     'export const HiilikarttaLayout = () => (',
     '  <HiilikarttaLayoutClient>',
@@ -299,15 +299,15 @@ const pushHiilikarttaBridge = (lines) => {
 
 const pushLuonnonmetsakartatBridge = (lines) => {
   lines.push(
-    "import LuonnonmetsakartatLayoutClient from 'applets/luonnonmetsakartat/(pages)/layoutClient'",
-    "import LuonnonmetsakartatPage from 'applets/luonnonmetsakartat/(pages)/page'",
-    "import LuonnonmetsakartatAdminLayoutClient from 'applets/luonnonmetsakartat/(pages)/admin/layoutClient'",
-    "import LuonnonmetsakartatAdminPage from 'applets/luonnonmetsakartat/(pages)/admin/page'",
-    "import LuonnonmetsakartatImportPage from 'applets/luonnonmetsakartat/(pages)/admin/tuo/page'",
-    "import LuonnonmetsakartatFolayerLayoutClient from 'applets/luonnonmetsakartat/(pages)/admin/taso/[folayerIdSlug]/layoutClient'",
-    "import LuonnonmetsakartatFolayerPage from 'applets/luonnonmetsakartat/(pages)/admin/taso/[folayerIdSlug]/page'",
-    "import LuonnonmetsakartatFolayerSettingsPage from 'applets/luonnonmetsakartat/(pages)/admin/taso/[folayerIdSlug]/asetukset/page'",
-    "import LuonnonmetsakartatFolayerPicturesPage from 'applets/luonnonmetsakartat/(pages)/admin/taso/[folayerIdSlug]/kuvat/page'",
+    "import LuonnonmetsakartatLayoutClient from 'applets/luonnonmetsakartat/pages/layoutClient'",
+    "import LuonnonmetsakartatPage from 'applets/luonnonmetsakartat/pages/page'",
+    "import LuonnonmetsakartatAdminLayoutClient from 'applets/luonnonmetsakartat/pages/admin/layoutClient'",
+    "import LuonnonmetsakartatAdminPage from 'applets/luonnonmetsakartat/pages/admin/page'",
+    "import LuonnonmetsakartatImportPage from 'applets/luonnonmetsakartat/pages/admin/tuo/page'",
+    "import LuonnonmetsakartatFolayerLayoutClient from 'applets/luonnonmetsakartat/pages/admin/taso/folayer/layoutClient'",
+    "import LuonnonmetsakartatFolayerPage from 'applets/luonnonmetsakartat/pages/admin/taso/folayer/page'",
+    "import LuonnonmetsakartatFolayerSettingsPage from 'applets/luonnonmetsakartat/pages/admin/taso/folayer/asetukset/page'",
+    "import LuonnonmetsakartatFolayerPicturesPage from 'applets/luonnonmetsakartat/pages/admin/taso/folayer/kuvat/page'",
     '',
     'export const LuonnonmetsakartatLayout = () => (',
     '  <LuonnonmetsakartatLayoutClient>',
@@ -398,7 +398,7 @@ const writePrunedAppletRouteComponents = ({ buildConfig }) => {
   ]
 
   if (buildConfig.includesMain) {
-    lines.push("import MainPage from 'applets/(main)/page'")
+    lines.push("import MainPage from 'applets/main/page'")
   }
 
   lines.push(

@@ -4,8 +4,8 @@ import React from 'react'
 
 import type { ComponentFixture } from '#/common/component-fixtures/types'
 import { Box } from '#/common/style/theme'
-import PlanImportActionsRow from '#/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/_components/PlanImportActionsRow'
-import PlanImportCodeRecordSelect from '#/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/_components/PlanImportCodeRecordSelect'
+import PlanImportActionsRow from 'applets/hiilikartta/pages/kaavat/plan/_components/PlanImportActionsRow'
+import PlanImportCodeRecordSelect from 'applets/hiilikartta/pages/kaavat/plan/_components/PlanImportCodeRecordSelect'
 
 const noop = () => {}
 
@@ -65,8 +65,8 @@ export const hiilikarttaPlanImportControlsFixture: ComponentFixture = {
   description:
     'Plan detail import action and code-record selector states for the Hiilikartta authoring flow.',
   sourceGlobs: [
-    'src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/_components/PlanImportActionsRow.tsx',
-    'src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/_components/PlanImportCodeRecordSelect.tsx',
+    'src/applets/hiilikartta/pages/kaavat/plan/_components/PlanImportActionsRow.tsx',
+    'src/applets/hiilikartta/pages/kaavat/plan/_components/PlanImportCodeRecordSelect.tsx',
     'src/common/component-fixtures/fixtures/HiilikarttaPlanImportControlsFixture.tsx',
   ],
   wrapper: ImportControlsFixtureWrapper,

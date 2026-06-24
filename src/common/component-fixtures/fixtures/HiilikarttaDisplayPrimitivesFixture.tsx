@@ -6,17 +6,17 @@ import { StaticAuthSessionProvider } from '#/common/auth/sessionContext'
 import type { AuthSession } from '#/common/auth/types'
 import type { ComponentFixture } from '#/common/component-fixtures/types'
 import { Box } from '#/common/style/theme'
-import PlanFolder from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanFolder'
-import PlanFolderLoading from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanFolderLoading'
-import PlanListItem from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanListItem'
-import PlanListItemLoading from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanListItemLoading'
-import PlanOutlineIcon from '#/app/[locale]/(map)/(applets)/hiilikartta/components/PlanOutlineIcon'
-import SelectionMenu from '#/app/[locale]/(map)/(applets)/hiilikartta/components/SelectionMenu'
+import PlanFolder from 'applets/hiilikartta/components/PlanFolder'
+import PlanFolderLoading from 'applets/hiilikartta/components/PlanFolderLoading'
+import PlanListItem from 'applets/hiilikartta/components/PlanListItem'
+import PlanListItemLoading from 'applets/hiilikartta/components/PlanListItemLoading'
+import PlanOutlineIcon from 'applets/hiilikartta/components/PlanOutlineIcon'
+import SelectionMenu from 'applets/hiilikartta/components/SelectionMenu'
 import {
   CalculationState,
   type PlaceholderPlanConf,
   type PlanConf,
-} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
+} from 'applets/hiilikartta/common/types'
 
 const authenticatedSession: AuthSession = {
   session: {
@@ -157,12 +157,12 @@ export const hiilikarttaDisplayPrimitivesFixture: ComponentFixture = {
   description:
     'Applet-local public display primitive states for the Hiilikartta remigration.',
   sourceGlobs: [
-    'src/app/[locale]/(map)/(applets)/hiilikartta/components/PlanOutlineIcon.tsx',
-    'src/app/[locale]/(map)/(applets)/hiilikartta/components/PlanListItem.tsx',
-    'src/app/[locale]/(map)/(applets)/hiilikartta/components/PlanListItemLoading.tsx',
-    'src/app/[locale]/(map)/(applets)/hiilikartta/components/PlanFolder.tsx',
-    'src/app/[locale]/(map)/(applets)/hiilikartta/components/PlanFolderLoading.tsx',
-    'src/app/[locale]/(map)/(applets)/hiilikartta/components/SelectionMenu.tsx',
+    'src/applets/hiilikartta/components/PlanOutlineIcon.tsx',
+    'src/applets/hiilikartta/components/PlanListItem.tsx',
+    'src/applets/hiilikartta/components/PlanListItemLoading.tsx',
+    'src/applets/hiilikartta/components/PlanFolder.tsx',
+    'src/applets/hiilikartta/components/PlanFolderLoading.tsx',
+    'src/applets/hiilikartta/components/SelectionMenu.tsx',
     'src/common/component-fixtures/fixtures/HiilikarttaDisplayPrimitivesFixture.tsx',
   ],
   wrapper: FixtureStack,

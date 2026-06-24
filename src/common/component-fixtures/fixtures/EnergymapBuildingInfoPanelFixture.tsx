@@ -497,8 +497,8 @@ export const energymapBuildingInfoPanelFixture: ComponentFixture = {
   description:
     'Energiakartta building-info panel tabs, metric controls, mobile layout, and collapsed action rail.',
   sourceGlobs: [
-    'src/app/[locale]/(map)/(applets)/energiakartta/components/BuildingInfoPanel.tsx',
-    'src/app/[locale]/(map)/(applets)/energiakartta/components/BuildingInfoPanel.test.tsx',
+    'src/applets/energiakartta/components/BuildingInfoPanel.tsx',
+    'src/applets/energiakartta/components/BuildingInfoPanel.test.tsx',
     'src/common/component-fixtures/fixtures/EnergymapBuildingInfoPanelFixture.tsx',
   ],
   canvasSx: {

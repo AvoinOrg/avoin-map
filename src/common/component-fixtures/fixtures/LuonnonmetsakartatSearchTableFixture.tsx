@@ -6,8 +6,8 @@ import type { MapGeoJSONFeature } from 'maplibre-gl'
 import type { ComponentFixture } from '#/common/component-fixtures/types'
 import { Box } from '#/common/style/theme'
 import { useMapStore } from '#/common/store'
-import SearchTable from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/SearchTable'
-import type { FolayerFeature } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
+import SearchTable from 'applets/luonnonmetsakartat/components/SearchTable'
+import type { FolayerFeature } from 'applets/luonnonmetsakartat/common/types'
 
 const fixtureSource = {
   source: 'luonnonmetsakartat-search-table-fixture-source',
@@ -163,7 +163,7 @@ export const luonnonmetsakartatSearchTableFixture: ComponentFixture = {
   description:
     'Admin natural forest area search table states for F047 remigration coverage.',
   sourceGlobs: [
-    'src/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/SearchTable.tsx',
+    'src/applets/luonnonmetsakartat/components/SearchTable.tsx',
     'src/common/component-fixtures/fixtures/LuonnonmetsakartatSearchTableFixture.tsx',
   ],
   wrapper: SearchTableFixtureShell,

@@ -83,14 +83,14 @@ Start file route target convention is `$param`.
 | --- | --- |
 | `src/app/[locale]/layout.tsx` | `src/routes/$locale/route.tsx` |
 | `src/app/[locale]/(map)/layout.tsx` | `src/routes/$locale/(map)/_map/route.tsx` |
-| `src/app/[locale]/(map)/(applets)/(main)/page.tsx` | Future main-app index under the `$locale` map shell; F048.3 should choose the collision-free file once root URL behavior is migrated. |
-| `src/app/[locale]/(map)/(applets)/forests/page.tsx` | `src/routes/$locale/(map)/_map/(applets)/forests/index.tsx` |
-| `src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/page.tsx` | `src/routes/$locale/(map)/_map/(applets)/hiilikartta/index.tsx` |
-| `src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/page.tsx` | `src/routes/$locale/(map)/_map/(applets)/hiilikartta/kaavat/index.tsx` |
-| `src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/page.tsx` | `src/routes/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId.tsx` or a directory equivalent. |
-| `src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/alueet/page.tsx` | `src/routes/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId/alueet.tsx` or `alueet/index.tsx`. |
-| `src/app/[locale]/(map)/(applets)/luonnonmetsakartat/(pages)/admin/taso/[folayerIdSlug]/**` | `src/routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/taso/$folayerIdSlug/**` |
-| `src/app/[locale]/(map)/(applets)/energiakartta/(pages)/**` | `src/routes/$locale/(map)/_map/(applets)/energiakartta/**` |
+| `src/applets/main/page.tsx` | Future main-app index under the `$locale` map shell; F048.3 should choose the collision-free file once root URL behavior is migrated. |
+| `src/applets/forests/page.tsx` | `src/routes/$locale/(map)/_map/(applets)/forests/index.tsx` |
+| `src/applets/hiilikartta/pages/page.tsx` | `src/routes/$locale/(map)/_map/(applets)/hiilikartta/index.tsx` |
+| `src/applets/hiilikartta/pages/kaavat/page.tsx` | `src/routes/$locale/(map)/_map/(applets)/hiilikartta/kaavat/index.tsx` |
+| `src/applets/hiilikartta/pages/kaavat/plan/page.tsx` | `src/routes/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId.tsx` or a directory equivalent. |
+| `src/applets/hiilikartta/pages/kaavat/plan/alueet/page.tsx` | `src/routes/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId/alueet.tsx` or `alueet/index.tsx`. |
+| `src/applets/luonnonmetsakartat/pages/admin/taso/folayer/**` | `src/routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/taso/$folayerIdSlug/**` |
+| `src/applets/energiakartta/pages/**` | `src/routes/$locale/(map)/_map/(applets)/energiakartta/**` |
 | `src/app/[locale]/adds/**` | `src/routes/$locale/adds/**` |
 | `src/app/[locale]/dev/component-fixtures/[fixtureId]/[stateId]/page.tsx` | `src/routes/$locale/dev/component-fixtures/$fixtureId/$stateId.tsx` |
 

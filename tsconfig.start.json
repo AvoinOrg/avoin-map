@@ -9,7 +9,7 @@
     "plugins": [],
     "types": ["node", "vite/client"],
     "paths": {
-      "applets/*": ["src/app/[locale]/(map)/(applets)/*"],
+      "applets/*": ["src/applets/*"],
       "#/*": ["src/*"],
       "@i18n/*": ["i18n/*"],
       "map/*": ["src/app/[locale]/(map)/*"]
@@ -27,7 +27,7 @@
     "src/start/**/*.tsx",
     "src/start/**/*.d.ts",
     "src/common/types/**/*.d.ts",
-    "src/app/[locale]/(map)/(applets)/forests/**/*.d.ts",
+    "src/applets/**/*.d.ts",
     "src/startBootstrapMarker.ts"
   ],
   "exclude": ["node_modules"]

@@ -6,8 +6,8 @@ import type { ComponentFixture } from '#/common/component-fixtures/types'
 import { Box } from '#/common/style/theme'
 import { useUIStore } from '#/common/store'
 import type { PopupProps } from '#/common/types/map'
-import AreaModal from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/AreaModal'
-import type { FolayerFeatureProperties } from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/common/types'
+import AreaModal from 'applets/luonnonmetsakartat/components/AreaModal'
+import type { FolayerFeatureProperties } from 'applets/luonnonmetsakartat/common/types'
 
 type AreaModalFeature =
   PopupProps<FolayerFeatureProperties>['features'][number]
@@ -168,7 +168,7 @@ export const luonnonmetsakartatAreaModalFixture: ComponentFixture = {
   description:
     'Public Luonnonmetsakartat map modal states for F047 remigration coverage.',
   sourceGlobs: [
-    'src/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/AreaModal.tsx',
+    'src/applets/luonnonmetsakartat/components/AreaModal.tsx',
     'src/common/component-fixtures/fixtures/LuonnonmetsakartatAreaModalFixture.tsx',
   ],
   wrapper: AreaModalFixtureShell,

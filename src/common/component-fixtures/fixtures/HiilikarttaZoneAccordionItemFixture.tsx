@@ -7,9 +7,9 @@ import { Box } from '#/common/style/theme'
 import type {
   PlanDataFeature,
   ZoningClass,
-} from '#/app/[locale]/(map)/(applets)/hiilikartta/common/types'
-import ZoneAccordionItem from '#/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/alueet/_components/ZoneAccordionItem'
-import { buildZoningCodeSelectOptions } from '#/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/alueet/_components/zoneAreaUtils'
+} from 'applets/hiilikartta/common/types'
+import ZoneAccordionItem from 'applets/hiilikartta/pages/kaavat/plan/alueet/_components/ZoneAccordionItem'
+import { buildZoningCodeSelectOptions } from 'applets/hiilikartta/pages/kaavat/plan/alueet/_components/zoneAreaUtils'
 
 type ZoneAccordionItemProps = React.ComponentProps<typeof ZoneAccordionItem>
 type ZoneItemStateConfig = {
@@ -255,9 +255,9 @@ export const hiilikarttaZoneAccordionItemFixture: ComponentFixture = {
   description:
     'Zone accordion item states for the Hiilikartta area land-use editor migration.',
   sourceGlobs: [
-    'src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/alueet/_components/ZoneAccordionItem.tsx',
-    'src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/alueet/_components/ZoneClassChip.tsx',
-    'src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/alueet/_components/zoneAreaUtils.ts',
+    'src/applets/hiilikartta/pages/kaavat/plan/alueet/_components/ZoneAccordionItem.tsx',
+    'src/applets/hiilikartta/pages/kaavat/plan/alueet/_components/ZoneClassChip.tsx',
+    'src/applets/hiilikartta/pages/kaavat/plan/alueet/_components/zoneAreaUtils.ts',
     'src/common/component-fixtures/fixtures/HiilikarttaZoneAccordionItemFixture.tsx',
   ],
   states: [

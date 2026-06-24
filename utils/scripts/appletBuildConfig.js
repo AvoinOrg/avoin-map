@@ -38,14 +38,7 @@ const loadProjectEnv = (projectRoot) => {
 }
 
 const getAppletSourceRoot = (projectRoot) =>
-  path.join(
-    projectRoot,
-    'src',
-    'app',
-    '[locale]',
-    '(map)',
-    '(applets)'
-  )
+  path.join(projectRoot, 'src', 'applets')
 
 const getCompiledAppletConfig = (options = {}) => {
   const {

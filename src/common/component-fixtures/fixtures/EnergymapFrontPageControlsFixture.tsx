@@ -105,8 +105,8 @@ export const energymapEnergyClassControlsFixture: ComponentFixture = {
   label: 'Energiakartta energy class controls',
   description: 'Energiakartta A-G energy certificate class control states.',
   sourceGlobs: [
-    'src/app/[locale]/(map)/(applets)/energiakartta/components/EnergyCertificateClassControls.tsx',
-    'src/app/[locale]/(map)/(applets)/energiakartta/components/EnergyCertificateClassControls.test.tsx',
+    'src/applets/energiakartta/components/EnergyCertificateClassControls.tsx',
+    'src/applets/energiakartta/components/EnergyCertificateClassControls.test.tsx',
     'src/common/component-fixtures/fixtures/EnergymapFrontPageControlsFixture.tsx',
   ],
   wrapper: EnergyClassFixtureWrapper,
@@ -155,8 +155,8 @@ export const energymapBackgroundFiltersFixture: ComponentFixture = {
   label: 'Energiakartta background filters',
   description: 'Energiakartta background building filter control states.',
   sourceGlobs: [
-    'src/app/[locale]/(map)/(applets)/energiakartta/components/BackgroundBuildingFiltersAccordionContent.tsx',
-    'src/app/[locale]/(map)/(applets)/energiakartta/components/BackgroundBuildingFiltersAccordionContent.test.tsx',
+    'src/applets/energiakartta/components/BackgroundBuildingFiltersAccordionContent.tsx',
+    'src/applets/energiakartta/components/BackgroundBuildingFiltersAccordionContent.test.tsx',
     'src/common/component-fixtures/fixtures/EnergymapFrontPageControlsFixture.tsx',
   ],
   wrapper: BackgroundFiltersFixtureWrapper,

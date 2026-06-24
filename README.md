@@ -90,9 +90,9 @@ plain HTTP request.
 
 ## App structure
 
-- `src/app`: Reusable applet and map source retained from the App Router tree.
-- `src/app/[locale]/(map)/(applets)`: Applet roots.
-- `src/app/[locale]/(map)/(applets)/(main)`: Main app pages/components.
+- `src/app`: Reusable map shell source retained from the App Router tree.
+- `src/applets`: Applet roots, including the main applet.
+- `src/applets/main`: Main app pages/components.
 - `src/common`: Shared hooks, routing, store, types, utilities.
 - `src/components`: Shared UI and map components.
 - `utils/scripts`: Build-time helpers (translations, folder pruning, Netlify helpers).

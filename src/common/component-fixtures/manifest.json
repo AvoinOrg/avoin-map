@@ -366,7 +366,7 @@
     "locale": "fi",
     "description": "Public Luonnonmetsakartat map modal states for F047 remigration coverage.",
     "sourceGlobs": [
-      "src/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/AreaModal.tsx",
+      "src/applets/luonnonmetsakartat/components/AreaModal.tsx",
       "src/common/component-fixtures/fixtures/LuonnonmetsakartatAreaModalFixture.tsx"
     ],
     "states": [
@@ -396,9 +396,9 @@
     "locale": "fi",
     "description": "Natural forest admin picture mapping and editable area modal states for F047.13.5 remigration coverage.",
     "sourceGlobs": [
-      "src/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportPictures.tsx",
-      "src/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/AreaModalAdmin.tsx",
-      "src/app/[locale]/(map)/(applets)/luonnonmetsakartat/(pages)/admin/taso/[folayerIdSlug]/kuvat/page.tsx",
+      "src/applets/luonnonmetsakartat/components/FolayerImportPictures.tsx",
+      "src/applets/luonnonmetsakartat/components/AreaModalAdmin.tsx",
+      "src/applets/luonnonmetsakartat/pages/admin/taso/folayer/kuvat/page.tsx",
       "src/common/component-fixtures/fixtures/LuonnonmetsakartatAdminPicturesAreaModalFixture.tsx"
     ],
     "states": [
@@ -464,8 +464,8 @@
     "locale": "fi",
     "description": "Natural forest admin import action and code-record selector states for F047 remigration coverage.",
     "sourceGlobs": [
-      "src/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportActionsRow.tsx",
-      "src/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportCodeRecordSelect.tsx",
+      "src/applets/luonnonmetsakartat/components/FolayerImportActionsRow.tsx",
+      "src/applets/luonnonmetsakartat/components/FolayerImportCodeRecordSelect.tsx",
       "src/common/component-fixtures/fixtures/LuonnonmetsakartatFolayerImportControlsFixture.tsx"
     ],
     "states": [
@@ -502,7 +502,7 @@
     "locale": "fi",
     "description": "Admin natural forest area search table states for F047 remigration coverage.",
     "sourceGlobs": [
-      "src/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/SearchTable.tsx",
+      "src/applets/luonnonmetsakartat/components/SearchTable.tsx",
       "src/common/component-fixtures/fixtures/LuonnonmetsakartatSearchTableFixture.tsx"
     ],
     "states": [
@@ -531,8 +531,8 @@
     "label": "Energiakartta energy class controls",
     "description": "Energiakartta A-G energy certificate class control states.",
     "sourceGlobs": [
-      "src/app/[locale]/(map)/(applets)/energiakartta/components/EnergyCertificateClassControls.tsx",
-      "src/app/[locale]/(map)/(applets)/energiakartta/components/EnergyCertificateClassControls.test.tsx",
+      "src/applets/energiakartta/components/EnergyCertificateClassControls.tsx",
+      "src/applets/energiakartta/components/EnergyCertificateClassControls.test.tsx",
       "src/common/component-fixtures/fixtures/EnergymapFrontPageControlsFixture.tsx"
     ],
     "states": [
@@ -558,8 +558,8 @@
     "label": "Energiakartta background filters",
     "description": "Energiakartta background building filter control states.",
     "sourceGlobs": [
-      "src/app/[locale]/(map)/(applets)/energiakartta/components/BackgroundBuildingFiltersAccordionContent.tsx",
-      "src/app/[locale]/(map)/(applets)/energiakartta/components/BackgroundBuildingFiltersAccordionContent.test.tsx",
+      "src/applets/energiakartta/components/BackgroundBuildingFiltersAccordionContent.tsx",
+      "src/applets/energiakartta/components/BackgroundBuildingFiltersAccordionContent.test.tsx",
       "src/common/component-fixtures/fixtures/EnergymapFrontPageControlsFixture.tsx"
     ],
     "states": [
@@ -580,8 +580,8 @@
     "label": "Energiakartta building info panel",
     "description": "Energiakartta building-info panel tabs, metric controls, mobile layout, and collapsed action rail.",
     "sourceGlobs": [
-      "src/app/[locale]/(map)/(applets)/energiakartta/components/BuildingInfoPanel.tsx",
-      "src/app/[locale]/(map)/(applets)/energiakartta/components/BuildingInfoPanel.test.tsx",
+      "src/applets/energiakartta/components/BuildingInfoPanel.tsx",
+      "src/applets/energiakartta/components/BuildingInfoPanel.test.tsx",
       "src/common/component-fixtures/fixtures/EnergymapBuildingInfoPanelFixture.tsx"
     ],
     "states": [
@@ -622,12 +622,12 @@
     "label": "Hiilikartta display primitives",
     "description": "Applet-local public display primitive states for the Hiilikartta remigration.",
     "sourceGlobs": [
-      "src/app/[locale]/(map)/(applets)/hiilikartta/components/PlanOutlineIcon.tsx",
-      "src/app/[locale]/(map)/(applets)/hiilikartta/components/PlanListItem.tsx",
-      "src/app/[locale]/(map)/(applets)/hiilikartta/components/PlanListItemLoading.tsx",
-      "src/app/[locale]/(map)/(applets)/hiilikartta/components/PlanFolder.tsx",
-      "src/app/[locale]/(map)/(applets)/hiilikartta/components/PlanFolderLoading.tsx",
-      "src/app/[locale]/(map)/(applets)/hiilikartta/components/SelectionMenu.tsx",
+      "src/applets/hiilikartta/components/PlanOutlineIcon.tsx",
+      "src/applets/hiilikartta/components/PlanListItem.tsx",
+      "src/applets/hiilikartta/components/PlanListItemLoading.tsx",
+      "src/applets/hiilikartta/components/PlanFolder.tsx",
+      "src/applets/hiilikartta/components/PlanFolderLoading.tsx",
+      "src/applets/hiilikartta/components/SelectionMenu.tsx",
       "src/common/component-fixtures/fixtures/HiilikarttaDisplayPrimitivesFixture.tsx"
     ],
     "states": [
@@ -699,8 +699,8 @@
     "label": "Hiilikartta plan import controls",
     "description": "Plan detail import action and code-record selector states for the Hiilikartta authoring flow.",
     "sourceGlobs": [
-      "src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/_components/PlanImportActionsRow.tsx",
-      "src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/_components/PlanImportCodeRecordSelect.tsx",
+      "src/applets/hiilikartta/pages/kaavat/plan/_components/PlanImportActionsRow.tsx",
+      "src/applets/hiilikartta/pages/kaavat/plan/_components/PlanImportCodeRecordSelect.tsx",
       "src/common/component-fixtures/fixtures/HiilikarttaPlanImportControlsFixture.tsx"
     ],
     "states": [
@@ -736,8 +736,8 @@
     "label": "Hiilikartta plan report actions",
     "description": "Plan report flow and footer action states for the Hiilikartta authoring flow.",
     "sourceGlobs": [
-      "src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/_components/PlanReportFlowStep.tsx",
-      "src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/_components/PlanActionFooter.tsx",
+      "src/applets/hiilikartta/pages/kaavat/plan/_components/PlanReportFlowStep.tsx",
+      "src/applets/hiilikartta/pages/kaavat/plan/_components/PlanActionFooter.tsx",
       "src/common/component-fixtures/fixtures/HiilikarttaPlanReportActionsFixture.tsx"
     ],
     "states": [
@@ -806,9 +806,9 @@
     "label": "Hiilikartta zone area controls",
     "description": "Zone class chip and area filter/sort control states for the Hiilikartta areas route.",
     "sourceGlobs": [
-      "src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/alueet/_components/ZoneAccordion.tsx",
-      "src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/alueet/_components/ZoneClassChip.tsx",
-      "src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/alueet/_components/zoneAreaUtils.ts",
+      "src/applets/hiilikartta/pages/kaavat/plan/alueet/_components/ZoneAccordion.tsx",
+      "src/applets/hiilikartta/pages/kaavat/plan/alueet/_components/ZoneClassChip.tsx",
+      "src/applets/hiilikartta/pages/kaavat/plan/alueet/_components/zoneAreaUtils.ts",
       "src/common/component-fixtures/fixtures/HiilikarttaZoneAreaControlsFixture.tsx"
     ],
     "states": [
@@ -851,9 +851,9 @@
     "label": "Hiilikartta zone accordion item",
     "description": "Zone accordion item states for the Hiilikartta area land-use editor migration.",
     "sourceGlobs": [
-      "src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/alueet/_components/ZoneAccordionItem.tsx",
-      "src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/alueet/_components/ZoneClassChip.tsx",
-      "src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/kaavat/[planId]/alueet/_components/zoneAreaUtils.ts",
+      "src/applets/hiilikartta/pages/kaavat/plan/alueet/_components/ZoneAccordionItem.tsx",
+      "src/applets/hiilikartta/pages/kaavat/plan/alueet/_components/ZoneClassChip.tsx",
+      "src/applets/hiilikartta/pages/kaavat/plan/alueet/_components/zoneAreaUtils.ts",
       "src/common/component-fixtures/fixtures/HiilikarttaZoneAccordionItemFixture.tsx"
     ],
     "states": [
@@ -924,9 +924,9 @@
     "label": "Hiilikartta carbon line chart",
     "description": "Report line chart unit toggle, VisX sizing, tooltip, legend, and minimal-data states.",
     "sourceGlobs": [
-      "src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonLineChart/CarbonLineChart.tsx",
-      "src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonLineChart/CarbonLineChartInner.tsx",
-      "src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonLineChart/index.ts",
+      "src/applets/hiilikartta/components/CarbonLineChart/CarbonLineChart.tsx",
+      "src/applets/hiilikartta/components/CarbonLineChart/CarbonLineChartInner.tsx",
+      "src/applets/hiilikartta/components/CarbonLineChart/index.ts",
       "src/common/component-fixtures/fixtures/HiilikarttaCarbonLineChartFixture.tsx"
     ],
     "states": [
@@ -977,10 +977,10 @@
     "label": "Hiilikartta carbon map graph",
     "description": "Report carbon map graph controls, MapLibre overlay, legend integration, and summary table states.",
     "sourceGlobs": [
-      "src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonMapGraph/CarbonMapGraph.tsx",
-      "src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonMapGraph/CarbonMapGraphMap.tsx",
-      "src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonMapGraph/CarbonMapGraphTable.tsx",
-      "src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonMapGraph/index.tsx",
+      "src/applets/hiilikartta/components/CarbonMapGraph/CarbonMapGraph.tsx",
+      "src/applets/hiilikartta/components/CarbonMapGraph/CarbonMapGraphMap.tsx",
+      "src/applets/hiilikartta/components/CarbonMapGraph/CarbonMapGraphTable.tsx",
+      "src/applets/hiilikartta/components/CarbonMapGraph/index.tsx",
       "src/common/component-fixtures/fixtures/HiilikarttaCarbonMapGraphFixture.tsx"
     ],
     "states": [
@@ -1008,11 +1008,11 @@
     "label": "Hiilikartta report overview",
     "description": "Report overview, geometry preview, carbon-change legend, and read-more modal states.",
     "sourceGlobs": [
-      "src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonChangeLegend.tsx",
-      "src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonOverviewGraph/CarbonOverviewGraph.tsx",
-      "src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonOverviewGraph/GeomGraphic.tsx",
-      "src/app/[locale]/(map)/(applets)/hiilikartta/components/CarbonOverviewGraph/index.tsx",
-      "src/app/[locale]/(map)/(applets)/hiilikartta/components/ReadMoreModal.tsx",
+      "src/applets/hiilikartta/components/CarbonChangeLegend.tsx",
+      "src/applets/hiilikartta/components/CarbonOverviewGraph/CarbonOverviewGraph.tsx",
+      "src/applets/hiilikartta/components/CarbonOverviewGraph/GeomGraphic.tsx",
+      "src/applets/hiilikartta/components/CarbonOverviewGraph/index.tsx",
+      "src/applets/hiilikartta/components/ReadMoreModal.tsx",
       "src/common/component-fixtures/fixtures/HiilikarttaReportOverviewFixture.tsx"
     ],
     "states": [

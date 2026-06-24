@@ -4,8 +4,8 @@ import React from 'react'
 
 import type { ComponentFixture } from '#/common/component-fixtures/types'
 import { Box } from '#/common/style/theme'
-import FolayerImportActionsRow from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportActionsRow'
-import FolayerImportCodeRecordSelect from '#/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportCodeRecordSelect'
+import FolayerImportActionsRow from 'applets/luonnonmetsakartat/components/FolayerImportActionsRow'
+import FolayerImportCodeRecordSelect from 'applets/luonnonmetsakartat/components/FolayerImportCodeRecordSelect'
 
 const noop = () => {}
 
@@ -67,8 +67,8 @@ export const luonnonmetsakartatFolayerImportControlsFixture: ComponentFixture = 
   description:
     'Natural forest admin import action and code-record selector states for F047 remigration coverage.',
   sourceGlobs: [
-    'src/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportActionsRow.tsx',
-    'src/app/[locale]/(map)/(applets)/luonnonmetsakartat/components/FolayerImportCodeRecordSelect.tsx',
+    'src/applets/luonnonmetsakartat/components/FolayerImportActionsRow.tsx',
+    'src/applets/luonnonmetsakartat/components/FolayerImportCodeRecordSelect.tsx',
     'src/common/component-fixtures/fixtures/LuonnonmetsakartatFolayerImportControlsFixture.tsx',
   ],
   wrapper: ImportControlsFixtureWrapper,

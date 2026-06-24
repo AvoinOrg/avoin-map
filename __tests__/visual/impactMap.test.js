@@ -38,7 +38,7 @@ describe('resolveImpactedScenarios', () => {
 
   test('maps applet page changes to applet scenario only', () => {
     const result = resolveImpactedScenarios({
-      files: ['src/app/[locale]/(map)/(applets)/hiilikartta/(pages)/page.tsx'],
+      files: ['src/applets/hiilikartta/pages/page.tsx'],
       scenarios,
     })
 
