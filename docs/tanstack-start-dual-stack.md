@@ -35,7 +35,7 @@ symlinks as part of normal Start preview verification.
 
 The Start Vite config is `vite.config.mts`. It uses the Start Vite plugin,
 the React Vite plugin, and `vite-tsconfig-paths` pointed at
-`tsconfig.base.json` so existing aliases such as `#/*`, `applets/*`, and
+`tsconfig.json` so existing aliases such as `#/*`, `applets/*`, and
 `@i18n/*` resolve consistently. It also preserves the temporary
 `NEXT_PUBLIC_*` define bridge used by migrated shared code. The SSR build keeps
 `@visx/shape` bundled with the server build instead of externalizing it; Nitro

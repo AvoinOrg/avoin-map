@@ -1,9 +1,56 @@
 {
-  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "downlevelIteration": true,
+    "incremental": true,
+    "baseUrl": ".",
+    "outDir": "build/",
+    "types": [
+      "node",
+      "vite/client"
+    ],
+    "paths": {
+      "applets/*": [
+        "src/applets/*"
+      ],
+      "#/*": [
+        "src/*"
+      ],
+      "@i18n/*": [
+        "i18n/*"
+      ]
+    }
+  },
   "include": [
-    "src",
-    "appletConf.json",
-    "src/types/**/*.d.ts"
+    "vite.config.mts",
+    "src/client.tsx",
+    "src/server.tsx",
+    "src/router.tsx",
+    "src/routeTree.gen.ts",
+    "src/routes/**/*.ts",
+    "src/routes/**/*.tsx",
+    "src/runtime/**/*.ts",
+    "src/runtime/**/*.tsx",
+    "src/runtime/**/*.d.ts",
+    "src/common/types/**/*.d.ts",
+    "src/applets/**/*.d.ts",
+    "src/startBootstrapMarker.ts"
   ],
   "exclude": [
     "node_modules"

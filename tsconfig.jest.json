@@ -1,7 +1,15 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "allowJs": true,
     "jsx": "react-jsx",
-    "module": "commonjs"
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "types": [
+      "node",
+      "jest",
+      "vite/client",
+      "@testing-library/jest-dom"
+    ]
   }
 }

@@ -105,7 +105,7 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       tsconfigPaths({
-        projects: ['./tsconfig.base.json'],
+        projects: ['./tsconfig.json'],
       }),
       tanstackStart({
         ...(startTarget ? { target: startTarget } : {}),
