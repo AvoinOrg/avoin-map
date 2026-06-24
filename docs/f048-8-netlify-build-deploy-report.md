@@ -181,10 +181,9 @@ These settings cannot be safely represented with committed values:
 
 ## F048.9 Handoff
 
-- The Next app tree, Next middleware compatibility skip for `/_next`,
-  `next-intl`, Next dependencies, and `@next/bundle-analyzer` remain temporary
-  dual-stack cleanup work for `F048.9`.
-- `@next/bundle-analyzer` remains installed but is not invoked by the active
-  Start or Netlify build/deploy command path.
+- Superseded by `F048.9.1`: at the time of the F048.8 handoff, the Next app
+  tree, Next middleware compatibility skip for `/_next`, `next-intl`, Next
+  dependencies, and `@next/bundle-analyzer` remained temporary dual-stack
+  cleanup work. Those active remnants have since been removed.
 - Rollup circular chunk warnings for `useMapStore` re-exports remain a Start
   build quality follow-up, not a Netlify output blocker.

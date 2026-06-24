@@ -6,8 +6,8 @@ available at https://map.avoin.org.
 ## Development
 
 The app runs local development through TanStack Start via Docker Compose. The
-repository still contains Next.js App Router source while the Start migration is
-in progress.
+repository still keeps reusable applet and map source under `src/app` while the
+Start route tree owns runtime routing.
 
 Create `.env` from `.env.template`, then set at least:
 
@@ -90,7 +90,7 @@ plain HTTP request.
 
 ## App structure
 
-- `src/app`: Next.js App Router entries (routes, layouts, API handlers).
+- `src/app`: Reusable applet and map source retained from the App Router tree.
 - `src/app/[locale]/(map)/(applets)`: Applet roots.
 - `src/app/[locale]/(map)/(applets)/(main)`: Main app pages/components.
 - `src/common`: Shared hooks, routing, store, types, utilities.
@@ -136,12 +136,13 @@ standalone deployments.
 
 ## Routing and navigation
 
-- Next.js folder routing applies; route groups in parentheses do not appear in
-  the URL.
+- TanStack Start routes live under `src/routes`; route groups in parentheses do
+  not appear in the URL.
 - Route trees in `src/common/routing/routes/*.ts` power `getRoute` and
   `MutableLink` for applet-aware paths.
-- `src/middleware.ts` normalizes locale and applet routing and supports
-  standalone applets or domain-based URLs.
+- `src/server.tsx` applies shared request-routing decisions for locale
+  normalization, standalone applets, and domain-based applet roots before
+  handing requests to Start.
 
 ## Assets and API copying
 
@@ -151,9 +152,8 @@ standalone deployments.
 - `node_modules/rtree-sql.js/dist/sql-wasm.wasm` into
   `public/lib/sql-wasm.wasm`
 
-The old `next.config.js` CopyPlugin remains only for the temporary Next runtime
-during migration. There is no live `src/app/(ui)` API copy source in the Start
-build path. `public/` remains generated and gitignored.
+There is no live `src/app/(ui)` API copy source in the Start build path.
+`public/` remains generated and gitignored.
 
 ## State, data, and map
 
@@ -211,8 +211,9 @@ build path. `public/` remains generated and gitignored.
 
 ## Auth
 
-Authentication uses NextAuth with a Zitadel issuer. Core auth routes live in
-`src/app/api/auth` and `src/app/api/userinfo`.
+Authentication uses Better Auth with a Zitadel OIDC provider. Core auth routes
+live in `src/routes/api/auth/$.ts`, and the userinfo compatibility endpoint
+lives in `src/routes/api/userinfo.ts`.
 
 ## Tests
 

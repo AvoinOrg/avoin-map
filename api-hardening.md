@@ -1,7 +1,7 @@
 # API Hardening Plan
 
 Date: 2026-03-04  
-Status: Planning document (implementation-ready)  
+Status: Planning document (framework paths refreshed for TanStack Start)
 Scope: Avoin Map frontend repo + Netlify deployment + Python backends behind Traefik/Dokploy + GeoServer behind Traefik
 
 ## 1. Goal and constraints
@@ -29,11 +29,15 @@ Make backend abuse materially harder by ensuring backend services are primarily 
 
 1. Many applet requests still call `NEXT_PUBLIC_HIILIKARTTA_API_URL` and `NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL` directly in browser query/mutation modules.
 2. GeoServer URLs are currently exposed to the browser via `NEXT_PUBLIC_GEOSERVER_URL`.
-3. There are existing Next API routes, but they do not currently form a full abuse-control layer:
-   1. `src/app/api/map/core/mml/tms/[z]/[x]/[y]/route.ts`
-   2. `src/app/api/userinfo/route.ts`
-   3. `src/app/api/hiilikartta/data/route.ts` (present, but current applet traffic mostly bypasses it)
-4. `next.config.js` currently has no dedicated abuse/security headers or proxy hardening logic.
+3. There are existing TanStack Start server routes, but they do not currently
+   form a full abuse-control layer:
+   1. `src/routes/api/map/core/mml/tms/$z/$x/$y.ts`
+   2. `src/routes/api/userinfo.ts`
+   3. `src/routes/$locale/api/data.ts` and
+      `src/routes/$locale/(map)/_map/(applets)/hiilikartta/api/data.ts`
+      (present, but current applet traffic mostly bypasses them)
+4. The Start/Nitro server path currently has no dedicated abuse/security
+   headers or proxy hardening logic.
 5. `netlify.toml` already has deploy contexts but no backend hardening strategy.
 6. Public WFS/WMS query access is not required in the target state.
 
@@ -42,7 +46,7 @@ Make backend abuse materially harder by ensuring backend services are primarily 
 ### 3.1 Request flow after rollout
 
 1. Browser calls same-origin endpoints (`/api/...`) for Python backend operations.
-2. Next.js API routes (BFF) enforce:
+2. TanStack Start server routes (BFF) enforce:
    1. Anonymous session identity cookie
    2. endpoint policy checks (quota, challenge requirement, method/params)
    3. request signing to upstream
@@ -61,7 +65,7 @@ Make backend abuse materially harder by ensuring backend services are primarily 
 
 ## 4. Ownership split
 
-### 4.1 This repo (Next.js app, hosted on Netlify)
+### 4.1 This repo (TanStack Start app, hosted on Netlify)
 
 Implement BFF routes, client migration, challenge integration, policy engine, and env changes.
 
@@ -117,14 +121,14 @@ Expose only required public tile/glyph paths, deny unneeded OGC/admin paths, and
 
 ### Step A3: Add API entrypoints for session/challenge
 
-1. Create `src/app/api/security/session/route.ts`:
+1. Create `src/routes/api/security/session.ts`:
    1. `POST` ensures anonymous session cookie exists
    2. return session metadata (no secrets)
-2. Optionally create `src/app/api/security/challenge/verify/route.ts` for client pre-verification (if needed), otherwise verify in write route handlers directly.
+2. Optionally create `src/routes/api/security/challenge/verify.ts` for client pre-verification (if needed), otherwise verify in write route handlers directly.
 
 ### Step A4: Implement hiilikartta BFF routes
 
-1. Create proxied routes under `src/app/api/hiilikartta/...` for:
+1. Create proxied routes under `src/routes/api/hiilikartta/...` for:
    1. `GET/PUT/DELETE /plan`
    2. `GET /plan/external`
    3. `GET /user/plans`
@@ -138,7 +142,7 @@ Expose only required public tile/glyph paths, deny unneeded OGC/admin paths, and
 
 ### Step A5: Implement luonnonmetsakartat BFF routes
 
-1. Create proxied routes under `src/app/api/luonnonmetsakartat/...` for:
+1. Create proxied routes under `src/routes/api/luonnonmetsakartat/...` for:
    1. `/layers`
    2. `/layer/:id`
    3. `/layer/:layerId/area/:featureId`
@@ -151,7 +155,7 @@ Expose only required public tile/glyph paths, deny unneeded OGC/admin paths, and
 ### Step A6: Keep GeoServer direct in frontend, and remove Geo proxy scope
 
 1. Keep `NEXT_PUBLIC_GEOSERVER_URL` as the browser-facing host for tiles/glyphs.
-2. Do not add generic `src/app/api/geoserver/...` proxy routes in this phase.
+2. Do not add generic `src/routes/api/geoserver/...` proxy routes in this phase.
 3. Frontend-side guardrails:
    1. lock source templates to tile/glyph paths only
    2. avoid introducing public WFS/WMS query calls

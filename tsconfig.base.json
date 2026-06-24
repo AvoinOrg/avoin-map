@@ -35,11 +35,6 @@
       "map/*": [
         "src/app/[locale]/(map)/*"
       ]
-    },
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ]
+    }
   }
 }

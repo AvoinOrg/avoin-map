@@ -2,7 +2,6 @@
   "extends": "./tsconfig.base.json",
   "include": [
     "src",
-    ".next/types/**/*.ts",
     "appletConf.json",
     "src/types/**/*.d.ts"
   ],

@@ -11,19 +11,9 @@ This folder is Start-only scaffolding for the F048 migration.
 - `StartShellProviders` mounts the local Better Auth `AuthSessionProvider`.
   The temporary React auth alias used earlier in the migration has been removed;
   migrated consumers use `#/common/auth` directly.
-- The Next provider stack in `src/app/[locale]/layoutClient.tsx` now mounts
-  NextIntl, the shared Better Auth session provider, the shared theme,
-  notifications, and the existing Next query client singleton.
-- The Next runtime login/callback pages under `src/app/[locale]/adds/login/*`
-  use the local Better Auth client/session adapter. The Next runtime
-  `/api/auth/*` catch-all in `src/app/api/auth/[...auth]/route.ts` dispatches to
-  the same Better Auth core configuration through a Next-runtime server helper,
-  including the legacy Zitadel callback rewrite. There is no legacy Auth.js
-  fallback handler.
 - `StartMapShell` reuses the current client map layout so migrated public map
   routes mount MapLibre, sidebar slots, user/UI state handlers, login modal, and
-  confirmation dialogs. The Start auth/Tolgee providers above are still
-  temporary bridges owned by later F048 features.
+  confirmation dialogs.
 - `src/start/auth` contains the Start-only Better Auth server foundation. It
   uses Zitadel OIDC through the Generic OAuth plugin, stateless JWE cookie
   sessions/account storage, and server helpers for normalized session and
@@ -41,12 +31,8 @@ This folder is Start-only scaffolding for the F048 migration.
   `http://localhost:3000` plus a stable dev-only Better Auth secret; production
   must set explicit Better Auth values.
 - `src/routes/api/auth/$.ts` mounts the Better Auth handler directly through the
-  TanStack Start server route tree. The old Start dev proxy to the legacy auth
-  route has been removed. The Next.js `src/app/api/auth/[...auth]` route is a
-  Better Auth-only dispatcher for the remaining Next runtime. The Next-runtime
-  Better Auth instance uses the same stateless session/account configuration but
-  intentionally omits the Start-only `tanstackStartCookies()` plugin so the Next
-  webpack runtime does not import TanStack Start virtual modules.
+  TanStack Start server route tree. The old Start dev proxy and App Router auth
+  wrapper have been removed.
 - `vite.start.config.mts` filters `better-auth` out of Vite's client
   dependency optimizer after TanStack Start config resolution. Better Auth's
   package metadata otherwise causes TanStack's package crawler to include it for
@@ -91,20 +77,16 @@ This folder is Start-only scaffolding for the F048 migration.
   APIs against provider ID `zitadel` and base path `/api/auth`. It also owns the
   Start sign-in, session, and sign-out UI behavior. `src/routes/api/userinfo.ts`
   is a narrow GET-only compatibility bridge so the existing user-store handoff
-  can fetch Zitadel userinfo in the Start runtime. `src/app/api/userinfo/route.ts`
-  keeps the same Better Auth-only behavior in the Next runtime. Final
-  `/api/userinfo` route/proxy ownership belongs to
-  `F048.7-start-api-routes-proxies`.
+  can fetch Zitadel userinfo in the Start runtime.
 - `F048.4.3`, `F048.4.4`, and `F048.4.5` migrated the shared map,
   Hiilikartta, and Luonnonmetsakartat auth consumers to `#/common/auth`.
-  `F048.4.6-nextauth-cleanup-auth-parity` removed the temporary alias, legacy
-  type stubs, fallback provider, dependency metadata, and obsolete env names.
-- `vite.start.config.mts` aliases `#/common/navigation/navigation` to a
-  TanStack Router adapter. Full Next wrapper and navigation parity belongs to
-  `F048.6` and later `F048.3` siblings.
+  `F048.4.6` removed the temporary auth alias, legacy type stubs, fallback
+  provider, dependency metadata, and obsolete env names.
+- `#/common/navigation/navigation` exports the TanStack Router adapter directly
+  for shared Start navigation consumers.
 - `vite.start.config.mts` defines loaded `NEXT_PUBLIC_*` environment variables
-  for Start client code. This is a temporary Next-public-env compatibility
-  bridge for migrated shared map layers and shell UI.
+  for Start client code. This keeps the established public env names while
+  migrated shared map layers and shell UI continue to read them.
 - `yarn start:build` is the accepted local Start production build foundation. It
   emits the Nitro server entry at `.output/server/index.mjs`, public output at
   `.output/public`, built client assets under `.output/public/assets`, and the
@@ -124,9 +106,8 @@ This folder is Start-only scaffolding for the F048 migration.
 - `vite.start.config.mts` keeps `@visx/shape` bundled for SSR so Nitro 2.12 does
   not emit an unusable multi-version `@visx/shape` package symlink layout in
   `.output/server/node_modules`.
-- There is no active Start analyzer command in this child. `yarn build-analyze`
-  still shells through `yarn build` until a later F048.8/F048.9 cleanup adds a
-  Vite/Rollup analyzer or removes analyzer support.
+- There is no active Start analyzer command. Add a Vite/Rollup analyzer later
+  only if bundle analysis becomes necessary again.
 - `yarn build` now uses the non-destructive applet-pruned Start wrapper:
   translations are downloaded in the live workspace, a temp workspace is
   pruned, `utils/scripts/prepareGeneratedPublicAssets.js` creates

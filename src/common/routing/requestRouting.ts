@@ -14,7 +14,6 @@ type AppletConf = Record<string, AppletConfig>
 const conf = appletConf as AppletConf
 
 export const REQUEST_ROUTING_SKIP_PREFIXES = [
-  '/_next',
   '/_build',
   '/_serverFn',
   '/api',
@@ -49,7 +48,7 @@ const APPLET_DOMAIN_ENV_BY_NAMESPACE: Record<string, string | undefined> = {
 }
 
 export type RequestRoutingDecision =
-  | { type: 'next' }
+  | { type: 'passThrough' }
   | {
       type: 'redirect'
       status: 308
@@ -270,7 +269,7 @@ const getAppletRootDecision = ({
       return withSearch('redirect', `/${locale}${tail}`, search)
     }
 
-    return { type: 'next' }
+    return { type: 'passThrough' }
   }
 
   const tail = tailSegments.length > 0 ? `/${tailSegments.join('/')}` : ''
@@ -288,7 +287,7 @@ export const decideRequestRouting = ({
   const { pathname, search } = requestUrl
 
   if (skipPrefixes.some((prefix) => pathname.startsWith(prefix))) {
-    return { type: 'next' }
+    return { type: 'passThrough' }
   }
 
   const segments = pathname.split('/').filter(Boolean)
@@ -297,7 +296,7 @@ export const decideRequestRouting = ({
   const hasLocale = locale != null
 
   if (hasCommonLocalizedPath(segments, hasLocale)) {
-    return { type: 'next' }
+    return { type: 'passThrough' }
   }
 
   const normalizedCompiledApplets = normalizeCompiledApplets(compiledApplets)
@@ -347,7 +346,7 @@ export const decideRequestRouting = ({
       )
     }
 
-    return { type: 'next' }
+    return { type: 'passThrough' }
   }
 
   const mainLocales = getLocalesForRequestNamespace(MAIN_NAMESPACE)
@@ -367,7 +366,7 @@ export const decideRequestRouting = ({
       return withSearch('redirect', `/${defaultLocale}`, search)
     }
 
-    return { type: 'next' }
+    return { type: 'passThrough' }
   }
 
   const defaultLocale = getDefaultLocaleForRequestNamespace(MAIN_NAMESPACE)

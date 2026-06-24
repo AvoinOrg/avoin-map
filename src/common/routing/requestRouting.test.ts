@@ -12,7 +12,7 @@ describe('request routing decisions', () => {
       (prefix) => {
         expect(
           decideRequestRouting({ url: url(`${prefix}/asset.js?x=1`) })
-        ).toEqual({ type: 'next' })
+        ).toEqual({ type: 'passThrough' })
       }
     )
   })
@@ -83,7 +83,7 @@ describe('request routing decisions', () => {
       (path) => {
         expect(
           decideRequestRouting({ url: url(path), compiledApplets: mainMode })
-        ).toEqual({ type: 'next' })
+        ).toEqual({ type: 'passThrough' })
       }
     )
 
@@ -107,7 +107,7 @@ describe('request routing decisions', () => {
           url: url('/en/energiakartta?x=1'),
           compiledApplets: mainMode,
         })
-      ).toEqual({ type: 'next' })
+      ).toEqual({ type: 'passThrough' })
     })
 
     it('passes through localized Hiilikartta applet API paths', () => {
@@ -116,7 +116,7 @@ describe('request routing decisions', () => {
           url: url('/fi/hiilikartta/api/data?id=calc-1'),
           compiledApplets: mainMode,
         })
-      ).toEqual({ type: 'next' })
+      ).toEqual({ type: 'passThrough' })
     })
 
     it('redirects a localized applet path with an unsupported locale', () => {
@@ -317,7 +317,7 @@ describe('request routing decisions', () => {
           host: 'hiilikartta.avoin.org',
           compiledApplets: ['main', 'hiilikartta'],
         })
-      ).toEqual({ type: 'next' })
+      ).toEqual({ type: 'passThrough' })
     })
 
     it('uses env-backed applet domains in addition to appletConf domains', () => {
@@ -345,7 +345,7 @@ describe('request routing decisions', () => {
           host: 'example.org',
           compiledApplets: ['main', 'hiilikartta'],
         })
-      ).toEqual({ type: 'next' })
+      ).toEqual({ type: 'passThrough' })
     })
   })
 })

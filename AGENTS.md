@@ -2,13 +2,13 @@
 
 ## Repository overview
 
-Avoin Map is a map-based web app built on Next.js. The codebase contains a core
-map experience plus multiple applets that can run inside the main app or as
-standalone sites.
+Avoin Map is a map-based web app running on TanStack Start. The codebase
+contains a core map experience plus multiple applets that can run inside the
+main app or as standalone sites.
 
 ## Top-level structure
 
-- `src/app`: Next.js App Router entries (routes, layouts, API handlers).
+- `src/app`: Reusable applet and map source retained from the App Router tree.
 - `src/app/[locale]/(map)/(applets)`: Applet roots.
 - `src/app/[locale]/(map)/(applets)/(main)`: Main app pages/components.
 - `src/components`: Shared UI and map components.
@@ -129,14 +129,14 @@ standalone sites.
 
 ## Routing
 
-- Next.js folder routing applies; folders in parentheses are route groups and
-  do not appear in the URL.
+- TanStack Start folder routing applies; folders in parentheses are route
+  groups and do not appear in the URL.
 - Route trees live in `src/common/routing/routes/*.ts` and are converted into
   pathnames in `src/common/navigation/navigation.ts`.
 - Use `getRoute`/`MutableLink` for applet-aware links instead of hardcoding
   paths.
-- `src/middleware.ts` normalizes locale and applet routing, handling standalone
-  applets and domain-based URLs.
+- `src/server.tsx` normalizes locale and applet routing, handling standalone
+  applets and domain-based URLs before requests enter the Start handler.
 
 ## Generated Assets
 
@@ -145,8 +145,6 @@ standalone sites.
   - selected applet `public` folders into `public/files/<applet>/*`
   - `node_modules/rtree-sql.js/dist/sql-wasm.wasm` into
     `public/lib/sql-wasm.wasm`
-- The old `next.config.js` CopyPlugin remains only for the temporary Next
-  runtime during migration.
 - `public/` remains gitignored generated output.
 
 ## Localization
@@ -215,8 +213,9 @@ standalone sites.
 
 ## Auth
 
-- Auth uses NextAuth with a Zitadel issuer.
-- Core auth endpoints live in `src/app/api/auth` and `src/app/api/userinfo`.
+- Auth uses Better Auth with a Zitadel OIDC provider.
+- Core auth endpoints live in `src/routes/api/auth/$.ts` and
+  `src/routes/api/userinfo.ts`.
 
 ## Code style
 
@@ -273,8 +272,8 @@ standalone sites.
   user that the main dev server is unavailable, and investigate what happened
   to that main process.
 - Do not perform a "full dev-runtime reset" on your own in this devcontainer.
-  Do not mass-kill shared `next dev`/Node processes, and do not wipe generated
-  runtime directories such as `.next`, `public/files`, or `public/lib` unless
+  Do not mass-kill shared dev-server/Node processes, and do not wipe generated
+  runtime directories such as `.output`, `public/files`, or `public/lib` unless
   the user explicitly asks for that reset. In this environment those actions
   can break the shared dev runtime and even stop the devcontainer session you
   are working in. Prefer safer options first: reuse the existing server,

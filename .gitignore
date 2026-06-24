@@ -72,7 +72,7 @@ typings/
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 
-# next.js build output
+# Legacy generated build output
 .next
 
 # nuxt.js build output
@@ -143,18 +143,7 @@ yarn-error.log*
 
 out
 .next
-next-env.d.ts
 .vercel
-
-# Api folders. We want to ignore everything included by the applets,
-# which are simply copied into the api folder.
-# The core api folders need to be manually added here.
-src/app/api/*
-!src/app/api/auth/
-!src/app/api/userinfo/
-!src/app/api/map/
-src/app/api/map/*
-!src/app/api/map/core/
 
 
 # i18n files, which are downloaded dynamically

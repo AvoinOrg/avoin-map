@@ -1,10 +1,9 @@
 # TanStack Start Dual-Stack Build Foundation
 
-This repository is intentionally dual-stack while the F048 migration is in
-progress. TanStack Start now owns the active local `dev`, `build`, `start`,
-`prebuild`, `prebuild-dev`, `build-prune`, and visual-script runtime path. The
-Next.js tree remains in the repository for source compatibility during the
-migration.
+TanStack Start owns the active local `dev`, `build`, `start`, `prebuild`,
+`prebuild-dev`, `build-prune`, and visual-script runtime path. Reusable applet
+and map source remains under `src/app`, but the live route/runtime surface is
+the Start tree under `src/routes`.
 
 The Start-specific command path is now a real Vite/Nitro build and preview
 foundation. Use these scripts:
@@ -60,10 +59,8 @@ sourcemaps and disables client JS/CSS minification through Vite `build`
 options. The same flag also enables Nitro sourcemaps and disables Nitro
 minification through `nitro.config.ts`.
 
-No Start analyzer command is active in this child. `yarn build-analyze` remains
-the temporary Next/top-level analyzer because it runs `yarn build`, and
-`@next/bundle-analyzer` is not used for Start builds. A later cleanup can add a
-Vite/Rollup analyzer if Start bundle analysis is still needed.
+No Start analyzer command is active. A later cleanup can add a Vite/Rollup
+analyzer if Start bundle analysis is needed.
 
 Netlify deployment is handled by the same applet-pruned build wrapper with a
 Netlify-specific target:
@@ -103,8 +100,8 @@ Build outputs from Start/Nitro/Vite are ignored through `.tanstack/`,
 
 Route-file conventions for the migration scaffold are documented in
 `docs/tanstack-start-route-conventions.md`. Start routes live under
-`src/routes`; do not move them into the production Next App Router tree under
-`src/app` during the dual-stack phase.
+`src/routes`; keep reusable applet/map components under `src/app` unless a
+route/component ownership change explicitly moves them.
 
 Later F048.8 handoffs:
 

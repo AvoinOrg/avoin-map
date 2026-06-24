@@ -5,9 +5,6 @@ import { defineConfig, loadEnv } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import type { Plugin, ResolvedConfig } from 'vite'
 
-const startNavigationAdapter = fileURLToPath(
-  new URL('./src/start/navigation.tsx', import.meta.url)
-)
 const startMapLibreShim = fileURLToPath(
   new URL('./src/start/maplibre-gl.ts', import.meta.url)
 )
@@ -96,10 +93,6 @@ export default defineConfig(({ mode }) => {
     },
     resolve: {
       alias: [
-        {
-          find: '#/common/navigation/navigation',
-          replacement: startNavigationAdapter,
-        },
         {
           find: /^maplibre-gl$/,
           replacement: startMapLibreShim,

@@ -1,8 +1,8 @@
 # TanStack Start Route Conventions
 
-This migration uses `src/routes` as the TanStack Start route root. Next.js keeps
-owning production routes under `src/app` until the later F048 migration features
-replace the current runtime behavior.
+This migration uses `src/routes` as the TanStack Start route root. Reusable
+applet and map source remains under `src/app`, but runtime routes are owned by
+TanStack Start.
 
 The generated route tree is `src/routeTree.gen.ts`. It is committed because
 `src/router.tsx` imports it, but it is owned by the TanStack Start/Router
@@ -31,10 +31,10 @@ generation may overwrite it whenever `start:*` tooling runs.
   config makes `routeFileIgnorePrefix: '-'` explicit.
 - `index.tsx` is the index route for its folder.
 
-The scaffold routes intentionally render placeholders and import only
-TanStack Router plus a tiny Start-safe colocated helper. They do not import
-current applet pages, Next APIs, NextAuth, Tolgee setup, MapLibre runtime code,
-or applet Zustand stores.
+The initial scaffold routes intentionally rendered placeholders and imported
+only TanStack Router plus a tiny Start-safe colocated helper. The current Start
+route tree imports migrated applet pages, Tolgee setup, MapLibre runtime code,
+and applet Zustand stores where parity work has accepted those routes.
 
 ## Current scaffold
 
@@ -71,9 +71,9 @@ The Start route tree should preserve the current conceptual architecture:
   applet-aware navigation behavior until F048.3 adapts or bridges it for
   TanStack Router.
 
-F048.3 owns the real URL behavior, middleware parity, locale handling,
-standalone applet rewrites, domain trimming, breadcrumbs, and `MutableLink`
-replacement or bridging. Existing route objects in
+F048.3 owns the real URL behavior, locale handling, standalone applet rewrites,
+domain trimming, breadcrumbs, and `MutableLink` replacement or bridging.
+Existing route objects in
 `src/common/routing/routes/*.ts` currently use Next-style `[param]` tokens; the
 Start file route target convention is `$param`.
 

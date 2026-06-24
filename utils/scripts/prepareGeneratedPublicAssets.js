@@ -29,7 +29,7 @@ const assertNoStaleUiApiCopySource = () => {
   if (!fs.existsSync(staleUiApiRoot)) return
 
   die(
-    `prepareGeneratedPublicAssets: found stale Next CopyPlugin API source at ${staleUiApiRoot}. Add an explicit Start-compatible API copy mechanism before building.`
+    `prepareGeneratedPublicAssets: found stale CopyPlugin API source at ${staleUiApiRoot}. Add an explicit Start-compatible API copy mechanism before building.`
   )
 }
 

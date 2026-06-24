@@ -1,6 +1,6 @@
 /**
- * This file exists because next.js has tree shaking issues, so everything in a file is imported
- * even when unnecessary. useUIStore uses lodash-es, which uses code that is unsupported edge runtime
+ * This file isolates store-backed route generation from the pure route helpers.
+ * Server and edge-safe callers should import from routing.ts instead.
  */
 
 import { useUIStore } from '../store/uiStore'
