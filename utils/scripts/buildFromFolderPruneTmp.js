@@ -2,7 +2,8 @@
 // - Reads the temp workspace path created by prebuildFolderPruneTmp.js
 // - Generates public assets in the temp workspace
 // - Runs the TanStack Start production build there
-// - Copies .output, public/files, and public/lib back into the real workspace
+// - Copies local .output, public/files, and public/lib back into the real workspace
+// - Or, for START_TARGET=netlify, copies dist and .netlify back
 // - Cleans up the temp workspace unless BUILD_TMP_KEEP is set
 
 const fs = require('fs')
@@ -15,11 +16,22 @@ const statePath = path.join(projectRoot, '.applet-build-tmp.json')
 const KEEP_TMP =
   process.env.BUILD_TMP_KEEP === 'true' || process.env.BUILD_TMP_KEEP === '1'
 
-const REQUIRED_OUTPUT_PATHS = [
+const REQUIRED_LOCAL_OUTPUT_PATHS = [
   path.join('.output', 'server', 'index.mjs'),
   path.join('.output', 'public'),
   path.join('.output', 'public', 'assets'),
   path.join('.output', 'public', '.vite', 'manifest.json'),
+]
+
+const REQUIRED_NETLIFY_OUTPUT_PATHS = [
+  'dist',
+  path.join('dist', 'assets'),
+  path.join('dist', '.vite', 'manifest.json'),
+  path.join('dist', 'files'),
+  path.join('dist', 'lib', 'sql-wasm.wasm'),
+  path.join('dist', '_redirects'),
+  path.join('.netlify', 'functions-internal', 'server', 'main.mjs'),
+  path.join('.netlify', 'functions-internal', 'server', 'server.mjs'),
 ]
 
 const TEXT_EXTENSIONS = new Set([
@@ -92,14 +104,16 @@ const getBuildEnv = ({ state, extra = {} }) => ({
   ...extra,
 })
 
-const verifyStartOutputContract = (tmpRoot) => {
-  const missing = REQUIRED_OUTPUT_PATHS.filter(
+const isNetlifyBuild = () => process.env.START_TARGET === 'netlify'
+
+const verifyOutputContract = ({ tmpRoot, requiredPaths, label }) => {
+  const missing = requiredPaths.filter(
     (relativePath) => !fs.existsSync(path.join(tmpRoot, relativePath))
   )
 
   if (missing.length > 0) {
     die(
-      `buildFromFolderPruneTmp: Start build output is missing required path(s): ${missing.join(
+      `buildFromFolderPruneTmp: ${label} build output is missing required path(s): ${missing.join(
         ', '
       )}`
     )
@@ -132,6 +146,16 @@ const copyStartOutputBack = (tmpRoot) => {
   fs.cpSync(fromOutput, toOutput, { recursive: true })
 }
 
+const copyNetlifyOutputBack = (tmpRoot) => {
+  for (const outputName of ['dist', '.netlify']) {
+    const fromOutput = path.join(tmpRoot, outputName)
+    const toOutput = path.join(projectRoot, outputName)
+
+    fs.rmSync(toOutput, { recursive: true, force: true })
+    fs.cpSync(fromOutput, toOutput, { recursive: true })
+  }
+}
+
 const isTextOutputFile = (filePath) => {
   const basename = path.basename(filePath)
   if (basename === 'manifest') return true
@@ -139,10 +163,7 @@ const isTextOutputFile = (filePath) => {
   return TEXT_EXTENSIONS.has(path.extname(filePath))
 }
 
-const rewriteTmpPathsInStartOutput = ({ tmpRoot }) => {
-  const outputDir = path.join(projectRoot, '.output')
-  if (!fs.existsSync(outputDir)) return
-
+const rewriteTmpPathsInOutputs = ({ tmpRoot, outputDirs }) => {
   let rewrittenFiles = 0
   let rewrittenSymlinks = 0
 
@@ -188,17 +209,21 @@ const rewriteTmpPathsInStartOutput = ({ tmpRoot }) => {
     }
   }
 
-  visit(outputDir)
+  for (const relativeOutputDir of outputDirs) {
+    const outputDir = path.join(projectRoot, relativeOutputDir)
+    if (!fs.existsSync(outputDir)) continue
+    visit(outputDir)
+  }
 
   if (rewrittenFiles > 0) {
     console.log(
-      `buildFromFolderPruneTmp: rewrote build-time tmp paths in ${rewrittenFiles} Start output file(s)`
+      `buildFromFolderPruneTmp: rewrote build-time tmp paths in ${rewrittenFiles} output file(s)`
     )
   }
 
   if (rewrittenSymlinks > 0) {
     console.log(
-      `buildFromFolderPruneTmp: rewrote build-time tmp paths in ${rewrittenSymlinks} Start output symlink(s)`
+      `buildFromFolderPruneTmp: rewrote build-time tmp paths in ${rewrittenSymlinks} output symlink(s)`
     )
   }
 }
@@ -220,14 +245,47 @@ const main = () => {
       env: getBuildEnv({ state }),
     })
 
+    if (isNetlifyBuild()) {
+      run(
+        process.execPath,
+        [
+          'utils/scripts/writeNetlifyRedirects.js',
+          '--out',
+          path.join('public', '_redirects'),
+          '--compiled-applets',
+          state.compiledApplets.join(','),
+        ],
+        {
+          cwd: tmpRoot,
+          env: getBuildEnv({ state }),
+        }
+      )
+    }
+
     run('yarn', ['start:build'], {
       cwd: tmpRoot,
       env: getBuildEnv({ state, extra: { NODE_ENV: 'production' } }),
     })
 
-    verifyStartOutputContract(tmpRoot)
+    if (isNetlifyBuild()) {
+      verifyOutputContract({
+        tmpRoot,
+        requiredPaths: REQUIRED_NETLIFY_OUTPUT_PATHS,
+        label: 'Netlify Start',
+      })
+      copyNetlifyOutputBack(tmpRoot)
+      rewriteTmpPathsInOutputs({ tmpRoot, outputDirs: ['dist', '.netlify'] })
+      cleanup(tmpRoot)
+      return
+    }
+
+    verifyOutputContract({
+      tmpRoot,
+      requiredPaths: REQUIRED_LOCAL_OUTPUT_PATHS,
+      label: 'Start',
+    })
     copyStartOutputBack(tmpRoot)
-    rewriteTmpPathsInStartOutput({ tmpRoot })
+    rewriteTmpPathsInOutputs({ tmpRoot, outputDirs: ['.output'] })
     copyGeneratedPublicBack(tmpRoot)
     cleanup(tmpRoot)
   } catch (e) {

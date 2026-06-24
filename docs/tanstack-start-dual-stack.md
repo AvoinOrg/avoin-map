@@ -65,6 +65,31 @@ the temporary Next/top-level analyzer because it runs `yarn build`, and
 `@next/bundle-analyzer` is not used for Start builds. A later cleanup can add a
 Vite/Rollup analyzer if Start bundle analysis is still needed.
 
+Netlify deployment is handled by the same applet-pruned build wrapper with a
+Netlify-specific target:
+
+- `yarn build:netlify`: runs `START_TARGET=netlify yarn run build`.
+- `netlify.toml`: uses `NEXT_PUBLIC_URL=$DEPLOY_PRIME_URL yarn run
+  build:netlify`, publishes `dist`, and sets repository-owned
+  `NEXT_PUBLIC_COMPILED_APPLETS` defaults for the main and standalone applet
+  deploy contexts.
+- `START_TARGET=netlify` selects Nitro's Netlify preset for the installed
+  `@tanstack/react-start@1.131.50` package line. The current official Netlify
+  docs use `@netlify/vite-plugin-tanstack-start` for newer Start versions, but
+  specify `target: "netlify"` and `publish = "dist"` for Start `1.121.0` to
+  `1.131.x`.
+- Netlify output contract: `dist` for publish assets and
+  `.netlify/functions-internal/server/{main.mjs,server.mjs}` for the server
+  function wrapper.
+
+`utils/scripts/writeNetlifyRedirects.js` generates Start-compatible
+`_redirects` rules during Netlify builds. It writes to the requested output
+path in the temp workspace, no longer writes to `.next/_redirects`, and no
+longer emits `_next` asset rules. Applet-domain root, missing-locale,
+known-unsupported-locale, and standalone duplicate-namespace paths are emitted
+as visible Netlify redirects before the internal proxy rewrite rules. See
+`docs/f048-8-netlify-build-deploy-report.md` for the verified matrix.
+
 The Start client graph currently needs no explicit global `Buffer` polyfill.
 Vite externalizes Node built-ins such as `fs`, `path`, and `crypto` for browser
 compatibility in inactive GeoPackage/better-sqlite3 branches; no broader
@@ -94,10 +119,11 @@ Later F048.8 handoffs:
   `DEV_PORT` to container port `3000`; the reusable `yarn start:preview`
   script itself still defaults to port `3002` and supports `PORT=<port>`
   overrides without editing scripts.
-- `F048.8.4-netlify-deploy-build-matrix`: no Netlify Start plugin, Nitro preset,
-  publish directory, or redirect config is added here. The verified local
-  output is Nitro `node-server` with inline server output at
-  `.output/server/index.mjs` and public assets in `.output/public`.
+- `F048.8.4-netlify-deploy-build-matrix`: completed the Netlify command,
+  Nitro preset, publish directory, redirect generation, and main/standalone
+  build matrix. The default local output remains Nitro `node-server` with
+  inline server output at `.output/server/index.mjs` and public assets in
+  `.output/public`.
 
 Earlier migration owners:
 

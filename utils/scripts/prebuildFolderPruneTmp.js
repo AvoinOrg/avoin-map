@@ -45,6 +45,8 @@ const shouldCopy = (srcPath) => {
     top === 'node_modules' ||
     top === '.next' ||
     top === '.output' ||
+    top === 'dist' ||
+    top === '.netlify' ||
     top === '.tanstack' ||
     top === '.nitro' ||
     top === '.git'

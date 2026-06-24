@@ -7,7 +7,12 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   {
-    files: ['utils/visual/**/*.js', '__tests__/visual/**/*.js'],
+    files: [
+      'utils/scripts/**/*.js',
+      'utils/visual/**/*.js',
+      '__tests__/utils/scripts/**/*.js',
+      '__tests__/visual/**/*.js',
+    ],
     rules: {
       '@typescript-eslint/no-require-imports': 'off',
     },
@@ -30,6 +35,8 @@ const eslintConfig = defineConfig([
     '.tanstack/**',
     '.nitro/**',
     '.output/**',
+    'dist/**',
+    '.netlify/**',
     'src/routeTree.gen.ts',
     'legacy/map/map.ts',
   ]),

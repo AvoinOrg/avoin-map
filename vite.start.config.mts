@@ -35,6 +35,11 @@ const getStartPublicEnvDefines = (env: StartLoadedEnv) =>
 const isStartDebugClientBuild = (env: StartLoadedEnv) =>
   env.NEXT_PUBLIC_DEBUG_CLIENT_ERRORS === '1'
 
+const getStartTarget = (env: StartLoadedEnv) => {
+  const target = env.START_TARGET?.trim()
+  return target === '' ? undefined : target
+}
+
 const getStartBuildConfig = (debugClientErrors: boolean) => ({
   sourcemap: debugClientErrors,
   ...(debugClientErrors
@@ -70,6 +75,7 @@ const startServerOnlyDependencyOptimizerPlugin = (): Plugin => ({
 export default defineConfig(({ mode }) => {
   const env = getStartLoadedEnv(mode)
   const debugClientErrors = isStartDebugClientBuild(env)
+  const startTarget = getStartTarget(env)
 
   return {
     define: getStartPublicEnvDefines(env),
@@ -109,6 +115,7 @@ export default defineConfig(({ mode }) => {
         projects: ['./tsconfig.base.json'],
       }),
       tanstackStart({
+        ...(startTarget ? { target: startTarget } : {}),
         customViteReactPlugin: true,
         tsr: {
           srcDirectory: 'src',

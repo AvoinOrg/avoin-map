@@ -124,10 +124,15 @@ standalone deployments.
     build, then copies `.output` plus generated `public/files` + `public/lib`
     back to the real workspace (see
     `utils/scripts/buildFromFolderPruneTmp.js`).
+  - `yarn build:netlify`: runs the same pruned build with
+    `START_TARGET=netlify`, then copies Netlify publish output from `dist/` and
+    serverless output from `.netlify/functions-internal/`.
     The temp workspace path is persisted in `.applet-build-tmp.json` (gitignored);
     set `BUILD_TMP_KEEP=1` to keep the temp folder for debugging.
-- `utils/scripts/writeNetlifyRedirects.js` exists for legacy Netlify domain
-  setups, but is not part of the default build pipeline.
+- `utils/scripts/writeNetlifyRedirects.js` generates Start-compatible Netlify
+  applet-domain redirects and rewrites into the Netlify publish output; it
+  normalizes applet-domain locale URLs before proxy rewrites and no longer
+  writes under `.next`.
 
 ## Routing and navigation
 
