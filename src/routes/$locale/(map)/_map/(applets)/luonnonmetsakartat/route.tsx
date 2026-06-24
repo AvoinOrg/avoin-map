@@ -1,11 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { guardAppletLocale } from '#/start/appletRouteGuards'
-import { LuonnonmetsakartatLayout } from '#/start/appletRouteComponents'
+import { guardAppletLocale } from '#/runtime/appletRouteGuards'
+import { LuonnonmetsakartatLayout } from '#/runtime/appletRouteComponents'
 import {
   getStaticAppletHead,
   LUONNONMETSAKARTAT_TITLE,
-} from '#/start/headMetadata'
+} from '#/runtime/headMetadata'
 
 export const Route = createFileRoute(
   '/$locale/(map)/_map/(applets)/luonnonmetsakartat'

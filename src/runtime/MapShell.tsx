@@ -1,14 +1,14 @@
 import type { ReactNode } from 'react'
 
-import '#/start/configureMapLibreWorker'
+import '#/runtime/configureMapLibreWorker'
 import MapLayoutClient from 'map/layoutClient'
 
 type Props = {
   children: ReactNode
 }
 
-const StartMapShell = ({ children }: Props) => (
+const MapShell = ({ children }: Props) => (
   <MapLayoutClient>{children}</MapLayoutClient>
 )
 
-export default StartMapShell
+export default MapShell

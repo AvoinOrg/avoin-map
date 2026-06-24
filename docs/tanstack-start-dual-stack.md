@@ -9,7 +9,7 @@ The Start-specific command path is now a real Vite/Nitro build and preview
 foundation. Use these scripts:
 
 - `yarn start:dev`: runs the Start dev server on port `3000`.
-- `yarn start:build`: runs `vite build --config vite.start.config.mts` and emits
+- `yarn start:build`: runs `vite build --config vite.config.mts` and emits
   TanStack Start client assets plus the Nitro server output.
 - `yarn start:preview`: serves `.output/server/index.mjs` on port `3002` by
   default and supplies Node's `production` export condition for package exports
@@ -33,7 +33,7 @@ The local Start output contract is:
 Preview should run directly from that output. Do not create or repair `.output`
 symlinks as part of normal Start preview verification.
 
-The Start Vite config is `vite.start.config.mts`. It uses the Start Vite plugin,
+The Start Vite config is `vite.config.mts`. It uses the Start Vite plugin,
 the React Vite plugin, and `vite-tsconfig-paths` pointed at
 `tsconfig.base.json` so existing aliases such as `#/*`, `applets/*`, and
 `@i18n/*` resolve consistently. It also preserves the temporary

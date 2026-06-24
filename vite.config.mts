@@ -6,7 +6,7 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 import type { Plugin, ResolvedConfig } from 'vite'
 
 const startMapLibreShim = fileURLToPath(
-  new URL('./src/start/maplibre-gl.ts', import.meta.url)
+  new URL('./src/runtime/maplibre-gl.ts', import.meta.url)
 )
 const maplibreSymbolUtilsEsm = fileURLToPath(
   new URL(

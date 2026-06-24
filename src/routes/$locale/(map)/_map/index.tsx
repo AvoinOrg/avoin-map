@@ -3,15 +3,15 @@ import { createFileRoute } from '@tanstack/react-router'
 import {
   getVisibleAppletRootNamespace,
   guardVisibleAppletRootIndexRoute,
-} from '#/start/appletRouteGuards'
-import { VisibleAppletRootRoute } from '#/start/appletRouteComponents'
+} from '#/runtime/appletRouteGuards'
+import { VisibleAppletRootRoute } from '#/runtime/appletRouteComponents'
 import {
   AVOIN_MAP_TITLE,
   ENERGIAKARTTA_TITLE,
   getHiilikarttaHead,
   getStaticAppletHead,
   LUONNONMETSAKARTAT_TITLE,
-} from '#/start/headMetadata'
+} from '#/runtime/headMetadata'
 
 const getVisibleRootHead = (locale: string) => {
   const namespace = getVisibleAppletRootNamespace()

@@ -1,11 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { guardAppletLocale } from '#/start/appletRouteGuards'
-import { EnergiakarttaLayout } from '#/start/appletRouteComponents'
+import { guardAppletLocale } from '#/runtime/appletRouteGuards'
+import { EnergiakarttaLayout } from '#/runtime/appletRouteComponents'
 import {
   ENERGIAKARTTA_TITLE,
   getStaticAppletHead,
-} from '#/start/headMetadata'
+} from '#/runtime/headMetadata'
 
 export const Route = createFileRoute('/$locale/(map)/_map/energymap')({
   beforeLoad: ({ params, location }) => {

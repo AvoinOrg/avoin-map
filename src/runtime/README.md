@@ -1,20 +1,20 @@
-# TanStack Start Shell Notes
+# TanStack Start Runtime Notes
 
-This folder is Start-only scaffolding for the F048 migration.
+This folder is the Start-only runtime adapter for the F048 migration.
 
-- `StartShellProviders` mounts a temporary Tolgee bridge before notifications.
+- `ShellProvider` mounts a temporary Tolgee bridge before notifications.
   It provides the current URL locale with empty sentinel records for the
   `avoin-map`, `fi-forests`, and `energiakartta` namespaces so public map
   applet wrappers can render and missing keys still surface. Full static-data,
   SSR, and live-update behavior belongs to
   `F048.5-tolgee-start-integration`.
-- `StartShellProviders` mounts the local Better Auth `AuthSessionProvider`.
+- `ShellProvider` mounts the local Better Auth `AuthSessionProvider`.
   The temporary React auth alias used earlier in the migration has been removed;
   migrated consumers use `#/common/auth` directly.
-- `StartMapShell` reuses the current client map layout so migrated public map
+- `MapShell` reuses the current client map layout so migrated public map
   routes mount MapLibre, sidebar slots, user/UI state handlers, login modal, and
   confirmation dialogs.
-- `src/start/auth` contains the Start-only Better Auth server foundation. It
+- `src/runtime/auth` contains the Start-only Better Auth server foundation. It
   uses Zitadel OIDC through the Generic OAuth plugin, stateless JWE cookie
   sessions/account storage, and server helpers for normalized session and
   access-token lookup. Later route and client migrations should consume those
@@ -33,7 +33,7 @@ This folder is Start-only scaffolding for the F048 migration.
 - `src/routes/api/auth/$.ts` mounts the Better Auth handler directly through the
   TanStack Start server route tree. The old Start dev proxy and App Router auth
   wrapper have been removed.
-- `vite.start.config.mts` filters `better-auth` out of Vite's client
+- `vite.config.mts` filters `better-auth` out of Vite's client
   dependency optimizer after TanStack Start config resolution. Better Auth's
   package metadata otherwise causes TanStack's package crawler to include it for
   client optimization while the Start core config excludes it as server-only,
@@ -84,7 +84,7 @@ This folder is Start-only scaffolding for the F048 migration.
   provider, dependency metadata, and obsolete env names.
 - `#/common/navigation/navigation` exports the TanStack Router adapter directly
   for shared Start navigation consumers.
-- `vite.start.config.mts` defines loaded `NEXT_PUBLIC_*` environment variables
+- `vite.config.mts` defines loaded `NEXT_PUBLIC_*` environment variables
   for Start client code. This keeps the established public env names while
   migrated shared map layers and shell UI continue to read them.
 - `yarn start:build` is the accepted local Start production build foundation. It
@@ -103,7 +103,7 @@ This folder is Start-only scaffolding for the F048 migration.
 - `nitro.config.ts` keeps Nitro `inlineDynamicImports` enabled so the emitted
   server entry stays at `.output/server/index.mjs` and Nitro's static asset
   reader resolves `.output/public` without a manual `.output` symlink repair.
-- `vite.start.config.mts` keeps `@visx/shape` bundled for SSR so Nitro 2.12 does
+- `vite.config.mts` keeps `@visx/shape` bundled for SSR so Nitro 2.12 does
   not emit an unusable multi-version `@visx/shape` package symlink layout in
   `.output/server/node_modules`.
 - There is no active Start analyzer command. Add a Vite/Rollup analyzer later
@@ -123,10 +123,10 @@ This folder is Start-only scaffolding for the F048 migration.
 - Top-level `yarn dev` now runs `yarn start:dev`, and top-level `yarn start`
   runs the accepted `.output/server/index.mjs` preview path through
   `yarn start:preview`.
-- `vite.start.config.mts` also aliases `maplibre_symbol_utils` to the package's
+- `vite.config.mts` also aliases `maplibre_symbol_utils` to the package's
   ESM entry because the package `main` bundle expects a browser-global
   `maplibregl` during Start SSR.
-- `StartMapShell` imports `configureMapLibreWorker`, which points MapLibre at
+- `MapShell` imports `configureMapLibreWorker`, which points MapLibre at
   the package's emitted CSP worker asset. This avoids the default inlined worker
   bundle used by the Vite/Start build, which currently drops a class-field
   helper required by vector-tile parsing.

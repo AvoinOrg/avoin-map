@@ -1,11 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { guardVisibleAppletRootRoute } from '#/start/appletRouteGuards'
-import { LuonnonmetsakartatVisibleAdminLayout } from '#/start/appletRouteComponents'
+import { guardVisibleAppletRootRoute } from '#/runtime/appletRouteGuards'
+import { LuonnonmetsakartatVisibleAdminLayout } from '#/runtime/appletRouteComponents'
 import {
   getStaticAppletHead,
   LUONNONMETSAKARTAT_ADMIN_TITLE,
-} from '#/start/headMetadata'
+} from '#/runtime/headMetadata'
 
 export const Route = createFileRoute('/$locale/(map)/_map/admin')({
   beforeLoad: ({ params, location }) => {

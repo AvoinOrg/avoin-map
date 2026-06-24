@@ -8,7 +8,7 @@ import {
   ARIMO_GOOGLE_FONTS_STYLESHEET,
 } from '#/common/style/theme/fonts'
 import { getUmamiScriptConfig } from '#/common/utils/umami'
-import { getStartStaticData } from '#/start/tolgee/staticData'
+import { getStartStaticData } from '#/runtime/tolgee/staticData'
 
 export const AVOIN_MAP_TITLE = 'Avoin Map'
 export const ENERGIAKARTTA_TITLE = 'Energiakartta'

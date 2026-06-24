@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { EnergiakarttaIndexRoute } from '#/start/appletRouteComponents'
+import { EnergiakarttaIndexRoute } from '#/runtime/appletRouteComponents'
 
 const EnergyMapRouteComponent = () => {
   const { locale } = Route.useParams()

@@ -8,7 +8,7 @@ import {
 import type { ReactNode } from 'react'
 
 import { arimo } from '#/common/style/theme/fonts'
-import { getRootHead } from '#/start/headMetadata'
+import { getRootHead } from '#/runtime/headMetadata'
 
 const getDocumentLanguage = (pathname: string) => {
   const [locale] = pathname.split('/').filter(Boolean)

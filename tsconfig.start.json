@@ -16,16 +16,16 @@
     }
   },
   "include": [
-    "vite.start.config.mts",
+    "vite.config.mts",
     "src/client.tsx",
     "src/server.tsx",
     "src/router.tsx",
     "src/routeTree.gen.ts",
     "src/routes/**/*.ts",
     "src/routes/**/*.tsx",
-    "src/start/**/*.ts",
-    "src/start/**/*.tsx",
-    "src/start/**/*.d.ts",
+    "src/runtime/**/*.ts",
+    "src/runtime/**/*.tsx",
+    "src/runtime/**/*.d.ts",
     "src/common/types/**/*.d.ts",
     "src/applets/**/*.d.ts",
     "src/startBootstrapMarker.ts"

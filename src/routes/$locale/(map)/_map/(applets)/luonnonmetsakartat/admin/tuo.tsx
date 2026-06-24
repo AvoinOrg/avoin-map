@@ -1,10 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { LuonnonmetsakartatImportRoute } from '#/start/appletRouteComponents'
+import { LuonnonmetsakartatImportRoute } from '#/runtime/appletRouteComponents'
 import {
   getStaticAppletHead,
   LUONNONMETSAKARTAT_IMPORT_TITLE,
-} from '#/start/headMetadata'
+} from '#/runtime/headMetadata'
 
 export const Route = createFileRoute(
   '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/tuo'

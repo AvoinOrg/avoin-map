@@ -1,6 +1,6 @@
-import { getStartAuthEnv } from '#/start/auth/env'
-import { appendStartAuthSetCookieHeaders } from '#/start/auth/sessionCore'
-import type { StartAccessTokenResult, StartAuthEnv } from '#/start/auth/types'
+import { getStartAuthEnv } from '#/runtime/auth/env'
+import { appendStartAuthSetCookieHeaders } from '#/runtime/auth/sessionCore'
+import type { StartAccessTokenResult, StartAuthEnv } from '#/runtime/auth/types'
 
 type AccessTokenGetter = ({
   request,

@@ -1,16 +1,16 @@
 import { Outlet, createFileRoute } from '@tanstack/react-router'
 
 import { getLocaleObj } from '#/common/navigation/tolgee/shared'
-import StartShellProviders from '#/start/StartShellProviders'
-import { getStartStaticData } from '#/start/tolgee/staticData'
+import ShellProvider from '#/runtime/ShellProvider'
+import { getStartStaticData } from '#/runtime/tolgee/staticData'
 
 const LocaleLayout = () => {
   const { locale, tolgeeStaticData } = Route.useLoaderData()
 
   return (
-    <StartShellProviders locale={locale} tolgeeStaticData={tolgeeStaticData}>
+    <ShellProvider locale={locale} tolgeeStaticData={tolgeeStaticData}>
       <Outlet />
-    </StartShellProviders>
+    </ShellProvider>
   )
 }
 

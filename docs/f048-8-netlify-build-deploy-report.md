@@ -106,7 +106,7 @@ All commands below were run from `/workspace/project`.
 | `yarn test utils/scripts/writeNetlifyRedirects.test.js --runInBand` | Pass, 5 tests |
 | `yarn test src/common/routing/requestRouting.test.ts --runInBand` | Pass, 38 tests |
 | `yarn start:typecheck` | Pass |
-| `yarn eslint utils/scripts/writeNetlifyRedirects.js utils/scripts/writeNetlifyRedirects.test.js utils/scripts/buildFromFolderPruneTmp.js utils/scripts/prebuildFolderPruneTmp.js vite.start.config.mts eslint.config.mjs utils/visual/impactMap.js __tests__/visual/impactMap.test.js` | Pass |
+| `yarn eslint utils/scripts/writeNetlifyRedirects.js utils/scripts/writeNetlifyRedirects.test.js utils/scripts/buildFromFolderPruneTmp.js utils/scripts/prebuildFolderPruneTmp.js vite.config.mts eslint.config.mjs utils/visual/impactMap.js __tests__/visual/impactMap.test.js` | Pass |
 | `NEXT_PUBLIC_COMPILED_APPLETS=main,energiakartta,hiilikartta,luonnonmetsakartat NEXT_PUBLIC_APPLET_ENERGIAKARTTA_DOMAIN=https://energy.example.test NETLIFY_REDIRECTS_BASE_URL=https://main.example.netlify.app yarn build:netlify` | Pass |
 | `NEXT_PUBLIC_COMPILED_APPLETS=hiilikartta NETLIFY_REDIRECTS_BASE_URL=https://hiilikartta.example.netlify.app yarn build:netlify` | Pass |
 | `NEXT_PUBLIC_COMPILED_APPLETS=luonnonmetsakartat NETLIFY_REDIRECTS_BASE_URL=https://luonnonmetsakartat.example.netlify.app yarn build:netlify` | Pass |

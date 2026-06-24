@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { HiilikarttaPlanLayoutRoute } from '#/start/appletRouteComponents'
+import { HiilikarttaPlanLayoutRoute } from '#/runtime/appletRouteComponents'
 
 export const Route = createFileRoute('/$locale/(map)/_map/kaavat/$planId')({
   component: HiilikarttaPlanLayoutRoute,

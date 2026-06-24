@@ -21,7 +21,7 @@ type Props = {
   children: ReactNode
 }
 
-const StartShellProviders = ({
+const ShellProvider = ({
   locale,
   tolgeeStaticData,
   children,
@@ -43,4 +43,4 @@ const StartShellProviders = ({
   )
 }
 
-export default StartShellProviders
+export default ShellProvider

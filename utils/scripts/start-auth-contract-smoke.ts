@@ -6,8 +6,8 @@ import {
   appendStartAuthSetCookieHeaders,
   getStartAccessToken,
   getStartAuthSession,
-} from '../../src/start/auth/session'
-import { getStartAuth } from '../../src/start/auth/server'
+} from '../../src/runtime/auth/session'
+import { getStartAuth } from '../../src/runtime/auth/server'
 
 type HeadersWithSetCookieList = Headers & {
   getSetCookie?: () => string[]

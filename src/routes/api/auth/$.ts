@@ -1,7 +1,7 @@
 import { createServerFileRoute } from '@tanstack/react-start/server'
 
-import { rewriteStartAuthRequest } from '#/start/auth/request'
-import { getStartAuth } from '#/start/auth/server'
+import { rewriteStartAuthRequest } from '#/runtime/auth/request'
+import { getStartAuth } from '#/runtime/auth/server'
 
 const handleStartBetterAuthRequest = (request: Request) =>
   getStartAuth().handler(rewriteStartAuthRequest(request))

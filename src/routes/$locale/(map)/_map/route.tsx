@@ -1,11 +1,11 @@
 import { Outlet, createFileRoute } from '@tanstack/react-router'
 
-import StartMapShell from '#/start/StartMapShell'
+import MapShell from '#/runtime/MapShell'
 
 const MapLayout = () => (
-  <StartMapShell>
+  <MapShell>
     <Outlet />
-  </StartMapShell>
+  </MapShell>
 )
 
 export const Route = createFileRoute('/$locale/(map)/_map')({

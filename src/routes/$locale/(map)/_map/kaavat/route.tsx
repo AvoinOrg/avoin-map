@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { guardVisibleAppletRootRoute } from '#/start/appletRouteGuards'
-import { HiilikarttaVisiblePlansLayoutRoute } from '#/start/appletRouteComponents'
-import { getHiilikarttaHead } from '#/start/headMetadata'
+import { guardVisibleAppletRootRoute } from '#/runtime/appletRouteGuards'
+import { HiilikarttaVisiblePlansLayoutRoute } from '#/runtime/appletRouteComponents'
+import { getHiilikarttaHead } from '#/runtime/headMetadata'
 
 export const Route = createFileRoute('/$locale/(map)/_map/kaavat')({
   beforeLoad: ({ params, location }) => {
