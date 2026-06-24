@@ -10,6 +10,7 @@ const VISIBLE_REDIRECT_STATUS = '301!'
 
 const AUTO_GENERATED_COMMENT =
   '# --- AUTO-GENERATED RULES FROM writeNetlifyRedirects.js ---'
+const NETLIFY_SERVER_FALLBACK_RULE = '/* /.netlify/functions/server 200'
 
 const START_STATIC_SPLAT_PATHS = [
   '/assets/*',
@@ -385,12 +386,14 @@ const generateNetlifyRedirects = ({
     }
   }
 
+  const allRules = [...rules, NETLIFY_SERVER_FALLBACK_RULE]
+
   return `${AUTO_GENERATED_COMMENT}
 # Generated for TanStack Start Netlify output. Specific static/API rules must
 # stay before the applet domain catch-all rewrites below.
 ${baseUrl ? `# Proxy target: ${baseUrl}` : '# Proxy target: same Netlify site'}
 
-${rules.join('\n')}
+${allRules.join('\n')}
 `
 }
 

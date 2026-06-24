@@ -125,6 +125,10 @@ describe('writeNetlifyRedirects', () => {
     expect(redirects).not.toContain(
       `${hiilikarttaDomain}/* ${mainBaseUrl}/fi/hiilikartta/:splat 200!`
     )
+    expect(redirects).toContain('/* /.netlify/functions/server 200')
+    expect(redirects.trim().endsWith('/* /.netlify/functions/server 200')).toBe(
+      true
+    )
     expect(redirects).not.toContain('_next')
     expect(redirects).not.toContain('.next')
 
@@ -307,5 +311,29 @@ describe('writeNetlifyRedirects', () => {
       status: '301!',
     })
     expect(redirects).not.toContain('luonnonmetsakartat.avoin.org')
+    expect(redirects.trim().endsWith('/* /.netlify/functions/server 200')).toBe(
+      true
+    )
+  })
+
+  it('keeps a same-site Netlify server fallback when no applet domains are configured', () => {
+    const redirects = generateNetlifyRedirects({
+      appletConf,
+      baseUrl: null,
+      compiledApplets: parseCompiledApplets('energiakartta'),
+      env: {},
+    })
+
+    const rules = parseGeneratedRules(redirects)
+
+    expect(rules).toEqual([
+      {
+        from: '/*',
+        to: '/.netlify/functions/server',
+        status: '200',
+      },
+    ])
+    expect(redirects).not.toContain('_next')
+    expect(redirects).not.toContain('.next')
   })
 })

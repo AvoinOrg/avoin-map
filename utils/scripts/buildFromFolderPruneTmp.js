@@ -9,6 +9,7 @@
 const fs = require('fs')
 const path = require('path')
 const { spawnSync } = require('child_process')
+const crypto = require('crypto')
 
 const projectRoot = path.join(__dirname, '..', '..')
 const statePath = path.join(projectRoot, '.applet-build-tmp.json')
@@ -43,6 +44,9 @@ const TEXT_EXTENSIONS = new Set([
   '.mjs',
   '.txt',
 ])
+
+const NITRO_PUBLIC_ASSET_ENTRY_RE =
+  /\{type:(?<type>"(?:\\.|[^"])*"|'(?:\\.|[^'])*'|[^,{}]+)(?<encoding>,encoding:(?:"(?:\\.|[^"])*"|'(?:\\.|[^'])*'|[^,{}]+))?,etag:(?<etag>"(?:\\.|[^"])*"|'(?:\\.|[^'])*'),mtime:"(?<mtime>[^"]*)",size:(?<size>\d+),path:"(?<assetPath>\.\.\/public\/[^"]+)"(?<rest>[^{}]*)\}/g
 
 const die = (msg) => {
   console.error(msg)
@@ -161,6 +165,78 @@ const isTextOutputFile = (filePath) => {
   if (basename === 'manifest') return true
 
   return TEXT_EXTENSIONS.has(path.extname(filePath))
+}
+
+const quoteJsString = (value) => {
+  if (!value.includes("'")) return `'${value}'`
+  return JSON.stringify(value)
+}
+
+const createStrongEntityTag = (data) => {
+  if (data.length === 0) return '"0-2jmj7l5rSw0yVb/vlWAYkK/YBwk"'
+
+  const hash = crypto
+    .createHash('sha1')
+    .update(data, 'utf8')
+    .digest('base64')
+    .substring(0, 27)
+
+  return `"${data.length.toString(16)}-${hash}"`
+}
+
+const refreshNitroPublicAssetMetadata = ({ serverEntryPath }) => {
+  if (!fs.existsSync(serverEntryPath)) {
+    return { checkedAssets: 0, updatedAssets: 0 }
+  }
+
+  const serverDir = path.dirname(serverEntryPath)
+  let checkedAssets = 0
+  let updatedAssets = 0
+  const source = fs.readFileSync(serverEntryPath, 'utf8')
+
+  const refreshed = source.replace(
+    NITRO_PUBLIC_ASSET_ENTRY_RE,
+    (entry, ...args) => {
+      const groups = args.at(-1)
+      const publicAssetPath = path.resolve(serverDir, groups.assetPath)
+
+      if (!fs.existsSync(publicAssetPath)) {
+        throw new Error(
+          `Nitro public asset metadata references missing file: ${publicAssetPath}`
+        )
+      }
+
+      checkedAssets += 1
+
+      const data = fs.readFileSync(publicAssetPath)
+      const stat = fs.statSync(publicAssetPath)
+      const nextEntry = entry
+        .replace(
+          /etag:(?:"(?:\\.|[^"])*"|'(?:\\.|[^'])*')/,
+          `etag:${quoteJsString(createStrongEntityTag(data))}`
+        )
+        .replace(
+          /mtime:"[^"]*"/,
+          `mtime:${JSON.stringify(stat.mtime.toJSON())}`
+        )
+        .replace(/size:\d+/, `size:${stat.size}`)
+
+      if (nextEntry !== entry) updatedAssets += 1
+      return nextEntry
+    }
+  )
+
+  if (refreshed !== source) {
+    fs.writeFileSync(serverEntryPath, refreshed, 'utf8')
+  }
+
+  if (checkedAssets > 0 && updatedAssets > 0) {
+    console.log(
+      `buildFromFolderPruneTmp: refreshed Nitro public asset metadata for ${updatedAssets}/${checkedAssets} asset(s)`
+    )
+  }
+
+  return { checkedAssets, updatedAssets }
 }
 
 const rewriteTmpPathsInOutputs = ({ tmpRoot, outputDirs }) => {
@@ -286,6 +362,14 @@ const main = () => {
     })
     copyStartOutputBack(tmpRoot)
     rewriteTmpPathsInOutputs({ tmpRoot, outputDirs: ['.output'] })
+    const metadataRefresh = refreshNitroPublicAssetMetadata({
+      serverEntryPath: path.join(projectRoot, '.output', 'server', 'index.mjs'),
+    })
+    if (metadataRefresh.checkedAssets === 0) {
+      die(
+        'buildFromFolderPruneTmp: found no Nitro public asset metadata to refresh in .output/server/index.mjs'
+      )
+    }
     copyGeneratedPublicBack(tmpRoot)
     cleanup(tmpRoot)
   } catch (e) {
@@ -300,4 +384,10 @@ const main = () => {
   }
 }
 
-main()
+if (require.main === module) {
+  main()
+}
+
+module.exports = {
+  refreshNitroPublicAssetMetadata,
+}
