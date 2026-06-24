@@ -1,9 +1,15 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
-import { startBootstrapHeading } from '#/startBootstrapMarker'
+import { DEFAULT_LOCALE } from '#/common/navigation/tolgee/shared'
 
-const IndexRoute = () => <h1>{startBootstrapHeading}</h1>
+const IndexRoute = () => null
 
 export const Route = createFileRoute('/')({
+  beforeLoad: () => {
+    throw redirect({
+      href: `/${DEFAULT_LOCALE}`,
+      statusCode: 308,
+    })
+  },
   component: IndexRoute,
 })

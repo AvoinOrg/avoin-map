@@ -49,8 +49,7 @@
     "src/runtime/**/*.tsx",
     "src/runtime/**/*.d.ts",
     "src/common/types/**/*.d.ts",
-    "src/applets/**/*.d.ts",
-    "src/startBootstrapMarker.ts"
+    "src/applets/**/*.d.ts"
   ],
   "exclude": [
     "node_modules"
