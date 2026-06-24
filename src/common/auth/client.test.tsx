@@ -45,8 +45,8 @@ const {
   useAuthSession,
 } = jest.requireActual<typeof import('#/common/auth')>('#/common/auth')
 const UserStateHandler = jest.requireActual<
-  typeof import('#/app/[locale]/(map)/userStateHandler')
->('#/app/[locale]/(map)/userStateHandler').default
+  typeof import('#/runtime/ShellComponents/userStateHandler')
+>('#/runtime/ShellComponents/userStateHandler').default
 const { useUserStore } = jest.requireActual<
   typeof import('#/common/store/userStore')
 >('#/common/store/userStore')

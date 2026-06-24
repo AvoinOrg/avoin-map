@@ -82,7 +82,7 @@ Start file route target convention is `$param`.
 | Current Next App Router path | Intended TanStack Start shape |
 | --- | --- |
 | `src/app/[locale]/layout.tsx` | `src/routes/$locale/route.tsx` |
-| `src/app/[locale]/(map)/layout.tsx` | `src/routes/$locale/(map)/_map/route.tsx` |
+| Legacy map shell client components | `src/runtime/ShellComponents/**`, mounted by `src/routes/$locale/(map)/_map/route.tsx` |
 | `src/applets/main/page.tsx` | Future main-app index under the `$locale` map shell; F048.3 should choose the collision-free file once root URL behavior is migrated. |
 | `src/applets/forests/page.tsx` | `src/routes/$locale/(map)/_map/(applets)/forests/index.tsx` |
 | `src/applets/hiilikartta/pages/page.tsx` | `src/routes/$locale/(map)/_map/(applets)/hiilikartta/index.tsx` |

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 
 import '#/runtime/configureMapLibreWorker'
-import MapLayoutClient from 'map/layoutClient'
+import MapLayoutClient from './layoutClient'
 
 type Props = {
   children: ReactNode

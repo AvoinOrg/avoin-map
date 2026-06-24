@@ -1,6 +1,6 @@
 import { Outlet, createFileRoute } from '@tanstack/react-router'
 
-import MapShell from '#/runtime/MapShell'
+import MapShell from '#/runtime/ShellComponents/MapShell'
 
 const MapLayout = () => (
   <MapShell>
