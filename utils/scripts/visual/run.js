@@ -35,11 +35,13 @@ const {
 
 const DEFAULT_MIN_NON_WHITE_PIXELS = 500
 const VISUAL_CONTENT_WHITE_THRESHOLD = 248
+const DEFAULT_APP_BASE_URL = 'http://127.0.0.1:3000'
+const DEFAULT_START_COMMAND = 'yarn start:dev'
 
 const HELP_TEXT = `\
 Usage:
-  node utils/scripts/visual/run.js --mode=baseline [--base-url=http://127.0.0.1:3000]
-  node utils/scripts/visual/run.js --mode=changed [--files=a.tsx,b.tsx] [--base-url=http://127.0.0.1:3000]
+  node utils/scripts/visual/run.js --mode=baseline [--base-url=${DEFAULT_APP_BASE_URL}]
+  node utils/scripts/visual/run.js --mode=changed [--files=a.tsx,b.tsx] [--base-url=${DEFAULT_APP_BASE_URL}]
   node utils/scripts/visual/run.js --mode=changed --base-url=http://localhost:3000 --storage-state=.dev/browser-state/localhost-3000.storage-state.json
 
 Options:
@@ -47,16 +49,16 @@ Options:
   --browser-mode <mode>       Browser mode: ${SUPPORTED_BROWSER_MODES.join('|')} (default: ${BROWSER_MODE_AUTO})
   --scenario-set <set>        Scenario set: ${SUPPORTED_SCENARIO_SETS.join('|')} (default: ${DEFAULT_SCENARIO_SET})
   --files <csv>               Comma-separated changed files for targeted mode
-  --base-url <url>            Base URL for the running Next.js app
+  --base-url <url>            Base URL for the running TanStack Start app
   --storage-state <path>      Playwright storage state JSON (cookies/localStorage/IndexedDB)
-  --start-command <cmd>       Command used if the dev server is not already running (default: yarn dev)
+  --start-command <cmd>       Command used if the dev server is not already running (default: ${DEFAULT_START_COMMAND})
   --no-start                  Fail instead of attempting to start the dev server
   --help                      Show this help
 
 Behavior:
   The runner probes --base-url first and reuses an existing dev server when reachable.
   Browser navigation remaps http://127.0.0.1:<port> to http://localhost:<port>
-  because the current Next.js dev HMR path does not hydrate reliably at numeric loopback.
+  so captures share localhost-origin browser state with host/container workflows.
   It only spawns a temporary server with --start-command as a fallback (unless --no-start is set).
   Captures fail when the screenshot is blank or near-blank after visual masks are applied.
   Browser mode "auto" switches WebGL scenarios to Xvfb-backed Chromium and keeps
@@ -88,7 +90,7 @@ const parseArgs = (argv) => {
     files: [],
     baseUrl: null,
     storageState: null,
-    startCommand: 'yarn dev',
+    startCommand: DEFAULT_START_COMMAND,
     noStart: false,
     help: false,
   }
@@ -185,10 +187,7 @@ const parseArgs = (argv) => {
   return args
 }
 
-const getDefaultBaseUrl = () => {
-  const port = process.env.DEV_PORT || '3000'
-  return `http://127.0.0.1:${port}`
-}
+const getDefaultBaseUrl = () => DEFAULT_APP_BASE_URL
 
 const trimTrailingSlash = (value) => String(value || '').replace(/\/+$/, '')
 

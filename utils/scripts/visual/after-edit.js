@@ -13,7 +13,8 @@ Usage:
 
 Behavior:
   Runs the visual regression runner in changed mode.
-  Targets http://127.0.0.1:3000 by default (reuse running dev server first).
+  Targets the local TanStack Start dev server at http://127.0.0.1:3000 by default.
+  Reuses a running dev server first.
   If no files are provided, the underlying runner falls back to git-detected changes.
 
 Options:

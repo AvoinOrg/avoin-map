@@ -27,7 +27,7 @@ keep_devcontainer_alive() {
 if [ "${NODE_ENV:-development}" = "production" ]; then
     yarn workspaces focus -A --production
     yarn build
-    yarn start
+    PORT="${PORT:-3000}" yarn start
 else
     bootstrap_dev_app
     if [ "${DEVCONTAINER_KEEPALIVE:-0}" = "1" ]; then

@@ -1,20 +1,28 @@
 # TanStack Start Dual-Stack Build Foundation
 
 This repository is intentionally dual-stack while the F048 migration is in
-progress. Next.js remains the production app and still owns the existing
-`dev`, `build`, `start`, `prebuild`, `prebuild-dev`, `build-prune`, and visual
-scripts.
+progress. TanStack Start now owns the active local `dev`, `build`, `start`,
+`prebuild`, `prebuild-dev`, `build-prune`, and visual-script runtime path. The
+Next.js tree remains in the repository for source compatibility during the
+migration.
 
 The Start-specific command path is now a real Vite/Nitro build and preview
 foundation. Use these scripts:
 
-- `yarn start:dev`: runs the Start dev server on port `3001`.
+- `yarn start:dev`: runs the Start dev server on port `3000`.
 - `yarn start:build`: runs `vite build --config vite.start.config.mts` and emits
   TanStack Start client assets plus the Nitro server output.
 - `yarn start:preview`: serves `.output/server/index.mjs` on port `3002` by
   default and supplies Node's `production` export condition for package exports
   such as Tolgee. Override with `PORT=<port> yarn start:preview`.
 - `yarn start:typecheck`: type-checks the active Start app/config surface.
+
+Top-level local commands route through that foundation:
+
+- `yarn dev`: runs `yarn start:dev`.
+- `yarn start`: runs `yarn start:preview`.
+- `yarn clean`: removes Start output/cache directories (`.output`,
+  `.tanstack`, `.nitro`, and `node_modules/.cache`).
 
 The local Start output contract is:
 
@@ -80,10 +88,12 @@ Later F048.8 handoffs:
   decide how generated `public/files` and `public/lib` assets are prepared
   before Start build. This child does not rewrite pruning or generated asset
   copying.
-- `F048.8.3-local-runtime-docker-visual`: use `yarn start:preview` as the local
-  built-output runtime. It defaults to port `3002` and supports `PORT=<port>`
-  overrides without editing scripts. Keep the production export condition when
-  translating this command into Docker/runtime entrypoints.
+- `F048.8.3-local-runtime-docker-visual`: completed the local runtime, Docker,
+  and visual-runner migration to Start-compatible commands. Docker passes
+  `PORT=3000` to the preview runtime so compose can keep mapping host
+  `DEV_PORT` to container port `3000`; the reusable `yarn start:preview`
+  script itself still defaults to port `3002` and supports `PORT=<port>`
+  overrides without editing scripts.
 - `F048.8.4-netlify-deploy-build-matrix`: no Netlify Start plugin, Nitro preset,
   publish directory, or redirect config is added here. The verified local
   output is Nitro `node-server` with inline server output at

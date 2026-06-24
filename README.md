@@ -5,7 +5,9 @@ available at https://map.avoin.org.
 
 ## Development
 
-The app uses Next.js (App Router) and runs via Docker Compose.
+The app runs local development through TanStack Start via Docker Compose. The
+repository still contains Next.js App Router source while the Start migration is
+in progress.
 
 Create `.env` from `.env.template`, then set at least:
 
@@ -42,13 +44,19 @@ Run the development app:
 docker compose -f docker-compose.dev.yml up
 ```
 
-The app serves on `http://localhost:3000` unless `DEV_PORT` overrides it.
+The app container runs the Start dev server on internal port `3000`. From the
+host, the app serves on `http://localhost:3000` unless `DEV_PORT` overrides the
+published port.
 
 Run the production image flow:
 
 ```bash
 docker compose -f docker-compose.prod.yml up
 ```
+
+The production image flow builds the Start output and serves
+`.output/server/index.mjs` through `yarn start:preview` on container port
+`3000`.
 
 ## Commits
 

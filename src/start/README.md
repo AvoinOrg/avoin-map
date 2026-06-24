@@ -132,10 +132,16 @@ This folder is Start-only scaffolding for the F048 migration.
   pruned, `utils/scripts/prepareGeneratedPublicAssets.js` creates
   `public/files` and `public/lib/sql-wasm.wasm` in that temp workspace,
   `yarn start:build` emits `.output`, and the wrapper copies `.output` plus
-  generated public assets back to the live workspace. `F048.8.3` owns Docker
-  and visual-runtime migration to the Start preview command. `F048.8.4` owns
-  Netlify presets, publish directories, redirects, and deploy build matrix
+  generated public assets back to the live workspace. `F048.8.3` completed the
+  Docker and visual-runtime migration to the Start preview command. `F048.8.4`
+  owns Netlify presets, publish directories, redirects, and deploy build matrix
   changes.
+- `yarn start:dev` runs the local Start dev server on port `3000`, matching the
+  Docker container's internal app port. `DEV_PORT` remains the host-facing
+  Docker Compose published port.
+- Top-level `yarn dev` now runs `yarn start:dev`, and top-level `yarn start`
+  runs the accepted `.output/server/index.mjs` preview path through
+  `yarn start:preview`.
 - `vite.start.config.mts` also aliases `maplibre_symbol_utils` to the package's
   ESM entry because the package `main` bundle expects a browser-global
   `maplibregl` during Start SSR.

@@ -5,9 +5,9 @@
   "repository": "git@github.com:ButtonProgram/climate-map.git",
   "license": "SSPL-1.0",
   "scripts": {
-    "start": "next start",
-    "dev": "next dev --webpack",
-    "clean": "rm -rf .next node_modules/.cache",
+    "start": "yarn start:preview",
+    "dev": "yarn start:dev",
+    "clean": "rm -rf .output .tanstack .nitro node_modules/.cache",
     "prebuild-dev": "node ./utils/scripts/downloadTranslations.js",
     "prebuild": "yarn run prebuild-dev && node ./utils/scripts/prebuildFolderPruneTmp.js",
     "build": "yarn run prebuild && node ./utils/scripts/buildFromFolderPruneTmp.js",
