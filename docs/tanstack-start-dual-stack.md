@@ -1,25 +1,66 @@
-# TanStack Start Dual-Stack Bootstrap
+# TanStack Start Dual-Stack Build Foundation
 
 This repository is intentionally dual-stack while the F048 migration is in
 progress. Next.js remains the production app and still owns the existing
 `dev`, `build`, `start`, `prebuild`, `prebuild-dev`, `build-prune`, and visual
 scripts.
 
-TanStack Start currently exists only as a toolchain proof with a minimal
-placeholder route. Use these Start-specific scripts:
+The Start-specific command path is now a real Vite/Nitro build and preview
+foundation. Use these scripts:
 
 - `yarn start:dev`: runs the Start dev server on port `3001`.
-- `yarn start:build`: builds the Start placeholder app through Vite and Nitro.
-- `yarn start:preview`: serves the built Start output from `.output` on port
-  `3002`.
-- `yarn start:typecheck`: type-checks only the Start bootstrap files.
+- `yarn start:build`: runs `vite build --config vite.start.config.mts` and emits
+  TanStack Start client assets plus the Nitro server output.
+- `yarn start:preview`: serves `.output/server/index.mjs` on port `3002` by
+  default and supplies Node's `production` export condition for package exports
+  such as Tolgee. Override with `PORT=<port> yarn start:preview`.
+- `yarn start:typecheck`: type-checks the active Start app/config surface.
+
+The local Start output contract is:
+
+- server entry: `.output/server/index.mjs`
+- public client/static output: `.output/public`
+- Start client build assets: `.output/public/assets`
+- Vite manifest: `.output/public/.vite/manifest.json`
+
+Preview should run directly from that output. Do not create or repair `.output`
+symlinks as part of normal Start preview verification.
 
 The Start Vite config is `vite.start.config.mts`. It uses the Start Vite plugin,
 the React Vite plugin, and `vite-tsconfig-paths` pointed at
 `tsconfig.base.json` so existing aliases such as `#/*`, `applets/*`, and
-`@i18n/*` resolve consistently. The placeholder route imports only
-`#/startBootstrapMarker` to prove alias resolution without pulling in applet,
-Tolgee, auth, map, or Next-only runtime code.
+`@i18n/*` resolve consistently. It also preserves the temporary
+`NEXT_PUBLIC_*` define bridge used by migrated shared code. The SSR build keeps
+`@visx/shape` bundled with the server build instead of externalizing it; Nitro
+2.12 otherwise traces multiple `@visx/shape` versions into a package symlink
+layout that Node cannot load from `.output/server/index.mjs`.
+
+The Start Nitro config is `nitro.config.ts`. The installed Start plugin loads
+this through Nitro's normal config loader while still constructing the Start
+renderer internally. It keeps `inlineDynamicImports` enabled so the Node server
+entry remains `.output/server/index.mjs` and Nitro's generated static asset
+reader resolves `.output/public` correctly without a symlink.
+
+The preview command sets `NODE_OPTIONS="--conditions=production"` while
+preserving any existing `NODE_OPTIONS` value. This matches the files Nitro
+traces for packages with production export conditions and prevents the built
+server from selecting development-only package entries at runtime.
+
+Production-debug behavior uses the existing
+`NEXT_PUBLIC_DEBUG_CLIENT_ERRORS=1` flag. For Start builds this enables browser
+sourcemaps and disables client JS/CSS minification through Vite `build`
+options. The same flag also enables Nitro sourcemaps and disables Nitro
+minification through `nitro.config.ts`.
+
+No Start analyzer command is active in this child. `yarn build-analyze` remains
+the temporary Next/top-level analyzer because it runs `yarn build`, and
+`@next/bundle-analyzer` is not used for Start builds. A later cleanup can add a
+Vite/Rollup analyzer if Start bundle analysis is still needed.
+
+The Start client graph currently needs no explicit global `Buffer` polyfill.
+Vite externalizes Node built-ins such as `fs`, `path`, and `crypto` for browser
+compatibility in inactive GeoPackage/better-sqlite3 branches; no broader
+polyfill is added until a Start route proves it needs one at runtime.
 
 Generated routing is handled by the Start/Router Vite plugin. The generated
 `src/routeTree.gen.ts` file is committed because `src/router.tsx` imports it
@@ -32,7 +73,23 @@ Route-file conventions for the migration scaffold are documented in
 `src/routes`; do not move them into the production Next App Router tree under
 `src/app` during the dual-stack phase.
 
-Temporary pieces and later owners:
+Later F048.8 handoffs:
+
+- `F048.8.2-applet-pruning-generated-assets`: replace the top-level
+  applet-pruned `yarn build` flow with the Start output contract above and
+  decide how generated `public/files` and `public/lib` assets are prepared
+  before Start build. This child does not rewrite pruning or generated asset
+  copying.
+- `F048.8.3-local-runtime-docker-visual`: use `yarn start:preview` as the local
+  built-output runtime. It defaults to port `3002` and supports `PORT=<port>`
+  overrides without editing scripts. Keep the production export condition when
+  translating this command into Docker/runtime entrypoints.
+- `F048.8.4-netlify-deploy-build-matrix`: no Netlify Start plugin, Nitro preset,
+  publish directory, or redirect config is added here. The verified local
+  output is Nitro `node-server` with inline server output at
+  `.output/server/index.mjs` and public assets in `.output/public`.
+
+Earlier migration owners:
 
 - Minimal route convention and placeholder routes:
   `F048.2.2-start-route-convention-scaffold`.

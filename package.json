@@ -15,7 +15,7 @@
     "build-analyze": "ANALYZE=true yarn build",
     "start:dev": "vite dev --config vite.start.config.mts",
     "start:build": "vite build --config vite.start.config.mts",
-    "start:preview": "PORT=3002 node .output/server/index.mjs",
+    "start:preview": "NODE_OPTIONS=\"${NODE_OPTIONS:+$NODE_OPTIONS }--conditions=production\" PORT=${PORT:-3002} node .output/server/index.mjs",
     "start:typecheck": "tsc --project tsconfig.start.json --noEmit",
     "start:auth-smoke": "node --import tsx utils/scripts/start-auth-contract-smoke.ts",
     "lint": "eslint .",

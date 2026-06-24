@@ -104,8 +104,33 @@ This folder is Start-only scaffolding for the F048 migration.
   `F048.6` and later `F048.3` siblings.
 - `vite.start.config.mts` defines loaded `NEXT_PUBLIC_*` environment variables
   for Start client code. This is a temporary Next-public-env compatibility
-  bridge for migrated shared map layers and shell UI; full build/deploy parity
-  belongs to `F048.8`.
+  bridge for migrated shared map layers and shell UI.
+- `yarn start:build` is the accepted local Start production build foundation. It
+  emits the Nitro server entry at `.output/server/index.mjs`, public output at
+  `.output/public`, built client assets under `.output/public/assets`, and the
+  Vite manifest at `.output/public/.vite/manifest.json`.
+- `yarn start:preview` runs that Nitro server output directly. It defaults to
+  port `3002`, preserves existing `NODE_OPTIONS`, and adds Node's
+  `--conditions=production` export condition so runtime package resolution
+  matches Nitro's traced production files. Use
+  `PORT=<port> yarn start:preview` when the default port is busy. No `.output`
+  symlink repair is expected.
+- `NEXT_PUBLIC_DEBUG_CLIENT_ERRORS=1` now applies to Start builds by enabling
+  browser sourcemaps and disabling client JS/CSS minification in Vite. The same
+  flag controls Start Nitro sourcemaps/minification through `nitro.config.ts`.
+- `nitro.config.ts` keeps Nitro `inlineDynamicImports` enabled so the emitted
+  server entry stays at `.output/server/index.mjs` and Nitro's static asset
+  reader resolves `.output/public` without a manual `.output` symlink repair.
+- `vite.start.config.mts` keeps `@visx/shape` bundled for SSR so Nitro 2.12 does
+  not emit an unusable multi-version `@visx/shape` package symlink layout in
+  `.output/server/node_modules`.
+- There is no active Start analyzer command in this child. `yarn build-analyze`
+  still belongs to the temporary Next-owned `yarn build` path until a later
+  F048.8/F048.9 cleanup adds a Vite/Rollup analyzer or removes analyzer support.
+- `F048.8.2` owns replacing applet pruning and generated `public/files` /
+  `public/lib` preparation for Start. `F048.8.3` owns Docker and visual-runtime
+  migration to the Start preview command. `F048.8.4` owns Netlify presets,
+  publish directories, redirects, and deploy build matrix changes.
 - `vite.start.config.mts` also aliases `maplibre_symbol_utils` to the package's
   ESM entry because the package `main` bundle expects a browser-global
   `maplibregl` during Start SSR.

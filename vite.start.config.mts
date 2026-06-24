@@ -18,18 +18,32 @@ const maplibreSymbolUtilsEsm = fileURLToPath(
   )
 )
 
-const getStartPublicEnv = (mode: string) => {
-  const env = {
-    ...loadEnv(mode, process.cwd(), ''),
-    ...process.env,
-  }
+type StartLoadedEnv = Record<string, string | undefined>
 
-  return Object.fromEntries(
+const getStartLoadedEnv = (mode: string): StartLoadedEnv => ({
+  ...loadEnv(mode, process.cwd(), ''),
+  ...process.env,
+})
+
+const getStartPublicEnvDefines = (env: StartLoadedEnv) =>
+  Object.fromEntries(
     Object.entries(env)
       .filter(([key, value]) => key.startsWith('NEXT_PUBLIC_') && value != null)
       .map(([key, value]) => [`process.env.${key}`, JSON.stringify(value)])
   )
-}
+
+const isStartDebugClientBuild = (env: StartLoadedEnv) =>
+  env.NEXT_PUBLIC_DEBUG_CLIENT_ERRORS === '1'
+
+const getStartBuildConfig = (debugClientErrors: boolean) => ({
+  sourcemap: debugClientErrors,
+  ...(debugClientErrors
+    ? {
+        minify: false,
+        cssMinify: false,
+      }
+    : {}),
+})
 
 const startServerOnlyOptimizeDeps = new Set(['better-auth'])
 
@@ -53,47 +67,58 @@ const startServerOnlyDependencyOptimizerPlugin = (): Plugin => ({
   configResolved: filterResolvedOptimizeDeps,
 })
 
-export default defineConfig(({ mode }) => ({
-  define: getStartPublicEnv(mode),
-  server: {
-    host: '0.0.0.0',
-    port: 3001,
-    strictPort: true,
-  },
-  preview: {
-    port: 3002,
-    strictPort: true,
-  },
-  resolve: {
-    alias: [
-      {
-        find: '#/common/navigation/navigation',
-        replacement: startNavigationAdapter,
-      },
-      {
-        find: /^maplibre-gl$/,
-        replacement: startMapLibreShim,
-      },
-      {
-        find: 'maplibre_symbol_utils',
-        replacement: maplibreSymbolUtilsEsm,
-      },
+export default defineConfig(({ mode }) => {
+  const env = getStartLoadedEnv(mode)
+  const debugClientErrors = isStartDebugClientBuild(env)
+
+  return {
+    define: getStartPublicEnvDefines(env),
+    build: getStartBuildConfig(debugClientErrors),
+    server: {
+      host: '0.0.0.0',
+      port: 3001,
+      strictPort: true,
+    },
+    preview: {
+      port: 3002,
+      strictPort: true,
+    },
+    ssr: {
+      // Nitro 2.12 can emit an unusable multi-version package symlink for this
+      // direct server import when it is left external.
+      noExternal: ['@visx/shape'],
+    },
+    resolve: {
+      alias: [
+        {
+          find: '#/common/navigation/navigation',
+          replacement: startNavigationAdapter,
+        },
+        {
+          find: /^maplibre-gl$/,
+          replacement: startMapLibreShim,
+        },
+        {
+          find: 'maplibre_symbol_utils',
+          replacement: maplibreSymbolUtilsEsm,
+        },
+      ],
+    },
+    plugins: [
+      tsconfigPaths({
+        projects: ['./tsconfig.base.json'],
+      }),
+      tanstackStart({
+        customViteReactPlugin: true,
+        tsr: {
+          srcDirectory: 'src',
+          routesDirectory: 'src/routes',
+          generatedRouteTree: 'src/routeTree.gen.ts',
+          routeFileIgnorePrefix: '-',
+        },
+      }),
+      startServerOnlyDependencyOptimizerPlugin(),
+      viteReact(),
     ],
-  },
-  plugins: [
-    tsconfigPaths({
-      projects: ['./tsconfig.base.json'],
-    }),
-    tanstackStart({
-      customViteReactPlugin: true,
-      tsr: {
-        srcDirectory: 'src',
-        routesDirectory: 'src/routes',
-        generatedRouteTree: 'src/routeTree.gen.ts',
-        routeFileIgnorePrefix: '-',
-      },
-    }),
-    startServerOnlyDependencyOptimizerPlugin(),
-    viteReact(),
-  ],
-}))
+  }
+})
