@@ -264,10 +264,7 @@ const addProxyRulesForDomain = ({
 
   for (const locale of locales) {
     const localizedAppletBase = `/${locale}/${namespace}`
-    const apiTarget =
-      mode === 'standalone'
-        ? `/${locale}/api/:splat`
-        : `/${locale}/${namespace}/api/:splat`
+    const apiTarget = `/api/${namespace}/:splat`
     const localeRootTarget =
       mode === 'standalone' ? `/${locale}` : `/${locale}/${namespace}`
     const localeCatchAllTarget =

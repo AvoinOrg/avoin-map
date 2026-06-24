@@ -100,7 +100,7 @@ describe('writeNetlifyRedirects', () => {
     )
     expect(redirects).toContain(
       `${hiilikarttaDomain}/fi/api/* ` +
-        `${mainBaseUrl}/fi/hiilikartta/api/:splat 200!`
+        `${mainBaseUrl}/api/hiilikartta/:splat 200!`
     )
     expect(redirects).toContain(
       `${hiilikarttaDomain}/fi ${mainBaseUrl}/fi/hiilikartta 200!`
@@ -255,7 +255,7 @@ describe('writeNetlifyRedirects', () => {
     )
     expect(redirects).toContain(
       `${hiilikarttaDomain}/fi/api/* ` +
-        `${standaloneBaseUrl}/fi/api/:splat 200!`
+        `${standaloneBaseUrl}/api/hiilikartta/:splat 200!`
     )
     expect(redirects).toContain(
       `${hiilikarttaDomain}/fi/hiilikartta /fi 301!`

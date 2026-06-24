@@ -388,7 +388,7 @@ const writePrunedAppletRouteComponents = ({ buildConfig }) => {
   const outputPath = path.join(
     projectRoot,
     'src',
-    'start',
+    'runtime',
     'appletRouteComponents.tsx'
   )
   const lines = [
