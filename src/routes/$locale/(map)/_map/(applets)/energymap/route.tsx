@@ -1,0 +1,44 @@
+import { createFileRoute } from '@tanstack/react-router'
+
+import { guardAppletLocale } from '#/runtime/appletRouteGuards'
+import { EnergiakarttaLayout } from 'applets/energiakartta/routeComponents'
+import {
+  ENERGIAKARTTA_TITLE,
+  getStaticAppletHead,
+} from '#/runtime/headMetadata'
+import {
+  APP_ROUTE_KEYS,
+  defineAppRouteStaticData,
+  routeTextKey,
+  publicRouteConfig,
+} from '#/common/routing/routeMetadata'
+
+export const Route = createFileRoute(
+  '/$locale/(map)/_map/(applets)/energymap'
+)({
+  staticData: defineAppRouteStaticData({
+    key: APP_ROUTE_KEYS.ENERGIAKARTTA_HOME,
+    appletNamespace: 'energiakartta',
+    variant: 'canonical',
+    home: true,
+    title: routeTextKey('energiakartta', 'sidebar.title'),
+    breadcrumb: routeTextKey('energiakartta', 'sidebar.title'),
+    public: publicRouteConfig({
+      slug: 'energymap',
+    }),
+  }),
+  beforeLoad: ({ params, location }) => {
+    guardAppletLocale({
+      namespace: 'energiakartta',
+      locale: params.locale,
+      location,
+    })
+  },
+  head: () =>
+    getStaticAppletHead({
+      title: ENERGIAKARTTA_TITLE,
+      umamiWebsiteId:
+        process.env.NEXT_PUBLIC_APPLETS_ENERGIAKARTTA_UMAMI_ID,
+    }),
+  component: EnergiakarttaLayout,
+})

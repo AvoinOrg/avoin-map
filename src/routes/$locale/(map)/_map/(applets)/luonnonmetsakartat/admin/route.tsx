@@ -1,14 +1,29 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { LuonnonmetsakartatAdminLayout } from '#/runtime/appletRouteComponents'
+import { LuonnonmetsakartatAdminLayout } from 'applets/luonnonmetsakartat/routeComponents'
 import {
   getStaticAppletHead,
   LUONNONMETSAKARTAT_ADMIN_TITLE,
 } from '#/runtime/headMetadata'
+import {
+  APP_ROUTE_KEYS,
+  defineAppRouteStaticData,
+  routeTextKey,
+} from '#/common/routing/routeMetadata'
 
 export const Route = createFileRoute(
   '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin'
 )({
+  staticData: defineAppRouteStaticData({
+    key: APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN,
+    appletNamespace: 'luonnonmetsakartat',
+    variant: 'canonical',
+    title: routeTextKey('luonnonmetsakartat', 'route.breadcrumb.admin'),
+    breadcrumb: routeTextKey('luonnonmetsakartat', 'route.breadcrumb.admin'),
+    public: {
+      slug: 'admin',
+    },
+  }),
   head: () =>
     getStaticAppletHead({
       title: LUONNONMETSAKARTAT_ADMIN_TITLE,

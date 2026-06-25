@@ -3,7 +3,7 @@
 import React from 'react'
 import { LayerToggleRowLink } from '#/components/common/LayerToggleRow'
 import { AdminFolayerConf } from 'applets/luonnonmetsakartat/common/types'
-import { routeTree } from '#/common/routing/routes/luonnonmetsakartat'
+import { APP_ROUTE_KEYS } from '#/common/routing/routeMetadata'
 import { useAdminFolayer } from 'applets/luonnonmetsakartat/common/hooks/useAdminFolayer'
 
 const AdminFolayerItem = ({ conf }: { conf: AdminFolayerConf }) => {
@@ -22,9 +22,8 @@ const AdminFolayerItem = ({ conf }: { conf: AdminFolayerConf }) => {
       labelSx={{ ml: 1 }}
       linkAriaLabel={`Open ${conf.name}`}
       linkProps={{
-        route: routeTree.admin.folayer,
-        params: { routeParams: { folayerIdSlug: conf.id } },
-        routeTree,
+        routeKey: APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN_FOLAYER,
+        routeParams: { folayerIdSlug: conf.id },
       }}
     />
   )

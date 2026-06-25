@@ -98,8 +98,8 @@
     "sourceGlobs": [
       "src/components/Map/MapButtonGroups.tsx",
       "src/components/Map/MapButton.tsx",
-      "src/components/icons/Check.tsx",
-      "src/components/icons/Compass.tsx",
+      "src/components/icons/Done.tsx",
+      "src/components/icons/ExploreOutlined.tsx",
       "src/common/component-fixtures/fixtures/MapLayerToolbarChromeFixture.tsx"
     ],
     "states": [

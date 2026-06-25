@@ -8,11 +8,11 @@ import { LoadingSpinner } from '#/components/Loading'
 import { SidebarContentBox } from '#/components/Sidebar'
 
 import { ArrowNextBig } from '#/components/icons'
-import MutableLink from '#/components/common/MutableLink'
+import { AppRouteLink } from '#/common/navigation/appRouteLinks'
 import TText from '#/components/common/TText'
 
 import SearchTable from 'applets/luonnonmetsakartat/components/SearchTable'
-import { routeTree } from '#/common/routing/routes/luonnonmetsakartat'
+import { APP_ROUTE_KEYS } from '#/common/routing/routeMetadata'
 import { FolayerConfState } from 'applets/luonnonmetsakartat/common/types'
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import { getFolayerCentroidSourceId } from 'applets/luonnonmetsakartat/common/utils'
@@ -56,12 +56,11 @@ const Page = () => {
                 justifyContent: 'flex-end',
               }}
             >
-              <MutableLink
-                route={routeTree.admin.folayer.settings}
-                routeTree={routeTree}
-                params={{
-                  routeParams: { folayerIdSlug: adminFolayerConf.id },
-                }}
+              <AppRouteLink
+                routeKey={
+                  APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN_FOLAYER_SETTINGS
+                }
+                routeParams={{ folayerIdSlug: adminFolayerConf.id }}
                 sx={{ alignItems: 'center' }}
               >
                 <Box
@@ -79,7 +78,7 @@ const Page = () => {
                   />
                 </Box>
                 <ArrowNextBig sx={{ ml: 1, height: '1.2rem' }}></ArrowNextBig>
-              </MutableLink>
+              </AppRouteLink>
             </Box>
             <Box
               sx={{
@@ -90,12 +89,11 @@ const Page = () => {
                 justifyContent: 'flex-end',
               }}
             >
-              <MutableLink
-                route={routeTree.admin.folayer.pictures}
-                routeTree={routeTree}
-                params={{
-                  routeParams: { folayerIdSlug: adminFolayerConf.id },
-                }}
+              <AppRouteLink
+                routeKey={
+                  APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN_FOLAYER_PICTURES
+                }
+                routeParams={{ folayerIdSlug: adminFolayerConf.id }}
                 sx={{ alignItems: 'center' }}
               >
                 <Box
@@ -113,7 +111,7 @@ const Page = () => {
                   />
                 </Box>
                 <ArrowNextBig sx={{ ml: 1, height: '1.2rem' }}></ArrowNextBig>
-              </MutableLink>
+              </AppRouteLink>
             </Box>
           </>
         )}

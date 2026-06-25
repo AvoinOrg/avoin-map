@@ -37,7 +37,7 @@ const LinkBox = Box as React.ElementType
 
 /**
  * A basic link. Do not use with applets that have their own domain,
- * use MutableLink instead.
+ * use AppRouteLink instead.
  */
 const Link = ({
   sx,

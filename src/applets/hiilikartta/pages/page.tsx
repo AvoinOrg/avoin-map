@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react'
 import { useTranslate } from '@tolgee/react'
 
+import { useAppRouteHrefBuilder } from '#/common/navigation/appRouteLinks'
 import { useAppRouter } from '#/common/navigation/navigation'
 import { Box, type AppSystemStyleObject } from '#/common/style/theme'
 import {
@@ -11,12 +12,11 @@ import {
   SidebarBoundary,
   SidebarContentBox,
 } from '#/components/Sidebar'
-import { getRoute } from '#/common/routing/routing-client'
+import { APP_ROUTE_KEYS } from '#/common/routing/routeMetadata'
 import { useMapStore } from '#/common/store'
 import { useVisibleLayerGroupIds } from '#/common/hooks/map/useVisibleLayerGroupIds'
 import { LayerToggleRow } from '#/components/common/LayerToggleRow'
 
-import { routeTree } from '#/common/routing/routes/hiilikartta'
 import { listedLayerGroups } from '../common/constants'
 import PlanOutlineIcon from '../components/PlanOutlineIcon'
 
@@ -101,6 +101,7 @@ const HomeSidebarHeader = () => {
 const Page = () => {
   const { t } = useTranslate('hiilikartta')
   const router = useAppRouter()
+  const buildAppRouteHref = useAppRouteHrefBuilder()
   const toggleLayerGroup = useMapStore((state) => state.toggleLayerGroup)
   const visibleLayerGroupIds = useVisibleLayerGroupIds()
   const introText = t('sidebar.main.intro')
@@ -131,7 +132,11 @@ const Page = () => {
           type="button"
           aria-label="Open plans page"
           onClick={() =>
-            router.push(getRoute({ routeNode: routeTree.plans, routeTree }))
+            router.push(
+              buildAppRouteHref({
+                routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
+              })
+            )
           }
           sx={{
             width: '100%',

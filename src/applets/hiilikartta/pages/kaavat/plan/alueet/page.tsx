@@ -5,9 +5,10 @@ import { Tooltip } from '@base-ui/react/tooltip'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslate } from '@tolgee/react'
 
+import { useAppRouteHrefBuilder } from '#/common/navigation/appRouteLinks'
 import { useAppParams, useAppRouter } from '#/common/navigation/navigation'
 import { Box } from '#/common/style/theme'
-import { getRoute } from '#/common/routing/routing-client'
+import { APP_ROUTE_KEYS } from '#/common/routing/routeMetadata'
 import { ButtonBase } from '#/components/common/Button'
 import TText from '#/components/common/TText'
 import { LoadingSpinner } from '#/components/Loading'
@@ -15,7 +16,6 @@ import SidebarContentBox from '#/components/Sidebar/SidebarContentBox'
 
 import useAppletStoreHasHydrated from 'applets/hiilikartta/common/useAppletStoreHasHydrated'
 import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
-import { routeTree } from '#/common/routing/routes/hiilikartta'
 import {
   GlobalState,
   PlanConfState,
@@ -141,6 +141,7 @@ const Page = () => {
   const updatePlanConf = useAppletStore((state) => state.updatePlanConf)
   const calcPost = useMutation(useCalcPostMutation())
   const router = useAppRouter()
+  const buildAppRouteHref = useAppRouteHrefBuilder()
   const { t } = useTranslate('hiilikartta')
   const [pendingLandUseEditsState, setPendingLandUseEditsState] = useState({
     planId: params.planId,
@@ -204,12 +205,9 @@ const Page = () => {
     calcPost.mutate(nextPlanConf)
 
     router.push(
-      getRoute({
-        routeNode: routeTree.plans.plan,
-        routeTree,
-        params: {
-          routeParams: { planId: planConf.id },
-        },
+      buildAppRouteHref({
+        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
+        routeParams: { planId: planConf.id },
       })
     )
   }
@@ -224,18 +222,31 @@ const Page = () => {
         globalState === GlobalState.FETCHING &&
         !Object.keys(placeholderPlanConfs).includes(params.planId)
       ) {
-        router.push(getRoute({ routeNode: routeTree.plans, routeTree }))
+        router.push(
+          buildAppRouteHref({
+            routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
+          })
+        )
       } else if (globalState === GlobalState.IDLE) {
-        router.push(getRoute({ routeNode: routeTree.plans, routeTree }))
+        router.push(
+          buildAppRouteHref({
+            routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
+          })
+        )
       }
 
       return
     }
 
     if (globalState === GlobalState.IDLE && planConf.isHidden) {
-      router.push(getRoute({ routeNode: routeTree, routeTree }))
+      router.push(
+        buildAppRouteHref({
+          routeKey: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
+        })
+      )
     }
   }, [
+    buildAppRouteHref,
     globalState,
     hasHydrated,
     params.planId,

@@ -11,27 +11,14 @@ import {
 } from '#/common/navigation/navigation'
 import { getLocalesForApplet } from '#/common/navigation/tolgee/shared'
 import { useUIStore } from '#/common/store'
-import { getRoute } from '#/common/routing/routing-client'
 import {
   compiledApplets,
   getPathnameWithoutLocale,
-} from '#/common/routing/routing'
+} from '#/common/routing/appletBuildMode'
 import {
-  MAIN_NAMESPACE,
-  mainRouteTree,
-} from '#/common/routing/routes/main'
-import {
-  APPLET_NAMESPACE as ENERGIAKARTTA_NAMESPACE,
-  routeTree as energiakarttaRouteTree,
-} from '#/common/routing/routes/energiakartta'
-import {
-  APPLET_NAMESPACE as HIIILIKARTTA_NAMESPACE,
-  routeTree as hiilikarttaRouteTree,
-} from '#/common/routing/routes/hiilikartta'
-import {
-  APPLET_NAMESPACE as LUONNONMETSAKARTAT_NAMESPACE,
-  routeTree as luonnonmetsakartatRouteTree,
-} from '#/common/routing/routes/luonnonmetsakartat'
+  getAppletNamespaceForRouteSlug,
+  getPublicAppletRouteSlug,
+} from '#/common/routing/publicRoutes'
 import { Home } from '#/components/icons'
 import { MapButton } from './MapButton'
 import { MapButtonMenu } from './MapButtonMenu'
@@ -73,17 +60,18 @@ const localeMenuItemSx = {
 
 const buttonTypeProps = { type: 'button' } as const
 
-const APPLET_ROUTE_TREES = {
-  [ENERGIAKARTTA_NAMESPACE]: energiakarttaRouteTree,
-  [HIIILIKARTTA_NAMESPACE]: hiilikarttaRouteTree,
-  [LUONNONMETSAKARTAT_NAMESPACE]: luonnonmetsakartatRouteTree,
-} as const
+const MAIN_NAMESPACE = 'main'
+const APPLET_NAMESPACES = [
+  'energiakartta',
+  'hiilikartta',
+  'luonnonmetsakartat',
+] as const
 
-type AppletNamespace = keyof typeof APPLET_ROUTE_TREES
+type AppletNamespace = (typeof APPLET_NAMESPACES)[number]
 type ActiveNamespace = typeof MAIN_NAMESPACE | AppletNamespace
 
 const isAppletNamespace = (value: string): value is AppletNamespace =>
-  value in APPLET_ROUTE_TREES
+  APPLET_NAMESPACES.includes(value as AppletNamespace)
 
 const getStandaloneAppletNamespace = (): ActiveNamespace | null => {
   if (compiledApplets.length !== 1 || compiledApplets[0] === MAIN_NAMESPACE) {
@@ -158,8 +146,10 @@ export const MapUserButtons = ({
       .split('/')
       .filter((segment) => segment.length > 0)
 
-    return firstSegment && isAppletNamespace(firstSegment)
-      ? firstSegment
+    const appletNamespace = getAppletNamespaceForRouteSlug(firstSegment)
+
+    return appletNamespace && isAppletNamespace(appletNamespace)
+      ? appletNamespace
       : MAIN_NAMESPACE
   }, [pathnameWithoutLocale, standaloneAppletNamespace])
 
@@ -180,18 +170,11 @@ export const MapUserButtons = ({
     standaloneAppletNamespace != null ||
     isBaseDomainForApplet
       ? '/'
-      : `/${activeNamespace}`
+      : `/${getPublicAppletRouteSlug(activeNamespace)}`
 
   const showHomeButton = pathnameWithoutLocale !== homePathWithoutLocale
 
-  const homeRouteTree =
-    activeNamespace === MAIN_NAMESPACE
-      ? mainRouteTree
-      : APPLET_ROUTE_TREES[activeNamespace]
-  const homeHref = getRoute({
-    routeNode: homeRouteTree,
-    routeTree: homeRouteTree,
-  })
+  const homeHref = homePathWithoutLocale
 
   const queryString = searchParams.toString()
   const currentHref =

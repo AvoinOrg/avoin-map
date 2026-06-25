@@ -1,21 +1,27 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { guardVisibleAppletRootRoute } from '#/runtime/appletRouteGuards'
-import { HiilikarttaVisiblePlansLayoutRoute } from '#/runtime/appletRouteComponents'
-import { getHiilikarttaHead } from '#/runtime/headMetadata'
+import {
+  getLegacyRouteTailSegments,
+  throwLocalizedRouteRedirect,
+} from '#/common/routing/legacyRouteRedirects'
+import { normalizeLegacyAppletSubpathSegments } from '#/common/routing/publicRoutes'
 
 export const Route = createFileRoute('/$locale/(map)/_map/kaavat')({
   beforeLoad: ({ params, location }) => {
-    guardVisibleAppletRootRoute({
-      namespace: 'hiilikartta',
+    throwLocalizedRouteRedirect({
       locale: params.locale,
+      segments: [
+        'plans',
+        ...normalizeLegacyAppletSubpathSegments({
+          namespace: 'hiilikartta',
+          segments: getLegacyRouteTailSegments({
+            locale: params.locale,
+            location,
+            prefixSegments: ['kaavat'],
+          }),
+        }),
+      ],
       location,
     })
   },
-  head: ({ params }) =>
-    getHiilikarttaHead({
-      locale: params.locale,
-      umamiWebsiteId: process.env.NEXT_PUBLIC_APPLETS_HIILIKARTTA_UMAMI_ID,
-    }),
-  component: HiilikarttaVisiblePlansLayoutRoute,
 })

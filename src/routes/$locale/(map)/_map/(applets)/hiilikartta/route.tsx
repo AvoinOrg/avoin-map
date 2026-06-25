@@ -1,23 +1,29 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { guardAppletLocale } from '#/runtime/appletRouteGuards'
-import { HiilikarttaLayout } from '#/runtime/appletRouteComponents'
-import { getHiilikarttaHead } from '#/runtime/headMetadata'
+import {
+  getLegacyRouteTailSegments,
+  throwLocalizedRouteRedirect,
+} from '#/common/routing/legacyRouteRedirects'
+import { normalizeLegacyAppletSubpathSegments } from '#/common/routing/publicRoutes'
 
 export const Route = createFileRoute(
   '/$locale/(map)/_map/(applets)/hiilikartta'
 )({
   beforeLoad: ({ params, location }) => {
-    guardAppletLocale({
-      namespace: 'hiilikartta',
+    throwLocalizedRouteRedirect({
       locale: params.locale,
+      segments: [
+        'carbonmap',
+        ...normalizeLegacyAppletSubpathSegments({
+          namespace: 'hiilikartta',
+          segments: getLegacyRouteTailSegments({
+            locale: params.locale,
+            location,
+            prefixSegments: ['hiilikartta'],
+          }),
+        }),
+      ],
       location,
     })
   },
-  head: ({ params }) =>
-    getHiilikarttaHead({
-      locale: params.locale,
-      umamiWebsiteId: process.env.NEXT_PUBLIC_APPLETS_HIILIKARTTA_UMAMI_ID,
-    }),
-  component: HiilikarttaLayout,
 })

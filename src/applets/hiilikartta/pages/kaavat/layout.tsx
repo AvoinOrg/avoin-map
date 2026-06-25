@@ -2,7 +2,6 @@
 
 import React from 'react'
 
-import { routeTree } from '#/common/routing/routes/hiilikartta'
 import {
   BreadcrumbNav,
   IntoSidebarHeaderChildrenSlot,
@@ -14,7 +13,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <SidebarBoundary id="hiilikartta-kaavat-panel" mode="simple">
       <IntoSidebarHeaderChildrenSlot>
-        <BreadcrumbNav routeTree={routeTree} collapseIfRoot />
+        <BreadcrumbNav collapseIfRoot />
       </IntoSidebarHeaderChildrenSlot>
       <IntoSidebarPanelSlot panelId="main">{children}</IntoSidebarPanelSlot>
     </SidebarBoundary>

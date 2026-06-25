@@ -2,6 +2,10 @@ const fs = require('fs')
 const path = require('path')
 const dotenv = require('dotenv')
 const { parseCompiledApplets } = require('./appletBuildConfig')
+const {
+  APPLET_LEGACY_PUBLIC_ROUTE_SLUGS,
+  getPublicAppletRouteSlug,
+} = require('./publicRoutes')
 
 dotenv.config({ quiet: true })
 
@@ -30,10 +34,6 @@ const START_STATIC_EXACT_PATHS = [
 
 const GLOBAL_SERVER_SPLAT_PATHS = ['/api/*']
 const COMMON_LOCALIZED_SPLAT_PATHS = ['/adds/*']
-
-const APPLET_PATH_ALIASES = {
-  energymap: 'energiakartta',
-}
 
 const parseArgs = (argv) => {
   const args = {}
@@ -137,11 +137,6 @@ const getDomains = ({ namespace, appletConf, env }) => [
   getEnvDomain({ namespace, env }),
 ]
 
-const getPathAliasesForNamespace = (namespace) =>
-  Object.entries(APPLET_PATH_ALIASES)
-    .filter(([, targetNamespace]) => targetNamespace === namespace)
-    .map(([alias]) => alias)
-
 const getSelectedAppletNamespaces = ({ appletConf, compiledApplets }) => {
   const knownNamespaces = Object.keys(appletConf).filter(
     (namespace) => namespace !== MAIN_APPLET
@@ -201,6 +196,135 @@ const addExactAndSplatRules = ({
     from: splatFrom,
     to: targetFor({ baseUrl, path: splatTo }),
   })
+}
+
+const addLegacyHiilikarttaSubpathRedirects = ({
+  fromBase,
+  rules,
+  toBase,
+}) => {
+  addVisibleRedirectRule({
+    rules,
+    from: `${fromBase}/kaavat/*/alueet`,
+    to: `${toBase}/plans/:splat/areas`,
+  })
+  addVisibleRedirectRule({
+    rules,
+    from: `${fromBase}/kaavat`,
+    to: `${toBase}/plans`,
+  })
+  addVisibleRedirectRule({
+    rules,
+    from: `${fromBase}/kaavat/*`,
+    to: `${toBase}/plans/:splat`,
+  })
+  addVisibleRedirectRule({
+    rules,
+    from: `${fromBase}/raportti`,
+    to: `${toBase}/report`,
+  })
+}
+
+const addLegacyLuonnonmetsakartatSubpathRedirects = ({
+  fromBase,
+  rules,
+  toBase,
+}) => {
+  addVisibleRedirectRule({
+    rules,
+    from: `${fromBase}/admin/taso/*/asetukset`,
+    to: `${toBase}/admin/layer/:splat/settings`,
+  })
+  addVisibleRedirectRule({
+    rules,
+    from: `${fromBase}/admin/taso/*/kuvat`,
+    to: `${toBase}/admin/layer/:splat/pictures`,
+  })
+  addVisibleRedirectRule({
+    rules,
+    from: `${fromBase}/admin/tuo`,
+    to: `${toBase}/admin/import`,
+  })
+  addVisibleRedirectRule({
+    rules,
+    from: `${fromBase}/admin/taso`,
+    to: `${toBase}/admin/layer`,
+  })
+  addVisibleRedirectRule({
+    rules,
+    from: `${fromBase}/admin/taso/*`,
+    to: `${toBase}/admin/layer/:splat`,
+  })
+}
+
+const addLegacySubpathRedirects = ({ namespace, fromBase, rules, toBase }) => {
+  if (namespace === 'hiilikartta') {
+    addLegacyHiilikarttaSubpathRedirects({ fromBase, rules, toBase })
+  }
+
+  if (namespace === 'luonnonmetsakartat') {
+    addLegacyLuonnonmetsakartatSubpathRedirects({
+      fromBase,
+      rules,
+      toBase,
+    })
+  }
+}
+
+const addLegacyAppletSlugRedirects = ({
+  mode,
+  namespace,
+  fromLocaleBase,
+  rules,
+  toLocaleBase,
+}) => {
+  const publicSlug = getPublicAppletRouteSlug(namespace)
+  const targetAppletBase =
+    mode === 'standalone' ? toLocaleBase : `${toLocaleBase}/${publicSlug}`
+
+  for (const legacySlug of APPLET_LEGACY_PUBLIC_ROUTE_SLUGS[namespace] || []) {
+    const legacyBase = `${fromLocaleBase}/${legacySlug}`
+
+    addLegacySubpathRedirects({
+      namespace,
+      fromBase: legacyBase,
+      rules,
+      toBase: targetAppletBase,
+    })
+    addVisibleRedirectRule({
+      rules,
+      from: legacyBase,
+      to: targetAppletBase,
+    })
+    addVisibleRedirectRule({
+      rules,
+      from: `${legacyBase}/*`,
+      to: `${targetAppletBase}/:splat`,
+    })
+  }
+}
+
+const addLegacyRootAliasRedirects = ({
+  namespace,
+  fromLocaleBase,
+  rules,
+  toLocaleBase,
+}) => {
+  if (namespace === 'hiilikartta') {
+    addLegacyHiilikarttaSubpathRedirects({
+      fromBase: fromLocaleBase,
+      rules,
+      toBase: toLocaleBase,
+    })
+  }
+
+  if (namespace === 'luonnonmetsakartat') {
+    addLegacyLuonnonmetsakartatSubpathRedirects({
+      fromBase: fromLocaleBase,
+      rules,
+      toBase: toLocaleBase,
+    })
+  }
 }
 
 const addProxyRulesForDomain = ({
@@ -263,14 +387,15 @@ const addProxyRulesForDomain = ({
   }
 
   for (const locale of locales) {
-    const localizedAppletBase = `/${locale}/${namespace}`
+    const publicSlug = getPublicAppletRouteSlug(namespace)
+    const localizedAppletBase = `/${locale}/${publicSlug}`
     const apiTarget = `/api/${namespace}/:splat`
     const localeRootTarget =
-      mode === 'standalone' ? `/${locale}` : `/${locale}/${namespace}`
+      mode === 'standalone' ? `/${locale}` : localizedAppletBase
     const localeCatchAllTarget =
       mode === 'standalone'
         ? `/${locale}/:splat`
-        : `/${locale}/${namespace}/:splat`
+        : `${localizedAppletBase}/:splat`
     const localizedAppletTarget =
       mode === 'standalone' ? `/${locale}` : localizedAppletBase
     const localizedAppletCatchAllTarget =
@@ -282,6 +407,29 @@ const addProxyRulesForDomain = ({
       rules,
       from: `${domainBase}/${locale}/api/*`,
       to: targetFor({ baseUrl, path: apiTarget }),
+    })
+
+    const localizedVisibleAppletBase =
+      mode === 'standalone' ? `/${locale}` : localizedAppletBase
+
+    addLegacySubpathRedirects({
+      namespace,
+      fromBase: `${domainBase}${localizedAppletBase}`,
+      rules,
+      toBase: localizedVisibleAppletBase,
+    })
+    addLegacyAppletSlugRedirects({
+      mode,
+      namespace,
+      fromLocaleBase: `${domainBase}/${locale}`,
+      rules,
+      toLocaleBase: `/${locale}`,
+    })
+    addLegacyRootAliasRedirects({
+      namespace,
+      fromLocaleBase: `${domainBase}/${locale}`,
+      rules,
+      toLocaleBase: `/${locale}`,
     })
 
     if (mode === 'standalone') {
@@ -306,19 +454,6 @@ const addProxyRulesForDomain = ({
       })
     }
 
-    if (mode === 'main') {
-      for (const alias of getPathAliasesForNamespace(namespace)) {
-        addExactAndSplatRules({
-          baseUrl,
-          exactFrom: `${domainBase}/${locale}/${alias}`,
-          exactTo: localizedAppletBase,
-          rules,
-          splatFrom: `${domainBase}/${locale}/${alias}/*`,
-          splatTo: `${localizedAppletBase}/:splat`,
-        })
-      }
-    }
-
     addRule({
       rules,
       from: `${domainBase}/${locale}`,
@@ -332,6 +467,20 @@ const addProxyRulesForDomain = ({
   }
 
   for (const unsupportedLocale of knownUnsupportedLocales) {
+    addLegacyAppletSlugRedirects({
+      mode,
+      namespace,
+      fromLocaleBase: `${domainBase}/${unsupportedLocale}`,
+      rules,
+      toLocaleBase: `/${defaultLocale}`,
+    })
+    addLegacyRootAliasRedirects({
+      namespace,
+      fromLocaleBase: `${domainBase}/${unsupportedLocale}`,
+      rules,
+      toLocaleBase: `/${defaultLocale}`,
+    })
+
     addVisibleRedirectRule({
       rules,
       from: `${domainBase}/${unsupportedLocale}`,
@@ -343,6 +492,20 @@ const addProxyRulesForDomain = ({
       to: `/${defaultLocale}/:splat`,
     })
   }
+
+  addLegacyAppletSlugRedirects({
+    mode,
+    namespace,
+    fromLocaleBase: domainBase,
+    rules,
+    toLocaleBase: `/${defaultLocale}`,
+  })
+  addLegacyRootAliasRedirects({
+    namespace,
+    fromLocaleBase: domainBase,
+    rules,
+    toLocaleBase: `/${defaultLocale}`,
+  })
 
   addVisibleRedirectRule({
     rules,

@@ -4,7 +4,7 @@ import {
   getVisibleAppletRootNamespace,
   guardVisibleAppletRootIndexRoute,
 } from '#/runtime/appletRouteGuards'
-import { VisibleAppletRootRoute } from '#/runtime/appletRouteComponents'
+import { VisibleAppletRootRoute } from '#/runtime/visibleAppletRootRoute'
 import {
   AVOIN_MAP_TITLE,
   ENERGIAKARTTA_TITLE,
@@ -12,6 +12,11 @@ import {
   getStaticAppletHead,
   LUONNONMETSAKARTAT_TITLE,
 } from '#/runtime/headMetadata'
+import {
+  APP_ROUTE_KEYS,
+  defineAppRouteStaticData,
+  publicRouteConfig,
+} from '#/common/routing/routeMetadata'
 
 const getVisibleRootHead = (locale: string) => {
   const namespace = getVisibleAppletRootNamespace()
@@ -51,6 +56,19 @@ const VisibleAppletRootComponent = () => {
 }
 
 export const Route = createFileRoute('/$locale/(map)/_map/')({
+  staticData: defineAppRouteStaticData({
+    key: APP_ROUTE_KEYS.MAIN_HOME_VISIBLE_ROOT,
+    appletNamespace: null,
+    variant: 'visible-root-alias',
+    home: true,
+    public: publicRouteConfig({
+      visibleRootCanonicalRouteKeys: {
+        energiakartta: APP_ROUTE_KEYS.ENERGIAKARTTA_HOME,
+        hiilikartta: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
+        luonnonmetsakartat: APP_ROUTE_KEYS.LUONNONMETSAKARTAT_HOME,
+      },
+    }),
+  }),
   beforeLoad: ({ params, location }) => {
     guardVisibleAppletRootIndexRoute({
       locale: params.locale,

@@ -8,7 +8,6 @@ import type {
   SidebarPanelExtensionTabMetadata,
   SidebarPanelId,
 } from '#/common/types/sidebar'
-import type { RouteTree } from '#/common/types/routing'
 import { Cross, InfoCircle, Layers } from '#/components/icons'
 import BreadcrumbNav from '#/components/Sidebar/BreadcrumbNav'
 import PopupDrawer from '#/components/Sidebar/PopupDrawer'
@@ -51,37 +50,6 @@ const tabs: SidebarPanelExtensionTabMetadata[] = [
     tabPanelId: 'fixture-sidebar-tabpanel-close',
   },
 ]
-
-const fixtureRouteTree = {
-  _conf: {
-    path: '/',
-    name: 'Fixtures',
-  },
-  dev: {
-    _conf: {
-      path: '/dev',
-      name: 'Dev',
-    },
-    componentFixtures: {
-      _conf: {
-        path: '/component-fixtures',
-        name: 'Component fixtures',
-      },
-      sidebarPanelExtensionChrome: {
-        _conf: {
-          path: '/sidebar-panel-extension-chrome',
-          name: 'Sidebar panel extension chrome',
-        },
-        breadcrumbs: {
-          _conf: {
-            path: '/breadcrumbs',
-            name: 'Breadcrumbs',
-          },
-        },
-      },
-    },
-  },
-} as const satisfies RouteTree
 
 const FixtureSurface = ({ children }: { children: React.ReactNode }) => (
   <Box
@@ -185,7 +153,7 @@ const PageContainerFixture = () => (
 const BreadcrumbFixture = () => (
   <FixtureSurface>
     <Box sx={{ width: '100%', backgroundColor: '#ffffff', p: 2 }}>
-      <BreadcrumbNav routeTree={fixtureRouteTree} forceRouteTree />
+      <BreadcrumbNav />
     </Box>
   </FixtureSurface>
 )

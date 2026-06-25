@@ -5,10 +5,12 @@ import { LayerGroupStatus } from '#/common/hooks/map/useLayerGroup'
 import { Box, toSxArray } from '#/common/style/theme'
 import { getContrastColor } from '#/common/utils/styling'
 import LoadingHorizontal from '#/components/Loading/LoadingHorizontal'
-import MutableLink from '#/components/common/MutableLink'
+import {
+  AppRouteLink,
+  type AppRouteLinkProps,
+} from '#/common/navigation/appRouteLinks'
 import { CircleArrowRight, EyeClosed, EyeOpen } from '#/components/icons'
 
-type MutableLinkProps = React.ComponentProps<typeof MutableLink>
 type StyleProp = React.ComponentProps<typeof Box>['sx']
 type StyleItem = Exclude<NonNullable<StyleProp>, readonly unknown[]>
 
@@ -38,7 +40,7 @@ type LayerToggleRowAccordionProps = SharedLayerToggleRowProps & {
 
 type LayerToggleRowLinkProps = SharedLayerToggleRowProps & {
   linkAriaLabel: string
-  linkProps: Omit<MutableLinkProps, 'children'>
+  linkProps: Omit<AppRouteLinkProps, 'children'>
   linkSx?: StyleProp
 }
 
@@ -334,7 +336,7 @@ export const LayerToggleRowLink = ({
         iconSx={iconSx}
         sx={{ flexGrow: 1, minWidth: 0 }}
       />
-      <MutableLink
+      <AppRouteLink
         {...restLinkProps}
         aria-label={linkAriaLabel}
         onClickCapture={(event) => {
@@ -371,7 +373,7 @@ export const LayerToggleRowLink = ({
             color: 'currentColor',
           }}
         />
-      </MutableLink>
+      </AppRouteLink>
     </Box>
   )
 }

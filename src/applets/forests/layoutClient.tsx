@@ -4,7 +4,6 @@ import React from 'react'
 
 import AppletWrapper from '#/components/common/AppletWrapper'
 import { BreadcrumbNav, SidebarBoundary } from '#/components/Sidebar'
-import { mainRouteTree } from '#/common/routing/routes/main'
 import { defaultListedLayerGroups } from '#/components/Map/layers/defaultListedLayerGroups'
 
 const LayoutClient = ({ children }: { children: React.ReactNode }) => {
@@ -16,10 +15,7 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
         localizationNamespace={'fi-forests'}
         listedLayerGroups={defaultListedLayerGroups}
         sidebarHeaderChildren={
-          <BreadcrumbNav
-            collapseIfRoot={true}
-            routeTree={mainRouteTree}
-          ></BreadcrumbNav>
+          <BreadcrumbNav collapseIfRoot={true}></BreadcrumbNav>
         }
       >
         {children}

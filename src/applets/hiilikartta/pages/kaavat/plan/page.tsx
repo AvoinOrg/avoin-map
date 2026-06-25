@@ -13,6 +13,7 @@ import { useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
 
 import { useAuthSession } from '#/common/auth'
+import { useAppRouteHrefBuilder } from '#/common/navigation/appRouteLinks'
 import { useAppParams, useAppRouter } from '#/common/navigation/navigation'
 import { Box } from '#/common/style/theme'
 import { SidebarContentBox } from '#/components/Sidebar'
@@ -31,7 +32,7 @@ import {
 import { LoadingSpinner } from '#/components/Loading'
 import CheckcircleCheckedFilled from '#/components/icons/CheckcircleCheckedFilled'
 import { QuestionCircleOutline, Upload } from '#/components/icons'
-import { getRoute } from '#/common/routing/routing-client'
+import { APP_ROUTE_KEYS } from '#/common/routing/routeMetadata'
 import { openLoginWindow } from '#/common/utils/auth'
 import { useUIStore } from '#/common/store'
 
@@ -58,7 +59,6 @@ import {
   PlanImportValidationError,
 } from 'applets/hiilikartta/common/planImport'
 import { getZoningClasses } from 'applets/hiilikartta/common/zoningClasses'
-import { routeTree } from '#/common/routing/routes/hiilikartta'
 import { useCalcPostMutation } from 'applets/hiilikartta/common/queries/calcPostMutation'
 import { usePlanDeleteMutation } from 'applets/hiilikartta/common/queries/planDeleteMutation'
 import { usePlanPostMutation } from 'applets/hiilikartta/common/queries/planPostMutation'
@@ -313,6 +313,7 @@ const Page = () => {
   const locale = params.locale
   const { t } = useTranslate('hiilikartta')
   const router = useAppRouter()
+  const buildAppRouteHref = useAppRouteHrefBuilder()
   const { status } = useAuthSession()
   const inputRef = useRef<HTMLInputElement>(null)
   const autoOpenFrameRef = useRef<number | null>(null)
@@ -560,12 +561,20 @@ const Page = () => {
       globalState === GlobalState.FETCHING &&
       !Object.keys(placeholderPlanConfs).includes(planId)
     ) {
-      router.push(getRoute({ routeNode: routeTree.plans, routeTree }))
+      router.push(
+        buildAppRouteHref({
+          routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
+        })
+      )
       return
     }
 
     if (globalState === GlobalState.IDLE) {
-      router.push(getRoute({ routeNode: routeTree.plans, routeTree }))
+      router.push(
+        buildAppRouteHref({
+          routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
+        })
+      )
     }
   }, [
     creationPlaceholderPlanConf,
@@ -575,6 +584,7 @@ const Page = () => {
     planId,
     router,
     hasHydrated,
+    buildAppRouteHref,
   ])
 
   useEffect(() => {
@@ -826,7 +836,11 @@ const Page = () => {
 
   useEffect(() => {
     if (planDelete.isSuccess) {
-      router.push(getRoute({ routeNode: routeTree.plans, routeTree }))
+      router.push(
+        buildAppRouteHref({
+          routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
+        })
+      )
     }
 
     if (planDelete.isError) {
@@ -835,7 +849,14 @@ const Page = () => {
         variant: 'error',
       })
     }
-  }, [notify, planDelete.isError, planDelete.isSuccess, router, t])
+  }, [
+    buildAppRouteHref,
+    notify,
+    planDelete.isError,
+    planDelete.isSuccess,
+    router,
+    t,
+  ])
 
   const scenarioOptions = useMemo(
     () =>
@@ -1020,7 +1041,11 @@ const Page = () => {
         setArrayBuffer(undefined)
         setFileName(undefined)
         setFileType(undefined)
-        router.push(getRoute({ routeNode: routeTree.plans, routeTree }))
+        router.push(
+          buildAppRouteHref({
+            routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
+          })
+        )
         return
       }
 
@@ -1046,12 +1071,9 @@ const Page = () => {
       .getState()
       .copyPlanConf(currentPlanConf.id, t('sidebar.plan_settings.copy_suffix'))
 
-    const copiedPlanRoute = getRoute({
-      routeNode: routeTree.plans.plan,
-      routeTree,
-      params: {
-        routeParams: { planId: copiedPlanConf.id },
-      },
+    const copiedPlanRoute = buildAppRouteHref({
+      routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
+      routeParams: { planId: copiedPlanConf.id },
     })
 
     notify({
@@ -1072,12 +1094,9 @@ const Page = () => {
     }
 
     router.push(
-      getRoute({
-        routeNode: routeTree.plans.plan.areas,
-        routeTree,
-        params: {
-          routeParams: { planId: planConf.id },
-        },
+      buildAppRouteHref({
+        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLAN_AREAS,
+        routeParams: { planId: planConf.id },
       })
     )
   }
@@ -1115,15 +1134,12 @@ const Page = () => {
     }
 
     router.push(
-      getRoute({
-        routeNode: routeTree.report,
-        routeTree,
-        params: {
-          queryParams: {
-            planIds: planConf.serverId,
-            prevPageId: planConf.id,
-            prevPageStep: 'plan',
-          },
+      buildAppRouteHref({
+        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
+        queryParams: {
+          planIds: planConf.serverId,
+          prevPageId: planConf.id,
+          prevPageStep: 'plan',
         },
       })
     )

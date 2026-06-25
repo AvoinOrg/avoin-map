@@ -1,19 +1,19 @@
 import React, { useMemo } from 'react'
+import { useMatches } from '@tanstack/react-router'
+import { useTranslate } from '@tolgee/react'
 
-import MutableLink from '#/components/common/MutableLink'
-import { useAppPathname } from '#/common/navigation/navigation'
+import TText from '#/components/common/TText'
+import { AppRouteLink } from '#/common/navigation/appRouteLinks'
 import { Box, toSxArray } from '#/common/style/theme/system'
 import type { AppSxProps } from '#/common/style/theme/system'
-import { compiledApplets, getRoutesForPath } from '#/common/routing/routing'
-import { RouteForLinks, RouteTree } from '#/common/types/routing'
-import { useUIStore } from '#/common/store'
-import { mainRouteTree } from '#/common/routing/routes/main'
+import {
+  getAppRouteMetadataFromStaticData,
+  type AppRouteKey,
+  type RouteTextKey,
+} from '#/common/routing/routeMetadata'
 
 interface Props {
-  routeTree: RouteTree
   collapseIfRoot?: boolean
-  appletNamespace?: string
-  forceRouteTree?: boolean
   sx?: AppSxProps
 }
 
@@ -27,6 +27,19 @@ const breadcrumbLabelSx = {
   position: 'relative',
   top: '1px',
 } as const
+
+type BreadcrumbMatch = {
+  routeId: string
+  params: Record<string, string>
+  staticData: unknown
+}
+
+type BreadcrumbItem = {
+  routeId: string
+  routeKey: AppRouteKey
+  label: RouteTextKey
+  params: Record<string, string>
+}
 
 const BreadcrumbBackIcon = ({ sx }: { sx?: AppSxProps }) => (
   <Box
@@ -56,53 +69,45 @@ const BreadcrumbBackIcon = ({ sx }: { sx?: AppSxProps }) => (
 )
 
 const BreadcrumbNav = ({
-  routeTree,
   collapseIfRoot = false,
-  forceRouteTree = false,
   sx,
 }: Props) => {
-  const pathname = useAppPathname()
-  const isBaseDomainForApplet = useUIStore(
-    (state) => state.isBaseDomainForApplet
+  const { t } = useTranslate('avoin-map')
+  const matches = useMatches({
+    select: (routeMatches) =>
+      routeMatches.map((match) => ({
+        routeId: String(match.routeId),
+        params: match.params as Record<string, string>,
+        staticData: match.staticData,
+      })),
+  }) as BreadcrumbMatch[]
+
+  const visibleRoutes = useMemo(
+    () =>
+      matches.flatMap((match): BreadcrumbItem[] => {
+        const metadata = getAppRouteMetadataFromStaticData(match.staticData)
+        const label = metadata?.breadcrumb ?? metadata?.title
+
+        if (!metadata || !label) {
+          return []
+        }
+
+        return [
+          {
+            routeId: match.routeId,
+            routeKey: metadata.key,
+            label,
+            params: match.params,
+          },
+        ]
+      }),
+    [matches]
   )
-  const isStandaloneAppletBuild =
-    compiledApplets.length === 1 && !compiledApplets.includes('main')
 
-  const { routes, usedRouteTree } = useMemo(() => {
-    if (
-      forceRouteTree ||
-      isStandaloneAppletBuild ||
-      (isBaseDomainForApplet && !mainRouteTree._conf.domain)
-    ) {
-      return {
-        routes: getRoutesForPath(pathname, routeTree),
-        usedRouteTree: routeTree,
-      }
-    }
-    return {
-      routes: getRoutesForPath(pathname, mainRouteTree),
-      usedRouteTree: mainRouteTree,
-    }
-  }, [
-    forceRouteTree,
-    routeTree,
-    isBaseDomainForApplet,
-    isStandaloneAppletBuild,
-    pathname,
-  ])
-
-  const visibleRoutes = useMemo(() => {
-    const isAppletBreadcrumbInMainApp =
-      usedRouteTree === mainRouteTree && routeTree !== mainRouteTree
-
-    return isAppletBreadcrumbInMainApp ? routes.slice(1) : routes
-  }, [routeTree, routes, usedRouteTree])
-
-  const RouteElement = ({ route }: { route: RouteForLinks }) => (
-    <MutableLink
-      route={route.routeTree}
-      routeTree={usedRouteTree}
-      params={route.params}
+  const RouteElement = ({ route }: { route: BreadcrumbItem }) => (
+    <AppRouteLink
+      routeKey={route.routeKey}
+      routeParams={route.params}
       sx={{ color: 'inherit' }}
     >
       <Box
@@ -113,12 +118,12 @@ const BreadcrumbNav = ({
         })}
         component="span"
       >
-        {route.name}
+        <TText ns={route.label.ns} keyName={route.label.key} />
       </Box>
-    </MutableLink>
+    </AppRouteLink>
   )
 
-  const RouteElementInert = ({ name }: { name: string }) => (
+  const RouteElementInert = ({ label }: { label: RouteTextKey }) => (
     <>
       <Box
         sx={(theme) => ({
@@ -127,7 +132,7 @@ const BreadcrumbNav = ({
         })}
         component="span"
       >
-        {name}
+        <TText ns={label.ns} keyName={label.key} />
       </Box>
     </>
   )
@@ -161,10 +166,10 @@ const BreadcrumbNav = ({
         <Box
           sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}
         >
-          <MutableLink
-            route={visibleRoutes[visibleRoutes.length - 2].routeTree}
-            routeTree={usedRouteTree}
-            params={visibleRoutes[visibleRoutes.length - 2].params}
+          <AppRouteLink
+            routeKey={visibleRoutes[visibleRoutes.length - 2].routeKey}
+            routeParams={visibleRoutes[visibleRoutes.length - 2].params}
+            aria-label={t('breadcrumb.back')}
             sx={{ alignItems: 'center' }}
           >
             <BreadcrumbBackIcon
@@ -177,7 +182,7 @@ const BreadcrumbNav = ({
                 '&:hover': { color: theme.palette.neutral.main },
               })}
             />
-          </MutableLink>
+          </AppRouteLink>
           <Box
             sx={{
               display: 'flex',
@@ -191,19 +196,19 @@ const BreadcrumbNav = ({
               if (route === visibleRoutes[visibleRoutes.length - 1]) {
                 return (
                   <Box
-                    key={route.path}
+                    key={route.routeId}
                     sx={{
                       display: 'inline-flex',
                       alignItems: 'center',
                     }}
                   >
-                    <RouteElementInert name={route.name}></RouteElementInert>
+                    <RouteElementInert label={route.label}></RouteElementInert>
                   </Box>
                 )
               }
               return (
                 <Box
-                  key={route.path}
+                  key={route.routeId}
                   sx={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -231,26 +236,6 @@ const BreadcrumbNav = ({
         </Box>
       )}
     </Box>
-
-    // <nav aria-label="breadcrumb">
-    //   {breadcrumbs.map((breadcrumb, index) => {
-    //     const isLast = index === breadcrumbs.length - 1;
-    //     const breadcrumbPath = `/${breadcrumbs.slice(0, index + 1).join('/')}`;
-
-    //     return (
-    //       <React.Fragment key={breadcrumb}>
-    //         {!isLast ? (
-    //           <MutableLink href={breadcrumbPath}>
-    //             <a>{breadcrumb}</a>
-    //           </MutableLink>
-    //         ) : (
-    //           <span>{breadcrumb}</span>
-    //         )}
-    //         {!isLast && separator}
-    //       </React.Fragment>
-    //     );
-    //   })}
-    // </nav>
   )
 }
 

@@ -7,12 +7,13 @@ import { useQueries, useQuery } from '@tanstack/react-query'
 
 import { useAuthSession } from '#/common/auth'
 import { useAppParams, useAppPathname } from '#/common/navigation/navigation'
-import { routeTree } from '#/common/routing/routes/hiilikartta'
-import { compiledApplets } from '#/common/routing/routing'
+import {
+  compiledApplets,
+  getPathnameWithoutLocale,
+} from '#/common/routing/appletBuildMode'
 import AppletWrapper from '#/components/common/AppletWrapper'
 import BreadcrumbNav from '#/components/Sidebar/BreadcrumbNav'
 import { useUserStore } from '#/common/store/userStore'
-import { getPathnameWithoutLocale } from '#/common/routing/routing'
 
 import { listedLayerGroups } from '../common/constants'
 import { usePlanStatsQuery } from '../common/queries/planStatsQuery'
@@ -53,11 +54,11 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   const isStandaloneHiilikartta =
     compiledApplets.length === 1 && compiledApplets[0] === 'hiilikartta'
   const isHiilikarttaRoot =
-    pathnameWithoutLocale === '/hiilikartta' ||
+    pathnameWithoutLocale === '/carbonmap' ||
     (isStandaloneHiilikartta && pathnameWithoutLocale === '/')
   const isHiilikarttaKaavat =
-    pathnameWithoutLocale.startsWith('/hiilikartta/kaavat') ||
-    (isStandaloneHiilikartta && pathnameWithoutLocale.startsWith('/kaavat'))
+    pathnameWithoutLocale.startsWith('/carbonmap/plans') ||
+    pathnameWithoutLocale.startsWith('/plans')
   const showBreadcrumbNav = !isHiilikarttaRoot && !isHiilikarttaKaavat
 
   const planConfStatsQuery = useQuery({
@@ -202,9 +203,7 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
       sidebarHeaderTitle={'Hiilikartta'}
       sidebarHeaderBackgroundImage={'/files/img/hiilikartta/zoning.jpg'}
       sidebarHeaderChildren={
-        showBreadcrumbNav ? (
-          <BreadcrumbNav routeTree={routeTree} collapseIfRoot />
-        ) : undefined
+        showBreadcrumbNav ? <BreadcrumbNav collapseIfRoot /> : undefined
       }
       sx={{
         pt: 0,

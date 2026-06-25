@@ -17,7 +17,8 @@ import { Button } from '#/components/common/Button'
 import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
 import { useMapStore, useUIStore } from '#/common/store'
 import { Delete, SaveOutlined, Upload } from '#/components/icons'
-import { getRoute } from '#/common/routing/routing-client'
+import { useAppRouteHrefBuilder } from '#/common/navigation/appRouteLinks'
+import { APP_ROUTE_KEYS } from '#/common/routing/routeMetadata'
 import IconWithText from '#/components/common/IconWithText'
 import { LoadingSpinner } from '#/components/Loading'
 import { SidebarContentBox } from '#/components/Sidebar'
@@ -28,7 +29,6 @@ import BigMenuButton from '#/components/common/BigMenuButton'
 import TText from '#/components/common/TText'
 import {
   useAppParams,
-  useAppPathname,
   useAppRouter,
 } from '#/common/navigation/navigation'
 
@@ -40,11 +40,6 @@ import {
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import { useAdminFolayerPatchMutationOptions } from 'applets/luonnonmetsakartat/common/queries/adminFolayerPatchMutation'
 import { useAdminFolayerDeleteMutationOptions } from 'applets/luonnonmetsakartat/common/queries/adminFolayerDeleteMutation'
-import {
-  APPLET_NAMESPACE,
-  routeTree,
-} from '#/common/routing/routes/luonnonmetsakartat'
-import { mainRouteTree } from '#/common/routing/routes/main'
 import { getFolayerGroupId } from 'applets/luonnonmetsakartat/common/utils'
 import FolayerUpdateShp, {
   type FolayerUpdateShpRef,
@@ -73,7 +68,7 @@ const Page = () => {
   const inputRef = useRef<HTMLInputElement>(null)
   const params = useAppParams<{ folayerIdSlug: string }>()
   const router = useAppRouter()
-  const pathname = useAppPathname()
+  const buildAppRouteHref = useAppRouteHrefBuilder()
   const { t } = useTranslate('luonnonmetsakartat')
 
   const removeLayerGroup = useMapStore((state) => state.removeLayerGroup)
@@ -168,26 +163,6 @@ const Page = () => {
     })
   }
 
-  const getLocalizedAdminRoute = () => {
-    const pathSegments = pathname.split('/').filter(Boolean)
-    const locale = pathSegments[0]
-    const hasAppletSegment = pathSegments[1] === APPLET_NAMESPACE
-    const adminRoute = hasAppletSegment
-      ? {
-          routeNode: mainRouteTree.luonnonmetsakartat.admin,
-          routeTree: mainRouteTree,
-        }
-      : {
-          routeNode: routeTree.admin,
-          routeTree,
-        }
-    const route = getRoute(adminRoute)
-
-    return locale != null && locale.length === 2 && route.startsWith('/')
-      ? `/${locale}${route}`
-      : route
-  }
-
   const handleSaveClick = async (event: MouseEvent<HTMLElement>) => {
     event.preventDefault()
     event.stopPropagation()
@@ -227,7 +202,12 @@ const Page = () => {
           folayerConf: adminFolayerConf,
           callbackFn: async () => {
             await removeLayerGroup(getFolayerGroupId(adminFolayerConf.id, true))
-            router.push(getLocalizedAdminRoute())
+            router.push(
+              buildAppRouteHref({
+                routeKey: APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN,
+              }),
+              { locale: false }
+            )
           },
         })
       }

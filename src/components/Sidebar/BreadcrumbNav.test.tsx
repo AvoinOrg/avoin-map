@@ -2,139 +2,333 @@ import React from 'react'
 import '@testing-library/jest-dom'
 import { render, screen } from '@testing-library/react'
 
+import {
+  APP_ROUTE_KEYS,
+  type AppRouteMetadata,
+} from '#/common/routing/routeMetadata'
+
 import BreadcrumbNav from './BreadcrumbNav'
-import { routeTree as hiilikarttaRouteTree } from '#/common/routing/routes/hiilikartta'
-import { routeTree as luonnonmetsakartatRouteTree } from '#/common/routing/routes/luonnonmetsakartat'
-import { mainRouteTree } from '#/common/routing/routes/main'
-import type { RouteTree } from '#/common/types/routing'
 
-let mockPathname = '/en'
-let mockIsBaseDomainForApplet = false
+type MockMatch = {
+  routeId: string
+  params: Record<string, string>
+  staticData: {
+    appRoute?: AppRouteMetadata
+  }
+}
 
-type MutableLinkMockProps = {
-  route: RouteTree
-  routeTree: RouteTree
-  params?: { routeParams?: Record<string, string> }
+type AppRouteLinkMockProps = {
+  routeKey: string
+  routeParams?: Record<string, string>
+  'aria-label'?: string
   children: React.ReactNode
 }
 
-const mockedMutableLink = jest.fn(
-  ({ route, params, children }: MutableLinkMockProps) => (
+let mockMatches: MockMatch[] = []
+
+const mockedAppRouteLink = jest.fn(
+  ({
+    routeKey,
+    routeParams,
+    children,
+    'aria-label': ariaLabel,
+  }: AppRouteLinkMockProps) => (
     <a
-      href={route._conf.path}
-      data-route-name={route._conf.name}
-      data-route-params={JSON.stringify(params ?? {})}
+      href={`/${routeKey}`}
+      aria-label={ariaLabel}
+      data-route-key={routeKey}
+      data-route-params={JSON.stringify(routeParams ?? {})}
     >
       {children}
     </a>
   )
 )
 
-jest.mock('#/common/navigation/navigation', () => ({
-  useAppPathname: () => mockPathname,
+jest.mock('@tanstack/react-router', () => ({
+  useMatches: (options?: { select?: (matches: MockMatch[]) => unknown }) =>
+    options?.select ? options.select(mockMatches) : mockMatches,
 }))
 
-jest.mock('#/common/store', () => ({
-  useUIStore: (
-    selector?: (state: { isBaseDomainForApplet: boolean }) => unknown
-  ) => {
-    const state = { isBaseDomainForApplet: mockIsBaseDomainForApplet }
-    return selector ? selector(state) : state
-  },
+jest.mock('@tolgee/react', () => ({
+  useTranslate: (ns: string) => ({
+    t: (key: string) => `${ns}:${key}`,
+  }),
 }))
 
-jest.mock('#/components/common/MutableLink', () => ({
+jest.mock('#/components/common/TText', () => ({
   __esModule: true,
-  default: (props: MutableLinkMockProps) => mockedMutableLink(props),
+  default: ({ ns, keyName }: { ns: string; keyName: string }) => (
+    <span>{`${ns}:${keyName}`}</span>
+  ),
 }))
 
-const routeTree: RouteTree = {
-  _conf: { path: '/', name: 'Home' },
-  products: {
-    _conf: { path: 'products', name: 'Products' },
-    product: {
-      _conf: { path: '[productId]', name: 'Product' },
-      details: {
-        _conf: { path: 'details', name: 'Details' },
-      },
-    },
-  },
-}
+jest.mock('#/common/navigation/appRouteLinks', () => ({
+  AppRouteLink: (props: AppRouteLinkMockProps) => mockedAppRouteLink(props),
+}))
+
+const match = ({
+  routeId,
+  params = { locale: 'fi' },
+  appRoute,
+}: {
+  routeId: string
+  params?: Record<string, string>
+  appRoute?: AppRouteMetadata
+}): MockMatch => ({
+  routeId,
+  params,
+  staticData: appRoute ? { appRoute } : {},
+})
+
+const appRoute = (
+  metadata: AppRouteMetadata
+): AppRouteMetadata => metadata
 
 describe('BreadcrumbNav', () => {
   beforeEach(() => {
-    mockPathname = '/en'
-    mockIsBaseDomainForApplet = false
-    mockedMutableLink.mockClear()
+    mockMatches = []
+    mockedAppRouteLink.mockClear()
   })
 
-  it('matches locale-stripped paths and passes dynamic route params to links', () => {
-    mockPathname = '/en/products/123/details'
+  it('renders breadcrumbs from TanStack matches and carries Hiilikartta planId params', () => {
+    mockMatches = [
+      match({ routeId: 'layout', appRoute: undefined }),
+      match({
+        routeId: 'hiilikarttaHome',
+        appRoute: appRoute({
+          key: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
+          appletNamespace: 'hiilikartta',
+          variant: 'canonical',
+          breadcrumb: {
+            ns: 'hiilikartta',
+            key: 'route.breadcrumb.home',
+          },
+        }),
+      }),
+      match({
+        routeId: 'hiilikarttaPlans',
+        appRoute: appRoute({
+          key: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
+          appletNamespace: 'hiilikartta',
+          variant: 'canonical',
+          breadcrumb: {
+            ns: 'hiilikartta',
+            key: 'route.breadcrumb.plans',
+          },
+        }),
+      }),
+      match({
+        routeId: 'hiilikarttaPlan',
+        params: { locale: 'fi', planId: 'plan-123' },
+        appRoute: appRoute({
+          key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
+          appletNamespace: 'hiilikartta',
+          variant: 'canonical',
+          breadcrumb: {
+            ns: 'hiilikartta',
+            key: 'route.breadcrumb.plan',
+          },
+        }),
+      }),
+      match({
+        routeId: 'hiilikarttaPlanAreas',
+        params: { locale: 'fi', planId: 'plan-123' },
+        appRoute: appRoute({
+          key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN_AREAS,
+          appletNamespace: 'hiilikartta',
+          variant: 'canonical',
+          breadcrumb: {
+            ns: 'hiilikartta',
+            key: 'route.breadcrumb.plan_areas',
+          },
+        }),
+      }),
+    ]
 
-    render(<BreadcrumbNav routeTree={routeTree} forceRouteTree />)
+    render(<BreadcrumbNav />)
 
-    expect(screen.getByText('Products')).toBeInTheDocument()
-    expect(screen.getByText('Product')).toBeInTheDocument()
-    expect(screen.getByText('Details')).toBeInTheDocument()
+    expect(
+      screen.getByText('hiilikartta:route.breadcrumb.home')
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('hiilikartta:route.breadcrumb.plans')
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('hiilikartta:route.breadcrumb.plan')
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('hiilikartta:route.breadcrumb.plan_areas')
+    ).toBeInTheDocument()
 
-    expect(mockedMutableLink).toHaveBeenCalledWith(
+    expect(screen.getByLabelText('avoin-map:breadcrumb.back')).toHaveAttribute(
+      'data-route-key',
+      APP_ROUTE_KEYS.HIILIKARTTA_PLAN
+    )
+
+    expect(mockedAppRouteLink).toHaveBeenCalledWith(
       expect.objectContaining({
-        route: routeTree.products.product,
-        routeTree,
-        params: { routeParams: { productId: '123' } },
+        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
+        routeParams: { locale: 'fi', planId: 'plan-123' },
       })
     )
   })
 
   it('collapses root breadcrumbs when requested', () => {
-    mockPathname = '/en'
+    mockMatches = [
+      match({
+        routeId: 'hiilikarttaHome',
+        appRoute: appRoute({
+          key: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
+          appletNamespace: 'hiilikartta',
+          variant: 'canonical',
+          breadcrumb: {
+            ns: 'hiilikartta',
+            key: 'route.breadcrumb.home',
+          },
+        }),
+      }),
+    ]
 
-    render(
-      <BreadcrumbNav
-        routeTree={routeTree}
-        forceRouteTree
-        collapseIfRoot
-      />
-    )
+    render(<BreadcrumbNav collapseIfRoot />)
 
-    expect(screen.queryByText('Home')).not.toBeInTheDocument()
+    expect(
+      screen.queryByText('hiilikartta:route.breadcrumb.home')
+    ).not.toBeInTheDocument()
   })
 
-  it('uses the main route tree for applet paths in main-app mode', () => {
-    mockPathname = '/en/hiilikartta/kaavat'
+  it('uses visible alias matches without adding old main-tree root crumbs', () => {
+    mockMatches = [
+      match({
+        routeId: 'visibleRoot',
+        appRoute: appRoute({
+          key: APP_ROUTE_KEYS.MAIN_HOME_VISIBLE_ROOT,
+          appletNamespace: null,
+          variant: 'visible-root-alias',
+          public: {
+            visibleRootCanonicalRouteKeys: {
+              hiilikartta: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
+            },
+          },
+        }),
+      }),
+      match({
+        routeId: 'visiblePlans',
+        appRoute: appRoute({
+          key: APP_ROUTE_KEYS.HIILIKARTTA_PLANS_VISIBLE_ALIAS,
+          appletNamespace: 'hiilikartta',
+          variant: 'visible-alias',
+          breadcrumb: {
+            ns: 'hiilikartta',
+            key: 'route.breadcrumb.plans',
+          },
+          public: {
+            canonicalRouteKey: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
+          },
+        }),
+      }),
+      match({
+        routeId: 'visiblePlan',
+        params: { locale: 'fi', planId: 'plan-123' },
+        appRoute: appRoute({
+          key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN_VISIBLE_ALIAS,
+          appletNamespace: 'hiilikartta',
+          variant: 'visible-alias',
+          breadcrumb: {
+            ns: 'hiilikartta',
+            key: 'route.breadcrumb.plan',
+          },
+          public: {
+            canonicalRouteKey: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
+          },
+        }),
+      }),
+    ]
 
-    render(<BreadcrumbNav routeTree={hiilikarttaRouteTree} />)
+    render(<BreadcrumbNav />)
 
-    expect(screen.getByText('Etusivu')).toBeInTheDocument()
-    expect(screen.getByText('Kaavat')).toBeInTheDocument()
-    expect(screen.queryByText('Home')).not.toBeInTheDocument()
-  })
-
-  it('uses the provided applet route tree in base-domain mode', () => {
-    mockPathname = '/fi/kaavat'
-    mockIsBaseDomainForApplet = true
-
-    render(<BreadcrumbNav routeTree={hiilikarttaRouteTree} />)
-
-    expect(screen.getByText('Etusivu')).toBeInTheDocument()
-    expect(screen.getByText('Kaavat')).toBeInTheDocument()
+    expect(
+      screen.getByText('hiilikartta:route.breadcrumb.plans')
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('hiilikartta:route.breadcrumb.plan')
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText('hiilikartta:route.breadcrumb.home')
+    ).not.toBeInTheDocument()
   })
 
   it('passes Luonnonmetsakartat folayerIdSlug params through nested admin breadcrumbs', () => {
-    mockPathname =
-      '/fi/luonnonmetsakartat/admin/taso/layer-123/asetukset'
+    mockMatches = [
+      match({
+        routeId: 'luonnonmetsakartatHome',
+        appRoute: appRoute({
+          key: APP_ROUTE_KEYS.LUONNONMETSAKARTAT_HOME,
+          appletNamespace: 'luonnonmetsakartat',
+          variant: 'canonical',
+          breadcrumb: {
+            ns: 'luonnonmetsakartat',
+            key: 'route.breadcrumb.home',
+          },
+        }),
+      }),
+      match({
+        routeId: 'luonnonmetsakartatAdmin',
+        appRoute: appRoute({
+          key: APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN,
+          appletNamespace: 'luonnonmetsakartat',
+          variant: 'canonical',
+          breadcrumb: {
+            ns: 'luonnonmetsakartat',
+            key: 'route.breadcrumb.admin',
+          },
+        }),
+      }),
+      match({
+        routeId: 'luonnonmetsakartatFolayer',
+        params: { locale: 'fi', folayerIdSlug: 'layer-123' },
+        appRoute: appRoute({
+          key: APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN_FOLAYER,
+          appletNamespace: 'luonnonmetsakartat',
+          variant: 'canonical',
+          breadcrumb: {
+            ns: 'luonnonmetsakartat',
+            key: 'route.breadcrumb.folayer',
+          },
+        }),
+      }),
+      match({
+        routeId: 'luonnonmetsakartatFolayerSettings',
+        params: { locale: 'fi', folayerIdSlug: 'layer-123' },
+        appRoute: appRoute({
+          key: APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN_FOLAYER_SETTINGS,
+          appletNamespace: 'luonnonmetsakartat',
+          variant: 'canonical',
+          breadcrumb: {
+            ns: 'luonnonmetsakartat',
+            key: 'route.breadcrumb.folayer_settings',
+          },
+        }),
+      }),
+    ]
 
-    render(<BreadcrumbNav routeTree={luonnonmetsakartatRouteTree} />)
+    render(<BreadcrumbNav />)
 
-    expect(screen.getByText('Admin')).toBeInTheDocument()
-    expect(screen.getByText('Karttataso')).toBeInTheDocument()
-    expect(screen.getByText('Asetukset')).toBeInTheDocument()
+    expect(
+      screen.getByText('luonnonmetsakartat:route.breadcrumb.admin')
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('luonnonmetsakartat:route.breadcrumb.folayer')
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'luonnonmetsakartat:route.breadcrumb.folayer_settings'
+      )
+    ).toBeInTheDocument()
 
-    expect(mockedMutableLink).toHaveBeenCalledWith(
+    expect(mockedAppRouteLink).toHaveBeenCalledWith(
       expect.objectContaining({
-        route: luonnonmetsakartatRouteTree.admin.folayer,
-        routeTree: mainRouteTree,
-        params: { routeParams: { folayerIdSlug: 'layer-123' } },
+        routeKey: APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN_FOLAYER,
+        routeParams: { locale: 'fi', folayerIdSlug: 'layer-123' },
       })
     )
   })

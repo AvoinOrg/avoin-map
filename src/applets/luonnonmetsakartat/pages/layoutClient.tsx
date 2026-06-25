@@ -2,7 +2,6 @@
 
 import React from 'react'
 
-import { routeTree } from '#/common/routing/routes/luonnonmetsakartat'
 import { BreadcrumbNav, SidebarBoundary } from '#/components/Sidebar'
 import AppletWrapper from '#/components/common/AppletWrapper'
 import { listedLayerGroups } from '../common/constants'
@@ -19,10 +18,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
         listedLayerGroups={listedLayerGroups}
         sidebarHeaderTitle={'Luonnonmetsäkartat'}
         sidebarHeaderChildren={
-          <BreadcrumbNav
-            collapseIfRoot={true}
-            routeTree={routeTree}
-          ></BreadcrumbNav>
+          <BreadcrumbNav collapseIfRoot={true}></BreadcrumbNav>
         }
         sx={{
           pt: 0,

@@ -11,37 +11,65 @@ const {
   getAppletSourceRoot,
   getCompiledAppletConfig,
 } = require('./appletBuildConfig')
+const {
+  APPLET_LEGACY_PUBLIC_ROUTE_SLUGS,
+  getPublicAppletRouteSlug,
+} = require('./publicRoutes')
 
-const projectRoot = path.join(__dirname, '..', '..')
-const appletsPath = getAppletSourceRoot(projectRoot)
-const startRoutesAppletPath = path.join(
-  projectRoot,
-  'src',
-  'routes',
-  '$locale',
-  '(map)',
-  '_map',
-  '(applets)'
-)
+const defaultProjectRoot = path.join(__dirname, '..', '..')
 
-const appletRouteAliases = {
-  energiakartta: [
-    path.join('src', 'routes', '$locale', '(map)', '_map', 'energymap'),
-  ],
+const getPrunePaths = (projectRoot) => {
+  const startRoutesMapPath = path.join(
+    projectRoot,
+    'src',
+    'routes',
+    '$locale',
+    '(map)',
+    '_map'
+  )
+
+  return {
+    appletsPath: getAppletSourceRoot(projectRoot),
+    startRoutesMapPath,
+    startRoutesAppletPath: path.join(startRoutesMapPath, '(applets)'),
+    standaloneRouteGroupPath: path.join(startRoutesMapPath, '(standalone)'),
+  }
+}
+
+const appletVisibleRootAliasRoutes = {
+  energiakartta: [],
   hiilikartta: [
+    path.join('src', 'routes', '$locale', '(map)', '_map', 'plans'),
     path.join('src', 'routes', '$locale', '(map)', '_map', 'kaavat'),
+    path.join('src', 'routes', '$locale', '(map)', '_map', 'report.tsx'),
     path.join('src', 'routes', '$locale', '(map)', '_map', 'raportti.tsx'),
-    path.join('src', 'routes', 'api', 'hiilikartta'),
   ],
   luonnonmetsakartat: [
     path.join('src', 'routes', '$locale', '(map)', '_map', 'admin'),
+  ],
+}
+
+const appletApiRoutes = {
+  energiakartta: [],
+  hiilikartta: [path.join('src', 'routes', 'api', 'hiilikartta')],
+  luonnonmetsakartat: [
     path.join('src', 'routes', 'api', 'luonnonmetsakartat'),
   ],
 }
 
+const mainBuildAppletSourceFolders = new Set(['main', 'forests'])
+
+const standaloneVisibleRootRoutePaths = [
+  path.join('src', 'routes', '$locale', '(map)', '_map', 'index.tsx'),
+]
+
 const productionOnlyPrunedRoutes = [
   path.join('src', 'routes', '$locale', 'dev', 'component-fixtures'),
 ]
+
+const fail = (msg) => {
+  throw new Error(msg)
+}
 
 const die = (msg) => {
   console.error(msg)
@@ -53,6 +81,22 @@ const isRouteGroup = (name) => name.startsWith('(') && name.endsWith(')')
 const normalizeName = (name) => {
   if (isRouteGroup(name)) return name.slice(1, -1)
   return name
+}
+
+const getStartRouteFolderNamesForNamespace = (namespace) => [
+  getPublicAppletRouteSlug(namespace),
+  ...(APPLET_LEGACY_PUBLIC_ROUTE_SLUGS[namespace] || []),
+]
+
+const getStandaloneSourceRouteFolderName = ({ buildConfig }) => {
+  const namespace = buildConfig.keepOnlyApplet
+  if (!namespace) {
+    fail(
+      'prebuildFolderPrune: standalone route materialization requires keepOnlyApplet.'
+    )
+  }
+
+  return getPublicAppletRouteSlug(namespace)
 }
 
 const rmDir = (dirPath) => {
@@ -69,16 +113,16 @@ const readDirectories = (dirPath) =>
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
 
-const assertTempWorkspace = () => {
+const assertTempWorkspace = ({ projectRoot = defaultProjectRoot } = {}) => {
   if (process.env[TEMP_WORKSPACE_ENV] !== '1') {
-    die(
+    fail(
       `prebuildFolderPrune: refusing to prune without ${TEMP_WORKSPACE_ENV}=1. Use prebuildFolderPruneTmp.js instead.`
     )
   }
 
   const markerPath = path.join(projectRoot, TEMP_WORKSPACE_MARKER)
   if (!fs.existsSync(markerPath)) {
-    die(
+    fail(
       `prebuildFolderPrune: refusing to prune without temp workspace marker ${markerPath}.`
     )
   }
@@ -87,27 +131,32 @@ const assertTempWorkspace = () => {
   try {
     marker = JSON.parse(fs.readFileSync(markerPath, 'utf8'))
   } catch (error) {
-    die(
+    fail(
       `prebuildFolderPrune: invalid temp workspace marker ${markerPath}: ${error.message}`
     )
   }
 
   if (path.resolve(marker.tmpRoot || '') !== path.resolve(projectRoot)) {
-    die(
+    fail(
       `prebuildFolderPrune: temp workspace marker does not match current root ${projectRoot}.`
     )
   }
 
   if (path.resolve(marker.sourceRoot || '') === path.resolve(projectRoot)) {
-    die(
+    fail(
       'prebuildFolderPrune: temp workspace marker points sourceRoot at the current root; refusing to prune.'
     )
   }
 }
 
-const pruneAppletSourceFolders = ({ buildConfig }) => {
+const pruneAppletSourceFolders = ({
+  buildConfig,
+  projectRoot = defaultProjectRoot,
+}) => {
+  const { appletsPath } = getPrunePaths(projectRoot)
+
   if (!fs.existsSync(appletsPath)) {
-    die(`prebuildFolderPrune: applets folder not found at ${appletsPath}.`)
+    fail(`prebuildFolderPrune: applets folder not found at ${appletsPath}.`)
   }
 
   const dirs = readDirectories(appletsPath)
@@ -120,7 +169,7 @@ const pruneAppletSourceFolders = ({ buildConfig }) => {
   )
 
   if (missing.length > 0) {
-    die(
+    fail(
       `prebuildFolderPrune: unknown applet folder(s): ${missing.join(
         ','
       )}. Expected to find them under ${appletsPath}.`
@@ -131,7 +180,8 @@ const pruneAppletSourceFolders = ({ buildConfig }) => {
   for (const dirName of dirs) {
     const normalized = normalizeName(dirName).toLowerCase()
     const remove = buildConfig.includesMain
-      ? normalized !== 'main' && !buildConfig.selectedApplets.has(normalized)
+      ? !mainBuildAppletSourceFolders.has(normalized) &&
+        !buildConfig.selectedApplets.has(normalized)
       : normalized !== buildConfig.keepOnlyApplet
 
     if (remove) {
@@ -143,7 +193,184 @@ const pruneAppletSourceFolders = ({ buildConfig }) => {
   return removed
 }
 
-const pruneCanonicalStartAppletRoutes = ({ buildConfig }) => {
+const collectFiles = (dirPath) => {
+  if (!fs.existsSync(dirPath)) return []
+
+  const files = []
+  const entries = fs.readdirSync(dirPath, { withFileTypes: true })
+
+  for (const entry of entries) {
+    const entryPath = path.join(dirPath, entry.name)
+    if (entry.isDirectory()) {
+      files.push(...collectFiles(entryPath))
+    } else if (entry.isFile()) {
+      files.push(entryPath)
+    }
+  }
+
+  return files
+}
+
+const isRouteSourceFile = (filePath) =>
+  filePath.endsWith('.ts') || filePath.endsWith('.tsx')
+
+const createFileRouteLiteralRe =
+  /createFileRoute\(\s*(['"`])([^'"`]+)\1\s*\)/g
+
+const escapeRegExp = (value) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+const stripPromotedRedirectSegmentPrefix = ({
+  source,
+  sourceRouteFolderName,
+}) => {
+  const escapedFolderName = escapeRegExp(sourceRouteFolderName)
+  const segmentPrefixRe = new RegExp(
+    `(\\b(?:segments|prefixSegments):\\s*\\[\\s*)(['"\`])${escapedFolderName}\\2\\s*,\\s*`,
+    'g'
+  )
+  let replacements = 0
+  const updated = source.replace(segmentPrefixRe, (_match, prefix) => {
+    replacements += 1
+    return prefix
+  })
+
+  return { source: updated, replacements }
+}
+
+const rewritePromotedRouteFileLiterals = ({
+  filePath,
+  sourceRouteFolderName,
+  sourceRoutePrefix,
+  targetRoutePrefix,
+}) => {
+  const source = fs.readFileSync(filePath, 'utf8')
+  if (!source.includes('createFileRoute')) {
+    return { filePath, replacements: 0 }
+  }
+
+  let replacements = 0
+  const routeLiteralUpdated = source.replace(
+    createFileRouteLiteralRe,
+    (match, quote, routeId) => {
+      if (
+        routeId !== sourceRoutePrefix &&
+        !routeId.startsWith(`${sourceRoutePrefix}/`)
+      ) {
+        return match
+      }
+
+      replacements += 1
+      const tail = routeId.slice(sourceRoutePrefix.length)
+      return `createFileRoute(${quote}${targetRoutePrefix}${tail}${quote})`
+    }
+  )
+
+  if (replacements === 0) {
+    fail(
+      `prebuildFolderPrune: promoted route file ${filePath} contains createFileRoute(...) but no literal starting with ${sourceRoutePrefix}.`
+    )
+  }
+
+  if (routeLiteralUpdated.includes(sourceRoutePrefix)) {
+    fail(
+      `prebuildFolderPrune: promoted route file ${filePath} still contains ${sourceRoutePrefix} after route literal rewriting.`
+    )
+  }
+
+  const { source: updated } = stripPromotedRedirectSegmentPrefix({
+    source: routeLiteralUpdated,
+    sourceRouteFolderName,
+  })
+
+  fs.writeFileSync(filePath, updated, 'utf8')
+
+  return { filePath, replacements }
+}
+
+const materializeStandaloneAppletRoutes = ({
+  buildConfig,
+  projectRoot = defaultProjectRoot,
+}) => {
+  if (buildConfig.includesMain) {
+    return {
+      promotedFiles: [],
+      sourceRouteFolder: null,
+      sourceRoutePrefix: null,
+      targetRouteFolder: null,
+      targetRoutePrefix: null,
+    }
+  }
+
+  const namespace = buildConfig.keepOnlyApplet
+  if (!namespace) {
+    fail(
+      'prebuildFolderPrune: standalone route materialization requires exactly one selected applet.'
+    )
+  }
+
+  const {
+    startRoutesAppletPath,
+    standaloneRouteGroupPath,
+  } = getPrunePaths(projectRoot)
+  const sourceRouteFolderName = getStandaloneSourceRouteFolderName({
+    buildConfig,
+  })
+  const sourceRouteFolder = path.join(
+    startRoutesAppletPath,
+    sourceRouteFolderName
+  )
+  const sourceRoutePrefix = `/$locale/(map)/_map/(applets)/${sourceRouteFolderName}`
+  const targetRoutePrefix = '/$locale/(map)/_map/(standalone)'
+
+  if (!fs.existsSync(sourceRouteFolder)) {
+    fail(
+      `prebuildFolderPrune: missing canonical Start route folder for standalone applet ${namespace}: ${sourceRouteFolder}.`
+    )
+  }
+
+  if (fs.existsSync(standaloneRouteGroupPath)) {
+    fail(
+      `prebuildFolderPrune: refusing to overwrite existing standalone route group: ${standaloneRouteGroupPath}.`
+    )
+  }
+
+  fs.cpSync(sourceRouteFolder, standaloneRouteGroupPath, { recursive: true })
+
+  const promotedFiles = collectFiles(standaloneRouteGroupPath)
+    .filter(isRouteSourceFile)
+    .map((filePath) =>
+      rewritePromotedRouteFileLiterals({
+        filePath,
+        sourceRouteFolderName,
+        sourceRoutePrefix,
+        targetRoutePrefix,
+      })
+    )
+    .filter((result) => result.replacements > 0)
+    .map((result) => path.relative(projectRoot, result.filePath))
+
+  if (promotedFiles.length === 0) {
+    fail(
+      `prebuildFolderPrune: standalone materialization for ${namespace} did not rewrite any route files under ${standaloneRouteGroupPath}.`
+    )
+  }
+
+  return {
+    promotedFiles,
+    sourceRouteFolder: path.relative(projectRoot, sourceRouteFolder),
+    sourceRoutePrefix,
+    targetRouteFolder: path.relative(projectRoot, standaloneRouteGroupPath),
+    targetRoutePrefix,
+  }
+}
+
+const pruneCanonicalStartAppletRoutes = ({
+  buildConfig,
+  projectRoot = defaultProjectRoot,
+}) => {
+  const { startRoutesAppletPath } = getPrunePaths(projectRoot)
+
   if (!fs.existsSync(startRoutesAppletPath)) {
     return []
   }
@@ -153,22 +380,34 @@ const pruneCanonicalStartAppletRoutes = ({ buildConfig }) => {
     dirs.map((dirName) => normalizeName(dirName).toLowerCase())
   )
 
-  const missingRoutes = buildConfig.compiledNonMain.filter(
-    (namespace) => !existingRouteDirNames.has(namespace)
-  )
-
-  if (missingRoutes.length > 0) {
-    die(
-      `prebuildFolderPrune: missing Start applet route folder(s): ${missingRoutes.join(
-        ','
-      )}. Expected to find them under ${startRoutesAppletPath}.`
+  if (buildConfig.includesMain) {
+    const missingRoutes = buildConfig.compiledNonMain.filter(
+      (namespace) =>
+        !existingRouteDirNames.has(getPublicAppletRouteSlug(namespace))
     )
+
+    if (missingRoutes.length > 0) {
+      fail(
+        `prebuildFolderPrune: missing Start applet route folder(s): ${missingRoutes.join(
+          ','
+        )}. Expected to find them under ${startRoutesAppletPath}.`
+      )
+    }
   }
 
   const removed = []
+  const selectedRouteFolderNames = new Set(
+    Array.from(buildConfig.selectedApplets).flatMap((namespace) =>
+      getStartRouteFolderNamesForNamespace(namespace)
+    )
+  )
+
   for (const dirName of dirs) {
     const normalized = normalizeName(dirName).toLowerCase()
-    if (buildConfig.selectedApplets.has(normalized)) continue
+    if (buildConfig.includesMain && normalized === 'forests') continue
+    if (buildConfig.includesMain && selectedRouteFolderNames.has(normalized)) {
+      continue
+    }
 
     rmDir(path.join(startRoutesAppletPath, dirName))
     removed.push(path.join('src/routes/.../(applets)', dirName))
@@ -177,25 +416,73 @@ const pruneCanonicalStartAppletRoutes = ({ buildConfig }) => {
   return removed
 }
 
-const pruneAppletAliasStartRoutes = ({ buildConfig }) => {
+const removeRelativePaths = ({ relativePaths, projectRoot }) => {
   const removed = []
 
-  for (const [namespace, relativePaths] of Object.entries(appletRouteAliases)) {
-    if (buildConfig.selectedApplets.has(namespace)) continue
+  for (const relativePath of relativePaths) {
+    const fullPath = path.join(projectRoot, relativePath)
+    if (!fs.existsSync(fullPath)) continue
 
-    for (const relativePath of relativePaths) {
-      const fullPath = path.join(projectRoot, relativePath)
-      if (!fs.existsSync(fullPath)) continue
-
-      rmPath(fullPath)
-      removed.push(relativePath)
-    }
+    rmPath(fullPath)
+    removed.push(relativePath)
   }
 
   return removed
 }
 
-const pruneProductionOnlyStartRoutes = () => {
+const pruneAppletApiStartRoutes = ({
+  buildConfig,
+  projectRoot = defaultProjectRoot,
+}) => {
+  const removed = []
+
+  for (const [namespace, relativePaths] of Object.entries(appletApiRoutes)) {
+    if (buildConfig.selectedApplets.has(namespace)) continue
+
+    removed.push(...removeRelativePaths({ relativePaths, projectRoot }))
+  }
+
+  return removed
+}
+
+const pruneAppletAliasStartRoutes = ({
+  buildConfig,
+  projectRoot = defaultProjectRoot,
+}) => {
+  const removed = []
+
+  for (const [namespace, relativePaths] of Object.entries(
+    appletVisibleRootAliasRoutes
+  )) {
+    if (buildConfig.selectedApplets.has(namespace)) continue
+
+    removed.push(...removeRelativePaths({ relativePaths, projectRoot }))
+  }
+
+  return removed
+}
+
+const pruneStandaloneRootAliasStartRoutes = ({
+  buildConfig,
+  projectRoot = defaultProjectRoot,
+}) => {
+  if (buildConfig.includesMain) return []
+
+  const namespace = buildConfig.keepOnlyApplet
+  if (!namespace) return []
+
+  return removeRelativePaths({
+    projectRoot,
+    relativePaths: [
+      ...standaloneVisibleRootRoutePaths,
+      ...(appletVisibleRootAliasRoutes[namespace] || []),
+    ],
+  })
+}
+
+const pruneProductionOnlyStartRoutes = ({
+  projectRoot = defaultProjectRoot,
+} = {}) => {
   const removed = []
 
   for (const relativePath of productionOnlyPrunedRoutes) {
@@ -209,166 +496,7 @@ const pruneProductionOnlyStartRoutes = () => {
   return removed
 }
 
-const pushEnergiakarttaBridge = (lines) => {
-  lines.push(
-    "import EnergiakarttaLayoutClient from 'applets/energiakartta/pages/layoutClient'",
-    "import EnergiakarttaPage from 'applets/energiakartta/pages/page'",
-    '',
-    'export const EnergiakarttaLayout = () => (',
-    '  <EnergiakarttaLayoutClient>',
-    '    <Outlet />',
-    '  </EnergiakarttaLayoutClient>',
-    ')',
-    '',
-    'export const EnergiakarttaApplet = ({ locale }: { locale: string }) => (',
-    '  <EnergiakarttaLayoutClient>',
-    '    <EnergiakarttaPage locale={locale} />',
-    '  </EnergiakarttaLayoutClient>',
-    ')',
-    '',
-    'export const EnergiakarttaIndexRoute = ({',
-    '  locale,',
-    '}: {',
-    '  locale: string',
-    '}) => <EnergiakarttaPage locale={locale} />',
-    ''
-  )
-}
-
-const pushHiilikarttaBridge = (lines) => {
-  lines.push(
-    "import HiilikarttaLayoutClient from 'applets/hiilikartta/pages/layoutClient'",
-    "import HiilikarttaPage from 'applets/hiilikartta/pages/page'",
-    "import HiilikarttaPlansLayout from 'applets/hiilikartta/pages/kaavat/layout'",
-    "import HiilikarttaPlansPage from 'applets/hiilikartta/pages/kaavat/page'",
-    "import HiilikarttaPlanLayout from 'applets/hiilikartta/pages/kaavat/plan/layout'",
-    "import HiilikarttaPlanPage from 'applets/hiilikartta/pages/kaavat/plan/page'",
-    "import HiilikarttaPlanAreasPage from 'applets/hiilikartta/pages/kaavat/plan/alueet/page'",
-    "import HiilikarttaReportPage from 'applets/hiilikartta/pages/raportti/page'",
-    '',
-    'export const HiilikarttaLayout = () => (',
-    '  <HiilikarttaLayoutClient>',
-    '    <Outlet />',
-    '  </HiilikarttaLayoutClient>',
-    ')',
-    '',
-    'export const HiilikarttaApplet = () => (',
-    '  <HiilikarttaLayoutClient>',
-    '    <HiilikarttaPage />',
-    '  </HiilikarttaLayoutClient>',
-    ')',
-    '',
-    'export const HiilikarttaIndexRoute = () => <HiilikarttaPage />',
-    '',
-    'export const HiilikarttaPlansLayoutRoute = () => (',
-    '  <HiilikarttaPlansLayout>',
-    '    <Outlet />',
-    '  </HiilikarttaPlansLayout>',
-    ')',
-    '',
-    'export const HiilikarttaVisiblePlansLayoutRoute = () => (',
-    '  <HiilikarttaLayoutClient>',
-    '    <HiilikarttaPlansLayout>',
-    '      <Outlet />',
-    '    </HiilikarttaPlansLayout>',
-    '  </HiilikarttaLayoutClient>',
-    ')',
-    '',
-    'export const HiilikarttaPlansIndexRoute = () => <HiilikarttaPlansPage />',
-    '',
-    'export const HiilikarttaPlanLayoutRoute = () => (',
-    '  <HiilikarttaPlanLayout>',
-    '    <Outlet />',
-    '  </HiilikarttaPlanLayout>',
-    ')',
-    '',
-    'export const HiilikarttaPlanIndexRoute = () => <HiilikarttaPlanPage />',
-    '',
-    'export const HiilikarttaPlanAreasRoute = () => <HiilikarttaPlanAreasPage />',
-    '',
-    'export const HiilikarttaReportRoute = () => <HiilikarttaReportPage />',
-    '',
-    'export const HiilikarttaVisibleReportRoute = () => (',
-    '  <HiilikarttaLayoutClient>',
-    '    <HiilikarttaReportPage />',
-    '  </HiilikarttaLayoutClient>',
-    ')',
-    ''
-  )
-}
-
-const pushLuonnonmetsakartatBridge = (lines) => {
-  lines.push(
-    "import LuonnonmetsakartatLayoutClient from 'applets/luonnonmetsakartat/pages/layoutClient'",
-    "import LuonnonmetsakartatPage from 'applets/luonnonmetsakartat/pages/page'",
-    "import LuonnonmetsakartatAdminLayoutClient from 'applets/luonnonmetsakartat/pages/admin/layoutClient'",
-    "import LuonnonmetsakartatAdminPage from 'applets/luonnonmetsakartat/pages/admin/page'",
-    "import LuonnonmetsakartatImportPage from 'applets/luonnonmetsakartat/pages/admin/tuo/page'",
-    "import LuonnonmetsakartatFolayerLayoutClient from 'applets/luonnonmetsakartat/pages/admin/taso/folayer/layoutClient'",
-    "import LuonnonmetsakartatFolayerPage from 'applets/luonnonmetsakartat/pages/admin/taso/folayer/page'",
-    "import LuonnonmetsakartatFolayerSettingsPage from 'applets/luonnonmetsakartat/pages/admin/taso/folayer/asetukset/page'",
-    "import LuonnonmetsakartatFolayerPicturesPage from 'applets/luonnonmetsakartat/pages/admin/taso/folayer/kuvat/page'",
-    '',
-    'export const LuonnonmetsakartatLayout = () => (',
-    '  <LuonnonmetsakartatLayoutClient>',
-    '    <Outlet />',
-    '  </LuonnonmetsakartatLayoutClient>',
-    ')',
-    '',
-    'export const LuonnonmetsakartatApplet = () => (',
-    '  <LuonnonmetsakartatLayoutClient>',
-    '    <LuonnonmetsakartatPage />',
-    '  </LuonnonmetsakartatLayoutClient>',
-    ')',
-    '',
-    'export const LuonnonmetsakartatIndexRoute = () => (',
-    '  <LuonnonmetsakartatPage />',
-    ')',
-    '',
-    'export const LuonnonmetsakartatAdminLayout = () => (',
-    '  <LuonnonmetsakartatAdminLayoutClient>',
-    '    <Outlet />',
-    '  </LuonnonmetsakartatAdminLayoutClient>',
-    ')',
-    '',
-    'export const LuonnonmetsakartatVisibleAdminLayout = () => (',
-    '  <LuonnonmetsakartatLayoutClient>',
-    '    <LuonnonmetsakartatAdminLayoutClient>',
-    '      <Outlet />',
-    '    </LuonnonmetsakartatAdminLayoutClient>',
-    '  </LuonnonmetsakartatLayoutClient>',
-    ')',
-    '',
-    'export const LuonnonmetsakartatAdminIndexRoute = () => (',
-    '  <LuonnonmetsakartatAdminPage />',
-    ')',
-    '',
-    'export const LuonnonmetsakartatImportRoute = () => (',
-    '  <LuonnonmetsakartatImportPage />',
-    ')',
-    '',
-    'export const LuonnonmetsakartatFolayerLayout = () => (',
-    '  <LuonnonmetsakartatFolayerLayoutClient>',
-    '    <Outlet />',
-    '  </LuonnonmetsakartatFolayerLayoutClient>',
-    ')',
-    '',
-    'export const LuonnonmetsakartatFolayerIndexRoute = () => (',
-    '  <LuonnonmetsakartatFolayerPage />',
-    ')',
-    '',
-    'export const LuonnonmetsakartatFolayerSettingsRoute = () => (',
-    '  <LuonnonmetsakartatFolayerSettingsPage />',
-    ')',
-    '',
-    'export const LuonnonmetsakartatFolayerPicturesRoute = () => (',
-    '  <LuonnonmetsakartatFolayerPicturesPage />',
-    ')',
-    ''
-  )
-}
-
-const getStandaloneFallbackRoute = ({ buildConfig }) => {
+const getStandaloneVisibleRootFallback = ({ buildConfig }) => {
   if (buildConfig.keepOnlyApplet === 'energiakartta') {
     return '  return <EnergiakarttaApplet locale={locale} />'
   }
@@ -384,42 +512,47 @@ const getStandaloneFallbackRoute = ({ buildConfig }) => {
   return '  return null'
 }
 
-const writePrunedAppletRouteComponents = ({ buildConfig }) => {
+const writePrunedVisibleAppletRootRoute = ({
+  buildConfig,
+  projectRoot = defaultProjectRoot,
+}) => {
   const outputPath = path.join(
     projectRoot,
     'src',
     'runtime',
-    'appletRouteComponents.tsx'
+    'visibleAppletRootRoute.tsx'
   )
   const lines = [
     '// Generated inside a pruned temp build workspace by prebuildFolderPrune.js.',
-    '// The live workspace keeps the full development bridge.',
-    "import { Outlet } from '@tanstack/react-router'",
+    '// The live workspace keeps the full development visible-root switch.',
   ]
 
   if (buildConfig.includesMain) {
     lines.push("import MainPage from 'applets/main/page'")
   }
 
-  lines.push(
-    '',
-    "import { getVisibleAppletRootNamespace } from './appletRouteGuards'",
-    ''
-  )
-
   if (buildConfig.selectedApplets.has('energiakartta')) {
-    pushEnergiakarttaBridge(lines)
+    lines.push(
+      "import { EnergiakarttaApplet } from 'applets/energiakartta/routeComponents'"
+    )
   }
 
   if (buildConfig.selectedApplets.has('hiilikartta')) {
-    pushHiilikarttaBridge(lines)
+    lines.push(
+      "import { HiilikarttaApplet } from 'applets/hiilikartta/routeComponents'"
+    )
   }
 
   if (buildConfig.selectedApplets.has('luonnonmetsakartat')) {
-    pushLuonnonmetsakartatBridge(lines)
+    lines.push(
+      "import { LuonnonmetsakartatApplet } from 'applets/luonnonmetsakartat/routeComponents'"
+    )
   }
 
   lines.push(
+    '',
+    "import { getVisibleAppletRootNamespace } from './appletRouteGuards'",
+    '',
     'export const VisibleAppletRootRoute = ({ locale }: { locale: string }) => {',
     '  const namespace = getVisibleAppletRootNamespace()',
     ''
@@ -455,59 +588,116 @@ const writePrunedAppletRouteComponents = ({ buildConfig }) => {
   if (buildConfig.includesMain) {
     lines.push('  return <MainPage />')
   } else {
-    lines.push(getStandaloneFallbackRoute({ buildConfig }))
+    lines.push(getStandaloneVisibleRootFallback({ buildConfig }))
   }
 
   lines.push('}', '')
 
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true })
   fs.writeFileSync(outputPath, `${lines.join('\n')}\n`, 'utf8')
 
   return path.relative(projectRoot, outputPath)
 }
 
 const main = () => {
-  assertTempWorkspace()
-
-  let buildConfig
   try {
-    buildConfig = getCompiledAppletConfig({
+    const projectRoot = defaultProjectRoot
+
+    assertTempWorkspace({ projectRoot })
+
+    const buildConfig = getCompiledAppletConfig({
       projectRoot,
       scriptName: 'prebuildFolderPrune',
     })
+
+    const materializedStandaloneRoutes = materializeStandaloneAppletRoutes({
+      buildConfig,
+      projectRoot,
+    })
+    const removedSource = pruneAppletSourceFolders({
+      buildConfig,
+      projectRoot,
+    })
+    const removedCanonicalRoutes = pruneCanonicalStartAppletRoutes({
+      buildConfig,
+      projectRoot,
+    })
+    const removedAliasRoutes = pruneAppletAliasStartRoutes({
+      buildConfig,
+      projectRoot,
+    })
+    const removedStandaloneAliasRoutes = pruneStandaloneRootAliasStartRoutes({
+      buildConfig,
+      projectRoot,
+    })
+    const removedApiRoutes = pruneAppletApiStartRoutes({
+      buildConfig,
+      projectRoot,
+    })
+    const removedProductionOnlyRoutes = pruneProductionOnlyStartRoutes({
+      projectRoot,
+    })
+    const generatedVisibleRootRoute = writePrunedVisibleAppletRootRoute({
+      buildConfig,
+      projectRoot,
+    })
+
+    console.log(
+      [
+        `prebuildFolderPrune: mode=${buildConfig.mode}`,
+        `materializedStandaloneRoutes=${
+          materializedStandaloneRoutes.promotedFiles.length
+            ? materializedStandaloneRoutes.promotedFiles.join(',')
+            : '(none)'
+        }`,
+        `removedAppSource=${
+          removedSource.length ? removedSource.join(',') : '(none)'
+        }`,
+        `removedStartAppletRoutes=${
+          removedCanonicalRoutes.length
+            ? removedCanonicalRoutes.join(',')
+            : '(none)'
+        }`,
+        `removedStartAliasRoutes=${
+          removedAliasRoutes.length ? removedAliasRoutes.join(',') : '(none)'
+        }`,
+        `removedStandaloneAliasRoutes=${
+          removedStandaloneAliasRoutes.length
+            ? removedStandaloneAliasRoutes.join(',')
+            : '(none)'
+        }`,
+        `removedApiRoutes=${
+          removedApiRoutes.length ? removedApiRoutes.join(',') : '(none)'
+        }`,
+        `removedProductionOnlyRoutes=${
+          removedProductionOnlyRoutes.length
+            ? removedProductionOnlyRoutes.join(',')
+            : '(none)'
+        }`,
+        `generatedVisibleRootRoute=${generatedVisibleRootRoute}`,
+      ].join('; ')
+    )
   } catch (error) {
     die(error.message)
   }
-
-  const removedSource = pruneAppletSourceFolders({ buildConfig })
-  const removedCanonicalRoutes = pruneCanonicalStartAppletRoutes({
-    buildConfig,
-  })
-  const removedAliasRoutes = pruneAppletAliasStartRoutes({ buildConfig })
-  const removedProductionOnlyRoutes = pruneProductionOnlyStartRoutes()
-  const generatedBridge = writePrunedAppletRouteComponents({ buildConfig })
-
-  console.log(
-    [
-      `prebuildFolderPrune: mode=${buildConfig.mode}`,
-      `removedAppSource=${
-        removedSource.length ? removedSource.join(',') : '(none)'
-      }`,
-      `removedStartAppletRoutes=${
-        removedCanonicalRoutes.length
-          ? removedCanonicalRoutes.join(',')
-          : '(none)'
-      }`,
-      `removedStartAliasRoutes=${
-        removedAliasRoutes.length ? removedAliasRoutes.join(',') : '(none)'
-      }`,
-      `removedProductionOnlyRoutes=${
-        removedProductionOnlyRoutes.length
-          ? removedProductionOnlyRoutes.join(',')
-          : '(none)'
-      }`,
-      `generatedBridge=${generatedBridge}`,
-    ].join('; ')
-  )
 }
 
-main()
+if (require.main === module) {
+  main()
+}
+
+module.exports = {
+  appletApiRoutes,
+  appletVisibleRootAliasRoutes,
+  assertTempWorkspace,
+  getPrunePaths,
+  materializeStandaloneAppletRoutes,
+  pruneAppletAliasStartRoutes,
+  pruneAppletApiStartRoutes,
+  pruneAppletSourceFolders,
+  pruneCanonicalStartAppletRoutes,
+  pruneProductionOnlyStartRoutes,
+  pruneStandaloneRootAliasStartRoutes,
+  rewritePromotedRouteFileLiterals,
+  writePrunedVisibleAppletRootRoute,
+}

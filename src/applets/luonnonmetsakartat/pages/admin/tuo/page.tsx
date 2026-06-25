@@ -5,21 +5,14 @@ import { useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
 
 import { Box } from '#/common/style/theme'
-import { getRoute } from '#/common/routing/routing-client'
-import {
-  useAppPathname,
-  useAppRouter,
-} from '#/common/navigation/navigation'
+import { useAppRouteHrefBuilder } from '#/common/navigation/appRouteLinks'
+import { useAppRouter } from '#/common/navigation/navigation'
 import BigMenuButton from '#/components/common/BigMenuButton'
 import { SidebarContentBox } from '#/components/Sidebar'
 import { Upload } from '#/components/icons'
 
 import type { IndexingStrategy } from 'applets/luonnonmetsakartat/common/types'
-import {
-  APPLET_NAMESPACE,
-  routeTree,
-} from '#/common/routing/routes/luonnonmetsakartat'
-import { mainRouteTree } from '#/common/routing/routes/main'
+import { APP_ROUTE_KEYS } from '#/common/routing/routeMetadata'
 import FolayerImportShp from 'applets/luonnonmetsakartat/components/FolayerImportShp'
 import { useAdminFolayerPostMutationOptions } from 'applets/luonnonmetsakartat/common/queries/adminFolayerPostMutation'
 import { useSidebarActivityLoader } from '#/common/hooks/ui/useSidebarActivityLoader'
@@ -32,7 +25,7 @@ const Page = () => {
   const isInitializingRef = useRef(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useAppRouter()
-  const pathname = useAppPathname()
+  const buildAppRouteHref = useAppRouteHrefBuilder()
   const { t } = useTranslate('luonnonmetsakartat')
   const dialogOpenedRef = useRef(false)
   const localFolayerPostMutation = useMutation(
@@ -95,31 +88,13 @@ const Page = () => {
   useEffect(() => {
     if (localFolayerPostMutation.isSuccess) {
       const id = localFolayerPostMutation.data.id
-      const pathSegments = pathname.split('/').filter(Boolean)
-      const locale = pathSegments[0]
-      const hasAppletSegment = pathSegments[1] === APPLET_NAMESPACE
-      const folayerRoute = hasAppletSegment
-        ? {
-            routeNode: mainRouteTree.luonnonmetsakartat.admin.folayer,
-            routeTree: mainRouteTree,
-          }
-        : {
-            routeNode: routeTree.admin.folayer,
-            routeTree,
-          }
-      const route = getRoute({
-        ...folayerRoute,
-        params: {
-          routeParams: {
-            folayerIdSlug: id,
-          },
+      const route = buildAppRouteHref({
+        routeKey: APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN_FOLAYER,
+        routeParams: {
+          folayerIdSlug: id,
         },
       })
-      const localizedRoute =
-        locale != null && locale.length === 2 && route.startsWith('/')
-          ? `/${locale}${route}`
-          : route
-      router.push(localizedRoute)
+      router.push(route, { locale: false })
       return
     }
 
@@ -135,7 +110,7 @@ const Page = () => {
     localFolayerPostMutation.isError,
     localFolayerPostMutation.isPending,
     localFolayerPostMutation.isSuccess,
-    pathname,
+    buildAppRouteHref,
     router,
     setIsLoading,
   ])
@@ -228,14 +203,6 @@ const Page = () => {
         descriptionCol,
         areaCol,
       })
-      // if (id) {
-      //   const route = getRoute(routeTree.plans.plan, routeTree, {
-      //     routeParams: {
-      //       planId: id,
-      //     },
-      //   })
-      //   router.push(route)
-      // }
     } catch (e) {
       console.error(e)
     }

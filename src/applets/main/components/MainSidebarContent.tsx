@@ -11,7 +11,7 @@ import {
   Box,
   toSxArray,
 } from '#/common/style/theme/system'
-import MutableLink from '#/components/common/MutableLink'
+import { AppRouteLink } from '#/common/navigation/appRouteLinks'
 import FrameworkImage from '#/components/common/FrameworkImage'
 import {
   useSidebarBoundaryContext,
@@ -21,9 +21,11 @@ import {
   SidebarTopControlsSlot,
 } from '#/components/Sidebar/sidebarSlots'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
-import { mainRouteTree } from '#/common/routing/routes/main'
+import {
+  APP_ROUTE_KEYS,
+  type AppRouteKey,
+} from '#/common/routing/routeMetadata'
 import { SCROLLBAR_WIDTH_REM } from '#/common/style/theme/constants'
-import { RouteTree } from '#/common/types/routing'
 import { ArrowDown, ArrowUp } from '#/components/icons'
 
 const ButtonBox = Box as React.ElementType
@@ -51,7 +53,7 @@ type BubbleVariant = 'hiilikartta' | 'imageHeader'
 
 const APPLET_BUBBLES: Array<{
   id: string
-  route: RouteTree
+  routeKey: AppRouteKey
   titleKey: string
   descriptionKey: string
   minHeight: string
@@ -62,7 +64,7 @@ const APPLET_BUBBLES: Array<{
 }> = [
   {
     id: 'buildings',
-    route: mainRouteTree.energiakartta,
+    routeKey: APP_ROUTE_KEYS.ENERGIAKARTTA_HOME,
     titleKey: 'sidebar.buildings',
     descriptionKey: 'sidebar.main.bubbles.buildings.description',
     minHeight: '20.375rem',
@@ -73,7 +75,7 @@ const APPLET_BUBBLES: Array<{
   },
   {
     id: 'hiilikartta',
-    route: mainRouteTree.hiilikartta,
+    routeKey: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
     titleKey: 'sidebar.main.bubbles.hiilikartta.title',
     descriptionKey: 'sidebar.main.bubbles.hiilikartta.description',
     minHeight: '13.125rem',
@@ -84,7 +86,7 @@ const APPLET_BUBBLES: Array<{
   },
   {
     id: 'forests',
-    route: mainRouteTree.forests,
+    routeKey: APP_ROUTE_KEYS.MAIN_FORESTS,
     titleKey: 'sidebar.forests',
     descriptionKey: 'sidebar.main.bubbles.forests.description',
     minHeight: '18.75rem',
@@ -653,7 +655,7 @@ const MainSidebarContent = () => {
                   {APPLET_BUBBLES.filter((bubble) => bubble.id === 'hiilikartta').map(
                     ({
                       id,
-                      route,
+                      routeKey,
                       titleKey,
                       descriptionKey,
                       minHeight,
@@ -662,10 +664,10 @@ const MainSidebarContent = () => {
                       heroPosition,
                       variant,
                     }) => (
-                      <MutableLink
+                      <AppRouteLink
                         key={id}
-                        route={route}
-                        routeTree={mainRouteTree}
+                        routeKey={routeKey}
+                        preferVisible={false}
                         sx={{
                           display: 'flex',
                           width: '100%',
@@ -755,7 +757,7 @@ const MainSidebarContent = () => {
                             </SidebarText>
                           </Box>
                         </Box>
-                      </MutableLink>
+                      </AppRouteLink>
                     )
                   )}
                 </Box>
@@ -774,7 +776,7 @@ const MainSidebarContent = () => {
                   {APPLET_BUBBLES.filter((bubble) => bubble.variant === 'imageHeader').map(
                     ({
                       id,
-                      route,
+                      routeKey,
                       titleKey,
                       descriptionKey,
                       minHeight,
@@ -783,10 +785,10 @@ const MainSidebarContent = () => {
                       heroPosition,
                       variant,
                     }) => (
-                      <MutableLink
+                      <AppRouteLink
                         key={id}
-                        route={route}
-                        routeTree={mainRouteTree}
+                        routeKey={routeKey}
+                        preferVisible={false}
                         sx={{
                           display: 'flex',
                           width: '100%',
@@ -885,7 +887,7 @@ const MainSidebarContent = () => {
                             </SidebarText>
                           </Box>
                         </Box>
-                      </MutableLink>
+                      </AppRouteLink>
                     )
                   )}
                 </Box>
@@ -948,7 +950,7 @@ const MainSidebarContent = () => {
                 {APPLET_BUBBLES.filter((bubble) => bubble.id === 'buildings').map(
                   ({
                     id,
-                    route,
+                    routeKey,
                     titleKey,
                     descriptionKey,
                     minHeight,
@@ -957,10 +959,10 @@ const MainSidebarContent = () => {
                     heroPosition,
                     variant,
                   }) => (
-                    <MutableLink
+                    <AppRouteLink
                       key={id}
-                      route={route}
-                      routeTree={mainRouteTree}
+                      routeKey={routeKey}
+                      preferVisible={false}
                       sx={{
                         display: 'flex',
                         width: '100%',
@@ -1058,7 +1060,7 @@ const MainSidebarContent = () => {
                           </SidebarText>
                         </Box>
                       </Box>
-                    </MutableLink>
+                    </AppRouteLink>
                   )
                 )}
 
@@ -1151,7 +1153,7 @@ const MainSidebarContent = () => {
                 {APPLET_BUBBLES.filter((bubble) => bubble.id === 'forests').map(
                   ({
                     id,
-                    route,
+                    routeKey,
                     titleKey,
                     descriptionKey,
                     minHeight,
@@ -1160,10 +1162,10 @@ const MainSidebarContent = () => {
                     heroPosition,
                     variant,
                   }) => (
-                    <MutableLink
+                    <AppRouteLink
                       key={id}
-                      route={route}
-                      routeTree={mainRouteTree}
+                      routeKey={routeKey}
+                      preferVisible={false}
                       sx={{
                         display: 'flex',
                         width: '100%',
@@ -1261,14 +1263,14 @@ const MainSidebarContent = () => {
                           </SidebarText>
                         </Box>
                       </Box>
-                    </MutableLink>
+                    </AppRouteLink>
                   )
                 )}
 
                 {APPLET_BUBBLES.filter((bubble) => bubble.id === 'hiilikartta').map(
                   ({
                     id,
-                    route,
+                    routeKey,
                     titleKey,
                     descriptionKey,
                     minHeight,
@@ -1277,10 +1279,10 @@ const MainSidebarContent = () => {
                     heroPosition,
                     variant,
                   }) => (
-                    <MutableLink
+                    <AppRouteLink
                       key={id}
-                      route={route}
-                      routeTree={mainRouteTree}
+                      routeKey={routeKey}
+                      preferVisible={false}
                       sx={{
                         display: 'flex',
                         width: '100%',
@@ -1369,7 +1371,7 @@ const MainSidebarContent = () => {
                           </SidebarText>
                         </Box>
                       </Box>
-                    </MutableLink>
+                    </AppRouteLink>
                   )
                 )}
               </Box>

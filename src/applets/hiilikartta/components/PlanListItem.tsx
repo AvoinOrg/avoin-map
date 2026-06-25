@@ -4,10 +4,10 @@ import React from 'react'
 import { useTranslate } from '@tolgee/react'
 
 import { Box } from '#/common/style/theme'
-import MutableLink from '#/components/common/MutableLink'
+import { AppRouteLink } from '#/common/navigation/appRouteLinks'
 import { LoadingSpinner } from '#/components/Loading'
 import { CircleArrowRight, Error as ErrorIcon, Info } from '#/components/icons'
-import { routeTree } from '#/common/routing/routes/hiilikartta'
+import { APP_ROUTE_KEYS } from '#/common/routing/routeMetadata'
 
 import { CalculationState } from '../common/types'
 import PlanOutlineIcon from './PlanOutlineIcon'
@@ -111,10 +111,9 @@ const PlanListItem = ({
         : null
 
   return (
-    <MutableLink
-      route={routeTree.plans.plan}
-      routeTree={routeTree}
-      params={{ routeParams: { planId } }}
+    <AppRouteLink
+      routeKey={APP_ROUTE_KEYS.HIILIKARTTA_PLAN}
+      routeParams={{ planId }}
       aria-label={`Open plan ${name}`}
       sx={{
         width: '100%',
@@ -228,7 +227,7 @@ const PlanListItem = ({
           }}
         />
       </Box>
-    </MutableLink>
+    </AppRouteLink>
   )
 }
 

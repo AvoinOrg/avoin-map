@@ -46,6 +46,18 @@ describe('resolveImpactedScenarios', () => {
     expect(result.scenarioIds).toEqual(['hiilikartta-root'])
   })
 
+  test('maps TanStack applet route changes to applet scenario only', () => {
+    const result = resolveImpactedScenarios({
+      files: [
+        'src/routes/$locale/(map)/_map/(applets)/carbonmap/plans/route.tsx',
+      ],
+      scenarios,
+    })
+
+    expect(result.mode).toBe('targeted')
+    expect(result.scenarioIds).toEqual(['hiilikartta-root'])
+  })
+
   test('falls back to all scenarios for unmapped files', () => {
     const result = resolveImpactedScenarios({
       files: ['docs/some-unmapped-file.md'],

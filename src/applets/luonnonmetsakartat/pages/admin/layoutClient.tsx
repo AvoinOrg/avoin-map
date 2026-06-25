@@ -5,16 +5,14 @@ import { useQuery } from '@tanstack/react-query'
 
 import { useAuthSession } from '#/common/auth'
 import { useUIStore } from '#/common/store/uiStore'
-import { getRoute } from '#/common/routing/routing-client'
-import { getPathnameWithoutLocale } from '#/common/routing/routing'
 import { useExclusiveLayerGroups } from '#/common/hooks/map/useExclusiveLayerGroups'
+import { useAppRouteHrefBuilder } from '#/common/navigation/appRouteLinks'
 import {
-  useAppParams,
   useAppPathname,
   useAppRouter,
 } from '#/common/navigation/navigation'
 
-import { routeTree } from '#/common/routing/routes/luonnonmetsakartat'
+import { APP_ROUTE_KEYS } from '#/common/routing/routeMetadata'
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import { useAdminVerificationQueryOptions } from 'applets/luonnonmetsakartat/common/queries/adminVerificationQuery'
 import { SidebarContentBox } from '#/components/Sidebar'
@@ -45,8 +43,8 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   const { accessToken } = session ?? {}
 
   const router = useAppRouter()
+  const buildAppRouteHref = useAppRouteHrefBuilder()
   const pathname = useAppPathname()
-  const { locale } = useAppParams<{ locale: string }>()
 
   const { refetch: refetchAdminVerification } = useQuery({
     ...useAdminVerificationQueryOptions(),
@@ -104,15 +102,14 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   // further without being verified
   useEffect(() => {
     if (localState === LocalState.Rejected) {
-      const adminRoute = getRoute({
-        routeNode: routeTree.admin,
-        routeTree: routeTree,
+      const adminRoute = buildAppRouteHref({
+        routeKey: APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN,
       })
-      if (getPathnameWithoutLocale(pathname, locale) !== adminRoute) {
-        router.replace(adminRoute)
+      if (pathname !== adminRoute) {
+        router.replace(adminRoute, { locale: false })
       }
     }
-  }, [localState, pathname, router, locale, status])
+  }, [buildAppRouteHref, localState, pathname, router, status])
 
   return (
     <>

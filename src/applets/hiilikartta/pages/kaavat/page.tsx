@@ -3,19 +3,19 @@
 import React, { useMemo, useState } from 'react'
 import { useTranslate } from '@tolgee/react'
 
+import { useAppRouteHrefBuilder } from '#/common/navigation/appRouteLinks'
 import { useAppRouter } from '#/common/navigation/navigation'
 import useStore from '#/common/hooks/useStore'
 import { SidebarContentBox } from '#/components/Sidebar'
 import { Box, type AppSystemStyleObject } from '#/common/style/theme'
 import { useMapStore } from '#/common/store'
-import { getRoute } from '#/common/routing/routing-client'
+import { APP_ROUTE_KEYS } from '#/common/routing/routeMetadata'
 import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
 import SidebarBackgroundContent from '#/components/common/SidebarBackgroundContent'
 import IconTextButton from '#/components/common/IconTextButton'
 
 import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
-import { routeTree } from '#/common/routing/routes/hiilikartta'
 import PlanListItem from 'applets/hiilikartta/components/PlanListItem'
 import {
   CreationPlaceholderPlanConf,
@@ -74,6 +74,7 @@ const getCreationPlaceholderDisplayName = ({
 const Page = () => {
   const { t } = useTranslate('hiilikartta')
   const router = useAppRouter()
+  const buildAppRouteHref = useAppRouteHrefBuilder()
   const [sortOrder, setSortOrder] = useState<SortOption>('newest')
   const planConfs = useStore(useAppletStore, (state) => state.planConfs)
   const placeholderPlanConfs = useStore(
@@ -155,13 +156,10 @@ const Page = () => {
       await addCreationPlaceholderPlanConf()
 
     router.push(
-      getRoute({
-        routeNode: routeTree.plans.plan,
-        routeTree,
-        params: {
-          routeParams: {
-            planId: creationPlaceholderPlanConf.id,
-          },
+      buildAppRouteHref({
+        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
+        routeParams: {
+          planId: creationPlaceholderPlanConf.id,
         },
       })
     )
@@ -196,13 +194,10 @@ const Page = () => {
     }
 
     router.push(
-      getRoute({
-        routeNode: routeTree.plans.plan,
-        routeTree,
-        params: {
-          routeParams: {
-            planId: planConf.id,
-          },
+      buildAppRouteHref({
+        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
+        routeParams: {
+          planId: planConf.id,
         },
       })
     )

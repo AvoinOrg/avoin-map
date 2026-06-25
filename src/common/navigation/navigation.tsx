@@ -7,21 +7,10 @@ import {
 import React, { useMemo } from 'react'
 
 import { DEFAULT_LOCALE, LOCALES } from '#/common/navigation/tolgee/shared'
-import { generatePathNames } from '#/common/routing/routing'
-import { mainRouteTree } from '#/common/routing/routes/main'
 
-export const pathnames = {
-  '/': '/',
-  ...generatePathNames([mainRouteTree]),
-}
-
-export const routing = {
-  locales: LOCALES,
-  defaultLocale: LOCALES.includes(DEFAULT_LOCALE)
-    ? DEFAULT_LOCALE
-    : (LOCALES[0] ?? DEFAULT_LOCALE),
-  pathnames,
-}
+export const DEFAULT_ROUTE_LOCALE = LOCALES.includes(DEFAULT_LOCALE)
+  ? DEFAULT_LOCALE
+  : (LOCALES[0] ?? DEFAULT_LOCALE)
 
 export type AppRouteParams = Record<string, string | string[] | undefined>
 
@@ -109,7 +98,7 @@ const useCurrentLocale = () => {
 
   return firstSegment && LOCALES.includes(firstSegment)
     ? firstSegment
-    : routing.defaultLocale
+    : DEFAULT_ROUTE_LOCALE
 }
 
 export const useAppRouter = (): AppRouter => {
@@ -212,12 +201,6 @@ export const AppLink = React.forwardRef<HTMLAnchorElement, AppLinkProps>(
 )
 
 AppLink.displayName = 'StartAppLink'
-
-export const NextIntlLink = AppLink
-export const usePathname = useAppPathname
-export const useRouter = useAppRouter
-export const useLocalizedPathname = useAppPathname
-export const useLocalizedRouter = useAppRouter
 
 export const redirect = (href: string): never => {
   throw new Response(null, {

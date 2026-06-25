@@ -3,7 +3,7 @@
 import React from 'react'
 
 import { Box } from '#/common/style/theme'
-import { mainRouteTree } from '#/common/routing/routes/main'
+import { APP_ROUTE_KEYS } from '#/common/routing/routeMetadata'
 import LayerLegend from '#/components/common/LayerLegend'
 import LayerMenuAccordion from '#/components/common/LayerMenuAccordion'
 import { Legend } from '#/components/common/Legend'
@@ -188,8 +188,7 @@ export const layerToggleRowFixture: ComponentFixture = {
           onToggle={noop}
           linkAriaLabel="Open forest overview fixture"
           linkProps={{
-            route: mainRouteTree.forests,
-            routeTree: mainRouteTree,
+            routeKey: APP_ROUTE_KEYS.MAIN_FORESTS,
             onClick: (event) => event.preventDefault(),
           }}
         />

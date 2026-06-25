@@ -138,8 +138,9 @@ standalone deployments.
 
 - TanStack Start routes live under `src/routes`; route groups in parentheses do
   not appear in the URL.
-- Route trees in `src/common/routing/routes/*.ts` power `getRoute` and
-  `MutableLink` for applet-aware paths.
+- Route files define app navigation metadata with `staticData` via
+  `defineAppRouteStaticData`; use `APP_ROUTE_KEYS` with `AppRouteLink` for
+  applet-aware links.
 - `src/server.tsx` applies shared request-routing decisions for locale
   normalization, standalone applets, and domain-based applet roots before
   handing requests to Start.

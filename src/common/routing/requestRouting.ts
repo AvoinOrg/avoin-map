@@ -1,4 +1,9 @@
 import { DEFAULT_LOCALE } from '#/common/navigation/tolgee/shared'
+import {
+  getAppletRouteSlugInfo,
+  getPublicAppletRouteSlug,
+  normalizeLegacyAppletSubpathSegments,
+} from './publicRoutes'
 
 import appletConf from '../../../appletConf.json'
 
@@ -27,10 +32,6 @@ export const REQUEST_ROUTING_SKIP_PREFIXES = [
 ]
 
 const COMMON_LOCALIZED_PATHS = ['/adds']
-
-const APPLET_PATH_ALIASES: Record<string, string> = {
-  energymap: 'energiakartta',
-}
 
 const APPLET_DOMAIN_ENV_BY_NAMESPACE: Record<string, string | undefined> = {
   energiakartta:
@@ -100,14 +101,13 @@ export const getDefaultLocaleForRequestNamespace = (namespace: string) =>
 const isLocaleLike = (segment: string | undefined): segment is string =>
   segment != null && segment.length === 2
 
-const findAppletFromSegment = (segment: string | undefined) => {
+const findAppletInfoFromSegment = (segment: string | undefined) => {
   if (!segment) return null
 
-  const normalized = segment.toLowerCase()
+  const info = getAppletRouteSlugInfo(segment.toLowerCase())
+  if (!info || !knownApplets.has(info.namespace)) return null
 
-  if (knownApplets.has(normalized)) return normalized
-
-  return APPLET_PATH_ALIASES[normalized] ?? null
+  return info
 }
 
 const parseUrl = (url: string | URL) =>
@@ -219,6 +219,138 @@ const hasCommonLocalizedPath = (segments: string[], hasLocale: boolean) =>
       : segments[0] === pathWithoutSlash
   })
 
+const toPathname = (segments: string[]) =>
+  segments.length > 0 ? `/${segments.join('/')}` : '/'
+
+const areSegmentsEqual = (a: string[], b: string[]) =>
+  a.length === b.length && a.every((segment, index) => segment === b[index])
+
+const normalizeAppletTailSegments = (namespace: string, segments: string[]) =>
+  normalizeLegacyAppletSubpathSegments({ namespace, segments })
+
+const normalizeAppletRootAliasSegments = ({
+  namespace,
+  segments,
+}: {
+  namespace: string
+  segments: string[]
+}) => {
+  const [first, second] = segments
+
+  if (namespace === 'hiilikartta') {
+    return first === 'kaavat' || first === 'raportti'
+      ? normalizeAppletTailSegments(namespace, segments)
+      : segments
+  }
+
+  if (namespace === 'luonnonmetsakartat') {
+    return first === 'admin' && (second === 'tuo' || second === 'taso')
+      ? [first, ...normalizeAppletTailSegments(namespace, segments.slice(1))]
+      : segments
+  }
+
+  return segments
+}
+
+const hasVisibleRootAliasRoute = ({
+  namespace,
+  segments,
+}: {
+  namespace: string
+  segments: string[]
+}) => {
+  const [first] = segments
+
+  if (segments.length === 0) return true
+  if (namespace === 'hiilikartta') {
+    return first === 'plans' || first === 'report'
+  }
+  if (namespace === 'luonnonmetsakartat') {
+    return first === 'admin'
+  }
+
+  return false
+}
+
+const getMainModeLegacyRootAlias = (segments: string[]) => {
+  const [first, second] = segments
+
+  if (first === 'kaavat' || first === 'raportti') {
+    return {
+      namespace: 'hiilikartta',
+      segments: normalizeAppletRootAliasSegments({
+        namespace: 'hiilikartta',
+        segments,
+      }),
+    }
+  }
+
+  if (first === 'admin' && (second === 'tuo' || second === 'taso')) {
+    return {
+      namespace: 'luonnonmetsakartat',
+      segments: normalizeAppletRootAliasSegments({
+        namespace: 'luonnonmetsakartat',
+        segments,
+      }),
+    }
+  }
+
+  return null
+}
+
+const getMainModeLegacyRootAliasDecision = ({
+  locale,
+  search,
+  segments,
+}: {
+  locale: string
+  search: string
+  segments: string[]
+}): RequestRoutingDecision | null => {
+  const alias = getMainModeLegacyRootAlias(segments.slice(1))
+  if (!alias) return null
+
+  const namespaceLocales = getLocalesForRequestNamespace(alias.namespace)
+  const targetLocale = namespaceLocales.includes(locale)
+    ? locale
+    : getDefaultLocaleForRequestNamespace(alias.namespace)
+
+  return withSearch(
+    'redirect',
+    toPathname([
+      targetLocale,
+      getPublicAppletRouteSlug(alias.namespace),
+      ...alias.segments,
+    ]),
+    search
+  )
+}
+
+const getAppletRootRedirectTailSegments = ({
+  namespace,
+  segments,
+  stripCanonicalNamespace,
+}: {
+  namespace: string
+  segments: string[]
+  stripCanonicalNamespace: boolean
+}) => {
+  const firstSegmentInfo = findAppletInfoFromSegment(segments[0])
+
+  if (firstSegmentInfo?.namespace === namespace) {
+    const normalizedTail = normalizeAppletTailSegments(
+      namespace,
+      segments.slice(1)
+    )
+
+    return stripCanonicalNamespace
+      ? normalizedTail
+      : [firstSegmentInfo.canonicalSlug, ...normalizedTail]
+  }
+
+  return normalizeAppletRootAliasSegments({ namespace, segments })
+}
+
 const getAppletRootDecision = ({
   namespace,
   pathname,
@@ -254,26 +386,72 @@ const getAppletRootDecision = ({
   }
 
   const firstTailSegment = tailSegments[0]
-  const tailApplet = findAppletFromSegment(firstTailSegment)
+  const tailAppletInfo = findAppletInfoFromSegment(firstTailSegment)
+  const tailApplet = tailAppletInfo?.namespace ?? null
 
   if (tailApplet === namespace) {
-    if (firstTailSegment !== namespace) {
-      const tail =
-        tailSegments.length > 1 ? `/${tailSegments.slice(1).join('/')}` : ''
-      return withSearch('rewrite', `/${locale}/${namespace}${tail}`, search)
-    }
+    const appletTailSegments = tailSegments.slice(1)
+    const normalizedAppletTailSegments = normalizeAppletTailSegments(
+      namespace,
+      appletTailSegments
+    )
 
     if (stripCanonicalNamespace) {
-      const tail =
-        tailSegments.length > 1 ? `/${tailSegments.slice(1).join('/')}` : ''
-      return withSearch('redirect', `/${locale}${tail}`, search)
+      return withSearch(
+        'redirect',
+        toPathname([locale, ...normalizedAppletTailSegments]),
+        search
+      )
+    }
+
+    if (
+      tailAppletInfo?.isLegacy ||
+      !areSegmentsEqual(appletTailSegments, normalizedAppletTailSegments)
+    ) {
+      return withSearch(
+        'redirect',
+        toPathname([
+          locale,
+          getPublicAppletRouteSlug(namespace),
+          ...normalizedAppletTailSegments,
+        ]),
+        search
+      )
     }
 
     return { type: 'passThrough' }
   }
 
-  const tail = tailSegments.length > 0 ? `/${tailSegments.join('/')}` : ''
-  return withSearch('rewrite', `/${locale}/${namespace}${tail}`, search)
+  const normalizedRootAliasSegments = normalizeAppletRootAliasSegments({
+    namespace,
+    segments: tailSegments,
+  })
+
+  if (!areSegmentsEqual(tailSegments, normalizedRootAliasSegments)) {
+    return withSearch(
+      'redirect',
+      toPathname([locale, ...normalizedRootAliasSegments]),
+      search
+    )
+  }
+
+  if (hasVisibleRootAliasRoute({ namespace, segments: tailSegments })) {
+    return { type: 'passThrough' }
+  }
+
+  if (stripCanonicalNamespace) {
+    return { type: 'passThrough' }
+  }
+
+  return withSearch(
+    'rewrite',
+    toPathname([
+      locale,
+      getPublicAppletRouteSlug(namespace),
+      ...tailSegments,
+    ]),
+    search
+  )
 }
 
 export const decideRequestRouting = ({
@@ -305,6 +483,42 @@ export const decideRequestRouting = ({
   const appletRootNamespace = standaloneApplet ?? hostApplet
 
   if (appletRootNamespace) {
+    const allowedLocales = new Set(
+      getLocalesForRequestNamespace(appletRootNamespace)
+    )
+    const defaultLocale =
+      getDefaultLocaleForRequestNamespace(appletRootNamespace)
+
+    if (locale == null && pathname !== '/') {
+      return withSearch(
+        'redirect',
+        toPathname([
+          defaultLocale,
+          ...getAppletRootRedirectTailSegments({
+            namespace: appletRootNamespace,
+            segments,
+            stripCanonicalNamespace: standaloneApplet != null,
+          }),
+        ]),
+        search
+      )
+    }
+
+    if (locale != null && !allowedLocales.has(locale)) {
+      return withSearch(
+        'redirect',
+        toPathname([
+          defaultLocale,
+          ...getAppletRootRedirectTailSegments({
+            namespace: appletRootNamespace,
+            segments: segments.slice(1),
+            stripCanonicalNamespace: standaloneApplet != null,
+          }),
+        ]),
+        search
+      )
+    }
+
     return getAppletRootDecision({
       namespace: appletRootNamespace,
       pathname,
@@ -319,29 +533,54 @@ export const decideRequestRouting = ({
   }
 
   const probe = hasLocale ? segments[1] : segments[0]
-  const targetNamespace = findAppletFromSegment(probe)
-  const isAppletAlias =
-    probe != null && targetNamespace != null && probe !== targetNamespace
+  const appletInfo = findAppletInfoFromSegment(probe)
 
-  if (targetNamespace) {
+  if (appletInfo) {
+    const targetNamespace = appletInfo.namespace
     const localesForNamespace = getLocalesForRequestNamespace(targetNamespace)
+    const appletTailSegments = segments.slice(hasLocale ? 2 : 1)
+    const normalizedAppletTailSegments = normalizeAppletTailSegments(
+      targetNamespace,
+      appletTailSegments
+    )
 
     if (locale == null) {
       const defaultLocale = getDefaultLocaleForRequestNamespace(targetNamespace)
-      return withSearch('redirect', `/${defaultLocale}${pathname}`, search)
+      return withSearch(
+        'redirect',
+        toPathname([
+          defaultLocale,
+          appletInfo.canonicalSlug,
+          ...normalizedAppletTailSegments,
+        ]),
+        search
+      )
     }
 
     if (!localesForNamespace.includes(locale)) {
       const defaultLocale = getDefaultLocaleForRequestNamespace(targetNamespace)
-      const tail = segments.slice(1).join('/')
-      return withSearch('redirect', `/${defaultLocale}/${tail}`, search)
+      return withSearch(
+        'redirect',
+        toPathname([
+          defaultLocale,
+          appletInfo.canonicalSlug,
+          ...normalizedAppletTailSegments,
+        ]),
+        search
+      )
     }
 
-    if (isAppletAlias) {
-      const tail = segments.length > 2 ? `/${segments.slice(2).join('/')}` : ''
+    if (
+      appletInfo.isLegacy ||
+      !areSegmentsEqual(appletTailSegments, normalizedAppletTailSegments)
+    ) {
       return withSearch(
-        'rewrite',
-        `/${locale}/${targetNamespace}${tail}`,
+        'redirect',
+        toPathname([
+          locale,
+          appletInfo.canonicalSlug,
+          ...normalizedAppletTailSegments,
+        ]),
         search
       )
     }
@@ -352,6 +591,16 @@ export const decideRequestRouting = ({
   const mainLocales = getLocalesForRequestNamespace(MAIN_NAMESPACE)
 
   if (locale != null) {
+    const legacyRootAliasDecision = getMainModeLegacyRootAliasDecision({
+      locale,
+      search,
+      segments,
+    })
+
+    if (legacyRootAliasDecision) {
+      return legacyRootAliasDecision
+    }
+
     if (!mainLocales.includes(locale)) {
       const defaultLocale = getDefaultLocaleForRequestNamespace(MAIN_NAMESPACE)
 

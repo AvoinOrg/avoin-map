@@ -103,15 +103,18 @@ describe('writeNetlifyRedirects', () => {
         `${mainBaseUrl}/api/hiilikartta/:splat 200!`
     )
     expect(redirects).toContain(
-      `${hiilikarttaDomain}/fi ${mainBaseUrl}/fi/hiilikartta 200!`
+      `${hiilikarttaDomain}/fi ${mainBaseUrl}/fi/carbonmap 200!`
     )
     expect(redirects).toContain(
-      `${hiilikarttaDomain}/fi/hiilikartta ` +
-        `${mainBaseUrl}/fi/hiilikartta 200!`
+      `${hiilikarttaDomain}/fi/carbonmap ` +
+        `${mainBaseUrl}/fi/carbonmap 200!`
     )
     expect(redirects).toContain(
-      `${hiilikarttaDomain}/fi/hiilikartta/* ` +
-        `${mainBaseUrl}/fi/hiilikartta/:splat 200!`
+      `${hiilikarttaDomain}/fi/carbonmap/* ` +
+        `${mainBaseUrl}/fi/carbonmap/:splat 200!`
+    )
+    expect(redirects).toContain(
+      `${hiilikarttaDomain}/fi/hiilikartta /fi/carbonmap 301!`
     )
     expect(redirects).toContain(
       `${hiilikarttaDomain}/ /fi 301!`
@@ -138,7 +141,7 @@ describe('writeNetlifyRedirects', () => {
     expect(redirects.indexOf('/fi/api/*')).toBeLessThan(
       redirects.indexOf('https://hiilikartta.avoin.org/fi/*')
     )
-    expect(redirects.indexOf('/fi/hiilikartta/*')).toBeLessThan(
+    expect(redirects.indexOf('/fi/carbonmap/*')).toBeLessThan(
       redirects.indexOf('https://hiilikartta.avoin.org/fi/*')
     )
     expect(redirects.indexOf('/fi/*')).toBeLessThan(
@@ -170,7 +173,7 @@ describe('writeNetlifyRedirects', () => {
       `${hiilikarttaDomain}/* /fi/:splat 301!`
     )
     expect(redirects).not.toContain(
-      `${hiilikarttaDomain}/en/* ${mainBaseUrl}/fi/hiilikartta/en/:splat 200!`
+      `${hiilikarttaDomain}/en/* ${mainBaseUrl}/fi/carbonmap/en/:splat 200!`
     )
 
     expect(
@@ -183,23 +186,23 @@ describe('writeNetlifyRedirects', () => {
     expect(
       firstMatchingRule(redirects, `${hiilikarttaDomain}/kaavat`)
     ).toMatchObject({
-      from: `${hiilikarttaDomain}/*`,
-      resolvedTo: '/fi/kaavat',
+      from: `${hiilikarttaDomain}/kaavat`,
+      resolvedTo: '/fi/plans',
       status: '301!',
     })
     expect(
       firstMatchingRule(redirects, `${hiilikarttaDomain}/en/kaavat`)
     ).toMatchObject({
-      from: `${hiilikarttaDomain}/en/*`,
-      resolvedTo: '/fi/kaavat',
+      from: `${hiilikarttaDomain}/en/kaavat`,
+      resolvedTo: '/fi/plans',
       status: '301!',
     })
     expect(
       firstMatchingRule(redirects, `${hiilikarttaDomain}/fi/kaavat`)
     ).toMatchObject({
-      from: `${hiilikarttaDomain}/fi/*`,
-      resolvedTo: `${mainBaseUrl}/fi/hiilikartta/kaavat`,
-      status: '200!',
+      from: `${hiilikarttaDomain}/fi/kaavat`,
+      resolvedTo: '/fi/plans',
+      status: '301!',
     })
     expect(
       firstMatchingRule(
@@ -207,9 +210,9 @@ describe('writeNetlifyRedirects', () => {
         `${hiilikarttaDomain}/fi/hiilikartta/kaavat`
       )
     ).toMatchObject({
-      from: `${hiilikarttaDomain}/fi/hiilikartta/*`,
-      resolvedTo: `${mainBaseUrl}/fi/hiilikartta/kaavat`,
-      status: '200!',
+      from: `${hiilikarttaDomain}/fi/hiilikartta/kaavat`,
+      resolvedTo: '/fi/carbonmap/plans',
+      status: '301!',
     })
   })
 
@@ -225,16 +228,15 @@ describe('writeNetlifyRedirects', () => {
     })
 
     expect(redirects).toContain(
-      `${energyDomain}/en/energiakartta/* ` +
-        `${mainBaseUrl}/en/energiakartta/:splat 200!`
+      `${energyDomain}/en/energiakartta/* /en/energymap/:splat 301!`
     )
     expect(redirects).toContain(
       `${energyDomain}/en/energymap ` +
-        `${mainBaseUrl}/en/energiakartta 200!`
+        `${mainBaseUrl}/en/energymap 200!`
     )
     expect(redirects).toContain(
       `${energyDomain}/en/energymap/* ` +
-        `${mainBaseUrl}/en/energiakartta/:splat 200!`
+        `${mainBaseUrl}/en/energymap/:splat 200!`
     )
     expect(redirects).not.toContain('/en/energiakartta/energymap/:splat')
     expect(redirects.indexOf('/en/energymap/*')).toBeLessThan(
@@ -282,15 +284,15 @@ describe('writeNetlifyRedirects', () => {
     expect(
       firstMatchingRule(redirects, `${hiilikarttaDomain}/kaavat`)
     ).toMatchObject({
-      from: `${hiilikarttaDomain}/*`,
-      resolvedTo: '/fi/kaavat',
+      from: `${hiilikarttaDomain}/kaavat`,
+      resolvedTo: '/fi/plans',
       status: '301!',
     })
     expect(
       firstMatchingRule(redirects, `${hiilikarttaDomain}/en/kaavat`)
     ).toMatchObject({
-      from: `${hiilikarttaDomain}/en/*`,
-      resolvedTo: '/fi/kaavat',
+      from: `${hiilikarttaDomain}/en/kaavat`,
+      resolvedTo: '/fi/plans',
       status: '301!',
     })
     expect(
@@ -306,8 +308,8 @@ describe('writeNetlifyRedirects', () => {
         `${hiilikarttaDomain}/fi/hiilikartta/kaavat`
       )
     ).toMatchObject({
-      from: `${hiilikarttaDomain}/fi/hiilikartta/*`,
-      resolvedTo: '/fi/kaavat',
+      from: `${hiilikarttaDomain}/fi/hiilikartta/kaavat`,
+      resolvedTo: '/fi/plans',
       status: '301!',
     })
     expect(redirects).not.toContain('luonnonmetsakartat.avoin.org')

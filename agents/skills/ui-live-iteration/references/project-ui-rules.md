@@ -14,7 +14,8 @@ Use this reference for local Avoin Map UI conventions before making UI edits.
 - Use functional components with `const`.
 - Prefer path aliases over deep relative imports.
 - Preserve the existing design language unless the user explicitly asks for a broader redesign.
-- Use `getRoute` or `MutableLink` instead of hardcoded paths when changing applet-aware navigation.
+- Use `APP_ROUTE_KEYS` with `AppRouteLink` or TanStack route metadata helpers
+  instead of hardcoded paths when changing applet-aware navigation.
 
 ## Styling rules
 

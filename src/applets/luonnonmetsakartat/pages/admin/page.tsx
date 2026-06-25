@@ -4,7 +4,7 @@ import React, { useEffect, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
 import { Box } from '#/common/style/theme'
-import MutableLink from '#/components/common/MutableLink'
+import { AppRouteLink } from '#/common/navigation/appRouteLinks'
 import TText from '#/components/common/TText'
 import { Upload } from '#/components/icons'
 import BigMenuButton from '#/components/common/BigMenuButton'
@@ -12,7 +12,7 @@ import { SidebarContentBox } from '#/components/Sidebar'
 import { LoadingSpinner } from '#/components/Loading'
 
 import AdminFolayerItem from 'applets/luonnonmetsakartat/components/AdminFolayerItem'
-import { routeTree } from '#/common/routing/routes/luonnonmetsakartat'
+import { APP_ROUTE_KEYS } from '#/common/routing/routeMetadata'
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import { useAdminFolayersQueryOptions } from 'applets/luonnonmetsakartat/common/queries/adminFolayersQuery'
 import { AdminFolayerConf } from 'applets/luonnonmetsakartat/common/types'
@@ -35,9 +35,8 @@ const Page = () => {
 
   return (
     <SidebarContentBox>
-      <MutableLink
-        route={routeTree.admin.import}
-        routeTree={routeTree}
+      <AppRouteLink
+        routeKey={APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN_IMPORT}
         sx={{
           display: 'flex',
           color: 'inherit',
@@ -49,7 +48,7 @@ const Page = () => {
           <TText keyName={'sidebar.admin.upload'} ns={'luonnonmetsakartat'} />
           <Upload />
         </BigMenuButton>
-      </MutableLink>
+      </AppRouteLink>
       {isLoading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 5 }}>
           <LoadingSpinner />
@@ -64,33 +63,6 @@ const Page = () => {
           </Box>
         )}
       </Box>
-
-      {/* <Box>
-        {isLoading && <LoadingSpinner></LoadingSpinner>}
-        {!isLoading && adminFolayerConfsArray.length > 0 && (
-          <Box sx={{ width: '100%', mt: 2 }}>
-            {adminFolayerConfsArray.map((conf) => (
-              <ListItem key={conf.id} disablePadding>
-                <MutableLink
-                  route={routeTree.admin.folayer}
-                  routeParams={{ folayerIdSlug: conf.id }}
-                  routeTree={routeTree}
-                  sx={{
-                    display: 'flex',
-                    color: 'inherit',
-                    textDecoration: 'none',
-                    width: '100%',
-                  }}
-                >
-                  <ListItemButton>
-                    <ListItemText primary={conf.name} />
-                  </ListItemButton>
-                </MutableLink>
-              </ListItem>
-            ))}
-          </Box>
-        )}
-      </Box> */}
     </SidebarContentBox>
   )
 }

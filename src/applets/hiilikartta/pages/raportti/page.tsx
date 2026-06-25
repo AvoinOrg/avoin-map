@@ -2,7 +2,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import useStore from '#/common/hooks/useStore'
-import MutableLink from '#/components/common/MutableLink'
+import {
+  AppRouteLink,
+  useAppRouteHrefBuilder,
+} from '#/common/navigation/appRouteLinks'
 import {
   useAppPathname,
   useAppRouter,
@@ -12,7 +15,7 @@ import { map, isEqual } from 'lodash-es'
 import { useTranslate } from '@tolgee/react'
 
 import { Box, toSxArray, type AppSxProps } from '#/common/style/theme'
-import { getRoute } from '#/common/routing/routing-client'
+import { APP_ROUTE_KEYS } from '#/common/routing/routeMetadata'
 import { ButtonBase } from '#/components/common/Button'
 import MultiSelectAutocomplete from '#/components/common/MultiSelectAutocomplete'
 import { FullscreenPage } from '#/components/common/FullscreenPage'
@@ -21,7 +24,6 @@ import { FetchStatus, SelectOption } from '#/common/types/general'
 import { Download as DownloadIcon, Link as LinkIcon } from '#/components/icons'
 
 import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
-import { routeTree } from '#/common/routing/routes/hiilikartta'
 import {
   GlobalState,
   PlanConfWithReportData,
@@ -48,6 +50,7 @@ const Page = () => {
   const globalState = useStore(useAppletStore, (state) => state.globalState)
   const notify = useUIStore((state) => state.notify)
   const router = useAppRouter()
+  const buildAppRouteHref = useAppRouteHrefBuilder()
   const pathName = useAppPathname()
   const { t } = useTranslate('hiilikartta')
   const addedExtPlanConfIds = useRef<string[]>([])
@@ -243,12 +246,9 @@ const Page = () => {
 
           // Use router.replace to update the URL without adding a new history entry
           router.replace(
-            getRoute({
-              routeNode: routeTree.report,
-              routeTree: routeTree,
-              params: {
-                queryParams: newSearchParams,
-              },
+            buildAppRouteHref({
+              routeKey: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
+              queryParams: newSearchParams,
             })
           )
         }
@@ -267,12 +267,9 @@ const Page = () => {
 
     // Use router.replace to update the URL without adding a new history entry
     router.replace(
-      getRoute({
-        routeNode: routeTree.report,
-        routeTree: routeTree,
-        params: {
-          queryParams: newSearchParams,
-        },
+      buildAppRouteHref({
+        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
+        queryParams: newSearchParams,
       })
     )
   }
@@ -380,19 +377,18 @@ const Page = () => {
             >
               <TText keyName="report.header.title" ns="hiilikartta" />
             </Box>
-            <MutableLink
-              route={
+            <AppRouteLink
+              routeKey={
                 prevPageId != null
                   ? prevPageStep === 'areas'
-                    ? routeTree.plans.plan.areas
-                    : routeTree.plans.plan
-                  : routeTree
+                    ? APP_ROUTE_KEYS.HIILIKARTTA_PLAN_AREAS
+                    : APP_ROUTE_KEYS.HIILIKARTTA_PLAN
+                  : APP_ROUTE_KEYS.HIILIKARTTA_HOME
               }
-              routeTree={routeTree}
-              params={
+              routeParams={
                 prevPageId != null
-                  ? { routeParams: { planId: prevPageId } }
-                  : {}
+                  ? { planId: prevPageId }
+                  : undefined
               }
             >
               <Box
@@ -406,7 +402,7 @@ const Page = () => {
               >
                 <TText keyName="report.header.close" ns="hiilikartta" />
               </Box>
-            </MutableLink>
+            </AppRouteLink>
           </Row>
           <Row
             sx={{

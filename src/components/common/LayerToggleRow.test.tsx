@@ -6,32 +6,34 @@ import {
   LayerToggleRowAccordion,
   LayerToggleRowLink,
 } from '#/components/common/LayerToggleRow'
+import { APP_ROUTE_KEYS } from '#/common/routing/routeMetadata'
 
-type MockMutableLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
+type MockAppRouteLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
   children?: React.ReactNode
-  route?: unknown
-  routeTree?: unknown
-  params?: unknown
+  routeKey?: unknown
+  routeParams?: unknown
   sx?: unknown
 }
 
-jest.mock('#/components/common/MutableLink', () => {
-  const MockMutableLink = ({
+jest.mock('#/common/navigation/appRouteLinks', () => {
+  const MockAppRouteLink = ({
     children,
     onClick,
-    route,
-    routeTree,
-    params,
+    routeKey,
+    routeParams,
     sx,
     ...props
-  }: MockMutableLinkProps) => {
-    void route
-    void routeTree
-    void params
+  }: MockAppRouteLinkProps) => {
     void sx
 
     return (
-      <a href="#mock-link" onClick={onClick} {...props}>
+      <a
+        href="#mock-link"
+        data-route-key={String(routeKey)}
+        data-route-params={JSON.stringify(routeParams ?? {})}
+        onClick={onClick}
+        {...props}
+      >
         {children}
       </a>
     )
@@ -39,7 +41,7 @@ jest.mock('#/components/common/MutableLink', () => {
 
   return {
     __esModule: true,
-    default: MockMutableLink,
+    AppRouteLink: MockAppRouteLink,
   }
 })
 
@@ -132,8 +134,8 @@ describe('LayerToggleRowLink', () => {
         onToggle={onToggle}
         linkAriaLabel="Open layer"
         linkProps={{
-          route: {} as never,
-          routeTree: {} as never,
+          routeKey: APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN_FOLAYER,
+          routeParams: { folayerIdSlug: 'layer-1' },
           onClick: onLinkClick,
         }}
       />
@@ -144,5 +146,10 @@ describe('LayerToggleRowLink', () => {
 
     expect(onToggle).toHaveBeenCalledTimes(1)
     expect(onLinkClick).toHaveBeenCalledTimes(1)
+    expect(
+      screen
+        .getByRole('link', { name: 'Open layer' })
+        .getAttribute('data-route-params')
+    ).toBe(JSON.stringify({ folayerIdSlug: 'layer-1' }))
   })
 })
