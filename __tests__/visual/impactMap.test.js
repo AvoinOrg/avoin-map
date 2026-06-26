@@ -49,7 +49,7 @@ describe('resolveImpactedScenarios', () => {
   test('maps TanStack applet route changes to applet scenario only', () => {
     const result = resolveImpactedScenarios({
       files: [
-        'src/routes/$locale/(map)/_map/(applets)/carbonmap/plans/route.tsx',
+        'src/routes/$locale/(map)/_map/(applets)/carbon/plans/route.tsx',
       ],
       scenarios,
     })

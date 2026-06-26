@@ -27,7 +27,10 @@ describe('visual scenarios', () => {
       'http://127.0.0.1:3000/en'
     )
     expect(scenarios.find((s) => s.id === 'energiakartta-root').url).toBe(
-      'http://127.0.0.1:3000/fi/energiakartta'
+      'http://127.0.0.1:3000/fi/energy'
+    )
+    expect(scenarios.find((s) => s.id === 'hiilikartta-root').url).toBe(
+      'http://127.0.0.1:3000/fi/carbon'
     )
   })
 

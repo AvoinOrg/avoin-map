@@ -274,7 +274,7 @@ Launch Chrome on the Windows host with remote debugging enabled (dedicated profi
     '--remote-debugging-port=9222',
     '--remote-debugging-address=0.0.0.0',
     \"--user-data-dir=$profile\",
-    'http://localhost:3000/fi/carbonmap'
+    'http://localhost:3000/fi/carbon'
   )
 
 Then open the app in that Chrome window and ${actionLabel}.

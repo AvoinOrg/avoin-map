@@ -66,7 +66,7 @@ const makeRouter = () => ({
 const routesById = {
   canonicalHome: makeRoute({
     id: 'canonicalHome',
-    fullPath: '/$locale/carbonmap',
+    fullPath: '/$locale/carbon',
     metadata: {
       key: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
       appletNamespace: 'hiilikartta',
@@ -76,7 +76,7 @@ const routesById = {
   }),
   canonicalPlans: makeRoute({
     id: 'canonicalPlans',
-    fullPath: '/$locale/carbonmap/plans',
+    fullPath: '/$locale/carbon/plans',
     metadata: {
       key: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
       appletNamespace: 'hiilikartta',
@@ -97,7 +97,7 @@ const routesById = {
   }),
   canonicalPlan: makeRoute({
     id: 'canonicalPlan',
-    fullPath: '/$locale/carbonmap/plans/$planId',
+    fullPath: '/$locale/carbon/plans/$planId',
     metadata: {
       key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
       appletNamespace: 'hiilikartta',
@@ -155,10 +155,10 @@ describe('appRouteLinks', () => {
         routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
         routeParams: { locale: 'fi' },
       })
-    ).toBe('/fi/carbonmap/plans')
+    ).toBe('/fi/carbon/plans')
 
     expect(router.buildLocation).toHaveBeenCalledWith({
-      to: '/$locale/carbonmap/plans',
+      to: '/$locale/carbon/plans',
       params: { locale: 'fi' },
       search: undefined,
     })
@@ -257,7 +257,7 @@ describe('appRouteLinks', () => {
         routeParams: { locale: 'fi' },
         preferVisible: false,
       })
-    ).toBe('/fi/carbonmap')
+    ).toBe('/fi/carbon')
   })
 
   it('passes query params to TanStack href materialization', () => {
@@ -271,7 +271,7 @@ describe('appRouteLinks', () => {
         routeParams: { locale: 'fi' },
         search: new URLSearchParams({ tab: 'own' }),
       })
-    ).toBe('/fi/carbonmap/plans?tab=own')
+    ).toBe('/fi/carbon/plans?tab=own')
   })
 
   it('passes dynamic folayerIdSlug params and repeated URLSearchParams values', () => {

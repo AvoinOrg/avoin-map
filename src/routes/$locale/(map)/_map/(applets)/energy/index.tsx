@@ -9,7 +9,7 @@ const EnergiakarttaAppletRouteComponent = () => {
 }
 
 export const Route = createFileRoute(
-  '/$locale/(map)/_map/(applets)/energymap/'
+  '/$locale/(map)/_map/(applets)/energy/'
 )({
   component: EnergiakarttaAppletRouteComponent,
 })

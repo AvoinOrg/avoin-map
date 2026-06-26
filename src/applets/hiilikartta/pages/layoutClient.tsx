@@ -54,10 +54,10 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   const isStandaloneHiilikartta =
     compiledApplets.length === 1 && compiledApplets[0] === 'hiilikartta'
   const isHiilikarttaRoot =
-    pathnameWithoutLocale === '/carbonmap' ||
+    pathnameWithoutLocale === '/carbon' ||
     (isStandaloneHiilikartta && pathnameWithoutLocale === '/')
   const isHiilikarttaKaavat =
-    pathnameWithoutLocale.startsWith('/carbonmap/plans') ||
+    pathnameWithoutLocale.startsWith('/carbon/plans') ||
     pathnameWithoutLocale.startsWith('/plans')
   const showBreadcrumbNav = !isHiilikarttaRoot && !isHiilikarttaKaavat
 

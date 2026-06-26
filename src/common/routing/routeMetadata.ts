@@ -35,7 +35,7 @@ export const APP_ROUTE_KEYS = {
     'luonnonmetsakartat.admin.folayer.pictures',
   MAIN_FORESTS: 'main.forests',
   ENERGIAKARTTA_HOME_VISIBLE_ALIAS:
-    'energiakartta.home.visibleAlias.energymap',
+    'energiakartta.home.visibleAlias.energy',
   HIILIKARTTA_REPORT_VISIBLE_ALIAS: 'hiilikartta.report.visibleAlias',
   HIILIKARTTA_PLANS_VISIBLE_ALIAS: 'hiilikartta.plans.visibleAlias',
   HIILIKARTTA_PLAN_VISIBLE_ALIAS: 'hiilikartta.plan.visibleAlias',

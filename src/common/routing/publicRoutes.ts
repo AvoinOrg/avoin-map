@@ -9,14 +9,14 @@ export const PUBLIC_APPLET_NAMESPACES = [
 ] as const satisfies readonly PublicAppletNamespace[]
 
 export const APPLET_PUBLIC_ROUTE_SLUGS = {
-  energiakartta: 'energymap',
-  hiilikartta: 'carbonmap',
+  energiakartta: 'energy',
+  hiilikartta: 'carbon',
   luonnonmetsakartat: 'luonnonmetsakartat',
 } as const satisfies Record<PublicAppletNamespace, string>
 
 export const APPLET_LEGACY_PUBLIC_ROUTE_SLUGS = {
-  energiakartta: ['energiakartta'],
-  hiilikartta: ['hiilikartta'],
+  energiakartta: ['energymap', 'energiakartta'],
+  hiilikartta: ['carbonmap', 'hiilikartta'],
   luonnonmetsakartat: [],
 } as const satisfies Record<PublicAppletNamespace, readonly string[]>
 

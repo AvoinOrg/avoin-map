@@ -96,21 +96,30 @@ describe('request routing decisions', () => {
       ).toEqual({
         type: 'redirect',
         status: 308,
-        pathname: '/fi/energymap',
+        pathname: '/fi/energy',
         search: '?x=1',
       })
     })
 
-    it('passes through a localized canonical applet path with a supported locale', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/en/energymap?x=1'),
-          compiledApplets: mainMode,
-        })
-      ).toEqual({ type: 'passThrough' })
-    })
+    it.each([
+      '/en/energy?x=1',
+      '/fi/carbon?x=1',
+      '/fi/carbon/plans?x=1',
+      '/fi/carbon/plans/plan-1/areas?x=1',
+      '/fi/carbon/report?x=1',
+    ])(
+      'passes through localized canonical applet path %s with a supported locale',
+      (path) => {
+        expect(
+          decideRequestRouting({
+            url: url(path),
+            compiledApplets: mainMode,
+          })
+        ).toEqual({ type: 'passThrough' })
+      }
+    )
 
-    it('redirects localized legacy Energiakartta paths to energymap', () => {
+    it('redirects localized legacy Energiakartta paths to energy', () => {
       expect(
         decideRequestRouting({
           url: url('/en/energiakartta/path?x=1'),
@@ -119,7 +128,7 @@ describe('request routing decisions', () => {
       ).toEqual({
         type: 'redirect',
         status: 308,
-        pathname: '/en/energymap/path',
+        pathname: '/en/energy/path',
         search: '?x=1',
       })
     })
@@ -142,7 +151,7 @@ describe('request routing decisions', () => {
       ).toEqual({
         type: 'redirect',
         status: 308,
-        pathname: '/fi/carbonmap',
+        pathname: '/fi/carbon',
         search: '?x=1',
       })
     })
@@ -156,12 +165,26 @@ describe('request routing decisions', () => {
       ).toEqual({
         type: 'redirect',
         status: 308,
-        pathname: '/fi/carbonmap/plans/plan-1/areas',
+        pathname: '/fi/carbon/plans/plan-1/areas',
         search: '?x=1',
       })
     })
 
-    it('keeps the energymap alias visible when adding the missing locale', () => {
+    it('redirects missing-locale canonical applet paths to the applet default locale', () => {
+      expect(
+        decideRequestRouting({
+          url: url('/energy/path?x=1'),
+          compiledApplets: mainMode,
+        })
+      ).toEqual({
+        type: 'redirect',
+        status: 308,
+        pathname: '/fi/energy/path',
+        search: '?x=1',
+      })
+    })
+
+    it('redirects missing-locale legacy energymap paths to energy', () => {
       expect(
         decideRequestRouting({
           url: url('/energymap/path?x=1'),
@@ -170,18 +193,51 @@ describe('request routing decisions', () => {
       ).toEqual({
         type: 'redirect',
         status: 308,
-        pathname: '/fi/energymap/path',
+        pathname: '/fi/energy/path',
         search: '?x=1',
       })
     })
 
-    it('passes through localized energymap paths as canonical routes', () => {
+    it('redirects localized legacy energymap paths to energy', () => {
       expect(
         decideRequestRouting({
           url: url('/en/energymap/path?x=1'),
           compiledApplets: mainMode,
         })
-      ).toEqual({ type: 'passThrough' })
+      ).toEqual({
+        type: 'redirect',
+        status: 308,
+        pathname: '/en/energy/path',
+        search: '?x=1',
+      })
+    })
+
+    it('redirects localized legacy carbonmap paths to carbon', () => {
+      expect(
+        decideRequestRouting({
+          url: url('/fi/carbonmap/plans?x=1'),
+          compiledApplets: mainMode,
+        })
+      ).toEqual({
+        type: 'redirect',
+        status: 308,
+        pathname: '/fi/carbon/plans',
+        search: '?x=1',
+      })
+    })
+
+    it('redirects missing-locale legacy carbonmap paths to carbon', () => {
+      expect(
+        decideRequestRouting({
+          url: url('/carbonmap/plans?x=1'),
+          compiledApplets: mainMode,
+        })
+      ).toEqual({
+        type: 'redirect',
+        status: 308,
+        pathname: '/fi/carbon/plans',
+        search: '?x=1',
+      })
     })
 
     it('redirects localized legacy Luonnonmetsakartat admin subpaths to English paths', () => {
@@ -199,9 +255,9 @@ describe('request routing decisions', () => {
     })
 
     it.each([
-      ['/fi/kaavat?x=1', '/fi/carbonmap/plans'],
-      ['/fi/kaavat/plan-1/alueet?x=1', '/fi/carbonmap/plans/plan-1/areas'],
-      ['/fi/raportti?x=1', '/fi/carbonmap/report'],
+      ['/fi/kaavat?x=1', '/fi/carbon/plans'],
+      ['/fi/kaavat/plan-1/alueet?x=1', '/fi/carbon/plans/plan-1/areas'],
+      ['/fi/raportti?x=1', '/fi/carbon/report'],
       ['/fi/admin/tuo?x=1', '/fi/luonnonmetsakartat/admin/import'],
       [
         '/fi/admin/taso/layer-1/asetukset?x=1',
@@ -233,7 +289,7 @@ describe('request routing decisions', () => {
       ).toEqual({
         type: 'redirect',
         status: 308,
-        pathname: '/fi/carbonmap/plans',
+        pathname: '/fi/carbon/plans',
         search: '?x=1',
       })
     })
@@ -340,19 +396,22 @@ describe('request routing decisions', () => {
       })
     })
 
-    it('strips duplicated public applet slugs from standalone paths', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/fi/carbonmap/plans?x=1'),
-          compiledApplets: ['hiilikartta'],
+    it.each(['/fi/carbon/plans?x=1', '/fi/carbonmap/plans?x=1'])(
+      'strips duplicated Hiilikartta public applet slug %s from standalone paths',
+      (path) => {
+        expect(
+          decideRequestRouting({
+            url: url(path),
+            compiledApplets: ['hiilikartta'],
+          })
+        ).toEqual({
+          type: 'redirect',
+          status: 308,
+          pathname: '/fi/plans',
+          search: '?x=1',
         })
-      ).toEqual({
-        type: 'redirect',
-        status: 308,
-        pathname: '/fi/plans',
-        search: '?x=1',
-      })
-    })
+      }
+    )
 
     it('strips a duplicated applet namespace from a standalone applet root', () => {
       expect(
@@ -384,19 +443,22 @@ describe('request routing decisions', () => {
       })
     })
 
-    it('strips standalone energymap duplicates to root-shaped paths', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/fi/energymap/test?x=1'),
-          compiledApplets: ['energiakartta'],
+    it.each(['/fi/energy/test?x=1', '/fi/energymap/test?x=1'])(
+      'strips standalone Energiakartta public slug %s to root-shaped paths',
+      (path) => {
+        expect(
+          decideRequestRouting({
+            url: url(path),
+            compiledApplets: ['energiakartta'],
+          })
+        ).toEqual({
+          type: 'redirect',
+          status: 308,
+          pathname: '/fi/test',
+          search: '?x=1',
         })
-      ).toEqual({
-        type: 'redirect',
-        status: 308,
-        pathname: '/fi/test',
-        search: '?x=1',
-      })
-    })
+      }
+    )
   })
 
   describe('domain-based applet roots', () => {
@@ -432,27 +494,30 @@ describe('request routing decisions', () => {
     it('passes through already canonical paths on configured domains', () => {
       expect(
         decideRequestRouting({
-          url: url('/fi/carbonmap/plans?x=1', 'hiilikartta.avoin.org'),
+          url: url('/fi/carbon/plans?x=1', 'hiilikartta.avoin.org'),
           host: 'hiilikartta.avoin.org',
           compiledApplets: ['main', 'hiilikartta'],
         })
       ).toEqual({ type: 'passThrough' })
     })
 
-    it('redirects legacy full-app paths on configured domains to public English paths', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/fi/hiilikartta/kaavat?x=1', 'hiilikartta.avoin.org'),
-          host: 'hiilikartta.avoin.org',
-          compiledApplets: ['main', 'hiilikartta'],
+    it.each(['/fi/hiilikartta/kaavat?x=1', '/fi/carbonmap/kaavat?x=1'])(
+      'redirects legacy full-app path %s on configured domains to public English paths',
+      (path) => {
+        expect(
+          decideRequestRouting({
+            url: url(path, 'hiilikartta.avoin.org'),
+            host: 'hiilikartta.avoin.org',
+            compiledApplets: ['main', 'hiilikartta'],
+          })
+        ).toEqual({
+          type: 'redirect',
+          status: 308,
+          pathname: '/fi/carbon/plans',
+          search: '?x=1',
         })
-      ).toEqual({
-        type: 'redirect',
-        status: 308,
-        pathname: '/fi/carbonmap/plans',
-        search: '?x=1',
-      })
-    })
+      }
+    )
 
     it('uses env-backed applet domains in addition to appletConf domains', () => {
       expect(
@@ -467,7 +532,7 @@ describe('request routing decisions', () => {
         })
       ).toEqual({
         type: 'rewrite',
-        pathname: '/en/energymap/test',
+        pathname: '/en/energy/test',
         search: '?x=1',
       })
     })
@@ -482,7 +547,7 @@ describe('request routing decisions', () => {
       ).toEqual({
         type: 'redirect',
         status: 308,
-        pathname: '/fi/carbonmap/plans',
+        pathname: '/fi/carbon/plans',
         search: '?x=1',
       })
     })

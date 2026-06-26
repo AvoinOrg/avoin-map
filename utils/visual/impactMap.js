@@ -53,7 +53,7 @@ const buildImpactRules = () => [
     label: 'hiilikartta-pages',
     globs: [
       'src/applets/hiilikartta/**',
-      'src/routes/$locale/(map)/_map/(applets)/carbonmap/**',
+      'src/routes/$locale/(map)/_map/(applets)/carbon/**',
       'src/routes/$locale/(map)/_map/(applets)/hiilikartta/**',
       'src/routes/$locale/(map)/_map/plans/**',
       'src/routes/$locale/(map)/_map/kaavat/**',
@@ -66,7 +66,7 @@ const buildImpactRules = () => [
     label: 'energiakartta-pages',
     globs: [
       'src/applets/energiakartta/**',
-      'src/routes/$locale/(map)/_map/(applets)/energymap/**',
+      'src/routes/$locale/(map)/_map/(applets)/energy/**',
       'src/routes/$locale/(map)/_map/(applets)/energiakartta/**',
     ],
     target: 'energiakartta',

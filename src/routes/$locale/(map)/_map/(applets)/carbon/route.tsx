@@ -11,7 +11,7 @@ import {
 } from '#/common/routing/routeMetadata'
 
 export const Route = createFileRoute(
-  '/$locale/(map)/_map/(applets)/carbonmap'
+  '/$locale/(map)/_map/(applets)/carbon'
 )({
   staticData: defineAppRouteStaticData({
     key: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
@@ -21,7 +21,7 @@ export const Route = createFileRoute(
     title: routeTextKey('hiilikartta', 'route.breadcrumb.home'),
     breadcrumb: routeTextKey('hiilikartta', 'route.breadcrumb.home'),
     public: publicRouteConfig({
-      slug: 'carbonmap',
+      slug: 'carbon',
     }),
   }),
   beforeLoad: ({ params, location }) => {

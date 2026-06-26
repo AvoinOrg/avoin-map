@@ -167,13 +167,18 @@ const writeCommonFixture = (root) => {
   })
   writeFile({
     root,
-    relativePath: appletRoute('energymap', 'route.tsx'),
-    content: routeFile('/$locale/(map)/_map/(applets)/energymap'),
+    relativePath: appletRoute('energy', 'route.tsx'),
+    content: routeFile('/$locale/(map)/_map/(applets)/energy'),
   })
   writeFile({
     root,
-    relativePath: appletRoute('energymap', 'index.tsx'),
-    content: routeFile('/$locale/(map)/_map/(applets)/energymap/'),
+    relativePath: appletRoute('energy', 'index.tsx'),
+    content: routeFile('/$locale/(map)/_map/(applets)/energy/'),
+  })
+  writeFile({
+    root,
+    relativePath: appletRoute('energymap', 'route.tsx'),
+    content: routeFile('/$locale/(map)/_map/(applets)/energymap'),
   })
   writeFile({
     root,
@@ -182,35 +187,40 @@ const writeCommonFixture = (root) => {
   })
   writeFile({
     root,
-    relativePath: appletRoute('carbonmap', 'route.tsx'),
-    content: routeFile('/$locale/(map)/_map/(applets)/carbonmap'),
+    relativePath: appletRoute('carbon', 'route.tsx'),
+    content: routeFile('/$locale/(map)/_map/(applets)/carbon'),
   })
   writeFile({
     root,
-    relativePath: appletRoute('carbonmap', 'index.tsx'),
-    content: routeFile('/$locale/(map)/_map/(applets)/carbonmap/'),
+    relativePath: appletRoute('carbon', 'index.tsx'),
+    content: routeFile('/$locale/(map)/_map/(applets)/carbon/'),
   })
   writeFile({
     root,
-    relativePath: appletRoute('carbonmap', 'plans', 'route.tsx'),
-    content: routeFile('/$locale/(map)/_map/(applets)/carbonmap/plans'),
+    relativePath: appletRoute('carbon', 'plans', 'route.tsx'),
+    content: routeFile('/$locale/(map)/_map/(applets)/carbon/plans'),
   })
   writeFile({
     root,
     relativePath: appletRoute(
-      'carbonmap',
+      'carbon',
       'plans',
       '$planId',
       'areas.tsx'
     ),
     content: routeFile(
-      '/$locale/(map)/_map/(applets)/carbonmap/plans/$planId/areas'
+      '/$locale/(map)/_map/(applets)/carbon/plans/$planId/areas'
     ),
   })
   writeFile({
     root,
-    relativePath: appletRoute('carbonmap', 'report.tsx'),
-    content: routeFile('/$locale/(map)/_map/(applets)/carbonmap/report'),
+    relativePath: appletRoute('carbon', 'report.tsx'),
+    content: routeFile('/$locale/(map)/_map/(applets)/carbon/report'),
+  })
+  writeFile({
+    root,
+    relativePath: appletRoute('carbonmap', 'route.tsx'),
+    content: routeFile('/$locale/(map)/_map/(applets)/carbonmap'),
   })
   writeFile({
     root,
@@ -354,6 +364,7 @@ describe('prebuildFolderPrune standalone route materialization', () => {
     ).toContain(
       "createFileRoute('/$locale/(map)/_map/(standalone)/plans/$planId/areas')"
     )
+    expect(exists({ root, relativePath: appletRoute('carbon') })).toBe(false)
     expect(exists({ root, relativePath: appletRoute('carbonmap') })).toBe(false)
     expect(exists({ root, relativePath: mapRoute('index.tsx') })).toBe(false)
     expect(exists({ root, relativePath: mapRoute('plans') })).toBe(false)
@@ -462,7 +473,7 @@ describe('prebuildFolderPrune standalone route materialization', () => {
     expect(exists({ root, relativePath: apiRoute('hiilikartta') })).toBe(false)
   })
 
-  it('materializes Energiakartta from energymap and does not promote the legacy folder', () => {
+  it('materializes Energiakartta from energy and does not promote the legacy folder', () => {
     root = makeTempProject()
     writeCommonFixture(root)
 
@@ -480,6 +491,7 @@ describe('prebuildFolderPrune standalone route materialization', () => {
     expect(read({ root, relativePath: standaloneRoute('index.tsx') })).toContain(
       "createFileRoute('/$locale/(map)/_map/(standalone)/')"
     )
+    expect(exists({ root, relativePath: appletRoute('energy') })).toBe(false)
     expect(exists({ root, relativePath: appletRoute('energymap') })).toBe(false)
     expect(exists({ root, relativePath: appletRoute('energiakartta') })).toBe(
       false
@@ -504,8 +516,10 @@ describe('prebuildFolderPrune standalone route materialization', () => {
     })
 
     expect(exists({ root, relativePath: standaloneRoute() })).toBe(false)
-    expect(exists({ root, relativePath: appletRoute('carbonmap') })).toBe(true)
+    expect(exists({ root, relativePath: appletRoute('carbon') })).toBe(true)
+    expect(exists({ root, relativePath: appletRoute('carbonmap') })).toBe(false)
     expect(exists({ root, relativePath: appletRoute('hiilikartta') })).toBe(true)
+    expect(exists({ root, relativePath: appletRoute('energy') })).toBe(false)
     expect(exists({ root, relativePath: appletRoute('energymap') })).toBe(false)
     expect(exists({ root, relativePath: appletRoute('forests') })).toBe(true)
     expect(

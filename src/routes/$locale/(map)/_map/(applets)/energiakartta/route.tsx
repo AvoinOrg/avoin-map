@@ -4,6 +4,10 @@ import {
   getLegacyRouteTailSegments,
   throwLocalizedRouteRedirect,
 } from '#/common/routing/legacyRouteRedirects'
+import { getPublicAppletRouteSlug } from '#/common/routing/publicRoutes'
+
+const ENERGIAKARTTA_PUBLIC_ROUTE_SLUG =
+  getPublicAppletRouteSlug('energiakartta')
 
 export const Route = createFileRoute(
   '/$locale/(map)/_map/(applets)/energiakartta'
@@ -12,7 +16,7 @@ export const Route = createFileRoute(
     throwLocalizedRouteRedirect({
       locale: params.locale,
       segments: [
-        'energymap',
+        ENERGIAKARTTA_PUBLIC_ROUTE_SLUG,
         ...getLegacyRouteTailSegments({
           locale: params.locale,
           location,

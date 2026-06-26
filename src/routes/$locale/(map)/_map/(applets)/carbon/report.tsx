@@ -9,7 +9,7 @@ import {
 } from '#/common/routing/routeMetadata'
 
 export const Route = createFileRoute(
-  '/$locale/(map)/_map/(applets)/carbonmap/report'
+  '/$locale/(map)/_map/(applets)/carbon/report'
 )({
   staticData: defineAppRouteStaticData({
     key: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,

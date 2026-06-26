@@ -14,7 +14,7 @@ import {
 } from '#/common/routing/routeMetadata'
 
 export const Route = createFileRoute(
-  '/$locale/(map)/_map/(applets)/energymap'
+  '/$locale/(map)/_map/(applets)/energy'
 )({
   staticData: defineAppRouteStaticData({
     key: APP_ROUTE_KEYS.ENERGIAKARTTA_HOME,
@@ -24,7 +24,7 @@ export const Route = createFileRoute(
     title: routeTextKey('energiakartta', 'sidebar.title'),
     breadcrumb: routeTextKey('energiakartta', 'sidebar.title'),
     public: publicRouteConfig({
-      slug: 'energymap',
+      slug: 'energy',
     }),
   }),
   beforeLoad: ({ params, location }) => {
