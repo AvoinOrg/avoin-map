@@ -252,6 +252,33 @@ const normalizeAppletRootAliasSegments = ({
   return segments
 }
 
+const getRemovedRootAliasCanonicalSegments = ({
+  namespace,
+  segments,
+}: {
+  namespace: string
+  segments: string[]
+}) => {
+  const [first] = segments
+
+  if (namespace === 'hiilikartta' && (first === 'plans' || first === 'kaavat')) {
+    return [
+      getPublicAppletRouteSlug(namespace),
+      ...normalizeAppletTailSegments(namespace, segments),
+    ]
+  }
+
+  if (namespace === 'luonnonmetsakartat' && first === 'admin') {
+    return [
+      getPublicAppletRouteSlug(namespace),
+      first,
+      ...normalizeAppletTailSegments(namespace, segments.slice(1)),
+    ]
+  }
+
+  return null
+}
+
 const hasVisibleRootAliasRoute = ({
   namespace,
   segments,
@@ -263,19 +290,61 @@ const hasVisibleRootAliasRoute = ({
 
   if (segments.length === 0) return true
   if (namespace === 'hiilikartta') {
-    return first === 'plans' || first === 'report'
-  }
-  if (namespace === 'luonnonmetsakartat') {
-    return first === 'admin'
+    return first === 'report'
   }
 
   return false
 }
 
-const getMainModeLegacyRootAlias = (segments: string[]) => {
+type MainModeRootAlias = {
+  namespace: string
+  segments: string[]
+}
+
+const isRemovedLuonnonmetsakartatAdminRootAlias = (segments: string[]) => {
   const [first, second] = segments
 
-  if (first === 'kaavat' || first === 'raportti') {
+  if (first !== 'admin') return false
+  if (segments.length === 1) return true
+  if (second === 'import' || second === 'tuo' || second === 'taso') return true
+
+  return second === 'layer' && segments.length >= 3
+}
+
+const getMainModeDeletedRootAlias = (
+  segments: string[]
+): MainModeRootAlias | null => {
+  const [first] = segments
+
+  if (first === 'plans' || first === 'kaavat') {
+    return {
+      namespace: 'hiilikartta',
+      segments: normalizeAppletRootAliasSegments({
+        namespace: 'hiilikartta',
+        segments,
+      }),
+    }
+  }
+
+  if (isRemovedLuonnonmetsakartatAdminRootAlias(segments)) {
+    return {
+      namespace: 'luonnonmetsakartat',
+      segments: normalizeAppletRootAliasSegments({
+        namespace: 'luonnonmetsakartat',
+        segments,
+      }),
+    }
+  }
+
+  return null
+}
+
+const getMainModeLegacyRootAlias = (
+  segments: string[]
+): MainModeRootAlias | null => {
+  const [first, second] = segments
+
+  if (first === 'raportti') {
     return {
       namespace: 'hiilikartta',
       segments: normalizeAppletRootAliasSegments({
@@ -298,20 +367,25 @@ const getMainModeLegacyRootAlias = (segments: string[]) => {
   return null
 }
 
-const getMainModeLegacyRootAliasDecision = ({
+const getMainModeRootAlias = (segments: string[]) =>
+  getMainModeDeletedRootAlias(segments) ?? getMainModeLegacyRootAlias(segments)
+
+const getMainModeRootAliasDecision = ({
   locale,
   search,
   segments,
+  getAlias,
 }: {
-  locale: string
+  locale: string | null
   search: string
   segments: string[]
+  getAlias: (segments: string[]) => MainModeRootAlias | null
 }): RequestRoutingDecision | null => {
-  const alias = getMainModeLegacyRootAlias(segments.slice(1))
+  const alias = getAlias(locale == null ? segments : segments.slice(1))
   if (!alias) return null
 
   const namespaceLocales = getLocalesForRequestNamespace(alias.namespace)
-  const targetLocale = namespaceLocales.includes(locale)
+  const targetLocale = locale != null && namespaceLocales.includes(locale)
     ? locale
     : getDefaultLocaleForRequestNamespace(alias.namespace)
 
@@ -346,6 +420,17 @@ const getAppletRootRedirectTailSegments = ({
     return stripCanonicalNamespace
       ? normalizedTail
       : [firstSegmentInfo.canonicalSlug, ...normalizedTail]
+  }
+
+  if (!stripCanonicalNamespace) {
+    const canonicalSegments = getRemovedRootAliasCanonicalSegments({
+      namespace,
+      segments,
+    })
+
+    if (canonicalSegments) {
+      return canonicalSegments
+    }
   }
 
   return normalizeAppletRootAliasSegments({ namespace, segments })
@@ -426,6 +511,21 @@ const getAppletRootDecision = ({
     namespace,
     segments: tailSegments,
   })
+
+  if (!stripCanonicalNamespace) {
+    const canonicalSegments = getRemovedRootAliasCanonicalSegments({
+      namespace,
+      segments: tailSegments,
+    })
+
+    if (canonicalSegments) {
+      return withSearch(
+        'redirect',
+        toPathname([locale, ...canonicalSegments]),
+        search
+      )
+    }
+  }
 
   if (!areSegmentsEqual(tailSegments, normalizedRootAliasSegments)) {
     return withSearch(
@@ -591,14 +691,15 @@ export const decideRequestRouting = ({
   const mainLocales = getLocalesForRequestNamespace(MAIN_NAMESPACE)
 
   if (locale != null) {
-    const legacyRootAliasDecision = getMainModeLegacyRootAliasDecision({
+    const rootAliasDecision = getMainModeRootAliasDecision({
       locale,
       search,
       segments,
+      getAlias: getMainModeRootAlias,
     })
 
-    if (legacyRootAliasDecision) {
-      return legacyRootAliasDecision
+    if (rootAliasDecision) {
+      return rootAliasDecision
     }
 
     if (!mainLocales.includes(locale)) {
@@ -616,6 +717,17 @@ export const decideRequestRouting = ({
     }
 
     return { type: 'passThrough' }
+  }
+
+  const removedRootAliasDecision = getMainModeRootAliasDecision({
+    locale: null,
+    search,
+    segments,
+    getAlias: getMainModeDeletedRootAlias,
+  })
+
+  if (removedRootAliasDecision) {
+    return removedRootAliasDecision
   }
 
   const defaultLocale = getDefaultLocaleForRequestNamespace(MAIN_NAMESPACE)

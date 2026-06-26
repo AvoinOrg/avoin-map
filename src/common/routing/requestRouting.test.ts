@@ -293,6 +293,43 @@ describe('request routing decisions', () => {
         search: '?x=1',
       })
     })
+
+    it.each([
+      ['/fi/plans?x=1', '/fi/carbon/plans'],
+      ['/fi/plans/plan-1/areas?x=1', '/fi/carbon/plans/plan-1/areas'],
+      ['/fi/admin?x=1', '/fi/luonnonmetsakartat/admin'],
+      ['/fi/admin/import?x=1', '/fi/luonnonmetsakartat/admin/import'],
+      [
+        '/fi/admin/layer/layer-1/settings?x=1',
+        '/fi/luonnonmetsakartat/admin/layer/layer-1/settings',
+      ],
+      [
+        '/fi/admin/layer/layer-1/pictures?x=1',
+        '/fi/luonnonmetsakartat/admin/layer/layer-1/pictures',
+      ],
+      ['/plans?x=1', '/fi/carbon/plans'],
+      ['/en/plans?x=1', '/fi/carbon/plans'],
+      ['/admin?x=1', '/fi/luonnonmetsakartat/admin'],
+      [
+        '/en/admin/layer/layer-1/pictures?x=1',
+        '/fi/luonnonmetsakartat/admin/layer/layer-1/pictures',
+      ],
+    ])(
+      'redirects deleted main-host root route alias %s to %s',
+      (path, pathname) => {
+        expect(
+          decideRequestRouting({
+            url: url(path),
+            compiledApplets: mainMode,
+          })
+        ).toEqual({
+          type: 'redirect',
+          status: 308,
+          pathname,
+          search: '?x=1',
+        })
+      }
+    )
   })
 
   describe('standalone applet mode', () => {
@@ -355,6 +392,26 @@ describe('request routing decisions', () => {
     )
 
     it.each([
+      ['/fi/kaavat?x=1', '/fi/plans'],
+      ['/fi/kaavat/plan-1/alueet?x=1', '/fi/plans/plan-1/areas'],
+    ])(
+      'redirects standalone Hiilikartta legacy root alias %s to %s',
+      (path, pathname) => {
+        expect(
+          decideRequestRouting({
+            url: url(path),
+            compiledApplets: ['hiilikartta'],
+          })
+        ).toEqual({
+          type: 'redirect',
+          status: 308,
+          pathname,
+          search: '?x=1',
+        })
+      }
+    )
+
+    it.each([
       '/fi/admin',
       '/fi/admin/import',
       '/fi/admin/layer/layer-1/settings',
@@ -367,6 +424,29 @@ describe('request routing decisions', () => {
             compiledApplets: ['luonnonmetsakartat'],
           })
         ).toEqual({ type: 'passThrough' })
+      }
+    )
+
+    it.each([
+      ['/fi/admin/tuo?x=1', '/fi/admin/import'],
+      [
+        '/fi/admin/taso/layer-1/asetukset?x=1',
+        '/fi/admin/layer/layer-1/settings',
+      ],
+    ])(
+      'redirects standalone Luonnonmetsakartat legacy admin alias %s to %s',
+      (path, pathname) => {
+        expect(
+          decideRequestRouting({
+            url: url(path),
+            compiledApplets: ['luonnonmetsakartat'],
+          })
+        ).toEqual({
+          type: 'redirect',
+          status: 308,
+          pathname,
+          search: '?x=1',
+        })
       }
     )
 
@@ -478,12 +558,12 @@ describe('request routing decisions', () => {
     })
 
     it(
-      'passes through English applet-aware child paths on configured domains without ' +
+      'passes through remaining visible root aliases on configured domains without ' +
         'duplicating namespace',
       () => {
         expect(
           decideRequestRouting({
-            url: url('/fi/plans?x=1', 'hiilikartta.avoin.org'),
+            url: url('/fi/report?x=1', 'hiilikartta.avoin.org'),
             host: 'hiilikartta.avoin.org',
             compiledApplets: ['main', 'hiilikartta'],
           })
@@ -514,6 +594,67 @@ describe('request routing decisions', () => {
           type: 'redirect',
           status: 308,
           pathname: '/fi/carbon/plans',
+          search: '?x=1',
+        })
+      }
+    )
+
+    it.each([
+      ['/fi/plans?x=1', '/fi/carbon/plans'],
+      ['/fi/plans/plan-1/areas?x=1', '/fi/carbon/plans/plan-1/areas'],
+      ['/fi/kaavat?x=1', '/fi/carbon/plans'],
+      ['/fi/kaavat/plan-1/alueet?x=1', '/fi/carbon/plans/plan-1/areas'],
+      ['/plans?x=1', '/fi/carbon/plans'],
+      ['/en/kaavat?x=1', '/fi/carbon/plans'],
+    ])(
+      'redirects Hiilikartta applet-domain full-app root alias %s to %s',
+      (path, pathname) => {
+        expect(
+          decideRequestRouting({
+            url: url(path, 'hiilikartta.avoin.org'),
+            host: 'hiilikartta.avoin.org',
+            compiledApplets: ['main', 'hiilikartta'],
+          })
+        ).toEqual({
+          type: 'redirect',
+          status: 308,
+          pathname,
+          search: '?x=1',
+        })
+      }
+    )
+
+    it.each([
+      ['/fi/admin?x=1', '/fi/luonnonmetsakartat/admin'],
+      ['/fi/admin/import?x=1', '/fi/luonnonmetsakartat/admin/import'],
+      [
+        '/fi/admin/layer/layer-1/settings?x=1',
+        '/fi/luonnonmetsakartat/admin/layer/layer-1/settings',
+      ],
+      ['/fi/admin/tuo?x=1', '/fi/luonnonmetsakartat/admin/import'],
+      [
+        '/fi/admin/taso/layer-1/asetukset?x=1',
+        '/fi/luonnonmetsakartat/admin/layer/layer-1/settings',
+      ],
+      [
+        '/fi/admin/taso/layer-1/kuvat?x=1',
+        '/fi/luonnonmetsakartat/admin/layer/layer-1/pictures',
+      ],
+      ['/admin?x=1', '/fi/luonnonmetsakartat/admin'],
+      ['/en/admin/tuo?x=1', '/fi/luonnonmetsakartat/admin/import'],
+    ])(
+      'redirects Luonnonmetsakartat applet-domain full-app root alias %s to %s',
+      (path, pathname) => {
+        expect(
+          decideRequestRouting({
+            url: url(path, 'luonnonmetsakartat.avoin.org'),
+            host: 'luonnonmetsakartat.avoin.org',
+            compiledApplets: ['main', 'luonnonmetsakartat'],
+          })
+        ).toEqual({
+          type: 'redirect',
+          status: 308,
+          pathname,
           search: '?x=1',
         })
       }

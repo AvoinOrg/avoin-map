@@ -38,14 +38,10 @@ const getPrunePaths = (projectRoot) => {
 const appletVisibleRootAliasRoutes = {
   energiakartta: [],
   hiilikartta: [
-    path.join('src', 'routes', '$locale', '(map)', '_map', 'plans'),
-    path.join('src', 'routes', '$locale', '(map)', '_map', 'kaavat'),
     path.join('src', 'routes', '$locale', '(map)', '_map', 'report.tsx'),
     path.join('src', 'routes', '$locale', '(map)', '_map', 'raportti.tsx'),
   ],
-  luonnonmetsakartat: [
-    path.join('src', 'routes', '$locale', '(map)', '_map', 'admin'),
-  ],
+  luonnonmetsakartat: [],
 }
 
 const appletApiRoutes = {

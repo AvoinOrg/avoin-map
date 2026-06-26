@@ -29,16 +29,16 @@ describe('routeMetadata', () => {
             },
           },
           children: {
-            plans: {
-              id: 'hiili-alias-plans',
+            report: {
+              id: 'hiili-alias-report',
               options: {
                 staticData: {
                   appRoute: {
-                    key: APP_ROUTE_KEYS.HIILIKARTTA_PLANS_VISIBLE_ALIAS,
+                    key: APP_ROUTE_KEYS.HIILIKARTTA_REPORT_VISIBLE_ALIAS,
                     appletNamespace: 'hiilikartta',
                     variant: 'visible-alias',
                     public: {
-                      canonicalRouteKey: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
+                      canonicalRouteKey: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
                     },
                   },
                 },
@@ -47,16 +47,13 @@ describe('routeMetadata', () => {
           },
         },
         {
-          id: 'visiblePlan',
+          id: 'canonicalPlan',
           options: {
             staticData: {
               appRoute: {
-                key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN_VISIBLE_ALIAS,
+                key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
                 appletNamespace: 'hiilikartta',
-                variant: 'visible-alias',
-                public: {
-                  canonicalRouteKey: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
-                },
+                variant: 'canonical',
               },
             },
           },
@@ -68,13 +65,14 @@ describe('routeMetadata', () => {
 
     expect(ordered.map((metadata) => metadata.key)).toEqual([
       APP_ROUTE_KEYS.MAIN_HOME_VISIBLE_ROOT,
-      APP_ROUTE_KEYS.HIILIKARTTA_PLANS_VISIBLE_ALIAS,
-      APP_ROUTE_KEYS.HIILIKARTTA_PLAN_VISIBLE_ALIAS,
+      APP_ROUTE_KEYS.HIILIKARTTA_REPORT_VISIBLE_ALIAS,
+      APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
     ])
 
     expect(
-      index[APP_ROUTE_KEYS.HIILIKARTTA_PLANS_VISIBLE_ALIAS]?.public?.canonicalRouteKey
-    ).toBe(APP_ROUTE_KEYS.HIILIKARTTA_PLANS)
+      index[APP_ROUTE_KEYS.HIILIKARTTA_REPORT_VISIBLE_ALIAS]?.public
+        ?.canonicalRouteKey
+    ).toBe(APP_ROUTE_KEYS.HIILIKARTTA_REPORT)
 
     expect(
       index[APP_ROUTE_KEYS.MAIN_HOME_VISIBLE_ROOT]?.public

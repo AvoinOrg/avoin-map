@@ -196,7 +196,7 @@ describe('BreadcrumbNav', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('uses visible alias matches without adding old main-tree root crumbs', () => {
+  it('uses remaining visible alias matches without adding old main-tree root crumbs', () => {
     mockMatches = [
       match({
         routeId: 'visibleRoot',
@@ -212,33 +212,30 @@ describe('BreadcrumbNav', () => {
         }),
       }),
       match({
-        routeId: 'visiblePlans',
+        routeId: 'visibleReport',
         appRoute: appRoute({
-          key: APP_ROUTE_KEYS.HIILIKARTTA_PLANS_VISIBLE_ALIAS,
+          key: APP_ROUTE_KEYS.HIILIKARTTA_REPORT_VISIBLE_ALIAS,
           appletNamespace: 'hiilikartta',
           variant: 'visible-alias',
           breadcrumb: {
             ns: 'hiilikartta',
-            key: 'route.breadcrumb.plans',
+            key: 'route.breadcrumb.report',
           },
           public: {
-            canonicalRouteKey: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
+            canonicalRouteKey: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
           },
         }),
       }),
       match({
-        routeId: 'visiblePlan',
+        routeId: 'hiilikarttaPlan',
         params: { locale: 'fi', planId: 'plan-123' },
         appRoute: appRoute({
-          key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN_VISIBLE_ALIAS,
+          key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
           appletNamespace: 'hiilikartta',
-          variant: 'visible-alias',
+          variant: 'canonical',
           breadcrumb: {
             ns: 'hiilikartta',
             key: 'route.breadcrumb.plan',
-          },
-          public: {
-            canonicalRouteKey: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
           },
         }),
       }),
@@ -247,7 +244,7 @@ describe('BreadcrumbNav', () => {
     render(<BreadcrumbNav />)
 
     expect(
-      screen.getByText('hiilikartta:route.breadcrumb.plans')
+      screen.getByText('hiilikartta:route.breadcrumb.report')
     ).toBeInTheDocument()
     expect(
       screen.getByText('hiilikartta:route.breadcrumb.plan')

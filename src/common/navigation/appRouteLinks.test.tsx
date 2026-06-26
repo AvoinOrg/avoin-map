@@ -83,15 +83,24 @@ const routesById = {
       variant: 'canonical',
     },
   }),
-  visiblePlans: makeRoute({
-    id: 'visiblePlans',
-    fullPath: '/$locale/plans',
+  canonicalReport: makeRoute({
+    id: 'canonicalReport',
+    fullPath: '/$locale/carbon/report',
     metadata: {
-      key: APP_ROUTE_KEYS.HIILIKARTTA_PLANS_VISIBLE_ALIAS,
+      key: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
+      appletNamespace: 'hiilikartta',
+      variant: 'canonical',
+    },
+  }),
+  visibleReport: makeRoute({
+    id: 'visibleReport',
+    fullPath: '/$locale/report',
+    metadata: {
+      key: APP_ROUTE_KEYS.HIILIKARTTA_REPORT_VISIBLE_ALIAS,
       appletNamespace: 'hiilikartta',
       variant: 'visible-alias',
       public: {
-        canonicalRouteKey: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
+        canonicalRouteKey: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
       },
     },
   }),
@@ -102,18 +111,6 @@ const routesById = {
       key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
       appletNamespace: 'hiilikartta',
       variant: 'canonical',
-    },
-  }),
-  visiblePlan: makeRoute({
-    id: 'visiblePlan',
-    fullPath: '/$locale/plans/$planId',
-    metadata: {
-      key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN_VISIBLE_ALIAS,
-      appletNamespace: 'hiilikartta',
-      variant: 'visible-alias',
-      public: {
-        canonicalRouteKey: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
-      },
     },
   }),
   canonicalFolayer: makeRoute({
@@ -167,7 +164,7 @@ describe('appRouteLinks', () => {
   it('prefers the current visible alias for a canonical route key', () => {
     const entries = collectAppRouteEntries(routesById)
     const currentMatches: AppRouteMatchContext[] = [
-      { routeId: 'visiblePlans' },
+      { routeId: 'visibleReport' },
     ]
 
     expect(
@@ -175,38 +172,10 @@ describe('appRouteLinks', () => {
         router: makeRouter(),
         entries,
         currentMatches,
-        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
+        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
         routeParams: { locale: 'fi' },
       })
-    ).toBe('/fi/plans')
-  })
-
-  it('resolves sibling and parent canonical keys to visible aliases from a nested visible route', () => {
-    const entries = collectAppRouteEntries(routesById)
-    const currentMatches: AppRouteMatchContext[] = [
-      { routeId: 'visiblePlans' },
-      { routeId: 'visiblePlan' },
-    ]
-
-    expect(
-      resolveAppRouteHref({
-        router: makeRouter(),
-        entries,
-        currentMatches,
-        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
-        routeParams: { locale: 'fi' },
-      })
-    ).toBe('/fi/plans')
-
-    expect(
-      resolveAppRouteHref({
-        router: makeRouter(),
-        entries,
-        currentMatches,
-        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
-        routeParams: { locale: 'fi', planId: 'plan-123' },
-      })
-    ).toBe('/fi/plans/plan-123')
+    ).toBe('/fi/report')
   })
 
   it('resolves requested visible aliases directly', () => {
@@ -215,10 +184,10 @@ describe('appRouteLinks', () => {
     expect(
       selectAppRouteEntry({
         entries,
-        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLANS_VISIBLE_ALIAS,
-        currentMatches: [{ routeId: 'canonicalPlans' }],
+        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_REPORT_VISIBLE_ALIAS,
+        currentMatches: [{ routeId: 'canonicalReport' }],
       }).routeId
-    ).toBe('visiblePlans')
+    ).toBe('visibleReport')
   })
 
   it('prefers the current visible-root route for canonical applet homes', () => {
@@ -240,7 +209,7 @@ describe('appRouteLinks', () => {
       resolveAppRouteHref({
         router: makeRouter(),
         entries: collectAppRouteEntries(routesById),
-        currentMatches: [{ routeId: 'visiblePlan' }],
+        currentMatches: [{ routeId: 'visibleReport' }],
         routeKey: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
         routeParams: { locale: 'fi' },
       })

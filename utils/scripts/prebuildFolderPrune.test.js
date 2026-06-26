@@ -125,16 +125,6 @@ const writeCommonFixture = (root) => {
   })
   writeFile({
     root,
-    relativePath: mapRoute('plans', 'route.tsx'),
-    content: routeFile('/$locale/(map)/_map/plans'),
-  })
-  writeFile({
-    root,
-    relativePath: mapRoute('kaavat', 'route.tsx'),
-    content: routeFile('/$locale/(map)/_map/kaavat'),
-  })
-  writeFile({
-    root,
     relativePath: mapRoute('report.tsx'),
     content: routeFile('/$locale/(map)/_map/report'),
   })
@@ -142,11 +132,6 @@ const writeCommonFixture = (root) => {
     root,
     relativePath: mapRoute('raportti.tsx'),
     content: routeFile('/$locale/(map)/_map/raportti'),
-  })
-  writeFile({
-    root,
-    relativePath: mapRoute('admin', 'route.tsx'),
-    content: routeFile('/$locale/(map)/_map/admin'),
   })
 
   writeFile({
@@ -525,7 +510,9 @@ describe('prebuildFolderPrune standalone route materialization', () => {
     expect(
       exists({ root, relativePath: path.join('src', 'applets', 'forests') })
     ).toBe(true)
-    expect(exists({ root, relativePath: mapRoute('plans') })).toBe(true)
+    expect(exists({ root, relativePath: mapRoute('plans') })).toBe(false)
+    expect(exists({ root, relativePath: mapRoute('kaavat') })).toBe(false)
+    expect(exists({ root, relativePath: mapRoute('report.tsx') })).toBe(true)
     expect(exists({ root, relativePath: mapRoute('admin') })).toBe(false)
     expect(exists({ root, relativePath: apiRoute('hiilikartta') })).toBe(true)
     expect(exists({ root, relativePath: apiRoute('luonnonmetsakartat') })).toBe(

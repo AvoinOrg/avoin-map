@@ -198,7 +198,7 @@ const addExactAndSplatRules = ({
   })
 }
 
-const addLegacyHiilikarttaSubpathRedirects = ({
+const addLegacyHiilikarttaPlanSubpathRedirects = ({
   fromBase,
   rules,
   toBase,
@@ -218,11 +218,45 @@ const addLegacyHiilikarttaSubpathRedirects = ({
     from: `${fromBase}/kaavat/*`,
     to: `${toBase}/plans/:splat`,
   })
+}
+
+const addHiilikarttaPlanRootAliasRedirects = ({
+  fromBase,
+  rules,
+  toBase,
+}) => {
+  addVisibleRedirectRule({
+    rules,
+    from: `${fromBase}/plans`,
+    to: `${toBase}/plans`,
+  })
+  addVisibleRedirectRule({
+    rules,
+    from: `${fromBase}/plans/*`,
+    to: `${toBase}/plans/:splat`,
+  })
+  addLegacyHiilikarttaPlanSubpathRedirects({ fromBase, rules, toBase })
+}
+
+const addLegacyHiilikarttaReportRedirects = ({
+  fromBase,
+  rules,
+  toBase,
+}) => {
   addVisibleRedirectRule({
     rules,
     from: `${fromBase}/raportti`,
     to: `${toBase}/report`,
   })
+}
+
+const addLegacyHiilikarttaSubpathRedirects = ({
+  fromBase,
+  rules,
+  toBase,
+}) => {
+  addLegacyHiilikarttaPlanSubpathRedirects({ fromBase, rules, toBase })
+  addLegacyHiilikarttaReportRedirects({ fromBase, rules, toBase })
 }
 
 const addLegacyLuonnonmetsakartatSubpathRedirects = ({
@@ -254,6 +288,24 @@ const addLegacyLuonnonmetsakartatSubpathRedirects = ({
     rules,
     from: `${fromBase}/admin/taso/*`,
     to: `${toBase}/admin/layer/:splat`,
+  })
+}
+
+const addLuonnonmetsakartatAdminRootAliasRedirects = ({
+  fromBase,
+  rules,
+  toBase,
+}) => {
+  addLegacyLuonnonmetsakartatSubpathRedirects({ fromBase, rules, toBase })
+  addVisibleRedirectRule({
+    rules,
+    from: `${fromBase}/admin`,
+    to: `${toBase}/admin`,
+  })
+  addVisibleRedirectRule({
+    rules,
+    from: `${fromBase}/admin/*`,
+    to: `${toBase}/admin/:splat`,
   })
 }
 
@@ -304,7 +356,7 @@ const addLegacyAppletSlugRedirects = ({
   }
 }
 
-const addLegacyRootAliasRedirects = ({
+const addStandaloneRootAliasRedirects = ({
   namespace,
   fromLocaleBase,
   rules,
@@ -325,6 +377,62 @@ const addLegacyRootAliasRedirects = ({
       toBase: toLocaleBase,
     })
   }
+}
+
+const addMainModeRootAliasRedirects = ({
+  namespace,
+  fromLocaleBase,
+  rules,
+  toAppletLocaleBase,
+  toVisibleLocaleBase,
+}) => {
+  if (namespace === 'hiilikartta') {
+    addHiilikarttaPlanRootAliasRedirects({
+      fromBase: fromLocaleBase,
+      rules,
+      toBase: toAppletLocaleBase,
+    })
+    addLegacyHiilikarttaReportRedirects({
+      fromBase: fromLocaleBase,
+      rules,
+      toBase: toVisibleLocaleBase,
+    })
+  }
+
+  if (namespace === 'luonnonmetsakartat') {
+    addLuonnonmetsakartatAdminRootAliasRedirects({
+      fromBase: fromLocaleBase,
+      rules,
+      toBase: toAppletLocaleBase,
+    })
+  }
+}
+
+const addAppletDomainRootAliasRedirects = ({
+  mode,
+  namespace,
+  fromLocaleBase,
+  rules,
+  toAppletLocaleBase,
+  toVisibleLocaleBase,
+}) => {
+  if (mode === 'standalone') {
+    addStandaloneRootAliasRedirects({
+      namespace,
+      fromLocaleBase,
+      rules,
+      toLocaleBase: toVisibleLocaleBase,
+    })
+    return
+  }
+
+  addMainModeRootAliasRedirects({
+    namespace,
+    fromLocaleBase,
+    rules,
+    toAppletLocaleBase,
+    toVisibleLocaleBase,
+  })
 }
 
 const addProxyRulesForDomain = ({
@@ -425,11 +533,13 @@ const addProxyRulesForDomain = ({
       rules,
       toLocaleBase: `/${locale}`,
     })
-    addLegacyRootAliasRedirects({
+    addAppletDomainRootAliasRedirects({
+      mode,
       namespace,
       fromLocaleBase: `${domainBase}/${locale}`,
       rules,
-      toLocaleBase: `/${locale}`,
+      toAppletLocaleBase: localizedAppletBase,
+      toVisibleLocaleBase: `/${locale}`,
     })
 
     if (mode === 'standalone') {
@@ -474,11 +584,15 @@ const addProxyRulesForDomain = ({
       rules,
       toLocaleBase: `/${defaultLocale}`,
     })
-    addLegacyRootAliasRedirects({
+    addAppletDomainRootAliasRedirects({
+      mode,
       namespace,
       fromLocaleBase: `${domainBase}/${unsupportedLocale}`,
       rules,
-      toLocaleBase: `/${defaultLocale}`,
+      toAppletLocaleBase: `/${defaultLocale}/${getPublicAppletRouteSlug(
+        namespace
+      )}`,
+      toVisibleLocaleBase: `/${defaultLocale}`,
     })
 
     addVisibleRedirectRule({
@@ -500,11 +614,15 @@ const addProxyRulesForDomain = ({
     rules,
     toLocaleBase: `/${defaultLocale}`,
   })
-  addLegacyRootAliasRedirects({
+  addAppletDomainRootAliasRedirects({
+    mode,
     namespace,
     fromLocaleBase: domainBase,
     rules,
-    toLocaleBase: `/${defaultLocale}`,
+    toAppletLocaleBase: `/${defaultLocale}/${getPublicAppletRouteSlug(
+      namespace
+    )}`,
+    toVisibleLocaleBase: `/${defaultLocale}`,
   })
 
   addVisibleRedirectRule({

@@ -55,8 +55,6 @@ const buildImpactRules = () => [
       'src/applets/hiilikartta/**',
       'src/routes/$locale/(map)/_map/(applets)/carbon/**',
       'src/routes/$locale/(map)/_map/(applets)/hiilikartta/**',
-      'src/routes/$locale/(map)/_map/plans/**',
-      'src/routes/$locale/(map)/_map/kaavat/**',
       'src/routes/$locale/(map)/_map/report.tsx',
       'src/routes/$locale/(map)/_map/raportti.tsx',
     ],
@@ -76,7 +74,6 @@ const buildImpactRules = () => [
     globs: [
       'src/applets/luonnonmetsakartat/**',
       'src/routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/**',
-      'src/routes/$locale/(map)/_map/admin/**',
     ],
     target: 'luonnonmetsakartat',
   },

@@ -37,19 +37,6 @@ export const APP_ROUTE_KEYS = {
   ENERGIAKARTTA_HOME_VISIBLE_ALIAS:
     'energiakartta.home.visibleAlias.energy',
   HIILIKARTTA_REPORT_VISIBLE_ALIAS: 'hiilikartta.report.visibleAlias',
-  HIILIKARTTA_PLANS_VISIBLE_ALIAS: 'hiilikartta.plans.visibleAlias',
-  HIILIKARTTA_PLAN_VISIBLE_ALIAS: 'hiilikartta.plan.visibleAlias',
-  HIILIKARTTA_PLAN_AREAS_VISIBLE_ALIAS:
-    'hiilikartta.plan.areas.visibleAlias',
-  LUONNONMETSAKARTAT_ADMIN_VISIBLE_ALIAS: 'luonnonmetsakartat.admin.visibleAlias',
-  LUONNONMETSAKARTAT_ADMIN_IMPORT_VISIBLE_ALIAS:
-    'luonnonmetsakartat.admin.import.visibleAlias',
-  LUONNONMETSAKARTAT_ADMIN_FOLAYER_VISIBLE_ALIAS:
-    'luonnonmetsakartat.admin.folayer.visibleAlias',
-  LUONNONMETSAKARTAT_ADMIN_FOLAYER_SETTINGS_VISIBLE_ALIAS:
-    'luonnonmetsakartat.admin.folayer.settings.visibleAlias',
-  LUONNONMETSAKARTAT_ADMIN_FOLAYER_PICTURES_VISIBLE_ALIAS:
-    'luonnonmetsakartat.admin.folayer.pictures.visibleAlias',
 } as const
 
 export type AppRouteKey = (typeof APP_ROUTE_KEYS)[keyof typeof APP_ROUTE_KEYS]

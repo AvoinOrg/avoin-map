@@ -196,21 +196,38 @@ describe('writeNetlifyRedirects', () => {
       firstMatchingRule(redirects, `${hiilikarttaDomain}/kaavat`)
     ).toMatchObject({
       from: `${hiilikarttaDomain}/kaavat`,
-      resolvedTo: '/fi/plans',
+      resolvedTo: '/fi/carbon/plans',
       status: '301!',
     })
     expect(
       firstMatchingRule(redirects, `${hiilikarttaDomain}/en/kaavat`)
     ).toMatchObject({
       from: `${hiilikarttaDomain}/en/kaavat`,
-      resolvedTo: '/fi/plans',
+      resolvedTo: '/fi/carbon/plans',
       status: '301!',
     })
     expect(
       firstMatchingRule(redirects, `${hiilikarttaDomain}/fi/kaavat`)
     ).toMatchObject({
       from: `${hiilikarttaDomain}/fi/kaavat`,
-      resolvedTo: '/fi/plans',
+      resolvedTo: '/fi/carbon/plans',
+      status: '301!',
+    })
+    expect(
+      firstMatchingRule(redirects, `${hiilikarttaDomain}/fi/plans`)
+    ).toMatchObject({
+      from: `${hiilikarttaDomain}/fi/plans`,
+      resolvedTo: '/fi/carbon/plans',
+      status: '301!',
+    })
+    expect(
+      firstMatchingRule(
+        redirects,
+        `${hiilikarttaDomain}/fi/plans/plan-1/areas`
+      )
+    ).toMatchObject({
+      from: `${hiilikarttaDomain}/fi/plans/*`,
+      resolvedTo: '/fi/carbon/plans/plan-1/areas',
       status: '301!',
     })
     expect(
@@ -231,6 +248,54 @@ describe('writeNetlifyRedirects', () => {
     ).toMatchObject({
       from: `${hiilikarttaDomain}/fi/carbonmap/kaavat`,
       resolvedTo: '/fi/carbon/plans',
+      status: '301!',
+    })
+  })
+
+  it('redirects Luonnonmetsakartat main-mode applet-domain root admin aliases to canonical paths', () => {
+    const luonnonmetsakartatDomain = 'https://luonnonmetsakartat.avoin.org'
+    const redirects = generateNetlifyRedirects({
+      appletConf,
+      baseUrl: mainBaseUrl,
+      compiledApplets: parseCompiledApplets('main,luonnonmetsakartat'),
+      env: {},
+    })
+
+    expect(
+      firstMatchingRule(redirects, `${luonnonmetsakartatDomain}/admin`)
+    ).toMatchObject({
+      from: `${luonnonmetsakartatDomain}/admin`,
+      resolvedTo: '/fi/luonnonmetsakartat/admin',
+      status: '301!',
+    })
+    expect(
+      firstMatchingRule(
+        redirects,
+        `${luonnonmetsakartatDomain}/fi/admin/import`
+      )
+    ).toMatchObject({
+      from: `${luonnonmetsakartatDomain}/fi/admin/*`,
+      resolvedTo: '/fi/luonnonmetsakartat/admin/import',
+      status: '301!',
+    })
+    expect(
+      firstMatchingRule(
+        redirects,
+        `${luonnonmetsakartatDomain}/fi/admin/taso/layer-1/asetukset`
+      )
+    ).toMatchObject({
+      from: `${luonnonmetsakartatDomain}/fi/admin/taso/*/asetukset`,
+      resolvedTo: '/fi/luonnonmetsakartat/admin/layer/layer-1/settings',
+      status: '301!',
+    })
+    expect(
+      firstMatchingRule(
+        redirects,
+        `${luonnonmetsakartatDomain}/en/admin/tuo`
+      )
+    ).toMatchObject({
+      from: `${luonnonmetsakartatDomain}/en/admin/tuo`,
+      resolvedTo: '/fi/luonnonmetsakartat/admin/import',
       status: '301!',
     })
   })
