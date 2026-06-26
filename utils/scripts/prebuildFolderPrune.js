@@ -23,7 +23,6 @@ const getPrunePaths = (projectRoot) => {
     'src',
     'routes',
     '$locale',
-    '(map)',
     '_map'
   )
 
@@ -38,8 +37,8 @@ const getPrunePaths = (projectRoot) => {
 const appletVisibleRootAliasRoutes = {
   energiakartta: [],
   hiilikartta: [
-    path.join('src', 'routes', '$locale', '(map)', '_map', 'report.tsx'),
-    path.join('src', 'routes', '$locale', '(map)', '_map', 'raportti.tsx'),
+    path.join('src', 'routes', '$locale', '_map', 'report.tsx'),
+    path.join('src', 'routes', '$locale', '_map', 'raportti.tsx'),
   ],
   luonnonmetsakartat: [],
 }
@@ -55,7 +54,7 @@ const appletApiRoutes = {
 const mainBuildAppletSourceFolders = new Set(['main', 'forests'])
 
 const standaloneVisibleRootRoutePaths = [
-  path.join('src', 'routes', '$locale', '(map)', '_map', 'index.tsx'),
+  path.join('src', 'routes', '$locale', '_map', 'index.tsx'),
 ]
 
 const productionOnlyPrunedRoutes = [
@@ -321,8 +320,8 @@ const materializeStandaloneAppletRoutes = ({
     startRoutesAppletPath,
     sourceRouteFolderName
   )
-  const sourceRoutePrefix = `/$locale/(map)/_map/(applets)/${sourceRouteFolderName}`
-  const targetRoutePrefix = '/$locale/(map)/_map/(standalone)'
+  const sourceRoutePrefix = `/$locale/_map/(applets)/${sourceRouteFolderName}`
+  const targetRoutePrefix = '/$locale/_map/(standalone)'
 
   if (!fs.existsSync(sourceRouteFolder)) {
     fail(

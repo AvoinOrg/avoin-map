@@ -28,7 +28,7 @@ const luonnonmetsakartatLegacyImportRouteFile = () => [
   "import { createFileRoute } from '@tanstack/react-router'",
   '',
   'export const Route = createFileRoute(',
-  "  '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/tuo'",
+  "  '/$locale/_map/(applets)/luonnonmetsakartat/admin/tuo'",
   ')({',
   '  beforeLoad: () => {',
   "    redirectTo({ segments: ['luonnonmetsakartat', 'admin', 'import'] })",
@@ -41,7 +41,7 @@ const luonnonmetsakartatLegacyLayerRouteFile = () => [
   "import { createFileRoute } from '@tanstack/react-router'",
   '',
   'export const Route = createFileRoute(',
-  "  '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/taso'",
+  "  '/$locale/_map/(applets)/luonnonmetsakartat/admin/taso'",
   ')({',
   '  beforeLoad: () => {',
   '    redirectTo({',
@@ -79,14 +79,13 @@ const appletRoute = (...segments) =>
     'src',
     'routes',
     '$locale',
-    '(map)',
     '_map',
     '(applets)',
     ...segments
   )
 
 const mapRoute = (...segments) =>
-  path.join('src', 'routes', '$locale', '(map)', '_map', ...segments)
+  path.join('src', 'routes', '$locale', '_map', ...segments)
 
 const apiRoute = (...segments) => path.join('src', 'routes', 'api', ...segments)
 
@@ -116,22 +115,22 @@ const writeCommonFixture = (root) => {
   writeFile({
     root,
     relativePath: mapRoute('index.tsx'),
-    content: routeFile('/$locale/(map)/_map/'),
+    content: routeFile('/$locale/_map/'),
   })
   writeFile({
     root,
     relativePath: mapRoute('route.tsx'),
-    content: routeFile('/$locale/(map)/_map'),
+    content: routeFile('/$locale/_map'),
   })
   writeFile({
     root,
     relativePath: mapRoute('report.tsx'),
-    content: routeFile('/$locale/(map)/_map/report'),
+    content: routeFile('/$locale/_map/report'),
   })
   writeFile({
     root,
     relativePath: mapRoute('raportti.tsx'),
-    content: routeFile('/$locale/(map)/_map/raportti'),
+    content: routeFile('/$locale/_map/raportti'),
   })
 
   writeFile({
@@ -148,42 +147,42 @@ const writeCommonFixture = (root) => {
   writeFile({
     root,
     relativePath: appletRoute('forests', 'route.tsx'),
-    content: routeFile('/$locale/(map)/_map/(applets)/forests'),
+    content: routeFile('/$locale/_map/(applets)/forests'),
   })
   writeFile({
     root,
     relativePath: appletRoute('energy', 'route.tsx'),
-    content: routeFile('/$locale/(map)/_map/(applets)/energy'),
+    content: routeFile('/$locale/_map/(applets)/energy'),
   })
   writeFile({
     root,
     relativePath: appletRoute('energy', 'index.tsx'),
-    content: routeFile('/$locale/(map)/_map/(applets)/energy/'),
+    content: routeFile('/$locale/_map/(applets)/energy/'),
   })
   writeFile({
     root,
     relativePath: appletRoute('energymap', 'route.tsx'),
-    content: routeFile('/$locale/(map)/_map/(applets)/energymap'),
+    content: routeFile('/$locale/_map/(applets)/energymap'),
   })
   writeFile({
     root,
     relativePath: appletRoute('energiakartta', 'route.tsx'),
-    content: routeFile('/$locale/(map)/_map/(applets)/energiakartta'),
+    content: routeFile('/$locale/_map/(applets)/energiakartta'),
   })
   writeFile({
     root,
     relativePath: appletRoute('carbon', 'route.tsx'),
-    content: routeFile('/$locale/(map)/_map/(applets)/carbon'),
+    content: routeFile('/$locale/_map/(applets)/carbon'),
   })
   writeFile({
     root,
     relativePath: appletRoute('carbon', 'index.tsx'),
-    content: routeFile('/$locale/(map)/_map/(applets)/carbon/'),
+    content: routeFile('/$locale/_map/(applets)/carbon/'),
   })
   writeFile({
     root,
     relativePath: appletRoute('carbon', 'plans', 'route.tsx'),
-    content: routeFile('/$locale/(map)/_map/(applets)/carbon/plans'),
+    content: routeFile('/$locale/_map/(applets)/carbon/plans'),
   })
   writeFile({
     root,
@@ -194,34 +193,34 @@ const writeCommonFixture = (root) => {
       'areas.tsx'
     ),
     content: routeFile(
-      '/$locale/(map)/_map/(applets)/carbon/plans/$planId/areas'
+      '/$locale/_map/(applets)/carbon/plans/$planId/areas'
     ),
   })
   writeFile({
     root,
     relativePath: appletRoute('carbon', 'report.tsx'),
-    content: routeFile('/$locale/(map)/_map/(applets)/carbon/report'),
+    content: routeFile('/$locale/_map/(applets)/carbon/report'),
   })
   writeFile({
     root,
     relativePath: appletRoute('carbonmap', 'route.tsx'),
-    content: routeFile('/$locale/(map)/_map/(applets)/carbonmap'),
+    content: routeFile('/$locale/_map/(applets)/carbonmap'),
   })
   writeFile({
     root,
     relativePath: appletRoute('hiilikartta', 'route.tsx'),
-    content: routeFile('/$locale/(map)/_map/(applets)/hiilikartta'),
+    content: routeFile('/$locale/_map/(applets)/hiilikartta'),
   })
   writeFile({
     root,
     relativePath: appletRoute('luonnonmetsakartat', 'route.tsx'),
-    content: routeFile('/$locale/(map)/_map/(applets)/luonnonmetsakartat'),
+    content: routeFile('/$locale/_map/(applets)/luonnonmetsakartat'),
   })
   writeFile({
     root,
     relativePath: appletRoute('luonnonmetsakartat', 'admin', 'route.tsx'),
     content: routeFile(
-      '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin'
+      '/$locale/_map/(applets)/luonnonmetsakartat/admin'
     ),
   })
   writeFile({
@@ -234,7 +233,7 @@ const writeCommonFixture = (root) => {
       'route.tsx'
     ),
     content: routeFile(
-      '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug'
+      '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug'
     ),
   })
   writeFile({
@@ -247,7 +246,7 @@ const writeCommonFixture = (root) => {
       'settings.tsx'
     ),
     content: routeFile(
-      '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings'
+      '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings'
     ),
   })
   writeFile({
@@ -332,11 +331,11 @@ describe('prebuildFolderPrune standalone route materialization', () => {
       ])
     )
     expect(read({ root, relativePath: standaloneRoute('route.tsx') })).toContain(
-      "createFileRoute('/$locale/(map)/_map/(standalone)')"
+      "createFileRoute('/$locale/_map/(standalone)')"
     )
     expect(
       read({ root, relativePath: standaloneRoute('plans', 'route.tsx') })
-    ).toContain("createFileRoute('/$locale/(map)/_map/(standalone)/plans')")
+    ).toContain("createFileRoute('/$locale/_map/(standalone)/plans')")
     expect(
       read({
         root,
@@ -347,7 +346,7 @@ describe('prebuildFolderPrune standalone route materialization', () => {
         ),
       })
     ).toContain(
-      "createFileRoute('/$locale/(map)/_map/(standalone)/plans/$planId/areas')"
+      "createFileRoute('/$locale/_map/(standalone)/plans/$planId/areas')"
     )
     expect(exists({ root, relativePath: appletRoute('carbon') })).toBe(false)
     expect(exists({ root, relativePath: appletRoute('carbonmap') })).toBe(false)
@@ -407,7 +406,7 @@ describe('prebuildFolderPrune standalone route materialization', () => {
         ),
       })
     ).toContain(
-      "createFileRoute('/$locale/(map)/_map/(standalone)/admin/layer/$folayerIdSlug')"
+      "createFileRoute('/$locale/_map/(standalone)/admin/layer/$folayerIdSlug')"
     )
     expect(
       read({
@@ -420,7 +419,7 @@ describe('prebuildFolderPrune standalone route materialization', () => {
         ),
       })
     ).toContain(
-      "createFileRoute('/$locale/(map)/_map/(standalone)/admin/layer/$folayerIdSlug/settings')"
+      "createFileRoute('/$locale/_map/(standalone)/admin/layer/$folayerIdSlug/settings')"
     )
     expect(
       read({
@@ -428,7 +427,7 @@ describe('prebuildFolderPrune standalone route materialization', () => {
         relativePath: standaloneRoute('admin', 'taso', 'route.tsx'),
       })
     ).toContain(
-      "createFileRoute('/$locale/(map)/_map/(standalone)/admin/taso')"
+      "createFileRoute('/$locale/_map/(standalone)/admin/taso')"
     )
     expect(
       read({
@@ -471,10 +470,10 @@ describe('prebuildFolderPrune standalone route materialization', () => {
     })
 
     expect(read({ root, relativePath: standaloneRoute('route.tsx') })).toContain(
-      "createFileRoute('/$locale/(map)/_map/(standalone)')"
+      "createFileRoute('/$locale/_map/(standalone)')"
     )
     expect(read({ root, relativePath: standaloneRoute('index.tsx') })).toContain(
-      "createFileRoute('/$locale/(map)/_map/(standalone)/')"
+      "createFileRoute('/$locale/_map/(standalone)/')"
     )
     expect(exists({ root, relativePath: appletRoute('energy') })).toBe(false)
     expect(exists({ root, relativePath: appletRoute('energymap') })).toBe(false)

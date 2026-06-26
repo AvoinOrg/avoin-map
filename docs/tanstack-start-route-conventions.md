@@ -16,15 +16,15 @@ generation may overwrite it whenever `start:*` tooling runs.
 - Normal file routes use `createFileRoute(...)` with the verbose file route ID
   generated for that file. Include route group and pathless segments in this ID
   when they are present, for example
-  `createFileRoute('/$locale/(map)/_map/(applets)/hiilikartta')`.
+  `createFileRoute('/$locale/_map/(applets)/hiilikartta')`.
 - Dynamic URL segments use `$param`, such as
   `kaavat.$planId.tsx` with route ID
-  `/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId`.
+  `/$locale/_map/(applets)/hiilikartta/kaavat/$planId`.
 - Layout routes use `route.tsx` and render `<Outlet />`.
 - Pathless layouts use leading `_` segments, such as `_map`. These participate
   in the internal file route ID but do not add public URL path segments.
-- Route groups use directories in parentheses, such as `(map)` and
-  `(applets)`. Do not add route configuration files named like `(map).tsx`; the
+- Route groups use directories in parentheses, such as `(applets)`. Do not add
+  route configuration files named like `(applets).tsx`; the
   installed generator rejects route-group configuration files.
 - Colocated non-route files or folders under `src/routes` must start with `-`,
   such as `-helpers` or `-fixtures`, or live outside `src/routes`. The Start
@@ -43,10 +43,10 @@ src/routes/__root.tsx
 src/routes/index.tsx
 src/routes/-helpers/scaffoldLabels.ts
 src/routes/$locale/route.tsx
-src/routes/$locale/(map)/_map/route.tsx
-src/routes/$locale/(map)/_map/(applets)/hiilikartta/route.tsx
-src/routes/$locale/(map)/_map/(applets)/hiilikartta/index.tsx
-src/routes/$locale/(map)/_map/(applets)/hiilikartta/kaavat.$planId.tsx
+src/routes/$locale/_map/route.tsx
+src/routes/$locale/_map/(applets)/hiilikartta/route.tsx
+src/routes/$locale/_map/(applets)/hiilikartta/index.tsx
+src/routes/$locale/_map/(applets)/hiilikartta/kaavat.$planId.tsx
 ```
 
 The public paths proven by this scaffold are:
@@ -56,8 +56,8 @@ The public paths proven by this scaffold are:
 - `/$locale/hiilikartta`
 - `/$locale/hiilikartta/kaavat/$planId`
 
-The `(map)` and `(applets)` directories group files only. The `_map` directory
-is a shared pathless layout for the future map shell.
+The `(applets)` directory groups files only. The `_map` directory is a shared
+pathless layout for the map shell.
 
 ## Architecture handoff
 
@@ -82,15 +82,15 @@ Start file route target convention is `$param`.
 | Current Next App Router path | Intended TanStack Start shape |
 | --- | --- |
 | `src/app/[locale]/layout.tsx` | `src/routes/$locale/route.tsx` |
-| Legacy map shell client components | `src/runtime/ShellComponents/**`, mounted by `src/routes/$locale/(map)/_map/route.tsx` |
+| Legacy map shell client components | `src/runtime/ShellComponents/**`, mounted by `src/routes/$locale/_map/route.tsx` |
 | `src/applets/main/page.tsx` | Future main-app index under the `$locale` map shell; F048.3 should choose the collision-free file once root URL behavior is migrated. |
-| `src/applets/forests/page.tsx` | `src/routes/$locale/(map)/_map/(applets)/forests/index.tsx` |
-| `src/applets/hiilikartta/pages/page.tsx` | `src/routes/$locale/(map)/_map/(applets)/hiilikartta/index.tsx` |
-| `src/applets/hiilikartta/pages/kaavat/page.tsx` | `src/routes/$locale/(map)/_map/(applets)/hiilikartta/kaavat/index.tsx` |
-| `src/applets/hiilikartta/pages/kaavat/plan/page.tsx` | `src/routes/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId.tsx` or a directory equivalent. |
-| `src/applets/hiilikartta/pages/kaavat/plan/alueet/page.tsx` | `src/routes/$locale/(map)/_map/(applets)/hiilikartta/kaavat/$planId/alueet.tsx` or `alueet/index.tsx`. |
-| `src/applets/luonnonmetsakartat/pages/admin/taso/folayer/**` | `src/routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/taso/$folayerIdSlug/**` |
-| `src/applets/energiakartta/pages/**` | `src/routes/$locale/(map)/_map/(applets)/energiakartta/**` |
+| `src/applets/forests/page.tsx` | `src/routes/$locale/_map/(applets)/forests/index.tsx` |
+| `src/applets/hiilikartta/pages/page.tsx` | `src/routes/$locale/_map/(applets)/hiilikartta/index.tsx` |
+| `src/applets/hiilikartta/pages/kaavat/page.tsx` | `src/routes/$locale/_map/(applets)/hiilikartta/kaavat/index.tsx` |
+| `src/applets/hiilikartta/pages/kaavat/plan/page.tsx` | `src/routes/$locale/_map/(applets)/hiilikartta/kaavat/$planId.tsx` or a directory equivalent. |
+| `src/applets/hiilikartta/pages/kaavat/plan/alueet/page.tsx` | `src/routes/$locale/_map/(applets)/hiilikartta/kaavat/$planId/alueet.tsx` or `alueet/index.tsx`. |
+| `src/applets/luonnonmetsakartat/pages/admin/taso/folayer/**` | `src/routes/$locale/_map/(applets)/luonnonmetsakartat/admin/taso/$folayerIdSlug/**` |
+| `src/applets/energiakartta/pages/**` | `src/routes/$locale/_map/(applets)/energiakartta/**` |
 | `src/app/[locale]/adds/**` | `src/routes/$locale/adds/**` |
 | `src/app/[locale]/dev/component-fixtures/[fixtureId]/[stateId]/page.tsx` | `src/routes/$locale/dev/component-fixtures/$fixtureId/$stateId.tsx` |
 

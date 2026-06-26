@@ -8,57 +8,55 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { createFileRoute } from '@tanstack/react-router'
 import { createServerRootRoute } from '@tanstack/react-start/server'
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LocaleRouteRouteImport } from './routes/$locale/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LocaleMapRouteRouteImport } from './routes/$locale/_map/route'
+import { Route as LocaleMapIndexRouteImport } from './routes/$locale/_map/index'
+import { Route as LocaleMapReportRouteImport } from './routes/$locale/_map/report'
+import { Route as LocaleMapRaporttiRouteImport } from './routes/$locale/_map/raportti'
 import { Route as LocaleDevComponentFixturesRouteRouteImport } from './routes/$locale/dev/component-fixtures/route'
 import { Route as LocaleAddsLoginRouteRouteImport } from './routes/$locale/adds/login/route'
-import { Route as LocalemapMapRouteRouteImport } from './routes/$locale/(map)/_map/route'
 import { Route as LocaleDevComponentFixturesIndexRouteImport } from './routes/$locale/dev/component-fixtures/index'
 import { Route as LocaleAddsLoginIndexRouteImport } from './routes/$locale/adds/login/index'
-import { Route as LocalemapMapIndexRouteImport } from './routes/$locale/(map)/_map/index'
 import { Route as LocaleAddsLoginCallbackRouteImport } from './routes/$locale/adds/login/callback'
-import { Route as LocalemapMapReportRouteImport } from './routes/$locale/(map)/_map/report'
-import { Route as LocalemapMapRaporttiRouteImport } from './routes/$locale/(map)/_map/raportti'
+import { Route as LocaleMapappletsLuonnonmetsakartatRouteRouteImport } from './routes/$locale/_map/(applets)/luonnonmetsakartat/route'
+import { Route as LocaleMapappletsHiilikarttaRouteRouteImport } from './routes/$locale/_map/(applets)/hiilikartta/route'
+import { Route as LocaleMapappletsForestsRouteRouteImport } from './routes/$locale/_map/(applets)/forests/route'
+import { Route as LocaleMapappletsEnergyRouteRouteImport } from './routes/$locale/_map/(applets)/energy/route'
+import { Route as LocaleMapappletsEnergiakarttaRouteRouteImport } from './routes/$locale/_map/(applets)/energiakartta/route'
+import { Route as LocaleMapappletsCarbonRouteRouteImport } from './routes/$locale/_map/(applets)/carbon/route'
+import { Route as LocaleMapappletsLuonnonmetsakartatIndexRouteImport } from './routes/$locale/_map/(applets)/luonnonmetsakartat/index'
+import { Route as LocaleMapappletsForestsIndexRouteImport } from './routes/$locale/_map/(applets)/forests/index'
+import { Route as LocaleMapappletsEnergyIndexRouteImport } from './routes/$locale/_map/(applets)/energy/index'
+import { Route as LocaleMapappletsCarbonIndexRouteImport } from './routes/$locale/_map/(applets)/carbon/index'
 import { Route as LocaleDevComponentFixturesFixtureIdStateIdRouteImport } from './routes/$locale/dev/component-fixtures/$fixtureId/$stateId'
-import { Route as LocalemapMapappletsLuonnonmetsakartatRouteRouteImport } from './routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/route'
-import { Route as LocalemapMapappletsHiilikarttaRouteRouteImport } from './routes/$locale/(map)/_map/(applets)/hiilikartta/route'
-import { Route as LocalemapMapappletsForestsRouteRouteImport } from './routes/$locale/(map)/_map/(applets)/forests/route'
-import { Route as LocalemapMapappletsEnergyRouteRouteImport } from './routes/$locale/(map)/_map/(applets)/energy/route'
-import { Route as LocalemapMapappletsEnergiakarttaRouteRouteImport } from './routes/$locale/(map)/_map/(applets)/energiakartta/route'
-import { Route as LocalemapMapappletsCarbonRouteRouteImport } from './routes/$locale/(map)/_map/(applets)/carbon/route'
-import { Route as LocalemapMapappletsLuonnonmetsakartatIndexRouteImport } from './routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/index'
-import { Route as LocalemapMapappletsForestsIndexRouteImport } from './routes/$locale/(map)/_map/(applets)/forests/index'
-import { Route as LocalemapMapappletsEnergyIndexRouteImport } from './routes/$locale/(map)/_map/(applets)/energy/index'
-import { Route as LocalemapMapappletsCarbonIndexRouteImport } from './routes/$locale/(map)/_map/(applets)/carbon/index'
-import { Route as LocalemapMapappletsHiilikarttaSplatRouteImport } from './routes/$locale/(map)/_map/(applets)/hiilikartta/$'
-import { Route as LocalemapMapappletsEnergiakarttaSplatRouteImport } from './routes/$locale/(map)/_map/(applets)/energiakartta/$'
-import { Route as LocalemapMapappletsCarbonReportRouteImport } from './routes/$locale/(map)/_map/(applets)/carbon/report'
-import { Route as LocalemapMapappletsLuonnonmetsakartatAdminRouteRouteImport } from './routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/route'
-import { Route as LocalemapMapappletsCarbonPlansRouteRouteImport } from './routes/$locale/(map)/_map/(applets)/carbon/plans/route'
-import { Route as LocalemapMapappletsLuonnonmetsakartatAdminIndexRouteImport } from './routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/index'
-import { Route as LocalemapMapappletsCarbonPlansIndexRouteImport } from './routes/$locale/(map)/_map/(applets)/carbon/plans/index'
-import { Route as LocalemapMapappletsLuonnonmetsakartatAdminTuoRouteImport } from './routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/tuo'
-import { Route as LocalemapMapappletsLuonnonmetsakartatAdminImportRouteImport } from './routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/import'
-import { Route as LocalemapMapappletsLuonnonmetsakartatAdminTasoRouteRouteImport } from './routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/taso/route'
-import { Route as LocalemapMapappletsCarbonPlansPlanIdRouteRouteImport } from './routes/$locale/(map)/_map/(applets)/carbon/plans/$planId/route'
-import { Route as LocalemapMapappletsCarbonPlansPlanIdIndexRouteImport } from './routes/$locale/(map)/_map/(applets)/carbon/plans/$planId/index'
-import { Route as LocalemapMapappletsLuonnonmetsakartatAdminTasoSplatRouteImport } from './routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/taso/$'
-import { Route as LocalemapMapappletsCarbonPlansPlanIdAreasRouteImport } from './routes/$locale/(map)/_map/(applets)/carbon/plans/$planId/areas'
-import { Route as LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteImport } from './routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/route'
-import { Route as LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRouteImport } from './routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/index'
-import { Route as LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRouteImport } from './routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings'
-import { Route as LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRouteImport } from './routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/pictures'
+import { Route as LocaleMapappletsHiilikarttaSplatRouteImport } from './routes/$locale/_map/(applets)/hiilikartta/$'
+import { Route as LocaleMapappletsEnergiakarttaSplatRouteImport } from './routes/$locale/_map/(applets)/energiakartta/$'
+import { Route as LocaleMapappletsCarbonReportRouteImport } from './routes/$locale/_map/(applets)/carbon/report'
+import { Route as LocaleMapappletsLuonnonmetsakartatAdminRouteRouteImport } from './routes/$locale/_map/(applets)/luonnonmetsakartat/admin/route'
+import { Route as LocaleMapappletsCarbonPlansRouteRouteImport } from './routes/$locale/_map/(applets)/carbon/plans/route'
+import { Route as LocaleMapappletsLuonnonmetsakartatAdminIndexRouteImport } from './routes/$locale/_map/(applets)/luonnonmetsakartat/admin/index'
+import { Route as LocaleMapappletsCarbonPlansIndexRouteImport } from './routes/$locale/_map/(applets)/carbon/plans/index'
+import { Route as LocaleMapappletsLuonnonmetsakartatAdminTuoRouteImport } from './routes/$locale/_map/(applets)/luonnonmetsakartat/admin/tuo'
+import { Route as LocaleMapappletsLuonnonmetsakartatAdminImportRouteImport } from './routes/$locale/_map/(applets)/luonnonmetsakartat/admin/import'
+import { Route as LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteImport } from './routes/$locale/_map/(applets)/luonnonmetsakartat/admin/taso/route'
+import { Route as LocaleMapappletsCarbonPlansPlanIdRouteRouteImport } from './routes/$locale/_map/(applets)/carbon/plans/$planId/route'
+import { Route as LocaleMapappletsCarbonPlansPlanIdIndexRouteImport } from './routes/$locale/_map/(applets)/carbon/plans/$planId/index'
+import { Route as LocaleMapappletsLuonnonmetsakartatAdminTasoSplatRouteImport } from './routes/$locale/_map/(applets)/luonnonmetsakartat/admin/taso/$'
+import { Route as LocaleMapappletsCarbonPlansPlanIdAreasRouteImport } from './routes/$locale/_map/(applets)/carbon/plans/$planId/areas'
+import { Route as LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteImport } from './routes/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/route'
+import { Route as LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRouteImport } from './routes/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/index'
+import { Route as LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRouteImport } from './routes/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings'
+import { Route as LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRouteImport } from './routes/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/pictures'
 import { ServerRoute as ApiUserinfoServerRouteImport } from './routes/api/userinfo'
 import { ServerRoute as ApiLuonnonmetsakartatSplatServerRouteImport } from './routes/api/luonnonmetsakartat/$'
 import { ServerRoute as ApiHiilikarttaSplatServerRouteImport } from './routes/api/hiilikartta/$'
 import { ServerRoute as ApiAuthSplatServerRouteImport } from './routes/api/auth/$'
 import { ServerRoute as ApiMapCoreMmlTmsZXYServerRouteImport } from './routes/api/map/core/mml/tms/$z/$x/$y'
 
-const LocalemapRouteImport = createFileRoute('/$locale/(map)')()
 const rootServerRouteImport = createServerRootRoute()
 
 const LocaleRouteRoute = LocaleRouteRouteImport.update({
@@ -71,9 +69,24 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LocalemapRoute = LocalemapRouteImport.update({
-  id: '/(map)',
+const LocaleMapRouteRoute = LocaleMapRouteRouteImport.update({
+  id: '/_map',
   getParentRoute: () => LocaleRouteRoute,
+} as any)
+const LocaleMapIndexRoute = LocaleMapIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LocaleMapRouteRoute,
+} as any)
+const LocaleMapReportRoute = LocaleMapReportRouteImport.update({
+  id: '/report',
+  path: '/report',
+  getParentRoute: () => LocaleMapRouteRoute,
+} as any)
+const LocaleMapRaporttiRoute = LocaleMapRaporttiRouteImport.update({
+  id: '/raportti',
+  path: '/raportti',
+  getParentRoute: () => LocaleMapRouteRoute,
 } as any)
 const LocaleDevComponentFixturesRouteRoute =
   LocaleDevComponentFixturesRouteRouteImport.update({
@@ -86,10 +99,6 @@ const LocaleAddsLoginRouteRoute = LocaleAddsLoginRouteRouteImport.update({
   path: '/adds/login',
   getParentRoute: () => LocaleRouteRoute,
 } as any)
-const LocalemapMapRouteRoute = LocalemapMapRouteRouteImport.update({
-  id: '/_map',
-  getParentRoute: () => LocalemapRoute,
-} as any)
 const LocaleDevComponentFixturesIndexRoute =
   LocaleDevComponentFixturesIndexRouteImport.update({
     id: '/',
@@ -101,211 +110,194 @@ const LocaleAddsLoginIndexRoute = LocaleAddsLoginIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LocaleAddsLoginRouteRoute,
 } as any)
-const LocalemapMapIndexRoute = LocalemapMapIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => LocalemapMapRouteRoute,
-} as any)
 const LocaleAddsLoginCallbackRoute = LocaleAddsLoginCallbackRouteImport.update({
   id: '/callback',
   path: '/callback',
   getParentRoute: () => LocaleAddsLoginRouteRoute,
 } as any)
-const LocalemapMapReportRoute = LocalemapMapReportRouteImport.update({
-  id: '/report',
-  path: '/report',
-  getParentRoute: () => LocalemapMapRouteRoute,
-} as any)
-const LocalemapMapRaporttiRoute = LocalemapMapRaporttiRouteImport.update({
-  id: '/raportti',
-  path: '/raportti',
-  getParentRoute: () => LocalemapMapRouteRoute,
-} as any)
+const LocaleMapappletsLuonnonmetsakartatRouteRoute =
+  LocaleMapappletsLuonnonmetsakartatRouteRouteImport.update({
+    id: '/(applets)/luonnonmetsakartat',
+    path: '/luonnonmetsakartat',
+    getParentRoute: () => LocaleMapRouteRoute,
+  } as any)
+const LocaleMapappletsHiilikarttaRouteRoute =
+  LocaleMapappletsHiilikarttaRouteRouteImport.update({
+    id: '/(applets)/hiilikartta',
+    path: '/hiilikartta',
+    getParentRoute: () => LocaleMapRouteRoute,
+  } as any)
+const LocaleMapappletsForestsRouteRoute =
+  LocaleMapappletsForestsRouteRouteImport.update({
+    id: '/(applets)/forests',
+    path: '/forests',
+    getParentRoute: () => LocaleMapRouteRoute,
+  } as any)
+const LocaleMapappletsEnergyRouteRoute =
+  LocaleMapappletsEnergyRouteRouteImport.update({
+    id: '/(applets)/energy',
+    path: '/energy',
+    getParentRoute: () => LocaleMapRouteRoute,
+  } as any)
+const LocaleMapappletsEnergiakarttaRouteRoute =
+  LocaleMapappletsEnergiakarttaRouteRouteImport.update({
+    id: '/(applets)/energiakartta',
+    path: '/energiakartta',
+    getParentRoute: () => LocaleMapRouteRoute,
+  } as any)
+const LocaleMapappletsCarbonRouteRoute =
+  LocaleMapappletsCarbonRouteRouteImport.update({
+    id: '/(applets)/carbon',
+    path: '/carbon',
+    getParentRoute: () => LocaleMapRouteRoute,
+  } as any)
+const LocaleMapappletsLuonnonmetsakartatIndexRoute =
+  LocaleMapappletsLuonnonmetsakartatIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => LocaleMapappletsLuonnonmetsakartatRouteRoute,
+  } as any)
+const LocaleMapappletsForestsIndexRoute =
+  LocaleMapappletsForestsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => LocaleMapappletsForestsRouteRoute,
+  } as any)
+const LocaleMapappletsEnergyIndexRoute =
+  LocaleMapappletsEnergyIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => LocaleMapappletsEnergyRouteRoute,
+  } as any)
+const LocaleMapappletsCarbonIndexRoute =
+  LocaleMapappletsCarbonIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => LocaleMapappletsCarbonRouteRoute,
+  } as any)
 const LocaleDevComponentFixturesFixtureIdStateIdRoute =
   LocaleDevComponentFixturesFixtureIdStateIdRouteImport.update({
     id: '/$fixtureId/$stateId',
     path: '/$fixtureId/$stateId',
     getParentRoute: () => LocaleDevComponentFixturesRouteRoute,
   } as any)
-const LocalemapMapappletsLuonnonmetsakartatRouteRoute =
-  LocalemapMapappletsLuonnonmetsakartatRouteRouteImport.update({
-    id: '/(applets)/luonnonmetsakartat',
-    path: '/luonnonmetsakartat',
-    getParentRoute: () => LocalemapMapRouteRoute,
-  } as any)
-const LocalemapMapappletsHiilikarttaRouteRoute =
-  LocalemapMapappletsHiilikarttaRouteRouteImport.update({
-    id: '/(applets)/hiilikartta',
-    path: '/hiilikartta',
-    getParentRoute: () => LocalemapMapRouteRoute,
-  } as any)
-const LocalemapMapappletsForestsRouteRoute =
-  LocalemapMapappletsForestsRouteRouteImport.update({
-    id: '/(applets)/forests',
-    path: '/forests',
-    getParentRoute: () => LocalemapMapRouteRoute,
-  } as any)
-const LocalemapMapappletsEnergyRouteRoute =
-  LocalemapMapappletsEnergyRouteRouteImport.update({
-    id: '/(applets)/energy',
-    path: '/energy',
-    getParentRoute: () => LocalemapMapRouteRoute,
-  } as any)
-const LocalemapMapappletsEnergiakarttaRouteRoute =
-  LocalemapMapappletsEnergiakarttaRouteRouteImport.update({
-    id: '/(applets)/energiakartta',
-    path: '/energiakartta',
-    getParentRoute: () => LocalemapMapRouteRoute,
-  } as any)
-const LocalemapMapappletsCarbonRouteRoute =
-  LocalemapMapappletsCarbonRouteRouteImport.update({
-    id: '/(applets)/carbon',
-    path: '/carbon',
-    getParentRoute: () => LocalemapMapRouteRoute,
-  } as any)
-const LocalemapMapappletsLuonnonmetsakartatIndexRoute =
-  LocalemapMapappletsLuonnonmetsakartatIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => LocalemapMapappletsLuonnonmetsakartatRouteRoute,
-  } as any)
-const LocalemapMapappletsForestsIndexRoute =
-  LocalemapMapappletsForestsIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => LocalemapMapappletsForestsRouteRoute,
-  } as any)
-const LocalemapMapappletsEnergyIndexRoute =
-  LocalemapMapappletsEnergyIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => LocalemapMapappletsEnergyRouteRoute,
-  } as any)
-const LocalemapMapappletsCarbonIndexRoute =
-  LocalemapMapappletsCarbonIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => LocalemapMapappletsCarbonRouteRoute,
-  } as any)
-const LocalemapMapappletsHiilikarttaSplatRoute =
-  LocalemapMapappletsHiilikarttaSplatRouteImport.update({
+const LocaleMapappletsHiilikarttaSplatRoute =
+  LocaleMapappletsHiilikarttaSplatRouteImport.update({
     id: '/$',
     path: '/$',
-    getParentRoute: () => LocalemapMapappletsHiilikarttaRouteRoute,
+    getParentRoute: () => LocaleMapappletsHiilikarttaRouteRoute,
   } as any)
-const LocalemapMapappletsEnergiakarttaSplatRoute =
-  LocalemapMapappletsEnergiakarttaSplatRouteImport.update({
+const LocaleMapappletsEnergiakarttaSplatRoute =
+  LocaleMapappletsEnergiakarttaSplatRouteImport.update({
     id: '/$',
     path: '/$',
-    getParentRoute: () => LocalemapMapappletsEnergiakarttaRouteRoute,
+    getParentRoute: () => LocaleMapappletsEnergiakarttaRouteRoute,
   } as any)
-const LocalemapMapappletsCarbonReportRoute =
-  LocalemapMapappletsCarbonReportRouteImport.update({
+const LocaleMapappletsCarbonReportRoute =
+  LocaleMapappletsCarbonReportRouteImport.update({
     id: '/report',
     path: '/report',
-    getParentRoute: () => LocalemapMapappletsCarbonRouteRoute,
+    getParentRoute: () => LocaleMapappletsCarbonRouteRoute,
   } as any)
-const LocalemapMapappletsLuonnonmetsakartatAdminRouteRoute =
-  LocalemapMapappletsLuonnonmetsakartatAdminRouteRouteImport.update({
+const LocaleMapappletsLuonnonmetsakartatAdminRouteRoute =
+  LocaleMapappletsLuonnonmetsakartatAdminRouteRouteImport.update({
     id: '/admin',
     path: '/admin',
-    getParentRoute: () => LocalemapMapappletsLuonnonmetsakartatRouteRoute,
+    getParentRoute: () => LocaleMapappletsLuonnonmetsakartatRouteRoute,
   } as any)
-const LocalemapMapappletsCarbonPlansRouteRoute =
-  LocalemapMapappletsCarbonPlansRouteRouteImport.update({
+const LocaleMapappletsCarbonPlansRouteRoute =
+  LocaleMapappletsCarbonPlansRouteRouteImport.update({
     id: '/plans',
     path: '/plans',
-    getParentRoute: () => LocalemapMapappletsCarbonRouteRoute,
+    getParentRoute: () => LocaleMapappletsCarbonRouteRoute,
   } as any)
-const LocalemapMapappletsLuonnonmetsakartatAdminIndexRoute =
-  LocalemapMapappletsLuonnonmetsakartatAdminIndexRouteImport.update({
+const LocaleMapappletsLuonnonmetsakartatAdminIndexRoute =
+  LocaleMapappletsLuonnonmetsakartatAdminIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => LocalemapMapappletsLuonnonmetsakartatAdminRouteRoute,
+    getParentRoute: () => LocaleMapappletsLuonnonmetsakartatAdminRouteRoute,
   } as any)
-const LocalemapMapappletsCarbonPlansIndexRoute =
-  LocalemapMapappletsCarbonPlansIndexRouteImport.update({
+const LocaleMapappletsCarbonPlansIndexRoute =
+  LocaleMapappletsCarbonPlansIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => LocalemapMapappletsCarbonPlansRouteRoute,
+    getParentRoute: () => LocaleMapappletsCarbonPlansRouteRoute,
   } as any)
-const LocalemapMapappletsLuonnonmetsakartatAdminTuoRoute =
-  LocalemapMapappletsLuonnonmetsakartatAdminTuoRouteImport.update({
+const LocaleMapappletsLuonnonmetsakartatAdminTuoRoute =
+  LocaleMapappletsLuonnonmetsakartatAdminTuoRouteImport.update({
     id: '/tuo',
     path: '/tuo',
-    getParentRoute: () => LocalemapMapappletsLuonnonmetsakartatAdminRouteRoute,
+    getParentRoute: () => LocaleMapappletsLuonnonmetsakartatAdminRouteRoute,
   } as any)
-const LocalemapMapappletsLuonnonmetsakartatAdminImportRoute =
-  LocalemapMapappletsLuonnonmetsakartatAdminImportRouteImport.update({
+const LocaleMapappletsLuonnonmetsakartatAdminImportRoute =
+  LocaleMapappletsLuonnonmetsakartatAdminImportRouteImport.update({
     id: '/import',
     path: '/import',
-    getParentRoute: () => LocalemapMapappletsLuonnonmetsakartatAdminRouteRoute,
+    getParentRoute: () => LocaleMapappletsLuonnonmetsakartatAdminRouteRoute,
   } as any)
-const LocalemapMapappletsLuonnonmetsakartatAdminTasoRouteRoute =
-  LocalemapMapappletsLuonnonmetsakartatAdminTasoRouteRouteImport.update({
+const LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRoute =
+  LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteImport.update({
     id: '/taso',
     path: '/taso',
-    getParentRoute: () => LocalemapMapappletsLuonnonmetsakartatAdminRouteRoute,
+    getParentRoute: () => LocaleMapappletsLuonnonmetsakartatAdminRouteRoute,
   } as any)
-const LocalemapMapappletsCarbonPlansPlanIdRouteRoute =
-  LocalemapMapappletsCarbonPlansPlanIdRouteRouteImport.update({
+const LocaleMapappletsCarbonPlansPlanIdRouteRoute =
+  LocaleMapappletsCarbonPlansPlanIdRouteRouteImport.update({
     id: '/$planId',
     path: '/$planId',
-    getParentRoute: () => LocalemapMapappletsCarbonPlansRouteRoute,
+    getParentRoute: () => LocaleMapappletsCarbonPlansRouteRoute,
   } as any)
-const LocalemapMapappletsCarbonPlansPlanIdIndexRoute =
-  LocalemapMapappletsCarbonPlansPlanIdIndexRouteImport.update({
+const LocaleMapappletsCarbonPlansPlanIdIndexRoute =
+  LocaleMapappletsCarbonPlansPlanIdIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => LocalemapMapappletsCarbonPlansPlanIdRouteRoute,
+    getParentRoute: () => LocaleMapappletsCarbonPlansPlanIdRouteRoute,
   } as any)
-const LocalemapMapappletsLuonnonmetsakartatAdminTasoSplatRoute =
-  LocalemapMapappletsLuonnonmetsakartatAdminTasoSplatRouteImport.update({
+const LocaleMapappletsLuonnonmetsakartatAdminTasoSplatRoute =
+  LocaleMapappletsLuonnonmetsakartatAdminTasoSplatRouteImport.update({
     id: '/$',
     path: '/$',
-    getParentRoute: () =>
-      LocalemapMapappletsLuonnonmetsakartatAdminTasoRouteRoute,
+    getParentRoute: () => LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRoute,
   } as any)
-const LocalemapMapappletsCarbonPlansPlanIdAreasRoute =
-  LocalemapMapappletsCarbonPlansPlanIdAreasRouteImport.update({
+const LocaleMapappletsCarbonPlansPlanIdAreasRoute =
+  LocaleMapappletsCarbonPlansPlanIdAreasRouteImport.update({
     id: '/areas',
     path: '/areas',
-    getParentRoute: () => LocalemapMapappletsCarbonPlansPlanIdRouteRoute,
+    getParentRoute: () => LocaleMapappletsCarbonPlansPlanIdRouteRoute,
   } as any)
-const LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRoute =
-  LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteImport.update(
+const LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRoute =
+  LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteImport.update(
     {
       id: '/layer/$folayerIdSlug',
       path: '/layer/$folayerIdSlug',
-      getParentRoute: () =>
-        LocalemapMapappletsLuonnonmetsakartatAdminRouteRoute,
+      getParentRoute: () => LocaleMapappletsLuonnonmetsakartatAdminRouteRoute,
     } as any,
   )
-const LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRoute =
-  LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRouteImport.update(
+const LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRoute =
+  LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRouteImport.update(
     {
       id: '/',
       path: '/',
       getParentRoute: () =>
-        LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRoute,
+        LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRoute,
     } as any,
   )
-const LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRoute =
-  LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRouteImport.update(
+const LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRoute =
+  LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRouteImport.update(
     {
       id: '/settings',
       path: '/settings',
       getParentRoute: () =>
-        LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRoute,
+        LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRoute,
     } as any,
   )
-const LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRoute =
-  LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRouteImport.update(
+const LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRoute =
+  LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRouteImport.update(
     {
       id: '/pictures',
       path: '/pictures',
       getParentRoute: () =>
-        LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRoute,
+        LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRoute,
     } as any,
   )
 const ApiUserinfoServerRoute = ApiUserinfoServerRouteImport.update({
@@ -339,144 +331,143 @@ const ApiMapCoreMmlTmsZXYServerRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/$locale': typeof LocaleRouteRouteWithChildren
-  '/$locale/': typeof LocalemapMapIndexRoute
+  '/$locale': typeof LocaleMapRouteRouteWithChildren
   '/$locale/adds/login': typeof LocaleAddsLoginRouteRouteWithChildren
   '/$locale/dev/component-fixtures': typeof LocaleDevComponentFixturesRouteRouteWithChildren
-  '/$locale/raportti': typeof LocalemapMapRaporttiRoute
-  '/$locale/report': typeof LocalemapMapReportRoute
+  '/$locale/raportti': typeof LocaleMapRaporttiRoute
+  '/$locale/report': typeof LocaleMapReportRoute
+  '/$locale/': typeof LocaleMapIndexRoute
+  '/$locale/carbon': typeof LocaleMapappletsCarbonRouteRouteWithChildren
+  '/$locale/energiakartta': typeof LocaleMapappletsEnergiakarttaRouteRouteWithChildren
+  '/$locale/energy': typeof LocaleMapappletsEnergyRouteRouteWithChildren
+  '/$locale/forests': typeof LocaleMapappletsForestsRouteRouteWithChildren
+  '/$locale/hiilikartta': typeof LocaleMapappletsHiilikarttaRouteRouteWithChildren
+  '/$locale/luonnonmetsakartat': typeof LocaleMapappletsLuonnonmetsakartatRouteRouteWithChildren
   '/$locale/adds/login/callback': typeof LocaleAddsLoginCallbackRoute
   '/$locale/adds/login/': typeof LocaleAddsLoginIndexRoute
   '/$locale/dev/component-fixtures/': typeof LocaleDevComponentFixturesIndexRoute
-  '/$locale/carbon': typeof LocalemapMapappletsCarbonRouteRouteWithChildren
-  '/$locale/energiakartta': typeof LocalemapMapappletsEnergiakarttaRouteRouteWithChildren
-  '/$locale/energy': typeof LocalemapMapappletsEnergyRouteRouteWithChildren
-  '/$locale/forests': typeof LocalemapMapappletsForestsRouteRouteWithChildren
-  '/$locale/hiilikartta': typeof LocalemapMapappletsHiilikarttaRouteRouteWithChildren
-  '/$locale/luonnonmetsakartat': typeof LocalemapMapappletsLuonnonmetsakartatRouteRouteWithChildren
+  '/$locale/carbon/plans': typeof LocaleMapappletsCarbonPlansRouteRouteWithChildren
+  '/$locale/luonnonmetsakartat/admin': typeof LocaleMapappletsLuonnonmetsakartatAdminRouteRouteWithChildren
+  '/$locale/carbon/report': typeof LocaleMapappletsCarbonReportRoute
+  '/$locale/energiakartta/$': typeof LocaleMapappletsEnergiakarttaSplatRoute
+  '/$locale/hiilikartta/$': typeof LocaleMapappletsHiilikarttaSplatRoute
   '/$locale/dev/component-fixtures/$fixtureId/$stateId': typeof LocaleDevComponentFixturesFixtureIdStateIdRoute
-  '/$locale/carbon/plans': typeof LocalemapMapappletsCarbonPlansRouteRouteWithChildren
-  '/$locale/luonnonmetsakartat/admin': typeof LocalemapMapappletsLuonnonmetsakartatAdminRouteRouteWithChildren
-  '/$locale/carbon/report': typeof LocalemapMapappletsCarbonReportRoute
-  '/$locale/energiakartta/$': typeof LocalemapMapappletsEnergiakarttaSplatRoute
-  '/$locale/hiilikartta/$': typeof LocalemapMapappletsHiilikarttaSplatRoute
-  '/$locale/carbon/': typeof LocalemapMapappletsCarbonIndexRoute
-  '/$locale/energy/': typeof LocalemapMapappletsEnergyIndexRoute
-  '/$locale/forests/': typeof LocalemapMapappletsForestsIndexRoute
-  '/$locale/luonnonmetsakartat/': typeof LocalemapMapappletsLuonnonmetsakartatIndexRoute
-  '/$locale/carbon/plans/$planId': typeof LocalemapMapappletsCarbonPlansPlanIdRouteRouteWithChildren
-  '/$locale/luonnonmetsakartat/admin/taso': typeof LocalemapMapappletsLuonnonmetsakartatAdminTasoRouteRouteWithChildren
-  '/$locale/luonnonmetsakartat/admin/import': typeof LocalemapMapappletsLuonnonmetsakartatAdminImportRoute
-  '/$locale/luonnonmetsakartat/admin/tuo': typeof LocalemapMapappletsLuonnonmetsakartatAdminTuoRoute
-  '/$locale/carbon/plans/': typeof LocalemapMapappletsCarbonPlansIndexRoute
-  '/$locale/luonnonmetsakartat/admin/': typeof LocalemapMapappletsLuonnonmetsakartatAdminIndexRoute
-  '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug': typeof LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteWithChildren
-  '/$locale/carbon/plans/$planId/areas': typeof LocalemapMapappletsCarbonPlansPlanIdAreasRoute
-  '/$locale/luonnonmetsakartat/admin/taso/$': typeof LocalemapMapappletsLuonnonmetsakartatAdminTasoSplatRoute
-  '/$locale/carbon/plans/$planId/': typeof LocalemapMapappletsCarbonPlansPlanIdIndexRoute
-  '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug/pictures': typeof LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRoute
-  '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings': typeof LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRoute
-  '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug/': typeof LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRoute
+  '/$locale/carbon/': typeof LocaleMapappletsCarbonIndexRoute
+  '/$locale/energy/': typeof LocaleMapappletsEnergyIndexRoute
+  '/$locale/forests/': typeof LocaleMapappletsForestsIndexRoute
+  '/$locale/luonnonmetsakartat/': typeof LocaleMapappletsLuonnonmetsakartatIndexRoute
+  '/$locale/carbon/plans/$planId': typeof LocaleMapappletsCarbonPlansPlanIdRouteRouteWithChildren
+  '/$locale/luonnonmetsakartat/admin/taso': typeof LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteWithChildren
+  '/$locale/luonnonmetsakartat/admin/import': typeof LocaleMapappletsLuonnonmetsakartatAdminImportRoute
+  '/$locale/luonnonmetsakartat/admin/tuo': typeof LocaleMapappletsLuonnonmetsakartatAdminTuoRoute
+  '/$locale/carbon/plans/': typeof LocaleMapappletsCarbonPlansIndexRoute
+  '/$locale/luonnonmetsakartat/admin/': typeof LocaleMapappletsLuonnonmetsakartatAdminIndexRoute
+  '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug': typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteWithChildren
+  '/$locale/carbon/plans/$planId/areas': typeof LocaleMapappletsCarbonPlansPlanIdAreasRoute
+  '/$locale/luonnonmetsakartat/admin/taso/$': typeof LocaleMapappletsLuonnonmetsakartatAdminTasoSplatRoute
+  '/$locale/carbon/plans/$planId/': typeof LocaleMapappletsCarbonPlansPlanIdIndexRoute
+  '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug/pictures': typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRoute
+  '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings': typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRoute
+  '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug/': typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/$locale/raportti': typeof LocalemapMapRaporttiRoute
-  '/$locale/report': typeof LocalemapMapReportRoute
+  '/$locale': typeof LocaleMapIndexRoute
+  '/$locale/raportti': typeof LocaleMapRaporttiRoute
+  '/$locale/report': typeof LocaleMapReportRoute
+  '/$locale/energiakartta': typeof LocaleMapappletsEnergiakarttaRouteRouteWithChildren
+  '/$locale/hiilikartta': typeof LocaleMapappletsHiilikarttaRouteRouteWithChildren
   '/$locale/adds/login/callback': typeof LocaleAddsLoginCallbackRoute
-  '/$locale': typeof LocalemapMapIndexRoute
   '/$locale/adds/login': typeof LocaleAddsLoginIndexRoute
   '/$locale/dev/component-fixtures': typeof LocaleDevComponentFixturesIndexRoute
-  '/$locale/energiakartta': typeof LocalemapMapappletsEnergiakarttaRouteRouteWithChildren
-  '/$locale/hiilikartta': typeof LocalemapMapappletsHiilikarttaRouteRouteWithChildren
+  '/$locale/carbon/report': typeof LocaleMapappletsCarbonReportRoute
+  '/$locale/energiakartta/$': typeof LocaleMapappletsEnergiakarttaSplatRoute
+  '/$locale/hiilikartta/$': typeof LocaleMapappletsHiilikarttaSplatRoute
   '/$locale/dev/component-fixtures/$fixtureId/$stateId': typeof LocaleDevComponentFixturesFixtureIdStateIdRoute
-  '/$locale/carbon/report': typeof LocalemapMapappletsCarbonReportRoute
-  '/$locale/energiakartta/$': typeof LocalemapMapappletsEnergiakarttaSplatRoute
-  '/$locale/hiilikartta/$': typeof LocalemapMapappletsHiilikarttaSplatRoute
-  '/$locale/carbon': typeof LocalemapMapappletsCarbonIndexRoute
-  '/$locale/energy': typeof LocalemapMapappletsEnergyIndexRoute
-  '/$locale/forests': typeof LocalemapMapappletsForestsIndexRoute
-  '/$locale/luonnonmetsakartat': typeof LocalemapMapappletsLuonnonmetsakartatIndexRoute
-  '/$locale/luonnonmetsakartat/admin/taso': typeof LocalemapMapappletsLuonnonmetsakartatAdminTasoRouteRouteWithChildren
-  '/$locale/luonnonmetsakartat/admin/import': typeof LocalemapMapappletsLuonnonmetsakartatAdminImportRoute
-  '/$locale/luonnonmetsakartat/admin/tuo': typeof LocalemapMapappletsLuonnonmetsakartatAdminTuoRoute
-  '/$locale/carbon/plans': typeof LocalemapMapappletsCarbonPlansIndexRoute
-  '/$locale/luonnonmetsakartat/admin': typeof LocalemapMapappletsLuonnonmetsakartatAdminIndexRoute
-  '/$locale/carbon/plans/$planId/areas': typeof LocalemapMapappletsCarbonPlansPlanIdAreasRoute
-  '/$locale/luonnonmetsakartat/admin/taso/$': typeof LocalemapMapappletsLuonnonmetsakartatAdminTasoSplatRoute
-  '/$locale/carbon/plans/$planId': typeof LocalemapMapappletsCarbonPlansPlanIdIndexRoute
-  '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug/pictures': typeof LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRoute
-  '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings': typeof LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRoute
-  '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug': typeof LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRoute
+  '/$locale/carbon': typeof LocaleMapappletsCarbonIndexRoute
+  '/$locale/energy': typeof LocaleMapappletsEnergyIndexRoute
+  '/$locale/forests': typeof LocaleMapappletsForestsIndexRoute
+  '/$locale/luonnonmetsakartat': typeof LocaleMapappletsLuonnonmetsakartatIndexRoute
+  '/$locale/luonnonmetsakartat/admin/taso': typeof LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteWithChildren
+  '/$locale/luonnonmetsakartat/admin/import': typeof LocaleMapappletsLuonnonmetsakartatAdminImportRoute
+  '/$locale/luonnonmetsakartat/admin/tuo': typeof LocaleMapappletsLuonnonmetsakartatAdminTuoRoute
+  '/$locale/carbon/plans': typeof LocaleMapappletsCarbonPlansIndexRoute
+  '/$locale/luonnonmetsakartat/admin': typeof LocaleMapappletsLuonnonmetsakartatAdminIndexRoute
+  '/$locale/carbon/plans/$planId/areas': typeof LocaleMapappletsCarbonPlansPlanIdAreasRoute
+  '/$locale/luonnonmetsakartat/admin/taso/$': typeof LocaleMapappletsLuonnonmetsakartatAdminTasoSplatRoute
+  '/$locale/carbon/plans/$planId': typeof LocaleMapappletsCarbonPlansPlanIdIndexRoute
+  '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug/pictures': typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRoute
+  '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings': typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRoute
+  '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug': typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$locale': typeof LocaleRouteRouteWithChildren
-  '/$locale/(map)': typeof LocalemapRouteWithChildren
-  '/$locale/(map)/_map': typeof LocalemapMapRouteRouteWithChildren
+  '/$locale/_map': typeof LocaleMapRouteRouteWithChildren
   '/$locale/adds/login': typeof LocaleAddsLoginRouteRouteWithChildren
   '/$locale/dev/component-fixtures': typeof LocaleDevComponentFixturesRouteRouteWithChildren
-  '/$locale/(map)/_map/raportti': typeof LocalemapMapRaporttiRoute
-  '/$locale/(map)/_map/report': typeof LocalemapMapReportRoute
+  '/$locale/_map/raportti': typeof LocaleMapRaporttiRoute
+  '/$locale/_map/report': typeof LocaleMapReportRoute
+  '/$locale/_map/': typeof LocaleMapIndexRoute
+  '/$locale/_map/(applets)/carbon': typeof LocaleMapappletsCarbonRouteRouteWithChildren
+  '/$locale/_map/(applets)/energiakartta': typeof LocaleMapappletsEnergiakarttaRouteRouteWithChildren
+  '/$locale/_map/(applets)/energy': typeof LocaleMapappletsEnergyRouteRouteWithChildren
+  '/$locale/_map/(applets)/forests': typeof LocaleMapappletsForestsRouteRouteWithChildren
+  '/$locale/_map/(applets)/hiilikartta': typeof LocaleMapappletsHiilikarttaRouteRouteWithChildren
+  '/$locale/_map/(applets)/luonnonmetsakartat': typeof LocaleMapappletsLuonnonmetsakartatRouteRouteWithChildren
   '/$locale/adds/login/callback': typeof LocaleAddsLoginCallbackRoute
-  '/$locale/(map)/_map/': typeof LocalemapMapIndexRoute
   '/$locale/adds/login/': typeof LocaleAddsLoginIndexRoute
   '/$locale/dev/component-fixtures/': typeof LocaleDevComponentFixturesIndexRoute
-  '/$locale/(map)/_map/(applets)/carbon': typeof LocalemapMapappletsCarbonRouteRouteWithChildren
-  '/$locale/(map)/_map/(applets)/energiakartta': typeof LocalemapMapappletsEnergiakarttaRouteRouteWithChildren
-  '/$locale/(map)/_map/(applets)/energy': typeof LocalemapMapappletsEnergyRouteRouteWithChildren
-  '/$locale/(map)/_map/(applets)/forests': typeof LocalemapMapappletsForestsRouteRouteWithChildren
-  '/$locale/(map)/_map/(applets)/hiilikartta': typeof LocalemapMapappletsHiilikarttaRouteRouteWithChildren
-  '/$locale/(map)/_map/(applets)/luonnonmetsakartat': typeof LocalemapMapappletsLuonnonmetsakartatRouteRouteWithChildren
+  '/$locale/_map/(applets)/carbon/plans': typeof LocaleMapappletsCarbonPlansRouteRouteWithChildren
+  '/$locale/_map/(applets)/luonnonmetsakartat/admin': typeof LocaleMapappletsLuonnonmetsakartatAdminRouteRouteWithChildren
+  '/$locale/_map/(applets)/carbon/report': typeof LocaleMapappletsCarbonReportRoute
+  '/$locale/_map/(applets)/energiakartta/$': typeof LocaleMapappletsEnergiakarttaSplatRoute
+  '/$locale/_map/(applets)/hiilikartta/$': typeof LocaleMapappletsHiilikarttaSplatRoute
   '/$locale/dev/component-fixtures/$fixtureId/$stateId': typeof LocaleDevComponentFixturesFixtureIdStateIdRoute
-  '/$locale/(map)/_map/(applets)/carbon/plans': typeof LocalemapMapappletsCarbonPlansRouteRouteWithChildren
-  '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin': typeof LocalemapMapappletsLuonnonmetsakartatAdminRouteRouteWithChildren
-  '/$locale/(map)/_map/(applets)/carbon/report': typeof LocalemapMapappletsCarbonReportRoute
-  '/$locale/(map)/_map/(applets)/energiakartta/$': typeof LocalemapMapappletsEnergiakarttaSplatRoute
-  '/$locale/(map)/_map/(applets)/hiilikartta/$': typeof LocalemapMapappletsHiilikarttaSplatRoute
-  '/$locale/(map)/_map/(applets)/carbon/': typeof LocalemapMapappletsCarbonIndexRoute
-  '/$locale/(map)/_map/(applets)/energy/': typeof LocalemapMapappletsEnergyIndexRoute
-  '/$locale/(map)/_map/(applets)/forests/': typeof LocalemapMapappletsForestsIndexRoute
-  '/$locale/(map)/_map/(applets)/luonnonmetsakartat/': typeof LocalemapMapappletsLuonnonmetsakartatIndexRoute
-  '/$locale/(map)/_map/(applets)/carbon/plans/$planId': typeof LocalemapMapappletsCarbonPlansPlanIdRouteRouteWithChildren
-  '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/taso': typeof LocalemapMapappletsLuonnonmetsakartatAdminTasoRouteRouteWithChildren
-  '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/import': typeof LocalemapMapappletsLuonnonmetsakartatAdminImportRoute
-  '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/tuo': typeof LocalemapMapappletsLuonnonmetsakartatAdminTuoRoute
-  '/$locale/(map)/_map/(applets)/carbon/plans/': typeof LocalemapMapappletsCarbonPlansIndexRoute
-  '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/': typeof LocalemapMapappletsLuonnonmetsakartatAdminIndexRoute
-  '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug': typeof LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteWithChildren
-  '/$locale/(map)/_map/(applets)/carbon/plans/$planId/areas': typeof LocalemapMapappletsCarbonPlansPlanIdAreasRoute
-  '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/taso/$': typeof LocalemapMapappletsLuonnonmetsakartatAdminTasoSplatRoute
-  '/$locale/(map)/_map/(applets)/carbon/plans/$planId/': typeof LocalemapMapappletsCarbonPlansPlanIdIndexRoute
-  '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/pictures': typeof LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRoute
-  '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings': typeof LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRoute
-  '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/': typeof LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRoute
+  '/$locale/_map/(applets)/carbon/': typeof LocaleMapappletsCarbonIndexRoute
+  '/$locale/_map/(applets)/energy/': typeof LocaleMapappletsEnergyIndexRoute
+  '/$locale/_map/(applets)/forests/': typeof LocaleMapappletsForestsIndexRoute
+  '/$locale/_map/(applets)/luonnonmetsakartat/': typeof LocaleMapappletsLuonnonmetsakartatIndexRoute
+  '/$locale/_map/(applets)/carbon/plans/$planId': typeof LocaleMapappletsCarbonPlansPlanIdRouteRouteWithChildren
+  '/$locale/_map/(applets)/luonnonmetsakartat/admin/taso': typeof LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteWithChildren
+  '/$locale/_map/(applets)/luonnonmetsakartat/admin/import': typeof LocaleMapappletsLuonnonmetsakartatAdminImportRoute
+  '/$locale/_map/(applets)/luonnonmetsakartat/admin/tuo': typeof LocaleMapappletsLuonnonmetsakartatAdminTuoRoute
+  '/$locale/_map/(applets)/carbon/plans/': typeof LocaleMapappletsCarbonPlansIndexRoute
+  '/$locale/_map/(applets)/luonnonmetsakartat/admin/': typeof LocaleMapappletsLuonnonmetsakartatAdminIndexRoute
+  '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug': typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteWithChildren
+  '/$locale/_map/(applets)/carbon/plans/$planId/areas': typeof LocaleMapappletsCarbonPlansPlanIdAreasRoute
+  '/$locale/_map/(applets)/luonnonmetsakartat/admin/taso/$': typeof LocaleMapappletsLuonnonmetsakartatAdminTasoSplatRoute
+  '/$locale/_map/(applets)/carbon/plans/$planId/': typeof LocaleMapappletsCarbonPlansPlanIdIndexRoute
+  '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/pictures': typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRoute
+  '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings': typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRoute
+  '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/': typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/$locale'
-    | '/$locale/'
     | '/$locale/adds/login'
     | '/$locale/dev/component-fixtures'
     | '/$locale/raportti'
     | '/$locale/report'
-    | '/$locale/adds/login/callback'
-    | '/$locale/adds/login/'
-    | '/$locale/dev/component-fixtures/'
+    | '/$locale/'
     | '/$locale/carbon'
     | '/$locale/energiakartta'
     | '/$locale/energy'
     | '/$locale/forests'
     | '/$locale/hiilikartta'
     | '/$locale/luonnonmetsakartat'
-    | '/$locale/dev/component-fixtures/$fixtureId/$stateId'
+    | '/$locale/adds/login/callback'
+    | '/$locale/adds/login/'
+    | '/$locale/dev/component-fixtures/'
     | '/$locale/carbon/plans'
     | '/$locale/luonnonmetsakartat/admin'
     | '/$locale/carbon/report'
     | '/$locale/energiakartta/$'
     | '/$locale/hiilikartta/$'
+    | '/$locale/dev/component-fixtures/$fixtureId/$stateId'
     | '/$locale/carbon/'
     | '/$locale/energy/'
     | '/$locale/forests/'
@@ -497,18 +488,18 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$locale'
     | '/$locale/raportti'
     | '/$locale/report'
-    | '/$locale/adds/login/callback'
-    | '/$locale'
-    | '/$locale/adds/login'
-    | '/$locale/dev/component-fixtures'
     | '/$locale/energiakartta'
     | '/$locale/hiilikartta'
-    | '/$locale/dev/component-fixtures/$fixtureId/$stateId'
+    | '/$locale/adds/login/callback'
+    | '/$locale/adds/login'
+    | '/$locale/dev/component-fixtures'
     | '/$locale/carbon/report'
     | '/$locale/energiakartta/$'
     | '/$locale/hiilikartta/$'
+    | '/$locale/dev/component-fixtures/$fixtureId/$stateId'
     | '/$locale/carbon'
     | '/$locale/energy'
     | '/$locale/forests'
@@ -528,45 +519,44 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/$locale'
-    | '/$locale/(map)'
-    | '/$locale/(map)/_map'
+    | '/$locale/_map'
     | '/$locale/adds/login'
     | '/$locale/dev/component-fixtures'
-    | '/$locale/(map)/_map/raportti'
-    | '/$locale/(map)/_map/report'
+    | '/$locale/_map/raportti'
+    | '/$locale/_map/report'
+    | '/$locale/_map/'
+    | '/$locale/_map/(applets)/carbon'
+    | '/$locale/_map/(applets)/energiakartta'
+    | '/$locale/_map/(applets)/energy'
+    | '/$locale/_map/(applets)/forests'
+    | '/$locale/_map/(applets)/hiilikartta'
+    | '/$locale/_map/(applets)/luonnonmetsakartat'
     | '/$locale/adds/login/callback'
-    | '/$locale/(map)/_map/'
     | '/$locale/adds/login/'
     | '/$locale/dev/component-fixtures/'
-    | '/$locale/(map)/_map/(applets)/carbon'
-    | '/$locale/(map)/_map/(applets)/energiakartta'
-    | '/$locale/(map)/_map/(applets)/energy'
-    | '/$locale/(map)/_map/(applets)/forests'
-    | '/$locale/(map)/_map/(applets)/hiilikartta'
-    | '/$locale/(map)/_map/(applets)/luonnonmetsakartat'
+    | '/$locale/_map/(applets)/carbon/plans'
+    | '/$locale/_map/(applets)/luonnonmetsakartat/admin'
+    | '/$locale/_map/(applets)/carbon/report'
+    | '/$locale/_map/(applets)/energiakartta/$'
+    | '/$locale/_map/(applets)/hiilikartta/$'
     | '/$locale/dev/component-fixtures/$fixtureId/$stateId'
-    | '/$locale/(map)/_map/(applets)/carbon/plans'
-    | '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin'
-    | '/$locale/(map)/_map/(applets)/carbon/report'
-    | '/$locale/(map)/_map/(applets)/energiakartta/$'
-    | '/$locale/(map)/_map/(applets)/hiilikartta/$'
-    | '/$locale/(map)/_map/(applets)/carbon/'
-    | '/$locale/(map)/_map/(applets)/energy/'
-    | '/$locale/(map)/_map/(applets)/forests/'
-    | '/$locale/(map)/_map/(applets)/luonnonmetsakartat/'
-    | '/$locale/(map)/_map/(applets)/carbon/plans/$planId'
-    | '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/taso'
-    | '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/import'
-    | '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/tuo'
-    | '/$locale/(map)/_map/(applets)/carbon/plans/'
-    | '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/'
-    | '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug'
-    | '/$locale/(map)/_map/(applets)/carbon/plans/$planId/areas'
-    | '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/taso/$'
-    | '/$locale/(map)/_map/(applets)/carbon/plans/$planId/'
-    | '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/pictures'
-    | '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings'
-    | '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/'
+    | '/$locale/_map/(applets)/carbon/'
+    | '/$locale/_map/(applets)/energy/'
+    | '/$locale/_map/(applets)/forests/'
+    | '/$locale/_map/(applets)/luonnonmetsakartat/'
+    | '/$locale/_map/(applets)/carbon/plans/$planId'
+    | '/$locale/_map/(applets)/luonnonmetsakartat/admin/taso'
+    | '/$locale/_map/(applets)/luonnonmetsakartat/admin/import'
+    | '/$locale/_map/(applets)/luonnonmetsakartat/admin/tuo'
+    | '/$locale/_map/(applets)/carbon/plans/'
+    | '/$locale/_map/(applets)/luonnonmetsakartat/admin/'
+    | '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug'
+    | '/$locale/_map/(applets)/carbon/plans/$planId/areas'
+    | '/$locale/_map/(applets)/luonnonmetsakartat/admin/taso/$'
+    | '/$locale/_map/(applets)/carbon/plans/$planId/'
+    | '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/pictures'
+    | '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings'
+    | '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -643,12 +633,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/$locale/(map)': {
-      id: '/$locale/(map)'
+    '/$locale/_map': {
+      id: '/$locale/_map'
+      path: ''
+      fullPath: '/$locale'
+      preLoaderRoute: typeof LocaleMapRouteRouteImport
+      parentRoute: typeof LocaleRouteRoute
+    }
+    '/$locale/_map/': {
+      id: '/$locale/_map/'
       path: '/'
       fullPath: '/$locale/'
-      preLoaderRoute: typeof LocalemapRouteImport
-      parentRoute: typeof LocaleRouteRoute
+      preLoaderRoute: typeof LocaleMapIndexRouteImport
+      parentRoute: typeof LocaleMapRouteRoute
+    }
+    '/$locale/_map/report': {
+      id: '/$locale/_map/report'
+      path: '/report'
+      fullPath: '/$locale/report'
+      preLoaderRoute: typeof LocaleMapReportRouteImport
+      parentRoute: typeof LocaleMapRouteRoute
+    }
+    '/$locale/_map/raportti': {
+      id: '/$locale/_map/raportti'
+      path: '/raportti'
+      fullPath: '/$locale/raportti'
+      preLoaderRoute: typeof LocaleMapRaporttiRouteImport
+      parentRoute: typeof LocaleMapRouteRoute
     }
     '/$locale/dev/component-fixtures': {
       id: '/$locale/dev/component-fixtures'
@@ -664,13 +675,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleAddsLoginRouteRouteImport
       parentRoute: typeof LocaleRouteRoute
     }
-    '/$locale/(map)/_map': {
-      id: '/$locale/(map)/_map'
-      path: '/'
-      fullPath: '/$locale/'
-      preLoaderRoute: typeof LocalemapMapRouteRouteImport
-      parentRoute: typeof LocalemapRoute
-    }
     '/$locale/dev/component-fixtures/': {
       id: '/$locale/dev/component-fixtures/'
       path: '/'
@@ -685,13 +689,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleAddsLoginIndexRouteImport
       parentRoute: typeof LocaleAddsLoginRouteRoute
     }
-    '/$locale/(map)/_map/': {
-      id: '/$locale/(map)/_map/'
-      path: '/'
-      fullPath: '/$locale/'
-      preLoaderRoute: typeof LocalemapMapIndexRouteImport
-      parentRoute: typeof LocalemapMapRouteRoute
-    }
     '/$locale/adds/login/callback': {
       id: '/$locale/adds/login/callback'
       path: '/callback'
@@ -699,19 +696,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleAddsLoginCallbackRouteImport
       parentRoute: typeof LocaleAddsLoginRouteRoute
     }
-    '/$locale/(map)/_map/report': {
-      id: '/$locale/(map)/_map/report'
-      path: '/report'
-      fullPath: '/$locale/report'
-      preLoaderRoute: typeof LocalemapMapReportRouteImport
-      parentRoute: typeof LocalemapMapRouteRoute
+    '/$locale/_map/(applets)/luonnonmetsakartat': {
+      id: '/$locale/_map/(applets)/luonnonmetsakartat'
+      path: '/luonnonmetsakartat'
+      fullPath: '/$locale/luonnonmetsakartat'
+      preLoaderRoute: typeof LocaleMapappletsLuonnonmetsakartatRouteRouteImport
+      parentRoute: typeof LocaleMapRouteRoute
     }
-    '/$locale/(map)/_map/raportti': {
-      id: '/$locale/(map)/_map/raportti'
-      path: '/raportti'
-      fullPath: '/$locale/raportti'
-      preLoaderRoute: typeof LocalemapMapRaporttiRouteImport
-      parentRoute: typeof LocalemapMapRouteRoute
+    '/$locale/_map/(applets)/hiilikartta': {
+      id: '/$locale/_map/(applets)/hiilikartta'
+      path: '/hiilikartta'
+      fullPath: '/$locale/hiilikartta'
+      preLoaderRoute: typeof LocaleMapappletsHiilikarttaRouteRouteImport
+      parentRoute: typeof LocaleMapRouteRoute
+    }
+    '/$locale/_map/(applets)/forests': {
+      id: '/$locale/_map/(applets)/forests'
+      path: '/forests'
+      fullPath: '/$locale/forests'
+      preLoaderRoute: typeof LocaleMapappletsForestsRouteRouteImport
+      parentRoute: typeof LocaleMapRouteRoute
+    }
+    '/$locale/_map/(applets)/energy': {
+      id: '/$locale/_map/(applets)/energy'
+      path: '/energy'
+      fullPath: '/$locale/energy'
+      preLoaderRoute: typeof LocaleMapappletsEnergyRouteRouteImport
+      parentRoute: typeof LocaleMapRouteRoute
+    }
+    '/$locale/_map/(applets)/energiakartta': {
+      id: '/$locale/_map/(applets)/energiakartta'
+      path: '/energiakartta'
+      fullPath: '/$locale/energiakartta'
+      preLoaderRoute: typeof LocaleMapappletsEnergiakarttaRouteRouteImport
+      parentRoute: typeof LocaleMapRouteRoute
+    }
+    '/$locale/_map/(applets)/carbon': {
+      id: '/$locale/_map/(applets)/carbon'
+      path: '/carbon'
+      fullPath: '/$locale/carbon'
+      preLoaderRoute: typeof LocaleMapappletsCarbonRouteRouteImport
+      parentRoute: typeof LocaleMapRouteRoute
+    }
+    '/$locale/_map/(applets)/luonnonmetsakartat/': {
+      id: '/$locale/_map/(applets)/luonnonmetsakartat/'
+      path: '/'
+      fullPath: '/$locale/luonnonmetsakartat/'
+      preLoaderRoute: typeof LocaleMapappletsLuonnonmetsakartatIndexRouteImport
+      parentRoute: typeof LocaleMapappletsLuonnonmetsakartatRouteRoute
+    }
+    '/$locale/_map/(applets)/forests/': {
+      id: '/$locale/_map/(applets)/forests/'
+      path: '/'
+      fullPath: '/$locale/forests/'
+      preLoaderRoute: typeof LocaleMapappletsForestsIndexRouteImport
+      parentRoute: typeof LocaleMapappletsForestsRouteRoute
+    }
+    '/$locale/_map/(applets)/energy/': {
+      id: '/$locale/_map/(applets)/energy/'
+      path: '/'
+      fullPath: '/$locale/energy/'
+      preLoaderRoute: typeof LocaleMapappletsEnergyIndexRouteImport
+      parentRoute: typeof LocaleMapappletsEnergyRouteRoute
+    }
+    '/$locale/_map/(applets)/carbon/': {
+      id: '/$locale/_map/(applets)/carbon/'
+      path: '/'
+      fullPath: '/$locale/carbon/'
+      preLoaderRoute: typeof LocaleMapappletsCarbonIndexRouteImport
+      parentRoute: typeof LocaleMapappletsCarbonRouteRoute
     }
     '/$locale/dev/component-fixtures/$fixtureId/$stateId': {
       id: '/$locale/dev/component-fixtures/$fixtureId/$stateId'
@@ -720,201 +773,131 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleDevComponentFixturesFixtureIdStateIdRouteImport
       parentRoute: typeof LocaleDevComponentFixturesRouteRoute
     }
-    '/$locale/(map)/_map/(applets)/luonnonmetsakartat': {
-      id: '/$locale/(map)/_map/(applets)/luonnonmetsakartat'
-      path: '/luonnonmetsakartat'
-      fullPath: '/$locale/luonnonmetsakartat'
-      preLoaderRoute: typeof LocalemapMapappletsLuonnonmetsakartatRouteRouteImport
-      parentRoute: typeof LocalemapMapRouteRoute
-    }
-    '/$locale/(map)/_map/(applets)/hiilikartta': {
-      id: '/$locale/(map)/_map/(applets)/hiilikartta'
-      path: '/hiilikartta'
-      fullPath: '/$locale/hiilikartta'
-      preLoaderRoute: typeof LocalemapMapappletsHiilikarttaRouteRouteImport
-      parentRoute: typeof LocalemapMapRouteRoute
-    }
-    '/$locale/(map)/_map/(applets)/forests': {
-      id: '/$locale/(map)/_map/(applets)/forests'
-      path: '/forests'
-      fullPath: '/$locale/forests'
-      preLoaderRoute: typeof LocalemapMapappletsForestsRouteRouteImport
-      parentRoute: typeof LocalemapMapRouteRoute
-    }
-    '/$locale/(map)/_map/(applets)/energy': {
-      id: '/$locale/(map)/_map/(applets)/energy'
-      path: '/energy'
-      fullPath: '/$locale/energy'
-      preLoaderRoute: typeof LocalemapMapappletsEnergyRouteRouteImport
-      parentRoute: typeof LocalemapMapRouteRoute
-    }
-    '/$locale/(map)/_map/(applets)/energiakartta': {
-      id: '/$locale/(map)/_map/(applets)/energiakartta'
-      path: '/energiakartta'
-      fullPath: '/$locale/energiakartta'
-      preLoaderRoute: typeof LocalemapMapappletsEnergiakarttaRouteRouteImport
-      parentRoute: typeof LocalemapMapRouteRoute
-    }
-    '/$locale/(map)/_map/(applets)/carbon': {
-      id: '/$locale/(map)/_map/(applets)/carbon'
-      path: '/carbon'
-      fullPath: '/$locale/carbon'
-      preLoaderRoute: typeof LocalemapMapappletsCarbonRouteRouteImport
-      parentRoute: typeof LocalemapMapRouteRoute
-    }
-    '/$locale/(map)/_map/(applets)/luonnonmetsakartat/': {
-      id: '/$locale/(map)/_map/(applets)/luonnonmetsakartat/'
-      path: '/'
-      fullPath: '/$locale/luonnonmetsakartat/'
-      preLoaderRoute: typeof LocalemapMapappletsLuonnonmetsakartatIndexRouteImport
-      parentRoute: typeof LocalemapMapappletsLuonnonmetsakartatRouteRoute
-    }
-    '/$locale/(map)/_map/(applets)/forests/': {
-      id: '/$locale/(map)/_map/(applets)/forests/'
-      path: '/'
-      fullPath: '/$locale/forests/'
-      preLoaderRoute: typeof LocalemapMapappletsForestsIndexRouteImport
-      parentRoute: typeof LocalemapMapappletsForestsRouteRoute
-    }
-    '/$locale/(map)/_map/(applets)/energy/': {
-      id: '/$locale/(map)/_map/(applets)/energy/'
-      path: '/'
-      fullPath: '/$locale/energy/'
-      preLoaderRoute: typeof LocalemapMapappletsEnergyIndexRouteImport
-      parentRoute: typeof LocalemapMapappletsEnergyRouteRoute
-    }
-    '/$locale/(map)/_map/(applets)/carbon/': {
-      id: '/$locale/(map)/_map/(applets)/carbon/'
-      path: '/'
-      fullPath: '/$locale/carbon/'
-      preLoaderRoute: typeof LocalemapMapappletsCarbonIndexRouteImport
-      parentRoute: typeof LocalemapMapappletsCarbonRouteRoute
-    }
-    '/$locale/(map)/_map/(applets)/hiilikartta/$': {
-      id: '/$locale/(map)/_map/(applets)/hiilikartta/$'
+    '/$locale/_map/(applets)/hiilikartta/$': {
+      id: '/$locale/_map/(applets)/hiilikartta/$'
       path: '/$'
       fullPath: '/$locale/hiilikartta/$'
-      preLoaderRoute: typeof LocalemapMapappletsHiilikarttaSplatRouteImport
-      parentRoute: typeof LocalemapMapappletsHiilikarttaRouteRoute
+      preLoaderRoute: typeof LocaleMapappletsHiilikarttaSplatRouteImport
+      parentRoute: typeof LocaleMapappletsHiilikarttaRouteRoute
     }
-    '/$locale/(map)/_map/(applets)/energiakartta/$': {
-      id: '/$locale/(map)/_map/(applets)/energiakartta/$'
+    '/$locale/_map/(applets)/energiakartta/$': {
+      id: '/$locale/_map/(applets)/energiakartta/$'
       path: '/$'
       fullPath: '/$locale/energiakartta/$'
-      preLoaderRoute: typeof LocalemapMapappletsEnergiakarttaSplatRouteImport
-      parentRoute: typeof LocalemapMapappletsEnergiakarttaRouteRoute
+      preLoaderRoute: typeof LocaleMapappletsEnergiakarttaSplatRouteImport
+      parentRoute: typeof LocaleMapappletsEnergiakarttaRouteRoute
     }
-    '/$locale/(map)/_map/(applets)/carbon/report': {
-      id: '/$locale/(map)/_map/(applets)/carbon/report'
+    '/$locale/_map/(applets)/carbon/report': {
+      id: '/$locale/_map/(applets)/carbon/report'
       path: '/report'
       fullPath: '/$locale/carbon/report'
-      preLoaderRoute: typeof LocalemapMapappletsCarbonReportRouteImport
-      parentRoute: typeof LocalemapMapappletsCarbonRouteRoute
+      preLoaderRoute: typeof LocaleMapappletsCarbonReportRouteImport
+      parentRoute: typeof LocaleMapappletsCarbonRouteRoute
     }
-    '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin': {
-      id: '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin'
+    '/$locale/_map/(applets)/luonnonmetsakartat/admin': {
+      id: '/$locale/_map/(applets)/luonnonmetsakartat/admin'
       path: '/admin'
       fullPath: '/$locale/luonnonmetsakartat/admin'
-      preLoaderRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminRouteRouteImport
-      parentRoute: typeof LocalemapMapappletsLuonnonmetsakartatRouteRoute
+      preLoaderRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminRouteRouteImport
+      parentRoute: typeof LocaleMapappletsLuonnonmetsakartatRouteRoute
     }
-    '/$locale/(map)/_map/(applets)/carbon/plans': {
-      id: '/$locale/(map)/_map/(applets)/carbon/plans'
+    '/$locale/_map/(applets)/carbon/plans': {
+      id: '/$locale/_map/(applets)/carbon/plans'
       path: '/plans'
       fullPath: '/$locale/carbon/plans'
-      preLoaderRoute: typeof LocalemapMapappletsCarbonPlansRouteRouteImport
-      parentRoute: typeof LocalemapMapappletsCarbonRouteRoute
+      preLoaderRoute: typeof LocaleMapappletsCarbonPlansRouteRouteImport
+      parentRoute: typeof LocaleMapappletsCarbonRouteRoute
     }
-    '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/': {
-      id: '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/'
+    '/$locale/_map/(applets)/luonnonmetsakartat/admin/': {
+      id: '/$locale/_map/(applets)/luonnonmetsakartat/admin/'
       path: '/'
       fullPath: '/$locale/luonnonmetsakartat/admin/'
-      preLoaderRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminIndexRouteImport
-      parentRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminRouteRoute
+      preLoaderRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminIndexRouteImport
+      parentRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminRouteRoute
     }
-    '/$locale/(map)/_map/(applets)/carbon/plans/': {
-      id: '/$locale/(map)/_map/(applets)/carbon/plans/'
+    '/$locale/_map/(applets)/carbon/plans/': {
+      id: '/$locale/_map/(applets)/carbon/plans/'
       path: '/'
       fullPath: '/$locale/carbon/plans/'
-      preLoaderRoute: typeof LocalemapMapappletsCarbonPlansIndexRouteImport
-      parentRoute: typeof LocalemapMapappletsCarbonPlansRouteRoute
+      preLoaderRoute: typeof LocaleMapappletsCarbonPlansIndexRouteImport
+      parentRoute: typeof LocaleMapappletsCarbonPlansRouteRoute
     }
-    '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/tuo': {
-      id: '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/tuo'
+    '/$locale/_map/(applets)/luonnonmetsakartat/admin/tuo': {
+      id: '/$locale/_map/(applets)/luonnonmetsakartat/admin/tuo'
       path: '/tuo'
       fullPath: '/$locale/luonnonmetsakartat/admin/tuo'
-      preLoaderRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminTuoRouteImport
-      parentRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminRouteRoute
+      preLoaderRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminTuoRouteImport
+      parentRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminRouteRoute
     }
-    '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/import': {
-      id: '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/import'
+    '/$locale/_map/(applets)/luonnonmetsakartat/admin/import': {
+      id: '/$locale/_map/(applets)/luonnonmetsakartat/admin/import'
       path: '/import'
       fullPath: '/$locale/luonnonmetsakartat/admin/import'
-      preLoaderRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminImportRouteImport
-      parentRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminRouteRoute
+      preLoaderRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminImportRouteImport
+      parentRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminRouteRoute
     }
-    '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/taso': {
-      id: '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/taso'
+    '/$locale/_map/(applets)/luonnonmetsakartat/admin/taso': {
+      id: '/$locale/_map/(applets)/luonnonmetsakartat/admin/taso'
       path: '/taso'
       fullPath: '/$locale/luonnonmetsakartat/admin/taso'
-      preLoaderRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminTasoRouteRouteImport
-      parentRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminRouteRoute
+      preLoaderRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteImport
+      parentRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminRouteRoute
     }
-    '/$locale/(map)/_map/(applets)/carbon/plans/$planId': {
-      id: '/$locale/(map)/_map/(applets)/carbon/plans/$planId'
+    '/$locale/_map/(applets)/carbon/plans/$planId': {
+      id: '/$locale/_map/(applets)/carbon/plans/$planId'
       path: '/$planId'
       fullPath: '/$locale/carbon/plans/$planId'
-      preLoaderRoute: typeof LocalemapMapappletsCarbonPlansPlanIdRouteRouteImport
-      parentRoute: typeof LocalemapMapappletsCarbonPlansRouteRoute
+      preLoaderRoute: typeof LocaleMapappletsCarbonPlansPlanIdRouteRouteImport
+      parentRoute: typeof LocaleMapappletsCarbonPlansRouteRoute
     }
-    '/$locale/(map)/_map/(applets)/carbon/plans/$planId/': {
-      id: '/$locale/(map)/_map/(applets)/carbon/plans/$planId/'
+    '/$locale/_map/(applets)/carbon/plans/$planId/': {
+      id: '/$locale/_map/(applets)/carbon/plans/$planId/'
       path: '/'
       fullPath: '/$locale/carbon/plans/$planId/'
-      preLoaderRoute: typeof LocalemapMapappletsCarbonPlansPlanIdIndexRouteImport
-      parentRoute: typeof LocalemapMapappletsCarbonPlansPlanIdRouteRoute
+      preLoaderRoute: typeof LocaleMapappletsCarbonPlansPlanIdIndexRouteImport
+      parentRoute: typeof LocaleMapappletsCarbonPlansPlanIdRouteRoute
     }
-    '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/taso/$': {
-      id: '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/taso/$'
+    '/$locale/_map/(applets)/luonnonmetsakartat/admin/taso/$': {
+      id: '/$locale/_map/(applets)/luonnonmetsakartat/admin/taso/$'
       path: '/$'
       fullPath: '/$locale/luonnonmetsakartat/admin/taso/$'
-      preLoaderRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminTasoSplatRouteImport
-      parentRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminTasoRouteRoute
+      preLoaderRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminTasoSplatRouteImport
+      parentRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRoute
     }
-    '/$locale/(map)/_map/(applets)/carbon/plans/$planId/areas': {
-      id: '/$locale/(map)/_map/(applets)/carbon/plans/$planId/areas'
+    '/$locale/_map/(applets)/carbon/plans/$planId/areas': {
+      id: '/$locale/_map/(applets)/carbon/plans/$planId/areas'
       path: '/areas'
       fullPath: '/$locale/carbon/plans/$planId/areas'
-      preLoaderRoute: typeof LocalemapMapappletsCarbonPlansPlanIdAreasRouteImport
-      parentRoute: typeof LocalemapMapappletsCarbonPlansPlanIdRouteRoute
+      preLoaderRoute: typeof LocaleMapappletsCarbonPlansPlanIdAreasRouteImport
+      parentRoute: typeof LocaleMapappletsCarbonPlansPlanIdRouteRoute
     }
-    '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug': {
-      id: '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug'
+    '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug': {
+      id: '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug'
       path: '/layer/$folayerIdSlug'
       fullPath: '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug'
-      preLoaderRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteImport
-      parentRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminRouteRoute
+      preLoaderRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteImport
+      parentRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminRouteRoute
     }
-    '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/': {
-      id: '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/'
+    '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/': {
+      id: '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/'
       path: '/'
       fullPath: '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug/'
-      preLoaderRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRouteImport
-      parentRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRoute
+      preLoaderRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRouteImport
+      parentRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRoute
     }
-    '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings': {
-      id: '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings'
+    '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings': {
+      id: '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings'
       path: '/settings'
       fullPath: '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings'
-      preLoaderRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRouteImport
-      parentRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRoute
+      preLoaderRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRouteImport
+      parentRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRoute
     }
-    '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/pictures': {
-      id: '/$locale/(map)/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/pictures'
+    '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/pictures': {
+      id: '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/pictures'
       path: '/pictures'
       fullPath: '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug/pictures'
-      preLoaderRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRouteImport
-      parentRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRoute
+      preLoaderRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRouteImport
+      parentRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRoute
     }
   }
 }
@@ -958,243 +941,232 @@ declare module '@tanstack/react-start/server' {
   }
 }
 
-interface LocalemapMapappletsCarbonPlansPlanIdRouteRouteChildren {
-  LocalemapMapappletsCarbonPlansPlanIdAreasRoute: typeof LocalemapMapappletsCarbonPlansPlanIdAreasRoute
-  LocalemapMapappletsCarbonPlansPlanIdIndexRoute: typeof LocalemapMapappletsCarbonPlansPlanIdIndexRoute
+interface LocaleMapappletsCarbonPlansPlanIdRouteRouteChildren {
+  LocaleMapappletsCarbonPlansPlanIdAreasRoute: typeof LocaleMapappletsCarbonPlansPlanIdAreasRoute
+  LocaleMapappletsCarbonPlansPlanIdIndexRoute: typeof LocaleMapappletsCarbonPlansPlanIdIndexRoute
 }
 
-const LocalemapMapappletsCarbonPlansPlanIdRouteRouteChildren: LocalemapMapappletsCarbonPlansPlanIdRouteRouteChildren =
+const LocaleMapappletsCarbonPlansPlanIdRouteRouteChildren: LocaleMapappletsCarbonPlansPlanIdRouteRouteChildren =
   {
-    LocalemapMapappletsCarbonPlansPlanIdAreasRoute:
-      LocalemapMapappletsCarbonPlansPlanIdAreasRoute,
-    LocalemapMapappletsCarbonPlansPlanIdIndexRoute:
-      LocalemapMapappletsCarbonPlansPlanIdIndexRoute,
+    LocaleMapappletsCarbonPlansPlanIdAreasRoute:
+      LocaleMapappletsCarbonPlansPlanIdAreasRoute,
+    LocaleMapappletsCarbonPlansPlanIdIndexRoute:
+      LocaleMapappletsCarbonPlansPlanIdIndexRoute,
   }
 
-const LocalemapMapappletsCarbonPlansPlanIdRouteRouteWithChildren =
-  LocalemapMapappletsCarbonPlansPlanIdRouteRoute._addFileChildren(
-    LocalemapMapappletsCarbonPlansPlanIdRouteRouteChildren,
+const LocaleMapappletsCarbonPlansPlanIdRouteRouteWithChildren =
+  LocaleMapappletsCarbonPlansPlanIdRouteRoute._addFileChildren(
+    LocaleMapappletsCarbonPlansPlanIdRouteRouteChildren,
   )
 
-interface LocalemapMapappletsCarbonPlansRouteRouteChildren {
-  LocalemapMapappletsCarbonPlansPlanIdRouteRoute: typeof LocalemapMapappletsCarbonPlansPlanIdRouteRouteWithChildren
-  LocalemapMapappletsCarbonPlansIndexRoute: typeof LocalemapMapappletsCarbonPlansIndexRoute
+interface LocaleMapappletsCarbonPlansRouteRouteChildren {
+  LocaleMapappletsCarbonPlansPlanIdRouteRoute: typeof LocaleMapappletsCarbonPlansPlanIdRouteRouteWithChildren
+  LocaleMapappletsCarbonPlansIndexRoute: typeof LocaleMapappletsCarbonPlansIndexRoute
 }
 
-const LocalemapMapappletsCarbonPlansRouteRouteChildren: LocalemapMapappletsCarbonPlansRouteRouteChildren =
+const LocaleMapappletsCarbonPlansRouteRouteChildren: LocaleMapappletsCarbonPlansRouteRouteChildren =
   {
-    LocalemapMapappletsCarbonPlansPlanIdRouteRoute:
-      LocalemapMapappletsCarbonPlansPlanIdRouteRouteWithChildren,
-    LocalemapMapappletsCarbonPlansIndexRoute:
-      LocalemapMapappletsCarbonPlansIndexRoute,
+    LocaleMapappletsCarbonPlansPlanIdRouteRoute:
+      LocaleMapappletsCarbonPlansPlanIdRouteRouteWithChildren,
+    LocaleMapappletsCarbonPlansIndexRoute:
+      LocaleMapappletsCarbonPlansIndexRoute,
   }
 
-const LocalemapMapappletsCarbonPlansRouteRouteWithChildren =
-  LocalemapMapappletsCarbonPlansRouteRoute._addFileChildren(
-    LocalemapMapappletsCarbonPlansRouteRouteChildren,
+const LocaleMapappletsCarbonPlansRouteRouteWithChildren =
+  LocaleMapappletsCarbonPlansRouteRoute._addFileChildren(
+    LocaleMapappletsCarbonPlansRouteRouteChildren,
   )
 
-interface LocalemapMapappletsCarbonRouteRouteChildren {
-  LocalemapMapappletsCarbonPlansRouteRoute: typeof LocalemapMapappletsCarbonPlansRouteRouteWithChildren
-  LocalemapMapappletsCarbonReportRoute: typeof LocalemapMapappletsCarbonReportRoute
-  LocalemapMapappletsCarbonIndexRoute: typeof LocalemapMapappletsCarbonIndexRoute
+interface LocaleMapappletsCarbonRouteRouteChildren {
+  LocaleMapappletsCarbonPlansRouteRoute: typeof LocaleMapappletsCarbonPlansRouteRouteWithChildren
+  LocaleMapappletsCarbonReportRoute: typeof LocaleMapappletsCarbonReportRoute
+  LocaleMapappletsCarbonIndexRoute: typeof LocaleMapappletsCarbonIndexRoute
 }
 
-const LocalemapMapappletsCarbonRouteRouteChildren: LocalemapMapappletsCarbonRouteRouteChildren =
+const LocaleMapappletsCarbonRouteRouteChildren: LocaleMapappletsCarbonRouteRouteChildren =
   {
-    LocalemapMapappletsCarbonPlansRouteRoute:
-      LocalemapMapappletsCarbonPlansRouteRouteWithChildren,
-    LocalemapMapappletsCarbonReportRoute: LocalemapMapappletsCarbonReportRoute,
-    LocalemapMapappletsCarbonIndexRoute: LocalemapMapappletsCarbonIndexRoute,
+    LocaleMapappletsCarbonPlansRouteRoute:
+      LocaleMapappletsCarbonPlansRouteRouteWithChildren,
+    LocaleMapappletsCarbonReportRoute: LocaleMapappletsCarbonReportRoute,
+    LocaleMapappletsCarbonIndexRoute: LocaleMapappletsCarbonIndexRoute,
   }
 
-const LocalemapMapappletsCarbonRouteRouteWithChildren =
-  LocalemapMapappletsCarbonRouteRoute._addFileChildren(
-    LocalemapMapappletsCarbonRouteRouteChildren,
+const LocaleMapappletsCarbonRouteRouteWithChildren =
+  LocaleMapappletsCarbonRouteRoute._addFileChildren(
+    LocaleMapappletsCarbonRouteRouteChildren,
   )
 
-interface LocalemapMapappletsEnergiakarttaRouteRouteChildren {
-  LocalemapMapappletsEnergiakarttaSplatRoute: typeof LocalemapMapappletsEnergiakarttaSplatRoute
+interface LocaleMapappletsEnergiakarttaRouteRouteChildren {
+  LocaleMapappletsEnergiakarttaSplatRoute: typeof LocaleMapappletsEnergiakarttaSplatRoute
 }
 
-const LocalemapMapappletsEnergiakarttaRouteRouteChildren: LocalemapMapappletsEnergiakarttaRouteRouteChildren =
+const LocaleMapappletsEnergiakarttaRouteRouteChildren: LocaleMapappletsEnergiakarttaRouteRouteChildren =
   {
-    LocalemapMapappletsEnergiakarttaSplatRoute:
-      LocalemapMapappletsEnergiakarttaSplatRoute,
+    LocaleMapappletsEnergiakarttaSplatRoute:
+      LocaleMapappletsEnergiakarttaSplatRoute,
   }
 
-const LocalemapMapappletsEnergiakarttaRouteRouteWithChildren =
-  LocalemapMapappletsEnergiakarttaRouteRoute._addFileChildren(
-    LocalemapMapappletsEnergiakarttaRouteRouteChildren,
+const LocaleMapappletsEnergiakarttaRouteRouteWithChildren =
+  LocaleMapappletsEnergiakarttaRouteRoute._addFileChildren(
+    LocaleMapappletsEnergiakarttaRouteRouteChildren,
   )
 
-interface LocalemapMapappletsEnergyRouteRouteChildren {
-  LocalemapMapappletsEnergyIndexRoute: typeof LocalemapMapappletsEnergyIndexRoute
+interface LocaleMapappletsEnergyRouteRouteChildren {
+  LocaleMapappletsEnergyIndexRoute: typeof LocaleMapappletsEnergyIndexRoute
 }
 
-const LocalemapMapappletsEnergyRouteRouteChildren: LocalemapMapappletsEnergyRouteRouteChildren =
+const LocaleMapappletsEnergyRouteRouteChildren: LocaleMapappletsEnergyRouteRouteChildren =
   {
-    LocalemapMapappletsEnergyIndexRoute: LocalemapMapappletsEnergyIndexRoute,
+    LocaleMapappletsEnergyIndexRoute: LocaleMapappletsEnergyIndexRoute,
   }
 
-const LocalemapMapappletsEnergyRouteRouteWithChildren =
-  LocalemapMapappletsEnergyRouteRoute._addFileChildren(
-    LocalemapMapappletsEnergyRouteRouteChildren,
+const LocaleMapappletsEnergyRouteRouteWithChildren =
+  LocaleMapappletsEnergyRouteRoute._addFileChildren(
+    LocaleMapappletsEnergyRouteRouteChildren,
   )
 
-interface LocalemapMapappletsForestsRouteRouteChildren {
-  LocalemapMapappletsForestsIndexRoute: typeof LocalemapMapappletsForestsIndexRoute
+interface LocaleMapappletsForestsRouteRouteChildren {
+  LocaleMapappletsForestsIndexRoute: typeof LocaleMapappletsForestsIndexRoute
 }
 
-const LocalemapMapappletsForestsRouteRouteChildren: LocalemapMapappletsForestsRouteRouteChildren =
+const LocaleMapappletsForestsRouteRouteChildren: LocaleMapappletsForestsRouteRouteChildren =
   {
-    LocalemapMapappletsForestsIndexRoute: LocalemapMapappletsForestsIndexRoute,
+    LocaleMapappletsForestsIndexRoute: LocaleMapappletsForestsIndexRoute,
   }
 
-const LocalemapMapappletsForestsRouteRouteWithChildren =
-  LocalemapMapappletsForestsRouteRoute._addFileChildren(
-    LocalemapMapappletsForestsRouteRouteChildren,
+const LocaleMapappletsForestsRouteRouteWithChildren =
+  LocaleMapappletsForestsRouteRoute._addFileChildren(
+    LocaleMapappletsForestsRouteRouteChildren,
   )
 
-interface LocalemapMapappletsHiilikarttaRouteRouteChildren {
-  LocalemapMapappletsHiilikarttaSplatRoute: typeof LocalemapMapappletsHiilikarttaSplatRoute
+interface LocaleMapappletsHiilikarttaRouteRouteChildren {
+  LocaleMapappletsHiilikarttaSplatRoute: typeof LocaleMapappletsHiilikarttaSplatRoute
 }
 
-const LocalemapMapappletsHiilikarttaRouteRouteChildren: LocalemapMapappletsHiilikarttaRouteRouteChildren =
+const LocaleMapappletsHiilikarttaRouteRouteChildren: LocaleMapappletsHiilikarttaRouteRouteChildren =
   {
-    LocalemapMapappletsHiilikarttaSplatRoute:
-      LocalemapMapappletsHiilikarttaSplatRoute,
+    LocaleMapappletsHiilikarttaSplatRoute:
+      LocaleMapappletsHiilikarttaSplatRoute,
   }
 
-const LocalemapMapappletsHiilikarttaRouteRouteWithChildren =
-  LocalemapMapappletsHiilikarttaRouteRoute._addFileChildren(
-    LocalemapMapappletsHiilikarttaRouteRouteChildren,
+const LocaleMapappletsHiilikarttaRouteRouteWithChildren =
+  LocaleMapappletsHiilikarttaRouteRoute._addFileChildren(
+    LocaleMapappletsHiilikarttaRouteRouteChildren,
   )
 
-interface LocalemapMapappletsLuonnonmetsakartatAdminTasoRouteRouteChildren {
-  LocalemapMapappletsLuonnonmetsakartatAdminTasoSplatRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminTasoSplatRoute
+interface LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteChildren {
+  LocaleMapappletsLuonnonmetsakartatAdminTasoSplatRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminTasoSplatRoute
 }
 
-const LocalemapMapappletsLuonnonmetsakartatAdminTasoRouteRouteChildren: LocalemapMapappletsLuonnonmetsakartatAdminTasoRouteRouteChildren =
+const LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteChildren: LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteChildren =
   {
-    LocalemapMapappletsLuonnonmetsakartatAdminTasoSplatRoute:
-      LocalemapMapappletsLuonnonmetsakartatAdminTasoSplatRoute,
+    LocaleMapappletsLuonnonmetsakartatAdminTasoSplatRoute:
+      LocaleMapappletsLuonnonmetsakartatAdminTasoSplatRoute,
   }
 
-const LocalemapMapappletsLuonnonmetsakartatAdminTasoRouteRouteWithChildren =
-  LocalemapMapappletsLuonnonmetsakartatAdminTasoRouteRoute._addFileChildren(
-    LocalemapMapappletsLuonnonmetsakartatAdminTasoRouteRouteChildren,
+const LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteWithChildren =
+  LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRoute._addFileChildren(
+    LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteChildren,
   )
 
-interface LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteChildren {
-  LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRoute
-  LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRoute
-  LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRoute
+interface LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteChildren {
+  LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRoute
+  LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRoute
+  LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRoute
 }
 
-const LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteChildren: LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteChildren =
+const LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteChildren: LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteChildren =
   {
-    LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRoute:
-      LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRoute,
-    LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRoute:
-      LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRoute,
-    LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRoute:
-      LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRoute,
+    LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRoute:
+      LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRoute,
+    LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRoute:
+      LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRoute,
+    LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRoute:
+      LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRoute,
   }
 
-const LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteWithChildren =
-  LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRoute._addFileChildren(
-    LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteChildren,
+const LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteWithChildren =
+  LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRoute._addFileChildren(
+    LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteChildren,
   )
 
-interface LocalemapMapappletsLuonnonmetsakartatAdminRouteRouteChildren {
-  LocalemapMapappletsLuonnonmetsakartatAdminTasoRouteRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminTasoRouteRouteWithChildren
-  LocalemapMapappletsLuonnonmetsakartatAdminImportRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminImportRoute
-  LocalemapMapappletsLuonnonmetsakartatAdminTuoRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminTuoRoute
-  LocalemapMapappletsLuonnonmetsakartatAdminIndexRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminIndexRoute
-  LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteWithChildren
+interface LocaleMapappletsLuonnonmetsakartatAdminRouteRouteChildren {
+  LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteWithChildren
+  LocaleMapappletsLuonnonmetsakartatAdminImportRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminImportRoute
+  LocaleMapappletsLuonnonmetsakartatAdminTuoRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminTuoRoute
+  LocaleMapappletsLuonnonmetsakartatAdminIndexRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminIndexRoute
+  LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteWithChildren
 }
 
-const LocalemapMapappletsLuonnonmetsakartatAdminRouteRouteChildren: LocalemapMapappletsLuonnonmetsakartatAdminRouteRouteChildren =
+const LocaleMapappletsLuonnonmetsakartatAdminRouteRouteChildren: LocaleMapappletsLuonnonmetsakartatAdminRouteRouteChildren =
   {
-    LocalemapMapappletsLuonnonmetsakartatAdminTasoRouteRoute:
-      LocalemapMapappletsLuonnonmetsakartatAdminTasoRouteRouteWithChildren,
-    LocalemapMapappletsLuonnonmetsakartatAdminImportRoute:
-      LocalemapMapappletsLuonnonmetsakartatAdminImportRoute,
-    LocalemapMapappletsLuonnonmetsakartatAdminTuoRoute:
-      LocalemapMapappletsLuonnonmetsakartatAdminTuoRoute,
-    LocalemapMapappletsLuonnonmetsakartatAdminIndexRoute:
-      LocalemapMapappletsLuonnonmetsakartatAdminIndexRoute,
-    LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRoute:
-      LocalemapMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteWithChildren,
+    LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRoute:
+      LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteWithChildren,
+    LocaleMapappletsLuonnonmetsakartatAdminImportRoute:
+      LocaleMapappletsLuonnonmetsakartatAdminImportRoute,
+    LocaleMapappletsLuonnonmetsakartatAdminTuoRoute:
+      LocaleMapappletsLuonnonmetsakartatAdminTuoRoute,
+    LocaleMapappletsLuonnonmetsakartatAdminIndexRoute:
+      LocaleMapappletsLuonnonmetsakartatAdminIndexRoute,
+    LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRoute:
+      LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteWithChildren,
   }
 
-const LocalemapMapappletsLuonnonmetsakartatAdminRouteRouteWithChildren =
-  LocalemapMapappletsLuonnonmetsakartatAdminRouteRoute._addFileChildren(
-    LocalemapMapappletsLuonnonmetsakartatAdminRouteRouteChildren,
+const LocaleMapappletsLuonnonmetsakartatAdminRouteRouteWithChildren =
+  LocaleMapappletsLuonnonmetsakartatAdminRouteRoute._addFileChildren(
+    LocaleMapappletsLuonnonmetsakartatAdminRouteRouteChildren,
   )
 
-interface LocalemapMapappletsLuonnonmetsakartatRouteRouteChildren {
-  LocalemapMapappletsLuonnonmetsakartatAdminRouteRoute: typeof LocalemapMapappletsLuonnonmetsakartatAdminRouteRouteWithChildren
-  LocalemapMapappletsLuonnonmetsakartatIndexRoute: typeof LocalemapMapappletsLuonnonmetsakartatIndexRoute
+interface LocaleMapappletsLuonnonmetsakartatRouteRouteChildren {
+  LocaleMapappletsLuonnonmetsakartatAdminRouteRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminRouteRouteWithChildren
+  LocaleMapappletsLuonnonmetsakartatIndexRoute: typeof LocaleMapappletsLuonnonmetsakartatIndexRoute
 }
 
-const LocalemapMapappletsLuonnonmetsakartatRouteRouteChildren: LocalemapMapappletsLuonnonmetsakartatRouteRouteChildren =
+const LocaleMapappletsLuonnonmetsakartatRouteRouteChildren: LocaleMapappletsLuonnonmetsakartatRouteRouteChildren =
   {
-    LocalemapMapappletsLuonnonmetsakartatAdminRouteRoute:
-      LocalemapMapappletsLuonnonmetsakartatAdminRouteRouteWithChildren,
-    LocalemapMapappletsLuonnonmetsakartatIndexRoute:
-      LocalemapMapappletsLuonnonmetsakartatIndexRoute,
+    LocaleMapappletsLuonnonmetsakartatAdminRouteRoute:
+      LocaleMapappletsLuonnonmetsakartatAdminRouteRouteWithChildren,
+    LocaleMapappletsLuonnonmetsakartatIndexRoute:
+      LocaleMapappletsLuonnonmetsakartatIndexRoute,
   }
 
-const LocalemapMapappletsLuonnonmetsakartatRouteRouteWithChildren =
-  LocalemapMapappletsLuonnonmetsakartatRouteRoute._addFileChildren(
-    LocalemapMapappletsLuonnonmetsakartatRouteRouteChildren,
+const LocaleMapappletsLuonnonmetsakartatRouteRouteWithChildren =
+  LocaleMapappletsLuonnonmetsakartatRouteRoute._addFileChildren(
+    LocaleMapappletsLuonnonmetsakartatRouteRouteChildren,
   )
 
-interface LocalemapMapRouteRouteChildren {
-  LocalemapMapRaporttiRoute: typeof LocalemapMapRaporttiRoute
-  LocalemapMapReportRoute: typeof LocalemapMapReportRoute
-  LocalemapMapIndexRoute: typeof LocalemapMapIndexRoute
-  LocalemapMapappletsCarbonRouteRoute: typeof LocalemapMapappletsCarbonRouteRouteWithChildren
-  LocalemapMapappletsEnergiakarttaRouteRoute: typeof LocalemapMapappletsEnergiakarttaRouteRouteWithChildren
-  LocalemapMapappletsEnergyRouteRoute: typeof LocalemapMapappletsEnergyRouteRouteWithChildren
-  LocalemapMapappletsForestsRouteRoute: typeof LocalemapMapappletsForestsRouteRouteWithChildren
-  LocalemapMapappletsHiilikarttaRouteRoute: typeof LocalemapMapappletsHiilikarttaRouteRouteWithChildren
-  LocalemapMapappletsLuonnonmetsakartatRouteRoute: typeof LocalemapMapappletsLuonnonmetsakartatRouteRouteWithChildren
+interface LocaleMapRouteRouteChildren {
+  LocaleMapRaporttiRoute: typeof LocaleMapRaporttiRoute
+  LocaleMapReportRoute: typeof LocaleMapReportRoute
+  LocaleMapIndexRoute: typeof LocaleMapIndexRoute
+  LocaleMapappletsCarbonRouteRoute: typeof LocaleMapappletsCarbonRouteRouteWithChildren
+  LocaleMapappletsEnergiakarttaRouteRoute: typeof LocaleMapappletsEnergiakarttaRouteRouteWithChildren
+  LocaleMapappletsEnergyRouteRoute: typeof LocaleMapappletsEnergyRouteRouteWithChildren
+  LocaleMapappletsForestsRouteRoute: typeof LocaleMapappletsForestsRouteRouteWithChildren
+  LocaleMapappletsHiilikarttaRouteRoute: typeof LocaleMapappletsHiilikarttaRouteRouteWithChildren
+  LocaleMapappletsLuonnonmetsakartatRouteRoute: typeof LocaleMapappletsLuonnonmetsakartatRouteRouteWithChildren
 }
 
-const LocalemapMapRouteRouteChildren: LocalemapMapRouteRouteChildren = {
-  LocalemapMapRaporttiRoute: LocalemapMapRaporttiRoute,
-  LocalemapMapReportRoute: LocalemapMapReportRoute,
-  LocalemapMapIndexRoute: LocalemapMapIndexRoute,
-  LocalemapMapappletsCarbonRouteRoute:
-    LocalemapMapappletsCarbonRouteRouteWithChildren,
-  LocalemapMapappletsEnergiakarttaRouteRoute:
-    LocalemapMapappletsEnergiakarttaRouteRouteWithChildren,
-  LocalemapMapappletsEnergyRouteRoute:
-    LocalemapMapappletsEnergyRouteRouteWithChildren,
-  LocalemapMapappletsForestsRouteRoute:
-    LocalemapMapappletsForestsRouteRouteWithChildren,
-  LocalemapMapappletsHiilikarttaRouteRoute:
-    LocalemapMapappletsHiilikarttaRouteRouteWithChildren,
-  LocalemapMapappletsLuonnonmetsakartatRouteRoute:
-    LocalemapMapappletsLuonnonmetsakartatRouteRouteWithChildren,
+const LocaleMapRouteRouteChildren: LocaleMapRouteRouteChildren = {
+  LocaleMapRaporttiRoute: LocaleMapRaporttiRoute,
+  LocaleMapReportRoute: LocaleMapReportRoute,
+  LocaleMapIndexRoute: LocaleMapIndexRoute,
+  LocaleMapappletsCarbonRouteRoute:
+    LocaleMapappletsCarbonRouteRouteWithChildren,
+  LocaleMapappletsEnergiakarttaRouteRoute:
+    LocaleMapappletsEnergiakarttaRouteRouteWithChildren,
+  LocaleMapappletsEnergyRouteRoute:
+    LocaleMapappletsEnergyRouteRouteWithChildren,
+  LocaleMapappletsForestsRouteRoute:
+    LocaleMapappletsForestsRouteRouteWithChildren,
+  LocaleMapappletsHiilikarttaRouteRoute:
+    LocaleMapappletsHiilikarttaRouteRouteWithChildren,
+  LocaleMapappletsLuonnonmetsakartatRouteRoute:
+    LocaleMapappletsLuonnonmetsakartatRouteRouteWithChildren,
 }
 
-const LocalemapMapRouteRouteWithChildren =
-  LocalemapMapRouteRoute._addFileChildren(LocalemapMapRouteRouteChildren)
-
-interface LocalemapRouteChildren {
-  LocalemapMapRouteRoute: typeof LocalemapMapRouteRouteWithChildren
-}
-
-const LocalemapRouteChildren: LocalemapRouteChildren = {
-  LocalemapMapRouteRoute: LocalemapMapRouteRouteWithChildren,
-}
-
-const LocalemapRouteWithChildren = LocalemapRoute._addFileChildren(
-  LocalemapRouteChildren,
+const LocaleMapRouteRouteWithChildren = LocaleMapRouteRoute._addFileChildren(
+  LocaleMapRouteRouteChildren,
 )
 
 interface LocaleAddsLoginRouteRouteChildren {
@@ -1228,13 +1200,13 @@ const LocaleDevComponentFixturesRouteRouteWithChildren =
   )
 
 interface LocaleRouteRouteChildren {
-  LocalemapRoute: typeof LocalemapRouteWithChildren
+  LocaleMapRouteRoute: typeof LocaleMapRouteRouteWithChildren
   LocaleAddsLoginRouteRoute: typeof LocaleAddsLoginRouteRouteWithChildren
   LocaleDevComponentFixturesRouteRoute: typeof LocaleDevComponentFixturesRouteRouteWithChildren
 }
 
 const LocaleRouteRouteChildren: LocaleRouteRouteChildren = {
-  LocalemapRoute: LocalemapRouteWithChildren,
+  LocaleMapRouteRoute: LocaleMapRouteRouteWithChildren,
   LocaleAddsLoginRouteRoute: LocaleAddsLoginRouteRouteWithChildren,
   LocaleDevComponentFixturesRouteRoute:
     LocaleDevComponentFixturesRouteRouteWithChildren,

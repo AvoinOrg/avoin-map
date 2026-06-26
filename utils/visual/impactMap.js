@@ -36,7 +36,7 @@ const buildImpactRules = () => [
     globs: [
       'src/routes/__root.tsx',
       'src/routes/$locale/route.tsx',
-      'src/routes/$locale/(map)/_map/route.tsx',
+      'src/routes/$locale/_map/route.tsx',
       'src/runtime/ShellComponents/**',
     ],
     target: '*',
@@ -53,10 +53,10 @@ const buildImpactRules = () => [
     label: 'hiilikartta-pages',
     globs: [
       'src/applets/hiilikartta/**',
-      'src/routes/$locale/(map)/_map/(applets)/carbon/**',
-      'src/routes/$locale/(map)/_map/(applets)/hiilikartta/**',
-      'src/routes/$locale/(map)/_map/report.tsx',
-      'src/routes/$locale/(map)/_map/raportti.tsx',
+      'src/routes/$locale/_map/(applets)/carbon/**',
+      'src/routes/$locale/_map/(applets)/hiilikartta/**',
+      'src/routes/$locale/_map/report.tsx',
+      'src/routes/$locale/_map/raportti.tsx',
     ],
     target: 'hiilikartta',
   },
@@ -64,8 +64,8 @@ const buildImpactRules = () => [
     label: 'energiakartta-pages',
     globs: [
       'src/applets/energiakartta/**',
-      'src/routes/$locale/(map)/_map/(applets)/energy/**',
-      'src/routes/$locale/(map)/_map/(applets)/energiakartta/**',
+      'src/routes/$locale/_map/(applets)/energy/**',
+      'src/routes/$locale/_map/(applets)/energiakartta/**',
     ],
     target: 'energiakartta',
   },
@@ -73,7 +73,7 @@ const buildImpactRules = () => [
     label: 'luonnonmetsakartat-pages',
     globs: [
       'src/applets/luonnonmetsakartat/**',
-      'src/routes/$locale/(map)/_map/(applets)/luonnonmetsakartat/**',
+      'src/routes/$locale/_map/(applets)/luonnonmetsakartat/**',
     ],
     target: 'luonnonmetsakartat',
   },
