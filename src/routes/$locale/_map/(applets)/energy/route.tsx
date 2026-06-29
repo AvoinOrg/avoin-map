@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { guardAppletLocale } from '#/runtime/appletRouteGuards'
-import { EnergiakarttaLayout } from 'applets/energiakartta/routeComponents'
+import EnergiakarttaLayout from 'applets/energiakartta/pages/layout'
 import {
   ENERGIAKARTTA_TITLE,
   getStaticAppletHead,
