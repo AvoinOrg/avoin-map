@@ -37,8 +37,8 @@ export type AuthUserInfo = {
   sub?: string
   name?: string
   email?: string
-  image?: string
-  picture?: string
+  image?: string | null
+  picture?: string | null
   [key: string]: unknown
 }
 
@@ -67,4 +67,3 @@ export type AuthSessionResult = {
   isAccessTokenLoading: boolean
   refetch: () => Promise<void>
 }
-

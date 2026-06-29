@@ -1,3 +1,9 @@
+import {
+  createMockUserInfo,
+  resolveMockAuthConfig,
+  resolveRequestMockAuthState,
+  type MockAuthEnv,
+} from '#/common/auth/mock'
 import { getStartAuthEnv } from '#/runtime/auth/env'
 import { appendStartAuthSetCookieHeaders } from '#/runtime/auth/sessionCore'
 import type { StartAccessTokenResult, StartAuthEnv } from '#/runtime/auth/types'
@@ -14,6 +20,7 @@ type UserinfoLogger = {
 
 type UserinfoHandlerDeps = {
   appendSetCookieHeaders?: typeof appendStartAuthSetCookieHeaders
+  env?: MockAuthEnv
   fetchFn?: typeof fetch
   getAccessToken: AccessTokenGetter
   getAuthEnv?: () => Pick<StartAuthEnv, 'zitadelIssuer'>
@@ -31,7 +38,8 @@ export const handleUserinfoRequest = async ({
 }) => {
   const {
     appendSetCookieHeaders = appendStartAuthSetCookieHeaders,
-    fetchFn = fetch,
+    env = process.env,
+    fetchFn,
     getAccessToken,
     getAuthEnv = getStartAuthEnv,
     logger = console,
@@ -40,7 +48,30 @@ export const handleUserinfoRequest = async ({
     'content-type': 'application/json',
   })
 
+  const mockConfig = resolveMockAuthConfig(env)
+
+  if (mockConfig.enabled) {
+    const mockState = resolveRequestMockAuthState({
+      config: mockConfig,
+      env,
+      request,
+    })
+
+    if (mockState === 'unauthenticated') {
+      return new Response(null, {
+        status: 401,
+        headers: responseHeaders,
+      })
+    }
+
+    return new Response(JSON.stringify(createMockUserInfo()), {
+      status: 200,
+      headers: responseHeaders,
+    })
+  }
+
   try {
+    const userInfoFetch = fetchFn ?? fetch
     const tokenResult = await getAccessToken({ request })
 
     appendSetCookieHeaders({
@@ -55,7 +86,7 @@ export const handleUserinfoRequest = async ({
       })
     }
 
-    const userInfoResponse = await fetchFn(
+    const userInfoResponse = await userInfoFetch(
       `${getAuthEnv().zitadelIssuer}/oidc/v1/userinfo`,
       {
         headers: {

@@ -17,6 +17,17 @@ import {
   normalizeAuthSessionData,
   type AuthAccessTokenApiResponse,
 } from './normalize'
+import {
+  createMockAccessTokenResult,
+  createMockAuthSession,
+  MOCK_AUTH_STATE_CHANGE_EVENT,
+  MOCK_AUTH_STORAGE_KEY,
+  resolveBrowserMockAuthState,
+  resolveMockAuthConfig,
+  setBrowserMockAuthState,
+  type MockAuthConfig,
+  type MockAuthState,
+} from './mock'
 import type {
   AuthAccessTokenResult,
   AuthRefreshError,
@@ -118,6 +129,20 @@ const toAbsoluteClientUrl = (value: string | undefined) => {
 
 export const getAuthAccessToken =
   async (): Promise<AuthAccessTokenResult> => {
+    const mockConfig = resolveMockAuthConfig()
+
+    if (mockConfig.enabled) {
+      return resolveBrowserMockAuthState(mockConfig) === 'authenticated'
+        ? createMockAccessTokenResult()
+        : {
+            ok: false,
+            accessToken: null,
+            accessTokenExpiresAt: null,
+            scopes: [],
+            error: 'NoSession',
+          }
+    }
+
     try {
       const result = await authClient.getAccessToken({
         providerId: AUTH_PROVIDER_ID,
@@ -138,6 +163,14 @@ export const getAuthAccessToken =
   }
 
 export const getAuthSession = async (): Promise<AuthSession | null> => {
+  const mockConfig = resolveMockAuthConfig()
+
+  if (mockConfig.enabled) {
+    return resolveBrowserMockAuthState(mockConfig) === 'authenticated'
+      ? createMockAuthSession()
+      : null
+  }
+
   const result = await authClient.getSession()
 
   if (result.error || !result.data) {
@@ -159,20 +192,91 @@ export const getAuthSession = async (): Promise<AuthSession | null> => {
   )
 }
 
-export const signInWithZitadel = (options: SignInWithZitadelOptions = {}) =>
-  authClient.signIn.oauth2({
+export const signInWithZitadel = (options: SignInWithZitadelOptions = {}) => {
+  const mockConfig = resolveMockAuthConfig()
+
+  if (mockConfig.enabled) {
+    setBrowserMockAuthState('authenticated')
+
+    const callbackURL = toAbsoluteClientUrl(options.callbackURL)
+
+    if (callbackURL && typeof window !== 'undefined') {
+      window.location.assign(callbackURL)
+    }
+
+    return Promise.resolve({ data: null, error: null })
+  }
+
+  return authClient.signIn.oauth2({
     providerId: AUTH_PROVIDER_ID,
     ...options,
     callbackURL: toAbsoluteClientUrl(options.callbackURL),
     errorCallbackURL: toAbsoluteClientUrl(options.errorCallbackURL),
     newUserCallbackURL: toAbsoluteClientUrl(options.newUserCallbackURL),
   })
+}
 
 export const signOutAuth = async () => {
+  const mockConfig = resolveMockAuthConfig()
+
+  if (mockConfig.enabled) {
+    setBrowserMockAuthState('unauthenticated')
+    return { success: true }
+  }
+
   try {
     return await authClient.signOut()
   } finally {
     notifyAuthSessionChanged()
+  }
+}
+
+const getMockAuthSessionValue = (state: MockAuthState) => {
+  const data = state === 'authenticated' ? createMockAuthSession() : null
+
+  return {
+    data,
+    status: data ? 'authenticated' : 'unauthenticated',
+    error: null,
+    isLoading: false,
+    isRefetching: false,
+    isAccessTokenLoading: false,
+  } satisfies Omit<AuthSessionResult, 'refetch'>
+}
+
+const useMockAuthSessionValue = (
+  mockConfig: MockAuthConfig
+): AuthSessionResult => {
+  const [state, setState] = useState(() =>
+    resolveBrowserMockAuthState(mockConfig)
+  )
+  const refreshState = () => {
+    setState(resolveBrowserMockAuthState(mockConfig))
+  }
+
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === null || event.key === MOCK_AUTH_STORAGE_KEY) {
+        refreshState()
+      }
+    }
+
+    window.addEventListener(MOCK_AUTH_STATE_CHANGE_EVENT, refreshState)
+    window.addEventListener('storage', handleStorage)
+
+    return () => {
+      window.removeEventListener(MOCK_AUTH_STATE_CHANGE_EVENT, refreshState)
+      window.removeEventListener('storage', handleStorage)
+    }
+  }, [mockConfig])
+
+  const value = useMemo(() => getMockAuthSessionValue(state), [state])
+
+  return {
+    ...value,
+    refetch: async () => {
+      refreshState()
+    },
   }
 }
 
@@ -250,11 +354,7 @@ const useLiveAuthSessionValue = (): AuthSessionResult => {
   }
 }
 
-export const AuthSessionProvider = ({
-  children,
-}: {
-  children: ReactNode
-}) => {
+const LiveAuthSessionProvider = ({ children }: { children: ReactNode }) => {
   const value = useLiveAuthSessionValue()
 
   return (
@@ -262,4 +362,38 @@ export const AuthSessionProvider = ({
       {children}
     </AuthSessionContext.Provider>
   )
+}
+
+const MockAuthSessionProvider = ({
+  children,
+  mockConfig,
+}: {
+  children: ReactNode
+  mockConfig: MockAuthConfig
+}) => {
+  const value = useMockAuthSessionValue(mockConfig)
+
+  return (
+    <AuthSessionContext.Provider value={value}>
+      {children}
+    </AuthSessionContext.Provider>
+  )
+}
+
+export const AuthSessionProvider = ({
+  children,
+}: {
+  children: ReactNode
+}) => {
+  const mockConfig = resolveMockAuthConfig()
+
+  if (mockConfig.enabled) {
+    return (
+      <MockAuthSessionProvider mockConfig={mockConfig}>
+        {children}
+      </MockAuthSessionProvider>
+    )
+  }
+
+  return <LiveAuthSessionProvider>{children}</LiveAuthSessionProvider>
 }

@@ -1,5 +1,6 @@
 export * from './client'
 export * from './constants'
+export * from './mock'
 export * from './normalize'
 export * from './sessionContext'
 export * from './types'

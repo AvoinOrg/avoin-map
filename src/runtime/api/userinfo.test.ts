@@ -5,6 +5,10 @@ import { MessageChannel, MessagePort } from 'worker_threads'
 import type * as UndiciModule from 'undici'
 
 import {
+  MOCK_AUTH_COOKIE_NAME,
+  createMockUserInfo,
+} from '#/common/auth/mock'
+import {
   START_AUTH_REFRESH_ERROR,
   type StartAccessTokenResult,
 } from '../auth/types'
@@ -98,6 +102,94 @@ describe('handleUserinfoRequest', () => {
         }),
       })
     )
+  })
+
+  it('returns deterministic mock userinfo without Better Auth or Zitadel calls', async () => {
+    const getAccessToken = jest.fn<AccessTokenGetter>()
+    const getAuthEnv = jest.fn(() => ({
+      zitadelIssuer: 'https://auth.example.org',
+    }))
+    const fetchFn = jest.fn<typeof fetch>()
+
+    const response = await handleUserinfoRequest({
+      request: new Request('https://map.example.org/api/userinfo'),
+      deps: {
+        env: {
+          NEXT_PUBLIC_MOCK_AUTH_ENABLED: '1',
+        },
+        fetchFn,
+        getAccessToken,
+        getAuthEnv,
+      },
+    })
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual(createMockUserInfo())
+    expect(getAccessToken).not.toHaveBeenCalled()
+    expect(getAuthEnv).not.toHaveBeenCalled()
+    expect(fetchFn).not.toHaveBeenCalled()
+  })
+
+  it('returns 401 for URL-controlled mock unauthenticated state without Better Auth calls', async () => {
+    const getAccessToken = jest.fn<AccessTokenGetter>()
+    const fetchFn = jest.fn<typeof fetch>()
+
+    const response = await handleUserinfoRequest({
+      request: new Request(
+        'https://map.example.org/api/userinfo?mockAuth=unauthenticated'
+      ),
+      deps: {
+        env: {
+          NEXT_PUBLIC_MOCK_AUTH_ENABLED: '1',
+        },
+        fetchFn,
+        getAccessToken,
+      },
+    })
+
+    expect(response.status).toBe(401)
+    expect(await response.text()).toBe('')
+    expect(getAccessToken).not.toHaveBeenCalled()
+    expect(fetchFn).not.toHaveBeenCalled()
+  })
+
+  it('uses the mock auth cookie when no URL state is present', async () => {
+    const getAccessToken = jest.fn<AccessTokenGetter>()
+    const fetchFn = jest.fn<typeof fetch>()
+
+    const response = await handleUserinfoRequest({
+      request: new Request('https://map.example.org/api/userinfo', {
+        headers: {
+          cookie: `${MOCK_AUTH_COOKIE_NAME}=unauthenticated`,
+        },
+      }),
+      deps: {
+        env: {
+          NEXT_PUBLIC_MOCK_AUTH_ENABLED: '1',
+        },
+        fetchFn,
+        getAccessToken,
+      },
+    })
+
+    expect(response.status).toBe(401)
+    expect(getAccessToken).not.toHaveBeenCalled()
+    expect(fetchFn).not.toHaveBeenCalled()
+  })
+
+  it('rejects clearly when mock auth is enabled in production', async () => {
+    await expect(
+      handleUserinfoRequest({
+        request: new Request('https://map.example.org/api/userinfo'),
+        deps: {
+          env: {
+            NEXT_PUBLIC_MOCK_AUTH_ENABLED: '1',
+            NODE_ENV: 'production',
+          },
+          getAccessToken: jest.fn<AccessTokenGetter>(),
+        },
+      })
+    ).rejects.toThrow('Mock auth cannot be enabled when NODE_ENV=production')
   })
 
   it('returns 401 for missing sessions without calling Zitadel', async () => {

@@ -2,7 +2,7 @@ import '@testing-library/jest-dom'
 import React from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, render, screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, jest } from '@jest/globals'
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals'
 
 const mockUseSession = jest.fn()
 const mockGetAccessToken = jest.fn()
@@ -42,6 +42,17 @@ jest.mock('axios', () => ({
 const {
   AUTH_REFRESH_ERROR,
   AuthSessionProvider,
+  MOCK_AUTH_ACCESS_TOKEN,
+  MOCK_AUTH_COOKIE_NAME,
+  MOCK_AUTH_EMAIL,
+  MOCK_AUTH_NAME,
+  MOCK_AUTH_STORAGE_KEY,
+  MOCK_AUTH_USER_ID,
+  createMockUserInfo,
+  getAuthAccessToken,
+  getAuthSession,
+  signInWithZitadel,
+  signOutAuth,
   useAuthSession,
 } = jest.requireActual<typeof import('#/common/auth')>('#/common/auth')
 const UserStateHandler = jest.requireActual<
@@ -83,6 +94,33 @@ const successfulAccessTokenResponse = {
   error: null,
 }
 
+const originalMockAuthEnabled = process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED
+const originalMockAuthInitialState =
+  process.env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE
+
+const resetMockAuthEnvironment = () => {
+  delete process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED
+  delete process.env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE
+  window.history.replaceState({}, '', '/')
+  window.localStorage.removeItem(MOCK_AUTH_STORAGE_KEY)
+  document.cookie = `${MOCK_AUTH_COOKIE_NAME}=; Path=/; Max-Age=0`
+}
+
+const restoreMockAuthEnvironment = () => {
+  if (originalMockAuthEnabled === undefined) {
+    delete process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED
+  } else {
+    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = originalMockAuthEnabled
+  }
+
+  if (originalMockAuthInitialState === undefined) {
+    delete process.env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE
+  } else {
+    process.env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE =
+      originalMockAuthInitialState
+  }
+}
+
 const createDeferred = <T,>(): Deferred<T> => {
   let resolve: Deferred<T>['resolve']
   let reject: Deferred<T>['reject']
@@ -112,6 +150,12 @@ const AuthProbe = () => {
       <span data-testid="auth-token">
         {session.data?.accessToken ?? session.data?.error ?? 'null'}
       </span>
+      <span data-testid="auth-user">{session.data?.user.id ?? 'null'}</span>
+      <span data-testid="auth-email">
+        {session.data?.user.email ?? 'null'}
+      </span>
+      <span data-testid="auth-name">{session.data?.user.name ?? 'null'}</span>
+      <span data-testid="auth-loading">{String(session.isLoading)}</span>
       <span data-testid="auth-token-loading">
         {String(session.isAccessTokenLoading)}
       </span>
@@ -154,6 +198,7 @@ const renderUserStateHandler = () => {
 
 describe('AuthSessionProvider', () => {
   beforeEach(() => {
+    resetMockAuthEnvironment()
     mockUseSession.mockReturnValue({
       data: betterAuthSession,
       error: null,
@@ -177,6 +222,11 @@ describe('AuthSessionProvider', () => {
       userDataState: UserDataState.Unfetched,
       signOutActions: {},
     })
+  })
+
+  afterEach(() => {
+    resetMockAuthEnvironment()
+    restoreMockAuthEnvironment()
   })
 
   it('keeps the current session loading with null data until its access token resolves', async () => {
@@ -313,5 +363,200 @@ describe('AuthSessionProvider', () => {
       'authenticated'
     )
     expect(screen.getByTestId('auth-token-loading')).toHaveTextContent('false')
+  })
+
+  it('returns the deterministic authenticated mock session by default without Better Auth calls', async () => {
+    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
+
+    renderAuthProvider(<AuthProbe />)
+
+    expect(screen.getByTestId('auth-status')).toHaveTextContent(
+      'authenticated'
+    )
+    expect(screen.getByTestId('auth-loading')).toHaveTextContent('false')
+    expect(screen.getByTestId('auth-token-loading')).toHaveTextContent('false')
+    expect(screen.getByTestId('auth-user')).toHaveTextContent(MOCK_AUTH_USER_ID)
+    expect(screen.getByTestId('auth-email')).toHaveTextContent(MOCK_AUTH_EMAIL)
+    expect(screen.getByTestId('auth-name')).toHaveTextContent(MOCK_AUTH_NAME)
+    expect(screen.getByTestId('auth-token')).toHaveTextContent(
+      MOCK_AUTH_ACCESS_TOKEN
+    )
+
+    await expect(getAuthSession()).resolves.toMatchObject({
+      session: {
+        id: 'carbon-mock-session',
+        userId: MOCK_AUTH_USER_ID,
+      },
+      user: {
+        id: MOCK_AUTH_USER_ID,
+        email: MOCK_AUTH_EMAIL,
+        name: MOCK_AUTH_NAME,
+      },
+      accessToken: MOCK_AUTH_ACCESS_TOKEN,
+    })
+    await expect(getAuthAccessToken()).resolves.toMatchObject({
+      ok: true,
+      accessToken: MOCK_AUTH_ACCESS_TOKEN,
+    })
+
+    expect(mockUseSession).not.toHaveBeenCalled()
+    expect(mockGetSession).not.toHaveBeenCalled()
+    expect(mockGetAccessToken).not.toHaveBeenCalled()
+  })
+
+  it('uses URL-controlled mock unauthenticated state without Better Auth calls', async () => {
+    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
+    window.history.pushState({}, '', '/?mockAuth=unauthenticated')
+
+    renderAuthProvider(<AuthProbe />)
+
+    expect(screen.getByTestId('auth-status')).toHaveTextContent(
+      'unauthenticated'
+    )
+    expect(screen.getByTestId('auth-token')).toHaveTextContent('null')
+    expect(screen.getByTestId('auth-user')).toHaveTextContent('null')
+    expect(window.localStorage.getItem(MOCK_AUTH_STORAGE_KEY)).toBe(
+      'unauthenticated'
+    )
+    expect(document.cookie).toContain(
+      `${MOCK_AUTH_COOKIE_NAME}=unauthenticated`
+    )
+
+    await expect(getAuthSession()).resolves.toBeNull()
+    await expect(getAuthAccessToken()).resolves.toMatchObject({
+      ok: false,
+      error: 'NoSession',
+    })
+
+    expect(mockUseSession).not.toHaveBeenCalled()
+    expect(mockGetSession).not.toHaveBeenCalled()
+    expect(mockGetAccessToken).not.toHaveBeenCalled()
+  })
+
+  it('switches mock sign-in state without opening Better Auth OAuth', async () => {
+    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
+    process.env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE = 'unauthenticated'
+
+    renderAuthProvider(<AuthProbe />)
+
+    expect(screen.getByTestId('auth-status')).toHaveTextContent(
+      'unauthenticated'
+    )
+
+    await act(async () => {
+      await signInWithZitadel()
+    })
+
+    await waitFor(() =>
+      expect(screen.getByTestId('auth-status')).toHaveTextContent(
+        'authenticated'
+      )
+    )
+    expect(window.localStorage.getItem(MOCK_AUTH_STORAGE_KEY)).toBe(
+      'authenticated'
+    )
+    expect(mockSignInOauth2).not.toHaveBeenCalled()
+    expect(mockUseSession).not.toHaveBeenCalled()
+  })
+
+  it('switches mock sign-out state without Better Auth sign-out or session notification', async () => {
+    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
+
+    renderAuthProvider(<AuthProbe />)
+
+    expect(screen.getByTestId('auth-status')).toHaveTextContent(
+      'authenticated'
+    )
+
+    await act(async () => {
+      await signOutAuth()
+    })
+
+    await waitFor(() =>
+      expect(screen.getByTestId('auth-status')).toHaveTextContent(
+        'unauthenticated'
+      )
+    )
+    expect(window.localStorage.getItem(MOCK_AUTH_STORAGE_KEY)).toBe(
+      'unauthenticated'
+    )
+    expect(mockSignOut).not.toHaveBeenCalled()
+    expect(mockNotifySessionChanged).not.toHaveBeenCalled()
+  })
+
+  it('keeps non-mock sign-in routed through Better Auth OAuth', async () => {
+    mockSignInOauth2.mockResolvedValueOnce({ success: true })
+
+    await signInWithZitadel({
+      callbackURL: '/after-login',
+      errorCallbackURL: '/login-error',
+      newUserCallbackURL: '/new-user',
+      scopes: ['openid', 'profile'],
+    })
+
+    expect(mockSignInOauth2).toHaveBeenCalledWith({
+      providerId: 'zitadel',
+      callbackURL: 'http://localhost/after-login',
+      errorCallbackURL: 'http://localhost/login-error',
+      newUserCallbackURL: 'http://localhost/new-user',
+      scopes: ['openid', 'profile'],
+    })
+  })
+
+  it('drives the user store to authenticated and fetched in mock authenticated mode', async () => {
+    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
+    mockAxiosGet.mockResolvedValueOnce({ data: createMockUserInfo() })
+
+    renderUserStateHandler()
+
+    await waitFor(() =>
+      expect(useUserStore.getState().userAuth).toEqual({
+        id: MOCK_AUTH_USER_ID,
+        accessToken: MOCK_AUTH_ACCESS_TOKEN,
+      })
+    )
+    await waitFor(() =>
+      expect(useUserStore.getState().userDataState).toBe(UserDataState.Fetched)
+    )
+
+    expect(screen.getByTestId('store-auth-state')).toHaveTextContent(
+      UserAuthState.Authenticated
+    )
+    expect(screen.getByTestId('store-data-state')).toHaveTextContent(
+      UserDataState.Fetched
+    )
+    expect(screen.getByTestId('store-token')).toHaveTextContent(
+      MOCK_AUTH_ACCESS_TOKEN
+    )
+    expect(screen.getByTestId('store-user')).toHaveTextContent(
+      MOCK_AUTH_USER_ID
+    )
+    expect(mockAxiosGet).toHaveBeenCalledWith('/api/userinfo')
+    expect(mockUseSession).not.toHaveBeenCalled()
+    expect(mockGetAccessToken).not.toHaveBeenCalled()
+  })
+
+  it('keeps the user store unauthenticated and unfetched in mock unauthenticated mode', async () => {
+    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
+    process.env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE = 'unauthenticated'
+
+    renderUserStateHandler()
+
+    await waitFor(() =>
+      expect(screen.getByTestId('store-auth-state')).toHaveTextContent(
+        UserAuthState.Unauthenticated
+      )
+    )
+
+    expect(screen.getByTestId('store-data-state')).toHaveTextContent(
+      UserDataState.Unfetched
+    )
+    expect(screen.getByTestId('store-token')).toHaveTextContent('null')
+    expect(screen.getByTestId('store-user')).toHaveTextContent('null')
+    expect(useUserStore.getState().userAuth).toBeNull()
+    expect(useUserStore.getState().userData).toBeNull()
+    expect(mockAxiosGet).not.toHaveBeenCalled()
+    expect(mockUseSession).not.toHaveBeenCalled()
+    expect(mockGetAccessToken).not.toHaveBeenCalled()
   })
 })
