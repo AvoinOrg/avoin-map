@@ -170,15 +170,22 @@ const BreadcrumbNav = ({
             routeKey={visibleRoutes[visibleRoutes.length - 2].routeKey}
             routeParams={visibleRoutes[visibleRoutes.length - 2].params}
             aria-label={t('breadcrumb.back')}
-            sx={{ alignItems: 'center' }}
+            sx={{
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '1.25rem',
+              height: '1.25rem',
+              ml: -1,
+              mr: 0.25,
+            }}
           >
             <BreadcrumbBackIcon
               sx={(theme) => ({
                 cursor: 'pointer',
                 color: theme.palette.neutral.dark,
-                height: '0.85rem',
-                mt: 0.1,
-                ml: -1,
+                width: '1.1rem',
+                height: '1.1rem',
+                transform: 'translateY(1px)',
                 '&:hover': { color: theme.palette.neutral.main },
               })}
             />
