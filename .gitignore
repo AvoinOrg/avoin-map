@@ -163,3 +163,5 @@ i18n/*
 
 .claude/*
 !.claude/settings.template.json
+
+test-data
