@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import { Outlet } from '@tanstack/react-router'
 
 import {
   BreadcrumbNav,
@@ -9,13 +9,15 @@ import {
   SidebarBoundary,
 } from '#/components/Sidebar'
 
-const Layout = ({ children }: { children: React.ReactNode }) => {
+const Layout = () => {
   return (
     <SidebarBoundary id="hiilikartta-kaavat-panel" mode="simple">
       <IntoSidebarHeaderChildrenSlot>
         <BreadcrumbNav collapseIfRoot />
       </IntoSidebarHeaderChildrenSlot>
-      <IntoSidebarPanelSlot panelId="main">{children}</IntoSidebarPanelSlot>
+      <IntoSidebarPanelSlot panelId="main">
+        <Outlet />
+      </IntoSidebarPanelSlot>
     </SidebarBoundary>
   )
 }

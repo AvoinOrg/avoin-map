@@ -1,9 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { HiilikarttaIndexRoute } from 'applets/hiilikartta/routeComponents'
+import HiilikarttaPage from 'applets/hiilikartta/pages/page'
 
 export const Route = createFileRoute(
   '/$locale/_map/(applets)/carbon/'
 )({
-  component: HiilikarttaIndexRoute,
+  component: HiilikarttaPage,
 })

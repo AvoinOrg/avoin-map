@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { guardAppletLocale } from '#/runtime/appletRouteGuards'
-import { HiilikarttaLayout } from 'applets/hiilikartta/routeComponents'
+import HiilikarttaLayout from 'applets/hiilikartta/pages/layout'
 import { getHiilikarttaHead } from '#/runtime/headMetadata'
 import {
   APP_ROUTE_KEYS,

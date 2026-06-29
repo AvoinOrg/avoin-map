@@ -1,5 +1,6 @@
 'use client'
 import React, { useEffect, useRef } from 'react'
+import { Outlet } from '@tanstack/react-router'
 import { FeatureCollection } from 'geojson'
 
 // import { useAppStore } from 'applets/hiilikartta/state/appStore'
@@ -25,7 +26,7 @@ import {
 import useAppletStoreHasHydrated from 'applets/hiilikartta/common/useAppletStoreHasHydrated'
 import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
 
-const Layout = ({ children }: { children: React.ReactNode }) => {
+const Layout = () => {
   const params = useAppParams<{ planId: string }>()
   // const planConf = useStore(useAppStore, (state) => state.planConfs)
   const addSerializableLayerGroup = useMapStore(
@@ -201,7 +202,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   // useEffect(() => {
   //   setMapLibraryMode('maplibre')
   // }, [])
-  return <>{children}</>
+  return <Outlet />
 }
 
 export default Layout

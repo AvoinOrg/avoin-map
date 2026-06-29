@@ -23,27 +23,17 @@ export const HiilikarttaApplet = () => (
 
 export const HiilikarttaIndexRoute = () => <HiilikarttaPage />
 
-export const HiilikarttaPlansLayoutRoute = () => (
-  <HiilikarttaPlansLayout>
-    <Outlet />
-  </HiilikarttaPlansLayout>
-)
+export const HiilikarttaPlansLayoutRoute = HiilikarttaPlansLayout
 
 export const HiilikarttaVisiblePlansLayoutRoute = () => (
   <HiilikarttaLayoutClient>
-    <HiilikarttaPlansLayout>
-      <Outlet />
-    </HiilikarttaPlansLayout>
+    <HiilikarttaPlansLayout />
   </HiilikarttaLayoutClient>
 )
 
 export const HiilikarttaPlansIndexRoute = () => <HiilikarttaPlansPage />
 
-export const HiilikarttaPlanLayoutRoute = () => (
-  <HiilikarttaPlanLayout>
-    <Outlet />
-  </HiilikarttaPlanLayout>
-)
+export const HiilikarttaPlanLayoutRoute = HiilikarttaPlanLayout
 
 export const HiilikarttaPlanIndexRoute = () => <HiilikarttaPlanPage />
 
