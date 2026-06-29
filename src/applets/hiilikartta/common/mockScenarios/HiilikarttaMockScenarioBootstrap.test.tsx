@@ -10,6 +10,14 @@ import {
 const mockUseAppSearchParams = jest.fn()
 const mockResetHiilikarttaMockState = jest.fn()
 const mockApplyHiilikarttaMockScenarioState = jest.fn()
+const REPORT_STATES = [
+  'report-single-local',
+  'report-comparison',
+  'report-external',
+  'report-invalid-id',
+  'report-no-data',
+] as const
+const REPORT_STATE_SET = new Set<string>(REPORT_STATES)
 
 jest.mock('#/common/navigation/navigation', () => ({
   useAppSearchParams: () => mockUseAppSearchParams(),
@@ -51,6 +59,13 @@ describe('HiilikarttaMockScenarioBootstrap', () => {
       if (normalizedState === 'plan-valid') {
         return {
           state: 'plan-valid',
+          storeState: {},
+        }
+      }
+
+      if (REPORT_STATE_SET.has(normalizedState)) {
+        return {
+          state: normalizedState,
           storeState: {},
         }
       }
@@ -135,6 +150,28 @@ describe('HiilikarttaMockScenarioBootstrap', () => {
     expect(mockResetHiilikarttaMockState).not.toHaveBeenCalled()
   })
 
+  it('runs reset before report query seeding when both query flags are present', async () => {
+    mockUseAppSearchParams.mockReturnValue(
+      new URLSearchParams(
+        `${MOCK_RESET_QUERY_PARAM}=1&${MOCK_CARBON_STATE_QUERY_PARAM}=report-external`
+      )
+    )
+
+    renderBootstrap()
+
+    await waitFor(() =>
+      expect(mockApplyHiilikarttaMockScenarioState).toHaveBeenCalledWith(
+        'report-external'
+      )
+    )
+    expect(mockResetHiilikarttaMockState).toHaveBeenCalledTimes(1)
+    expect(
+      mockResetHiilikarttaMockState.mock.invocationCallOrder[0]
+    ).toBeLessThan(
+      mockApplyHiilikarttaMockScenarioState.mock.invocationCallOrder[0]
+    )
+  })
+
   it('applies supported states through the browser helper API', async () => {
     renderBootstrap()
 
@@ -159,6 +196,34 @@ describe('HiilikarttaMockScenarioBootstrap', () => {
       state: 'plan-valid',
     })
   })
+
+  it.each(REPORT_STATES)(
+    'applies %s through the browser helper API',
+    async (state) => {
+      renderBootstrap()
+
+      await waitFor(() => {
+        expect(window.__avoinCarbonMocks?.seed).toEqual(expect.any(Function))
+      })
+
+      let result: Awaited<
+        ReturnType<NonNullable<typeof window.__avoinCarbonMocks>['seed']>
+      > | null = null
+
+      await act(async () => {
+        await window.__avoinCarbonMocks?.reset()
+        result = (await window.__avoinCarbonMocks?.seed(state)) ?? null
+      })
+
+      expect(mockResetHiilikarttaMockState).toHaveBeenCalledTimes(1)
+      expect(mockApplyHiilikarttaMockScenarioState).toHaveBeenCalledWith(state)
+      expect(result).toEqual({
+        action: 'seed',
+        applied: true,
+        state,
+      })
+    }
+  )
 
   it('keeps unknown seed states as non-throwing no-ops', async () => {
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => {})

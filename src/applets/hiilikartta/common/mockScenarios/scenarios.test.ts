@@ -23,6 +23,8 @@ jest.mock('#/common/utils/store', () => {
 
 import { useAppletStore } from 'applets/hiilikartta/state/appletStore'
 
+import { FetchStatus } from '#/common/types/general'
+
 import {
   CalculationState,
   GlobalState,
@@ -34,9 +36,14 @@ import {
 } from '../utils'
 import {
   MOCK_COMPARISON_PLAN_ID,
+  MOCK_COMPARISON_PLAN_SERVER_ID,
+  MOCK_EXTERNAL_PLAN_ID,
+  MOCK_EXTERNAL_REPORT_ERROR_SERVER_ID,
+  MOCK_EXTERNAL_REPORT_SERVER_ID,
   MOCK_INVALID_PLAN_ID,
   MOCK_INVALID_PLAN_SERVER_ID,
   MOCK_LOCAL_PLAN_ID,
+  MOCK_LOCAL_PLAN_SERVER_ID,
   MOCK_SERVER_PLAN_ID,
   MOCK_SERVER_PLAN_SERVER_ID,
 } from './ids'
@@ -76,6 +83,9 @@ describe('Hiilikartta mock scenarios', () => {
     expect(normalizeHiilikarttaMockScenarioState('plans empty')).toBe(
       'plans-empty'
     )
+    expect(normalizeHiilikarttaMockScenarioState(' Report_External ')).toBe(
+      'report-external'
+    )
     expect(normalizeHiilikarttaMockScenarioState('empty')).toBeNull()
     expect(normalizeHiilikarttaMockScenarioState('unknown-state')).toBeNull()
     expect(normalizeHiilikarttaMockScenarioState(undefined)).toBeNull()
@@ -103,6 +113,11 @@ describe('Hiilikartta mock scenarios', () => {
     'areas-valid',
     'areas-invalid-zoning',
     'areas-invalid-land-use',
+    'report-single-local',
+    'report-comparison',
+    'report-external',
+    'report-invalid-id',
+    'report-no-data',
   ])('builds a full store patch for %s', (state) => {
     const builtState = buildHiilikarttaMockScenarioState(state)
 
@@ -112,7 +127,7 @@ describe('Hiilikartta mock scenarios', () => {
         planConfs: expect.any(Object),
         placeholderPlanConfs: expect.any(Object),
         creationPlaceholderPlanConfs: expect.any(Object),
-        externalPlanConfs: {},
+        externalPlanConfs: expect.any(Object),
         globalState: expect.any(String),
       })
     )
@@ -245,6 +260,111 @@ describe('Hiilikartta mock scenarios', () => {
     )
   })
 
+  it('builds a single local report state with route ids and report server ids kept separate', () => {
+    const builtState = buildHiilikarttaMockScenarioState('report-single-local')
+    const planConfs = builtState?.storeState.planConfs ?? {}
+    const localPlanConf = planConfs[MOCK_LOCAL_PLAN_ID]
+    const serverPlanConf = planConfs[MOCK_SERVER_PLAN_ID]
+
+    expect(localPlanConf).toEqual(
+      expect.objectContaining({
+        id: MOCK_LOCAL_PLAN_ID,
+        serverId: MOCK_LOCAL_PLAN_SERVER_ID,
+        calculationState: CalculationState.FINISHED,
+      })
+    )
+    expect(localPlanConf?.reportData?.metadata).toEqual(
+      expect.objectContaining({
+        reportName: 'Mock local carbon plan',
+        featureYears: [...MOCK_FEATURE_YEARS],
+      })
+    )
+    expect(serverPlanConf).toEqual(
+      expect.objectContaining({
+        id: MOCK_SERVER_PLAN_ID,
+        serverId: MOCK_SERVER_PLAN_SERVER_ID,
+        calculationState: CalculationState.FINISHED,
+      })
+    )
+    expect(builtState?.storeState.externalPlanConfs).toEqual({})
+    expect(builtState?.storeState.globalState).toBe(GlobalState.IDLE)
+  })
+
+  it('builds a comparison report state with two deterministic finished reports', () => {
+    const builtState = buildHiilikarttaMockScenarioState('report-comparison')
+    const planConfs = builtState?.storeState.planConfs ?? {}
+    const localPlanConf = planConfs[MOCK_LOCAL_PLAN_ID]
+    const comparisonPlanConf = planConfs[MOCK_COMPARISON_PLAN_ID]
+
+    expect(Object.keys(planConfs)).toEqual([
+      MOCK_LOCAL_PLAN_ID,
+      MOCK_COMPARISON_PLAN_ID,
+    ])
+    expect(localPlanConf?.serverId).toBe(MOCK_LOCAL_PLAN_SERVER_ID)
+    expect(comparisonPlanConf).toEqual(
+      expect.objectContaining({
+        id: MOCK_COMPARISON_PLAN_ID,
+        serverId: MOCK_COMPARISON_PLAN_SERVER_ID,
+        calculationState: CalculationState.FINISHED,
+        forestryScenario: 2,
+      })
+    )
+    expect(localPlanConf?.reportData?.metadata.featureYears).toEqual(
+      comparisonPlanConf?.reportData?.metadata.featureYears
+    )
+    expect(comparisonPlanConf?.reportData?.metadata).toEqual(
+      expect.objectContaining({
+        forestry_scenario: 2,
+        reportName: 'Mock comparison carbon plan',
+      })
+    )
+  })
+
+  it('builds an external report using the stable client-side alias instead of adding a server endpoint', () => {
+    const builtState = buildHiilikarttaMockScenarioState('report-external')
+    const externalPlanConf =
+      builtState?.storeState.externalPlanConfs[MOCK_EXTERNAL_PLAN_ID]
+
+    expect(MOCK_EXTERNAL_PLAN_ID).not.toBe(MOCK_EXTERNAL_REPORT_SERVER_ID)
+    expect(MOCK_EXTERNAL_PLAN_ID).not.toBe(MOCK_EXTERNAL_REPORT_ERROR_SERVER_ID)
+    expect(externalPlanConf).toEqual(
+      expect.objectContaining({
+        serverId: MOCK_EXTERNAL_PLAN_ID,
+        status: FetchStatus.FETCHED,
+        name: 'Mock external carbon report',
+      })
+    )
+    expect(externalPlanConf?.reportData?.metadata.featureYears).toEqual([
+      ...MOCK_FEATURE_YEARS,
+    ])
+  })
+
+  it('builds invalid and no-data report states that settle without loading', () => {
+    const invalidState = buildHiilikarttaMockScenarioState('report-invalid-id')
+    const invalidExternalPlanConf =
+      invalidState?.storeState.externalPlanConfs[MOCK_INVALID_PLAN_ID]
+    const noDataState = buildHiilikarttaMockScenarioState('report-no-data')
+    const noDataPlanConf =
+      noDataState?.storeState.planConfs[MOCK_INVALID_PLAN_ID]
+
+    expect(invalidExternalPlanConf).toEqual(
+      expect.objectContaining({
+        serverId: MOCK_INVALID_PLAN_ID,
+        status: FetchStatus.ERRORED,
+      })
+    )
+    expect(invalidState?.storeState.globalState).toBe(GlobalState.IDLE)
+    expect(noDataPlanConf).toEqual(
+      expect.objectContaining({
+        id: MOCK_INVALID_PLAN_ID,
+        serverId: MOCK_INVALID_PLAN_SERVER_ID,
+        calculationState: CalculationState.FINISHED,
+        reportData: undefined,
+      })
+    )
+    expect(noDataState?.storeState.globalState).toBe(GlobalState.IDLE)
+  })
+
   it('applies a built state to the applet store', () => {
     const appliedState = applyHiilikarttaMockScenarioState('plan valid')
 
@@ -253,6 +373,20 @@ describe('Hiilikartta mock scenarios', () => {
       expect.objectContaining({
         id: MOCK_LOCAL_PLAN_ID,
         calculationState: CalculationState.NOT_STARTED,
+      })
+    )
+  })
+
+  it('applies report external state to the applet store', () => {
+    const appliedState = applyHiilikarttaMockScenarioState('report external')
+
+    expect(appliedState?.state).toBe('report-external')
+    expect(
+      useAppletStore.getState().externalPlanConfs[MOCK_EXTERNAL_PLAN_ID]
+    ).toEqual(
+      expect.objectContaining({
+        serverId: MOCK_EXTERNAL_PLAN_ID,
+        status: FetchStatus.FETCHED,
       })
     )
   })

@@ -119,6 +119,17 @@ describe('request routing decisions', () => {
       }
     )
 
+    it('passes through canonical carbon report mock seed URLs unchanged', () => {
+      expect(
+        decideRequestRouting({
+          url: url(
+            '/fi/carbon/report?mockReset=1&mockCarbonState=report-single-local&planIds=mock-plan-local&prevPageId=mock-local-plan&prevPageStep=areas'
+          ),
+          compiledApplets: mainMode,
+        })
+      ).toEqual({ type: 'passThrough' })
+    })
+
     it('redirects localized legacy Energiakartta paths to energy', () => {
       expect(
         decideRequestRouting({
@@ -279,6 +290,23 @@ describe('request routing decisions', () => {
         })
       }
     )
+
+    it('redirects legacy report aliases while preserving report mock query strings', () => {
+      expect(
+        decideRequestRouting({
+          url: url(
+            '/fi/raportti?mockReset=1&mockCarbonState=report-single-local&planIds=mock-plan-local&prevPageId=mock-local-plan&prevPageStep=areas'
+          ),
+          compiledApplets: mainMode,
+        })
+      ).toEqual({
+        type: 'redirect',
+        status: 308,
+        pathname: '/fi/carbon/report',
+        search:
+          '?mockReset=1&mockCarbonState=report-single-local&planIds=mock-plan-local&prevPageId=mock-local-plan&prevPageStep=areas',
+      })
+    })
 
     it('redirects localized main-host legacy root aliases with unsupported applet locales to the applet default locale', () => {
       expect(

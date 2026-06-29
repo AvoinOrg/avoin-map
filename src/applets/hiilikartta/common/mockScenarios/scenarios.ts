@@ -15,6 +15,7 @@ import {
 import {
   MOCK_COMPARISON_PLAN_ID,
   MOCK_COMPARISON_PLAN_SERVER_ID,
+  MOCK_EXTERNAL_PLAN_ID,
   MOCK_INVALID_PLAN_ID,
   MOCK_INVALID_PLAN_SERVER_ID,
   MOCK_LOCAL_PLAN_ID,
@@ -56,6 +57,11 @@ const SCENARIO_STATES = [
   'areas-valid',
   'areas-invalid-zoning',
   'areas-invalid-land-use',
+  'report-single-local',
+  'report-comparison',
+  'report-external',
+  'report-invalid-id',
+  'report-no-data',
 ] as const
 
 const SCENARIO_STATE_SET = new Set<string>(SCENARIO_STATES)
@@ -94,17 +100,16 @@ export const normalizeHiilikarttaMockScenarioState = (
 }
 
 const baseStoreState = ({
+  externalPlanConfs = {},
   globalState = GlobalState.IDLE,
   planConfs = {},
   placeholderPlanConfs = {},
   creationPlaceholderPlanConfs = {},
-}: Partial<
-  Omit<HiilikarttaMockScenarioStoreState, 'externalPlanConfs'>
-> = {}): HiilikarttaMockScenarioStoreState => ({
+}: Partial<HiilikarttaMockScenarioStoreState> = {}): HiilikarttaMockScenarioStoreState => ({
   planConfs,
   placeholderPlanConfs,
   creationPlaceholderPlanConfs,
-  externalPlanConfs: {},
+  externalPlanConfs,
   globalState,
 })
 
@@ -123,6 +128,7 @@ const createPlanConf = ({
   serverId = MOCK_LOCAL_PLAN_SERVER_ID,
   state = PlanConfState.IDLE,
   userId,
+  forestryScenario = DEFAULT_FORESTRY_SCENARIO,
 }: Partial<PlanConf> & Pick<PlanConf, 'id' | 'serverId'>): PlanConf => ({
   id,
   serverId,
@@ -132,7 +138,7 @@ const createPlanConf = ({
   data,
   calculationState,
   reportData,
-  forestryScenario: DEFAULT_FORESTRY_SCENARIO,
+  forestryScenario,
   state,
   cloudLastSaved,
   localLastEdited,
@@ -172,6 +178,40 @@ const createComparisonPlanConf = () =>
     data: createMockValidPlanData(),
   })
 
+const createFinishedLocalPlanConf = () => {
+  const data = createMockValidPlanData()
+
+  return createValidLocalPlanConf({
+    data,
+    calculationState: CalculationState.FINISHED,
+    reportData: createMockReportData({
+      forestryScenario: DEFAULT_FORESTRY_SCENARIO,
+      planData: data,
+      reportName: 'Mock local carbon plan',
+    }),
+  })
+}
+
+const createFinishedComparisonPlanConf = () => {
+  const data = createMockValidPlanData()
+  const forestryScenario = 2
+
+  return createPlanConf({
+    id: MOCK_COMPARISON_PLAN_ID,
+    serverId: MOCK_COMPARISON_PLAN_SERVER_ID,
+    created: MOCK_PLAN_CREATED_AT + 20_000,
+    name: 'Mock comparison carbon plan',
+    data,
+    calculationState: CalculationState.FINISHED,
+    forestryScenario,
+    reportData: createMockReportData({
+      forestryScenario,
+      planData: data,
+      reportName: 'Mock comparison carbon plan',
+    }),
+  })
+}
+
 const createInvalidZoningPlanConf = () =>
   createPlanConf({
     id: MOCK_INVALID_PLAN_ID,
@@ -188,6 +228,16 @@ const createInvalidLandUsePlanConf = () =>
     data: createMockInvalidLandUsePlanData(),
   })
 
+const createNoDataReportPlanConf = () =>
+  createPlanConf({
+    id: MOCK_INVALID_PLAN_ID,
+    serverId: MOCK_INVALID_PLAN_SERVER_ID,
+    name: 'Mock report without data',
+    data: createMockValidPlanData(),
+    calculationState: CalculationState.FINISHED,
+    reportData: undefined,
+  })
+
 const createFinishedServerPlanConf = () => {
   const data = createMockValidPlanData()
 
@@ -201,6 +251,27 @@ const createFinishedServerPlanConf = () => {
     }),
   })
 }
+
+const createFetchedExternalReportPlanConf = (): ExternalPlanConf => {
+  const data = createMockValidPlanData()
+
+  return {
+    serverId: MOCK_EXTERNAL_PLAN_ID,
+    status: FetchStatus.FETCHED,
+    name: 'Mock external carbon report',
+    reportData: createMockReportData({
+      forestryScenario: DEFAULT_FORESTRY_SCENARIO,
+      planData: data,
+      reportName: 'Mock external carbon report',
+    }),
+  }
+}
+
+const createErroredInvalidReportPlanConf = (): ExternalPlanConf => ({
+  serverId: MOCK_INVALID_PLAN_ID,
+  status: FetchStatus.ERRORED,
+  name: 'Mock invalid carbon report',
+})
 
 const buildSeededPlansState = () => {
   const localPlanConf = createValidLocalPlanConf()
@@ -347,6 +418,60 @@ const buildCalculationState = (calculationState: CalculationState) => {
   })
 }
 
+const buildReportSingleLocalState = () => {
+  const localPlanConf = createFinishedLocalPlanConf()
+  const serverPlanConf = createFinishedServerPlanConf()
+
+  return baseStoreState({
+    planConfs: {
+      [localPlanConf.id]: localPlanConf,
+      [serverPlanConf.id]: serverPlanConf,
+    },
+  })
+}
+
+const buildReportComparisonState = () => {
+  const localPlanConf = createFinishedLocalPlanConf()
+  const comparisonPlanConf = createFinishedComparisonPlanConf()
+
+  return baseStoreState({
+    planConfs: {
+      [localPlanConf.id]: localPlanConf,
+      [comparisonPlanConf.id]: comparisonPlanConf,
+    },
+  })
+}
+
+const buildReportExternalState = () => {
+  const externalPlanConf = createFetchedExternalReportPlanConf()
+
+  return baseStoreState({
+    externalPlanConfs: {
+      [MOCK_EXTERNAL_PLAN_ID]: externalPlanConf,
+    },
+  })
+}
+
+const buildReportInvalidIdState = () => {
+  const externalPlanConf = createErroredInvalidReportPlanConf()
+
+  return baseStoreState({
+    externalPlanConfs: {
+      [MOCK_INVALID_PLAN_ID]: externalPlanConf,
+    },
+  })
+}
+
+const buildReportNoDataState = () => {
+  const planConf = createNoDataReportPlanConf()
+
+  return baseStoreState({
+    planConfs: {
+      [planConf.id]: planConf,
+    },
+  })
+}
+
 export const buildHiilikarttaMockScenarioState = (
   state: string | null | undefined
 ): BuiltHiilikarttaMockScenarioState | null => {
@@ -437,6 +562,31 @@ export const buildHiilikarttaMockScenarioState = (
       return {
         state: normalizedState,
         storeState: buildCalculationState(CalculationState.FINISHED),
+      }
+    case 'report-single-local':
+      return {
+        state: normalizedState,
+        storeState: buildReportSingleLocalState(),
+      }
+    case 'report-comparison':
+      return {
+        state: normalizedState,
+        storeState: buildReportComparisonState(),
+      }
+    case 'report-external':
+      return {
+        state: normalizedState,
+        storeState: buildReportExternalState(),
+      }
+    case 'report-invalid-id':
+      return {
+        state: normalizedState,
+        storeState: buildReportInvalidIdState(),
+      }
+    case 'report-no-data':
+      return {
+        state: normalizedState,
+        storeState: buildReportNoDataState(),
       }
   }
 }

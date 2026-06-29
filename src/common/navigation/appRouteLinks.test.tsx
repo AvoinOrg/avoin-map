@@ -113,6 +113,15 @@ const routesById = {
       variant: 'canonical',
     },
   }),
+  canonicalPlanAreas: makeRoute({
+    id: 'canonicalPlanAreas',
+    fullPath: '/$locale/carbon/plans/$planId/areas',
+    metadata: {
+      key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN_AREAS,
+      appletNamespace: 'hiilikartta',
+      variant: 'canonical',
+    },
+  }),
   canonicalFolayer: makeRoute({
     id: 'canonicalFolayer',
     fullPath: '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug',
@@ -241,6 +250,47 @@ describe('appRouteLinks', () => {
         search: new URLSearchParams({ tab: 'own' }),
       })
     ).toBe('/fi/carbon/plans?tab=own')
+  })
+
+  it('resolves report scenario query params and close-link plan targets with local ids', () => {
+    const entries = collectAppRouteEntries(routesById)
+    const reportSearch = new URLSearchParams({
+      mockReset: '1',
+      mockCarbonState: 'report-single-local',
+      planIds: 'mock-plan-local',
+      prevPageId: 'mock-local-plan',
+      prevPageStep: 'areas',
+    })
+
+    expect(
+      resolveAppRouteHref({
+        router: makeRouter(),
+        entries,
+        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
+        routeParams: { locale: 'fi' },
+        search: reportSearch,
+      })
+    ).toBe(
+      '/fi/carbon/report?mockReset=1&mockCarbonState=report-single-local&planIds=mock-plan-local&prevPageId=mock-local-plan&prevPageStep=areas'
+    )
+
+    expect(
+      resolveAppRouteHref({
+        router: makeRouter(),
+        entries,
+        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
+        routeParams: { locale: 'fi', planId: 'mock-local-plan' },
+      })
+    ).toBe('/fi/carbon/plans/mock-local-plan')
+
+    expect(
+      resolveAppRouteHref({
+        router: makeRouter(),
+        entries,
+        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLAN_AREAS,
+        routeParams: { locale: 'fi', planId: 'mock-local-plan' },
+      })
+    ).toBe('/fi/carbon/plans/mock-local-plan/areas')
   })
 
   it('passes dynamic folayerIdSlug params and repeated URLSearchParams values', () => {
