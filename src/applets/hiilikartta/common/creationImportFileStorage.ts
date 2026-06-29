@@ -105,3 +105,15 @@ export const deleteCreationImportFile = async (storageKey: string) => {
     request.onsuccess = () => resolve()
   })
 }
+
+export const clearCreationImportFiles = async () => {
+  const store = await getCreationImportFileStore('readwrite')
+
+  await new Promise<void>((resolve, reject) => {
+    const request = store.clear()
+
+    request.onerror = () =>
+      reject(request.error ?? new Error('IDB clear failed'))
+    request.onsuccess = () => resolve()
+  })
+}

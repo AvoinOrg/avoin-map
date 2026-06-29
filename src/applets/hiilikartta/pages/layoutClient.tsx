@@ -15,6 +15,8 @@ import AppletWrapper from '#/components/common/AppletWrapper'
 import BreadcrumbNav from '#/components/Sidebar/BreadcrumbNav'
 import { useUserStore } from '#/common/store/userStore'
 
+import HiilikarttaMockScenarioBootstrap from '../common/mockScenarios/HiilikarttaMockScenarioBootstrap'
+import { isHiilikarttaMockScenariosEnabled } from '../common/mockScenarios/config'
 import { listedLayerGroups } from '../common/constants'
 import { usePlanStatsQuery } from '../common/queries/planStatsQuery'
 import { usePlanQueries } from '../common/queries/planQueries'
@@ -195,6 +197,8 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
     }
   }, [])
 
+  const shouldMountMockScenarioBootstrap = isHiilikarttaMockScenariosEnabled()
+
   return (
     <AppletWrapper
       mapContext={'hiilikartta'}
@@ -211,6 +215,9 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
         flexDirection: 'column',
       }}
     >
+      {shouldMountMockScenarioBootstrap ? (
+        <HiilikarttaMockScenarioBootstrap />
+      ) : null}
       {children}
     </AppletWrapper>
   )

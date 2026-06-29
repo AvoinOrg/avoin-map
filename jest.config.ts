@@ -19,10 +19,12 @@ const config: Config = {
   testPathIgnorePatterns: [
     '/node_modules/',
     '<rootDir>/.codex/',
+    '<rootDir>/.codex-orch/',
     '<rootDir>/.tmp/',
     '<rootDir>/agents/',
     '<rootDir>/legacy/',
   ],
+  modulePathIgnorePatterns: ['<rootDir>/.codex-orch/'],
   transform: {
     '^.+\\.(ts|tsx|js|jsx|mjs)$': [
       'ts-jest',
