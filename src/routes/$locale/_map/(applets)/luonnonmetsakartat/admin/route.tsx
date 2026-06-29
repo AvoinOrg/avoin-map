@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { LuonnonmetsakartatAdminLayout } from 'applets/luonnonmetsakartat/routeComponents'
+import LuonnonmetsakartatAdminLayout from 'applets/luonnonmetsakartat/pages/admin/layout'
 import {
   getStaticAppletHead,
   LUONNONMETSAKARTAT_ADMIN_TITLE,

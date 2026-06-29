@@ -1,7 +1,13 @@
+import { Outlet } from '@tanstack/react-router'
+
 import LayoutClient from './layoutClient'
 
-const Layout = ({ children }: { children: React.ReactNode }) => {
-  return <LayoutClient>{children}</LayoutClient>
+const Layout = () => {
+  return (
+    <LayoutClient>
+      <Outlet />
+    </LayoutClient>
+  )
 }
 
 export default Layout

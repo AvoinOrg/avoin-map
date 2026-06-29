@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { LuonnonmetsakartatFolayerSettingsRoute } from 'applets/luonnonmetsakartat/routeComponents'
+import LuonnonmetsakartatFolayerSettingsPage from 'applets/luonnonmetsakartat/pages/admin/taso/folayer/asetukset/page'
 import {
   getStaticAppletHead,
   LUONNONMETSAKARTAT_FOLAYER_SETTINGS_TITLE,
@@ -34,5 +34,5 @@ export const Route = createFileRoute(
     getStaticAppletHead({
       title: LUONNONMETSAKARTAT_FOLAYER_SETTINGS_TITLE,
     }),
-  component: LuonnonmetsakartatFolayerSettingsRoute,
+  component: LuonnonmetsakartatFolayerSettingsPage,
 })

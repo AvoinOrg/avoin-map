@@ -1,9 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { LuonnonmetsakartatIndexRoute } from 'applets/luonnonmetsakartat/routeComponents'
+import LuonnonmetsakartatPage from 'applets/luonnonmetsakartat/pages/page'
 
 export const Route = createFileRoute(
   '/$locale/_map/(applets)/luonnonmetsakartat/'
 )({
-  component: LuonnonmetsakartatIndexRoute,
+  component: LuonnonmetsakartatPage,
 })
