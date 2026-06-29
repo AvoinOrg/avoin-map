@@ -10,10 +10,12 @@ const DEFAULT_MAIN_LOCALE = 'en'
 const DEFAULT_SCENARIO_SET = 'root'
 const MIGRATION_BASELINE_SCENARIO_SET = 'migration-baseline'
 const COMPONENT_FIXTURE_SCENARIO_SET = 'component-fixtures'
+const CARBON_MOCK_SCENARIO_SET = 'carbon-mocks'
 const SUPPORTED_SCENARIO_SETS = [
   DEFAULT_SCENARIO_SET,
   MIGRATION_BASELINE_SCENARIO_SET,
   COMPONENT_FIXTURE_SCENARIO_SET,
+  CARBON_MOCK_SCENARIO_SET,
 ]
 
 const parseCompiledApplets = (raw) =>
@@ -223,6 +225,22 @@ const buildVisualScenarios = ({
 
       return buildComponentFixtureVisualScenarios({ baseUrl })
     }
+    case CARBON_MOCK_SCENARIO_SET: {
+      if (
+        !compiled.includes(MAIN_APPLET) ||
+        !compiled.includes('hiilikartta')
+      ) {
+        throw new Error(
+          'The carbon-mocks visual scenario set requires a main-app build with NEXT_PUBLIC_COMPILED_APPLETS including "main" and "hiilikartta".'
+        )
+      }
+
+      const {
+        buildCarbonMockVisualScenarios,
+      } = require('./carbonMockScenarios')
+
+      return buildCarbonMockVisualScenarios({ baseUrl })
+    }
     default:
       return rootScenarios
   }
@@ -232,6 +250,7 @@ module.exports = {
   DEFAULT_MAIN_LOCALE,
   DEFAULT_SCENARIO_SET,
   COMPONENT_FIXTURE_SCENARIO_SET,
+  CARBON_MOCK_SCENARIO_SET,
   MAIN_APPLET,
   MIGRATION_BASELINE_SCENARIO_SET,
   SUPPORTED_SCENARIO_SETS,

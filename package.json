@@ -27,6 +27,7 @@
     "visual:webgl:smoke:headless": "node ./utils/scripts/visual/webgl-smoke.js --browser-mode=headless --expect-webgl=unavailable",
     "visual:baseline": "node ./utils/scripts/visual/run.js --mode=baseline --base-url=http://127.0.0.1:3000",
     "visual:changed": "node ./utils/scripts/visual/run.js --mode=changed --base-url=http://127.0.0.1:3000",
+    "visual:carbon-mocks": "node ./utils/scripts/visual/run.js --mode=changed --scenario-set=carbon-mocks --base-url=http://127.0.0.1:3000 --no-start",
     "visual:after-edit": "node ./utils/scripts/visual/after-edit.js",
     "browser-state:sync:localhost": "node ./utils/scripts/visual/sync-host-chrome-state.js",
     "visual:baseline:host-state": "node ./utils/scripts/visual/run.js --mode=baseline --base-url=http://localhost:3000 --storage-state=.dev/browser-state/localhost-3000.storage-state.json",
