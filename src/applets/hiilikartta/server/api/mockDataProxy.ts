@@ -7,6 +7,10 @@ import type {
   ForestryScenarioId,
   PlanData,
 } from 'applets/hiilikartta/common/types'
+import {
+  MOCK_SERVER_PLAN_ID,
+  MOCK_SERVER_PLAN_SERVER_ID,
+} from 'applets/hiilikartta/common/mockScenarios/ids'
 
 type HiilikarttaMockApiEnv = Record<string, string | undefined> & {
   HIILIKARTTA_MOCK_API_ENABLED?: string
@@ -429,8 +433,8 @@ const createSeedPlans = () => {
 
   return [
     {
-      id: 'mock-plan-seeded',
-      visible_id: 'mock-visible-seeded',
+      id: MOCK_SERVER_PLAN_SERVER_ID,
+      visible_id: MOCK_SERVER_PLAN_ID,
       name: 'Mock seeded carbon plan',
       user_id: MOCK_AUTH_USER_ID,
       created_ts: MOCK_CREATED_TS,

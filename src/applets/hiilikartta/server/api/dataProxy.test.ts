@@ -9,6 +9,7 @@ import type * as UndiciModule from 'undici'
 import { MOCK_AUTH_USER_ID } from '#/common/auth/mock'
 import { featureCols } from 'applets/hiilikartta/common/types'
 import { processCalcQueryToReportData } from 'applets/hiilikartta/common/utils'
+import { MOCK_SERVER_PLAN_ID } from 'applets/hiilikartta/common/mockScenarios/ids'
 import { handleHiilikarttaDataProxyRequest } from './dataProxy'
 import { resetHiilikarttaMockApiForTests } from './mockDataProxy'
 
@@ -273,7 +274,7 @@ describe('handleHiilikarttaDataProxyRequest', () => {
     expect(data.stats).toEqual([
       expect.objectContaining({
         id: 'mock-plan-seeded',
-        visible_id: 'mock-visible-seeded',
+        visible_id: MOCK_SERVER_PLAN_ID,
         name: 'Mock seeded carbon plan',
         user_id: MOCK_AUTH_USER_ID,
         saved_ts: 1_735_776_000,
@@ -297,7 +298,7 @@ describe('handleHiilikarttaDataProxyRequest', () => {
     expect(seededPlan).toEqual(
       expect.objectContaining({
         id: 'mock-plan-seeded',
-        visible_id: 'mock-visible-seeded',
+        visible_id: MOCK_SERVER_PLAN_ID,
         user_id: MOCK_AUTH_USER_ID,
         forestry_scenario: 2,
         calculation_status: 'FINISHED',

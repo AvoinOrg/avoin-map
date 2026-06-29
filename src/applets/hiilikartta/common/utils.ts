@@ -24,8 +24,13 @@ import {
   getZoningClassesCache,
 } from './zoningClasses'
 
+const getMapIdSafePlanId = (planId: string) =>
+  planId.replace(/[^A-Za-z0-9]/g, (char) => {
+    return `_u${char.charCodeAt(0).toString(16)}_`
+  })
+
 export const getPlanLayerGroupId = (planId: string) => {
-  return `${planId}_zoning_plan`
+  return `${getMapIdSafePlanId(planId)}_zoning_plan`
 }
 
 export const getPlanSourceId = (planId: string) => {

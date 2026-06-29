@@ -17,6 +17,8 @@ import { commonDevtools } from '#/common/store/shared-devtools'
 import { createIndexedDbStorage } from '#/common/utils/store'
 
 import { getPlanLayerGroupId, stripFeatureExtras } from '../common/utils'
+import { isStaticMockCalculationServerId } from '../common/mockScenarios/ids'
+import { isHiilikarttaMockScenariosEnabled } from '../common/mockScenarios/config'
 import { DEFAULT_FORESTRY_SCENARIO } from '../common/constants'
 import {
   CalculationState,
@@ -90,6 +92,12 @@ type Actions = {
   deleteCreationPlaceholderPlanConf: (id: string) => Promise<void>
   updateGlobalState: (globalState: GlobalState) => void
 }
+
+const shouldSkipStaticMockCalculationPolling = (
+  serverId: string | null | undefined
+) =>
+  isHiilikarttaMockScenariosEnabled() &&
+  isStaticMockCalculationServerId(serverId)
 
 export const useAppletStore = create<Vars & Actions>()(
   // devtools(
@@ -516,7 +524,9 @@ useAppletStore.subscribe(
   (state) =>
     pickBy(
       state.planConfs,
-      (planConf) => planConf.calculationState === CalculationState.CALCULATING
+      (planConf) =>
+        planConf.calculationState === CalculationState.CALCULATING &&
+        !shouldSkipStaticMockCalculationPolling(planConf.serverId)
     ),
   (planConfs, _previousPlanConfs) => {
     Object.keys(planConfs).forEach((planId: string) => {

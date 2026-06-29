@@ -11,9 +11,10 @@ import {
   MOCK_RESET_QUERY_PARAM,
 } from './config'
 import { resetHiilikarttaMockState } from './reset'
+import { applyHiilikarttaMockScenarioState } from './scenarios'
 
 export type AvoinCarbonMockSeedResult = {
-  action: 'noop' | 'reset'
+  action: 'noop' | 'reset' | 'seed'
   applied: boolean
   reason?: 'unsupported-state'
   state: string
@@ -31,7 +32,7 @@ declare global {
 }
 
 const normalizeMockCarbonState = (state: string | null | undefined) =>
-  state?.trim().toLowerCase() ?? ''
+  state?.trim().toLowerCase().replace(/[\s_]+/g, '-') ?? ''
 
 export const applyHiilikarttaMockScenarioSeed = async ({
   reset,
@@ -53,6 +54,16 @@ export const applyHiilikarttaMockScenarioSeed = async ({
       action: 'reset',
       applied: true,
       state: normalizedState || 'reset',
+    }
+  }
+
+  const appliedScenario = applyHiilikarttaMockScenarioState(state)
+
+  if (appliedScenario != null) {
+    return {
+      action: 'seed',
+      applied: true,
+      state: appliedScenario.state,
     }
   }
 

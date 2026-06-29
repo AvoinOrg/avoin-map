@@ -6,7 +6,11 @@ import React, { useEffect } from 'react'
 import { useQueries, useQuery } from '@tanstack/react-query'
 
 import { useAuthSession } from '#/common/auth'
-import { useAppParams, useAppPathname } from '#/common/navigation/navigation'
+import {
+  useAppParams,
+  useAppPathname,
+  useAppSearchParams,
+} from '#/common/navigation/navigation'
 import {
   compiledApplets,
   getPathnameWithoutLocale,
@@ -16,7 +20,11 @@ import BreadcrumbNav from '#/components/Sidebar/BreadcrumbNav'
 import { useUserStore } from '#/common/store/userStore'
 
 import HiilikarttaMockScenarioBootstrap from '../common/mockScenarios/HiilikarttaMockScenarioBootstrap'
-import { isHiilikarttaMockScenariosEnabled } from '../common/mockScenarios/config'
+import {
+  MOCK_CARBON_STATE_QUERY_PARAM,
+  isHiilikarttaMockScenariosEnabled,
+} from '../common/mockScenarios/config'
+import { normalizeHiilikarttaMockScenarioState } from '../common/mockScenarios/scenarios'
 import { listedLayerGroups } from '../common/constants'
 import { usePlanStatsQuery } from '../common/queries/planStatsQuery'
 import { usePlanQueries } from '../common/queries/planQueries'
@@ -34,6 +42,7 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   const { data: session, status } = useAuthSession()
   const accessToken = session?.accessToken
   const pathname = useAppPathname()
+  const searchParams = useAppSearchParams()
   const { locale } = useAppParams()
   const addSignOutAction = useUserStore((state) => state.addSignOutAction)
   const removeSignOutAction = useUserStore((state) => state.removeSignOutAction)
@@ -62,19 +71,33 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
     pathnameWithoutLocale.startsWith('/carbon/plans') ||
     pathnameWithoutLocale.startsWith('/plans')
   const showBreadcrumbNav = !isHiilikarttaRoot && !isHiilikarttaKaavat
+  const shouldMountMockScenarioBootstrap = isHiilikarttaMockScenariosEnabled()
+  const mockCarbonStateQuery = searchParams.get(MOCK_CARBON_STATE_QUERY_PARAM)
+  const isMockScenarioQueryActive =
+    shouldMountMockScenarioBootstrap &&
+    normalizeHiilikarttaMockScenarioState(mockCarbonStateQuery) != null
 
   const planConfStatsQuery = useQuery({
     ...usePlanStatsQuery(),
     enabled: false,
   })
 
-  const planQs = useQueries(usePlanQueries(planConfsToFetch))
+  const planQs = useQueries(
+    usePlanQueries(isMockScenarioQueryActive ? [] : planConfsToFetch)
+  )
 
   // Plan conf hydration flow:
   // 1) sync session -> local plans + fetch stats
   // 2) decide which plans to fetch based on server stats
   // 3) kick off per-plan fetches and clear loading state when done
   useEffect(() => {
+    if (isMockScenarioQueryActive) {
+      setPlanConfsToFetch((previousPlanConfsToFetch) =>
+        previousPlanConfsToFetch.length === 0 ? previousPlanConfsToFetch : []
+      )
+      return
+    }
+
     if (status === 'loading') {
       updateGlobalState(GlobalState.INITIALIZING)
       return
@@ -109,9 +132,13 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
       }
       updateGlobalState(GlobalState.IDLE)
     }
-  }, [accessToken, session?.user?.id, status])
+  }, [accessToken, isMockScenarioQueryActive, session?.user?.id, status])
 
   useEffect(() => {
+    if (isMockScenarioQueryActive) {
+      return
+    }
+
     const processPlanConfs = async (data: PlaceholderPlanConf[]) => {
       const filteredPlanConfs = []
       for (const placeholderPlanConf of data) {
@@ -151,9 +178,13 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
         updateGlobalState(GlobalState.IDLE)
       }
     }
-  }, [session?.user?.id, planConfStatsQuery.data])
+  }, [isMockScenarioQueryActive, session?.user?.id, planConfStatsQuery.data])
 
   useEffect(() => {
+    if (isMockScenarioQueryActive) {
+      return
+    }
+
     if (session?.user?.id && planConfsToFetch) {
       if (planConfsToFetch.length > 0) {
         planQs.forEach((planQ) => {
@@ -161,9 +192,13 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
         })
       }
     }
-  }, [session?.user?.id, planConfsToFetch])
+  }, [isMockScenarioQueryActive, session?.user?.id, planConfsToFetch])
 
   useEffect(() => {
+    if (isMockScenarioQueryActive) {
+      return
+    }
+
     if (planQs.length > 0) {
       const allCompleted = planQs.every(
         (planQ) => planQ.isSuccess || planQ.isError
@@ -173,7 +208,7 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
         updateGlobalState(GlobalState.IDLE)
       }
     }
-  }, [planQs])
+  }, [isMockScenarioQueryActive, planQs])
 
   // Register sign-out cleanup so user-owned plans are cleared on logout.
   useEffect(() => {
@@ -196,8 +231,6 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
       removeSignOutAction('hiilikartta')
     }
   }, [])
-
-  const shouldMountMockScenarioBootstrap = isHiilikarttaMockScenariosEnabled()
 
   return (
     <AppletWrapper

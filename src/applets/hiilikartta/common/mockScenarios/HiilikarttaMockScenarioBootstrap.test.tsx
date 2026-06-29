@@ -9,14 +9,20 @@ import {
 
 const mockUseAppSearchParams = jest.fn()
 const mockResetHiilikarttaMockState = jest.fn()
+const mockApplyHiilikarttaMockScenarioState = jest.fn()
 
 jest.mock('#/common/navigation/navigation', () => ({
   useAppSearchParams: () => mockUseAppSearchParams(),
 }))
 
 jest.mock('./reset', () => ({
-  resetHiilikarttaMockState: (...args: any[]) =>
+  resetHiilikarttaMockState: (...args: unknown[]) =>
     mockResetHiilikarttaMockState(...args),
+}))
+
+jest.mock('./scenarios', () => ({
+  applyHiilikarttaMockScenarioState: (...args: unknown[]) =>
+    mockApplyHiilikarttaMockScenarioState(...args),
 }))
 
 import HiilikarttaMockScenarioBootstrap, {
@@ -36,6 +42,21 @@ describe('HiilikarttaMockScenarioBootstrap', () => {
   beforeEach(() => {
     mockUseAppSearchParams.mockReturnValue(new URLSearchParams())
     mockResetHiilikarttaMockState.mockResolvedValue(undefined)
+    mockApplyHiilikarttaMockScenarioState.mockImplementation((state) => {
+      const normalizedState =
+        typeof state === 'string'
+          ? state.trim().toLowerCase().replace(/[\s_]+/g, '-')
+          : ''
+
+      if (normalizedState === 'plan-valid') {
+        return {
+          state: 'plan-valid',
+          storeState: {},
+        }
+      }
+
+      return null
+    })
     delete window.__avoinCarbonMocks
   })
 
@@ -44,6 +65,7 @@ describe('HiilikarttaMockScenarioBootstrap', () => {
     jest.restoreAllMocks()
     mockUseAppSearchParams.mockReset()
     mockResetHiilikarttaMockState.mockReset()
+    mockApplyHiilikarttaMockScenarioState.mockReset()
     delete window.__avoinCarbonMocks
   })
 
@@ -95,6 +117,47 @@ describe('HiilikarttaMockScenarioBootstrap', () => {
     await waitFor(() =>
       expect(mockResetHiilikarttaMockState).toHaveBeenCalledTimes(1)
     )
+    expect(mockApplyHiilikarttaMockScenarioState).not.toHaveBeenCalled()
+  })
+
+  it('applies supported non-reset query seed states', async () => {
+    mockUseAppSearchParams.mockReturnValue(
+      new URLSearchParams(`${MOCK_CARBON_STATE_QUERY_PARAM}=plan-valid`)
+    )
+
+    renderBootstrap()
+
+    await waitFor(() =>
+      expect(mockApplyHiilikarttaMockScenarioState).toHaveBeenCalledWith(
+        'plan-valid'
+      )
+    )
+    expect(mockResetHiilikarttaMockState).not.toHaveBeenCalled()
+  })
+
+  it('applies supported states through the browser helper API', async () => {
+    renderBootstrap()
+
+    await waitFor(() => {
+      expect(window.__avoinCarbonMocks?.seed).toEqual(expect.any(Function))
+    })
+
+    let result: Awaited<
+      ReturnType<NonNullable<typeof window.__avoinCarbonMocks>['seed']>
+    > | null = null
+
+    await act(async () => {
+      result = (await window.__avoinCarbonMocks?.seed('PLAN_VALID')) ?? null
+    })
+
+    expect(mockApplyHiilikarttaMockScenarioState).toHaveBeenCalledWith(
+      'PLAN_VALID'
+    )
+    expect(result).toEqual({
+      action: 'seed',
+      applied: true,
+      state: 'plan-valid',
+    })
   })
 
   it('keeps unknown seed states as non-throwing no-ops', async () => {
