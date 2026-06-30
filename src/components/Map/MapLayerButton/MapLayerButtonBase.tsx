@@ -56,8 +56,13 @@ type Props = {
   ) => ResolvedAnchorEl
   paperSx?: React.ComponentProps<typeof MapButtonMenuSurface>['paperSx']
   listSx?: React.ComponentProps<typeof LayerMenuContent>['listSx']
+  menuZIndex?: MapLayerButtonMenuZIndex
   scrollMaxHeight?: string
 }
+
+export type MapLayerButtonMenuZIndex = React.ComponentProps<
+  typeof MapButtonMenuPositioner
+>['zIndex']
 
 export type MapLayerButtonProps = {
   shownLayerLevels: LayerOrderLevel[]
@@ -80,6 +85,7 @@ const MapLayerButtonBase = ({
   resolveAnchorEl,
   paperSx,
   listSx,
+  menuZIndex = (theme) => theme.zIndex.drawer + 3,
   scrollMaxHeight,
 }: Props) => {
   const listedLayerGroups = useMapStore((state) => state.listedLayerGroups)
@@ -184,7 +190,7 @@ const MapLayerButtonBase = ({
         alignOffset={popperOffset[0]}
         sideOffset={popperOffset[1]}
         collisionPadding={popperPadding}
-        zIndex={(theme) => theme.zIndex.drawer + 3}
+        zIndex={menuZIndex}
       >
         <MapButtonMenuSurface
           isVertical={isVertical}

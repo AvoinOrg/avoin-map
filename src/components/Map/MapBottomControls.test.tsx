@@ -36,9 +36,10 @@ const mockUIState = {
   sidebarWidth: 0,
   sidebarBoundaries: {},
 }
+let mockIsMobile = false
 
 jest.mock('#/common/hooks/ui/useIsMobile', () => ({
-  useIsMobile: () => false,
+  useIsMobile: () => mockIsMobile,
 }))
 
 jest.mock('#/common/store', () => ({
@@ -54,8 +55,24 @@ jest.mock('#/common/store/mapStore/mapInstanceStore', () => ({
 }))
 
 jest.mock('#/common/utils/sidebarBoundaryRegistry', () => ({
-  selectActiveSidebarBoundaryId: () => null,
-  selectActiveSidebarMode: () => null,
+  selectActiveSidebarBoundaryId: (
+    boundaries: typeof mockUIState.sidebarBoundaries
+  ) => {
+    const [boundary] = Object.values(boundaries) as Array<{
+      id?: string
+      mode?: string
+    }>
+
+    return boundary?.id
+  },
+  selectActiveSidebarMode: (boundaries: typeof mockUIState.sidebarBoundaries) => {
+    const [boundary] = Object.values(boundaries) as Array<{
+      id?: string
+      mode?: string
+    }>
+
+    return boundary?.mode
+  },
 }))
 
 const renderWithProviders = (ui: React.ReactElement) =>
@@ -76,6 +93,10 @@ describe('MapBottomControls', () => {
     mapHandlers.clear()
     mockMap.on.mockClear()
     mockMap.off.mockClear()
+    mockIsMobile = false
+    mockUIState.isSidebarOpen = false
+    mockUIState.sidebarWidth = 0
+    mockUIState.sidebarBoundaries = {}
   })
 
   it('closes the attribution panel on map events without originalEvent data', async () => {
@@ -104,5 +125,27 @@ describe('MapBottomControls', () => {
     })
 
     expect(screen.queryByText('Map attribution')).not.toBeInTheDocument()
+  })
+
+  it('hides fixed bottom controls while the mobile Hiilikartta home sidebar is open', () => {
+    mockIsMobile = true
+    mockUIState.isSidebarOpen = true
+    mockUIState.sidebarBoundaries = {
+      'hiilikartta-home': {
+        id: 'hiilikartta-home',
+        mode: 'floating',
+        depth: 0,
+        config: { width: 'compact' },
+        runtimeOptions: {},
+        registrationOrder: 1,
+      },
+    }
+
+    renderWithProviders(<MapBottomControls />)
+
+    expect(screen.queryByLabelText('Cookie settings')).not.toBeInTheDocument()
+    expect(
+      screen.queryByLabelText('Toggle attribution information')
+    ).not.toBeInTheDocument()
   })
 })

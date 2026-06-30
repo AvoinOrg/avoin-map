@@ -12,6 +12,7 @@ import {
 import DOMPurify from 'dompurify'
 
 import {
+  HIILIKARTTA_HOME_FLOATING_GUTTER_PX,
   MAP_CONTROL_EDGE_GUTTER_PX,
 } from '#/common/constants/map'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
@@ -35,6 +36,7 @@ import MapBottomLeftFloatingControlsSlot from './MapBottomLeftFloatingControlsSl
 const INITIAL_PANEL_MAX_WIDTH_PX = 480
 const MIN_INLINE_PANEL_WIDTH_PX = 120
 const PANEL_GAP_PX = 8
+const HIILIKARTTA_HOME_SIDEBAR_BOUNDARY_ID = 'hiilikartta-home'
 
 type MainSidebarPlacement =
   | 'under-left'
@@ -101,6 +103,8 @@ const MapBottomControls = () => {
   )
   const isMobile = useIsMobile('desktop')
   const isHomeSidebarActive = activeSidebarMode === 'home'
+  const isHiilikarttaHomeSidebarActive =
+    activeSidebarId === HIILIKARTTA_HOME_SIDEBAR_BOUNDARY_ID
   const useMainSidebarBottomSlot =
     isHomeSidebarActive && activeSidebarId != null && isSidebarOpen && !isMobile
   const useMainSidebarTopSlot =
@@ -142,8 +146,12 @@ const MapBottomControls = () => {
     [mapAttributionHtml]
   )
 
-  const spacingLeftPx = MAP_CONTROL_EDGE_GUTTER_PX
-  const spacingBottomPx = MAP_CONTROL_EDGE_GUTTER_PX
+  const controlEdgeGutterPx =
+    !isMobile && isHiilikarttaHomeSidebarActive
+      ? HIILIKARTTA_HOME_FLOATING_GUTTER_PX
+      : MAP_CONTROL_EDGE_GUTTER_PX
+  const spacingLeftPx = controlEdgeGutterPx
+  const spacingBottomPx = controlEdgeGutterPx
 
   const desiredLeftOffsetPx = isMobile
     ? spacingLeftPx
@@ -406,6 +414,10 @@ const MapBottomControls = () => {
       </Box>
     </>
   )
+
+  if (isHiilikarttaHomeSidebarActive && isMobile && isSidebarOpen) {
+    return null
+  }
 
   if (useMainSidebarTopSlot && mainSidebarTopControlsSlot != null) {
     return (

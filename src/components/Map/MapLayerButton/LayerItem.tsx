@@ -255,10 +255,6 @@ const LayerItem = ({
             px: '1rem',
             position: 'relative',
             zIndex: 3,
-            display: 'grid',
-            gridTemplateColumns: '1fr auto',
-            alignItems: 'center',
-            gap: 1,
           }}
         >
           <Slider.Root
@@ -340,20 +336,6 @@ const LayerItem = ({
               </Slider.Track>
             </Slider.Control>
           </Slider.Root>
-          <Box
-            component="span"
-            aria-hidden="true"
-            sx={{
-              minWidth: '2.5rem',
-              color: 'text.secondary',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              lineHeight: 1,
-              textAlign: 'right',
-            }}
-          >
-            {Math.round(resolvedOpacity * 100)}%
-          </Box>
         </Box>
       )}
     </Box>

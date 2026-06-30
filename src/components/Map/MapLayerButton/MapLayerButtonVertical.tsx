@@ -3,7 +3,10 @@
 import React, { useCallback, useMemo } from 'react'
 
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
-import MapLayerButtonBase, { MapLayerButtonProps } from './MapLayerButtonBase'
+import MapLayerButtonBase, {
+  type MapLayerButtonMenuZIndex,
+  type MapLayerButtonProps,
+} from './MapLayerButtonBase'
 
 const LAYER_MENU_HEADER_HEIGHT = '2.5rem'
 const VERTICAL_MENU_TOP_OFFSET = 16
@@ -67,6 +70,13 @@ const MapLayerButtonVertical = ({
     }),
     [isMobile, verticalMenuWidth]
   )
+  const menuZIndex = useMemo<MapLayerButtonMenuZIndex | undefined>(
+    () =>
+      isMobile
+        ? (theme) => theme.zIndex.drawer + 20
+        : undefined,
+    [isMobile]
+  )
 
   const placement = isMobile ? 'bottom-start' : 'left-start'
   const scrollMaxHeight = isMobile
@@ -86,6 +96,7 @@ const MapLayerButtonVertical = ({
       popperPadding={popperPadding}
       resolveAnchorEl={resolveAnchorEl}
       paperSx={paperSx}
+      menuZIndex={menuZIndex}
       scrollMaxHeight={scrollMaxHeight}
     />
   )

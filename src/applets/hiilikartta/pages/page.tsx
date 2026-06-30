@@ -20,9 +20,10 @@ import { LayerToggleRow } from '#/components/common/LayerToggleRow'
 import { listedLayerGroups } from '../common/constants'
 import PlanOutlineIcon from '../components/PlanOutlineIcon'
 
-const HOME_SIDEBAR_HEADER_PADDING_REM = 0.75
+const HOME_SIDEBAR_HEADER_PADDING_REM = 0.375
 const HOME_SIDEBAR_LEFT_WALL_REM = 2
 const HOME_SIDEBAR_LOGO_ROW_PADDING_REM = 0.5
+const HOME_INTRO_BASELINE_LINE_WORD_COUNTS = [3, 4, 2, 2, 2, 2, 1]
 const AVOIN_LOGO_PROPS: React.ImgHTMLAttributes<HTMLImageElement> = {
   src: '/files/img/Avoinlogo_Pysty_Green_Rek2024.svg',
   alt: 'Avoin',
@@ -50,7 +51,7 @@ const HomeSidebarHeader = () => {
           mobile: `${HOME_SIDEBAR_HEADER_PADDING_REM}rem`,
           desktop: `${HOME_SIDEBAR_HEADER_PADDING_REM}rem`,
         },
-        pt: { mobile: '0.625rem', desktop: '0.625rem' },
+        pt: { mobile: '0.4375rem', desktop: '0.5rem' },
         pb: { mobile: '0.375rem', desktop: '0.5rem' },
         flexShrink: 0,
       }}
@@ -58,7 +59,7 @@ const HomeSidebarHeader = () => {
       <Box
         sx={{
           position: 'relative',
-          minHeight: { mobile: '6rem', desktop: '6.25rem' },
+          minHeight: { mobile: '5.125rem', desktop: '5.625rem' },
           borderRadius: '0.625rem',
           overflow: 'hidden',
           backgroundImage:
@@ -81,8 +82,8 @@ const HomeSidebarHeader = () => {
             display: 'block',
             position: 'relative',
             zIndex: 1,
-            px: '1.25rem',
-            pt: { mobile: '2.5rem', desktop: '2.625rem' },
+            px: { mobile: '1rem', desktop: '1.25rem' },
+            pt: { mobile: '2rem', desktop: '2rem' },
             color: '#111111',
             fontSize: '0.75rem',
             fontWeight: 700,
@@ -98,6 +99,25 @@ const HomeSidebarHeader = () => {
   )
 }
 
+const getHomeIntroLines = (text: string) => {
+  const words = text.trim().split(/\s+/)
+  const expectedWordCount = HOME_INTRO_BASELINE_LINE_WORD_COUNTS.reduce(
+    (sum, count) => sum + count,
+    0
+  )
+
+  if (words.length !== expectedWordCount) {
+    return [text]
+  }
+
+  let index = 0
+  return HOME_INTRO_BASELINE_LINE_WORD_COUNTS.map((wordCount) => {
+    const line = words.slice(index, index + wordCount).join(' ')
+    index += wordCount
+    return line
+  })
+}
+
 const Page = () => {
   const { t } = useTranslate('hiilikartta')
   const router = useAppRouter()
@@ -105,6 +125,7 @@ const Page = () => {
   const toggleLayerGroup = useMapStore((state) => state.toggleLayerGroup)
   const visibleLayerGroupIds = useVisibleLayerGroupIds()
   const introText = t('sidebar.main.intro')
+  const introLines = useMemo(() => getHomeIntroLines(introText), [introText])
 
   const vegetationLayerGroup = useMemo(
     () =>
@@ -127,62 +148,74 @@ const Page = () => {
         <HomeSidebarHeader />
       </IntoSidebarHeaderSlot>
       <IntoSidebarFooterSlot>
-        <ButtonBox
-          component="button"
-          type="button"
-          aria-label="Open plans page"
-          onClick={() =>
-            router.push(
-              buildAppRouteHref({
-                routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
-              })
-            )
-          }
+        <Box
           sx={{
             width: '100%',
             height: '5rem',
-            px: {
-              mobile: `${HOME_SIDEBAR_LEFT_WALL_REM}rem`,
-              desktop: `${HOME_SIDEBAR_LEFT_WALL_REM}rem`,
-            },
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'flex-start',
-            gap: { mobile: '1.375rem', desktop: '1.625rem' },
-            border: 'none',
             borderRadius: { mobile: 0, desktop: '6px 6px 10px 10px' },
             backgroundColor: '#b0ff6b',
-            color: '#111111',
-            cursor: 'pointer',
             boxShadow: '0px 1px 1px rgba(189, 189, 189, 0.25)',
-            '&:hover': {
-              backgroundColor: '#b0ff6b',
-            },
           }}
         >
-          <PlanOutlineIcon
-            variant="large"
+          <ButtonBox
+            component="button"
+            type="button"
+            aria-label="Open plans page"
+            onClick={() =>
+              router.push(
+                buildAppRouteHref({
+                  routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
+                })
+              )
+            }
             sx={{
-              width: '1.375rem',
-              height: '1rem',
-              flexShrink: 0,
+              width: { mobile: 'calc(100% - 4.75rem)', desktop: '100%' },
+              height: '100%',
+              pl: {
+                mobile: `${HOME_SIDEBAR_LEFT_WALL_REM}rem`,
+                desktop: `${HOME_SIDEBAR_LEFT_WALL_REM}rem`,
+              },
+              pr: { mobile: 0, desktop: `${HOME_SIDEBAR_LEFT_WALL_REM}rem` },
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-start',
+              gap: { mobile: '1.375rem', desktop: '1.625rem' },
+              border: 'none',
+              borderRadius: { mobile: 0, desktop: '6px 6px 10px 10px' },
+              backgroundColor: 'transparent',
               color: '#111111',
-            }}
-          />
-          <Box
-            component="span"
-            sx={{
-              fontSize: '0.6875rem',
-              fontWeight: 700,
-              lineHeight: '0.8125rem',
-              letterSpacing: '0.1em',
-              textAlign: 'left',
-              textTransform: 'none',
+              cursor: 'pointer',
+              '&:hover': {
+                backgroundColor: 'transparent',
+              },
             }}
           >
-            Luo Kaava & laske hiilivaikutukset
-          </Box>
-        </ButtonBox>
+            <PlanOutlineIcon
+              variant="large"
+              sx={{
+                width: '1.375rem',
+                height: '1rem',
+                flexShrink: 0,
+                color: '#111111',
+              }}
+            />
+            <Box
+              component="span"
+              sx={{
+                fontSize: '0.6875rem',
+                fontWeight: 700,
+                lineHeight: '0.8125rem',
+                letterSpacing: '0.1em',
+                textAlign: 'left',
+                textTransform: 'none',
+              }}
+            >
+              Luo Kaava & laske hiilivaikutukset
+            </Box>
+          </ButtonBox>
+        </Box>
       </IntoSidebarFooterSlot>
       <SidebarContentBox
         sxOuter={{
@@ -234,7 +267,15 @@ const Page = () => {
                   maxWidth: '18.2rem',
                 }}
               >
-                {introText}
+                {introLines.map((line, index) => (
+                  <Box
+                    component="span"
+                    key={`${index}-${line}`}
+                    sx={{ display: 'block' }}
+                  >
+                    {line}
+                  </Box>
+                ))}
               </Box>
 
               {vegetationLayerGroup && (

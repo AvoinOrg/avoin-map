@@ -198,7 +198,6 @@ describe('LayerMenuContent', () => {
     expect(slider).toBeInTheDocument()
     expect(slider).toHaveAttribute('aria-valuenow', '0.65')
     expect(slider).toHaveAttribute('aria-valuetext', '65%')
-    expect(screen.getByText('65%')).toBeInTheDocument()
   })
 
   it('toggles layer info content from the info button', () => {
