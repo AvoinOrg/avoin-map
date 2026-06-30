@@ -1,10 +1,8 @@
-import { notFound, redirect } from '@tanstack/react-router'
+import { redirect } from '@tanstack/react-router'
 
 import {
-  findAppletForRequestHost,
   getDefaultLocaleForRequestNamespace,
   getLocalesForRequestNamespace,
-  getStandaloneRequestApplet,
 } from '#/common/routing/requestRouting'
 
 type AppletRouteLocation = {
@@ -19,19 +17,6 @@ type GuardAppletLocaleArgs = {
   location: AppletRouteLocation
 }
 
-const getBrowserUrl = () => {
-  if (typeof window === 'undefined') return null
-
-  return new URL(window.location.href)
-}
-
-const getDomainAppletNamespace = () => {
-  const browserUrl = getBrowserUrl()
-  if (!browserUrl) return null
-
-  return findAppletForRequestHost(browserUrl.host, browserUrl, undefined)
-}
-
 const getLocaleRedirectHref = ({
   targetLocale,
   location,
@@ -44,12 +29,6 @@ const getLocaleRedirectHref = ({
 
   return `/${segments.join('/')}${location.searchStr}${location.hash}`
 }
-
-export const getVisibleAppletRootNamespace = () =>
-  getStandaloneRequestApplet() ?? getDomainAppletNamespace()
-
-export const isVisibleAppletRootRouteEnabled = (namespace: string) =>
-  getVisibleAppletRootNamespace() === namespace
 
 export const guardAppletLocale = ({
   namespace,
@@ -67,24 +46,4 @@ export const guardAppletLocale = ({
     }),
     statusCode: 308,
   })
-}
-
-export const guardVisibleAppletRootRoute = (
-  args: GuardAppletLocaleArgs
-) => {
-  if (!isVisibleAppletRootRouteEnabled(args.namespace)) {
-    throw notFound()
-  }
-
-  guardAppletLocale(args)
-}
-
-export const guardVisibleAppletRootIndexRoute = ({
-  locale,
-  location,
-}: Omit<GuardAppletLocaleArgs, 'namespace'>) => {
-  const namespace = getVisibleAppletRootNamespace()
-  if (!namespace) return
-
-  guardAppletLocale({ namespace, locale, location })
 }

@@ -4,12 +4,10 @@ const path = require('path')
 
 const {
   materializeStandaloneAppletRoutes,
-  pruneAppletAliasStartRoutes,
   pruneAppletApiStartRoutes,
   pruneAppletSourceFolders,
   pruneCanonicalStartAppletRoutes,
-  pruneStandaloneRootAliasStartRoutes,
-  writePrunedVisibleAppletRootRoute,
+  pruneStandaloneMainStartRoutes,
 } = require('./prebuildFolderPrune')
 
 const makeTempProject = () =>
@@ -89,8 +87,6 @@ const mapRoute = (...segments) =>
 
 const apiRoute = (...segments) => path.join('src', 'routes', 'api', ...segments)
 
-const runtimeFile = (...segments) => path.join('src', 'runtime', ...segments)
-
 const standaloneRoute = (...segments) => mapRoute('(standalone)', ...segments)
 
 const makeBuildConfig = ({ includesMain, selected }) => ({
@@ -122,17 +118,6 @@ const writeCommonFixture = (root) => {
     relativePath: mapRoute('route.tsx'),
     content: routeFile('/$locale/_map'),
   })
-  writeFile({
-    root,
-    relativePath: mapRoute('report.tsx'),
-    content: routeFile('/$locale/_map/report'),
-  })
-  writeFile({
-    root,
-    relativePath: mapRoute('raportti.tsx'),
-    content: routeFile('/$locale/_map/raportti'),
-  })
-
   writeFile({
     root,
     relativePath: apiRoute('hiilikartta', '$.ts'),
@@ -274,11 +259,7 @@ const runPruneTopology = ({ root, buildConfig }) => {
     buildConfig,
     projectRoot: root,
   })
-  const removedAliases = pruneAppletAliasStartRoutes({
-    buildConfig,
-    projectRoot: root,
-  })
-  const removedStandaloneAliases = pruneStandaloneRootAliasStartRoutes({
+  const removedStandaloneMain = pruneStandaloneMainStartRoutes({
     buildConfig,
     projectRoot: root,
   })
@@ -286,19 +267,13 @@ const runPruneTopology = ({ root, buildConfig }) => {
     buildConfig,
     projectRoot: root,
   })
-  const generatedVisibleRootRoute = writePrunedVisibleAppletRootRoute({
-    buildConfig,
-    projectRoot: root,
-  })
 
   return {
-    generatedVisibleRootRoute,
     materialized,
-    removedAliases,
     removedApis,
     removedCanonical,
     removedSource,
-    removedStandaloneAliases,
+    removedStandaloneMain,
   }
 }
 
@@ -351,24 +326,14 @@ describe('prebuildFolderPrune standalone route materialization', () => {
     expect(exists({ root, relativePath: appletRoute('carbon') })).toBe(false)
     expect(exists({ root, relativePath: appletRoute('carbonmap') })).toBe(false)
     expect(exists({ root, relativePath: mapRoute('index.tsx') })).toBe(false)
+    expect(result.removedStandaloneMain).toEqual([
+      mapRoute('index.tsx'),
+    ])
     expect(exists({ root, relativePath: mapRoute('plans') })).toBe(false)
-    expect(exists({ root, relativePath: mapRoute('report.tsx') })).toBe(false)
     expect(exists({ root, relativePath: apiRoute('hiilikartta') })).toBe(true)
     expect(exists({ root, relativePath: apiRoute('luonnonmetsakartat') })).toBe(
       false
     )
-    expect(result.generatedVisibleRootRoute).toBe(
-      runtimeFile('visibleAppletRootRoute.tsx')
-    )
-    expect(
-      read({ root, relativePath: runtimeFile('visibleAppletRootRoute.tsx') })
-    ).toContain("from 'applets/hiilikartta/routeComponents'")
-    expect(
-      read({ root, relativePath: runtimeFile('visibleAppletRootRoute.tsx') })
-    ).not.toContain("from 'applets/main/page'")
-    expect(
-      read({ root, relativePath: runtimeFile('visibleAppletRootRoute.tsx') })
-    ).not.toContain("from 'applets/energiakartta/routeComponents'")
     expect(
       exists({
         root,
@@ -511,23 +476,12 @@ describe('prebuildFolderPrune standalone route materialization', () => {
     ).toBe(true)
     expect(exists({ root, relativePath: mapRoute('plans') })).toBe(false)
     expect(exists({ root, relativePath: mapRoute('kaavat') })).toBe(false)
-    expect(exists({ root, relativePath: mapRoute('report.tsx') })).toBe(true)
+    expect(exists({ root, relativePath: mapRoute('index.tsx') })).toBe(true)
+    expect(result.removedStandaloneMain).toEqual([])
     expect(exists({ root, relativePath: mapRoute('admin') })).toBe(false)
     expect(exists({ root, relativePath: apiRoute('hiilikartta') })).toBe(true)
     expect(exists({ root, relativePath: apiRoute('luonnonmetsakartat') })).toBe(
       false
     )
-    expect(result.generatedVisibleRootRoute).toBe(
-      runtimeFile('visibleAppletRootRoute.tsx')
-    )
-    expect(
-      read({ root, relativePath: runtimeFile('visibleAppletRootRoute.tsx') })
-    ).toContain("from 'applets/main/page'")
-    expect(
-      read({ root, relativePath: runtimeFile('visibleAppletRootRoute.tsx') })
-    ).toContain("from 'applets/hiilikartta/routeComponents'")
-    expect(
-      read({ root, relativePath: runtimeFile('visibleAppletRootRoute.tsx') })
-    ).not.toContain("from 'applets/energiakartta/routeComponents'")
   })
 })

@@ -136,7 +136,7 @@ const routesById = {
     fullPath: '/$locale/',
     to: '/$locale',
     metadata: {
-      key: APP_ROUTE_KEYS.MAIN_HOME_VISIBLE_ROOT,
+      key: APP_ROUTE_KEYS.MAIN_HOME,
       appletNamespace: null,
       variant: 'visible-root-alias',
       home: true,

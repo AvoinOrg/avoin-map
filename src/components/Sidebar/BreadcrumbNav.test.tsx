@@ -201,7 +201,7 @@ describe('BreadcrumbNav', () => {
       match({
         routeId: 'visibleRoot',
         appRoute: appRoute({
-          key: APP_ROUTE_KEYS.MAIN_HOME_VISIBLE_ROOT,
+          key: APP_ROUTE_KEYS.MAIN_HOME,
           appletNamespace: null,
           variant: 'visible-root-alias',
           public: {

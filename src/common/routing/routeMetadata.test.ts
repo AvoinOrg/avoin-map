@@ -15,7 +15,7 @@ describe('routeMetadata', () => {
           options: {
             staticData: {
               appRoute: {
-                key: APP_ROUTE_KEYS.MAIN_HOME_VISIBLE_ROOT,
+                key: APP_ROUTE_KEYS.MAIN_HOME,
                 appletNamespace: null,
                 variant: 'visible-root-alias',
                 public: {
@@ -64,7 +64,7 @@ describe('routeMetadata', () => {
     const { ordered, index } = collectAppRouteMetadata(routeTree)
 
     expect(ordered.map((metadata) => metadata.key)).toEqual([
-      APP_ROUTE_KEYS.MAIN_HOME_VISIBLE_ROOT,
+      APP_ROUTE_KEYS.MAIN_HOME,
       APP_ROUTE_KEYS.HIILIKARTTA_REPORT_VISIBLE_ALIAS,
       APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
     ])
@@ -75,7 +75,7 @@ describe('routeMetadata', () => {
     ).toBe(APP_ROUTE_KEYS.HIILIKARTTA_REPORT)
 
     expect(
-      index[APP_ROUTE_KEYS.MAIN_HOME_VISIBLE_ROOT]?.public
+      index[APP_ROUTE_KEYS.MAIN_HOME]?.public
         ?.visibleRootCanonicalRouteKeys?.luonnonmetsakartat
     ).toBe(APP_ROUTE_KEYS.LUONNONMETSAKARTAT_HOME)
   })
@@ -149,7 +149,7 @@ describe('routeMetadata', () => {
           options: {
             staticData: {
               appRoute: {
-                key: APP_ROUTE_KEYS.MAIN_HOME_VISIBLE_ROOT,
+                key: APP_ROUTE_KEYS.MAIN_HOME,
                 appletNamespace: null,
                 variant: 'visible-root-alias',
               },

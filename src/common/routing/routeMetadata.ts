@@ -18,7 +18,7 @@ export type RouteTextKey = {
 }
 
 export const APP_ROUTE_KEYS = {
-  MAIN_HOME_VISIBLE_ROOT: 'main.home.visibleRoot',
+  MAIN_HOME: 'main.home',
   ENERGIAKARTTA_HOME: 'energiakartta.home',
   HIILIKARTTA_HOME: 'hiilikartta.home',
   HIILIKARTTA_REPORT: 'hiilikartta.report',

@@ -15,8 +15,6 @@ import { Route as LocaleRouteRouteImport } from './routes/$locale/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LocaleMapRouteRouteImport } from './routes/$locale/_map/route'
 import { Route as LocaleMapIndexRouteImport } from './routes/$locale/_map/index'
-import { Route as LocaleMapReportRouteImport } from './routes/$locale/_map/report'
-import { Route as LocaleMapRaporttiRouteImport } from './routes/$locale/_map/raportti'
 import { Route as LocaleDevComponentFixturesRouteRouteImport } from './routes/$locale/dev/component-fixtures/route'
 import { Route as LocaleAddsLoginRouteRouteImport } from './routes/$locale/adds/login/route'
 import { Route as LocaleDevComponentFixturesIndexRouteImport } from './routes/$locale/dev/component-fixtures/index'
@@ -76,16 +74,6 @@ const LocaleMapRouteRoute = LocaleMapRouteRouteImport.update({
 const LocaleMapIndexRoute = LocaleMapIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => LocaleMapRouteRoute,
-} as any)
-const LocaleMapReportRoute = LocaleMapReportRouteImport.update({
-  id: '/report',
-  path: '/report',
-  getParentRoute: () => LocaleMapRouteRoute,
-} as any)
-const LocaleMapRaporttiRoute = LocaleMapRaporttiRouteImport.update({
-  id: '/raportti',
-  path: '/raportti',
   getParentRoute: () => LocaleMapRouteRoute,
 } as any)
 const LocaleDevComponentFixturesRouteRoute =
@@ -334,8 +322,6 @@ export interface FileRoutesByFullPath {
   '/$locale': typeof LocaleMapRouteRouteWithChildren
   '/$locale/adds/login': typeof LocaleAddsLoginRouteRouteWithChildren
   '/$locale/dev/component-fixtures': typeof LocaleDevComponentFixturesRouteRouteWithChildren
-  '/$locale/raportti': typeof LocaleMapRaporttiRoute
-  '/$locale/report': typeof LocaleMapReportRoute
   '/$locale/': typeof LocaleMapIndexRoute
   '/$locale/carbon': typeof LocaleMapappletsCarbonRouteRouteWithChildren
   '/$locale/energiakartta': typeof LocaleMapappletsEnergiakarttaRouteRouteWithChildren
@@ -373,8 +359,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$locale': typeof LocaleMapIndexRoute
-  '/$locale/raportti': typeof LocaleMapRaporttiRoute
-  '/$locale/report': typeof LocaleMapReportRoute
   '/$locale/energiakartta': typeof LocaleMapappletsEnergiakarttaRouteRouteWithChildren
   '/$locale/hiilikartta': typeof LocaleMapappletsHiilikarttaRouteRouteWithChildren
   '/$locale/adds/login/callback': typeof LocaleAddsLoginCallbackRoute
@@ -407,8 +391,6 @@ export interface FileRoutesById {
   '/$locale/_map': typeof LocaleMapRouteRouteWithChildren
   '/$locale/adds/login': typeof LocaleAddsLoginRouteRouteWithChildren
   '/$locale/dev/component-fixtures': typeof LocaleDevComponentFixturesRouteRouteWithChildren
-  '/$locale/_map/raportti': typeof LocaleMapRaporttiRoute
-  '/$locale/_map/report': typeof LocaleMapReportRoute
   '/$locale/_map/': typeof LocaleMapIndexRoute
   '/$locale/_map/(applets)/carbon': typeof LocaleMapappletsCarbonRouteRouteWithChildren
   '/$locale/_map/(applets)/energiakartta': typeof LocaleMapappletsEnergiakarttaRouteRouteWithChildren
@@ -450,8 +432,6 @@ export interface FileRouteTypes {
     | '/$locale'
     | '/$locale/adds/login'
     | '/$locale/dev/component-fixtures'
-    | '/$locale/raportti'
-    | '/$locale/report'
     | '/$locale/'
     | '/$locale/carbon'
     | '/$locale/energiakartta'
@@ -489,8 +469,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/$locale'
-    | '/$locale/raportti'
-    | '/$locale/report'
     | '/$locale/energiakartta'
     | '/$locale/hiilikartta'
     | '/$locale/adds/login/callback'
@@ -522,8 +500,6 @@ export interface FileRouteTypes {
     | '/$locale/_map'
     | '/$locale/adds/login'
     | '/$locale/dev/component-fixtures'
-    | '/$locale/_map/raportti'
-    | '/$locale/_map/report'
     | '/$locale/_map/'
     | '/$locale/_map/(applets)/carbon'
     | '/$locale/_map/(applets)/energiakartta'
@@ -645,20 +621,6 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/$locale/'
       preLoaderRoute: typeof LocaleMapIndexRouteImport
-      parentRoute: typeof LocaleMapRouteRoute
-    }
-    '/$locale/_map/report': {
-      id: '/$locale/_map/report'
-      path: '/report'
-      fullPath: '/$locale/report'
-      preLoaderRoute: typeof LocaleMapReportRouteImport
-      parentRoute: typeof LocaleMapRouteRoute
-    }
-    '/$locale/_map/raportti': {
-      id: '/$locale/_map/raportti'
-      path: '/raportti'
-      fullPath: '/$locale/raportti'
-      preLoaderRoute: typeof LocaleMapRaporttiRouteImport
       parentRoute: typeof LocaleMapRouteRoute
     }
     '/$locale/dev/component-fixtures': {
@@ -1136,8 +1098,6 @@ const LocaleMapappletsLuonnonmetsakartatRouteRouteWithChildren =
   )
 
 interface LocaleMapRouteRouteChildren {
-  LocaleMapRaporttiRoute: typeof LocaleMapRaporttiRoute
-  LocaleMapReportRoute: typeof LocaleMapReportRoute
   LocaleMapIndexRoute: typeof LocaleMapIndexRoute
   LocaleMapappletsCarbonRouteRoute: typeof LocaleMapappletsCarbonRouteRouteWithChildren
   LocaleMapappletsEnergiakarttaRouteRoute: typeof LocaleMapappletsEnergiakarttaRouteRouteWithChildren
@@ -1148,8 +1108,6 @@ interface LocaleMapRouteRouteChildren {
 }
 
 const LocaleMapRouteRouteChildren: LocaleMapRouteRouteChildren = {
-  LocaleMapRaporttiRoute: LocaleMapRaporttiRoute,
-  LocaleMapReportRoute: LocaleMapReportRoute,
   LocaleMapIndexRoute: LocaleMapIndexRoute,
   LocaleMapappletsCarbonRouteRoute:
     LocaleMapappletsCarbonRouteRouteWithChildren,

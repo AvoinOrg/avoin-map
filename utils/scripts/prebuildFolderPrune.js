@@ -34,15 +34,6 @@ const getPrunePaths = (projectRoot) => {
   }
 }
 
-const appletVisibleRootAliasRoutes = {
-  energiakartta: [],
-  hiilikartta: [
-    path.join('src', 'routes', '$locale', '_map', 'report.tsx'),
-    path.join('src', 'routes', '$locale', '_map', 'raportti.tsx'),
-  ],
-  luonnonmetsakartat: [],
-}
-
 const appletApiRoutes = {
   energiakartta: [],
   hiilikartta: [path.join('src', 'routes', 'api', 'hiilikartta')],
@@ -53,7 +44,7 @@ const appletApiRoutes = {
 
 const mainBuildAppletSourceFolders = new Set(['main', 'forests'])
 
-const standaloneVisibleRootRoutePaths = [
+const standaloneMainHomeRoutePaths = [
   path.join('src', 'routes', '$locale', '_map', 'index.tsx'),
 ]
 
@@ -445,38 +436,15 @@ const pruneAppletApiStartRoutes = ({
   return removed
 }
 
-const pruneAppletAliasStartRoutes = ({
-  buildConfig,
-  projectRoot = defaultProjectRoot,
-}) => {
-  const removed = []
-
-  for (const [namespace, relativePaths] of Object.entries(
-    appletVisibleRootAliasRoutes
-  )) {
-    if (buildConfig.selectedApplets.has(namespace)) continue
-
-    removed.push(...removeRelativePaths({ relativePaths, projectRoot }))
-  }
-
-  return removed
-}
-
-const pruneStandaloneRootAliasStartRoutes = ({
+const pruneStandaloneMainStartRoutes = ({
   buildConfig,
   projectRoot = defaultProjectRoot,
 }) => {
   if (buildConfig.includesMain) return []
 
-  const namespace = buildConfig.keepOnlyApplet
-  if (!namespace) return []
-
   return removeRelativePaths({
     projectRoot,
-    relativePaths: [
-      ...standaloneVisibleRootRoutePaths,
-      ...(appletVisibleRootAliasRoutes[namespace] || []),
-    ],
+    relativePaths: standaloneMainHomeRoutePaths,
   })
 }
 
@@ -494,109 +462,6 @@ const pruneProductionOnlyStartRoutes = ({
   }
 
   return removed
-}
-
-const getStandaloneVisibleRootFallback = ({ buildConfig }) => {
-  if (buildConfig.keepOnlyApplet === 'energiakartta') {
-    return '  return <EnergiakarttaApplet locale={locale} />'
-  }
-
-  if (buildConfig.keepOnlyApplet === 'hiilikartta') {
-    return '  return <HiilikarttaApplet />'
-  }
-
-  if (buildConfig.keepOnlyApplet === 'luonnonmetsakartat') {
-    return '  return <LuonnonmetsakartatApplet />'
-  }
-
-  return '  return null'
-}
-
-const writePrunedVisibleAppletRootRoute = ({
-  buildConfig,
-  projectRoot = defaultProjectRoot,
-}) => {
-  const outputPath = path.join(
-    projectRoot,
-    'src',
-    'runtime',
-    'visibleAppletRootRoute.tsx'
-  )
-  const lines = [
-    '// Generated inside a pruned temp build workspace by prebuildFolderPrune.js.',
-    '// The live workspace keeps the full development visible-root switch.',
-  ]
-
-  if (buildConfig.includesMain) {
-    lines.push("import MainPage from 'applets/main/page'")
-  }
-
-  if (buildConfig.selectedApplets.has('energiakartta')) {
-    lines.push(
-      "import { EnergiakarttaApplet } from 'applets/energiakartta/routeComponents'"
-    )
-  }
-
-  if (buildConfig.selectedApplets.has('hiilikartta')) {
-    lines.push(
-      "import { HiilikarttaApplet } from 'applets/hiilikartta/routeComponents'"
-    )
-  }
-
-  if (buildConfig.selectedApplets.has('luonnonmetsakartat')) {
-    lines.push(
-      "import { LuonnonmetsakartatApplet } from 'applets/luonnonmetsakartat/routeComponents'"
-    )
-  }
-
-  lines.push(
-    '',
-    "import { getVisibleAppletRootNamespace } from './appletRouteGuards'",
-    '',
-    'export const VisibleAppletRootRoute = ({ locale }: { locale: string }) => {',
-    '  const namespace = getVisibleAppletRootNamespace()',
-    ''
-  )
-
-  if (buildConfig.selectedApplets.has('energiakartta')) {
-    lines.push(
-      "  if (namespace === 'energiakartta') {",
-      '    return <EnergiakarttaApplet locale={locale} />',
-      '  }',
-      ''
-    )
-  }
-
-  if (buildConfig.selectedApplets.has('hiilikartta')) {
-    lines.push(
-      "  if (namespace === 'hiilikartta') {",
-      '    return <HiilikarttaApplet />',
-      '  }',
-      ''
-    )
-  }
-
-  if (buildConfig.selectedApplets.has('luonnonmetsakartat')) {
-    lines.push(
-      "  if (namespace === 'luonnonmetsakartat') {",
-      '    return <LuonnonmetsakartatApplet />',
-      '  }',
-      ''
-    )
-  }
-
-  if (buildConfig.includesMain) {
-    lines.push('  return <MainPage />')
-  } else {
-    lines.push(getStandaloneVisibleRootFallback({ buildConfig }))
-  }
-
-  lines.push('}', '')
-
-  fs.mkdirSync(path.dirname(outputPath), { recursive: true })
-  fs.writeFileSync(outputPath, `${lines.join('\n')}\n`, 'utf8')
-
-  return path.relative(projectRoot, outputPath)
 }
 
 const main = () => {
@@ -622,11 +487,7 @@ const main = () => {
       buildConfig,
       projectRoot,
     })
-    const removedAliasRoutes = pruneAppletAliasStartRoutes({
-      buildConfig,
-      projectRoot,
-    })
-    const removedStandaloneAliasRoutes = pruneStandaloneRootAliasStartRoutes({
+    const removedStandaloneMainRoutes = pruneStandaloneMainStartRoutes({
       buildConfig,
       projectRoot,
     })
@@ -635,10 +496,6 @@ const main = () => {
       projectRoot,
     })
     const removedProductionOnlyRoutes = pruneProductionOnlyStartRoutes({
-      projectRoot,
-    })
-    const generatedVisibleRootRoute = writePrunedVisibleAppletRootRoute({
-      buildConfig,
       projectRoot,
     })
 
@@ -658,12 +515,9 @@ const main = () => {
             ? removedCanonicalRoutes.join(',')
             : '(none)'
         }`,
-        `removedStartAliasRoutes=${
-          removedAliasRoutes.length ? removedAliasRoutes.join(',') : '(none)'
-        }`,
-        `removedStandaloneAliasRoutes=${
-          removedStandaloneAliasRoutes.length
-            ? removedStandaloneAliasRoutes.join(',')
+        `removedStandaloneMainRoutes=${
+          removedStandaloneMainRoutes.length
+            ? removedStandaloneMainRoutes.join(',')
             : '(none)'
         }`,
         `removedApiRoutes=${
@@ -674,7 +528,6 @@ const main = () => {
             ? removedProductionOnlyRoutes.join(',')
             : '(none)'
         }`,
-        `generatedVisibleRootRoute=${generatedVisibleRootRoute}`,
       ].join('; ')
     )
   } catch (error) {
@@ -688,16 +541,13 @@ if (require.main === module) {
 
 module.exports = {
   appletApiRoutes,
-  appletVisibleRootAliasRoutes,
   assertTempWorkspace,
   getPrunePaths,
   materializeStandaloneAppletRoutes,
-  pruneAppletAliasStartRoutes,
   pruneAppletApiStartRoutes,
   pruneAppletSourceFolders,
   pruneCanonicalStartAppletRoutes,
   pruneProductionOnlyStartRoutes,
-  pruneStandaloneRootAliasStartRoutes,
+  pruneStandaloneMainStartRoutes,
   rewritePromotedRouteFileLiterals,
-  writePrunedVisibleAppletRootRoute,
 }
