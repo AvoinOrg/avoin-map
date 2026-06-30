@@ -343,6 +343,7 @@ const PlanReportFlowStepBase = ({
 
   const button = (
     <NodeFlowButton
+      dataSlot="plan-report-action"
       status={buttonStatus}
       disabled={buttonDisabled}
       title={<TText keyName={buttonTitleKey} ns="hiilikartta" />}
@@ -391,6 +392,7 @@ const PlanReportFlowStepBase = ({
       {hasFinishedReport && (
         <>
           <Box
+            data-slot="plan-report-preview"
             sx={{
               display: 'flex',
               flexDirection: 'column',

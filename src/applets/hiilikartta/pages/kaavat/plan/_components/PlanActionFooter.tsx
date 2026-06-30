@@ -105,6 +105,7 @@ const PlanActionFooter = ({
       >
         {showCopy && (
           <IconTextButton
+            data-slot="plan-copy-action"
             icon={<FolderCopyOutlined sx={{ width: 13, height: 13 }} />}
             text={
               <TText keyName="sidebar.plan_settings.copy" ns="hiilikartta" />
@@ -118,6 +119,7 @@ const PlanActionFooter = ({
 
         {showDelete && (
           <IconTextButton
+            data-slot="plan-delete-action"
             icon={<Delete sx={{ width: 12, height: 12 }} />}
             text={
               <TText keyName="sidebar.plan_settings.delete" ns="hiilikartta" />
@@ -132,6 +134,7 @@ const PlanActionFooter = ({
         {showCloudAction && cloudActionLabel && (
           <Box sx={{ width: '100%' }}>
             <IconTextButton
+              data-slot="plan-cloud-action"
               aria-label={cloudActionLabel}
               disabled={isCloudActionDisabled}
               icon={

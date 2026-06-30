@@ -36,6 +36,12 @@ import { LoadingSpinner } from '#/components/Loading'
 import { useUIStore } from '#/common/store'
 import { getReportCalculatedDate } from 'applets/hiilikartta/common/utils'
 import TText from '#/components/common/TText'
+import {
+  findReportPlanByServerId,
+  isReportPlanIdSettled,
+  keepExistingExternalReportRequestIds,
+  shouldSyncReportPlanSelectionToRoute,
+} from './reportPlanSelection'
 
 const MAX_WIDTH = '1000px'
 
@@ -106,32 +112,30 @@ const Page = () => {
       const paramPlanIds = searchParams.get('planIds')
       if (paramPlanIds != null) {
         const ids = paramPlanIds.split(',')
+        addedExtPlanConfIds.current = keepExistingExternalReportRequestIds({
+          externalPlanConfs,
+          requestedServerIds: addedExtPlanConfIds.current,
+        })
 
         const paramPlanConfs: PlanConfWithReportData[] = []
         for (const id of ids) {
-          const foundPlanConfId = Object.keys(allPlanConfs).find(
-            (planConfId) => {
-              if (
-                allPlanConfs[planConfId].serverId === id &&
-                !allPlanConfs[planConfId].isHidden
-              ) {
-                return true
-              }
-              return false
-            }
+          const foundPlanConf = findReportPlanByServerId(
+            allPlanConfs,
+            id,
+            (planConf) => !planConf.isHidden
           )
-          const foundExtPlanConfId = Object.keys(externalPlanConfs).find(
-            (planConfId) => externalPlanConfs[planConfId].serverId === id
+          const foundExtPlanConf = findReportPlanByServerId(
+            externalPlanConfs,
+            id
           )
-          const foundPhPlanConfId = Object.keys(placeholderPlanConfs).find(
-            (planConfId) => placeholderPlanConfs[planConfId].serverId === id
+          const foundPhPlanConf = findReportPlanByServerId(
+            placeholderPlanConfs,
+            id
           )
 
-          if (foundPlanConfId != null) {
-            if (allPlanConfs[foundPlanConfId].reportData != null) {
-              paramPlanConfs.push(
-                allPlanConfs[foundPlanConfId] as PlanConfWithReportData
-              )
+          if (foundPlanConf != null) {
+            if (foundPlanConf.reportData != null) {
+              paramPlanConfs.push(foundPlanConf as PlanConfWithReportData)
             } else {
               notify({
                 message: `${t(
@@ -141,13 +145,11 @@ const Page = () => {
               })
               setErrorState(ErrorState.NO_DATA)
             }
-          } else if (foundExtPlanConfId != null) {
-            if (externalPlanConfs[id].status === FetchStatus.FETCHED) {
-              if (externalPlanConfs[foundExtPlanConfId].reportData != null) {
+          } else if (foundExtPlanConf != null) {
+            if (foundExtPlanConf.status === FetchStatus.FETCHED) {
+              if (foundExtPlanConf.reportData != null) {
                 paramPlanConfs.push(
-                  externalPlanConfs[
-                    foundExtPlanConfId
-                  ] as PlanConfWithReportData
+                  foundExtPlanConf as PlanConfWithReportData
                 )
               } else {
                 notify({
@@ -158,7 +160,7 @@ const Page = () => {
                 })
                 setErrorState(ErrorState.NO_DATA)
               }
-            } else if (externalPlanConfs[id].status === FetchStatus.ERRORED) {
+            } else if (foundExtPlanConf.status === FetchStatus.ERRORED) {
               notify({
                 message: `${t(
                   'report.error.unable_to_find_plan_with_id'
@@ -167,11 +169,10 @@ const Page = () => {
               })
               setErrorState(ErrorState.NO_DATA)
             }
-          } else if (foundPhPlanConfId != null) {
+          } else if (foundPhPlanConf != null) {
             if (
-              placeholderPlanConfs[foundPhPlanConfId].status != null &&
-              placeholderPlanConfs[foundPhPlanConfId].status ===
-                FetchStatus.ERRORED
+              foundPhPlanConf.status != null &&
+              foundPhPlanConf.status === FetchStatus.ERRORED
             ) {
               notify({
                 message: `${t(
@@ -213,15 +214,12 @@ const Page = () => {
           let newLoaded = true
 
           for (const id of ids) {
-            if (
-              Object.keys(allPlanConfs).find(
-                (key) => allPlanConfs[key].serverId === id
-              ) == null &&
-              Object.keys(placeholderPlanConfs).find(
-                (key) => placeholderPlanConfs[key].serverId === id
-              ) == null &&
-              externalPlanConfs[id] == null
-            ) {
+            if (!isReportPlanIdSettled({
+              allPlanConfs,
+              placeholderPlanConfs,
+              externalPlanConfs,
+              serverId: id,
+            })) {
               newLoaded = false
               break
             }
@@ -258,9 +256,19 @@ const Page = () => {
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const handlePlanSelectClick = (
-    _event: React.SyntheticEvent<Element, Event>,
-    newValue: SelectOption[]
+    event: React.SyntheticEvent<Element, Event>,
+    newValue: SelectOption[],
+    reason?: string
   ) => {
+    const eventType = event.nativeEvent?.type ?? event.type
+
+    if (
+      !isLoaded ||
+      !shouldSyncReportPlanSelectionToRoute({ eventType, reason })
+    ) {
+      return
+    }
+
     const newSearchParams = new URLSearchParams(searchParams)
     const valueString = newValue.map((option) => option.value).join(',')
     newSearchParams.set('planIds', valueString)

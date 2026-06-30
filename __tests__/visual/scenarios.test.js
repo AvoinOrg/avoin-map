@@ -358,5 +358,19 @@ describe('visual scenarios', () => {
         'NEXT_PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED'
       )
     })
+
+    test('exposes a no-start package script for the carbon mock browser smoke', () => {
+      const script = packageJson.scripts['visual:carbon-mocks:smoke']
+
+      expect(script).toContain('carbon-mock-smoke.js')
+      expect(script).toContain('--base-url=http://127.0.0.1:3000')
+      expect(script).toContain('--no-start')
+      expect(script).not.toContain('NEXT_PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED')
+      expect(script).not.toContain('HIILIKARTTA_MOCK_API_ENABLED')
+      expect(script).not.toContain('NEXT_PUBLIC_MOCK_AUTH_ENABLED')
+      expect(script).not.toContain('HIILIKARTTA_API_URL')
+      expect(script).not.toContain('start:dev')
+      expect(script).not.toContain('yarn dev')
+    })
   })
 })

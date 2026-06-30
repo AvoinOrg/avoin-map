@@ -5,12 +5,14 @@ import DropDownSelect from '#/components/common/DropDownSelect'
 
 type DropDownSelectProps = React.ComponentProps<typeof DropDownSelect>
 type DropDownSelectWithHeaderProps = DropDownSelectProps & {
+  dataSlot?: string
   labelAction?: React.ReactNode
   headerSx?: AppSxProps
 }
 
 const DropDownSelectWithHeader = ({
   ariaLabel,
+  dataSlot,
   label,
   labelAction,
   headerSx,
@@ -20,6 +22,7 @@ const DropDownSelectWithHeader = ({
 }: DropDownSelectWithHeaderProps) => {
   return (
     <Box
+      data-slot={dataSlot}
       sx={[
         {
           width: '100%',

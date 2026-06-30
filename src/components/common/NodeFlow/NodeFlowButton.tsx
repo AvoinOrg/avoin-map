@@ -24,6 +24,7 @@ export type NodeFlowButtonProps = NodeFlowMarkerProps & {
   trailing?: React.ReactNode | null
   onClick?: () => void
   disabled?: boolean
+  dataSlot?: string
   ariaLabel?: string
   ariaExpanded?: boolean
   showConnector?: boolean
@@ -161,6 +162,7 @@ const NodeFlowButtonBase = ({
   trailing,
   onClick,
   disabled = false,
+  dataSlot,
   ariaLabel,
   ariaExpanded,
   disableOuterOffset = false,
@@ -335,6 +337,7 @@ const NodeFlowButtonBase = ({
           <ButtonBase
             component="div"
             role="button"
+            data-slot={dataSlot}
             onClick={onClick}
             aria-expanded={ariaExpanded}
             aria-label={rowAriaLabel}
@@ -344,6 +347,7 @@ const NodeFlowButtonBase = ({
           </ButtonBase>
         ) : (
           <Box
+            data-slot={dataSlot}
             aria-disabled={isDisabled || undefined}
             aria-expanded={ariaExpanded}
             aria-label={rowAriaLabel}

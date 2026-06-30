@@ -37,7 +37,11 @@ describe('MultiSelectAutocomplete', () => {
 
     fireEvent.click(await screen.findByRole('option', { name: 'Harbor plan' }))
 
-    expect(handleChange).toHaveBeenCalledWith(expect.anything(), [options[1]])
+    expect(handleChange).toHaveBeenCalledWith(
+      expect.anything(),
+      [options[1]],
+      'item-press'
+    )
   })
 
   it('links the input to the rendered Base UI listbox', async () => {
@@ -99,7 +103,11 @@ describe('MultiSelectAutocomplete', () => {
       which: 13,
     })
 
-    expect(handleChange).toHaveBeenCalledWith(expect.anything(), [options[0]])
+    expect(handleChange).toHaveBeenCalledWith(
+      expect.anything(),
+      [options[0]],
+      'list-navigation'
+    )
   })
 
   it('opens and filters options when the user types', async () => {
@@ -137,7 +145,8 @@ describe('MultiSelectAutocomplete', () => {
 
     expect(handleChange).toHaveBeenCalledWith(
       expect.anything(),
-      [options[0]]
+      [options[0]],
+      'chip-remove-press'
     )
   })
 
@@ -161,7 +170,8 @@ describe('MultiSelectAutocomplete', () => {
 
     expect(handleChange).toHaveBeenCalledWith(
       expect.anything(),
-      [options[0]]
+      [options[0]],
+      'none'
     )
   })
 
@@ -182,7 +192,8 @@ describe('MultiSelectAutocomplete', () => {
 
     expect(handleChange).toHaveBeenCalledWith(
       expect.anything(),
-      [options[0]]
+      [options[0]],
+      'item-press'
     )
   })
 

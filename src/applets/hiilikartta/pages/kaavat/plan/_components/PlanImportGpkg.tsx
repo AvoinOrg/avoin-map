@@ -212,6 +212,7 @@ const PlanImportGpkg = ({
     <>
       {tables.length > 1 && (
         <DropDownSelectWithHeader
+          dataSlot="plan-import-table-select"
           value={activeTable}
           options={tables.map((tableName) => ({
             value: tableName,
@@ -226,6 +227,7 @@ const PlanImportGpkg = ({
       )}
 
       <PlanImportCodeRecordSelect
+        dataSlot="plan-import-zoning-column"
         columns={columns}
         selectedColumn={selectedZoningCol}
         onColumnChange={onSelectedZoningColChange}
@@ -234,6 +236,7 @@ const PlanImportGpkg = ({
         sx={{ mb: importFieldSpacing }}
       />
       <PlanImportCodeRecordSelect
+        dataSlot="plan-import-name-column"
         columns={columns}
         selectedColumn={selectedNameCol}
         onColumnChange={onSelectedNameColChange}

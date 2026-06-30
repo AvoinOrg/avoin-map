@@ -1568,6 +1568,7 @@ const Page = () => {
           </NodeFlowAccordion>
 
           <NodeFlowButton
+            dataSlot="plan-areas-step-action"
             status={isAreasStepComplete ? 'complete' : 'incomplete'}
             disabled={!isReadyPlan}
             title={

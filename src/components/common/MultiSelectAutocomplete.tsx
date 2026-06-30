@@ -14,6 +14,8 @@ import { Cross } from '#/components/icons'
 
 type MultiSelectAutocompleteChangeEvent =
   React.SyntheticEvent<Element, Event>
+type MultiSelectAutocompleteChangeReason =
+  BaseCombobox.Root.ChangeEventDetails['reason']
 
 type ComponentSxArrayItem = Exclude<NonNullable<AppSxProps>, readonly unknown[]>
 
@@ -27,7 +29,8 @@ interface Props {
   options: SelectOption[]
   onChange: (
     event: MultiSelectAutocompleteChangeEvent,
-    newValue: SelectOption[]
+    newValue: SelectOption[],
+    reason?: MultiSelectAutocompleteChangeReason
   ) => void
   placeholder?: string
   ariaLabel?: string
@@ -149,7 +152,8 @@ const MultiSelectAutocomplete = ({
 
           onChange(
             eventDetails.event as unknown as MultiSelectAutocompleteChangeEvent,
-            Array.isArray(nextValue) ? nextValue : []
+            Array.isArray(nextValue) ? nextValue : [],
+            eventDetails.reason
           )
         }}
       >
@@ -352,7 +356,8 @@ const MultiSelectAutocomplete = ({
                     event.preventDefault()
                     onChange(
                       event as unknown as MultiSelectAutocompleteChangeEvent,
-                      getNextToggledValue(value, highlightedOption)
+                      getNextToggledValue(value, highlightedOption),
+                      'list-navigation'
                     )
                   }}
                   data-slot="input"

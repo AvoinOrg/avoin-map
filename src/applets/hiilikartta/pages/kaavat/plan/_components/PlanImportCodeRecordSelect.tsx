@@ -13,6 +13,7 @@ type PlanImportCodeRecordSelectProps = {
   selectedColumn?: string
   onColumnChange: (column: string | undefined) => void
   allowEmpty?: boolean
+  dataSlot?: string
   label: string
   placeholder: string
   sx?: PlanImportCodeRecordSelectSx
@@ -23,6 +24,7 @@ const PlanImportCodeRecordSelect = ({
   selectedColumn,
   onColumnChange,
   allowEmpty,
+  dataSlot,
   label,
   placeholder,
   sx,
@@ -44,6 +46,7 @@ const PlanImportCodeRecordSelect = ({
 
   return (
     <DropDownSelectWithHeader
+      dataSlot={dataSlot}
       value={selectedColumn}
       options={columns.map((column) => ({ value: column, label: column }))}
       onChange={handleSelectColumn}
