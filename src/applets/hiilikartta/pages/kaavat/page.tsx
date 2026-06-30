@@ -258,7 +258,9 @@ const Page = () => {
               text={
                 <TText keyName="sidebar.plan_flow.import_title" ns="hiilikartta" />
               }
-              helperText={t('sidebar.create.upload_info')}
+              helperText={
+                <TText keyName="sidebar.create.upload_info" ns="hiilikartta" />
+              }
               helperAriaLabel="Show plan import information"
               onClick={handleImportClick}
             />
@@ -282,7 +284,9 @@ const Page = () => {
                   ns="hiilikartta"
                 />
               }
-              helperText={t('sidebar.create.draw_new_info')}
+              helperText={
+                <TText keyName="sidebar.create.draw_new_info" ns="hiilikartta" />
+              }
               helperAriaLabel="Show drawing instructions"
               onClick={handleDrawClick}
             />
@@ -396,16 +400,23 @@ const Page = () => {
                   },
                 ]}
                 sx={{
-                  minWidth: '7.25rem',
+                  width: '7.5rem',
+                  minWidth: '7.5rem',
                   ml: 'auto',
                   borderRadius: '999px',
-                  backgroundColor: '#d9d9d9',
-                  boxShadow: '0px 1px 1px 0px rgba(189, 189, 189, 0.25)',
                   color: '#111111',
+                  '& [data-slot="trigger"]': {
+                    width: '7.5rem',
+                    minHeight: '2.1875rem',
+                    height: '2.1875rem',
+                    borderRadius: '999px',
+                    backgroundColor: '#d9d9d9',
+                    boxShadow: '0px 1px 1px 0px rgba(189, 189, 189, 0.25)',
+                  },
                   '& [data-slot="value"]': {
                     pl: '0.75rem',
                     pr: '1.75rem !important',
-                    py: '0.3125rem',
+                    py: 0,
                     fontSize: '0.5rem',
                     fontWeight: 700,
                     lineHeight: '1rem',
@@ -419,6 +430,7 @@ const Page = () => {
                   },
                 }}
                 optionSx={{
+                  minHeight: '1.75rem',
                   fontSize: '0.5rem',
                   fontWeight: 700,
                   lineHeight: '1rem',

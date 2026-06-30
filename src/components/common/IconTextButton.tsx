@@ -229,11 +229,14 @@ const IconTextButton = ({
               }}
             />
             <Tooltip.Portal>
-              <Tooltip.Positioner side="top" sideOffset={8}>
+              <Tooltip.Positioner
+                side="top"
+                sideOffset={8}
+                style={{
+                  zIndex: 1500,
+                }}
+              >
                 <Tooltip.Popup
-                  style={{
-                    zIndex: 1500,
-                  }}
                   render={(popupProps) => (
                     <Box
                       {...popupProps}
