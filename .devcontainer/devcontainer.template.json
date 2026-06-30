@@ -1,5 +1,5 @@
 {
-  "name": "climate-map",
+  "name": "avoin-map",
   "dockerComposeFile": [
     "../docker-compose.dev.yml"
   ],
