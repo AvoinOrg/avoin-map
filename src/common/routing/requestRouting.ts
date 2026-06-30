@@ -1,7 +1,6 @@
 import { DEFAULT_LOCALE } from '#/common/navigation/tolgee/shared'
 import {
   getAppletRouteSlugInfo,
-  getPublicAppletRouteSlug,
   normalizeLegacyAppletSubpathSegments,
 } from './publicRoutes'
 
@@ -32,21 +31,6 @@ export const REQUEST_ROUTING_SKIP_PREFIXES = [
 ]
 
 const COMMON_LOCALIZED_PATHS = ['/adds']
-
-const APPLET_DOMAIN_ENV_BY_NAMESPACE: Record<string, string | undefined> = {
-  energiakartta:
-    typeof process !== 'undefined'
-      ? process.env.NEXT_PUBLIC_APPLET_ENERGIAKARTTA_DOMAIN
-      : undefined,
-  hiilikartta:
-    typeof process !== 'undefined'
-      ? process.env.NEXT_PUBLIC_APPLET_HIILIKARTTA_DOMAIN
-      : undefined,
-  luonnonmetsakartat:
-    typeof process !== 'undefined'
-      ? process.env.NEXT_PUBLIC_APPLET_LUONNONMETSAKARTAT_DOMAIN
-      : undefined,
-}
 
 export type RequestRoutingDecision =
   | { type: 'passThrough' }
@@ -124,79 +108,6 @@ const withSearch = (
     ? { type, status: 308, pathname, search }
     : { type, pathname, search }
 
-const normalizeDomainValue = (value: string | undefined | null) => {
-  if (!value) return null
-
-  const trimmed = value.trim().replace(/\/+$/, '')
-  if (!trimmed) return null
-
-  try {
-    const url = new URL(
-      trimmed.startsWith('http://') || trimmed.startsWith('https://')
-        ? trimmed
-        : `https://${trimmed}`
-    )
-
-    return {
-      host: url.host.toLowerCase(),
-      hostname: url.hostname.toLowerCase(),
-    }
-  } catch {
-    return null
-  }
-}
-
-const getHostVariants = (host: string | null | undefined, url: URL) => {
-  const normalizedHost = normalizeDomainValue(host ?? url.host)
-  if (!normalizedHost) return new Set<string>()
-
-  return new Set([normalizedHost.host, normalizedHost.hostname])
-}
-
-const getEnvAppletDomain = (
-  namespace: string,
-  env: Record<string, string | undefined> | undefined
-) =>
-  env?.[`NEXT_PUBLIC_APPLET_${namespace.toUpperCase()}_DOMAIN`] ??
-  APPLET_DOMAIN_ENV_BY_NAMESPACE[namespace]
-
-const getAppletDomains = (
-  namespace: string,
-  env: Record<string, string | undefined> | undefined
-) => {
-  const appletDomains = conf[namespace]?.domains ?? []
-  const envDomain = getEnvAppletDomain(namespace, env)
-
-  return [...appletDomains, envDomain].filter(
-    (domain): domain is string => domain != null && domain.trim() !== ''
-  )
-}
-
-export const findAppletForRequestHost = (
-  host: string | null | undefined,
-  url: URL,
-  env: Record<string, string | undefined> | undefined
-) => {
-  const hostVariants = getHostVariants(host, url)
-  if (hostVariants.size === 0) return null
-
-  for (const namespace of knownApplets) {
-    for (const domain of getAppletDomains(namespace, env)) {
-      const normalizedDomain = normalizeDomainValue(domain)
-      if (!normalizedDomain) continue
-
-      if (
-        hostVariants.has(normalizedDomain.host) ||
-        hostVariants.has(normalizedDomain.hostname)
-      ) {
-        return namespace
-      }
-    }
-  }
-
-  return null
-}
-
 export const getStandaloneRequestApplet = (compiledApplets?: string[]) => {
   const normalizedCompiledApplets = normalizeCompiledApplets(compiledApplets)
 
@@ -252,185 +163,20 @@ const normalizeAppletRootAliasSegments = ({
   return segments
 }
 
-const getRemovedRootAliasCanonicalSegments = ({
-  namespace,
-  segments,
-}: {
-  namespace: string
-  segments: string[]
-}) => {
-  const [first] = segments
-
-  if (namespace === 'hiilikartta' && (first === 'plans' || first === 'kaavat')) {
-    return [
-      getPublicAppletRouteSlug(namespace),
-      ...normalizeAppletTailSegments(namespace, segments),
-    ]
-  }
-
-  if (namespace === 'luonnonmetsakartat' && first === 'admin') {
-    return [
-      getPublicAppletRouteSlug(namespace),
-      first,
-      ...normalizeAppletTailSegments(namespace, segments.slice(1)),
-    ]
-  }
-
-  return null
-}
-
-const hasVisibleRootAliasRoute = ({
-  namespace,
-  segments,
-}: {
-  namespace: string
-  segments: string[]
-}) => {
-  const [first] = segments
-
-  if (segments.length === 0) return true
-  if (namespace === 'hiilikartta') {
-    return first === 'report'
-  }
-
-  return false
-}
-
-type MainModeRootAlias = {
-  namespace: string
-  segments: string[]
-}
-
-const isRemovedLuonnonmetsakartatAdminRootAlias = (segments: string[]) => {
-  const [first, second] = segments
-
-  if (first !== 'admin') return false
-  if (segments.length === 1) return true
-  if (second === 'import' || second === 'tuo' || second === 'taso') return true
-
-  return second === 'layer' && segments.length >= 3
-}
-
-const getMainModeDeletedRootAlias = (
-  segments: string[]
-): MainModeRootAlias | null => {
-  const [first] = segments
-
-  if (first === 'plans' || first === 'kaavat') {
-    return {
-      namespace: 'hiilikartta',
-      segments: normalizeAppletRootAliasSegments({
-        namespace: 'hiilikartta',
-        segments,
-      }),
-    }
-  }
-
-  if (isRemovedLuonnonmetsakartatAdminRootAlias(segments)) {
-    return {
-      namespace: 'luonnonmetsakartat',
-      segments: normalizeAppletRootAliasSegments({
-        namespace: 'luonnonmetsakartat',
-        segments,
-      }),
-    }
-  }
-
-  return null
-}
-
-const getMainModeLegacyRootAlias = (
-  segments: string[]
-): MainModeRootAlias | null => {
-  const [first, second] = segments
-
-  if (first === 'raportti') {
-    return {
-      namespace: 'hiilikartta',
-      segments: normalizeAppletRootAliasSegments({
-        namespace: 'hiilikartta',
-        segments,
-      }),
-    }
-  }
-
-  if (first === 'admin' && (second === 'tuo' || second === 'taso')) {
-    return {
-      namespace: 'luonnonmetsakartat',
-      segments: normalizeAppletRootAliasSegments({
-        namespace: 'luonnonmetsakartat',
-        segments,
-      }),
-    }
-  }
-
-  return null
-}
-
-const getMainModeRootAlias = (segments: string[]) =>
-  getMainModeDeletedRootAlias(segments) ?? getMainModeLegacyRootAlias(segments)
-
-const getMainModeRootAliasDecision = ({
-  locale,
-  search,
-  segments,
-  getAlias,
-}: {
-  locale: string | null
-  search: string
-  segments: string[]
-  getAlias: (segments: string[]) => MainModeRootAlias | null
-}): RequestRoutingDecision | null => {
-  const alias = getAlias(locale == null ? segments : segments.slice(1))
-  if (!alias) return null
-
-  const namespaceLocales = getLocalesForRequestNamespace(alias.namespace)
-  const targetLocale = locale != null && namespaceLocales.includes(locale)
-    ? locale
-    : getDefaultLocaleForRequestNamespace(alias.namespace)
-
-  return withSearch(
-    'redirect',
-    toPathname([
-      targetLocale,
-      getPublicAppletRouteSlug(alias.namespace),
-      ...alias.segments,
-    ]),
-    search
-  )
-}
-
 const getAppletRootRedirectTailSegments = ({
   namespace,
   segments,
-  stripCanonicalNamespace,
 }: {
   namespace: string
   segments: string[]
-  stripCanonicalNamespace: boolean
 }) => {
   const firstSegmentInfo = findAppletInfoFromSegment(segments[0])
 
   if (firstSegmentInfo?.namespace === namespace) {
-    const normalizedTail = normalizeAppletTailSegments(
+    return normalizeAppletTailSegments(
       namespace,
       segments.slice(1)
     )
-
-    return stripCanonicalNamespace
-      ? normalizedTail
-      : [firstSegmentInfo.canonicalSlug, ...normalizedTail]
-  }
-
-  if (!stripCanonicalNamespace) {
-    const canonicalSegments = getRemovedRootAliasCanonicalSegments({
-      namespace,
-      segments,
-    })
-
-    if (canonicalSegments) {
-      return canonicalSegments
-    }
   }
 
   return normalizeAppletRootAliasSegments({ namespace, segments })
@@ -441,13 +187,11 @@ const getAppletRootDecision = ({
   pathname,
   search,
   segments,
-  stripCanonicalNamespace,
 }: {
   namespace: string
   pathname: string
   search: string
   segments: string[]
-  stripCanonicalNamespace: boolean
 }): RequestRoutingDecision => {
   const allowedLocales = new Set(getLocalesForRequestNamespace(namespace))
   const defaultLocale = getDefaultLocaleForRequestNamespace(namespace)
@@ -475,57 +219,20 @@ const getAppletRootDecision = ({
   const tailApplet = tailAppletInfo?.namespace ?? null
 
   if (tailApplet === namespace) {
-    const appletTailSegments = tailSegments.slice(1)
-    const normalizedAppletTailSegments = normalizeAppletTailSegments(
-      namespace,
-      appletTailSegments
+    return withSearch(
+      'redirect',
+      toPathname([
+        locale,
+        ...normalizeAppletTailSegments(namespace, tailSegments.slice(1)),
+      ]),
+      search
     )
-
-    if (stripCanonicalNamespace) {
-      return withSearch(
-        'redirect',
-        toPathname([locale, ...normalizedAppletTailSegments]),
-        search
-      )
-    }
-
-    if (
-      tailAppletInfo?.isLegacy ||
-      !areSegmentsEqual(appletTailSegments, normalizedAppletTailSegments)
-    ) {
-      return withSearch(
-        'redirect',
-        toPathname([
-          locale,
-          getPublicAppletRouteSlug(namespace),
-          ...normalizedAppletTailSegments,
-        ]),
-        search
-      )
-    }
-
-    return { type: 'passThrough' }
   }
 
   const normalizedRootAliasSegments = normalizeAppletRootAliasSegments({
     namespace,
     segments: tailSegments,
   })
-
-  if (!stripCanonicalNamespace) {
-    const canonicalSegments = getRemovedRootAliasCanonicalSegments({
-      namespace,
-      segments: tailSegments,
-    })
-
-    if (canonicalSegments) {
-      return withSearch(
-        'redirect',
-        toPathname([locale, ...canonicalSegments]),
-        search
-      )
-    }
-  }
 
   if (!areSegmentsEqual(tailSegments, normalizedRootAliasSegments)) {
     return withSearch(
@@ -535,30 +242,12 @@ const getAppletRootDecision = ({
     )
   }
 
-  if (hasVisibleRootAliasRoute({ namespace, segments: tailSegments })) {
-    return { type: 'passThrough' }
-  }
-
-  if (stripCanonicalNamespace) {
-    return { type: 'passThrough' }
-  }
-
-  return withSearch(
-    'rewrite',
-    toPathname([
-      locale,
-      getPublicAppletRouteSlug(namespace),
-      ...tailSegments,
-    ]),
-    search
-  )
+  return { type: 'passThrough' }
 }
 
 export const decideRequestRouting = ({
   url,
-  host,
   compiledApplets,
-  env,
   skipPrefixes = REQUEST_ROUTING_SKIP_PREFIXES,
 }: DecideRequestRoutingOptions): RequestRoutingDecision => {
   const requestUrl = parseUrl(url)
@@ -579,15 +268,13 @@ export const decideRequestRouting = ({
 
   const normalizedCompiledApplets = normalizeCompiledApplets(compiledApplets)
   const standaloneApplet = getStandaloneApplet(normalizedCompiledApplets)
-  const hostApplet = findAppletForRequestHost(host, requestUrl, env)
-  const appletRootNamespace = standaloneApplet ?? hostApplet
 
-  if (appletRootNamespace) {
+  if (standaloneApplet) {
     const allowedLocales = new Set(
-      getLocalesForRequestNamespace(appletRootNamespace)
+      getLocalesForRequestNamespace(standaloneApplet)
     )
     const defaultLocale =
-      getDefaultLocaleForRequestNamespace(appletRootNamespace)
+      getDefaultLocaleForRequestNamespace(standaloneApplet)
 
     if (locale == null && pathname !== '/') {
       return withSearch(
@@ -595,9 +282,8 @@ export const decideRequestRouting = ({
         toPathname([
           defaultLocale,
           ...getAppletRootRedirectTailSegments({
-            namespace: appletRootNamespace,
+            namespace: standaloneApplet,
             segments,
-            stripCanonicalNamespace: standaloneApplet != null,
           }),
         ]),
         search
@@ -610,9 +296,8 @@ export const decideRequestRouting = ({
         toPathname([
           defaultLocale,
           ...getAppletRootRedirectTailSegments({
-            namespace: appletRootNamespace,
+            namespace: standaloneApplet,
             segments: segments.slice(1),
-            stripCanonicalNamespace: standaloneApplet != null,
           }),
         ]),
         search
@@ -620,11 +305,10 @@ export const decideRequestRouting = ({
     }
 
     return getAppletRootDecision({
-      namespace: appletRootNamespace,
+      namespace: standaloneApplet,
       pathname,
       search,
       segments,
-      stripCanonicalNamespace: standaloneApplet != null,
     })
   }
 
@@ -691,17 +375,6 @@ export const decideRequestRouting = ({
   const mainLocales = getLocalesForRequestNamespace(MAIN_NAMESPACE)
 
   if (locale != null) {
-    const rootAliasDecision = getMainModeRootAliasDecision({
-      locale,
-      search,
-      segments,
-      getAlias: getMainModeRootAlias,
-    })
-
-    if (rootAliasDecision) {
-      return rootAliasDecision
-    }
-
     if (!mainLocales.includes(locale)) {
       const defaultLocale = getDefaultLocaleForRequestNamespace(MAIN_NAMESPACE)
 
@@ -717,17 +390,6 @@ export const decideRequestRouting = ({
     }
 
     return { type: 'passThrough' }
-  }
-
-  const removedRootAliasDecision = getMainModeRootAliasDecision({
-    locale: null,
-    search,
-    segments,
-    getAlias: getMainModeDeletedRootAlias,
-  })
-
-  if (removedRootAliasDecision) {
-    return removedRootAliasDecision
   }
 
   const defaultLocale = getDefaultLocaleForRequestNamespace(MAIN_NAMESPACE)

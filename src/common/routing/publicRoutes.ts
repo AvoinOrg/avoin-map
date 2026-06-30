@@ -15,8 +15,8 @@ export const APPLET_PUBLIC_ROUTE_SLUGS = {
 } as const satisfies Record<PublicAppletNamespace, string>
 
 export const APPLET_LEGACY_PUBLIC_ROUTE_SLUGS = {
-  energiakartta: ['energymap', 'energiakartta'],
-  hiilikartta: ['carbonmap', 'hiilikartta'],
+  energiakartta: [],
+  hiilikartta: [],
   luonnonmetsakartat: [],
 } as const satisfies Record<PublicAppletNamespace, readonly string[]>
 

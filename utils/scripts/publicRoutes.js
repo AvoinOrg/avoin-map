@@ -11,8 +11,8 @@ const APPLET_PUBLIC_ROUTE_SLUGS = {
 }
 
 const APPLET_LEGACY_PUBLIC_ROUTE_SLUGS = {
-  energiakartta: ['energymap', 'energiakartta'],
-  hiilikartta: ['carbonmap', 'hiilikartta'],
+  energiakartta: [],
+  hiilikartta: [],
   luonnonmetsakartat: [],
 }
 

@@ -2,8 +2,28 @@ import {
   decideRequestRouting,
   REQUEST_ROUTING_SKIP_PREFIXES,
 } from './requestRouting'
+import { getAppletRouteSlugInfo } from './publicRoutes'
 
 const url = (path: string, host = 'localhost') => `https://${host}${path}`
+
+describe('public applet route slug policy', () => {
+  it.each(['carbon', 'energy', 'luonnonmetsakartat'])(
+    'recognizes canonical public applet slug %s',
+    (slug) => {
+      expect(getAppletRouteSlugInfo(slug)).toMatchObject({
+        canonicalSlug: slug,
+        isLegacy: false,
+      })
+    }
+  )
+
+  it.each(['carbonmap', 'energymap', 'energiakartta', 'hiilikartta'])(
+    'does not recognize removed applet URL prefix %s',
+    (slug) => {
+      expect(getAppletRouteSlugInfo(slug)).toBeNull()
+    }
+  )
+})
 
 describe('request routing decisions', () => {
   describe('skipped paths', () => {
@@ -25,7 +45,7 @@ describe('request routing decisions', () => {
       'luonnonmetsakartat',
     ]
 
-    it('redirects root to the default locale', () => {
+    it('redirects root to the default main locale', () => {
       expect(
         decideRequestRouting({ url: url('/'), compiledApplets: mainMode })
       ).toEqual({
@@ -64,20 +84,6 @@ describe('request routing decisions', () => {
       })
     })
 
-    it('replaces a bare invalid main locale with the main default locale', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/sv?x=1'),
-          compiledApplets: mainMode,
-        })
-      ).toEqual({
-        type: 'redirect',
-        status: 308,
-        pathname: '/en',
-        search: '?x=1',
-      })
-    })
-
     it.each(['/adds?x=1', '/sv/adds?x=1'])(
       'keeps common localized path %s outside applet rewriting',
       (path) => {
@@ -87,195 +93,12 @@ describe('request routing decisions', () => {
       }
     )
 
-    it('redirects an applet path without locale to that applet default locale', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/energiakartta?x=1'),
-          compiledApplets: mainMode,
-        })
-      ).toEqual({
-        type: 'redirect',
-        status: 308,
-        pathname: '/fi/energy',
-        search: '?x=1',
-      })
-    })
-
     it.each([
-      '/en/energy?x=1',
-      '/fi/carbon?x=1',
-      '/fi/carbon/plans?x=1',
-      '/fi/carbon/plans/plan-1/areas?x=1',
-      '/fi/carbon/report?x=1',
+      ['/energy/path?x=1', '/fi/energy/path'],
+      ['/carbon/plans?x=1', '/fi/carbon/plans'],
+      ['/luonnonmetsakartat/admin?x=1', '/fi/luonnonmetsakartat/admin'],
     ])(
-      'passes through localized canonical applet path %s with a supported locale',
-      (path) => {
-        expect(
-          decideRequestRouting({
-            url: url(path),
-            compiledApplets: mainMode,
-          })
-        ).toEqual({ type: 'passThrough' })
-      }
-    )
-
-    it('passes through canonical carbon report mock seed URLs unchanged', () => {
-      expect(
-        decideRequestRouting({
-          url: url(
-            '/fi/carbon/report?mockReset=1&mockCarbonState=report-single-local&planIds=mock-plan-local&prevPageId=mock-local-plan&prevPageStep=areas'
-          ),
-          compiledApplets: mainMode,
-        })
-      ).toEqual({ type: 'passThrough' })
-    })
-
-    it('redirects localized legacy Energiakartta paths to energy', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/en/energiakartta/path?x=1'),
-          compiledApplets: mainMode,
-        })
-      ).toEqual({
-        type: 'redirect',
-        status: 308,
-        pathname: '/en/energy/path',
-        search: '?x=1',
-      })
-    })
-
-    it('passes through canonical API paths without locale normalization', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/api/hiilikartta/calculation?id=calc-1'),
-          compiledApplets: mainMode,
-        })
-      ).toEqual({ type: 'passThrough' })
-    })
-
-    it('redirects a localized applet path with an unsupported locale', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/en/hiilikartta?x=1'),
-          compiledApplets: mainMode,
-        })
-      ).toEqual({
-        type: 'redirect',
-        status: 308,
-        pathname: '/fi/carbon',
-        search: '?x=1',
-      })
-    })
-
-    it('redirects missing-locale legacy Hiilikartta subpaths to canonical English paths', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/hiilikartta/kaavat/plan-1/alueet?x=1'),
-          compiledApplets: mainMode,
-        })
-      ).toEqual({
-        type: 'redirect',
-        status: 308,
-        pathname: '/fi/carbon/plans/plan-1/areas',
-        search: '?x=1',
-      })
-    })
-
-    it('redirects missing-locale canonical applet paths to the applet default locale', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/energy/path?x=1'),
-          compiledApplets: mainMode,
-        })
-      ).toEqual({
-        type: 'redirect',
-        status: 308,
-        pathname: '/fi/energy/path',
-        search: '?x=1',
-      })
-    })
-
-    it('redirects missing-locale legacy energymap paths to energy', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/energymap/path?x=1'),
-          compiledApplets: mainMode,
-        })
-      ).toEqual({
-        type: 'redirect',
-        status: 308,
-        pathname: '/fi/energy/path',
-        search: '?x=1',
-      })
-    })
-
-    it('redirects localized legacy energymap paths to energy', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/en/energymap/path?x=1'),
-          compiledApplets: mainMode,
-        })
-      ).toEqual({
-        type: 'redirect',
-        status: 308,
-        pathname: '/en/energy/path',
-        search: '?x=1',
-      })
-    })
-
-    it('redirects localized legacy carbonmap paths to carbon', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/fi/carbonmap/plans?x=1'),
-          compiledApplets: mainMode,
-        })
-      ).toEqual({
-        type: 'redirect',
-        status: 308,
-        pathname: '/fi/carbon/plans',
-        search: '?x=1',
-      })
-    })
-
-    it('redirects missing-locale legacy carbonmap paths to carbon', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/carbonmap/plans?x=1'),
-          compiledApplets: mainMode,
-        })
-      ).toEqual({
-        type: 'redirect',
-        status: 308,
-        pathname: '/fi/carbon/plans',
-        search: '?x=1',
-      })
-    })
-
-    it('redirects localized legacy Luonnonmetsakartat admin subpaths to English paths', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/fi/luonnonmetsakartat/admin/taso/layer-1/kuvat?x=1'),
-          compiledApplets: mainMode,
-        })
-      ).toEqual({
-        type: 'redirect',
-        status: 308,
-        pathname: '/fi/luonnonmetsakartat/admin/layer/layer-1/pictures',
-        search: '?x=1',
-      })
-    })
-
-    it.each([
-      ['/fi/kaavat?x=1', '/fi/carbon/plans'],
-      ['/fi/kaavat/plan-1/alueet?x=1', '/fi/carbon/plans/plan-1/areas'],
-      ['/fi/raportti?x=1', '/fi/carbon/report'],
-      ['/fi/admin/tuo?x=1', '/fi/luonnonmetsakartat/admin/import'],
-      [
-        '/fi/admin/taso/layer-1/asetukset?x=1',
-        '/fi/luonnonmetsakartat/admin/layer/layer-1/settings',
-      ],
-    ])(
-      'redirects localized main-host legacy root alias %s to %s',
+      'redirects missing-locale canonical applet path %s to %s',
       (path, pathname) => {
         expect(
           decideRequestRouting({
@@ -291,59 +114,130 @@ describe('request routing decisions', () => {
       }
     )
 
-    it('redirects legacy report aliases while preserving report mock query strings', () => {
-      expect(
-        decideRequestRouting({
-          url: url(
-            '/fi/raportti?mockReset=1&mockCarbonState=report-single-local&planIds=mock-plan-local&prevPageId=mock-local-plan&prevPageStep=areas'
-          ),
-          compiledApplets: mainMode,
-        })
-      ).toEqual({
-        type: 'redirect',
-        status: 308,
-        pathname: '/fi/carbon/report',
-        search:
-          '?mockReset=1&mockCarbonState=report-single-local&planIds=mock-plan-local&prevPageId=mock-local-plan&prevPageStep=areas',
-      })
-    })
+    it.each([
+      '/en/energy?x=1',
+      '/fi/carbon?x=1',
+      '/fi/carbon/plans?x=1',
+      '/fi/carbon/plans/plan-1/areas?x=1',
+      '/fi/carbon/report?x=1',
+      '/fi/luonnonmetsakartat/admin?x=1',
+    ])(
+      'passes through localized canonical applet path %s with a supported locale',
+      (path) => {
+        expect(
+          decideRequestRouting({
+            url: url(path),
+            compiledApplets: mainMode,
+          })
+        ).toEqual({ type: 'passThrough' })
+      }
+    )
 
-    it('redirects localized main-host legacy root aliases with unsupported applet locales to the applet default locale', () => {
+    it.each([
+      ['/fi/carbon/kaavat?x=1', '/fi/carbon/plans'],
+      [
+        '/fi/carbon/kaavat/plan-1/alueet?x=1',
+        '/fi/carbon/plans/plan-1/areas',
+      ],
+      ['/fi/carbon/raportti?x=1', '/fi/carbon/report'],
+      ['/en/carbon/raportti?x=1', '/fi/carbon/report'],
+    ])(
+      'normalizes localized carbon subpath %s under canonical applet scope',
+      (path, pathname) => {
+        expect(
+          decideRequestRouting({
+            url: url(path),
+            compiledApplets: mainMode,
+          })
+        ).toEqual({
+          type: 'redirect',
+          status: 308,
+          pathname,
+          search: '?x=1',
+        })
+      }
+    )
+
+    it('normalizes localized Luonnonmetsakartat admin subpaths under canonical scope', () => {
       expect(
         decideRequestRouting({
-          url: url('/en/kaavat?x=1'),
+          url: url('/fi/luonnonmetsakartat/admin/taso/layer-1/kuvat?x=1'),
           compiledApplets: mainMode,
         })
       ).toEqual({
         type: 'redirect',
         status: 308,
-        pathname: '/fi/carbon/plans',
+        pathname: '/fi/luonnonmetsakartat/admin/layer/layer-1/pictures',
         search: '?x=1',
       })
     })
 
     it.each([
-      ['/fi/plans?x=1', '/fi/carbon/plans'],
-      ['/fi/plans/plan-1/areas?x=1', '/fi/carbon/plans/plan-1/areas'],
-      ['/fi/admin?x=1', '/fi/luonnonmetsakartat/admin'],
-      ['/fi/admin/import?x=1', '/fi/luonnonmetsakartat/admin/import'],
-      [
-        '/fi/admin/layer/layer-1/settings?x=1',
-        '/fi/luonnonmetsakartat/admin/layer/layer-1/settings',
-      ],
-      [
-        '/fi/admin/layer/layer-1/pictures?x=1',
-        '/fi/luonnonmetsakartat/admin/layer/layer-1/pictures',
-      ],
-      ['/plans?x=1', '/fi/carbon/plans'],
-      ['/en/plans?x=1', '/fi/carbon/plans'],
-      ['/admin?x=1', '/fi/luonnonmetsakartat/admin'],
-      [
-        '/en/admin/layer/layer-1/pictures?x=1',
-        '/fi/luonnonmetsakartat/admin/layer/layer-1/pictures',
-      ],
+      '/fi/carbonmap/plans?x=1',
+      '/fi/energymap/path?x=1',
+      '/fi/energiakartta/path?x=1',
+      '/fi/hiilikartta/kaavat?x=1',
     ])(
-      'redirects deleted main-host root route alias %s to %s',
+      'does not treat localized removed applet URL prefix %s as an applet path',
+      (path) => {
+        expect(
+          decideRequestRouting({
+            url: url(path),
+            compiledApplets: mainMode,
+          })
+        ).toEqual({ type: 'passThrough' })
+      }
+    )
+
+    it.each([
+      ['/carbonmap/plans?x=1', '/en/carbonmap/plans'],
+      ['/energymap/path?x=1', '/en/energymap/path'],
+      ['/energiakartta/path?x=1', '/en/energiakartta/path'],
+      ['/hiilikartta/kaavat?x=1', '/en/hiilikartta/kaavat'],
+    ])(
+      'uses normal main locale insertion for missing-locale removed prefix %s',
+      (path, pathname) => {
+        expect(
+          decideRequestRouting({
+            url: url(path),
+            compiledApplets: mainMode,
+          })
+        ).toEqual({
+          type: 'redirect',
+          status: 308,
+          pathname,
+          search: '?x=1',
+        })
+      }
+    )
+
+    it.each([
+      '/fi/plans?x=1',
+      '/fi/kaavat?x=1',
+      '/fi/report?x=1',
+      '/fi/raportti?x=1',
+      '/fi/admin?x=1',
+      '/fi/admin/import?x=1',
+      '/fi/admin/taso/layer-1/asetukset?x=1',
+      '/en/kaavat?x=1',
+    ])('does not redirect localized main root-shaped applet alias %s', (path) => {
+      expect(
+        decideRequestRouting({
+          url: url(path),
+          compiledApplets: mainMode,
+        })
+      ).toEqual({ type: 'passThrough' })
+    })
+
+    it.each([
+      ['/plans?x=1', '/en/plans'],
+      ['/kaavat?x=1', '/en/kaavat'],
+      ['/report?x=1', '/en/report'],
+      ['/raportti?x=1', '/en/raportti'],
+      ['/admin?x=1', '/en/admin'],
+      ['/admin/import?x=1', '/en/admin/import'],
+    ])(
+      'uses normal main locale insertion for missing-locale root alias %s',
       (path, pathname) => {
         expect(
           decideRequestRouting({
@@ -379,33 +273,47 @@ describe('request routing decisions', () => {
       })
     })
 
-    it('redirects missing-locale standalone paths to the applet default locale', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/kaavat?x=1'),
-          compiledApplets: ['hiilikartta'],
+    it.each([
+      ['/kaavat?x=1', '/fi/plans'],
+      ['/carbon/kaavat?x=1', '/fi/plans'],
+      ['/carbonmap/plans?x=1', '/fi/carbonmap/plans'],
+    ])(
+      'redirects missing-locale Hiilikartta standalone path %s to %s',
+      (path, pathname) => {
+        expect(
+          decideRequestRouting({
+            url: url(path),
+            compiledApplets: ['hiilikartta'],
+          })
+        ).toEqual({
+          type: 'redirect',
+          status: 308,
+          pathname,
+          search: '?x=1',
         })
-      ).toEqual({
-        type: 'redirect',
-        status: 308,
-        pathname: '/fi/plans',
-        search: '?x=1',
-      })
-    })
+      }
+    )
 
-    it('redirects unsupported standalone locales to the applet default locale', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/en/kaavat?x=1'),
-          compiledApplets: ['hiilikartta'],
+    it.each([
+      ['/en/kaavat?x=1', '/fi/plans'],
+      ['/en/carbon/kaavat?x=1', '/fi/plans'],
+      ['/en/carbonmap/plans?x=1', '/fi/carbonmap/plans'],
+    ])(
+      'redirects unsupported Hiilikartta standalone locale %s to %s',
+      (path, pathname) => {
+        expect(
+          decideRequestRouting({
+            url: url(path),
+            compiledApplets: ['hiilikartta'],
+          })
+        ).toEqual({
+          type: 'redirect',
+          status: 308,
+          pathname,
+          search: '?x=1',
         })
-      ).toEqual({
-        type: 'redirect',
-        status: 308,
-        pathname: '/fi/plans',
-        search: '?x=1',
-      })
-    })
+      }
+    )
 
     it.each(['/fi/plans', '/fi/plans/plan-1/areas', '/fi/report'])(
       'passes through generated Hiilikartta root-shaped path %s',
@@ -422,8 +330,9 @@ describe('request routing decisions', () => {
     it.each([
       ['/fi/kaavat?x=1', '/fi/plans'],
       ['/fi/kaavat/plan-1/alueet?x=1', '/fi/plans/plan-1/areas'],
+      ['/fi/raportti?x=1', '/fi/report'],
     ])(
-      'redirects standalone Hiilikartta legacy root alias %s to %s',
+      'redirects standalone Hiilikartta legacy root subpath %s to %s',
       (path, pathname) => {
         expect(
           decideRequestRouting({
@@ -462,7 +371,7 @@ describe('request routing decisions', () => {
         '/fi/admin/layer/layer-1/settings',
       ],
     ])(
-      'redirects standalone Luonnonmetsakartat legacy admin alias %s to %s',
+      'redirects standalone Luonnonmetsakartat legacy admin subpath %s to %s',
       (path, pathname) => {
         expect(
           decideRequestRouting({
@@ -490,87 +399,58 @@ describe('request routing decisions', () => {
       }
     )
 
-    it('strips duplicated applet namespaces from standalone paths', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/fi/hiilikartta/kaavat?x=1'),
-          compiledApplets: ['hiilikartta'],
-        })
-      ).toEqual({
-        type: 'redirect',
-        status: 308,
-        pathname: '/fi/plans',
-        search: '?x=1',
-      })
-    })
+    it.each([
+      ['/fi/carbon/plans?x=1', '/fi/plans'],
+      ['/fi/carbon/kaavat?x=1', '/fi/plans'],
+      ['/fi/energy/test?x=1', '/fi/test'],
+      ['/fi/luonnonmetsakartat?x=1', '/fi'],
+      [
+        '/fi/luonnonmetsakartat/admin/taso/layer-1/asetukset?x=1',
+        '/fi/admin/layer/layer-1/settings',
+      ],
+    ])(
+      'strips duplicated canonical applet prefix %s from standalone paths',
+      (path, pathname) => {
+        const compiledApplets = path.includes('/energy')
+          ? ['energiakartta']
+          : path.includes('/luonnonmetsakartat')
+            ? ['luonnonmetsakartat']
+            : ['hiilikartta']
 
-    it.each(['/fi/carbon/plans?x=1', '/fi/carbonmap/plans?x=1'])(
-      'strips duplicated Hiilikartta public applet slug %s from standalone paths',
-      (path) => {
         expect(
           decideRequestRouting({
             url: url(path),
-            compiledApplets: ['hiilikartta'],
+            compiledApplets,
           })
         ).toEqual({
           type: 'redirect',
           status: 308,
-          pathname: '/fi/plans',
+          pathname,
           search: '?x=1',
         })
       }
     )
 
-    it('strips a duplicated applet namespace from a standalone applet root', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/fi/luonnonmetsakartat?x=1'),
-          compiledApplets: ['luonnonmetsakartat'],
-        })
-      ).toEqual({
-        type: 'redirect',
-        status: 308,
-        pathname: '/fi',
-        search: '?x=1',
-      })
-    })
-
-    it('strips duplicated Luonnonmetsakartat legacy admin subpaths from standalone paths', () => {
-      expect(
-        decideRequestRouting({
-          url: url(
-            '/fi/luonnonmetsakartat/admin/taso/layer-1/asetukset?x=1'
-          ),
-          compiledApplets: ['luonnonmetsakartat'],
-        })
-      ).toEqual({
-        type: 'redirect',
-        status: 308,
-        pathname: '/fi/admin/layer/layer-1/settings',
-        search: '?x=1',
-      })
-    })
-
-    it.each(['/fi/energy/test?x=1', '/fi/energymap/test?x=1'])(
-      'strips standalone Energiakartta public slug %s to root-shaped paths',
-      (path) => {
+    it.each([
+      ['/fi/carbonmap/plans?x=1', ['hiilikartta']],
+      ['/fi/energymap/test?x=1', ['energiakartta']],
+      ['/fi/energiakartta/test?x=1', ['energiakartta']],
+      ['/fi/hiilikartta/kaavat?x=1', ['hiilikartta']],
+    ])(
+      'does not strip removed old prefix %s from standalone paths',
+      (path, compiledApplets) => {
         expect(
           decideRequestRouting({
             url: url(path),
-            compiledApplets: ['energiakartta'],
+            compiledApplets,
           })
-        ).toEqual({
-          type: 'redirect',
-          status: 308,
-          pathname: '/fi/test',
-          search: '?x=1',
-        })
+        ).toEqual({ type: 'passThrough' })
       }
     )
   })
 
-  describe('domain-based applet roots', () => {
-    it('treats a configured applet domain root as that applet root', () => {
+  describe('configured applet domains in main builds', () => {
+    it('does not treat a configured applet domain root as an applet root', () => {
       expect(
         decideRequestRouting({
           url: url('/?x=1', 'hiilikartta.avoin.org'),
@@ -580,37 +460,18 @@ describe('request routing decisions', () => {
       ).toEqual({
         type: 'redirect',
         status: 308,
-        pathname: '/fi',
+        pathname: '/en',
         search: '?x=1',
       })
     })
 
-    it(
-      'passes through remaining visible root aliases on configured domains without ' +
-        'duplicating namespace',
-      () => {
-        expect(
-          decideRequestRouting({
-            url: url('/fi/report?x=1', 'hiilikartta.avoin.org'),
-            host: 'hiilikartta.avoin.org',
-            compiledApplets: ['main', 'hiilikartta'],
-          })
-        ).toEqual({ type: 'passThrough' })
-      }
-    )
-
-    it('passes through already canonical paths on configured domains', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/fi/carbon/plans?x=1', 'hiilikartta.avoin.org'),
-          host: 'hiilikartta.avoin.org',
-          compiledApplets: ['main', 'hiilikartta'],
-        })
-      ).toEqual({ type: 'passThrough' })
-    })
-
-    it.each(['/fi/hiilikartta/kaavat?x=1', '/fi/carbonmap/kaavat?x=1'])(
-      'redirects legacy full-app path %s on configured domains to public English paths',
+    it.each([
+      '/fi/report?x=1',
+      '/fi/kaavat?x=1',
+      '/fi/admin?x=1',
+      '/fi/carbonmap/kaavat?x=1',
+    ])(
+      'does not apply applet-domain root alias policy to %s in main mode',
       (path) => {
         expect(
           decideRequestRouting({
@@ -618,77 +479,26 @@ describe('request routing decisions', () => {
             host: 'hiilikartta.avoin.org',
             compiledApplets: ['main', 'hiilikartta'],
           })
-        ).toEqual({
-          type: 'redirect',
-          status: 308,
-          pathname: '/fi/carbon/plans',
-          search: '?x=1',
-        })
+        ).toEqual({ type: 'passThrough' })
       }
     )
 
-    it.each([
-      ['/fi/plans?x=1', '/fi/carbon/plans'],
-      ['/fi/plans/plan-1/areas?x=1', '/fi/carbon/plans/plan-1/areas'],
-      ['/fi/kaavat?x=1', '/fi/carbon/plans'],
-      ['/fi/kaavat/plan-1/alueet?x=1', '/fi/carbon/plans/plan-1/areas'],
-      ['/plans?x=1', '/fi/carbon/plans'],
-      ['/en/kaavat?x=1', '/fi/carbon/plans'],
-    ])(
-      'redirects Hiilikartta applet-domain full-app root alias %s to %s',
-      (path, pathname) => {
-        expect(
-          decideRequestRouting({
-            url: url(path, 'hiilikartta.avoin.org'),
-            host: 'hiilikartta.avoin.org',
-            compiledApplets: ['main', 'hiilikartta'],
-          })
-        ).toEqual({
-          type: 'redirect',
-          status: 308,
-          pathname,
-          search: '?x=1',
+    it('still applies canonical applet path policy on configured applet domains', () => {
+      expect(
+        decideRequestRouting({
+          url: url('/fi/carbon/kaavat?x=1', 'hiilikartta.avoin.org'),
+          host: 'hiilikartta.avoin.org',
+          compiledApplets: ['main', 'hiilikartta'],
         })
-      }
-    )
+      ).toEqual({
+        type: 'redirect',
+        status: 308,
+        pathname: '/fi/carbon/plans',
+        search: '?x=1',
+      })
+    })
 
-    it.each([
-      ['/fi/admin?x=1', '/fi/luonnonmetsakartat/admin'],
-      ['/fi/admin/import?x=1', '/fi/luonnonmetsakartat/admin/import'],
-      [
-        '/fi/admin/layer/layer-1/settings?x=1',
-        '/fi/luonnonmetsakartat/admin/layer/layer-1/settings',
-      ],
-      ['/fi/admin/tuo?x=1', '/fi/luonnonmetsakartat/admin/import'],
-      [
-        '/fi/admin/taso/layer-1/asetukset?x=1',
-        '/fi/luonnonmetsakartat/admin/layer/layer-1/settings',
-      ],
-      [
-        '/fi/admin/taso/layer-1/kuvat?x=1',
-        '/fi/luonnonmetsakartat/admin/layer/layer-1/pictures',
-      ],
-      ['/admin?x=1', '/fi/luonnonmetsakartat/admin'],
-      ['/en/admin/tuo?x=1', '/fi/luonnonmetsakartat/admin/import'],
-    ])(
-      'redirects Luonnonmetsakartat applet-domain full-app root alias %s to %s',
-      (path, pathname) => {
-        expect(
-          decideRequestRouting({
-            url: url(path, 'luonnonmetsakartat.avoin.org'),
-            host: 'luonnonmetsakartat.avoin.org',
-            compiledApplets: ['main', 'luonnonmetsakartat'],
-          })
-        ).toEqual({
-          type: 'redirect',
-          status: 308,
-          pathname,
-          search: '?x=1',
-        })
-      }
-    )
-
-    it('uses env-backed applet domains in addition to appletConf domains', () => {
+    it('uses normal main behavior for env-backed applet domains in main mode', () => {
       expect(
         decideRequestRouting({
           url: url('/en/test?x=1', 'energy.example.test'),
@@ -699,26 +509,7 @@ describe('request routing decisions', () => {
               'https://energy.example.test',
           },
         })
-      ).toEqual({
-        type: 'rewrite',
-        pathname: '/en/energy/test',
-        search: '?x=1',
-      })
-    })
-
-    it('uses main-mode root-alias canonicalization on non-matching domains', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/fi/kaavat?x=1', 'example.org'),
-          host: 'example.org',
-          compiledApplets: ['main', 'hiilikartta'],
-        })
-      ).toEqual({
-        type: 'redirect',
-        status: 308,
-        pathname: '/fi/carbon/plans',
-        search: '?x=1',
-      })
+      ).toEqual({ type: 'passThrough' })
     })
   })
 })

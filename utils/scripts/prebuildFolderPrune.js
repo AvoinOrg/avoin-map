@@ -52,12 +52,6 @@ const productionOnlyPrunedRoutes = [
   path.join('src', 'routes', '$locale', 'dev', 'component-fixtures'),
 ]
 
-const appletLegacyStartRouteFolders = {
-  energiakartta: ['energiakartta'],
-  hiilikartta: ['hiilikartta'],
-  luonnonmetsakartat: [],
-}
-
 const fail = (msg) => {
   throw new Error(msg)
 }
@@ -76,7 +70,6 @@ const normalizeName = (name) => {
 
 const getStartRouteFolderNamesForNamespace = (namespace) => [
   getPublicAppletRouteSlug(namespace),
-  ...(appletLegacyStartRouteFolders[namespace] || []),
 ]
 
 const getStandaloneSourceRouteFolderName = ({ buildConfig }) => {

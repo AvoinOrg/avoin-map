@@ -146,16 +146,6 @@ const writeCommonFixture = (root) => {
   })
   writeFile({
     root,
-    relativePath: appletRoute('energymap', 'route.tsx'),
-    content: routeFile('/$locale/_map/(applets)/energymap'),
-  })
-  writeFile({
-    root,
-    relativePath: appletRoute('energiakartta', 'route.tsx'),
-    content: routeFile('/$locale/_map/(applets)/energiakartta'),
-  })
-  writeFile({
-    root,
     relativePath: appletRoute('carbon', 'route.tsx'),
     content: routeFile('/$locale/_map/(applets)/carbon'),
   })
@@ -185,16 +175,6 @@ const writeCommonFixture = (root) => {
     root,
     relativePath: appletRoute('carbon', 'report.tsx'),
     content: routeFile('/$locale/_map/(applets)/carbon/report'),
-  })
-  writeFile({
-    root,
-    relativePath: appletRoute('carbonmap', 'route.tsx'),
-    content: routeFile('/$locale/_map/(applets)/carbonmap'),
-  })
-  writeFile({
-    root,
-    relativePath: appletRoute('hiilikartta', 'route.tsx'),
-    content: routeFile('/$locale/_map/(applets)/hiilikartta'),
   })
   writeFile({
     root,
@@ -324,7 +304,6 @@ describe('prebuildFolderPrune standalone route materialization', () => {
       "createFileRoute('/$locale/_map/(standalone)/plans/$planId/areas')"
     )
     expect(exists({ root, relativePath: appletRoute('carbon') })).toBe(false)
-    expect(exists({ root, relativePath: appletRoute('carbonmap') })).toBe(false)
     expect(exists({ root, relativePath: mapRoute('index.tsx') })).toBe(false)
     expect(result.removedStandaloneMain).toEqual([
       mapRoute('index.tsx'),
@@ -441,7 +420,6 @@ describe('prebuildFolderPrune standalone route materialization', () => {
       "createFileRoute('/$locale/_map/(standalone)/')"
     )
     expect(exists({ root, relativePath: appletRoute('energy') })).toBe(false)
-    expect(exists({ root, relativePath: appletRoute('energymap') })).toBe(false)
     expect(exists({ root, relativePath: appletRoute('energiakartta') })).toBe(
       false
     )
@@ -466,10 +444,10 @@ describe('prebuildFolderPrune standalone route materialization', () => {
 
     expect(exists({ root, relativePath: standaloneRoute() })).toBe(false)
     expect(exists({ root, relativePath: appletRoute('carbon') })).toBe(true)
-    expect(exists({ root, relativePath: appletRoute('carbonmap') })).toBe(false)
-    expect(exists({ root, relativePath: appletRoute('hiilikartta') })).toBe(true)
+    expect(exists({ root, relativePath: appletRoute('hiilikartta') })).toBe(
+      false
+    )
     expect(exists({ root, relativePath: appletRoute('energy') })).toBe(false)
-    expect(exists({ root, relativePath: appletRoute('energymap') })).toBe(false)
     expect(exists({ root, relativePath: appletRoute('forests') })).toBe(true)
     expect(
       exists({ root, relativePath: path.join('src', 'applets', 'forests') })

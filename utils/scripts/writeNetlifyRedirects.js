@@ -2,10 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const dotenv = require('dotenv')
 const { parseCompiledApplets } = require('./appletBuildConfig')
-const {
-  APPLET_LEGACY_PUBLIC_ROUTE_SLUGS,
-  getPublicAppletRouteSlug,
-} = require('./publicRoutes')
+const { getPublicAppletRouteSlug } = require('./publicRoutes')
 
 dotenv.config({ quiet: true })
 
@@ -220,24 +217,6 @@ const addLegacyHiilikarttaPlanSubpathRedirects = ({
   })
 }
 
-const addHiilikarttaPlanRootAliasRedirects = ({
-  fromBase,
-  rules,
-  toBase,
-}) => {
-  addVisibleRedirectRule({
-    rules,
-    from: `${fromBase}/plans`,
-    to: `${toBase}/plans`,
-  })
-  addVisibleRedirectRule({
-    rules,
-    from: `${fromBase}/plans/*`,
-    to: `${toBase}/plans/:splat`,
-  })
-  addLegacyHiilikarttaPlanSubpathRedirects({ fromBase, rules, toBase })
-}
-
 const addLegacyHiilikarttaReportRedirects = ({
   fromBase,
   rules,
@@ -291,24 +270,6 @@ const addLegacyLuonnonmetsakartatSubpathRedirects = ({
   })
 }
 
-const addLuonnonmetsakartatAdminRootAliasRedirects = ({
-  fromBase,
-  rules,
-  toBase,
-}) => {
-  addLegacyLuonnonmetsakartatSubpathRedirects({ fromBase, rules, toBase })
-  addVisibleRedirectRule({
-    rules,
-    from: `${fromBase}/admin`,
-    to: `${toBase}/admin`,
-  })
-  addVisibleRedirectRule({
-    rules,
-    from: `${fromBase}/admin/*`,
-    to: `${toBase}/admin/:splat`,
-  })
-}
-
 const addLegacySubpathRedirects = ({ namespace, fromBase, rules, toBase }) => {
   if (namespace === 'hiilikartta') {
     addLegacyHiilikarttaSubpathRedirects({ fromBase, rules, toBase })
@@ -319,39 +280,6 @@ const addLegacySubpathRedirects = ({ namespace, fromBase, rules, toBase }) => {
       fromBase,
       rules,
       toBase,
-    })
-  }
-}
-
-const addLegacyAppletSlugRedirects = ({
-  mode,
-  namespace,
-  fromLocaleBase,
-  rules,
-  toLocaleBase,
-}) => {
-  const publicSlug = getPublicAppletRouteSlug(namespace)
-  const targetAppletBase =
-    mode === 'standalone' ? toLocaleBase : `${toLocaleBase}/${publicSlug}`
-
-  for (const legacySlug of APPLET_LEGACY_PUBLIC_ROUTE_SLUGS[namespace] || []) {
-    const legacyBase = `${fromLocaleBase}/${legacySlug}`
-
-    addLegacySubpathRedirects({
-      namespace,
-      fromBase: legacyBase,
-      rules,
-      toBase: targetAppletBase,
-    })
-    addVisibleRedirectRule({
-      rules,
-      from: legacyBase,
-      to: targetAppletBase,
-    })
-    addVisibleRedirectRule({
-      rules,
-      from: `${legacyBase}/*`,
-      to: `${targetAppletBase}/:splat`,
     })
   }
 }
@@ -377,62 +305,6 @@ const addStandaloneRootAliasRedirects = ({
       toBase: toLocaleBase,
     })
   }
-}
-
-const addMainModeRootAliasRedirects = ({
-  namespace,
-  fromLocaleBase,
-  rules,
-  toAppletLocaleBase,
-  toVisibleLocaleBase,
-}) => {
-  if (namespace === 'hiilikartta') {
-    addHiilikarttaPlanRootAliasRedirects({
-      fromBase: fromLocaleBase,
-      rules,
-      toBase: toAppletLocaleBase,
-    })
-    addLegacyHiilikarttaReportRedirects({
-      fromBase: fromLocaleBase,
-      rules,
-      toBase: toVisibleLocaleBase,
-    })
-  }
-
-  if (namespace === 'luonnonmetsakartat') {
-    addLuonnonmetsakartatAdminRootAliasRedirects({
-      fromBase: fromLocaleBase,
-      rules,
-      toBase: toAppletLocaleBase,
-    })
-  }
-}
-
-const addAppletDomainRootAliasRedirects = ({
-  mode,
-  namespace,
-  fromLocaleBase,
-  rules,
-  toAppletLocaleBase,
-  toVisibleLocaleBase,
-}) => {
-  if (mode === 'standalone') {
-    addStandaloneRootAliasRedirects({
-      namespace,
-      fromLocaleBase,
-      rules,
-      toLocaleBase: toVisibleLocaleBase,
-    })
-    return
-  }
-
-  addMainModeRootAliasRedirects({
-    namespace,
-    fromLocaleBase,
-    rules,
-    toAppletLocaleBase,
-    toVisibleLocaleBase,
-  })
 }
 
 const addProxyRulesForDomain = ({
@@ -498,12 +370,6 @@ const addProxyRulesForDomain = ({
     const publicSlug = getPublicAppletRouteSlug(namespace)
     const localizedAppletBase = `/${locale}/${publicSlug}`
     const apiTarget = `/api/${namespace}/:splat`
-    const localeRootTarget =
-      mode === 'standalone' ? `/${locale}` : localizedAppletBase
-    const localeCatchAllTarget =
-      mode === 'standalone'
-        ? `/${locale}/:splat`
-        : `${localizedAppletBase}/:splat`
     const localizedAppletTarget =
       mode === 'standalone' ? `/${locale}` : localizedAppletBase
     const localizedAppletCatchAllTarget =
@@ -526,21 +392,15 @@ const addProxyRulesForDomain = ({
       rules,
       toBase: localizedVisibleAppletBase,
     })
-    addLegacyAppletSlugRedirects({
-      mode,
-      namespace,
-      fromLocaleBase: `${domainBase}/${locale}`,
-      rules,
-      toLocaleBase: `/${locale}`,
-    })
-    addAppletDomainRootAliasRedirects({
-      mode,
-      namespace,
-      fromLocaleBase: `${domainBase}/${locale}`,
-      rules,
-      toAppletLocaleBase: localizedAppletBase,
-      toVisibleLocaleBase: `/${locale}`,
-    })
+
+    if (mode === 'standalone') {
+      addStandaloneRootAliasRedirects({
+        namespace,
+        fromLocaleBase: `${domainBase}/${locale}`,
+        rules,
+        toLocaleBase: `/${locale}`,
+      })
+    }
 
     if (mode === 'standalone') {
       addVisibleRedirectRule({
@@ -564,77 +424,61 @@ const addProxyRulesForDomain = ({
       })
     }
 
-    addRule({
-      rules,
-      from: `${domainBase}/${locale}`,
-      to: targetFor({ baseUrl, path: localeRootTarget }),
-    })
-    addRule({
-      rules,
-      from: `${domainBase}/${locale}/*`,
-      to: targetFor({ baseUrl, path: localeCatchAllTarget }),
-    })
+    if (mode === 'standalone') {
+      addRule({
+        rules,
+        from: `${domainBase}/${locale}`,
+        to: targetFor({ baseUrl, path: `/${locale}` }),
+      })
+      addRule({
+        rules,
+        from: `${domainBase}/${locale}/*`,
+        to: targetFor({ baseUrl, path: `/${locale}/:splat` }),
+      })
+    }
   }
 
-  for (const unsupportedLocale of knownUnsupportedLocales) {
-    addLegacyAppletSlugRedirects({
-      mode,
+  if (mode === 'standalone') {
+    for (const unsupportedLocale of knownUnsupportedLocales) {
+      addStandaloneRootAliasRedirects({
+        namespace,
+        fromLocaleBase: `${domainBase}/${unsupportedLocale}`,
+        rules,
+        toLocaleBase: `/${defaultLocale}`,
+      })
+
+      addVisibleRedirectRule({
+        rules,
+        from: `${domainBase}/${unsupportedLocale}`,
+        to: `/${defaultLocale}`,
+      })
+      addVisibleRedirectRule({
+        rules,
+        from: `${domainBase}/${unsupportedLocale}/*`,
+        to: `/${defaultLocale}/:splat`,
+      })
+    }
+  }
+
+  if (mode === 'standalone') {
+    addStandaloneRootAliasRedirects({
       namespace,
-      fromLocaleBase: `${domainBase}/${unsupportedLocale}`,
+      fromLocaleBase: domainBase,
       rules,
       toLocaleBase: `/${defaultLocale}`,
-    })
-    addAppletDomainRootAliasRedirects({
-      mode,
-      namespace,
-      fromLocaleBase: `${domainBase}/${unsupportedLocale}`,
-      rules,
-      toAppletLocaleBase: `/${defaultLocale}/${getPublicAppletRouteSlug(
-        namespace
-      )}`,
-      toVisibleLocaleBase: `/${defaultLocale}`,
     })
 
     addVisibleRedirectRule({
       rules,
-      from: `${domainBase}/${unsupportedLocale}`,
+      from: `${domainBase}/`,
       to: `/${defaultLocale}`,
     })
     addVisibleRedirectRule({
       rules,
-      from: `${domainBase}/${unsupportedLocale}/*`,
+      from: `${domainBase}/*`,
       to: `/${defaultLocale}/:splat`,
     })
   }
-
-  addLegacyAppletSlugRedirects({
-    mode,
-    namespace,
-    fromLocaleBase: domainBase,
-    rules,
-    toLocaleBase: `/${defaultLocale}`,
-  })
-  addAppletDomainRootAliasRedirects({
-    mode,
-    namespace,
-    fromLocaleBase: domainBase,
-    rules,
-    toAppletLocaleBase: `/${defaultLocale}/${getPublicAppletRouteSlug(
-      namespace
-    )}`,
-    toVisibleLocaleBase: `/${defaultLocale}`,
-  })
-
-  addVisibleRedirectRule({
-    rules,
-    from: `${domainBase}/`,
-    to: `/${defaultLocale}`,
-  })
-  addVisibleRedirectRule({
-    rules,
-    from: `${domainBase}/*`,
-    to: `/${defaultLocale}/:splat`,
-  })
 }
 
 const generateNetlifyRedirects = ({
