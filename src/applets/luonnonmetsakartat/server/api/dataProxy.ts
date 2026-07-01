@@ -2,6 +2,10 @@ import {
   handleApiProxyRequest,
   type ApiProxyDeps,
 } from '#/common/server/apiProxy'
+import {
+  handleLuonnonmetsakartatMockApiRequest,
+  isLuonnonmetsakartatMockApiEnabled,
+} from './mockDataProxy'
 
 export const handleLuonnonmetsakartatDataProxyRequest = async ({
   deps,
@@ -9,10 +13,17 @@ export const handleLuonnonmetsakartatDataProxyRequest = async ({
 }: {
   deps?: ApiProxyDeps
   request: Request
-}) =>
-  handleApiProxyRequest({
+}) => {
+  const env = deps?.env ?? process.env
+
+  if (isLuonnonmetsakartatMockApiEnabled(env)) {
+    return handleLuonnonmetsakartatMockApiRequest({ request })
+  }
+
+  return handleApiProxyRequest({
     baseUrlEnvName: 'LUONNONMETSAKARTAT_API_URL',
-    deps,
+    deps: { ...deps, env },
     request,
     routePrefix: '/api/luonnonmetsakartat',
   })
+}
