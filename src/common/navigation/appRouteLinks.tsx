@@ -1,4 +1,4 @@
-import { useMatches, useParams, useRouter } from '@tanstack/react-router'
+import { useParams, useRouter } from '@tanstack/react-router'
 import React, { useCallback, useMemo } from 'react'
 
 import {
@@ -37,24 +37,17 @@ export type AppRouteEntry = {
   metadata: AppRouteMetadata
 }
 
-export type AppRouteMatchContext = {
-  routeId: string
-}
-
 export type AppRouteHrefOptions = {
   routeKey: AppRouteKey
   routeParams?: RouteParamInput
   queryParams?: SearchParamInput
   search?: SearchParamInput
   locale?: string
-  preferVisible?: boolean
 }
 
 type SelectAppRouteEntryOptions = {
   entries: AppRouteEntry[]
   routeKey: AppRouteKey
-  currentMatches?: AppRouteMatchContext[]
-  preferVisible?: boolean
 }
 
 type BuildAppRouteHrefOptions = {
@@ -200,7 +193,6 @@ const getRouteTo = (route: AppRouteRecord, fullPath: string) =>
 
 const getEntryMaps = (entries: AppRouteEntry[]) => {
   const byRouteKey = new Map<AppRouteKey, AppRouteEntry>()
-  const byRouteId = new Map<string, AppRouteEntry>()
 
   for (const entry of entries) {
     if (byRouteKey.has(entry.metadata.key)) {
@@ -210,10 +202,9 @@ const getEntryMaps = (entries: AppRouteEntry[]) => {
     }
 
     byRouteKey.set(entry.metadata.key, entry)
-    byRouteId.set(entry.routeId, entry)
   }
 
-  return { byRouteKey, byRouteId }
+  return { byRouteKey }
 }
 
 export const collectAppRouteEntries = (
@@ -244,100 +235,12 @@ export const collectAppRouteEntries = (
 export const selectAppRouteEntry = ({
   entries,
   routeKey,
-  currentMatches = [],
-  preferVisible = true,
 }: SelectAppRouteEntryOptions): AppRouteEntry => {
-  const { byRouteKey, byRouteId } = getEntryMaps(entries)
+  const { byRouteKey } = getEntryMaps(entries)
   const requested = byRouteKey.get(routeKey)
 
   if (!requested) {
     throw new Error(`Unknown AppRouteKey "${routeKey}"`)
-  }
-
-  if (!preferVisible || requested.metadata.variant !== 'canonical') {
-    return requested
-  }
-
-  const currentEntries = currentMatches
-    .map((match) => byRouteId.get(match.routeId))
-    .filter((entry): entry is AppRouteEntry => entry != null)
-
-  const visibleRootAlias = currentEntries.find(
-    (entry) =>
-      entry.metadata.variant === 'visible-root-alias' &&
-      Object.values(entry.metadata.public?.visibleRootCanonicalRouteKeys ?? {}).includes(
-        routeKey
-      )
-  )
-
-  if (visibleRootAlias != null) {
-    return visibleRootAlias
-  }
-
-  const requestedAppletNamespace = requested.metadata.appletNamespace
-
-  if (requestedAppletNamespace != null && requestedAppletNamespace !== 'main') {
-    const hasVisibleAliasInSameNamespace = currentEntries.some((entry) => {
-      if (entry.metadata.variant !== 'visible-alias') {
-        return false
-      }
-
-      const canonicalRouteKey = entry.metadata.public?.canonicalRouteKey
-      if (canonicalRouteKey == null) {
-        return false
-      }
-
-      const canonicalEntry = byRouteKey.get(canonicalRouteKey)
-      return (
-        canonicalEntry?.metadata.appletNamespace ===
-        requestedAppletNamespace
-      )
-    })
-
-    if (hasVisibleAliasInSameNamespace) {
-      const visibleRoot = entries.find(
-        (entry) =>
-          entry.metadata.variant === 'visible-root-alias' &&
-          entry.metadata.public?.visibleRootCanonicalRouteKeys?.[
-            requestedAppletNamespace
-          ] === routeKey
-      )
-
-      if (visibleRoot != null) {
-        return visibleRoot
-      }
-
-      const visibleAlias = entries.find((entry) => {
-        if (entry.metadata.variant !== 'visible-alias') {
-          return false
-        }
-
-        const canonicalRouteKey = entry.metadata.public?.canonicalRouteKey
-        if (canonicalRouteKey == null) {
-          return false
-        }
-
-        const canonicalEntry = byRouteKey.get(canonicalRouteKey)
-        return (
-          canonicalRouteKey === routeKey &&
-          canonicalEntry?.metadata.appletNamespace ===
-            requestedAppletNamespace
-        )
-      })
-
-      if (visibleAlias != null) {
-        return visibleAlias
-      }
-    }
-  }
-
-  for (const entry of currentEntries) {
-    if (
-      entry.metadata.variant === 'visible-alias' &&
-      entry.metadata.public?.canonicalRouteKey === routeKey
-    ) {
-      return entry
-    }
   }
 
   return requested
@@ -359,16 +262,12 @@ export const resolveAppRouteHref = ({
   router,
   entries,
   routeKey,
-  currentMatches,
-  preferVisible,
   routeParams,
   search,
 }: ResolveAppRouteHrefOptions) => {
   const entry = selectAppRouteEntry({
     entries,
     routeKey,
-    currentMatches,
-    preferVisible,
   })
 
   return buildAppRouteHref({
@@ -385,7 +284,6 @@ export const useAppRouteHref = ({
   queryParams,
   search,
   locale,
-  preferVisible = true,
 }: AppRouteHrefOptions) => {
   const build = useAppRouteHrefBuilder()
 
@@ -395,17 +293,12 @@ export const useAppRouteHref = ({
     queryParams,
     search,
     locale,
-    preferVisible,
   })
 }
 
 export const useAppRouteHrefBuilder = (): AppRouteHrefBuilder => {
   const router = useRouter()
   const currentParams = useParams({ strict: false } as never) as AppRouteParams
-  const currentMatches = useMatches({
-    select: (matches) =>
-      matches.map((match) => ({ routeId: String(match.routeId) })),
-  }) as AppRouteMatchContext[]
 
   const entries = useMemo(
     () => collectAppRouteEntries(router.routesById as unknown as RoutesById),
@@ -419,7 +312,6 @@ export const useAppRouteHrefBuilder = (): AppRouteHrefBuilder => {
       queryParams,
       search,
       locale: nextLocale,
-      preferVisible = true,
     }) => {
       const routeLocale =
         nextLocale ??
@@ -431,8 +323,6 @@ export const useAppRouteHrefBuilder = (): AppRouteHrefBuilder => {
         router,
         entries,
         routeKey,
-        currentMatches,
-        preferVisible,
         routeParams: {
           ...currentParams,
           ...nextRouteParams,
@@ -441,7 +331,7 @@ export const useAppRouteHrefBuilder = (): AppRouteHrefBuilder => {
         search: search ?? queryParams,
       })
     },
-    [currentParams, currentMatches, entries, router]
+    [currentParams, entries, router]
   )
 }
 
@@ -475,7 +365,6 @@ export const AppRouteLink = React.forwardRef<
       queryParams,
       search,
       locale,
-      preferVisible,
       sx,
       children,
       prefetch = true,
@@ -489,7 +378,6 @@ export const AppRouteLink = React.forwardRef<
       queryParams,
       search,
       locale,
-      preferVisible,
     })
 
     const composedSx = [

@@ -7,7 +7,7 @@ import {
   collectAppRouteEntries,
   resolveAppRouteHref,
   selectAppRouteEntry,
-  type AppRouteMatchContext,
+  type AppRouteEntry,
 } from './appRouteLinks'
 
 const makeRoute = ({
@@ -63,7 +63,7 @@ const makeRouter = () => ({
   ),
 })
 
-const routesById = {
+const mainRoutesById = {
   canonicalHome: makeRoute({
     id: 'canonicalHome',
     fullPath: '/$locale/carbon',
@@ -90,18 +90,6 @@ const routesById = {
       key: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
       appletNamespace: 'hiilikartta',
       variant: 'canonical',
-    },
-  }),
-  visibleReport: makeRoute({
-    id: 'visibleReport',
-    fullPath: '/$locale/report',
-    metadata: {
-      key: APP_ROUTE_KEYS.HIILIKARTTA_REPORT_VISIBLE_ALIAS,
-      appletNamespace: 'hiilikartta',
-      variant: 'visible-alias',
-      public: {
-        canonicalRouteKey: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
-      },
     },
   }),
   canonicalPlan: makeRoute({
@@ -131,28 +119,62 @@ const routesById = {
       variant: 'canonical',
     },
   }),
-  visibleRoot: makeRoute({
-    id: 'visibleRoot',
+}
+
+const standaloneHiilikarttaRoutesById = {
+  standaloneHome: makeRoute({
+    id: 'standaloneHome',
     fullPath: '/$locale/',
     to: '/$locale',
     metadata: {
-      key: APP_ROUTE_KEYS.MAIN_HOME,
-      appletNamespace: null,
-      variant: 'visible-root-alias',
+      key: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
+      appletNamespace: 'hiilikartta',
+      variant: 'canonical',
       home: true,
-      public: {
-        visibleRootCanonicalRouteKeys: {
-          hiilikartta: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
-        },
-      },
+    },
+  }),
+  standalonePlans: makeRoute({
+    id: 'standalonePlans',
+    fullPath: '/$locale/plans',
+    metadata: {
+      key: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
+      appletNamespace: 'hiilikartta',
+      variant: 'canonical',
+    },
+  }),
+  standaloneReport: makeRoute({
+    id: 'standaloneReport',
+    fullPath: '/$locale/report',
+    metadata: {
+      key: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
+      appletNamespace: 'hiilikartta',
+      variant: 'canonical',
+    },
+  }),
+  standalonePlan: makeRoute({
+    id: 'standalonePlan',
+    fullPath: '/$locale/plans/$planId',
+    metadata: {
+      key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
+      appletNamespace: 'hiilikartta',
+      variant: 'canonical',
+    },
+  }),
+  standalonePlanAreas: makeRoute({
+    id: 'standalonePlanAreas',
+    fullPath: '/$locale/plans/$planId/areas',
+    metadata: {
+      key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN_AREAS,
+      appletNamespace: 'hiilikartta',
+      variant: 'canonical',
     },
   }),
 }
 
 describe('appRouteLinks', () => {
-  it('resolves canonical route keys through TanStack route entries', () => {
+  it('resolves canonical route keys through main-build TanStack route entries', () => {
     const router = makeRouter()
-    const entries = collectAppRouteEntries(routesById)
+    const entries = collectAppRouteEntries(mainRoutesById)
 
     expect(
       resolveAppRouteHref({
@@ -170,76 +192,50 @@ describe('appRouteLinks', () => {
     })
   })
 
-  it('prefers the current visible alias for a canonical route key', () => {
-    const entries = collectAppRouteEntries(routesById)
-    const currentMatches: AppRouteMatchContext[] = [
-      { routeId: 'visibleReport' },
-    ]
+  it('resolves standalone promoted routes through the same canonical keys', () => {
+    const entries = collectAppRouteEntries(standaloneHiilikarttaRoutesById)
 
     expect(
       resolveAppRouteHref({
         router: makeRouter(),
         entries,
-        currentMatches,
+        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
+        routeParams: { locale: 'fi' },
+      })
+    ).toBe('/fi')
+
+    expect(
+      resolveAppRouteHref({
+        router: makeRouter(),
+        entries,
+        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
+        routeParams: { locale: 'fi' },
+      })
+    ).toBe('/fi/plans')
+
+    expect(
+      resolveAppRouteHref({
+        router: makeRouter(),
+        entries,
         routeKey: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
         routeParams: { locale: 'fi' },
       })
     ).toBe('/fi/report')
   })
 
-  it('resolves requested visible aliases directly', () => {
-    const entries = collectAppRouteEntries(routesById)
+  it('selects exactly the requested canonical route key', () => {
+    const entries = collectAppRouteEntries(mainRoutesById)
 
     expect(
       selectAppRouteEntry({
         entries,
-        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_REPORT_VISIBLE_ALIAS,
-        currentMatches: [{ routeId: 'canonicalReport' }],
+        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
       }).routeId
-    ).toBe('visibleReport')
-  })
-
-  it('prefers the current visible-root route for canonical applet homes', () => {
-    const entries = collectAppRouteEntries(routesById)
-
-    expect(
-      resolveAppRouteHref({
-        router: makeRouter(),
-        entries,
-        currentMatches: [{ routeId: 'visibleRoot' }],
-        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
-        routeParams: { locale: 'fi' },
-      })
-    ).toBe('/fi')
-  })
-
-  it('resolves applet homes to the visible root from nested visible aliases', () => {
-    expect(
-      resolveAppRouteHref({
-        router: makeRouter(),
-        entries: collectAppRouteEntries(routesById),
-        currentMatches: [{ routeId: 'visibleReport' }],
-        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
-        routeParams: { locale: 'fi' },
-      })
-    ).toBe('/fi')
-  })
-
-  it('can force canonical applet hrefs when visible aliases are active', () => {
-    expect(
-      resolveAppRouteHref({
-        router: makeRouter(),
-        entries: collectAppRouteEntries(routesById),
-        currentMatches: [{ routeId: 'visibleRoot' }],
-        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
-        routeParams: { locale: 'fi' },
-        preferVisible: false,
-      })
-    ).toBe('/fi/carbon')
+    ).toBe('canonicalReport')
   })
 
   it('passes query params to TanStack href materialization', () => {
-    const entries = collectAppRouteEntries(routesById)
+    const entries = collectAppRouteEntries(mainRoutesById)
 
     expect(
       resolveAppRouteHref({
@@ -253,7 +249,7 @@ describe('appRouteLinks', () => {
   })
 
   it('resolves report scenario query params and close-link plan targets with local ids', () => {
-    const entries = collectAppRouteEntries(routesById)
+    const entries = collectAppRouteEntries(mainRoutesById)
     const reportSearch = new URLSearchParams({
       mockReset: '1',
       mockCarbonState: 'report-single-local',
@@ -301,7 +297,7 @@ describe('appRouteLinks', () => {
     expect(
       resolveAppRouteHref({
         router: makeRouter(),
-        entries: collectAppRouteEntries(routesById),
+        entries: collectAppRouteEntries(mainRoutesById),
         routeKey: APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN_FOLAYER,
         routeParams: { locale: 'fi', folayerIdSlug: 'layer-1' },
         search,
@@ -309,5 +305,29 @@ describe('appRouteLinks', () => {
     ).toBe(
       '/fi/luonnonmetsakartat/admin/layer/layer-1?tab=areas&tab=pictures'
     )
+  })
+
+  it('throws for a route key that is not present in the current route entries', () => {
+    expect(() =>
+      selectAppRouteEntry({
+        entries: collectAppRouteEntries(standaloneHiilikarttaRoutesById),
+        routeKey: APP_ROUTE_KEYS.ENERGIAKARTTA_HOME,
+      })
+    ).toThrow('Unknown AppRouteKey "energiakartta.home"')
+  })
+
+  it('throws for duplicate canonical route keys in a single entry set', () => {
+    const [homeEntry] = collectAppRouteEntries(standaloneHiilikarttaRoutesById)
+    const duplicateHomeEntry: AppRouteEntry = {
+      ...homeEntry,
+      routeId: 'duplicateStandaloneHome',
+    }
+
+    expect(() =>
+      selectAppRouteEntry({
+        entries: [homeEntry, duplicateHomeEntry],
+        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
+      })
+    ).toThrow(/Duplicate AppRouteKey "hiilikartta.home"/)
   })
 })

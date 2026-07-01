@@ -667,7 +667,6 @@ const MainSidebarContent = () => {
                       <AppRouteLink
                         key={id}
                         routeKey={routeKey}
-                        preferVisible={false}
                         sx={{
                           display: 'flex',
                           width: '100%',
@@ -788,7 +787,6 @@ const MainSidebarContent = () => {
                       <AppRouteLink
                         key={id}
                         routeKey={routeKey}
-                        preferVisible={false}
                         sx={{
                           display: 'flex',
                           width: '100%',
@@ -962,7 +960,6 @@ const MainSidebarContent = () => {
                     <AppRouteLink
                       key={id}
                       routeKey={routeKey}
-                      preferVisible={false}
                       sx={{
                         display: 'flex',
                         width: '100%',
@@ -1165,7 +1162,6 @@ const MainSidebarContent = () => {
                     <AppRouteLink
                       key={id}
                       routeKey={routeKey}
-                      preferVisible={false}
                       sx={{
                         display: 'flex',
                         width: '100%',
@@ -1282,7 +1278,6 @@ const MainSidebarContent = () => {
                     <AppRouteLink
                       key={id}
                       routeKey={routeKey}
-                      preferVisible={false}
                       sx={{
                         display: 'flex',
                         width: '100%',

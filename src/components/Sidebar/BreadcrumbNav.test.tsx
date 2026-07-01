@@ -196,33 +196,17 @@ describe('BreadcrumbNav', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('uses remaining visible alias matches without adding old main-tree root crumbs', () => {
+  it('uses canonical matches without adding old main-tree root crumbs', () => {
     mockMatches = [
       match({
-        routeId: 'visibleRoot',
+        routeId: 'hiilikarttaReport',
         appRoute: appRoute({
-          key: APP_ROUTE_KEYS.MAIN_HOME,
-          appletNamespace: null,
-          variant: 'visible-root-alias',
-          public: {
-            visibleRootCanonicalRouteKeys: {
-              hiilikartta: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
-            },
-          },
-        }),
-      }),
-      match({
-        routeId: 'visibleReport',
-        appRoute: appRoute({
-          key: APP_ROUTE_KEYS.HIILIKARTTA_REPORT_VISIBLE_ALIAS,
+          key: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
           appletNamespace: 'hiilikartta',
-          variant: 'visible-alias',
+          variant: 'canonical',
           breadcrumb: {
             ns: 'hiilikartta',
             key: 'route.breadcrumb.report',
-          },
-          public: {
-            canonicalRouteKey: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
           },
         }),
       }),
@@ -252,6 +236,11 @@ describe('BreadcrumbNav', () => {
     expect(
       screen.queryByText('hiilikartta:route.breadcrumb.home')
     ).not.toBeInTheDocument()
+
+    expect(screen.getByLabelText('avoin-map:breadcrumb.back')).toHaveAttribute(
+      'data-route-key',
+      APP_ROUTE_KEYS.HIILIKARTTA_REPORT
+    )
   })
 
   it('passes Luonnonmetsakartat folayerIdSlug params through nested admin breadcrumbs', () => {

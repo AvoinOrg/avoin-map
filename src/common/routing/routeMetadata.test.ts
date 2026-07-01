@@ -6,39 +6,54 @@ import {
 } from './routeMetadata'
 
 describe('routeMetadata', () => {
-  it('extracts metadata from TanStack route trees and preserves alias links', () => {
+  it('extracts canonical metadata from TanStack route trees in route order', () => {
     const routeTree = {
       id: 'root',
       children: [
         {
-          id: 'visibleRoot',
+          id: 'mainHome',
           options: {
             staticData: {
               appRoute: {
                 key: APP_ROUTE_KEYS.MAIN_HOME,
-                appletNamespace: null,
-                variant: 'visible-root-alias',
+                appletNamespace: 'main',
+                variant: 'canonical',
+                home: true,
+                title: {
+                  ns: 'avoin-map',
+                  key: 'route.title.home',
+                },
+              },
+            },
+          },
+        },
+        {
+          id: 'hiilikarttaHome',
+          options: {
+            staticData: {
+              appRoute: {
+                key: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
+                appletNamespace: 'hiilikartta',
+                variant: 'canonical',
+                home: true,
                 public: {
-                  visibleRootCanonicalRouteKeys: {
-                    energiakartta: APP_ROUTE_KEYS.ENERGIAKARTTA_HOME,
-                    hiilikartta: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
-                    luonnonmetsakartat: APP_ROUTE_KEYS.LUONNONMETSAKARTAT_HOME,
-                  },
+                  slug: 'carbon',
                 },
               },
             },
           },
           children: {
             report: {
-              id: 'hiili-alias-report',
+              id: 'hiilikarttaReport',
               options: {
                 staticData: {
                   appRoute: {
-                    key: APP_ROUTE_KEYS.HIILIKARTTA_REPORT_VISIBLE_ALIAS,
+                    key: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
                     appletNamespace: 'hiilikartta',
-                    variant: 'visible-alias',
-                    public: {
-                      canonicalRouteKey: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
+                    variant: 'canonical',
+                    breadcrumb: {
+                      ns: 'hiilikartta',
+                      key: 'route.breadcrumb.report',
                     },
                   },
                 },
@@ -65,31 +80,54 @@ describe('routeMetadata', () => {
 
     expect(ordered.map((metadata) => metadata.key)).toEqual([
       APP_ROUTE_KEYS.MAIN_HOME,
-      APP_ROUTE_KEYS.HIILIKARTTA_REPORT_VISIBLE_ALIAS,
+      APP_ROUTE_KEYS.HIILIKARTTA_HOME,
+      APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
       APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
     ])
 
-    expect(
-      index[APP_ROUTE_KEYS.HIILIKARTTA_REPORT_VISIBLE_ALIAS]?.public
-        ?.canonicalRouteKey
-    ).toBe(APP_ROUTE_KEYS.HIILIKARTTA_REPORT)
-
-    expect(
-      index[APP_ROUTE_KEYS.MAIN_HOME]?.public
-        ?.visibleRootCanonicalRouteKeys?.luonnonmetsakartat
-    ).toBe(APP_ROUTE_KEYS.LUONNONMETSAKARTAT_HOME)
+    expect(index[APP_ROUTE_KEYS.MAIN_HOME]?.appletNamespace).toBe('main')
+    expect(index[APP_ROUTE_KEYS.HIILIKARTTA_HOME]?.public?.slug).toBe('carbon')
+    expect(index[APP_ROUTE_KEYS.HIILIKARTTA_REPORT]?.breadcrumb?.key).toBe(
+      'route.breadcrumb.report'
+    )
   })
 
-  it('ignores routes without valid app route metadata', () => {
+  it('ignores routes without valid canonical app route metadata', () => {
     const routeTree = {
       id: 'root',
       children: [
         {
-          id: 'missing-app-route',
+          id: 'invalid-key',
           options: {
             staticData: {
               appRoute: {
                 key: 'invalid-key',
+                appletNamespace: 'hiilikartta',
+                variant: 'canonical',
+              },
+            },
+          },
+        },
+        {
+          id: 'non-canonical-variant',
+          options: {
+            staticData: {
+              appRoute: {
+                key: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
+                appletNamespace: 'hiilikartta',
+                variant: 'legacy-alias',
+              },
+            },
+          },
+        },
+        {
+          id: 'nullable-namespace',
+          options: {
+            staticData: {
+              appRoute: {
+                key: APP_ROUTE_KEYS.MAIN_HOME,
+                appletNamespace: null,
+                variant: 'canonical',
               },
             },
           },
@@ -140,30 +178,6 @@ describe('routeMetadata', () => {
     )
   })
 
-  it('requires visible-root aliases to declare a canonical applet route map', () => {
-    const routeTree = {
-      id: 'root',
-      children: [
-        {
-          id: 'visible-root',
-          options: {
-            staticData: {
-              appRoute: {
-                key: APP_ROUTE_KEYS.MAIN_HOME,
-                appletNamespace: null,
-                variant: 'visible-root-alias',
-              },
-            },
-          },
-        },
-      ],
-    }
-
-    const { ordered } = collectAppRouteMetadata(routeTree)
-
-    expect(ordered).toHaveLength(0)
-  })
-
   it('returns undefined for a route without metadata', () => {
     expect(
       getAppRouteMetadata({
@@ -193,6 +207,16 @@ describe('routeMetadata', () => {
           key: 'not-a-route-key',
           appletNamespace: 'hiilikartta',
           variant: 'canonical',
+        },
+      })
+    ).toBeUndefined()
+
+    expect(
+      getAppRouteMetadataFromStaticData({
+        appRoute: {
+          key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
+          appletNamespace: 'hiilikartta',
+          variant: 'root-alias',
         },
       })
     ).toBeUndefined()

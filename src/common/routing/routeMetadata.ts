@@ -7,10 +7,7 @@ export const APPLET_NAMESPACES = [
 
 export type AppletNamespace = (typeof APPLET_NAMESPACES)[number]
 
-export type AppRouteVariant =
-  | 'canonical'
-  | 'visible-alias'
-  | 'visible-root-alias'
+export type AppRouteVariant = 'canonical'
 
 export type RouteTextKey = {
   ns: string
@@ -34,26 +31,19 @@ export const APP_ROUTE_KEYS = {
   LUONNONMETSAKARTAT_ADMIN_FOLAYER_PICTURES:
     'luonnonmetsakartat.admin.folayer.pictures',
   MAIN_FORESTS: 'main.forests',
-  ENERGIAKARTTA_HOME_VISIBLE_ALIAS:
-    'energiakartta.home.visibleAlias.energy',
-  HIILIKARTTA_REPORT_VISIBLE_ALIAS: 'hiilikartta.report.visibleAlias',
 } as const
 
 export type AppRouteKey = (typeof APP_ROUTE_KEYS)[keyof typeof APP_ROUTE_KEYS]
 
 export type AppRouteMetadata = {
   key: AppRouteKey
-  appletNamespace: AppletNamespace | null
+  appletNamespace: AppletNamespace
   variant: AppRouteVariant
   home?: boolean
   breadcrumb?: RouteTextKey
   title?: RouteTextKey
   public?: {
     slug?: string
-    canonicalRouteKey?: AppRouteKey
-    visibleRootCanonicalRouteKeys?: Partial<
-      Record<Exclude<AppletNamespace, 'main'>, AppRouteKey>
-    >
   }
 }
 
@@ -134,34 +124,16 @@ const isAppRouteKey = (value: unknown): value is AppRouteKey =>
 
 const isAppletNamespace = (
   value: unknown
-): value is AppletNamespace | null =>
-  value === null || (typeof value === 'string' && APPLET_NAMESPACE_SET.has(value as AppletNamespace))
+): value is AppletNamespace =>
+  typeof value === 'string' && APPLET_NAMESPACE_SET.has(value as AppletNamespace)
 
 const isRouteVariant = (value: unknown): value is AppRouteVariant =>
-  value === 'canonical' || value === 'visible-alias' || value === 'visible-root-alias'
+  value === 'canonical'
 
 const isRouteTextKey = (value: unknown): value is RouteTextKey =>
   isRecord(value) &&
   typeof value.ns === 'string' &&
   typeof value.key === 'string'
-
-const isVisibleRootCanonicalRouteKeys = (
-  value: unknown
-): value is Partial<
-  Record<Exclude<AppletNamespace, 'main'>, AppRouteKey>
-> => {
-  if (!isRecord(value)) {
-    return false
-  }
-
-  return Object.entries(value).every(
-    ([namespace, key]) =>
-      ['energiakartta', 'hiilikartta', 'luonnonmetsakartat'].includes(
-        namespace
-      ) &&
-      isAppRouteKey(key)
-  )
-}
 
 const isPublicMetadata = (
   value: unknown
@@ -169,24 +141,9 @@ const isPublicMetadata = (
   if (value === undefined) return true
   if (!isRecord(value)) return false
 
-  const canonicalRouteKey = (value as { canonicalRouteKey?: unknown }).canonicalRouteKey
   const slug = (value as { slug?: unknown }).slug
-  const visibleRootCanonicalRouteKeys = (value as {
-    visibleRootCanonicalRouteKeys?: unknown
-  }).visibleRootCanonicalRouteKeys
-
-  if (canonicalRouteKey !== undefined && !isAppRouteKey(canonicalRouteKey)) {
-    return false
-  }
 
   if (slug !== undefined && typeof slug !== 'string') {
-    return false
-  }
-
-  if (
-    visibleRootCanonicalRouteKeys !== undefined &&
-    !isVisibleRootCanonicalRouteKeys(visibleRootCanonicalRouteKeys)
-  ) {
     return false
   }
 
@@ -207,10 +164,6 @@ const isAppRouteMetadata = (value: unknown): value is AppRouteMetadata => {
   if (!isAppRouteKey(metadata.key)) return false
   if (!isAppletNamespace(metadata.appletNamespace)) return false
   if (!isRouteVariant(metadata.variant)) return false
-  if (metadata.appletNamespace === null && metadata.variant !== 'visible-root-alias')
-    return false
-  if (metadata.appletNamespace !== null && metadata.variant === 'visible-root-alias')
-    return false
   if (metadata.home !== undefined && typeof metadata.home !== 'boolean') return false
   if (metadata.breadcrumb !== undefined && !isRouteTextKey(metadata.breadcrumb))
     return false
@@ -218,13 +171,6 @@ const isAppRouteMetadata = (value: unknown): value is AppRouteMetadata => {
     return false
 
   if (!isPublicMetadata(metadata.public)) return false
-
-  if (
-    metadata.variant === 'visible-root-alias' &&
-    !metadata.public?.visibleRootCanonicalRouteKeys
-  ) {
-    return false
-  }
 
   return true
 }
