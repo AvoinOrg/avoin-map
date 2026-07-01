@@ -10,6 +10,7 @@ import { Blob as NodeBlob, File as NodeFile } from 'buffer'
 import { ReadableStream } from 'stream/web'
 import { TextDecoder, TextEncoder } from 'util'
 import { MessageChannel, MessagePort } from 'worker_threads'
+import type { FeatureCollection, Point } from 'geojson'
 import type * as UndiciModule from 'undici'
 
 import {
@@ -51,6 +52,11 @@ type MockLayerApiItem = {
     regionCol?: string
   }
 }
+
+type MockWfsFeatureCollection = FeatureCollection<
+  Point,
+  FolayerFeature['properties']
+>
 
 const readJson = async <T = unknown>(response: Response) =>
   (await response.json()) as T
@@ -203,6 +209,63 @@ const createMockApiRequest = ({
     method,
   })
 
+const getLayerIdWithoutHyphens = (layerId: string) => layerId.replace(/-/g, '')
+
+const createMockWfsPath = ({
+  includeTypeName = true,
+  layerId = 'mock-visible-layer',
+  requestName = 'request',
+  requestValue = 'GetFeature',
+  typeName,
+  typeNameParamName = 'typeName',
+  workspace = 'mock',
+}: {
+  includeTypeName?: boolean
+  layerId?: string
+  requestName?: string
+  requestValue?: string
+  typeName?: string
+  typeNameParamName?: string
+  workspace?: string
+} = {}) => {
+  const params = new URLSearchParams({
+    service: 'WFS',
+    version: '1.0.0',
+    [requestName]: requestValue,
+    outputFormat: 'application/json',
+    srsName: 'EPSG:4326',
+  })
+
+  if (includeTypeName) {
+    params.set(
+      typeNameParamName,
+      typeName ??
+        `${workspace}:forest_areas_${getLayerIdWithoutHyphens(
+          layerId
+        )}_centroid`
+    )
+  }
+
+  return `/geoserver/${workspace}/ows?${params.toString()}`
+}
+
+const createMockTmsPath = ({
+  layerId = 'mock-visible-layer',
+  workspace = 'mock',
+  z = 9,
+  x = 278,
+  y = 154,
+}: {
+  layerId?: string
+  workspace?: string
+  z?: number
+  x?: number
+  y?: number
+} = {}) =>
+  `/geoserver/gwc/service/tms/1.0.0/${workspace}:forest_areas_${getLayerIdWithoutHyphens(
+    layerId
+  )}@EPSG:900913@pbf/${z}/${x}/${y}.pbf`
+
 describe('handleLuonnonmetsakartatDataProxyRequest', () => {
   beforeAll(() => {
     globalThis.ReadableStream =
@@ -328,6 +391,36 @@ describe('handleLuonnonmetsakartatDataProxyRequest', () => {
     expect(response.status).toBe(202)
   })
 
+  it('proxies GeoServer paths through the upstream API when mock mode is disabled', async () => {
+    const fetchFn = jest.fn<typeof fetch>(
+      async () =>
+        new Response(JSON.stringify({ proxied: true }), { status: 200 })
+    )
+
+    const response = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        path: createMockWfsPath({ layerId: 'mock-visible-layer' }),
+        token: null,
+      }),
+      deps: {
+        env: {
+          LUONNONMETSAKARTAT_API_URL: 'https://forests.example.org/api/',
+        },
+        fetchFn,
+      },
+    })
+    const upstreamUrl = new URL(String(fetchFn.mock.calls[0]?.[0]))
+
+    expect(upstreamUrl.origin + upstreamUrl.pathname).toBe(
+      'https://forests.example.org/api/geoserver/mock/ows'
+    )
+    expect(upstreamUrl.searchParams.get('request')).toBe('GetFeature')
+    expect(upstreamUrl.searchParams.get('typeName')).toBe(
+      'mock:forest_areas_mockvisiblelayer_centroid'
+    )
+    expect(response.status).toBe(200)
+  })
+
   it('refuses mock API mode in production before proxying', async () => {
     const fetchFn = jest.fn<typeof fetch>()
 
@@ -382,6 +475,363 @@ describe('handleLuonnonmetsakartatDataProxyRequest', () => {
     expect(data[0]).not.toHaveProperty('is_hidden')
     expect(data[0]).not.toHaveProperty('col_options')
     expect(fetchFn).not.toHaveBeenCalled()
+  })
+
+  it('serves visible mock WFS centroid features without auth', async () => {
+    const response = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        path: createMockWfsPath({ layerId: 'mock-visible-layer' }),
+        token: null,
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+    const data = await readJson<MockWfsFeatureCollection>(response)
+    const withPictures = data.features.find(
+      (feature) => feature.properties.id === 'mock-visible-area-picture'
+    )
+    const withoutPictures = data.features.find(
+      (feature) => feature.properties.id === 'mock-visible-area-no-picture'
+    )
+    const storedAreas =
+      getLuonnonmetsakartatMockLayerAreas('mock-visible-layer')
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get('content-type')).toBe('application/json')
+    expect(data.type).toBe('FeatureCollection')
+    expect(data.features.map((feature) => feature.id)).toEqual([
+      'mock-visible-area-picture',
+      'mock-visible-area-no-picture',
+    ])
+    expect(withPictures?.properties).toEqual(
+      expect.objectContaining({
+        id: 'mock-visible-area-picture',
+        name: 'Mock Ridge Forest',
+        municipality: 'Espoo',
+        region: 'Uusimaa',
+        description: 'Old spruce stand with a small wetland edge.',
+        date: '2025-05-10',
+        area_ha: 12.34,
+        created_ts: '2025-01-01T00:00:00.000Z',
+        updated_ts: '2025-01-02T00:00:00.000Z',
+        layer_id: 'mock-visible-layer',
+      })
+    )
+    expect(withPictures?.geometry.type).toBe('Point')
+    expect(withPictures?.geometry.coordinates[0]).toBeCloseTo(24.853, 6)
+    expect(withPictures?.geometry.coordinates[1]).toBeCloseTo(60.2225, 6)
+    expect(JSON.parse(withPictures?.properties.pictures ?? '[]')).toEqual([
+      'https://example.org/mock/forest-ridge-1.jpg',
+      'https://example.org/mock/forest-ridge-2.jpg',
+    ])
+    expect(withoutPictures?.properties).toEqual(
+      expect.objectContaining({
+        id: 'mock-visible-area-no-picture',
+        municipality: 'Lohja',
+        region: 'Uusimaa',
+        date: '2024-09-18',
+        area_ha: 7.89,
+      })
+    )
+    expect(withoutPictures?.properties.pictures).toBeUndefined()
+    expect(storedAreas?.features[0].geometry.type).toBe('Polygon')
+  })
+
+  it('serves empty mock WFS layers as empty FeatureCollections', async () => {
+    const response = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        path: createMockWfsPath({ layerId: 'mock-empty-layer' }),
+        token: null,
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+    const data = await readJson<MockWfsFeatureCollection>(response)
+
+    expect(response.status).toBe(200)
+    expect(data).toEqual({
+      type: 'FeatureCollection',
+      features: [],
+    })
+  })
+
+  it('resolves mock WFS typeName tokens for newly created layers', async () => {
+    await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        body: createLayerFormData({
+          isHidden: false,
+          name: 'WFS uploaded forests',
+        }),
+        method: 'POST',
+        path: '/layer',
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+
+    const response = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        path: createMockWfsPath({
+          layerId: 'mock-created-layer-1',
+          requestName: 'REQUEST',
+          requestValue: 'getfeature',
+          typeNameParamName: 'typename',
+        }),
+        token: null,
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+    const data = await readJson<MockWfsFeatureCollection>(response)
+
+    expect(response.status).toBe(200)
+    expect(data.features.map((feature) => feature.properties.id)).toEqual([
+      'mock-created-layer-1-area-1',
+      'mock-created-layer-1-area-2',
+    ])
+    expect(data.features[0].properties).toEqual(
+      expect.objectContaining({
+        layer_id: 'mock-created-layer-1',
+        name: 'WFS uploaded forests mock area 1',
+      })
+    )
+  })
+
+  it('reflects mock picture attachments and area patches through WFS', async () => {
+    await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        body: createPatchFormData({
+          bulkAreaIds: ['mock-visible-area-no-picture'],
+          bulkImageNames: ['wfs upload.jpg'],
+        }),
+        method: 'PATCH',
+        path: '/layer/mock-visible-layer',
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+    await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        body: createAreaPatchFormData({
+          description: 'WFS-visible edited description',
+          municipality: 'Kauniainen',
+          name: 'WFS Edited Ridge Forest',
+        }),
+        method: 'PATCH',
+        path: '/layer/mock-visible-layer/area/mock-visible-area-picture',
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+
+    const response = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        path: createMockWfsPath({ layerId: 'mock-visible-layer' }),
+        token: null,
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+    const data = await readJson<MockWfsFeatureCollection>(response)
+    const patchedArea = data.features.find(
+      (feature) => feature.properties.id === 'mock-visible-area-picture'
+    )
+    const areaWithUploadedPicture = data.features.find(
+      (feature) => feature.properties.id === 'mock-visible-area-no-picture'
+    )
+
+    expect(response.status).toBe(200)
+    expect(patchedArea?.properties).toEqual(
+      expect.objectContaining({
+        description: 'WFS-visible edited description',
+        municipality: 'Kauniainen',
+        name: 'WFS Edited Ridge Forest',
+        updated_ts: '2025-02-01T00:03:00.000Z',
+      })
+    )
+    expect(
+      JSON.parse(areaWithUploadedPicture?.properties.pictures ?? '[]')
+    ).toEqual([
+      'https://example.org/mock/uploads/mock-visible-layer/mock-visible-area-no-picture/1-wfs%20upload.jpg',
+    ])
+  })
+
+  it('applies mock WFS visibility and auth rules', async () => {
+    const publicHiddenResponse = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        path: createMockWfsPath({ layerId: 'mock-hidden-layer' }),
+        token: null,
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+    const adminHiddenResponse = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        path: createMockWfsPath({ layerId: 'mock-hidden-layer' }),
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+    const rejectedResponse = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        path: createMockWfsPath({ layerId: 'mock-visible-layer' }),
+        token: MOCK_AUTH_REJECTED_ACCESS_TOKEN,
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+    const unknownResponse = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        path: createMockWfsPath({ layerId: 'mock-visible-layer' }),
+        token: 'unknown-token',
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+    const adminHiddenData = await readJson<MockWfsFeatureCollection>(
+      adminHiddenResponse
+    )
+
+    expect(publicHiddenResponse.status).toBe(404)
+    expect(await readJson(publicHiddenResponse)).toEqual({
+      error: 'Mock WFS layer not found',
+    })
+    expect(adminHiddenResponse.status).toBe(200)
+    expect(adminHiddenData.features.map((feature) => feature.id)).toEqual([
+      'mock-hidden-area',
+    ])
+    expect(rejectedResponse.status).toBe(403)
+    expect(await readJson(rejectedResponse)).toEqual({
+      error: 'Mock admin access rejected',
+      is_editor: false,
+      is_admin: false,
+    })
+    expect(unknownResponse.status).toBe(401)
+    expect(await readJson(unknownResponse)).toEqual({
+      error: 'Mock admin authorization required',
+      is_editor: false,
+      is_admin: false,
+    })
+  })
+
+  it('returns deterministic mock WFS errors for invalid requests', async () => {
+    const missingTypeNameResponse =
+      await handleLuonnonmetsakartatDataProxyRequest({
+        request: createMockApiRequest({
+          path: createMockWfsPath({ includeTypeName: false }),
+          token: null,
+        }),
+        deps: {
+          env: mockEnv,
+        },
+      })
+    const unknownTypeNameResponse =
+      await handleLuonnonmetsakartatDataProxyRequest({
+        request: createMockApiRequest({
+          path: createMockWfsPath({
+            typeName: 'mock:forest_areas_unknownlayer_centroid',
+          }),
+          token: null,
+        }),
+        deps: {
+          env: mockEnv,
+        },
+      })
+    const unsupportedRequestResponse =
+      await handleLuonnonmetsakartatDataProxyRequest({
+        request: createMockApiRequest({
+          path: createMockWfsPath({ requestValue: 'DescribeFeatureType' }),
+          token: null,
+        }),
+        deps: {
+          env: mockEnv,
+        },
+      })
+    const methodResponse = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        method: 'POST',
+        path: createMockWfsPath({ layerId: 'mock-visible-layer' }),
+        token: null,
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+
+    expect(missingTypeNameResponse.status).toBe(400)
+    expect(await readJson(missingTypeNameResponse)).toEqual({
+      error: 'Missing mock WFS typeName',
+    })
+    expect(unknownTypeNameResponse.status).toBe(404)
+    expect(await readJson(unknownTypeNameResponse)).toEqual({
+      error: 'Mock WFS layer not found',
+    })
+    expect(unsupportedRequestResponse.status).toBe(400)
+    expect(await readJson(unsupportedRequestResponse)).toEqual({
+      error: 'Unsupported mock WFS request',
+    })
+    expect(methodResponse.status).toBe(405)
+    expect(await readJson(methodResponse)).toEqual({
+      error: 'Method not allowed',
+    })
+  })
+
+  it('serves empty mock vector tiles for GWC TMS PBF requests', async () => {
+    const getResponse = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        path: createMockTmsPath({ layerId: 'mock-visible-layer' }),
+        token: null,
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+    const headResponse = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        method: 'HEAD',
+        path: createMockTmsPath({ layerId: 'mock-visible-layer' }),
+        token: null,
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+    const methodResponse = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        method: 'PUT',
+        path: createMockTmsPath({ layerId: 'mock-visible-layer' }),
+        token: null,
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+
+    expect(getResponse.status).toBe(200)
+    expect(getResponse.headers.get('content-type')).toBe(
+      'application/vnd.mapbox-vector-tile'
+    )
+    expect((await getResponse.arrayBuffer()).byteLength).toBe(0)
+    expect(headResponse.status).toBe(200)
+    expect(headResponse.headers.get('content-type')).toBe(
+      'application/vnd.mapbox-vector-tile'
+    )
+    expect((await headResponse.arrayBuffer()).byteLength).toBe(0)
+    expect(methodResponse.status).toBe(405)
+    expect(await readJson(methodResponse)).toEqual({
+      error: 'Method not allowed',
+    })
   })
 
   it('serves admin mock layers including hidden layers and col_options', async () => {

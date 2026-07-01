@@ -3,6 +3,13 @@ import {
   MOCK_AUTH_REJECTED_ACCESS_TOKEN,
 } from '#/common/auth/mock'
 import type {
+  Feature,
+  FeatureCollection,
+  Geometry,
+  Point,
+  Position,
+} from 'geojson'
+import type {
   ColOptions,
   IndexingStrategy,
 } from 'applets/luonnonmetsakartat/common/types'
@@ -11,6 +18,7 @@ import {
   createLuonnonmetsakartatMockLayer,
   deleteLuonnonmetsakartatMockLayer,
   getLuonnonmetsakartatMockLayer,
+  getLuonnonmetsakartatMockLayerAreas,
   getLuonnonmetsakartatMockLayers,
   updateLuonnonmetsakartatMockLayer,
   updateLuonnonmetsakartatMockLayerArea,
@@ -37,6 +45,8 @@ const ROUTE_PREFIX = '/api/luonnonmetsakartat'
 const MOCK_API_ENABLED_VALUES = new Set(['1', 'true', 'yes', 'on'])
 const TRUE_FORM_VALUES = new Set(['1', 'true', 'yes', 'on'])
 const FALSE_FORM_VALUES = new Set(['0', 'false', 'no', 'off'])
+const MOCK_GEOSERVER_WORKSPACE = 'mock'
+const MOCK_VECTOR_TILE_CONTENT_TYPE = 'application/vnd.mapbox-vector-tile'
 const COL_OPTION_FORM_FIELDS = [
   'indexing_strategy',
   'name_col',
@@ -90,6 +100,16 @@ const jsonResponse = (body: unknown, status = 200) =>
 
 const jsonErrorResponse = (error: string, status: number) =>
   jsonResponse({ error }, status)
+
+const emptyMockVectorTileResponse = (method: string) =>
+  new Response(method === 'HEAD' ? null : new Uint8Array(), {
+    status: 200,
+    headers: {
+      'cache-control': 'no-store',
+      'content-length': '0',
+      'content-type': MOCK_VECTOR_TILE_CONTENT_TYPE,
+    },
+  })
 
 const getMockPath = (request: Request) => {
   const requestUrl = new URL(request.url)
@@ -149,6 +169,268 @@ const getAdminAuthErrorResponse = (authStatus: MockAuthStatus) => {
       is_admin: false,
     },
     401
+  )
+}
+
+const getLayerIdWithoutHyphens = (layerId: string) => layerId.replace(/-/g, '')
+
+const getFolayerSourceLayer = (layerId: string) =>
+  `forest_areas_${getLayerIdWithoutHyphens(layerId)}`
+
+const getFolayerCentroidSourceLayer = (layerId: string) =>
+  `${getFolayerSourceLayer(layerId)}_centroid`
+
+const getCaseInsensitiveSearchParam = (
+  params: URLSearchParams,
+  key: string
+) => {
+  const normalizedKey = key.toLowerCase()
+
+  for (const [paramKey, value] of params.entries()) {
+    if (paramKey.toLowerCase() === normalizedKey) {
+      return value
+    }
+  }
+
+  return null
+}
+
+const resolveLayerFromCentroidTypeName = ({
+  typeName,
+  workspace,
+}: {
+  typeName: string
+  workspace: string
+}) => {
+  const typeNameMatch = typeName.match(
+    /^([^:]+):forest_areas_([A-Za-z0-9]+)_centroid$/
+  )
+
+  if (!typeNameMatch || typeNameMatch[1] !== workspace) {
+    return null
+  }
+
+  const layerToken = typeNameMatch[2]
+
+  return (
+    getLuonnonmetsakartatMockLayers().find(
+      (layer) => getLayerIdWithoutHyphens(layer.id) === layerToken
+    ) ?? null
+  )
+}
+
+const isValidPosition = (
+  position: Position | undefined
+): position is [number, number] =>
+  position != null &&
+  Number.isFinite(position[0]) &&
+  Number.isFinite(position[1])
+
+const isClosingPosition = (
+  first: Position | undefined,
+  last: Position | undefined
+) =>
+  isValidPosition(first) &&
+  isValidPosition(last) &&
+  first[0] === last[0] &&
+  first[1] === last[1]
+
+const getRingPositions = (ring: Position[]) =>
+  ring.length > 1 && isClosingPosition(ring[0], ring[ring.length - 1])
+    ? ring.slice(0, -1)
+    : ring
+
+const getGeometryPositions = (geometry: Geometry): Position[] => {
+  switch (geometry.type) {
+    case 'Point':
+      return [geometry.coordinates]
+    case 'MultiPoint':
+    case 'LineString':
+      return geometry.coordinates
+    case 'MultiLineString':
+      return geometry.coordinates.flat()
+    case 'Polygon':
+      return geometry.coordinates.flatMap(getRingPositions)
+    case 'MultiPolygon':
+      return geometry.coordinates.flatMap((polygon) =>
+        polygon.flatMap(getRingPositions)
+      )
+    case 'GeometryCollection':
+      return geometry.geometries.flatMap(getGeometryPositions)
+  }
+}
+
+const getCentroidPointGeometry = (geometry: Geometry): Point => {
+  const positions = getGeometryPositions(geometry).filter(isValidPosition)
+
+  if (positions.length === 0) {
+    return {
+      type: 'Point',
+      coordinates: [0, 0],
+    }
+  }
+
+  const [sumX, sumY] = positions.reduce(
+    ([accX, accY], [x, y]) => [accX + x, accY + y],
+    [0, 0]
+  )
+
+  return {
+    type: 'Point',
+    coordinates: [sumX / positions.length, sumY / positions.length],
+  }
+}
+
+const getWfsFeatureCollection = (
+  layerId: string
+): FeatureCollection<Point> | null => {
+  const areaCollection = getLuonnonmetsakartatMockLayerAreas(layerId)
+
+  if (!areaCollection) {
+    return null
+  }
+
+  return {
+    type: 'FeatureCollection',
+    features: areaCollection.features.map((feature): Feature<Point> => {
+      const properties = { ...feature.properties }
+      const featureId = properties.id || feature.id
+
+      return {
+        id: featureId,
+        type: 'Feature',
+        geometry: getCentroidPointGeometry(feature.geometry),
+        properties,
+      }
+    }),
+  }
+}
+
+const handleMockWfsRequest = ({
+  authStatus,
+  method,
+  request,
+  workspace,
+}: {
+  authStatus: MockAuthStatus
+  method: string
+  request: Request
+  workspace: string
+}) => {
+  if (method !== 'GET') {
+    return jsonErrorResponse('Method not allowed', 405)
+  }
+
+  if (workspace !== MOCK_GEOSERVER_WORKSPACE) {
+    return jsonErrorResponse('Unsupported mock GeoServer workspace', 404)
+  }
+
+  const requestUrl = new URL(request.url)
+  const requestedOperation = getCaseInsensitiveSearchParam(
+    requestUrl.searchParams,
+    'request'
+  )
+
+  if (requestedOperation?.toLowerCase() !== 'getfeature') {
+    return jsonErrorResponse('Unsupported mock WFS request', 400)
+  }
+
+  const typeName =
+    getCaseInsensitiveSearchParam(requestUrl.searchParams, 'typeName') ??
+    getCaseInsensitiveSearchParam(requestUrl.searchParams, 'typeNames')
+
+  if (!typeName) {
+    return jsonErrorResponse('Missing mock WFS typeName', 400)
+  }
+
+  const layer = resolveLayerFromCentroidTypeName({ typeName, workspace })
+
+  if (!layer || (authStatus === 'missing' && layer.is_hidden)) {
+    return jsonErrorResponse('Mock WFS layer not found', 404)
+  }
+
+  if (authStatus !== 'missing' && authStatus !== 'verified') {
+    return getAdminAuthErrorResponse(authStatus)
+  }
+
+  const featureCollection = getWfsFeatureCollection(layer.id)
+
+  if (!featureCollection) {
+    return jsonErrorResponse('Mock WFS layer not found', 404)
+  }
+
+  return jsonResponse(featureCollection)
+}
+
+const isMockVectorTileLayerSpec = (layerSpec: string) => {
+  const [qualifiedLayer, gridSet, format] = layerSpec.split('@')
+
+  if (gridSet !== 'EPSG:900913' || format !== 'pbf') {
+    return false
+  }
+
+  const layerMatch = qualifiedLayer.match(/^mock:forest_areas_[A-Za-z0-9]+$/)
+
+  return layerMatch !== null
+}
+
+const handleMockTmsRequest = ({
+  method,
+  mockPath,
+}: {
+  method: string
+  mockPath: string
+}) => {
+  if (method !== 'GET' && method !== 'HEAD') {
+    return jsonErrorResponse('Method not allowed', 405)
+  }
+
+  const tmsMatch = mockPath.match(
+    /^\/geoserver\/gwc\/service\/tms\/1\.0\.0\/([^/]+)\/\d+\/\d+\/\d+\.pbf$/
+  )
+
+  if (!tmsMatch) {
+    return jsonErrorResponse('Unsupported mock GeoServer TMS endpoint', 404)
+  }
+
+  const layerSpec = decodeURIComponent(tmsMatch[1])
+
+  if (!isMockVectorTileLayerSpec(layerSpec)) {
+    return jsonErrorResponse('Unsupported mock GeoServer TMS layer', 404)
+  }
+
+  return emptyMockVectorTileResponse(method)
+}
+
+const handleMockGeoServerRequest = ({
+  authStatus,
+  method,
+  mockPath,
+  request,
+}: {
+  authStatus: MockAuthStatus
+  method: string
+  mockPath: string
+  request: Request
+}) => {
+  const wfsMatch = mockPath.match(/^\/geoserver\/([^/]+)\/ows\/?$/)
+
+  if (wfsMatch) {
+    return handleMockWfsRequest({
+      authStatus,
+      method,
+      request,
+      workspace: decodeURIComponent(wfsMatch[1]),
+    })
+  }
+
+  if (mockPath.startsWith('/geoserver/gwc/service/tms/')) {
+    return handleMockTmsRequest({ method, mockPath })
+  }
+
+  return jsonErrorResponse(
+    'Unsupported Luonnonmetsakartat mock GeoServer endpoint',
+    404
   )
 }
 
@@ -841,6 +1123,15 @@ export const handleLuonnonmetsakartatMockApiRequest = async ({
   }
 
   const authStatus = getMockAuthStatus(request)
+
+  if (mockPath.startsWith('/geoserver/')) {
+    return handleMockGeoServerRequest({
+      authStatus,
+      method,
+      mockPath,
+      request,
+    })
+  }
 
   if (mockPath === '/admin/validate') {
     return method === 'GET'
