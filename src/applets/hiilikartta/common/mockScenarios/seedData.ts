@@ -105,7 +105,7 @@ const createPlanFeature = ({
   hasValidZoningCode?: boolean
   id: string
   landUseDistribution: LandUseDistribution
-  name: string
+  name: FeatureProperties['name']
   offsetX: number
   offsetY: number
   zoningCode: string
@@ -175,6 +175,22 @@ export const createMockInvalidZoningPlanData = (): PlanData<Polygon> => ({
       offsetX: 0.018,
       offsetY: 0.004,
       zoningCode: 'INVALID',
+    }),
+  ],
+})
+
+export const createMockAreasInvalidZoningPlanData = (): PlanData<Polygon> => ({
+  type: 'FeatureCollection',
+  features: [
+    createPlanFeature({
+      areaHa: 1.4,
+      hasValidZoningCode: false,
+      id: 'mock-invalid-zoning-area',
+      landUseDistribution: LAND_USE_BY_ZONING_CODE.AK,
+      name: 1,
+      offsetX: 0.018,
+      offsetY: 0.004,
+      zoningCode: '',
     }),
   ],
 })

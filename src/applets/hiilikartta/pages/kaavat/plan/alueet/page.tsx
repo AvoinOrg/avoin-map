@@ -422,6 +422,7 @@ const Page = () => {
               m: 0,
               maxWidth: '16.25rem',
               fontSize: '0.75rem',
+              fontWeight: 700,
               lineHeight: '1.125rem',
               letterSpacing: '0.04em',
               color: '#111111',

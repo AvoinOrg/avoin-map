@@ -27,6 +27,7 @@ import {
   MOCK_PLAN_CREATED_AT,
   MOCK_PLAN_SAVED_AT,
   MOCK_PLAN_USER_ID,
+  createMockAreasInvalidZoningPlanData,
   createMockEmptyPlanData,
   createMockInvalidLandUsePlanData,
   createMockInvalidZoningPlanData,
@@ -220,6 +221,14 @@ const createInvalidZoningPlanConf = () =>
     data: createMockInvalidZoningPlanData(),
   })
 
+const createAreasInvalidZoningPlanConf = () =>
+  createPlanConf({
+    id: MOCK_INVALID_PLAN_ID,
+    serverId: MOCK_INVALID_PLAN_SERVER_ID,
+    name: 'Mock invalid zoning plan',
+    data: createMockAreasInvalidZoningPlanData(),
+  })
+
 const createInvalidLandUsePlanConf = () =>
   createPlanConf({
     id: MOCK_INVALID_PLAN_ID,
@@ -384,6 +393,16 @@ const buildInvalidZoningState = () => {
   })
 }
 
+const buildAreasInvalidZoningState = () => {
+  const planConf = createAreasInvalidZoningPlanConf()
+
+  return baseStoreState({
+    planConfs: {
+      [planConf.id]: planConf,
+    },
+  })
+}
+
 const buildInvalidLandUseState = () => {
   const planConf = createInvalidLandUsePlanConf()
 
@@ -526,10 +545,14 @@ export const buildHiilikarttaMockScenarioState = (
         storeState: buildSaveDisabledState(),
       }
     case 'plan-invalid-zoning':
-    case 'areas-invalid-zoning':
       return {
         state: normalizedState,
         storeState: buildInvalidZoningState(),
+      }
+    case 'areas-invalid-zoning':
+      return {
+        state: normalizedState,
+        storeState: buildAreasInvalidZoningState(),
       }
     case 'plan-invalid-land-use':
     case 'areas-invalid-land-use':

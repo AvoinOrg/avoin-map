@@ -210,6 +210,19 @@ describe('Hiilikartta mock scenarios', () => {
     expect(feature?.properties.extras?.hasValidZoningCode).toBe(false)
   })
 
+  it('builds areas invalid zoning with import-style invalid area data', () => {
+    const builtState = buildHiilikarttaMockScenarioState(
+      'areas-invalid-zoning'
+    )
+    const planConf = builtState?.storeState.planConfs[MOCK_INVALID_PLAN_ID]
+    const feature = planConf?.data.features[0]
+
+    expect(planConf?.id).toBe(MOCK_INVALID_PLAN_ID)
+    expect(feature?.properties.name).toBe(1)
+    expect(feature?.properties.zoning_code).toBe('')
+    expect(feature?.properties.extras?.hasValidZoningCode).toBe(false)
+  })
+
   it('builds invalid land-use state that fails existing land-use validation', () => {
     const builtState = buildHiilikarttaMockScenarioState(
       'areas-invalid-land-use'

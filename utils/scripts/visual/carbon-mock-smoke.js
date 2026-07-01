@@ -634,15 +634,7 @@ const runLegacyRedirectSmoke = async ({ page, baseUrl, timeoutMs, ids }) => {
   await assertRedirect({
     page,
     baseUrl,
-    fromPath: '/fi/hiilikartta',
-    expectedPathname: '/fi/carbon',
-    timeoutMs,
-  })
-
-  await assertRedirect({
-    page,
-    baseUrl,
-    fromPath: `/fi/hiilikartta/kaavat/${ids.MOCK_LOCAL_PLAN_ID}?mockReset=1&mockCarbonState=plan-valid`,
+    fromPath: `/fi/carbon/kaavat/${ids.MOCK_LOCAL_PLAN_ID}?mockReset=1&mockCarbonState=plan-valid`,
     expectedPathname: `/fi/carbon/plans/${ids.MOCK_LOCAL_PLAN_ID}`,
     expectedSearchParams: {
       mockReset: '1',
@@ -654,7 +646,20 @@ const runLegacyRedirectSmoke = async ({ page, baseUrl, timeoutMs, ids }) => {
   await assertRedirect({
     page,
     baseUrl,
-    fromPath: `/fi/raportti?mockReset=1&mockCarbonState=report-single-local&planIds=${ids.MOCK_LOCAL_PLAN_SERVER_ID}&prevPageId=${ids.MOCK_LOCAL_PLAN_ID}&prevPageStep=areas`,
+    fromPath: `/fi/carbon/kaavat/${ids.MOCK_LOCAL_PLAN_ID}/alueet?mockReset=1&mockCarbonState=areas-valid&mockAuth=authenticated`,
+    expectedPathname: `/fi/carbon/plans/${ids.MOCK_LOCAL_PLAN_ID}/areas`,
+    expectedSearchParams: {
+      mockReset: '1',
+      mockCarbonState: 'areas-valid',
+      mockAuth: 'authenticated',
+    },
+    timeoutMs,
+  })
+
+  await assertRedirect({
+    page,
+    baseUrl,
+    fromPath: `/fi/carbon/raportti?mockReset=1&mockCarbonState=report-single-local&planIds=${ids.MOCK_LOCAL_PLAN_SERVER_ID}&prevPageId=${ids.MOCK_LOCAL_PLAN_ID}&prevPageStep=areas`,
     expectedPathname: '/fi/carbon/report',
     expectedSearchParams: {
       mockReset: '1',

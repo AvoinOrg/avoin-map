@@ -99,4 +99,12 @@ describe('carbon mock smoke helpers', () => {
       runSmokeSource.indexOf('maybeReexecInsideXvfb')
     ).toBeGreaterThan(runSmokeSource.indexOf("name: 'server preflight'"))
   })
+
+  test('covers the canonical carbon areas legacy alias', () => {
+    const source = fs.readFileSync(SMOKE_SCRIPT_PATH, 'utf8')
+
+    expect(source).toContain('/fi/carbon/kaavat/${ids.MOCK_LOCAL_PLAN_ID}/alueet')
+    expect(source).toContain('/fi/carbon/plans/${ids.MOCK_LOCAL_PLAN_ID}/areas')
+    expect(source).toContain("mockCarbonState: 'areas-valid'")
+  })
 })
