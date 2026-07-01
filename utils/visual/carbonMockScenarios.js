@@ -216,6 +216,42 @@ const buildCarbonMockScenarioDefinitions = (ids) => [
     surface: 'plan',
   },
   {
+    id: 'save-login',
+    routePath: `${CARBON_MOCK_ROUTE_BASE}/plans/${ids.MOCK_LOCAL_PLAN_ID}`,
+    state: 'save-login',
+    surface: 'plan',
+    queryParams: {
+      mockAuth: 'unauthenticated',
+    },
+  },
+  {
+    id: 'save-ready',
+    routePath: `${CARBON_MOCK_ROUTE_BASE}/plans/${ids.MOCK_LOCAL_PLAN_ID}`,
+    state: 'save-ready',
+    surface: 'plan',
+    queryParams: {
+      mockAuth: 'authenticated',
+    },
+  },
+  {
+    id: 'save-disabled',
+    routePath: `${CARBON_MOCK_ROUTE_BASE}/plans/${ids.MOCK_LOCAL_PLAN_ID}`,
+    state: 'save-disabled',
+    surface: 'plan',
+    queryParams: {
+      mockAuth: 'authenticated',
+    },
+  },
+  {
+    id: 'save-saved',
+    routePath: `${CARBON_MOCK_ROUTE_BASE}/plans/${ids.MOCK_LOCAL_PLAN_ID}`,
+    state: 'save-saved',
+    surface: 'plan',
+    queryParams: {
+      mockAuth: 'authenticated',
+    },
+  },
+  {
     id: 'calc-not-started',
     routePath: `${CARBON_MOCK_ROUTE_BASE}/plans/${ids.MOCK_SERVER_PLAN_ID}`,
     state: 'calc-not-started',

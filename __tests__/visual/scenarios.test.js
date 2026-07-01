@@ -158,6 +158,10 @@ describe('visual scenarios', () => {
       'carbon-mocks-plan-valid': 'plan-valid',
       'carbon-mocks-plan-invalid-zoning': 'plan-invalid-zoning',
       'carbon-mocks-plan-invalid-land-use': 'plan-invalid-land-use',
+      'carbon-mocks-save-login': 'save-login',
+      'carbon-mocks-save-ready': 'save-ready',
+      'carbon-mocks-save-disabled': 'save-disabled',
+      'carbon-mocks-save-saved': 'save-saved',
       'carbon-mocks-calc-not-started': 'calc-not-started',
       'carbon-mocks-calc-initializing': 'calc-initializing',
       'carbon-mocks-calc-calculating': 'calc-calculating',
@@ -235,6 +239,21 @@ describe('visual scenarios', () => {
           })
         )
       ).toBe(`/fi/carbon/plans/${MOCK_SERVER_PLAN_ID}`)
+      for (const id of [
+        'carbon-mocks-save-login',
+        'carbon-mocks-save-ready',
+        'carbon-mocks-save-disabled',
+        'carbon-mocks-save-saved',
+      ]) {
+        expect(
+          getScenarioPathname(
+            getScenarioById({
+              scenarios,
+              id,
+            })
+          )
+        ).toBe(`/fi/carbon/plans/${MOCK_LOCAL_PLAN_ID}`)
+      }
       expect(
         getScenarioPathname(
           getScenarioById({
@@ -309,6 +328,34 @@ describe('visual scenarios', () => {
         MOCK_INVALID_PLAN_ID
       )
       expect(noDataReportUrl.searchParams.get('prevPageStep')).toBe('plan')
+    })
+
+    test('makes footer save states reproducible with explicit auth state', () => {
+      const scenarios = buildCarbonMockScenarios()
+
+      const saveLoginUrl = getScenarioUrl(
+        getScenarioById({
+          scenarios,
+          id: 'carbon-mocks-save-login',
+        })
+      )
+      expect(saveLoginUrl.searchParams.get('mockAuth')).toBe(
+        'unauthenticated'
+      )
+
+      for (const id of [
+        'carbon-mocks-save-ready',
+        'carbon-mocks-save-disabled',
+        'carbon-mocks-save-saved',
+      ]) {
+        const url = getScenarioUrl(
+          getScenarioById({
+            scenarios,
+            id,
+          })
+        )
+        expect(url.searchParams.get('mockAuth')).toBe('authenticated')
+      }
     })
 
     test('marks all carbon mock scenarios as WebGL routes and applies masks', () => {
