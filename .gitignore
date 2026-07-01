@@ -165,3 +165,7 @@ i18n/*
 !.claude/settings.template.json
 
 test-data
+!test-data/
+test-data/*
+!test-data/luonnonmetsakartat/
+!test-data/luonnonmetsakartat/**

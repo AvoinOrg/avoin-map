@@ -30,6 +30,8 @@
     "visual:carbon-mocks": "node ./utils/scripts/visual/run.js --mode=changed --scenario-set=carbon-mocks --base-url=http://127.0.0.1:3000 --no-start",
     "visual:luonnonmetsakartat-mocks": "node ./utils/scripts/visual/run.js --mode=changed --scenario-set=luonnonmetsakartat-mocks --base-url=http://127.0.0.1:3000 --no-start",
     "visual:carbon-mocks:smoke": "node ./utils/scripts/visual/carbon-mock-smoke.js --base-url=http://127.0.0.1:3000 --no-start",
+    "visual:luonnonmetsakartat-mocks:smoke": "node ./utils/scripts/visual/luonnonmetsakartat-mock-smoke.js --base-url=http://127.0.0.1:3000 --no-start",
+    "luonnonmetsakartat:mock:smoke": "node ./utils/scripts/visual/luonnonmetsakartat-mock-smoke.js --base-url=http://127.0.0.1:3000 --no-start",
     "visual:after-edit": "node ./utils/scripts/visual/after-edit.js",
     "browser-state:sync:localhost": "node ./utils/scripts/visual/sync-host-chrome-state.js",
     "visual:baseline:host-state": "node ./utils/scripts/visual/run.js --mode=baseline --base-url=http://localhost:3000 --storage-state=.dev/browser-state/localhost-3000.storage-state.json",

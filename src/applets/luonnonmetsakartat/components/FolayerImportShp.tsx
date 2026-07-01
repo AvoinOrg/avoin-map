@@ -19,6 +19,7 @@ import {
   folayerDataFindDuplicateIds,
   folayerDataFindDuplicateNameMunicipalityPairs,
 } from '../common/utils'
+import { ensureShpjsBrowserGlobals } from '../common/shpjsCompat'
 
 const idCandidates = ['id', 'fid', 'oid', 'objectid', 'tunnus']
 const nameCandidates = ['name', 'nimi']
@@ -120,6 +121,7 @@ const FolayerImportShp = ({
     // Load shp into geojson to validate it locally
     // TODO: Validate it locally :)
     const loadGeojson = async (fileBuffers: ArrayBuffer[]) => {
+      await ensureShpjsBrowserGlobals()
       const shp = (await import('shpjs')).default
       const json = await shp(fileBuffers[0])
 

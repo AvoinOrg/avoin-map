@@ -18,6 +18,7 @@ import {
   folayerDataFindDuplicateIds,
   folayerDataFindDuplicateNameMunicipalityPairs,
 } from '../common/utils'
+import { ensureShpjsBrowserGlobals } from '../common/shpjsCompat'
 
 export interface FolayerUpdateShpRef {
   getValues: (
@@ -297,6 +298,7 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
 
     useEffect(() => {
       const loadGeojson = async (fileBuffers: ArrayBuffer[]) => {
+        await ensureShpjsBrowserGlobals()
         const shp = (await import('shpjs')).default
         const json = await shp(fileBuffers[0])
 
