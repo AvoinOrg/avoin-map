@@ -74,7 +74,7 @@ export interface FolayerImportPicturesRef {
   ) => void
 }
 
-type FolayerImportPicturesFixtureState = {
+export type FolayerImportPicturesFixtureState = {
   files?: File[]
   selectedFolderLabel?: string
   manualMappings?: Record<string, string | null | undefined>

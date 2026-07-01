@@ -16,9 +16,12 @@ import { APP_ROUTE_KEYS } from '#/common/routing/routeMetadata'
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import { useAdminFolayersQueryOptions } from 'applets/luonnonmetsakartat/common/queries/adminFolayersQuery'
 import { AdminFolayerConf } from 'applets/luonnonmetsakartat/common/types'
+import { useLuonnonmetsakartatMockScenarioQueryState } from 'applets/luonnonmetsakartat/common/mockScenarios/queryState'
 
 const Page = () => {
   const adminFolayerConfs = useAppletStore((state) => state.adminFolayerConfs)
+  const mockScenarioState = useLuonnonmetsakartatMockScenarioQueryState()
+  const isMockScenarioQueryActive = mockScenarioState != null
 
   const { refetch: adminFolayerRefetch, isLoading } = useQuery({
     ...useAdminFolayersQueryOptions(),
@@ -30,8 +33,12 @@ const Page = () => {
   }, [adminFolayerConfs])
 
   useEffect(() => {
+    if (isMockScenarioQueryActive) {
+      return
+    }
+
     adminFolayerRefetch()
-  }, [adminFolayerRefetch])
+  }, [adminFolayerRefetch, isMockScenarioQueryActive])
 
   return (
     <SidebarContentBox>

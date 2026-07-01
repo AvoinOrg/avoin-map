@@ -14,9 +14,12 @@ import FolayerItem from '../components/FolayerItem'
 import { FolayerConf } from '../common/types'
 import { useExclusiveLayerGroups } from '#/common/hooks/map/useExclusiveLayerGroups'
 import { Eco } from '#/components/icons'
+import { useLuonnonmetsakartatMockScenarioQueryState } from '../common/mockScenarios/queryState'
 
 const Page = () => {
   const folayerConfs = useAppletStore((state) => state.folayerConfs)
+  const mockScenarioState = useLuonnonmetsakartatMockScenarioQueryState()
+  const isMockScenarioQueryActive = mockScenarioState != null
   useExclusiveLayerGroups()
 
   const {
@@ -33,8 +36,12 @@ const Page = () => {
   }, [folayerConfs])
 
   useEffect(() => {
+    if (isMockScenarioQueryActive) {
+      return
+    }
+
     folayerRefetch()
-  }, [folayerRefetch])
+  }, [folayerRefetch, isMockScenarioQueryActive])
 
   return (
     <SidebarContentBox>
@@ -51,7 +58,7 @@ const Page = () => {
             ))}
           </Box>
         )}
-        {isFetched &&
+        {(isFetched || isMockScenarioQueryActive) &&
           !isLoading &&
           (!folayerConfsArray || folayerConfsArray.length === 0) && (
             <Box

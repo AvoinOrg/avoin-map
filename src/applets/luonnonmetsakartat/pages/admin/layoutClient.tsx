@@ -21,6 +21,7 @@ import { Star } from '#/components/icons'
 import TText from '#/components/common/TText'
 import { AdminVerificationStatus } from 'applets/luonnonmetsakartat/common/types'
 import LoadingBlocker from 'applets/luonnonmetsakartat/components/LoadingBlocker'
+import { useLuonnonmetsakartatMockScenarioQueryState } from 'applets/luonnonmetsakartat/common/mockScenarios/queryState'
 
 enum LocalState {
   Loading = 'loading',
@@ -41,6 +42,8 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   )
   const { data: session, status } = useAuthSession()
   const { accessToken } = session ?? {}
+  const mockScenarioState = useLuonnonmetsakartatMockScenarioQueryState()
+  const isMockScenarioQueryActive = mockScenarioState != null
 
   const router = useAppRouter()
   const buildAppRouteHref = useAppRouteHrefBuilder()
@@ -60,6 +63,10 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   }, [setIsNavbarHidden])
 
   useEffect(() => {
+    if (isMockScenarioQueryActive) {
+      return
+    }
+
     if (status !== 'authenticated' || session?.user?.id == null) {
       return
     }
@@ -74,6 +81,7 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
     accessToken,
     session?.user?.id,
     status,
+    isMockScenarioQueryActive,
     refetchAdminVerification,
     setAdminVerificationStatus,
   ])

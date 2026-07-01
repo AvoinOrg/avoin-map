@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type MouseEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import { useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
 
@@ -20,6 +20,11 @@ import FolayerImportPictures, {
 import { FolayerConfState } from 'applets/luonnonmetsakartat/common/types'
 import { LoadingSpinner } from '#/components/Loading'
 import { useAppParams } from '#/common/navigation/navigation'
+import { useLuonnonmetsakartatMockScenarioQueryState } from 'applets/luonnonmetsakartat/common/mockScenarios/queryState'
+import {
+  createLuonnonmetsakartatMockPicturesMappedFixtureState,
+  createLuonnonmetsakartatMockPicturesUnmatchedFixtureState,
+} from 'applets/luonnonmetsakartat/common/mockScenarios/seedData'
 
 const Page = () => {
   const [, setIsLoading] = useSidebarActivityLoader()
@@ -28,6 +33,7 @@ const Page = () => {
   const picturesRef = useRef<FolayerImportPicturesRef>(null)
   const params = useAppParams<{ folayerIdSlug: string }>()
   const { t } = useTranslate('luonnonmetsakartat')
+  const mockScenarioState = useLuonnonmetsakartatMockScenarioQueryState()
 
   const adminFolayerConf = useAppletStore(
     (state) => state.adminFolayerConfs[params.folayerIdSlug]
@@ -79,6 +85,15 @@ const Page = () => {
 
   const isFolayerReady =
     adminFolayerConf && adminFolayerConf.state === FolayerConfState.Idle
+  const pictureFixtureState = useMemo(
+    () =>
+      mockScenarioState === 'pictures-mapped'
+        ? createLuonnonmetsakartatMockPicturesMappedFixtureState()
+        : mockScenarioState === 'pictures-unmatched'
+          ? createLuonnonmetsakartatMockPicturesUnmatchedFixtureState()
+          : undefined,
+    [mockScenarioState]
+  )
 
   return (
     <Box
@@ -104,10 +119,11 @@ const Page = () => {
             }}
           >
             <FolayerImportPictures
-              key={componentKey}
+              key={`${componentKey}-${mockScenarioState ?? 'normal'}`}
               folayerId={adminFolayerConf.id}
               ref={picturesRef}
               onValidationChange={setIsReadyToSave}
+              fixtureState={pictureFixtureState}
             />
           </Box>
         )}
