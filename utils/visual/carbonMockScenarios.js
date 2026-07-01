@@ -26,6 +26,14 @@ const CARBON_MOCK_IDS_SOURCE_PATH = path.resolve(
 const CARBON_REPORT_SOURCE_GLOBS = [
   'src/applets/hiilikartta/pages/raportti/page.tsx',
   'src/applets/hiilikartta/pages/raportti/reportPlanSelection.ts',
+  'src/applets/hiilikartta/components/CarbonOverviewGraph/CarbonOverviewGraph.tsx',
+  'src/applets/hiilikartta/components/CarbonOverviewGraph/GeomGraphic.tsx',
+  'src/applets/hiilikartta/components/CarbonChangeLegend.tsx',
+  'src/applets/hiilikartta/components/CarbonLineChart/CarbonLineChart.tsx',
+  'src/applets/hiilikartta/components/CarbonLineChart/CarbonLineChartInner.tsx',
+  'src/applets/hiilikartta/components/CarbonMapGraph/CarbonMapGraph.tsx',
+  'src/applets/hiilikartta/components/CarbonMapGraph/CarbonMapGraphMap.tsx',
+  'src/applets/hiilikartta/components/CarbonMapGraph/CarbonMapGraphTable.tsx',
 ]
 
 const REQUIRED_CARBON_MOCK_ID_EXPORTS = [
@@ -348,6 +356,21 @@ const buildCarbonMockScenarioDefinitions = (ids) => [
     sourceGlobs: CARBON_REPORT_SOURCE_GLOBS,
     queryParams: {
       planIds: ids.MOCK_EXTERNAL_PLAN_ID,
+    },
+  },
+  {
+    id: 'report-external-api-comparison',
+    routePath: `${CARBON_MOCK_ROUTE_BASE}/report`,
+    state: 'report-single-local',
+    surface: 'report',
+    sourceGlobs: CARBON_REPORT_SOURCE_GLOBS,
+    queryParams: {
+      planIds: [
+        ids.MOCK_LOCAL_PLAN_SERVER_ID,
+        ids.MOCK_EXTERNAL_REPORT_SERVER_ID,
+      ],
+      prevPageId: ids.MOCK_LOCAL_PLAN_ID,
+      prevPageStep: 'areas',
     },
   },
   {

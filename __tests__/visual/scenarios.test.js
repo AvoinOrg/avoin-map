@@ -174,6 +174,7 @@ describe('visual scenarios', () => {
       'carbon-mocks-report-single-local': 'report-single-local',
       'carbon-mocks-report-comparison': 'report-comparison',
       'carbon-mocks-report-external': 'report-external',
+      'carbon-mocks-report-external-api-comparison': 'report-single-local',
       'carbon-mocks-report-invalid-id': 'report-invalid-id',
       'carbon-mocks-report-no-data': 'report-no-data',
     }
@@ -315,6 +316,25 @@ describe('visual scenarios', () => {
         MOCK_EXTERNAL_REPORT_ERROR_SERVER_ID
       )
 
+      const externalApiComparisonUrl = getScenarioUrl(
+        getScenarioById({
+          scenarios,
+          id: 'carbon-mocks-report-external-api-comparison',
+        })
+      )
+      expect(externalApiComparisonUrl.searchParams.get('mockCarbonState')).toBe(
+        'report-single-local'
+      )
+      expect(externalApiComparisonUrl.searchParams.get('planIds')).toBe(
+        `${MOCK_LOCAL_PLAN_SERVER_ID},${MOCK_EXTERNAL_REPORT_SERVER_ID}`
+      )
+      expect(externalApiComparisonUrl.searchParams.get('prevPageId')).toBe(
+        MOCK_LOCAL_PLAN_ID
+      )
+      expect(externalApiComparisonUrl.searchParams.get('prevPageStep')).toBe(
+        'areas'
+      )
+
       const invalidReportUrl = getScenarioUrl(
         getScenarioById({
           scenarios,
@@ -338,6 +358,27 @@ describe('visual scenarios', () => {
         MOCK_INVALID_PLAN_ID
       )
       expect(noDataReportUrl.searchParams.get('prevPageStep')).toBe('plan')
+    })
+
+    test('maps report graph component changes to report scenarios', () => {
+      const scenarios = buildCarbonMockScenarios()
+      const expectedReportSourceGlobs = [
+        'src/applets/hiilikartta/pages/raportti/page.tsx',
+        'src/applets/hiilikartta/components/CarbonOverviewGraph/CarbonOverviewGraph.tsx',
+        'src/applets/hiilikartta/components/CarbonLineChart/CarbonLineChartInner.tsx',
+        'src/applets/hiilikartta/components/CarbonMapGraph/CarbonMapGraphMap.tsx',
+      ]
+
+      for (const id of [
+        'carbon-mocks-report-single-local',
+        'carbon-mocks-report-comparison',
+        'carbon-mocks-report-external',
+        'carbon-mocks-report-external-api-comparison',
+      ]) {
+        expect(getScenarioById({ scenarios, id }).sourceGlobs).toEqual(
+          expect.arrayContaining(expectedReportSourceGlobs)
+        )
+      }
     })
 
     test('makes footer save states reproducible with explicit auth state', () => {
