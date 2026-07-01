@@ -33,7 +33,6 @@ import { CarbonLineChart } from 'applets/hiilikartta/components/CarbonLineChart'
 import CarbonOverviewGraph from 'applets/hiilikartta/components/CarbonOverviewGraph'
 import ClipboardCopyWrapper from '#/components/common/ClipboardCopyWrapper'
 import { LoadingSpinner } from '#/components/Loading'
-import { useUIStore } from '#/common/store'
 import { getReportCalculatedDate } from 'applets/hiilikartta/common/utils'
 import TText from '#/components/common/TText'
 import {
@@ -45,16 +44,24 @@ import {
 
 const MAX_WIDTH = '1000px'
 
-enum ErrorState {
-  NO_IDS = 'NO_IDS',
-  INVALID_IDS = 'INVALID_IDS',
-  NO_DATA = 'NO_DATA',
+const getCommonFeatureYears = (planConfs: PlanConfWithReportData[]) => {
+  const [firstPlanConf, ...restPlanConfs] = planConfs
+  const firstFeatureYears = firstPlanConf?.reportData.metadata.featureYears
+
+  if (firstFeatureYears == null) {
+    return []
+  }
+
+  return firstFeatureYears.filter((featureYear) =>
+    restPlanConfs.every((planConf) =>
+      planConf.reportData.metadata.featureYears?.includes(featureYear)
+    )
+  )
 }
 
 const Page = () => {
   const searchParams = useAppSearchParams()
   const globalState = useStore(useAppletStore, (state) => state.globalState)
-  const notify = useUIStore((state) => state.notify)
   const router = useAppRouter()
   const buildAppRouteHref = useAppRouteHrefBuilder()
   const pathName = useAppPathname()
@@ -77,7 +84,6 @@ const Page = () => {
   const [planConfs, setPlanConfs] = useState<PlanConfWithReportData[]>([])
   const [prevPageId, setPrevPageId] = useState<string>()
   const [prevPageStep, setPrevPageStep] = useState<'plan' | 'areas'>('plan')
-  const [, setErrorState] = useState<ErrorState>()
   const [isLoaded, setIsLoaded] = useState(false)
   const [featureYears, setFeatureYears] = useState<string[]>([])
 
@@ -110,8 +116,23 @@ const Page = () => {
       globalState === GlobalState.IDLE
     ) {
       const paramPlanIds = searchParams.get('planIds')
-      if (paramPlanIds != null) {
-        const ids = paramPlanIds.split(',')
+      const ids =
+        paramPlanIds
+          ?.split(',')
+          .map((id) => id.trim())
+          .filter(Boolean) ?? []
+
+      if (ids.length === 0) {
+        if (planConfs.length > 0) {
+          setPlanConfs([])
+        }
+        if (featureYears.length > 0) {
+          setFeatureYears([])
+        }
+        if (isLoaded) {
+          setIsLoaded(false)
+        }
+      } else {
         addedExtPlanConfIds.current = keepExistingExternalReportRequestIds({
           externalPlanConfs,
           requestedServerIds: addedExtPlanConfIds.current,
@@ -128,22 +149,10 @@ const Page = () => {
             externalPlanConfs,
             id
           )
-          const foundPhPlanConf = findReportPlanByServerId(
-            placeholderPlanConfs,
-            id
-          )
 
           if (foundPlanConf != null) {
             if (foundPlanConf.reportData != null) {
               paramPlanConfs.push(foundPlanConf as PlanConfWithReportData)
-            } else {
-              notify({
-                message: `${t(
-                  'report.error.no_report_data_found_for_plan_with_id'
-                )} ${id}`,
-                variant: 'error',
-              })
-              setErrorState(ErrorState.NO_DATA)
             }
           } else if (foundExtPlanConf != null) {
             if (foundExtPlanConf.status === FetchStatus.FETCHED) {
@@ -151,36 +160,7 @@ const Page = () => {
                 paramPlanConfs.push(
                   foundExtPlanConf as PlanConfWithReportData
                 )
-              } else {
-                notify({
-                  message: `${t(
-                    'report.error.no_report_data_found_for_plan_with_id'
-                  )} ${id}`,
-                  variant: 'error',
-                })
-                setErrorState(ErrorState.NO_DATA)
               }
-            } else if (foundExtPlanConf.status === FetchStatus.ERRORED) {
-              notify({
-                message: `${t(
-                  'report.error.unable_to_find_plan_with_id'
-                )} ${id}`,
-                variant: 'error',
-              })
-              setErrorState(ErrorState.NO_DATA)
-            }
-          } else if (foundPhPlanConf != null) {
-            if (
-              foundPhPlanConf.status != null &&
-              foundPhPlanConf.status === FetchStatus.ERRORED
-            ) {
-              notify({
-                message: `${t(
-                  'report.error.unable_to_find_plan_with_id'
-                )} ${id}`,
-                variant: 'error',
-              })
-              setErrorState(ErrorState.NO_DATA)
             }
           } else if (!addedExtPlanConfIds.current.includes(id)) {
             addedExtPlanConfIds.current.push(id)
@@ -194,40 +174,20 @@ const Page = () => {
 
         if (!areIdsEqualAndInOrder) {
           setPlanConfs(paramPlanConfs)
-
-          for (const planConf of paramPlanConfs) {
-            const allFeatureYears: string[][] = []
-            if (planConf.reportData.metadata.featureYears != null) {
-              allFeatureYears.push(planConf.reportData.metadata.featureYears)
-            }
-            const commonFeatureYears = allFeatureYears[0].filter(
-              (item: string) =>
-                allFeatureYears.every((featureYearArray: string[]) =>
-                  featureYearArray.includes(item)
-                )
-            )
-            setFeatureYears(commonFeatureYears)
-          }
+          setFeatureYears(getCommonFeatureYears(paramPlanConfs))
         }
 
-        if (!isLoaded) {
-          let newLoaded = true
+        const newLoaded = ids.every((id) =>
+          isReportPlanIdSettled({
+            allPlanConfs,
+            placeholderPlanConfs,
+            externalPlanConfs,
+            serverId: id,
+          })
+        )
 
-          for (const id of ids) {
-            if (!isReportPlanIdSettled({
-              allPlanConfs,
-              placeholderPlanConfs,
-              externalPlanConfs,
-              serverId: id,
-            })) {
-              newLoaded = false
-              break
-            }
-          }
-
-          if (newLoaded) {
-            setIsLoaded(true)
-          }
+        if (newLoaded !== isLoaded) {
+          setIsLoaded(newLoaded)
         }
       }
 
@@ -271,7 +231,11 @@ const Page = () => {
 
     const newSearchParams = new URLSearchParams(searchParams)
     const valueString = newValue.map((option) => option.value).join(',')
-    newSearchParams.set('planIds', valueString)
+    if (valueString) {
+      newSearchParams.set('planIds', valueString)
+    } else {
+      newSearchParams.delete('planIds')
+    }
 
     // Use router.replace to update the URL without adding a new history entry
     router.replace(
@@ -585,7 +549,10 @@ const Page = () => {
               justifyContent: 'center',
             }}
           >
-            <LoadingSpinner size="3rem" />
+            <LoadingSpinner
+              data-visual-mask="plan-report-spinner"
+              size="3rem"
+            />
           </Box>
         )}
         {isLoaded && planConfs.length > 0 && featureYears.length > 0 && (

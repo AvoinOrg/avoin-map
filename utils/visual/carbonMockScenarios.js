@@ -23,6 +23,11 @@ const CARBON_MOCK_IDS_SOURCE_PATH = path.resolve(
   '../../src/applets/hiilikartta/common/mockScenarios/ids.ts'
 )
 
+const CARBON_REPORT_SOURCE_GLOBS = [
+  'src/applets/hiilikartta/pages/raportti/page.tsx',
+  'src/applets/hiilikartta/pages/raportti/reportPlanSelection.ts',
+]
+
 const REQUIRED_CARBON_MOCK_ID_EXPORTS = [
   'MOCK_LOCAL_PLAN_ID',
   'MOCK_SERVER_PLAN_ID',
@@ -142,6 +147,7 @@ const buildCarbonMockScenario = ({
   state,
   surface,
   queryParams,
+  sourceGlobs,
 }) => {
   const pathWithQuery = `${routePath}${buildCarbonMockQuery({
     state,
@@ -157,6 +163,7 @@ const buildCarbonMockScenario = ({
     requiresWebGL: true,
     waitFor: DEFAULT_WAIT_FOR_SELECTOR,
     maskSelectors: [...DEFAULT_MASK_SELECTORS, ...CARBON_MOCK_MASK_SELECTORS],
+    sourceGlobs,
     tags: [
       CARBON_MOCK_SCENARIO_SET,
       `applet:${CARBON_MOCK_APPLET}`,
@@ -300,10 +307,18 @@ const buildCarbonMockScenarioDefinitions = (ids) => [
     surface: 'areas',
   },
   {
+    id: 'report-no-ids',
+    routePath: `${CARBON_MOCK_ROUTE_BASE}/report`,
+    state: 'plans-empty',
+    surface: 'report',
+    sourceGlobs: CARBON_REPORT_SOURCE_GLOBS,
+  },
+  {
     id: 'report-single-local',
     routePath: `${CARBON_MOCK_ROUTE_BASE}/report`,
     state: 'report-single-local',
     surface: 'report',
+    sourceGlobs: CARBON_REPORT_SOURCE_GLOBS,
     queryParams: {
       planIds: ids.MOCK_LOCAL_PLAN_SERVER_ID,
       prevPageId: ids.MOCK_LOCAL_PLAN_ID,
@@ -315,6 +330,7 @@ const buildCarbonMockScenarioDefinitions = (ids) => [
     routePath: `${CARBON_MOCK_ROUTE_BASE}/report`,
     state: 'report-comparison',
     surface: 'report',
+    sourceGlobs: CARBON_REPORT_SOURCE_GLOBS,
     queryParams: {
       planIds: [
         ids.MOCK_LOCAL_PLAN_SERVER_ID,
@@ -329,6 +345,7 @@ const buildCarbonMockScenarioDefinitions = (ids) => [
     routePath: `${CARBON_MOCK_ROUTE_BASE}/report`,
     state: 'report-external',
     surface: 'report',
+    sourceGlobs: CARBON_REPORT_SOURCE_GLOBS,
     queryParams: {
       planIds: ids.MOCK_EXTERNAL_PLAN_ID,
     },
@@ -338,6 +355,7 @@ const buildCarbonMockScenarioDefinitions = (ids) => [
     routePath: `${CARBON_MOCK_ROUTE_BASE}/report`,
     state: 'report-invalid-id',
     surface: 'report',
+    sourceGlobs: CARBON_REPORT_SOURCE_GLOBS,
     queryParams: {
       planIds: ids.MOCK_INVALID_PLAN_ID,
     },
@@ -347,6 +365,7 @@ const buildCarbonMockScenarioDefinitions = (ids) => [
     routePath: `${CARBON_MOCK_ROUTE_BASE}/report`,
     state: 'report-no-data',
     surface: 'report',
+    sourceGlobs: CARBON_REPORT_SOURCE_GLOBS,
     queryParams: {
       planIds: ids.MOCK_INVALID_PLAN_SERVER_ID,
       prevPageId: ids.MOCK_INVALID_PLAN_ID,

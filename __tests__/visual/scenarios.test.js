@@ -170,6 +170,7 @@ describe('visual scenarios', () => {
       'carbon-mocks-areas-valid': 'areas-valid',
       'carbon-mocks-areas-invalid-zoning': 'areas-invalid-zoning',
       'carbon-mocks-areas-invalid-land-use': 'areas-invalid-land-use',
+      'carbon-mocks-report-no-ids': 'plans-empty',
       'carbon-mocks-report-single-local': 'report-single-local',
       'carbon-mocks-report-comparison': 'report-comparison',
       'carbon-mocks-report-external': 'report-external',
@@ -262,6 +263,15 @@ describe('visual scenarios', () => {
           })
         )
       ).toBe(`/fi/carbon/plans/${MOCK_INVALID_PLAN_ID}/areas`)
+
+      const noIdsReportUrl = getScenarioUrl(
+        getScenarioById({
+          scenarios,
+          id: 'carbon-mocks-report-no-ids',
+        })
+      )
+      expect(noIdsReportUrl.pathname).toBe('/fi/carbon/report')
+      expect(noIdsReportUrl.searchParams.has('planIds')).toBe(false)
 
       const singleLocalUrl = getScenarioUrl(
         getScenarioById({
