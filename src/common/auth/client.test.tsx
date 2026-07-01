@@ -45,7 +45,14 @@ const {
   MOCK_AUTH_ACCESS_TOKEN,
   MOCK_AUTH_COOKIE_NAME,
   MOCK_AUTH_EMAIL,
+  MOCK_AUTH_MISSING_TOKEN_EMAIL,
+  MOCK_AUTH_MISSING_TOKEN_NAME,
+  MOCK_AUTH_MISSING_TOKEN_USER_ID,
   MOCK_AUTH_NAME,
+  MOCK_AUTH_REJECTED_ACCESS_TOKEN,
+  MOCK_AUTH_REJECTED_EMAIL,
+  MOCK_AUTH_REJECTED_NAME,
+  MOCK_AUTH_REJECTED_USER_ID,
   MOCK_AUTH_STORAGE_KEY,
   MOCK_AUTH_USER_ID,
   createMockUserInfo,
@@ -404,6 +411,92 @@ describe('AuthSessionProvider', () => {
     expect(mockGetAccessToken).not.toHaveBeenCalled()
   })
 
+  it('returns the deterministic rejected mock session without Better Auth calls', async () => {
+    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
+    process.env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE = 'rejected'
+
+    renderAuthProvider(<AuthProbe />)
+
+    expect(screen.getByTestId('auth-status')).toHaveTextContent(
+      'authenticated'
+    )
+    expect(screen.getByTestId('auth-user')).toHaveTextContent(
+      MOCK_AUTH_REJECTED_USER_ID
+    )
+    expect(screen.getByTestId('auth-email')).toHaveTextContent(
+      MOCK_AUTH_REJECTED_EMAIL
+    )
+    expect(screen.getByTestId('auth-name')).toHaveTextContent(
+      MOCK_AUTH_REJECTED_NAME
+    )
+    expect(screen.getByTestId('auth-token')).toHaveTextContent(
+      MOCK_AUTH_REJECTED_ACCESS_TOKEN
+    )
+
+    await expect(getAuthSession()).resolves.toMatchObject({
+      session: {
+        userId: MOCK_AUTH_REJECTED_USER_ID,
+      },
+      user: {
+        id: MOCK_AUTH_REJECTED_USER_ID,
+        email: MOCK_AUTH_REJECTED_EMAIL,
+        name: MOCK_AUTH_REJECTED_NAME,
+      },
+      accessToken: MOCK_AUTH_REJECTED_ACCESS_TOKEN,
+    })
+    await expect(getAuthAccessToken()).resolves.toMatchObject({
+      ok: true,
+      accessToken: MOCK_AUTH_REJECTED_ACCESS_TOKEN,
+    })
+
+    expect(mockUseSession).not.toHaveBeenCalled()
+    expect(mockGetSession).not.toHaveBeenCalled()
+    expect(mockGetAccessToken).not.toHaveBeenCalled()
+  })
+
+  it('returns a missing-token mock session without an access token', async () => {
+    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
+    process.env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE = 'missing-token'
+
+    renderAuthProvider(<AuthProbe />)
+
+    expect(screen.getByTestId('auth-status')).toHaveTextContent(
+      'authenticated'
+    )
+    expect(screen.getByTestId('auth-user')).toHaveTextContent(
+      MOCK_AUTH_MISSING_TOKEN_USER_ID
+    )
+    expect(screen.getByTestId('auth-email')).toHaveTextContent(
+      MOCK_AUTH_MISSING_TOKEN_EMAIL
+    )
+    expect(screen.getByTestId('auth-name')).toHaveTextContent(
+      MOCK_AUTH_MISSING_TOKEN_NAME
+    )
+    expect(screen.getByTestId('auth-token')).toHaveTextContent('null')
+
+    const session = await getAuthSession()
+
+    expect(session).toMatchObject({
+      session: {
+        userId: MOCK_AUTH_MISSING_TOKEN_USER_ID,
+      },
+      user: {
+        id: MOCK_AUTH_MISSING_TOKEN_USER_ID,
+        email: MOCK_AUTH_MISSING_TOKEN_EMAIL,
+        name: MOCK_AUTH_MISSING_TOKEN_NAME,
+      },
+    })
+    expect(session).not.toHaveProperty('accessToken')
+    await expect(getAuthAccessToken()).resolves.toMatchObject({
+      ok: false,
+      error: 'NoAccessToken',
+    })
+
+    expect(mockUseSession).not.toHaveBeenCalled()
+    expect(mockGetSession).not.toHaveBeenCalled()
+    expect(mockGetAccessToken).not.toHaveBeenCalled()
+  })
+
   it('uses URL-controlled mock unauthenticated state without Better Auth calls', async () => {
     process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
     window.history.pushState({}, '', '/?mockAuth=unauthenticated')
@@ -484,6 +577,32 @@ describe('AuthSessionProvider', () => {
     expect(mockNotifySessionChanged).not.toHaveBeenCalled()
   })
 
+  it('switches mock sign-out from rejected state without Better Auth sign-out', async () => {
+    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
+    process.env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE = 'rejected'
+
+    renderAuthProvider(<AuthProbe />)
+
+    expect(screen.getByTestId('auth-user')).toHaveTextContent(
+      MOCK_AUTH_REJECTED_USER_ID
+    )
+
+    await act(async () => {
+      await signOutAuth()
+    })
+
+    await waitFor(() =>
+      expect(screen.getByTestId('auth-status')).toHaveTextContent(
+        'unauthenticated'
+      )
+    )
+    expect(window.localStorage.getItem(MOCK_AUTH_STORAGE_KEY)).toBe(
+      'unauthenticated'
+    )
+    expect(mockSignOut).not.toHaveBeenCalled()
+    expect(mockNotifySessionChanged).not.toHaveBeenCalled()
+  })
+
   it('keeps non-mock sign-in routed through Better Auth OAuth', async () => {
     mockSignInOauth2.mockResolvedValueOnce({ success: true })
 
@@ -530,6 +649,40 @@ describe('AuthSessionProvider', () => {
     )
     expect(screen.getByTestId('store-user')).toHaveTextContent(
       MOCK_AUTH_USER_ID
+    )
+    expect(mockAxiosGet).toHaveBeenCalledWith('/api/userinfo')
+    expect(mockUseSession).not.toHaveBeenCalled()
+    expect(mockGetAccessToken).not.toHaveBeenCalled()
+  })
+
+  it('keeps the user store authenticated and fetched in mock missing-token mode', async () => {
+    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
+    process.env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE = 'missing-token'
+    mockAxiosGet.mockResolvedValueOnce({
+      data: createMockUserInfo('missing-token'),
+    })
+
+    renderUserStateHandler()
+
+    await waitFor(() =>
+      expect(useUserStore.getState().userAuth).toEqual({
+        id: MOCK_AUTH_MISSING_TOKEN_USER_ID,
+        accessToken: undefined,
+      })
+    )
+    await waitFor(() =>
+      expect(useUserStore.getState().userDataState).toBe(UserDataState.Fetched)
+    )
+
+    expect(screen.getByTestId('store-auth-state')).toHaveTextContent(
+      UserAuthState.Authenticated
+    )
+    expect(screen.getByTestId('store-data-state')).toHaveTextContent(
+      UserDataState.Fetched
+    )
+    expect(screen.getByTestId('store-token')).toHaveTextContent('null')
+    expect(screen.getByTestId('store-user')).toHaveTextContent(
+      MOCK_AUTH_MISSING_TOKEN_USER_ID
     )
     expect(mockAxiosGet).toHaveBeenCalledWith('/api/userinfo')
     expect(mockUseSession).not.toHaveBeenCalled()

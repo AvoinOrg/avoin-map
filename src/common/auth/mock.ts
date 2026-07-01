@@ -11,7 +11,16 @@ export type MockAuthEnv = {
   NODE_ENV?: string
 }
 
-export type MockAuthState = 'authenticated' | 'unauthenticated'
+export type MockAuthState =
+  | 'authenticated'
+  | 'rejected'
+  | 'missing-token'
+  | 'unauthenticated'
+
+export type AuthenticatedMockAuthState = Exclude<
+  MockAuthState,
+  'unauthenticated'
+>
 
 export type MockAuthConfig = {
   enabled: boolean
@@ -29,26 +38,78 @@ export const MOCK_AUTH_NAME = 'Carbon Mock User'
 export const MOCK_AUTH_SESSION_ID = 'carbon-mock-session'
 export const MOCK_AUTH_ACCESS_TOKEN = 'carbon-mock-access-token'
 export const MOCK_AUTH_EXPIRES_AT_ISO = '2099-01-01T00:00:00.000Z'
+export const MOCK_AUTH_REJECTED_USER_ID = 'mock-rejected-user'
+export const MOCK_AUTH_REJECTED_EMAIL = 'mock.rejected@example.org'
+export const MOCK_AUTH_REJECTED_NAME = 'Rejected Mock User'
+export const MOCK_AUTH_REJECTED_SESSION_ID = 'mock-rejected-session'
+export const MOCK_AUTH_REJECTED_ACCESS_TOKEN = 'mock-rejected-access-token'
+export const MOCK_AUTH_MISSING_TOKEN_USER_ID = 'mock-missing-token-user'
+export const MOCK_AUTH_MISSING_TOKEN_EMAIL =
+  'mock.missing-token@example.org'
+export const MOCK_AUTH_MISSING_TOKEN_NAME = 'Missing Token Mock User'
+export const MOCK_AUTH_MISSING_TOKEN_SESSION_ID =
+  'mock-missing-token-session'
 
 const MOCK_AUTH_ENABLED_VALUES = new Set(['1', 'true', 'yes', 'on'])
-const MOCK_AUTH_AUTHENTICATED_VALUES = [
-  'authenticated',
-  'auth',
-  'signed-in',
-  'signin',
-  '1',
-  'true',
-]
-const MOCK_AUTH_UNAUTHENTICATED_VALUES = [
-  'unauthenticated',
-  'anonymous',
-  'signed-out',
-  'signout',
-  '0',
-  'false',
-]
-const DEFAULT_MOCK_AUTH_STATE: MockAuthState = 'authenticated'
+const MOCK_AUTH_STATE_ALIASES: Record<string, MockAuthState> = {
+  '0': 'unauthenticated',
+  '1': 'authenticated',
+  anonymous: 'unauthenticated',
+  auth: 'authenticated',
+  authenticated: 'authenticated',
+  'authenticated-editor': 'authenticated',
+  editor: 'authenticated',
+  'false': 'unauthenticated',
+  'missing-token': 'missing-token',
+  missing_token: 'missing-token',
+  'no-access-token': 'missing-token',
+  'no-token': 'missing-token',
+  noneditor: 'rejected',
+  'non-editor': 'rejected',
+  rejected: 'rejected',
+  signin: 'authenticated',
+  signout: 'unauthenticated',
+  'signed-in': 'authenticated',
+  'signed-out': 'unauthenticated',
+  'true': 'authenticated',
+  unauthenticated: 'unauthenticated',
+}
+export const DEFAULT_MOCK_AUTH_STATE: AuthenticatedMockAuthState =
+  'authenticated'
 const MOCK_AUTH_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30
+const MOCK_AUTH_SCOPES = ['openid', 'profile', 'email']
+
+type MockAuthProfile = {
+  accessToken?: string
+  email: string
+  name: string
+  sessionId: string
+  userId: string
+}
+
+const MOCK_AUTH_PROFILES: Record<AuthenticatedMockAuthState, MockAuthProfile> =
+  {
+    authenticated: {
+      accessToken: MOCK_AUTH_ACCESS_TOKEN,
+      email: MOCK_AUTH_EMAIL,
+      name: MOCK_AUTH_NAME,
+      sessionId: MOCK_AUTH_SESSION_ID,
+      userId: MOCK_AUTH_USER_ID,
+    },
+    rejected: {
+      accessToken: MOCK_AUTH_REJECTED_ACCESS_TOKEN,
+      email: MOCK_AUTH_REJECTED_EMAIL,
+      name: MOCK_AUTH_REJECTED_NAME,
+      sessionId: MOCK_AUTH_REJECTED_SESSION_ID,
+      userId: MOCK_AUTH_REJECTED_USER_ID,
+    },
+    'missing-token': {
+      email: MOCK_AUTH_MISSING_TOKEN_EMAIL,
+      name: MOCK_AUTH_MISSING_TOKEN_NAME,
+      sessionId: MOCK_AUTH_MISSING_TOKEN_SESSION_ID,
+      userId: MOCK_AUTH_MISSING_TOKEN_USER_ID,
+    },
+  }
 
 const getDefaultMockAuthEnv = (): MockAuthEnv => ({
   NEXT_PUBLIC_MOCK_AUTH_ENABLED: process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED,
@@ -61,6 +122,10 @@ const normalizeFlag = (value: string | undefined) =>
   value?.trim().toLowerCase() ?? ''
 
 const createMockAuthExpiryDate = () => new Date(MOCK_AUTH_EXPIRES_AT_ISO)
+
+export const isAuthenticatedMockAuthState = (
+  state: MockAuthState
+): state is AuthenticatedMockAuthState => state !== 'unauthenticated'
 
 const getCookieValue = ({
   cookieHeader,
@@ -88,15 +153,7 @@ export const parseMockAuthState = (
 ): MockAuthState | null => {
   const normalized = normalizeFlag(value ?? undefined)
 
-  if (MOCK_AUTH_AUTHENTICATED_VALUES.includes(normalized)) {
-    return 'authenticated'
-  }
-
-  if (MOCK_AUTH_UNAUTHENTICATED_VALUES.includes(normalized)) {
-    return 'unauthenticated'
-  }
-
-  return null
+  return MOCK_AUTH_STATE_ALIASES[normalized] ?? null
 }
 
 export const assertMockAuthAllowed = (
@@ -139,38 +196,80 @@ export const resolveMockAuthConfig = (
   }
 }
 
-export const createMockAccessTokenResult = (): AuthAccessTokenResult => ({
-  ok: true,
-  accessToken: MOCK_AUTH_ACCESS_TOKEN,
-  accessTokenExpiresAt: createMockAuthExpiryDate(),
-  scopes: ['openid', 'profile', 'email'],
-})
+export const createMockAccessTokenResult = (
+  state: MockAuthState = DEFAULT_MOCK_AUTH_STATE
+): AuthAccessTokenResult => {
+  if (!isAuthenticatedMockAuthState(state)) {
+    return {
+      ok: false,
+      accessToken: null,
+      accessTokenExpiresAt: null,
+      scopes: [],
+      error: 'NoSession',
+    }
+  }
 
-export const createMockAuthSession = (): AuthSession => ({
-  session: {
-    id: MOCK_AUTH_SESSION_ID,
-    userId: MOCK_AUTH_USER_ID,
-    expiresAt: createMockAuthExpiryDate(),
-  },
-  user: {
-    id: MOCK_AUTH_USER_ID,
-    name: MOCK_AUTH_NAME,
-    email: MOCK_AUTH_EMAIL,
+  const accessToken = MOCK_AUTH_PROFILES[state].accessToken
+
+  if (!accessToken) {
+    return {
+      ok: false,
+      accessToken: null,
+      accessTokenExpiresAt: null,
+      scopes: [],
+      error: 'NoAccessToken',
+    }
+  }
+
+  return {
+    ok: true,
+    accessToken,
+    accessTokenExpiresAt: createMockAuthExpiryDate(),
+    scopes: [...MOCK_AUTH_SCOPES],
+  }
+}
+
+export const createMockAuthSession = (
+  state: AuthenticatedMockAuthState = DEFAULT_MOCK_AUTH_STATE
+): AuthSession => {
+  const profile = MOCK_AUTH_PROFILES[state]
+  const session: AuthSession = {
+    session: {
+      id: profile.sessionId,
+      userId: profile.userId,
+      expiresAt: createMockAuthExpiryDate(),
+    },
+    user: {
+      id: profile.userId,
+      name: profile.name,
+      email: profile.email,
+      image: null,
+      loginName: profile.email,
+    },
+  }
+
+  if (profile.accessToken) {
+    session.accessToken = profile.accessToken
+    session.accessTokenExpiresAt = createMockAuthExpiryDate()
+  }
+
+  return session
+}
+
+export const createMockUserInfo = (
+  state: AuthenticatedMockAuthState = DEFAULT_MOCK_AUTH_STATE
+): AuthUserInfo => {
+  const profile = MOCK_AUTH_PROFILES[state]
+
+  return {
+    id: profile.userId,
+    sub: profile.userId,
+    name: profile.name,
+    email: profile.email,
     image: null,
-    loginName: MOCK_AUTH_EMAIL,
-  },
-  accessToken: MOCK_AUTH_ACCESS_TOKEN,
-  accessTokenExpiresAt: createMockAuthExpiryDate(),
-})
-
-export const createMockUserInfo = (): AuthUserInfo => ({
-  id: MOCK_AUTH_USER_ID,
-  sub: MOCK_AUTH_USER_ID,
-  name: MOCK_AUTH_NAME,
-  email: MOCK_AUTH_EMAIL,
-  image: null,
-  picture: null,
-})
+    picture: null,
+  }
+}
 
 export const readMockAuthStateFromCookieHeader = (
   cookieHeader: string | null | undefined

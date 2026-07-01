@@ -20,6 +20,7 @@ import {
 import {
   createMockAccessTokenResult,
   createMockAuthSession,
+  isAuthenticatedMockAuthState,
   MOCK_AUTH_STATE_CHANGE_EVENT,
   MOCK_AUTH_STORAGE_KEY,
   resolveBrowserMockAuthState,
@@ -132,15 +133,7 @@ export const getAuthAccessToken =
     const mockConfig = resolveMockAuthConfig()
 
     if (mockConfig.enabled) {
-      return resolveBrowserMockAuthState(mockConfig) === 'authenticated'
-        ? createMockAccessTokenResult()
-        : {
-            ok: false,
-            accessToken: null,
-            accessTokenExpiresAt: null,
-            scopes: [],
-            error: 'NoSession',
-          }
+      return createMockAccessTokenResult(resolveBrowserMockAuthState(mockConfig))
     }
 
     try {
@@ -166,8 +159,10 @@ export const getAuthSession = async (): Promise<AuthSession | null> => {
   const mockConfig = resolveMockAuthConfig()
 
   if (mockConfig.enabled) {
-    return resolveBrowserMockAuthState(mockConfig) === 'authenticated'
-      ? createMockAuthSession()
+    const mockState = resolveBrowserMockAuthState(mockConfig)
+
+    return isAuthenticatedMockAuthState(mockState)
+      ? createMockAuthSession(mockState)
       : null
   }
 
@@ -232,7 +227,9 @@ export const signOutAuth = async () => {
 }
 
 const getMockAuthSessionValue = (state: MockAuthState) => {
-  const data = state === 'authenticated' ? createMockAuthSession() : null
+  const data = isAuthenticatedMockAuthState(state)
+    ? createMockAuthSession(state)
+    : null
 
   return {
     data,

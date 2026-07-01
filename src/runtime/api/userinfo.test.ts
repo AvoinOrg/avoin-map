@@ -130,6 +130,37 @@ describe('handleUserinfoRequest', () => {
     expect(fetchFn).not.toHaveBeenCalled()
   })
 
+  it.each(['rejected', 'missing-token'] as const)(
+    'returns %s mock userinfo without Better Auth or Zitadel calls',
+    async (mockState) => {
+      const getAccessToken = jest.fn<AccessTokenGetter>()
+      const getAuthEnv = jest.fn(() => ({
+        zitadelIssuer: 'https://auth.example.org',
+      }))
+      const fetchFn = jest.fn<typeof fetch>()
+
+      const response = await handleUserinfoRequest({
+        request: new Request(
+          `https://map.example.org/api/userinfo?mockAuth=${mockState}`
+        ),
+        deps: {
+          env: {
+            NEXT_PUBLIC_MOCK_AUTH_ENABLED: '1',
+          },
+          fetchFn,
+          getAccessToken,
+          getAuthEnv,
+        },
+      })
+
+      expect(response.status).toBe(200)
+      expect(await response.json()).toEqual(createMockUserInfo(mockState))
+      expect(getAccessToken).not.toHaveBeenCalled()
+      expect(getAuthEnv).not.toHaveBeenCalled()
+      expect(fetchFn).not.toHaveBeenCalled()
+    }
+  )
+
   it('returns 401 for URL-controlled mock unauthenticated state without Better Auth calls', async () => {
     const getAccessToken = jest.fn<AccessTokenGetter>()
     const fetchFn = jest.fn<typeof fetch>()

@@ -1,5 +1,6 @@
 import {
   createMockUserInfo,
+  isAuthenticatedMockAuthState,
   resolveMockAuthConfig,
   resolveRequestMockAuthState,
   type MockAuthEnv,
@@ -57,14 +58,14 @@ export const handleUserinfoRequest = async ({
       request,
     })
 
-    if (mockState === 'unauthenticated') {
+    if (!isAuthenticatedMockAuthState(mockState)) {
       return new Response(null, {
         status: 401,
         headers: responseHeaders,
       })
     }
 
-    return new Response(JSON.stringify(createMockUserInfo()), {
+    return new Response(JSON.stringify(createMockUserInfo(mockState)), {
       status: 200,
       headers: responseHeaders,
     })
