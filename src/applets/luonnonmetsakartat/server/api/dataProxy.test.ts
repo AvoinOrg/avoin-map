@@ -6,6 +6,7 @@ import {
   it,
   jest,
 } from '@jest/globals'
+import { Blob as NodeBlob, File as NodeFile } from 'buffer'
 import { ReadableStream } from 'stream/web'
 import { TextDecoder, TextEncoder } from 'util'
 import { MessageChannel, MessagePort } from 'worker_threads'
@@ -21,6 +22,7 @@ import {
   getLuonnonmetsakartatMockLayers,
   resetLuonnonmetsakartatMockApiForTests,
 } from './mockDataStore'
+import type { FolayerFeature } from '../../common/types'
 
 const mockEnv = {
   LUONNONMETSAKARTAT_MOCK_API_ENABLED: '1',
@@ -41,14 +43,165 @@ type MockLayerApiItem = {
   is_hidden?: boolean
   col_options?: {
     areaCol?: string
+    descriptionCol?: string
+    idCol?: string
     indexingStrategy?: string
     municipalityCol?: string
     nameCol?: string
+    regionCol?: string
   }
 }
 
 const readJson = async <T = unknown>(response: Response) =>
   (await response.json()) as T
+
+const appendMockZipFile = (formData: FormData) => {
+  formData.append(
+    'zip_file',
+    new Blob(['mock zip contents'], { type: 'application/zip' }),
+    'shapefile.zip'
+  )
+}
+
+const createLayerFormData = (
+  overrides: {
+    areaCol?: string
+    colorCode?: string
+    descriptionCol?: string
+    idCol?: string
+    indexingStrategy?: string
+    isHidden?: boolean
+    municipalityCol?: string
+    name?: string
+    nameCol?: string
+    regionCol?: string
+  } = {}
+) => {
+  const formData = new FormData()
+
+  appendMockZipFile(formData)
+  formData.append('name', overrides.name ?? 'Imported mock layer')
+  formData.append('is_hidden', String(overrides.isHidden ?? false))
+  formData.append('color_code', overrides.colorCode ?? '#123abc')
+  formData.append(
+    'indexing_strategy',
+    overrides.indexingStrategy ?? 'name_municipality'
+  )
+  formData.append('name_col', overrides.nameCol ?? 'forest_name')
+  formData.append(
+    'municipality_col',
+    overrides.municipalityCol ?? 'municipality_name'
+  )
+  formData.append('region_col', overrides.regionCol ?? 'region_name')
+  formData.append(
+    'description_col',
+    overrides.descriptionCol ?? 'forest_description'
+  )
+  formData.append('area_col', overrides.areaCol ?? 'area_hectares')
+  formData.append('id_col', overrides.idCol ?? 'external_id')
+
+  return formData
+}
+
+const createPatchFormData = (
+  overrides: {
+    areaCol?: string
+    bulkAreaIds?: string[]
+    bulkImageNames?: string[]
+    colorCode?: string
+    deleteAreasNotUpdated?: boolean
+    descriptionCol?: string
+    idCol?: string
+    indexingStrategy?: string
+    isHidden?: boolean
+    municipalityCol?: string
+    name?: string
+    nameCol?: string
+    regionCol?: string
+    zipFile?: boolean
+  } = {}
+) => {
+  const formData = new FormData()
+
+  if (overrides.zipFile) {
+    appendMockZipFile(formData)
+  }
+
+  if (overrides.deleteAreasNotUpdated !== undefined) {
+    formData.append(
+      'delete_areas_not_updated',
+      String(overrides.deleteAreasNotUpdated)
+    )
+  }
+
+  if (overrides.name !== undefined) {
+    formData.append('name', overrides.name)
+  }
+
+  if (overrides.isHidden !== undefined) {
+    formData.append('is_hidden', String(overrides.isHidden))
+  }
+
+  if (overrides.colorCode !== undefined) {
+    formData.append('color_code', overrides.colorCode)
+  }
+
+  if (overrides.indexingStrategy !== undefined) {
+    formData.append('indexing_strategy', overrides.indexingStrategy)
+    formData.append('name_col', overrides.nameCol ?? 'patched_name')
+    formData.append(
+      'municipality_col',
+      overrides.municipalityCol ?? 'patched_municipality'
+    )
+    formData.append('region_col', overrides.regionCol ?? 'patched_region')
+    formData.append(
+      'description_col',
+      overrides.descriptionCol ?? 'patched_description'
+    )
+    formData.append('area_col', overrides.areaCol ?? 'patched_area')
+    formData.append('id_col', overrides.idCol ?? 'patched_id')
+  }
+
+  overrides.bulkImageNames?.forEach((fileName) => {
+    formData.append(
+      'bulk_images',
+      new Blob([`contents:${fileName}`], { type: 'image/jpeg' }),
+      fileName
+    )
+  })
+  overrides.bulkAreaIds?.forEach((areaId) => {
+    formData.append('bulk_area_ids', areaId)
+  })
+
+  return formData
+}
+
+const createAreaPatchFormData = (properties: Record<string, string>) => {
+  const formData = new FormData()
+
+  Object.entries(properties).forEach(([key, value]) => {
+    formData.append(key, value)
+  })
+
+  return formData
+}
+
+const createMockApiRequest = ({
+  body,
+  method = 'GET',
+  path,
+  token = MOCK_AUTH_ACCESS_TOKEN,
+}: {
+  body?: BodyInit
+  method?: string
+  path: string
+  token?: string | null
+}) =>
+  new Request(`https://map.example.org/api/luonnonmetsakartat${path}`, {
+    body,
+    headers: token ? createAuthHeaders(token) : undefined,
+    method,
+  })
 
 describe('handleLuonnonmetsakartatDataProxyRequest', () => {
   beforeAll(() => {
@@ -63,8 +216,12 @@ describe('handleLuonnonmetsakartatDataProxyRequest', () => {
     globalThis.MessagePort =
       MessagePort as unknown as typeof globalThis.MessagePort
 
+    globalThis.Blob = NodeBlob as unknown as typeof Blob
+    globalThis.File = NodeFile as unknown as typeof File
+
     const undici = jest.requireActual<typeof UndiciModule>('undici')
 
+    globalThis.FormData = undici.FormData as unknown as typeof FormData
     globalThis.Headers = undici.Headers as unknown as typeof Headers
     globalThis.Request = undici.Request as unknown as typeof Request
     globalThis.Response = undici.Response as unknown as typeof Response
@@ -419,6 +576,419 @@ describe('handleLuonnonmetsakartatDataProxyRequest', () => {
     expect(missingIdResponse.status).toBe(400)
     expect(await readJson(missingIdResponse)).toEqual({
       error: 'Missing required layer id',
+    })
+  })
+
+  it('requires verified admin auth for mock layer mutations without changing state', async () => {
+    const missingAuthResponse = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        body: createLayerFormData(),
+        method: 'POST',
+        path: '/layer',
+        token: null,
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+    const rejectedAuthResponse = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        method: 'DELETE',
+        path: '/layer/mock-visible-layer',
+        token: MOCK_AUTH_REJECTED_ACCESS_TOKEN,
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+
+    expect(missingAuthResponse.status).toBe(401)
+    expect(await readJson(missingAuthResponse)).toEqual({
+      error: 'Mock admin authorization required',
+      is_editor: false,
+      is_admin: false,
+    })
+    expect(rejectedAuthResponse.status).toBe(403)
+    expect(await readJson(rejectedAuthResponse)).toEqual({
+      error: 'Mock admin access rejected',
+      is_editor: false,
+      is_admin: false,
+    })
+    expect(getLuonnonmetsakartatMockLayers().map((layer) => layer.id)).toEqual([
+      'mock-visible-layer',
+      'mock-hidden-layer',
+      'mock-empty-layer',
+    ])
+  })
+
+  it('creates deterministic mock layers from multipart import fields and resets them', async () => {
+    const createResponse = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        body: createLayerFormData({
+          colorCode: '#abcdef',
+          isHidden: true,
+          name: 'Uploaded forests',
+        }),
+        method: 'POST',
+        path: '/layer',
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+    const createdLayer = await readJson<MockLayerApiItem>(createResponse)
+
+    expect(createResponse.status).toBe(201)
+    expect(createdLayer).toEqual(
+      expect.objectContaining({
+        id: 'mock-created-layer-1',
+        name: 'Uploaded forests',
+        description: '',
+        color_code: '#abcdef',
+        is_hidden: true,
+        created_ts: 1_735_779_660,
+        updated_ts: 1_735_779_660,
+        col_options: {
+          indexingStrategy: 'name_municipality',
+          idCol: 'external_id',
+          nameCol: 'forest_name',
+          municipalityCol: 'municipality_name',
+          regionCol: 'region_name',
+          descriptionCol: 'forest_description',
+          areaCol: 'area_hectares',
+        },
+      })
+    )
+
+    const listResponse = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({ path: '/layers' }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+    const layerIds = (await readJson<MockLayerApiItem[]>(listResponse)).map(
+      (layer) => layer.id
+    )
+    const detailResponse = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({ path: '/layer/mock-created-layer-1' }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+    const createdAreas =
+      getLuonnonmetsakartatMockLayerAreas('mock-created-layer-1')
+
+    expect(layerIds).toEqual([
+      'mock-visible-layer',
+      'mock-hidden-layer',
+      'mock-empty-layer',
+      'mock-created-layer-1',
+    ])
+    expect(detailResponse.status).toBe(200)
+    expect(await readJson<MockLayerApiItem>(detailResponse)).toEqual(
+      createdLayer
+    )
+    expect(createdAreas?.features.map((feature) => feature.id)).toEqual([
+      'mock-created-layer-1-area-1',
+      'mock-created-layer-1-area-2',
+    ])
+    expect(createdAreas?.features[0].properties).toEqual(
+      expect.objectContaining({
+        id: 'mock-created-layer-1-area-1',
+        layer_id: 'mock-created-layer-1',
+        name: 'Uploaded forests mock area 1',
+        created_ts: '2025-02-01T00:01:00.000Z',
+        updated_ts: '2025-02-01T00:01:00.000Z',
+      })
+    )
+
+    resetLuonnonmetsakartatMockApiForTests()
+
+    const recreatedResponse = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        body: createLayerFormData({
+          colorCode: '#abcdef',
+          isHidden: true,
+          name: 'Uploaded forests',
+        }),
+        method: 'POST',
+        path: '/layer',
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+
+    expect(await readJson<MockLayerApiItem>(recreatedResponse)).toEqual(
+      createdLayer
+    )
+  })
+
+  it('patches layer metadata and preserves areas when a raw update zip is present', async () => {
+    const beforePatch =
+      getLuonnonmetsakartatMockLayerAreas('mock-visible-layer')
+    const patchResponse = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        body: createPatchFormData({
+          colorCode: '#654321',
+          deleteAreasNotUpdated: true,
+          indexingStrategy: 'id',
+          isHidden: true,
+          name: 'Patched forests',
+          zipFile: true,
+        }),
+        method: 'PATCH',
+        path: '/layer/mock-visible-layer',
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+    const patchedLayer = await readJson<MockLayerApiItem>(patchResponse)
+    const afterPatch = getLuonnonmetsakartatMockLayerAreas('mock-visible-layer')
+
+    expect(patchResponse.status).toBe(200)
+    expect(patchedLayer).toEqual(
+      expect.objectContaining({
+        id: 'mock-visible-layer',
+        name: 'Patched forests',
+        color_code: '#654321',
+        is_hidden: true,
+        created_ts: 1_735_689_600,
+        updated_ts: 1_735_779_660,
+        col_options: {
+          indexingStrategy: 'id',
+          idCol: 'patched_id',
+          nameCol: 'patched_name',
+          municipalityCol: 'patched_municipality',
+          regionCol: 'patched_region',
+          descriptionCol: 'patched_description',
+          areaCol: 'patched_area',
+        },
+      })
+    )
+    expect(afterPatch).toEqual(beforePatch)
+  })
+
+  it('attaches deterministic picture URLs to mock areas from bulk image fields', async () => {
+    const patchResponse = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        body: createPatchFormData({
+          bulkAreaIds: ['mock-visible-area-no-picture'],
+          bulkImageNames: ['ridge new.jpg'],
+        }),
+        method: 'PATCH',
+        path: '/layer/mock-visible-layer',
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+    const patchedLayer = await readJson<MockLayerApiItem>(patchResponse)
+    const areas = getLuonnonmetsakartatMockLayerAreas('mock-visible-layer')
+    const updatedFeature = areas?.features.find(
+      (feature) => feature.id === 'mock-visible-area-no-picture'
+    )
+
+    expect(patchResponse.status).toBe(200)
+    expect(patchedLayer.updated_ts).toBe(1_735_779_720)
+    expect(updatedFeature?.properties.updated_ts).toBe(
+      '2025-02-01T00:01:00.000Z'
+    )
+    expect(JSON.parse(updatedFeature?.properties.pictures ?? '[]')).toEqual([
+      'https://example.org/mock/uploads/mock-visible-layer/mock-visible-area-no-picture/1-ridge%20new.jpg',
+    ])
+  })
+
+  it('returns deterministic errors for invalid or unknown bulk picture targets', async () => {
+    const mismatchedResponse = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        body: createPatchFormData({
+          bulkImageNames: ['missing-area-id.jpg'],
+        }),
+        method: 'PATCH',
+        path: '/layer/mock-visible-layer',
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+    const unknownAreaResponse = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        body: createPatchFormData({
+          bulkAreaIds: ['unknown-area'],
+          bulkImageNames: ['unknown-area.jpg'],
+        }),
+        method: 'PATCH',
+        path: '/layer/mock-visible-layer',
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+
+    expect(mismatchedResponse.status).toBe(400)
+    expect(await readJson(mismatchedResponse)).toEqual({
+      error: 'bulk_images and bulk_area_ids must be aligned',
+    })
+    expect(unknownAreaResponse.status).toBe(404)
+    expect(await readJson(unknownAreaResponse)).toEqual({
+      error: 'Mock area not found',
+    })
+    expect(
+      getLuonnonmetsakartatMockLayerAreas('mock-visible-layer')?.features.find(
+        (feature) => feature.id === 'mock-visible-area-no-picture'
+      )?.properties.pictures
+    ).toBeUndefined()
+  })
+
+  it('deletes mock layers and their area data with deterministic not-found behavior', async () => {
+    await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        body: createLayerFormData({ name: 'Layer to delete' }),
+        method: 'POST',
+        path: '/layer',
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+
+    const deleteResponse = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        method: 'DELETE',
+        path: '/layer/mock-created-layer-1',
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+    const deletedDetailResponse = await handleLuonnonmetsakartatDataProxyRequest(
+      {
+        request: createMockApiRequest({ path: '/layer/mock-created-layer-1' }),
+        deps: {
+          env: mockEnv,
+        },
+      }
+    )
+    const unknownDeleteResponse = await handleLuonnonmetsakartatDataProxyRequest(
+      {
+        request: createMockApiRequest({
+          method: 'DELETE',
+          path: '/layer/unknown-layer',
+        }),
+        deps: {
+          env: mockEnv,
+        },
+      }
+    )
+
+    expect(deleteResponse.status).toBe(200)
+    expect(await readJson(deleteResponse)).toEqual({
+      id: 'mock-created-layer-1',
+      deleted: true,
+    })
+    expect(getLuonnonmetsakartatMockLayerAreas('mock-created-layer-1')).toBeNull()
+    expect(deletedDetailResponse.status).toBe(404)
+    expect(unknownDeleteResponse.status).toBe(404)
+    expect(await readJson(unknownDeleteResponse)).toEqual({
+      error: 'Mock layer not found',
+    })
+  })
+
+  it('patches editable area properties while preserving protected feature data', async () => {
+    const beforePatch = getLuonnonmetsakartatMockLayerAreas(
+      'mock-visible-layer'
+    )?.features.find((feature) => feature.id === 'mock-visible-area-picture')
+    const originalGeometry = beforePatch?.geometry
+    const areaPatchResponse = await handleLuonnonmetsakartatDataProxyRequest({
+      request: createMockApiRequest({
+        body: createAreaPatchFormData({
+          name: 'Edited Ridge Forest',
+          description: 'Edited description',
+          municipality: 'Helsinki',
+          region: 'Edited region',
+          id: 'attempted-id-change',
+          area_ha: '999',
+          created_ts: '1900-01-01T00:00:00.000Z',
+          layer_id: 'attempted-layer-change',
+        }),
+        method: 'PATCH',
+        path: '/layer/mock-visible-layer/area/mock-visible-area-picture',
+      }),
+      deps: {
+        env: mockEnv,
+      },
+    })
+    const updatedFeature = await readJson<FolayerFeature>(areaPatchResponse)
+    const storedFeature = getLuonnonmetsakartatMockLayerAreas(
+      'mock-visible-layer'
+    )?.features.find((feature) => feature.id === 'mock-visible-area-picture')
+
+    expect(areaPatchResponse.status).toBe(200)
+    expect(updatedFeature.properties).toEqual(
+      expect.objectContaining({
+        id: 'mock-visible-area-picture',
+        name: 'Edited Ridge Forest',
+        description: 'Edited description',
+        municipality: 'Helsinki',
+        region: 'Edited region',
+        area_ha: 12.34,
+        created_ts: '2025-01-01T00:00:00.000Z',
+        layer_id: 'mock-visible-layer',
+        updated_ts: '2025-02-01T00:01:00.000Z',
+      })
+    )
+    expect(updatedFeature.geometry).toEqual(originalGeometry)
+    expect(storedFeature).toEqual(updatedFeature)
+  })
+
+  it('returns deterministic not-found responses for unknown layer and area mutations', async () => {
+    const unknownLayerPatchResponse =
+      await handleLuonnonmetsakartatDataProxyRequest({
+        request: createMockApiRequest({
+          body: createPatchFormData({ name: 'Unknown' }),
+          method: 'PATCH',
+          path: '/layer/unknown-layer',
+        }),
+        deps: {
+          env: mockEnv,
+        },
+      })
+    const unknownAreaLayerResponse =
+      await handleLuonnonmetsakartatDataProxyRequest({
+        request: createMockApiRequest({
+          body: createAreaPatchFormData({ name: 'Unknown' }),
+          method: 'PATCH',
+          path: '/layer/unknown-layer/area/mock-visible-area-picture',
+        }),
+        deps: {
+          env: mockEnv,
+        },
+      })
+    const unknownFeatureResponse =
+      await handleLuonnonmetsakartatDataProxyRequest({
+        request: createMockApiRequest({
+          body: createAreaPatchFormData({ name: 'Unknown' }),
+          method: 'PATCH',
+          path: '/layer/mock-visible-layer/area/unknown-area',
+        }),
+        deps: {
+          env: mockEnv,
+        },
+      })
+
+    expect(unknownLayerPatchResponse.status).toBe(404)
+    expect(await readJson(unknownLayerPatchResponse)).toEqual({
+      error: 'Mock layer not found',
+    })
+    expect(unknownAreaLayerResponse.status).toBe(404)
+    expect(await readJson(unknownAreaLayerResponse)).toEqual({
+      error: 'Mock layer not found',
+    })
+    expect(unknownFeatureResponse.status).toBe(404)
+    expect(await readJson(unknownFeatureResponse)).toEqual({
+      error: 'Mock area not found',
     })
   })
 
