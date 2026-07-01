@@ -154,6 +154,7 @@ describe('visual scenarios', () => {
       'carbon-mocks-plans-empty': 'plans-empty',
       'carbon-mocks-plans-seeded': 'plans-seeded',
       'carbon-mocks-import-placeholder': 'import-placeholder',
+      'carbon-mocks-draw-empty-plan': 'draw-empty-plan',
       'carbon-mocks-plan-valid': 'plan-valid',
       'carbon-mocks-plan-invalid-zoning': 'plan-invalid-zoning',
       'carbon-mocks-plan-invalid-land-use': 'plan-invalid-land-use',

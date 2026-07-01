@@ -3,6 +3,7 @@ import { Feature, FeatureCollection } from 'geojson'
 
 import { roundFeatureCoordinates } from '#/common/utils/map'
 import PlanImportCodeRecordSelect from './PlanImportCodeRecordSelect'
+import { loadShapefileZip } from './planImportShpLoader'
 import { PendingPlanImport } from './planImportTypes'
 
 type PlanImportShpProps = {
@@ -56,29 +57,21 @@ const PlanImportShp = ({
     onPendingImportChange(null)
 
     const loadGeojson = async () => {
-      const shp = (await import('shpjs')).default
-      const json = await shp(fileBuffer)
-
-      let allFeatures: Feature[] = []
-
-      if (Array.isArray(json)) {
-        json.forEach((collection) => {
-          allFeatures = allFeatures.concat(collection.features)
-        })
-      } else {
-        allFeatures = json.features
-      }
-
-      const mergedFeatureCollection: FeatureCollection = {
-        type: 'FeatureCollection',
-        features: allFeatures.map(roundFeatureCoordinates),
-      }
+      const json = await loadShapefileZip(fileBuffer)
 
       if (!isMounted) {
         return
       }
 
-      setGeojsonState({ fileBuffer, geojson: mergedFeatureCollection })
+      setGeojsonState({
+        fileBuffer,
+        geojson: {
+          type: 'FeatureCollection',
+          features: json.features.map((feature) =>
+            roundFeatureCoordinates(feature as Feature)
+          ),
+        },
+      })
     }
 
     loadGeojson().catch((error) => {
@@ -147,6 +140,7 @@ const PlanImportShp = ({
   return (
     <>
       <PlanImportCodeRecordSelect
+        dataSlot="plan-import-zoning-column"
         columns={columns}
         selectedColumn={selectedZoningCol}
         onColumnChange={onSelectedZoningColChange}
@@ -155,6 +149,7 @@ const PlanImportShp = ({
         sx={{ mb: importFieldSpacing }}
       />
       <PlanImportCodeRecordSelect
+        dataSlot="plan-import-name-column"
         columns={columns}
         selectedColumn={selectedNameCol}
         onColumnChange={onSelectedNameColChange}

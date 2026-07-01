@@ -198,10 +198,21 @@ const InfoButton = ({
         }}
       />
       <Tooltip.Portal>
-        <Tooltip.Positioner side="top" sideOffset={8}>
+        <Tooltip.Positioner
+          side="top"
+          sideOffset={8}
+          render={(positionerProps) => (
+            <Box
+              {...positionerProps}
+              sx={{
+                zIndex: (theme) => theme.zIndex.modal + 1,
+                pointerEvents: 'none',
+              }}
+            />
+          )}
+        >
           <Tooltip.Popup
             style={{
-              zIndex: 1500,
               pointerEvents: 'none',
             }}
             render={(popupProps) => (
@@ -1311,8 +1322,12 @@ const Page = () => {
             trailing={
               !isReadyPlan ? (
                 <InfoButton
-                  ariaLabel={t('sidebar.create.upload_info')}
-                  tooltip={t('sidebar.create.upload_info')}
+                  tooltip={
+                    <TText
+                      keyName="sidebar.create.upload_info"
+                      ns="hiilikartta"
+                    />
+                  }
                 />
               ) : undefined
             }
@@ -1515,10 +1530,10 @@ const Page = () => {
                   />
                 )}
 
-                {pendingImport != null && (
+                {creationPlaceholderPlanConf?.file != null && (
                   <PlanImportActionsRow
                     onClickAccept={handleConfirmImport}
-                    isAcceptDisabled={false}
+                    isAcceptDisabled={pendingImport == null}
                   />
                 )}
               </>

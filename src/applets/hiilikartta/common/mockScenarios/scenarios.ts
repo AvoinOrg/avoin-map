@@ -311,7 +311,6 @@ const buildImportPlaceholderState = () => {
   const creationPlaceholderPlanConf: CreationPlaceholderPlanConf = {
     id: MOCK_LOCAL_PLAN_ID,
     created: MOCK_PLAN_CREATED_AT,
-    name: 'Mock imported carbon plan',
     status: 'awaiting-file',
   }
 

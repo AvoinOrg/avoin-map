@@ -192,6 +192,12 @@ const buildCarbonMockScenarioDefinitions = (ids) => [
     surface: 'plan',
   },
   {
+    id: 'draw-empty-plan',
+    routePath: `${CARBON_MOCK_ROUTE_BASE}/plans/${ids.MOCK_LOCAL_PLAN_ID}`,
+    state: 'draw-empty-plan',
+    surface: 'plan',
+  },
+  {
     id: 'plan-valid',
     routePath: `${CARBON_MOCK_ROUTE_BASE}/plans/${ids.MOCK_LOCAL_PLAN_ID}`,
     state: 'plan-valid',
