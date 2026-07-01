@@ -1,6 +1,7 @@
 const {
   CARBON_MOCK_SCENARIO_SET: REGISTERED_CARBON_MOCK_SCENARIO_SET,
   COMPONENT_FIXTURE_SCENARIO_SET,
+  LUONNONMETSAKARTAT_MOCK_SCENARIO_SET: REGISTERED_LUONNONMETSAKARTAT_MOCK_SCENARIO_SET,
   SUPPORTED_SCENARIO_SETS,
   buildVisualScenarios,
   getCompiledApplets,
@@ -11,6 +12,10 @@ const {
   CARBON_MOCK_MASK_SELECTORS,
   CARBON_MOCK_SCENARIO_SET,
 } = require('../../utils/visual/carbonMockScenarios')
+const {
+  LUONNONMETSAKARTAT_MOCK_ROUTE_BASE,
+  LUONNONMETSAKARTAT_MOCK_SCENARIO_SET,
+} = require('../../utils/visual/luonnonmetsakartatMockScenarios')
 const { DEFAULT_MASK_SELECTORS } = require('../../utils/visual/constants')
 const { componentFixtureMetadata } = require('../../src/common/component-fixtures/metadata')
 const packageJson = require('../../package.json')
@@ -25,10 +30,24 @@ const {
   MOCK_LOCAL_PLAN_SERVER_ID,
   MOCK_SERVER_PLAN_ID,
 } = require('../../src/applets/hiilikartta/common/mockScenarios/ids')
+const {
+  MOCK_VISIBLE_LAYER_ID,
+} = require('../../src/applets/luonnonmetsakartat/common/mockScenarios/ids')
+const {
+  MOCK_LUONNONMETSAKARTAT_STATE_QUERY_PARAM,
+  MOCK_RESET_QUERY_PARAM,
+} = require('../../src/applets/luonnonmetsakartat/common/mockScenarios/config')
+const {
+  MOCK_AUTH_QUERY_PARAM,
+} = require('../../src/common/auth/mock')
 
 const CARBON_MOCK_BASE_URL = 'http://127.0.0.1:3000'
 const CARBON_MOCK_ENV = {
   NEXT_PUBLIC_COMPILED_APPLETS: 'main,hiilikartta',
+}
+const LUONNONMETSAKARTAT_MOCK_BASE_URL = 'http://127.0.0.1:3000'
+const LUONNONMETSAKARTAT_MOCK_ENV = {
+  NEXT_PUBLIC_COMPILED_APPLETS: 'main,luonnonmetsakartat',
 }
 
 const buildCarbonMockScenarios = () =>
@@ -36,6 +55,13 @@ const buildCarbonMockScenarios = () =>
     env: CARBON_MOCK_ENV,
     baseUrl: CARBON_MOCK_BASE_URL,
     scenarioSet: CARBON_MOCK_SCENARIO_SET,
+  })
+
+const buildLuonnonmetsakartatMockScenarios = () =>
+  buildVisualScenarios({
+    env: LUONNONMETSAKARTAT_MOCK_ENV,
+    baseUrl: LUONNONMETSAKARTAT_MOCK_BASE_URL,
+    scenarioSet: LUONNONMETSAKARTAT_MOCK_SCENARIO_SET,
   })
 
 const getScenarioById = ({ scenarios, id }) =>
@@ -468,6 +494,247 @@ describe('visual scenarios', () => {
       expect(script).not.toContain('HIILIKARTTA_MOCK_API_ENABLED')
       expect(script).not.toContain('NEXT_PUBLIC_MOCK_AUTH_ENABLED')
       expect(script).not.toContain('HIILIKARTTA_API_URL')
+      expect(script).not.toContain('start:dev')
+      expect(script).not.toContain('yarn dev')
+    })
+  })
+
+  describe('luonnonmetsakartat mock scenarios', () => {
+    const expectedLuonnonmetsakartatScenarioStates = {
+      'luonnonmetsakartat-mocks-public-empty': 'public-empty',
+      'luonnonmetsakartat-mocks-public-layers': 'public-layers',
+      'luonnonmetsakartat-mocks-admin-unauthenticated':
+        'admin-unauthenticated',
+      'luonnonmetsakartat-mocks-admin-rejected': 'admin-rejected',
+      'luonnonmetsakartat-mocks-admin-errored': 'admin-errored',
+      'luonnonmetsakartat-mocks-admin-empty': 'admin-empty',
+      'luonnonmetsakartat-mocks-admin-layers': 'admin-layers',
+      'luonnonmetsakartat-mocks-admin-import': 'admin-layers',
+      'luonnonmetsakartat-mocks-layer-detail': 'layer-detail',
+      'luonnonmetsakartat-mocks-settings-clean': 'settings-clean',
+      'luonnonmetsakartat-mocks-settings-unsynced': 'settings-unsynced',
+      'luonnonmetsakartat-mocks-settings-saving': 'settings-saving',
+      'luonnonmetsakartat-mocks-pictures-empty': 'pictures-empty',
+      'luonnonmetsakartat-mocks-pictures-mapped': 'pictures-mapped',
+      'luonnonmetsakartat-mocks-pictures-unmatched': 'pictures-unmatched',
+    }
+
+    const expectedLuonnonmetsakartatScenarioSurfaces = {
+      'luonnonmetsakartat-mocks-public-empty': 'public',
+      'luonnonmetsakartat-mocks-public-layers': 'public',
+      'luonnonmetsakartat-mocks-admin-unauthenticated': 'admin',
+      'luonnonmetsakartat-mocks-admin-rejected': 'admin',
+      'luonnonmetsakartat-mocks-admin-errored': 'admin',
+      'luonnonmetsakartat-mocks-admin-empty': 'admin',
+      'luonnonmetsakartat-mocks-admin-layers': 'admin',
+      'luonnonmetsakartat-mocks-admin-import': 'import',
+      'luonnonmetsakartat-mocks-layer-detail': 'layer',
+      'luonnonmetsakartat-mocks-settings-clean': 'settings',
+      'luonnonmetsakartat-mocks-settings-unsynced': 'settings',
+      'luonnonmetsakartat-mocks-settings-saving': 'settings',
+      'luonnonmetsakartat-mocks-pictures-empty': 'pictures',
+      'luonnonmetsakartat-mocks-pictures-mapped': 'pictures',
+      'luonnonmetsakartat-mocks-pictures-unmatched': 'pictures',
+    }
+
+    const expectedLuonnonmetsakartatAuthStates = {
+      'luonnonmetsakartat-mocks-admin-unauthenticated': 'unauthenticated',
+      'luonnonmetsakartat-mocks-admin-rejected': 'rejected',
+      'luonnonmetsakartat-mocks-admin-errored': 'missing-token',
+      'luonnonmetsakartat-mocks-admin-empty': 'authenticated',
+      'luonnonmetsakartat-mocks-admin-layers': 'authenticated',
+      'luonnonmetsakartat-mocks-admin-import': 'authenticated',
+      'luonnonmetsakartat-mocks-layer-detail': 'authenticated',
+      'luonnonmetsakartat-mocks-settings-clean': 'authenticated',
+      'luonnonmetsakartat-mocks-settings-unsynced': 'authenticated',
+      'luonnonmetsakartat-mocks-settings-saving': 'authenticated',
+      'luonnonmetsakartat-mocks-pictures-empty': 'authenticated',
+      'luonnonmetsakartat-mocks-pictures-mapped': 'authenticated',
+      'luonnonmetsakartat-mocks-pictures-unmatched': 'authenticated',
+    }
+
+    test('registers the luonnonmetsakartat-mocks scenario set', () => {
+      expect(REGISTERED_LUONNONMETSAKARTAT_MOCK_SCENARIO_SET).toBe(
+        LUONNONMETSAKARTAT_MOCK_SCENARIO_SET
+      )
+      expect(
+        resolveScenarioSet({
+          scenarioSet: LUONNONMETSAKARTAT_MOCK_SCENARIO_SET,
+        })
+      ).toBe(LUONNONMETSAKARTAT_MOCK_SCENARIO_SET)
+      expect(SUPPORTED_SCENARIO_SETS).toContain(
+        LUONNONMETSAKARTAT_MOCK_SCENARIO_SET
+      )
+    })
+
+    test('builds the expected luonnonmetsakartat route-state scenarios', () => {
+      const scenarios = buildLuonnonmetsakartatMockScenarios()
+
+      expect(scenarios.map((scenario) => scenario.id)).toEqual(
+        Object.keys(expectedLuonnonmetsakartatScenarioStates)
+      )
+    })
+
+    test('uses canonical main-mode URLs and deterministic seed query params', () => {
+      const scenarios = buildLuonnonmetsakartatMockScenarios()
+
+      for (const scenario of scenarios) {
+        const url = getScenarioUrl(scenario)
+        const expectedState =
+          expectedLuonnonmetsakartatScenarioStates[scenario.id]
+
+        expect(scenario.path.startsWith(LUONNONMETSAKARTAT_MOCK_ROUTE_BASE)).toBe(
+          true
+        )
+        expect(url.pathname.startsWith(LUONNONMETSAKARTAT_MOCK_ROUTE_BASE)).toBe(
+          true
+        )
+        expect(url.pathname).not.toMatch(/^\/fi\/admin(\/|$)/)
+        expect(url.pathname).not.toMatch(/\/(tuo|taso|asetukset|kuvat)(\/|$)/)
+        expect(scenario.url).toBe(
+          `${LUONNONMETSAKARTAT_MOCK_BASE_URL}${scenario.path}`
+        )
+        expect(url.searchParams.get(MOCK_RESET_QUERY_PARAM)).toBe('1')
+        expect(
+          url.searchParams.get(MOCK_LUONNONMETSAKARTAT_STATE_QUERY_PARAM)
+        ).toBe(expectedState)
+      }
+
+      expect(
+        getScenarioById({
+          scenarios,
+          id: 'luonnonmetsakartat-mocks-public-empty',
+        }).path
+      ).toBe(
+        `${LUONNONMETSAKARTAT_MOCK_ROUTE_BASE}?${MOCK_RESET_QUERY_PARAM}=1&${MOCK_LUONNONMETSAKARTAT_STATE_QUERY_PARAM}=public-empty`
+      )
+      expect(
+        getScenarioById({
+          scenarios,
+          id: 'luonnonmetsakartat-mocks-admin-unauthenticated',
+        }).path
+      ).toBe(
+        `${LUONNONMETSAKARTAT_MOCK_ROUTE_BASE}/admin?${MOCK_RESET_QUERY_PARAM}=1&${MOCK_LUONNONMETSAKARTAT_STATE_QUERY_PARAM}=admin-unauthenticated&${MOCK_AUTH_QUERY_PARAM}=unauthenticated`
+      )
+    })
+
+    test('uses explicit auth query states for admin scenarios only', () => {
+      const scenarios = buildLuonnonmetsakartatMockScenarios()
+
+      for (const scenario of scenarios) {
+        const url = getScenarioUrl(scenario)
+        const expectedAuth = expectedLuonnonmetsakartatAuthStates[scenario.id]
+
+        if (expectedAuth == null) {
+          expect(url.searchParams.has(MOCK_AUTH_QUERY_PARAM)).toBe(false)
+        } else {
+          expect(url.searchParams.get(MOCK_AUTH_QUERY_PARAM)).toBe(expectedAuth)
+        }
+      }
+    })
+
+    test('uses the stable seeded visible layer id for dynamic routes', () => {
+      const scenarios = buildLuonnonmetsakartatMockScenarios()
+      const layerPath = `${LUONNONMETSAKARTAT_MOCK_ROUTE_BASE}/admin/layer/${MOCK_VISIBLE_LAYER_ID}`
+
+      expect(
+        getScenarioPathname(
+          getScenarioById({
+            scenarios,
+            id: 'luonnonmetsakartat-mocks-layer-detail',
+          })
+        )
+      ).toBe(layerPath)
+
+      for (const id of [
+        'luonnonmetsakartat-mocks-settings-clean',
+        'luonnonmetsakartat-mocks-settings-unsynced',
+        'luonnonmetsakartat-mocks-settings-saving',
+      ]) {
+        expect(
+          getScenarioPathname(
+            getScenarioById({
+              scenarios,
+              id,
+            })
+          )
+        ).toBe(`${layerPath}/settings`)
+      }
+
+      for (const id of [
+        'luonnonmetsakartat-mocks-pictures-empty',
+        'luonnonmetsakartat-mocks-pictures-mapped',
+        'luonnonmetsakartat-mocks-pictures-unmatched',
+      ]) {
+        expect(
+          getScenarioPathname(
+            getScenarioById({
+              scenarios,
+              id,
+            })
+          )
+        ).toBe(`${layerPath}/pictures`)
+      }
+    })
+
+    test('marks app-level scenarios as WebGL routes with stable tags and masks', () => {
+      const scenarios = buildLuonnonmetsakartatMockScenarios()
+
+      for (const scenario of scenarios) {
+        const expectedState =
+          expectedLuonnonmetsakartatScenarioStates[scenario.id]
+        const expectedSurface =
+          expectedLuonnonmetsakartatScenarioSurfaces[scenario.id]
+
+        expect(scenario.requiresWebGL).toBe(true)
+        expect(scenario.maskSelectors).toEqual(DEFAULT_MASK_SELECTORS)
+        expect(scenario.tags).toEqual([
+          LUONNONMETSAKARTAT_MOCK_SCENARIO_SET,
+          'applet:luonnonmetsakartat',
+          `state:${expectedState}`,
+          `surface:${expectedSurface}`,
+        ])
+      }
+    })
+
+    test('rejects luonnonmetsakartat mock scenarios for unsupported builds', () => {
+      expect(() =>
+        buildVisualScenarios({
+          env: { NEXT_PUBLIC_COMPILED_APPLETS: 'luonnonmetsakartat' },
+          baseUrl: 'http://app',
+          scenarioSet: LUONNONMETSAKARTAT_MOCK_SCENARIO_SET,
+        })
+      ).toThrow(
+        'requires a main-app build with NEXT_PUBLIC_COMPILED_APPLETS including "main" and "luonnonmetsakartat"'
+      )
+
+      for (const compiledApplets of [
+        'main,hiilikartta',
+        'main,energiakartta',
+      ]) {
+        expect(() =>
+          buildVisualScenarios({
+            env: { NEXT_PUBLIC_COMPILED_APPLETS: compiledApplets },
+            baseUrl: 'http://app',
+            scenarioSet: LUONNONMETSAKARTAT_MOCK_SCENARIO_SET,
+          })
+        ).toThrow(
+          'requires a main-app build with NEXT_PUBLIC_COMPILED_APPLETS including "main" and "luonnonmetsakartat"'
+        )
+      }
+    })
+
+    test('exposes a no-start package script for luonnonmetsakartat visual runs', () => {
+      const script = packageJson.scripts['visual:luonnonmetsakartat-mocks']
+
+      expect(script).toContain('--scenario-set=luonnonmetsakartat-mocks')
+      expect(script).toContain('--base-url=http://127.0.0.1:3000')
+      expect(script).toContain('--no-start')
+      expect(script).not.toContain(
+        'NEXT_PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED'
+      )
+      expect(script).not.toContain('LUONNONMETSAKARTAT_MOCK_API_ENABLED')
+      expect(script).not.toContain('NEXT_PUBLIC_MOCK_AUTH_ENABLED')
       expect(script).not.toContain('start:dev')
       expect(script).not.toContain('yarn dev')
     })
