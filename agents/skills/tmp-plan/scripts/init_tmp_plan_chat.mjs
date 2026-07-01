@@ -41,14 +41,7 @@ const slugify = (value) =>
     .replace(/^-+|-+$/g, '')
     .replace(/-{2,}/g, '-');
 
-const buildPlanTemplate = ({ chatId, timestamp, title, folderName }) => `# Implementation Plan
-
-## Chat Metadata
-
-- Chat id: \`${chatId}\`
-- Created at: \`${timestamp}\`
-- Folder: \`${folderName}\`
-- Title slug: \`${title}\`
+const buildPlanTemplate = () => `# Implementation Plan
 
 ## Task Summary
 
@@ -95,22 +88,6 @@ TODO
 Planning only. No implementation has been started.
 `;
 
-const buildHistoryTemplate = ({ chatId, timestamp, title, folderName }) => `# Chat History
-
-## Chat Metadata
-
-- Chat id: \`${chatId}\`
-- Created at: \`${timestamp}\`
-- Folder: \`${folderName}\`
-- Title slug: \`${title}\`
-
-## User Prompt Log
-
-## Questions And Answers
-
-## Per-Prompt Planning Summaries
-`;
-
 const args = parseArgs(process.argv);
 const baseDir = resolve(process.cwd(), args['base-dir'] ?? '.tmp');
 const titleInput = args.title ?? 'plan';
@@ -120,34 +97,11 @@ const chatId = args.id ?? randomBytes(4).toString('hex');
 const folderName = `chat-${timestamp}-${chatId}-${titleSlug}`;
 const chatDir = resolve(baseDir, folderName);
 const planFile = resolve(chatDir, 'plan.md');
-const historyFile = resolve(chatDir, 'history.md');
 
 mkdirSync(chatDir, { recursive: true });
 
 if (!existsSync(planFile)) {
-  writeFileSync(
-    planFile,
-    buildPlanTemplate({
-      chatId,
-      timestamp,
-      title: titleSlug,
-      folderName,
-    }),
-    'utf8'
-  );
-}
-
-if (!existsSync(historyFile)) {
-  writeFileSync(
-    historyFile,
-    buildHistoryTemplate({
-      chatId,
-      timestamp,
-      title: titleSlug,
-      folderName,
-    }),
-    'utf8'
-  );
+  writeFileSync(planFile, buildPlanTemplate(), 'utf8');
 }
 
 process.stdout.write(
@@ -158,7 +112,6 @@ process.stdout.write(
       title: titleSlug,
       directory: chatDir,
       planFile,
-      historyFile,
     },
     null,
     2
