@@ -16,6 +16,7 @@ const fixtureColumns = [
   'maakunta',
   'kuvaus',
   'pinta_ala',
+  'metsakuvion_erittain_pitka_sarakkeen_nimi_joka_jatkuu',
 ]
 
 const ImportControlsFixtureWrapper = ({
@@ -41,11 +42,13 @@ const InteractiveCodeRecordSelect = ({
   initialColumn,
   allowEmpty = false,
   label,
+  defaultOpen = false,
 }: {
   columns?: string[]
   initialColumn?: string
   allowEmpty?: boolean
   label: string
+  defaultOpen?: boolean
 }) => {
   const [selectedColumn, setSelectedColumn] = React.useState(initialColumn)
 
@@ -56,6 +59,7 @@ const InteractiveCodeRecordSelect = ({
       onColumnChange={setSelectedColumn}
       allowEmpty={allowEmpty}
       label={label}
+      defaultOpen={defaultOpen}
     />
   )
 }
@@ -112,7 +116,7 @@ export const luonnonmetsakartatFolayerImportControlsFixture: ComponentFixture = 
       description: 'Code-record selector after a matching shapefile column is selected.',
       render: () => (
         <InteractiveCodeRecordSelect
-          initialColumn="nimi"
+          initialColumn="metsakuvion_erittain_pitka_sarakkeen_nimi_joka_jatkuu"
           label="Nimisarake"
         />
       ),
@@ -121,9 +125,11 @@ export const luonnonmetsakartatFolayerImportControlsFixture: ComponentFixture = 
       id: 'code-record-allow-empty',
       label: 'Optional code selector',
       description: 'Optional code-record selector with the empty value allowed.',
+      waitFor: 'role=option',
       render: () => (
         <InteractiveCodeRecordSelect
           allowEmpty
+          defaultOpen
           label="Kuvaussarake"
         />
       ),

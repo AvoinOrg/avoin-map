@@ -15,11 +15,20 @@ const FolayerImportActionsRow = ({
   return (
     <Box
       sx={{
-        minHeight: '25px',
+        width: '100%',
+        minHeight: '44px',
         display: 'flex',
         flexDirection: 'row',
+        alignItems: 'center',
         justifyContent: 'flex-end',
-        margin: '40px 0 60px 0',
+        pt: {
+          mobile: 2.5,
+          desktop: 3,
+        },
+        pb: {
+          mobile: 7,
+          desktop: 1.5,
+        },
       }}
     >
       <Button
@@ -31,11 +40,16 @@ const FolayerImportActionsRow = ({
         onClick={isAcceptDisabled ? undefined : onClickAccept}
         sx={(theme) => ({
           minWidth: 0,
-          minHeight: 'auto',
-          p: 0,
-          typography: 'h3',
+          minHeight: '34px',
+          px: 0.75,
+          py: 0.5,
+          fontSize: '0.875rem',
+          fontWeight: 600,
+          lineHeight: 1.35,
           color: 'inherit',
           textDecoration: 'underline',
+          textUnderlineOffset: '0.18em',
+          textDecorationThickness: '0.08em',
           '&:hover': {
             backgroundColor: 'transparent',
             textDecoration: 'underline',
@@ -48,7 +62,7 @@ const FolayerImportActionsRow = ({
           },
         })}
       >
-        <TText keyName="sidebar.create.accept" ns="hiilikartta" />
+        <TText keyName="sidebar.admin.create.accept" ns="luonnonmetsakartat" />
       </Button>
     </Box>
   )

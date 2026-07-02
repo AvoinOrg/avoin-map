@@ -219,10 +219,34 @@ const Page = () => {
         aria-label={fileName ?? t('sidebar.admin.create.select_file')}
         sx={{
           width: '100%',
+          height: 'auto',
           minHeight: '60px',
+          alignItems: 'center',
+          gap: 2,
+          py: 1.5,
+          overflow: 'hidden',
         }}
       >
-        {fileName ? fileName : t('sidebar.admin.create.select_file')}
+        <Box
+          component="span"
+          sx={{
+            minWidth: 0,
+            flex: '1 1 auto',
+            display: '-webkit-box',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            overflowWrap: 'anywhere',
+            WebkitBoxOrient: 'vertical',
+            WebkitLineClamp: {
+              mobile: 2,
+              desktop: 1,
+            },
+            lineHeight: 1.35,
+            textAlign: 'left',
+          }}
+        >
+          {fileName ? fileName : t('sidebar.admin.create.select_file')}
+        </Box>
         <input
           hidden
           accept=".zip"
@@ -231,11 +255,18 @@ const Page = () => {
           onChange={handleFileInput}
           ref={inputRef}
         />
-        <Upload sx={{ width: '24px' }} />
+        <Upload
+          aria-hidden="true"
+          sx={{
+            width: '24px',
+            height: '24px',
+            flex: '0 0 auto',
+          }}
+        />
       </BigMenuButton>
 
       {fileType === 'shp' && arrayBuffers && arrayBuffers?.length > 0 && (
-        <Box sx={{ mt: 5 }}>
+        <Box sx={{ mt: { mobile: 3, desktop: 4 }, minWidth: 0 }}>
           <FolayerImportShp
             fileBuffers={arrayBuffers}
             onFinish={handleFinish}

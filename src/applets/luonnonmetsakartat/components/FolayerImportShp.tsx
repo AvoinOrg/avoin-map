@@ -28,6 +28,8 @@ const areaCandidates = ['ala', 'area', 'pinta']
 const municipalityCandidates = ['municipality', 'kunta']
 const regionCandidates = ['region', 'maakunta']
 
+const selectorFieldSx = { width: '100%' } as const
+
 interface FolayerImportShpProps {
   fileBuffers: ArrayBuffer[]
   onFinish: (params: {
@@ -366,14 +368,30 @@ const FolayerImportShp = ({
   }
 
   return (
-    <>
+    <Box
+      sx={{
+        minWidth: 0,
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
       {columns.length > 0 && (
         <>
           <Box
             sx={(theme) => ({
               backgroundColor: theme.palette.neutral.light,
-              p: 4,
+              p: {
+                mobile: 2.5,
+                desktop: 3,
+              },
               borderRadius: '0.3125rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: {
+                mobile: 2,
+                desktop: 2.25,
+              },
+              minWidth: 0,
             })}
           >
             <DropDownSelectWithHeader
@@ -392,7 +410,7 @@ const FolayerImportShp = ({
                   ),
                 },
               ]}
-              sx={{ width: '100%' }}
+              sx={selectorFieldSx}
             />
             <FolayerImportCodeRecordSelect
               columns={columns}
@@ -404,7 +422,7 @@ const FolayerImportShp = ({
                   : t('sidebar.admin.create.select_folayer_id_record_optional')
               }
               allowEmpty={true}
-              sx={{ mt: 4, width: '100%' }}
+              sx={selectorFieldSx}
             />
             <FolayerImportCodeRecordSelect
               columns={columns}
@@ -412,7 +430,7 @@ const FolayerImportShp = ({
               onColumnChange={handleNameColChange}
               label={t('sidebar.admin.create.select_folayer_name_record')}
               allowEmpty={true}
-              sx={{ mt: 4, width: '100%' }}
+              sx={selectorFieldSx}
             />
             <FolayerImportCodeRecordSelect
               columns={columns}
@@ -422,7 +440,7 @@ const FolayerImportShp = ({
                 'sidebar.admin.create.select_folayer_municipality_record'
               )}
               allowEmpty={true}
-              sx={{ mt: 4, width: '100%' }}
+              sx={selectorFieldSx}
             />
             <FolayerImportCodeRecordSelect
               columns={columns}
@@ -430,7 +448,7 @@ const FolayerImportShp = ({
               onColumnChange={handleRegionColChange}
               label={t('sidebar.admin.create.select_folayer_region_record')}
               allowEmpty={true}
-              sx={{ mt: 4, width: '100%' }}
+              sx={selectorFieldSx}
             />
             <FolayerImportCodeRecordSelect
               columns={columns}
@@ -440,7 +458,7 @@ const FolayerImportShp = ({
                 'sidebar.admin.create.select_folayer_description_record'
               )}
               allowEmpty={true}
-              sx={{ mt: 4, width: '100%' }}
+              sx={selectorFieldSx}
             />
             <FolayerImportCodeRecordSelect
               columns={columns}
@@ -448,35 +466,75 @@ const FolayerImportShp = ({
               onColumnChange={handleAreaColChange}
               label={t('sidebar.admin.create.select_folayer_area_record')}
               allowEmpty={true}
-              sx={{ mt: 4, width: '100%' }}
+              sx={selectorFieldSx}
             />
           </Box>
-          <TextFieldWithHeader
-            headerText={t('sidebar.admin.create.name.header')}
-            value={folayerNameValue}
-            onChange={handleFolayerNameChange}
-            placeholderText={t('sidebar.admin.create.name.placeholder')}
-            disabled={isInitializing}
-            sx={{ mt: 7 }}
-          ></TextFieldWithHeader>
-          <ColorPickerWithPopover
-            color={folayerColorValue}
-            onChange={handleColorChange}
-            sx={{ mt: 5 }}
-            labelText={t('sidebar.admin.folayer.settings.color')}
-          ></ColorPickerWithPopover>
-          <SwitchWithLabel
-            checked={isVisible}
-            onChange={handleIsVisibleChange}
-            sx={{ mt: 4.5 }}
-            disabled={isInitializing}
-            ariaLabel={t('sidebar.admin.create.is_visible')}
+          <Box
+            sx={{
+              mt: {
+                mobile: 3,
+                desktop: 4,
+              },
+              display: 'flex',
+              flexDirection: 'column',
+              gap: {
+                mobile: 2.5,
+                desktop: 3,
+              },
+              minWidth: 0,
+            }}
           >
-            <TText
-              ns="luonnonmetsakartat"
-              keyName="sidebar.admin.create.is_visible"
-            />
-          </SwitchWithLabel>
+            <TextFieldWithHeader
+              headerText={t('sidebar.admin.create.name.header')}
+              value={folayerNameValue}
+              onChange={handleFolayerNameChange}
+              placeholderText={t('sidebar.admin.create.name.placeholder')}
+              disabled={isInitializing}
+            ></TextFieldWithHeader>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: {
+                  mobile: 2,
+                  desktop: 2.25,
+                },
+              }}
+            >
+              <ColorPickerWithPopover
+                color={folayerColorValue}
+                onChange={handleColorChange}
+                sx={{
+                  width: 'fit-content',
+                  minHeight: '34px',
+                  alignItems: 'center',
+                }}
+                colorBoxSx={{
+                  width: 26,
+                  height: 26,
+                }}
+                labelSx={{
+                  lineHeight: 1.35,
+                }}
+                labelText={t('sidebar.admin.folayer.settings.color')}
+              ></ColorPickerWithPopover>
+              <SwitchWithLabel
+                checked={isVisible}
+                onChange={handleIsVisibleChange}
+                sx={{
+                  width: 'fit-content',
+                  minHeight: '34px',
+                }}
+                disabled={isInitializing}
+                ariaLabel={t('sidebar.admin.create.is_visible')}
+              >
+                <TText
+                  ns="luonnonmetsakartat"
+                  keyName="sidebar.admin.create.is_visible"
+                />
+              </SwitchWithLabel>
+            </Box>
+          </Box>
           {/* <TextFieldWithHeader
             headerText={t('sidebar.admin.create.description.header')}
             value={folayerDescriptionValue}
@@ -497,7 +555,7 @@ const FolayerImportShp = ({
           isInitializing
         }
       ></FolayerImportActionsRow>
-    </>
+    </Box>
   )
 }
 

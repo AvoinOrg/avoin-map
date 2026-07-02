@@ -492,7 +492,8 @@
       {
         "id": "code-record-allow-empty",
         "label": "Optional code selector",
-        "description": "Optional code-record selector with the empty value allowed."
+        "description": "Optional code-record selector with the empty value allowed.",
+        "waitFor": "role=option"
       }
     ]
   },
