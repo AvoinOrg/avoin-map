@@ -51,9 +51,33 @@ const Page = () => {
           width: '100%',
         }}
       >
-        <BigMenuButton color="primary" sx={{ pl: 3, pr: 3 }}>
-          <TText keyName={'sidebar.admin.upload'} ns={'luonnonmetsakartat'} />
-          <Upload />
+        <BigMenuButton
+          color="primary"
+          sx={{
+            height: 'auto',
+            minHeight: '3.75rem',
+            px: { mobile: 2, desktop: 3 },
+            gap: 2,
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            textAlign: 'left',
+          }}
+        >
+          <Box
+            component="span"
+            sx={{
+              minWidth: 0,
+              overflowWrap: 'break-word',
+              whiteSpace: 'normal',
+              lineHeight: 1.2,
+            }}
+          >
+            <TText keyName={'sidebar.admin.upload'} ns={'luonnonmetsakartat'} />
+          </Box>
+          <Upload
+            aria-hidden="true"
+            sx={{ width: '1.25rem', height: '1.25rem', flexShrink: 0 }}
+          />
         </BigMenuButton>
       </AppRouteLink>
       {isLoading && (
@@ -61,15 +85,22 @@ const Page = () => {
           <LoadingSpinner />
         </Box>
       )}
-      <Box sx={{ ml: '-0.7rem', mr: '-0.5rem' }}>
-        {!isLoading && adminFolayerConfsArray.length > 0 && (
-          <Box sx={{ width: '100%', mt: 7, pb: 4 }}>
-            {adminFolayerConfsArray.map((conf) => (
-              <AdminFolayerItem key={conf.id} conf={conf} />
-            ))}
-          </Box>
-        )}
-      </Box>
+      {!isLoading && adminFolayerConfsArray.length > 0 && (
+        <Box
+          sx={{
+            width: '100%',
+            mt: { mobile: '2.25rem', desktop: '2.5rem' },
+            pb: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: { mobile: 1, desktop: 0.75 },
+          }}
+        >
+          {adminFolayerConfsArray.map((conf) => (
+            <AdminFolayerItem key={conf.id} conf={conf} />
+          ))}
+        </Box>
+      )}
     </SidebarContentBox>
   )
 }

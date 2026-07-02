@@ -31,6 +31,43 @@ enum LocalState {
   NoUser = 'noUser',
 }
 
+const AdminGateMessage = ({ keyName }: { keyName: string }) => (
+  <SidebarContentBox>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: 1.5,
+        mt: 3,
+        width: '100%',
+      }}
+    >
+      <Star
+        aria-hidden="true"
+        sx={{
+          width: '2rem',
+          height: '2rem',
+          flexShrink: 0,
+          mt: '0.125rem',
+        }}
+      />
+      <Box
+        component="p"
+        sx={{
+          typography: 'body2',
+          m: 0,
+          minWidth: 0,
+          overflowWrap: 'break-word',
+          whiteSpace: 'normal',
+        }}
+      >
+        <TText keyName={keyName} ns="luonnonmetsakartat" />
+      </Box>
+    </Box>
+  </SidebarContentBox>
+)
+
 const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   useExclusiveLayerGroups()
   const setIsNavbarHidden = useUIStore((state) => state.setIsNavbarHidden)
@@ -127,78 +164,13 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
             <LoadingBlocker></LoadingBlocker>
           )}
           {localState === LocalState.NoUser && (
-            <SidebarContentBox>
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  mt: 3,
-                  alignItems: 'start',
-                }}
-              >
-                <Star
-                  sx={{ height: 40, width: 'auto', flexShrink: 0, mt: 0.5 }}
-                ></Star>
-                <Box
-                  component="p"
-                  sx={{
-                    display: 'inline-flex',
-                    typography: 'body2',
-                    m: 0,
-                    ml: 1.5,
-                    mt: 0.5,
-                  }}
-                >
-                  <TText
-                    keyName={'sidebar.admin.log_in_hint'}
-                    ns="luonnonmetsakartat"
-                  />
-                </Box>
-              </Box>
-            </SidebarContentBox>
+            <AdminGateMessage keyName="sidebar.admin.log_in_hint" />
           )}
           {localState === LocalState.Errored && (
-            <SidebarContentBox>
-              <Box sx={{ display: 'flex', flexDirection: 'row', mt: 3 }}>
-                {/* <Star sx={{ height: 40, width: 'auto' }}></Star> */}
-                <Box
-                  component="p"
-                  sx={{
-                    display: 'inline-flex',
-                    typography: 'body2',
-                    m: 0,
-                    mt: 0.5,
-                  }}
-                >
-                  <TText
-                    keyName={'sidebar.admin.verification_errored'}
-                    ns="luonnonmetsakartat"
-                  />
-                </Box>
-              </Box>
-            </SidebarContentBox>
+            <AdminGateMessage keyName="sidebar.admin.verification_errored" />
           )}
           {localState === LocalState.Rejected && (
-            <SidebarContentBox>
-              <Box sx={{ display: 'flex', flexDirection: 'row', mt: 3 }}>
-                {/* <Star sx={{ height: 40, width: 'auto' }}></Star> */}
-                <Box
-                  component="p"
-                  sx={{
-                    display: 'inline-flex',
-                    typography: 'body2',
-                    m: 0,
-                    ml: 1.5,
-                    mt: 0.5,
-                  }}
-                >
-                  <TText
-                    keyName={'sidebar.admin.verification_rejected'}
-                    ns="luonnonmetsakartat"
-                  />
-                </Box>
-              </Box>
-            </SidebarContentBox>
+            <AdminGateMessage keyName="sidebar.admin.verification_rejected" />
           )}
         </>
       )}
