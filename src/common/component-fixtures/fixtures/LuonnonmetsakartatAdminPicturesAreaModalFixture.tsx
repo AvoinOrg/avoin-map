@@ -40,18 +40,26 @@ const fixturePictures = [
 const longAreaMunicipality = 'Pohjois-Karjalan Pitkanimen Kunta'
 const longAreaName =
   'Vanhan Kuusikon Suojelumetsa Ja Lahopuuvaltainen Korpialue'
+const defaultAreaDescription =
+  'Fixture description exercises the editable admin area modal with wrapped text and gallery content without depending on live map data.'
+const longAreaDescription = [
+  'Pitka fixture description varmistaa, etta hallinnan muokkausmodaalin tekstikentat, rivittyva kuvaus ja alatunniste pysyvat kaytettavina myos kapeassa nakymassa.',
+  'Kuvauksessa on useita lauseita, jotta tekstialueen korkeus ja sisainen vieritys nakyvat ilman live-dataa.',
+].join(' ')
 
 const createFeature = ({
   id,
   name,
   municipality,
   region = 'Uusimaa',
+  description = defaultAreaDescription,
   pictures = [],
 }: {
   id: string
   name: string
   municipality: string
   region?: string
+  description?: string
   pictures?: string[]
 }): FolayerFeature =>
   ({
@@ -70,8 +78,7 @@ const createFeature = ({
       date: '2026-01-01',
       region,
       municipality,
-      description:
-        'Fixture description exercises the editable admin area modal with wrapped text and gallery content without depending on live map data.',
+      description,
       pictures: pictures as unknown as string,
     },
   }) as FolayerFeature
@@ -97,6 +104,7 @@ const fixtureFeatures = [
     id: 'area-long-name',
     municipality: longAreaMunicipality,
     name: longAreaName,
+    description: longAreaDescription,
   }),
 ]
 
@@ -236,23 +244,34 @@ const LightboxImageReadyMarker = ({ src }: { src: string }) => {
   )
 }
 
-const renderAdminModalFixture = (
-  fixtureState?: React.ComponentProps<typeof AreaModalAdmin>['fixtureState']
-) => (
-  <>
-    {fixtureState?.lightboxIndex != null && fixtureState.lightboxIndex >= 0 && (
-      <LightboxImageReadyMarker
-        src={fixturePictures[fixtureState.lightboxIndex] ?? fixturePictures[0]}
+type AdminModalFixtureOptions = React.ComponentProps<
+  typeof AreaModalAdmin
+>['fixtureState'] & {
+  featureId?: string
+}
+
+const renderAdminModalFixture = (options: AdminModalFixtureOptions = {}) => {
+  const { featureId, ...fixtureState } = options
+  const selectedFeature =
+    fixtureFeatures.find((fixtureFeature) => fixtureFeature.id === featureId) ??
+    fixtureFeatures[0]
+
+  return (
+    <>
+      {fixtureState.lightboxIndex != null && fixtureState.lightboxIndex >= 0 && (
+        <LightboxImageReadyMarker
+          src={fixturePictures[fixtureState.lightboxIndex] ?? fixturePictures[0]}
+        />
+      )}
+      <AreaModalAdmin
+        folayerId={fixtureFolayerId}
+        features={[selectedFeature as AreaModalFeature]}
+        fixtureState={fixtureState}
+        onClose={() => undefined}
       />
-    )}
-    <AreaModalAdmin
-      folayerId={fixtureFolayerId}
-      features={[fixtureFeatures[0] as AreaModalFeature]}
-      fixtureState={fixtureState}
-      onClose={() => undefined}
-    />
-  </>
-)
+    </>
+  )
+}
 
 const adminAreaModalWaitFor =
   '[data-testid="luonnonmetsakartat-admin-area-modal"]'
@@ -352,9 +371,14 @@ export const luonnonmetsakartatAdminPicturesAreaModalFixture: ComponentFixture =
     {
       id: 'area-modal-unsynced',
       label: 'Area modal unsynced',
-      description: 'Admin area modal with unsynced save footer visible.',
+      description:
+        'Admin area modal with unsynced save footer visible and long editable content.',
       waitFor: adminAreaModalWaitFor,
-      render: () => renderAdminModalFixture({ unsyncedChanges: true }),
+      render: () =>
+        renderAdminModalFixture({
+          featureId: 'area-long-name',
+          unsyncedChanges: true,
+        }),
     },
     {
       id: 'area-modal-loading',

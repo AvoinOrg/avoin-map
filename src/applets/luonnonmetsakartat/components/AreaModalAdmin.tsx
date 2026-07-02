@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
 
-import { Box } from '#/common/style/theme/system'
+import { Box, type AppSxProps } from '#/common/style/theme/system'
 import { Button, IconButton } from '#/components/common/Button'
 import TText from '#/components/common/TText'
 import { Cross, SaveOutlined } from '#/components/icons'
@@ -38,6 +38,24 @@ type ImgproxyOptions = {
 }
 
 const THUMB_TARGET_W = 200
+const ADMIN_MODAL_WIDTH = '37.5rem'
+const CLOSE_BUTTON_SIZE = 44
+const GALLERY_BREAKPOINT_PX = 420
+
+const textFieldControlSx = {
+  display: 'block',
+  width: '100%',
+  minWidth: 0,
+  boxSizing: 'border-box',
+} satisfies AppSxProps
+
+const descriptionControlSx = {
+  ...textFieldControlSx,
+  minHeight: { mobile: '9rem', desktop: '11rem' },
+  maxHeight: { mobile: '13.5rem', desktop: '18rem' },
+  lineHeight: 1.35,
+  overflowY: 'auto',
+} satisfies AppSxProps
 
 // Supabase object URL -> imgproxy render URL helper.
 const toImgproxy = (
@@ -234,27 +252,29 @@ const AreaModalAdminContent = ({
         sx={{
           backgroundColor: '#3E3E3E',
           color: '#A9E7CB',
-          minWidth: minWidthBeforeFullScreen + 'px',
+          width: ADMIN_MODAL_WIDTH,
+          maxWidth: '100%',
+          minWidth: 0,
+          boxSizing: 'border-box',
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
           height: '100%',
-          // Keep outer container from creating an extra scrollbar; let content area scroll
+          minHeight: 0,
           overflow: 'hidden',
           borderRadius: '0.625rem',
-          maxHeight: '80rem',
+          maxHeight: 'min(80rem, 100%)',
         }}
       >
         <Box
           sx={{
             display: 'flex',
-            justifyContent: 'space-between',
+            justifyContent: 'flex-end',
             alignItems: 'center',
-            height: '4.0rem',
+            minHeight: { mobile: '3.5rem', desktop: '4rem' },
             borderBottom: '1px solid',
             borderColor: 'neutral.dark',
-            pl: 1.2,
-            // Header should not shrink
+            px: { mobile: 1, desktop: 1.25 },
             flex: '0 0 auto',
           }}
         >
@@ -263,25 +283,36 @@ const AreaModalAdminContent = ({
             onClick={handleClose}
             type="button"
             sx={{
+              width: CLOSE_BUTTON_SIZE,
+              minWidth: CLOSE_BUTTON_SIZE,
+              height: CLOSE_BUTTON_SIZE,
+              borderRadius: '50%',
+              borderColor: 'transparent',
               color: (theme) => theme.palette.grey[500],
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              },
             }}
           >
-            <Cross />
+            <Cross sx={{ width: '1.125rem', height: '1.125rem' }} />
           </IconButton>
         </Box>
         {feature && (
           <Box
             sx={(theme) => ({
-              // Let this section handle scrolling
               overflowY: 'auto',
-              // Critical: allow flex child to shrink below content size to avoid squeezing footer
               minHeight: 0,
-              // Grow to fill available space but don't force siblings to shrink
+              minWidth: 0,
               flex: '1 1 auto',
-              pt: 3,
-              pb: 3,
-              pr: 2,
-              pl: 1 + SCROLLBAR_WIDTH_REM + 'rem',
+              boxSizing: 'border-box',
+              pt: { mobile: 2.5, desktop: 3 },
+              pb: { mobile: 2.5, desktop: 3 },
+              pr: { mobile: 2, desktop: 2.5 },
+              pl: {
+                mobile: 2,
+                desktop: `${2 + SCROLLBAR_WIDTH_REM}rem`,
+              },
+              scrollbarGutter: 'stable',
               '@supports selector(::-webkit-scrollbar)': {
                 '&::-webkit-scrollbar-thumb': {
                   backgroundColor: '#878787',
@@ -298,6 +329,7 @@ const AreaModalAdminContent = ({
               value={name}
               onChange={handleNameChange}
               sx={{ textTransform: 'uppercase' }}
+              textSx={textFieldControlSx}
             ></TextFieldWithHeader>
 
             <TextFieldWithHeader
@@ -306,6 +338,7 @@ const AreaModalAdminContent = ({
               value={region}
               onChange={handleRegionChange}
               sx={{}}
+              textSx={textFieldControlSx}
             ></TextFieldWithHeader>
             <TextFieldWithHeader
               headerText={t('sidebar.admin.area.municipality.header')}
@@ -313,6 +346,7 @@ const AreaModalAdminContent = ({
               value={municipality}
               onChange={handleMunicipalityChange}
               sx={{}}
+              textSx={textFieldControlSx}
             ></TextFieldWithHeader>
             <TextFieldWithHeader
               headerText={t('sidebar.admin.area.description.header')}
@@ -320,15 +354,18 @@ const AreaModalAdminContent = ({
               value={description}
               onChange={handleDescriptionChange}
               multiline={true}
-              rows={15}
+              minRows={6}
+              maxRows={12}
+              textSx={descriptionControlSx}
             ></TextFieldWithHeader>
             {pictures.length > 0 && (
-              <Box sx={{ mt: 2 }}>
+              <Box sx={{ mt: { mobile: 2.5, desktop: 3 }, minWidth: 0 }}>
                 <Box
                   component="p"
                   sx={{
                     m: 0,
                     typography: 'body1',
+                    overflowWrap: 'anywhere',
                   }}
                 >
                   <TText
@@ -339,16 +376,29 @@ const AreaModalAdminContent = ({
                 <Box
                   sx={{
                     mt: 1,
+                    minWidth: 0,
                     '& img': {
                       display: 'block',
                       width: '100%',
                       height: 'auto',
+                      objectFit: 'cover',
+                      borderRadius: '0.25rem',
                       backgroundColor: 'transparent',
+                    },
+                    '& button': {
+                      cursor: 'zoom-in',
                     },
                   }}
                 >
                   <MasonryPhotoAlbum
                     photos={photos}
+                    columns={(containerWidth) =>
+                      (containerWidth ?? 0) < GALLERY_BREAKPOINT_PX ? 1 : 2
+                    }
+                    spacing={(containerWidth) =>
+                      (containerWidth ?? 0) < GALLERY_BREAKPOINT_PX ? 8 : 10
+                    }
+                    defaultContainerWidth={360}
                     onClick={({ index }) => setLightboxIndex(index)}
                   />
                   <Lightbox
@@ -366,13 +416,14 @@ const AreaModalAdminContent = ({
           sx={{
             display: 'flex',
             flexDirection: 'row',
-            height: '5.5rem',
-            justifyContent: 'flex-end',
+            minHeight: { mobile: '4.75rem', desktop: '5.5rem' },
+            justifyContent: { mobile: 'center', desktop: 'flex-end' },
             alignItems: 'center',
-            pr: 3.5,
+            px: { mobile: 2, desktop: 3.5 },
+            py: { mobile: 1.25, desktop: 1.5 },
+            boxSizing: 'border-box',
             borderTop: `1px solid`,
             borderColor: 'neutral.dark',
-            // Footer should stay at fixed height and not shrink
             flex: '0 0 auto',
           }}
         >
@@ -386,16 +437,20 @@ const AreaModalAdminContent = ({
               startIcon={<SaveOutlined />}
               sx={{
                 display: 'inline-flex',
+                maxWidth: '100%',
                 minWidth: 0,
-                minHeight: 'auto',
-                p: 0,
-                color: 'neutral.dark',
+                minHeight: 44,
+                px: 1,
+                py: 0.5,
+                color: '#A9E7CB',
                 typography: 'h3',
                 gap: 1,
-                whiteSpace: 'nowrap',
+                whiteSpace: { mobile: 'normal', desktop: 'nowrap' },
                 justifyContent: 'center',
+                overflowWrap: 'anywhere',
+                textAlign: 'center',
                 '&:hover': {
-                  backgroundColor: 'transparent',
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
                 },
               }}
             >
@@ -410,16 +465,14 @@ const AreaModalAdminContent = ({
           <Box
             sx={{
               position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent black
+              inset: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.55)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              zIndex: 10, // Ensure it's on top
-              borderRadius: 'inherit', // Inherit border radius from parent if needed
+              zIndex: 20,
+              borderRadius: 'inherit',
+              overflow: 'hidden',
             }}
           >
             <LoadingSpinner

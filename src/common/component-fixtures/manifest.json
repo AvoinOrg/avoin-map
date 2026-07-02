@@ -441,7 +441,7 @@
       {
         "id": "area-modal-unsynced",
         "label": "Area modal unsynced",
-        "description": "Admin area modal with unsynced save footer visible.",
+        "description": "Admin area modal with unsynced save footer visible and long editable content.",
         "waitFor": "[data-testid=\"luonnonmetsakartat-admin-area-modal\"]"
       },
       {
