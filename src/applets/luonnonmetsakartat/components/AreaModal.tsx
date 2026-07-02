@@ -11,6 +11,12 @@ import useEmblaCarousel from 'embla-carousel-react'
 import Lightbox from 'yet-another-react-lightbox'
 import 'yet-another-react-lightbox/styles.css'
 
+const TWO_COLUMN_MEDIA_QUERY = '@media (min-width:900px)'
+const PICTURE_MODAL_WIDTH = '50rem'
+const TEXT_MODAL_WIDTH = '34rem'
+const CLOSE_BUTTON_SIZE = 44
+const CAROUSEL_BUTTON_SIZE = 40
+
 type ImgproxyResize = 'cover' | 'contain' | 'fill'
 
 type ImgproxyOptions = {
@@ -67,7 +73,7 @@ const AreaModal = ({
   }, [rawPictures])
 
   const hasPictures = pictures.length > 0
-  const minWidthBeforeFullScreen = hasPictures ? 800 : 500
+  const minWidthBeforeFullScreen = hasPictures ? 800 : 544
 
   // Lightbox
   const [lightboxIndex, setLightboxIndex] = useState<number>(-1)
@@ -115,14 +121,14 @@ const AreaModal = ({
         sx={{
           backgroundColor: '#3E3E3E',
           color: '#A9E7CB',
-          width: '100%',
+          width: hasPictures ? PICTURE_MODAL_WIDTH : TEXT_MODAL_WIDTH,
+          maxWidth: '100%',
           display: 'flex',
           flexDirection: 'column',
-          height: '100%',
+          minHeight: 0,
           overflow: 'hidden', // ensure borderRadius clips children
           borderRadius: '0.625rem',
-          maxHeight: '80rem',
-          minWidth: minWidthBeforeFullScreen,
+          maxHeight: 'min(80rem, 100%)',
         }}
       >
         {/* Header / close */}
@@ -152,9 +158,9 @@ const AreaModal = ({
               onClick={onClose}
               type="button"
               sx={(theme) => ({
-                width: 40,
-                minWidth: 40,
-                height: 40,
+                width: CLOSE_BUTTON_SIZE,
+                minWidth: CLOSE_BUTTON_SIZE,
+                height: CLOSE_BUTTON_SIZE,
                 borderRadius: '50%',
                 borderColor: 'transparent',
                 color: theme.palette.grey[300],
@@ -163,7 +169,7 @@ const AreaModal = ({
                 },
               })}
             >
-              <Cross sx={{ height: '1rem' }} />
+              <Cross sx={{ width: '1.125rem', height: '1.125rem' }} />
             </IconButton>
           </Box>
         </Box>
@@ -173,7 +179,7 @@ const AreaModal = ({
           sx={(theme) => ({
             overflowY: 'auto', // Changed from 'scroll' to 'auto'
             flexGrow: 1,
-            height: '100%',
+            minHeight: 0,
             minWidth: 0,
             // no pt/pr/pb/pl — padding handled per-column
             '@supports selector(::-webkit-scrollbar)': {
@@ -191,7 +197,7 @@ const AreaModal = ({
                 width: '100%',
                 // Let content define height; right side can fill row height above 900px.
                 gridTemplateColumns: '1fr',
-                '@media (min-width:900px)': {
+                [TWO_COLUMN_MEDIA_QUERY]: {
                   gridTemplateColumns: hasPictures
                     ? 'minmax(0,1fr) minmax(0,1fr)'
                     : '1fr',
@@ -199,17 +205,17 @@ const AreaModal = ({
                 alignItems: 'stretch',
                 gap: 0,
                 boxSizing: 'border-box',
-                height: '100%',
+                minHeight: 0,
               }}
             >
               {/* Left/content — has padding */}
               <Box
                 sx={{
                   minWidth: 0,
-                  pt: { mobile: 5.5, desktop: 5 }, // Adjusted padding
-                  pb: 4,
-                  pl: { mobile: 2.6, desktop: 6 },
-                  pr: { mobile: 2.6, desktop: 3 }, // creates separation from the right column
+                  pt: { mobile: 5.25, desktop: 5 },
+                  pb: { mobile: hasPictures ? 3.5 : 4, desktop: 4 },
+                  pl: { mobile: 2.5, desktop: 6 },
+                  pr: { mobile: 2.5, desktop: hasPictures ? 3 : 4 },
                 }}
               >
                 <Box
@@ -231,7 +237,7 @@ const AreaModal = ({
                       textTransform: 'uppercase',
                       overflowWrap: 'anywhere',
                       wordBreak: 'break-word',
-                      flex: '1 1 24ch', // grows, but keeps ~24ch minimum before forcing wrap
+                      flex: '1 1 18rem',
                       minWidth: 0, // allow shrinking without overflow
                     }}
                   >
@@ -248,8 +254,8 @@ const AreaModal = ({
                       whiteSpace: { mobile: 'normal', desktop: 'nowrap' },
                       overflowWrap: { mobile: 'anywhere', desktop: 'normal' },
                       wordBreak: { mobile: 'break-word', desktop: 'normal' },
-                      flex: '0 0 auto',
-                      minWidth: { mobile: 0, desktop: 'max-content' }, // stay on the same line until it truly doesn't fit
+                      flex: { mobile: '1 1 100%', desktop: '0 1 auto' },
+                      minWidth: 0,
                     }}
                   >
                     {properties.municipality}
@@ -296,7 +302,15 @@ const AreaModal = ({
               {hasPictures && (
                 <Box
                   className="area-modal-right"
-                  sx={{ minWidth: 0, minHeight: '30rem' }}
+                  sx={{
+                    minWidth: 0,
+                    minHeight: { mobile: '16rem', desktop: '26rem' },
+                    height: { mobile: '17.5rem', desktop: 'auto' },
+                    [TWO_COLUMN_MEDIA_QUERY]: {
+                      minHeight: '30rem',
+                      height: 'auto',
+                    },
+                  }}
                 >
                   <Box
                     sx={{
@@ -338,6 +352,8 @@ const AreaModal = ({
                                 width: '100%',
                                 height: '100%',
                                 objectFit: 'cover',
+                                objectPosition: 'center',
+                                display: 'block',
                                 cursor: 'zoom-in',
                                 userSelect: 'none',
                                 WebkitUserDrag: 'none',
@@ -356,22 +372,22 @@ const AreaModal = ({
                       sx={{
                         position: 'absolute',
                         top: '50%',
-                        left: 8,
+                        left: { mobile: 12, desktop: 12 },
                         transform: 'translateY(-50%)',
-                        width: 32,
-                        minWidth: 32,
-                        height: 32,
+                        width: CAROUSEL_BUTTON_SIZE,
+                        minWidth: CAROUSEL_BUTTON_SIZE,
+                        height: CAROUSEL_BUTTON_SIZE,
                         borderRadius: '50%',
                         borderColor: 'transparent',
-                        backgroundColor: 'rgba(0,0,0,0.35)',
+                        backgroundColor: 'rgba(0,0,0,0.45)',
                         color: '#fff',
                         '&:hover': {
-                          backgroundColor: 'rgba(0,0,0,0.5)',
+                          backgroundColor: 'rgba(0,0,0,0.6)',
                         },
                       }}
                       aria-label="Previous image"
                     >
-                      <ArrowLeft sx={{ width: 13, height: 20 }} />
+                      <ArrowLeft sx={{ width: 18, height: 22 }} />
                     </IconButton>
                     <IconButton
                       onClick={scrollNext}
@@ -380,37 +396,38 @@ const AreaModal = ({
                       sx={{
                         position: 'absolute',
                         top: '50%',
-                        right: 8,
+                        right: { mobile: 12, desktop: 12 },
                         transform: 'translateY(-50%)',
-                        width: 32,
-                        minWidth: 32,
-                        height: 32,
+                        width: CAROUSEL_BUTTON_SIZE,
+                        minWidth: CAROUSEL_BUTTON_SIZE,
+                        height: CAROUSEL_BUTTON_SIZE,
                         borderRadius: '50%',
                         borderColor: 'transparent',
-                        backgroundColor: 'rgba(0,0,0,0.35)',
+                        backgroundColor: 'rgba(0,0,0,0.45)',
                         color: '#fff',
                         '&:hover': {
-                          backgroundColor: 'rgba(0,0,0,0.5)',
+                          backgroundColor: 'rgba(0,0,0,0.6)',
                         },
                       }}
                       aria-label="Next image"
                     >
-                      <ArrowRight sx={{ width: 13, height: 20 }} />
+                      <ArrowRight sx={{ width: 18, height: 22 }} />
                     </IconButton>
 
                     {/* Dots */}
                     <Box
                       sx={{
                         position: 'absolute',
-                        bottom: 8,
+                        bottom: { mobile: 12, desktop: 12 },
                         left: '50%',
                         transform: 'translateX(-50%)',
                         display: 'flex',
-                        gap: 1,
-                        px: 1,
+                        gap: 0.25,
+                        px: 0.75,
                         py: 0.5,
                         borderRadius: '999px',
-                        bgcolor: 'rgba(0,0,0,0.25)',
+                        bgcolor: 'rgba(0,0,0,0.55)',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.28)',
                       }}
                     >
                       {largeSrcs.map((_, i) => {
@@ -427,24 +444,39 @@ const AreaModal = ({
                             component="button"
                             {...dotButtonProps}
                             sx={{
-                              width: 10,
-                              height: 10,
+                              width: 20,
+                              height: 20,
                               p: 0,
                               border: 'none',
                               borderRadius: '50%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
                               cursor: 'pointer',
                               outline: 'none',
+                              backgroundColor: 'transparent',
                               '&:focus-visible': {
                                 outline: '2px solid #A9E7CB',
                                 outlineOffset: 2,
                               },
-                              bgcolor:
-                                i === selectedIndex
-                                  ? '#A9E7CB'
-                                  : 'rgba(255,255,255,0.6)',
-                              opacity: i === selectedIndex ? 1 : 0.6,
                             }}
-                          />
+                          >
+                            <Box
+                              component="span"
+                              aria-hidden="true"
+                              sx={{
+                                width: 9,
+                                height: 9,
+                                borderRadius: '50%',
+                                backgroundColor:
+                                  i === selectedIndex
+                                    ? '#A9E7CB'
+                                    : 'rgba(255,255,255,0.85)',
+                                boxShadow: '0 0 0 1px rgba(0,0,0,0.18)',
+                                opacity: i === selectedIndex ? 1 : 0.8,
+                              }}
+                            />
+                          </Box>
                         )
                       })}
                     </Box>
@@ -463,10 +495,10 @@ const AreaModal = ({
             <Box
               sx={{
                 minWidth: 0,
-                pt: { mobile: 5.5, desktop: 5 },
+                pt: { mobile: 5.25, desktop: 5 },
                 pb: 4,
-                pl: { mobile: 2.6, desktop: 6 },
-                pr: { mobile: 2.6, desktop: 3 },
+                pl: { mobile: 2.5, desktop: 6 },
+                pr: { mobile: 2.5, desktop: 4 },
               }}
             >
               <Box

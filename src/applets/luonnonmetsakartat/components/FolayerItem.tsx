@@ -18,8 +18,15 @@ const FolayerItem = ({ conf }: { conf: FolayerConf }) => {
       color={conf.colorCode}
       ariaLabel={`Toggle ${conf.name}`}
       onToggle={() => setIsEnabled(layerGroupStatus === 'hidden')}
-      sx={{ mb: 1 }}
-      labelSx={{ ml: 1 }}
+      rowSx={{
+        alignItems: 'center',
+        minHeight: { mobile: '2rem', desktop: '1.5rem' },
+      }}
+      iconSx={{ mr: { mobile: 1.25, desktop: 1 } }}
+      labelSx={{
+        minWidth: 0,
+        overflowWrap: 'break-word',
+      }}
     />
   )
 }

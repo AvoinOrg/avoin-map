@@ -50,9 +50,18 @@ const Page = () => {
           <LoadingSpinner />
         </Box>
       )}
-      <Box sx={{ ml: '-0.7rem' }}>
+      <Box sx={{ width: '100%', minWidth: 0 }}>
         {!isLoading && folayerConfsArray.length > 0 && (
-          <Box sx={{ width: '100%', mt: 5, pb: 4 }}>
+          <Box
+            sx={{
+              width: '100%',
+              mt: { mobile: 5, desktop: 5 },
+              pb: 4,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: { mobile: 1, desktop: 0.75 },
+            }}
+          >
             {folayerConfsArray.map((conf) => (
               <FolayerItem key={conf.id} conf={conf} />
             ))}
@@ -64,20 +73,26 @@ const Page = () => {
             <Box
               sx={{
                 display: 'flex',
-                flexDirection: 'row',
-                mt: 3,
-                alignItems: 'start',
+                mt: { mobile: 5, desktop: 3 },
+                alignItems: 'flex-start',
+                gap: { mobile: 2, desktop: 1.25 },
+                maxWidth: '100%',
               }}
             >
               <Eco
-                sx={{ width: 50, height: 'auto', flexShrink: 0, mt: -0.5 }}
+                sx={{
+                  width: { mobile: 50, desktop: 42 },
+                  height: 'auto',
+                  flexShrink: 0,
+                }}
               ></Eco>
               <Box
                 component="span"
                 sx={{
-                  display: 'inline-flex',
+                  display: 'block',
                   typography: 'body2',
-                  ml: 1.5,
+                  minWidth: 0,
+                  overflowWrap: 'break-word',
                 }}
               >
                 <TText ns="luonnonmetsakartat" keyName="sidebar.main.no_data" />
