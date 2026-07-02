@@ -37,6 +37,9 @@ const fixturePictures = [
   '/files/img/green-drawings/fallen-trees.jpg',
   '/files/img/green-drawings/tree.jpg',
 ]
+const longAreaMunicipality = 'Pohjois-Karjalan Pitkanimen Kunta'
+const longAreaName =
+  'Vanhan Kuusikon Suojelumetsa Ja Lahopuuvaltainen Korpialue'
 
 const createFeature = ({
   id,
@@ -90,6 +93,11 @@ const fixtureFeatures = [
     municipality: 'Tampere',
     name: 'Lehtorinne',
   }),
+  createFeature({
+    id: 'area-long-name',
+    municipality: longAreaMunicipality,
+    name: longAreaName,
+  }),
 ]
 
 const fixtureAreaConf: FolayerAreaConf = {
@@ -111,7 +119,9 @@ const createFixtureFile = (relativePath: string, type = 'image/jpeg') =>
 const matchedAndUnmatchedFiles = [
   createFixtureFile('fixture-pictures/Helsinki,Keskusmetsa/first.jpg'),
   createFixtureFile('fixture-pictures/Helsinki,Keskusmetsa/notes.txt', 'text/plain'),
-  createFixtureFile('fixture-pictures/Turku,Rantametsa/second.png', 'image/png'),
+  createFixtureFile(
+    `fixture-pictures/${longAreaMunicipality},${longAreaName}/long-name.jpg`
+  ),
   createFixtureFile('fixture-pictures/Missing,Unknown/third.jpg'),
 ]
 

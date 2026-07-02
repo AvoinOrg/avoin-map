@@ -16,7 +16,10 @@ import { FixedSizeList, ListChildComponentProps } from 'react-window'
 
 import {
   Box,
+  useMediaQuery,
+  useTheme,
   type AppSxProps,
+  type AppTheme,
   toSxArray,
 } from '#/common/style/theme/system'
 import BigMenuButton from '#/components/common/BigMenuButton'
@@ -26,8 +29,12 @@ import { Cross, Upload } from '#/components/icons'
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import type { FolayerAreaConf } from 'applets/luonnonmetsakartat/common/types'
 
-const AREA_OPTION_ROW_HEIGHT = 30
+const AREA_OPTION_ROW_HEIGHT = 36
 const AREA_OPTION_MAX_VISIBLE_ROWS = 7
+const MAPPING_ROW_HEIGHT_DESKTOP = 56
+const MAPPING_ROW_HEIGHT_MOBILE = 96
+const MAPPING_LIST_MAX_HEIGHT_DESKTOP = 500
+const MAPPING_LIST_MAX_HEIGHT_MOBILE = 520
 const autoHighlightOnOpen = 'always' as unknown as boolean
 const directoryInputAttributes = {
   webkitdirectory: '',
@@ -39,6 +46,154 @@ type ComponentSxArrayItem = Exclude<NonNullable<AppSxProps>, readonly unknown[]>
 
 const toComponentSxArray = (sx?: AppSxProps) =>
   toSxArray(sx) as ComponentSxArrayItem[]
+
+const uploadButtonSx = {
+  width: '100%',
+  height: 'auto',
+  minHeight: '60px',
+  alignItems: 'center',
+  gap: {
+    mobile: 1.5,
+    desktop: 2,
+  },
+  px: {
+    mobile: 2,
+    desktop: 3,
+  },
+  py: 1.5,
+  overflow: 'hidden',
+} as const
+
+const uploadButtonLabelSx = {
+  minWidth: 0,
+  flex: '1 1 auto',
+  display: '-webkit-box',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  overflowWrap: 'anywhere',
+  WebkitBoxOrient: 'vertical',
+  WebkitLineClamp: {
+    mobile: 2,
+    desktop: 1,
+  },
+  lineHeight: 1.35,
+  textAlign: 'left',
+} as const
+
+const uploadIconSx = {
+  width: '24px',
+  height: '24px',
+  flex: '0 0 auto',
+} as const
+
+const summaryTextSx = {
+  m: 0,
+  typography: 'body2',
+  lineHeight: 1.4,
+  overflowWrap: 'anywhere',
+} as const
+
+const warningTextSx = {
+  m: 0,
+  mb: 1,
+  typography: 'body2',
+  lineHeight: 1.4,
+  color: 'error.main',
+  overflowWrap: 'anywhere',
+} as const
+
+const mappingGridSx = {
+  display: 'grid',
+  gridTemplateColumns: {
+    mobile: 'minmax(0, 1fr) auto',
+    desktop: 'minmax(0, 1fr) auto minmax(0, 1.5fr)',
+  },
+  gridTemplateAreas: {
+    mobile: '"folder count" "select select"',
+    desktop: '"folder count select"',
+  },
+  columnGap: {
+    mobile: 1.5,
+    desktop: 2,
+  },
+  rowGap: {
+    mobile: 0.75,
+    desktop: 0,
+  },
+  alignItems: {
+    mobile: 'stretch',
+    desktop: 'center',
+  },
+  minWidth: 0,
+} as const
+
+const mappingHeaderSx = {
+  ...mappingGridSx,
+  py: 0.75,
+  borderBottom: '1px solid',
+  borderColor: 'divider',
+} as const
+
+const mappingRowSx = {
+  ...mappingGridSx,
+  height: '100%',
+  boxSizing: 'border-box',
+  py: {
+    mobile: 1,
+    desktop: 1,
+  },
+  borderBottom: '1px solid',
+  borderColor: 'divider',
+} as const
+
+const mappingHeaderTextSx = {
+  typography: 'body7',
+  color: 'text.secondary',
+  minWidth: 0,
+  lineHeight: 1.35,
+} as const
+
+const folderColumnSx = {
+  gridArea: 'folder',
+  minWidth: 0,
+} as const
+
+const countColumnSx = {
+  gridArea: 'count',
+  justifySelf: 'end',
+  minWidth: '2ch',
+  typography: 'body7',
+  color: 'text.secondary',
+  textAlign: 'right',
+  lineHeight: 1.35,
+} as const
+
+const selectColumnSx = {
+  gridArea: 'select',
+  minWidth: 0,
+} as const
+
+const comboboxFieldSx = {
+  width: '100%',
+  minWidth: 0,
+  minHeight: '2.25rem',
+  display: 'flex',
+  alignItems: 'center',
+  gap: 0.5,
+  px: 1,
+  py: 0.25,
+  border: '1px solid',
+  borderColor: 'neutral.main',
+  borderRadius: '2px',
+  backgroundColor: 'neutral.lighter',
+  cursor: 'text',
+  transition: 'border-color 120ms ease, box-shadow 120ms ease',
+  '&:focus-within, &[data-open]': {
+    borderColor: 'secondary.dark',
+    boxShadow: (theme: AppTheme) =>
+      `0 0 0 1px ${theme.palette.secondary.dark}`,
+  },
+} as const
 
 type AreaOption = {
   id: string
@@ -311,20 +466,41 @@ const AreaSingleSelectCombobox = ({
               px: 1.5,
               py: 0,
               typography: 'body7',
+              lineHeight: 1.35,
               color: '#111111',
-              overflowWrap: 'anywhere',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
               maxWidth: '100%',
               cursor: 'pointer',
               outline: 0,
               '&[data-highlighted], &:hover, &:focus-visible': {
                 backgroundColor: 'primary.light',
               },
+              '&[data-highlighted], &:focus-visible': {
+                boxShadow: (theme: AppTheme) =>
+                  `inset 0 0 0 2px ${theme.palette.secondary.dark}`,
+              },
               '&[data-selected]': {
+                backgroundColor: 'primary.lighter',
                 fontWeight: 700,
+              },
+              '&[data-selected][data-highlighted]': {
+                backgroundColor: 'primary.light',
               },
             }}
           >
-            {option.label}
+            <Box
+              component="span"
+              sx={{
+                minWidth: 0,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {option.label}
+            </Box>
           </Box>
         )}
       />
@@ -377,6 +553,7 @@ const AreaSingleSelectCombobox = ({
       >
         <Box
           data-slot="field"
+          data-open={resolvedOpen ? '' : undefined}
           onMouseDown={(event) => {
             if (
               event.target instanceof HTMLElement &&
@@ -389,24 +566,7 @@ const AreaSingleSelectCombobox = ({
             inputRef.current?.focus()
           }}
           onClick={() => setResolvedOpen(true)}
-          sx={{
-            width: '100%',
-            minWidth: 0,
-            minHeight: '2.25rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 0.5,
-            px: 1,
-            py: 0.25,
-            border: '1px solid',
-            borderColor: 'neutral.main',
-            borderRadius: '2px',
-            backgroundColor: 'neutral.lighter',
-            cursor: 'text',
-            '&:focus-within, &:has([data-popup-open])': {
-              borderColor: 'secondary.dark',
-            },
-          }}
+          sx={comboboxFieldSx}
         >
           <BaseCombobox.Input
             ref={inputRef}
@@ -479,8 +639,9 @@ const AreaSingleSelectCombobox = ({
                   outline: 0,
                   backgroundColor: 'transparent',
                   typography: 'body7',
+                  lineHeight: 1.35,
                   color: '#111111',
-                  font: 'inherit',
+                  fontFamily: 'inherit',
                   '&::placeholder': {
                     typography: 'body7',
                     color: 'neutral.dark',
@@ -498,14 +659,15 @@ const AreaSingleSelectCombobox = ({
               aria-label={`${ariaLabel} clear`}
               onClick={handleClear}
               sx={{
-                width: '1.5rem',
-                minWidth: '1.5rem',
-                height: '1.5rem',
+                width: '2rem',
+                minWidth: '2rem',
+                height: '2rem',
+                flex: '0 0 2rem',
                 p: 0,
                 color: 'neutral.dark',
                 '& svg': {
-                  width: '0.65rem',
-                  height: '0.65rem',
+                  width: '0.75rem',
+                  height: '0.75rem',
                 },
               }}
             >
@@ -525,9 +687,13 @@ const AreaSingleSelectCombobox = ({
                 data-slot="area-select-positioner"
                 sx={{
                   zIndex: (theme) => theme.zIndex.modal + 1,
-                  width: 'var(--anchor-width)',
-                  minWidth: 'min(18rem, calc(100vw - 2rem))',
-                  maxWidth: 'min(28rem, calc(100vw - 2rem))',
+                  width: {
+                    mobile: 'min(var(--anchor-width), calc(100vw - 2rem))',
+                    desktop:
+                      'min(max(var(--anchor-width), 18rem), calc(100vw - 2rem))',
+                  },
+                  minWidth: 0,
+                  maxWidth: 'calc(100vw - 2rem)',
                 }}
               />
             )}
@@ -540,6 +706,7 @@ const AreaSingleSelectCombobox = ({
                   sx={{
                     maxHeight: 'min(18rem, calc(100vh - 2rem))',
                     overflowY: 'hidden',
+                    overflowX: 'hidden',
                     border: '1px solid #D6D6D6',
                     borderRadius: '0.25rem',
                     backgroundColor: 'common.white',
@@ -569,9 +736,12 @@ const AreaSingleSelectCombobox = ({
                     data-slot="area-select-empty"
                     sx={{
                       px: 1.5,
-                      py: 1,
+                      py: 1.25,
                       typography: 'body7',
-                      color: '#111111',
+                      lineHeight: 1.35,
+                      color: 'text.secondary',
+                      backgroundColor: 'neutral.lighter',
+                      overflowWrap: 'anywhere',
                     }}
                   />
                 )}
@@ -591,6 +761,8 @@ const FolayerImportPictures = forwardRef<
   FolayerImportPicturesProps
 >(({ folayerId, onValidationChange, fixtureState }, ref) => {
   const { t } = useTranslate('luonnonmetsakartat')
+  const theme = useTheme<AppTheme>()
+  const isMobile = useMediaQuery(theme.breakpoints.down('desktop'))
   const inputRef = useRef<HTMLInputElement>(null)
   const [files, setFiles] = useState<File[]>(fixtureState?.files ?? [])
   const [selectedFolderLabel, setSelectedFolderLabel] = useState<
@@ -793,8 +965,12 @@ const FolayerImportPictures = forwardRef<
     return count
   }, [unmatchedFolders, groups])
 
-  const rowHeight = 56
-  const maxListHeight = 500
+  const rowHeight = isMobile
+    ? MAPPING_ROW_HEIGHT_MOBILE
+    : MAPPING_ROW_HEIGHT_DESKTOP
+  const maxListHeight = isMobile
+    ? MAPPING_LIST_MAX_HEIGHT_MOBILE
+    : MAPPING_LIST_MAX_HEIGHT_DESKTOP
   const listHeight = Math.min(rowOrder.length * rowHeight, maxListHeight)
 
   const Row = ({ index, style }: ListChildComponentProps) => {
@@ -815,23 +991,16 @@ const FolayerImportPictures = forwardRef<
       <Box
         key={folder}
         style={style as unknown as React.CSSProperties}
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1.5fr)',
-          alignItems: 'center',
-          gap: 2,
-          py: 1,
-          borderBottom: '1px solid',
-          borderColor: 'divider',
-        }}
+        sx={mappingRowSx}
       >
         <FolderNameTooltip title={folder}>
           <Box
             component="span"
             sx={{
+              ...folderColumnSx,
               display: 'block',
-              minWidth: 0,
               typography: 'body7',
+              lineHeight: 1.35,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
@@ -842,11 +1011,7 @@ const FolayerImportPictures = forwardRef<
         </FolderNameTooltip>
         <Box
           component="span"
-          sx={{
-            typography: 'body7',
-            color: 'text.secondary',
-            textAlign: 'right',
-          }}
+          sx={countColumnSx}
         >
           {count}
         </Box>
@@ -866,24 +1031,27 @@ const FolayerImportPictures = forwardRef<
               [folder]: newValue ? newValue.id : null,
             }))
           }}
+          sx={selectColumnSx}
         />
       </Box>
     )
   }
 
   return (
-    <Box>
+    <Box sx={{ minWidth: 0 }}>
       <BigMenuButton
         variant="outlined"
         component="label"
-        sx={{ width: '100%', minHeight: '60px' }}
+        sx={uploadButtonSx}
         aria-label={
           selectedFolderLabel ||
           t('sidebar.admin.folayer.settings.picture.select_folder')
         }
       >
-        {selectedFolderLabel ||
-          t('sidebar.admin.folayer.settings.picture.select_folder')}
+        <Box component="span" sx={uploadButtonLabelSx}>
+          {selectedFolderLabel ||
+            t('sidebar.admin.folayer.settings.picture.select_folder')}
+        </Box>
         <input
           hidden
           multiple
@@ -893,12 +1061,12 @@ const FolayerImportPictures = forwardRef<
           onChange={handleFolderInput}
           ref={inputRef}
         />
-        <Upload sx={{ width: '24px' }} />
+        <Upload aria-hidden="true" sx={uploadIconSx} />
       </BigMenuButton>
 
       {groups.size > 0 && (
         <Box sx={{ mt: 3 }}>
-          <Box component="p" sx={{ m: 0, typography: 'body2' }}>
+          <Box component="p" sx={summaryTextSx}>
             <TText
               ns="luonnonmetsakartat"
               keyName={'sidebar.admin.folayer.settings.picture.areas'}
@@ -915,10 +1083,7 @@ const FolayerImportPictures = forwardRef<
 
       {unmatchedFolders.length > 0 && (
         <Box sx={{ mt: 4 }}>
-          <Box
-            component="p"
-            sx={{ m: 0, mb: 1, typography: 'body2', color: 'error.main' }}
-          >
+          <Box component="p" sx={warningTextSx}>
             <TText
               ns="luonnonmetsakartat"
               keyName={
@@ -937,36 +1102,22 @@ const FolayerImportPictures = forwardRef<
 
       {groups.size > 0 && features.length ? (
         <Box sx={{ mt: 2 }}>
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1.5fr)',
-              alignItems: 'center',
-              gap: 2,
-              py: 0.75,
-              borderBottom: '1px solid',
-              borderColor: 'divider',
-            }}
-          >
+          <Box sx={mappingHeaderSx}>
             <Box
               component="span"
-              sx={{ typography: 'body7', color: 'text.secondary' }}
+              sx={{ ...mappingHeaderTextSx, ...folderColumnSx }}
             >
               {t('sidebar.admin.folayer.settings.picture.folders')}
             </Box>
             <Box
               component="span"
-              sx={{
-                typography: 'body7',
-                color: 'text.secondary',
-                textAlign: 'left',
-              }}
+              sx={countColumnSx}
             >
               {t('sidebar.admin.folayer.settings.picture.images')}
             </Box>
             <Box
               component="span"
-              sx={{ typography: 'body7', color: 'text.secondary' }}
+              sx={{ ...mappingHeaderTextSx, ...selectColumnSx }}
             >
               {t('sidebar.admin.folayer.settings.picture.areas')}
             </Box>
