@@ -39,81 +39,109 @@ const Page = () => {
           </Box>
         )}
         {isFolayerReady && adminFolayerConf && (
-          <Box>
-            <Box component="h2" sx={{ typography: 'h2', m: 0 }}>
+          <Box sx={{ minWidth: 0 }}>
+            <Box
+              component="h2"
+              sx={{
+                typography: 'h2',
+                m: 0,
+                minWidth: 0,
+                overflowWrap: 'break-word',
+                whiteSpace: 'normal',
+                lineHeight: 1.25,
+              }}
+            >
               {adminFolayerConf.name}
             </Box>
           </Box>
         )}
         {isFolayerReady && adminFolayerConf && (
-          <>
-            <Box
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'flex-end',
+              gap: 2,
+              mt: 4,
+              width: '100%',
+              minWidth: 0,
+            }}
+          >
+            <AppRouteLink
+              routeKey={
+                APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN_FOLAYER_SETTINGS
+              }
+              routeParams={{ folayerIdSlug: adminFolayerConf.id }}
               sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                mt: 4,
-                width: '100%',
+                alignItems: 'center',
                 justifyContent: 'flex-end',
+                gap: 1,
+                maxWidth: '100%',
+                minWidth: 0,
+                textAlign: 'right',
               }}
             >
-              <AppRouteLink
-                routeKey={
-                  APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN_FOLAYER_SETTINGS
-                }
-                routeParams={{ folayerIdSlug: adminFolayerConf.id }}
-                sx={{ alignItems: 'center' }}
+              <Box
+                component="span"
+                sx={{
+                  typography: 'h6',
+                  fontWeight: 500,
+                  textDecoration: 'underline',
+                  textUnderlineOffset: '0.1em',
+                  minWidth: 0,
+                  overflowWrap: 'break-word',
+                  whiteSpace: 'normal',
+                  lineHeight: 1.35,
+                }}
               >
-                <Box
-                  component="span"
-                  sx={{
-                    typography: 'h6',
-                    fontWeight: 500,
-                    textDecoration: 'underline',
-                    textUnderlineOffset: '0.1em',
-                  }}
-                >
-                  <TText
-                    keyName={'sidebar.admin.folayer.open_settings'}
-                    ns={'luonnonmetsakartat'}
-                  />
-                </Box>
-                <ArrowNextBig sx={{ ml: 1, height: '1.2rem' }}></ArrowNextBig>
-              </AppRouteLink>
-            </Box>
-            <Box
+                <TText
+                  keyName={'sidebar.admin.folayer.open_settings'}
+                  ns={'luonnonmetsakartat'}
+                />
+              </Box>
+              <ArrowNextBig
+                aria-hidden="true"
+                sx={{ width: '1.5rem', height: '1.125rem', flexShrink: 0 }}
+              ></ArrowNextBig>
+            </AppRouteLink>
+            <AppRouteLink
+              routeKey={
+                APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN_FOLAYER_PICTURES
+              }
+              routeParams={{ folayerIdSlug: adminFolayerConf.id }}
               sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                mt: 2,
-                width: '100%',
+                alignItems: 'center',
                 justifyContent: 'flex-end',
+                gap: 1,
+                maxWidth: '100%',
+                minWidth: 0,
+                textAlign: 'right',
               }}
             >
-              <AppRouteLink
-                routeKey={
-                  APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN_FOLAYER_PICTURES
-                }
-                routeParams={{ folayerIdSlug: adminFolayerConf.id }}
-                sx={{ alignItems: 'center' }}
+              <Box
+                component="span"
+                sx={{
+                  typography: 'h6',
+                  fontWeight: 500,
+                  textDecoration: 'underline',
+                  textUnderlineOffset: '0.1em',
+                  minWidth: 0,
+                  overflowWrap: 'break-word',
+                  whiteSpace: 'normal',
+                  lineHeight: 1.35,
+                }}
               >
-                <Box
-                  component="span"
-                  sx={{
-                    typography: 'h6',
-                    fontWeight: 500,
-                    textDecoration: 'underline',
-                    textUnderlineOffset: '0.1em',
-                  }}
-                >
-                  <TText
-                    keyName={'sidebar.admin.folayer.open_pictures'}
-                    ns={'luonnonmetsakartat'}
-                  />
-                </Box>
-                <ArrowNextBig sx={{ ml: 1, height: '1.2rem' }}></ArrowNextBig>
-              </AppRouteLink>
-            </Box>
-          </>
+                <TText
+                  keyName={'sidebar.admin.folayer.open_pictures'}
+                  ns={'luonnonmetsakartat'}
+                />
+              </Box>
+              <ArrowNextBig
+                aria-hidden="true"
+                sx={{ width: '1.5rem', height: '1.125rem', flexShrink: 0 }}
+              ></ArrowNextBig>
+            </AppRouteLink>
+          </Box>
         )}
 
         <Box component="h3" sx={{ m: 0, mt: 7, typography: 'h3' }}>

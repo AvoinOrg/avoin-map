@@ -288,37 +288,45 @@ const SearchTable = ({
             alignItems: 'center',
             borderBottom: '1px solid',
             borderColor: 'divider',
-            '&:hover': { backgroundColor: 'action.hover' },
+            borderLeft: '3px solid',
+            borderLeftColor: isSelected ? 'secondary.dark' : 'transparent',
+            backgroundColor: isSelected ? 'primary.lighter' : 'transparent',
+            '&:hover': {
+              backgroundColor: isSelected ? 'primary.light' : 'action.hover',
+            },
             typography: 'body7',
             height: '100%',
+            minWidth: 0,
+            overflow: 'hidden',
           }}
         >
           {row.getVisibleCells().map((cell) => (
             <ButtonBox
               key={cell.id}
               type="button"
+              aria-pressed={isSelected}
               data-testid={
                 isSelected ? 'search-table-row-selected' : undefined
               }
               onClick={() => handleClick(cell.row.original)}
               sx={{
                 flex: 1,
+                minWidth: 0,
                 p: 1,
                 height: '100%',
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'flex-start',
                 border: 0,
                 color: 'inherit',
                 cursor: 'pointer',
                 font: 'inherit',
+                lineHeight: 1.35,
+                overflow: 'hidden',
                 textAlign: 'left',
-                backgroundColor: isSelected
-                  ? 'action.selected'
-                  : 'transparent',
+                backgroundColor: 'transparent',
                 '&:hover': {
-                  backgroundColor: isSelected
-                    ? 'action.selected'
-                    : 'action.hover',
+                  backgroundColor: 'transparent',
                 },
                 '&:focus-visible': {
                   outline: '2px solid',
@@ -327,7 +335,19 @@ const SearchTable = ({
                 },
               }}
             >
-              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              <Box
+                component="span"
+                sx={{
+                  display: 'block',
+                  minWidth: 0,
+                  maxWidth: '100%',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </Box>
             </ButtonBox>
           ))}
         </Box>
@@ -336,13 +356,16 @@ const SearchTable = ({
   }
 
   return (
-    <Box sx={toSxArray(sx)}>
+    <Box sx={[{ width: '100%', minWidth: 0 }, ...toSxArray(sx)]}>
       {/* sorting button */}
       <Box
         sx={{
           display: 'flex',
           justifyContent: 'flex-end',
           alignItems: 'center',
+          gap: 1,
+          width: '100%',
+          minWidth: 0,
           mb: 1,
         }}
       >
@@ -386,7 +409,7 @@ const SearchTable = ({
             color: 'inherit',
             cursor: 'pointer',
             userSelect: 'none',
-            ml: 1,
+            flexShrink: 0,
             '&:focus-visible': {
               outline: '2px solid',
               outlineColor: 'secondary.dark',
@@ -396,9 +419,9 @@ const SearchTable = ({
           onClick={toggleSortOrder}
         >
           {isAscending ? (
-            <Ascending sx={{ height: 18 }} />
+            <Ascending sx={{ width: 18, height: 18 }} />
           ) : (
-            <Descending sx={{ height: 18 }} />
+            <Descending sx={{ width: 18, height: 18 }} />
           )}
         </ButtonBox>
       </Box>
@@ -407,6 +430,8 @@ const SearchTable = ({
         sx={{
           display: 'flex',
           alignItems: 'center',
+          width: '100%',
+          minWidth: 0,
           mb: 1,
           backgroundColor: 'background.paper',
           borderBottom: '1px solid',
@@ -416,14 +441,23 @@ const SearchTable = ({
           },
         }}
       >
-        <Search sx={{ mr: 1, height: 20, color: 'neutral.dark' }} />
+        <Search
+          sx={{
+            mr: 1,
+            width: 20,
+            height: 20,
+            flexShrink: 0,
+            color: 'neutral.dark',
+          }}
+        />
         <SearchInput
           aria-label={searchLabel}
           placeholder={searchLabel}
           value={searchTerm}
           onChange={handleSearchChange}
           sx={{
-            width: '100%',
+            flex: '1 1 auto',
+            width: 'auto',
             minWidth: 0,
             py: 0.5,
             border: 0,
@@ -444,7 +478,9 @@ const SearchTable = ({
       <Box
         sx={{
           width: '100%',
+          minWidth: 0,
           overflow: 'auto',
+          overflowX: 'hidden',
           borderRadius: 1,
         }}
       >
