@@ -11,8 +11,11 @@ import {
 import { useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
 
-import { Box } from '#/common/style/theme'
-import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
+import { Box, type AppSxProps, type AppTheme } from '#/common/style/theme'
+import {
+  MOBILE_SIDEBAR_PADDING_REM,
+  SIDEBAR_PADDING_REM,
+} from '#/common/style/theme/constants'
 import { Button } from '#/components/common/Button'
 import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
 import { useMapStore, useUIStore } from '#/common/store'
@@ -56,6 +59,237 @@ type FolayerUpdateValues = {
   rawShapefile: ArrayBuffer
 } | null
 
+const settingsRootSx = {
+  display: 'flex',
+  flexDirection: 'column',
+  width: '100%',
+  height: '100%',
+  minHeight: 0,
+} as const
+
+const settingsSidebarOuterSx = {
+  position: 'relative',
+  flex: '1 1 auto',
+  minHeight: 0,
+} as const
+
+const settingsContentSx = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: {
+    mobile: 3,
+    desktop: 4,
+  },
+  pb: {
+    mobile: 3,
+    desktop: 4,
+  },
+  minWidth: 0,
+} as const
+
+const settingsPanelSx = (theme: AppTheme) => ({
+  backgroundColor: theme.palette.neutral.light,
+  p: {
+    mobile: 2.5,
+    desktop: 3,
+  },
+  borderRadius: '0.3125rem',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: {
+    mobile: 2,
+    desktop: 2.25,
+  },
+  minWidth: 0,
+})
+
+const loadingStateSx = {
+  flex: '1 1 auto',
+  minHeight: {
+    mobile: '20rem',
+    desktop: '24rem',
+  },
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  py: {
+    mobile: 4,
+    desktop: 6,
+  },
+} as const
+
+const loadingSpinnerFrameSx = (theme: AppTheme) => ({
+  width: {
+    mobile: '3.25rem',
+    desktop: '3rem',
+  },
+  height: {
+    mobile: '3.25rem',
+    desktop: '3rem',
+  },
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: '999px',
+  backgroundColor: theme.palette.neutral.light,
+  border: `1px solid ${theme.palette.primary.lighter}`,
+  boxShadow: '0 1px 4px rgba(17, 17, 17, 0.05)',
+})
+
+const deleteActionSx = {
+  alignSelf: 'flex-end',
+  color: 'neutral.dark',
+  maxWidth: '100%',
+  minWidth: 0,
+  minHeight: '2rem',
+  justifyContent: 'flex-end',
+} as const
+
+const deleteActionIconSx = {
+  width: '1.1rem',
+  height: '1.1rem',
+  flexShrink: 0,
+} as const
+
+const deleteActionTextSx = {
+  typography: 'body2',
+  lineHeight: 1.35,
+  minWidth: 0,
+  overflowWrap: 'anywhere',
+} as const
+
+const fieldSx = {
+  mb: 0,
+  minWidth: 0,
+} as const
+
+const colorPickerSx = {
+  width: 'fit-content',
+  minHeight: '34px',
+  maxWidth: '100%',
+  alignItems: 'center',
+} as const
+
+const colorPickerBoxSx = {
+  width: 26,
+  height: 26,
+} as const
+
+const compactSwitchSx = {
+  width: 'fit-content',
+  maxWidth: '100%',
+  minHeight: '34px',
+} as const
+
+const wrappingSwitchSx = {
+  width: '100%',
+  minWidth: 0,
+  alignItems: 'flex-start',
+} as const
+
+const switchControlSx = {
+  flex: '0 0 44px',
+} as const
+
+const switchLabelSx = {
+  minWidth: 0,
+  lineHeight: 1.35,
+  overflowWrap: 'anywhere',
+} as const
+
+const uploadButtonSx = {
+  width: '100%',
+  height: 'auto',
+  minHeight: '60px',
+  alignItems: 'center',
+  gap: 2,
+  py: 1.5,
+  overflow: 'hidden',
+} as const
+
+const uploadButtonLabelSx = {
+  minWidth: 0,
+  flex: '1 1 auto',
+  display: '-webkit-box',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  overflowWrap: 'anywhere',
+  WebkitBoxOrient: 'vertical',
+  WebkitLineClamp: {
+    mobile: 2,
+    desktop: 1,
+  },
+  lineHeight: 1.35,
+  textAlign: 'left',
+} as const
+
+const uploadIconSx = {
+  width: '24px',
+  height: '24px',
+  flex: '0 0 auto',
+} as const
+
+const selectedUpdateStackSx = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: {
+    mobile: 2.5,
+    desktop: 3,
+  },
+  minWidth: 0,
+} as const
+
+const saveFooterSx = (theme: AppTheme) => ({
+  display: 'flex',
+  flex: '0 0 auto',
+  flexDirection: 'column',
+  px: {
+    mobile: `${MOBILE_SIDEBAR_PADDING_REM}rem`,
+    desktop: `${SIDEBAR_PADDING_REM}rem`,
+  },
+  pt: {
+    mobile: 1.5,
+    desktop: 1.75,
+  },
+  pb: {
+    mobile: '6rem',
+    desktop: 1.75,
+  },
+  zIndex: theme.zIndex.drawer + 1,
+  borderTop: 1,
+  borderColor: 'primary.lighter',
+  backgroundColor: theme.palette.neutral.light,
+})
+
+const saveButtonSx: AppSxProps = {
+  display: 'inline-flex',
+  width: '100%',
+  minWidth: 0,
+  minHeight: '36px',
+  justifyContent: 'flex-start',
+  alignSelf: 'flex-start',
+  px: 0,
+  py: 0.5,
+  color: 'neutral.darker',
+  typography: 'body1',
+  fontWeight: 700,
+  lineHeight: 1.35,
+  gap: 1,
+  textAlign: 'left',
+  whiteSpace: 'normal',
+  overflowWrap: 'anywhere',
+  '&:hover': {
+    backgroundColor: 'transparent',
+    color: 'neutral.darker',
+  },
+  '&:disabled, &[data-disabled], &[aria-disabled="true"]': {
+    color: 'neutral.dark',
+    backgroundColor: 'transparent',
+    opacity: 0.75,
+    cursor: 'not-allowed',
+  },
+}
+
 const Page = () => {
   const [, setIsLoading] = useSidebarActivityLoader()
   const [fileType, setFileType] = useState<'shp'>()
@@ -90,6 +324,9 @@ const Page = () => {
   )
   const isFolayerReady =
     adminFolayerConf?.state === FolayerConfState.Idle
+  const isSaving =
+    adminFolayerConf?.state === FolayerConfState.Saving ||
+    localAdminFolayerPatchMutation.isPending
 
   const handleFileInput = async (e: ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) {
@@ -223,34 +460,31 @@ const Page = () => {
 
   const hasSelectedUpdate = fileType === 'shp' && Boolean(arrayBuffers?.length)
   const isSaveDisabledByUpdate = hasSelectedUpdate && !isUpdateValid
+  const isSaveDisabled = isSaveDisabledByUpdate || isSaving
   const isDeleting = adminFolayerConf?.state === FolayerConfState.Deleting
   const shouldShowSaveFooter = Boolean(
     adminFolayerConf && (adminFolayerConf.unsyncedChanges || fileName)
   )
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-      <SidebarContentBox sxOuter={{ position: 'relative' }}>
+    <Box sx={settingsRootSx}>
+      <SidebarContentBox sxOuter={settingsSidebarOuterSx}>
         {!isFolayerReady && !isDeleting && (
-          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-            <LoadingSpinner></LoadingSpinner>
+          <Box sx={loadingStateSx}>
+            <Box sx={loadingSpinnerFrameSx}>
+              <LoadingSpinner></LoadingSpinner>
+            </Box>
           </Box>
         )}
         {isFolayerReady && adminFolayerConf && (
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              pb: 5,
-            }}
-          >
+          <Box sx={settingsContentSx}>
             <IconWithText
-              sx={{ alignSelf: 'flex-end', color: 'neutral.dark' }}
+              sx={deleteActionSx}
               icon={<Delete />}
               isIconOnRight={true}
               onClick={handleDeleteClick}
-              iconSx={{ height: '1.1rem' }}
-              textSx={{ typography: 'h8' }}
+              iconSx={deleteActionIconSx}
+              textSx={deleteActionTextSx}
               ariaLabel={t('sidebar.admin.folayer.settings.delete')}
             >
               <TText
@@ -259,24 +493,21 @@ const Page = () => {
               />
             </IconWithText>
             <Box
-              sx={(theme) => ({
-                backgroundColor: theme.palette.neutral.light,
-                p: 4,
-                borderRadius: '0.3125rem',
-                mt: 6,
-              })}
+              sx={settingsPanelSx}
             >
               <TextFieldWithHeader
                 headerText={t('sidebar.admin.folayer.settings.name.header')}
                 value={adminFolayerConf.name}
                 onChange={handleNameChange}
                 placeholderText={adminFolayerConf.name}
-                sx={{ mt: 2 }}
+                sx={fieldSx}
               />
               <ColorPickerWithPopover
                 color={adminFolayerConf.colorCode}
                 onChange={handleColorChange}
-                sx={{ mt: 4 }}
+                sx={colorPickerSx}
+                colorBoxSx={colorPickerBoxSx}
+                labelSx={switchLabelSx}
                 labelText={t('sidebar.admin.folayer.settings.color')}
                 popoverProps={{
                   positionerProps: {
@@ -291,7 +522,9 @@ const Page = () => {
               <SwitchWithLabel
                 checked={adminFolayerConf.isVisible}
                 onChange={handleIsVisibleChange}
-                sx={{ mt: 4 }}
+                sx={compactSwitchSx}
+                controlSx={switchControlSx}
+                labelSx={switchLabelSx}
                 ariaLabel={t('sidebar.admin.folayer.settings.is_visible')}
               >
                 <TText
@@ -302,24 +535,21 @@ const Page = () => {
             </Box>
             {/* Import/update shapefile */}
             <Box
-              sx={(theme) => ({
-                backgroundColor: theme.palette.neutral.light,
-                p: 4,
-                borderRadius: '0.3125rem',
-                mt: 6,
-              })}
+              sx={settingsPanelSx}
             >
               <BigMenuButton
                 variant="outlined"
                 component="label"
-                sx={{ width: '100%', minHeight: '60px' }}
+                sx={uploadButtonSx}
                 aria-label={
                   fileName ??
                   t('sidebar.admin.folayer.settings.update_with_file')
                 }
               >
-                {fileName ||
-                  t('sidebar.admin.folayer.settings.update_with_file')}
+                <Box component="span" sx={uploadButtonLabelSx}>
+                  {fileName ||
+                    t('sidebar.admin.folayer.settings.update_with_file')}
+                </Box>
                 <input
                   hidden
                   accept=".zip"
@@ -328,19 +558,21 @@ const Page = () => {
                   onChange={handleFileInput}
                   ref={inputRef}
                 />
-                <Upload sx={{ width: '24px' }} />
+                <Upload aria-hidden="true" sx={uploadIconSx} />
               </BigMenuButton>
 
               {fileType === 'shp' &&
                 arrayBuffers &&
                 arrayBuffers.length > 0 && (
-                  <>
+                  <Box sx={selectedUpdateStackSx}>
                     <SwitchWithLabel
                       checked={deleteAreasNotUpdated}
                       onChange={(_e, checked) =>
                         setDeleteAreasNotUpdated(checked)
                       }
-                      sx={{ mt: 5 }}
+                      sx={wrappingSwitchSx}
+                      controlSx={switchControlSx}
+                      labelSx={switchLabelSx}
                       ariaLabel={t(
                         'sidebar.admin.folayer.settings.delete_areas_not_updated'
                       )}
@@ -352,66 +584,31 @@ const Page = () => {
                         }
                       />
                     </SwitchWithLabel>
-                    <Box sx={{ mt: 5 }}>
-                      <FolayerUpdateShp
-                        fileBuffers={arrayBuffers}
-                        adminFolayerConf={adminFolayerConf}
-                        onValidationChange={setIsUpdateValid}
-                        ref={shpRef}
-                      />
-                    </Box>
-                  </>
+                    <FolayerUpdateShp
+                      fileBuffers={arrayBuffers}
+                      adminFolayerConf={adminFolayerConf}
+                      onValidationChange={setIsUpdateValid}
+                      ref={shpRef}
+                    />
+                  </Box>
                 )}
             </Box>
           </Box>
         )}
       </SidebarContentBox>
       {shouldShowSaveFooter && (
-        <Box
-          sx={(theme) => ({
-            display: 'flex',
-            flexDirection: 'column',
-            pl: SIDEBAR_PADDING_REM + 'rem',
-            pr: SIDEBAR_PADDING_REM + 'rem',
-            pt: 2,
-            pb: 2,
-            zIndex: theme.zIndex.drawer + 1,
-            borderTop: 1,
-            borderColor: 'primary.lighter',
-          })}
-        >
+        <Box sx={saveFooterSx}>
           <Button
             type="button"
             variant="text"
             color="neutral"
-            disabled={isSaveDisabledByUpdate}
+            disabled={isSaveDisabled}
             aria-label={t('sidebar.admin.folayer.settings.save')}
             onClick={handleSaveClick}
-            startIcon={<SaveOutlined />}
-            sx={{
-              mt: 1.3,
-              display: 'inline-flex',
-              width: '100%',
-              minWidth: 0,
-              minHeight: 'auto',
-              justifyContent: 'flex-start',
-              alignSelf: 'flex-start',
-              p: 0,
-              color: 'neutral.dark',
-              typography: 'h3',
-              gap: 1,
-              whiteSpace: 'nowrap',
-              '&:hover': {
-                backgroundColor: 'transparent',
-              },
-              '&:disabled, &[data-disabled], &[aria-disabled="true"]': {
-                color: 'neutral.dark',
-                backgroundColor: 'transparent',
-                opacity: 0.5,
-                cursor: 'not-allowed',
-                pointerEvents: 'auto',
-              },
-            }}
+            startIcon={
+              <SaveOutlined sx={{ width: '1.25rem', height: '1.25rem' }} />
+            }
+            sx={saveButtonSx}
           >
             <TText
               keyName={'sidebar.admin.folayer.settings.save'}

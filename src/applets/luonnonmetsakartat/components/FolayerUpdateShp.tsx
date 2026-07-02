@@ -2,7 +2,7 @@ import { useState, useEffect, forwardRef, useImperativeHandle } from 'react'
 import type { Feature, FeatureCollection } from 'geojson'
 import { useTranslate } from '@tolgee/react'
 
-import { Box } from '#/common/style/theme'
+import { Box, type AppTheme } from '#/common/style/theme'
 import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import { useUIStore } from '#/common/store'
 import TText from '#/components/common/TText'
@@ -19,6 +19,35 @@ import {
   folayerDataFindDuplicateNameMunicipalityPairs,
 } from '../common/utils'
 import { ensureShpjsBrowserGlobals } from '../common/shpjsCompat'
+
+const selectorFieldSx = {
+  width: '100%',
+  minWidth: 0,
+} as const
+
+const selectorHeadingSx = {
+  typography: 'h4',
+  m: 0,
+} as const
+
+const selectorPanelSx = (theme: AppTheme) => ({
+  borderLeft: `1px solid ${theme.palette.neutral.main}`,
+  pl: {
+    mobile: 1.5,
+    desktop: 2,
+  },
+  py: {
+    mobile: 0.5,
+    desktop: 0.75,
+  },
+  display: 'flex',
+  flexDirection: 'column',
+  gap: {
+    mobile: 2,
+    desktop: 2.25,
+  },
+  minWidth: 0,
+})
 
 export interface FolayerUpdateShpRef {
   getValues: (
@@ -419,24 +448,26 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
     }
 
     return (
-      <>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: {
+            mobile: 2,
+            desktop: 2.25,
+          },
+          minWidth: 0,
+        }}
+      >
         {columns.length > 0 && (
           <>
-            <Box component="h3" sx={{ typography: 'h4', m: 0, mb: 2 }}>
+            <Box component="h3" sx={selectorHeadingSx}>
               <TText
                 keyName="sidebar.admin.create.column_selection_header"
                 ns="luonnonmetsakartat"
               />
             </Box>
-            <Box
-              sx={(theme) => ({
-                backgroundColor: theme.palette.neutral.light,
-                borderLeft: `1px solid ${theme.palette.neutral.main}`,
-                pl: 2,
-                pb: 2,
-                pt: 1,
-              })}
-            >
+            <Box sx={selectorPanelSx}>
               <DropDownSelectWithHeader
                 label={t('sidebar.admin.create.indexing_strategy_label')}
                 value={indexingStrategy}
@@ -454,7 +485,7 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
                     ),
                   },
                 ]}
-                sx={{ width: '100%' }}
+                sx={selectorFieldSx}
               />
               <FolayerImportCodeRecordSelect
                 columns={columns}
@@ -468,7 +499,7 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
                       )
                 }
                 allowEmpty={true}
-                sx={{ mt: 4, width: '100%' }}
+                sx={selectorFieldSx}
               />
               <FolayerImportCodeRecordSelect
                 columns={columns}
@@ -476,7 +507,7 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
                 onColumnChange={handleNameColChange}
                 label={t('sidebar.admin.create.select_folayer_name_record')}
                 allowEmpty={true}
-                sx={{ mt: 4, width: '100%' }}
+                sx={selectorFieldSx}
               />
               <FolayerImportCodeRecordSelect
                 columns={columns}
@@ -486,7 +517,7 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
                   'sidebar.admin.create.select_folayer_municipality_record'
                 )}
                 allowEmpty={true}
-                sx={{ mt: 4, width: '100%' }}
+                sx={selectorFieldSx}
               />
               <FolayerImportCodeRecordSelect
                 columns={columns}
@@ -494,7 +525,7 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
                 onColumnChange={handleRegionColChange}
                 label={t('sidebar.admin.create.select_folayer_region_record')}
                 allowEmpty={true}
-                sx={{ mt: 4, width: '100%' }}
+                sx={selectorFieldSx}
               />
               <FolayerImportCodeRecordSelect
                 columns={columns}
@@ -504,7 +535,7 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
                   'sidebar.admin.create.select_folayer_description_record'
                 )}
                 allowEmpty={true}
-                sx={{ mt: 4, width: '100%' }}
+                sx={selectorFieldSx}
               />
               <FolayerImportCodeRecordSelect
                 columns={columns}
@@ -512,12 +543,12 @@ const FolayerUpdateShp = forwardRef<FolayerUpdateShpRef, FolayerUpdateShpProps>(
                 onColumnChange={handleAreaColChange}
                 label={t('sidebar.admin.create.select_folayer_area_record')}
                 allowEmpty={true}
-                sx={{ mt: 4, width: '100%' }}
+                sx={selectorFieldSx}
               />
             </Box>
           </>
         )}
-      </>
+      </Box>
     )
   }
 )
