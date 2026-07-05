@@ -15,9 +15,10 @@ import CategoryContent from './CategoryContent'
 
 type CategoryPageProps = {
   categoryId: UiBaselineCategoryId
+  children?: React.ReactNode
 }
 
-const CategoryPage = ({ categoryId }: CategoryPageProps) => {
+const CategoryPage = ({ categoryId, children }: CategoryPageProps) => {
   const category = getUiBaselineCategory(categoryId)
 
   if (!category) {
@@ -64,7 +65,7 @@ const CategoryPage = ({ categoryId }: CategoryPageProps) => {
         >
           <TText ns={UI_BASELINE_NAMESPACE} keyName={category.breadcrumbKey} />
         </Box>
-        <CategoryContent categoryId={category.id} />
+        {children ?? <CategoryContent categoryId={category.id} />}
       </Box>
     </SidebarContentBox>
   )

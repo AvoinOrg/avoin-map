@@ -6,8 +6,13 @@ import {
   routeTextKey,
 } from '#/common/routing/routeMetadata'
 import CategoryPage from 'applets/ui-baseline/pages/CategoryPage'
+import PanelsContent from 'applets/ui-baseline/pages/PanelsContent'
 
-const PanelsPage = () => <CategoryPage categoryId="panels" />
+const PanelsPage = () => (
+  <CategoryPage categoryId="panels">
+    <PanelsContent />
+  </CategoryPage>
+)
 
 export const Route = createFileRoute(
   '/$locale/_map/(applets)/ui-baseline/panels'
