@@ -23,6 +23,10 @@ describe('public applet route slug policy', () => {
       expect(getAppletRouteSlugInfo(slug)).toBeNull()
     }
   )
+
+  it('does not recognize ui-baseline as a public applet slug', () => {
+    expect(getAppletRouteSlugInfo('ui-baseline')).toBeNull()
+  })
 })
 
 describe('request routing decisions', () => {
@@ -121,6 +125,8 @@ describe('request routing decisions', () => {
       '/fi/carbon/plans/plan-1/areas?x=1',
       '/fi/carbon/report?x=1',
       '/fi/luonnonmetsakartat/admin?x=1',
+      '/fi/ui-baseline?x=1',
+      '/fi/ui-baseline/dropdowns?x=1',
     ])(
       'passes through localized canonical applet path %s with a supported locale',
       (path) => {

@@ -1,6 +1,10 @@
 import type { AppletNamespace } from './routeMetadata'
 
-export type PublicAppletNamespace = Exclude<AppletNamespace, 'main'>
+// ui-baseline is a development/QA-only applet and must not get a public slug.
+export type PublicAppletNamespace = Exclude<
+  AppletNamespace,
+  'main' | 'ui-baseline'
+>
 
 export const PUBLIC_APPLET_NAMESPACES = [
   'energiakartta',

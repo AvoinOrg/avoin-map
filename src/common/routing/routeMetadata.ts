@@ -3,6 +3,7 @@ export const APPLET_NAMESPACES = [
   'energiakartta',
   'hiilikartta',
   'luonnonmetsakartat',
+  'ui-baseline',
 ] as const
 
 export type AppletNamespace = (typeof APPLET_NAMESPACES)[number]
@@ -30,6 +31,15 @@ export const APP_ROUTE_KEYS = {
     'luonnonmetsakartat.admin.folayer.settings',
   LUONNONMETSAKARTAT_ADMIN_FOLAYER_PICTURES:
     'luonnonmetsakartat.admin.folayer.pictures',
+  UI_BASELINE_HOME: 'ui-baseline.home',
+  UI_BASELINE_DROPDOWNS: 'ui-baseline.dropdowns',
+  UI_BASELINE_BUTTONS_TOGGLES: 'ui-baseline.buttons-toggles',
+  UI_BASELINE_INPUTS: 'ui-baseline.inputs',
+  UI_BASELINE_NOTIFICATIONS: 'ui-baseline.notifications',
+  UI_BASELINE_PANELS: 'ui-baseline.panels',
+  UI_BASELINE_DRAWING: 'ui-baseline.drawing',
+  UI_BASELINE_NODE_FLOW: 'ui-baseline.node-flow',
+  UI_BASELINE_MODALS: 'ui-baseline.modals',
   MAIN_FORESTS: 'main.forests',
 } as const
 

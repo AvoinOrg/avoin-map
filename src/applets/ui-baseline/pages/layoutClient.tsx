@@ -1,0 +1,41 @@
+'use client'
+
+import React from 'react'
+
+import { SidebarBoundary } from '#/components/Sidebar'
+import AppletWrapper from '#/components/common/AppletWrapper'
+
+import { UI_BASELINE_NAMESPACE } from '../common/categories'
+
+const HELSINKI_DEFAULT_VIEW = {
+  center: [24.9384, 60.1699] as [number, number],
+  zoom: 12,
+  duration: 0,
+}
+
+const LayoutClient = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <SidebarBoundary
+      id="ui-baseline-floating"
+      mode="floating"
+      config={{ width: 'compact' }}
+    >
+      <AppletWrapper
+        mapContext={UI_BASELINE_NAMESPACE}
+        localizationNamespace={UI_BASELINE_NAMESPACE}
+        isNavbarHidden={true}
+        defaultView={HELSINKI_DEFAULT_VIEW}
+        sidebarHeaderTitle="UI Baseline"
+        sx={{
+          pt: 0,
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        {children}
+      </AppletWrapper>
+    </SidebarBoundary>
+  )
+}
+
+export default LayoutClient

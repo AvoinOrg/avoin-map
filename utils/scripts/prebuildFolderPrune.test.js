@@ -104,6 +104,7 @@ const writeCommonFixture = (root) => {
     'energiakartta',
     'hiilikartta',
     'luonnonmetsakartat',
+    'ui-baseline',
   ]) {
     writeDir({ root, relativePath: path.join('src', 'applets', namespace) })
   }
@@ -223,6 +224,21 @@ const writeCommonFixture = (root) => {
     root,
     relativePath: appletRoute('luonnonmetsakartat', 'admin', 'tuo.tsx'),
     content: luonnonmetsakartatLegacyImportRouteFile(),
+  })
+  writeFile({
+    root,
+    relativePath: appletRoute('ui-baseline', 'route.tsx'),
+    content: routeFile('/$locale/_map/(applets)/ui-baseline'),
+  })
+  writeFile({
+    root,
+    relativePath: appletRoute('ui-baseline', 'index.tsx'),
+    content: routeFile('/$locale/_map/(applets)/ui-baseline/'),
+  })
+  writeFile({
+    root,
+    relativePath: appletRoute('ui-baseline', 'dropdowns.tsx'),
+    content: routeFile('/$locale/_map/(applets)/ui-baseline/dropdowns'),
   })
 }
 
@@ -461,5 +477,52 @@ describe('prebuildFolderPrune standalone route materialization', () => {
     expect(exists({ root, relativePath: apiRoute('luonnonmetsakartat') })).toBe(
       false
     )
+  })
+
+  it('removes ui-baseline source and routes when it is not selected in a main build', () => {
+    root = makeTempProject()
+    writeCommonFixture(root)
+
+    runPruneTopology({
+      root,
+      buildConfig: makeBuildConfig({
+        includesMain: true,
+        selected: ['energiakartta'],
+      }),
+    })
+
+    expect(
+      exists({
+        root,
+        relativePath: path.join('src', 'applets', 'ui-baseline'),
+      })
+    ).toBe(false)
+    expect(exists({ root, relativePath: appletRoute('ui-baseline') })).toBe(
+      false
+    )
+  })
+
+  it('keeps ui-baseline source and routes when it is selected in a main build', () => {
+    root = makeTempProject()
+    writeCommonFixture(root)
+
+    runPruneTopology({
+      root,
+      buildConfig: makeBuildConfig({
+        includesMain: true,
+        selected: ['ui-baseline'],
+      }),
+    })
+
+    expect(
+      exists({
+        root,
+        relativePath: path.join('src', 'applets', 'ui-baseline'),
+      })
+    ).toBe(true)
+    expect(exists({ root, relativePath: appletRoute('ui-baseline') })).toBe(
+      true
+    )
+    expect(exists({ root, relativePath: appletRoute('energy') })).toBe(false)
   })
 })

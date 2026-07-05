@@ -220,5 +220,20 @@ describe('routeMetadata', () => {
         },
       })
     ).toBeUndefined()
+
+    expect(
+      getAppRouteMetadataFromStaticData({
+        appRoute: {
+          key: APP_ROUTE_KEYS.UI_BASELINE_HOME,
+          appletNamespace: 'ui-baseline',
+          variant: 'canonical',
+          home: true,
+          breadcrumb: {
+            ns: 'ui-baseline',
+            key: 'route.breadcrumb.home',
+          },
+        },
+      })?.appletNamespace
+    ).toBe('ui-baseline')
   })
 })

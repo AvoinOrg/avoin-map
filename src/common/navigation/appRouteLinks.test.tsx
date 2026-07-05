@@ -171,6 +171,91 @@ const standaloneHiilikarttaRoutesById = {
   }),
 }
 
+const uiBaselineRoutesById = {
+  uiBaselineHome: makeRoute({
+    id: 'uiBaselineHome',
+    fullPath: '/$locale/ui-baseline',
+    metadata: {
+      key: APP_ROUTE_KEYS.UI_BASELINE_HOME,
+      appletNamespace: 'ui-baseline',
+      variant: 'canonical',
+      home: true,
+    },
+  }),
+  uiBaselineDropdowns: makeRoute({
+    id: 'uiBaselineDropdowns',
+    fullPath: '/$locale/ui-baseline/dropdowns',
+    metadata: {
+      key: APP_ROUTE_KEYS.UI_BASELINE_DROPDOWNS,
+      appletNamespace: 'ui-baseline',
+      variant: 'canonical',
+    },
+  }),
+  uiBaselineButtonsToggles: makeRoute({
+    id: 'uiBaselineButtonsToggles',
+    fullPath: '/$locale/ui-baseline/buttons-toggles',
+    metadata: {
+      key: APP_ROUTE_KEYS.UI_BASELINE_BUTTONS_TOGGLES,
+      appletNamespace: 'ui-baseline',
+      variant: 'canonical',
+    },
+  }),
+  uiBaselineInputs: makeRoute({
+    id: 'uiBaselineInputs',
+    fullPath: '/$locale/ui-baseline/inputs',
+    metadata: {
+      key: APP_ROUTE_KEYS.UI_BASELINE_INPUTS,
+      appletNamespace: 'ui-baseline',
+      variant: 'canonical',
+    },
+  }),
+  uiBaselineNotifications: makeRoute({
+    id: 'uiBaselineNotifications',
+    fullPath: '/$locale/ui-baseline/notifications',
+    metadata: {
+      key: APP_ROUTE_KEYS.UI_BASELINE_NOTIFICATIONS,
+      appletNamespace: 'ui-baseline',
+      variant: 'canonical',
+    },
+  }),
+  uiBaselinePanels: makeRoute({
+    id: 'uiBaselinePanels',
+    fullPath: '/$locale/ui-baseline/panels',
+    metadata: {
+      key: APP_ROUTE_KEYS.UI_BASELINE_PANELS,
+      appletNamespace: 'ui-baseline',
+      variant: 'canonical',
+    },
+  }),
+  uiBaselineDrawing: makeRoute({
+    id: 'uiBaselineDrawing',
+    fullPath: '/$locale/ui-baseline/drawing',
+    metadata: {
+      key: APP_ROUTE_KEYS.UI_BASELINE_DRAWING,
+      appletNamespace: 'ui-baseline',
+      variant: 'canonical',
+    },
+  }),
+  uiBaselineNodeFlow: makeRoute({
+    id: 'uiBaselineNodeFlow',
+    fullPath: '/$locale/ui-baseline/node-flow',
+    metadata: {
+      key: APP_ROUTE_KEYS.UI_BASELINE_NODE_FLOW,
+      appletNamespace: 'ui-baseline',
+      variant: 'canonical',
+    },
+  }),
+  uiBaselineModals: makeRoute({
+    id: 'uiBaselineModals',
+    fullPath: '/$locale/ui-baseline/modals',
+    metadata: {
+      key: APP_ROUTE_KEYS.UI_BASELINE_MODALS,
+      appletNamespace: 'ui-baseline',
+      variant: 'canonical',
+    },
+  }),
+}
+
 describe('appRouteLinks', () => {
   it('resolves canonical route keys through main-build TanStack route entries', () => {
     const router = makeRouter()
@@ -221,6 +306,33 @@ describe('appRouteLinks', () => {
         routeParams: { locale: 'fi' },
       })
     ).toBe('/fi/report')
+  })
+
+  it.each([
+    [APP_ROUTE_KEYS.UI_BASELINE_HOME, '/fi/ui-baseline'],
+    [APP_ROUTE_KEYS.UI_BASELINE_DROPDOWNS, '/fi/ui-baseline/dropdowns'],
+    [
+      APP_ROUTE_KEYS.UI_BASELINE_BUTTONS_TOGGLES,
+      '/fi/ui-baseline/buttons-toggles',
+    ],
+    [APP_ROUTE_KEYS.UI_BASELINE_INPUTS, '/fi/ui-baseline/inputs'],
+    [
+      APP_ROUTE_KEYS.UI_BASELINE_NOTIFICATIONS,
+      '/fi/ui-baseline/notifications',
+    ],
+    [APP_ROUTE_KEYS.UI_BASELINE_PANELS, '/fi/ui-baseline/panels'],
+    [APP_ROUTE_KEYS.UI_BASELINE_DRAWING, '/fi/ui-baseline/drawing'],
+    [APP_ROUTE_KEYS.UI_BASELINE_NODE_FLOW, '/fi/ui-baseline/node-flow'],
+    [APP_ROUTE_KEYS.UI_BASELINE_MODALS, '/fi/ui-baseline/modals'],
+  ])('resolves ui-baseline route key %s', (routeKey, expectedHref) => {
+    expect(
+      resolveAppRouteHref({
+        router: makeRouter(),
+        entries: collectAppRouteEntries(uiBaselineRoutesById),
+        routeKey,
+        routeParams: { locale: 'fi' },
+      })
+    ).toBe(expectedHref)
   })
 
   it('selects exactly the requested canonical route key', () => {

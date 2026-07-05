@@ -20,15 +20,25 @@ import { Route as LocaleAddsLoginRouteRouteImport } from './routes/$locale/adds/
 import { Route as LocaleDevComponentFixturesIndexRouteImport } from './routes/$locale/dev/component-fixtures/index'
 import { Route as LocaleAddsLoginIndexRouteImport } from './routes/$locale/adds/login/index'
 import { Route as LocaleAddsLoginCallbackRouteImport } from './routes/$locale/adds/login/callback'
+import { Route as LocaleMapappletsUiBaselineRouteRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/route'
 import { Route as LocaleMapappletsLuonnonmetsakartatRouteRouteImport } from './routes/$locale/_map/(applets)/luonnonmetsakartat/route'
 import { Route as LocaleMapappletsForestsRouteRouteImport } from './routes/$locale/_map/(applets)/forests/route'
 import { Route as LocaleMapappletsEnergyRouteRouteImport } from './routes/$locale/_map/(applets)/energy/route'
 import { Route as LocaleMapappletsCarbonRouteRouteImport } from './routes/$locale/_map/(applets)/carbon/route'
+import { Route as LocaleMapappletsUiBaselineIndexRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/index'
 import { Route as LocaleMapappletsLuonnonmetsakartatIndexRouteImport } from './routes/$locale/_map/(applets)/luonnonmetsakartat/index'
 import { Route as LocaleMapappletsForestsIndexRouteImport } from './routes/$locale/_map/(applets)/forests/index'
 import { Route as LocaleMapappletsEnergyIndexRouteImport } from './routes/$locale/_map/(applets)/energy/index'
 import { Route as LocaleMapappletsCarbonIndexRouteImport } from './routes/$locale/_map/(applets)/carbon/index'
 import { Route as LocaleDevComponentFixturesFixtureIdStateIdRouteImport } from './routes/$locale/dev/component-fixtures/$fixtureId/$stateId'
+import { Route as LocaleMapappletsUiBaselinePanelsRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/panels'
+import { Route as LocaleMapappletsUiBaselineNotificationsRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/notifications'
+import { Route as LocaleMapappletsUiBaselineNodeFlowRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/node-flow'
+import { Route as LocaleMapappletsUiBaselineModalsRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/modals'
+import { Route as LocaleMapappletsUiBaselineInputsRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/inputs'
+import { Route as LocaleMapappletsUiBaselineDropdownsRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/dropdowns'
+import { Route as LocaleMapappletsUiBaselineDrawingRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/drawing'
+import { Route as LocaleMapappletsUiBaselineButtonsTogglesRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/buttons-toggles'
 import { Route as LocaleMapappletsCarbonReportRouteImport } from './routes/$locale/_map/(applets)/carbon/report'
 import { Route as LocaleMapappletsLuonnonmetsakartatAdminRouteRouteImport } from './routes/$locale/_map/(applets)/luonnonmetsakartat/admin/route'
 import { Route as LocaleMapappletsCarbonPlansRouteRouteImport } from './routes/$locale/_map/(applets)/carbon/plans/route'
@@ -99,6 +109,12 @@ const LocaleAddsLoginCallbackRoute = LocaleAddsLoginCallbackRouteImport.update({
   path: '/callback',
   getParentRoute: () => LocaleAddsLoginRouteRoute,
 } as any)
+const LocaleMapappletsUiBaselineRouteRoute =
+  LocaleMapappletsUiBaselineRouteRouteImport.update({
+    id: '/(applets)/ui-baseline',
+    path: '/ui-baseline',
+    getParentRoute: () => LocaleMapRouteRoute,
+  } as any)
 const LocaleMapappletsLuonnonmetsakartatRouteRoute =
   LocaleMapappletsLuonnonmetsakartatRouteRouteImport.update({
     id: '/(applets)/luonnonmetsakartat',
@@ -122,6 +138,12 @@ const LocaleMapappletsCarbonRouteRoute =
     id: '/(applets)/carbon',
     path: '/carbon',
     getParentRoute: () => LocaleMapRouteRoute,
+  } as any)
+const LocaleMapappletsUiBaselineIndexRoute =
+  LocaleMapappletsUiBaselineIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => LocaleMapappletsUiBaselineRouteRoute,
   } as any)
 const LocaleMapappletsLuonnonmetsakartatIndexRoute =
   LocaleMapappletsLuonnonmetsakartatIndexRouteImport.update({
@@ -152,6 +174,54 @@ const LocaleDevComponentFixturesFixtureIdStateIdRoute =
     id: '/$fixtureId/$stateId',
     path: '/$fixtureId/$stateId',
     getParentRoute: () => LocaleDevComponentFixturesRouteRoute,
+  } as any)
+const LocaleMapappletsUiBaselinePanelsRoute =
+  LocaleMapappletsUiBaselinePanelsRouteImport.update({
+    id: '/panels',
+    path: '/panels',
+    getParentRoute: () => LocaleMapappletsUiBaselineRouteRoute,
+  } as any)
+const LocaleMapappletsUiBaselineNotificationsRoute =
+  LocaleMapappletsUiBaselineNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => LocaleMapappletsUiBaselineRouteRoute,
+  } as any)
+const LocaleMapappletsUiBaselineNodeFlowRoute =
+  LocaleMapappletsUiBaselineNodeFlowRouteImport.update({
+    id: '/node-flow',
+    path: '/node-flow',
+    getParentRoute: () => LocaleMapappletsUiBaselineRouteRoute,
+  } as any)
+const LocaleMapappletsUiBaselineModalsRoute =
+  LocaleMapappletsUiBaselineModalsRouteImport.update({
+    id: '/modals',
+    path: '/modals',
+    getParentRoute: () => LocaleMapappletsUiBaselineRouteRoute,
+  } as any)
+const LocaleMapappletsUiBaselineInputsRoute =
+  LocaleMapappletsUiBaselineInputsRouteImport.update({
+    id: '/inputs',
+    path: '/inputs',
+    getParentRoute: () => LocaleMapappletsUiBaselineRouteRoute,
+  } as any)
+const LocaleMapappletsUiBaselineDropdownsRoute =
+  LocaleMapappletsUiBaselineDropdownsRouteImport.update({
+    id: '/dropdowns',
+    path: '/dropdowns',
+    getParentRoute: () => LocaleMapappletsUiBaselineRouteRoute,
+  } as any)
+const LocaleMapappletsUiBaselineDrawingRoute =
+  LocaleMapappletsUiBaselineDrawingRouteImport.update({
+    id: '/drawing',
+    path: '/drawing',
+    getParentRoute: () => LocaleMapappletsUiBaselineRouteRoute,
+  } as any)
+const LocaleMapappletsUiBaselineButtonsTogglesRoute =
+  LocaleMapappletsUiBaselineButtonsTogglesRouteImport.update({
+    id: '/buttons-toggles',
+    path: '/buttons-toggles',
+    getParentRoute: () => LocaleMapappletsUiBaselineRouteRoute,
   } as any)
 const LocaleMapappletsCarbonReportRoute =
   LocaleMapappletsCarbonReportRouteImport.update({
@@ -299,17 +369,27 @@ export interface FileRoutesByFullPath {
   '/$locale/energy': typeof LocaleMapappletsEnergyRouteRouteWithChildren
   '/$locale/forests': typeof LocaleMapappletsForestsRouteRouteWithChildren
   '/$locale/luonnonmetsakartat': typeof LocaleMapappletsLuonnonmetsakartatRouteRouteWithChildren
+  '/$locale/ui-baseline': typeof LocaleMapappletsUiBaselineRouteRouteWithChildren
   '/$locale/adds/login/callback': typeof LocaleAddsLoginCallbackRoute
   '/$locale/adds/login/': typeof LocaleAddsLoginIndexRoute
   '/$locale/dev/component-fixtures/': typeof LocaleDevComponentFixturesIndexRoute
   '/$locale/carbon/plans': typeof LocaleMapappletsCarbonPlansRouteRouteWithChildren
   '/$locale/luonnonmetsakartat/admin': typeof LocaleMapappletsLuonnonmetsakartatAdminRouteRouteWithChildren
   '/$locale/carbon/report': typeof LocaleMapappletsCarbonReportRoute
+  '/$locale/ui-baseline/buttons-toggles': typeof LocaleMapappletsUiBaselineButtonsTogglesRoute
+  '/$locale/ui-baseline/drawing': typeof LocaleMapappletsUiBaselineDrawingRoute
+  '/$locale/ui-baseline/dropdowns': typeof LocaleMapappletsUiBaselineDropdownsRoute
+  '/$locale/ui-baseline/inputs': typeof LocaleMapappletsUiBaselineInputsRoute
+  '/$locale/ui-baseline/modals': typeof LocaleMapappletsUiBaselineModalsRoute
+  '/$locale/ui-baseline/node-flow': typeof LocaleMapappletsUiBaselineNodeFlowRoute
+  '/$locale/ui-baseline/notifications': typeof LocaleMapappletsUiBaselineNotificationsRoute
+  '/$locale/ui-baseline/panels': typeof LocaleMapappletsUiBaselinePanelsRoute
   '/$locale/dev/component-fixtures/$fixtureId/$stateId': typeof LocaleDevComponentFixturesFixtureIdStateIdRoute
   '/$locale/carbon/': typeof LocaleMapappletsCarbonIndexRoute
   '/$locale/energy/': typeof LocaleMapappletsEnergyIndexRoute
   '/$locale/forests/': typeof LocaleMapappletsForestsIndexRoute
   '/$locale/luonnonmetsakartat/': typeof LocaleMapappletsLuonnonmetsakartatIndexRoute
+  '/$locale/ui-baseline/': typeof LocaleMapappletsUiBaselineIndexRoute
   '/$locale/carbon/plans/$planId': typeof LocaleMapappletsCarbonPlansPlanIdRouteRouteWithChildren
   '/$locale/luonnonmetsakartat/admin/taso': typeof LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteWithChildren
   '/$locale/luonnonmetsakartat/admin/import': typeof LocaleMapappletsLuonnonmetsakartatAdminImportRoute
@@ -331,11 +411,20 @@ export interface FileRoutesByTo {
   '/$locale/adds/login': typeof LocaleAddsLoginIndexRoute
   '/$locale/dev/component-fixtures': typeof LocaleDevComponentFixturesIndexRoute
   '/$locale/carbon/report': typeof LocaleMapappletsCarbonReportRoute
+  '/$locale/ui-baseline/buttons-toggles': typeof LocaleMapappletsUiBaselineButtonsTogglesRoute
+  '/$locale/ui-baseline/drawing': typeof LocaleMapappletsUiBaselineDrawingRoute
+  '/$locale/ui-baseline/dropdowns': typeof LocaleMapappletsUiBaselineDropdownsRoute
+  '/$locale/ui-baseline/inputs': typeof LocaleMapappletsUiBaselineInputsRoute
+  '/$locale/ui-baseline/modals': typeof LocaleMapappletsUiBaselineModalsRoute
+  '/$locale/ui-baseline/node-flow': typeof LocaleMapappletsUiBaselineNodeFlowRoute
+  '/$locale/ui-baseline/notifications': typeof LocaleMapappletsUiBaselineNotificationsRoute
+  '/$locale/ui-baseline/panels': typeof LocaleMapappletsUiBaselinePanelsRoute
   '/$locale/dev/component-fixtures/$fixtureId/$stateId': typeof LocaleDevComponentFixturesFixtureIdStateIdRoute
   '/$locale/carbon': typeof LocaleMapappletsCarbonIndexRoute
   '/$locale/energy': typeof LocaleMapappletsEnergyIndexRoute
   '/$locale/forests': typeof LocaleMapappletsForestsIndexRoute
   '/$locale/luonnonmetsakartat': typeof LocaleMapappletsLuonnonmetsakartatIndexRoute
+  '/$locale/ui-baseline': typeof LocaleMapappletsUiBaselineIndexRoute
   '/$locale/luonnonmetsakartat/admin/taso': typeof LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteWithChildren
   '/$locale/luonnonmetsakartat/admin/import': typeof LocaleMapappletsLuonnonmetsakartatAdminImportRoute
   '/$locale/luonnonmetsakartat/admin/tuo': typeof LocaleMapappletsLuonnonmetsakartatAdminTuoRoute
@@ -360,17 +449,27 @@ export interface FileRoutesById {
   '/$locale/_map/(applets)/energy': typeof LocaleMapappletsEnergyRouteRouteWithChildren
   '/$locale/_map/(applets)/forests': typeof LocaleMapappletsForestsRouteRouteWithChildren
   '/$locale/_map/(applets)/luonnonmetsakartat': typeof LocaleMapappletsLuonnonmetsakartatRouteRouteWithChildren
+  '/$locale/_map/(applets)/ui-baseline': typeof LocaleMapappletsUiBaselineRouteRouteWithChildren
   '/$locale/adds/login/callback': typeof LocaleAddsLoginCallbackRoute
   '/$locale/adds/login/': typeof LocaleAddsLoginIndexRoute
   '/$locale/dev/component-fixtures/': typeof LocaleDevComponentFixturesIndexRoute
   '/$locale/_map/(applets)/carbon/plans': typeof LocaleMapappletsCarbonPlansRouteRouteWithChildren
   '/$locale/_map/(applets)/luonnonmetsakartat/admin': typeof LocaleMapappletsLuonnonmetsakartatAdminRouteRouteWithChildren
   '/$locale/_map/(applets)/carbon/report': typeof LocaleMapappletsCarbonReportRoute
+  '/$locale/_map/(applets)/ui-baseline/buttons-toggles': typeof LocaleMapappletsUiBaselineButtonsTogglesRoute
+  '/$locale/_map/(applets)/ui-baseline/drawing': typeof LocaleMapappletsUiBaselineDrawingRoute
+  '/$locale/_map/(applets)/ui-baseline/dropdowns': typeof LocaleMapappletsUiBaselineDropdownsRoute
+  '/$locale/_map/(applets)/ui-baseline/inputs': typeof LocaleMapappletsUiBaselineInputsRoute
+  '/$locale/_map/(applets)/ui-baseline/modals': typeof LocaleMapappletsUiBaselineModalsRoute
+  '/$locale/_map/(applets)/ui-baseline/node-flow': typeof LocaleMapappletsUiBaselineNodeFlowRoute
+  '/$locale/_map/(applets)/ui-baseline/notifications': typeof LocaleMapappletsUiBaselineNotificationsRoute
+  '/$locale/_map/(applets)/ui-baseline/panels': typeof LocaleMapappletsUiBaselinePanelsRoute
   '/$locale/dev/component-fixtures/$fixtureId/$stateId': typeof LocaleDevComponentFixturesFixtureIdStateIdRoute
   '/$locale/_map/(applets)/carbon/': typeof LocaleMapappletsCarbonIndexRoute
   '/$locale/_map/(applets)/energy/': typeof LocaleMapappletsEnergyIndexRoute
   '/$locale/_map/(applets)/forests/': typeof LocaleMapappletsForestsIndexRoute
   '/$locale/_map/(applets)/luonnonmetsakartat/': typeof LocaleMapappletsLuonnonmetsakartatIndexRoute
+  '/$locale/_map/(applets)/ui-baseline/': typeof LocaleMapappletsUiBaselineIndexRoute
   '/$locale/_map/(applets)/carbon/plans/$planId': typeof LocaleMapappletsCarbonPlansPlanIdRouteRouteWithChildren
   '/$locale/_map/(applets)/luonnonmetsakartat/admin/taso': typeof LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteWithChildren
   '/$locale/_map/(applets)/luonnonmetsakartat/admin/import': typeof LocaleMapappletsLuonnonmetsakartatAdminImportRoute
@@ -397,17 +496,27 @@ export interface FileRouteTypes {
     | '/$locale/energy'
     | '/$locale/forests'
     | '/$locale/luonnonmetsakartat'
+    | '/$locale/ui-baseline'
     | '/$locale/adds/login/callback'
     | '/$locale/adds/login/'
     | '/$locale/dev/component-fixtures/'
     | '/$locale/carbon/plans'
     | '/$locale/luonnonmetsakartat/admin'
     | '/$locale/carbon/report'
+    | '/$locale/ui-baseline/buttons-toggles'
+    | '/$locale/ui-baseline/drawing'
+    | '/$locale/ui-baseline/dropdowns'
+    | '/$locale/ui-baseline/inputs'
+    | '/$locale/ui-baseline/modals'
+    | '/$locale/ui-baseline/node-flow'
+    | '/$locale/ui-baseline/notifications'
+    | '/$locale/ui-baseline/panels'
     | '/$locale/dev/component-fixtures/$fixtureId/$stateId'
     | '/$locale/carbon/'
     | '/$locale/energy/'
     | '/$locale/forests/'
     | '/$locale/luonnonmetsakartat/'
+    | '/$locale/ui-baseline/'
     | '/$locale/carbon/plans/$planId'
     | '/$locale/luonnonmetsakartat/admin/taso'
     | '/$locale/luonnonmetsakartat/admin/import'
@@ -429,11 +538,20 @@ export interface FileRouteTypes {
     | '/$locale/adds/login'
     | '/$locale/dev/component-fixtures'
     | '/$locale/carbon/report'
+    | '/$locale/ui-baseline/buttons-toggles'
+    | '/$locale/ui-baseline/drawing'
+    | '/$locale/ui-baseline/dropdowns'
+    | '/$locale/ui-baseline/inputs'
+    | '/$locale/ui-baseline/modals'
+    | '/$locale/ui-baseline/node-flow'
+    | '/$locale/ui-baseline/notifications'
+    | '/$locale/ui-baseline/panels'
     | '/$locale/dev/component-fixtures/$fixtureId/$stateId'
     | '/$locale/carbon'
     | '/$locale/energy'
     | '/$locale/forests'
     | '/$locale/luonnonmetsakartat'
+    | '/$locale/ui-baseline'
     | '/$locale/luonnonmetsakartat/admin/taso'
     | '/$locale/luonnonmetsakartat/admin/import'
     | '/$locale/luonnonmetsakartat/admin/tuo'
@@ -457,17 +575,27 @@ export interface FileRouteTypes {
     | '/$locale/_map/(applets)/energy'
     | '/$locale/_map/(applets)/forests'
     | '/$locale/_map/(applets)/luonnonmetsakartat'
+    | '/$locale/_map/(applets)/ui-baseline'
     | '/$locale/adds/login/callback'
     | '/$locale/adds/login/'
     | '/$locale/dev/component-fixtures/'
     | '/$locale/_map/(applets)/carbon/plans'
     | '/$locale/_map/(applets)/luonnonmetsakartat/admin'
     | '/$locale/_map/(applets)/carbon/report'
+    | '/$locale/_map/(applets)/ui-baseline/buttons-toggles'
+    | '/$locale/_map/(applets)/ui-baseline/drawing'
+    | '/$locale/_map/(applets)/ui-baseline/dropdowns'
+    | '/$locale/_map/(applets)/ui-baseline/inputs'
+    | '/$locale/_map/(applets)/ui-baseline/modals'
+    | '/$locale/_map/(applets)/ui-baseline/node-flow'
+    | '/$locale/_map/(applets)/ui-baseline/notifications'
+    | '/$locale/_map/(applets)/ui-baseline/panels'
     | '/$locale/dev/component-fixtures/$fixtureId/$stateId'
     | '/$locale/_map/(applets)/carbon/'
     | '/$locale/_map/(applets)/energy/'
     | '/$locale/_map/(applets)/forests/'
     | '/$locale/_map/(applets)/luonnonmetsakartat/'
+    | '/$locale/_map/(applets)/ui-baseline/'
     | '/$locale/_map/(applets)/carbon/plans/$planId'
     | '/$locale/_map/(applets)/luonnonmetsakartat/admin/taso'
     | '/$locale/_map/(applets)/luonnonmetsakartat/admin/import'
@@ -606,6 +734,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleAddsLoginCallbackRouteImport
       parentRoute: typeof LocaleAddsLoginRouteRoute
     }
+    '/$locale/_map/(applets)/ui-baseline': {
+      id: '/$locale/_map/(applets)/ui-baseline'
+      path: '/ui-baseline'
+      fullPath: '/$locale/ui-baseline'
+      preLoaderRoute: typeof LocaleMapappletsUiBaselineRouteRouteImport
+      parentRoute: typeof LocaleMapRouteRoute
+    }
     '/$locale/_map/(applets)/luonnonmetsakartat': {
       id: '/$locale/_map/(applets)/luonnonmetsakartat'
       path: '/luonnonmetsakartat'
@@ -633,6 +768,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$locale/carbon'
       preLoaderRoute: typeof LocaleMapappletsCarbonRouteRouteImport
       parentRoute: typeof LocaleMapRouteRoute
+    }
+    '/$locale/_map/(applets)/ui-baseline/': {
+      id: '/$locale/_map/(applets)/ui-baseline/'
+      path: '/'
+      fullPath: '/$locale/ui-baseline/'
+      preLoaderRoute: typeof LocaleMapappletsUiBaselineIndexRouteImport
+      parentRoute: typeof LocaleMapappletsUiBaselineRouteRoute
     }
     '/$locale/_map/(applets)/luonnonmetsakartat/': {
       id: '/$locale/_map/(applets)/luonnonmetsakartat/'
@@ -668,6 +810,62 @@ declare module '@tanstack/react-router' {
       fullPath: '/$locale/dev/component-fixtures/$fixtureId/$stateId'
       preLoaderRoute: typeof LocaleDevComponentFixturesFixtureIdStateIdRouteImport
       parentRoute: typeof LocaleDevComponentFixturesRouteRoute
+    }
+    '/$locale/_map/(applets)/ui-baseline/panels': {
+      id: '/$locale/_map/(applets)/ui-baseline/panels'
+      path: '/panels'
+      fullPath: '/$locale/ui-baseline/panels'
+      preLoaderRoute: typeof LocaleMapappletsUiBaselinePanelsRouteImport
+      parentRoute: typeof LocaleMapappletsUiBaselineRouteRoute
+    }
+    '/$locale/_map/(applets)/ui-baseline/notifications': {
+      id: '/$locale/_map/(applets)/ui-baseline/notifications'
+      path: '/notifications'
+      fullPath: '/$locale/ui-baseline/notifications'
+      preLoaderRoute: typeof LocaleMapappletsUiBaselineNotificationsRouteImport
+      parentRoute: typeof LocaleMapappletsUiBaselineRouteRoute
+    }
+    '/$locale/_map/(applets)/ui-baseline/node-flow': {
+      id: '/$locale/_map/(applets)/ui-baseline/node-flow'
+      path: '/node-flow'
+      fullPath: '/$locale/ui-baseline/node-flow'
+      preLoaderRoute: typeof LocaleMapappletsUiBaselineNodeFlowRouteImport
+      parentRoute: typeof LocaleMapappletsUiBaselineRouteRoute
+    }
+    '/$locale/_map/(applets)/ui-baseline/modals': {
+      id: '/$locale/_map/(applets)/ui-baseline/modals'
+      path: '/modals'
+      fullPath: '/$locale/ui-baseline/modals'
+      preLoaderRoute: typeof LocaleMapappletsUiBaselineModalsRouteImport
+      parentRoute: typeof LocaleMapappletsUiBaselineRouteRoute
+    }
+    '/$locale/_map/(applets)/ui-baseline/inputs': {
+      id: '/$locale/_map/(applets)/ui-baseline/inputs'
+      path: '/inputs'
+      fullPath: '/$locale/ui-baseline/inputs'
+      preLoaderRoute: typeof LocaleMapappletsUiBaselineInputsRouteImport
+      parentRoute: typeof LocaleMapappletsUiBaselineRouteRoute
+    }
+    '/$locale/_map/(applets)/ui-baseline/dropdowns': {
+      id: '/$locale/_map/(applets)/ui-baseline/dropdowns'
+      path: '/dropdowns'
+      fullPath: '/$locale/ui-baseline/dropdowns'
+      preLoaderRoute: typeof LocaleMapappletsUiBaselineDropdownsRouteImport
+      parentRoute: typeof LocaleMapappletsUiBaselineRouteRoute
+    }
+    '/$locale/_map/(applets)/ui-baseline/drawing': {
+      id: '/$locale/_map/(applets)/ui-baseline/drawing'
+      path: '/drawing'
+      fullPath: '/$locale/ui-baseline/drawing'
+      preLoaderRoute: typeof LocaleMapappletsUiBaselineDrawingRouteImport
+      parentRoute: typeof LocaleMapappletsUiBaselineRouteRoute
+    }
+    '/$locale/_map/(applets)/ui-baseline/buttons-toggles': {
+      id: '/$locale/_map/(applets)/ui-baseline/buttons-toggles'
+      path: '/buttons-toggles'
+      fullPath: '/$locale/ui-baseline/buttons-toggles'
+      preLoaderRoute: typeof LocaleMapappletsUiBaselineButtonsTogglesRouteImport
+      parentRoute: typeof LocaleMapappletsUiBaselineRouteRoute
     }
     '/$locale/_map/(applets)/carbon/report': {
       id: '/$locale/_map/(applets)/carbon/report'
@@ -987,12 +1185,51 @@ const LocaleMapappletsLuonnonmetsakartatRouteRouteWithChildren =
     LocaleMapappletsLuonnonmetsakartatRouteRouteChildren,
   )
 
+interface LocaleMapappletsUiBaselineRouteRouteChildren {
+  LocaleMapappletsUiBaselineButtonsTogglesRoute: typeof LocaleMapappletsUiBaselineButtonsTogglesRoute
+  LocaleMapappletsUiBaselineDrawingRoute: typeof LocaleMapappletsUiBaselineDrawingRoute
+  LocaleMapappletsUiBaselineDropdownsRoute: typeof LocaleMapappletsUiBaselineDropdownsRoute
+  LocaleMapappletsUiBaselineInputsRoute: typeof LocaleMapappletsUiBaselineInputsRoute
+  LocaleMapappletsUiBaselineModalsRoute: typeof LocaleMapappletsUiBaselineModalsRoute
+  LocaleMapappletsUiBaselineNodeFlowRoute: typeof LocaleMapappletsUiBaselineNodeFlowRoute
+  LocaleMapappletsUiBaselineNotificationsRoute: typeof LocaleMapappletsUiBaselineNotificationsRoute
+  LocaleMapappletsUiBaselinePanelsRoute: typeof LocaleMapappletsUiBaselinePanelsRoute
+  LocaleMapappletsUiBaselineIndexRoute: typeof LocaleMapappletsUiBaselineIndexRoute
+}
+
+const LocaleMapappletsUiBaselineRouteRouteChildren: LocaleMapappletsUiBaselineRouteRouteChildren =
+  {
+    LocaleMapappletsUiBaselineButtonsTogglesRoute:
+      LocaleMapappletsUiBaselineButtonsTogglesRoute,
+    LocaleMapappletsUiBaselineDrawingRoute:
+      LocaleMapappletsUiBaselineDrawingRoute,
+    LocaleMapappletsUiBaselineDropdownsRoute:
+      LocaleMapappletsUiBaselineDropdownsRoute,
+    LocaleMapappletsUiBaselineInputsRoute:
+      LocaleMapappletsUiBaselineInputsRoute,
+    LocaleMapappletsUiBaselineModalsRoute:
+      LocaleMapappletsUiBaselineModalsRoute,
+    LocaleMapappletsUiBaselineNodeFlowRoute:
+      LocaleMapappletsUiBaselineNodeFlowRoute,
+    LocaleMapappletsUiBaselineNotificationsRoute:
+      LocaleMapappletsUiBaselineNotificationsRoute,
+    LocaleMapappletsUiBaselinePanelsRoute:
+      LocaleMapappletsUiBaselinePanelsRoute,
+    LocaleMapappletsUiBaselineIndexRoute: LocaleMapappletsUiBaselineIndexRoute,
+  }
+
+const LocaleMapappletsUiBaselineRouteRouteWithChildren =
+  LocaleMapappletsUiBaselineRouteRoute._addFileChildren(
+    LocaleMapappletsUiBaselineRouteRouteChildren,
+  )
+
 interface LocaleMapRouteRouteChildren {
   LocaleMapIndexRoute: typeof LocaleMapIndexRoute
   LocaleMapappletsCarbonRouteRoute: typeof LocaleMapappletsCarbonRouteRouteWithChildren
   LocaleMapappletsEnergyRouteRoute: typeof LocaleMapappletsEnergyRouteRouteWithChildren
   LocaleMapappletsForestsRouteRoute: typeof LocaleMapappletsForestsRouteRouteWithChildren
   LocaleMapappletsLuonnonmetsakartatRouteRoute: typeof LocaleMapappletsLuonnonmetsakartatRouteRouteWithChildren
+  LocaleMapappletsUiBaselineRouteRoute: typeof LocaleMapappletsUiBaselineRouteRouteWithChildren
 }
 
 const LocaleMapRouteRouteChildren: LocaleMapRouteRouteChildren = {
@@ -1005,6 +1242,8 @@ const LocaleMapRouteRouteChildren: LocaleMapRouteRouteChildren = {
     LocaleMapappletsForestsRouteRouteWithChildren,
   LocaleMapappletsLuonnonmetsakartatRouteRoute:
     LocaleMapappletsLuonnonmetsakartatRouteRouteWithChildren,
+  LocaleMapappletsUiBaselineRouteRoute:
+    LocaleMapappletsUiBaselineRouteRouteWithChildren,
 }
 
 const LocaleMapRouteRouteWithChildren = LocaleMapRouteRoute._addFileChildren(

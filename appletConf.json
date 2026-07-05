@@ -16,5 +16,9 @@
   "energiakartta": {
     "localeNs": "energiakartta",
     "langs": ["fi", "en"]
+  },
+  "ui-baseline": {
+    "localeNs": "ui-baseline",
+    "langs": ["en", "fi"]
   }
 }
