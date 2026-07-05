@@ -11,6 +11,7 @@ import {
   UI_BASELINE_NAMESPACE,
   type UiBaselineCategoryId,
 } from '../common/categories'
+import CategoryContent from './CategoryContent'
 
 type CategoryPageProps = {
   categoryId: UiBaselineCategoryId
@@ -63,17 +64,7 @@ const CategoryPage = ({ categoryId }: CategoryPageProps) => {
         >
           <TText ns={UI_BASELINE_NAMESPACE} keyName={category.breadcrumbKey} />
         </Box>
-        <Box
-          component="p"
-          sx={(theme) => ({
-            m: 0,
-            color: theme.palette.neutral.dark,
-            fontSize: '0.875rem',
-            lineHeight: 1.45,
-          })}
-        >
-          <TText ns={UI_BASELINE_NAMESPACE} keyName="category.placeholder" />
-        </Box>
+        <CategoryContent categoryId={category.id} />
       </Box>
     </SidebarContentBox>
   )
