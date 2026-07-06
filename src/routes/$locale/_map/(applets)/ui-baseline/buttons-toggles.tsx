@@ -5,10 +5,13 @@ import {
   defineAppRouteStaticData,
   routeTextKey,
 } from '#/common/routing/routeMetadata'
+import ButtonsTogglesContent from 'applets/ui-baseline/pages/ButtonsTogglesContent'
 import CategoryPage from 'applets/ui-baseline/pages/CategoryPage'
 
 const ButtonsTogglesPage = () => (
-  <CategoryPage categoryId="buttons-toggles" />
+  <CategoryPage categoryId="buttons-toggles">
+    <ButtonsTogglesContent />
+  </CategoryPage>
 )
 
 export const Route = createFileRoute(

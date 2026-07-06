@@ -6,8 +6,13 @@ import {
   routeTextKey,
 } from '#/common/routing/routeMetadata'
 import CategoryPage from 'applets/ui-baseline/pages/CategoryPage'
+import DropdownsContent from 'applets/ui-baseline/pages/DropdownsContent'
 
-const DropdownsPage = () => <CategoryPage categoryId="dropdowns" />
+const DropdownsPage = () => (
+  <CategoryPage categoryId="dropdowns">
+    <DropdownsContent />
+  </CategoryPage>
+)
 
 export const Route = createFileRoute(
   '/$locale/_map/(applets)/ui-baseline/dropdowns'

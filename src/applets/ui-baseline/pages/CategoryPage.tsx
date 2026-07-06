@@ -11,11 +11,10 @@ import {
   UI_BASELINE_NAMESPACE,
   type UiBaselineCategoryId,
 } from '../common/categories'
-import CategoryContent from './CategoryContent'
 
 type CategoryPageProps = {
   categoryId: UiBaselineCategoryId
-  children?: React.ReactNode
+  children: React.ReactNode
 }
 
 const CategoryPage = ({ categoryId, children }: CategoryPageProps) => {
@@ -65,7 +64,7 @@ const CategoryPage = ({ categoryId, children }: CategoryPageProps) => {
         >
           <TText ns={UI_BASELINE_NAMESPACE} keyName={category.breadcrumbKey} />
         </Box>
-        {children ?? <CategoryContent categoryId={category.id} />}
+        {children}
       </Box>
     </SidebarContentBox>
   )

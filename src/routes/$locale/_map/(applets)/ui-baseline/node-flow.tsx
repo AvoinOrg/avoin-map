@@ -6,8 +6,13 @@ import {
   routeTextKey,
 } from '#/common/routing/routeMetadata'
 import CategoryPage from 'applets/ui-baseline/pages/CategoryPage'
+import NodeFlowContent from 'applets/ui-baseline/pages/NodeFlowContent'
 
-const NodeFlowPage = () => <CategoryPage categoryId="node-flow" />
+const NodeFlowPage = () => (
+  <CategoryPage categoryId="node-flow">
+    <NodeFlowContent />
+  </CategoryPage>
+)
 
 export const Route = createFileRoute(
   '/$locale/_map/(applets)/ui-baseline/node-flow'

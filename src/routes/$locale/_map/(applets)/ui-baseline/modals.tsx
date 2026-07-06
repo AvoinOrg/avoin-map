@@ -6,8 +6,13 @@ import {
   routeTextKey,
 } from '#/common/routing/routeMetadata'
 import CategoryPage from 'applets/ui-baseline/pages/CategoryPage'
+import ModalsContent from 'applets/ui-baseline/pages/ModalsContent'
 
-const ModalsPage = () => <CategoryPage categoryId="modals" />
+const ModalsPage = () => (
+  <CategoryPage categoryId="modals">
+    <ModalsContent />
+  </CategoryPage>
+)
 
 export const Route = createFileRoute(
   '/$locale/_map/(applets)/ui-baseline/modals'

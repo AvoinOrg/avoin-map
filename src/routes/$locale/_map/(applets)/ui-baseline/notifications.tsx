@@ -6,8 +6,13 @@ import {
   routeTextKey,
 } from '#/common/routing/routeMetadata'
 import CategoryPage from 'applets/ui-baseline/pages/CategoryPage'
+import NotificationsContent from 'applets/ui-baseline/pages/NotificationsContent'
 
-const NotificationsPage = () => <CategoryPage categoryId="notifications" />
+const NotificationsPage = () => (
+  <CategoryPage categoryId="notifications">
+    <NotificationsContent />
+  </CategoryPage>
+)
 
 export const Route = createFileRoute(
   '/$locale/_map/(applets)/ui-baseline/notifications'
