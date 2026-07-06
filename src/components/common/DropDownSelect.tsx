@@ -7,6 +7,7 @@ import React from 'react'
 import {
   Box,
   type AppSxProps,
+  type AppTheme,
   toSxArray,
 } from '#/common/style/theme/system'
 import { SelectOption } from '#/common/types/general'
@@ -110,6 +111,91 @@ export const DROP_DOWN_SELECT_HEADER_LABEL_SX = {
   color: '#111111',
 } as const
 
+export const DROP_DOWN_SELECT_TRIGGER_SX = {
+  width: '100%',
+  minWidth: 0,
+  height: '2rem',
+  minHeight: '2rem',
+  m: 0,
+  p: 0,
+  position: 'relative',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  boxSizing: 'border-box',
+  overflow: 'hidden',
+  border: 0,
+  borderRadius: '999px',
+  backgroundColor: '#FFFFFF',
+  backgroundClip: 'padding-box',
+  color: '#111111',
+  boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
+  font: 'inherit',
+  textAlign: 'left',
+  outline: 0,
+  '&:focus-visible .MuiOutlinedInput-notchedOutline, &[data-popup-open] .MuiOutlinedInput-notchedOutline':
+    {
+      borderColor: 'secondary.dark',
+    },
+  '&:disabled': {
+    color: '#8a8a8a',
+    cursor: 'default',
+  },
+  '.MuiOutlinedInput-notchedOutline': {
+    position: 'absolute',
+    inset: 0,
+    display: 'block',
+    boxSizing: 'border-box',
+    pointerEvents: 'none',
+    border: '1px solid #D6D6D6',
+    borderRadius: '999px',
+  },
+  '.MuiSelect-select': {
+    minHeight: '1.25rem',
+    minWidth: 0,
+    flex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    py: '0.1875rem',
+    pl: '1rem',
+    pr: '2.5rem',
+    backgroundColor: 'transparent',
+    fontSize: '0.6875rem',
+    fontWeight: 400,
+    lineHeight: 'normal',
+    letterSpacing: '0.04em',
+    color: '#111111',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+} as const
+
+export const DROP_DOWN_SELECT_ICON_SX = {
+  position: 'absolute',
+  right: '1rem',
+  top: '50%',
+  width: '0.75rem',
+  height: '0.375rem',
+  color: 'currentColor',
+  pointerEvents: 'none',
+} as const
+
+export const DROP_DOWN_SELECT_POSITIONER_SX = {
+  zIndex: (theme: AppTheme) => theme.zIndex.modal + 1,
+  minWidth: 'var(--anchor-width)',
+  maxWidth: 'min(24rem, calc(100vw - 2rem))',
+} as const
+
+export const DROP_DOWN_SELECT_POPUP_SX = {
+  maxHeight: 'min(18rem, calc(100vh - 2rem))',
+  overflowY: 'auto',
+  borderRadius: '10px',
+  border: '0.1px solid #A0A0A0',
+  backgroundColor: 'common.white',
+  boxShadow: '0 1px 3px 0 rgba(214, 214, 214, 0.50) inset',
+} as const
+
 const getSelectedContent = ({
   selectedValue,
   selectedOption,
@@ -171,17 +257,11 @@ const SelectTriggerContent = ({
         .join(' ')}
       data-slot="icon"
       sx={[
+        DROP_DOWN_SELECT_ICON_SX,
         {
-          position: 'absolute',
-          right: '1rem',
-          top: '50%',
           transform: open
             ? 'translateY(-50%) rotate(180deg)'
             : 'translateY(-50%)',
-          width: '0.75rem',
-          height: '0.375rem',
-          color: 'currentColor',
-          pointerEvents: 'none',
         },
         ...toComponentSxArray(iconSx),
       ]}
@@ -443,65 +523,9 @@ const DropDownSelect = ({
                 data-slot="trigger"
                 data-popup-open={triggerState.open ? '' : undefined}
                 sx={[
+                  DROP_DOWN_SELECT_TRIGGER_SX,
                   {
-                    width: '100%',
-                    minWidth: 0,
-                    height: '2rem',
-                    minHeight: '2rem',
-                    m: 0,
-                    p: 0,
-                    position: 'relative',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    boxSizing: 'border-box',
-                    overflow: 'hidden',
-                    border: 0,
-                    borderRadius: '999px',
-                    backgroundColor: '#FFFFFF',
-                    backgroundClip: 'padding-box',
-                    color: '#111111',
-                    boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
-                    font: 'inherit',
-                    textAlign: 'left',
                     cursor: disabled ? 'default' : 'pointer',
-                    outline: 0,
-                    '&:focus-visible .MuiOutlinedInput-notchedOutline, &[data-popup-open] .MuiOutlinedInput-notchedOutline':
-                      {
-                        borderColor: 'secondary.dark',
-                      },
-                    '&:disabled': {
-                      color: '#8a8a8a',
-                      cursor: 'default',
-                    },
-                    '.MuiOutlinedInput-notchedOutline': {
-                      position: 'absolute',
-                      inset: 0,
-                      display: 'block',
-                      boxSizing: 'border-box',
-                      pointerEvents: 'none',
-                      border: '1px solid #D6D6D6',
-                      borderRadius: '999px',
-                    },
-                    '.MuiSelect-select': {
-                      minHeight: '1.25rem',
-                      minWidth: 0,
-                      flex: 1,
-                      display: 'flex',
-                      alignItems: 'center',
-                      py: '0.1875rem',
-                      pl: '1rem',
-                      pr: '2.5rem',
-                      backgroundColor: 'transparent',
-                      fontSize: '0.6875rem',
-                      fontWeight: 400,
-                      lineHeight: 'normal',
-                      letterSpacing: '0.04em',
-                      color: '#111111',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    },
                   },
                   ...toComponentSxArray(selectSx),
                 ]}
@@ -524,11 +548,7 @@ const DropDownSelect = ({
               render={(positionerProps) => (
                 <Box
                   {...positionerProps}
-                  sx={{
-                    zIndex: (theme) => theme.zIndex.modal + 1,
-                    minWidth: 'var(--anchor-width)',
-                    maxWidth: 'min(24rem, calc(100vw - 2rem))',
-                  }}
+                  sx={DROP_DOWN_SELECT_POSITIONER_SX}
                 />
               )}
             >
@@ -542,15 +562,7 @@ const DropDownSelect = ({
                       commitHighlightedValue(event)
                     }}
                     sx={[
-                      {
-                        maxHeight: 'min(18rem, calc(100vh - 2rem))',
-                        overflowY: 'auto',
-                        borderRadius: '10px',
-                        border: '0.1px solid #A0A0A0',
-                        backgroundColor: 'common.white',
-                        boxShadow:
-                          '0 1px 3px 0 rgba(214, 214, 214, 0.50) inset',
-                      },
+                      DROP_DOWN_SELECT_POPUP_SX,
                       ...toComponentSxArray(menuPaperSx),
                     ]}
                   />
@@ -593,64 +605,9 @@ const DropDownSelect = ({
           className="MuiOutlinedInput-root"
           data-slot="trigger"
           sx={[
+            DROP_DOWN_SELECT_TRIGGER_SX,
             {
-              width: '100%',
-              minWidth: 0,
-              height: '2rem',
-              minHeight: '2rem',
-              m: 0,
-              p: 0,
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              boxSizing: 'border-box',
-              overflow: 'hidden',
-              border: 0,
-              borderRadius: '999px',
-              backgroundColor: '#FFFFFF',
-              backgroundClip: 'padding-box',
-              color: '#111111',
-              boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
-              font: 'inherit',
-              textAlign: 'left',
               cursor: disabled ? 'default' : 'pointer',
-              outline: 0,
-              '&:focus-visible .MuiOutlinedInput-notchedOutline': {
-                borderColor: 'secondary.dark',
-              },
-              '&:disabled': {
-                color: '#8a8a8a',
-                cursor: 'default',
-              },
-              '.MuiOutlinedInput-notchedOutline': {
-                position: 'absolute',
-                inset: 0,
-                display: 'block',
-                boxSizing: 'border-box',
-                pointerEvents: 'none',
-                border: '1px solid #D6D6D6',
-                borderRadius: '999px',
-              },
-              '.MuiSelect-select': {
-                minHeight: '1.25rem',
-                minWidth: 0,
-                flex: 1,
-                display: 'flex',
-                alignItems: 'center',
-                py: '0.1875rem',
-                pl: '1rem',
-                pr: '2.5rem',
-                backgroundColor: 'transparent',
-                fontSize: '0.6875rem',
-                fontWeight: 400,
-                lineHeight: 'normal',
-                letterSpacing: '0.04em',
-                color: '#111111',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              },
             },
             ...toComponentSxArray(selectSx),
           ]}

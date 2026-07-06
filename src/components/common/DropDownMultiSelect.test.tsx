@@ -64,6 +64,50 @@ describe('DropDownMultiSelect', () => {
     ).toBeVisible()
   })
 
+  it('closes the option list from an open trigger click', async () => {
+    renderWithTheme(
+      <DropDownMultiSelect
+        value={[]}
+        options={options}
+        onChange={() => {}}
+        ariaLabel="Closable layer filters"
+        defaultOpen
+      />
+    )
+
+    const trigger = screen.getByRole('combobox', {
+      name: 'Closable layer filters',
+    })
+
+    expect(await screen.findByRole('option', { name: 'Heat demand' }))
+      .toBeVisible()
+
+    fireEvent.click(trigger)
+
+    await waitFor(() => {
+      expect(trigger.getAttribute('aria-expanded')).toBe('false')
+    })
+  })
+
+  it('uses the shared seamless outline element', () => {
+    renderWithTheme(
+      <DropDownMultiSelect
+        value={[]}
+        options={options}
+        onChange={() => {}}
+        ariaLabel="Outlined layer filters"
+      />
+    )
+
+    const trigger = screen.getByRole('combobox', {
+      name: 'Outlined layer filters',
+    })
+    const outline = trigger.querySelector('.MuiOutlinedInput-notchedOutline')
+
+    expect(outline?.tagName).toBe('SPAN')
+    expect(outline?.querySelector('legend')).toBeNull()
+  })
+
   it('marks selected options in the open list', async () => {
     renderWithTheme(
       <DropDownMultiSelect
