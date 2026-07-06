@@ -91,6 +91,25 @@ const optionTextSx = {
   color: '#111111',
 } as const
 
+export const DROP_DOWN_SELECT_HEADER_SX = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '0.5rem',
+  maxWidth: '100%',
+  px: '1rem',
+  minHeight: '1.5rem',
+  mb: '0.2rem',
+} as const
+
+export const DROP_DOWN_SELECT_HEADER_LABEL_SX = {
+  minWidth: 0,
+  fontSize: '0.625rem',
+  fontWeight: 400,
+  lineHeight: '0.8125rem',
+  letterSpacing: '0.11em',
+  color: '#111111',
+} as const
+
 const getSelectedContent = ({
   selectedValue,
   selectedOption,
@@ -383,7 +402,270 @@ const DropDownSelect = ({
     })),
   ]
 
-  return (
+  const selectControl = (
+    <Box
+      sx={{
+        width: '100%',
+        minWidth: 0,
+        flex: successIndicatorMode === 'outside' ? 1 : undefined,
+        borderRadius: '999px',
+        position: 'relative',
+      }}
+    >
+      {isMounted ? (
+        <BaseSelect.Root<string>
+          id={selectId}
+          modal={false}
+          value={normalizedValue}
+          disabled={disabled}
+          open={resolvedOpen}
+          onOpenChange={handleOpenChange}
+          onValueChange={(nextValue, eventDetails) => {
+            commitValue(nextValue, eventDetails.event)
+          }}
+        >
+          <BaseSelect.Trigger
+            aria-label={ariaLabel ?? label}
+            aria-labelledby={ariaLabel == null && labelId ? labelId : undefined}
+            render={(triggerProps, triggerState) => (
+              <Box
+                component="button"
+                {...triggerProps}
+                id={selectId}
+                autoFocus={autoFocus}
+                onKeyDown={(event) => {
+                  triggerProps.onKeyDown?.(event)
+                  commitHighlightedValue(event)
+                }}
+                className={[triggerProps.className, 'MuiOutlinedInput-root']
+                  .filter(Boolean)
+                  .join(' ')}
+                data-slot="trigger"
+                data-popup-open={triggerState.open ? '' : undefined}
+                sx={[
+                  {
+                    width: '100%',
+                    minWidth: 0,
+                    height: '2rem',
+                    minHeight: '2rem',
+                    m: 0,
+                    p: 0,
+                    position: 'relative',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    boxSizing: 'border-box',
+                    overflow: 'hidden',
+                    border: 0,
+                    borderRadius: '999px',
+                    backgroundColor: '#FFFFFF',
+                    backgroundClip: 'padding-box',
+                    color: '#111111',
+                    boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
+                    font: 'inherit',
+                    textAlign: 'left',
+                    cursor: disabled ? 'default' : 'pointer',
+                    outline: 0,
+                    '&:focus-visible .MuiOutlinedInput-notchedOutline, &[data-popup-open] .MuiOutlinedInput-notchedOutline':
+                      {
+                        borderColor: 'secondary.dark',
+                      },
+                    '&:disabled': {
+                      color: '#8a8a8a',
+                      cursor: 'default',
+                    },
+                    '.MuiOutlinedInput-notchedOutline': {
+                      position: 'absolute',
+                      inset: 0,
+                      display: 'block',
+                      boxSizing: 'border-box',
+                      pointerEvents: 'none',
+                      border: '1px solid #D6D6D6',
+                      borderRadius: '999px',
+                    },
+                    '.MuiSelect-select': {
+                      minHeight: '1.25rem',
+                      minWidth: 0,
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      py: '0.1875rem',
+                      pl: '1rem',
+                      pr: '2.5rem',
+                      backgroundColor: 'transparent',
+                      fontSize: '0.6875rem',
+                      fontWeight: 400,
+                      lineHeight: 'normal',
+                      letterSpacing: '0.04em',
+                      color: '#111111',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    },
+                  },
+                  ...toComponentSxArray(selectSx),
+                ]}
+              >
+                <SelectTriggerContent
+                  selectedContent={selectedContent}
+                  iconSx={iconSx}
+                  open={triggerState.open}
+                />
+              </Box>
+            )}
+          />
+
+          <BaseSelect.Portal>
+            <BaseSelect.Positioner
+              align="start"
+              side="bottom"
+              sideOffset={4}
+              alignItemWithTrigger={false}
+              render={(positionerProps) => (
+                <Box
+                  {...positionerProps}
+                  sx={{
+                    zIndex: (theme) => theme.zIndex.modal + 1,
+                    minWidth: 'var(--anchor-width)',
+                    maxWidth: 'min(24rem, calc(100vw - 2rem))',
+                  }}
+                />
+              )}
+            >
+              <BaseSelect.Popup
+                render={(popupProps) => (
+                  <Box
+                    {...popupProps}
+                    data-slot="popup"
+                    onKeyDown={(event) => {
+                      popupProps.onKeyDown?.(event)
+                      commitHighlightedValue(event)
+                    }}
+                    sx={[
+                      {
+                        maxHeight: 'min(18rem, calc(100vh - 2rem))',
+                        overflowY: 'auto',
+                        borderRadius: '10px',
+                        border: '0.1px solid #A0A0A0',
+                        backgroundColor: 'common.white',
+                        boxShadow:
+                          '0 1px 3px 0 rgba(214, 214, 214, 0.50) inset',
+                      },
+                      ...toComponentSxArray(menuPaperSx),
+                    ]}
+                  />
+                )}
+              >
+                <BaseSelect.List>
+                  {menuEntries.map((item) => (
+                    <BaseSelect.Item
+                      key={item.key}
+                      value={item.value}
+                      label={item.label}
+                      aria-label={item.ariaLabel}
+                      render={(itemProps, itemState) => (
+                        <DropDownSelectItemContent
+                          item={item}
+                          itemProps={itemProps}
+                          highlighted={itemState.highlighted}
+                          selected={itemState.selected}
+                          highlightedValueRef={highlightedValueRef}
+                          typographySx={typographySx}
+                          menuItemSx={menuItemSx}
+                        />
+                      )}
+                    />
+                  ))}
+                </BaseSelect.List>
+              </BaseSelect.Popup>
+            </BaseSelect.Positioner>
+          </BaseSelect.Portal>
+        </BaseSelect.Root>
+      ) : (
+        <Box
+          component="div"
+          id={selectId}
+          role="combobox"
+          aria-label={ariaLabel ?? label}
+          aria-labelledby={ariaLabel == null && labelId ? labelId : undefined}
+          aria-expanded={false}
+          aria-disabled={disabled ? 'true' : undefined}
+          className="MuiOutlinedInput-root"
+          data-slot="trigger"
+          sx={[
+            {
+              width: '100%',
+              minWidth: 0,
+              height: '2rem',
+              minHeight: '2rem',
+              m: 0,
+              p: 0,
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              boxSizing: 'border-box',
+              overflow: 'hidden',
+              border: 0,
+              borderRadius: '999px',
+              backgroundColor: '#FFFFFF',
+              backgroundClip: 'padding-box',
+              color: '#111111',
+              boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
+              font: 'inherit',
+              textAlign: 'left',
+              cursor: disabled ? 'default' : 'pointer',
+              outline: 0,
+              '&:focus-visible .MuiOutlinedInput-notchedOutline': {
+                borderColor: 'secondary.dark',
+              },
+              '&:disabled': {
+                color: '#8a8a8a',
+                cursor: 'default',
+              },
+              '.MuiOutlinedInput-notchedOutline': {
+                position: 'absolute',
+                inset: 0,
+                display: 'block',
+                boxSizing: 'border-box',
+                pointerEvents: 'none',
+                border: '1px solid #D6D6D6',
+                borderRadius: '999px',
+              },
+              '.MuiSelect-select': {
+                minHeight: '1.25rem',
+                minWidth: 0,
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                py: '0.1875rem',
+                pl: '1rem',
+                pr: '2.5rem',
+                backgroundColor: 'transparent',
+                fontSize: '0.6875rem',
+                fontWeight: 400,
+                lineHeight: 'normal',
+                letterSpacing: '0.04em',
+                color: '#111111',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              },
+            },
+            ...toComponentSxArray(selectSx),
+          ]}
+        >
+          <SelectTriggerContent
+            selectedContent={selectedContent}
+            iconSx={iconSx}
+            open={resolvedOpen}
+          />
+        </Box>
+      )}
+    </Box>
+  )
+
+  const controlRow = (
     <Box
       sx={[
         {
@@ -397,295 +679,7 @@ const DropDownSelect = ({
         ...toComponentSxArray(sx),
       ]}
     >
-      <Box
-        sx={{
-          width: '100%',
-          minWidth: 0,
-          flex: successIndicatorMode === 'outside' ? 1 : undefined,
-          borderRadius: '999px',
-          position: 'relative',
-        }}
-      >
-        {label && (
-          <Box
-            id={labelId}
-            component="span"
-            sx={[
-              {
-                position: 'absolute',
-                zIndex: 1,
-                left: '0.875rem',
-                top: normalizedValue || placeholder != null ? '-0.5rem' : 0,
-                px: 0.5,
-                backgroundColor: 'background.main',
-                color: resolvedOpen ? 'secondary.dark' : '#111111',
-                fontSize: '0.625rem',
-                fontWeight: 400,
-                letterSpacing: '0.0875rem',
-                lineHeight: 'normal',
-              },
-              ...toComponentSxArray(labelSx),
-            ]}
-          >
-            {label}
-          </Box>
-        )}
-        {isMounted ? (
-          <BaseSelect.Root<string>
-            id={selectId}
-            modal={false}
-            value={normalizedValue}
-            disabled={disabled}
-            open={resolvedOpen}
-            onOpenChange={handleOpenChange}
-            onValueChange={(nextValue, eventDetails) => {
-              commitValue(nextValue, eventDetails.event)
-            }}
-          >
-            <BaseSelect.Trigger
-              aria-label={ariaLabel ?? label}
-              aria-labelledby={
-                ariaLabel == null && labelId ? labelId : undefined
-              }
-              render={(triggerProps, triggerState) => (
-                <Box
-                  component="button"
-                  {...triggerProps}
-                  id={selectId}
-                  autoFocus={autoFocus}
-                  onKeyDown={(event) => {
-                    triggerProps.onKeyDown?.(event)
-                    commitHighlightedValue(event)
-                  }}
-                  className={[
-                    triggerProps.className,
-                    'MuiOutlinedInput-root',
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                  data-slot="trigger"
-                  data-popup-open={triggerState.open ? '' : undefined}
-                  sx={[
-                    {
-                      width: '100%',
-                      minWidth: 0,
-                      height: '2rem',
-                      minHeight: '2rem',
-                      m: 0,
-                      p: 0,
-                      position: 'relative',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      boxSizing: 'border-box',
-                      overflow: 'hidden',
-                      border: 0,
-                      borderRadius: '999px',
-                      backgroundColor: '#FFFFFF',
-                      backgroundClip: 'padding-box',
-                      color: '#111111',
-                      boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
-                      font: 'inherit',
-                      textAlign: 'left',
-                      cursor: disabled ? 'default' : 'pointer',
-                      outline: 0,
-                      '&:focus-visible .MuiOutlinedInput-notchedOutline, &[data-popup-open] .MuiOutlinedInput-notchedOutline':
-                        {
-                          borderColor: 'secondary.dark',
-                        },
-                      '&:disabled': {
-                        color: '#8a8a8a',
-                        cursor: 'default',
-                      },
-                      '.MuiOutlinedInput-notchedOutline': {
-                        position: 'absolute',
-                        inset: 0,
-                        display: 'block',
-                        boxSizing: 'border-box',
-                        pointerEvents: 'none',
-                        border: '1px solid #D6D6D6',
-                        borderRadius: '999px',
-                      },
-                      '.MuiSelect-select': {
-                        minHeight: '1.25rem',
-                        minWidth: 0,
-                        flex: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        py: '0.1875rem',
-                        pl: '1rem',
-                        pr: '2.5rem',
-                        backgroundColor: 'transparent',
-                        fontSize: '0.6875rem',
-                        fontWeight: 400,
-                        lineHeight: 'normal',
-                        letterSpacing: '0.04em',
-                        color: '#111111',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      },
-                    },
-                    ...toComponentSxArray(selectSx),
-                  ]}
-                >
-                  <SelectTriggerContent
-                    selectedContent={selectedContent}
-                    iconSx={iconSx}
-                    open={triggerState.open}
-                  />
-                </Box>
-              )}
-            />
-
-            <BaseSelect.Portal>
-              <BaseSelect.Positioner
-                align="start"
-                side="bottom"
-                sideOffset={4}
-                alignItemWithTrigger={false}
-                render={(positionerProps) => (
-                  <Box
-                    {...positionerProps}
-                    sx={{
-                      zIndex: (theme) => theme.zIndex.modal + 1,
-                      minWidth: 'var(--anchor-width)',
-                      maxWidth: 'min(24rem, calc(100vw - 2rem))',
-                    }}
-                  />
-                )}
-              >
-                <BaseSelect.Popup
-                  render={(popupProps) => (
-                    <Box
-                      {...popupProps}
-                      data-slot="popup"
-                      onKeyDown={(event) => {
-                        popupProps.onKeyDown?.(event)
-                        commitHighlightedValue(event)
-                      }}
-                      sx={[
-                        {
-                          maxHeight: 'min(18rem, calc(100vh - 2rem))',
-                          overflowY: 'auto',
-                          borderRadius: '10px',
-                          border: '0.1px solid #A0A0A0',
-                          backgroundColor: 'common.white',
-                          boxShadow:
-                            '0 1px 3px 0 rgba(214, 214, 214, 0.50) inset',
-                        },
-                        ...toComponentSxArray(menuPaperSx),
-                      ]}
-                    />
-                  )}
-                >
-                  <BaseSelect.List>
-                    {menuEntries.map((item) => (
-                      <BaseSelect.Item
-                        key={item.key}
-                        value={item.value}
-                        label={item.label}
-                        aria-label={item.ariaLabel}
-                        render={(itemProps, itemState) => (
-                          <DropDownSelectItemContent
-                            item={item}
-                            itemProps={itemProps}
-                            highlighted={itemState.highlighted}
-                            selected={itemState.selected}
-                            highlightedValueRef={highlightedValueRef}
-                            typographySx={typographySx}
-                            menuItemSx={menuItemSx}
-                          />
-                        )}
-                      />
-                    ))}
-                  </BaseSelect.List>
-                </BaseSelect.Popup>
-              </BaseSelect.Positioner>
-            </BaseSelect.Portal>
-          </BaseSelect.Root>
-        ) : (
-          <Box
-            component="div"
-            id={selectId}
-            role="combobox"
-            aria-label={ariaLabel ?? label}
-            aria-labelledby={ariaLabel == null && labelId ? labelId : undefined}
-            aria-expanded={false}
-            aria-disabled={disabled ? 'true' : undefined}
-            className="MuiOutlinedInput-root"
-            data-slot="trigger"
-            sx={[
-              {
-                width: '100%',
-                minWidth: 0,
-                height: '2rem',
-                minHeight: '2rem',
-                m: 0,
-                p: 0,
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                boxSizing: 'border-box',
-                overflow: 'hidden',
-                border: 0,
-                borderRadius: '999px',
-                backgroundColor: '#FFFFFF',
-                backgroundClip: 'padding-box',
-                color: '#111111',
-                boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
-                font: 'inherit',
-                textAlign: 'left',
-                cursor: disabled ? 'default' : 'pointer',
-                outline: 0,
-                '&:focus-visible .MuiOutlinedInput-notchedOutline': {
-                  borderColor: 'secondary.dark',
-                },
-                '&:disabled': {
-                  color: '#8a8a8a',
-                  cursor: 'default',
-                },
-                '.MuiOutlinedInput-notchedOutline': {
-                  position: 'absolute',
-                  inset: 0,
-                  display: 'block',
-                  boxSizing: 'border-box',
-                  pointerEvents: 'none',
-                  border: '1px solid #D6D6D6',
-                  borderRadius: '999px',
-                },
-                '.MuiSelect-select': {
-                  minHeight: '1.25rem',
-                  minWidth: 0,
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  py: '0.1875rem',
-                  pl: '1rem',
-                  pr: '2.5rem',
-                  backgroundColor: 'transparent',
-                  fontSize: '0.6875rem',
-                  fontWeight: 400,
-                  lineHeight: 'normal',
-                  letterSpacing: '0.04em',
-                  color: '#111111',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                },
-              },
-              ...toComponentSxArray(selectSx),
-            ]}
-          >
-            <SelectTriggerContent
-              selectedContent={selectedContent}
-              iconSx={iconSx}
-              open={resolvedOpen}
-            />
-          </Box>
-        )}
-      </Box>
+      {selectControl}
       {hasValidSelection && successIndicatorMode === 'outside' && (
         <CheckcircleCheckedFilled
           sx={{
@@ -696,6 +690,46 @@ const DropDownSelect = ({
           }}
         />
       )}
+    </Box>
+  )
+
+  if (!label) {
+    return controlRow
+  }
+
+  return (
+    <Box sx={[{ maxWidth: '100%' }, ...toComponentSxArray(sx)]}>
+      <Box sx={DROP_DOWN_SELECT_HEADER_SX}>
+        <Box
+          id={labelId}
+          component="span"
+          sx={[DROP_DOWN_SELECT_HEADER_LABEL_SX, ...toComponentSxArray(labelSx)]}
+        >
+          {label}
+        </Box>
+      </Box>
+      <Box
+        sx={{
+          position: 'relative',
+          display: successIndicatorMode === 'outside' ? 'flex' : 'block',
+          alignItems: 'center',
+          gap: successIndicatorMode === 'outside' ? '0.5rem' : 0,
+          maxWidth: '100%',
+          borderRadius: '999px',
+        }}
+      >
+        {selectControl}
+        {hasValidSelection && successIndicatorMode === 'outside' && (
+          <CheckcircleCheckedFilled
+            sx={{
+              width: 12,
+              height: 12,
+              color: '#2C8E74',
+              flexShrink: 0,
+            }}
+          />
+        )}
+      </Box>
     </Box>
   )
 }
