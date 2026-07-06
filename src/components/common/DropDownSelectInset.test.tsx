@@ -71,6 +71,32 @@ describe('DropDownSelectInset', () => {
     )
   })
 
+  it('allows a default-open empty selection menu to close', async () => {
+    renderWithTheme(
+      <DropDownSelect
+        value=""
+        options={[{ value: 'heat', label: 'Heat demand' }]}
+        onChange={() => {}}
+        allowEmpty
+        defaultOpen
+        placeholder="Choose layer"
+        ariaLabel="Closable empty select"
+      />
+    )
+
+    expect(await screen.findByRole('option', { name: 'Empty selection' }))
+      .toBeTruthy()
+
+    fireEvent.keyDown(screen.getByRole('listbox'), { key: 'Escape' })
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('combobox', { name: 'Closable empty select' })
+          .getAttribute('aria-expanded')
+      ).toBe('false')
+    })
+  })
+
   it('commits the highlighted option with Enter from the keyboard', async () => {
     const handleChange = jest.fn()
 

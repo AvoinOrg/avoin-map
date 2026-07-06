@@ -279,10 +279,11 @@ const DropDownSelect = ({
     getServerHydratedSnapshot
   )
   const normalizedValue = normalizeValue(value)
-  const [visualOpen, setVisualOpen] = React.useState(
+  const openIsControlled = open !== undefined
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(
     defaultOpen ?? false
   )
-  const resolvedOpen = open ?? visualOpen
+  const resolvedOpen = openIsControlled ? open : uncontrolledOpen
   const highlightedValueRef = React.useRef<string | null>(null)
 
   const handleOpenChange = React.useCallback(
@@ -291,10 +292,13 @@ const DropDownSelect = ({
         highlightedValueRef.current = null
       }
 
-      setVisualOpen(nextOpen)
+      if (!openIsControlled) {
+        setUncontrolledOpen(nextOpen)
+      }
+
       onOpenChange?.(nextOpen)
     },
-    [onOpenChange]
+    [openIsControlled, onOpenChange]
   )
 
   const commitValue = React.useCallback(
