@@ -135,7 +135,7 @@ const DropdownsContent = () => (
           options={selectOptions}
           onChange={noop}
           allowEmpty
-          defaultOpen
+          open
           placeholder="Choose layer"
           ariaLabel="Empty selection select"
         />
