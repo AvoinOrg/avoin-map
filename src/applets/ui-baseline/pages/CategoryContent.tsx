@@ -682,7 +682,7 @@ const DropdownsContent = () => (
     <BaselineSection title="Open and empty-result states">
       <BaselineExample
         title="DropDownSelect empty selection menu"
-        minHeight="10rem"
+        minHeight="13rem"
       >
         <DropDownSelect
           value=""
@@ -696,7 +696,7 @@ const DropdownsContent = () => (
       </BaselineExample>
       <BaselineExample
         title="MultiSelectAutocomplete no results"
-        minHeight="7rem"
+        minHeight="10rem"
       >
         <StatefulMultiSelectAutocomplete
           placeholder="Compare plans"
