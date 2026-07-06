@@ -69,11 +69,6 @@ const DropDownSelectInset = ({
               display: 'flex',
               alignItems: 'center',
             },
-            '.MuiSelect-icon': {
-              width: '0.5rem',
-              height: '0.25rem',
-              mr: '0.625rem',
-            },
           },
           ...toSxArray(selectSx),
         ]}

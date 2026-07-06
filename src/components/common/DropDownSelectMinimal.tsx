@@ -84,8 +84,8 @@ const DropDownSelectMinimal = ({
             '.MuiSelect-select': {
               m: 0,
               p: 0,
-              pr: isIconOnTheRight ? '1.25rem' : 0,
-              pl: isIconOnTheRight ? 0 : '1.25rem',
+              pr: isIconOnTheRight ? '1.75rem' : 0,
+              pl: isIconOnTheRight ? 0 : '1.75rem',
               minHeight: 0,
               fontSize: '0.6875rem',
               fontWeight: 400,
@@ -99,12 +99,7 @@ const DropDownSelectMinimal = ({
           })),
         ]}
         iconSx={[
-          {
-            right: isIconOnTheRight ? '0.4rem' : 'auto',
-            left: isIconOnTheRight ? 'auto' : '0.4rem',
-            mr: '0.4rem',
-            mt: '0.2rem',
-          },
+          ...(isIconOnTheRight ? [] : [{ right: 'auto', left: '1rem' }]),
           ...toSxArray(iconSx),
         ]}
         typographySx={[
