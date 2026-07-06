@@ -154,7 +154,7 @@ const SelectTriggerContent = ({
       sx={[
         {
           position: 'absolute',
-          right: '0.4rem',
+          right: '1rem',
           top: '50%',
           transform: open
             ? 'translateY(-50%) rotate(180deg)'
@@ -176,14 +176,10 @@ const SelectTriggerContent = ({
       />
     </Box>
     <Box
-      component="fieldset"
+      component="span"
       className="MuiOutlinedInput-notchedOutline"
       aria-hidden="true"
-    >
-      <Box component="legend">
-        <Box component="span" />
-      </Box>
-    </Box>
+    />
   </>
 )
 
@@ -481,9 +477,12 @@ const DropDownSelect = ({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
+                      boxSizing: 'border-box',
+                      overflow: 'hidden',
                       border: 0,
                       borderRadius: '999px',
                       backgroundColor: '#FFFFFF',
+                      backgroundClip: 'padding-box',
                       color: '#111111',
                       boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
                       font: 'inherit',
@@ -501,12 +500,11 @@ const DropDownSelect = ({
                       '.MuiOutlinedInput-notchedOutline': {
                         position: 'absolute',
                         inset: 0,
+                        display: 'block',
+                        boxSizing: 'border-box',
                         pointerEvents: 'none',
                         border: '1px solid #D6D6D6',
                         borderRadius: '999px',
-                      },
-                      '.MuiOutlinedInput-notchedOutline legend': {
-                        maxWidth: 0,
                       },
                       '.MuiSelect-select': {
                         minHeight: '1.25rem',
@@ -629,9 +627,12 @@ const DropDownSelect = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
+                boxSizing: 'border-box',
+                overflow: 'hidden',
                 border: 0,
                 borderRadius: '999px',
                 backgroundColor: '#FFFFFF',
+                backgroundClip: 'padding-box',
                 color: '#111111',
                 boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
                 font: 'inherit',
@@ -648,12 +649,11 @@ const DropDownSelect = ({
                 '.MuiOutlinedInput-notchedOutline': {
                   position: 'absolute',
                   inset: 0,
+                  display: 'block',
+                  boxSizing: 'border-box',
                   pointerEvents: 'none',
                   border: '1px solid #D6D6D6',
                   borderRadius: '999px',
-                },
-                '.MuiOutlinedInput-notchedOutline legend': {
-                  maxWidth: 0,
                 },
                 '.MuiSelect-select': {
                   minHeight: '1.25rem',
