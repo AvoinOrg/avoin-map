@@ -377,6 +377,7 @@ const SearchTable = ({
           sx={{
             display: 'inline-flex',
             alignItems: 'center',
+            backgroundColor: 'transparent',
           }}
           selectedValueSx={{
             typography: 'body7',

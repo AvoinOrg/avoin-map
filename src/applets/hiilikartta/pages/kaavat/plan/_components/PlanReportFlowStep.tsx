@@ -517,31 +517,17 @@ const PlanReportFlowStepBase = ({
                       label: year,
                     }))}
                     sx={{
-                      minWidth: '5.625rem',
-                      borderRadius: '999px',
                       backgroundColor: '#111111',
                       boxShadow: '0px 1px 1px 0px rgba(189, 189, 189, 0.25)',
                       color: '#F0F0F1',
                     }}
                     selectedValueSx={{
-                      pl: '0.75rem',
-                      pr: '1.75rem !important',
-                      py: '0.1875rem',
                       fontSize: '0.625rem',
                       fontWeight: 700,
                       lineHeight: '0.875rem',
                       letterSpacing: '0.08em',
-                      color: '#F0F0F1',
-                    }}
-                    iconSx={{
-                      color: '#F0F0F1',
-                      right: '0.625rem',
-                      top: 'calc(50% - 0.21875rem)',
-                      width: '0.625rem',
-                      height: '0.4375rem',
                     }}
                     optionSx={{
-                      px: '0.75rem',
                       fontSize: '0.625rem',
                       fontWeight: 700,
                       lineHeight: '0.875rem',

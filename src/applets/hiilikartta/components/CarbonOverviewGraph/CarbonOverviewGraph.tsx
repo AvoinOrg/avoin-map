@@ -75,10 +75,6 @@ const CarbonOverviewGraph = ({ planConfs, featureYears, sx }: Props) => {
                 typography: 'h1',
                 display: 'inline',
               }}
-              iconSx={{
-                mt: 0.2,
-                height: '0.75rem',
-              }}
             ></DropDownSelectMinimal>
           </Row>
         </Col>

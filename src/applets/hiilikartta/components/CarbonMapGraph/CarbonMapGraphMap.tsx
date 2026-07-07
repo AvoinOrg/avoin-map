@@ -380,15 +380,6 @@ const CarbonMapGraphMap = ({
           left: '50%',
           transform: 'translateX(-50%)',
           zIndex: 1000, // ensure it's above the map layers
-          height: '2rem',
-          backgroundColor: 'neutral.lighter',
-          borderRadius: '1rem',
-          opacity: 0.85,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          pl: 2,
-          pr: 2,
         }}
       >
         <DropDownSelectMinimal
@@ -399,6 +390,10 @@ const CarbonMapGraphMap = ({
             value: year,
           }))}
           onChange={(event) => setActiveYear(event.target.value as string)}
+          sx={{
+            backgroundColor: 'neutral.lighter',
+            opacity: 0.85,
+          }}
         ></DropDownSelectMinimal>
       </Box>
 

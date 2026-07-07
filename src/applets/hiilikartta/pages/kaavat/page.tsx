@@ -400,47 +400,22 @@ const Page = () => {
                   },
                 ]}
                 sx={{
-                  width: '7.5rem',
-                  minWidth: '7.5rem',
                   ml: 'auto',
-                  borderRadius: '999px',
+                  backgroundColor: '#d9d9d9',
+                  boxShadow: '0px 1px 1px 0px rgba(189, 189, 189, 0.25)',
                   color: '#111111',
-                  '& [data-slot="trigger"]': {
-                    width: '7.5rem',
-                    minHeight: '2.1875rem',
-                    height: '2.1875rem',
-                    borderRadius: '999px',
-                    backgroundColor: '#d9d9d9',
-                    boxShadow: '0px 1px 1px 0px rgba(189, 189, 189, 0.25)',
-                  },
-                  '& [data-slot="value"]': {
-                    pl: '0.75rem',
-                    pr: '1.75rem !important',
-                    py: 0,
-                    fontSize: '0.5rem',
-                    fontWeight: 700,
-                    lineHeight: '1rem',
-                    letterSpacing: '0.1em',
-                  },
-                  '& [data-slot="icon"]': {
-                    right: '0.625rem',
-                    top: 'calc(50% - 0.21875rem)',
-                    width: '0.6875rem',
-                    height: '0.4375rem',
-                  },
                 }}
-                optionSx={{
-                  minHeight: '1.75rem',
+                selectedValueSx={{
                   fontSize: '0.5rem',
                   fontWeight: 700,
                   lineHeight: '1rem',
                   letterSpacing: '0.1em',
-                  pl: 1.5,
-                  pr: 1,
                 }}
-                iconSx={{
-                  mt: 0,
-                  mr: 0,
+                optionSx={{
+                  fontSize: '0.5rem',
+                  fontWeight: 700,
+                  lineHeight: '1rem',
+                  letterSpacing: '0.1em',
                 }}
               />
             </Box>

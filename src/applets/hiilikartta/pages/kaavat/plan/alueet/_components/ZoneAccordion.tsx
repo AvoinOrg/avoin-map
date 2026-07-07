@@ -239,17 +239,12 @@ export const ZoneAreaListControls = ({
             defaultOpen={sortDefaultOpen}
             onOpenChange={onSortOpenChange}
             sx={{
-              minWidth: '7.5rem',
               ml: 'auto',
-              borderRadius: '999px',
               backgroundColor: '#D9D9D9',
               boxShadow: '0px 1px 1px 0px rgba(189, 189, 189, 0.25)',
               color: '#111111',
             }}
             selectedValueSx={{
-              pl: '0.75rem',
-              pr: '1.75rem',
-              py: '0.3125rem',
               fontSize: '0.5rem',
               fontWeight: 700,
               lineHeight: '1rem',
@@ -260,14 +255,6 @@ export const ZoneAreaListControls = ({
               fontWeight: 700,
               lineHeight: '1rem',
               letterSpacing: '0.1em',
-              pl: 1.5,
-              pr: 1,
-            }}
-            iconSx={{
-              right: '0.625rem',
-              top: 'calc(50% - 0.21875rem)',
-              width: '0.6875rem',
-              height: '0.4375rem',
             }}
           />
         </Box>

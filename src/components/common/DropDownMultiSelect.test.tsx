@@ -146,6 +146,29 @@ describe('DropDownMultiSelect', () => {
     expect(uncheckedOption.getAttribute('aria-selected')).toBe('false')
   })
 
+  it('renders checkbox icons for selected and unchecked options', async () => {
+    renderWithTheme(
+      <DropDownMultiSelect
+        value={['heat']}
+        options={options}
+        onChange={() => {}}
+        ariaLabel="Icon layer filters"
+        defaultOpen
+      />
+    )
+
+    const selectedOption = await screen.findByRole('option', {
+      name: 'Heat demand',
+    })
+    const uncheckedOption = await screen.findByRole('option', {
+      name: 'Solar potential',
+    })
+
+    expect(selectedOption.querySelector('svg path')).toBeInTheDocument()
+    expect(uncheckedOption.querySelector('svg')).toBeInTheDocument()
+    expect(uncheckedOption.querySelector('svg path')).not.toBeInTheDocument()
+  })
+
   it('supports keyboard navigation and selection from the trigger', async () => {
     const handleChange = jest.fn()
 

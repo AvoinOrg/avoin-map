@@ -15,6 +15,8 @@ import {
   DROP_DOWN_SELECT_TRIGGER_SX,
 } from '#/components/common/DropDownSelect'
 import ArrowDown from '#/components/icons/ArrowDown'
+import Checkbox from '#/components/icons/Checkbox'
+import CheckboxChecked from '#/components/icons/CheckboxChecked'
 
 export type DropDownMultiSelectOption = {
   value: string
@@ -349,30 +351,38 @@ const DropDownMultiSelect = ({
                                           height: '1rem',
                                           mr: '0.25rem',
                                           flex: '0 0 auto',
-                                          position: 'relative',
-                                          border: '1px solid #A0A0A0',
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
                                           borderRadius: '0.125rem',
+                                          color: '#A0A0A0',
                                           backgroundColor: '#FFFFFF',
                                           '&[data-selected]': {
-                                            borderColor: 'secondary.dark',
+                                            color: '#FFFFFF',
                                             backgroundColor: 'secondary.dark',
-                                          },
-                                          '&[data-selected]::after': {
-                                            content: '""',
-                                            position: 'absolute',
-                                            left: '0.29rem',
-                                            top: '0.12rem',
-                                            width: '0.3rem',
-                                            height: '0.55rem',
-                                            border: 'solid #FFFFFF',
-                                            borderWidth:
-                                              '0 0.125rem 0.125rem 0',
-                                            transform: 'rotate(45deg)',
                                           },
                                         },
                                         ...toComponentSxArray(checkboxSx),
                                       ]}
-                                    />
+                                    >
+                                      {indicatorState.selected ? (
+                                        <CheckboxChecked
+                                          sx={{
+                                            width: '100%',
+                                            height: '100%',
+                                            display: 'block',
+                                          }}
+                                        />
+                                      ) : (
+                                        <Checkbox
+                                          sx={{
+                                            width: '100%',
+                                            height: '100%',
+                                            display: 'block',
+                                          }}
+                                        />
+                                      )}
+                                    </Box>
                                   )
                                 }}
                               />

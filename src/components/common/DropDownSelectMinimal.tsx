@@ -5,6 +5,7 @@ import React from 'react'
 import { Box, type AppSxProps, toSxArray } from '#/common/style/theme/system'
 import { SelectOption } from '#/common/types/general'
 import DropDownSelect, {
+  DROP_DOWN_SELECT_ICON_SX,
   type DropDownValueChangeEvent,
 } from '#/components/common/DropDownSelect'
 
@@ -38,13 +39,24 @@ const DropDownSelectMinimal = ({
   onOpenChange,
 }: Props) => {
   const selectedValueSxArray = toSxArray(selectedValueSx)
+  const rootSxArray = toSxArray(sx)
+  const optionSxArray = toSxArray(optionSx)
+  const iconSxArray = toSxArray(iconSx)
 
   return (
     <Box
-      sx={{
-        display: 'inline-flex',
-        minWidth: 0,
-      }}
+      sx={[
+        {
+          display: 'inline-flex',
+          width: 'fit-content',
+          maxWidth: '100%',
+          minWidth: 0,
+          borderRadius: '999px',
+          backgroundColor: 'neutral.main',
+          color: '#111111',
+        },
+        ...rootSxArray,
+      ]}
     >
       <DropDownSelect
         value={value}
@@ -58,40 +70,33 @@ const DropDownSelectMinimal = ({
         sx={[
           {
             display: 'inline-flex',
-            width: 'auto',
+            width: '100%',
+            maxWidth: '100%',
             minWidth: 0,
           },
-          ...toSxArray(sx),
         ]}
         selectSx={[
           {
-            width: 'auto',
+            width: '100%',
+            maxWidth: '100%',
             minWidth: 0,
-            height: 'auto',
-            minHeight: 0,
             boxShadow: 'none',
             backgroundColor: 'transparent',
-            borderRadius: 0,
             flexDirection: isIconOnTheRight ? 'row' : 'row-reverse',
-            '&:focus-visible .MuiOutlinedInput-notchedOutline, &[data-popup-open] .MuiOutlinedInput-notchedOutline':
-              {
-                borderColor: 'transparent',
-              },
             '.MuiOutlinedInput-notchedOutline': {
               borderColor: 'transparent',
-              borderWidth: 0,
             },
             '.MuiSelect-select': {
               m: 0,
-              p: 0,
-              pr: isIconOnTheRight ? '1.75rem' : 0,
-              pl: isIconOnTheRight ? 0 : '1.75rem',
-              minHeight: 0,
+              flex: '0 1 auto',
+              minWidth: 0,
+              pl: isIconOnTheRight ? '1rem' : '2.5rem',
+              pr: isIconOnTheRight ? '2.5rem' : '1rem',
               fontSize: '0.6875rem',
               fontWeight: 400,
               lineHeight: 'normal',
               letterSpacing: '0.04em',
-              color: '#111111',
+              color: 'currentColor',
             },
           },
           ...selectedValueSxArray.map((selectedValueSxItem) => ({
@@ -99,33 +104,31 @@ const DropDownSelectMinimal = ({
           })),
         ]}
         iconSx={[
-          ...(isIconOnTheRight ? [] : [{ right: 'auto', left: '1rem' }]),
-          ...toSxArray(iconSx),
+          {
+            color: 'currentColor',
+          },
+          ...(isIconOnTheRight
+            ? []
+            : [
+                {
+                  ...DROP_DOWN_SELECT_ICON_SX,
+                  right: 'auto',
+                  left: '1rem',
+                },
+              ]),
+          ...iconSxArray,
         ]}
         typographySx={[
           {
             textAlign: 'left',
-            pl: 1,
-            pt: 0.5,
-            pb: 0.5,
             fontSize: '0.6875rem',
             fontWeight: 400,
             lineHeight: 'normal',
             letterSpacing: '0.04em',
             color: '#111111',
           },
-          ...toSxArray(optionSx),
+          ...optionSxArray,
         ]}
-        menuItemSx={{
-          m: 0,
-          p: 0,
-        }}
-        menuPaperSx={{
-          mt: 0.5,
-          borderRadius: '0.625rem',
-          border: '0.5px solid #D6D6D6',
-          boxShadow: '0px 8px 24px rgba(17, 17, 17, 0.12)',
-        }}
       />
     </Box>
   )
