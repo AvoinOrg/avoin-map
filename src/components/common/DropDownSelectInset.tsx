@@ -64,7 +64,7 @@ const DropDownSelectInset = ({
             '.MuiSelect-select': {
               minHeight: '1.125rem',
               py: '0 !important',
-              pl: '0.25rem !important',
+              pl: '0.5rem !important',
               pr: '1.75rem !important',
               display: 'flex',
               alignItems: 'center',
@@ -82,8 +82,8 @@ const DropDownSelectInset = ({
                 alignItems: 'center',
                 maxWidth: '100%',
                 minWidth: 0,
-                height: '0.875rem',
                 px: '0.625rem',
+                py: '0.125rem',
                 borderRadius: '999px',
                 backgroundColor: 'secondary.dark',
                 color: 'neutral.light',
