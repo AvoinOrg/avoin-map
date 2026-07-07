@@ -42,6 +42,7 @@ const StatefulDropDownSelect = ({
   allowEmpty = false,
   autoFocus = false,
   successIndicatorMode,
+  open,
 }: {
   initialValue?: string
   placeholder?: React.ReactNode
@@ -52,6 +53,7 @@ const StatefulDropDownSelect = ({
   successIndicatorMode?: React.ComponentProps<
     typeof DropDownSelect
   >['successIndicatorMode']
+  open?: boolean
 }) => {
   const [value, setValue] = useState(initialValue)
 
@@ -66,6 +68,92 @@ const StatefulDropDownSelect = ({
       allowEmpty={allowEmpty}
       autoFocus={autoFocus}
       successIndicatorMode={successIndicatorMode}
+      open={open}
+    />
+  )
+}
+
+const StatefulDropDownSelectWithHeader = ({
+  initialValue,
+  label,
+  placeholder,
+}: {
+  initialValue: string
+  label: string
+  placeholder?: string
+}) => {
+  const [value, setValue] = useState(initialValue)
+
+  return (
+    <DropDownSelectWithHeader
+      value={value}
+      options={selectOptions}
+      onChange={(event) => setValue(event.target.value)}
+      label={label}
+      placeholder={placeholder}
+    />
+  )
+}
+
+const StatefulDropDownSelectWithLabel = ({
+  initialValue,
+  label,
+  placeholder,
+}: {
+  initialValue: string
+  label: string
+  placeholder?: string
+}) => {
+  const [value, setValue] = useState(initialValue)
+
+  return (
+    <DropDownSelectWithLabel
+      value={value}
+      options={selectOptions}
+      onChange={(event) => setValue(event.target.value)}
+      label={label}
+      placeholder={placeholder}
+    />
+  )
+}
+
+const StatefulDropDownSelectInset = ({
+  initialValue,
+  label,
+  ariaLabel,
+}: {
+  initialValue: string
+  label: string
+  ariaLabel: string
+}) => {
+  const [value, setValue] = useState(initialValue)
+
+  return (
+    <DropDownSelectInset
+      value={value}
+      options={selectOptions}
+      onChange={(event) => setValue(event.target.value)}
+      label={label}
+      ariaLabel={ariaLabel}
+    />
+  )
+}
+
+const StatefulDropDownSelectMinimal = ({
+  initialValue,
+  ariaLabel,
+}: {
+  initialValue: string
+  ariaLabel: string
+}) => {
+  const [value, setValue] = useState(initialValue)
+
+  return (
+    <DropDownSelectMinimal
+      value={value}
+      options={selectOptions}
+      onChange={(event) => setValue(event.target.value)}
+      ariaLabel={ariaLabel}
     />
   )
 }
@@ -130,10 +218,8 @@ const DropdownsContent = () => (
         title="DropDownSelect empty selection menu"
         minHeight="13rem"
       >
-        <DropDownSelect
-          value=""
-          options={selectOptions}
-          onChange={noop}
+        <StatefulDropDownSelect
+          initialValue=""
           allowEmpty
           open
           placeholder="Choose layer"
@@ -182,10 +268,8 @@ const DropdownsContent = () => (
         />
       </BaselineExample>
       <BaselineExample title="Invalid incoming value">
-        <DropDownSelect
-          value="legacy-layer"
-          options={selectOptions}
-          onChange={noop}
+        <StatefulDropDownSelect
+          initialValue="legacy-layer"
           ariaLabel="Invalid incoming value select"
         />
       </BaselineExample>
@@ -202,45 +286,35 @@ const DropdownsContent = () => (
 
     <BaselineSection title="Labeled select variants">
       <BaselineExample title="DropDownSelectWithHeader">
-        <DropDownSelectWithHeader
-          value="heat-demand"
-          options={selectOptions}
-          onChange={noop}
+        <StatefulDropDownSelectWithHeader
+          initialValue="heat-demand"
           label="Scenario"
           placeholder="Choose scenario"
         />
       </BaselineExample>
       <BaselineExample title="DropDownSelectWithLabel">
-        <DropDownSelectWithLabel
-          value="solar-potential"
-          options={selectOptions}
-          onChange={noop}
+        <StatefulDropDownSelectWithLabel
+          initialValue="solar-potential"
           label="Plan layer"
           placeholder="Choose plan layer"
         />
       </BaselineExample>
       <BaselineExample title="DropDownSelectInset">
-        <DropDownSelectInset
-          value="emissions"
-          options={selectOptions}
-          onChange={noop}
+        <StatefulDropDownSelectInset
+          initialValue="emissions"
           label="Inset label"
           ariaLabel="Inset select"
         />
       </BaselineExample>
       <BaselineExample title="DropDownSelectMinimal selected">
-        <DropDownSelectMinimal
-          value="heat-demand"
-          options={selectOptions}
-          onChange={noop}
+        <StatefulDropDownSelectMinimal
+          initialValue="heat-demand"
           ariaLabel="Minimal selected select"
         />
       </BaselineExample>
       <BaselineExample title="DropDownSelectMinimal compact">
-        <DropDownSelectMinimal
-          value="emissions"
-          options={selectOptions}
-          onChange={noop}
+        <StatefulDropDownSelectMinimal
+          initialValue="emissions"
           ariaLabel="Minimal compact select"
         />
       </BaselineExample>
@@ -267,10 +341,8 @@ const DropdownsContent = () => (
         />
       </BaselineExample>
       <BaselineExample title="Interactive checked and unchecked values">
-        <DropDownMultiSelect
-          value={['heat-demand']}
-          options={multiSelectOptions}
-          onChange={noop}
+        <StatefulDropDownMultiSelect
+          initialValue={['heat-demand']}
           ariaLabel="Interactive multi-select"
         />
       </BaselineExample>
