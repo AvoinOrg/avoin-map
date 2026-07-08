@@ -4,7 +4,7 @@ import { useTranslate } from '@tolgee/react'
 
 import { Box } from '#/common/style/theme'
 import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
-import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
+import TextFieldWithLabel from '#/components/common/TextFieldWithLabel'
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 import DropDownSelectWithLabel from '#/components/common/DropDownSelectWithLabel'
 import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
@@ -484,13 +484,14 @@ const FolayerImportShp = ({
               minWidth: 0,
             }}
           >
-            <TextFieldWithHeader
-              headerText={t('sidebar.admin.create.name.header')}
+            <TextFieldWithLabel
+              label={t('sidebar.admin.create.name.header')}
               value={folayerNameValue}
-              onChange={handleFolayerNameChange}
-              placeholderText={t('sidebar.admin.create.name.placeholder')}
+              onChange={(event) => handleFolayerNameChange(event.target.value)}
+              placeholder={t('sidebar.admin.create.name.placeholder')}
               disabled={isInitializing}
-            ></TextFieldWithHeader>
+              sx={{ mb: 2 }}
+            />
             <Box
               sx={{
                 display: 'flex',
@@ -535,13 +536,6 @@ const FolayerImportShp = ({
               </SwitchWithLabel>
             </Box>
           </Box>
-          {/* <TextFieldWithHeader
-            headerText={t('sidebar.admin.create.description.header')}
-            value={folayerDescriptionValue}
-            onChange={handleFolayerDescriptionChange}
-            placeholderText={t('sidebar.admin.create.description.placeholder')}
-            sx={{ mt: 2.5 }}
-          ></TextFieldWithHeader> */}
         </>
       )}
       <FolayerImportActionsRow

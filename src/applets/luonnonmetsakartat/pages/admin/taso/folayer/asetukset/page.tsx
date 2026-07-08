@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ChangeEvent,
@@ -10,6 +11,7 @@ import {
 } from 'react'
 import { useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
+import { debounce } from 'lodash-es'
 
 import { Box, type AppSxProps, type AppTheme } from '#/common/style/theme'
 import {
@@ -25,7 +27,7 @@ import { APP_ROUTE_KEYS } from '#/common/routing/routeMetadata'
 import IconWithText from '#/components/common/IconWithText'
 import { LoadingSpinner } from '#/components/Loading'
 import { SidebarContentBox } from '#/components/Sidebar'
-import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
+import TextFieldWithLabel from '#/components/common/TextFieldWithLabel'
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 import { useSidebarActivityLoader } from '#/common/hooks/ui/useSidebarActivityLoader'
 import BigMenuButton from '#/components/common/BigMenuButton'
@@ -66,6 +68,8 @@ const settingsRootSx = {
   height: '100%',
   minHeight: 0,
 } as const
+
+const NAME_CHANGE_DEBOUNCE_MS = 300
 
 const settingsSidebarOuterSx = {
   position: 'relative',
@@ -312,6 +316,7 @@ const Page = () => {
   const adminFolayerConf = useAppletStore(
     (state) => state.adminFolayerConfs[params.folayerIdSlug]
   )
+  const [nameDraft, setNameDraft] = useState(adminFolayerConf?.name ?? '')
 
   const updateAdminFolayerConf = useAppletStore(
     (state) => state.updateAdminFolayerConf
@@ -365,6 +370,27 @@ const Page = () => {
     }
   }, [localAdminFolayerPatchMutation.isPending, setIsLoading])
 
+  useEffect(() => {
+    setNameDraft(adminFolayerConf?.name ?? '')
+  }, [adminFolayerConf?.name])
+
+  const commitNameChange = useMemo(
+    () =>
+      debounce((value: string) => {
+        updateAdminFolayerConf(params.folayerIdSlug, {
+          name: value,
+          unsyncedChanges: true,
+        })
+      }, NAME_CHANGE_DEBOUNCE_MS),
+    [params.folayerIdSlug, updateAdminFolayerConf]
+  )
+
+  useEffect(() => {
+    return () => {
+      commitNameChange.cancel()
+    }
+  }, [commitNameChange])
+
   const resetUpdateFileState = () => {
     setFileName(undefined)
     setFileType(undefined)
@@ -376,11 +402,10 @@ const Page = () => {
     }
   }
 
-  const handleNameChange = (value: string) => {
-    updateAdminFolayerConf(params.folayerIdSlug, {
-      name: value,
-      unsyncedChanges: true,
-    })
+  const handleNameChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const nextName = event.target.value
+    setNameDraft(nextName)
+    commitNameChange(nextName)
   }
 
   const handleColorChange = (color: string) => {
@@ -495,11 +520,11 @@ const Page = () => {
             <Box
               sx={settingsPanelSx}
             >
-              <TextFieldWithHeader
-                headerText={t('sidebar.admin.folayer.settings.name.header')}
-                value={adminFolayerConf.name}
+              <TextFieldWithLabel
+                label={t('sidebar.admin.folayer.settings.name.header')}
+                value={nameDraft}
                 onChange={handleNameChange}
-                placeholderText={adminFolayerConf.name}
+                placeholder={adminFolayerConf.name}
                 sx={fieldSx}
               />
               <ColorPickerWithPopover

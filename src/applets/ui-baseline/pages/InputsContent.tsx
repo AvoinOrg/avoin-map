@@ -5,12 +5,10 @@ import React, { useState } from 'react'
 import { Box } from '#/common/style/theme'
 import EditableText from '#/components/common/EditableText'
 import { NumberInputField } from '#/components/common/NumberInputField'
-import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
 import TextFieldWithLabel from '#/components/common/TextFieldWithLabel'
+import TextFieldMultilineWithLabel from '#/components/common/TextFieldMultilineWithLabel'
 
 import { BaselineExample, BaselineSection, noop } from './BaselineContent'
-
-const noopString = (_value: string) => {}
 
 const StatefulTextFieldWithLabel = ({
   initialValue = '',
@@ -32,11 +30,11 @@ const StatefulTextFieldWithLabel = ({
   )
 }
 
-const StatefulTextFieldWithHeader = ({
+const StatefulTextFieldMultilineWithLabel = ({
   initialValue = '',
   ...props
 }: Omit<
-  React.ComponentProps<typeof TextFieldWithHeader>,
+  React.ComponentProps<typeof TextFieldMultilineWithLabel>,
   'value' | 'onChange'
 > & {
   initialValue?: string
@@ -44,7 +42,11 @@ const StatefulTextFieldWithHeader = ({
   const [value, setValue] = useState(initialValue)
 
   return (
-    <TextFieldWithHeader {...props} value={value} onChange={setValue} />
+    <TextFieldMultilineWithLabel
+      {...props}
+      value={value}
+      onChange={(event) => setValue(event.target.value)}
+    />
   )
 }
 
@@ -130,16 +132,6 @@ const InputsContent = () => (
           onChange={noop}
         />
       </BaselineExample>
-      <BaselineExample title="Multiline">
-        <StatefulTextFieldWithLabel
-          label="Description"
-          ariaLabel="Multiline description"
-          initialValue={'Line one\nLine two'}
-          multiline
-          rows={3}
-          helperText="Multiline helper text."
-        />
-      </BaselineExample>
       <BaselineExample title="Trailing content">
         <StatefulTextFieldWithLabel
           label="Buffer"
@@ -151,48 +143,57 @@ const InputsContent = () => (
       </BaselineExample>
     </BaselineSection>
 
-    <BaselineSection title="TextFieldWithHeader">
+    <BaselineSection title="TextFieldMultilineWithLabel">
       <BaselineExample title="Empty placeholder">
-        <StatefulTextFieldWithHeader
-          headerText="Scenario name"
-          placeholderText="Type scenario name"
+        <StatefulTextFieldMultilineWithLabel
+          label="Scenario notes"
+          ariaLabel="Scenario notes"
+          placeholder="Type scenario notes"
+          rows={3}
         />
       </BaselineExample>
       <BaselineExample title="Populated">
-        <StatefulTextFieldWithHeader
-          headerText="Plan name"
-          initialValue="Harbor plan"
-          placeholderText="Type plan name"
+        <StatefulTextFieldMultilineWithLabel
+          label="Plan notes"
+          ariaLabel="Plan notes"
+          initialValue={'Harbor plan\nFollow-up note'}
+          placeholder="Type plan notes"
+          rows={3}
         />
       </BaselineExample>
       <BaselineExample title="Required error with helper">
-        <TextFieldWithHeader
-          headerText="Required header"
+        <TextFieldMultilineWithLabel
+          label="Required notes"
+          ariaLabel="Required notes"
           value=""
-          onChange={noopString}
-          placeholderText="Type a value"
+          onChange={noop}
+          placeholder="Type a value"
           required
           error
-          helperText="Header value is required."
+          helperText="Notes are required."
+          rows={3}
         />
       </BaselineExample>
       <BaselineExample title="Disabled">
-        <TextFieldWithHeader
-          headerText="Disabled header"
+        <TextFieldMultilineWithLabel
+          label="Disabled notes"
+          ariaLabel="Disabled notes"
           value="Disabled value"
-          onChange={noopString}
-          placeholderText="Type a value"
+          onChange={noop}
+          placeholder="Type a value"
           disabled
+          rows={3}
         />
       </BaselineExample>
-      <BaselineExample title="Multiline">
-        <StatefulTextFieldWithHeader
-          headerText="Notes"
+      <BaselineExample title="Row sizing and helper">
+        <StatefulTextFieldMultilineWithLabel
+          label="Long description"
+          ariaLabel="Long description"
           initialValue={'First note\nSecond note'}
-          placeholderText="Type notes"
-          multiline
-          rows={3}
-          helperText="Header multiline helper text."
+          placeholder="Type notes"
+          minRows={4}
+          maxRows={8}
+          helperText="Multiline helper text."
         />
       </BaselineExample>
     </BaselineSection>

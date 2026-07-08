@@ -72,28 +72,6 @@ describe('TextFieldWithLabel', () => {
     expect(document.activeElement).not.toBe(input)
   })
 
-  it('does not blur multiline input on Enter', () => {
-    const onBlur = jest.fn()
-
-    renderWithTheme(
-      <TextFieldWithLabel
-        label="Description"
-        ariaLabel="Description input"
-        multiline
-        rows={3}
-        value=""
-        onChange={() => {}}
-        onBlur={onBlur}
-      />
-    )
-
-    const textarea = screen.getByRole('textbox', { name: 'Description input' })
-    fireEvent.focus(textarea)
-    fireEvent.keyDown(textarea, { key: 'Enter', code: 'Enter', keyCode: 13, which: 13 })
-
-    expect(onBlur).not.toHaveBeenCalled()
-  })
-
   it('respects caller onKeyDown defaultPrevented for Enter blur behavior', () => {
     const onBlur = jest.fn()
     const onKeyDown = jest.fn((event: React.KeyboardEvent) => {

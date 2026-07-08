@@ -213,7 +213,7 @@ export const NumberInputField = ({
                   minWidth: 0,
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 0.5,
+                  gap: 0,
                 },
                 ...(state.disabled
                   ? [
@@ -235,11 +235,18 @@ export const NumberInputField = ({
               data-slot="number-input-label"
               {...({ htmlFor: id } as { htmlFor: string })}
               sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
                 width: 'fit-content',
-                fontSize: '0.6875rem',
+                maxWidth: '100%',
+                px: '1rem',
+                minHeight: '1.5rem',
+                mb: '0.2rem',
+                fontSize: '0.625rem',
                 fontWeight: 400,
-                lineHeight: 1.2,
-                letterSpacing: '0.04em',
+                lineHeight: '0.8125rem',
+                letterSpacing: '0.11em',
                 color: error ? '#B3261E' : '#111111',
                 '[data-slot="number-input-root"]:focus-within &': {
                   color: error ? '#B3261E' : 'secondary.dark',
@@ -248,8 +255,12 @@ export const NumberInputField = ({
             >
               {label}
               {rootProps.required && (
-                <Box component="span" aria-hidden="true">
-                  {' *'}
+                <Box
+                  component="span"
+                  aria-hidden="true"
+                  sx={{ color: '#B3261E' }}
+                >
+                  *
                 </Box>
               )}
             </Box>
@@ -439,6 +450,7 @@ export const NumberInputField = ({
               sx={[
                 {
                   m: 0,
+                  mt: '0.25rem',
                   minHeight: helperText ? undefined : 0,
                   fontSize: '0.6875rem',
                   lineHeight: 1.3,

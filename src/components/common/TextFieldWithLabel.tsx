@@ -19,6 +19,7 @@ type TextFieldWithLabelBaseProps = {
   fullWidth?: boolean
   size?: 'small' | 'medium'
   variant?: 'outlined' | 'filled' | 'standard'
+  /** @deprecated Public multiline usage should go through TextFieldMultilineWithLabel. */
   multiline?: boolean
   rows?: number
   minRows?: number
@@ -149,7 +150,7 @@ const TextFieldWithLabel = ({
         minHeight: multiline ? 'auto' : '2rem',
         minWidth: 0,
         resize: multiline ? 'vertical' : 'none',
-        borderRadius: multiline ? '8px' : '999px',
+        borderRadius: '999px',
         border: '1px solid',
         borderColor: error ? 'error.main' : '#D6D6D6',
         backgroundColor: '#FFFFFF',

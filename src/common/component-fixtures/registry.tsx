@@ -44,7 +44,7 @@ import { sharedSvgIconFixture } from './fixtures/SharedSvgIconFixture'
 import { sharedModalOverlaysFixture } from './fixtures/SharedModalOverlaysFixture'
 import { sidebarPanelExtensionChromeFixture } from './fixtures/SidebarPanelExtensionChromeFixture'
 import {
-  textFieldWithHeaderFixture,
+  textFieldMultilineWithLabelFixture,
   textFieldWithLabelFixture,
 } from './fixtures/TextFieldControlsFixture'
 import { sidebarBackgroundContentFixture } from './fixtures/SidebarBackgroundContentFixture'
@@ -89,7 +89,7 @@ const componentFixtures: ComponentFixture[] = [
   folderFixture,
   fullscreenPageFixture,
   textFieldWithLabelFixture,
-  textFieldWithHeaderFixture,
+  textFieldMultilineWithLabelFixture,
   loadingFeedbackFixture,
   sharedModalOverlaysFixture,
   notificationFeedbackFixture,

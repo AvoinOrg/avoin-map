@@ -7,7 +7,8 @@ import { Button, IconButton } from '#/components/common/Button'
 import TText from '#/components/common/TText'
 import { Cross, SaveOutlined } from '#/components/icons'
 import type { PopupProps } from '#/common/types/map'
-import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
+import TextFieldWithLabel from '#/components/common/TextFieldWithLabel'
+import TextFieldMultilineWithLabel from '#/components/common/TextFieldMultilineWithLabel'
 import { MapModalWrapper } from '#/components/Map/MapModalWrapper'
 import { SCROLLBAR_WIDTH_REM } from '#/common/style/theme/constants'
 import { LoadingSpinner } from '#/components/Loading'
@@ -323,41 +324,41 @@ const AreaModalAdminContent = ({
               },
             })}
           >
-            <TextFieldWithHeader
-              headerText={t('sidebar.admin.area.name.header')}
-              placeholderText={t('sidebar.admin.area.name.placeholder')}
+            <TextFieldWithLabel
+              label={t('sidebar.admin.area.name.header')}
+              placeholder={t('sidebar.admin.area.name.placeholder')}
               value={name}
-              onChange={handleNameChange}
-              sx={{ textTransform: 'uppercase' }}
-              textSx={textFieldControlSx}
-            ></TextFieldWithHeader>
+              onChange={(event) => handleNameChange(event.target.value)}
+              sx={{ mb: 2, textTransform: 'uppercase' }}
+              textFieldSx={textFieldControlSx}
+            />
 
-            <TextFieldWithHeader
-              headerText={t('sidebar.admin.area.region.header')}
-              placeholderText={t('sidebar.admin.area.region.placeholder')}
+            <TextFieldWithLabel
+              label={t('sidebar.admin.area.region.header')}
+              placeholder={t('sidebar.admin.area.region.placeholder')}
               value={region}
-              onChange={handleRegionChange}
-              sx={{}}
-              textSx={textFieldControlSx}
-            ></TextFieldWithHeader>
-            <TextFieldWithHeader
-              headerText={t('sidebar.admin.area.municipality.header')}
-              placeholderText={t('sidebar.admin.area.municipality.placeholder')}
+              onChange={(event) => handleRegionChange(event.target.value)}
+              sx={{ mb: 2 }}
+              textFieldSx={textFieldControlSx}
+            />
+            <TextFieldWithLabel
+              label={t('sidebar.admin.area.municipality.header')}
+              placeholder={t('sidebar.admin.area.municipality.placeholder')}
               value={municipality}
-              onChange={handleMunicipalityChange}
-              sx={{}}
-              textSx={textFieldControlSx}
-            ></TextFieldWithHeader>
-            <TextFieldWithHeader
-              headerText={t('sidebar.admin.area.description.header')}
-              placeholderText={t('sidebar.admin.area.description.placeholder')}
+              onChange={(event) => handleMunicipalityChange(event.target.value)}
+              sx={{ mb: 2 }}
+              textFieldSx={textFieldControlSx}
+            />
+            <TextFieldMultilineWithLabel
+              label={t('sidebar.admin.area.description.header')}
+              placeholder={t('sidebar.admin.area.description.placeholder')}
               value={description}
-              onChange={handleDescriptionChange}
-              multiline={true}
+              onChange={(event) => handleDescriptionChange(event.target.value)}
               minRows={6}
               maxRows={12}
-              textSx={descriptionControlSx}
-            ></TextFieldWithHeader>
+              sx={{ mb: 2 }}
+              textFieldSx={descriptionControlSx}
+            />
             {pictures.length > 0 && (
               <Box sx={{ mt: { mobile: 2.5, desktop: 3 }, minWidth: 0 }}>
                 <Box

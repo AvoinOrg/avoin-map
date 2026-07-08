@@ -1813,7 +1813,7 @@
   {
     "id": "text-field-with-label",
     "label": "TextFieldWithLabel",
-    "description": "Shared labeled single-line and multiline text field states.",
+    "description": "Shared labeled single-line text field states.",
     "sourceGlobs": [
       "src/components/common/TextFieldWithLabel.tsx",
       "src/components/common/TextFieldWithLabel.test.tsx",
@@ -1856,11 +1856,6 @@
         "description": "Required label marker."
       },
       {
-        "id": "multiline",
-        "label": "Multiline",
-        "description": "Textarea mode with row count and multiline content."
-      },
-      {
         "id": "trailing",
         "label": "Trailing",
         "description": "Trailing slot with custom content."
@@ -1868,59 +1863,55 @@
     ]
   },
   {
-    "id": "text-field-with-header",
-    "label": "TextFieldWithHeader",
-    "description": "Shared debounced header field states.",
+    "id": "text-field-multiline-with-label",
+    "label": "TextFieldMultilineWithLabel",
+    "description": "Shared labeled multiline text field states.",
     "sourceGlobs": [
-      "src/components/common/TextFieldWithHeader.tsx",
-      "src/components/common/TextFieldWithHeader.test.tsx",
+      "src/components/common/TextFieldWithLabel.tsx",
+      "src/components/common/TextFieldMultilineWithLabel.tsx",
+      "src/components/common/TextFieldMultilineWithLabel.test.tsx",
       "src/common/component-fixtures/fixtures/TextFieldControlsFixture.tsx"
     ],
     "states": [
       {
         "id": "empty",
         "label": "Empty",
-        "description": "Empty value with default header spacing."
+        "description": "Empty textarea with label and default sizing."
       },
       {
         "id": "placeholder",
         "label": "Placeholder",
-        "description": "Shows only placeholder content."
+        "description": "Empty textarea with placeholder text."
       },
       {
         "id": "value",
         "label": "Value",
-        "description": "Populated field with header label."
+        "description": "Textarea with multiple lines of content."
       },
       {
         "id": "focused",
         "label": "Focused",
-        "description": "Text area is focused by default."
+        "description": "Textarea control with deterministic focus."
       },
       {
         "id": "disabled",
         "label": "Disabled",
-        "description": "Disabled field and muted content style."
+        "description": "Disabled textarea with visible inactive styling."
       },
       {
         "id": "error-helper",
         "label": "Error with helper text",
-        "description": "Error state and helper content."
+        "description": "Textarea error state with helper text and required marker."
       },
       {
         "id": "required",
         "label": "Required",
-        "description": "Required marker is shown near header text."
+        "description": "Required label marker on a textarea."
       },
       {
-        "id": "multiline",
-        "label": "Multiline",
-        "description": "Textarea mode with explicit row count."
-      },
-      {
-        "id": "debounced",
-        "label": "Debounced",
-        "description": "State for local debounced update visualization."
+        "id": "row-sizing",
+        "label": "Row sizing",
+        "description": "Textarea with min and max row sizing."
       }
     ]
   },
