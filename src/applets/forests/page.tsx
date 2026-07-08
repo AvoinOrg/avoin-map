@@ -17,7 +17,7 @@ import { useMapStore } from '#/common/store'
 // import { setSearchPlaceholder } from '../../NavBar/NavBarSearch'
 import { useLocaleFormatter } from '#/common/hooks/useLocaleFormatter'
 import useSelectedFeaturesFilteredByLayer from '#/common/hooks/map/useSelectedFeaturesFilteredByLayer'
-import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
+import DropDownSelectWithLabel from '#/components/common/DropDownSelectWithLabel'
 import type { SidebarPanelExtensionRuntimeOptions } from '#/common/types/sidebar'
 import {
   IntoSidebarPanelExtensionActionRailSlot,
@@ -1114,7 +1114,7 @@ const FinlandForests = () => {
                   }}
                 >
                   <Box>
-                    <DropDownSelectWithHeader
+                    <DropDownSelectWithLabel
                       label={'Choose forestry method for calculations:'}
                       value={forestryMethod.toString()}
                       options={[

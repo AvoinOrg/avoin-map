@@ -10,7 +10,7 @@ import {
 } from '#/common/style/theme'
 import { ButtonBase } from '#/components/common/Button'
 import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
-import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
+import DropDownSelectWithLabel from '#/components/common/DropDownSelectWithLabel'
 import TText from '#/components/common/TText'
 
 import type {
@@ -290,7 +290,7 @@ const CarbonMapGraph = ({
             keyName={'report.map_graph.select_zoning_type'}
           ></TText>
         </Box>
-        <DropDownSelectWithHeader
+        <DropDownSelectWithLabel
           ariaLabel={t('report.map_graph.select_zoning_type')}
           options={areaTypeOptions}
           value={areaType}
@@ -304,7 +304,7 @@ const CarbonMapGraph = ({
             letterSpacing: 'normal',
           }}
           iconSx={{ fontSize: '1rem', mr: '0.5rem' }}
-        ></DropDownSelectWithHeader>
+        ></DropDownSelectWithLabel>
       </Box>
       <CarbonChangeLegend
         sx={{

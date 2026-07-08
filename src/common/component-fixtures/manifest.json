@@ -1094,8 +1094,8 @@
     "description": "Shared single-select dropdown states.",
     "sourceGlobs": [
       "src/components/common/DropDownSelect.tsx",
-      "src/components/common/DropDownSelectWithHeader.tsx",
       "src/components/common/DropDownSelectWithLabel.tsx",
+      "src/components/common/DropDownSelectWithLabel.test.tsx",
       "src/components/common/DropDownSelectInset.tsx",
       "src/components/common/DropDownSelectMinimal.tsx",
       "src/components/common/DropDownSelectInset.test.tsx",
@@ -1147,8 +1147,8 @@
       },
       {
         "id": "header-label-action",
-        "label": "Header label action",
-        "description": "Header wrapper with label and action content."
+        "label": "Labeled select action",
+        "description": "Labeled wrapper with label and action content."
       },
       {
         "id": "inset-label",

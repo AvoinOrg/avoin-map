@@ -19,7 +19,7 @@ import { Box, type AppSxProps } from '#/common/style/theme'
 import { ButtonBase } from '#/components/common/Button'
 import TText from '#/components/common/TText'
 import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
-import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
+import DropDownSelectWithLabel from '#/components/common/DropDownSelectWithLabel'
 import { NumberInputField } from '#/components/common/NumberInputField'
 import TextFieldWithLabel from '#/components/common/TextFieldWithLabel'
 import { ArrowDown, Warning } from '#/components/icons'
@@ -1129,7 +1129,7 @@ const ZoneAccordionItem = ({
               />
 
               <Box sx={{ mt: '1rem' }}>
-                <DropDownSelectWithHeader
+                <DropDownSelectWithLabel
                   ariaLabel={`${t('sidebar.plan_settings.areas.change_class_label')} ${displayName}`}
                   label={t('sidebar.plan_settings.areas.change_class_label')}
                   options={zoningCodeOptions}

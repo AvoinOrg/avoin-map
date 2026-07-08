@@ -3,7 +3,7 @@ import { Feature, FeatureCollection } from 'geojson'
 
 import { roundFeatureCoordinates } from '#/common/utils/map'
 import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
-import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
+import DropDownSelectWithLabel from '#/components/common/DropDownSelectWithLabel'
 import PlanImportCodeRecordSelect from './PlanImportCodeRecordSelect'
 import { PendingPlanImport } from './planImportTypes'
 
@@ -211,7 +211,7 @@ const PlanImportGpkg = ({
   return (
     <>
       {tables.length > 1 && (
-        <DropDownSelectWithHeader
+        <DropDownSelectWithLabel
           dataSlot="plan-import-table-select"
           value={activeTable}
           options={tables.map((tableName) => ({

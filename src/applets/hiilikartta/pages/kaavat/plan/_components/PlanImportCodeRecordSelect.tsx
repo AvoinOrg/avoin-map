@@ -2,10 +2,10 @@ import type React from 'react'
 
 import { toSxArray } from '#/common/style/theme'
 import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
-import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
+import DropDownSelectWithLabel from '#/components/common/DropDownSelectWithLabel'
 
 type PlanImportCodeRecordSelectSx = React.ComponentProps<
-  typeof DropDownSelectWithHeader
+  typeof DropDownSelectWithLabel
 >['sx']
 
 type PlanImportCodeRecordSelectProps = {
@@ -45,7 +45,7 @@ const PlanImportCodeRecordSelect = ({
   }
 
   return (
-    <DropDownSelectWithHeader
+    <DropDownSelectWithLabel
       dataSlot={dataSlot}
       value={selectedColumn}
       options={columns.map((column) => ({ value: column, label: column }))}

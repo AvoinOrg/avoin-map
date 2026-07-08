@@ -7,7 +7,7 @@ import { Box } from '#/common/style/theme'
 import DropDownSelect from '#/components/common/DropDownSelect'
 import DropDownSelectInset from '#/components/common/DropDownSelectInset'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
-import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
+import DropDownSelectWithLabel from '#/components/common/DropDownSelectWithLabel'
 
 const noop = () => {}
 
@@ -72,8 +72,8 @@ export const dropDownSelectFixture: ComponentFixture = {
   description: 'Shared single-select dropdown states.',
   sourceGlobs: [
     'src/components/common/DropDownSelect.tsx',
-    'src/components/common/DropDownSelectWithHeader.tsx',
     'src/components/common/DropDownSelectWithLabel.tsx',
+    'src/components/common/DropDownSelectWithLabel.test.tsx',
     'src/components/common/DropDownSelectInset.tsx',
     'src/components/common/DropDownSelectMinimal.tsx',
     'src/components/common/DropDownSelectInset.test.tsx',
@@ -186,10 +186,10 @@ export const dropDownSelectFixture: ComponentFixture = {
     },
     {
       id: 'header-label-action',
-      label: 'Header label action',
-      description: 'Header wrapper with label and action content.',
+      label: 'Labeled select action',
+      description: 'Labeled wrapper with label and action content.',
       render: () => (
-        <DropDownSelectWithHeader
+        <DropDownSelectWithLabel
           value="heat"
           options={selectOptions}
           onChange={noop}

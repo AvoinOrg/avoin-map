@@ -10,7 +10,6 @@ import DropDownMultiSelect, {
 import DropDownSelect from '#/components/common/DropDownSelect'
 import DropDownSelectInset from '#/components/common/DropDownSelectInset'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
-import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
 import DropDownSelectWithLabel from '#/components/common/DropDownSelectWithLabel'
 import MultiSelectAutocomplete from '#/components/common/MultiSelectAutocomplete'
 
@@ -69,28 +68,6 @@ const StatefulDropDownSelect = ({
       autoFocus={autoFocus}
       successIndicatorMode={successIndicatorMode}
       open={open}
-    />
-  )
-}
-
-const StatefulDropDownSelectWithHeader = ({
-  initialValue,
-  label,
-  placeholder,
-}: {
-  initialValue: string
-  label: string
-  placeholder?: string
-}) => {
-  const [value, setValue] = useState(initialValue)
-
-  return (
-    <DropDownSelectWithHeader
-      value={value}
-      options={selectOptions}
-      onChange={(event) => setValue(event.target.value)}
-      label={label}
-      placeholder={placeholder}
     />
   )
 }
@@ -285,14 +262,14 @@ const DropdownsContent = () => (
     </BaselineSection>
 
     <BaselineSection title="Labeled select variants">
-      <BaselineExample title="DropDownSelectWithHeader">
-        <StatefulDropDownSelectWithHeader
+      <BaselineExample title="Labeled scenario select">
+        <StatefulDropDownSelectWithLabel
           initialValue="heat-demand"
           label="Scenario"
           placeholder="Choose scenario"
         />
       </BaselineExample>
-      <BaselineExample title="DropDownSelectWithLabel">
+      <BaselineExample title="Labeled plan layer select">
         <StatefulDropDownSelectWithLabel
           initialValue="solar-potential"
           label="Plan layer"

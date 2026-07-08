@@ -3,10 +3,10 @@ import { useTranslate } from '@tolgee/react'
 
 import { Box, toSxArray } from '#/common/style/theme'
 import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
-import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
+import DropDownSelectWithLabel from '#/components/common/DropDownSelectWithLabel'
 
 type FolayerImportCodeRecordSelectSx = React.ComponentProps<
-  typeof DropDownSelectWithHeader
+  typeof DropDownSelectWithLabel
 >['sx']
 
 interface Props {
@@ -63,7 +63,7 @@ const FolayerImportCodeRecordSelect = ({
   }
 
   return (
-    <DropDownSelectWithHeader
+    <DropDownSelectWithLabel
       sx={toSxArray(sx)}
       value={selectedColumn}
       options={columns.map((col) => {

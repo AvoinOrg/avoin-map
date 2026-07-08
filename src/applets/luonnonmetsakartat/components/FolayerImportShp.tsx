@@ -6,7 +6,7 @@ import { Box } from '#/common/style/theme'
 import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import TextFieldWithHeader from '#/components/common/TextFieldWithHeader'
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
-import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
+import DropDownSelectWithLabel from '#/components/common/DropDownSelectWithLabel'
 import ColorPickerWithPopover from '#/components/common/ColorPickerWithPopover'
 import { useUIStore } from '#/common/store'
 import TText from '#/components/common/TText'
@@ -394,7 +394,7 @@ const FolayerImportShp = ({
               minWidth: 0,
             })}
           >
-            <DropDownSelectWithHeader
+            <DropDownSelectWithLabel
               label={t('sidebar.admin.create.indexing_strategy_label')}
               value={indexingStrategy}
               onChange={handleIndexingStrategyChange}

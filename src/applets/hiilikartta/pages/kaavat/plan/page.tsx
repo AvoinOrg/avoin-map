@@ -19,7 +19,7 @@ import { Box } from '#/common/style/theme'
 import { SidebarContentBox } from '#/components/Sidebar'
 import SidebarBackgroundContent from '#/components/common/SidebarBackgroundContent'
 import { ButtonBase, IconButton } from '#/components/common/Button'
-import DropDownSelectWithHeader from '#/components/common/DropDownSelectWithHeader'
+import DropDownSelectWithLabel from '#/components/common/DropDownSelectWithLabel'
 import TText from '#/components/common/TText'
 import TextFieldWithLabel from '#/components/common/TextFieldWithLabel'
 import {
@@ -1558,7 +1558,7 @@ const Page = () => {
                   />
                 </Box>
 
-                <DropDownSelectWithHeader
+                <DropDownSelectWithLabel
                   value={String(
                     planConf.forestryScenario ?? DEFAULT_FORESTRY_SCENARIO
                   )}
