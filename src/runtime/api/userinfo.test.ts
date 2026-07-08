@@ -208,6 +208,52 @@ describe('handleUserinfoRequest', () => {
     expect(fetchFn).not.toHaveBeenCalled()
   })
 
+  it.each([
+    ['query', 'https://map.example.org/api/userinfo?mockAuth=passthrough'],
+    ['cookie', 'https://map.example.org/api/userinfo'],
+  ])(
+    'delegates to Better Auth and Zitadel in mock passthrough mode from %s',
+    async (source, url) => {
+      const request =
+        source === 'cookie'
+          ? new Request(url, {
+              headers: {
+                cookie: `${MOCK_AUTH_COOKIE_NAME}=real-auth`,
+              },
+            })
+          : new Request(url)
+      const getAccessToken = createAccessTokenGetter(createOkToken())
+      const fetchFn = jest.fn<typeof fetch>(async () =>
+        new Response(JSON.stringify({ sub: 'user-id' }), { status: 200 })
+      )
+
+      const response = await handleUserinfoRequest({
+        request,
+        deps: {
+          env: {
+            NEXT_PUBLIC_MOCK_AUTH_ENABLED: '1',
+          },
+          fetchFn,
+          getAccessToken,
+          getAuthEnv: () => ({ zitadelIssuer: 'https://auth.example.org' }),
+        },
+      })
+
+      expect(response.status).toBe(200)
+      expect(await response.text()).toBe('{"sub":"user-id"}')
+      expect(getAccessToken).toHaveBeenCalledWith({ request })
+      expect(fetchFn).toHaveBeenCalledWith(
+        'https://auth.example.org/oidc/v1/userinfo',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer access-token',
+            'content-type': 'application/json',
+          }),
+        })
+      )
+    }
+  )
+
   it('rejects clearly when mock auth is enabled in production', async () => {
     await expect(
       handleUserinfoRequest({

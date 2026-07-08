@@ -10,9 +10,11 @@ import {
   createMockAccessTokenResult,
   createMockAuthSession,
   createMockUserInfo,
+  isAuthenticatedMockAuthState,
   parseMockAuthState,
   resolveMockAuthConfig,
   resolveRequestMockAuthState,
+  shouldUseRealAuthForMockState,
   type MockAuthState,
 } from './mock'
 
@@ -48,6 +50,11 @@ describe('mock auth helpers', () => {
     ['missing_token', 'missing-token'],
     ['no-token', 'missing-token'],
     ['no-access-token', 'missing-token'],
+    ['passthrough', 'passthrough'],
+    ['pass-through', 'passthrough'],
+    ['real', 'passthrough'],
+    ['real-auth', 'passthrough'],
+    ['live', 'passthrough'],
     ['unauthenticated', 'unauthenticated'],
     ['anonymous', 'unauthenticated'],
     ['signed-out', 'unauthenticated'],
@@ -88,6 +95,8 @@ describe('mock auth helpers', () => {
     ['non-editor', 'rejected'],
     ['missing-token', 'missing-token'],
     ['no-token', 'missing-token'],
+    ['passthrough', 'passthrough'],
+    ['real-auth', 'passthrough'],
     ['unauthenticated', 'unauthenticated'],
   ])('resolves env initial state %s as %s', (envValue, expectedState) => {
     expect(
@@ -121,20 +130,20 @@ describe('mock auth helpers', () => {
         config,
         request: createRequest({
           cookie: `${MOCK_AUTH_COOKIE_NAME}=unauthenticated`,
-          url: 'https://map.example.org/api/userinfo?mockAuth=rejected',
+          url: 'https://map.example.org/api/userinfo?mockAuth=passthrough',
         }),
       })
-    ).toBe('rejected')
+    ).toBe('passthrough')
 
     expect(
       resolveRequestMockAuthState({
         config,
         request: createRequest({
-          cookie: `${MOCK_AUTH_COOKIE_NAME}=unauthenticated`,
+          cookie: `${MOCK_AUTH_COOKIE_NAME}=real-auth`,
           url: 'https://map.example.org/api/userinfo',
         }),
       })
-    ).toBe('unauthenticated')
+    ).toBe('passthrough')
 
     expect(
       resolveRequestMockAuthState({
@@ -144,6 +153,15 @@ describe('mock auth helpers', () => {
         }),
       })
     ).toBe('missing-token')
+  })
+
+  it('treats passthrough as live auth instead of an authenticated mock profile', () => {
+    expect(shouldUseRealAuthForMockState('passthrough')).toBe(true)
+    expect(isAuthenticatedMockAuthState('passthrough')).toBe(false)
+    expect(createMockAccessTokenResult('passthrough')).toMatchObject({
+      ok: false,
+      error: 'NoSession',
+    })
   })
 
   it('creates state-specific rejected and missing-token auth data', () => {

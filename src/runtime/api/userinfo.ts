@@ -3,6 +3,7 @@ import {
   isAuthenticatedMockAuthState,
   resolveMockAuthConfig,
   resolveRequestMockAuthState,
+  shouldUseRealAuthForMockState,
   type MockAuthEnv,
 } from '#/common/auth/mock'
 import { getStartAuthEnv } from '#/runtime/auth/env'
@@ -58,17 +59,19 @@ export const handleUserinfoRequest = async ({
       request,
     })
 
-    if (!isAuthenticatedMockAuthState(mockState)) {
-      return new Response(null, {
-        status: 401,
+    if (!shouldUseRealAuthForMockState(mockState)) {
+      if (!isAuthenticatedMockAuthState(mockState)) {
+        return new Response(null, {
+          status: 401,
+          headers: responseHeaders,
+        })
+      }
+
+      return new Response(JSON.stringify(createMockUserInfo(mockState)), {
+        status: 200,
         headers: responseHeaders,
       })
     }
-
-    return new Response(JSON.stringify(createMockUserInfo(mockState)), {
-      status: 200,
-      headers: responseHeaders,
-    })
   }
 
   try {

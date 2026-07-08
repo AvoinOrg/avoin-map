@@ -1,6 +1,7 @@
 'use client'
 
 import React, {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -26,6 +27,7 @@ import {
   resolveBrowserMockAuthState,
   resolveMockAuthConfig,
   setBrowserMockAuthState,
+  shouldUseRealAuthForMockState,
   type MockAuthConfig,
   type MockAuthState,
 } from './mock'
@@ -128,32 +130,46 @@ const toAbsoluteClientUrl = (value: string | undefined) => {
   return new URL(value, window.location.origin).toString()
 }
 
-export const getAuthAccessToken =
-  async (): Promise<AuthAccessTokenResult> => {
-    const mockConfig = resolveMockAuthConfig()
+const getBetterAuthAccessToken = async (): Promise<AuthAccessTokenResult> => {
+  try {
+    const result = await authClient.getAccessToken({
+      providerId: AUTH_PROVIDER_ID,
+    })
 
-    if (mockConfig.enabled) {
-      return createMockAccessTokenResult(resolveBrowserMockAuthState(mockConfig))
-    }
-
-    try {
-      const result = await authClient.getAccessToken({
-        providerId: AUTH_PROVIDER_ID,
-      })
-
-      return normalizeAuthAccessTokenResult(
-        result as AuthAccessTokenApiResponse
-      )
-    } catch {
-      return {
-        ok: false,
-        accessToken: null,
-        accessTokenExpiresAt: null,
-        scopes: [],
-        error: AUTH_REFRESH_ERROR,
-      }
+    return normalizeAuthAccessTokenResult(result as AuthAccessTokenApiResponse)
+  } catch {
+    return {
+      ok: false,
+      accessToken: null,
+      accessTokenExpiresAt: null,
+      scopes: [],
+      error: AUTH_REFRESH_ERROR,
     }
   }
+}
+
+const signInWithBetterAuth = (options: SignInWithZitadelOptions = {}) =>
+  authClient.signIn.oauth2({
+    providerId: AUTH_PROVIDER_ID,
+    ...options,
+    callbackURL: toAbsoluteClientUrl(options.callbackURL),
+    errorCallbackURL: toAbsoluteClientUrl(options.errorCallbackURL),
+    newUserCallbackURL: toAbsoluteClientUrl(options.newUserCallbackURL),
+  })
+
+export const getAuthAccessToken = async (): Promise<AuthAccessTokenResult> => {
+  const mockConfig = resolveMockAuthConfig()
+
+  if (mockConfig.enabled) {
+    const mockState = resolveBrowserMockAuthState(mockConfig)
+
+    if (!shouldUseRealAuthForMockState(mockState)) {
+      return createMockAccessTokenResult(mockState)
+    }
+  }
+
+  return getBetterAuthAccessToken()
+}
 
 export const getAuthSession = async (): Promise<AuthSession | null> => {
   const mockConfig = resolveMockAuthConfig()
@@ -161,9 +177,11 @@ export const getAuthSession = async (): Promise<AuthSession | null> => {
   if (mockConfig.enabled) {
     const mockState = resolveBrowserMockAuthState(mockConfig)
 
-    return isAuthenticatedMockAuthState(mockState)
-      ? createMockAuthSession(mockState)
-      : null
+    if (!shouldUseRealAuthForMockState(mockState)) {
+      return isAuthenticatedMockAuthState(mockState)
+        ? createMockAuthSession(mockState)
+        : null
+    }
   }
 
   const result = await authClient.getSession()
@@ -172,7 +190,7 @@ export const getAuthSession = async (): Promise<AuthSession | null> => {
     return null
   }
 
-  const accessToken = await getAuthAccessToken()
+  const accessToken = await getBetterAuthAccessToken()
 
   return normalizeAuthSessionData(
     result.data,
@@ -191,7 +209,13 @@ export const signInWithZitadel = (options: SignInWithZitadelOptions = {}) => {
   const mockConfig = resolveMockAuthConfig()
 
   if (mockConfig.enabled) {
-    setBrowserMockAuthState('authenticated')
+    const mockState = resolveBrowserMockAuthState(mockConfig)
+
+    if (shouldUseRealAuthForMockState(mockState)) {
+      return signInWithBetterAuth(options)
+    }
+
+    setBrowserMockAuthState('authenticated', { clearUrlState: true })
 
     const callbackURL = toAbsoluteClientUrl(options.callbackURL)
 
@@ -202,21 +226,19 @@ export const signInWithZitadel = (options: SignInWithZitadelOptions = {}) => {
     return Promise.resolve({ data: null, error: null })
   }
 
-  return authClient.signIn.oauth2({
-    providerId: AUTH_PROVIDER_ID,
-    ...options,
-    callbackURL: toAbsoluteClientUrl(options.callbackURL),
-    errorCallbackURL: toAbsoluteClientUrl(options.errorCallbackURL),
-    newUserCallbackURL: toAbsoluteClientUrl(options.newUserCallbackURL),
-  })
+  return signInWithBetterAuth(options)
 }
 
 export const signOutAuth = async () => {
   const mockConfig = resolveMockAuthConfig()
 
   if (mockConfig.enabled) {
-    setBrowserMockAuthState('unauthenticated')
-    return { success: true }
+    const mockState = resolveBrowserMockAuthState(mockConfig)
+
+    if (!shouldUseRealAuthForMockState(mockState)) {
+      setBrowserMockAuthState('passthrough', { clearUrlState: true })
+      return { success: true }
+    }
   }
 
   try {
@@ -224,6 +246,33 @@ export const signOutAuth = async () => {
   } finally {
     notifyAuthSessionChanged()
   }
+}
+
+const useBrowserMockAuthState = (mockConfig: MockAuthConfig) => {
+  const [state, setState] = useState(() =>
+    resolveBrowserMockAuthState(mockConfig)
+  )
+  const refreshState = useCallback(() => {
+    setState(resolveBrowserMockAuthState(mockConfig))
+  }, [mockConfig])
+
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === null || event.key === MOCK_AUTH_STORAGE_KEY) {
+        refreshState()
+      }
+    }
+
+    window.addEventListener(MOCK_AUTH_STATE_CHANGE_EVENT, refreshState)
+    window.addEventListener('storage', handleStorage)
+
+    return () => {
+      window.removeEventListener(MOCK_AUTH_STATE_CHANGE_EVENT, refreshState)
+      window.removeEventListener('storage', handleStorage)
+    }
+  }, [refreshState])
+
+  return { refreshState, state }
 }
 
 const getMockAuthSessionValue = (state: MockAuthState) => {
@@ -242,31 +291,9 @@ const getMockAuthSessionValue = (state: MockAuthState) => {
 }
 
 const useMockAuthSessionValue = (
-  mockConfig: MockAuthConfig
+  state: MockAuthState,
+  refreshState: () => void
 ): AuthSessionResult => {
-  const [state, setState] = useState(() =>
-    resolveBrowserMockAuthState(mockConfig)
-  )
-  const refreshState = () => {
-    setState(resolveBrowserMockAuthState(mockConfig))
-  }
-
-  useEffect(() => {
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key === null || event.key === MOCK_AUTH_STORAGE_KEY) {
-        refreshState()
-      }
-    }
-
-    window.addEventListener(MOCK_AUTH_STATE_CHANGE_EVENT, refreshState)
-    window.addEventListener('storage', handleStorage)
-
-    return () => {
-      window.removeEventListener(MOCK_AUTH_STATE_CHANGE_EVENT, refreshState)
-      window.removeEventListener('storage', handleStorage)
-    }
-  }, [mockConfig])
-
   const value = useMemo(() => getMockAuthSessionValue(state), [state])
 
   return {
@@ -363,12 +390,14 @@ const LiveAuthSessionProvider = ({ children }: { children: ReactNode }) => {
 
 const MockAuthSessionProvider = ({
   children,
-  mockConfig,
+  refreshState,
+  state,
 }: {
   children: ReactNode
-  mockConfig: MockAuthConfig
+  refreshState: () => void
+  state: MockAuthState
 }) => {
-  const value = useMockAuthSessionValue(mockConfig)
+  const value = useMockAuthSessionValue(state, refreshState)
 
   return (
     <AuthSessionContext.Provider value={value}>
@@ -377,18 +406,38 @@ const MockAuthSessionProvider = ({
   )
 }
 
+const MockAwareAuthSessionProvider = ({
+  children,
+  mockConfig,
+}: {
+  children: ReactNode
+  mockConfig: MockAuthConfig
+}) => {
+  const { refreshState, state } = useBrowserMockAuthState(mockConfig)
+
+  if (shouldUseRealAuthForMockState(state)) {
+    return <LiveAuthSessionProvider>{children}</LiveAuthSessionProvider>
+  }
+
+  return (
+    <MockAuthSessionProvider refreshState={refreshState} state={state}>
+      {children}
+    </MockAuthSessionProvider>
+  )
+}
+
 export const AuthSessionProvider = ({
   children,
 }: {
   children: ReactNode
 }) => {
-  const mockConfig = resolveMockAuthConfig()
+  const mockConfig = useMemo(() => resolveMockAuthConfig(), [])
 
   if (mockConfig.enabled) {
     return (
-      <MockAuthSessionProvider mockConfig={mockConfig}>
+      <MockAwareAuthSessionProvider mockConfig={mockConfig}>
         {children}
-      </MockAuthSessionProvider>
+      </MockAwareAuthSessionProvider>
     )
   }
 

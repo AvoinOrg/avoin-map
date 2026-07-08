@@ -16,10 +16,11 @@ export type MockAuthState =
   | 'rejected'
   | 'missing-token'
   | 'unauthenticated'
+  | 'passthrough'
 
 export type AuthenticatedMockAuthState = Exclude<
   MockAuthState,
-  'unauthenticated'
+  'unauthenticated' | 'passthrough'
 >
 
 export type MockAuthConfig = {
@@ -66,6 +67,12 @@ const MOCK_AUTH_STATE_ALIASES: Record<string, MockAuthState> = {
   'no-token': 'missing-token',
   noneditor: 'rejected',
   'non-editor': 'rejected',
+  live: 'passthrough',
+  passthrough: 'passthrough',
+  'pass-through': 'passthrough',
+  real: 'passthrough',
+  'real-auth': 'passthrough',
+  real_auth: 'passthrough',
   rejected: 'rejected',
   signin: 'authenticated',
   signout: 'unauthenticated',
@@ -123,9 +130,16 @@ const normalizeFlag = (value: string | undefined) =>
 
 const createMockAuthExpiryDate = () => new Date(MOCK_AUTH_EXPIRES_AT_ISO)
 
+export const isMockAuthPassthroughState = (state: MockAuthState) =>
+  state === 'passthrough'
+
+export const shouldUseRealAuthForMockState = (state: MockAuthState) =>
+  isMockAuthPassthroughState(state)
+
 export const isAuthenticatedMockAuthState = (
   state: MockAuthState
-): state is AuthenticatedMockAuthState => state !== 'unauthenticated'
+): state is AuthenticatedMockAuthState =>
+  state !== 'unauthenticated' && !isMockAuthPassthroughState(state)
 
 const getCookieValue = ({
   cookieHeader,
@@ -281,6 +295,29 @@ export const readMockAuthStateFromCookieHeader = (
     })
   )
 
+type SetBrowserMockAuthStateOptions = {
+  clearUrlState?: boolean
+}
+
+const clearBrowserMockAuthUrlState = () => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  const url = new URL(window.location.href)
+
+  if (!url.searchParams.has(MOCK_AUTH_QUERY_PARAM)) {
+    return
+  }
+
+  url.searchParams.delete(MOCK_AUTH_QUERY_PARAM)
+  window.history.replaceState(
+    window.history.state,
+    '',
+    `${url.pathname}${url.search}${url.hash}`
+  )
+}
+
 const persistMockAuthStateToBrowser = (state: MockAuthState) => {
   if (typeof window !== 'undefined') {
     try {
@@ -330,7 +367,14 @@ const readMockAuthStateFromBrowserUrl = () => {
   )
 }
 
-export const setBrowserMockAuthState = (state: MockAuthState) => {
+export const setBrowserMockAuthState = (
+  state: MockAuthState,
+  options: SetBrowserMockAuthStateOptions = {}
+) => {
+  if (options.clearUrlState) {
+    clearBrowserMockAuthUrlState()
+  }
+
   persistMockAuthStateToBrowser(state)
 
   if (typeof window === 'undefined') {

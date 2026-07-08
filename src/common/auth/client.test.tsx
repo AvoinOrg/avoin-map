@@ -113,6 +113,13 @@ const resetMockAuthEnvironment = () => {
   document.cookie = `${MOCK_AUTH_COOKIE_NAME}=; Path=/; Max-Age=0`
 }
 
+const persistMockAuthBrowserState = (state: string) => {
+  window.localStorage.setItem(MOCK_AUTH_STORAGE_KEY, state)
+  document.cookie = `${MOCK_AUTH_COOKIE_NAME}=${encodeURIComponent(
+    state
+  )}; Path=/`
+}
+
 const restoreMockAuthEnvironment = () => {
   if (originalMockAuthEnabled === undefined) {
     delete process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED
@@ -552,8 +559,16 @@ describe('AuthSessionProvider', () => {
     expect(mockUseSession).not.toHaveBeenCalled()
   })
 
-  it('switches mock sign-out state without Better Auth sign-out or session notification', async () => {
+  it('moves mock sign-out to live unauthenticated mode without Better Auth sign-out', async () => {
     process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
+    window.history.pushState({}, '', '/?mockAuth=authenticated')
+    mockUseSession.mockReturnValue({
+      data: null,
+      error: null,
+      isPending: false,
+      isRefetching: false,
+      refetch: jest.fn(async () => undefined),
+    })
 
     renderAuthProvider(<AuthProbe />)
 
@@ -571,15 +586,25 @@ describe('AuthSessionProvider', () => {
       )
     )
     expect(window.localStorage.getItem(MOCK_AUTH_STORAGE_KEY)).toBe(
-      'unauthenticated'
+      'passthrough'
     )
+    expect(document.cookie).toContain(`${MOCK_AUTH_COOKIE_NAME}=passthrough`)
+    expect(window.location.search).not.toContain('mockAuth=')
+    expect(mockUseSession).toHaveBeenCalled()
     expect(mockSignOut).not.toHaveBeenCalled()
     expect(mockNotifySessionChanged).not.toHaveBeenCalled()
   })
 
-  it('switches mock sign-out from rejected state without Better Auth sign-out', async () => {
+  it('moves mock sign-out from rejected state to live auth mode', async () => {
     process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
     process.env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE = 'rejected'
+    mockUseSession.mockReturnValue({
+      data: null,
+      error: null,
+      isPending: false,
+      isRefetching: false,
+      refetch: jest.fn(async () => undefined),
+    })
 
     renderAuthProvider(<AuthProbe />)
 
@@ -597,10 +622,104 @@ describe('AuthSessionProvider', () => {
       )
     )
     expect(window.localStorage.getItem(MOCK_AUTH_STORAGE_KEY)).toBe(
-      'unauthenticated'
+      'passthrough'
     )
+    expect(mockUseSession).toHaveBeenCalled()
     expect(mockSignOut).not.toHaveBeenCalled()
     expect(mockNotifySessionChanged).not.toHaveBeenCalled()
+  })
+
+  it('delegates login to Better Auth after explicit mock sign-out', async () => {
+    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
+    mockUseSession.mockReturnValue({
+      data: null,
+      error: null,
+      isPending: false,
+      isRefetching: false,
+      refetch: jest.fn(async () => undefined),
+    })
+    mockSignInOauth2.mockResolvedValueOnce({ data: null, error: null })
+
+    renderAuthProvider(<AuthProbe />)
+
+    await act(async () => {
+      await signOutAuth()
+    })
+
+    await waitFor(() =>
+      expect(screen.getByTestId('auth-status')).toHaveTextContent(
+        'unauthenticated'
+      )
+    )
+
+    await signInWithZitadel({
+      callbackURL: '/after-login',
+    })
+
+    expect(mockSignInOauth2).toHaveBeenCalledWith({
+      providerId: 'zitadel',
+      callbackURL: 'http://localhost/after-login',
+      errorCallbackURL: undefined,
+      newUserCallbackURL: undefined,
+    })
+    expect(window.localStorage.getItem(MOCK_AUTH_STORAGE_KEY)).toBe(
+      'passthrough'
+    )
+  })
+
+  it('uses Better Auth session, token, and OAuth paths in mock passthrough mode', async () => {
+    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
+    persistMockAuthBrowserState('passthrough')
+    mockSignInOauth2.mockResolvedValueOnce({ data: null, error: null })
+
+    await expect(getAuthSession()).resolves.toMatchObject({
+      session: {
+        id: 'session-id',
+        userId: 'user-id',
+      },
+      user: {
+        id: 'user-id',
+        email: 'ada@example.org',
+      },
+      accessToken: 'access-token',
+    })
+    await expect(getAuthAccessToken()).resolves.toMatchObject({
+      ok: true,
+      accessToken: 'access-token',
+    })
+    await signInWithZitadel({ callbackURL: '/after-login' })
+
+    renderAuthProvider(<AuthProbe />)
+
+    await waitFor(() =>
+      expect(screen.getByTestId('auth-status')).toHaveTextContent(
+        'authenticated'
+      )
+    )
+    expect(screen.getByTestId('auth-user')).toHaveTextContent('user-id')
+    expect(screen.getByTestId('auth-token')).toHaveTextContent('access-token')
+    expect(mockGetSession).toHaveBeenCalled()
+    expect(mockGetAccessToken).toHaveBeenCalled()
+    expect(mockUseSession).toHaveBeenCalled()
+    expect(mockSignInOauth2).toHaveBeenCalledWith({
+      providerId: 'zitadel',
+      callbackURL: 'http://localhost/after-login',
+      errorCallbackURL: undefined,
+      newUserCallbackURL: undefined,
+    })
+  })
+
+  it('uses Better Auth sign-out when mock auth is already in passthrough mode', async () => {
+    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
+    persistMockAuthBrowserState('passthrough')
+
+    await signOutAuth()
+
+    expect(mockSignOut).toHaveBeenCalledTimes(1)
+    expect(mockNotifySessionChanged).toHaveBeenCalledWith('$sessionSignal')
+    expect(window.localStorage.getItem(MOCK_AUTH_STORAGE_KEY)).toBe(
+      'passthrough'
+    )
   })
 
   it('keeps non-mock sign-in routed through Better Auth OAuth', async () => {
