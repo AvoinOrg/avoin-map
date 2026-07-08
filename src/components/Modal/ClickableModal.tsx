@@ -34,6 +34,8 @@ const resetButtonSx = {
   },
 }
 
+const MODAL_SURFACE_BORDER_RADIUS = '10px'
+
 const closeButtonSx = {
   position: 'absolute',
   right: 8,
@@ -46,7 +48,7 @@ const closeButtonSx = {
   justifyContent: 'center',
   background: 'transparent',
   border: '1px solid transparent',
-  borderRadius: '5px',
+  borderRadius: '50%',
   color: 'inherit',
   p: 0,
   m: 0,
@@ -55,9 +57,10 @@ const closeButtonSx = {
     cursor: 'pointer',
   },
   '&:focus-visible': {
-    outline: (theme: AppTheme) =>
-      `2px solid ${theme.palette.secondary.dark}`,
-    outlineOffset: 2,
+    backgroundColor: 'action.hover',
+    outline: 'none',
+    boxShadow: (theme: AppTheme) =>
+      `0 0 0 2px ${theme.palette.secondary.dark}`,
   },
 }
 
@@ -148,6 +151,7 @@ const ClickableModal = ({
                     p: 4,
                     border: 'none',
                     outline: 'none',
+                    borderRadius: MODAL_SURFACE_BORDER_RADIUS,
                   },
                   ...toSxArray(sx),
                 ]}
