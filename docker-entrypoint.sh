@@ -5,6 +5,7 @@ source /app/docker-entrypoint-common.sh
 
 setup_bash_history
 configure_git_safe_directory
+configure_ssh_known_hosts
 
 keep_devcontainer_alive() {
     local app_pid
