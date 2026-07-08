@@ -8,7 +8,7 @@ import {
   toSxArray,
 } from '#/common/style/theme/system'
 import { IconButton } from '#/components/common/Button'
-import { CheckcircleChecked, Cross, FountainPen } from '#/components/icons'
+import { Cross, Done, FountainPen } from '#/components/icons'
 
 export type EditableTextEvent = {
   target: {
@@ -44,6 +44,11 @@ const EditableText = ({
   textSx,
   iconSx,
 }: EditableTextProps) => {
+  const controlMinHeight = 28
+  const editIconSize = 14
+  const actionIconSize = 14
+  const actionButtonHitSize = 20
+
   const [isValueFocused, setIsInputFocused] = React.useState(false)
   const draftValueRef = React.useRef(value)
   const rootRef = React.useRef<HTMLDivElement | null>(null)
@@ -177,33 +182,44 @@ const EditableText = ({
   const actionButtonStyles: StyleItem = {
     p: 0,
     m: 0,
+    minWidth: `${actionButtonHitSize}px`,
+    width: `${actionButtonHitSize}px`,
+    height: `${actionButtonHitSize}px`,
+    borderRadius: '50%',
     border: 'none',
-    background: 'none',
+    background: 'transparent',
     color: 'neutral.dark',
     cursor: 'pointer',
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
     lineHeight: 1,
+    transition: 'background-color 120ms ease, color 120ms ease',
     '&:hover': {
       color: 'neutral.darker',
+      backgroundColor: 'action.hover',
+    },
+    '&:focus-visible': {
+      color: 'neutral.darker',
+      backgroundColor: 'action.hover',
     },
   }
 
   const rootStyles: StyleItem[] = [
     {
       display: 'flex',
-      alignItems: 'start',
+      alignItems: 'center',
       width: '100%',
       justifyContent: 'flex-start',
       minWidth: 0,
+      minHeight: `${controlMinHeight}px`,
     },
     ...toStyleArray(sx),
   ]
 
   const displayTextStyles: StyleItem[] = [
     {
-      flex: 1,
+      flex: '0 1 auto',
       minWidth: 0,
       overflow: 'hidden',
       textOverflow: 'ellipsis',
@@ -212,10 +228,23 @@ const EditableText = ({
     ...toStyleArray(textSx),
   ]
 
-  const iconStyles: StyleItem[] = [
+  const displayIconStyles: StyleItem[] = [
     {
-      width: '19px',
-      height: '19px',
+      width: `${editIconSize}px`,
+      height: `${editIconSize}px`,
+      color: 'neutral.dark',
+      transition: 'color 120ms ease',
+      '&:hover': {
+        color: 'neutral.darker',
+      },
+    },
+    ...toStyleArray(iconSx),
+  ]
+
+  const actionIconStyles: StyleItem[] = [
+    {
+      width: `${actionIconSize}px`,
+      height: `${actionIconSize}px`,
       color: 'neutral.dark',
       transition: 'color 120ms ease',
       '&:hover': {
@@ -234,7 +263,6 @@ const EditableText = ({
         outline: 'none',
         m: 0,
         p: 0,
-        height: '100%',
         color: 'inherit',
         background: 'transparent',
         typography: 'inherit',
@@ -267,30 +295,9 @@ const EditableText = ({
           onClick={handleEdit}
           onKeyDown={handleEditKeyDown}
           size="small"
-          sx={[
-            {
-              ml: 1,
-              px: 0,
-              py: 0,
-              minWidth: 0,
-              width: '19px',
-              height: '19px',
-              border: 'none',
-              background: 'none',
-              color: 'neutral.dark',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              lineHeight: 1,
-              borderRadius: 0,
-              '&:hover': {
-                color: 'neutral.darker',
-              },
-            },
-          ]}
+          sx={[actionButtonStyles, { ml: 0.5, flexShrink: 0 }]}
         >
-          <FountainPen sx={iconStyles} />
+          <FountainPen sx={displayIconStyles} />
         </IconButton>
       </Box>
     )
@@ -301,27 +308,26 @@ const EditableText = ({
       ref={rootRef}
       sx={[
         {
-          display: 'flex',
-          alignItems: 'center',
-          gap: 0.5,
-          width: '100%',
-          minWidth: 0,
-          px: '0.75rem',
-          py: '0.1rem',
-          border: '1px solid',
-          borderColor: 'neutral.light',
-          borderRadius: '999px',
-          backgroundColor: '#fff',
-          boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
-          minHeight: '1.75rem',
-          '&:focus-within': {
-            borderColor: 'neutral.darker',
-          },
+          gap: 0,
         },
-        ...toStyleArray(sx),
+        ...rootStyles,
       ]}
     >
-      <Box component="span" sx={inputTextSx}>
+      <Box
+        component="span"
+        sx={[
+          {
+            flex: 1,
+            minWidth: 0,
+            display: 'flex',
+            alignItems: 'center',
+            borderBottom: '1px solid',
+            borderColor: 'neutral.light',
+            pb: 0.25,
+          },
+          ...inputTextSx,
+        ]}
+      >
         <input
           autoFocus
           key={`editable-text-input-${value}`}
@@ -349,9 +355,9 @@ const EditableText = ({
           onMouseDown={preventButtonBlur}
           onClick={handleSave}
           size="small"
-          sx={[actionButtonStyles, { mr: 0.25 }]}
+          sx={[actionButtonStyles, { mr: 0.125 }]}
         >
-          <CheckcircleChecked sx={iconStyles} />
+          <Done sx={actionIconStyles} />
         </IconButton>
         <IconButton
           type="button"
@@ -361,7 +367,7 @@ const EditableText = ({
           size="small"
           sx={actionButtonStyles}
         >
-          <Cross sx={iconStyles} />
+          <Cross sx={actionIconStyles} />
         </IconButton>
       </Box>
     </Box>
