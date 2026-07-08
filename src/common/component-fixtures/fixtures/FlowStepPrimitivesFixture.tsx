@@ -33,12 +33,16 @@ const FlowStepFixtureWrapper = ({
 const AccordionBody = () => (
   <Box
     sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '0.5rem',
       fontSize: '0.75rem',
       lineHeight: 1.45,
       color: '#27352f',
     }}
   >
-    Hidden accordion body content.
+    <Box>Input file: harbor-plan.gpkg</Box>
+    <Box>Detected layers: zoning areas and area names</Box>
   </Box>
 )
 
@@ -126,14 +130,27 @@ export const flowStepPrimitivesFixture: ComponentFixture = {
     {
       id: 'node-flow-connected-sequence',
       label: 'NodeFlow connected sequence',
-      description: 'Container draws connectors between adjacent flow nodes.',
+      description:
+        'Container draws connectors through accordion and button marker centers.',
       canvasSx: {
-        minHeight: 220,
+        minHeight: 360,
       },
       render: () => (
         <NodeFlowContainer>
-          <NodeFlowButton status="complete" title="Source data" />
-          <NodeFlowButton title="Scenario setup" />
+          <NodeFlowAccordion
+            title="Import source data"
+            status="complete"
+            helper="Source data is ready."
+            defaultOpen
+          >
+            <AccordionBody />
+          </NodeFlowAccordion>
+          <NodeFlowButton status="complete" title="Configure scenario" />
+          <NodeFlowButton
+            title="Review planning areas"
+            helper="Open the area list to inspect imported boundaries."
+            onClick={noop}
+          />
           <NodeFlowButton disabled title="Publish result" />
         </NodeFlowContainer>
       ),
@@ -141,9 +158,15 @@ export const flowStepPrimitivesFixture: ComponentFixture = {
     {
       id: 'node-flow-accordion-closed',
       label: 'NodeFlow accordion closed',
-      description: 'Uncontrolled accordion starts closed and can be opened.',
+      description:
+        'Closed accordion header with helper text aligned to the flow rail.',
       render: () => (
-        <NodeFlowAccordion title="Planning details" defaultOpen={false}>
+        <NodeFlowAccordion
+          title="Import source data"
+          status="complete"
+          helper="Source data is ready."
+          defaultOpen={false}
+        >
           <AccordionBody />
         </NodeFlowAccordion>
       ),
@@ -151,9 +174,15 @@ export const flowStepPrimitivesFixture: ComponentFixture = {
     {
       id: 'node-flow-accordion-open',
       label: 'NodeFlow accordion open',
-      description: 'Uncontrolled accordion starts open with visible body.',
+      description:
+        'Open accordion header and body with the same rail alignment as closed.',
       render: () => (
-        <NodeFlowAccordion title="Planning details" defaultOpen>
+        <NodeFlowAccordion
+          title="Import source data"
+          status="complete"
+          helper="Source data is ready."
+          defaultOpen
+        >
           <AccordionBody />
         </NodeFlowAccordion>
       ),

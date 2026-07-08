@@ -1546,17 +1546,17 @@
       {
         "id": "node-flow-connected-sequence",
         "label": "NodeFlow connected sequence",
-        "description": "Container draws connectors between adjacent flow nodes."
+        "description": "Container draws connectors through accordion and button marker centers."
       },
       {
         "id": "node-flow-accordion-closed",
         "label": "NodeFlow accordion closed",
-        "description": "Uncontrolled accordion starts closed and can be opened."
+        "description": "Closed accordion header with helper text aligned to the flow rail."
       },
       {
         "id": "node-flow-accordion-open",
         "label": "NodeFlow accordion open",
-        "description": "Uncontrolled accordion starts open with visible body."
+        "description": "Open accordion header and body with the same rail alignment as closed."
       },
       {
         "id": "flow-node-available",

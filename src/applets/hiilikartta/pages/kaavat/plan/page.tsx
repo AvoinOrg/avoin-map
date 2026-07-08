@@ -1339,10 +1339,6 @@ const Page = () => {
                   t('sidebar.plan_flow.settings_title')
                 : t('sidebar.plan_flow.import_title')
             }
-            rowSxOpen={{
-              mx: '-0.9rem',
-              width: 'auto',
-            }}
             bodySx={{
               gap: isReadyPlan ? '1.125rem' : '1rem',
             }}

@@ -59,6 +59,10 @@ export const NODE_FLOW_MARKER_COLOR = '#0D6044'
 export const NODE_FLOW_MARKER_BOX_WIDTH = '0.75rem'
 export const NODE_FLOW_MARKER_BOX_HEIGHT = '0.75rem'
 export const NODE_FLOW_MARKER_CENTER_X = '0.375rem'
+export const NODE_FLOW_BELOW_TEXT_INSET = {
+  mobile: `calc(${NODE_FLOW_ROW_INSET.mobile} + ${NODE_FLOW_MARKER_CENTER_X})`,
+  desktop: `calc(${NODE_FLOW_ROW_INSET.desktop} + ${NODE_FLOW_MARKER_CENTER_X})`,
+} as const
 
 const DefaultCompletedMarker = () => (
   <CheckcircleCheckedFilled
@@ -367,7 +371,9 @@ const NodeFlowButtonBase = ({
               gap: '0.5rem',
               minWidth: 0,
               pt: '0.625rem',
-              pl: '0.25rem',
+              pl: NODE_FLOW_BELOW_TEXT_INSET,
+              pr: NODE_FLOW_ROW_INSET,
+              boxSizing: 'border-box',
               color: rowStyles.helperColor,
             },
             ...toSxArray(helperSx),

@@ -5,6 +5,7 @@ import React, { useState } from 'react'
 import { Box, type AppSxProps, toSxArray } from '#/common/style/theme'
 import { ArrowDown, ArrowUp } from '#/components/icons'
 import NodeFlowButton, {
+  NODE_FLOW_BELOW_TEXT_INSET,
   NODE_FLOW_OUTER_OFFSET,
   NODE_FLOW_OUTER_WIDTH,
   NODE_FLOW_ROW_INSET,
@@ -35,8 +36,6 @@ export type NodeFlowAccordionProps = NodeFlowMarkerProps & {
 type NodeFlowAccordionComponent = React.FC<NodeFlowAccordionProps> & {
   flowNodeMarker?: string
 }
-
-const OPEN_SHELL_CONTENT_INSET = NODE_FLOW_ROW_INSET
 
 const NodeFlowAccordionBase = ({
   title,
@@ -121,7 +120,15 @@ const NodeFlowAccordionBase = ({
           ariaLabel={ariaLabel}
           ariaExpanded={isOpen}
           disableOuterOffset
-          rowSx={[...toSxArray(rowSx), ...toSxArray(rowSxClosed)]}
+          rowSx={[
+            {
+              '&:hover': {
+                transform: 'none',
+              },
+            },
+            ...toSxArray(rowSx),
+            ...toSxArray(rowSxClosed),
+          ]}
         />
       )}
 
@@ -131,7 +138,7 @@ const NodeFlowAccordionBase = ({
             position: 'relative',
             width: '100%',
             minWidth: 0,
-            px: OPEN_SHELL_CONTENT_INSET,
+            boxSizing: 'border-box',
             pt: { mobile: '0.75rem', desktop: '0.875rem' },
             pb: { mobile: '1.125rem', desktop: '1.25rem' },
             border: '0.2px solid rgba(14, 97, 69, 0.45)',
@@ -157,7 +164,6 @@ const NodeFlowAccordionBase = ({
             rowSx={[
               {
                 minHeight: '1.125rem',
-                px: 0,
                 py: 0,
                 border: 'none',
                 borderRadius: 0,
@@ -182,6 +188,9 @@ const NodeFlowAccordionBase = ({
                   gap: '1rem',
                   width: '100%',
                   pt: '1rem',
+                  pl: NODE_FLOW_BELOW_TEXT_INSET,
+                  pr: NODE_FLOW_ROW_INSET,
+                  boxSizing: 'border-box',
                 },
                 ...toSxArray(bodySx),
               ]}

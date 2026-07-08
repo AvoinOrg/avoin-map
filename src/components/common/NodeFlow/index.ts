@@ -4,6 +4,7 @@ export { default as NodeFlowContainer } from './NodeFlowContainer'
 
 export { NODE_FLOW_CONNECTOR_X } from './NodeFlowContainer'
 export {
+  NODE_FLOW_BELOW_TEXT_INSET,
   NODE_FLOW_MARKER_BOX_HEIGHT,
   NODE_FLOW_MARKER_BOX_WIDTH,
   NODE_FLOW_MARKER_CENTER_X,
