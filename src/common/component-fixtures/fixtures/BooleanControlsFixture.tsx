@@ -107,6 +107,8 @@ export const booleanControlsFixture: ComponentFixture = {
     'src/components/common/SwitchWithLabel.tsx',
     'src/components/common/SquishedSwitchWithLabel.tsx',
     'src/components/common/CheckBoxWithLabel.tsx',
+    'src/components/icons/Checkbox.tsx',
+    'src/components/icons/CheckboxChecked.tsx',
     'src/components/common/SquishedSwitchWithLabel.test.tsx',
     'src/components/common/CheckBoxWithLabel.test.tsx',
     'src/common/component-fixtures/fixtures/BooleanControlsFixture.tsx',
@@ -131,6 +133,26 @@ export const booleanControlsFixture: ComponentFixture = {
         <SwitchWithLabel checked onChange={noop}>
           Switch on
         </SwitchWithLabel>
+      ),
+    },
+    {
+      id: 'squished-switch-unchecked',
+      label: 'Squished switch unchecked',
+      description: 'Compact squished switch false endpoint.',
+      render: () => (
+        <SquishedSwitchWithLabel checked={false} onChange={noop}>
+          Squished off
+        </SquishedSwitchWithLabel>
+      ),
+    },
+    {
+      id: 'squished-switch-checked',
+      label: 'Squished switch checked',
+      description: 'Compact squished switch true endpoint.',
+      render: () => (
+        <SquishedSwitchWithLabel checked onChange={noop}>
+          Squished on
+        </SquishedSwitchWithLabel>
       ),
     },
     {

@@ -355,6 +355,8 @@ const DropDownMultiSelect = ({
                                           alignItems: 'center',
                                           justifyContent: 'center',
                                           borderRadius: '0.125rem',
+                                          lineHeight: 0,
+                                          overflow: 'hidden',
                                           color: '#A0A0A0',
                                           backgroundColor: '#FFFFFF',
                                           '&[data-selected]': {

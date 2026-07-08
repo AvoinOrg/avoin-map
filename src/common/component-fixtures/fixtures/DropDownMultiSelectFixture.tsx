@@ -88,6 +88,8 @@ export const dropDownMultiSelectFixture: ComponentFixture = {
   description: 'Shared multi-select dropdown states.',
   sourceGlobs: [
     'src/components/common/DropDownMultiSelect.tsx',
+    'src/components/icons/Checkbox.tsx',
+    'src/components/icons/CheckboxChecked.tsx',
     'src/components/common/DropDownMultiSelect.test.tsx',
     'src/common/component-fixtures/fixtures/DropDownMultiSelectFixture.tsx',
   ],

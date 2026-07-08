@@ -47,6 +47,25 @@ const focusVisibleCheckboxBoxShadow = (theme: AppTheme) => ({
   boxShadow: `0 0 0 2px ${theme.palette.common.white}, 0 0 0 4px ${theme.palette.secondary.dark}`,
 })
 
+const checkboxIconSlotSx = {
+  width: '100%',
+  height: '100%',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flexShrink: 0,
+  boxSizing: 'border-box',
+  borderRadius: '0.125rem',
+  lineHeight: 0,
+  overflow: 'hidden',
+  '& > svg': {
+    width: '100%',
+    height: '100%',
+    display: 'block',
+    flexShrink: 0,
+  },
+}
+
 const mergeEventHandlers = <T extends React.SyntheticEvent>(
   ...handlers: Array<((event: T) => void) | undefined>
 ) =>
@@ -355,7 +374,11 @@ const CheckBoxWithLabel = ({
           }}
           data-slot="checkbox-input"
         />
-        <Box component="span" className={iconClassName} sx={iconStyle}>
+        <Box
+          component="span"
+          className={iconClassName}
+          sx={[checkboxIconSlotSx, ...iconStyle]}
+        >
           {renderIcon}
         </Box>
       </Box>

@@ -324,6 +324,11 @@
         "description": "Disabled row that should not toggle."
       },
       {
+        "id": "icon-alignment",
+        "label": "Icon alignment",
+        "description": "Layer row labels keep one start position across icon states."
+      },
+      {
         "id": "accordion-closed",
         "label": "Accordion closed",
         "description": "Closed accordion variant with unmounted child content."
@@ -1169,6 +1174,8 @@
     "description": "Shared multi-select dropdown states.",
     "sourceGlobs": [
       "src/components/common/DropDownMultiSelect.tsx",
+      "src/components/icons/Checkbox.tsx",
+      "src/components/icons/CheckboxChecked.tsx",
       "src/components/common/DropDownMultiSelect.test.tsx",
       "src/common/component-fixtures/fixtures/DropDownMultiSelectFixture.tsx"
     ],
@@ -1414,6 +1421,8 @@
       "src/components/common/SwitchWithLabel.tsx",
       "src/components/common/SquishedSwitchWithLabel.tsx",
       "src/components/common/CheckBoxWithLabel.tsx",
+      "src/components/icons/Checkbox.tsx",
+      "src/components/icons/CheckboxChecked.tsx",
       "src/components/common/SquishedSwitchWithLabel.test.tsx",
       "src/components/common/CheckBoxWithLabel.test.tsx",
       "src/common/component-fixtures/fixtures/BooleanControlsFixture.tsx"
@@ -1428,6 +1437,16 @@
         "id": "switch-checked",
         "label": "Switch checked",
         "description": "Switch true state with visible text label."
+      },
+      {
+        "id": "squished-switch-unchecked",
+        "label": "Squished switch unchecked",
+        "description": "Compact squished switch false endpoint."
+      },
+      {
+        "id": "squished-switch-checked",
+        "label": "Squished switch checked",
+        "description": "Compact squished switch true endpoint."
       },
       {
         "id": "switch-disabled",

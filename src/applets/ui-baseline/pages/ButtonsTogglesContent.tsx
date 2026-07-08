@@ -282,6 +282,9 @@ const ButtonsTogglesContent = () => (
           <SquishedSwitchWithLabel checked onChange={noop}>
             Checked compact switch
           </SquishedSwitchWithLabel>
+          <SquishedSwitchWithLabel checked={false} onChange={noop}>
+            Unchecked compact switch
+          </SquishedSwitchWithLabel>
           <FocusVisibleSquishedSwitch />
           <CheckBoxWithLabel checked onChange={noop}>
             Checked checkbox

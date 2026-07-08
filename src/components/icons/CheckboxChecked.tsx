@@ -21,7 +21,13 @@ const CheckboxChecked = (props: Props) => (
       stroke="currentColor"
       strokeWidth="2"
     />
-    <path d="M6 11.5L11 17L19 8" stroke="currentColor" strokeWidth="2" />
+    <path
+      d="M6.25 12L10.75 16L18 8.5"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </SharedSvgIcon>
 )
 

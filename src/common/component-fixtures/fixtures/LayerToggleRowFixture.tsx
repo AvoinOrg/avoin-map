@@ -17,6 +17,14 @@ import type { ComponentFixture } from '#/common/component-fixtures/types'
 
 const noop = () => {}
 
+const layerRowAlignmentLabels = [
+  'Hidden layer',
+  'Visible layer',
+  'Colored layer',
+  'Processing layer',
+  'Disabled layer',
+]
+
 const LayerRowFixtureWrapper = ({
   children,
 }: {
@@ -128,6 +136,58 @@ export const layerToggleRowFixture: ComponentFixture = {
           ariaLabel="Toggle private datasets fixture"
           onToggle={noop}
         />
+      ),
+    },
+    {
+      id: 'icon-alignment',
+      label: 'Icon alignment',
+      description: 'Layer row labels keep one start position across icon states.',
+      render: () => (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+          <LayerToggleRow
+            label={layerRowAlignmentLabels[0]}
+            status="hidden"
+            ariaLabel="Toggle hidden alignment fixture"
+            onToggle={noop}
+          />
+          <LayerToggleRow
+            label={layerRowAlignmentLabels[1]}
+            status="visible"
+            ariaLabel="Toggle visible alignment fixture"
+            onToggle={noop}
+          />
+          <LayerToggleRow
+            label={layerRowAlignmentLabels[2]}
+            status="visible"
+            color="#2f855a"
+            ariaLabel="Toggle colored alignment fixture"
+            onToggle={noop}
+          />
+          <LayerToggleRow
+            label={layerRowAlignmentLabels[3]}
+            status="processing"
+            ariaLabel="Toggle processing alignment fixture"
+            onToggle={noop}
+            iconSx={{
+              '& svg': { visibility: 'hidden' },
+              '&::before': {
+                content: '""',
+                width: '0.25rem',
+                height: '0.25rem',
+                borderRadius: '50%',
+                backgroundColor: '#111111',
+                boxShadow: '0.375rem 0 #111111, 0.75rem 0 #111111',
+              },
+            }}
+          />
+          <LayerToggleRow
+            label={layerRowAlignmentLabels[4]}
+            status="hidden"
+            disabled
+            ariaLabel="Toggle disabled alignment fixture"
+            onToggle={noop}
+          />
+        </Box>
       ),
     },
     {

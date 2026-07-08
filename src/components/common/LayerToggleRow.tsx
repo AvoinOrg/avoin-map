@@ -82,6 +82,11 @@ const ACCORDION_ROW_HORIZONTAL_MARGIN = `-${ACCORDION_ROW_HORIZONTAL_PADDING_REM
 const ACCORDION_ROW_WIDTH = `calc(100% + ${
   ACCORDION_ROW_HORIZONTAL_PADDING_REM * 2
 }rem)`
+const LAYER_STATUS_ICON_SLOT_WIDTH = '2rem'
+const LAYER_STATUS_ICON_SLOT_HEIGHT = '1.5rem'
+const LAYER_STATUS_ICON_SIZE = '1rem'
+const LAYER_STATUS_ICON_HIGHLIGHT_SIZE = '1.5rem'
+const LAYER_STATUS_ICON_SLOT_MARGIN_RIGHT = '0.75rem'
 
 const ColoredVisibleIcon = ({ color }: { color: string }) => {
   const contrastColor = getContrastColor(color)
@@ -89,8 +94,9 @@ const ColoredVisibleIcon = ({ color }: { color: string }) => {
   return (
     <Box
       sx={{
-        width: 32,
-        height: 24,
+        width: LAYER_STATUS_ICON_SLOT_WIDTH,
+        height: LAYER_STATUS_ICON_HIGHLIGHT_SIZE,
+        boxSizing: 'border-box',
         borderRadius: '50%',
         background: color,
         display: 'flex',
@@ -102,8 +108,8 @@ const ColoredVisibleIcon = ({ color }: { color: string }) => {
     >
       <EyeOpen
         sx={{
-          width: 24,
-          height: 24,
+          width: LAYER_STATUS_ICON_HIGHLIGHT_SIZE,
+          height: LAYER_STATUS_ICON_HIGHLIGHT_SIZE,
           color: contrastColor,
         }}
       />
@@ -120,32 +126,18 @@ const LayerStatusIcon = ({
   color?: string
   sx?: StyleProp
 }) => {
-  const iconBoxSx = color
-    ? {
-        width: '32px',
-        height: '24px',
-      }
-    : {
-        width: '1.5rem',
-        height: '1.125rem',
-      }
-
-  const iconSx = color
-    ? {
-        width: '24px',
-        height: '24px',
-      }
-    : {
-        width: '1rem',
-        height: '1rem',
-      }
+  const iconSx = {
+    width: LAYER_STATUS_ICON_SIZE,
+    height: LAYER_STATUS_ICON_SIZE,
+  }
 
   return (
     <Box
       sx={[
         {
-          ...iconBoxSx,
-          mr: color ? '0.75rem' : '0.3125rem',
+          width: LAYER_STATUS_ICON_SLOT_WIDTH,
+          height: LAYER_STATUS_ICON_SLOT_HEIGHT,
+          mr: LAYER_STATUS_ICON_SLOT_MARGIN_RIGHT,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

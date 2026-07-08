@@ -12,7 +12,6 @@ const Checkbox = (props: Props) => (
     xmlns="http://www.w3.org/2000/svg"
     {...props}
   >
-    <rect x="1" y="1" width="22" height="22" rx="2" />
     <rect
       x="1"
       y="1"

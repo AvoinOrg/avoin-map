@@ -10,6 +10,15 @@ import type { SwitchProps } from '#/components/common/Switch'
 
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 
+const COMPACT_SWITCH_WIDTH_REM = 2.125
+const COMPACT_SWITCH_HEIGHT_REM = 0.875
+const COMPACT_SWITCH_BASE_MARGIN_REM = 0.25
+const COMPACT_SWITCH_THUMB_SIZE_REM = 0.375
+const COMPACT_SWITCH_TRANSLATE_REM =
+  COMPACT_SWITCH_WIDTH_REM -
+  COMPACT_SWITCH_THUMB_SIZE_REM -
+  COMPACT_SWITCH_BASE_MARGIN_REM * 2
+
 type SquishedSwitchWithLabelProps = Omit<SwitchProps, 'sx'> & {
   children?: React.ReactNode
   ariaLabel?: string
@@ -49,16 +58,18 @@ const SquishedSwitchWithLabel = ({
       ]}
       controlSx={[
         (theme) => ({
-          width: '2.125rem',
-          height: '0.875rem',
+          width: `${COMPACT_SWITCH_WIDTH_REM}rem`,
+          height: `${COMPACT_SWITCH_HEIGHT_REM}rem`,
           padding: 0,
           flexShrink: 0,
           '& .MuiSwitch-switchBase': {
             padding: 0,
-            margin: '0.25rem',
+            margin: `${COMPACT_SWITCH_BASE_MARGIN_REM}rem`,
+            width: `${COMPACT_SWITCH_THUMB_SIZE_REM}rem`,
+            height: `${COMPACT_SWITCH_THUMB_SIZE_REM}rem`,
             transitionDuration: '250ms',
             '&.Mui-checked': {
-              transform: 'translateX(20px)',
+              transform: `translateX(${COMPACT_SWITCH_TRANSLATE_REM}rem)`,
               color: theme.palette.common.white,
               '& + .MuiSwitch-track': {
                 backgroundColor:
@@ -80,8 +91,8 @@ const SquishedSwitchWithLabel = ({
           },
           '& .MuiSwitch-thumb': {
             boxSizing: 'border-box',
-            width: '0.375rem',
-            height: '0.375rem',
+            width: `${COMPACT_SWITCH_THUMB_SIZE_REM}rem`,
+            height: `${COMPACT_SWITCH_THUMB_SIZE_REM}rem`,
             borderRadius: '50%',
             backgroundColor: theme.palette.common.white,
           },
