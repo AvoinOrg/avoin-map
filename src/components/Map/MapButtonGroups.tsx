@@ -37,6 +37,13 @@ import { CorridorBufferMenu } from './CorridorBufferMenu'
 
 const IS_DEV = process.env.NODE_ENV === 'development'
 
+const drawControlIconSx = {
+  display: 'inline-block',
+  flexShrink: 0,
+  maxWidth: '1.5rem',
+  maxHeight: '1.5rem',
+} as const
+
 interface Props {
   isVertical: boolean
 }
@@ -138,7 +145,7 @@ export const MapButtons = ({ isVertical }: Props) => {
             tooltip={t('map.buttons.draw_delete')}
             isVertical={isVertical}
           >
-            <Delete />
+            <Delete sx={drawControlIconSx} />
           </MapButton>
         </MapButtonGroup>
       )}
@@ -165,7 +172,7 @@ export const MapButtons = ({ isVertical }: Props) => {
               tooltip={t('map.buttons.draw_edit')}
               isVertical={isVertical}
             >
-              <EditDocument />
+              <EditDocument sx={drawControlIconSx} />
             </MapButton>
           )}
           {allowedDrawModes.includes('polygon') && (
@@ -175,7 +182,7 @@ export const MapButtons = ({ isVertical }: Props) => {
               tooltip={t('map.buttons.draw_polygon')}
               isVertical={isVertical}
             >
-              <Polygon />
+              <Polygon sx={drawControlIconSx} />
             </MapButton>
           )}
           {allowedDrawModes.includes('corridor') && (
@@ -195,7 +202,7 @@ export const MapButtons = ({ isVertical }: Props) => {
                 tooltip={t('map.buttons.draw_corridor', 'Draw corridor')}
                 isVertical={isVertical}
               >
-                <Line />
+                <Line sx={drawControlIconSx} />
               </MapButton>
             </MapButtonStickyMenu>
           )}

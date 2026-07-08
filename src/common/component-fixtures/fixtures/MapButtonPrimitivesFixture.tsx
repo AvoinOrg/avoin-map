@@ -14,6 +14,13 @@ import { MapButtonStickyMenu } from '#/components/Map/MapButtonStickyMenu'
 const noop = () => {}
 const stickyMenuSlotName = 'map-sticky-menu-toggle'
 
+const drawControlIconSx = {
+  display: 'inline-block',
+  flexShrink: 0,
+  maxWidth: '1.5rem',
+  maxHeight: '1.5rem',
+} as const
+
 const MenuContent = ({ closeMenu }: { closeMenu?: () => void }) => (
   <Box
     sx={{
@@ -119,7 +126,7 @@ const StickyMenuFixture = ({ isVertical }: { isVertical: boolean }) => (
           tooltip="Draw corridor"
           isVertical={isVertical}
         >
-          <Line aria-hidden="true" />
+          <Line aria-hidden="true" sx={drawControlIconSx} />
         </MapButton>
       </MapButtonStickyMenu>
       <Box
@@ -147,6 +154,7 @@ export const mapButtonPrimitivesFixture: ComponentFixture = {
     'src/components/Map/MapButtonMenu.tsx',
     'src/components/Map/MapButtonStickyMenu.tsx',
     'src/components/Map/CorridorBufferMenu.tsx',
+    'src/components/icons/Line.tsx',
     'src/components/icons/Tune.tsx',
     'src/common/component-fixtures/fixtures/MapButtonPrimitivesFixture.tsx',
   ],

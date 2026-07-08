@@ -30,6 +30,13 @@ import LayerMenuContent from '#/components/Map/MapLayerButton/LayerMenuContent'
 const noop = () => {}
 const thumbnail = '/files/img/og-image.jpg'
 
+const drawControlIconSx = {
+  display: 'inline-block',
+  flexShrink: 0,
+  maxWidth: '1.5rem',
+  maxHeight: '1.5rem',
+} as const
+
 const mapSurfaceSx = {
   minWidth: 360,
   minHeight: 220,
@@ -245,6 +252,10 @@ export const mapButtonGroupsFixture: ComponentFixture = {
     'src/components/Map/MapButton.tsx',
     'src/components/icons/Done.tsx',
     'src/components/icons/ExploreOutlined.tsx',
+    'src/components/icons/Delete.tsx',
+    'src/components/icons/EditDocument.tsx',
+    'src/components/icons/Line.tsx',
+    'src/components/icons/Polygon.tsx',
     'src/common/component-fixtures/fixtures/MapLayerToolbarChromeFixture.tsx',
   ],
   wrapper: ToolbarFixtureWrapper,
@@ -295,16 +306,16 @@ export const mapButtonGroupsFixture: ComponentFixture = {
             <Done aria-hidden="true" />
           </MapButton>
           <MapButton tooltip="Edit" onClick={noop}>
-            <EditDocument aria-hidden="true" />
+            <EditDocument aria-hidden="true" sx={drawControlIconSx} />
           </MapButton>
           <MapButton tooltip="Polygon" onClick={noop}>
-            <Polygon aria-hidden="true" />
+            <Polygon aria-hidden="true" sx={drawControlIconSx} />
           </MapButton>
           <MapButton tooltip="Corridor" onClick={noop}>
-            <Line aria-hidden="true" />
+            <Line aria-hidden="true" sx={drawControlIconSx} />
           </MapButton>
           <MapButton tooltip="Delete" onClick={noop}>
-            <Delete aria-hidden="true" />
+            <Delete aria-hidden="true" sx={drawControlIconSx} />
           </MapButton>
         </MapButtonGroup>
       ),
