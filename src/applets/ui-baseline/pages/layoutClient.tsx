@@ -2,7 +2,10 @@
 
 import React from 'react'
 
-import { SidebarBoundary } from '#/components/Sidebar'
+import {
+  IntoSidebarPanelSlot,
+  SidebarBoundary,
+} from '#/components/Sidebar'
 import AppletWrapper from '#/components/common/AppletWrapper'
 
 import { UI_BASELINE_NAMESPACE } from '../common/categories'
@@ -16,8 +19,8 @@ const HELSINKI_DEFAULT_VIEW = {
 const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   return (
     <SidebarBoundary
-      id="ui-baseline-floating"
-      mode="floating"
+      id="ui-baseline-simple-sidebar"
+      mode="simple"
       config={{ width: 'compact' }}
     >
       <AppletWrapper
@@ -32,7 +35,7 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
           flexDirection: 'column',
         }}
       >
-        {children}
+        <IntoSidebarPanelSlot panelId="main">{children}</IntoSidebarPanelSlot>
       </AppletWrapper>
     </SidebarBoundary>
   )
