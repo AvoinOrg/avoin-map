@@ -1,4 +1,4 @@
-// Client-side layout for the Hiilikartta applet; coordinates session state,
+// Client-side runtime for the Hiilikartta applet; coordinates session state,
 // plan sync, and the shared map UI shell.
 'use client'
 
@@ -38,7 +38,7 @@ import { getZoningClasses } from '../common/zoningClasses'
 
 const localizationNamespace = 'hiilikartta'
 
-const LayoutClient = ({ children }: { children: React.ReactNode }) => {
+const CarbonAppletRuntime = ({ children }: { children: React.ReactNode }) => {
   const { data: session, status } = useAuthSession()
   const accessToken = session?.accessToken
   const pathname = useAppPathname()
@@ -256,4 +256,4 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   )
 }
 
-export default LayoutClient
+export default CarbonAppletRuntime

@@ -390,7 +390,7 @@ describe('visual scenarios', () => {
     test('maps report graph component changes to report scenarios', () => {
       const scenarios = buildCarbonMockScenarios()
       const expectedReportSourceGlobs = [
-        'src/applets/carbon/pages/raportti/page.tsx',
+        'src/applets/carbon/pages/report/CarbonReportPage.tsx',
         'src/applets/carbon/components/CarbonOverviewGraph/CarbonOverviewGraph.tsx',
         'src/applets/carbon/components/CarbonLineChart/CarbonLineChartInner.tsx',
         'src/applets/carbon/components/CarbonMapGraph/CarbonMapGraphMap.tsx',

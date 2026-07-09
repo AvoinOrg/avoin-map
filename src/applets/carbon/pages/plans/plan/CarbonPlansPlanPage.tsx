@@ -318,7 +318,7 @@ const UploadField = ({
   )
 }
 
-const Page = () => {
+const CarbonPlansPlanPage = () => {
   const params = useAppParams<{ locale: string; planId: string }>()
   const planId = params.planId
   const locale = params.locale
@@ -1634,4 +1634,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default CarbonPlansPlanPage

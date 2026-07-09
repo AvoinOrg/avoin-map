@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { guardAppletLocale } from '#/runtime/appletRouteGuards'
-import HiilikarttaLayout from 'applets/carbon/pages/layout'
+import CarbonShell from 'applets/carbon/pages/CarbonShell'
 import { getHiilikarttaHead } from '#/runtime/headMetadata'
 import {
   APP_ROUTE_KEYS,
@@ -36,5 +36,5 @@ export const Route = createFileRoute(
       locale: params.locale,
       umamiWebsiteId: process.env.NEXT_PUBLIC_APPLETS_HIILIKARTTA_UMAMI_ID,
     }),
-  component: HiilikarttaLayout,
+  component: CarbonShell,
 })

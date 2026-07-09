@@ -1,16 +1,16 @@
 import { Outlet } from '@tanstack/react-router'
 
 import AppletLayout from '#/components/common/AppletLayout'
-import LayoutClient from './layoutClient'
+import CarbonAppletRuntime from './CarbonAppletRuntime'
 
-const Layout = () => {
+const CarbonShell = () => {
   return (
     <AppletLayout>
-      <LayoutClient>
+      <CarbonAppletRuntime>
         <Outlet />
-      </LayoutClient>
+      </CarbonAppletRuntime>
     </AppletLayout>
   )
 }
 
-export default Layout
+export default CarbonShell

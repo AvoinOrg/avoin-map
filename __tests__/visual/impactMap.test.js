@@ -38,7 +38,7 @@ describe('resolveImpactedScenarios', () => {
 
   test('maps applet page changes to applet scenario only', () => {
     const result = resolveImpactedScenarios({
-      files: ['src/applets/carbon/pages/page.tsx'],
+      files: ['src/applets/carbon/pages/CarbonHomePage.tsx'],
       scenarios,
     })
 

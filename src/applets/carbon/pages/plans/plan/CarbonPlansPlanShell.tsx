@@ -26,7 +26,7 @@ import {
 import useAppletStoreHasHydrated from 'applets/carbon/common/useAppletStoreHasHydrated'
 import { useAppletStore } from 'applets/carbon/state/appletStore'
 
-const Layout = () => {
+const CarbonPlansPlanShell = () => {
   const params = useAppParams<{ planId: string }>()
   // const planConf = useStore(useAppStore, (state) => state.planConfs)
   const addSerializableLayerGroup = useMapStore(
@@ -205,4 +205,4 @@ const Layout = () => {
   return <Outlet />
 }
 
-export default Layout
+export default CarbonPlansPlanShell

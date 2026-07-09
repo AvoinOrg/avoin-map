@@ -59,7 +59,7 @@ const getCommonFeatureYears = (planConfs: PlanConfWithReportData[]) => {
   )
 }
 
-const Page = () => {
+const CarbonReportPage = () => {
   const searchParams = useAppSearchParams()
   const globalState = useStore(useAppletStore, (state) => state.globalState)
   const router = useAppRouter()
@@ -692,4 +692,4 @@ const Col = ({ children, sx }: LayoutProps) => (
   </Box>
 )
 
-export default Page
+export default CarbonReportPage

@@ -24,8 +24,8 @@ const CARBON_MOCK_IDS_SOURCE_PATH = path.resolve(
 )
 
 const CARBON_REPORT_SOURCE_GLOBS = [
-  'src/applets/carbon/pages/raportti/page.tsx',
-  'src/applets/carbon/pages/raportti/reportPlanSelection.ts',
+  'src/applets/carbon/pages/report/CarbonReportPage.tsx',
+  'src/applets/carbon/pages/report/reportPlanSelection.ts',
   'src/applets/carbon/components/CarbonOverviewGraph/CarbonOverviewGraph.tsx',
   'src/applets/carbon/components/CarbonOverviewGraph/GeomGraphic.tsx',
   'src/applets/carbon/components/CarbonChangeLegend.tsx',

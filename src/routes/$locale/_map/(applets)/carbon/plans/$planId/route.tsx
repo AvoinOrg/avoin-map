@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import HiilikarttaPlanLayout from 'applets/carbon/pages/kaavat/plan/layout'
+import CarbonPlansPlanShell from 'applets/carbon/pages/plans/plan/CarbonPlansPlanShell'
 import {
   APP_ROUTE_KEYS,
   defineAppRouteStaticData,
@@ -21,5 +21,5 @@ export const Route = createFileRoute(
       slug: '$planId',
     }),
   }),
-  component: HiilikarttaPlanLayout,
+  component: CarbonPlansPlanShell,
 })

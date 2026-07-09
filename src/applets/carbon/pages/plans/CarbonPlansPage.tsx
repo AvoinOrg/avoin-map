@@ -71,7 +71,7 @@ const getCreationPlaceholderDisplayName = ({
   return t('sidebar.my_plans.imported_plan_name')
 }
 
-const Page = () => {
+const CarbonPlansPage = () => {
   const { t } = useTranslate('hiilikartta')
   const router = useAppRouter()
   const buildAppRouteHref = useAppRouteHrefBuilder()
@@ -479,4 +479,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default CarbonPlansPage

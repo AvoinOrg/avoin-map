@@ -130,7 +130,7 @@ const DisabledZoneCalculateTooltip = ({
   )
 }
 
-const Page = () => {
+const CarbonPlansPlanAreasPage = () => {
   const params = useAppParams<{ planId: string }>()
   const hasHydrated = useAppletStoreHasHydrated()
   const planConf = useAppletStore((state) => state.planConfs[params.planId])
@@ -463,4 +463,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default CarbonPlansPlanAreasPage

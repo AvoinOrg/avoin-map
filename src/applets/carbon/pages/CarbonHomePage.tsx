@@ -62,7 +62,7 @@ const getHomeIntroLines = (text: string) => {
   })
 }
 
-const Page = () => {
+const CarbonHomePage = () => {
   const { t } = useTranslate('hiilikartta')
   const router = useAppRouter()
   const buildAppRouteHref = useAppRouteHrefBuilder()
@@ -318,4 +318,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default CarbonHomePage

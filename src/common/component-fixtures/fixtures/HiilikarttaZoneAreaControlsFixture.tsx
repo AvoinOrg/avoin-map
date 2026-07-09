@@ -4,11 +4,11 @@ import React from 'react'
 
 import type { ComponentFixture } from '#/common/component-fixtures/types'
 import { Box } from '#/common/style/theme'
-import ZoneClassChip from 'applets/carbon/pages/kaavat/plan/alueet/_components/ZoneClassChip'
+import ZoneClassChip from 'applets/carbon/pages/plans/plan/areas/_components/ZoneClassChip'
 import {
   ZoneAreaListControls,
   type ZoneAreaListControlsProps,
-} from 'applets/carbon/pages/kaavat/plan/alueet/_components/ZoneAccordion'
+} from 'applets/carbon/pages/plans/plan/areas/_components/ZoneAccordion'
 
 const noopFilterChange: ZoneAreaListControlsProps['onFilterChange'] = () => {}
 const noopSortChange: ZoneAreaListControlsProps['onSortChange'] = () => {}
@@ -90,9 +90,9 @@ export const hiilikarttaZoneAreaControlsFixture: ComponentFixture = {
   description:
     'Zone class chip and area filter/sort control states for the Hiilikartta areas route.',
   sourceGlobs: [
-    'src/applets/carbon/pages/kaavat/plan/alueet/_components/ZoneAccordion.tsx',
-    'src/applets/carbon/pages/kaavat/plan/alueet/_components/ZoneClassChip.tsx',
-    'src/applets/carbon/pages/kaavat/plan/alueet/_components/zoneAreaUtils.ts',
+    'src/applets/carbon/pages/plans/plan/areas/_components/ZoneAccordion.tsx',
+    'src/applets/carbon/pages/plans/plan/areas/_components/ZoneClassChip.tsx',
+    'src/applets/carbon/pages/plans/plan/areas/_components/zoneAreaUtils.ts',
     'src/common/component-fixtures/fixtures/HiilikarttaZoneAreaControlsFixture.tsx',
   ],
   wrapper: ZoneAreaControlsFixtureWrapper,

@@ -9,7 +9,7 @@ import {
   SidebarBoundary,
 } from '#/components/Sidebar'
 
-const Layout = () => {
+const CarbonPlansShell = () => {
   return (
     <SidebarBoundary id="hiilikartta-kaavat-panel" mode="simple">
       <IntoSidebarHeaderChildrenSlot>
@@ -22,4 +22,4 @@ const Layout = () => {
   )
 }
 
-export default Layout
+export default CarbonPlansShell

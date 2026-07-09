@@ -710,8 +710,8 @@
     "label": "Hiilikartta plan import controls",
     "description": "Plan detail import action and code-record selector states for the Hiilikartta authoring flow.",
     "sourceGlobs": [
-      "src/applets/carbon/pages/kaavat/plan/_components/PlanImportActionsRow.tsx",
-      "src/applets/carbon/pages/kaavat/plan/_components/PlanImportCodeRecordSelect.tsx",
+      "src/applets/carbon/pages/plans/plan/_components/PlanImportActionsRow.tsx",
+      "src/applets/carbon/pages/plans/plan/_components/PlanImportCodeRecordSelect.tsx",
       "src/common/component-fixtures/fixtures/HiilikarttaPlanImportControlsFixture.tsx"
     ],
     "states": [
@@ -747,8 +747,8 @@
     "label": "Hiilikartta plan report actions",
     "description": "Plan report flow and footer action states for the Hiilikartta authoring flow.",
     "sourceGlobs": [
-      "src/applets/carbon/pages/kaavat/plan/_components/PlanReportFlowStep.tsx",
-      "src/applets/carbon/pages/kaavat/plan/_components/PlanActionFooter.tsx",
+      "src/applets/carbon/pages/plans/plan/_components/PlanReportFlowStep.tsx",
+      "src/applets/carbon/pages/plans/plan/_components/PlanActionFooter.tsx",
       "src/common/component-fixtures/fixtures/HiilikarttaPlanReportActionsFixture.tsx"
     ],
     "states": [
@@ -817,9 +817,9 @@
     "label": "Hiilikartta zone area controls",
     "description": "Zone class chip and area filter/sort control states for the Hiilikartta areas route.",
     "sourceGlobs": [
-      "src/applets/carbon/pages/kaavat/plan/alueet/_components/ZoneAccordion.tsx",
-      "src/applets/carbon/pages/kaavat/plan/alueet/_components/ZoneClassChip.tsx",
-      "src/applets/carbon/pages/kaavat/plan/alueet/_components/zoneAreaUtils.ts",
+      "src/applets/carbon/pages/plans/plan/areas/_components/ZoneAccordion.tsx",
+      "src/applets/carbon/pages/plans/plan/areas/_components/ZoneClassChip.tsx",
+      "src/applets/carbon/pages/plans/plan/areas/_components/zoneAreaUtils.ts",
       "src/common/component-fixtures/fixtures/HiilikarttaZoneAreaControlsFixture.tsx"
     ],
     "states": [
@@ -862,9 +862,9 @@
     "label": "Hiilikartta zone accordion item",
     "description": "Zone accordion item states for the Hiilikartta area land-use editor migration.",
     "sourceGlobs": [
-      "src/applets/carbon/pages/kaavat/plan/alueet/_components/ZoneAccordionItem.tsx",
-      "src/applets/carbon/pages/kaavat/plan/alueet/_components/ZoneClassChip.tsx",
-      "src/applets/carbon/pages/kaavat/plan/alueet/_components/zoneAreaUtils.ts",
+      "src/applets/carbon/pages/plans/plan/areas/_components/ZoneAccordionItem.tsx",
+      "src/applets/carbon/pages/plans/plan/areas/_components/ZoneClassChip.tsx",
+      "src/applets/carbon/pages/plans/plan/areas/_components/zoneAreaUtils.ts",
       "src/common/component-fixtures/fixtures/HiilikarttaZoneAccordionItemFixture.tsx"
     ],
     "states": [
