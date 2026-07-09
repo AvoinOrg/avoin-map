@@ -11,7 +11,7 @@ import {
   MOBILE_BREAKPOINT_PX,
   SCROLLBAR_WIDTH_REM,
 } from './constants'
-import { ARIMO_FONT_FAMILY } from './fontConstants'
+import { ARIMO_FONT_FAMILY } from './fonts'
 
 const palette = {
   mode: 'light',
