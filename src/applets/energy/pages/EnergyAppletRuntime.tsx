@@ -13,7 +13,7 @@ const HELSINKI_DEFAULT_VIEW = {
   duration: 0,
 }
 
-const layoutClient = ({ children }: { children: React.ReactNode }) => {
+const EnergyAppletRuntime = ({ children }: { children: React.ReactNode }) => {
   return (
     <SidebarBoundary
       id="energiakartta-floating"
@@ -44,4 +44,4 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
   )
 }
 
-export default layoutClient
+export default EnergyAppletRuntime

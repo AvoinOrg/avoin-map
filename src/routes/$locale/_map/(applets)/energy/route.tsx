@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { guardAppletLocale } from '#/runtime/appletRouteGuards'
-import EnergiakarttaLayout from 'applets/energy/pages/layout'
+import EnergyShell from 'applets/energy/pages/EnergyShell'
 import {
   ENERGIAKARTTA_TITLE,
   getStaticAppletHead,
@@ -40,5 +40,5 @@ export const Route = createFileRoute(
       umamiWebsiteId:
         process.env.NEXT_PUBLIC_APPLETS_ENERGIAKARTTA_UMAMI_ID,
     }),
-  component: EnergiakarttaLayout,
+  component: EnergyShell,
 })

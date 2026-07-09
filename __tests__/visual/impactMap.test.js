@@ -48,7 +48,7 @@ describe('resolveImpactedScenarios', () => {
 
   test('maps energy source changes to the energy scenario only', () => {
     const result = resolveImpactedScenarios({
-      files: ['src/applets/energy/pages/page.tsx'],
+      files: ['src/applets/energy/pages/EnergyHomePage.tsx'],
       scenarios,
     })
 

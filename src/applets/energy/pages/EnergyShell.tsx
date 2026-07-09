@@ -1,18 +1,18 @@
 import { Outlet } from '@tanstack/react-router'
 
 import AppletLayout from '#/components/common/AppletLayout'
-import LayoutClient from './layoutClient'
+import EnergyAppletRuntime from './EnergyAppletRuntime'
 
-const Layout = () => {
+const EnergyShell = () => {
   return (
     <AppletLayout
       umamiWebsiteId={process.env.NEXT_PUBLIC_APPLETS_ENERGIAKARTTA_UMAMI_ID}
     >
-      <LayoutClient>
+      <EnergyAppletRuntime>
         <Outlet />
-      </LayoutClient>
+      </EnergyAppletRuntime>
     </AppletLayout>
   )
 }
 
-export default Layout
+export default EnergyShell

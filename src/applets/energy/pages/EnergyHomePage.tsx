@@ -428,11 +428,11 @@ const HeatingAccordionContent = ({
   )
 }
 
-type PageProps = {
+type EnergyHomePageProps = {
   locale?: string
 }
 
-const Page = ({ locale: localeProp }: PageProps) => {
+const EnergyHomePage = ({ locale: localeProp }: EnergyHomePageProps) => {
   const { t } = useTranslate('energiakartta')
   const params = useAppParams<{ locale?: string | string[] }>()
   const locale =
@@ -1017,4 +1017,4 @@ const Page = ({ locale: localeProp }: PageProps) => {
   )
 }
 
-export default Page
+export default EnergyHomePage
