@@ -7,7 +7,7 @@ import { AppRouteLink } from '#/common/navigation/appRouteLinks'
 import { Box } from '#/common/style/theme'
 import TText from '#/components/common/TText'
 import {
-  IntoSidebarHeaderSlot,
+  IntoSidebarHeaderChildrenSlot,
   SidebarContentBox,
 } from '#/components/Sidebar'
 
@@ -19,48 +19,43 @@ import {
 const HomeSidebarHeader = () => (
   <Box
     sx={{
-      px: { mobile: '0.375rem', desktop: '0.375rem' },
-      pt: { mobile: '0.4375rem', desktop: '0.5rem' },
-      pb: { mobile: '0.375rem', desktop: '0.5rem' },
-      flexShrink: 0,
+      position: 'relative',
+      width: { mobile: 'calc(100vw - 2rem)', desktop: '20rem' },
+      minHeight: { mobile: '5.125rem', desktop: '5.625rem' },
+      borderRadius: '0.625rem',
+      overflow: 'hidden',
+      backgroundImage:
+        'url(/files/img/energiakartta/sidebar/main-hero-header-crop.jpg)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      display: 'flex',
+      alignItems: 'center',
     }}
   >
     <Box
       sx={{
+        position: 'absolute',
+        inset: 0,
+        background:
+          'linear-gradient(90deg, rgba(244,244,244,1) 0%, rgba(244,244,244,0.98) 24%, rgba(244,244,244,0.48) 48%, rgba(244,244,244,0) 76%)',
+      }}
+    />
+    <Box
+      component="h1"
+      sx={{
         position: 'relative',
-        minHeight: { mobile: '5.125rem', desktop: '5.625rem' },
-        borderRadius: '0.625rem',
-        overflow: 'hidden',
-        backgroundImage: 'url(/files/img/hiilikartta/sidebar/main-hero.jpg)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        zIndex: 1,
+        m: 0,
+        pl: { mobile: '1rem', desktop: '0.125rem' },
+        pr: '1rem',
+        color: '#111111',
+        fontSize: '0.75rem',
+        fontWeight: 700,
+        lineHeight: '1.125rem',
+        textTransform: 'uppercase',
       }}
     >
-      <Box
-        sx={{
-          position: 'absolute',
-          inset: 0,
-          background:
-            'linear-gradient(90deg, rgba(244,244,244,1) 0%, rgba(244,244,244,0.98) 24%, rgba(244,244,244,0.48) 48%, rgba(244,244,244,0) 76%)',
-        }}
-      />
-      <Box
-        component="h1"
-        sx={{
-          position: 'relative',
-          zIndex: 1,
-          m: 0,
-          px: { mobile: '1rem', desktop: '1.25rem' },
-          pt: { mobile: '2rem', desktop: '2rem' },
-          color: '#111111',
-          fontSize: '0.75rem',
-          fontWeight: 700,
-          lineHeight: '1.125rem',
-          textTransform: 'uppercase',
-        }}
-      >
-        <TText ns={UI_BASELINE_NAMESPACE} keyName="home.title" />
-      </Box>
+      <TText ns={UI_BASELINE_NAMESPACE} keyName="home.title" />
     </Box>
   </Box>
 )
@@ -70,9 +65,9 @@ const Page = () => {
 
   return (
     <>
-      <IntoSidebarHeaderSlot>
+      <IntoSidebarHeaderChildrenSlot>
         <HomeSidebarHeader />
-      </IntoSidebarHeaderSlot>
+      </IntoSidebarHeaderChildrenSlot>
       <SidebarContentBox
         sxOuter={{ height: '100%' }}
         scrollbarSide="left"

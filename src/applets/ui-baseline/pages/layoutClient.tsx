@@ -7,6 +7,7 @@ import {
   SidebarBoundary,
 } from '#/components/Sidebar'
 import AppletWrapper from '#/components/common/AppletWrapper'
+import { listedLayerGroups } from 'applets/energiakartta/common/constants'
 
 import { UI_BASELINE_NAMESPACE } from '../common/categories'
 
@@ -18,16 +19,14 @@ const HELSINKI_DEFAULT_VIEW = {
 
 const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   return (
-    <SidebarBoundary
-      id="ui-baseline-simple-sidebar"
-      mode="simple"
-      config={{ width: 'compact' }}
-    >
+    <SidebarBoundary id="ui-baseline-simple-sidebar" mode="simple">
       <AppletWrapper
-        mapContext={UI_BASELINE_NAMESPACE}
+        mapContext="energiakartta"
         localizationNamespace={UI_BASELINE_NAMESPACE}
+        subPath={UI_BASELINE_NAMESPACE}
         isNavbarHidden={true}
         defaultView={HELSINKI_DEFAULT_VIEW}
+        listedLayerGroups={listedLayerGroups}
         sidebarHeaderTitle="UI Baseline"
         sx={{
           pt: 0,
