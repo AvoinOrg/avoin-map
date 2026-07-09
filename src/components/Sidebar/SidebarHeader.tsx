@@ -1,10 +1,10 @@
 import React from 'react'
-import type { AppBoxProps } from '#/common/style/theme/system'
-import { Box, toSxArray } from '#/common/style/theme/system'
 import {
   SIDEBAR_HEADER_EDGE_INSET_REM,
   SIDEBAR_HEADER_TITLE_PADDING_X,
-} from './sidebarSpacing'
+} from '#/common/style/theme/constants'
+import type { AppBoxProps } from '#/common/style/theme/system'
+import { Box, toSxArray } from '#/common/style/theme/system'
 
 type SidebarStyleProps = AppBoxProps['sx']
 

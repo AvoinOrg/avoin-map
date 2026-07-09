@@ -3,6 +3,10 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { alpha } from '@mui/system/colorManipulator'
 import type { EventListeners } from 'overlayscrollbars'
+import {
+  SIDEBAR_CONTENT_BOX_PADDING_BOTTOM,
+  SIDEBAR_CONTENT_BOX_PADDING_X,
+} from '#/common/style/theme/constants'
 import type { AppBoxProps } from '#/common/style/theme/system'
 import { Box } from '#/common/style/theme/system'
 
@@ -10,10 +14,6 @@ import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react'
 import { useSimpleSidebarContext } from './SimpleSidebarContext'
-import {
-  SIDEBAR_CONTENT_BOX_PADDING_BOTTOM,
-  SIDEBAR_CONTENT_BOX_PADDING_X,
-} from './sidebarSpacing'
 
 const SIDEBAR_SCROLL_FADE_HEIGHT_REM = 3
 type SidebarStyleProps = AppBoxProps['sx']
