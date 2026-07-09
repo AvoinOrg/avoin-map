@@ -44,7 +44,7 @@ describe('request routing decisions', () => {
   describe('main deployment mode', () => {
     const mainMode = [
       'main',
-      'energiakartta',
+      'energy',
       'carbon',
       'luonnonmetsakartat',
     ]
@@ -262,7 +262,7 @@ describe('request routing decisions', () => {
 
   describe('standalone applet mode', () => {
     it.each([
-      ['energiakartta', '/fi'],
+      ['energy', '/fi'],
       ['carbon', '/fi'],
       ['luonnonmetsakartat', '/fi'],
     ])('redirects root for %s to its default locale', (namespace, pathname) => {
@@ -399,7 +399,7 @@ describe('request routing decisions', () => {
         expect(
           decideRequestRouting({
             url: url(`${path}?x=1`),
-            compiledApplets: ['energiakartta'],
+            compiledApplets: ['energy'],
           })
         ).toEqual({ type: 'passThrough' })
       }
@@ -418,7 +418,7 @@ describe('request routing decisions', () => {
       'strips duplicated canonical applet prefix %s from standalone paths',
       (path, pathname) => {
         const compiledApplets = path.includes('/energy')
-          ? ['energiakartta']
+          ? ['energy']
           : path.includes('/luonnonmetsakartat')
             ? ['luonnonmetsakartat']
             : ['carbon']
@@ -439,8 +439,8 @@ describe('request routing decisions', () => {
 
     it.each([
       ['/fi/carbonmap/plans?x=1', ['carbon']],
-      ['/fi/energymap/test?x=1', ['energiakartta']],
-      ['/fi/energiakartta/test?x=1', ['energiakartta']],
+      ['/fi/energymap/test?x=1', ['energy']],
+      ['/fi/energiakartta/test?x=1', ['energy']],
       ['/fi/hiilikartta/kaavat?x=1', ['carbon']],
     ])(
       'does not strip removed old prefix %s from standalone paths',
@@ -509,7 +509,7 @@ describe('request routing decisions', () => {
         decideRequestRouting({
           url: url('/en/test?x=1', 'energy.example.test'),
           host: 'energy.example.test',
-          compiledApplets: ['main', 'energiakartta'],
+          compiledApplets: ['main', 'energy'],
           env: {
             NEXT_PUBLIC_APPLET_ENERGIAKARTTA_DOMAIN:
               'https://energy.example.test',

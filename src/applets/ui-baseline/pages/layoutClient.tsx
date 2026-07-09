@@ -3,7 +3,7 @@
 import React from 'react'
 
 import AppletWrapper from '#/components/common/AppletWrapper'
-import { listedLayerGroups } from 'applets/energiakartta/common/constants'
+import { listedLayerGroups } from 'applets/energy/common/constants'
 
 import { UI_BASELINE_NAMESPACE } from '../common/categories'
 
@@ -16,7 +16,7 @@ const HELSINKI_DEFAULT_VIEW = {
 const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   return (
     <AppletWrapper
-      mapContext="energiakartta"
+      mapContext="energy"
       localizationNamespace={UI_BASELINE_NAMESPACE}
       subPath={UI_BASELINE_NAMESPACE}
       isNavbarHidden={true}

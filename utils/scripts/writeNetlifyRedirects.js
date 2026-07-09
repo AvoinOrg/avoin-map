@@ -125,8 +125,17 @@ const getKnownUnsupportedLocales = ({ namespace, appletConf }) => {
 
 const getEnvDomain = ({ namespace, env }) => {
   const upperNamespace = namespace.toUpperCase()
+  const canonicalDomain = env[`NEXT_PUBLIC_APPLET_${upperNamespace}_DOMAIN`]
 
-  return env[`NEXT_PUBLIC_APPLET_${upperNamespace}_DOMAIN`]
+  if (canonicalDomain) {
+    return canonicalDomain
+  }
+
+  if (namespace === 'energy') {
+    return env.NEXT_PUBLIC_APPLET_ENERGIAKARTTA_DOMAIN
+  }
+
+  return undefined
 }
 
 const getDomains = ({ namespace, appletConf, env }) => [

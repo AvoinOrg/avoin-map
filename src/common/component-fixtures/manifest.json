@@ -542,8 +542,8 @@
     "label": "Energiakartta energy class controls",
     "description": "Energiakartta A-G energy certificate class control states.",
     "sourceGlobs": [
-      "src/applets/energiakartta/components/EnergyCertificateClassControls.tsx",
-      "src/applets/energiakartta/components/EnergyCertificateClassControls.test.tsx",
+      "src/applets/energy/components/EnergyCertificateClassControls.tsx",
+      "src/applets/energy/components/EnergyCertificateClassControls.test.tsx",
       "src/common/component-fixtures/fixtures/EnergymapFrontPageControlsFixture.tsx"
     ],
     "states": [
@@ -569,8 +569,8 @@
     "label": "Energiakartta background filters",
     "description": "Energiakartta background building filter control states.",
     "sourceGlobs": [
-      "src/applets/energiakartta/components/BackgroundBuildingFiltersAccordionContent.tsx",
-      "src/applets/energiakartta/components/BackgroundBuildingFiltersAccordionContent.test.tsx",
+      "src/applets/energy/components/BackgroundBuildingFiltersAccordionContent.tsx",
+      "src/applets/energy/components/BackgroundBuildingFiltersAccordionContent.test.tsx",
       "src/common/component-fixtures/fixtures/EnergymapFrontPageControlsFixture.tsx"
     ],
     "states": [
@@ -591,8 +591,8 @@
     "label": "Energiakartta building info panel",
     "description": "Energiakartta building-info panel tabs, metric controls, mobile layout, and collapsed action rail.",
     "sourceGlobs": [
-      "src/applets/energiakartta/components/BuildingInfoPanel.tsx",
-      "src/applets/energiakartta/components/BuildingInfoPanel.test.tsx",
+      "src/applets/energy/components/BuildingInfoPanel.tsx",
+      "src/applets/energy/components/BuildingInfoPanel.test.tsx",
       "src/common/component-fixtures/fixtures/EnergymapBuildingInfoPanelFixture.tsx"
     ],
     "states": [

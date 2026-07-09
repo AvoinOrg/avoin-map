@@ -60,13 +60,12 @@ const buildImpactRules = () => [
     target: 'carbon',
   },
   {
-    label: 'energiakartta-pages',
+    label: 'energy-pages',
     globs: [
-      'src/applets/energiakartta/**',
+      'src/applets/energy/**',
       'src/routes/$locale/_map/(applets)/energy/**',
-      'src/routes/$locale/_map/(applets)/energiakartta/**',
     ],
-    target: 'energiakartta',
+    target: 'energy',
   },
   {
     label: 'luonnonmetsakartat-pages',

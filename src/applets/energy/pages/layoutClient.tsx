@@ -23,7 +23,7 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
       }}
     >
       <AppletWrapper
-        mapContext={'energiakartta'}
+        mapContext="energy"
         localizationNamespace={localizationNamespace}
         isNavbarHidden={true}
         defaultView={HELSINKI_DEFAULT_VIEW}

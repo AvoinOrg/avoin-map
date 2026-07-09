@@ -1,6 +1,6 @@
 export const APPLET_NAMESPACES = [
   'main',
-  'energiakartta',
+  'energy',
   'carbon',
   'luonnonmetsakartat',
   'ui-baseline',
@@ -17,7 +17,7 @@ export type RouteTextKey = {
 
 export const APP_ROUTE_KEYS = {
   MAIN_HOME: 'main.home',
-  ENERGIAKARTTA_HOME: 'energiakartta.home',
+  ENERGY_HOME: 'energy.home',
   CARBON_HOME: 'carbon.home',
   CARBON_REPORT: 'carbon.report',
   CARBON_PLANS: 'carbon.plans',

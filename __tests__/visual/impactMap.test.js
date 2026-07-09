@@ -2,7 +2,7 @@ const { resolveImpactedScenarios } = require('../../utils/visual/impactMap')
 
 const scenarios = [
   { id: 'main-root', applet: 'main' },
-  { id: 'energiakartta-root', applet: 'energiakartta' },
+  { id: 'energy-root', applet: 'energy' },
   { id: 'carbon-root', applet: 'carbon' },
   { id: 'luonnonmetsakartat-root', applet: 'luonnonmetsakartat' },
 ]
@@ -46,6 +46,16 @@ describe('resolveImpactedScenarios', () => {
     expect(result.scenarioIds).toEqual(['carbon-root'])
   })
 
+  test('maps energy source changes to the energy scenario only', () => {
+    const result = resolveImpactedScenarios({
+      files: ['src/applets/energy/pages/page.tsx'],
+      scenarios,
+    })
+
+    expect(result.mode).toBe('targeted')
+    expect(result.scenarioIds).toEqual(['energy-root'])
+  })
+
   test('maps TanStack applet route changes to applet scenario only', () => {
     const result = resolveImpactedScenarios({
       files: [
@@ -56,6 +66,16 @@ describe('resolveImpactedScenarios', () => {
 
     expect(result.mode).toBe('targeted')
     expect(result.scenarioIds).toEqual(['carbon-root'])
+  })
+
+  test('maps energy TanStack applet route changes to the energy scenario only', () => {
+    const result = resolveImpactedScenarios({
+      files: ['src/routes/$locale/_map/(applets)/energy/route.tsx'],
+      scenarios,
+    })
+
+    expect(result.mode).toBe('targeted')
+    expect(result.scenarioIds).toEqual(['energy-root'])
   })
 
   test('falls back to all scenarios for unmapped files', () => {

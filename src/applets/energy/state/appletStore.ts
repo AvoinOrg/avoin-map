@@ -208,6 +208,6 @@ export const useAppletStore = create<State>()(
         return { ...vars, ...actions }
       })
     ),
-    { ...commonDevtools, store: 'energiakarttaStore' }
+    { ...commonDevtools, store: 'energyStore' }
   )
 )

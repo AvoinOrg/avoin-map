@@ -21,16 +21,16 @@ import {
   getBuildingInfoTabIdForMode,
   type BuildingInfoDesktopMode,
   type BuildingInfoTabId,
-} from 'applets/energiakartta/components/BuildingInfoPanel'
-import { createEnergymapBuildingInfoPanels } from 'applets/energiakartta/common/buildingInfo'
-import type { EnergymapSelectedBuilding } from 'applets/energiakartta/common/types'
+} from 'applets/energy/components/BuildingInfoPanel'
+import { createEnergymapBuildingInfoPanels } from 'applets/energy/common/buildingInfo'
+import type { EnergymapSelectedBuilding } from 'applets/energy/common/types'
 import {
   ENERGYMAP_BUILDING_INFO_DESKTOP_COMFORT_GAP_PX,
   ENERGYMAP_BUILDING_INFO_DESKTOP_MAP_CONTROLS_RESERVE_PX,
   ENERGYMAP_BUILDING_INFO_DESKTOP_TAB_RAIL_RESERVE_PX,
   ENERGYMAP_BUILDING_INFO_RENOVATION_DESKTOP_PANEL_WIDTH_PX,
   getEnergymapBuildingInfoPanelRuntimeOptions,
-} from 'applets/energiakartta/common/buildingInfoPanelRuntime'
+} from 'applets/energy/common/buildingInfoPanelRuntime'
 
 type BaselinePanelState = 'standard' | 'collapsed' | 'fullscreen' | 'closed'
 

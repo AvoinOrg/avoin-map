@@ -4,10 +4,10 @@ import React from 'react'
 
 import type { ComponentFixture } from '#/common/component-fixtures/types'
 import { Box } from '#/common/style/theme'
-import BackgroundBuildingFiltersAccordionContent from 'applets/energiakartta/components/BackgroundBuildingFiltersAccordionContent'
-import EnergyCertificateClassControls from 'applets/energiakartta/components/EnergyCertificateClassControls'
-import type { EnergyCertificateClassCode } from 'applets/energiakartta/layers/energyCertificateLayerConf'
-import { useAppletStore } from 'applets/energiakartta/state/appletStore'
+import BackgroundBuildingFiltersAccordionContent from 'applets/energy/components/BackgroundBuildingFiltersAccordionContent'
+import EnergyCertificateClassControls from 'applets/energy/components/EnergyCertificateClassControls'
+import type { EnergyCertificateClassCode } from 'applets/energy/layers/energyCertificateLayerConf'
+import { useAppletStore } from 'applets/energy/state/appletStore'
 
 type EnergyClassControlsPreset = {
   activeClasses?: EnergyCertificateClassCode[]
@@ -105,8 +105,8 @@ export const energymapEnergyClassControlsFixture: ComponentFixture = {
   label: 'Energiakartta energy class controls',
   description: 'Energiakartta A-G energy certificate class control states.',
   sourceGlobs: [
-    'src/applets/energiakartta/components/EnergyCertificateClassControls.tsx',
-    'src/applets/energiakartta/components/EnergyCertificateClassControls.test.tsx',
+    'src/applets/energy/components/EnergyCertificateClassControls.tsx',
+    'src/applets/energy/components/EnergyCertificateClassControls.test.tsx',
     'src/common/component-fixtures/fixtures/EnergymapFrontPageControlsFixture.tsx',
   ],
   wrapper: EnergyClassFixtureWrapper,
@@ -155,8 +155,8 @@ export const energymapBackgroundFiltersFixture: ComponentFixture = {
   label: 'Energiakartta background filters',
   description: 'Energiakartta background building filter control states.',
   sourceGlobs: [
-    'src/applets/energiakartta/components/BackgroundBuildingFiltersAccordionContent.tsx',
-    'src/applets/energiakartta/components/BackgroundBuildingFiltersAccordionContent.test.tsx',
+    'src/applets/energy/components/BackgroundBuildingFiltersAccordionContent.tsx',
+    'src/applets/energy/components/BackgroundBuildingFiltersAccordionContent.test.tsx',
     'src/common/component-fixtures/fixtures/EnergymapFrontPageControlsFixture.tsx',
   ],
   wrapper: BackgroundFiltersFixtureWrapper,

@@ -62,7 +62,7 @@ const buttonTypeProps = { type: 'button' } as const
 
 const MAIN_NAMESPACE = 'main'
 const APPLET_NAMESPACES = [
-  'energiakartta',
+  'energy',
   'carbon',
   'luonnonmetsakartat',
 ] as const

@@ -15,7 +15,7 @@
     "langs": ["fi"],
     "domains": ["luonnonmetsakarta.netlify.app", "luonnonmetsakartat.avoin.org"]
   },
-  "energiakartta": {
+  "energy": {
     "localeNs": "energiakartta",
     "langs": ["fi", "en"]
   },

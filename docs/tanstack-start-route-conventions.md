@@ -90,7 +90,7 @@ Start file route target convention is `$param`.
 | `src/applets/hiilikartta/pages/kaavat/plan/page.tsx` | `src/routes/$locale/_map/(applets)/hiilikartta/kaavat/$planId.tsx` or a directory equivalent. |
 | `src/applets/hiilikartta/pages/kaavat/plan/alueet/page.tsx` | `src/routes/$locale/_map/(applets)/hiilikartta/kaavat/$planId/alueet.tsx` or `alueet/index.tsx`. |
 | `src/applets/luonnonmetsakartat/pages/admin/taso/folayer/**` | `src/routes/$locale/_map/(applets)/luonnonmetsakartat/admin/taso/$folayerIdSlug/**` |
-| `src/applets/energiakartta/pages/**` | `src/routes/$locale/_map/(applets)/energiakartta/**` |
+| `src/applets/energy/pages/**` | `src/routes/$locale/_map/(applets)/energy/**` |
 | `src/app/[locale]/adds/**` | `src/routes/$locale/adds/**` |
 | `src/app/[locale]/dev/component-fixtures/[fixtureId]/[stateId]/page.tsx` | `src/routes/$locale/dev/component-fixtures/$fixtureId/$stateId.tsx` |
 

@@ -423,9 +423,9 @@ describe('appRouteLinks', () => {
     expect(() =>
       selectAppRouteEntry({
         entries: collectAppRouteEntries(standaloneCarbonRoutesById),
-        routeKey: APP_ROUTE_KEYS.ENERGIAKARTTA_HOME,
+        routeKey: APP_ROUTE_KEYS.ENERGY_HOME,
       })
-    ).toThrow('Unknown AppRouteKey "energiakartta.home"')
+    ).toThrow('Unknown AppRouteKey "energy.home"')
   })
 
   it('throws for duplicate canonical route keys in a single entry set', () => {

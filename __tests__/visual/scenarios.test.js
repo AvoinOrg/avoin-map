@@ -75,7 +75,7 @@ const getScenarioPathname = (scenario) => getScenarioUrl(scenario).pathname
 describe('visual scenarios', () => {
   test('builds main-mode root scenarios for compiled applets', () => {
     const env = {
-      NEXT_PUBLIC_COMPILED_APPLETS: 'main,energiakartta,carbon',
+      NEXT_PUBLIC_COMPILED_APPLETS: 'main,energy,carbon',
     }
 
     const scenarios = buildVisualScenarios({
@@ -85,14 +85,14 @@ describe('visual scenarios', () => {
 
     expect(scenarios.map((scenario) => scenario.id)).toEqual([
       'main-root',
-      'energiakartta-root',
+      'energy-root',
       'carbon-root',
     ])
 
     expect(scenarios.find((s) => s.id === 'main-root').url).toBe(
       'http://127.0.0.1:3000/en'
     )
-    expect(scenarios.find((s) => s.id === 'energiakartta-root').url).toBe(
+    expect(scenarios.find((s) => s.id === 'energy-root').url).toBe(
       'http://127.0.0.1:3000/fi/energy'
     )
     expect(scenarios.find((s) => s.id === 'carbon-root').url).toBe(
@@ -125,7 +125,7 @@ describe('visual scenarios', () => {
 
   test('builds component fixture scenarios in main mode', () => {
     const scenarios = buildVisualScenarios({
-      env: { NEXT_PUBLIC_COMPILED_APPLETS: 'main,energiakartta' },
+      env: { NEXT_PUBLIC_COMPILED_APPLETS: 'main,energy' },
       baseUrl: 'http://127.0.0.1:3000',
       scenarioSet: COMPONENT_FIXTURE_SCENARIO_SET,
     })
@@ -463,7 +463,7 @@ describe('visual scenarios', () => {
 
       expect(() =>
         buildVisualScenarios({
-          env: { NEXT_PUBLIC_COMPILED_APPLETS: 'main,energiakartta' },
+          env: { NEXT_PUBLIC_COMPILED_APPLETS: 'main,energy' },
           baseUrl: 'http://app',
           scenarioSet: CARBON_MOCK_SCENARIO_SET,
         })
@@ -713,7 +713,7 @@ describe('visual scenarios', () => {
 
       for (const compiledApplets of [
         'main,carbon',
-        'main,energiakartta',
+        'main,energy',
       ]) {
         expect(() =>
           buildVisualScenarios({

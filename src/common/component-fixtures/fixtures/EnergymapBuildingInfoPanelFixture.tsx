@@ -27,12 +27,12 @@ import type {
   EnergymapBuildingInfoPrimaryMetricId,
   EnergymapBuildingInfoText,
   EnergymapBuildingInfoValueStatus,
-} from 'applets/energiakartta/common/buildingInfo'
+} from 'applets/energy/common/buildingInfo'
 import {
   BuildingInfoActionRail,
   BuildingInfoTabPages,
-} from 'applets/energiakartta/components/BuildingInfoPanel'
-import type { BuildingInfoTabId } from 'applets/energiakartta/components/BuildingInfoPanel'
+} from 'applets/energy/components/BuildingInfoPanel'
+import type { BuildingInfoTabId } from 'applets/energy/components/BuildingInfoPanel'
 
 const noop = () => {}
 
@@ -497,8 +497,8 @@ export const energymapBuildingInfoPanelFixture: ComponentFixture = {
   description:
     'Energiakartta building-info panel tabs, metric controls, mobile layout, and collapsed action rail.',
   sourceGlobs: [
-    'src/applets/energiakartta/components/BuildingInfoPanel.tsx',
-    'src/applets/energiakartta/components/BuildingInfoPanel.test.tsx',
+    'src/applets/energy/components/BuildingInfoPanel.tsx',
+    'src/applets/energy/components/BuildingInfoPanel.test.tsx',
     'src/common/component-fixtures/fixtures/EnergymapBuildingInfoPanelFixture.tsx',
   ],
   canvasSx: {

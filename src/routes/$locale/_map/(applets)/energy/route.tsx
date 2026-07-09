@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { guardAppletLocale } from '#/runtime/appletRouteGuards'
-import EnergiakarttaLayout from 'applets/energiakartta/pages/layout'
+import EnergiakarttaLayout from 'applets/energy/pages/layout'
 import {
   ENERGIAKARTTA_TITLE,
   getStaticAppletHead,
@@ -17,8 +17,8 @@ export const Route = createFileRoute(
   '/$locale/_map/(applets)/energy'
 )({
   staticData: defineAppRouteStaticData({
-    key: APP_ROUTE_KEYS.ENERGIAKARTTA_HOME,
-    appletNamespace: 'energiakartta',
+    key: APP_ROUTE_KEYS.ENERGY_HOME,
+    appletNamespace: 'energy',
     variant: 'canonical',
     home: true,
     title: routeTextKey('energiakartta', 'sidebar.title'),
@@ -29,7 +29,7 @@ export const Route = createFileRoute(
   }),
   beforeLoad: ({ params, location }) => {
     guardAppletLocale({
-      namespace: 'energiakartta',
+      namespace: 'energy',
       locale: params.locale,
       location,
     })

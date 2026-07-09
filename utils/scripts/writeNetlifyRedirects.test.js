@@ -20,7 +20,7 @@ const appletConf = {
     langs: ['fi'],
     domains: ['luonnonmetsakartat.avoin.org'],
   },
-  energiakartta: {
+  energy: {
     localeNs: 'energiakartta',
     langs: ['fi', 'en'],
   },
@@ -191,7 +191,7 @@ describe('writeNetlifyRedirects', () => {
     const redirects = generateNetlifyRedirects({
       appletConf,
       baseUrl: mainBaseUrl,
-      compiledApplets: parseCompiledApplets('main,energiakartta'),
+      compiledApplets: parseCompiledApplets('main,energy'),
       env: {
         NEXT_PUBLIC_APPLET_ENERGIAKARTTA_DOMAIN: energyDomain,
       },
@@ -281,7 +281,7 @@ describe('writeNetlifyRedirects', () => {
     const redirects = generateNetlifyRedirects({
       appletConf,
       baseUrl: 'https://energy-context.example.netlify.app',
-      compiledApplets: parseCompiledApplets('energiakartta'),
+      compiledApplets: parseCompiledApplets('energy'),
       env: {
         NEXT_PUBLIC_APPLET_ENERGIAKARTTA_DOMAIN: energyDomain,
       },
@@ -304,7 +304,7 @@ describe('writeNetlifyRedirects', () => {
     const redirects = generateNetlifyRedirects({
       appletConf,
       baseUrl: null,
-      compiledApplets: parseCompiledApplets('energiakartta'),
+      compiledApplets: parseCompiledApplets('energy'),
       env: {},
     })
 

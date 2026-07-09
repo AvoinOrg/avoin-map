@@ -1,12 +1,12 @@
 import { LayerOrderLevel, ListedLayerMenuItem } from '#/common/types/map'
-import BackgroundBuildingFiltersAccordionContent from 'applets/energiakartta/components/BackgroundBuildingFiltersAccordionContent'
-import energymapBuildingPolygonsLayerConf from 'applets/energiakartta/layers/buildingPolygonsLayerConf'
+import BackgroundBuildingFiltersAccordionContent from 'applets/energy/components/BackgroundBuildingFiltersAccordionContent'
+import energymapBuildingPolygonsLayerConf from 'applets/energy/layers/buildingPolygonsLayerConf'
 import {
   ENERGYMAP_ENERGY_CERTIFICATE_LAYER_GROUP_ID,
-} from 'applets/energiakartta/layers/energyCertificateLayerConf'
+} from 'applets/energy/layers/energyCertificateLayerConf'
 import {
   ENERGYMAP_HEATING_LAYER_GROUP_ID,
-} from 'applets/energiakartta/layers/heatingLayerConf'
+} from 'applets/energy/layers/heatingLayerConf'
 import {
   listedMmlKiinteistojaotusLayerGroup,
   listedMmlKiinteistotunnuksetLayerGroup,

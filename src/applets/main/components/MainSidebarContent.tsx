@@ -64,7 +64,7 @@ const APPLET_BUBBLES: Array<{
 }> = [
   {
     id: 'buildings',
-    routeKey: APP_ROUTE_KEYS.ENERGIAKARTTA_HOME,
+    routeKey: APP_ROUTE_KEYS.ENERGY_HOME,
     titleKey: 'sidebar.buildings',
     descriptionKey: 'sidebar.main.bubbles.buildings.description',
     minHeight: '20.375rem',

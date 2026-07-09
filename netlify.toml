@@ -5,7 +5,7 @@
   publish = "dist"
 
 [build.environment]
-  NEXT_PUBLIC_COMPILED_APPLETS = "main,energiakartta,carbon,luonnonmetsakartat"
+  NEXT_PUBLIC_COMPILED_APPLETS = "main,energy,carbon,luonnonmetsakartat"
 
 [context."hiilikartta_deploy"]
   environment = { NEXT_PUBLIC_COMPILED_APPLETS = "carbon" }

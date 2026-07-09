@@ -224,6 +224,30 @@ describe('routeMetadata', () => {
     expect(
       getAppRouteMetadataFromStaticData({
         appRoute: {
+          key: APP_ROUTE_KEYS.ENERGY_HOME,
+          appletNamespace: 'energy',
+          variant: 'canonical',
+          title: {
+            ns: 'energiakartta',
+            key: 'sidebar.title',
+          },
+        },
+      })?.key
+    ).toBe(APP_ROUTE_KEYS.ENERGY_HOME)
+
+    expect(
+      getAppRouteMetadataFromStaticData({
+        appRoute: {
+          key: APP_ROUTE_KEYS.ENERGY_HOME,
+          appletNamespace: 'energiakartta',
+          variant: 'canonical',
+        },
+      })
+    ).toBeUndefined()
+
+    expect(
+      getAppRouteMetadataFromStaticData({
+        appRoute: {
           key: APP_ROUTE_KEYS.UI_BASELINE_HOME,
           appletNamespace: 'ui-baseline',
           variant: 'canonical',
