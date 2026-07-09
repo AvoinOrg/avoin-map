@@ -7,7 +7,7 @@ import { useMapStore } from '#/common/store'
 import {
   createUiBaselineDrawingLayerGroupOptions,
   UI_BASELINE_DRAWING_DATASET_ID,
-} from '../common/drawingLayer'
+} from '../../common/drawingLayer'
 
 let drawingLifecyclePromise = Promise.resolve()
 

@@ -5,14 +5,7 @@ import {
   defineAppRouteStaticData,
   routeTextKey,
 } from '#/common/routing/routeMetadata'
-import CategoryPage from 'applets/ui-baseline/pages/CategoryPage'
-import NotificationsContent from 'applets/ui-baseline/pages/NotificationsContent'
-
-const NotificationsPage = () => (
-  <CategoryPage categoryId="notifications">
-    <NotificationsContent />
-  </CategoryPage>
-)
+import UiBaselineNotificationsPage from 'applets/ui-baseline/pages/notifications/page'
 
 export const Route = createFileRoute(
   '/$locale/_map/(applets)/ui-baseline/notifications'
@@ -24,5 +17,5 @@ export const Route = createFileRoute(
     title: routeTextKey('ui-baseline', 'route.breadcrumb.notifications'),
     breadcrumb: routeTextKey('ui-baseline', 'route.breadcrumb.notifications'),
   }),
-  component: NotificationsPage,
+  component: UiBaselineNotificationsPage,
 })

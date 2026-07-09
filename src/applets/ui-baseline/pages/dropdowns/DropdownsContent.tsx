@@ -13,7 +13,7 @@ import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
 import DropDownSelectWithLabel from '#/components/common/DropDownSelectWithLabel'
 import MultiSelectAutocomplete from '#/components/common/MultiSelectAutocomplete'
 
-import { BaselineExample, BaselineSection, noop } from './BaselineContent'
+import { BaselineExample, BaselineSection, noop } from '../BaselineContent'
 
 const selectOptions: SelectOption[] = [
   { value: 'heat-demand', label: 'Heat demand' },

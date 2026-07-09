@@ -5,14 +5,7 @@ import {
   defineAppRouteStaticData,
   routeTextKey,
 } from '#/common/routing/routeMetadata'
-import CategoryPage from 'applets/ui-baseline/pages/CategoryPage'
-import ModalsContent from 'applets/ui-baseline/pages/ModalsContent'
-
-const ModalsPage = () => (
-  <CategoryPage categoryId="modals">
-    <ModalsContent />
-  </CategoryPage>
-)
+import UiBaselineModalsPage from 'applets/ui-baseline/pages/modals/page'
 
 export const Route = createFileRoute(
   '/$locale/_map/(applets)/ui-baseline/modals'
@@ -24,5 +17,5 @@ export const Route = createFileRoute(
     title: routeTextKey('ui-baseline', 'route.breadcrumb.modals'),
     breadcrumb: routeTextKey('ui-baseline', 'route.breadcrumb.modals'),
   }),
-  component: ModalsPage,
+  component: UiBaselineModalsPage,
 })

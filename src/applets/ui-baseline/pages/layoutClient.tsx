@@ -2,10 +2,6 @@
 
 import React from 'react'
 
-import {
-  IntoSidebarPanelSlot,
-  SidebarBoundary,
-} from '#/components/Sidebar'
 import AppletWrapper from '#/components/common/AppletWrapper'
 import { listedLayerGroups } from 'applets/energiakartta/common/constants'
 
@@ -19,24 +15,22 @@ const HELSINKI_DEFAULT_VIEW = {
 
 const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   return (
-    <SidebarBoundary id="ui-baseline-simple-sidebar" mode="simple">
-      <AppletWrapper
-        mapContext="energiakartta"
-        localizationNamespace={UI_BASELINE_NAMESPACE}
-        subPath={UI_BASELINE_NAMESPACE}
-        isNavbarHidden={true}
-        defaultView={HELSINKI_DEFAULT_VIEW}
-        listedLayerGroups={listedLayerGroups}
-        sidebarHeaderTitle="UI Baseline"
-        sx={{
-          pt: 0,
-          display: 'flex',
-          flexDirection: 'column',
-        }}
-      >
-        <IntoSidebarPanelSlot panelId="main">{children}</IntoSidebarPanelSlot>
-      </AppletWrapper>
-    </SidebarBoundary>
+    <AppletWrapper
+      mapContext="energiakartta"
+      localizationNamespace={UI_BASELINE_NAMESPACE}
+      subPath={UI_BASELINE_NAMESPACE}
+      isNavbarHidden={true}
+      defaultView={HELSINKI_DEFAULT_VIEW}
+      listedLayerGroups={listedLayerGroups}
+      sidebarHeaderTitle="UI Baseline"
+      sx={{
+        pt: 0,
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      {children}
+    </AppletWrapper>
   )
 }
 

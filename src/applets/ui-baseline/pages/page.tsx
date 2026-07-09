@@ -1,14 +1,15 @@
 'use client'
 
-import React from 'react'
 import { useTranslate } from '@tolgee/react'
 
 import { AppRouteLink } from '#/common/navigation/appRouteLinks'
 import { Box } from '#/common/style/theme'
 import TText from '#/components/common/TText'
 import {
-  IntoSidebarHeaderChildrenSlot,
+  IntoSidebarHeaderSlot,
+  SidebarBoundary,
   SidebarContentBox,
+  SidebarHeader,
 } from '#/components/Sidebar'
 
 import {
@@ -16,152 +17,43 @@ import {
   UI_BASELINE_NAMESPACE,
 } from '../common/categories'
 
-const HomeSidebarHeader = () => (
-  <Box
-    sx={{
-      position: 'relative',
-      width: { mobile: 'calc(100vw - 2rem)', desktop: '20rem' },
-      minHeight: { mobile: '5.125rem', desktop: '5.625rem' },
-      borderRadius: '0.625rem',
-      overflow: 'hidden',
-      backgroundImage:
-        'url(/files/img/energiakartta/sidebar/main-hero-header-crop.jpg)',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      display: 'flex',
-      alignItems: 'center',
-    }}
-  >
-    <Box
-      sx={{
-        position: 'absolute',
-        inset: 0,
-        background:
-          'linear-gradient(90deg, rgba(244,244,244,1) 0%, rgba(244,244,244,0.98) 24%, rgba(244,244,244,0.48) 48%, rgba(244,244,244,0) 76%)',
-      }}
-    />
-    <Box
-      component="h1"
-      sx={{
-        position: 'relative',
-        zIndex: 1,
-        m: 0,
-        pl: { mobile: '1rem', desktop: '0.125rem' },
-        pr: '1rem',
-        color: '#111111',
-        fontSize: '0.75rem',
-        fontWeight: 700,
-        lineHeight: '1.125rem',
-        textTransform: 'uppercase',
-      }}
-    >
-      <TText ns={UI_BASELINE_NAMESPACE} keyName="home.title" />
-    </Box>
-  </Box>
-)
-
-const Page = () => {
+const UiBaselinePage = () => {
   const { t } = useTranslate(UI_BASELINE_NAMESPACE)
 
   return (
-    <>
-      <IntoSidebarHeaderChildrenSlot>
-        <HomeSidebarHeader />
-      </IntoSidebarHeaderChildrenSlot>
-      <SidebarContentBox
-        sxOuter={{ height: '100%' }}
-        scrollbarSide="left"
-        sxInner={{
-          p: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          minHeight: '100%',
-          height: '100%',
-        }}
-      >
-        <Box
-          sx={{
-            px: { mobile: '2rem', desktop: '2rem' },
-            pt: { mobile: '1.125rem', desktop: '1.25rem' },
-            pb: { mobile: '1.5rem', desktop: '1.75rem' },
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1.375rem',
-          }}
-        >
-          <Box
-            component="p"
-            sx={{
-              m: 0,
-              color: '#111111',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              lineHeight: '1.25rem',
-              textTransform: 'uppercase',
-            }}
-          >
-            <TText ns={UI_BASELINE_NAMESPACE} keyName="home.intro" />
-          </Box>
+    <SidebarBoundary
+      id="ui-baseline-home"
+      mode="floating"
+      config={{ width: 'compact' }}
+    >
+      <IntoSidebarHeaderSlot>
+        <SidebarHeader
+          title={<TText ns={UI_BASELINE_NAMESPACE} keyName="home.title" />}
+          backgroundImage="/files/img/energiakartta/sidebar/main-hero-header-crop.jpg"
+        />
+      </IntoSidebarHeaderSlot>
+      <SidebarContentBox>
+        <Box component="p">
+          <TText ns={UI_BASELINE_NAMESPACE} keyName="home.intro" />
+        </Box>
 
-          <Box
-            component="nav"
-            aria-label={t('home.category_list_aria')}
-            sx={{ width: '100%' }}
-          >
-            <Box
-              component="ul"
-              sx={{
-                m: 0,
-                p: 0,
-                display: 'flex',
-                flexDirection: 'column',
-                listStyle: 'none',
-                gap: '0.5rem',
-              }}
-            >
-              {UI_BASELINE_CATEGORIES.map((category) => (
-                <Box component="li" key={category.id}>
-                  <AppRouteLink
-                    routeKey={category.routeKey}
-                    sx={(theme) => ({
-                      width: '100%',
-                      minHeight: '2.625rem',
-                      px: '0.875rem',
-                      py: '0.625rem',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      borderRadius: '6px',
-                      border: `1px solid ${theme.palette.neutral.light}`,
-                      backgroundColor: '#ffffff',
-                      color: '#111111',
-                      fontSize: '0.8125rem',
-                      fontWeight: 700,
-                      lineHeight: '1rem',
-                      '&:hover': {
-                        borderColor: theme.palette.primary.main,
-                        color: theme.palette.primary.dark,
-                      },
-                      '&::after': {
-                        content: '">"',
-                        flexShrink: 0,
-                        fontSize: '1rem',
-                        lineHeight: 1,
-                      },
-                    })}
-                  >
-                    <TText
-                      ns={UI_BASELINE_NAMESPACE}
-                      keyName={category.labelKey}
-                    />
-                  </AppRouteLink>
-                </Box>
-              ))}
-            </Box>
+        <Box component="nav" aria-label={t('home.category_list_aria')}>
+          <Box component="ul">
+            {UI_BASELINE_CATEGORIES.map((category) => (
+              <Box component="li" key={category.id}>
+                <AppRouteLink routeKey={category.routeKey}>
+                  <TText
+                    ns={UI_BASELINE_NAMESPACE}
+                    keyName={category.labelKey}
+                  />
+                </AppRouteLink>
+              </Box>
+            ))}
           </Box>
         </Box>
       </SidebarContentBox>
-    </>
+    </SidebarBoundary>
   )
 }
 
-export default Page
+export default UiBaselinePage

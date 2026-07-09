@@ -5,14 +5,7 @@ import {
   defineAppRouteStaticData,
   routeTextKey,
 } from '#/common/routing/routeMetadata'
-import CategoryPage from 'applets/ui-baseline/pages/CategoryPage'
-import PanelsContent from 'applets/ui-baseline/pages/PanelsContent'
-
-const PanelsPage = () => (
-  <CategoryPage categoryId="panels">
-    <PanelsContent />
-  </CategoryPage>
-)
+import UiBaselinePanelsPage from 'applets/ui-baseline/pages/panels/page'
 
 export const Route = createFileRoute(
   '/$locale/_map/(applets)/ui-baseline/panels'
@@ -24,5 +17,5 @@ export const Route = createFileRoute(
     title: routeTextKey('ui-baseline', 'route.breadcrumb.panels'),
     breadcrumb: routeTextKey('ui-baseline', 'route.breadcrumb.panels'),
   }),
-  component: PanelsPage,
+  component: UiBaselinePanelsPage,
 })

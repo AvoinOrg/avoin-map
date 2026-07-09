@@ -12,7 +12,7 @@ import {
   BaselineExample,
   BaselineInlineGroup,
   BaselineSection,
-} from './BaselineContent'
+} from '../BaselineContent'
 
 const loadingModalDisplayMs = 2000
 

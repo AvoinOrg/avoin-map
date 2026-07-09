@@ -5,14 +5,7 @@ import {
   defineAppRouteStaticData,
   routeTextKey,
 } from '#/common/routing/routeMetadata'
-import CategoryPage from 'applets/ui-baseline/pages/CategoryPage'
-import DropdownsContent from 'applets/ui-baseline/pages/DropdownsContent'
-
-const DropdownsPage = () => (
-  <CategoryPage categoryId="dropdowns">
-    <DropdownsContent />
-  </CategoryPage>
-)
+import UiBaselineDropdownsPage from 'applets/ui-baseline/pages/dropdowns/page'
 
 export const Route = createFileRoute(
   '/$locale/_map/(applets)/ui-baseline/dropdowns'
@@ -24,5 +17,5 @@ export const Route = createFileRoute(
     title: routeTextKey('ui-baseline', 'route.breadcrumb.dropdowns'),
     breadcrumb: routeTextKey('ui-baseline', 'route.breadcrumb.dropdowns'),
   }),
-  component: DropdownsPage,
+  component: UiBaselineDropdownsPage,
 })

@@ -12,7 +12,7 @@ import {
   BaselineExample,
   BaselineInlineGroup,
   BaselineSection,
-} from './BaselineContent'
+} from '../BaselineContent'
 
 const notificationVariants: NotificationMessage['variant'][] = [
   'default',

@@ -8,7 +8,7 @@ import { NumberInputField } from '#/components/common/NumberInputField'
 import TextFieldWithLabel from '#/components/common/TextFieldWithLabel'
 import TextFieldMultilineWithLabel from '#/components/common/TextFieldMultilineWithLabel'
 
-import { BaselineExample, BaselineSection, noop } from './BaselineContent'
+import { BaselineExample, BaselineSection, noop } from '../BaselineContent'
 
 const StatefulTextFieldWithLabel = ({
   initialValue = '',

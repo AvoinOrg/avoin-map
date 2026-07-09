@@ -5,14 +5,7 @@ import {
   defineAppRouteStaticData,
   routeTextKey,
 } from '#/common/routing/routeMetadata'
-import CategoryPage from 'applets/ui-baseline/pages/CategoryPage'
-import NodeFlowContent from 'applets/ui-baseline/pages/NodeFlowContent'
-
-const NodeFlowPage = () => (
-  <CategoryPage categoryId="node-flow">
-    <NodeFlowContent />
-  </CategoryPage>
-)
+import UiBaselineNodeFlowPage from 'applets/ui-baseline/pages/node-flow/page'
 
 export const Route = createFileRoute(
   '/$locale/_map/(applets)/ui-baseline/node-flow'
@@ -24,5 +17,5 @@ export const Route = createFileRoute(
     title: routeTextKey('ui-baseline', 'route.breadcrumb.node_flow'),
     breadcrumb: routeTextKey('ui-baseline', 'route.breadcrumb.node_flow'),
   }),
-  component: NodeFlowPage,
+  component: UiBaselineNodeFlowPage,
 })

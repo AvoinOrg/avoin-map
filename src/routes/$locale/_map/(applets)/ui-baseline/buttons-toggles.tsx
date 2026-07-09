@@ -5,14 +5,7 @@ import {
   defineAppRouteStaticData,
   routeTextKey,
 } from '#/common/routing/routeMetadata'
-import ButtonsTogglesContent from 'applets/ui-baseline/pages/ButtonsTogglesContent'
-import CategoryPage from 'applets/ui-baseline/pages/CategoryPage'
-
-const ButtonsTogglesPage = () => (
-  <CategoryPage categoryId="buttons-toggles">
-    <ButtonsTogglesContent />
-  </CategoryPage>
-)
+import UiBaselineButtonsTogglesPage from 'applets/ui-baseline/pages/buttons-toggles/page'
 
 export const Route = createFileRoute(
   '/$locale/_map/(applets)/ui-baseline/buttons-toggles'
@@ -27,5 +20,5 @@ export const Route = createFileRoute(
       'route.breadcrumb.buttons_toggles'
     ),
   }),
-  component: ButtonsTogglesPage,
+  component: UiBaselineButtonsTogglesPage,
 })

@@ -25,7 +25,7 @@ import {
   BaselineInlineGroup,
   BaselineSection,
   noop,
-} from './BaselineContent'
+} from '../BaselineContent'
 
 const FocusVisibleSquishedSwitch = () => {
   const inputRef = useRef<HTMLInputElement>(null)

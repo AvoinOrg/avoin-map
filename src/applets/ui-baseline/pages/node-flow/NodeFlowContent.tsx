@@ -7,7 +7,7 @@ import {
   NodeFlowContainer,
 } from '#/components/common/NodeFlow'
 
-import { BaselineSection, noop } from './BaselineContent'
+import { BaselineSection, noop } from '../BaselineContent'
 
 const NodeFlowContent = () => (
   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
