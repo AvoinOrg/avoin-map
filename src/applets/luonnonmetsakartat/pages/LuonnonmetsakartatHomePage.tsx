@@ -16,7 +16,7 @@ import { useExclusiveLayerGroups } from '#/common/hooks/map/useExclusiveLayerGro
 import { Eco } from '#/components/icons'
 import { useLuonnonmetsakartatMockScenarioQueryState } from '../common/mockScenarios/queryState'
 
-const Page = () => {
+const LuonnonmetsakartatHomePage = () => {
   const folayerConfs = useAppletStore((state) => state.folayerConfs)
   const mockScenarioState = useLuonnonmetsakartatMockScenarioQueryState()
   const isMockScenarioQueryActive = mockScenarioState != null
@@ -104,4 +104,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default LuonnonmetsakartatHomePage

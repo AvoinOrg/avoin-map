@@ -68,7 +68,11 @@ const AdminGateMessage = ({ keyName }: { keyName: string }) => (
   </SidebarContentBox>
 )
 
-const LayoutClient = ({ children }: { children: React.ReactNode }) => {
+const LuonnonmetsakartatAdminGate = ({
+  children,
+}: {
+  children: React.ReactNode
+}) => {
   useExclusiveLayerGroups()
   const setIsNavbarHidden = useUIStore((state) => state.setIsNavbarHidden)
   const adminVerificationStatus = useAppletStore(
@@ -179,4 +183,4 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   )
 }
 
-export default LayoutClient
+export default LuonnonmetsakartatAdminGate

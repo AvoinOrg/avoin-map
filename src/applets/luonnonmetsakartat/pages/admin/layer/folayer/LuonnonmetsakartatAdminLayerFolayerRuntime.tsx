@@ -9,7 +9,11 @@ import { getFolayerGroupId } from 'applets/luonnonmetsakartat/common/utils'
 import { useExclusiveLayerGroups } from '#/common/hooks/map/useExclusiveLayerGroups'
 import { useAppParams } from '#/common/navigation/navigation'
 
-const LayoutClient = ({ children }: { children: React.ReactNode }) => {
+const LuonnonmetsakartatAdminLayerFolayerRuntime = ({
+  children,
+}: {
+  children: React.ReactNode
+}) => {
   const params = useAppParams<{ folayerIdSlug: string }>()
   const folayerId = params.folayerIdSlug
   const adminFolayerConf = useStore(
@@ -34,4 +38,4 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   return <>{isFolayerEnabled && adminFolayerConf && children}</>
 }
 
-export default LayoutClient
+export default LuonnonmetsakartatAdminLayerFolayerRuntime

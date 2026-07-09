@@ -18,7 +18,7 @@ import { useAdminFolayersQueryOptions } from 'applets/luonnonmetsakartat/common/
 import { AdminFolayerConf } from 'applets/luonnonmetsakartat/common/types'
 import { useLuonnonmetsakartatMockScenarioQueryState } from 'applets/luonnonmetsakartat/common/mockScenarios/queryState'
 
-const Page = () => {
+const LuonnonmetsakartatAdminPage = () => {
   const adminFolayerConfs = useAppletStore((state) => state.adminFolayerConfs)
   const mockScenarioState = useLuonnonmetsakartatMockScenarioQueryState()
   const isMockScenarioQueryActive = mockScenarioState != null
@@ -105,4 +105,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default LuonnonmetsakartatAdminPage

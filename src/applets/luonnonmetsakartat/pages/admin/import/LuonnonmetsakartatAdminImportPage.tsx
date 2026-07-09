@@ -17,7 +17,7 @@ import FolayerImportShp from 'applets/luonnonmetsakartat/components/FolayerImpor
 import { useAdminFolayerPostMutationOptions } from 'applets/luonnonmetsakartat/common/queries/adminFolayerPostMutation'
 import { useSidebarActivityLoader } from '#/common/hooks/ui/useSidebarActivityLoader'
 
-const Page = () => {
+const LuonnonmetsakartatAdminImportPage = () => {
   const [fileType, setFileType] = useState<'shp'>()
   const [fileName, setFileName] = useState<string>()
   const [arrayBuffers, setArrayBuffers] = useState<ArrayBuffer[]>()
@@ -278,4 +278,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default LuonnonmetsakartatAdminImportPage

@@ -294,7 +294,7 @@ const saveButtonSx: AppSxProps = {
   },
 }
 
-const Page = () => {
+const LuonnonmetsakartatAdminLayerFolayerSettingsPage = () => {
   const [, setIsLoading] = useSidebarActivityLoader()
   const [fileType, setFileType] = useState<'shp'>()
   const [fileName, setFileName] = useState<string>()
@@ -646,4 +646,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default LuonnonmetsakartatAdminLayerFolayerSettingsPage

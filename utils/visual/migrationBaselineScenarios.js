@@ -39,7 +39,7 @@ const MIGRATION_BASELINE_EXTRA_SCENARIOS = [
     id: 'luonnonmetsakartat-admin-import',
     applet: 'luonnonmetsakartat',
     locale: 'fi',
-    path: '/fi/luonnonmetsakartat/admin/tuo',
+    path: '/fi/luonnonmetsakartat/admin/import',
     requiresWebGL: true,
     tags: [
       'migration-baseline',

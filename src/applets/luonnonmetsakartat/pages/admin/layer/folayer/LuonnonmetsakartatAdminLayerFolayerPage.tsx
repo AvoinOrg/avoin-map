@@ -18,7 +18,7 @@ import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import { getFolayerCentroidSourceId } from 'applets/luonnonmetsakartat/common/utils'
 import { useAppParams } from '#/common/navigation/navigation'
 
-const Page = () => {
+const LuonnonmetsakartatAdminLayerFolayerPage = () => {
   const params = useAppParams<{ folayerIdSlug: string }>()
   const { t } = useTranslate('luonnonmetsakartat')
 
@@ -184,4 +184,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default LuonnonmetsakartatAdminLayerFolayerPage

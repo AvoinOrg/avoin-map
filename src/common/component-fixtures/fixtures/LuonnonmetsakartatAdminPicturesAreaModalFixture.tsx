@@ -289,7 +289,7 @@ export const luonnonmetsakartatAdminPicturesAreaModalFixture: ComponentFixture =
   sourceGlobs: [
     'src/applets/luonnonmetsakartat/components/FolayerImportPictures.tsx',
     'src/applets/luonnonmetsakartat/components/AreaModalAdmin.tsx',
-    'src/applets/luonnonmetsakartat/pages/admin/taso/folayer/kuvat/page.tsx',
+    'src/applets/luonnonmetsakartat/pages/admin/layer/folayer/pictures/LuonnonmetsakartatAdminLayerFolayerPicturesPage.tsx',
     'src/common/component-fixtures/fixtures/LuonnonmetsakartatAdminPicturesAreaModalFixture.tsx',
   ],
   wrapper: AdminFixtureWrapper,

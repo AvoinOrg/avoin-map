@@ -1,20 +1,20 @@
 import { Outlet } from '@tanstack/react-router'
 
 import AppletLayout from '#/components/common/AppletLayout'
-import LayoutClient from './layoutClient'
+import LuonnonmetsakartatAppletRuntime from './LuonnonmetsakartatAppletRuntime'
 
-const Layout = () => {
+const LuonnonmetsakartatShell = () => {
   return (
     <AppletLayout
       umamiWebsiteId={
         process.env.NEXT_PUBLIC_APPLETS_LUONNONMETSAKARTAT_UMAMI_ID
       }
     >
-      <LayoutClient>
+      <LuonnonmetsakartatAppletRuntime>
         <Outlet />
-      </LayoutClient>
+      </LuonnonmetsakartatAppletRuntime>
     </AppletLayout>
   )
 }
 
-export default Layout
+export default LuonnonmetsakartatShell

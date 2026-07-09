@@ -10,7 +10,11 @@ import { isLuonnonmetsakartatMockScenariosEnabled } from '../common/mockScenario
 
 const localizationNamespace = 'luonnonmetsakartat'
 
-const layoutClient = ({ children }: { children: React.ReactNode }) => {
+const LuonnonmetsakartatAppletRuntime = ({
+  children,
+}: {
+  children: React.ReactNode
+}) => {
   const shouldMountMockScenarioBootstrap =
     isLuonnonmetsakartatMockScenariosEnabled()
 
@@ -40,4 +44,4 @@ const layoutClient = ({ children }: { children: React.ReactNode }) => {
   )
 }
 
-export default layoutClient
+export default LuonnonmetsakartatAppletRuntime
