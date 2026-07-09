@@ -24,6 +24,7 @@ import {
   IntoSidebarHeaderSlot,
   SidebarPanelExtensionProvider,
   SidebarContentBox,
+  SidebarHeader,
 } from '#/components/Sidebar'
 import EnergyCertificateClassControls from '../components/EnergyCertificateClassControls'
 import EnergyClassesAccordionContent from '../components/EnergyClassesAccordionContent'
@@ -275,68 +276,6 @@ const PageTooltip = ({
     </BaseTooltip.Portal>
   </BaseTooltip.Root>
 )
-
-const HomeSidebarHeader = () => {
-  return (
-    <Box
-      sx={{
-        px: { mobile: '0.625rem', desktop: '0.625rem' },
-        pt: { mobile: '0.625rem', desktop: '0.75rem' },
-        flexShrink: 0,
-      }}
-    >
-      <Box
-        sx={{
-          position: 'relative',
-          height: '6.25rem',
-          border: '0.2px solid #ffffff',
-          borderRadius: '0.625rem',
-          overflow: 'hidden',
-        }}
-      >
-        <PolymorphicBox
-          component="img"
-          src="/files/img/energiakartta/sidebar/main-hero-header-crop.jpg"
-          alt=""
-          aria-hidden="true"
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            display: 'block',
-          }}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'linear-gradient(90deg, rgba(255, 255, 255, 0.9) 17.5%, rgba(255, 255, 255, 0) 100%)',
-          }}
-        />
-        <Box
-          component="p"
-          sx={{
-            m: 0,
-            position: 'relative',
-            zIndex: 1,
-            pt: '2.625rem',
-            pl: '1.25rem',
-            color: '#111111',
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            letterSpacing: '0.1em',
-            lineHeight: '1.125rem',
-          }}
-        >
-          <TText keyName="sidebar.front_page.header.title" ns="energiakartta" />
-        </Box>
-      </Box>
-    </Box>
-  )
-}
 
 const SidebarFooterAction = ({
   tooltip,
@@ -896,7 +835,12 @@ const Page = ({ locale: localeProp }: PageProps) => {
       runtimeOptions={buildingInfoPanelRuntimeOptions}
     >
       <IntoSidebarHeaderSlot>
-        <HomeSidebarHeader />
+        <SidebarHeader
+          title={
+            <TText keyName="sidebar.front_page.header.title" ns="energiakartta" />
+          }
+          backgroundImage="/files/img/energiakartta/sidebar/main-hero-header-crop.jpg"
+        />
       </IntoSidebarHeaderSlot>
       <IntoSidebarFooterSlot>
         <SidebarFooterAction

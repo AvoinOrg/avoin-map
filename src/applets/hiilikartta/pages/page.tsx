@@ -11,6 +11,7 @@ import {
   IntoSidebarHeaderSlot,
   SidebarBoundary,
   SidebarContentBox,
+  SidebarHeader,
 } from '#/components/Sidebar'
 import { APP_ROUTE_KEYS } from '#/common/routing/routeMetadata'
 import { useMapStore } from '#/common/store'
@@ -20,7 +21,6 @@ import { LayerToggleRow } from '#/components/common/LayerToggleRow'
 import { listedLayerGroups } from '../common/constants'
 import PlanOutlineIcon from '../components/PlanOutlineIcon'
 
-const HOME_SIDEBAR_HEADER_PADDING_REM = 0.375
 const HOME_SIDEBAR_LEFT_WALL_REM = 2
 const HOME_SIDEBAR_LOGO_ROW_PADDING_REM = 0.5
 const HOME_INTRO_BASELINE_LINE_WORD_COUNTS = [3, 4, 2, 2, 2, 2, 1]
@@ -42,62 +42,6 @@ const ButtonBox = Box as unknown as React.ComponentType<
     sx?: AppSystemStyleObject
   }
 >
-
-const HomeSidebarHeader = () => {
-  return (
-    <Box
-      sx={{
-        px: {
-          mobile: `${HOME_SIDEBAR_HEADER_PADDING_REM}rem`,
-          desktop: `${HOME_SIDEBAR_HEADER_PADDING_REM}rem`,
-        },
-        pt: { mobile: '0.4375rem', desktop: '0.5rem' },
-        pb: { mobile: '0.375rem', desktop: '0.5rem' },
-        flexShrink: 0,
-      }}
-    >
-      <Box
-        sx={{
-          position: 'relative',
-          minHeight: { mobile: '5.125rem', desktop: '5.625rem' },
-          borderRadius: '0.625rem',
-          overflow: 'hidden',
-          backgroundImage:
-            'url(/files/img/hiilikartta/sidebar/main-hero.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
-        <Box
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'linear-gradient(90deg, rgba(244,244,244,1) 0%, rgba(244,244,244,0.98) 24%, rgba(244,244,244,0.48) 46%, rgba(244,244,244,0) 72%)',
-          }}
-        />
-        <Box
-          component="span"
-          sx={{
-            display: 'block',
-            position: 'relative',
-            zIndex: 1,
-            px: { mobile: '1rem', desktop: '1.25rem' },
-            pt: { mobile: '2rem', desktop: '2rem' },
-            color: '#111111',
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            letterSpacing: '0.1em',
-            lineHeight: '1.125rem',
-            textTransform: 'uppercase',
-          }}
-        >
-          Hiilikartta
-        </Box>
-      </Box>
-    </Box>
-  )
-}
 
 const getHomeIntroLines = (text: string) => {
   const words = text.trim().split(/\s+/)
@@ -145,7 +89,10 @@ const Page = () => {
       config={{ width: 'compact' }}
     >
       <IntoSidebarHeaderSlot>
-        <HomeSidebarHeader />
+        <SidebarHeader
+          title="Hiilikartta"
+          backgroundImage="/files/img/hiilikartta/sidebar/main-hero.jpg"
+        />
       </IntoSidebarHeaderSlot>
       <IntoSidebarFooterSlot>
         <Box

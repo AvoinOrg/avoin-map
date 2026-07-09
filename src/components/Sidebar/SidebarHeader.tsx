@@ -1,17 +1,28 @@
 import React from 'react'
 import type { AppBoxProps } from '#/common/style/theme/system'
-import { Box } from '#/common/style/theme/system'
+import { Box, toSxArray } from '#/common/style/theme/system'
+import {
+  SIDEBAR_HEADER_EDGE_INSET_REM,
+  SIDEBAR_HEADER_TITLE_PADDING_X,
+} from './sidebarSpacing'
 
 type SidebarStyleProps = AppBoxProps['sx']
 
 interface Props {
   children?: React.ReactNode
-  title: string
+  title: React.ReactNode
   backgroundImage?: string
+  backgroundSx?: SidebarStyleProps
   sx?: SidebarStyleProps
 }
 
-const SidebarHeader = ({ children, title, backgroundImage, sx }: Props) => {
+const SidebarHeader = ({
+  children,
+  title,
+  backgroundImage,
+  backgroundSx,
+  sx,
+}: Props) => {
   return (
     <Box
       className="sidebar-header"
@@ -20,87 +31,89 @@ const SidebarHeader = ({ children, title, backgroundImage, sx }: Props) => {
           display: 'flex',
           flexDirection: 'column',
           flexShrink: 0,
-          mb: { mobile: 0.75, desktop: 1 },
+          px: `${SIDEBAR_HEADER_EDGE_INSET_REM}rem`,
+          pt: { mobile: '0.4375rem', desktop: '0.5rem' },
+          pb: { mobile: '0.375rem', desktop: '0.5rem' },
           color: 'neutral.darker',
           zIndex: (theme) => (theme.zIndex?.drawer ?? 1200) + 4,
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toSxArray(sx),
       ]}
     >
       <Box
         sx={{
           position: 'relative',
-          minHeight: { mobile: '5.25rem', desktop: '5.75rem' },
-          mx: 0.75,
-          mt: 0.75,
-          borderRadius: '10px',
-          border: '0.2px solid #ffffff',
+          minHeight: { mobile: '5.125rem', desktop: '5.625rem' },
+          borderRadius: '0.625rem',
           overflow: 'hidden',
           backgroundColor: '#f4f4f4',
           boxSizing: 'border-box',
         }}
       >
         <Box
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: backgroundImage
-              ? `url(${backgroundImage})`
-              : 'linear-gradient(90deg, #f4f4f4 0%, #f4f4f4 100%)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
+          sx={[
+            {
+              position: 'absolute',
+              inset: 0,
+              backgroundImage: backgroundImage
+                ? `url(${backgroundImage})`
+                : 'linear-gradient(90deg, #f4f4f4 0%, #f4f4f4 100%)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+            },
+            ...toSxArray(backgroundSx),
+          ]}
         />
         <Box
           sx={{
             position: 'absolute',
             inset: 0,
             background:
-              'linear-gradient(90deg, rgba(255, 255, 255, 0.9) 17.5%, rgba(255, 255, 255, 0) 100%)',
+              'linear-gradient(90deg, rgba(244,244,244,1) 0%, rgba(244,244,244,0.98) 24%, rgba(244,244,244,0.48) 46%, rgba(244,244,244,0) 72%)',
           }}
         />
         <Box
           sx={{
-            position: 'relative',
+            position: 'absolute',
+            inset: 0,
             zIndex: 1,
             display: 'flex',
-            flexDirection: 'column',
-            height: '100%',
-            px: { mobile: '1rem', desktop: '1.1rem' },
+            alignItems: 'center',
+            px: SIDEBAR_HEADER_TITLE_PADDING_X,
           }}
         >
           <Box
+            component="h3"
             sx={{
-              flex: 1,
-              display: 'flex',
-              width: '100%',
-              flexDirection: 'column',
+              m: 0,
+              color: '#111111',
+              textAlign: 'left',
+              whiteSpace: 'normal',
+              lineHeight: '1.125rem',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
             }}
           >
-            <Box sx={{ flex: 1, width: '100%' }}></Box>
-            <Box
-              component="h3"
-              sx={{
-                m: 0,
-                textAlign: 'left',
-                whiteSpace: 'normal',
-                minHeight: '16px',
-                lineHeight: 1.1,
-                fontSize: { mobile: '1rem', desktop: '1.06rem' },
-                fontWeight: 700,
-                letterSpacing: '0.06rem',
-                textTransform: 'uppercase',
-              }}
-            >
-              {title}
-            </Box>
-            <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>{children}</Box>
+            {title}
           </Box>
-          {/* {children && (
-            <Box sx={{ width: '100%', pb: 0.45 }}>
-            </Box>
-          )} */}
         </Box>
+        {children != null && (
+          <Box
+            sx={{
+              position: 'absolute',
+              left: SIDEBAR_HEADER_TITLE_PADDING_X,
+              right: SIDEBAR_HEADER_TITLE_PADDING_X,
+              bottom: { mobile: '0.5rem', desktop: '0.625rem' },
+              zIndex: 2,
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            {children}
+          </Box>
+        )}
       </Box>
     </Box>
   )

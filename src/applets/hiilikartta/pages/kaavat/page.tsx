@@ -207,10 +207,7 @@ const Page = () => {
     <SidebarContentBox
       scrollFadeColor="#ffffff"
       sxInner={{
-        pt: 0,
         gap: { mobile: '1.5rem', desktop: '1.5rem' },
-        px: { mobile: '1rem', desktop: '1.875rem' },
-        pb: { mobile: '1.25rem', desktop: '1.5rem' },
         backgroundColor: '#ffffff',
       }}
     >

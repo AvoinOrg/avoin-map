@@ -6,14 +6,14 @@ import type { EventListeners } from 'overlayscrollbars'
 import type { AppBoxProps } from '#/common/style/theme/system'
 import { Box } from '#/common/style/theme/system'
 
-import {
-  MOBILE_SIDEBAR_PADDING_REM,
-  SIDEBAR_PADDING_REM,
-} from '#/common/style/theme/constants'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react'
 import { useSimpleSidebarContext } from './SimpleSidebarContext'
+import {
+  SIDEBAR_CONTENT_BOX_PADDING_BOTTOM,
+  SIDEBAR_CONTENT_BOX_PADDING_X,
+} from './sidebarSpacing'
 
 const SIDEBAR_SCROLL_FADE_HEIGHT_REM = 3
 type SidebarStyleProps = AppBoxProps['sx']
@@ -137,10 +137,9 @@ const SidebarContentBox = ({
                 flexDirection: 'column',
                 minHeight: '100%',
                 flex: 1,
-                p: SIDEBAR_PADDING_REM + 'rem',
-                px: isMobile
-                  ? MOBILE_SIDEBAR_PADDING_REM + 'rem'
-                  : SIDEBAR_PADDING_REM + 'rem',
+                pt: 0,
+                px: SIDEBAR_CONTENT_BOX_PADDING_X,
+                pb: SIDEBAR_CONTENT_BOX_PADDING_BOTTOM,
               },
               ...(Array.isArray(sxInner) ? sxInner : [sxInner]),
             ]}
