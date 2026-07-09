@@ -10,6 +10,7 @@ import {
   type AppTheme,
   toSxArray,
 } from '#/common/style/theme/system'
+import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'
 import { SelectOption } from '#/common/types/general'
 import ArrowDown from '#/components/icons/ArrowDown'
 import CheckcircleCheckedFilled from '#/components/icons/CheckcircleCheckedFilled'
@@ -125,7 +126,7 @@ export const DROP_DOWN_SELECT_TRIGGER_SX = {
   boxSizing: 'border-box',
   overflow: 'hidden',
   border: 0,
-  borderRadius: '999px',
+  borderRadius: SHARED_CONTROL_BORDER_RADIUS,
   backgroundColor: '#FFFFFF',
   backgroundClip: 'padding-box',
   color: '#111111',
@@ -148,7 +149,7 @@ export const DROP_DOWN_SELECT_TRIGGER_SX = {
     boxSizing: 'border-box',
     pointerEvents: 'none',
     border: '1px solid #D6D6D6',
-    borderRadius: '999px',
+    borderRadius: SHARED_CONTROL_BORDER_RADIUS,
   },
   '.MuiSelect-select': {
     minHeight: '1.25rem',
@@ -190,7 +191,7 @@ export const DROP_DOWN_SELECT_POSITIONER_SX = {
 export const DROP_DOWN_SELECT_POPUP_SX = {
   maxHeight: 'min(18rem, calc(100vh - 2rem))',
   overflowY: 'auto',
-  borderRadius: '10px',
+  borderRadius: SHARED_CONTROL_BORDER_RADIUS,
   border: '0.1px solid #A0A0A0',
   backgroundColor: 'common.white',
   boxShadow: '0 1px 3px 0 rgba(214, 214, 214, 0.50) inset',
@@ -488,7 +489,7 @@ const DropDownSelect = ({
         width: '100%',
         minWidth: 0,
         flex: successIndicatorMode === 'outside' ? 1 : undefined,
-        borderRadius: '999px',
+        borderRadius: SHARED_CONTROL_BORDER_RADIUS,
         position: 'relative',
       }}
     >
@@ -631,7 +632,7 @@ const DropDownSelect = ({
           alignItems: 'center',
           gap: successIndicatorMode === 'outside' ? '0.5rem' : 0,
           maxWidth: '100%',
-          borderRadius: '999px',
+          borderRadius: SHARED_CONTROL_BORDER_RADIUS,
         },
         ...toComponentSxArray(sx),
       ]}
@@ -672,7 +673,7 @@ const DropDownSelect = ({
           alignItems: 'center',
           gap: successIndicatorMode === 'outside' ? '0.5rem' : 0,
           maxWidth: '100%',
-          borderRadius: '999px',
+          borderRadius: SHARED_CONTROL_BORDER_RADIUS,
         }}
       >
         {selectControl}

@@ -8,6 +8,7 @@ import {
   type AppSxProps,
   toSxArray,
 } from '#/common/style/theme/system'
+import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'
 import {
   DROP_DOWN_SELECT_ICON_SX,
   DROP_DOWN_SELECT_POPUP_SX,
@@ -177,7 +178,7 @@ const DropDownMultiSelect = ({
           width: '100%',
           minWidth: 0,
           position: 'relative',
-          borderRadius: '999px',
+          borderRadius: SHARED_CONTROL_BORDER_RADIUS,
         },
         ...toComponentSxArray(sx),
       ]}

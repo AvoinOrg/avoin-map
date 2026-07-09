@@ -3,6 +3,7 @@ import { NumberField as BaseNumberField } from '@base-ui/react/number-field'
 import { useTranslate } from '@tolgee/react'
 
 import { useLocaleFormatter } from '#/common/hooks/useLocaleFormatter'
+import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'
 import { Box, toSxArray } from '#/common/style/theme/system'
 import { ArrowDown, ArrowUp } from '#/components/icons'
 
@@ -283,7 +284,7 @@ export const NumberInputField = ({
                     overflow: 'hidden',
                     border: '1px solid',
                     borderColor: error ? '#B3261E' : '#D6D6D6',
-                    borderRadius: '999px',
+                    borderRadius: SHARED_CONTROL_BORDER_RADIUS,
                     backgroundColor: state.disabled ? '#F2F2F2' : '#FFFFFF',
                     boxShadow: state.disabled
                       ? 'none'

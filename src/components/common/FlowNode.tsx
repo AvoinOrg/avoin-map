@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react'
 
 import { Box, type AppSxProps, toSxArray } from '#/common/style/theme'
+import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'
 import { ButtonBase } from '#/components/common/Button'
 import CheckcircleCheckedFilled from '#/components/icons/CheckcircleCheckedFilled'
 
@@ -304,7 +305,7 @@ const FlowNodeBase = ({
               display: 'flex',
               justifyContent: 'flex-start',
               textAlign: 'left',
-              borderRadius: state === 'active' ? '0.9375rem' : 0,
+              borderRadius: state === 'active' ? SHARED_CONTROL_BORDER_RADIUS : 0,
               px: state === 'active' ? '0.75rem' : 0,
               py: state === 'active' ? '0.125rem' : 0,
               backgroundColor:
@@ -319,7 +320,7 @@ const FlowNodeBase = ({
         ) : (
           <Box
             sx={{
-              borderRadius: state === 'active' ? '0.9375rem' : 0,
+              borderRadius: state === 'active' ? SHARED_CONTROL_BORDER_RADIUS : 0,
               px: state === 'active' ? '0.75rem' : 0,
               py: state === 'active' ? '0.125rem' : 0,
               backgroundColor:

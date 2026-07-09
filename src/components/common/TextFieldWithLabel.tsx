@@ -1,4 +1,5 @@
 import React, { useId } from 'react'
+import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'
 import { Box, type AppSxProps, toSxArray } from '#/common/style/theme/system'
 
 type ComponentSxArrayItem = Exclude<NonNullable<AppSxProps>, readonly unknown[]>
@@ -150,7 +151,7 @@ const TextFieldWithLabel = ({
         minHeight: multiline ? 'auto' : '2rem',
         minWidth: 0,
         resize: multiline ? 'vertical' : 'none',
-        borderRadius: '999px',
+        borderRadius: SHARED_CONTROL_BORDER_RADIUS,
         border: '1px solid',
         borderColor: error ? 'error.main' : '#D6D6D6',
         backgroundColor: '#FFFFFF',

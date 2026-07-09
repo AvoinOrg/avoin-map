@@ -1,5 +1,6 @@
 import * as React from 'react'
 
+import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'
 import { Button, type ButtonProps } from '#/components/common/Button'
 import type { AppSxProps, AppTheme } from '#/common/style/theme'
 
@@ -33,7 +34,7 @@ const BigMenuButton = ({
           height: '60px',
           margin: '0 0 0 0',
           justifyContent: 'space-between',
-          borderRadius: '5px',
+          borderRadius: SHARED_CONTROL_BORDER_RADIUS,
           backgroundColor: '#FBFBFB',
           border: (theme: AppTheme) =>
             `0.5px solid ${theme.palette.neutral.main}`,

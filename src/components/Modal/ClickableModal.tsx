@@ -7,6 +7,7 @@ import {
   type AppTheme,
   toSxArray,
 } from '#/common/style/theme/system'
+import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'
 import { Cross } from '#/components/icons'
 
 type Props = {
@@ -33,8 +34,6 @@ const resetButtonSx = {
     outlineOffset: 2,
   },
 }
-
-const MODAL_SURFACE_BORDER_RADIUS = '10px'
 
 const closeButtonSx = {
   position: 'absolute',
@@ -151,7 +150,7 @@ const ClickableModal = ({
                     p: 4,
                     border: 'none',
                     outline: 'none',
-                    borderRadius: MODAL_SURFACE_BORDER_RADIUS,
+                    borderRadius: SHARED_CONTROL_BORDER_RADIUS,
                   },
                   ...toSxArray(sx),
                 ]}

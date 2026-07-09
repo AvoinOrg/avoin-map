@@ -5,6 +5,7 @@ import {
   Box,
   type AppTheme,
 } from '#/common/style/theme/system'
+import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'
 import { useUIStore } from '#/common/store/uiStore'
 import { Cross } from '#/components/icons'
 
@@ -25,7 +26,7 @@ const closeButtonSx = {
   justifyContent: 'center',
   background: 'transparent',
   border: '1px solid transparent',
-  borderRadius: '5px',
+  borderRadius: SHARED_CONTROL_BORDER_RADIUS,
   color: 'inherit',
   p: 0,
   m: 1,

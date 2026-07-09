@@ -3,6 +3,7 @@
 import React from 'react'
 
 import { Box, type AppSxProps, toSxArray } from '#/common/style/theme'
+import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'
 import { ButtonBase } from '#/components/common/Button'
 import ArrowRight from '#/components/icons/ArrowRight'
 import CheckcircleCheckedFilled from '#/components/icons/CheckcircleCheckedFilled'
@@ -286,7 +287,7 @@ const NodeFlowButtonBase = ({
       minHeight: '1.5rem',
       px: NODE_FLOW_ROW_INSET,
       py: '0.25rem',
-      borderRadius: '0.9375rem',
+      borderRadius: SHARED_CONTROL_BORDER_RADIUS,
       border: `0.2px solid ${rowStyles.borderColor}`,
       backgroundColor: rowStyles.backgroundColor,
       color: rowStyles.textColor,

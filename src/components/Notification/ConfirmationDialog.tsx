@@ -4,6 +4,7 @@ import { Dialog } from '@base-ui/react/dialog'
 import { useUIStore } from '#/common/store/uiStore'
 import { useTranslate } from '@tolgee/react'
 import { ConfirmationDialogOptions } from '#/common/types/state'
+import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'
 import { Box, type AppTheme } from '#/common/style/theme/system'
 
 type SystemButtonProps = React.ComponentProps<typeof Box> &
@@ -29,7 +30,7 @@ const actionButtonSx = {
   minWidth: '6.5rem',
   px: 2.5,
   py: 1,
-  borderRadius: '999px',
+  borderRadius: SHARED_CONTROL_BORDER_RADIUS,
   border: '1px solid',
   borderColor: 'neutral.main',
   backgroundColor: 'neutral.light',
@@ -72,7 +73,7 @@ const dialogPopupSx = {
   width: 'calc(100vw - 1rem)',
   maxWidth: '30rem',
   mx: 1,
-  borderRadius: '0.625rem',
+  borderRadius: SHARED_CONTROL_BORDER_RADIUS,
   border: '1px solid',
   borderColor: 'neutral.main',
   backgroundColor: 'neutral.lighter',

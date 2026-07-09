@@ -9,6 +9,7 @@ import {
   Box,
   toSxArray,
 } from '#/common/style/theme'
+import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'
 
 type ButtonComponent = React.ElementType
 type ButtonVariant = 'text' | 'contained' | 'outlined'
@@ -368,7 +369,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             alignItems: 'center',
             justifyContent: 'center',
             gap: 0.75,
-            borderRadius: '5px',
+            borderRadius: SHARED_CONTROL_BORDER_RADIUS,
             fontWeight: 500,
             letterSpacing: 0,
             textAlign: 'center',
@@ -419,7 +420,7 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
-            borderRadius: '5px',
+            borderRadius: SHARED_CONTROL_BORDER_RADIUS,
             lineHeight: 1,
             textAlign: 'center',
             transition:

@@ -2,6 +2,7 @@
 
 import React from 'react'
 
+import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'
 import { Box, type AppSxProps, toSxArray } from '#/common/style/theme/system'
 import { SelectOption } from '#/common/types/general'
 import DropDownSelect, {
@@ -51,7 +52,7 @@ const DropDownSelectMinimal = ({
           width: 'fit-content',
           maxWidth: '100%',
           minWidth: 0,
-          borderRadius: '999px',
+          borderRadius: SHARED_CONTROL_BORDER_RADIUS,
           backgroundColor: 'neutral.main',
           color: '#111111',
         },

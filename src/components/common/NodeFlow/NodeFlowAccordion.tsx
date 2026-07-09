@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 
 import { Box, type AppSxProps, toSxArray } from '#/common/style/theme'
+import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'
 import { ArrowDown, ArrowUp } from '#/components/icons'
 import NodeFlowButton, {
   NODE_FLOW_BELOW_TEXT_INSET,
@@ -142,7 +143,7 @@ const NodeFlowAccordionBase = ({
             pt: { mobile: '0.75rem', desktop: '0.875rem' },
             pb: { mobile: '1.125rem', desktop: '1.25rem' },
             border: '0.2px solid rgba(14, 97, 69, 0.45)',
-            borderRadius: '1rem',
+            borderRadius: SHARED_CONTROL_BORDER_RADIUS,
             backgroundColor: 'rgba(255, 255, 255, 0.78)',
             boxShadow:
               'inset 0px 0.5px 1px 0px rgba(217, 217, 217, 0.7), 0px 4px 16px 0px rgba(17, 17, 17, 0.03)',
