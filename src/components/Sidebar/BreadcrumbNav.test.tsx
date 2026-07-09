@@ -94,10 +94,10 @@ describe('BreadcrumbNav', () => {
     mockMatches = [
       match({ routeId: 'layout', appRoute: undefined }),
       match({
-        routeId: 'hiilikarttaHome',
+        routeId: 'carbonHome',
         appRoute: appRoute({
-          key: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
-          appletNamespace: 'hiilikartta',
+          key: APP_ROUTE_KEYS.CARBON_HOME,
+          appletNamespace: 'carbon',
           variant: 'canonical',
           breadcrumb: {
             ns: 'hiilikartta',
@@ -106,10 +106,10 @@ describe('BreadcrumbNav', () => {
         }),
       }),
       match({
-        routeId: 'hiilikarttaPlans',
+        routeId: 'carbonPlans',
         appRoute: appRoute({
-          key: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
-          appletNamespace: 'hiilikartta',
+          key: APP_ROUTE_KEYS.CARBON_PLANS,
+          appletNamespace: 'carbon',
           variant: 'canonical',
           breadcrumb: {
             ns: 'hiilikartta',
@@ -118,11 +118,11 @@ describe('BreadcrumbNav', () => {
         }),
       }),
       match({
-        routeId: 'hiilikarttaPlan',
+        routeId: 'carbonPlan',
         params: { locale: 'fi', planId: 'plan-123' },
         appRoute: appRoute({
-          key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
-          appletNamespace: 'hiilikartta',
+          key: APP_ROUTE_KEYS.CARBON_PLAN,
+          appletNamespace: 'carbon',
           variant: 'canonical',
           breadcrumb: {
             ns: 'hiilikartta',
@@ -131,11 +131,11 @@ describe('BreadcrumbNav', () => {
         }),
       }),
       match({
-        routeId: 'hiilikarttaPlanAreas',
+        routeId: 'carbonPlanAreas',
         params: { locale: 'fi', planId: 'plan-123' },
         appRoute: appRoute({
-          key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN_AREAS,
-          appletNamespace: 'hiilikartta',
+          key: APP_ROUTE_KEYS.CARBON_PLAN_AREAS,
+          appletNamespace: 'carbon',
           variant: 'canonical',
           breadcrumb: {
             ns: 'hiilikartta',
@@ -162,12 +162,12 @@ describe('BreadcrumbNav', () => {
 
     expect(screen.getByLabelText('avoin-map:breadcrumb.back')).toHaveAttribute(
       'data-route-key',
-      APP_ROUTE_KEYS.HIILIKARTTA_PLAN
+      APP_ROUTE_KEYS.CARBON_PLAN
     )
 
     expect(mockedAppRouteLink).toHaveBeenCalledWith(
       expect.objectContaining({
-        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
+        routeKey: APP_ROUTE_KEYS.CARBON_PLAN,
         routeParams: { locale: 'fi', planId: 'plan-123' },
       })
     )
@@ -176,10 +176,10 @@ describe('BreadcrumbNav', () => {
   it('collapses root breadcrumbs when requested', () => {
     mockMatches = [
       match({
-        routeId: 'hiilikarttaHome',
+        routeId: 'carbonHome',
         appRoute: appRoute({
-          key: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
-          appletNamespace: 'hiilikartta',
+          key: APP_ROUTE_KEYS.CARBON_HOME,
+          appletNamespace: 'carbon',
           variant: 'canonical',
           breadcrumb: {
             ns: 'hiilikartta',
@@ -199,10 +199,10 @@ describe('BreadcrumbNav', () => {
   it('uses canonical matches without adding old main-tree root crumbs', () => {
     mockMatches = [
       match({
-        routeId: 'hiilikarttaReport',
+        routeId: 'carbonReport',
         appRoute: appRoute({
-          key: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
-          appletNamespace: 'hiilikartta',
+          key: APP_ROUTE_KEYS.CARBON_REPORT,
+          appletNamespace: 'carbon',
           variant: 'canonical',
           breadcrumb: {
             ns: 'hiilikartta',
@@ -211,11 +211,11 @@ describe('BreadcrumbNav', () => {
         }),
       }),
       match({
-        routeId: 'hiilikarttaPlan',
+        routeId: 'carbonPlan',
         params: { locale: 'fi', planId: 'plan-123' },
         appRoute: appRoute({
-          key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
-          appletNamespace: 'hiilikartta',
+          key: APP_ROUTE_KEYS.CARBON_PLAN,
+          appletNamespace: 'carbon',
           variant: 'canonical',
           breadcrumb: {
             ns: 'hiilikartta',
@@ -239,7 +239,7 @@ describe('BreadcrumbNav', () => {
 
     expect(screen.getByLabelText('avoin-map:breadcrumb.back')).toHaveAttribute(
       'data-route-key',
-      APP_ROUTE_KEYS.HIILIKARTTA_REPORT
+      APP_ROUTE_KEYS.CARBON_REPORT
     )
   })
 

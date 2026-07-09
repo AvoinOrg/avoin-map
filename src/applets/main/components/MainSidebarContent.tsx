@@ -49,7 +49,7 @@ const BUBBLE_GAP_REM = 1
 const BOTTOM_CONTROLS_REQUIRED_SPACE_PX = 44
 const BOTTOM_CONTROLS_OUTSIDE_GAP_PX = 16
 const BOTTOM_CONTROLS_ROW_WIDTH_PX = 64
-type BubbleVariant = 'hiilikartta' | 'imageHeader'
+type BubbleVariant = 'carbon' | 'imageHeader'
 
 const APPLET_BUBBLES: Array<{
   id: string
@@ -74,15 +74,15 @@ const APPLET_BUBBLES: Array<{
     variant: 'imageHeader',
   },
   {
-    id: 'hiilikartta',
-    routeKey: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
+    id: 'carbon',
+    routeKey: APP_ROUTE_KEYS.CARBON_HOME,
     titleKey: 'sidebar.main.bubbles.hiilikartta.title',
     descriptionKey: 'sidebar.main.bubbles.hiilikartta.description',
     minHeight: '13.125rem',
     bgColor: '#02382c',
     heroSrc: HIILIKARTTA_HERO_SRC,
     heroPosition: 'center top',
-    variant: 'hiilikartta',
+    variant: 'carbon',
   },
   {
     id: 'forests',
@@ -652,7 +652,7 @@ const MainSidebarContent = () => {
                     </Box>
                   </Box>
 
-                  {APPLET_BUBBLES.filter((bubble) => bubble.id === 'hiilikartta').map(
+                  {APPLET_BUBBLES.filter((bubble) => bubble.id === 'carbon').map(
                     ({
                       id,
                       routeKey,
@@ -682,7 +682,7 @@ const MainSidebarContent = () => {
                             minHeight,
                             borderRadius: '10px',
                             color:
-                              variant === 'hiilikartta' ? 'common.white' : '#111111',
+                              variant === 'carbon' ? 'common.white' : '#111111',
                             backgroundColor: bgColor,
                             boxShadow: '0 14px 30px rgba(0, 0, 0, 0.16)',
                             overflow: 'hidden',
@@ -802,7 +802,7 @@ const MainSidebarContent = () => {
                             minHeight,
                             borderRadius: '10px',
                             color:
-                              variant === 'hiilikartta' ? 'common.white' : '#111111',
+                              variant === 'carbon' ? 'common.white' : '#111111',
                             backgroundColor: bgColor,
                             boxShadow: '0 14px 30px rgba(0, 0, 0, 0.16)',
                             overflow: 'hidden',
@@ -974,7 +974,7 @@ const MainSidebarContent = () => {
                           minHeight,
                           borderRadius: '10px',
                           color:
-                            variant === 'hiilikartta' ? 'common.white' : '#111111',
+                            variant === 'carbon' ? 'common.white' : '#111111',
                           backgroundColor: bgColor,
                           boxShadow: '0 14px 30px rgba(0, 0, 0, 0.16)',
                           overflow: 'hidden',
@@ -1176,7 +1176,7 @@ const MainSidebarContent = () => {
                           minHeight,
                           borderRadius: '10px',
                           color:
-                            variant === 'hiilikartta' ? 'common.white' : '#111111',
+                            variant === 'carbon' ? 'common.white' : '#111111',
                           backgroundColor: bgColor,
                           boxShadow: '0 14px 30px rgba(0, 0, 0, 0.16)',
                           overflow: 'hidden',
@@ -1263,7 +1263,7 @@ const MainSidebarContent = () => {
                   )
                 )}
 
-                {APPLET_BUBBLES.filter((bubble) => bubble.id === 'hiilikartta').map(
+                {APPLET_BUBBLES.filter((bubble) => bubble.id === 'carbon').map(
                   ({
                     id,
                     routeKey,
@@ -1292,7 +1292,7 @@ const MainSidebarContent = () => {
                           minHeight,
                           borderRadius: '10px',
                           color:
-                            variant === 'hiilikartta' ? 'common.white' : '#111111',
+                            variant === 'carbon' ? 'common.white' : '#111111',
                           backgroundColor: bgColor,
                           boxShadow: '0 14px 30px rgba(0, 0, 0, 0.16)',
                           overflow: 'hidden',

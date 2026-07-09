@@ -28,12 +28,12 @@ describe('routeMetadata', () => {
           },
         },
         {
-          id: 'hiilikarttaHome',
+          id: 'carbonHome',
           options: {
             staticData: {
               appRoute: {
-                key: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
-                appletNamespace: 'hiilikartta',
+                key: APP_ROUTE_KEYS.CARBON_HOME,
+                appletNamespace: 'carbon',
                 variant: 'canonical',
                 home: true,
                 public: {
@@ -44,12 +44,12 @@ describe('routeMetadata', () => {
           },
           children: {
             report: {
-              id: 'hiilikarttaReport',
+              id: 'carbonReport',
               options: {
                 staticData: {
                   appRoute: {
-                    key: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
-                    appletNamespace: 'hiilikartta',
+                    key: APP_ROUTE_KEYS.CARBON_REPORT,
+                    appletNamespace: 'carbon',
                     variant: 'canonical',
                     breadcrumb: {
                       ns: 'hiilikartta',
@@ -66,8 +66,8 @@ describe('routeMetadata', () => {
           options: {
             staticData: {
               appRoute: {
-                key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
-                appletNamespace: 'hiilikartta',
+                key: APP_ROUTE_KEYS.CARBON_PLAN,
+                appletNamespace: 'carbon',
                 variant: 'canonical',
               },
             },
@@ -80,14 +80,14 @@ describe('routeMetadata', () => {
 
     expect(ordered.map((metadata) => metadata.key)).toEqual([
       APP_ROUTE_KEYS.MAIN_HOME,
-      APP_ROUTE_KEYS.HIILIKARTTA_HOME,
-      APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
-      APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
+      APP_ROUTE_KEYS.CARBON_HOME,
+      APP_ROUTE_KEYS.CARBON_REPORT,
+      APP_ROUTE_KEYS.CARBON_PLAN,
     ])
 
     expect(index[APP_ROUTE_KEYS.MAIN_HOME]?.appletNamespace).toBe('main')
-    expect(index[APP_ROUTE_KEYS.HIILIKARTTA_HOME]?.public?.slug).toBe('carbon')
-    expect(index[APP_ROUTE_KEYS.HIILIKARTTA_REPORT]?.breadcrumb?.key).toBe(
+    expect(index[APP_ROUTE_KEYS.CARBON_HOME]?.public?.slug).toBe('carbon')
+    expect(index[APP_ROUTE_KEYS.CARBON_REPORT]?.breadcrumb?.key).toBe(
       'route.breadcrumb.report'
     )
   })
@@ -102,7 +102,7 @@ describe('routeMetadata', () => {
             staticData: {
               appRoute: {
                 key: 'invalid-key',
-                appletNamespace: 'hiilikartta',
+                appletNamespace: 'carbon',
                 variant: 'canonical',
               },
             },
@@ -113,8 +113,8 @@ describe('routeMetadata', () => {
           options: {
             staticData: {
               appRoute: {
-                key: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
-                appletNamespace: 'hiilikartta',
+                key: APP_ROUTE_KEYS.CARBON_REPORT,
+                appletNamespace: 'carbon',
                 variant: 'legacy-alias',
               },
             },
@@ -151,8 +151,8 @@ describe('routeMetadata', () => {
           options: {
             staticData: {
               appRoute: {
-                key: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
-                appletNamespace: 'hiilikartta',
+                key: APP_ROUTE_KEYS.CARBON_HOME,
+                appletNamespace: 'carbon',
                 variant: 'canonical',
               },
             },
@@ -163,8 +163,8 @@ describe('routeMetadata', () => {
           options: {
             staticData: {
               appRoute: {
-                key: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
-                appletNamespace: 'hiilikartta',
+                key: APP_ROUTE_KEYS.CARBON_HOME,
+                appletNamespace: 'carbon',
                 variant: 'canonical',
               },
             },
@@ -190,8 +190,8 @@ describe('routeMetadata', () => {
     expect(
       getAppRouteMetadataFromStaticData({
         appRoute: {
-          key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
-          appletNamespace: 'hiilikartta',
+          key: APP_ROUTE_KEYS.CARBON_PLAN,
+          appletNamespace: 'carbon',
           variant: 'canonical',
           breadcrumb: {
             ns: 'hiilikartta',
@@ -199,13 +199,13 @@ describe('routeMetadata', () => {
           },
         },
       })?.key
-    ).toBe(APP_ROUTE_KEYS.HIILIKARTTA_PLAN)
+    ).toBe(APP_ROUTE_KEYS.CARBON_PLAN)
 
     expect(
       getAppRouteMetadataFromStaticData({
         appRoute: {
           key: 'not-a-route-key',
-          appletNamespace: 'hiilikartta',
+          appletNamespace: 'carbon',
           variant: 'canonical',
         },
       })
@@ -214,8 +214,8 @@ describe('routeMetadata', () => {
     expect(
       getAppRouteMetadataFromStaticData({
         appRoute: {
-          key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
-          appletNamespace: 'hiilikartta',
+          key: APP_ROUTE_KEYS.CARBON_PLAN,
+          appletNamespace: 'carbon',
           variant: 'root-alias',
         },
       })

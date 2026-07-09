@@ -4,7 +4,7 @@ import React from 'react'
 import type { AppBoxProps } from '#/common/style/theme/system'
 
 import {
-  HIILIKARTTA_HOME_FLOATING_GUTTER_PX,
+  CARBON_HOME_FLOATING_GUTTER_PX,
   MAP_CONTROL_EDGE_GUTTER_PX,
 } from '#/common/constants/map'
 import type {
@@ -37,7 +37,7 @@ const getSimpleSidebarSx = (
   sx: SidebarStyleProps | undefined,
   options?: SidebarSimpleOptions
 ): SidebarStyleProps => {
-  const floatingGutter = `${HIILIKARTTA_HOME_FLOATING_GUTTER_PX}px`
+  const floatingGutter = `${CARBON_HOME_FLOATING_GUTTER_PX}px`
   const hiddenChromeHeightSx =
     options?.chrome === 'hidden'
       ? {

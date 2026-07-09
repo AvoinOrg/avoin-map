@@ -102,7 +102,7 @@ const writeCommonFixture = (root) => {
     'main',
     'forests',
     'energiakartta',
-    'hiilikartta',
+    'carbon',
     'luonnonmetsakartat',
     'ui-baseline',
   ]) {
@@ -289,7 +289,7 @@ describe('prebuildFolderPrune standalone route materialization', () => {
       root,
       buildConfig: makeBuildConfig({
         includesMain: false,
-        selected: ['hiilikartta'],
+        selected: ['carbon'],
       }),
     })
 
@@ -332,7 +332,7 @@ describe('prebuildFolderPrune standalone route materialization', () => {
     expect(
       exists({
         root,
-        relativePath: path.join('src', 'applets', 'hiilikartta'),
+        relativePath: path.join('src', 'applets', 'carbon'),
       })
     ).toBe(true)
     expect(
@@ -454,7 +454,7 @@ describe('prebuildFolderPrune standalone route materialization', () => {
       root,
       buildConfig: makeBuildConfig({
         includesMain: true,
-        selected: ['hiilikartta'],
+        selected: ['carbon'],
       }),
     })
 

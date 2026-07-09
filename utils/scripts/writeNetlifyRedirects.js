@@ -134,6 +134,9 @@ const getDomains = ({ namespace, appletConf, env }) => [
   getEnvDomain({ namespace, env }),
 ]
 
+const getApiRouteBase = ({ namespace, appletConf }) =>
+  appletConf[namespace]?.apiRouteBase || namespace
+
 const getSelectedAppletNamespaces = ({ appletConf, compiledApplets }) => {
   const knownNamespaces = Object.keys(appletConf).filter(
     (namespace) => namespace !== MAIN_APPLET
@@ -271,7 +274,7 @@ const addLegacyLuonnonmetsakartatSubpathRedirects = ({
 }
 
 const addLegacySubpathRedirects = ({ namespace, fromBase, rules, toBase }) => {
-  if (namespace === 'hiilikartta') {
+  if (namespace === 'carbon') {
     addLegacyHiilikarttaSubpathRedirects({ fromBase, rules, toBase })
   }
 
@@ -290,7 +293,7 @@ const addStandaloneRootAliasRedirects = ({
   rules,
   toLocaleBase,
 }) => {
-  if (namespace === 'hiilikartta') {
+  if (namespace === 'carbon') {
     addLegacyHiilikarttaSubpathRedirects({
       fromBase: fromLocaleBase,
       rules,
@@ -369,7 +372,10 @@ const addProxyRulesForDomain = ({
   for (const locale of locales) {
     const publicSlug = getPublicAppletRouteSlug(namespace)
     const localizedAppletBase = `/${locale}/${publicSlug}`
-    const apiTarget = `/api/${namespace}/:splat`
+    const apiTarget = `/api/${getApiRouteBase({
+      namespace,
+      appletConf,
+    })}/:splat`
     const localizedAppletTarget =
       mode === 'standalone' ? `/${locale}` : localizedAppletBase
     const localizedAppletCatchAllTarget =

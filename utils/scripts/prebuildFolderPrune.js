@@ -36,7 +36,7 @@ const getPrunePaths = (projectRoot) => {
 
 const appletApiRoutes = {
   energiakartta: [],
-  hiilikartta: [path.join('src', 'routes', 'api', 'hiilikartta')],
+  carbon: [path.join('src', 'routes', 'api', 'hiilikartta')],
   luonnonmetsakartat: [
     path.join('src', 'routes', 'api', 'luonnonmetsakartat'),
   ],

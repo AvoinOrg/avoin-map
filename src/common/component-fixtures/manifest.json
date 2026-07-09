@@ -35,6 +35,7 @@
       "src/components/Map/MapButtonMenu.tsx",
       "src/components/Map/MapButtonStickyMenu.tsx",
       "src/components/Map/CorridorBufferMenu.tsx",
+      "src/components/icons/Line.tsx",
       "src/components/icons/Tune.tsx",
       "src/common/component-fixtures/fixtures/MapButtonPrimitivesFixture.tsx"
     ],
@@ -100,6 +101,10 @@
       "src/components/Map/MapButton.tsx",
       "src/components/icons/Done.tsx",
       "src/components/icons/ExploreOutlined.tsx",
+      "src/components/icons/Delete.tsx",
+      "src/components/icons/EditDocument.tsx",
+      "src/components/icons/Line.tsx",
+      "src/components/icons/Polygon.tsx",
       "src/common/component-fixtures/fixtures/MapLayerToolbarChromeFixture.tsx"
     ],
     "states": [
@@ -628,12 +633,12 @@
     "label": "Hiilikartta display primitives",
     "description": "Applet-local public display primitive states for the Hiilikartta remigration.",
     "sourceGlobs": [
-      "src/applets/hiilikartta/components/PlanOutlineIcon.tsx",
-      "src/applets/hiilikartta/components/PlanListItem.tsx",
-      "src/applets/hiilikartta/components/PlanListItemLoading.tsx",
-      "src/applets/hiilikartta/components/PlanFolder.tsx",
-      "src/applets/hiilikartta/components/PlanFolderLoading.tsx",
-      "src/applets/hiilikartta/components/SelectionMenu.tsx",
+      "src/applets/carbon/components/PlanOutlineIcon.tsx",
+      "src/applets/carbon/components/PlanListItem.tsx",
+      "src/applets/carbon/components/PlanListItemLoading.tsx",
+      "src/applets/carbon/components/PlanFolder.tsx",
+      "src/applets/carbon/components/PlanFolderLoading.tsx",
+      "src/applets/carbon/components/SelectionMenu.tsx",
       "src/common/component-fixtures/fixtures/HiilikarttaDisplayPrimitivesFixture.tsx"
     ],
     "states": [
@@ -705,8 +710,8 @@
     "label": "Hiilikartta plan import controls",
     "description": "Plan detail import action and code-record selector states for the Hiilikartta authoring flow.",
     "sourceGlobs": [
-      "src/applets/hiilikartta/pages/kaavat/plan/_components/PlanImportActionsRow.tsx",
-      "src/applets/hiilikartta/pages/kaavat/plan/_components/PlanImportCodeRecordSelect.tsx",
+      "src/applets/carbon/pages/kaavat/plan/_components/PlanImportActionsRow.tsx",
+      "src/applets/carbon/pages/kaavat/plan/_components/PlanImportCodeRecordSelect.tsx",
       "src/common/component-fixtures/fixtures/HiilikarttaPlanImportControlsFixture.tsx"
     ],
     "states": [
@@ -742,8 +747,8 @@
     "label": "Hiilikartta plan report actions",
     "description": "Plan report flow and footer action states for the Hiilikartta authoring flow.",
     "sourceGlobs": [
-      "src/applets/hiilikartta/pages/kaavat/plan/_components/PlanReportFlowStep.tsx",
-      "src/applets/hiilikartta/pages/kaavat/plan/_components/PlanActionFooter.tsx",
+      "src/applets/carbon/pages/kaavat/plan/_components/PlanReportFlowStep.tsx",
+      "src/applets/carbon/pages/kaavat/plan/_components/PlanActionFooter.tsx",
       "src/common/component-fixtures/fixtures/HiilikarttaPlanReportActionsFixture.tsx"
     ],
     "states": [
@@ -812,9 +817,9 @@
     "label": "Hiilikartta zone area controls",
     "description": "Zone class chip and area filter/sort control states for the Hiilikartta areas route.",
     "sourceGlobs": [
-      "src/applets/hiilikartta/pages/kaavat/plan/alueet/_components/ZoneAccordion.tsx",
-      "src/applets/hiilikartta/pages/kaavat/plan/alueet/_components/ZoneClassChip.tsx",
-      "src/applets/hiilikartta/pages/kaavat/plan/alueet/_components/zoneAreaUtils.ts",
+      "src/applets/carbon/pages/kaavat/plan/alueet/_components/ZoneAccordion.tsx",
+      "src/applets/carbon/pages/kaavat/plan/alueet/_components/ZoneClassChip.tsx",
+      "src/applets/carbon/pages/kaavat/plan/alueet/_components/zoneAreaUtils.ts",
       "src/common/component-fixtures/fixtures/HiilikarttaZoneAreaControlsFixture.tsx"
     ],
     "states": [
@@ -857,9 +862,9 @@
     "label": "Hiilikartta zone accordion item",
     "description": "Zone accordion item states for the Hiilikartta area land-use editor migration.",
     "sourceGlobs": [
-      "src/applets/hiilikartta/pages/kaavat/plan/alueet/_components/ZoneAccordionItem.tsx",
-      "src/applets/hiilikartta/pages/kaavat/plan/alueet/_components/ZoneClassChip.tsx",
-      "src/applets/hiilikartta/pages/kaavat/plan/alueet/_components/zoneAreaUtils.ts",
+      "src/applets/carbon/pages/kaavat/plan/alueet/_components/ZoneAccordionItem.tsx",
+      "src/applets/carbon/pages/kaavat/plan/alueet/_components/ZoneClassChip.tsx",
+      "src/applets/carbon/pages/kaavat/plan/alueet/_components/zoneAreaUtils.ts",
       "src/common/component-fixtures/fixtures/HiilikarttaZoneAccordionItemFixture.tsx"
     ],
     "states": [
@@ -930,9 +935,9 @@
     "label": "Hiilikartta carbon line chart",
     "description": "Report line chart unit toggle, VisX sizing, tooltip, legend, and minimal-data states.",
     "sourceGlobs": [
-      "src/applets/hiilikartta/components/CarbonLineChart/CarbonLineChart.tsx",
-      "src/applets/hiilikartta/components/CarbonLineChart/CarbonLineChartInner.tsx",
-      "src/applets/hiilikartta/components/CarbonLineChart/index.ts",
+      "src/applets/carbon/components/CarbonLineChart/CarbonLineChart.tsx",
+      "src/applets/carbon/components/CarbonLineChart/CarbonLineChartInner.tsx",
+      "src/applets/carbon/components/CarbonLineChart/index.ts",
       "src/common/component-fixtures/fixtures/HiilikarttaCarbonLineChartFixture.tsx"
     ],
     "states": [
@@ -983,10 +988,10 @@
     "label": "Hiilikartta carbon map graph",
     "description": "Report carbon map graph controls, MapLibre overlay, legend integration, and summary table states.",
     "sourceGlobs": [
-      "src/applets/hiilikartta/components/CarbonMapGraph/CarbonMapGraph.tsx",
-      "src/applets/hiilikartta/components/CarbonMapGraph/CarbonMapGraphMap.tsx",
-      "src/applets/hiilikartta/components/CarbonMapGraph/CarbonMapGraphTable.tsx",
-      "src/applets/hiilikartta/components/CarbonMapGraph/index.tsx",
+      "src/applets/carbon/components/CarbonMapGraph/CarbonMapGraph.tsx",
+      "src/applets/carbon/components/CarbonMapGraph/CarbonMapGraphMap.tsx",
+      "src/applets/carbon/components/CarbonMapGraph/CarbonMapGraphTable.tsx",
+      "src/applets/carbon/components/CarbonMapGraph/index.tsx",
       "src/common/component-fixtures/fixtures/HiilikarttaCarbonMapGraphFixture.tsx"
     ],
     "states": [
@@ -1014,11 +1019,11 @@
     "label": "Hiilikartta report overview",
     "description": "Report overview, geometry preview, carbon-change legend, and read-more modal states.",
     "sourceGlobs": [
-      "src/applets/hiilikartta/components/CarbonChangeLegend.tsx",
-      "src/applets/hiilikartta/components/CarbonOverviewGraph/CarbonOverviewGraph.tsx",
-      "src/applets/hiilikartta/components/CarbonOverviewGraph/GeomGraphic.tsx",
-      "src/applets/hiilikartta/components/CarbonOverviewGraph/index.tsx",
-      "src/applets/hiilikartta/components/ReadMoreModal.tsx",
+      "src/applets/carbon/components/CarbonChangeLegend.tsx",
+      "src/applets/carbon/components/CarbonOverviewGraph/CarbonOverviewGraph.tsx",
+      "src/applets/carbon/components/CarbonOverviewGraph/GeomGraphic.tsx",
+      "src/applets/carbon/components/CarbonOverviewGraph/index.tsx",
+      "src/applets/carbon/components/ReadMoreModal.tsx",
       "src/common/component-fixtures/fixtures/HiilikarttaReportOverviewFixture.tsx"
     ],
     "states": [

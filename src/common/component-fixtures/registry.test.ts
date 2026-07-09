@@ -43,7 +43,7 @@ jest.mock('react-photo-album', () => ({
 }))
 
 jest.mock(
-  'applets/hiilikartta/components/CarbonLineChart/CarbonLineChart',
+  'applets/carbon/components/CarbonLineChart/CarbonLineChart',
   () => ({
     __esModule: true,
     default: () => null,
@@ -51,7 +51,7 @@ jest.mock(
 )
 
 jest.mock(
-  'applets/hiilikartta/components/CarbonLineChart/CarbonLineChartInner',
+  'applets/carbon/components/CarbonLineChart/CarbonLineChartInner',
   () => ({
     __esModule: true,
     default: () => null,

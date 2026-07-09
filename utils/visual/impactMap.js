@@ -50,15 +50,14 @@ const buildImpactRules = () => [
     target: 'main',
   },
   {
-    label: 'hiilikartta-pages',
+    label: 'carbon-pages',
     globs: [
-      'src/applets/hiilikartta/**',
+      'src/applets/carbon/**',
       'src/routes/$locale/_map/(applets)/carbon/**',
-      'src/routes/$locale/_map/(applets)/hiilikartta/**',
       'src/routes/$locale/_map/report.tsx',
       'src/routes/$locale/_map/raportti.tsx',
     ],
-    target: 'hiilikartta',
+    target: 'carbon',
   },
   {
     label: 'energiakartta-pages',

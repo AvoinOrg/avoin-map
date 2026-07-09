@@ -8,7 +8,7 @@ const {
 } = require('./constants')
 
 const CARBON_MOCK_SCENARIO_SET = 'carbon-mocks'
-const CARBON_MOCK_APPLET = 'hiilikartta'
+const CARBON_MOCK_APPLET = 'carbon'
 const CARBON_MOCK_LOCALE = 'fi'
 const CARBON_MOCK_ROUTE_BASE = `/${CARBON_MOCK_LOCALE}/carbon`
 const CARBON_MOCK_SCENARIO_ID_PREFIX = 'carbon-mocks'
@@ -20,20 +20,20 @@ const CARBON_MOCK_MASK_SELECTORS = [
 
 const CARBON_MOCK_IDS_SOURCE_PATH = path.resolve(
   __dirname,
-  '../../src/applets/hiilikartta/common/mockScenarios/ids.ts'
+  '../../src/applets/carbon/common/mockScenarios/ids.ts'
 )
 
 const CARBON_REPORT_SOURCE_GLOBS = [
-  'src/applets/hiilikartta/pages/raportti/page.tsx',
-  'src/applets/hiilikartta/pages/raportti/reportPlanSelection.ts',
-  'src/applets/hiilikartta/components/CarbonOverviewGraph/CarbonOverviewGraph.tsx',
-  'src/applets/hiilikartta/components/CarbonOverviewGraph/GeomGraphic.tsx',
-  'src/applets/hiilikartta/components/CarbonChangeLegend.tsx',
-  'src/applets/hiilikartta/components/CarbonLineChart/CarbonLineChart.tsx',
-  'src/applets/hiilikartta/components/CarbonLineChart/CarbonLineChartInner.tsx',
-  'src/applets/hiilikartta/components/CarbonMapGraph/CarbonMapGraph.tsx',
-  'src/applets/hiilikartta/components/CarbonMapGraph/CarbonMapGraphMap.tsx',
-  'src/applets/hiilikartta/components/CarbonMapGraph/CarbonMapGraphTable.tsx',
+  'src/applets/carbon/pages/raportti/page.tsx',
+  'src/applets/carbon/pages/raportti/reportPlanSelection.ts',
+  'src/applets/carbon/components/CarbonOverviewGraph/CarbonOverviewGraph.tsx',
+  'src/applets/carbon/components/CarbonOverviewGraph/GeomGraphic.tsx',
+  'src/applets/carbon/components/CarbonChangeLegend.tsx',
+  'src/applets/carbon/components/CarbonLineChart/CarbonLineChart.tsx',
+  'src/applets/carbon/components/CarbonLineChart/CarbonLineChartInner.tsx',
+  'src/applets/carbon/components/CarbonMapGraph/CarbonMapGraph.tsx',
+  'src/applets/carbon/components/CarbonMapGraph/CarbonMapGraphMap.tsx',
+  'src/applets/carbon/components/CarbonMapGraph/CarbonMapGraphTable.tsx',
 ]
 
 const REQUIRED_CARBON_MOCK_ID_EXPORTS = [

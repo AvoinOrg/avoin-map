@@ -1,7 +1,7 @@
 export const APPLET_NAMESPACES = [
   'main',
   'energiakartta',
-  'hiilikartta',
+  'carbon',
   'luonnonmetsakartat',
   'ui-baseline',
 ] as const
@@ -18,11 +18,11 @@ export type RouteTextKey = {
 export const APP_ROUTE_KEYS = {
   MAIN_HOME: 'main.home',
   ENERGIAKARTTA_HOME: 'energiakartta.home',
-  HIILIKARTTA_HOME: 'hiilikartta.home',
-  HIILIKARTTA_REPORT: 'hiilikartta.report',
-  HIILIKARTTA_PLANS: 'hiilikartta.plans',
-  HIILIKARTTA_PLAN: 'hiilikartta.plan',
-  HIILIKARTTA_PLAN_AREAS: 'hiilikartta.plan.areas',
+  CARBON_HOME: 'carbon.home',
+  CARBON_REPORT: 'carbon.report',
+  CARBON_PLANS: 'carbon.plans',
+  CARBON_PLAN: 'carbon.plan',
+  CARBON_PLAN_AREAS: 'carbon.plan.areas',
   LUONNONMETSAKARTAT_HOME: 'luonnonmetsakartat.home',
   LUONNONMETSAKARTAT_ADMIN: 'luonnonmetsakartat.admin',
   LUONNONMETSAKARTAT_ADMIN_IMPORT: 'luonnonmetsakartat.admin.import',

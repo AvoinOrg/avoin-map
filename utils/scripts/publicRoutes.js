@@ -1,24 +1,24 @@
 const PUBLIC_APPLET_NAMESPACES = [
   'energiakartta',
-  'hiilikartta',
+  'carbon',
   'luonnonmetsakartat',
 ]
 
 const APPLET_PUBLIC_ROUTE_SLUGS = {
   energiakartta: 'energy',
-  hiilikartta: 'carbon',
+  carbon: 'carbon',
   luonnonmetsakartat: 'luonnonmetsakartat',
 }
 
 const APPLET_LEGACY_PUBLIC_ROUTE_SLUGS = {
   energiakartta: [],
-  hiilikartta: [],
+  carbon: [],
   luonnonmetsakartat: [],
 }
 
 const APPLET_LEGACY_SUBPATH_REDIRECTS = {
   energiakartta: {},
-  hiilikartta: {
+  carbon: {
     kaavat: 'plans',
     alueet: 'areas',
     raportti: 'report',

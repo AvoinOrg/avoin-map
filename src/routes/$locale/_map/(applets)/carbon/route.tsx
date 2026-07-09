@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { guardAppletLocale } from '#/runtime/appletRouteGuards'
-import HiilikarttaLayout from 'applets/hiilikartta/pages/layout'
+import HiilikarttaLayout from 'applets/carbon/pages/layout'
 import { getHiilikarttaHead } from '#/runtime/headMetadata'
 import {
   APP_ROUTE_KEYS,
@@ -14,8 +14,8 @@ export const Route = createFileRoute(
   '/$locale/_map/(applets)/carbon'
 )({
   staticData: defineAppRouteStaticData({
-    key: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
-    appletNamespace: 'hiilikartta',
+    key: APP_ROUTE_KEYS.CARBON_HOME,
+    appletNamespace: 'carbon',
     variant: 'canonical',
     home: true,
     title: routeTextKey('hiilikartta', 'route.breadcrumb.home'),
@@ -26,7 +26,7 @@ export const Route = createFileRoute(
   }),
   beforeLoad: ({ params, location }) => {
     guardAppletLocale({
-      namespace: 'hiilikartta',
+      namespace: 'carbon',
       locale: params.locale,
       location,
     })

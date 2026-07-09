@@ -16,9 +16,9 @@ describe('liveSharedBrowser', () => {
   test('getPagePreferenceScore prioritizes pageMatch and root path', () => {
     expect(
       getPagePreferenceScore({
-        pageUrl: 'http://localhost:3000/en/hiilikartta',
+        pageUrl: 'http://localhost:3000/en/carbon',
         origin: 'http://localhost:3000',
-        pageMatch: 'hiilikartta',
+        pageMatch: 'carbon',
       })
     ).toBe(110)
 
@@ -41,7 +41,7 @@ describe('liveSharedBrowser', () => {
 
   test('findPreferredContextAndPage returns highest scoring matching page', () => {
     const pageA = { url: () => 'http://localhost:3000/en' }
-    const pageB = { url: () => 'http://localhost:3000/en/hiilikartta' }
+    const pageB = { url: () => 'http://localhost:3000/en/carbon' }
     const pageC = { url: () => 'https://example.com' }
     const context1 = { pages: () => [pageA, pageC] }
     const context2 = { pages: () => [pageB] }
@@ -50,13 +50,13 @@ describe('liveSharedBrowser', () => {
     const best = findPreferredContextAndPage({
       browser,
       origin: 'http://localhost:3000',
-      pageMatch: 'hiilikartta',
+      pageMatch: 'carbon',
     })
 
     expect(best).toBeTruthy()
     expect(best.page).toBe(pageB)
     expect(best.context).toBe(context2)
-    expect(best.pageUrl).toBe('http://localhost:3000/en/hiilikartta')
+    expect(best.pageUrl).toBe('http://localhost:3000/en/carbon')
   })
 
   test('validateOriginAndUrl rejects mismatched origin', () => {

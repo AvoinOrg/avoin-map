@@ -4,7 +4,7 @@ import React from 'react'
 import type { AppBoxProps } from '#/common/style/theme/system'
 
 import {
-  HIILIKARTTA_HOME_FLOATING_GUTTER_PX,
+  CARBON_HOME_FLOATING_GUTTER_PX,
   MAP_CONTROL_EDGE_GUTTER_PX,
 } from '#/common/constants/map'
 import { useUIStore } from '#/common/store'
@@ -66,7 +66,7 @@ export const FloatingSidebar = ({
   chromeHidden = false,
   children,
 }: FloatingSidebarProps) => {
-  const floatingGutter = `${HIILIKARTTA_HOME_FLOATING_GUTTER_PX}px`
+  const floatingGutter = `${CARBON_HOME_FLOATING_GUTTER_PX}px`
   const toggleGutter = `${MAP_CONTROL_EDGE_GUTTER_PX}px`
   const isSidebarDisabled = useUIStore((state) => state.isSidebarDisabled)
   const sidebarHeaderConfig = useUIStore((state) => state.sidebarHeaderConfig)

@@ -230,10 +230,10 @@ const buildVisualScenarios = ({
     case CARBON_MOCK_SCENARIO_SET: {
       if (
         !compiled.includes(MAIN_APPLET) ||
-        !compiled.includes('hiilikartta')
+        !compiled.includes('carbon')
       ) {
         throw new Error(
-          'The carbon-mocks visual scenario set requires a main-app build with NEXT_PUBLIC_COMPILED_APPLETS including "main" and "hiilikartta".'
+          'The carbon-mocks visual scenario set requires a main-app build with NEXT_PUBLIC_COMPILED_APPLETS including "main" and "carbon".'
         )
       }
 

@@ -8,25 +8,25 @@ export type PublicAppletNamespace = Exclude<
 
 export const PUBLIC_APPLET_NAMESPACES = [
   'energiakartta',
-  'hiilikartta',
+  'carbon',
   'luonnonmetsakartat',
 ] as const satisfies readonly PublicAppletNamespace[]
 
 export const APPLET_PUBLIC_ROUTE_SLUGS = {
   energiakartta: 'energy',
-  hiilikartta: 'carbon',
+  carbon: 'carbon',
   luonnonmetsakartat: 'luonnonmetsakartat',
 } as const satisfies Record<PublicAppletNamespace, string>
 
 export const APPLET_LEGACY_PUBLIC_ROUTE_SLUGS = {
   energiakartta: [],
-  hiilikartta: [],
+  carbon: [],
   luonnonmetsakartat: [],
 } as const satisfies Record<PublicAppletNamespace, readonly string[]>
 
 export const APPLET_LEGACY_SUBPATH_REDIRECTS = {
   energiakartta: {},
-  hiilikartta: {
+  carbon: {
     kaavat: 'plans',
     alueet: 'areas',
     raportti: 'report',
@@ -39,8 +39,8 @@ export const APPLET_LEGACY_SUBPATH_REDIRECTS = {
   },
 } as const satisfies Record<PublicAppletNamespace, Record<string, string>>
 
-export const HIILIKARTTA_CANONICAL_PUBLIC_SLUG =
-  APPLET_PUBLIC_ROUTE_SLUGS.hiilikartta
+export const CARBON_CANONICAL_PUBLIC_SLUG =
+  APPLET_PUBLIC_ROUTE_SLUGS.carbon
 
 export type AppletRouteSlugInfo = {
   namespace: PublicAppletNamespace

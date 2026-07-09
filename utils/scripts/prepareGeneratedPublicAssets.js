@@ -24,6 +24,9 @@ const copyDirectoryContents = ({ from, to }) => {
   fs.cpSync(from, to, { recursive: true })
 }
 
+const getPublicFilesDir = ({ appletConf, namespace }) =>
+  appletConf[namespace]?.publicFilesDir || namespace
+
 const assertNoStaleUiApiCopySource = () => {
   const staleUiApiRoot = path.join(projectRoot, 'src', 'app', '(ui)')
   if (!fs.existsSync(staleUiApiRoot)) return
@@ -58,7 +61,10 @@ const main = () => {
   for (const namespace of buildConfig.compiledNonMain) {
     copyDirectoryContents({
       from: path.join(appletsRoot, namespace, 'public'),
-      to: path.join(filesOut, namespace),
+      to: path.join(
+        filesOut,
+        getPublicFilesDir({ appletConf: buildConfig.appletConf, namespace })
+      ),
     })
   }
 

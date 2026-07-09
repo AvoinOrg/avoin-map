@@ -4,10 +4,10 @@ import React from 'react'
 
 import type { ComponentFixture } from '#/common/component-fixtures/types'
 import { Box } from '#/common/style/theme'
-import CarbonChangeLegend from 'applets/hiilikartta/components/CarbonChangeLegend'
-import CarbonOverviewGraph from 'applets/hiilikartta/components/CarbonOverviewGraph'
-import GeomGraphic from 'applets/hiilikartta/components/CarbonOverviewGraph/GeomGraphic'
-import ReadMoreModal from 'applets/hiilikartta/components/ReadMoreModal'
+import CarbonChangeLegend from 'applets/carbon/components/CarbonChangeLegend'
+import CarbonOverviewGraph from 'applets/carbon/components/CarbonOverviewGraph'
+import GeomGraphic from 'applets/carbon/components/CarbonOverviewGraph/GeomGraphic'
+import ReadMoreModal from 'applets/carbon/components/ReadMoreModal'
 import type {
   CalcFeature,
   CalcFeatureCollection,
@@ -16,7 +16,7 @@ import type {
   FeatureCalcs,
   PlanConfWithReportData,
   ReportData,
-} from 'applets/hiilikartta/common/types'
+} from 'applets/carbon/common/types'
 
 const FEATURE_YEARS = ['2024', '2050', '2070'] as const
 
@@ -394,11 +394,11 @@ export const hiilikarttaReportOverviewFixture: ComponentFixture = {
   description:
     'Report overview, geometry preview, carbon-change legend, and read-more modal states.',
   sourceGlobs: [
-    'src/applets/hiilikartta/components/CarbonChangeLegend.tsx',
-    'src/applets/hiilikartta/components/CarbonOverviewGraph/CarbonOverviewGraph.tsx',
-    'src/applets/hiilikartta/components/CarbonOverviewGraph/GeomGraphic.tsx',
-    'src/applets/hiilikartta/components/CarbonOverviewGraph/index.tsx',
-    'src/applets/hiilikartta/components/ReadMoreModal.tsx',
+    'src/applets/carbon/components/CarbonChangeLegend.tsx',
+    'src/applets/carbon/components/CarbonOverviewGraph/CarbonOverviewGraph.tsx',
+    'src/applets/carbon/components/CarbonOverviewGraph/GeomGraphic.tsx',
+    'src/applets/carbon/components/CarbonOverviewGraph/index.tsx',
+    'src/applets/carbon/components/ReadMoreModal.tsx',
     'src/common/component-fixtures/fixtures/HiilikarttaReportOverviewFixture.tsx',
   ],
   states: [

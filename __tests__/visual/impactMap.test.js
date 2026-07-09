@@ -3,7 +3,7 @@ const { resolveImpactedScenarios } = require('../../utils/visual/impactMap')
 const scenarios = [
   { id: 'main-root', applet: 'main' },
   { id: 'energiakartta-root', applet: 'energiakartta' },
-  { id: 'hiilikartta-root', applet: 'hiilikartta' },
+  { id: 'carbon-root', applet: 'carbon' },
   { id: 'luonnonmetsakartat-root', applet: 'luonnonmetsakartat' },
 ]
 
@@ -38,12 +38,12 @@ describe('resolveImpactedScenarios', () => {
 
   test('maps applet page changes to applet scenario only', () => {
     const result = resolveImpactedScenarios({
-      files: ['src/applets/hiilikartta/pages/page.tsx'],
+      files: ['src/applets/carbon/pages/page.tsx'],
       scenarios,
     })
 
     expect(result.mode).toBe('targeted')
-    expect(result.scenarioIds).toEqual(['hiilikartta-root'])
+    expect(result.scenarioIds).toEqual(['carbon-root'])
   })
 
   test('maps TanStack applet route changes to applet scenario only', () => {
@@ -55,7 +55,7 @@ describe('resolveImpactedScenarios', () => {
     })
 
     expect(result.mode).toBe('targeted')
-    expect(result.scenarioIds).toEqual(['hiilikartta-root'])
+    expect(result.scenarioIds).toEqual(['carbon-root'])
   })
 
   test('falls back to all scenarios for unmapped files', () => {

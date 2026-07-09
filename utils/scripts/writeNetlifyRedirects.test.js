@@ -8,9 +8,11 @@ const appletConf = {
     localeNs: 'avoin-map',
     langs: ['en', 'fi'],
   },
-  hiilikartta: {
+  carbon: {
     localeNs: 'hiilikartta',
     langs: ['fi'],
+    apiRouteBase: 'hiilikartta',
+    publicFilesDir: 'hiilikartta',
     domains: ['hiilikartta.avoin.org'],
   },
   luonnonmetsakartat: {
@@ -63,9 +65,9 @@ describe('writeNetlifyRedirects', () => {
   const hiilikarttaDomain = 'https://hiilikartta.avoin.org'
 
   it('parses compiled applets like the applet build config', () => {
-    expect(parseCompiledApplets('main, Hiilikartta,main')).toEqual([
+    expect(parseCompiledApplets('main, Carbon,main')).toEqual([
       'main',
-      'hiilikartta',
+      'carbon',
     ])
   })
 
@@ -73,7 +75,7 @@ describe('writeNetlifyRedirects', () => {
     const redirects = generateNetlifyRedirects({
       appletConf,
       baseUrl: mainBaseUrl,
-      compiledApplets: parseCompiledApplets('main,hiilikartta'),
+      compiledApplets: parseCompiledApplets('main,carbon'),
       env: {},
     })
 
@@ -211,7 +213,7 @@ describe('writeNetlifyRedirects', () => {
     const redirects = generateNetlifyRedirects({
       appletConf,
       baseUrl: standaloneBaseUrl,
-      compiledApplets: parseCompiledApplets('hiilikartta'),
+      compiledApplets: parseCompiledApplets('carbon'),
       env: {},
     })
 

@@ -45,7 +45,7 @@ describe('request routing decisions', () => {
     const mainMode = [
       'main',
       'energiakartta',
-      'hiilikartta',
+      'carbon',
       'luonnonmetsakartat',
     ]
 
@@ -263,7 +263,7 @@ describe('request routing decisions', () => {
   describe('standalone applet mode', () => {
     it.each([
       ['energiakartta', '/fi'],
-      ['hiilikartta', '/fi'],
+      ['carbon', '/fi'],
       ['luonnonmetsakartat', '/fi'],
     ])('redirects root for %s to its default locale', (namespace, pathname) => {
       expect(
@@ -289,7 +289,7 @@ describe('request routing decisions', () => {
         expect(
           decideRequestRouting({
             url: url(path),
-            compiledApplets: ['hiilikartta'],
+            compiledApplets: ['carbon'],
           })
         ).toEqual({
           type: 'redirect',
@@ -310,7 +310,7 @@ describe('request routing decisions', () => {
         expect(
           decideRequestRouting({
             url: url(path),
-            compiledApplets: ['hiilikartta'],
+            compiledApplets: ['carbon'],
           })
         ).toEqual({
           type: 'redirect',
@@ -327,7 +327,7 @@ describe('request routing decisions', () => {
         expect(
           decideRequestRouting({
             url: url(`${path}?x=1`),
-            compiledApplets: ['hiilikartta'],
+            compiledApplets: ['carbon'],
           })
         ).toEqual({ type: 'passThrough' })
       }
@@ -343,7 +343,7 @@ describe('request routing decisions', () => {
         expect(
           decideRequestRouting({
             url: url(path),
-            compiledApplets: ['hiilikartta'],
+            compiledApplets: ['carbon'],
           })
         ).toEqual({
           type: 'redirect',
@@ -421,7 +421,7 @@ describe('request routing decisions', () => {
           ? ['energiakartta']
           : path.includes('/luonnonmetsakartat')
             ? ['luonnonmetsakartat']
-            : ['hiilikartta']
+            : ['carbon']
 
         expect(
           decideRequestRouting({
@@ -438,10 +438,10 @@ describe('request routing decisions', () => {
     )
 
     it.each([
-      ['/fi/carbonmap/plans?x=1', ['hiilikartta']],
+      ['/fi/carbonmap/plans?x=1', ['carbon']],
       ['/fi/energymap/test?x=1', ['energiakartta']],
       ['/fi/energiakartta/test?x=1', ['energiakartta']],
-      ['/fi/hiilikartta/kaavat?x=1', ['hiilikartta']],
+      ['/fi/hiilikartta/kaavat?x=1', ['carbon']],
     ])(
       'does not strip removed old prefix %s from standalone paths',
       (path, compiledApplets) => {
@@ -461,7 +461,7 @@ describe('request routing decisions', () => {
         decideRequestRouting({
           url: url('/?x=1', 'hiilikartta.avoin.org'),
           host: 'hiilikartta.avoin.org',
-          compiledApplets: ['main', 'hiilikartta'],
+          compiledApplets: ['main', 'carbon'],
         })
       ).toEqual({
         type: 'redirect',
@@ -483,7 +483,7 @@ describe('request routing decisions', () => {
           decideRequestRouting({
             url: url(path, 'hiilikartta.avoin.org'),
             host: 'hiilikartta.avoin.org',
-            compiledApplets: ['main', 'hiilikartta'],
+            compiledApplets: ['main', 'carbon'],
           })
         ).toEqual({ type: 'passThrough' })
       }
@@ -494,7 +494,7 @@ describe('request routing decisions', () => {
         decideRequestRouting({
           url: url('/fi/carbon/kaavat?x=1', 'hiilikartta.avoin.org'),
           host: 'hiilikartta.avoin.org',
-          compiledApplets: ['main', 'hiilikartta'],
+          compiledApplets: ['main', 'carbon'],
         })
       ).toEqual({
         type: 'redirect',

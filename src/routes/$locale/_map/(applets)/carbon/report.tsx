@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import HiilikarttaReportPage from 'applets/hiilikartta/pages/raportti/page'
+import HiilikarttaReportPage from 'applets/carbon/pages/raportti/page'
 import {
   APP_ROUTE_KEYS,
   defineAppRouteStaticData,
@@ -12,8 +12,8 @@ export const Route = createFileRoute(
   '/$locale/_map/(applets)/carbon/report'
 )({
   staticData: defineAppRouteStaticData({
-    key: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
-    appletNamespace: 'hiilikartta',
+    key: APP_ROUTE_KEYS.CARBON_REPORT,
+    appletNamespace: 'carbon',
     variant: 'canonical',
     title: routeTextKey('hiilikartta', 'route.breadcrumb.report'),
     breadcrumb: routeTextKey('hiilikartta', 'route.breadcrumb.report'),

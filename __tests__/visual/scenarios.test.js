@@ -13,6 +13,7 @@ const {
   CARBON_MOCK_SCENARIO_SET,
 } = require('../../utils/visual/carbonMockScenarios')
 const {
+  LUONNONMETSAKARTAT_MOCK_MASK_SELECTORS,
   LUONNONMETSAKARTAT_MOCK_ROUTE_BASE,
   LUONNONMETSAKARTAT_MOCK_SCENARIO_SET,
 } = require('../../utils/visual/luonnonmetsakartatMockScenarios')
@@ -29,7 +30,7 @@ const {
   MOCK_LOCAL_PLAN_ID,
   MOCK_LOCAL_PLAN_SERVER_ID,
   MOCK_SERVER_PLAN_ID,
-} = require('../../src/applets/hiilikartta/common/mockScenarios/ids')
+} = require('../../src/applets/carbon/common/mockScenarios/ids')
 const {
   MOCK_VISIBLE_LAYER_ID,
 } = require('../../src/applets/luonnonmetsakartat/common/mockScenarios/ids')
@@ -43,7 +44,7 @@ const {
 
 const CARBON_MOCK_BASE_URL = 'http://127.0.0.1:3000'
 const CARBON_MOCK_ENV = {
-  NEXT_PUBLIC_COMPILED_APPLETS: 'main,hiilikartta',
+  NEXT_PUBLIC_COMPILED_APPLETS: 'main,carbon',
 }
 const LUONNONMETSAKARTAT_MOCK_BASE_URL = 'http://127.0.0.1:3000'
 const LUONNONMETSAKARTAT_MOCK_ENV = {
@@ -74,7 +75,7 @@ const getScenarioPathname = (scenario) => getScenarioUrl(scenario).pathname
 describe('visual scenarios', () => {
   test('builds main-mode root scenarios for compiled applets', () => {
     const env = {
-      NEXT_PUBLIC_COMPILED_APPLETS: 'main,energiakartta,hiilikartta',
+      NEXT_PUBLIC_COMPILED_APPLETS: 'main,energiakartta,carbon',
     }
 
     const scenarios = buildVisualScenarios({
@@ -85,7 +86,7 @@ describe('visual scenarios', () => {
     expect(scenarios.map((scenario) => scenario.id)).toEqual([
       'main-root',
       'energiakartta-root',
-      'hiilikartta-root',
+      'carbon-root',
     ])
 
     expect(scenarios.find((s) => s.id === 'main-root').url).toBe(
@@ -94,21 +95,21 @@ describe('visual scenarios', () => {
     expect(scenarios.find((s) => s.id === 'energiakartta-root').url).toBe(
       'http://127.0.0.1:3000/fi/energy'
     )
-    expect(scenarios.find((s) => s.id === 'hiilikartta-root').url).toBe(
+    expect(scenarios.find((s) => s.id === 'carbon-root').url).toBe(
       'http://127.0.0.1:3000/fi/carbon'
     )
   })
 
   test('builds standalone applet root scenario', () => {
-    const env = { NEXT_PUBLIC_COMPILED_APPLETS: 'hiilikartta' }
+    const env = { NEXT_PUBLIC_COMPILED_APPLETS: 'carbon' }
 
     expect(isStandaloneAppletBuild({ env })).toBe(true)
 
     const scenarios = buildVisualScenarios({ env, baseUrl: 'http://app' })
     expect(scenarios).toHaveLength(1)
     expect(scenarios[0]).toMatchObject({
-      id: 'hiilikartta-root',
-      applet: 'hiilikartta',
+      id: 'carbon-root',
+      applet: 'carbon',
       path: '/fi',
       url: 'http://app/fi',
     })
@@ -116,10 +117,10 @@ describe('visual scenarios', () => {
 
   test('filters unknown compiled applets', () => {
     const compiled = getCompiledApplets({
-      env: { NEXT_PUBLIC_COMPILED_APPLETS: 'main,unknown,hiilikartta' },
+      env: { NEXT_PUBLIC_COMPILED_APPLETS: 'main,unknown,carbon' },
     })
 
-    expect(compiled).toEqual(['main', 'hiilikartta'])
+    expect(compiled).toEqual(['main', 'carbon'])
   })
 
   test('builds component fixture scenarios in main mode', () => {
@@ -167,7 +168,7 @@ describe('visual scenarios', () => {
   test('rejects component fixture scenarios for standalone applet builds', () => {
     expect(() =>
       buildVisualScenarios({
-        env: { NEXT_PUBLIC_COMPILED_APPLETS: 'hiilikartta' },
+        env: { NEXT_PUBLIC_COMPILED_APPLETS: 'carbon' },
         baseUrl: 'http://app',
         scenarioSet: COMPONENT_FIXTURE_SCENARIO_SET,
       })
@@ -241,7 +242,7 @@ describe('visual scenarios', () => {
         expect(scenario.tags).toEqual(
           expect.arrayContaining([
             CARBON_MOCK_SCENARIO_SET,
-            'applet:hiilikartta',
+            'applet:carbon',
             `state:${expectedState}`,
           ])
         )
@@ -389,10 +390,10 @@ describe('visual scenarios', () => {
     test('maps report graph component changes to report scenarios', () => {
       const scenarios = buildCarbonMockScenarios()
       const expectedReportSourceGlobs = [
-        'src/applets/hiilikartta/pages/raportti/page.tsx',
-        'src/applets/hiilikartta/components/CarbonOverviewGraph/CarbonOverviewGraph.tsx',
-        'src/applets/hiilikartta/components/CarbonLineChart/CarbonLineChartInner.tsx',
-        'src/applets/hiilikartta/components/CarbonMapGraph/CarbonMapGraphMap.tsx',
+        'src/applets/carbon/pages/raportti/page.tsx',
+        'src/applets/carbon/components/CarbonOverviewGraph/CarbonOverviewGraph.tsx',
+        'src/applets/carbon/components/CarbonLineChart/CarbonLineChartInner.tsx',
+        'src/applets/carbon/components/CarbonMapGraph/CarbonMapGraphMap.tsx',
       ]
 
       for (const id of [
@@ -452,12 +453,12 @@ describe('visual scenarios', () => {
     test('rejects carbon mock scenarios for unsupported builds', () => {
       expect(() =>
         buildVisualScenarios({
-          env: { NEXT_PUBLIC_COMPILED_APPLETS: 'hiilikartta' },
+          env: { NEXT_PUBLIC_COMPILED_APPLETS: 'carbon' },
           baseUrl: 'http://app',
           scenarioSet: CARBON_MOCK_SCENARIO_SET,
         })
       ).toThrow(
-        'requires a main-app build with NEXT_PUBLIC_COMPILED_APPLETS including "main" and "hiilikartta"'
+        'requires a main-app build with NEXT_PUBLIC_COMPILED_APPLETS including "main" and "carbon"'
       )
 
       expect(() =>
@@ -467,7 +468,7 @@ describe('visual scenarios', () => {
           scenarioSet: CARBON_MOCK_SCENARIO_SET,
         })
       ).toThrow(
-        'requires a main-app build with NEXT_PUBLIC_COMPILED_APPLETS including "main" and "hiilikartta"'
+        'requires a main-app build with NEXT_PUBLIC_COMPILED_APPLETS including "main" and "carbon"'
       )
     })
 
@@ -687,7 +688,9 @@ describe('visual scenarios', () => {
           expectedLuonnonmetsakartatScenarioSurfaces[scenario.id]
 
         expect(scenario.requiresWebGL).toBe(true)
-        expect(scenario.maskSelectors).toEqual(DEFAULT_MASK_SELECTORS)
+        expect(scenario.maskSelectors).toEqual(
+          LUONNONMETSAKARTAT_MOCK_MASK_SELECTORS
+        )
         expect(scenario.tags).toEqual([
           LUONNONMETSAKARTAT_MOCK_SCENARIO_SET,
           'applet:luonnonmetsakartat',
@@ -709,7 +712,7 @@ describe('visual scenarios', () => {
       )
 
       for (const compiledApplets of [
-        'main,hiilikartta',
+        'main,carbon',
         'main,energiakartta',
       ]) {
         expect(() =>

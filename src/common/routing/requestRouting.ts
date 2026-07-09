@@ -148,7 +148,7 @@ const normalizeAppletRootAliasSegments = ({
 }) => {
   const [first, second] = segments
 
-  if (namespace === 'hiilikartta') {
+  if (namespace === 'carbon') {
     return first === 'kaavat' || first === 'raportti'
       ? normalizeAppletTailSegments(namespace, segments)
       : segments

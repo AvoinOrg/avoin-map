@@ -131,8 +131,8 @@ describe('MapBottomControls', () => {
     mockIsMobile = true
     mockUIState.isSidebarOpen = true
     mockUIState.sidebarBoundaries = {
-      'hiilikartta-home': {
-        id: 'hiilikartta-home',
+      'carbon-home': {
+        id: 'carbon-home',
         mode: 'floating',
         depth: 0,
         config: { width: 'compact' },

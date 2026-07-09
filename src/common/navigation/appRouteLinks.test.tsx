@@ -68,8 +68,8 @@ const mainRoutesById = {
     id: 'canonicalHome',
     fullPath: '/$locale/carbon',
     metadata: {
-      key: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
-      appletNamespace: 'hiilikartta',
+      key: APP_ROUTE_KEYS.CARBON_HOME,
+      appletNamespace: 'carbon',
       variant: 'canonical',
       home: true,
     },
@@ -78,8 +78,8 @@ const mainRoutesById = {
     id: 'canonicalPlans',
     fullPath: '/$locale/carbon/plans',
     metadata: {
-      key: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
-      appletNamespace: 'hiilikartta',
+      key: APP_ROUTE_KEYS.CARBON_PLANS,
+      appletNamespace: 'carbon',
       variant: 'canonical',
     },
   }),
@@ -87,8 +87,8 @@ const mainRoutesById = {
     id: 'canonicalReport',
     fullPath: '/$locale/carbon/report',
     metadata: {
-      key: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
-      appletNamespace: 'hiilikartta',
+      key: APP_ROUTE_KEYS.CARBON_REPORT,
+      appletNamespace: 'carbon',
       variant: 'canonical',
     },
   }),
@@ -96,8 +96,8 @@ const mainRoutesById = {
     id: 'canonicalPlan',
     fullPath: '/$locale/carbon/plans/$planId',
     metadata: {
-      key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
-      appletNamespace: 'hiilikartta',
+      key: APP_ROUTE_KEYS.CARBON_PLAN,
+      appletNamespace: 'carbon',
       variant: 'canonical',
     },
   }),
@@ -105,8 +105,8 @@ const mainRoutesById = {
     id: 'canonicalPlanAreas',
     fullPath: '/$locale/carbon/plans/$planId/areas',
     metadata: {
-      key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN_AREAS,
-      appletNamespace: 'hiilikartta',
+      key: APP_ROUTE_KEYS.CARBON_PLAN_AREAS,
+      appletNamespace: 'carbon',
       variant: 'canonical',
     },
   }),
@@ -121,14 +121,14 @@ const mainRoutesById = {
   }),
 }
 
-const standaloneHiilikarttaRoutesById = {
+const standaloneCarbonRoutesById = {
   standaloneHome: makeRoute({
     id: 'standaloneHome',
     fullPath: '/$locale/',
     to: '/$locale',
     metadata: {
-      key: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
-      appletNamespace: 'hiilikartta',
+      key: APP_ROUTE_KEYS.CARBON_HOME,
+      appletNamespace: 'carbon',
       variant: 'canonical',
       home: true,
     },
@@ -137,8 +137,8 @@ const standaloneHiilikarttaRoutesById = {
     id: 'standalonePlans',
     fullPath: '/$locale/plans',
     metadata: {
-      key: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
-      appletNamespace: 'hiilikartta',
+      key: APP_ROUTE_KEYS.CARBON_PLANS,
+      appletNamespace: 'carbon',
       variant: 'canonical',
     },
   }),
@@ -146,8 +146,8 @@ const standaloneHiilikarttaRoutesById = {
     id: 'standaloneReport',
     fullPath: '/$locale/report',
     metadata: {
-      key: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
-      appletNamespace: 'hiilikartta',
+      key: APP_ROUTE_KEYS.CARBON_REPORT,
+      appletNamespace: 'carbon',
       variant: 'canonical',
     },
   }),
@@ -155,8 +155,8 @@ const standaloneHiilikarttaRoutesById = {
     id: 'standalonePlan',
     fullPath: '/$locale/plans/$planId',
     metadata: {
-      key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
-      appletNamespace: 'hiilikartta',
+      key: APP_ROUTE_KEYS.CARBON_PLAN,
+      appletNamespace: 'carbon',
       variant: 'canonical',
     },
   }),
@@ -164,8 +164,8 @@ const standaloneHiilikarttaRoutesById = {
     id: 'standalonePlanAreas',
     fullPath: '/$locale/plans/$planId/areas',
     metadata: {
-      key: APP_ROUTE_KEYS.HIILIKARTTA_PLAN_AREAS,
-      appletNamespace: 'hiilikartta',
+      key: APP_ROUTE_KEYS.CARBON_PLAN_AREAS,
+      appletNamespace: 'carbon',
       variant: 'canonical',
     },
   }),
@@ -265,7 +265,7 @@ describe('appRouteLinks', () => {
       resolveAppRouteHref({
         router,
         entries,
-        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
+        routeKey: APP_ROUTE_KEYS.CARBON_PLANS,
         routeParams: { locale: 'fi' },
       })
     ).toBe('/fi/carbon/plans')
@@ -278,13 +278,13 @@ describe('appRouteLinks', () => {
   })
 
   it('resolves standalone promoted routes through the same canonical keys', () => {
-    const entries = collectAppRouteEntries(standaloneHiilikarttaRoutesById)
+    const entries = collectAppRouteEntries(standaloneCarbonRoutesById)
 
     expect(
       resolveAppRouteHref({
         router: makeRouter(),
         entries,
-        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
+        routeKey: APP_ROUTE_KEYS.CARBON_HOME,
         routeParams: { locale: 'fi' },
       })
     ).toBe('/fi')
@@ -293,7 +293,7 @@ describe('appRouteLinks', () => {
       resolveAppRouteHref({
         router: makeRouter(),
         entries,
-        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
+        routeKey: APP_ROUTE_KEYS.CARBON_PLANS,
         routeParams: { locale: 'fi' },
       })
     ).toBe('/fi/plans')
@@ -302,7 +302,7 @@ describe('appRouteLinks', () => {
       resolveAppRouteHref({
         router: makeRouter(),
         entries,
-        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
+        routeKey: APP_ROUTE_KEYS.CARBON_REPORT,
         routeParams: { locale: 'fi' },
       })
     ).toBe('/fi/report')
@@ -341,7 +341,7 @@ describe('appRouteLinks', () => {
     expect(
       selectAppRouteEntry({
         entries,
-        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
+        routeKey: APP_ROUTE_KEYS.CARBON_REPORT,
       }).routeId
     ).toBe('canonicalReport')
   })
@@ -353,7 +353,7 @@ describe('appRouteLinks', () => {
       resolveAppRouteHref({
         router: makeRouter(),
         entries,
-        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLANS,
+        routeKey: APP_ROUTE_KEYS.CARBON_PLANS,
         routeParams: { locale: 'fi' },
         search: new URLSearchParams({ tab: 'own' }),
       })
@@ -374,7 +374,7 @@ describe('appRouteLinks', () => {
       resolveAppRouteHref({
         router: makeRouter(),
         entries,
-        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_REPORT,
+        routeKey: APP_ROUTE_KEYS.CARBON_REPORT,
         routeParams: { locale: 'fi' },
         search: reportSearch,
       })
@@ -386,7 +386,7 @@ describe('appRouteLinks', () => {
       resolveAppRouteHref({
         router: makeRouter(),
         entries,
-        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLAN,
+        routeKey: APP_ROUTE_KEYS.CARBON_PLAN,
         routeParams: { locale: 'fi', planId: 'mock-local-plan' },
       })
     ).toBe('/fi/carbon/plans/mock-local-plan')
@@ -395,7 +395,7 @@ describe('appRouteLinks', () => {
       resolveAppRouteHref({
         router: makeRouter(),
         entries,
-        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_PLAN_AREAS,
+        routeKey: APP_ROUTE_KEYS.CARBON_PLAN_AREAS,
         routeParams: { locale: 'fi', planId: 'mock-local-plan' },
       })
     ).toBe('/fi/carbon/plans/mock-local-plan/areas')
@@ -422,14 +422,14 @@ describe('appRouteLinks', () => {
   it('throws for a route key that is not present in the current route entries', () => {
     expect(() =>
       selectAppRouteEntry({
-        entries: collectAppRouteEntries(standaloneHiilikarttaRoutesById),
+        entries: collectAppRouteEntries(standaloneCarbonRoutesById),
         routeKey: APP_ROUTE_KEYS.ENERGIAKARTTA_HOME,
       })
     ).toThrow('Unknown AppRouteKey "energiakartta.home"')
   })
 
   it('throws for duplicate canonical route keys in a single entry set', () => {
-    const [homeEntry] = collectAppRouteEntries(standaloneHiilikarttaRoutesById)
+    const [homeEntry] = collectAppRouteEntries(standaloneCarbonRoutesById)
     const duplicateHomeEntry: AppRouteEntry = {
       ...homeEntry,
       routeId: 'duplicateStandaloneHome',
@@ -438,8 +438,8 @@ describe('appRouteLinks', () => {
     expect(() =>
       selectAppRouteEntry({
         entries: [homeEntry, duplicateHomeEntry],
-        routeKey: APP_ROUTE_KEYS.HIILIKARTTA_HOME,
+        routeKey: APP_ROUTE_KEYS.CARBON_HOME,
       })
-    ).toThrow(/Duplicate AppRouteKey "hiilikartta.home"/)
+    ).toThrow(/Duplicate AppRouteKey "carbon.home"/)
   })
 })
