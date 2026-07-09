@@ -77,7 +77,7 @@ const SidebarContentBox = ({
 
   return (
     <Box
-      className="sidebar-children-container"
+      className="sidebar-content-box"
       sx={[
         {
           flexDirection: 'column',
@@ -129,7 +129,7 @@ const SidebarContentBox = ({
           }}
         >
           <Box
-            className="sidebar-children-container-inner"
+            className="sidebar-content-box-inner"
             sx={[
               {
                 direction: 'ltr',
