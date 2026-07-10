@@ -643,7 +643,6 @@
       "src/applets/carbon/components/PlanListItemLoading.tsx",
       "src/applets/carbon/components/PlanFolder.tsx",
       "src/applets/carbon/components/PlanFolderLoading.tsx",
-      "src/applets/carbon/components/SelectionMenu.tsx",
       "src/common/component-fixtures/fixtures/HiilikarttaDisplayPrimitivesFixture.tsx"
     ],
     "states": [
@@ -696,17 +695,6 @@
         "id": "plan-folder-loading",
         "label": "Plan folder loading",
         "description": "Folder loading state for cloud plan placeholders."
-      },
-      {
-        "id": "selection-menu-selected",
-        "label": "Selection menu selected",
-        "description": "Closed local selection menu with a selected option."
-      },
-      {
-        "id": "selection-menu-open",
-        "label": "Selection menu open",
-        "description": "Local selection menu opened by deterministic fixture interaction.",
-        "waitFor": "role=option"
       }
     ]
   },

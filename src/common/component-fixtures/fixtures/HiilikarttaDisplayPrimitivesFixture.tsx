@@ -9,7 +9,6 @@ import PlanFolderLoading from 'applets/carbon/components/PlanFolderLoading'
 import PlanListItem from 'applets/carbon/components/PlanListItem'
 import PlanListItemLoading from 'applets/carbon/components/PlanListItemLoading'
 import PlanOutlineIcon from 'applets/carbon/components/PlanOutlineIcon'
-import SelectionMenu from 'applets/carbon/components/SelectionMenu'
 import {
   CalculationState,
   type PlaceholderPlanConf,
@@ -125,30 +124,6 @@ const AuthenticatedFixture = ({ children }: { children: React.ReactNode }) => (
   </StaticAuthSessionProvider>
 )
 
-const SelectionMenuOpenState = () => {
-  const rootRef = React.useRef<HTMLDivElement | null>(null)
-
-  React.useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      rootRef.current?.querySelector('button')?.click()
-    }, 0)
-
-    return () => window.clearTimeout(timeoutId)
-  }, [])
-
-  return (
-    <Box ref={rootRef} sx={{ width: 260 }}>
-      <SelectionMenu
-        id="fixture-selection-menu-open"
-        label="Scenario"
-        value="Current"
-        options={['Current', 'Planned', 'Difference']}
-        onChange={() => {}}
-      />
-    </Box>
-  )
-}
-
 export const hiilikarttaDisplayPrimitivesFixture: ComponentFixture = {
   id: 'hiilikartta-display-primitives',
   label: 'Hiilikartta display primitives',
@@ -160,7 +135,6 @@ export const hiilikarttaDisplayPrimitivesFixture: ComponentFixture = {
     'src/applets/carbon/components/PlanListItemLoading.tsx',
     'src/applets/carbon/components/PlanFolder.tsx',
     'src/applets/carbon/components/PlanFolderLoading.tsx',
-    'src/applets/carbon/components/SelectionMenu.tsx',
     'src/common/component-fixtures/fixtures/HiilikarttaDisplayPrimitivesFixture.tsx',
   ],
   wrapper: FixtureStack,
@@ -296,29 +270,6 @@ export const hiilikarttaDisplayPrimitivesFixture: ComponentFixture = {
       label: 'Plan folder loading',
       description: 'Folder loading state for cloud plan placeholders.',
       render: () => <PlanFolderLoading planConf={loadingPlan} height={118} />,
-    },
-    {
-      id: 'selection-menu-selected',
-      label: 'Selection menu selected',
-      description: 'Closed local selection menu with a selected option.',
-      render: () => (
-        <Box sx={{ width: 260 }}>
-          <SelectionMenu
-            id="fixture-selection-menu-selected"
-            label="Scenario"
-            value="Planned"
-            options={['Current', 'Planned', 'Difference']}
-            onChange={() => {}}
-          />
-        </Box>
-      ),
-    },
-    {
-      id: 'selection-menu-open',
-      label: 'Selection menu open',
-      description: 'Local selection menu opened by deterministic fixture interaction.',
-      waitFor: 'role=option',
-      render: () => <SelectionMenuOpenState />,
     },
   ],
 }
