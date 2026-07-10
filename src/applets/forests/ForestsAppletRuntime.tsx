@@ -6,7 +6,11 @@ import AppletWrapper from '#/components/common/AppletWrapper'
 import { BreadcrumbNav, SidebarBoundary } from '#/components/Sidebar'
 import { defaultListedLayerGroups } from '#/components/Map/layers/defaultListedLayerGroups'
 
-const LayoutClient = ({ children }: { children: React.ReactNode }) => {
+const ForestsAppletRuntime = ({
+  children,
+}: {
+  children: React.ReactNode
+}) => {
   return (
     <SidebarBoundary id="forests-panel" mode="simple">
       <AppletWrapper
@@ -24,4 +28,4 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   )
 }
 
-export default LayoutClient
+export default ForestsAppletRuntime

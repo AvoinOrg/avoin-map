@@ -5,7 +5,7 @@ import {
   defineAppRouteStaticData,
   routeTextKey,
 } from '#/common/routing/routeMetadata'
-import UiBaselineInputsPage from 'applets/ui-baseline/pages/inputs/page'
+import UiBaselineInputsPage from 'applets/ui-baseline/pages/inputs/UiBaselineInputsPage'
 
 export const Route = createFileRoute(
   '/$locale/_map/(applets)/ui-baseline/inputs'

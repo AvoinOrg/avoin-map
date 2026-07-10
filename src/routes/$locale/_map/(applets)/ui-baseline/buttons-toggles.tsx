@@ -5,7 +5,7 @@ import {
   defineAppRouteStaticData,
   routeTextKey,
 } from '#/common/routing/routeMetadata'
-import UiBaselineButtonsTogglesPage from 'applets/ui-baseline/pages/buttons-toggles/page'
+import UiBaselineButtonsTogglesPage from 'applets/ui-baseline/pages/buttons-toggles/UiBaselineButtonsTogglesPage'
 
 export const Route = createFileRoute(
   '/$locale/_map/(applets)/ui-baseline/buttons-toggles'

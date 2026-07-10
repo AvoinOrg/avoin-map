@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import MainPage from 'applets/main/page'
+import MainHomePage from 'applets/main/MainHomePage'
 import {
   AVOIN_MAP_TITLE,
   getStaticAppletHead,
@@ -21,5 +21,5 @@ export const Route = createFileRoute('/$locale/_map/')({
     getStaticAppletHead({
       title: AVOIN_MAP_TITLE,
     }),
-  component: MainPage,
+  component: MainHomePage,
 })

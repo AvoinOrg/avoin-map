@@ -5,7 +5,7 @@ import {
   defineAppRouteStaticData,
   routeTextKey,
 } from '#/common/routing/routeMetadata'
-import UiBaselineNodeFlowPage from 'applets/ui-baseline/pages/node-flow/page'
+import UiBaselineNodeFlowPage from 'applets/ui-baseline/pages/node-flow/UiBaselineNodeFlowPage'
 
 export const Route = createFileRoute(
   '/$locale/_map/(applets)/ui-baseline/node-flow'

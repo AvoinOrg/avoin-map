@@ -380,7 +380,7 @@ const ForestsGraphPanelProvider = ({
 //   })
 // }
 
-const FinlandForests = () => {
+const ForestsHomePage = () => {
   const enableLayerGroup = useMapStore((state) => state.enableLayerGroup)
   const removeSelectedFeatures = useMapStore(
     (state) => state.removeSelectedFeatures
@@ -1189,4 +1189,4 @@ const FinlandForests = () => {
   )
 }
 
-export default FinlandForests
+export default ForestsHomePage

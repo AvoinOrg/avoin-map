@@ -7,7 +7,7 @@ import { SidebarBoundary } from '#/components/Sidebar'
 
 import MainSidebarContent from './components/MainSidebarContent'
 
-const Page = () => {
+const MainHomePage = () => {
   return (
     <SidebarBoundary id="main-home" mode="home">
       <AppletWrapper
@@ -27,4 +27,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default MainHomePage

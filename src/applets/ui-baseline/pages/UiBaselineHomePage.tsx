@@ -17,7 +17,7 @@ import {
   UI_BASELINE_NAMESPACE,
 } from '../common/categories'
 
-const UiBaselinePage = () => {
+const UiBaselineHomePage = () => {
   const { t } = useTranslate(UI_BASELINE_NAMESPACE)
 
   return (
@@ -56,4 +56,4 @@ const UiBaselinePage = () => {
   )
 }
 
-export default UiBaselinePage
+export default UiBaselineHomePage

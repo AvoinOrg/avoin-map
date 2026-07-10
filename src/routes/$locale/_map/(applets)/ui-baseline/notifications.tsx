@@ -5,7 +5,7 @@ import {
   defineAppRouteStaticData,
   routeTextKey,
 } from '#/common/routing/routeMetadata'
-import UiBaselineNotificationsPage from 'applets/ui-baseline/pages/notifications/page'
+import UiBaselineNotificationsPage from 'applets/ui-baseline/pages/notifications/UiBaselineNotificationsPage'
 
 export const Route = createFileRoute(
   '/$locale/_map/(applets)/ui-baseline/notifications'

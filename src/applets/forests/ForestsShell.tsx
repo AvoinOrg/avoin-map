@@ -1,16 +1,16 @@
 import { Outlet } from '@tanstack/react-router'
 
 import AppletLayout from '#/components/common/AppletLayout'
-import LayoutClient from './layoutClient'
+import ForestsAppletRuntime from './ForestsAppletRuntime'
 
-const Layout = () => {
+const ForestsShell = () => {
   return (
     <AppletLayout>
-      <LayoutClient>
+      <ForestsAppletRuntime>
         <Outlet />
-      </LayoutClient>
+      </ForestsAppletRuntime>
     </AppletLayout>
   )
 }
 
-export default Layout
+export default ForestsShell

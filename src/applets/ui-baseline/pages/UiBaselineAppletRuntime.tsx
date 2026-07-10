@@ -13,7 +13,11 @@ const HELSINKI_DEFAULT_VIEW = {
   duration: 0,
 }
 
-const LayoutClient = ({ children }: { children: React.ReactNode }) => {
+const UiBaselineAppletRuntime = ({
+  children,
+}: {
+  children: React.ReactNode
+}) => {
   return (
     <AppletWrapper
       mapContext="energy"
@@ -34,4 +38,4 @@ const LayoutClient = ({ children }: { children: React.ReactNode }) => {
   )
 }
 
-export default LayoutClient
+export default UiBaselineAppletRuntime

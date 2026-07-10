@@ -1,17 +1,11 @@
-import { Outlet, createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 
-import ForestsLayoutClient from 'applets/forests/layoutClient'
+import ForestsShell from 'applets/forests/ForestsShell'
 import {
   APP_ROUTE_KEYS,
   defineAppRouteStaticData,
   routeTextKey,
 } from '#/common/routing/routeMetadata'
-
-const ForestsLayout = () => (
-  <ForestsLayoutClient>
-    <Outlet />
-  </ForestsLayoutClient>
-)
 
 export const Route = createFileRoute(
   '/$locale/_map/(applets)/forests'
@@ -26,5 +20,5 @@ export const Route = createFileRoute(
       slug: 'forests',
     },
   }),
-  component: ForestsLayout,
+  component: ForestsShell,
 })

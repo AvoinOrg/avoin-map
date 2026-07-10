@@ -7,7 +7,7 @@ import {
 } from '#/common/routing/routeMetadata'
 import { guardAppletLocale } from '#/runtime/appletRouteGuards'
 import { getStaticAppletHead } from '#/runtime/headMetadata'
-import UiBaselineLayout from 'applets/ui-baseline/pages/layout'
+import UiBaselineShell from 'applets/ui-baseline/pages/UiBaselineShell'
 
 export const Route = createFileRoute(
   '/$locale/_map/(applets)/ui-baseline'
@@ -28,5 +28,5 @@ export const Route = createFileRoute(
     })
   },
   head: () => getStaticAppletHead({ title: 'UI Baseline' }),
-  component: UiBaselineLayout,
+  component: UiBaselineShell,
 })

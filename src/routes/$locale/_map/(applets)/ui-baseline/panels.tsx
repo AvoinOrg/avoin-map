@@ -5,7 +5,7 @@ import {
   defineAppRouteStaticData,
   routeTextKey,
 } from '#/common/routing/routeMetadata'
-import UiBaselinePanelsPage from 'applets/ui-baseline/pages/panels/page'
+import UiBaselinePanelsPage from 'applets/ui-baseline/pages/panels/UiBaselinePanelsPage'
 
 export const Route = createFileRoute(
   '/$locale/_map/(applets)/ui-baseline/panels'
