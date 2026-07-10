@@ -37,7 +37,7 @@ const LoginButton = () => {
           outlineOffset: 3,
         },
       }}
-      onClick={() => openLoginWindow(params.locale)}
+      onClick={() => void openLoginWindow(params.locale)}
     >
       {t('navbar.profile.sign_in')}
     </Box>

@@ -56,6 +56,7 @@ const {
   MOCK_AUTH_STORAGE_KEY,
   MOCK_AUTH_USER_ID,
   createMockUserInfo,
+  createZitadelAuthorizationUrl,
   getAuthAccessToken,
   getAuthSession,
   signInWithZitadel,
@@ -738,6 +739,30 @@ describe('AuthSessionProvider', () => {
       errorCallbackURL: 'http://localhost/login-error',
       newUserCallbackURL: 'http://localhost/new-user',
       scopes: ['openid', 'profile'],
+    })
+  })
+
+  it('creates a non-redirecting Zitadel authorization URL through Better Auth', async () => {
+    mockSignInOauth2.mockResolvedValueOnce({
+      data: {
+        url: 'https://auth.example.org/oauth/v2/authorize?state=abc',
+        redirect: false,
+      },
+      error: null,
+    })
+
+    await expect(
+      createZitadelAuthorizationUrl({
+        callbackURL: '/after-login',
+      })
+    ).resolves.toBe('https://auth.example.org/oauth/v2/authorize?state=abc')
+
+    expect(mockSignInOauth2).toHaveBeenCalledWith({
+      providerId: 'zitadel',
+      callbackURL: 'http://localhost/after-login',
+      errorCallbackURL: undefined,
+      newUserCallbackURL: undefined,
+      disableRedirect: true,
     })
   })
 

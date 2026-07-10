@@ -1099,7 +1099,7 @@ const CarbonPlansPlanPage = () => {
     }
 
     if (status !== 'authenticated') {
-      openLoginWindow(locale)
+      void openLoginWindow(locale)
       return
     }
 

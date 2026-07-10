@@ -49,6 +49,7 @@ type AuthAccessTokenState =
 
 type SignInWithZitadelOptions = {
   callbackURL?: string
+  disableRedirect?: boolean
   errorCallbackURL?: string
   newUserCallbackURL?: string
   scopes?: string[]
@@ -154,6 +155,37 @@ const signInWithBetterAuth = (options: SignInWithZitadelOptions = {}) =>
     errorCallbackURL: toAbsoluteClientUrl(options.errorCallbackURL),
     newUserCallbackURL: toAbsoluteClientUrl(options.newUserCallbackURL),
   })
+
+const getOAuthAuthorizationUrl = (result: unknown) => {
+  const data =
+    result && typeof result === 'object' && 'data' in result
+      ? (result as { data?: unknown }).data
+      : result
+
+  if (!data || typeof data !== 'object' || !('url' in data)) {
+    return null
+  }
+
+  const url = (data as { url?: unknown }).url
+
+  return typeof url === 'string' && url.length > 0 ? url : null
+}
+
+export const createZitadelAuthorizationUrl = async (
+  options: SignInWithZitadelOptions = {}
+) => {
+  const result = await signInWithBetterAuth({
+    ...options,
+    disableRedirect: true,
+  })
+  const url = getOAuthAuthorizationUrl(result)
+
+  if (!url) {
+    throw new Error('Better Auth did not return a Zitadel authorization URL.')
+  }
+
+  return url
+}
 
 export const getAuthAccessToken = async (): Promise<AuthAccessTokenResult> => {
   const mockConfig = resolveMockAuthConfig()
