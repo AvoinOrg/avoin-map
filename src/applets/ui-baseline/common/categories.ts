@@ -10,6 +10,7 @@ export type UiBaselineCategoryId =
   | 'dropdowns'
   | 'tooltips-and-help'
   | 'buttons-toggles'
+  | 'layers'
   | 'inputs'
   | 'notifications'
   | 'panels'
@@ -48,6 +49,12 @@ export const UI_BASELINE_CATEGORIES: UiBaselineCategory[] = [
     routeKey: APP_ROUTE_KEYS.UI_BASELINE_BUTTONS_TOGGLES,
     breadcrumbKey: 'route.breadcrumb.buttons_toggles',
     labelKey: 'home.categories.buttons_toggles',
+  },
+  {
+    id: 'layers',
+    routeKey: APP_ROUTE_KEYS.UI_BASELINE_LAYERS,
+    breadcrumbKey: 'route.breadcrumb.layers',
+    labelKey: 'home.categories.layers',
   },
   {
     id: 'inputs',

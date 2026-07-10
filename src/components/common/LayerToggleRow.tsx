@@ -44,10 +44,23 @@ type LayerToggleRowLinkProps = SharedLayerToggleRowProps & {
   linkSx?: StyleProp
 }
 
+const LAYER_ROW_MIN_HEIGHT = { mobile: '2rem', desktop: '1.75rem' }
+const LAYER_ROW_HORIZONTAL_PADDING = '0.375rem'
+const LAYER_STATUS_ICON_SLOT_WIDTH = '2rem'
+const LAYER_STATUS_ICON_SLOT_HEIGHT = '1.5rem'
+const LAYER_STATUS_ICON_SIZE = '1rem'
+const LAYER_STATUS_ICON_HIGHLIGHT_SIZE = '1.5rem'
+const LAYER_STATUS_ICON_SLOT_MARGIN_RIGHT = '0.75rem'
+const LAYER_TRAILING_ACTION_SLOT_SIZE = '1.75rem'
+const LAYER_TRAILING_ACTION_ICON_SIZE = '1rem'
+const LAYER_TRAILING_ACTION_MARGIN_LEFT = '0.75rem'
+
 const BASE_ROW_SX = {
   width: '100%',
-  minHeight: '1.125rem',
-  p: 0,
+  minHeight: LAYER_ROW_MIN_HEIGHT,
+  py: { mobile: '0.125rem', desktop: 0 },
+  px: LAYER_ROW_HORIZONTAL_PADDING,
+  boxSizing: 'border-box',
   display: 'flex',
   alignItems: 'center',
   border: 0,
@@ -76,25 +89,13 @@ const LABEL_SX = {
   whiteSpace: 'normal',
 }
 
-const ACCORDION_ROW_HORIZONTAL_PADDING_REM = 0.375
-const ACCORDION_ROW_HORIZONTAL_PADDING = `${ACCORDION_ROW_HORIZONTAL_PADDING_REM}rem`
-const ACCORDION_ROW_HORIZONTAL_MARGIN = `-${ACCORDION_ROW_HORIZONTAL_PADDING_REM}rem`
-const ACCORDION_ROW_WIDTH = `calc(100% + ${
-  ACCORDION_ROW_HORIZONTAL_PADDING_REM * 2
-}rem)`
-const LAYER_STATUS_ICON_SLOT_WIDTH = '2rem'
-const LAYER_STATUS_ICON_SLOT_HEIGHT = '1.5rem'
-const LAYER_STATUS_ICON_SIZE = '1rem'
-const LAYER_STATUS_ICON_HIGHLIGHT_SIZE = '1.5rem'
-const LAYER_STATUS_ICON_SLOT_MARGIN_RIGHT = '0.75rem'
-
 const ColoredVisibleIcon = ({ color }: { color: string }) => {
   const contrastColor = getContrastColor(color)
 
   return (
     <Box
       sx={{
-        width: LAYER_STATUS_ICON_SLOT_WIDTH,
+        width: LAYER_STATUS_ICON_HIGHLIGHT_SIZE,
         height: LAYER_STATUS_ICON_HIGHLIGHT_SIZE,
         boxSizing: 'border-box',
         borderRadius: '50%',
@@ -108,8 +109,8 @@ const ColoredVisibleIcon = ({ color }: { color: string }) => {
     >
       <EyeOpen
         sx={{
-          width: LAYER_STATUS_ICON_HIGHLIGHT_SIZE,
-          height: LAYER_STATUS_ICON_HIGHLIGHT_SIZE,
+          width: LAYER_STATUS_ICON_SIZE,
+          height: LAYER_STATUS_ICON_SIZE,
           color: contrastColor,
         }}
       />
@@ -219,43 +220,44 @@ export const LayerToggleRowAccordion = ({
       open={expanded}
       render={(rootProps) => <Box {...rootProps} sx={{ width: '100%' }} />}
     >
-      <Box
-        sx={{
-          mx: ACCORDION_ROW_HORIZONTAL_MARGIN,
-          width: ACCORDION_ROW_WIDTH,
-        }}
+      <ToggleRowButton
+        {...props}
+        expanded={expanded}
+        controls={contentId}
+        rowSx={[
+          expanded
+            ? {
+                backgroundColor: '#e6efff',
+                borderRadius: '0.875rem',
+              }
+            : {},
+          ...toStyleArray(rowSx),
+        ]}
       >
-        <ToggleRowButton
-          {...props}
-          expanded={expanded}
-          controls={contentId}
-          rowSx={[
-            {
-              px: ACCORDION_ROW_HORIZONTAL_PADDING,
-            },
-            expanded
-              ? {
-                  backgroundColor: '#e6efff',
-                  borderRadius: '20px',
-                }
-              : {},
-            ...toStyleArray(rowSx),
-          ]}
+        <Box
+          component="span"
+          aria-hidden="true"
+          sx={{
+            width: LAYER_TRAILING_ACTION_SLOT_SIZE,
+            height: LAYER_TRAILING_ACTION_SLOT_SIZE,
+            ml: LAYER_TRAILING_ACTION_MARGIN_LEFT,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
         >
           <CircleArrowRight
-            aria-hidden="true"
             sx={{
-              width: '0.75rem',
-              height: '0.75rem',
+              width: LAYER_TRAILING_ACTION_ICON_SIZE,
+              height: LAYER_TRAILING_ACTION_ICON_SIZE,
               color: '#aeb6ad',
-              ml: '1rem',
-              flexShrink: 0,
               transform: expanded ? 'rotate(-90deg)' : 'rotate(90deg)',
               transition: 'transform 160ms ease',
             }}
           />
-        </ToggleRowButton>
-      </Box>
+        </Box>
+      </ToggleRowButton>
       <Collapsible.Panel
         id={contentId}
         render={(panelProps) => (
@@ -340,9 +342,9 @@ export const LayerToggleRowLink = ({
         }}
         sx={[
           {
-            width: '2.5rem',
-            height: '2.5rem',
-            ml: '0.5rem',
+            width: LAYER_TRAILING_ACTION_SLOT_SIZE,
+            height: LAYER_TRAILING_ACTION_SLOT_SIZE,
+            ml: LAYER_TRAILING_ACTION_MARGIN_LEFT,
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -350,7 +352,7 @@ export const LayerToggleRowLink = ({
             borderRadius: '50%',
             '&:focus-visible': {
               outline: '2px solid #111111',
-              outlineOffset: '-0.25rem',
+              outlineOffset: '-0.125rem',
             },
           },
           ...toStyleArray(linkPropsSx as StyleProp),
@@ -360,8 +362,8 @@ export const LayerToggleRowLink = ({
         <CircleArrowRight
           aria-hidden="true"
           sx={{
-            width: '1.5rem',
-            height: '1.5rem',
+            width: LAYER_TRAILING_ACTION_ICON_SIZE,
+            height: LAYER_TRAILING_ACTION_ICON_SIZE,
             color: 'currentColor',
           }}
         />

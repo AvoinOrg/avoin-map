@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 
-import type { LayerGroupStatus } from '#/common/hooks/map/useLayerGroup'
 import { Box } from '#/common/style/theme'
 import BigMenuButton from '#/components/common/BigMenuButton'
 import { ButtonLinkRow } from '#/components/common/ButtonLinkRow'
@@ -8,7 +7,6 @@ import { Button, IconButton } from '#/components/common/Button'
 import CheckBoxWithLabel from '#/components/common/CheckBoxWithLabel'
 import { EyeButton } from '#/components/common/EyeButton'
 import IconTextButton from '#/components/common/IconTextButton'
-import { LayerToggleRow } from '#/components/common/LayerToggleRow'
 import SquishedSwitchWithLabel from '#/components/common/SquishedSwitchWithLabel'
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 import TText from '#/components/common/TText'
@@ -108,27 +106,6 @@ const InteractiveBooleanControls = () => {
     </>
   )
 }
-
-const LayerControlExample = ({
-  label,
-  status,
-  disabled = false,
-  color,
-}: {
-  label: string
-  status: LayerGroupStatus
-  disabled?: boolean
-  color?: string
-}) => (
-  <LayerToggleRow
-    label={label}
-    status={status}
-    disabled={disabled}
-    color={color}
-    onToggle={noop}
-    ariaLabel={`Toggle ${label}`}
-  />
-)
 
 const ButtonsTogglesContent = () => (
   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
@@ -292,22 +269,6 @@ const ButtonsTogglesContent = () => (
             ariaLabel="Toggle processing layer"
           />
         </BaselineInlineGroup>
-      </BaselineExample>
-      <BaselineExample title="LayerToggleRow">
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <LayerControlExample
-            label="Visible layer"
-            status="visible"
-            color="#2C8E74"
-          />
-          <LayerControlExample label="Hidden layer" status="hidden" />
-          <LayerControlExample label="Loading layer" status="processing" />
-          <LayerControlExample
-            label="Disabled layer"
-            status="hidden"
-            disabled
-          />
-        </Box>
       </BaselineExample>
     </BaselineSection>
 

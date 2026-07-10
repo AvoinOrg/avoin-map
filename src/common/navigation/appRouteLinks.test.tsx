@@ -218,6 +218,15 @@ const uiBaselineRoutesById = {
       variant: 'canonical',
     },
   }),
+  uiBaselineLayers: makeRoute({
+    id: 'uiBaselineLayers',
+    fullPath: '/$locale/ui-baseline/layers',
+    metadata: {
+      key: APP_ROUTE_KEYS.UI_BASELINE_LAYERS,
+      appletNamespace: 'ui-baseline',
+      variant: 'canonical',
+    },
+  }),
   uiBaselineInputs: makeRoute({
     id: 'uiBaselineInputs',
     fullPath: '/$locale/ui-baseline/inputs',
@@ -338,6 +347,7 @@ describe('appRouteLinks', () => {
       APP_ROUTE_KEYS.UI_BASELINE_BUTTONS_TOGGLES,
       '/fi/ui-baseline/buttons-toggles',
     ],
+    [APP_ROUTE_KEYS.UI_BASELINE_LAYERS, '/fi/ui-baseline/layers'],
     [APP_ROUTE_KEYS.UI_BASELINE_INPUTS, '/fi/ui-baseline/inputs'],
     [
       APP_ROUTE_KEYS.UI_BASELINE_NOTIFICATIONS,

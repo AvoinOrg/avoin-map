@@ -85,14 +85,6 @@ const SIDEBAR_CONTENT_VERTICAL_PADDING = {
   desktop: '3.0625rem',
 }
 
-const ROW_LABEL_SX = {
-  color: '#111111',
-  fontSize: '0.6875rem',
-  fontWeight: 400,
-  lineHeight: '1.125rem',
-  letterSpacing: '0.1em',
-}
-
 const ACCORDION_TEXT_SX = {
   color: '#111111',
   fontSize: '0.625rem',
@@ -908,7 +900,6 @@ const EnergyHomePage = ({ locale: localeProp }: EnergyHomePageProps) => {
               onToggle={() => {
                 void toggleThematicMode(ENERGY_CERTIFICATE_THEMATIC_MODE)
               }}
-              labelSx={ROW_LABEL_SX}
             >
               <EnergyClassesAccordionContent />
             </LayerToggleRowAccordion>
@@ -925,7 +916,6 @@ const EnergyHomePage = ({ locale: localeProp }: EnergyHomePageProps) => {
               onToggle={() => {
                 void toggleThematicMode(HEATING_THEMATIC_MODE)
               }}
-              labelSx={ROW_LABEL_SX}
             >
               <HeatingAccordionContent
                 heatingSwitchState={heatingSwitchState}
@@ -949,7 +939,6 @@ const EnergyHomePage = ({ locale: localeProp }: EnergyHomePageProps) => {
                       disabled
                       ariaLabel={t(ariaKeyName)}
                       onToggle={() => {}}
-                      labelSx={ROW_LABEL_SX}
                     />
                   </Box>
                 )}

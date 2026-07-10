@@ -36,6 +36,7 @@ import { Route as LocaleMapappletsUiBaselinePanelsRouteImport } from './routes/$
 import { Route as LocaleMapappletsUiBaselineNotificationsRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/notifications'
 import { Route as LocaleMapappletsUiBaselineNodeFlowRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/node-flow'
 import { Route as LocaleMapappletsUiBaselineModalsRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/modals'
+import { Route as LocaleMapappletsUiBaselineLayersRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/layers'
 import { Route as LocaleMapappletsUiBaselineInputsRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/inputs'
 import { Route as LocaleMapappletsUiBaselineDropdownsRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/dropdowns'
 import { Route as LocaleMapappletsUiBaselineDrawingRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/drawing'
@@ -206,6 +207,12 @@ const LocaleMapappletsUiBaselineModalsRoute =
   LocaleMapappletsUiBaselineModalsRouteImport.update({
     id: '/modals',
     path: '/modals',
+    getParentRoute: () => LocaleMapappletsUiBaselineRouteRoute,
+  } as any)
+const LocaleMapappletsUiBaselineLayersRoute =
+  LocaleMapappletsUiBaselineLayersRouteImport.update({
+    id: '/layers',
+    path: '/layers',
     getParentRoute: () => LocaleMapappletsUiBaselineRouteRoute,
   } as any)
 const LocaleMapappletsUiBaselineInputsRoute =
@@ -403,6 +410,7 @@ export interface FileRoutesByFullPath {
   '/$locale/ui-baseline/drawing': typeof LocaleMapappletsUiBaselineDrawingRoute
   '/$locale/ui-baseline/dropdowns': typeof LocaleMapappletsUiBaselineDropdownsRoute
   '/$locale/ui-baseline/inputs': typeof LocaleMapappletsUiBaselineInputsRoute
+  '/$locale/ui-baseline/layers': typeof LocaleMapappletsUiBaselineLayersRoute
   '/$locale/ui-baseline/modals': typeof LocaleMapappletsUiBaselineModalsRoute
   '/$locale/ui-baseline/node-flow': typeof LocaleMapappletsUiBaselineNodeFlowRoute
   '/$locale/ui-baseline/notifications': typeof LocaleMapappletsUiBaselineNotificationsRoute
@@ -441,6 +449,7 @@ export interface FileRoutesByTo {
   '/$locale/ui-baseline/drawing': typeof LocaleMapappletsUiBaselineDrawingRoute
   '/$locale/ui-baseline/dropdowns': typeof LocaleMapappletsUiBaselineDropdownsRoute
   '/$locale/ui-baseline/inputs': typeof LocaleMapappletsUiBaselineInputsRoute
+  '/$locale/ui-baseline/layers': typeof LocaleMapappletsUiBaselineLayersRoute
   '/$locale/ui-baseline/modals': typeof LocaleMapappletsUiBaselineModalsRoute
   '/$locale/ui-baseline/node-flow': typeof LocaleMapappletsUiBaselineNodeFlowRoute
   '/$locale/ui-baseline/notifications': typeof LocaleMapappletsUiBaselineNotificationsRoute
@@ -489,6 +498,7 @@ export interface FileRoutesById {
   '/$locale/_map/(applets)/ui-baseline/drawing': typeof LocaleMapappletsUiBaselineDrawingRoute
   '/$locale/_map/(applets)/ui-baseline/dropdowns': typeof LocaleMapappletsUiBaselineDropdownsRoute
   '/$locale/_map/(applets)/ui-baseline/inputs': typeof LocaleMapappletsUiBaselineInputsRoute
+  '/$locale/_map/(applets)/ui-baseline/layers': typeof LocaleMapappletsUiBaselineLayersRoute
   '/$locale/_map/(applets)/ui-baseline/modals': typeof LocaleMapappletsUiBaselineModalsRoute
   '/$locale/_map/(applets)/ui-baseline/node-flow': typeof LocaleMapappletsUiBaselineNodeFlowRoute
   '/$locale/_map/(applets)/ui-baseline/notifications': typeof LocaleMapappletsUiBaselineNotificationsRoute
@@ -539,6 +549,7 @@ export interface FileRouteTypes {
     | '/$locale/ui-baseline/drawing'
     | '/$locale/ui-baseline/dropdowns'
     | '/$locale/ui-baseline/inputs'
+    | '/$locale/ui-baseline/layers'
     | '/$locale/ui-baseline/modals'
     | '/$locale/ui-baseline/node-flow'
     | '/$locale/ui-baseline/notifications'
@@ -577,6 +588,7 @@ export interface FileRouteTypes {
     | '/$locale/ui-baseline/drawing'
     | '/$locale/ui-baseline/dropdowns'
     | '/$locale/ui-baseline/inputs'
+    | '/$locale/ui-baseline/layers'
     | '/$locale/ui-baseline/modals'
     | '/$locale/ui-baseline/node-flow'
     | '/$locale/ui-baseline/notifications'
@@ -624,6 +636,7 @@ export interface FileRouteTypes {
     | '/$locale/_map/(applets)/ui-baseline/drawing'
     | '/$locale/_map/(applets)/ui-baseline/dropdowns'
     | '/$locale/_map/(applets)/ui-baseline/inputs'
+    | '/$locale/_map/(applets)/ui-baseline/layers'
     | '/$locale/_map/(applets)/ui-baseline/modals'
     | '/$locale/_map/(applets)/ui-baseline/node-flow'
     | '/$locale/_map/(applets)/ui-baseline/notifications'
@@ -883,6 +896,13 @@ declare module '@tanstack/react-router' {
       path: '/modals'
       fullPath: '/$locale/ui-baseline/modals'
       preLoaderRoute: typeof LocaleMapappletsUiBaselineModalsRouteImport
+      parentRoute: typeof LocaleMapappletsUiBaselineRouteRoute
+    }
+    '/$locale/_map/(applets)/ui-baseline/layers': {
+      id: '/$locale/_map/(applets)/ui-baseline/layers'
+      path: '/layers'
+      fullPath: '/$locale/ui-baseline/layers'
+      preLoaderRoute: typeof LocaleMapappletsUiBaselineLayersRouteImport
       parentRoute: typeof LocaleMapappletsUiBaselineRouteRoute
     }
     '/$locale/_map/(applets)/ui-baseline/inputs': {
@@ -1252,6 +1272,7 @@ interface LocaleMapappletsUiBaselineRouteRouteChildren {
   LocaleMapappletsUiBaselineDrawingRoute: typeof LocaleMapappletsUiBaselineDrawingRoute
   LocaleMapappletsUiBaselineDropdownsRoute: typeof LocaleMapappletsUiBaselineDropdownsRoute
   LocaleMapappletsUiBaselineInputsRoute: typeof LocaleMapappletsUiBaselineInputsRoute
+  LocaleMapappletsUiBaselineLayersRoute: typeof LocaleMapappletsUiBaselineLayersRoute
   LocaleMapappletsUiBaselineModalsRoute: typeof LocaleMapappletsUiBaselineModalsRoute
   LocaleMapappletsUiBaselineNodeFlowRoute: typeof LocaleMapappletsUiBaselineNodeFlowRoute
   LocaleMapappletsUiBaselineNotificationsRoute: typeof LocaleMapappletsUiBaselineNotificationsRoute
@@ -1274,6 +1295,8 @@ const LocaleMapappletsUiBaselineRouteRouteChildren: LocaleMapappletsUiBaselineRo
       LocaleMapappletsUiBaselineDropdownsRoute,
     LocaleMapappletsUiBaselineInputsRoute:
       LocaleMapappletsUiBaselineInputsRoute,
+    LocaleMapappletsUiBaselineLayersRoute:
+      LocaleMapappletsUiBaselineLayersRoute,
     LocaleMapappletsUiBaselineModalsRoute:
       LocaleMapappletsUiBaselineModalsRoute,
     LocaleMapappletsUiBaselineNodeFlowRoute:

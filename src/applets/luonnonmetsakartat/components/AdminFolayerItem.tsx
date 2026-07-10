@@ -17,20 +17,9 @@ const AdminFolayerItem = ({ conf }: { conf: AdminFolayerConf }) => {
       ariaLabel={`Toggle ${conf.name}`}
       onToggle={() => setIsEnabled(layerGroupStatus === 'hidden')}
       sx={{ width: '100%' }}
-      rowSx={{
-        alignItems: 'center',
-        minHeight: { mobile: '2.25rem', desktop: '1.75rem' },
-        py: { mobile: '0.125rem', desktop: 0 },
-      }}
-      iconSx={{ mr: { mobile: 1.25, desktop: 1 } }}
       labelSx={{
         minWidth: 0,
         overflowWrap: 'break-word',
-        pr: 0.5,
-      }}
-      linkSx={{
-        ml: { mobile: 1, desktop: 0.75 },
-        flexShrink: 0,
       }}
       linkAriaLabel={`Open ${conf.name}`}
       linkProps={{
