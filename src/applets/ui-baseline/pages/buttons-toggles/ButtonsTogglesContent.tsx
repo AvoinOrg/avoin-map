@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { LayerGroupStatus } from '#/common/hooks/map/useLayerGroup'
 import { Box } from '#/common/style/theme'
 import BigMenuButton from '#/components/common/BigMenuButton'
+import { ButtonLinkRow } from '#/components/common/ButtonLinkRow'
 import { Button, IconButton } from '#/components/common/Button'
 import CheckBoxWithLabel from '#/components/common/CheckBoxWithLabel'
 import { EyeButton } from '#/components/common/EyeButton'
@@ -10,6 +11,7 @@ import IconTextButton from '#/components/common/IconTextButton'
 import { LayerToggleRow } from '#/components/common/LayerToggleRow'
 import SquishedSwitchWithLabel from '#/components/common/SquishedSwitchWithLabel'
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
+import TText from '#/components/common/TText'
 import {
   CircleArrowRight,
   EyeOpen,
@@ -24,6 +26,10 @@ import {
   BaselineSection,
   noop,
 } from '../BaselineContent'
+import {
+  UI_BASELINE_CATEGORIES,
+  UI_BASELINE_NAMESPACE,
+} from '../../common/categories'
 
 const FocusVisibleSquishedSwitch = () => {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -178,6 +184,38 @@ const ButtonsTogglesContent = () => (
             Continue
           </Button>
         </BaselineInlineGroup>
+      </BaselineExample>
+    </BaselineSection>
+
+    <BaselineSection title="ButtonLinkRow">
+      <BaselineExample title="Navigation rows">
+        <Box component="nav" aria-label="UI baseline navigation row examples">
+          <Box
+            component="ul"
+            sx={{
+              m: 0,
+              p: 0,
+              listStyle: 'none',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.75rem',
+            }}
+          >
+            {UI_BASELINE_CATEGORIES.map((category) => (
+              <Box component="li" key={category.id}>
+                <ButtonLinkRow
+                  routeKey={category.routeKey}
+                  label={
+                    <TText
+                      ns={UI_BASELINE_NAMESPACE}
+                      keyName={category.labelKey}
+                    />
+                  }
+                />
+              </Box>
+            ))}
+          </Box>
+        </Box>
       </BaselineExample>
     </BaselineSection>
 

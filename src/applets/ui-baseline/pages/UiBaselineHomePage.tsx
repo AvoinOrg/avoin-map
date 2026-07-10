@@ -1,7 +1,7 @@
 import { useTranslate } from '@tolgee/react'
 
-import { AppRouteLink } from '#/common/navigation/appRouteLinks'
 import { Box } from '#/common/style/theme'
+import { ButtonLinkRow } from '#/components/common/ButtonLinkRow'
 import TText from '#/components/common/TText'
 import {
   IntoSidebarHeaderSlot,
@@ -36,15 +36,28 @@ const UiBaselineHomePage = () => {
         </Box>
 
         <Box component="nav" aria-label={t('home.category_list_aria')}>
-          <Box component="ul">
+          <Box
+            component="ul"
+            sx={{
+              m: 0,
+              p: 0,
+              listStyle: 'none',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.75rem',
+            }}
+          >
             {UI_BASELINE_CATEGORIES.map((category) => (
               <Box component="li" key={category.id}>
-                <AppRouteLink routeKey={category.routeKey}>
-                  <TText
-                    ns={UI_BASELINE_NAMESPACE}
-                    keyName={category.labelKey}
-                  />
-                </AppRouteLink>
+                <ButtonLinkRow
+                  routeKey={category.routeKey}
+                  label={
+                    <TText
+                      ns={UI_BASELINE_NAMESPACE}
+                      keyName={category.labelKey}
+                    />
+                  }
+                />
               </Box>
             ))}
           </Box>
