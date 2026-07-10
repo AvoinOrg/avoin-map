@@ -8,7 +8,6 @@ import React, {
   useState,
 } from 'react'
 import { Combobox as BaseCombobox } from '@base-ui/react/combobox'
-import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip'
 import { useTranslate } from '@tolgee/react'
 import { FixedSizeList, ListChildComponentProps } from 'react-window'
 
@@ -20,6 +19,7 @@ import {
   type AppTheme,
   toSxArray,
 } from '#/common/style/theme/system'
+import AppTooltip from '#/components/common/AppTooltip'
 import BigMenuButton from '#/components/common/BigMenuButton'
 import { IconButton } from '#/components/common/Button'
 import TText from '#/components/common/TText'
@@ -257,13 +257,6 @@ const filterAreaOption = (
   return normalize(label).includes(normalize(query))
 }
 
-type FolderNameTooltipTriggerProps = Omit<
-  React.HTMLAttributes<HTMLSpanElement>,
-  'color'
-> & {
-  ref?: React.Ref<HTMLSpanElement>
-}
-
 const FolderNameTooltip = ({
   title,
   children,
@@ -271,81 +264,32 @@ const FolderNameTooltip = ({
   title: string
   children: React.ReactNode
 }) => (
-  <BaseTooltip.Root>
-    <BaseTooltip.Trigger
-      delay={200}
-      closeDelay={0}
-      render={(triggerProps) => {
-        const {
-          color: ignoredColor,
-          type: ignoredType,
-          ...resolvedTriggerProps
-        } = triggerProps as FolderNameTooltipTriggerProps & {
-          color?: string
-          type?: string
-        }
-        void ignoredColor
-        void ignoredType
-
-        return (
-          <Box
-            {...resolvedTriggerProps}
-            component="span"
-            sx={{
-              minWidth: 0,
-              display: 'block',
-            }}
-          >
-            {children}
-          </Box>
-        )
-      }}
-    />
-    <BaseTooltip.Portal>
-      <BaseTooltip.Positioner side="top" align="start" sideOffset={8}>
-        <BaseTooltip.Popup
-          style={{ zIndex: 1500, pointerEvents: 'none' }}
-          render={(popupProps) => (
-            <Box
-              {...popupProps}
-              role="tooltip"
-              sx={{
-                maxWidth: 280,
-                px: 1,
-                py: 0.75,
-                borderRadius: '5px',
-                backgroundColor: '#111111',
-                color: '#ffffff',
-                fontSize: '0.75rem',
-                fontWeight: 400,
-                lineHeight: 1.35,
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.22)',
-                overflowWrap: 'anywhere',
-              }}
-            >
-              {title}
-              <BaseTooltip.Arrow
-                render={(arrowProps) => (
-                  <Box
-                    {...arrowProps}
-                    sx={{
-                      position: 'absolute',
-                      bottom: -4,
-                      left: 12,
-                      width: 8,
-                      height: 8,
-                      backgroundColor: '#111111',
-                      transform: 'rotate(45deg)',
-                    }}
-                  />
-                )}
-              />
-            </Box>
-          )}
-        />
-      </BaseTooltip.Positioner>
-    </BaseTooltip.Portal>
-  </BaseTooltip.Root>
+  <AppTooltip
+    title={title}
+    side="top"
+    align="start"
+    sideOffset={8}
+    delay={200}
+    closeDelay={0}
+    popupSx={{
+      maxWidth: 280,
+      px: 1,
+      overflowWrap: 'anywhere',
+    }}
+  >
+    {(triggerProps) => (
+      <Box
+        {...triggerProps}
+        component="span"
+        sx={{
+          minWidth: 0,
+          display: 'block',
+        }}
+      >
+        {children}
+      </Box>
+    )}
+  </AppTooltip>
 )
 
 type AreaSingleSelectComboboxProps = {

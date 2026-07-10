@@ -1,5 +1,4 @@
 import React from 'react'
-import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip'
 import { useTranslate } from '@tolgee/react'
 
 import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
@@ -12,6 +11,7 @@ import {
 } from '#/common/style/theme'
 import type { SelectOption } from '#/common/types/general'
 import { ButtonBase, IconButton } from '#/components/common/Button'
+import AppTooltip from '#/components/common/AppTooltip'
 import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import DropDownSelectInset from '#/components/common/DropDownSelectInset'
 import TText from '#/components/common/TText'
@@ -299,24 +299,6 @@ const VISUALLY_HIDDEN_STYLE: React.CSSProperties = {
   border: 0,
 }
 
-const getBuildingInfoTooltipArrowSx = (
-  side: BuildingInfoTooltipSide
-): AppSxProps => {
-  if (side === 'right') {
-    return { left: -4, top: 'calc(50% - 4px)' }
-  }
-
-  if (side === 'left') {
-    return { right: -4, top: 'calc(50% - 4px)' }
-  }
-
-  if (side === 'bottom') {
-    return { top: -4, left: 'calc(50% - 4px)' }
-  }
-
-  return { bottom: -4, left: 'calc(50% - 4px)' }
-}
-
 const BuildingInfoInlineTooltip = ({
   title,
   side = 'top',
@@ -328,72 +310,17 @@ const BuildingInfoInlineTooltip = ({
     props: BuildingInfoInlineTooltipTriggerProps
   ) => React.ReactElement
 }) => (
-  <BaseTooltip.Root>
-    <BaseTooltip.Trigger
-      delay={0}
-      closeDelay={0}
-      render={(triggerProps) => {
-        const {
-          color: ignoredColor,
-          type: ignoredType,
-          ...resolvedTriggerProps
-        } = triggerProps as BuildingInfoInlineTooltipTriggerProps & {
-          color?: string
-          type?: string
-        }
-        void ignoredColor
-        void ignoredType
-
-        return children(resolvedTriggerProps)
-      }}
-    />
-    <BaseTooltip.Portal>
-      <BaseTooltip.Positioner
-        side={side}
-        sideOffset={8}
-        style={{ zIndex: 1500, pointerEvents: 'none' }}
-      >
-        <BaseTooltip.Popup
-          style={{ position: 'relative', pointerEvents: 'none' }}
-          render={(popupProps) => (
-            <Box
-              {...popupProps}
-              role="tooltip"
-              sx={{
-                maxWidth: 240,
-                px: 1,
-                py: 0.75,
-                borderRadius: '5px',
-                backgroundColor: '#111111',
-                color: '#ffffff',
-                fontSize: '0.75rem',
-                fontWeight: 400,
-                lineHeight: 1.35,
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.22)',
-              }}
-            >
-              {title}
-              <BaseTooltip.Arrow
-                render={(arrowProps) => (
-                  <Box
-                    {...arrowProps}
-                    sx={{
-                      position: 'absolute',
-                      width: 8,
-                      height: 8,
-                      backgroundColor: '#111111',
-                      transform: 'rotate(45deg)',
-                      ...getBuildingInfoTooltipArrowSx(side),
-                    }}
-                  />
-                )}
-              />
-            </Box>
-          )}
-        />
-      </BaseTooltip.Positioner>
-    </BaseTooltip.Portal>
-  </BaseTooltip.Root>
+  <AppTooltip
+    title={title}
+    side={side}
+    delay={0}
+    closeDelay={0}
+    popupSx={{ px: 1 }}
+  >
+    {(triggerProps) =>
+      children(triggerProps as BuildingInfoInlineTooltipTriggerProps)
+    }
+  </AppTooltip>
 )
 
 const isPlainEnergyClassText = (text: EnergymapBuildingInfoText) =>

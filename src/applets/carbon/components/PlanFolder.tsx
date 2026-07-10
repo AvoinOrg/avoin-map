@@ -1,5 +1,4 @@
 import React from 'react'
-import { Tooltip } from '@base-ui/react/tooltip'
 import { useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
 
@@ -9,6 +8,7 @@ import {
   type AppSystemStyleObject,
   toSxArray,
 } from '#/common/style/theme'
+import AppTooltip from '#/components/common/AppTooltip'
 import { Folder } from '#/components/common/Folder'
 import { Error as ErrorIcon, Exclamation, Info } from '#/components/icons'
 import EditableText, {
@@ -76,73 +76,16 @@ const DisabledSaveTooltip = ({
   }
 
   return (
-    <Tooltip.Root>
-      <Tooltip.Trigger
-        delay={0}
-        closeDelay={0}
-        render={(triggerProps) => {
-          const {
-            color: ignoredColor,
-            type: ignoredType,
-            ...resolvedTriggerProps
-          } = triggerProps as SaveTooltipTriggerProps & {
-            color?: string
-            type?: string
-          }
-          void ignoredColor
-          void ignoredType
-
-          return children(resolvedTriggerProps)
-        }}
-      />
-      <Tooltip.Portal>
-        <Tooltip.Positioner
-          side="bottom"
-          sideOffset={8}
-          style={{ zIndex: 1500, pointerEvents: 'none' }}
-        >
-          <Tooltip.Popup
-            style={{ position: 'relative', pointerEvents: 'none' }}
-            render={(popupProps) => (
-              <Box
-                {...popupProps}
-                role="tooltip"
-                sx={{
-                  maxWidth: 240,
-                  px: 1,
-                  py: 0.75,
-                  borderRadius: '5px',
-                  backgroundColor: '#111111',
-                  color: '#ffffff',
-                  fontSize: '0.75rem',
-                  fontWeight: 400,
-                  lineHeight: 1.35,
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.22)',
-                }}
-              >
-                {title}
-                <Tooltip.Arrow
-                  render={(arrowProps) => (
-                    <Box
-                      {...arrowProps}
-                      sx={{
-                        position: 'absolute',
-                        width: 8,
-                        height: 8,
-                        top: -4,
-                        left: 'calc(50% - 4px)',
-                        backgroundColor: '#111111',
-                        transform: 'rotate(45deg)',
-                      }}
-                    />
-                  )}
-                />
-              </Box>
-            )}
-          />
-        </Tooltip.Positioner>
-      </Tooltip.Portal>
-    </Tooltip.Root>
+    <AppTooltip
+      title={title}
+      side="bottom"
+      sideOffset={8}
+      delay={0}
+      closeDelay={0}
+      popupSx={{ px: 1 }}
+    >
+      {(triggerProps) => children(triggerProps as SaveTooltipTriggerProps)}
+    </AppTooltip>
   )
 }
 

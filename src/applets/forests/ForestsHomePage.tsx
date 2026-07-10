@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip'
 import { MapGeoJSONFeature } from 'maplibre-gl'
 
 import { SIDEBAR_PADDING_REM } from '#/common/style/theme/constants'
@@ -8,6 +7,9 @@ import type { AppSxProps } from '#/common/style/theme'
 import Link from '#/components/common/Link'
 import FrameworkImage from '#/components/common/FrameworkImage'
 import { IconButton } from '#/components/common/Button'
+import AppTooltip, {
+  type AppTooltipSide,
+} from '#/components/common/AppTooltip'
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 // import { setOverlayMessage } from '../../OverlayMessages/OverlayMessages'
 // import * as SelectedFeatureState from './ArvometsaSelectedLayer'
@@ -51,9 +53,7 @@ import {
 import arvometsaLogo from './public/arvometsa_logo.png'
 // import * as Analytics from 'src/map/analytics'
 
-type ForestsTooltipSide = React.ComponentProps<
-  typeof BaseTooltip.Positioner
->['side']
+type ForestsTooltipSide = AppTooltipSide
 
 type ForestsTooltipTriggerProps = Omit<
   React.HTMLAttributes<HTMLButtonElement>,
@@ -124,24 +124,6 @@ const infoTooltipButtonSx = {
   },
 } as const
 
-const getForestsTooltipArrowSx = (
-  side: ForestsTooltipSide
-): AppSxProps => {
-  if (side === 'right') {
-    return { left: -4, top: 'calc(50% - 4px)' }
-  }
-
-  if (side === 'left') {
-    return { right: -4, top: 'calc(50% - 4px)' }
-  }
-
-  if (side === 'bottom') {
-    return { top: -4, left: 'calc(50% - 4px)' }
-  }
-
-  return { bottom: -4, left: 'calc(50% - 4px)' }
-}
-
 const ForestsTooltip = ({
   title,
   side = 'top',
@@ -151,72 +133,19 @@ const ForestsTooltip = ({
   side?: ForestsTooltipSide
   children: (props: ForestsTooltipTriggerProps) => React.ReactElement
 }) => (
-  <BaseTooltip.Root>
-    <BaseTooltip.Trigger
-      delay={0}
-      closeDelay={0}
-      render={(triggerProps) => {
-        const {
-          color: ignoredColor,
-          type: ignoredType,
-          ...resolvedTriggerProps
-        } = triggerProps as ForestsTooltipTriggerProps & {
-          color?: string
-          type?: string
-        }
-        void ignoredColor
-        void ignoredType
-
-        return children(resolvedTriggerProps)
-      }}
-    />
-    <BaseTooltip.Portal>
-      <BaseTooltip.Positioner
-        side={side}
-        sideOffset={8}
-        style={{ zIndex: 1500, pointerEvents: 'none' }}
-      >
-        <BaseTooltip.Popup
-          style={{ position: 'relative', pointerEvents: 'none' }}
-          render={(popupProps) => (
-            <Box
-              {...popupProps}
-              role="tooltip"
-              sx={{
-                maxWidth: 260,
-                px: 1,
-                py: 0.75,
-                borderRadius: '5px',
-                backgroundColor: '#111111',
-                color: '#ffffff',
-                fontSize: '0.75rem',
-                fontWeight: 400,
-                lineHeight: 1.35,
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.22)',
-              }}
-            >
-              {title}
-              <BaseTooltip.Arrow
-                render={(arrowProps) => (
-                  <Box
-                    {...arrowProps}
-                    sx={{
-                      position: 'absolute',
-                      width: 8,
-                      height: 8,
-                      backgroundColor: '#111111',
-                      transform: 'rotate(45deg)',
-                      ...getForestsTooltipArrowSx(side),
-                    }}
-                  />
-                )}
-              />
-            </Box>
-          )}
-        />
-      </BaseTooltip.Positioner>
-    </BaseTooltip.Portal>
-  </BaseTooltip.Root>
+  <AppTooltip
+    title={title}
+    side={side}
+    sideOffset={8}
+    delay={0}
+    closeDelay={0}
+    popupSx={{
+      maxWidth: 260,
+      px: 1,
+    }}
+  >
+    {(triggerProps) => children(triggerProps as ForestsTooltipTriggerProps)}
+  </AppTooltip>
 )
 
 const ForestsInfoTooltip = ({

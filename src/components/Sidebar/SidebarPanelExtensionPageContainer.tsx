@@ -161,34 +161,68 @@ export const SidebarPanelExtensionPageContainer = ({
         >
           {showCollapse && (
             <SidebarPanelExtensionTooltip title={collapseAriaLabel} side="top">
-              {(tooltipTriggerProps) => (
-              <IconButton
-                {...tooltipTriggerProps}
-                aria-label={collapseAriaLabel}
-                onClick={onCollapse}
-                type="button"
-                size="small"
-                sx={pageControlButtonSx}
-              >
-                <CollapsePanelIcon sx={{ fontSize: '1.85rem' }} />
-              </IconButton>
-              )}
+              {(tooltipTriggerProps) => {
+                const {
+                  onClick: onTooltipTriggerClick,
+                  ...buttonTooltipTriggerProps
+                } = tooltipTriggerProps
+
+                return (
+                  <IconButton
+                    {...buttonTooltipTriggerProps}
+                    aria-label={collapseAriaLabel}
+                    onClick={(event) => {
+                      onTooltipTriggerClick?.(
+                        event as React.MouseEvent<HTMLButtonElement>
+                      )
+
+                      if (event.defaultPrevented) {
+                        return
+                      }
+
+                      onCollapse?.()
+                    }}
+                    type="button"
+                    size="small"
+                    sx={pageControlButtonSx}
+                  >
+                    <CollapsePanelIcon sx={{ fontSize: '1.85rem' }} />
+                  </IconButton>
+                )
+              }}
             </SidebarPanelExtensionTooltip>
           )}
           {showClose && (
             <SidebarPanelExtensionTooltip title={closeAriaLabel} side="top">
-              {(tooltipTriggerProps) => (
-              <IconButton
-                {...tooltipTriggerProps}
-                aria-label={closeAriaLabel}
-                onClick={onClose}
-                type="button"
-                size="small"
-                sx={pageControlButtonSx}
-              >
-                <Cross sx={{ width: '1rem', height: '1rem' }} />
-              </IconButton>
-              )}
+              {(tooltipTriggerProps) => {
+                const {
+                  onClick: onTooltipTriggerClick,
+                  ...buttonTooltipTriggerProps
+                } = tooltipTriggerProps
+
+                return (
+                  <IconButton
+                    {...buttonTooltipTriggerProps}
+                    aria-label={closeAriaLabel}
+                    onClick={(event) => {
+                      onTooltipTriggerClick?.(
+                        event as React.MouseEvent<HTMLButtonElement>
+                      )
+
+                      if (event.defaultPrevented) {
+                        return
+                      }
+
+                      onClose?.()
+                    }}
+                    type="button"
+                    size="small"
+                    sx={pageControlButtonSx}
+                  >
+                    <Cross sx={{ width: '1rem', height: '1rem' }} />
+                  </IconButton>
+                )
+              }}
             </SidebarPanelExtensionTooltip>
           )}
         </Box>

@@ -24,8 +24,12 @@ export type AppTooltipProps = {
   children: (props: AppTooltipTriggerProps) => React.ReactElement
   side?: AppTooltipSide
   align?: AppTooltipAlign
+  collisionAvoidance?: React.ComponentProps<
+    typeof Tooltip.Positioner
+  >['collisionAvoidance']
   open?: boolean
   defaultOpen?: boolean
+  onOpenChange?: React.ComponentProps<typeof Tooltip.Root>['onOpenChange']
   disabled?: boolean
   delay?: number
   closeDelay?: number
@@ -71,8 +75,10 @@ export const AppTooltip = ({
   children,
   side = 'top',
   align = 'center',
+  collisionAvoidance,
   open,
   defaultOpen,
+  onOpenChange,
   disabled = false,
   delay = 0,
   closeDelay = 0,
@@ -83,6 +89,7 @@ export const AppTooltip = ({
   <Tooltip.Root
     open={open}
     defaultOpen={defaultOpen}
+    onOpenChange={onOpenChange}
     disabled={disabled}
   >
     <Tooltip.Trigger
@@ -107,6 +114,7 @@ export const AppTooltip = ({
       <Tooltip.Positioner
         side={side}
         align={align}
+        collisionAvoidance={collisionAvoidance}
         sideOffset={sideOffset}
         style={{ zIndex: 1500, pointerEvents: 'none' }}
       >
@@ -115,6 +123,7 @@ export const AppTooltip = ({
             <Box
               {...popupProps}
               data-slot={popupDataSlot}
+              role={popupProps.role ?? 'tooltip'}
               sx={[appTooltipPopupSx, ...toSxArray(popupSx)]}
             >
               {title}

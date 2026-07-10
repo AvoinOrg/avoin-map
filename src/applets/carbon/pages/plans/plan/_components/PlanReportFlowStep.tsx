@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react'
-import { Tooltip } from '@base-ui/react/tooltip'
 import { useTranslate } from '@tolgee/react'
 
 import { Box, type AppBoxProps, toSxArray } from '#/common/style/theme'
 import { ButtonBase } from '#/components/common/Button'
+import AppTooltip from '#/components/common/AppTooltip'
 import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
 import TText from '#/components/common/TText'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
@@ -95,85 +95,27 @@ const DisabledReportTooltip = ({
   open?: boolean
   children: React.ReactNode
 }) => {
-  const rootProps = open === undefined ? {} : { open }
-
   return (
-    <Tooltip.Root {...rootProps}>
-      <Tooltip.Trigger
-        delay={0}
-        closeDelay={0}
-        render={(triggerProps) => {
-          const {
-            color: ignoredColor,
-            type: ignoredType,
-            ...resolvedTriggerProps
-          } = triggerProps as TooltipTriggerProps & {
-            color?: string
-            type?: string
-          }
-          void ignoredColor
-          void ignoredType
-
-          return (
-            <Box
-              {...resolvedTriggerProps}
-              data-slot="plan-report-disabled-tooltip-trigger"
-              sx={{ width: '100%' }}
-            >
-              {children}
-            </Box>
-          )
-        }}
-      />
-      <Tooltip.Portal>
-        <Tooltip.Positioner
-          side="top"
-          sideOffset={8}
-          style={{ zIndex: 1500, pointerEvents: 'none' }}
+    <AppTooltip
+      title={title}
+      open={open}
+      side="top"
+      sideOffset={8}
+      delay={0}
+      closeDelay={0}
+      popupDataSlot="plan-report-disabled-tooltip"
+      popupSx={{ px: 1 }}
+    >
+      {(triggerProps) => (
+        <Box
+          {...(triggerProps as TooltipTriggerProps)}
+          data-slot="plan-report-disabled-tooltip-trigger"
+          sx={{ width: '100%' }}
         >
-          <Tooltip.Popup
-            style={{ position: 'relative', pointerEvents: 'none' }}
-            render={(popupProps) => (
-              <Box
-                {...popupProps}
-                role="tooltip"
-                data-slot="plan-report-disabled-tooltip"
-                sx={{
-                  maxWidth: 240,
-                  px: 1,
-                  py: 0.75,
-                  borderRadius: '5px',
-                  backgroundColor: '#111111',
-                  color: '#ffffff',
-                  fontSize: '0.75rem',
-                  fontWeight: 400,
-                  lineHeight: 1.35,
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.22)',
-                }}
-              >
-                {title}
-                <Tooltip.Arrow
-                  render={(arrowProps) => (
-                    <Box
-                      {...arrowProps}
-                      sx={{
-                        position: 'absolute',
-                        width: 8,
-                        height: 8,
-                        bottom: -4,
-                        left: 'calc(50% - 4px)',
-                        backgroundColor: '#111111',
-                        transform: 'rotate(45deg)',
-                      }}
-                    />
-                  )}
-                />
-              </Box>
-            )}
-          />
-        </Tooltip.Positioner>
-      </Tooltip.Portal>
-    </Tooltip.Root>
+          {children}
+        </Box>
+      )}
+    </AppTooltip>
   )
 }
 

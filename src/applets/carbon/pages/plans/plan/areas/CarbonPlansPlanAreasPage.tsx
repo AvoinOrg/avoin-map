@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Tooltip } from '@base-ui/react/tooltip'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslate } from '@tolgee/react'
 
@@ -7,6 +6,7 @@ import { useAppRouteHrefBuilder } from '#/common/navigation/appRouteLinks'
 import { useAppParams, useAppRouter } from '#/common/navigation/navigation'
 import { Box } from '#/common/style/theme'
 import { APP_ROUTE_KEYS } from '#/common/routing/routeMetadata'
+import AppTooltip from '#/components/common/AppTooltip'
 import { ButtonBase } from '#/components/common/Button'
 import TText from '#/components/common/TText'
 import { LoadingSpinner } from '#/components/Loading'
@@ -46,85 +46,28 @@ const DisabledZoneCalculateTooltip = ({
   }
 
   return (
-    <Tooltip.Root>
-      <Tooltip.Trigger
-        delay={0}
-        closeDelay={0}
-        render={(triggerProps) => {
-          const {
-            color: ignoredColor,
-            type: ignoredType,
-            ...resolvedTriggerProps
-          } = triggerProps as TooltipTriggerProps & {
-            color?: string
-            type?: string
-          }
-          void ignoredColor
-          void ignoredType
-
-          return (
-            <Box
-              component="span"
-              {...resolvedTriggerProps}
-              data-slot="zone-calculate-disabled-tooltip-trigger"
-              sx={{
-                display: 'inline-flex',
-              }}
-            >
-              {children}
-            </Box>
-          )
-        }}
-      />
-      <Tooltip.Portal>
-        <Tooltip.Positioner
-          side="top"
-          sideOffset={8}
-          style={{ zIndex: 1500, pointerEvents: 'none' }}
+    <AppTooltip
+      title={title}
+      side="top"
+      sideOffset={8}
+      delay={0}
+      closeDelay={0}
+      popupDataSlot="zone-calculate-disabled-tooltip"
+      popupSx={{ px: 1 }}
+    >
+      {(triggerProps) => (
+        <Box
+          component="span"
+          {...(triggerProps as TooltipTriggerProps)}
+          data-slot="zone-calculate-disabled-tooltip-trigger"
+          sx={{
+            display: 'inline-flex',
+          }}
         >
-          <Tooltip.Popup
-            style={{ position: 'relative', pointerEvents: 'none' }}
-            render={(popupProps) => (
-              <Box
-                {...popupProps}
-                role="tooltip"
-                data-slot="zone-calculate-disabled-tooltip"
-                sx={{
-                  maxWidth: 240,
-                  px: 1,
-                  py: 0.75,
-                  borderRadius: '5px',
-                  backgroundColor: '#111111',
-                  color: '#ffffff',
-                  fontSize: '0.75rem',
-                  fontWeight: 400,
-                  lineHeight: 1.35,
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.22)',
-                }}
-              >
-                {title}
-                <Tooltip.Arrow
-                  render={(arrowProps) => (
-                    <Box
-                      {...arrowProps}
-                      sx={{
-                        position: 'absolute',
-                        width: 8,
-                        height: 8,
-                        bottom: -4,
-                        left: 'calc(50% - 4px)',
-                        backgroundColor: '#111111',
-                        transform: 'rotate(45deg)',
-                      }}
-                    />
-                  )}
-                />
-              </Box>
-            )}
-          />
-        </Tooltip.Positioner>
-      </Tooltip.Portal>
-    </Tooltip.Root>
+          {children}
+        </Box>
+      )}
+    </AppTooltip>
   )
 }
 

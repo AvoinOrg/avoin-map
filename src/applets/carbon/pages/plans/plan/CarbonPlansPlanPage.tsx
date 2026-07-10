@@ -6,7 +6,6 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import { Tooltip } from '@base-ui/react/tooltip'
 import { useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'
 
@@ -16,6 +15,7 @@ import { useAppParams, useAppRouter } from '#/common/navigation/navigation'
 import { Box } from '#/common/style/theme'
 import { SidebarContentBox } from '#/components/Sidebar'
 import SidebarBackgroundContent from '#/components/common/SidebarBackgroundContent'
+import AppTooltip from '#/components/common/AppTooltip'
 import { ButtonBase, IconButton } from '#/components/common/Button'
 import DropDownSelectWithLabel from '#/components/common/DropDownSelectWithLabel'
 import TText from '#/components/common/TText'
@@ -147,112 +147,45 @@ const InfoButton = ({
   tooltip: React.ReactNode
 }) => {
   return (
-    <Tooltip.Root>
-      <Tooltip.Trigger
-        delay={0}
-        closeDelay={0}
-        render={(triggerProps) => {
-          const {
-            color: ignoredColor,
-            type: ignoredType,
-            ...resolvedTriggerProps
-          } = triggerProps as InfoButtonTooltipTriggerProps & {
-            color?: string
-            type?: string
-          }
-          void ignoredColor
-          void ignoredType
-
-          return (
-            <IconButton
-              {...resolvedTriggerProps}
-              type="button"
-              size="small"
-              aria-label={ariaLabel}
-              sx={{
-                width: '1rem',
-                height: '1rem',
-                minWidth: '1rem',
-                p: 0,
-                color: '#7b8670',
-                border: 0,
-                borderRadius: '999px',
-                '&:hover': {
-                  backgroundColor: 'transparent',
-                },
-              }}
-              onClick={(event: BaseUITriggerEvent) => {
-                event.preventDefault()
-                event.stopPropagation()
-                event.preventBaseUIHandler?.()
-              }}
-            >
-              <QuestionCircleOutline
-                aria-hidden="true"
-                sx={{ width: 16, height: 16 }}
-              />
-            </IconButton>
-          )
-        }}
-      />
-      <Tooltip.Portal>
-        <Tooltip.Positioner
-          side="top"
-          sideOffset={8}
-          render={(positionerProps) => (
-            <Box
-              {...positionerProps}
-              sx={{
-                zIndex: (theme) => theme.zIndex.modal + 1,
-                pointerEvents: 'none',
-              }}
-            />
-          )}
+    <AppTooltip
+      title={tooltip}
+      side="top"
+      sideOffset={8}
+      delay={0}
+      closeDelay={0}
+      popupSx={{ px: 1 }}
+    >
+      {(triggerProps) => (
+        <IconButton
+          {...(triggerProps as InfoButtonTooltipTriggerProps)}
+          type="button"
+          size="small"
+          aria-label={ariaLabel}
+          sx={{
+            width: '1rem',
+            height: '1rem',
+            minWidth: '1rem',
+            p: 0,
+            color: '#7b8670',
+            border: 0,
+            borderRadius: '999px',
+            '&:hover': {
+              backgroundColor: 'transparent',
+            },
+          }}
+          onClick={(event: BaseUITriggerEvent) => {
+            event.preventDefault()
+            event.stopPropagation()
+            event.preventBaseUIHandler?.()
+          }}
         >
-          <Tooltip.Popup
-            style={{
-              pointerEvents: 'none',
-            }}
-            render={(popupProps) => (
-              <Box
-                {...popupProps}
-                role="tooltip"
-                sx={{
-                  maxWidth: 240,
-                  px: 1,
-                  py: 0.75,
-                  borderRadius: '5px',
-                  backgroundColor: '#111111',
-                  color: '#ffffff',
-                  fontSize: '0.75rem',
-                  fontWeight: 400,
-                  lineHeight: 1.35,
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.22)',
-                }}
-              >
-                {tooltip}
-                <Tooltip.Arrow
-                  render={(arrowProps) => (
-                    <Box
-                      {...arrowProps}
-                      sx={{
-                        position: 'absolute',
-                        width: 8,
-                        height: 8,
-                        backgroundColor: '#111111',
-                        transform: 'rotate(45deg)',
-                        bottom: -4,
-                        left: 'calc(50% - 4px)',
-                      }}
-                    />
-                  )}
-                />
-              </Box>
-            )}
+          <QuestionCircleOutline
+            aria-hidden="true"
+            sx={{ width: 16, height: 16 }}
           />
-        </Tooltip.Positioner>
-      </Tooltip.Portal>
-    </Tooltip.Root>
+        </IconButton>
+      )}
+    </AppTooltip>
   )
 }
 
