@@ -1,10 +1,8 @@
 import {
   type ChangeEvent,
-  type HTMLAttributes,
   memo,
   type MutableRefObject,
   type ReactNode,
-  type Ref,
   useCallback,
   useEffect,
   useMemo,
@@ -12,10 +10,10 @@ import {
   useState,
 } from 'react'
 import { Collapsible } from '@base-ui/react/collapsible'
-import { Tooltip } from '@base-ui/react/tooltip'
 import { useTranslate } from '@tolgee/react'
 
 import { Box, type AppSxProps } from '#/common/style/theme'
+import AppTooltip from '#/components/common/AppTooltip'
 import { ButtonBase } from '#/components/common/Button'
 import TText from '#/components/common/TText'
 import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
@@ -157,36 +155,6 @@ const numberFieldAdornmentSx = {
   },
 } as const
 
-type WarningTooltipTriggerProps = Omit<
-  HTMLAttributes<HTMLSpanElement>,
-  'color'
-> & {
-  ref?: Ref<HTMLSpanElement>
-}
-
-const tooltipPopupSx = {
-  maxWidth: '12.5rem',
-  px: '1rem',
-  py: '0.875rem',
-  borderRadius: '0.3125rem',
-  backgroundColor: '#454545',
-  color: '#FFFFFF',
-  fontSize: '0.75rem',
-  lineHeight: '1.125rem',
-  letterSpacing: '0.04em',
-  boxShadow: '0px 8px 24px rgba(17, 17, 17, 0.22)',
-} as const
-
-const tooltipArrowSx = {
-  position: 'absolute',
-  right: -4,
-  top: '0.875rem',
-  width: 8,
-  height: 8,
-  backgroundColor: '#454545',
-  transform: 'rotate(45deg)',
-} as const
-
 const ZoneWarningTooltip = ({
   children,
   title,
@@ -205,61 +173,27 @@ const ZoneWarningTooltip = ({
   }
 
   return (
-    <Tooltip.Root>
-      <Tooltip.Trigger
-        delay={0}
-        closeDelay={0}
-        render={(triggerProps) => {
-          const {
-            color: ignoredColor,
-            type: ignoredType,
-            ...resolvedTriggerProps
-          } = triggerProps as WarningTooltipTriggerProps & {
-            color?: string
-            type?: string
-          }
-          void ignoredColor
-          void ignoredType
-
-          return (
-            <Box
-              {...resolvedTriggerProps}
-              component="span"
-              sx={triggerSx}
-            >
-              {children}
-            </Box>
-          )
-        }}
-      />
-      <Tooltip.Portal>
-        <Tooltip.Positioner
-          side="left"
-          align="start"
-          sideOffset={8}
-          style={{ zIndex: 1500, pointerEvents: 'none' }}
+    <AppTooltip
+      title={title}
+      side="left"
+      align="start"
+      sideOffset={8}
+      delay={0}
+      closeDelay={0}
+      popupDataSlot="zone-land-use-warning-tooltip"
+      popupSx={{ maxWidth: '12.5rem' }}
+    >
+      {(triggerProps) => (
+        <Box
+          {...triggerProps}
+          component="span"
+          data-slot="zone-land-use-warning-tooltip-trigger"
+          sx={triggerSx}
         >
-          <Tooltip.Popup
-            style={{ position: 'relative', pointerEvents: 'none' }}
-            render={(popupProps) => (
-              <Box
-                {...popupProps}
-                role="tooltip"
-                data-slot="zone-land-use-warning-tooltip"
-                sx={tooltipPopupSx}
-              >
-                {title}
-                <Tooltip.Arrow
-                  render={(arrowProps) => (
-                    <Box {...arrowProps} sx={tooltipArrowSx} />
-                  )}
-                />
-              </Box>
-            )}
-          />
-        </Tooltip.Positioner>
-      </Tooltip.Portal>
-    </Tooltip.Root>
+          {children}
+        </Box>
+      )}
+    </AppTooltip>
   )
 }
 

@@ -15,8 +15,10 @@ type ZoneItemStateConfig = {
   draftName?: string
   expanded: boolean
   feature: PlanDataFeature
+  focusWarningTooltip?: boolean
   landUseEditorOpen: boolean
   stateId: string
+  waitFor?: string
 }
 
 const zoningClasses: ZoningClass[] = [
@@ -122,6 +124,7 @@ const ZoneItemFixtureState = ({
   draftName,
   expanded: initialExpanded,
   feature: initialFeature,
+  focusWarningTooltip = false,
   landUseEditorOpen: initialLandUseEditorOpen,
   stateId,
 }: ZoneItemStateConfig) => {
@@ -168,6 +171,23 @@ const ZoneItemFixtureState = ({
 
     return () => window.clearTimeout(timeoutId)
   }, [draftLandUseValue, draftName])
+
+  React.useEffect(() => {
+    if (!focusWarningTooltip) {
+      return undefined
+    }
+
+    const frameId = window.requestAnimationFrame(() => {
+      const warningTrigger = rootRef.current?.querySelector<HTMLElement>(
+        '[data-slot="zone-land-use-warning-tooltip-trigger"]'
+      )
+
+      warningTrigger?.setAttribute('tabindex', '-1')
+      warningTrigger?.focus()
+    })
+
+    return () => window.cancelAnimationFrame(frameId)
+  }, [focusWarningTooltip])
 
   const updateFeature =
     React.useCallback<ZoneAccordionItemProps['updateFeature']>(
@@ -243,7 +263,8 @@ const createState = (config: ZoneItemStateConfig) => ({
     .map((part) => `${part[0]?.toUpperCase() ?? ''}${part.slice(1)}`)
     .join(' '),
   description: `Zone accordion item fixture state: ${config.stateId}.`,
-  waitFor: `[data-testid="zone-item-${config.stateId}-ready"]`,
+  waitFor:
+    config.waitFor ?? `[data-testid="zone-item-${config.stateId}-ready"]`,
   render: () => <ZoneItemFixtureState {...config} />,
 })
 
@@ -287,6 +308,20 @@ export const hiilikarttaZoneAccordionItemFixture: ComponentFixture = {
       landUseEditorOpen: true,
       feature: createFeature({
         id: 'fixture-invalid-land-use',
+        landuseBuilt: 45,
+        landuseNewOpenVegetation: 20,
+        landuseNewTreeVegetation: 15,
+        landuseExisting: 5,
+      }),
+    }),
+    createState({
+      stateId: 'invalid-land-use-tooltip-visible',
+      expanded: true,
+      focusWarningTooltip: true,
+      landUseEditorOpen: true,
+      waitFor: '[data-slot="zone-land-use-warning-tooltip"][data-open]',
+      feature: createFeature({
+        id: 'fixture-invalid-land-use-tooltip',
         landuseBuilt: 45,
         landuseNewOpenVegetation: 20,
         landuseNewTreeVegetation: 15,

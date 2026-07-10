@@ -898,6 +898,12 @@
         "waitFor": "[data-testid=\"zone-item-invalid-land-use-warning-ready\"]"
       },
       {
+        "id": "invalid-land-use-tooltip-visible",
+        "label": "Invalid land-use tooltip visible",
+        "description": "Expanded invalid land-use item with its warning tooltip focused and visible.",
+        "waitFor": "[data-slot=\"zone-land-use-warning-tooltip\"][data-open]"
+      },
+      {
         "id": "land-use-editor-closed",
         "label": "Land-use editor closed",
         "description": "Expanded item with the nested land-use editor disclosure closed.",
