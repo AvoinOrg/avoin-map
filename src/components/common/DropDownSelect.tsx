@@ -8,7 +8,10 @@ import {
   type AppTheme,
   toSxArray,
 } from '#/common/style/theme/system'
-import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'
+import {
+  SHARED_CONTROL_BORDER_RADIUS,
+  SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+} from '#/common/style/theme/constants'
 import { SelectOption } from '#/common/types/general'
 import ArrowDown from '#/components/icons/ArrowDown'
 import CheckcircleCheckedFilled from '#/components/icons/CheckcircleCheckedFilled'
@@ -124,7 +127,7 @@ export const DROP_DOWN_SELECT_TRIGGER_SX = {
   boxSizing: 'border-box',
   overflow: 'hidden',
   border: 0,
-  borderRadius: SHARED_CONTROL_BORDER_RADIUS,
+  borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
   backgroundColor: '#FFFFFF',
   backgroundClip: 'padding-box',
   color: '#111111',
@@ -147,7 +150,7 @@ export const DROP_DOWN_SELECT_TRIGGER_SX = {
     boxSizing: 'border-box',
     pointerEvents: 'none',
     border: '1px solid #D6D6D6',
-    borderRadius: SHARED_CONTROL_BORDER_RADIUS,
+    borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
   },
   '.MuiSelect-select': {
     minHeight: '1.25rem',
@@ -487,7 +490,7 @@ const DropDownSelect = ({
         width: '100%',
         minWidth: 0,
         flex: successIndicatorMode === 'outside' ? 1 : undefined,
-        borderRadius: SHARED_CONTROL_BORDER_RADIUS,
+        borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
         position: 'relative',
       }}
     >
@@ -630,7 +633,7 @@ const DropDownSelect = ({
           alignItems: 'center',
           gap: successIndicatorMode === 'outside' ? '0.5rem' : 0,
           maxWidth: '100%',
-          borderRadius: SHARED_CONTROL_BORDER_RADIUS,
+          borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
         },
         ...toComponentSxArray(sx),
       ]}
@@ -671,7 +674,7 @@ const DropDownSelect = ({
           alignItems: 'center',
           gap: successIndicatorMode === 'outside' ? '0.5rem' : 0,
           maxWidth: '100%',
-          borderRadius: SHARED_CONTROL_BORDER_RADIUS,
+          borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
         }}
       >
         {selectControl}

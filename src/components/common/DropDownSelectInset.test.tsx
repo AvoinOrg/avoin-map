@@ -1,7 +1,12 @@
 import React from 'react'
+import '@testing-library/jest-dom'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import { AppThemeProvider } from '#/common/style/theme'
+import {
+  SHARED_CONTROL_BORDER_RADIUS,
+  SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+} from '#/common/style/theme/constants'
 import DropDownSelectInset from '#/components/common/DropDownSelectInset'
 import DropDownSelect from '#/components/common/DropDownSelect'
 
@@ -190,5 +195,37 @@ describe('DropDownSelectInset', () => {
     ).toContain('legacy')
     expect(await screen.findByRole('option', { name: 'Invalid value legacy' }))
       .toBeTruthy()
+  })
+
+  it('uses a pill radius for the closed trigger while keeping the popup moderate', async () => {
+    renderWithTheme(
+      <DropDownSelect
+        value="heat"
+        options={[
+          { value: 'heat', label: 'Heat demand' },
+          { value: 'solar', label: 'Solar potential' },
+        ]}
+        onChange={() => {}}
+        ariaLabel="Radius layer"
+      />
+    )
+
+    const trigger = screen.getByRole('combobox', { name: 'Radius layer' })
+    const outline = trigger.querySelector('.MuiOutlinedInput-notchedOutline')
+
+    expect(trigger).toHaveStyle({
+      borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+    })
+    expect(outline).toHaveStyle({
+      borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+    })
+
+    fireEvent.click(trigger)
+    expect(await screen.findByRole('option', { name: 'Solar potential' }))
+      .toBeTruthy()
+
+    expect(document.querySelector('[data-slot="popup"]')).toHaveStyle({
+      borderRadius: SHARED_CONTROL_BORDER_RADIUS,
+    })
   })
 })

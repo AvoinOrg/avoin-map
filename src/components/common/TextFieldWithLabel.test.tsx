@@ -3,6 +3,7 @@ import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
 
 import { AppThemeProvider } from '#/common/style/theme'
+import { SHARED_CONTROL_INFINITE_BORDER_RADIUS } from '#/common/style/theme/constants'
 import TextFieldWithLabel from '#/components/common/TextFieldWithLabel'
 
 const renderWithTheme = (ui: React.ReactElement) => {
@@ -117,5 +118,21 @@ describe('TextFieldWithLabel', () => {
     expect(input).toHaveAttribute('required')
     expect(input).toHaveAttribute('aria-invalid', 'true')
     expect(screen.getByRole('note')).toHaveTextContent('Name is required')
+  })
+
+  it('uses the shared pill radius for single-line inputs', () => {
+    renderWithTheme(
+      <TextFieldWithLabel
+        label="Name"
+        ariaLabel="Name input radius"
+        value=""
+        onChange={() => {}}
+      />
+    )
+
+    expect(screen.getByRole('textbox', { name: 'Name input radius' }))
+      .toHaveStyle({
+        borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+      })
   })
 })

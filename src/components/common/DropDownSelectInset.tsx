@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'
+import { SHARED_CONTROL_INFINITE_BORDER_RADIUS } from '#/common/style/theme/constants'
 import { Box, type AppSxProps, toSxArray } from '#/common/style/theme/system'
 import DropDownSelect from '#/components/common/DropDownSelect'
 
@@ -54,13 +54,13 @@ const DropDownSelectInset = ({
           {
             '&.MuiOutlinedInput-root': {
               height: '1.375rem',
-              borderRadius: `${SHARED_CONTROL_BORDER_RADIUS} !important`,
+              borderRadius: `${SHARED_CONTROL_INFINITE_BORDER_RADIUS} !important`,
               backgroundColor: 'common.white',
               boxShadow: 'none',
             },
             '& .MuiOutlinedInput-notchedOutline': {
               borderColor: '#D6D6D6',
-              borderRadius: SHARED_CONTROL_BORDER_RADIUS,
+              borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
             },
             '.MuiSelect-select': {
               minHeight: '1.125rem',
@@ -85,7 +85,7 @@ const DropDownSelectInset = ({
                 minWidth: 0,
                 px: '0.625rem',
                 py: '0.125rem',
-                borderRadius: SHARED_CONTROL_BORDER_RADIUS,
+                borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
                 backgroundColor: 'secondary.dark',
                 color: 'neutral.light',
                 fontSize: '0.625rem',

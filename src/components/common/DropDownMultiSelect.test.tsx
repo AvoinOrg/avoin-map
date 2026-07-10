@@ -3,6 +3,7 @@ import '@testing-library/jest-dom'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import { AppThemeProvider } from '#/common/style/theme'
+import { SHARED_CONTROL_INFINITE_BORDER_RADIUS } from '#/common/style/theme/constants'
 import DropDownMultiSelect from '#/components/common/DropDownMultiSelect'
 
 const renderWithTheme = (ui: React.ReactElement) => {
@@ -104,7 +105,13 @@ describe('DropDownMultiSelect', () => {
     })
     const outline = trigger.querySelector('.MuiOutlinedInput-notchedOutline')
 
+    expect(trigger).toHaveStyle({
+      borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+    })
     expect(outline?.tagName).toBe('SPAN')
+    expect(outline).toHaveStyle({
+      borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+    })
     expect(outline?.querySelector('legend')).toBeNull()
   })
 

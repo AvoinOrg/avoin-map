@@ -26,8 +26,11 @@ export const DESKTOP_BREAKPOINT_KEY = 'desktop' as const
 
 export const SCROLLBAR_WIDTH_REM = 0.6
 
-// Matches the current 2rem dropdown trigger end-cap radius without pill growth.
+// Moderate shared radius for multiline, large, popup, and modal-like surfaces.
 export const SHARED_CONTROL_BORDER_RADIUS = '1rem'
+
+// Pill radius for single-line controls that should fully round their end caps.
+export const SHARED_CONTROL_INFINITE_BORDER_RADIUS = '999px'
 
 export const SIDEBAR_PADDING_WITH_SCROLLBAR_REM =
   SIDEBAR_PADDING_REM + SCROLLBAR_WIDTH_REM

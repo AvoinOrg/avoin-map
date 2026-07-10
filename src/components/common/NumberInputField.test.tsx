@@ -3,6 +3,7 @@ import '@testing-library/jest-dom'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import { AppThemeProvider } from '#/common/style/theme'
+import { SHARED_CONTROL_INFINITE_BORDER_RADIUS } from '#/common/style/theme/constants'
 import { NumberInputField } from '#/components/common/NumberInputField'
 
 jest.mock('@tolgee/react', () => ({
@@ -154,5 +155,24 @@ describe('NumberInputField', () => {
     expect(helper).toHaveAttribute('id')
     expect(input).toHaveAttribute('aria-describedby', helper.id)
     expect(input).toHaveAttribute('aria-invalid', 'true')
+  })
+
+  it('uses the shared pill radius for the single-line number control', () => {
+    renderWithTheme(
+      <NumberInputField
+        label="Amount"
+        value={12}
+        locale="en-US"
+        onValueChange={() => {}}
+      />
+    )
+
+    const control = screen
+      .getByLabelText('Amount')
+      .closest('[data-slot="number-input-control"]')
+
+    expect(control).toHaveStyle({
+      borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+    })
   })
 })

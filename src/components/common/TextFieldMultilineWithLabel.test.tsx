@@ -3,6 +3,7 @@ import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
 
 import { AppThemeProvider } from '#/common/style/theme'
+import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'
 import TextFieldMultilineWithLabel from '#/components/common/TextFieldMultilineWithLabel'
 
 const renderWithTheme = (ui: React.ReactElement) => {
@@ -106,5 +107,21 @@ describe('TextFieldMultilineWithLabel', () => {
     expect(screen.getByRole('note')).toHaveTextContent(
       'Description is required'
     )
+  })
+
+  it('keeps the moderate shared radius for multiline textareas', () => {
+    renderWithTheme(
+      <TextFieldMultilineWithLabel
+        label="Description"
+        ariaLabel="Description input radius"
+        value=""
+        onChange={() => {}}
+      />
+    )
+
+    expect(screen.getByRole('textbox', { name: 'Description input radius' }))
+      .toHaveStyle({
+        borderRadius: SHARED_CONTROL_BORDER_RADIUS,
+      })
   })
 })

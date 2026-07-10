@@ -3,7 +3,12 @@ import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
 
 import { AppThemeProvider } from '#/common/style/theme'
-import { ButtonBase, IconButton } from '#/components/common/Button'
+import {
+  SHARED_CONTROL_BORDER_RADIUS,
+  SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+} from '#/common/style/theme/constants'
+import BigMenuButton from '#/components/common/BigMenuButton'
+import { Button, ButtonBase, IconButton } from '#/components/common/Button'
 
 const renderWithTheme = (ui: React.ReactElement) =>
   render(<AppThemeProvider>{ui}</AppThemeProvider>)
@@ -83,5 +88,37 @@ describe('IconButton', () => {
     expect(
       screen.getByRole('button', { name: 'Show layer' })
     ).toBeInTheDocument()
+  })
+})
+
+describe('Button', () => {
+  it('uses the shared pill radius for basic buttons', () => {
+    renderWithTheme(<Button>Apply filters</Button>)
+
+    expect(screen.getByRole('button', { name: 'Apply filters' })).toHaveStyle({
+      borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+    })
+  })
+
+  it('leaves icon buttons on the moderate shared radius', () => {
+    renderWithTheme(
+      <IconButton aria-label="Toggle layer">
+        <span aria-hidden="true">i</span>
+      </IconButton>
+    )
+
+    expect(screen.getByRole('button', { name: 'Toggle layer' })).toHaveStyle({
+      borderRadius: SHARED_CONTROL_BORDER_RADIUS,
+    })
+  })
+
+  it('allows big menu buttons to keep the moderate shared radius', () => {
+    renderWithTheme(<BigMenuButton>Upload file</BigMenuButton>)
+
+    const bigButton = screen.getByText('Upload file').closest('label')
+
+    expect(bigButton).toHaveStyle({
+      borderRadius: SHARED_CONTROL_BORDER_RADIUS,
+    })
   })
 })
