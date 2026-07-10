@@ -1,5 +1,3 @@
-'use client'
-
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Tooltip } from '@base-ui/react/tooltip'
 import { useMutation } from '@tanstack/react-query'

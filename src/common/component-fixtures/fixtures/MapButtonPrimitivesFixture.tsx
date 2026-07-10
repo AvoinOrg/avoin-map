@@ -1,5 +1,3 @@
-'use client'
-
 import React from 'react'
 
 import { Box } from '#/common/style/theme/system'

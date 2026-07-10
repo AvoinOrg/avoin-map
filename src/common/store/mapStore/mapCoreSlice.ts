@@ -1,5 +1,3 @@
-'use client'
-
 import { cloneDeep } from 'lodash-es'
 import stableStringify from 'fast-json-stable-stringify'
 import { enableMapSet } from 'immer'

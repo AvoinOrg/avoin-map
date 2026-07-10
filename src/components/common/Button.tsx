@@ -1,5 +1,3 @@
-'use client'
-
 import React from 'react'
 import { Button as BaseUIButton } from '@base-ui/react/button'
 

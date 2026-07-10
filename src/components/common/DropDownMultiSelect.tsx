@@ -1,5 +1,3 @@
-'use client'
-
 import { Select as BaseSelect } from '@base-ui/react/select'
 import React, { type ReactNode } from 'react'
 

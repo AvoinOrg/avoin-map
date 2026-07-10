@@ -1,5 +1,3 @@
-'use client'
-
 import React from 'react'
 
 import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'

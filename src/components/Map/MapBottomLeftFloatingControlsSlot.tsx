@@ -1,5 +1,3 @@
-'use client'
-
 import { MAP_BOTTOM_LEFT_FLOATING_CONTROLS_SLOT } from '#/common/constants/map'
 import { Box } from '#/common/style/theme/system'
 import { Slot } from '#/components/context/slotsContext'

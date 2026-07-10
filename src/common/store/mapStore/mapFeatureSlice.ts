@@ -1,5 +1,3 @@
-'use client'
-
 import { uniq, isEqual, pickBy, uniqBy } from 'lodash-es'
 import { produce } from 'immer'
 import { MapGeoJSONFeature } from 'maplibre-gl'

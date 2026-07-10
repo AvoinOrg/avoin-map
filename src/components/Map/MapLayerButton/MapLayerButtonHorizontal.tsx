@@ -1,5 +1,3 @@
-'use client'
-
 import React, { useCallback, useMemo } from 'react'
 import MapLayerButtonBase, { MapLayerButtonProps } from './MapLayerButtonBase'
 

@@ -1,5 +1,3 @@
-'use client'
-
 import React, { useSyncExternalStore } from 'react'
 
 import { Box } from '#/common/style/theme'

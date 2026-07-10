@@ -1,5 +1,3 @@
-'use client'
-
 import { actionIconTextHelpersFixture } from './fixtures/ActionIconTextHelpersFixture'
 import { buttonPrimitivesFixture } from './fixtures/ButtonPrimitivesFixture'
 import { booleanControlsFixture } from './fixtures/BooleanControlsFixture'

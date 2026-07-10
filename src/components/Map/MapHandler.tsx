@@ -3,7 +3,6 @@
 // There is code for the hybrid implementation, where maplibre map is rendered on top of
 // OpenLayers. There is no need for this at the moment, but it is kept for future reference,
 // in case a need arises.
-'use client'
 
 // import 'ol/ol.css'
 import 'maplibre-gl/dist/maplibre-gl.css'

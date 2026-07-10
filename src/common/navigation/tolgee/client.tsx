@@ -1,5 +1,3 @@
-'use client'
-
 import { TolgeeBase } from './shared'
 import { TolgeeProvider, useTolgeeSSR } from '@tolgee/react'
 import type { TolgeeStaticData } from '@tolgee/web'

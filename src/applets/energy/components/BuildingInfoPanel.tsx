@@ -1,5 +1,3 @@
-'use client'
-
 import React from 'react'
 import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip'
 import { useTranslate } from '@tolgee/react'

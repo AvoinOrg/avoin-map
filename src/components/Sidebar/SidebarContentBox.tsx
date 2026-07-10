@@ -1,5 +1,3 @@
-'use client'
-
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { alpha } from '@mui/system/colorManipulator'
 import type { EventListeners } from 'overlayscrollbars'

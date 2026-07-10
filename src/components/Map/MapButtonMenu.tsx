@@ -1,5 +1,3 @@
-'use client'
-
 import React, { useEffect, useRef, useState, ReactElement } from 'react'
 import { Popover } from '@base-ui/react/popover'
 

@@ -1,5 +1,3 @@
-'use client'
-
 import { Outlet } from '@tanstack/react-router'
 
 import {

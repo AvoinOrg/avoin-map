@@ -1,4 +1,3 @@
-'use client'
 import React, { useEffect, useRef } from 'react'
 import { Outlet } from '@tanstack/react-router'
 import { FeatureCollection } from 'geojson'

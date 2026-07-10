@@ -1,5 +1,3 @@
-'use client'
-
 import mapboxgl from 'maplibre-gl'
 import type { FilterSpecification, LngLatBounds } from 'maplibre-gl'
 import { useMapInstanceStore } from './mapInstanceStore'

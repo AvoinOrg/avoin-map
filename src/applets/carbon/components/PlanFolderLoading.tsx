@@ -1,5 +1,3 @@
-'use client'
-
 import { Box } from '#/common/style/theme'
 import { Folder } from '#/components/common/Folder'
 import { LoadingSpinner } from '#/components/Loading'

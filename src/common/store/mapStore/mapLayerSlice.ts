@@ -1,5 +1,3 @@
-'use client'
-
 import { map, cloneDeep, uniq, isEqual } from 'lodash-es'
 import turfBbox from '@turf/bbox'
 import mapboxgl from 'maplibre-gl'

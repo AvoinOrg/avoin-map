@@ -1,5 +1,3 @@
-'use client'
-
 import UiBaselineCategoryPageShell from '../UiBaselineCategoryPageShell'
 import ButtonsTogglesContent from './ButtonsTogglesContent'
 

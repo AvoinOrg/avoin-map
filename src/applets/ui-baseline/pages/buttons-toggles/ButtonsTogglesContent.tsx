@@ -1,5 +1,3 @@
-'use client'
-
 import { useEffect, useRef, useState } from 'react'
 
 import type { LayerGroupStatus } from '#/common/hooks/map/useLayerGroup'

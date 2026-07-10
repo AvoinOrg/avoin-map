@@ -1,5 +1,3 @@
-'use client'
-
 import React from 'react'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 import type { PartialOptions } from 'overlayscrollbars'

@@ -1,5 +1,3 @@
-'use client'
-
 import React, { useMemo } from 'react'
 
 import { Box, type AppSxProps, toSxArray } from '#/common/style/theme'

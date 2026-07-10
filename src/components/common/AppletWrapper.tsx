@@ -2,8 +2,6 @@
 // Right now this only ensures that correct MapContext is used
 // for each applet. See MapStore for more details.
 
-'use client'
-
 import React, { useEffect, useRef } from 'react'
 import { useTolgee } from '@tolgee/react'
 

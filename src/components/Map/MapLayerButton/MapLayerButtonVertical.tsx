@@ -1,5 +1,3 @@
-'use client'
-
 import React, { useCallback, useMemo } from 'react'
 
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'

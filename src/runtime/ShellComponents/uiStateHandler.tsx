@@ -2,8 +2,6 @@
  * @file For global state handling that cannot be done in layoutClient.tsx
  */
 
-'use client'
-
 import React, { useEffect } from 'react'
 import { useUIStore } from '#/common/store/uiStore'
 

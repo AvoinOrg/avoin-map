@@ -1,5 +1,3 @@
-'use client'
-
 import { useEffect, useState } from 'react'
 import type { ZoningClass } from './types'
 import { getZoningClasses } from './zoningClasses'

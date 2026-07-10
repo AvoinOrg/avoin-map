@@ -23,8 +23,6 @@
  * ```
  */
 
-'use client'
-
 import React, { useMemo, useRef, useEffect, useState, useCallback } from 'react'
 import { Box, type AppTheme, useTheme } from '#/common/style/theme'
 import { AxisBottom as VisxAxisBottom, AxisLeft as VisxAxisLeft } from '@visx/axis'

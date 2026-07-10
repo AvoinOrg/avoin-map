@@ -1,5 +1,3 @@
-'use client'
-
 import { useRef, useEffect, useState, type ChangeEvent } from 'react'
 import { useTranslate } from '@tolgee/react'
 import { useMutation } from '@tanstack/react-query'

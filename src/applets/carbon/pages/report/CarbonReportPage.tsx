@@ -1,4 +1,3 @@
-'use client'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 import useStore from '#/common/hooks/useStore'

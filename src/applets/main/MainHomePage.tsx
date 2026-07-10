@@ -1,5 +1,4 @@
 /** @jsxImportSource @emotion/react */
-'use client'
 
 import AppletWrapper from '#/components/common/AppletWrapper'
 import { defaultListedLayerGroups } from '#/components/Map/layers/defaultListedLayerGroups'

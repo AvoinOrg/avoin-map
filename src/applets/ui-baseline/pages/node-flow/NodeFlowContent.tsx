@@ -1,5 +1,3 @@
-'use client'
-
 import { Box } from '#/common/style/theme'
 import {
   NodeFlowAccordion,

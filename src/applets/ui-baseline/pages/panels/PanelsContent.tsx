@@ -1,5 +1,3 @@
-'use client'
-
 import React from 'react'
 
 import { useAppParams } from '#/common/navigation/navigation'

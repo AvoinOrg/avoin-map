@@ -1,5 +1,3 @@
-'use client'
-
 import { useTranslate } from '@tolgee/react'
 
 import { AppRouteLink } from '#/common/navigation/appRouteLinks'

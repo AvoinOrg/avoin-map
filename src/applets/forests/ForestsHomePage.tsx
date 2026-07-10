@@ -1,5 +1,3 @@
-'use client'
-
 import React, { useState, useEffect, useMemo } from 'react'
 import { Tooltip as BaseTooltip } from '@base-ui/react/tooltip'
 import { MapGeoJSONFeature } from 'maplibre-gl'

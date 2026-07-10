@@ -1,5 +1,3 @@
-'use client'
-
 import { useTranslate } from '@tolgee/react'
 
 import ImgAccordion from 'applets/main/components/Accordion/ImgAccordion'

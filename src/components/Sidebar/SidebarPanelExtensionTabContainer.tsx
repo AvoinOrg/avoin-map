@@ -1,5 +1,3 @@
-'use client'
-
 import React, { useEffect, useId, useMemo } from 'react'
 
 import { Box, toSxArray } from '#/common/style/theme/system'

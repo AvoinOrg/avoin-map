@@ -1,5 +1,3 @@
-'use client'
-
 import { Combobox as BaseCombobox } from '@base-ui/react/combobox'
 import * as React from 'react'
 import { useTranslate } from '@tolgee/react'

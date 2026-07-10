@@ -1,5 +1,3 @@
-'use client'
-
 import React from 'react'
 
 import { Box, toSxArray, type AppSxProps } from '#/common/style/theme'

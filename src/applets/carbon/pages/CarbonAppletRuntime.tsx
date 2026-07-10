@@ -1,6 +1,5 @@
 // Client-side runtime for the Hiilikartta applet; coordinates session state,
 // plan sync, and the shared map UI shell.
-'use client'
 
 import React, { useEffect } from 'react'
 import { useQueries, useQuery } from '@tanstack/react-query'

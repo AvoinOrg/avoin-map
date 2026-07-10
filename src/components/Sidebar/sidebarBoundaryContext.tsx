@@ -1,5 +1,3 @@
-'use client'
-
 import React, { createContext, useContext } from 'react'
 
 import type { SidebarBoundaryId } from '#/common/types/sidebar'

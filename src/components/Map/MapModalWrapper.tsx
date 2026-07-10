@@ -1,5 +1,3 @@
-'use client'
-
 import React, { ReactNode, useEffect, useRef } from 'react'
 import { useUIStore } from '#/common/store'
 import {

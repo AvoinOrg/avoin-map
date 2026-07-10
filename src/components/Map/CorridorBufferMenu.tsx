@@ -1,5 +1,3 @@
-'use client'
-
 import { useTranslate } from '@tolgee/react'
 
 import { useMapStore } from '#/common/store'

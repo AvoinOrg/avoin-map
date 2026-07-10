@@ -1,5 +1,3 @@
-'use client'
-
 import React, { useEffect, useState } from 'react'
 import { Menu } from '@base-ui/react/menu'
 import { useTranslate } from '@tolgee/react'

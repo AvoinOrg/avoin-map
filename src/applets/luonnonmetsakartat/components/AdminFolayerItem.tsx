@@ -1,5 +1,3 @@
-'use client'
-
 import React from 'react'
 import { LayerToggleRowLink } from '#/components/common/LayerToggleRow'
 import { AdminFolayerConf } from 'applets/luonnonmetsakartat/common/types'

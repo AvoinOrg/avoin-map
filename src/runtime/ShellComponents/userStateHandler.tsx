@@ -2,8 +2,6 @@
  * @file For global user state handling
  */
 
-'use client'
-
 import React, { useEffect } from 'react'
 import axios from 'axios'
 import { useUserStore } from '#/common/store/userStore'

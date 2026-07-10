@@ -1,5 +1,3 @@
-'use client'
-
 import React from 'react'
 
 import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
