@@ -31,6 +31,7 @@ import { Route as LocaleMapappletsForestsIndexRouteImport } from './routes/$loca
 import { Route as LocaleMapappletsEnergyIndexRouteImport } from './routes/$locale/_map/(applets)/energy/index'
 import { Route as LocaleMapappletsCarbonIndexRouteImport } from './routes/$locale/_map/(applets)/carbon/index'
 import { Route as LocaleDevComponentFixturesFixtureIdStateIdRouteImport } from './routes/$locale/dev/component-fixtures/$fixtureId/$stateId'
+import { Route as LocaleMapappletsUiBaselineTooltipsAndHelpRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/tooltips-and-help'
 import { Route as LocaleMapappletsUiBaselinePanelsRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/panels'
 import { Route as LocaleMapappletsUiBaselineNotificationsRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/notifications'
 import { Route as LocaleMapappletsUiBaselineNodeFlowRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/node-flow'
@@ -176,6 +177,12 @@ const LocaleDevComponentFixturesFixtureIdStateIdRoute =
     id: '/$fixtureId/$stateId',
     path: '/$fixtureId/$stateId',
     getParentRoute: () => LocaleDevComponentFixturesRouteRoute,
+  } as any)
+const LocaleMapappletsUiBaselineTooltipsAndHelpRoute =
+  LocaleMapappletsUiBaselineTooltipsAndHelpRouteImport.update({
+    id: '/tooltips-and-help',
+    path: '/tooltips-and-help',
+    getParentRoute: () => LocaleMapappletsUiBaselineRouteRoute,
   } as any)
 const LocaleMapappletsUiBaselinePanelsRoute =
   LocaleMapappletsUiBaselinePanelsRouteImport.update({
@@ -400,6 +407,7 @@ export interface FileRoutesByFullPath {
   '/$locale/ui-baseline/node-flow': typeof LocaleMapappletsUiBaselineNodeFlowRoute
   '/$locale/ui-baseline/notifications': typeof LocaleMapappletsUiBaselineNotificationsRoute
   '/$locale/ui-baseline/panels': typeof LocaleMapappletsUiBaselinePanelsRoute
+  '/$locale/ui-baseline/tooltips-and-help': typeof LocaleMapappletsUiBaselineTooltipsAndHelpRoute
   '/$locale/dev/component-fixtures/$fixtureId/$stateId': typeof LocaleDevComponentFixturesFixtureIdStateIdRoute
   '/$locale/carbon/': typeof LocaleMapappletsCarbonIndexRoute
   '/$locale/energy/': typeof LocaleMapappletsEnergyIndexRoute
@@ -437,6 +445,7 @@ export interface FileRoutesByTo {
   '/$locale/ui-baseline/node-flow': typeof LocaleMapappletsUiBaselineNodeFlowRoute
   '/$locale/ui-baseline/notifications': typeof LocaleMapappletsUiBaselineNotificationsRoute
   '/$locale/ui-baseline/panels': typeof LocaleMapappletsUiBaselinePanelsRoute
+  '/$locale/ui-baseline/tooltips-and-help': typeof LocaleMapappletsUiBaselineTooltipsAndHelpRoute
   '/$locale/dev/component-fixtures/$fixtureId/$stateId': typeof LocaleDevComponentFixturesFixtureIdStateIdRoute
   '/$locale/carbon': typeof LocaleMapappletsCarbonIndexRoute
   '/$locale/energy': typeof LocaleMapappletsEnergyIndexRoute
@@ -484,6 +493,7 @@ export interface FileRoutesById {
   '/$locale/_map/(applets)/ui-baseline/node-flow': typeof LocaleMapappletsUiBaselineNodeFlowRoute
   '/$locale/_map/(applets)/ui-baseline/notifications': typeof LocaleMapappletsUiBaselineNotificationsRoute
   '/$locale/_map/(applets)/ui-baseline/panels': typeof LocaleMapappletsUiBaselinePanelsRoute
+  '/$locale/_map/(applets)/ui-baseline/tooltips-and-help': typeof LocaleMapappletsUiBaselineTooltipsAndHelpRoute
   '/$locale/dev/component-fixtures/$fixtureId/$stateId': typeof LocaleDevComponentFixturesFixtureIdStateIdRoute
   '/$locale/_map/(applets)/carbon/': typeof LocaleMapappletsCarbonIndexRoute
   '/$locale/_map/(applets)/energy/': typeof LocaleMapappletsEnergyIndexRoute
@@ -533,6 +543,7 @@ export interface FileRouteTypes {
     | '/$locale/ui-baseline/node-flow'
     | '/$locale/ui-baseline/notifications'
     | '/$locale/ui-baseline/panels'
+    | '/$locale/ui-baseline/tooltips-and-help'
     | '/$locale/dev/component-fixtures/$fixtureId/$stateId'
     | '/$locale/carbon/'
     | '/$locale/energy/'
@@ -570,6 +581,7 @@ export interface FileRouteTypes {
     | '/$locale/ui-baseline/node-flow'
     | '/$locale/ui-baseline/notifications'
     | '/$locale/ui-baseline/panels'
+    | '/$locale/ui-baseline/tooltips-and-help'
     | '/$locale/dev/component-fixtures/$fixtureId/$stateId'
     | '/$locale/carbon'
     | '/$locale/energy'
@@ -616,6 +628,7 @@ export interface FileRouteTypes {
     | '/$locale/_map/(applets)/ui-baseline/node-flow'
     | '/$locale/_map/(applets)/ui-baseline/notifications'
     | '/$locale/_map/(applets)/ui-baseline/panels'
+    | '/$locale/_map/(applets)/ui-baseline/tooltips-and-help'
     | '/$locale/dev/component-fixtures/$fixtureId/$stateId'
     | '/$locale/_map/(applets)/carbon/'
     | '/$locale/_map/(applets)/energy/'
@@ -836,6 +849,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/$locale/dev/component-fixtures/$fixtureId/$stateId'
       preLoaderRoute: typeof LocaleDevComponentFixturesFixtureIdStateIdRouteImport
       parentRoute: typeof LocaleDevComponentFixturesRouteRoute
+    }
+    '/$locale/_map/(applets)/ui-baseline/tooltips-and-help': {
+      id: '/$locale/_map/(applets)/ui-baseline/tooltips-and-help'
+      path: '/tooltips-and-help'
+      fullPath: '/$locale/ui-baseline/tooltips-and-help'
+      preLoaderRoute: typeof LocaleMapappletsUiBaselineTooltipsAndHelpRouteImport
+      parentRoute: typeof LocaleMapappletsUiBaselineRouteRoute
     }
     '/$locale/_map/(applets)/ui-baseline/panels': {
       id: '/$locale/_map/(applets)/ui-baseline/panels'
@@ -1236,6 +1256,7 @@ interface LocaleMapappletsUiBaselineRouteRouteChildren {
   LocaleMapappletsUiBaselineNodeFlowRoute: typeof LocaleMapappletsUiBaselineNodeFlowRoute
   LocaleMapappletsUiBaselineNotificationsRoute: typeof LocaleMapappletsUiBaselineNotificationsRoute
   LocaleMapappletsUiBaselinePanelsRoute: typeof LocaleMapappletsUiBaselinePanelsRoute
+  LocaleMapappletsUiBaselineTooltipsAndHelpRoute: typeof LocaleMapappletsUiBaselineTooltipsAndHelpRoute
   LocaleMapappletsUiBaselineIndexRoute: typeof LocaleMapappletsUiBaselineIndexRoute
 }
 
@@ -1261,6 +1282,8 @@ const LocaleMapappletsUiBaselineRouteRouteChildren: LocaleMapappletsUiBaselineRo
       LocaleMapappletsUiBaselineNotificationsRoute,
     LocaleMapappletsUiBaselinePanelsRoute:
       LocaleMapappletsUiBaselinePanelsRoute,
+    LocaleMapappletsUiBaselineTooltipsAndHelpRoute:
+      LocaleMapappletsUiBaselineTooltipsAndHelpRoute,
     LocaleMapappletsUiBaselineIndexRoute: LocaleMapappletsUiBaselineIndexRoute,
   }
 

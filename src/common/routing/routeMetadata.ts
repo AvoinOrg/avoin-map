@@ -34,6 +34,7 @@ export const APP_ROUTE_KEYS = {
   UI_BASELINE_HOME: 'ui-baseline.home',
   UI_BASELINE_CONTENT: 'ui-baseline.content',
   UI_BASELINE_DROPDOWNS: 'ui-baseline.dropdowns',
+  UI_BASELINE_TOOLTIPS_AND_HELP: 'ui-baseline.tooltips-and-help',
   UI_BASELINE_BUTTONS_TOGGLES: 'ui-baseline.buttons-toggles',
   UI_BASELINE_INPUTS: 'ui-baseline.inputs',
   UI_BASELINE_NOTIFICATIONS: 'ui-baseline.notifications',

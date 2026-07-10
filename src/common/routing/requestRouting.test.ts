@@ -127,6 +127,7 @@ describe('request routing decisions', () => {
       '/fi/luonnonmetsakartat/admin?x=1',
       '/fi/ui-baseline?x=1',
       '/fi/ui-baseline/dropdowns?x=1',
+      '/fi/ui-baseline/tooltips-and-help?x=1',
     ])(
       'passes through localized canonical applet path %s with a supported locale',
       (path) => {

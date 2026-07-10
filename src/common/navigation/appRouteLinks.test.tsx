@@ -200,6 +200,15 @@ const uiBaselineRoutesById = {
       variant: 'canonical',
     },
   }),
+  uiBaselineTooltipsAndHelp: makeRoute({
+    id: 'uiBaselineTooltipsAndHelp',
+    fullPath: '/$locale/ui-baseline/tooltips-and-help',
+    metadata: {
+      key: APP_ROUTE_KEYS.UI_BASELINE_TOOLTIPS_AND_HELP,
+      appletNamespace: 'ui-baseline',
+      variant: 'canonical',
+    },
+  }),
   uiBaselineButtonsToggles: makeRoute({
     id: 'uiBaselineButtonsToggles',
     fullPath: '/$locale/ui-baseline/buttons-toggles',
@@ -321,6 +330,10 @@ describe('appRouteLinks', () => {
     [APP_ROUTE_KEYS.UI_BASELINE_HOME, '/fi/ui-baseline'],
     [APP_ROUTE_KEYS.UI_BASELINE_CONTENT, '/fi/ui-baseline/content'],
     [APP_ROUTE_KEYS.UI_BASELINE_DROPDOWNS, '/fi/ui-baseline/dropdowns'],
+    [
+      APP_ROUTE_KEYS.UI_BASELINE_TOOLTIPS_AND_HELP,
+      '/fi/ui-baseline/tooltips-and-help',
+    ],
     [
       APP_ROUTE_KEYS.UI_BASELINE_BUTTONS_TOGGLES,
       '/fi/ui-baseline/buttons-toggles',
