@@ -16,19 +16,21 @@ import { useSimpleSidebarContext } from './SimpleSidebarContext'
 const SIDEBAR_SCROLL_FADE_HEIGHT_REM = 3
 type SidebarStyleProps = AppBoxProps['sx']
 
+export type SidebarContentBoxProps = {
+  sxOuter?: SidebarStyleProps
+  sxInner?: SidebarStyleProps
+  scrollFadeColor?: string
+  scrollbarSide?: 'left' | 'right'
+  children?: React.ReactNode
+}
+
 const SidebarContentBox = ({
   sxOuter,
   sxInner,
   scrollFadeColor = '#f4f4f4',
   scrollbarSide = 'right',
   children,
-}: {
-  sxOuter?: SidebarStyleProps
-  sxInner?: SidebarStyleProps
-  scrollFadeColor?: string
-  scrollbarSide?: 'left' | 'right'
-  children?: React.ReactNode
-}) => {
+}: SidebarContentBoxProps) => {
   const isMobile = useIsMobile()
   const simpleSidebarContext = useSimpleSidebarContext()
   const isSimpleSidebar = simpleSidebarContext.isSimpleSidebar

@@ -10,7 +10,10 @@ import AppTooltip from '#/components/common/AppTooltip'
 import { ButtonBase } from '#/components/common/Button'
 import TText from '#/components/common/TText'
 import { LoadingSpinner } from '#/components/Loading'
-import SidebarContentBox from '#/components/Sidebar/SidebarContentBox'
+import {
+  SidebarContentBox,
+  SidebarLoadingBlock,
+} from '#/components/Sidebar'
 
 import useAppletStoreHasHydrated from 'applets/carbon/common/useAppletStoreHasHydrated'
 import { useAppletStore } from 'applets/carbon/state/appletStore'
@@ -198,7 +201,7 @@ const CarbonPlansPlanAreasPage = () => {
 
   if (!hasHydrated || !isLoaded || !planConf) {
     return (
-      <SidebarContentBox
+      <SidebarLoadingBlock
         scrollFadeColor={SIDEBAR_BACKGROUND}
         sxOuter={{
           height: '100%',
@@ -210,18 +213,8 @@ const CarbonPlansPlanAreasPage = () => {
           height: '100%',
           backgroundColor: SIDEBAR_BACKGROUND,
         }}
-      >
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            width: '100%',
-            mt: 9,
-          }}
-        >
-          <LoadingSpinner />
-        </Box>
-      </SidebarContentBox>
+        sx={{ mt: 9 }}
+      />
     )
   }
 

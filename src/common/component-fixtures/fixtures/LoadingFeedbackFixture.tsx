@@ -3,6 +3,7 @@ import { Box } from '#/common/style/theme'
 import LoadingHorizontal from '#/components/Loading/LoadingHorizontal'
 import { LoadingModal, LoadingSpinner } from '#/components/Loading'
 import { LoadingSpinner as LegacyLoadingSpinner } from '#/components/Loading/LoadingSpinnerOld'
+import { SidebarLoadingBlock } from '#/components/Sidebar'
 import type { ComponentFixture } from '#/common/component-fixtures/types'
 
 const SpinnerCell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -23,16 +24,40 @@ const SpinnerCell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </Box>
 )
 
+const freezeSvgAnimations = (root: HTMLDivElement | null) => {
+  root?.querySelectorAll('svg').forEach((svg) => {
+    svg.setCurrentTime(0)
+    svg.pauseAnimations()
+  })
+}
+
+const FrozenSvgAnimations = ({ children }: { children: React.ReactNode }) => {
+  const rootRef = React.useRef<HTMLDivElement | null>(null)
+
+  React.useLayoutEffect(() => {
+    freezeSvgAnimations(rootRef.current)
+    const timeoutId = window.setTimeout(() => {
+      freezeSvgAnimations(rootRef.current)
+    }, 0)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [])
+
+  return <Box ref={rootRef}>{children}</Box>
+}
+
 export const loadingFeedbackFixture: ComponentFixture = {
   id: 'loading-feedback',
   label: 'Loading feedback',
   description:
-    'Shared loading components across spinner, horizontal dots, and overlay states.',
+    'Shared loading components across spinner, horizontal dots, sidebar blocks, and overlay states.',
   sourceGlobs: [
     'src/components/Loading/LoadingHorizontal.tsx',
     'src/components/Loading/LoadingSpinner.tsx',
     'src/components/Loading/LoadingModal.tsx',
     'src/components/Loading/LoadingSpinnerOld.tsx',
+    'src/components/Sidebar/SidebarContentBox.tsx',
+    'src/components/Sidebar/SidebarLoadingBlock.tsx',
     'src/common/component-fixtures/fixtures/LoadingFeedbackFixture.tsx',
   ],
   states: [
@@ -113,6 +138,32 @@ export const loadingFeedbackFixture: ComponentFixture = {
             aria-label="Determinate spinner"
           />
           <Box sx={{ mt: 1, color: '#334155', fontSize: '0.8rem' }}>37 %</Box>
+        </Box>
+      ),
+    },
+    {
+      id: 'sidebar-loading-block',
+      label: 'Sidebar loading block',
+      description:
+        'Constrained full-sidebar loading shell with a fixture-frozen centered progress indicator.',
+      wrapper: FrozenSvgAnimations,
+      canvasSx: {
+        width: { mobile: '100%', desktop: 'fit-content' },
+        minWidth: 0,
+        alignItems: 'stretch',
+      },
+      render: () => (
+        <Box
+          sx={{
+            display: 'flex',
+            width: '22rem',
+            maxWidth: '100%',
+            height: '16rem',
+            overflow: 'hidden',
+            backgroundColor: '#f4f4f4',
+          }}
+        >
+          <SidebarLoadingBlock />
         </Box>
       ),
     },

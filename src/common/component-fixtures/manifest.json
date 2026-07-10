@@ -1934,12 +1934,14 @@
   {
     "id": "loading-feedback",
     "label": "Loading feedback",
-    "description": "Shared loading components across spinner, horizontal dots, and overlay states.",
+    "description": "Shared loading components across spinner, horizontal dots, sidebar blocks, and overlay states.",
     "sourceGlobs": [
       "src/components/Loading/LoadingHorizontal.tsx",
       "src/components/Loading/LoadingSpinner.tsx",
       "src/components/Loading/LoadingModal.tsx",
       "src/components/Loading/LoadingSpinnerOld.tsx",
+      "src/components/Sidebar/SidebarContentBox.tsx",
+      "src/components/Sidebar/SidebarLoadingBlock.tsx",
       "src/common/component-fixtures/fixtures/LoadingFeedbackFixture.tsx"
     ],
     "states": [
@@ -1962,6 +1964,11 @@
         "id": "spinner-determinate",
         "label": "Spinner determinate",
         "description": "Determinate spinner visual state with partial progress."
+      },
+      {
+        "id": "sidebar-loading-block",
+        "label": "Sidebar loading block",
+        "description": "Constrained full-sidebar loading shell with a fixture-frozen centered progress indicator."
       },
       {
         "id": "modal-overlay",

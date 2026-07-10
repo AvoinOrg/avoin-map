@@ -13,7 +13,10 @@ import { useAuthSession } from '#/common/auth'
 import { useAppRouteHrefBuilder } from '#/common/navigation/appRouteLinks'
 import { useAppParams, useAppRouter } from '#/common/navigation/navigation'
 import { Box } from '#/common/style/theme'
-import { SidebarContentBox } from '#/components/Sidebar'
+import {
+  SidebarContentBox,
+  SidebarLoadingBlock,
+} from '#/components/Sidebar'
 import SidebarBackgroundContent from '#/components/common/SidebarBackgroundContent'
 import AppTooltip from '#/components/common/AppTooltip'
 import { ButtonBase, IconButton } from '#/components/common/Button'
@@ -27,7 +30,6 @@ import {
   NODE_FLOW_OUTER_OFFSET,
   NODE_FLOW_OUTER_WIDTH,
 } from '#/components/common/NodeFlow'
-import { LoadingSpinner } from '#/components/Loading'
 import CheckcircleCheckedFilled from '#/components/icons/CheckcircleCheckedFilled'
 import { QuestionCircleOutline, Upload } from '#/components/icons'
 import { APP_ROUTE_KEYS } from '#/common/routing/routeMetadata'
@@ -1190,20 +1192,7 @@ const CarbonPlansPlanPage = () => {
     !hasHydrated ||
     (planConf == null && creationPlaceholderPlanConf == null)
   ) {
-    return (
-      <SidebarContentBox>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            width: '100%',
-            mt: 9,
-          }}
-        >
-          <LoadingSpinner />
-        </Box>
-      </SidebarContentBox>
-    )
+    return <SidebarLoadingBlock sx={{ mt: 9 }} />
   }
 
   return (

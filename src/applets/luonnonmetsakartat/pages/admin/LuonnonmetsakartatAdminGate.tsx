@@ -13,12 +13,14 @@ import {
 import { APP_ROUTE_KEYS } from '#/common/routing/routeMetadata'
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import { useAdminVerificationQueryOptions } from 'applets/luonnonmetsakartat/common/queries/adminVerificationQuery'
-import { SidebarContentBox } from '#/components/Sidebar'
+import {
+  SidebarContentBox,
+  SidebarLoadingBlock,
+} from '#/components/Sidebar'
 import { Box } from '#/common/style/theme'
 import { Star } from '#/components/icons'
 import TText from '#/components/common/TText'
 import { AdminVerificationStatus } from 'applets/luonnonmetsakartat/common/types'
-import LoadingBlocker from 'applets/luonnonmetsakartat/components/LoadingBlocker'
 import { useLuonnonmetsakartatMockScenarioQueryState } from 'applets/luonnonmetsakartat/common/mockScenarios/queryState'
 
 enum LocalState {
@@ -163,7 +165,7 @@ const LuonnonmetsakartatAdminGate = ({
       {localState !== LocalState.Verified && (
         <>
           {localState === LocalState.Loading && (
-            <LoadingBlocker></LoadingBlocker>
+            <SidebarLoadingBlock sx={{ mt: 3 }} />
           )}
           {localState === LocalState.NoUser && (
             <AdminGateMessage keyName="sidebar.admin.log_in_hint" />
