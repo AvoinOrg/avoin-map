@@ -30,6 +30,7 @@ import {
   UI_BASELINE_CATEGORIES,
   UI_BASELINE_NAMESPACE,
 } from '../../common/categories'
+import CarbonPlanActionRows from '../CarbonPlanActionRows'
 
 const FocusVisibleSquishedSwitch = () => {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -251,6 +252,21 @@ const ButtonsTogglesContent = () => (
           helperAriaLabel="Show disabled row action help"
           onClick={noop}
         />
+      </BaselineExample>
+      <BaselineExample title="Carbon plan action rows">
+        <Box
+          sx={{
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.75rem',
+            p: '1.5rem',
+            borderRadius: '1.25rem',
+            backgroundColor: '#e4f6d5',
+          }}
+        >
+          <CarbonPlanActionRows />
+        </Box>
       </BaselineExample>
     </BaselineSection>
 

@@ -38,6 +38,7 @@ import { Route as LocaleMapappletsUiBaselineModalsRouteImport } from './routes/$
 import { Route as LocaleMapappletsUiBaselineInputsRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/inputs'
 import { Route as LocaleMapappletsUiBaselineDropdownsRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/dropdowns'
 import { Route as LocaleMapappletsUiBaselineDrawingRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/drawing'
+import { Route as LocaleMapappletsUiBaselineContentRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/content'
 import { Route as LocaleMapappletsUiBaselineButtonsTogglesRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/buttons-toggles'
 import { Route as LocaleMapappletsUiBaselineButtonsRouteImport } from './routes/$locale/_map/(applets)/ui-baseline/buttons'
 import { Route as LocaleMapappletsCarbonReportRouteImport } from './routes/$locale/_map/(applets)/carbon/report'
@@ -218,6 +219,12 @@ const LocaleMapappletsUiBaselineDrawingRoute =
     path: '/drawing',
     getParentRoute: () => LocaleMapappletsUiBaselineRouteRoute,
   } as any)
+const LocaleMapappletsUiBaselineContentRoute =
+  LocaleMapappletsUiBaselineContentRouteImport.update({
+    id: '/content',
+    path: '/content',
+    getParentRoute: () => LocaleMapappletsUiBaselineRouteRoute,
+  } as any)
 const LocaleMapappletsUiBaselineButtonsTogglesRoute =
   LocaleMapappletsUiBaselineButtonsTogglesRouteImport.update({
     id: '/buttons-toggles',
@@ -385,6 +392,7 @@ export interface FileRoutesByFullPath {
   '/$locale/carbon/report': typeof LocaleMapappletsCarbonReportRoute
   '/$locale/ui-baseline/buttons': typeof LocaleMapappletsUiBaselineButtonsRoute
   '/$locale/ui-baseline/buttons-toggles': typeof LocaleMapappletsUiBaselineButtonsTogglesRoute
+  '/$locale/ui-baseline/content': typeof LocaleMapappletsUiBaselineContentRoute
   '/$locale/ui-baseline/drawing': typeof LocaleMapappletsUiBaselineDrawingRoute
   '/$locale/ui-baseline/dropdowns': typeof LocaleMapappletsUiBaselineDropdownsRoute
   '/$locale/ui-baseline/inputs': typeof LocaleMapappletsUiBaselineInputsRoute
@@ -421,6 +429,7 @@ export interface FileRoutesByTo {
   '/$locale/carbon/report': typeof LocaleMapappletsCarbonReportRoute
   '/$locale/ui-baseline/buttons': typeof LocaleMapappletsUiBaselineButtonsRoute
   '/$locale/ui-baseline/buttons-toggles': typeof LocaleMapappletsUiBaselineButtonsTogglesRoute
+  '/$locale/ui-baseline/content': typeof LocaleMapappletsUiBaselineContentRoute
   '/$locale/ui-baseline/drawing': typeof LocaleMapappletsUiBaselineDrawingRoute
   '/$locale/ui-baseline/dropdowns': typeof LocaleMapappletsUiBaselineDropdownsRoute
   '/$locale/ui-baseline/inputs': typeof LocaleMapappletsUiBaselineInputsRoute
@@ -467,6 +476,7 @@ export interface FileRoutesById {
   '/$locale/_map/(applets)/carbon/report': typeof LocaleMapappletsCarbonReportRoute
   '/$locale/_map/(applets)/ui-baseline/buttons': typeof LocaleMapappletsUiBaselineButtonsRoute
   '/$locale/_map/(applets)/ui-baseline/buttons-toggles': typeof LocaleMapappletsUiBaselineButtonsTogglesRoute
+  '/$locale/_map/(applets)/ui-baseline/content': typeof LocaleMapappletsUiBaselineContentRoute
   '/$locale/_map/(applets)/ui-baseline/drawing': typeof LocaleMapappletsUiBaselineDrawingRoute
   '/$locale/_map/(applets)/ui-baseline/dropdowns': typeof LocaleMapappletsUiBaselineDropdownsRoute
   '/$locale/_map/(applets)/ui-baseline/inputs': typeof LocaleMapappletsUiBaselineInputsRoute
@@ -515,6 +525,7 @@ export interface FileRouteTypes {
     | '/$locale/carbon/report'
     | '/$locale/ui-baseline/buttons'
     | '/$locale/ui-baseline/buttons-toggles'
+    | '/$locale/ui-baseline/content'
     | '/$locale/ui-baseline/drawing'
     | '/$locale/ui-baseline/dropdowns'
     | '/$locale/ui-baseline/inputs'
@@ -551,6 +562,7 @@ export interface FileRouteTypes {
     | '/$locale/carbon/report'
     | '/$locale/ui-baseline/buttons'
     | '/$locale/ui-baseline/buttons-toggles'
+    | '/$locale/ui-baseline/content'
     | '/$locale/ui-baseline/drawing'
     | '/$locale/ui-baseline/dropdowns'
     | '/$locale/ui-baseline/inputs'
@@ -596,6 +608,7 @@ export interface FileRouteTypes {
     | '/$locale/_map/(applets)/carbon/report'
     | '/$locale/_map/(applets)/ui-baseline/buttons'
     | '/$locale/_map/(applets)/ui-baseline/buttons-toggles'
+    | '/$locale/_map/(applets)/ui-baseline/content'
     | '/$locale/_map/(applets)/ui-baseline/drawing'
     | '/$locale/_map/(applets)/ui-baseline/dropdowns'
     | '/$locale/_map/(applets)/ui-baseline/inputs'
@@ -871,6 +884,13 @@ declare module '@tanstack/react-router' {
       path: '/drawing'
       fullPath: '/$locale/ui-baseline/drawing'
       preLoaderRoute: typeof LocaleMapappletsUiBaselineDrawingRouteImport
+      parentRoute: typeof LocaleMapappletsUiBaselineRouteRoute
+    }
+    '/$locale/_map/(applets)/ui-baseline/content': {
+      id: '/$locale/_map/(applets)/ui-baseline/content'
+      path: '/content'
+      fullPath: '/$locale/ui-baseline/content'
+      preLoaderRoute: typeof LocaleMapappletsUiBaselineContentRouteImport
       parentRoute: typeof LocaleMapappletsUiBaselineRouteRoute
     }
     '/$locale/_map/(applets)/ui-baseline/buttons-toggles': {
@@ -1208,6 +1228,7 @@ const LocaleMapappletsLuonnonmetsakartatRouteRouteWithChildren =
 interface LocaleMapappletsUiBaselineRouteRouteChildren {
   LocaleMapappletsUiBaselineButtonsRoute: typeof LocaleMapappletsUiBaselineButtonsRoute
   LocaleMapappletsUiBaselineButtonsTogglesRoute: typeof LocaleMapappletsUiBaselineButtonsTogglesRoute
+  LocaleMapappletsUiBaselineContentRoute: typeof LocaleMapappletsUiBaselineContentRoute
   LocaleMapappletsUiBaselineDrawingRoute: typeof LocaleMapappletsUiBaselineDrawingRoute
   LocaleMapappletsUiBaselineDropdownsRoute: typeof LocaleMapappletsUiBaselineDropdownsRoute
   LocaleMapappletsUiBaselineInputsRoute: typeof LocaleMapappletsUiBaselineInputsRoute
@@ -1224,6 +1245,8 @@ const LocaleMapappletsUiBaselineRouteRouteChildren: LocaleMapappletsUiBaselineRo
       LocaleMapappletsUiBaselineButtonsRoute,
     LocaleMapappletsUiBaselineButtonsTogglesRoute:
       LocaleMapappletsUiBaselineButtonsTogglesRoute,
+    LocaleMapappletsUiBaselineContentRoute:
+      LocaleMapappletsUiBaselineContentRoute,
     LocaleMapappletsUiBaselineDrawingRoute:
       LocaleMapappletsUiBaselineDrawingRoute,
     LocaleMapappletsUiBaselineDropdownsRoute:

@@ -182,6 +182,15 @@ const uiBaselineRoutesById = {
       home: true,
     },
   }),
+  uiBaselineContent: makeRoute({
+    id: 'uiBaselineContent',
+    fullPath: '/$locale/ui-baseline/content',
+    metadata: {
+      key: APP_ROUTE_KEYS.UI_BASELINE_CONTENT,
+      appletNamespace: 'ui-baseline',
+      variant: 'canonical',
+    },
+  }),
   uiBaselineDropdowns: makeRoute({
     id: 'uiBaselineDropdowns',
     fullPath: '/$locale/ui-baseline/dropdowns',
@@ -310,6 +319,7 @@ describe('appRouteLinks', () => {
 
   it.each([
     [APP_ROUTE_KEYS.UI_BASELINE_HOME, '/fi/ui-baseline'],
+    [APP_ROUTE_KEYS.UI_BASELINE_CONTENT, '/fi/ui-baseline/content'],
     [APP_ROUTE_KEYS.UI_BASELINE_DROPDOWNS, '/fi/ui-baseline/dropdowns'],
     [
       APP_ROUTE_KEYS.UI_BASELINE_BUTTONS_TOGGLES,

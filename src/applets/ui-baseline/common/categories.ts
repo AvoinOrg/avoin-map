@@ -6,6 +6,7 @@ import {
 export const UI_BASELINE_NAMESPACE = 'ui-baseline'
 
 export type UiBaselineCategoryId =
+  | 'content'
   | 'dropdowns'
   | 'buttons-toggles'
   | 'inputs'
@@ -23,6 +24,12 @@ export type UiBaselineCategory = {
 }
 
 export const UI_BASELINE_CATEGORIES: UiBaselineCategory[] = [
+  {
+    id: 'content',
+    routeKey: APP_ROUTE_KEYS.UI_BASELINE_CONTENT,
+    breadcrumbKey: 'route.breadcrumb.content',
+    labelKey: 'home.categories.content',
+  },
   {
     id: 'dropdowns',
     routeKey: APP_ROUTE_KEYS.UI_BASELINE_DROPDOWNS,
