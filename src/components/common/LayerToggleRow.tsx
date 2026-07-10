@@ -49,7 +49,8 @@ const LAYER_ROW_HORIZONTAL_PADDING = '0.375rem'
 const LAYER_STATUS_ICON_SLOT_WIDTH = '2rem'
 const LAYER_STATUS_ICON_SLOT_HEIGHT = '1.5rem'
 const LAYER_STATUS_ICON_SIZE = '1rem'
-const LAYER_STATUS_ICON_HIGHLIGHT_SIZE = '1.5rem'
+const LAYER_STATUS_ICON_HIGHLIGHT_WIDTH = '1.5rem'
+const LAYER_STATUS_ICON_HIGHLIGHT_HEIGHT = '1rem'
 const LAYER_STATUS_ICON_SLOT_MARGIN_RIGHT = '0.75rem'
 const LAYER_TRAILING_ACTION_SLOT_SIZE = '1.75rem'
 const LAYER_TRAILING_ACTION_ICON_SIZE = '1rem'
@@ -94,9 +95,10 @@ const ColoredVisibleIcon = ({ color }: { color: string }) => {
 
   return (
     <Box
+      data-slot="layer-visible-highlight"
       sx={{
-        width: LAYER_STATUS_ICON_HIGHLIGHT_SIZE,
-        height: LAYER_STATUS_ICON_HIGHLIGHT_SIZE,
+        width: LAYER_STATUS_ICON_HIGHLIGHT_WIDTH,
+        height: LAYER_STATUS_ICON_HIGHLIGHT_HEIGHT,
         boxSizing: 'border-box',
         borderRadius: '50%',
         background: color,
@@ -134,6 +136,7 @@ const LayerStatusIcon = ({
 
   return (
     <Box
+      data-slot="layer-status-icon-slot"
       sx={[
         {
           width: LAYER_STATUS_ICON_SLOT_WIDTH,

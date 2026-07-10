@@ -12,7 +12,7 @@ import {
   Box,
   toSxArray,
 } from '#/common/style/theme'
-import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'
+import { SHARED_CONTROL_INFINITE_BORDER_RADIUS } from '#/common/style/theme/constants'
 import { CircleArrowRight } from '#/components/icons'
 
 type AppSxItem = Exclude<NonNullable<AppSxProps>, readonly unknown[]>
@@ -32,17 +32,17 @@ const toButtonLinkRowSxArray = (sx?: AppSxProps) =>
 
 const BASE_ROW_SX = {
   width: '100%',
-  minHeight: '2.5rem',
+  minHeight: '2.25rem',
   boxSizing: 'border-box',
   px: '1rem',
-  py: '0.625rem',
+  py: '0.375rem',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
   gap: '1rem',
   border: '1px solid',
   borderColor: (theme: AppTheme) => theme.palette.neutral.main,
-  borderRadius: SHARED_CONTROL_BORDER_RADIUS,
+  borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
   backgroundColor: (theme: AppTheme) =>
     theme.palette.neutral.lighter ?? theme.palette.common.white,
   color: (theme: AppTheme) => theme.palette.neutral.darker ?? '#111111',

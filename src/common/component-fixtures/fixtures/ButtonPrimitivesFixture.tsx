@@ -1,8 +1,10 @@
 import React from 'react'
 
+import { APP_ROUTE_KEYS } from '#/common/routing/routeMetadata'
 import { Box } from '#/common/style/theme'
 import type { ComponentFixture } from '#/common/component-fixtures/types'
 import { Button, IconButton } from '#/components/common/Button'
+import { ButtonLinkRow } from '#/components/common/ButtonLinkRow'
 import { CircleArrowRight, EyeOpen, InfoCircle } from '#/components/icons'
 
 const noop = () => {}
@@ -55,6 +57,8 @@ export const buttonPrimitivesFixture: ComponentFixture = {
   sourceGlobs: [
     'src/components/common/Button.tsx',
     'src/components/common/Button.test.tsx',
+    'src/components/common/ButtonLinkRow.tsx',
+    'src/components/common/ButtonLinkRow.test.tsx',
     'src/common/component-fixtures/fixtures/ButtonPrimitivesFixture.tsx',
   ],
   wrapper: ButtonFixtureWrapper,
@@ -72,6 +76,50 @@ export const buttonPrimitivesFixture: ComponentFixture = {
         >
           Inspect layer
         </Button>
+      ),
+    },
+    {
+      id: 'button-icon-balance',
+      label: 'Button icon balance',
+      description: 'Start-only and end-only icon slots beside button text.',
+      render: () => (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+            gap: 2,
+          }}
+        >
+          <Button
+            variant="contained"
+            startIcon={<InfoCircle aria-hidden="true" sx={fixtureIconSx} />}
+            onClick={noop}
+          >
+            Start icon
+          </Button>
+          <Button
+            variant="contained"
+            endIcon={
+              <CircleArrowRight aria-hidden="true" sx={fixtureIconSx} />
+            }
+            onClick={noop}
+          >
+            End icon
+          </Button>
+        </Box>
+      ),
+    },
+    {
+      id: 'button-link-row',
+      label: 'Button link row',
+      description: 'Default shared navigation row height and pill radius.',
+      render: () => (
+        <ButtonLinkRow
+          routeKey={APP_ROUTE_KEYS.UI_BASELINE_BUTTONS_TOGGLES}
+          label="Buttons and toggles"
+        />
       ),
     },
     {

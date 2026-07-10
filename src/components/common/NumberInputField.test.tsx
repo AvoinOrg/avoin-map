@@ -175,4 +175,75 @@ describe('NumberInputField', () => {
       borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
     })
   })
+
+  it.each([
+    {
+      size: 'medium' as const,
+      arrowWidth: '9px',
+      arrowHeight: '6px',
+      controlHeight: 'calc(2rem / 2)',
+      adornmentWidth: '1.75rem',
+    },
+    {
+      size: 'small' as const,
+      arrowWidth: '8px',
+      arrowHeight: '5px',
+      controlHeight: 'calc(1.5rem / 2)',
+      adornmentWidth: '1.5rem',
+    },
+  ])(
+    'offsets only the $size arrow glyphs while preserving stepper hit areas',
+    ({
+      size,
+      arrowWidth,
+      arrowHeight,
+      controlHeight,
+      adornmentWidth,
+    }) => {
+      renderWithTheme(
+        <NumberInputField
+          size={size}
+          label={`${size} amount`}
+          value={5}
+          locale="en-US"
+          onValueChange={() => {}}
+        />
+      )
+
+      const increment = screen.getByRole('button', { name: 'Increase' })
+      const decrement = screen.getByRole('button', { name: 'Decrease' })
+      const incrementArrow = increment.querySelector('svg')
+      const decrementArrow = decrement.querySelector('svg')
+      const adornment = increment.closest(
+        '[data-slot="number-input-adornment"]'
+      )
+
+      expect(incrementArrow).toHaveStyle({
+        width: arrowWidth,
+        height: arrowHeight,
+        transform: 'translateX(-1px)',
+      })
+      expect(decrementArrow).toHaveStyle({
+        width: arrowWidth,
+        height: arrowHeight,
+        transform: 'translate(-1px, -1px)',
+      })
+      expect(increment).toHaveStyle({
+        width: '100%',
+        minWidth: '100%',
+        height: controlHeight,
+        minHeight: controlHeight,
+      })
+      expect(decrement).toHaveStyle({
+        width: '100%',
+        minWidth: '100%',
+        height: controlHeight,
+        minHeight: controlHeight,
+      })
+      expect(adornment).toHaveStyle({
+        width: adornmentWidth,
+        minWidth: adornmentWidth,
+      })
+    }
+  )
 })

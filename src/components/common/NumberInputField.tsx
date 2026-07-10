@@ -65,11 +65,21 @@ const normalizeStepValue = <T extends number | null | undefined>(
 
 const disabledSelector = '&:disabled, &[data-disabled], &[aria-disabled="true"]'
 
-const arrowIconSx = (size: NumberInputFieldProps['size']) =>
+const getArrowIconSx = ({
+  direction,
+  size,
+}: {
+  direction: 'up' | 'down'
+  size: NumberInputFieldProps['size']
+}) =>
   ({
     width: size === 'small' ? 8 : 9,
     height: size === 'small' ? 5 : 6,
     color: 'currentColor',
+    transform:
+      direction === 'down'
+        ? 'translate(-1px, -1px)'
+        : 'translateX(-1px)',
   }) satisfies StyleItem
 
 type NumberInputFieldProps = Omit<
@@ -392,7 +402,10 @@ export const NumberInputField = ({
                       },
                     }}
                   >
-                    <ArrowUp aria-hidden="true" sx={arrowIconSx(size)} />
+                    <ArrowUp
+                      aria-hidden="true"
+                      sx={getArrowIconSx({ direction: 'up', size })}
+                    />
                   </Box>
                 )}
               />
@@ -437,7 +450,10 @@ export const NumberInputField = ({
                       },
                     }}
                   >
-                    <ArrowDown aria-hidden="true" sx={arrowIconSx(size)} />
+                    <ArrowDown
+                      aria-hidden="true"
+                      sx={getArrowIconSx({ direction: 'down', size })}
+                    />
                   </Box>
                 )}
               />

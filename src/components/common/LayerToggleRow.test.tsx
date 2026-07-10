@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
 
 import {
@@ -151,5 +152,68 @@ describe('LayerToggleRowLink', () => {
         .getByRole('link', { name: 'Open layer' })
         .getAttribute('data-route-params')
     ).toBe(JSON.stringify({ folayerIdSlug: 'layer-1' }))
+  })
+})
+
+describe('LayerStatusIcon', () => {
+  it('shares the colored visible highlight and fixed status slot geometry across variants', () => {
+    render(
+      <>
+        <LayerToggleRow
+          label="Base layer"
+          status="visible"
+          color="#2f855a"
+          ariaLabel="Toggle base layer"
+          onToggle={() => {}}
+        />
+        <LayerToggleRowAccordion
+          label="Accordion layer"
+          status="visible"
+          color="#2f855a"
+          expanded={false}
+          ariaLabel="Toggle accordion layer"
+          onToggle={() => {}}
+        >
+          <div>Accordion content</div>
+        </LayerToggleRowAccordion>
+        <LayerToggleRowLink
+          label="Link layer"
+          status="visible"
+          color="#2f855a"
+          ariaLabel="Toggle link layer"
+          onToggle={() => {}}
+          linkAriaLabel="Open link layer"
+          linkProps={{
+            routeKey: APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN_FOLAYER,
+            routeParams: { folayerIdSlug: 'layer-1' },
+          }}
+        />
+      </>
+    )
+
+    const highlights = document.querySelectorAll(
+      '[data-slot="layer-visible-highlight"]'
+    )
+    const statusSlots = document.querySelectorAll(
+      '[data-slot="layer-status-icon-slot"]'
+    )
+
+    expect(highlights).toHaveLength(3)
+    expect(statusSlots).toHaveLength(3)
+
+    highlights.forEach((highlight) => {
+      expect(highlight).toHaveStyle({
+        width: '1.5rem',
+        height: '1rem',
+        borderRadius: '50%',
+      })
+    })
+    statusSlots.forEach((slot) => {
+      expect(slot).toHaveStyle({
+        width: '2rem',
+        height: '1.5rem',
+        marginRight: '0.75rem',
+      })
+    })
   })
 })

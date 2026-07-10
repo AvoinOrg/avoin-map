@@ -41,6 +41,72 @@ const LayerRowFixtureWrapper = ({
   </Box>
 )
 
+const ColoredLayerRowVariantComparison = () => (
+  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+    <Box>
+      <LayerToggleRow
+        label="Base layer"
+        status="hidden"
+        ariaLabel="Toggle hidden base layer fixture"
+        onToggle={noop}
+      />
+      <LayerToggleRow
+        label="Base layer"
+        status="visible"
+        color="#2f855a"
+        ariaLabel="Toggle colored base layer fixture"
+        onToggle={noop}
+      />
+    </Box>
+    <Box>
+      <LayerToggleRowAccordion
+        label="Accordion layer"
+        status="hidden"
+        expanded={false}
+        ariaLabel="Toggle hidden accordion layer fixture"
+        onToggle={noop}
+      >
+        <LayerRowText>Accordion content</LayerRowText>
+      </LayerToggleRowAccordion>
+      <LayerToggleRowAccordion
+        label="Accordion layer"
+        status="visible"
+        color="#2f855a"
+        expanded={false}
+        ariaLabel="Toggle colored accordion layer fixture"
+        onToggle={noop}
+      >
+        <LayerRowText>Accordion content</LayerRowText>
+      </LayerToggleRowAccordion>
+    </Box>
+    <Box>
+      <LayerToggleRowLink
+        label="Link layer"
+        status="hidden"
+        ariaLabel="Toggle hidden link layer fixture"
+        onToggle={noop}
+        linkAriaLabel="Open hidden link layer fixture"
+        linkProps={{
+          routeKey: APP_ROUTE_KEYS.MAIN_FORESTS,
+          onClick: (event) => event.preventDefault(),
+        }}
+      />
+      <LayerToggleRowLink
+        label="Link layer"
+        status="visible"
+        color="#2f855a"
+        ariaLabel="Toggle colored link layer fixture"
+        onToggle={noop}
+        linkAriaLabel="Open colored link layer fixture"
+        linkProps={{
+          routeKey: APP_ROUTE_KEYS.MAIN_FORESTS,
+          onClick: (event) => event.preventDefault(),
+        }}
+      />
+    </Box>
+  </Box>
+)
+
 export const layerToggleRowFixture: ComponentFixture = {
   id: 'layer-toggle-row',
   label: 'LayerToggleRow',
@@ -187,6 +253,13 @@ export const layerToggleRowFixture: ComponentFixture = {
           />
         </Box>
       ),
+    },
+    {
+      id: 'colored-variant-alignment',
+      label: 'Colored variant alignment',
+      description:
+        'Hidden and colored-visible base, accordion, and link rows keep stable geometry.',
+      render: () => <ColoredLayerRowVariantComparison />,
     },
     {
       id: 'accordion-closed',

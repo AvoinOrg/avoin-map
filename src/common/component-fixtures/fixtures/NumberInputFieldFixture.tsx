@@ -164,18 +164,45 @@ export const numberInputFieldFixture: ComponentFixture = {
     {
       id: 'increment-decrement',
       label: 'Increment and decrement',
-      description: 'Stepper layout with visible increment and decrement buttons.',
+      description:
+        'Medium and small stepper glyph alignment inside unchanged controls.',
       render: () => (
-        <NumberInputField
-          label="Stepper"
-          value={5}
-          min={0}
-          max={10}
-          step={1}
-          locale="en-US"
-          onValueChange={noop}
-          inputSlotProps={{ 'aria-label': 'Stepper' }}
-        />
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'flex-end',
+            justifyContent: 'center',
+            gap: 2,
+          }}
+        >
+          <NumberInputField
+            label="Medium stepper"
+            value={5}
+            min={0}
+            max={10}
+            step={1}
+            locale="en-US"
+            onValueChange={noop}
+            containerSx={{ width: '8rem' }}
+            formControlSx={{ width: '8rem' }}
+            inputSx={{ width: '8rem' }}
+            inputSlotProps={{ 'aria-label': 'Medium stepper' }}
+          />
+          <NumberInputField
+            size="small"
+            label="Small stepper"
+            value={5}
+            min={0}
+            max={10}
+            step={1}
+            locale="en-US"
+            onValueChange={noop}
+            containerSx={{ width: '7rem' }}
+            formControlSx={{ width: '7rem' }}
+            inputSx={{ width: '7rem' }}
+            inputSlotProps={{ 'aria-label': 'Small stepper' }}
+          />
+        </Box>
       ),
     },
     {

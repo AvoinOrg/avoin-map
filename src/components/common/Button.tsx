@@ -369,7 +369,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 0.75,
+            gap: 1,
             borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
             fontWeight: 500,
             letterSpacing: 0,

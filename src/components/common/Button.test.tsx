@@ -100,6 +100,39 @@ describe('Button', () => {
     })
   })
 
+  it('uses an eight pixel gap for start and end icon slots', () => {
+    renderWithTheme(
+      <Button
+        startIcon={<span data-testid="start-icon">start</span>}
+        endIcon={<span data-testid="end-icon">end</span>}
+      >
+        Inspect layer
+      </Button>
+    )
+
+    const button = screen.getByRole('button', { name: 'start Inspect layer end' })
+    const startIcon = screen.getByTestId('start-icon')
+    const endIcon = screen.getByTestId('end-icon')
+
+    expect(button).toHaveStyle({ gap: '8px' })
+    expect(
+      startIcon.compareDocumentPosition(endIcon) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+  })
+
+  it('applies caller gap overrides after the shared icon spacing', () => {
+    renderWithTheme(
+      <Button startIcon={<span>start</span>} sx={{ gap: 2 }}>
+        Custom spacing
+      </Button>
+    )
+
+    expect(
+      screen.getByRole('button', { name: 'start Custom spacing' })
+    ).toHaveStyle({ gap: '16px' })
+  })
+
   it('leaves icon buttons on the moderate shared radius', () => {
     renderWithTheme(
       <IconButton aria-label="Toggle layer">
