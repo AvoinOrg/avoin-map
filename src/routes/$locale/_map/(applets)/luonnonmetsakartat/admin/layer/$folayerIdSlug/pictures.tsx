@@ -26,9 +26,6 @@ export const Route = createFileRoute(
       'luonnonmetsakartat',
       'route.breadcrumb.folayer_pictures'
     ),
-    public: {
-      slug: 'pictures',
-    },
   }),
   head: () =>
     getStaticAppletHead({

@@ -113,7 +113,10 @@ standalone deployments.
   - If it does not include `main`, exactly one applet must be listed; that
     build runs in standalone mode.
 - `appletConf.json` defines applets, their Tolgee namespace (`localeNs`),
-  languages, and optional domains.
+  languages, and optional domains. A `publicRoute` object marks a public applet
+  root; its slug must match the canonical TanStack applet route folder, and its
+  legacy subpath redirects are ordered. Omitting it keeps internal and
+  development applets out of public route lookup.
 - Builds run in a temp workspace (non-destructive):
   - `yarn prebuild-dev`: downloads translations (writes `i18n/*`).
   - `yarn prebuild`: downloads translations + prepares a pruned temp workspace
@@ -148,6 +151,7 @@ standalone deployments.
 ## Assets and API copying
 
 `utils/scripts/prepareGeneratedPublicAssets.js` generates Start build assets:
+
 - `src/public/**/*` into `public/files/*`
 - selected applet `public` folders into `public/files/<applet>/*`
 - `node_modules/rtree-sql.js/dist/sql-wasm.wasm` into
@@ -236,6 +240,7 @@ automation may interact with the same browser. See `AGENTS.md` for the detailed
 runbook and host Chrome startup command.
 
 Local tooling artifacts are gitignored under `.dev/`:
+
 - Visual regression outputs: `.dev/visual-regression/`
 - Host browser storage snapshots: `.dev/browser-state/`
 - Live shared-browser lock/session/log files: `.dev/live-browser/`

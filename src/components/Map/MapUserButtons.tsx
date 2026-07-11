@@ -15,7 +15,9 @@ import {
 } from '#/common/routing/appletBuildMode'
 import {
   getAppletNamespaceForRouteSlug,
-  getPublicAppletRouteSlug,
+  getPublicRouteFact,
+  isPublicAppletNamespace,
+  type PublicAppletNamespace,
 } from '#/common/routing/publicRoutes'
 import { Home } from '#/components/icons'
 import { MapButton } from './MapButton'
@@ -59,17 +61,7 @@ const localeMenuItemSx = {
 const buttonTypeProps = { type: 'button' } as const
 
 const MAIN_NAMESPACE = 'main'
-const APPLET_NAMESPACES = [
-  'energy',
-  'carbon',
-  'luonnonmetsakartat',
-] as const
-
-type AppletNamespace = (typeof APPLET_NAMESPACES)[number]
-type ActiveNamespace = typeof MAIN_NAMESPACE | AppletNamespace
-
-const isAppletNamespace = (value: string): value is AppletNamespace =>
-  APPLET_NAMESPACES.includes(value as AppletNamespace)
+type ActiveNamespace = typeof MAIN_NAMESPACE | PublicAppletNamespace
 
 const getStandaloneAppletNamespace = (): ActiveNamespace | null => {
   if (compiledApplets.length !== 1 || compiledApplets[0] === MAIN_NAMESPACE) {
@@ -77,7 +69,7 @@ const getStandaloneAppletNamespace = (): ActiveNamespace | null => {
   }
 
   const [namespace] = compiledApplets
-  return isAppletNamespace(namespace) ? namespace : null
+  return isPublicAppletNamespace(namespace) ? namespace : null
 }
 
 const getLocalizedLabel = ({
@@ -146,9 +138,7 @@ export const MapUserButtons = ({
 
     const appletNamespace = getAppletNamespaceForRouteSlug(firstSegment)
 
-    return appletNamespace && isAppletNamespace(appletNamespace)
-      ? appletNamespace
-      : MAIN_NAMESPACE
+    return appletNamespace ?? MAIN_NAMESPACE
   }, [pathnameWithoutLocale, standaloneAppletNamespace])
 
   const supportedLocales = useMemo(() => {
@@ -168,7 +158,7 @@ export const MapUserButtons = ({
     standaloneAppletNamespace != null ||
     isBaseDomainForApplet
       ? '/'
-      : `/${getPublicAppletRouteSlug(activeNamespace)}`
+      : `/${getPublicRouteFact(activeNamespace)!.slug}`
 
   const showHomeButton = pathnameWithoutLocale !== homePathWithoutLocale
 

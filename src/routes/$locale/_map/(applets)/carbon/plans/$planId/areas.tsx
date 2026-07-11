@@ -4,7 +4,6 @@ import CarbonPlansPlanAreasPage from 'applets/carbon/pages/plans/plan/areas/Carb
 import {
   APP_ROUTE_KEYS,
   defineAppRouteStaticData,
-  publicRouteConfig,
   routeTextKey,
 } from '#/common/routing/routeMetadata'
 
@@ -17,9 +16,6 @@ export const Route = createFileRoute(
     variant: 'canonical',
     title: routeTextKey('hiilikartta', 'route.breadcrumb.plan_areas'),
     breadcrumb: routeTextKey('hiilikartta', 'route.breadcrumb.plan_areas'),
-    public: publicRouteConfig({
-      slug: 'areas',
-    }),
   }),
   component: CarbonPlansPlanAreasPage,
 })

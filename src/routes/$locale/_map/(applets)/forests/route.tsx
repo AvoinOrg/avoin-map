@@ -16,9 +16,6 @@ export const Route = createFileRoute(
     variant: 'canonical',
     title: routeTextKey('avoin-map', 'sidebar.forests'),
     breadcrumb: routeTextKey('avoin-map', 'sidebar.forests'),
-    public: {
-      slug: 'forests',
-    },
   }),
   component: ForestsShell,
 })

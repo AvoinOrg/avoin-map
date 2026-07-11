@@ -1,6 +1,7 @@
 import { DEFAULT_LOCALE } from '#/common/navigation/tolgee/shared'
 import {
   getAppletRouteSlugInfo,
+  normalizeLegacyAppletRootSubpathSegments,
   normalizeLegacyAppletSubpathSegments,
 } from './publicRoutes'
 
@@ -68,14 +69,6 @@ const normalizeCompiledApplets = (compiledApplets?: string[]) => {
     .filter(Boolean)
 }
 
-export const REQUEST_ROUTING_APPLET_NAMESPACES = Object.keys(conf).filter(
-  (namespace) => namespace !== MAIN_NAMESPACE
-)
-
-const knownApplets = new Set(
-  REQUEST_ROUTING_APPLET_NAMESPACES
-)
-
 export const getLocalesForRequestNamespace = (namespace: string) =>
   conf[namespace.toLowerCase()]?.langs ?? []
 
@@ -88,10 +81,7 @@ const isLocaleLike = (segment: string | undefined): segment is string =>
 const findAppletInfoFromSegment = (segment: string | undefined) => {
   if (!segment) return null
 
-  const info = getAppletRouteSlugInfo(segment.toLowerCase())
-  if (!info || !knownApplets.has(info.namespace)) return null
-
-  return info
+  return getAppletRouteSlugInfo(segment.toLowerCase())
 }
 
 const parseUrl = (url: string | URL) =>
@@ -146,15 +136,7 @@ const normalizeAppletRootAliasSegments = ({
   namespace: string
   segments: string[]
 }) => {
-  const [first] = segments
-
-  if (namespace === 'carbon') {
-    return first === 'kaavat' || first === 'raportti'
-      ? normalizeAppletTailSegments(namespace, segments)
-      : segments
-  }
-
-  return segments
+  return normalizeLegacyAppletRootSubpathSegments({ namespace, segments })
 }
 
 const getAppletRootRedirectTailSegments = ({

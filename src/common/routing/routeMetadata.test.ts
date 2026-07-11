@@ -36,9 +36,6 @@ describe('routeMetadata', () => {
                 appletNamespace: 'carbon',
                 variant: 'canonical',
                 home: true,
-                public: {
-                  slug: 'carbon',
-                },
               },
             },
           },
@@ -86,7 +83,7 @@ describe('routeMetadata', () => {
     ])
 
     expect(index[APP_ROUTE_KEYS.MAIN_HOME]?.appletNamespace).toBe('main')
-    expect(index[APP_ROUTE_KEYS.CARBON_HOME]?.public?.slug).toBe('carbon')
+    expect(index[APP_ROUTE_KEYS.CARBON_HOME]?.home).toBe(true)
     expect(index[APP_ROUTE_KEYS.CARBON_REPORT]?.breadcrumb?.key).toBe(
       'route.breadcrumb.report'
     )

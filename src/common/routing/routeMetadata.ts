@@ -55,9 +55,6 @@ export type AppRouteMetadata = {
   home?: boolean
   breadcrumb?: RouteTextKey
   title?: RouteTextKey
-  public?: {
-    slug?: string
-  }
 }
 
 export type AppRouteStaticData = {
@@ -68,10 +65,6 @@ export const defineAppRouteStaticData = (metadata: AppRouteMetadata): AppRouteSt
   ({ appRoute: metadata })
 
 export const routeTextKey = (ns: string, key: string): RouteTextKey => ({ ns, key })
-
-export const publicRouteConfig = (
-  config: AppRouteMetadata['public']
-): AppRouteMetadata['public'] => config
 
 export const getAppRouteMetadata = (
   route: unknown
@@ -148,21 +141,6 @@ const isRouteTextKey = (value: unknown): value is RouteTextKey =>
   typeof value.ns === 'string' &&
   typeof value.key === 'string'
 
-const isPublicMetadata = (
-  value: unknown
-): value is AppRouteMetadata['public'] => {
-  if (value === undefined) return true
-  if (!isRecord(value)) return false
-
-  const slug = (value as { slug?: unknown }).slug
-
-  if (slug !== undefined && typeof slug !== 'string') {
-    return false
-  }
-
-  return true
-}
-
 const isAppRouteMetadata = (value: unknown): value is AppRouteMetadata => {
   if (!isRecord(value)) {
     return false
@@ -182,8 +160,6 @@ const isAppRouteMetadata = (value: unknown): value is AppRouteMetadata => {
     return false
   if (metadata.title !== undefined && !isRouteTextKey(metadata.title))
     return false
-
-  if (!isPublicMetadata(metadata.public)) return false
 
   return true
 }

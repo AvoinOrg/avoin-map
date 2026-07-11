@@ -1,5 +1,5 @@
 const appletConf = require('../../appletConf.json')
-const { getPublicAppletRouteSlug } = require('../scripts/publicRoutes')
+const { getRouteFolderForApplet } = require('../scripts/publicRoutes')
 const {
   DEFAULT_MASK_SELECTORS,
   DEFAULT_WAIT_FOR_SELECTOR,
@@ -142,7 +142,7 @@ const buildRootVisualScenarios = ({ env = process.env, baseUrl = '' } = {}) => {
         id: `${applet}-root`,
         applet,
         locale,
-        path: `/${locale}/${getPublicAppletRouteSlug(applet)}`,
+        path: `/${locale}/${getRouteFolderForApplet(applet)}`,
         baseUrl,
         requiresWebGL: true,
       })

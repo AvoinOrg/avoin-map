@@ -11,9 +11,7 @@ const {
   getAppletSourceRoot,
   getCompiledAppletConfig,
 } = require('./appletBuildConfig')
-const {
-  getPublicAppletRouteSlug,
-} = require('./publicRoutes')
+const { getRouteFolderForApplet } = require('./publicRoutes')
 
 const defaultProjectRoot = path.join(__dirname, '..', '..')
 
@@ -69,7 +67,7 @@ const normalizeName = (name) => {
 }
 
 const getStartRouteFolderNamesForNamespace = (namespace) => [
-  getPublicAppletRouteSlug(namespace),
+  getRouteFolderForApplet(namespace),
 ]
 
 const getStandaloneSourceRouteFolderName = ({ buildConfig }) => {
@@ -80,7 +78,7 @@ const getStandaloneSourceRouteFolderName = ({ buildConfig }) => {
     )
   }
 
-  return getPublicAppletRouteSlug(namespace)
+  return getRouteFolderForApplet(namespace)
 }
 
 const rmDir = (dirPath) => {
@@ -367,7 +365,7 @@ const pruneCanonicalStartAppletRoutes = ({
   if (buildConfig.includesMain) {
     const missingRoutes = buildConfig.compiledNonMain.filter(
       (namespace) =>
-        !existingRouteDirNames.has(getPublicAppletRouteSlug(namespace))
+        !existingRouteDirNames.has(getRouteFolderForApplet(namespace))
     )
 
     if (missingRoutes.length > 0) {

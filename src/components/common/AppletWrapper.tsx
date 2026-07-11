@@ -16,7 +16,7 @@ import {
   IntoSidebarHeaderSlot,
 } from '#/components/Sidebar/sidebarSlots'
 import { Box, toSxArray, type AppSxProps } from '#/common/style/theme'
-import { getPublicAppletRouteSlug } from '#/common/routing/publicRoutes'
+import { getRouteFolderForApplet } from '#/common/routing/publicRoutes'
 
 type AppSxItem = Exclude<NonNullable<AppSxProps>, readonly unknown[]>
 const toAppSxItemArray = (sx?: AppSxProps) => toSxArray(sx) as AppSxItem[]
@@ -149,7 +149,7 @@ const AppletWrapper = ({
   useEffect(() => {
     let appletPath = subPath
     if (subPath == null && mapContext != null) {
-      appletPath = getPublicAppletRouteSlug(mapContext)
+      appletPath = getRouteFolderForApplet(mapContext)
     }
     const path = window.location.pathname
     // Split the path into segments based on "/"

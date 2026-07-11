@@ -20,9 +20,6 @@ export const Route = createFileRoute(
     variant: 'canonical',
     title: routeTextKey('luonnonmetsakartat', 'route.breadcrumb.admin'),
     breadcrumb: routeTextKey('luonnonmetsakartat', 'route.breadcrumb.admin'),
-    public: {
-      slug: 'admin',
-    },
   }),
   head: () =>
     getStaticAppletHead({

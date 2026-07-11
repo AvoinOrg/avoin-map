@@ -2,27 +2,17 @@ const {
   generateNetlifyRedirects,
   parseCompiledApplets,
 } = require('./writeNetlifyRedirects')
+const manifestAppletConf = require('../../appletConf.json')
 
 const appletConf = {
-  main: {
-    localeNs: 'avoin-map',
-    langs: ['en', 'fi'],
-  },
+  ...manifestAppletConf,
   carbon: {
-    localeNs: 'hiilikartta',
-    langs: ['fi'],
-    apiRouteBase: 'hiilikartta',
-    publicFilesDir: 'hiilikartta',
+    ...manifestAppletConf.carbon,
     domains: ['hiilikartta.avoin.org'],
   },
   luonnonmetsakartat: {
-    localeNs: 'luonnonmetsakartat',
-    langs: ['fi'],
+    ...manifestAppletConf.luonnonmetsakartat,
     domains: ['luonnonmetsakartat.avoin.org'],
-  },
-  energy: {
-    localeNs: 'energiakartta',
-    langs: ['fi', 'en'],
   },
 }
 
@@ -36,8 +26,7 @@ const parseGeneratedRules = (redirects) =>
       return { from, to, status }
     })
 
-const escapeRegExp = (value) =>
-  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 const matchSourcePattern = (pattern, value) => {
   const source = escapeRegExp(pattern).replace(/\\\*/g, '(?<splat>.*)')
@@ -57,6 +46,35 @@ const firstMatchingRule = (redirects, value) => {
   }
 
   return null
+}
+
+const expectOrderedCarbonRedirects = ({ redirects, fromBase, toBase }) => {
+  const expected = [
+    [`${fromBase}/kaavat/*/alueet`, `${toBase}/plans/:splat/areas`],
+    [`${fromBase}/kaavat`, `${toBase}/plans`],
+    [`${fromBase}/kaavat/*`, `${toBase}/plans/:splat`],
+    [`${fromBase}/raportti`, `${toBase}/report`],
+  ]
+  const rules = parseGeneratedRules(redirects)
+
+  for (const [index, [from, to]] of expected.entries()) {
+    expect(rules).toContainEqual({ from, to, status: '301!' })
+    if (index > 0) {
+      expect(
+        rules.findIndex(
+          ({ from: ruleFrom }) => ruleFrom === expected[index - 1][0]
+        )
+      ).toBeLessThan(rules.findIndex(({ from: ruleFrom }) => ruleFrom === from))
+    }
+  }
+
+  expect(
+    firstMatchingRule(redirects, `${fromBase}/kaavat/plan-1/alueet`)
+  ).toMatchObject({
+    from: `${fromBase}/kaavat/*/alueet`,
+    resolvedTo: `${toBase}/plans/plan-1/areas`,
+    status: '301!',
+  })
 }
 
 describe('writeNetlifyRedirects', () => {
@@ -110,6 +128,11 @@ describe('writeNetlifyRedirects', () => {
     expect(redirects).toContain(
       `${hiilikarttaDomain}/fi/carbon/raportti /fi/carbon/report 301!`
     )
+    expectOrderedCarbonRedirects({
+      redirects,
+      fromBase: `${hiilikarttaDomain}/fi/carbon`,
+      toBase: '/fi/carbon',
+    })
     expect(redirects).toContain(
       `${hiilikarttaDomain}/fi/carbon ${mainBaseUrl}/fi/carbon 200!`
     )
@@ -190,8 +213,7 @@ describe('writeNetlifyRedirects', () => {
       )
     ).toMatchObject({
       from: `${luonnonmetsakartatDomain}/fi/luonnonmetsakartat/*`,
-      resolvedTo:
-        `${mainBaseUrl}/fi/luonnonmetsakartat/admin/taso/layer-1/asetukset`,
+      resolvedTo: `${mainBaseUrl}/fi/luonnonmetsakartat/admin/taso/layer-1/asetukset`,
       status: '200!',
     })
     expect(
@@ -214,6 +236,25 @@ describe('writeNetlifyRedirects', () => {
       resolvedTo: '/fi/admin/taso/layer-1/asetukset',
       status: '301!',
     })
+  })
+
+  it('does not generate applet-domain rules for non-public applets', () => {
+    const internalDomain = 'https://ui-baseline.example.test'
+    const redirects = generateNetlifyRedirects({
+      appletConf: {
+        ...appletConf,
+        'ui-baseline': {
+          ...appletConf['ui-baseline'],
+          domains: [internalDomain],
+        },
+      },
+      baseUrl: mainBaseUrl,
+      compiledApplets: parseCompiledApplets('main,ui-baseline'),
+      env: {},
+    })
+
+    expect(redirects).not.toContain(internalDomain)
+    expect(redirects).toContain('/* /.netlify/functions/server 200')
   })
 
   it('generates env-backed main-mode applet-domain rules without old prefix or root behavior', () => {
@@ -252,15 +293,21 @@ describe('writeNetlifyRedirects', () => {
       `${hiilikarttaDomain}/fi/api/* ` +
         `${standaloneBaseUrl}/api/hiilikartta/:splat 200!`
     )
-    expect(redirects).toContain(
-      `${hiilikarttaDomain}/fi/kaavat /fi/plans 301!`
-    )
+    expect(redirects).toContain(`${hiilikarttaDomain}/fi/kaavat /fi/plans 301!`)
     expect(redirects).toContain(
       `${hiilikarttaDomain}/fi/carbon/kaavat /fi/plans 301!`
     )
-    expect(redirects).toContain(
-      `${hiilikarttaDomain}/fi/carbon /fi 301!`
-    )
+    expectOrderedCarbonRedirects({
+      redirects,
+      fromBase: `${hiilikarttaDomain}/fi/carbon`,
+      toBase: '/fi',
+    })
+    expectOrderedCarbonRedirects({
+      redirects,
+      fromBase: `${hiilikarttaDomain}/fi`,
+      toBase: '/fi',
+    })
+    expect(redirects).toContain(`${hiilikarttaDomain}/fi/carbon /fi 301!`)
     expect(redirects).toContain(
       `${hiilikarttaDomain}/fi/carbon/* /fi/:splat 301!`
     )
@@ -325,7 +372,8 @@ describe('writeNetlifyRedirects', () => {
       firstMatchingRule(redirects, `${energyDomain}/en/energymap/test`)
     ).toMatchObject({
       from: `${energyDomain}/en/*`,
-      resolvedTo: 'https://energy-context.example.netlify.app/en/energymap/test',
+      resolvedTo:
+        'https://energy-context.example.netlify.app/en/energymap/test',
       status: '200!',
     })
   })

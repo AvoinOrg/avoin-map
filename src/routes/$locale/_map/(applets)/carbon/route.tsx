@@ -7,7 +7,6 @@ import {
   APP_ROUTE_KEYS,
   defineAppRouteStaticData,
   routeTextKey,
-  publicRouteConfig,
 } from '#/common/routing/routeMetadata'
 
 export const Route = createFileRoute(
@@ -20,9 +19,6 @@ export const Route = createFileRoute(
     home: true,
     title: routeTextKey('hiilikartta', 'route.breadcrumb.home'),
     breadcrumb: routeTextKey('hiilikartta', 'route.breadcrumb.home'),
-    public: publicRouteConfig({
-      slug: 'carbon',
-    }),
   }),
   beforeLoad: ({ params, location }) => {
     guardAppletLocale({

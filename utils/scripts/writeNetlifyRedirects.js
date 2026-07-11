@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const dotenv = require('dotenv')
 const { parseCompiledApplets } = require('./appletBuildConfig')
-const { getPublicAppletRouteSlug } = require('./publicRoutes')
+const { createPublicRouteContract } = require('./publicRoutes')
 
 dotenv.config({ quiet: true })
 
@@ -146,10 +146,8 @@ const getDomains = ({ namespace, appletConf, env }) => [
 const getApiRouteBase = ({ namespace, appletConf }) =>
   appletConf[namespace]?.apiRouteBase || namespace
 
-const getSelectedAppletNamespaces = ({ appletConf, compiledApplets }) => {
-  const knownNamespaces = Object.keys(appletConf).filter(
-    (namespace) => namespace !== MAIN_APPLET
-  )
+const getSelectedAppletNamespaces = ({ compiledApplets, publicRoutes }) => {
+  const knownNamespaces = publicRoutes.PUBLIC_APPLET_NAMESPACES
 
   if (compiledApplets.length === 0) {
     return {
@@ -159,8 +157,8 @@ const getSelectedAppletNamespaces = ({ appletConf, compiledApplets }) => {
   }
 
   const includesMain = compiledApplets.includes(MAIN_APPLET)
-  const selected = compiledApplets.filter(
-    (namespace) => namespace !== MAIN_APPLET && appletConf[namespace]
+  const selected = compiledApplets.filter((namespace) =>
+    publicRoutes.isPublicAppletNamespace(namespace)
   )
 
   return {
@@ -207,68 +205,30 @@ const addExactAndSplatRules = ({
   })
 }
 
-const addLegacyHiilikarttaPlanSubpathRedirects = ({
-  fromBase,
-  rules,
-  toBase,
-}) => {
-  addVisibleRedirectRule({
-    rules,
-    from: `${fromBase}/kaavat/*/alueet`,
-    to: `${toBase}/plans/:splat/areas`,
-  })
-  addVisibleRedirectRule({
-    rules,
-    from: `${fromBase}/kaavat`,
-    to: `${toBase}/plans`,
-  })
-  addVisibleRedirectRule({
-    rules,
-    from: `${fromBase}/kaavat/*`,
-    to: `${toBase}/plans/:splat`,
-  })
-}
-
-const addLegacyHiilikarttaReportRedirects = ({
-  fromBase,
-  rules,
-  toBase,
-}) => {
-  addVisibleRedirectRule({
-    rules,
-    from: `${fromBase}/raportti`,
-    to: `${toBase}/report`,
-  })
-}
-
-const addLegacyHiilikarttaSubpathRedirects = ({
-  fromBase,
-  rules,
-  toBase,
-}) => {
-  addLegacyHiilikarttaPlanSubpathRedirects({ fromBase, rules, toBase })
-  addLegacyHiilikarttaReportRedirects({ fromBase, rules, toBase })
-}
-
-const addLegacySubpathRedirects = ({ namespace, fromBase, rules, toBase }) => {
-  if (namespace === 'carbon') {
-    addLegacyHiilikarttaSubpathRedirects({ fromBase, rules, toBase })
+const addLegacySubpathRedirects = ({ fromBase, patterns, rules, toBase }) => {
+  for (const pattern of patterns) {
+    addVisibleRedirectRule({
+      rules,
+      from: `${fromBase}/${pattern.from.join('/')}`,
+      to: `${toBase}/${pattern.to
+        .map((segment) => (segment === '*' ? ':splat' : segment))
+        .join('/')}`,
+    })
   }
 }
 
 const addStandaloneRootAliasRedirects = ({
-  namespace,
   fromLocaleBase,
+  patterns,
   rules,
   toLocaleBase,
 }) => {
-  if (namespace === 'carbon') {
-    addLegacyHiilikarttaSubpathRedirects({
-      fromBase: fromLocaleBase,
-      rules,
-      toBase: toLocaleBase,
-    })
-  }
+  addLegacySubpathRedirects({
+    fromBase: fromLocaleBase,
+    patterns,
+    rules,
+    toBase: toLocaleBase,
+  })
 }
 
 const addProxyRulesForDomain = ({
@@ -277,6 +237,7 @@ const addProxyRulesForDomain = ({
   domainBase,
   mode,
   namespace,
+  publicRoutes,
   rules,
 }) => {
   const defaultLocale = getDefaultLocale({ namespace, appletConf })
@@ -286,6 +247,8 @@ const addProxyRulesForDomain = ({
     appletConf,
   })
   const knownLocales = getKnownLocales(appletConf)
+  const legacySubpathRedirects =
+    publicRoutes.getLegacySubpathRedirects(namespace)
 
   for (const sourcePath of START_STATIC_SPLAT_PATHS) {
     addRule({
@@ -331,7 +294,7 @@ const addProxyRulesForDomain = ({
   }
 
   for (const locale of locales) {
-    const publicSlug = getPublicAppletRouteSlug(namespace)
+    const publicSlug = publicRoutes.getPublicAppletRouteSlug(namespace)
     const localizedAppletBase = `/${locale}/${publicSlug}`
     const apiTarget = `/api/${getApiRouteBase({
       namespace,
@@ -354,16 +317,16 @@ const addProxyRulesForDomain = ({
       mode === 'standalone' ? `/${locale}` : localizedAppletBase
 
     addLegacySubpathRedirects({
-      namespace,
       fromBase: `${domainBase}${localizedAppletBase}`,
+      patterns: legacySubpathRedirects,
       rules,
       toBase: localizedVisibleAppletBase,
     })
 
     if (mode === 'standalone') {
       addStandaloneRootAliasRedirects({
-        namespace,
         fromLocaleBase: `${domainBase}/${locale}`,
+        patterns: legacySubpathRedirects,
         rules,
         toLocaleBase: `/${locale}`,
       })
@@ -408,8 +371,8 @@ const addProxyRulesForDomain = ({
   if (mode === 'standalone') {
     for (const unsupportedLocale of knownUnsupportedLocales) {
       addStandaloneRootAliasRedirects({
-        namespace,
         fromLocaleBase: `${domainBase}/${unsupportedLocale}`,
+        patterns: legacySubpathRedirects,
         rules,
         toLocaleBase: `/${defaultLocale}`,
       })
@@ -429,8 +392,8 @@ const addProxyRulesForDomain = ({
 
   if (mode === 'standalone') {
     addStandaloneRootAliasRedirects({
-      namespace,
       fromLocaleBase: domainBase,
+      patterns: legacySubpathRedirects,
       rules,
       toLocaleBase: `/${defaultLocale}`,
     })
@@ -455,7 +418,11 @@ const generateNetlifyRedirects = ({
   env = process.env,
 }) => {
   const rules = []
-  const selected = getSelectedAppletNamespaces({ appletConf, compiledApplets })
+  const publicRoutes = createPublicRouteContract(appletConf)
+  const selected = getSelectedAppletNamespaces({
+    compiledApplets,
+    publicRoutes,
+  })
 
   for (const namespace of selected.namespaces) {
     for (const domain of getDomains({ namespace, appletConf, env })) {
@@ -469,6 +436,7 @@ const generateNetlifyRedirects = ({
           domainBase: `${protocol}://${normalizedDomain.host}`,
           mode: selected.mode,
           namespace,
+          publicRoutes,
           rules,
         })
       }
@@ -533,9 +501,11 @@ const main = () => {
   })
 
   console.log(
-    `writeNetlifyRedirects: wrote ${redirects
-      .split('\n')
-      .filter((line) => line.trim() && !line.startsWith('#')).length} rule(s) to ${outputPath}`
+    `writeNetlifyRedirects: wrote ${
+      redirects
+        .split('\n')
+        .filter((line) => line.trim() && !line.startsWith('#')).length
+    } rule(s) to ${outputPath}`
   )
 
   if (!baseUrl) {

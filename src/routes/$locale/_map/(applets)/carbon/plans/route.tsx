@@ -5,7 +5,6 @@ import {
   APP_ROUTE_KEYS,
   defineAppRouteStaticData,
   routeTextKey,
-  publicRouteConfig,
 } from '#/common/routing/routeMetadata'
 
 export const Route = createFileRoute(
@@ -17,9 +16,6 @@ export const Route = createFileRoute(
     variant: 'canonical',
     title: routeTextKey('hiilikartta', 'route.breadcrumb.plans'),
     breadcrumb: routeTextKey('hiilikartta', 'route.breadcrumb.plans'),
-    public: publicRouteConfig({
-      slug: 'plans',
-    }),
   }),
   component: CarbonPlansShell,
 })

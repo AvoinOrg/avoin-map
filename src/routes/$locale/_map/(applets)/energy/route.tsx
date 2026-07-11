@@ -10,7 +10,6 @@ import {
   APP_ROUTE_KEYS,
   defineAppRouteStaticData,
   routeTextKey,
-  publicRouteConfig,
 } from '#/common/routing/routeMetadata'
 
 export const Route = createFileRoute(
@@ -23,9 +22,6 @@ export const Route = createFileRoute(
     home: true,
     title: routeTextKey('energiakartta', 'sidebar.title'),
     breadcrumb: routeTextKey('energiakartta', 'sidebar.title'),
-    public: publicRouteConfig({
-      slug: 'energy',
-    }),
   }),
   beforeLoad: ({ params, location }) => {
     guardAppletLocale({

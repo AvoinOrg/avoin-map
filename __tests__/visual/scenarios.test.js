@@ -1,13 +1,15 @@
 const {
   CARBON_MOCK_SCENARIO_SET: REGISTERED_CARBON_MOCK_SCENARIO_SET,
   COMPONENT_FIXTURE_SCENARIO_SET,
-  LUONNONMETSAKARTAT_MOCK_SCENARIO_SET: REGISTERED_LUONNONMETSAKARTAT_MOCK_SCENARIO_SET,
+  LUONNONMETSAKARTAT_MOCK_SCENARIO_SET:
+    REGISTERED_LUONNONMETSAKARTAT_MOCK_SCENARIO_SET,
   SUPPORTED_SCENARIO_SETS,
   buildVisualScenarios,
   getCompiledApplets,
   isStandaloneAppletBuild,
   resolveScenarioSet,
 } = require('../../utils/visual/scenarios')
+const { getAppletRouteSlugInfo } = require('../../utils/scripts/publicRoutes')
 const {
   CARBON_MOCK_MASK_SELECTORS,
   CARBON_MOCK_SCENARIO_SET,
@@ -18,7 +20,9 @@ const {
   LUONNONMETSAKARTAT_MOCK_SCENARIO_SET,
 } = require('../../utils/visual/luonnonmetsakartatMockScenarios')
 const { DEFAULT_MASK_SELECTORS } = require('../../utils/visual/constants')
-const { componentFixtureMetadata } = require('../../src/common/component-fixtures/metadata')
+const {
+  componentFixtureMetadata,
+} = require('../../src/common/component-fixtures/metadata')
 const packageJson = require('../../package.json')
 const {
   MOCK_COMPARISON_PLAN_SERVER_ID,
@@ -38,9 +42,7 @@ const {
   MOCK_LUONNONMETSAKARTAT_STATE_QUERY_PARAM,
   MOCK_RESET_QUERY_PARAM,
 } = require('../../src/applets/luonnonmetsakartat/common/mockScenarios/config')
-const {
-  MOCK_AUTH_QUERY_PARAM,
-} = require('../../src/common/auth/mock')
+const { MOCK_AUTH_QUERY_PARAM } = require('../../src/common/auth/mock')
 
 const CARBON_MOCK_BASE_URL = 'http://127.0.0.1:3000'
 const CARBON_MOCK_ENV = {
@@ -75,7 +77,7 @@ const getScenarioPathname = (scenario) => getScenarioUrl(scenario).pathname
 describe('visual scenarios', () => {
   test('builds main-mode root scenarios for compiled applets', () => {
     const env = {
-      NEXT_PUBLIC_COMPILED_APPLETS: 'main,energy,carbon',
+      NEXT_PUBLIC_COMPILED_APPLETS: 'main,energy,carbon,luonnonmetsakartat',
     }
 
     const scenarios = buildVisualScenarios({
@@ -87,6 +89,7 @@ describe('visual scenarios', () => {
       'main-root',
       'energy-root',
       'carbon-root',
+      'luonnonmetsakartat-root',
     ])
 
     expect(scenarios.find((s) => s.id === 'main-root').url).toBe(
@@ -98,6 +101,21 @@ describe('visual scenarios', () => {
     expect(scenarios.find((s) => s.id === 'carbon-root').url).toBe(
       'http://127.0.0.1:3000/fi/carbon'
     )
+    expect(scenarios.find((s) => s.id === 'luonnonmetsakartat-root').url).toBe(
+      'http://127.0.0.1:3000/fi/luonnonmetsakartat'
+    )
+  })
+
+  test('uses namespace route folders without making internal applets public', () => {
+    const scenarios = buildVisualScenarios({
+      env: { NEXT_PUBLIC_COMPILED_APPLETS: 'main,ui-baseline' },
+      baseUrl: 'http://127.0.0.1:3000',
+    })
+
+    expect(scenarios.find((s) => s.id === 'ui-baseline-root').path).toBe(
+      '/en/ui-baseline'
+    )
+    expect(getAppletRouteSlugInfo('ui-baseline')).toBeNull()
   })
 
   test('builds standalone applet root scenario', () => {
@@ -130,10 +148,11 @@ describe('visual scenarios', () => {
       scenarioSet: COMPONENT_FIXTURE_SCENARIO_SET,
     })
 
-    const expectedFixtureScenarioIds = componentFixtureMetadata.flatMap((fixture) =>
-      fixture.states.map((state) =>
-        `component-fixture-${fixture.id}-${state.id}`
-      )
+    const expectedFixtureScenarioIds = componentFixtureMetadata.flatMap(
+      (fixture) =>
+        fixture.states.map(
+          (state) => `component-fixture-${fixture.id}-${state.id}`
+        )
     )
 
     expect(scenarios.map((scenario) => scenario.id)).toEqual(
@@ -207,12 +226,10 @@ describe('visual scenarios', () => {
     }
 
     test('registers the carbon-mocks scenario set', () => {
-      expect(REGISTERED_CARBON_MOCK_SCENARIO_SET).toBe(
-        CARBON_MOCK_SCENARIO_SET
-      )
-      expect(resolveScenarioSet({ scenarioSet: CARBON_MOCK_SCENARIO_SET })).toBe(
-        CARBON_MOCK_SCENARIO_SET
-      )
+      expect(REGISTERED_CARBON_MOCK_SCENARIO_SET).toBe(CARBON_MOCK_SCENARIO_SET)
+      expect(
+        resolveScenarioSet({ scenarioSet: CARBON_MOCK_SCENARIO_SET })
+      ).toBe(CARBON_MOCK_SCENARIO_SET)
       expect(SUPPORTED_SCENARIO_SETS).toContain(CARBON_MOCK_SCENARIO_SET)
     })
 
@@ -335,7 +352,9 @@ describe('visual scenarios', () => {
           id: 'carbon-mocks-report-external',
         })
       )
-      expect(externalUrl.searchParams.get('planIds')).toBe(MOCK_EXTERNAL_PLAN_ID)
+      expect(externalUrl.searchParams.get('planIds')).toBe(
+        MOCK_EXTERNAL_PLAN_ID
+      )
       expect(externalUrl.searchParams.get('planIds')).not.toBe(
         MOCK_EXTERNAL_REPORT_SERVER_ID
       )
@@ -417,9 +436,7 @@ describe('visual scenarios', () => {
           id: 'carbon-mocks-save-login',
         })
       )
-      expect(saveLoginUrl.searchParams.get('mockAuth')).toBe(
-        'unauthenticated'
-      )
+      expect(saveLoginUrl.searchParams.get('mockAuth')).toBe('unauthenticated')
 
       for (const id of [
         'carbon-mocks-save-ready',
@@ -491,7 +508,9 @@ describe('visual scenarios', () => {
       expect(script).toContain('carbon-mock-smoke.js')
       expect(script).toContain('--base-url=http://127.0.0.1:3000')
       expect(script).toContain('--no-start')
-      expect(script).not.toContain('NEXT_PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED')
+      expect(script).not.toContain(
+        'NEXT_PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED'
+      )
       expect(script).not.toContain('HIILIKARTTA_MOCK_API_ENABLED')
       expect(script).not.toContain('NEXT_PUBLIC_MOCK_AUTH_ENABLED')
       expect(script).not.toContain('HIILIKARTTA_API_URL')
@@ -504,8 +523,7 @@ describe('visual scenarios', () => {
     const expectedLuonnonmetsakartatScenarioStates = {
       'luonnonmetsakartat-mocks-public-empty': 'public-empty',
       'luonnonmetsakartat-mocks-public-layers': 'public-layers',
-      'luonnonmetsakartat-mocks-admin-unauthenticated':
-        'admin-unauthenticated',
+      'luonnonmetsakartat-mocks-admin-unauthenticated': 'admin-unauthenticated',
       'luonnonmetsakartat-mocks-admin-rejected': 'admin-rejected',
       'luonnonmetsakartat-mocks-admin-errored': 'admin-errored',
       'luonnonmetsakartat-mocks-admin-empty': 'admin-empty',
@@ -584,12 +602,12 @@ describe('visual scenarios', () => {
         const expectedState =
           expectedLuonnonmetsakartatScenarioStates[scenario.id]
 
-        expect(scenario.path.startsWith(LUONNONMETSAKARTAT_MOCK_ROUTE_BASE)).toBe(
-          true
-        )
-        expect(url.pathname.startsWith(LUONNONMETSAKARTAT_MOCK_ROUTE_BASE)).toBe(
-          true
-        )
+        expect(
+          scenario.path.startsWith(LUONNONMETSAKARTAT_MOCK_ROUTE_BASE)
+        ).toBe(true)
+        expect(
+          url.pathname.startsWith(LUONNONMETSAKARTAT_MOCK_ROUTE_BASE)
+        ).toBe(true)
         expect(url.pathname).not.toMatch(/^\/fi\/admin(\/|$)/)
         expect(url.pathname).not.toMatch(/\/(tuo|taso|asetukset|kuvat)(\/|$)/)
         expect(scenario.url).toBe(
@@ -711,10 +729,7 @@ describe('visual scenarios', () => {
         'requires a main-app build with NEXT_PUBLIC_COMPILED_APPLETS including "main" and "luonnonmetsakartat"'
       )
 
-      for (const compiledApplets of [
-        'main,carbon',
-        'main,energy',
-      ]) {
+      for (const compiledApplets of ['main,carbon', 'main,energy']) {
         expect(() =>
           buildVisualScenarios({
             env: { NEXT_PUBLIC_COMPILED_APPLETS: compiledApplets },

@@ -26,9 +26,6 @@ export const Route = createFileRoute(
       'luonnonmetsakartat',
       'route.breadcrumb.folayer_settings'
     ),
-    public: {
-      slug: 'settings',
-    },
   }),
   head: () =>
     getStaticAppletHead({
