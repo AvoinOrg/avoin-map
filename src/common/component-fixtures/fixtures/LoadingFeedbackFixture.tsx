@@ -2,7 +2,6 @@ import React from 'react'
 import { Box } from '#/common/style/theme'
 import LoadingHorizontal from '#/components/Loading/LoadingHorizontal'
 import { LoadingModal, LoadingSpinner } from '#/components/Loading'
-import { LoadingSpinner as LegacyLoadingSpinner } from '#/components/Loading/LoadingSpinnerOld'
 import { SidebarLoadingBlock } from '#/components/Sidebar'
 import type { ComponentFixture } from '#/common/component-fixtures/types'
 
@@ -55,7 +54,6 @@ export const loadingFeedbackFixture: ComponentFixture = {
     'src/components/Loading/LoadingHorizontal.tsx',
     'src/components/Loading/LoadingSpinner.tsx',
     'src/components/Loading/LoadingModal.tsx',
-    'src/components/Loading/LoadingSpinnerOld.tsx',
     'src/components/Sidebar/SidebarContentBox.tsx',
     'src/components/Sidebar/SidebarLoadingBlock.tsx',
     'src/common/component-fixtures/fixtures/LoadingFeedbackFixture.tsx',
@@ -173,16 +171,6 @@ export const loadingFeedbackFixture: ComponentFixture = {
       description:
         'Full-viewport loading modal overlay with centered secondary spinner.',
       render: () => <LoadingModal />,
-    },
-    {
-      id: 'legacy-ellipsis',
-      label: 'Legacy ellipsis spinner',
-      description: 'Compatibility ellipsis implementation for `LoadingSpinnerOld`.',
-      render: () => (
-        <Box sx={{ p: 2 }}>
-          <LegacyLoadingSpinner />
-        </Box>
-      ),
     },
   ],
 }

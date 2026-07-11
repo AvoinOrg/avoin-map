@@ -1939,7 +1939,6 @@
       "src/components/Loading/LoadingHorizontal.tsx",
       "src/components/Loading/LoadingSpinner.tsx",
       "src/components/Loading/LoadingModal.tsx",
-      "src/components/Loading/LoadingSpinnerOld.tsx",
       "src/components/Sidebar/SidebarContentBox.tsx",
       "src/components/Sidebar/SidebarLoadingBlock.tsx",
       "src/common/component-fixtures/fixtures/LoadingFeedbackFixture.tsx"
@@ -1974,11 +1973,6 @@
         "id": "modal-overlay",
         "label": "Loading modal overlay",
         "description": "Full-viewport loading modal overlay with centered secondary spinner."
-      },
-      {
-        "id": "legacy-ellipsis",
-        "label": "Legacy ellipsis spinner",
-        "description": "Compatibility ellipsis implementation for `LoadingSpinnerOld`."
       }
     ]
   },
