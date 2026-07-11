@@ -41,7 +41,6 @@ and applet Zustand stores where parity work has accepted those routes.
 ```text
 src/routes/__root.tsx
 src/routes/index.tsx
-src/routes/-helpers/scaffoldLabels.ts
 src/routes/$locale/route.tsx
 src/routes/$locale/_map/route.tsx
 src/routes/$locale/_map/(applets)/hiilikartta/route.tsx

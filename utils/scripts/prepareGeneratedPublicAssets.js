@@ -27,15 +27,6 @@ const copyDirectoryContents = ({ from, to }) => {
 const getPublicFilesDir = ({ appletConf, namespace }) =>
   appletConf[namespace]?.publicFilesDir || namespace
 
-const assertNoStaleUiApiCopySource = () => {
-  const staleUiApiRoot = path.join(projectRoot, 'src', 'app', '(ui)')
-  if (!fs.existsSync(staleUiApiRoot)) return
-
-  die(
-    `prepareGeneratedPublicAssets: found stale CopyPlugin API source at ${staleUiApiRoot}. Add an explicit Start-compatible API copy mechanism before building.`
-  )
-}
-
 const main = () => {
   let buildConfig
   try {
@@ -46,8 +37,6 @@ const main = () => {
   } catch (error) {
     die(error.message)
   }
-
-  assertNoStaleUiApiCopySource()
 
   fs.rmSync(filesOut, { recursive: true, force: true })
   fs.rmSync(libOut, { recursive: true, force: true })

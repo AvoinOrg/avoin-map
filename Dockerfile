@@ -54,7 +54,7 @@ RUN if ! getent passwd node >/dev/null; then \
     fi && \
     usermod --shell /bin/bash node
 
-RUN corepack enable && corepack prepare yarn@3.6.0 --activate
+RUN corepack enable && corepack prepare yarn@4.12.0 --activate
 
 # A quick and dirty fix to prevent watchpack errors.
 # TODO: figure out why it's scanning root. Using different user does not help.
