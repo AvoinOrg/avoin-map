@@ -305,9 +305,6 @@ const CarbonReportPage = () => {
   //   }
   // }, [])
 
-  // useEffect(() => {
-  //   setMapLibraryMode('maplibre')
-  // }, [])
   return (
     <SidebarBoundary id="hiilikartta-report-none" mode="none">
       <FullscreenPage

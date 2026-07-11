@@ -302,6 +302,9 @@ export const appGlobalStyles: GlobalStylesProps<AppTheme>['styles'] = {
     WebkitFontSmoothing: 'antialiased',
     MozOsxFontSmoothing: 'grayscale',
   },
+  'button, input, select, textarea': {
+    fontFamily: 'inherit',
+  },
   a: {
     color: 'inherit',
     textDecoration: 'inherit',

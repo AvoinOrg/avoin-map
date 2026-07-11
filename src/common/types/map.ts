@@ -110,7 +110,6 @@ export type LayerOptions = {
   multiSelectable: boolean
   hoverPointer: boolean
   popupOpts: PopupOpts | null
-  useMb: boolean
 }
 
 export type LayerOptionsObj = {
@@ -427,8 +426,6 @@ export type OverlayMessage = {
   message: string | null
   layerGroupId: LayerGroupId
 }
-
-export type MapLibraryMode = 'hybrid' | 'maplibre'
 
 // Queue priority is used to determine the order in which functions are executed.
 // Low priority functions, such as layer styling, might depend on high priority functions.

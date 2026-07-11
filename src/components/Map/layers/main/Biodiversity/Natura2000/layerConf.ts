@@ -76,6 +76,6 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
   return style
 }
 
-const layerConf = { id: id, style: getStyle, useMb: true } as LayerConf
+const layerConf = { id: id, style: getStyle } as LayerConf
 
 export default layerConf

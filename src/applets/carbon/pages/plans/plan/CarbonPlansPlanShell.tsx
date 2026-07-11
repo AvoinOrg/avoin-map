@@ -198,9 +198,6 @@ const CarbonPlansPlanShell = () => {
     }
   }, [])
 
-  // useEffect(() => {
-  //   setMapLibraryMode('maplibre')
-  // }, [])
   return <Outlet />
 }
 

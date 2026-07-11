@@ -9,6 +9,7 @@ import {
   useTheme,
 } from '#/common/style/theme'
 import type { AppTheme } from '#/common/style/theme/system'
+import { appGlobalStyles } from './theme'
 
 const ThemeProbe = () => {
   const theme = useTheme<AppTheme>()
@@ -77,5 +78,13 @@ describe('MUI System foundation theme interoperability', () => {
     )
 
     expect(document.querySelector('[data-testid="system-box"]')).toBeInTheDocument()
+  })
+
+  it('keeps native form controls on the application font family', () => {
+    expect(appGlobalStyles).toMatchObject({
+      'button, input, select, textarea': {
+        fontFamily: 'inherit',
+      },
+    })
   })
 })

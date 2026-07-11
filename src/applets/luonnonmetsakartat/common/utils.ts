@@ -504,7 +504,6 @@ export const createFolayerConf = async ({
     id: groupId,
     style: style,
     eventHandlers: eventHandlers,
-    useMb: true,
     popupOpts: {
       component: isAdmin ? AreaModalAdmin : AreaModal,
       componentProps: {

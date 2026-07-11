@@ -106,7 +106,6 @@ const layerConf = {
   id: id,
   style: getStyle,
   popup: Popup,
-  useMb: true,
 } as LayerConf
 
 export default layerConf

@@ -676,7 +676,6 @@ export const createMapFeatureSlice: (
         })
       )
     },
-    // _addStyleToOl: async (
   }
 
   return { ...vars, ...actions }
