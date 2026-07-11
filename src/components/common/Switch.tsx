@@ -42,6 +42,7 @@ const baseSwitchSx = (theme: AppTheme) => ({
   padding: 0,
   position: 'relative',
   display: 'inline-flex',
+  flexShrink: 0,
   alignItems: 'center',
   cursor: 'pointer',
   userSelect: 'none',

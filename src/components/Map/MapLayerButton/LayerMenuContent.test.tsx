@@ -30,15 +30,21 @@ jest.mock('#/components/common/TText', () => {
 jest.mock('#/components/common/Button', () => ({
   IconButton: ({
     children,
+    sx,
     ...props
   }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
-    sx?: unknown
+    sx?: { height?: number; mr?: string; width?: number }
   }) => {
-    const { sx: ignoredSx, ...buttonProps } = props
-    void ignoredSx
-
     return (
-      <button type="button" {...buttonProps}>
+      <button
+        type="button"
+        {...props}
+        style={{
+          height: sx?.height,
+          marginRight: sx?.mr,
+          width: sx?.width,
+        }}
+      >
         {children}
       </button>
     )
@@ -62,7 +68,6 @@ jest.mock('overlayscrollbars-react', () => {
     }) => <div>{children}</div>,
   }
 })
-
 
 const normalLayer: ListedLayerMenuItem = {
   id: 'normal-layer',
@@ -106,7 +111,10 @@ const accordionLayer: ListedLayerMenuItem = {
   content: <div>Accordion body</div>,
 }
 
-const renderLayerMenu = (items: ListedLayerMenuItem[]) => {
+const renderLayerMenu = (
+  items: ListedLayerMenuItem[],
+  onClose: () => void = () => {}
+) => {
   return render(
     <LayerMenuContent
       headerLabel="Layers"
@@ -114,12 +122,46 @@ const renderLayerMenu = (items: ListedLayerMenuItem[]) => {
       visibleLayerGroupIds={[]}
       opacityLabel="Opacity"
       onToggleLayer={() => {}}
-      onClose={() => {}}
+      onClose={onClose}
     />
   )
 }
 
 describe('LayerMenuContent', () => {
+  it('uses the shared header inset and offsets the close surface by the glyph half-gap', () => {
+    const handleClose = jest.fn()
+    const { container } = renderLayerMenu([normalLayer], handleClose)
+
+    const header = container.querySelector('[data-slot="layer-menu-header"]')
+    const title = container.querySelector('[data-slot="layer-menu-title"]')
+    const closeButton = screen.getByRole('button', {
+      name: 'avoin-map:map.buttons.menu.close',
+    })
+    const closeGlyph = closeButton.querySelector(
+      '[data-slot="layer-menu-close-glyph"]'
+    )
+
+    expect(header).toHaveStyle({
+      paddingLeft: '24px',
+      paddingRight: '24px',
+    })
+    expect(title).toBeInTheDocument()
+    expect(closeButton).toHaveAttribute(
+      'data-slot',
+      'layer-menu-close-button'
+    )
+    expect(closeButton).toHaveStyle({
+      height: '32px',
+      marginRight: '-7px',
+      width: '32px',
+    })
+    expect(closeGlyph).toBeInTheDocument()
+
+    fireEvent.click(closeButton)
+
+    expect(handleClose).toHaveBeenCalledTimes(1)
+  })
+
   it('renders standalone and accordion titles through Tolgee JSX targets', () => {
     renderLayerMenu([normalLayer, accordionLayer])
 

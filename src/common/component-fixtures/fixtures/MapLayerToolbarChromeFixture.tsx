@@ -104,6 +104,31 @@ const accordionLayer = {
   items: [overlayLayer],
 } satisfies ListedLayerMenuItem
 
+const alignmentAccordionLayer = {
+  id: 'fixture-layer-accordion-alignment',
+  type: 'accordion',
+  menuOrderLevel: LayerOrderLevel.BACKGROUND_OVERLAY,
+  translationNs: 'avoin-map',
+  titleTranslationKey:
+    'fixture.layer.accordion.with.a.deliberately.long.wrapping.title',
+  defaultExpanded: true,
+  content: (
+    <Box
+      data-slot="fixture-full-width-content"
+      sx={{
+        width: '100%',
+        boxSizing: 'border-box',
+        my: 2,
+        p: 1,
+        border: '1px dashed #075CFF',
+        fontSize: '0.75rem',
+      }}
+    >
+      Full-width accordion content marker
+    </Box>
+  ),
+} satisfies ListedLayerMenuItem
+
 const listedLayerItems = [backgroundLayer, accordionLayer, processingLayer]
 
 const setSignedOutUser = () => {
@@ -390,7 +415,10 @@ export const mapLayerMenuFixture: ComponentFixture = {
     'src/components/Map/MapLayerButton/MapLayerButtonHorizontal.tsx',
     'src/components/Map/MapLayerButton/MapLayerButtonVertical.tsx',
     'src/components/Map/MapLayerButton/LayerMenuContent.tsx',
+    'src/components/Map/MapLayerButton/LayerMenuContent.test.tsx',
     'src/components/Map/MapLayerButton/LayerItem.tsx',
+    'src/components/common/LayerMenuAccordion.tsx',
+    'src/components/common/LayerMenuAccordion.test.tsx',
     'src/common/component-fixtures/fixtures/MapLayerToolbarChromeFixture.tsx',
   ],
   wrapper: ToolbarFixtureWrapper,
@@ -421,6 +449,14 @@ export const mapLayerMenuFixture: ComponentFixture = {
       description: 'Menu content constrained for mobile visual capture.',
       canvasSx: { minWidth: 320, p: 0 },
       render: () => <LayerMenuState visibleIds={['fixture-background']} />,
+    },
+    {
+      id: 'alignment-expanded',
+      label: 'Expanded alignment',
+      description:
+        'Menu title, wrapping accordion title, glyph edges, and full-width content marker.',
+      canvasSx: { minWidth: 320, p: 0 },
+      render: () => <LayerMenuState items={[alignmentAccordionLayer]} />,
     },
     {
       id: 'visible-row',

@@ -35,10 +35,12 @@ const SwitchWithLabel = ({
   return (
     <Box
       component="label"
+      data-slot="switch-with-label-root"
       sx={[
         {
           m: 0,
           display: 'flex',
+          flexShrink: 0,
           flexDirection: 'row',
           alignItems: 'center',
           '&:hover': {

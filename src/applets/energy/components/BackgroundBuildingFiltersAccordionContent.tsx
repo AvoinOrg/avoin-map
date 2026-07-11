@@ -135,8 +135,6 @@ const BackgroundBuildingFiltersAccordionContent = () => {
         pt: '2.375rem',
         pb: '2.875rem',
         px: '0.25rem',
-        width: '15.5rem',
-        maxWidth: '100%',
         display: 'flex',
         flexDirection: 'column',
         gap: '1.625rem',
@@ -166,14 +164,8 @@ const BackgroundBuildingFiltersAccordionContent = () => {
             fontSize: '0.625rem',
             letterSpacing: '0.1em',
           },
-          '.MuiSelect-icon': {
-            width: '0.5rem',
-            height: '0.25rem',
-            mr: '0.75rem',
-          },
         }}
         typographySx={{
-          maxWidth: '14rem',
           whiteSpace: 'normal',
           overflowWrap: 'anywhere',
         }}

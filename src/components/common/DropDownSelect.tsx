@@ -175,10 +175,14 @@ export const DROP_DOWN_SELECT_TRIGGER_SX = {
 
 export const DROP_DOWN_SELECT_ICON_SX = {
   position: 'absolute',
-  right: '1rem',
+  right: 12,
   top: '50%',
-  width: '0.75rem',
-  height: '0.375rem',
+  width: 12,
+  height: 6,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  boxSizing: 'border-box',
   color: 'currentColor',
   pointerEvents: 'none',
 } as const
@@ -190,12 +194,26 @@ export const DROP_DOWN_SELECT_POSITIONER_SX = {
 } as const
 
 export const DROP_DOWN_SELECT_POPUP_SX = {
+  width: 'var(--anchor-width)',
+  maxWidth: '100%',
+  minWidth: 0,
   maxHeight: 'min(18rem, calc(100vh - 2rem))',
+  m: 0,
+  p: 0,
+  boxSizing: 'border-box',
   overflowY: 'auto',
   borderRadius: SHARED_CONTROL_BORDER_RADIUS,
   border: '0.1px solid #A0A0A0',
   backgroundColor: 'common.white',
   boxShadow: '0 1px 3px 0 rgba(214, 214, 214, 0.50) inset',
+} as const
+
+const DROP_DOWN_SELECT_LIST_SX = {
+  width: '100%',
+  minWidth: 0,
+  m: 0,
+  p: 0,
+  boxSizing: 'border-box',
 } as const
 
 const getSelectedContent = ({
@@ -317,6 +335,9 @@ const DropDownSelectItemContent = ({
       sx={[
         {
           m: 0,
+          width: '100%',
+          minWidth: 0,
+          boxSizing: 'border-box',
           px: 1.5,
           py: 1,
           minHeight: '2rem',
@@ -570,7 +591,15 @@ const DropDownSelect = ({
                   />
                 )}
               >
-                <BaseSelect.List>
+                <BaseSelect.List
+                  render={(listProps) => (
+                    <Box
+                      {...listProps}
+                      data-slot="list"
+                      sx={DROP_DOWN_SELECT_LIST_SX}
+                    />
+                  )}
+                >
                   {menuEntries.map((item) => (
                     <BaseSelect.Item
                       key={item.key}
@@ -626,6 +655,7 @@ const DropDownSelect = ({
 
   const controlRow = (
     <Box
+      data-slot="select-wrapper"
       sx={[
         {
           position: 'relative',
@@ -657,7 +687,10 @@ const DropDownSelect = ({
   }
 
   return (
-    <Box sx={[{ maxWidth: '100%' }, ...toComponentSxArray(sx)]}>
+    <Box
+      data-slot="select-wrapper"
+      sx={[{ maxWidth: '100%' }, ...toComponentSxArray(sx)]}
+    >
       <Box sx={DROP_DOWN_SELECT_HEADER_SX}>
         <Box
           id={labelId}

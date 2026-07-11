@@ -21,6 +21,62 @@ const renderWithTheme = (ui: React.ReactElement) => {
 }
 
 describe('DropDownSelectInset', () => {
+  it('keeps outer, select wrapper, trigger, and side-label styles independent', () => {
+    const { container } = renderWithTheme(
+      <DropDownSelectInset
+        value="1970"
+        options={[{ value: '1970', label: '1970 - 1979' }]}
+        onChange={() => {}}
+        label="Rakennusvuosi"
+        ariaLabel="Styled rakennusvuosi"
+        sx={{ backgroundColor: 'rgb(240, 241, 242)' }}
+        selectWrapperSx={{ width: '123px' }}
+        selectSx={{ height: '27px' }}
+        labelSx={{ color: 'rgb(12, 34, 56)' }}
+      />
+    )
+
+    const outer = container.querySelector('[data-slot="inset-select-root"]')
+    const selectWrapper = container.querySelector(
+      '[data-slot="select-wrapper"]'
+    )
+    const trigger = screen.getByRole('combobox', {
+      name: 'Styled rakennusvuosi',
+    })
+    const label = container.querySelector('[data-slot="inset-select-label"]')
+
+    expect(outer).toHaveStyle({ backgroundColor: 'rgb(240, 241, 242)' })
+    expect(selectWrapper).toHaveStyle({ width: '123px' })
+    expect(trigger).toHaveStyle({ height: '27px' })
+    expect(label).toHaveStyle({ color: 'rgb(12, 34, 56)' })
+    expect(outer).not.toHaveStyle({ width: '123px' })
+    expect(selectWrapper).not.toHaveStyle({ height: '27px' })
+  })
+
+  it('wraps the side label naturally by default', () => {
+    const { container } = renderWithTheme(
+      <DropDownSelectInset
+        value="1970"
+        options={[{ value: '1970', label: '1970 - 1979' }]}
+        onChange={() => {}}
+        label="Rakennusvuosi erittäin pitkällä selitteellä"
+        ariaLabel="Wrapping rakennusvuosi"
+      />
+    )
+
+    const label = container.querySelector('[data-slot="inset-select-label"]')
+
+    expect(label).toHaveStyle({
+      overflowWrap: 'anywhere',
+      whiteSpace: 'normal',
+    })
+    expect(label).not.toHaveStyle({
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    })
+  })
+
   it('renders the select before the visible side label', () => {
     renderWithTheme(
       <DropDownSelectInset
@@ -224,8 +280,77 @@ describe('DropDownSelectInset', () => {
     expect(await screen.findByRole('option', { name: 'Solar potential' }))
       .toBeTruthy()
 
-    expect(document.querySelector('[data-slot="popup"]')).toHaveStyle({
+    const popup = document.querySelector('[data-slot="popup"]')
+    const list = document.querySelector('[data-slot="list"]')
+    const option = screen.getByRole('option', { name: 'Solar potential' })
+
+    expect(popup).toHaveStyle({
       borderRadius: SHARED_CONTROL_BORDER_RADIUS,
+      boxSizing: 'border-box',
+      margin: '0px',
+      padding: '0px',
+      width: 'var(--anchor-width)',
+    })
+    expect(list?.parentElement).toBe(popup)
+    expect(list).toHaveStyle({
+      boxSizing: 'border-box',
+      margin: '0px',
+      minWidth: '0',
+      padding: '0px',
+      width: '100%',
+    })
+    expect(option.parentElement).toBe(list)
+    expect(option).toHaveStyle({
+      boxSizing: 'border-box',
+      minWidth: '0',
+      width: '100%',
+    })
+  })
+
+  it('uses stable visible-arrow geometry in closed and open states', async () => {
+    const { rerender } = renderWithTheme(
+      <DropDownSelect
+        value="heat"
+        options={[{ value: 'heat', label: 'Heat demand' }]}
+        onChange={() => {}}
+        ariaLabel="Arrow geometry"
+        open={false}
+      />
+    )
+
+    const closedIcon = screen
+      .getByRole('combobox', { name: 'Arrow geometry' })
+      .querySelector('[data-slot="icon"]')
+
+    expect(closedIcon).toHaveStyle({
+      height: '6px',
+      right: '12px',
+      top: '50%',
+      transform: 'translateY(-50%)',
+      width: '12px',
+    })
+
+    rerender(
+      <AppThemeProvider>
+        <DropDownSelect
+          value="heat"
+          options={[{ value: 'heat', label: 'Heat demand' }]}
+          onChange={() => {}}
+          ariaLabel="Arrow geometry"
+          open
+        />
+      </AppThemeProvider>
+    )
+
+    expect(await screen.findByRole('option', { name: 'Heat demand' }))
+      .toBeTruthy()
+    expect(
+      screen
+        .getByRole('combobox', { name: 'Arrow geometry' })
+        .querySelector('[data-slot="icon"]')
+    ).toHaveStyle({
+      right: '12px',
+      transform: 'translateY(-50%) rotate(180deg)',
     })
   })
 })

@@ -174,7 +174,10 @@
       "src/components/Map/MapLayerButton/MapLayerButtonHorizontal.tsx",
       "src/components/Map/MapLayerButton/MapLayerButtonVertical.tsx",
       "src/components/Map/MapLayerButton/LayerMenuContent.tsx",
+      "src/components/Map/MapLayerButton/LayerMenuContent.test.tsx",
       "src/components/Map/MapLayerButton/LayerItem.tsx",
+      "src/components/common/LayerMenuAccordion.tsx",
+      "src/components/common/LayerMenuAccordion.test.tsx",
       "src/common/component-fixtures/fixtures/MapLayerToolbarChromeFixture.tsx"
     ],
     "states": [
@@ -199,6 +202,11 @@
         "id": "mobile-open",
         "label": "Mobile open",
         "description": "Menu content constrained for mobile visual capture."
+      },
+      {
+        "id": "alignment-expanded",
+        "label": "Expanded alignment",
+        "description": "Menu title, wrapping accordion title, glyph edges, and full-width content marker."
       },
       {
         "id": "visible-row",
@@ -362,6 +370,11 @@
         "id": "layer-menu-accordion-open",
         "label": "Layer menu accordion open",
         "description": "Open shared layer menu accordion segment."
+      },
+      {
+        "id": "layer-menu-accordion-long-open",
+        "label": "Layer menu accordion long open",
+        "description": "Wrapping accordion title and an expanded full-width child marker."
       },
       {
         "id": "legend-basic",
@@ -1160,6 +1173,17 @@
         "description": "Inset wrapper with select before the side label."
       },
       {
+        "id": "inset-long-label",
+        "label": "Inset long label",
+        "description": "Long side label wraps while independently sized wrapper and trigger stay visible."
+      },
+      {
+        "id": "inset-open",
+        "label": "Inset open",
+        "description": "Inset dropdown with its popup open for arrow and option spacing checks.",
+        "waitFor": "role=option"
+      },
+      {
         "id": "minimal-selected",
         "label": "Minimal selected",
         "description": "Compact minimal variant with selected value."
@@ -1177,6 +1201,7 @@
     "label": "DropDownMultiSelect",
     "description": "Shared multi-select dropdown states.",
     "sourceGlobs": [
+      "src/components/common/DropDownSelect.tsx",
       "src/components/common/DropDownMultiSelect.tsx",
       "src/components/icons/Checkbox.tsx",
       "src/components/icons/CheckboxChecked.tsx",
@@ -1435,6 +1460,7 @@
     "sourceGlobs": [
       "src/components/common/Switch.tsx",
       "src/components/common/SwitchWithLabel.tsx",
+      "src/components/common/SwitchWithLabel.test.tsx",
       "src/components/common/SquishedSwitchWithLabel.tsx",
       "src/components/common/CheckBoxWithLabel.tsx",
       "src/components/icons/Checkbox.tsx",
@@ -1483,6 +1509,11 @@
         "id": "switch-non-string-label",
         "label": "Switch non-string label",
         "description": "Explicit aria label for custom JSX children."
+      },
+      {
+        "id": "switch-constrained-flex",
+        "label": "Switch constrained flex",
+        "description": "Standalone and labeled switches retain their width in constrained flex rows."
       },
       {
         "id": "squished-custom-track",

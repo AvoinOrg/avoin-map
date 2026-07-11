@@ -3,6 +3,7 @@ import { Box } from '#/common/style/theme'
 import type { ComponentFixture } from '#/common/component-fixtures/types'
 import CheckBoxWithLabel from '#/components/common/CheckBoxWithLabel'
 import SquishedSwitchWithLabel from '#/components/common/SquishedSwitchWithLabel'
+import Switch from '#/components/common/Switch'
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 
 const noop = () => {}
@@ -103,6 +104,7 @@ export const booleanControlsFixture: ComponentFixture = {
   sourceGlobs: [
     'src/components/common/Switch.tsx',
     'src/components/common/SwitchWithLabel.tsx',
+    'src/components/common/SwitchWithLabel.test.tsx',
     'src/components/common/SquishedSwitchWithLabel.tsx',
     'src/components/common/CheckBoxWithLabel.tsx',
     'src/components/icons/Checkbox.tsx',
@@ -191,6 +193,44 @@ export const booleanControlsFixture: ComponentFixture = {
         >
           <Box component="span">Switch custom node</Box>
         </SquishedSwitchWithLabel>
+      ),
+    },
+    {
+      id: 'switch-constrained-flex',
+      label: 'Switch constrained flex',
+      description:
+        'Standalone and labeled switches retain their width in constrained flex rows.',
+      render: () => (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Box
+            sx={{
+              width: 160,
+              display: 'flex',
+              alignItems: 'center',
+              border: '1px dashed #075CFF',
+            }}
+          >
+            <Switch checked onChange={noop} aria-label="Constrained switch" />
+            <Box sx={{ width: 140, flexShrink: 0, fontSize: '0.625rem' }}>
+              Fixed sibling
+            </Box>
+          </Box>
+          <Box
+            sx={{
+              width: 160,
+              display: 'flex',
+              alignItems: 'center',
+              border: '1px dashed #075CFF',
+            }}
+          >
+            <SwitchWithLabel checked onChange={noop}>
+              Labeled control
+            </SwitchWithLabel>
+            <Box sx={{ width: 80, flexShrink: 0, fontSize: '0.625rem' }}>
+              Fixed sibling
+            </Box>
+          </Box>
+        </Box>
       ),
     },
     {

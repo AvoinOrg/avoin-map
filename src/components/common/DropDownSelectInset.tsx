@@ -8,12 +8,17 @@ type DropDownSelectProps = React.ComponentProps<typeof DropDownSelect>
 
 type DropDownSelectInsetProps = Omit<
   DropDownSelectProps,
-  'label' | 'labelSx' | 'sx'
+  'label' | 'labelSx' | 'selectSx' | 'sx'
 > & {
   label: React.ReactNode
+  /** Styles the complete inset row. */
   sx?: AppSxProps
+  /** Styles only the side label. */
   labelSx?: AppSxProps
+  /** Styles the nested select control wrapper. */
   selectWrapperSx?: AppSxProps
+  /** Styles the select trigger/pill. */
+  selectSx?: AppSxProps
 }
 
 const DropDownSelectInset = ({
@@ -28,6 +33,7 @@ const DropDownSelectInset = ({
 }: DropDownSelectInsetProps) => {
   return (
     <Box
+      data-slot="inset-select-root"
       sx={[
         {
           display: 'flex',
@@ -52,12 +58,10 @@ const DropDownSelectInset = ({
         ]}
         selectSx={[
           {
-            '&.MuiOutlinedInput-root': {
-              height: '1.375rem',
-              borderRadius: `${SHARED_CONTROL_INFINITE_BORDER_RADIUS} !important`,
-              backgroundColor: 'common.white',
-              boxShadow: 'none',
-            },
+            height: '1.375rem',
+            borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+            backgroundColor: 'common.white',
+            boxShadow: 'none',
             '& .MuiOutlinedInput-notchedOutline': {
               borderColor: '#D6D6D6',
               borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
@@ -104,6 +108,7 @@ const DropDownSelectInset = ({
       />
       <Box
         component="span"
+        data-slot="inset-select-label"
         sx={[
           {
             flex: 1,
@@ -113,9 +118,8 @@ const DropDownSelectInset = ({
             fontWeight: 700,
             lineHeight: '1.125rem',
             letterSpacing: '0.1em',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
+            whiteSpace: 'normal',
+            overflowWrap: 'anywhere',
           },
           ...toSxArray(labelSx),
         ]}

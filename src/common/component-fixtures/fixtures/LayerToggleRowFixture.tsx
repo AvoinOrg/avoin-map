@@ -368,6 +368,36 @@ export const layerToggleRowFixture: ComponentFixture = {
       ),
     },
     {
+      id: 'layer-menu-accordion-long-open',
+      label: 'Layer menu accordion long open',
+      description:
+        'Wrapping accordion title and an expanded full-width child marker.',
+      canvasSx: {
+        minWidth: 280,
+      },
+      render: () => (
+        <LayerMenuAccordion
+          id="fixture-layer-menu-long-open"
+          title="Building background filters with a deliberately long title"
+          ariaLabel="Toggle long building layers fixture"
+          defaultExpanded
+        >
+          <Box
+            data-slot="fixture-full-width-content"
+            sx={{
+              width: '100%',
+              boxSizing: 'border-box',
+              my: 1,
+              p: 1,
+              border: '1px dashed #075CFF',
+            }}
+          >
+            Full-width content marker
+          </Box>
+        </LayerMenuAccordion>
+      ),
+    },
+    {
       id: 'legend-basic',
       label: 'Legend basic',
       description: 'Simple legend container with color swatches.',

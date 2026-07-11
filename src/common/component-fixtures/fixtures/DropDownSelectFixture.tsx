@@ -222,6 +222,42 @@ export const dropDownSelectFixture: ComponentFixture = {
       ),
     },
     {
+      id: 'inset-long-label',
+      label: 'Inset long label',
+      description:
+        'Long side label wraps while independently sized wrapper and trigger stay visible.',
+      canvasSx: { minWidth: 320 },
+      render: () => (
+        <DropDownSelectInset
+          value="solar"
+          options={selectOptions}
+          onChange={noop}
+          label="Solar suitability for buildings with a deliberately long wrapping label"
+          ariaLabel="Long inset select"
+          selectWrapperSx={{ width: '8rem' }}
+          selectSx={{ height: '1.75rem', backgroundColor: '#F4F7FF' }}
+        />
+      ),
+    },
+    {
+      id: 'inset-open',
+      label: 'Inset open',
+      description:
+        'Inset dropdown with its popup open for arrow and option spacing checks.',
+      waitFor: 'role=option',
+      canvasSx: { minWidth: 320 },
+      render: () => (
+        <DropDownSelectInset
+          value="heat"
+          options={selectOptions}
+          onChange={noop}
+          label="Long inset label remains wrapped while the popup is open"
+          ariaLabel="Open inset select"
+          defaultOpen
+        />
+      ),
+    },
+    {
       id: 'minimal-selected',
       label: 'Minimal selected',
       description: 'Compact minimal variant with selected value.',

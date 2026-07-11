@@ -28,6 +28,16 @@ type Props = {
 
 // Mirrors standalone layer-group row segments in LayerMenuContent.
 const LAYER_MENU_ACCORDION_CONTENT_PX = 3
+const LAYER_MENU_ACCORDION_HEADER_INSET_PX = 24
+const LAYER_MENU_ACCORDION_ARROW_SURFACE_WIDTH_PX = 20
+const LAYER_MENU_ACCORDION_ARROW_GLYPH_WIDTH_PX = 9
+// Align the arrow glyph edge at 24px while retaining its larger circular
+// surface: target inset minus the centered glyph's half-gap.
+const LAYER_MENU_ACCORDION_ARROW_SURFACE_MARGIN_RIGHT_PX =
+  LAYER_MENU_ACCORDION_HEADER_INSET_PX -
+  (LAYER_MENU_ACCORDION_ARROW_SURFACE_WIDTH_PX -
+    LAYER_MENU_ACCORDION_ARROW_GLYPH_WIDTH_PX) /
+    2
 
 const LayerMenuAccordion = ({
   id,
@@ -105,14 +115,14 @@ const LayerMenuAccordion = ({
                 p: 0,
                 m: 0,
                 width: '100%',
-                height: '4.375rem',
+                height: 'auto',
                 minHeight: '4.375rem',
                 position: 'relative',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 overflow: 'hidden',
-                border: '0.2px solid #ffffff',
+                border: 0,
                 borderRadius: '0.125rem',
                 color: '#111111',
                 cursor: 'pointer',
@@ -123,7 +133,8 @@ const LayerMenuAccordion = ({
                   : 'linear-gradient(90deg, rgba(255, 255, 255, 0.86) 16%, rgba(255, 255, 255, 0.36) 53%, rgba(255, 255, 255, 0) 100%)',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.10)',
+                boxShadow:
+                  'inset 0 0 0 0.2px #ffffff, 0 2px 4px 0 rgba(0, 0, 0, 0.10)',
                 '&:focus-visible': {
                   outline: '2px solid',
                   outlineColor: 'secondary.dark',
@@ -135,16 +146,22 @@ const LayerMenuAccordion = ({
           >
             <Box
               component="span"
+              data-slot="layer-menu-accordion-title"
               sx={{
                 position: 'relative',
                 zIndex: 1,
-                px: '1.625rem',
+                flex: 1,
+                minWidth: 0,
+                px: `${LAYER_MENU_ACCORDION_HEADER_INSET_PX}px`,
+                py: 1,
                 color: '#111111',
                 fontSize: '0.75rem',
                 fontWeight: 700,
                 lineHeight: '1.125rem',
                 letterSpacing: '0.1em',
                 textTransform: 'uppercase',
+                whiteSpace: 'normal',
+                overflowWrap: 'anywhere',
               }}
             >
               {title}
@@ -152,12 +169,13 @@ const LayerMenuAccordion = ({
             <Box
               component="span"
               aria-hidden="true"
+              data-slot="layer-menu-accordion-arrow"
               sx={{
                 position: 'relative',
                 zIndex: 1,
-                mr: '0.625rem',
-                width: '1.25rem',
-                height: '1.25rem',
+                mr: `${LAYER_MENU_ACCORDION_ARROW_SURFACE_MARGIN_RIGHT_PX}px`,
+                width: LAYER_MENU_ACCORDION_ARROW_SURFACE_WIDTH_PX,
+                height: LAYER_MENU_ACCORDION_ARROW_SURFACE_WIDTH_PX,
                 borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
@@ -168,6 +186,7 @@ const LayerMenuAccordion = ({
               }}
             >
               <ArrowDown
+                data-slot="layer-menu-accordion-arrow-glyph"
                 sx={{
                   width: 9,
                   height: 5,
@@ -194,6 +213,7 @@ const LayerMenuAccordion = ({
             sx={[
               {
                 width: '100%',
+                minWidth: 0,
                 boxSizing: 'border-box',
                 px: LAYER_MENU_ACCORDION_CONTENT_PX,
                 height: 'var(--collapsible-panel-height)',
@@ -208,7 +228,17 @@ const LayerMenuAccordion = ({
           />
         )}
       >
-        {children}
+        <Box
+          data-slot="layer-menu-accordion-content"
+          sx={{
+            display: 'block',
+            width: '100%',
+            minWidth: 0,
+            boxSizing: 'border-box',
+          }}
+        >
+          {children}
+        </Box>
         {showBottomSeparator && (
           <Box
             aria-hidden="true"
