@@ -1,9 +1,10 @@
-# TanStack Start Dual-Stack Build Foundation
+# TanStack Start Build And Runtime Foundation
 
-TanStack Start owns the active local `dev`, `build`, `start`, `prebuild`,
-`prebuild-dev`, `build-prune`, and visual-script runtime path. Reusable applet
-and map source remains under `src/app`, but the live route/runtime surface is
-the Start tree under `src/routes`.
+This repository has one active application stack: TanStack Start. It owns the
+local `dev`, `build`, `start`, `prebuild`, `prebuild-dev`, `build-prune`, and
+visual-script runtime path. Routes live under `src/routes`, runtime integration
+under `src/runtime`, applet implementations under `src/applets`, and shared map
+and UI code under `src/components` and `src/common`.
 
 The Start-specific command path is now a real Vite/Nitro build and preview
 foundation. Use these scripts:
@@ -42,6 +43,8 @@ PUBLIC_COMPILED_APPLETS=carbon yarn build
 PUBLIC_COMPILED_APPLETS=luonnonmetsakartat yarn build
 ```
 
+Including `main` produces a main build and retains only the listed applets.
+Omitting `main` requires exactly one applet and produces a standalone build.
 `yarn build:netlify` runs the same contract with `START_TARGET=netlify`.
 `ui-baseline` has no `publicRoute`; it remains an internal fixture covered by
 manifest-derived selection and pruning tests rather than the deployment matrix.
@@ -118,8 +121,9 @@ Netlify-specific target:
 path in the temp workspace, no longer writes to `.next/_redirects`, and no
 longer emits `_next` asset rules. Applet-domain root, missing-locale,
 known-unsupported-locale, and standalone duplicate-namespace paths are emitted
-as visible Netlify redirects before the internal proxy rewrite rules. See
-`docs/f048-8-netlify-build-deploy-report.md` for the verified matrix.
+as visible Netlify redirects before the internal proxy rewrite rules. The dated
+`docs/f048-8-netlify-build-deploy-report.md` preserves historical migration
+evidence; the build proof above is the current contract.
 
 The Start client graph currently needs no explicit global `Buffer` polyfill.
 Vite externalizes Node built-ins such as `fs`, `path`, and `crypto` for browser
@@ -132,18 +136,17 @@ and the Start typecheck expects it to exist. ESLint ignores that generated file.
 Build outputs from Start/Nitro/Vite are ignored through `.tanstack/`,
 `.output/`, and `.nitro/`.
 
-Route-file conventions for the migration scaffold are documented in
-`docs/tanstack-start-route-conventions.md`. Start routes live under
-`src/routes`; keep reusable applet/map components under `src/app` unless a
-route/component ownership change explicitly moves them.
+Current route-file, public-route-fact, metadata, navigation, and request-routing
+conventions are documented in `docs/tanstack-start-route-conventions.md`.
 
-Later F048.8 handoffs:
+## Migration history
 
-- `F048.8.2-applet-pruning-generated-assets`: replace the top-level
-  applet-pruned `yarn build` flow with the Start output contract above and
-  decide how generated `public/files` and `public/lib` assets are prepared
-  before Start build. This child does not rewrite pruning or generated asset
-  copying.
+The F048 series established the current Start foundation. The feature references
+below are historical provenance, not current implementation handoffs:
+
+- `F048.8.2-applet-pruning-generated-assets`: replaced the top-level
+  applet-pruned build flow with the Start output contract and prepared generated
+  `public/files` and `public/lib` assets before the Start build.
 - `F048.8.3-local-runtime-docker-visual`: completed the local runtime, Docker,
   and visual-runner migration to Start-compatible commands. Docker passes
   `PORT=3000` to the preview runtime so compose can keep mapping host
@@ -174,10 +177,9 @@ Earlier migration owners:
   `F048.7-start-api-routes-proxies`.
 - Build/deploy replacement and script consolidation:
   `F048.8-start-build-deploy-pipeline`.
-- Final removal of Next-only runtime assumptions:
+- Final removal of the previous runtime assumptions:
   `F048.9-tanstack-start-final-parity`.
 
-Version note: the current latest Start/Vite docs target newer package lines
-that require Node `20.19` or `22.12`. This repo's `.nvmrc` is `v20.9.0`, so the
-bootstrap uses the newest coherent Start/Router/Vite line that keeps that
-baseline and satisfies Yarn's 30-day package age gate.
+Package baseline: this repository's `.nvmrc` is `v20.9.0`. The installed
+Start/Router/Vite line was selected to keep that baseline and satisfy Yarn's
+30-day package-age gate; recheck both constraints before upgrading it.

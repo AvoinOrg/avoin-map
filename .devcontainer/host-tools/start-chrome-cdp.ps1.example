@@ -1,5 +1,5 @@
 param(
-  [string]$StartUrl = "http://localhost:3000/fi/hiilikartta",
+  [string]$StartUrl = "http://localhost:3000/fi/carbon",
   [int]$Port = 9222,
   [string]$ProfileDir = "$env:LOCALAPPDATA\\AvoinMap-Codex-Chrome"
 )

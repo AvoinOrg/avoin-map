@@ -4,7 +4,8 @@ Use this reference for local Avoin Map UI conventions before making UI edits.
 
 ## Locate the right surface
 
-- Main app routes live under `src/applets/main`.
+- TanStack route files live under `src/routes`; main applet pages and
+  components live under `src/applets/main`.
 - Shared UI lives under `src/components`.
 - Shared routing helpers live under `src/common/routing` and `src/common/navigation`.
 - Applet-specific UI usually belongs under the relevant applet folder instead of shared components.

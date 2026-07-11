@@ -31,13 +31,14 @@ Make backend abuse materially harder by ensuring backend services are primarily 
    `/api/luonnonmetsakartat` paths; their upstream hosts are configured only by
    the server-side `HIILIKARTTA_API_URL` and `LUONNONMETSAKARTAT_API_URL`.
 2. GeoServer URLs are currently exposed to the browser via `PUBLIC_GEOSERVER_URL`.
-3. There are existing TanStack Start server routes, but they do not currently
-   form a full abuse-control layer:
+3. Existing TanStack Start server routes do not yet form a full abuse-control
+   layer:
    1. `src/routes/api/map/core/mml/tms/$z/$x/$y.ts`
    2. `src/routes/api/userinfo.ts`
-   3. `src/routes/$locale/api/data.ts` and
-      `src/routes/$locale/(map)/_map/(applets)/hiilikartta/api/data.ts`
-      (present, but current applet traffic mostly bypasses them)
+   3. `src/routes/api/hiilikartta/$.ts`, which delegates to
+      `src/applets/carbon/server/api/dataProxy.ts`
+   4. `src/routes/api/luonnonmetsakartat/$.ts`, which delegates to
+      `src/applets/luonnonmetsakartat/server/api/dataProxy.ts`
 4. The Start/Nitro server path currently has no dedicated abuse/security
    headers or proxy hardening logic.
 5. `netlify.toml` already has deploy contexts but no backend hardening strategy.
@@ -128,9 +129,10 @@ Expose only required public tile/glyph paths, deny unneeded OGC/admin paths, and
    2. return session metadata (no secrets)
 2. Optionally create `src/routes/api/security/challenge/verify.ts` for client pre-verification (if needed), otherwise verify in write route handlers directly.
 
-### Step A4: Implement hiilikartta BFF routes
+### Step A4: Harden the existing hiilikartta BFF handler
 
-1. Create proxied routes under `src/routes/api/hiilikartta/...` for:
+1. Extend the existing `src/routes/api/hiilikartta/$.ts` catch-all and its
+   `src/applets/carbon/server/api/dataProxy.ts` handler for:
    1. `GET/PUT/DELETE /plan`
    2. `GET /plan/external`
    3. `GET /user/plans`
@@ -142,9 +144,10 @@ Expose only required public tile/glyph paths, deny unneeded OGC/admin paths, and
    4. require challenge for anonymous heavy writes (`POST /calculation`, and any other heavy anonymous mutator)
    5. forward to `HIILIKARTTA_API_URL` with signed headers
 
-### Step A5: Implement luonnonmetsakartat BFF routes
+### Step A5: Harden the existing luonnonmetsakartat BFF handler
 
-1. Create proxied routes under `src/routes/api/luonnonmetsakartat/...` for:
+1. Extend the existing `src/routes/api/luonnonmetsakartat/$.ts` catch-all and
+   its `src/applets/luonnonmetsakartat/server/api/dataProxy.ts` handler for:
    1. `/layers`
    2. `/layer/:id`
    3. `/layer/:layerId/area/:featureId`
@@ -171,7 +174,7 @@ Expose only required public tile/glyph paths, deny unneeded OGC/admin paths, and
       `/api/luonnonmetsakartat`
 2. Keep direct GeoServer URL usage for tiles/glyphs (`PUBLIC_GEOSERVER_URL`) and avoid adding client-side WFS/WMS access.
 3. Update relevant files (minimum set currently identified):
-   1. hiilikartta query modules under `src/applets/hiilikartta/common/queries/*`
+   1. Hiilikartta query modules under `src/applets/carbon/common/queries/*`
    2. luonnonmetsakartat query modules under `src/applets/luonnonmetsakartat/common/queries/*`
    3. map sources and layer configs using `PUBLIC_GEOSERVER_URL`:
       1. `src/components/Map/MapHandler.tsx`
@@ -180,8 +183,8 @@ Expose only required public tile/glyph paths, deny unneeded OGC/admin paths, and
       4. `src/applets/luonnonmetsakartat/common/utils.ts`
       5. `src/applets/luonnonmetsakartat/common/queries/adminFolayerAreaQuery.tsx`
       6. `src/applets/luonnonmetsakartat/common/queries/folayerAreaQuery.tsx`
-      7. `src/applets/hiilikartta/layers/vegetationCO2.ts`
-      8. `src/applets/hiilikartta/components/CarbonMapGraph/CarbonMapGraphMap.tsx`
+      7. `src/applets/carbon/layers/vegetationCO2.ts`
+      8. `src/applets/carbon/components/CarbonMapGraph/CarbonMapGraphMap.tsx`
 
 ### Step A8: Integrate anonymous challenge only where needed
 

@@ -2,6 +2,15 @@
 
 Date: 2026-07-09
 
+> **Historical source-path notice (2026-07-11):** This dated catalogue was
+> written before applet folders were renamed to the retained TanStack Start
+> namespaces. Its `src/applets/energiakartta` and `src/applets/hiilikartta`
+> paths are historical evidence, not current implementation guidance, and its
+> future-work suggestions are superseded until they are revalidated against
+> `src/applets/energy` and `src/applets/carbon`. See `README.md` and
+> `docs/tanstack-start-route-conventions.md` for current ownership. No F070.3
+> component migration is implemented by this notice.
+
 ## Scope
 
 This is a catalogue-only audit of applet-local UI and component patterns under

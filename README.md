@@ -5,9 +5,9 @@ available at https://map.avoin.org.
 
 ## Development
 
-The app runs local development through TanStack Start via Docker Compose. The
-repository still keeps reusable applet and map source under `src/app` while the
-Start route tree owns runtime routing.
+The app runs local development through TanStack Start via Docker Compose.
+TanStack file routes own routing, while applet implementations and shared map
+and UI code remain separated by their current source domains.
 
 Create `.env` from `.env.template`, then set at least:
 
@@ -86,11 +86,14 @@ plain HTTP request.
 
 ## App structure
 
-- `src/app`: Reusable map shell source retained from the App Router tree.
-- `src/applets`: Applet roots, including the main applet.
-- `src/applets/main`: Main app pages/components.
-- `src/common`: Shared hooks, routing, store, types, utilities.
-- `src/components`: Shared UI and map components.
+- `src/applets`: Applet pages, shells, state, layers, and applet-specific code,
+  including the main applet under `src/applets/main`.
+- `src/components`: Reusable UI and map components.
+- `src/common`: Cross-applet hooks, navigation and route contracts, stores,
+  types, and utilities.
+- `src/routes`: TanStack Start page routes and server endpoints.
+- `src/runtime`: Start-specific providers, map-shell adapters, auth, metadata,
+  Tolgee static data, and server handlers.
 - `utils/scripts`: Build-time helpers (translations, folder pruning, Netlify helpers).
 - `legacy/`: Archival old implementation excluded from current app builds and
   `tsconfig.json`; full-MUI imports here are scan false positives unless this
@@ -160,9 +163,12 @@ and is not a production deployment target.
 - Route files define app navigation metadata with `staticData` via
   `defineAppRouteStaticData`; use `APP_ROUTE_KEYS` with `AppRouteLink` for
   applet-aware links.
-- `src/server.tsx` applies shared request-routing decisions for locale
-  normalization, standalone applets, and domain-based applet roots before
-  handing requests to Start.
+- `src/server.tsx` applies selection- and manifest-driven locale, public applet
+  path, legacy subpath, and standalone-root normalization before handing
+  requests to Start.
+- `utils/scripts/writeNetlifyRedirects.js` owns applet-domain redirect and
+  proxy generation. Runtime main-mode routing does not treat a configured host
+  root as an applet root.
 
 ## Assets and API copying
 
@@ -173,7 +179,6 @@ and is not a production deployment target.
 - `node_modules/rtree-sql.js/dist/sql-wasm.wasm` into
   `public/lib/sql-wasm.wasm`
 
-There is no live `src/app/(ui)` API copy source in the Start build path.
 `public/` remains generated and gitignored.
 
 ## State, data, and map

@@ -135,7 +135,7 @@ API-backed external report comparison:
 /fi/carbon/report?mockReset=1&mockCarbonState=report-single-local&planIds=mock-plan-local,mock-external-report&prevPageId=mock-local-plan&prevPageStep=areas
 ```
 
-## Canonical And Legacy Paths
+## Canonical And Retained Legacy Subpaths
 
 Primary checks should use canonical carbon paths:
 
@@ -147,11 +147,17 @@ Primary checks should use canonical carbon paths:
 /fi/carbon/report
 ```
 
-Legacy checks should only verify redirects:
+Retained compatibility checks stay under the canonical `carbon` root and only
+verify the ordered subpath redirects declared in
+`appletConf.json.publicRoute.legacySubpathRedirects`:
 
 ```text
-/fi/hiilikartta -> /fi/carbon
-/fi/hiilikartta/kaavat/mock-local-plan -> /fi/carbon/plans/mock-local-plan
-/fi/hiilikartta/kaavat/mock-local-plan/alueet -> /fi/carbon/plans/mock-local-plan/areas
-/fi/raportti?... -> /fi/carbon/report?...
+/fi/carbon/kaavat -> /fi/carbon/plans
+/fi/carbon/kaavat/mock-local-plan -> /fi/carbon/plans/mock-local-plan
+/fi/carbon/kaavat/mock-local-plan/alueet -> /fi/carbon/plans/mock-local-plan/areas
+/fi/carbon/raportti?... -> /fi/carbon/report?...
 ```
+
+The removed `hiilikartta` root slug is not a compatibility route. If a feature
+needs negative routing coverage, expect `/fi/hiilikartta` and its descendants
+to remain unrecognized rather than redirecting to Carbon.

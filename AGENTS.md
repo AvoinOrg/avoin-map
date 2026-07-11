@@ -8,11 +8,14 @@ main app or as standalone sites.
 
 ## Top-level structure
 
-- `src/app`: Reusable map shell source retained from the App Router tree.
-- `src/applets`: Applet roots, including the main applet.
-- `src/applets/main`: Main app pages/components.
-- `src/components`: Shared UI and map components.
-- `src/common`: Shared hooks, routing, store, types, and utilities.
+- `src/applets`: Applet pages, shells, state, layers, and applet-specific code.
+- `src/applets/main`: Main applet pages and components.
+- `src/components`: Reusable UI and map components.
+- `src/common`: Cross-applet hooks, navigation and routing contracts, stores,
+  types, and utilities.
+- `src/routes`: TanStack Start page routes and server endpoints.
+- `src/runtime`: Start-specific providers, map-shell adapters, auth, metadata,
+  Tolgee static data, and server handlers.
 - `utils/scripts`: Build-time helpers (translations, folder pruning, Netlify helpers).
 - `legacy/`: Archival old implementation excluded from current app builds and
   `tsconfig.json`; full-MUI imports here are scan false positives unless this
@@ -115,7 +118,8 @@ main app or as standalone sites.
   - If it does not include `main`, exactly one applet must be listed; that
     build runs in standalone mode.
 - `appletConf.json` declares applets, their Tolgee namespace (`localeNs`),
-  languages, and optional domains.
+  languages, optional domains, and canonical public URL facts under
+  `publicRoute`.
 - Builds run in a non-destructive temp workspace:
   - `yarn prebuild-dev`: downloads translations (writes `i18n/*`).
   - `yarn prebuild`: downloads translations + prepares a pruned temp workspace
@@ -147,12 +151,23 @@ fixture applet covered by unit tests, not a production deployment target.
 ## Routing
 
 - TanStack Start folder routing applies; folders in parentheses are route
-  groups and do not appear in the URL.
+  groups and do not appear in the URL. Leading-underscore layouts such as
+  `_map` are pathless and also add no public segment.
+- `src/routes` owns route configuration and imports page/shell implementations
+  from `src/applets` and `src/runtime`. Never hand-edit generated
+  `src/routeTree.gen.ts`.
+- Public applet URL facts come from `appletConf.json.publicRoute` and are
+  normalized by `src/common/routing/publicRouteContract/index.js`; runtime and
+  build adapters consume that same contract.
 - Route files define app navigation metadata with `staticData` via
   `defineAppRouteStaticData`; use `APP_ROUTE_KEYS` with `AppRouteLink` for
-  applet-aware links.
-- `src/server.tsx` normalizes locale and applet routing, handling standalone
-  applets and domain-based URLs before requests enter the Start handler.
+  links or `useAppRouteHrefBuilder` when a string href is needed.
+- `src/server.tsx` performs selection- and manifest-driven locale, canonical
+  applet path, legacy subpath, and standalone-root normalization before
+  requests enter the Start handler.
+- `utils/scripts/writeNetlifyRedirects.js` owns configured applet-domain
+  redirects and proxy rules. Runtime main mode does not infer applet-root mode
+  from the request host.
 
 ## Generated Assets
 

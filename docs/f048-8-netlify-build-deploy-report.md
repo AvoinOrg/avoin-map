@@ -2,6 +2,12 @@
 
 Date: 2026-06-24
 
+> **Historical and superseded:** This report records the F048.8 migration as it
+> stood on the date above. Its environment names, applet namespaces, command
+> transcripts, and configuration snapshots are evidence, not current guidance.
+> Use `README.md` and `docs/tanstack-start-dual-stack.md` for the active build
+> and deployment contract.
+
 ## Adapter Decision
 
 - Installed Start packages: `@tanstack/react-start@1.131.50` and

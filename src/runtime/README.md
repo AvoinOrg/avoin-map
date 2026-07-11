@@ -1,137 +1,88 @@
 # TanStack Start Runtime Notes
 
-This folder is the Start-only runtime adapter for the F048 migration.
+`src/runtime` owns Start-specific integration shared by route files. Product
+pages, applet state, and applet layers remain under `src/applets`; reusable map
+and UI components remain under `src/components`; route configuration remains
+under `src/routes`.
 
-- `ShellProvider` mounts a temporary Tolgee bridge before notifications.
-  It provides the current URL locale with empty sentinel records for the
-  `avoin-map`, `fi-forests`, and `energiakartta` namespaces so public map
-  applet wrappers can render and missing keys still surface. Full static-data,
-  SSR, and live-update behavior belongs to
-  `F048.5-tolgee-start-integration`.
-- `ShellProvider` mounts the local Better Auth `AuthSessionProvider`.
-  The temporary React auth alias used earlier in the migration has been removed;
-  migrated consumers use `#/common/auth` directly.
-- `MapShell` reuses the current client map layout so migrated public map
-  routes mount MapLibre, sidebar slots, user/UI state handlers, login modal, and
-  confirmation dialogs.
-- `src/runtime/auth` contains the Start-only Better Auth server foundation. It
-  uses Zitadel OIDC through the Generic OAuth plugin, stateless JWE cookie
-  sessions/account storage, and server helpers for normalized session and
-  access-token lookup. Later route and client migrations should consume those
-  helpers instead of legacy Auth.js APIs.
-- The current local Zitadel client is registered for the legacy callback
-  `http://localhost:3000/api/auth/callback/zitadel`. Start therefore sets the
-  Generic OAuth provider `redirectURI` to that legacy-compatible path by default
-  and `src/routes/api/auth/$.ts` rewrites it internally to
-  `/api/auth/oauth2/callback/zitadel` so Better Auth still handles the callback
-  with the Generic OAuth flow. Deployments can set `ZITADEL_REDIRECT_URI` when a
-  different callback URL is registered.
-- Local Start auth env resolution uses `BETTER_AUTH_URL` and
-  `BETTER_AUTH_SECRET` when present. Development can omit them and use
-  `http://localhost:3000` plus a stable dev-only Better Auth secret; production
-  must set explicit Better Auth values.
-- `src/routes/api/auth/$.ts` mounts the Better Auth handler directly through the
-  TanStack Start server route tree. The old Start dev proxy and App Router auth
-  wrapper have been removed.
-- `vite.config.mts` filters `better-auth` out of Vite's client
-  dependency optimizer after TanStack Start config resolution. Better Auth's
-  package metadata otherwise causes TanStack's package crawler to include it for
-  client optimization while the Start core config excludes it as server-only,
-  which crashes `yarn start:dev` with an esbuild include/external conflict.
-- Better Auth and TanStack docs rechecked on 2026-06-23 for this foundation:
-  Auth.js migration (`https://authjs.dev/getting-started/migrate-to-better-auth`),
-  Better Auth installation (`https://better-auth.com/docs/installation`),
-  TanStack Start integration (`https://better-auth.com/docs/integrations/tanstack`),
-  Generic OAuth/OIDC (`https://better-auth.com/docs/plugins/generic-oauth`),
-  session/stateless management
-  (`https://better-auth.com/docs/concepts/session-management`), options
-  (`https://better-auth.com/docs/reference/options`), and TanStack Start server
-  routes
-  (`https://tanstack.com/start/latest/docs/framework/react/guide/server-routes`).
-- The selected Start auth model intentionally has no primary database. Better
-  Auth runs in stateless mode with `session.cookieCache.strategy: 'jwe'`,
-  `refreshCache: true`, cookie-backed OAuth state, and encrypted
-  `account_data` cookies. The session cookie cache contains the Better Auth
-  session/user payload. The account cookie contains provider account data,
-  including encrypted Zitadel access-token and refresh-token material when
-  Zitadel issues it. The shared helpers never return refresh tokens.
-- Logout and revocation tradeoff: local Better Auth sign-out can clear the
-  browser's session, session-cache, OAuth-state, and account cookies. With no
-  durable session/account store or denylist, the server cannot centrally revoke
-  another browser/device session, and already issued Zitadel access tokens stay
-  valid until provider expiry. Zitadel refresh-token revocation is not
-  implemented in this child feature.
-- Cookie and header-size tradeoff: JWE hides session contents from client-side
-  inspection and prevents tampering, but provider token material in encrypted
-  account cookies can make requests and responses larger. Better Auth chunks
-  oversized account/session cookies, but browsers, proxies, and hosting layers
-  still have total cookie/header limits. A later database-backed account store
-  would be the stronger option if token size or immediate revocation becomes a
-  production requirement.
-- `getStartAccessToken` calls Better Auth's provider-token API with
-  `returnHeaders: true`. Any route that uses this helper after a refresh must
-  forward returned `Set-Cookie` headers with `appendStartAuthSetCookieHeaders`,
-  otherwise the browser keeps the stale encrypted account cookie and can repeat
-  the same refresh work or fall back into refresh errors.
-- `F048.4.2-auth-client-session-adapter` established Better Auth client/session
-  APIs against provider ID `zitadel` and base path `/api/auth`. It also owns the
-  Start sign-in, session, and sign-out UI behavior. `src/routes/api/userinfo.ts`
-  is a narrow GET-only compatibility bridge so the existing user-store handoff
-  can fetch Zitadel userinfo in the Start runtime.
-- `F048.4.3`, `F048.4.4`, and `F048.4.5` migrated the shared map,
-  Hiilikartta, and Luonnonmetsakartat auth consumers to `#/common/auth`.
-  `F048.4.6` removed the temporary auth alias, legacy type stubs, fallback
-  provider, dependency metadata, and obsolete env names.
-- `#/common/navigation/navigation` exports the TanStack Router adapter directly
-  for shared Start navigation consumers.
-- `vite.config.mts` defines only loaded `PUBLIC_*` environment variables for
-  Start client code. Unprefixed server/build values—including Tolgee and auth
-  credentials—remain outside the client define map.
-- `yarn start:build` is the accepted local Start production build foundation. It
-  emits the Nitro server entry at `.output/server/index.mjs`, public output at
-  `.output/public`, built client assets under `.output/public/assets`, and the
-  Vite manifest at `.output/public/.vite/manifest.json`.
-- `yarn start:preview` runs that Nitro server output directly. It defaults to
-  port `3002`, preserves existing `NODE_OPTIONS`, and adds Node's
-  `--conditions=production` export condition so runtime package resolution
-  matches Nitro's traced production files. Use
-  `PORT=<port> yarn start:preview` when the default port is busy. No `.output`
-  symlink repair is expected.
-- `PUBLIC_DEBUG_CLIENT_ERRORS=1` now applies to Start builds by enabling
-  browser sourcemaps and disabling client JS/CSS minification in Vite. The same
-  flag controls Start Nitro sourcemaps/minification through `nitro.config.ts`.
-- `nitro.config.ts` keeps Nitro `inlineDynamicImports` enabled so the emitted
-  server entry stays at `.output/server/index.mjs` and Nitro's static asset
-  reader resolves `.output/public` without a manual `.output` symlink repair.
-- `vite.config.mts` keeps `@visx/shape` bundled for SSR so Nitro 2.12 does
-  not emit an unusable multi-version `@visx/shape` package symlink layout in
-  `.output/server/node_modules`.
-- There is no active Start analyzer command. Add a Vite/Rollup analyzer later
-  only if bundle analysis becomes necessary again.
-- `yarn build` now uses the non-destructive applet-pruned Start wrapper:
-  translations are downloaded in the live workspace, a temp workspace is
-  pruned, `utils/scripts/prepareGeneratedPublicAssets.js` creates
-  `public/files` and `public/lib/sql-wasm.wasm` in that temp workspace,
-  `yarn start:build` emits `.output`, and the wrapper copies `.output` plus
-  generated public assets back to the live workspace. `F048.8.3` completed the
-  Docker and visual-runtime migration to the Start preview command. `F048.8.4`
-  owns Netlify presets, publish directories, redirects, and deploy build matrix
-  changes.
-- `yarn start:dev` runs the local Start dev server on port `3000`, matching the
-  Docker container's internal app port. `DEV_PORT` remains the host-facing
-  Docker Compose published port.
-- Top-level `yarn dev` now runs `yarn start:dev`, and top-level `yarn start`
-  runs the accepted `.output/server/index.mjs` preview path through
-  `yarn start:preview`.
-- `vite.config.mts` also aliases `maplibre_symbol_utils` to the package's
-  ESM entry because the package `main` bundle expects a browser-global
-  `maplibregl` during Start SSR.
-- `MapShell` imports `configureMapLibreWorker`, which points MapLibre at
-  the package's emitted CSP worker asset. This avoids the default inlined worker
-  bundle used by the Vite/Start build, which currently drops a class-field
-  helper required by vector-tile parsing.
+## Runtime ownership
 
-## Production selection commands
+- `ShellComponents/ShellProvider.tsx` composes `TolgeeAppProvider`,
+  `AuthSessionProvider`, `AppThemeProvider`, `NotificationProvider`, and a
+  stable TanStack Query client around the route tree. Localized route loaders
+  provide its Tolgee static data.
+- `ShellComponents/MapShell.tsx` mounts the shared client map layout and loads
+  the MapLibre worker configuration. The map layout includes sidebar slots,
+  user/UI state handlers, login UI, notifications, and shared dialogs.
+- `headMetadata.ts` supplies shared Start head metadata.
+- `tolgee/staticData.ts` owns server-side Tolgee static-data loading.
+- `auth` owns Better Auth and Zitadel server/session integration.
+- `api` owns shared Start server-handler implementations such as userinfo and
+  the National Land Survey tile proxy. Route entrypoints under `src/routes/api`
+  mount those handlers.
+
+## Auth and server routes
+
+Better Auth uses Zitadel OIDC through the Generic OAuth plugin. The deployment
+has no primary auth database: sessions and provider accounts use stateless JWE
+cookie storage. Session helpers normalize user/session data and access-token
+lookup without returning refresh tokens.
+
+The default Zitadel callback remains
+`/api/auth/callback/zitadel` for compatibility with existing registrations.
+`src/routes/api/auth/$.ts` rewrites it internally to Better Auth's
+`/api/auth/oauth2/callback/zitadel` handler path. Deployments can set
+`ZITADEL_REDIRECT_URI` when another callback is registered.
+
+Runtime auth configuration uses `BETTER_AUTH_URL` and `BETTER_AUTH_SECRET`.
+Development may use the local defaults implemented by the auth env resolver;
+production requires explicit values. `src/routes/api/userinfo.ts` is a
+GET-only compatibility bridge used by the current user store.
+
+`getStartAccessToken` can refresh provider tokens and return response headers.
+Callers must forward returned `Set-Cookie` values with
+`appendStartAuthSetCookieHeaders`; otherwise the browser retains stale encrypted
+account data and may repeat refresh work.
+
+Stateless storage has explicit tradeoffs. Signing out clears the current
+browser's Better Auth cookies, but without a durable session store or denylist
+the server cannot centrally revoke another device's session. Issued Zitadel
+access tokens remain valid until provider expiry. Encrypted provider data can
+also produce large cookie headers; Better Auth chunks oversized cookies, but
+browser and hosting header limits still apply.
+
+`vite.config.mts` excludes `better-auth` from Vite client dependency
+optimization after Start config resolution. Better Auth is server-only, and
+including it in both the optimizer include and external sets causes an esbuild
+conflict during `yarn start:dev`.
+
+## Local build and runtime
+
+- `yarn start:dev` runs the Start dev server on port `3000`.
+- `yarn start:build` emits `.output/server/index.mjs`, `.output/public`, client
+  assets under `.output/public/assets`, and the Vite manifest under
+  `.output/public/.vite/manifest.json`.
+- `yarn start:preview` runs `.output/server/index.mjs`, defaults to port `3002`,
+  preserves existing `NODE_OPTIONS`, and adds Node's `production` export
+  condition. Override it with `PORT=<port> yarn start:preview`.
+- Top-level `yarn dev` and `yarn start` delegate to the Start commands above.
+
+`nitro.config.ts` keeps `inlineDynamicImports` enabled so the server entry and
+static asset lookup retain the output paths above. No `.output` symlink repair
+is part of the runtime contract. `vite.config.mts` keeps `@visx/shape` bundled
+for SSR because Nitro otherwise traces incompatible versions into a package
+layout that the emitted server cannot load.
+
+`PUBLIC_DEBUG_CLIENT_ERRORS=1` enables browser and Nitro sourcemaps and disables
+client and server minification. The Start client graph currently needs no
+global `Buffer` polyfill, and there is no active bundle-analyzer command.
+
+## Applet-pruned production builds
+
+`yarn build` downloads translations, creates and prunes a temporary workspace,
+generates `public/files` and `public/lib/sql-wasm.wasm` there, runs the Start
+build, and copies `.output` plus generated public assets back to the live
+workspace. The tracked source tree is not pruned.
 
 Set server/build-only `TOLGEE_API_URL` and `TOLGEE_API_KEY`, then use the one
 canonical selection input for the supported production modes:
@@ -143,7 +94,32 @@ PUBLIC_COMPILED_APPLETS=carbon yarn build
 PUBLIC_COMPILED_APPLETS=luonnonmetsakartat yarn build
 ```
 
+Including `main` produces a main build with only selected applets retained.
+Without `main`, exactly one applet is required and the build runs in standalone
+mode. `ui-baseline` is an internal fixture, not a production deployment target.
+
 Local builds emit `.output/server/index.mjs`, `.output/public`, generated
 `public/files`, and `public/lib/sql-wasm.wasm`. `yarn build:netlify` uses the
 same selection with `START_TARGET=netlify` and emits `dist` plus
 `.netlify/functions-internal`.
+
+Configured applet domains are materialized into Netlify redirect and proxy
+rules by `utils/scripts/writeNetlifyRedirects.js`. Runtime main-mode request
+routing does not infer standalone or applet-root mode from the request host.
+
+## MapLibre runtime
+
+`MapShell` imports `configureMapLibreWorker`, which points MapLibre at the
+package's emitted CSP worker asset. This avoids the default worker bundle path
+that drops a class-field helper needed by vector-tile parsing in the current
+Vite/Start build. `vite.config.mts` also aliases `maplibre_symbol_utils` to its
+ESM entry because its package main expects a browser-global `maplibregl` during
+SSR.
+
+## Migration history
+
+This runtime surface was created by the F048 migration series. F048.4 migrated
+auth consumers, F048.5 completed Tolgee static-data integration, F048.7 moved
+server endpoints into Start routes, and F048.8 established the current build,
+Docker, visual-runtime, and Netlify contracts. These identifiers record
+provenance only; the ownership and commands above are the current guidance.
