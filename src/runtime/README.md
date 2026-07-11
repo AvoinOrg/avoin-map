@@ -84,9 +84,9 @@ This folder is the Start-only runtime adapter for the F048 migration.
   provider, dependency metadata, and obsolete env names.
 - `#/common/navigation/navigation` exports the TanStack Router adapter directly
   for shared Start navigation consumers.
-- `vite.config.mts` defines loaded `NEXT_PUBLIC_*` environment variables
-  for Start client code. This keeps the established public env names while
-  migrated shared map layers and shell UI continue to read them.
+- `vite.config.mts` defines only loaded `PUBLIC_*` environment variables for
+  Start client code. Unprefixed server/build values—including Tolgee and auth
+  credentials—remain outside the client define map.
 - `yarn start:build` is the accepted local Start production build foundation. It
   emits the Nitro server entry at `.output/server/index.mjs`, public output at
   `.output/public`, built client assets under `.output/public/assets`, and the
@@ -97,7 +97,7 @@ This folder is the Start-only runtime adapter for the F048 migration.
   matches Nitro's traced production files. Use
   `PORT=<port> yarn start:preview` when the default port is busy. No `.output`
   symlink repair is expected.
-- `NEXT_PUBLIC_DEBUG_CLIENT_ERRORS=1` now applies to Start builds by enabling
+- `PUBLIC_DEBUG_CLIENT_ERRORS=1` now applies to Start builds by enabling
   browser sourcemaps and disabling client JS/CSS minification in Vite. The same
   flag controls Start Nitro sourcemaps/minification through `nitro.config.ts`.
 - `nitro.config.ts` keeps Nitro `inlineDynamicImports` enabled so the emitted
@@ -130,3 +130,20 @@ This folder is the Start-only runtime adapter for the F048 migration.
   the package's emitted CSP worker asset. This avoids the default inlined worker
   bundle used by the Vite/Start build, which currently drops a class-field
   helper required by vector-tile parsing.
+
+## Production selection commands
+
+Set server/build-only `TOLGEE_API_URL` and `TOLGEE_API_KEY`, then use the one
+canonical selection input for the supported production modes:
+
+```bash
+PUBLIC_COMPILED_APPLETS=main,energy,carbon,luonnonmetsakartat yarn build
+PUBLIC_COMPILED_APPLETS=energy yarn build
+PUBLIC_COMPILED_APPLETS=carbon yarn build
+PUBLIC_COMPILED_APPLETS=luonnonmetsakartat yarn build
+```
+
+Local builds emit `.output/server/index.mjs`, `.output/public`, generated
+`public/files`, and `public/lib/sql-wasm.wasm`. `yarn build:netlify` uses the
+same selection with `START_TARGET=netlify` and emits `dist` plus
+`.netlify/functions-internal`.

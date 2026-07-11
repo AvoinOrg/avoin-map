@@ -14,7 +14,7 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
       [id]: {
         type: 'raster',
         tiles: [
-          `https://tm2.terramonitor.com/${process.env.NEXT_PUBLIC_TERRAMONITOR_KEY}/rgb/{z}/{x}/{y}.png`,
+          `https://tm2.terramonitor.com/${process.env.PUBLIC_TERRAMONITOR_KEY}/rgb/{z}/{x}/{y}.png`,
         ],
         tileSize: 256,
         attribution:

@@ -30,7 +30,7 @@ export const Route = createFileRoute(
   head: ({ params }) =>
     getHiilikarttaHead({
       locale: params.locale,
-      umamiWebsiteId: process.env.NEXT_PUBLIC_APPLETS_HIILIKARTTA_UMAMI_ID,
+      umamiWebsiteId: process.env.PUBLIC_APPLETS_HIILIKARTTA_UMAMI_ID,
     }),
   component: CarbonShell,
 })

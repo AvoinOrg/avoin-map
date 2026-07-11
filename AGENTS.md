@@ -108,7 +108,7 @@ main app or as standalone sites.
 ## Applets and build modes
 
 - Applets live under `src/applets/<namespace>`.
-- `NEXT_PUBLIC_COMPILED_APPLETS` drives both runtime routing and build-time
+- `PUBLIC_COMPILED_APPLETS` drives both runtime routing and build-time
   pruning (see `utils/scripts/prebuildFolderPrune.js`):
   - If it includes `main`, the main app is built and only the listed applets
     remain (unlisted applet folders are removed in the temp build workspace).
@@ -126,6 +126,23 @@ main app or as standalone sites.
     to the real workspace (see `utils/scripts/buildFromFolderPruneTmp.js`).
     The temp workspace path is tracked in `.applet-build-tmp.json` (gitignored);
     set `BUILD_TMP_KEEP=1` to keep the temp folder for debugging.
+
+### Production build commands
+
+Production builds require server-only `TOLGEE_API_URL` and `TOLGEE_API_KEY`:
+
+```bash
+PUBLIC_COMPILED_APPLETS=main,energy,carbon,luonnonmetsakartat yarn build
+PUBLIC_COMPILED_APPLETS=energy yarn build
+PUBLIC_COMPILED_APPLETS=carbon yarn build
+PUBLIC_COMPILED_APPLETS=luonnonmetsakartat yarn build
+```
+
+The common `yarn build` pipeline emits `.output/server/index.mjs`,
+`.output/public`, `public/files`, and `public/lib/sql-wasm.wasm`. Netlify runs
+the same selection contract via `yarn build:netlify` and `START_TARGET=netlify`,
+emitting `dist` plus `.netlify/functions-internal`. `ui-baseline` is an internal
+fixture applet covered by unit tests, not a production deployment target.
 
 ## Routing
 
@@ -151,7 +168,7 @@ main app or as standalone sites.
 - Tolgee powers translations. Applet namespaces and locales are defined in
   `appletConf.json` (`localeNs` + `langs`).
 - `utils/scripts/downloadTranslations.js` downloads translation files into
-  `i18n/` for applets listed in `NEXT_PUBLIC_COMPILED_APPLETS` (and always
+  `i18n/` for applets listed in `PUBLIC_COMPILED_APPLETS` (and always
   includes the shared `main` namespace, `avoin-map`, for the active locales;
   requires `TOLGEE_API_URL` and `TOLGEE_API_KEY`).
 - Prefer the Tolgee browser plugin (Alt+click) for editing keys.

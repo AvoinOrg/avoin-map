@@ -52,13 +52,12 @@ export type DecideRequestRoutingOptions = {
   url: string | URL
   host?: string | null
   compiledApplets?: string[]
-  env?: Record<string, string | undefined>
   skipPrefixes?: string[]
 }
 
 const resolveRequestAppletSelection = (compiledApplets?: string[]) =>
   resolveRuntimeAppletSelection(
-    compiledApplets ?? process.env.NEXT_PUBLIC_COMPILED_APPLETS
+    compiledApplets ?? process.env.PUBLIC_COMPILED_APPLETS
   )
 
 export const getLocalesForRequestNamespace = (namespace: string) =>

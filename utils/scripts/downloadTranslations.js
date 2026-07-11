@@ -49,7 +49,7 @@ const createTranslationDownloadPlan = ({ appletConf, selection }) => {
   const languages = toUnique(Object.values(nsToAllowedLangs).flat())
   if (namespaces.length === 0 || languages.length === 0) {
     throw new Error(
-      'downloadTranslations: no namespaces or languages selected. Check appletConf.json and NEXT_PUBLIC_COMPILED_APPLETS.'
+      'downloadTranslations: no namespaces or languages selected. Check appletConf.json and PUBLIC_COMPILED_APPLETS.'
     )
   }
 
@@ -81,7 +81,7 @@ const downloadTranslations = async ({
 } = {}) => {
   const plan = resolveTranslationDownloadPlan({
     projectRoot,
-    raw: raw ?? env.NEXT_PUBLIC_COMPILED_APPLETS,
+    raw: raw ?? env.PUBLIC_COMPILED_APPLETS,
   })
 
   const tolgeeApiUrl = env.TOLGEE_API_URL

@@ -2,12 +2,12 @@ export type LuonnonmetsakartatMockScenariosEnv = Record<
   string,
   string | undefined
 > & {
-  NEXT_PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED?: string
+  PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED?: string
   NODE_ENV?: string
 }
 
 export const LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED_ENV =
-  'NEXT_PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED'
+  'PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED'
 export const MOCK_LUONNONMETSAKARTAT_STATE_QUERY_PARAM =
   'mockLuonnonmetsakartatState'
 export const MOCK_RESET_QUERY_PARAM = 'mockReset'
@@ -21,8 +21,8 @@ const LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED_VALUES = new Set([
 
 const getDefaultLuonnonmetsakartatMockScenariosEnv =
   (): LuonnonmetsakartatMockScenariosEnv => ({
-    NEXT_PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED:
-      process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED,
+    PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED:
+      process.env.PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED,
     NODE_ENV: process.env.NODE_ENV,
   })
 
@@ -38,12 +38,12 @@ export const assertLuonnonmetsakartatMockScenariosAllowed = (
 ) => {
   if (
     isTruthyLuonnonmetsakartatMockScenariosFlag(
-      env.NEXT_PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED
+      env.PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED
     ) &&
     env.NODE_ENV === 'production'
   ) {
     throw new Error(
-      'Luonnonmetsakartat mock scenarios cannot be enabled when NODE_ENV=production. Unset NEXT_PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED.'
+      'Luonnonmetsakartat mock scenarios cannot be enabled when NODE_ENV=production. Unset PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED.'
     )
   }
 }
@@ -54,6 +54,6 @@ export const isLuonnonmetsakartatMockScenariosEnabled = (
   assertLuonnonmetsakartatMockScenariosAllowed(env)
 
   return isTruthyLuonnonmetsakartatMockScenariosFlag(
-    env.NEXT_PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED
+    env.PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED
   )
 }

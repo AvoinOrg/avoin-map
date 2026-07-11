@@ -4,6 +4,11 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig, loadEnv } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import type { Plugin, ResolvedConfig } from 'vite'
+import {
+  getStartPublicEnvDefines,
+  isStartDebugClientBuild,
+  type StartLoadedEnv,
+} from './utils/config/startPublicEnv'
 
 const startMapLibreShim = fileURLToPath(
   new URL('./src/runtime/maplibre-gl.ts', import.meta.url)
@@ -15,22 +20,10 @@ const maplibreSymbolUtilsEsm = fileURLToPath(
   )
 )
 
-type StartLoadedEnv = Record<string, string | undefined>
-
 const getStartLoadedEnv = (mode: string): StartLoadedEnv => ({
   ...loadEnv(mode, process.cwd(), ''),
   ...process.env,
 })
-
-const getStartPublicEnvDefines = (env: StartLoadedEnv) =>
-  Object.fromEntries(
-    Object.entries(env)
-      .filter(([key, value]) => key.startsWith('NEXT_PUBLIC_') && value != null)
-      .map(([key, value]) => [`process.env.${key}`, JSON.stringify(value)])
-  )
-
-const isStartDebugClientBuild = (env: StartLoadedEnv) =>
-  env.NEXT_PUBLIC_DEBUG_CLIENT_ERRORS === '1'
 
 const getStartTarget = (env: StartLoadedEnv) => {
   const target = env.START_TARGET?.trim()

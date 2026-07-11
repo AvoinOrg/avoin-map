@@ -14,7 +14,7 @@ import {
   fiForestsTextfieldExpression,
 } from 'applets/forests/utils'
 
-const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
+const SERVER_URL = process.env.PUBLIC_GEOSERVER_URL
 
 export const id: LayerGroupId = 'fi_forests'
 

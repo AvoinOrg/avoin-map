@@ -5,9 +5,9 @@ import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
 import { FolayerConfState, FolayerAreaConf } from '../types'
 import { getFolayerCentroidSourceLayer } from '../utils'
 
-const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
+const SERVER_URL = process.env.PUBLIC_GEOSERVER_URL
 const GS_WORKSPACE =
-  process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE
+  process.env.PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE
 
 export const folayerAreaQuery = (
   folayerId: string

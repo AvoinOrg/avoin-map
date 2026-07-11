@@ -34,7 +34,7 @@ export const Route = createFileRoute(
     getStaticAppletHead({
       title: ENERGIAKARTTA_TITLE,
       umamiWebsiteId:
-        process.env.NEXT_PUBLIC_APPLETS_ENERGIAKARTTA_UMAMI_ID,
+        process.env.PUBLIC_APPLETS_ENERGIAKARTTA_UMAMI_ID,
     }),
   component: EnergyShell,
 })

@@ -88,6 +88,5 @@ node utils/scripts/downloadTranslations.js
 
 - `utils/scripts/downloadTranslations.js` reads `TOLGEE_API_URL` and
   `TOLGEE_API_KEY`.
-- Tolgee write operations may require a different key with edit scope. In this
-  repo, `NEXT_PUBLIC_TOLGEE_API_KEY` may be the write-capable key even when
-  `TOLGEE_API_KEY` is read-only.
+- Tolgee write operations require `TOLGEE_API_KEY` to have edit scope. Keep
+  that credential server/build-only.

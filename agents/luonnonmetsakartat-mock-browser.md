@@ -9,11 +9,11 @@ the shared dev server from this workflow.
 The dev server must already be running with:
 
 ```bash
-NEXT_PUBLIC_COMPILED_APPLETS=main,luonnonmetsakartat
-NEXT_PUBLIC_MOCK_AUTH_ENABLED=1
-NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE=authenticated
+PUBLIC_COMPILED_APPLETS=main,luonnonmetsakartat
+PUBLIC_MOCK_AUTH_ENABLED=1
+PUBLIC_MOCK_AUTH_INITIAL_STATE=authenticated
 LUONNONMETSAKARTAT_MOCK_API_ENABLED=1
-NEXT_PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED=1
+PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED=1
 ```
 
 Existing production guards reject mock auth/API/scenario flags when

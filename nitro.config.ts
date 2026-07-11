@@ -1,6 +1,7 @@
 import { defineNitroConfig } from 'nitropack/config'
+import { isStartDebugClientBuild } from './utils/config/startPublicEnv'
 
-const debugClientErrors = process.env.NEXT_PUBLIC_DEBUG_CLIENT_ERRORS === '1'
+const debugClientErrors = isStartDebugClientBuild(process.env)
 
 export default defineNitroConfig({
   // Nitro 2 resolves node static asset paths relative to the emitted server

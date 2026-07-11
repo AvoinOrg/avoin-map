@@ -141,14 +141,8 @@ const normalizeEntry = (entry, defaultNamespace) => {
 const main = async () => {
   try {
     const args = parseArgs(process.argv.slice(2))
-    const apiUrl =
-      args.apiUrl ||
-      process.env.TOLGEE_API_URL ||
-      process.env.NEXT_PUBLIC_TOLGEE_API_URL
-    const apiKey =
-      args.apiKey ||
-      process.env.NEXT_PUBLIC_TOLGEE_API_KEY ||
-      process.env.TOLGEE_API_KEY
+    const apiUrl = args.apiUrl || process.env.TOLGEE_API_URL
+    const apiKey = args.apiKey || process.env.TOLGEE_API_KEY
 
     if (!apiUrl) {
       throw new Error('Missing Tolgee API URL. Pass --api-url or set TOLGEE_API_URL.')
@@ -156,7 +150,7 @@ const main = async () => {
 
     if (!apiKey && !args.dryRun) {
       throw new Error(
-        'Missing Tolgee API key. Pass --api-key or set NEXT_PUBLIC_TOLGEE_API_KEY/TOLGEE_API_KEY.'
+        'Missing Tolgee API key. Pass --api-key or set TOLGEE_API_KEY.'
       )
     }
 

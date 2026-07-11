@@ -7,7 +7,7 @@ const baseEnv = {
   BETTER_AUTH_URL: 'http://localhost:3001',
   ZITADEL_CLIENT_ID: 'client-id',
   ZITADEL_CLIENT_SECRET: 'client-secret',
-  NEXT_PUBLIC_ZITADEL_ISSUER: 'https://public-issuer.example.org',
+  ZITADEL_ISSUER: 'https://server-issuer.example.org',
 }
 
 describe('resolveStartAuthEnv', () => {
@@ -20,19 +20,20 @@ describe('resolveStartAuthEnv', () => {
     )
   })
 
-  it('uses server-only Zitadel issuer before the public migration fallback', () => {
-    const env = resolveStartAuthEnv({
-      ...baseEnv,
-      ZITADEL_ISSUER: 'https://server-issuer.example.org',
-    })
+  it('uses the explicit server-only Zitadel issuer', () => {
+    const env = resolveStartAuthEnv(baseEnv)
 
     expect(env.zitadelIssuer).toBe('https://server-issuer.example.org')
   })
 
-  it('keeps the current public Zitadel issuer as a migration fallback', () => {
-    const env = resolveStartAuthEnv(baseEnv)
-
-    expect(env.zitadelIssuer).toBe('https://public-issuer.example.org')
+  it('does not use the browser-visible issuer as a server fallback', () => {
+    expect(() =>
+      resolveStartAuthEnv({
+        ...baseEnv,
+        ZITADEL_ISSUER: undefined,
+        PUBLIC_ZITADEL_ISSUER: 'https://public-issuer.example.org',
+      })
+    ).toThrow('Start Better Auth requires ZITADEL_ISSUER')
   })
 
   it('uses stable Better Auth development defaults when local values are absent', () => {

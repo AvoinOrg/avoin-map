@@ -14,11 +14,11 @@ Use the shared dev server only. Do not start, stop, kill, restart, or reset dev-
 The dev server process must already have been started with mock flags equivalent to:
 
 ```bash
-NEXT_PUBLIC_COMPILED_APPLETS=main,hiilikartta
-NEXT_PUBLIC_MOCK_AUTH_ENABLED=1
-NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE=authenticated
+PUBLIC_COMPILED_APPLETS=main,carbon
+PUBLIC_MOCK_AUTH_ENABLED=1
+PUBLIC_MOCK_AUTH_INITIAL_STATE=authenticated
 HIILIKARTTA_MOCK_API_ENABLED=1
-NEXT_PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED=1
+PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED=1
 ```
 
 These flags belong to the existing dev server process, not to the smoke command.

@@ -13,15 +13,15 @@ const { createMapTransformRequest } = jest.requireActual<
 >('./mapAuthTransformRequest')
 
 describe('createMapTransformRequest', () => {
-  const originalGeoserverUrl = process.env.NEXT_PUBLIC_GEOSERVER_URL
+  const originalGeoserverUrl = process.env.PUBLIC_GEOSERVER_URL
 
   beforeEach(() => {
-    process.env.NEXT_PUBLIC_GEOSERVER_URL = 'https://gis.example.test/geoserver'
+    process.env.PUBLIC_GEOSERVER_URL = 'https://gis.example.test/geoserver'
     mockDecodeUrlAndParams.mockReset()
   })
 
   afterAll(() => {
-    process.env.NEXT_PUBLIC_GEOSERVER_URL = originalGeoserverUrl
+    process.env.PUBLIC_GEOSERVER_URL = originalGeoserverUrl
   })
 
   it('adds the access token for configured GeoServer URLs that require a token', () => {

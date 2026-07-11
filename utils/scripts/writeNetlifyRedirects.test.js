@@ -321,7 +321,7 @@ describe('writeNetlifyRedirects', () => {
       baseUrl: mainBaseUrl,
       compiledApplets: parseCompiledApplets('main,energy'),
       env: {
-        NEXT_PUBLIC_APPLET_ENERGIAKARTTA_DOMAIN: energyDomain,
+        PUBLIC_APPLET_ENERGY_DOMAIN: energyDomain,
       },
     })
 
@@ -417,7 +417,7 @@ describe('writeNetlifyRedirects', () => {
       baseUrl: 'https://energy-context.example.netlify.app',
       compiledApplets: parseCompiledApplets('energy'),
       env: {
-        NEXT_PUBLIC_APPLET_ENERGIAKARTTA_DOMAIN: energyDomain,
+        PUBLIC_APPLET_ENERGY_DOMAIN: energyDomain,
       },
     })
 

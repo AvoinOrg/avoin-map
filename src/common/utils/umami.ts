@@ -6,7 +6,7 @@ type UmamiScriptConfig = {
 export const getUmamiScriptConfig = (
   websiteId?: string
 ): UmamiScriptConfig | null => {
-  const src = process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL
+  const src = process.env.PUBLIC_UMAMI_SCRIPT_URL
 
   if (!src || !websiteId) return null
 

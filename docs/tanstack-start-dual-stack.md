@@ -30,14 +30,49 @@ The local Start output contract is:
 - Start client build assets: `.output/public/assets`
 - Vite manifest: `.output/public/.vite/manifest.json`
 
+## Production applet build matrix
+
+Canonical builds require server/build-only `TOLGEE_API_URL` and
+`TOLGEE_API_KEY`. Applet selection always uses `PUBLIC_COMPILED_APPLETS`:
+
+```bash
+PUBLIC_COMPILED_APPLETS=main,energy,carbon,luonnonmetsakartat yarn build
+PUBLIC_COMPILED_APPLETS=energy yarn build
+PUBLIC_COMPILED_APPLETS=carbon yarn build
+PUBLIC_COMPILED_APPLETS=luonnonmetsakartat yarn build
+```
+
+`yarn build:netlify` runs the same contract with `START_TARGET=netlify`.
+`ui-baseline` has no `publicRoute`; it remains an internal fixture covered by
+manifest-derived selection and pruning tests rather than the deployment matrix.
+
+### Build proof — 2026-07-11
+
+| Command | Normalized mode | Exit | Verified output contract |
+| --- | --- | ---: | --- |
+| `PUBLIC_COMPILED_APPLETS=main,energy,carbon,luonnonmetsakartat yarn build` | `main` | 0 | `.output/server/index.mjs`, `.output/public/assets`, Vite manifest, `public/files`, and `public/lib/sql-wasm.wasm` |
+| `PUBLIC_COMPILED_APPLETS=energy yarn build` | `standalone:energy` | 0 | Same local output contract |
+| `PUBLIC_COMPILED_APPLETS=carbon yarn build` | `standalone:carbon` | 0 | Same local output contract |
+| `PUBLIC_COMPILED_APPLETS=luonnonmetsakartat yarn build` | `standalone:luonnonmetsakartat` | 0 | Same local output contract |
+| `PUBLIC_COMPILED_APPLETS=main,energy,carbon,luonnonmetsakartat yarn build:netlify` | `main` / Netlify target | 0 | `dist/assets`, Vite manifest, `dist/files`, `dist/lib/sql-wasm.wasm`, `dist/_redirects`, and both required `.netlify/functions-internal/server` entries |
+
+The emitted local and Netlify client assets were checked for the configured
+Tolgee URL/key and Zitadel client-secret values; none were present. Client
+assets also contained none of the server env names `TOLGEE_API_URL`,
+`TOLGEE_API_KEY`, `ZITADEL_CLIENT_SECRET`, or `BETTER_AUTH_SECRET`. A raw scan
+can still find a legacy public-URL compatibility string inside Better Auth's
+third-party bundle; the repository does not read, define, document, or deploy
+that variable.
+
 Preview should run directly from that output. Do not create or repair `.output`
 symlinks as part of normal Start preview verification.
 
 The Start Vite config is `vite.config.mts`. It uses the Start Vite plugin,
 the React Vite plugin, and `vite-tsconfig-paths` pointed at
 `tsconfig.json` so existing aliases such as `#/*`, `applets/*`, and
-`@i18n/*` resolve consistently. It also preserves the temporary
-`NEXT_PUBLIC_*` define bridge used by migrated shared code. The SSR build keeps
+`@i18n/*` resolve consistently. It deliberately defines only loaded `PUBLIC_*`
+values for code that reads `process.env.*`; server-only credentials and old
+public prefixes are not embedded. The SSR build keeps
 `@visx/shape` bundled with the server build instead of externalizing it; Nitro
 2.12 otherwise traces multiple `@visx/shape` versions into a package symlink
 layout that Node cannot load from `.output/server/index.mjs`.
@@ -54,7 +89,7 @@ traces for packages with production export conditions and prevents the built
 server from selecting development-only package entries at runtime.
 
 Production-debug behavior uses the existing
-`NEXT_PUBLIC_DEBUG_CLIENT_ERRORS=1` flag. For Start builds this enables browser
+`PUBLIC_DEBUG_CLIENT_ERRORS=1` flag. For Start builds this enables browser
 sourcemaps and disables client JS/CSS minification through Vite `build`
 options. The same flag also enables Nitro sourcemaps and disables Nitro
 minification through `nitro.config.ts`.
@@ -66,9 +101,8 @@ Netlify deployment is handled by the same applet-pruned build wrapper with a
 Netlify-specific target:
 
 - `yarn build:netlify`: runs `START_TARGET=netlify yarn run build`.
-- `netlify.toml`: uses `NEXT_PUBLIC_URL=$DEPLOY_PRIME_URL yarn run
-  build:netlify`, publishes `dist`, and sets repository-owned
-  `NEXT_PUBLIC_COMPILED_APPLETS` defaults for the main and standalone applet
+- `netlify.toml`: uses `yarn run build:netlify`, publishes `dist`, and sets repository-owned
+  `PUBLIC_COMPILED_APPLETS` defaults for the main and standalone applet
   deploy contexts.
 - `START_TARGET=netlify` selects Nitro's Netlify preset for the installed
   `@tanstack/react-start@1.131.50` package line. The current official Netlify

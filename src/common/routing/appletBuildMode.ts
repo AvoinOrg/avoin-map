@@ -22,7 +22,7 @@ export const resolveStrictAppletSelection = (
   appletSelectionContract.resolveStrictSelection(input)
 
 export const runtimeAppletSelection = resolveRuntimeAppletSelection(
-  process.env.NEXT_PUBLIC_COMPILED_APPLETS
+  process.env.PUBLIC_COMPILED_APPLETS
 )
 
 export const {

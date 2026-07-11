@@ -9,7 +9,7 @@ import {
 describe('Hiilikartta mock scenario config', () => {
   it('exports the canonical public flag and query parameter names', () => {
     expect(HIILIKARTTA_MOCK_SCENARIOS_ENABLED_ENV).toBe(
-      'NEXT_PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED'
+      'PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED'
     )
     expect(MOCK_CARBON_STATE_QUERY_PARAM).toBe('mockCarbonState')
     expect(MOCK_RESET_QUERY_PARAM).toBe('mockReset')
@@ -20,7 +20,7 @@ describe('Hiilikartta mock scenario config', () => {
     (flagValue) => {
       expect(
         isHiilikarttaMockScenariosEnabled({
-          NEXT_PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED: flagValue,
+          PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED: flagValue,
           NODE_ENV: 'test',
         })
       ).toBe(true)
@@ -32,7 +32,7 @@ describe('Hiilikartta mock scenario config', () => {
     (flagValue) => {
       expect(
         isHiilikarttaMockScenariosEnabled({
-          NEXT_PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED: flagValue,
+          PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED: flagValue,
           NODE_ENV: 'test',
         })
       ).toBe(false)
@@ -42,18 +42,18 @@ describe('Hiilikartta mock scenario config', () => {
   it('refuses enabled mock scenarios in production', () => {
     expect(() =>
       assertHiilikarttaMockScenariosAllowed({
-        NEXT_PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED: 'yes',
+        PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED: 'yes',
         NODE_ENV: 'production',
       })
     ).toThrow(
-      'Hiilikartta mock scenarios cannot be enabled when NODE_ENV=production. Unset NEXT_PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED.'
+      'Hiilikartta mock scenarios cannot be enabled when NODE_ENV=production. Unset PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED.'
     )
   })
 
   it('allows production when the scenario flag is disabled', () => {
     expect(() =>
       assertHiilikarttaMockScenariosAllowed({
-        NEXT_PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED: '0',
+        PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED: '0',
         NODE_ENV: 'production',
       })
     ).not.toThrow()

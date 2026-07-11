@@ -124,17 +124,7 @@ const getKnownUnsupportedLocales = ({ namespace, appletConf }) => {
 
 const getEnvDomain = ({ namespace, env }) => {
   const upperNamespace = namespace.toUpperCase()
-  const canonicalDomain = env[`NEXT_PUBLIC_APPLET_${upperNamespace}_DOMAIN`]
-
-  if (canonicalDomain) {
-    return canonicalDomain
-  }
-
-  if (namespace === 'energy') {
-    return env.NEXT_PUBLIC_APPLET_ENERGIAKARTTA_DOMAIN
-  }
-
-  return undefined
+  return env[`PUBLIC_APPLET_${upperNamespace}_DOMAIN`]
 }
 
 const getDomains = ({ namespace, appletConf, env }) => [
@@ -472,7 +462,7 @@ const main = () => {
   const appletConfPath = path.join(projectRoot, 'appletConf.json')
   const appletConf = JSON.parse(fs.readFileSync(appletConfPath, 'utf8'))
   const compiledApplets =
-    args['compiled-applets'] ?? process.env.NEXT_PUBLIC_COMPILED_APPLETS
+    args['compiled-applets'] ?? process.env.PUBLIC_COMPILED_APPLETS
   const baseUrl = normalizeBaseUrl(
     args['base-url'] ||
       process.env.NETLIFY_REDIRECTS_BASE_URL ||

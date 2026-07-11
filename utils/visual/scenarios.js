@@ -40,7 +40,7 @@ const getKnownApplets = () => [...appletSelectionContract.APPLET_NAMES]
 
 const getAppletSelection = ({ env = process.env } = {}) =>
   appletSelectionContract.resolveRuntimeSelection(
-    env.NEXT_PUBLIC_COMPILED_APPLETS
+    env.PUBLIC_COMPILED_APPLETS
   )
 
 const getCompiledApplets = ({ env = process.env } = {}) => {
@@ -210,7 +210,7 @@ const buildVisualScenarios = ({
     case COMPONENT_FIXTURE_SCENARIO_SET: {
       if (!compiled.includes(MAIN_APPLET)) {
         throw new Error(
-          'The component-fixtures visual scenario set requires a main-app build with NEXT_PUBLIC_COMPILED_APPLETS including "main".'
+          'The component-fixtures visual scenario set requires a main-app build with PUBLIC_COMPILED_APPLETS including "main".'
         )
       }
 
@@ -226,7 +226,7 @@ const buildVisualScenarios = ({
         !compiled.includes('carbon')
       ) {
         throw new Error(
-          'The carbon-mocks visual scenario set requires a main-app build with NEXT_PUBLIC_COMPILED_APPLETS including "main" and "carbon".'
+          'The carbon-mocks visual scenario set requires a main-app build with PUBLIC_COMPILED_APPLETS including "main" and "carbon".'
         )
       }
 
@@ -242,7 +242,7 @@ const buildVisualScenarios = ({
         !compiled.includes('luonnonmetsakartat')
       ) {
         throw new Error(
-          'The luonnonmetsakartat-mocks visual scenario set requires a main-app build with NEXT_PUBLIC_COMPILED_APPLETS including "main" and "luonnonmetsakartat".'
+          'The luonnonmetsakartat-mocks visual scenario set requires a main-app build with PUBLIC_COMPILED_APPLETS including "main" and "luonnonmetsakartat".'
         )
       }
 

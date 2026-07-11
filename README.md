@@ -13,13 +13,9 @@ Create `.env` from `.env.template`, then set at least:
 
 ```bash
 # Map data source.
-NEXT_PUBLIC_GEOSERVER_URL=https://gis.example.org/geoserver
+PUBLIC_GEOSERVER_URL=https://gis.example.org/geoserver
 
-# Tolgee runtime config (used in the client).
-NEXT_PUBLIC_TOLGEE_API_URL=
-NEXT_PUBLIC_TOLGEE_API_KEY=
-
-# Tolgee export API (used by utils/scripts/downloadTranslations.js).
+# Tolgee export API (server/build-only; used by download scripts).
 TOLGEE_API_URL=
 TOLGEE_API_KEY=
 ```
@@ -27,7 +23,7 @@ TOLGEE_API_KEY=
 If you need auth flows, also set:
 
 ```bash
-NEXT_PUBLIC_ZITADEL_ISSUER=
+PUBLIC_ZITADEL_ISSUER=
 ZITADEL_ISSUER=
 ZITADEL_CLIENT_ID=
 ZITADEL_CLIENT_SECRET=
@@ -106,7 +102,7 @@ Applets are self-contained apps that reuse shared map components but keep their
 own pages, stores, and layer configs. They can run inside the main app or as
 standalone deployments.
 
-- `NEXT_PUBLIC_COMPILED_APPLETS` drives both runtime routing and build-time
+- `PUBLIC_COMPILED_APPLETS` drives both runtime routing and build-time
   pruning:
   - If it includes `main`, we build the main app and only the listed applets
     (unlisted applet folders are pruned).
@@ -136,6 +132,26 @@ standalone deployments.
   applet-domain redirects and rewrites into the Netlify publish output; it
   normalizes applet-domain locale URLs before proxy rewrites and no longer
   writes under `.next`.
+
+### Production build commands
+
+Canonical production builds require server-only `TOLGEE_API_URL` and
+`TOLGEE_API_KEY` values. Use the same `PUBLIC_COMPILED_APPLETS` input for the
+full application and each supported standalone deployment:
+
+```bash
+PUBLIC_COMPILED_APPLETS=main,energy,carbon,luonnonmetsakartat yarn build
+PUBLIC_COMPILED_APPLETS=energy yarn build
+PUBLIC_COMPILED_APPLETS=carbon yarn build
+PUBLIC_COMPILED_APPLETS=luonnonmetsakartat yarn build
+```
+
+`yarn build` emits `.output/server/index.mjs`, `.output/public`, generated
+`public/files`, and `public/lib/sql-wasm.wasm`. Netlify uses the same selection
+contract through `yarn build:netlify` with `START_TARGET=netlify`, emitting
+`dist` and `.netlify/functions-internal`; it is not a separate applet-selection
+mode. The internal `ui-baseline` applet is covered by selection/pruning tests
+and is not a production deployment target.
 
 ## Routing and navigation
 
@@ -189,7 +205,7 @@ There is no live `src/app/(ui)` API copy source in the Start build path.
 - Tolgee provides translations; namespaces and languages live in
   `appletConf.json` (`localeNs` + `langs`).
 - `utils/scripts/downloadTranslations.js` generates `i18n/*`. It only downloads
-  namespaces for applets listed in `NEXT_PUBLIC_COMPILED_APPLETS` (and always
+  namespaces for applets listed in `PUBLIC_COMPILED_APPLETS` (and always
   includes the shared `main` namespace, `avoin-map`, for the active locales).
 - The Tolgee browser plugin (Alt+click) is the preferred editing workflow.
 - Prefer `TText` over raw `T` for JSX-rendered translation content. `TText`

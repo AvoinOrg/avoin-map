@@ -43,7 +43,7 @@ const resolveCompiledAppletConfig = ({
     )
   } catch (error) {
     throw new Error(
-      `${scriptName}: invalid NEXT_PUBLIC_COMPILED_APPLETS: ${error.message}`
+      `${scriptName}: invalid PUBLIC_COMPILED_APPLETS: ${error.message}`
     )
   }
 
@@ -76,7 +76,7 @@ const getCompiledAppletConfig = (options = {}) => {
   const appletConf = readAppletConf(projectRoot)
   return resolveCompiledAppletConfig({
     appletConf,
-    raw: raw ?? process.env.NEXT_PUBLIC_COMPILED_APPLETS,
+    raw: raw ?? process.env.PUBLIC_COMPILED_APPLETS,
     scriptName,
   })
 }

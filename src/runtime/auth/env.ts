@@ -49,24 +49,6 @@ const getRequiredExplicitUnlessDevelopment = ({
   throw new Error(`Start Better Auth requires ${key}`)
 }
 
-const getRequiredWithFallback = ({
-  env,
-  key,
-  fallbackKey,
-}: {
-  env: EnvSource
-  key: string
-  fallbackKey: string
-}) => {
-  const value = env[key]?.trim() || env[fallbackKey]?.trim()
-
-  if (!value) {
-    throw new Error(`Start Better Auth requires ${key} or ${fallbackKey}`)
-  }
-
-  return value
-}
-
 const stripTrailingSlash = (value: string) => value.replace(/\/+$/, '')
 
 const getOrigin = (value: string | null | undefined) => {
@@ -173,11 +155,7 @@ export const resolveStartAuthEnv = (env: EnvSource): StartAuthEnv => {
       ...parseTrustedOrigins(env.BETTER_AUTH_TRUSTED_ORIGINS),
       ...getLocalDevelopmentTrustedOrigins(env),
     ]),
-    zitadelIssuer: getRequiredWithFallback({
-      env,
-      key: 'ZITADEL_ISSUER',
-      fallbackKey: 'NEXT_PUBLIC_ZITADEL_ISSUER',
-    }),
+    zitadelIssuer: getRequired({ env, key: 'ZITADEL_ISSUER' }),
     zitadelClientId: getRequired({ env, key: 'ZITADEL_CLIENT_ID' }),
     zitadelClientSecret: getRequired({ env, key: 'ZITADEL_CLIENT_SECRET' }),
     zitadelRedirectUri: getZitadelRedirectUri({ betterAuthUrl, env }),

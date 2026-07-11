@@ -76,7 +76,7 @@ describe('mock auth helpers', () => {
   it('defaults enabled mock auth to the authenticated carbon profile', () => {
     expect(
       resolveMockAuthConfig({
-        NEXT_PUBLIC_MOCK_AUTH_ENABLED: '1',
+        PUBLIC_MOCK_AUTH_ENABLED: '1',
       })
     ).toEqual({
       enabled: true,
@@ -101,8 +101,8 @@ describe('mock auth helpers', () => {
   ])('resolves env initial state %s as %s', (envValue, expectedState) => {
     expect(
       resolveMockAuthConfig({
-        NEXT_PUBLIC_MOCK_AUTH_ENABLED: '1',
-        NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE: envValue,
+        PUBLIC_MOCK_AUTH_ENABLED: '1',
+        PUBLIC_MOCK_AUTH_INITIAL_STATE: envValue,
       })
     ).toMatchObject({
       enabled: true,
@@ -113,7 +113,7 @@ describe('mock auth helpers', () => {
   it('refuses enabled mock auth in production', () => {
     expect(() =>
       resolveMockAuthConfig({
-        NEXT_PUBLIC_MOCK_AUTH_ENABLED: '1',
+        PUBLIC_MOCK_AUTH_ENABLED: '1',
         NODE_ENV: 'production',
       })
     ).toThrow('Mock auth cannot be enabled when NODE_ENV=production')
@@ -121,8 +121,8 @@ describe('mock auth helpers', () => {
 
   it('resolves request state with URL over cookie over env precedence', () => {
     const config = resolveMockAuthConfig({
-      NEXT_PUBLIC_MOCK_AUTH_ENABLED: '1',
-      NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE: 'missing-token',
+      PUBLIC_MOCK_AUTH_ENABLED: '1',
+      PUBLIC_MOCK_AUTH_INITIAL_STATE: 'missing-token',
     })
 
     expect(

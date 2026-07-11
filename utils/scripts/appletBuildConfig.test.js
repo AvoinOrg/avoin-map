@@ -38,7 +38,7 @@ describe('appletBuildConfig', () => {
   it.each([undefined, '', ' , '])('rejects strict empty input %p', (raw) => {
     expect(() =>
       resolveCompiledAppletConfig({ appletConf, raw, scriptName: 'testScript' })
-    ).toThrow(/testScript: invalid NEXT_PUBLIC_COMPILED_APPLETS.*selection is empty/i)
+    ).toThrow(/testScript: invalid PUBLIC_COMPILED_APPLETS.*selection is empty/i)
   })
 
   it('rejects unknown and multi-standalone input with script context', () => {

@@ -27,8 +27,10 @@ Make backend abuse materially harder by ensuring backend services are primarily 
 
 ## 2. Current-state summary (from this repo)
 
-1. Many applet requests still call `NEXT_PUBLIC_HIILIKARTTA_API_URL` and `NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL` directly in browser query/mutation modules.
-2. GeoServer URLs are currently exposed to the browser via `NEXT_PUBLIC_GEOSERVER_URL`.
+1. Applet browser requests use same-origin `/api/hiilikartta` and
+   `/api/luonnonmetsakartat` paths; their upstream hosts are configured only by
+   the server-side `HIILIKARTTA_API_URL` and `LUONNONMETSAKARTAT_API_URL`.
+2. GeoServer URLs are currently exposed to the browser via `PUBLIC_GEOSERVER_URL`.
 3. There are existing TanStack Start server routes, but they do not currently
    form a full abuse-control layer:
    1. `src/routes/api/map/core/mml/tms/$z/$x/$y.ts`
@@ -154,7 +156,7 @@ Expose only required public tile/glyph paths, deny unneeded OGC/admin paths, and
 
 ### Step A6: Keep GeoServer direct in frontend, and remove Geo proxy scope
 
-1. Keep `NEXT_PUBLIC_GEOSERVER_URL` as the browser-facing host for tiles/glyphs.
+1. Keep `PUBLIC_GEOSERVER_URL` as the browser-facing host for tiles/glyphs.
 2. Do not add generic `src/routes/api/geoserver/...` proxy routes in this phase.
 3. Frontend-side guardrails:
    1. lock source templates to tile/glyph paths only
@@ -163,14 +165,15 @@ Expose only required public tile/glyph paths, deny unneeded OGC/admin paths, and
 
 ### Step A7: Migrate frontend call sites to same-origin API paths
 
-1. Replace direct public backend URL usage:
-   1. `NEXT_PUBLIC_HIILIKARTTA_API_URL` -> `/api/hiilikartta`
-   2. `NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL` -> `/api/luonnonmetsakartat`
-2. Keep direct GeoServer URL usage for tiles/glyphs (`NEXT_PUBLIC_GEOSERVER_URL`) and avoid adding client-side WFS/WMS access.
+1. Keep browser backend access on the same-origin paths:
+   1. `HIILIKARTTA_API_URL` remains server-only behind `/api/hiilikartta`
+   2. `LUONNONMETSAKARTAT_API_URL` remains server-only behind
+      `/api/luonnonmetsakartat`
+2. Keep direct GeoServer URL usage for tiles/glyphs (`PUBLIC_GEOSERVER_URL`) and avoid adding client-side WFS/WMS access.
 3. Update relevant files (minimum set currently identified):
    1. hiilikartta query modules under `src/applets/hiilikartta/common/queries/*`
    2. luonnonmetsakartat query modules under `src/applets/luonnonmetsakartat/common/queries/*`
-   3. map sources and layer configs using `NEXT_PUBLIC_GEOSERVER_URL`:
+   3. map sources and layer configs using `PUBLIC_GEOSERVER_URL`:
       1. `src/components/Map/MapHandler.tsx`
       2. `src/components/Map/layers/main/Buildings/HelsinkiBuildings/layerConf.ts`
       3. `src/applets/forests/layers/layerConf.ts`
@@ -190,9 +193,7 @@ Expose only required public tile/glyph paths, deny unneeded OGC/admin paths, and
 ### Step A9: Add environment model changes
 
 1. Update `.env.template`:
-   1. deprecate/remove public backend env vars for browser direct usage:
-      1. `NEXT_PUBLIC_HIILIKARTTA_API_URL`
-      2. `NEXT_PUBLIC_LUONNONMETSAKARTAT_API_URL`
+   1. do not add `PUBLIC_*` aliases for backend upstream URLs
    2. add server-only vars:
       1. `HIILIKARTTA_API_URL`
       2. `LUONNONMETSAKARTAT_API_URL`
@@ -201,10 +202,10 @@ Expose only required public tile/glyph paths, deny unneeded OGC/admin paths, and
       5. `ABUSE_ANON_SESSION_SECRET`
       6. `ABUSE_REDIS_URL`
       7. `ABUSE_TURNSTILE_SECRET_KEY`
-      8. `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
+      8. `PUBLIC_TURNSTILE_SITE_KEY`
       9. `ABUSE_ENFORCE_SIGNED_PROXY`
       10. `ABUSE_ENFORCE_TURNSTILE_ANON_WRITES`
-2. Keep a compatibility window with dual support flags for one release.
+2. Coordinate server-only deployment values without a checked-in public alias.
 
 ### Step A10: Add tests and acceptance checks in this repo
 

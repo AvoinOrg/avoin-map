@@ -65,9 +65,6 @@ export const DEFAULT_NS = 'avoin-map'
 
 export const LOCALES = tolgeeSelectionConfig.locales
 
-const apiKey = process.env.NEXT_PUBLIC_TOLGEE_API_KEY
-const apiUrl = process.env.NEXT_PUBLIC_TOLGEE_API_URL
-
 export const getStaticData = async (nsLangs: {
   [key: string]: { langs: string[] }
 }) => {
@@ -109,12 +106,6 @@ export function TolgeeBase() {
       .updateDefaults({
         language: DEFAULT_LOCALE,
         defaultNs: DEFAULT_NS,
-        ...(apiUrl && {
-          apiUrl: apiUrl,
-        }),
-        ...(apiKey && {
-          apiKey: apiKey,
-        }),
       })
   )
 }

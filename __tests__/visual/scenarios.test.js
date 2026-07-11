@@ -47,11 +47,11 @@ const { MOCK_AUTH_QUERY_PARAM } = require('../../src/common/auth/mock')
 
 const CARBON_MOCK_BASE_URL = 'http://127.0.0.1:3000'
 const CARBON_MOCK_ENV = {
-  NEXT_PUBLIC_COMPILED_APPLETS: 'main,carbon',
+  PUBLIC_COMPILED_APPLETS: 'main,carbon',
 }
 const LUONNONMETSAKARTAT_MOCK_BASE_URL = 'http://127.0.0.1:3000'
 const LUONNONMETSAKARTAT_MOCK_ENV = {
-  NEXT_PUBLIC_COMPILED_APPLETS: 'main,luonnonmetsakartat',
+  PUBLIC_COMPILED_APPLETS: 'main,luonnonmetsakartat',
 }
 
 const buildCarbonMockScenarios = () =>
@@ -78,7 +78,7 @@ const getScenarioPathname = (scenario) => getScenarioUrl(scenario).pathname
 describe('visual scenarios', () => {
   test('builds main-mode root scenarios for compiled applets', () => {
     const env = {
-      NEXT_PUBLIC_COMPILED_APPLETS: 'main,energy,carbon,luonnonmetsakartat',
+      PUBLIC_COMPILED_APPLETS: 'main,energy,carbon,luonnonmetsakartat',
     }
 
     const scenarios = buildVisualScenarios({
@@ -109,7 +109,7 @@ describe('visual scenarios', () => {
 
   test('uses namespace route folders without making internal applets public', () => {
     const scenarios = buildVisualScenarios({
-      env: { NEXT_PUBLIC_COMPILED_APPLETS: 'main,ui-baseline' },
+      env: { PUBLIC_COMPILED_APPLETS: 'main,ui-baseline' },
       baseUrl: 'http://127.0.0.1:3000',
     })
 
@@ -120,7 +120,7 @@ describe('visual scenarios', () => {
   })
 
   test('builds standalone applet root scenario', () => {
-    const env = { NEXT_PUBLIC_COMPILED_APPLETS: 'carbon' }
+    const env = { PUBLIC_COMPILED_APPLETS: 'carbon' }
 
     expect(isStandaloneAppletBuild({ env })).toBe(true)
 
@@ -138,7 +138,7 @@ describe('visual scenarios', () => {
     expect(getCompiledApplets({ env: {} })).toEqual(Object.keys(appletConf))
     expect(
       getCompiledApplets({
-        env: { NEXT_PUBLIC_COMPILED_APPLETS: ' Carbon, MAIN,carbon ' },
+        env: { PUBLIC_COMPILED_APPLETS: ' Carbon, MAIN,carbon ' },
       })
     ).toEqual(['carbon', 'main'])
   })
@@ -146,12 +146,12 @@ describe('visual scenarios', () => {
   test('rejects unknown and multi-standalone compiled applets', () => {
     expect(() =>
       getCompiledApplets({
-        env: { NEXT_PUBLIC_COMPILED_APPLETS: 'main,unknown,carbon' },
+        env: { PUBLIC_COMPILED_APPLETS: 'main,unknown,carbon' },
       })
     ).toThrow(/unknown applet/i)
     expect(() =>
       getCompiledApplets({
-        env: { NEXT_PUBLIC_COMPILED_APPLETS: 'carbon,energy' },
+        env: { PUBLIC_COMPILED_APPLETS: 'carbon,energy' },
       })
     ).toThrow(/exactly one applet/i)
   })
@@ -160,7 +160,7 @@ describe('visual scenarios', () => {
     'builds the canonical standalone root for %s',
     (applet) => {
       const [scenario] = buildVisualScenarios({
-        env: { NEXT_PUBLIC_COMPILED_APPLETS: applet },
+        env: { PUBLIC_COMPILED_APPLETS: applet },
       })
 
       expect(scenario).toMatchObject({
@@ -172,7 +172,7 @@ describe('visual scenarios', () => {
 
   test('builds component fixture scenarios in main mode', () => {
     const scenarios = buildVisualScenarios({
-      env: { NEXT_PUBLIC_COMPILED_APPLETS: 'main,energy' },
+      env: { PUBLIC_COMPILED_APPLETS: 'main,energy' },
       baseUrl: 'http://127.0.0.1:3000',
       scenarioSet: COMPONENT_FIXTURE_SCENARIO_SET,
     })
@@ -216,7 +216,7 @@ describe('visual scenarios', () => {
   test('rejects component fixture scenarios for standalone applet builds', () => {
     expect(() =>
       buildVisualScenarios({
-        env: { NEXT_PUBLIC_COMPILED_APPLETS: 'carbon' },
+        env: { PUBLIC_COMPILED_APPLETS: 'carbon' },
         baseUrl: 'http://app',
         scenarioSet: COMPONENT_FIXTURE_SCENARIO_SET,
       })
@@ -499,22 +499,22 @@ describe('visual scenarios', () => {
     test('rejects carbon mock scenarios for unsupported builds', () => {
       expect(() =>
         buildVisualScenarios({
-          env: { NEXT_PUBLIC_COMPILED_APPLETS: 'carbon' },
+          env: { PUBLIC_COMPILED_APPLETS: 'carbon' },
           baseUrl: 'http://app',
           scenarioSet: CARBON_MOCK_SCENARIO_SET,
         })
       ).toThrow(
-        'requires a main-app build with NEXT_PUBLIC_COMPILED_APPLETS including "main" and "carbon"'
+        'requires a main-app build with PUBLIC_COMPILED_APPLETS including "main" and "carbon"'
       )
 
       expect(() =>
         buildVisualScenarios({
-          env: { NEXT_PUBLIC_COMPILED_APPLETS: 'main,energy' },
+          env: { PUBLIC_COMPILED_APPLETS: 'main,energy' },
           baseUrl: 'http://app',
           scenarioSet: CARBON_MOCK_SCENARIO_SET,
         })
       ).toThrow(
-        'requires a main-app build with NEXT_PUBLIC_COMPILED_APPLETS including "main" and "carbon"'
+        'requires a main-app build with PUBLIC_COMPILED_APPLETS including "main" and "carbon"'
       )
     })
 
@@ -527,7 +527,7 @@ describe('visual scenarios', () => {
       )
       expect(packageJson.scripts['visual:carbon-mocks']).toContain('--no-start')
       expect(packageJson.scripts['visual:carbon-mocks']).not.toContain(
-        'NEXT_PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED'
+        'PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED'
       )
     })
 
@@ -538,10 +538,10 @@ describe('visual scenarios', () => {
       expect(script).toContain('--base-url=http://127.0.0.1:3000')
       expect(script).toContain('--no-start')
       expect(script).not.toContain(
-        'NEXT_PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED'
+        'PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED'
       )
       expect(script).not.toContain('HIILIKARTTA_MOCK_API_ENABLED')
-      expect(script).not.toContain('NEXT_PUBLIC_MOCK_AUTH_ENABLED')
+      expect(script).not.toContain('PUBLIC_MOCK_AUTH_ENABLED')
       expect(script).not.toContain('HIILIKARTTA_API_URL')
       expect(script).not.toContain('start:dev')
       expect(script).not.toContain('yarn dev')
@@ -750,23 +750,23 @@ describe('visual scenarios', () => {
     test('rejects luonnonmetsakartat mock scenarios for unsupported builds', () => {
       expect(() =>
         buildVisualScenarios({
-          env: { NEXT_PUBLIC_COMPILED_APPLETS: 'luonnonmetsakartat' },
+          env: { PUBLIC_COMPILED_APPLETS: 'luonnonmetsakartat' },
           baseUrl: 'http://app',
           scenarioSet: LUONNONMETSAKARTAT_MOCK_SCENARIO_SET,
         })
       ).toThrow(
-        'requires a main-app build with NEXT_PUBLIC_COMPILED_APPLETS including "main" and "luonnonmetsakartat"'
+        'requires a main-app build with PUBLIC_COMPILED_APPLETS including "main" and "luonnonmetsakartat"'
       )
 
       for (const compiledApplets of ['main,carbon', 'main,energy']) {
         expect(() =>
           buildVisualScenarios({
-            env: { NEXT_PUBLIC_COMPILED_APPLETS: compiledApplets },
+            env: { PUBLIC_COMPILED_APPLETS: compiledApplets },
             baseUrl: 'http://app',
             scenarioSet: LUONNONMETSAKARTAT_MOCK_SCENARIO_SET,
           })
         ).toThrow(
-          'requires a main-app build with NEXT_PUBLIC_COMPILED_APPLETS including "main" and "luonnonmetsakartat"'
+          'requires a main-app build with PUBLIC_COMPILED_APPLETS including "main" and "luonnonmetsakartat"'
         )
       }
     })
@@ -778,10 +778,10 @@ describe('visual scenarios', () => {
       expect(script).toContain('--base-url=http://127.0.0.1:3000')
       expect(script).toContain('--no-start')
       expect(script).not.toContain(
-        'NEXT_PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED'
+        'PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED'
       )
       expect(script).not.toContain('LUONNONMETSAKARTAT_MOCK_API_ENABLED')
-      expect(script).not.toContain('NEXT_PUBLIC_MOCK_AUTH_ENABLED')
+      expect(script).not.toContain('PUBLIC_MOCK_AUTH_ENABLED')
       expect(script).not.toContain('start:dev')
       expect(script).not.toContain('yarn dev')
     })

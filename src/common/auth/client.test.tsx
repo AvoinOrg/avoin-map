@@ -102,13 +102,13 @@ const successfulAccessTokenResponse = {
   error: null,
 }
 
-const originalMockAuthEnabled = process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED
+const originalMockAuthEnabled = process.env.PUBLIC_MOCK_AUTH_ENABLED
 const originalMockAuthInitialState =
-  process.env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE
+  process.env.PUBLIC_MOCK_AUTH_INITIAL_STATE
 
 const resetMockAuthEnvironment = () => {
-  delete process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED
-  delete process.env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE
+  delete process.env.PUBLIC_MOCK_AUTH_ENABLED
+  delete process.env.PUBLIC_MOCK_AUTH_INITIAL_STATE
   window.history.replaceState({}, '', '/')
   window.localStorage.removeItem(MOCK_AUTH_STORAGE_KEY)
   document.cookie = `${MOCK_AUTH_COOKIE_NAME}=; Path=/; Max-Age=0`
@@ -123,15 +123,15 @@ const persistMockAuthBrowserState = (state: string) => {
 
 const restoreMockAuthEnvironment = () => {
   if (originalMockAuthEnabled === undefined) {
-    delete process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED
+    delete process.env.PUBLIC_MOCK_AUTH_ENABLED
   } else {
-    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = originalMockAuthEnabled
+    process.env.PUBLIC_MOCK_AUTH_ENABLED = originalMockAuthEnabled
   }
 
   if (originalMockAuthInitialState === undefined) {
-    delete process.env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE
+    delete process.env.PUBLIC_MOCK_AUTH_INITIAL_STATE
   } else {
-    process.env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE =
+    process.env.PUBLIC_MOCK_AUTH_INITIAL_STATE =
       originalMockAuthInitialState
   }
 }
@@ -381,7 +381,7 @@ describe('AuthSessionProvider', () => {
   })
 
   it('returns the deterministic authenticated mock session by default without Better Auth calls', async () => {
-    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
+    process.env.PUBLIC_MOCK_AUTH_ENABLED = '1'
 
     renderAuthProvider(<AuthProbe />)
 
@@ -420,8 +420,8 @@ describe('AuthSessionProvider', () => {
   })
 
   it('returns the deterministic rejected mock session without Better Auth calls', async () => {
-    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
-    process.env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE = 'rejected'
+    process.env.PUBLIC_MOCK_AUTH_ENABLED = '1'
+    process.env.PUBLIC_MOCK_AUTH_INITIAL_STATE = 'rejected'
 
     renderAuthProvider(<AuthProbe />)
 
@@ -463,8 +463,8 @@ describe('AuthSessionProvider', () => {
   })
 
   it('returns a missing-token mock session without an access token', async () => {
-    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
-    process.env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE = 'missing-token'
+    process.env.PUBLIC_MOCK_AUTH_ENABLED = '1'
+    process.env.PUBLIC_MOCK_AUTH_INITIAL_STATE = 'missing-token'
 
     renderAuthProvider(<AuthProbe />)
 
@@ -506,7 +506,7 @@ describe('AuthSessionProvider', () => {
   })
 
   it('uses URL-controlled mock unauthenticated state without Better Auth calls', async () => {
-    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
+    process.env.PUBLIC_MOCK_AUTH_ENABLED = '1'
     window.history.pushState({}, '', '/?mockAuth=unauthenticated')
 
     renderAuthProvider(<AuthProbe />)
@@ -535,8 +535,8 @@ describe('AuthSessionProvider', () => {
   })
 
   it('switches mock sign-in state without opening Better Auth OAuth', async () => {
-    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
-    process.env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE = 'unauthenticated'
+    process.env.PUBLIC_MOCK_AUTH_ENABLED = '1'
+    process.env.PUBLIC_MOCK_AUTH_INITIAL_STATE = 'unauthenticated'
 
     renderAuthProvider(<AuthProbe />)
 
@@ -561,7 +561,7 @@ describe('AuthSessionProvider', () => {
   })
 
   it('moves mock sign-out to live unauthenticated mode without Better Auth sign-out', async () => {
-    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
+    process.env.PUBLIC_MOCK_AUTH_ENABLED = '1'
     window.history.pushState({}, '', '/?mockAuth=authenticated')
     mockUseSession.mockReturnValue({
       data: null,
@@ -597,8 +597,8 @@ describe('AuthSessionProvider', () => {
   })
 
   it('moves mock sign-out from rejected state to live auth mode', async () => {
-    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
-    process.env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE = 'rejected'
+    process.env.PUBLIC_MOCK_AUTH_ENABLED = '1'
+    process.env.PUBLIC_MOCK_AUTH_INITIAL_STATE = 'rejected'
     mockUseSession.mockReturnValue({
       data: null,
       error: null,
@@ -631,7 +631,7 @@ describe('AuthSessionProvider', () => {
   })
 
   it('delegates login to Better Auth after explicit mock sign-out', async () => {
-    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
+    process.env.PUBLIC_MOCK_AUTH_ENABLED = '1'
     mockUseSession.mockReturnValue({
       data: null,
       error: null,
@@ -669,7 +669,7 @@ describe('AuthSessionProvider', () => {
   })
 
   it('uses Better Auth session, token, and OAuth paths in mock passthrough mode', async () => {
-    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
+    process.env.PUBLIC_MOCK_AUTH_ENABLED = '1'
     persistMockAuthBrowserState('passthrough')
     mockSignInOauth2.mockResolvedValueOnce({ data: null, error: null })
 
@@ -711,7 +711,7 @@ describe('AuthSessionProvider', () => {
   })
 
   it('uses Better Auth sign-out when mock auth is already in passthrough mode', async () => {
-    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
+    process.env.PUBLIC_MOCK_AUTH_ENABLED = '1'
     persistMockAuthBrowserState('passthrough')
 
     await signOutAuth()
@@ -767,7 +767,7 @@ describe('AuthSessionProvider', () => {
   })
 
   it('drives the user store to authenticated and fetched in mock authenticated mode', async () => {
-    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
+    process.env.PUBLIC_MOCK_AUTH_ENABLED = '1'
     mockAxiosGet.mockResolvedValueOnce({ data: createMockUserInfo() })
 
     renderUserStateHandler()
@@ -800,8 +800,8 @@ describe('AuthSessionProvider', () => {
   })
 
   it('keeps the user store authenticated and fetched in mock missing-token mode', async () => {
-    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
-    process.env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE = 'missing-token'
+    process.env.PUBLIC_MOCK_AUTH_ENABLED = '1'
+    process.env.PUBLIC_MOCK_AUTH_INITIAL_STATE = 'missing-token'
     mockAxiosGet.mockResolvedValueOnce({
       data: createMockUserInfo('missing-token'),
     })
@@ -834,8 +834,8 @@ describe('AuthSessionProvider', () => {
   })
 
   it('keeps the user store unauthenticated and unfetched in mock unauthenticated mode', async () => {
-    process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED = '1'
-    process.env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE = 'unauthenticated'
+    process.env.PUBLIC_MOCK_AUTH_ENABLED = '1'
+    process.env.PUBLIC_MOCK_AUTH_INITIAL_STATE = 'unauthenticated'
 
     renderUserStateHandler()
 

@@ -1,6 +1,6 @@
 // Non-destructive prebuild step:
 // - Copies the repo into a temp folder (excluding heavy/generated dirs)
-// - Prunes applet folders in the temp copy based on NEXT_PUBLIC_COMPILED_APPLETS
+// - Prunes applet folders in the temp copy based on PUBLIC_COMPILED_APPLETS
 // - Persists the temp folder path so `yarn build` can run in it
 
 const fs = require('fs')
@@ -152,12 +152,12 @@ const main = () => {
       'utf8'
     )
 
-    // Prune applet folders based on NEXT_PUBLIC_COMPILED_APPLETS.
+    // Prune applet folders based on PUBLIC_COMPILED_APPLETS.
     run(process.execPath, ['utils/scripts/prebuildFolderPrune.js'], {
       cwd: tmpRoot,
       env: {
         ...process.env,
-        NEXT_PUBLIC_COMPILED_APPLETS: buildConfig.compiledApplets.join(','),
+        PUBLIC_COMPILED_APPLETS: buildConfig.compiledApplets.join(','),
         [TEMP_WORKSPACE_ENV]: '1',
       },
     })

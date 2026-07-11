@@ -18,7 +18,7 @@ import { MapPopupHandler } from './MapPopupHandler'
 import { OverlayMessages } from './OverlayMessages'
 import { createMapTransformRequest } from './mapAuthTransformRequest'
 
-const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
+const SERVER_URL = process.env.PUBLIC_GEOSERVER_URL
 
 const DEFAULT_CENTER = [15, 62] as [number, number]
 const DEFAULT_ZOOM = 5

@@ -9,7 +9,7 @@ import LoadingHorizontal from '#/components/Loading/LoadingHorizontal'
 import { Box } from '#/common/style/theme/system'
 
 const profileUrl =
-  process.env.NEXT_PUBLIC_ZITADEL_ISSUER + '/ui/console/users/me'
+  process.env.PUBLIC_ZITADEL_ISSUER + '/ui/console/users/me'
 
 const LoggedInButton = () => {
   const signOut = useUserStore((state) => state.signOut)

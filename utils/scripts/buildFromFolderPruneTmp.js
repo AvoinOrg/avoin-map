@@ -145,7 +145,7 @@ const readBuildState = () => {
 
 const getBuildEnv = ({ state, extra = {} }) => ({
   ...process.env,
-  NEXT_PUBLIC_COMPILED_APPLETS: state.compiledApplets.join(','),
+  PUBLIC_COMPILED_APPLETS: state.compiledApplets.join(','),
   ...extra,
 })
 

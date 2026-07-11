@@ -6,8 +6,8 @@ import type {
 
 export type MockAuthEnv = {
   [key: string]: string | undefined
-  NEXT_PUBLIC_MOCK_AUTH_ENABLED?: string
-  NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE?: string
+  PUBLIC_MOCK_AUTH_ENABLED?: string
+  PUBLIC_MOCK_AUTH_INITIAL_STATE?: string
   NODE_ENV?: string
 }
 
@@ -119,9 +119,9 @@ const MOCK_AUTH_PROFILES: Record<AuthenticatedMockAuthState, MockAuthProfile> =
   }
 
 const getDefaultMockAuthEnv = (): MockAuthEnv => ({
-  NEXT_PUBLIC_MOCK_AUTH_ENABLED: process.env.NEXT_PUBLIC_MOCK_AUTH_ENABLED,
-  NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE:
-    process.env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE,
+  PUBLIC_MOCK_AUTH_ENABLED: process.env.PUBLIC_MOCK_AUTH_ENABLED,
+  PUBLIC_MOCK_AUTH_INITIAL_STATE:
+    process.env.PUBLIC_MOCK_AUTH_INITIAL_STATE,
   NODE_ENV: process.env.NODE_ENV,
 })
 
@@ -174,7 +174,7 @@ export const assertMockAuthAllowed = (
   env: MockAuthEnv = getDefaultMockAuthEnv()
 ) => {
   const mockAuthEnabled = MOCK_AUTH_ENABLED_VALUES.has(
-    normalizeFlag(env.NEXT_PUBLIC_MOCK_AUTH_ENABLED)
+    normalizeFlag(env.PUBLIC_MOCK_AUTH_ENABLED)
   )
 
   if (
@@ -182,7 +182,7 @@ export const assertMockAuthAllowed = (
     env.NODE_ENV === 'production'
   ) {
     throw new Error(
-      'Mock auth cannot be enabled when NODE_ENV=production. Unset NEXT_PUBLIC_MOCK_AUTH_ENABLED.'
+      'Mock auth cannot be enabled when NODE_ENV=production. Unset PUBLIC_MOCK_AUTH_ENABLED.'
     )
   }
 }
@@ -193,7 +193,7 @@ export const isMockAuthEnabled = (
   assertMockAuthAllowed(env)
 
   return MOCK_AUTH_ENABLED_VALUES.has(
-    normalizeFlag(env.NEXT_PUBLIC_MOCK_AUTH_ENABLED)
+    normalizeFlag(env.PUBLIC_MOCK_AUTH_ENABLED)
   )
 }
 
@@ -205,7 +205,7 @@ export const resolveMockAuthConfig = (
   return {
     enabled,
     initialState:
-      parseMockAuthState(env.NEXT_PUBLIC_MOCK_AUTH_INITIAL_STATE) ??
+      parseMockAuthState(env.PUBLIC_MOCK_AUTH_INITIAL_STATE) ??
       DEFAULT_MOCK_AUTH_STATE,
   }
 }

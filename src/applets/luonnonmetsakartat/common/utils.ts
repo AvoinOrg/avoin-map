@@ -15,9 +15,9 @@ import AreaModal from '../components/AreaModal'
 import { FolayerFeature } from './types'
 import { isLuonnonmetsakartatMockScenariosEnabled } from './mockScenarios/config'
 
-const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
+const SERVER_URL = process.env.PUBLIC_GEOSERVER_URL
 const GS_WORKSPACE =
-  process.env.NEXT_PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE
+  process.env.PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE
 const MOCK_GEOSERVER_URL = '/api/luonnonmetsakartat/geoserver'
 const MOCK_GEOSERVER_WORKSPACE = 'mock'
 

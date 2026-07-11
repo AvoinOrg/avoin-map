@@ -1,14 +1,14 @@
 [build]
   # @tanstack/react-start 1.131.x uses Nitro target="netlify" and publish="dist".
   # The newer @netlify/vite-plugin-tanstack-start path starts at Start 1.132.0.
-  command = "NEXT_PUBLIC_URL=$DEPLOY_PRIME_URL yarn run build:netlify"
+  command = "yarn run build:netlify"
   publish = "dist"
 
 [build.environment]
-  NEXT_PUBLIC_COMPILED_APPLETS = "main,energy,carbon,luonnonmetsakartat"
+  PUBLIC_COMPILED_APPLETS = "main,energy,carbon,luonnonmetsakartat"
 
 [context."hiilikartta_deploy"]
-  environment = { NEXT_PUBLIC_COMPILED_APPLETS = "carbon" }
+  environment = { PUBLIC_COMPILED_APPLETS = "carbon" }
 
 [context."luonnonmetsakartat_deploy"]
-  environment = { NEXT_PUBLIC_COMPILED_APPLETS = "luonnonmetsakartat" }
+  environment = { PUBLIC_COMPILED_APPLETS = "luonnonmetsakartat" }

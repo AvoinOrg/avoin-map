@@ -45,7 +45,7 @@ export const createMapTransformRequest = ({
       return { url: originalUrl }
     }
 
-    const geoserverUrl = process.env.NEXT_PUBLIC_GEOSERVER_URL
+    const geoserverUrl = process.env.PUBLIC_GEOSERVER_URL
 
     if (
       url.includes('requireToken=true') &&

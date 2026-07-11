@@ -3,7 +3,7 @@ import { LayerConf, ExtendedStyleSpecification } from '#/common/types/map'
 
 import Popup from './Popup'
 
-const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
+const SERVER_URL = process.env.PUBLIC_GEOSERVER_URL
 
 const layerGroupId = 'helsinki_buildings'
 

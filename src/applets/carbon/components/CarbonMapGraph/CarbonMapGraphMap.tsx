@@ -32,8 +32,7 @@ import { mergeArraysAlternate, pp } from '#/common/utils/general'
 import { Cross } from '#/components/icons'
 import { osmBackgroundLayerConf } from '#/components/Map/layers/common/OSM/background'
 
-const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
-// const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+const SERVER_URL = process.env.PUBLIC_GEOSERVER_URL
 
 type MapGraphLayerStateParams = {
   dataId: string

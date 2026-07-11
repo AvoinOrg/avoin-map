@@ -14,7 +14,7 @@ import { MapButton } from './MapButton'
 import { MapButtonMenu } from './MapButtonMenu'
 
 const PROFILE_URL =
-  process.env.NEXT_PUBLIC_ZITADEL_ISSUER + '/ui/console/users/me'
+  process.env.PUBLIC_ZITADEL_ISSUER + '/ui/console/users/me'
 
 type Props = {
   isVertical: boolean

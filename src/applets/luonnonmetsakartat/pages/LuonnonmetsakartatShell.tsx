@@ -7,7 +7,7 @@ const LuonnonmetsakartatShell = () => {
   return (
     <AppletLayout
       umamiWebsiteId={
-        process.env.NEXT_PUBLIC_APPLETS_LUONNONMETSAKARTAT_UMAMI_ID
+        process.env.PUBLIC_APPLETS_LUONNONMETSAKARTAT_UMAMI_ID
       }
     >
       <LuonnonmetsakartatAppletRuntime>

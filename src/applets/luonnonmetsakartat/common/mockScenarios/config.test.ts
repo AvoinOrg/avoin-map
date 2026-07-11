@@ -9,7 +9,7 @@ import {
 describe('Luonnonmetsakartat mock scenario config', () => {
   it('exports the canonical public flag and query parameter names', () => {
     expect(LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED_ENV).toBe(
-      'NEXT_PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED'
+      'PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED'
     )
     expect(MOCK_LUONNONMETSAKARTAT_STATE_QUERY_PARAM).toBe(
       'mockLuonnonmetsakartatState'
@@ -22,7 +22,7 @@ describe('Luonnonmetsakartat mock scenario config', () => {
     (flagValue) => {
       expect(
         isLuonnonmetsakartatMockScenariosEnabled({
-          NEXT_PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED: flagValue,
+          PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED: flagValue,
           NODE_ENV: 'test',
         })
       ).toBe(true)
@@ -34,7 +34,7 @@ describe('Luonnonmetsakartat mock scenario config', () => {
     (flagValue) => {
       expect(
         isLuonnonmetsakartatMockScenariosEnabled({
-          NEXT_PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED: flagValue,
+          PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED: flagValue,
           NODE_ENV: 'test',
         })
       ).toBe(false)
@@ -44,18 +44,18 @@ describe('Luonnonmetsakartat mock scenario config', () => {
   it('refuses enabled mock scenarios in production', () => {
     expect(() =>
       assertLuonnonmetsakartatMockScenariosAllowed({
-        NEXT_PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED: 'yes',
+        PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED: 'yes',
         NODE_ENV: 'production',
       })
     ).toThrow(
-      'Luonnonmetsakartat mock scenarios cannot be enabled when NODE_ENV=production. Unset NEXT_PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED.'
+      'Luonnonmetsakartat mock scenarios cannot be enabled when NODE_ENV=production. Unset PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED.'
     )
   })
 
   it('allows production when the scenario flag is disabled', () => {
     expect(() =>
       assertLuonnonmetsakartatMockScenariosAllowed({
-        NEXT_PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED: '0',
+        PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED: '0',
         NODE_ENV: 'production',
       })
     ).not.toThrow()

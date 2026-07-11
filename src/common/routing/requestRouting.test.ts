@@ -579,18 +579,5 @@ describe('request routing decisions', () => {
       })
     })
 
-    it('uses normal main behavior for env-backed applet domains in main mode', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/en/test?x=1', 'energy.example.test'),
-          host: 'energy.example.test',
-          compiledApplets: ['main', 'energy'],
-          env: {
-            NEXT_PUBLIC_APPLET_ENERGIAKARTTA_DOMAIN:
-              'https://energy.example.test',
-          },
-        })
-      ).toEqual({ type: 'passThrough' })
-    })
   })
 })

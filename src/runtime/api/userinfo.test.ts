@@ -115,7 +115,7 @@ describe('handleUserinfoRequest', () => {
       request: new Request('https://map.example.org/api/userinfo'),
       deps: {
         env: {
-          NEXT_PUBLIC_MOCK_AUTH_ENABLED: '1',
+          PUBLIC_MOCK_AUTH_ENABLED: '1',
         },
         fetchFn,
         getAccessToken,
@@ -145,7 +145,7 @@ describe('handleUserinfoRequest', () => {
         ),
         deps: {
           env: {
-            NEXT_PUBLIC_MOCK_AUTH_ENABLED: '1',
+            PUBLIC_MOCK_AUTH_ENABLED: '1',
           },
           fetchFn,
           getAccessToken,
@@ -171,7 +171,7 @@ describe('handleUserinfoRequest', () => {
       ),
       deps: {
         env: {
-          NEXT_PUBLIC_MOCK_AUTH_ENABLED: '1',
+          PUBLIC_MOCK_AUTH_ENABLED: '1',
         },
         fetchFn,
         getAccessToken,
@@ -196,7 +196,7 @@ describe('handleUserinfoRequest', () => {
       }),
       deps: {
         env: {
-          NEXT_PUBLIC_MOCK_AUTH_ENABLED: '1',
+          PUBLIC_MOCK_AUTH_ENABLED: '1',
         },
         fetchFn,
         getAccessToken,
@@ -231,7 +231,7 @@ describe('handleUserinfoRequest', () => {
         request,
         deps: {
           env: {
-            NEXT_PUBLIC_MOCK_AUTH_ENABLED: '1',
+            PUBLIC_MOCK_AUTH_ENABLED: '1',
           },
           fetchFn,
           getAccessToken,
@@ -260,7 +260,7 @@ describe('handleUserinfoRequest', () => {
         request: new Request('https://map.example.org/api/userinfo'),
         deps: {
           env: {
-            NEXT_PUBLIC_MOCK_AUTH_ENABLED: '1',
+            PUBLIC_MOCK_AUTH_ENABLED: '1',
             NODE_ENV: 'production',
           },
           getAccessToken: jest.fn<AccessTokenGetter>(),
