@@ -11,8 +11,8 @@ import {
   useAppSearchParams,
 } from '#/common/navigation/navigation'
 import {
-  compiledApplets,
   getPathnameWithoutLocale,
+  standaloneApplet,
 } from '#/common/routing/appletBuildMode'
 import AppletWrapper from '#/components/common/AppletWrapper'
 import BreadcrumbNav from '#/components/Sidebar/BreadcrumbNav'
@@ -61,8 +61,7 @@ const CarbonAppletRuntime = ({ children }: { children: React.ReactNode }) => {
     PlaceholderPlanConf[]
   >([])
   const pathnameWithoutLocale = getPathnameWithoutLocale(pathname, locale ?? null)
-  const isStandaloneCarbon =
-    compiledApplets.length === 1 && compiledApplets[0] === 'carbon'
+  const isStandaloneCarbon = standaloneApplet === 'carbon'
   const isCarbonRoot =
     pathnameWithoutLocale === '/carbon' ||
     (isStandaloneCarbon && pathnameWithoutLocale === '/')

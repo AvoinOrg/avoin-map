@@ -4,6 +4,7 @@ import {
   normalizeLegacyAppletRootSubpathSegments,
   normalizeLegacyAppletSubpathSegments,
 } from './publicRoutes'
+import { resolveRuntimeAppletSelection } from './appletBuildMode'
 
 import appletConf from '../../../appletConf.json'
 
@@ -55,19 +56,10 @@ export type DecideRequestRoutingOptions = {
   skipPrefixes?: string[]
 }
 
-const normalizeCompiledApplets = (compiledApplets?: string[]) => {
-  if (compiledApplets) {
-    return compiledApplets
-      .map((item) => item.toLowerCase().trim())
-      .filter(Boolean)
-  }
-
-  return (process.env.NEXT_PUBLIC_COMPILED_APPLETS || '')
-    .toLowerCase()
-    .trim()
-    .split(',')
-    .filter(Boolean)
-}
+const resolveRequestAppletSelection = (compiledApplets?: string[]) =>
+  resolveRuntimeAppletSelection(
+    compiledApplets ?? process.env.NEXT_PUBLIC_COMPILED_APPLETS
+  )
 
 export const getLocalesForRequestNamespace = (namespace: string) =>
   conf[namespace.toLowerCase()]?.langs ?? []
@@ -99,18 +91,8 @@ const withSearch = (
     : { type, pathname, search }
 
 export const getStandaloneRequestApplet = (compiledApplets?: string[]) => {
-  const normalizedCompiledApplets = normalizeCompiledApplets(compiledApplets)
-
-  return normalizedCompiledApplets.length === 1 &&
-    normalizedCompiledApplets[0] !== MAIN_NAMESPACE
-    ? normalizedCompiledApplets[0]
-    : null
+  return resolveRequestAppletSelection(compiledApplets).standaloneApplet
 }
-
-const getStandaloneApplet = (compiledApplets: string[]) =>
-  compiledApplets.length === 1 && compiledApplets[0] !== MAIN_NAMESPACE
-    ? compiledApplets[0]
-    : null
 
 const hasCommonLocalizedPath = (segments: string[], hasLocale: boolean) =>
   COMMON_LOCALIZED_PATHS.some((path) => {
@@ -226,6 +208,7 @@ export const decideRequestRouting = ({
   compiledApplets,
   skipPrefixes = REQUEST_ROUTING_SKIP_PREFIXES,
 }: DecideRequestRoutingOptions): RequestRoutingDecision => {
+  const { standaloneApplet } = resolveRequestAppletSelection(compiledApplets)
   const requestUrl = parseUrl(url)
   const { pathname, search } = requestUrl
 
@@ -241,9 +224,6 @@ export const decideRequestRouting = ({
   if (hasCommonLocalizedPath(segments, hasLocale)) {
     return { type: 'passThrough' }
   }
-
-  const normalizedCompiledApplets = normalizeCompiledApplets(compiledApplets)
-  const standaloneApplet = getStandaloneApplet(normalizedCompiledApplets)
 
   if (standaloneApplet) {
     const allowedLocales = new Set(

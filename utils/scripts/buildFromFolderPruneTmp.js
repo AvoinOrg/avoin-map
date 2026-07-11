@@ -10,6 +10,10 @@ const fs = require('fs')
 const path = require('path')
 const { spawnSync } = require('child_process')
 const crypto = require('crypto')
+const {
+  readAppletConf,
+  resolveCompiledAppletConfig,
+} = require('./appletBuildConfig')
 
 const projectRoot = path.join(__dirname, '..', '..')
 const statePath = path.join(projectRoot, '.applet-build-tmp.json')
@@ -62,6 +66,43 @@ const run = (cmd, args, opts) => {
   }
 }
 
+const validateBuildState = ({ state, appletConf }) => {
+  let selection
+  try {
+    selection = resolveCompiledAppletConfig({
+      appletConf,
+      raw: state?.compiledApplets,
+      scriptName: 'buildFromFolderPruneTmp',
+    })
+  } catch (error) {
+    throw new Error(`${error.message} Re-run the prebuild step.`)
+  }
+
+  const persistedApplets = state.compiledApplets
+  const isNormalized =
+    Array.isArray(persistedApplets) &&
+    persistedApplets.length === selection.compiledApplets.length &&
+    persistedApplets.every(
+      (applet, index) => applet === selection.compiledApplets[index]
+    )
+  if (!isNormalized) {
+    throw new Error(
+      'buildFromFolderPruneTmp: compiled applet state is not normalized. Re-run the prebuild step.'
+    )
+  }
+  if (state.mode !== selection.mode) {
+    throw new Error(
+      `buildFromFolderPruneTmp: build mode state ${JSON.stringify(
+        state.mode
+      )} does not match derived mode ${JSON.stringify(
+        selection.mode
+      )}. Re-run the prebuild step.`
+    )
+  }
+
+  return { ...state, compiledApplets: selection.compiledApplets }
+}
+
 const readBuildState = () => {
   if (!fs.existsSync(statePath)) {
     die(
@@ -78,7 +119,17 @@ const readBuildState = () => {
     }
   })()
 
-  const tmpRoot = state?.tmpRoot
+  let validatedState
+  try {
+    validatedState = validateBuildState({
+      state,
+      appletConf: readAppletConf(projectRoot),
+    })
+  } catch (error) {
+    die(error.message)
+  }
+
+  const tmpRoot = validatedState.tmpRoot
   if (typeof tmpRoot !== 'string' || tmpRoot.trim() === '') {
     die(`buildFromFolderPruneTmp: invalid tmp state in ${statePath}`)
   }
@@ -89,17 +140,7 @@ const readBuildState = () => {
     )
   }
 
-  if (
-    !Array.isArray(state.compiledApplets) ||
-    state.compiledApplets.length === 0 ||
-    state.compiledApplets.some((applet) => typeof applet !== 'string')
-  ) {
-    die(
-      `buildFromFolderPruneTmp: invalid compiled applet state in ${statePath}. Re-run the prebuild step.`
-    )
-  }
-
-  return state
+  return validatedState
 }
 
 const getBuildEnv = ({ state, extra = {} }) => ({
@@ -390,4 +431,5 @@ if (require.main === module) {
 
 module.exports = {
   refreshNitroPublicAssetMetadata,
+  validateBuildState,
 }

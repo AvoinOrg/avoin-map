@@ -7,16 +7,6 @@ const {
   getCompiledAppletConfig,
 } = require('./appletBuildConfig')
 
-const projectRoot = process.cwd()
-const publicRoot = path.join(projectRoot, 'public')
-const filesOut = path.join(publicRoot, 'files')
-const libOut = path.join(publicRoot, 'lib')
-
-const die = (msg) => {
-  console.error(msg)
-  process.exit(1)
-}
-
 const copyDirectoryContents = ({ from, to }) => {
   if (!fs.existsSync(from)) return
 
@@ -27,57 +17,84 @@ const copyDirectoryContents = ({ from, to }) => {
 const getPublicFilesDir = ({ appletConf, namespace }) =>
   appletConf[namespace]?.publicFilesDir || namespace
 
-const main = () => {
-  let buildConfig
-  try {
-    buildConfig = getCompiledAppletConfig({
-      projectRoot,
-      scriptName: 'prepareGeneratedPublicAssets',
-    })
-  } catch (error) {
-    die(error.message)
-  }
-
-  fs.rmSync(filesOut, { recursive: true, force: true })
-  fs.rmSync(libOut, { recursive: true, force: true })
-
-  copyDirectoryContents({
-    from: path.join(projectRoot, 'src', 'public'),
-    to: filesOut,
-  })
-
+const createGeneratedPublicAssetPlan = ({ projectRoot, buildConfig }) => {
+  const publicRoot = path.join(projectRoot, 'public')
+  const filesOut = path.join(publicRoot, 'files')
+  const libOut = path.join(publicRoot, 'lib')
   const appletsRoot = getAppletSourceRoot(projectRoot)
-  for (const namespace of buildConfig.compiledNonMain) {
-    copyDirectoryContents({
-      from: path.join(appletsRoot, namespace, 'public'),
-      to: path.join(
-        filesOut,
-        getPublicFilesDir({ appletConf: buildConfig.appletConf, namespace })
-      ),
-    })
+
+  return {
+    filesOut,
+    libOut,
+    directoryCopies: [
+      { from: path.join(projectRoot, 'src', 'public'), to: filesOut },
+      ...buildConfig.compiledNonMain.map((namespace) => ({
+        from: path.join(appletsRoot, namespace, 'public'),
+        to: path.join(
+          filesOut,
+          getPublicFilesDir({ appletConf: buildConfig.appletConf, namespace })
+        ),
+      })),
+    ],
+    wasmFrom: path.join(
+      projectRoot,
+      'node_modules',
+      'rtree-sql.js',
+      'dist',
+      'sql-wasm.wasm'
+    ),
+    wasmTo: path.join(libOut, 'sql-wasm.wasm'),
   }
+}
 
-  const wasmFrom = path.join(
+const prepareGeneratedPublicAssets = ({
+  projectRoot = process.cwd(),
+  raw,
+} = {}) => {
+  const buildConfig = getCompiledAppletConfig({
     projectRoot,
-    'node_modules',
-    'rtree-sql.js',
-    'dist',
-    'sql-wasm.wasm'
-  )
-  const wasmTo = path.join(libOut, 'sql-wasm.wasm')
+    raw,
+    scriptName: 'prepareGeneratedPublicAssets',
+  })
+  const plan = createGeneratedPublicAssetPlan({ projectRoot, buildConfig })
 
-  if (!fs.existsSync(wasmFrom)) {
-    die(
-      `prepareGeneratedPublicAssets: required WASM source is missing at ${wasmFrom}`
+  if (!fs.existsSync(plan.wasmFrom)) {
+    throw new Error(
+      `prepareGeneratedPublicAssets: required WASM source is missing at ${plan.wasmFrom}`
     )
   }
 
-  fs.mkdirSync(path.dirname(wasmTo), { recursive: true })
-  fs.copyFileSync(wasmFrom, wasmTo)
+  fs.rmSync(plan.filesOut, { recursive: true, force: true })
+  fs.rmSync(plan.libOut, { recursive: true, force: true })
+
+  for (const copy of plan.directoryCopies) {
+    copyDirectoryContents(copy)
+  }
+
+  fs.mkdirSync(path.dirname(plan.wasmTo), { recursive: true })
+  fs.copyFileSync(plan.wasmFrom, plan.wasmTo)
 
   console.log(
     `prepareGeneratedPublicAssets: generated public/files and public/lib for ${buildConfig.mode}`
   )
+
+  return { buildConfig, plan }
 }
 
-main()
+const main = () => {
+  try {
+    prepareGeneratedPublicAssets()
+  } catch (error) {
+    console.error(error.message)
+    process.exitCode = 1
+  }
+}
+
+if (require.main === module) {
+  main()
+}
+
+module.exports = {
+  createGeneratedPublicAssetPlan,
+  prepareGeneratedPublicAssets,
+}

@@ -1,4 +1,7 @@
 const appletConf = require('../../appletConf.json')
+const {
+  createAppletSelectionContract,
+} = require('../../src/common/routing/appletSelectionContract/index.js')
 const { getRouteFolderForApplet } = require('../scripts/publicRoutes')
 const {
   DEFAULT_MASK_SELECTORS,
@@ -20,14 +23,7 @@ const SUPPORTED_SCENARIO_SETS = [
   LUONNONMETSAKARTAT_MOCK_SCENARIO_SET,
 ]
 
-const parseCompiledApplets = (raw) =>
-  String(raw || '')
-    .toLowerCase()
-    .split(',')
-    .map((part) => part.trim())
-    .filter(Boolean)
-
-const unique = (values) => Array.from(new Set(values))
+const appletSelectionContract = createAppletSelectionContract(appletConf)
 
 const uniqueScenariosById = (scenarios) => {
   const seen = new Set()
@@ -40,22 +36,19 @@ const uniqueScenariosById = (scenarios) => {
   })
 }
 
-const getKnownApplets = () => Object.keys(appletConf)
+const getKnownApplets = () => [...appletSelectionContract.APPLET_NAMES]
+
+const getAppletSelection = ({ env = process.env } = {}) =>
+  appletSelectionContract.resolveRuntimeSelection(
+    env.NEXT_PUBLIC_COMPILED_APPLETS
+  )
 
 const getCompiledApplets = ({ env = process.env } = {}) => {
-  const parsed = parseCompiledApplets(env.NEXT_PUBLIC_COMPILED_APPLETS)
-  const known = new Set(getKnownApplets())
-
-  if (parsed.length === 0) {
-    return getKnownApplets()
-  }
-
-  return unique(parsed.filter((name) => known.has(name)))
+  return [...getAppletSelection({ env }).compiledApplets]
 }
 
 const isStandaloneAppletBuild = ({ env = process.env } = {}) => {
-  const compiled = getCompiledApplets({ env })
-  return compiled.length === 1 && compiled[0] !== MAIN_APPLET
+  return getAppletSelection({ env }).isStandalone
 }
 
 const getAppletLocale = (applet) => {
@@ -100,11 +93,11 @@ const buildScenario = ({
 })
 
 const buildRootVisualScenarios = ({ env = process.env, baseUrl = '' } = {}) => {
-  const compiled = getCompiledApplets({ env })
-  const standalone = isStandaloneAppletBuild({ env })
+  const selection = getAppletSelection({ env })
+  const compiled = selection.compiledApplets
 
-  if (standalone) {
-    const applet = compiled[0]
+  if (selection.isStandalone) {
+    const applet = selection.standaloneApplet
     const locale = getAppletLocale(applet)
     return [
       buildScenario({
@@ -277,9 +270,9 @@ module.exports = {
   buildRootVisualScenarios,
   buildScenario,
   buildVisualScenarios,
+  getAppletSelection,
   getCompiledApplets,
   getKnownApplets,
   isStandaloneAppletBuild,
-  parseCompiledApplets,
   resolveScenarioSet,
 }

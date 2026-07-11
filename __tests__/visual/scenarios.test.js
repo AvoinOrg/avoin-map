@@ -20,6 +20,7 @@ const {
   LUONNONMETSAKARTAT_MOCK_SCENARIO_SET,
 } = require('../../utils/visual/luonnonmetsakartatMockScenarios')
 const { DEFAULT_MASK_SELECTORS } = require('../../utils/visual/constants')
+const appletConf = require('../../appletConf.json')
 const {
   componentFixtureMetadata,
 } = require('../../src/common/component-fixtures/metadata')
@@ -133,13 +134,41 @@ describe('visual scenarios', () => {
     })
   })
 
-  test('filters unknown compiled applets', () => {
-    const compiled = getCompiledApplets({
-      env: { NEXT_PUBLIC_COMPILED_APPLETS: 'main,unknown,carbon' },
-    })
-
-    expect(compiled).toEqual(['main', 'carbon'])
+  test('uses full-manifest fallback and normalized first-seen order', () => {
+    expect(getCompiledApplets({ env: {} })).toEqual(Object.keys(appletConf))
+    expect(
+      getCompiledApplets({
+        env: { NEXT_PUBLIC_COMPILED_APPLETS: ' Carbon, MAIN,carbon ' },
+      })
+    ).toEqual(['carbon', 'main'])
   })
+
+  test('rejects unknown and multi-standalone compiled applets', () => {
+    expect(() =>
+      getCompiledApplets({
+        env: { NEXT_PUBLIC_COMPILED_APPLETS: 'main,unknown,carbon' },
+      })
+    ).toThrow(/unknown applet/i)
+    expect(() =>
+      getCompiledApplets({
+        env: { NEXT_PUBLIC_COMPILED_APPLETS: 'carbon,energy' },
+      })
+    ).toThrow(/exactly one applet/i)
+  })
+
+  test.each(Object.keys(appletConf).filter((applet) => applet !== 'main'))(
+    'builds the canonical standalone root for %s',
+    (applet) => {
+      const [scenario] = buildVisualScenarios({
+        env: { NEXT_PUBLIC_COMPILED_APPLETS: applet },
+      })
+
+      expect(scenario).toMatchObject({
+        id: `${applet}-root`,
+        path: `/${appletConf[applet].langs[0]}`,
+      })
+    }
+  )
 
   test('builds component fixture scenarios in main mode', () => {
     const scenarios = buildVisualScenarios({

@@ -119,8 +119,6 @@ const cleanupPreviousTmp = () => {
 }
 
 const main = () => {
-  cleanupPreviousTmp()
-
   let buildConfig
   try {
     buildConfig = getCompiledAppletConfig({
@@ -130,6 +128,8 @@ const main = () => {
   } catch (error) {
     die(error.message)
   }
+
+  cleanupPreviousTmp()
 
   const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'avoin-map-build-'))
   console.log(`prebuildFolderPruneTmp: tmp=${tmpRoot}`)
@@ -186,4 +186,12 @@ const main = () => {
   }
 }
 
-main()
+if (require.main === module) {
+  main()
+}
+
+module.exports = {
+  cleanupPreviousTmp,
+  isManagedTmpRoot,
+  shouldCopy,
+}

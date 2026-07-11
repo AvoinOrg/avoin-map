@@ -1,6 +1,8 @@
 const fs = require('fs')
 const os = require('os')
 const path = require('path')
+const appletConf = require('../../appletConf.json')
+const { resolveCompiledAppletConfig } = require('./appletBuildConfig')
 
 const {
   materializeStandaloneAppletRoutes,
@@ -56,13 +58,12 @@ const apiRoute = (...segments) => path.join('src', 'routes', 'api', ...segments)
 
 const standaloneRoute = (...segments) => mapRoute('(standalone)', ...segments)
 
-const makeBuildConfig = ({ includesMain, selected }) => ({
-  compiledNonMain: selected,
-  includesMain,
-  keepOnlyApplet: includesMain ? null : selected[0],
-  mode: includesMain ? 'main' : `standalone:${selected[0]}`,
-  selectedApplets: new Set(selected),
-})
+const makeBuildConfig = ({ includesMain, selected }) =>
+  resolveCompiledAppletConfig({
+    appletConf,
+    raw: includesMain ? ['main', ...selected] : selected,
+    scriptName: 'prebuildFolderPrune.test',
+  })
 
 const writeCommonFixture = (root) => {
   for (const namespace of [
@@ -511,5 +512,50 @@ describe('prebuildFolderPrune standalone route materialization', () => {
       true
     )
     expect(exists({ root, relativePath: appletRoute('energy') })).toBe(false)
+  })
+
+  it('materializes ui-baseline as an internal standalone route', () => {
+    root = makeTempProject()
+    writeCommonFixture(root)
+
+    runPruneTopology({
+      root,
+      buildConfig: makeBuildConfig({
+        includesMain: false,
+        selected: ['ui-baseline'],
+      }),
+    })
+
+    expect(read({ root, relativePath: standaloneRoute('route.tsx') })).toContain(
+      "createFileRoute('/$locale/_map/(standalone)')"
+    )
+    expect(
+      exists({
+        root,
+        relativePath: path.join('src', 'applets', 'ui-baseline'),
+      })
+    ).toBe(true)
+    expect(exists({ root, relativePath: appletRoute('ui-baseline') })).toBe(
+      false
+    )
+  })
+
+  it('keeps every selected manifest applet in the full main build', () => {
+    root = makeTempProject()
+    writeCommonFixture(root)
+    const selected = Object.keys(appletConf).filter((applet) => applet !== 'main')
+
+    runPruneTopology({
+      root,
+      buildConfig: makeBuildConfig({ includesMain: true, selected }),
+    })
+
+    for (const applet of selected) {
+      expect(
+        exists({ root, relativePath: path.join('src', 'applets', applet) })
+      ).toBe(true)
+      expect(exists({ root, relativePath: appletRoute(applet) })).toBe(true)
+    }
+    expect(exists({ root, relativePath: appletRoute('forests') })).toBe(true)
   })
 })

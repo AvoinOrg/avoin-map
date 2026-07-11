@@ -1,7 +1,11 @@
+const fs = require('fs')
+const os = require('os')
+const path = require('path')
 const {
   generateNetlifyRedirects,
-  parseCompiledApplets,
+  writeRedirectsFile,
 } = require('./writeNetlifyRedirects')
+const { parseCompiledApplets } = require('./appletBuildConfig')
 const manifestAppletConf = require('../../appletConf.json')
 
 const appletConf = {
@@ -87,6 +91,59 @@ describe('writeNetlifyRedirects', () => {
       'main',
       'carbon',
     ])
+  })
+
+  it('rejects empty, unknown, and multi-standalone deployment selections', () => {
+    for (const compiledApplets of ['', 'main,unknown', 'carbon,energy']) {
+      expect(() =>
+        generateNetlifyRedirects({
+          appletConf,
+          baseUrl: mainBaseUrl,
+          compiledApplets,
+          env: {},
+        })
+      ).toThrow(/selection is empty|unknown applet|exactly one applet/i)
+    }
+  })
+
+  it('rejects invalid selection before creating a redirects output path', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'avoin-redirects-test-'))
+    const outputPath = path.join(root, 'nested', '_redirects')
+
+    try {
+      expect(() =>
+        writeRedirectsFile({
+          appletConf,
+          baseUrl: mainBaseUrl,
+          compiledApplets: '',
+          outputPath,
+        })
+      ).toThrow(/selection is empty/i)
+      expect(fs.existsSync(path.dirname(outputPath))).toBe(false)
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true })
+    }
+  })
+
+  it('accepts the full manifest and every configured standalone selection', () => {
+    const manifestApplets = Object.keys(appletConf)
+    const selections = [
+      manifestApplets,
+      ...manifestApplets
+        .filter((applet) => applet !== 'main')
+        .map((applet) => [applet]),
+    ]
+
+    for (const compiledApplets of selections) {
+      expect(() =>
+        generateNetlifyRedirects({
+          appletConf,
+          baseUrl: mainBaseUrl,
+          compiledApplets,
+          env: {},
+        })
+      ).not.toThrow()
+    }
   })
 
   it('generates main-mode applet-domain rules only for common and canonical applet paths', () => {

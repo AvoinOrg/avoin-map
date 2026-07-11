@@ -1,12 +1,11 @@
 const fs = require('fs')
 const path = require('path')
 const dotenv = require('dotenv')
-const { parseCompiledApplets } = require('./appletBuildConfig')
+const { resolveCompiledAppletConfig } = require('./appletBuildConfig')
 const { createPublicRouteContract } = require('./publicRoutes')
 
 dotenv.config({ quiet: true })
 
-const MAIN_APPLET = 'main'
 const VISIBLE_REDIRECT_STATUS = '301!'
 
 const AUTO_GENERATED_COMMENT =
@@ -146,23 +145,13 @@ const getDomains = ({ namespace, appletConf, env }) => [
 const getApiRouteBase = ({ namespace, appletConf }) =>
   appletConf[namespace]?.apiRouteBase || namespace
 
-const getSelectedAppletNamespaces = ({ compiledApplets, publicRoutes }) => {
-  const knownNamespaces = publicRoutes.PUBLIC_APPLET_NAMESPACES
-
-  if (compiledApplets.length === 0) {
-    return {
-      mode: 'main',
-      namespaces: knownNamespaces,
-    }
-  }
-
-  const includesMain = compiledApplets.includes(MAIN_APPLET)
-  const selected = compiledApplets.filter((namespace) =>
+const getSelectedAppletNamespaces = ({ selection, publicRoutes }) => {
+  const selected = selection.compiledNonMain.filter((namespace) =>
     publicRoutes.isPublicAppletNamespace(namespace)
   )
 
   return {
-    mode: includesMain ? 'main' : 'standalone',
+    mode: selection.isStandalone ? 'standalone' : 'main',
     namespaces: selected,
   }
 }
@@ -414,13 +403,18 @@ const addProxyRulesForDomain = ({
 const generateNetlifyRedirects = ({
   appletConf,
   baseUrl,
-  compiledApplets = [],
+  compiledApplets,
   env = process.env,
 }) => {
+  const selection = resolveCompiledAppletConfig({
+    appletConf,
+    raw: compiledApplets,
+    scriptName: 'writeNetlifyRedirects',
+  })
   const rules = []
   const publicRoutes = createPublicRouteContract(appletConf)
   const selected = getSelectedAppletNamespaces({
-    compiledApplets,
+    selection,
     publicRoutes,
   })
 
@@ -477,9 +471,8 @@ const main = () => {
   const projectRoot = path.resolve(args['project-root'] || process.cwd())
   const appletConfPath = path.join(projectRoot, 'appletConf.json')
   const appletConf = JSON.parse(fs.readFileSync(appletConfPath, 'utf8'))
-  const compiledApplets = parseCompiledApplets(
-    args['compiled-applets'] || process.env.NEXT_PUBLIC_COMPILED_APPLETS
-  )
+  const compiledApplets =
+    args['compiled-applets'] ?? process.env.NEXT_PUBLIC_COMPILED_APPLETS
   const baseUrl = normalizeBaseUrl(
     args['base-url'] ||
       process.env.NETLIFY_REDIRECTS_BASE_URL ||
@@ -522,6 +515,5 @@ if (require.main === module) {
 module.exports = {
   generateNetlifyRedirects,
   normalizeBaseUrl,
-  parseCompiledApplets,
   writeRedirectsFile,
 }

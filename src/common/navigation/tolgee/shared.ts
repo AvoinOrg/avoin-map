@@ -2,79 +2,68 @@ import { DevTools, Tolgee } from '@tolgee/web'
 import { FormatIcu } from '@tolgee/format-icu'
 
 import appletConf from '../../../../appletConf.json'
-
-const parseCompiledApplets = (raw?: string) =>
-  (raw || '')
-    .toLowerCase()
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
+import {
+  resolveRuntimeAppletSelection,
+  runtimeAppletSelection,
+  type RuntimeAppletSelection,
+} from '#/common/routing/appletBuildMode'
 
 type AppletKey = keyof typeof appletConf
-
-const compiledAppletsRaw = parseCompiledApplets(
-  process.env.NEXT_PUBLIC_COMPILED_APPLETS
-)
-
-const compiledAppletKeys = (
-  compiledAppletsRaw.length > 0
-    ? compiledAppletsRaw
-    : (Object.keys(appletConf) as string[])
-).filter((k) => k in appletConf) as AppletKey[]
+type AppletConfig = { localeNs?: string; langs?: string[] }
+const conf = appletConf as Record<AppletKey, AppletConfig>
 
 const toUnique = (values: string[]) => Array.from(new Set(values))
 
-const desiredLangs = toUnique(
-  compiledAppletKeys.flatMap((key) => {
-    const conf = appletConf[key]
-    return Array.isArray(conf?.langs) ? conf.langs : []
-  })
-)
+export const createTolgeeSelectionConfig = (
+  selection: RuntimeAppletSelection
+) => {
+  const compiledAppletKeys = selection.compiledApplets as readonly AppletKey[]
+  const desiredLangs = toUnique(
+    compiledAppletKeys.flatMap((key) => conf[key].langs ?? [])
+  )
+  const allNsLangs = compiledAppletKeys.reduce((acc, key) => {
+    const applet = conf[key]
+    const ns = applet.localeNs
+    if (!ns) return acc
 
-export const ALL_NS_LANGS: Record<string, { langs: string[] }> = (() => {
-  const acc = compiledAppletKeys.reduce((a, key) => {
-    const conf = appletConf[key]
-    const ns = conf?.localeNs
-    if (!ns) return a
-
-    const langs = Array.isArray(conf.langs) ? conf.langs : []
-    const prev = a[ns]?.langs ?? []
-    a[ns] = { langs: toUnique(prev.concat(langs)) }
-    return a
+    const prev = acc[ns]?.langs ?? []
+    acc[ns] = { langs: toUnique(prev.concat(applet.langs ?? [])) }
+    return acc
   }, {} as Record<string, { langs: string[] }>)
 
   // Shared UI strings live in the "main" namespace (avoin-map). Even when
   // building a standalone applet, we still want those translations for the
   // locales that the active applet supports.
-  const mainNs = appletConf.main?.localeNs
-  if (mainNs && !acc[mainNs]) {
-    const mainLangs = Array.isArray(appletConf.main?.langs)
-      ? appletConf.main.langs
-      : []
-
-    let langs = desiredLangs.length > 0 ? desiredLangs : mainLangs
-    const intersect = langs.filter((l) => mainLangs.includes(l))
-    if (intersect.length > 0) langs = intersect
+  const mainNs = conf.main.localeNs
+  if (mainNs && !allNsLangs[mainNs]) {
+    const mainLangs = conf.main.langs ?? []
+    const langs = desiredLangs.filter((lang) => mainLangs.includes(lang))
 
     if (langs.length > 0) {
-      acc[mainNs] = { langs }
+      allNsLangs[mainNs] = { langs }
     }
   }
 
-  return acc
-})()
+  const locales = toUnique(
+    Object.values(allNsLangs).flatMap(({ langs }) => langs)
+  )
+
+  return { allNsLangs, locales, selection }
+}
+
+export const resolveTolgeeSelectionConfig = (raw?: string | string[]) =>
+  createTolgeeSelectionConfig(resolveRuntimeAppletSelection(raw))
+
+const tolgeeSelectionConfig = createTolgeeSelectionConfig(
+  runtimeAppletSelection
+)
+
+export const ALL_NS_LANGS = tolgeeSelectionConfig.allNsLangs
 
 export const DEFAULT_LOCALE = 'en'
 export const DEFAULT_NS = 'avoin-map'
 
-const localesSet = new Set<string>()
-
-for (const key in ALL_NS_LANGS) {
-  const langs = ALL_NS_LANGS[key]?.langs ?? []
-  langs.forEach((lang: string) => localesSet.add(lang))
-}
-
-export const LOCALES = Array.from(localesSet)
+export const LOCALES = tolgeeSelectionConfig.locales
 
 const apiKey = process.env.NEXT_PUBLIC_TOLGEE_API_KEY
 const apiUrl = process.env.NEXT_PUBLIC_TOLGEE_API_URL

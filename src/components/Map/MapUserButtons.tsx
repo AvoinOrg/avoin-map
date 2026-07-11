@@ -10,8 +10,8 @@ import {
 import { getLocalesForApplet } from '#/common/navigation/tolgee/shared'
 import { useUIStore } from '#/common/store'
 import {
-  compiledApplets,
   getPathnameWithoutLocale,
+  standaloneApplet,
 } from '#/common/routing/appletBuildMode'
 import {
   getAppletNamespaceForRouteSlug,
@@ -64,12 +64,9 @@ const MAIN_NAMESPACE = 'main'
 type ActiveNamespace = typeof MAIN_NAMESPACE | PublicAppletNamespace
 
 const getStandaloneAppletNamespace = (): ActiveNamespace | null => {
-  if (compiledApplets.length !== 1 || compiledApplets[0] === MAIN_NAMESPACE) {
-    return null
-  }
-
-  const [namespace] = compiledApplets
-  return isPublicAppletNamespace(namespace) ? namespace : null
+  return standaloneApplet && isPublicAppletNamespace(standaloneApplet)
+    ? standaloneApplet
+    : null
 }
 
 const getLocalizedLabel = ({

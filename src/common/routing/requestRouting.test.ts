@@ -3,6 +3,7 @@ import {
   REQUEST_ROUTING_SKIP_PREFIXES,
 } from './requestRouting'
 import { getAppletRouteSlugInfo } from './publicRoutes'
+import appletConf from '../../../appletConf.json'
 
 const url = (path: string, host = 'localhost') => `https://${host}${path}`
 
@@ -30,6 +31,56 @@ describe('public applet route slug policy', () => {
 })
 
 describe('request routing decisions', () => {
+  describe('selection semantics', () => {
+    it('uses runtime full-manifest fallback for empty selection', () => {
+      expect(
+        decideRequestRouting({ url: url('/'), compiledApplets: [] })
+      ).toEqual({
+        type: 'redirect',
+        status: 308,
+        pathname: '/en',
+        search: '',
+      })
+    })
+
+    it('normalizes case, whitespace, and duplicates before routing', () => {
+      expect(
+        decideRequestRouting({
+          url: url('/'),
+          compiledApplets: [' Carbon ', 'CARBON'],
+        })
+      ).toEqual({
+        type: 'redirect',
+        status: 308,
+        pathname: '/fi',
+        search: '',
+      })
+    })
+
+    it.each(['unknown', ['carbon', 'energy']])(
+      'rejects invalid non-empty selection %p',
+      (selection) => {
+        const compiledApplets = Array.isArray(selection)
+          ? selection
+          : [selection]
+        expect(() =>
+          decideRequestRouting({ url: url('/'), compiledApplets })
+        ).toThrow(/unknown applet|exactly one applet/i)
+      }
+    )
+
+    it.each(Object.keys(appletConf).filter((name) => name !== 'main'))(
+      'routes manifest applet %s as a standalone root',
+      (namespace) => {
+        const defaultLocale =
+          appletConf[namespace as keyof typeof appletConf].langs[0]
+        expect(
+          decideRequestRouting({ url: url('/'), compiledApplets: [namespace] })
+        ).toMatchObject({ type: 'redirect', pathname: `/${defaultLocale}` })
+      }
+    )
+  })
+
   describe('skipped paths', () => {
     it.each(REQUEST_ROUTING_SKIP_PREFIXES)(
       'passes through %s without locale normalization',

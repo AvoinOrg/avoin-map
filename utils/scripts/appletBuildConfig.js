@@ -1,25 +1,16 @@
 const fs = require('fs')
 const path = require('path')
 const dotenv = require('dotenv')
+const {
+  createAppletSelectionContract,
+  normalizeAppletSelectionInput,
+} = require('../../src/common/routing/appletSelectionContract/index.js')
 
 const MAIN_APPLET = 'main'
 const TEMP_WORKSPACE_MARKER = '.avoin-map-build-tmp.json'
 const TEMP_WORKSPACE_ENV = 'AVOIN_MAP_PRUNE_TEMP_WORKSPACE'
 
-const parseCompiledApplets = (raw) => {
-  const seen = new Set()
-
-  return (raw || '')
-    .toLowerCase()
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .filter((item) => {
-      if (seen.has(item)) return false
-      seen.add(item)
-      return true
-    })
-}
+const parseCompiledApplets = (raw) => normalizeAppletSelectionInput(raw)
 
 const readAppletConf = (projectRoot) => {
   const appletConfPath = path.join(projectRoot, 'appletConf.json')
@@ -40,6 +31,35 @@ const loadProjectEnv = (projectRoot) => {
 const getAppletSourceRoot = (projectRoot) =>
   path.join(projectRoot, 'src', 'applets')
 
+const resolveCompiledAppletConfig = ({
+  appletConf,
+  raw,
+  scriptName = 'appletBuildConfig',
+}) => {
+  let selection
+  try {
+    selection = createAppletSelectionContract(appletConf).resolveStrictSelection(
+      raw
+    )
+  } catch (error) {
+    throw new Error(
+      `${scriptName}: invalid NEXT_PUBLIC_COMPILED_APPLETS: ${error.message}`
+    )
+  }
+
+  return {
+    appletConf,
+    compiledApplets: [...selection.compiledApplets],
+    compiledNonMain: [...selection.selectedNonMainApplets],
+    includesMain: selection.includesMain,
+    isStandalone: selection.isStandalone,
+    keepOnlyApplet: selection.standaloneApplet,
+    selectedApplets: new Set(selection.selectedNonMainApplets),
+    standaloneApplet: selection.standaloneApplet,
+    mode: selection.mode,
+  }
+}
+
 const getCompiledAppletConfig = (options = {}) => {
   const {
     projectRoot,
@@ -54,47 +74,11 @@ const getCompiledAppletConfig = (options = {}) => {
   loadProjectEnv(projectRoot)
 
   const appletConf = readAppletConf(projectRoot)
-  const compiledApplets = parseCompiledApplets(
-    raw ?? process.env.NEXT_PUBLIC_COMPILED_APPLETS
-  )
-
-  if (compiledApplets.length === 0) {
-    throw new Error(
-      `${scriptName}: NEXT_PUBLIC_COMPILED_APPLETS is empty. Refusing to continue.`
-    )
-  }
-
-  const unknown = compiledApplets.filter((applet) => !appletConf[applet])
-  if (unknown.length > 0) {
-    throw new Error(
-      `${scriptName}: unknown applet(s) in NEXT_PUBLIC_COMPILED_APPLETS: ${unknown.join(
-        ', '
-      )}. Add them to appletConf.json or fix the env var.`
-    )
-  }
-
-  const includesMain = compiledApplets.includes(MAIN_APPLET)
-  const compiledNonMain = compiledApplets.filter(
-    (applet) => applet !== MAIN_APPLET
-  )
-
-  if (!includesMain && compiledNonMain.length !== 1) {
-    throw new Error(
-      `${scriptName}: unsupported NEXT_PUBLIC_COMPILED_APPLETS=${JSON.stringify(
-        compiledApplets.join(',')
-      )}. Without "main", exactly one applet must be listed.`
-    )
-  }
-
-  return {
+  return resolveCompiledAppletConfig({
     appletConf,
-    compiledApplets,
-    compiledNonMain,
-    includesMain,
-    keepOnlyApplet: includesMain ? null : compiledNonMain[0],
-    selectedApplets: new Set(compiledNonMain),
-    mode: includesMain ? 'main' : `standalone:${compiledNonMain[0]}`,
-  }
+    raw: raw ?? process.env.NEXT_PUBLIC_COMPILED_APPLETS,
+    scriptName,
+  })
 }
 
 module.exports = {
@@ -105,4 +89,6 @@ module.exports = {
   getCompiledAppletConfig,
   loadProjectEnv,
   parseCompiledApplets,
+  readAppletConf,
+  resolveCompiledAppletConfig,
 }

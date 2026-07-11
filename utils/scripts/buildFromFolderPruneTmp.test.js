@@ -2,9 +2,11 @@ const fs = require('fs')
 const os = require('os')
 const path = require('path')
 const crypto = require('crypto')
+const appletConf = require('../../appletConf.json')
 
 const {
   refreshNitroPublicAssetMetadata,
+  validateBuildState,
 } = require('./buildFromFolderPruneTmp')
 
 const makeTempOutput = () =>
@@ -42,6 +44,43 @@ describe('buildFromFolderPruneTmp', () => {
   afterEach(() => {
     if (tmpRoot) fs.rmSync(tmpRoot, { recursive: true, force: true })
     tmpRoot = undefined
+  })
+
+  it('validates the normalized full and standalone persisted build matrix', () => {
+    const manifestApplets = Object.keys(appletConf)
+    const states = [
+      { compiledApplets: manifestApplets, mode: 'main' },
+      ...manifestApplets
+        .filter((applet) => applet !== 'main')
+        .map((applet) => ({
+          compiledApplets: [applet],
+          mode: `standalone:${applet}`,
+        })),
+    ]
+
+    for (const state of states) {
+      expect(validateBuildState({ state, appletConf })).toMatchObject(state)
+    }
+  })
+
+  it.each([
+    [{ compiledApplets: ['unknown'], mode: 'standalone:unknown' }, /unknown applet/i],
+    [
+      { compiledApplets: ['carbon', 'energy'], mode: 'standalone:carbon' },
+      /exactly one applet/i,
+    ],
+    [
+      { compiledApplets: ['Carbon'], mode: 'standalone:carbon' },
+      /not normalized/i,
+    ],
+    [
+      { compiledApplets: ['carbon', 'carbon'], mode: 'standalone:carbon' },
+      /not normalized/i,
+    ],
+    [{ compiledApplets: ['carbon'], mode: 'main' }, /does not match derived mode/i],
+    [{ compiledApplets: [], mode: 'main' }, /selection is empty/i],
+  ])('rejects stale or corrupt build state %#', (state, expected) => {
+    expect(() => validateBuildState({ state, appletConf })).toThrow(expected)
   })
 
   it('refreshes Nitro public asset metadata after copied output rewrites', () => {
