@@ -57,7 +57,7 @@ Behavior:
   This smoke utility only reuses an already-running mock-enabled dev server. It
   creates a fresh Chromium context, uploads committed shapefile ZIP fixtures from
   test-data/luonnonmetsakartat, and exercises canonical /fi/luonnonmetsakartat
-  public/admin routes, import, settings, pictures, and legacy redirects.
+  public/admin routes, import, settings, and pictures.
 `
 
 const parseArgs = (argv) => {
@@ -265,16 +265,6 @@ const assertPathname = async ({ page, expectedPathname }) => {
   if (currentUrl.pathname !== expectedPathname) {
     throw new Error(
       `Expected pathname ${expectedPathname}, got ${currentUrl.pathname} (${page.url()})`
-    )
-  }
-}
-
-const assertSearchParam = async ({ page, key, value }) => {
-  const currentUrl = new URL(page.url())
-  const actual = currentUrl.searchParams.get(key)
-  if (actual !== value) {
-    throw new Error(
-      `Expected URL search param ${key}=${value}, got ${actual} (${page.url()})`
     )
   }
 }
@@ -755,85 +745,6 @@ const runPicturesMappedSaveSmoke = async ({
   }
 }
 
-const assertRedirect = async ({
-  page,
-  baseUrl,
-  fromPath,
-  expectedPathname,
-  expectedSearchParams = {},
-  timeoutMs,
-}) => {
-  await gotoAndAssertOk({
-    page,
-    url: buildAbsoluteUrl({ baseUrl, path: fromPath }),
-    timeoutMs,
-  })
-  await page.waitForURL((url) => url.pathname === expectedPathname, {
-    timeout: timeoutMs,
-  })
-  await assertPathname({ page, expectedPathname })
-
-  for (const [key, value] of Object.entries(expectedSearchParams)) {
-    await assertSearchParam({ page, key, value })
-  }
-}
-
-const runLegacyRedirectSmoke = async ({
-  page,
-  baseUrl,
-  sourceLiterals,
-  timeoutMs,
-}) => {
-  const mockQuery = buildLuonnonmetsakartatMockQuery({
-    state: 'layer-detail',
-    queryParams: getAuthenticatedQueryParams(sourceLiterals),
-    sourceLiterals,
-  })
-  const layerId = sourceLiterals.MOCK_VISIBLE_LAYER_ID
-  const expectedSearchParams = {
-    [sourceLiterals.MOCK_RESET_QUERY_PARAM]: '1',
-    [sourceLiterals.MOCK_LUONNONMETSAKARTAT_STATE_QUERY_PARAM]:
-      'layer-detail',
-    [sourceLiterals.MOCK_AUTH_QUERY_PARAM]: 'authenticated',
-  }
-
-  await assertRedirect({
-    page,
-    baseUrl,
-    fromPath: `/fi/luonnonmetsakartat/admin/tuo${mockQuery}`,
-    expectedPathname: '/fi/luonnonmetsakartat/admin/import',
-    expectedSearchParams,
-    timeoutMs,
-  })
-
-  await assertRedirect({
-    page,
-    baseUrl,
-    fromPath: `/fi/luonnonmetsakartat/admin/taso/${layerId}${mockQuery}`,
-    expectedPathname: `/fi/luonnonmetsakartat/admin/layer/${layerId}`,
-    expectedSearchParams,
-    timeoutMs,
-  })
-
-  await assertRedirect({
-    page,
-    baseUrl,
-    fromPath: `/fi/luonnonmetsakartat/admin/taso/${layerId}/asetukset${mockQuery}`,
-    expectedPathname: `/fi/luonnonmetsakartat/admin/layer/${layerId}/settings`,
-    expectedSearchParams,
-    timeoutMs,
-  })
-
-  await assertRedirect({
-    page,
-    baseUrl,
-    fromPath: `/fi/luonnonmetsakartat/admin/taso/${layerId}/kuvat${mockQuery}`,
-    expectedPathname: `/fi/luonnonmetsakartat/admin/layer/${layerId}/pictures`,
-    expectedSearchParams,
-    timeoutMs,
-  })
-}
-
 const runStep = async ({ name, results, task }) => {
   process.stdout.write(`[luonnonmetsakartat-smoke] ${name}... `)
   const startedAt = Date.now()
@@ -974,18 +885,6 @@ const runSmoke = async (args) => {
       results,
       task: () =>
         runPicturesMappedSaveSmoke({
-          page,
-          baseUrl: browserBaseUrl,
-          sourceLiterals,
-          timeoutMs: args.timeoutMs,
-        }),
-    })
-
-    await runStep({
-      name: 'legacy redirects',
-      results,
-      task: () =>
-        runLegacyRedirectSmoke({
           page,
           baseUrl: browserBaseUrl,
           sourceLiterals,

@@ -23,12 +23,7 @@ const APPLET_LEGACY_SUBPATH_REDIRECTS = {
     alueet: 'areas',
     raportti: 'report',
   },
-  luonnonmetsakartat: {
-    tuo: 'import',
-    taso: 'layer',
-    asetukset: 'settings',
-    kuvat: 'pictures',
-  },
+  luonnonmetsakartat: {},
 }
 
 const CANONICAL_SLUG_TO_NAMESPACE = Object.fromEntries(

@@ -165,19 +165,22 @@ describe('request routing decisions', () => {
       }
     )
 
-    it('normalizes localized Luonnonmetsakartat admin subpaths under canonical scope', () => {
-      expect(
-        decideRequestRouting({
-          url: url('/fi/luonnonmetsakartat/admin/taso/layer-1/kuvat?x=1'),
-          compiledApplets: mainMode,
-        })
-      ).toEqual({
-        type: 'redirect',
-        status: 308,
-        pathname: '/fi/luonnonmetsakartat/admin/layer/layer-1/pictures',
-        search: '?x=1',
-      })
-    })
+    it.each([
+      '/fi/luonnonmetsakartat/admin/tuo?x=1',
+      '/fi/luonnonmetsakartat/admin/taso/layer-1?x=1',
+      '/fi/luonnonmetsakartat/admin/taso/layer-1/asetukset?x=1',
+      '/fi/luonnonmetsakartat/admin/taso/layer-1/kuvat?x=1',
+    ])(
+      'passes through removed Luonnonmetsakartat legacy subpath %s unchanged',
+      (path) => {
+        expect(
+          decideRequestRouting({
+            url: url(path),
+            compiledApplets: mainMode,
+          })
+        ).toEqual({ type: 'passThrough' })
+      }
+    )
 
     it.each([
       '/fi/carbonmap/plans?x=1',
@@ -356,9 +359,12 @@ describe('request routing decisions', () => {
     )
 
     it.each([
+      '/fi',
       '/fi/admin',
       '/fi/admin/import',
+      '/fi/admin/layer/layer-1',
       '/fi/admin/layer/layer-1/settings',
+      '/fi/admin/layer/layer-1/pictures',
     ])(
       'passes through generated Luonnonmetsakartat root-shaped path %s',
       (path) => {
@@ -372,13 +378,30 @@ describe('request routing decisions', () => {
     )
 
     it.each([
-      ['/fi/admin/tuo?x=1', '/fi/admin/import'],
+      '/fi/admin/tuo?x=1',
+      '/fi/admin/taso/layer-1?x=1',
+      '/fi/admin/taso/layer-1/asetukset?x=1',
+      '/fi/admin/taso/layer-1/kuvat?x=1',
+    ])(
+      'passes through removed standalone Luonnonmetsakartat legacy subpath %s unchanged',
+      (path) => {
+        expect(
+          decideRequestRouting({
+            url: url(path),
+            compiledApplets: ['luonnonmetsakartat'],
+          })
+        ).toEqual({ type: 'passThrough' })
+      }
+    )
+
+    it.each([
+      ['/admin/tuo?x=1', '/fi/admin/tuo'],
       [
-        '/fi/admin/taso/layer-1/asetukset?x=1',
-        '/fi/admin/layer/layer-1/settings',
+        '/en/admin/taso/layer-1/kuvat?x=1',
+        '/fi/admin/taso/layer-1/kuvat',
       ],
     ])(
-      'redirects standalone Luonnonmetsakartat legacy admin subpath %s to %s',
+      'applies generic standalone locale handling to %s without translating its legacy tail',
       (path, pathname) => {
         expect(
           decideRequestRouting({
@@ -413,7 +436,7 @@ describe('request routing decisions', () => {
       ['/fi/luonnonmetsakartat?x=1', '/fi'],
       [
         '/fi/luonnonmetsakartat/admin/taso/layer-1/asetukset?x=1',
-        '/fi/admin/layer/layer-1/settings',
+        '/fi/admin/taso/layer-1/asetukset',
       ],
     ])(
       'strips duplicated canonical applet prefix %s from standalone paths',

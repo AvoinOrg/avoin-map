@@ -158,32 +158,62 @@ describe('writeNetlifyRedirects', () => {
     )
   })
 
-  it('keeps Luonnonmetsakartat main-mode admin subpath normalization canonical-only', () => {
+  it('does not generate Luonnonmetsakartat legacy redirects in main or standalone mode', () => {
     const luonnonmetsakartatDomain = 'https://luonnonmetsakartat.avoin.org'
-    const redirects = generateNetlifyRedirects({
+    const mainRedirects = generateNetlifyRedirects({
       appletConf,
       baseUrl: mainBaseUrl,
       compiledApplets: parseCompiledApplets('main,luonnonmetsakartat'),
       env: {},
     })
+    const standaloneRedirects = generateNetlifyRedirects({
+      appletConf,
+      baseUrl: standaloneBaseUrl,
+      compiledApplets: parseCompiledApplets('luonnonmetsakartat'),
+      env: {},
+    })
+
+    for (const redirects of [mainRedirects, standaloneRedirects]) {
+      const legacyRedirectRules = parseGeneratedRules(redirects).filter(
+        ({ from, status }) =>
+          status === '301!' &&
+          (from.includes('/admin/tuo') || from.includes('/admin/taso'))
+      )
+
+      expect(legacyRedirectRules).toEqual([])
+    }
 
     expect(
       firstMatchingRule(
-        redirects,
+        mainRedirects,
         `${luonnonmetsakartatDomain}/fi/luonnonmetsakartat/admin/taso/layer-1/asetukset`
       )
     ).toMatchObject({
-      from: `${luonnonmetsakartatDomain}/fi/luonnonmetsakartat/admin/taso/*/asetukset`,
+      from: `${luonnonmetsakartatDomain}/fi/luonnonmetsakartat/*`,
       resolvedTo:
-        '/fi/luonnonmetsakartat/admin/layer/layer-1/settings',
-      status: '301!',
+        `${mainBaseUrl}/fi/luonnonmetsakartat/admin/taso/layer-1/asetukset`,
+      status: '200!',
     })
     expect(
-      firstMatchingRule(redirects, `${luonnonmetsakartatDomain}/fi/admin`)
-    ).toBeNull()
+      firstMatchingRule(
+        standaloneRedirects,
+        `${luonnonmetsakartatDomain}/fi/admin/tuo`
+      )
+    ).toMatchObject({
+      from: `${luonnonmetsakartatDomain}/fi/*`,
+      resolvedTo: `${standaloneBaseUrl}/fi/admin/tuo`,
+      status: '200!',
+    })
     expect(
-      firstMatchingRule(redirects, `${luonnonmetsakartatDomain}/admin`)
-    ).toBeNull()
+      firstMatchingRule(
+        standaloneRedirects,
+        `${luonnonmetsakartatDomain}/fi/luonnonmetsakartat/admin/taso/layer-1/asetukset`
+      )
+    ).toMatchObject({
+      from: `${luonnonmetsakartatDomain}/fi/luonnonmetsakartat/*`,
+      resolvedTo: '/fi/admin/taso/layer-1/asetukset',
+      status: '301!',
+    })
   })
 
   it('generates env-backed main-mode applet-domain rules without old prefix or root behavior', () => {

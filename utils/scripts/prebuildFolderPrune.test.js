@@ -22,39 +22,6 @@ const routeFile = (routeId) => [
   '',
 ].join('\n')
 
-const luonnonmetsakartatLegacyImportRouteFile = () => [
-  "import { createFileRoute } from '@tanstack/react-router'",
-  '',
-  'export const Route = createFileRoute(',
-  "  '/$locale/_map/(applets)/luonnonmetsakartat/admin/tuo'",
-  ')({',
-  '  beforeLoad: () => {',
-  "    redirectTo({ segments: ['luonnonmetsakartat', 'admin', 'import'] })",
-  '  },',
-  '})',
-  '',
-].join('\n')
-
-const luonnonmetsakartatLegacyLayerRouteFile = () => [
-  "import { createFileRoute } from '@tanstack/react-router'",
-  '',
-  'export const Route = createFileRoute(',
-  "  '/$locale/_map/(applets)/luonnonmetsakartat/admin/taso'",
-  ')({',
-  '  beforeLoad: () => {',
-  '    redirectTo({',
-  '      segments: [',
-  "        'luonnonmetsakartat',",
-  "        'admin',",
-  "        'layer',",
-  '      ],',
-  "      prefixSegments: ['luonnonmetsakartat', 'admin', 'taso'],",
-  '    })',
-  '  },',
-  '})',
-  '',
-].join('\n')
-
 const writeFile = ({ root, relativePath, content = '' }) => {
   const filePath = path.join(root, relativePath)
   fs.mkdirSync(path.dirname(filePath), { recursive: true })
@@ -184,9 +151,26 @@ const writeCommonFixture = (root) => {
   })
   writeFile({
     root,
+    relativePath: appletRoute('luonnonmetsakartat', 'index.tsx'),
+    content: routeFile('/$locale/_map/(applets)/luonnonmetsakartat/'),
+  })
+  writeFile({
+    root,
     relativePath: appletRoute('luonnonmetsakartat', 'admin', 'route.tsx'),
     content: routeFile(
       '/$locale/_map/(applets)/luonnonmetsakartat/admin'
+    ),
+  })
+  writeFile({
+    root,
+    relativePath: appletRoute('luonnonmetsakartat', 'admin', 'index.tsx'),
+    content: routeFile('/$locale/_map/(applets)/luonnonmetsakartat/admin/'),
+  })
+  writeFile({
+    root,
+    relativePath: appletRoute('luonnonmetsakartat', 'admin', 'import.tsx'),
+    content: routeFile(
+      '/$locale/_map/(applets)/luonnonmetsakartat/admin/import'
     ),
   })
   writeFile({
@@ -209,6 +193,19 @@ const writeCommonFixture = (root) => {
       'admin',
       'layer',
       '$folayerIdSlug',
+      'index.tsx'
+    ),
+    content: routeFile(
+      '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/'
+    ),
+  })
+  writeFile({
+    root,
+    relativePath: appletRoute(
+      'luonnonmetsakartat',
+      'admin',
+      'layer',
+      '$folayerIdSlug',
       'settings.tsx'
     ),
     content: routeFile(
@@ -217,13 +214,16 @@ const writeCommonFixture = (root) => {
   })
   writeFile({
     root,
-    relativePath: appletRoute('luonnonmetsakartat', 'admin', 'taso', 'route.tsx'),
-    content: luonnonmetsakartatLegacyLayerRouteFile(),
-  })
-  writeFile({
-    root,
-    relativePath: appletRoute('luonnonmetsakartat', 'admin', 'tuo.tsx'),
-    content: luonnonmetsakartatLegacyImportRouteFile(),
+    relativePath: appletRoute(
+      'luonnonmetsakartat',
+      'admin',
+      'layer',
+      '$folayerIdSlug',
+      'pictures.tsx'
+    ),
+    content: routeFile(
+      '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/pictures'
+    ),
   })
   writeFile({
     root,
@@ -343,7 +343,7 @@ describe('prebuildFolderPrune standalone route materialization', () => {
     ).toBe(false)
   })
 
-  it('materializes Luonnonmetsakartat admin routes and keeps only selected API routes', () => {
+  it('materializes canonical Luonnonmetsakartat routes and keeps only selected API routes', () => {
     root = makeTempProject()
     writeCommonFixture(root)
 
@@ -355,58 +355,45 @@ describe('prebuildFolderPrune standalone route materialization', () => {
       }),
     })
 
+    const canonicalRoutes = [
+      ['route.tsx', '/$locale/_map/(standalone)'],
+      ['index.tsx', '/$locale/_map/(standalone)/'],
+      [path.join('admin', 'route.tsx'), '/$locale/_map/(standalone)/admin'],
+      [path.join('admin', 'index.tsx'), '/$locale/_map/(standalone)/admin/'],
+      [
+        path.join('admin', 'import.tsx'),
+        '/$locale/_map/(standalone)/admin/import',
+      ],
+      [
+        path.join('admin', 'layer', '$folayerIdSlug', 'route.tsx'),
+        '/$locale/_map/(standalone)/admin/layer/$folayerIdSlug',
+      ],
+      [
+        path.join('admin', 'layer', '$folayerIdSlug', 'index.tsx'),
+        '/$locale/_map/(standalone)/admin/layer/$folayerIdSlug/',
+      ],
+      [
+        path.join('admin', 'layer', '$folayerIdSlug', 'settings.tsx'),
+        '/$locale/_map/(standalone)/admin/layer/$folayerIdSlug/settings',
+      ],
+      [
+        path.join('admin', 'layer', '$folayerIdSlug', 'pictures.tsx'),
+        '/$locale/_map/(standalone)/admin/layer/$folayerIdSlug/pictures',
+      ],
+    ]
+
+    for (const [relativePath, routeId] of canonicalRoutes) {
+      expect(
+        read({ root, relativePath: standaloneRoute(relativePath) })
+      ).toContain(`createFileRoute('${routeId}')`)
+    }
+
     expect(
-      read({
-        root,
-        relativePath: standaloneRoute(
-          'admin',
-          'layer',
-          '$folayerIdSlug',
-          'route.tsx'
-        ),
-      })
-    ).toContain(
-      "createFileRoute('/$locale/_map/(standalone)/admin/layer/$folayerIdSlug')"
-    )
+      exists({ root, relativePath: standaloneRoute('admin', 'tuo.tsx') })
+    ).toBe(false)
     expect(
-      read({
-        root,
-        relativePath: standaloneRoute(
-          'admin',
-          'layer',
-          '$folayerIdSlug',
-          'settings.tsx'
-        ),
-      })
-    ).toContain(
-      "createFileRoute('/$locale/_map/(standalone)/admin/layer/$folayerIdSlug/settings')"
-    )
-    expect(
-      read({
-        root,
-        relativePath: standaloneRoute('admin', 'taso', 'route.tsx'),
-      })
-    ).toContain(
-      "createFileRoute('/$locale/_map/(standalone)/admin/taso')"
-    )
-    expect(
-      read({
-        root,
-        relativePath: standaloneRoute('admin', 'taso', 'route.tsx'),
-      })
-    ).toContain("'admin',\n        'layer'")
-    expect(
-      read({
-        root,
-        relativePath: standaloneRoute('admin', 'taso', 'route.tsx'),
-      })
-    ).toContain("prefixSegments: ['admin', 'taso']")
-    expect(
-      read({
-        root,
-        relativePath: standaloneRoute('admin', 'tuo.tsx'),
-      })
-    ).toContain("segments: ['admin', 'import']")
+      exists({ root, relativePath: standaloneRoute('admin', 'taso') })
+    ).toBe(false)
     expect(exists({ root, relativePath: mapRoute('admin') })).toBe(false)
     expect(
       exists({ root, relativePath: appletRoute('luonnonmetsakartat') })

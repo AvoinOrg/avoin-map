@@ -48,12 +48,9 @@ import { Route as LocaleMapappletsLuonnonmetsakartatAdminRouteRouteImport } from
 import { Route as LocaleMapappletsCarbonPlansRouteRouteImport } from './routes/$locale/_map/(applets)/carbon/plans/route'
 import { Route as LocaleMapappletsLuonnonmetsakartatAdminIndexRouteImport } from './routes/$locale/_map/(applets)/luonnonmetsakartat/admin/index'
 import { Route as LocaleMapappletsCarbonPlansIndexRouteImport } from './routes/$locale/_map/(applets)/carbon/plans/index'
-import { Route as LocaleMapappletsLuonnonmetsakartatAdminTuoRouteImport } from './routes/$locale/_map/(applets)/luonnonmetsakartat/admin/tuo'
 import { Route as LocaleMapappletsLuonnonmetsakartatAdminImportRouteImport } from './routes/$locale/_map/(applets)/luonnonmetsakartat/admin/import'
-import { Route as LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteImport } from './routes/$locale/_map/(applets)/luonnonmetsakartat/admin/taso/route'
 import { Route as LocaleMapappletsCarbonPlansPlanIdRouteRouteImport } from './routes/$locale/_map/(applets)/carbon/plans/$planId/route'
 import { Route as LocaleMapappletsCarbonPlansPlanIdIndexRouteImport } from './routes/$locale/_map/(applets)/carbon/plans/$planId/index'
-import { Route as LocaleMapappletsLuonnonmetsakartatAdminTasoSplatRouteImport } from './routes/$locale/_map/(applets)/luonnonmetsakartat/admin/taso/$'
 import { Route as LocaleMapappletsCarbonPlansPlanIdAreasRouteImport } from './routes/$locale/_map/(applets)/carbon/plans/$planId/areas'
 import { Route as LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteImport } from './routes/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/route'
 import { Route as LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugIndexRouteImport } from './routes/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/index'
@@ -281,22 +278,10 @@ const LocaleMapappletsCarbonPlansIndexRoute =
     path: '/',
     getParentRoute: () => LocaleMapappletsCarbonPlansRouteRoute,
   } as any)
-const LocaleMapappletsLuonnonmetsakartatAdminTuoRoute =
-  LocaleMapappletsLuonnonmetsakartatAdminTuoRouteImport.update({
-    id: '/tuo',
-    path: '/tuo',
-    getParentRoute: () => LocaleMapappletsLuonnonmetsakartatAdminRouteRoute,
-  } as any)
 const LocaleMapappletsLuonnonmetsakartatAdminImportRoute =
   LocaleMapappletsLuonnonmetsakartatAdminImportRouteImport.update({
     id: '/import',
     path: '/import',
-    getParentRoute: () => LocaleMapappletsLuonnonmetsakartatAdminRouteRoute,
-  } as any)
-const LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRoute =
-  LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteImport.update({
-    id: '/taso',
-    path: '/taso',
     getParentRoute: () => LocaleMapappletsLuonnonmetsakartatAdminRouteRoute,
   } as any)
 const LocaleMapappletsCarbonPlansPlanIdRouteRoute =
@@ -310,12 +295,6 @@ const LocaleMapappletsCarbonPlansPlanIdIndexRoute =
     id: '/',
     path: '/',
     getParentRoute: () => LocaleMapappletsCarbonPlansPlanIdRouteRoute,
-  } as any)
-const LocaleMapappletsLuonnonmetsakartatAdminTasoSplatRoute =
-  LocaleMapappletsLuonnonmetsakartatAdminTasoSplatRouteImport.update({
-    id: '/$',
-    path: '/$',
-    getParentRoute: () => LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRoute,
   } as any)
 const LocaleMapappletsCarbonPlansPlanIdAreasRoute =
   LocaleMapappletsCarbonPlansPlanIdAreasRouteImport.update({
@@ -423,14 +402,11 @@ export interface FileRoutesByFullPath {
   '/$locale/luonnonmetsakartat/': typeof LocaleMapappletsLuonnonmetsakartatIndexRoute
   '/$locale/ui-baseline/': typeof LocaleMapappletsUiBaselineIndexRoute
   '/$locale/carbon/plans/$planId': typeof LocaleMapappletsCarbonPlansPlanIdRouteRouteWithChildren
-  '/$locale/luonnonmetsakartat/admin/taso': typeof LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteWithChildren
   '/$locale/luonnonmetsakartat/admin/import': typeof LocaleMapappletsLuonnonmetsakartatAdminImportRoute
-  '/$locale/luonnonmetsakartat/admin/tuo': typeof LocaleMapappletsLuonnonmetsakartatAdminTuoRoute
   '/$locale/carbon/plans/': typeof LocaleMapappletsCarbonPlansIndexRoute
   '/$locale/luonnonmetsakartat/admin/': typeof LocaleMapappletsLuonnonmetsakartatAdminIndexRoute
   '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug': typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteWithChildren
   '/$locale/carbon/plans/$planId/areas': typeof LocaleMapappletsCarbonPlansPlanIdAreasRoute
-  '/$locale/luonnonmetsakartat/admin/taso/$': typeof LocaleMapappletsLuonnonmetsakartatAdminTasoSplatRoute
   '/$locale/carbon/plans/$planId/': typeof LocaleMapappletsCarbonPlansPlanIdIndexRoute
   '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug/pictures': typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRoute
   '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings': typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRoute
@@ -461,13 +437,10 @@ export interface FileRoutesByTo {
   '/$locale/forests': typeof LocaleMapappletsForestsIndexRoute
   '/$locale/luonnonmetsakartat': typeof LocaleMapappletsLuonnonmetsakartatIndexRoute
   '/$locale/ui-baseline': typeof LocaleMapappletsUiBaselineIndexRoute
-  '/$locale/luonnonmetsakartat/admin/taso': typeof LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteWithChildren
   '/$locale/luonnonmetsakartat/admin/import': typeof LocaleMapappletsLuonnonmetsakartatAdminImportRoute
-  '/$locale/luonnonmetsakartat/admin/tuo': typeof LocaleMapappletsLuonnonmetsakartatAdminTuoRoute
   '/$locale/carbon/plans': typeof LocaleMapappletsCarbonPlansIndexRoute
   '/$locale/luonnonmetsakartat/admin': typeof LocaleMapappletsLuonnonmetsakartatAdminIndexRoute
   '/$locale/carbon/plans/$planId/areas': typeof LocaleMapappletsCarbonPlansPlanIdAreasRoute
-  '/$locale/luonnonmetsakartat/admin/taso/$': typeof LocaleMapappletsLuonnonmetsakartatAdminTasoSplatRoute
   '/$locale/carbon/plans/$planId': typeof LocaleMapappletsCarbonPlansPlanIdIndexRoute
   '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug/pictures': typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRoute
   '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings': typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRoute
@@ -511,14 +484,11 @@ export interface FileRoutesById {
   '/$locale/_map/(applets)/luonnonmetsakartat/': typeof LocaleMapappletsLuonnonmetsakartatIndexRoute
   '/$locale/_map/(applets)/ui-baseline/': typeof LocaleMapappletsUiBaselineIndexRoute
   '/$locale/_map/(applets)/carbon/plans/$planId': typeof LocaleMapappletsCarbonPlansPlanIdRouteRouteWithChildren
-  '/$locale/_map/(applets)/luonnonmetsakartat/admin/taso': typeof LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteWithChildren
   '/$locale/_map/(applets)/luonnonmetsakartat/admin/import': typeof LocaleMapappletsLuonnonmetsakartatAdminImportRoute
-  '/$locale/_map/(applets)/luonnonmetsakartat/admin/tuo': typeof LocaleMapappletsLuonnonmetsakartatAdminTuoRoute
   '/$locale/_map/(applets)/carbon/plans/': typeof LocaleMapappletsCarbonPlansIndexRoute
   '/$locale/_map/(applets)/luonnonmetsakartat/admin/': typeof LocaleMapappletsLuonnonmetsakartatAdminIndexRoute
   '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug': typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteWithChildren
   '/$locale/_map/(applets)/carbon/plans/$planId/areas': typeof LocaleMapappletsCarbonPlansPlanIdAreasRoute
-  '/$locale/_map/(applets)/luonnonmetsakartat/admin/taso/$': typeof LocaleMapappletsLuonnonmetsakartatAdminTasoSplatRoute
   '/$locale/_map/(applets)/carbon/plans/$planId/': typeof LocaleMapappletsCarbonPlansPlanIdIndexRoute
   '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/pictures': typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRoute
   '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings': typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRoute
@@ -562,14 +532,11 @@ export interface FileRouteTypes {
     | '/$locale/luonnonmetsakartat/'
     | '/$locale/ui-baseline/'
     | '/$locale/carbon/plans/$planId'
-    | '/$locale/luonnonmetsakartat/admin/taso'
     | '/$locale/luonnonmetsakartat/admin/import'
-    | '/$locale/luonnonmetsakartat/admin/tuo'
     | '/$locale/carbon/plans/'
     | '/$locale/luonnonmetsakartat/admin/'
     | '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug'
     | '/$locale/carbon/plans/$planId/areas'
-    | '/$locale/luonnonmetsakartat/admin/taso/$'
     | '/$locale/carbon/plans/$planId/'
     | '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug/pictures'
     | '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings'
@@ -600,13 +567,10 @@ export interface FileRouteTypes {
     | '/$locale/forests'
     | '/$locale/luonnonmetsakartat'
     | '/$locale/ui-baseline'
-    | '/$locale/luonnonmetsakartat/admin/taso'
     | '/$locale/luonnonmetsakartat/admin/import'
-    | '/$locale/luonnonmetsakartat/admin/tuo'
     | '/$locale/carbon/plans'
     | '/$locale/luonnonmetsakartat/admin'
     | '/$locale/carbon/plans/$planId/areas'
-    | '/$locale/luonnonmetsakartat/admin/taso/$'
     | '/$locale/carbon/plans/$planId'
     | '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug/pictures'
     | '/$locale/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings'
@@ -649,14 +613,11 @@ export interface FileRouteTypes {
     | '/$locale/_map/(applets)/luonnonmetsakartat/'
     | '/$locale/_map/(applets)/ui-baseline/'
     | '/$locale/_map/(applets)/carbon/plans/$planId'
-    | '/$locale/_map/(applets)/luonnonmetsakartat/admin/taso'
     | '/$locale/_map/(applets)/luonnonmetsakartat/admin/import'
-    | '/$locale/_map/(applets)/luonnonmetsakartat/admin/tuo'
     | '/$locale/_map/(applets)/carbon/plans/'
     | '/$locale/_map/(applets)/luonnonmetsakartat/admin/'
     | '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug'
     | '/$locale/_map/(applets)/carbon/plans/$planId/areas'
-    | '/$locale/_map/(applets)/luonnonmetsakartat/admin/taso/$'
     | '/$locale/_map/(applets)/carbon/plans/$planId/'
     | '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/pictures'
     | '/$locale/_map/(applets)/luonnonmetsakartat/admin/layer/$folayerIdSlug/settings'
@@ -982,25 +943,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocaleMapappletsCarbonPlansIndexRouteImport
       parentRoute: typeof LocaleMapappletsCarbonPlansRouteRoute
     }
-    '/$locale/_map/(applets)/luonnonmetsakartat/admin/tuo': {
-      id: '/$locale/_map/(applets)/luonnonmetsakartat/admin/tuo'
-      path: '/tuo'
-      fullPath: '/$locale/luonnonmetsakartat/admin/tuo'
-      preLoaderRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminTuoRouteImport
-      parentRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminRouteRoute
-    }
     '/$locale/_map/(applets)/luonnonmetsakartat/admin/import': {
       id: '/$locale/_map/(applets)/luonnonmetsakartat/admin/import'
       path: '/import'
       fullPath: '/$locale/luonnonmetsakartat/admin/import'
       preLoaderRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminImportRouteImport
-      parentRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminRouteRoute
-    }
-    '/$locale/_map/(applets)/luonnonmetsakartat/admin/taso': {
-      id: '/$locale/_map/(applets)/luonnonmetsakartat/admin/taso'
-      path: '/taso'
-      fullPath: '/$locale/luonnonmetsakartat/admin/taso'
-      preLoaderRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteImport
       parentRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminRouteRoute
     }
     '/$locale/_map/(applets)/carbon/plans/$planId': {
@@ -1016,13 +963,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/$locale/carbon/plans/$planId/'
       preLoaderRoute: typeof LocaleMapappletsCarbonPlansPlanIdIndexRouteImport
       parentRoute: typeof LocaleMapappletsCarbonPlansPlanIdRouteRoute
-    }
-    '/$locale/_map/(applets)/luonnonmetsakartat/admin/taso/$': {
-      id: '/$locale/_map/(applets)/luonnonmetsakartat/admin/taso/$'
-      path: '/$'
-      fullPath: '/$locale/luonnonmetsakartat/admin/taso/$'
-      preLoaderRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminTasoSplatRouteImport
-      parentRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRoute
     }
     '/$locale/_map/(applets)/carbon/plans/$planId/areas': {
       id: '/$locale/_map/(applets)/carbon/plans/$planId/areas'
@@ -1184,21 +1124,6 @@ const LocaleMapappletsForestsRouteRouteWithChildren =
     LocaleMapappletsForestsRouteRouteChildren,
   )
 
-interface LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteChildren {
-  LocaleMapappletsLuonnonmetsakartatAdminTasoSplatRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminTasoSplatRoute
-}
-
-const LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteChildren: LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteChildren =
-  {
-    LocaleMapappletsLuonnonmetsakartatAdminTasoSplatRoute:
-      LocaleMapappletsLuonnonmetsakartatAdminTasoSplatRoute,
-  }
-
-const LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteWithChildren =
-  LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRoute._addFileChildren(
-    LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteChildren,
-  )
-
 interface LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteChildren {
   LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugPicturesRoute
   LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugSettingsRoute
@@ -1221,21 +1146,15 @@ const LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteWithChi
   )
 
 interface LocaleMapappletsLuonnonmetsakartatAdminRouteRouteChildren {
-  LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteWithChildren
   LocaleMapappletsLuonnonmetsakartatAdminImportRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminImportRoute
-  LocaleMapappletsLuonnonmetsakartatAdminTuoRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminTuoRoute
   LocaleMapappletsLuonnonmetsakartatAdminIndexRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminIndexRoute
   LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRoute: typeof LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRouteWithChildren
 }
 
 const LocaleMapappletsLuonnonmetsakartatAdminRouteRouteChildren: LocaleMapappletsLuonnonmetsakartatAdminRouteRouteChildren =
   {
-    LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRoute:
-      LocaleMapappletsLuonnonmetsakartatAdminTasoRouteRouteWithChildren,
     LocaleMapappletsLuonnonmetsakartatAdminImportRoute:
       LocaleMapappletsLuonnonmetsakartatAdminImportRoute,
-    LocaleMapappletsLuonnonmetsakartatAdminTuoRoute:
-      LocaleMapappletsLuonnonmetsakartatAdminTuoRoute,
     LocaleMapappletsLuonnonmetsakartatAdminIndexRoute:
       LocaleMapappletsLuonnonmetsakartatAdminIndexRoute,
     LocaleMapappletsLuonnonmetsakartatAdminLayerFolayerIdSlugRouteRoute:

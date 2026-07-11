@@ -250,49 +250,9 @@ const addLegacyHiilikarttaSubpathRedirects = ({
   addLegacyHiilikarttaReportRedirects({ fromBase, rules, toBase })
 }
 
-const addLegacyLuonnonmetsakartatSubpathRedirects = ({
-  fromBase,
-  rules,
-  toBase,
-}) => {
-  addVisibleRedirectRule({
-    rules,
-    from: `${fromBase}/admin/taso/*/asetukset`,
-    to: `${toBase}/admin/layer/:splat/settings`,
-  })
-  addVisibleRedirectRule({
-    rules,
-    from: `${fromBase}/admin/taso/*/kuvat`,
-    to: `${toBase}/admin/layer/:splat/pictures`,
-  })
-  addVisibleRedirectRule({
-    rules,
-    from: `${fromBase}/admin/tuo`,
-    to: `${toBase}/admin/import`,
-  })
-  addVisibleRedirectRule({
-    rules,
-    from: `${fromBase}/admin/taso`,
-    to: `${toBase}/admin/layer`,
-  })
-  addVisibleRedirectRule({
-    rules,
-    from: `${fromBase}/admin/taso/*`,
-    to: `${toBase}/admin/layer/:splat`,
-  })
-}
-
 const addLegacySubpathRedirects = ({ namespace, fromBase, rules, toBase }) => {
   if (namespace === 'carbon') {
     addLegacyHiilikarttaSubpathRedirects({ fromBase, rules, toBase })
-  }
-
-  if (namespace === 'luonnonmetsakartat') {
-    addLegacyLuonnonmetsakartatSubpathRedirects({
-      fromBase,
-      rules,
-      toBase,
-    })
   }
 }
 
@@ -304,14 +264,6 @@ const addStandaloneRootAliasRedirects = ({
 }) => {
   if (namespace === 'carbon') {
     addLegacyHiilikarttaSubpathRedirects({
-      fromBase: fromLocaleBase,
-      rules,
-      toBase: toLocaleBase,
-    })
-  }
-
-  if (namespace === 'luonnonmetsakartat') {
-    addLegacyLuonnonmetsakartatSubpathRedirects({
       fromBase: fromLocaleBase,
       rules,
       toBase: toLocaleBase,

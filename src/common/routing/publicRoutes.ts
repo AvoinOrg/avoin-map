@@ -31,12 +31,7 @@ export const APPLET_LEGACY_SUBPATH_REDIRECTS = {
     alueet: 'areas',
     raportti: 'report',
   },
-  luonnonmetsakartat: {
-    tuo: 'import',
-    taso: 'layer',
-    asetukset: 'settings',
-    kuvat: 'pictures',
-  },
+  luonnonmetsakartat: {},
 } as const satisfies Record<PublicAppletNamespace, Record<string, string>>
 
 export const CARBON_CANONICAL_PUBLIC_SLUG =
