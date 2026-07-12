@@ -2820,29 +2820,21 @@ const getBuildingInfoPageControlsSx = ({
   forceMobileLayout?: boolean
   isDesktopFullscreenLayout?: boolean
 }): AppSxProps | undefined => {
-  if (forceMobileLayout) {
+  if (forceMobileLayout || !isDesktopFullscreenLayout) {
     return undefined
   }
 
   return {
-    position: isDesktopFullscreenLayout ? 'fixed' : 'absolute',
-    top: isDesktopFullscreenLayout
-      ? `${MAP_CONTROL_EDGE_GUTTER_PX}px`
-      : '35px',
-    right: isDesktopFullscreenLayout
-      ? `${MAP_CONTROL_EDGE_GUTTER_PX}px`
-      : 'auto',
-    left: isDesktopFullscreenLayout
-      ? 'auto'
-      : 'min(624px, calc(100% - 116px))',
+    position: 'fixed',
+    top: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
+    right: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
+    left: 'auto',
     gap: '4px',
     px: 0,
     py: 0,
     backgroundColor: 'transparent',
     borderBottom: 0,
-    zIndex: isDesktopFullscreenLayout
-      ? (theme: AppTheme) => theme.zIndex.drawer + 14
-      : 2,
+    zIndex: (theme: AppTheme) => theme.zIndex.drawer + 14,
   }
 }
 

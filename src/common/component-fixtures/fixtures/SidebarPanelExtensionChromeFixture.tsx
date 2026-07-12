@@ -3,18 +3,24 @@ import React from 'react'
 import { Box } from '#/common/style/theme'
 import type { ComponentFixture } from '#/common/component-fixtures/types'
 import type {
+  SidebarPanelExtensionRuntimeOptions,
   SidebarPanelExtensionTabMetadata,
   SidebarPanelId,
 } from '#/common/types/sidebar'
+import { SlotsProvider } from '#/components/context/slotsContext'
 import { Cross, InfoCircle, Layers } from '#/components/icons'
 import BreadcrumbNav from '#/components/Sidebar/BreadcrumbNav'
 import PopupDrawer from '#/components/Sidebar/PopupDrawer'
 import {
+  SidebarPanelExtension,
   SidebarPanelExtensionTabRail,
 } from '#/components/Sidebar/SidebarPanelExtension'
 import SidebarPanelExtensionPageContainer from '#/components/Sidebar/SidebarPanelExtensionPageContainer'
+import { SidebarPanelExtensionContextProvider } from '#/components/Sidebar/sidebarPanelExtensionContext'
+import { IntoSidebarPanelExtensionPanelSlot } from '#/components/Sidebar/sidebarSlots'
 
 const noop = () => {}
+const FIXTURE_EXTENSION_ID = 'sidebar-panel-extension-chrome-fixture'
 
 const panelLabels: Record<SidebarPanelId, string> = {
   main: 'Main panel',
@@ -129,23 +135,78 @@ const TabRailFixture = ({
   </FixtureSurface>
 )
 
-const PageContainerFixture = () => (
-  <Box sx={{ width: 360, height: 280, display: 'flex' }}>
-    <SidebarPanelExtensionPageContainer
-      onCollapse={noop}
-      onClose={noop}
-      collapseAriaLabel="Collapse fixture panel"
-      closeAriaLabel="Close fixture panel"
-      contentSx={{ p: 2, gap: 1 }}
-    >
-      <Box sx={{ fontSize: '1rem', fontWeight: 700 }}>Panel page</Box>
-      <Box sx={{ fontSize: '0.8125rem', lineHeight: 1.45 }}>
-        Scrollable page content keeps controls fixed above the OverlayScrollbars
-        viewport while the content region owns the page body.
-      </Box>
-      <Box sx={{ height: 160, borderRadius: '6px', backgroundColor: '#eef1ec' }} />
-    </SidebarPanelExtensionPageContainer>
+const PageContainerContent = () => (
+  <SidebarPanelExtensionPageContainer
+    onCollapse={noop}
+    onClose={noop}
+    collapseAriaLabel="Collapse fixture panel"
+    closeAriaLabel="Close fixture panel"
+    contentSx={{ p: 2, gap: 1 }}
+  >
+    <Box sx={{ fontSize: '1rem', fontWeight: 700 }}>Panel page</Box>
+    <Box sx={{ fontSize: '0.8125rem', lineHeight: 1.45 }}>
+      Shared extension chrome anchors these controls to the complete visible
+      panel group without consumer positioning overrides.
+    </Box>
+    <Box sx={{ height: 160, borderRadius: '6px', backgroundColor: '#eef1ec' }} />
+  </SidebarPanelExtensionPageContainer>
+)
+
+const GeometryPanelPlaceholder = ({ panelId }: { panelId: SidebarPanelId }) => (
+  <Box
+    sx={{
+      height: '100%',
+      p: 2,
+      backgroundColor: panelId === 'secondary' ? '#f7f8f6' : '#eef1ec',
+      color: '#4e5a4d',
+      fontSize: '0.8125rem',
+      fontWeight: 700,
+    }}
+  >
+    {panelLabels[panelId]}
   </Box>
+)
+
+const PageContainerGeometryFixture = ({
+  options,
+}: {
+  options: SidebarPanelExtensionRuntimeOptions
+}) => (
+  <SlotsProvider>
+    <SidebarPanelExtensionContextProvider
+      value={{ extensionId: FIXTURE_EXTENSION_ID, depth: 0 }}
+    >
+      <IntoSidebarPanelExtensionPanelSlot panelId="main">
+        <PageContainerContent />
+      </IntoSidebarPanelExtensionPanelSlot>
+      <IntoSidebarPanelExtensionPanelSlot panelId="secondary">
+        <GeometryPanelPlaceholder panelId="secondary" />
+      </IntoSidebarPanelExtensionPanelSlot>
+      <IntoSidebarPanelExtensionPanelSlot panelId="tertiary">
+        <GeometryPanelPlaceholder panelId="tertiary" />
+      </IntoSidebarPanelExtensionPanelSlot>
+      <SidebarPanelExtension
+        extensionId={FIXTURE_EXTENSION_ID}
+        options={options}
+        desktopTabRail={
+          <SidebarPanelExtensionTabRail
+            tabs={tabs}
+            activeTabId="details"
+            placement="desktop"
+            onTabChange={noop}
+          />
+        }
+        mobileTabRail={
+          <SidebarPanelExtensionTabRail
+            tabs={tabs}
+            activeTabId="details"
+            placement="mobile"
+            onTabChange={noop}
+          />
+        }
+      />
+    </SidebarPanelExtensionContextProvider>
+  </SlotsProvider>
 )
 
 const BreadcrumbFixture = () => (
@@ -228,11 +289,60 @@ export const sidebarPanelExtensionChromeFixture: ComponentFixture = {
       render: () => <TabRailFixture orientation="row" />,
     },
     {
-      id: 'page-container-controls',
-      label: 'Page container controls',
-      description: 'Scrollable page container with collapse and close controls.',
+      id: 'page-controls-default',
+      label: 'Page controls default layout',
+      description: 'Default shared extension geometry with an implicit main panel.',
       canvasSx: { p: 0 },
-      render: () => <PageContainerFixture />,
+      render: () => (
+        <PageContainerGeometryFixture
+          options={{ visiblePanels: ['main'], activePanel: 'main' }}
+        />
+      ),
+    },
+    {
+      id: 'page-controls-single',
+      label: 'Page controls single layout',
+      description: 'Explicit single-panel shared extension geometry.',
+      canvasSx: { p: 0 },
+      render: () => (
+        <PageContainerGeometryFixture
+          options={{
+            panelLayout: 'single',
+            visiblePanels: ['main'],
+            activePanel: 'main',
+          }}
+        />
+      ),
+    },
+    {
+      id: 'page-controls-double',
+      label: 'Page controls double layout',
+      description: 'Two visible panels with controls anchored to the second panel.',
+      canvasSx: { p: 0 },
+      render: () => (
+        <PageContainerGeometryFixture
+          options={{
+            panelLayout: 'double',
+            visiblePanels: ['main', 'secondary'],
+            activePanel: 'main',
+          }}
+        />
+      ),
+    },
+    {
+      id: 'page-controls-triple',
+      label: 'Page controls triple layout',
+      description: 'Three visible panels with controls anchored to the third panel.',
+      canvasSx: { p: 0 },
+      render: () => (
+        <PageContainerGeometryFixture
+          options={{
+            panelLayout: 'triple',
+            visiblePanels: ['main', 'secondary', 'tertiary'],
+            activePanel: 'main',
+          }}
+        />
+      ),
     },
     {
       id: 'breadcrumbs',

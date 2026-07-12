@@ -1409,6 +1409,34 @@ describe('BuildingInfoPanel', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
+  it('uses shared page-control geometry for default desktop building info', async () => {
+    renderBuildingInfoTabs()
+
+    await screen.findByTestId('building-info-tab-page-basic')
+
+    const controls = document.querySelector(
+      '.sidebar-panel-extension-page-container-controls'
+    ) as HTMLElement
+    const extensionRoot = screen.getByTestId('sidebar-panel-extension-root')
+    const extensionRootStyle = window.getComputedStyle(extensionRoot)
+
+    expect(controls).not.toHaveStyle({
+      position: 'absolute',
+      top: '35px',
+      left: 'min(624px, calc(100% - 116px))',
+    })
+    expect(
+      extensionRootStyle.getPropertyValue(
+        '--sidebar-panel-extension-page-controls-position'
+      )
+    ).toBe('fixed')
+    expect(
+      extensionRootStyle.getPropertyValue(
+        '--sidebar-panel-extension-page-controls-top'
+      )
+    ).toBe('16px')
+  })
+
   it('places fullscreen page controls in the viewport top-right', async () => {
     renderBuildingInfoTabs({ isDesktopFullscreenLayout: true })
 

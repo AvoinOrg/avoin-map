@@ -1798,9 +1798,24 @@
         "description": "Horizontal mobile tab rail with the middle tab selected."
       },
       {
-        "id": "page-container-controls",
-        "label": "Page container controls",
-        "description": "Scrollable page container with collapse and close controls."
+        "id": "page-controls-default",
+        "label": "Page controls default layout",
+        "description": "Default shared extension geometry with an implicit main panel."
+      },
+      {
+        "id": "page-controls-single",
+        "label": "Page controls single layout",
+        "description": "Explicit single-panel shared extension geometry."
+      },
+      {
+        "id": "page-controls-double",
+        "label": "Page controls double layout",
+        "description": "Two visible panels with controls anchored to the second panel."
+      },
+      {
+        "id": "page-controls-triple",
+        "label": "Page controls triple layout",
+        "description": "Three visible panels with controls anchored to the third panel."
       },
       {
         "id": "breadcrumbs",

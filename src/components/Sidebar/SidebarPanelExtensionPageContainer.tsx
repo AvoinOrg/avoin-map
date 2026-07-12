@@ -150,11 +150,20 @@ export const SidebarPanelExtensionPageContainer = ({
               alignItems: 'center',
               justifyContent: 'flex-end',
               gap: 0.75,
-              px: 1.5,
-              py: 1.25,
-              backgroundColor: '#ffffff',
-              borderBottom: '1px solid rgba(17, 17, 17, 0.08)',
-              zIndex: 1,
+              position:
+                'var(--sidebar-panel-extension-page-controls-position, static)',
+              top: 'var(--sidebar-panel-extension-page-controls-top, auto)',
+              right: 'var(--sidebar-panel-extension-page-controls-right, auto)',
+              paddingInline:
+                'var(--sidebar-panel-extension-page-controls-padding-inline, 12px)',
+              paddingBlock:
+                'var(--sidebar-panel-extension-page-controls-padding-block, 10px)',
+              backgroundColor:
+                'var(--sidebar-panel-extension-page-controls-background, #ffffff)',
+              borderBottom:
+                'var(--sidebar-panel-extension-page-controls-border, 1px solid rgba(17, 17, 17, 0.08))',
+              zIndex:
+                'var(--sidebar-panel-extension-page-controls-z-index, 1)',
             },
             ...toSxArray(controlsSx),
           ]}

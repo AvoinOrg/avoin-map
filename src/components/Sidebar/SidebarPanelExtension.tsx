@@ -189,6 +189,28 @@ const getVisiblePanels = (
   return capacityPanels.filter((panelId) => visiblePanels.includes(panelId))
 }
 
+export const getSidebarPanelExtensionPageControlsRight = ({
+  options,
+  sidebarOffset = 0,
+}: {
+  options?: SidebarPanelExtensionRuntimeOptions
+  sidebarOffset?: number
+}) => {
+  const visiblePanelWidths = getVisiblePanels(options).map((panelId) =>
+    getSidebarPanelExtensionPanelWidth({ panelId, options })
+  )
+  const panelGroupWidth =
+    visiblePanelWidths.length > 1
+      ? `calc(${visiblePanelWidths.join(' + ')})`
+      : (visiblePanelWidths[0] ?? '0px')
+  const panelGroupRight = `min(100vw, calc(${Math.max(
+    0,
+    sidebarOffset
+  )}px + ${panelGroupWidth}))`
+
+  return `calc(100vw - ${panelGroupRight} + ${MAP_CONTROL_EDGE_GUTTER_PX}px)`
+}
+
 const getActiveMobilePanel = ({
   options,
   visiblePanels,
@@ -233,7 +255,7 @@ const SidebarPanelExtensionDesktopPanel = ({
     <Box
       data-testid={`sidebar-panel-extension-desktop-panel-${panelId}`}
       data-sidebar-panel-extension-panel-id={panelId}
-      sx={(theme) => ({
+      sx={{
         display: 'flex',
         flexDirection: 'column',
         flex: '0 0 auto',
@@ -241,14 +263,8 @@ const SidebarPanelExtensionDesktopPanel = ({
         maxWidth: `min(${width}, 100vw)`,
         height: '100%',
         minHeight: 0,
-        zIndex: getDesktopPanelExtensionZIndex({
-          theme,
-          layoutMode: options?.layoutMode,
-          fullscreenOffset: 2,
-          defaultOffset: 2,
-        }),
         pointerEvents: 'auto',
-      })}
+      }}
     >
       <Box
         sx={{
@@ -288,7 +304,7 @@ const SidebarPanelExtensionDesktopPanel = ({
 
 const getDesktopPanelGroupSx = (
   options?: SidebarPanelExtensionRuntimeOptions
-): AppSxProps => {
+): AppSxProps => (theme: AppTheme) => {
   const fullscreen = isFullscreenLayout(options)
 
   return {
@@ -298,6 +314,12 @@ const getDesktopPanelGroupSx = (
     minHeight: 0,
     flex: '0 0 auto',
     pointerEvents: 'auto',
+    zIndex: getDesktopPanelExtensionZIndex({
+      theme,
+      layoutMode: options?.layoutMode,
+      fullscreenOffset: 2,
+      defaultOffset: 2,
+    }),
     ...(fullscreen
       ? {
           width: '100vw',
@@ -673,6 +695,10 @@ export const SidebarPanelExtension = ({
   const visiblePanels = getVisiblePanels(options)
   const mobileMode = options?.mobileMode ?? 'stacked'
   const actionRailPlacement = options?.actionRailPlacement ?? 'inside'
+  const pageControlsRight = getSidebarPanelExtensionPageControlsRight({
+    options,
+    sidebarOffset,
+  })
   const renderMobileActionRailInTabRow =
     shouldRenderActionRailInMobileTabRow(actionRailPlacement)
   const shouldRenderMobileTabControls =
@@ -754,6 +780,16 @@ export const SidebarPanelExtension = ({
             fullscreenOffset: 2,
           }),
           pointerEvents: fullscreen ? 'auto' : 'none',
+          ...(!fullscreen && {
+            '--sidebar-panel-extension-page-controls-position': 'fixed',
+            '--sidebar-panel-extension-page-controls-top': `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
+            '--sidebar-panel-extension-page-controls-right': pageControlsRight,
+            '--sidebar-panel-extension-page-controls-padding-inline': 0,
+            '--sidebar-panel-extension-page-controls-padding-block': 0,
+            '--sidebar-panel-extension-page-controls-background': 'transparent',
+            '--sidebar-panel-extension-page-controls-border': 0,
+            '--sidebar-panel-extension-page-controls-z-index': 3,
+          }),
           ...getVisibilitySx(visible),
         }),
         ...(Array.isArray(sx) ? sx : [sx]),
