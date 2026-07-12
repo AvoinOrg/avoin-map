@@ -36,6 +36,7 @@ type BaseAppletWrapperProps = {
     duration?: number
   }
   listedLayerGroups?: ListedLayerMenuItem[]
+  resetListedLayerVisibility?: boolean
   sx?: AppSxProps
 }
 
@@ -66,6 +67,7 @@ const AppletWrapper = ({
   disableDefaultFitbounds = false,
   defaultView,
   listedLayerGroups,
+  resetListedLayerVisibility = false,
   sidebarHeaderElement,
   sidebarHeaderTitle,
   sidebarHeaderChildren,
@@ -132,12 +134,21 @@ const AppletWrapper = ({
   }, [defaultView, disableDefaultFitbounds, easeTo, fitBounds])
 
   useEffect(() => {
-    if (listedLayerGroups == null) {
-      setListedLayerGroups(defaultListedLayerGroups)
-    } else {
-      setListedLayerGroups(listedLayerGroups)
-    }
-  }, [listedLayerGroups])
+    const resolvedListedLayerGroups =
+      listedLayerGroups ?? defaultListedLayerGroups
+
+    setMapContext(mapContext)
+    void setListedLayerGroups(
+      resolvedListedLayerGroups,
+      resetListedLayerVisibility
+    )
+  }, [
+    listedLayerGroups,
+    mapContext,
+    resetListedLayerVisibility,
+    setListedLayerGroups,
+    setMapContext,
+  ])
 
   useEffect(() => {
     if (tolgee.isLoaded()) {
@@ -165,8 +176,6 @@ const AppletWrapper = ({
     } else if (originalCountryCodes.current == null) {
       originalCountryCodes.current = storeSearchCountryCodes
     }
-
-    setMapContext(mapContext)
 
     setIsNavbarHidden(isNavbarHidden || false)
 

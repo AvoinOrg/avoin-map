@@ -23,13 +23,13 @@ const LAYER_ROW_STACK_SX = {
   gap: '0.75rem',
 }
 
-const ENERGY_ACCORDION_CONTENT_SX = {
+const MOCK_ACCORDION_CONTENT_SX = {
   pt: '1rem',
   mx: '2rem',
   maxWidth: '15.875rem',
 }
 
-const ENERGY_ACCORDION_TEXT_SX = {
+const MOCK_ACCORDION_TEXT_SX = {
   m: 0,
   color: '#111111',
   fontSize: '0.625rem',
@@ -76,11 +76,11 @@ const LAYER_CONTROL_ROWS: readonly LayerControlRowExample[] = [
   },
 ]
 
-const EnergyAccordionPreviewContent = () => (
-  <Box sx={ENERGY_ACCORDION_CONTENT_SX}>
+const MockAccordionPreviewContent = () => (
+  <Box sx={MOCK_ACCORDION_CONTENT_SX}>
     <Box
       component="ul"
-      aria-label="Energy class preview"
+      aria-label="Mock category preview"
       sx={{
         m: 0,
         p: 0,
@@ -121,8 +121,8 @@ const EnergyAccordionPreviewContent = () => (
           >
             {label}
           </Box>
-          <Box component="p" sx={ENERGY_ACCORDION_TEXT_SX}>
-            Energy class {label}
+          <Box component="p" sx={MOCK_ACCORDION_TEXT_SX}>
+            Mock category {label}
           </Box>
         </Box>
       ))}
@@ -146,79 +146,84 @@ const PlainLayerRowsExample = () => (
   </Box>
 )
 
-const EnergyAccordionRowsExample = () => {
+const CustomAccordionRowsExample = () => {
   const [interactiveExpanded, setInteractiveExpanded] = useState(false)
 
   return (
     <Box sx={LAYER_ROW_STACK_SX}>
       <LayerToggleRowAccordion
-        label="Energy certificates"
+        label="Closed custom layer"
         status="hidden"
         expanded={false}
         onToggle={noop}
-        ariaLabel="Toggle closed energy certificates layer"
+        ariaLabel="Toggle closed custom layer"
       >
-        <EnergyAccordionPreviewContent />
+        <MockAccordionPreviewContent />
       </LayerToggleRowAccordion>
       <LayerToggleRowAccordion
-        label="Heating method"
+        label="Open custom layer"
         status="visible"
         expanded
         onToggle={noop}
-        ariaLabel="Toggle open heating method layer"
+        ariaLabel="Toggle open custom layer"
       >
-        <EnergyAccordionPreviewContent />
+        <MockAccordionPreviewContent />
       </LayerToggleRowAccordion>
       <LayerToggleRowAccordion
-        label="Interactive energy row"
+        label="Interactive custom layer"
         status={interactiveExpanded ? 'visible' : 'hidden'}
         expanded={interactiveExpanded}
         onToggle={() => setInteractiveExpanded((value) => !value)}
-        ariaLabel="Toggle interactive energy layer"
+        ariaLabel="Toggle interactive custom layer"
       >
-        <EnergyAccordionPreviewContent />
+        <MockAccordionPreviewContent />
       </LayerToggleRowAccordion>
     </Box>
   )
 }
 
-const LayerRowVariantComparison = () => (
-  <Box sx={LAYER_ROW_STACK_SX}>
-    <LayerToggleRow
-      label="Base visibility row"
-      status="visible"
-      color="#2C8E74"
-      onToggle={noop}
-      ariaLabel="Toggle base visibility comparison layer"
-    />
-    <LayerToggleRowAccordion
-      label="Energy accordion row"
-      status="visible"
-      expanded
-      onToggle={noop}
-      ariaLabel="Toggle energy accordion comparison layer"
-    >
-      <Box sx={ENERGY_ACCORDION_CONTENT_SX}>
-        <Box component="p" sx={ENERGY_ACCORDION_TEXT_SX}>
-          Energy class A
+const LayerRowVariantComparison = () => {
+  const [isBaseVisible, setIsBaseVisible] = useState(true)
+  const [isAdminVisible, setIsAdminVisible] = useState(true)
+
+  return (
+    <Box sx={LAYER_ROW_STACK_SX}>
+      <LayerToggleRow
+        label="Base visibility row"
+        status={isBaseVisible ? 'visible' : 'hidden'}
+        color="#2C8E74"
+        onToggle={() => setIsBaseVisible((value) => !value)}
+        ariaLabel="Toggle base visibility comparison layer"
+      />
+      <LayerToggleRowAccordion
+        label="Custom accordion row"
+        status="visible"
+        expanded
+        onToggle={noop}
+        ariaLabel="Toggle custom accordion comparison layer"
+      >
+        <Box sx={MOCK_ACCORDION_CONTENT_SX}>
+          <Box component="p" sx={MOCK_ACCORDION_TEXT_SX}>
+            Mock category A
+          </Box>
         </Box>
-      </Box>
-    </LayerToggleRowAccordion>
-    <LayerToggleRowLink
-      label="Admin link row"
-      status="visible"
-      color="#2C8E74"
-      onToggle={noop}
-      ariaLabel="Toggle admin link comparison layer"
-      linkAriaLabel="Open admin link comparison layer"
-      linkProps={{
-        routeKey: APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN_FOLAYER,
-        routeParams: { folayerIdSlug: 'mock-visible-layer' },
-        onClick: (event) => event.preventDefault(),
-      }}
-    />
-  </Box>
-)
+      </LayerToggleRowAccordion>
+      <LayerToggleRowLink
+        label="Admin link row"
+        status={isAdminVisible ? 'visible' : 'hidden'}
+        color="#2C8E74"
+        onToggle={() => setIsAdminVisible((value) => !value)}
+        ariaLabel="Toggle admin link comparison layer"
+        linkAriaLabel="Open admin link comparison layer"
+        linkProps={{
+          routeKey: APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN_FOLAYER,
+          routeParams: { folayerIdSlug: 'mock-visible-layer' },
+          onClick: (event) => event.preventDefault(),
+        }}
+      />
+    </Box>
+  )
+}
 
 const LayersContent = () => (
   <Box
@@ -235,9 +240,9 @@ const LayersContent = () => (
       </BaselineExample>
     </BaselineSection>
 
-    <BaselineSection title="Energy accordion rows">
+    <BaselineSection title="Custom accordion rows">
       <BaselineExample title="Closed, open, and interactive">
-        <EnergyAccordionRowsExample />
+        <CustomAccordionRowsExample />
       </BaselineExample>
     </BaselineSection>
 
