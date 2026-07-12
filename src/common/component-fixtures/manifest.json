@@ -1780,6 +1780,7 @@
       "src/components/Sidebar/SidebarPanelExtension.tsx",
       "src/components/Sidebar/SidebarPanelExtensionTabIconButton.tsx",
       "src/components/Sidebar/SidebarPanelExtensionTabContainer.tsx",
+      "src/components/Sidebar/SidebarPanelExtensionTabsContext.tsx",
       "src/components/Sidebar/SidebarPanelExtensionPageContainer.tsx",
       "src/components/Sidebar/BreadcrumbNav.tsx",
       "src/components/Sidebar/PopupDrawer.tsx",
@@ -1816,6 +1817,26 @@
         "id": "page-controls-triple",
         "label": "Page controls triple layout",
         "description": "Three visible panels with controls anchored to the third panel."
+      },
+      {
+        "id": "page-controls-triple-overflow",
+        "label": "Page controls triple viewport overflow",
+        "description": "Fixed-width triple panels with viewport-safe shared tabs and page controls."
+      },
+      {
+        "id": "page-controls-fullscreen-single",
+        "label": "Page controls fullscreen single layout",
+        "description": "One fullscreen panel with shared page-control geometry."
+      },
+      {
+        "id": "page-controls-fullscreen-double",
+        "label": "Page controls fullscreen double layout",
+        "description": "Two equal fullscreen panels with shared page controls."
+      },
+      {
+        "id": "page-controls-fullscreen-triple",
+        "label": "Page controls fullscreen triple layout",
+        "description": "Three equal fullscreen panels with shared page controls."
       },
       {
         "id": "breadcrumbs",

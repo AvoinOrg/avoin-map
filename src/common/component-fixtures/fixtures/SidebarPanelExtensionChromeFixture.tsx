@@ -169,8 +169,10 @@ const GeometryPanelPlaceholder = ({ panelId }: { panelId: SidebarPanelId }) => (
 
 const PageContainerGeometryFixture = ({
   options,
+  sidebarOffset = 0,
 }: {
   options: SidebarPanelExtensionRuntimeOptions
+  sidebarOffset?: number
 }) => (
   <SlotsProvider>
     <SidebarPanelExtensionContextProvider
@@ -188,6 +190,7 @@ const PageContainerGeometryFixture = ({
       <SidebarPanelExtension
         extensionId={FIXTURE_EXTENSION_ID}
         options={options}
+        sidebarOffset={sidebarOffset}
         desktopTabRail={
           <SidebarPanelExtensionTabRail
             tabs={tabs}
@@ -269,6 +272,7 @@ export const sidebarPanelExtensionChromeFixture: ComponentFixture = {
     'src/components/Sidebar/SidebarPanelExtension.tsx',
     'src/components/Sidebar/SidebarPanelExtensionTabIconButton.tsx',
     'src/components/Sidebar/SidebarPanelExtensionTabContainer.tsx',
+    'src/components/Sidebar/SidebarPanelExtensionTabsContext.tsx',
     'src/components/Sidebar/SidebarPanelExtensionPageContainer.tsx',
     'src/components/Sidebar/BreadcrumbNav.tsx',
     'src/components/Sidebar/PopupDrawer.tsx',
@@ -340,6 +344,71 @@ export const sidebarPanelExtensionChromeFixture: ComponentFixture = {
             panelLayout: 'triple',
             visiblePanels: ['main', 'secondary', 'tertiary'],
             activePanel: 'main',
+          }}
+        />
+      ),
+    },
+    {
+      id: 'page-controls-triple-overflow',
+      label: 'Page controls triple viewport overflow',
+      description:
+        'Fixed-width triple panels with viewport-safe shared tabs and page controls.',
+      canvasSx: { p: 0 },
+      render: () => (
+        <PageContainerGeometryFixture
+          sidebarOffset={380}
+          options={{
+            panelLayout: 'triple',
+            visiblePanels: ['main', 'secondary', 'tertiary'],
+            activePanel: 'main',
+          }}
+        />
+      ),
+    },
+    {
+      id: 'page-controls-fullscreen-single',
+      label: 'Page controls fullscreen single layout',
+      description: 'One fullscreen panel with shared page-control geometry.',
+      canvasSx: { p: 0 },
+      render: () => (
+        <PageContainerGeometryFixture
+          options={{
+            panelLayout: 'single',
+            visiblePanels: ['main'],
+            activePanel: 'main',
+            layoutMode: 'fullscreen',
+          }}
+        />
+      ),
+    },
+    {
+      id: 'page-controls-fullscreen-double',
+      label: 'Page controls fullscreen double layout',
+      description: 'Two equal fullscreen panels with shared page controls.',
+      canvasSx: { p: 0 },
+      render: () => (
+        <PageContainerGeometryFixture
+          options={{
+            panelLayout: 'double',
+            visiblePanels: ['main', 'secondary'],
+            activePanel: 'main',
+            layoutMode: 'fullscreen',
+          }}
+        />
+      ),
+    },
+    {
+      id: 'page-controls-fullscreen-triple',
+      label: 'Page controls fullscreen triple layout',
+      description: 'Three equal fullscreen panels with shared page controls.',
+      canvasSx: { p: 0 },
+      render: () => (
+        <PageContainerGeometryFixture
+          options={{
+            panelLayout: 'triple',
+            visiblePanels: ['main', 'secondary', 'tertiary'],
+            activePanel: 'main',
+            layoutMode: 'fullscreen',
           }}
         />
       ),

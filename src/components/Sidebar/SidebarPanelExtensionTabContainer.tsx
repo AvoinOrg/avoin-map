@@ -66,14 +66,13 @@ export const SidebarPanelExtensionTabContainer = ({
   )
 
   useEffect(() => {
-    registerTab?.(metadata)
-  }, [metadata, registerTab])
+    const registrationToken = Symbol(tabId)
+    registerTab?.(metadata, registrationToken)
 
-  useEffect(() => {
     return () => {
-      unregisterTab?.(tabId)
+      unregisterTab?.(tabId, registrationToken)
     }
-  }, [tabId, unregisterTab])
+  }, [metadata, registerTab, tabId, unregisterTab])
 
   if (context == null) {
     return (
