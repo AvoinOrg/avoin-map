@@ -65,6 +65,34 @@ describe('MultiSelectAutocomplete', () => {
     )
   })
 
+  it('clips the rounded popup while the listbox owns scrolling', async () => {
+    renderWithTheme(
+      <MultiSelectAutocomplete
+        value={[]}
+        options={options}
+        onChange={() => {}}
+        ariaLabel="Scrollable plans"
+        defaultOpen
+      />
+    )
+
+    const listbox = await screen.findByRole('listbox')
+    const option = screen.getByRole('option', { name: 'Central plan' })
+    const popup = document.querySelector('[data-slot="popup"]')
+
+    expect(popup).toHaveStyle({
+      borderRadius: '0.25rem',
+      overflow: 'hidden',
+    })
+    expect(listbox).toHaveAttribute('data-slot', 'list')
+    expect(listbox).toHaveStyle({
+      maxHeight: 'min(18rem, calc(100vh - 2rem))',
+      overflowY: 'auto',
+    })
+    expect(listbox.parentElement).toBe(popup)
+    expect(option.parentElement).toBe(listbox)
+  })
+
   it('selects a highlighted option with the keyboard from the input', async () => {
     const handleChange = jest.fn()
 

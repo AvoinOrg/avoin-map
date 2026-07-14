@@ -197,23 +197,24 @@ export const DROP_DOWN_SELECT_POPUP_SX = {
   width: 'var(--anchor-width)',
   maxWidth: '100%',
   minWidth: 0,
-  maxHeight: 'min(18rem, calc(100vh - 2rem))',
   m: 0,
   p: 0,
   boxSizing: 'border-box',
-  overflowY: 'auto',
+  overflow: 'hidden',
   borderRadius: SHARED_CONTROL_BORDER_RADIUS,
   border: '0.1px solid #A0A0A0',
   backgroundColor: 'common.white',
   boxShadow: '0 1px 3px 0 rgba(214, 214, 214, 0.50) inset',
 } as const
 
-const DROP_DOWN_SELECT_LIST_SX = {
+export const DROP_DOWN_SELECT_LIST_SX = {
   width: '100%',
   minWidth: 0,
+  maxHeight: 'min(18rem, calc(100vh - 2rem))',
   m: 0,
   p: 0,
   boxSizing: 'border-box',
+  overflowY: 'auto',
 } as const
 
 const getSelectedContent = ({

@@ -3,7 +3,10 @@ import '@testing-library/jest-dom'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import { AppThemeProvider } from '#/common/style/theme'
-import { SHARED_CONTROL_INFINITE_BORDER_RADIUS } from '#/common/style/theme/constants'
+import {
+  SHARED_CONTROL_BORDER_RADIUS,
+  SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+} from '#/common/style/theme/constants'
 import DropDownMultiSelect from '#/components/common/DropDownMultiSelect'
 
 const renderWithTheme = (ui: React.ReactElement) => {
@@ -131,6 +134,33 @@ describe('DropDownMultiSelect', () => {
     })
 
     expect(selectedOption.getAttribute('aria-selected')).toBe('true')
+  })
+
+  it('clips the rounded popup while the list owns scrolling', async () => {
+    renderWithTheme(
+      <DropDownMultiSelect
+        value={[]}
+        options={options}
+        onChange={() => {}}
+        ariaLabel="Scrollable layer filters"
+        defaultOpen
+      />
+    )
+
+    const option = await screen.findByRole('option', { name: 'Heat demand' })
+    const popup = document.querySelector('[data-slot="popup"]')
+    const list = document.querySelector('[data-slot="list"]')
+
+    expect(popup).toHaveStyle({
+      borderRadius: SHARED_CONTROL_BORDER_RADIUS,
+      overflow: 'hidden',
+    })
+    expect(list).toHaveStyle({
+      maxHeight: 'min(18rem, calc(100vh - 2rem))',
+      overflowY: 'auto',
+    })
+    expect(list?.parentElement).toBe(popup)
+    expect(option.parentElement).toBe(list)
   })
 
   it('does not render selected checkmarks for unchecked options', async () => {

@@ -20,7 +20,7 @@ const {
   getCarbonMockIds,
 } = require('../../visual/carbonMockScenarios')
 
-const DEFAULT_BASE_URL = 'http://127.0.0.1:3000'
+const DEFAULT_BASE_URL = 'http://127.0.0.1:6900'
 const DEFAULT_TIMEOUT_MS = 60000
 const DEFAULT_VIEWPORT = { width: 1440, height: 900, deviceScaleFactor: 1 }
 const PREFLIGHT_DONE_ENV_KEY = 'AVOIN_MAP_CARBON_SMOKE_PREFLIGHT_DONE'

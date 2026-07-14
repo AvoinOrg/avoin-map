@@ -40,8 +40,8 @@ Run the development app:
 docker compose -f docker-compose.dev.yml up
 ```
 
-The app container runs the Start dev server on internal port `3000`. From the
-host, the app serves on `http://localhost:3000` unless `DEV_PORT` overrides the
+The app container runs the Start dev server on internal port `6900`. From the
+host, the app serves on `http://localhost:6900` unless `DEV_PORT` overrides the
 published port.
 
 Run the production image flow:

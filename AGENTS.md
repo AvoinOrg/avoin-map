@@ -298,8 +298,8 @@ fixture applet covered by unit tests, not a production deployment target.
   clearly requires it.
 - Visual regression artifacts are stored under `.dev/visual-regression/` (gitignored).
 - Visual commands must target the stable, already-running dev server at
-  `http://127.0.0.1:3000`. Always pass `--no-start`; agents must not start or
-  stop `yarn dev`. If `:3000` is unreachable, stop the coding task, inform the
+  `http://127.0.0.1:6900`. Always pass `--no-start`; agents must not start or
+  stop `yarn dev`. If `:6900` is unreachable, stop the coding task, inform the
   user that the main dev server is unavailable, and investigate what happened
   to that main process.
 - Do not perform a "full dev-runtime reset" on your own in this devcontainer.

@@ -1148,6 +1148,12 @@
         "waitFor": "role=option"
       },
       {
+        "id": "long-list-open",
+        "label": "Long list open",
+        "description": "Open menu with enough options to require scrolling.",
+        "waitFor": "text=Overflow option 16"
+      },
+      {
         "id": "disabled",
         "label": "Disabled",
         "description": "Disabled select with a selected value."
@@ -1220,6 +1226,12 @@
         "description": "Open menu with unchecked and checked option indicators."
       },
       {
+        "id": "long-list-open",
+        "label": "Long list open",
+        "description": "Open menu with enough options to require scrolling.",
+        "waitFor": "text=Overflow layer 16"
+      },
+      {
         "id": "selected-one",
         "label": "Selected one",
         "description": "One selected value summarized in the trigger."
@@ -1266,6 +1278,12 @@
         "label": "Open options",
         "description": "Open autocomplete list with matching options.",
         "waitFor": "text=Central plan"
+      },
+      {
+        "id": "long-list-open",
+        "label": "Long list open",
+        "description": "Open listbox with enough options to require scrolling.",
+        "waitFor": "text=Overflow plan 16"
       },
       {
         "id": "chip-delete",

@@ -20,9 +20,9 @@ Usage:
 
 Options:
   --cdp-url <url>             CDP endpoint URL (default: http://host.docker.internal:9222)
-  --origin <origin>           Origin to export (default: http://localhost:3000)
-  --url <url>                 URL to open if no matching page exists (default: http://localhost:3000/en)
-  --out <path>                Output storage state JSON path (default: .dev/browser-state/localhost-3000.storage-state.json)
+  --origin <origin>           Origin to export (default: http://localhost:6900)
+  --url <url>                 URL to open if no matching page exists (default: http://localhost:6900/en)
+  --out <path>                Output storage state JSON path (default: .dev/browser-state/localhost-6900.storage-state.json)
   --page-match <substring>    Prefer pages whose URL also contains this substring
   --timeout-ms <ms>           Navigation/hydration timeout (default: 60000)
   --help                      Show this help
@@ -34,9 +34,9 @@ Behavior:
 
 const DEFAULTS = {
   cdpUrl: 'http://host.docker.internal:9222',
-  origin: 'http://localhost:3000',
-  url: 'http://localhost:3000/en',
-  out: '.dev/browser-state/localhost-3000.storage-state.json',
+  origin: 'http://localhost:6900',
+  url: 'http://localhost:6900/en',
+  out: '.dev/browser-state/localhost-6900.storage-state.json',
   pageMatch: null,
   timeoutMs: 60000,
 }

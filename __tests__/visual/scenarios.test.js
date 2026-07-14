@@ -45,11 +45,11 @@ const {
 } = require('../../src/applets/luonnonmetsakartat/common/mockScenarios/config')
 const { MOCK_AUTH_QUERY_PARAM } = require('../../src/common/auth/mock')
 
-const CARBON_MOCK_BASE_URL = 'http://127.0.0.1:3000'
+const CARBON_MOCK_BASE_URL = 'http://127.0.0.1:6900'
 const CARBON_MOCK_ENV = {
   PUBLIC_COMPILED_APPLETS: 'main,carbon',
 }
-const LUONNONMETSAKARTAT_MOCK_BASE_URL = 'http://127.0.0.1:3000'
+const LUONNONMETSAKARTAT_MOCK_BASE_URL = 'http://127.0.0.1:6900'
 const LUONNONMETSAKARTAT_MOCK_ENV = {
   PUBLIC_COMPILED_APPLETS: 'main,luonnonmetsakartat',
 }
@@ -83,7 +83,7 @@ describe('visual scenarios', () => {
 
     const scenarios = buildVisualScenarios({
       env,
-      baseUrl: 'http://127.0.0.1:3000',
+      baseUrl: 'http://127.0.0.1:6900',
     })
 
     expect(scenarios.map((scenario) => scenario.id)).toEqual([
@@ -94,23 +94,23 @@ describe('visual scenarios', () => {
     ])
 
     expect(scenarios.find((s) => s.id === 'main-root').url).toBe(
-      'http://127.0.0.1:3000/en'
+      'http://127.0.0.1:6900/en'
     )
     expect(scenarios.find((s) => s.id === 'energy-root').url).toBe(
-      'http://127.0.0.1:3000/fi/energy'
+      'http://127.0.0.1:6900/fi/energy'
     )
     expect(scenarios.find((s) => s.id === 'carbon-root').url).toBe(
-      'http://127.0.0.1:3000/fi/carbon'
+      'http://127.0.0.1:6900/fi/carbon'
     )
     expect(scenarios.find((s) => s.id === 'luonnonmetsakartat-root').url).toBe(
-      'http://127.0.0.1:3000/fi/luonnonmetsakartat'
+      'http://127.0.0.1:6900/fi/luonnonmetsakartat'
     )
   })
 
   test('uses namespace route folders without making internal applets public', () => {
     const scenarios = buildVisualScenarios({
       env: { PUBLIC_COMPILED_APPLETS: 'main,ui-baseline' },
-      baseUrl: 'http://127.0.0.1:3000',
+      baseUrl: 'http://127.0.0.1:6900',
     })
 
     expect(scenarios.find((s) => s.id === 'ui-baseline-root').path).toBe(
@@ -173,7 +173,7 @@ describe('visual scenarios', () => {
   test('builds component fixture scenarios in main mode', () => {
     const scenarios = buildVisualScenarios({
       env: { PUBLIC_COMPILED_APPLETS: 'main,energy' },
-      baseUrl: 'http://127.0.0.1:3000',
+      baseUrl: 'http://127.0.0.1:6900',
       scenarioSet: COMPONENT_FIXTURE_SCENARIO_SET,
     })
 
@@ -194,7 +194,7 @@ describe('visual scenarios', () => {
       applet: 'component-fixtures',
       locale: 'en',
       path: `/en/dev/component-fixtures/${firstFixture.id}/${firstState.id}`,
-      url: `http://127.0.0.1:3000/en/dev/component-fixtures/${firstFixture.id}/${firstState.id}`,
+      url: `http://127.0.0.1:6900/en/dev/component-fixtures/${firstFixture.id}/${firstState.id}`,
       requiresWebGL: false,
       waitFor: '[data-testid="component-fixture-ready"]',
       maskSelectors: [],
@@ -523,7 +523,7 @@ describe('visual scenarios', () => {
         '--scenario-set=carbon-mocks'
       )
       expect(packageJson.scripts['visual:carbon-mocks']).toContain(
-        '--base-url=http://127.0.0.1:3000'
+        '--base-url=http://127.0.0.1:6900'
       )
       expect(packageJson.scripts['visual:carbon-mocks']).toContain('--no-start')
       expect(packageJson.scripts['visual:carbon-mocks']).not.toContain(
@@ -535,7 +535,7 @@ describe('visual scenarios', () => {
       const script = packageJson.scripts['visual:carbon-mocks:smoke']
 
       expect(script).toContain('carbon-mock-smoke.js')
-      expect(script).toContain('--base-url=http://127.0.0.1:3000')
+      expect(script).toContain('--base-url=http://127.0.0.1:6900')
       expect(script).toContain('--no-start')
       expect(script).not.toContain(
         'PUBLIC_HIILIKARTTA_MOCK_SCENARIOS_ENABLED'
@@ -775,7 +775,7 @@ describe('visual scenarios', () => {
       const script = packageJson.scripts['visual:luonnonmetsakartat-mocks']
 
       expect(script).toContain('--scenario-set=luonnonmetsakartat-mocks')
-      expect(script).toContain('--base-url=http://127.0.0.1:3000')
+      expect(script).toContain('--base-url=http://127.0.0.1:6900')
       expect(script).toContain('--no-start')
       expect(script).not.toContain(
         'PUBLIC_LUONNONMETSAKARTAT_MOCK_SCENARIOS_ENABLED'

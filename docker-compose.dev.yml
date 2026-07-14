@@ -6,7 +6,7 @@ services:
     env_file: ./.env
     shm_size: '1gb'
     ports:
-      - '${DEV_PORT}:3000'
+      - '${DEV_PORT}:6900'
     volumes:
       - .:/app:z
       - type: bind

@@ -22,18 +22,18 @@ Existing production guards reject mock auth/API/scenario flags when
 ## Dev-Server Rule
 
 Run browser smoke and visual commands inside the project `app` container so
-`http://127.0.0.1:3000` points at the app-container dev server:
+`http://127.0.0.1:6900` points at the app-container dev server:
 
 ```bash
 docker compose -f /workspace/project/docker-compose.dev.yml --project-directory /workspace/project exec app sh -lc 'cd /app && yarn luonnonmetsakartat:mock:smoke'
 ```
 
-The smoke script probes `http://127.0.0.1:3000` for reachability but remaps
-browser navigation to `http://localhost:3000` for reliable app-container
-hydration and clicks. If `:3000` is unreachable, stop and report that the main
+The smoke script probes `http://127.0.0.1:6900` for reachability but remaps
+browser navigation to `http://localhost:6900` for reliable app-container
+hydration and clicks. If `:6900` is unreachable, stop and report that the main
 dev server is unavailable. Do not launch a replacement `yarn dev` process.
 
-From the Codex agent or host namespace, do not probe `127.0.0.1:3000`; use the
+From the Codex agent or host namespace, do not probe `127.0.0.1:6900`; use the
 host-published `DEV_PORT` only for manual diagnostics outside this runbook.
 
 ## Commands

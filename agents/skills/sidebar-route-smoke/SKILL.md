@@ -22,7 +22,7 @@ docker compose -f /workspace/project/docker-compose.dev.yml --project-directory 
   'cd /app && node agents/skills/sidebar-route-smoke/scripts/sidebar-route-smoke.js --route /en,/fi/carbon,/fi/energy,/fi/forests,/fi/luonnonmetsakartat --viewport both --expect-sidebar yes'
 ```
 
-Inside the `app` container, the dev server URL is `http://127.0.0.1:3000`.
+Inside the `app` container, the dev server URL is `http://127.0.0.1:6900`.
 Do not target that URL from the `codex-agent` container; from outside the app
 container, read `DEV_PORT` from `.env` and pass `--base-url`.
 

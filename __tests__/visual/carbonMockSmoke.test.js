@@ -29,13 +29,13 @@ describe('carbon mock smoke helpers', () => {
     expect(
       parseArgs([
         '--base-url',
-        'http://localhost:3000/',
+        'http://localhost:6900/',
         '--browser-mode=headless',
         '--timeout=120000',
         '--no-start',
       ])
     ).toEqual({
-      baseUrl: 'http://localhost:3000',
+      baseUrl: 'http://localhost:6900',
       browserMode: 'headless',
       timeoutMs: 120000,
       noStart: true,
@@ -46,32 +46,32 @@ describe('carbon mock smoke helpers', () => {
   test('builds canonical mock carbon route URLs', () => {
     expect(
       buildSmokeUrl({
-        baseUrl: 'http://localhost:3000',
+        baseUrl: 'http://localhost:6900',
         path: '/fi/carbon/plans/mock-local-plan',
         state: 'save-ready',
         queryParams: { mockAuth: 'authenticated' },
       })
     ).toBe(
-      'http://localhost:3000/fi/carbon/plans/mock-local-plan?mockReset=1&mockCarbonState=save-ready&mockAuth=authenticated'
+      'http://localhost:6900/fi/carbon/plans/mock-local-plan?mockReset=1&mockCarbonState=save-ready&mockAuth=authenticated'
     )
   })
 
   test('remaps numeric loopback to localhost for browser navigation', () => {
-    expect(getBrowserNavigationBaseUrl('http://127.0.0.1:3000')).toBe(
-      'http://localhost:3000'
+    expect(getBrowserNavigationBaseUrl('http://127.0.0.1:6900')).toBe(
+      'http://localhost:6900'
     )
-    expect(getBrowserNavigationBaseUrl('http://localhost:3000/')).toBe(
-      'http://localhost:3000'
+    expect(getBrowserNavigationBaseUrl('http://localhost:6900/')).toBe(
+      'http://localhost:6900'
     )
   })
 
   test('builds absolute URLs without altering canonical paths', () => {
     expect(
       buildAbsoluteUrl({
-        baseUrl: 'http://localhost:3000/',
+        baseUrl: 'http://localhost:6900/',
         path: '/fi/carbon/report?planIds=mock-plan-local',
       })
-    ).toBe('http://localhost:3000/fi/carbon/report?planIds=mock-plan-local')
+    ).toBe('http://localhost:6900/fi/carbon/report?planIds=mock-plan-local')
   })
 
   test('does not contain dev-server startup or reset behavior', () => {

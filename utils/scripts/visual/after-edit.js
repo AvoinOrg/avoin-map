@@ -7,13 +7,13 @@ const HELP_TEXT = `\
 Usage:
   yarn visual:after-edit -- <file> [file...]
   yarn visual:after-edit -- --files a.tsx,b.tsx
-  yarn visual:after-edit -- --storage-state .dev/browser-state/localhost-3000.storage-state.json <file>
+  yarn visual:after-edit -- --storage-state .dev/browser-state/localhost-6900.storage-state.json <file>
   yarn visual:after-edit -- --no-start <file> [file...]
   yarn visual:after-edit
 
 Behavior:
   Runs the visual regression runner in changed mode.
-  Targets the local TanStack Start dev server at http://127.0.0.1:3000 by default.
+  Targets the local TanStack Start dev server at http://127.0.0.1:6900 by default.
   Reuses a running dev server first.
   If no files are provided, the underlying runner falls back to git-detected changes.
 
@@ -30,7 +30,7 @@ Options:
 
 const parseArgs = (argv) => {
   const args = {
-    baseUrl: 'http://127.0.0.1:3000',
+    baseUrl: 'http://127.0.0.1:6900',
     browserMode: null,
     scenarioSet: null,
     storageState: null,

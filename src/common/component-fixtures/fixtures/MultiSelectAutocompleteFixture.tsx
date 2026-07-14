@@ -13,6 +13,14 @@ const autocompleteOptions: SelectOption[] = [
   { value: 'forest-edge', label: 'Forest edge' },
 ]
 
+const longAutocompleteOptions: SelectOption[] = Array.from(
+  { length: 16 },
+  (_, index) => ({
+    value: `overflow-plan-${index + 1}`,
+    label: `Overflow plan ${String(index + 1).padStart(2, '0')}`,
+  })
+)
+
 const MultiSelectAutocompleteFixtureWrapper = ({
   children,
 }: {
@@ -84,6 +92,23 @@ export const multiSelectAutocompleteFixture: ComponentFixture = {
           placeholder="Compare plans"
           ariaLabel="Open options autocomplete"
           open
+        />
+      ),
+    },
+    {
+      id: 'long-list-open',
+      label: 'Long list open',
+      description: 'Open listbox with enough options to require scrolling.',
+      waitFor: 'text=Overflow plan 16',
+      canvasSx: { minHeight: 420 },
+      render: () => (
+        <MultiSelectAutocomplete
+          value={[]}
+          options={longAutocompleteOptions}
+          onChange={noop}
+          placeholder="Compare plans"
+          ariaLabel="Long autocomplete"
+          defaultOpen
         />
       ),
     },

@@ -46,7 +46,7 @@ describe('resolveStartAuthEnv', () => {
     expect(env.betterAuthSecret).toBe(
       'start-better-auth-development-secret-do-not-use-in-production'
     )
-    expect(env.betterAuthUrl).toBe('http://localhost:3000')
+    expect(env.betterAuthUrl).toBe('http://localhost:6900')
   })
 
   it('uses a stable development secret when the Better Auth secret is absent', () => {
@@ -64,7 +64,7 @@ describe('resolveStartAuthEnv', () => {
     const env = resolveStartAuthEnv(baseEnv)
 
     expect(env.zitadelRedirectUri).toBe(
-      'http://localhost:3000/api/auth/callback/zitadel'
+      'http://localhost:6900/api/auth/callback/zitadel'
     )
   })
 
@@ -84,11 +84,11 @@ describe('resolveStartAuthEnv', () => {
     const env = resolveStartAuthEnv({
       ...baseEnv,
       BETTER_AUTH_TRUSTED_ORIGINS:
-        'http://localhost:3000, https://map.example.org, ',
+        'http://localhost:6900, https://map.example.org, ',
     })
 
     expect(env.trustedOrigins).toEqual([
-      'http://localhost:3000',
+      'http://localhost:6900',
       'https://map.example.org',
       'http://localhost:3001',
     ])

@@ -62,10 +62,10 @@ Use this skill when the user asks for any of the following:
 - Run repo visual commands inside the project `app` container whenever the
   caller is the host or the `codex-agent` container:
   `docker compose -f /workspace/project/docker-compose.dev.yml --project-directory /workspace/project exec app sh -lc 'cd /app && yarn visual:after-edit -- --no-start <paths>'`.
-  Inside that container, `http://127.0.0.1:3000` is the correct app URL.
+  Inside that container, `http://127.0.0.1:6900` is the correct app URL.
 - If you need to inspect the app from the host or the `codex-agent` container,
   read `DEV_PORT` from `.env` and target `http://127.0.0.1:${DEV_PORT}` or
-  `http://localhost:${DEV_PORT}`. Do not probe `127.0.0.1:3000` from outside
+  `http://localhost:${DEV_PORT}`. Do not probe `127.0.0.1:6900` from outside
   the `app` container.
 - If the expected dev server is unavailable in the correct namespace, stop the
   coding task, tell the user the main dev server is unavailable, and investigate

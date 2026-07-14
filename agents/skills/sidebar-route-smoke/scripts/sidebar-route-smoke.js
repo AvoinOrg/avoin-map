@@ -13,7 +13,7 @@ const {
   '../../../../utils/scripts/visual/browserRuntime'
 ))
 
-const DEFAULT_BASE_URL = 'http://127.0.0.1:3000'
+const DEFAULT_BASE_URL = 'http://127.0.0.1:6900'
 const DEFAULT_TIMEOUT_MS = 30000
 const ROUTE_RENDER_SETTLE_TIMEOUT_MS = 10000
 const SELECTED_BUILDING_OUTPUT_DIR = path.resolve(

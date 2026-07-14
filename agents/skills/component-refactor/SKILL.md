@@ -45,7 +45,7 @@ Each rendered fixture page must expose
 ## Capture Baselines
 
 Run visual commands inside the project `app` container so
-`http://127.0.0.1:3000` is the correct dev-server URL. Always reuse the existing
+`http://127.0.0.1:6900` is the correct dev-server URL. Always reuse the existing
 server and pass `--no-start`.
 
 ```bash

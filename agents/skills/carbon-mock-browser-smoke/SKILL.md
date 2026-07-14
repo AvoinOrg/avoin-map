@@ -9,7 +9,7 @@ Use this when checking the Hiilikartta carbon mock setup, visual scenario set, G
 
 ## Runtime Rule
 
-Use the shared dev server only. Do not start, stop, kill, restart, or reset dev-server processes from this workflow. If `http://127.0.0.1:3000` is unreachable from the app container, stop and report that the shared dev server is unavailable.
+Use the shared dev server only. Do not start, stop, kill, restart, or reset dev-server processes from this workflow. If `http://127.0.0.1:6900` is unreachable from the app container, stop and report that the shared dev server is unavailable.
 
 The dev server process must already have been started with mock flags equivalent to:
 
@@ -25,7 +25,7 @@ These flags belong to the existing dev server process, not to the smoke command.
 
 ## Commands
 
-Run inside the `app` container so `http://127.0.0.1:3000` is the correct target:
+Run inside the `app` container so `http://127.0.0.1:6900` is the correct target:
 
 ```bash
 yarn visual:carbon-mocks
@@ -35,7 +35,7 @@ yarn visual:carbon-mocks:smoke
 Both commands use `--no-start`. If running the smoke script directly:
 
 ```bash
-node ./utils/scripts/visual/carbon-mock-smoke.js --base-url=http://127.0.0.1:3000 --no-start
+node ./utils/scripts/visual/carbon-mock-smoke.js --base-url=http://127.0.0.1:6900 --no-start
 ```
 
 Visual artifacts under `.dev/visual-regression/` are local and are not committed.

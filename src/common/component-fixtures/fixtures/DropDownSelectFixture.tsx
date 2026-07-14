@@ -15,6 +15,11 @@ const selectOptions = [
   { value: 'emissions', label: 'Emissions' },
 ]
 
+const longSelectOptions = Array.from({ length: 16 }, (_, index) => ({
+  value: `overflow-option-${index + 1}`,
+  label: `Overflow option ${String(index + 1).padStart(2, '0')}`,
+}))
+
 const FocusedDropDownSelect = () => (
   <DropDownSelect
     value="heat"
@@ -145,6 +150,22 @@ export const dropDownSelectFixture: ComponentFixture = {
           onChange={noop}
           defaultOpen
           ariaLabel="Open select"
+        />
+      ),
+    },
+    {
+      id: 'long-list-open',
+      label: 'Long list open',
+      description: 'Open menu with enough options to require scrolling.',
+      waitFor: 'text=Overflow option 16',
+      canvasSx: { minHeight: 420 },
+      render: () => (
+        <DropDownSelect
+          value="overflow-option-1"
+          options={longSelectOptions}
+          onChange={noop}
+          defaultOpen
+          ariaLabel="Long select"
         />
       ),
     },

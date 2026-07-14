@@ -2,7 +2,7 @@ import type { StartAuthEnv } from './types'
 
 type EnvSource = Record<string, string | undefined>
 
-const LOCAL_BETTER_AUTH_URL = 'http://localhost:3000'
+const LOCAL_BETTER_AUTH_URL = 'http://localhost:6900'
 const LEGACY_ZITADEL_CALLBACK_PATH = '/api/auth/callback/zitadel'
 
 const getOptional = ({ env, key }: { env: EnvSource; key: string }) => {

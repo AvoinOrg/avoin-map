@@ -288,6 +288,7 @@ describe('DropDownSelectInset', () => {
       borderRadius: SHARED_CONTROL_BORDER_RADIUS,
       boxSizing: 'border-box',
       margin: '0px',
+      overflow: 'hidden',
       padding: '0px',
       width: 'var(--anchor-width)',
     })
@@ -295,7 +296,9 @@ describe('DropDownSelectInset', () => {
     expect(list).toHaveStyle({
       boxSizing: 'border-box',
       margin: '0px',
+      maxHeight: 'min(18rem, calc(100vh - 2rem))',
       minWidth: '0',
+      overflowY: 'auto',
       padding: '0px',
       width: '100%',
     })

@@ -9,7 +9,7 @@ and UI code under `src/components` and `src/common`.
 The Start-specific command path is now a real Vite/Nitro build and preview
 foundation. Use these scripts:
 
-- `yarn start:dev`: runs the Start dev server on port `3000`.
+- `yarn start:dev`: runs the Start dev server on port `6900`.
 - `yarn start:build`: runs `vite build --config vite.config.mts` and emits
   TanStack Start client assets plus the Nitro server output.
 - `yarn start:preview`: serves `.output/server/index.mjs` on port `3002` by

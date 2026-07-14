@@ -61,6 +61,14 @@ const multiSelectOptions: DropDownMultiSelectOption[] = [
   },
 ]
 
+const longMultiSelectOptions: DropDownMultiSelectOption[] = Array.from(
+  { length: 16 },
+  (_, index) => ({
+    value: `overflow-layer-${index + 1}`,
+    label: `Overflow layer ${String(index + 1).padStart(2, '0')}`,
+  })
+)
+
 const DropDownMultiSelectFixtureWrapper = ({
   children,
 }: {
@@ -119,6 +127,22 @@ export const dropDownMultiSelectFixture: ComponentFixture = {
           onChange={noop}
           defaultOpen
           ariaLabel="Open multi-select"
+        />
+      ),
+    },
+    {
+      id: 'long-list-open',
+      label: 'Long list open',
+      description: 'Open menu with enough options to require scrolling.',
+      waitFor: 'text=Overflow layer 16',
+      canvasSx: { minHeight: 420 },
+      render: () => (
+        <DropDownMultiSelect
+          value={['overflow-layer-1']}
+          options={longMultiSelectOptions}
+          onChange={noop}
+          defaultOpen
+          ariaLabel="Long multi-select"
         />
       ),
     },

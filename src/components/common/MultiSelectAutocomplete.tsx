@@ -406,8 +406,7 @@ const MultiSelectAutocomplete = ({
                   {...popupProps}
                   data-slot="popup"
                   sx={{
-                    maxHeight: 'min(18rem, calc(100vh - 2rem))',
-                    overflowY: 'auto',
+                    overflow: 'hidden',
                     border: '1px solid #D6D6D6',
                     borderRadius: '0.25rem',
                     backgroundColor: 'common.white',
@@ -416,7 +415,18 @@ const MultiSelectAutocomplete = ({
                 />
               )}
             >
-              <BaseCombobox.List>
+              <BaseCombobox.List
+                render={(listProps) => (
+                  <Box
+                    {...listProps}
+                    data-slot="list"
+                    sx={{
+                      maxHeight: 'min(18rem, calc(100vh - 2rem))',
+                      overflowY: 'auto',
+                    }}
+                  />
+                )}
+              >
                 {(option: SelectOption, index: number) => (
                   <BaseCombobox.Item
                     key={option.value}

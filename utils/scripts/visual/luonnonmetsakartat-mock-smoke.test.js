@@ -57,13 +57,13 @@ describe('luonnonmetsakartat mock smoke helpers', () => {
     expect(
       parseArgs([
         '--base-url',
-        'http://127.0.0.1:3000///',
+        'http://127.0.0.1:6900///',
         '--timeout=1500',
         '--browser-mode=headless',
         '--no-start',
       ])
     ).toEqual({
-      baseUrl: 'http://127.0.0.1:3000',
+      baseUrl: 'http://127.0.0.1:6900',
       browserMode: 'headless',
       timeoutMs: 1500,
       noStart: true,
@@ -77,11 +77,11 @@ describe('luonnonmetsakartat mock smoke helpers', () => {
   })
 
   it('remaps numeric loopback to localhost for browser navigation', () => {
-    expect(getBrowserNavigationBaseUrl('http://127.0.0.1:3000')).toBe(
-      'http://localhost:3000'
+    expect(getBrowserNavigationBaseUrl('http://127.0.0.1:6900')).toBe(
+      'http://localhost:6900'
     )
-    expect(getBrowserNavigationBaseUrl('http://localhost:3000/')).toBe(
-      'http://localhost:3000'
+    expect(getBrowserNavigationBaseUrl('http://localhost:6900/')).toBe(
+      'http://localhost:6900'
     )
   })
 
@@ -89,7 +89,7 @@ describe('luonnonmetsakartat mock smoke helpers', () => {
     const sourceLiterals = getLuonnonmetsakartatMockSourceLiterals()
     const url = new URL(
       buildSmokeUrl({
-        baseUrl: 'http://localhost:3000',
+        baseUrl: 'http://localhost:6900',
         path: '/fi/luonnonmetsakartat/admin',
         state: 'admin-layers',
         queryParams: {

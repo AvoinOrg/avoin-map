@@ -59,7 +59,7 @@ Use this skill when the user asks for any of the following:
 - Verify both desktop and mobile before considering the task complete.
 - Treat `yarn visual:after-edit -- --no-start <paths>` as the default
   verification path so the runner never starts or stops a dev server.
-- If `http://127.0.0.1:3000` is unavailable, stop the coding task, tell the
+- If `http://127.0.0.1:6900` is unavailable, stop the coding task, tell the
   user the main dev server is unavailable, and investigate what happened to the
   main dev-server process. Do not start `yarn dev` yourself.
 - Let the runner use its default `--browser-mode=auto` unless you are

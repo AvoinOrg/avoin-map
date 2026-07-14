@@ -58,7 +58,7 @@ conflict during `yarn start:dev`.
 
 ## Local build and runtime
 
-- `yarn start:dev` runs the Start dev server on port `3000`.
+- `yarn start:dev` runs the Start dev server on port `6900`.
 - `yarn start:build` emits `.output/server/index.mjs`, `.output/public`, client
   assets under `.output/public/assets`, and the Vite manifest under
   `.output/public/.vite/manifest.json`.

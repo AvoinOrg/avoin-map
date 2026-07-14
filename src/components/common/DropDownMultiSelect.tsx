@@ -9,6 +9,7 @@ import {
 import { SHARED_CONTROL_INFINITE_BORDER_RADIUS } from '#/common/style/theme/constants'
 import {
   DROP_DOWN_SELECT_ICON_SX,
+  DROP_DOWN_SELECT_LIST_SX,
   DROP_DOWN_SELECT_POPUP_SX,
   DROP_DOWN_SELECT_POSITIONER_SX,
   DROP_DOWN_SELECT_TRIGGER_SX,
@@ -287,7 +288,15 @@ const DropDownMultiSelect = ({
                 />
               )}
             >
-              <BaseSelect.List>
+              <BaseSelect.List
+                render={(listProps) => (
+                  <Box
+                    {...listProps}
+                    data-slot="list"
+                    sx={DROP_DOWN_SELECT_LIST_SX}
+                  />
+                )}
+              >
                 {options.map((option) => {
                   const fallbackLabel = getOptionLabel(option)
                   const ariaOptionLabel = option.ariaLabel ?? fallbackLabel

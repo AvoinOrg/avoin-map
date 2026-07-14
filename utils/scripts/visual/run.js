@@ -35,14 +35,14 @@ const {
 
 const DEFAULT_MIN_NON_WHITE_PIXELS = 500
 const VISUAL_CONTENT_WHITE_THRESHOLD = 248
-const DEFAULT_APP_BASE_URL = 'http://127.0.0.1:3000'
+const DEFAULT_APP_BASE_URL = 'http://127.0.0.1:6900'
 const DEFAULT_START_COMMAND = 'yarn start:dev'
 
 const HELP_TEXT = `\
 Usage:
   node utils/scripts/visual/run.js --mode=baseline [--base-url=${DEFAULT_APP_BASE_URL}]
   node utils/scripts/visual/run.js --mode=changed [--files=a.tsx,b.tsx] [--base-url=${DEFAULT_APP_BASE_URL}]
-  node utils/scripts/visual/run.js --mode=changed --base-url=http://localhost:3000 --storage-state=.dev/browser-state/localhost-3000.storage-state.json
+  node utils/scripts/visual/run.js --mode=changed --base-url=http://localhost:6900 --storage-state=.dev/browser-state/localhost-6900.storage-state.json
 
 Options:
   --mode baseline|changed     Run baseline generation or regression check
