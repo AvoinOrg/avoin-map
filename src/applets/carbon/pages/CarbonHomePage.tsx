@@ -163,15 +163,8 @@ const CarbonHomePage = () => {
         </Box>
       </IntoSidebarFooterSlot>
       <SidebarContentBox
-        sxOuter={{
-          height: '100%',
-        }}
         scrollbarSide="left"
         sxInner={{
-          p: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          minHeight: '100%',
           height: '100%',
         }}
       >
@@ -188,10 +181,6 @@ const CarbonHomePage = () => {
               display: 'flex',
               flexDirection: 'column',
               flex: 1,
-              px: {
-                mobile: `${HOME_SIDEBAR_LEFT_WALL_REM}rem`,
-                desktop: `${HOME_SIDEBAR_LEFT_WALL_REM}rem`,
-              },
               pt: 0,
               pb: '1rem',
             }}
@@ -201,7 +190,7 @@ const CarbonHomePage = () => {
                 component="p"
                 sx={{
                   m: 0,
-                  mt: { mobile: '1.125rem', desktop: '1.25rem' },
+                  mt: { mobile: '1.5rem', desktop: '2rem' },
                   color: '#111111',
                   fontSize: '0.75rem',
                   fontWeight: 700,

@@ -75,11 +75,6 @@ import {
 import { listedBackgroundBuildingFiltersAccordion } from '../common/constants'
 import { useAppletStore } from '../state/appletStore'
 
-const SIDEBAR_SIDE_PADDING = {
-  mobile: '1.5rem',
-  desktop: '1.875rem',
-}
-
 const SIDEBAR_CONTENT_VERTICAL_PADDING = {
   mobile: '2.25rem',
   desktop: '3.0625rem',
@@ -822,21 +817,13 @@ const EnergyHomePage = ({ locale: localeProp }: EnergyHomePageProps) => {
         </IntoSlot>
       )}
       <SidebarContentBox
-        sxOuter={{
-          height: '100%',
-        }}
         scrollbarSide="left"
         sxInner={{
-          p: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          minHeight: '100%',
           height: '100%',
         }}
       >
         <Box
           sx={{
-            px: SIDEBAR_SIDE_PADDING,
             pt: SIDEBAR_CONTENT_VERTICAL_PADDING,
             pb: SIDEBAR_CONTENT_VERTICAL_PADDING,
             display: 'flex',
