@@ -80,6 +80,14 @@ const BASE_ROW_SX = {
   },
 }
 
+const EDGE_ALIGNED_ROW_SX = {
+  pl: 0,
+}
+
+const EDGE_ALIGNED_ICON_SX = {
+  justifyContent: 'flex-start',
+}
+
 const LABEL_SX = {
   color: '#111111',
   flexGrow: 1,
@@ -204,8 +212,18 @@ const ToggleRowButton = ({
   )
 }
 
-export const LayerToggleRow = (props: LayerToggleRowProps) => {
-  return <ToggleRowButton {...props} />
+export const LayerToggleRow = ({
+  rowSx,
+  iconSx,
+  ...props
+}: LayerToggleRowProps) => {
+  return (
+    <ToggleRowButton
+      {...props}
+      rowSx={[EDGE_ALIGNED_ROW_SX, ...toStyleArray(rowSx)]}
+      iconSx={[EDGE_ALIGNED_ICON_SX, ...toStyleArray(iconSx)]}
+    />
+  )
 }
 
 export const LayerToggleRowAccordion = ({
@@ -328,9 +346,9 @@ export const LayerToggleRowLink = ({
         disabled={disabled}
         ariaLabel={ariaLabel}
         color={color}
-        rowSx={rowSx}
+        rowSx={[EDGE_ALIGNED_ROW_SX, ...toStyleArray(rowSx)]}
         labelSx={labelSx}
-        iconSx={iconSx}
+        iconSx={[EDGE_ALIGNED_ICON_SX, ...toStyleArray(iconSx)]}
         sx={{ flexGrow: 1, minWidth: 0 }}
       />
       <AppRouteLink

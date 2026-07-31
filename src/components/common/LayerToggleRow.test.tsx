@@ -215,5 +215,20 @@ describe('LayerStatusIcon', () => {
         marginRight: '0.75rem',
       })
     })
+
+    expect(
+      screen.getByRole('button', { name: 'Toggle base layer' })
+    ).toHaveStyle({ paddingLeft: 0 })
+    expect(statusSlots[0]).toHaveStyle({ justifyContent: 'flex-start' })
+
+    expect(
+      screen.getByRole('button', { name: 'Toggle accordion layer' })
+    ).toHaveStyle({ paddingLeft: '0.375rem' })
+    expect(statusSlots[1]).toHaveStyle({ justifyContent: 'center' })
+
+    expect(
+      screen.getByRole('button', { name: 'Toggle link layer' })
+    ).toHaveStyle({ paddingLeft: 0 })
+    expect(statusSlots[2]).toHaveStyle({ justifyContent: 'flex-start' })
   })
 })
