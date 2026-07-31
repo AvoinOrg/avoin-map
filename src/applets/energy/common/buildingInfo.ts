@@ -9,6 +9,16 @@ import {
 } from '../layers/buildingPolygonsLayerConf'
 import { HEATING_ENERGY_SOURCE_PROPERTY } from '../layers/heatingLayerConf'
 import type { EnergyCertificateClassCode } from '../layers/energyCertificateLayerConf'
+import {
+  calculateCurrentReferenceAnnualCo2,
+  calculateCurrentReferenceAnnualCost,
+} from './currentReferenceCalculations'
+import type {
+  CurrentReferenceAnnualCo2Result,
+  CurrentReferenceAnnualCostResult,
+  CurrentReferenceUnsupportedReason,
+  CurrentReferenceUnsupportedResult,
+} from './currentReferenceCalculations'
 import type { EnergymapSelectedBuilding } from './types'
 
 export type EnergymapBuildingInfoPanelId =
@@ -80,6 +90,7 @@ export type EnergymapBuildingInfoPrimaryMetric = {
   label: EnergymapBuildingInfoText
   ariaLabelKey: string
   supported: boolean
+  value?: EnergymapBuildingInfoValue
   unavailableNote?: EnergymapBuildingInfoNote
 }
 
@@ -761,32 +772,223 @@ const createUnsupportedPrimaryMetric = ({
   id,
   labelKey,
   unavailableNoteKey,
+  sourceProperties,
+  status = 'placeholder',
 }: {
   id: Exclude<EnergymapBuildingInfoPrimaryMetricId, 'energy'>
   labelKey: string
   unavailableNoteKey: string
+  sourceProperties?: string[]
+  status?: Extract<EnergymapBuildingInfoValueStatus, 'missing' | 'placeholder'>
 }): EnergymapBuildingInfoPrimaryMetric => ({
   id,
   label: translationText(labelKey),
   ariaLabelKey: labelKey,
   supported: false,
+  value:
+    status === 'missing'
+      ? missingValue({
+          keyName: unavailableNoteKey,
+          sourceProperties,
+        })
+      : placeholderValue({
+          keyName: unavailableNoteKey,
+          sourceProperties,
+        }),
   unavailableNote: note({
     id: `${id}Unavailable`,
     keyName: unavailableNoteKey,
-    status: 'placeholder',
+    status,
+    sourceProperties,
   }),
 })
+
+type CurrentReferencePrimaryMetricId = Extract<
+  EnergymapBuildingInfoPrimaryMetricId,
+  'cost' | 'co2'
+>
+
+type CurrentReferencePrimaryMetricResult =
+  | CurrentReferenceAnnualCostResult
+  | CurrentReferenceAnnualCo2Result
+
+const getCurrentReferenceSourceProperties = ({
+  id,
+  prefix,
+}: {
+  id: CurrentReferencePrimaryMetricId
+  prefix: EnergymapEnergyScenarioPrefix | null
+}) => [
+  ...(id === 'cost' ? [ENERGYMAP_BUILDING_TYPE_PROPERTY] : []),
+  FLOOR_AREA_PROPERTY,
+  ...(prefix == null
+    ? []
+    : [
+        getScenarioProperty({
+          prefix,
+          measure: 'default',
+          estimateType: 'elec',
+        }),
+        getScenarioProperty({
+          prefix,
+          measure: 'default',
+          estimateType: 'heat',
+        }),
+      ]),
+  HEATING_ENERGY_SOURCE_PROPERTY,
+  HEATING_METHOD_PROPERTY,
+]
+
+const getRootUnsupportedReason = (
+  result: CurrentReferenceUnsupportedResult
+): CurrentReferenceUnsupportedReason =>
+  result.reason === 'incomplete-component' && result.cause != null
+    ? result.cause
+    : result.reason
+
+const getCurrentReferenceUnsupportedPresentation = ({
+  id,
+  result,
+  prefix,
+  properties,
+}: {
+  id: CurrentReferencePrimaryMetricId
+  result: CurrentReferenceUnsupportedResult
+  prefix: EnergymapEnergyScenarioPrefix | null
+  properties: EnergymapSelectedBuilding['properties']
+}): {
+  keyName: string
+  status: Extract<EnergymapBuildingInfoValueStatus, 'missing' | 'placeholder'>
+} => {
+  const reason = getRootUnsupportedReason(result)
+
+  if (reason === 'unsupported-building-class') {
+    return {
+      keyName: key('panels.energy.unsupported.cost_building_class'),
+      status: 'placeholder',
+    }
+  }
+
+  if (reason === 'unsupported-carrier') {
+    return {
+      keyName: key('panels.energy.unsupported.heating_carrier'),
+      status: 'placeholder',
+    }
+  }
+
+  if (reason === 'unsupported-reference-value') {
+    const isApartmentPelletCost =
+      id === 'cost' &&
+      prefix === 'wood' &&
+      getCodeProperty(properties, ENERGYMAP_BUILDING_TYPE_PROPERTY) === '06'
+
+    return {
+      keyName: key(
+        isApartmentPelletCost
+          ? 'panels.energy.unsupported.apartment_pellet_cost'
+          : 'panels.energy.unsupported.reference_value'
+      ),
+      status: 'placeholder',
+    }
+  }
+
+  if (reason === 'missing-input') {
+    const heatingSource = getCodeProperty(
+      properties,
+      HEATING_ENERGY_SOURCE_PROPERTY
+    )
+    const heatingMethod = getCodeProperty(properties, HEATING_METHOD_PROPERTY)
+    const scenarioInputIsMissing =
+      heatingSource == null || (heatingSource === '04' && heatingMethod == null)
+    const unresolvedKnownInputs =
+      result.field === 'scenarioPrefix' &&
+      prefix == null &&
+      !scenarioInputIsMissing
+
+    return unresolvedKnownInputs
+      ? {
+          keyName: key('panels.energy.unsupported.heating_carrier'),
+          status: 'placeholder',
+        }
+      : {
+          keyName: key('panels.energy.unsupported.missing_reference_data'),
+          status: 'missing',
+        }
+  }
+
+  return {
+    keyName: key('panels.energy.unsupported.invalid_reference_data'),
+    status: 'placeholder',
+  }
+}
+
+const createCurrentReferencePrimaryMetric = ({
+  id,
+  result,
+  prefix,
+  properties,
+  locale,
+}: {
+  id: CurrentReferencePrimaryMetricId
+  result: CurrentReferencePrimaryMetricResult
+  prefix: EnergymapEnergyScenarioPrefix | null
+  properties: EnergymapSelectedBuilding['properties']
+  locale: string
+}): EnergymapBuildingInfoPrimaryMetric => {
+  const labelKey = key(`panels.energy.primary.${id}`)
+  const sourceProperties = getCurrentReferenceSourceProperties({ id, prefix })
+
+  if (result.status === 'unsupported') {
+    const presentation = getCurrentReferenceUnsupportedPresentation({
+      id,
+      result,
+      prefix,
+      properties,
+    })
+
+    return createUnsupportedPrimaryMetric({
+      id,
+      labelKey,
+      unavailableNoteKey: presentation.keyName,
+      sourceProperties,
+      status: presentation.status,
+    })
+  }
+
+  return {
+    id,
+    label: translationText(labelKey),
+    ariaLabelKey: labelKey,
+    supported: true,
+    value: estimateValue({
+      text: plainText(
+        formatNumber({
+          value: result.total,
+          locale,
+        })
+      ),
+      unitKey: key(
+        id === 'cost' ? 'units.eur_per_year' : 'units.kg_co2_per_year'
+      ),
+      sourceProperties,
+    }),
+  }
+}
 
 const createConsumptionControls = ({
   totalMetric,
   heatingMetric,
   electricityMetric,
   waterHeatingMetric,
+  costMetric,
+  co2Metric,
 }: {
   totalMetric: EnergymapBuildingInfoMetric
   heatingMetric: EnergymapBuildingInfoMetric
   electricityMetric: EnergymapBuildingInfoMetric
   waterHeatingMetric: EnergymapBuildingInfoMetric
+  costMetric: EnergymapBuildingInfoPrimaryMetric
+  co2Metric: EnergymapBuildingInfoPrimaryMetric
 }): EnergymapBuildingInfoConsumptionControls => {
   const waterHeatingUnavailableNote = note({
     id: 'waterHeatingUnavailable',
@@ -808,16 +1010,8 @@ const createConsumptionControls = ({
         labelKey: key('panels.energy.primary.water'),
         unavailableNoteKey: key('panels.energy.unsupported.water'),
       }),
-      createUnsupportedPrimaryMetric({
-        id: 'cost',
-        labelKey: key('panels.energy.primary.cost'),
-        unavailableNoteKey: key('panels.energy.unsupported.cost'),
-      }),
-      createUnsupportedPrimaryMetric({
-        id: 'co2',
-        labelKey: key('panels.energy.primary.co2'),
-        unavailableNoteKey: key('panels.energy.unsupported.co2'),
-      }),
+      costMetric,
+      co2Metric,
     ],
     defaultEnergySubmetricIds: ['electricity', 'heating'],
     energySubmetrics: [
@@ -1085,6 +1279,47 @@ const createEnergyConsumptionPanel = ({
     locale,
   })
   const waterHeatingMetric = createWaterHeatingMetric()
+  const electricityProperty =
+    prefix == null
+      ? null
+      : getScenarioProperty({
+          prefix,
+          measure: 'default',
+          estimateType: 'elec',
+        })
+  const heatingProperty =
+    prefix == null
+      ? null
+      : getScenarioProperty({
+          prefix,
+          measure: 'default',
+          estimateType: 'heat',
+        })
+  const currentReferenceEnergyInput = {
+    scenarioPrefix: prefix,
+    floorAreaSquareMeters: properties[FLOOR_AREA_PROPERTY],
+    defaultElectricityIntensityKwhPerSquareMeterYear:
+      electricityProperty == null ? undefined : properties[electricityProperty],
+    defaultHeatingIntensityKwhPerSquareMeterYear:
+      heatingProperty == null ? undefined : properties[heatingProperty],
+  }
+  const costMetric = createCurrentReferencePrimaryMetric({
+    id: 'cost',
+    result: calculateCurrentReferenceAnnualCost({
+      ...currentReferenceEnergyInput,
+      mainPurpose: properties[ENERGYMAP_BUILDING_TYPE_PROPERTY],
+    }),
+    prefix,
+    properties,
+    locale,
+  })
+  const co2Metric = createCurrentReferencePrimaryMetric({
+    id: 'co2',
+    result: calculateCurrentReferenceAnnualCo2(currentReferenceEnergyInput),
+    prefix,
+    properties,
+    locale,
+  })
 
   return {
     id: 'energyConsumption',
@@ -1107,6 +1342,8 @@ const createEnergyConsumptionPanel = ({
           heatingMetric,
           electricityMetric,
           waterHeatingMetric,
+          costMetric,
+          co2Metric,
         }),
         notes: [
           note({
@@ -1120,15 +1357,25 @@ const createEnergyConsumptionPanel = ({
         id: 'calculationContext',
         title: translationText(key('panels.energy.sections.calculation_context')),
         rows: [
-          createPlaceholderRow({
+          row({
             id: 'costMode',
             labelKey: key('panels.energy.rows.cost_mode'),
-            placeholderKey: key('placeholders.not_published'),
+            value: {
+              text: translationText(
+                key('panels.energy.context.cost_current_reference')
+              ),
+              status: 'estimate',
+            },
           }),
-          createPlaceholderRow({
+          row({
             id: 'co2Mode',
             labelKey: key('panels.energy.rows.co2_mode'),
-            placeholderKey: key('placeholders.not_published'),
+            value: {
+              text: translationText(
+                key('panels.energy.context.co2_current_reference')
+              ),
+              status: 'estimate',
+            },
           }),
           createPlaceholderRow({
             id: 'waterHeatingSplit',

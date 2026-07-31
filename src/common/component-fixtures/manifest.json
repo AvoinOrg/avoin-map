@@ -609,9 +609,12 @@
     "label": "Energiakartta building info panel",
     "description": "Energiakartta building-info panel tabs, metric controls, mobile layout, and collapsed action rail.",
     "sourceGlobs": [
+      "src/applets/energy/common/buildingInfo.ts",
+      "src/applets/energy/common/buildingInfo.test.ts",
       "src/applets/energy/components/BuildingInfoPanel.tsx",
       "src/applets/energy/components/BuildingInfoPanel.test.tsx",
-      "src/common/component-fixtures/fixtures/EnergymapBuildingInfoPanelFixture.tsx"
+      "src/common/component-fixtures/fixtures/EnergymapBuildingInfoPanelFixture.tsx",
+      "src/public/img/energiakartta/sidebar/building-info-unavailable-value.svg"
     ],
     "states": [
       {
@@ -631,6 +634,12 @@
         "label": "Mobile renovation",
         "description": "Forced stacked layout for the renovation tab.",
         "waitFor": "[data-testid=\"building-info-tab-page-renovation\"]"
+      },
+      {
+        "id": "metric-supported",
+        "label": "Supported metric",
+        "description": "Supported annual Cost metric selected by default.",
+        "waitFor": "[data-testid=\"building-info-tab-page-basic\"]"
       },
       {
         "id": "metric-unsupported",

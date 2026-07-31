@@ -169,11 +169,10 @@ const DESKTOP_HEADING_TOP = '7.375rem'
 const DESKTOP_SECTION_BOTTOM_PADDING = '6.5rem'
 const DESKTOP_HEADING_GRAPHIC_TOP = '-4.25rem'
 const DESKTOP_HEADING_DIVIDER_MARGIN_TOP = '0.75rem'
-const UNAVAILABLE_VALUE_ICON_COLOR = '#9E9E9E'
-
 const SIDEBAR_ASSET_BASE = '/files/img/energiakartta/sidebar'
 
 const BUILDING_INFO_ASSETS = {
+  unavailableValue: `${SIDEBAR_ASSET_BASE}/building-info-unavailable-value.svg`,
   energyLightning: `${SIDEBAR_ASSET_BASE}/building-info-energy-lightning.svg`,
   renovationIconCenter: `${SIDEBAR_ASSET_BASE}/building-info-renovation-icon-center.svg`,
   renovationIconArcLower: `${SIDEBAR_ASSET_BASE}/building-info-renovation-icon-arc-lower.svg`,
@@ -613,13 +612,39 @@ const WaterHeatingMetricIcon = ({ sx }: { sx?: AppSxProps }) => (
   </BuildingInfoSvgIcon>
 )
 
-const ConstructionUnavailableIcon = ({ sx }: { sx?: AppSxProps }) => (
-  <BuildingInfoSvgIcon
-    sx={sx}
-    testId="building-info-unavailable-value-icon"
+const UnavailableValueIcon = ({ sx }: { sx?: AppSxProps }) => (
+  <Box
+    component="span"
+    data-testid="building-info-unavailable-value-icon"
+    data-figma-width="12"
+    data-figma-height="12"
+    sx={[
+      {
+        position: 'relative',
+        display: 'block',
+        width: '12px',
+        height: '12px',
+        flexShrink: 0,
+      },
+      ...toSxArray(sx),
+    ]}
   >
-    <path d="M4.5 19.5h15v-2h-15v2Zm1.2-3.2h12.6l-1.45-7.55A3.88 3.88 0 0 0 13 5.5h-2a3.88 3.88 0 0 0-3.85 3.25L5.7 16.3Zm4.05-8.15h4.5l.55 2.85h-5.6l.55-2.85Zm-.9 4.45h6.3l.7 3.7h-7.7l.7-3.7Z" />
-  </BuildingInfoSvgIcon>
+    <img
+      src={BUILDING_INFO_ASSETS.unavailableValue}
+      alt=""
+      aria-hidden="true"
+      width={13}
+      height={13}
+      style={{
+        position: 'absolute',
+        inset: '-0.5px',
+        display: 'block',
+        width: '13px',
+        height: '13px',
+        maxWidth: 'none',
+      }}
+    />
+  </Box>
 )
 
 const EnergyPrimaryMetricIcon = ({
@@ -817,12 +842,7 @@ const BuildingInfoValueText = ({
                 },
               }}
             >
-              <ConstructionUnavailableIcon
-                sx={{
-                  color: UNAVAILABLE_VALUE_ICON_COLOR,
-                  fontSize: '1rem',
-                }}
-              />
+              <UnavailableValueIcon />
               <Box
                 component="span"
                 data-testid="building-info-unavailable-value-reason"
@@ -1422,26 +1442,34 @@ const BuildingInfoEnergySubmetricButton = ({
   )
 }
 
-const BuildingInfoUnsupportedPrimaryMetricPanel = ({
+const BuildingInfoPrimaryMetricValuePanel = ({
   metric,
 }: {
   metric: EnergymapBuildingInfoPrimaryMetric
 }) => {
-  if (metric.unavailableNote == null) {
+  if (metric.value == null && metric.unavailableNote == null) {
     return null
   }
 
   return (
     <Box
-      data-testid="building-info-unsupported-primary-metric"
+      data-testid="building-info-primary-metric-value"
       data-primary-metric-id={metric.id}
+      data-primary-metric-supported={metric.supported ? 'true' : 'false'}
       sx={{
         mt: '1.5rem',
         borderTop: '0.3px solid #d7d7d7',
         pt: '0.75rem',
       }}
     >
-      <BuildingInfoNoteText note={metric.unavailableNote} />
+      {metric.value != null && (
+        <Box component="div" sx={{ ...textSx, textAlign: 'left' }}>
+          <BuildingInfoValueText value={metric.value} align="left" />
+        </Box>
+      )}
+      {metric.unavailableNote != null && (
+        <BuildingInfoNoteText note={metric.unavailableNote} />
+      )}
     </Box>
   )
 }
@@ -1617,9 +1645,7 @@ const BuildingInfoEnergyConsumptionSectionContent = ({
           ))}
         </>
       ) : activePrimaryMetric != null ? (
-        <BuildingInfoUnsupportedPrimaryMetricPanel
-          metric={activePrimaryMetric}
-        />
+        <BuildingInfoPrimaryMetricValuePanel metric={activePrimaryMetric} />
       ) : null}
     </Box>
   )

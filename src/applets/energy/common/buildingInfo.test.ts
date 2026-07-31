@@ -5,12 +5,16 @@ import {
   getSelectedEnergyConsumption,
   resolveCurrentEnergyScenarioPrefix,
 } from './buildingInfo'
+import enTranslations from '@i18n/energiakartta/en.json'
+import fiTranslations from '@i18n/energiakartta/fi.json'
 import type {
   EnergymapBuildingInfoConsumptionControls,
   EnergymapBuildingInfoEnergySubmetricId,
   EnergymapBuildingInfoMetric,
   EnergymapBuildingInfoPanel,
   EnergymapBuildingInfoPanelId,
+  EnergymapBuildingInfoPrimaryMetric,
+  EnergymapBuildingInfoPrimaryMetricId,
   EnergymapBuildingInfoRow,
   EnergymapBuildingInfoScenario,
   EnergymapBuildingInfoText,
@@ -174,6 +178,21 @@ const getConsumptionControls = (
   }
 
   return controls
+}
+
+const getPrimaryMetric = (
+  panel: EnergymapBuildingInfoPanel,
+  metricId: EnergymapBuildingInfoPrimaryMetricId
+): EnergymapBuildingInfoPrimaryMetric => {
+  const metric = getConsumptionControls(panel).primaryMetrics.find(
+    (candidate) => candidate.id === metricId
+  )
+
+  if (metric == null) {
+    throw new Error(`Primary metric not found: ${metricId}`)
+  }
+
+  return metric
 }
 
 const getScenarios = (panel: EnergymapBuildingInfoPanel) =>
@@ -380,7 +399,7 @@ describe('Energiakartta building info model', () => {
     ])
   })
 
-  it('exposes interactive consumption controls without inventing unavailable data fields', () => {
+  it('exposes complete Cost and CO2 controls while keeping Water unavailable', () => {
     const panels = createEnergymapBuildingInfoPanels({
       selectedBuilding: districtHeatingBuilding,
       locale: 'en-US',
@@ -399,17 +418,26 @@ describe('Energiakartta building info model', () => {
       controls.primaryMetrics.map((metric) => ({
         id: metric.id,
         supported: metric.supported,
+        value: metric.value,
         unavailableNote: metric.unavailableNote?.text,
       }))
     ).toEqual([
       {
         id: 'energy',
         supported: true,
+        value: undefined,
         unavailableNote: undefined,
       },
       {
         id: 'water',
         supported: false,
+        value: {
+          status: 'placeholder',
+          text: {
+            type: 'translation',
+            keyName: `${translationPrefix}.panels.energy.unsupported.water`,
+          },
+        },
         unavailableNote: {
           type: 'translation',
           keyName: `${translationPrefix}.panels.energy.unsupported.water`,
@@ -417,19 +445,38 @@ describe('Energiakartta building info model', () => {
       },
       {
         id: 'cost',
-        supported: false,
-        unavailableNote: {
-          type: 'translation',
-          keyName: `${translationPrefix}.panels.energy.unsupported.cost`,
+        supported: true,
+        value: {
+          status: 'estimate',
+          text: { type: 'plain', text: '19,613' },
+          unitKey: `${translationPrefix}.units.eur_per_year`,
+          sourceProperties: [
+            'main_purpose',
+            'floor_area',
+            'distr_default_elec',
+            'distr_default_heat',
+            'heating_energy_source',
+            'heating_method',
+          ],
         },
+        unavailableNote: undefined,
       },
       {
         id: 'co2',
-        supported: false,
-        unavailableNote: {
-          type: 'translation',
-          keyName: `${translationPrefix}.panels.energy.unsupported.co2`,
+        supported: true,
+        value: {
+          status: 'estimate',
+          text: { type: 'plain', text: '18,436' },
+          unitKey: `${translationPrefix}.units.kg_co2_per_year`,
+          sourceProperties: [
+            'floor_area',
+            'distr_default_elec',
+            'distr_default_heat',
+            'heating_energy_source',
+            'heating_method',
+          ],
         },
+        unavailableNote: undefined,
       },
     ])
     expect(Object.keys(controls).sort()).toEqual([
@@ -443,6 +490,192 @@ describe('Energiakartta building info model', () => {
     expect(
       getSection(energyPanel, 'calculationContext').rows?.map((row) => row.id)
     ).toEqual(['costMode', 'co2Mode', 'waterHeatingSplit'])
+    expectTranslation(
+      getRow(energyPanel, 'costMode').text,
+      `${translationPrefix}.panels.energy.context.cost_current_reference`
+    )
+    expectTranslation(
+      getRow(energyPanel, 'co2Mode').text,
+      `${translationPrefix}.panels.energy.context.co2_current_reference`
+    )
+    expect(getRow(energyPanel, 'costMode').status).toBe('estimate')
+    expect(getRow(energyPanel, 'co2Mode').status).toBe('estimate')
+    expect(getRow(energyPanel, 'waterHeatingSplit').status).toBe('placeholder')
+  })
+
+  it('keeps apartment-pellet Cost complete-only while preserving scoped pellet CO2', () => {
+    const apartmentPellet = createSelectedBuilding({
+      building_key: 'apartment-pellet',
+      main_purpose: '06',
+      heating_method: '01',
+      heating_energy_source: '07',
+      floor_area: 100,
+      wood_default_total: 30,
+      wood_default_elec: 10,
+      wood_default_heat: 20,
+    })
+    const energyPanel = getPanel(
+      createEnergymapBuildingInfoPanels({
+        selectedBuilding: apartmentPellet,
+        locale: 'en-US',
+      }) ?? [],
+      'energyConsumption'
+    )
+    const cost = getPrimaryMetric(energyPanel, 'cost')
+    const co2 = getPrimaryMetric(energyPanel, 'co2')
+
+    expect(cost.supported).toBe(false)
+    expect(cost.value?.status).toBe('placeholder')
+    expectTranslation(
+      cost.value?.text as EnergymapBuildingInfoText,
+      `${translationPrefix}.panels.energy.unsupported.apartment_pellet_cost`
+    )
+    expect(cost.value?.text).not.toEqual(expect.objectContaining({ text: '0' }))
+    expect(co2.supported).toBe(true)
+    expectPlainText(co2.value?.text as EnergymapBuildingInfoText, '45')
+    expect(co2.value?.unitKey).toBe(
+      `${translationPrefix}.units.kg_co2_per_year`
+    )
+
+    const zeroHeatPanel = getPanel(
+      createEnergymapBuildingInfoPanels({
+        selectedBuilding: createSelectedBuilding({
+          ...apartmentPellet.properties,
+          building_key: 'apartment-pellet-zero-heat',
+          wood_default_heat: 0,
+        }),
+        locale: 'en-US',
+      }) ?? [],
+      'energyConsumption'
+    )
+
+    expect(getPrimaryMetric(zeroHeatPanel, 'cost').supported).toBe(true)
+    expectPlainText(
+      getPrimaryMetric(zeroHeatPanel, 'cost').value
+        ?.text as EnergymapBuildingInfoText,
+      '263'
+    )
+  })
+
+  it('keeps Cost class support independent from a complete CO2 estimate', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        ...districtHeatingBuilding.properties,
+        building_key: 'unsupported-cost-class',
+        main_purpose: '07',
+      }),
+      locale: 'en-US',
+    })
+    const energyPanel = getPanel(panels ?? [], 'energyConsumption')
+    const cost = getPrimaryMetric(energyPanel, 'cost')
+    const co2 = getPrimaryMetric(energyPanel, 'co2')
+
+    expect(cost.supported).toBe(false)
+    expectTranslation(
+      cost.value?.text as EnergymapBuildingInfoText,
+      `${translationPrefix}.panels.energy.unsupported.cost_building_class`
+    )
+    expect(co2.supported).toBe(true)
+    expectPlainText(co2.value?.text as EnergymapBuildingInfoText, '18,436')
+  })
+
+  it.each([
+    [
+      'missing electricity',
+      { distr_default_elec: undefined },
+      'missing_reference_data',
+    ],
+    [
+      'missing heating',
+      { distr_default_heat: undefined },
+      'missing_reference_data',
+    ],
+    ['missing area', { floor_area: undefined }, 'missing_reference_data'],
+    ['negative heating', { distr_default_heat: -1 }, 'invalid_reference_data'],
+    [
+      'invalid electricity type',
+      { distr_default_elec: '24.125' },
+      'invalid_reference_data',
+    ],
+    ['non-finite area', { floor_area: NaN }, 'invalid_reference_data'],
+    [
+      'infinite heating',
+      { distr_default_heat: Infinity },
+      'invalid_reference_data',
+    ],
+  ])(
+    'does not expose partial totals for %s',
+    (_label, overrides, reasonKey) => {
+      const panels = createEnergymapBuildingInfoPanels({
+        selectedBuilding: createSelectedBuilding({
+          ...districtHeatingBuilding.properties,
+          ...overrides,
+          building_key: `invalid-${reasonKey}`,
+        }),
+        locale: 'en-US',
+      })
+      const energyPanel = getPanel(panels ?? [], 'energyConsumption')
+
+      for (const metricId of ['cost', 'co2'] as const) {
+        const metric = getPrimaryMetric(energyPanel, metricId)
+
+        expect(metric.supported).toBe(false)
+        expect(metric.value?.status).toBe(
+          reasonKey === 'missing_reference_data' ? 'missing' : 'placeholder'
+        )
+        expectTranslation(
+          metric.value?.text as EnergymapBuildingInfoText,
+          `${translationPrefix}.panels.energy.unsupported.${reasonKey}`
+        )
+        expect(metric.value?.text).not.toEqual(
+          expect.objectContaining({
+            text: expect.stringMatching(/NaN|Infinity/),
+          })
+        )
+      }
+    }
+  )
+
+  it('distinguishes an unknown heating carrier from missing building data', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        ...districtHeatingBuilding.properties,
+        building_key: 'unknown-carrier',
+        heating_energy_source: '99',
+        heating_method: '07',
+      }),
+      locale: 'en-US',
+    })
+    const energyPanel = getPanel(panels ?? [], 'energyConsumption')
+
+    for (const metricId of ['cost', 'co2'] as const) {
+      const metric = getPrimaryMetric(energyPanel, metricId)
+
+      expect(metric.supported).toBe(false)
+      expect(metric.value?.status).toBe('placeholder')
+      expectTranslation(
+        metric.value?.text as EnergymapBuildingInfoText,
+        `${translationPrefix}.panels.energy.unsupported.heating_carrier`
+      )
+    }
+  })
+
+  it('keeps the generated English and Finnish current-reference caveats accurate', () => {
+    const enEnergy = enTranslations.sidebar.building_info.panels.energy
+    const fiEnergy = fiTranslations.sidebar.building_info.panels.energy
+
+    expect(enEnergy.context.cost_current_reference).toMatch(
+      /Average current-reference estimate.*not a bill.*contract price.*market-price forecast/i
+    )
+    expect(fiEnergy.context.cost_current_reference).toMatch(
+      /keskimääräinen arvio.*ei ole lasku.*sopimushinta.*markkinahinnasta/i
+    )
+    expect(enEnergy.context.co2_current_reference).toMatch(
+      /not measured building emissions.*renewable energy.*Light fuel oil uses a fossil factor.*pellet factor is zero only within the supplied fossil-accounting boundary.*does not prove zero lifecycle or biogenic emissions/i
+    )
+    expect(fiEnergy.context.co2_current_reference).toMatch(
+      /ei rakennuksen mitattuihin päästöihin.*uusiutuva energia.*Kevyen polttoöljyn kerroin on fossiilinen.*Pelletin kerroin on nolla vain toimitetun fossiililaskennan rajauksen sisällä.*elinkaaripäästöjä tai biogeenisiä päästöjä nollaksi/i
+    )
   })
 
   it('models supported energy submetrics and keeps water heating unsupported', () => {

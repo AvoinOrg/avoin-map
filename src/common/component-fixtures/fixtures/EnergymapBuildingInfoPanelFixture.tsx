@@ -22,6 +22,7 @@ import type {
   EnergymapBuildingInfoMetric,
   EnergymapBuildingInfoMetricValue,
   EnergymapBuildingInfoPanel,
+  EnergymapBuildingInfoPrimaryMetric,
   EnergymapBuildingInfoPrimaryMetricId,
   EnergymapBuildingInfoText,
   EnergymapBuildingInfoValueStatus,
@@ -128,9 +129,49 @@ const emptyMetric = metric({
   square: 'Select at least one source',
 })
 
-const createControls = (
-  defaultPrimaryMetricId: EnergymapBuildingInfoPrimaryMetricId = 'energy'
-): EnergymapBuildingInfoConsumptionControls => ({
+const createAnnualPrimaryMetric = ({
+  id,
+  label,
+  text,
+  unitKey,
+  unsupported = false,
+}: {
+  id: Extract<EnergymapBuildingInfoPrimaryMetricId, 'cost' | 'co2'>
+  label: string
+  text: string
+  unitKey: string
+  unsupported?: boolean
+}): EnergymapBuildingInfoPrimaryMetric => ({
+  id,
+  label: plain(label),
+  ariaLabelKey: `sidebar.building_info.panels.energy.primary.${id}`,
+  supported: !unsupported,
+  value: {
+    text: plain(unsupported ? `${label} reference data is unavailable.` : text),
+    status: unsupported ? 'placeholder' : 'estimate',
+    ...(unsupported ? {} : { unitKey }),
+  },
+  ...(unsupported
+    ? {
+        unavailableNote: {
+          id: `${id}-unavailable`,
+          text: plain(`${label} reference data is unavailable.`),
+          status: 'placeholder',
+        },
+      }
+    : {}),
+})
+
+const createControls = ({
+  defaultPrimaryMetricId = 'energy',
+  unsupportedPrimaryMetricId,
+}: {
+  defaultPrimaryMetricId?: EnergymapBuildingInfoPrimaryMetricId
+  unsupportedPrimaryMetricId?: Extract<
+    EnergymapBuildingInfoPrimaryMetricId,
+    'cost' | 'co2'
+  >
+} = {}): EnergymapBuildingInfoConsumptionControls => ({
   defaultPrimaryMetricId,
   primaryMetrics: [
     {
@@ -144,34 +185,30 @@ const createControls = (
       label: plain('Water'),
       ariaLabelKey: 'sidebar.building_info.panels.energy.primary.water',
       supported: false,
+      value: {
+        text: plain('Water consumption is not available for this building.'),
+        status: 'placeholder',
+      },
       unavailableNote: {
         id: 'water-unavailable',
         text: plain('Water consumption is not available for this building.'),
         status: 'placeholder',
       },
     },
-    {
+    createAnnualPrimaryMetric({
       id: 'cost',
-      label: plain('Cost'),
-      ariaLabelKey: 'sidebar.building_info.panels.energy.primary.cost',
-      supported: false,
-      unavailableNote: {
-        id: 'cost-unavailable',
-        text: plain('Energy cost is not available for this building.'),
-        status: 'placeholder',
-      },
-    },
-    {
+      label: 'Cost',
+      text: '19,613',
+      unitKey: 'sidebar.building_info.units.eur_per_year',
+      unsupported: unsupportedPrimaryMetricId === 'cost',
+    }),
+    createAnnualPrimaryMetric({
       id: 'co2',
-      label: plain('CO2'),
-      ariaLabelKey: 'sidebar.building_info.panels.energy.primary.co2',
-      supported: false,
-      unavailableNote: {
-        id: 'co2-unavailable',
-        text: plain('CO2 estimate is not available for this building.'),
-        status: 'placeholder',
-      },
-    },
+      label: 'CO2',
+      text: '18,436',
+      unitKey: 'sidebar.building_info.units.kg_co2_per_year',
+      unsupported: unsupportedPrimaryMetricId === 'co2',
+    }),
   ],
   defaultEnergySubmetricIds: ['electricity', 'heating'],
   energySubmetrics: [
@@ -211,8 +248,13 @@ const createControls = (
 
 const createPanels = ({
   defaultPrimaryMetricId = 'energy',
+  unsupportedPrimaryMetricId,
 }: {
   defaultPrimaryMetricId?: EnergymapBuildingInfoPrimaryMetricId
+  unsupportedPrimaryMetricId?: Extract<
+    EnergymapBuildingInfoPrimaryMetricId,
+    'cost' | 'co2'
+  >
 } = {}): EnergymapBuildingInfoPanel[] => [
   {
     id: 'energyConsumption',
@@ -222,7 +264,10 @@ const createPanels = ({
       {
         id: 'estimatedConsumption',
         title: plain('Energy estimate'),
-        consumptionControls: createControls(defaultPrimaryMetricId),
+        consumptionControls: createControls({
+          defaultPrimaryMetricId,
+          unsupportedPrimaryMetricId,
+        }),
         notes: [
           {
             id: 'estimate-note',
@@ -418,10 +463,15 @@ const BuildingInfoPanelFixtureChrome = ({
 const BuildingInfoPanelFixtureState = ({
   activeTabId = 'basic',
   defaultPrimaryMetricId,
+  unsupportedPrimaryMetricId,
   forceMobileLayout = false,
 }: {
   activeTabId?: BuildingInfoTabId
   defaultPrimaryMetricId?: EnergymapBuildingInfoPrimaryMetricId
+  unsupportedPrimaryMetricId?: Extract<
+    EnergymapBuildingInfoPrimaryMetricId,
+    'cost' | 'co2'
+  >
   forceMobileLayout?: boolean
 }) => {
   const extensionOptions = React.useMemo(
@@ -447,7 +497,10 @@ const BuildingInfoPanelFixtureState = ({
           >
             <IntoSidebarPanelExtensionPanelSlot panelId="main">
               <BuildingInfoTabPages
-                panels={createPanels({ defaultPrimaryMetricId })}
+                panels={createPanels({
+                  defaultPrimaryMetricId,
+                  unsupportedPrimaryMetricId,
+                })}
                 ariaLabels={ariaLabels}
                 activeTabId={activeTabId}
                 forceMobileLayout={forceMobileLayout}
@@ -487,9 +540,12 @@ export const energymapBuildingInfoPanelFixture: ComponentFixture = {
   description:
     'Energiakartta building-info panel tabs, metric controls, mobile layout, and collapsed action rail.',
   sourceGlobs: [
+    'src/applets/energy/common/buildingInfo.ts',
+    'src/applets/energy/common/buildingInfo.test.ts',
     'src/applets/energy/components/BuildingInfoPanel.tsx',
     'src/applets/energy/components/BuildingInfoPanel.test.tsx',
     'src/common/component-fixtures/fixtures/EnergymapBuildingInfoPanelFixture.tsx',
+    'src/public/img/energiakartta/sidebar/building-info-unavailable-value.svg',
   ],
   canvasSx: {
     p: 0,
@@ -524,12 +580,24 @@ export const energymapBuildingInfoPanelFixture: ComponentFixture = {
       ),
     },
     {
+      id: 'metric-supported',
+      label: 'Supported metric',
+      description: 'Supported annual Cost metric selected by default.',
+      waitFor: '[data-testid="building-info-tab-page-basic"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState defaultPrimaryMetricId="cost" />
+      ),
+    },
+    {
       id: 'metric-unsupported',
       label: 'Unsupported metric',
       description: 'Unsupported primary metric selected by default.',
       waitFor: '[data-testid="building-info-tab-page-basic"]',
       render: () => (
-        <BuildingInfoPanelFixtureState defaultPrimaryMetricId="water" />
+        <BuildingInfoPanelFixtureState
+          defaultPrimaryMetricId="cost"
+          unsupportedPrimaryMetricId="cost"
+        />
       ),
     },
     {

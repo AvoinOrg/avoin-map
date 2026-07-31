@@ -427,6 +427,13 @@ export const applyCurrentReferenceFactor = ({
     return energy
   }
 
+  if (energy.value === 0) {
+    return {
+      status: 'complete',
+      amount: 0,
+    }
+  }
+
   const factor = resolveFactor({ factorPerMwh, component })
   if (factor.status === 'unsupported') {
     return factor

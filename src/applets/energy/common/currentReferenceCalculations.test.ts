@@ -314,6 +314,35 @@ describe('factor application and complete-only aggregation', () => {
     expect(unsupported).not.toHaveProperty('amount')
   })
 
+  it('does not require a reference factor for an unused zero-energy component', () => {
+    const unsupportedFactor = {
+      status: 'unsupported',
+      reason: 'not-supplied',
+    } as const
+
+    expect(
+      applyCurrentReferenceFactor({
+        component: 'heating',
+        energyKwhPerYear: 0,
+        factorPerMwh: unsupportedFactor,
+      })
+    ).toEqual({ status: 'complete', amount: 0 })
+
+    expect(
+      applyCurrentReferenceFactor({
+        component: 'heating',
+        energyKwhPerYear: 1,
+        factorPerMwh: unsupportedFactor,
+      })
+    ).toEqual({
+      status: 'unsupported',
+      reason: 'unsupported-reference-value',
+      field: 'factorPerMwh',
+      component: 'heating',
+      referenceReason: 'not-supplied',
+    })
+  })
+
   it('rejects factor application that would underflow to a fabricated zero', () => {
     expect(
       applyCurrentReferenceFactor({
@@ -464,6 +493,23 @@ describe('complete current-reference Cost and CO2 calculations', () => {
       electricity: 45,
       heating: 0,
       total: 45,
+    })
+  })
+
+  it('keeps zero apartment-pellet heat complete without requiring its missing price', () => {
+    expect(
+      calculateCurrentReferenceAnnualCost({
+        ...completeEnergyInput,
+        mainPurpose: '06',
+        scenarioPrefix: 'wood',
+        defaultHeatingIntensityKwhPerSquareMeterYear: 0,
+      })
+    ).toEqual({
+      status: 'complete',
+      unit: 'EUR/year',
+      electricity: 263.27,
+      heating: 0,
+      total: 263.27,
     })
   })
 

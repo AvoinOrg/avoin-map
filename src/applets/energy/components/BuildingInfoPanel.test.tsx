@@ -247,9 +247,17 @@ const consumptionControls: EnergymapBuildingInfoConsumptionControls = {
       label: translation('sidebar.building_info.panels.energy.primary.water'),
       ariaLabelKey: 'sidebar.building_info.panels.energy.primary.water',
       supported: false,
+      value: {
+        text: translation(
+          'sidebar.building_info.panels.energy.unsupported.water'
+        ),
+        status: 'placeholder',
+      },
       unavailableNote: {
         id: 'waterUnavailable',
-        text: translation('sidebar.building_info.panels.energy.unsupported.water'),
+        text: translation(
+          'sidebar.building_info.panels.energy.unsupported.water'
+        ),
         status: 'placeholder',
       },
     },
@@ -257,22 +265,22 @@ const consumptionControls: EnergymapBuildingInfoConsumptionControls = {
       id: 'cost',
       label: translation('sidebar.building_info.panels.energy.primary.cost'),
       ariaLabelKey: 'sidebar.building_info.panels.energy.primary.cost',
-      supported: false,
-      unavailableNote: {
-        id: 'costUnavailable',
-        text: translation('sidebar.building_info.panels.energy.unsupported.cost'),
-        status: 'placeholder',
+      supported: true,
+      value: {
+        text: plain('19,613'),
+        status: 'estimate',
+        unitKey: 'sidebar.building_info.units.eur_per_year',
       },
     },
     {
       id: 'co2',
       label: translation('sidebar.building_info.panels.energy.primary.co2'),
       ariaLabelKey: 'sidebar.building_info.panels.energy.primary.co2',
-      supported: false,
-      unavailableNote: {
-        id: 'co2Unavailable',
-        text: translation('sidebar.building_info.panels.energy.unsupported.co2'),
-        status: 'placeholder',
+      supported: true,
+      value: {
+        text: plain('18,436'),
+        status: 'estimate',
+        unitKey: 'sidebar.building_info.units.kg_co2_per_year',
       },
     },
   ],
@@ -1183,7 +1191,7 @@ describe('BuildingInfoPanel', () => {
     })
   })
 
-  it('shows truthful missing-data panels for unsupported primary metrics', async () => {
+  it('switches between Energy, supported Cost and CO2, unavailable Water, and back', async () => {
     renderBuildingInfoTabs()
 
     await screen.findByTestId('building-info-tab-page-basic')
@@ -1204,11 +1212,17 @@ describe('BuildingInfoPanel', () => {
     expect(waterButton).toHaveTextContent(
       'sidebar.building_info.panels.energy.primary.water'
     )
-    expect(
-      within(energyPanel).getByTestId('building-info-unsupported-primary-metric')
-    ).toHaveTextContent(
+    const waterPanel = within(energyPanel).getByTestId(
+      'building-info-primary-metric-value'
+    )
+    expect(waterPanel).toHaveAttribute('data-primary-metric-id', 'water')
+    expect(waterPanel).toHaveAttribute('data-primary-metric-supported', 'false')
+    expect(waterPanel).toHaveTextContent(
       'sidebar.building_info.panels.energy.unsupported.water'
     )
+    expect(
+      within(waterPanel).getByTestId('building-info-unavailable-value-icon')
+    ).toBeInTheDocument()
     expect(
       within(energyPanel).queryByTestId('building-info-energy-submetric-row')
     ).not.toBeInTheDocument()
@@ -1218,18 +1232,109 @@ describe('BuildingInfoPanel', () => {
         name: 'sidebar.building_info.panels.energy.primary.cost',
       })
     )
+    const costPanel = within(energyPanel).getByTestId(
+      'building-info-primary-metric-value'
+    )
+    expect(costPanel).toHaveAttribute('data-primary-metric-id', 'cost')
+    expect(costPanel).toHaveAttribute('data-primary-metric-supported', 'true')
+    expect(costPanel).toHaveTextContent('19,613')
+    expect(costPanel).toHaveTextContent(
+      'sidebar.building_info.units.eur_per_year'
+    )
     expect(
-      within(energyPanel).getByTestId('building-info-unsupported-primary-metric')
-    ).toHaveTextContent('sidebar.building_info.panels.energy.unsupported.cost')
+      within(costPanel).queryByTestId('building-info-unavailable-value-icon')
+    ).not.toBeInTheDocument()
 
     fireEvent.click(
       within(energyPanel).getByRole('button', {
         name: 'sidebar.building_info.panels.energy.primary.co2',
       })
     )
+    const co2Panel = within(energyPanel).getByTestId(
+      'building-info-primary-metric-value'
+    )
+    expect(co2Panel).toHaveAttribute('data-primary-metric-id', 'co2')
+    expect(co2Panel).toHaveAttribute('data-primary-metric-supported', 'true')
+    expect(co2Panel).toHaveTextContent('18,436')
+    expect(co2Panel).toHaveTextContent(
+      'sidebar.building_info.units.kg_co2_per_year'
+    )
+
+    fireEvent.click(
+      within(energyPanel).getByRole('button', {
+        name: 'sidebar.building_info.panels.energy.primary.energy',
+      })
+    )
     expect(
-      within(energyPanel).getByTestId('building-info-unsupported-primary-metric')
-    ).toHaveTextContent('sidebar.building_info.panels.energy.unsupported.co2')
+      within(energyPanel).getByTestId('building-info-energy-submetric-row')
+    ).toBeInTheDocument()
+    expect(
+      within(energyPanel).getByRole('button', {
+        name: 'panels.energy.series.electricity',
+      })
+    ).toHaveAttribute('aria-pressed', 'true')
+    expect(
+      within(energyPanel).getByRole('button', {
+        name: 'panels.energy.series.heating',
+      })
+    ).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('shows unsupported Cost through the exact unavailable-value path without a partial number', async () => {
+    const unsupportedCostControls: EnergymapBuildingInfoConsumptionControls = {
+      ...consumptionControls,
+      primaryMetrics: consumptionControls.primaryMetrics.map((metric) =>
+        metric.id === 'cost'
+          ? {
+              ...metric,
+              supported: false,
+              value: {
+                text: translation(
+                  'sidebar.building_info.panels.energy.unsupported.apartment_pellet_cost'
+                ),
+                status: 'placeholder',
+              },
+              unavailableNote: {
+                id: 'costUnavailable',
+                text: translation(
+                  'sidebar.building_info.panels.energy.unsupported.apartment_pellet_cost'
+                ),
+                status: 'placeholder',
+              },
+            }
+          : metric
+      ),
+    }
+    renderBuildingInfoTabs({
+      panels: getPanelsWithConsumptionControls(unsupportedCostControls),
+    })
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    const energyPanel = screen.getByTestId(
+      'building-info-panel-energyConsumption'
+    )
+    fireEvent.click(
+      within(energyPanel).getByRole('button', {
+        name: 'sidebar.building_info.panels.energy.primary.cost',
+      })
+    )
+
+    const costPanel = within(energyPanel).getByTestId(
+      'building-info-primary-metric-value'
+    )
+    expect(costPanel).toHaveAttribute('data-primary-metric-supported', 'false')
+    expect(costPanel).toHaveTextContent(
+      'sidebar.building_info.panels.energy.unsupported.apartment_pellet_cost'
+    )
+    expect(costPanel).not.toHaveTextContent('19,613')
+    expect(
+      within(costPanel).getByTestId('building-info-unavailable-value-icon')
+    ).toBeInTheDocument()
+    expect(
+      within(costPanel).getByTestId('building-info-unavailable-value-reason')
+    ).toHaveTextContent(
+      'sidebar.building_info.panels.energy.unsupported.apartment_pellet_cost'
+    )
   })
 
   it('sizes CO2 primary metric icons to match the other metric symbols', async () => {
@@ -1469,7 +1574,7 @@ describe('BuildingInfoPanel', () => {
     ).toBeInTheDocument()
   })
 
-  it('shows unavailable values as construction icons with reason tooltips', async () => {
+  it('shows unavailable values with the exact Figma asset and accessible reason tooltips', async () => {
     renderBuildingInfoTabs()
 
     await screen.findByTestId('building-info-tab-page-basic')
@@ -1492,7 +1597,18 @@ describe('BuildingInfoPanel', () => {
     )
 
     expect(missingValueIcon).toBeInTheDocument()
-    expect(missingValueIcon).toHaveStyle({ color: '#9E9E9E' })
+    expect(missingValueIcon).toHaveAttribute('data-figma-width', '12')
+    expect(missingValueIcon).toHaveAttribute('data-figma-height', '12')
+    expect(missingValueIcon).toHaveStyle({ width: '12px', height: '12px' })
+    const missingValueImage = missingValueIcon.querySelector('img')
+    expect(missingValueImage).toHaveAttribute(
+      'src',
+      '/files/img/energiakartta/sidebar/building-info-unavailable-value.svg'
+    )
+    expect(missingValueImage).toHaveAttribute('width', '13')
+    expect(missingValueImage).toHaveAttribute('height', '13')
+    expect(missingValueImage).toHaveAttribute('aria-hidden', 'true')
+    expect(missingValueIcon.querySelector('svg')).not.toBeInTheDocument()
     expect(
       within(placeholderValue as HTMLElement).getByTestId(
         'building-info-unavailable-value-icon'
