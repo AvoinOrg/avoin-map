@@ -302,6 +302,7 @@ describe('Energiakartta building info model', () => {
     const constructionYear = getRow(buildingPanel, 'constructionYear')
     expect(constructionYear.status).toBe('real')
     expectPlainText(constructionYear.text, '1967')
+    expect(constructionYear.sourceProperties).toEqual(['completion_date'])
 
     const buildingType = getRow(buildingPanel, 'buildingType')
     expect(buildingType.status).toBe('real')
@@ -431,12 +432,17 @@ describe('Energiakartta building info model', () => {
         },
       },
     ])
-    expect(controls.yearOptions).toEqual([])
-    expect(controls.yearUnavailableValue.status).toBe('placeholder')
-    expectTranslation(
-      controls.yearUnavailableValue.text,
-      `${translationPrefix}.panels.energy.note.reference_year_unavailable`
-    )
+    expect(Object.keys(controls).sort()).toEqual([
+      'combinedEnergyMetric',
+      'defaultEnergySubmetricIds',
+      'defaultPrimaryMetricId',
+      'emptyEnergyMetric',
+      'energySubmetrics',
+      'primaryMetrics',
+    ])
+    expect(
+      getSection(energyPanel, 'calculationContext').rows?.map((row) => row.id)
+    ).toEqual(['costMode', 'co2Mode', 'waterHeatingSplit'])
   })
 
   it('models supported energy submetrics and keeps water heating unsupported', () => {

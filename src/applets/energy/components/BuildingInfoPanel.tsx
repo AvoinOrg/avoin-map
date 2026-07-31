@@ -9,11 +9,8 @@ import {
   type AppTheme,
   toSxArray,
 } from '#/common/style/theme'
-import type { SelectOption } from '#/common/types/general'
 import { ButtonBase, IconButton } from '#/components/common/Button'
 import AppTooltip from '#/components/common/AppTooltip'
-import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
-import DropDownSelectInset from '#/components/common/DropDownSelectInset'
 import TText from '#/components/common/TText'
 import { SidebarPanelExtensionPageContainer } from '#/components/Sidebar/SidebarPanelExtensionPageContainer'
 import { SidebarPanelExtensionTabContainer } from '#/components/Sidebar/SidebarPanelExtensionTabContainer'
@@ -683,10 +680,6 @@ const areEnergySubmetricIdsEqual = (
   first.length === second.length &&
   first.every((submetricId, index) => submetricId === second[index])
 
-const getDefaultEnergyYear = (
-  controls: EnergymapBuildingInfoConsumptionControls
-) => controls.yearOptions[0]?.value ?? ''
-
 const getNormalizedPrimaryMetricId = (
   controls: EnergymapBuildingInfoConsumptionControls,
   current: EnergymapBuildingInfoPrimaryMetricId
@@ -712,14 +705,6 @@ const getNormalizedEnergySubmetricIds = (
   return areEnergySubmetricIdsEqual(current, next) ? current : next
 }
 
-const getNormalizedEnergyYear = (
-  controls: EnergymapBuildingInfoConsumptionControls,
-  current: string
-) =>
-  controls.yearOptions.some((option) => option.value === current)
-    ? current
-    : getDefaultEnergyYear(controls)
-
 const getConsumptionControlsStateKey = (
   controls: EnergymapBuildingInfoConsumptionControls
 ) =>
@@ -728,7 +713,6 @@ const getConsumptionControlsStateKey = (
     controls.primaryMetrics.map((metric) => metric.id).join(','),
     controls.defaultEnergySubmetricIds.join(','),
     controls.energySubmetrics.map((submetric) => submetric.id).join(','),
-    controls.yearOptions.map((option) => option.value).join(','),
   ].join('|')
 
 export const BuildingInfoText = ({
@@ -1494,7 +1478,6 @@ const BuildingInfoEnergyConsumptionSectionContent = ({
   controls: EnergymapBuildingInfoConsumptionControls
   accentColor: string
 }) => {
-  const { t } = useTranslate('energiakartta')
   const [requestedPrimaryMetricId, setRequestedPrimaryMetricId] =
     React.useState<EnergymapBuildingInfoPrimaryMetricId>(
       controls?.defaultPrimaryMetricId ?? 'energy'
@@ -1503,9 +1486,6 @@ const BuildingInfoEnergyConsumptionSectionContent = ({
     React.useState<EnergymapBuildingInfoEnergySubmetricId[]>(
       controls?.defaultEnergySubmetricIds ?? []
     )
-  const [requestedYear, setRequestedYear] = React.useState(
-    controls?.yearOptions[0]?.value ?? ''
-  )
 
   const activePrimaryMetricId = getNormalizedPrimaryMetricId(
     controls,
@@ -1515,7 +1495,6 @@ const BuildingInfoEnergyConsumptionSectionContent = ({
     controls,
     requestedEnergySubmetricIds
   )
-  const selectedYear = getNormalizedEnergyYear(controls, requestedYear)
 
   const primaryMetricById = new Map(
     controls.primaryMetrics.map((metric) => [metric.id, metric])
@@ -1540,10 +1519,6 @@ const BuildingInfoEnergyConsumptionSectionContent = ({
   const activePrimaryMetric =
     primaryMetricById.get(activePrimaryMetricId) ??
     primaryMetricById.get(controls.defaultPrimaryMetricId)
-  const yearOptions: SelectOption[] = controls.yearOptions.map((option) => ({
-    label: option.label,
-    value: option.value,
-  }))
   const selectedEnergyConsumption = getSelectedEnergyConsumption({
     controls,
     selectedSubmetricIds: selectedEnergySubmetricIds,
@@ -1553,35 +1528,6 @@ const BuildingInfoEnergyConsumptionSectionContent = ({
     ...selectedEnergyConsumption.notes,
     ...(section.notes ?? []),
   ]
-  const yearPlaceholder = (
-    <Box
-      component="span"
-      data-status={controls.yearUnavailableValue.status}
-      sx={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        maxWidth: '100%',
-        minWidth: 0,
-        height: '0.875rem',
-        px: '0.625rem',
-        borderRadius: '999px',
-        backgroundColor: '#dbdbdb',
-        color: '#5f5f5f',
-        fontSize: '0.625rem',
-        fontWeight: 700,
-        lineHeight: '0.875rem',
-        letterSpacing: 0,
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-      }}
-    >
-      <TText
-        keyName="sidebar.building_info.panels.energy.controls.year_unavailable"
-        ns="energiakartta"
-      />
-    </Box>
-  )
 
   const toggleEnergySubmetric = (
     submetricId: EnergymapBuildingInfoEnergySubmetricId
@@ -1593,14 +1539,6 @@ const BuildingInfoEnergyConsumptionSectionContent = ({
         ? normalized.filter((id) => id !== submetricId)
         : [...normalized, submetricId]
     })
-  }
-
-  const handleYearChange = (event: DropDownValueChangeEvent) => {
-    setRequestedYear(
-      event.target.value === '' && controls.yearOptions.length > 0
-        ? getDefaultEnergyYear(controls)
-        : event.target.value
-    )
   }
 
   return (
@@ -1623,51 +1561,9 @@ const BuildingInfoEnergyConsumptionSectionContent = ({
           <BuildingInfoText text={section.title} />
         </Box>
       )}
-      <DropDownSelectInset
-        value={selectedYear}
-        options={yearOptions}
-        disabled={yearOptions.length === 0}
-        allowEmpty
-        placeholder={yearPlaceholder}
-        ariaLabel={t('sidebar.building_info.panels.energy.controls.year_aria_label')}
-        label={
-          <TText
-            keyName="sidebar.building_info.panels.energy.metric.annual_total"
-            ns="energiakartta"
-          />
-        }
-        onChange={handleYearChange}
-        sx={{
-          mt: '1.125rem',
-          maxWidth: '284px',
-          gap: '0.875rem',
-        }}
-        selectWrapperSx={{
-          width: '90px',
-        }}
-        selectSx={{
-          height: '22px',
-          backgroundColor: '#f0f0f0',
-          '& [data-slot="value"]': {
-            fontWeight: 700,
-            letterSpacing: 0,
-          },
-          '&:disabled, &[aria-disabled="true"]': {
-            opacity: 1,
-          },
-          '&:disabled fieldset, &[aria-disabled="true"] fieldset': {
-            borderColor: '#dbdbdb',
-          },
-        }}
-        labelSx={{
-          textAlign: 'right',
-          letterSpacing: 0,
-        }}
-      />
       <Box
         data-testid="building-info-primary-metric-row"
         sx={{
-          mt: '1.5rem',
           display: 'flex',
           alignItems: 'center',
           gap: '5px',
@@ -2016,7 +1912,6 @@ const BuildingInfoPanelBody = ({
   titleId,
   accentColor,
   sections = panel.sections,
-  footer,
   showDescription = true,
   showHeroGraphic = true,
   sx,
@@ -2025,7 +1920,6 @@ const BuildingInfoPanelBody = ({
   titleId: string
   accentColor: string
   sections?: EnergymapBuildingInfoSection[]
-  footer?: React.ReactNode
   showDescription?: boolean
   showHeroGraphic?: boolean
   sx?: AppSxProps
@@ -2080,7 +1974,6 @@ const BuildingInfoPanelBody = ({
         accentColor={accentColor}
       />
     ))}
-    {footer}
   </Box>
 )
 
@@ -2138,7 +2031,6 @@ const BuildingInfoPanelSection = ({
   panel,
   tabId,
   bodySx,
-  footer,
   sections,
   showDescription,
   showHeroGraphic,
@@ -2147,7 +2039,6 @@ const BuildingInfoPanelSection = ({
   panel: EnergymapBuildingInfoPanel
   tabId: BuildingInfoTabId
   bodySx?: AppSxProps
-  footer?: React.ReactNode
   sections?: EnergymapBuildingInfoSection[]
   showDescription?: boolean
   showHeroGraphic?: boolean
@@ -2181,7 +2072,6 @@ const BuildingInfoPanelSection = ({
         titleId={titleId}
         accentColor={accentColor}
         sections={sections}
-        footer={footer}
         showDescription={showDescription}
         showHeroGraphic={showHeroGraphic}
         sx={bodySx}
@@ -2294,23 +2184,6 @@ const BuildingInfoDesktopGridSection = ({
 const getRenovationComparisonSection = (
   panel?: EnergymapBuildingInfoPanel
 ) => panel?.sections.find((section) => section.id === 'scenarioComparison')
-
-const BuildingInfoRenovationReferenceYearNote = () => (
-  <Box
-    data-testid="building-info-renovation-reference-year-note"
-    sx={{
-      ...textSx,
-      mt: 'auto',
-      pt: '2rem',
-      color: '#111111',
-    }}
-  >
-    <TText
-      keyName="sidebar.building_info.panels.energy.reference_year_note_unavailable"
-      ns="energiakartta"
-    />
-  </Box>
-)
 
 const BuildingInfoRenovationComparisonWide = ({
   panel,
@@ -2514,29 +2387,10 @@ const BuildingInfoDesktopTabPageContent = ({
             panel={energyPanel}
             tabId={tabId}
             sections={energyTopSections}
-            footer={
-              tabId === 'renovation' ? (
-                <BuildingInfoRenovationReferenceYearNote />
-              ) : undefined
-            }
             sx={{ minHeight: '100%', height: '100%' }}
-            bodySx={[
-              ...toSxArray(
-                getDesktopGridPanelContentSx({
-                  panelId: energyPanel.id,
-                })
-              ),
-              ...(tabId === 'renovation'
-                ? [
-                    {
-                      display: 'flex',
-                      flexDirection: 'column',
-                      minHeight: '100%',
-                      height: '100%',
-                    },
-                  ]
-                : []),
-            ]}
+            bodySx={getDesktopGridPanelContentSx({
+              panelId: energyPanel.id,
+            })}
           />
         </BuildingInfoDesktopGridSection>
       )}

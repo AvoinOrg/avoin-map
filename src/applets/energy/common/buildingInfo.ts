@@ -75,11 +75,6 @@ export type EnergymapBuildingInfoEnergySubmetricId =
   | 'heating'
   | 'waterHeating'
 
-export type EnergymapBuildingInfoYearOption = {
-  value: string
-  label: string
-}
-
 export type EnergymapBuildingInfoPrimaryMetric = {
   id: EnergymapBuildingInfoPrimaryMetricId
   label: EnergymapBuildingInfoText
@@ -103,8 +98,6 @@ export type EnergymapBuildingInfoConsumptionControls = {
   primaryMetrics: EnergymapBuildingInfoPrimaryMetric[]
   defaultEnergySubmetricIds: EnergymapBuildingInfoEnergySubmetricId[]
   energySubmetrics: EnergymapBuildingInfoEnergySubmetric[]
-  yearOptions: EnergymapBuildingInfoYearOption[]
-  yearUnavailableValue: EnergymapBuildingInfoValue
   combinedEnergyMetric: EnergymapBuildingInfoMetric
   emptyEnergyMetric: EnergymapBuildingInfoMetric
 }
@@ -854,10 +847,6 @@ const createConsumptionControls = ({
         unavailableNote: waterHeatingUnavailableNote,
       },
     ],
-    yearOptions: [],
-    yearUnavailableValue: placeholderValue({
-      keyName: key('panels.energy.note.reference_year_unavailable'),
-    }),
     combinedEnergyMetric: totalMetric,
     emptyEnergyMetric: createEmptyEnergyMetric(),
   }
@@ -1131,11 +1120,6 @@ const createEnergyConsumptionPanel = ({
         id: 'calculationContext',
         title: translationText(key('panels.energy.sections.calculation_context')),
         rows: [
-          createPlaceholderRow({
-            id: 'referenceYear',
-            labelKey: key('panels.energy.rows.reference_year'),
-            placeholderKey: key('panels.energy.note.reference_year_unavailable'),
-          }),
           createPlaceholderRow({
             id: 'costMode',
             labelKey: key('panels.energy.rows.cost_mode'),

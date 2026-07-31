@@ -310,13 +310,6 @@ const consumptionControls: EnergymapBuildingInfoConsumptionControls = {
       },
     },
   ],
-  yearOptions: [],
-  yearUnavailableValue: {
-    text: translation(
-      'sidebar.building_info.panels.energy.note.reference_year_unavailable'
-    ),
-    status: 'placeholder',
-  },
   combinedEnergyMetric: totalEnergyMetric,
   emptyEnergyMetric,
 }
@@ -399,13 +392,9 @@ const panels: EnergymapBuildingInfoPanel[] = [
         title: translation('section.energy.calculation_context.title'),
         rows: [
           {
-            id: 'referenceYear',
-            label: translation(
-              'sidebar.building_info.panels.energy.rows.reference_year'
-            ),
-            text: translation(
-              'sidebar.building_info.panels.energy.note.reference_year_unavailable'
-            ),
+            id: 'costMode',
+            label: translation('panels.energy.rows.cost_mode'),
+            text: translation('placeholders.not_published'),
             status: 'placeholder',
           },
         ],
@@ -795,15 +784,8 @@ describe('BuildingInfoPanel', () => {
       screen.queryByText('section.energy.calculation_context.title')
     ).not.toBeInTheDocument()
     expect(
-      screen.queryByText(
-        'sidebar.building_info.panels.energy.rows.reference_year'
-      )
+      screen.queryByTestId('building-info-renovation-reference-year-note')
     ).not.toBeInTheDocument()
-    expect(
-      screen.getByTestId('building-info-renovation-reference-year-note')
-    ).toHaveTextContent(
-      'sidebar.building_info.panels.energy.reference_year_note_unavailable'
-    )
     expect(
       screen.getByTestId('building-info-renovation-effectiveness-content')
     ).toHaveTextContent(
@@ -961,9 +943,6 @@ describe('BuildingInfoPanel', () => {
     const energyPanel = screen.getByTestId(
       'building-info-panel-energyConsumption'
     )
-    const yearSelect = within(energyPanel).getByRole('combobox', {
-      name: 'sidebar.building_info.panels.energy.controls.year_aria_label',
-    })
     const energyButton = within(energyPanel).getByRole('button', {
       name: 'sidebar.building_info.panels.energy.primary.energy',
     })
@@ -971,7 +950,7 @@ describe('BuildingInfoPanel', () => {
       name: 'sidebar.building_info.panels.energy.primary.water',
     })
 
-    expect(yearSelect).toBeDisabled()
+    expect(within(energyPanel).queryByRole('combobox')).not.toBeInTheDocument()
     expect(energyButton).toHaveAttribute('aria-pressed', 'true')
     expect(energyButton).toHaveTextContent(
       'sidebar.building_info.panels.energy.primary.energy'
@@ -1094,47 +1073,24 @@ describe('BuildingInfoPanel', () => {
   })
 
   it('normalizes energy control state when building controls change', async () => {
-    const controlsWithLegacySelections: EnergymapBuildingInfoConsumptionControls =
+    const controlsWithReducedOptions: EnergymapBuildingInfoConsumptionControls =
       {
         ...consumptionControls,
-        yearOptions: [
-          { value: '2021', label: '2021' },
-          { value: '2020', label: '2020' },
-        ],
-      }
-    const controlsWithoutLegacySelections: EnergymapBuildingInfoConsumptionControls =
-      {
-        ...controlsWithLegacySelections,
-        primaryMetrics: controlsWithLegacySelections.primaryMetrics.filter(
+        primaryMetrics: consumptionControls.primaryMetrics.filter(
           (metric) => metric.id !== 'water'
         ),
-        energySubmetrics: controlsWithLegacySelections.energySubmetrics.filter(
+        energySubmetrics: consumptionControls.energySubmetrics.filter(
           (submetric) => submetric.id !== 'waterHeating'
         ),
         defaultEnergySubmetricIds: ['electricity', 'heating'],
-        yearOptions: [
-          { value: '2023', label: '2023' },
-          { value: '2022', label: '2022' },
-        ],
-      }
-    const controlsWithLegacyOptionsReintroduced: EnergymapBuildingInfoConsumptionControls =
-      {
-        ...controlsWithoutLegacySelections,
-        primaryMetrics: controlsWithLegacySelections.primaryMetrics,
-        yearOptions: [
-          { value: '2023', label: '2023' },
-          { value: '2020', label: '2020' },
-        ],
       }
     const view = renderBuildingInfoTabs({
-      panels: getPanelsWithConsumptionControls(controlsWithLegacySelections),
+      panels: getPanelsWithConsumptionControls(consumptionControls),
     })
 
     await screen.findByTestId('building-info-tab-page-basic')
     const getEnergyPanel = () =>
       screen.getByTestId('building-info-panel-energyConsumption')
-    const yearAriaLabel =
-      'sidebar.building_info.panels.energy.controls.year_aria_label'
 
     fireEvent.click(
       within(getEnergyPanel()).getByRole('button', {
@@ -1164,29 +1120,9 @@ describe('BuildingInfoPanel', () => {
         name: 'sidebar.building_info.panels.energy.primary.water',
       })
     )
-    fireEvent.click(
-      within(getEnergyPanel()).getByRole('combobox', {
-        name: yearAriaLabel,
-      })
-    )
-    const legacyYearOption = await screen.findByRole('option', { name: '2020' })
-    fireEvent.mouseMove(legacyYearOption)
-    await waitFor(() => {
-      expect(legacyYearOption.hasAttribute('data-highlighted')).toBe(true)
-    })
-    fireEvent.click(legacyYearOption)
-    await waitFor(() => {
-      expect(
-        within(getEnergyPanel()).getByRole('combobox', {
-          name: yearAriaLabel,
-        })
-      ).toHaveTextContent('2020')
-    })
 
     view.rerenderBuildingInfoTabs({
-      panels: getPanelsWithConsumptionControls(
-        controlsWithoutLegacySelections
-      ),
+      panels: getPanelsWithConsumptionControls(controlsWithReducedOptions),
     })
 
     await waitFor(() => {
@@ -1205,11 +1141,6 @@ describe('BuildingInfoPanel', () => {
           name: 'panels.energy.series.heating',
         })
       ).toHaveAttribute('aria-pressed', 'true')
-      expect(
-        within(getEnergyPanel()).getByRole('combobox', {
-          name: yearAriaLabel,
-        })
-      ).toHaveTextContent('2023')
     })
 
     fireEvent.click(
@@ -1235,9 +1166,7 @@ describe('BuildingInfoPanel', () => {
     ).toHaveAttribute('aria-pressed', 'true')
 
     view.rerenderBuildingInfoTabs({
-      panels: getPanelsWithConsumptionControls(
-        controlsWithLegacyOptionsReintroduced
-      ),
+      panels: getPanelsWithConsumptionControls(consumptionControls),
     })
 
     await waitFor(() => {
@@ -1251,11 +1180,6 @@ describe('BuildingInfoPanel', () => {
           name: 'sidebar.building_info.panels.energy.primary.water',
         })
       ).toHaveAttribute('aria-pressed', 'false')
-      expect(
-        within(getEnergyPanel()).getByRole('combobox', {
-          name: yearAriaLabel,
-        })
-      ).toHaveTextContent('2023')
     })
   })
 

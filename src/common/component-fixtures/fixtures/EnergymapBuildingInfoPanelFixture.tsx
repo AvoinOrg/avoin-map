@@ -205,14 +205,6 @@ const createControls = (
       },
     },
   ],
-  yearOptions: [
-    { value: '2023', label: '2023' },
-    { value: '2022', label: '2022' },
-  ],
-  yearUnavailableValue: {
-    text: plain('No reference year'),
-    status: 'placeholder',
-  },
   combinedEnergyMetric: totalMetric,
   emptyEnergyMetric: emptyMetric,
 })
