@@ -4,6 +4,7 @@ import React, { useEffect } from 'react'
 import { Box } from '@mui/material'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import { useSession } from 'next-auth/react'
+import Script from 'next/script'
 
 import { routeTree } from '../common/routes'
 import { SidebarHeader } from '#/components/Sidebar'
@@ -25,6 +26,11 @@ const localizationNamespace = 'hiilikartta'
 const defaultLanguage = 'fi'
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
+  const umamiScriptUrl = process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL
+  const umamiWebsiteId =
+    process.env.NEXT_PUBLIC_APPLETS_HIILIKARTTA_UMAMI_ID
+  const shouldLoadUmami = umamiScriptUrl && umamiWebsiteId
+
   const { data: session, status } = useSession()
   const addSignOutAction = useUserStore((state) => state.addSignOutAction)
   const removeSignOutAction = useUserStore((state) => state.removeSignOutAction)
@@ -173,19 +179,29 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
   }, [])
 
   return (
-    <AppletWrapper
-      mapContext={'hiilikartta'}
-      localizationNamespace={localizationNamespace}
-      defaultLanguage={defaultLanguage}
-      SidebarHeaderElement={SidebarHeaderElement}
-      sx={{
-        pt: 0,
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      {children}
-    </AppletWrapper>
+    <>
+      {shouldLoadUmami && (
+        <Script
+          defer
+          src={umamiScriptUrl}
+          data-website-id={umamiWebsiteId}
+          strategy="afterInteractive"
+        />
+      )}
+      <AppletWrapper
+        mapContext={'hiilikartta'}
+        localizationNamespace={localizationNamespace}
+        defaultLanguage={defaultLanguage}
+        SidebarHeaderElement={SidebarHeaderElement}
+        sx={{
+          pt: 0,
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        {children}
+      </AppletWrapper>
+    </>
   )
 }
 
