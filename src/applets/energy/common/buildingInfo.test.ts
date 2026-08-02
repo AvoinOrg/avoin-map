@@ -399,7 +399,7 @@ describe('Energiakartta building info model', () => {
     ])
   })
 
-  it('exposes complete Cost and CO2 controls while keeping Water unavailable', () => {
+  it('exposes complete Cost, CO2, and resident-based Water controls', () => {
     const panels = createEnergymapBuildingInfoPanels({
       selectedBuilding: districtHeatingBuilding,
       locale: 'en-US',
@@ -430,18 +430,14 @@ describe('Energiakartta building info model', () => {
       },
       {
         id: 'water',
-        supported: false,
+        supported: true,
         value: {
-          status: 'placeholder',
-          text: {
-            type: 'translation',
-            keyName: `${translationPrefix}.panels.energy.unsupported.water`,
-          },
+          status: 'estimate',
+          text: { type: 'plain', text: '481.8' },
+          unitKey: `${translationPrefix}.units.cubic_meters_per_year`,
+          sourceProperties: ['floor_area'],
         },
-        unavailableNote: {
-          type: 'translation',
-          keyName: `${translationPrefix}.panels.energy.unsupported.water`,
-        },
+        unavailableNote: undefined,
       },
       {
         id: 'cost',
@@ -487,6 +483,27 @@ describe('Energiakartta building info model', () => {
       'energySubmetrics',
       'primaryMetrics',
     ])
+    expect(getPrimaryMetric(energyPanel, 'water').residentCountControl).toEqual({
+      defaultValue: 11,
+      minValue: 1,
+      maxValue: 10000,
+      label: {
+        type: 'translation',
+        keyName: `${translationPrefix}.panels.energy.water.resident_count`,
+      },
+      toggleLabel: {
+        type: 'translation',
+        keyName: `${translationPrefix}.panels.energy.water.change_resident_count`,
+      },
+      description: {
+        type: 'translation',
+        keyName: `${translationPrefix}.panels.energy.water.description`,
+      },
+      unavailableText: {
+        type: 'translation',
+        keyName: `${translationPrefix}.panels.energy.water.invalid_resident_count`,
+      },
+    })
     expect(
       getSection(energyPanel, 'calculationContext').rows?.map((row) => row.id)
     ).toEqual(['costMode', 'co2Mode', 'waterHeatingSplit'])
@@ -909,4 +926,25 @@ describe('Energiakartta building info model', () => {
       { code: '98' }
     )
   })
+
+  it.each([undefined, 0, -1, NaN, Infinity])(
+    'keeps Water unavailable without a resident override for invalid floor area %p',
+    (floorArea) => {
+      const panels = createEnergymapBuildingInfoPanels({
+        selectedBuilding: createSelectedBuilding({
+          building_key: `invalid-water-${String(floorArea)}`,
+          floor_area: floorArea,
+        }),
+        locale: 'en-US',
+      })
+      const water = getPrimaryMetric(
+        getPanel(panels ?? [], 'energyConsumption'),
+        'water'
+      )
+
+      expect(water.supported).toBe(false)
+      expect(water.residentCountControl).toBeUndefined()
+      expect(water.value?.status).toBe('missing')
+    }
+  )
 })

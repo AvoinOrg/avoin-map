@@ -3,6 +3,8 @@ import {
   applyCurrentReferenceFactor,
   calculateCurrentReferenceAnnualCo2,
   calculateCurrentReferenceAnnualCost,
+  calculateCurrentReferenceAnnualWater,
+  deriveCurrentReferenceResidentCount,
   deriveAnnualPurchasedEnergyComponents,
   resolveCurrentReferenceBuildingClass,
   resolveCurrentReferenceCarrier,
@@ -20,9 +22,9 @@ describe('current-reference data', () => {
   it('keeps the approved values and audit metadata in one versioned object', () => {
     expect(CURRENT_REFERENCE_DATA).toMatchObject({
       provenance:
-        'Product-supplied factor set from approved F075 feature intake',
-      version: 'F075-initial-2026-07-31',
-      lastReviewed: '2026-07-31',
+        'Product-supplied factor set from approved F075 feature intake; resident occupancy heuristic approved by the product owner on 2026-08-02.',
+      version: 'F075-resident-water-2026-08-02',
+      lastReviewed: '2026-08-02',
       annualEnergyCostPrices: {
         unit: 'EUR/MWh',
         byBuildingClass: {
@@ -50,6 +52,15 @@ describe('current-reference data', () => {
         },
       },
       water: {
+        occupancy: {
+          squareMetresPerResident: 41.6,
+          minimumResidents: 1,
+          maximumResidents: 10000,
+          rounding: 'half-up',
+          approvedAt: '2026-08-02',
+          sourceUrl:
+            'https://otos.stat.fi/server/api/core/bitstreams/f3e835da-b220-4251-8079-7b7309d1d2a4/content',
+        },
         litersPerResidentPerDay: {
           value: 120,
           unit: 'L/resident/day',
@@ -73,6 +84,46 @@ describe('current-reference data', () => {
     expect(CURRENT_REFERENCE_DATA.emissionFactors.accountingBoundary).toContain(
       'not a lifecycle or biogenic-emissions claim'
     )
+  })
+})
+
+describe('current-reference Water calculations', () => {
+  it.each([
+    [0.01, 1],
+    [41.6, 1],
+    [62.4, 2],
+    [124.8, 3],
+    [41.6 * 10001, 10000],
+  ])('derives %p m² as %p residents with half-up rounding and clamps', (area, expected) => {
+    expect(deriveCurrentReferenceResidentCount(area)).toEqual({
+      status: 'complete',
+      residentCount: expected,
+    })
+  })
+
+  it.each([null, undefined, 0, -1, NaN, Infinity, -Infinity, '41.6'])(
+    'rejects invalid floor area %p',
+    (area) => {
+      expect(deriveCurrentReferenceResidentCount(area)).toMatchObject({
+        status: 'unsupported',
+        field: 'floorAreaSquareMeters',
+      })
+    }
+  )
+
+  it('calculates annual Water only for complete integer resident counts', () => {
+    expect(calculateCurrentReferenceAnnualWater(11)).toEqual({
+      status: 'complete',
+      cubicMetersPerYear: 481.8,
+      unit: 'm³/year',
+    })
+
+    for (const residentCount of [null, 0, 1.5, NaN, Infinity, 10001, '11']) {
+      expect(calculateCurrentReferenceAnnualWater(residentCount)).toMatchObject({
+        status: 'unsupported',
+        field: 'residentCount',
+      })
+    }
   })
 })
 

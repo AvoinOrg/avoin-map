@@ -100,6 +100,20 @@ type NumberInputFieldProps = Omit<
   minValue?: number
   maxValue?: number
   incrementStepValue?: number
+  /**
+   * Opt-in text value for cases where validation must happen only when editing
+   * is committed. Base UI's default number input intentionally filters invalid
+   * characters and validates bounds during typing.
+   */
+  rawValue?: string
+  onRawValueChange?: (
+    value: string,
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => void
+  onRawValueCommitted?: (
+    value: string,
+    event: React.FocusEvent<HTMLInputElement>
+  ) => void
 }
 
 export const NumberInputField = ({
@@ -117,6 +131,9 @@ export const NumberInputField = ({
   minValue,
   maxValue,
   incrementStepValue,
+  rawValue,
+  onRawValueChange,
+  onRawValueCommitted,
   id: idProp,
   locale: localeProp,
   value,
@@ -143,6 +160,7 @@ export const NumberInputField = ({
   const effectiveMin = minValue ?? min
   const effectiveMax = maxValue ?? max
   const effectiveStep = incrementStepValue ?? step
+  const usesRawValue = rawValue !== undefined
   const effectiveFormat =
     format ??
     (typeof effectiveStep === 'number'
@@ -312,41 +330,81 @@ export const NumberInputField = ({
               </Box>
             )}
           >
-            <BaseNumberField.Input
-              {...inputSlotProps}
-              id={id}
-              aria-describedby={inputAriaDescribedBy}
-              aria-invalid={inputAriaInvalid}
-              render={(props) => (
+          <BaseNumberField.Input
+            {...inputSlotProps}
+            id={id}
+            aria-describedby={inputAriaDescribedBy}
+            aria-invalid={inputAriaInvalid}
+            render={(props) => {
+              const inputSx = {
+                width: '100%',
+                minWidth: 0,
+                flex: 1,
+                boxSizing: 'border-box',
+                px: '1rem',
+                py: 0,
+                border: 0,
+                outline: 0,
+                appearance: 'none',
+                backgroundColor: 'transparent',
+                color: '#111111',
+                font: 'inherit',
+                fontSize: '0.6875rem',
+                fontWeight: 400,
+                lineHeight: 'normal',
+                letterSpacing: '0.04em',
+                [disabledSelector]: {
+                  color: 'text.disabled',
+                  cursor: 'default',
+                },
+              }
+
+              if (usesRawValue) {
+                const rawInputProps = {
+                  ...props,
+                  value: rawValue,
+                  onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
+                    onRawValueChange?.(event.target.value, event)
+                  },
+                  onBlur: (event: React.FocusEvent<HTMLInputElement>) => {
+                    props.onBlur?.(event)
+                    onRawValueCommitted?.(event.target.value, event)
+                  },
+                  onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => {
+                    if (
+                      event.key === 'ArrowUp' ||
+                      event.key === 'ArrowDown' ||
+                      event.key === 'Home' ||
+                      event.key === 'End'
+                    ) {
+                      props.onKeyDown?.(event)
+                    }
+                  },
+                  // Raw mode deliberately accepts pasted text that may not be
+                  // numeric yet; the owner validates it while editing.
+                  onPaste: undefined,
+                } as React.ComponentPropsWithoutRef<'input'>
+
+                return (
+                  <Box
+                    {...rawInputProps}
+                    component="input"
+                    data-slot="number-input-input"
+                    sx={inputSx}
+                  />
+                )
+              }
+
+              return (
                 <Box
                   {...props}
                   component="input"
                   data-slot="number-input-input"
-                  sx={{
-                    width: '100%',
-                    minWidth: 0,
-                    flex: 1,
-                    boxSizing: 'border-box',
-                    px: '1rem',
-                    py: 0,
-                    border: 0,
-                    outline: 0,
-                    appearance: 'none',
-                    backgroundColor: 'transparent',
-                    color: '#111111',
-                    font: 'inherit',
-                    fontSize: '0.6875rem',
-                    fontWeight: 400,
-                    lineHeight: 'normal',
-                    letterSpacing: '0.04em',
-                    [disabledSelector]: {
-                      color: 'text.disabled',
-                      cursor: 'default',
-                    },
-                  }}
+                  sx={inputSx}
                 />
-              )}
-            />
+              )
+            }}
+          />
             <Box
               data-slot="number-input-adornment"
               sx={[

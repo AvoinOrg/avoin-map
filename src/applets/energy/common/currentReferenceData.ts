@@ -55,6 +55,15 @@ export type CurrentReferenceData = Readonly<{
     byCarrier: CurrentReferenceFactorsByCarrier
   }>
   water: Readonly<{
+    occupancy: Readonly<{
+      squareMetresPerResident: number
+      minimumResidents: number
+      maximumResidents: number
+      rounding: 'half-up'
+      approvedAt: string
+      sourceUrl: string
+      floorAreaCaveat: string
+    }>
     litersPerResidentPerDay: Readonly<{
       value: number
       unit: 'L/resident/day'
@@ -77,9 +86,10 @@ const notSupplied: CurrentReferenceUnsupportedValue = {
 }
 
 export const CURRENT_REFERENCE_DATA = {
-  provenance: 'Product-supplied factor set from approved F075 feature intake',
-  version: 'F075-initial-2026-07-31',
-  lastReviewed: '2026-07-31',
+  provenance:
+    'Product-supplied factor set from approved F075 feature intake; resident occupancy heuristic approved by the product owner on 2026-08-02.',
+  version: 'F075-resident-water-2026-08-02',
+  lastReviewed: '2026-08-02',
   annualEnergyCostPrices: {
     unit: 'EUR/MWh',
     byBuildingClass: {
@@ -109,6 +119,17 @@ export const CURRENT_REFERENCE_DATA = {
     },
   },
   water: {
+    occupancy: {
+      squareMetresPerResident: 41.6,
+      minimumResidents: 1,
+      maximumResidents: 10000,
+      rounding: 'half-up',
+      approvedAt: '2026-08-02',
+      sourceUrl:
+        'https://otos.stat.fi/server/api/core/bitstreams/f3e835da-b220-4251-8079-7b7309d1d2a4/content',
+      floorAreaCaveat:
+        'Building floor_area is only a proxy for occupied dwelling area and must not be presented as resident data.',
+    },
     litersPerResidentPerDay: {
       value: 120,
       unit: 'L/resident/day',

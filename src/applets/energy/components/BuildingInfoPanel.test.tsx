@@ -47,6 +47,10 @@ jest.mock('#/common/hooks/ui/useIsMobile', () => ({
   useIsMobile: () => mockIsMobile,
 }))
 
+jest.mock('#/common/navigation/navigation', () => ({
+  useAppParams: () => ({ locale: 'en' }),
+}))
+
 jest.mock('@tolgee/react', () => {
   const ReactRuntime = jest.requireActual<typeof import('react')>('react')
 
@@ -246,19 +250,28 @@ const consumptionControls: EnergymapBuildingInfoConsumptionControls = {
       id: 'water',
       label: translation('sidebar.building_info.panels.energy.primary.water'),
       ariaLabelKey: 'sidebar.building_info.panels.energy.primary.water',
-      supported: false,
+      supported: true,
       value: {
-        text: translation(
-          'sidebar.building_info.panels.energy.unsupported.water'
-        ),
-        status: 'placeholder',
+        text: plain('481.8'),
+        status: 'estimate',
+        unitKey: 'sidebar.building_info.units.cubic_meters_per_year',
       },
-      unavailableNote: {
-        id: 'waterUnavailable',
-        text: translation(
-          'sidebar.building_info.panels.energy.unsupported.water'
+      residentCountControl: {
+        defaultValue: 11,
+        minValue: 1,
+        maxValue: 10000,
+        label: translation(
+          'sidebar.building_info.panels.energy.water.resident_count'
         ),
-        status: 'placeholder',
+        toggleLabel: translation(
+          'sidebar.building_info.panels.energy.water.change_resident_count'
+        ),
+        description: translation(
+          'sidebar.building_info.panels.energy.water.description'
+        ),
+        unavailableText: translation(
+          'sidebar.building_info.panels.energy.water.invalid_resident_count'
+        ),
       },
     },
     {
@@ -575,6 +588,7 @@ const getPanelsWithConsumptionControls = (
   )
 
 type RenderBuildingInfoTabsOptions = {
+  panelKey?: string
   activeTabId?: BuildingInfoTabId
   forceMobileLayout?: boolean
   isDesktopFullscreenLayout?: boolean
@@ -585,6 +599,7 @@ type RenderBuildingInfoTabsOptions = {
 }
 
 const createBuildingInfoTabsElement = ({
+  panelKey,
   activeTabId,
   forceMobileLayout = false,
   isDesktopFullscreenLayout = false,
@@ -601,6 +616,7 @@ const createBuildingInfoTabsElement = ({
       >
         <IntoSidebarPanelExtensionPanelSlot panelId="main">
           <BuildingInfoTabPages
+            key={panelKey}
             panels={buildingInfoPanels}
             ariaLabels={ariaLabels}
             activeTabId={activeTabId}
@@ -1191,7 +1207,7 @@ describe('BuildingInfoPanel', () => {
     })
   })
 
-  it('switches between Energy, supported Cost and CO2, unavailable Water, and back', async () => {
+  it('models Water with a local resident override and resets it when disabled', async () => {
     renderBuildingInfoTabs()
 
     await screen.findByTestId('building-info-tab-page-basic')
@@ -1216,13 +1232,120 @@ describe('BuildingInfoPanel', () => {
       'building-info-primary-metric-value'
     )
     expect(waterPanel).toHaveAttribute('data-primary-metric-id', 'water')
-    expect(waterPanel).toHaveAttribute('data-primary-metric-supported', 'false')
+    expect(waterPanel).toHaveAttribute('data-primary-metric-supported', 'true')
+    expect(waterPanel).toHaveTextContent('481,8')
     expect(waterPanel).toHaveTextContent(
-      'sidebar.building_info.panels.energy.unsupported.water'
+      'sidebar.building_info.units.cubic_meters_per_year'
     )
     expect(
-      within(waterPanel).getByTestId('building-info-unavailable-value-icon')
-    ).toBeInTheDocument()
+      within(energyPanel).getByTestId('building-info-water-resident-default')
+    ).toHaveTextContent(
+      'sidebar.building_info.panels.energy.water.resident_count11'
+    )
+    const overrideSwitch = within(energyPanel).getByRole('switch', {
+      name: 'sidebar.building_info.panels.energy.water.change_resident_count',
+    })
+    expect(overrideSwitch).not.toBeChecked()
+    fireEvent.click(overrideSwitch)
+    const residentInput = within(energyPanel).getByLabelText(
+      'sidebar.building_info.panels.energy.water.resident_count'
+    )
+    fireEvent.change(residentInput, { target: { value: '12' } })
+    await waitFor(() => {
+      expect(waterPanel).toHaveTextContent('525,6')
+    })
+    fireEvent.change(residentInput, { target: { value: '' } })
+    await waitFor(() => {
+      expect(waterPanel).toHaveAttribute('data-primary-metric-supported', 'true')
+      expect(
+        within(waterPanel).getByTestId('building-info-unavailable-value-icon')
+      ).toBeInTheDocument()
+      expect(waterPanel).not.toHaveTextContent(
+        'sidebar.building_info.units.cubic_meters_per_year'
+      )
+      expect(waterPanel).not.toHaveTextContent('525,6')
+    })
+    fireEvent.blur(residentInput)
+    await waitFor(() => {
+      expect(residentInput).toHaveValue('11')
+      expect(waterPanel).toHaveTextContent('481,8')
+    })
+
+    fireEvent.change(residentInput, { target: { value: '12,5' } })
+    await waitFor(() => {
+      expect(
+        within(waterPanel).getByTestId('building-info-unavailable-value-icon')
+      ).toBeInTheDocument()
+    })
+    fireEvent.blur(residentInput)
+    await waitFor(() => {
+      expect(residentInput).toHaveValue('11')
+      expect(waterPanel).toHaveTextContent('481,8')
+    })
+
+    fireEvent.change(residentInput, { target: { value: '10001' } })
+    await waitFor(() => {
+      expect(residentInput).toHaveValue('10001')
+      expect(
+        within(waterPanel).getByTestId('building-info-unavailable-value-icon')
+      ).toBeInTheDocument()
+    })
+    fireEvent.blur(residentInput)
+    await waitFor(() => {
+      expect(residentInput).toHaveValue('10000')
+      expect(waterPanel).toHaveTextContent('438 000')
+    })
+    fireEvent.change(residentInput, { target: { value: '0' } })
+    await waitFor(() => {
+      expect(residentInput).toHaveValue('0')
+      expect(
+        within(waterPanel).getByTestId('building-info-unavailable-value-icon')
+      ).toBeInTheDocument()
+    })
+    fireEvent.blur(residentInput)
+    await waitFor(() => {
+      expect(residentInput).toHaveValue('1')
+      expect(waterPanel).toHaveTextContent('43,8')
+    })
+
+    fireEvent.change(residentInput, { target: { value: '-1' } })
+    await waitFor(() => {
+      expect(residentInput).toHaveValue('-1')
+      expect(
+        within(waterPanel).getByTestId('building-info-unavailable-value-icon')
+      ).toBeInTheDocument()
+    })
+    fireEvent.blur(residentInput)
+    await waitFor(() => {
+      expect(residentInput).toHaveValue('1')
+      expect(waterPanel).toHaveTextContent('43,8')
+    })
+
+    fireEvent.change(residentInput, { target: { value: 'abc' } })
+    await waitFor(() => {
+      expect(residentInput).toHaveValue('abc')
+      expect(
+        within(waterPanel).getByTestId('building-info-unavailable-value-icon')
+      ).toBeInTheDocument()
+    })
+    fireEvent.blur(residentInput)
+    await waitFor(() => {
+      expect(residentInput).toHaveValue('11')
+      expect(waterPanel).toHaveTextContent('481,8')
+    })
+
+    fireEvent.click(overrideSwitch)
+    expect(overrideSwitch).not.toBeChecked()
+    expect(
+      within(energyPanel).getByTestId('building-info-water-resident-default')
+    ).toHaveTextContent('11')
+    fireEvent.click(overrideSwitch)
+    expect(
+      within(energyPanel).getByLabelText(
+        'sidebar.building_info.panels.energy.water.resident_count'
+      )
+    ).toHaveValue('11')
+    fireEvent.click(overrideSwitch)
     expect(
       within(energyPanel).queryByTestId('building-info-energy-submetric-row')
     ).not.toBeInTheDocument()
@@ -1335,6 +1458,53 @@ describe('BuildingInfoPanel', () => {
     ).toHaveTextContent(
       'sidebar.building_info.panels.energy.unsupported.apartment_pellet_cost'
     )
+  })
+
+  it('discards a Water resident override when the keyed building panel changes', async () => {
+    const view = renderBuildingInfoTabs({ panelKey: 'building-a' })
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    const getEnergyPanel = () =>
+      screen.getByTestId('building-info-panel-energyConsumption')
+    const getWaterButton = () =>
+      within(getEnergyPanel()).getByRole('button', {
+        name: 'sidebar.building_info.panels.energy.primary.water',
+      })
+
+    fireEvent.click(getWaterButton())
+    const getOverrideSwitch = () =>
+      within(getEnergyPanel()).getByRole('switch', {
+        name: 'sidebar.building_info.panels.energy.water.change_resident_count',
+      })
+    fireEvent.click(getOverrideSwitch())
+    fireEvent.change(
+      within(getEnergyPanel()).getByLabelText(
+        'sidebar.building_info.panels.energy.water.resident_count'
+      ),
+      { target: { value: '12' } }
+    )
+    await waitFor(() => {
+      expect(
+        within(getEnergyPanel()).getByTestId('building-info-primary-metric-value')
+      ).toHaveTextContent('525,6')
+    })
+
+    view.rerenderBuildingInfoTabs({ panelKey: 'building-b' })
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    fireEvent.click(getWaterButton())
+    expect(getOverrideSwitch()).not.toBeChecked()
+    expect(
+      within(getEnergyPanel()).queryByLabelText(
+        'sidebar.building_info.panels.energy.water.resident_count'
+      )
+    ).not.toBeInTheDocument()
+    expect(
+      within(getEnergyPanel()).getByTestId('building-info-water-resident-default')
+    ).toHaveTextContent('11')
+    expect(
+      within(getEnergyPanel()).getByTestId('building-info-primary-metric-value')
+    ).toHaveTextContent('481,8')
   })
 
   it('sizes CO2 primary metric icons to match the other metric symbols', async () => {

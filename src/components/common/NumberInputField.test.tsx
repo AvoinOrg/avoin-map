@@ -25,6 +25,63 @@ const renderWithTheme = (ui: React.ReactElement) =>
   render(<AppThemeProvider>{ui}</AppThemeProvider>)
 
 describe('NumberInputField', () => {
+  it('preserves keyboard stepping and blur commits in raw editing mode', async () => {
+    const onCommitted = jest.fn()
+
+    const RawValueExample = () => {
+      const [rawValue, setRawValue] = React.useState('12')
+      const value = /^\d+$/.test(rawValue) ? Number(rawValue) : 12
+
+      return (
+        <NumberInputField
+          label="Count"
+          value={value}
+          rawValue={rawValue}
+          onRawValueChange={setRawValue}
+          onRawValueCommitted={(nextValue, event) => {
+            onCommitted(nextValue, event)
+            setRawValue(/^\d+$/.test(nextValue) ? nextValue : '12')
+          }}
+          onValueChange={(nextValue) => {
+            setRawValue(nextValue == null ? '' : String(nextValue))
+          }}
+        />
+      )
+    }
+
+    renderWithTheme(<RawValueExample />)
+
+    const input = screen.getByLabelText('Count')
+    fireEvent.focus(input)
+    fireEvent.keyDown(input, { key: 'ArrowUp' })
+
+    await waitFor(() => {
+      expect(input).toHaveValue('13')
+    })
+
+    fireEvent.keyDown(input, { key: 'ArrowDown' })
+
+    await waitFor(() => {
+      expect(input).toHaveValue('12')
+    })
+
+    fireEvent.change(input, { target: { value: '' } })
+    fireEvent.change(input, { target: { value: 'abc' } })
+
+    expect(input).toHaveValue('abc')
+
+    fireEvent.blur(input)
+
+    expect(onCommitted).toHaveBeenCalledWith(
+      'abc',
+      expect.objectContaining({ target: input })
+    )
+
+    await waitFor(() => {
+      expect(input).toHaveValue('12')
+    })
+  })
+
   it('normalizes controlled values that are near the active step', () => {
     renderWithTheme(
       <NumberInputField

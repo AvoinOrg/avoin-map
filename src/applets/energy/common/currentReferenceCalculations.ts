@@ -35,6 +35,7 @@ export type CurrentReferenceField =
   | 'factorPerMwh'
   | 'electricityAmount'
   | 'heatingAmount'
+  | 'residentCount'
   | 'total'
 
 export type CurrentReferenceUnsupportedResult = {
@@ -106,6 +107,17 @@ export type CurrentReferenceAnnualCo2Result =
       unit: 'kg CO2/year'
     }
   >
+
+export type CurrentReferenceResidentCountResult =
+  CurrentReferenceCalculationResult<{
+    residentCount: number
+  }>
+
+export type CurrentReferenceAnnualWaterResult =
+  CurrentReferenceCalculationResult<{
+    cubicMetersPerYear: number
+    unit: 'm³/year'
+  }>
 
 const SCENARIO_PREFIX_TO_CARRIER = {
   awhp: 'electricity',
@@ -183,6 +195,88 @@ const validateNonNegativeFiniteNumber = ({
   return {
     status: 'supported',
     value,
+  }
+}
+
+const validatePositiveFiniteNumber = ({
+  value,
+  field,
+}: {
+  value: unknown
+  field: CurrentReferenceField
+}): CurrentReferenceResolution<number> => {
+  const result = validateNonNegativeFiniteNumber({ value, field })
+
+  if (result.status === 'unsupported') {
+    return result
+  }
+
+  return result.value === 0
+    ? unsupported({ reason: 'invalid-input', field })
+    : result
+}
+
+export const deriveCurrentReferenceResidentCount = (
+  floorAreaSquareMeters: unknown
+): CurrentReferenceResidentCountResult => {
+  const floorArea = validatePositiveFiniteNumber({
+    value: floorAreaSquareMeters,
+    field: 'floorAreaSquareMeters',
+  })
+  if (floorArea.status === 'unsupported') {
+    return floorArea
+  }
+
+  const { occupancy } = CURRENT_REFERENCE_DATA.water
+  const roundedResidentCount = Math.floor(
+    floorArea.value / occupancy.squareMetresPerResident + 0.5
+  )
+  const residentCount = Math.min(
+    occupancy.maximumResidents,
+    Math.max(occupancy.minimumResidents, roundedResidentCount)
+  )
+
+  return {
+    status: 'complete',
+    residentCount,
+  }
+}
+
+export const calculateCurrentReferenceAnnualWater = (
+  residentCount: unknown
+): CurrentReferenceAnnualWaterResult => {
+  if (residentCount == null) {
+    return unsupported({ reason: 'missing-input', field: 'residentCount' })
+  }
+
+  if (typeof residentCount !== 'number' || !Number.isInteger(residentCount)) {
+    return unsupported({ reason: 'invalid-input', field: 'residentCount' })
+  }
+
+  if (!Number.isFinite(residentCount)) {
+    return unsupported({ reason: 'non-finite-input', field: 'residentCount' })
+  }
+
+  const { occupancy, cubicMetersPerResidentPerYear } =
+    CURRENT_REFERENCE_DATA.water
+  if (
+    residentCount < occupancy.minimumResidents ||
+    residentCount > occupancy.maximumResidents
+  ) {
+    return unsupported({ reason: 'invalid-input', field: 'residentCount' })
+  }
+
+  const cubicMetersPerYear = Number(
+    (residentCount * cubicMetersPerResidentPerYear.value).toFixed(1)
+  )
+  if (!Number.isFinite(cubicMetersPerYear)) {
+    return unsupported({ reason: 'non-finite-result', field: 'residentCount' })
+  }
+
+  return {
+    status: 'complete',
+    cubicMetersPerYear,
+    unit: 'm³/year',
   }
 }
 

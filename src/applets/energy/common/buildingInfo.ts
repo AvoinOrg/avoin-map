@@ -10,8 +10,10 @@ import {
 import { HEATING_ENERGY_SOURCE_PROPERTY } from '../layers/heatingLayerConf'
 import type { EnergyCertificateClassCode } from '../layers/energyCertificateLayerConf'
 import {
+  calculateCurrentReferenceAnnualWater,
   calculateCurrentReferenceAnnualCo2,
   calculateCurrentReferenceAnnualCost,
+  deriveCurrentReferenceResidentCount,
 } from './currentReferenceCalculations'
 import type {
   CurrentReferenceAnnualCo2Result,
@@ -19,6 +21,7 @@ import type {
   CurrentReferenceUnsupportedReason,
   CurrentReferenceUnsupportedResult,
 } from './currentReferenceCalculations'
+import { CURRENT_REFERENCE_DATA } from './currentReferenceData'
 import type { EnergymapSelectedBuilding } from './types'
 
 export type EnergymapBuildingInfoPanelId =
@@ -92,6 +95,17 @@ export type EnergymapBuildingInfoPrimaryMetric = {
   supported: boolean
   value?: EnergymapBuildingInfoValue
   unavailableNote?: EnergymapBuildingInfoNote
+  residentCountControl?: EnergymapBuildingInfoResidentCountControl
+}
+
+export type EnergymapBuildingInfoResidentCountControl = {
+  defaultValue: number
+  minValue: number
+  maxValue: number
+  label: EnergymapBuildingInfoText
+  toggleLabel: EnergymapBuildingInfoText
+  description: EnergymapBuildingInfoText
+  unavailableText: EnergymapBuildingInfoText
 }
 
 export type EnergymapBuildingInfoEnergySubmetric = {
@@ -975,11 +989,81 @@ const createCurrentReferencePrimaryMetric = ({
   }
 }
 
+const createCurrentReferenceWaterPrimaryMetric = ({
+  floorAreaSquareMeters,
+  locale,
+}: {
+  floorAreaSquareMeters: unknown
+  locale: string
+}): EnergymapBuildingInfoPrimaryMetric => {
+  const labelKey = key('panels.energy.primary.water')
+  const sourceProperties = [FLOOR_AREA_PROPERTY]
+  const residentCountResult = deriveCurrentReferenceResidentCount(
+    floorAreaSquareMeters
+  )
+
+  if (residentCountResult.status === 'unsupported') {
+    return createUnsupportedPrimaryMetric({
+      id: 'water',
+      labelKey,
+      unavailableNoteKey: key('panels.energy.unsupported.water'),
+      sourceProperties,
+      status: 'missing',
+    })
+  }
+
+  const annualWaterResult = calculateCurrentReferenceAnnualWater(
+    residentCountResult.residentCount
+  )
+  if (annualWaterResult.status === 'unsupported') {
+    return createUnsupportedPrimaryMetric({
+      id: 'water',
+      labelKey,
+      unavailableNoteKey: key('panels.energy.unsupported.water'),
+      sourceProperties,
+      status: 'missing',
+    })
+  }
+
+  const { occupancy } = CURRENT_REFERENCE_DATA.water
+  return {
+    id: 'water',
+    label: translationText(labelKey),
+    ariaLabelKey: labelKey,
+    supported: true,
+    value: estimateValue({
+      text: plainText(
+        formatNumber({
+          value: annualWaterResult.cubicMetersPerYear,
+          locale,
+          maximumFractionDigits: 1,
+        })
+      ),
+      unitKey: key('units.cubic_meters_per_year'),
+      sourceProperties,
+    }),
+    residentCountControl: {
+      defaultValue: residentCountResult.residentCount,
+      minValue: occupancy.minimumResidents,
+      maxValue: occupancy.maximumResidents,
+      label: translationText(key('panels.energy.water.resident_count')),
+      toggleLabel: translationText(
+        key('panels.energy.water.change_resident_count')
+      ),
+      description: translationText(key('panels.energy.water.description')),
+      unavailableText: translationText(
+        key('panels.energy.water.invalid_resident_count')
+      ),
+    },
+  }
+}
+
 const createConsumptionControls = ({
   totalMetric,
   heatingMetric,
   electricityMetric,
   waterHeatingMetric,
+  waterMetric,
   costMetric,
   co2Metric,
 }: {
@@ -987,6 +1071,7 @@ const createConsumptionControls = ({
   heatingMetric: EnergymapBuildingInfoMetric
   electricityMetric: EnergymapBuildingInfoMetric
   waterHeatingMetric: EnergymapBuildingInfoMetric
+  waterMetric: EnergymapBuildingInfoPrimaryMetric
   costMetric: EnergymapBuildingInfoPrimaryMetric
   co2Metric: EnergymapBuildingInfoPrimaryMetric
 }): EnergymapBuildingInfoConsumptionControls => {
@@ -1005,11 +1090,7 @@ const createConsumptionControls = ({
         ariaLabelKey: key('panels.energy.primary.energy'),
         supported: true,
       },
-      createUnsupportedPrimaryMetric({
-        id: 'water',
-        labelKey: key('panels.energy.primary.water'),
-        unavailableNoteKey: key('panels.energy.unsupported.water'),
-      }),
+      waterMetric,
       costMetric,
       co2Metric,
     ],
@@ -1320,6 +1401,10 @@ const createEnergyConsumptionPanel = ({
     properties,
     locale,
   })
+  const waterMetric = createCurrentReferenceWaterPrimaryMetric({
+    floorAreaSquareMeters: properties[FLOOR_AREA_PROPERTY],
+    locale,
+  })
 
   return {
     id: 'energyConsumption',
@@ -1342,6 +1427,7 @@ const createEnergyConsumptionPanel = ({
           heatingMetric,
           electricityMetric,
           waterHeatingMetric,
+          waterMetric,
           costMetric,
           co2Metric,
         }),

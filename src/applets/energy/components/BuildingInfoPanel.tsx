@@ -2,6 +2,7 @@ import React from 'react'
 import { useTranslate } from '@tolgee/react'
 
 import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
+import { useLocaleFormatter } from '#/common/hooks/useLocaleFormatter'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import {
   Box,
@@ -11,6 +12,8 @@ import {
 } from '#/common/style/theme'
 import { ButtonBase, IconButton } from '#/components/common/Button'
 import AppTooltip from '#/components/common/AppTooltip'
+import { NumberInputField } from '#/components/common/NumberInputField'
+import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 import TText from '#/components/common/TText'
 import { SidebarPanelExtensionPageContainer } from '#/components/Sidebar/SidebarPanelExtensionPageContainer'
 import { SidebarPanelExtensionTabContainer } from '#/components/Sidebar/SidebarPanelExtensionTabContainer'
@@ -39,6 +42,7 @@ import type {
   EnergymapBuildingInfoPrimaryMetricId,
 } from '../common/buildingInfo'
 import { getSelectedEnergyConsumption } from '../common/buildingInfo'
+import { calculateCurrentReferenceAnnualWater } from '../common/currentReferenceCalculations'
 
 export type BuildingInfoDesktopMode = 'twoPanel' | 'threePanel'
 export type BuildingInfoTabId = 'basic' | 'renovation'
@@ -1442,6 +1446,205 @@ const BuildingInfoEnergySubmetricButton = ({
   )
 }
 
+const parseResidentCount = (rawValue: string) => {
+  if (rawValue.trim() === '') {
+    return null
+  }
+
+  const value = Number(rawValue)
+  return Number.isFinite(value) && Number.isInteger(value) ? value : null
+}
+
+const normalizeResidentCountOnCommit = ({
+  rawValue,
+  defaultValue,
+  minValue,
+  maxValue,
+}: {
+  rawValue: string
+  defaultValue: number
+  minValue: number
+  maxValue: number
+}) => {
+  const value = parseResidentCount(rawValue)
+  if (value == null) {
+    return defaultValue
+  }
+
+  return Math.min(maxValue, Math.max(minValue, value))
+}
+
+const getValidManualResidentCount = ({
+  rawValue,
+  minValue,
+  maxValue,
+}: {
+  rawValue: string
+  minValue: number
+  maxValue: number
+}) => {
+  const value = parseResidentCount(rawValue)
+  if (
+    value == null ||
+    value < minValue ||
+    value > maxValue
+  ) {
+    return null
+  }
+
+  return value
+}
+
+const BuildingInfoWaterResidentControl = ({
+  metric,
+}: {
+  metric: EnergymapBuildingInfoPrimaryMetric
+}) => {
+  const control = metric.residentCountControl
+  const { formatNumber } = useLocaleFormatter()
+  const [isOverrideEnabled, setIsOverrideEnabled] = React.useState(false)
+  const [manualResidentCountRawValue, setManualResidentCountRawValue] =
+    React.useState(String(control?.defaultValue ?? ''))
+
+  if (control == null || metric.value == null) {
+    return null
+  }
+
+  const manualResidentCount = getValidManualResidentCount({
+    rawValue: manualResidentCountRawValue,
+    minValue: control.minValue,
+    maxValue: control.maxValue,
+  })
+  const displayedResidentCount = isOverrideEnabled
+    ? manualResidentCount
+    : control.defaultValue
+  const waterResult = calculateCurrentReferenceAnnualWater(
+    displayedResidentCount
+  )
+  const value =
+    waterResult.status === 'complete'
+      ? {
+          ...metric.value,
+          text: {
+            type: 'plain' as const,
+            text: formatNumber(waterResult.cubicMetersPerYear, {
+              maximumFractionDigits: 1,
+            }),
+          },
+        }
+      : {
+          text: control.unavailableText,
+          status: 'missing' as const,
+          ...(metric.value.sourceProperties == null
+            ? {}
+            : { sourceProperties: metric.value.sourceProperties }),
+        }
+
+  const resetOverride = () => {
+    setIsOverrideEnabled(false)
+    setManualResidentCountRawValue(String(control.defaultValue))
+  }
+
+  return (
+    <>
+      <Box
+        data-testid="building-info-water-resident-control"
+        sx={{
+          mt: '1rem',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          gap: '0.75rem',
+        }}
+      >
+        {isOverrideEnabled ? (
+          <NumberInputField
+            label={<BuildingInfoText text={control.label} />}
+            value={manualResidentCount ?? control.defaultValue}
+            minValue={control.minValue}
+            maxValue={control.maxValue}
+            incrementStepValue={1}
+            format={{ maximumFractionDigits: 0 }}
+            rawValue={manualResidentCountRawValue}
+            inputSlotProps={{ inputMode: 'numeric' }}
+            onRawValueChange={(rawValue) => {
+              setManualResidentCountRawValue(rawValue)
+            }}
+            onRawValueCommitted={(rawValue) => {
+              setManualResidentCountRawValue(
+                String(
+                  normalizeResidentCountOnCommit({
+                    rawValue,
+                    defaultValue: control.defaultValue,
+                    minValue: control.minValue,
+                    maxValue: control.maxValue,
+                  })
+                )
+              )
+            }}
+            onValueChange={(nextValue) => {
+              setManualResidentCountRawValue(
+                nextValue == null ? '' : String(nextValue)
+              )
+            }}
+          />
+        ) : (
+          <Box
+            data-testid="building-info-water-resident-default"
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: 'minmax(0, 1fr) minmax(0, auto)',
+              columnGap: '1rem',
+              alignItems: 'baseline',
+              width: '100%',
+            }}
+          >
+            <Box sx={{ ...textSx, color: '#111111' }}>
+              <BuildingInfoText text={control.label} />
+            </Box>
+            <Box sx={{ ...textSx, fontWeight: 700, textAlign: 'right' }}>
+              {formatNumber(control.defaultValue, {
+                maximumFractionDigits: 0,
+              })}
+            </Box>
+          </Box>
+        )}
+        <SwitchWithLabel
+          checked={isOverrideEnabled}
+          onChange={(_event, checked) => {
+            if (!checked) {
+              resetOverride()
+              return
+            }
+
+            setManualResidentCountRawValue(String(control.defaultValue))
+            setIsOverrideEnabled(true)
+          }}
+        >
+          <BuildingInfoText text={control.toggleLabel} />
+        </SwitchWithLabel>
+        <Box sx={{ ...textSx, color: '#111111' }}>
+          <BuildingInfoText text={control.description} />
+        </Box>
+      </Box>
+      <Box
+        data-testid="building-info-primary-metric-value"
+        data-primary-metric-id={metric.id}
+        data-primary-metric-supported="true"
+        sx={{
+          mt: '1.5rem',
+          borderTop: '0.3px solid #d7d7d7',
+          pt: '0.75rem',
+        }}
+      >
+        <Box component="div" sx={{ ...textSx, textAlign: 'left' }}>
+          <BuildingInfoValueText value={value} align="left" />
+        </Box>
+      </Box>
+    </>
+  )
+}
+
 const BuildingInfoPrimaryMetricValuePanel = ({
   metric,
 }: {
@@ -1449,6 +1652,10 @@ const BuildingInfoPrimaryMetricValuePanel = ({
 }) => {
   if (metric.value == null && metric.unavailableNote == null) {
     return null
+  }
+
+  if (metric.id === 'water' && metric.residentCountControl != null) {
+    return <BuildingInfoWaterResidentControl metric={metric} />
   }
 
   return (
