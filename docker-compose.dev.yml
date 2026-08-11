@@ -10,6 +10,16 @@ services:
     volumes:
       - .:/app:z
       - type: bind
+        source: ${HOST_CODEX_DIR:-${HOME}/.codex}/auth.json
+        target: /app/.codex/auth.json
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${HOST_CODEX_DIR:-${HOME}/.codex}/.credentials.json
+        target: /app/.codex/.credentials.json
+        bind:
+          create_host_path: false
+      - type: bind
         source: ${SSH_AGENT_DIR:-${HOME}/.ssh/sockets}
         target: /ssh-sockets
       - type: bind

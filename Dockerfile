@@ -1,4 +1,10 @@
+FROM node:22-bookworm-slim AS node-runtime
+
 FROM mcr.microsoft.com/playwright:v1.58.1-jammy AS base
+
+# Playwright's image does not promise a stable Node major. Keep the project on
+# Node 22 even when the Playwright base image updates its bundled runtime.
+COPY --from=node-runtime /usr/local/ /usr/local/
 
 ARG TARGETARCH
 
@@ -54,7 +60,9 @@ RUN if ! getent passwd node >/dev/null; then \
     fi && \
     usermod --shell /bin/bash node
 
-RUN corepack enable && corepack prepare yarn@4.12.0 --activate
+RUN rm -f /usr/local/bin/yarn /usr/local/bin/yarnpkg && \
+    corepack enable && \
+    corepack prepare yarn@4.12.0 --activate
 
 # A quick and dirty fix to prevent watchpack errors.
 # TODO: figure out why it's scanning root. Using different user does not help.
