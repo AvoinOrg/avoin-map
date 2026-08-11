@@ -50,6 +50,7 @@ const districtHeatingBuilding = createSelectedBuilding({
   total_area: 454,
   volume: 1006,
   energy_certificate_class: 'D',
+  energy_certificate_heated_net_area: 1355,
   distr_default_total: 367.7884615,
   distr_default_heat: 343.6634615,
   distr_default_elec: 24.125,
@@ -357,11 +358,37 @@ describe('Energiakartta building info model', () => {
     )
 
     const heatedNetArea = getRow(buildingPanel, 'heatedNetArea')
-    expect(heatedNetArea.status).toBe('placeholder')
-    expectTranslation(
-      heatedNetArea.text,
-      `${translationPrefix}.placeholders.not_published`
+    expect(heatedNetArea.status).toBe('real')
+    expectPlainText(heatedNetArea.text, '1,355')
+    expect(heatedNetArea.unitKey).toBe(
+      `${translationPrefix}.units.square_meters`
     )
+    expect(heatedNetArea.sourceProperties).toEqual([
+      'energy_certificate_heated_net_area',
+    ])
+  })
+
+  it('formats a fractional certificate heated net area with locale rounding', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        building_key: 'fractional-heated-net-area',
+        energy_certificate_heated_net_area: '1234.56',
+      }),
+      locale: 'en-US',
+    })
+    const heatedNetArea = getRow(
+      getPanel(panels ?? [], 'buildingDetails'),
+      'heatedNetArea'
+    )
+
+    expect(heatedNetArea.status).toBe('real')
+    expectPlainText(heatedNetArea.text, '1,234.6')
+    expect(heatedNetArea.unitKey).toBe(
+      `${translationPrefix}.units.square_meters`
+    )
+    expect(heatedNetArea.sourceProperties).toEqual([
+      'energy_certificate_heated_net_area',
+    ])
   })
 
   it('composes heating from translation-backed code labels', () => {
@@ -847,6 +874,17 @@ describe('Energiakartta building info model', () => {
     )
   })
 
+  it('keeps the certificate heated net area label explicit in both locales', () => {
+    expect(
+      enTranslations.sidebar.building_info.panels.building.rows.heated_net_area
+    ).toBe('Heated net area on energy certificate')
+    expect(
+      fiTranslations.sidebar.building_info.panels.building.rows.heated_net_area
+    ).toBe('Energiatodistuksen lämmitetty nettoala')
+    expect(enTranslations.sidebar.building_info.units.square_meters).toBe('m²')
+    expect(fiTranslations.sidebar.building_info.units.square_meters).toBe('m²')
+  })
+
   it('models supported energy submetrics and keeps water heating unsupported', () => {
     const panels = createEnergymapBuildingInfoPanels({
       selectedBuilding: districtHeatingBuilding,
@@ -1065,11 +1103,15 @@ describe('Energiakartta building info model', () => {
       `${translationPrefix}.placeholders.missing_value`
     )
 
-    expect(heatedNetArea.status).toBe('placeholder')
+    expect(heatedNetArea.status).toBe('missing')
     expectTranslation(
       heatedNetArea.text,
-      `${translationPrefix}.placeholders.not_published`
+      `${translationPrefix}.placeholders.missing_value`
     )
+    expect(heatedNetArea.sourceProperties).toEqual([
+      'energy_certificate_heated_net_area',
+    ])
+    expect(heatedNetArea.unitKey).toBeUndefined()
 
     expect(buildingType.status).toBe('real')
     expectTranslation(
@@ -1078,6 +1120,36 @@ describe('Energiakartta building info model', () => {
       { code: '98' }
     )
   })
+
+  it.each([null, '', 'not-a-number', NaN, Infinity, 0, -1])(
+    'keeps invalid certificate heated net area %p unavailable without a fallback',
+    (heatedNetAreaValue) => {
+      const panels = createEnergymapBuildingInfoPanels({
+        selectedBuilding: createSelectedBuilding({
+          building_key: `invalid-heated-net-area-${String(heatedNetAreaValue)}`,
+          energy_certificate_heated_net_area: heatedNetAreaValue,
+          floor_area: 999,
+          total_area: 888,
+          gross_floor_area: 777,
+        }),
+        locale: 'en-US',
+      })
+      const heatedNetArea = getRow(
+        getPanel(panels ?? [], 'buildingDetails'),
+        'heatedNetArea'
+      )
+
+      expect(heatedNetArea.status).toBe('missing')
+      expectTranslation(
+        heatedNetArea.text,
+        `${translationPrefix}.placeholders.missing_value`
+      )
+      expect(heatedNetArea.sourceProperties).toEqual([
+        'energy_certificate_heated_net_area',
+      ])
+      expect(heatedNetArea.unitKey).toBeUndefined()
+    }
+  )
 
   it.each([undefined, 0, -1, NaN, Infinity])(
     'keeps Water unavailable without a resident override for invalid floor area %p',

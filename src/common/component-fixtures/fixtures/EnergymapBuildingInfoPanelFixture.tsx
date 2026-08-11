@@ -404,6 +404,14 @@ const createPanels = ({
         id: 'technicalDetails',
         rows: [
           {
+            id: 'heatedNetArea',
+            label: plain('Heated net area on energy certificate'),
+            text: plain('1,234.6'),
+            status: 'real',
+            unitKey: 'sidebar.building_info.units.square_meters',
+            sourceProperties: ['energy_certificate_heated_net_area'],
+          },
+          {
             id: 'ventilation',
             label: plain('Ventilation'),
             text: plain(

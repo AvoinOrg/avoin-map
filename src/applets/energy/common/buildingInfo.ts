@@ -202,6 +202,8 @@ const PERMANENT_BUILDING_IDENTIFIER_PROPERTY =
 const ADDRESS_FIN_PROPERTY = 'address_fin'
 const POSTAL_CODE_PROPERTY = 'postal_code'
 const POSTAL_OFFICE_FIN_PROPERTY = 'postal_office_fin'
+const ENERGY_CERTIFICATE_HEATED_NET_AREA_PROPERTY =
+  'energy_certificate_heated_net_area'
 const ENERGY_CERTIFICATE_VENTILATION_TYPE_PROPERTY =
   'energy_certificate_ventilation_type_id'
 const ENERGY_CERTIFICATE_VENTILATION_DESCRIPTION_FI_PROPERTY =
@@ -1691,9 +1693,13 @@ const createRenovationRecommendationsPanel = ({
   ],
 })
 
-const createBuildingDetailsPanel = (
+const createBuildingDetailsPanel = ({
+  properties,
+  locale,
+}: {
   properties: EnergymapSelectedBuilding['properties']
-): EnergymapBuildingInfoPanel => ({
+  locale: string
+}): EnergymapBuildingInfoPanel => ({
   id: 'buildingDetails',
   title: translationText(key('panels.building.title')),
   sections: [
@@ -1787,9 +1793,15 @@ const createBuildingDetailsPanel = (
           labelKey: key('panels.building.rows.heating'),
           value: getHeatingValue(properties),
         }),
-        createPlaceholderRow({
+        row({
           id: 'heatedNetArea',
           labelKey: key('panels.building.rows.heated_net_area'),
+          value: getMeasurementValue({
+            properties,
+            propertyName: ENERGY_CERTIFICATE_HEATED_NET_AREA_PROPERTY,
+            unitKey: key('units.square_meters'),
+            locale,
+          }),
         }),
         row({
           id: 'ventilation',
@@ -1831,6 +1843,6 @@ export const createEnergymapBuildingInfoPanels = ({
   return [
     createEnergyConsumptionPanel({ properties, prefix, locale }),
     createRenovationRecommendationsPanel({ properties, prefix, locale }),
-    createBuildingDetailsPanel(properties),
+    createBuildingDetailsPanel({ properties, locale }),
   ]
 }
