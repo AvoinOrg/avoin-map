@@ -795,6 +795,7 @@ const BuildingInfoValueText = ({
       component="span"
       data-status={value.status}
       data-source-properties={getSourcePropertiesData(value.sourceProperties)}
+      lang={value.sourceLanguage}
       sx={{
         display: 'inline-flex',
         flexWrap: 'wrap',

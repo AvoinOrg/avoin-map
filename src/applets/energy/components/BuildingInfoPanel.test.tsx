@@ -130,6 +130,9 @@ const plain = (text: string): EnergymapBuildingInfoText => ({
   text,
 })
 
+const VENTILATION_SOURCE_TEXT =
+  '<strong data-injected="true">Painovoimainen</strong><script>alert("unsafe")</script>'
+
 const metricValue = ({
   id,
   labelKey,
@@ -557,6 +560,19 @@ const panels: EnergymapBuildingInfoPanel[] = [
             text: translation('value.placeholder'),
             status: 'placeholder',
             sourceProperties: ['planned_measure'],
+          },
+        ],
+      },
+      {
+        id: 'technicalDetails',
+        rows: [
+          {
+            id: 'ventilation',
+            label: translation('row.ventilation.label'),
+            text: plain(VENTILATION_SOURCE_TEXT),
+            status: 'real',
+            sourceProperties: ['energy_certificate_ventilation_description_fi'],
+            sourceLanguage: 'fi',
           },
         ],
       },
@@ -1695,6 +1711,27 @@ describe('BuildingInfoPanel', () => {
       'data-source-properties',
       'distr_default_total,floor_area'
     )
+  })
+
+  it('renders ventilation source text literally with source metadata', async () => {
+    renderBuildingInfoTabs()
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    const ventilationValue = screen
+      .getByText(VENTILATION_SOURCE_TEXT)
+      .closest('[data-status="real"]')
+
+    expect(ventilationValue).toBeInTheDocument()
+    expect(ventilationValue).toHaveAttribute('lang', 'fi')
+    expect(ventilationValue).toHaveAttribute('data-status', 'real')
+    expect(ventilationValue).toHaveAttribute(
+      'data-source-properties',
+      'energy_certificate_ventilation_description_fi'
+    )
+    expect(ventilationValue).toHaveTextContent(VENTILATION_SOURCE_TEXT)
+    expect(
+      ventilationValue?.querySelector('strong, script, [data-injected]')
+    ).not.toBeInTheDocument()
   })
 
   it('renders the Figma panel graphics from sidebar assets', async () => {

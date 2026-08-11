@@ -57,6 +57,7 @@ export type EnergymapBuildingInfoValue = {
   text: EnergymapBuildingInfoText
   status: EnergymapBuildingInfoValueStatus
   sourceProperties?: string[]
+  sourceLanguage?: 'fi' | 'sv'
   unitKey?: string
   note?: EnergymapBuildingInfoText
 }
@@ -201,6 +202,22 @@ const PERMANENT_BUILDING_IDENTIFIER_PROPERTY =
 const ADDRESS_FIN_PROPERTY = 'address_fin'
 const POSTAL_CODE_PROPERTY = 'postal_code'
 const POSTAL_OFFICE_FIN_PROPERTY = 'postal_office_fin'
+const ENERGY_CERTIFICATE_VENTILATION_TYPE_PROPERTY =
+  'energy_certificate_ventilation_type_id'
+const ENERGY_CERTIFICATE_VENTILATION_DESCRIPTION_FI_PROPERTY =
+  'energy_certificate_ventilation_description_fi'
+const ENERGY_CERTIFICATE_VENTILATION_DESCRIPTION_SV_PROPERTY =
+  'energy_certificate_ventilation_description_sv'
+const ENERGY_CERTIFICATE_VENTILATION_DESCRIPTION_PROPERTIES = {
+  fi: ENERGY_CERTIFICATE_VENTILATION_DESCRIPTION_FI_PROPERTY,
+  sv: ENERGY_CERTIFICATE_VENTILATION_DESCRIPTION_SV_PROPERTY,
+} as const
+// Energy supports Finnish and English UI locales, so registry descriptions use
+// Finnish first and the Swedish source only as a fallback.
+const ENERGY_CERTIFICATE_VENTILATION_DESCRIPTION_SOURCE_ORDER = [
+  'fi',
+  'sv',
+] as const
 
 const HEATING_METHOD_CODES = [
   '01',
@@ -289,17 +306,20 @@ const missingValue = ({
 const realValue = ({
   text,
   sourceProperties,
+  sourceLanguage,
   unitKey,
   note,
 }: {
   text: EnergymapBuildingInfoText
   sourceProperties: string[]
+  sourceLanguage?: 'fi' | 'sv'
   unitKey?: string
   note?: EnergymapBuildingInfoText
 }): EnergymapBuildingInfoValue => ({
   text,
   status: 'real',
   sourceProperties,
+  ...(sourceLanguage == null ? {} : { sourceLanguage }),
   ...(unitKey == null ? {} : { unitKey }),
   ...(note == null ? {} : { note }),
 })
@@ -1190,6 +1210,39 @@ const getHeatingValue = (
   })
 }
 
+const getVentilationValue = (
+  properties: EnergymapSelectedBuilding['properties']
+): EnergymapBuildingInfoValue => {
+  for (
+    const sourceLanguage of ENERGY_CERTIFICATE_VENTILATION_DESCRIPTION_SOURCE_ORDER
+  ) {
+    const propertyName =
+      ENERGY_CERTIFICATE_VENTILATION_DESCRIPTION_PROPERTIES[sourceLanguage]
+
+    if (typeof properties[propertyName] !== 'string') {
+      continue
+    }
+
+    const description = getStringProperty(properties, propertyName)
+
+    if (description != null) {
+      return realValue({
+        text: plainText(description),
+        sourceProperties: [propertyName],
+        sourceLanguage,
+      })
+    }
+  }
+
+  return missingValue({
+    sourceProperties: [
+      ENERGY_CERTIFICATE_VENTILATION_DESCRIPTION_FI_PROPERTY,
+      ENERGY_CERTIFICATE_VENTILATION_DESCRIPTION_SV_PROPERTY,
+      ENERGY_CERTIFICATE_VENTILATION_TYPE_PROPERTY,
+    ],
+  })
+}
+
 const getEnergyCertificateClassValue = (
   properties: EnergymapSelectedBuilding['properties']
 ): EnergymapBuildingInfoValue => {
@@ -1638,13 +1691,9 @@ const createRenovationRecommendationsPanel = ({
   ],
 })
 
-const createBuildingDetailsPanel = ({
-  properties,
-  locale,
-}: {
+const createBuildingDetailsPanel = (
   properties: EnergymapSelectedBuilding['properties']
-  locale: string
-}): EnergymapBuildingInfoPanel => ({
+): EnergymapBuildingInfoPanel => ({
   id: 'buildingDetails',
   title: translationText(key('panels.building.title')),
   sections: [
@@ -1742,9 +1791,10 @@ const createBuildingDetailsPanel = ({
           id: 'heatedNetArea',
           labelKey: key('panels.building.rows.heated_net_area'),
         }),
-        createPlaceholderRow({
+        row({
           id: 'ventilation',
           labelKey: key('panels.building.rows.ventilation'),
+          value: getVentilationValue(properties),
         }),
         createPlaceholderRow({
           id: 'plotTenure',
@@ -1781,6 +1831,6 @@ export const createEnergymapBuildingInfoPanels = ({
   return [
     createEnergyConsumptionPanel({ properties, prefix, locale }),
     createRenovationRecommendationsPanel({ properties, prefix, locale }),
-    createBuildingDetailsPanel({ properties, locale }),
+    createBuildingDetailsPanel(properties),
   ]
 }

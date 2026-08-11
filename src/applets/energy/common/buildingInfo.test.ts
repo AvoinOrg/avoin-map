@@ -137,6 +137,21 @@ const getRow = (
   return row
 }
 
+const getVentilationRow = ({
+  properties,
+  locale,
+}: {
+  properties: EnergymapSelectedBuilding['properties']
+  locale: string
+}) => {
+  const panels = createEnergymapBuildingInfoPanels({
+    selectedBuilding: createSelectedBuilding(properties),
+    locale,
+  })
+
+  return getRow(getPanel(panels ?? [], 'buildingDetails'), 'ventilation')
+}
+
 const getMetrics = (panel: EnergymapBuildingInfoPanel) =>
   panel.sections.flatMap((section) => section.metrics ?? [])
 
@@ -372,6 +387,143 @@ describe('Energiakartta building info model', () => {
       ],
     })
   })
+
+  it.each([
+    [
+      'Finnish prefers Finnish',
+      'fi-FI',
+      {
+        energy_certificate_ventilation_description_fi:
+          '  Koneellinen ilmanvaihto  ',
+        energy_certificate_ventilation_description_sv: 'Mekanisk ventilation',
+      },
+      'Koneellinen ilmanvaihto',
+      'fi',
+      'energy_certificate_ventilation_description_fi',
+    ],
+    [
+      'Finnish falls back from blank Finnish to Swedish',
+      'fi',
+      {
+        energy_certificate_ventilation_description_fi: ' \n ',
+        energy_certificate_ventilation_description_sv:
+          '  Mekanisk ventilation  ',
+      },
+      'Mekanisk ventilation',
+      'sv',
+      'energy_certificate_ventilation_description_sv',
+    ],
+    [
+      'English presents Finnish as Finnish source text',
+      'en-US',
+      {
+        energy_certificate_ventilation_description_fi:
+          'Painovoimainen ilmanvaihto',
+        energy_certificate_ventilation_description_sv: 'Självdragsventilation',
+      },
+      'Painovoimainen ilmanvaihto',
+      'fi',
+      'energy_certificate_ventilation_description_fi',
+    ],
+    [
+      'English falls back to Swedish source text',
+      'en',
+      {
+        energy_certificate_ventilation_description_sv:
+          'Från- och tilluftsventilation',
+      },
+      'Från- och tilluftsventilation',
+      'sv',
+      'energy_certificate_ventilation_description_sv',
+    ],
+    [
+      'long source prose is preserved',
+      'en',
+      {
+        energy_certificate_ventilation_description_fi:
+          '  Koneellinen tulo- ja poistoilmanvaihto lämmöntalteenotolla. Kuvaus sisältää pitkän teknisen selosteen, välimerkkejä sekä Unicode-merkkejä: ääkköset säilyvät muuttumattomina.  ',
+      },
+      'Koneellinen tulo- ja poistoilmanvaihto lämmöntalteenotolla. Kuvaus sisältää pitkän teknisen selosteen, välimerkkejä sekä Unicode-merkkejä: ääkköset säilyvät muuttumattomina.',
+      'fi',
+      'energy_certificate_ventilation_description_fi',
+    ],
+    [
+      'HTML-like source text stays plain',
+      'en',
+      {
+        energy_certificate_ventilation_description_fi:
+          '  <strong data-injected="true">Painovoimainen</strong><script>alert("unsafe")</script>  ',
+      },
+      '<strong data-injected="true">Painovoimainen</strong><script>alert("unsafe")</script>',
+      'fi',
+      'energy_certificate_ventilation_description_fi',
+    ],
+  ] as const)(
+    'selects one ventilation description: %s',
+    (_caseName, locale, properties, text, sourceLanguage, sourceProperty) => {
+      const ventilation = getVentilationRow({ properties, locale })
+
+      expect(ventilation.status).toBe('real')
+      expectPlainText(ventilation.text, text)
+      expect(ventilation.sourceLanguage).toBe(sourceLanguage)
+      expect(ventilation.sourceProperties).toEqual([sourceProperty])
+    }
+  )
+
+  it.each([
+    {
+      caseName: 'all fields missing',
+      properties: {},
+      hiddenText: undefined,
+    },
+    {
+      caseName: 'descriptions blank',
+      properties: {
+        energy_certificate_ventilation_description_fi: ' \n ',
+        energy_certificate_ventilation_description_sv: '\t',
+      },
+      hiddenText: undefined,
+    },
+    {
+      caseName: 'descriptions are not strings',
+      properties: {
+        energy_certificate_ventilation_description_fi: 42,
+        energy_certificate_ventilation_description_sv: Number.POSITIVE_INFINITY,
+      },
+      hiddenText: undefined,
+    },
+    {
+      caseName: 'only an unmapped type code exists',
+      properties: { energy_certificate_ventilation_type_id: '03' },
+      hiddenText: '03',
+    },
+  ])(
+    'uses the normal missing state when $caseName',
+    ({ properties, hiddenText }) => {
+      const ventilation = getVentilationRow({
+        properties: {
+          building_key: 'ventilation-missing',
+          ...properties,
+        },
+        locale: 'fi',
+      })
+
+      expect(ventilation.status).toBe('missing')
+      expectTranslation(
+        ventilation.text,
+        `${translationPrefix}.placeholders.missing_value`
+      )
+      expect(ventilation.sourceLanguage).toBeUndefined()
+      expect(ventilation.sourceProperties).toEqual([
+        'energy_certificate_ventilation_description_fi',
+        'energy_certificate_ventilation_description_sv',
+        'energy_certificate_ventilation_type_id',
+      ])
+      if (hiddenText != null) {
+        expect(JSON.stringify(ventilation.text)).not.toContain(hiddenText)
+      }
+    }
+  )
 
   it('marks default consumption values as estimates and derives annual totals only from valid area', () => {
     const panels = createEnergymapBuildingInfoPanels({

@@ -400,6 +400,21 @@ const createPanels = ({
           },
         ],
       },
+      {
+        id: 'technicalDetails',
+        rows: [
+          {
+            id: 'ventilation',
+            label: plain('Ventilation'),
+            text: plain(
+              'Koneellinen tulo- ja poistoilmanvaihto lämmöntalteenotolla; ilmanvaihtojärjestelmän pitkää lähdekuvausta käytetään rivin rivityksen tarkistamiseen.'
+            ),
+            status: 'real',
+            sourceProperties: ['energy_certificate_ventilation_description_fi'],
+            sourceLanguage: 'fi',
+          },
+        ],
+      },
     ],
   },
 ]
