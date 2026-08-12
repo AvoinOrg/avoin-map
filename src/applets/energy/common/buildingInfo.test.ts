@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import {
   composeEnergymapBuildingAddress,
   createEnergymapBuildingInfoPanels,
@@ -50,6 +51,7 @@ const districtHeatingBuilding = createSelectedBuilding({
   total_area: 454,
   volume: 1006,
   energy_certificate_class: 'D',
+  energy_certificate_valid_until: '2031-12-31 00:00:00.0',
   energy_certificate_heated_net_area: 1355,
   distr_default_total: 367.7884615,
   distr_default_heat: 343.6634615,
@@ -168,6 +170,24 @@ const getCertificateRecommendationsRow = ({
   return getRow(
     getPanel(panels ?? [], 'renovationRecommendations'),
     'energyCertificateRecommendations'
+  )
+}
+
+const getCertificateValidityRow = ({
+  properties,
+  locale,
+}: {
+  properties: EnergymapSelectedBuilding['properties']
+  locale: string
+}) => {
+  const panels = createEnergymapBuildingInfoPanels({
+    selectedBuilding: createSelectedBuilding(properties),
+    locale,
+  })
+
+  return getRow(
+    getPanel(panels ?? [], 'buildingDetails'),
+    'energyCertificateValidity'
   )
 }
 
@@ -368,6 +388,16 @@ describe('Energiakartta building info model', () => {
     expect(energyClass.status).toBe('real')
     expectPlainText(energyClass.text, 'D')
 
+    const energyCertificateValidity = getRow(
+      buildingPanel,
+      'energyCertificateValidity'
+    )
+    expect(energyCertificateValidity.status).toBe('real')
+    expectPlainText(energyCertificateValidity.text, '12/31/2031')
+    expect(energyCertificateValidity.sourceProperties).toEqual([
+      'energy_certificate_valid_until',
+    ])
+
     const propertyIdentifier = getRow(buildingPanel, 'propertyIdentifier')
     expect(propertyIdentifier.status).toBe('placeholder')
     expectTranslation(
@@ -406,6 +436,152 @@ describe('Energiakartta building info model', () => {
     )
     expect(heatedNetArea.sourceProperties).toEqual([
       'energy_certificate_heated_net_area',
+    ])
+  })
+
+  it.each([
+    ['en-US', '2031-12-31 00:00:00.0', '12/31/2031'],
+    ['fi-FI', '2031-12-31T00:00:00', '31.12.2031'],
+  ])(
+    'formats certificate validity as a timezone-stable calendar date for %s',
+    (locale, sourceValue, expectedDate) => {
+      const validity = getCertificateValidityRow({
+        properties: {
+          building_key: `certificate-validity-${locale}-${sourceValue}`,
+          energy_certificate_valid_until: sourceValue,
+        },
+        locale,
+      })
+
+      expect(validity.status).toBe('real')
+      expectPlainText(validity.text, expectedDate)
+      expect(validity.sourceProperties).toEqual([
+        'energy_certificate_valid_until',
+      ])
+    }
+  )
+
+  it('preserves a DST-boundary calendar date west of UTC', () => {
+    const previousTimezone = process.env.TZ
+
+    try {
+      process.env.TZ = 'America/Los_Angeles'
+      const result = JSON.parse(
+        execFileSync(
+          process.execPath,
+          [
+            '--import',
+            'tsx',
+            '--input-type=module',
+            '--eval',
+            `
+              const buildingInfo = (
+                await import('./src/applets/energy/common/buildingInfo.ts')
+              ).default
+              const localDate = new Intl.DateTimeFormat('en-US', {
+                year: 'numeric',
+                month: 'numeric',
+                day: 'numeric',
+              }).format(new Date(Date.UTC(2025, 2, 9)))
+              const validityDate = buildingInfo.formatCalendarDate({
+                value: '2025-03-09 00:00:00.0',
+                locale: 'en-US',
+              })
+
+              process.stdout.write(JSON.stringify({ localDate, validityDate }))
+            `,
+          ],
+          {
+            cwd: process.cwd(),
+            encoding: 'utf8',
+            env: process.env,
+          }
+        )
+      )
+
+      expect(result.localDate).toBe('3/8/2025')
+      expect(result.validityDate).toBe('3/9/2025')
+    } finally {
+      if (previousTimezone == null) {
+        delete process.env.TZ
+      } else {
+        process.env.TZ = previousTimezone
+      }
+    }
+  })
+
+  it.each([
+    ['absent', {}],
+    ['undefined', { energy_certificate_valid_until: undefined }],
+    ['null', { energy_certificate_valid_until: null }],
+    ['empty', { energy_certificate_valid_until: '' }],
+    ['whitespace', { energy_certificate_valid_until: '   ' }],
+    ['non-string', { energy_certificate_valid_until: 20311231 }],
+    ['malformed separators', { energy_certificate_valid_until: '2031/12/31' }],
+    [
+      'malformed timestamp',
+      { energy_certificate_valid_until: '2031-12-31 midnight' },
+    ],
+    [
+      'invalid clock time',
+      { energy_certificate_valid_until: '2031-12-31 99:99:99' },
+    ],
+    [
+      'invalid clock minute',
+      { energy_certificate_valid_until: '2031-12-31 23:60:00' },
+    ],
+    [
+      'invalid clock second',
+      { energy_certificate_valid_until: '2031-12-31 23:59:60' },
+    ],
+    [
+      'invalid offset hour',
+      { energy_certificate_valid_until: '2031-12-31T23:59:59+14:01' },
+    ],
+    [
+      'invalid offset minute',
+      { energy_certificate_valid_until: '2031-12-31T23:59:59+12:60' },
+    ],
+    ['non-leap day', { energy_certificate_valid_until: '2025-02-29' }],
+    ['invalid month', { energy_certificate_valid_until: '2031-13-01' }],
+    ['invalid day', { energy_certificate_valid_until: '2031-12-00' }],
+  ])('keeps %s certificate validity missing', (_caseName, properties) => {
+    const validity = getCertificateValidityRow({
+      properties: {
+        building_key: `certificate-validity-${_caseName}`,
+        ...properties,
+      },
+      locale: 'en-US',
+    })
+
+    expect(validity.status).toBe('missing')
+    expectTranslation(
+      validity.text,
+      `${translationPrefix}.placeholders.missing_value`
+    )
+    expect(validity.sourceProperties).toEqual([
+      'energy_certificate_valid_until',
+    ])
+  })
+
+  it('does not infer certificate validity from other certificate or building dates', () => {
+    const validity = getCertificateValidityRow({
+      properties: {
+        building_key: 'certificate-validity-no-fallback',
+        energy_certificate_class_year: 2018,
+        energy_certificate_signed_at: '2021-12-31 00:00:00',
+        completion_date: '1967-01-01',
+      },
+      locale: 'en-US',
+    })
+
+    expect(validity.status).toBe('missing')
+    expectTranslation(
+      validity.text,
+      `${translationPrefix}.placeholders.missing_value`
+    )
+    expect(validity.sourceProperties).toEqual([
+      'energy_certificate_valid_until',
     ])
   })
 
@@ -995,6 +1171,17 @@ describe('Energiakartta building info model', () => {
     ).toBe('Energiatodistuksen lämmitetty nettoala')
     expect(enTranslations.sidebar.building_info.units.square_meters).toBe('m²')
     expect(fiTranslations.sidebar.building_info.units.square_meters).toBe('m²')
+  })
+
+  it('keeps the certificate validity label explicit in both locales', () => {
+    expect(
+      enTranslations.sidebar.building_info.panels.building.rows
+        .energy_certificate_validity
+    ).toBe('Latest energy certificate valid until')
+    expect(
+      fiTranslations.sidebar.building_info.panels.building.rows
+        .energy_certificate_validity
+    ).toBe('Uusimman energiatodistuksen voimassaolo päättyy')
   })
 
   it('models supported energy submetrics and keeps water heating unsupported', () => {

@@ -205,6 +205,8 @@ const POSTAL_CODE_PROPERTY = 'postal_code'
 const POSTAL_OFFICE_FIN_PROPERTY = 'postal_office_fin'
 const ENERGY_CERTIFICATE_HEATED_NET_AREA_PROPERTY =
   'energy_certificate_heated_net_area'
+const ENERGY_CERTIFICATE_VALID_UNTIL_PROPERTY =
+  'energy_certificate_valid_until'
 const ENERGY_CERTIFICATE_PREVIOUS_CLASS_PROPERTY =
   'energy_certificate_previous_class'
 type EnergyCertificateClassProperty =
@@ -501,6 +503,79 @@ export const formatYearFromDate = (value: unknown): string | null => {
   }
 
   return String(new Date(timestamp).getUTCFullYear())
+}
+
+export const formatCalendarDate = ({
+  value,
+  locale,
+}: {
+  value: unknown
+  locale: string
+}): string | null => {
+  if (typeof value !== 'string') {
+    return null
+  }
+
+  const match = value
+    .trim()
+    .match(
+      /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(?:Z|[+-](\d{2}):?(\d{2}))?)?$/
+    )
+
+  if (match == null) {
+    return null
+  }
+
+  const [
+    ,
+    yearText,
+    monthText,
+    dayText,
+    hourText,
+    minuteText,
+    secondText,
+    offsetHourText,
+    offsetMinuteText,
+  ] = match
+  const year = Number(yearText)
+  const month = Number(monthText)
+  const day = Number(dayText)
+  const hour = Number(hourText)
+  const minute = Number(minuteText)
+  const second = Number(secondText)
+  const offsetHour = Number(offsetHourText)
+  const offsetMinute = Number(offsetMinuteText)
+
+  if (
+    (hourText != null && (hour > 23 || minute > 59 || second > 59)) ||
+    (offsetHourText != null &&
+      (offsetHour > 14 ||
+        offsetMinute > 59 ||
+        (offsetHour === 14 && offsetMinute !== 0)))
+  ) {
+    return null
+  }
+
+  const date = new Date(0)
+
+  date.setUTCHours(0, 0, 0, 0)
+  date.setUTCFullYear(year, month - 1, day)
+
+  if (
+    !Number.isFinite(date.getTime()) ||
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return null
+  }
+
+  return new Intl.DateTimeFormat(locale, {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(date)
 }
 
 export const composeEnergymapBuildingAddress = (
@@ -1327,6 +1402,30 @@ const getEnergyCertificateClassValue = ({
   })
 }
 
+const getEnergyCertificateValidityValue = ({
+  properties,
+  locale,
+}: {
+  properties: EnergymapSelectedBuilding['properties']
+  locale: string
+}): EnergymapBuildingInfoValue => {
+  const validityEnd = formatCalendarDate({
+    value: properties[ENERGY_CERTIFICATE_VALID_UNTIL_PROPERTY],
+    locale,
+  })
+
+  if (validityEnd == null) {
+    return missingValue({
+      sourceProperties: [ENERGY_CERTIFICATE_VALID_UNTIL_PROPERTY],
+    })
+  }
+
+  return realValue({
+    text: plainText(validityEnd),
+    sourceProperties: [ENERGY_CERTIFICATE_VALID_UNTIL_PROPERTY],
+  })
+}
+
 const getYearValue = (
   properties: EnergymapSelectedBuilding['properties']
 ): EnergymapBuildingInfoValue => {
@@ -1814,9 +1913,10 @@ const createBuildingDetailsPanel = ({
             propertyName: ENERGY_CERTIFICATE_CLASS_PROPERTY,
           }),
         }),
-        createPlaceholderRow({
+        row({
           id: 'energyCertificateValidity',
           labelKey: key('panels.building.rows.energy_certificate_validity'),
+          value: getEnergyCertificateValidityValue({ properties, locale }),
         }),
       ],
     },

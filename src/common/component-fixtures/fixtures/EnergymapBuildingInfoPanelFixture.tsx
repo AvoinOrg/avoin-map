@@ -417,9 +417,10 @@ const createPanels = ({
           },
           {
             id: 'energyCertificateValidity',
-            label: plain('Valid until'),
-            text: plain('2031'),
+            label: plain('Latest energy certificate valid until'),
+            text: plain('12/31/2031'),
             status: 'real',
+            sourceProperties: ['energy_certificate_valid_until'],
           },
         ],
       },
