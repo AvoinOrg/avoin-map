@@ -409,6 +409,100 @@ describe('Energiakartta building info model', () => {
     ])
   })
 
+  it('maps a populated previous certificate class with exact provenance', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        building_key: 'previous-class-populated',
+        energy_certificate_previous_class: ' B ',
+      }),
+      locale: 'en-US',
+    })
+    const previousEnergyClass = getRow(
+      getPanel(panels ?? [], 'buildingDetails'),
+      'previousEnergyClass'
+    )
+
+    expect(previousEnergyClass.status).toBe('real')
+    expectPlainText(previousEnergyClass.text, 'B')
+    expect(previousEnergyClass.sourceProperties).toEqual([
+      'energy_certificate_previous_class',
+    ])
+  })
+
+  it('keeps a previous certificate class that matches the current class', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        building_key: 'previous-class-same-as-current',
+        energy_certificate_class: 'D',
+        energy_certificate_previous_class: 'D',
+      }),
+      locale: 'en-US',
+    })
+    const buildingPanel = getPanel(panels ?? [], 'buildingDetails')
+    const currentEnergyClass = getRow(buildingPanel, 'energyClass')
+    const previousEnergyClass = getRow(buildingPanel, 'previousEnergyClass')
+
+    expectPlainText(currentEnergyClass.text, 'D')
+    expectPlainText(previousEnergyClass.text, 'D')
+    expect(previousEnergyClass.status).toBe('real')
+    expect(previousEnergyClass.sourceProperties).toEqual([
+      'energy_certificate_previous_class',
+    ])
+  })
+
+  it('uses a different previous certificate class without deriving it from the current class', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        building_key: 'previous-class-different-from-current',
+        energy_certificate_class: 'D',
+        energy_certificate_previous_class: 'F',
+      }),
+      locale: 'en-US',
+    })
+    const buildingPanel = getPanel(panels ?? [], 'buildingDetails')
+    const currentEnergyClass = getRow(buildingPanel, 'energyClass')
+    const previousEnergyClass = getRow(buildingPanel, 'previousEnergyClass')
+
+    expectPlainText(currentEnergyClass.text, 'D')
+    expectPlainText(previousEnergyClass.text, 'F')
+    expect(previousEnergyClass.status).toBe('real')
+    expect(previousEnergyClass.sourceProperties).toEqual([
+      'energy_certificate_previous_class',
+    ])
+  })
+
+  it.each([
+    ['absent', {}],
+    ['null', { energy_certificate_previous_class: null }],
+    ['empty', { energy_certificate_previous_class: '' }],
+    ['whitespace', { energy_certificate_previous_class: '   ' }],
+  ])(
+    'keeps %s previous certificate history missing without falling back to the current class',
+    (_caseName, previousClassProperties) => {
+      const panels = createEnergymapBuildingInfoPanels({
+        selectedBuilding: createSelectedBuilding({
+          building_key: `previous-class-${_caseName}`,
+          energy_certificate_class: 'D',
+          ...previousClassProperties,
+        }),
+        locale: 'en-US',
+      })
+      const buildingPanel = getPanel(panels ?? [], 'buildingDetails')
+      const currentEnergyClass = getRow(buildingPanel, 'energyClass')
+      const previousEnergyClass = getRow(buildingPanel, 'previousEnergyClass')
+
+      expectPlainText(currentEnergyClass.text, 'D')
+      expect(previousEnergyClass.status).toBe('missing')
+      expectTranslation(
+        previousEnergyClass.text,
+        `${translationPrefix}.placeholders.missing_value`
+      )
+      expect(previousEnergyClass.sourceProperties).toEqual([
+        'energy_certificate_previous_class',
+      ])
+    }
+  )
+
   it('composes heating from translation-backed code labels', () => {
     const panels = createEnergymapBuildingInfoPanels({
       selectedBuilding: districtHeatingBuilding,

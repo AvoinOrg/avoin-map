@@ -205,6 +205,11 @@ const POSTAL_CODE_PROPERTY = 'postal_code'
 const POSTAL_OFFICE_FIN_PROPERTY = 'postal_office_fin'
 const ENERGY_CERTIFICATE_HEATED_NET_AREA_PROPERTY =
   'energy_certificate_heated_net_area'
+const ENERGY_CERTIFICATE_PREVIOUS_CLASS_PROPERTY =
+  'energy_certificate_previous_class'
+type EnergyCertificateClassProperty =
+  | typeof ENERGY_CERTIFICATE_CLASS_PROPERTY
+  | typeof ENERGY_CERTIFICATE_PREVIOUS_CLASS_PROPERTY
 const ENERGY_CERTIFICATE_VENTILATION_TYPE_PROPERTY =
   'energy_certificate_ventilation_type_id'
 const ENERGY_CERTIFICATE_VENTILATION_DESCRIPTION_FI_PROPERTY =
@@ -1290,13 +1295,17 @@ const getEnergyCertificateRecommendationsValue = (
   })
 }
 
-const getEnergyCertificateClassValue = (
+const getEnergyCertificateClassValue = ({
+  properties,
+  propertyName,
+}: {
   properties: EnergymapSelectedBuilding['properties']
-): EnergymapBuildingInfoValue => {
-  const classCode = getStringProperty(properties, ENERGY_CERTIFICATE_CLASS_PROPERTY)
+  propertyName: EnergyCertificateClassProperty
+}): EnergymapBuildingInfoValue => {
+  const classCode = getStringProperty(properties, propertyName)
 
   if (classCode == null) {
-    return missingValue({ sourceProperties: [ENERGY_CERTIFICATE_CLASS_PROPERTY] })
+    return missingValue({ sourceProperties: [propertyName] })
   }
 
   if (
@@ -1306,7 +1315,7 @@ const getEnergyCertificateClassValue = (
   ) {
     return realValue({
       text: plainText(classCode),
-      sourceProperties: [ENERGY_CERTIFICATE_CLASS_PROPERTY],
+      sourceProperties: [propertyName],
     })
   }
 
@@ -1314,7 +1323,7 @@ const getEnergyCertificateClassValue = (
     text: translationText(key('placeholders.unknown_code'), {
       code: classCode,
     }),
-    sourceProperties: [ENERGY_CERTIFICATE_CLASS_PROPERTY],
+    sourceProperties: [propertyName],
   })
 }
 
@@ -1800,7 +1809,10 @@ const createBuildingDetailsPanel = ({
         row({
           id: 'energyClass',
           labelKey: key('panels.building.rows.energy_class'),
-          value: getEnergyCertificateClassValue(properties),
+          value: getEnergyCertificateClassValue({
+            properties,
+            propertyName: ENERGY_CERTIFICATE_CLASS_PROPERTY,
+          }),
         }),
         createPlaceholderRow({
           id: 'energyCertificateValidity',
@@ -1812,9 +1824,13 @@ const createBuildingDetailsPanel = ({
       id: 'previousEnergyClass',
       variant: 'previousEnergyClass',
       rows: [
-        createPlaceholderRow({
+        row({
           id: 'previousEnergyClass',
           labelKey: key('panels.building.rows.previous_energy_class'),
+          value: getEnergyCertificateClassValue({
+            properties,
+            propertyName: ENERGY_CERTIFICATE_PREVIOUS_CLASS_PROPERTY,
+          }),
         }),
         createPlaceholderRow({
           id: 'energyClassMeasures',
