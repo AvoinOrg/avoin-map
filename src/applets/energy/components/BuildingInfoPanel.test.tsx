@@ -132,6 +132,8 @@ const plain = (text: string): EnergymapBuildingInfoText => ({
 
 const VENTILATION_SOURCE_TEXT =
   '<strong data-injected="true">Painovoimainen</strong><script>alert("unsafe")</script>'
+const CERTIFICATE_RECOMMENDATION_SOURCE_TEXT =
+  'Tiivistä yläpohjan lämmöneristystä ja tarkista ilmanvaihdon säädöt.\n\n<script data-injected="true">alert("unsafe")</script> **Tämä on lähdetekstiä, ei Markdownia.** Erittäinpitkäkatkeamatonmerkkijonotestaaturvallisenrivityksen.'
 
 const metricValue = ({
   id,
@@ -430,6 +432,34 @@ const panels: EnergymapBuildingInfoPanel[] = [
     title: translation('panel.renovation.title'),
     description: translation('panel.renovation.description'),
     sections: [
+      {
+        id: 'publishedRecommendations',
+        rows: [
+          {
+            id: 'renovationRecommendations',
+            label: translation('row.renovation_recommendations.label'),
+            text: translation('value.placeholder'),
+            status: 'placeholder',
+          },
+          {
+            id: 'energyRecommendations',
+            label: translation('row.energy_recommendations.label'),
+            text: translation('value.placeholder'),
+            status: 'placeholder',
+          },
+          {
+            id: 'energyCertificateRecommendations',
+            label: translation(
+              'row.energy_certificate_recommendations.label'
+            ),
+            text: plain(CERTIFICATE_RECOMMENDATION_SOURCE_TEXT),
+            status: 'real',
+            sourceProperties: ['energy_certificate_recommendations_fi'],
+            sourceLanguage: 'fi',
+            presentation: 'expandableSourceText',
+          },
+        ],
+      },
       {
         id: 'scenarioComparison',
         title: translation('section.scenario.title'),
@@ -1020,6 +1050,105 @@ describe('BuildingInfoPanel', () => {
     expect(energyPanel).not.toHaveTextContent(
       'sidebar.building_info.panels.energy.unsupported.water_heating'
     )
+  })
+
+  it('renders certificate recommendations as a safe accessible disclosure', async () => {
+    renderBuildingInfoTabs({ activeTabId: 'renovation' })
+
+    await screen.findByTestId('building-info-tab-page-renovation')
+    const trigger = screen.getByRole('button', {
+      name: 'row.energy_certificate_recommendations.label',
+    })
+    const panel = screen.getByTestId(
+      'building-info-expandable-source-text-panel-energyCertificateRecommendations'
+    )
+    const content = screen.getByTestId(
+      'building-info-expandable-source-text-content-energyCertificateRecommendations'
+    )
+
+    expect(trigger.tagName).toBe('BUTTON')
+    expect(trigger).toHaveAttribute('type', 'button')
+    expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    expect(trigger).toHaveAttribute('aria-controls', panel.id)
+    expect(panel).not.toBeVisible()
+
+    fireEvent.click(trigger)
+
+    expect(trigger).toHaveAttribute('aria-expanded', 'true')
+    expect(panel).toBeVisible()
+    expect(content).toHaveAttribute('lang', 'fi')
+    expect(content).toHaveAttribute('data-status', 'real')
+    expect(content).toHaveAttribute(
+      'data-source-properties',
+      'energy_certificate_recommendations_fi'
+    )
+    expect(content).toHaveStyle({
+      whiteSpace: 'pre-line',
+      overflowWrap: 'anywhere',
+      wordBreak: 'break-word',
+    })
+    expect(content.textContent).toBe(CERTIFICATE_RECOMMENDATION_SOURCE_TEXT)
+    expect(
+      content.querySelector('script, strong, [data-injected]')
+    ).not.toBeInTheDocument()
+
+    fireEvent.click(trigger)
+    expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    expect(panel).not.toBeVisible()
+  })
+
+  it('renders a missing certificate recommendation as unavailable without a disclosure', async () => {
+    const panelsWithMissingRecommendation = panels.map((panel) =>
+      panel.id === 'renovationRecommendations'
+        ? {
+            ...panel,
+            sections: panel.sections.map((section) =>
+              section.id === 'publishedRecommendations'
+                ? {
+                    ...section,
+                    rows: section.rows?.map((row) =>
+                      row.id === 'energyCertificateRecommendations'
+                        ? {
+                            ...row,
+                            text: translation('value.missing'),
+                            status: 'missing' as const,
+                            sourceProperties: [
+                              'energy_certificate_recommendations_fi',
+                              'energy_certificate_recommendations_sv',
+                            ],
+                            sourceLanguage: undefined,
+                          }
+                        : row
+                    ),
+                  }
+                : section
+            ),
+          }
+        : panel
+    )
+
+    renderBuildingInfoTabs({
+      activeTabId: 'renovation',
+      panels: panelsWithMissingRecommendation,
+    })
+
+    await screen.findByTestId('building-info-tab-page-renovation')
+    const row = document.querySelector(
+      '[data-row-id="energyCertificateRecommendations"]'
+    ) as HTMLElement
+
+    expect(row).toBeInTheDocument()
+    expect(
+      within(row).getByTestId('building-info-unavailable-value-reason')
+    ).toHaveTextContent('value.missing')
+    expect(
+      screen.queryByRole('button', {
+        name: 'row.energy_certificate_recommendations.label',
+      })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByTestId('building-info-expandable-source-text-row')
+    ).not.toBeInTheDocument()
   })
 
   it('updates the energy value table when submetrics are toggled', async () => {

@@ -57,6 +57,27 @@ describe('Energiakartta selected building helpers', () => {
     })
   })
 
+  it('retains both latest-certificate recommendation properties unchanged', () => {
+    const selectedBuilding = toEnergymapSelectedBuilding(
+      createFeature({
+        properties: {
+          building_key: buildingKey,
+          energy_certificate_recommendations_fi:
+            'Tiivistä yläpohjan lämmöneristystä.\n\nTarkista ilmanvaihto.',
+          energy_certificate_recommendations_sv:
+            'Förbättra vindsbjälklagets värmeisolering.',
+        },
+      })
+    )
+
+    expect(selectedBuilding?.properties).toMatchObject({
+      energy_certificate_recommendations_fi:
+        'Tiivistä yläpohjan lämmöneristystä.\n\nTarkista ilmanvaihto.',
+      energy_certificate_recommendations_sv:
+        'Förbättra vindsbjälklagets värmeisolering.',
+    })
+  })
+
   it('uses building_key as the stable id fallback and rejects unidentified features', () => {
     expect(
       toEnergymapSelectedBuilding(createFeature({ id: undefined }))?.id

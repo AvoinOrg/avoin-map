@@ -65,6 +65,7 @@ export type EnergymapBuildingInfoValue = {
 export type EnergymapBuildingInfoRow = EnergymapBuildingInfoValue & {
   id: string
   label: EnergymapBuildingInfoText
+  presentation?: 'expandableSourceText'
 }
 
 export type EnergymapBuildingInfoMetricValue = EnergymapBuildingInfoValue & {
@@ -220,6 +221,17 @@ const ENERGY_CERTIFICATE_VENTILATION_DESCRIPTION_SOURCE_ORDER = [
   'fi',
   'sv',
 ] as const
+const ENERGY_CERTIFICATE_RECOMMENDATIONS_FI_PROPERTY =
+  'energy_certificate_recommendations_fi'
+const ENERGY_CERTIFICATE_RECOMMENDATIONS_SV_PROPERTY =
+  'energy_certificate_recommendations_sv'
+const ENERGY_CERTIFICATE_RECOMMENDATIONS_PROPERTIES = {
+  fi: ENERGY_CERTIFICATE_RECOMMENDATIONS_FI_PROPERTY,
+  sv: ENERGY_CERTIFICATE_RECOMMENDATIONS_SV_PROPERTY,
+} as const
+// Energy supports Finnish and English UI locales. Neither UI locale has an
+// English source, so both use Finnish first and Swedish only as a fallback.
+const ENERGY_CERTIFICATE_RECOMMENDATIONS_SOURCE_ORDER = ['fi', 'sv'] as const
 
 const HEATING_METHOD_CODES = [
   '01',
@@ -348,14 +360,17 @@ const row = ({
   id,
   labelKey,
   value,
+  presentation,
 }: {
   id: string
   labelKey: string
   value: EnergymapBuildingInfoValue
+  presentation?: EnergymapBuildingInfoRow['presentation']
 }): EnergymapBuildingInfoRow => ({
   id,
   label: translationText(labelKey),
   ...value,
+  ...(presentation == null ? {} : { presentation }),
 })
 
 const metricValue = ({
@@ -1245,6 +1260,36 @@ const getVentilationValue = (
   })
 }
 
+const getEnergyCertificateRecommendationsValue = (
+  properties: EnergymapSelectedBuilding['properties']
+): EnergymapBuildingInfoValue => {
+  for (const sourceLanguage of ENERGY_CERTIFICATE_RECOMMENDATIONS_SOURCE_ORDER) {
+    const propertyName =
+      ENERGY_CERTIFICATE_RECOMMENDATIONS_PROPERTIES[sourceLanguage]
+
+    if (typeof properties[propertyName] !== 'string') {
+      continue
+    }
+
+    const recommendations = getStringProperty(properties, propertyName)
+
+    if (recommendations != null) {
+      return realValue({
+        text: plainText(recommendations),
+        sourceProperties: [propertyName],
+        sourceLanguage,
+      })
+    }
+  }
+
+  return missingValue({
+    sourceProperties: [
+      ENERGY_CERTIFICATE_RECOMMENDATIONS_FI_PROPERTY,
+      ENERGY_CERTIFICATE_RECOMMENDATIONS_SV_PROPERTY,
+    ],
+  })
+}
+
 const getEnergyCertificateClassValue = (
   properties: EnergymapSelectedBuilding['properties']
 ): EnergymapBuildingInfoValue => {
@@ -1665,11 +1710,13 @@ const createRenovationRecommendationsPanel = ({
           id: 'energyRecommendations',
           labelKey: key('panels.renovation.sections.energy_recommendations'),
         }),
-        createPlaceholderRow({
+        row({
           id: 'energyCertificateRecommendations',
           labelKey: key(
             'panels.renovation.sections.energy_certificate_recommendations'
           ),
+          value: getEnergyCertificateRecommendationsValue(properties),
+          presentation: 'expandableSourceText',
         }),
       ],
     },

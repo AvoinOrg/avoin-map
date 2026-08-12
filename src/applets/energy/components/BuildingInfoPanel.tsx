@@ -1,4 +1,5 @@
 import React from 'react'
+import { Collapsible } from '@base-ui/react/collapsible'
 import { useTranslate } from '@tolgee/react'
 
 import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
@@ -12,6 +13,8 @@ import {
 } from '#/common/style/theme'
 import { ButtonBase, IconButton } from '#/components/common/Button'
 import AppTooltip from '#/components/common/AppTooltip'
+import CustomAccordion from '#/components/common/CustomAccordion'
+import CustomAccordionSummary from '#/components/common/CustomAccordionSummary'
 import { NumberInputField } from '#/components/common/NumberInputField'
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 import TText from '#/components/common/TText'
@@ -982,6 +985,96 @@ const BuildingInfoRow = ({ row }: { row: EnergymapBuildingInfoRow }) => (
     </Box>
   </Box>
 )
+
+const BuildingInfoExpandableSourceTextRow = ({
+  row,
+}: {
+  row: EnergymapBuildingInfoRow
+}) => {
+  const panelId = React.useId()
+
+  return (
+    <Box
+      data-row-id={row.id}
+      data-row-presentation={row.presentation}
+      data-testid="building-info-expandable-source-text-row"
+    >
+      <CustomAccordion
+        sx={{
+          backgroundColor: 'transparent',
+          '&[data-open]': {
+            m: 0,
+            backgroundColor: 'transparent',
+          },
+        }}
+      >
+        <CustomAccordionSummary
+          aria-controls={panelId}
+          data-testid={`building-info-expandable-source-text-trigger-${row.id}`}
+          sx={{
+            ...textSx,
+            py: '0.875rem',
+            borderTop: '0.3px solid #cfcfcf',
+            color: '#111111',
+            textAlign: 'left',
+            '& .CustomAccordionSummary-expandIcon': {
+              width: '1rem',
+              height: '1rem',
+              ml: '0.75rem',
+              color: '#111111',
+              '& svg': {
+                width: '0.75rem',
+                height: '0.75rem',
+              },
+            },
+          }}
+        >
+          <BuildingInfoText text={row.label} />
+        </CustomAccordionSummary>
+        <Collapsible.Panel
+          keepMounted
+          render={(panelProps) => (
+            <Box
+              {...panelProps}
+              id={panelId}
+              data-testid={`building-info-expandable-source-text-panel-${row.id}`}
+              sx={{
+                height: 'var(--collapsible-panel-height)',
+                overflow: 'hidden',
+                transition: 'height 160ms ease',
+                '&[data-starting-style], &[data-ending-style]': {
+                  height: 0,
+                },
+              }}
+            />
+          )}
+        >
+          <Box
+            data-testid={`building-info-expandable-source-text-content-${row.id}`}
+            data-status={row.status}
+            data-source-properties={getSourcePropertiesData(
+              row.sourceProperties
+            )}
+            lang={row.sourceLanguage}
+            sx={{
+              ...textSx,
+              minWidth: 0,
+              maxWidth: '100%',
+              pb: '0.875rem',
+              fontWeight: 400,
+              whiteSpace: 'pre-line',
+              overflowWrap: 'anywhere',
+              wordBreak: 'break-word',
+              ...STATUS_SX[row.status],
+            }}
+          >
+            <BuildingInfoText text={row.text} />
+          </Box>
+        </Collapsible.Panel>
+      </CustomAccordion>
+    </Box>
+  )
+}
 
 const BuildingInfoSectionDivider = () => (
   <Box
@@ -2065,7 +2158,13 @@ const BuildingInfoSectionBlock = ({
           <BuildingInfoText text={section.description} />
         </Box>
       )}
-      {section.rows?.map((row) => <BuildingInfoRow key={row.id} row={row} />)}
+      {section.rows?.map((row) =>
+        row.presentation === 'expandableSourceText' && row.status === 'real' ? (
+          <BuildingInfoExpandableSourceTextRow key={row.id} row={row} />
+        ) : (
+          <BuildingInfoRow key={row.id} row={row} />
+        )
+      )}
       {section.metrics?.map((metric) => (
         <BuildingInfoMetricBlock
           key={metric.id}

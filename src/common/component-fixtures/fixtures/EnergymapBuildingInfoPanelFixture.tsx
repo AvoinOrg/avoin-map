@@ -50,6 +50,11 @@ const plain = (text: string): EnergymapBuildingInfoText => ({
   text,
 })
 
+const CERTIFICATE_RECOMMENDATIONS_BY_LANGUAGE = {
+  fi: 'Tiivistä yläpohjan lämmöneristystä ja tarkista ilmanvaihdon säädöt. Suositus näytetään täsmälleen energiatodistuksen lähdetekstinä.\n\nToisessa kappaleessa tarkennetaan, että ikkunoiden ja ulko-ovien tiivisteet tulee tarkistaa seuraavan huollon yhteydessä.',
+  sv: 'Förbättra vindsbjälklagets värmeisolering och kontrollera ventilationens inställningar. Rekommendationen visas exakt som källtexten i energicertifikatet.\n\nDet andra stycket preciserar att tätningarna kring fönster och ytterdörrar ska kontrolleras vid nästa service.',
+} as const
+
 const value = ({
   id,
   label,
@@ -249,12 +254,14 @@ const createControls = ({
 const createPanels = ({
   defaultPrimaryMetricId = 'energy',
   unsupportedPrimaryMetricId,
+  recommendationSourceLanguage = 'fi',
 }: {
   defaultPrimaryMetricId?: EnergymapBuildingInfoPrimaryMetricId
   unsupportedPrimaryMetricId?: Extract<
     EnergymapBuildingInfoPrimaryMetricId,
     'cost' | 'co2'
   >
+  recommendationSourceLanguage?: keyof typeof CERTIFICATE_RECOMMENDATIONS_BY_LANGUAGE
 } = {}): EnergymapBuildingInfoPanel[] => [
   {
     id: 'energyConsumption',
@@ -281,23 +288,39 @@ const createPanels = ({
   {
     id: 'renovationRecommendations',
     title: plain('Renovation recommendations'),
-    description: plain('Potential upgrades for the current heating profile.'),
+    description: plain(
+      'When available, energy-certificate recommendations are shown as provided in the source data. Published consumption scenarios are shown separately as estimates.'
+    ),
     sections: [
       {
-        id: 'renovationSummary',
-        title: plain('Recommended measures'),
+        id: 'publishedRecommendations',
         rows: [
           {
-            id: 'primaryMeasure',
-            label: plain('Primary action'),
-            text: plain('Air-to-air heat pump'),
-            status: 'estimate',
+            id: 'renovationRecommendations',
+            label: plain('Renovation recommendations'),
+            text: plain('Source data unavailable'),
+            status: 'placeholder',
           },
           {
-            id: 'secondaryMeasure',
-            label: plain('Additional action'),
-            text: plain('Solar panels'),
-            status: 'estimate',
+            id: 'energyRecommendations',
+            label: plain('Energy recommendations'),
+            text: plain('Source data unavailable'),
+            status: 'placeholder',
+          },
+          {
+            id: 'energyCertificateRecommendations',
+            label: plain('Energy-certificate recommendations'),
+            text: plain(
+              CERTIFICATE_RECOMMENDATIONS_BY_LANGUAGE[
+                recommendationSourceLanguage
+              ]
+            ),
+            status: 'real',
+            sourceProperties: [
+              `energy_certificate_recommendations_${recommendationSourceLanguage}`,
+            ],
+            sourceLanguage: recommendationSourceLanguage,
+            presentation: 'expandableSourceText',
           },
         ],
       },
@@ -488,6 +511,8 @@ const BuildingInfoPanelFixtureState = ({
   defaultPrimaryMetricId,
   unsupportedPrimaryMetricId,
   forceMobileLayout = false,
+  interaction,
+  recommendationSourceLanguage = 'fi',
 }: {
   activeTabId?: BuildingInfoTabId
   defaultPrimaryMetricId?: EnergymapBuildingInfoPrimaryMetricId
@@ -496,11 +521,71 @@ const BuildingInfoPanelFixtureState = ({
     'cost' | 'co2'
   >
   forceMobileLayout?: boolean
+  interaction?: 'recommendation-expanded'
+  recommendationSourceLanguage?: keyof typeof CERTIFICATE_RECOMMENDATIONS_BY_LANGUAGE
 }) => {
   const extensionOptions = React.useMemo(
     () => getFixtureExtensionOptions(forceMobileLayout),
     [forceMobileLayout]
   )
+  const rootRef = React.useRef<HTMLDivElement | null>(null)
+  const [interactionReady, setInteractionReady] = React.useState(false)
+
+  React.useEffect(() => {
+    if (interaction == null) {
+      return
+    }
+
+    const root = rootRef.current
+    if (root == null) {
+      return
+    }
+
+    let interactionRequested = false
+    let observer: MutationObserver | null = null
+
+    const markReady = () => {
+      observer?.disconnect()
+      setInteractionReady(true)
+    }
+
+    const prepareInteraction = () => {
+      const trigger = root.querySelector<HTMLButtonElement>(
+        '[data-testid="building-info-expandable-source-text-trigger-energyCertificateRecommendations"]'
+      )
+
+      if (trigger == null) {
+        return
+      }
+
+      if (
+        trigger.getAttribute('aria-expanded') !== 'true' &&
+        !interactionRequested
+      ) {
+        interactionRequested = true
+        trigger.click()
+      }
+
+      if (trigger.getAttribute('aria-expanded') === 'true') {
+        root
+          .querySelector<HTMLElement>(
+            '[data-testid="building-info-expandable-source-text-panel-energyCertificateRecommendations"]'
+          )
+          ?.scrollIntoView({ block: 'center' })
+        markReady()
+      }
+    }
+
+    observer = new MutationObserver(prepareInteraction)
+    observer.observe(root, {
+      attributes: true,
+      childList: true,
+      subtree: true,
+    })
+    prepareInteraction()
+
+    return () => observer?.disconnect()
+  }, [interaction])
 
   return (
     <SlotsProvider>
@@ -509,6 +594,7 @@ const BuildingInfoPanelFixtureState = ({
           value={{ extensionId: FIXTURE_EXTENSION_ID, depth: 0 }}
         >
           <Box
+            ref={rootRef}
             sx={{
               position: 'relative',
               width: forceMobileLayout ? 390 : 960,
@@ -523,6 +609,7 @@ const BuildingInfoPanelFixtureState = ({
                 panels={createPanels({
                   defaultPrimaryMetricId,
                   unsupportedPrimaryMetricId,
+                  recommendationSourceLanguage,
                 })}
                 ariaLabels={ariaLabels}
                 activeTabId={activeTabId}
@@ -533,6 +620,9 @@ const BuildingInfoPanelFixtureState = ({
               />
             </IntoSidebarPanelExtensionPanelSlot>
             <BuildingInfoPanelFixtureChrome options={extensionOptions} />
+            {interactionReady && (
+              <Box data-testid="building-info-fixture-interaction-ready" />
+            )}
           </Box>
         </SidebarPanelExtensionContextProvider>
       </SidebarPanelExtensionTabsProvider>
@@ -591,6 +681,19 @@ export const energymapBuildingInfoPanelFixture: ComponentFixture = {
       render: () => <BuildingInfoPanelFixtureState activeTabId="renovation" />,
     },
     {
+      id: 'desktop-recommendation-expanded',
+      label: 'Desktop certificate recommendation expanded',
+      description:
+        'Expanded long Finnish certificate recommendation with paragraph breaks.',
+      waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          activeTabId="renovation"
+          interaction="recommendation-expanded"
+        />
+      ),
+    },
+    {
       id: 'mobile-renovation',
       label: 'Mobile renovation',
       description: 'Forced stacked layout for the renovation tab.',
@@ -599,6 +702,21 @@ export const energymapBuildingInfoPanelFixture: ComponentFixture = {
         <BuildingInfoPanelFixtureState
           activeTabId="renovation"
           forceMobileLayout
+        />
+      ),
+    },
+    {
+      id: 'mobile-recommendation-expanded',
+      label: 'Mobile certificate recommendation expanded',
+      description:
+        'Expanded long Swedish certificate recommendation in forced mobile layout.',
+      waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          activeTabId="renovation"
+          forceMobileLayout
+          interaction="recommendation-expanded"
+          recommendationSourceLanguage="sv"
         />
       ),
     },

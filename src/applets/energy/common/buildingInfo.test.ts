@@ -153,6 +153,24 @@ const getVentilationRow = ({
   return getRow(getPanel(panels ?? [], 'buildingDetails'), 'ventilation')
 }
 
+const getCertificateRecommendationsRow = ({
+  properties,
+  locale,
+}: {
+  properties: EnergymapSelectedBuilding['properties']
+  locale: string
+}) => {
+  const panels = createEnergymapBuildingInfoPanels({
+    selectedBuilding: createSelectedBuilding(properties),
+    locale,
+  })
+
+  return getRow(
+    getPanel(panels ?? [], 'renovationRecommendations'),
+    'energyCertificateRecommendations'
+  )
+}
+
 const getMetrics = (panel: EnergymapBuildingInfoPanel) =>
   panel.sections.flatMap((section) => section.metrics ?? [])
 
@@ -995,6 +1013,10 @@ describe('Energiakartta building info model', () => {
       locale: 'en-US',
     })
     const renovationPanel = getPanel(panels ?? [], 'renovationRecommendations')
+    const publishedRecommendations = getSection(
+      renovationPanel,
+      'publishedRecommendations'
+    )
     const scenarioComparison = renovationPanel.sections.find(
       (section) => section.id === 'scenarioComparison'
     )
@@ -1010,12 +1032,28 @@ describe('Energiakartta building info model', () => {
       (value) => value.id === 'savingsPercent'
     )
 
-    expect(certificateRecommendations.status).toBe('placeholder')
+    expect(renovationPanel.sections.map((section) => section.id)).toEqual([
+      'publishedRecommendations',
+      'scenarioComparison',
+    ])
+    expect(publishedRecommendations.rows?.map((row) => row.id)).toEqual([
+      'renovationRecommendations',
+      'energyRecommendations',
+      'energyCertificateRecommendations',
+    ])
+    expect(certificateRecommendations.status).toBe('missing')
+    expect(certificateRecommendations.presentation).toBe(
+      'expandableSourceText'
+    )
     expect(scenarioComparison?.notes).toBeUndefined()
     expectTranslation(
       certificateRecommendations.text,
-      `${translationPrefix}.placeholders.not_published`
+      `${translationPrefix}.placeholders.missing_value`
     )
+    expect(certificateRecommendations.sourceProperties).toEqual([
+      'energy_certificate_recommendations_fi',
+      'energy_certificate_recommendations_sv',
+    ])
     expect(annualTotal?.status).toBe('estimate')
     expectPlainText(annualTotal?.text as EnergymapBuildingInfoText, '131,525')
     expect(savingsPercent?.status).toBe('estimate')
@@ -1025,6 +1063,145 @@ describe('Energiakartta building info model', () => {
       { percent: '-21%' }
     )
   })
+
+  it.each([
+    [
+      'Finnish prefers Finnish',
+      'fi-FI',
+      {
+        energy_certificate_recommendations_fi:
+          '  Tiivistä yläpohjan lämmöneristystä.  ',
+        energy_certificate_recommendations_sv:
+          'Förbättra vindsbjälklagets värmeisolering.',
+      },
+      'Tiivistä yläpohjan lämmöneristystä.',
+      'fi',
+      'energy_certificate_recommendations_fi',
+    ],
+    [
+      'English presents Finnish as Finnish source text',
+      'en-US',
+      {
+        energy_certificate_recommendations_fi:
+          'Uusi lämmöntalteenottojärjestelmä.',
+        energy_certificate_recommendations_sv: 'Installera värmeåtervinning.',
+      },
+      'Uusi lämmöntalteenottojärjestelmä.',
+      'fi',
+      'energy_certificate_recommendations_fi',
+    ],
+    [
+      'Finnish-only source text',
+      'en',
+      {
+        energy_certificate_recommendations_fi: 'Vaihda ikkunat.',
+      },
+      'Vaihda ikkunat.',
+      'fi',
+      'energy_certificate_recommendations_fi',
+    ],
+    [
+      'Swedish-only source text',
+      'fi',
+      {
+        energy_certificate_recommendations_sv: 'Byt fönster.',
+      },
+      'Byt fönster.',
+      'sv',
+      'energy_certificate_recommendations_sv',
+    ],
+    [
+      'blank Finnish falls back to Swedish',
+      'fi',
+      {
+        energy_certificate_recommendations_fi: ' \n ',
+        energy_certificate_recommendations_sv: '  Täta ytterdörrarna.  ',
+      },
+      'Täta ytterdörrarna.',
+      'sv',
+      'energy_certificate_recommendations_sv',
+    ],
+    [
+      'paragraph breaks in long source prose survive outer trimming',
+      'en',
+      {
+        energy_certificate_recommendations_fi:
+          '  Ensimmäinen pitkä suosituskappale säilyttää lähteen sanamuodon.\n\nToinen kappale sisältää lisätietoja ja ääkkösiä muuttumattomina.  ',
+      },
+      'Ensimmäinen pitkä suosituskappale säilyttää lähteen sanamuodon.\n\nToinen kappale sisältää lisätietoja ja ääkkösiä muuttumattomina.',
+      'fi',
+      'energy_certificate_recommendations_fi',
+    ],
+    [
+      'HTML and Markdown-looking source stays plain',
+      'en',
+      {
+        energy_certificate_recommendations_fi:
+          '  <script>alert("unsafe")</script> **Ei Markdownia**  ',
+      },
+      '<script>alert("unsafe")</script> **Ei Markdownia**',
+      'fi',
+      'energy_certificate_recommendations_fi',
+    ],
+  ] as const)(
+    'selects one certificate recommendation source: %s',
+    (_caseName, locale, properties, text, sourceLanguage, sourceProperty) => {
+      const recommendation = getCertificateRecommendationsRow({
+        properties: {
+          building_key: `certificate-recommendation-${sourceLanguage}`,
+          ...properties,
+        },
+        locale,
+      })
+
+      expect(recommendation.status).toBe('real')
+      expect(recommendation.presentation).toBe('expandableSourceText')
+      expectPlainText(recommendation.text, text)
+      expect(recommendation.sourceLanguage).toBe(sourceLanguage)
+      expect(recommendation.sourceProperties).toEqual([sourceProperty])
+    }
+  )
+
+  it.each([
+    ['both fields missing', {}],
+    [
+      'both fields blank',
+      {
+        energy_certificate_recommendations_fi: ' \n ',
+        energy_certificate_recommendations_sv: '\t',
+      },
+    ],
+    [
+      'both fields invalid',
+      {
+        energy_certificate_recommendations_fi: 42,
+        energy_certificate_recommendations_sv: Number.POSITIVE_INFINITY,
+      },
+    ],
+  ])(
+    'uses the normal missing recommendation state when %s',
+    (_caseName, properties) => {
+      const recommendation = getCertificateRecommendationsRow({
+        properties: {
+          building_key: 'certificate-recommendation-missing',
+          ...properties,
+        },
+        locale: 'en-US',
+      })
+
+      expect(recommendation.status).toBe('missing')
+      expect(recommendation.presentation).toBe('expandableSourceText')
+      expectTranslation(
+        recommendation.text,
+        `${translationPrefix}.placeholders.missing_value`
+      )
+      expect(recommendation.sourceLanguage).toBeUndefined()
+      expect(recommendation.sourceProperties).toEqual([
+        'energy_certificate_recommendations_fi',
+        'energy_certificate_recommendations_sv',
+      ])
+    }
+  )
 
   it('keeps absent scenario combinations as not-published placeholders', () => {
     const panels = createEnergymapBuildingInfoPanels({
