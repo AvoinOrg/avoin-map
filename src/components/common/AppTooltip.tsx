@@ -34,6 +34,7 @@ export type AppTooltipProps = {
   delay?: number
   closeDelay?: number
   sideOffset?: number
+  popupId?: string
   popupSx?: AppSxProps
   popupDataSlot?: string
 }
@@ -83,6 +84,7 @@ export const AppTooltip = ({
   delay = 0,
   closeDelay = 0,
   sideOffset = 8,
+  popupId,
   popupSx,
   popupDataSlot,
 }: AppTooltipProps) => (
@@ -122,6 +124,7 @@ export const AppTooltip = ({
           render={(popupProps) => (
             <Box
               {...popupProps}
+              id={popupId ?? popupProps.id}
               data-slot={popupDataSlot}
               role={popupProps.role ?? 'tooltip'}
               sx={[appTooltipPopupSx, ...toSxArray(popupSx)]}

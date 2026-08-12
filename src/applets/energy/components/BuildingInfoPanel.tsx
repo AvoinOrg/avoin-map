@@ -18,6 +18,7 @@ import CustomAccordionSummary from '#/components/common/CustomAccordionSummary'
 import { NumberInputField } from '#/components/common/NumberInputField'
 import SwitchWithLabel from '#/components/common/SwitchWithLabel'
 import TText from '#/components/common/TText'
+import QuestionCircleOutline from '#/components/icons/QuestionCircleOutline'
 import { SidebarPanelExtensionPageContainer } from '#/components/Sidebar/SidebarPanelExtensionPageContainer'
 import { SidebarPanelExtensionTabContainer } from '#/components/Sidebar/SidebarPanelExtensionTabContainer'
 import {
@@ -81,6 +82,10 @@ type BuildingInfoInlineTooltipTriggerProps = Omit<
   'color'
 > & {
   ref?: React.Ref<HTMLElement>
+}
+
+type BuildingInfoTooltipClickEvent = React.MouseEvent<HTMLButtonElement> & {
+  preventBaseUIHandler?: () => void
 }
 
 const PANEL_IDS_BY_MODE: Record<
@@ -1154,10 +1159,150 @@ const BuildingInfoSectionLine = ({
         textAlign: 'right',
       }}
     >
-      <BuildingInfoValueText value={row} variant={valueVariant} />
+      {valueVariant === 'energyClassBadge' ? (
+        <Box
+          component="span"
+          data-testid="building-info-energy-class-value-stack"
+          sx={{
+            display: 'inline-flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            maxWidth: '100%',
+            textAlign: 'left',
+            verticalAlign: 'top',
+          }}
+        >
+          <BuildingInfoValueText
+            value={row}
+            align="left"
+            variant={valueVariant}
+          />
+          {row.modeledIndicator != null && (
+            <BuildingInfoModeledEnergyClassIndicator
+              indicator={row.modeledIndicator}
+            />
+          )}
+        </Box>
+      ) : (
+        <BuildingInfoValueText value={row} variant={valueVariant} />
+      )}
     </Box>
   </Box>
 )
+
+const BuildingInfoModeledEnergyClassIndicator = ({
+  indicator,
+}: {
+  indicator: NonNullable<EnergymapBuildingInfoRow['modeledIndicator']>
+}) => {
+  const [open, setOpen] = React.useState(false)
+  const clickOpenRef = React.useRef(false)
+  const tooltipId = React.useId()
+  const { t } = useTranslate('energiakartta')
+
+  return (
+    <Box
+      component="span"
+      data-testid="building-info-modeled-energy-class-indicator"
+      data-source-properties={getSourcePropertiesData(
+        indicator.sourceProperties
+      )}
+      sx={{
+        mt: '0.1875rem',
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '0.1875rem',
+        maxWidth: '100%',
+        color: '#5f5f5f',
+        fontSize: '0.5625rem',
+        fontWeight: 400,
+        lineHeight: '0.875rem',
+        letterSpacing: '0.04em',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <Box component="span">
+        <BuildingInfoText text={indicator.label} />
+      </Box>
+      <AppTooltip
+        title={
+          <Box component="span">
+            <BuildingInfoText text={indicator.tooltip} />
+          </Box>
+        }
+        side="bottom"
+        align="end"
+        collisionAvoidance={{ side: 'flip', align: 'shift' }}
+        delay={0}
+        closeDelay={0}
+        open={open}
+        popupId={tooltipId}
+        onOpenChange={(nextOpen, eventDetails) => {
+          if (eventDetails.reason === 'trigger-press') {
+            eventDetails.cancel()
+            return
+          }
+
+          if (
+            !nextOpen &&
+            eventDetails.reason === 'trigger-hover' &&
+            clickOpenRef.current
+          ) {
+            return
+          }
+
+          if (!nextOpen) {
+            clickOpenRef.current = false
+          }
+
+          setOpen(nextOpen)
+        }}
+        popupDataSlot="building-info-modeled-energy-class-tooltip"
+        popupSx={{ maxWidth: 'min(24rem, calc(100vw - 2rem))' }}
+      >
+        {({ ref, ...triggerProps }) => (
+          <IconButton
+            {...triggerProps}
+            ref={ref as React.Ref<HTMLButtonElement>}
+            type="button"
+            size="small"
+            aria-label={t(indicator.ariaLabelKey)}
+            aria-describedby={open ? tooltipId : undefined}
+            onClick={(event: BuildingInfoTooltipClickEvent) => {
+              event.preventDefault()
+              event.stopPropagation()
+              event.preventBaseUIHandler?.()
+              const nextOpen = !clickOpenRef.current
+              clickOpenRef.current = nextOpen
+              setOpen(nextOpen)
+            }}
+            sx={{
+              width: '1rem',
+              minWidth: '1rem',
+              height: '1rem',
+              color: '#767676',
+              border: 0,
+              borderRadius: '50%',
+              '&:hover': {
+                backgroundColor: 'transparent',
+                color: '#111111',
+              },
+              '&:focus-visible': {
+                outline: '2px solid #111111',
+                outlineOffset: '2px',
+              },
+            }}
+          >
+            <QuestionCircleOutline
+              aria-hidden="true"
+              sx={{ width: 12, height: 12 }}
+            />
+          </IconButton>
+        )}
+      </AppTooltip>
+    </Box>
+  )
+}
 
 const BuildingInfoBuildingSubheaderSection = ({
   section,

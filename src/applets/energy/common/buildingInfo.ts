@@ -1,7 +1,4 @@
-import {
-  ENERGY_CERTIFICATE_CLASS_CODES,
-  ENERGY_CERTIFICATE_CLASS_PROPERTY,
-} from '../layers/energyCertificateLayerConf'
+import { ENERGY_CERTIFICATE_CLASS_CODES } from '../layers/energyCertificateLayerConf'
 import {
   ENERGYMAP_BUILDING_COMPLETION_DATE_PROPERTY,
   ENERGYMAP_BUILDING_TYPE_CODES,
@@ -66,6 +63,12 @@ export type EnergymapBuildingInfoRow = EnergymapBuildingInfoValue & {
   id: string
   label: EnergymapBuildingInfoText
   presentation?: 'expandableSourceText'
+  modeledIndicator?: {
+    label: EnergymapBuildingInfoText
+    tooltip: EnergymapBuildingInfoText
+    ariaLabelKey: string
+    sourceProperties: string[]
+  }
 }
 
 export type EnergymapBuildingInfoMetricValue = EnergymapBuildingInfoValue & {
@@ -209,8 +212,10 @@ const ENERGY_CERTIFICATE_VALID_UNTIL_PROPERTY =
   'energy_certificate_valid_until'
 const ENERGY_CERTIFICATE_PREVIOUS_CLASS_PROPERTY =
   'energy_certificate_previous_class'
-type EnergyCertificateClassProperty =
-  | typeof ENERGY_CERTIFICATE_CLASS_PROPERTY
+const ENERGY_CLASS_PROPERTY = 'energy_class'
+const IS_ENERGY_CLASS_MODELED_PROPERTY = 'is_energy_class_modeled'
+type EnergyClassProperty =
+  | typeof ENERGY_CLASS_PROPERTY
   | typeof ENERGY_CERTIFICATE_PREVIOUS_CLASS_PROPERTY
 const ENERGY_CERTIFICATE_VENTILATION_TYPE_PROPERTY =
   'energy_certificate_ventilation_type_id'
@@ -368,16 +373,19 @@ const row = ({
   labelKey,
   value,
   presentation,
+  modeledIndicator,
 }: {
   id: string
   labelKey: string
   value: EnergymapBuildingInfoValue
   presentation?: EnergymapBuildingInfoRow['presentation']
+  modeledIndicator?: EnergymapBuildingInfoRow['modeledIndicator']
 }): EnergymapBuildingInfoRow => ({
   id,
   label: translationText(labelKey),
   ...value,
   ...(presentation == null ? {} : { presentation }),
+  ...(modeledIndicator == null ? {} : { modeledIndicator }),
 })
 
 const metricValue = ({
@@ -1370,12 +1378,12 @@ const getEnergyCertificateRecommendationsValue = (
   })
 }
 
-const getEnergyCertificateClassValue = ({
+const getEnergyClassValue = ({
   properties,
   propertyName,
 }: {
   properties: EnergymapSelectedBuilding['properties']
-  propertyName: EnergyCertificateClassProperty
+  propertyName: EnergyClassProperty
 }): EnergymapBuildingInfoValue => {
   const classCode = getStringProperty(properties, propertyName)
 
@@ -1401,6 +1409,24 @@ const getEnergyCertificateClassValue = ({
     sourceProperties: [propertyName],
   })
 }
+
+const getModeledEnergyClassIndicator = (
+  properties: EnergymapSelectedBuilding['properties']
+): EnergymapBuildingInfoRow['modeledIndicator'] =>
+  properties[IS_ENERGY_CLASS_MODELED_PROPERTY] === true
+    ? {
+        label: translationText(
+          key('panels.building.energy_class_modeled.label')
+        ),
+        tooltip: translationText(
+          key('panels.building.energy_class_modeled.tooltip')
+        ),
+        ariaLabelKey: key(
+          'panels.building.energy_class_modeled.help_aria_label'
+        ),
+        sourceProperties: [IS_ENERGY_CLASS_MODELED_PROPERTY],
+      }
+    : undefined
 
 const getEnergyCertificateValidityValue = ({
   properties,
@@ -1908,10 +1934,11 @@ const createBuildingDetailsPanel = ({
         row({
           id: 'energyClass',
           labelKey: key('panels.building.rows.energy_class'),
-          value: getEnergyCertificateClassValue({
+          value: getEnergyClassValue({
             properties,
-            propertyName: ENERGY_CERTIFICATE_CLASS_PROPERTY,
+            propertyName: ENERGY_CLASS_PROPERTY,
           }),
+          modeledIndicator: getModeledEnergyClassIndicator(properties),
         }),
         row({
           id: 'energyCertificateValidity',
@@ -1927,7 +1954,7 @@ const createBuildingDetailsPanel = ({
         row({
           id: 'previousEnergyClass',
           labelKey: key('panels.building.rows.previous_energy_class'),
-          value: getEnergyCertificateClassValue({
+          value: getEnergyClassValue({
             properties,
             propertyName: ENERGY_CERTIFICATE_PREVIOUS_CLASS_PROPERTY,
           }),

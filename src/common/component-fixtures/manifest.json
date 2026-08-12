@@ -630,6 +630,12 @@
         "waitFor": "[data-testid=\"building-info-tab-page-renovation\"]"
       },
       {
+        "id": "building-details",
+        "label": "Building details",
+        "description": "Modeled energy-class label and help control plus certificate details.",
+        "waitFor": "[data-testid=\"building-info-fixture-interaction-ready\"]"
+      },
+      {
         "id": "desktop-recommendation-expanded",
         "label": "Desktop certificate recommendation expanded",
         "description": "Expanded long Finnish certificate recommendation with paragraph breaks.",

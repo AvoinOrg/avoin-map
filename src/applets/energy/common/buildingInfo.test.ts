@@ -51,6 +51,8 @@ const districtHeatingBuilding = createSelectedBuilding({
   total_area: 454,
   volume: 1006,
   energy_certificate_class: 'D',
+  energy_class: 'D',
+  is_energy_class_modeled: false,
   energy_certificate_valid_until: '2031-12-31 00:00:00.0',
   energy_certificate_heated_net_area: 1355,
   distr_default_total: 367.7884615,
@@ -387,6 +389,8 @@ describe('Energiakartta building info model', () => {
     const energyClass = getRow(buildingPanel, 'energyClass')
     expect(energyClass.status).toBe('real')
     expectPlainText(energyClass.text, 'D')
+    expect(energyClass.sourceProperties).toEqual(['energy_class'])
+    expect(energyClass.modeledIndicator).toBeUndefined()
 
     const energyCertificateValidity = getRow(
       buildingPanel,
@@ -606,6 +610,112 @@ describe('Energiakartta building info model', () => {
     ])
   })
 
+  it('uses the effective energy class and marks a literal modeled provenance value', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        building_key: 'modeled-energy-class',
+        energy_certificate_class: null,
+        modeled_energy_class: 'C',
+        energy_class: 'C',
+        energy_class_year: 2018,
+        is_energy_class_modeled: true,
+      }),
+      locale: 'en-US',
+    })
+    const energyClass = getRow(
+      getPanel(panels ?? [], 'buildingDetails'),
+      'energyClass'
+    )
+
+    expectPlainText(energyClass.text, 'C')
+    expect(energyClass.sourceProperties).toEqual(['energy_class'])
+    expect(energyClass.modeledIndicator).toEqual({
+      label: {
+        type: 'translation',
+        keyName: `${translationPrefix}.panels.building.energy_class_modeled.label`,
+      },
+      tooltip: {
+        type: 'translation',
+        keyName: `${translationPrefix}.panels.building.energy_class_modeled.tooltip`,
+      },
+      ariaLabelKey: `${translationPrefix}.panels.building.energy_class_modeled.help_aria_label`,
+      sourceProperties: ['is_energy_class_modeled'],
+    })
+  })
+
+  it.each([
+    ['official', false],
+    ['unknown', null],
+    ['missing', undefined],
+    ['string true', 'true'],
+    ['numeric true', 1],
+  ])(
+    'does not add the modeled indicator for %s provenance',
+    (_caseName, provenance) => {
+      const properties: EnergymapSelectedBuilding['properties'] = {
+        building_key: `energy-class-${_caseName}`,
+        energy_class: 'B',
+        modeled_energy_class: 'B',
+        energy_class_year: 2018,
+      }
+
+      if (provenance !== undefined) {
+        properties.is_energy_class_modeled = provenance
+      }
+
+      const panels = createEnergymapBuildingInfoPanels({
+        selectedBuilding: createSelectedBuilding(properties),
+        locale: 'en-US',
+      })
+      const energyClass = getRow(
+        getPanel(panels ?? [], 'buildingDetails'),
+        'energyClass'
+      )
+
+      expectPlainText(energyClass.text, 'B')
+      expect(energyClass.sourceProperties).toEqual(['energy_class'])
+      expect(energyClass.modeledIndicator).toBeUndefined()
+    }
+  )
+
+  it('does not infer the effective class or modeled provenance from fallback fields', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        building_key: 'modeled-fields-without-effective-class',
+        modeled_energy_class: 'A',
+        energy_class_year: 2018,
+      }),
+      locale: 'en-US',
+    })
+    const energyClass = getRow(
+      getPanel(panels ?? [], 'buildingDetails'),
+      'energyClass'
+    )
+
+    expect(energyClass.status).toBe('missing')
+    expect(energyClass.sourceProperties).toEqual(['energy_class'])
+    expect(energyClass.modeledIndicator).toBeUndefined()
+  })
+
+  it('keeps literal modeled provenance independent from class availability', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        building_key: 'modeled-provenance-without-effective-class',
+        is_energy_class_modeled: true,
+      }),
+      locale: 'en-US',
+    })
+    const energyClass = getRow(
+      getPanel(panels ?? [], 'buildingDetails'),
+      'energyClass'
+    )
+
+    expect(energyClass.status).toBe('missing')
+    expect(energyClass.modeledIndicator?.sourceProperties).toEqual([
+      'is_energy_class_modeled',
+    ])
+  })
+
   it('maps a populated previous certificate class with exact provenance', () => {
     const panels = createEnergymapBuildingInfoPanels({
       selectedBuilding: createSelectedBuilding({
@@ -630,7 +740,7 @@ describe('Energiakartta building info model', () => {
     const panels = createEnergymapBuildingInfoPanels({
       selectedBuilding: createSelectedBuilding({
         building_key: 'previous-class-same-as-current',
-        energy_certificate_class: 'D',
+        energy_class: 'D',
         energy_certificate_previous_class: 'D',
       }),
       locale: 'en-US',
@@ -651,7 +761,7 @@ describe('Energiakartta building info model', () => {
     const panels = createEnergymapBuildingInfoPanels({
       selectedBuilding: createSelectedBuilding({
         building_key: 'previous-class-different-from-current',
-        energy_certificate_class: 'D',
+        energy_class: 'D',
         energy_certificate_previous_class: 'F',
       }),
       locale: 'en-US',
@@ -679,7 +789,7 @@ describe('Energiakartta building info model', () => {
       const panels = createEnergymapBuildingInfoPanels({
         selectedBuilding: createSelectedBuilding({
           building_key: `previous-class-${_caseName}`,
-          energy_certificate_class: 'D',
+          energy_class: 'D',
           ...previousClassProperties,
         }),
         locale: 'en-US',
@@ -1203,6 +1313,28 @@ describe('Energiakartta building info model', () => {
       fiTranslations.sidebar.building_info.panels.building.rows
         .energy_certificate_validity
     ).toBe('Uusimman energiatodistuksen voimassaolo päättyy')
+  })
+
+  it('keeps modeled energy-class copy exact in both locales', () => {
+    const enModeled =
+      enTranslations.sidebar.building_info.panels.building.energy_class_modeled
+    const fiModeled =
+      fiTranslations.sidebar.building_info.panels.building.energy_class_modeled
+
+    expect(enModeled.label).toBe('modeled')
+    expect(fiModeled.label).toBe('mallinnettu')
+    expect(enModeled.tooltip).toBe(
+      "The energy class is modeled from the building's available data. It is an estimate and less accurate than an official energy certificate."
+    )
+    expect(fiModeled.tooltip).toBe(
+      'Energialuokka on mallinnettu rakennuksen saatavilla olevien tietojen perusteella. Se on arvio eikä yhtä tarkka kuin virallinen energiatodistus.'
+    )
+    expect(enModeled.help_aria_label).toBe(
+      'More information about the modeled energy class'
+    )
+    expect(fiModeled.help_aria_label).toBe(
+      'Lisätietoja mallinnetusta energialuokasta'
+    )
   })
 
   it('models supported energy submetrics and keeps water heating unsupported', () => {

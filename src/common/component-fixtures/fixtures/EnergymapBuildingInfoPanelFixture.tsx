@@ -50,6 +50,11 @@ const plain = (text: string): EnergymapBuildingInfoText => ({
   text,
 })
 
+const translation = (keyName: string): EnergymapBuildingInfoText => ({
+  type: 'translation',
+  keyName,
+})
+
 const CERTIFICATE_RECOMMENDATIONS_BY_LANGUAGE = {
   fi: 'Tiivistä yläpohjan lämmöneristystä ja tarkista ilmanvaihdon säädöt. Suositus näytetään täsmälleen energiatodistuksen lähdetekstinä.\n\nToisessa kappaleessa tarkennetaan, että ikkunoiden ja ulko-ovien tiivisteet tulee tarkistaa seuraavan huollon yhteydessä.',
   sv: 'Förbättra vindsbjälklagets värmeisolering och kontrollera ventilationens inställningar. Rekommendationen visas exakt som källtexten i energicertifikatet.\n\nDet andra stycket preciserar att tätningarna kring fönster och ytterdörrar ska kontrolleras vid nästa service.',
@@ -414,6 +419,18 @@ const createPanels = ({
             label: plain('Energy class'),
             text: plain('C'),
             status: 'real',
+            sourceProperties: ['energy_class'],
+            modeledIndicator: {
+              label: translation(
+                'sidebar.building_info.panels.building.energy_class_modeled.label'
+              ),
+              tooltip: translation(
+                'sidebar.building_info.panels.building.energy_class_modeled.tooltip'
+              ),
+              ariaLabelKey:
+                'sidebar.building_info.panels.building.energy_class_modeled.help_aria_label',
+              sourceProperties: ['is_energy_class_modeled'],
+            },
           },
           {
             id: 'energyCertificateValidity',
@@ -522,7 +539,7 @@ const BuildingInfoPanelFixtureState = ({
     'cost' | 'co2'
   >
   forceMobileLayout?: boolean
-  interaction?: 'recommendation-expanded'
+  interaction?: 'building-details' | 'recommendation-expanded'
   recommendationSourceLanguage?: keyof typeof CERTIFICATE_RECOMMENDATIONS_BY_LANGUAGE
 }) => {
   const extensionOptions = React.useMemo(
@@ -551,6 +568,20 @@ const BuildingInfoPanelFixtureState = ({
     }
 
     const prepareInteraction = () => {
+      if (interaction === 'building-details') {
+        const buildingDetails = root.querySelector<HTMLElement>(
+          '[data-testid="building-info-panel-buildingDetails"]'
+        )
+
+        if (buildingDetails == null) {
+          return
+        }
+
+        buildingDetails.scrollIntoView({ block: 'start' })
+        markReady()
+        return
+      }
+
       const trigger = root.querySelector<HTMLButtonElement>(
         '[data-testid="building-info-expandable-source-text-trigger-energyCertificateRecommendations"]'
       )
@@ -680,6 +711,16 @@ export const energymapBuildingInfoPanelFixture: ComponentFixture = {
       description: 'Renovation tab with comparison and effectiveness content.',
       waitFor: '[data-testid="building-info-tab-page-renovation"]',
       render: () => <BuildingInfoPanelFixtureState activeTabId="renovation" />,
+    },
+    {
+      id: 'building-details',
+      label: 'Building details',
+      description:
+        'Modeled energy-class label and help control plus certificate details.',
+      waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState interaction="building-details" />
+      ),
     },
     {
       id: 'desktop-recommendation-expanded',

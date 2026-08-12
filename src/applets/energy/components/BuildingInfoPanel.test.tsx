@@ -556,7 +556,18 @@ const panels: EnergymapBuildingInfoPanel[] = [
             label: translation('row.energy_class.label'),
             text: plain('B'),
             status: 'real',
-            sourceProperties: ['energy_certificate_class'],
+            sourceProperties: ['energy_class'],
+            modeledIndicator: {
+              label: translation(
+                'sidebar.building_info.panels.building.energy_class_modeled.label'
+              ),
+              tooltip: translation(
+                'sidebar.building_info.panels.building.energy_class_modeled.tooltip'
+              ),
+              ariaLabelKey:
+                'sidebar.building_info.panels.building.energy_class_modeled.help_aria_label',
+              sourceProperties: ['is_energy_class_modeled'],
+            },
           },
         ],
       },
@@ -1964,6 +1975,97 @@ describe('BuildingInfoPanel', () => {
     expect(await screen.findByRole('tooltip')).toHaveTextContent(
       'value.missing'
     )
+  })
+
+  it('renders modeled energy-class help beneath the class with accessible pointer and keyboard behavior', async () => {
+    renderBuildingInfoTabs()
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    const energyClassRow = document.querySelector(
+      '[data-section-row-id="energyClass"]'
+    ) as HTMLElement
+    const stack = within(energyClassRow).getByTestId(
+      'building-info-energy-class-value-stack'
+    )
+    const indicator = within(stack).getByTestId(
+      'building-info-modeled-energy-class-indicator'
+    )
+    const classValue = within(stack).getByText('B')
+    const modeledLabel = within(stack).getByText(
+      'sidebar.building_info.panels.building.energy_class_modeled.label'
+    )
+    const trigger = within(stack).getByRole('button', {
+      name: 'sidebar.building_info.panels.building.energy_class_modeled.help_aria_label',
+    })
+
+    expect(energyClassRow).toBeInTheDocument()
+    expect(document.querySelectorAll('[data-section-row-id="energyClass"]')).toHaveLength(1)
+    expect(stack).toHaveStyle({
+      display: 'inline-flex',
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+    })
+    expect(indicator).toHaveAttribute(
+      'data-source-properties',
+      'is_energy_class_modeled'
+    )
+    expect(indicator).toHaveStyle({
+      display: 'inline-flex',
+      whiteSpace: 'nowrap',
+      fontWeight: '400',
+    })
+    expect(
+      classValue.compareDocumentPosition(modeledLabel) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+    expect(trigger.tagName).toBe('BUTTON')
+    expect(trigger).toHaveAttribute('type', 'button')
+    expect(trigger.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
+    expect(trigger).not.toHaveAttribute('aria-describedby')
+
+    fireEvent.mouseEnter(trigger)
+    const tooltip = await screen.findByRole('tooltip')
+    const tooltipText =
+      'sidebar.building_info.panels.building.energy_class_modeled.tooltip'
+
+    expect(tooltip).toHaveTextContent(tooltipText)
+    expect(trigger).toHaveAttribute('aria-describedby', tooltip.id)
+    expect(trigger).toHaveAccessibleDescription(tooltipText)
+    fireEvent.mouseLeave(trigger)
+    await waitFor(() => {
+      expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+    })
+
+    fireEvent.focus(trigger)
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+      'sidebar.building_info.panels.building.energy_class_modeled.tooltip'
+    )
+    fireEvent.keyDown(document, { key: 'Escape' })
+    await waitFor(() => {
+      expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+    })
+  })
+
+  it('toggles modeled energy-class help on click for touch use', async () => {
+    renderBuildingInfoTabs()
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    const triggerName =
+      'sidebar.building_info.panels.building.energy_class_modeled.help_aria_label'
+    const trigger = screen.getByRole('button', { name: triggerName })
+
+    fireEvent.click(trigger)
+    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+      'sidebar.building_info.panels.building.energy_class_modeled.tooltip'
+    )
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: triggerName,
+      })
+    )
+    await waitFor(() => {
+      expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+    })
   })
 
   it('renders the building address as a stacked sub-header instead of a table row', async () => {
