@@ -416,6 +416,27 @@ describe('Energiakartta building info model', () => {
     ])
   })
 
+  it('does not publish raw property-identifier data without live data and an approved product purpose', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        building_key: 'property-identifier-gate',
+        property_identifier: '091-416-0011-0023',
+      }),
+      locale: 'en-US',
+    })
+    const propertyIdentifier = getRow(
+      getPanel(panels ?? [], 'buildingDetails'),
+      'propertyIdentifier'
+    )
+
+    expect(propertyIdentifier.status).toBe('placeholder')
+    expectTranslation(
+      propertyIdentifier.text,
+      `${translationPrefix}.placeholders.not_published`
+    )
+    expect(propertyIdentifier.sourceProperties).toBeUndefined()
+  })
+
   it('formats a fractional certificate heated net area with locale rounding', () => {
     const panels = createEnergymapBuildingInfoPanels({
       selectedBuilding: createSelectedBuilding({
