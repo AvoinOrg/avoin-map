@@ -16,7 +16,7 @@ import AppTooltip from '#/components/common/AppTooltip'
 import CustomAccordion from '#/components/common/CustomAccordion'
 import CustomAccordionSummary from '#/components/common/CustomAccordionSummary'
 import { NumberInputField } from '#/components/common/NumberInputField'
-import SwitchWithLabel from '#/components/common/SwitchWithLabel'
+import SquishedSwitchWithLabel from '#/components/common/SquishedSwitchWithLabel'
 import TText from '#/components/common/TText'
 import QuestionCircleOutline from '#/components/icons/QuestionCircleOutline'
 import { SidebarPanelExtensionPageContainer } from '#/components/Sidebar/SidebarPanelExtensionPageContainer'
@@ -266,6 +266,11 @@ const ENERGY_PRIMARY_METRIC_ORDER: readonly EnergymapBuildingInfoPrimaryMetricId
 
 const ENERGY_SUBMETRIC_ORDER: readonly EnergymapBuildingInfoEnergySubmetricId[] =
   ['electricity', 'heating', 'waterHeating']
+
+const ENERGY_ANNUAL_TOTAL_LABEL: EnergymapBuildingInfoText = {
+  type: 'translation',
+  keyName: 'sidebar.building_info.panels.energy.metric.annual_total',
+}
 
 const actionButtonSx = ({
   active,
@@ -1089,6 +1094,142 @@ const BuildingInfoSectionDivider = () => (
   />
 )
 
+const BuildingInfoCalculationContextAccordion = ({
+  section,
+  accentColor,
+}: {
+  section: EnergymapBuildingInfoSection
+  accentColor: string
+}) => {
+  const rows = section.rows ?? []
+  const panelId = React.useId()
+
+  if (section.title == null) {
+    return null
+  }
+
+  return (
+    <Box
+      data-section-id={section.id}
+      data-testid="building-info-calculation-context"
+      sx={{ mt: '2.25rem' }}
+    >
+      <CustomAccordion
+        sx={{
+          backgroundColor: 'transparent',
+          '&[data-open]': {
+            m: 0,
+            backgroundColor: 'transparent',
+          },
+        }}
+      >
+        <CustomAccordionSummary
+          aria-controls={panelId}
+          data-testid="building-info-calculation-context-trigger"
+          sx={{
+            ...textSx,
+            py: '0.75rem',
+            borderTop: '0.3px solid #cfcfcf',
+            color: accentColor,
+            textTransform: 'uppercase',
+            textAlign: 'left',
+            '& .CustomAccordionSummary-expandIcon': {
+              width: '1rem',
+              height: '1rem',
+              ml: '0.75rem',
+              color: accentColor,
+              '& svg': {
+                width: '0.75rem',
+                height: '0.75rem',
+              },
+            },
+          }}
+        >
+          <BuildingInfoText text={section.title} />
+        </CustomAccordionSummary>
+        <Collapsible.Panel
+          keepMounted
+          render={(panelProps) => (
+            <Box
+              {...panelProps}
+              id={panelId}
+              data-testid="building-info-calculation-context-panel"
+              sx={{
+                height: 'var(--collapsible-panel-height)',
+                overflow: 'hidden',
+                transition: 'height 160ms ease',
+                '&[data-starting-style], &[data-ending-style]': {
+                  height: 0,
+                },
+              }}
+            />
+          )}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem',
+              pt: '0.5rem',
+              pb: '0.875rem',
+              borderTop: '0.3px solid #cfcfcf',
+            }}
+          >
+            {rows.map((row) => (
+              <Box
+                key={row.id}
+                data-calculation-context-row-id={row.id}
+                sx={{ minWidth: 0 }}
+              >
+                <Box
+                  sx={{
+                    ...textSx,
+                    color: '#111111',
+                    fontWeight: 700,
+                  }}
+                >
+                  <BuildingInfoText text={row.label} />
+                </Box>
+                <Box
+                  data-status={row.status}
+                  data-source-properties={getSourcePropertiesData(
+                    row.sourceProperties
+                  )}
+                  sx={{
+                    ...textSx,
+                    mt: '0.25rem',
+                    minWidth: 0,
+                    whiteSpace: 'normal',
+                    overflowWrap: 'anywhere',
+                    ...STATUS_SX[row.status],
+                  }}
+                >
+                  <BuildingInfoText text={row.text} />
+                  {row.unitKey != null && (
+                    <>
+                      {' '}
+                      <TText keyName={row.unitKey} ns="energiakartta" />
+                    </>
+                  )}
+                </Box>
+                {row.note != null && (
+                  <BuildingInfoNoteText
+                    note={{
+                      text: row.note,
+                      status: row.status,
+                      sourceProperties: row.sourceProperties,
+                    }}
+                  />
+                )}
+              </Box>
+            ))}
+          </Box>
+        </Collapsible.Panel>
+      </CustomAccordion>
+    </Box>
+  )
+}
+
 const BuildingInfoStackedValue = ({
   row,
 }: {
@@ -1510,6 +1651,14 @@ const BuildingInfoMetricValueRow = ({
   </Box>
 )
 
+const getAnnualPrimaryMetricValue = (
+  value: EnergymapBuildingInfoValue
+): EnergymapBuildingInfoMetricValue => ({
+  id: 'annualTotal',
+  label: ENERGY_ANNUAL_TOTAL_LABEL,
+  ...value,
+})
+
 const getPrimaryMetricButtonWidth = ({
   metricId,
   active,
@@ -1744,6 +1893,7 @@ const BuildingInfoWaterResidentControl = ({
   const [isOverrideEnabled, setIsOverrideEnabled] = React.useState(false)
   const [manualResidentCountRawValue, setManualResidentCountRawValue] =
     React.useState(String(control?.defaultValue ?? ''))
+  const residentLabelId = React.useId()
 
   if (control == null || metric.value == null) {
     return null
@@ -1785,71 +1935,124 @@ const BuildingInfoWaterResidentControl = ({
   }
 
   return (
-    <>
+    <Box
+      data-testid="building-info-primary-metric-value"
+      data-primary-metric-id={metric.id}
+      data-primary-metric-supported="true"
+      sx={{ mt: '1.5rem' }}
+    >
+      <BuildingInfoMetricValueRow
+        value={getAnnualPrimaryMetricValue(value)}
+      />
       <Box
         data-testid="building-info-water-resident-control"
         sx={{
-          mt: '1rem',
+          mt: '0.75rem',
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'flex-start',
-          gap: '0.75rem',
+          alignItems: 'stretch',
+          gap: '0.625rem',
         }}
       >
-        {isOverrideEnabled ? (
-          <NumberInputField
-            label={<BuildingInfoText text={control.label} />}
-            value={manualResidentCount ?? control.defaultValue}
-            minValue={control.minValue}
-            maxValue={control.maxValue}
-            incrementStepValue={1}
-            format={{ maximumFractionDigits: 0 }}
-            rawValue={manualResidentCountRawValue}
-            inputSlotProps={{ inputMode: 'numeric' }}
-            onRawValueChange={(rawValue) => {
-              setManualResidentCountRawValue(rawValue)
-            }}
-            onRawValueCommitted={(rawValue) => {
-              setManualResidentCountRawValue(
-                String(
-                  normalizeResidentCountOnCommit({
-                    rawValue,
-                    defaultValue: control.defaultValue,
-                    minValue: control.minValue,
-                    maxValue: control.maxValue,
-                  })
-                )
-              )
-            }}
-            onValueChange={(nextValue) => {
-              setManualResidentCountRawValue(
-                nextValue == null ? '' : String(nextValue)
-              )
-            }}
-          />
-        ) : (
+        <Box
+          data-testid="building-info-water-description"
+          data-status="estimate"
+          sx={{ ...textSx, color: STATUS_SX.estimate.color }}
+        >
+          <BuildingInfoText text={control.description} />
+        </Box>
+        <Box
+          data-testid="building-info-water-resident-row"
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 1fr) 4.75rem',
+            columnGap: '0.75rem',
+            alignItems: 'center',
+            width: '100%',
+            minHeight: '1.5rem',
+          }}
+        >
+          <Box id={residentLabelId} sx={{ ...textSx, color: '#111111' }}>
+            <BuildingInfoText text={control.label} />
+          </Box>
           <Box
-            data-testid="building-info-water-resident-default"
+            data-testid="building-info-water-resident-value-slot"
+            data-override-enabled={isOverrideEnabled ? 'true' : 'false'}
             sx={{
-              display: 'grid',
-              gridTemplateColumns: 'minmax(0, 1fr) minmax(0, auto)',
-              columnGap: '1rem',
-              alignItems: 'baseline',
-              width: '100%',
+              width: '4.75rem',
+              minWidth: '4.75rem',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
             }}
           >
-            <Box sx={{ ...textSx, color: '#111111' }}>
-              <BuildingInfoText text={control.label} />
-            </Box>
-            <Box sx={{ ...textSx, fontWeight: 700, textAlign: 'right' }}>
-              {formatNumber(control.defaultValue, {
-                maximumFractionDigits: 0,
-              })}
-            </Box>
+            {isOverrideEnabled ? (
+              <NumberInputField
+                size="small"
+                value={manualResidentCount ?? control.defaultValue}
+                minValue={control.minValue}
+                maxValue={control.maxValue}
+                incrementStepValue={1}
+                format={{ maximumFractionDigits: 0 }}
+                rawValue={manualResidentCountRawValue}
+                containerSx={{ width: '4.75rem' }}
+                formControlSx={{ width: '100%' }}
+                inputSx={{
+                  width: '100%',
+                  '& [data-slot="number-input-input"]': {
+                    px: '0.5rem',
+                  },
+                }}
+                inputSlotProps={{
+                  inputMode: 'numeric',
+                  'aria-labelledby': residentLabelId,
+                }}
+                onRawValueChange={(rawValue) => {
+                  setManualResidentCountRawValue(rawValue)
+                }}
+                onRawValueCommitted={(rawValue) => {
+                  setManualResidentCountRawValue(
+                    String(
+                      normalizeResidentCountOnCommit({
+                        rawValue,
+                        defaultValue: control.defaultValue,
+                        minValue: control.minValue,
+                        maxValue: control.maxValue,
+                      })
+                    )
+                  )
+                }}
+                onValueChange={(nextValue) => {
+                  setManualResidentCountRawValue(
+                    nextValue == null ? '' : String(nextValue)
+                  )
+                }}
+              />
+            ) : (
+              <Box
+                data-testid="building-info-water-resident-default"
+                sx={{
+                  ...textSx,
+                  width: '100%',
+                  fontWeight: 700,
+                  textAlign: 'right',
+                }}
+              >
+                {formatNumber(control.defaultValue, {
+                  maximumFractionDigits: 0,
+                })}
+              </Box>
+            )}
           </Box>
-        )}
-        <SwitchWithLabel
+        </Box>
+        <SquishedSwitchWithLabel
           checked={isOverrideEnabled}
+          sx={{ width: 'fit-content', maxWidth: '100%' }}
+          labelSx={{
+            ...textSx,
+            ml: '0.625rem',
+            color: '#111111',
+          }}
           onChange={(_event, checked) => {
             if (!checked) {
               resetOverride()
@@ -1861,26 +2064,9 @@ const BuildingInfoWaterResidentControl = ({
           }}
         >
           <BuildingInfoText text={control.toggleLabel} />
-        </SwitchWithLabel>
-        <Box sx={{ ...textSx, color: '#111111' }}>
-          <BuildingInfoText text={control.description} />
-        </Box>
+        </SquishedSwitchWithLabel>
       </Box>
-      <Box
-        data-testid="building-info-primary-metric-value"
-        data-primary-metric-id={metric.id}
-        data-primary-metric-supported="true"
-        sx={{
-          mt: '1.5rem',
-          borderTop: '0.3px solid #d7d7d7',
-          pt: '0.75rem',
-        }}
-      >
-        <Box component="div" sx={{ ...textSx, textAlign: 'left' }}>
-          <BuildingInfoValueText value={value} align="left" />
-        </Box>
-      </Box>
-    </>
+    </Box>
   )
 }
 
@@ -1902,16 +2088,12 @@ const BuildingInfoPrimaryMetricValuePanel = ({
       data-testid="building-info-primary-metric-value"
       data-primary-metric-id={metric.id}
       data-primary-metric-supported={metric.supported ? 'true' : 'false'}
-      sx={{
-        mt: '1.5rem',
-        borderTop: '0.3px solid #d7d7d7',
-        pt: '0.75rem',
-      }}
+      sx={{ mt: '1.5rem' }}
     >
       {metric.value != null && (
-        <Box component="div" sx={{ ...textSx, textAlign: 'left' }}>
-          <BuildingInfoValueText value={metric.value} align="left" />
-        </Box>
+        <BuildingInfoMetricValueRow
+          value={getAnnualPrimaryMetricValue(metric.value)}
+        />
       )}
       {metric.unavailableNote != null && (
         <BuildingInfoNoteText note={metric.unavailableNote} />
@@ -2258,6 +2440,15 @@ const BuildingInfoSectionBlock = ({
   if (section.consumptionControls != null) {
     return (
       <BuildingInfoEnergyConsumptionSection
+        section={section}
+        accentColor={accentColor}
+      />
+    )
+  }
+
+  if (section.id === 'calculationContext') {
+    return (
+      <BuildingInfoCalculationContextAccordion
         section={section}
         accentColor={accentColor}
       />

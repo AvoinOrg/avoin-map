@@ -194,15 +194,25 @@ const createControls = ({
       id: 'water',
       label: plain('Water'),
       ariaLabelKey: 'sidebar.building_info.panels.energy.primary.water',
-      supported: false,
+      supported: true,
       value: {
-        text: plain('Water consumption is not available for this building.'),
-        status: 'placeholder',
+        text: plain('481.8'),
+        status: 'estimate',
+        unitKey: 'sidebar.building_info.units.cubic_meters_per_year',
+        sourceProperties: ['floor_area'],
       },
-      unavailableNote: {
-        id: 'water-unavailable',
-        text: plain('Water consumption is not available for this building.'),
-        status: 'placeholder',
+      residentCountControl: {
+        defaultValue: 11,
+        minValue: 1,
+        maxValue: 10000,
+        label: plain('Estimated number of residents'),
+        toggleLabel: plain('Change number of residents'),
+        description: plain(
+          'The number of residents is estimated from the building area. You can temporarily model another number. The Water estimate is not measured consumption or resident data.'
+        ),
+        unavailableText: plain(
+          'Enter a whole number between 1 and 10,000.'
+        ),
       },
     },
     createAnnualPrimaryMetric({
@@ -285,6 +295,36 @@ const createPanels = ({
             id: 'estimate-note',
             text: plain('Values combine registry data and estimated heating demand.'),
             status: 'estimate',
+          },
+        ],
+      },
+      {
+        id: 'calculationContext',
+        title: plain('Calculation details'),
+        rows: [
+          {
+            id: 'costMode',
+            label: plain('Cost basis'),
+            text: plain(
+              'The annual cost estimate uses the current reference prices for the building heating profile.'
+            ),
+            status: 'estimate',
+            sourceProperties: ['heating_method'],
+          },
+          {
+            id: 'co2Mode',
+            label: plain('CO2 basis'),
+            text: plain(
+              'The annual emissions estimate uses the current reference emission factors.'
+            ),
+            status: 'estimate',
+            sourceProperties: ['heating_energy_source'],
+          },
+          {
+            id: 'waterHeatingSplit',
+            label: plain('Water-heating split'),
+            text: plain('The water-heating split has not been published.'),
+            status: 'placeholder',
           },
         ],
       },
@@ -539,8 +579,12 @@ const BuildingInfoPanelFixtureState = ({
     'cost' | 'co2'
   >
   forceMobileLayout?: boolean
-  interaction?: 'building-details' | 'recommendation-expanded'
   recommendationSourceLanguage?: keyof typeof CERTIFICATE_RECOMMENDATIONS_BY_LANGUAGE
+  interaction?:
+    | 'building-details'
+    | 'calculation-details-expanded'
+    | 'recommendation-expanded'
+    | 'water-override'
 }) => {
   const extensionOptions = React.useMemo(
     () => getFixtureExtensionOptions(forceMobileLayout),
@@ -582,28 +626,61 @@ const BuildingInfoPanelFixtureState = ({
         return
       }
 
-      const trigger = root.querySelector<HTMLButtonElement>(
-        '[data-testid="building-info-expandable-source-text-trigger-energyCertificateRecommendations"]'
-      )
+      if (
+        interaction === 'calculation-details-expanded' ||
+        interaction === 'recommendation-expanded'
+      ) {
+        const isRecommendation = interaction === 'recommendation-expanded'
+        const trigger = root.querySelector<HTMLButtonElement>(
+          isRecommendation
+            ? '[data-testid="building-info-expandable-source-text-trigger-energyCertificateRecommendations"]'
+            : '[data-testid="building-info-calculation-context-trigger"]'
+        )
 
-      if (trigger == null) {
+        if (trigger == null) {
+          return
+        }
+
+        if (
+          trigger.getAttribute('aria-expanded') !== 'true' &&
+          !interactionRequested
+        ) {
+          interactionRequested = true
+          trigger.click()
+        }
+
+        if (trigger.getAttribute('aria-expanded') === 'true') {
+          root
+            .querySelector<HTMLElement>(
+              isRecommendation
+                ? '[data-testid="building-info-expandable-source-text-panel-energyCertificateRecommendations"]'
+                : '[data-testid="building-info-calculation-context-panel"]'
+            )
+            ?.scrollIntoView({ block: 'center' })
+          markReady()
+        }
         return
       }
 
-      if (
-        trigger.getAttribute('aria-expanded') !== 'true' &&
-        !interactionRequested
-      ) {
-        interactionRequested = true
-        trigger.click()
+      const overrideSwitch = root.querySelector<HTMLInputElement>(
+        '[data-testid="building-info-water-resident-control"] input[role="switch"]'
+      )
+
+      if (overrideSwitch == null) {
+        return
       }
 
-      if (trigger.getAttribute('aria-expanded') === 'true') {
-        root
-          .querySelector<HTMLElement>(
-            '[data-testid="building-info-expandable-source-text-panel-energyCertificateRecommendations"]'
-          )
-          ?.scrollIntoView({ block: 'center' })
+      if (!overrideSwitch.checked && !interactionRequested) {
+        interactionRequested = true
+        overrideSwitch.click()
+      }
+
+      if (
+        overrideSwitch.checked &&
+        root.querySelector(
+          '[data-testid="building-info-water-resident-value-slot"] input'
+        ) != null
+      ) {
         markReady()
       }
     }
@@ -713,6 +790,19 @@ export const energymapBuildingInfoPanelFixture: ComponentFixture = {
       render: () => <BuildingInfoPanelFixtureState activeTabId="renovation" />,
     },
     {
+      id: 'desktop-recommendation-expanded',
+      label: 'Desktop certificate recommendation expanded',
+      description:
+        'Expanded long Finnish certificate recommendation with paragraph breaks.',
+      waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          activeTabId="renovation"
+          interaction="recommendation-expanded"
+        />
+      ),
+    },
+    {
       id: 'building-details',
       label: 'Building details',
       description:
@@ -723,15 +813,45 @@ export const energymapBuildingInfoPanelFixture: ComponentFixture = {
       ),
     },
     {
-      id: 'desktop-recommendation-expanded',
-      label: 'Desktop certificate recommendation expanded',
-      description:
-        'Expanded long Finnish certificate recommendation with paragraph breaks.',
+      id: 'calculation-details-expanded',
+      label: 'Calculation details expanded',
+      description: 'Expanded calculation details with stacked basis text.',
+      waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState interaction="calculation-details-expanded" />
+      ),
+    },
+    {
+      id: 'water-default',
+      label: 'Water default',
+      description: 'Supported Water estimate with the derived resident count.',
+      waitFor: '[data-testid="building-info-water-resident-control"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState defaultPrimaryMetricId="water" />
+      ),
+    },
+    {
+      id: 'water-override',
+      label: 'Water override',
+      description: 'Supported Water estimate with resident override enabled.',
       waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
       render: () => (
         <BuildingInfoPanelFixtureState
-          activeTabId="renovation"
-          interaction="recommendation-expanded"
+          defaultPrimaryMetricId="water"
+          interaction="water-override"
+        />
+      ),
+    },
+    {
+      id: 'mobile-water-override',
+      label: 'Mobile Water override',
+      description: 'Forced stacked Water layout with resident override enabled.',
+      waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          defaultPrimaryMetricId="water"
+          forceMobileLayout
+          interaction="water-override"
         />
       ),
     },

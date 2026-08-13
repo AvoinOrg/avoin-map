@@ -423,6 +423,19 @@ const panels: EnergymapBuildingInfoPanel[] = [
             text: translation('placeholders.not_published'),
             status: 'placeholder',
           },
+          {
+            id: 'co2Mode',
+            label: translation('panels.energy.rows.co2_mode'),
+            text: translation('panels.energy.context.co2_current_reference'),
+            status: 'estimate',
+            sourceProperties: ['co2_factor'],
+          },
+          {
+            id: 'waterHeatingSplit',
+            label: translation('panels.energy.rows.water_heating_split'),
+            text: translation('placeholders.not_published'),
+            status: 'placeholder',
+          },
         ],
       },
     ],
@@ -795,6 +808,55 @@ describe('BuildingInfoPanel', () => {
     expect(screen.queryByTestId(/^building-info-scroll-/)).not.toBeInTheDocument()
   })
 
+  it('renders calculation details as an accessible collapsed accordion with stacked explanations', async () => {
+    renderBuildingInfoTabs()
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    const calculationContext = screen.getByTestId(
+      'building-info-calculation-context'
+    )
+    const trigger = within(calculationContext).getByRole('button', {
+      name: 'section.energy.calculation_context.title',
+    })
+    const panel = within(calculationContext).getByTestId(
+      'building-info-calculation-context-panel'
+    )
+
+    expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    expect(trigger).toHaveAttribute('aria-controls', panel.id)
+    expect(panel).not.toBeVisible()
+    expect(
+      calculationContext.querySelector('[data-row-id="costMode"]')
+    ).not.toBeInTheDocument()
+
+    fireEvent.click(trigger)
+
+    expect(trigger).toHaveAttribute('aria-expanded', 'true')
+    expect(panel).toBeVisible()
+    expect(
+      Array.from(
+        calculationContext.querySelectorAll(
+          '[data-calculation-context-row-id]'
+        )
+      ).map((row) => row.getAttribute('data-calculation-context-row-id'))
+    ).toEqual(['costMode', 'co2Mode', 'waterHeatingSplit'])
+    expect(panel).toHaveTextContent('panels.energy.rows.cost_mode')
+    expect(panel).toHaveTextContent('panels.energy.rows.co2_mode')
+    expect(panel).toHaveTextContent(
+      'panels.energy.context.co2_current_reference'
+    )
+    expect(panel).toHaveTextContent('panels.energy.rows.water_heating_split')
+    expect(
+      calculationContext.querySelector(
+        '[data-calculation-context-row-id="co2Mode"] [data-source-properties="co2_factor"]'
+      )
+    ).toBeInTheDocument()
+
+    fireEvent.click(trigger)
+    expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    expect(panel).not.toBeVisible()
+  })
+
   it('switches to the renovation recommendation tab', async () => {
     renderBuildingInfoTabs()
 
@@ -863,6 +925,9 @@ describe('BuildingInfoPanel', () => {
     ).toBeInTheDocument()
     expect(
       screen.queryByText('section.energy.calculation_context.title')
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByTestId('building-info-calculation-context')
     ).not.toBeInTheDocument()
     expect(
       screen.queryByTestId('building-info-renovation-reference-year-note')
@@ -959,6 +1024,12 @@ describe('BuildingInfoPanel', () => {
       'leave'
     )
     expect(screen.getByTestId('sidebar-panel-extension-page-scroll')).toHaveClass('osLeft')
+    expect(
+      screen.getByTestId('building-info-calculation-context')
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByTestId('building-info-calculation-context-panel')
+    ).not.toBeVisible()
   })
 
   it('keeps the mobile basic tab stacked without the desktop grid', async () => {
@@ -980,6 +1051,14 @@ describe('BuildingInfoPanel', () => {
     expect(
       screen.getByTestId('building-info-energy-consumption-section')
     ).toBeInTheDocument()
+    expect(
+      screen.getByTestId('building-info-calculation-context')
+    ).toBeInTheDocument()
+    expect(
+      screen
+        .getByTestId('building-info-calculation-context')
+        .querySelector('[data-row-id="costMode"]')
+    ).not.toBeInTheDocument()
   })
 
   it('can force the desktop basic tab into the mobile stacked layout', async () => {
@@ -1387,25 +1466,80 @@ describe('BuildingInfoPanel', () => {
     const waterPanel = within(energyPanel).getByTestId(
       'building-info-primary-metric-value'
     )
+    const waterAnnualRow = waterPanel.querySelector(
+      '[data-metric-value-id="annualTotal"]'
+    ) as HTMLElement
+    const waterControl = within(waterPanel).getByTestId(
+      'building-info-water-resident-control'
+    )
+    const waterDescription = within(waterControl).getByTestId(
+      'building-info-water-description'
+    )
+    const residentRow = within(waterControl).getByTestId(
+      'building-info-water-resident-row'
+    )
+    const residentValueSlot = within(waterControl).getByTestId(
+      'building-info-water-resident-value-slot'
+    )
     expect(waterPanel).toHaveAttribute('data-primary-metric-id', 'water')
     expect(waterPanel).toHaveAttribute('data-primary-metric-supported', 'true')
+    expect(waterAnnualRow).toHaveTextContent(
+      'sidebar.building_info.panels.energy.metric.annual_total'
+    )
     expect(waterPanel).toHaveTextContent('481,8')
     expect(waterPanel).toHaveTextContent(
       'sidebar.building_info.units.cubic_meters_per_year'
     )
-    expect(
-      within(energyPanel).getByTestId('building-info-water-resident-default')
-    ).toHaveTextContent(
-      'sidebar.building_info.panels.energy.water.resident_count11'
+    expect(waterPanel.children[0]).toBe(waterAnnualRow)
+    expect(waterPanel.children[1]).toBe(waterControl)
+    expect(waterControl.children[0]).toBe(waterDescription)
+    expect(waterControl.children[1]).toBe(residentRow)
+    expect(waterDescription).toHaveAttribute('data-status', 'estimate')
+    expect(waterDescription).toHaveTextContent(
+      'sidebar.building_info.panels.energy.water.description'
     )
+    expect(
+      within(residentRow).getByTestId('building-info-water-resident-default')
+    ).toHaveTextContent(
+      '11'
+    )
+    expect(residentRow).toHaveTextContent(
+      'sidebar.building_info.panels.energy.water.resident_count'
+    )
+    expect(residentValueSlot).toHaveAttribute(
+      'data-override-enabled',
+      'false'
+    )
+    expect(residentValueSlot).toHaveStyle({ width: '4.75rem' })
     const overrideSwitch = within(energyPanel).getByRole('switch', {
       name: 'sidebar.building_info.panels.energy.water.change_resident_count',
     })
     expect(overrideSwitch).not.toBeChecked()
     fireEvent.click(overrideSwitch)
-    const residentInput = within(energyPanel).getByLabelText(
-      'sidebar.building_info.panels.energy.water.resident_count'
+    const residentInput = within(energyPanel).getByRole('textbox', {
+      name: 'sidebar.building_info.panels.energy.water.resident_count',
+    })
+    expect(
+      energyPanel.querySelector('[data-slot="number-input-label"]')
+    ).not.toBeInTheDocument()
+    expect(
+      within(waterControl).getByTestId('building-info-water-resident-row')
+    ).toBe(residentRow)
+    expect(
+      within(waterControl).getByTestId(
+        'building-info-water-resident-value-slot'
+      )
+    ).toBe(residentValueSlot)
+    expect(residentValueSlot).toHaveAttribute(
+      'data-override-enabled',
+      'true'
     )
+    expect(
+      residentInput.closest('[data-slot="number-input-root"]')
+    ).toHaveAttribute('data-size', 'small')
+    expect(
+      residentInput.closest('[data-slot="number-input-container"]')
+    ).toHaveStyle({ width: '4.75rem' })
     fireEvent.change(residentInput, { target: { value: '12' } })
     await waitFor(() => {
       expect(waterPanel).toHaveTextContent('525,6')
@@ -1514,8 +1648,14 @@ describe('BuildingInfoPanel', () => {
     const costPanel = within(energyPanel).getByTestId(
       'building-info-primary-metric-value'
     )
+    const costAnnualRow = costPanel.querySelector(
+      '[data-metric-value-id="annualTotal"]'
+    ) as HTMLElement
     expect(costPanel).toHaveAttribute('data-primary-metric-id', 'cost')
     expect(costPanel).toHaveAttribute('data-primary-metric-supported', 'true')
+    expect(costAnnualRow).toHaveTextContent(
+      'sidebar.building_info.panels.energy.metric.annual_total'
+    )
     expect(costPanel).toHaveTextContent('19,613')
     expect(costPanel).toHaveTextContent(
       'sidebar.building_info.units.eur_per_year'
@@ -1532,8 +1672,14 @@ describe('BuildingInfoPanel', () => {
     const co2Panel = within(energyPanel).getByTestId(
       'building-info-primary-metric-value'
     )
+    const co2AnnualRow = co2Panel.querySelector(
+      '[data-metric-value-id="annualTotal"]'
+    ) as HTMLElement
     expect(co2Panel).toHaveAttribute('data-primary-metric-id', 'co2')
     expect(co2Panel).toHaveAttribute('data-primary-metric-supported', 'true')
+    expect(co2AnnualRow).toHaveTextContent(
+      'sidebar.building_info.panels.energy.metric.annual_total'
+    )
     expect(co2Panel).toHaveTextContent('18,436')
     expect(co2Panel).toHaveTextContent(
       'sidebar.building_info.units.kg_co2_per_year'
@@ -1602,6 +1748,11 @@ describe('BuildingInfoPanel', () => {
       'building-info-primary-metric-value'
     )
     expect(costPanel).toHaveAttribute('data-primary-metric-supported', 'false')
+    expect(
+      costPanel.querySelector('[data-metric-value-id="annualTotal"]')
+    ).toHaveTextContent(
+      'sidebar.building_info.panels.energy.metric.annual_total'
+    )
     expect(costPanel).toHaveTextContent(
       'sidebar.building_info.panels.energy.unsupported.apartment_pellet_cost'
     )
