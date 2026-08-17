@@ -1,13 +1,11 @@
-import { Box, SxProps, Theme } from '@mui/material'
-
-type Props = {
-  sx?: SxProps<Theme>
-}
+import type { SharedSvgIconProps } from './types'
+import { SharedSvgIcon } from './types'
+type Props = SharedSvgIconProps
 
 // Exact Figma vectors from Energiakartta map-toggle icon (nodes 2838:65003 / 2838:65004).
 // Paths and stroke widths are copied from exported SVG assets; placement matches the Figma group.
 const MapPinGlobe = ({ sx }: Props) => (
-  <Box
+  <SharedSvgIcon
     component="svg"
     xmlns="http://www.w3.org/2000/svg"
     width={24}
@@ -60,7 +58,7 @@ const MapPinGlobe = ({ sx }: Props) => (
         strokeWidth={0.6}
       />
     </g>
-  </Box>
+  </SharedSvgIcon>
 )
 
 export default MapPinGlobe

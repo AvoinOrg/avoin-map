@@ -1,6 +1,4 @@
-'use client'
-
-import React, { createContext, useContext, useMemo } from 'react'
+import React, { createContext, useContext } from 'react'
 
 import type { SidebarBoundaryId } from '#/common/types/sidebar'
 
@@ -19,13 +17,8 @@ export const SidebarBoundaryProvider = ({
   value: SidebarBoundaryContextValue
   children: React.ReactNode
 }) => {
-  const memoizedValue = useMemo(
-    () => value,
-    [value.boundaryId, value.depth]
-  )
-
   return (
-    <SidebarBoundaryContext.Provider value={memoizedValue}>
+    <SidebarBoundaryContext.Provider value={value}>
       {children}
     </SidebarBoundaryContext.Provider>
   )

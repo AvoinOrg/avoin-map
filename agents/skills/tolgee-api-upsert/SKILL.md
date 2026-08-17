@@ -88,8 +88,8 @@ Plural example:
 - Send auth in the `X-API-Key` header.
 - The request field is `key`, not `keyName`.
 - `translations` values must be plain strings, not `{ text: ... }` objects.
-- Prefer a write-capable API key. In this repo, `NEXT_PUBLIC_TOLGEE_API_KEY`
-  may have broader write scopes than `TOLGEE_API_KEY`.
+- `TOLGEE_API_KEY` must be write-capable for upsert operations and remains
+  server/build-only.
 
 ## Quick Start
 

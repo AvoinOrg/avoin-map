@@ -1,26 +1,26 @@
-import React, { useState } from 'react'
-import {
-  FormControl,
-  MenuItem,
-  Select,
-  SelectChangeEvent,
-  SxProps,
-  Theme,
-  Typography,
-} from '@mui/material'
+import React from 'react'
 
-import ArrowDown from '#/components/icons/ArrowDown'
+import { SHARED_CONTROL_INFINITE_BORDER_RADIUS } from '#/common/style/theme/constants'
+import { Box, type AppSxProps, toSxArray } from '#/common/style/theme/system'
 import { SelectOption } from '#/common/types/general'
+import DropDownSelect, {
+  DROP_DOWN_SELECT_ICON_SX,
+  type DropDownValueChangeEvent,
+} from '#/components/common/DropDownSelect'
 
-interface Props {
-  value: any
+type Props = {
+  value: unknown
   options: SelectOption[]
-  onChange: (event: SelectChangeEvent<string>) => void
+  onChange: (event: DropDownValueChangeEvent) => void
   ariaLabel?: string
-  sx?: SxProps<Theme>
-  optionSx?: SxProps<Theme>
-  iconSx?: SxProps<Theme>
-  isIconOnTheRight?: boolean // added prop
+  sx?: AppSxProps
+  selectedValueSx?: AppSxProps
+  optionSx?: AppSxProps
+  iconSx?: AppSxProps
+  isIconOnTheRight?: boolean
+  open?: boolean
+  defaultOpen?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 const DropDownSelectMinimal = ({
@@ -29,108 +29,107 @@ const DropDownSelectMinimal = ({
   onChange,
   ariaLabel,
   sx,
+  selectedValueSx,
   optionSx,
   iconSx,
   isIconOnTheRight = true,
+  open,
+  defaultOpen,
+  onOpenChange,
 }: Props) => {
-  const [hasEmpty, setHasEmpty] = useState(value == null)
+  const selectedValueSxArray = toSxArray(selectedValueSx)
+  const rootSxArray = toSxArray(sx)
+  const optionSxArray = toSxArray(optionSx)
+  const iconSxArray = toSxArray(iconSx)
 
   return (
-    <FormControl variant={'standard'}>
-      <Select
-        aria-label={ariaLabel}
-        value={value == null ? '' : value}
+    <Box
+      sx={[
+        {
+          display: 'inline-flex',
+          width: 'fit-content',
+          maxWidth: '100%',
+          minWidth: 0,
+          borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+          backgroundColor: 'neutral.main',
+          color: '#111111',
+        },
+        ...rootSxArray,
+      ]}
+    >
+      <DropDownSelect
+        value={value}
+        options={options}
         onChange={onChange}
-        IconComponent={ArrowDown}
-        disableUnderline={true}
-        MenuProps={{
-          anchorOrigin: {
-            vertical: 'bottom',
-            horizontal: 'left',
-          },
-          transformOrigin: {
-            vertical: 'top',
-            horizontal: 'left',
-          },
-          PaperProps: {
-            sx: {
-              mt: 0.5,
-              borderRadius: '0.625rem',
-              border: '0.5px solid #D6D6D6',
-              boxShadow: '0px 8px 24px rgba(17, 17, 17, 0.12)',
-            },
-          },
-        }}
+        ariaLabel={ariaLabel}
+        allowEmpty={value == null}
+        open={open}
+        defaultOpen={defaultOpen}
+        onOpenChange={onOpenChange}
         sx={[
           {
-            '.MuiSelect-icon': {
-              top: '50%',
-              transform: 'translateY(-50%)',
-              width: '0.75rem',
-              height: '0.375rem',
-              mr: "0.4rem",
-              mt: "0.2rem",
-              ...(iconSx as Record<string, any>),
+            display: 'inline-flex',
+            width: '100%',
+            maxWidth: '100%',
+            minWidth: 0,
+          },
+        ]}
+        selectSx={[
+          {
+            width: '100%',
+            maxWidth: '100%',
+            minWidth: 0,
+            boxShadow: 'none',
+            backgroundColor: 'transparent',
+            flexDirection: isIconOnTheRight ? 'row' : 'row-reverse',
+            '.MuiOutlinedInput-notchedOutline': {
+              borderColor: 'transparent',
             },
-            '.MuiSelect-iconOpen': {
-              transform: 'translateY(-50%) rotate(180deg)',
-            },
-            '& .MuiSelect-select': {
+            '.MuiSelect-select': {
               m: 0,
-              p: 0,
+              flex: '0 1 auto',
+              minWidth: 0,
+              pl: isIconOnTheRight ? '1rem' : '2.5rem',
+              pr: isIconOnTheRight ? '2.5rem' : '1rem',
               fontSize: '0.6875rem',
               fontWeight: 400,
               lineHeight: 'normal',
               letterSpacing: '0.04em',
-              color: '#111111',
+              color: 'currentColor',
             },
-
-            '& .MuiSelect-select:focus': {
-              backgroundColor: 'transparent',
-            },
-            m: 0,
-            p: 0,
           },
-          ...(Array.isArray(sx) ? sx : [sx]),
+          ...selectedValueSxArray.map((selectedValueSxItem) => ({
+            '.MuiSelect-select': selectedValueSxItem,
+          })),
         ]}
-      >
-        {hasEmpty && <option key={''} value={''}></option>}
-        {options.map((option) => (
-          <MenuItem
-            aria-label={
-              typeof option.label === 'string'
-                ? option.label
-                : String(option.value)
-            }
-            sx={{
-              m: 0,
-              p: 0,
-            }}
-            key={option.value}
-            value={option.value}
-          >
-            <Typography
-              sx={[
+        iconSx={[
+          {
+            color: 'currentColor',
+          },
+          ...(isIconOnTheRight
+            ? []
+            : [
                 {
-                  textAlign: 'left',
-                  pl: 1,
-                  pt: 0.5,
-                  pb: 0.5,
-                  fontSize: '0.6875rem',
-                  fontWeight: 400,
-                  lineHeight: 'normal',
-                  letterSpacing: '0.04em',
-                  color: '#111111',
+                  ...DROP_DOWN_SELECT_ICON_SX,
+                  right: 'auto',
+                  left: '1rem',
                 },
-                ...(Array.isArray(optionSx) ? optionSx : [optionSx]),
-              ]}
-            >
-              {option.label}
-            </Typography>
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
+              ]),
+          ...iconSxArray,
+        ]}
+        typographySx={[
+          {
+            textAlign: 'left',
+            fontSize: '0.6875rem',
+            fontWeight: 400,
+            lineHeight: 'normal',
+            letterSpacing: '0.04em',
+            color: '#111111',
+          },
+          ...optionSxArray,
+        ]}
+      />
+    </Box>
   )
 }
 

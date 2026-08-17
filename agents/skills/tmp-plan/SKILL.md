@@ -1,6 +1,6 @@
 ---
 name: tmp-plan
-description: Maintain a per-chat temporary planning workspace under `.tmp/` for plan-only work. Use when the user wants a super in-depth implementation plan, wants a plan revised across the chat, wants user prompts preserved in chronological order, or wants Figma/UI investigation captured in a plan without implementing code yet. The plan must be grounded in the relevant real code paths and stay scoped to only the necessary changes.
+description: Maintain a per-chat temporary planning workspace under `.tmp/` for plan-only work. Use when the user wants a super in-depth implementation plan, wants a plan revised across the chat, or wants Figma/UI investigation captured in a plan without implementing code yet. The plan must be grounded in the relevant real code paths and stay scoped to only the necessary changes.
 ---
 
 # Tmp Plan
@@ -13,7 +13,6 @@ explicitly does not want implementation yet.
 This skill creates and maintains one chat-specific folder containing:
 
 - `plan.md`: the current authoritative implementation plan
-- `history.md`: the chronological prompt log for that chat
 
 Keep this skill focused on planning. Do not edit application code, assets,
 translations, or tests while this skill is the active workflow unless the user
@@ -27,10 +26,9 @@ surface-level assumptions from filenames, screenshots, or prior memory.
 Use this skill when the user asks for any of the following:
 
 - A super in-depth implementation plan before coding
-- A `.tmp/` chat plan folder with separate plan and history files
+- A `.tmp/` chat plan folder with an authoritative plan file
 - Revisions, clarifications, or extensions to an existing per-chat plan
 - Plan-only Figma or UI investigation with no implementation yet
-- A running history of user prompts tied to the planning work
 - A bug-resistant, minimal-change implementation plan grounded in real code
 
 ## Workflow
@@ -46,24 +44,19 @@ Use this skill when the user asks for any of the following:
 - If the user explicitly says to keep `tmp-plan` active for the current chat,
   continue updating that same folder until the user says to stop.
 
-### 2. Maintain `history.md`
-
-- Append every user prompt verbatim in chronological order.
-- If you ask the user a question, append the question and the answer verbatim
-  too.
-- Preserve the raw history even when later prompts overwrite or refine earlier
-  instructions.
-
-### 3. Maintain `plan.md`
+### 2. Maintain `plan.md`
 
 - Keep one authoritative plan for the current task.
 - Update the plan after each relevant prompt so the current document reflects
   the latest authoritative instructions.
-- Preserve superseded details in `history.md`, not in the main plan body.
+- Keep `plan.md` free of per-chat bookkeeping such as ids, timestamps, or
+  auxiliary-file links so it is clean enough to promote into a feature inbox.
+- Remove or replace superseded details in the main plan body so it remains
+  authoritative.
 - Keep the plan detailed enough that a later implementation pass can follow it
   directly.
 
-### 4. Gather planning context
+### 3. Gather planning context
 
 - Inspect the relevant code paths, route structure, state flow, and existing UI
   behavior locally before writing the plan.
@@ -82,7 +75,7 @@ Use this skill when the user asks for any of the following:
   `tolgee-api-upsert` specifically to map namespace, locale, and copy
   implications, but do not write to Tolgee during the planning phase.
 
-### 5. Write a plan that is implementation-ready
+### 4. Write a plan that is implementation-ready
 
 - Include concrete route, component, store, API, and translation touchpoints
   when you can identify them.
@@ -101,7 +94,7 @@ Use this skill when the user asks for any of the following:
   explicitly asked for them.
 - Separate confirmed work from open questions, assumptions, and risks.
 
-### 6. Enforce plan-only guardrails
+### 5. Enforce plan-only guardrails
 
 - Do not implement the plan while this skill is active.
 - Do not claim that something was implemented, verified, or visually matched if
@@ -125,17 +118,10 @@ Use this skill when the user asks for any of the following:
 - Risks, assumptions, and open questions
 - Status note stating that no implementation has been started
 
-## Suggested `history.md` Structure
-
-- Chat metadata
-- User prompt log in chronological order
-- Question and answer log when applicable
-- Optional per-prompt planning summary
-
 ## Output Expectations
 
 - State the `.tmp/` folder path the first time it is created.
-- Mention the `plan.md` and `history.md` paths when relevant.
+- Mention the `plan.md` path when relevant.
 - Make it explicit that the work remains planning-only.
 - Make it explicit when the plan relied on `figma-mcp` and
   `tolgee-api-upsert`.

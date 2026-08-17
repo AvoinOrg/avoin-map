@@ -1,13 +1,21 @@
 import React, { useId } from 'react'
-import { Box, Collapse, SxProps, Theme, Typography } from '@mui/material'
+import { Collapsible } from '@base-ui/react/collapsible'
 
 import { LayerGroupStatus } from '#/common/hooks/map/useLayerGroup'
+import { Box, toSxArray } from '#/common/style/theme'
 import { getContrastColor } from '#/common/utils/styling'
 import LoadingHorizontal from '#/components/Loading/LoadingHorizontal'
-import MutableLink from '#/components/common/MutableLink'
+import {
+  AppRouteLink,
+  type AppRouteLinkProps,
+} from '#/common/navigation/appRouteLinks'
 import { CircleArrowRight, EyeClosed, EyeOpen } from '#/components/icons'
 
-type MutableLinkProps = React.ComponentProps<typeof MutableLink>
+type StyleProp = React.ComponentProps<typeof Box>['sx']
+type StyleItem = Exclude<NonNullable<StyleProp>, readonly unknown[]>
+
+const toStyleArray = (sx?: StyleProp) => toSxArray(sx) as StyleItem[]
+const ButtonBox = Box as React.ElementType
 
 type SharedLayerToggleRowProps = {
   label: React.ReactNode
@@ -16,10 +24,10 @@ type SharedLayerToggleRowProps = {
   disabled?: boolean
   ariaLabel?: string
   color?: string
-  sx?: SxProps<Theme>
-  rowSx?: SxProps<Theme>
-  labelSx?: SxProps<Theme>
-  iconSx?: SxProps<Theme>
+  sx?: StyleProp
+  rowSx?: StyleProp
+  labelSx?: StyleProp
+  iconSx?: StyleProp
 }
 
 type LayerToggleRowProps = SharedLayerToggleRowProps
@@ -27,19 +35,33 @@ type LayerToggleRowProps = SharedLayerToggleRowProps
 type LayerToggleRowAccordionProps = SharedLayerToggleRowProps & {
   expanded: boolean
   children: React.ReactNode
-  contentSx?: SxProps<Theme>
+  contentSx?: StyleProp
 }
 
 type LayerToggleRowLinkProps = SharedLayerToggleRowProps & {
   linkAriaLabel: string
-  linkProps: Omit<MutableLinkProps, 'children'>
-  linkSx?: SxProps<Theme>
+  linkProps: Omit<AppRouteLinkProps, 'children'>
+  linkSx?: StyleProp
 }
+
+const LAYER_ROW_MIN_HEIGHT = { mobile: '2rem', desktop: '1.75rem' }
+const LAYER_ROW_HORIZONTAL_PADDING = '0.375rem'
+const LAYER_STATUS_ICON_SLOT_WIDTH = '2rem'
+const LAYER_STATUS_ICON_SLOT_HEIGHT = '1.5rem'
+const LAYER_STATUS_ICON_SIZE = '1rem'
+const LAYER_STATUS_ICON_HIGHLIGHT_WIDTH = '1.5rem'
+const LAYER_STATUS_ICON_HIGHLIGHT_HEIGHT = '1rem'
+const LAYER_STATUS_ICON_SLOT_MARGIN_RIGHT = '0.75rem'
+const LAYER_TRAILING_ACTION_SLOT_SIZE = '1.75rem'
+const LAYER_TRAILING_ACTION_ICON_SIZE = '1rem'
+const LAYER_TRAILING_ACTION_MARGIN_LEFT = '0.75rem'
 
 const BASE_ROW_SX = {
   width: '100%',
-  minHeight: '1.125rem',
-  p: 0,
+  minHeight: LAYER_ROW_MIN_HEIGHT,
+  py: { mobile: '0.125rem', desktop: 0 },
+  px: LAYER_ROW_HORIZONTAL_PADDING,
+  boxSizing: 'border-box',
   display: 'flex',
   alignItems: 'center',
   border: 0,
@@ -58,6 +80,14 @@ const BASE_ROW_SX = {
   },
 }
 
+const EDGE_ALIGNED_ROW_SX = {
+  pl: 0,
+}
+
+const EDGE_ALIGNED_ICON_SX = {
+  justifyContent: 'flex-start',
+}
+
 const LABEL_SX = {
   color: '#111111',
   flexGrow: 1,
@@ -68,21 +98,16 @@ const LABEL_SX = {
   whiteSpace: 'normal',
 }
 
-const ACCORDION_ROW_HORIZONTAL_PADDING_REM = 0.375
-const ACCORDION_ROW_HORIZONTAL_PADDING = `${ACCORDION_ROW_HORIZONTAL_PADDING_REM}rem`
-const ACCORDION_ROW_HORIZONTAL_MARGIN = `-${ACCORDION_ROW_HORIZONTAL_PADDING_REM}rem`
-const ACCORDION_ROW_WIDTH = `calc(100% + ${
-  ACCORDION_ROW_HORIZONTAL_PADDING_REM * 2
-}rem)`
-
 const ColoredVisibleIcon = ({ color }: { color: string }) => {
   const contrastColor = getContrastColor(color)
 
   return (
     <Box
+      data-slot="layer-visible-highlight"
       sx={{
-        width: 32,
-        height: 24,
+        width: LAYER_STATUS_ICON_HIGHLIGHT_WIDTH,
+        height: LAYER_STATUS_ICON_HIGHLIGHT_HEIGHT,
+        boxSizing: 'border-box',
         borderRadius: '50%',
         background: color,
         display: 'flex',
@@ -94,8 +119,8 @@ const ColoredVisibleIcon = ({ color }: { color: string }) => {
     >
       <EyeOpen
         sx={{
-          width: 24,
-          height: 24,
+          width: LAYER_STATUS_ICON_SIZE,
+          height: LAYER_STATUS_ICON_SIZE,
           color: contrastColor,
         }}
       />
@@ -110,40 +135,27 @@ const LayerStatusIcon = ({
 }: {
   status: LayerGroupStatus
   color?: string
-  sx?: SxProps<Theme>
+  sx?: StyleProp
 }) => {
-  const iconBoxSx = color
-    ? {
-        width: '32px',
-        height: '24px',
-      }
-    : {
-        width: '1.5rem',
-        height: '1.125rem',
-      }
-
-  const iconSx = color
-    ? {
-        width: '24px',
-        height: '24px',
-      }
-    : {
-        width: '1rem',
-        height: '1rem',
-      }
+  const iconSx = {
+    width: LAYER_STATUS_ICON_SIZE,
+    height: LAYER_STATUS_ICON_SIZE,
+  }
 
   return (
     <Box
+      data-slot="layer-status-icon-slot"
       sx={[
         {
-          ...iconBoxSx,
-          mr: color ? '0.75rem' : '0.3125rem',
+          width: LAYER_STATUS_ICON_SLOT_WIDTH,
+          height: LAYER_STATUS_ICON_SLOT_HEIGHT,
+          mr: LAYER_STATUS_ICON_SLOT_MARGIN_RIGHT,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           flexShrink: 0,
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toStyleArray(sx),
       ]}
     >
       {status === 'processing' && <LoadingHorizontal sx={iconSx} />}
@@ -174,7 +186,7 @@ const ToggleRowButton = ({
   controls?: string
 }) => {
   return (
-    <Box
+    <ButtonBox
       component="button"
       type="button"
       aria-label={ariaLabel}
@@ -184,24 +196,34 @@ const ToggleRowButton = ({
       onClick={disabled ? undefined : onToggle}
       sx={[
         BASE_ROW_SX,
-        ...(Array.isArray(rowSx) ? rowSx : [rowSx]),
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toStyleArray(rowSx),
+        ...toStyleArray(sx),
       ]}
     >
       <LayerStatusIcon status={status} color={color} sx={iconSx} />
-      <Typography
+      <Box
         component="span"
-        sx={[LABEL_SX, ...(Array.isArray(labelSx) ? labelSx : [labelSx])]}
+        sx={[LABEL_SX, ...toStyleArray(labelSx)]}
       >
         {label}
-      </Typography>
+      </Box>
       {children}
-    </Box>
+    </ButtonBox>
   )
 }
 
-export const LayerToggleRow = (props: LayerToggleRowProps) => {
-  return <ToggleRowButton {...props} />
+export const LayerToggleRow = ({
+  rowSx,
+  iconSx,
+  ...props
+}: LayerToggleRowProps) => {
+  return (
+    <ToggleRowButton
+      {...props}
+      rowSx={[EDGE_ALIGNED_ROW_SX, ...toStyleArray(rowSx)]}
+      iconSx={[EDGE_ALIGNED_ICON_SX, ...toStyleArray(iconSx)]}
+    />
+  )
 }
 
 export const LayerToggleRowAccordion = ({
@@ -215,58 +237,72 @@ export const LayerToggleRowAccordion = ({
   const contentId = `layer-toggle-row-accordion-${generatedId}`
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <Box
-        sx={{
-          mx: ACCORDION_ROW_HORIZONTAL_MARGIN,
-          width: ACCORDION_ROW_WIDTH,
-        }}
+    <Collapsible.Root
+      open={expanded}
+      render={(rootProps) => <Box {...rootProps} sx={{ width: '100%' }} />}
+    >
+      <ToggleRowButton
+        {...props}
+        expanded={expanded}
+        controls={contentId}
+        rowSx={[
+          expanded
+            ? {
+                backgroundColor: '#e6efff',
+                borderRadius: '0.875rem',
+              }
+            : {},
+          ...toStyleArray(rowSx),
+        ]}
       >
-        <ToggleRowButton
-          {...props}
-          expanded={expanded}
-          controls={contentId}
-          rowSx={[
-            {
-              px: ACCORDION_ROW_HORIZONTAL_PADDING,
-            },
-            expanded
-              ? {
-                  backgroundColor: '#e6efff',
-                  borderRadius: '20px',
-                }
-              : {},
-            ...(Array.isArray(rowSx) ? rowSx : [rowSx]),
-          ]}
+        <Box
+          component="span"
+          aria-hidden="true"
+          sx={{
+            width: LAYER_TRAILING_ACTION_SLOT_SIZE,
+            height: LAYER_TRAILING_ACTION_SLOT_SIZE,
+            ml: LAYER_TRAILING_ACTION_MARGIN_LEFT,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
         >
           <CircleArrowRight
-            aria-hidden="true"
             sx={{
-              width: '0.75rem',
-              height: '0.75rem',
+              width: LAYER_TRAILING_ACTION_ICON_SIZE,
+              height: LAYER_TRAILING_ACTION_ICON_SIZE,
               color: '#aeb6ad',
-              ml: '1rem',
-              flexShrink: 0,
               transform: expanded ? 'rotate(-90deg)' : 'rotate(90deg)',
               transition: 'transform 160ms ease',
             }}
           />
-        </ToggleRowButton>
-      </Box>
-      <Collapse in={expanded} timeout="auto" unmountOnExit>
-        <Box
-          id={contentId}
-          sx={[
-            {
-              width: '100%',
-            },
-            ...(Array.isArray(contentSx) ? contentSx : [contentSx]),
-          ]}
-        >
-          {children}
         </Box>
-      </Collapse>
-    </Box>
+      </ToggleRowButton>
+      <Collapsible.Panel
+        id={contentId}
+        render={(panelProps) => (
+          <Box
+            {...panelProps}
+            id={contentId}
+            sx={[
+              {
+                width: '100%',
+                height: 'var(--collapsible-panel-height)',
+                overflow: 'hidden',
+                transition: 'height 160ms ease',
+                '&[data-starting-style], &[data-ending-style]': {
+                  height: 0,
+                },
+              },
+              ...toStyleArray(contentSx),
+            ]}
+          />
+        )}
+      >
+        {children}
+      </Collapsible.Panel>
+    </Collapsible.Root>
   )
 }
 
@@ -285,6 +321,13 @@ export const LayerToggleRowLink = ({
   linkProps,
   linkSx,
 }: LayerToggleRowLinkProps) => {
+  const {
+    onClick: onLinkClick,
+    onClickCapture: onLinkClickCapture,
+    sx: linkPropsSx,
+    ...restLinkProps
+  } = linkProps
+
   return (
     <Box
       sx={[
@@ -293,7 +336,7 @@ export const LayerToggleRowLink = ({
           display: 'flex',
           alignItems: 'center',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toStyleArray(sx),
       ]}
     >
       <ToggleRowButton
@@ -303,47 +346,49 @@ export const LayerToggleRowLink = ({
         disabled={disabled}
         ariaLabel={ariaLabel}
         color={color}
-        rowSx={rowSx}
+        rowSx={[EDGE_ALIGNED_ROW_SX, ...toStyleArray(rowSx)]}
         labelSx={labelSx}
-        iconSx={iconSx}
-        sx={{
-          flexGrow: 1,
-          minWidth: 0,
-        }}
+        iconSx={[EDGE_ALIGNED_ICON_SX, ...toStyleArray(iconSx)]}
+        sx={{ flexGrow: 1, minWidth: 0 }}
       />
-      <MutableLink
-        {...linkProps}
+      <AppRouteLink
+        {...restLinkProps}
         aria-label={linkAriaLabel}
+        onClickCapture={(event) => {
+          onLinkClickCapture?.(event)
+        }}
         onClick={(event) => {
           event.stopPropagation()
-          linkProps.onClick?.(event)
+          onLinkClick?.(event)
         }}
-        sx={{
-          width: '2.5rem',
-          height: '2.5rem',
-          ml: '0.5rem',
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#111111',
-          borderRadius: '50%',
-          '&:focus-visible': {
-            outline: '2px solid #111111',
-            outlineOffset: '-0.25rem',
+        sx={[
+          {
+            width: LAYER_TRAILING_ACTION_SLOT_SIZE,
+            height: LAYER_TRAILING_ACTION_SLOT_SIZE,
+            ml: LAYER_TRAILING_ACTION_MARGIN_LEFT,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#111111',
+            borderRadius: '50%',
+            '&:focus-visible': {
+              outline: '2px solid #111111',
+              outlineOffset: '-0.125rem',
+            },
           },
-          ...(linkProps.sx as object),
-          ...(linkSx as object),
-        }}
+          ...toStyleArray(linkPropsSx as StyleProp),
+          ...toStyleArray(linkSx),
+        ]}
       >
         <CircleArrowRight
           aria-hidden="true"
           sx={{
-            width: '1.5rem',
-            height: '1.5rem',
+            width: LAYER_TRAILING_ACTION_ICON_SIZE,
+            height: LAYER_TRAILING_ACTION_ICON_SIZE,
             color: 'currentColor',
           }}
         />
-      </MutableLink>
+      </AppRouteLink>
     </Box>
   )
 }

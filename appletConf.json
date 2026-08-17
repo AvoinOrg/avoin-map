@@ -3,18 +3,47 @@
     "localeNs": "avoin-map",
     "langs": ["en", "fi"]
   },
-  "hiilikartta": {
+  "carbon": {
     "localeNs": "hiilikartta",
     "langs": ["fi"],
-    "domains": ["test2.map.avoin.org", "hiilikartta.avoin.org"]
+    "apiRouteBase": "hiilikartta",
+    "publicFilesDir": "hiilikartta",
+    "domains": ["test2.map.avoin.org", "hiilikartta.avoin.org"],
+    "publicRoute": {
+      "slug": "carbon",
+      "legacySlugs": [],
+      "legacySubpathRedirects": [
+        { "from": ["kaavat", "*", "alueet"], "to": ["plans", "*", "areas"] },
+        { "from": ["kaavat"], "to": ["plans"] },
+        { "from": ["kaavat", "*"], "to": ["plans", "*"] },
+        { "from": ["raportti"], "to": ["report"] }
+      ]
+    }
   },
   "luonnonmetsakartat": {
     "localeNs": "luonnonmetsakartat",
     "langs": ["fi"],
-    "domains": ["luonnonmetsakarta.netlify.app", "luonnonmetsakartat.avoin.org"]
+    "domains": [
+      "luonnonmetsakarta.netlify.app",
+      "luonnonmetsakartat.avoin.org"
+    ],
+    "publicRoute": {
+      "slug": "luonnonmetsakartat",
+      "legacySlugs": [],
+      "legacySubpathRedirects": []
+    }
   },
-  "energiakartta": {
+  "energy": {
     "localeNs": "energiakartta",
-    "langs": ["fi", "en"]
+    "langs": ["fi", "en"],
+    "publicRoute": {
+      "slug": "energy",
+      "legacySlugs": [],
+      "legacySubpathRedirects": []
+    }
+  },
+  "ui-baseline": {
+    "localeNs": "ui-baseline",
+    "langs": ["en", "fi"]
   }
 }

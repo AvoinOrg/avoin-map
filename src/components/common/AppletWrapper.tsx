@@ -2,11 +2,8 @@
 // Right now this only ensures that correct MapContext is used
 // for each applet. See MapStore for more details.
 
-'use client'
-
 import React, { useEffect, useRef } from 'react'
 import { useTolgee } from '@tolgee/react'
-import { Box } from '@mui/material'
 
 import { useMapStore, useUIStore } from '#/common/store'
 import { ListedLayerMenuItem, MapContext } from '#/common/types/map'
@@ -18,6 +15,11 @@ import {
   IntoSidebarHeaderChildrenSlot,
   IntoSidebarHeaderSlot,
 } from '#/components/Sidebar/sidebarSlots'
+import { Box, toSxArray, type AppSxProps } from '#/common/style/theme'
+import { getRouteFolderForApplet } from '#/common/routing/publicRoutes'
+
+type AppSxItem = Exclude<NonNullable<AppSxProps>, readonly unknown[]>
+const toAppSxItemArray = (sx?: AppSxProps) => toSxArray(sx) as AppSxItem[]
 
 type BaseAppletWrapperProps = {
   children: React.ReactNode
@@ -34,7 +36,8 @@ type BaseAppletWrapperProps = {
     duration?: number
   }
   listedLayerGroups?: ListedLayerMenuItem[]
-  sx?: any
+  resetListedLayerVisibility?: boolean
+  sx?: AppSxProps
 }
 
 type AppletWrapperProps = BaseAppletWrapperProps &
@@ -64,6 +67,7 @@ const AppletWrapper = ({
   disableDefaultFitbounds = false,
   defaultView,
   listedLayerGroups,
+  resetListedLayerVisibility = false,
   sidebarHeaderElement,
   sidebarHeaderTitle,
   sidebarHeaderChildren,
@@ -130,12 +134,21 @@ const AppletWrapper = ({
   }, [defaultView, disableDefaultFitbounds, easeTo, fitBounds])
 
   useEffect(() => {
-    if (listedLayerGroups == null) {
-      setListedLayerGroups(defaultListedLayerGroups)
-    } else {
-      setListedLayerGroups(listedLayerGroups)
-    }
-  }, [listedLayerGroups])
+    const resolvedListedLayerGroups =
+      listedLayerGroups ?? defaultListedLayerGroups
+
+    setMapContext(mapContext)
+    void setListedLayerGroups(
+      resolvedListedLayerGroups,
+      resetListedLayerVisibility
+    )
+  }, [
+    listedLayerGroups,
+    mapContext,
+    resetListedLayerVisibility,
+    setListedLayerGroups,
+    setMapContext,
+  ])
 
   useEffect(() => {
     if (tolgee.isLoaded()) {
@@ -147,13 +160,13 @@ const AppletWrapper = ({
   useEffect(() => {
     let appletPath = subPath
     if (subPath == null && mapContext != null) {
-      appletPath = mapContext
+      appletPath = getRouteFolderForApplet(mapContext)
     }
     const path = window.location.pathname
     // Split the path into segments based on "/"
     const segments = path.split('/').filter(Boolean) // filter(Boolean) removes any empty strings from the array
 
-    if (segments.length > 1) {
+    if (segments.length > 0 && appletPath && appletPath !== 'main') {
       setIsBaseDomainForApplet(segments[1] !== appletPath)
     }
 
@@ -163,8 +176,6 @@ const AppletWrapper = ({
     } else if (originalCountryCodes.current == null) {
       originalCountryCodes.current = storeSearchCountryCodes
     }
-
-    setMapContext(mapContext)
 
     setIsNavbarHidden(isNavbarHidden || false)
 
@@ -206,13 +217,15 @@ const AppletWrapper = ({
 
   return (
     <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        flex: 1,
-        minHeight: 0,
-        ...sx,
-      }}
+      sx={[
+        {
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          minHeight: 0,
+        },
+        ...toAppSxItemArray(sx),
+      ]}
       className={'applet-wrapper'}
     >
       {stateMapContext === mapContext && isTolgeeReady() && (

@@ -1,7 +1,6 @@
 // The map store is a zustand store that manages the map state.
 // A lot of the logic is split between this file and the Map component.
 // There are a also various helper hooks in src/common/hooks/map.
-'use client'
 
 // TODO: Refactor the _map object to somewhere else. It does need to be in the store.
 

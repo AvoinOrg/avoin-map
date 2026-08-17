@@ -1,15 +1,15 @@
-import { Theme } from '@mui/material'
+import type { AppTheme } from '#/common/style/theme'
 
 // Used for resolving color strings in components,
 // where MUI theme might not work directly
-export const resolveColor = (color: string, theme: Theme) => {
+export const resolveColor = (color: string, theme: AppTheme) => {
   const parts = color.split('.')
   if (parts.length === 2) {
     const [colorKey, shade] = parts
-    const colorGroup = theme.palette[colorKey as keyof Theme['palette']]
+    const colorGroup = theme.palette[colorKey as keyof AppTheme['palette']]
 
     if (colorGroup && typeof colorGroup === 'object' && shade in colorGroup) {
-      return colorGroup[shade as keyof typeof colorGroup]
+      return colorGroup[shade as keyof typeof colorGroup] as string
     }
   }
 

@@ -1,12 +1,9 @@
-import * as React from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
-
-type Props = {
-  sx?: SxProps<Theme>
-}
+import type { SharedSvgIconProps } from './types'
+import { SharedSvgIcon } from './types'
+type Props = SharedSvgIconProps
 
 const Terrain = (props: Props) => (
-  <Box
+  <SharedSvgIcon
     component={"svg"}
     width={24}
     height={24}
@@ -53,7 +50,7 @@ const Terrain = (props: Props) => (
       fill="currentColor"
       mask="url(#path-4-outside-1_14_521)"
     />
-  </Box>
+  </SharedSvgIcon>
 )
 
 export default Terrain

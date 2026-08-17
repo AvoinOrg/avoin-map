@@ -9,10 +9,8 @@ description: Inspect Figma files and nodes through the global HTTP Figma MCP ser
 
 Use this skill for Figma access checks, node inspection, and asset retrieval.
 
-The default route is the global HTTP Figma MCP server configured as the Codex
-MCP server named `figma`. In tool form, try `mcp__figma__*` first. Do not look
-for a local, localhost, desktop, or non-HTTP Figma MCP server unless the user
-explicitly asks for that.
+The only supported route is the raw global HTTP Figma MCP server configured as
+the Codex MCP server named `figma`. In tool form, use `mcp__figma__*`.
 
 Keep this skill focused on the MCP workflow. If the task turns into app UI
 implementation, continue with `ui-live-iteration`.
@@ -61,7 +59,6 @@ Use this skill when the user asks for any of the following:
 - Global HTTP Figma MCP credentials live in `.codex/.credentials.json`.
 - The preferred credential entry has `server_name: "figma"` and
   `server_url: "https://mcp.figma.com/mcp"`.
-- `figma_remote` is a legacy alias only. Do not prefer it over `figma`.
 - Treat that file as sensitive. Read only the fields you need, and do not print
   access tokens in user-facing output.
 - Use `jq` or a short Node script to inspect non-secret fields such as
@@ -69,9 +66,7 @@ Use this skill when the user asks for any of the following:
 
 ### 4. Pick the right MCP tool
 
-- Prefer tool-style MCP aliases in this order: `mcp__figma__*` first; legacy
-  `mcp__figma_remote__*` only if the session exposes it and `mcp__figma__*` is
-  unavailable.
+- Use the `mcp__figma__*` tool-style aliases when the session exposes them.
 - `whoami` or `tools/list`: quick reachability checks for the global HTTP server
 - `get_metadata`: inspect the shared node tree and child IDs
 - `get_design_context`: fetch code-oriented context, screenshot, and asset URLs

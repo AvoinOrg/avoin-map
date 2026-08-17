@@ -1,11 +1,9 @@
-import { Box, SxProps, Theme } from '@mui/material'
-
-type Props = {
-  sx?: SxProps<Theme>
-}
+import type { SharedSvgIconProps } from './types'
+import { SharedSvgIcon } from './types'
+type Props = SharedSvgIconProps
 
 const QuestionCircleOutline = (props: Props) => (
-  <Box
+  <SharedSvgIcon
     component="svg"
     xmlns="http://www.w3.org/2000/svg"
     width={16}
@@ -40,7 +38,7 @@ const QuestionCircleOutline = (props: Props) => (
       d="M8.5 4H7.75C7.45434 3.99934 7.16147 4.05709 6.88819 4.16993C6.61491 4.28277 6.36661 4.44848 6.15754 4.65754C5.94848 4.8666 5.78277 5.1149 5.66993 5.38818C5.55709 5.66146 5.49934 5.95434 5.5 6.25V6.5H6.5V6.25C6.5 5.91848 6.6317 5.60054 6.86612 5.36612C7.10054 5.1317 7.41848 5 7.75 5H8.5C8.83152 5 9.14947 5.1317 9.38389 5.36612C9.61831 5.60054 9.75 5.91848 9.75 6.25C9.75 6.58152 9.61831 6.89946 9.38389 7.13388C9.14947 7.3683 8.83152 7.5 8.5 7.5H7.5V9.75H8.5V8.5C9.09674 8.5 9.66904 8.26295 10.091 7.84099C10.5129 7.41903 10.75 6.84674 10.75 6.25C10.75 5.65326 10.5129 5.08097 10.091 4.65901C9.66904 4.23705 9.09674 4 8.5 4Z"
       fill="currentColor"
     />
-  </Box>
+  </SharedSvgIcon>
 )
 
 export default QuestionCircleOutline

@@ -1,12 +1,9 @@
-import { Box, SxProps, Theme } from '@mui/material'
-
-type Props = {
-  sx?: SxProps<Theme>
-  fillColor?: string
-}
+import type { SharedSvgIconProps } from './types'
+import { SharedSvgIcon } from './types'
+type Props = SharedSvgIconProps & { fillColor?: string }
 
 const CheckcircleChecked = ({ fillColor = 'gray', ...props }: Props) => (
-  <Box
+  <SharedSvgIcon
     component="svg"
     xmlns="http://www.w3.org/2000/svg"
     width={23}
@@ -25,7 +22,7 @@ const CheckcircleChecked = ({ fillColor = 'gray', ...props }: Props) => (
       strokeWidth={2}
     />
     <path stroke="currentColor" strokeWidth={2} d="m5 10.5 5 5.5 8-9" />
-  </Box>
+  </SharedSvgIcon>
 )
 
 export default CheckcircleChecked

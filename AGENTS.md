@@ -2,18 +2,24 @@
 
 ## Repository overview
 
-Avoin Map is a map-based web app built on Next.js. The codebase contains a core
-map experience plus multiple applets that can run inside the main app or as
-standalone sites.
+Avoin Map is a map-based web app running on TanStack Start. The codebase
+contains a core map experience plus multiple applets that can run inside the
+main app or as standalone sites.
 
 ## Top-level structure
 
-- `src/app`: Next.js App Router entries (routes, layouts, API handlers).
-- `src/app/[locale]/(map)/(applets)`: Applet roots.
-- `src/app/[locale]/(map)/(applets)/(main)`: Main app pages/components.
-- `src/components`: Shared UI and map components.
-- `src/common`: Shared hooks, routing, store, types, and utilities.
+- `src/applets`: Applet pages, shells, state, layers, and applet-specific code.
+- `src/applets/main`: Main applet pages and components.
+- `src/components`: Reusable UI and map components.
+- `src/common`: Cross-applet hooks, navigation and routing contracts, stores,
+  types, and utilities.
+- `src/routes`: TanStack Start page routes and server endpoints.
+- `src/runtime`: Start-specific providers, map-shell adapters, auth, metadata,
+  Tolgee static data, and server handlers.
 - `utils/scripts`: Build-time helpers (translations, folder pruning, Netlify helpers).
+- `legacy/`: Archival old implementation excluded from current app builds and
+  `tsconfig.json`; full-MUI imports here are scan false positives unless this
+  tree is explicitly reactivated.
 
 ## Shared agent assets
 
@@ -64,22 +70,22 @@ standalone sites.
 - `tolgee-api-upsert`: Add or update Tolgee translation keys via the Tolgee
   API, refresh local exports, and follow the repo’s `TText`/ICU authoring
   rules. (file: `agents/skills/tolgee-api-upsert/SKILL.md`)
+- `component-refactor`: Use the component fixture harness for individual
+  component refactors and migrations that need isolated before/after visual
+  checks. (file: `agents/skills/component-refactor/SKILL.md`)
 
 ## Figma MCP (Global HTTP)
 
 - Use the `figma-mcp` skill when the task is primarily about Figma connectivity,
   credential handling, URL normalization, metadata fetches, screenshots, design
   context, or exact asset extraction.
-- Use the default tool-style Figma MCP aliases first: `mcp__figma__*`.
-- Those aliases must point at the global HTTP Figma MCP endpoint:
+- Use only the raw global HTTP Figma MCP server named `figma`.
+- Its tool-style aliases are `mcp__figma__*` and must point at:
   `https://mcp.figma.com/mcp`.
-- Do not try local, localhost, desktop, or non-HTTP Figma MCP transports unless
-  the user explicitly asks for a local transport.
 - If `mcp__figma__*` aliases are not exposed in the current Codex session, call
   the same global HTTP endpoint directly with JSON-RPC and the Figma MCP
   credential from `.codex/.credentials.json`; absence of aliases is not itself
   a Figma access block.
-- `figma_remote` / `mcp__figma_remote__*` is a legacy alias only.
 - The devcontainer image includes `jq`, which is useful for safe inspection of
   `.codex/.credentials.json` and quick MCP response parsing.
 - When a user shares a public Figma URL, do not pass the full URL to MCP tools.
@@ -104,52 +110,80 @@ standalone sites.
 
 ## Applets and build modes
 
-- Applets live under `src/app/[locale]/(map)/(applets)/<namespace>`.
-- `NEXT_PUBLIC_COMPILED_APPLETS` drives both runtime routing and build-time
+- Applets live under `src/applets/<namespace>`.
+- `PUBLIC_COMPILED_APPLETS` drives both runtime routing and build-time
   pruning (see `utils/scripts/prebuildFolderPrune.js`):
   - If it includes `main`, the main app is built and only the listed applets
     remain (unlisted applet folders are removed in the temp build workspace).
   - If it does not include `main`, exactly one applet must be listed; that
     build runs in standalone mode.
 - `appletConf.json` declares applets, their Tolgee namespace (`localeNs`),
-  languages, and optional domains.
+  languages, optional domains, and canonical public URL facts under
+  `publicRoute`.
 - Builds run in a non-destructive temp workspace:
   - `yarn prebuild-dev`: downloads translations (writes `i18n/*`).
   - `yarn prebuild`: downloads translations + prepares a pruned temp workspace
     (see `utils/scripts/prebuildFolderPruneTmp.js`).
-  - `yarn build`: runs `yarn prebuild`, then runs `next build` in the temp
-    workspace, then copies `.next` + `public/files` + `public/lib` back to the
-    real workspace (see `utils/scripts/buildFromFolderPruneTmp.js`).
+  - `yarn build`: runs `yarn prebuild`, generates `public/files` and
+    `public/lib` in the temp workspace, runs the TanStack Start production
+    build, then copies `.output` + generated `public/files` + `public/lib` back
+    to the real workspace (see `utils/scripts/buildFromFolderPruneTmp.js`).
     The temp workspace path is tracked in `.applet-build-tmp.json` (gitignored);
     set `BUILD_TMP_KEEP=1` to keep the temp folder for debugging.
 
+### Production build commands
+
+Production builds require server-only `TOLGEE_API_URL` and `TOLGEE_API_KEY`:
+
+```bash
+PUBLIC_COMPILED_APPLETS=main,energy,carbon,luonnonmetsakartat yarn build
+PUBLIC_COMPILED_APPLETS=energy yarn build
+PUBLIC_COMPILED_APPLETS=carbon yarn build
+PUBLIC_COMPILED_APPLETS=luonnonmetsakartat yarn build
+```
+
+The common `yarn build` pipeline emits `.output/server/index.mjs`,
+`.output/public`, `public/files`, and `public/lib/sql-wasm.wasm`. Netlify runs
+the same selection contract via `yarn build:netlify` and `START_TARGET=netlify`,
+emitting `dist` plus `.netlify/functions-internal`. `ui-baseline` is an internal
+fixture applet covered by unit tests, not a production deployment target.
+
 ## Routing
 
-- Next.js folder routing applies; folders in parentheses are route groups and
-  do not appear in the URL.
-- Route trees live in `src/common/routing/routes/*.ts` and are converted into
-  pathnames in `src/common/navigation/navigation.ts`.
-- Use `getRoute`/`MutableLink` for applet-aware links instead of hardcoding
-  paths.
-- `src/middleware.ts` normalizes locale and applet routing, handling standalone
-  applets and domain-based URLs.
+- TanStack Start folder routing applies; folders in parentheses are route
+  groups and do not appear in the URL. Leading-underscore layouts such as
+  `_map` are pathless and also add no public segment.
+- `src/routes` owns route configuration and imports page/shell implementations
+  from `src/applets` and `src/runtime`. Never hand-edit generated
+  `src/routeTree.gen.ts`.
+- Public applet URL facts come from `appletConf.json.publicRoute` and are
+  normalized by `src/common/routing/publicRouteContract/index.js`; runtime and
+  build adapters consume that same contract.
+- Route files define app navigation metadata with `staticData` via
+  `defineAppRouteStaticData`; use `APP_ROUTE_KEYS` with `AppRouteLink` for
+  links or `useAppRouteHrefBuilder` when a string href is needed.
+- `src/server.tsx` performs selection- and manifest-driven locale, canonical
+  applet path, legacy subpath, and standalone-root normalization before
+  requests enter the Start handler.
+- `utils/scripts/writeNetlifyRedirects.js` owns configured applet-domain
+  redirects and proxy rules. Runtime main mode does not infer applet-root mode
+  from the request host.
 
-## Assets and API copying
+## Generated Assets
 
-- `next.config.js` uses CopyPlugin to copy:
+- `utils/scripts/prepareGeneratedPublicAssets.js` generates Start build assets:
   - `src/public/**/*` into `public/files/*`
-  - `src/app/**/public/**/*` into `public/files/<applet>/*`
-  - `src/app/(ui)/**/api/**/*` into `src/app/api/<applet>/*`
-- `public/` and generated `src/app/api/*` entries are gitignored.
-- Avoid dynamic API routes like `[id]` in applet API folders (CopyPlugin
-  limitation).
+  - selected applet `public` folders into `public/files/<applet>/*`
+  - `node_modules/rtree-sql.js/dist/sql-wasm.wasm` into
+    `public/lib/sql-wasm.wasm`
+- `public/` remains gitignored generated output.
 
 ## Localization
 
 - Tolgee powers translations. Applet namespaces and locales are defined in
   `appletConf.json` (`localeNs` + `langs`).
 - `utils/scripts/downloadTranslations.js` downloads translation files into
-  `i18n/` for applets listed in `NEXT_PUBLIC_COMPILED_APPLETS` (and always
+  `i18n/` for applets listed in `PUBLIC_COMPILED_APPLETS` (and always
   includes the shared `main` namespace, `avoin-map`, for the active locales;
   requires `TOLGEE_API_URL` and `TOLGEE_API_KEY`).
 - Prefer the Tolgee browser plugin (Alt+click) for editing keys.
@@ -200,8 +234,8 @@ standalone sites.
 - Layer configs live in `src/components/Map/layers` plus applet-specific layer
   definitions.
 - Styles use MapLibre/Mapbox expression syntax for dynamic styling.
-- UI uses MUI (Material UI). Prefer styling via the `sx` prop (including `sx`
-  arrays) to keep component styling colocated with usage.
+- UI uses Base UI plus MUI System. Prefer styling via the `sx` prop (including
+  `sx` arrays) to keep component styling colocated with usage.
 - Prefer `sx` over `styled()` / `@emotion/styled`; only use `styled` when it
   materially improves DRY/reuse or encapsulates styling that can’t be expressed
   cleanly with `sx`.
@@ -210,8 +244,9 @@ standalone sites.
 
 ## Auth
 
-- Auth uses NextAuth with a Zitadel issuer.
-- Core auth endpoints live in `src/app/api/auth` and `src/app/api/userinfo`.
+- Auth uses Better Auth with a Zitadel OIDC provider.
+- Core auth endpoints live in `src/routes/api/auth/$.ts` and
+  `src/routes/api/userinfo.ts`.
 
 ## Code style
 
@@ -263,13 +298,13 @@ standalone sites.
   clearly requires it.
 - Visual regression artifacts are stored under `.dev/visual-regression/` (gitignored).
 - Visual commands must target the stable, already-running dev server at
-  `http://127.0.0.1:3000`. Always pass `--no-start`; agents must not start or
-  stop `yarn dev`. If `:3000` is unreachable, stop the coding task, inform the
+  `http://127.0.0.1:6900`. Always pass `--no-start`; agents must not start or
+  stop `yarn dev`. If `:6900` is unreachable, stop the coding task, inform the
   user that the main dev server is unavailable, and investigate what happened
   to that main process.
 - Do not perform a "full dev-runtime reset" on your own in this devcontainer.
-  Do not mass-kill shared `next dev`/Node processes, and do not wipe generated
-  runtime directories such as `.next`, `public/files`, or `public/lib` unless
+  Do not mass-kill shared dev-server/Node processes, and do not wipe generated
+  runtime directories such as `.output`, `public/files`, or `public/lib` unless
   the user explicitly asks for that reset. In this environment those actions
   can break the shared dev runtime and even stop the devcontainer session you
   are working in. Prefer safer options first: reuse the existing server,

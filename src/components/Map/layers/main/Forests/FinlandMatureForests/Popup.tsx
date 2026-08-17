@@ -1,5 +1,4 @@
 import React from 'react'
-import { Table, TableBody, TableCell, TableRow } from '@mui/material'
 
 import {
   metsaanFiTreeSpecies,
@@ -13,89 +12,107 @@ import {
 } from './constants'
 import { pp } from '#/common/utils/general'
 import { PopupProps } from '#/common/types/map'
+import {
+  PopupTable,
+  PopupTableBody,
+  PopupTableCell,
+  PopupTableRow,
+} from '#/components/Map/layers/main/common/PopupTable'
+
+type SoilTypeInfo = [number, string, string]
+type MetsaanDatasource = {
+  id: number | string
+  description: string
+}
 
 const Popup = ({ features }: PopupProps) => {
   const p = features[0].properties
 
-  const soilTypeInfo = metsaanFiSoilTypes.filter((x: any) => x[0] === p.soiltype)[0]
+  const soilTypeInfo = (metsaanFiSoilTypes as SoilTypeInfo[]).find(
+    (x) => x[0] === p.soiltype
+  )
   let soilEn = '',
     soilFi = ''
   if (soilTypeInfo) {
-    soilEn = soilTypeInfo[1] as any
-    soilFi = soilTypeInfo[2] as any
+    soilEn = soilTypeInfo[1]
+    soilFi = soilTypeInfo[2]
   }
 
   const ditching =
     p.ditch_completed_at || p.ditchingyear ? `Completed at: {p.ditch_completion_date || p.ditchingyear}` : ''
 
   return (
-    <Table size={'small'}>
-      <TableBody>
-        <TableRow>
-          <TableCell>Main Tree species</TableCell>
-          <TableCell>{metsaanFiTreeSpecies[p.maintreespecies] || ''}</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Average metsaanFiTreeSpecies age</TableCell>
-          <TableCell>{p.meanage} years</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Average tree trunk diameter</TableCell>
-          <TableCell>{p.meandiameter} cm</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Average tree height</TableCell>
-          <TableCell>{p.meanheight} m</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Soil</TableCell>
-          <TableCell>{soilEn || soilFi || ''}</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Area</TableCell>
-          <TableCell>{pp(p.area, 3)} hectares</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Accessibility</TableCell>
-          <TableCell>{metsaanFiAccessibilityClassifier[p.accessibility] || ''}</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Approx. tree stem count</TableCell>
-          <TableCell>{pp(p.stemcount * p.area)}</TableCell>
-        </TableRow>
-        {/* <TableRow><TableCell>TODO(Probably/Not/Yes/No): Mature enough for regeneration felling?</TableCell><TableCell>{
+    <PopupTable>
+      <PopupTableBody>
+        <PopupTableRow>
+          <PopupTableCell>Main Tree species</PopupTableCell>
+          <PopupTableCell>{metsaanFiTreeSpecies[p.maintreespecies] || ''}</PopupTableCell>
+        </PopupTableRow>
+        <PopupTableRow>
+          <PopupTableCell>Average metsaanFiTreeSpecies age</PopupTableCell>
+          <PopupTableCell>{p.meanage} years</PopupTableCell>
+        </PopupTableRow>
+        <PopupTableRow>
+          <PopupTableCell>Average tree trunk diameter</PopupTableCell>
+          <PopupTableCell>{p.meandiameter} cm</PopupTableCell>
+        </PopupTableRow>
+        <PopupTableRow>
+          <PopupTableCell>Average tree height</PopupTableCell>
+          <PopupTableCell>{p.meanheight} m</PopupTableCell>
+        </PopupTableRow>
+        <PopupTableRow>
+          <PopupTableCell>Soil</PopupTableCell>
+          <PopupTableCell>{soilEn || soilFi || ''}</PopupTableCell>
+        </PopupTableRow>
+        <PopupTableRow>
+          <PopupTableCell>Area</PopupTableCell>
+          <PopupTableCell>{pp(p.area, 3)} hectares</PopupTableCell>
+        </PopupTableRow>
+        <PopupTableRow>
+          <PopupTableCell>Accessibility</PopupTableCell>
+          <PopupTableCell>{metsaanFiAccessibilityClassifier[p.accessibility] || ''}</PopupTableCell>
+        </PopupTableRow>
+        <PopupTableRow>
+          <PopupTableCell>Approx. tree stem count</PopupTableCell>
+          <PopupTableCell>{pp(p.stemcount * p.area)}</PopupTableCell>
+        </PopupTableRow>
+        {/* <PopupTableRow><PopupTableCell>TODO(Probably/Not/Yes/No): Mature enough for regeneration felling?</PopupTableCell><PopupTableCell>{
               p.regeneration_felling_prediction
-            }</TableCell></TableRow>  */}
-        <TableRow>
-          <TableCell>Development class</TableCell>
-          <TableCell>{metsaanFiDevelopmentClass[p.developmentclass] || ''}</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Fertility classifier</TableCell>
-          <TableCell>{metsaanFiFertilityClass[p.fertilityclass] || ''}</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Main group</TableCell>
-          <TableCell>{metsaanFiMainGroups[p.maingroup] || ''}</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Subgroup</TableCell>
-          <TableCell>{metsaanFiSubgroups[p.subgroup] || ''}</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Ditching</TableCell>
-          <TableCell>{ditching}</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Data source</TableCell>
-          <TableCell>{metsaanFiDatasources.filter((x: any) => x.id === p.datasource)[0].description || ''}</TableCell>
-        </TableRow>
-        <TableRow>
-          <TableCell>Identifier</TableCell>
-          <TableCell>StandID={p.standid}</TableCell>
-        </TableRow>
-      </TableBody>
-    </Table>
+            }</PopupTableCell></PopupTableRow>  */}
+        <PopupTableRow>
+          <PopupTableCell>Development class</PopupTableCell>
+          <PopupTableCell>{metsaanFiDevelopmentClass[p.developmentclass] || ''}</PopupTableCell>
+        </PopupTableRow>
+        <PopupTableRow>
+          <PopupTableCell>Fertility classifier</PopupTableCell>
+          <PopupTableCell>{metsaanFiFertilityClass[p.fertilityclass] || ''}</PopupTableCell>
+        </PopupTableRow>
+        <PopupTableRow>
+          <PopupTableCell>Main group</PopupTableCell>
+          <PopupTableCell>{metsaanFiMainGroups[p.maingroup] || ''}</PopupTableCell>
+        </PopupTableRow>
+        <PopupTableRow>
+          <PopupTableCell>Subgroup</PopupTableCell>
+          <PopupTableCell>{metsaanFiSubgroups[p.subgroup] || ''}</PopupTableCell>
+        </PopupTableRow>
+        <PopupTableRow>
+          <PopupTableCell>Ditching</PopupTableCell>
+          <PopupTableCell>{ditching}</PopupTableCell>
+        </PopupTableRow>
+        <PopupTableRow>
+          <PopupTableCell>Data source</PopupTableCell>
+          <PopupTableCell>
+            {(metsaanFiDatasources as MetsaanDatasource[]).find(
+              (x) => x.id === p.datasource
+            )?.description || ''}
+          </PopupTableCell>
+        </PopupTableRow>
+        <PopupTableRow>
+          <PopupTableCell>Identifier</PopupTableCell>
+          <PopupTableCell>StandID={p.standid}</PopupTableCell>
+        </PopupTableRow>
+      </PopupTableBody>
+    </PopupTable>
   )
 }
 

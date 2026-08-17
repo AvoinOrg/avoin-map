@@ -1,5 +1,3 @@
-'use client'
-
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { enableMapSet } from 'immer'
@@ -24,7 +22,7 @@ import type {
   SidebarRuntimeOptionsPatch,
 } from '#/common/types/sidebar'
 import { generateUUID } from '../utils/general'
-import { MapDims } from '../types/map'
+import type { MapDims } from '../types/mapDims'
 import { devtools } from 'zustand/middleware'
 import { commonDevtools } from './shared-devtools'
 import { waitFor } from '../utils/store'

@@ -6,9 +6,26 @@ services:
     env_file: ./.env
     shm_size: '1gb'
     ports:
-      - '${DEV_PORT}:3000'
+      - '${DEV_PORT}:6900'
     volumes:
       - .:/app:z
+      - type: bind
+        source: ${HOST_CODEX_DIR:-${HOME}/.codex}/auth.json
+        target: /app/.codex/auth.json
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${HOST_CODEX_DIR:-${HOME}/.codex}/.credentials.json
+        target: /app/.codex/.credentials.json
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${SSH_AGENT_DIR:-${HOME}/.ssh/sockets}
+        target: /ssh-sockets
+      - type: bind
+        source: ${SSH_KNOWN_HOSTS:-${HOME}/.ssh/known_hosts}
+        target: /ssh-known-hosts
+        read_only: true
       - type: bind
         source: ${LIVE_BROWSER_CONTAINER_DATA_HOST_DIR:-./.dev/live-browser-persist}
         target: /app/.dev/live-browser-persist
@@ -18,6 +35,7 @@ services:
       NODE_OPTIONS: '--max-old-space-size=6144'
       HOST_MACHINE: host.docker.internal
       DEVCONTAINER_KEEPALIVE: '1'
+      SSH_AUTH_SOCK: /ssh-sockets/agent.sock
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:

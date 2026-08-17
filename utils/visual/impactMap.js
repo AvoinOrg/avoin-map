@@ -7,11 +7,22 @@ const buildImpactRules = () => [
       'package.json',
       'yarn.lock',
       'Dockerfile',
-      'next.config.js',
+      'vite.config.mts',
+      'nitro.config.ts',
       'appletConf.json',
       '.env',
       '.env.*',
-      'src/middleware.ts',
+      'src/server.tsx',
+      'src/common/routing/requestRouting.ts',
+    ],
+    target: '*',
+  },
+  {
+    label: 'component-fixture-harness',
+    globs: [
+      'src/routes/$locale/dev/component-fixtures/**',
+      'src/common/component-fixtures/**',
+      'utils/visual/componentFixtureScenarios.js',
     ],
     target: '*',
   },
@@ -23,45 +34,53 @@ const buildImpactRules = () => [
   {
     label: 'app-shell',
     globs: [
-      'src/app/layout.tsx',
-      'src/app/[locale]/layout.tsx',
-      'src/app/[locale]/(map)/layout.tsx',
+      'src/routes/__root.tsx',
+      'src/routes/$locale/route.tsx',
+      'src/routes/$locale/_map/route.tsx',
+      'src/runtime/ShellComponents/**',
     ],
     target: '*',
   },
   {
     label: 'main-pages',
     globs: [
-      'src/app/[locale]/(map)/(applets)/(main)/**',
-      'src/app/[locale]/(map)/(applets)/forests/**',
+      'src/applets/main/**',
+      'src/applets/forests/**',
     ],
     target: 'main',
   },
   {
-    label: 'hiilikartta-pages',
+    label: 'carbon-pages',
     globs: [
-      'src/app/[locale]/(map)/(applets)/hiilikartta/**',
-      'src/common/routing/routes/hiilikartta.ts',
+      'src/applets/carbon/**',
+      'src/routes/$locale/_map/(applets)/carbon/**',
+      'src/routes/$locale/_map/report.tsx',
+      'src/routes/$locale/_map/raportti.tsx',
     ],
-    target: 'hiilikartta',
+    target: 'carbon',
   },
   {
-    label: 'energiakartta-pages',
+    label: 'energy-pages',
     globs: [
-      'src/app/[locale]/(map)/(applets)/energiakartta/**',
-      'src/common/routing/routes/energiakartta.ts',
+      'src/applets/energy/**',
+      'src/routes/$locale/_map/(applets)/energy/**',
     ],
-    target: 'energiakartta',
+    target: 'energy',
   },
   {
     label: 'luonnonmetsakartat-pages',
     globs: [
-      'src/app/[locale]/(map)/(applets)/luonnonmetsakartat/**',
-      'src/common/routing/routes/luonnonmetsakartat.ts',
+      'src/applets/luonnonmetsakartat/**',
+      'src/routes/$locale/_map/(applets)/luonnonmetsakartat/**',
     ],
     target: 'luonnonmetsakartat',
   },
 ]
+
+const getScenarioSourceMatches = ({ file, scenarios }) =>
+  scenarios.filter((scenario) =>
+    matchesAnyGlob({ filePath: file, globs: scenario.sourceGlobs || [] })
+  )
 
 const resolveImpactedScenarios = ({ files, scenarios, rules = buildImpactRules() }) => {
   const normalizedFiles = (files || []).map(normalizePath).filter(Boolean)
@@ -87,8 +106,22 @@ const resolveImpactedScenarios = ({ files, scenarios, rules = buildImpactRules()
   const fileMatches = {}
   let allTriggered = false
   const targetedApplets = new Set()
+  const targetedScenarioIds = new Set()
 
   for (const file of normalizedFiles) {
+    const scenarioSourceMatches = getScenarioSourceMatches({ file, scenarios })
+
+    if (scenarioSourceMatches.length > 0) {
+      fileMatches[file] = scenarioSourceMatches.map((scenario) => ({
+        label: 'scenario-source-globs',
+        target: scenario.id,
+      }))
+      scenarioSourceMatches.forEach((scenario) =>
+        targetedScenarioIds.add(scenario.id)
+      )
+      continue
+    }
+
     const matches = rules.filter((rule) => matchesAnyGlob({ filePath: file, globs: rule.globs }))
     fileMatches[file] = matches.map((match) => ({ label: match.label, target: match.target }))
 
@@ -118,7 +151,10 @@ const resolveImpactedScenarios = ({ files, scenarios, rules = buildImpactRules()
   }
 
   const scenarioIds = scenarios
-    .filter((scenario) => targetedApplets.has(scenario.applet))
+    .filter(
+      (scenario) =>
+        targetedScenarioIds.has(scenario.id) || targetedApplets.has(scenario.applet)
+    )
     .map((scenario) => scenario.id)
 
   if (scenarioIds.length === 0) {

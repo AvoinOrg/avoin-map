@@ -1,11 +1,8 @@
-import React from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
-
-type Props = {
-  sx?: SxProps<Theme>
-}
+import type { SharedSvgIconProps } from './types'
+import { SharedSvgIcon } from './types'
+type Props = SharedSvgIconProps
 const DownIcon = (props: Props) => (
-  <Box
+  <SharedSvgIcon
     component={'svg'}
     width={17}
     height={11}
@@ -15,7 +12,7 @@ const DownIcon = (props: Props) => (
     {...props}
   >
     <path d="M16 1 8.5 9 1 1" stroke="currentColor" strokeWidth={2} />
-  </Box>
+  </SharedSvgIcon>
 )
 
 export default DownIcon

@@ -1,21 +1,30 @@
 import React from 'react'
 import '@testing-library/jest-dom'
-import { fireEvent, render, screen } from '@testing-library/react'
-import { ThemeProvider } from '@mui/material/styles'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import type { PartialOptions } from 'overlayscrollbars'
 
+import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
+import { AppThemeProvider } from '#/common/style/theme'
 import theme from '#/common/style/theme/theme'
 import { useUIStore } from '#/common/store/uiStore'
-import type { SidebarPanelExtensionRuntimeOptions } from '#/common/types/sidebar'
+import type {
+  SidebarPanelExtensionRuntimeOptions,
+  SidebarPanelExtensionTabMetadata,
+} from '#/common/types/sidebar'
 import { SlotsProvider } from '#/components/context/slotsContext'
 
 import {
+  getSidebarPanelExtensionPageControlsRight,
   getSidebarPanelExtensionMainPanelWidth,
+  SidebarPanelExtension,
+  SidebarPanelExtensionTabRail,
 } from './SidebarPanelExtension'
 import { SidebarPanelExtensionPageContainer } from './SidebarPanelExtensionPageContainer'
 import { SidebarPanelExtensionProvider } from './SidebarPanelExtensionProvider'
 import { SidebarPanelExtensionTabIconButton } from './SidebarPanelExtensionTabIconButton'
 import { SidebarPanelExtensionTabContainer } from './SidebarPanelExtensionTabContainer'
 import { SidebarRoot } from './SidebarRoot'
+import { SidebarPanelExtensionContextProvider } from './sidebarPanelExtensionContext'
 import { IntoSidebarPanelExtensionPanelSlot } from './sidebarSlots'
 
 jest.mock('#/common/store', () => ({
@@ -28,11 +37,19 @@ jest.mock('#/common/hooks/ui/useIsMobile', () => ({
   useIsMobile: () => mockIsMobile,
 }))
 
+type MockOverlayScrollbarsProps = React.HTMLAttributes<HTMLDivElement> & {
+  options?: PartialOptions
+  style?: React.CSSProperties
+}
+
 jest.mock('overlayscrollbars-react', () => {
-  const react = require('react')
+  const mockReact = jest.requireActual<typeof import('react')>('react')
 
   return {
-    OverlayScrollbarsComponent: react.forwardRef(
+    OverlayScrollbarsComponent: mockReact.forwardRef<
+      unknown,
+      MockOverlayScrollbarsProps
+    >(
       (
         {
           children,
@@ -40,17 +57,17 @@ jest.mock('overlayscrollbars-react', () => {
           options,
           style,
           ...props
-        }: any,
-        ref: any
+        },
+        ref
       ) => {
-        react.useImperativeHandle(ref, () => ({
+        mockReact.useImperativeHandle(ref, () => ({
           osInstance: () => ({
             elements: () => ({ viewport: { scrollTop: 0 } }),
             state: () => ({ hasOverflow: { y: false } }),
           }),
         }))
 
-        return react.createElement(
+        return mockReact.createElement(
           'div',
           {
             ...props,
@@ -83,6 +100,16 @@ const resetUIStore = () => {
   })
 }
 
+const SidebarPanelExtensionTestProviders = ({
+  children,
+}: {
+  children: React.ReactNode
+}) => (
+  <AppThemeProvider disableCssBaseline>
+    <SlotsProvider>{children}</SlotsProvider>
+  </AppThemeProvider>
+)
+
 const renderSidebarPanelExtension = (
   children: React.ReactNode,
   initialRuntimeOptions: SidebarPanelExtensionRuntimeOptions = {
@@ -91,21 +118,75 @@ const renderSidebarPanelExtension = (
   }
 ) =>
   render(
-    <ThemeProvider theme={theme}>
-      <SlotsProvider>
-        <SidebarRoot>
-          <SidebarPanelExtensionProvider
-            id="test-extension"
-            initialRuntimeOptions={initialRuntimeOptions}
-          >
-            <IntoSidebarPanelExtensionPanelSlot panelId="main">
-              {children}
-            </IntoSidebarPanelExtensionPanelSlot>
-          </SidebarPanelExtensionProvider>
-        </SidebarRoot>
-      </SlotsProvider>
-    </ThemeProvider>
+    <SidebarPanelExtensionTestProviders>
+      <SidebarRoot>
+        <SidebarPanelExtensionProvider
+          id="test-extension"
+          initialRuntimeOptions={initialRuntimeOptions}
+        >
+          <IntoSidebarPanelExtensionPanelSlot panelId="main">
+            {children}
+          </IntoSidebarPanelExtensionPanelSlot>
+        </SidebarPanelExtensionProvider>
+      </SidebarRoot>
+    </SidebarPanelExtensionTestProviders>
   )
+
+const renderPageControlsGeometry = ({
+  options,
+  sidebarOffset = 0,
+  desktopTabRail = <div>Geometry tabs</div>,
+}: {
+  options: SidebarPanelExtensionRuntimeOptions
+  sidebarOffset?: number
+  desktopTabRail?: React.ReactNode
+}) => {
+  const onCollapse = jest.fn()
+  const onClose = jest.fn()
+
+  render(
+    <SidebarPanelExtensionTestProviders>
+      <SidebarPanelExtensionContextProvider
+        value={{ extensionId: 'geometry-extension', depth: 0 }}
+      >
+        <IntoSidebarPanelExtensionPanelSlot panelId="main">
+          <SidebarPanelExtensionPageContainer
+            onCollapse={onCollapse}
+            onClose={onClose}
+          >
+            <div>Geometry page content</div>
+          </SidebarPanelExtensionPageContainer>
+        </IntoSidebarPanelExtensionPanelSlot>
+        <SidebarPanelExtension
+          extensionId="geometry-extension"
+          options={options}
+          sidebarOffset={sidebarOffset}
+          desktopTabRail={desktopTabRail}
+        />
+      </SidebarPanelExtensionContextProvider>
+    </SidebarPanelExtensionTestProviders>
+  )
+
+  return { onCollapse, onClose }
+}
+
+const createDomRect = ({
+  left,
+  right,
+}: {
+  left: number
+  right: number
+}): DOMRect => ({
+  x: left,
+  y: 0,
+  width: right - left,
+  height: 900,
+  top: 0,
+  right,
+  bottom: 900,
+  left,
+  toJSON: () => ({}),
+})
 
 describe('SidebarPanelExtension generic tab helpers', () => {
   beforeEach(() => {
@@ -157,6 +238,44 @@ describe('SidebarPanelExtension generic tab helpers', () => {
     )
   })
 
+  it('keeps tabs registered through Strict Mode effect cleanup replay', async () => {
+    render(
+      <SidebarPanelExtensionTestProviders>
+        <React.StrictMode>
+          <SidebarRoot>
+            <SidebarPanelExtensionProvider
+              id="strict-mode-extension"
+              initialRuntimeOptions={{
+                visiblePanels: ['main'],
+                activePanel: 'main',
+              }}
+            >
+              <IntoSidebarPanelExtensionPanelSlot panelId="main">
+                <SidebarPanelExtensionTabContainer tabId="first" tabName="First">
+                  <div>First strict mode content</div>
+                </SidebarPanelExtensionTabContainer>
+                <SidebarPanelExtensionTabContainer tabId="second" tabName="Second">
+                  <div>Second strict mode content</div>
+                </SidebarPanelExtensionTabContainer>
+              </IntoSidebarPanelExtensionPanelSlot>
+            </SidebarPanelExtensionProvider>
+          </SidebarRoot>
+        </React.StrictMode>
+      </SidebarPanelExtensionTestProviders>
+    )
+
+    expect(await screen.findByText('First strict mode content')).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'First' })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    )
+
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(screen.getByText('First strict mode content')).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Second' })).toBeInTheDocument()
+  })
+
   it('keeps inline tab React nodes out of the global UI store across rerenders', async () => {
     const InlineTabs = ({ iconLabel }: { iconLabel: string }) => (
       <>
@@ -188,7 +307,7 @@ describe('SidebarPanelExtension generic tab helpers', () => {
     ).not.toHaveProperty('tabs')
 
     rerender(
-      <SlotsProvider>
+      <SidebarPanelExtensionTestProviders>
         <SidebarRoot>
           <SidebarPanelExtensionProvider
             id="test-extension"
@@ -199,7 +318,7 @@ describe('SidebarPanelExtension generic tab helpers', () => {
             </IntoSidebarPanelExtensionPanelSlot>
           </SidebarPanelExtensionProvider>
         </SidebarRoot>
-      </SlotsProvider>
+      </SidebarPanelExtensionTestProviders>
     )
 
     expect(await screen.findByText('Summary panel content')).toBeInTheDocument()
@@ -223,7 +342,7 @@ describe('SidebarPanelExtension generic tab helpers', () => {
 
   it('registers tab containers rendered through an extension panel slot', async () => {
     render(
-      <SlotsProvider>
+      <SidebarPanelExtensionTestProviders>
         <SidebarRoot>
           <SidebarPanelExtensionProvider
             id="slot-extension"
@@ -245,7 +364,7 @@ describe('SidebarPanelExtension generic tab helpers', () => {
             </IntoSidebarPanelExtensionPanelSlot>
           </SidebarPanelExtensionProvider>
         </SidebarRoot>
-      </SlotsProvider>
+      </SidebarPanelExtensionTestProviders>
     )
 
     expect(await screen.findByText('Layers tab content')).toBeInTheDocument()
@@ -276,7 +395,7 @@ describe('SidebarPanelExtension generic tab helpers', () => {
     expect(await screen.findByText('Second panel content')).toBeInTheDocument()
 
     rerender(
-      <SlotsProvider>
+      <SidebarPanelExtensionTestProviders>
         <SidebarRoot>
           <SidebarPanelExtensionProvider
             id="test-extension"
@@ -289,7 +408,7 @@ describe('SidebarPanelExtension generic tab helpers', () => {
             </IntoSidebarPanelExtensionPanelSlot>
           </SidebarPanelExtensionProvider>
         </SidebarRoot>
-      </SlotsProvider>
+      </SidebarPanelExtensionTestProviders>
     )
 
     expect(await screen.findByText('First panel content')).toBeInTheDocument()
@@ -323,7 +442,7 @@ describe('SidebarPanelExtension generic tab helpers', () => {
     ).toBe('30.5556vw')
   })
 
-  it('uses opt-in custom and fullscreen main panel widths', () => {
+  it('uses opt-in custom main widths only outside fullscreen layouts', () => {
     expect(
       getSidebarPanelExtensionMainPanelWidth({
         width: 'wide',
@@ -352,46 +471,398 @@ describe('SidebarPanelExtension generic tab helpers', () => {
         desktopMainPanelWidth: '100%',
         desktopPanelGroupMaxWidth: '1440px',
       })
-    ).toBe('100%')
+    ).toBe('100vw')
   })
 
-  it('keeps fullscreen desktop panel groups viewport-wide', async () => {
-    renderSidebarPanelExtension(
-      <div>Fullscreen viewport panel content</div>,
-      {
-        width: 'wide',
-        chrome: 'hidden',
+  it.each([
+    {
+      name: 'default',
+      options: { visiblePanels: ['main'], activePanel: 'main' },
+      expectedWidth: '23.75rem',
+    },
+    {
+      name: 'single',
+      options: {
+        panelLayout: 'single',
+        visiblePanels: ['main'],
+        activePanel: 'main',
+      },
+      expectedWidth: '23.75rem',
+    },
+    {
+      name: 'double',
+      options: {
+        panelLayout: 'double',
+        visiblePanels: ['main', 'secondary'],
+        activePanel: 'main',
+      },
+      expectedWidth: 'calc(23.75rem + 23.75rem)',
+    },
+    {
+      name: 'triple',
+      options: {
+        panelLayout: 'triple',
+        visiblePanels: ['main', 'secondary', 'tertiary'],
+        activePanel: 'main',
+      },
+      expectedWidth: 'calc(23.75rem + 23.75rem + 23.75rem)',
+    },
+  ] as const)(
+    'anchors $name desktop page controls to the complete visible panel group',
+    ({ options, expectedWidth }) => {
+      renderPageControlsGeometry({ options })
+
+      const root = screen.getByTestId('sidebar-panel-extension-root')
+      const rootStyle = window.getComputedStyle(root)
+      const controls = document.querySelector(
+        '.sidebar-panel-extension-page-container-controls'
+      ) as HTMLElement
+
+      expect(
+        getSidebarPanelExtensionPageControlsRight({ options })
+      ).toBe(
+        `calc(100vw - min(100vw, calc(0px + ${expectedWidth})) + ${MAP_CONTROL_EDGE_GUTTER_PX}px)`
+      )
+      expect(
+        rootStyle.getPropertyValue(
+          '--sidebar-panel-extension-page-controls-position'
+        )
+      ).toBe('fixed')
+      expect(
+        rootStyle.getPropertyValue(
+          '--sidebar-panel-extension-page-controls-top'
+        )
+      ).toBe(`${MAP_CONTROL_EDGE_GUTTER_PX}px`)
+      expect(
+        rootStyle.getPropertyValue(
+          '--sidebar-panel-extension-page-controls-right'
+        )
+      ).toBe(
+        `calc(100vw - min(100vw, calc(0px + ${expectedWidth})) + ${MAP_CONTROL_EDGE_GUTTER_PX}px)`
+      )
+      expect(controls).toHaveStyle({
+        position:
+          'var(--sidebar-panel-extension-page-controls-position, static)',
+        top: 'var(--sidebar-panel-extension-page-controls-top, auto)',
+        right: 'var(--sidebar-panel-extension-page-controls-right, auto)',
+        paddingInline:
+          'var(--sidebar-panel-extension-page-controls-padding-inline, 12px)',
+        paddingBlock:
+          'var(--sidebar-panel-extension-page-controls-padding-block, 10px)',
+      })
+      expect(
+        screen.getByTestId('sidebar-panel-extension-desktop-tab-controls')
+      ).toHaveStyle({ paddingTop: `${MAP_CONTROL_EDGE_GUTTER_PX}px` })
+    }
+  )
+
+  it('uses filtered visible panels, a custom main width, and sidebar offset in the anchor', () => {
+    const options: SidebarPanelExtensionRuntimeOptions = {
+      panelLayout: 'triple',
+      visiblePanels: ['main', 'tertiary'],
+      activePanel: 'main',
+      desktopMainPanelWidth: '512px',
+    }
+
+    renderPageControlsGeometry({ options, sidebarOffset: 64 })
+
+    expect(
+      window
+        .getComputedStyle(screen.getByTestId('sidebar-panel-extension-root'))
+        .getPropertyValue('--sidebar-panel-extension-page-controls-right')
+    ).toBe(
+      'calc(100vw - min(100vw, calc(64px + calc(512px + 23.75rem))) + 16px)'
+    )
+    expect(
+      screen.queryByTestId(
+        'sidebar-panel-extension-desktop-panel-secondary'
+      )
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByTestId('sidebar-panel-extension-desktop-panel-tertiary')
+    ).toBeInTheDocument()
+  })
+
+  it('moves only shared chrome into separate viewport lanes when fixed panels overflow', async () => {
+    const originalInnerWidth = window.innerWidth
+    const options: SidebarPanelExtensionRuntimeOptions = {
+      panelLayout: 'triple',
+      visiblePanels: ['main', 'secondary', 'tertiary'],
+      activePanel: 'main',
+    }
+    const tabs: SidebarPanelExtensionTabMetadata[] = [
+      { tabId: 'one', tabName: '1' },
+      { tabId: 'two', tabName: '2' },
+      { tabId: 'three', tabName: '3' },
+      { tabId: 'one-fullscreen', tabName: '1F' },
+      { tabId: 'two-fullscreen', tabName: '2F' },
+      { tabId: 'three-fullscreen', tabName: '3F' },
+    ]
+
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      value: 1440,
+    })
+
+    try {
+      renderPageControlsGeometry({
+        options,
+        sidebarOffset: 380,
+        desktopTabRail: (
+          <SidebarPanelExtensionTabRail
+            tabs={tabs}
+            activeTabId="three"
+            placement="desktop"
+            onTabChange={jest.fn()}
+          />
+        ),
+      })
+
+      const root = screen.getByTestId('sidebar-panel-extension-root')
+      const group = screen.getByTestId(
+        'sidebar-panel-extension-desktop-panel-group'
+      )
+      const tabControls = screen.getByTestId(
+        'sidebar-panel-extension-desktop-tab-controls'
+      )
+      const getPanelGroupRect = jest
+        .spyOn(group, 'getBoundingClientRect')
+        .mockReturnValue(createDomRect({ left: 380, right: 1520 }))
+
+      fireEvent(window, new Event('resize'))
+
+      await waitFor(() => {
+        expect(root).toHaveAttribute(
+          'data-sidebar-panel-extension-viewport-overflow',
+          'true'
+        )
+      })
+
+      expect(group).toHaveStyle({ width: 'auto' })
+      for (const panelId of ['main', 'secondary', 'tertiary'] as const) {
+        expect(
+          screen.getByTestId(`sidebar-panel-extension-desktop-panel-${panelId}`)
+        ).toHaveStyle({ width: '23.75rem' })
+      }
+      expect(root).toHaveStyle({ left: '380px' })
+      expect(tabControls).toHaveAttribute(
+        'data-sidebar-panel-extension-tab-placement',
+        'viewport-edge'
+      )
+      expect(tabControls).toHaveStyle({
+        position: 'fixed',
+        top: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
+        right: '71px',
+        overflowY: 'auto',
+      })
+      expect(screen.getAllByRole('tab')).toHaveLength(6)
+      expect(screen.getByRole('tab', { name: '1F' })).toBeEnabled()
+      expect(
+        window
+          .getComputedStyle(root)
+          .getPropertyValue('--sidebar-panel-extension-page-controls-right')
+      ).toBe('126px')
+
+      Object.defineProperty(window, 'innerWidth', {
+        configurable: true,
+        value: 1800,
+      })
+      getPanelGroupRect.mockReturnValue(
+        createDomRect({ left: 380, right: 1520 })
+      )
+      fireEvent(window, new Event('resize'))
+
+      await waitFor(() => {
+        expect(root).not.toHaveAttribute(
+          'data-sidebar-panel-extension-viewport-overflow'
+        )
+      })
+
+      expect(tabControls).toHaveAttribute(
+        'data-sidebar-panel-extension-tab-placement',
+        'sidebar-edge'
+      )
+      expect(tabControls).toHaveStyle({
+        display: 'flex',
+        paddingTop: '16px',
+        paddingLeft: '8px',
+      })
+      expect(
+        window
+          .getComputedStyle(root)
+          .getPropertyValue('--sidebar-panel-extension-page-controls-right')
+      ).toBe(
+        'calc(100vw - min(100vw, calc(380px + calc(23.75rem + 23.75rem + 23.75rem))) + 16px)'
+      )
+    } finally {
+      Object.defineProperty(window, 'innerWidth', {
+        configurable: true,
+        value: originalInnerWidth,
+      })
+    }
+  })
+
+  it.each([
+    {
+      name: 'single',
+      options: {
         panelLayout: 'single',
         visiblePanels: ['main'],
         activePanel: 'main',
         layoutMode: 'fullscreen',
-        desktopPanelGroupMaxWidth: '1440px',
-      }
-    )
+      },
+      expectedPanels: ['main'],
+      expectedWidth: '100vw',
+    },
+    {
+      name: 'double',
+      options: {
+        panelLayout: 'double',
+        visiblePanels: ['main', 'secondary'],
+        activePanel: 'main',
+        layoutMode: 'fullscreen',
+      },
+      expectedPanels: ['main', 'secondary'],
+      expectedWidth: '50vw',
+    },
+    {
+      name: 'triple',
+      options: {
+        panelLayout: 'triple',
+        visiblePanels: ['main', 'secondary', 'tertiary'],
+        activePanel: 'main',
+        layoutMode: 'fullscreen',
+      },
+      expectedPanels: ['main', 'secondary', 'tertiary'],
+      expectedWidth: 'calc(100vw / 3)',
+    },
+    {
+      name: 'filtered triple',
+      options: {
+        panelLayout: 'triple',
+        visiblePanels: ['main', 'tertiary'],
+        activePanel: 'main',
+        layoutMode: 'fullscreen',
+      },
+      expectedPanels: ['main', 'tertiary'],
+      expectedWidth: '50vw',
+    },
+  ] as const)(
+    'keeps fullscreen $name panel geometry within one viewport',
+    ({ options, expectedPanels, expectedWidth }) => {
+      renderPageControlsGeometry({ options })
 
-    expect(
-      await screen.findByText('Fullscreen viewport panel content')
-    ).toBeInTheDocument()
-    expect(screen.getByTestId('sidebar-panel-extension-root')).toHaveStyle({
-      left: '0px',
-      right: '0px',
-      width: '100vw',
-      backgroundColor: '#ffffff',
-      pointerEvents: 'auto',
-      zIndex: `${theme.zIndex.drawer + 2}`,
-    })
-    expect(
-      screen.getByTestId('sidebar-panel-extension-desktop-panel-group')
-    ).toHaveStyle({
-      width: '100vw',
-      maxWidth: '100vw',
-      marginLeft: '0px',
-      marginRight: '0px',
-    })
-    expect(
-      screen.getByTestId('sidebar-panel-extension-desktop-panel-main')
-    ).toHaveStyle({ width: '100vw' })
-  })
+      const root = screen.getByTestId('sidebar-panel-extension-root')
+      const rootStyle = window.getComputedStyle(root)
+      const group = screen.getByTestId(
+        'sidebar-panel-extension-desktop-panel-group'
+      )
+      const renderedPanels = Array.from(
+        group.querySelectorAll<HTMLElement>(
+          ':scope > [data-sidebar-panel-extension-panel-id]'
+        )
+      )
+
+      expect(root).toHaveStyle({
+        left: '0px',
+        right: '0px',
+        width: '100vw',
+        backgroundColor: '#ffffff',
+        pointerEvents: 'auto',
+        zIndex: `${theme.zIndex.drawer + 2}`,
+      })
+      expect(group).toHaveStyle({
+        width: '100vw',
+        maxWidth: '100vw',
+        marginLeft: '0px',
+        marginRight: '0px',
+      })
+      expect(
+        renderedPanels.map((panel) =>
+          panel.getAttribute('data-sidebar-panel-extension-panel-id')
+        )
+      ).toEqual(expectedPanels)
+
+      renderedPanels.forEach((panel) => {
+        expect(panel).toHaveStyle({ width: expectedWidth, minWidth: '0' })
+
+        const panelId = panel.getAttribute(
+          'data-sidebar-panel-extension-panel-id'
+        )
+        expect(
+          screen.getByTestId(
+            `sidebar-panel-extension-desktop-panel-${panelId}-scroll-host`
+          )
+        ).toHaveStyle({ position: 'absolute', overflow: 'auto' })
+      })
+
+      expect(
+        getSidebarPanelExtensionPageControlsRight({ options })
+      ).toBe(`${MAP_CONTROL_EDGE_GUTTER_PX}px`)
+      expect(
+        rootStyle.getPropertyValue(
+          '--sidebar-panel-extension-page-controls-position'
+        )
+      ).toBe('fixed')
+      expect(
+        rootStyle.getPropertyValue('--sidebar-panel-extension-page-controls-top')
+      ).toBe(`${MAP_CONTROL_EDGE_GUTTER_PX}px`)
+      expect(
+        rootStyle.getPropertyValue(
+          '--sidebar-panel-extension-page-controls-right'
+        )
+      ).toBe(`${MAP_CONTROL_EDGE_GUTTER_PX}px`)
+    }
+  )
+
+  it.each([
+    {
+      name: 'ignores a full-width main override in a two-panel layout',
+      options: {
+        panelLayout: 'double',
+        visiblePanels: ['main', 'secondary'],
+        activePanel: 'main',
+        layoutMode: 'fullscreen',
+        desktopMainPanelWidth: '100%',
+      },
+      expectedPanels: ['main', 'secondary'],
+    },
+    {
+      name: 'partitions by visible count when the main panel is omitted',
+      options: {
+        panelLayout: 'triple',
+        visiblePanels: ['secondary', 'tertiary'],
+        activePanel: 'secondary',
+        layoutMode: 'fullscreen',
+        desktopMainPanelWidth: '40vw',
+      },
+      expectedPanels: ['secondary', 'tertiary'],
+    },
+  ] as const)(
+    '$name',
+    ({ options, expectedPanels }) => {
+      renderPageControlsGeometry({ options })
+
+      const group = screen.getByTestId(
+        'sidebar-panel-extension-desktop-panel-group'
+      )
+      const renderedPanels = Array.from(
+        group.querySelectorAll<HTMLElement>(
+          ':scope > [data-sidebar-panel-extension-panel-id]'
+        )
+      )
+
+      expect(group).toHaveStyle({ width: '100vw', maxWidth: '100vw' })
+      expect(
+        renderedPanels.map((panel) =>
+          panel.getAttribute('data-sidebar-panel-extension-panel-id')
+        )
+      ).toEqual(expectedPanels)
+      renderedPanels.forEach((panel) => {
+        expect(panel).toHaveStyle({ width: '50vw', minWidth: '0' })
+      })
+    }
+  )
 
   it('keeps non-fullscreen desktop extension chrome below map controls', async () => {
     renderSidebarPanelExtension(
@@ -421,10 +892,13 @@ describe('SidebarPanelExtension generic tab helpers', () => {
       zIndex: `${nonFullscreenRootZIndex}`,
     })
     expect(
-      screen.getByTestId('sidebar-panel-extension-desktop-panel-main')
+      screen.getByTestId('sidebar-panel-extension-desktop-panel-group')
     ).toHaveStyle({
       zIndex: `${nonFullscreenRootZIndex + 2}`,
     })
+    expect(
+      screen.getByTestId('sidebar-panel-extension-desktop-panel-main')
+    ).not.toHaveStyle({ zIndex: `${nonFullscreenRootZIndex + 2}` })
     expect(
       screen.getByTestId('sidebar-panel-extension-desktop-tab-controls')
     ).toHaveStyle({
@@ -469,8 +943,16 @@ describe('SidebarPanelExtension generic tab helpers', () => {
   })
 
   it('uses mobile extension rendering when forceMobileLayout is set on desktop', async () => {
+    const onCollapse = jest.fn()
+    const onClose = jest.fn()
+
     renderSidebarPanelExtension(
-      <div>Forced mobile panel content</div>,
+      <SidebarPanelExtensionPageContainer
+        onCollapse={onCollapse}
+        onClose={onClose}
+      >
+        <div>Forced mobile panel content</div>
+      </SidebarPanelExtensionPageContainer>,
       {
         visiblePanels: ['main'],
         activePanel: 'main',
@@ -490,15 +972,52 @@ describe('SidebarPanelExtension generic tab helpers', () => {
     expect(
       screen.queryByTestId('sidebar-panel-extension-root')
     ).not.toBeInTheDocument()
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'collapse sidebar panel extension page',
+      })
+    )
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'close sidebar panel extension page',
+      })
+    )
+    expect(onCollapse).toHaveBeenCalledTimes(1)
+    expect(onClose).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps mobile tab controls above fixed map bottom controls', () => {
+    render(
+      <SidebarPanelExtensionTestProviders>
+        <SidebarPanelExtension
+          extensionId="mobile-z-index-extension"
+          options={{
+            visiblePanels: ['main'],
+            activePanel: 'main',
+            forceMobileLayout: true,
+          }}
+          mobileTabRail={<div>Mobile tab rail</div>}
+        />
+      </SidebarPanelExtensionTestProviders>
+    )
+
+    expect(
+      screen.getByTestId('sidebar-panel-extension-mobile-panels')
+    ).toHaveStyle({ zIndex: `${theme.zIndex.drawer + 4}` })
+    expect(
+      screen.getByTestId('sidebar-panel-extension-mobile-controls')
+    ).toHaveStyle({ zIndex: `${theme.zIndex.drawer + 14}` })
   })
 
   it('styles selected tab icon buttons with a light gray background', () => {
     render(
-      <SidebarPanelExtensionTabIconButton
-        tabId="summary"
-        tabName="Summary"
-        selected
-      />
+      <AppThemeProvider disableCssBaseline>
+        <SidebarPanelExtensionTabIconButton
+          tabId="summary"
+          tabName="Summary"
+          selected
+        />
+      </AppThemeProvider>
     )
 
     const selectedTab = screen.getByRole('tab', { name: 'Summary' })
@@ -540,14 +1059,16 @@ describe('SidebarPanelExtensionPageContainer', () => {
     const onClose = jest.fn()
 
     render(
-      <SidebarPanelExtensionPageContainer
-        onCollapse={onCollapse}
-        onClose={onClose}
-        collapseAriaLabel="Collapse current page"
-        closeAriaLabel="Close current page"
-      >
-        <div>Controlled page content</div>
-      </SidebarPanelExtensionPageContainer>
+      <AppThemeProvider disableCssBaseline>
+        <SidebarPanelExtensionPageContainer
+          onCollapse={onCollapse}
+          onClose={onClose}
+          collapseAriaLabel="Collapse current page"
+          closeAriaLabel="Close current page"
+        >
+          <div>Controlled page content</div>
+        </SidebarPanelExtensionPageContainer>
+      </AppThemeProvider>
     )
 
     fireEvent.click(
@@ -561,14 +1082,25 @@ describe('SidebarPanelExtensionPageContainer', () => {
     const closeButton = screen.getByRole('button', {
       name: 'Close current page',
     })
-    const collapseIcon = collapseButton.querySelector(
-      '.MuiSvgIcon-root'
-    ) as HTMLElement
+    const collapseIcon = screen.getByTestId(
+      'sidebar-panel-extension-collapse-icon'
+    )
     const collapseIconPaths = collapseIcon.querySelectorAll('path')
-    const closeIcon = closeButton.querySelector('svg') as HTMLElement
+    const closeIcon = closeButton.querySelector('svg') as SVGSVGElement
+    const controls = document.querySelector(
+      '.sidebar-panel-extension-page-container-controls'
+    ) as HTMLElement
 
     expect(onCollapse).toHaveBeenCalledTimes(1)
     expect(onClose).toHaveBeenCalledTimes(1)
+    expect(controls).toHaveStyle({
+      position:
+        'var(--sidebar-panel-extension-page-controls-position, static)',
+      paddingInline:
+        'var(--sidebar-panel-extension-page-controls-padding-inline, 12px)',
+      paddingBlock:
+        'var(--sidebar-panel-extension-page-controls-padding-block, 10px)',
+    })
     expect(collapseButton).toHaveStyle({
       width: '2.25rem',
       minWidth: '2.25rem',
@@ -599,5 +1131,22 @@ describe('SidebarPanelExtensionPageContainer', () => {
       width: '1rem',
       height: '1rem',
     })
+  })
+
+  it('keeps controlsSx as the last-applied positioning override', () => {
+    render(
+      <AppThemeProvider disableCssBaseline>
+        <SidebarPanelExtensionPageContainer
+          onClose={jest.fn()}
+          controlsSx={{ position: 'absolute', top: '7px', right: '9px' }}
+        />
+      </AppThemeProvider>
+    )
+
+    expect(
+      document.querySelector(
+        '.sidebar-panel-extension-page-container-controls'
+      )
+    ).toHaveStyle({ position: 'absolute', top: '7px', right: '9px' })
   })
 })

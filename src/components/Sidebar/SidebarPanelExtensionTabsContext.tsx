@@ -1,6 +1,11 @@
-'use client'
-
-import React, { createContext, useCallback, useContext, useMemo } from 'react'
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react'
 
 import type {
   SidebarPanelExtensionId,
@@ -16,8 +21,11 @@ export type SidebarPanelExtensionTabsContextValue = {
   activeTabId?: string
   resolvedActiveTabId?: string
   setActiveTabId: (tabId: string) => void
-  registerTab: (tab: SidebarPanelExtensionTabMetadata) => void
-  unregisterTab: (tabId: string) => void
+  registerTab: (
+    tab: SidebarPanelExtensionTabMetadata,
+    registrationToken: symbol
+  ) => void
+  unregisterTab: (tabId: string, registrationToken: symbol) => void
 }
 
 type SidebarPanelExtensionTabsState = {
@@ -32,11 +40,13 @@ type SidebarPanelExtensionTabsRegistryContextValue = {
   registry: SidebarPanelExtensionTabsRegistry
   registerTab: (
     extensionId: SidebarPanelExtensionId,
-    tab: SidebarPanelExtensionTabMetadata
+    tab: SidebarPanelExtensionTabMetadata,
+    registrationToken: symbol
   ) => void
   unregisterTab: (
     extensionId: SidebarPanelExtensionId,
-    tabId: string
+    tabId: string,
+    registrationToken: symbol
   ) => void
   setActiveTabId: (
     extensionId: SidebarPanelExtensionId,
@@ -89,12 +99,31 @@ export const SidebarPanelExtensionTabsProvider = ({
 }) => {
   const [registry, setRegistry] =
     React.useState<SidebarPanelExtensionTabsRegistry>({})
+  const registrationTokensRef = useRef(
+    new Map<SidebarPanelExtensionId, Map<string, symbol>>()
+  )
+  const pendingUnregistersRef = useRef(new Set<ReturnType<typeof setTimeout>>())
+
+  useEffect(
+    () => () => {
+      pendingUnregistersRef.current.forEach(clearTimeout)
+      pendingUnregistersRef.current.clear()
+      registrationTokensRef.current.clear()
+    },
+    []
+  )
 
   const registerTab = useCallback(
     (
       extensionId: SidebarPanelExtensionId,
-      tab: SidebarPanelExtensionTabMetadata
+      tab: SidebarPanelExtensionTabMetadata,
+      registrationToken: symbol
     ) => {
+      const extensionTokens =
+        registrationTokensRef.current.get(extensionId) ?? new Map<string, symbol>()
+      extensionTokens.set(tab.tabId, registrationToken)
+      registrationTokensRef.current.set(extensionId, extensionTokens)
+
       setRegistry((previousRegistry) => {
         const currentState =
           previousRegistry[extensionId] ?? EMPTY_EXTENSION_TABS_STATE
@@ -137,43 +166,69 @@ export const SidebarPanelExtensionTabsProvider = ({
   )
 
   const unregisterTab = useCallback(
-    (extensionId: SidebarPanelExtensionId, tabId: string) => {
-      setRegistry((previousRegistry) => {
-        const currentState = previousRegistry[extensionId]
+    (
+      extensionId: SidebarPanelExtensionId,
+      tabId: string,
+      registrationToken: symbol
+    ) => {
+      // Defer cleanup so same-commit slot remounts and Strict Mode effect
+      // replays can replace this token before the logical active tab is removed.
+      const timeoutId = setTimeout(() => {
+        pendingUnregistersRef.current.delete(timeoutId)
 
-        if (currentState == null) {
-          return previousRegistry
+        const extensionTokens = registrationTokensRef.current.get(extensionId)
+
+        if (extensionTokens?.get(tabId) !== registrationToken) {
+          return
         }
 
-        const nextTabs = currentState.tabs.filter(
-          (currentTab) => currentTab.tabId !== tabId
-        )
+        extensionTokens.delete(tabId)
 
-        if (nextTabs.length === currentState.tabs.length) {
-          return previousRegistry
+        if (extensionTokens.size === 0) {
+          registrationTokensRef.current.delete(extensionId)
         }
 
-        if (nextTabs.length === 0) {
-          const nextRegistry = { ...previousRegistry }
-          delete nextRegistry[extensionId]
-          return nextRegistry
-        }
+        setRegistry((previousRegistry) => {
+          const currentState = previousRegistry[extensionId]
 
-        const nextActiveTabId =
-          currentState.activeTabId != null &&
-          currentState.activeTabId !== tabId &&
-          nextTabs.some((currentTab) => currentTab.tabId === currentState.activeTabId)
-            ? currentState.activeTabId
-            : nextTabs[0]?.tabId
+          if (currentState == null) {
+            return previousRegistry
+          }
 
-        return {
-          ...previousRegistry,
-          [extensionId]: {
-            tabs: nextTabs,
-            activeTabId: nextActiveTabId,
-          },
-        }
-      })
+          const nextTabs = currentState.tabs.filter(
+            (currentTab) => currentTab.tabId !== tabId
+          )
+
+          if (nextTabs.length === currentState.tabs.length) {
+            return previousRegistry
+          }
+
+          if (nextTabs.length === 0) {
+            const nextRegistry = { ...previousRegistry }
+            delete nextRegistry[extensionId]
+            return nextRegistry
+          }
+
+          const nextActiveTabId =
+            currentState.activeTabId != null &&
+            currentState.activeTabId !== tabId &&
+            nextTabs.some(
+              (currentTab) => currentTab.tabId === currentState.activeTabId
+            )
+              ? currentState.activeTabId
+              : nextTabs[0]?.tabId
+
+          return {
+            ...previousRegistry,
+            [extensionId]: {
+              tabs: nextTabs,
+              activeTabId: nextActiveTabId,
+            },
+          }
+        })
+      }, 0)
+
+      pendingUnregistersRef.current.add(timeoutId)
     },
     []
   )
@@ -251,22 +306,22 @@ export const useNullableSidebarPanelExtensionTabsContext =
     const resolvedActiveTabId =
       tabs.find((tab) => tab.tabId === activeTabId)?.tabId ?? tabs[0]?.tabId
     const registerTab = useCallback(
-      (tab: SidebarPanelExtensionTabMetadata) => {
+      (tab: SidebarPanelExtensionTabMetadata, registrationToken: symbol) => {
         if (extensionId == null || registryRegisterTab == null) {
           return
         }
 
-        registryRegisterTab(extensionId, tab)
+        registryRegisterTab(extensionId, tab, registrationToken)
       },
       [extensionId, registryRegisterTab]
     )
     const unregisterTab = useCallback(
-      (tabId: string) => {
+      (tabId: string, registrationToken: symbol) => {
         if (extensionId == null || registryUnregisterTab == null) {
           return
         }
 
-        registryUnregisterTab(extensionId, tabId)
+        registryUnregisterTab(extensionId, tabId, registrationToken)
       },
       [extensionId, registryUnregisterTab]
     )
@@ -299,6 +354,7 @@ export const useNullableSidebarPanelExtensionTabsContext =
       extensionId,
       registerTab,
       resolvedActiveTabId,
+      registryContext,
       setActiveTabId,
       tabs,
       unregisterTab,

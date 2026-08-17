@@ -1,10 +1,10 @@
-'use client'
-
 import React, { useState } from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
 
+import { Box, type AppSxProps, toSxArray } from '#/common/style/theme'
+import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'
 import { ArrowDown, ArrowUp } from '#/components/icons'
 import NodeFlowButton, {
+  NODE_FLOW_BELOW_TEXT_INSET,
   NODE_FLOW_OUTER_OFFSET,
   NODE_FLOW_OUTER_WIDTH,
   NODE_FLOW_ROW_INSET,
@@ -25,18 +25,16 @@ export type NodeFlowAccordionProps = NodeFlowMarkerProps & {
   showConnector?: boolean
   showConnectorTop?: boolean
   showConnectorBottom?: boolean
-  sx?: SxProps<Theme>
-  rowSx?: SxProps<Theme>
-  rowSxOpen?: SxProps<Theme>
-  rowSxClosed?: SxProps<Theme>
-  bodySx?: SxProps<Theme>
+  sx?: AppSxProps
+  rowSx?: AppSxProps
+  rowSxOpen?: AppSxProps
+  rowSxClosed?: AppSxProps
+  bodySx?: AppSxProps
 }
 
 type NodeFlowAccordionComponent = React.FC<NodeFlowAccordionProps> & {
   flowNodeMarker?: string
 }
-
-const OPEN_SHELL_CONTENT_INSET = NODE_FLOW_ROW_INSET
 
 const NodeFlowAccordionBase = ({
   title,
@@ -104,7 +102,7 @@ const NodeFlowAccordionBase = ({
           transition:
             'margin 160ms cubic-bezier(.2,0,.2,1), width 160ms cubic-bezier(.2,0,.2,1)',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toSxArray(sx),
       ]}
     >
       {!isOpen && (
@@ -120,11 +118,15 @@ const NodeFlowAccordionBase = ({
           onClick={handleToggle}
           ariaLabel={ariaLabel}
           ariaExpanded={isOpen}
-          state="available"
           disableOuterOffset
           rowSx={[
-            ...(Array.isArray(rowSx) ? rowSx : rowSx ? [rowSx] : []),
-            ...(Array.isArray(rowSxClosed) ? rowSxClosed : rowSxClosed ? [rowSxClosed] : []),
+            {
+              '&:hover': {
+                transform: 'none',
+              },
+            },
+            ...toSxArray(rowSx),
+            ...toSxArray(rowSxClosed),
           ]}
         />
       )}
@@ -135,11 +137,11 @@ const NodeFlowAccordionBase = ({
             position: 'relative',
             width: '100%',
             minWidth: 0,
-            px: OPEN_SHELL_CONTENT_INSET,
+            boxSizing: 'border-box',
             pt: { mobile: '0.75rem', desktop: '0.875rem' },
             pb: { mobile: '1.125rem', desktop: '1.25rem' },
             border: '0.2px solid rgba(14, 97, 69, 0.45)',
-            borderRadius: '1rem',
+            borderRadius: SHARED_CONTROL_BORDER_RADIUS,
             backgroundColor: 'rgba(255, 255, 255, 0.78)',
             boxShadow:
               'inset 0px 0.5px 1px 0px rgba(217, 217, 217, 0.7), 0px 4px 16px 0px rgba(17, 17, 17, 0.03)',
@@ -157,12 +159,10 @@ const NodeFlowAccordionBase = ({
             onClick={handleToggle}
             ariaLabel={ariaLabel}
             ariaExpanded={isOpen}
-            state="active"
             disableOuterOffset
             rowSx={[
               {
                 minHeight: '1.125rem',
-                px: 0,
                 py: 0,
                 border: 'none',
                 borderRadius: 0,
@@ -173,8 +173,8 @@ const NodeFlowAccordionBase = ({
                   backgroundColor: 'transparent',
                 },
               },
-              ...(Array.isArray(rowSx) ? rowSx : rowSx ? [rowSx] : []),
-              ...(Array.isArray(rowSxOpen) ? rowSxOpen : rowSxOpen ? [rowSxOpen] : []),
+              ...toSxArray(rowSx),
+              ...toSxArray(rowSxOpen),
             ]}
           />
 
@@ -187,8 +187,11 @@ const NodeFlowAccordionBase = ({
                   gap: '1rem',
                   width: '100%',
                   pt: '1rem',
+                  pl: NODE_FLOW_BELOW_TEXT_INSET,
+                  pr: NODE_FLOW_ROW_INSET,
+                  boxSizing: 'border-box',
                 },
-                ...(Array.isArray(bodySx) ? bodySx : [bodySx]),
+                ...toSxArray(bodySx),
               ]}
             >
               {children}

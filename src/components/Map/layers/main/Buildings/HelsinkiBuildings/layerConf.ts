@@ -1,14 +1,14 @@
-import { fillOpacity, roundToSignificantDigitsExpr } from '#/common/utils/map'
+import { roundToSignificantDigitsExpr } from '#/common/utils/map'
 import { LayerConf, ExtendedStyleSpecification } from '#/common/types/map'
 
 import Popup from './Popup'
 
-const SERVER_URL = process.env.NEXT_PUBLIC_GEOSERVER_URL
+const SERVER_URL = process.env.PUBLIC_GEOSERVER_URL
 
 const layerGroupId = 'helsinki_buildings'
 
 const getStyle = async (): Promise<ExtendedStyleSpecification> => {
-  const sources = {
+  const sources: ExtendedStyleSpecification['sources'] = {
     [layerGroupId]: {
       type: 'vector',
       scheme: 'tms',
@@ -23,7 +23,7 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
     },
   }
 
-  const layers = [
+  const layers: ExtendedStyleSpecification['layers'] = [
     {
       id: `${layerGroupId}-fill`,
       source: layerGroupId,
@@ -101,7 +101,7 @@ const getStyle = async (): Promise<ExtendedStyleSpecification> => {
           '',
         ],
       },
-      selectable: 'true',
+      selectable: true,
       // ...(options.layerMinzoom != null && { minzoom: options.layerMinzoom }),
       // ...(options.layerMaxzoom != null && { maxzoom: options.layerMaxzoom }),
     },

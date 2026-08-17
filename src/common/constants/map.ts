@@ -7,7 +7,7 @@ export const FINLAND_BOUNDS = [31.6, 19.0, 70.1, 59.3]
 export const MAP_BOTTOM_LEFT_FLOATING_CONTROLS_SLOT =
   'map-bottom-left-floating-controls'
 export const MAP_CONTROL_EDGE_GUTTER_PX = 16
-export const HIILIKARTTA_HOME_FLOATING_GUTTER_PX = 10
+export const CARBON_HOME_FLOATING_GUTTER_PX = 10
 
 export type CanvasFillOptions = {
   backGroundColor?: string

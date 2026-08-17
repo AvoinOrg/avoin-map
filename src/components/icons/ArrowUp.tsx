@@ -1,12 +1,9 @@
-import * as React from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
-
-type Props = {
-  sx?: SxProps<Theme>
-}
+import type { SharedSvgIconProps } from './types'
+import { SharedSvgIcon } from './types'
+type Props = SharedSvgIconProps
 
 const ArrowUp = (props: Props) => (
-  <Box
+  <SharedSvgIcon
     component="svg"
     xmlns="http://www.w3.org/2000/svg"
     width={17}
@@ -20,7 +17,7 @@ const ArrowUp = (props: Props) => (
       stroke="currentColor"
       strokeLinecap="round"
     />
-  </Box>
+  </SharedSvgIcon>
 )
 
 export default ArrowUp

@@ -9,7 +9,7 @@ Use this reference after every meaningful UI edit pass.
 - Prefer the in-container repo-controlled visual runner first.
 - Let the runner keep its default `--browser-mode=auto` unless you are
   debugging the browser runtime itself.
-- The main dev server on `http://127.0.0.1:3000` is expected to be a stable,
+- The main dev server on `http://127.0.0.1:6900` is expected to be a stable,
   container-managed process. Agents must not start or stop `yarn dev`.
 - If that path is unavailable, fall back to the host shared-browser workflow
   instead of skipping verification.
@@ -27,7 +27,7 @@ Use this reference after every meaningful UI edit pass.
   currently lacks WebGL support or to confirm that headless support is present.
 
 The visual runner must only target the already-running server at
-`http://127.0.0.1:3000`. Always pass `--no-start`. If the server is
+`http://127.0.0.1:6900`. Always pass `--no-start`. If the server is
 unreachable, stop the coding task, report that the main dev server is down,
 and investigate the main dev-server process and recent logs.
 
@@ -39,7 +39,7 @@ Runtime safety:
   flaky dev server.
 - Do not delete `.next`, `public/files`, or `public/lib` unless the user has
   explicitly approved a full runtime reset for this environment.
-- Prefer safer diagnosis first: verify whether `:3000` is listening, inspect
+- Prefer safer diagnosis first: verify whether `:6900` is listening, inspect
   the main dev-server process tree, and read recent dev-server logs.
 
 Browser mode guidance:
@@ -68,14 +68,14 @@ actually implemented.
 
 ## Host-state visual workflow
 
-Use the host-state path when the page depends on existing login state, imported plans, or other browser-origin state on `http://localhost:3000`.
+Use the host-state path when the page depends on existing login state, imported plans, or other browser-origin state on `http://localhost:6900`.
 
 1. Launch the dedicated host Chrome profile with remote debugging enabled.
-2. Open `http://localhost:3000/...` in that browser and establish the needed state.
+2. Open `http://localhost:6900/...` in that browser and establish the needed state.
 3. Run `yarn browser-state:sync:localhost` in the devcontainer.
 4. Run a host-state visual command such as `yarn visual:after-edit:host-state -- --no-start <path1> <path2> ...`.
 
-Target `localhost:3000` for host-state workflows because browser storage is origin-specific.
+Target `localhost:6900` for host-state workflows because browser storage is origin-specific.
 
 ## In-container persistent profile workflow
 

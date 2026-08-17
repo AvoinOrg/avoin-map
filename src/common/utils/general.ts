@@ -1,5 +1,5 @@
 import { round } from 'lodash-es'
-import { ColorStop } from '../types/map'
+import type { ColorStop } from '../types/color'
 
 //TODO: FIX PP to format numbers correctly
 export const pp = (x: number, precision = 2) => round(x, precision)

@@ -1,54 +1,51 @@
 {
-  "allowSyntheticDefaults": true,
   "compilerOptions": {
-    "target": "es5",
+    "target": "ES2022",
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
     ],
-    "allowJs": true,
+    "allowJs": false,
     "skipLibCheck": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "downlevelIteration": true,
     "incremental": true,
     "baseUrl": ".",
     "outDir": "build/",
+    "types": [
+      "node",
+      "vite/client"
+    ],
     "paths": {
       "applets/*": [
-        "src/app/[locale]/(map)/(applets)/*"
+        "src/applets/*"
       ],
       "#/*": [
         "src/*"
       ],
       "@i18n/*": [
         "i18n/*"
-      ],
-      "map/*": [
-        "src/app/[locale]/(map)/*"
-      ],
-    },
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ]
+      ]
+    }
   },
   "include": [
-    "src",
-    ".next/types/**/*.ts",
-    "appletConf.json",
-    "src/types/**/*.d.ts"
+    "vite.config.mts",
+    "src/**/*.ts",
+    "src/**/*.tsx"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "src/__mocks__/**",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx"
   ]
 }

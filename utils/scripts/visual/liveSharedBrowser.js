@@ -4,9 +4,9 @@ const dns = require('dns')
 
 const DEFAULT_HOST_CDP_URL = 'http://host.docker.internal:9222'
 const DEFAULT_CONTAINER_CDP_URL = 'http://127.0.0.1:9223'
-const DEFAULT_HOST_ORIGIN = 'http://localhost:3000'
-const DEFAULT_HOST_URL = 'http://localhost:3000/en'
-const DEFAULT_CONTAINER_URL = 'http://localhost:3000/en'
+const DEFAULT_HOST_ORIGIN = 'http://localhost:6900'
+const DEFAULT_HOST_URL = 'http://localhost:6900/en'
+const DEFAULT_CONTAINER_URL = 'http://localhost:6900/en'
 const DEFAULT_TIMEOUT_MS = 60000
 
 const LIVE_BROWSER_PATHS = {
@@ -274,7 +274,7 @@ Launch Chrome on the Windows host with remote debugging enabled (dedicated profi
     '--remote-debugging-port=9222',
     '--remote-debugging-address=0.0.0.0',
     \"--user-data-dir=$profile\",
-    'http://localhost:3000/fi/hiilikartta'
+    'http://localhost:6900/fi/carbon'
   )
 
 Then open the app in that Chrome window and ${actionLabel}.

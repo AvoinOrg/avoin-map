@@ -1,17 +1,22 @@
+import { Select as BaseSelect } from '@base-ui/react/select'
 import React, { type ReactNode } from 'react'
+
 import {
   Box,
-  Checkbox,
-  MenuItem,
-  OutlinedInput,
-  Select,
-  type SelectChangeEvent,
-  type SxProps,
-  type Theme,
-  Typography,
-} from '@mui/material'
-
+  type AppSxProps,
+  toSxArray,
+} from '#/common/style/theme/system'
+import { SHARED_CONTROL_INFINITE_BORDER_RADIUS } from '#/common/style/theme/constants'
+import {
+  DROP_DOWN_SELECT_ICON_SX,
+  DROP_DOWN_SELECT_LIST_SX,
+  DROP_DOWN_SELECT_POPUP_SX,
+  DROP_DOWN_SELECT_POSITIONER_SX,
+  DROP_DOWN_SELECT_TRIGGER_SX,
+} from '#/components/common/DropDownSelect'
 import ArrowDown from '#/components/icons/ArrowDown'
+import Checkbox from '#/components/icons/Checkbox'
+import CheckboxChecked from '#/components/icons/CheckboxChecked'
 
 export type DropDownMultiSelectOption = {
   value: string
@@ -21,10 +26,21 @@ export type DropDownMultiSelectOption = {
   trailing?: ReactNode
 }
 
+export type DropDownMultiSelectChangeEvent = {
+  target: {
+    value: string[]
+  }
+  nativeEvent?: Event
+}
+
+export type DropDownMultiValueChangeEvent = DropDownMultiSelectChangeEvent
+
+type ComponentSxArrayItem = Exclude<NonNullable<AppSxProps>, readonly unknown[]>
+
 type Props = {
   value: string[]
   options: DropDownMultiSelectOption[]
-  onChange: (event: SelectChangeEvent<string[]>) => void
+  onChange: (event: DropDownMultiSelectChangeEvent) => void
   ariaLabel?: string
   placeholder?: ReactNode
   renderValue?: (
@@ -35,13 +51,76 @@ type Props = {
     option: DropDownMultiSelectOption,
     selected: boolean
   ) => ReactNode
-  sx?: SxProps<Theme>
-  selectSx?: SxProps<Theme>
-  menuPaperSx?: SxProps<Theme>
-  menuItemSx?: SxProps<Theme>
-  checkboxSx?: SxProps<Theme>
-  iconSx?: SxProps<Theme>
+  sx?: AppSxProps
+  selectSx?: AppSxProps
+  menuPaperSx?: AppSxProps
+  menuItemSx?: AppSxProps
+  checkboxSx?: AppSxProps
+  iconSx?: AppSxProps
   disabled?: boolean
+  open?: boolean
+  defaultOpen?: boolean
+  onOpenChange?: (open: boolean) => void
+}
+
+const toComponentSxArray = (sx?: AppSxProps) =>
+  toSxArray(sx) as ComponentSxArrayItem[]
+
+const getOptionLabel = (option: DropDownMultiSelectOption) =>
+  typeof option.label === 'string' ? option.label : option.value
+
+const getSelectedContent = ({
+  value,
+  selectedOptions,
+  placeholder,
+  renderValue,
+}: {
+  value: string[]
+  selectedOptions: DropDownMultiSelectOption[]
+  placeholder?: ReactNode
+  renderValue?: Props['renderValue']
+}) => {
+  if (renderValue) {
+    return renderValue(value, selectedOptions)
+  }
+
+  if (selectedOptions.length === 0) {
+    return (
+      <Box
+        component="span"
+        sx={{
+          display: 'block',
+          minWidth: 0,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          color: '#A0A0A0',
+        }}
+      >
+        {placeholder}
+      </Box>
+    )
+  }
+
+  return (
+    <Box
+      component="span"
+      sx={{
+        display: 'block',
+        minWidth: 0,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        fontSize: '0.6875rem',
+        fontWeight: 400,
+        lineHeight: 'normal',
+        letterSpacing: '0.04em',
+        color: '#111111',
+      }}
+    >
+      {selectedOptions.map(getOptionLabel).join(', ')}
+    </Box>
+  )
 }
 
 const DropDownMultiSelect = ({
@@ -59,202 +138,294 @@ const DropDownMultiSelect = ({
   checkboxSx,
   iconSx,
   disabled,
+  open,
+  defaultOpen,
+  onOpenChange,
 }: Props) => {
+  const openIsControlled = open !== undefined
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(
+    defaultOpen ?? false
+  )
+  const resolvedOpen = openIsControlled ? open : uncontrolledOpen
+
+  const setResolvedOpen = React.useCallback(
+    (nextOpen: boolean) => {
+      if (!openIsControlled) {
+        setUncontrolledOpen(nextOpen)
+      }
+
+      onOpenChange?.(nextOpen)
+    },
+    [openIsControlled, onOpenChange]
+  )
+
+  const selectedOptions = options.filter((option) =>
+    value.includes(option.value)
+  )
+
+  const selectedContent = getSelectedContent({
+    value,
+    selectedOptions,
+    placeholder,
+    renderValue,
+  })
+
   return (
     <Box
       sx={[
         {
           width: '100%',
           minWidth: 0,
-          borderRadius: '999px',
+          position: 'relative',
+          borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toComponentSxArray(sx),
       ]}
     >
-      <Select
+      <BaseSelect.Root<string, true>
         multiple
-        displayEmpty
-        aria-label={ariaLabel}
+        modal={false}
         value={value}
-        onChange={onChange}
         disabled={disabled}
-        input={<OutlinedInput notched={false} />}
-        IconComponent={ArrowDown}
-        renderValue={(selected) => {
-          const selectedValues = selected as string[]
-          const selectedOptions = options.filter((option) =>
-            selectedValues.includes(option.value)
-          )
-
-          if (renderValue) {
-            return renderValue(selectedValues, selectedOptions)
-          }
-
-          if (selectedOptions.length === 0) {
-            return (
-              <Box
-                component="span"
-                sx={{
-                  display: 'block',
-                  color: '#A0A0A0',
-                }}
-              >
-                {placeholder}
-              </Box>
-            )
-          }
-
-          return (
-            <Typography
-              component="span"
-              sx={{
-                display: 'block',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                fontSize: '0.6875rem',
-                fontWeight: 400,
-                lineHeight: 'normal',
-                letterSpacing: '0.04em',
-                color: '#111111',
-              }}
-            >
-              {selectedOptions
-                .map((option) =>
-                  typeof option.label === 'string' ? option.label : option.value
-                )
-                .join(', ')}
-            </Typography>
-          )
+        open={resolvedOpen}
+        onOpenChange={(nextOpen) => {
+          setResolvedOpen(nextOpen)
         }}
-        MenuProps={{
-          anchorOrigin: {
-            vertical: 'bottom',
-            horizontal: 'left',
-          },
-          transformOrigin: {
-            vertical: 'top',
-            horizontal: 'left',
-          },
-          PaperProps: {
-            sx: [
-              {
-                mt: 0.5,
-                borderRadius: '0.625rem',
-                border: '0.5px solid #D6D6D6',
-                boxShadow: '0px 8px 24px rgba(17, 17, 17, 0.12)',
-              },
-              ...(Array.isArray(menuPaperSx) ? menuPaperSx : [menuPaperSx]),
-            ],
-          },
+        onValueChange={(nextValue, eventDetails) => {
+          onChange({
+            target: { value: Array.isArray(nextValue) ? nextValue : [] },
+            nativeEvent: eventDetails.event,
+          })
         }}
-        sx={[
-          {
-            '&.MuiOutlinedInput-root': {
-              borderRadius: '999px',
-              minHeight: '2rem',
-              backgroundColor: '#FFFFFF',
-              boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
-            },
-            '& .MuiOutlinedInput-notchedOutline': {
-              borderColor: '#D6D6D6',
-              borderRadius: '999px',
-            },
-            '& .MuiOutlinedInput-notchedOutline legend': {
-              maxWidth: 0,
-            },
-            '& .MuiSelect-select': {
-              display: 'flex',
-              alignItems: 'center',
-              py: '0.375rem',
-              pl: '1rem',
-              pr: '2.5rem !important',
-              fontSize: '0.6875rem',
-              fontWeight: 400,
-              lineHeight: 'normal',
-              letterSpacing: '0.04em',
-              color: '#111111',
-            },
-            '& .MuiSelect-icon': {
-              top: '50%',
-              transform: 'translateY(-50%)',
-              width: '0.75rem',
-              height: '0.375rem',
-              mr: "0.4rem",
-              ...(iconSx as Record<string, unknown>),
-            },
-            '& .MuiSelect-iconOpen': {
-              transform: 'translateY(-50%) rotate(180deg)',
-            },
-          },
-          ...(Array.isArray(selectSx) ? selectSx : [selectSx]),
-        ]}
       >
-        {options.map((option) => {
-          const isSelected = value.includes(option.value)
-
-          return (
-            <MenuItem
-              key={option.value}
-              value={option.value}
-              aria-label={
-                option.ariaLabel ??
-                (typeof option.label === 'string'
-                  ? option.label
-                  : String(option.value))
-              }
+        <BaseSelect.Trigger
+          aria-label={ariaLabel}
+          render={(triggerProps, triggerState) => (
+            <Box
+              component="button"
+              {...triggerProps}
+              className={[triggerProps.className, 'MuiOutlinedInput-root']
+                .filter(Boolean)
+                .join(' ')}
+              data-slot="trigger"
+              data-popup-open={triggerState.open ? '' : undefined}
               sx={[
+                DROP_DOWN_SELECT_TRIGGER_SX,
                 {
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.375rem',
-                  py: '0.5rem',
+                  cursor: disabled ? 'default' : 'pointer',
                 },
-                ...(Array.isArray(menuItemSx) ? menuItemSx : [menuItemSx]),
+                ...toComponentSxArray(selectSx),
               ]}
             >
-              {renderOptionContent ? (
-                renderOptionContent(option, isSelected)
-              ) : (
-                <>
-                  <Checkbox
-                    checked={isSelected}
+              <Box
+                component="span"
+                className="MuiSelect-select"
+                data-slot="value"
+              >
+                {selectedContent}
+              </Box>
+              <BaseSelect.Icon
+                render={(iconProps, iconState) => (
+                  <Box
+                    component="span"
+                    {...iconProps}
+                    className={[
+                      iconProps.className,
+                      'MuiSelect-icon',
+                      iconState.open ? 'MuiSelect-iconOpen' : undefined,
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                    data-slot="icon"
                     sx={[
+                      DROP_DOWN_SELECT_ICON_SX,
                       {
-                        p: 0,
-                        mr: '0.25rem',
-                        '& .MuiSvgIcon-root': {
-                          fontSize: '1rem',
-                        },
+                        transform: iconState.open
+                          ? 'translateY(-50%) rotate(180deg)'
+                          : 'translateY(-50%)',
                       },
-                      ...(Array.isArray(checkboxSx)
-                        ? checkboxSx
-                        : [checkboxSx]),
+                      ...toComponentSxArray(iconSx),
                     ]}
-                  />
-
-                  {option.leading}
-
-                  <Typography
-                    sx={{
-                      flex: 1,
-                      minWidth: 0,
-                      fontSize: '0.6875rem',
-                      lineHeight: '1rem',
-                      letterSpacing: '0.04em',
-                      color: '#111111',
-                    }}
                   >
-                    {option.label}
-                  </Typography>
+                    <ArrowDown
+                      sx={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'block',
+                      }}
+                    />
+                  </Box>
+                )}
+              />
+              <Box
+                component="span"
+                className="MuiOutlinedInput-notchedOutline"
+                aria-hidden="true"
+              />
+            </Box>
+          )}
+        />
 
-                  {option.trailing}
-                </>
+        <BaseSelect.Portal>
+          <BaseSelect.Positioner
+            align="start"
+            side="bottom"
+            sideOffset={4}
+            alignItemWithTrigger={false}
+            render={(positionerProps) => (
+              <Box {...positionerProps} sx={DROP_DOWN_SELECT_POSITIONER_SX} />
+            )}
+          >
+            <BaseSelect.Popup
+              render={(popupProps) => (
+                <Box
+                  {...popupProps}
+                  data-slot="popup"
+                  sx={[
+                    DROP_DOWN_SELECT_POPUP_SX,
+                    ...toComponentSxArray(menuPaperSx),
+                  ]}
+                />
               )}
-            </MenuItem>
-          )
-        })}
-      </Select>
+            >
+              <BaseSelect.List
+                render={(listProps) => (
+                  <Box
+                    {...listProps}
+                    data-slot="list"
+                    sx={DROP_DOWN_SELECT_LIST_SX}
+                  />
+                )}
+              >
+                {options.map((option) => {
+                  const fallbackLabel = getOptionLabel(option)
+                  const ariaOptionLabel = option.ariaLabel ?? fallbackLabel
+
+                  return (
+                    <BaseSelect.Item
+                      key={option.value}
+                      value={option.value}
+                      label={fallbackLabel}
+                      aria-label={ariaOptionLabel}
+                      render={(itemProps, itemState) => (
+                        <Box
+                          {...itemProps}
+                          data-slot="option"
+                          data-selected={itemState.selected ? '' : undefined}
+                          sx={[
+                            {
+                              m: 0,
+                              px: 1.5,
+                              py: 1,
+                              minHeight: '2rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.375rem',
+                              cursor: 'default',
+                              userSelect: 'none',
+                              outline: 0,
+                              '&[data-highlighted], &:hover, &:focus-visible':
+                                {
+                                  backgroundColor:
+                                    'rgba(44, 142, 116, 0.08)',
+                                },
+                            },
+                            ...toComponentSxArray(menuItemSx),
+                          ]}
+                        >
+                          {renderOptionContent ? (
+                            renderOptionContent(option, itemState.selected)
+                          ) : (
+                            <>
+                              <BaseSelect.ItemIndicator
+                                keepMounted
+                                render={(indicatorProps, indicatorState) => {
+                                  const indicatorRootProps = {
+                                    ...indicatorProps,
+                                    children: undefined,
+                                  }
+
+                                  return (
+                                    <Box
+                                      component="span"
+                                      {...indicatorRootProps}
+                                      aria-hidden="true"
+                                      data-selected={
+                                        indicatorState.selected ? '' : undefined
+                                      }
+                                      sx={[
+                                        {
+                                          width: '1rem',
+                                          height: '1rem',
+                                          mr: '0.25rem',
+                                          flex: '0 0 auto',
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          borderRadius: '0.125rem',
+                                          lineHeight: 0,
+                                          overflow: 'hidden',
+                                          color: '#A0A0A0',
+                                          backgroundColor: '#FFFFFF',
+                                          '&[data-selected]': {
+                                            color: '#FFFFFF',
+                                            backgroundColor: 'secondary.dark',
+                                          },
+                                        },
+                                        ...toComponentSxArray(checkboxSx),
+                                      ]}
+                                    >
+                                      {indicatorState.selected ? (
+                                        <CheckboxChecked
+                                          sx={{
+                                            width: '100%',
+                                            height: '100%',
+                                            display: 'block',
+                                          }}
+                                        />
+                                      ) : (
+                                        <Checkbox
+                                          sx={{
+                                            width: '100%',
+                                            height: '100%',
+                                            display: 'block',
+                                          }}
+                                        />
+                                      )}
+                                    </Box>
+                                  )
+                                }}
+                              />
+
+                              {option.leading}
+
+                              <Box
+                                component="span"
+                                sx={{
+                                  flex: 1,
+                                  minWidth: 0,
+                                  fontSize: '0.6875rem',
+                                  lineHeight: '1rem',
+                                  letterSpacing: '0.04em',
+                                  color: '#111111',
+                                }}
+                              >
+                                {option.label}
+                              </Box>
+
+                              {option.trailing}
+                            </>
+                          )}
+                        </Box>
+                      )}
+                    />
+                  )
+                })}
+              </BaseSelect.List>
+            </BaseSelect.Popup>
+          </BaseSelect.Positioner>
+        </BaseSelect.Portal>
+      </BaseSelect.Root>
     </Box>
   )
 }

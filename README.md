@@ -5,19 +5,17 @@ available at https://map.avoin.org.
 
 ## Development
 
-The app uses Next.js (App Router) and runs via Docker Compose.
+The app runs local development through TanStack Start via Docker Compose.
+TanStack file routes own routing, while applet implementations and shared map
+and UI code remain separated by their current source domains.
 
 Create `.env` from `.env.template`, then set at least:
 
 ```bash
 # Map data source.
-NEXT_PUBLIC_GEOSERVER_URL=https://gis.example.org/geoserver
+PUBLIC_GEOSERVER_URL=https://gis.example.org/geoserver
 
-# Tolgee runtime config (used in the client).
-NEXT_PUBLIC_TOLGEE_API_URL=
-NEXT_PUBLIC_TOLGEE_API_KEY=
-
-# Tolgee export API (used by utils/scripts/downloadTranslations.js).
+# Tolgee export API (server/build-only; used by download scripts).
 TOLGEE_API_URL=
 TOLGEE_API_KEY=
 ```
@@ -25,11 +23,15 @@ TOLGEE_API_KEY=
 If you need auth flows, also set:
 
 ```bash
-NEXT_PUBLIC_ZITADEL_ISSUER=
+PUBLIC_ZITADEL_ISSUER=
+ZITADEL_ISSUER=
 ZITADEL_CLIENT_ID=
 ZITADEL_CLIENT_SECRET=
-NEXTAUTH_URL=
-NEXTAUTH_SECRET=
+BETTER_AUTH_URL=
+BETTER_AUTH_SECRET=
+BETTER_AUTH_TRUSTED_ORIGINS=
+# Optional when the Zitadel app registration uses a non-default callback.
+# ZITADEL_REDIRECT_URI=
 ```
 
 Run the development app:
@@ -38,13 +40,19 @@ Run the development app:
 docker compose -f docker-compose.dev.yml up
 ```
 
-The app serves on `http://localhost:3000` unless `DEV_PORT` overrides it.
+The app container runs the Start dev server on internal port `6900`. From the
+host, the app serves on `http://localhost:6900` unless `DEV_PORT` overrides the
+published port.
 
 Run the production image flow:
 
 ```bash
 docker compose -f docker-compose.prod.yml up
 ```
+
+The production image flow builds the Start output and serves
+`.output/server/index.mjs` through `yarn start:preview` on container port
+`3000`.
 
 ## Commits
 
@@ -78,12 +86,18 @@ plain HTTP request.
 
 ## App structure
 
-- `src/app`: Next.js App Router entries (routes, layouts, API handlers).
-- `src/app/[locale]/(map)/(applets)`: Applet roots.
-- `src/app/[locale]/(map)/(applets)/(main)`: Main app pages/components.
-- `src/common`: Shared hooks, routing, store, types, utilities.
-- `src/components`: Shared UI and map components.
+- `src/applets`: Applet pages, shells, state, layers, and applet-specific code,
+  including the main applet under `src/applets/main`.
+- `src/components`: Reusable UI and map components.
+- `src/common`: Cross-applet hooks, navigation and route contracts, stores,
+  types, and utilities.
+- `src/routes`: TanStack Start page routes and server endpoints.
+- `src/runtime`: Start-specific providers, map-shell adapters, auth, metadata,
+  Tolgee static data, and server handlers.
 - `utils/scripts`: Build-time helpers (translations, folder pruning, Netlify helpers).
+- `legacy/`: Archival old implementation excluded from current app builds and
+  `tsconfig.json`; full-MUI imports here are scan false positives unless this
+  tree is explicitly reactivated.
 
 ## Applets and build modes
 
@@ -91,53 +105,88 @@ Applets are self-contained apps that reuse shared map components but keep their
 own pages, stores, and layer configs. They can run inside the main app or as
 standalone deployments.
 
-- `NEXT_PUBLIC_COMPILED_APPLETS` drives both runtime routing and build-time
+- `PUBLIC_COMPILED_APPLETS` drives both runtime routing and build-time
   pruning:
   - If it includes `main`, we build the main app and only the listed applets
     (unlisted applet folders are pruned).
   - If it does not include `main`, exactly one applet must be listed; that
     build runs in standalone mode.
 - `appletConf.json` defines applets, their Tolgee namespace (`localeNs`),
-  languages, and optional domains.
+  languages, and optional domains. A `publicRoute` object marks a public applet
+  root; its slug must match the canonical TanStack applet route folder, and its
+  legacy subpath redirects are ordered. Omitting it keeps internal and
+  development applets out of public route lookup.
 - Builds run in a temp workspace (non-destructive):
   - `yarn prebuild-dev`: downloads translations (writes `i18n/*`).
   - `yarn prebuild`: downloads translations + prepares a pruned temp workspace
     (see `utils/scripts/prebuildFolderPruneTmp.js` and
     `utils/scripts/prebuildFolderPrune.js`).
-  - `yarn build`: runs `yarn prebuild`, then runs `next build` in the temp
-    workspace, then copies `.next` plus `public/files` + `public/lib` back to
-    the real workspace (see `utils/scripts/buildFromFolderPruneTmp.js`).
+  - `yarn build`: runs `yarn prebuild`, generates `public/files` and
+    `public/lib` in the temp workspace, runs the TanStack Start production
+    build, then copies `.output` plus generated `public/files` + `public/lib`
+    back to the real workspace (see
+    `utils/scripts/buildFromFolderPruneTmp.js`).
+  - `yarn build:netlify`: runs the same pruned build with
+    `START_TARGET=netlify`, then copies Netlify publish output from `dist/` and
+    serverless output from `.netlify/functions-internal/`.
     The temp workspace path is persisted in `.applet-build-tmp.json` (gitignored);
     set `BUILD_TMP_KEEP=1` to keep the temp folder for debugging.
-- `utils/scripts/writeNetlifyRedirects.js` exists for legacy Netlify domain
-  setups, but is not part of the default build pipeline.
+- `utils/scripts/writeNetlifyRedirects.js` generates Start-compatible Netlify
+  applet-domain redirects and rewrites into the Netlify publish output; it
+  normalizes applet-domain locale URLs before proxy rewrites and no longer
+  writes under `.next`.
+
+### Production build commands
+
+Canonical production builds require server-only `TOLGEE_API_URL` and
+`TOLGEE_API_KEY` values. Use the same `PUBLIC_COMPILED_APPLETS` input for the
+full application and each supported standalone deployment:
+
+```bash
+PUBLIC_COMPILED_APPLETS=main,energy,carbon,luonnonmetsakartat yarn build
+PUBLIC_COMPILED_APPLETS=energy yarn build
+PUBLIC_COMPILED_APPLETS=carbon yarn build
+PUBLIC_COMPILED_APPLETS=luonnonmetsakartat yarn build
+```
+
+`yarn build` emits `.output/server/index.mjs`, `.output/public`, generated
+`public/files`, and `public/lib/sql-wasm.wasm`. Netlify uses the same selection
+contract through `yarn build:netlify` with `START_TARGET=netlify`, emitting
+`dist` and `.netlify/functions-internal`; it is not a separate applet-selection
+mode. The internal `ui-baseline` applet is covered by selection/pruning tests
+and is not a production deployment target.
 
 ## Routing and navigation
 
-- Next.js folder routing applies; route groups in parentheses do not appear in
-  the URL.
-- Route trees in `src/common/routing/routes/*.ts` power `getRoute` and
-  `MutableLink` for applet-aware paths.
-- `src/middleware.ts` normalizes locale and applet routing and supports
-  standalone applets or domain-based URLs.
+- TanStack Start routes live under `src/routes`; route groups in parentheses do
+  not appear in the URL.
+- Route files define app navigation metadata with `staticData` via
+  `defineAppRouteStaticData`; use `APP_ROUTE_KEYS` with `AppRouteLink` for
+  applet-aware links.
+- `src/server.tsx` applies selection- and manifest-driven locale, public applet
+  path, legacy subpath, and standalone-root normalization before handing
+  requests to Start.
+- `utils/scripts/writeNetlifyRedirects.js` owns applet-domain redirect and
+  proxy generation. Runtime main-mode routing does not treat a configured host
+  root as an applet root.
 
 ## Assets and API copying
 
-`next.config.js` copies:
-- `src/public/**/*` into `public/files/*`
-- `src/app/**/public/**/*` into `public/files/<applet>/*`
-- `src/app/(ui)/**/api/**/*` into `src/app/api/<applet>/*`
+`utils/scripts/prepareGeneratedPublicAssets.js` generates Start build assets:
 
-`public/` and generated `src/app/api/*` entries are gitignored. Avoid dynamic
-API route segments (like `[id]`) in applet API folders due to webpack
-limitations.
+- `src/public/**/*` into `public/files/*`
+- selected applet `public` folders into `public/files/<applet>/*`
+- `node_modules/rtree-sql.js/dist/sql-wasm.wasm` into
+  `public/lib/sql-wasm.wasm`
+
+`public/` remains generated and gitignored.
 
 ## State, data, and map
 
 - Map rendering uses MapLibre GL JS.
-- UI components and styling are built with MUI (Material UI); prefer the `sx`
-  prop for styling over `styled()` / `@emotion/styled` and separate style sheets
-  when possible (use `styled` only when it significantly improves DRY/reuse).
+- UI components are built with Base UI and MUI System; prefer the `sx` prop for
+  styling over `styled()` / `@emotion/styled` and separate style sheets when
+  possible (use `styled` only when it significantly improves DRY/reuse).
 - Add unique `aria-label` values to icon-only buttons, custom click targets,
   and menu triggers/items that do not already expose a stable accessible name.
   This improves both accessibility and automated UI test reliability.
@@ -161,7 +210,7 @@ limitations.
 - Tolgee provides translations; namespaces and languages live in
   `appletConf.json` (`localeNs` + `langs`).
 - `utils/scripts/downloadTranslations.js` generates `i18n/*`. It only downloads
-  namespaces for applets listed in `NEXT_PUBLIC_COMPILED_APPLETS` (and always
+  namespaces for applets listed in `PUBLIC_COMPILED_APPLETS` (and always
   includes the shared `main` namespace, `avoin-map`, for the active locales).
 - The Tolgee browser plugin (Alt+click) is the preferred editing workflow.
 - Prefer `TText` over raw `T` for JSX-rendered translation content. `TText`
@@ -188,8 +237,9 @@ limitations.
 
 ## Auth
 
-Authentication uses NextAuth with a Zitadel issuer. Core auth routes live in
-`src/app/api/auth` and `src/app/api/userinfo`.
+Authentication uses Better Auth with a Zitadel OIDC provider. Core auth routes
+live in `src/routes/api/auth/$.ts`, and the userinfo compatibility endpoint
+lives in `src/routes/api/userinfo.ts`.
 
 ## Tests
 
@@ -211,6 +261,7 @@ automation may interact with the same browser. See `AGENTS.md` for the detailed
 runbook and host Chrome startup command.
 
 Local tooling artifacts are gitignored under `.dev/`:
+
 - Visual regression outputs: `.dev/visual-regression/`
 - Host browser storage snapshots: `.dev/browser-state/`
 - Live shared-browser lock/session/log files: `.dev/live-browser/`

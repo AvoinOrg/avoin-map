@@ -1,97 +1,177 @@
 import React from 'react'
-import { Modal, Box, IconButton, SxProps, Theme } from '@mui/material'
-import CloseIcon from '@mui/icons-material/Close'
+import { Dialog } from '@base-ui/react/dialog'
+
+import {
+  Box,
+  type AppSxProps,
+  type AppTheme,
+  toSxArray,
+} from '#/common/style/theme/system'
+import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'
+import { Cross } from '#/components/icons'
 
 type Props = {
   children: React.ReactNode
+  defaultOpen?: boolean
   modalBody: React.ReactNode
-  sx?: SxProps<Theme>
-  textContainerSx?: SxProps<Theme>
+  sx?: AppSxProps
+  textContainerSx?: AppSxProps
   triggerAriaLabel?: string
 }
 
+const resetButtonSx = {
+  background: 'none',
+  border: 'none',
+  p: 0,
+  m: 0,
+  color: 'inherit',
+  font: 'inherit',
+  textAlign: 'inherit',
+  '&:hover': { cursor: 'pointer' },
+  '&:focus-visible': {
+    outline: (theme: AppTheme) =>
+      `2px solid ${theme.palette.secondary.dark}`,
+    outlineOffset: 2,
+  },
+}
+
+const closeButtonSx = {
+  position: 'absolute',
+  right: 8,
+  top: 8,
+  width: 40,
+  height: 40,
+  minWidth: 40,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: 'transparent',
+  border: '1px solid transparent',
+  borderRadius: '50%',
+  color: 'inherit',
+  p: 0,
+  m: 0,
+  '&:hover': {
+    backgroundColor: 'action.hover',
+    cursor: 'pointer',
+  },
+  '&:focus-visible': {
+    backgroundColor: 'action.hover',
+    outline: 'none',
+    boxShadow: (theme: AppTheme) =>
+      `0 0 0 2px ${theme.palette.secondary.dark}`,
+  },
+}
+
 const ClickableModal = ({
+  defaultOpen = false,
   modalBody,
   children,
   sx,
+  textContainerSx,
   triggerAriaLabel = 'Open modal',
 }: Props) => {
-  const [open, setOpen] = React.useState(false)
-
-  const handleClose = () => {
-    setOpen(false)
-  }
+  const [open, setOpen] = React.useState(defaultOpen)
 
   return (
-    <>
-      <Box
-        component="button"
-        type="button"
+    <Dialog.Root
+      open={open}
+      onOpenChange={(nextOpen) => {
+        setOpen(nextOpen)
+      }}
+    >
+      <Dialog.Trigger
         aria-label={triggerAriaLabel}
-        sx={[
-          {
-            background: 'none',
-            border: 'none',
-            p: 0,
-            m: 0,
-            color: 'inherit',
-            textAlign: 'inherit',
-            '&:hover': { cursor: 'pointer' },
-          },
-          ...(Array.isArray(sx) ? sx : [sx]),
-        ]}
-        onClick={() => setOpen(true)}
-      >
-        {children}
-      </Box>
-
-      <Modal
-        open={open}
-        onClose={handleClose}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-        sx={{ border: 'none', outline: 'none' }}
-      >
-        <Box
-          sx={[
-            {
-              position: 'absolute' as const,
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: {
-                xs: '100%',
-                md: '800px',
-              },
-              maxHeight: {
-                xs: '100vh',
-                md: '80vh',
-              },
-              overflow: 'auto',
-              bgcolor: 'background.paper',
-              boxShadow: 24,
-              p: 4,
-              border: 'none',
-              outline: 'none',
-            },
-            ...(Array.isArray(sx) ? sx : [sx]),
-          ]}
-        >
-          <IconButton
-            aria-label="close"
-            onClick={handleClose}
-            sx={{
-              position: 'absolute',
-              right: 8,
-              top: 8,
-            }}
+        type="button"
+        render={(triggerProps) => (
+          <Box
+            {...triggerProps}
+            component="button"
+            sx={[resetButtonSx, ...toSxArray(sx)]}
           >
-            <CloseIcon />
-          </IconButton>
-          <Box sx={{ mt: 2 }}>{modalBody}</Box>
-        </Box>
-      </Modal>
-    </>
+            {children}
+          </Box>
+        )}
+      />
+
+      <Dialog.Portal>
+        <Dialog.Backdrop
+          render={(backdropProps) => (
+            <Box
+              {...backdropProps}
+              sx={(theme) => ({
+                position: 'fixed',
+                inset: 0,
+                zIndex: theme.zIndex.modal,
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              })}
+            />
+          )}
+        />
+        <Dialog.Viewport
+          render={(viewportProps) => (
+            <Box
+              {...viewportProps}
+              sx={(theme) => ({
+                position: 'fixed',
+                inset: 0,
+                zIndex: theme.zIndex.modal,
+                display: 'flex',
+                alignItems: {
+                  mobile: 'stretch',
+                  desktop: 'center',
+                },
+                justifyContent: 'center',
+                overflow: 'auto',
+              })}
+            />
+          )}
+        >
+          <Dialog.Popup
+            aria-label={triggerAriaLabel}
+            render={(popupProps) => (
+              <Box
+                {...popupProps}
+                sx={[
+                  {
+                    position: 'relative',
+                    width: {
+                      mobile: '100%',
+                      desktop: '800px',
+                    },
+                    maxWidth: '100%',
+                    maxHeight: {
+                      mobile: '100vh',
+                      desktop: '80vh',
+                    },
+                    overflow: 'auto',
+                    bgcolor: 'background.paper',
+                    boxShadow: 24,
+                    p: 4,
+                    border: 'none',
+                    outline: 'none',
+                    borderRadius: SHARED_CONTROL_BORDER_RADIUS,
+                  },
+                  ...toSxArray(sx),
+                ]}
+              />
+            )}
+          >
+            <Dialog.Close
+              aria-label="close"
+              render={(closeProps) => (
+                <Box {...closeProps} component="button" sx={closeButtonSx}>
+                  <Cross sx={{ width: 16, height: 16 }} />
+                </Box>
+              )}
+            />
+            <Box sx={[{ mt: 2 }, ...toSxArray(textContainerSx)]}>
+              {modalBody}
+            </Box>
+          </Dialog.Popup>
+        </Dialog.Viewport>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }
 

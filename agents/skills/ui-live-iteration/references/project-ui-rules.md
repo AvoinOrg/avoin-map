@@ -4,7 +4,8 @@ Use this reference for local Avoin Map UI conventions before making UI edits.
 
 ## Locate the right surface
 
-- Main app routes live under `src/app/[locale]/(map)/(applets)/(main)`.
+- TanStack route files live under `src/routes`; main applet pages and
+  components live under `src/applets/main`.
 - Shared UI lives under `src/components`.
 - Shared routing helpers live under `src/common/routing` and `src/common/navigation`.
 - Applet-specific UI usually belongs under the relevant applet folder instead of shared components.
@@ -14,11 +15,12 @@ Use this reference for local Avoin Map UI conventions before making UI edits.
 - Use functional components with `const`.
 - Prefer path aliases over deep relative imports.
 - Preserve the existing design language unless the user explicitly asks for a broader redesign.
-- Use `getRoute` or `MutableLink` instead of hardcoded paths when changing applet-aware navigation.
+- Use `APP_ROUTE_KEYS` with `AppRouteLink` or TanStack route metadata helpers
+  instead of hardcoded paths when changing applet-aware navigation.
 
 ## Styling rules
 
-- Prefer MUI `sx` over `styled()` for ordinary component styling.
+- Prefer MUI System `sx` over `styled()` for ordinary component styling.
 - Keep styling colocated with component usage unless extraction materially improves reuse or clarity.
 - For responsive styling, use the project breakpoints `mobile` and `desktop`, not MUI defaults like `xs` or `sm`.
 - When creating a stylable component that accepts `sx`, extend it as an array:

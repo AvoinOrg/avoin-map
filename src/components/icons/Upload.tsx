@@ -1,12 +1,9 @@
-import React from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
-
-type Props = {
-  sx?: SxProps<Theme>
-}
+import type { SharedSvgIconProps } from './types'
+import { SharedSvgIcon } from './types'
+type Props = SharedSvgIconProps
 
 const Upload = (props: Props) => (
-  <Box
+  <SharedSvgIcon
     component={"svg"}
     width={16}
     height={22}
@@ -18,7 +15,7 @@ const Upload = (props: Props) => (
     <g stroke="currentColor" strokeWidth={2}>
       <path d="M1 17v4h14v-4M8 17.5V1M1.5 8 8 1.5 14.5 8" />
     </g>
-  </Box>
+  </SharedSvgIcon>
 )
 
 export default Upload

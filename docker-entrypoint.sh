@@ -5,6 +5,7 @@ source /app/docker-entrypoint-common.sh
 
 setup_bash_history
 configure_git_safe_directory
+configure_ssh_known_hosts
 
 keep_devcontainer_alive() {
     local app_pid
@@ -27,7 +28,7 @@ keep_devcontainer_alive() {
 if [ "${NODE_ENV:-development}" = "production" ]; then
     yarn workspaces focus -A --production
     yarn build
-    yarn start
+    PORT="${PORT:-3000}" yarn start
 else
     bootstrap_dev_app
     if [ "${DEVCONTAINER_KEEPALIVE:-0}" = "1" ]; then

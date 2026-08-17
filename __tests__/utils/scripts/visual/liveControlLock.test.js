@@ -30,8 +30,8 @@ describe('liveControlLock', () => {
       owner: 'codex',
       mode: 'host-cdp',
       cdpUrl: 'http://host.docker.internal:9222',
-      origin: 'http://localhost:3000',
-      pageUrl: 'http://localhost:3000/en',
+      origin: 'http://localhost:6900',
+      pageUrl: 'http://localhost:6900/en',
       lockPath,
       nowMs,
     })

@@ -1,18 +1,15 @@
 // Map toolbar buttons and draw controls grouped by map state and layout.
-'use client'
 
+import type React from 'react'
 import { useMemo } from 'react'
-import ButtonGroup, { ButtonGroupProps } from '@mui/material/ButtonGroup'
-import ExploreIcon from '@mui/icons-material/ExploreOutlined'
-import DoneIcon from '@mui/icons-material/Done'
-import { Box } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 
+import { AppSxProps, Box, toSxArray } from '#/common/style/theme'
 import { useMapStore } from '#/common/store'
 import { useDrawMode } from '#/common/hooks/map/useDrawMode'
 import {
-  Terrain,
-  Bullseye,
+  Done,
+  ExploreOutlined,
   Minus,
   Plus,
   Polygon,
@@ -39,6 +36,13 @@ import { CorridorBufferMenu } from './CorridorBufferMenu'
 
 const IS_DEV = process.env.NODE_ENV === 'development'
 
+const drawControlIconSx = {
+  display: 'inline-block',
+  flexShrink: 0,
+  maxWidth: '1.5rem',
+  maxHeight: '1.5rem',
+} as const
+
 interface Props {
   isVertical: boolean
 }
@@ -47,7 +51,6 @@ export const MapButtons = ({ isVertical }: Props) => {
   const mapResetNorth = useMapStore((state) => state.mapResetNorth)
   const mapZoomIn = useMapStore((state) => state.mapZoomIn)
   const mapZoomOut = useMapStore((state) => state.mapZoomOut)
-  const mapRelocate = useMapStore((state) => state.mapRelocate)
   const setDrawMode = useMapStore((state) => state.setDrawMode)
   const disableDraw = useMapStore((state) => state.disableDraw)
   const deleteDrawFeatures = useMapStore((state) => state.deleteDrawFeatures)
@@ -141,7 +144,7 @@ export const MapButtons = ({ isVertical }: Props) => {
             tooltip={t('map.buttons.draw_delete')}
             isVertical={isVertical}
           >
-            <Delete />
+            <Delete sx={drawControlIconSx} />
           </MapButton>
         </MapButtonGroup>
       )}
@@ -157,7 +160,7 @@ export const MapButtons = ({ isVertical }: Props) => {
               tooltip={t('map.buttons.disable_draw')}
               isVertical={isVertical}
             >
-              <DoneIcon />
+              <Done />
             </MapButton>
           )}
           {allowedDrawModes.includes('edit') && (
@@ -168,7 +171,7 @@ export const MapButtons = ({ isVertical }: Props) => {
               tooltip={t('map.buttons.draw_edit')}
               isVertical={isVertical}
             >
-              <EditDocument />
+              <EditDocument sx={drawControlIconSx} />
             </MapButton>
           )}
           {allowedDrawModes.includes('polygon') && (
@@ -178,7 +181,7 @@ export const MapButtons = ({ isVertical }: Props) => {
               tooltip={t('map.buttons.draw_polygon')}
               isVertical={isVertical}
             >
-              <Polygon />
+              <Polygon sx={drawControlIconSx} />
             </MapButton>
           )}
           {allowedDrawModes.includes('corridor') && (
@@ -198,7 +201,7 @@ export const MapButtons = ({ isVertical }: Props) => {
                 tooltip={t('map.buttons.draw_corridor', 'Draw corridor')}
                 isVertical={isVertical}
               >
-                <Line />
+                <Line sx={drawControlIconSx} />
               </MapButton>
             </MapButtonStickyMenu>
           )}
@@ -239,7 +242,7 @@ export const MapButtons = ({ isVertical }: Props) => {
           tooltip={t('map.buttons.reset_north')}
           isVertical={isVertical}
         >
-          <ExploreIcon sx={{ fontSize: '27px' }} />
+          <ExploreOutlined sx={{ fontSize: '27px' }} />
         </MapButton>
         {/* <MapButton
           onClick={mapRelocate}
@@ -307,39 +310,48 @@ export const MapButtons = ({ isVertical }: Props) => {
   )
 }
 
-interface MapButtonGroupProps extends ButtonGroupProps {
+interface MapButtonGroupProps {
+  children: React.ReactNode
+  orientation?: 'horizontal' | 'vertical'
   isVertical?: boolean
+  sx?: AppSxProps
 }
 
-const MapButtonGroup = ({ isVertical, sx, ...props }: MapButtonGroupProps) => (
-  <ButtonGroup
-    {...props}
-    sx={{
-      '& > .MuiButton-root, & > *:not(style) .MuiButton-root': {
-        border: 0,
-        borderRadius: 0,
+export const MapButtonGroup = ({
+  children,
+  orientation,
+  isVertical = orientation === 'vertical',
+  sx,
+}: MapButtonGroupProps) => (
+  <Box
+    role="group"
+    data-slot="map-button-group"
+    data-orientation={isVertical ? 'vertical' : 'horizontal'}
+    sx={[
+      {
+        display: 'inline-flex',
+        flexDirection: isVertical ? 'column' : 'row',
+        alignItems: 'stretch',
+        '& [data-slot="map-button"]': {
+          borderRadius: 0,
+        },
+        '& > [data-slot="map-button"]:first-of-type, & > *:not(style):first-of-type [data-slot="map-button"]': {
+          borderTopLeftRadius: '0.3125rem',
+          borderBottomLeftRadius: isVertical ? 0 : '0.3125rem',
+          borderTopRightRadius: isVertical ? '0.3125rem' : 0,
+        },
+        '& > [data-slot="map-button"]:last-child, & > *:not(style):last-child [data-slot="map-button"]': {
+          borderTopRightRadius: isVertical ? 0 : '0.3125rem',
+          borderBottomLeftRadius: isVertical ? '0.3125rem' : 0,
+          borderBottomRightRadius: '0.3125rem',
+        },
+        '& > [data-slot="map-button"]:only-child, & > *:not(style):only-child [data-slot="map-button"]': {
+          borderRadius: '0.3125rem',
+        },
       },
-      '& .MuiButtonGroup-grouped': {
-        border: 0,
-      },
-      '& .MuiButtonGroup-middleButton, & .MuiButtonGroup-lastButton': {
-        marginLeft: 0,
-        marginTop: 0,
-      },
-      '& > .MuiButton-root:first-child, & > *:not(style):first-child .MuiButton-root': {
-        borderTopLeftRadius: '0.3125rem',
-        borderBottomLeftRadius: isVertical ? 0 : '0.3125rem',
-        borderTopRightRadius: isVertical ? '0.3125rem' : 0,
-      },
-      '& > .MuiButton-root:last-child, & > *:not(style):last-child .MuiButton-root': {
-        borderTopRightRadius: isVertical ? 0 : '0.3125rem',
-        borderBottomLeftRadius: isVertical ? '0.3125rem' : 0,
-        borderBottomRightRadius: '0.3125rem',
-      },
-      '& > .MuiButton-root:only-child, & > *:not(style):only-child .MuiButton-root': {
-        borderRadius: '0.3125rem',
-      },
-      ...sx,
-    }}
-  />
+      ...toSxArray(sx),
+    ]}
+  >
+    {children}
+  </Box>
 )

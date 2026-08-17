@@ -1,30 +1,64 @@
 import React from 'react'
-import { LinkProps as MuiLinkProps, Link as MuiLink } from '@mui/material'
-import { LinkProps as NextLinkProps } from 'next/link'
 
-import { NextIntlLink } from '#/common/navigation/navigation'
+import { Box, type AppSxProps } from '#/common/style/theme'
+import { AppLink, type AppLinkProps } from '#/common/navigation/navigation'
 
-type LinkProps = MuiLinkProps & NextLinkProps
+type LinkComponentProps = Omit<AppLinkProps, 'sx'> & {
+  sx?: AppSxProps
+}
+
+type LinkProps = React.PropsWithChildren<
+  Omit<AppLinkProps, 'sx'> & {
+    sx?: AppSxProps
+  }
+>
+
+const DEFAULT_LINK_SX = {
+  display: 'inline-flex',
+  color: 'inherit',
+  textDecoration: 'none',
+}
+
+const AppLinkComponent = React.forwardRef<
+  HTMLAnchorElement,
+  LinkComponentProps
+>((props, ref) => {
+  return (
+    <AppLink
+      {...(props as React.ComponentProps<typeof AppLink>)}
+      ref={ref}
+    />
+  )
+})
+
+AppLinkComponent.displayName = 'AppLinkComponent'
+
+const LinkBox = Box as React.ElementType
 
 /**
  * A basic link. Do not use with applets that have their own domain,
- * use MutableLink instead.
+ * use AppRouteLink instead.
  */
-const Link = ({ sx, children, ...props }: LinkProps) => {
+const Link = ({
+  sx,
+  children,
+  prefetch = true,
+  ...props
+}: LinkProps) => {
+  const composedSx = [
+    DEFAULT_LINK_SX,
+    ...(Array.isArray(sx) ? sx : [sx]),
+  ].filter(Boolean) as AppSxProps
+
   return (
-    <MuiLink
-      component={NextIntlLink}
-      sx={{
-        display: 'inline-flex',
-        color: 'inherit',
-        textDecoration: 'none',
-        ...sx,
-      }}
-      prefetch={true}
+    <LinkBox
+      component={AppLinkComponent as React.ElementType}
+      sx={composedSx}
+      prefetch={prefetch}
       {...props}
     >
       {children}
-    </MuiLink>
+    </LinkBox>
   )
 }
 

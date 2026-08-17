@@ -1,8 +1,9 @@
 import React from 'react'
-import { Box, IconButton, SxProps, Theme, Typography } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 
+import { AppSxProps, Box, toSxArray } from '#/common/style/theme'
+import { IconButton } from '#/components/common/Button'
 import { Cross } from '#/components/icons'
 import { ListedLayerGroup, ListedLayerMenuItem } from '#/common/types/map'
 import {
@@ -22,7 +23,7 @@ type Props = {
   onToggleLayer: (layerGroup: ListedLayerGroup) => void
   onInfoToggle?: () => void
   onClose: () => void
-  listSx?: SxProps<Theme>
+  listSx?: AppSxProps
   scrollMaxHeight?: string
 }
 
@@ -35,10 +36,10 @@ type LayerMenuItemsProps = Pick<
   | 'onInfoToggle'
 > & {
   items: ListedLayerMenuItem[]
-  layerGroupSegmentSx?: SxProps<Theme>
+  layerGroupSegmentSx?: AppSxProps
 }
 
-const LAYER_GROUP_SEGMENT_SX: SxProps<Theme> = {
+const LAYER_GROUP_SEGMENT_SX = {
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'stretch',
@@ -46,13 +47,21 @@ const LAYER_GROUP_SEGMENT_SX: SxProps<Theme> = {
   width: '100%',
   px: 3,
   py: 4,
-}
+} satisfies AppSxProps
 
-const NESTED_LAYER_GROUP_SEGMENT_SX: SxProps<Theme> = {
+const NESTED_LAYER_GROUP_SEGMENT_SX = {
   ...LAYER_GROUP_SEGMENT_SX,
   px: 0,
   py: 0,
-}
+} satisfies AppSxProps
+
+const LAYER_MENU_HEADER_INSET = 3
+const LAYER_MENU_CLOSE_BUTTON_SIZE = 32
+const LAYER_MENU_CLOSE_GLYPH_SIZE = 18
+// Move the hit surface out by the centered glyph's half-gap so the visible
+// glyph, rather than the larger button surface, lands on the header inset.
+const LAYER_MENU_CLOSE_BUTTON_EDGE_OFFSET =
+  (LAYER_MENU_CLOSE_BUTTON_SIZE - LAYER_MENU_CLOSE_GLYPH_SIZE) / 2
 
 const LayerMenuAccordionRow = ({
   item,
@@ -111,7 +120,7 @@ const LayerMenuItems = ({
       opacityLabel={opacityLabel}
       onOpacityChange={onOpacityChange}
       onInfoToggle={onInfoToggle}
-      onSelect={(_id) => {
+      onSelect={() => {
         onToggleLayer(item)
       }}
     />
@@ -209,12 +218,13 @@ const LayerMenuContent = ({
       }}
     >
       <Box
+        data-slot="layer-menu-header"
         sx={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: 1,
-          px: 3,
+          px: LAYER_MENU_HEADER_INSET,
           py: 2,
           boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.10)',
           backgroundColor: 'inherit',
@@ -222,19 +232,35 @@ const LayerMenuContent = ({
         }}
       >
         {headerLabel ? (
-          <Typography variant="h3" sx={{ textAlign: 'left' }}>
+          <Box
+            component="h3"
+            data-slot="layer-menu-title"
+            sx={{ m: 0, typography: 'h3', textAlign: 'left' }}
+          >
             {headerLabel}
-          </Typography>
+          </Box>
         ) : (
           <Box sx={{ flex: 1 }} />
         )}
         <IconButton
           size="small"
+          data-slot="layer-menu-close-button"
           aria-label={t('map.buttons.menu.close', 'Close menu')}
           onClick={onClose}
-          sx={{ p: 0.5, mr: 0, width: 32, height: 32 }}
+          sx={{
+            p: 0.5,
+            mr: `-${LAYER_MENU_CLOSE_BUTTON_EDGE_OFFSET}px`,
+            width: LAYER_MENU_CLOSE_BUTTON_SIZE,
+            height: LAYER_MENU_CLOSE_BUTTON_SIZE,
+          }}
         >
-          <Cross sx={{ width: 18, height: 18 }} />
+          <Cross
+            data-slot="layer-menu-close-glyph"
+            sx={{
+              width: LAYER_MENU_CLOSE_GLYPH_SIZE,
+              height: LAYER_MENU_CLOSE_GLYPH_SIZE,
+            }}
+          />
         </IconButton>
       </Box>
       <OverlayScrollbarsComponent
@@ -264,7 +290,7 @@ const LayerMenuContent = ({
               alignItems: 'stretch',
               width: '100%',
             },
-            ...(Array.isArray(listSx) ? listSx : [listSx]),
+            ...toSxArray(listSx),
           ]}
         >
           <LayerMenuItems

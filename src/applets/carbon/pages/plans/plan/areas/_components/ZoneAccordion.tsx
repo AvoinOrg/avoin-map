@@ -1,0 +1,716 @@
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslate } from '@tolgee/react'
+
+import { Box, type AppBoxProps, toSxArray } from '#/common/style/theme'
+import useStore from '#/common/hooks/useStore'
+import useSelectedFeaturesFilteredBySource from '#/common/hooks/map/useSelectedFeaturesFilteredBySource'
+import { useMapStore } from '#/common/store'
+import type { SelectOption } from '#/common/types/general'
+import DropDownMultiSelect, {
+  type DropDownMultiSelectChangeEvent,
+  type DropDownMultiSelectOption,
+} from '#/components/common/DropDownMultiSelect'
+import type { DropDownValueChangeEvent } from '#/components/common/DropDownSelect'
+import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
+
+import type { PlanDataFeature } from 'applets/carbon/common/types'
+import { useZoningClasses } from 'applets/carbon/common/useZoningClasses'
+import {
+  checkIsValidLandUseDistribution,
+  getPlanLayerGroupId,
+  getPlanSourceId,
+} from 'applets/carbon/common/utils'
+import {
+  type PlanDataFeatureUpdate,
+  useAppletStore,
+} from 'applets/carbon/state/appletStore'
+import ZoneAccordionItem from './ZoneAccordionItem'
+import ZoneClassChip from './ZoneClassChip'
+import {
+  buildZoningCodeSelectOptions,
+  buildZoneFilterOptions,
+  featureMatchesZoneFilter,
+  getZoneClassPresentation,
+  getZoneDisplayName,
+} from './zoneAreaUtils'
+
+interface Props {
+  planConfId: string
+  onPendingLandUseEditsChange?: (hasPending: boolean) => void
+  sx?: AppBoxProps['sx']
+}
+
+const CONTENT_PADDING_X = { mobile: '2.5rem', desktop: '2.5rem' } as const
+export type ZoneSortValue =
+  | 'class-asc'
+  | 'class-desc'
+  | 'name-asc'
+  | 'name-desc'
+
+export type ZoneAreaListControlsProps = {
+  countLabel: string
+  filterAllLabel: string
+  filterLabel: string
+  filterOptions: ReturnType<typeof buildZoneFilterOptions>
+  filterDefaultOpen?: boolean
+  filterOpen?: boolean
+  onFilterChange: (event: DropDownMultiSelectChangeEvent) => void
+  onFilterOpenChange?: (open: boolean) => void
+  onSortChange: (event: DropDownValueChangeEvent) => void
+  onSortOpenChange?: (open: boolean) => void
+  selectedFilterValues: string[]
+  sortDefaultOpen?: boolean
+  sortLabel: string
+  sortOpen?: boolean
+  sortOptions: SelectOption[]
+  sortValue: ZoneSortValue
+}
+
+export const ZoneAreaListControls = ({
+  countLabel,
+  filterAllLabel,
+  filterDefaultOpen,
+  filterLabel,
+  filterOpen,
+  filterOptions,
+  onFilterChange,
+  onFilterOpenChange,
+  onSortChange,
+  onSortOpenChange,
+  selectedFilterValues,
+  sortDefaultOpen,
+  sortLabel,
+  sortOpen,
+  sortOptions,
+  sortValue,
+}: ZoneAreaListControlsProps) => {
+  const filterSelectOptions = useMemo<DropDownMultiSelectOption[]>(
+    () =>
+      filterOptions.map((option) => ({
+        value: option.value,
+        label: option.label,
+        leading: <ZoneClassChip code={option.code} color={option.color} />,
+        trailing: (
+          <Box
+            component="span"
+            sx={{
+              fontSize: '0.625rem',
+              lineHeight: '0.875rem',
+              letterSpacing: '0.04em',
+              color: '#6D6D6D',
+            }}
+          >
+            {option.count}
+          </Box>
+        ),
+      })),
+    [filterOptions]
+  )
+
+  return (
+    <Box
+      data-slot="zone-area-list-controls"
+      sx={{
+        px: '1.75rem',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.625rem',
+      }}
+    >
+      <Box
+        component="span"
+        sx={{
+          fontSize: '0.625rem',
+          fontWeight: 400,
+          lineHeight: '1.125rem',
+          letterSpacing: '0.1em',
+          color: '#111111',
+          ml: '0.75rem',
+        }}
+      >
+        {filterLabel}
+      </Box>
+
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.25rem',
+        }}
+      >
+        <DropDownMultiSelect
+          ariaLabel={filterLabel}
+          value={selectedFilterValues}
+          options={filterSelectOptions}
+          onChange={onFilterChange}
+          selectSx={{ width: '100%' }}
+          open={filterOpen}
+          defaultOpen={filterDefaultOpen}
+          onOpenChange={onFilterOpenChange}
+          renderValue={(selected, selectedOptions) => {
+            if (selected.length === 0) {
+              return (
+                <ZoneClassChip
+                  code={filterAllLabel}
+                  dark
+                  sx={{ minWidth: 0 }}
+                  uppercase={false}
+                />
+              )
+            }
+
+            const visibleChips = selectedOptions.slice(0, 2)
+
+            return (
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.375rem',
+                  overflow: 'hidden',
+                }}
+              >
+                {visibleChips.map((option) => {
+                  const matchingFilterOption = filterOptions.find(
+                    (filterOption) => filterOption.value === option.value
+                  )
+
+                  if (!matchingFilterOption) {
+                    return null
+                  }
+
+                  return (
+                    <ZoneClassChip
+                      key={option.value}
+                      code={matchingFilterOption.code}
+                      color={matchingFilterOption.color}
+                      sx={{ pt: '0.1rem' }}
+                    />
+                  )
+                })}
+
+                {selectedOptions.length > visibleChips.length && (
+                  <Box
+                    component="span"
+                    sx={{
+                      fontSize: '0.625rem',
+                      lineHeight: '0.875rem',
+                      letterSpacing: '0.04em',
+                      color: '#111111',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    +{selectedOptions.length - visibleChips.length}
+                  </Box>
+                )}
+              </Box>
+            )
+          }}
+        />
+
+        <Box
+          component="span"
+          sx={{
+            alignSelf: 'flex-end',
+            fontSize: '0.5rem',
+            lineHeight: '0.75rem',
+            letterSpacing: '0.08em',
+            color: '#111111',
+            mr: '0.75rem',
+            ml: '0.75rem',
+          }}
+        >
+          {countLabel}
+        </Box>
+
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            pt: '0.5rem',
+          }}
+        >
+          <DropDownSelectMinimal
+            value={sortValue}
+            onChange={onSortChange}
+            ariaLabel={sortLabel}
+            options={sortOptions}
+            open={sortOpen}
+            defaultOpen={sortDefaultOpen}
+            onOpenChange={onSortOpenChange}
+            sx={{
+              ml: 'auto',
+              backgroundColor: '#D9D9D9',
+              boxShadow: '0px 1px 1px 0px rgba(189, 189, 189, 0.25)',
+              color: '#111111',
+            }}
+            selectedValueSx={{
+              fontSize: '0.5rem',
+              fontWeight: 700,
+              lineHeight: '1rem',
+              letterSpacing: '0.1em',
+            }}
+            optionSx={{
+              fontSize: '0.5rem',
+              fontWeight: 700,
+              lineHeight: '1rem',
+              letterSpacing: '0.1em',
+            }}
+          />
+        </Box>
+      </Box>
+    </Box>
+  )
+}
+
+const ZoneAccordion = ({
+  planConfId,
+  onPendingLandUseEditsChange,
+  sx,
+}: Props) => {
+  const { t } = useTranslate('hiilikartta')
+  const planConf = useStore(
+    useAppletStore,
+    (state) => state.planConfs[planConfId]
+  )
+  const updatePlanConfDataFeature = useAppletStore(
+    (state) => state.updatePlanConfDataFeature
+  )
+  const removeSelectedFeaturesByIds = useMapStore(
+    (state) => state.removeSelectedFeaturesByIds
+  )
+  const addSelectedFeaturesByIds = useMapStore(
+    (state) => state.addSelectedFeaturesByIds
+  )
+  const drawMode = useMapStore((state) => state._drawOptions.currentMode)
+  const { zoningClasses, isLoading: isZoningClassesLoading } =
+    useZoningClasses()
+
+  const selectedFeatures = useSelectedFeaturesFilteredBySource([
+    { source: getPlanSourceId(planConfId) },
+  ])
+
+  const [expandedFeatureId, setExpandedFeatureId] = useState<string | null>(
+    null
+  )
+  const [selectedFilterValues, setSelectedFilterValues] = useState<string[]>([])
+  const [sortValue, setSortValue] = useState<ZoneSortValue>('name-asc')
+  const [landUseEditorOpenByFeatureId, setLandUseEditorOpenByFeatureId] =
+    useState<Record<string, boolean>>({})
+  const [pendingLandUseByFeatureId, setPendingLandUseByFeatureId] = useState<
+    Record<string, true>
+  >({})
+
+  const accordionRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const areaNameCollator = useMemo(
+    () =>
+      new Intl.Collator('fi', {
+        numeric: true,
+        sensitivity: 'base',
+      }),
+    []
+  )
+
+  const zoningCodeOptions = useMemo(
+    () => buildZoningCodeSelectOptions(zoningClasses),
+    [zoningClasses]
+  )
+
+  const filterOptions = useMemo(
+    () =>
+      buildZoneFilterOptions({
+        features: planConf?.data.features ?? [],
+        unknownLabel: t('sidebar.plan_settings.areas.filter_unknown'),
+        zoningClasses,
+      }),
+    [planConf?.data.features, t, zoningClasses]
+  )
+
+  const sortOptions = useMemo<SelectOption[]>(
+    () => [
+      {
+        value: 'class-asc',
+        label: t('sidebar.plan_settings.areas.sort_class_asc'),
+      },
+      {
+        value: 'class-desc',
+        label: t('sidebar.plan_settings.areas.sort_class_desc'),
+      },
+      {
+        value: 'name-asc',
+        label: t('sidebar.plan_settings.areas.sort_name_asc'),
+      },
+      {
+        value: 'name-desc',
+        label: t('sidebar.plan_settings.areas.sort_name_desc'),
+      },
+    ],
+    [t]
+  )
+
+  const selectedFeatureIds = useMemo(
+    () =>
+      selectedFeatures.reduce((acc: string[], feature) => {
+        if (feature.properties?.id != null) {
+          acc.push(feature.properties.id.toString())
+        }
+
+        return acc
+      }, []),
+    [selectedFeatures]
+  )
+
+  const selectedFeatureIdFromMap = selectedFeatureIds.at(-1) ?? null
+
+  useEffect(() => {
+    setSelectedFilterValues((previousValues) =>
+      previousValues.filter((value) =>
+        filterOptions.some((option) => option.value === value)
+      )
+    )
+  }, [filterOptions])
+
+  useEffect(() => {
+    const featureIds = new Set(
+      planConf?.data.features.map((feature) => feature.properties.id) ?? []
+    )
+
+    setPendingLandUseByFeatureId((previousPendingState) => {
+      const nextPendingEntries = Object.entries(previousPendingState).filter(
+        ([featureId]) => featureIds.has(featureId)
+      )
+
+      if (
+        nextPendingEntries.length === Object.keys(previousPendingState).length
+      ) {
+        return previousPendingState
+      }
+
+      return Object.fromEntries(nextPendingEntries) as Record<string, true>
+    })
+  }, [planConf?.data.features])
+
+  useEffect(() => {
+    onPendingLandUseEditsChange?.(
+      Object.keys(pendingLandUseByFeatureId).length > 0
+    )
+  }, [onPendingLandUseEditsChange, pendingLandUseByFeatureId])
+
+  const visibleFeatures = useMemo(() => {
+    if (!planConf) {
+      return []
+    }
+
+    const filteredFeatures = planConf.data.features.filter((feature) =>
+      featureMatchesZoneFilter({
+        feature,
+        selectedFilterValues,
+        zoningClasses,
+      })
+    )
+
+    return filteredFeatures.sort((featureA, featureB) => {
+      const areaNameA = getZoneDisplayName({
+        areaLabel: t('sidebar.plan_settings.area'),
+        name: featureA.properties.name,
+        newAreaLabel: t('sidebar.plan_settings.new_area'),
+      })
+      const areaNameB = getZoneDisplayName({
+        areaLabel: t('sidebar.plan_settings.area'),
+        name: featureB.properties.name,
+        newAreaLabel: t('sidebar.plan_settings.new_area'),
+      })
+
+      const zoningCodeA = getZoneClassPresentation({
+        unknownLabel: t('sidebar.plan_settings.areas.filter_unknown'),
+        zoningClasses,
+        zoningCode: featureA.properties.zoning_code,
+      }).code
+      const zoningCodeB = getZoneClassPresentation({
+        unknownLabel: t('sidebar.plan_settings.areas.filter_unknown'),
+        zoningClasses,
+        zoningCode: featureB.properties.zoning_code,
+      }).code
+
+      switch (sortValue) {
+        case 'class-asc': {
+          const byClass = areaNameCollator.compare(zoningCodeA, zoningCodeB)
+          return byClass !== 0
+            ? byClass
+            : areaNameCollator.compare(areaNameA, areaNameB)
+        }
+        case 'class-desc': {
+          const byClass = areaNameCollator.compare(zoningCodeB, zoningCodeA)
+          return byClass !== 0
+            ? byClass
+            : areaNameCollator.compare(areaNameA, areaNameB)
+        }
+        case 'name-desc':
+          return areaNameCollator.compare(areaNameB, areaNameA)
+        case 'name-asc':
+        default:
+          return areaNameCollator.compare(areaNameA, areaNameB)
+      }
+    })
+  }, [
+    areaNameCollator,
+    planConf,
+    selectedFilterValues,
+    sortValue,
+    t,
+    zoningClasses,
+  ])
+
+  useEffect(() => {
+    if (expandedFeatureId == null) {
+      return
+    }
+
+    const isExpandedFeatureVisible = visibleFeatures.some(
+      (feature) => feature.properties.id === expandedFeatureId
+    )
+
+    if (!isExpandedFeatureVisible) {
+      setExpandedFeatureId(null)
+    }
+  }, [expandedFeatureId, visibleFeatures])
+
+  useEffect(() => {
+    if (selectedFeatureIdFromMap == null) {
+      setExpandedFeatureId((previousExpandedFeatureId) =>
+        previousExpandedFeatureId === null ? previousExpandedFeatureId : null
+      )
+      return
+    }
+
+    const isSelectedFeatureVisible = visibleFeatures.some(
+      (feature) => feature.properties.id === selectedFeatureIdFromMap
+    )
+
+    if (!isSelectedFeatureVisible) {
+      return
+    }
+
+    setExpandedFeatureId((previousExpandedFeatureId) =>
+      previousExpandedFeatureId === selectedFeatureIdFromMap
+        ? previousExpandedFeatureId
+        : selectedFeatureIdFromMap
+    )
+  }, [selectedFeatureIdFromMap, visibleFeatures])
+
+  useEffect(() => {
+    if (!expandedFeatureId) {
+      return
+    }
+
+    const accordionElement = accordionRefs.current[expandedFeatureId]
+    if (!accordionElement) {
+      return
+    }
+
+    requestAnimationFrame(() => {
+      accordionElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      })
+    })
+  }, [expandedFeatureId, visibleFeatures])
+
+  useEffect(() => {
+    if (!expandedFeatureId || !planConf) {
+      return
+    }
+
+    setLandUseEditorOpenByFeatureId((previousOpenState) => {
+      if (previousOpenState[expandedFeatureId] != null) {
+        return previousOpenState
+      }
+
+      const expandedFeature = planConf.data.features.find(
+        (feature) => feature.properties.id === expandedFeatureId
+      )
+
+      if (!expandedFeature) {
+        return previousOpenState
+      }
+
+      return {
+        ...previousOpenState,
+        [expandedFeatureId]: !checkIsValidLandUseDistribution(
+          expandedFeature.properties
+        ),
+      }
+    })
+  }, [expandedFeatureId, planConf])
+
+  const shouldSyncDrawSelection = drawMode === 'edit'
+
+  const expandedFeatureIdRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    expandedFeatureIdRef.current = expandedFeatureId
+  }, [expandedFeatureId])
+
+  const handleAccordionToggle = useCallback(
+    (featureId: string) => {
+      const isClosing = expandedFeatureIdRef.current === featureId
+
+      setExpandedFeatureId(isClosing ? null : featureId)
+
+      if (isClosing) {
+        removeSelectedFeaturesByIds({
+          featureIds: [featureId],
+          idField: 'id',
+          source: { source: getPlanLayerGroupId(planConfId) },
+          updateDrawSelect: shouldSyncDrawSelection,
+        })
+        return
+      }
+
+      addSelectedFeaturesByIds({
+        featureIds: [featureId],
+        idField: 'id',
+        source: { source: getPlanLayerGroupId(planConfId) },
+        updateDrawSelect: shouldSyncDrawSelection,
+        removeOtherFeatures: true,
+      })
+    },
+    [
+      addSelectedFeaturesByIds,
+      planConfId,
+      removeSelectedFeaturesByIds,
+      shouldSyncDrawSelection,
+    ]
+  )
+
+  const handleFilterChange = (event: DropDownMultiSelectChangeEvent) => {
+    setSelectedFilterValues(event.target.value)
+  }
+
+  const handleSortChange = (event: DropDownValueChangeEvent) => {
+    setSortValue(event.target.value as ZoneSortValue)
+  }
+
+  const handleLandUseEditorToggle = useCallback(
+    (featureId: string, nextOpen: boolean) => {
+      setLandUseEditorOpenByFeatureId((previousOpenState) => ({
+        ...previousOpenState,
+        [featureId]: nextOpen,
+      }))
+    },
+    []
+  )
+
+  const handleLandUsePendingChange = useCallback(
+    (featureId: string, hasPending: boolean) => {
+      setPendingLandUseByFeatureId((previousPendingState) => {
+        if (hasPending) {
+          if (previousPendingState[featureId]) {
+            return previousPendingState
+          }
+
+          return {
+            ...previousPendingState,
+            [featureId]: true,
+          }
+        }
+
+        if (!previousPendingState[featureId]) {
+          return previousPendingState
+        }
+
+        const nextPendingState = { ...previousPendingState }
+        delete nextPendingState[featureId]
+        return nextPendingState
+      })
+    },
+    []
+  )
+
+  const updateFeature = useCallback(
+    (featureId: string, feature: PlanDataFeatureUpdate) => {
+      if (!planConf) {
+        return
+      }
+
+      const existingFeature = planConf.data.features.find(
+        (item) => item.properties.id === featureId
+      )
+
+      if (!existingFeature) {
+        return
+      }
+
+      const hasChanged = Object.entries(feature).some(([key, value]) => {
+        const currentValue = existingFeature[key as keyof PlanDataFeature]
+
+        if (typeof currentValue === 'object' && currentValue !== null) {
+          return JSON.stringify(currentValue) !== JSON.stringify(value)
+        }
+
+        return currentValue !== value
+      })
+
+      if (!hasChanged) {
+        return
+      }
+
+      updatePlanConfDataFeature(planConf.id, featureId, feature)
+    },
+    [planConf, updatePlanConfDataFeature]
+  )
+
+  return (
+    <Box
+      sx={[
+        {
+          display: 'flex',
+          flexDirection: 'column',
+          gap: { mobile: '1.25rem', desktop: '1.5rem' },
+          width: '100%',
+        },
+        ...toSxArray(sx),
+      ]}
+    >
+      <ZoneAreaListControls
+        countLabel={t('sidebar.plan_settings.areas.count', {
+          count: visibleFeatures.length,
+        })}
+        filterAllLabel={t('sidebar.plan_settings.areas.filter_all')}
+        filterLabel={t('sidebar.plan_settings.areas.filter_label')}
+        filterOptions={filterOptions}
+        onFilterChange={handleFilterChange}
+        onSortChange={handleSortChange}
+        selectedFilterValues={selectedFilterValues}
+        sortLabel={t('sidebar.plan_settings.areas.sort_label')}
+        sortOptions={sortOptions}
+        sortValue={sortValue}
+      />
+
+      <Box sx={{ px: CONTENT_PADDING_X }}>
+        {visibleFeatures.map((feature, index) => (
+          <ZoneAccordionItem
+            key={feature.properties.id}
+            accordionRefs={accordionRefs}
+            expanded={expandedFeatureId === feature.properties.id}
+            feature={feature}
+            isLast={index === visibleFeatures.length - 1}
+            isZoningClassesLoading={isZoningClassesLoading}
+            landUseEditorOpen={
+              landUseEditorOpenByFeatureId[feature.properties.id] ??
+              !checkIsValidLandUseDistribution(feature.properties)
+            }
+            onLandUsePendingChange={handleLandUsePendingChange}
+            onLandUseEditorToggle={handleLandUseEditorToggle}
+            onToggle={handleAccordionToggle}
+            updateFeature={updateFeature}
+            zoningClasses={zoningClasses}
+            zoningCodeOptions={zoningCodeOptions}
+          />
+        ))}
+      </Box>
+    </Box>
+  )
+}
+
+export default ZoneAccordion

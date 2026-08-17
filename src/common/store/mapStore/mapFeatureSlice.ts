@@ -1,5 +1,3 @@
-'use client'
-
 import { uniq, isEqual, pickBy, uniqBy } from 'lodash-es'
 import { produce } from 'immer'
 import { MapGeoJSONFeature } from 'maplibre-gl'
@@ -500,8 +498,9 @@ export const createMapFeatureSlice: (
           }
           // if the features are different or in different order, update the popup data
           set((draft) => {
-            // @ts-expect-error -- TS2589: deep instantiation in Draft<MapCoreSlice>
-            draft.activePopupData[0].features = newPopupData.features
+            const activePopupData = (draft as unknown as MapFeatureVars)
+              .activePopupData
+            activePopupData[0].features = newPopupData.features
           })
 
           return
@@ -630,7 +629,7 @@ export const createMapFeatureSlice: (
         map: _map,
       })
 
-      let oldFeatures: MapGeoJSONFeature[] = []
+      const oldFeatures: MapGeoJSONFeature[] = []
 
       if (removeOtherFeatures === false) {
         oldFeatures.push(...selectedFeatures)
@@ -677,7 +676,6 @@ export const createMapFeatureSlice: (
         })
       )
     },
-    // _addStyleToOl: async (
   }
 
   return { ...vars, ...actions }

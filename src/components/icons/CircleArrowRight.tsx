@@ -1,11 +1,9 @@
-import { Box, SxProps, Theme } from '@mui/material'
-
-type Props = {
-  sx?: SxProps<Theme>
-}
+import type { SharedSvgIconProps } from './types'
+import { SharedSvgIcon } from './types'
+type Props = SharedSvgIconProps
 
 const CircleArrowRight = (props: Props) => (
-  <Box
+  <SharedSvgIcon
     component="svg"
     width={24}
     height={24}
@@ -21,7 +19,7 @@ const CircleArrowRight = (props: Props) => (
       strokeWidth="0.5"
       strokeLinecap="round"
     />
-  </Box>
+  </SharedSvgIcon>
 )
 
 export default CircleArrowRight

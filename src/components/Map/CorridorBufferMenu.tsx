@@ -1,27 +1,22 @@
-'use client'
-
 import { useTranslate } from '@tolgee/react'
 
 import { useMapStore } from '#/common/store'
 import { NumberInputField } from '#/components/common/NumberInputField'
-import { Box, Typography } from '@mui/material'
+import { Box } from '#/common/style/theme/system'
 
 const CORRIDOR_BUFFER_STEP = 0.5
 const NUMBER_FIELD_WIDTH = '6rem'
 
 const numberFieldInputSx = {
   width: NUMBER_FIELD_WIDTH,
-  '&.MuiOutlinedInput-root': {
+  '&[data-slot="number-input-control"]': {
     minHeight: '1.5rem',
     borderRadius: '999px',
     backgroundColor: '#FFFFFF',
     boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
-  },
-  '& .MuiOutlinedInput-notchedOutline': {
     borderColor: '#D6D6D6',
-    borderRadius: '999px',
   },
-  '& .MuiInputBase-input': {
+  '& [data-slot="number-input-input"]': {
     px: '0.625rem',
     py: '0.125rem',
     fontSize: '0.6875rem',
@@ -32,14 +27,15 @@ const numberFieldInputSx = {
 } as const
 
 const numberFieldAdornmentSx = {
-  '& button': {
-    pl: 0.25,
-    pr: 0.625,
-  },
-  '& button:first-of-type': {
+  '& [data-slot="number-input-increment"], & [data-slot="number-input-decrement"]':
+    {
+      pl: 0.25,
+      pr: 0.625,
+    },
+  '& [data-slot="number-input-increment"]': {
     borderTopRightRadius: '999px',
   },
-  '& button:last-of-type': {
+  '& [data-slot="number-input-decrement"]': {
     borderBottomRightRadius: '999px',
   },
 } as const
@@ -71,7 +67,8 @@ export const CorridorBufferMenu = () => {
           gap: '0.75rem',
         }}
       >
-        <Typography
+        <Box
+          component="span"
           sx={{
             flex: 1,
             minWidth: 0,
@@ -82,7 +79,7 @@ export const CorridorBufferMenu = () => {
           }}
         >
           {corridorBufferLabel}
-        </Typography>
+        </Box>
 
         <NumberInputField
           size="small"

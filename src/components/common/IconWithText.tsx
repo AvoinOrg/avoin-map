@@ -1,17 +1,24 @@
 import * as React from 'react'
-import { Box, Typography, SxProps, Theme } from '@mui/material'
+
+import { Box, type AppSxProps, toSxArray } from '#/common/style/theme'
+
+type AppSxItem = Exclude<NonNullable<AppSxProps>, readonly unknown[]>
+type IconElement = React.ReactElement<{ sx?: AppSxProps }>
+
+const toAppSxItemArray = (sx?: AppSxProps) =>
+  toSxArray(sx) as AppSxItem[]
 
 interface IconWithTextProps {
-  icon: React.ReactElement
+  icon: IconElement
   onClick?: (
     event: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>
   ) => void
   children?: React.ReactNode
   isIconOnRight?: boolean
   ariaLabel?: string
-  sx?: SxProps<Theme>
-  iconSx?: SxProps<Theme>
-  textSx?: SxProps<Theme>
+  sx?: AppSxProps
+  iconSx?: AppSxProps
+  textSx?: AppSxProps
   disabled?: boolean
 }
 
@@ -27,20 +34,21 @@ const IconWithText = ({
   disabled = false,
 }: IconWithTextProps) => {
   const textElement = (
-    <Typography
+    <Box
+      component="span"
       sx={[
         // Base styles for text can be added here if needed
-        ...(Array.isArray(textSx) ? textSx : [textSx]),
+        ...toAppSxItemArray(textSx),
       ]}
     >
       {children}
-    </Typography>
+    </Box>
   )
 
   const iconWithStyles = React.cloneElement(icon, {
     sx: [
       isIconOnRight ? { ml: 1 } : { mr: 1 }, // Default margin for spacing
-      ...(Array.isArray(iconSx) ? iconSx : [iconSx]),
+      ...toAppSxItemArray(iconSx),
     ],
   })
 
@@ -82,7 +90,7 @@ const IconWithText = ({
           opacity: disabled && onClick ? 0.5 : 1, // Opacity change only if it was meant to be clickable but is disabled
           userSelect: 'none',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toAppSxItemArray(sx),
       ]}
     >
       {isIconOnRight ? (

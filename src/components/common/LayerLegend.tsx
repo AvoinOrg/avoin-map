@@ -1,6 +1,12 @@
 import React from 'react'
-import { Box, Typography, SxProps, Theme } from '@mui/material'
 import { useTranslate } from '@tolgee/react'
+
+import { Box, toSxArray } from '#/common/style/theme'
+
+type StyleProp = React.ComponentProps<typeof Box>['sx']
+type StyleItem = Exclude<NonNullable<StyleProp>, readonly unknown[]>
+
+const toStyleArray = (sx?: StyleProp) => toSxArray(sx) as StyleItem[]
 
 export type LayerLegendItem = {
   color: string
@@ -11,7 +17,7 @@ export type LayerLegendItem = {
 
 type Props = {
   items: LayerLegendItem[]
-  sx?: SxProps<Theme>
+  sx?: StyleProp
 }
 
 const LayerLegendItemRow = ({ item }: { item: LayerLegendItem }) => {
@@ -33,7 +39,9 @@ const LayerLegendItemRow = ({ item }: { item: LayerLegendItem }) => {
         }}
       />
       {resolvedLabel && (
-        <Typography sx={{ typography: 'body2' }}>{resolvedLabel}</Typography>
+        <Box component="span" sx={{ typography: 'body2' }}>
+          {resolvedLabel}
+        </Box>
       )}
     </Box>
   )
@@ -43,7 +51,7 @@ const LayerLegend = ({ items, sx }: Props) => (
   <Box
     sx={[
       { display: 'flex', flexDirection: 'column', gap: 1.5, p: 0.5 },
-      ...(Array.isArray(sx) ? sx : [sx]),
+      ...toStyleArray(sx),
     ]}
   >
     {items.map((item, index) => (

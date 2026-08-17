@@ -1,11 +1,9 @@
-'use client'
-
 import React from 'react'
-import { Box } from '@mui/material'
-import type { SxProps, Theme } from '@mui/material'
 
 import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
+import { Box, toSxArray } from '#/common/style/theme/system'
+import type { AppSxProps, AppTheme } from '#/common/style/theme/system'
 import type {
   SidebarActionRailPlacement,
   SidebarPanelExtensionId,
@@ -28,7 +26,7 @@ export type SidebarPanelExtensionProps = {
   desktopTabRail?: React.ReactNode
   mobileTabRail?: React.ReactNode
   suppressMobileStackedPanels?: boolean
-  sx?: SxProps<Theme>
+  sx?: AppSxProps
 }
 
 export type SidebarPanelExtensionTabRailProps = {
@@ -43,7 +41,9 @@ const FULL_WIDTH_MAIN_PANEL_WIDTH = '30.5556vw'
 const FULL_WIDTH_SECONDARY_PANEL_WIDTH = '38.8889vw'
 const FULL_WIDTH_TERTIARY_PANEL_WIDTH = '30.5556vw'
 const WIDE_SINGLE_MAIN_PANEL_WIDTH = 'min(1440px, calc(100vw - 4rem))'
-const FULLSCREEN_MAIN_PANEL_WIDTH = '100vw'
+const FULLSCREEN_SINGLE_PANEL_WIDTH = '100vw'
+const FULLSCREEN_DOUBLE_PANEL_WIDTH = '50vw'
+const FULLSCREEN_TRIPLE_PANEL_WIDTH = 'calc(100vw / 3)'
 const DEFAULT_PANEL_WIDTH = '23.75rem'
 const SIDEBAR_TOGGLE_BUTTON_SIZE_PX = 45
 const ACTION_RAIL_GAP_PX = 10
@@ -67,19 +67,39 @@ const FIXED_RIGHT_ACTION_COLUMN_RIGHT_PX =
 const DEFAULT_MAP_BUTTONS_Z_INDEX = 1300
 const DEFAULT_FULLSCREEN_DRAWER_Z_INDEX = 1400
 const NON_FULLSCREEN_PANEL_EXTENSION_Z_INDEX_GAP = 20
+const MOBILE_PANEL_EXTENSION_CONTROLS_FULLSCREEN_OFFSET = 14
+const VIEWPORT_OVERFLOW_EPSILON_PX = 0.5
+const VIEWPORT_OVERFLOW_TAB_CONTROLS_RIGHT_PX =
+  MAP_CONTROL_EDGE_GUTTER_PX +
+  SIDEBAR_TOGGLE_BUTTON_SIZE_PX +
+  ACTION_RAIL_GAP_PX
+const VIEWPORT_OVERFLOW_PAGE_CONTROLS_RIGHT_PX =
+  VIEWPORT_OVERFLOW_TAB_CONTROLS_RIGHT_PX +
+  SIDEBAR_TOGGLE_BUTTON_SIZE_PX +
+  ACTION_RAIL_GAP_PX
 
 const PANEL_ORDER: SidebarPanelId[] = ['main', 'secondary', 'tertiary']
 
-const toSxArray = (sx?: SxProps<Theme>) => (Array.isArray(sx) ? sx : [sx])
+const getFullscreenPanelWidth = (visiblePanelCount: number) => {
+  if (visiblePanelCount === 2) {
+    return FULLSCREEN_DOUBLE_PANEL_WIDTH
+  }
+
+  if (visiblePanelCount === 3) {
+    return FULLSCREEN_TRIPLE_PANEL_WIDTH
+  }
+
+  return FULLSCREEN_SINGLE_PANEL_WIDTH
+}
 
 const isFullscreenLayout = (
   options?: SidebarPanelExtensionRuntimeOptions
 ) => options?.layoutMode === 'fullscreen'
 
-const getMapButtonsZIndex = (theme: Theme) =>
+const getMapButtonsZIndex = (theme: AppTheme) =>
   theme.zIndex.mapButtons ?? DEFAULT_MAP_BUTTONS_Z_INDEX
 
-const getFullscreenDrawerZIndex = (theme: Theme) =>
+const getFullscreenDrawerZIndex = (theme: AppTheme) =>
   Math.max(
     theme.zIndex.drawer ?? DEFAULT_FULLSCREEN_DRAWER_Z_INDEX,
     getMapButtonsZIndex(theme) + 100
@@ -91,7 +111,7 @@ const getDesktopPanelExtensionZIndex = ({
   fullscreenOffset = 0,
   defaultOffset = 0,
 }: {
-  theme: Theme
+  theme: AppTheme
   layoutMode?: SidebarPanelExtensionRuntimeOptions['layoutMode']
   fullscreenOffset?: number
   defaultOffset?: number
@@ -133,12 +153,12 @@ const hasWideSingleMainPanelLayout = (
 export const getSidebarPanelExtensionMainPanelWidth = (
   options?: SidebarPanelExtensionRuntimeOptions
 ) => {
-  if (options?.desktopMainPanelWidth != null) {
-    return options.desktopMainPanelWidth
+  if (isFullscreenLayout(options)) {
+    return getFullscreenPanelWidth(getVisiblePanels(options).length)
   }
 
-  if (isFullscreenLayout(options)) {
-    return FULLSCREEN_MAIN_PANEL_WIDTH
+  if (options?.desktopMainPanelWidth != null) {
+    return options.desktopMainPanelWidth
   }
 
   if (hasFullWidthPanelLayout(options)) {
@@ -153,10 +173,16 @@ export const getSidebarPanelExtensionMainPanelWidth = (
 const getSidebarPanelExtensionPanelWidth = ({
   panelId,
   options,
+  visiblePanelCount,
 }: {
   panelId: SidebarPanelId
   options?: SidebarPanelExtensionRuntimeOptions
+  visiblePanelCount: number
 }) => {
+  if (isFullscreenLayout(options)) {
+    return getFullscreenPanelWidth(visiblePanelCount)
+  }
+
   if (panelId === 'main') {
     return getSidebarPanelExtensionMainPanelWidth(options)
   }
@@ -193,6 +219,50 @@ const getVisiblePanels = (
   return capacityPanels.filter((panelId) => visiblePanels.includes(panelId))
 }
 
+const getDesktopPanelLayout = (
+  options?: SidebarPanelExtensionRuntimeOptions
+) => {
+  const visiblePanels = getVisiblePanels(options)
+  const panelWidths = visiblePanels.map((panelId) => ({
+    panelId,
+    width: getSidebarPanelExtensionPanelWidth({
+      panelId,
+      options,
+      visiblePanelCount: visiblePanels.length,
+    }),
+  }))
+  const panelGroupWidth = isFullscreenLayout(options)
+    ? visiblePanels.length > 0
+      ? '100vw'
+      : '0px'
+    : panelWidths.length > 1
+      ? `calc(${panelWidths.map(({ width }) => width).join(' + ')})`
+      : (panelWidths[0]?.width ?? '0px')
+
+  return { panelGroupWidth, panelWidths, visiblePanels }
+}
+
+export const getSidebarPanelExtensionPageControlsRight = ({
+  options,
+  sidebarOffset = 0,
+}: {
+  options?: SidebarPanelExtensionRuntimeOptions
+  sidebarOffset?: number
+}) => {
+  const { panelGroupWidth, visiblePanels } = getDesktopPanelLayout(options)
+
+  if (isFullscreenLayout(options) && visiblePanels.length > 0) {
+    return `${MAP_CONTROL_EDGE_GUTTER_PX}px`
+  }
+
+  const panelGroupRight = `min(100vw, calc(${Math.max(
+    0,
+    sidebarOffset
+  )}px + ${panelGroupWidth}))`
+
+  return `calc(100vw - ${panelGroupRight} + ${MAP_CONTROL_EDGE_GUTTER_PX}px)`
+}
+
 const getActiveMobilePanel = ({
   options,
   visiblePanels,
@@ -206,7 +276,7 @@ const getActiveMobilePanel = ({
 
 const getPanelContentSx = (
   options?: SidebarPanelExtensionRuntimeOptions
-): SxProps<Theme> | undefined =>
+): AppSxProps | undefined =>
   options?.chrome === 'hidden'
     ? {
         display: 'flex',
@@ -224,35 +294,31 @@ const SidebarPanelExtensionDesktopPanel = ({
   isFirstVisiblePanel,
   panelId,
   options,
+  width,
 }: {
   extensionId: SidebarPanelExtensionId
   isFirstVisiblePanel: boolean
   panelId: SidebarPanelId
   options?: SidebarPanelExtensionRuntimeOptions
+  width: string
 }) => {
-  const width = getSidebarPanelExtensionPanelWidth({ panelId, options })
   const panelContentSx = getPanelContentSx(options)
 
   return (
     <Box
       data-testid={`sidebar-panel-extension-desktop-panel-${panelId}`}
       data-sidebar-panel-extension-panel-id={panelId}
-      sx={(theme) => ({
+      sx={{
         display: 'flex',
         flexDirection: 'column',
         flex: '0 0 auto',
         width,
         maxWidth: `min(${width}, 100vw)`,
+        minWidth: 0,
         height: '100%',
         minHeight: 0,
-        zIndex: getDesktopPanelExtensionZIndex({
-          theme,
-          layoutMode: options?.layoutMode,
-          fullscreenOffset: 2,
-          defaultOffset: 2,
-        }),
         pointerEvents: 'auto',
-      })}
+      }}
     >
       <Box
         sx={{
@@ -271,6 +337,7 @@ const SidebarPanelExtensionDesktopPanel = ({
         }}
       >
         <Box
+          data-testid={`sidebar-panel-extension-desktop-panel-${panelId}-scroll-host`}
           sx={[
             {
               position: 'absolute',
@@ -292,7 +359,7 @@ const SidebarPanelExtensionDesktopPanel = ({
 
 const getDesktopPanelGroupSx = (
   options?: SidebarPanelExtensionRuntimeOptions
-): SxProps<Theme> => {
+): AppSxProps => (theme: AppTheme) => {
   const fullscreen = isFullscreenLayout(options)
 
   return {
@@ -302,6 +369,12 @@ const getDesktopPanelGroupSx = (
     minHeight: 0,
     flex: '0 0 auto',
     pointerEvents: 'auto',
+    zIndex: getDesktopPanelExtensionZIndex({
+      theme,
+      layoutMode: options?.layoutMode,
+      fullscreenOffset: 2,
+      defaultOffset: 2,
+    }),
     ...(fullscreen
       ? {
           width: '100vw',
@@ -322,9 +395,9 @@ const getDesktopControlsSx = ({
   placement: SidebarActionRailPlacement
   sidebarOffset: number
   layoutMode?: SidebarPanelExtensionRuntimeOptions['layoutMode']
-}): SxProps<Theme> => {
+}): AppSxProps => {
   if (placement === 'fixedBottomActionRow') {
-    return (theme: Theme) => ({
+    return (theme: AppTheme) => ({
       position: 'fixed',
       right: `${FIXED_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
       bottom: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
@@ -343,7 +416,7 @@ const getDesktopControlsSx = ({
   }
 
   if (placement === 'fixedRightActionColumn') {
-    return (theme: Theme) => ({
+    return (theme: AppTheme) => ({
       position: 'fixed',
       top: `${FIXED_RIGHT_ACTION_COLUMN_TOP_PX}px`,
       right: `${FIXED_RIGHT_ACTION_COLUMN_RIGHT_PX}px`,
@@ -361,7 +434,7 @@ const getDesktopControlsSx = ({
   }
 
   if (placement === 'sidebarEdgeActionColumn') {
-    return (theme: Theme) => ({
+    return (theme: AppTheme) => ({
       position: 'fixed',
       top: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
       left: `${Math.max(0, sidebarOffset) + MAP_CONTROL_EDGE_GUTTER_PX}px`,
@@ -379,7 +452,7 @@ const getDesktopControlsSx = ({
   }
 
   if (layoutMode === 'fullscreen') {
-    return (theme: Theme) => ({
+    return (theme: AppTheme) => ({
       position: 'fixed',
       right: `${FIXED_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
       bottom: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
@@ -400,7 +473,7 @@ const getDesktopControlsSx = ({
     })
   }
 
-  return (theme: Theme) => ({
+  return (theme: AppTheme) => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -418,10 +491,11 @@ const getDesktopControlsSx = ({
 }
 
 const getDesktopTabControlsSx = (
-  layoutMode?: SidebarPanelExtensionRuntimeOptions['layoutMode']
-): SxProps<Theme> => {
+  layoutMode?: SidebarPanelExtensionRuntimeOptions['layoutMode'],
+  viewportOverflowFallback = false
+): AppSxProps => {
   if (layoutMode === 'fullscreen') {
-    return (theme: Theme) => ({
+    return (theme: AppTheme) => ({
       position: 'fixed',
       right: `${FIXED_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
       bottom: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
@@ -439,7 +513,28 @@ const getDesktopTabControlsSx = (
     })
   }
 
-  return (theme: Theme) => ({
+  if (viewportOverflowFallback) {
+    return (theme: AppTheme) => ({
+      position: 'fixed',
+      top: `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
+      right: `${VIEWPORT_OVERFLOW_TAB_CONTROLS_RIGHT_PX}px`,
+      maxHeight: `calc(100dvh - ${MAP_CONTROL_EDGE_GUTTER_PX * 2}px)`,
+      overflowY: 'auto',
+      zIndex: getDesktopPanelExtensionZIndex({
+        theme,
+        layoutMode,
+        fullscreenOffset: 3,
+        defaultOffset: 3,
+      }),
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      gap: 1,
+      pointerEvents: 'auto',
+    })
+  }
+
+  return (theme: AppTheme) => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -459,13 +554,15 @@ const getDesktopTabControlsSx = (
 const getMobileActionRailSx = (
   placement: SidebarActionRailPlacement,
   visible: boolean
-): SxProps<Theme> => {
+): AppSxProps => {
   if (placement === 'fixedRightActionColumn') {
-    return (theme: Theme) => ({
+    return (theme: AppTheme) => ({
       position: 'fixed',
       top: `${FIXED_RIGHT_ACTION_COLUMN_TOP_PX}px`,
       right: `${FIXED_RIGHT_ACTION_COLUMN_RIGHT_PX}px`,
-      zIndex: theme.zIndex.drawer + 12,
+      zIndex:
+        getFullscreenDrawerZIndex(theme) +
+        MOBILE_PANEL_EXTENSION_CONTROLS_FULLSCREEN_OFFSET,
       display: 'flex',
       flexDirection: 'column',
       gap: `${ACTION_RAIL_GAP_PX}px`,
@@ -474,11 +571,13 @@ const getMobileActionRailSx = (
     })
   }
 
-  return (theme: Theme) => ({
+  return (theme: AppTheme) => ({
     position: 'fixed',
     right: `${MOBILE_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
     bottom: `${MOBILE_BOTTOM_ACTION_ROW_BOTTOM_PX}px`,
-    zIndex: theme.zIndex.drawer + 12,
+    zIndex:
+      getFullscreenDrawerZIndex(theme) +
+      MOBILE_PANEL_EXTENSION_CONTROLS_FULLSCREEN_OFFSET,
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
@@ -489,12 +588,14 @@ const getMobileActionRailSx = (
 }
 
 const getMobileTabControlsSx =
-  (visible: boolean): SxProps<Theme> =>
-  (theme: Theme) => ({
+  (visible: boolean): AppSxProps =>
+  (theme: AppTheme) => ({
     position: 'fixed',
     right: `${MOBILE_BOTTOM_ACTION_ROW_RIGHT_PX}px`,
     bottom: `${MOBILE_BOTTOM_ACTION_ROW_BOTTOM_PX}px`,
-    zIndex: theme.zIndex.drawer + 12,
+    zIndex:
+      getFullscreenDrawerZIndex(theme) +
+      MOBILE_PANEL_EXTENSION_CONTROLS_FULLSCREEN_OFFSET,
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
@@ -599,7 +700,7 @@ const SidebarPanelExtensionMobilePanels = ({
             ? {
                 position: 'fixed',
                 inset: 0,
-                zIndex: theme.zIndex.drawer + 4,
+                zIndex: getFullscreenDrawerZIndex(theme) + 4,
                 display: 'flex',
                 flexDirection: 'column',
                 overflow: 'auto',
@@ -674,24 +775,83 @@ export const SidebarPanelExtension = ({
   const isMobile = useIsMobile()
   const useMobileLayout = isMobile || options?.forceMobileLayout === true
   const fullscreen = isFullscreenLayout(options)
-  const visiblePanels = getVisiblePanels(options)
+  const { panelWidths } = getDesktopPanelLayout(options)
+  const desktopPanelGroupRef = React.useRef<HTMLDivElement>(null)
+  const [measuredDesktopViewportOverflow, setMeasuredDesktopViewportOverflow] =
+    React.useState(false)
   const mobileMode = options?.mobileMode ?? 'stacked'
   const actionRailPlacement = options?.actionRailPlacement ?? 'inside'
+  const pageControlsRight = getSidebarPanelExtensionPageControlsRight({
+    options,
+    sidebarOffset,
+  })
   const renderMobileActionRailInTabRow =
     shouldRenderActionRailInMobileTabRow(actionRailPlacement)
   const shouldRenderMobileTabControls =
     mobileTabRail != null || renderMobileActionRailInTabRow
   const shouldRenderMobileOverlayPanels =
     mobileMode !== 'stacked' || !suppressMobileStackedPanels
-  const desktopPanels = visiblePanels.map((panelId, index) => (
+  const shouldMeasureDesktopViewportOverflow =
+    !useMobileLayout &&
+    !fullscreen &&
+    visible &&
+    desktopTabRail != null &&
+    panelWidths.length > 0
+  const desktopViewportOverflow =
+    shouldMeasureDesktopViewportOverflow && measuredDesktopViewportOverflow
+  const resolvedPageControlsRight = desktopViewportOverflow
+    ? `${VIEWPORT_OVERFLOW_PAGE_CONTROLS_RIGHT_PX}px`
+    : pageControlsRight
+  const desktopPanels = panelWidths.map(({ panelId, width }, index) => (
     <SidebarPanelExtensionDesktopPanel
       key={panelId}
       extensionId={extensionId}
       isFirstVisiblePanel={index === 0}
       panelId={panelId}
       options={options}
+      width={width}
     />
   ))
+
+  React.useEffect(() => {
+    if (!shouldMeasureDesktopViewportOverflow) {
+      setMeasuredDesktopViewportOverflow(false)
+      return
+    }
+
+    const panelGroup = desktopPanelGroupRef.current
+
+    if (panelGroup == null) {
+      setMeasuredDesktopViewportOverflow(false)
+      return
+    }
+
+    const measureViewportOverflow = () => {
+      const nextViewportOverflow =
+        panelGroup.getBoundingClientRect().right >
+        window.innerWidth + VIEWPORT_OVERFLOW_EPSILON_PX
+
+      setMeasuredDesktopViewportOverflow((currentViewportOverflow) =>
+        currentViewportOverflow === nextViewportOverflow
+          ? currentViewportOverflow
+          : nextViewportOverflow
+      )
+    }
+
+    measureViewportOverflow()
+    window.addEventListener('resize', measureViewportOverflow)
+
+    const resizeObserver =
+      typeof ResizeObserver === 'undefined'
+        ? undefined
+        : new ResizeObserver(measureViewportOverflow)
+    resizeObserver?.observe(panelGroup)
+
+    return () => {
+      window.removeEventListener('resize', measureViewportOverflow)
+      resizeObserver?.disconnect()
+    }
+  }, [shouldMeasureDesktopViewportOverflow, sidebarOffset])
 
   if (useMobileLayout) {
     return (
@@ -737,8 +897,11 @@ export const SidebarPanelExtension = ({
   return (
     <Box
       data-testid="sidebar-panel-extension-root"
+      data-sidebar-panel-extension-viewport-overflow={
+        desktopViewportOverflow ? 'true' : undefined
+      }
       sx={[
-        (theme: Theme) => ({
+        (theme: AppTheme) => ({
           position: 'fixed',
           top: 0,
           bottom: 0,
@@ -758,12 +921,21 @@ export const SidebarPanelExtension = ({
             fullscreenOffset: 2,
           }),
           pointerEvents: fullscreen ? 'auto' : 'none',
+          '--sidebar-panel-extension-page-controls-position': 'fixed',
+          '--sidebar-panel-extension-page-controls-top': `${MAP_CONTROL_EDGE_GUTTER_PX}px`,
+          '--sidebar-panel-extension-page-controls-right': resolvedPageControlsRight,
+          '--sidebar-panel-extension-page-controls-padding-inline': 0,
+          '--sidebar-panel-extension-page-controls-padding-block': 0,
+          '--sidebar-panel-extension-page-controls-background': 'transparent',
+          '--sidebar-panel-extension-page-controls-border': 0,
+          '--sidebar-panel-extension-page-controls-z-index': 3,
           ...getVisibilitySx(visible),
         }),
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
     >
       <Box
+        ref={desktopPanelGroupRef}
         data-testid="sidebar-panel-extension-desktop-panel-group"
         sx={getDesktopPanelGroupSx(options)}
       >
@@ -773,9 +945,16 @@ export const SidebarPanelExtension = ({
         <Box
           data-testid="sidebar-panel-extension-desktop-tab-controls"
           data-sidebar-panel-extension-tab-placement={
-            fullscreen ? 'bottomActionRow' : 'sidebar-edge'
+            fullscreen
+              ? 'bottomActionRow'
+              : desktopViewportOverflow
+                ? 'viewport-edge'
+                : 'sidebar-edge'
           }
-          sx={getDesktopTabControlsSx(options?.layoutMode)}
+          sx={getDesktopTabControlsSx(
+            options?.layoutMode,
+            desktopViewportOverflow
+          )}
         >
           {desktopTabRail}
         </Box>

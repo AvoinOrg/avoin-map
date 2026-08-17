@@ -1,8 +1,6 @@
-import { Box, SxProps, Theme } from '@mui/material'
-
-type Props = {
-  sx?: SxProps<Theme>
-}
+import type { SharedSvgIconProps } from './types'
+import { SharedSvgIcon } from './types'
+type Props = SharedSvgIconProps
 
 // Figma node 2838:38811
 // MCP asset refs: http://localhost:3845/assets/e52c85d6ea917fc353d5ccb3d25dfc5389398752.svg
@@ -16,7 +14,7 @@ export const ATTRIBUTION_INFO_ICON_SVG = `
 `.trim()
 
 const AttributionInfo = (props: Props) => (
-  <Box
+  <SharedSvgIcon
     component="svg"
     xmlns="http://www.w3.org/2000/svg"
     width={16}
@@ -33,7 +31,7 @@ const AttributionInfo = (props: Props) => (
       strokeLinecap="round"
     />
     <circle cx="8" cy="11" r="0.75" fill="currentColor" />
-  </Box>
+  </SharedSvgIcon>
 )
 
 export default AttributionInfo

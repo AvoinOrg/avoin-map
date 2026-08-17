@@ -34,6 +34,20 @@ configure_git_safe_directory() {
         git config --global --add safe.directory /app
 }
 
+configure_ssh_known_hosts() {
+    local ssh_dir="/home/node/.ssh"
+    local known_hosts="${ssh_dir}/known_hosts"
+
+    if [ ! -f /ssh-known-hosts ]; then
+        return
+    fi
+
+    mkdir -p "${ssh_dir}"
+    chmod 700 "${ssh_dir}"
+    cp /ssh-known-hosts "${known_hosts}"
+    chmod 600 "${known_hosts}"
+}
+
 bootstrap_dev_app() {
     yarn install
     yarn visual:install

@@ -1,7 +1,15 @@
-'use client'
-
 import React from 'react'
-import { Box, SxProps, Theme, Typography } from '@mui/material'
+
+import { Box, toSxArray, type AppSxProps } from '#/common/style/theme'
+
+type AppSxItem = Exclude<NonNullable<AppSxProps>, readonly unknown[]>
+const toAppSxItemArray = (sx?: AppSxProps) => toSxArray(sx) as AppSxItem[]
+const ThemeImage = Box as unknown as React.ComponentType<
+  React.ComponentProps<'img'> & {
+    component?: 'img'
+    sx?: AppSxProps
+  }
+>
 
 type SidebarBackgroundContentProps = {
   imageSrc: string
@@ -10,12 +18,12 @@ type SidebarBackgroundContentProps = {
   description?: React.ReactNode
   children?: React.ReactNode
   actions?: React.ReactNode
-  sx?: SxProps<Theme>
-  imageSx?: SxProps<Theme>
-  contentSx?: SxProps<Theme>
-  headerSx?: SxProps<Theme>
-  descriptionSx?: SxProps<Theme>
-  actionsSx?: SxProps<Theme>
+  sx?: AppSxProps
+  imageSx?: AppSxProps
+  contentSx?: AppSxProps
+  headerSx?: AppSxProps
+  descriptionSx?: AppSxProps
+  actionsSx?: AppSxProps
 }
 
 const SidebarBackgroundContent = ({
@@ -43,10 +51,10 @@ const SidebarBackgroundContent = ({
           color: '#111111',
           boxShadow: 'none',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toAppSxItemArray(sx),
       ]}
     >
-      <Box
+      <ThemeImage
         component="img"
         src={imageSrc}
         alt={imageAlt}
@@ -58,7 +66,7 @@ const SidebarBackgroundContent = ({
             objectFit: 'cover',
             objectPosition: 'center',
           },
-          ...(Array.isArray(imageSx) ? imageSx : [imageSx]),
+          ...toAppSxItemArray(imageSx),
         ]}
       />
       <Box
@@ -71,7 +79,7 @@ const SidebarBackgroundContent = ({
             pt: '1.125rem',
             pb: '1.25rem',
           },
-          ...(Array.isArray(contentSx) ? contentSx : [contentSx]),
+          ...toAppSxItemArray(contentSx),
         ]}
       >
         {(title || description) && (
@@ -82,11 +90,12 @@ const SidebarBackgroundContent = ({
                 flexDirection: 'column',
                 gap: 0.8,
               },
-              ...(Array.isArray(headerSx) ? headerSx : [headerSx]),
+              ...toAppSxItemArray(headerSx),
             ]}
           >
             {title && (
-              <Typography
+              <Box
+                component="p"
                 sx={{
                   fontSize: '0.625rem',
                   fontWeight: 700,
@@ -94,13 +103,15 @@ const SidebarBackgroundContent = ({
                   letterSpacing: '0.1em',
                   color: 'inherit',
                   textTransform: 'uppercase',
+                  m: 0,
                 }}
               >
                 {title}
-              </Typography>
+              </Box>
             )}
             {description && (
-              <Typography
+              <Box
+                component="p"
                 sx={[
                   {
                     fontSize: '0.625rem',
@@ -109,14 +120,13 @@ const SidebarBackgroundContent = ({
                     letterSpacing: '0.1em',
                     color: 'inherit',
                     maxWidth: '24ch',
+                    m: 0,
                   },
-                  ...(Array.isArray(descriptionSx)
-                    ? descriptionSx
-                    : [descriptionSx]),
+                  ...toAppSxItemArray(descriptionSx),
                 ]}
               >
                 {description}
-              </Typography>
+              </Box>
             )}
           </Box>
         )}
@@ -129,7 +139,7 @@ const SidebarBackgroundContent = ({
                 flexDirection: 'column',
                 gap: 1,
               },
-              ...(Array.isArray(actionsSx) ? actionsSx : [actionsSx]),
+              ...toAppSxItemArray(actionsSx),
             ]}
           >
             {actions}

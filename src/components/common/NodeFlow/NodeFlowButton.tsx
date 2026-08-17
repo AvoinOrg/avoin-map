@@ -1,8 +1,8 @@
-'use client'
-
 import React from 'react'
-import { Box, SxProps, Theme, Typography } from '@mui/material'
 
+import { Box, type AppSxProps, toSxArray } from '#/common/style/theme'
+import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'
+import { ButtonBase } from '#/components/common/Button'
 import ArrowRight from '#/components/icons/ArrowRight'
 import CheckcircleCheckedFilled from '#/components/icons/CheckcircleCheckedFilled'
 
@@ -23,15 +23,16 @@ export type NodeFlowButtonProps = NodeFlowMarkerProps & {
   trailing?: React.ReactNode | null
   onClick?: () => void
   disabled?: boolean
+  dataSlot?: string
   ariaLabel?: string
   ariaExpanded?: boolean
   showConnector?: boolean
   showConnectorTop?: boolean
   showConnectorBottom?: boolean
   disableOuterOffset?: boolean
-  sx?: SxProps<Theme>
-  rowSx?: SxProps<Theme>
-  helperSx?: SxProps<Theme>
+  sx?: AppSxProps
+  rowSx?: AppSxProps
+  helperSx?: AppSxProps
 }
 
 type NodeFlowButtonComponent = React.FC<NodeFlowButtonProps> & {
@@ -57,6 +58,10 @@ export const NODE_FLOW_MARKER_COLOR = '#0D6044'
 export const NODE_FLOW_MARKER_BOX_WIDTH = '0.75rem'
 export const NODE_FLOW_MARKER_BOX_HEIGHT = '0.75rem'
 export const NODE_FLOW_MARKER_CENTER_X = '0.375rem'
+export const NODE_FLOW_BELOW_TEXT_INSET = {
+  mobile: `calc(${NODE_FLOW_ROW_INSET.mobile} + ${NODE_FLOW_MARKER_CENTER_X})`,
+  desktop: `calc(${NODE_FLOW_ROW_INSET.desktop} + ${NODE_FLOW_MARKER_CENTER_X})`,
+} as const
 
 const DefaultCompletedMarker = () => (
   <CheckcircleCheckedFilled
@@ -160,6 +165,7 @@ const NodeFlowButtonBase = ({
   trailing,
   onClick,
   disabled = false,
+  dataSlot,
   ariaLabel,
   ariaExpanded,
   disableOuterOffset = false,
@@ -189,17 +195,119 @@ const NodeFlowButtonBase = ({
     ) : (
       trailing
     )
+  const hasCustomTrailing = trailing !== undefined
 
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (!isInteractive) {
-      return
-    }
+  const rowAriaLabel =
+    ariaLabel ??
+    (typeof title === 'string' || typeof title === 'number'
+      ? String(title)
+      : undefined)
 
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      onClick()
-    }
-  }
+  const rowContent = (
+    <>
+      <Box
+        sx={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flex: '0 0 auto',
+          width: NODE_FLOW_MARKER_BOX_WIDTH,
+          height: NODE_FLOW_MARKER_BOX_HEIGHT,
+          overflow: 'visible',
+          color: markerColor,
+        }}
+      >
+        {resolvedMarker}
+      </Box>
+
+      <Box
+        component="span"
+        sx={{
+          flex: 1,
+          minWidth: 0,
+          fontSize: '0.625rem',
+          fontWeight: 700,
+          lineHeight: '1.125rem',
+          letterSpacing: '0.1em',
+          color: 'inherit',
+          whiteSpace: 'normal',
+        }}
+      >
+        {title}
+      </Box>
+
+      {resolvedTrailing != null && (
+        <Box
+          onClick={
+            hasCustomTrailing
+              ? (event) => {
+                  event.stopPropagation()
+                }
+              : undefined
+          }
+          onKeyDown={
+            hasCustomTrailing
+              ? (event) => {
+                  event.stopPropagation()
+                }
+              : undefined
+          }
+          onKeyUp={
+            hasCustomTrailing
+              ? (event) => {
+                  event.stopPropagation()
+                }
+              : undefined
+          }
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            color: rowStyles.accentColor,
+          }}
+        >
+          {resolvedTrailing}
+        </Box>
+      )}
+    </>
+  )
+
+  const rowBaseSx: AppSxProps = [
+    {
+      position: 'relative',
+      zIndex: 1,
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.75rem',
+      width: '100%',
+      minWidth: 0,
+      minHeight: '1.5rem',
+      px: NODE_FLOW_ROW_INSET,
+      py: '0.25rem',
+      borderRadius: SHARED_CONTROL_BORDER_RADIUS,
+      border: `0.2px solid ${rowStyles.borderColor}`,
+      backgroundColor: rowStyles.backgroundColor,
+      color: rowStyles.textColor,
+      opacity: rowStyles.opacity,
+      cursor: isInteractive ? 'pointer' : 'default',
+      textAlign: 'left',
+      transition:
+        'background-color 160ms cubic-bezier(.2,0,.2,1), border-color 160ms cubic-bezier(.2,0,.2,1), transform 160ms cubic-bezier(.2,0,.2,1)',
+      '&:hover': isInteractive
+        ? {
+            transform: 'translateX(1px)',
+          }
+        : undefined,
+      '&:focus-visible': isInteractive
+        ? {
+            outline: '2px solid rgba(17,17,17,0.4)',
+            outlineOffset: '2px',
+          }
+        : undefined,
+    },
+    ...toSxArray(rowSx),
+  ]
 
   return (
     <Box
@@ -210,13 +318,15 @@ const NodeFlowButtonBase = ({
           minWidth: 0,
           color: '#111111',
         },
-        !disableOuterOffset
-          ? {
-              ml: NODE_FLOW_OUTER_OFFSET,
-              width: NODE_FLOW_OUTER_WIDTH,
-            }
-          : undefined,
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...(!disableOuterOffset
+          ? [
+              {
+                ml: NODE_FLOW_OUTER_OFFSET,
+                width: NODE_FLOW_OUTER_WIDTH,
+              },
+            ]
+          : []),
+        ...toSxArray(sx),
       ]}
     >
       <Box
@@ -226,98 +336,29 @@ const NodeFlowButtonBase = ({
           minWidth: 0,
         }}
       >
-        <Box
-          onClick={isInteractive ? onClick : undefined}
-          onKeyDown={handleKeyDown}
-          role={isInteractive ? 'button' : undefined}
-          tabIndex={isInteractive ? 0 : undefined}
-          aria-disabled={isDisabled || undefined}
-          aria-expanded={ariaExpanded}
-          aria-label={
-            ariaLabel ??
-            (typeof title === 'string' || typeof title === 'number'
-              ? String(title)
-              : undefined)
-          }
-          sx={[
-            {
-              position: 'relative',
-              zIndex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              width: '100%',
-              minWidth: 0,
-              minHeight: '1.5rem',
-              px: NODE_FLOW_ROW_INSET,
-              py: '0.25rem',
-              borderRadius: '0.9375rem',
-              border: `0.2px solid ${rowStyles.borderColor}`,
-              backgroundColor: rowStyles.backgroundColor,
-              color: rowStyles.textColor,
-              opacity: rowStyles.opacity,
-              cursor: isInteractive ? 'pointer' : 'default',
-              transition:
-                'background-color 160ms cubic-bezier(.2,0,.2,1), border-color 160ms cubic-bezier(.2,0,.2,1), transform 160ms cubic-bezier(.2,0,.2,1)',
-              '&:hover': isInteractive
-                ? {
-                    transform: 'translateX(1px)',
-                  }
-                : undefined,
-              '&:focus-visible': isInteractive
-                ? {
-                    outline: '2px solid rgba(17,17,17,0.4)',
-                    outlineOffset: '2px',
-                  }
-                : undefined,
-            },
-            ...(Array.isArray(rowSx) ? rowSx : [rowSx]),
-          ]}
-        >
+        {isInteractive ? (
+          <ButtonBase
+            component="div"
+            role="button"
+            data-slot={dataSlot}
+            onClick={onClick}
+            aria-expanded={ariaExpanded}
+            aria-label={rowAriaLabel}
+            sx={rowBaseSx}
+          >
+            {rowContent}
+          </ButtonBase>
+        ) : (
           <Box
-            sx={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flex: '0 0 auto',
-              width: NODE_FLOW_MARKER_BOX_WIDTH,
-              height: NODE_FLOW_MARKER_BOX_HEIGHT,
-              overflow: 'visible',
-              color: markerColor,
-            }}
+            data-slot={dataSlot}
+            aria-disabled={isDisabled || undefined}
+            aria-expanded={ariaExpanded}
+            aria-label={rowAriaLabel}
+            sx={rowBaseSx}
           >
-            {resolvedMarker}
+            {rowContent}
           </Box>
-
-          <Typography
-            sx={{
-              flex: 1,
-              minWidth: 0,
-              fontSize: '0.625rem',
-              fontWeight: 700,
-              lineHeight: '1.125rem',
-              letterSpacing: '0.1em',
-              color: 'inherit',
-              whiteSpace: 'normal',
-            }}
-          >
-            {title}
-          </Typography>
-
-          {resolvedTrailing != null && (
-            <Box
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-                color: rowStyles.accentColor,
-              }}
-            >
-              {resolvedTrailing}
-            </Box>
-          )}
-        </Box>
+        )}
       </Box>
 
       {helper && (
@@ -329,10 +370,12 @@ const NodeFlowButtonBase = ({
               gap: '0.5rem',
               minWidth: 0,
               pt: '0.625rem',
-              pl: '0.25rem',
+              pl: NODE_FLOW_BELOW_TEXT_INSET,
+              pr: NODE_FLOW_ROW_INSET,
+              boxSizing: 'border-box',
               color: rowStyles.helperColor,
             },
-            ...(Array.isArray(helperSx) ? helperSx : [helperSx]),
+            ...toSxArray(helperSx),
           ]}
         >
           {helperLeading && (
@@ -349,7 +392,8 @@ const NodeFlowButtonBase = ({
             </Box>
           )}
 
-          <Typography
+          <Box
+            component="span"
             sx={{
               minWidth: 0,
               fontSize: '0.625rem',
@@ -360,7 +404,7 @@ const NodeFlowButtonBase = ({
             }}
           >
             {helper}
-          </Typography>
+          </Box>
         </Box>
       )}
     </Box>

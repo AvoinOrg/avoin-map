@@ -1,5 +1,7 @@
 import React from 'react'
-import { Box, IconButton, SxProps, Theme } from '@mui/material'
+
+import { Box, type AppSxProps } from '#/common/style/theme'
+import { IconButton } from '#/components/common/Button'
 import { EyeClosed, EyeOpen } from '#/components/icons'
 import LoadingHorizontal from '#/components/Loading/LoadingHorizontal'
 import { getContrastColor } from '#/common/utils/styling'
@@ -10,7 +12,7 @@ interface EyeButtonProps {
   color: string
   status: LayerGroupStatus
   ariaLabel?: string
-  sx?: SxProps<Theme>
+  sx?: AppSxProps
 }
 
 export const EyeButton = ({
@@ -30,7 +32,7 @@ export const EyeButton = ({
         {
           mr: 1,
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
       ]}
     >
       {status === 'processing' && (

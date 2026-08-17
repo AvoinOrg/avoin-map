@@ -1,14 +1,22 @@
 import React, { useEffect } from 'react'
 import '@testing-library/jest-dom'
-import { act, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import { useUIStore } from '#/common/store/uiStore'
-import type { SidebarMode, SidebarRuntimeOptions } from '#/common/types/sidebar'
+import type {
+  SidebarMode,
+  SidebarPanelExtensionRuntimeOptions,
+  SidebarRuntimeOptions,
+} from '#/common/types/sidebar'
 import { SlotsProvider } from '#/components/context/slotsContext'
 
 import { SidebarBoundary } from './SidebarBoundary'
-import { SidebarPanelExtensionProvider } from './SidebarPanelExtensionProvider'
+import {
+  SidebarPanelExtensionProvider,
+  useSidebarPanelExtensionRuntimeOptions,
+} from './SidebarPanelExtensionProvider'
 import { SidebarPanelExtensionTabContainer } from './SidebarPanelExtensionTabContainer'
+import { useSidebarPanelExtensionTabsContext } from './SidebarPanelExtensionTabsContext'
 import { SidebarRoot } from './SidebarRoot'
 import {
   IntoSidebarHeaderChildrenSlot,
@@ -90,6 +98,98 @@ const renderMobileControlsExtension = (id: string) => (
     </IntoSidebarPanelExtensionPanelSlot>
   </SidebarPanelExtensionProvider>
 )
+
+const MOBILE_TARGET_TRANSITION_CONFIGURATIONS = [
+  { tabId: 'one', label: '1', panelLayout: 'single', fullscreen: false },
+  { tabId: 'one-fullscreen', label: '1F', panelLayout: 'single', fullscreen: true },
+  { tabId: 'two', label: '2', panelLayout: 'double', fullscreen: false },
+  { tabId: 'two-fullscreen', label: '2F', panelLayout: 'double', fullscreen: true },
+  { tabId: 'three', label: '3', panelLayout: 'triple', fullscreen: false },
+  {
+    tabId: 'three-fullscreen',
+    label: '3F',
+    panelLayout: 'triple',
+    fullscreen: true,
+  },
+] as const
+
+const MobileTargetTransitionTabs = ({ onClose }: { onClose: () => void }) => {
+  const { resolvedActiveTabId } = useSidebarPanelExtensionTabsContext()
+  const activeConfiguration =
+    MOBILE_TARGET_TRANSITION_CONFIGURATIONS.find(
+      ({ tabId }) => tabId === resolvedActiveTabId
+    ) ?? MOBILE_TARGET_TRANSITION_CONFIGURATIONS[0]
+  const runtimeOptions = React.useMemo<SidebarPanelExtensionRuntimeOptions>(
+    () => {
+      const visiblePanels =
+        activeConfiguration.panelLayout === 'triple'
+          ? ['main', 'secondary', 'tertiary']
+          : activeConfiguration.panelLayout === 'double'
+            ? ['main', 'secondary']
+            : ['main']
+
+      return {
+        panelLayout: activeConfiguration.panelLayout,
+        visiblePanels,
+        activePanel: 'main',
+        layoutMode: activeConfiguration.fullscreen ? 'fullscreen' : 'default',
+        replaceBaseSidebar: activeConfiguration.fullscreen,
+        mobileMode: 'stacked',
+      }
+    },
+    [activeConfiguration]
+  )
+
+  useSidebarPanelExtensionRuntimeOptions(runtimeOptions)
+
+  return (
+    <IntoSidebarPanelExtensionPanelSlot panelId="main">
+      {MOBILE_TARGET_TRANSITION_CONFIGURATIONS.map((configuration) => (
+        <SidebarPanelExtensionTabContainer
+          key={configuration.tabId}
+          tabId={configuration.tabId}
+          tabName={configuration.label}
+          tabAriaLabel={`Open ${configuration.label}`}
+        >
+          <span data-testid={`mobile-transition-content-${configuration.tabId}`}>
+            {configuration.label} configuration content
+          </span>
+          <button type="button" onClick={onClose}>
+            Close transition extension
+          </button>
+        </SidebarPanelExtensionTabContainer>
+      ))}
+    </IntoSidebarPanelExtensionPanelSlot>
+  )
+}
+
+const MobileTargetTransitionHarness = () => {
+  const [enabled, setEnabled] = React.useState(true)
+
+  return (
+    <SidebarBoundary id="mobile-transition-boundary" mode="simple">
+      <IntoSidebarPanelSlot panelId="main">
+        <button type="button" onClick={() => setEnabled(true)}>
+          Reopen transition extension
+        </button>
+      </IntoSidebarPanelSlot>
+      <SidebarPanelExtensionProvider
+        id="mobile-transition-extension"
+        enabled={enabled}
+        initialRuntimeOptions={{
+          panelLayout: 'single',
+          visiblePanels: ['main'],
+          activePanel: 'main',
+          layoutMode: 'default',
+          replaceBaseSidebar: false,
+          mobileMode: 'stacked',
+        }}
+      >
+        <MobileTargetTransitionTabs onClose={() => setEnabled(false)} />
+      </SidebarPanelExtensionProvider>
+    </SidebarBoundary>
+  )
+}
 
 const expectMobileControlsToShareSidebarToggleRow = (
   controls: HTMLElement
@@ -475,7 +575,7 @@ describe('SidebarRoot', () => {
       marginLeft: '0px',
       marginRight: '0px',
     })
-    expect(panel).toHaveStyle({ width: '100%' })
+    expect(panel).toHaveStyle({ width: '100vw' })
     expect(tabControls).toHaveAttribute(
       'data-sidebar-panel-extension-tab-placement',
       'bottomActionRow'
@@ -789,6 +889,61 @@ describe('SidebarRoot', () => {
     expect(
       contentText.indexOf('Base simple content before extension')
     ).toBeLessThan(contentText.indexOf('Stacked extension after content'))
+  })
+
+  it('preserves selected tabs across mobile stacked and overlay target transitions', async () => {
+    mockIsMobile = true
+
+    renderRoot({ children: <MobileTargetTransitionHarness /> })
+
+    const assertConfiguration = async ({
+      tabId,
+      label,
+      fullscreen,
+    }: (typeof MOBILE_TARGET_TRANSITION_CONFIGURATIONS)[number]) => {
+      const tab = await screen.findByRole('tab', { name: `Open ${label}` })
+
+      if (tab.getAttribute('aria-selected') !== 'true') {
+        fireEvent.click(tab)
+      }
+
+      await waitFor(() => {
+        expect(screen.getByRole('tab', { name: `Open ${label}` })).toHaveAttribute(
+          'aria-selected',
+          'true'
+        )
+        expect(
+          screen.getByTestId(`mobile-transition-content-${tabId}`)
+        ).toBeInTheDocument()
+        expect(
+          screen.getByTestId('sidebar-panel-extension-mobile-panels')
+        ).toHaveAttribute(
+          'data-sidebar-panel-extension-mobile-render',
+          fullscreen ? 'overlay' : 'stacked'
+        )
+      })
+    }
+
+    for (const configuration of MOBILE_TARGET_TRANSITION_CONFIGURATIONS) {
+      await assertConfiguration(configuration)
+    }
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Close transition extension' })
+    )
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId('sidebar-panel-extension-mobile-panels')
+      ).not.toBeInTheDocument()
+    })
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Reopen transition extension' })
+    )
+
+    for (const configuration of MOBILE_TARGET_TRANSITION_CONFIGURATIONS) {
+      await assertConfiguration(configuration)
+    }
   })
 
   it('keeps desktop tab rail beside the extension when action rail is fixed right', async () => {

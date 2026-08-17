@@ -1,11 +1,9 @@
-import { Box, SxProps, Theme } from '@mui/material'
-
-type Props = {
-  sx?: SxProps<Theme>
-}
+import type { SharedSvgIconProps } from './types'
+import { SharedSvgIcon } from './types'
+type Props = SharedSvgIconProps
 
 const Minus = (props: Props) => (
-  <Box
+  <SharedSvgIcon
     component="svg"
     xmlns="http://www.w3.org/2000/svg"
     width={19}
@@ -15,7 +13,7 @@ const Minus = (props: Props) => (
     {...props}
   >
     <path stroke="currentColor" strokeWidth={3} d="M.5 1h20" />
-  </Box>
+  </SharedSvgIcon>
 )
 
 export default Minus

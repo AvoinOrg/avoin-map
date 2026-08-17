@@ -1,5 +1,3 @@
-'use client'
-
 import React, { createContext, useContext, useMemo } from 'react'
 
 import type { SidebarPanelExtensionId } from '#/common/types/sidebar'
@@ -19,10 +17,7 @@ export const SidebarPanelExtensionContextProvider = ({
   value: SidebarPanelExtensionContextValue
   children: React.ReactNode
 }) => {
-  const memoizedValue = useMemo(
-    () => value,
-    [value.depth, value.extensionId]
-  )
+  const memoizedValue = useMemo(() => value, [value])
 
   return (
     <SidebarPanelExtensionContext.Provider value={memoizedValue}>

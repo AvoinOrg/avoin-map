@@ -1,0 +1,70 @@
+import { useTranslate } from '@tolgee/react'
+
+import { Box } from '#/common/style/theme'
+import { ButtonLinkRow } from '#/components/common/ButtonLinkRow'
+import TText from '#/components/common/TText'
+import {
+  IntoSidebarHeaderSlot,
+  SidebarBoundary,
+  SidebarContentBox,
+  SidebarHeader,
+} from '#/components/Sidebar'
+
+import {
+  UI_BASELINE_CATEGORIES,
+  UI_BASELINE_NAMESPACE,
+} from '../common/categories'
+
+const UiBaselineHomePage = () => {
+  const { t } = useTranslate(UI_BASELINE_NAMESPACE)
+
+  return (
+    <SidebarBoundary
+      id="ui-baseline-home"
+      mode="floating"
+      config={{ width: 'compact' }}
+    >
+      <IntoSidebarHeaderSlot>
+        <SidebarHeader
+          title={<TText ns={UI_BASELINE_NAMESPACE} keyName="home.title" />}
+          backgroundImage="/files/img/energiakartta/sidebar/main-hero-header-crop.jpg"
+        />
+      </IntoSidebarHeaderSlot>
+      <SidebarContentBox>
+        <Box component="p">
+          <TText ns={UI_BASELINE_NAMESPACE} keyName="home.intro" />
+        </Box>
+
+        <Box component="nav" aria-label={t('home.category_list_aria')}>
+          <Box
+            component="ul"
+            sx={{
+              m: 0,
+              p: 0,
+              listStyle: 'none',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.75rem',
+            }}
+          >
+            {UI_BASELINE_CATEGORIES.map((category) => (
+              <Box component="li" key={category.id}>
+                <ButtonLinkRow
+                  routeKey={category.routeKey}
+                  label={
+                    <TText
+                      ns={UI_BASELINE_NAMESPACE}
+                      keyName={category.labelKey}
+                    />
+                  }
+                />
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      </SidebarContentBox>
+    </SidebarBoundary>
+  )
+}
+
+export default UiBaselineHomePage

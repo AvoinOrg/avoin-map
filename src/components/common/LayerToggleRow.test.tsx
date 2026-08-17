@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
 
 import {
@@ -6,25 +7,42 @@ import {
   LayerToggleRowAccordion,
   LayerToggleRowLink,
 } from '#/components/common/LayerToggleRow'
+import { APP_ROUTE_KEYS } from '#/common/routing/routeMetadata'
 
-jest.mock('#/components/common/MutableLink', () => {
-  const React = require('react')
-  const MockMutableLink = ({
+type MockAppRouteLinkProps = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
+  children?: React.ReactNode
+  routeKey?: unknown
+  routeParams?: unknown
+  sx?: unknown
+}
+
+jest.mock('#/common/navigation/appRouteLinks', () => {
+  const MockAppRouteLink = ({
     children,
     onClick,
-    route,
-    routeTree,
-    params,
+    routeKey,
+    routeParams,
+    sx,
     ...props
-  }: any) => (
-    <a href="#mock-link" onClick={onClick} {...props}>
-      {children}
-    </a>
-  )
+  }: MockAppRouteLinkProps) => {
+    void sx
+
+    return (
+      <a
+        href="#mock-link"
+        data-route-key={String(routeKey)}
+        data-route-params={JSON.stringify(routeParams ?? {})}
+        onClick={onClick}
+        {...props}
+      >
+        {children}
+      </a>
+    )
+  }
 
   return {
     __esModule: true,
-    default: MockMutableLink,
+    AppRouteLink: MockAppRouteLink,
   }
 })
 
@@ -90,10 +108,15 @@ describe('LayerToggleRowAccordion', () => {
     })
 
     expect(button.getAttribute('aria-expanded')).toBe('false')
+    expect(button.getAttribute('aria-controls')).toContain(
+      'layer-toggle-row-accordion-'
+    )
+    expect(screen.queryByText('Accordion content')).toBeNull()
 
     fireEvent.click(button)
 
     expect(button.getAttribute('aria-expanded')).toBe('true')
+    expect(screen.getByText('Accordion content')).not.toBeNull()
   })
 })
 
@@ -112,8 +135,8 @@ describe('LayerToggleRowLink', () => {
         onToggle={onToggle}
         linkAriaLabel="Open layer"
         linkProps={{
-          route: {} as never,
-          routeTree: {} as never,
+          routeKey: APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN_FOLAYER,
+          routeParams: { folayerIdSlug: 'layer-1' },
           onClick: onLinkClick,
         }}
       />
@@ -124,5 +147,88 @@ describe('LayerToggleRowLink', () => {
 
     expect(onToggle).toHaveBeenCalledTimes(1)
     expect(onLinkClick).toHaveBeenCalledTimes(1)
+    expect(
+      screen
+        .getByRole('link', { name: 'Open layer' })
+        .getAttribute('data-route-params')
+    ).toBe(JSON.stringify({ folayerIdSlug: 'layer-1' }))
+  })
+})
+
+describe('LayerStatusIcon', () => {
+  it('shares the colored visible highlight and fixed status slot geometry across variants', () => {
+    render(
+      <>
+        <LayerToggleRow
+          label="Base layer"
+          status="visible"
+          color="#2f855a"
+          ariaLabel="Toggle base layer"
+          onToggle={() => {}}
+        />
+        <LayerToggleRowAccordion
+          label="Accordion layer"
+          status="visible"
+          color="#2f855a"
+          expanded={false}
+          ariaLabel="Toggle accordion layer"
+          onToggle={() => {}}
+        >
+          <div>Accordion content</div>
+        </LayerToggleRowAccordion>
+        <LayerToggleRowLink
+          label="Link layer"
+          status="visible"
+          color="#2f855a"
+          ariaLabel="Toggle link layer"
+          onToggle={() => {}}
+          linkAriaLabel="Open link layer"
+          linkProps={{
+            routeKey: APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN_FOLAYER,
+            routeParams: { folayerIdSlug: 'layer-1' },
+          }}
+        />
+      </>
+    )
+
+    const highlights = document.querySelectorAll(
+      '[data-slot="layer-visible-highlight"]'
+    )
+    const statusSlots = document.querySelectorAll(
+      '[data-slot="layer-status-icon-slot"]'
+    )
+
+    expect(highlights).toHaveLength(3)
+    expect(statusSlots).toHaveLength(3)
+
+    highlights.forEach((highlight) => {
+      expect(highlight).toHaveStyle({
+        width: '1.5rem',
+        height: '1rem',
+        borderRadius: '50%',
+      })
+    })
+    statusSlots.forEach((slot) => {
+      expect(slot).toHaveStyle({
+        width: '2rem',
+        height: '1.5rem',
+        marginRight: '0.75rem',
+      })
+    })
+
+    expect(
+      screen.getByRole('button', { name: 'Toggle base layer' })
+    ).toHaveStyle({ paddingLeft: 0 })
+    expect(statusSlots[0]).toHaveStyle({ justifyContent: 'flex-start' })
+
+    expect(
+      screen.getByRole('button', { name: 'Toggle accordion layer' })
+    ).toHaveStyle({ paddingLeft: '0.375rem' })
+    expect(statusSlots[1]).toHaveStyle({ justifyContent: 'center' })
+
+    expect(
+      screen.getByRole('button', { name: 'Toggle link layer' })
+    ).toHaveStyle({ paddingLeft: 0 })
+    expect(statusSlots[2]).toHaveStyle({ justifyContent: 'flex-start' })
   })
 })

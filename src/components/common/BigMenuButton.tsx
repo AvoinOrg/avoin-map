@@ -1,9 +1,12 @@
 import * as React from 'react'
-import { Button, SxProps, Theme, useTheme, ButtonProps } from '@mui/material'
+
+import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'
+import { Button, type ButtonProps } from '#/components/common/Button'
+import type { AppSxProps, AppTheme } from '#/common/style/theme'
 
 type BigMenuButtonProps = ButtonProps & {
   children: React.ReactNode
-  sx?: SxProps<Theme>
+  sx?: AppSxProps
 }
 
 const BigMenuButton = ({
@@ -12,8 +15,6 @@ const BigMenuButton = ({
   'aria-label': ariaLabel,
   ...buttonProps
 }: BigMenuButtonProps) => {
-  const theme = useTheme()
-
   return (
     <Button
       variant="contained"
@@ -33,9 +34,10 @@ const BigMenuButton = ({
           height: '60px',
           margin: '0 0 0 0',
           justifyContent: 'space-between',
-          borderRadius: '5px',
+          borderRadius: SHARED_CONTROL_BORDER_RADIUS,
           backgroundColor: '#FBFBFB',
-          border: `0.5px solid ${theme.palette.neutral.main}`,
+          border: (theme: AppTheme) =>
+            `0.5px solid ${theme.palette.neutral.main}`,
           boxShadow: '1px 1px 7px 0px #EEECEC',
           pl: 3,
           pr: 3,
@@ -43,22 +45,23 @@ const BigMenuButton = ({
           // Reset browser/MUI focus styles
           '&:focus': {
             outline: 'none !important',
-            border: `0.5px solid ${theme.palette.neutral.main}`,
+            border: (theme: AppTheme) =>
+              `0.5px solid ${theme.palette.neutral.main}`,
             boxShadow: '1px 1px 7px 0px #EEECEC',
           },
           '&:active': {
             outline: 'none !important',
-            backgroundColor: theme.palette.primary.light,
+            backgroundColor: (theme: AppTheme) => theme.palette.primary.light,
             boxShadow: '1px 1px 7px 0px #EEECEC',
           },
           '&:hover': {
-            backgroundColor: theme.palette.primary.lighter,
-            borderColor: theme.palette.primary.main,
+            backgroundColor: (theme: AppTheme) => theme.palette.primary.lighter,
+            borderColor: (theme: AppTheme) => theme.palette.primary.main,
           },
-          // Override all MUI focus-related classes
-          '&.Mui-focusVisible, &.Mui-focused, &:focus-visible': {
+          '&[data-focus-visible="true"], &:focus-visible': {
             outline: 'none !important',
-            border: `0.5px solid ${theme.palette.primary.main}`,
+            border: (theme: AppTheme) =>
+              `0.5px solid ${theme.palette.primary.main}`,
             boxShadow: '1px 1px 7px 0px #EEECEC',
           },
         },

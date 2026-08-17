@@ -1,12 +1,23 @@
 import React from 'react'
 import type { SVGProps } from 'react'
-import { Box } from '@mui/material'
+
+import { Box, toSxArray, type AppSxProps } from '#/common/style/theme'
+
+const ThemeSvg = Box as unknown as React.ComponentType<
+  React.ComponentProps<'svg'> & {
+    component?: 'svg'
+    sx?: AppSxProps
+  }
+>
+
+type AppSxItem = Exclude<NonNullable<AppSxProps>, readonly unknown[]>
+const toAppSxItemArray = (sx?: AppSxProps) => toSxArray(sx) as AppSxItem[]
 
 type Props = SVGProps<SVGSVGElement> & {
   color?: string
   borderColor?: string
   height?: number
-  sx?: any
+  sx?: AppSxProps
 }
 
 const SvgFolder = ({ color, borderColor, height = 86, sx }: Props) => {
@@ -14,12 +25,15 @@ const SvgFolder = ({ color, borderColor, height = 86, sx }: Props) => {
   const bottomY = 11 + height // Compute the y-coordinate for the bottom part
 
   return (
-    <Box
+    <ThemeSvg
       component="svg"
       xmlns="http://www.w3.org/2000/svg"
       viewBox={`9 5 348 ${height + 10}`} // Dynamic viewBox based on height
       fill="none"
-      sx={{ filter: 'drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.15))', ...sx }}
+      sx={[
+        { filter: 'drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.15))' },
+        ...toAppSxItemArray(sx),
+      ]}
     >
       <g>
         <path
@@ -32,7 +46,7 @@ const SvgFolder = ({ color, borderColor, height = 86, sx }: Props) => {
           fill={color}
         />
       </g>
-    </Box>
+    </ThemeSvg>
   )
 }
 

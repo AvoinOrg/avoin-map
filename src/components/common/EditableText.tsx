@@ -1,29 +1,34 @@
-import React, { useLayoutEffect, useState } from 'react'
-import {
-  SxProps,
-  Theme,
-  TextField,
-  Typography,
-  Box,
-  InputAdornment,
-  IconButton,
-} from '@mui/material'
-import EditIcon from '@mui/icons-material/Edit'
-import CheckIcon from '@mui/icons-material/Check'
-import CloseIcon from '@mui/icons-material/Close'
+import React from 'react'
 
-interface Props {
+import {
+  AppSxProps,
+  Box,
+  toSxArray,
+} from '#/common/style/theme/system'
+import { IconButton } from '#/components/common/Button'
+import { Cross, Done, FountainPen } from '#/components/icons'
+
+export type EditableTextEvent = {
+  target: {
+    value: string
+  }
+}
+
+type EditableTextProps = {
   value: string
-  onChange: (event: any) => void
+  onChange: (event: EditableTextEvent) => void
   valueAppendix?: string
   editButtonAriaLabel?: string
   saveButtonAriaLabel?: string
   cancelButtonAriaLabel?: string
   textFieldAriaLabel?: string
-  sx?: SxProps<Theme>
-  textSx?: SxProps<Theme>
-  iconSx?: SxProps<Theme>
+  sx?: AppSxProps
+  textSx?: AppSxProps
+  iconSx?: AppSxProps
 }
+
+type StyleItem = Exclude<NonNullable<AppSxProps>, readonly unknown[]>
+const toStyleArray = (sx?: AppSxProps) => toSxArray(sx) as StyleItem[]
 
 const EditableText = ({
   value,
@@ -36,228 +41,333 @@ const EditableText = ({
   sx,
   textSx,
   iconSx,
-}: Props) => {
-  const [internalValue, setInternalValue] = useState(value)
-  const [isValueFocused, setIsInputFocused] = useState(false)
-  const isCanceledRef = React.useRef(false)
+}: EditableTextProps) => {
+  const controlMinHeight = 28
+  const editIconSize = 14
+  const actionIconSize = 14
+  const actionButtonHitSize = 20
 
-  useLayoutEffect(() => {
-    setInternalValue(value)
+  const [isValueFocused, setIsInputFocused] = React.useState(false)
+  const draftValueRef = React.useRef(value)
+  const rootRef = React.useRef<HTMLDivElement | null>(null)
+  const editSessionRef = React.useRef(0)
+  const skipBlurSessionRef = React.useRef<number | null>(null)
+  const blurTimeoutRef = React.useRef<number | NodeJS.Timeout | null>(null)
+
+  React.useLayoutEffect(() => {
+    draftValueRef.current = value
   }, [value])
 
-  const handleCancel = (event: any) => {
-    isCanceledRef.current = true
-    setInternalValue(value) // Revert to original value
+  React.useEffect(() => {
+    return () => {
+      if (blurTimeoutRef.current != null) {
+        window.clearTimeout(blurTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  const clearBlurTimeout = () => {
+    if (blurTimeoutRef.current == null) {
+      return
+    }
+
+    window.clearTimeout(blurTimeoutRef.current)
+    blurTimeoutRef.current = null
+  }
+
+  const startEditSession = () => {
+    editSessionRef.current += 1
+    skipBlurSessionRef.current = null
+    clearBlurTimeout()
+    draftValueRef.current = value
+  }
+
+  const closeEditSession = () => {
+    clearBlurTimeout()
     setIsInputFocused(false)
-    event.stopPropagation()
   }
 
-  const handleAccept = (event: any) => {
-    if (internalValue !== value) {
-      handleChange({ target: { value: internalValue } })
-    } else {
-      setIsInputFocused(false)
-    }
-    event.stopPropagation()
-  }
-
-  const handleChange = (event: any) => {
-    setIsInputFocused(false)
-    if (event.target.value !== value) {
-      onChange(event)
+  const commitDraft = () => {
+    if (draftValueRef.current !== value) {
+      onChange({ target: { value: draftValueRef.current } })
     }
   }
 
-  const handleBlur = () => {
-    setTimeout(() => {
-      if (isCanceledRef.current) {
-        isCanceledRef.current = false
-        return
-      }
-      if (internalValue !== value) {
-        handleChange({ target: { value: internalValue } })
-      } else {
-        setIsInputFocused(false)
-      }
-    }, 100) // Delay to allow click event to be registered
-  }
-
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Enter') {
-      if (internalValue !== value) {
-        handleChange({ target: { value: internalValue } })
-      } else {
-        setIsInputFocused(false)
-      }
-    }
-  }
-
-  const handleEditClick = (event: any) => {
+  const handleEdit = (event: React.MouseEvent | React.KeyboardEvent) => {
     event.stopPropagation()
+    startEditSession()
     setIsInputFocused(true)
   }
 
   const handleEditKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
-      handleEditClick(event)
+      handleEdit(event)
     }
   }
 
-  const handleInputChange = (event: any) => {
-    setInternalValue(event.target.value)
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    draftValueRef.current = event.target.value
+  }
+
+  const preventButtonBlur = (event: React.MouseEvent<HTMLElement>) => {
+    event.preventDefault()
+  }
+
+  const handleSave = (event: React.MouseEvent<HTMLElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    skipBlurSessionRef.current = editSessionRef.current
+    commitDraft()
+    closeEditSession()
+  }
+
+  const handleCancel = (event: React.MouseEvent<HTMLElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    skipBlurSessionRef.current = editSessionRef.current
+    draftValueRef.current = value
+    closeEditSession()
+  }
+
+  const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+    const session = editSessionRef.current
+    const nextFocusTarget = event.relatedTarget
+
+    clearBlurTimeout()
+
+    blurTimeoutRef.current = window.setTimeout(() => {
+      if (session === skipBlurSessionRef.current) {
+        return
+      }
+
+      if (session !== editSessionRef.current) {
+        return
+      }
+
+      if (nextFocusTarget != null && rootRef.current?.contains(nextFocusTarget)) {
+        return
+      }
+
+      commitDraft()
+      closeEditSession()
+    }, 100)
+  }
+
+  const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== 'Enter') {
+      return
+    }
+
+    event.preventDefault()
+    event.stopPropagation()
+
+    skipBlurSessionRef.current = editSessionRef.current
+    commitDraft()
+    closeEditSession()
+  }
+
+  const handleInputClick = (event: React.MouseEvent<HTMLInputElement>) => {
+    event.stopPropagation()
+  }
+
+  const handleInputFocus = (event: React.FocusEvent<HTMLInputElement>) => {
+    event.stopPropagation()
+  }
+
+  const actionButtonStyles: StyleItem = {
+    p: 0,
+    m: 0,
+    minWidth: `${actionButtonHitSize}px`,
+    width: `${actionButtonHitSize}px`,
+    height: `${actionButtonHitSize}px`,
+    borderRadius: '50%',
+    border: 'none',
+    background: 'transparent',
+    color: 'neutral.dark',
+    cursor: 'pointer',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    lineHeight: 1,
+    transition: 'background-color 120ms ease, color 120ms ease',
+    '&:hover': {
+      color: 'neutral.darker',
+      backgroundColor: 'action.hover',
+    },
+    '&:focus-visible': {
+      color: 'neutral.darker',
+      backgroundColor: 'action.hover',
+    },
+  }
+
+  const rootStyles: StyleItem[] = [
+    {
+      display: 'flex',
+      alignItems: 'center',
+      width: '100%',
+      justifyContent: 'flex-start',
+      minWidth: 0,
+      minHeight: `${controlMinHeight}px`,
+    },
+    ...toStyleArray(sx),
+  ]
+
+  const displayTextStyles: StyleItem[] = [
+    {
+      flex: '0 1 auto',
+      minWidth: 0,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    },
+    ...toStyleArray(textSx),
+  ]
+
+  const displayIconStyles: StyleItem[] = [
+    {
+      width: `${editIconSize}px`,
+      height: `${editIconSize}px`,
+      color: 'neutral.dark',
+      transition: 'color 120ms ease',
+      '&:hover': {
+        color: 'neutral.darker',
+      },
+    },
+    ...toStyleArray(iconSx),
+  ]
+
+  const actionIconStyles: StyleItem[] = [
+    {
+      width: `${actionIconSize}px`,
+      height: `${actionIconSize}px`,
+      color: 'neutral.dark',
+      transition: 'color 120ms ease',
+      '&:hover': {
+        color: 'neutral.darker',
+      },
+    },
+    ...toStyleArray(iconSx),
+  ]
+
+  const inputTextSx = [
+    {
+      '& input': {
+        flex: 1,
+        minWidth: 0,
+        border: 'none',
+        outline: 'none',
+        m: 0,
+        p: 0,
+        color: 'inherit',
+        background: 'transparent',
+        typography: 'inherit',
+        width: '100%',
+        font: 'inherit',
+        lineHeight: 'normal',
+      },
+      '& input:focus-visible': {
+        outline: 'none',
+      },
+    },
+    ...toStyleArray(textSx).map(
+      (styleItem) =>
+        ({
+          '& input': styleItem,
+        }) as StyleItem
+    ),
+  ]
+
+  if (!isValueFocused) {
+    return (
+      <Box ref={rootRef} sx={rootStyles}>
+        <Box component="span" sx={displayTextStyles}>
+          {`${value}${valueAppendix ?? ''}`}
+        </Box>
+        <IconButton
+          type="button"
+          aria-label={editButtonAriaLabel}
+          onMouseDown={preventButtonBlur}
+          onClick={handleEdit}
+          onKeyDown={handleEditKeyDown}
+          size="small"
+          sx={[actionButtonStyles, { ml: 0.5, flexShrink: 0 }]}
+        >
+          <FountainPen sx={displayIconStyles} />
+        </IconButton>
+      </Box>
+    )
   }
 
   return (
     <Box
+      ref={rootRef}
       sx={[
         {
-          display: 'flex',
-          alignItems: 'start',
-          width: '100%',
-          justifyContent: 'flex-start',
+          gap: 0,
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...rootStyles,
       ]}
     >
-      {!isValueFocused ? (
-        <>
-          <Typography
-            sx={[
-              {
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                // float: "left",
-              },
-              ...(Array.isArray(textSx) ? textSx : [textSx]),
-            ]}
-            // onClick={(event) => {
-            //   event?.stopPropagation()
-            //   setIsInputFocused(true)
-            // }}
-          >
-            {`${value}${valueAppendix ?? ''}`}
-          </Typography>
-          <IconButton
-            disableRipple
-            onClick={handleEditClick}
-            aria-label={editButtonAriaLabel}
-            component="span"
-            role="button"
-            tabIndex={0}
-            onKeyDown={handleEditKeyDown}
-            sx={{ ml: 1, p: 0, height: '100%' }}
-          >
-            <EditIcon
-              sx={[
-                {
-                  fontSize: '19px',
-                  color: 'neutral.dark',
-                  '&:hover': {
-                    color: 'neutral.darker',
-                  },
-                },
-                ...(Array.isArray(iconSx) ? iconSx : [iconSx]),
-              ]}
-            />
-          </IconButton>
-        </>
-      ) : (
-        <TextField
+      <Box
+        component="span"
+        sx={[
+          {
+            flex: 1,
+            minWidth: 0,
+            display: 'flex',
+            alignItems: 'center',
+            borderBottom: '1px solid',
+            borderColor: 'neutral.light',
+            pb: 0.25,
+          },
+          ...inputTextSx,
+        ]}
+      >
+        <input
           autoFocus
-          sx={{
-            p: 0,
-            m: 0,
-            width: '100%',
-            '& .MuiOutlinedInput-root': {
-              borderRadius: '999px',
-            },
-            '& .MuiOutlinedInput-notchedOutline': {
-              borderRadius: '999px',
-            },
-          }}
-          value={internalValue}
+          key={`editable-text-input-${value}`}
+          defaultValue={value}
+          aria-label={textFieldAriaLabel}
           onChange={handleInputChange}
           onBlur={handleBlur}
-          onKeyDown={handleKeyDown}
-          onClick={(event) => event.stopPropagation()}
-          variant="outlined"
-          aria-label={textFieldAriaLabel}
-          onFocus={(event) => {
-            event.stopPropagation()
-          }}
-          slotProps={{
-            htmlInput: {
-              'aria-label': textFieldAriaLabel,
-            },
-            input: {
-              sx: [
-                { m: 0, p: 0, height: '100%' },
-                ...(Array.isArray(textSx) ? textSx : [textSx]),
-              ],
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Box
-                    component="button"
-                    type="button"
-                    aria-label={saveButtonAriaLabel}
-                    sx={{
-                      p: 0,
-                      m: 0,
-                      background: 'none',
-                      border: 'none',
-                      height: '100%',
-                      color: 'neutral.dark',
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      '&:hover': {
-                        color: 'neutral.darker',
-                      },
-                    }}
-                    onClick={handleAccept}
-                  >
-                    <CheckIcon
-                      sx={[
-                        { fontSize: '19px' },
-                        ...(Array.isArray(iconSx) ? iconSx : [iconSx]),
-                      ]}
-                    />
-                  </Box>
-                  <Box
-                    component="button"
-                    type="button"
-                    aria-label={cancelButtonAriaLabel}
-                    sx={{
-                      p: 0,
-                      m: 0,
-                      background: 'none',
-                      border: 'none',
-                      height: '100%',
-                      color: 'neutral.dark',
-                      cursor: 'pointer',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      '&:hover': {
-                        color: 'neutral.darker',
-                      },
-                    }}
-                    onClick={handleCancel}
-                  >
-                    <CloseIcon
-                      sx={[
-                        { fontSize: '19px' },
-                        ...(Array.isArray(iconSx) ? iconSx : [iconSx]),
-                      ]}
-                    />
-                  </Box>
-                </InputAdornment>
-              ),
-            },
-          }}
+          onKeyDown={handleInputKeyDown}
+          onClick={handleInputClick}
+          onFocus={handleInputFocus}
         />
-      )}
+      </Box>
+      <Box
+        sx={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 0.5,
+          ml: 0.25,
+          flexShrink: 0,
+        }}
+      >
+        <IconButton
+          type="button"
+          aria-label={saveButtonAriaLabel}
+          onMouseDown={preventButtonBlur}
+          onClick={handleSave}
+          size="small"
+          sx={[actionButtonStyles, { mr: 0.125 }]}
+        >
+          <Done sx={actionIconStyles} />
+        </IconButton>
+        <IconButton
+          type="button"
+          aria-label={cancelButtonAriaLabel}
+          onMouseDown={preventButtonBlur}
+          onClick={handleCancel}
+          size="small"
+          sx={actionButtonStyles}
+        >
+          <Cross sx={actionIconStyles} />
+        </IconButton>
+      </Box>
     </Box>
   )
 }

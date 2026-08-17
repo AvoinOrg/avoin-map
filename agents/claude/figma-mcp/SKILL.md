@@ -1,6 +1,6 @@
 ---
 name: figma-mcp
-description: Inspect Figma files and nodes through remote Figma MCP. Use when the user shares a Figma URL, asks whether Figma MCP is reachable, wants node metadata, screenshots, design context, or exact asset URLs, or needs help converting a public Figma URL into MCP fileKey and nodeId inputs.
+description: Inspect Figma files and nodes through the raw global HTTP Figma MCP server. Use when the user shares a Figma URL, asks whether Figma MCP is reachable, wants node metadata, screenshots, design context, or exact asset URLs, or needs help converting a public Figma URL into MCP fileKey and nodeId inputs.
 ---
 
 # Figma MCP
@@ -16,7 +16,7 @@ implementation, continue with `ui-iteration`.
 
 Use this skill when the user asks for any of the following:
 
-- Check whether remote Figma MCP is reachable
+- Check whether the global HTTP Figma MCP endpoint is reachable
 - Inspect a public Figma design URL or pasted node link
 - Extract `fileKey` and `nodeId` from a shared Figma URL
 - Fetch node metadata, screenshots, or design context
@@ -24,9 +24,9 @@ Use this skill when the user asks for any of the following:
 
 ## Workflow
 
-### 1. Use the remote MCP endpoint
+### 1. Use the global HTTP MCP endpoint
 
-- Use the remote Figma MCP server at `https://mcp.figma.com/mcp`.
+- Use the raw global HTTP Figma MCP server at `https://mcp.figma.com/mcp`.
 - If the user explicitly needs Figma inspection or comparison and the remote
   Figma MCP path is unavailable, stop immediately and report that the task is
   blocked on Figma access. Do not quietly continue from stale notes or earlier
@@ -47,7 +47,7 @@ Use this skill when the user asks for any of the following:
 
 ### 3. Handle credentials safely
 
-- Remote Figma MCP credentials live in `.codex/.credentials.json`.
+- Global HTTP Figma MCP credentials live in `.codex/.credentials.json`.
 - Treat that file as sensitive. Read only the fields you need, and do not print
   access tokens in user-facing output.
 - Use `jq` or a short Node script to inspect non-secret fields such as
@@ -55,7 +55,7 @@ Use this skill when the user asks for any of the following:
 
 ### 4. Pick the right MCP tool
 
-- `whoami` or `tools/list`: quick reachability checks for the remote server
+- `whoami` or `tools/list`: quick reachability checks for the global HTTP server
 - `get_metadata`: inspect the shared node tree and child IDs
 - `get_design_context`: fetch code-oriented context, screenshot, and asset URLs
 - `get_screenshot`: capture a visual reference of the selected node
@@ -75,9 +75,9 @@ Use this skill when the user asks for any of the following:
 ## Output Expectations
 
 - Report the normalized `fileKey` and `nodeId`.
-- State that you used the remote MCP server.
-- Call out any access limitation clearly, such as a refused local port, missing
-  credentials, or an invalid node ID.
+- State that you used the raw global HTTP Figma MCP server.
+- Call out any access limitation clearly, such as missing credentials, an
+  invalid node ID, or failure to reach `https://mcp.figma.com/mcp`.
 - If Figma access was required but unavailable, say that you stopped because of
   the Figma access block.
 - If the task becomes UI implementation work, switch to `ui-iteration` for

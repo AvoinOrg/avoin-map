@@ -1,6 +1,10 @@
-import React from 'react'
-import { Box } from '@mui/material'
-import { CircularProgress } from '@mui/material'
+import { Box, type AppTheme } from '#/common/style/theme'
+import { LoadingSpinner } from './LoadingSpinner'
+
+const DEFAULT_MODAL_Z_INDEX = 1500
+
+const getLoadingModalZIndex = (theme: AppTheme) =>
+  (theme.zIndex?.modal ?? DEFAULT_MODAL_Z_INDEX) + 1
 
 export const LoadingModal = () => {
   return (
@@ -12,7 +16,7 @@ export const LoadingModal = () => {
         right: 0,
         bottom: 0,
         padding: '64px 10px 200px 10px',
-        zIndex: theme.zIndex.modal + 1,
+        zIndex: getLoadingModalZIndex(theme),
         backgroundColor: 'white',
         overflowY: 'auto',
         display: 'flex',
@@ -20,7 +24,7 @@ export const LoadingModal = () => {
         justifyContent: 'center',
       })}
     >
-      <CircularProgress color="secondary" size={200} />
+      <LoadingSpinner color="secondary" size={200} />
     </Box>
   )
 }

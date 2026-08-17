@@ -1,12 +1,17 @@
-import { Button, SxProps, Theme } from '@mui/material'
 import { useRef } from 'react'
-import MenuOpenIcon from '@mui/icons-material/MenuOpen'
 import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
-import { MapPinGlobe } from '#/components/icons'
+import type { AppBoxProps } from '#/common/style/theme/system'
+import { Box } from '#/common/style/theme/system'
+import { MapPinGlobe, Sandwich } from '#/components/icons'
 import { useUIStore } from '../../common/store'
 
+type SidebarStyleProps = AppBoxProps['sx']
+const nativeButtonType = {
+  type: 'button',
+} satisfies Pick<React.ButtonHTMLAttributes<HTMLButtonElement>, 'type'>
+
 interface Props {
-  sx?: SxProps<Theme>
+  sx?: SidebarStyleProps
 }
 
 const SidebarToggleButton = ({ sx }: Props) => {
@@ -24,7 +29,9 @@ const SidebarToggleButton = ({ sx }: Props) => {
   }
 
   return (
-    <Button
+    <Box
+      component="button"
+      {...nativeButtonType}
       ref={buttonRef}
       onClick={toggleSidebar}
       className="sidebar-toggle-button"
@@ -39,11 +46,17 @@ const SidebarToggleButton = ({ sx }: Props) => {
           width: '45px',
           minWidth: '45px',
           height: '45px',
+          border: 0,
           borderRadius: '10px',
+          appearance: 'none',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          font: 'inherit',
           color: '#FFFFFF',
           backgroundColor: '#4f4f4f',
           boxShadow: '0px 10px 24px rgba(0, 0, 0, 0.26)',
-          zIndex: theme.zIndex.drawer + 12,
+          zIndex: (theme.zIndex?.drawer ?? 1200) + 12,
           pointerEvents: 'auto',
           transition: 'background-color 0.2s, transform 0.2s',
           transform: 'translateY(0)',
@@ -51,22 +64,23 @@ const SidebarToggleButton = ({ sx }: Props) => {
             backgroundColor: '#424242',
             transform: 'translateY(-1px)',
           },
+          '&:focus-visible': {
+            outline: `2px solid ${theme.palette?.secondary?.dark ?? '#1976d2'}`,
+            outlineOffset: 2,
+          },
         }),
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
-      disableRipple={true}
-      color="inherit"
       aria-label={isSidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
-      size="large"
     >
       {isSidebarOpen ? (
         <MapPinGlobe
           sx={{ width: '2rem', height: '2rem', mt: -0.4, mr: -0.42 }}
         />
       ) : (
-        <MenuOpenIcon sx={{ fontSize: '1.75rem' }} />
+        <Sandwich sx={{ width: '1.7rem', height: '1rem' }} />
       )}
-    </Button>
+    </Box>
   )
 }
 

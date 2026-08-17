@@ -1,12 +1,9 @@
-import React from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
-
-type Props = {
-  sx?: SxProps<Theme>
-}
+import type { SharedSvgIconProps } from './types'
+import { SharedSvgIcon } from './types'
+type Props = SharedSvgIconProps
 
 const Checkbox = (props: Props) => (
-  <Box
+  <SharedSvgIcon
     component={'svg'}
     width={24}
     height={24}
@@ -15,7 +12,6 @@ const Checkbox = (props: Props) => (
     xmlns="http://www.w3.org/2000/svg"
     {...props}
   >
-    <rect x="1" y="1" width="22" height="22" rx="2" />
     <rect
       x="1"
       y="1"
@@ -25,7 +21,7 @@ const Checkbox = (props: Props) => (
       stroke="currentColor"
       strokeWidth="2"
     />
-  </Box>
+  </SharedSvgIcon>
 )
 
 export default Checkbox

@@ -1,12 +1,9 @@
-import * as React from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
-
-type Props = {
-  sx?: SxProps<Theme>
-}
+import type { SharedSvgIconProps } from './types'
+import { SharedSvgIcon } from './types'
+type Props = SharedSvgIconProps
 
 const ArrowNextBig = (props: Props) => (
-  <Box
+  <SharedSvgIcon
     component="svg"
     xmlns="http://www.w3.org/2000/svg"
     width={33}
@@ -18,6 +15,6 @@ const ArrowNextBig = (props: Props) => (
     <g stroke="currentColor" strokeWidth={2}>
       <path d="M1 0v25M6.425 12.5H32M21.15.893 31.225 12.5 21.15 24.107" />
     </g>
-  </Box>
+  </SharedSvgIcon>
 )
 export default ArrowNextBig

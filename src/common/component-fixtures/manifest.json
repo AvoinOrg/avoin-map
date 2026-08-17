@@ -1,0 +1,2202 @@
+[
+  {
+    "id": "shared-svg-icons",
+    "label": "Shared SVG icons",
+    "description": "Shared icon suite coverage including size, color, and edge-case behavior.",
+    "sourceGlobs": [
+      "src/components/icons/**/*.tsx",
+      "src/components/icons/index.ts",
+      "src/common/component-fixtures/fixtures/SharedSvgIconFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "all-icons-default",
+        "label": "All icons default",
+        "description": "Default render of every icon export from the shared icon index in a compact grid."
+      },
+      {
+        "id": "color-and-size",
+        "label": "Color and size",
+        "description": "Explicit size overrides and currentColor propagation checks."
+      },
+      {
+        "id": "edge-cases",
+        "label": "Edge cases",
+        "description": "Representatives without viewBox or with path/mask-heavy structures and unusual wrappers."
+      }
+    ]
+  },
+  {
+    "id": "map-button-primitives",
+    "label": "Map button primitives",
+    "description": "Reusable map button, menu, and sticky menu primitive states.",
+    "sourceGlobs": [
+      "src/components/Map/MapButton.tsx",
+      "src/components/Map/MapButtonMenu.tsx",
+      "src/components/Map/MapButtonStickyMenu.tsx",
+      "src/components/Map/CorridorBufferMenu.tsx",
+      "src/components/icons/Line.tsx",
+      "src/components/icons/Tune.tsx",
+      "src/common/component-fixtures/fixtures/MapButtonPrimitivesFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "default-horizontal",
+        "label": "Default horizontal",
+        "description": "Default map button with horizontal tooltip placement."
+      },
+      {
+        "id": "default-vertical",
+        "label": "Default vertical",
+        "description": "Default map button with vertical tooltip placement."
+      },
+      {
+        "id": "active",
+        "label": "Active",
+        "description": "Active styling hook supplied through caller sx."
+      },
+      {
+        "id": "disabled",
+        "label": "Disabled",
+        "description": "Disabled button styling with tooltip wrapper present."
+      },
+      {
+        "id": "tooltip-visible",
+        "label": "Tooltip visible",
+        "description": "Forced-open tooltip for deterministic visual capture.",
+        "waitFor": "[data-slot=\"map-button-tooltip\"]"
+      },
+      {
+        "id": "menu-open",
+        "label": "Menu open",
+        "description": "Default-open floating menu anchored to a map button.",
+        "waitFor": "[data-slot=\"map-button-menu-surface\"]"
+      },
+      {
+        "id": "sticky-menu-open",
+        "label": "Sticky menu open",
+        "description": "Active sticky menu with toggle rendered through the map sticky slot.",
+        "waitFor": "[data-slot=\"map-button-sticky-menu-close\"]"
+      },
+      {
+        "id": "horizontal",
+        "label": "Horizontal",
+        "description": "Horizontal menu placement below the map button.",
+        "waitFor": "[data-slot=\"map-button-menu-surface\"]"
+      },
+      {
+        "id": "vertical",
+        "label": "Vertical",
+        "description": "Vertical menu placement to the left of the map button.",
+        "waitFor": "[data-slot=\"map-button-menu-surface\"]"
+      }
+    ]
+  },
+  {
+    "id": "map-button-groups",
+    "label": "Map button groups",
+    "description": "Map toolbar button group orientation and draw-control states.",
+    "sourceGlobs": [
+      "src/components/Map/MapButtonGroups.tsx",
+      "src/components/Map/MapButton.tsx",
+      "src/components/icons/Done.tsx",
+      "src/components/icons/ExploreOutlined.tsx",
+      "src/components/icons/Delete.tsx",
+      "src/components/icons/EditDocument.tsx",
+      "src/components/icons/Line.tsx",
+      "src/components/icons/Polygon.tsx",
+      "src/common/component-fixtures/fixtures/MapLayerToolbarChromeFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "horizontal-basic",
+        "label": "Horizontal basic",
+        "description": "Joined horizontal map button group."
+      },
+      {
+        "id": "vertical-basic",
+        "label": "Vertical basic",
+        "description": "Joined vertical map button group."
+      },
+      {
+        "id": "draw-enabled",
+        "label": "Draw enabled",
+        "description": "Draw/edit/delete toolbar controls in a joined group."
+      },
+      {
+        "id": "dev-hidden",
+        "label": "Development buttons hidden",
+        "description": "Representative production toolbar group without dev-only buttons."
+      }
+    ]
+  },
+  {
+    "id": "map-user-buttons",
+    "label": "Map user buttons",
+    "description": "Account, home, and language map-control states.",
+    "sourceGlobs": [
+      "src/components/Map/MapUserButtons.tsx",
+      "src/components/Map/MapLoginButton.tsx",
+      "src/components/Map/MapButtonMenu.tsx",
+      "src/common/component-fixtures/fixtures/MapLayerToolbarChromeFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "signed-out",
+        "label": "Signed out",
+        "description": "Default signed-out account and language controls."
+      },
+      {
+        "id": "signed-in-menu-open",
+        "label": "Signed in menu open",
+        "description": "Authenticated account menu surface.",
+        "waitFor": "[data-slot=\"map-button-menu-surface\"]"
+      },
+      {
+        "id": "language-menu-open",
+        "label": "Language menu open",
+        "description": "Language menu surface with selected locale styling.",
+        "waitFor": "[data-slot=\"map-button-menu-surface\"]"
+      },
+      {
+        "id": "single-locale-disabled",
+        "label": "Single locale disabled",
+        "description": "Disabled language-style map button state."
+      }
+    ]
+  },
+  {
+    "id": "map-layer-menu",
+    "label": "Map layer menu",
+    "description": "Layer button popover and layer menu row states.",
+    "sourceGlobs": [
+      "src/components/Map/MapLayerButton/MapLayerButtonBase.tsx",
+      "src/components/Map/MapLayerButton/MapLayerButtonHorizontal.tsx",
+      "src/components/Map/MapLayerButton/MapLayerButtonVertical.tsx",
+      "src/components/Map/MapLayerButton/LayerMenuContent.tsx",
+      "src/components/Map/MapLayerButton/LayerMenuContent.test.tsx",
+      "src/components/Map/MapLayerButton/LayerItem.tsx",
+      "src/components/common/LayerMenuAccordion.tsx",
+      "src/components/common/LayerMenuAccordion.test.tsx",
+      "src/common/component-fixtures/fixtures/MapLayerToolbarChromeFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "horizontal-closed",
+        "label": "Horizontal closed",
+        "description": "Closed horizontal layer menu button."
+      },
+      {
+        "id": "horizontal-open",
+        "label": "Horizontal open",
+        "description": "Open horizontal layer menu popover.",
+        "waitFor": "[data-slot=\"map-button-menu-surface\"]"
+      },
+      {
+        "id": "vertical-open",
+        "label": "Vertical open",
+        "description": "Open vertical layer menu popover.",
+        "waitFor": "[data-slot=\"map-button-menu-surface\"]"
+      },
+      {
+        "id": "mobile-open",
+        "label": "Mobile open",
+        "description": "Menu content constrained for mobile visual capture."
+      },
+      {
+        "id": "alignment-expanded",
+        "label": "Expanded alignment",
+        "description": "Menu title, wrapping accordion title, glyph edges, and full-width content marker."
+      },
+      {
+        "id": "visible-row",
+        "label": "Visible row",
+        "description": "Selected layer thumbnail border."
+      },
+      {
+        "id": "hidden-row",
+        "label": "Hidden row",
+        "description": "Unselected layer thumbnail state."
+      },
+      {
+        "id": "processing-row",
+        "label": "Processing row",
+        "description": "Representative extra listed layer row."
+      },
+      {
+        "id": "info-open",
+        "label": "Info open",
+        "description": "Layer row with info control available."
+      },
+      {
+        "id": "opacity",
+        "label": "Opacity",
+        "description": "Layer opacity slider state."
+      }
+    ]
+  },
+  {
+    "id": "map-search-bar",
+    "label": "Map search bar",
+    "description": "Map search control open, loading, result, and empty states.",
+    "sourceGlobs": [
+      "src/components/Map/MapSearchBar.tsx",
+      "src/components/Map/MapActionsWrapper.tsx",
+      "src/common/component-fixtures/fixtures/MapSearchBarFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "collapsed",
+        "label": "Closed",
+        "description": "Vertical search reduced to the 40px map button."
+      },
+      {
+        "id": "open-focused",
+        "label": "Open focused",
+        "description": "Vertical search expanded with a focused input state."
+      },
+      {
+        "id": "loading",
+        "label": "Loading",
+        "description": "Search input showing the remote-loading spinner."
+      },
+      {
+        "id": "local-results",
+        "label": "Local results",
+        "description": "Local searchable data results rendered before remote data.",
+        "waitFor": "text=Helsinki City Hall"
+      },
+      {
+        "id": "remote-result",
+        "label": "Remote result",
+        "description": "Remote Nominatim-shaped result rendering.",
+        "waitFor": "text=Berlin"
+      },
+      {
+        "id": "selected",
+        "label": "Selected",
+        "description": "Selected result label remains in the input."
+      },
+      {
+        "id": "no-results",
+        "label": "No results",
+        "description": "Empty search state after a non-empty query.",
+        "waitFor": "text=No results"
+      },
+      {
+        "id": "horizontal-results",
+        "label": "Horizontal results",
+        "description": "Horizontal search mode renders inline with its listbox.",
+        "waitFor": "text=Helsinki City Hall"
+      },
+      {
+        "id": "vertical-stack-open",
+        "label": "Vertical stack open",
+        "description": "Expanded vertical search reserves layout space above toolbar buttons."
+      }
+    ]
+  },
+  {
+    "id": "layer-toggle-row",
+    "label": "LayerToggleRow",
+    "description": "Representative layer visibility toggle row states.",
+    "sourceGlobs": [
+      "src/components/common/LayerToggleRow.tsx",
+      "src/components/common/LayerToggleRow.test.tsx",
+      "src/components/common/LayerMenuAccordion.tsx",
+      "src/components/common/LayerMenuAccordion.test.tsx",
+      "src/components/common/Legend.tsx",
+      "src/components/common/LegendBox.tsx",
+      "src/components/common/LayerLegend.tsx",
+      "src/common/component-fixtures/fixtures/LayerToggleRowFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "hidden",
+        "label": "Hidden",
+        "description": "Default hidden layer status."
+      },
+      {
+        "id": "visible",
+        "label": "Visible",
+        "description": "Visible layer status with the default icon."
+      },
+      {
+        "id": "visible-colored",
+        "label": "Visible colored",
+        "description": "Visible layer status with a configured layer color."
+      },
+      {
+        "id": "processing",
+        "label": "Processing",
+        "description": "Loading state while a layer visibility change is processing."
+      },
+      {
+        "id": "disabled",
+        "label": "Disabled",
+        "description": "Disabled row that should not toggle."
+      },
+      {
+        "id": "icon-alignment",
+        "label": "Icon alignment",
+        "description": "Layer row labels keep one start position across icon states."
+      },
+      {
+        "id": "colored-variant-alignment",
+        "label": "Colored variant alignment",
+        "description": "Hidden and colored-visible base, accordion, and link rows keep stable geometry."
+      },
+      {
+        "id": "accordion-closed",
+        "label": "Accordion closed",
+        "description": "Closed accordion variant with unmounted child content."
+      },
+      {
+        "id": "accordion-open",
+        "label": "Accordion open",
+        "description": "Expanded accordion variant with visible child content."
+      },
+      {
+        "id": "row-link",
+        "label": "Row link",
+        "description": "Layer row with an isolated details link action."
+      },
+      {
+        "id": "layer-menu-accordion-closed",
+        "label": "Layer menu accordion closed",
+        "description": "Closed shared layer menu accordion segment."
+      },
+      {
+        "id": "layer-menu-accordion-open",
+        "label": "Layer menu accordion open",
+        "description": "Open shared layer menu accordion segment."
+      },
+      {
+        "id": "layer-menu-accordion-long-open",
+        "label": "Layer menu accordion long open",
+        "description": "Wrapping accordion title and an expanded full-width child marker."
+      },
+      {
+        "id": "legend-basic",
+        "label": "Legend basic",
+        "description": "Simple legend container with color swatches."
+      },
+      {
+        "id": "layer-legend",
+        "label": "Layer legend",
+        "description": "Layer legend item rows with literal and translated labels."
+      }
+    ]
+  },
+  {
+    "id": "luonnonmetsakartat-area-modal",
+    "label": "Luonnonmetsakartat area modal",
+    "locale": "fi",
+    "description": "Public Luonnonmetsakartat map modal states for F047 remigration coverage.",
+    "sourceGlobs": [
+      "src/applets/luonnonmetsakartat/components/AreaModal.tsx",
+      "src/common/component-fixtures/fixtures/LuonnonmetsakartatAreaModalFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "with-pictures",
+        "label": "With pictures",
+        "description": "Public area modal with description text, carousel arrows, and dots.",
+        "waitFor": "[data-testid=\"luonnonmetsakartat-area-modal-fixture\"]"
+      },
+      {
+        "id": "without-pictures",
+        "label": "Without pictures",
+        "description": "Public area modal using the narrower no-picture width threshold.",
+        "waitFor": "[data-testid=\"luonnonmetsakartat-area-modal-fixture\"]"
+      },
+      {
+        "id": "no-feature",
+        "label": "No feature",
+        "description": "Fallback content when the public modal receives no selected feature.",
+        "waitFor": "[data-testid=\"luonnonmetsakartat-area-modal-fixture\"]"
+      }
+    ]
+  },
+  {
+    "id": "luonnonmetsakartat-admin-pictures-area-modal",
+    "label": "Luonnonmetsakartat admin pictures and area modal",
+    "locale": "fi",
+    "description": "Natural forest admin picture mapping and editable area modal states for F047.13.5 remigration coverage.",
+    "sourceGlobs": [
+      "src/applets/luonnonmetsakartat/components/FolayerImportPictures.tsx",
+      "src/applets/luonnonmetsakartat/components/AreaModalAdmin.tsx",
+      "src/applets/luonnonmetsakartat/pages/admin/layer/folayer/pictures/LuonnonmetsakartatAdminLayerFolayerPicturesPage.tsx",
+      "src/common/component-fixtures/fixtures/LuonnonmetsakartatAdminPicturesAreaModalFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "pictures-empty",
+        "label": "Pictures empty",
+        "description": "Folder upload control before a directory has been selected.",
+        "waitFor": "[data-testid=\"luonnonmetsakartat-admin-pictures-area-modal-fixture\"]"
+      },
+      {
+        "id": "pictures-matched-unmatched",
+        "label": "Pictures matched and unmatched",
+        "description": "Selected folder with image-only filtering, automatic matches, and unmatched summary.",
+        "waitFor": "[data-testid=\"folayer-import-pictures-mapping-list\"]"
+      },
+      {
+        "id": "pictures-manual-mapping",
+        "label": "Pictures manual mapping",
+        "description": "Previously unmatched folder manually mapped to a known natural forest area.",
+        "waitFor": "[data-testid=\"folayer-import-pictures-mapping-list\"]"
+      },
+      {
+        "id": "pictures-options-open",
+        "label": "Pictures options open",
+        "description": "Area combobox open with selectable area options.",
+        "waitFor": "[data-slot=\"area-select-popup\"]"
+      },
+      {
+        "id": "pictures-no-options",
+        "label": "Pictures no options",
+        "description": "Area combobox open with no matching area options.",
+        "waitFor": "[data-slot=\"area-select-empty\"]"
+      },
+      {
+        "id": "area-modal-editable",
+        "label": "Area modal editable",
+        "description": "Editable admin area modal with existing gallery pictures.",
+        "waitFor": "[data-testid=\"luonnonmetsakartat-admin-area-modal\"]"
+      },
+      {
+        "id": "area-modal-unsynced",
+        "label": "Area modal unsynced",
+        "description": "Admin area modal with unsynced save footer visible and long editable content.",
+        "waitFor": "[data-testid=\"luonnonmetsakartat-admin-area-modal\"]"
+      },
+      {
+        "id": "area-modal-loading",
+        "label": "Area modal loading",
+        "description": "Admin area modal with save loading overlay visible.",
+        "waitFor": "[data-testid=\"luonnonmetsakartat-admin-area-modal\"]"
+      },
+      {
+        "id": "area-modal-lightbox",
+        "label": "Area modal lightbox",
+        "description": "Admin area modal with gallery lightbox open.",
+        "waitFor": "[data-testid=\"luonnonmetsakartat-admin-area-modal-lightbox-ready\"]"
+      }
+    ]
+  },
+  {
+    "id": "luonnonmetsakartat-folayer-import-controls",
+    "label": "Luonnonmetsakartat folayer import controls",
+    "locale": "fi",
+    "description": "Natural forest admin import action and code-record selector states for F047 remigration coverage.",
+    "sourceGlobs": [
+      "src/applets/luonnonmetsakartat/components/FolayerImportActionsRow.tsx",
+      "src/applets/luonnonmetsakartat/components/FolayerImportCodeRecordSelect.tsx",
+      "src/common/component-fixtures/fixtures/LuonnonmetsakartatFolayerImportControlsFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "accept-enabled",
+        "label": "Accept enabled",
+        "description": "Accept imported forest-layer action when form state is valid."
+      },
+      {
+        "id": "accept-disabled",
+        "label": "Accept disabled",
+        "description": "Disabled accept action before the import can be created."
+      },
+      {
+        "id": "code-record-empty",
+        "label": "Code selector empty",
+        "description": "Selector helper returns no control when no columns are loaded."
+      },
+      {
+        "id": "code-record-selected",
+        "label": "Code selector selected",
+        "description": "Code-record selector after a matching shapefile column is selected."
+      },
+      {
+        "id": "code-record-allow-empty",
+        "label": "Optional code selector",
+        "description": "Optional code-record selector with the empty value allowed.",
+        "waitFor": "role=option"
+      }
+    ]
+  },
+  {
+    "id": "luonnonmetsakartat-search-table",
+    "label": "Luonnonmetsakartat SearchTable",
+    "locale": "fi",
+    "description": "Admin natural forest area search table states for F047 remigration coverage.",
+    "sourceGlobs": [
+      "src/applets/luonnonmetsakartat/components/SearchTable.tsx",
+      "src/common/component-fixtures/fixtures/LuonnonmetsakartatSearchTableFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "populated",
+        "label": "Populated",
+        "description": "Default populated search table with compact search and sort controls.",
+        "waitFor": "text=North Ridge Forest"
+      },
+      {
+        "id": "selected-row",
+        "label": "Selected row",
+        "description": "Search table with map-store selection seeded for selected-row styling.",
+        "waitFor": "[data-testid=\"search-table-row-selected\"]"
+      },
+      {
+        "id": "many-rows",
+        "label": "Many rows",
+        "description": "Enough rows to exercise the virtualized list height and scroll container.",
+        "waitFor": "text=Fixture Forest 01"
+      }
+    ]
+  },
+  {
+    "id": "energymap-energy-class-controls",
+    "label": "Energiakartta energy class controls",
+    "description": "Energiakartta A-G energy certificate class control states.",
+    "sourceGlobs": [
+      "src/applets/energy/components/EnergyCertificateClassControls.tsx",
+      "src/applets/energy/components/EnergyCertificateClassControls.test.tsx",
+      "src/common/component-fixtures/fixtures/EnergymapFrontPageControlsFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "desktop-all-active",
+        "label": "Desktop all active",
+        "description": "Default horizontal desktop control with every class active."
+      },
+      {
+        "id": "desktop-some-inactive",
+        "label": "Desktop some inactive",
+        "description": "Horizontal desktop control with alternating inactive classes."
+      },
+      {
+        "id": "mobile-vertical",
+        "label": "Mobile vertical",
+        "description": "Floating mobile vertical control with a reduced active set."
+      }
+    ]
+  },
+  {
+    "id": "energymap-background-filters",
+    "label": "Energiakartta background filters",
+    "description": "Energiakartta background building filter control states.",
+    "sourceGlobs": [
+      "src/applets/energy/components/BackgroundBuildingFiltersAccordionContent.tsx",
+      "src/applets/energy/components/BackgroundBuildingFiltersAccordionContent.test.tsx",
+      "src/common/component-fixtures/fixtures/EnergymapFrontPageControlsFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "default-any-year",
+        "label": "Default any year",
+        "description": "Default filters with no construction decade selected."
+      },
+      {
+        "id": "selected-decade",
+        "label": "Selected decade",
+        "description": "Filters with a selected construction decade and only-decade switch active."
+      }
+    ]
+  },
+  {
+    "id": "energymap-building-info-panel",
+    "label": "Energiakartta building info panel",
+    "description": "Energiakartta building-info panel tabs, metric controls, mobile layout, and collapsed action rail.",
+    "sourceGlobs": [
+      "src/applets/energy/common/buildingInfo.ts",
+      "src/applets/energy/common/buildingInfo.test.ts",
+      "src/applets/energy/components/BuildingInfoPanel.tsx",
+      "src/applets/energy/components/BuildingInfoPanel.test.tsx",
+      "src/common/component-fixtures/fixtures/EnergymapBuildingInfoPanelFixture.tsx",
+      "src/public/img/energiakartta/sidebar/building-info-unavailable-value.svg"
+    ],
+    "states": [
+      {
+        "id": "desktop-basic",
+        "label": "Desktop basic",
+        "description": "Basic two-panel tab with metric controls.",
+        "waitFor": "[data-testid=\"building-info-tab-page-basic\"]"
+      },
+      {
+        "id": "desktop-renovation",
+        "label": "Desktop renovation",
+        "description": "Renovation tab with comparison and effectiveness content.",
+        "waitFor": "[data-testid=\"building-info-tab-page-renovation\"]"
+      },
+      {
+        "id": "desktop-recommendation-expanded",
+        "label": "Desktop certificate recommendation expanded",
+        "description": "Expanded long Finnish certificate recommendation with paragraph breaks.",
+        "waitFor": "[data-testid=\"building-info-fixture-interaction-ready\"]"
+      },
+      {
+        "id": "building-details",
+        "label": "Building details",
+        "description": "Modeled energy-class label and help control plus certificate details.",
+        "waitFor": "[data-testid=\"building-info-fixture-interaction-ready\"]"
+      },
+      {
+        "id": "calculation-details-expanded",
+        "label": "Calculation details expanded",
+        "description": "Expanded calculation details with stacked basis text.",
+        "waitFor": "[data-testid=\"building-info-fixture-interaction-ready\"]"
+      },
+      {
+        "id": "water-default",
+        "label": "Water default",
+        "description": "Supported Water estimate with the derived resident count.",
+        "waitFor": "[data-testid=\"building-info-water-resident-control\"]"
+      },
+      {
+        "id": "water-override",
+        "label": "Water override",
+        "description": "Supported Water estimate with resident override enabled.",
+        "waitFor": "[data-testid=\"building-info-fixture-interaction-ready\"]"
+      },
+      {
+        "id": "mobile-water-override",
+        "label": "Mobile Water override",
+        "description": "Forced stacked Water layout with resident override enabled.",
+        "waitFor": "[data-testid=\"building-info-fixture-interaction-ready\"]"
+      },
+      {
+        "id": "mobile-renovation",
+        "label": "Mobile renovation",
+        "description": "Forced stacked layout for the renovation tab.",
+        "waitFor": "[data-testid=\"building-info-tab-page-renovation\"]"
+      },
+      {
+        "id": "mobile-recommendation-expanded",
+        "label": "Mobile certificate recommendation expanded",
+        "description": "Expanded long Swedish certificate recommendation in forced mobile layout.",
+        "waitFor": "[data-testid=\"building-info-fixture-interaction-ready\"]"
+      },
+      {
+        "id": "metric-supported",
+        "label": "Supported metric",
+        "description": "Supported annual Cost metric selected by default.",
+        "waitFor": "[data-testid=\"building-info-tab-page-basic\"]"
+      },
+      {
+        "id": "metric-unsupported",
+        "label": "Unsupported metric",
+        "description": "Unsupported primary metric selected by default.",
+        "waitFor": "[data-testid=\"building-info-tab-page-basic\"]"
+      },
+      {
+        "id": "action-rail-collapsed",
+        "label": "Collapsed action rail",
+        "description": "Collapsed row action rail with both reopen buttons.",
+        "waitFor": "[data-testid=\"building-info-action-rail\"]"
+      }
+    ]
+  },
+  {
+    "id": "hiilikartta-display-primitives",
+    "label": "Hiilikartta display primitives",
+    "description": "Applet-local public display primitive states for the Hiilikartta remigration.",
+    "sourceGlobs": [
+      "src/applets/carbon/components/PlanOutlineIcon.tsx",
+      "src/applets/carbon/components/PlanListItem.tsx",
+      "src/applets/carbon/components/PlanListItemLoading.tsx",
+      "src/applets/carbon/components/PlanFolder.tsx",
+      "src/applets/carbon/components/PlanFolderLoading.tsx",
+      "src/common/component-fixtures/fixtures/HiilikarttaDisplayPrimitivesFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "plan-outline-icons",
+        "label": "Plan outline icons",
+        "description": "Small and large plan outline icons with color and size overrides."
+      },
+      {
+        "id": "plan-list-default",
+        "label": "Plan list default",
+        "description": "Normal plan list row with a long name and arrow affordance."
+      },
+      {
+        "id": "plan-list-statuses",
+        "label": "Plan list statuses",
+        "description": "Calculation, error, finished, and custom status rows."
+      },
+      {
+        "id": "plan-list-loading",
+        "label": "Plan list loading",
+        "description": "Plan list loading placeholder row."
+      },
+      {
+        "id": "plan-folder-unsaved",
+        "label": "Plan folder unsaved",
+        "description": "Save-enabled folder with no cloud save timestamp."
+      },
+      {
+        "id": "plan-folder-last-saved",
+        "label": "Plan folder last saved",
+        "description": "Folder showing a deterministic last-saved timestamp."
+      },
+      {
+        "id": "plan-folder-editable-name",
+        "label": "Plan folder editable name",
+        "description": "Folder rendering the editable plan name affordance."
+      },
+      {
+        "id": "plan-folder-calculating",
+        "label": "Plan folder calculating",
+        "description": "Folder with calculation progress status."
+      },
+      {
+        "id": "plan-folder-errored",
+        "label": "Plan folder errored",
+        "description": "Folder with calculation error status."
+      },
+      {
+        "id": "plan-folder-loading",
+        "label": "Plan folder loading",
+        "description": "Folder loading state for cloud plan placeholders."
+      }
+    ]
+  },
+  {
+    "id": "hiilikartta-plan-import-controls",
+    "label": "Hiilikartta plan import controls",
+    "description": "Plan detail import action and code-record selector states for the Hiilikartta authoring flow.",
+    "sourceGlobs": [
+      "src/applets/carbon/pages/plans/plan/_components/PlanImportActionsRow.tsx",
+      "src/applets/carbon/pages/plans/plan/_components/PlanImportCodeRecordSelect.tsx",
+      "src/common/component-fixtures/fixtures/HiilikarttaPlanImportControlsFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "accept-enabled",
+        "label": "Accept enabled",
+        "description": "Accept imported plan action when a pending import exists."
+      },
+      {
+        "id": "accept-disabled",
+        "label": "Accept disabled",
+        "description": "Disabled accept action before the import can be applied."
+      },
+      {
+        "id": "code-record-placeholder",
+        "label": "Code selector placeholder",
+        "description": "Required zoning-code selector with columns and no selection."
+      },
+      {
+        "id": "code-record-selected",
+        "label": "Code selector selected",
+        "description": "Required zoning-code selector after a valid column is selected."
+      },
+      {
+        "id": "code-record-allow-empty",
+        "label": "Optional name selector",
+        "description": "Optional area-name selector with the empty value allowed."
+      }
+    ]
+  },
+  {
+    "id": "hiilikartta-plan-report-actions",
+    "label": "Hiilikartta plan report actions",
+    "description": "Plan report flow and footer action states for the Hiilikartta authoring flow.",
+    "sourceGlobs": [
+      "src/applets/carbon/pages/plans/plan/_components/PlanReportFlowStep.tsx",
+      "src/applets/carbon/pages/plans/plan/_components/PlanActionFooter.tsx",
+      "src/common/component-fixtures/fixtures/HiilikarttaPlanReportActionsFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "report-disabled-tooltip",
+        "label": "Report disabled tooltip",
+        "description": "Incomplete report action with the disabled prerequisite tooltip forced open.",
+        "waitFor": "[data-slot=\"plan-report-disabled-tooltip\"]"
+      },
+      {
+        "id": "report-initializing",
+        "label": "Report initializing",
+        "description": "Report calculation has been queued and shows starting copy.",
+        "maskSelectors": ["[data-visual-mask=\"plan-report-spinner\"]"]
+      },
+      {
+        "id": "report-calculating",
+        "label": "Report calculating",
+        "description": "Report calculation in progress with spinner and helper text.",
+        "maskSelectors": ["[data-visual-mask=\"plan-report-spinner\"]"]
+      },
+      {
+        "id": "report-errored",
+        "label": "Report errored",
+        "description": "Errored report action remains retryable when prerequisites pass."
+      },
+      {
+        "id": "report-finished",
+        "label": "Report finished",
+        "description": "Finished report preview with calculated date, default year, metrics, and reset action."
+      },
+      {
+        "id": "report-finished-alternate-year",
+        "label": "Report finished alternate year",
+        "description": "Finished report preview where the default selectable year and metrics differ."
+      },
+      {
+        "id": "footer-copy-delete",
+        "label": "Footer copy and delete",
+        "description": "Plan footer with copy and delete actions visible."
+      },
+      {
+        "id": "footer-login-cloud",
+        "label": "Footer login cloud action",
+        "description": "Plan footer prompting a signed-out user to log in."
+      },
+      {
+        "id": "footer-save-cloud",
+        "label": "Footer save cloud action",
+        "description": "Plan footer with an enabled cloud save action."
+      },
+      {
+        "id": "footer-disabled-cloud",
+        "label": "Footer disabled cloud action",
+        "description": "Plan footer with the cloud action visible but disabled."
+      },
+      {
+        "id": "footer-last-saved",
+        "label": "Footer last saved label",
+        "description": "Plan footer with cloud save action and last-saved metadata."
+      }
+    ]
+  },
+  {
+    "id": "hiilikartta-zone-area-controls",
+    "label": "Hiilikartta zone area controls",
+    "description": "Zone class chip and area filter/sort control states for the Hiilikartta areas route.",
+    "sourceGlobs": [
+      "src/applets/carbon/pages/plans/plan/areas/_components/ZoneAccordion.tsx",
+      "src/applets/carbon/pages/plans/plan/areas/_components/ZoneClassChip.tsx",
+      "src/applets/carbon/pages/plans/plan/areas/_components/zoneAreaUtils.ts",
+      "src/common/component-fixtures/fixtures/HiilikarttaZoneAreaControlsFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "chip-variants",
+        "label": "Chip variants",
+        "description": "Default, dark, custom color, lower-case, and unknown zone class chip states."
+      },
+      {
+        "id": "controls-empty",
+        "label": "Controls empty",
+        "description": "Closed filter and sort controls with no selected filters."
+      },
+      {
+        "id": "filter-open",
+        "label": "Filter open",
+        "description": "Open filter menu with leading zone chips and trailing option counts.",
+        "waitFor": "role=option"
+      },
+      {
+        "id": "selected-one",
+        "label": "Selected one",
+        "description": "Closed filter control with one selected zone class chip."
+      },
+      {
+        "id": "selected-overflow",
+        "label": "Selected overflow",
+        "description": "Closed filter control with two visible chips and an overflow count."
+      },
+      {
+        "id": "sort-open",
+        "label": "Sort open",
+        "description": "Open compact sort menu using the migrated style hooks.",
+        "waitFor": "role=option"
+      }
+    ]
+  },
+  {
+    "id": "hiilikartta-zone-accordion-item",
+    "label": "Hiilikartta zone accordion item",
+    "description": "Zone accordion item states for the Hiilikartta area land-use editor migration.",
+    "sourceGlobs": [
+      "src/applets/carbon/pages/plans/plan/areas/_components/ZoneAccordionItem.tsx",
+      "src/applets/carbon/pages/plans/plan/areas/_components/ZoneClassChip.tsx",
+      "src/applets/carbon/pages/plans/plan/areas/_components/zoneAreaUtils.ts",
+      "src/common/component-fixtures/fixtures/HiilikarttaZoneAccordionItemFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "collapsed",
+        "label": "Collapsed",
+        "description": "Collapsed item summary row with standard zoning class chip.",
+        "waitFor": "[data-testid=\"zone-item-collapsed-ready\"]"
+      },
+      {
+        "id": "expanded",
+        "label": "Expanded",
+        "description": "Expanded item with rename and zoning class controls visible.",
+        "waitFor": "[data-testid=\"zone-item-expanded-ready\"]"
+      },
+      {
+        "id": "invalid-zoning-code",
+        "label": "Invalid zoning code",
+        "description": "Expanded item with invalid zoning class warning and no land-use tooltip.",
+        "waitFor": "[data-testid=\"zone-item-invalid-zoning-code-ready\"]"
+      },
+      {
+        "id": "invalid-land-use-warning",
+        "label": "Invalid land-use warning",
+        "description": "Expanded item with invalid land-use distribution and warning badge.",
+        "waitFor": "[data-testid=\"zone-item-invalid-land-use-warning-ready\"]"
+      },
+      {
+        "id": "invalid-land-use-tooltip-visible",
+        "label": "Invalid land-use tooltip visible",
+        "description": "Expanded invalid land-use item with its warning tooltip focused and visible.",
+        "waitFor": "[data-slot=\"zone-land-use-warning-tooltip\"][data-open]"
+      },
+      {
+        "id": "land-use-editor-closed",
+        "label": "Land-use editor closed",
+        "description": "Expanded item with the nested land-use editor disclosure closed.",
+        "waitFor": "[data-testid=\"zone-item-land-use-editor-closed-ready\"]"
+      },
+      {
+        "id": "land-use-editor-open",
+        "label": "Land-use editor open",
+        "description": "Expanded item with all land-use number inputs visible.",
+        "waitFor": "[data-testid=\"zone-item-land-use-editor-open-ready\"]"
+      },
+      {
+        "id": "changed-zone-name",
+        "label": "Changed zone name",
+        "description": "Expanded item after a local zone-name draft change.",
+        "waitFor": "[data-testid=\"zone-item-changed-zone-name-ready\"]"
+      },
+      {
+        "id": "changed-land-use-number",
+        "label": "Changed land-use number",
+        "description": "Expanded land-use editor after a local land-use number draft change.",
+        "waitFor": "[data-testid=\"zone-item-changed-land-use-number-ready\"]"
+      },
+      {
+        "id": "powerline-zone",
+        "label": "Powerline zone",
+        "description": "Powerline zoning class with corridor-specific land-use labels.",
+        "waitFor": "[data-testid=\"zone-item-powerline-zone-ready\"]"
+      },
+      {
+        "id": "long-name",
+        "label": "Long name",
+        "description": "Expanded item with a long area name for summary truncation.",
+        "waitFor": "[data-testid=\"zone-item-long-name-ready\"]"
+      }
+    ]
+  },
+  {
+    "id": "hiilikartta-carbon-line-chart",
+    "label": "Hiilikartta carbon line chart",
+    "description": "Report line chart unit toggle, VisX sizing, tooltip, legend, and minimal-data states.",
+    "sourceGlobs": [
+      "src/applets/carbon/components/CarbonLineChart/CarbonLineChart.tsx",
+      "src/applets/carbon/components/CarbonLineChart/CarbonLineChartInner.tsx",
+      "src/applets/carbon/components/CarbonLineChart/index.ts",
+      "src/common/component-fixtures/fixtures/HiilikarttaCarbonLineChartFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "outer-hectare-default",
+        "label": "Outer hectare default",
+        "description": "Full line chart with ResizeObserver sizing, hectare selected by default, two plans, and legend.",
+        "waitFor": "[data-testid=\"line-chart-outer-ready\"]"
+      },
+      {
+        "id": "outer-total-selected",
+        "label": "Outer total selected",
+        "description": "Full line chart after selecting the total unit button through fixture interaction.",
+        "waitFor": "[data-testid=\"line-chart-total-ready\"]"
+      },
+      {
+        "id": "inner-total-multiple-plans",
+        "label": "Inner total multiple plans",
+        "description": "Direct VisX chart in total mode with multiple plans and a long plan name."
+      },
+      {
+        "id": "tooltip-visible",
+        "label": "Tooltip visible",
+        "description": "Direct chart with a deterministic mouse move over the overlay to show tooltip content.",
+        "waitFor": "[data-testid=\"carbon-line-chart-tooltip\"]"
+      },
+      {
+        "id": "legend-series-hidden",
+        "label": "Legend series hidden",
+        "description": "Direct chart after toggling one legend series off through native button behavior.",
+        "waitFor": "[data-testid=\"line-chart-legend-hidden-ready\"]"
+      },
+      {
+        "id": "narrow-overflow",
+        "label": "Narrow overflow",
+        "description": "Outer line chart constrained below the chart minimum width so horizontal overflow remains available.",
+        "waitFor": "[data-testid=\"line-chart-narrow-ready\"]"
+      },
+      {
+        "id": "minimal-empty",
+        "label": "Minimal empty",
+        "description": "Direct chart with a plan name but no plottable features, covering fallback domains."
+      }
+    ]
+  },
+  {
+    "id": "hiilikartta-carbon-map-graph",
+    "label": "Hiilikartta carbon map graph",
+    "description": "Report carbon map graph controls, MapLibre overlay, legend integration, and summary table states.",
+    "sourceGlobs": [
+      "src/applets/carbon/components/CarbonMapGraph/CarbonMapGraph.tsx",
+      "src/applets/carbon/components/CarbonMapGraph/CarbonMapGraphMap.tsx",
+      "src/applets/carbon/components/CarbonMapGraph/CarbonMapGraphTable.tsx",
+      "src/applets/carbon/components/CarbonMapGraph/index.tsx",
+      "src/common/component-fixtures/fixtures/HiilikarttaCarbonMapGraphFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "default-graph",
+        "label": "Default graph",
+        "description": "Full map graph with default total calculation, first comparison year, all zoning types, two plans, legend, and table.",
+        "waitFor": "[data-map-graph-rendered=\"true\"]"
+      },
+      {
+        "id": "alternate-current-filtered",
+        "label": "Alternate current filtered",
+        "description": "Full map graph initialized to the alternate year, ground-carbon calculation, V zoning filter, and current-situation plan option.",
+        "waitFor": "[data-map-graph-rendered=\"true\"]"
+      },
+      {
+        "id": "table-hidden-rows",
+        "label": "Table hidden rows",
+        "description": "Summary table using bio-carbon values for the alternate year with non-V zoning rows hidden from totals."
+      }
+    ]
+  },
+  {
+    "id": "hiilikartta-report-overview",
+    "label": "Hiilikartta report overview",
+    "description": "Report overview, geometry preview, carbon-change legend, and read-more modal states.",
+    "sourceGlobs": [
+      "src/applets/carbon/components/CarbonChangeLegend.tsx",
+      "src/applets/carbon/components/CarbonOverviewGraph/CarbonOverviewGraph.tsx",
+      "src/applets/carbon/components/CarbonOverviewGraph/GeomGraphic.tsx",
+      "src/applets/carbon/components/CarbonOverviewGraph/index.tsx",
+      "src/applets/carbon/components/ReadMoreModal.tsx",
+      "src/common/component-fixtures/fixtures/HiilikarttaReportOverviewFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "legend-wide",
+        "label": "Legend wide",
+        "description": "Horizontal carbon-change legend with wide viewport media forced on.",
+        "waitFor": "[data-testid=\"legend-media-ready\"]"
+      },
+      {
+        "id": "legend-narrow",
+        "label": "Legend narrow",
+        "description": "Vertical carbon-change legend with narrow viewport media forced on.",
+        "waitFor": "[data-testid=\"legend-media-ready\"]"
+      },
+      {
+        "id": "geom-negative",
+        "label": "Geometry negative",
+        "description": "Standalone geometry preview rendered with shrink colors."
+      },
+      {
+        "id": "geom-mixed",
+        "label": "Geometry mixed",
+        "description": "Standalone geometry preview with shrink, no-change, grow, and no-data colors."
+      },
+      {
+        "id": "overview-single-plan",
+        "label": "Overview single plan",
+        "description": "Overview graph with one deterministic report plan."
+      },
+      {
+        "id": "overview-multiple-plans",
+        "label": "Overview multiple plans",
+        "description": "Overview graph with two deterministic report plans and a long plan name."
+      },
+      {
+        "id": "read-more-closed",
+        "label": "Read more closed",
+        "description": "Closed read-more modal trigger."
+      },
+      {
+        "id": "read-more-open",
+        "label": "Read more open",
+        "description": "Read-more modal opened by deterministic fixture interaction.",
+        "waitFor": "role=dialog"
+      }
+    ]
+  },
+  {
+    "id": "main-popup-table",
+    "label": "Main popup table",
+    "description": "Native table wrappers used by main map layer popups.",
+    "sourceGlobs": [
+      "src/components/Map/layers/main/common/PopupTable.tsx",
+      "src/common/component-fixtures/fixtures/MainPopupTableFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "light",
+        "label": "Light",
+        "description": "Default popup table on a light modal background."
+      },
+      {
+        "id": "dark-inherited",
+        "label": "Dark inherited",
+        "description": "Popup table inheriting dark modal colors and borders."
+      }
+    ]
+  },
+  {
+    "id": "drop-down-select",
+    "label": "DropDownSelect",
+    "description": "Shared single-select dropdown states.",
+    "sourceGlobs": [
+      "src/components/common/DropDownSelect.tsx",
+      "src/components/common/DropDownSelectWithLabel.tsx",
+      "src/components/common/DropDownSelectWithLabel.test.tsx",
+      "src/components/common/DropDownSelectInset.tsx",
+      "src/components/common/DropDownSelectMinimal.tsx",
+      "src/components/common/DropDownSelectInset.test.tsx",
+      "src/common/component-fixtures/fixtures/DropDownSelectFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "placeholder",
+        "label": "Placeholder",
+        "description": "Empty value rendering a muted placeholder."
+      },
+      {
+        "id": "empty-selection",
+        "label": "Empty selection",
+        "description": "Open menu with the empty selection entry.",
+        "waitFor": "role=option"
+      },
+      {
+        "id": "invalid-value",
+        "label": "Invalid value",
+        "description": "Open menu with the invalid incoming value entry.",
+        "waitFor": "role=option"
+      },
+      {
+        "id": "selected",
+        "label": "Selected",
+        "description": "Closed stateful select with a valid selected value for keyboard checks."
+      },
+      {
+        "id": "open",
+        "label": "Open",
+        "description": "Open menu below the trigger.",
+        "waitFor": "role=option"
+      },
+      {
+        "id": "long-list-open",
+        "label": "Long list open",
+        "description": "Open menu with enough options to require scrolling.",
+        "waitFor": "text=Overflow option 16"
+      },
+      {
+        "id": "disabled",
+        "label": "Disabled",
+        "description": "Disabled select with a selected value."
+      },
+      {
+        "id": "focused",
+        "label": "Focused",
+        "description": "Focused trigger state."
+      },
+      {
+        "id": "success-indicator",
+        "label": "Success indicator",
+        "description": "Valid selection with outside success indicator."
+      },
+      {
+        "id": "header-label-action",
+        "label": "Labeled select action",
+        "description": "Labeled wrapper with label and action content."
+      },
+      {
+        "id": "inset-label",
+        "label": "Inset label",
+        "description": "Inset wrapper with select before the side label."
+      },
+      {
+        "id": "inset-long-label",
+        "label": "Inset long label",
+        "description": "Long side label wraps while independently sized wrapper and trigger stay visible."
+      },
+      {
+        "id": "inset-open",
+        "label": "Inset open",
+        "description": "Inset dropdown with its popup open for arrow and option spacing checks.",
+        "waitFor": "role=option"
+      },
+      {
+        "id": "minimal-selected",
+        "label": "Minimal selected",
+        "description": "Compact minimal variant with selected value."
+      },
+      {
+        "id": "minimal-open",
+        "label": "Minimal open",
+        "description": "Compact minimal variant with the menu open.",
+        "waitFor": "role=option"
+      }
+    ]
+  },
+  {
+    "id": "drop-down-multi-select",
+    "label": "DropDownMultiSelect",
+    "description": "Shared multi-select dropdown states.",
+    "sourceGlobs": [
+      "src/components/common/DropDownSelect.tsx",
+      "src/components/common/DropDownMultiSelect.tsx",
+      "src/components/icons/Checkbox.tsx",
+      "src/components/icons/CheckboxChecked.tsx",
+      "src/components/common/DropDownMultiSelect.test.tsx",
+      "src/common/component-fixtures/fixtures/DropDownMultiSelectFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "placeholder",
+        "label": "Placeholder",
+        "description": "Empty value rendering a muted placeholder."
+      },
+      {
+        "id": "open",
+        "label": "Open",
+        "description": "Open menu with unchecked and checked option indicators."
+      },
+      {
+        "id": "long-list-open",
+        "label": "Long list open",
+        "description": "Open menu with enough options to require scrolling.",
+        "waitFor": "text=Overflow layer 16"
+      },
+      {
+        "id": "selected-one",
+        "label": "Selected one",
+        "description": "One selected value summarized in the trigger."
+      },
+      {
+        "id": "selected-multiple",
+        "label": "Selected multiple",
+        "description": "Multiple selected values summarized in the trigger."
+      },
+      {
+        "id": "custom-option-content",
+        "label": "Custom option content",
+        "description": "Open menu using a custom option renderer."
+      },
+      {
+        "id": "disabled",
+        "label": "Disabled",
+        "description": "Disabled trigger with selected value."
+      }
+    ]
+  },
+  {
+    "id": "multi-select-autocomplete",
+    "label": "MultiSelectAutocomplete",
+    "description": "Shared multi-select autocomplete states.",
+    "sourceGlobs": [
+      "src/components/common/MultiSelectAutocomplete.tsx",
+      "src/components/common/MultiSelectAutocomplete.test.tsx",
+      "src/common/component-fixtures/fixtures/MultiSelectAutocompleteFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "empty",
+        "label": "Empty",
+        "description": "Empty autocomplete with placeholder text."
+      },
+      {
+        "id": "selected-chips",
+        "label": "Selected chips",
+        "description": "Autocomplete with selected value chips."
+      },
+      {
+        "id": "open-options",
+        "label": "Open options",
+        "description": "Open autocomplete list with matching options.",
+        "waitFor": "text=Central plan"
+      },
+      {
+        "id": "long-list-open",
+        "label": "Long list open",
+        "description": "Open listbox with enough options to require scrolling.",
+        "waitFor": "text=Overflow plan 16"
+      },
+      {
+        "id": "chip-delete",
+        "label": "Chip delete",
+        "description": "Selected chip with visible delete affordance."
+      },
+      {
+        "id": "no-results",
+        "label": "No results",
+        "description": "Open autocomplete list with no matching options.",
+        "waitFor": "text=components.autocomplete.no_results"
+      }
+    ]
+  },
+  {
+    "id": "number-input-field",
+    "label": "NumberInputField",
+    "description": "Shared Base UI number input states.",
+    "sourceGlobs": [
+      "src/components/common/NumberInputField.tsx",
+      "src/components/common/NumberInputField.test.tsx",
+      "src/common/component-fixtures/fixtures/NumberInputFieldFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "empty",
+        "label": "Empty",
+        "description": "Empty field with a visible label."
+      },
+      {
+        "id": "value",
+        "label": "Value",
+        "description": "Populated field with default medium sizing."
+      },
+      {
+        "id": "focused",
+        "label": "Focused",
+        "description": "Focused field using the native input focus state."
+      },
+      {
+        "id": "disabled",
+        "label": "Disabled",
+        "description": "Disabled field with value and stepper controls disabled."
+      },
+      {
+        "id": "required",
+        "label": "Required",
+        "description": "Required state with label indication."
+      },
+      {
+        "id": "error-helper",
+        "label": "Error helper",
+        "description": "Error state with helper text."
+      },
+      {
+        "id": "min-max",
+        "label": "Min and max",
+        "description": "Value at max to show disabled increment control."
+      },
+      {
+        "id": "decimal-step",
+        "label": "Decimal step",
+        "description": "Decimal value with decimal step formatting."
+      },
+      {
+        "id": "increment-decrement",
+        "label": "Increment and decrement",
+        "description": "Medium and small stepper glyph alignment inside unchanged controls."
+      },
+      {
+        "id": "small",
+        "label": "Small",
+        "description": "Small size field matching compact map/sidebar call sites."
+      }
+    ]
+  },
+  {
+    "id": "editable-text",
+    "label": "EditableText",
+    "description": "Shared editable inline text control states.",
+    "sourceGlobs": [
+      "src/components/common/EditableText.tsx",
+      "src/components/common/EditableText.test.tsx",
+      "src/common/component-fixtures/fixtures/EditableTextFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "display",
+        "label": "Display",
+        "description": "Read-only mode with default value."
+      },
+      {
+        "id": "display-with-appendix",
+        "label": "Display with appendix",
+        "description": "Read-only mode with value appendix."
+      },
+      {
+        "id": "edit-mode",
+        "label": "Edit mode",
+        "description": "Entered edit mode through edit control activation.",
+        "waitFor": "text=Edit mode activated"
+      },
+      {
+        "id": "changed-draft",
+        "label": "Changed draft",
+        "description": "Draft value changed while edit mode is active.",
+        "waitFor": "text=Draft changed, edit mode active"
+      },
+      {
+        "id": "save-action",
+        "label": "Save action",
+        "description": "Draft is committed and component returns to display mode.",
+        "waitFor": "text=Committed:"
+      },
+      {
+        "id": "cancel-action",
+        "label": "Cancel action",
+        "description": "Draft is reverted and component returns to display mode.",
+        "waitFor": "text=Edit action canceled, value restored"
+      },
+      {
+        "id": "keyboard-activation",
+        "label": "Keyboard activation",
+        "description": "Edit mode is entered from keyboard keydown.",
+        "waitFor": "text=Edit mode entered with keyboard activation"
+      },
+      {
+        "id": "long-text-overflow",
+        "label": "Long text overflow",
+        "description": "Display text uses ellipsis in narrow space."
+      }
+    ]
+  },
+  {
+    "id": "button-primitives",
+    "label": "Button primitives",
+    "description": "Shared Base UI backed button primitive states.",
+    "sourceGlobs": [
+      "src/components/common/Button.tsx",
+      "src/components/common/Button.test.tsx",
+      "src/components/common/ButtonLinkRow.tsx",
+      "src/components/common/ButtonLinkRow.test.tsx",
+      "src/common/component-fixtures/fixtures/ButtonPrimitivesFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "button-default",
+        "label": "Button default",
+        "description": "Default contained button with decorative icon slots."
+      },
+      {
+        "id": "button-icon-balance",
+        "label": "Button icon balance",
+        "description": "Start-only and end-only icon slots beside button text."
+      },
+      {
+        "id": "button-link-row",
+        "label": "Button link row",
+        "description": "Default shared navigation row height and pill radius."
+      },
+      {
+        "id": "button-disabled",
+        "label": "Button disabled",
+        "description": "Disabled native button state."
+      },
+      {
+        "id": "button-focus-visible",
+        "label": "Button focus visible",
+        "description": "Keyboard focus-visible styling hook."
+      },
+      {
+        "id": "button-pressed",
+        "label": "Button pressed",
+        "description": "Pressed and active styling hooks supplied by ARIA/data."
+      },
+      {
+        "id": "button-anchor",
+        "label": "Button anchor",
+        "description": "Anchor render preserving link semantics."
+      },
+      {
+        "id": "icon-only",
+        "label": "Icon only",
+        "description": "Icon-only button with caller supplied accessible name."
+      }
+    ]
+  },
+  {
+    "id": "boolean-controls",
+    "label": "Boolean Controls",
+    "description": "Shared boolean control states.",
+    "sourceGlobs": [
+      "src/components/common/Switch.tsx",
+      "src/components/common/SwitchWithLabel.tsx",
+      "src/components/common/SwitchWithLabel.test.tsx",
+      "src/components/common/SquishedSwitchWithLabel.tsx",
+      "src/components/common/CheckBoxWithLabel.tsx",
+      "src/components/icons/Checkbox.tsx",
+      "src/components/icons/CheckboxChecked.tsx",
+      "src/components/common/SquishedSwitchWithLabel.test.tsx",
+      "src/components/common/CheckBoxWithLabel.test.tsx",
+      "src/common/component-fixtures/fixtures/BooleanControlsFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "switch-unchecked",
+        "label": "Switch unchecked",
+        "description": "Switch false state with visible text label."
+      },
+      {
+        "id": "switch-checked",
+        "label": "Switch checked",
+        "description": "Switch true state with visible text label."
+      },
+      {
+        "id": "squished-switch-unchecked",
+        "label": "Squished switch unchecked",
+        "description": "Compact squished switch false endpoint."
+      },
+      {
+        "id": "squished-switch-checked",
+        "label": "Squished switch checked",
+        "description": "Compact squished switch true endpoint."
+      },
+      {
+        "id": "switch-disabled",
+        "label": "Switch disabled",
+        "description": "Switch disabled state keeps disabled interaction disabled."
+      },
+      {
+        "id": "switch-focus-visible",
+        "label": "Switch focus visible",
+        "description": "Focus-visible styling hook applied to switch."
+      },
+      {
+        "id": "switch-required",
+        "label": "Switch required",
+        "description": "Required state renders required marker."
+      },
+      {
+        "id": "switch-non-string-label",
+        "label": "Switch non-string label",
+        "description": "Explicit aria label for custom JSX children."
+      },
+      {
+        "id": "switch-constrained-flex",
+        "label": "Switch constrained flex",
+        "description": "Standalone and labeled switches retain their width in constrained flex rows."
+      },
+      {
+        "id": "squished-custom-track",
+        "label": "Squished switch custom track",
+        "description": "Custom track color on a compact squished switch."
+      },
+      {
+        "id": "checkbox-unchecked",
+        "label": "Checkbox unchecked",
+        "description": "Checkbox base style with unchecked icon."
+      },
+      {
+        "id": "checkbox-checked",
+        "label": "Checkbox checked",
+        "description": "Checkbox checked style with checked icon."
+      },
+      {
+        "id": "checkbox-disabled-required",
+        "label": "Checkbox disabled required",
+        "description": "Disabled checkbox with required marker."
+      },
+      {
+        "id": "checkbox-focus-visible",
+        "label": "Checkbox focus visible",
+        "description": "Focus-visible styling hook applied to checkbox."
+      },
+      {
+        "id": "checkbox-custom-icon",
+        "label": "Checkbox custom icon",
+        "description": "Checkbox with custom icon and checkedIcon props."
+      }
+    ]
+  },
+  {
+    "id": "flow-step-primitives",
+    "label": "Flow step primitives",
+    "description": "Shared flow and step primitive states.",
+    "sourceGlobs": [
+      "src/components/common/FlowNode.tsx",
+      "src/components/common/NodeFlow/NodeFlowButton.tsx",
+      "src/components/common/NodeFlow/NodeFlowAccordion.tsx",
+      "src/components/common/NodeFlow/NodeFlowContainer.tsx",
+      "src/components/common/NodeFlow/index.ts",
+      "src/common/component-fixtures/fixtures/FlowStepPrimitivesFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "node-flow-incomplete",
+        "label": "NodeFlow incomplete",
+        "description": "Incomplete step with default marker and trailing icon."
+      },
+      {
+        "id": "node-flow-complete",
+        "label": "NodeFlow complete",
+        "description": "Completed step with check marker."
+      },
+      {
+        "id": "node-flow-error",
+        "label": "NodeFlow error",
+        "description": "Error step with helper text."
+      },
+      {
+        "id": "node-flow-disabled",
+        "label": "NodeFlow disabled",
+        "description": "Disabled row is inert and visually muted."
+      },
+      {
+        "id": "node-flow-interactive",
+        "label": "NodeFlow interactive",
+        "description": "Interactive row with button semantics."
+      },
+      {
+        "id": "node-flow-helper",
+        "label": "NodeFlow helper",
+        "description": "Helper row with custom leading helper content."
+      },
+      {
+        "id": "node-flow-connected-sequence",
+        "label": "NodeFlow connected sequence",
+        "description": "Container draws connectors through accordion and button marker centers."
+      },
+      {
+        "id": "node-flow-accordion-closed",
+        "label": "NodeFlow accordion closed",
+        "description": "Closed accordion header with helper text aligned to the flow rail."
+      },
+      {
+        "id": "node-flow-accordion-open",
+        "label": "NodeFlow accordion open",
+        "description": "Open accordion header and body with the same rail alignment as closed."
+      },
+      {
+        "id": "flow-node-available",
+        "label": "FlowNode available",
+        "description": "Available FlowNode row with description text."
+      },
+      {
+        "id": "flow-node-complete",
+        "label": "FlowNode complete",
+        "description": "Complete FlowNode row with body content."
+      },
+      {
+        "id": "flow-node-disabled",
+        "label": "FlowNode disabled",
+        "description": "Disabled FlowNode row is not interactive."
+      }
+    ]
+  },
+  {
+    "id": "color-picker-with-popover",
+    "label": "ColorPickerWithPopover",
+    "description": "Shared color picker trigger and popover states.",
+    "sourceGlobs": [
+      "src/components/common/ColorPickerWithPopover.tsx",
+      "src/components/common/ColorPickerWithPopover.test.tsx",
+      "src/common/component-fixtures/fixtures/ColorPickerWithPopoverFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "closed-swatch",
+        "label": "Closed swatch",
+        "description": "Closed trigger with the default swatch only."
+      },
+      {
+        "id": "closed-with-label",
+        "label": "Closed with label",
+        "description": "Closed trigger with visible label text beside the swatch."
+      },
+      {
+        "id": "open-picker",
+        "label": "Open picker",
+        "description": "Open popover with the real react-colorful picker.",
+        "waitFor": ".react-colorful"
+      },
+      {
+        "id": "changed-draft",
+        "label": "Changed draft",
+        "description": "Open picker after a deterministic keyboard draft adjustment before close.",
+        "waitFor": "[data-testid=\"color-picker-draft-ready\"]"
+      },
+      {
+        "id": "committed-color",
+        "label": "Committed color",
+        "description": "Closed trigger showing a changed committed color."
+      },
+      {
+        "id": "custom-swatch",
+        "label": "Custom swatch",
+        "description": "Closed trigger with custom swatch and label styling hooks."
+      }
+    ]
+  },
+  {
+    "id": "action-icon-text-helpers",
+    "label": "Action and icon text helpers",
+    "description": "Shared low-level action helpers for buttons, icon/text rows, eye states, and clipboard rows.",
+    "sourceGlobs": [
+      "src/components/common/BigMenuButton.tsx",
+      "src/components/common/EyeButton.tsx",
+      "src/components/common/IconTextButton.tsx",
+      "src/components/common/IconWithText.tsx",
+      "src/components/common/ClipboardCopyWrapper.tsx",
+      "src/common/component-fixtures/fixtures/ActionIconTextHelpersFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "big-menu-button-default",
+        "label": "BigMenuButton default",
+        "description": "Full-width action button with text and an upload icon."
+      },
+      {
+        "id": "big-menu-button-disabled",
+        "label": "BigMenuButton disabled",
+        "description": "Disabled full-width action button."
+      },
+      {
+        "id": "big-menu-button-label-input",
+        "label": "BigMenuButton label input",
+        "description": "Label-rendered upload action wrapping a hidden file input."
+      },
+      {
+        "id": "eye-button-hidden",
+        "label": "EyeButton hidden",
+        "description": "Hidden layer status with closed-eye icon."
+      },
+      {
+        "id": "eye-button-visible",
+        "label": "EyeButton visible",
+        "description": "Visible layer status with color swatch."
+      },
+      {
+        "id": "eye-button-processing",
+        "label": "EyeButton processing",
+        "description": "Processing layer status with loading indicator."
+      },
+      {
+        "id": "icon-text-button-default",
+        "label": "IconTextButton default",
+        "description": "Action row with icon and text."
+      },
+      {
+        "id": "icon-text-button-disabled",
+        "label": "IconTextButton disabled",
+        "description": "Disabled main action and disabled helper trigger."
+      },
+      {
+        "id": "icon-text-button-helper-open",
+        "label": "IconTextButton helper open",
+        "description": "Helper popup opened through the helper trigger."
+      },
+      {
+        "id": "icon-with-text-left-icon",
+        "label": "IconWithText left icon",
+        "description": "Interactive icon/text row with the icon on the left."
+      },
+      {
+        "id": "icon-with-text-right-icon",
+        "label": "IconWithText right icon",
+        "description": "Interactive icon/text row with the icon on the right."
+      },
+      {
+        "id": "icon-with-text-disabled",
+        "label": "IconWithText disabled",
+        "description": "Disabled interactive icon/text row."
+      },
+      {
+        "id": "clipboard-copy-wrapper-default",
+        "label": "ClipboardCopyWrapper default",
+        "description": "Enabled clipboard copy row."
+      },
+      {
+        "id": "clipboard-copy-wrapper-disabled",
+        "label": "ClipboardCopyWrapper disabled",
+        "description": "Disabled clipboard copy row."
+      }
+    ]
+  },
+  {
+    "id": "sidebar-background-content",
+    "label": "Sidebar background content",
+    "description": "Shared SidebarBackgroundContent display wrapper with image, title, description, and actions.",
+    "sourceGlobs": [
+      "src/components/common/SidebarBackgroundContent.tsx",
+      "src/common/component-fixtures/fixtures/SidebarBackgroundContentFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "default",
+        "label": "Default",
+        "description": "Default card with image, title, and description."
+      },
+      {
+        "id": "with-actions",
+        "label": "With actions",
+        "description": "Card with child content, actions, and override paths for content/header/description layers."
+      }
+    ]
+  },
+  {
+    "id": "sidebar-panel-extension-chrome",
+    "label": "Sidebar panel extension chrome",
+    "description": "Panel extension tabs, page controls, breadcrumbs, and popup drawer chrome states.",
+    "sourceGlobs": [
+      "src/components/Sidebar/SidebarPanelExtension.tsx",
+      "src/components/Sidebar/SidebarPanelExtensionTabIconButton.tsx",
+      "src/components/Sidebar/SidebarPanelExtensionTabContainer.tsx",
+      "src/components/Sidebar/SidebarPanelExtensionTabsContext.tsx",
+      "src/components/Sidebar/SidebarPanelExtensionPageContainer.tsx",
+      "src/components/Sidebar/BreadcrumbNav.tsx",
+      "src/components/Sidebar/PopupDrawer.tsx",
+      "src/components/Sidebar/SidebarPanelExtensionTooltip.tsx",
+      "src/common/component-fixtures/fixtures/SidebarPanelExtensionChromeFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "tab-rail-desktop",
+        "label": "Tab rail desktop",
+        "description": "Vertical tab rail with the middle tab selected."
+      },
+      {
+        "id": "tab-rail-mobile",
+        "label": "Tab rail mobile",
+        "description": "Horizontal mobile tab rail with the middle tab selected."
+      },
+      {
+        "id": "page-controls-default",
+        "label": "Page controls default layout",
+        "description": "Default shared extension geometry with an implicit main panel."
+      },
+      {
+        "id": "page-controls-single",
+        "label": "Page controls single layout",
+        "description": "Explicit single-panel shared extension geometry."
+      },
+      {
+        "id": "page-controls-double",
+        "label": "Page controls double layout",
+        "description": "Two visible panels with controls anchored to the second panel."
+      },
+      {
+        "id": "page-controls-triple",
+        "label": "Page controls triple layout",
+        "description": "Three visible panels with controls anchored to the third panel."
+      },
+      {
+        "id": "page-controls-triple-overflow",
+        "label": "Page controls triple viewport overflow",
+        "description": "Fixed-width triple panels with viewport-safe shared tabs and page controls."
+      },
+      {
+        "id": "page-controls-fullscreen-single",
+        "label": "Page controls fullscreen single layout",
+        "description": "One fullscreen panel with shared page-control geometry."
+      },
+      {
+        "id": "page-controls-fullscreen-double",
+        "label": "Page controls fullscreen double layout",
+        "description": "Two equal fullscreen panels with shared page controls."
+      },
+      {
+        "id": "page-controls-fullscreen-triple",
+        "label": "Page controls fullscreen triple layout",
+        "description": "Three equal fullscreen panels with shared page controls."
+      },
+      {
+        "id": "breadcrumbs",
+        "label": "Breadcrumbs",
+        "description": "Route-derived breadcrumb labels and back affordance."
+      },
+      {
+        "id": "popup-drawer-open",
+        "label": "Popup drawer open",
+        "description": "Open popup drawer with mounted children."
+      },
+      {
+        "id": "popup-drawer-closed",
+        "label": "Popup drawer closed",
+        "description": "Closed popup drawer with zero-width chrome and no children."
+      }
+    ]
+  },
+  {
+    "id": "folder",
+    "label": "Folder",
+    "description": "Shared folder shape wrapper with content slot, themed fill/stroke, and padding split.",
+    "sourceGlobs": [
+      "src/components/common/Folder/Folder.tsx",
+      "src/components/common/Folder/SvgFolder.tsx",
+      "src/common/component-fixtures/fixtures/FolderFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "default",
+        "label": "Default",
+        "description": "Default height and simple content layout."
+      },
+      {
+        "id": "custom-sx",
+        "label": "Custom styling",
+        "description": "Custom height, resolved colors, and padding routing for the folder content."
+      }
+    ]
+  },
+  {
+    "id": "fullscreen-page",
+    "label": "FullscreenPage",
+    "description": "Fullscreen slot/page layout with overlay-scroll container and pointer-event split behavior.",
+    "sourceGlobs": [
+      "src/components/common/FullscreenPage.tsx",
+      "src/common/component-fixtures/fixtures/FullscreenPageFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "scrollable",
+        "label": "Scrollable",
+        "description": "Scrollable content rendered through SlotsProvider with slot target and content."
+      }
+    ]
+  },
+  {
+    "id": "text-field-with-label",
+    "label": "TextFieldWithLabel",
+    "description": "Shared labeled single-line text field states.",
+    "sourceGlobs": [
+      "src/components/common/TextFieldWithLabel.tsx",
+      "src/components/common/TextFieldWithLabel.test.tsx",
+      "src/common/component-fixtures/fixtures/TextFieldControlsFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "empty",
+        "label": "Empty",
+        "description": "Empty value with label and helper area hidden."
+      },
+      {
+        "id": "placeholder",
+        "label": "Placeholder",
+        "description": "Empty field with placeholder text."
+      },
+      {
+        "id": "value",
+        "label": "Value",
+        "description": "Populated text value."
+      },
+      {
+        "id": "focused",
+        "label": "Focused",
+        "description": "Single-line control with deterministic focus."
+      },
+      {
+        "id": "disabled",
+        "label": "Disabled",
+        "description": "Disabled state with visible inactive styling."
+      },
+      {
+        "id": "error-helper",
+        "label": "Error with helper text",
+        "description": "Error state with helper text and required marker."
+      },
+      {
+        "id": "required",
+        "label": "Required",
+        "description": "Required label marker."
+      },
+      {
+        "id": "trailing",
+        "label": "Trailing",
+        "description": "Trailing slot with custom content."
+      }
+    ]
+  },
+  {
+    "id": "text-field-multiline-with-label",
+    "label": "TextFieldMultilineWithLabel",
+    "description": "Shared labeled multiline text field states.",
+    "sourceGlobs": [
+      "src/components/common/TextFieldWithLabel.tsx",
+      "src/components/common/TextFieldMultilineWithLabel.tsx",
+      "src/components/common/TextFieldMultilineWithLabel.test.tsx",
+      "src/common/component-fixtures/fixtures/TextFieldControlsFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "empty",
+        "label": "Empty",
+        "description": "Empty textarea with label and default sizing."
+      },
+      {
+        "id": "placeholder",
+        "label": "Placeholder",
+        "description": "Empty textarea with placeholder text."
+      },
+      {
+        "id": "value",
+        "label": "Value",
+        "description": "Textarea with multiple lines of content."
+      },
+      {
+        "id": "focused",
+        "label": "Focused",
+        "description": "Textarea control with deterministic focus."
+      },
+      {
+        "id": "disabled",
+        "label": "Disabled",
+        "description": "Disabled textarea with visible inactive styling."
+      },
+      {
+        "id": "error-helper",
+        "label": "Error with helper text",
+        "description": "Textarea error state with helper text and required marker."
+      },
+      {
+        "id": "required",
+        "label": "Required",
+        "description": "Required label marker on a textarea."
+      },
+      {
+        "id": "row-sizing",
+        "label": "Row sizing",
+        "description": "Textarea with min and max row sizing."
+      }
+    ]
+  },
+  {
+    "id": "loading-feedback",
+    "label": "Loading feedback",
+    "description": "Shared loading components across spinner, horizontal dots, sidebar blocks, and overlay states.",
+    "sourceGlobs": [
+      "src/components/Loading/LoadingHorizontal.tsx",
+      "src/components/Loading/LoadingSpinner.tsx",
+      "src/components/Loading/LoadingModal.tsx",
+      "src/components/Sidebar/SidebarContentBox.tsx",
+      "src/components/Sidebar/SidebarLoadingBlock.tsx",
+      "src/common/component-fixtures/fixtures/LoadingFeedbackFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "horizontal-default",
+        "label": "Horizontal default",
+        "description": "Default three-dot horizontal loading animation at compact defaults."
+      },
+      {
+        "id": "horizontal-sized-color",
+        "label": "Horizontal size and color",
+        "description": "Size and currentColor overrides for compact icon-slot usage."
+      },
+      {
+        "id": "spinner-size-color-variants",
+        "label": "Spinner size and color variants",
+        "description": "Primary, secondary, warning, and inherited spinner variants with size overrides."
+      },
+      {
+        "id": "spinner-determinate",
+        "label": "Spinner determinate",
+        "description": "Determinate spinner visual state with partial progress."
+      },
+      {
+        "id": "sidebar-loading-block",
+        "label": "Sidebar loading block",
+        "description": "Constrained full-sidebar loading shell with a fixture-frozen centered progress indicator."
+      },
+      {
+        "id": "modal-overlay",
+        "label": "Loading modal overlay",
+        "description": "Full-viewport loading modal overlay with centered secondary spinner."
+      }
+    ]
+  },
+  {
+    "id": "shared-modal-overlays",
+    "label": "Shared modal overlays",
+    "description": "Shared modal overlay states for Base UI dialog migration coverage.",
+    "sourceGlobs": [
+      "src/components/Modal/ClickableModal.tsx",
+      "src/components/Modal/LoginModal.tsx",
+      "src/components/Modal/index.ts",
+      "src/components/Modal/ClickableModal.test.tsx",
+      "src/components/Modal/LoginModal.test.tsx",
+      "src/common/component-fixtures/fixtures/SharedModalOverlaysFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "clickable-closed-trigger",
+        "label": "Clickable closed trigger",
+        "description": "Closed ClickableModal with only the native button trigger visible."
+      },
+      {
+        "id": "clickable-open-modal",
+        "label": "Clickable open modal",
+        "description": "ClickableModal after the trigger opens the Base UI dialog popup.",
+        "waitFor": "role=dialog"
+      },
+      {
+        "id": "clickable-desktop-width",
+        "label": "Clickable desktop width",
+        "description": "Open ClickableModal with representative copy for the 800px desktop surface.",
+        "waitFor": "role=dialog"
+      },
+      {
+        "id": "clickable-mobile-fullscreen-width",
+        "label": "Clickable mobile full width",
+        "description": "Open ClickableModal state for mobile full-width and viewport-height behavior.",
+        "waitFor": "role=dialog"
+      },
+      {
+        "id": "login-desktop-sidebar-offset",
+        "label": "Login desktop sidebar offset",
+        "description": "Open LoginModal seeded from the UI store with a desktop sidebar offset.",
+        "waitFor": "role=dialog"
+      },
+      {
+        "id": "login-mobile-fullscreen",
+        "label": "Login mobile fullscreen",
+        "description": "Open LoginModal seeded from the UI store for mobile fullscreen coverage.",
+        "waitFor": "role=dialog"
+      }
+    ]
+  },
+  {
+    "id": "notification-feedback",
+    "label": "Notification feedback",
+    "description": "Global snackbar and confirmation dialog states for feedback migration coverage.",
+    "sourceGlobs": [
+      "src/components/Notification/NotificationProvider.tsx",
+      "src/components/Notification/NotificationManager.tsx",
+      "src/components/Notification/ConfirmationDialog.tsx",
+      "src/common/component-fixtures/fixtures/NotificationFeedbackFixture.tsx"
+    ],
+    "states": [
+      {
+        "id": "snackbar-visible",
+        "label": "Snackbar visible",
+        "description": "Visible default notification with a long auto-hide duration.",
+        "waitFor": "text=Fixture notification is visible."
+      },
+      {
+        "id": "snackbar-link",
+        "label": "Snackbar link",
+        "description": "Visible notification with an underlined link action.",
+        "waitFor": "text=Open fixture index"
+      },
+      {
+        "id": "snackbar-persistent",
+        "label": "Snackbar persistent",
+        "description": "Persistent notification that remains until closed.",
+        "waitFor": "text=Persistent fixture notification stays open."
+      },
+      {
+        "id": "confirmation-open",
+        "label": "Confirmation open",
+        "description": "Open confirmation dialog seeded from the UI store.",
+        "waitFor": "role=dialog"
+      }
+    ]
+  }
+]

@@ -1,5 +1,3 @@
-'use client'
-
 import { map, cloneDeep, uniq, isEqual } from 'lodash-es'
 import turfBbox from '@turf/bbox'
 import mapboxgl from 'maplibre-gl'
@@ -439,15 +437,7 @@ export const createMapLayerSlice: (
           }
 
           if (opts.layerConf) {
-            // if (opts.layerConf.useMb == null || opts.layerConf.useMb) {
             await _addStyle(layerGroupId, opts as LayerGroupAddOptionsWithConf)
-            // }
-            // else {
-            //   await _addStyleToOl(
-            //     layerGroupId,
-            //     opts as LayerGroupAddOptionsWithConf
-            //   )
-            // }
 
             // Add event listener for source data changes
 
@@ -782,16 +772,11 @@ export const createMapLayerSlice: (
       const layerGroup = _layerGroups[layerGroupId]
 
       for (const layerId in layerGroup.layers) {
-        if (layerGroup.layers[layerId].useMb) {
-          _map?.setLayoutProperty(
-            layerId,
-            'visibility',
-            isVisible ? 'visible' : 'none'
-          )
-        } else {
-          // TODO: For OpenLayer usage. Fix later if needed
-          // layerGroup.layers[layerId].setVisible(isVisible)
-        }
+        _map?.setLayoutProperty(
+          layerId,
+          'visibility',
+          isVisible ? 'visible' : 'none'
+        )
       }
 
       set((state) => {
@@ -1139,7 +1124,6 @@ export const createMapLayerSlice: (
               (matchingSource && matchingSource.extendedOpts?.selectable) ??
               false,
             popupOpts: null,
-            useMb: true,
           }
 
           if (layerOptions.activeOn != 'always' && layer.type != 'background') {

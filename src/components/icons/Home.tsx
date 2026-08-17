@@ -1,11 +1,9 @@
-import { Box, SxProps, Theme } from '@mui/material'
-
-type Props = {
-  sx?: SxProps<Theme>
-}
+import type { SharedSvgIconProps } from './types'
+import { SharedSvgIcon } from './types'
+type Props = SharedSvgIconProps
 
 const Home = (props: Props) => (
-  <Box
+  <SharedSvgIcon
     component="svg"
     xmlns="http://www.w3.org/2000/svg"
     width={14}
@@ -19,7 +17,7 @@ const Home = (props: Props) => (
       stroke="currentColor"
       strokeWidth={1.2}
     />
-  </Box>
+  </SharedSvgIcon>
 )
 
 export default Home

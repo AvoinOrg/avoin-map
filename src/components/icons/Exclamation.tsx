@@ -1,12 +1,9 @@
-import * as React from 'react'
-import { Theme, Box, SxProps } from '@mui/material'
-
-type Props = {
-  sx?: SxProps<Theme>
-}
+import type { SharedSvgIconProps } from './types'
+import { SharedSvgIcon } from './types'
+type Props = SharedSvgIconProps
 
 const Exclamation = (props: Props) => (
-  <Box
+  <SharedSvgIcon
     component="svg"
     xmlns="http://www.w3.org/2000/svg"
     width="9"
@@ -17,7 +14,7 @@ const Exclamation = (props: Props) => (
   >
     <path d="M3 13.3158L1 1H8L6 13.3158H4.5H3Z" stroke="currentColor" />
     <path d="M3 19V15.6842H6V19H3Z" stroke="currentColor" />
-  </Box>
+  </SharedSvgIcon>
 )
 
 export default Exclamation

@@ -7,18 +7,20 @@ const HELP_TEXT = `\
 Usage:
   yarn visual:after-edit -- <file> [file...]
   yarn visual:after-edit -- --files a.tsx,b.tsx
-  yarn visual:after-edit -- --storage-state .dev/browser-state/localhost-3000.storage-state.json <file>
+  yarn visual:after-edit -- --storage-state .dev/browser-state/localhost-6900.storage-state.json <file>
   yarn visual:after-edit -- --no-start <file> [file...]
   yarn visual:after-edit
 
 Behavior:
   Runs the visual regression runner in changed mode.
-  Targets http://127.0.0.1:3000 by default (reuse running dev server first).
+  Targets the local TanStack Start dev server at http://127.0.0.1:6900 by default.
+  Reuses a running dev server first.
   If no files are provided, the underlying runner falls back to git-detected changes.
 
 Options:
   --base-url <url>            Override the target app URL
   --browser-mode <mode>       Browser mode passed to the visual runner
+  --scenario-set <set>        Scenario set passed to the visual runner
   --storage-state <path>      Playwright storage state JSON (cookies/localStorage/IndexedDB)
   --start-command <cmd>       Override fallback dev server command
   --no-start                  Fail instead of starting a temporary dev server
@@ -28,8 +30,9 @@ Options:
 
 const parseArgs = (argv) => {
   const args = {
-    baseUrl: 'http://127.0.0.1:3000',
+    baseUrl: 'http://127.0.0.1:6900',
     browserMode: null,
+    scenarioSet: null,
     storageState: null,
     startCommand: null,
     noStart: false,
@@ -70,6 +73,16 @@ const parseArgs = (argv) => {
     }
     if (token === '--browser-mode') {
       args.browserMode = argv[i + 1]
+      i++
+      continue
+    }
+
+    if (token.startsWith('--scenario-set=')) {
+      args.scenarioSet = token.slice('--scenario-set='.length)
+      continue
+    }
+    if (token === '--scenario-set') {
+      args.scenarioSet = argv[i + 1]
       i++
       continue
     }
@@ -136,6 +149,9 @@ const run = () => {
 
   if (args.browserMode) {
     commandArgs.push(`--browser-mode=${args.browserMode}`)
+  }
+  if (args.scenarioSet) {
+    commandArgs.push(`--scenario-set=${args.scenarioSet}`)
   }
   if (args.storageState) {
     commandArgs.push(`--storage-state=${args.storageState}`)

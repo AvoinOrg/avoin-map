@@ -1,8 +1,5 @@
-'use client'
-
-import { Box } from '@mui/material'
-
 import { MAP_BOTTOM_LEFT_FLOATING_CONTROLS_SLOT } from '#/common/constants/map'
+import { Box } from '#/common/style/theme/system'
 import { Slot } from '#/components/context/slotsContext'
 
 export const MapBottomLeftFloatingControlsSlot = () => {

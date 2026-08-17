@@ -1,33 +1,24 @@
-'use client'
-
 import { useMemo } from 'react'
-import { useParams, usePathname, useSearchParams } from 'next/navigation'
-import { Box, MenuItem, MenuList, Typography } from '@mui/material'
 
-import { useRouter } from '#/common/navigation/navigation'
+import { AppSxProps, Box } from '#/common/style/theme'
+import {
+  useAppParams,
+  useAppPathname,
+  useAppRouter,
+  useAppSearchParams,
+} from '#/common/navigation/navigation'
 import { getLocalesForApplet } from '#/common/navigation/tolgee/shared'
 import { useUIStore } from '#/common/store'
-import { getRoute } from '#/common/routing/routing-client'
 import {
-  compiledApplets,
   getPathnameWithoutLocale,
-} from '#/common/routing/routing'
+  standaloneApplet,
+} from '#/common/routing/appletBuildMode'
 import {
-  MAIN_NAMESPACE,
-  mainRouteTree,
-} from '#/common/routing/routes/main'
-import {
-  APPLET_NAMESPACE as ENERGIAKARTTA_NAMESPACE,
-  routeTree as energiakarttaRouteTree,
-} from '#/common/routing/routes/energiakartta'
-import {
-  APPLET_NAMESPACE as HIIILIKARTTA_NAMESPACE,
-  routeTree as hiilikarttaRouteTree,
-} from '#/common/routing/routes/hiilikartta'
-import {
-  APPLET_NAMESPACE as LUONNONMETSAKARTAT_NAMESPACE,
-  routeTree as luonnonmetsakartatRouteTree,
-} from '#/common/routing/routes/luonnonmetsakartat'
+  getAppletNamespaceForRouteSlug,
+  getPublicRouteFact,
+  isPublicAppletNamespace,
+  type PublicAppletNamespace,
+} from '#/common/routing/publicRoutes'
 import { Home } from '#/components/icons'
 import { MapButton } from './MapButton'
 import { MapButtonMenu } from './MapButtonMenu'
@@ -35,27 +26,47 @@ import { MapLoginButton } from './MapLoginButton'
 
 type Props = {
   isVertical: boolean
+  loginDefaultMenuOpen?: boolean
+  languageDefaultMenuOpen?: boolean
 }
 
-const APPLET_ROUTE_TREES = {
-  [ENERGIAKARTTA_NAMESPACE]: energiakarttaRouteTree,
-  [HIIILIKARTTA_NAMESPACE]: hiilikarttaRouteTree,
-  [LUONNONMETSAKARTAT_NAMESPACE]: luonnonmetsakartatRouteTree,
-} as const
+const localeMenuItemSx = {
+  width: '100%',
+  px: 2.5,
+  py: 1.25,
+  m: 0,
+  border: 0,
+  backgroundColor: 'transparent',
+  color: 'text.primary',
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 2,
+  textAlign: 'left',
+  font: 'inherit',
+  typography: 'body1',
+  '&:hover': {
+    backgroundColor: 'action.hover',
+  },
+  '&:focus-visible': {
+    outline: (theme) => `2px solid ${theme.palette.secondary.dark}`,
+    outlineOffset: -2,
+  },
+  '&[aria-current="true"]': {
+    backgroundColor: 'action.selected',
+  },
+} satisfies AppSxProps
 
-type AppletNamespace = keyof typeof APPLET_ROUTE_TREES
-type ActiveNamespace = typeof MAIN_NAMESPACE | AppletNamespace
+const buttonTypeProps = { type: 'button' } as const
 
-const isAppletNamespace = (value: string): value is AppletNamespace =>
-  value in APPLET_ROUTE_TREES
+const MAIN_NAMESPACE = 'main'
+type ActiveNamespace = typeof MAIN_NAMESPACE | PublicAppletNamespace
 
 const getStandaloneAppletNamespace = (): ActiveNamespace | null => {
-  if (compiledApplets.length !== 1 || compiledApplets[0] === MAIN_NAMESPACE) {
-    return null
-  }
-
-  const [namespace] = compiledApplets
-  return isAppletNamespace(namespace) ? namespace : null
+  return standaloneApplet && isPublicAppletNamespace(standaloneApplet)
+    ? standaloneApplet
+    : null
 }
 
 const getLocalizedLabel = ({
@@ -89,11 +100,15 @@ const getLocaleName = ({
   }
 }
 
-export const MapUserButtons = ({ isVertical }: Props) => {
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-  const params = useParams()
+export const MapUserButtons = ({
+  isVertical,
+  loginDefaultMenuOpen,
+  languageDefaultMenuOpen,
+}: Props) => {
+  const router = useAppRouter()
+  const pathname = useAppPathname()
+  const searchParams = useAppSearchParams()
+  const params = useAppParams()
   const isBaseDomainForApplet = useUIStore(
     (state) => state.isBaseDomainForApplet
   )
@@ -118,9 +133,9 @@ export const MapUserButtons = ({ isVertical }: Props) => {
       .split('/')
       .filter((segment) => segment.length > 0)
 
-    return firstSegment && isAppletNamespace(firstSegment)
-      ? firstSegment
-      : MAIN_NAMESPACE
+    const appletNamespace = getAppletNamespaceForRouteSlug(firstSegment)
+
+    return appletNamespace ?? MAIN_NAMESPACE
   }, [pathnameWithoutLocale, standaloneAppletNamespace])
 
   const supportedLocales = useMemo(() => {
@@ -140,18 +155,11 @@ export const MapUserButtons = ({ isVertical }: Props) => {
     standaloneAppletNamespace != null ||
     isBaseDomainForApplet
       ? '/'
-      : `/${activeNamespace}`
+      : `/${getPublicRouteFact(activeNamespace)!.slug}`
 
   const showHomeButton = pathnameWithoutLocale !== homePathWithoutLocale
 
-  const homeRouteTree =
-    activeNamespace === MAIN_NAMESPACE
-      ? mainRouteTree
-      : APPLET_ROUTE_TREES[activeNamespace]
-  const homeHref = getRoute({
-    routeNode: homeRouteTree,
-    routeTree: homeRouteTree,
-  })
+  const homeHref = homePathWithoutLocale
 
   const queryString = searchParams.toString()
   const currentHref =
@@ -175,25 +183,18 @@ export const MapUserButtons = ({ isVertical }: Props) => {
     en: 'Language menu',
   })
 
-  const menuItemSx = {
-    px: 2.5,
-    py: 1.25,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 2,
-    typography: 'body1',
-  }
-
   const localeMenuContent =
     supportedLocales.length > 1
       ? ({ closeMenu }: { closeMenu: () => void }) => (
-          <Box sx={{ minWidth: '10rem' }}>
-            <MenuList aria-label={languageMenuLabel} sx={{ py: 1 }}>
+          <Box key="language-menu-content" sx={{ minWidth: '10rem' }}>
+            <Box role="menu" aria-label={languageMenuLabel} sx={{ py: 1 }}>
               {supportedLocales.map((supportedLocale) => (
-                <MenuItem
+                <Box
                   key={supportedLocale}
-                  selected={supportedLocale === locale}
+                  component="button"
+                  {...buttonTypeProps}
+                  role="menuitem"
+                  aria-current={supportedLocale === locale ? 'true' : undefined}
                   aria-label={getLocaleName({
                     localeCode: supportedLocale,
                     displayLocale: locale,
@@ -206,9 +207,9 @@ export const MapUserButtons = ({ isVertical }: Props) => {
                       })
                     }
                   }}
-                  sx={menuItemSx}
+                  sx={localeMenuItemSx}
                 >
-                  <Typography
+                  <Box
                     component="span"
                     sx={{
                       fontWeight: supportedLocale === locale ? 600 : 400,
@@ -218,8 +219,8 @@ export const MapUserButtons = ({ isVertical }: Props) => {
                       localeCode: supportedLocale,
                       displayLocale: locale,
                     })}
-                  </Typography>
-                  <Typography
+                  </Box>
+                  <Box
                     component="span"
                     sx={{
                       color: 'text.secondary',
@@ -230,10 +231,10 @@ export const MapUserButtons = ({ isVertical }: Props) => {
                     }}
                   >
                     {supportedLocale}
-                  </Typography>
-                </MenuItem>
+                  </Box>
+                </Box>
               ))}
-            </MenuList>
+            </Box>
           </Box>
         )
       : undefined
@@ -251,12 +252,16 @@ export const MapUserButtons = ({ isVertical }: Props) => {
           <Home />
         </MapButton>
       )}
-      <MapLoginButton isVertical={isVertical} />
+      <MapLoginButton
+        isVertical={isVertical}
+        defaultMenuOpen={loginDefaultMenuOpen}
+      />
       <MapButtonMenu
         isVertical={isVertical}
         placement={isVertical ? 'left-start' : 'bottom-start'}
         menuContent={localeMenuContent}
         paperSx={{ p: 0, overflow: 'hidden' }}
+        defaultOpen={languageDefaultMenuOpen}
       >
         <MapButton
           size="small"

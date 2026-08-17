@@ -1,20 +1,16 @@
 import * as React from 'react'
-import {
-  FormControlLabel,
-  SwitchProps,
-  Typography,
-  SxProps,
-  Theme,
-} from '@mui/material'
+
+import { AppSxProps, Box, toSxArray } from '#/common/style/theme'
+import type { SwitchProps } from '#/components/common/Switch'
 
 import Switch from '#/components/common/Switch'
 
 type SwitchWithLabelProps = Omit<SwitchProps, 'sx'> & {
   children?: React.ReactNode
   ariaLabel?: string
-  sx?: SxProps<Theme> // For the entire FormControlLabel wrapper
-  controlSx?: SxProps<Theme>
-  labelSx?: SxProps<Theme>
+  sx?: AppSxProps
+  controlSx?: AppSxProps
+  labelSx?: AppSxProps
   required?: boolean
 }
 
@@ -37,54 +33,57 @@ const SwitchWithLabel = ({
       : undefined)
 
   return (
-    <FormControlLabel
+    <Box
+      component="label"
+      data-slot="switch-with-label-root"
       sx={[
         {
           m: 0,
           display: 'flex',
+          flexShrink: 0,
           flexDirection: 'row',
           alignItems: 'center',
           '&:hover': {
             cursor: disabled ? 'not-allowed' : 'pointer',
           },
         },
-        ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
+        ...toSxArray(sx),
       ]}
-      control={
-        <Switch
-          sx={controlSx}
-          disabled={disabled}
-          aria-label={resolvedAriaLabel}
-          inputProps={{
-            ...switchInputProps,
-            'aria-label': resolvedAriaLabel,
-          }}
-          {...switchRest}
-        />
-      }
-      label={
-        <Typography
-          variant="body2"
-          sx={[
-            {
-              color: (theme: Theme) =>
-                disabled
-                  ? theme.palette.text.disabled
-                  : (theme.palette.neutral.darker ??
+    >
+      <Switch
+        {...switchRest}
+        sx={controlSx}
+        disabled={disabled}
+        required={required}
+        inputProps={{
+          ...switchInputProps,
+          'aria-label': resolvedAriaLabel,
+          required,
+          disabled,
+          role: switchInputProps?.role ?? 'switch',
+        }}
+      />
+      <Box
+        component="span"
+        sx={[
+          {
+            typography: 'body2',
+            color: (theme) =>
+              disabled
+                ? theme.palette.text.disabled
+                : (theme.palette.neutral.darker ??
                     theme.palette.text.primary),
-              userSelect: 'none',
-              ml: 2,
-              opacity: disabled ? 0.8 : 1,
-            },
-            ...(Array.isArray(labelSx) ? labelSx : labelSx ? [labelSx] : []),
-          ]}
-        >
-          {children}
-          {required && ' *'}
-        </Typography>
-      }
-      disabled={disabled}
-    />
+            userSelect: 'none',
+            ml: 2,
+            opacity: disabled ? 0.8 : 1,
+          },
+          ...toSxArray(labelSx),
+        ]}
+      >
+        {children}
+        {required && <Box component="span">{' *'}</Box>}
+      </Box>
+    </Box>
   )
 }
 

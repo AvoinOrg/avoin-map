@@ -1,12 +1,11 @@
 import React from 'react'
-import { ThemeProvider } from '@mui/material/styles'
 import { fireEvent, render, screen } from '@testing-library/react'
 
-import theme from '#/common/style/theme/theme'
+import { AppThemeProvider } from '#/common/style/theme'
 import SquishedSwitchWithLabel from '#/components/common/SquishedSwitchWithLabel'
 
 const renderWithTheme = (ui: React.ReactElement) => {
-  return render(<ThemeProvider theme={theme}>{ui}</ThemeProvider>)
+  return render(<AppThemeProvider disableCssBaseline>{ui}</AppThemeProvider>)
 }
 
 describe('SquishedSwitchWithLabel', () => {
@@ -34,11 +33,10 @@ describe('SquishedSwitchWithLabel', () => {
     expect(screen.getByRole('switch', { name: 'Kaukolämpö' })).toBeTruthy()
   })
 
-  it('calls onChange when clicked', () => {
+  it('calls onChange when clicked and provides both callback signatures', () => {
     const onChange = jest.fn()
-
     renderWithTheme(
-      <SquishedSwitchWithLabel checked onChange={onChange}>
+      <SquishedSwitchWithLabel defaultChecked={false} onChange={onChange}>
         Sähkölämmitys
       </SquishedSwitchWithLabel>
     )
@@ -46,21 +44,56 @@ describe('SquishedSwitchWithLabel', () => {
     fireEvent.click(screen.getByRole('switch', { name: 'Sähkölämmitys' }))
 
     expect(onChange).toHaveBeenCalledTimes(1)
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        target: expect.objectContaining({
+          checked: true,
+        }),
+      }),
+      true
+    )
   })
 
-  it('renders disabled switches as disabled controls', () => {
+  it('renders disabled switches as disabled controls and keeps required text when required', () => {
     renderWithTheme(
-      <SquishedSwitchWithLabel checked disabled onChange={() => {}}>
+      <SquishedSwitchWithLabel
+        checked
+        disabled
+        required
+        onChange={() => {}}
+      >
         Aurinkolämmitys
       </SquishedSwitchWithLabel>
     )
 
-    expect(
-      (
-        screen.getByRole('switch', {
-          name: 'Aurinkolämmitys',
-        }) as HTMLInputElement
-      ).disabled
-    ).toBe(true)
+    const switchInput = screen.getByRole('switch', {
+      name: 'Aurinkolämmitys',
+    }) as HTMLInputElement
+
+    expect(switchInput.disabled).toBe(true)
+    expect(switchInput.required).toBe(true)
+    expect(screen.getByText('*')).not.toBe(null)
+  })
+
+  it('supports disabled style with non-string label and explicit aria label', () => {
+    renderWithTheme(
+      <SquishedSwitchWithLabel
+        checked={false}
+        disabled
+        required
+        ariaLabel="Explicit switch label"
+        onChange={() => {}}
+      >
+        <span>Ei-merkitty teksti</span>
+      </SquishedSwitchWithLabel>
+    )
+
+    const disabledInput = screen.getByRole('switch', {
+      name: 'Explicit switch label',
+    }) as HTMLInputElement
+
+    expect(disabledInput.disabled).toBe(true)
+    expect(disabledInput.required).toBe(true)
+    expect(screen.getAllByText('*').length).toBeGreaterThan(0)
   })
 })

@@ -1,18 +1,24 @@
 import React from 'react'
-import { Box, SxProps, Theme, Typography } from '@mui/material'
 
+import { SHARED_CONTROL_INFINITE_BORDER_RADIUS } from '#/common/style/theme/constants'
+import { Box, type AppSxProps, toSxArray } from '#/common/style/theme/system'
 import DropDownSelect from '#/components/common/DropDownSelect'
 
 type DropDownSelectProps = React.ComponentProps<typeof DropDownSelect>
 
 type DropDownSelectInsetProps = Omit<
   DropDownSelectProps,
-  'label' | 'labelSx' | 'sx'
+  'label' | 'labelSx' | 'selectSx' | 'sx'
 > & {
   label: React.ReactNode
-  sx?: SxProps<Theme>
-  labelSx?: SxProps<Theme>
-  selectWrapperSx?: SxProps<Theme>
+  /** Styles the complete inset row. */
+  sx?: AppSxProps
+  /** Styles only the side label. */
+  labelSx?: AppSxProps
+  /** Styles the nested select control wrapper. */
+  selectWrapperSx?: AppSxProps
+  /** Styles the select trigger/pill. */
+  selectSx?: AppSxProps
 }
 
 const DropDownSelectInset = ({
@@ -27,6 +33,7 @@ const DropDownSelectInset = ({
 }: DropDownSelectInsetProps) => {
   return (
     <Box
+      data-slot="inset-select-root"
       sx={[
         {
           display: 'flex',
@@ -35,7 +42,7 @@ const DropDownSelectInset = ({
           minWidth: 0,
           gap: '0.875rem',
         },
-        ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
+        ...toSxArray(sx),
       ]}
     >
       <DropDownSelect
@@ -44,42 +51,31 @@ const DropDownSelectInset = ({
         label={undefined}
         sx={[
           {
-            width: '8.25rem',
+            width: '9.25rem',
             flexShrink: 0,
           },
-          ...(Array.isArray(selectWrapperSx)
-            ? selectWrapperSx
-            : selectWrapperSx
-              ? [selectWrapperSx]
-              : []),
+          ...toSxArray(selectWrapperSx),
         ]}
         selectSx={[
           {
-            '&.MuiOutlinedInput-root': {
-              height: '1.375rem',
-              borderRadius: '999px !important',
-              backgroundColor: 'common.white',
-              boxShadow: 'none',
-            },
+            height: '1.375rem',
+            borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+            backgroundColor: 'common.white',
+            boxShadow: 'none',
             '& .MuiOutlinedInput-notchedOutline': {
               borderColor: '#D6D6D6',
-              borderRadius: '999px',
+              borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
             },
             '.MuiSelect-select': {
               minHeight: '1.125rem',
               py: '0 !important',
-              pl: '0.25rem !important',
+              pl: '0.5rem !important',
               pr: '1.75rem !important',
               display: 'flex',
               alignItems: 'center',
             },
-            '.MuiSelect-icon': {
-              width: '0.5rem',
-              height: '0.25rem',
-              mr: '0.625rem',
-            },
           },
-          ...(Array.isArray(selectSx) ? selectSx : selectSx ? [selectSx] : []),
+          ...toSxArray(selectSx),
         ]}
         renderSelectedValue={
           renderSelectedValue ??
@@ -91,9 +87,9 @@ const DropDownSelectInset = ({
                 alignItems: 'center',
                 maxWidth: '100%',
                 minWidth: 0,
-                height: '0.875rem',
                 px: '0.625rem',
-                borderRadius: '999px',
+                py: '0.125rem',
+                borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
                 backgroundColor: 'secondary.dark',
                 color: 'neutral.light',
                 fontSize: '0.625rem',
@@ -110,7 +106,9 @@ const DropDownSelectInset = ({
           ))
         }
       />
-      <Typography
+      <Box
+        component="span"
+        data-slot="inset-select-label"
         sx={[
           {
             flex: 1,
@@ -120,15 +118,14 @@ const DropDownSelectInset = ({
             fontWeight: 700,
             lineHeight: '1.125rem',
             letterSpacing: '0.1em',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
+            whiteSpace: 'normal',
+            overflowWrap: 'anywhere',
           },
-          ...(Array.isArray(labelSx) ? labelSx : labelSx ? [labelSx] : []),
+          ...toSxArray(labelSx),
         ]}
       >
         {label}
-      </Typography>
+      </Box>
     </Box>
   )
 }

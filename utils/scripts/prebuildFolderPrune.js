@@ -1,20 +1,63 @@
-// Prune applet folders before building, based on NEXT_PUBLIC_COMPILED_APPLETS.
+// Prune applet folders and Start routes before building.
 //
-// This script is meant to be run in a throwaway workspace (see the tmp build
-// scripts), because it deletes directories under src/app/[locale]/(map)/(applets).
+// This script is destructive by design and must only run inside the
+// non-destructive temp workspace created by prebuildFolderPruneTmp.js.
 
 const fs = require('fs')
 const path = require('path')
+const {
+  TEMP_WORKSPACE_ENV,
+  TEMP_WORKSPACE_MARKER,
+  getAppletSourceRoot,
+  getCompiledAppletConfig,
+} = require('./appletBuildConfig')
+const { getRouteFolderForApplet } = require('./publicRoutes')
 
-const projectRoot = path.join(__dirname, '..', '..')
-const appletsPath = path.join(
-  projectRoot,
-  'src',
-  'app',
-  '[locale]',
-  '(map)',
-  '(applets)'
-)
+const defaultProjectRoot = path.join(__dirname, '..', '..')
+
+const getPrunePaths = (projectRoot) => {
+  const startRoutesMapPath = path.join(
+    projectRoot,
+    'src',
+    'routes',
+    '$locale',
+    '_map'
+  )
+
+  return {
+    appletsPath: getAppletSourceRoot(projectRoot),
+    startRoutesMapPath,
+    startRoutesAppletPath: path.join(startRoutesMapPath, '(applets)'),
+    standaloneRouteGroupPath: path.join(startRoutesMapPath, '(standalone)'),
+  }
+}
+
+const appletApiRoutes = {
+  energy: [],
+  carbon: [path.join('src', 'routes', 'api', 'hiilikartta')],
+  luonnonmetsakartat: [
+    path.join('src', 'routes', 'api', 'luonnonmetsakartat'),
+  ],
+}
+
+const mainBuildAppletSourceFolders = new Set(['main', 'forests'])
+
+const standaloneMainHomeRoutePaths = [
+  path.join('src', 'routes', '$locale', '_map', 'index.tsx'),
+]
+
+const productionOnlyPrunedRoutes = [
+  path.join('src', 'routes', '$locale', 'dev', 'component-fixtures'),
+]
+
+const fail = (msg) => {
+  throw new Error(msg)
+}
+
+const die = (msg) => {
+  console.error(msg)
+  process.exit(1)
+}
 
 const isRouteGroup = (name) => name.startsWith('(') && name.endsWith(')')
 
@@ -23,96 +66,479 @@ const normalizeName = (name) => {
   return name
 }
 
-const parseCompiledApplets = (raw) =>
-  (raw || '')
-    .toLowerCase()
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
+const getStartRouteFolderNamesForNamespace = (namespace) => [
+  getRouteFolderForApplet(namespace),
+]
 
-const compiledApplets = parseCompiledApplets(
-  process.env.NEXT_PUBLIC_COMPILED_APPLETS
-)
+const getStandaloneSourceRouteFolderName = ({ buildConfig }) => {
+  const namespace = buildConfig.keepOnlyApplet
+  if (!namespace) {
+    fail(
+      'prebuildFolderPrune: standalone route materialization requires keepOnlyApplet.'
+    )
+  }
 
-if (compiledApplets.length === 0) {
-  console.error(
-    'prebuildFolderPrune: NEXT_PUBLIC_COMPILED_APPLETS is empty. Refusing to prune.'
-  )
-  process.exit(1)
-}
-
-const includesMain = compiledApplets.includes('main')
-const compiledNonMain = compiledApplets.filter((ns) => ns !== 'main')
-
-// In non-main builds we only support a single standalone applet.
-if (!includesMain && compiledNonMain.length !== 1) {
-  console.error(
-    `prebuildFolderPrune: unsupported NEXT_PUBLIC_COMPILED_APPLETS=${JSON.stringify(
-      compiledApplets.join(',')
-    )}. Without "main", exactly one applet must be listed.`
-  )
-  process.exit(1)
+  return getRouteFolderForApplet(namespace)
 }
 
 const rmDir = (dirPath) => {
   fs.rmSync(dirPath, { recursive: true, force: true })
 }
 
-if (!fs.existsSync(appletsPath)) {
-  console.warn(
-    `prebuildFolderPrune: applets folder not found at ${appletsPath}; nothing to prune.`
-  )
-  process.exit(0)
+const rmPath = (targetPath) => {
+  fs.rmSync(targetPath, { recursive: true, force: true })
 }
 
-const entries = fs.readdirSync(appletsPath, { withFileTypes: true })
-const dirs = entries.filter((e) => e.isDirectory()).map((e) => e.name)
+const readDirectories = (dirPath) =>
+  fs
+    .readdirSync(dirPath, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
 
-const keepOnlyApplet = !includesMain ? compiledNonMain[0] : null
-const keepApplets = new Set(compiledNonMain)
+const assertTempWorkspace = ({ projectRoot = defaultProjectRoot } = {}) => {
+  if (process.env[TEMP_WORKSPACE_ENV] !== '1') {
+    fail(
+      `prebuildFolderPrune: refusing to prune without ${TEMP_WORKSPACE_ENV}=1. Use prebuildFolderPruneTmp.js instead.`
+    )
+  }
 
-const shouldRemoveInMainMode = (dirName) => {
-  const normalized = normalizeName(dirName).toLowerCase()
-  if (normalized === 'main') return false // keep the (main) route group
-  return !keepApplets.has(normalized)
-}
+  const markerPath = path.join(projectRoot, TEMP_WORKSPACE_MARKER)
+  if (!fs.existsSync(markerPath)) {
+    fail(
+      `prebuildFolderPrune: refusing to prune without temp workspace marker ${markerPath}.`
+    )
+  }
 
-const shouldRemoveInStandaloneMode = (dirName) => {
-  const normalized = normalizeName(dirName).toLowerCase()
-  return normalized !== keepOnlyApplet
-}
+  let marker
+  try {
+    marker = JSON.parse(fs.readFileSync(markerPath, 'utf8'))
+  } catch (error) {
+    fail(
+      `prebuildFolderPrune: invalid temp workspace marker ${markerPath}: ${error.message}`
+    )
+  }
 
-const existingAppletDirNames = new Set(
-  dirs.map((dirName) => normalizeName(dirName).toLowerCase())
-)
+  if (path.resolve(marker.tmpRoot || '') !== path.resolve(projectRoot)) {
+    fail(
+      `prebuildFolderPrune: temp workspace marker does not match current root ${projectRoot}.`
+    )
+  }
 
-// Help catch typos: if we were asked to keep an applet that doesn't exist, fail fast.
-const missing = compiledNonMain.filter((ns) => !existingAppletDirNames.has(ns))
-if (missing.length > 0) {
-  console.error(
-    `prebuildFolderPrune: unknown applet folder(s): ${missing.join(
-      ','
-    )}. Expected to find them under ${appletsPath}.`
-  )
-  process.exit(1)
-}
-
-const removed = []
-for (const dirName of dirs) {
-  const fullPath = path.join(appletsPath, dirName)
-
-  const remove = includesMain
-    ? shouldRemoveInMainMode(dirName)
-    : shouldRemoveInStandaloneMode(dirName)
-
-  if (remove) {
-    rmDir(fullPath)
-    removed.push(dirName)
+  if (path.resolve(marker.sourceRoot || '') === path.resolve(projectRoot)) {
+    fail(
+      'prebuildFolderPrune: temp workspace marker points sourceRoot at the current root; refusing to prune.'
+    )
   }
 }
 
-// Helpful output for CI logs.
-const mode = includesMain ? 'main' : `standalone:${keepOnlyApplet}`
-console.log(
-  `prebuildFolderPrune: mode=${mode}; removed=${removed.length ? removed.join(',') : '(none)'}`
-)
+const pruneAppletSourceFolders = ({
+  buildConfig,
+  projectRoot = defaultProjectRoot,
+}) => {
+  const { appletsPath } = getPrunePaths(projectRoot)
+
+  if (!fs.existsSync(appletsPath)) {
+    fail(`prebuildFolderPrune: applets folder not found at ${appletsPath}.`)
+  }
+
+  const dirs = readDirectories(appletsPath)
+  const existingAppletDirNames = new Set(
+    dirs.map((dirName) => normalizeName(dirName).toLowerCase())
+  )
+
+  const missing = buildConfig.compiledNonMain.filter(
+    (namespace) => !existingAppletDirNames.has(namespace)
+  )
+
+  if (missing.length > 0) {
+    fail(
+      `prebuildFolderPrune: unknown applet folder(s): ${missing.join(
+        ','
+      )}. Expected to find them under ${appletsPath}.`
+    )
+  }
+
+  const removed = []
+  for (const dirName of dirs) {
+    const normalized = normalizeName(dirName).toLowerCase()
+    const remove = buildConfig.includesMain
+      ? !mainBuildAppletSourceFolders.has(normalized) &&
+        !buildConfig.selectedApplets.has(normalized)
+      : normalized !== buildConfig.keepOnlyApplet
+
+    if (remove) {
+      rmDir(path.join(appletsPath, dirName))
+      removed.push(dirName)
+    }
+  }
+
+  return removed
+}
+
+const collectFiles = (dirPath) => {
+  if (!fs.existsSync(dirPath)) return []
+
+  const files = []
+  const entries = fs.readdirSync(dirPath, { withFileTypes: true })
+
+  for (const entry of entries) {
+    const entryPath = path.join(dirPath, entry.name)
+    if (entry.isDirectory()) {
+      files.push(...collectFiles(entryPath))
+    } else if (entry.isFile()) {
+      files.push(entryPath)
+    }
+  }
+
+  return files
+}
+
+const isRouteSourceFile = (filePath) =>
+  filePath.endsWith('.ts') || filePath.endsWith('.tsx')
+
+const createFileRouteLiteralRe =
+  /createFileRoute\(\s*(['"`])([^'"`]+)\1\s*\)/g
+
+const escapeRegExp = (value) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+const stripPromotedRedirectSegmentPrefix = ({
+  source,
+  sourceRouteFolderName,
+}) => {
+  const escapedFolderName = escapeRegExp(sourceRouteFolderName)
+  const segmentPrefixRe = new RegExp(
+    `(\\b(?:segments|prefixSegments):\\s*\\[\\s*)(['"\`])${escapedFolderName}\\2\\s*,\\s*`,
+    'g'
+  )
+  let replacements = 0
+  const updated = source.replace(segmentPrefixRe, (_match, prefix) => {
+    replacements += 1
+    return prefix
+  })
+
+  return { source: updated, replacements }
+}
+
+const rewritePromotedRouteFileLiterals = ({
+  filePath,
+  sourceRouteFolderName,
+  sourceRoutePrefix,
+  targetRoutePrefix,
+}) => {
+  const source = fs.readFileSync(filePath, 'utf8')
+  if (!source.includes('createFileRoute')) {
+    return { filePath, replacements: 0 }
+  }
+
+  let replacements = 0
+  const routeLiteralUpdated = source.replace(
+    createFileRouteLiteralRe,
+    (match, quote, routeId) => {
+      if (
+        routeId !== sourceRoutePrefix &&
+        !routeId.startsWith(`${sourceRoutePrefix}/`)
+      ) {
+        return match
+      }
+
+      replacements += 1
+      const tail = routeId.slice(sourceRoutePrefix.length)
+      return `createFileRoute(${quote}${targetRoutePrefix}${tail}${quote})`
+    }
+  )
+
+  if (replacements === 0) {
+    fail(
+      `prebuildFolderPrune: promoted route file ${filePath} contains createFileRoute(...) but no literal starting with ${sourceRoutePrefix}.`
+    )
+  }
+
+  if (routeLiteralUpdated.includes(sourceRoutePrefix)) {
+    fail(
+      `prebuildFolderPrune: promoted route file ${filePath} still contains ${sourceRoutePrefix} after route literal rewriting.`
+    )
+  }
+
+  const { source: updated } = stripPromotedRedirectSegmentPrefix({
+    source: routeLiteralUpdated,
+    sourceRouteFolderName,
+  })
+
+  fs.writeFileSync(filePath, updated, 'utf8')
+
+  return { filePath, replacements }
+}
+
+const materializeStandaloneAppletRoutes = ({
+  buildConfig,
+  projectRoot = defaultProjectRoot,
+}) => {
+  if (buildConfig.includesMain) {
+    return {
+      promotedFiles: [],
+      sourceRouteFolder: null,
+      sourceRoutePrefix: null,
+      targetRouteFolder: null,
+      targetRoutePrefix: null,
+    }
+  }
+
+  const namespace = buildConfig.keepOnlyApplet
+  if (!namespace) {
+    fail(
+      'prebuildFolderPrune: standalone route materialization requires exactly one selected applet.'
+    )
+  }
+
+  const {
+    startRoutesAppletPath,
+    standaloneRouteGroupPath,
+  } = getPrunePaths(projectRoot)
+  const sourceRouteFolderName = getStandaloneSourceRouteFolderName({
+    buildConfig,
+  })
+  const sourceRouteFolder = path.join(
+    startRoutesAppletPath,
+    sourceRouteFolderName
+  )
+  const sourceRoutePrefix = `/$locale/_map/(applets)/${sourceRouteFolderName}`
+  const targetRoutePrefix = '/$locale/_map/(standalone)'
+
+  if (!fs.existsSync(sourceRouteFolder)) {
+    fail(
+      `prebuildFolderPrune: missing canonical Start route folder for standalone applet ${namespace}: ${sourceRouteFolder}.`
+    )
+  }
+
+  if (fs.existsSync(standaloneRouteGroupPath)) {
+    fail(
+      `prebuildFolderPrune: refusing to overwrite existing standalone route group: ${standaloneRouteGroupPath}.`
+    )
+  }
+
+  fs.cpSync(sourceRouteFolder, standaloneRouteGroupPath, { recursive: true })
+
+  const promotedFiles = collectFiles(standaloneRouteGroupPath)
+    .filter(isRouteSourceFile)
+    .map((filePath) =>
+      rewritePromotedRouteFileLiterals({
+        filePath,
+        sourceRouteFolderName,
+        sourceRoutePrefix,
+        targetRoutePrefix,
+      })
+    )
+    .filter((result) => result.replacements > 0)
+    .map((result) => path.relative(projectRoot, result.filePath))
+
+  if (promotedFiles.length === 0) {
+    fail(
+      `prebuildFolderPrune: standalone materialization for ${namespace} did not rewrite any route files under ${standaloneRouteGroupPath}.`
+    )
+  }
+
+  return {
+    promotedFiles,
+    sourceRouteFolder: path.relative(projectRoot, sourceRouteFolder),
+    sourceRoutePrefix,
+    targetRouteFolder: path.relative(projectRoot, standaloneRouteGroupPath),
+    targetRoutePrefix,
+  }
+}
+
+const pruneCanonicalStartAppletRoutes = ({
+  buildConfig,
+  projectRoot = defaultProjectRoot,
+}) => {
+  const { startRoutesAppletPath } = getPrunePaths(projectRoot)
+
+  if (!fs.existsSync(startRoutesAppletPath)) {
+    return []
+  }
+
+  const dirs = readDirectories(startRoutesAppletPath)
+  const existingRouteDirNames = new Set(
+    dirs.map((dirName) => normalizeName(dirName).toLowerCase())
+  )
+
+  if (buildConfig.includesMain) {
+    const missingRoutes = buildConfig.compiledNonMain.filter(
+      (namespace) =>
+        !existingRouteDirNames.has(getRouteFolderForApplet(namespace))
+    )
+
+    if (missingRoutes.length > 0) {
+      fail(
+        `prebuildFolderPrune: missing Start applet route folder(s): ${missingRoutes.join(
+          ','
+        )}. Expected to find them under ${startRoutesAppletPath}.`
+      )
+    }
+  }
+
+  const removed = []
+  const selectedRouteFolderNames = new Set(
+    Array.from(buildConfig.selectedApplets).flatMap((namespace) =>
+      getStartRouteFolderNamesForNamespace(namespace)
+    )
+  )
+
+  for (const dirName of dirs) {
+    const normalized = normalizeName(dirName).toLowerCase()
+    if (buildConfig.includesMain && normalized === 'forests') continue
+    if (buildConfig.includesMain && selectedRouteFolderNames.has(normalized)) {
+      continue
+    }
+
+    rmDir(path.join(startRoutesAppletPath, dirName))
+    removed.push(path.join('src/routes/.../(applets)', dirName))
+  }
+
+  return removed
+}
+
+const removeRelativePaths = ({ relativePaths, projectRoot }) => {
+  const removed = []
+
+  for (const relativePath of relativePaths) {
+    const fullPath = path.join(projectRoot, relativePath)
+    if (!fs.existsSync(fullPath)) continue
+
+    rmPath(fullPath)
+    removed.push(relativePath)
+  }
+
+  return removed
+}
+
+const pruneAppletApiStartRoutes = ({
+  buildConfig,
+  projectRoot = defaultProjectRoot,
+}) => {
+  const removed = []
+
+  for (const [namespace, relativePaths] of Object.entries(appletApiRoutes)) {
+    if (buildConfig.selectedApplets.has(namespace)) continue
+
+    removed.push(...removeRelativePaths({ relativePaths, projectRoot }))
+  }
+
+  return removed
+}
+
+const pruneStandaloneMainStartRoutes = ({
+  buildConfig,
+  projectRoot = defaultProjectRoot,
+}) => {
+  if (buildConfig.includesMain) return []
+
+  return removeRelativePaths({
+    projectRoot,
+    relativePaths: standaloneMainHomeRoutePaths,
+  })
+}
+
+const pruneProductionOnlyStartRoutes = ({
+  projectRoot = defaultProjectRoot,
+} = {}) => {
+  const removed = []
+
+  for (const relativePath of productionOnlyPrunedRoutes) {
+    const fullPath = path.join(projectRoot, relativePath)
+    if (!fs.existsSync(fullPath)) continue
+
+    rmPath(fullPath)
+    removed.push(relativePath)
+  }
+
+  return removed
+}
+
+const main = () => {
+  try {
+    const projectRoot = defaultProjectRoot
+
+    assertTempWorkspace({ projectRoot })
+
+    const buildConfig = getCompiledAppletConfig({
+      projectRoot,
+      scriptName: 'prebuildFolderPrune',
+    })
+
+    const materializedStandaloneRoutes = materializeStandaloneAppletRoutes({
+      buildConfig,
+      projectRoot,
+    })
+    const removedSource = pruneAppletSourceFolders({
+      buildConfig,
+      projectRoot,
+    })
+    const removedCanonicalRoutes = pruneCanonicalStartAppletRoutes({
+      buildConfig,
+      projectRoot,
+    })
+    const removedStandaloneMainRoutes = pruneStandaloneMainStartRoutes({
+      buildConfig,
+      projectRoot,
+    })
+    const removedApiRoutes = pruneAppletApiStartRoutes({
+      buildConfig,
+      projectRoot,
+    })
+    const removedProductionOnlyRoutes = pruneProductionOnlyStartRoutes({
+      projectRoot,
+    })
+
+    console.log(
+      [
+        `prebuildFolderPrune: mode=${buildConfig.mode}`,
+        `materializedStandaloneRoutes=${
+          materializedStandaloneRoutes.promotedFiles.length
+            ? materializedStandaloneRoutes.promotedFiles.join(',')
+            : '(none)'
+        }`,
+        `removedAppSource=${
+          removedSource.length ? removedSource.join(',') : '(none)'
+        }`,
+        `removedStartAppletRoutes=${
+          removedCanonicalRoutes.length
+            ? removedCanonicalRoutes.join(',')
+            : '(none)'
+        }`,
+        `removedStandaloneMainRoutes=${
+          removedStandaloneMainRoutes.length
+            ? removedStandaloneMainRoutes.join(',')
+            : '(none)'
+        }`,
+        `removedApiRoutes=${
+          removedApiRoutes.length ? removedApiRoutes.join(',') : '(none)'
+        }`,
+        `removedProductionOnlyRoutes=${
+          removedProductionOnlyRoutes.length
+            ? removedProductionOnlyRoutes.join(',')
+            : '(none)'
+        }`,
+      ].join('; ')
+    )
+  } catch (error) {
+    die(error.message)
+  }
+}
+
+if (require.main === module) {
+  main()
+}
+
+module.exports = {
+  appletApiRoutes,
+  assertTempWorkspace,
+  getPrunePaths,
+  materializeStandaloneAppletRoutes,
+  pruneAppletApiStartRoutes,
+  pruneAppletSourceFolders,
+  pruneCanonicalStartAppletRoutes,
+  pruneProductionOnlyStartRoutes,
+  pruneStandaloneMainStartRoutes,
+  rewritePromotedRouteFileLiterals,
+}

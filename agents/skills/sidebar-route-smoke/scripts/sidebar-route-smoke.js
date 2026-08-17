@@ -13,8 +13,9 @@ const {
   '../../../../utils/scripts/visual/browserRuntime'
 ))
 
-const DEFAULT_BASE_URL = 'http://127.0.0.1:3000'
+const DEFAULT_BASE_URL = 'http://127.0.0.1:6900'
 const DEFAULT_TIMEOUT_MS = 30000
+const ROUTE_RENDER_SETTLE_TIMEOUT_MS = 10000
 const SELECTED_BUILDING_OUTPUT_DIR = path.resolve(
   process.cwd(),
   '.tmp/f0304-sidebar-route-smoke'
@@ -403,6 +404,60 @@ const collectRuntimeTextFlags = async (page) =>
     }
   })
 
+const waitForRouteRenderSettled = async ({ page, expectSidebar }) => {
+  const timeout = ROUTE_RENDER_SETTLE_TIMEOUT_MS
+
+  return page
+    .waitForFunction(
+      ({ requiresSidebar }) => {
+        const bodyText = document.body?.innerText || ''
+        const hasRuntimeText =
+          /Application error|Unhandled Runtime Error|This page could not be found|404/i.test(
+            bodyText
+          )
+
+        if (hasRuntimeText) {
+          return true
+        }
+
+        const isVisible = (element) => {
+          if (!(element instanceof HTMLElement)) {
+            return false
+          }
+
+          const rect = element.getBoundingClientRect()
+          const style = window.getComputedStyle(element)
+
+          return (
+            rect.width > 0 &&
+            rect.height > 0 &&
+            style.display !== 'none' &&
+            style.visibility !== 'hidden' &&
+            style.opacity !== '0'
+          )
+        }
+
+        if (requiresSidebar) {
+          return [
+            '.sidebar-toggle-button',
+            '.sidebar-container',
+            '[data-main-sidebar-root="true"]',
+          ].some((selector) => isVisible(document.querySelector(selector)))
+        }
+
+        return (
+          document.readyState === 'complete' ||
+          bodyText.trim().length > 0 ||
+          document.querySelector('canvas.maplibregl-canvas') != null
+        )
+      },
+      { requiresSidebar: expectSidebar === 'yes' },
+      { timeout }
+    )
+    .then(() => true)
+    .catch(() => false)
+}
+
 const ensureWebpackRequire = async (page) =>
   page.evaluate(() => {
     if (window.__avoin_req) {
@@ -622,7 +677,7 @@ const seedEnergymapSelectedBuilding = async (page) =>
       '(app-pages-browser)/./src/common/store/uiStore.ts'
     )
     const { useAppletStore } = req(
-      '(app-pages-browser)/./src/app/[locale]/(map)/(applets)/energiakartta/state/appletStore.ts'
+      '(app-pages-browser)/./src/applets/energiakartta/state/appletStore.ts'
     )
 
     const map = useMapInstanceStore.getState()._map
@@ -934,7 +989,7 @@ const readEnergymapBuildingClickState = async ({ page, target, label }) =>
       const req = window.__avoin_req
       const selectedBuilding =
         req?.(
-          '(app-pages-browser)/./src/app/[locale]/(map)/(applets)/energiakartta/state/appletStore.ts'
+          '(app-pages-browser)/./src/applets/energiakartta/state/appletStore.ts'
         )?.useAppletStore.getState().selectedBuilding ?? null
       const selectedFeatures =
         req?.(
@@ -1490,7 +1545,7 @@ const readEnergymapSelectedBuildingState = async (page, label) =>
     }
     const selectedBuilding =
       window.__avoin_req?.(
-        '(app-pages-browser)/./src/app/[locale]/(map)/(applets)/energiakartta/state/appletStore.ts'
+        '(app-pages-browser)/./src/applets/energiakartta/state/appletStore.ts'
       )?.useAppletStore.getState().selectedBuilding ?? null
 
     return {
@@ -1806,7 +1861,7 @@ const runEnergymapSelectedBuildingTabsCheck = async ({ page, errors }) => {
   await page
     .waitForFunction(() => {
       const store = window.__avoin_req?.(
-        '(app-pages-browser)/./src/app/[locale]/(map)/(applets)/energiakartta/state/appletStore.ts'
+        '(app-pages-browser)/./src/applets/energiakartta/state/appletStore.ts'
       )?.useAppletStore
 
       return store?.getState().selectedBuilding == null
@@ -2173,7 +2228,7 @@ const runEnergymapBuildingClickCheck = async ({
   await page
     .waitForFunction(() => {
       const store = window.__avoin_req?.(
-        '(app-pages-browser)/./src/app/[locale]/(map)/(applets)/energiakartta/state/appletStore.ts'
+        '(app-pages-browser)/./src/applets/energiakartta/state/appletStore.ts'
       )?.useAppletStore
 
       return store?.getState().selectedBuilding == null
@@ -2269,6 +2324,10 @@ const runCheck = async ({ browser, args, check }) => {
       timeout: args.timeout,
     })
     await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {})
+    const routeRenderSettled = await waitForRouteRenderSettled({
+      page,
+      expectSidebar: check.expectSidebar,
+    })
 
     const flags = await collectRuntimeTextFlags(page)
     if (flags.hasApplicationError) {
@@ -2276,6 +2335,9 @@ const runCheck = async ({ browser, args, check }) => {
     }
     if (flags.hasNotFound) {
       errors.push('route rendered a not-found page')
+    }
+    if (!routeRenderSettled && !routeLoadFailed) {
+      errors.push('route did not render visible app content before timeout')
     }
 
     const sidebarToggle = page.locator('.sidebar-toggle-button')

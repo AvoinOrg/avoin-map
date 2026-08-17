@@ -1,5 +1,3 @@
-'use client'
-
 import { cloneDeep } from 'lodash-es'
 import {
   TerraDraw,

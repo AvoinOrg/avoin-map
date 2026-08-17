@@ -1,13 +1,16 @@
-'use client'
-
 import React, { ReactNode, useEffect, useRef } from 'react'
-import Box from '@mui/material/Box'
-import { SxProps, Theme } from '@mui/material'
 import { useUIStore } from '#/common/store'
+import {
+  Box,
+  type AppSystemStyleObject,
+  toSxArray,
+} from '#/common/style/theme/system'
+
+const FULL_HEIGHT_SNAP_GAP_PX = 80
 
 interface MapModalWrapperProps {
   children: ReactNode
-  sx?: SxProps<Theme>
+  sx?: AppSystemStyleObject
   minWidthBeforeFullScreen?: number // Mininum width before collapsing to full screen width.
 }
 
@@ -27,14 +30,23 @@ export const MapModalWrapper = ({
       return
     }
 
-    let observer: ResizeObserver | undefined
-
     const checkViewMode = () => {
       if (minMapDims.width <= minWidthBeforeFullScreen) {
         setPopupModalViewMode('fullscreen')
         return
       }
-      if (element.offsetHeight >= minMapDims.height - 1) {
+
+      const hasOverflowingDescendant = Array.from(
+        element.querySelectorAll<HTMLElement>('*')
+      ).some((child) => child.scrollHeight > child.clientHeight + 1)
+      const renderedHeight = Math.max(element.offsetHeight, element.scrollHeight)
+      const isFullHeight =
+        renderedHeight >= minMapDims.height - 1 ||
+        (element.offsetHeight >=
+          minMapDims.height - FULL_HEIGHT_SNAP_GAP_PX &&
+          hasOverflowingDescendant)
+
+      if (isFullHeight) {
         setPopupModalViewMode('full-height')
         return
       }
@@ -44,15 +56,13 @@ export const MapModalWrapper = ({
 
     checkViewMode()
 
-    observer = new ResizeObserver(checkViewMode)
+    const observer = new ResizeObserver(checkViewMode)
     observer.observe(element)
 
     return () => {
-      if (observer) {
-        observer.disconnect()
-      }
+      observer.disconnect()
     }
-  }, [minMapDims, wrapperRef.current, minWidthBeforeFullScreen])
+  }, [minMapDims, minWidthBeforeFullScreen, setPopupModalViewMode])
 
   return (
     <>
@@ -96,6 +106,7 @@ export const MapModalWrapper = ({
             popupModalViewMode === 'full-height'
               ? {
                   maxWidth: minMapDims.width,
+                  height: minMapDims.height,
                   left: minMapDims.centerX,
                   top: minMapDims.centerY,
                   transform: 'translate(-50%, -50%)',
@@ -108,7 +119,7 @@ export const MapModalWrapper = ({
               : null,
 
             // Merge with sx prop passed to the component
-            ...(Array.isArray(sx) ? sx : [sx]),
+            ...toSxArray(sx),
           ]}
         >
           {children}

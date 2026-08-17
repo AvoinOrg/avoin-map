@@ -1,20 +1,28 @@
-'use client'
-
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
-import { alpha } from '@mui/material/styles'
+import { alpha } from '@mui/system/colorManipulator'
 import type { EventListeners } from 'overlayscrollbars'
-
 import {
-  MOBILE_SIDEBAR_PADDING_REM,
-  SIDEBAR_PADDING_REM,
+  SIDEBAR_CONTENT_BOX_PADDING_BOTTOM,
+  SIDEBAR_CONTENT_BOX_PADDING_X,
 } from '#/common/style/theme/constants'
+import type { AppBoxProps } from '#/common/style/theme/system'
+import { Box } from '#/common/style/theme/system'
+
 import { useIsMobile } from '#/common/hooks/ui/useIsMobile'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 import type { OverlayScrollbarsComponentRef } from 'overlayscrollbars-react'
 import { useSimpleSidebarContext } from './SimpleSidebarContext'
 
 const SIDEBAR_SCROLL_FADE_HEIGHT_REM = 3
+type SidebarStyleProps = AppBoxProps['sx']
+
+export type SidebarContentBoxProps = {
+  sxOuter?: SidebarStyleProps
+  sxInner?: SidebarStyleProps
+  scrollFadeColor?: string
+  scrollbarSide?: 'left' | 'right'
+  children?: React.ReactNode
+}
 
 const SidebarContentBox = ({
   sxOuter,
@@ -22,13 +30,7 @@ const SidebarContentBox = ({
   scrollFadeColor = '#f4f4f4',
   scrollbarSide = 'right',
   children,
-}: {
-  sxOuter?: SxProps<Theme>
-  sxInner?: SxProps<Theme>
-  scrollFadeColor?: string
-  scrollbarSide?: 'left' | 'right'
-  children?: React.ReactNode
-}) => {
+}: SidebarContentBoxProps) => {
   const isMobile = useIsMobile()
   const simpleSidebarContext = useSimpleSidebarContext()
   const isSimpleSidebar = simpleSidebarContext.isSimpleSidebar
@@ -75,7 +77,7 @@ const SidebarContentBox = ({
 
   return (
     <Box
-      className="sidebar-children-container"
+      className="sidebar-content-box"
       sx={[
         {
           flexDirection: 'column',
@@ -127,7 +129,7 @@ const SidebarContentBox = ({
           }}
         >
           <Box
-            className="sidebar-children-container-inner"
+            className="sidebar-content-box-inner"
             sx={[
               {
                 direction: 'ltr',
@@ -135,10 +137,9 @@ const SidebarContentBox = ({
                 flexDirection: 'column',
                 minHeight: '100%',
                 flex: 1,
-                p: SIDEBAR_PADDING_REM + 'rem',
-                px: isMobile
-                  ? MOBILE_SIDEBAR_PADDING_REM + 'rem'
-                  : SIDEBAR_PADDING_REM + 'rem',
+                pt: 0,
+                px: SIDEBAR_CONTENT_BOX_PADDING_X,
+                pb: SIDEBAR_CONTENT_BOX_PADDING_BOTTOM,
               },
               ...(Array.isArray(sxInner) ? sxInner : [sxInner]),
             ]}

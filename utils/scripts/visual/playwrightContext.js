@@ -87,7 +87,7 @@ const warnOnStorageStateOriginMismatch = ({ baseUrl, storageStatePath, logger = 
     logger(
       `[visual] Storage state origin mismatch: expected ${expectedOrigin}, file contains ${originValues.join(
         ', '
-      )}. State for http://localhost:3000 will not apply to http://127.0.0.1:3000 (and vice versa).`
+      )}. State for http://localhost:6900 will not apply to http://127.0.0.1:6900 (and vice versa).`
     )
   }
 }

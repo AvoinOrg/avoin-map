@@ -1,57 +1,25 @@
-'use client'
-
 import React, { useEffect, useState } from 'react'
-import Button from '@mui/material/Button'
-import {
-  Box,
-  ClickAwayListener,
-  Grow,
-  Menu,
-  MenuItem,
-  MenuList,
-  Paper,
-  Popper,
-} from '@mui/material'
-import { styled } from '@mui/material/styles'
-import { T } from '@tolgee/react'
-import { useSession } from 'next-auth/react'
-import { User } from 'next-auth'
-import { useQuery } from '@tanstack/react-query'
+import { Menu } from '@base-ui/react/menu'
+import { useTranslate } from '@tolgee/react'
 
 import { openWindow } from '#/common/utils/modal'
 import { useUserStore } from '#/common/store/userStore'
-import { LoadingSpinner } from '#/components/Loading'
 import { UserAuthState, UserDataState } from '#/common/types/state'
 import LoadingHorizontal from '#/components/Loading/LoadingHorizontal'
+import { Box } from '#/common/style/theme/system'
 
 const profileUrl =
-  process.env.NEXT_PUBLIC_ZITADEL_ISSUER + '/ui/console/users/me'
+  process.env.PUBLIC_ZITADEL_ISSUER + '/ui/console/users/me'
 
 const LoggedInButton = () => {
-  const { data: session } = useSession()
-
   const signOut = useUserStore((state) => state.signOut)
   const userData = useUserStore((state) => state.userData)
   const userAuthState = useUserStore((state) => state.userAuthState)
   const userDataState = useUserStore((state) => state.userDataState)
+  const { t } = useTranslate('avoin-map')
 
   const [open, setOpen] = useState(false)
   const anchorRef = React.useRef<HTMLButtonElement>(null)
-
-  const handleToggle = () => {
-    setOpen((prevOpen) => !prevOpen)
-  }
-
-  const handleClose = (event: Event | React.SyntheticEvent) => {
-    if (
-      anchorRef.current &&
-      anchorRef.current.contains(event.target as HTMLElement)
-    ) {
-      return
-    }
-
-    setOpen(false)
-  }
 
   const handleProfileClick = () => {
     openWindow(profileUrl)
@@ -63,11 +31,9 @@ const LoggedInButton = () => {
     setOpen(false)
   }
 
-  function handleListKeyDown(event: React.KeyboardEvent) {
+  const handleListKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Tab') {
       event.preventDefault()
-      setOpen(false)
-    } else if (event.key === 'Escape') {
       setOpen(false)
     }
   }
@@ -86,63 +52,123 @@ const LoggedInButton = () => {
     <>
       {userAuthState === UserAuthState.Authenticated &&
         userDataState === UserDataState.Fetched && (
-          <>
-            <Button
+          <Menu.Root
+            open={open}
+            onOpenChange={(nextOpen) => {
+              setOpen(nextOpen)
+            }}
+            modal={false}
+          >
+            <Menu.Trigger
               ref={anchorRef}
-              aria-label={`Open account menu for ${userData?.name ?? 'user'}`}
-              aria-haspopup="true"
               id="navbar-profile-button"
-              sx={{ color: 'neutral.lighter', typography: 'h3', pl: 0 }}
-              onClick={handleToggle}
+              aria-label={`Open account menu for ${userData?.name ?? 'user'}`}
+              render={(props) => (
+                <Box
+                  {...props}
+                  component="button"
+                  sx={{
+                    m: 0,
+                    p: 0,
+                    pl: 0,
+                    border: 0,
+                    appearance: 'none',
+                    background: 'transparent',
+                    color: 'neutral.lighter',
+                    cursor: 'pointer',
+                    font: 'inherit',
+                    typography: 'h3',
+                    textAlign: 'left',
+                    '&:hover': {
+                      textDecoration: 'underline',
+                    },
+                    '&:focus-visible, &[data-focus-visible="true"]': {
+                      outline: (theme) =>
+                        `2px solid ${theme.palette?.secondary?.dark ?? '#1976d2'}`,
+                      outlineOffset: 3,
+                    },
+                  }}
+                />
+              )}
             >
               {userData?.name}
-            </Button>
-            <Popper
-              open={open}
-              anchorEl={anchorRef.current}
-              role={undefined}
-              placement="bottom-start"
-              transition
-              // disablePortal
-              sx={{
-                zIndex: 3300,
-              }}
-            >
-              {({ TransitionProps, placement }) => (
-                <Grow
-                  {...TransitionProps}
-                  style={{
-                    transformOrigin:
-                      placement === 'bottom-start' ? 'left top' : 'left bottom',
-                  }}
+            </Menu.Trigger>
+            <Menu.Portal>
+              <Menu.Positioner
+                side="bottom"
+                align="start"
+                sideOffset={4}
+                render={(props) => (
+                  <Box
+                    {...props}
+                    sx={{ zIndex: (theme) => theme.zIndex?.popup ?? 3300 }}
+                  />
+                )}
+              >
+                <Menu.Popup
+                  id="navbar-profile-menu"
+                  aria-labelledby="navbar-profile-button"
+                  onKeyDown={handleListKeyDown}
+                  render={(props) => (
+                    <Box
+                      {...props}
+                      sx={{
+                        minWidth: 180,
+                        py: 0.5,
+                        borderRadius: '4px',
+                        backgroundColor: '#ffffff',
+                        color: 'neutral.darker',
+                        boxShadow: '0px 6px 18px rgba(0, 0, 0, 0.22)',
+                        border: '1px solid rgba(17, 17, 17, 0.08)',
+                        outline: 0,
+                      }}
+                    />
+                  )}
                 >
-                  <Paper>
-                    <ClickAwayListener onClickAway={handleClose}>
-                      <MenuList
-                        autoFocusItem={open}
-                        id="navbar-profile-menu"
-                        aria-labelledby="navbar-profile-button"
-                        onKeyDown={handleListKeyDown}
-                      >
-                        <MenuItem
-                          aria-label="Open profile settings"
-                          onClick={handleProfileClick}
-                        >
-                          <T keyName={'navbar.profile.settings'}></T>
-                        </MenuItem>
-                        <MenuItem
-                          aria-label="Sign out"
-                          onClick={handleSignoutClick}
-                        >
-                          <T keyName={'navbar.profile.sign_out'}></T>
-                        </MenuItem>
-                      </MenuList>
-                    </ClickAwayListener>
-                  </Paper>
-                </Grow>
-              )}
-            </Popper>
-          </>
+                  <Menu.Item
+                    aria-label="Open profile settings"
+                    onClick={handleProfileClick}
+                    render={(props) => (
+                      <Box
+                        {...props}
+                        sx={{
+                          px: 2,
+                          py: 1,
+                          cursor: 'pointer',
+                          typography: 'body2',
+                          '&[data-highlighted], &:hover': {
+                            backgroundColor: 'action.hover',
+                          },
+                        }}
+                      />
+                    )}
+                  >
+                    {t('navbar.profile.settings')}
+                  </Menu.Item>
+                  <Menu.Item
+                    aria-label="Sign out"
+                    onClick={handleSignoutClick}
+                    render={(props) => (
+                      <Box
+                        {...props}
+                        sx={{
+                          px: 2,
+                          py: 1,
+                          cursor: 'pointer',
+                          typography: 'body2',
+                          '&[data-highlighted], &:hover': {
+                            backgroundColor: 'action.hover',
+                          },
+                        }}
+                      />
+                    )}
+                  >
+                    {t('navbar.profile.sign_out')}
+                  </Menu.Item>
+                </Menu.Popup>
+              </Menu.Positioner>
+            </Menu.Portal>
+          </Menu.Root>
         )}
       {userDataState !== UserDataState.Fetched && (
         <LoadingHorizontal></LoadingHorizontal>
@@ -150,13 +176,5 @@ const LoggedInButton = () => {
     </>
   )
 }
-
-const ActionButton = styled(Button)({
-  height: 40,
-  display: 'inline',
-  width: 90,
-  margin: '0 0 0 10px',
-  fontSize: '0.9rem',
-})
 
 export default LoggedInButton

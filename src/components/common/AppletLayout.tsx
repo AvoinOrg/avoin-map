@@ -1,5 +1,6 @@
 import React from 'react'
-import Script from 'next/script'
+
+import { getUmamiScriptConfig } from '#/common/utils/umami'
 
 type AppletLayoutProps = {
   children: React.ReactNode
@@ -7,17 +8,15 @@ type AppletLayoutProps = {
 }
 
 const AppletLayout = ({ children, umamiWebsiteId }: AppletLayoutProps) => {
-  const umamiScriptUrl = process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL
-  const shouldLoadUmami = umamiScriptUrl && umamiWebsiteId
+  const umamiScript = getUmamiScriptConfig(umamiWebsiteId)
 
   return (
     <>
-      {shouldLoadUmami && (
-        <Script
+      {umamiScript && (
+        <script
           defer
-          src={umamiScriptUrl}
-          data-website-id={umamiWebsiteId}
-          strategy="afterInteractive"
+          src={umamiScript.src}
+          data-website-id={umamiScript.websiteId}
         />
       )}
       {children}

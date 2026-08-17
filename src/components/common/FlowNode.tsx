@@ -1,8 +1,8 @@
-'use client'
-
 import React, { useMemo } from 'react'
-import { Box, ButtonBase, SxProps, Theme, Typography } from '@mui/material'
 
+import { Box, type AppSxProps, toSxArray } from '#/common/style/theme'
+import { SHARED_CONTROL_BORDER_RADIUS } from '#/common/style/theme/constants'
+import { ButtonBase } from '#/components/common/Button'
 import CheckcircleCheckedFilled from '#/components/icons/CheckcircleCheckedFilled'
 
 export type FlowNodeState = 'active' | 'available' | 'disabled' | 'complete'
@@ -20,9 +20,9 @@ export type FlowNodeProps = {
   disabled?: boolean
   onChange?: (expanded: boolean) => void
   children?: React.ReactNode
-  sx?: SxProps<Theme>
-  contentSx?: SxProps<Theme>
-  bodySx?: SxProps<Theme>
+  sx?: AppSxProps
+  contentSx?: AppSxProps
+  bodySx?: AppSxProps
   ariaLabel?: string
   showConnector?: boolean
 }
@@ -143,7 +143,8 @@ const FlowNodeBase = ({
           gap: description || helper ? '0.125rem' : 0,
         }}
       >
-        <Typography
+        <Box
+          component="span"
           sx={{
             fontSize: '0.625rem',
             fontWeight: 700,
@@ -154,9 +155,10 @@ const FlowNodeBase = ({
           }}
         >
           {title}
-        </Typography>
+        </Box>
         {description && (
-          <Typography
+          <Box
+            component="span"
             sx={{
               fontSize: '0.625rem',
               fontWeight: 400,
@@ -167,10 +169,11 @@ const FlowNodeBase = ({
             }}
           >
             {description}
-          </Typography>
+          </Box>
         )}
         {helper && (
-          <Typography
+          <Box
+            component="span"
             sx={{
               fontSize: '0.625rem',
               fontWeight: 400,
@@ -181,12 +184,33 @@ const FlowNodeBase = ({
             }}
           >
             {helper}
-          </Typography>
+          </Box>
         )}
       </Box>
 
       {trailing && (
         <Box
+          onClick={
+            isInteractive
+              ? (event) => {
+                  event.stopPropagation()
+                }
+              : undefined
+          }
+          onKeyDown={
+            isInteractive
+              ? (event) => {
+                  event.stopPropagation()
+                }
+              : undefined
+          }
+          onKeyUp={
+            isInteractive
+              ? (event) => {
+                  event.stopPropagation()
+                }
+              : undefined
+          }
           sx={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -212,7 +236,7 @@ const FlowNodeBase = ({
           width: '100%',
           color: '#111111',
         },
-        ...(Array.isArray(sx) ? sx : [sx]),
+        ...toSxArray(sx),
       ]}
     >
       <Box
@@ -260,11 +284,13 @@ const FlowNodeBase = ({
             flex: 1,
             minWidth: 0,
           },
-          ...(Array.isArray(contentSx) ? contentSx : [contentSx]),
+          ...toSxArray(contentSx),
         ]}
       >
         {isInteractive ? (
           <ButtonBase
+            component="div"
+            role="button"
             onClick={onClick}
             aria-label={
               ariaLabel ??
@@ -274,9 +300,10 @@ const FlowNodeBase = ({
             }
             sx={{
               width: '100%',
+              display: 'flex',
               justifyContent: 'flex-start',
               textAlign: 'left',
-              borderRadius: state === 'active' ? '0.9375rem' : 0,
+              borderRadius: state === 'active' ? SHARED_CONTROL_BORDER_RADIUS : 0,
               px: state === 'active' ? '0.75rem' : 0,
               py: state === 'active' ? '0.125rem' : 0,
               backgroundColor:
@@ -291,7 +318,7 @@ const FlowNodeBase = ({
         ) : (
           <Box
             sx={{
-              borderRadius: state === 'active' ? '0.9375rem' : 0,
+              borderRadius: state === 'active' ? SHARED_CONTROL_BORDER_RADIUS : 0,
               px: state === 'active' ? '0.75rem' : 0,
               py: state === 'active' ? '0.125rem' : 0,
               backgroundColor:
@@ -314,7 +341,7 @@ const FlowNodeBase = ({
                 flexDirection: 'column',
                 gap: '1rem',
               },
-              ...(Array.isArray(bodySx) ? bodySx : [bodySx]),
+              ...toSxArray(bodySx),
             ]}
           >
             {children}

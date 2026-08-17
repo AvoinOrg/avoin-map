@@ -1,10 +1,11 @@
-'use client'
-
 import React, { useEffect, useRef } from 'react'
-import { Box, SxProps, Theme } from '@mui/material'
 
 import { useUIStore } from '#/common/store'
+import type { AppBoxProps } from '#/common/style/theme/system'
+import { Box } from '#/common/style/theme/system'
 import { LoadingSpinner } from '../Loading'
+
+type SidebarStyleProps = AppBoxProps['sx']
 
 type SidebarScaffoldProps = {
   children: React.ReactNode
@@ -13,9 +14,9 @@ type SidebarScaffoldProps = {
   trailingContent?: React.ReactNode
   actionRail?: React.ReactNode
   hideMainContainer?: boolean
-  containerSx?: SxProps<Theme>
-  panelSx?: SxProps<Theme>
-  contentSx?: SxProps<Theme>
+  containerSx?: SidebarStyleProps
+  panelSx?: SidebarStyleProps
+  contentSx?: SidebarStyleProps
 }
 
 const SidebarScaffold = ({
@@ -96,7 +97,7 @@ const SidebarScaffold = ({
         className="sidebar-container"
         ref={sidebarContainerRef}
         sx={[
-          (theme: Theme) => ({
+          (theme) => ({
             display: hideMainContainer ? 'none' : 'flex',
             flexDirection: 'column',
             flex: '0 0 auto',
@@ -109,7 +110,7 @@ const SidebarScaffold = ({
             minWidth: 0,
             height: '100%',
             minHeight: 0,
-            zIndex: theme.zIndex.drawer + 1,
+            zIndex: (theme.zIndex?.drawer ?? 1200) + 1,
             pt: { mobile: 0, desktop: 2 },
             pb: { mobile: 0, desktop: 2 },
             ml: { mobile: 0, desktop: 2 },
@@ -172,7 +173,7 @@ const SidebarScaffold = ({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    zIndex: theme.zIndex.drawer + 10,
+                    zIndex: (theme.zIndex?.drawer ?? 1200) + 10,
                     borderRadius: 'inherit',
                   })}
                 >

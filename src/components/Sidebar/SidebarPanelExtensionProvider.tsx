@@ -1,5 +1,3 @@
-'use client'
-
 import React, {
   useEffect,
   useId,
@@ -77,11 +75,14 @@ export const SidebarPanelExtensionProvider = ({
     config,
     runtimeOptions: runtimeOptions ?? initialRuntimeOptions,
   })
-  latestRegistration.current = {
-    depth,
-    config,
-    runtimeOptions: runtimeOptions ?? initialRuntimeOptions,
-  }
+
+  useIsomorphicLayoutEffect(() => {
+    latestRegistration.current = {
+      depth,
+      config,
+      runtimeOptions: runtimeOptions ?? initialRuntimeOptions,
+    }
+  }, [config, depth, initialRuntimeOptions, runtimeOptions])
 
   useIsomorphicLayoutEffect(() => {
     if (!enabled) {

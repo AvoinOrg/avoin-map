@@ -1,5 +1,3 @@
-'use client'
-
 import { create, StateCreator } from 'zustand'
 import { persist, createJSONStorage, devtools } from 'zustand/middleware'
 import { createIndexedDbStorage } from '#/common/utils/store'

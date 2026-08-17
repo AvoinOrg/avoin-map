@@ -1,24 +1,26 @@
-'use client'
-
 import React, { useEffect, useRef, useState } from 'react'
-import {
-  Box,
-  Paper,
-  Popper,
-  Tooltip,
-  Typography,
-} from '@mui/material'
-import type { PopperPlacementType } from '@mui/material/Popper'
-import type { SxProps, Theme } from '@mui/material/styles'
-import { alpha } from '@mui/material/styles'
-import TuneIcon from '@mui/icons-material/Tune'
+import { Popover } from '@base-ui/react/popover'
 
 import { useTranslate } from '@tolgee/react'
 
-import { ArrowUp } from '#/components/icons'
-import { useUIStore } from '#/common/store'
+import {
+  Box,
+  toSxArray,
+  type AppSxProps,
+} from '#/common/style/theme/system'
+import { ArrowUp, Tune } from '#/components/icons'
+import { useUIStore } from '#/common/store/uiStore'
 import { IntoSlot } from '../context/slotsContext'
 import { MAP_BUTTON_SIZE, MapButton, MapButtonProps } from './MapButton'
+import {
+  MapButtonMenuPlacement,
+  MapButtonMenuPositioner,
+  MapButtonMenuSurface,
+  assignMapButtonMenuRef,
+  mapButtonMenuModal,
+  mapButtonStickyHorizontalPlacement,
+  mapButtonStickyVerticalPlacement,
+} from './MapButtonMenu'
 
 type MenuContentRenderer = (helpers: {
   closeMenu: () => void
@@ -29,14 +31,23 @@ type MapButtonStickyMenuProps = {
   menuContent?: React.ReactNode | MenuContentRenderer
   isVertical: boolean
   isActive: boolean
-  paperSx?: SxProps<Theme>
-  popperSx?: SxProps<Theme>
-  placement?: PopperPlacementType
+  paperSx?: AppSxProps
+  popperSx?: AppSxProps
+  placement?: MapButtonMenuPlacement
   showTooltip?: string
   menuTitle?: string
+  defaultOpen?: boolean
 }
 
 const STICKY_MENU_SLOT_NAME = 'map-sticky-menu-toggle'
+type TriggerRenderProps = Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  'onClick'
+> & {
+  ref?: React.Ref<HTMLButtonElement>
+  onClick?: React.MouseEventHandler<HTMLElement>
+  color?: string
+}
 
 export const MapButtonStickyMenu = ({
   children,
@@ -48,18 +59,22 @@ export const MapButtonStickyMenu = ({
   placement,
   showTooltip,
   menuTitle,
+  defaultOpen,
 }: MapButtonStickyMenuProps) => {
   const { t } = useTranslate('avoin-map')
   const activeMapMenu = useUIStore((state) => state.activeMapMenu)
 
   const anchorRef = useRef<HTMLButtonElement | null>(null)
+  const [anchorElement, setAnchorElement] = useState<HTMLButtonElement | null>(
+    null
+  )
   const childDisabled = Boolean(children.props.disabled)
   const hasRawMenuContent =
     typeof menuContent === 'function'
       ? true
       : React.Children.count(menuContent) > 0
   const [open, setOpen] = useState(
-    () => isActive && hasRawMenuContent && !childDisabled
+    () => defaultOpen ?? (isActive && hasRawMenuContent && !childDisabled)
   )
   const closeMenu = React.useCallback(() => {
     setOpen(false)
@@ -73,26 +88,38 @@ export const MapButtonStickyMenu = ({
   const hasMenuContent = React.Children.count(resolvedMenuContent) > 0
 
   useEffect(() => {
-    if (!hasMenuContent || childDisabled) {
-      setOpen(false)
-      return
-    }
-    setOpen(isActive)
-  }, [isActive, hasMenuContent, childDisabled])
+    const nextOpen =
+      !hasMenuContent || childDisabled
+        ? false
+        : defaultOpen != null
+          ? defaultOpen && isActive
+          : isActive
+
+    const timeoutId = window.setTimeout(() => setOpen(nextOpen), 0)
+    return () => window.clearTimeout(timeoutId)
+  }, [isActive, hasMenuContent, childDisabled, defaultOpen])
 
   useEffect(() => {
-    if (isVertical && activeMapMenu === 'search') {
-      setOpen(false)
+    if (!hasMenuContent || childDisabled) {
+      return undefined
     }
-  }, [activeMapMenu, isVertical])
+
+    if (isVertical && activeMapMenu === 'search') {
+      const timeoutId = window.setTimeout(() => setOpen(false), 0)
+      return () => window.clearTimeout(timeoutId)
+    }
+    return undefined
+  }, [activeMapMenu, isVertical, hasMenuContent, childDisabled])
 
   useEffect(() => {
     if (
       activeMapMenu === 'backgroundLayers' ||
       activeMapMenu === 'backgroundOverlayLayers'
     ) {
-      setOpen(false)
+      const timeoutId = window.setTimeout(() => setOpen(false), 0)
+      return () => window.clearTimeout(timeoutId)
     }
+    return undefined
   }, [activeMapMenu])
 
   if (!isActive || !hasMenuContent) {
@@ -108,12 +135,7 @@ export const MapButtonStickyMenu = ({
 
     if (childDisabled) return
 
-    setOpen((prev) => !prev)
-  }
-
-  const handleToggleFromIcon = () => {
-    if (childDisabled) return
-    setOpen((prev) => !prev)
+    setOpen(!open)
   }
 
   const clonedChild = React.cloneElement(children, {
@@ -121,18 +143,38 @@ export const MapButtonStickyMenu = ({
   })
 
   const anchorEl =
-    typeof document !== 'undefined' && anchorRef.current
-      ? document.body.contains(anchorRef.current)
-        ? anchorRef.current
+    typeof document !== 'undefined' && anchorElement
+      ? document.body.contains(anchorElement)
+        ? anchorElement
         : null
-      : anchorRef.current
+      : anchorElement
 
   const isSearchOpenVertical = isVertical && activeMapMenu === 'search'
   const effectiveOpen = open && !isSearchOpenVertical && Boolean(anchorEl)
   const hideLabel = t('map.menu.hide')
 
+  const setToggleRef = (
+    triggerRef: React.Ref<HTMLButtonElement> | undefined,
+    node: HTMLButtonElement | null
+  ) => {
+    anchorRef.current = node
+    setAnchorElement((previous) => (previous === node ? previous : node))
+    assignMapButtonMenuRef(triggerRef, node)
+  }
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen && (childDisabled || !hasMenuContent || !isActive)) {
+      return
+    }
+    setOpen(nextOpen)
+  }
+
   return (
-    <>
+    <Popover.Root
+      open={effectiveOpen}
+      onOpenChange={handleOpenChange}
+      modal={mapButtonMenuModal}
+    >
       {clonedChild}
 
       <IntoSlot name={STICKY_MENU_SLOT_NAME}>
@@ -141,77 +183,68 @@ export const MapButtonStickyMenu = ({
             visibility: open ? 'hidden' : 'visible',
           }}
         >
-          <MapButton
-            ref={anchorRef}
-            onClick={handleToggleFromIcon}
-            size="small"
-            tooltip={showTooltip ?? t('map.buttons.menu.show')}
-            isVertical={isVertical}
-          >
-            <TuneIcon />
-          </MapButton>
+          <Popover.Trigger
+            disabled={childDisabled}
+            render={(triggerProps) => {
+              const {
+                color: ignoredColor,
+                onClick: triggerOnClick,
+                ref: triggerRef,
+                ...resolvedTriggerProps
+              } = triggerProps as TriggerRenderProps
+              void ignoredColor
+
+              return (
+                <MapButton
+                  {...resolvedTriggerProps}
+                  ref={(node) => setToggleRef(triggerRef, node)}
+                  onClick={(event) => {
+                    if (childDisabled) return
+                    triggerOnClick?.(event)
+                  }}
+                  size="small"
+                  tooltip={showTooltip ?? t('map.buttons.menu.show')}
+                  isVertical={isVertical}
+                  aria-haspopup="menu"
+                  aria-expanded={effectiveOpen ? 'true' : undefined}
+                >
+                  <Tune aria-hidden="true" />
+                </MapButton>
+              )
+            }}
+          />
         </Box>
       </IntoSlot>
 
-      <Popper
-        open={effectiveOpen}
-        anchorEl={anchorEl}
-        placement={placement ?? (isVertical ? 'bottom-end' : 'bottom-start')}
-        modifiers={[
-          {
-            name: 'offset',
-            options: {
-              // Move popper up by button height so it visually
-              // replaces the toggle button instead of appearing below it.
-              offset: [0, -MAP_BUTTON_SIZE],
-            },
-          },
-          {
-            name: 'flip',
-            enabled: false,
-          },
-          {
-            name: 'preventOverflow',
-            options: {
-              padding: 16,
-              tether: false,
-            },
-          },
-        ]}
-        sx={[
-          (theme) => ({
-            zIndex: theme.zIndex.drawer - 1,
-          }),
-          ...(Array.isArray(popperSx) ? popperSx : [popperSx]),
-        ]}
+      <MapButtonMenuPositioner
+        anchor={anchorEl}
+        isVertical={isVertical}
+        placement={
+          placement ??
+          (isVertical
+            ? mapButtonStickyVerticalPlacement
+            : mapButtonStickyHorizontalPlacement)
+        }
+        popperSx={popperSx}
+        sideOffset={-MAP_BUTTON_SIZE}
+        zIndex={(theme) => theme.zIndex.drawer - 1}
       >
-        <Paper
-          sx={[
-            (theme) => ({
-              maxWidth: `calc(100vw - 78px)`,
-              maxHeight: isVertical
-                ? `calc(100vh - 32px)`
-                : 'calc(100vh - 78px)',
-              overflowY: 'auto',
-              p: '1rem',
-              backgroundColor: isVertical
-                ? theme.palette.neutral.light
-                : alpha(theme.palette.neutral.light, 0.9),
-              borderRadius: '0.3125rem',
-              width: 'fit-content',
-              position: 'relative',
-            }),
-            ...(Array.isArray(paperSx) ? paperSx : [paperSx]),
-          ]}
+        <MapButtonMenuSurface
+          isVertical={isVertical}
+          paperSx={[{ position: 'relative' }, ...toSxArray(paperSx)]}
         >
           <Box
             role="button"
             tabIndex={0}
             onClick={closeMenu}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') closeMenu()
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                closeMenu()
+              }
             }}
             aria-label={hideLabel}
+            data-slot="map-button-sticky-menu-close"
             sx={{
               display: 'flex',
               alignItems: 'center',
@@ -221,18 +254,29 @@ export const MapButtonStickyMenu = ({
               cursor: 'pointer',
               userSelect: 'none',
               opacity: 1,
+              outline: 0,
               '&:hover': {
                 opacity: 0.55,
+              },
+              '&:focus-visible, &[data-focus-visible="true"]': {
+                outline: (theme) => `2px solid ${theme.palette.secondary.dark}`,
+                outlineOffset: 2,
               },
             }}
           >
             {menuTitle ? (
-              <Typography
-                variant="body7"
-                sx={{ fontWeight: 500, textAlign: 'left', color: 'text.primary' }}
+              <Box
+                component="span"
+                sx={{
+                  fontSize: '0.75rem',
+                  lineHeight: 1.35,
+                  fontWeight: 500,
+                  textAlign: 'left',
+                  color: 'text.primary',
+                }}
               >
                 {menuTitle}
-              </Typography>
+              </Box>
             ) : (
               <Box sx={{ flex: 1 }} />
             )}
@@ -241,8 +285,8 @@ export const MapButtonStickyMenu = ({
             </Box>
           </Box>
           <Box>{resolvedMenuContent}</Box>
-        </Paper>
-      </Popper>
-    </>
+        </MapButtonMenuSurface>
+      </MapButtonMenuPositioner>
+    </Popover.Root>
   )
 }
