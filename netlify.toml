@@ -12,3 +12,6 @@
 
 [context."luonnonmetsakartat_deploy"]
   environment = { PUBLIC_COMPILED_APPLETS = "luonnonmetsakartat" }
+
+[context."luonnonmetsakartat-test_deploy"]
+  environment = { PUBLIC_COMPILED_APPLETS = "luonnonmetsakartat" }
