@@ -36,6 +36,7 @@ type LayerToggleRowAccordionProps = SharedLayerToggleRowProps & {
   expanded: boolean
   children: React.ReactNode
   contentSx?: StyleProp
+  applyNegativeMargins?: boolean
 }
 
 type LayerToggleRowLinkProps = SharedLayerToggleRowProps & {
@@ -45,12 +46,18 @@ type LayerToggleRowLinkProps = SharedLayerToggleRowProps & {
 }
 
 const LAYER_ROW_MIN_HEIGHT = { mobile: '2rem', desktop: '1.75rem' }
-const LAYER_ROW_HORIZONTAL_PADDING = '0.375rem'
+const LAYER_ROW_HORIZONTAL_PADDING_REM = 0.375
+const LAYER_ROW_HORIZONTAL_PADDING = `${LAYER_ROW_HORIZONTAL_PADDING_REM}rem`
 const LAYER_STATUS_ICON_SLOT_WIDTH = '2rem'
 const LAYER_STATUS_ICON_SLOT_HEIGHT = '1.5rem'
-const LAYER_STATUS_ICON_SIZE = '1rem'
-const LAYER_STATUS_ICON_HIGHLIGHT_WIDTH = '1.5rem'
+const LAYER_STATUS_ICON_SIZE_REM = 1
+const LAYER_STATUS_ICON_SIZE = `${LAYER_STATUS_ICON_SIZE_REM}rem`
+const LAYER_STATUS_ICON_HIGHLIGHT_WIDTH_REM = 1.5
+const LAYER_STATUS_ICON_HIGHLIGHT_WIDTH = `${LAYER_STATUS_ICON_HIGHLIGHT_WIDTH_REM}rem`
 const LAYER_STATUS_ICON_HIGHLIGHT_HEIGHT = '1rem'
+const LAYER_COLORED_VISIBLE_EYE_OFFSET = `${
+  (LAYER_STATUS_ICON_SIZE_REM - LAYER_STATUS_ICON_HIGHLIGHT_WIDTH_REM) / 2
+}rem`
 const LAYER_STATUS_ICON_SLOT_MARGIN_RIGHT = '0.75rem'
 const LAYER_TRAILING_ACTION_SLOT_SIZE = '1.75rem'
 const LAYER_TRAILING_ACTION_ICON_SIZE = '1rem'
@@ -88,6 +95,21 @@ const EDGE_ALIGNED_ICON_SX = {
   justifyContent: 'flex-start',
 }
 
+const NEGATIVE_MARGIN_ACCORDION_ROW_SX = {
+  mx: `-${LAYER_ROW_HORIZONTAL_PADDING}`,
+  width: `calc(100% + ${LAYER_ROW_HORIZONTAL_PADDING_REM * 2}rem)`,
+}
+
+const TRAILING_ACTION_SLOT_SX = {
+  width: LAYER_TRAILING_ACTION_SLOT_SIZE,
+  height: LAYER_TRAILING_ACTION_SLOT_SIZE,
+  ml: LAYER_TRAILING_ACTION_MARGIN_LEFT,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flexShrink: 0,
+}
+
 const LABEL_SX = {
   color: '#111111',
   flexGrow: 1,
@@ -118,10 +140,12 @@ const ColoredVisibleIcon = ({ color }: { color: string }) => {
       }}
     >
       <EyeOpen
+        data-slot="layer-colored-visible-eye"
         sx={{
           width: LAYER_STATUS_ICON_SIZE,
           height: LAYER_STATUS_ICON_SIZE,
           color: contrastColor,
+          transform: `translateX(${LAYER_COLORED_VISIBLE_EYE_OFFSET})`,
         }}
       />
     </Box>
@@ -230,7 +254,9 @@ export const LayerToggleRowAccordion = ({
   expanded,
   children,
   contentSx,
+  applyNegativeMargins = false,
   rowSx,
+  iconSx,
   ...props
 }: LayerToggleRowAccordionProps) => {
   const generatedId = useId()
@@ -246,6 +272,7 @@ export const LayerToggleRowAccordion = ({
         expanded={expanded}
         controls={contentId}
         rowSx={[
+          applyNegativeMargins ? NEGATIVE_MARGIN_ACCORDION_ROW_SX : {},
           expanded
             ? {
                 backgroundColor: '#e6efff',
@@ -254,19 +281,16 @@ export const LayerToggleRowAccordion = ({
             : {},
           ...toStyleArray(rowSx),
         ]}
+        iconSx={[
+          applyNegativeMargins ? EDGE_ALIGNED_ICON_SX : {},
+          ...toStyleArray(iconSx),
+        ]}
       >
         <Box
           component="span"
           aria-hidden="true"
-          sx={{
-            width: LAYER_TRAILING_ACTION_SLOT_SIZE,
-            height: LAYER_TRAILING_ACTION_SLOT_SIZE,
-            ml: LAYER_TRAILING_ACTION_MARGIN_LEFT,
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
+          data-slot="layer-trailing-action-slot"
+          sx={TRAILING_ACTION_SLOT_SX}
         >
           <CircleArrowRight
             sx={{
@@ -354,6 +378,7 @@ export const LayerToggleRowLink = ({
       <AppRouteLink
         {...restLinkProps}
         aria-label={linkAriaLabel}
+        data-slot="layer-trailing-action-slot"
         onClickCapture={(event) => {
           onLinkClickCapture?.(event)
         }}
@@ -363,12 +388,7 @@ export const LayerToggleRowLink = ({
         }}
         sx={[
           {
-            width: LAYER_TRAILING_ACTION_SLOT_SIZE,
-            height: LAYER_TRAILING_ACTION_SLOT_SIZE,
-            ml: LAYER_TRAILING_ACTION_MARGIN_LEFT,
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            ...TRAILING_ACTION_SLOT_SX,
             color: '#111111',
             borderRadius: '50%',
             '&:focus-visible': {

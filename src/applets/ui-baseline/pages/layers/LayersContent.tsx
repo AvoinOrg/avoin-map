@@ -155,6 +155,7 @@ const CustomAccordionRowsExample = () => {
         label="Closed custom layer"
         status="hidden"
         expanded={false}
+        applyNegativeMargins
         onToggle={noop}
         ariaLabel="Toggle closed custom layer"
       >
@@ -164,6 +165,7 @@ const CustomAccordionRowsExample = () => {
         label="Open custom layer"
         status="visible"
         expanded
+        applyNegativeMargins
         onToggle={noop}
         ariaLabel="Toggle open custom layer"
       >
@@ -173,6 +175,7 @@ const CustomAccordionRowsExample = () => {
         label="Interactive custom layer"
         status={interactiveExpanded ? 'visible' : 'hidden'}
         expanded={interactiveExpanded}
+        applyNegativeMargins
         onToggle={() => setInteractiveExpanded((value) => !value)}
         ariaLabel="Toggle interactive custom layer"
       >
@@ -199,6 +202,7 @@ const LayerRowVariantComparison = () => {
         label="Custom accordion row"
         status="visible"
         expanded
+        applyNegativeMargins
         onToggle={noop}
         ariaLabel="Toggle custom accordion comparison layer"
       >

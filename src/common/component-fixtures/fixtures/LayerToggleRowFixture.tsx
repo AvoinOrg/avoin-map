@@ -63,6 +63,7 @@ const ColoredLayerRowVariantComparison = () => (
         label="Accordion layer"
         status="hidden"
         expanded={false}
+        applyNegativeMargins
         ariaLabel="Toggle hidden accordion layer fixture"
         onToggle={noop}
       >
@@ -73,6 +74,7 @@ const ColoredLayerRowVariantComparison = () => (
         status="visible"
         color="#2f855a"
         expanded={false}
+        applyNegativeMargins
         ariaLabel="Toggle colored accordion layer fixture"
         onToggle={noop}
       >
@@ -273,6 +275,7 @@ export const layerToggleRowFixture: ComponentFixture = {
           label="Forest layers"
           status="hidden"
           expanded={false}
+          applyNegativeMargins
           ariaLabel="Toggle forest layers fixture"
           onToggle={noop}
           contentSx={{ pt: 1.25 }}
@@ -296,6 +299,7 @@ export const layerToggleRowFixture: ComponentFixture = {
           label="Forest layers"
           status="visible"
           expanded
+          applyNegativeMargins
           ariaLabel="Toggle forest layers fixture"
           onToggle={noop}
           contentSx={{ pt: 1.25 }}
