@@ -156,11 +156,13 @@ const StatefulDropDownMultiSelect = ({
   placeholder,
   ariaLabel,
   applyNegativeMargins,
+  open,
 }: {
   initialValue: string[]
   placeholder?: React.ReactNode
   ariaLabel: string
   applyNegativeMargins?: boolean
+  open?: boolean
 }) => {
   const [value, setValue] = useState(initialValue)
 
@@ -172,6 +174,7 @@ const StatefulDropDownMultiSelect = ({
       placeholder={placeholder}
       ariaLabel={ariaLabel}
       applyNegativeMargins={applyNegativeMargins}
+      open={open}
     />
   )
 }
@@ -421,10 +424,14 @@ const DropdownsContent = () => (
           ariaLabel="Multiple selected multi-select"
         />
       </BaselineExample>
-      <BaselineExample title="Interactive checked and unchecked values">
+      <BaselineExample
+        title="Open checked and unchecked values"
+        minHeight="11rem"
+      >
         <StatefulDropDownMultiSelect
           initialValue={['heat-demand']}
-          ariaLabel="Interactive multi-select"
+          ariaLabel="Open mixed-state multi-select"
+          open
         />
       </BaselineExample>
       <BaselineExample title="Disabled">

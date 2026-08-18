@@ -108,7 +108,7 @@ export const dropDownMultiSelectFixture: ComponentFixture = {
     'src/components/common/DropDownSelect.tsx',
     'src/components/common/DropDownMultiSelect.tsx',
     'src/components/icons/Checkbox.tsx',
-    'src/components/icons/CheckboxChecked.tsx',
+    'src/public/img/common/drop-down-multi-select-selected.png',
     'src/components/common/DropDownMultiSelect.test.tsx',
     'src/common/component-fixtures/fixtures/DropDownMultiSelectFixture.tsx',
   ],
@@ -132,6 +132,7 @@ export const dropDownMultiSelectFixture: ComponentFixture = {
       id: 'open',
       label: 'Open',
       description: 'Open menu with unchecked and checked option indicators.',
+      waitFor: 'role=option',
       render: () => (
         <DropDownMultiSelect
           value={['heat']}
