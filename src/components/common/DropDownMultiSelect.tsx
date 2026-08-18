@@ -1,12 +1,11 @@
 import { Select as BaseSelect } from '@base-ui/react/select'
 import React, { type ReactNode } from 'react'
 
+import { Box, type AppSxProps, toSxArray } from '#/common/style/theme/system'
 import {
-  Box,
-  type AppSxProps,
-  toSxArray,
-} from '#/common/style/theme/system'
-import { SHARED_CONTROL_INFINITE_BORDER_RADIUS } from '#/common/style/theme/constants'
+  getSharedPillNegativeMarginsSx,
+  SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+} from '#/common/style/theme/constants'
 import {
   DROP_DOWN_SELECT_ICON_SX,
   DROP_DOWN_SELECT_LIST_SX,
@@ -16,7 +15,9 @@ import {
 } from '#/components/common/DropDownSelect'
 import ArrowDown from '#/components/icons/ArrowDown'
 import Checkbox from '#/components/icons/Checkbox'
-import CheckboxChecked from '#/components/icons/CheckboxChecked'
+
+const SELECTED_OPTION_INDICATOR_SRC =
+  '/files/img/common/drop-down-multi-select-selected.png'
 
 export type DropDownMultiSelectOption = {
   value: string
@@ -61,6 +62,7 @@ type Props = {
   open?: boolean
   defaultOpen?: boolean
   onOpenChange?: (open: boolean) => void
+  applyNegativeMargins?: boolean
 }
 
 const toComponentSxArray = (sx?: AppSxProps) =>
@@ -141,6 +143,7 @@ const DropDownMultiSelect = ({
   open,
   defaultOpen,
   onOpenChange,
+  applyNegativeMargins = false,
 }: Props) => {
   const openIsControlled = open !== undefined
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(
@@ -214,6 +217,9 @@ const DropDownMultiSelect = ({
                 {
                   cursor: disabled ? 'default' : 'pointer',
                 },
+                ...(applyNegativeMargins
+                  ? [getSharedPillNegativeMarginsSx()]
+                  : []),
                 ...toComponentSxArray(selectSx),
               ]}
             >
@@ -324,11 +330,9 @@ const DropDownMultiSelect = ({
                               cursor: 'default',
                               userSelect: 'none',
                               outline: 0,
-                              '&[data-highlighted], &:hover, &:focus-visible':
-                                {
-                                  backgroundColor:
-                                    'rgba(44, 142, 116, 0.08)',
-                                },
+                              '&[data-highlighted], &:hover, &:focus-visible': {
+                                backgroundColor: 'rgba(44, 142, 116, 0.08)',
+                              },
                             },
                             ...toComponentSxArray(menuItemSx),
                           ]}
@@ -355,39 +359,39 @@ const DropDownMultiSelect = ({
                                       }
                                       sx={[
                                         {
-                                          width: '1rem',
-                                          height: '1rem',
+                                          width: '1.5rem',
+                                          height: '1.5rem',
                                           mr: '0.25rem',
-                                          flex: '0 0 auto',
+                                          flexBasis: '1.5rem',
+                                          flexGrow: 0,
+                                          flexShrink: 0,
                                           display: 'inline-flex',
                                           alignItems: 'center',
                                           justifyContent: 'center',
-                                          borderRadius: '0.125rem',
                                           lineHeight: 0,
-                                          overflow: 'hidden',
                                           color: '#A0A0A0',
-                                          backgroundColor: '#FFFFFF',
-                                          '&[data-selected]': {
-                                            color: '#FFFFFF',
-                                            backgroundColor: 'secondary.dark',
-                                          },
                                         },
                                         ...toComponentSxArray(checkboxSx),
                                       ]}
                                     >
                                       {indicatorState.selected ? (
-                                        <CheckboxChecked
-                                          sx={{
-                                            width: '100%',
-                                            height: '100%',
+                                        <img
+                                          src={SELECTED_OPTION_INDICATOR_SRC}
+                                          alt=""
+                                          data-slot="selected-option-indicator"
+                                          style={{
+                                            width: '1.5rem',
+                                            height: '1.5rem',
                                             display: 'block',
+                                            objectFit: 'contain',
                                           }}
                                         />
                                       ) : (
                                         <Checkbox
+                                          data-slot="unselected-option-indicator"
                                           sx={{
-                                            width: '100%',
-                                            height: '100%',
+                                            width: '1.5rem',
+                                            height: '1.5rem',
                                             display: 'block',
                                           }}
                                         />

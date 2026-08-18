@@ -8,9 +8,9 @@ import {
 } from './zitadel'
 
 describe('Zitadel Better Auth config', () => {
-  it('uses OIDC discovery, stable provider ID, offline access, PKCE, and basic token auth', () => {
+  it('uses normalized OIDC discovery and permits Zitadel callbacks without RFC 9207 issuer parameters', () => {
     const provider = buildZitadelOAuthProvider({
-      zitadelIssuer: 'https://auth.example.org',
+      zitadelIssuer: 'https://auth.example.org///',
       zitadelClientId: 'client-id',
       zitadelClientSecret: 'client-secret',
       zitadelRedirectUri:
@@ -21,7 +21,7 @@ describe('Zitadel Better Auth config', () => {
       providerId: 'zitadel',
       discoveryUrl: 'https://auth.example.org/.well-known/openid-configuration',
       issuer: 'https://auth.example.org',
-      requireIssuerValidation: true,
+      requireIssuerValidation: false,
       clientId: 'client-id',
       clientSecret: 'client-secret',
       redirectURI: 'https://map.example.org/api/auth/callback/zitadel',

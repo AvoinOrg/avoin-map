@@ -6,14 +6,17 @@ import { AppThemeProvider } from '#/common/style/theme'
 import {
   SHARED_CONTROL_BORDER_RADIUS,
   SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+  SHARED_PILL_HORIZONTAL_CONTENT_INSET,
 } from '#/common/style/theme/constants'
-import DropDownMultiSelect from '#/components/common/DropDownMultiSelect'
+import DropDownMultiSelect, {
+  type DropDownMultiSelectOption,
+} from '#/components/common/DropDownMultiSelect'
 
 const renderWithTheme = (ui: React.ReactElement) => {
   return render(<AppThemeProvider>{ui}</AppThemeProvider>)
 }
 
-const options = [
+const options: DropDownMultiSelectOption[] = [
   { value: 'heat', label: 'Heat demand' },
   { value: 'solar', label: 'Solar potential' },
   { value: 'emissions', label: 'Emissions' },
@@ -32,10 +35,10 @@ describe('DropDownMultiSelect', () => {
       />
     )
 
-    fireEvent.mouseDown(
-      screen.getByRole('combobox', { name: 'Layer filters' })
-    )
-    const option = await screen.findByRole('option', { name: 'Solar potential' })
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Layer filters' }))
+    const option = await screen.findByRole('option', {
+      name: 'Solar potential',
+    })
 
     fireEvent.mouseMove(option)
     fireEvent.click(option)
@@ -83,8 +86,9 @@ describe('DropDownMultiSelect', () => {
       name: 'Closable layer filters',
     })
 
-    expect(await screen.findByRole('option', { name: 'Heat demand' }))
-      .toBeVisible()
+    expect(
+      await screen.findByRole('option', { name: 'Heat demand' })
+    ).toBeVisible()
 
     fireEvent.click(trigger)
 
@@ -116,6 +120,59 @@ describe('DropDownMultiSelect', () => {
       borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
     })
     expect(outline?.querySelector('legend')).toBeNull()
+  })
+
+  it('shares arrow inset and opt-in geometry with the single select', () => {
+    renderWithTheme(
+      <>
+        <DropDownMultiSelect
+          value={['heat']}
+          options={options}
+          onChange={() => {}}
+          ariaLabel="Default multi geometry"
+        />
+        <DropDownMultiSelect
+          value={['heat']}
+          options={options}
+          onChange={() => {}}
+          ariaLabel="Negative multi geometry"
+          applyNegativeMargins
+        />
+        <DropDownMultiSelect
+          value={['heat']}
+          options={options}
+          onChange={() => {}}
+          ariaLabel="Overridden multi geometry"
+          applyNegativeMargins
+          selectSx={{ mx: '-0.25rem', width: '75%' }}
+        />
+      </>
+    )
+
+    const defaultTrigger = screen.getByRole('combobox', {
+      name: 'Default multi geometry',
+    })
+    const negativeTrigger = screen.getByRole('combobox', {
+      name: 'Negative multi geometry',
+    })
+    const overriddenTrigger = screen.getByRole('combobox', {
+      name: 'Overridden multi geometry',
+    })
+
+    expect(defaultTrigger).toHaveStyle({ margin: '0px', width: '100%' })
+    expect(defaultTrigger.querySelector('[data-slot="icon"]')).toHaveStyle({
+      right: SHARED_PILL_HORIZONTAL_CONTENT_INSET,
+    })
+    expect(negativeTrigger).toHaveStyle({
+      marginLeft: '-1rem',
+      marginRight: '-1rem',
+      width: 'calc(100% + 2rem)',
+    })
+    expect(overriddenTrigger).toHaveStyle({
+      marginLeft: '-0.25rem',
+      marginRight: '-0.25rem',
+      width: '75%',
+    })
   })
 
   it('marks selected options in the open list', async () => {
@@ -183,7 +240,7 @@ describe('DropDownMultiSelect', () => {
     expect(uncheckedOption.getAttribute('aria-selected')).toBe('false')
   })
 
-  it('renders checkbox icons for selected and unchecked options', async () => {
+  it('renders the selected asset separately from unchecked option geometry', async () => {
     renderWithTheme(
       <DropDownMultiSelect
         value={['heat']}
@@ -200,10 +257,86 @@ describe('DropDownMultiSelect', () => {
     const uncheckedOption = await screen.findByRole('option', {
       name: 'Solar potential',
     })
+    const selectedIndicator = selectedOption.querySelector(
+      '[data-slot="selected-option-indicator"]'
+    )
+    const uncheckedIndicator = uncheckedOption.querySelector(
+      '[data-slot="unselected-option-indicator"]'
+    )
 
-    expect(selectedOption.querySelector('svg path')).toBeInTheDocument()
-    expect(uncheckedOption.querySelector('svg')).toBeInTheDocument()
-    expect(uncheckedOption.querySelector('svg path')).not.toBeInTheDocument()
+    expect(selectedOption).toHaveAttribute('aria-selected', 'true')
+    expect(selectedIndicator?.tagName).toBe('IMG')
+    expect(selectedIndicator).toHaveAttribute(
+      'src',
+      '/files/img/common/drop-down-multi-select-selected.png'
+    )
+    expect(selectedIndicator).toHaveAttribute('alt', '')
+    expect(selectedIndicator).toHaveStyle({
+      width: '1.5rem',
+      height: '1.5rem',
+      display: 'block',
+      objectFit: 'contain',
+    })
+    expect(
+      selectedOption.querySelector(
+        '[data-slot="unselected-option-indicator"]'
+      )
+    ).not.toBeInTheDocument()
+
+    expect(uncheckedOption).toHaveAttribute('aria-selected', 'false')
+    expect(uncheckedIndicator?.tagName).toBe('svg')
+    expect(uncheckedIndicator).toHaveAttribute('viewBox', '0 0 24 24')
+    expect(uncheckedIndicator).toHaveStyle({
+      width: '1.5rem',
+      height: '1.5rem',
+      display: 'block',
+    })
+    expect(
+      uncheckedOption.querySelector(
+        '[data-slot="selected-option-indicator"]'
+      )
+    ).not.toBeInTheDocument()
+  })
+
+  it('keeps custom option content as a full default-markup escape hatch', async () => {
+    const renderOptionContent = jest.fn(
+      (option: DropDownMultiSelectOption, selected: boolean) => (
+        <span data-slot="custom-option-content">
+          {option.label}: {selected ? 'selected' : 'available'}
+        </span>
+      )
+    )
+
+    renderWithTheme(
+      <DropDownMultiSelect
+        value={['heat']}
+        options={options}
+        onChange={() => {}}
+        ariaLabel="Custom option layer filters"
+        renderOptionContent={renderOptionContent}
+        defaultOpen
+      />
+    )
+
+    const selectedOption = await screen.findByRole('option', {
+      name: 'Heat demand',
+    })
+    const uncheckedOption = await screen.findByRole('option', {
+      name: 'Solar potential',
+    })
+
+    expect(selectedOption).toHaveAttribute('aria-selected', 'true')
+    expect(selectedOption).toHaveTextContent('Heat demand: selected')
+    expect(uncheckedOption).toHaveAttribute('aria-selected', 'false')
+    expect(uncheckedOption).toHaveTextContent('Solar potential: available')
+    expect(renderOptionContent).toHaveBeenCalledWith(options[0], true)
+    expect(renderOptionContent).toHaveBeenCalledWith(options[1], false)
+    expect(
+      document.querySelector('[data-slot="selected-option-indicator"]')
+    ).not.toBeInTheDocument()
+    expect(
+      document.querySelector('[data-slot="unselected-option-indicator"]')
+    ).not.toBeInTheDocument()
   })
 
   it('supports keyboard navigation and selection from the trigger', async () => {

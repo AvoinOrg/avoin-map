@@ -88,6 +88,18 @@ const DropDownMultiSelectFixtureWrapper = ({
   </Box>
 )
 
+const GeometryReference = ({ children }: { children: React.ReactNode }) => (
+  <Box
+    sx={{
+      width: 240,
+      borderLeft: '1px dashed #2C8E74',
+      borderRight: '1px dashed #2C8E74',
+    }}
+  >
+    {children}
+  </Box>
+)
+
 export const dropDownMultiSelectFixture: ComponentFixture = {
   id: 'drop-down-multi-select',
   label: 'DropDownMultiSelect',
@@ -96,7 +108,7 @@ export const dropDownMultiSelectFixture: ComponentFixture = {
     'src/components/common/DropDownSelect.tsx',
     'src/components/common/DropDownMultiSelect.tsx',
     'src/components/icons/Checkbox.tsx',
-    'src/components/icons/CheckboxChecked.tsx',
+    'src/public/img/common/drop-down-multi-select-selected.png',
     'src/components/common/DropDownMultiSelect.test.tsx',
     'src/common/component-fixtures/fixtures/DropDownMultiSelectFixture.tsx',
   ],
@@ -120,6 +132,7 @@ export const dropDownMultiSelectFixture: ComponentFixture = {
       id: 'open',
       label: 'Open',
       description: 'Open menu with unchecked and checked option indicators.',
+      waitFor: 'role=option',
       render: () => (
         <DropDownMultiSelect
           value={['heat']}
@@ -170,6 +183,23 @@ export const dropDownMultiSelectFixture: ComponentFixture = {
           onChange={noop}
           ariaLabel="Multiple selected multi-select"
         />
+      ),
+    },
+    {
+      id: 'negative-margins',
+      label: 'Negative margins',
+      description:
+        'Opt-in pill overflow with selected text and arrow aligned to reference edges.',
+      render: () => (
+        <GeometryReference>
+          <DropDownMultiSelect
+            value={['heat', 'solar']}
+            options={multiSelectOptions}
+            onChange={noop}
+            ariaLabel="Negative margin multi-select"
+            applyNegativeMargins
+          />
+        </GeometryReference>
       ),
     },
     {

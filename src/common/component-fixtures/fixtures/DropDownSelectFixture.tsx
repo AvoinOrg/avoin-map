@@ -69,6 +69,18 @@ const SelectFixtureWrapper = ({ children }: { children: React.ReactNode }) => (
   </Box>
 )
 
+const GeometryReference = ({ children }: { children: React.ReactNode }) => (
+  <Box
+    sx={{
+      width: 240,
+      borderLeft: '1px dashed #2C8E74',
+      borderRight: '1px dashed #2C8E74',
+    }}
+  >
+    {children}
+  </Box>
+)
+
 export const dropDownSelectFixture: ComponentFixture = {
   id: 'drop-down-select',
   label: 'DropDownSelect',
@@ -136,6 +148,44 @@ export const dropDownSelectFixture: ComponentFixture = {
           initialValue="heat"
           ariaLabel="Selected select"
         />
+      ),
+    },
+    {
+      id: 'negative-margins',
+      label: 'Negative margins',
+      description:
+        'Opt-in pill overflow with selected text and arrow aligned to reference edges.',
+      render: () => (
+        <GeometryReference>
+          <DropDownSelect
+            value="heat"
+            options={selectOptions}
+            onChange={noop}
+            ariaLabel="Negative margin select"
+            applyNegativeMargins
+          />
+        </GeometryReference>
+      ),
+    },
+    {
+      id: 'negative-margins-override',
+      label: 'Negative margin override',
+      description: 'Caller trigger margins and width override opt-in defaults.',
+      render: () => (
+        <GeometryReference>
+          <DropDownSelect
+            value="solar"
+            options={selectOptions}
+            onChange={noop}
+            ariaLabel="Overridden negative margin select"
+            applyNegativeMargins
+            selectSx={{
+              ml: '-0.25rem',
+              mr: '-0.5rem',
+              width: 'calc(100% + 0.75rem)',
+            }}
+          />
+        </GeometryReference>
       ),
     },
     {
@@ -229,6 +279,22 @@ export const dropDownSelectFixture: ComponentFixture = {
       ),
     },
     {
+      id: 'with-label-negative-margins',
+      label: 'Labeled negative margins',
+      description: 'Labeled wrapper forwards opt-in pill geometry once.',
+      render: () => (
+        <GeometryReference>
+          <DropDownSelectWithLabel
+            value="heat"
+            options={selectOptions}
+            onChange={noop}
+            label="Energy layer"
+            applyNegativeMargins
+          />
+        </GeometryReference>
+      ),
+    },
+    {
       id: 'inset-label',
       label: 'Inset label',
       description: 'Inset wrapper with select before the side label.',
@@ -240,6 +306,23 @@ export const dropDownSelectFixture: ComponentFixture = {
           label="Solar suitability"
           ariaLabel="Inset select"
         />
+      ),
+    },
+    {
+      id: 'inset-negative-margins',
+      label: 'Inset negative margins',
+      description: 'Inset wrapper forwards compact opt-in pill geometry once.',
+      render: () => (
+        <GeometryReference>
+          <DropDownSelectInset
+            value="solar"
+            options={selectOptions}
+            onChange={noop}
+            label="Solar suitability"
+            ariaLabel="Negative margin inset select"
+            applyNegativeMargins
+          />
+        </GeometryReference>
       ),
     },
     {
@@ -289,6 +372,41 @@ export const dropDownSelectFixture: ComponentFixture = {
           onChange={noop}
           ariaLabel="Minimal select"
         />
+      ),
+    },
+    {
+      id: 'minimal-negative-margins',
+      label: 'Minimal negative margins',
+      description:
+        'Right-icon minimal pill applies opt-in geometry at its root.',
+      render: () => (
+        <GeometryReference>
+          <DropDownSelectMinimal
+            value="emissions"
+            options={selectOptions}
+            onChange={noop}
+            ariaLabel="Negative margin minimal select"
+            applyNegativeMargins
+          />
+        </GeometryReference>
+      ),
+    },
+    {
+      id: 'minimal-left-icon-preserved',
+      label: 'Minimal left icon preserved',
+      description:
+        'Left-icon minimal arrangement ignores the right-icon negative-margin mode.',
+      render: () => (
+        <GeometryReference>
+          <DropDownSelectMinimal
+            value="emissions"
+            options={selectOptions}
+            onChange={noop}
+            ariaLabel="Left icon minimal select"
+            isIconOnTheRight={false}
+            applyNegativeMargins
+          />
+        </GeometryReference>
       ),
     },
     {

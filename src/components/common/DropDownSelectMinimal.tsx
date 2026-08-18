@@ -1,6 +1,9 @@
 import React from 'react'
 
-import { SHARED_CONTROL_INFINITE_BORDER_RADIUS } from '#/common/style/theme/constants'
+import {
+  getSharedPillNegativeMarginsSx,
+  SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+} from '#/common/style/theme/constants'
 import { Box, type AppSxProps, toSxArray } from '#/common/style/theme/system'
 import { SelectOption } from '#/common/types/general'
 import DropDownSelect, {
@@ -21,6 +24,7 @@ type Props = {
   open?: boolean
   defaultOpen?: boolean
   onOpenChange?: (open: boolean) => void
+  applyNegativeMargins?: boolean
 }
 
 const DropDownSelectMinimal = ({
@@ -36,6 +40,7 @@ const DropDownSelectMinimal = ({
   open,
   defaultOpen,
   onOpenChange,
+  applyNegativeMargins = false,
 }: Props) => {
   const selectedValueSxArray = toSxArray(selectedValueSx)
   const rootSxArray = toSxArray(sx)
@@ -44,6 +49,7 @@ const DropDownSelectMinimal = ({
 
   return (
     <Box
+      data-slot="minimal-select-root"
       sx={[
         {
           display: 'inline-flex',
@@ -54,6 +60,9 @@ const DropDownSelectMinimal = ({
           backgroundColor: 'neutral.main',
           color: '#111111',
         },
+        ...(applyNegativeMargins && isIconOnTheRight
+          ? [getSharedPillNegativeMarginsSx({ expandWidth: false })]
+          : []),
         ...rootSxArray,
       ]}
     >

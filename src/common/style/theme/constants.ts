@@ -32,5 +32,26 @@ export const SHARED_CONTROL_BORDER_RADIUS = '1rem'
 // Pill radius for single-line controls that should fully round their end caps.
 export const SHARED_CONTROL_INFINITE_BORDER_RADIUS = '999px'
 
+export const SHARED_PILL_HORIZONTAL_CONTENT_INSET_REM = 1
+export const SHARED_PILL_HORIZONTAL_CONTENT_INSET = `${SHARED_PILL_HORIZONTAL_CONTENT_INSET_REM}rem`
+
+type SharedPillNegativeMarginsOptions = {
+  leftInsetRem?: number
+  rightInsetRem?: number
+  expandWidth?: boolean
+}
+
+export const getSharedPillNegativeMarginsSx = ({
+  leftInsetRem = SHARED_PILL_HORIZONTAL_CONTENT_INSET_REM,
+  rightInsetRem = SHARED_PILL_HORIZONTAL_CONTENT_INSET_REM,
+  expandWidth = true,
+}: SharedPillNegativeMarginsOptions = {}) => ({
+  ml: `-${leftInsetRem}rem`,
+  mr: `-${rightInsetRem}rem`,
+  ...(expandWidth
+    ? { width: `calc(100% + ${leftInsetRem + rightInsetRem}rem)` }
+    : {}),
+})
+
 export const SIDEBAR_PADDING_WITH_SCROLLBAR_REM =
   SIDEBAR_PADDING_REM + SCROLLBAR_WIDTH_REM

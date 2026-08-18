@@ -231,6 +231,67 @@ describe('NumberInputField', () => {
     expect(control).toHaveStyle({
       borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
     })
+    expect(control).not.toHaveStyle({ marginLeft: '-1rem' })
+  })
+
+  it.each([
+    {
+      size: 'medium' as const,
+      rightMargin: '-0.65625rem',
+      width: 'calc(100% + 1.65625rem)',
+    },
+    {
+      size: 'small' as const,
+      rightMargin: '-0.5625rem',
+      width: 'calc(100% + 1.5625rem)',
+    },
+  ])(
+    'uses size-aware $size negative margins',
+    ({ size, rightMargin, width }) => {
+      renderWithTheme(
+        <NumberInputField
+          size={size}
+          label={`${size} geometry`}
+          value={5}
+          locale="en-US"
+          onValueChange={() => {}}
+          applyNegativeMargins
+        />
+      )
+
+      const control = screen
+        .getByLabelText(`${size} geometry`)
+        .closest('[data-slot="number-input-control"]')
+
+      expect(control).toHaveStyle({
+        marginLeft: '-1rem',
+        marginRight: rightMargin,
+        width,
+      })
+    }
+  )
+
+  it('keeps caller inputSx margin and width overrides last', () => {
+    renderWithTheme(
+      <NumberInputField
+        label="Overridden geometry"
+        value={5}
+        locale="en-US"
+        onValueChange={() => {}}
+        applyNegativeMargins
+        inputSx={[{ mx: '-0.25rem' }, { ml: '2rem', mr: '3rem', width: '80%' }]}
+      />
+    )
+
+    const control = screen
+      .getByLabelText('Overridden geometry')
+      .closest('[data-slot="number-input-control"]')
+
+    expect(control).toHaveStyle({
+      marginLeft: '2rem',
+      marginRight: '3rem',
+      width: '80%',
+    })
   })
 
   it.each([
@@ -250,13 +311,7 @@ describe('NumberInputField', () => {
     },
   ])(
     'offsets only the $size arrow glyphs while preserving stepper hit areas',
-    ({
-      size,
-      arrowWidth,
-      arrowHeight,
-      controlHeight,
-      adornmentWidth,
-    }) => {
+    ({ size, arrowWidth, arrowHeight, controlHeight, adornmentWidth }) => {
       renderWithTheme(
         <NumberInputField
           size={size}

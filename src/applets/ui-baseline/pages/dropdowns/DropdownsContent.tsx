@@ -40,6 +40,8 @@ const StatefulDropDownSelect = ({
   autoFocus = false,
   successIndicatorMode,
   open,
+  applyNegativeMargins,
+  selectSx,
 }: {
   initialValue?: string
   placeholder?: React.ReactNode
@@ -51,6 +53,8 @@ const StatefulDropDownSelect = ({
     typeof DropDownSelect
   >['successIndicatorMode']
   open?: boolean
+  applyNegativeMargins?: boolean
+  selectSx?: React.ComponentProps<typeof DropDownSelect>['selectSx']
 }) => {
   const [value, setValue] = useState(initialValue)
 
@@ -66,6 +70,8 @@ const StatefulDropDownSelect = ({
       autoFocus={autoFocus}
       successIndicatorMode={successIndicatorMode}
       open={open}
+      applyNegativeMargins={applyNegativeMargins}
+      selectSx={selectSx}
     />
   )
 }
@@ -74,10 +80,12 @@ const StatefulDropDownSelectWithLabel = ({
   initialValue,
   label,
   placeholder,
+  applyNegativeMargins,
 }: {
   initialValue: string
   label: string
   placeholder?: string
+  applyNegativeMargins?: boolean
 }) => {
   const [value, setValue] = useState(initialValue)
 
@@ -88,6 +96,7 @@ const StatefulDropDownSelectWithLabel = ({
       onChange={(event) => setValue(event.target.value)}
       label={label}
       placeholder={placeholder}
+      applyNegativeMargins={applyNegativeMargins}
     />
   )
 }
@@ -96,10 +105,12 @@ const StatefulDropDownSelectInset = ({
   initialValue,
   label,
   ariaLabel,
+  applyNegativeMargins,
 }: {
   initialValue: string
   label: string
   ariaLabel: string
+  applyNegativeMargins?: boolean
 }) => {
   const [value, setValue] = useState(initialValue)
 
@@ -110,6 +121,7 @@ const StatefulDropDownSelectInset = ({
       onChange={(event) => setValue(event.target.value)}
       label={label}
       ariaLabel={ariaLabel}
+      applyNegativeMargins={applyNegativeMargins}
     />
   )
 }
@@ -117,9 +129,13 @@ const StatefulDropDownSelectInset = ({
 const StatefulDropDownSelectMinimal = ({
   initialValue,
   ariaLabel,
+  applyNegativeMargins,
+  isIconOnTheRight = true,
 }: {
   initialValue: string
   ariaLabel: string
+  applyNegativeMargins?: boolean
+  isIconOnTheRight?: boolean
 }) => {
   const [value, setValue] = useState(initialValue)
 
@@ -129,6 +145,8 @@ const StatefulDropDownSelectMinimal = ({
       options={selectOptions}
       onChange={(event) => setValue(event.target.value)}
       ariaLabel={ariaLabel}
+      applyNegativeMargins={applyNegativeMargins}
+      isIconOnTheRight={isIconOnTheRight}
     />
   )
 }
@@ -137,10 +155,14 @@ const StatefulDropDownMultiSelect = ({
   initialValue,
   placeholder,
   ariaLabel,
+  applyNegativeMargins,
+  open,
 }: {
   initialValue: string[]
   placeholder?: React.ReactNode
   ariaLabel: string
+  applyNegativeMargins?: boolean
+  open?: boolean
 }) => {
   const [value, setValue] = useState(initialValue)
 
@@ -151,6 +173,8 @@ const StatefulDropDownMultiSelect = ({
       onChange={(event) => setValue(event.target.value)}
       placeholder={placeholder}
       ariaLabel={ariaLabel}
+      applyNegativeMargins={applyNegativeMargins}
+      open={open}
     />
   )
 }
@@ -186,6 +210,18 @@ const StatefulMultiSelectAutocomplete = ({
   )
 }
 
+const GeometryReference = ({ children }: { children: React.ReactNode }) => (
+  <Box
+    sx={{
+      width: '15rem',
+      borderLeft: '1px dashed #2C8E74',
+      borderRight: '1px dashed #2C8E74',
+    }}
+  >
+    {children}
+  </Box>
+)
+
 const DropdownsContent = () => (
   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
     <BaselineSection title="Open and empty-result states">
@@ -211,6 +247,79 @@ const DropdownsContent = () => (
           open
           defaultInputValue="zzz"
         />
+      </BaselineExample>
+    </BaselineSection>
+
+    <BaselineSection title="Negative-margin pill geometry">
+      <BaselineExample title="DropDownSelect aligned edges">
+        <GeometryReference>
+          <StatefulDropDownSelect
+            initialValue="heat-demand"
+            ariaLabel="Negative margin select"
+            applyNegativeMargins
+          />
+        </GeometryReference>
+      </BaselineExample>
+      <BaselineExample title="DropDownMultiSelect aligned edges">
+        <GeometryReference>
+          <StatefulDropDownMultiSelect
+            initialValue={['heat-demand', 'solar-potential']}
+            ariaLabel="Negative margin multi-select"
+            applyNegativeMargins
+          />
+        </GeometryReference>
+      </BaselineExample>
+      <BaselineExample title="Labeled wrapper forwarding">
+        <GeometryReference>
+          <StatefulDropDownSelectWithLabel
+            initialValue="solar-potential"
+            label="Scenario"
+            applyNegativeMargins
+          />
+        </GeometryReference>
+      </BaselineExample>
+      <BaselineExample title="Inset wrapper forwarding">
+        <GeometryReference>
+          <StatefulDropDownSelectInset
+            initialValue="emissions"
+            label="Inset label"
+            ariaLabel="Negative margin inset select"
+            applyNegativeMargins
+          />
+        </GeometryReference>
+      </BaselineExample>
+      <BaselineExample title="Minimal right icon forwarding">
+        <GeometryReference>
+          <StatefulDropDownSelectMinimal
+            initialValue="heat-demand"
+            ariaLabel="Negative margin minimal select"
+            applyNegativeMargins
+          />
+        </GeometryReference>
+      </BaselineExample>
+      <BaselineExample title="Minimal left icon preserved">
+        <GeometryReference>
+          <StatefulDropDownSelectMinimal
+            initialValue="heat-demand"
+            ariaLabel="Left icon minimal select"
+            isIconOnTheRight={false}
+            applyNegativeMargins
+          />
+        </GeometryReference>
+      </BaselineExample>
+      <BaselineExample title="Caller margin override">
+        <GeometryReference>
+          <StatefulDropDownSelect
+            initialValue="emissions"
+            ariaLabel="Overridden negative margin select"
+            applyNegativeMargins
+            selectSx={{
+              ml: '-0.25rem',
+              mr: '-0.5rem',
+              width: 'calc(100% + 0.75rem)',
+            }}
+          />
+        </GeometryReference>
       </BaselineExample>
     </BaselineSection>
 
@@ -315,10 +424,14 @@ const DropdownsContent = () => (
           ariaLabel="Multiple selected multi-select"
         />
       </BaselineExample>
-      <BaselineExample title="Interactive checked and unchecked values">
+      <BaselineExample
+        title="Open checked and unchecked values"
+        minHeight="11rem"
+      >
         <StatefulDropDownMultiSelect
           initialValue={['heat-demand']}
-          ariaLabel="Interactive multi-select"
+          ariaLabel="Open mixed-state multi-select"
+          open
         />
       </BaselineExample>
       <BaselineExample title="Disabled">

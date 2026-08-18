@@ -3,7 +3,12 @@ import { NumberField as BaseNumberField } from '@base-ui/react/number-field'
 import { useTranslate } from '@tolgee/react'
 
 import { useLocaleFormatter } from '#/common/hooks/useLocaleFormatter'
-import { SHARED_CONTROL_INFINITE_BORDER_RADIUS } from '#/common/style/theme/constants'
+import {
+  getSharedPillNegativeMarginsSx,
+  SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+  SHARED_PILL_HORIZONTAL_CONTENT_INSET,
+  SHARED_PILL_HORIZONTAL_CONTENT_INSET_REM,
+} from '#/common/style/theme/constants'
 import { Box, toSxArray } from '#/common/style/theme/system'
 import { ArrowDown, ArrowUp } from '#/components/icons'
 
@@ -64,23 +69,54 @@ const normalizeStepValue = <T extends number | null | undefined>(
 }
 
 const disabledSelector = '&:disabled, &[data-disabled], &[aria-disabled="true"]'
+const NUMBER_INPUT_ARROW_TRANSLATE_LEFT_PX = 1
+
+type NumberInputFieldSize = 'small' | 'medium'
+
+const NUMBER_INPUT_SIZE_CONFIG = {
+  medium: {
+    inputHeightRem: 2,
+    spinnerWidthRem: 1.75,
+    arrowWidthPx: 9,
+    arrowHeightPx: 6,
+  },
+  small: {
+    inputHeightRem: 1.5,
+    spinnerWidthRem: 1.5,
+    arrowWidthPx: 8,
+    arrowHeightPx: 5,
+  },
+} as const
+
+const getSpinnerGlyphRightInsetRem = (size: NumberInputFieldSize) => {
+  const { spinnerWidthRem, arrowWidthPx } = NUMBER_INPUT_SIZE_CONFIG[size]
+  const spinnerWidthPx = spinnerWidthRem * 16
+
+  return (
+    (spinnerWidthPx - arrowWidthPx) / 2 / 16 +
+    NUMBER_INPUT_ARROW_TRANSLATE_LEFT_PX / 16
+  )
+}
 
 const getArrowIconSx = ({
   direction,
   size,
 }: {
   direction: 'up' | 'down'
-  size: NumberInputFieldProps['size']
-}) =>
-  ({
-    width: size === 'small' ? 8 : 9,
-    height: size === 'small' ? 5 : 6,
+  size: NumberInputFieldSize
+}) => {
+  const { arrowWidthPx, arrowHeightPx } = NUMBER_INPUT_SIZE_CONFIG[size]
+
+  return {
+    width: arrowWidthPx,
+    height: arrowHeightPx,
     color: 'currentColor',
     transform:
       direction === 'down'
-        ? 'translate(-1px, -1px)'
-        : 'translateX(-1px)',
-  }) satisfies StyleItem
+        ? `translate(-${NUMBER_INPUT_ARROW_TRANSLATE_LEFT_PX}px, -1px)`
+        : `translateX(-${NUMBER_INPUT_ARROW_TRANSLATE_LEFT_PX}px)`,
+  } satisfies StyleItem
+}
 
 type NumberInputFieldProps = Omit<
   BaseNumberFieldRootProps,
@@ -88,7 +124,7 @@ type NumberInputFieldProps = Omit<
 > & {
   label?: React.ReactNode
   helperText?: React.ReactNode
-  size?: 'small' | 'medium'
+  size?: NumberInputFieldSize
   error?: boolean
   containerSx?: StyleProps
   formControlSx?: StyleProps
@@ -114,6 +150,7 @@ type NumberInputFieldProps = Omit<
     value: string,
     event: React.FocusEvent<HTMLInputElement>
   ) => void
+  applyNegativeMargins?: boolean
 }
 
 export const NumberInputField = ({
@@ -128,6 +165,7 @@ export const NumberInputField = ({
   adornmentSx,
   helperTextSx,
   inputSlotProps,
+  applyNegativeMargins = false,
   minValue,
   maxValue,
   incrementStepValue,
@@ -148,13 +186,16 @@ export const NumberInputField = ({
   onValueCommitted,
   ...rootProps
 }: NumberInputFieldProps) => {
-  const inputHeight = size === 'small' ? '1.5rem' : '2rem'
+  const sizeConfig = NUMBER_INPUT_SIZE_CONFIG[size]
+  const inputHeight = `${sizeConfig.inputHeightRem}rem`
   const spinButtonHeight = `calc(${inputHeight} / 2)`
-  const spinButtonWidth = size === 'small' ? '1.5rem' : '1.75rem'
+  const spinButtonWidth = `${sizeConfig.spinnerWidthRem}rem`
+  const spinnerGlyphRightInsetRem = getSpinnerGlyphRightInsetRem(size)
   const hasLabel = Boolean(label)
   const generatedId = React.useId()
   const id = idProp ?? generatedId
-  const helperTextId = helperText !== undefined ? `${id}-helper-text` : undefined
+  const helperTextId =
+    helperText !== undefined ? `${id}-helper-text` : undefined
   const { t } = useTranslate('avoin-map')
   const { numberLocale } = useLocaleFormatter()
   const effectiveMin = minValue ?? min
@@ -167,18 +208,16 @@ export const NumberInputField = ({
       ? { maximumFractionDigits: Math.max(getStepPrecision(effectiveStep), 2) }
       : undefined)
   const normalizedValue = normalizeStepValue(value, effectiveStep)
-  const normalizedDefaultValue = normalizeStepValue(
-    defaultValue,
-    effectiveStep
-  )
+  const normalizedDefaultValue = normalizeStepValue(defaultValue, effectiveStep)
   const isControlled = value !== undefined
   const [localValue, setLocalValue] =
     React.useState<BaseNumberFieldRootProps['value']>(normalizedValue)
   const inputAriaInvalid =
     inputSlotProps?.['aria-invalid'] ?? (error ? true : undefined)
-  const inputAriaDescribedBy = [inputSlotProps?.['aria-describedby'], helperTextId]
-    .filter(Boolean)
-    .join(' ') || undefined
+  const inputAriaDescribedBy =
+    [inputSlotProps?.['aria-describedby'], helperTextId]
+      .filter(Boolean)
+      .join(' ') || undefined
 
   if (isControlled && normalizedValue !== localValue) {
     setLocalValue(normalizedValue)
@@ -323,6 +362,15 @@ export const NumberInputField = ({
                       borderColor: error ? '#B3261E' : 'secondary.dark',
                     },
                   },
+                  ...(applyNegativeMargins
+                    ? [
+                        getSharedPillNegativeMarginsSx({
+                          leftInsetRem:
+                            SHARED_PILL_HORIZONTAL_CONTENT_INSET_REM,
+                          rightInsetRem: spinnerGlyphRightInsetRem,
+                        }),
+                      ]
+                    : []),
                   ...toStyleArray(inputSx),
                 ]}
               >
@@ -330,81 +378,83 @@ export const NumberInputField = ({
               </Box>
             )}
           >
-          <BaseNumberField.Input
-            {...inputSlotProps}
-            id={id}
-            aria-describedby={inputAriaDescribedBy}
-            aria-invalid={inputAriaInvalid}
-            render={(props) => {
-              const inputSx = {
-                width: '100%',
-                minWidth: 0,
-                flex: 1,
-                boxSizing: 'border-box',
-                px: '1rem',
-                py: 0,
-                border: 0,
-                outline: 0,
-                appearance: 'none',
-                backgroundColor: 'transparent',
-                color: '#111111',
-                font: 'inherit',
-                fontSize: '0.6875rem',
-                fontWeight: 400,
-                lineHeight: 'normal',
-                letterSpacing: '0.04em',
-                [disabledSelector]: {
-                  color: 'text.disabled',
-                  cursor: 'default',
-                },
-              }
+            <BaseNumberField.Input
+              {...inputSlotProps}
+              id={id}
+              aria-describedby={inputAriaDescribedBy}
+              aria-invalid={inputAriaInvalid}
+              render={(props) => {
+                const inputSx = {
+                  width: '100%',
+                  minWidth: 0,
+                  flex: 1,
+                  boxSizing: 'border-box',
+                  px: SHARED_PILL_HORIZONTAL_CONTENT_INSET,
+                  py: 0,
+                  border: 0,
+                  outline: 0,
+                  appearance: 'none',
+                  backgroundColor: 'transparent',
+                  color: '#111111',
+                  font: 'inherit',
+                  fontSize: '0.6875rem',
+                  fontWeight: 400,
+                  lineHeight: 'normal',
+                  letterSpacing: '0.04em',
+                  [disabledSelector]: {
+                    color: 'text.disabled',
+                    cursor: 'default',
+                  },
+                }
 
-              if (usesRawValue) {
-                const rawInputProps = {
-                  ...props,
-                  value: rawValue,
-                  onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
-                    onRawValueChange?.(event.target.value, event)
-                  },
-                  onBlur: (event: React.FocusEvent<HTMLInputElement>) => {
-                    props.onBlur?.(event)
-                    onRawValueCommitted?.(event.target.value, event)
-                  },
-                  onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => {
-                    if (
-                      event.key === 'ArrowUp' ||
-                      event.key === 'ArrowDown' ||
-                      event.key === 'Home' ||
-                      event.key === 'End'
-                    ) {
-                      props.onKeyDown?.(event)
-                    }
-                  },
-                  // Raw mode deliberately accepts pasted text that may not be
-                  // numeric yet; the owner validates it while editing.
-                  onPaste: undefined,
-                } as React.ComponentPropsWithoutRef<'input'>
+                if (usesRawValue) {
+                  const rawInputProps = {
+                    ...props,
+                    value: rawValue,
+                    onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
+                      onRawValueChange?.(event.target.value, event)
+                    },
+                    onBlur: (event: React.FocusEvent<HTMLInputElement>) => {
+                      props.onBlur?.(event)
+                      onRawValueCommitted?.(event.target.value, event)
+                    },
+                    onKeyDown: (
+                      event: React.KeyboardEvent<HTMLInputElement>
+                    ) => {
+                      if (
+                        event.key === 'ArrowUp' ||
+                        event.key === 'ArrowDown' ||
+                        event.key === 'Home' ||
+                        event.key === 'End'
+                      ) {
+                        props.onKeyDown?.(event)
+                      }
+                    },
+                    // Raw mode deliberately accepts pasted text that may not be
+                    // numeric yet; the owner validates it while editing.
+                    onPaste: undefined,
+                  } as React.ComponentPropsWithoutRef<'input'>
+
+                  return (
+                    <Box
+                      {...rawInputProps}
+                      component="input"
+                      data-slot="number-input-input"
+                      sx={inputSx}
+                    />
+                  )
+                }
 
                 return (
                   <Box
-                    {...rawInputProps}
+                    {...props}
                     component="input"
                     data-slot="number-input-input"
                     sx={inputSx}
                   />
                 )
-              }
-
-              return (
-                <Box
-                  {...props}
-                  component="input"
-                  data-slot="number-input-input"
-                  sx={inputSx}
-                />
-              )
-            }}
-          />
+              }}
+            />
             <Box
               data-slot="number-input-adornment"
               sx={[

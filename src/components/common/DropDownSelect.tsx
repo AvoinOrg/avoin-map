@@ -9,8 +9,10 @@ import {
   toSxArray,
 } from '#/common/style/theme/system'
 import {
+  getSharedPillNegativeMarginsSx,
   SHARED_CONTROL_BORDER_RADIUS,
   SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+  SHARED_PILL_HORIZONTAL_CONTENT_INSET,
 } from '#/common/style/theme/constants'
 import { SelectOption } from '#/common/types/general'
 import ArrowDown from '#/components/icons/ArrowDown'
@@ -57,6 +59,7 @@ type Props = {
   defaultOpen?: boolean
   onOpenChange?: (open: boolean) => void
   autoFocus?: boolean
+  applyNegativeMargins?: boolean
 }
 
 type DropDownMenuEntry = {
@@ -159,7 +162,7 @@ export const DROP_DOWN_SELECT_TRIGGER_SX = {
     display: 'flex',
     alignItems: 'center',
     py: '0.1875rem',
-    pl: '1rem',
+    pl: SHARED_PILL_HORIZONTAL_CONTENT_INSET,
     pr: '2.5rem',
     backgroundColor: 'transparent',
     fontSize: '0.6875rem',
@@ -175,7 +178,7 @@ export const DROP_DOWN_SELECT_TRIGGER_SX = {
 
 export const DROP_DOWN_SELECT_ICON_SX = {
   position: 'absolute',
-  right: 12,
+  right: SHARED_PILL_HORIZONTAL_CONTENT_INSET,
   top: '50%',
   width: 12,
   height: 6,
@@ -270,10 +273,7 @@ const SelectTriggerContent = ({
     </Box>
     <Box
       component="span"
-      className={[
-        'MuiSelect-icon',
-        open ? 'MuiSelect-iconOpen' : undefined,
-      ]
+      className={['MuiSelect-icon', open ? 'MuiSelect-iconOpen' : undefined]
         .filter(Boolean)
         .join(' ')}
       data-slot="icon"
@@ -387,6 +387,7 @@ const DropDownSelect = ({
   defaultOpen,
   onOpenChange,
   autoFocus,
+  applyNegativeMargins = false,
 }: Props) => {
   const { t } = useTranslate('avoin-map')
   const generatedId = React.useId()
@@ -489,11 +490,7 @@ const DropDownSelect = ({
             value: '',
             label: '',
             ariaLabel: 'Empty selection',
-            content: (
-              <i>
-                {t('components.drop_down_select.empty_selection')}
-              </i>
-            ),
+            content: <i>{t('components.drop_down_select.empty_selection')}</i>,
           },
         ]
       : []),
@@ -551,6 +548,9 @@ const DropDownSelect = ({
                   {
                     cursor: disabled ? 'default' : 'pointer',
                   },
+                  ...(applyNegativeMargins
+                    ? [getSharedPillNegativeMarginsSx()]
+                    : []),
                   ...toComponentSxArray(selectSx),
                 ]}
               >
@@ -570,10 +570,7 @@ const DropDownSelect = ({
               sideOffset={4}
               alignItemWithTrigger={false}
               render={(positionerProps) => (
-                <Box
-                  {...positionerProps}
-                  sx={DROP_DOWN_SELECT_POSITIONER_SX}
-                />
+                <Box {...positionerProps} sx={DROP_DOWN_SELECT_POSITIONER_SX} />
               )}
             >
               <BaseSelect.Popup
@@ -641,6 +638,7 @@ const DropDownSelect = ({
             {
               cursor: disabled ? 'default' : 'pointer',
             },
+            ...(applyNegativeMargins ? [getSharedPillNegativeMarginsSx()] : []),
             ...toComponentSxArray(selectSx),
           ]}
         >
@@ -696,7 +694,10 @@ const DropDownSelect = ({
         <Box
           id={labelId}
           component="span"
-          sx={[DROP_DOWN_SELECT_HEADER_LABEL_SX, ...toComponentSxArray(labelSx)]}
+          sx={[
+            DROP_DOWN_SELECT_HEADER_LABEL_SX,
+            ...toComponentSxArray(labelSx),
+          ]}
         >
           {label}
         </Box>

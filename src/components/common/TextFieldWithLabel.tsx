@@ -1,7 +1,9 @@
 import React, { useId } from 'react'
 import {
+  getSharedPillNegativeMarginsSx,
   SHARED_CONTROL_BORDER_RADIUS,
   SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+  SHARED_PILL_HORIZONTAL_CONTENT_INSET,
 } from '#/common/style/theme/constants'
 import { Box, type AppSxProps, toSxArray } from '#/common/style/theme/system'
 
@@ -39,6 +41,7 @@ type TextFieldWithLabelBaseProps = {
   onFocus?: React.FocusEventHandler<HTMLInputElement | HTMLTextAreaElement>
   onBlur?: React.FocusEventHandler<HTMLInputElement | HTMLTextAreaElement>
   onKeyDown?: React.KeyboardEventHandler<HTMLInputElement | HTMLTextAreaElement>
+  applyNegativeMargins?: boolean
 }
 
 type TextFieldWithLabelProps = TextFieldWithLabelBaseProps &
@@ -82,6 +85,7 @@ const TextFieldWithLabel = ({
   onChange,
   onFocus,
   onBlur,
+  applyNegativeMargins = false,
   ...textFieldProps
 }: TextFieldWithLabelProps) => {
   const generatedId = useId()
@@ -104,15 +108,15 @@ const TextFieldWithLabel = ({
     }
   }
 
-  const handleSingleLineKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (
-    event
-  ) => {
+  const handleSingleLineKeyDown: React.KeyboardEventHandler<
+    HTMLInputElement
+  > = (event) => {
     handleKeyDown(event)
   }
 
-  const handleMultilineKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> = (
-    event
-  ) => {
+  const handleMultilineKeyDown: React.KeyboardEventHandler<
+    HTMLTextAreaElement
+  > = (event) => {
     handleKeyDown(event)
   }
 
@@ -162,7 +166,7 @@ const TextFieldWithLabel = ({
         backgroundColor: '#FFFFFF',
         boxShadow: 'inset 0px 0.5px 1px 0px #D9D9D9',
         boxSizing: 'border-box',
-        px: '1rem',
+        px: SHARED_PILL_HORIZONTAL_CONTENT_INSET,
         py: multiline ? '0.5rem' : '0.1875rem',
         fontSize: '0.6875rem',
         fontWeight: 400,
@@ -190,6 +194,13 @@ const TextFieldWithLabel = ({
           : {}),
       },
     },
+    ...(!multiline && applyNegativeMargins
+      ? [
+          {
+            [`& .${CONTROL_CLASS_NAME}`]: getSharedPillNegativeMarginsSx(),
+          } as ComponentSxArrayItem,
+        ]
+      : []),
     ...toComponentSxArray(textFieldSx).map(
       (slotSx) =>
         ({
@@ -260,7 +271,10 @@ const TextFieldWithLabel = ({
       >
         <Box sx={controlSx as AppSxProps}>
           {multiline ? (
-            <textarea className={CONTROL_CLASS_NAME} {...multilineControlProps} />
+            <textarea
+              className={CONTROL_CLASS_NAME}
+              {...multilineControlProps}
+            />
           ) : (
             <input className={CONTROL_CLASS_NAME} {...singleLineControlProps} />
           )}
