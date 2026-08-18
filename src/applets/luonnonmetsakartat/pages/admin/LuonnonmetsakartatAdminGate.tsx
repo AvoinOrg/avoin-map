@@ -22,6 +22,7 @@ import { Star } from '#/components/icons'
 import TText from '#/components/common/TText'
 import { AdminVerificationStatus } from 'applets/luonnonmetsakartat/common/types'
 import { useLuonnonmetsakartatMockScenarioQueryState } from 'applets/luonnonmetsakartat/common/mockScenarios/queryState'
+import LuonnonmetsakartatLandingSidebar from 'applets/luonnonmetsakartat/components/LuonnonmetsakartatLandingSidebar'
 
 enum LocalState {
   Loading = 'loading',
@@ -89,6 +90,9 @@ const LuonnonmetsakartatAdminGate = ({
   const router = useAppRouter()
   const buildAppRouteHref = useAppRouteHrefBuilder()
   const pathname = useAppPathname()
+  const adminRoute = buildAppRouteHref({
+    routeKey: APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN,
+  })
 
   const { refetch: refetchAdminVerification } = useQuery({
     ...useAdminVerificationQueryOptions(),
@@ -151,16 +155,13 @@ const LuonnonmetsakartatAdminGate = ({
   // further without being verified
   useEffect(() => {
     if (localState === LocalState.Rejected) {
-      const adminRoute = buildAppRouteHref({
-        routeKey: APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN,
-      })
       if (pathname !== adminRoute) {
         router.replace(adminRoute, { locale: false })
       }
     }
-  }, [buildAppRouteHref, localState, pathname, router, status])
+  }, [adminRoute, localState, pathname, router])
 
-  return (
+  const content = (
     <>
       {localState !== LocalState.Verified && (
         <>
@@ -180,6 +181,14 @@ const LuonnonmetsakartatAdminGate = ({
       )}
       {localState === LocalState.Verified && children}
     </>
+  )
+
+  return pathname === adminRoute ? (
+    <LuonnonmetsakartatLandingSidebar boundaryId="luonnonmetsakartat-admin-landing">
+      {content}
+    </LuonnonmetsakartatLandingSidebar>
+  ) : (
+    content
   )
 }
 

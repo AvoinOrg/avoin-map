@@ -39,7 +39,7 @@ const LuonnonmetsakartatAdminPage = () => {
   }, [adminFolayerRefetch, isMockScenarioQueryActive])
 
   return (
-    <SidebarContentBox>
+    <SidebarContentBox sxInner={{ pt: { mobile: 5, desktop: 5 } }}>
       <AppRouteLink
         routeKey={APP_ROUTE_KEYS.LUONNONMETSAKARTAT_ADMIN_IMPORT}
         sx={{
@@ -70,7 +70,10 @@ const LuonnonmetsakartatAdminPage = () => {
               lineHeight: 1.2,
             }}
           >
-            <TText keyName={'sidebar.admin.upload'} ns={'luonnonmetsakartat'} />
+            <TText
+              keyName={'sidebar.admin.upload'}
+              ns={'luonnonmetsakartat'}
+            />
           </Box>
           <Upload
             aria-hidden="true"
