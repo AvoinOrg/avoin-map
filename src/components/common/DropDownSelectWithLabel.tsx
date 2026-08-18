@@ -21,6 +21,7 @@ const DropDownSelectWithLabel = ({
   headerSx,
   labelSx,
   sx,
+  applyNegativeMargins,
   ...rest
 }: DropDownSelectWithLabelProps) => {
   return (
@@ -34,18 +35,10 @@ const DropDownSelectWithLabel = ({
       ]}
     >
       {label && (
-        <Box
-          sx={[
-            DROP_DOWN_SELECT_HEADER_SX,
-            ...toSxArray(headerSx),
-          ]}
-        >
+        <Box sx={[DROP_DOWN_SELECT_HEADER_SX, ...toSxArray(headerSx)]}>
           <Box
             component="span"
-            sx={[
-              DROP_DOWN_SELECT_HEADER_LABEL_SX,
-              ...toSxArray(labelSx),
-            ]}
+            sx={[DROP_DOWN_SELECT_HEADER_LABEL_SX, ...toSxArray(labelSx)]}
           >
             {label}
           </Box>
@@ -66,6 +59,7 @@ const DropDownSelectWithLabel = ({
       <DropDownSelect
         sx={{ width: '100%' }}
         {...rest}
+        applyNegativeMargins={applyNegativeMargins}
         ariaLabel={ariaLabel ?? (typeof label === 'string' ? label : undefined)}
         label={undefined}
       />

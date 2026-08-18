@@ -1,12 +1,11 @@
 import { Select as BaseSelect } from '@base-ui/react/select'
 import React, { type ReactNode } from 'react'
 
+import { Box, type AppSxProps, toSxArray } from '#/common/style/theme/system'
 import {
-  Box,
-  type AppSxProps,
-  toSxArray,
-} from '#/common/style/theme/system'
-import { SHARED_CONTROL_INFINITE_BORDER_RADIUS } from '#/common/style/theme/constants'
+  getSharedPillNegativeMarginsSx,
+  SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+} from '#/common/style/theme/constants'
 import {
   DROP_DOWN_SELECT_ICON_SX,
   DROP_DOWN_SELECT_LIST_SX,
@@ -61,6 +60,7 @@ type Props = {
   open?: boolean
   defaultOpen?: boolean
   onOpenChange?: (open: boolean) => void
+  applyNegativeMargins?: boolean
 }
 
 const toComponentSxArray = (sx?: AppSxProps) =>
@@ -141,6 +141,7 @@ const DropDownMultiSelect = ({
   open,
   defaultOpen,
   onOpenChange,
+  applyNegativeMargins = false,
 }: Props) => {
   const openIsControlled = open !== undefined
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(
@@ -214,6 +215,9 @@ const DropDownMultiSelect = ({
                 {
                   cursor: disabled ? 'default' : 'pointer',
                 },
+                ...(applyNegativeMargins
+                  ? [getSharedPillNegativeMarginsSx()]
+                  : []),
                 ...toComponentSxArray(selectSx),
               ]}
             >
@@ -324,11 +328,9 @@ const DropDownMultiSelect = ({
                               cursor: 'default',
                               userSelect: 'none',
                               outline: 0,
-                              '&[data-highlighted], &:hover, &:focus-visible':
-                                {
-                                  backgroundColor:
-                                    'rgba(44, 142, 116, 0.08)',
-                                },
+                              '&[data-highlighted], &:hover, &:focus-visible': {
+                                backgroundColor: 'rgba(44, 142, 116, 0.08)',
+                              },
                             },
                             ...toComponentSxArray(menuItemSx),
                           ]}

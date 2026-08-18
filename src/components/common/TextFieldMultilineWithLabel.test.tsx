@@ -119,9 +119,29 @@ describe('TextFieldMultilineWithLabel', () => {
       />
     )
 
-    expect(screen.getByRole('textbox', { name: 'Description input radius' }))
-      .toHaveStyle({
-        borderRadius: SHARED_CONTROL_BORDER_RADIUS,
-      })
+    expect(
+      screen.getByRole('textbox', { name: 'Description input radius' })
+    ).toHaveStyle({
+      borderRadius: SHARED_CONTROL_BORDER_RADIUS,
+    })
+  })
+
+  it('does not advertise or apply the single-line negative-margin option', () => {
+    renderWithTheme(
+      <TextFieldMultilineWithLabel
+        label="Unsupported geometry"
+        value="Multiline"
+        onChange={() => {}}
+        // @ts-expect-error applyNegativeMargins belongs to single-line fields.
+        applyNegativeMargins
+      />
+    )
+
+    expect(
+      screen.getByRole('textbox', { name: 'Unsupported geometry' })
+    ).toHaveStyle({ borderRadius: SHARED_CONTROL_BORDER_RADIUS })
+    expect(
+      screen.getByRole('textbox', { name: 'Unsupported geometry' })
+    ).not.toHaveStyle({ marginLeft: '-1rem' })
   })
 })

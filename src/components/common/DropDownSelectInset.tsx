@@ -1,10 +1,26 @@
 import React from 'react'
 
-import { SHARED_CONTROL_INFINITE_BORDER_RADIUS } from '#/common/style/theme/constants'
+import {
+  SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+  SHARED_PILL_HORIZONTAL_CONTENT_INSET_REM,
+} from '#/common/style/theme/constants'
 import { Box, type AppSxProps, toSxArray } from '#/common/style/theme/system'
 import DropDownSelect from '#/components/common/DropDownSelect'
 
 type DropDownSelectProps = React.ComponentProps<typeof DropDownSelect>
+
+const INSET_TRIGGER_PADDING_LEFT_REM = 0.5
+const INSET_SELECTED_BADGE_PADDING_X_REM = 0.625
+const INSET_SELECTED_TEXT_LEFT_INSET_REM =
+  INSET_TRIGGER_PADDING_LEFT_REM + INSET_SELECTED_BADGE_PADDING_X_REM
+
+const INSET_NEGATIVE_MARGIN_ADJUSTMENT_SX = {
+  ml: `-${INSET_SELECTED_TEXT_LEFT_INSET_REM}rem`,
+  width: `calc(100% + ${
+    INSET_SELECTED_TEXT_LEFT_INSET_REM +
+    SHARED_PILL_HORIZONTAL_CONTENT_INSET_REM
+  }rem)`,
+} as const
 
 type DropDownSelectInsetProps = Omit<
   DropDownSelectProps,
@@ -29,6 +45,7 @@ const DropDownSelectInset = ({
   selectSx,
   selectWrapperSx,
   renderSelectedValue,
+  applyNegativeMargins,
   ...rest
 }: DropDownSelectInsetProps) => {
   return (
@@ -47,6 +64,7 @@ const DropDownSelectInset = ({
     >
       <DropDownSelect
         {...rest}
+        applyNegativeMargins={applyNegativeMargins}
         ariaLabel={ariaLabel ?? (typeof label === 'string' ? label : undefined)}
         label={undefined}
         sx={[
@@ -69,12 +87,15 @@ const DropDownSelectInset = ({
             '.MuiSelect-select': {
               minHeight: '1.125rem',
               py: '0 !important',
-              pl: '0.5rem !important',
+              pl: `${INSET_TRIGGER_PADDING_LEFT_REM}rem !important`,
               pr: '1.75rem !important',
               display: 'flex',
               alignItems: 'center',
             },
           },
+          ...(applyNegativeMargins
+            ? [INSET_NEGATIVE_MARGIN_ADJUSTMENT_SX]
+            : []),
           ...toSxArray(selectSx),
         ]}
         renderSelectedValue={
@@ -87,7 +108,7 @@ const DropDownSelectInset = ({
                 alignItems: 'center',
                 maxWidth: '100%',
                 minWidth: 0,
-                px: '0.625rem',
+                px: `${INSET_SELECTED_BADGE_PADDING_X_REM}rem`,
                 py: '0.125rem',
                 borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
                 backgroundColor: 'secondary.dark',

@@ -6,6 +6,7 @@ import { AppThemeProvider } from '#/common/style/theme'
 import {
   SHARED_CONTROL_BORDER_RADIUS,
   SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+  SHARED_PILL_HORIZONTAL_CONTENT_INSET,
 } from '#/common/style/theme/constants'
 import DropDownMultiSelect from '#/components/common/DropDownMultiSelect'
 
@@ -32,10 +33,10 @@ describe('DropDownMultiSelect', () => {
       />
     )
 
-    fireEvent.mouseDown(
-      screen.getByRole('combobox', { name: 'Layer filters' })
-    )
-    const option = await screen.findByRole('option', { name: 'Solar potential' })
+    fireEvent.mouseDown(screen.getByRole('combobox', { name: 'Layer filters' }))
+    const option = await screen.findByRole('option', {
+      name: 'Solar potential',
+    })
 
     fireEvent.mouseMove(option)
     fireEvent.click(option)
@@ -83,8 +84,9 @@ describe('DropDownMultiSelect', () => {
       name: 'Closable layer filters',
     })
 
-    expect(await screen.findByRole('option', { name: 'Heat demand' }))
-      .toBeVisible()
+    expect(
+      await screen.findByRole('option', { name: 'Heat demand' })
+    ).toBeVisible()
 
     fireEvent.click(trigger)
 
@@ -116,6 +118,59 @@ describe('DropDownMultiSelect', () => {
       borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
     })
     expect(outline?.querySelector('legend')).toBeNull()
+  })
+
+  it('shares arrow inset and opt-in geometry with the single select', () => {
+    renderWithTheme(
+      <>
+        <DropDownMultiSelect
+          value={['heat']}
+          options={options}
+          onChange={() => {}}
+          ariaLabel="Default multi geometry"
+        />
+        <DropDownMultiSelect
+          value={['heat']}
+          options={options}
+          onChange={() => {}}
+          ariaLabel="Negative multi geometry"
+          applyNegativeMargins
+        />
+        <DropDownMultiSelect
+          value={['heat']}
+          options={options}
+          onChange={() => {}}
+          ariaLabel="Overridden multi geometry"
+          applyNegativeMargins
+          selectSx={{ mx: '-0.25rem', width: '75%' }}
+        />
+      </>
+    )
+
+    const defaultTrigger = screen.getByRole('combobox', {
+      name: 'Default multi geometry',
+    })
+    const negativeTrigger = screen.getByRole('combobox', {
+      name: 'Negative multi geometry',
+    })
+    const overriddenTrigger = screen.getByRole('combobox', {
+      name: 'Overridden multi geometry',
+    })
+
+    expect(defaultTrigger).toHaveStyle({ margin: '0px', width: '100%' })
+    expect(defaultTrigger.querySelector('[data-slot="icon"]')).toHaveStyle({
+      right: SHARED_PILL_HORIZONTAL_CONTENT_INSET,
+    })
+    expect(negativeTrigger).toHaveStyle({
+      marginLeft: '-1rem',
+      marginRight: '-1rem',
+      width: 'calc(100% + 2rem)',
+    })
+    expect(overriddenTrigger).toHaveStyle({
+      marginLeft: '-0.25rem',
+      marginRight: '-0.25rem',
+      width: '75%',
+    })
   })
 
   it('marks selected options in the open list', async () => {

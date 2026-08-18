@@ -15,6 +15,7 @@ type TextFieldMultilineWithLabelBaseProps = Omit<
   | 'onFocus'
   | 'onBlur'
   | 'onKeyDown'
+  | 'applyNegativeMargins'
 > & {
   onChange?: React.ChangeEventHandler<HTMLTextAreaElement>
   onFocus?: React.FocusEventHandler<HTMLTextAreaElement>

@@ -5,7 +5,11 @@ import type { ComponentFixture } from '#/common/component-fixtures/types'
 import TextFieldWithLabel from '#/components/common/TextFieldWithLabel'
 import TextFieldMultilineWithLabel from '#/components/common/TextFieldMultilineWithLabel'
 
-const TextFieldFixtureWrapper = ({ children }: { children: React.ReactNode }) => (
+const TextFieldFixtureWrapper = ({
+  children,
+}: {
+  children: React.ReactNode
+}) => (
   <Box
     sx={{
       width: 420,
@@ -13,6 +17,18 @@ const TextFieldFixtureWrapper = ({ children }: { children: React.ReactNode }) =>
       display: 'flex',
       flexDirection: 'column',
       gap: 2,
+    }}
+  >
+    {children}
+  </Box>
+)
+
+const GeometryReference = ({ children }: { children: React.ReactNode }) => (
+  <Box
+    sx={{
+      width: 280,
+      borderLeft: '1px dashed #2C8E74',
+      borderRight: '1px dashed #2C8E74',
     }}
   >
     {children}
@@ -68,6 +84,39 @@ export const textFieldWithLabelFixture: ComponentFixture = {
           value="Current value"
           onChange={() => {}}
         />
+      ),
+    },
+    {
+      id: 'negative-margins',
+      label: 'Negative margins',
+      description: 'Single-line pill curve overflows the reference edges.',
+      render: () => (
+        <GeometryReference>
+          <TextFieldWithLabel
+            label="Area name"
+            ariaLabel="Negative margin text field"
+            value="Central district"
+            onChange={() => {}}
+            applyNegativeMargins
+          />
+        </GeometryReference>
+      ),
+    },
+    {
+      id: 'negative-margins-override',
+      label: 'Negative margin override',
+      description: 'Caller control margins and width override opt-in defaults.',
+      render: () => (
+        <GeometryReference>
+          <TextFieldWithLabel
+            label="Area name"
+            ariaLabel="Overridden negative margin text field"
+            value="Central district"
+            onChange={() => {}}
+            applyNegativeMargins
+            textFieldSx={{ ml: '-0.25rem', mr: 0, width: '100%' }}
+          />
+        </GeometryReference>
       ),
     },
     {

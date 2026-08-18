@@ -1193,6 +1193,16 @@
         "description": "Closed stateful select with a valid selected value for keyboard checks."
       },
       {
+        "id": "negative-margins",
+        "label": "Negative margins",
+        "description": "Opt-in pill overflow with selected text and arrow aligned to reference edges."
+      },
+      {
+        "id": "negative-margins-override",
+        "label": "Negative margin override",
+        "description": "Caller trigger margins and width override opt-in defaults."
+      },
+      {
         "id": "open",
         "label": "Open",
         "description": "Open menu below the trigger.",
@@ -1225,9 +1235,19 @@
         "description": "Labeled wrapper with label and action content."
       },
       {
+        "id": "with-label-negative-margins",
+        "label": "Labeled negative margins",
+        "description": "Labeled wrapper forwards opt-in pill geometry once."
+      },
+      {
         "id": "inset-label",
         "label": "Inset label",
         "description": "Inset wrapper with select before the side label."
+      },
+      {
+        "id": "inset-negative-margins",
+        "label": "Inset negative margins",
+        "description": "Inset wrapper forwards compact opt-in pill geometry once."
       },
       {
         "id": "inset-long-label",
@@ -1244,6 +1264,16 @@
         "id": "minimal-selected",
         "label": "Minimal selected",
         "description": "Compact minimal variant with selected value."
+      },
+      {
+        "id": "minimal-negative-margins",
+        "label": "Minimal negative margins",
+        "description": "Right-icon minimal pill applies opt-in geometry at its root."
+      },
+      {
+        "id": "minimal-left-icon-preserved",
+        "label": "Minimal left icon preserved",
+        "description": "Left-icon minimal arrangement ignores the right-icon negative-margin mode."
       },
       {
         "id": "minimal-open",
@@ -1291,6 +1321,11 @@
         "id": "selected-multiple",
         "label": "Selected multiple",
         "description": "Multiple selected values summarized in the trigger."
+      },
+      {
+        "id": "negative-margins",
+        "label": "Negative margins",
+        "description": "Opt-in pill overflow with selected text and arrow aligned to reference edges."
       },
       {
         "id": "custom-option-content",
@@ -1368,6 +1403,21 @@
         "id": "value",
         "label": "Value",
         "description": "Populated field with default medium sizing."
+      },
+      {
+        "id": "negative-margins-medium",
+        "label": "Medium negative margins",
+        "description": "Medium pill overflows while text and spinner glyph align to reference edges."
+      },
+      {
+        "id": "negative-margins-small",
+        "label": "Small negative margins",
+        "description": "Small pill uses its size-specific spinner edge for opt-in overflow."
+      },
+      {
+        "id": "negative-margins-override",
+        "label": "Negative margin override",
+        "description": "Caller pill margins and width override opt-in defaults."
       },
       {
         "id": "focused",
@@ -1986,6 +2036,16 @@
         "id": "value",
         "label": "Value",
         "description": "Populated text value."
+      },
+      {
+        "id": "negative-margins",
+        "label": "Negative margins",
+        "description": "Single-line pill curve overflows the reference edges."
+      },
+      {
+        "id": "negative-margins-override",
+        "label": "Negative margin override",
+        "description": "Caller control margins and width override opt-in defaults."
       },
       {
         "id": "focused",

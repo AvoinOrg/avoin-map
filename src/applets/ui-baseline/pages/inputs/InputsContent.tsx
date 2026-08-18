@@ -94,8 +94,73 @@ const StatefulNumberInputField = ({
   )
 }
 
+const GeometryReference = ({ children }: { children: React.ReactNode }) => (
+  <Box
+    sx={{
+      width: '15rem',
+      borderLeft: '1px dashed #2C8E74',
+      borderRight: '1px dashed #2C8E74',
+    }}
+  >
+    {children}
+  </Box>
+)
+
 const InputsContent = () => (
   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+    <BaselineSection title="Negative-margin input geometry">
+      <BaselineExample title="Text input aligned edges">
+        <GeometryReference>
+          <StatefulTextFieldWithLabel
+            label="Area name"
+            ariaLabel="Negative margin text input"
+            initialValue="Central district"
+            applyNegativeMargins
+          />
+        </GeometryReference>
+      </BaselineExample>
+      <BaselineExample title="Text input caller override">
+        <GeometryReference>
+          <StatefulTextFieldWithLabel
+            label="Area name"
+            ariaLabel="Overridden negative margin text input"
+            initialValue="Central district"
+            applyNegativeMargins
+            textFieldSx={{
+              ml: '-0.25rem',
+              mr: 0,
+              width: 'calc(100% + 0.25rem)',
+            }}
+          />
+        </GeometryReference>
+      </BaselineExample>
+      <BaselineExample title="Medium number spinner aligned edges">
+        <GeometryReference>
+          <StatefulNumberInputField
+            initialValue={24}
+            applyNegativeMargins
+            formControlSx={{ width: '100%' }}
+            inputSlotProps={{
+              'aria-label': 'Medium negative margin number input',
+            }}
+          />
+        </GeometryReference>
+      </BaselineExample>
+      <BaselineExample title="Small number spinner aligned edges">
+        <GeometryReference>
+          <StatefulNumberInputField
+            initialValue={5}
+            size="small"
+            applyNegativeMargins
+            formControlSx={{ width: '100%' }}
+            inputSlotProps={{
+              'aria-label': 'Small negative margin number input',
+            }}
+          />
+        </GeometryReference>
+      </BaselineExample>
+    </BaselineSection>
+
     <BaselineSection title="TextFieldWithLabel">
       <BaselineExample title="Empty and placeholder">
         <StatefulTextFieldWithLabel

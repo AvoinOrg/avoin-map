@@ -88,6 +88,18 @@ const DropDownMultiSelectFixtureWrapper = ({
   </Box>
 )
 
+const GeometryReference = ({ children }: { children: React.ReactNode }) => (
+  <Box
+    sx={{
+      width: 240,
+      borderLeft: '1px dashed #2C8E74',
+      borderRight: '1px dashed #2C8E74',
+    }}
+  >
+    {children}
+  </Box>
+)
+
 export const dropDownMultiSelectFixture: ComponentFixture = {
   id: 'drop-down-multi-select',
   label: 'DropDownMultiSelect',
@@ -170,6 +182,23 @@ export const dropDownMultiSelectFixture: ComponentFixture = {
           onChange={noop}
           ariaLabel="Multiple selected multi-select"
         />
+      ),
+    },
+    {
+      id: 'negative-margins',
+      label: 'Negative margins',
+      description:
+        'Opt-in pill overflow with selected text and arrow aligned to reference edges.',
+      render: () => (
+        <GeometryReference>
+          <DropDownMultiSelect
+            value={['heat', 'solar']}
+            options={multiSelectOptions}
+            onChange={noop}
+            ariaLabel="Negative margin multi-select"
+            applyNegativeMargins
+          />
+        </GeometryReference>
       ),
     },
     {

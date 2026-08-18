@@ -23,6 +23,18 @@ const NumberInputFieldFixtureWrapper = ({
   </Box>
 )
 
+const GeometryReference = ({ children }: { children: React.ReactNode }) => (
+  <Box
+    sx={{
+      width: '9rem',
+      borderLeft: '1px dashed #2C8E74',
+      borderRight: '1px dashed #2C8E74',
+    }}
+  >
+    {children}
+  </Box>
+)
+
 const FocusedNumberInputField = () => {
   return (
     <NumberInputField
@@ -73,6 +85,63 @@ export const numberInputFieldFixture: ComponentFixture = {
           onValueChange={noop}
           inputSlotProps={{ 'aria-label': 'Area' }}
         />
+      ),
+    },
+    {
+      id: 'negative-margins-medium',
+      label: 'Medium negative margins',
+      description:
+        'Medium pill overflows while text and spinner glyph align to reference edges.',
+      render: () => (
+        <GeometryReference>
+          <NumberInputField
+            value={24}
+            locale="en-US"
+            onValueChange={noop}
+            applyNegativeMargins
+            formControlSx={{ width: '100%' }}
+            inputSlotProps={{ 'aria-label': 'Medium negative margin number' }}
+          />
+        </GeometryReference>
+      ),
+    },
+    {
+      id: 'negative-margins-small',
+      label: 'Small negative margins',
+      description:
+        'Small pill uses its size-specific spinner edge for opt-in overflow.',
+      render: () => (
+        <GeometryReference>
+          <NumberInputField
+            size="small"
+            value={5}
+            locale="en-US"
+            onValueChange={noop}
+            applyNegativeMargins
+            formControlSx={{ width: '100%' }}
+            inputSlotProps={{ 'aria-label': 'Small negative margin number' }}
+          />
+        </GeometryReference>
+      ),
+    },
+    {
+      id: 'negative-margins-override',
+      label: 'Negative margin override',
+      description: 'Caller pill margins and width override opt-in defaults.',
+      render: () => (
+        <GeometryReference>
+          <NumberInputField
+            value={12}
+            locale="en-US"
+            onValueChange={noop}
+            applyNegativeMargins
+            formControlSx={{ width: '100%' }}
+            inputSx={{ ml: '-0.25rem', mr: 0, width: '100%' }}
+            inputSlotProps={{
+              'aria-label': 'Overridden negative margin number',
+            }}
+          />
+        </GeometryReference>
       ),
     },
     {

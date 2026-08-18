@@ -6,9 +6,11 @@ import { AppThemeProvider } from '#/common/style/theme'
 import {
   SHARED_CONTROL_BORDER_RADIUS,
   SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+  SHARED_PILL_HORIZONTAL_CONTENT_INSET,
 } from '#/common/style/theme/constants'
 import DropDownSelectInset from '#/components/common/DropDownSelectInset'
 import DropDownSelect from '#/components/common/DropDownSelect'
+import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
 
 jest.mock('@tolgee/react', () => ({
   useTranslate: () => ({
@@ -51,6 +53,141 @@ describe('DropDownSelectInset', () => {
     expect(label).toHaveStyle({ color: 'rgb(12, 34, 56)' })
     expect(outer).not.toHaveStyle({ width: '123px' })
     expect(selectWrapper).not.toHaveStyle({ height: '27px' })
+  })
+
+  it('applies negative pill margins before caller trigger overrides', () => {
+    renderWithTheme(
+      <>
+        <DropDownSelect
+          value="heat"
+          options={[{ value: 'heat', label: 'Heat demand' }]}
+          onChange={() => {}}
+          ariaLabel="Default geometry"
+        />
+        <DropDownSelect
+          value="heat"
+          options={[{ value: 'heat', label: 'Heat demand' }]}
+          onChange={() => {}}
+          ariaLabel="Negative geometry"
+          applyNegativeMargins
+        />
+        <DropDownSelect
+          value="heat"
+          options={[{ value: 'heat', label: 'Heat demand' }]}
+          onChange={() => {}}
+          ariaLabel="Overridden geometry"
+          applyNegativeMargins
+          selectSx={[
+            { mx: '-0.25rem' },
+            { ml: '2rem', mr: '3rem', width: '80%' },
+          ]}
+        />
+      </>
+    )
+
+    expect(
+      screen.getByRole('combobox', { name: 'Default geometry' })
+    ).toHaveStyle({
+      margin: '0px',
+      width: '100%',
+    })
+    expect(
+      screen.getByRole('combobox', { name: 'Negative geometry' })
+    ).toHaveStyle({
+      marginLeft: '-1rem',
+      marginRight: '-1rem',
+      width: 'calc(100% + 2rem)',
+    })
+    expect(
+      screen.getByRole('combobox', { name: 'Overridden geometry' })
+    ).toHaveStyle({
+      marginLeft: '2rem',
+      marginRight: '3rem',
+      width: '80%',
+    })
+  })
+
+  it('forwards compact inset geometry and keeps caller selectSx last', () => {
+    renderWithTheme(
+      <>
+        <DropDownSelectInset
+          value="1970"
+          options={[{ value: '1970', label: '1970 - 1979' }]}
+          onChange={() => {}}
+          label="Rakennusvuosi"
+          ariaLabel="Inset geometry"
+          applyNegativeMargins
+        />
+        <DropDownSelectInset
+          value="1970"
+          options={[{ value: '1970', label: '1970 - 1979' }]}
+          onChange={() => {}}
+          label="Rakennusvuosi override"
+          ariaLabel="Inset geometry override"
+          applyNegativeMargins
+          selectSx={{ mx: '-0.25rem', width: '75%' }}
+        />
+      </>
+    )
+
+    expect(
+      screen.getByRole('combobox', { name: 'Inset geometry' })
+    ).toHaveStyle({
+      marginLeft: '-1.125rem',
+      marginRight: '-1rem',
+      width: 'calc(100% + 2.125rem)',
+    })
+    expect(
+      screen.getByRole('combobox', { name: 'Inset geometry override' })
+    ).toHaveStyle({
+      marginLeft: '-0.25rem',
+      marginRight: '-0.25rem',
+      width: '75%',
+    })
+  })
+
+  it('applies minimal geometry only to the right-icon pill root', () => {
+    const { container } = renderWithTheme(
+      <>
+        <DropDownSelectMinimal
+          value="heat"
+          options={[{ value: 'heat', label: 'Heat demand' }]}
+          onChange={() => {}}
+          ariaLabel="Right minimal geometry"
+          applyNegativeMargins
+          sx={{ mr: '-0.5rem' }}
+        />
+        <DropDownSelectMinimal
+          value="heat"
+          options={[{ value: 'heat', label: 'Heat demand' }]}
+          onChange={() => {}}
+          ariaLabel="Left minimal geometry"
+          isIconOnTheRight={false}
+          applyNegativeMargins
+        />
+      </>
+    )
+
+    const roots = container.querySelectorAll(
+      '[data-slot="minimal-select-root"]'
+    )
+    const rightIcon = screen
+      .getByRole('combobox', { name: 'Right minimal geometry' })
+      .querySelector('[data-slot="icon"]')
+    const leftIcon = screen
+      .getByRole('combobox', { name: 'Left minimal geometry' })
+      .querySelector('[data-slot="icon"]')
+
+    expect(roots[0]).toHaveStyle({
+      marginLeft: '-1rem',
+      marginRight: '-0.5rem',
+      width: 'fit-content',
+    })
+    expect(roots[1]).not.toHaveStyle({ marginLeft: '-1rem' })
+    expect(rightIcon).toHaveStyle({
+      right: SHARED_PILL_HORIZONTAL_CONTENT_INSET,
+    })
+    expect(leftIcon).toHaveStyle({ left: '1rem', right: 'auto' })
   })
 
   it('wraps the side label naturally by default', () => {
@@ -145,14 +282,16 @@ describe('DropDownSelectInset', () => {
       />
     )
 
-    expect(await screen.findByRole('option', { name: 'Empty selection' }))
-      .toBeTruthy()
+    expect(
+      await screen.findByRole('option', { name: 'Empty selection' })
+    ).toBeTruthy()
 
     fireEvent.keyDown(screen.getByRole('listbox'), { key: 'Escape' })
 
     await waitFor(() => {
       expect(
-        screen.getByRole('combobox', { name: 'Closable empty select' })
+        screen
+          .getByRole('combobox', { name: 'Closable empty select' })
           .getAttribute('aria-expanded')
       ).toBe('false')
     })
@@ -230,8 +369,9 @@ describe('DropDownSelectInset', () => {
 
     expect(screen.getByText('Choose layer')).toBeTruthy()
     fireEvent.click(screen.getByRole('combobox', { name: 'Layer state' }))
-    expect(await screen.findByRole('option', { name: 'Empty selection' }))
-      .toBeTruthy()
+    expect(
+      await screen.findByRole('option', { name: 'Empty selection' })
+    ).toBeTruthy()
 
     rerender(
       <AppThemeProvider>
@@ -249,8 +389,9 @@ describe('DropDownSelectInset', () => {
     expect(
       screen.getByRole('combobox', { name: 'Invalid state' }).textContent
     ).toContain('legacy')
-    expect(await screen.findByRole('option', { name: 'Invalid value legacy' }))
-      .toBeTruthy()
+    expect(
+      await screen.findByRole('option', { name: 'Invalid value legacy' })
+    ).toBeTruthy()
   })
 
   it('uses a pill radius for the closed trigger while keeping the popup moderate', async () => {
@@ -277,8 +418,9 @@ describe('DropDownSelectInset', () => {
     })
 
     fireEvent.click(trigger)
-    expect(await screen.findByRole('option', { name: 'Solar potential' }))
-      .toBeTruthy()
+    expect(
+      await screen.findByRole('option', { name: 'Solar potential' })
+    ).toBeTruthy()
 
     const popup = document.querySelector('[data-slot="popup"]')
     const list = document.querySelector('[data-slot="list"]')
@@ -327,7 +469,7 @@ describe('DropDownSelectInset', () => {
 
     expect(closedIcon).toHaveStyle({
       height: '6px',
-      right: '12px',
+      right: SHARED_PILL_HORIZONTAL_CONTENT_INSET,
       top: '50%',
       transform: 'translateY(-50%)',
       width: '12px',
@@ -345,14 +487,15 @@ describe('DropDownSelectInset', () => {
       </AppThemeProvider>
     )
 
-    expect(await screen.findByRole('option', { name: 'Heat demand' }))
-      .toBeTruthy()
+    expect(
+      await screen.findByRole('option', { name: 'Heat demand' })
+    ).toBeTruthy()
     expect(
       screen
         .getByRole('combobox', { name: 'Arrow geometry' })
         .querySelector('[data-slot="icon"]')
     ).toHaveStyle({
-      right: '12px',
+      right: SHARED_PILL_HORIZONTAL_CONTENT_INSET,
       transform: 'translateY(-50%) rotate(180deg)',
     })
   })

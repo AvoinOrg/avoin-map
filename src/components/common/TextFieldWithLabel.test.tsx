@@ -3,7 +3,10 @@ import '@testing-library/jest-dom'
 import { fireEvent, render, screen } from '@testing-library/react'
 
 import { AppThemeProvider } from '#/common/style/theme'
-import { SHARED_CONTROL_INFINITE_BORDER_RADIUS } from '#/common/style/theme/constants'
+import {
+  SHARED_CONTROL_BORDER_RADIUS,
+  SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+} from '#/common/style/theme/constants'
 import TextFieldWithLabel from '#/components/common/TextFieldWithLabel'
 
 const renderWithTheme = (ui: React.ReactElement) => {
@@ -21,7 +24,9 @@ describe('TextFieldWithLabel', () => {
       />
     )
 
-    expect(screen.getByRole('textbox', { name: 'Plan name input' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('textbox', { name: 'Plan name input' })
+    ).toBeInTheDocument()
     expect(screen.getByText('Plan name')).toBeInTheDocument()
   })
 
@@ -67,7 +72,12 @@ describe('TextFieldWithLabel', () => {
 
     const input = screen.getByRole('textbox', { name: 'Code input' })
     fireEvent.focus(input)
-    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter', keyCode: 13, which: 13 })
+    fireEvent.keyDown(input, {
+      key: 'Enter',
+      code: 'Enter',
+      keyCode: 13,
+      which: 13,
+    })
 
     expect(onKeyDown).toHaveBeenCalledTimes(1)
     expect(document.activeElement).not.toBe(input)
@@ -92,7 +102,12 @@ describe('TextFieldWithLabel', () => {
 
     const input = screen.getByRole('textbox', { name: 'Code prevent' })
     fireEvent.focus(input)
-    fireEvent.keyDown(input, { key: 'Enter', code: 'Enter', keyCode: 13, which: 13 })
+    fireEvent.keyDown(input, {
+      key: 'Enter',
+      code: 'Enter',
+      keyCode: 13,
+      which: 13,
+    })
 
     expect(onKeyDown).toHaveBeenCalledTimes(1)
     expect(onBlur).not.toHaveBeenCalled()
@@ -130,9 +145,75 @@ describe('TextFieldWithLabel', () => {
       />
     )
 
-    expect(screen.getByRole('textbox', { name: 'Name input radius' }))
-      .toHaveStyle({
-        borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
-      })
+    expect(
+      screen.getByRole('textbox', { name: 'Name input radius' })
+    ).toHaveStyle({
+      borderRadius: SHARED_CONTROL_INFINITE_BORDER_RADIUS,
+    })
+  })
+
+  it('applies negative margins before textFieldSx overrides', () => {
+    renderWithTheme(
+      <>
+        <TextFieldWithLabel
+          label="Default geometry"
+          value="Default"
+          onChange={() => {}}
+        />
+        <TextFieldWithLabel
+          label="Negative geometry"
+          value="Negative"
+          onChange={() => {}}
+          applyNegativeMargins
+        />
+        <TextFieldWithLabel
+          label="Overridden geometry"
+          value="Overridden"
+          onChange={() => {}}
+          applyNegativeMargins
+          textFieldSx={[
+            { mx: '-0.25rem' },
+            { ml: '2rem', mr: '3rem', width: '80%' },
+          ]}
+        />
+      </>
+    )
+
+    expect(
+      screen.getByRole('textbox', { name: 'Default geometry' })
+    ).not.toHaveStyle({ marginLeft: '-1rem' })
+    expect(
+      screen.getByRole('textbox', { name: 'Negative geometry' })
+    ).toHaveStyle({
+      marginLeft: '-1rem',
+      marginRight: '-1rem',
+      width: 'calc(100% + 2rem)',
+    })
+    expect(
+      screen.getByRole('textbox', { name: 'Overridden geometry' })
+    ).toHaveStyle({
+      marginLeft: '2rem',
+      marginRight: '3rem',
+      width: '80%',
+    })
+  })
+
+  it('ignores negative margins on the deprecated multiline path', () => {
+    renderWithTheme(
+      <TextFieldWithLabel
+        label="Direct multiline geometry"
+        value="Multiline"
+        onChange={() => {}}
+        multiline
+        applyNegativeMargins
+      />
+    )
+
+    expect(
+      screen.getByRole('textbox', { name: 'Direct multiline geometry' })
+    ).toHaveStyle({ borderRadius: SHARED_CONTROL_BORDER_RADIUS })
+    expect(
+      screen.getByRole('textbox', { name: 'Direct multiline geometry' })
+    ).not.toHaveStyle({ marginLeft: '-1rem' })
   })
 })
