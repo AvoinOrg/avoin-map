@@ -60,16 +60,22 @@ export const buildZitadelOAuthProvider = (
     | 'zitadelClientSecret'
     | 'zitadelRedirectUri'
   >
-): GenericOAuthConfig => ({
-  providerId: START_AUTH_PROVIDER_ID,
-  discoveryUrl: `${env.zitadelIssuer}/.well-known/openid-configuration`,
-  issuer: env.zitadelIssuer,
-  requireIssuerValidation: true,
-  clientId: env.zitadelClientId,
-  clientSecret: env.zitadelClientSecret,
-  redirectURI: env.zitadelRedirectUri,
-  scopes: [...ZITADEL_OIDC_SCOPES],
-  pkce: true,
-  authentication: 'basic',
-  mapProfileToUser: mapZitadelProfileToUser,
-})
+): GenericOAuthConfig => {
+  const issuer = env.zitadelIssuer.replace(/\/+$/, '')
+
+  return {
+    providerId: START_AUTH_PROVIDER_ID,
+    discoveryUrl: `${issuer}/.well-known/openid-configuration`,
+    issuer,
+    // Zitadel omits the optional RFC 9207 `iss` callback parameter. Better
+    // Auth still rejects a supplied issuer when it does not match `issuer`.
+    requireIssuerValidation: false,
+    clientId: env.zitadelClientId,
+    clientSecret: env.zitadelClientSecret,
+    redirectURI: env.zitadelRedirectUri,
+    scopes: [...ZITADEL_OIDC_SCOPES],
+    pkce: true,
+    authentication: 'basic',
+    mapProfileToUser: mapZitadelProfileToUser,
+  }
+}

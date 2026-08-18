@@ -213,12 +213,58 @@ const runSmoke = async () => {
     )
     assert.ok(state)
 
+    const mismatchedIssuerSignInResponse = await auth.handler(
+      new Request(`${AUTH_BASE_URL}/api/auth/sign-in/oauth2`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          providerId: 'zitadel',
+          callbackURL: `${AUTH_BASE_URL}/after-login`,
+          disableRedirect: true,
+        }),
+      })
+    )
+    const mismatchedIssuerSignInBody =
+      (await mismatchedIssuerSignInResponse.json()) as { url: string }
+    const mismatchedIssuerState = new URL(
+      mismatchedIssuerSignInBody.url
+    ).searchParams.get('state')
+
+    assert.ok(mismatchedIssuerState)
+
+    const mismatchedIssuerResponse = await auth.handler(
+      new Request(
+        `${AUTH_BASE_URL}/api/auth/oauth2/callback/zitadel?${new URLSearchParams(
+          {
+            code: 'auth-code',
+            iss: `${mockIssuer}/unexpected`,
+            state: mismatchedIssuerState,
+          }
+        )}`,
+        {
+          headers: {
+            cookie: toCookieHeader(
+              getSetCookieHeaders(mismatchedIssuerSignInResponse.headers)
+            ),
+          },
+        }
+      )
+    )
+
+    assert.equal(mismatchedIssuerResponse.status, 302)
+    assert.equal(
+      mismatchedIssuerResponse.headers.get('location'),
+      `${AUTH_BASE_URL}/api/auth/error?error=issuer_mismatch`
+    )
+    assert.deepEqual(tokenRequestGrantTypes, [])
+
     const callbackResponse = await auth.handler(
       new Request(
         `${AUTH_BASE_URL}/api/auth/oauth2/callback/zitadel?${new URLSearchParams(
           {
             code: 'auth-code',
-            iss: mockIssuer,
             state,
           }
         )}`,
@@ -297,7 +343,34 @@ const runSmoke = async () => {
       /better-auth\.account_data=/
     )
 
-    console.log('Start Better Auth stateless contract smoke passed')
+    const signOutResponse = await auth.handler(
+      new Request(`${AUTH_BASE_URL}/api/auth/sign-out`, {
+        method: 'POST',
+        headers: {
+          cookie: sessionCookieHeader,
+          origin: AUTH_BASE_URL,
+        },
+      })
+    )
+
+    assert.equal(signOutResponse.status, 200)
+    assert.deepEqual(await signOutResponse.json(), { success: true })
+    assert.match(
+      signOutResponse.headers.get('set-cookie') ?? '',
+      /better-auth\.session_token=/
+    )
+
+    const signedOutSession = await getStartAuthSession({
+      headers: {
+        cookie: toCookieHeader(getSetCookieHeaders(signOutResponse.headers)),
+      },
+    })
+
+    assert.equal(signedOutSession, null)
+
+    console.log(
+      'Start Better Auth missing-issuer, session, refresh, and logout contract smoke passed'
+    )
   } finally {
     await new Promise<void>((resolve, reject) => {
       server.close((error) => {
