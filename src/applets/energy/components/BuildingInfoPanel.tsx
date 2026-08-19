@@ -1966,7 +1966,7 @@ const BuildingInfoWaterResidentControl = ({
           sx={{
             display: 'grid',
             gridTemplateColumns: 'minmax(0, 1fr) 4.75rem',
-            columnGap: '0.75rem',
+            columnGap: isOverrideEnabled ? '1.75rem' : '0.75rem',
             alignItems: 'center',
             width: '100%',
             minHeight: '1.5rem',
@@ -1988,6 +1988,7 @@ const BuildingInfoWaterResidentControl = ({
           >
             {isOverrideEnabled ? (
               <NumberInputField
+                applyNegativeMargins
                 size="small"
                 value={manualResidentCount ?? control.defaultValue}
                 minValue={control.minValue}
@@ -1998,7 +1999,6 @@ const BuildingInfoWaterResidentControl = ({
                 containerSx={{ width: '4.75rem' }}
                 formControlSx={{ width: '100%' }}
                 inputSx={{
-                  width: '100%',
                   '& [data-slot="number-input-input"]': {
                     px: '0.5rem',
                   },

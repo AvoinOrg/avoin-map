@@ -875,6 +875,7 @@ const EnergyHomePage = ({ locale: localeProp }: EnergyHomePageProps) => {
             }}
           >
             <LayerToggleRowAccordion
+              applyNegativeMargins
               label={
                 <TText
                   keyName="sidebar.front_page.layers.energy_classes"
@@ -891,6 +892,7 @@ const EnergyHomePage = ({ locale: localeProp }: EnergyHomePageProps) => {
               <EnergyClassesAccordionContent />
             </LayerToggleRowAccordion>
             <LayerToggleRowAccordion
+              applyNegativeMargins
               label={
                 <TText
                   keyName="sidebar.front_page.layers.heating"

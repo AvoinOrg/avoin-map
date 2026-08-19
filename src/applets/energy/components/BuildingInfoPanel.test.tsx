@@ -1511,6 +1511,7 @@ describe('BuildingInfoPanel', () => {
       'false'
     )
     expect(residentValueSlot).toHaveStyle({ width: '4.75rem' })
+    expect(residentRow).toHaveStyle({ columnGap: '0.75rem' })
     const overrideSwitch = within(energyPanel).getByRole('switch', {
       name: 'sidebar.building_info.panels.energy.water.change_resident_count',
     })
@@ -1540,6 +1541,14 @@ describe('BuildingInfoPanel', () => {
     expect(
       residentInput.closest('[data-slot="number-input-container"]')
     ).toHaveStyle({ width: '4.75rem' })
+    expect(residentRow).toHaveStyle({ columnGap: '1.75rem' })
+    expect(
+      residentInput.closest('[data-slot="number-input-control"]')
+    ).toHaveStyle({
+      marginLeft: '-1rem',
+      marginRight: '-0.5625rem',
+      width: 'calc(100% + 1.5625rem)',
+    })
     fireEvent.change(residentInput, { target: { value: '12' } })
     await waitFor(() => {
       expect(waterPanel).toHaveTextContent('525,6')
@@ -1626,6 +1635,7 @@ describe('BuildingInfoPanel', () => {
 
     fireEvent.click(overrideSwitch)
     expect(overrideSwitch).not.toBeChecked()
+    expect(residentRow).toHaveStyle({ columnGap: '0.75rem' })
     expect(
       within(energyPanel).getByTestId('building-info-water-resident-default')
     ).toHaveTextContent('11')
