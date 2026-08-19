@@ -786,6 +786,14 @@ describe('BuildingInfoPanel', () => {
       'data-building-info-grid-layout',
       'basic'
     )
+    expect(screen.getByTestId('building-info-tab-page-basic')).toHaveStyle({
+      flexGrow: 1,
+    })
+    expect(screen.getByTestId('building-info-grid')).toHaveStyle({
+      flexGrow: 1,
+      minHeight: '1256px',
+      gridTemplateRows: 'minmax(1256px, 1fr)',
+    })
     expect(
       screen.getByTestId('building-info-grid-section-basic-energy')
     ).toHaveAttribute('data-grid-area', 'energy')
@@ -902,6 +910,10 @@ describe('BuildingInfoPanel', () => {
       'data-building-info-grid-layout',
       'renovation'
     )
+    expect(screen.getByTestId('building-info-grid')).toHaveStyle({
+      minHeight: '2365px',
+      gridTemplateRows: '1300px 1065px',
+    })
     expect(
       screen.getByTestId('building-info-grid-section-top-energy')
     ).toHaveAttribute('data-grid-area', 'energy')
@@ -1040,6 +1052,9 @@ describe('BuildingInfoPanel', () => {
     expect(
       await screen.findByTestId('building-info-tab-page-basic')
     ).toBeInTheDocument()
+    expect(screen.getByTestId('building-info-tab-page-basic')).not.toHaveStyle({
+      flexGrow: 1,
+    })
     expect(screen.queryByTestId('building-info-grid')).not.toBeInTheDocument()
     expect(
       screen
