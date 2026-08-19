@@ -395,7 +395,9 @@ const ZoneNameField = memo(
         onChange={handleNameChange}
         onFocus={handleNameFocus}
         onBlur={handleNameBlur}
-        sx={{ mt: 1.5, mr: '-1rem', ml: '-1rem', width: 'auto' }}
+        applyNegativeMargins
+        sx={{ mt: 1.5 }}
+        labelSx={{ px: 0 }}
       />
     )
   }
@@ -1078,7 +1080,9 @@ const ZoneAccordionItem = ({
                   }}
                   successIndicatorMode="hidden"
                   value={feature.properties.zoning_code ?? ''}
-                  sx={{ mb: 0, mr: '-1rem', ml: '-1rem', width: 'auto' }}
+                  applyNegativeMargins
+                  sx={{ mb: 0 }}
+                  headerSx={{ px: 0 }}
                   labelSx={FIELD_LABEL_SX}
                   selectSx={{
                     minHeight: '1.375rem',
