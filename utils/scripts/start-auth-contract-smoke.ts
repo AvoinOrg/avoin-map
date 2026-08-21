@@ -1,21 +1,36 @@
 import assert from 'node:assert/strict'
 import { createServer, type IncomingMessage, type Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
+import {
+  symmetricDecodeJWT,
+  symmetricEncodeJWT,
+} from 'better-auth/crypto'
 
 import {
   appendStartAuthSetCookieHeaders,
   getStartAccessToken,
   getStartAuthSession,
 } from '../../src/runtime/auth/session'
-import { getStartAuth } from '../../src/runtime/auth/server'
+import { getStartAuthEnv } from '../../src/runtime/auth/env'
+import { createStartAuth, getStartAuth } from '../../src/runtime/auth/server'
 
 type HeadersWithSetCookieList = Headers & {
   getSetCookie?: () => string[]
 }
 
 const AUTH_BASE_URL = 'http://127.0.0.1:39051'
+const AUTH_SECRET = '12345678901234567890123456789012-smoke'
 const AUTH_ZITADEL_REDIRECT_URI = `${AUTH_BASE_URL}/api/auth/callback/zitadel`
-const OIDC_SCOPES = 'openid email profile offline_access'
+const ZITADEL_PROJECT_ID = 'synthetic-project-id'
+const OIDC_SCOPES = [
+  'openid',
+  'email',
+  'profile',
+  'offline_access',
+  'urn:zitadel:iam:org:project:roles',
+  `urn:zitadel:iam:org:project:id:${ZITADEL_PROJECT_ID}:aud`,
+]
+const OIDC_SCOPE = OIDC_SCOPES.join(' ')
 
 let mockIssuer = ''
 const tokenRequestGrantTypes: string[] = []
@@ -63,7 +78,7 @@ const startMockOidcServer = async () =>
             response_types_supported: ['code'],
             subject_types_supported: ['public'],
             id_token_signing_alg_values_supported: ['RS256'],
-            scopes_supported: OIDC_SCOPES.split(' '),
+            scopes_supported: OIDC_SCOPES,
           },
         })
         return
@@ -90,7 +105,7 @@ const startMockOidcServer = async () =>
               access_token: 'expired-access-token',
               expires_in: -60,
               refresh_token: 'initial-refresh-token',
-              scope: OIDC_SCOPES,
+              scope: OIDC_SCOPE,
               token_type: 'Bearer',
             },
           })
@@ -106,7 +121,7 @@ const startMockOidcServer = async () =>
               access_token: 'refreshed-access-token',
               expires_in: 3600,
               refresh_token: 'rotated-refresh-token',
-              scope: OIDC_SCOPES,
+              scope: OIDC_SCOPE,
               token_type: 'Bearer',
             },
           })
@@ -172,17 +187,35 @@ const toCookieHeader = (setCookieHeaders: string[]) =>
     .filter(Boolean)
     .join('; ')
 
+const replaceCookieValue = ({
+  cookieHeader,
+  cookieName,
+  cookieValue,
+}: {
+  cookieHeader: string
+  cookieName: string
+  cookieValue: string
+}) =>
+  cookieHeader
+    .split('; ')
+    .map((cookie) =>
+      cookie.startsWith(`${cookieName}=`)
+        ? `${cookieName}=${cookieValue}`
+        : cookie
+    )
+    .join('; ')
+
 const runSmoke = async () => {
   const server = await startMockOidcServer()
 
   try {
-    process.env.BETTER_AUTH_SECRET =
-      '12345678901234567890123456789012-smoke'
+    process.env.BETTER_AUTH_SECRET = AUTH_SECRET
     process.env.BETTER_AUTH_URL = AUTH_BASE_URL
     process.env.BETTER_AUTH_TRUSTED_ORIGINS = AUTH_BASE_URL
     process.env.ZITADEL_ISSUER = mockIssuer
     process.env.ZITADEL_CLIENT_ID = 'client-id'
     process.env.ZITADEL_CLIENT_SECRET = 'client-secret'
+    process.env.ZITADEL_PROJECT_ID = ZITADEL_PROJECT_ID
     process.env.ZITADEL_REDIRECT_URI = AUTH_ZITADEL_REDIRECT_URI
 
     const auth = getStartAuth()
@@ -206,7 +239,7 @@ const runSmoke = async () => {
     assert.equal(signInResponse.status, 200)
     assert.equal(authorizationUrl.origin, mockIssuer)
     assert.equal(authorizationUrl.pathname, '/authorize')
-    assert.equal(authorizationUrl.searchParams.get('scope'), OIDC_SCOPES)
+    assert.equal(authorizationUrl.searchParams.get('scope'), OIDC_SCOPE)
     assert.equal(
       authorizationUrl.searchParams.get('code_challenge_method'),
       'S256'
@@ -287,6 +320,61 @@ const runSmoke = async () => {
     assert.match(sessionCookieHeader, /better-auth\.session_data=/)
     assert.match(sessionCookieHeader, /better-auth\.account_data=/)
 
+    const sessionDataCookie = sessionCookieHeader
+      .split('; ')
+      .find((cookie) => cookie.startsWith('better-auth.session_data='))
+
+    assert.ok(sessionDataCookie)
+
+    const sessionData = await symmetricDecodeJWT<Record<string, unknown>>(
+      sessionDataCookie.slice(sessionDataCookie.indexOf('=') + 1),
+      AUTH_SECRET,
+      'better-auth-session'
+    )
+
+    assert.equal(sessionData?.version, 'start-auth-v2')
+
+    const previousGenerationCookie = await symmetricEncodeJWT(
+      {
+        ...sessionData,
+        version: 'start-auth-v1',
+      },
+      AUTH_SECRET,
+      'better-auth-session',
+      3600
+    )
+    // Only cookies survive the fresh in-memory auth instance used after deploy.
+    const postDeployAuth = createStartAuth(getStartAuthEnv())
+    const previousGenerationResponse = await postDeployAuth.handler(
+      new Request(`${AUTH_BASE_URL}/api/auth/get-session`, {
+        headers: {
+          cookie: replaceCookieValue({
+            cookieHeader: sessionCookieHeader,
+            cookieName: 'better-auth.session_data',
+            cookieValue: previousGenerationCookie,
+          }),
+        },
+      })
+    )
+    const clearedPreviousGenerationCookies = getSetCookieHeaders(
+      previousGenerationResponse.headers
+    ).join('\n')
+
+    assert.equal(previousGenerationResponse.status, 200)
+    assert.equal(await previousGenerationResponse.json(), null)
+    assert.match(
+      clearedPreviousGenerationCookies,
+      /better-auth\.session_token=;.*Max-Age=0/i
+    )
+    assert.match(
+      clearedPreviousGenerationCookies,
+      /better-auth\.session_data=;.*Max-Age=0/i
+    )
+    assert.match(
+      clearedPreviousGenerationCookies,
+      /better-auth\.account_data=;.*Max-Age=0/i
+    )
+
     const session = await getStartAuthSession({
       headers: {
         cookie: sessionCookieHeader,
@@ -323,7 +411,7 @@ const runSmoke = async () => {
     }
 
     assert.equal(accessTokenResult.accessToken, 'refreshed-access-token')
-    assert.deepEqual(accessTokenResult.scopes, OIDC_SCOPES.split(' '))
+    assert.deepEqual(accessTokenResult.scopes, OIDC_SCOPES)
     assert.deepEqual(tokenRequestGrantTypes, [
       'authorization_code',
       'refresh_token',
@@ -369,7 +457,7 @@ const runSmoke = async () => {
     assert.equal(signedOutSession, null)
 
     console.log(
-      'Start Better Auth missing-issuer, session, refresh, and logout contract smoke passed'
+      'Start Better Auth scopes, session migration, refresh, and logout contract smoke passed'
     )
   } finally {
     await new Promise<void>((resolve, reject) => {

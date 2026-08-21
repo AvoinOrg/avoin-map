@@ -8,6 +8,7 @@ const baseEnv = {
   ZITADEL_CLIENT_ID: 'client-id',
   ZITADEL_CLIENT_SECRET: 'client-secret',
   ZITADEL_ISSUER: 'https://server-issuer.example.org',
+  ZITADEL_PROJECT_ID: 'synthetic-project-id',
 }
 
 describe('resolveStartAuthEnv', () => {
@@ -25,6 +26,27 @@ describe('resolveStartAuthEnv', () => {
 
     expect(env.zitadelIssuer).toBe('https://server-issuer.example.org')
   })
+
+  it('trims the required server-only Zitadel project id', () => {
+    const env = resolveStartAuthEnv({
+      ...baseEnv,
+      ZITADEL_PROJECT_ID: '  synthetic-project-id  ',
+    })
+
+    expect(env.zitadelProjectId).toBe('synthetic-project-id')
+  })
+
+  it.each([undefined, '', '   '])(
+    'throws a clear error for missing or blank Zitadel project id (%p)',
+    (zitadelProjectId) => {
+      expect(() =>
+        resolveStartAuthEnv({
+          ...baseEnv,
+          ZITADEL_PROJECT_ID: zitadelProjectId,
+        })
+      ).toThrow('Start Better Auth requires ZITADEL_PROJECT_ID')
+    }
+  )
 
   it('does not use the browser-visible issuer as a server fallback', () => {
     expect(() =>

@@ -15,6 +15,7 @@ describe('Start public environment exposure', () => {
       TOLGEE_API_KEY: 'tolgee-secret',
       TOLGEE_API_URL: 'https://tolgee.example.test',
       ZITADEL_CLIENT_SECRET: 'zitadel-secret',
+      ZITADEL_PROJECT_ID: 'server-only-project-id',
       BETTER_AUTH_SECRET: 'better-auth-secret',
     })
 

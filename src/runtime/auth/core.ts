@@ -29,7 +29,8 @@ export const createStartAuthCore = ({
         maxAge: START_AUTH_SESSION_MAX_AGE_SECONDS,
         strategy: 'jwe',
         refreshCache: true,
-        version: 'start-auth-v1',
+        // Reject pre-project-scope grants so users authorize the expanded scope set.
+        version: 'start-auth-v2',
       },
     },
     account: {

@@ -158,6 +158,7 @@ export const resolveStartAuthEnv = (env: EnvSource): StartAuthEnv => {
     zitadelIssuer: getRequired({ env, key: 'ZITADEL_ISSUER' }),
     zitadelClientId: getRequired({ env, key: 'ZITADEL_CLIENT_ID' }),
     zitadelClientSecret: getRequired({ env, key: 'ZITADEL_CLIENT_SECRET' }),
+    zitadelProjectId: getRequired({ env, key: 'ZITADEL_PROJECT_ID' }),
     zitadelRedirectUri: getZitadelRedirectUri({ betterAuthUrl, env }),
     isProduction: env.NODE_ENV === 'production',
   }

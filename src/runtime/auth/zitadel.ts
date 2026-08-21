@@ -24,6 +24,14 @@ export const ZITADEL_OIDC_SCOPES = [
   'offline_access',
 ] as const
 
+const ZITADEL_PROJECT_ROLES_SCOPE = 'urn:zitadel:iam:org:project:roles'
+
+const buildZitadelOAuthScopes = (zitadelProjectId: string) => [
+  ...ZITADEL_OIDC_SCOPES,
+  ZITADEL_PROJECT_ROLES_SCOPE,
+  `urn:zitadel:iam:org:project:id:${zitadelProjectId}:aud`,
+]
+
 const optionalString = (value: unknown) =>
   typeof value === 'string' && value.length > 0 ? value : null
 
@@ -58,6 +66,7 @@ export const buildZitadelOAuthProvider = (
     | 'zitadelIssuer'
     | 'zitadelClientId'
     | 'zitadelClientSecret'
+    | 'zitadelProjectId'
     | 'zitadelRedirectUri'
   >
 ): GenericOAuthConfig => {
@@ -73,7 +82,7 @@ export const buildZitadelOAuthProvider = (
     clientId: env.zitadelClientId,
     clientSecret: env.zitadelClientSecret,
     redirectURI: env.zitadelRedirectUri,
-    scopes: [...ZITADEL_OIDC_SCOPES],
+    scopes: buildZitadelOAuthScopes(env.zitadelProjectId),
     pkce: true,
     authentication: 'basic',
     mapProfileToUser: mapZitadelProfileToUser,

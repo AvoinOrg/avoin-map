@@ -36,8 +36,19 @@ The default Zitadel callback remains
 
 Runtime auth configuration uses `BETTER_AUTH_URL` and `BETTER_AUTH_SECRET`.
 Development may use the local defaults implemented by the auth env resolver;
-production requires explicit values. `src/routes/api/userinfo.ts` is a
-GET-only compatibility bridge used by the current user store.
+production requires explicit values. `ZITADEL_PROJECT_ID` is required in every
+environment that initializes real auth and must identify the project whose roles
+protected services validate. Configure it before deploying so the provider can
+request the matching project-role claim and audience scopes.
+`src/routes/api/userinfo.ts` is a GET-only compatibility bridge used by the
+current user store.
+
+The stateless session cookie generation is `start-auth-v2`, advanced when the
+Zitadel project scopes were added. Sessions created with the previous generation
+are invalid after deployment, including their associated account-token cookie,
+so users must sign in once again to grant the expanded scope set. Refresh tokens
+preserve the scopes granted at sign-in and therefore cannot silently upgrade an
+older grant; normal refresh continues after the fresh authorization.
 
 `getStartAccessToken` can refresh provider tokens and return response headers.
 Callers must forward returned `Set-Cookie` values with
