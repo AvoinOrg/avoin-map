@@ -18,10 +18,14 @@ import { MapPopupHandler } from './MapPopupHandler'
 import { OverlayMessages } from './OverlayMessages'
 import { createMapTransformRequest } from './mapAuthTransformRequest'
 
-const SERVER_URL = process.env.PUBLIC_GEOSERVER_URL
-
 const DEFAULT_CENTER = [15, 62] as [number, number]
 const DEFAULT_ZOOM = 5
+
+export const createMapHandlerStyle = (): StyleSpecification => ({
+  version: 8,
+  sources: {},
+  layers: [],
+})
 
 interface Props {
   children?: React.ReactNode
@@ -70,12 +74,7 @@ export const MapHandler = ({ children }: Props) => {
     center: [number, number]
     zoom?: number
   }) => {
-    const style: StyleSpecification = {
-      version: 8,
-      glyphs: `${SERVER_URL}/www/font/{fontstack}/{range}.pbf`,
-      sources: {},
-      layers: [],
-    }
+    const style = createMapHandlerStyle()
 
     const newMap = new Map({
       container: 'map',
