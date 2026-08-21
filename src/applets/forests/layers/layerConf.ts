@@ -1,4 +1,7 @@
-import { fillOpacity } from '#/common/utils/map'
+import {
+  appendPublicGeoServerPath,
+  resolvePublicGeoServerBase,
+} from '#/common/config/publicGeoServer'
 import {
   LayerGroupId,
   LayerConf,
@@ -14,22 +17,41 @@ import {
   fiForestsTextfieldExpression,
 } from 'applets/forests/utils'
 
-const SERVER_URL = process.env.PUBLIC_GEOSERVER_URL
-
 export const id: LayerGroupId = 'fi_forests'
 
 const getStyle = async (): Promise<ExtendedStyleSpecification> => {
+  const publicGeoServerBaseUrl = resolvePublicGeoServerBase()
+  if (!publicGeoServerBaseUrl) {
+    return {
+      version: 8,
+      name: id,
+      sources: {},
+      layers: [],
+    }
+  }
+
   const sources: Record<string, ExtendedSourceSpecification> = {}
   let layers: ExtendedLayerSpecification[] = []
 
   for (const layerGroupId in layerOptions) {
     const options = layerOptions[layerGroupId]
+    const tileUrl = appendPublicGeoServerPath({
+      baseUrl: publicGeoServerBaseUrl,
+      path: `gwc/service/tms/1.0.0/forest:${options.serverId}@EPSG:900913@pbf/{z}/{x}/{y}.pbf`,
+    })
+    if (!tileUrl) {
+      return {
+        version: 8,
+        name: id,
+        sources: {},
+        layers: [],
+      }
+    }
+
     sources[layerGroupId] = {
       type: 'vector',
       scheme: 'tms',
-      tiles: [
-        `${SERVER_URL}/gwc/service/tms/1.0.0/forest:${options.serverId}@EPSG:900913@pbf/{z}/{x}/{y}.pbf`,
-      ],
+      tiles: [tileUrl],
       minzoom: options.minzoom,
       maxzoom: options.maxzoom,
       bounds: [19, 59, 32, 71], // Finland

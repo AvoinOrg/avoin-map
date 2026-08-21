@@ -1,3 +1,12 @@
+import {
+  LEGACY_PUBLIC_GEOSERVER_URL_ENV,
+  LEGACY_PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE_ENV,
+  PUBLIC_GEOSERVER_URL_ENV,
+  PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE_ENV,
+  normalizePublicGeoServerBase,
+  normalizePublicGeoServerWorkspace,
+} from '../../src/common/config/publicGeoServer'
+
 export const PUBLIC_ENV_PREFIX = 'PUBLIC_'
 
 export type StartLoadedEnv = Record<string, string | undefined>
@@ -17,3 +26,77 @@ export const getStartPublicEnvDefines = (env: StartLoadedEnv) =>
 
 export const isStartDebugClientBuild = (env: StartLoadedEnv) =>
   env.PUBLIC_DEBUG_CLIENT_ERRORS === '1'
+
+type StartPublicEnvDiagnostic = {
+  id: string
+  message: string
+}
+
+const getStartGeoServerDiagnostics = (
+  env: StartLoadedEnv
+): StartPublicEnvDiagnostic[] => {
+  const diagnostics: StartPublicEnvDiagnostic[] = []
+
+  if (env[LEGACY_PUBLIC_GEOSERVER_URL_ENV] !== undefined) {
+    diagnostics.push({
+      id: 'legacy-public-geoserver-url',
+      message: `${LEGACY_PUBLIC_GEOSERVER_URL_ENV} is unsupported; rename it to ${PUBLIC_GEOSERVER_URL_ENV}.`,
+    })
+  }
+  if (
+    env[LEGACY_PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE_ENV] !== undefined
+  ) {
+    diagnostics.push({
+      id: 'legacy-public-luonnonmetsakartat-geoserver-workspace',
+      message: `${LEGACY_PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE_ENV} is unsupported; rename it to ${PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE_ENV}.`,
+    })
+  }
+
+  if (env[PUBLIC_GEOSERVER_URL_ENV] !== undefined) {
+    const baseResult = normalizePublicGeoServerBase(
+      env[PUBLIC_GEOSERVER_URL_ENV]
+    )
+    if (!baseResult.ok) {
+      diagnostics.push({
+        id: `canonical-${baseResult.problem.id}`,
+        message: baseResult.problem.message,
+      })
+    }
+  }
+
+  if (
+    env[PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE_ENV] !== undefined
+  ) {
+    const workspaceResult = normalizePublicGeoServerWorkspace(
+      env[PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE_ENV]
+    )
+    if (!workspaceResult.ok) {
+      diagnostics.push({
+        id: `canonical-${workspaceResult.problem.id}`,
+        message: workspaceResult.problem.message,
+      })
+    }
+  }
+
+  return diagnostics
+}
+
+export const createStartPublicEnvDiagnosticReporter = (
+  diagnostic: (message: string) => void
+) => {
+  const reportedDiagnosticIds = new Set<string>()
+
+  return (env: StartLoadedEnv) => {
+    for (const problem of getStartGeoServerDiagnostics(env)) {
+      if (reportedDiagnosticIds.has(problem.id)) {
+        continue
+      }
+
+      reportedDiagnosticIds.add(problem.id)
+      diagnostic(`[GeoServer configuration] ${problem.message}`)
+    }
+  }
+}
+
+export const reportStartPublicEnvDiagnostics =
+  createStartPublicEnvDiagnosticReporter((message) => console.warn(message))

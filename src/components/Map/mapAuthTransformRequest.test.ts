@@ -14,14 +14,26 @@ const { createMapTransformRequest } = jest.requireActual<
 
 describe('createMapTransformRequest', () => {
   const originalGeoserverUrl = process.env.PUBLIC_GEOSERVER_URL
+  const originalLegacyGeoserverUrl =
+    process.env.NEXT_PUBLIC_GEOSERVER_URL
 
   beforeEach(() => {
     process.env.PUBLIC_GEOSERVER_URL = 'https://gis.example.test/geoserver'
+    delete process.env.NEXT_PUBLIC_GEOSERVER_URL
     mockDecodeUrlAndParams.mockReset()
   })
 
   afterAll(() => {
-    process.env.PUBLIC_GEOSERVER_URL = originalGeoserverUrl
+    if (originalGeoserverUrl === undefined) {
+      delete process.env.PUBLIC_GEOSERVER_URL
+    } else {
+      process.env.PUBLIC_GEOSERVER_URL = originalGeoserverUrl
+    }
+    if (originalLegacyGeoserverUrl === undefined) {
+      delete process.env.NEXT_PUBLIC_GEOSERVER_URL
+    } else {
+      process.env.NEXT_PUBLIC_GEOSERVER_URL = originalLegacyGeoserverUrl
+    }
   })
 
   it('adds the access token for configured GeoServer URLs that require a token', () => {
@@ -53,6 +65,40 @@ describe('createMapTransformRequest', () => {
 
     errorSpy.mockRestore()
   })
+
+  it('matches against a normalized configured base', () => {
+    process.env.PUBLIC_GEOSERVER_URL =
+      '  https://gis.example.test/geoserver///  '
+    const url =
+      'https://gis.example.test/geoserver/wms?service=WMS&requireToken=true'
+    const transformRequest = createMapTransformRequest({
+      accessToken: 'map-access-token',
+    })
+
+    expect(transformRequest(url)).toMatchObject({
+      headers: { Authorization: 'Bearer map-access-token' },
+    })
+  })
+
+  it.each([undefined, 'not-a-url', 'https://undefined.example.test/geoserver'])(
+    'does not match requests when the canonical base is unavailable',
+    (configuredBase) => {
+      if (configuredBase === undefined) {
+        delete process.env.PUBLIC_GEOSERVER_URL
+      } else {
+        process.env.PUBLIC_GEOSERVER_URL = configuredBase
+      }
+      process.env.NEXT_PUBLIC_GEOSERVER_URL =
+        'https://gis.example.test/geoserver'
+      const url =
+        'https://gis.example.test/geoserver/wms?service=WMS&requireToken=true'
+      const transformRequest = createMapTransformRequest({
+        accessToken: 'map-access-token',
+      })
+
+      expect(transformRequest(url)).toBeUndefined()
+    }
+  )
 
   it('adds the access token for embedded URLs with useAccessToken', () => {
     const embeddedUrl = `${EMBEDDED_PARAMS_URL_PREFIX}fixture`

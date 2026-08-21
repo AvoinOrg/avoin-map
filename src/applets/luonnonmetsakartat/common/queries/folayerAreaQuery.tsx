@@ -2,22 +2,26 @@ import { UseQueryOptions } from '@tanstack/react-query'
 import axios from 'axios'
 
 import { useAppletStore } from 'applets/luonnonmetsakartat/state/appletStore'
+import { buildFolayerWfsUrl } from '../geoServer'
 import { FolayerConfState, FolayerAreaConf } from '../types'
 import { getFolayerCentroidSourceLayer } from '../utils'
-
-const SERVER_URL = process.env.PUBLIC_GEOSERVER_URL
-const GS_WORKSPACE =
-  process.env.PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE
 
 export const folayerAreaQuery = (
   folayerId: string
 ): UseQueryOptions<FolayerAreaConf | null> => {
-  const updateFolayerAreaConf = useAppletStore.getState().updateFolayerAreaConf
-  const addFolayerAreaConf = useAppletStore.getState().addFolayerAreaConf
   const centroidSourceLayer = getFolayerCentroidSourceLayer(folayerId)
   return {
     queryKey: ['folayerAreas', folayerId],
     queryFn: async () => {
+      const url = buildFolayerWfsUrl({ centroidSourceLayer })
+      if (!url) {
+        return null
+      }
+
+      const updateFolayerAreaConf =
+        useAppletStore.getState().updateFolayerAreaConf
+      const addFolayerAreaConf =
+        useAppletStore.getState().addFolayerAreaConf
       const existingCollection =
         useAppletStore.getState().folayerAreaConfs[folayerId]
 
@@ -37,7 +41,6 @@ export const folayerAreaQuery = (
         })
       }
 
-      const url = `${SERVER_URL}/${GS_WORKSPACE}/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=${GS_WORKSPACE}:${centroidSourceLayer}&outputFormat=application/json&srsName=EPSG:4326`
       const response = await axios.get(url)
 
       if (response.status === 200) {

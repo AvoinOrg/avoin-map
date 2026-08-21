@@ -13,14 +13,9 @@ import AreaModalAdmin from '../components/AreaModalAdmin'
 import { State, useAppletStore } from '../state/appletStore'
 import AreaModal from '../components/AreaModal'
 import { FolayerFeature } from './types'
-import { isLuonnonmetsakartatMockScenariosEnabled } from './mockScenarios/config'
+import { buildFolayerTileUrl } from './geoServer'
 
-const SERVER_URL = process.env.PUBLIC_GEOSERVER_URL
-const GS_WORKSPACE =
-  process.env.PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE
 const FOLAYER_LABEL_TEXT_PADDING_PX = 40
-const MOCK_GEOSERVER_URL = '/api/luonnonmetsakartat/geoserver'
-const MOCK_GEOSERVER_WORKSPACE = 'mock'
 
 export const getFolayerIdWithoutHyphens = (layerId: string) => {
   return layerId.replace(/-/g, '')
@@ -53,20 +48,6 @@ export const getFolayerCentroidSourceId = (
   }`
 }
 
-export const resolveFolayerGeoServerSource = () => {
-  if (isLuonnonmetsakartatMockScenariosEnabled()) {
-    return {
-      serverUrl: MOCK_GEOSERVER_URL,
-      workspace: MOCK_GEOSERVER_WORKSPACE,
-    }
-  }
-
-  return {
-    serverUrl: SERVER_URL,
-    workspace: GS_WORKSPACE,
-  }
-}
-
 export const createFolayerConf = async ({
   folayerId,
   folayerName,
@@ -84,7 +65,17 @@ export const createFolayerConf = async ({
   const sourceLayer = getFolayerSourceLayer(folayerId)
 
   const centroidSourceId = getFolayerCentroidSourceId(folayerId, isAdmin)
-  const geoServerSource = resolveFolayerGeoServerSource()
+  const tileUrl = buildFolayerTileUrl({ sourceLayer })
+  if (!tileUrl) {
+    return {
+      id: groupId,
+      style: {
+        version: 8,
+        sources: {},
+        layers: [],
+      },
+    } satisfies LayerConf
+  }
 
   const validColorCode = colorCode || '#4cbf00' // Default to green if none provided
   const contrastColor = getContrastColor(validColorCode)
@@ -115,9 +106,7 @@ export const createFolayerConf = async ({
       [sourceId]: {
         type: 'vector',
         scheme: 'tms',
-        tiles: [
-          `${geoServerSource.serverUrl}/gwc/service/tms/1.0.0/${geoServerSource.workspace}:${sourceLayer}@EPSG:900913@pbf/{z}/{x}/{y}.pbf`,
-        ],
+        tiles: [tileUrl],
         bounds: [19, 59, 32, 71], // Finland
         promoteId: 'id',
         extendedOpts: {
