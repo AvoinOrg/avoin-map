@@ -14,6 +14,7 @@ import HelpOutlineIcon from "@material-ui/icons/HelpOutline";
 import { Link } from "react-router-dom";
 
 import Logo from "../../logo.svg";
+import PoliRuralPlusLogo from "./poliruralplus-logo.png";
 import { NavBarSearch } from "./NavBarSearch";
 import ProfileMenu from "./ProfileMenu";
 import ActionButtons from "./ActionButtons";
@@ -36,6 +37,8 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     helpWrapper: {
       position: "relative",
+      display: "flex",
+      alignItems: "center",
       marginRight: theme.spacing(2),
       marginLeft: 0,
       width: "100%",
@@ -45,6 +48,19 @@ const useStyles = makeStyles((theme: Theme) =>
       margin: "0 0 0 10px",
     },
     HelpOutlineIcon: {},
+    poliruralPlusLink: {
+      display: "inline-flex",
+      alignItems: "center",
+      marginLeft: theme.spacing(1.5),
+    },
+    poliruralPlusLogo: {
+      display: "block",
+      width: 90,
+      height: "auto",
+      [theme.breakpoints.up("sm")]: {
+        width: 110,
+      },
+    },
     appBar: {
       zIndex: theme.zIndex.appBar,
     },
@@ -138,10 +154,26 @@ const NavBar = () => {
 
         <div className={classes.helpWrapper}>
           <a href="https://about.map.avoin.org">
-            <IconButton className={classes.helpIcon} color="inherit">
+            <IconButton
+              className={classes.helpIcon}
+              color="inherit"
+              aria-label="About Avoin Map"
+            >
               <HelpOutlineIcon className={classes.HelpOutlineIcon} />
             </IconButton>
           </a>
+          <Link
+            to="/poliruralplus"
+            className={classes.poliruralPlusLink}
+            aria-label="About the PoliRuralPlus project"
+            title="About the PoliRuralPlus project"
+          >
+            <img
+              className={classes.poliruralPlusLogo}
+              src={PoliRuralPlusLogo}
+              alt="PoliRuralPlus"
+            />
+          </Link>
         </div>
 
         <NavBarSearch />

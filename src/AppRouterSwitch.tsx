@@ -25,6 +25,7 @@ import LoadingModal from "./components/LoadingModal";
 import { UserContext } from "./components/User";
 import { StateContext } from "./components/State";
 import ValioCarbonGrassFields from "./components/Sidebar/ValioCarbonGrassFields";
+import PoliRuralPlusPage from "./components/PoliRuralPlusPage";
 
 const VerificationRouter = (props) => {
   const {
@@ -201,46 +202,53 @@ const LayerRouter = (props) => {
 export default function AppRouterSwitch() {
   return (
     <Router>
-      <MapButtons />
-      <NavBar />
-      <OverlayMessages />
-      <URLLayerSyncContainer>
-        <Sidebar>
-          <Switch>
-            <Route path="/layers/fi-forest">
-              <ForestArvometsa />
-            </Route>
-            <Route path="/layers/fi-omaihka">
-              <Omaihka />
-            </Route>
-            <Route path="/layers/fao-images-2021">
-              <FaoImages2021 />
-            </Route>
-            <Route path="/layers/kariba_changes">
-              <KaribaForestCoverChanges />
-            </Route>
-            <Route path="/layers/fi-ffd/:area">
-              <FFD />
-            </Route>
-            <Route path="/layers/fi-ffd">
-              <FFD />
-            </Route>
-            <Route path="/layers/ekofolio">
-              <Ekofolio />
-            </Route>
-            <Route path="/layers/:layer">
-              <LayerRouter />
-            </Route>
-            <Route path="/verify/:token">
-              <VerificationRouter />
-            </Route>
-            <Route path="/">
-              <MainMenu />
-            </Route>
-          </Switch>
-        </Sidebar>
-      </URLLayerSyncContainer>
-      <UserModal />
+      <Switch>
+        <Route exact path="/poliruralplus">
+          <PoliRuralPlusPage />
+        </Route>
+        <Route>
+          <MapButtons />
+          <NavBar />
+          <OverlayMessages />
+          <URLLayerSyncContainer>
+            <Sidebar>
+              <Switch>
+                <Route path="/layers/fi-forest">
+                  <ForestArvometsa />
+                </Route>
+                <Route path="/layers/fi-omaihka">
+                  <Omaihka />
+                </Route>
+                <Route path="/layers/fao-images-2021">
+                  <FaoImages2021 />
+                </Route>
+                <Route path="/layers/kariba_changes">
+                  <KaribaForestCoverChanges />
+                </Route>
+                <Route path="/layers/fi-ffd/:area">
+                  <FFD />
+                </Route>
+                <Route path="/layers/fi-ffd">
+                  <FFD />
+                </Route>
+                <Route path="/layers/ekofolio">
+                  <Ekofolio />
+                </Route>
+                <Route path="/layers/:layer">
+                  <LayerRouter />
+                </Route>
+                <Route path="/verify/:token">
+                  <VerificationRouter />
+                </Route>
+                <Route path="/">
+                  <MainMenu />
+                </Route>
+              </Switch>
+            </Sidebar>
+          </URLLayerSyncContainer>
+          <UserModal />
+        </Route>
+      </Switch>
     </Router>
   );
 }
