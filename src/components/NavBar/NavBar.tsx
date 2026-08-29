@@ -153,7 +153,7 @@ const NavBar = () => {
         </Link>
 
         <div className={classes.helpWrapper}>
-          <a href="https://about.map.avoin.org">
+          <a href="https://avoin.org/map/">
             <IconButton
               className={classes.helpIcon}
               color="inherit"
