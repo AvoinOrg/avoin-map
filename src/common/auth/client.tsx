@@ -117,7 +117,7 @@ const isAccessTokenReadyForRequest = (
   accessTokenState.status === 'ready' &&
   accessTokenState.accessTokenRequestKey === accessTokenRequestKey
 
-const notifyAuthSessionChanged = () => {
+export const notifyAuthSessionChanged = () => {
   authClient.$store.notify('$sessionSignal')
 }
 

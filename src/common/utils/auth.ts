@@ -1,5 +1,6 @@
 import {
   createZitadelAuthorizationUrl,
+  notifyAuthSessionChanged,
   signInWithZitadel,
 } from '#/common/auth/client'
 import {
@@ -12,6 +13,8 @@ import {
   formatAuthPopupFeatures,
   getAuthPopupGeometryFromWindow,
 } from '#/common/utils/authPopup'
+
+const LOGIN_POPUP_CLOSE_POLL_INTERVAL_MS = 500
 
 export const getLoginUrl = (locale?: string | null) => {
   const normalizedLocale = locale?.trim() || 'en'
@@ -37,6 +40,17 @@ const assignPopupLocation = (popup: Window, url: string) => {
   popup.location.href = url
 }
 
+const watchLoginPopupForClose = (popup: Window) => {
+  const intervalId = window.setInterval(() => {
+    if (!popup.closed) {
+      return
+    }
+
+    window.clearInterval(intervalId)
+    notifyAuthSessionChanged()
+  }, LOGIN_POPUP_CLOSE_POLL_INTERVAL_MS)
+}
+
 export const openLoginWindow = async (locale?: string | null) => {
   const callbackURL = getLoginCallbackUrl(locale)
 
@@ -60,6 +74,7 @@ export const openLoginWindow = async (locale?: string | null) => {
 
     if (popup && !popup.closed) {
       assignPopupLocation(popup, url)
+      watchLoginPopupForClose(popup)
       return popup
     }
 
