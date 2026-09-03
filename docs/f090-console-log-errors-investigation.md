@@ -3,14 +3,21 @@
 ## Tested environment
 
 - Branch: `v2`
-- Commit under test: `f72baf0c1f70fa758d70d994e32ccfb088683f56`
-- Test date: 2026-09-02 (UTC)
+- Initial investigation baseline:
+  `f72baf0c1f70fa758d70d994e32ccfb088683f56`
+- Initial F090 evidence commit:
+  `8370906e61bc757ff29a63526628e9e473da2949`
+- Final synchronized candidate independently reviewed in the running app:
+  `4a1430b84e6962307b45451aa3f59bf17fce5651`
+- Test dates: 2026-09-02 (initial investigation) and 2026-09-03
+  (independent review)
 - Build mode: the existing TanStack Start development server
 - `PUBLIC_COMPILED_APPLETS`: `main,energy,carbon,luonnonmetsakartat,ui-baseline`
 - Raw-response URL: `http://127.0.0.1:6900/en`
 - Browser URL: `http://localhost:6900/en`
-- Browser: Google Chrome 151.0.7922.71, headless throwaway context with
-  `--disable-extensions`
+- Browser controls: Google Chrome 151.0.7922.71 in an initial throwaway context
+  with `--disable-extensions`, followed by independent headed Chromium under
+  Xvfb in the existing app container
 - React / React DOM: `^19.2.5`
 - TanStack Start / Router: `1.131.50`
 
@@ -66,17 +73,18 @@ and MUI. No loaded module authored the reported lowercase root attribute.
 
 | Context | Reloads | Final `<html>` attributes | Matching console entries | Other error entries | Functional signal |
 | --- | ---: | --- | --- | --- | --- |
-| Throwaway Chrome context, extensions disabled | 3 | `class`, `lang` on every load | None | None | HTTP 200, document complete, body height 720 px, one map canvas, title `Avoin Map` |
-| Same clean context with a test-only pre-hydration mutation | 1 | `class`, `lang`, `suppresshydrationwarning`, `data-qb-installed` | React emitted the same root hydration mismatch and listed both extra attributes | None besides that React diagnostic | HTTP 200 and document complete |
-| Affected/user Chrome profile | Pending | Pending | Pending | Pending | The configured host Chrome endpoint was not running, and this session did not expose the installed Chrome-control bridge |
+| Initial throwaway Chrome context, extensions disabled | 3 | `class`, `lang` on every load | None | None | HTTP 200, document complete, body height 720 px, one map canvas, title `Avoin Map` |
+| Independent reviewer, headed Chromium/Xvfb with extensions disabled | 3 | `class`, `lang` on every load | None | None | HTTP 200, visible MapLibre canvas, and the `Zoom in` control changed the rendered map without adding an error |
+| Independent reviewer with a test-only pre-hydration mutation | 1 | `class`, `lang`, `suppresshydrationwarning`, `data-qb-installed` | React emitted the reported root hydration mismatch and listed both extra attributes | None besides that React diagnostic | HTTP 200, document complete, and visible map canvas |
+| Affected/user Chrome profile | Unavailable | Not observed | Not observed | Not observed | The configured host Chrome endpoint was not running; no profile or extension state was changed |
 
-The three clean observations started at 14:02:03, 14:02:08, and 14:02:14 UTC,
-with a five-second post-load observation window each. The controlled mutation
-ran at 14:03 UTC using a throwaway browser initialization hook; it was not added
-to application code. Its console source was React DOM's development bundle at
-`node_modules/.vite/deps/react-dom_client.js`, line 4072. This demonstrates that
-adding the reported attributes before React loads is sufficient to produce the
-reported component diff.
+The three initial clean observations started at 14:02:03, 14:02:08, and
+14:02:14 UTC, with a five-second post-load observation window each. The
+independent review repeated three clean observations against the synchronized
+candidate. Its controlled mutation used a throwaway browser initialization
+hook; it was not added to application code. React's development bundle emitted
+the diagnostic. This demonstrates that adding the reported attributes before
+React loads is sufficient to produce the reported component diff.
 
 The affected-profile attempt used the checked-in
 `yarn browser:live:host:check` connection path. It failed with
@@ -87,9 +95,9 @@ inventory was read or changed.
 
 | Reported entry | Classification | Evidence | Confidence / remaining proof |
 | --- | --- | --- | --- |
-| Root hydration mismatch for `suppresshydrationwarning` and `data-qb-installed` | External pre-hydration DOM mutation; not app-owned | Raw SSR and three clean hydrated documents omit both attributes; tracked source and all loaded text modules omit `data-qb-installed`; injecting only the two attributes before hydration reproduces the same React diff | High confidence in external ownership. The exact browser extension must still be identified from the affected profile's source/stack or a user-controlled disable/re-enable comparison. |
-| `Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.` | Browser-extension/runtime messaging noise; not app-owned in the tested application | It is absent on three clean loads, and neither tracked source nor any loaded text module invokes `chrome.runtime`, `browser.runtime`, `runtime.sendMessage`, or `runtime.connect` | High confidence in external ownership. Capture the expanded `chrome-extension://...` source in the affected profile to attribute a specific extension. |
-| Rejected promise with `Could not establish connection. Receiving end does not exist.` | Browser-extension/runtime messaging noise; not app-owned in the tested application | It is absent on three clean loads, including all `pageerror` events, and the loaded application has no extension-messaging call site | High confidence in external ownership. Capture its expanded async stack in the affected profile to confirm that it follows the same external actor. |
+| Root hydration mismatch for `suppresshydrationwarning` and `data-qb-installed` | External pre-hydration DOM mutation; not app-owned | Raw SSR and six clean hydrated documents omit both attributes; tracked source and all loaded text modules omit `data-qb-installed`; injecting only the two attributes before hydration reproduces the same React diff | High confidence in external ownership. The unavailable affected profile leaves only the specific actor unidentified. |
+| `Unchecked runtime.lastError: Could not establish connection. Receiving end does not exist.` | Browser-extension/runtime messaging artifact; not app-owned in the tested application | It is absent on six clean loads, and neither tracked source nor any loaded text module invokes `chrome.runtime`, `browser.runtime`, `runtime.sendMessage`, or `runtime.connect` | High confidence in external ownership. The affected profile's unavailable source URL prevents extension-ID attribution but does not expose an application call site. |
+| Rejected promise with `Could not establish connection. Receiving end does not exist.` | Browser-extension/runtime messaging artifact; not app-owned in the tested application | It is absent on six clean loads, including all `pageerror` events, and the loaded application has no extension-messaging call site | High confidence in external ownership. The affected profile's unavailable async stack is residual actor-attribution risk. |
 
 `installHook.js` and the console label `en:1` are not treated as owners. They
 are presentation/source clues only; the controlled comparison and actual
@@ -103,10 +111,33 @@ strip attributes inserted by another actor, patch the console, or filter global
 errors. Any of those changes would hide a useful React diagnostic without
 repairing its source.
 
-For an affected user profile, the next environment action is to use the
-expanded console source/stack to identify the emitting extension and then have
-the user disable/re-enable or update that extension. Product code should not
-special-case it.
+For an affected user profile, optional remediation is to inspect the expanded
+console source/stack and have the user disable/re-enable or update the emitting
+extension. Exact extension attribution is not required to justify an
+application change because the controlled evidence shows no application-owned
+failure. Product code should not special-case it.
+
+## Reproduction recipe
+
+Capture the server-owned root element and repeat the application source audit:
+
+```bash
+curl -fsS http://127.0.0.1:6900/en | rg -o '<html[^>]*>' | head -1
+rg -n 'chrome\.runtime|browser\.runtime|runtime\.sendMessage|runtime\.connect|data-qb-installed|suppress[hH]ydration[wW]arning' \
+  src utils package.json vite.config.mts --glob '!routeTree.gen.ts'
+```
+
+When the orchestration review artifacts are present, the exact independent
+clean-load, interaction, resource-audit, and controlled-mutation check is:
+
+```bash
+docker compose -f /workspace/project/docker-compose.dev.yml \
+  --project-directory /workspace/project exec app sh -lc \
+  'cd /app && xvfb-run -a --server-args="-screen 0 1440x900x24 -ac -nolisten tcp +extension RANDR" node .codex-orch/features/F090-console-log-errors-investigation/reviewer-live-check.cjs'
+```
+
+The structured output is retained in
+`.codex-orch/features/F090-console-log-errors-investigation/artifacts/live-console-evidence.json`.
 
 ## Checks
 
@@ -123,23 +154,46 @@ special-case it.
 
 ## Reviewer sign-off
 
-Pending. The reviewer must test the final candidate commit in the running app,
-repeat the clean hard-reload control, and inspect the affected profile. The
-review record must include the source URL/stack for both messaging entries and
-either identify the extension or reject the external-ownership conclusion.
-The reviewer must also confirm that the main page remains usable and that no
-React diagnostic was suppressed.
+Completed on 2026-09-03 against synchronized candidate
+`4a1430b84e6962307b45451aa3f59bf17fce5651`. Independent review repeated three
+clean live loads, exercised the visible `Zoom in` control, and reproduced the
+exact hydration diagnostic with a controlled pre-hydration mutation. The main
+page remained usable, no clean-load console or page errors were observed, and
+the React diagnostic was not suppressed.
+
+The complete independent record is
+`.codex-orch/features/F090-console-log-errors-investigation/functional-review.md`.
+The affected host Chrome profile was not reachable on its configured debugging
+endpoint, so the specific extension ID and source stack remain unconfirmed.
+That is residual external actor-attribution risk, not an incomplete app fix.
 
 ## Branch propagation
 
-At investigation start, `v2` and `luonnonmetsakartat` both pointed to
-`f72baf0c1f70fa758d70d994e32ccfb088683f56`. `carbon` was an ancestor of `v2`
-and moving it to `v2` would be a 3,215-commit fast-forward. The remote, checked
-again over HTTPS on 2026-09-02, contains no branch named `energy`; it contains
-`energiakartta`, which is not being treated as an implicit substitute.
+The owner confirmed that the four active branch targets are `v2`,
+`energiakartta` (Energy), `hiilikartta` (Carbon), and
+`luonnonmetsakartat`. The literal historical `energy` and `carbon` refs are not
+deployment targets.
 
-Propagation is intentionally pending the independent review gate. After a
-reviewed final `F090_SHA` exists, update `luonnonmetsakartat` and `carbon`, then
-record before/after SHAs and ancestry checks here. The `energy` acceptance item
-remains blocked until the exact target branch is supplied or `energiakartta` is
-explicitly confirmed. No branch has been pushed.
+On 2026-09-03, the reviewed changes from `v2` and `energiakartta` were combined
+without rewriting history in merge commit
+`4a1430b84e6962307b45451aa3f59bf17fce5651`. The other two active branches
+were fast-forwarded to that same commit and the four refs were published
+atomically:
+
+| Required branch | Pre-integration local tip | Reviewed local and remote tip |
+| --- | --- | --- |
+| `v2` | `8370906e61bc757ff29a63526628e9e473da2949` | `4a1430b84e6962307b45451aa3f59bf17fce5651` |
+| `energiakartta` | `d6caf39ce4ba10f0922568fcf720fa865ff253a9` | `4a1430b84e6962307b45451aa3f59bf17fce5651` |
+| `hiilikartta` | `f72baf0c1f70fa758d70d994e32ccfb088683f56` | `4a1430b84e6962307b45451aa3f59bf17fce5651` |
+| `luonnonmetsakartat` | `f72baf0c1f70fa758d70d994e32ccfb088683f56` | `4a1430b84e6962307b45451aa3f59bf17fce5651` |
+
+Fresh local, remote-tracking, and remote (`ls-remote`) checks showed the same
+commit and tree for every required branch, with zero pairwise revision or file
+differences. Typechecking and all 117 test suites (1,195 tests) passed on that
+synchronized candidate.
+
+The reviewer-requested correction to this evidence record is documentation
+only. After committing it, all four local branches are fast-forwarded to the
+same correction commit without pushing; its exact non-self-referential SHA and
+the final equality/ancestry checks are recorded in
+`.codex-orch/features/F090-console-log-errors-investigation/coder-report.md`.
