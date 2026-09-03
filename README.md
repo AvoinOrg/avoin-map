@@ -27,12 +27,17 @@ PUBLIC_ZITADEL_ISSUER=
 ZITADEL_ISSUER=
 ZITADEL_CLIENT_ID=
 ZITADEL_CLIENT_SECRET=
+ZITADEL_PROJECT_ID=
 BETTER_AUTH_URL=
 BETTER_AUTH_SECRET=
 BETTER_AUTH_TRUSTED_ORIGINS=
 # Optional when the Zitadel app registration uses a non-default callback.
 # ZITADEL_REDIRECT_URI=
 ```
+
+`ZITADEL_PROJECT_ID` must identify the Zitadel project whose roles protected
+services validate. The server uses it to construct the requested project
+audience scope; keep the value unprefixed and out of browser configuration.
 
 Run the development app:
 

@@ -27,7 +27,7 @@ const customTestLayerConf: LayerConf = {
     },
     layers: [
       {
-        id: `${UI_BASELINE_CUSTOM_TEST_LAYER_GROUP_ID}-zones`,
+        id: 'uiBaselineCustomTestZones-fill',
         type: 'fill',
         source: UI_BASELINE_CUSTOM_TEST_SOURCE_ID,
         filter: ['==', ['geometry-type'], 'Polygon'],
@@ -38,7 +38,7 @@ const customTestLayerConf: LayerConf = {
         },
       },
       {
-        id: `${UI_BASELINE_CUSTOM_TEST_LAYER_GROUP_ID}-routes`,
+        id: 'uiBaselineCustomTestRoutes-line',
         type: 'line',
         source: UI_BASELINE_CUSTOM_TEST_SOURCE_ID,
         filter: ['==', ['geometry-type'], 'LineString'],
@@ -49,7 +49,7 @@ const customTestLayerConf: LayerConf = {
         },
       },
       {
-        id: `${UI_BASELINE_CUSTOM_TEST_LAYER_GROUP_ID}-points`,
+        id: 'uiBaselineCustomTestPoints-circle',
         type: 'circle',
         source: UI_BASELINE_CUSTOM_TEST_SOURCE_ID,
         filter: ['==', ['geometry-type'], 'Point'],
@@ -61,7 +61,7 @@ const customTestLayerConf: LayerConf = {
         },
       },
       {
-        id: `${UI_BASELINE_CUSTOM_TEST_LAYER_GROUP_ID}-labels`,
+        id: 'uiBaselineCustomTestLabels-symbol',
         type: 'symbol',
         source: UI_BASELINE_CUSTOM_TEST_SOURCE_ID,
         filter: ['!=', ['get', 'displayLabel'], ''],

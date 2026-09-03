@@ -1,4 +1,5 @@
 import {
+  createStartPublicEnvDiagnosticReporter,
   getStartPublicEnvDefines,
   isStartDebugClientBuild,
   isStartPublicEnvKey,
@@ -15,6 +16,7 @@ describe('Start public environment exposure', () => {
       TOLGEE_API_KEY: 'tolgee-secret',
       TOLGEE_API_URL: 'https://tolgee.example.test',
       ZITADEL_CLIENT_SECRET: 'zitadel-secret',
+      ZITADEL_PROJECT_ID: 'server-only-project-id',
       BETTER_AUTH_SECRET: 'better-auth-secret',
     })
 
@@ -34,5 +36,68 @@ describe('Start public environment exposure', () => {
     expect(isStartDebugClientBuild({ PUBLIC_DEBUG_CLIENT_ERRORS: '0' })).toBe(
       false
     )
+  })
+
+  it('diagnoses legacy GeoServer names once and identifies replacements', () => {
+    const messages: string[] = []
+    const reportDiagnostics = createStartPublicEnvDiagnosticReporter((message) =>
+      messages.push(message)
+    )
+    const env = {
+      NEXT_PUBLIC_GEOSERVER_URL: 'legacy-base-value',
+      NEXT_PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE:
+        'legacy-workspace-value',
+    }
+
+    reportDiagnostics(env)
+    reportDiagnostics(env)
+
+    expect(messages).toEqual([
+      '[GeoServer configuration] NEXT_PUBLIC_GEOSERVER_URL is unsupported; rename it to PUBLIC_GEOSERVER_URL.',
+      '[GeoServer configuration] NEXT_PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE is unsupported; rename it to PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE.',
+    ])
+    expect(messages.join(' ')).not.toContain('legacy-base-value')
+    expect(messages.join(' ')).not.toContain('legacy-workspace-value')
+  })
+
+  it('keeps canonical values authoritative when stale legacy names coexist', () => {
+    const env = {
+      PUBLIC_GEOSERVER_URL: 'https://gis.example.test/geoserver',
+      PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE: 'forests',
+      NEXT_PUBLIC_GEOSERVER_URL: 'https://legacy.example.test/geoserver',
+      NEXT_PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE: 'legacy-forests',
+    }
+    const messages: string[] = []
+    const reportDiagnostics = createStartPublicEnvDiagnosticReporter((message) =>
+      messages.push(message)
+    )
+
+    reportDiagnostics(env)
+
+    expect(getStartPublicEnvDefines(env)).toEqual({
+      'process.env.PUBLIC_GEOSERVER_URL': JSON.stringify(
+        'https://gis.example.test/geoserver'
+      ),
+      'process.env.PUBLIC_LUONNONMETSAKARTAT_GEOSERVER_WORKSPACE':
+        JSON.stringify('forests'),
+    })
+    expect(messages).toHaveLength(2)
+    expect(messages.join(' ')).not.toContain('legacy.example.test')
+    expect(messages.join(' ')).not.toContain('legacy-forests')
+  })
+
+  it('reports malformed canonical values without exposing them', () => {
+    const messages: string[] = []
+    const reportDiagnostics = createStartPublicEnvDiagnosticReporter((message) =>
+      messages.push(message)
+    )
+    const invalidValue = 'https://private.example.test/undefined'
+
+    reportDiagnostics({ PUBLIC_GEOSERVER_URL: invalidValue })
+    reportDiagnostics({ PUBLIC_GEOSERVER_URL: invalidValue })
+
+    expect(messages).toHaveLength(1)
+    expect(messages[0]).toContain('PUBLIC_GEOSERVER_URL')
+    expect(messages[0]).not.toContain(invalidValue)
   })
 })

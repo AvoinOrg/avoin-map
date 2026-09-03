@@ -8,6 +8,11 @@ import { Box, toSxArray } from '#/common/style/theme/system'
 
 type SidebarStyleProps = AppBoxProps['sx']
 
+const SIDEBAR_HEADER_HERO_EDGE_INSET = {
+  mobile: `${SIDEBAR_HEADER_EDGE_INSET_REM}rem`,
+  desktop: `${SIDEBAR_HEADER_EDGE_INSET_REM}rem`,
+} as const
+
 interface Props {
   children?: React.ReactNode
   title: React.ReactNode
@@ -31,8 +36,8 @@ const SidebarHeader = ({
           display: 'flex',
           flexDirection: 'column',
           flexShrink: 0,
-          px: `${SIDEBAR_HEADER_EDGE_INSET_REM}rem`,
-          pt: { mobile: '0.4375rem', desktop: '0.5rem' },
+          px: SIDEBAR_HEADER_HERO_EDGE_INSET,
+          pt: SIDEBAR_HEADER_HERO_EDGE_INSET,
           pb: { mobile: '0.375rem', desktop: '0.5rem' },
           color: 'neutral.darker',
           zIndex: (theme) => (theme.zIndex?.drawer ?? 1200) + 4,

@@ -80,6 +80,30 @@ describe('BackgroundBuildingFiltersAccordionContent', () => {
     useAppletStore.getState().resetBuildingFilters()
   })
 
+  it('uses shared negative-margin geometry while preserving year-label clearance', () => {
+    const { container } = renderWithAppProvider(
+      <BackgroundBuildingFiltersAccordionContent />
+    )
+    const constructionYearSelect = getConstructionYearSelect()
+    const constructionYearRow = container.querySelector<HTMLElement>(
+      '[data-slot="inset-select-root"]'
+    )!
+
+    expect(
+      screen.getByRole('combobox', { name: 'Building type filter' })
+    ).toHaveStyle({
+      marginLeft: '-1rem',
+      marginRight: '-1rem',
+      width: 'calc(100% + 2rem)',
+    })
+    expect(constructionYearSelect).toHaveStyle({
+      marginLeft: '-1.125rem',
+      marginRight: '-1rem',
+      width: 'calc(100% + 2.125rem)',
+    })
+    expect(constructionYearRow).toHaveStyle({ gap: '1.875rem' })
+  })
+
   it('renders Any year as the default and first construction-year option', async () => {
     renderWithAppProvider(<BackgroundBuildingFiltersAccordionContent />)
 

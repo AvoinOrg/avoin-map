@@ -1,5 +1,9 @@
 import type { RequestTransformFunction } from 'maplibre-gl'
 
+import {
+  isPublicGeoServerRequest,
+  resolvePublicGeoServerBase,
+} from '#/common/config/publicGeoServer'
 import { EMBEDDED_PARAMS_URL_PREFIX } from '#/common/types/map'
 import { decodeUrlAndParams } from '#/common/utils/map'
 
@@ -12,6 +16,8 @@ export const createMapTransformRequest = ({
   accessToken,
   addStaleSourceId,
 }: CreateMapTransformRequestOptions): RequestTransformFunction => {
+  const publicGeoServerBaseUrl = resolvePublicGeoServerBase()
+
   return (url) => {
     if (url.startsWith(EMBEDDED_PARAMS_URL_PREFIX)) {
       const decoded = decodeUrlAndParams(url)
@@ -45,12 +51,10 @@ export const createMapTransformRequest = ({
       return { url: originalUrl }
     }
 
-    const geoserverUrl = process.env.PUBLIC_GEOSERVER_URL
-
     if (
       url.includes('requireToken=true') &&
-      geoserverUrl != null &&
-      url.includes(geoserverUrl)
+      publicGeoServerBaseUrl != null &&
+      isPublicGeoServerRequest({ url, baseUrl: publicGeoServerBaseUrl })
     ) {
       if (!accessToken) {
         console.error('Maplibre: No access token provided for the request.', url)

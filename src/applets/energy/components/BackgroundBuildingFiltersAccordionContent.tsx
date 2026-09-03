@@ -141,6 +141,7 @@ const BackgroundBuildingFiltersAccordionContent = () => {
       }}
     >
       <DropDownSelectWithLabel
+        applyNegativeMargins
         value={buildingTypeFilter}
         options={buildingTypeOptions}
         onChange={handleBuildingTypeChange}
@@ -172,11 +173,13 @@ const BackgroundBuildingFiltersAccordionContent = () => {
       />
 
       <DropDownSelectInset
+        applyNegativeMargins
         value={constructionDecadeSelectValue}
         options={decadeOptions}
         onChange={handleConstructionDecadeChange}
         label={t('sidebar.background_filters.construction_year.label')}
         ariaLabel={t('sidebar.background_filters.construction_year.aria_label')}
+        sx={{ gap: '1.875rem' }}
       />
 
       <Box

@@ -1,20 +1,29 @@
+import { buildPublicGeoServerUrl } from '#/common/config/publicGeoServer'
 import { roundToSignificantDigitsExpr } from '#/common/utils/map'
 import { LayerConf, ExtendedStyleSpecification } from '#/common/types/map'
 
 import Popup from './Popup'
 
-const SERVER_URL = process.env.PUBLIC_GEOSERVER_URL
-
 const layerGroupId = 'helsinki_buildings'
 
 const getStyle = async (): Promise<ExtendedStyleSpecification> => {
+  const tileUrl = buildPublicGeoServerUrl({
+    path: `gwc/service/tms/1.0.0/misc:${layerGroupId}@EPSG:900913@pbf/{z}/{x}/{y}.pbf`,
+  })
+  if (!tileUrl) {
+    return {
+      version: 8,
+      name: layerGroupId,
+      sources: {},
+      layers: [],
+    }
+  }
+
   const sources: ExtendedStyleSpecification['sources'] = {
     [layerGroupId]: {
       type: 'vector',
       scheme: 'tms',
-      tiles: [
-        `${SERVER_URL}/gwc/service/tms/1.0.0/misc:${layerGroupId}@EPSG:900913@pbf/{z}/{x}/{y}.pbf`,
-      ],
+      tiles: [tileUrl],
       minzoom: 5,
       maxzoom: 14,
       bounds: [19, 59, 32, 71], // Finland

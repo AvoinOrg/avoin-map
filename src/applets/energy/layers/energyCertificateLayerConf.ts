@@ -17,7 +17,7 @@ export const ENERGYMAP_ENERGY_CERTIFICATE_LAYER_IDS = [
 export const ENERGYMAP_ENERGY_CERTIFICATE_FILL_OPACITY = 0.62
 export const ENERGYMAP_ENERGY_CERTIFICATE_OUTLINE_OPACITY = 0.35
 
-export const ENERGY_CERTIFICATE_CLASS_PROPERTY = 'energy_certificate_class'
+export const ENERGY_CLASS_PROPERTY = 'energy_class'
 export const ENERGY_CERTIFICATE_INACTIVE_COLOR = '#BFBFBF'
 
 export const ENERGY_CERTIFICATE_CLASS_CODES = [
@@ -66,7 +66,7 @@ export const getEnergyCertificateFillColorExpression = (
 
   const expression = [
     'match',
-    ['get', ENERGY_CERTIFICATE_CLASS_PROPERTY],
+    ['get', ENERGY_CLASS_PROPERTY],
     ...matchStops,
     ENERGY_CERTIFICATE_INACTIVE_COLOR,
   ]

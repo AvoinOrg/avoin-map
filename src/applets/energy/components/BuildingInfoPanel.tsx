@@ -1966,7 +1966,7 @@ const BuildingInfoWaterResidentControl = ({
           sx={{
             display: 'grid',
             gridTemplateColumns: 'minmax(0, 1fr) 4.75rem',
-            columnGap: '0.75rem',
+            columnGap: isOverrideEnabled ? '1.75rem' : '0.75rem',
             alignItems: 'center',
             width: '100%',
             minHeight: '1.5rem',
@@ -1988,6 +1988,7 @@ const BuildingInfoWaterResidentControl = ({
           >
             {isOverrideEnabled ? (
               <NumberInputField
+                applyNegativeMargins
                 size="small"
                 value={manualResidentCount ?? control.defaultValue}
                 minValue={control.minValue}
@@ -1998,7 +1999,6 @@ const BuildingInfoWaterResidentControl = ({
                 containerSx={{ width: '4.75rem' }}
                 formControlSx={{ width: '100%' }}
                 inputSx={{
-                  width: '100%',
                   '& [data-slot="number-input-input"]': {
                     px: '0.5rem',
                   },
@@ -2798,6 +2798,7 @@ const BuildingInfoDesktopGrid = ({
       maxWidth: '100%',
       mx: 'auto',
       minHeight: DESKTOP_GRID_MIN_HEIGHTS[tabId],
+      flexGrow: tabId === 'basic' ? 1 : undefined,
       backgroundColor: '#f9f9f9',
       ...(tabId === 'renovation'
         ? {
@@ -2810,7 +2811,7 @@ const BuildingInfoDesktopGrid = ({
           }
         : {
             gridTemplateColumns: BASIC_DESKTOP_GRID_COLUMNS,
-            gridTemplateRows: DESKTOP_GRID_SECTION_MIN_HEIGHTS.basic,
+            gridTemplateRows: `minmax(${DESKTOP_GRID_SECTION_MIN_HEIGHTS.basic}, 1fr)`,
             gridTemplateAreas: '"energy details"',
           }),
     }}
@@ -3165,6 +3166,7 @@ const BuildingInfoTabPageContent = ({
 }) => {
   const isMobile = useIsMobile()
   const useMobileLayout = isMobile || forceMobileLayout
+  const isDesktopBasicLayout = !useMobileLayout && tabId === 'basic'
   const panelsById = React.useMemo(
     () =>
       new Map<EnergymapBuildingInfoPanelId, EnergymapBuildingInfoPanel>(
@@ -3188,6 +3190,7 @@ const BuildingInfoTabPageContent = ({
         display: 'flex',
         flexDirection: 'column',
         minHeight: '100%',
+        flexGrow: isDesktopBasicLayout ? 1 : undefined,
         backgroundColor: '#f9f9f9',
       }}
     >

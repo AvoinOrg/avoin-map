@@ -12,6 +12,7 @@ export type StartAuthEnv = {
   zitadelIssuer: string
   zitadelClientId: string
   zitadelClientSecret: string
+  zitadelProjectId: string
   zitadelRedirectUri: string
   isProduction: boolean
 }

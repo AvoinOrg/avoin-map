@@ -786,6 +786,14 @@ describe('BuildingInfoPanel', () => {
       'data-building-info-grid-layout',
       'basic'
     )
+    expect(screen.getByTestId('building-info-tab-page-basic')).toHaveStyle({
+      flexGrow: 1,
+    })
+    expect(screen.getByTestId('building-info-grid')).toHaveStyle({
+      flexGrow: 1,
+      minHeight: '1256px',
+      gridTemplateRows: 'minmax(1256px, 1fr)',
+    })
     expect(
       screen.getByTestId('building-info-grid-section-basic-energy')
     ).toHaveAttribute('data-grid-area', 'energy')
@@ -902,6 +910,10 @@ describe('BuildingInfoPanel', () => {
       'data-building-info-grid-layout',
       'renovation'
     )
+    expect(screen.getByTestId('building-info-grid')).toHaveStyle({
+      minHeight: '2365px',
+      gridTemplateRows: '1300px 1065px',
+    })
     expect(
       screen.getByTestId('building-info-grid-section-top-energy')
     ).toHaveAttribute('data-grid-area', 'energy')
@@ -1040,6 +1052,9 @@ describe('BuildingInfoPanel', () => {
     expect(
       await screen.findByTestId('building-info-tab-page-basic')
     ).toBeInTheDocument()
+    expect(screen.getByTestId('building-info-tab-page-basic')).not.toHaveStyle({
+      flexGrow: 1,
+    })
     expect(screen.queryByTestId('building-info-grid')).not.toBeInTheDocument()
     expect(
       screen
@@ -1511,6 +1526,7 @@ describe('BuildingInfoPanel', () => {
       'false'
     )
     expect(residentValueSlot).toHaveStyle({ width: '4.75rem' })
+    expect(residentRow).toHaveStyle({ columnGap: '0.75rem' })
     const overrideSwitch = within(energyPanel).getByRole('switch', {
       name: 'sidebar.building_info.panels.energy.water.change_resident_count',
     })
@@ -1540,6 +1556,14 @@ describe('BuildingInfoPanel', () => {
     expect(
       residentInput.closest('[data-slot="number-input-container"]')
     ).toHaveStyle({ width: '4.75rem' })
+    expect(residentRow).toHaveStyle({ columnGap: '1.75rem' })
+    expect(
+      residentInput.closest('[data-slot="number-input-control"]')
+    ).toHaveStyle({
+      marginLeft: '-1rem',
+      marginRight: '-0.5625rem',
+      width: 'calc(100% + 1.5625rem)',
+    })
     fireEvent.change(residentInput, { target: { value: '12' } })
     await waitFor(() => {
       expect(waterPanel).toHaveTextContent('525,6')
@@ -1626,6 +1650,7 @@ describe('BuildingInfoPanel', () => {
 
     fireEvent.click(overrideSwitch)
     expect(overrideSwitch).not.toBeChecked()
+    expect(residentRow).toHaveStyle({ columnGap: '0.75rem' })
     expect(
       within(energyPanel).getByTestId('building-info-water-resident-default')
     ).toHaveTextContent('11')

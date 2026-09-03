@@ -1,7 +1,6 @@
 import { describe, expect, it } from '@jest/globals'
 
 import {
-  ZITADEL_OIDC_SCOPES,
   buildZitadelOAuthProvider,
   mapZitadelProfileToUser,
   normalizeZitadelProfile,
@@ -13,6 +12,7 @@ describe('Zitadel Better Auth config', () => {
       zitadelIssuer: 'https://auth.example.org///',
       zitadelClientId: 'client-id',
       zitadelClientSecret: 'client-secret',
+      zitadelProjectId: 'synthetic-project-id',
       zitadelRedirectUri:
         'https://map.example.org/api/auth/callback/zitadel',
     })
@@ -25,7 +25,14 @@ describe('Zitadel Better Auth config', () => {
       clientId: 'client-id',
       clientSecret: 'client-secret',
       redirectURI: 'https://map.example.org/api/auth/callback/zitadel',
-      scopes: [...ZITADEL_OIDC_SCOPES],
+      scopes: [
+        'openid',
+        'email',
+        'profile',
+        'offline_access',
+        'urn:zitadel:iam:org:project:roles',
+        'urn:zitadel:iam:org:project:id:synthetic-project-id:aud',
+      ],
       pkce: true,
       authentication: 'basic',
     })

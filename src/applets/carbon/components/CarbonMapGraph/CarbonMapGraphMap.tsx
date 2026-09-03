@@ -13,6 +13,7 @@ import {
   toSxArray,
   type AppSystemStyleObject,
 } from '#/common/style/theme'
+import type { ExtendedStyleSpecification } from '#/common/types/map'
 import { ButtonBase } from '#/components/common/Button'
 import DropDownSelectMinimal from '#/components/common/DropDownSelectMinimal'
 import TText from '#/components/common/TText'
@@ -32,8 +33,6 @@ import { mergeArraysAlternate, pp } from '#/common/utils/general'
 import { Cross } from '#/components/icons'
 import { osmBackgroundLayerConf } from '#/components/Map/layers/common/OSM/background'
 
-const SERVER_URL = process.env.PUBLIC_GEOSERVER_URL
-
 type MapGraphLayerStateParams = {
   dataId: string
   activeDataOption: MapGraphDataSelectOption
@@ -46,6 +45,10 @@ type ApplyMapGraphLayerStateParams = MapGraphLayerStateParams & {
 
 const visibleFeatureFilter = (): FilterSpecification =>
   ['!=', 'isHidden', true] as FilterSpecification
+
+export const createCarbonMapGraphStyle = (
+  baseStyle: StyleSpecification | ExtendedStyleSpecification
+): StyleSpecification => ({ ...baseStyle }) as StyleSpecification
 
 const getMapGraphLayerState = ({
   dataId,
@@ -157,12 +160,11 @@ const CarbonMapGraphMap = ({
 
       if (isCancelled || !mapContainer.current) return
 
-      const style = {
-        ...baseStyle,
-        ...(baseStyle.glyphs == null && SERVER_URL
-          ? { glyphs: `${SERVER_URL}/www/font/{fontstack}/{range}.pbf` }
-          : {}),
-      } as StyleSpecification
+      await import('#/runtime/configureMapLibreWorker')
+
+      if (isCancelled || !mapContainer.current) return
+
+      const style = createCarbonMapGraphStyle(baseStyle)
 
       mapInstance = new Map({
         container: mapContainer.current,

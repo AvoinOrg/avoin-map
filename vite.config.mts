@@ -7,6 +7,7 @@ import type { Plugin, ResolvedConfig } from 'vite'
 import {
   getStartPublicEnvDefines,
   isStartDebugClientBuild,
+  reportStartPublicEnvDiagnostics,
   type StartLoadedEnv,
 } from './utils/config/startPublicEnv'
 
@@ -64,6 +65,7 @@ const startServerOnlyDependencyOptimizerPlugin = (): Plugin => ({
 
 export default defineConfig(({ mode }) => {
   const env = getStartLoadedEnv(mode)
+  reportStartPublicEnvDiagnostics(env)
   const debugClientErrors = isStartDebugClientBuild(env)
   const startTarget = getStartTarget(env)
 
