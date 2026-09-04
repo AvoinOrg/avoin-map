@@ -126,10 +126,11 @@ export type EnergymapBuildingInfoEnergySubmetric = {
 export type EnergymapBuildingInfoConsumptionControls = {
   defaultPrimaryMetricId: EnergymapBuildingInfoPrimaryMetricId
   primaryMetrics: EnergymapBuildingInfoPrimaryMetric[]
-  defaultEnergySubmetricIds: EnergymapBuildingInfoEnergySubmetricId[]
-  energySubmetrics: EnergymapBuildingInfoEnergySubmetric[]
-  combinedEnergyMetric: EnergymapBuildingInfoMetric
-  emptyEnergyMetric: EnergymapBuildingInfoMetric
+  defaultEnergySubmetricIds?: EnergymapBuildingInfoEnergySubmetricId[]
+  energySubmetrics?: EnergymapBuildingInfoEnergySubmetric[]
+  combinedEnergyMetric?: EnergymapBuildingInfoMetric
+  /** @deprecated Kept as an optional compatibility field for authored fixtures. */
+  emptyEnergyMetric?: EnergymapBuildingInfoMetric
 }
 
 export type EnergymapBuildingInfoSelectedEnergyConsumption = {
@@ -419,6 +420,159 @@ const note = ({
   ...(sourceProperties == null ? {} : { sourceProperties }),
 })
 
+export const normalizeEnergymapBuildingInfoText = (
+  text: EnergymapBuildingInfoText | null | undefined
+): EnergymapBuildingInfoText | null => {
+  if (text == null) {
+    return null
+  }
+
+  if (text.type === 'plain') {
+    return text.text.trim() === '' ? null : text
+  }
+
+  if (text.type === 'translation') {
+    return text.keyName.trim() === '' ? null : text
+  }
+
+  const parts = text.parts
+    .map(normalizeEnergymapBuildingInfoText)
+    .filter((part): part is EnergymapBuildingInfoText => part != null)
+
+  if (parts.length === 0) {
+    return null
+  }
+
+  return parts.length === text.parts.length &&
+    parts.every((part, index) => part === text.parts[index])
+    ? text
+    : { ...text, parts }
+}
+
+const getAvailableValueText = (
+  value: EnergymapBuildingInfoValue | null | undefined
+): EnergymapBuildingInfoText | null => {
+  if (
+    value == null ||
+    (value.status !== 'real' && value.status !== 'estimate')
+  ) {
+    return null
+  }
+
+  return normalizeEnergymapBuildingInfoText(value.text)
+}
+
+export const isEnergymapBuildingInfoValueAvailable = (
+  value: EnergymapBuildingInfoValue | null | undefined
+): value is EnergymapBuildingInfoValue & {
+  status: Extract<EnergymapBuildingInfoValueStatus, 'real' | 'estimate'>
+} => getAvailableValueText(value) != null
+
+const normalizeValue = <Value extends EnergymapBuildingInfoValue>(
+  value: Value | null | undefined
+): Value | null => {
+  const text = getAvailableValueText(value)
+  if (value == null || text == null) {
+    return null
+  }
+
+  const normalizedNote = normalizeEnergymapBuildingInfoText(value.note)
+  const { note: _note, ...valueWithoutNote } = value
+
+  return {
+    ...valueWithoutNote,
+    text,
+    ...(normalizedNote == null ? {} : { note: normalizedNote }),
+  } as Value
+}
+
+const normalizeRow = (
+  candidate: EnergymapBuildingInfoRow
+): EnergymapBuildingInfoRow | null => {
+  const value = normalizeValue(candidate)
+  const label = normalizeEnergymapBuildingInfoText(candidate.label)
+
+  if (value == null || label == null) {
+    return null
+  }
+
+  const modeledLabel = normalizeEnergymapBuildingInfoText(
+    value.modeledIndicator?.label
+  )
+  const modeledTooltip = normalizeEnergymapBuildingInfoText(
+    value.modeledIndicator?.tooltip
+  )
+  const modeledIndicator =
+    value.modeledIndicator != null &&
+    modeledLabel != null &&
+    modeledTooltip != null &&
+    value.modeledIndicator.ariaLabelKey.trim() !== ''
+      ? {
+          ...value.modeledIndicator,
+          label: modeledLabel,
+          tooltip: modeledTooltip,
+        }
+      : null
+  const { modeledIndicator: _modeledIndicator, ...valueWithoutIndicator } =
+    value
+
+  return {
+    ...valueWithoutIndicator,
+    label,
+    ...(modeledIndicator == null ? {} : { modeledIndicator }),
+  }
+}
+
+const normalizeMetricValue = (
+  candidate: EnergymapBuildingInfoMetricValue
+): EnergymapBuildingInfoMetricValue | null => {
+  const value = normalizeValue(candidate)
+  const label = normalizeEnergymapBuildingInfoText(candidate.label)
+
+  return value == null || label == null ? null : { ...value, label }
+}
+
+const normalizeMetric = (
+  candidate: EnergymapBuildingInfoMetric | null | undefined
+): EnergymapBuildingInfoMetric | null => {
+  if (candidate == null) {
+    return null
+  }
+
+  const label = normalizeEnergymapBuildingInfoText(candidate.label)
+  const values = candidate.values
+    .map(normalizeMetricValue)
+    .filter((value): value is EnergymapBuildingInfoMetricValue => value != null)
+
+  return label == null || values.length === 0
+    ? null
+    : { ...candidate, label, values }
+}
+
+const normalizeScenario = (
+  candidate: EnergymapBuildingInfoScenario
+): EnergymapBuildingInfoScenario | null => {
+  const label = normalizeEnergymapBuildingInfoText(candidate.label)
+  const values = candidate.values
+    .map(normalizeMetricValue)
+    .filter((value): value is EnergymapBuildingInfoMetricValue => value != null)
+
+  return label == null || values.length === 0
+    ? null
+    : { ...candidate, label, values }
+}
+
+const normalizeNote = (
+  candidate: EnergymapBuildingInfoNote
+): EnergymapBuildingInfoNote | null => {
+  if (candidate.status !== 'real' && candidate.status !== 'estimate') {
+    return null
+  }
+
+  const text = normalizeEnergymapBuildingInfoText(candidate.text)
+  return text == null ? null : { ...candidate, text }
+}
+
 const getStringProperty = (
   properties: EnergymapSelectedBuilding['properties'],
   propertyName: string
@@ -461,7 +615,12 @@ const getNumberProperty = (
   }
 
   if (typeof value === 'string') {
-    const parsedValue = Number(value.trim().replace(',', '.'))
+    const normalizedValue = value.trim().replace(',', '.')
+    if (normalizedValue === '') {
+      return null
+    }
+
+    const parsedValue = Number(normalizedValue)
     return Number.isFinite(parsedValue) ? parsedValue : null
   }
 
@@ -825,50 +984,112 @@ const createEnergyMetric = ({
   ],
 })
 
-const createWaterHeatingMetric = (): EnergymapBuildingInfoMetric => ({
-  id: 'waterHeating',
-  label: translationText(key('panels.energy.series.water_heating')),
-  values: [
-    metricValue({
-      id: 'annualTotal',
-      labelKey: key('panels.energy.metric.annual_total'),
-      value: placeholderValue({
-        keyName: key('placeholders.not_published'),
-      }),
-    }),
-    metricValue({
-      id: 'perSquareMeter',
-      labelKey: key('panels.energy.metric.per_square_meter'),
-      value: placeholderValue({
-        keyName: key('placeholders.not_published'),
-      }),
-    }),
-  ],
-})
-
-const createEmptyEnergyMetric = (): EnergymapBuildingInfoMetric => ({
-  id: 'total',
-  label: translationText(key('panels.energy.series.total')),
-  values: [
-    metricValue({
-      id: 'annualTotal',
-      labelKey: key('panels.energy.metric.annual_total'),
-      value: placeholderValue({
-        keyName: key('panels.energy.unsupported.no_selected_energy_submetrics'),
-      }),
-    }),
-    metricValue({
-      id: 'perSquareMeter',
-      labelKey: key('panels.energy.metric.per_square_meter'),
-      value: placeholderValue({
-        keyName: key('panels.energy.unsupported.no_selected_energy_submetrics'),
-      }),
-    }),
-  ],
-})
-
 const ENERGY_SUBMETRIC_ORDER: readonly EnergymapBuildingInfoEnergySubmetricId[] =
   ['electricity', 'heating', 'waterHeating']
+
+const PRIMARY_METRIC_ORDER: readonly EnergymapBuildingInfoPrimaryMetricId[] = [
+  'energy',
+  'water',
+  'cost',
+  'co2',
+]
+
+const normalizeAvailableEnergySubmetricSelection = ({
+  energySubmetrics,
+  combinedEnergyMetric,
+  selectedSubmetricIds,
+}: {
+  energySubmetrics: readonly EnergymapBuildingInfoEnergySubmetric[]
+  combinedEnergyMetric: EnergymapBuildingInfoMetric | null
+  selectedSubmetricIds: readonly EnergymapBuildingInfoEnergySubmetricId[]
+}): EnergymapBuildingInfoEnergySubmetricId[] => {
+  const availableIds = new Set(
+    energySubmetrics.map((submetric) => submetric.id)
+  )
+  const requestedIds = new Set(selectedSubmetricIds)
+  const selectedIds = ENERGY_SUBMETRIC_ORDER.filter(
+    (id) => availableIds.has(id) && requestedIds.has(id)
+  )
+
+  if (selectedIds.length <= 1) {
+    return selectedIds
+  }
+
+  if (
+    selectedIds.length === 2 &&
+    selectedIds[0] === 'electricity' &&
+    selectedIds[1] === 'heating' &&
+    combinedEnergyMetric != null
+  ) {
+    return selectedIds
+  }
+
+  const firstRequestedAvailableId = selectedSubmetricIds.find((id) =>
+    availableIds.has(id)
+  )
+
+  return firstRequestedAvailableId == null ? [] : [firstRequestedAvailableId]
+}
+
+const getAvailableEnergySubmetrics = (
+  controls: EnergymapBuildingInfoConsumptionControls
+) => {
+  const submetricById = new Map(
+    (controls.energySubmetrics ?? []).map((submetric) => [
+      submetric.id,
+      submetric,
+    ])
+  )
+
+  return ENERGY_SUBMETRIC_ORDER.map((id) => submetricById.get(id))
+    .filter(
+      (submetric): submetric is EnergymapBuildingInfoEnergySubmetric =>
+        submetric != null && submetric.supported
+    )
+    .map((submetric) => ({
+      ...submetric,
+      metric: normalizeMetric(submetric.metric),
+    }))
+    .filter(
+      (
+        submetric
+      ): submetric is EnergymapBuildingInfoEnergySubmetric & {
+        metric: EnergymapBuildingInfoMetric
+      } => submetric.metric != null
+    )
+}
+
+const getEnergySubmetricSelectionOptions = (
+  controls: EnergymapBuildingInfoConsumptionControls
+) => {
+  const energySubmetrics = getAvailableEnergySubmetrics(controls)
+  const retainedIds = new Set(
+    energySubmetrics.map((submetric) => submetric.id)
+  )
+  const combinedEnergyMetric =
+    retainedIds.has('electricity') && retainedIds.has('heating')
+      ? normalizeMetric(controls.combinedEnergyMetric)
+      : null
+
+  return { energySubmetrics, combinedEnergyMetric }
+}
+
+export const normalizeEnergySubmetricSelection = ({
+  controls,
+  selectedSubmetricIds,
+}: {
+  controls: EnergymapBuildingInfoConsumptionControls
+  selectedSubmetricIds: readonly EnergymapBuildingInfoEnergySubmetricId[]
+}): EnergymapBuildingInfoEnergySubmetricId[] => {
+  const { energySubmetrics, combinedEnergyMetric } =
+    getEnergySubmetricSelectionOptions(controls)
+
+  return normalizeAvailableEnergySubmetricSelection({
+    energySubmetrics,
+    combinedEnergyMetric,
+    selectedSubmetricIds,
+  })
+}
 
 export const getSelectedEnergyConsumption = ({
   controls,
@@ -877,33 +1098,24 @@ export const getSelectedEnergyConsumption = ({
   controls: EnergymapBuildingInfoConsumptionControls
   selectedSubmetricIds: readonly EnergymapBuildingInfoEnergySubmetricId[]
 }): EnergymapBuildingInfoSelectedEnergyConsumption => {
-  const selectedIds = new Set(selectedSubmetricIds)
+  const { energySubmetrics, combinedEnergyMetric } =
+    getEnergySubmetricSelectionOptions(controls)
   const submetricById = new Map(
-    controls.energySubmetrics.map((submetric) => [submetric.id, submetric])
+    energySubmetrics.map((submetric) => [submetric.id, submetric])
   )
-  const selectedSubmetrics = ENERGY_SUBMETRIC_ORDER.map((id) =>
-    submetricById.get(id)
-  ).filter(
-    (submetric): submetric is EnergymapBuildingInfoEnergySubmetric =>
-      submetric != null && selectedIds.has(submetric.id)
-  )
-  const selectedSupportedSubmetrics = selectedSubmetrics.filter(
-    (submetric) => submetric.supported
-  )
-  const selectedUnsupportedNotes = selectedSubmetrics
-    .map((submetric) => submetric.unavailableNote)
-    .filter((note): note is EnergymapBuildingInfoNote => note != null)
-  const supportedIds = new Set(
-    selectedSupportedSubmetrics.map((submetric) => submetric.id)
-  )
+  const normalizedSelection = normalizeAvailableEnergySubmetricSelection({
+    energySubmetrics,
+    combinedEnergyMetric,
+    selectedSubmetricIds,
+  })
   const metric =
-    supportedIds.has('electricity') && supportedIds.has('heating')
-      ? controls.combinedEnergyMetric
-      : selectedSupportedSubmetrics[0]?.metric ?? controls.emptyEnergyMetric
+    normalizedSelection.length === 2
+      ? combinedEnergyMetric
+      : submetricById.get(normalizedSelection[0])?.metric
 
   return {
-    values: metric.values,
-    notes: selectedUnsupportedNotes,
+    values: metric?.values ?? [],
+    notes: [],
   }
 }
 
@@ -1183,11 +1395,203 @@ const createCurrentReferenceWaterPrimaryMetric = ({
   }
 }
 
+const normalizeResidentCountControl = (
+  control: EnergymapBuildingInfoResidentCountControl | null | undefined
+): EnergymapBuildingInfoResidentCountControl | null => {
+  if (
+    control == null ||
+    !Number.isFinite(control.defaultValue) ||
+    !Number.isFinite(control.minValue) ||
+    !Number.isFinite(control.maxValue) ||
+    control.minValue > control.defaultValue ||
+    control.defaultValue > control.maxValue
+  ) {
+    return null
+  }
+
+  const label = normalizeEnergymapBuildingInfoText(control.label)
+  const toggleLabel = normalizeEnergymapBuildingInfoText(control.toggleLabel)
+  const description = normalizeEnergymapBuildingInfoText(control.description)
+  const unavailableText = normalizeEnergymapBuildingInfoText(
+    control.unavailableText
+  )
+
+  return label == null ||
+    toggleLabel == null ||
+    description == null ||
+    unavailableText == null
+    ? null
+    : {
+        ...control,
+        label,
+        toggleLabel,
+        description,
+        unavailableText,
+      }
+}
+
+const normalizePrimaryMetric = (
+  candidate: EnergymapBuildingInfoPrimaryMetric
+): EnergymapBuildingInfoPrimaryMetric | null => {
+  if (candidate.id === 'energy' || !candidate.supported) {
+    return null
+  }
+
+  const label = normalizeEnergymapBuildingInfoText(candidate.label)
+  const value = normalizeValue(candidate.value)
+  if (label == null || candidate.ariaLabelKey.trim() === '' || value == null) {
+    return null
+  }
+
+  const residentCountControl =
+    candidate.id === 'water'
+      ? normalizeResidentCountControl(candidate.residentCountControl)
+      : null
+  const {
+    value: _value,
+    unavailableNote: _unavailableNote,
+    residentCountControl: _residentCountControl,
+    ...candidateWithoutOptionalContent
+  } = candidate
+
+  return {
+    ...candidateWithoutOptionalContent,
+    label,
+    supported: true,
+    value,
+    ...(residentCountControl == null ? {} : { residentCountControl }),
+  }
+}
+
+const normalizeEnergySubmetric = (
+  candidate: EnergymapBuildingInfoEnergySubmetric
+): EnergymapBuildingInfoEnergySubmetric | null => {
+  if (!candidate.supported) {
+    return null
+  }
+
+  const label = normalizeEnergymapBuildingInfoText(candidate.label)
+  const metric = normalizeMetric(candidate.metric)
+  if (label == null || candidate.ariaLabelKey.trim() === '' || metric == null) {
+    return null
+  }
+
+  const { unavailableNote: _unavailableNote, ...candidateWithoutNote } =
+    candidate
+  return {
+    ...candidateWithoutNote,
+    label,
+    supported: true,
+    metric,
+  }
+}
+
+const normalizeConsumptionControls = (
+  controls: EnergymapBuildingInfoConsumptionControls | null | undefined
+): EnergymapBuildingInfoConsumptionControls | null => {
+  if (controls == null) {
+    return null
+  }
+
+  const submetricById = new Map(
+    (controls.energySubmetrics ?? []).map((submetric) => [
+      submetric.id,
+      submetric,
+    ])
+  )
+  const normalizedEnergySubmetrics = ENERGY_SUBMETRIC_ORDER.map((id) => {
+    const candidate = submetricById.get(id)
+    return candidate == null ? null : normalizeEnergySubmetric(candidate)
+  }).filter(
+    (submetric): submetric is EnergymapBuildingInfoEnergySubmetric =>
+      submetric != null
+  )
+  const retainedSubmetricIds = new Set(
+    normalizedEnergySubmetrics.map((submetric) => submetric.id)
+  )
+  const combinedEnergyMetric =
+    retainedSubmetricIds.has('electricity') &&
+    retainedSubmetricIds.has('heating')
+      ? normalizeMetric(controls.combinedEnergyMetric)
+      : null
+  const requestedDefaultSubmetricIds = new Set(
+    controls.defaultEnergySubmetricIds ?? []
+  )
+  const retainedDefaultSubmetricIds = ENERGY_SUBMETRIC_ORDER.filter(
+    (id) => retainedSubmetricIds.has(id) && requestedDefaultSubmetricIds.has(id)
+  )
+  const availableDefaultSubmetricIds =
+    retainedDefaultSubmetricIds.length > 0
+      ? retainedDefaultSubmetricIds
+      : normalizedEnergySubmetrics.slice(0, 1).map((submetric) => submetric.id)
+  const defaultEnergySubmetricIds =
+    normalizeAvailableEnergySubmetricSelection({
+      energySubmetrics: normalizedEnergySubmetrics,
+      combinedEnergyMetric,
+      selectedSubmetricIds: availableDefaultSubmetricIds,
+    })
+  const defaultEnergySubmetricIdSet = new Set(defaultEnergySubmetricIds)
+  const energySubmetrics = normalizedEnergySubmetrics.map((submetric) => ({
+    ...submetric,
+    defaultSelected: defaultEnergySubmetricIdSet.has(submetric.id),
+  }))
+
+  const primaryMetricById = new Map(
+    controls.primaryMetrics.map((metric) => [metric.id, metric])
+  )
+  const primaryMetrics = PRIMARY_METRIC_ORDER.map((id) => {
+    const candidate = primaryMetricById.get(id)
+    if (candidate == null) {
+      return null
+    }
+
+    if (id !== 'energy') {
+      return normalizePrimaryMetric(candidate)
+    }
+
+    const label = normalizeEnergymapBuildingInfoText(candidate.label)
+    if (
+      energySubmetrics.length === 0 ||
+      label == null ||
+      candidate.ariaLabelKey.trim() === ''
+    ) {
+      return null
+    }
+
+    return {
+      id: candidate.id,
+      label,
+      ariaLabelKey: candidate.ariaLabelKey,
+      supported: true,
+    }
+  }).filter(
+    (metric): metric is EnergymapBuildingInfoPrimaryMetric => metric != null
+  )
+
+  if (primaryMetrics.length === 0) {
+    return null
+  }
+
+  const retainedPrimaryIds = new Set(primaryMetrics.map((metric) => metric.id))
+  const defaultPrimaryMetricId = retainedPrimaryIds.has(
+    controls.defaultPrimaryMetricId
+  )
+    ? controls.defaultPrimaryMetricId
+    : primaryMetrics[0].id
+  return {
+    defaultPrimaryMetricId,
+    primaryMetrics,
+    ...(energySubmetrics.length === 0
+      ? {}
+      : { defaultEnergySubmetricIds, energySubmetrics }),
+    ...(combinedEnergyMetric == null ? {} : { combinedEnergyMetric }),
+  }
+}
+
 const createConsumptionControls = ({
   totalMetric,
   heatingMetric,
   electricityMetric,
-  waterHeatingMetric,
   waterMetric,
   costMetric,
   co2Metric,
@@ -1195,18 +1599,10 @@ const createConsumptionControls = ({
   totalMetric: EnergymapBuildingInfoMetric
   heatingMetric: EnergymapBuildingInfoMetric
   electricityMetric: EnergymapBuildingInfoMetric
-  waterHeatingMetric: EnergymapBuildingInfoMetric
   waterMetric: EnergymapBuildingInfoPrimaryMetric
   costMetric: EnergymapBuildingInfoPrimaryMetric
   co2Metric: EnergymapBuildingInfoPrimaryMetric
-}): EnergymapBuildingInfoConsumptionControls => {
-  const waterHeatingUnavailableNote = note({
-    id: 'waterHeatingUnavailable',
-    keyName: key('panels.energy.unsupported.water_heating'),
-    status: 'placeholder',
-  })
-
-  return {
+}): EnergymapBuildingInfoConsumptionControls => ({
     defaultPrimaryMetricId: 'energy',
     primaryMetrics: [
       {
@@ -1237,20 +1633,9 @@ const createConsumptionControls = ({
         defaultSelected: true,
         metric: heatingMetric,
       },
-      {
-        id: 'waterHeating',
-        label: translationText(key('panels.energy.series.water_heating')),
-        ariaLabelKey: key('panels.energy.series.water_heating'),
-        supported: false,
-        defaultSelected: false,
-        metric: waterHeatingMetric,
-        unavailableNote: waterHeatingUnavailableNote,
-      },
     ],
     combinedEnergyMetric: totalMetric,
-    emptyEnergyMetric: createEmptyEnergyMetric(),
-  }
-}
+  })
 
 const getCodeLabelValue = ({
   codeValue,
@@ -1545,21 +1930,6 @@ const getMeasurementValue = ({
   })
 }
 
-const createPlaceholderRow = ({
-  id,
-  labelKey,
-  placeholderKey = key('placeholders.not_published'),
-}: {
-  id: string
-  labelKey: string
-  placeholderKey?: string
-}) =>
-  row({
-    id,
-    labelKey,
-    value: placeholderValue({ keyName: placeholderKey }),
-  })
-
 const createEnergyConsumptionPanel = ({
   properties,
   prefix,
@@ -1593,7 +1963,6 @@ const createEnergyConsumptionPanel = ({
     prefix,
     locale,
   })
-  const waterHeatingMetric = createWaterHeatingMetric()
   const electricityProperty =
     prefix == null
       ? null
@@ -1639,6 +2008,8 @@ const createEnergyConsumptionPanel = ({
     floorAreaSquareMeters: properties[FLOOR_AREA_PROPERTY],
     locale,
   })
+  const hasCostMetric = normalizePrimaryMetric(costMetric) != null
+  const hasCo2Metric = normalizePrimaryMetric(co2Metric) != null
 
   return {
     id: 'energyConsumption',
@@ -1650,17 +2021,11 @@ const createEnergyConsumptionPanel = ({
         title: translationText(
           key('panels.energy.sections.estimated_consumption')
         ),
-        metrics: [
-          totalMetric,
-          heatingMetric,
-          electricityMetric,
-          waterHeatingMetric,
-        ],
+        metrics: [totalMetric, heatingMetric, electricityMetric],
         consumptionControls: createConsumptionControls({
           totalMetric,
           heatingMetric,
           electricityMetric,
-          waterHeatingMetric,
           waterMetric,
           costMetric,
           co2Metric,
@@ -1677,30 +2042,34 @@ const createEnergyConsumptionPanel = ({
         id: 'calculationContext',
         title: translationText(key('panels.energy.sections.calculation_context')),
         rows: [
-          row({
-            id: 'costMode',
-            labelKey: key('panels.energy.rows.cost_mode'),
-            value: {
-              text: translationText(
-                key('panels.energy.context.cost_current_reference')
-              ),
-              status: 'estimate',
-            },
-          }),
-          row({
-            id: 'co2Mode',
-            labelKey: key('panels.energy.rows.co2_mode'),
-            value: {
-              text: translationText(
-                key('panels.energy.context.co2_current_reference')
-              ),
-              status: 'estimate',
-            },
-          }),
-          createPlaceholderRow({
-            id: 'waterHeatingSplit',
-            labelKey: key('panels.energy.rows.water_heating_split'),
-          }),
+          ...(hasCostMetric
+            ? [
+                row({
+                  id: 'costMode',
+                  labelKey: key('panels.energy.rows.cost_mode'),
+                  value: {
+                    text: translationText(
+                      key('panels.energy.context.cost_current_reference')
+                    ),
+                    status: 'estimate',
+                  },
+                }),
+              ]
+            : []),
+          ...(hasCo2Metric
+            ? [
+                row({
+                  id: 'co2Mode',
+                  labelKey: key('panels.energy.rows.co2_mode'),
+                  value: {
+                    text: translationText(
+                      key('panels.energy.context.co2_current_reference')
+                    ),
+                    status: 'estimate',
+                  },
+                }),
+              ]
+            : []),
         ],
       },
     ],
@@ -1834,16 +2203,6 @@ const createRenovationRecommendationsPanel = ({
     {
       id: 'publishedRecommendations',
       rows: [
-        createPlaceholderRow({
-          id: 'renovationRecommendations',
-          labelKey: key(
-            'panels.renovation.sections.renovation_recommendations'
-          ),
-        }),
-        createPlaceholderRow({
-          id: 'energyRecommendations',
-          labelKey: key('panels.renovation.sections.energy_recommendations'),
-        }),
         row({
           id: 'energyCertificateRecommendations',
           labelKey: key(
@@ -1906,10 +2265,6 @@ const createBuildingDetailsPanel = ({
             propertyName: PERMANENT_BUILDING_IDENTIFIER_PROPERTY,
           }),
         }),
-        createPlaceholderRow({
-          id: 'propertyIdentifier',
-          labelKey: key('panels.building.rows.property_identifier'),
-        }),
         row({
           id: 'constructionYear',
           labelKey: key('panels.building.rows.construction_year'),
@@ -1959,20 +2314,6 @@ const createBuildingDetailsPanel = ({
             propertyName: ENERGY_CERTIFICATE_PREVIOUS_CLASS_PROPERTY,
           }),
         }),
-        createPlaceholderRow({
-          id: 'energyClassMeasures',
-          labelKey: key('panels.building.rows.energy_class_measures'),
-        }),
-      ],
-    },
-    {
-      id: 'plannedMeasures',
-      variant: 'measureList',
-      rows: [
-        createPlaceholderRow({
-          id: 'plannedMeasures',
-          labelKey: key('panels.building.rows.planned_measures'),
-        }),
       ],
     },
     {
@@ -1998,18 +2339,107 @@ const createBuildingDetailsPanel = ({
           labelKey: key('panels.building.rows.ventilation'),
           value: getVentilationValue(properties),
         }),
-        createPlaceholderRow({
-          id: 'plotTenure',
-          labelKey: key('panels.building.rows.plot_tenure'),
-        }),
-        createPlaceholderRow({
-          id: 'residentCount',
-          labelKey: key('panels.building.rows.resident_count'),
-        }),
       ],
     },
   ],
 })
+
+const metricHasEstimate = (metric: EnergymapBuildingInfoMetric) =>
+  metric.values.some((value) => value.status === 'estimate')
+
+const controlsHaveEstimate = (
+  controls: EnergymapBuildingInfoConsumptionControls
+) =>
+  controls.primaryMetrics.some((metric) => metric.value?.status === 'estimate') ||
+  (controls.energySubmetrics ?? []).some((submetric) =>
+    metricHasEstimate(submetric.metric)
+  )
+
+const normalizeSection = (
+  candidate: EnergymapBuildingInfoSection
+): EnergymapBuildingInfoSection | null => {
+  const rows = (candidate.rows ?? [])
+    .map(normalizeRow)
+    .filter((item): item is EnergymapBuildingInfoRow => item != null)
+  const metrics = (candidate.metrics ?? [])
+    .map(normalizeMetric)
+    .filter((item): item is EnergymapBuildingInfoMetric => item != null)
+  const scenarios = (candidate.scenarios ?? [])
+    .map(normalizeScenario)
+    .filter((item): item is EnergymapBuildingInfoScenario => item != null)
+  const consumptionControls = normalizeConsumptionControls(
+    candidate.consumptionControls
+  )
+  const hasData =
+    rows.length > 0 ||
+    metrics.length > 0 ||
+    scenarios.length > 0 ||
+    consumptionControls != null
+
+  if (!hasData) {
+    return null
+  }
+
+  const hasEstimate =
+    rows.some((item) => item.status === 'estimate') ||
+    metrics.some(metricHasEstimate) ||
+    scenarios.some((scenario) =>
+      scenario.values.some((value) => value.status === 'estimate')
+    ) ||
+    (consumptionControls != null && controlsHaveEstimate(consumptionControls))
+  const notes = (candidate.notes ?? [])
+    .map(normalizeNote)
+    .filter(
+      (item): item is EnergymapBuildingInfoNote =>
+        item != null && (item.status !== 'estimate' || hasEstimate)
+    )
+  const title = normalizeEnergymapBuildingInfoText(candidate.title)
+  const description = normalizeEnergymapBuildingInfoText(candidate.description)
+  const {
+    title: _title,
+    description: _description,
+    rows: _rows,
+    metrics: _metrics,
+    scenarios: _scenarios,
+    notes: _notes,
+    consumptionControls: _consumptionControls,
+    ...sectionWithoutContent
+  } = candidate
+
+  return {
+    ...sectionWithoutContent,
+    ...(title == null ? {} : { title }),
+    ...(description == null ? {} : { description }),
+    ...(rows.length === 0 ? {} : { rows }),
+    ...(metrics.length === 0 ? {} : { metrics }),
+    ...(consumptionControls == null ? {} : { consumptionControls }),
+    ...(scenarios.length === 0 ? {} : { scenarios }),
+    ...(notes.length === 0 ? {} : { notes }),
+  }
+}
+
+const normalizePanel = (
+  candidate: EnergymapBuildingInfoPanel
+): EnergymapBuildingInfoPanel | null => {
+  const title = normalizeEnergymapBuildingInfoText(candidate.title)
+  const sections = candidate.sections
+    .map(normalizeSection)
+    .filter((section): section is EnergymapBuildingInfoSection => section != null)
+
+  if (title == null || sections.length === 0) {
+    return null
+  }
+
+  const description = normalizeEnergymapBuildingInfoText(candidate.description)
+  const { description: _description, ...panelWithoutDescription } = candidate
+
+  return {
+    ...panelWithoutDescription,
+    title,
+    sections,
+    ...(description == null ? {} : { description }),
+  }
+}
 
 export const createEnergymapBuildingInfoPanels = ({
   selectedBuilding,
@@ -2035,4 +2465,6 @@ export const createEnergymapBuildingInfoPanels = ({
     createRenovationRecommendationsPanel({ properties, prefix, locale }),
     createBuildingDetailsPanel({ properties, locale }),
   ]
+    .map(normalizePanel)
+    .filter((panel): panel is EnergymapBuildingInfoPanel => panel != null)
 }

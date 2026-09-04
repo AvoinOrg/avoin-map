@@ -29,6 +29,7 @@ import {
 import { useNullableSidebarPanelExtensionTabsContext } from '#/components/Sidebar/SidebarPanelExtensionTabsContext'
 import type {
   EnergymapBuildingInfoConsumptionControls,
+  EnergymapBuildingInfoEnergySubmetric,
   EnergymapBuildingInfoEnergySubmetricId,
   EnergymapEnergyMeasure,
   EnergymapBuildingInfoMetric,
@@ -45,7 +46,10 @@ import type {
   EnergymapBuildingInfoPrimaryMetric,
   EnergymapBuildingInfoPrimaryMetricId,
 } from '../common/buildingInfo'
-import { getSelectedEnergyConsumption } from '../common/buildingInfo'
+import {
+  getSelectedEnergyConsumption,
+  normalizeEnergySubmetricSelection,
+} from '../common/buildingInfo'
 import { calculateCurrentReferenceAnnualWater } from '../common/currentReferenceCalculations'
 
 export type BuildingInfoDesktopMode = 'twoPanel' | 'threePanel'
@@ -715,13 +719,6 @@ const EnergySubmetricIcon = ({
   return <EnergyBoltIcon sx={iconSx} />
 }
 
-const areEnergySubmetricIdsEqual = (
-  first: readonly EnergymapBuildingInfoEnergySubmetricId[],
-  second: readonly EnergymapBuildingInfoEnergySubmetricId[]
-) =>
-  first.length === second.length &&
-  first.every((submetricId, index) => submetricId === second[index])
-
 const getNormalizedPrimaryMetricId = (
   controls: EnergymapBuildingInfoConsumptionControls,
   current: EnergymapBuildingInfoPrimaryMetricId
@@ -735,26 +732,16 @@ const getNormalizedPrimaryMetricId = (
     : controls.defaultPrimaryMetricId
 }
 
-const getNormalizedEnergySubmetricIds = (
-  controls: EnergymapBuildingInfoConsumptionControls,
-  current: readonly EnergymapBuildingInfoEnergySubmetricId[]
-) => {
-  const validSubmetricIds = new Set(
-    controls.energySubmetrics.map((submetric) => submetric.id)
-  )
-  const next = current.filter((id) => validSubmetricIds.has(id))
-
-  return areEnergySubmetricIdsEqual(current, next) ? current : next
-}
-
 const getConsumptionControlsStateKey = (
   controls: EnergymapBuildingInfoConsumptionControls
 ) =>
   [
     controls.defaultPrimaryMetricId,
     controls.primaryMetrics.map((metric) => metric.id).join(','),
-    controls.defaultEnergySubmetricIds.join(','),
-    controls.energySubmetrics.map((submetric) => submetric.id).join(','),
+    (controls.defaultEnergySubmetricIds ?? []).join(','),
+    (controls.energySubmetrics ?? [])
+      .map((submetric) => submetric.id)
+      .join(','),
   ].join('|')
 
 export const BuildingInfoText = ({
@@ -1767,9 +1754,7 @@ const BuildingInfoEnergySubmetricButton = ({
   selected,
   onClick,
 }: {
-  submetric: NonNullable<
-    EnergymapBuildingInfoSection['consumptionControls']
-  >['energySubmetrics'][number]
+  submetric: EnergymapBuildingInfoEnergySubmetric
   selected: boolean
   onClick: () => void
 }) => {
@@ -2147,10 +2132,10 @@ const BuildingInfoEnergyConsumptionSectionContent = ({
     controls,
     requestedPrimaryMetricId
   )
-  const selectedEnergySubmetricIds = getNormalizedEnergySubmetricIds(
+  const selectedEnergySubmetricIds = normalizeEnergySubmetricSelection({
     controls,
-    requestedEnergySubmetricIds
-  )
+    selectedSubmetricIds: requestedEnergySubmetricIds,
+  })
 
   const primaryMetricById = new Map(
     controls.primaryMetrics.map((metric) => [metric.id, metric])
@@ -2161,16 +2146,16 @@ const BuildingInfoEnergyConsumptionSectionContent = ({
     (metric): metric is EnergymapBuildingInfoPrimaryMetric => metric != null
   )
   const energySubmetricById = new Map(
-    controls.energySubmetrics.map((submetric) => [submetric.id, submetric])
+    (controls.energySubmetrics ?? []).map((submetric) => [
+      submetric.id,
+      submetric,
+    ])
   )
   const sortedEnergySubmetrics = ENERGY_SUBMETRIC_ORDER.map((submetricId) =>
     energySubmetricById.get(submetricId)
   ).filter(
-    (
-      submetric
-    ): submetric is NonNullable<
-      EnergymapBuildingInfoSection['consumptionControls']
-    >['energySubmetrics'][number] => submetric != null
+    (submetric): submetric is EnergymapBuildingInfoEnergySubmetric =>
+      submetric != null
   )
   const activePrimaryMetric =
     primaryMetricById.get(activePrimaryMetricId) ??
@@ -2189,11 +2174,17 @@ const BuildingInfoEnergyConsumptionSectionContent = ({
     submetricId: EnergymapBuildingInfoEnergySubmetricId
   ) => {
     setRequestedEnergySubmetricIds((current) => {
-      const normalized = getNormalizedEnergySubmetricIds(controls, current)
+      const normalized = normalizeEnergySubmetricSelection({
+        controls,
+        selectedSubmetricIds: current,
+      })
 
       return normalized.includes(submetricId)
         ? normalized.filter((id) => id !== submetricId)
-        : [...normalized, submetricId]
+        : normalizeEnergySubmetricSelection({
+            controls,
+            selectedSubmetricIds: [submetricId, ...normalized],
+          })
     })
   }
 

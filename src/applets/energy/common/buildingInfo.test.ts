@@ -2,8 +2,12 @@ import { execFileSync } from 'node:child_process'
 import {
   composeEnergymapBuildingAddress,
   createEnergymapBuildingInfoPanels,
+  formatCalendarDate,
   formatYearFromDate,
   getSelectedEnergyConsumption,
+  isEnergymapBuildingInfoValueAvailable,
+  normalizeEnergySubmetricSelection,
+  normalizeEnergymapBuildingInfoText,
   resolveCurrentEnergyScenarioPrefix,
 } from './buildingInfo'
 import enTranslations from '@i18n/energiakartta/en.json'
@@ -12,18 +16,34 @@ import type {
   EnergymapBuildingInfoConsumptionControls,
   EnergymapBuildingInfoEnergySubmetricId,
   EnergymapBuildingInfoMetric,
+  EnergymapBuildingInfoMetricValue,
   EnergymapBuildingInfoPanel,
   EnergymapBuildingInfoPanelId,
   EnergymapBuildingInfoPrimaryMetric,
   EnergymapBuildingInfoPrimaryMetricId,
   EnergymapBuildingInfoRow,
   EnergymapBuildingInfoScenario,
+  EnergymapBuildingInfoSection,
   EnergymapBuildingInfoText,
   EnergymapBuildingInfoValue,
 } from './buildingInfo'
 import type { EnergymapSelectedBuilding } from './types'
 
 const translationPrefix = 'sidebar.building_info'
+
+const translation = (
+  keyName: string,
+  params?: Record<string, string | number>
+): EnergymapBuildingInfoText => ({
+  type: 'translation',
+  keyName,
+  ...(params == null ? {} : { params }),
+})
+
+const plain = (text: string): EnergymapBuildingInfoText => ({
+  type: 'plain',
+  text,
+})
 
 const createSelectedBuilding = (
   properties: EnergymapSelectedBuilding['properties']
@@ -36,7 +56,7 @@ const createSelectedBuilding = (
   properties,
 })
 
-const districtHeatingBuilding = createSelectedBuilding({
+const districtHeatingProperties = {
   building_key: '9da63bcd-bb54-447c-b991-8eec8f8c5666',
   permanent_building_identifier: '101614422K',
   address_fin: 'Mikkolantie 34a',
@@ -47,10 +67,6 @@ const districtHeatingBuilding = createSelectedBuilding({
   heating_method: '01',
   heating_energy_source: '01',
   floor_area: 454,
-  gross_floor_area: 333,
-  total_area: 454,
-  volume: 1006,
-  energy_certificate_class: 'D',
   energy_class: 'D',
   is_energy_class_modeled: false,
   energy_certificate_valid_until: '2031-12-31 00:00:00.0',
@@ -61,43 +77,20 @@ const districtHeatingBuilding = createSelectedBuilding({
   distr_aahp_total: 289.7019231,
   distr_solar_total: 334.2980769,
   distr_windows_total: 332.6442308,
-})
+} satisfies EnergymapSelectedBuilding['properties']
 
-const geothermalBuilding = createSelectedBuilding({
-  building_key: '020e4152-d81a-4e5a-a2cd-84819a0fb84d',
-  permanent_building_identifier: '103389971B',
-  address_fin: 'Kantakylantie 20',
-  postal_code: '00650',
-  postal_office_fin: 'HELSINKI',
-  main_purpose: '06',
-  completion_date: '1979-01-01',
-  heating_method: '01',
-  heating_energy_source: '09',
-  floor_area: 262,
-  gross_floor_area: 336,
-  total_area: 336,
-  volume: 1006,
-  gshp_default_total: 155.8557692,
-  gshp_default_heat: 128.1442307,
-  gshp_default_elec: 27.71153846,
-  gshp_solar_total: 132.6634615,
-  gshp_windows_total: 147.2788462,
-})
+const districtHeatingBuilding = createSelectedBuilding(
+  districtHeatingProperties
+)
 
-const unsupportedHeatingBuilding = createSelectedBuilding({
-  building_key: 'unsupported',
-  permanent_building_identifier: '103383786U',
-  address_fin: 'Henrik Sohlbergin tie 25',
-  postal_code: '00640',
-  postal_office_fin: 'HELSINKI',
-  main_purpose: '07',
-  completion_date: '1976-12-31',
-  heating_method: '07',
-  heating_energy_source: '99',
-  floor_area: 384,
-  gross_floor_area: 386,
-  total_area: 386,
-  volume: 2025,
+const completeBuilding = createSelectedBuilding({
+  ...districtHeatingProperties,
+  building_key: 'complete-building',
+  energy_certificate_previous_class: 'E',
+  energy_certificate_ventilation_description_fi:
+    '  Painovoimainen ilmanvaihto.  ',
+  energy_certificate_recommendations_fi:
+    '  Tiivistä yläpohjan lämmöneristystä.  ',
 })
 
 const getPanel = (
@@ -105,93 +98,38 @@ const getPanel = (
   panelId: EnergymapBuildingInfoPanelId
 ) => {
   const panel = panels.find((candidate) => candidate.id === panelId)
-
-  if (panel == null) {
-    throw new Error(`Panel not found: ${panelId}`)
-  }
-
+  if (panel == null) throw new Error(`Panel not found: ${panelId}`)
   return panel
 }
 
-const getRows = (panel: EnergymapBuildingInfoPanel) =>
-  panel.sections.flatMap((section) => section.rows ?? [])
+const findPanel = (
+  panels: EnergymapBuildingInfoPanel[],
+  panelId: EnergymapBuildingInfoPanelId
+) => panels.find((candidate) => candidate.id === panelId)
 
-const getSection = (
-  panel: EnergymapBuildingInfoPanel,
-  sectionId: string
-) => {
+const getSection = (panel: EnergymapBuildingInfoPanel, sectionId: string) => {
   const section = panel.sections.find((candidate) => candidate.id === sectionId)
-
-  if (section == null) {
-    throw new Error(`Section not found: ${sectionId}`)
-  }
-
+  if (section == null) throw new Error(`Section not found: ${sectionId}`)
   return section
 }
+
+const findSection = (panel: EnergymapBuildingInfoPanel, sectionId: string) =>
+  panel.sections.find((candidate) => candidate.id === sectionId)
+
+const getRows = (panel: EnergymapBuildingInfoPanel) =>
+  panel.sections.flatMap((section) => section.rows ?? [])
 
 const getRow = (
   panel: EnergymapBuildingInfoPanel,
   rowId: string
 ): EnergymapBuildingInfoRow => {
-  const row = getRows(panel).find((candidate) => candidate.id === rowId)
-
-  if (row == null) {
-    throw new Error(`Row not found: ${rowId}`)
-  }
-
-  return row
+  const result = getRows(panel).find((candidate) => candidate.id === rowId)
+  if (result == null) throw new Error(`Row not found: ${rowId}`)
+  return result
 }
 
-const getVentilationRow = ({
-  properties,
-  locale,
-}: {
-  properties: EnergymapSelectedBuilding['properties']
-  locale: string
-}) => {
-  const panels = createEnergymapBuildingInfoPanels({
-    selectedBuilding: createSelectedBuilding(properties),
-    locale,
-  })
-
-  return getRow(getPanel(panels ?? [], 'buildingDetails'), 'ventilation')
-}
-
-const getCertificateRecommendationsRow = ({
-  properties,
-  locale,
-}: {
-  properties: EnergymapSelectedBuilding['properties']
-  locale: string
-}) => {
-  const panels = createEnergymapBuildingInfoPanels({
-    selectedBuilding: createSelectedBuilding(properties),
-    locale,
-  })
-
-  return getRow(
-    getPanel(panels ?? [], 'renovationRecommendations'),
-    'energyCertificateRecommendations'
-  )
-}
-
-const getCertificateValidityRow = ({
-  properties,
-  locale,
-}: {
-  properties: EnergymapSelectedBuilding['properties']
-  locale: string
-}) => {
-  const panels = createEnergymapBuildingInfoPanels({
-    selectedBuilding: createSelectedBuilding(properties),
-    locale,
-  })
-
-  return getRow(
-    getPanel(panels ?? [], 'buildingDetails'),
-    'energyCertificateValidity'
-  )
-}
+const findRow = (panel: EnergymapBuildingInfoPanel, rowId: string) =>
+  getRows(panel).find((candidate) => candidate.id === rowId)
 
 const getMetrics = (panel: EnergymapBuildingInfoPanel) =>
   panel.sections.flatMap((section) => section.metrics ?? [])
@@ -199,246 +137,936 @@ const getMetrics = (panel: EnergymapBuildingInfoPanel) =>
 const getMetric = (
   panel: EnergymapBuildingInfoPanel,
   metricId: EnergymapBuildingInfoMetric['id']
-): EnergymapBuildingInfoMetric => {
+) => {
   const metric = getMetrics(panel).find((candidate) => candidate.id === metricId)
-
-  if (metric == null) {
-    throw new Error(`Metric not found: ${metricId}`)
-  }
-
+  if (metric == null) throw new Error(`Metric not found: ${metricId}`)
   return metric
 }
 
 const getMetricValue = (
   metric: EnergymapBuildingInfoMetric,
-  valueId: 'annualTotal' | 'perSquareMeter' | 'savingsPercent'
-): EnergymapBuildingInfoValue => {
+  valueId: EnergymapBuildingInfoMetricValue['id']
+) => {
   const value = metric.values.find((candidate) => candidate.id === valueId)
-
-  if (value == null) {
-    throw new Error(`Metric value not found: ${valueId}`)
-  }
-
+  if (value == null) throw new Error(`Metric value not found: ${valueId}`)
   return value
 }
 
-const getConsumptionControls = (
+const getControls = (
   panel: EnergymapBuildingInfoPanel
 ): EnergymapBuildingInfoConsumptionControls => {
   const controls = panel.sections.find(
     (section) => section.id === 'estimatedConsumption'
   )?.consumptionControls
-
-  if (controls == null) {
-    throw new Error('Consumption controls not found')
-  }
-
+  if (controls == null) throw new Error('Consumption controls not found')
   return controls
 }
 
 const getPrimaryMetric = (
-  panel: EnergymapBuildingInfoPanel,
+  controls: EnergymapBuildingInfoConsumptionControls,
   metricId: EnergymapBuildingInfoPrimaryMetricId
 ): EnergymapBuildingInfoPrimaryMetric => {
-  const metric = getConsumptionControls(panel).primaryMetrics.find(
+  const metric = controls.primaryMetrics.find(
     (candidate) => candidate.id === metricId
   )
-
-  if (metric == null) {
-    throw new Error(`Primary metric not found: ${metricId}`)
-  }
-
+  if (metric == null) throw new Error(`Primary metric not found: ${metricId}`)
   return metric
 }
-
-const getScenarios = (panel: EnergymapBuildingInfoPanel) =>
-  panel.sections.flatMap((section) => section.scenarios ?? [])
 
 const getScenario = (
   panel: EnergymapBuildingInfoPanel,
   scenarioId: EnergymapBuildingInfoScenario['id']
-): EnergymapBuildingInfoScenario => {
-  const scenario = getScenarios(panel).find(
-    (candidate) => candidate.id === scenarioId
-  )
-
-  if (scenario == null) {
-    throw new Error(`Scenario not found: ${scenarioId}`)
-  }
-
+) => {
+  const scenario = panel.sections
+    .flatMap((section) => section.scenarios ?? [])
+    .find((candidate) => candidate.id === scenarioId)
+  if (scenario == null) throw new Error(`Scenario not found: ${scenarioId}`)
   return scenario
 }
 
 const expectPlainText = (
-  value: EnergymapBuildingInfoText,
-  expectedText: string
-) => {
-  expect(value).toEqual({ type: 'plain', text: expectedText })
-}
+  text: EnergymapBuildingInfoText,
+  expected: string
+) => expect(text).toEqual({ type: 'plain', text: expected })
 
 const expectTranslation = (
-  value: EnergymapBuildingInfoText,
-  expectedKey: string,
-  expectedParams?: Record<string, string | number>
-) => {
-  expect(value).toEqual({
+  text: EnergymapBuildingInfoText,
+  keyName: string,
+  params?: Record<string, string | number>
+) =>
+  expect(text).toEqual({
     type: 'translation',
-    keyName: expectedKey,
-    ...(expectedParams == null ? {} : { params: expectedParams }),
+    keyName,
+    ...(params == null ? {} : { params }),
   })
+
+const expectAvailableText = (text: EnergymapBuildingInfoText) => {
+  expect(normalizeEnergymapBuildingInfoText(text)).not.toBeNull()
+  if (text.type === 'sequence') {
+    expect(text.parts.length).toBeGreaterThan(0)
+    text.parts.forEach(expectAvailableText)
+  }
 }
 
-describe('Energiakartta building info model', () => {
-  it('returns null when there is no selected building', () => {
+const expectAvailableValue = (value: EnergymapBuildingInfoValue) => {
+  expect(isEnergymapBuildingInfoValueAvailable(value)).toBe(true)
+  expect(['real', 'estimate']).toContain(value.status)
+  expectAvailableText(value.text)
+  if (value.note != null) expectAvailableText(value.note)
+}
+
+const expectAvailableSection = (section: EnergymapBuildingInfoSection) => {
+  if (section.title != null) expectAvailableText(section.title)
+  if (section.description != null) expectAvailableText(section.description)
+
+  const collections = [section.rows, section.metrics, section.scenarios]
+  for (const collection of collections) {
+    if (collection != null) expect(collection.length).toBeGreaterThan(0)
+  }
+
+  for (const row of section.rows ?? []) {
+    expectAvailableText(row.label)
+    expectAvailableValue(row)
+  }
+
+  for (const metric of section.metrics ?? []) {
+    expectAvailableText(metric.label)
+    expect(metric.values.length).toBeGreaterThan(0)
+    for (const value of metric.values) {
+      expectAvailableText(value.label)
+      expectAvailableValue(value)
+    }
+  }
+
+  for (const scenario of section.scenarios ?? []) {
+    expectAvailableText(scenario.label)
+    expect(scenario.values.length).toBeGreaterThan(0)
+    for (const value of scenario.values) {
+      expectAvailableText(value.label)
+      expectAvailableValue(value)
+    }
+  }
+
+  for (const item of section.notes ?? []) {
+    expect(['real', 'estimate']).toContain(item.status)
+    expectAvailableText(item.text)
+  }
+
+  const controls = section.consumptionControls
+  if (controls != null) {
+    expect(controls.primaryMetrics.length).toBeGreaterThan(0)
+    expect(
+      controls.primaryMetrics.some(
+        (metric) => metric.id === controls.defaultPrimaryMetricId
+      )
+    ).toBe(true)
+    expect(controls.primaryMetrics.every((metric) => metric.supported)).toBe(
+      true
+    )
+    for (const metric of controls.primaryMetrics) {
+      expectAvailableText(metric.label)
+      if (metric.id === 'energy') {
+        expect(controls.energySubmetrics?.length).toBeGreaterThan(0)
+      } else {
+        expect(metric.value).toBeDefined()
+        expectAvailableValue(metric.value as EnergymapBuildingInfoValue)
+      }
+      expect(metric.unavailableNote).toBeUndefined()
+      if (metric.residentCountControl != null) {
+        expect(metric.id).toBe('water')
+        expectAvailableText(metric.residentCountControl.label)
+        expectAvailableText(metric.residentCountControl.toggleLabel)
+        expectAvailableText(metric.residentCountControl.description)
+        expectAvailableText(metric.residentCountControl.unavailableText)
+      }
+    }
+
+    if (controls.energySubmetrics != null) {
+      expect(controls.energySubmetrics.length).toBeGreaterThan(0)
+      expect(controls.defaultEnergySubmetricIds?.length).toBeGreaterThan(0)
+      const defaultIds = new Set(controls.defaultEnergySubmetricIds)
+      for (const submetric of controls.energySubmetrics) {
+        expect(submetric.supported).toBe(true)
+        expect(submetric.defaultSelected).toBe(defaultIds.has(submetric.id))
+        expect(submetric.unavailableNote).toBeUndefined()
+        expect(submetric.metric.values.length).toBeGreaterThan(0)
+        submetric.metric.values.forEach(expectAvailableValue)
+      }
+      expect(
+        getSelectedEnergyConsumption({
+          controls,
+          selectedSubmetricIds: controls.defaultEnergySubmetricIds ?? [],
+        }).values.length
+      ).toBeGreaterThan(0)
+    } else {
+      expect(controls.defaultEnergySubmetricIds).toBeUndefined()
+      expect(controls.combinedEnergyMetric).toBeUndefined()
+    }
+
+    if (controls.combinedEnergyMetric != null) {
+      expect(controls.combinedEnergyMetric.values.length).toBeGreaterThan(0)
+      controls.combinedEnergyMetric.values.forEach(expectAvailableValue)
+    }
+    expect(controls.emptyEnergyMetric).toBeUndefined()
+  }
+
+  expect(
+    (section.rows?.length ?? 0) +
+      (section.metrics?.length ?? 0) +
+      (section.scenarios?.length ?? 0) +
+      (section.consumptionControls == null ? 0 : 1)
+  ).toBeGreaterThan(0)
+}
+
+const expectAvailableGraph = (panels: EnergymapBuildingInfoPanel[]) => {
+  for (const panel of panels) {
+    expectAvailableText(panel.title)
+    if (panel.description != null) expectAvailableText(panel.description)
+    expect(panel.sections.length).toBeGreaterThan(0)
+    panel.sections.forEach(expectAvailableSection)
+  }
+}
+
+describe('Energiakartta building info availability model', () => {
+  it('distinguishes no selection from a selected building with no content', () => {
     expect(
       createEnergymapBuildingInfoPanels({
         selectedBuilding: null,
         locale: 'en-US',
       })
     ).toBeNull()
+
+    expect(
+      createEnergymapBuildingInfoPanels({
+        selectedBuilding: createSelectedBuilding({ building_key: 'empty' }),
+        locale: 'en-US',
+      })
+    ).toEqual([])
   })
 
-  it('returns the three panel ids in stable order', () => {
-    const panels = createEnergymapBuildingInfoPanels({
-      selectedBuilding: districtHeatingBuilding,
-      locale: 'en-US',
+  it('uses one status-and-structured-text availability contract', () => {
+    const value = (status: EnergymapBuildingInfoValue['status'], text = plain('0')) =>
+      ({ status, text })
+
+    expect(isEnergymapBuildingInfoValueAvailable(value('real'))).toBe(true)
+    expect(isEnergymapBuildingInfoValueAvailable(value('estimate'))).toBe(true)
+    expect(isEnergymapBuildingInfoValueAvailable(value('missing'))).toBe(false)
+    expect(isEnergymapBuildingInfoValueAvailable(value('placeholder'))).toBe(
+      false
+    )
+    expect(
+      isEnergymapBuildingInfoValueAvailable(value('real', plain(' \n\t ')))
+    ).toBe(false)
+    expect(
+      isEnergymapBuildingInfoValueAvailable(
+        value('real', translation('  '))
+      )
+    ).toBe(false)
+    expect(
+      isEnergymapBuildingInfoValueAvailable({
+        status: 'estimate',
+        text: {
+          type: 'sequence',
+          separator: ' / ',
+          parts: [plain(' '), translation('')],
+        },
+      })
+    ).toBe(false)
+    expect(isEnergymapBuildingInfoValueAvailable(null)).toBe(false)
+    expect(isEnergymapBuildingInfoValueAvailable(undefined)).toBe(false)
+  })
+
+  it('normalizes sequences recursively without rewriting surviving source text', () => {
+    const sourceText = plain('  literal source prose  ')
+    const translatedText = translation('valid.key')
+    const normalized = normalizeEnergymapBuildingInfoText({
+      type: 'sequence',
+      separator: ' | ',
+      parts: [
+        plain('  '),
+        sourceText,
+        {
+          type: 'sequence',
+          separator: ', ',
+          parts: [translation('\t'), translatedText],
+        },
+      ],
     })
 
-    expect(panels?.map((panel) => panel.id)).toEqual([
+    expect(normalized).toEqual({
+      type: 'sequence',
+      separator: ' | ',
+      parts: [
+        sourceText,
+        { type: 'sequence', separator: ', ', parts: [translatedText] },
+      ],
+    })
+    expect(normalizeEnergymapBuildingInfoText(plain(''))).toBeNull()
+    expect(normalizeEnergymapBuildingInfoText(null)).toBeNull()
+  })
+
+  it('recursively returns only available content for a complete building', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: completeBuilding,
+      locale: 'en-US',
+    }) as EnergymapBuildingInfoPanel[]
+
+    expect(panels.map((panel) => panel.id)).toEqual([
       'energyConsumption',
       'renovationRecommendations',
       'buildingDetails',
     ])
-  })
+    expectAvailableGraph(panels)
 
-  it('formats date strings and composes address values from live tile fields', () => {
-    expect(formatYearFromDate('1967-01-01')).toBe('1967')
-    expect(formatYearFromDate('2023-08-29T00:00:00Z')).toBe('2023')
-    expect(formatYearFromDate('not a date')).toBeNull()
-    expect(
-      composeEnergymapBuildingAddress(districtHeatingBuilding.properties)
-    ).toBe('Mikkolantie 34a, 00640 HELSINKI')
-  })
-
-  it('maps real building details without overclaiming unavailable Figma fields', () => {
-    const panels = createEnergymapBuildingInfoPanels({
-      selectedBuilding: districtHeatingBuilding,
-      locale: 'en-US',
-    })
-    const buildingPanel = getPanel(panels ?? [], 'buildingDetails')
-
-    expect(
-      buildingPanel.sections.map((section) => ({
-        id: section.id,
-        variant: section.variant ?? 'default',
-      }))
-    ).toEqual([
-      { id: 'buildingSubheader', variant: 'buildingSubheader' },
-      { id: 'identity', variant: 'default' },
-      { id: 'energyCertificate', variant: 'energyCertificate' },
-      { id: 'previousEnergyClass', variant: 'previousEnergyClass' },
-      { id: 'plannedMeasures', variant: 'measureList' },
-      { id: 'technicalDetails', variant: 'default' },
-    ])
-
-    expect(getSection(buildingPanel, 'identity').rows?.map((row) => row.id))
-      .not.toContain('address')
-    expect(
-      getSection(buildingPanel, 'energyCertificate').rows?.map((row) => row.id)
-    ).toEqual(['energyClass', 'energyCertificateValidity'])
-    expect(
-      getSection(buildingPanel, 'previousEnergyClass').rows?.map(
-        (row) => row.id
+    const rowIds = panels.flatMap((panel) =>
+      panel.sections.flatMap((section) =>
+        (section.rows ?? []).map(({ id }) => id)
       )
-    ).toEqual(['previousEnergyClass', 'energyClassMeasures'])
-    expect(
-      getSection(buildingPanel, 'technicalDetails').rows?.map((row) => row.id)
-    ).toEqual([
-      'heating',
-      'heatedNetArea',
-      'ventilation',
+    )
+    for (const unsupportedRowId of [
+      'propertyIdentifier',
+      'renovationRecommendations',
+      'energyRecommendations',
+      'energyClassMeasures',
+      'plannedMeasures',
       'plotTenure',
       'residentCount',
-    ])
+      'waterHeatingSplit',
+    ]) {
+      expect(rowIds).not.toContain(unsupportedRowId)
+    }
+    expect(
+      panels.flatMap((panel) => getMetrics(panel).map(({ id }) => id))
+    ).not.toContain('waterHeating')
+    expect(
+      getControls(getPanel(panels, 'energyConsumption')).energySubmetrics?.map(
+        ({ id }) => id
+      )
+    ).not.toContain('waterHeating')
 
-    const address = getRow(buildingPanel, 'address')
-    expect(address.status).toBe('real')
-    expectPlainText(address.text, 'Mikkolantie 34a, 00640 HELSINKI')
-    expect(address.sourceProperties).toEqual([
+    const serialized = JSON.stringify(panels)
+    expect(serialized).not.toContain('"status":"missing"')
+    expect(serialized).not.toContain('"status":"placeholder"')
+  })
+
+  it('preserves real building identity, formatting, language, and strict modeled evidence', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        ...completeBuilding.properties,
+        energy_class: 'C',
+        is_energy_class_modeled: true,
+      }),
+      locale: 'en-US',
+    }) as EnergymapBuildingInfoPanel[]
+    const building = getPanel(panels, 'buildingDetails')
+
+    expect(building.sections.map((section) => section.id)).toEqual([
+      'buildingSubheader',
+      'identity',
+      'energyCertificate',
+      'previousEnergyClass',
+      'technicalDetails',
+    ])
+    expectPlainText(
+      getRow(building, 'address').text,
+      'Mikkolantie 34a, 00640 HELSINKI'
+    )
+    expect(getRow(building, 'address').sourceProperties).toEqual([
       'address_fin',
       'postal_code',
       'postal_office_fin',
     ])
-
-    const buildingIdentifier = getRow(buildingPanel, 'buildingIdentifier')
-    expect(buildingIdentifier.status).toBe('real')
-    expectPlainText(buildingIdentifier.text, '101614422K')
-
-    const constructionYear = getRow(buildingPanel, 'constructionYear')
-    expect(constructionYear.status).toBe('real')
-    expectPlainText(constructionYear.text, '1967')
-    expect(constructionYear.sourceProperties).toEqual(['completion_date'])
-
-    const buildingType = getRow(buildingPanel, 'buildingType')
-    expect(buildingType.status).toBe('real')
+    expectPlainText(getRow(building, 'constructionYear').text, '1967')
     expectTranslation(
-      buildingType.text,
+      getRow(building, 'buildingType').text,
       `${translationPrefix}.codes.main_purpose.05`
     )
-
-    const energyClass = getRow(buildingPanel, 'energyClass')
-    expect(energyClass.status).toBe('real')
-    expectPlainText(energyClass.text, 'D')
-    expect(energyClass.sourceProperties).toEqual(['energy_class'])
-    expect(energyClass.modeledIndicator).toBeUndefined()
-
-    const energyCertificateValidity = getRow(
-      buildingPanel,
-      'energyCertificateValidity'
-    )
-    expect(energyCertificateValidity.status).toBe('real')
-    expectPlainText(energyCertificateValidity.text, '12/31/2031')
-    expect(energyCertificateValidity.sourceProperties).toEqual([
-      'energy_certificate_valid_until',
-    ])
-
-    const propertyIdentifier = getRow(buildingPanel, 'propertyIdentifier')
-    expect(propertyIdentifier.status).toBe('placeholder')
-    expectTranslation(
-      propertyIdentifier.text,
-      `${translationPrefix}.placeholders.not_published`
-    )
-
-    const heatedNetArea = getRow(buildingPanel, 'heatedNetArea')
-    expect(heatedNetArea.status).toBe('real')
-    expectPlainText(heatedNetArea.text, '1,355')
-    expect(heatedNetArea.unitKey).toBe(
+    expectPlainText(getRow(building, 'heatedNetArea').text, '1,355')
+    expect(getRow(building, 'heatedNetArea').unitKey).toBe(
       `${translationPrefix}.units.square_meters`
     )
-    expect(heatedNetArea.sourceProperties).toEqual([
-      'energy_certificate_heated_net_area',
+
+    const ventilation = getRow(building, 'ventilation')
+    expectPlainText(ventilation.text, 'Painovoimainen ilmanvaihto.')
+    expect(ventilation.sourceLanguage).toBe('fi')
+    expect(ventilation.sourceProperties).toEqual([
+      'energy_certificate_ventilation_description_fi',
     ])
+
+    const energyClass = getRow(building, 'energyClass')
+    expectPlainText(energyClass.text, 'C')
+    expect(energyClass.sourceProperties).toEqual(['energy_class'])
+    expect(energyClass.modeledIndicator?.sourceProperties).toEqual([
+      'is_energy_class_modeled',
+    ])
+    expect(energyClass.modeledIndicator?.ariaLabelKey).toBe(
+      `${translationPrefix}.panels.building.energy_class_modeled.help_aria_label`
+    )
   })
 
-  it('does not publish raw property-identifier data without live data and an approved product purpose', () => {
+  it.each([false, undefined, 'true', 1])(
+    'does not add modeled evidence for non-literal true value %p',
+    (modeled) => {
+      const panels = createEnergymapBuildingInfoPanels({
+        selectedBuilding: createSelectedBuilding({
+          building_key: `modeled-${String(modeled)}`,
+          energy_class: 'B',
+          is_energy_class_modeled: modeled,
+        }),
+        locale: 'en-US',
+      }) as EnergymapBuildingInfoPanel[]
+
+      expect(
+        getRow(getPanel(panels, 'buildingDetails'), 'energyClass')
+          .modeledIndicator
+      ).toBeUndefined()
+    }
+  )
+
+  it('does not let modeled evidence keep a missing class or infer a fallback class', () => {
     const panels = createEnergymapBuildingInfoPanels({
       selectedBuilding: createSelectedBuilding({
-        building_key: 'property-identifier-gate',
-        property_identifier: '091-416-0011-0023',
+        building_key: 'modeled-without-effective-class',
+        energy_certificate_class: 'A',
+        is_energy_class_modeled: true,
       }),
       locale: 'en-US',
     })
-    const propertyIdentifier = getRow(
-      getPanel(panels ?? [], 'buildingDetails'),
-      'propertyIdentifier'
+
+    expect(panels).toEqual([])
+  })
+
+  it('keeps unknown source codes as real values', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        building_key: 'unknown-building-code',
+        main_purpose: '98',
+      }),
+      locale: 'en-US',
+    }) as EnergymapBuildingInfoPanel[]
+    const buildingType = getRow(
+      getPanel(panels, 'buildingDetails'),
+      'buildingType'
     )
 
-    expect(propertyIdentifier.status).toBe('placeholder')
+    expect(buildingType.status).toBe('real')
     expectTranslation(
-      propertyIdentifier.text,
-      `${translationPrefix}.placeholders.not_published`
+      buildingType.text,
+      `${translationPrefix}.placeholders.unknown_code`,
+      { code: '98' }
     )
-    expect(propertyIdentifier.sourceProperties).toBeUndefined()
+    expect(buildingType.sourceProperties).toEqual(['main_purpose'])
+  })
+
+  it('falls back to a nonblank source language and preserves literal prose', () => {
+    const sourceProse =
+      'Ensimmäinen kappale säilyy.\n\n<script>ei HTML:ää</script> **ei Markdownia**'
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        building_key: 'source-language-fallback',
+        energy_certificate_recommendations_fi: ' \n ',
+        energy_certificate_recommendations_sv: `  ${sourceProse}  `,
+      }),
+      locale: 'en-US',
+    }) as EnergymapBuildingInfoPanel[]
+    const recommendation = getRow(
+      getPanel(panels, 'renovationRecommendations'),
+      'energyCertificateRecommendations'
+    )
+
+    expect(recommendation.status).toBe('real')
+    expect(recommendation.presentation).toBe('expandableSourceText')
+    expect(recommendation.sourceLanguage).toBe('sv')
+    expect(recommendation.sourceProperties).toEqual([
+      'energy_certificate_recommendations_sv',
+    ])
+    expectPlainText(recommendation.text, sourceProse)
+  })
+
+  it('preserves complete energy estimate and calculation metadata', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: districtHeatingBuilding,
+      locale: 'en-US',
+    }) as EnergymapBuildingInfoPanel[]
+    const energy = getPanel(panels, 'energyConsumption')
+    const total = getMetric(energy, 'total')
+    const annual = getMetricValue(total, 'annualTotal')
+    const intensity = getMetricValue(total, 'perSquareMeter')
+
+    expect(annual.status).toBe('estimate')
+    expectPlainText(annual.text, '166,976')
+    expect(annual.unitKey).toBe(`${translationPrefix}.units.kwh_per_year`)
+    expect(annual.sourceProperties).toEqual([
+      'distr_default_total',
+      'floor_area',
+    ])
+    expectTranslation(
+      annual.note as EnergymapBuildingInfoText,
+      `${translationPrefix}.panels.energy.note.estimated`
+    )
+    expectPlainText(intensity.text, '367.8')
+    expect(intensity.sourceProperties).toEqual(['distr_default_total'])
+    expect(intensity.unitKey).toBe(
+      `${translationPrefix}.units.kwh_per_square_meter_year`
+    )
+  })
+
+  it('keeps numeric zero as an available formatted estimate', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        building_key: 'zero-estimates',
+        main_purpose: '05',
+        heating_method: '01',
+        heating_energy_source: '01',
+        floor_area: 100,
+        distr_default_total: 0,
+        distr_default_heat: 0,
+        distr_default_elec: 0,
+      }),
+      locale: 'en-US',
+    }) as EnergymapBuildingInfoPanel[]
+    const total = getMetric(getPanel(panels, 'energyConsumption'), 'total')
+
+    expectPlainText(getMetricValue(total, 'annualTotal').text, '0')
+    expectPlainText(getMetricValue(total, 'perSquareMeter').text, '0')
+    expectAvailableGraph(panels)
+  })
+
+  it.each([
+    ['an empty string', 'distr_default_total', 'total', ''],
+    ['a whitespace-only string', 'distr_default_heat', 'heating', ' \t\n '],
+    ['null', 'distr_default_elec', 'electricity', null],
+  ] as const)(
+    'does not coerce %s numeric estimate input to zero',
+    (_caseName, propertyName, metricId, input) => {
+      const panels = createEnergymapBuildingInfoPanels({
+        selectedBuilding: createSelectedBuilding({
+          ...districtHeatingProperties,
+          building_key: `blank-numeric-${metricId}`,
+          [propertyName]: input,
+        }),
+        locale: 'en-US',
+      }) as EnergymapBuildingInfoPanel[]
+      const energy = getPanel(panels, 'energyConsumption')
+
+      expect(getMetrics(energy).map(({ id }) => id)).not.toContain(metricId)
+      expectAvailableGraph(panels)
+    }
+  )
+
+  it('normalizes complete controls, defaults, estimates, and resident input metadata', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: districtHeatingBuilding,
+      locale: 'en-US',
+    }) as EnergymapBuildingInfoPanel[]
+    const energy = getPanel(panels, 'energyConsumption')
+    const controls = getControls(energy)
+
+    expect(controls.defaultPrimaryMetricId).toBe('energy')
+    expect(controls.primaryMetrics.map((metric) => metric.id)).toEqual([
+      'energy',
+      'water',
+      'cost',
+      'co2',
+    ])
+    expect(controls.energySubmetrics?.map((metric) => metric.id)).toEqual([
+      'electricity',
+      'heating',
+    ])
+    expect(controls.defaultEnergySubmetricIds).toEqual([
+      'electricity',
+      'heating',
+    ])
+    expect(controls.emptyEnergyMetric).toBeUndefined()
+
+    const water = getPrimaryMetric(controls, 'water')
+    expectPlainText(water.value?.text as EnergymapBuildingInfoText, '481.8')
+    expect(water.value?.unitKey).toBe(
+      `${translationPrefix}.units.cubic_meters_per_year`
+    )
+    expect(water.value?.sourceProperties).toEqual(['floor_area'])
+    expect(water.residentCountControl).toMatchObject({
+      defaultValue: 11,
+      minValue: 1,
+      maxValue: 10000,
+    })
+
+    const cost = getPrimaryMetric(controls, 'cost')
+    expectPlainText(cost.value?.text as EnergymapBuildingInfoText, '19,613')
+    expect(cost.value?.unitKey).toBe(
+      `${translationPrefix}.units.eur_per_year`
+    )
+    expect(cost.value?.sourceProperties).toEqual([
+      'main_purpose',
+      'floor_area',
+      'distr_default_elec',
+      'distr_default_heat',
+      'heating_energy_source',
+      'heating_method',
+    ])
+
+    const co2 = getPrimaryMetric(controls, 'co2')
+    expectPlainText(co2.value?.text as EnergymapBuildingInfoText, '18,436')
+    expect(co2.value?.unitKey).toBe(
+      `${translationPrefix}.units.kg_co2_per_year`
+    )
+    expect(getSection(energy, 'calculationContext').rows?.map(({ id }) => id)).toEqual(
+      ['costMode', 'co2Mode']
+    )
+  })
+
+  it('retains only Water and makes it the default when it is the sole output', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        building_key: 'water-only',
+        floor_area: 100,
+      }),
+      locale: 'en-US',
+    }) as EnergymapBuildingInfoPanel[]
+
+    expect(panels.map((panel) => panel.id)).toEqual(['energyConsumption'])
+    const energy = getPanel(panels, 'energyConsumption')
+    const controls = getControls(energy)
+    expect(controls.primaryMetrics.map(({ id }) => id)).toEqual(['water'])
+    expect(controls.defaultPrimaryMetricId).toBe('water')
+    expect(controls.energySubmetrics).toBeUndefined()
+    expect(controls.defaultEnergySubmetricIds).toBeUndefined()
+    expect(controls.combinedEnergyMetric).toBeUndefined()
+    expect(findSection(energy, 'calculationContext')).toBeUndefined()
+    expect(getPrimaryMetric(controls, 'water').residentCountControl).toBeDefined()
+    expectAvailableGraph(panels)
+  })
+
+  it('prunes unavailable submetrics and recomputes their defaults', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        ...districtHeatingProperties,
+        building_key: 'heating-only',
+        distr_default_elec: undefined,
+      }),
+      locale: 'en-US',
+    }) as EnergymapBuildingInfoPanel[]
+    const controls = getControls(getPanel(panels, 'energyConsumption'))
+
+    expect(controls.energySubmetrics?.map(({ id }) => id)).toEqual(['heating'])
+    expect(controls.defaultEnergySubmetricIds).toEqual(['heating'])
+    expect(controls.energySubmetrics?.[0].defaultSelected).toBe(true)
+    expect(controls.combinedEnergyMetric).toBeUndefined()
+    expect(controls.primaryMetrics.map(({ id }) => id)).toEqual([
+      'energy',
+      'water',
+    ])
+    expectAvailableGraph(panels)
+  })
+
+  it.each([undefined, 0, -1, Number.NaN, Number.POSITIVE_INFINITY])(
+    'removes Water and its resident control for invalid floor area %p',
+    (floorArea) => {
+      const panels = createEnergymapBuildingInfoPanels({
+        selectedBuilding: createSelectedBuilding({
+          ...districtHeatingProperties,
+          building_key: `invalid-water-${String(floorArea)}`,
+          floor_area: floorArea,
+        }),
+        locale: 'en-US',
+      }) as EnergymapBuildingInfoPanel[]
+      const controls = getControls(getPanel(panels, 'energyConsumption'))
+
+      expect(controls.primaryMetrics.map(({ id }) => id)).not.toContain('water')
+      expect(
+        controls.primaryMetrics.some(
+          (metric) => metric.residentCountControl != null
+        )
+      ).toBe(false)
+      expectAvailableGraph(panels)
+    }
+  )
+
+  it('omits controls when no primary choice can produce output', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        building_key: 'total-only',
+        heating_method: '01',
+        heating_energy_source: '01',
+        distr_default_total: 10,
+      }),
+      locale: 'en-US',
+    }) as EnergymapBuildingInfoPanel[]
+    const estimated = getSection(
+      getPanel(panels, 'energyConsumption'),
+      'estimatedConsumption'
+    )
+
+    expect(estimated.consumptionControls).toBeUndefined()
+    expect(estimated.metrics?.map(({ id }) => id)).toEqual(['total'])
+    expect(estimated.metrics?.[0].values.map(({ id }) => id)).toEqual([
+      'perSquareMeter',
+    ])
+    expectAvailableGraph(panels)
+  })
+
+  it('derives selected energy output without absent choices or fallback placeholders', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: districtHeatingBuilding,
+      locale: 'en-US',
+    }) as EnergymapBuildingInfoPanel[]
+    const controls = getControls(getPanel(panels, 'energyConsumption'))
+    const annualText = (
+      ids: EnergymapBuildingInfoEnergySubmetricId[]
+    ): EnergymapBuildingInfoText | undefined =>
+      getSelectedEnergyConsumption({ controls, selectedSubmetricIds: ids }).values.find(
+        ({ id }) => id === 'annualTotal'
+      )?.text
+
+    expectPlainText(annualText(['electricity']) as EnergymapBuildingInfoText, '10,953')
+    expectPlainText(annualText(['heating']) as EnergymapBuildingInfoText, '156,023')
+    expectPlainText(
+      annualText(['heating', 'electricity']) as EnergymapBuildingInfoText,
+      '166,976'
+    )
+
+    const staleSelection = getSelectedEnergyConsumption({
+      controls,
+      selectedSubmetricIds: ['waterHeating', 'electricity'],
+    })
+    expectPlainText(
+      staleSelection.values.find(({ id }) => id === 'annualTotal')
+        ?.text as EnergymapBuildingInfoText,
+      '10,953'
+    )
+    expect(staleSelection.notes).toEqual([])
+    expect(
+      getSelectedEnergyConsumption({ controls, selectedSubmetricIds: [] })
+    ).toEqual({ values: [], notes: [] })
+  })
+
+  it('does not fabricate combined output when the retained total is absent', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        ...districtHeatingProperties,
+        building_key: 'submetrics-without-combined-total',
+        distr_default_total: undefined,
+      }),
+      locale: 'en-US',
+    }) as EnergymapBuildingInfoPanel[]
+    const controls = getControls(getPanel(panels, 'energyConsumption'))
+    const electricity = controls.energySubmetrics?.find(
+      ({ id }) => id === 'electricity'
+    )
+    const heating = controls.energySubmetrics?.find(({ id }) => id === 'heating')
+
+    expect(controls.combinedEnergyMetric).toBeUndefined()
+    expect(controls.defaultEnergySubmetricIds).toEqual(['electricity'])
+    expect(
+      controls.energySubmetrics?.map(({ id, defaultSelected }) => ({
+        id,
+        defaultSelected,
+      }))
+    ).toEqual([
+      { id: 'electricity', defaultSelected: true },
+      { id: 'heating', defaultSelected: false },
+    ])
+    expect(
+      normalizeEnergySubmetricSelection({
+        controls,
+        selectedSubmetricIds: ['electricity', 'heating'],
+      })
+    ).toEqual(['electricity'])
+    expect(
+      normalizeEnergySubmetricSelection({
+        controls,
+        selectedSubmetricIds: ['heating', 'electricity'],
+      })
+    ).toEqual(['heating'])
+    expect(
+      getSelectedEnergyConsumption({
+        controls,
+        selectedSubmetricIds: ['electricity', 'heating'],
+      }).values
+    ).toEqual(electricity?.metric.values)
+    expect(
+      getSelectedEnergyConsumption({
+        controls,
+        selectedSubmetricIds: ['heating', 'electricity'],
+      }).values
+    ).toEqual(heating?.metric.values)
+  })
+
+  it('gates Cost and CO2 context rows independently', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        ...districtHeatingProperties,
+        building_key: 'unsupported-cost-class',
+        main_purpose: '07',
+      }),
+      locale: 'en-US',
+    }) as EnergymapBuildingInfoPanel[]
+    const energy = getPanel(panels, 'energyConsumption')
+    const controls = getControls(energy)
+
+    expect(controls.primaryMetrics.map(({ id }) => id)).toEqual([
+      'energy',
+      'water',
+      'co2',
+    ])
+    expect(findRow(energy, 'costMode')).toBeUndefined()
+    expect(getRow(energy, 'co2Mode').status).toBe('estimate')
+    expect(getSection(energy, 'calculationContext').rows?.map(({ id }) => id)).toEqual(
+      ['co2Mode']
+    )
+  })
+
+  it.each([
+    ['missing electricity', { distr_default_elec: undefined }],
+    ['missing heating', { distr_default_heat: undefined }],
+    ['missing area', { floor_area: undefined }],
+    ['negative heating', { distr_default_heat: -1 }],
+    ['invalid electricity type', { distr_default_elec: '24.125' }],
+    ['non-finite area', { floor_area: Number.NaN }],
+    ['infinite heating', { distr_default_heat: Number.POSITIVE_INFINITY }],
+  ])('removes unsupported current-reference outputs for %s', (_name, overrides) => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        ...districtHeatingProperties,
+        ...overrides,
+        building_key: `invalid-${_name}`,
+      }),
+      locale: 'en-US',
+    }) as EnergymapBuildingInfoPanel[]
+    const energy = getPanel(panels, 'energyConsumption')
+    const controls = getControls(energy)
+
+    expect(controls.primaryMetrics.map(({ id }) => id)).not.toContain('cost')
+    expect(controls.primaryMetrics.map(({ id }) => id)).not.toContain('co2')
+    expect(findRow(energy, 'costMode')).toBeUndefined()
+    expect(findRow(energy, 'co2Mode')).toBeUndefined()
+    expect(findSection(energy, 'calculationContext')).toBeUndefined()
+    expectAvailableGraph(panels)
+  })
+
+  it('keeps partial metrics and scenarios while pruning unavailable siblings', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        ...districtHeatingProperties,
+        building_key: 'partial-without-area',
+        floor_area: undefined,
+      }),
+      locale: 'en-US',
+    }) as EnergymapBuildingInfoPanel[]
+    const energy = getPanel(panels, 'energyConsumption')
+    const renovation = getPanel(panels, 'renovationRecommendations')
+
+    expect(getMetric(energy, 'total').values.map(({ id }) => id)).toEqual([
+      'perSquareMeter',
+    ])
+    expect(getScenario(renovation, 'aahp').values.map(({ id }) => id)).toEqual([
+      'perSquareMeter',
+      'savingsPercent',
+    ])
+    expect(findSection(renovation, 'publishedRecommendations')).toBeUndefined()
+    expectAvailableGraph(panels)
+  })
+
+  it('removes an entirely unpublished scenario but retains published siblings', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        building_key: 'geothermal',
+        heating_method: '01',
+        heating_energy_source: '09',
+        floor_area: 262,
+        gshp_default_total: 155.8557692,
+        gshp_default_heat: 128.1442307,
+        gshp_default_elec: 27.71153846,
+        gshp_solar_total: 132.6634615,
+        gshp_windows_total: 147.2788462,
+      }),
+      locale: 'en-US',
+    }) as EnergymapBuildingInfoPanel[]
+    const renovation = getPanel(panels, 'renovationRecommendations')
+    const scenarios = getSection(renovation, 'scenarioComparison').scenarios
+
+    expect(scenarios?.map(({ id }) => id)).toEqual(['solar', 'windows'])
+    expectAvailableGraph(panels)
+  })
+
+  it('drops empty sections and panels without orphaning their copy', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        building_key: 'address-only',
+        address_fin: 'Testitie 1',
+        energy_certificate_recommendations_fi: '  ',
+      }),
+      locale: 'en-US',
+    }) as EnergymapBuildingInfoPanel[]
+
+    expect(panels.map(({ id }) => id)).toEqual(['buildingDetails'])
+    const building = getPanel(panels, 'buildingDetails')
+    expect(building.sections.map(({ id }) => id)).toEqual([
+      'buildingSubheader',
+    ])
+    expect(building.sections[0].rows?.map(({ id }) => id)).toEqual(['address'])
+    expectAvailableGraph(panels)
+  })
+
+  it('ignores raw properties for deliberately unsupported fields', () => {
+    const properties = {
+      building_key: 'unsupported-raw-fields',
+      property_identifier: '091-416-0011-0023',
+      renovation_recommendations: 'raw renovation recommendation',
+      energy_recommendations: 'raw energy recommendation',
+      energy_class_measures: 'raw class measures',
+      planned_measures: 'raw planned measures',
+      plot_tenure: 'owned',
+      resident_count: 4,
+      water_heating_split: 0.2,
+      water_heating: 10,
+    }
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding(properties),
+      locale: 'en-US',
+    })
+
+    expect(panels).toEqual([])
+    expect(JSON.stringify(panels)).not.toContain('091-416-0011-0023')
+    expect(JSON.stringify(panels)).not.toContain('raw planned measures')
+  })
+
+  it('drops whitespace-only values but preserves supported alternate fields', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        building_key: 'blank-values',
+        permanent_building_identifier: ' \n\t ',
+        address_fin: '  ',
+        postal_code: '00640',
+        postal_office_fin: '  HELSINKI  ',
+        energy_certificate_ventilation_description_fi: '\t',
+        energy_certificate_ventilation_description_sv: '  Självdrag  ',
+      }),
+      locale: 'en-US',
+    }) as EnergymapBuildingInfoPanel[]
+    const building = getPanel(panels, 'buildingDetails')
+
+    expect(findRow(building, 'buildingIdentifier')).toBeUndefined()
+    expectPlainText(getRow(building, 'address').text, '00640 HELSINKI')
+    const ventilation = getRow(building, 'ventilation')
+    expectPlainText(ventilation.text, 'Självdrag')
+    expect(ventilation.sourceLanguage).toBe('sv')
+    expectAvailableGraph(panels)
+  })
+
+  it('formats dates and addresses without changing their source contracts', () => {
+    expect(formatYearFromDate('1967-01-01')).toBe('1967')
+    expect(formatYearFromDate('2023-08-29T00:00:00Z')).toBe('2023')
+    expect(formatYearFromDate('not a date')).toBeNull()
+    expect(
+      formatCalendarDate({ value: '2031-12-31 00:00:00.0', locale: 'en-US' })
+    ).toBe('12/31/2031')
+    expect(
+      formatCalendarDate({ value: '2023-02-29', locale: 'en-US' })
+    ).toBeNull()
+    expect(
+      composeEnergymapBuildingAddress(districtHeatingBuilding.properties)
+    ).toBe('Mikkolantie 34a, 00640 HELSINKI')
   })
 
   it('formats a fractional certificate heated net area with locale rounding', () => {
@@ -448,9 +1076,9 @@ describe('Energiakartta building info model', () => {
         energy_certificate_heated_net_area: '1234.56',
       }),
       locale: 'en-US',
-    })
+    }) as EnergymapBuildingInfoPanel[]
     const heatedNetArea = getRow(
-      getPanel(panels ?? [], 'buildingDetails'),
+      getPanel(panels, 'buildingDetails'),
       'heatedNetArea'
     )
 
@@ -470,13 +1098,17 @@ describe('Energiakartta building info model', () => {
   ])(
     'formats certificate validity as a timezone-stable calendar date for %s',
     (locale, sourceValue, expectedDate) => {
-      const validity = getCertificateValidityRow({
-        properties: {
+      const panels = createEnergymapBuildingInfoPanels({
+        selectedBuilding: createSelectedBuilding({
           building_key: `certificate-validity-${locale}-${sourceValue}`,
           energy_certificate_valid_until: sourceValue,
-        },
+        }),
         locale,
-      })
+      }) as EnergymapBuildingInfoPanel[]
+      const validity = getRow(
+        getPanel(panels, 'buildingDetails'),
+        'energyCertificateValidity'
+      )
 
       expect(validity.status).toBe('real')
       expectPlainText(validity.text, expectedDate)
@@ -570,213 +1202,68 @@ describe('Energiakartta building info model', () => {
     ['non-leap day', { energy_certificate_valid_until: '2025-02-29' }],
     ['invalid month', { energy_certificate_valid_until: '2031-13-01' }],
     ['invalid day', { energy_certificate_valid_until: '2031-12-00' }],
-  ])('keeps %s certificate validity missing', (_caseName, properties) => {
-    const validity = getCertificateValidityRow({
-      properties: {
+  ])('omits %s certificate validity', (_caseName, validityProperties) => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
         building_key: `certificate-validity-${_caseName}`,
-        ...properties,
-      },
+        energy_class: 'D',
+        ...validityProperties,
+      }),
       locale: 'en-US',
-    })
+    }) as EnergymapBuildingInfoPanel[]
+    const building = getPanel(panels, 'buildingDetails')
 
-    expect(validity.status).toBe('missing')
-    expectTranslation(
-      validity.text,
-      `${translationPrefix}.placeholders.missing_value`
-    )
-    expect(validity.sourceProperties).toEqual([
-      'energy_certificate_valid_until',
-    ])
+    expect(findRow(building, 'energyCertificateValidity')).toBeUndefined()
+    expect(getSection(building, 'energyCertificate').rows?.map(({ id }) => id))
+      .toEqual(['energyClass'])
   })
 
   it('does not infer certificate validity from other certificate or building dates', () => {
-    const validity = getCertificateValidityRow({
-      properties: {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
         building_key: 'certificate-validity-no-fallback',
+        energy_class: 'D',
         energy_certificate_class_year: 2018,
         energy_certificate_signed_at: '2021-12-31 00:00:00',
         completion_date: '1967-01-01',
-      },
-      locale: 'en-US',
-    })
-
-    expect(validity.status).toBe('missing')
-    expectTranslation(
-      validity.text,
-      `${translationPrefix}.placeholders.missing_value`
-    )
-    expect(validity.sourceProperties).toEqual([
-      'energy_certificate_valid_until',
-    ])
-  })
-
-  it('uses the effective energy class and marks a literal modeled provenance value', () => {
-    const panels = createEnergymapBuildingInfoPanels({
-      selectedBuilding: createSelectedBuilding({
-        building_key: 'modeled-energy-class',
-        energy_certificate_class: null,
-        modeled_energy_class: 'C',
-        energy_class: 'C',
-        energy_class_year: 2018,
-        is_energy_class_modeled: true,
       }),
       locale: 'en-US',
-    })
-    const energyClass = getRow(
-      getPanel(panels ?? [], 'buildingDetails'),
-      'energyClass'
-    )
+    }) as EnergymapBuildingInfoPanel[]
+    const building = getPanel(panels, 'buildingDetails')
 
-    expectPlainText(energyClass.text, 'C')
-    expect(energyClass.sourceProperties).toEqual(['energy_class'])
-    expect(energyClass.modeledIndicator).toEqual({
-      label: {
-        type: 'translation',
-        keyName: `${translationPrefix}.panels.building.energy_class_modeled.label`,
-      },
-      tooltip: {
-        type: 'translation',
-        keyName: `${translationPrefix}.panels.building.energy_class_modeled.tooltip`,
-      },
-      ariaLabelKey: `${translationPrefix}.panels.building.energy_class_modeled.help_aria_label`,
-      sourceProperties: ['is_energy_class_modeled'],
-    })
+    expect(findRow(building, 'energyCertificateValidity')).toBeUndefined()
+    expect(getRow(building, 'energyClass').sourceProperties).toEqual([
+      'energy_class',
+    ])
   })
 
   it.each([
-    ['official', false],
-    ['unknown', null],
-    ['missing', undefined],
-    ['string true', 'true'],
-    ['numeric true', 1],
+    ['standalone', undefined, 'B'],
+    ['same as current', 'D', 'D'],
+    ['different from current', 'D', 'F'],
   ])(
-    'does not add the modeled indicator for %s provenance',
-    (_caseName, provenance) => {
-      const properties: EnergymapSelectedBuilding['properties'] = {
-        building_key: `energy-class-${_caseName}`,
-        energy_class: 'B',
-        modeled_energy_class: 'B',
-        energy_class_year: 2018,
-      }
-
-      if (provenance !== undefined) {
-        properties.is_energy_class_modeled = provenance
-      }
-
+    'preserves a %s previous certificate class with exact provenance',
+    (_caseName, currentClass, previousClass) => {
       const panels = createEnergymapBuildingInfoPanels({
-        selectedBuilding: createSelectedBuilding(properties),
+        selectedBuilding: createSelectedBuilding({
+          building_key: `previous-class-${_caseName}`,
+          energy_class: currentClass,
+          energy_certificate_previous_class: ` ${previousClass} `,
+        }),
         locale: 'en-US',
-      })
-      const energyClass = getRow(
-        getPanel(panels ?? [], 'buildingDetails'),
-        'energyClass'
+      }) as EnergymapBuildingInfoPanel[]
+      const previousEnergyClass = getRow(
+        getPanel(panels, 'buildingDetails'),
+        'previousEnergyClass'
       )
 
-      expectPlainText(energyClass.text, 'B')
-      expect(energyClass.sourceProperties).toEqual(['energy_class'])
-      expect(energyClass.modeledIndicator).toBeUndefined()
+      expect(previousEnergyClass.status).toBe('real')
+      expectPlainText(previousEnergyClass.text, previousClass)
+      expect(previousEnergyClass.sourceProperties).toEqual([
+        'energy_certificate_previous_class',
+      ])
     }
   )
-
-  it('does not infer the effective class or modeled provenance from fallback fields', () => {
-    const panels = createEnergymapBuildingInfoPanels({
-      selectedBuilding: createSelectedBuilding({
-        building_key: 'modeled-fields-without-effective-class',
-        modeled_energy_class: 'A',
-        energy_class_year: 2018,
-      }),
-      locale: 'en-US',
-    })
-    const energyClass = getRow(
-      getPanel(panels ?? [], 'buildingDetails'),
-      'energyClass'
-    )
-
-    expect(energyClass.status).toBe('missing')
-    expect(energyClass.sourceProperties).toEqual(['energy_class'])
-    expect(energyClass.modeledIndicator).toBeUndefined()
-  })
-
-  it('keeps literal modeled provenance independent from class availability', () => {
-    const panels = createEnergymapBuildingInfoPanels({
-      selectedBuilding: createSelectedBuilding({
-        building_key: 'modeled-provenance-without-effective-class',
-        is_energy_class_modeled: true,
-      }),
-      locale: 'en-US',
-    })
-    const energyClass = getRow(
-      getPanel(panels ?? [], 'buildingDetails'),
-      'energyClass'
-    )
-
-    expect(energyClass.status).toBe('missing')
-    expect(energyClass.modeledIndicator?.sourceProperties).toEqual([
-      'is_energy_class_modeled',
-    ])
-  })
-
-  it('maps a populated previous certificate class with exact provenance', () => {
-    const panels = createEnergymapBuildingInfoPanels({
-      selectedBuilding: createSelectedBuilding({
-        building_key: 'previous-class-populated',
-        energy_certificate_previous_class: ' B ',
-      }),
-      locale: 'en-US',
-    })
-    const previousEnergyClass = getRow(
-      getPanel(panels ?? [], 'buildingDetails'),
-      'previousEnergyClass'
-    )
-
-    expect(previousEnergyClass.status).toBe('real')
-    expectPlainText(previousEnergyClass.text, 'B')
-    expect(previousEnergyClass.sourceProperties).toEqual([
-      'energy_certificate_previous_class',
-    ])
-  })
-
-  it('keeps a previous certificate class that matches the current class', () => {
-    const panels = createEnergymapBuildingInfoPanels({
-      selectedBuilding: createSelectedBuilding({
-        building_key: 'previous-class-same-as-current',
-        energy_class: 'D',
-        energy_certificate_previous_class: 'D',
-      }),
-      locale: 'en-US',
-    })
-    const buildingPanel = getPanel(panels ?? [], 'buildingDetails')
-    const currentEnergyClass = getRow(buildingPanel, 'energyClass')
-    const previousEnergyClass = getRow(buildingPanel, 'previousEnergyClass')
-
-    expectPlainText(currentEnergyClass.text, 'D')
-    expectPlainText(previousEnergyClass.text, 'D')
-    expect(previousEnergyClass.status).toBe('real')
-    expect(previousEnergyClass.sourceProperties).toEqual([
-      'energy_certificate_previous_class',
-    ])
-  })
-
-  it('uses a different previous certificate class without deriving it from the current class', () => {
-    const panels = createEnergymapBuildingInfoPanels({
-      selectedBuilding: createSelectedBuilding({
-        building_key: 'previous-class-different-from-current',
-        energy_class: 'D',
-        energy_certificate_previous_class: 'F',
-      }),
-      locale: 'en-US',
-    })
-    const buildingPanel = getPanel(panels ?? [], 'buildingDetails')
-    const currentEnergyClass = getRow(buildingPanel, 'energyClass')
-    const previousEnergyClass = getRow(buildingPanel, 'previousEnergyClass')
-
-    expectPlainText(currentEnergyClass.text, 'D')
-    expectPlainText(previousEnergyClass.text, 'F')
-    expect(previousEnergyClass.status).toBe('real')
-    expect(previousEnergyClass.sourceProperties).toEqual([
-      'energy_certificate_previous_class',
-    ])
-  })
 
   it.each([
     ['absent', {}],
@@ -784,7 +1271,7 @@ describe('Energiakartta building info model', () => {
     ['empty', { energy_certificate_previous_class: '' }],
     ['whitespace', { energy_certificate_previous_class: '   ' }],
   ])(
-    'keeps %s previous certificate history missing without falling back to the current class',
+    'omits %s previous certificate history without falling back to the current class',
     (_caseName, previousClassProperties) => {
       const panels = createEnergymapBuildingInfoPanels({
         selectedBuilding: createSelectedBuilding({
@@ -793,29 +1280,21 @@ describe('Energiakartta building info model', () => {
           ...previousClassProperties,
         }),
         locale: 'en-US',
-      })
-      const buildingPanel = getPanel(panels ?? [], 'buildingDetails')
-      const currentEnergyClass = getRow(buildingPanel, 'energyClass')
-      const previousEnergyClass = getRow(buildingPanel, 'previousEnergyClass')
+      }) as EnergymapBuildingInfoPanel[]
+      const building = getPanel(panels, 'buildingDetails')
 
-      expectPlainText(currentEnergyClass.text, 'D')
-      expect(previousEnergyClass.status).toBe('missing')
-      expectTranslation(
-        previousEnergyClass.text,
-        `${translationPrefix}.placeholders.missing_value`
-      )
-      expect(previousEnergyClass.sourceProperties).toEqual([
-        'energy_certificate_previous_class',
-      ])
+      expectPlainText(getRow(building, 'energyClass').text, 'D')
+      expect(findRow(building, 'previousEnergyClass')).toBeUndefined()
+      expect(findSection(building, 'previousEnergyClass')).toBeUndefined()
     }
   )
 
-  it('composes heating from translation-backed code labels', () => {
+  it('composes heating from translation-backed code labels and exact evidence', () => {
     const panels = createEnergymapBuildingInfoPanels({
       selectedBuilding: districtHeatingBuilding,
       locale: 'en-US',
-    })
-    const heating = getRow(getPanel(panels ?? [], 'buildingDetails'), 'heating')
+    }) as EnergymapBuildingInfoPanel[]
+    const heating = getRow(getPanel(panels, 'buildingDetails'), 'heating')
 
     expect(heating.status).toBe('real')
     expect(heating.text).toEqual({
@@ -832,6 +1311,10 @@ describe('Energiakartta building info model', () => {
         },
       ],
     })
+    expect(heating.sourceProperties).toEqual([
+      'heating_energy_source',
+      'heating_method',
+    ])
   })
 
   it.each([
@@ -905,9 +1388,19 @@ describe('Energiakartta building info model', () => {
       'energy_certificate_ventilation_description_fi',
     ],
   ] as const)(
-    'selects one ventilation description: %s',
+    'selects one ventilation description with exact provenance: %s',
     (_caseName, locale, properties, text, sourceLanguage, sourceProperty) => {
-      const ventilation = getVentilationRow({ properties, locale })
+      const panels = createEnergymapBuildingInfoPanels({
+        selectedBuilding: createSelectedBuilding({
+          building_key: `ventilation-${sourceLanguage}`,
+          ...properties,
+        }),
+        locale,
+      }) as EnergymapBuildingInfoPanel[]
+      const ventilation = getRow(
+        getPanel(panels, 'buildingDetails'),
+        'ventilation'
+      )
 
       expect(ventilation.status).toBe('real')
       expectPlainText(ventilation.text, text)
@@ -917,11 +1410,7 @@ describe('Energiakartta building info model', () => {
   )
 
   it.each([
-    {
-      caseName: 'all fields missing',
-      properties: {},
-      hiddenText: undefined,
-    },
+    { caseName: 'all fields missing', properties: {}, hiddenText: undefined },
     {
       caseName: 'descriptions blank',
       properties: {
@@ -934,7 +1423,8 @@ describe('Energiakartta building info model', () => {
       caseName: 'descriptions are not strings',
       properties: {
         energy_certificate_ventilation_description_fi: 42,
-        energy_certificate_ventilation_description_sv: Number.POSITIVE_INFINITY,
+        energy_certificate_ventilation_description_sv:
+          Number.POSITIVE_INFINITY,
       },
       hiddenText: undefined,
     },
@@ -944,559 +1434,24 @@ describe('Energiakartta building info model', () => {
       hiddenText: '03',
     },
   ])(
-    'uses the normal missing state when $caseName',
-    ({ properties, hiddenText }) => {
-      const ventilation = getVentilationRow({
-        properties: {
-          building_key: 'ventilation-missing',
-          ...properties,
-        },
-        locale: 'fi',
-      })
-
-      expect(ventilation.status).toBe('missing')
-      expectTranslation(
-        ventilation.text,
-        `${translationPrefix}.placeholders.missing_value`
-      )
-      expect(ventilation.sourceLanguage).toBeUndefined()
-      expect(ventilation.sourceProperties).toEqual([
-        'energy_certificate_ventilation_description_fi',
-        'energy_certificate_ventilation_description_sv',
-        'energy_certificate_ventilation_type_id',
-      ])
-      if (hiddenText != null) {
-        expect(JSON.stringify(ventilation.text)).not.toContain(hiddenText)
-      }
-    }
-  )
-
-  it('marks default consumption values as estimates and derives annual totals only from valid area', () => {
-    const panels = createEnergymapBuildingInfoPanels({
-      selectedBuilding: districtHeatingBuilding,
-      locale: 'en-US',
-    })
-    const energyPanel = getPanel(panels ?? [], 'energyConsumption')
-    const totalMetric = getMetric(energyPanel, 'total')
-    const annualTotal = getMetricValue(totalMetric, 'annualTotal')
-    const perSquareMeter = getMetricValue(totalMetric, 'perSquareMeter')
-
-    expect(perSquareMeter.status).toBe('estimate')
-    expectPlainText(perSquareMeter.text, '367.8')
-    expect(perSquareMeter.unitKey).toBe(
-      `${translationPrefix}.units.kwh_per_square_meter_year`
-    )
-    expect(perSquareMeter.sourceProperties).toEqual(['distr_default_total'])
-
-    expect(annualTotal.status).toBe('estimate')
-    expectPlainText(annualTotal.text, '166,976')
-    expect(annualTotal.unitKey).toBe(`${translationPrefix}.units.kwh_per_year`)
-    expect(annualTotal.sourceProperties).toEqual([
-      'distr_default_total',
-      'floor_area',
-    ])
-  })
-
-  it('exposes complete Cost, CO2, and resident-based Water controls', () => {
-    const panels = createEnergymapBuildingInfoPanels({
-      selectedBuilding: districtHeatingBuilding,
-      locale: 'en-US',
-    })
-    const energyPanel = getPanel(panels ?? [], 'energyConsumption')
-    const controls = getConsumptionControls(energyPanel)
-
-    expect(controls.defaultPrimaryMetricId).toBe('energy')
-    expect(controls.primaryMetrics.map((metric) => metric.id)).toEqual([
-      'energy',
-      'water',
-      'cost',
-      'co2',
-    ])
-    expect(
-      controls.primaryMetrics.map((metric) => ({
-        id: metric.id,
-        supported: metric.supported,
-        value: metric.value,
-        unavailableNote: metric.unavailableNote?.text,
-      }))
-    ).toEqual([
-      {
-        id: 'energy',
-        supported: true,
-        value: undefined,
-        unavailableNote: undefined,
-      },
-      {
-        id: 'water',
-        supported: true,
-        value: {
-          status: 'estimate',
-          text: { type: 'plain', text: '481.8' },
-          unitKey: `${translationPrefix}.units.cubic_meters_per_year`,
-          sourceProperties: ['floor_area'],
-        },
-        unavailableNote: undefined,
-      },
-      {
-        id: 'cost',
-        supported: true,
-        value: {
-          status: 'estimate',
-          text: { type: 'plain', text: '19,613' },
-          unitKey: `${translationPrefix}.units.eur_per_year`,
-          sourceProperties: [
-            'main_purpose',
-            'floor_area',
-            'distr_default_elec',
-            'distr_default_heat',
-            'heating_energy_source',
-            'heating_method',
-          ],
-        },
-        unavailableNote: undefined,
-      },
-      {
-        id: 'co2',
-        supported: true,
-        value: {
-          status: 'estimate',
-          text: { type: 'plain', text: '18,436' },
-          unitKey: `${translationPrefix}.units.kg_co2_per_year`,
-          sourceProperties: [
-            'floor_area',
-            'distr_default_elec',
-            'distr_default_heat',
-            'heating_energy_source',
-            'heating_method',
-          ],
-        },
-        unavailableNote: undefined,
-      },
-    ])
-    expect(Object.keys(controls).sort()).toEqual([
-      'combinedEnergyMetric',
-      'defaultEnergySubmetricIds',
-      'defaultPrimaryMetricId',
-      'emptyEnergyMetric',
-      'energySubmetrics',
-      'primaryMetrics',
-    ])
-    expect(getPrimaryMetric(energyPanel, 'water').residentCountControl).toEqual({
-      defaultValue: 11,
-      minValue: 1,
-      maxValue: 10000,
-      label: {
-        type: 'translation',
-        keyName: `${translationPrefix}.panels.energy.water.resident_count`,
-      },
-      toggleLabel: {
-        type: 'translation',
-        keyName: `${translationPrefix}.panels.energy.water.change_resident_count`,
-      },
-      description: {
-        type: 'translation',
-        keyName: `${translationPrefix}.panels.energy.water.description`,
-      },
-      unavailableText: {
-        type: 'translation',
-        keyName: `${translationPrefix}.panels.energy.water.invalid_resident_count`,
-      },
-    })
-    expect(
-      getSection(energyPanel, 'calculationContext').rows?.map((row) => row.id)
-    ).toEqual(['costMode', 'co2Mode', 'waterHeatingSplit'])
-    expectTranslation(
-      getRow(energyPanel, 'costMode').text,
-      `${translationPrefix}.panels.energy.context.cost_current_reference`
-    )
-    expectTranslation(
-      getRow(energyPanel, 'co2Mode').text,
-      `${translationPrefix}.panels.energy.context.co2_current_reference`
-    )
-    expect(getRow(energyPanel, 'costMode').status).toBe('estimate')
-    expect(getRow(energyPanel, 'co2Mode').status).toBe('estimate')
-    expect(getRow(energyPanel, 'waterHeatingSplit').status).toBe('placeholder')
-  })
-
-  it('keeps apartment-pellet Cost complete-only while preserving scoped pellet CO2', () => {
-    const apartmentPellet = createSelectedBuilding({
-      building_key: 'apartment-pellet',
-      main_purpose: '06',
-      heating_method: '01',
-      heating_energy_source: '07',
-      floor_area: 100,
-      wood_default_total: 30,
-      wood_default_elec: 10,
-      wood_default_heat: 20,
-    })
-    const energyPanel = getPanel(
-      createEnergymapBuildingInfoPanels({
-        selectedBuilding: apartmentPellet,
-        locale: 'en-US',
-      }) ?? [],
-      'energyConsumption'
-    )
-    const cost = getPrimaryMetric(energyPanel, 'cost')
-    const co2 = getPrimaryMetric(energyPanel, 'co2')
-
-    expect(cost.supported).toBe(false)
-    expect(cost.value?.status).toBe('placeholder')
-    expectTranslation(
-      cost.value?.text as EnergymapBuildingInfoText,
-      `${translationPrefix}.panels.energy.unsupported.apartment_pellet_cost`
-    )
-    expect(cost.value?.text).not.toEqual(expect.objectContaining({ text: '0' }))
-    expect(co2.supported).toBe(true)
-    expectPlainText(co2.value?.text as EnergymapBuildingInfoText, '45')
-    expect(co2.value?.unitKey).toBe(
-      `${translationPrefix}.units.kg_co2_per_year`
-    )
-
-    const zeroHeatPanel = getPanel(
-      createEnergymapBuildingInfoPanels({
-        selectedBuilding: createSelectedBuilding({
-          ...apartmentPellet.properties,
-          building_key: 'apartment-pellet-zero-heat',
-          wood_default_heat: 0,
-        }),
-        locale: 'en-US',
-      }) ?? [],
-      'energyConsumption'
-    )
-
-    expect(getPrimaryMetric(zeroHeatPanel, 'cost').supported).toBe(true)
-    expectPlainText(
-      getPrimaryMetric(zeroHeatPanel, 'cost').value
-        ?.text as EnergymapBuildingInfoText,
-      '263'
-    )
-  })
-
-  it('keeps Cost class support independent from a complete CO2 estimate', () => {
-    const panels = createEnergymapBuildingInfoPanels({
-      selectedBuilding: createSelectedBuilding({
-        ...districtHeatingBuilding.properties,
-        building_key: 'unsupported-cost-class',
-        main_purpose: '07',
-      }),
-      locale: 'en-US',
-    })
-    const energyPanel = getPanel(panels ?? [], 'energyConsumption')
-    const cost = getPrimaryMetric(energyPanel, 'cost')
-    const co2 = getPrimaryMetric(energyPanel, 'co2')
-
-    expect(cost.supported).toBe(false)
-    expectTranslation(
-      cost.value?.text as EnergymapBuildingInfoText,
-      `${translationPrefix}.panels.energy.unsupported.cost_building_class`
-    )
-    expect(co2.supported).toBe(true)
-    expectPlainText(co2.value?.text as EnergymapBuildingInfoText, '18,436')
-  })
-
-  it.each([
-    [
-      'missing electricity',
-      { distr_default_elec: undefined },
-      'missing_reference_data',
-    ],
-    [
-      'missing heating',
-      { distr_default_heat: undefined },
-      'missing_reference_data',
-    ],
-    ['missing area', { floor_area: undefined }, 'missing_reference_data'],
-    ['negative heating', { distr_default_heat: -1 }, 'invalid_reference_data'],
-    [
-      'invalid electricity type',
-      { distr_default_elec: '24.125' },
-      'invalid_reference_data',
-    ],
-    ['non-finite area', { floor_area: NaN }, 'invalid_reference_data'],
-    [
-      'infinite heating',
-      { distr_default_heat: Infinity },
-      'invalid_reference_data',
-    ],
-  ])(
-    'does not expose partial totals for %s',
-    (_label, overrides, reasonKey) => {
+    'omits ventilation when $caseName',
+    ({ caseName, properties, hiddenText }) => {
       const panels = createEnergymapBuildingInfoPanels({
         selectedBuilding: createSelectedBuilding({
-          ...districtHeatingBuilding.properties,
-          ...overrides,
-          building_key: `invalid-${reasonKey}`,
+          building_key: `ventilation-missing-${caseName}`,
+          energy_class: 'D',
+          ...properties,
         }),
-        locale: 'en-US',
-      })
-      const energyPanel = getPanel(panels ?? [], 'energyConsumption')
+        locale: 'fi',
+      }) as EnergymapBuildingInfoPanel[]
+      const building = getPanel(panels, 'buildingDetails')
 
-      for (const metricId of ['cost', 'co2'] as const) {
-        const metric = getPrimaryMetric(energyPanel, metricId)
-
-        expect(metric.supported).toBe(false)
-        expect(metric.value?.status).toBe(
-          reasonKey === 'missing_reference_data' ? 'missing' : 'placeholder'
-        )
-        expectTranslation(
-          metric.value?.text as EnergymapBuildingInfoText,
-          `${translationPrefix}.panels.energy.unsupported.${reasonKey}`
-        )
-        expect(metric.value?.text).not.toEqual(
-          expect.objectContaining({
-            text: expect.stringMatching(/NaN|Infinity/),
-          })
-        )
+      expect(findRow(building, 'ventilation')).toBeUndefined()
+      if (hiddenText != null) {
+        expect(JSON.stringify(panels)).not.toContain(hiddenText)
       }
     }
   )
-
-  it('distinguishes an unknown heating carrier from missing building data', () => {
-    const panels = createEnergymapBuildingInfoPanels({
-      selectedBuilding: createSelectedBuilding({
-        ...districtHeatingBuilding.properties,
-        building_key: 'unknown-carrier',
-        heating_energy_source: '99',
-        heating_method: '07',
-      }),
-      locale: 'en-US',
-    })
-    const energyPanel = getPanel(panels ?? [], 'energyConsumption')
-
-    for (const metricId of ['cost', 'co2'] as const) {
-      const metric = getPrimaryMetric(energyPanel, metricId)
-
-      expect(metric.supported).toBe(false)
-      expect(metric.value?.status).toBe('placeholder')
-      expectTranslation(
-        metric.value?.text as EnergymapBuildingInfoText,
-        `${translationPrefix}.panels.energy.unsupported.heating_carrier`
-      )
-    }
-  })
-
-  it('keeps the generated English and Finnish current-reference caveats accurate', () => {
-    const enEnergy = enTranslations.sidebar.building_info.panels.energy
-    const fiEnergy = fiTranslations.sidebar.building_info.panels.energy
-
-    expect(enEnergy.context.cost_current_reference).toMatch(
-      /Average current-reference estimate.*not a bill.*contract price.*market-price forecast/i
-    )
-    expect(fiEnergy.context.cost_current_reference).toMatch(
-      /keskimääräinen arvio.*ei ole lasku.*sopimushinta.*markkinahinnasta/i
-    )
-    expect(enEnergy.context.co2_current_reference).toMatch(
-      /not measured building emissions.*renewable energy.*Light fuel oil uses a fossil factor.*pellet factor is zero only within the supplied fossil-accounting boundary.*does not prove zero lifecycle or biogenic emissions/i
-    )
-    expect(fiEnergy.context.co2_current_reference).toMatch(
-      /ei rakennuksen mitattuihin päästöihin.*uusiutuva energia.*Kevyen polttoöljyn kerroin on fossiilinen.*Pelletin kerroin on nolla vain toimitetun fossiililaskennan rajauksen sisällä.*elinkaaripäästöjä tai biogeenisiä päästöjä nollaksi/i
-    )
-  })
-
-  it('keeps the certificate heated net area label explicit in both locales', () => {
-    expect(
-      enTranslations.sidebar.building_info.panels.building.rows.heated_net_area
-    ).toBe('Heated net area on energy certificate')
-    expect(
-      fiTranslations.sidebar.building_info.panels.building.rows.heated_net_area
-    ).toBe('Energiatodistuksen lämmitetty nettoala')
-    expect(enTranslations.sidebar.building_info.units.square_meters).toBe('m²')
-    expect(fiTranslations.sidebar.building_info.units.square_meters).toBe('m²')
-  })
-
-  it('keeps the certificate validity label explicit in both locales', () => {
-    expect(
-      enTranslations.sidebar.building_info.panels.building.rows
-        .energy_certificate_validity
-    ).toBe('Latest energy certificate valid until')
-    expect(
-      fiTranslations.sidebar.building_info.panels.building.rows
-        .energy_certificate_validity
-    ).toBe('Uusimman energiatodistuksen voimassaolo päättyy')
-  })
-
-  it('keeps modeled energy-class copy exact in both locales', () => {
-    const enModeled =
-      enTranslations.sidebar.building_info.panels.building.energy_class_modeled
-    const fiModeled =
-      fiTranslations.sidebar.building_info.panels.building.energy_class_modeled
-
-    expect(enModeled.label).toBe('modeled')
-    expect(fiModeled.label).toBe('mallinnettu')
-    expect(enModeled.tooltip).toBe(
-      "The energy class is modeled from the building's available data. It is an estimate and less accurate than an official energy certificate."
-    )
-    expect(fiModeled.tooltip).toBe(
-      'Energialuokka on mallinnettu rakennuksen saatavilla olevien tietojen perusteella. Se on arvio eikä yhtä tarkka kuin virallinen energiatodistus.'
-    )
-    expect(enModeled.help_aria_label).toBe(
-      'More information about the modeled energy class'
-    )
-    expect(fiModeled.help_aria_label).toBe(
-      'Lisätietoja mallinnetusta energialuokasta'
-    )
-  })
-
-  it('models supported energy submetrics and keeps water heating unsupported', () => {
-    const panels = createEnergymapBuildingInfoPanels({
-      selectedBuilding: districtHeatingBuilding,
-      locale: 'en-US',
-    })
-    const controls = getConsumptionControls(
-      getPanel(panels ?? [], 'energyConsumption')
-    )
-
-    expect(controls.defaultEnergySubmetricIds).toEqual([
-      'electricity',
-      'heating',
-    ])
-    expect(
-      controls.energySubmetrics.map((submetric) => ({
-        id: submetric.id,
-        supported: submetric.supported,
-        defaultSelected: submetric.defaultSelected,
-        annualSources: getMetricValue(submetric.metric, 'annualTotal')
-          .sourceProperties,
-        unavailableNote: submetric.unavailableNote?.text,
-      }))
-    ).toEqual([
-      {
-        id: 'electricity',
-        supported: true,
-        defaultSelected: true,
-        annualSources: ['distr_default_elec', 'floor_area'],
-        unavailableNote: undefined,
-      },
-      {
-        id: 'heating',
-        supported: true,
-        defaultSelected: true,
-        annualSources: ['distr_default_heat', 'floor_area'],
-        unavailableNote: undefined,
-      },
-      {
-        id: 'waterHeating',
-        supported: false,
-        defaultSelected: false,
-        annualSources: undefined,
-        unavailableNote: {
-          type: 'translation',
-          keyName: `${translationPrefix}.panels.energy.unsupported.water_heating`,
-        },
-      },
-    ])
-  })
-
-  it('derives the visible energy table from selected submetrics', () => {
-    const panels = createEnergymapBuildingInfoPanels({
-      selectedBuilding: districtHeatingBuilding,
-      locale: 'en-US',
-    })
-    const controls = getConsumptionControls(
-      getPanel(panels ?? [], 'energyConsumption')
-    )
-    const getAnnualText = (
-      selectedSubmetricIds: EnergymapBuildingInfoEnergySubmetricId[]
-    ): EnergymapBuildingInfoText => {
-      const text = getSelectedEnergyConsumption({
-        controls,
-        selectedSubmetricIds,
-      }).values.find((value) => value.id === 'annualTotal')?.text
-
-      if (text == null) {
-        throw new Error('Annual total text not found')
-      }
-
-      return text
-    }
-
-    expectPlainText(getAnnualText(['electricity']), '10,953')
-    expectPlainText(getAnnualText(['heating']), '156,023')
-    expectPlainText(getAnnualText(['electricity', 'heating']), '166,976')
-
-    const selectedWithWaterHeating = getSelectedEnergyConsumption({
-      controls,
-      selectedSubmetricIds: ['electricity', 'heating', 'waterHeating'],
-    })
-
-    expectPlainText(
-      selectedWithWaterHeating.values.find(
-        (value) => value.id === 'annualTotal'
-      )?.text as EnergymapBuildingInfoText,
-      '166,976'
-    )
-    expect(selectedWithWaterHeating.notes.map((note) => note.id)).toEqual([
-      'waterHeatingUnavailable',
-    ])
-
-    const noSupportedSelection = getSelectedEnergyConsumption({
-      controls,
-      selectedSubmetricIds: [],
-    }).values.find((value) => value.id === 'annualTotal')
-
-    expect(noSupportedSelection?.status).toBe('placeholder')
-    expectTranslation(
-      noSupportedSelection?.text as EnergymapBuildingInfoText,
-      `${translationPrefix}.panels.energy.unsupported.no_selected_energy_submetrics`
-    )
-  })
-
-  it('produces renovation scenario estimates from published baseline and measure columns', () => {
-    const panels = createEnergymapBuildingInfoPanels({
-      selectedBuilding: districtHeatingBuilding,
-      locale: 'en-US',
-    })
-    const renovationPanel = getPanel(panels ?? [], 'renovationRecommendations')
-    const publishedRecommendations = getSection(
-      renovationPanel,
-      'publishedRecommendations'
-    )
-    const scenarioComparison = renovationPanel.sections.find(
-      (section) => section.id === 'scenarioComparison'
-    )
-    const certificateRecommendations = getRow(
-      renovationPanel,
-      'energyCertificateRecommendations'
-    )
-    const scenario = getScenario(renovationPanel, 'aahp')
-    const annualTotal = scenario.values.find(
-      (value) => value.id === 'annualTotal'
-    )
-    const savingsPercent = scenario.values.find(
-      (value) => value.id === 'savingsPercent'
-    )
-
-    expect(renovationPanel.sections.map((section) => section.id)).toEqual([
-      'publishedRecommendations',
-      'scenarioComparison',
-    ])
-    expect(publishedRecommendations.rows?.map((row) => row.id)).toEqual([
-      'renovationRecommendations',
-      'energyRecommendations',
-      'energyCertificateRecommendations',
-    ])
-    expect(certificateRecommendations.status).toBe('missing')
-    expect(certificateRecommendations.presentation).toBe(
-      'expandableSourceText'
-    )
-    expect(scenarioComparison?.notes).toBeUndefined()
-    expectTranslation(
-      certificateRecommendations.text,
-      `${translationPrefix}.placeholders.missing_value`
-    )
-    expect(certificateRecommendations.sourceProperties).toEqual([
-      'energy_certificate_recommendations_fi',
-      'energy_certificate_recommendations_sv',
-    ])
-    expect(annualTotal?.status).toBe('estimate')
-    expectPlainText(annualTotal?.text as EnergymapBuildingInfoText, '131,525')
-    expect(savingsPercent?.status).toBe('estimate')
-    expectTranslation(
-      savingsPercent?.text as EnergymapBuildingInfoText,
-      `${translationPrefix}.panels.renovation.savings_less`,
-      { percent: '-21%' }
-    )
-  })
 
   it.each([
     [
@@ -1527,9 +1482,7 @@ describe('Energiakartta building info model', () => {
     [
       'Finnish-only source text',
       'en',
-      {
-        energy_certificate_recommendations_fi: 'Vaihda ikkunat.',
-      },
+      { energy_certificate_recommendations_fi: 'Vaihda ikkunat.' },
       'Vaihda ikkunat.',
       'fi',
       'energy_certificate_recommendations_fi',
@@ -1537,9 +1490,7 @@ describe('Energiakartta building info model', () => {
     [
       'Swedish-only source text',
       'fi',
-      {
-        energy_certificate_recommendations_sv: 'Byt fönster.',
-      },
+      { energy_certificate_recommendations_sv: 'Byt fönster.' },
       'Byt fönster.',
       'sv',
       'energy_certificate_recommendations_sv',
@@ -1556,7 +1507,7 @@ describe('Energiakartta building info model', () => {
       'energy_certificate_recommendations_sv',
     ],
     [
-      'paragraph breaks in long source prose survive outer trimming',
+      'paragraph breaks survive outer trimming',
       'en',
       {
         energy_certificate_recommendations_fi:
@@ -1578,15 +1529,19 @@ describe('Energiakartta building info model', () => {
       'energy_certificate_recommendations_fi',
     ],
   ] as const)(
-    'selects one certificate recommendation source: %s',
+    'selects one certificate recommendation source with exact provenance: %s',
     (_caseName, locale, properties, text, sourceLanguage, sourceProperty) => {
-      const recommendation = getCertificateRecommendationsRow({
-        properties: {
+      const panels = createEnergymapBuildingInfoPanels({
+        selectedBuilding: createSelectedBuilding({
           building_key: `certificate-recommendation-${sourceLanguage}`,
           ...properties,
-        },
+        }),
         locale,
-      })
+      }) as EnergymapBuildingInfoPanel[]
+      const recommendation = getRow(
+        getPanel(panels, 'renovationRecommendations'),
+        'energyCertificateRecommendations'
+      )
 
       expect(recommendation.status).toBe('real')
       expect(recommendation.presentation).toBe('expandableSourceText')
@@ -1612,51 +1567,181 @@ describe('Energiakartta building info model', () => {
         energy_certificate_recommendations_sv: Number.POSITIVE_INFINITY,
       },
     ],
-  ])(
-    'uses the normal missing recommendation state when %s',
-    (_caseName, properties) => {
-      const recommendation = getCertificateRecommendationsRow({
-        properties: {
-          building_key: 'certificate-recommendation-missing',
-          ...properties,
-        },
-        locale: 'en-US',
-      })
-
-      expect(recommendation.status).toBe('missing')
-      expect(recommendation.presentation).toBe('expandableSourceText')
-      expectTranslation(
-        recommendation.text,
-        `${translationPrefix}.placeholders.missing_value`
-      )
-      expect(recommendation.sourceLanguage).toBeUndefined()
-      expect(recommendation.sourceProperties).toEqual([
-        'energy_certificate_recommendations_fi',
-        'energy_certificate_recommendations_sv',
-      ])
-    }
-  )
-
-  it('keeps absent scenario combinations as not-published placeholders', () => {
+  ])('omits certificate recommendations when %s', (_caseName, properties) => {
     const panels = createEnergymapBuildingInfoPanels({
-      selectedBuilding: geothermalBuilding,
+      selectedBuilding: createSelectedBuilding({
+        building_key: `certificate-recommendation-${_caseName}`,
+        energy_class: 'D',
+        ...properties,
+      }),
       locale: 'en-US',
-    })
-    const renovationPanel = getPanel(panels ?? [], 'renovationRecommendations')
-    const scenario = getScenario(renovationPanel, 'aahp')
-    const annualTotal = scenario.values.find(
-      (value) => value.id === 'annualTotal'
-    )
+    }) as EnergymapBuildingInfoPanel[]
 
-    expect(annualTotal?.status).toBe('placeholder')
-    expectTranslation(
-      annualTotal?.text as EnergymapBuildingInfoText,
-      `${translationPrefix}.placeholders.not_published`
-    )
-    expect(annualTotal?.sourceProperties).toEqual(['gshp_aahp_total'])
+    expect(findPanel(panels, 'renovationRecommendations')).toBeUndefined()
+    expect(
+      findRow(getPanel(panels, 'buildingDetails'), 'energyCertificateRecommendations')
+    ).toBeUndefined()
   })
 
-  it('does not pick an arbitrary consumption scenario for unsupported heating data', () => {
+  it('keeps apartment-pellet Cost complete-only while preserving scoped pellet CO2', () => {
+    const apartmentPellet = createSelectedBuilding({
+      building_key: 'apartment-pellet',
+      main_purpose: '06',
+      heating_method: '01',
+      heating_energy_source: '07',
+      floor_area: 100,
+      wood_default_total: 30,
+      wood_default_elec: 10,
+      wood_default_heat: 20,
+    })
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: apartmentPellet,
+      locale: 'en-US',
+    }) as EnergymapBuildingInfoPanel[]
+    const energy = getPanel(panels, 'energyConsumption')
+    const controls = getControls(energy)
+
+    expect(controls.primaryMetrics.map(({ id }) => id)).toEqual([
+      'energy',
+      'water',
+      'co2',
+    ])
+    expectPlainText(
+      getPrimaryMetric(controls, 'co2').value
+        ?.text as EnergymapBuildingInfoText,
+      '45'
+    )
+    expect(getPrimaryMetric(controls, 'co2').value?.unitKey).toBe(
+      `${translationPrefix}.units.kg_co2_per_year`
+    )
+    expect(findRow(energy, 'costMode')).toBeUndefined()
+    expect(getRow(energy, 'co2Mode').status).toBe('estimate')
+
+    const zeroHeatPanels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: createSelectedBuilding({
+        ...apartmentPellet.properties,
+        building_key: 'apartment-pellet-zero-heat',
+        wood_default_heat: 0,
+      }),
+      locale: 'en-US',
+    }) as EnergymapBuildingInfoPanel[]
+    const zeroHeatControls = getControls(
+      getPanel(zeroHeatPanels, 'energyConsumption')
+    )
+
+    expect(zeroHeatControls.primaryMetrics.map(({ id }) => id)).toContain(
+      'cost'
+    )
+    expectPlainText(
+      getPrimaryMetric(zeroHeatControls, 'cost').value
+        ?.text as EnergymapBuildingInfoText,
+      '263'
+    )
+  })
+
+  it('keeps generated current-reference and building copy exact in both locales', () => {
+    const enEnergy = enTranslations.sidebar.building_info.panels.energy
+    const fiEnergy = fiTranslations.sidebar.building_info.panels.energy
+    const enBuilding = enTranslations.sidebar.building_info.panels.building
+    const fiBuilding = fiTranslations.sidebar.building_info.panels.building
+
+    expect(enEnergy.context.cost_current_reference).toMatch(
+      /Average current-reference estimate.*not a bill.*contract price.*market-price forecast/i
+    )
+    expect(fiEnergy.context.cost_current_reference).toMatch(
+      /keskimääräinen arvio.*ei ole lasku.*sopimushinta.*markkinahinnasta/i
+    )
+    expect(enEnergy.context.co2_current_reference).toMatch(
+      /not measured building emissions.*renewable energy.*Light fuel oil uses a fossil factor.*pellet factor is zero only within the supplied fossil-accounting boundary.*does not prove zero lifecycle or biogenic emissions/i
+    )
+    expect(fiEnergy.context.co2_current_reference).toMatch(
+      /ei rakennuksen mitattuihin päästöihin.*uusiutuva energia.*Kevyen polttoöljyn kerroin on fossiilinen.*Pelletin kerroin on nolla vain toimitetun fossiililaskennan rajauksen sisällä.*elinkaaripäästöjä tai biogeenisiä päästöjä nollaksi/i
+    )
+    expect(enBuilding.rows.heated_net_area).toBe(
+      'Heated net area on energy certificate'
+    )
+    expect(fiBuilding.rows.heated_net_area).toBe(
+      'Energiatodistuksen lämmitetty nettoala'
+    )
+    expect(enBuilding.rows.energy_certificate_validity).toBe(
+      'Latest energy certificate valid until'
+    )
+    expect(fiBuilding.rows.energy_certificate_validity).toBe(
+      'Uusimman energiatodistuksen voimassaolo päättyy'
+    )
+    expect(enBuilding.energy_class_modeled).toEqual({
+      label: 'modeled',
+      tooltip:
+        "The energy class is modeled from the building's available data. It is an estimate and less accurate than an official energy certificate.",
+      help_aria_label: 'More information about the modeled energy class',
+    })
+    expect(fiBuilding.energy_class_modeled).toEqual({
+      label: 'mallinnettu',
+      tooltip:
+        'Energialuokka on mallinnettu rakennuksen saatavilla olevien tietojen perusteella. Se on arvio eikä yhtä tarkka kuin virallinen energiatodistus.',
+      help_aria_label: 'Lisätietoja mallinnetusta energialuokasta',
+    })
+    expect(enTranslations.sidebar.building_info.units.square_meters).toBe('m²')
+    expect(fiTranslations.sidebar.building_info.units.square_meters).toBe('m²')
+  })
+
+  it('preserves renovation calculation values and source metadata', () => {
+    const panels = createEnergymapBuildingInfoPanels({
+      selectedBuilding: districtHeatingBuilding,
+      locale: 'en-US',
+    }) as EnergymapBuildingInfoPanel[]
+    const renovation = getPanel(panels, 'renovationRecommendations')
+    const scenario = getScenario(renovation, 'aahp')
+    const annualTotal = getMetricValue(
+      { id: 'total', label: scenario.label, values: scenario.values },
+      'annualTotal'
+    )
+    const perSquareMeter = getMetricValue(
+      { id: 'total', label: scenario.label, values: scenario.values },
+      'perSquareMeter'
+    )
+    const savingsPercent = getMetricValue(
+      { id: 'total', label: scenario.label, values: scenario.values },
+      'savingsPercent'
+    )
+
+    expect(renovation.sections.map(({ id }) => id)).toEqual([
+      'scenarioComparison',
+    ])
+    expect(scenario.values.map(({ id }) => id)).toEqual([
+      'annualTotal',
+      'perSquareMeter',
+      'savingsPercent',
+    ])
+    expect(annualTotal.status).toBe('estimate')
+    expectPlainText(annualTotal.text, '131,525')
+    expect(annualTotal.unitKey).toBe(`${translationPrefix}.units.kwh_per_year`)
+    expect(annualTotal.sourceProperties).toEqual([
+      'distr_aahp_total',
+      'floor_area',
+    ])
+    expectTranslation(
+      annualTotal.note as EnergymapBuildingInfoText,
+      `${translationPrefix}.panels.energy.note.estimated`
+    )
+    expectPlainText(perSquareMeter.text, '289.7')
+    expect(perSquareMeter.unitKey).toBe(
+      `${translationPrefix}.units.kwh_per_square_meter_year`
+    )
+    expect(perSquareMeter.sourceProperties).toEqual(['distr_aahp_total'])
+    expectTranslation(
+      savingsPercent.text,
+      `${translationPrefix}.panels.renovation.savings_less`,
+      { percent: '-21%' }
+    )
+    expect(savingsPercent.sourceProperties).toEqual([
+      'distr_default_total',
+      'distr_aahp_total',
+    ])
+    expectAvailableGraph(panels)
+  })
+
+  it('does not choose an arbitrary scenario for unsupported heating data', () => {
     expect(
       resolveCurrentEnergyScenarioPrefix({
         heatingEnergySource: '99',
@@ -1665,121 +1750,21 @@ describe('Energiakartta building info model', () => {
     ).toBeNull()
 
     const panels = createEnergymapBuildingInfoPanels({
-      selectedBuilding: unsupportedHeatingBuilding,
+      selectedBuilding: createSelectedBuilding({
+        building_key: 'unsupported-heating',
+        heating_method: '07',
+        heating_energy_source: '99',
+        floor_area: 384,
+      }),
       locale: 'en-US',
-    })
-    const energyPanel = getPanel(panels ?? [], 'energyConsumption')
-    const totalMetric = getMetric(energyPanel, 'total')
-    const annualTotal = getMetricValue(totalMetric, 'annualTotal')
+    }) as EnergymapBuildingInfoPanel[]
 
-    expect(annualTotal.status).toBe('missing')
-    expectTranslation(
-      annualTotal.text,
-      `${translationPrefix}.placeholders.unsupported_energy_estimate`
-    )
-    expect(annualTotal.sourceProperties).toEqual([
-      'heating_method',
-      'heating_energy_source',
+    const energy = getPanel(panels, 'energyConsumption')
+    expect(getMetrics(energy)).toEqual([])
+    expect(getControls(energy).primaryMetrics.map(({ id }) => id)).toEqual([
+      'water',
     ])
+    expect(findPanel(panels, 'renovationRecommendations')).toBeUndefined()
+    expectAvailableGraph(panels)
   })
-
-  it('turns missing selected-feature values into explicit missing placeholders', () => {
-    const selectedBuilding = createSelectedBuilding({
-      building_key: 'missing-values',
-      address_fin: 'Kinkeripolku 8b',
-      postal_code: '00680',
-      postal_office_fin: 'HELSINKI',
-      main_purpose: '98',
-      floor_area: 0,
-    })
-    const panels = createEnergymapBuildingInfoPanels({
-      selectedBuilding,
-      locale: 'en-US',
-    })
-    const buildingPanel = getPanel(panels ?? [], 'buildingDetails')
-    const constructionYear = getRow(buildingPanel, 'constructionYear')
-    const energyClass = getRow(buildingPanel, 'energyClass')
-    const heatedNetArea = getRow(buildingPanel, 'heatedNetArea')
-    const buildingType = getRow(buildingPanel, 'buildingType')
-
-    expect(constructionYear.status).toBe('missing')
-    expectTranslation(
-      constructionYear.text,
-      `${translationPrefix}.placeholders.missing_value`
-    )
-
-    expect(energyClass.status).toBe('missing')
-    expectTranslation(
-      energyClass.text,
-      `${translationPrefix}.placeholders.missing_value`
-    )
-
-    expect(heatedNetArea.status).toBe('missing')
-    expectTranslation(
-      heatedNetArea.text,
-      `${translationPrefix}.placeholders.missing_value`
-    )
-    expect(heatedNetArea.sourceProperties).toEqual([
-      'energy_certificate_heated_net_area',
-    ])
-    expect(heatedNetArea.unitKey).toBeUndefined()
-
-    expect(buildingType.status).toBe('real')
-    expectTranslation(
-      buildingType.text,
-      `${translationPrefix}.placeholders.unknown_code`,
-      { code: '98' }
-    )
-  })
-
-  it.each([null, '', 'not-a-number', NaN, Infinity, 0, -1])(
-    'keeps invalid certificate heated net area %p unavailable without a fallback',
-    (heatedNetAreaValue) => {
-      const panels = createEnergymapBuildingInfoPanels({
-        selectedBuilding: createSelectedBuilding({
-          building_key: `invalid-heated-net-area-${String(heatedNetAreaValue)}`,
-          energy_certificate_heated_net_area: heatedNetAreaValue,
-          floor_area: 999,
-          total_area: 888,
-          gross_floor_area: 777,
-        }),
-        locale: 'en-US',
-      })
-      const heatedNetArea = getRow(
-        getPanel(panels ?? [], 'buildingDetails'),
-        'heatedNetArea'
-      )
-
-      expect(heatedNetArea.status).toBe('missing')
-      expectTranslation(
-        heatedNetArea.text,
-        `${translationPrefix}.placeholders.missing_value`
-      )
-      expect(heatedNetArea.sourceProperties).toEqual([
-        'energy_certificate_heated_net_area',
-      ])
-      expect(heatedNetArea.unitKey).toBeUndefined()
-    }
-  )
-
-  it.each([undefined, 0, -1, NaN, Infinity])(
-    'keeps Water unavailable without a resident override for invalid floor area %p',
-    (floorArea) => {
-      const panels = createEnergymapBuildingInfoPanels({
-        selectedBuilding: createSelectedBuilding({
-          building_key: `invalid-water-${String(floorArea)}`,
-          floor_area: floorArea,
-        }),
-        locale: 'en-US',
-      })
-      const water = getPrimaryMetric(
-        getPanel(panels ?? [], 'energyConsumption'),
-        'water'
-      )
-
-      expect(water.supported).toBe(false)
-      expect(water.residentCountControl).toBeUndefined()
-      expect(water.value?.status).toBe('missing')
-    }
-  )
 })

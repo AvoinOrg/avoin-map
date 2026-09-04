@@ -1284,7 +1284,7 @@ describe('BuildingInfoPanel', () => {
       })
     )
     expect(values).toHaveTextContent('30')
-    expect(energyPanel).toHaveTextContent(
+    expect(energyPanel).not.toHaveTextContent(
       'sidebar.building_info.panels.energy.unsupported.water_heating'
     )
 
@@ -1293,15 +1293,13 @@ describe('BuildingInfoPanel', () => {
         name: 'panels.energy.series.electricity',
       })
     )
-    expect(values).toHaveTextContent(
-      'sidebar.building_info.panels.energy.unsupported.no_selected_energy_submetrics'
-    )
-    expect(energyPanel).toHaveTextContent(
+    expect(values).toBeEmptyDOMElement()
+    expect(energyPanel).not.toHaveTextContent(
       'sidebar.building_info.panels.energy.unsupported.water_heating'
     )
   })
 
-  it('allows deselecting every supported energy submetric', async () => {
+  it('allows deselecting every supported energy submetric without a fallback placeholder', async () => {
     renderBuildingInfoTabs()
 
     await screen.findByTestId('building-info-tab-page-basic')
@@ -1323,9 +1321,7 @@ describe('BuildingInfoPanel', () => {
       })
     )
 
-    expect(values).toHaveTextContent(
-      'sidebar.building_info.panels.energy.unsupported.no_selected_energy_submetrics'
-    )
+    expect(values).toBeEmptyDOMElement()
     expect(
       within(energyPanel).getByRole('button', {
         name: 'panels.energy.series.electricity',
@@ -1346,6 +1342,57 @@ describe('BuildingInfoPanel', () => {
     )
   })
 
+  it('replaces the selected sparse submetric when no combined output exists', async () => {
+    const sparseControls: EnergymapBuildingInfoConsumptionControls = {
+      defaultPrimaryMetricId: 'energy',
+      primaryMetrics: [consumptionControls.primaryMetrics[0]],
+      defaultEnergySubmetricIds: ['electricity'],
+      energySubmetrics: (consumptionControls.energySubmetrics ?? [])
+        .filter(({ id }) => id === 'electricity' || id === 'heating')
+        .map((submetric) => ({
+          ...submetric,
+          defaultSelected: submetric.id === 'electricity',
+        })),
+    }
+
+    renderBuildingInfoTabs({
+      panels: getPanelsWithConsumptionControls(sparseControls),
+    })
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    const energyPanel = screen.getByTestId(
+      'building-info-panel-energyConsumption'
+    )
+    const values = within(energyPanel).getByTestId(
+      'building-info-energy-consumption-values'
+    )
+    const electricityButton = within(energyPanel).getByRole('button', {
+      name: 'panels.energy.series.electricity',
+    })
+    const heatingButton = within(energyPanel).getByRole('button', {
+      name: 'panels.energy.series.heating',
+    })
+
+    expect(electricityButton).toHaveAttribute('aria-pressed', 'true')
+    expect(heatingButton).toHaveAttribute('aria-pressed', 'false')
+    expect(values).toHaveTextContent('30')
+    expect(values).not.toHaveTextContent('70')
+
+    fireEvent.click(heatingButton)
+
+    expect(electricityButton).toHaveAttribute('aria-pressed', 'false')
+    expect(heatingButton).toHaveAttribute('aria-pressed', 'true')
+    expect(values).toHaveTextContent('70')
+    expect(values).not.toHaveTextContent('30')
+
+    fireEvent.click(electricityButton)
+
+    expect(electricityButton).toHaveAttribute('aria-pressed', 'true')
+    expect(heatingButton).toHaveAttribute('aria-pressed', 'false')
+    expect(values).toHaveTextContent('30')
+    expect(values).not.toHaveTextContent('70')
+  })
+
   it('normalizes energy control state when building controls change', async () => {
     const controlsWithReducedOptions: EnergymapBuildingInfoConsumptionControls =
       {
@@ -1353,7 +1400,7 @@ describe('BuildingInfoPanel', () => {
         primaryMetrics: consumptionControls.primaryMetrics.filter(
           (metric) => metric.id !== 'water'
         ),
-        energySubmetrics: consumptionControls.energySubmetrics.filter(
+        energySubmetrics: (consumptionControls.energySubmetrics ?? []).filter(
           (submetric) => submetric.id !== 'waterHeating'
         ),
         defaultEnergySubmetricIds: ['electricity', 'heating'],
@@ -1385,9 +1432,7 @@ describe('BuildingInfoPanel', () => {
       within(getEnergyPanel()).getByTestId(
         'building-info-energy-consumption-values'
       )
-    ).toHaveTextContent(
-      'sidebar.building_info.panels.energy.unsupported.no_selected_energy_submetrics'
-    )
+    ).toBeEmptyDOMElement()
 
     fireEvent.click(
       within(getEnergyPanel()).getByRole('button', {
