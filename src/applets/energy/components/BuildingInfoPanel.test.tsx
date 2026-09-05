@@ -28,6 +28,7 @@ import {
   getEnergymapBuildingInfoDesktopMinWidthPx,
   getEnergymapBuildingInfoPanelRuntimeOptions,
 } from '../common/buildingInfoPanelRuntime'
+import { deriveEnergymapBuildingInfoPanelTopology } from '../common/buildingInfoPanelTopology'
 import type {
   EnergymapBuildingInfoConsumptionControls,
   EnergymapBuildingInfoMetric,
@@ -226,20 +227,8 @@ const electricityEnergyMetric = createEnergyMetric({
 const waterHeatingEnergyMetric = createEnergyMetric({
   id: 'waterHeating',
   labelKey: 'panels.energy.series.water_heating',
-  annualText: translation('value.water_heating_unavailable'),
-  squareText: translation('value.water_heating_unavailable'),
-})
-
-const emptyEnergyMetric = createEnergyMetric({
-  id: 'total',
-  labelKey: 'panels.energy.series.total',
-  annualText: translation(
-    'sidebar.building_info.panels.energy.unsupported.no_selected_energy_submetrics'
-  ),
-  squareText: translation(
-    'sidebar.building_info.panels.energy.unsupported.no_selected_energy_submetrics'
-  ),
-  status: 'placeholder',
+  annualText: plain('10'),
+  squareText: plain('1'),
 })
 
 const consumptionControls: EnergymapBuildingInfoConsumptionControls = {
@@ -324,20 +313,12 @@ const consumptionControls: EnergymapBuildingInfoConsumptionControls = {
       id: 'waterHeating',
       label: translation('panels.energy.series.water_heating'),
       ariaLabelKey: 'panels.energy.series.water_heating',
-      supported: false,
+      supported: true,
       defaultSelected: false,
       metric: waterHeatingEnergyMetric,
-      unavailableNote: {
-        id: 'waterHeatingUnavailable',
-        text: translation(
-          'sidebar.building_info.panels.energy.unsupported.water_heating'
-        ),
-        status: 'placeholder',
-      },
     },
   ],
   combinedEnergyMetric: totalEnergyMetric,
-  emptyEnergyMetric,
 }
 
 const renderWithTheme = (ui: React.ReactElement) => {
@@ -405,36 +386,17 @@ const panels: EnergymapBuildingInfoPanel[] = [
             unitKey: 'unit.kwh',
           },
         ],
-        notes: [
-          {
-            id: 'placeholderNote',
-            text: translation('note.placeholder'),
-            status: 'placeholder',
-          },
-        ],
       },
       {
         id: 'calculationContext',
         title: translation('section.energy.calculation_context.title'),
         rows: [
           {
-            id: 'costMode',
-            label: translation('panels.energy.rows.cost_mode'),
-            text: translation('placeholders.not_published'),
-            status: 'placeholder',
-          },
-          {
             id: 'co2Mode',
             label: translation('panels.energy.rows.co2_mode'),
             text: translation('panels.energy.context.co2_current_reference'),
             status: 'estimate',
             sourceProperties: ['co2_factor'],
-          },
-          {
-            id: 'waterHeatingSplit',
-            label: translation('panels.energy.rows.water_heating_split'),
-            text: translation('placeholders.not_published'),
-            status: 'placeholder',
           },
         ],
       },
@@ -449,22 +411,8 @@ const panels: EnergymapBuildingInfoPanel[] = [
         id: 'publishedRecommendations',
         rows: [
           {
-            id: 'renovationRecommendations',
-            label: translation('row.renovation_recommendations.label'),
-            text: translation('value.placeholder'),
-            status: 'placeholder',
-          },
-          {
-            id: 'energyRecommendations',
-            label: translation('row.energy_recommendations.label'),
-            text: translation('value.placeholder'),
-            status: 'placeholder',
-          },
-          {
             id: 'energyCertificateRecommendations',
-            label: translation(
-              'row.energy_certificate_recommendations.label'
-            ),
+            label: translation('row.energy_certificate_recommendations.label'),
             text: plain(CERTIFICATE_RECOMMENDATION_SOURCE_TEXT),
             status: 'real',
             sourceProperties: ['energy_certificate_recommendations_fi'],
@@ -515,6 +463,7 @@ const panels: EnergymapBuildingInfoPanel[] = [
               'sidebar.building_info.panels.renovation.note.scenario_estimate'
             ),
             status: 'estimate',
+            sourceProperties: ['default_total', 'aahp_total'],
           },
         ],
       },
@@ -538,25 +487,6 @@ const panels: EnergymapBuildingInfoPanel[] = [
               'postal_code',
               'postal_office_fin',
             ],
-          },
-        ],
-      },
-      {
-        id: 'identity',
-        rows: [
-          {
-            id: 'missingRow',
-            label: translation('row.missing.label'),
-            text: translation('value.missing'),
-            status: 'missing',
-            sourceProperties: ['main_purpose'],
-          },
-          {
-            id: 'placeholderRow',
-            label: translation('row.placeholder.label'),
-            text: translation('value.placeholder'),
-            status: 'placeholder',
-            sourceProperties: ['planned_measure'],
           },
         ],
       },
@@ -585,39 +515,6 @@ const panels: EnergymapBuildingInfoPanel[] = [
         ],
       },
       {
-        id: 'previousEnergyClass',
-        variant: 'previousEnergyClass',
-        rows: [
-          {
-            id: 'previousEnergyClass',
-            label: translation('row.previous_energy_class.label'),
-            text: translation('value.placeholder'),
-            status: 'placeholder',
-            sourceProperties: ['previous_energy_certificate_class'],
-          },
-          {
-            id: 'energyClassMeasures',
-            label: translation('row.energy_class_measures.label'),
-            text: translation('value.placeholder'),
-            status: 'placeholder',
-            sourceProperties: ['energy_class_measure'],
-          },
-        ],
-      },
-      {
-        id: 'plannedMeasures',
-        variant: 'measureList',
-        rows: [
-          {
-            id: 'plannedMeasures',
-            label: translation('row.planned_measures.label'),
-            text: translation('value.placeholder'),
-            status: 'placeholder',
-            sourceProperties: ['planned_measure'],
-          },
-        ],
-      },
-      {
         id: 'technicalDetails',
         rows: [
           {
@@ -633,6 +530,10 @@ const panels: EnergymapBuildingInfoPanel[] = [
     ],
   },
 ]
+
+const getPanelsByIds = (
+  panelIds: readonly EnergymapBuildingInfoPanel['id'][]
+) => panels.filter((panel) => panelIds.includes(panel.id))
 
 const ariaLabels = {
   close: 'Close building information',
@@ -677,30 +578,37 @@ const createBuildingInfoTabsElement = ({
   onClose = jest.fn(),
   onCollapse = jest.fn(),
   panels: buildingInfoPanels = panels,
-}: RenderBuildingInfoTabsOptions = {}) => (
-  <SlotsProvider>
-    <SidebarRoot>
-      <SidebarPanelExtensionProvider
-        id="building-info-test-extension"
-        initialRuntimeOptions={{ visiblePanels: ['main'], activePanel: 'main' }}
-      >
-        <IntoSidebarPanelExtensionPanelSlot panelId="main">
-          <BuildingInfoTabPages
-            key={panelKey}
-            panels={buildingInfoPanels}
-            ariaLabels={ariaLabels}
-            activeTabId={activeTabId}
-            forceMobileLayout={forceMobileLayout}
-            isDesktopFullscreenLayout={isDesktopFullscreenLayout}
-            onActiveTabChange={onActiveTabChange}
-            onClose={onClose}
-            onCollapse={onCollapse}
-          />
-        </IntoSidebarPanelExtensionPanelSlot>
-      </SidebarPanelExtensionProvider>
-    </SidebarRoot>
-  </SlotsProvider>
-)
+}: RenderBuildingInfoTabsOptions = {}) => {
+  const topology = deriveEnergymapBuildingInfoPanelTopology(buildingInfoPanels)
+
+  return (
+    <SlotsProvider>
+      <SidebarRoot>
+        <SidebarPanelExtensionProvider
+          id="building-info-test-extension"
+          initialRuntimeOptions={{
+            visiblePanels: ['main'],
+            activePanel: 'main',
+          }}
+        >
+          <IntoSidebarPanelExtensionPanelSlot panelId="main">
+            <BuildingInfoTabPages
+              key={panelKey}
+              topology={topology}
+              ariaLabels={ariaLabels}
+              activeTabId={activeTabId}
+              forceMobileLayout={forceMobileLayout}
+              isDesktopFullscreenLayout={isDesktopFullscreenLayout}
+              onActiveTabChange={onActiveTabChange}
+              onClose={onClose}
+              onCollapse={onCollapse}
+            />
+          </IntoSidebarPanelExtensionPanelSlot>
+        </SidebarPanelExtensionProvider>
+      </SidebarRoot>
+    </SlotsProvider>
+  )
+}
 
 const renderBuildingInfoTabs = (
   options: RenderBuildingInfoTabsOptions = {}
@@ -738,7 +646,10 @@ describe('BuildingInfoPanel', () => {
             {
               type: 'sequence',
               separator: ' + ',
-              parts: [plain('plain'), translation('unknown.code', { code: 99 })],
+              parts: [
+                plain('plain'),
+                translation('unknown.code', { code: 99 }),
+              ],
             },
           ],
         }}
@@ -791,15 +702,27 @@ describe('BuildingInfoPanel', () => {
     })
     expect(screen.getByTestId('building-info-grid')).toHaveStyle({
       flexGrow: 1,
+    })
+    expect(screen.getByTestId('building-info-grid')).not.toHaveStyle({
       minHeight: '1256px',
-      gridTemplateRows: 'minmax(1256px, 1fr)',
+    })
+    expect(screen.getByTestId('building-info-grid')).toHaveAttribute(
+      'data-building-info-content-width',
+      '760'
+    )
+    expect(screen.getByTestId('building-info-grid-row-basic')).toHaveAttribute(
+      'data-grid-region-count',
+      '2'
+    )
+    expect(screen.getByTestId('building-info-grid-row-basic')).not.toHaveStyle({
+      minHeight: '1256px',
     })
     expect(
       screen.getByTestId('building-info-grid-section-basic-energy')
-    ).toHaveAttribute('data-grid-area', 'energy')
+    ).toHaveAttribute('data-grid-row', 'basic')
     expect(
       screen.getByTestId('building-info-grid-section-basic-building-details')
-    ).toHaveAttribute('data-grid-area', 'details')
+    ).toHaveAttribute('data-grid-row', 'basic')
     expect(
       screen.queryByTestId('building-info-panel-renovationRecommendations')
     ).not.toBeInTheDocument()
@@ -812,8 +735,12 @@ describe('BuildingInfoPanel', () => {
     expect(
       screen.queryByTestId('building-info-grid-section-bottom-right')
     ).not.toBeInTheDocument()
-    expect(screen.getAllByTestId('sidebar-panel-extension-page-scroll')).toHaveLength(1)
-    expect(screen.queryByTestId(/^building-info-scroll-/)).not.toBeInTheDocument()
+    expect(
+      screen.getAllByTestId('sidebar-panel-extension-page-scroll')
+    ).toHaveLength(1)
+    expect(
+      screen.queryByTestId(/^building-info-scroll-/)
+    ).not.toBeInTheDocument()
   })
 
   it('renders calculation details as an accessible collapsed accordion with stacked explanations', async () => {
@@ -843,17 +770,17 @@ describe('BuildingInfoPanel', () => {
     expect(panel).toBeVisible()
     expect(
       Array.from(
-        calculationContext.querySelectorAll(
-          '[data-calculation-context-row-id]'
-        )
+        calculationContext.querySelectorAll('[data-calculation-context-row-id]')
       ).map((row) => row.getAttribute('data-calculation-context-row-id'))
-    ).toEqual(['costMode', 'co2Mode', 'waterHeatingSplit'])
-    expect(panel).toHaveTextContent('panels.energy.rows.cost_mode')
+    ).toEqual(['co2Mode'])
+    expect(panel).not.toHaveTextContent('panels.energy.rows.cost_mode')
     expect(panel).toHaveTextContent('panels.energy.rows.co2_mode')
     expect(panel).toHaveTextContent(
       'panels.energy.context.co2_current_reference'
     )
-    expect(panel).toHaveTextContent('panels.energy.rows.water_heating_split')
+    expect(panel).not.toHaveTextContent(
+      'panels.energy.rows.water_heating_split'
+    )
     expect(
       calculationContext.querySelector(
         '[data-calculation-context-row-id="co2Mode"] [data-source-properties="co2_factor"]'
@@ -910,25 +837,30 @@ describe('BuildingInfoPanel', () => {
       'data-building-info-grid-layout',
       'renovation'
     )
-    expect(screen.getByTestId('building-info-grid')).toHaveStyle({
+    expect(screen.getByTestId('building-info-grid')).not.toHaveStyle({
       minHeight: '2365px',
-      gridTemplateRows: '1300px 1065px',
     })
     expect(
+      screen.getByTestId('building-info-grid-row-renovationTop')
+    ).not.toHaveStyle({ minHeight: '1300px' })
+    expect(
+      screen.getByTestId('building-info-grid-row-renovationComparison')
+    ).not.toHaveStyle({ minHeight: '1065px' })
+    expect(
       screen.getByTestId('building-info-grid-section-top-energy')
-    ).toHaveAttribute('data-grid-area', 'energy')
+    ).toHaveAttribute('data-grid-row', 'renovationTop')
     expect(
       screen.getByTestId('building-info-grid-section-top-renovation')
-    ).toHaveAttribute('data-grid-area', 'renovation')
+    ).toHaveAttribute('data-grid-row', 'renovationTop')
     expect(
       screen.getByTestId('building-info-grid-section-top-building-details')
-    ).toHaveAttribute('data-grid-area', 'details')
+    ).toHaveAttribute('data-grid-row', 'renovationTop')
     expect(
       screen.getByTestId('building-info-grid-section-bottom-wide')
-    ).toHaveAttribute('data-grid-area', 'comparison')
+    ).toHaveAttribute('data-grid-row', 'renovationComparison')
     expect(
       screen.getByTestId('building-info-grid-section-bottom-right')
-    ).toHaveAttribute('data-grid-area', 'effectiveness')
+    ).toHaveAttribute('data-grid-row', 'renovationComparison')
     expect(
       screen.getByTestId('building-info-grid-section-bottom-right')
     ).toHaveStyle({ backgroundColor: '#f0f0f0' })
@@ -936,11 +868,11 @@ describe('BuildingInfoPanel', () => {
       screen.getByTestId('building-info-renovation-comparison-wide')
     ).toBeInTheDocument()
     expect(
-      screen.queryByText('section.energy.calculation_context.title')
-    ).not.toBeInTheDocument()
+      screen.getByText('section.energy.calculation_context.title')
+    ).toBeInTheDocument()
     expect(
-      screen.queryByTestId('building-info-calculation-context')
-    ).not.toBeInTheDocument()
+      screen.getByTestId('building-info-calculation-context')
+    ).toBeInTheDocument()
     expect(
       screen.queryByTestId('building-info-renovation-reference-year-note')
     ).not.toBeInTheDocument()
@@ -957,11 +889,18 @@ describe('BuildingInfoPanel', () => {
     expect(
       screen.getByTestId('building-info-renovation-effectiveness-indicator')
     ).toBeInTheDocument()
-    expect(
-      screen.queryByText(
+    const comparisonNote = screen
+      .getByText(
         'sidebar.building_info.panels.renovation.note.scenario_estimate'
       )
-    ).not.toBeInTheDocument()
+      .closest('[data-status]')
+
+    expect(comparisonNote).toHaveAttribute('data-note-id', 'scenarioEstimate')
+    expect(comparisonNote).toHaveAttribute('data-status', 'estimate')
+    expect(comparisonNote).toHaveAttribute(
+      'data-source-properties',
+      'default_total,aahp_total'
+    )
 
     const energyBody = screen.getByTestId(
       'building-info-panel-energyConsumption'
@@ -1003,6 +942,30 @@ describe('BuildingInfoPanel', () => {
     })
   })
 
+  it('publishes a user tab change after applying a controlled active tab', async () => {
+    const onActiveTabChange = jest.fn()
+
+    renderBuildingInfoTabs({
+      activeTabId: 'basic',
+      onActiveTabChange,
+    })
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    await waitFor(() => {
+      expect(onActiveTabChange).toHaveBeenCalledWith('basic')
+    })
+
+    fireEvent.click(
+      screen.getByRole('tab', {
+        name: 'Open renovation recommendations',
+      })
+    )
+
+    await waitFor(() => {
+      expect(onActiveTabChange).toHaveBeenCalledWith('renovation')
+    })
+  })
+
   it('keeps the mobile tab page on the F028.2 stacked sections', async () => {
     mockIsMobile = true
 
@@ -1021,21 +984,24 @@ describe('BuildingInfoPanel', () => {
       'renovationRecommendations',
       'buildingDetails',
     ])
-    expect(screen.getAllByTestId('sidebar-panel-extension-page-scroll')).toHaveLength(1)
-    expect(screen.queryByTestId(/^building-info-scroll-/)).not.toBeInTheDocument()
-    expect(screen.getByTestId('sidebar-panel-extension-page-scroll')).toHaveAttribute(
-      'data-overflow-y',
-      'scroll'
-    )
-    expect(screen.getByTestId('sidebar-panel-extension-page-scroll')).toHaveAttribute(
-      'data-scrollbar-visibility',
-      'auto'
-    )
-    expect(screen.getByTestId('sidebar-panel-extension-page-scroll')).toHaveAttribute(
-      'data-auto-hide',
-      'leave'
-    )
-    expect(screen.getByTestId('sidebar-panel-extension-page-scroll')).toHaveClass('osLeft')
+    expect(
+      screen.getAllByTestId('sidebar-panel-extension-page-scroll')
+    ).toHaveLength(1)
+    expect(
+      screen.queryByTestId(/^building-info-scroll-/)
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByTestId('sidebar-panel-extension-page-scroll')
+    ).toHaveAttribute('data-overflow-y', 'scroll')
+    expect(
+      screen.getByTestId('sidebar-panel-extension-page-scroll')
+    ).toHaveAttribute('data-scrollbar-visibility', 'auto')
+    expect(
+      screen.getByTestId('sidebar-panel-extension-page-scroll')
+    ).toHaveAttribute('data-auto-hide', 'leave')
+    expect(
+      screen.getByTestId('sidebar-panel-extension-page-scroll')
+    ).toHaveClass('osLeft')
     expect(
       screen.getByTestId('building-info-calculation-context')
     ).toBeInTheDocument()
@@ -1061,8 +1027,12 @@ describe('BuildingInfoPanel', () => {
         .getAllByTestId(/building-info-panel-/)
         .map((panel) => panel.dataset.panelId)
     ).toEqual(['energyConsumption', 'buildingDetails'])
-    expect(screen.getAllByTestId('sidebar-panel-extension-page-scroll')).toHaveLength(1)
-    expect(screen.queryByTestId(/^building-info-scroll-/)).not.toBeInTheDocument()
+    expect(
+      screen.getAllByTestId('sidebar-panel-extension-page-scroll')
+    ).toHaveLength(1)
+    expect(
+      screen.queryByTestId(/^building-info-scroll-/)
+    ).not.toBeInTheDocument()
     expect(
       screen.getByTestId('building-info-energy-consumption-section')
     ).toBeInTheDocument()
@@ -1109,7 +1079,56 @@ describe('BuildingInfoPanel', () => {
       'renovationRecommendations',
       'buildingDetails',
     ])
+    const comparisonNote = screen
+      .getByText(
+        'sidebar.building_info.panels.renovation.note.scenario_estimate'
+      )
+      .closest('[data-status]')
+
+    expect(comparisonNote).toHaveAttribute('data-note-id', 'scenarioEstimate')
+    expect(comparisonNote).toHaveAttribute('data-status', 'estimate')
+    expect(comparisonNote).toHaveAttribute(
+      'data-source-properties',
+      'default_total,aahp_total'
+    )
   })
+
+  it.each([
+    ['desktop wide', false],
+    ['forced-mobile stacked', true],
+  ] as const)(
+    'does not render a comparison note wrapper in the %s layout when notes are absent',
+    async (_layoutName, forceMobileLayout) => {
+      const panelsWithoutComparisonNotes = panels.map((panel) =>
+        panel.id === 'renovationRecommendations'
+          ? {
+              ...panel,
+              sections: panel.sections.map((section) =>
+                section.id === 'scenarioComparison'
+                  ? { ...section, notes: [] }
+                  : section
+              ),
+            }
+          : panel
+      )
+
+      renderBuildingInfoTabs({
+        activeTabId: 'renovation',
+        forceMobileLayout,
+        panels: panelsWithoutComparisonNotes,
+      })
+
+      await screen.findByTestId('building-info-tab-page-renovation')
+      expect(
+        screen.queryByText(
+          'sidebar.building_info.panels.renovation.note.scenario_estimate'
+        )
+      ).not.toBeInTheDocument()
+      expect(
+        document.querySelector('[data-note-id="scenarioEstimate"]')
+      ).not.toBeInTheDocument()
+    }
+  )
 
   it('renders the interactive energy controls in the basic tab', async () => {
     renderBuildingInfoTabs()
@@ -1202,60 +1221,6 @@ describe('BuildingInfoPanel', () => {
     expect(panel).not.toBeVisible()
   })
 
-  it('renders a missing certificate recommendation as unavailable without a disclosure', async () => {
-    const panelsWithMissingRecommendation = panels.map((panel) =>
-      panel.id === 'renovationRecommendations'
-        ? {
-            ...panel,
-            sections: panel.sections.map((section) =>
-              section.id === 'publishedRecommendations'
-                ? {
-                    ...section,
-                    rows: section.rows?.map((row) =>
-                      row.id === 'energyCertificateRecommendations'
-                        ? {
-                            ...row,
-                            text: translation('value.missing'),
-                            status: 'missing' as const,
-                            sourceProperties: [
-                              'energy_certificate_recommendations_fi',
-                              'energy_certificate_recommendations_sv',
-                            ],
-                            sourceLanguage: undefined,
-                          }
-                        : row
-                    ),
-                  }
-                : section
-            ),
-          }
-        : panel
-    )
-
-    renderBuildingInfoTabs({
-      activeTabId: 'renovation',
-      panels: panelsWithMissingRecommendation,
-    })
-
-    await screen.findByTestId('building-info-tab-page-renovation')
-    const row = document.querySelector(
-      '[data-row-id="energyCertificateRecommendations"]'
-    ) as HTMLElement
-
-    expect(row).toBeInTheDocument()
-    expect(
-      within(row).getByTestId('building-info-unavailable-value-reason')
-    ).toHaveTextContent('value.missing')
-    expect(
-      screen.queryByRole('button', {
-        name: 'row.energy_certificate_recommendations.label',
-      })
-    ).not.toBeInTheDocument()
-    expect(
-      screen.queryByTestId('building-info-expandable-source-text-row')
-    ).not.toBeInTheDocument()
-  })
-
   it('updates the energy value table when submetrics are toggled', async () => {
     renderBuildingInfoTabs()
 
@@ -1280,23 +1245,15 @@ describe('BuildingInfoPanel', () => {
 
     fireEvent.click(
       within(energyPanel).getByRole('button', {
-        name: 'panels.energy.series.water_heating',
-      })
-    )
-    expect(values).toHaveTextContent('30')
-    expect(energyPanel).not.toHaveTextContent(
-      'sidebar.building_info.panels.energy.unsupported.water_heating'
-    )
-
-    fireEvent.click(
-      within(energyPanel).getByRole('button', {
         name: 'panels.energy.series.electricity',
       })
     )
-    expect(values).toBeEmptyDOMElement()
-    expect(energyPanel).not.toHaveTextContent(
-      'sidebar.building_info.panels.energy.unsupported.water_heating'
-    )
+    expect(values).not.toBeInTheDocument()
+    expect(
+      within(energyPanel).queryByTestId(
+        'building-info-energy-consumption-values'
+      )
+    ).not.toBeInTheDocument()
   })
 
   it('allows deselecting every supported energy submetric without a fallback placeholder', async () => {
@@ -1306,10 +1263,6 @@ describe('BuildingInfoPanel', () => {
     const energyPanel = screen.getByTestId(
       'building-info-panel-energyConsumption'
     )
-    const values = within(energyPanel).getByTestId(
-      'building-info-energy-consumption-values'
-    )
-
     fireEvent.click(
       within(energyPanel).getByRole('button', {
         name: 'panels.energy.series.heating',
@@ -1321,7 +1274,11 @@ describe('BuildingInfoPanel', () => {
       })
     )
 
-    expect(values).toBeEmptyDOMElement()
+    expect(
+      within(energyPanel).queryByTestId(
+        'building-info-energy-consumption-values'
+      )
+    ).not.toBeInTheDocument()
     expect(
       within(energyPanel).getByRole('button', {
         name: 'panels.energy.series.electricity',
@@ -1415,11 +1372,6 @@ describe('BuildingInfoPanel', () => {
 
     fireEvent.click(
       within(getEnergyPanel()).getByRole('button', {
-        name: 'panels.energy.series.water_heating',
-      })
-    )
-    fireEvent.click(
-      within(getEnergyPanel()).getByRole('button', {
         name: 'panels.energy.series.heating',
       })
     )
@@ -1429,10 +1381,10 @@ describe('BuildingInfoPanel', () => {
       })
     )
     expect(
-      within(getEnergyPanel()).getByTestId(
+      within(getEnergyPanel()).queryByTestId(
         'building-info-energy-consumption-values'
       )
-    ).toBeEmptyDOMElement()
+    ).not.toBeInTheDocument()
 
     fireEvent.click(
       within(getEnergyPanel()).getByRole('button', {
@@ -1560,16 +1512,11 @@ describe('BuildingInfoPanel', () => {
     )
     expect(
       within(residentRow).getByTestId('building-info-water-resident-default')
-    ).toHaveTextContent(
-      '11'
-    )
+    ).toHaveTextContent('11')
     expect(residentRow).toHaveTextContent(
       'sidebar.building_info.panels.energy.water.resident_count'
     )
-    expect(residentValueSlot).toHaveAttribute(
-      'data-override-enabled',
-      'false'
-    )
+    expect(residentValueSlot).toHaveAttribute('data-override-enabled', 'false')
     expect(residentValueSlot).toHaveStyle({ width: '4.75rem' })
     expect(residentRow).toHaveStyle({ columnGap: '0.75rem' })
     const overrideSwitch = within(energyPanel).getByRole('switch', {
@@ -1591,10 +1538,7 @@ describe('BuildingInfoPanel', () => {
         'building-info-water-resident-value-slot'
       )
     ).toBe(residentValueSlot)
-    expect(residentValueSlot).toHaveAttribute(
-      'data-override-enabled',
-      'true'
-    )
+    expect(residentValueSlot).toHaveAttribute('data-override-enabled', 'true')
     expect(
       residentInput.closest('[data-slot="number-input-root"]')
     ).toHaveAttribute('data-size', 'small')
@@ -1615,7 +1559,10 @@ describe('BuildingInfoPanel', () => {
     })
     fireEvent.change(residentInput, { target: { value: '' } })
     await waitFor(() => {
-      expect(waterPanel).toHaveAttribute('data-primary-metric-supported', 'true')
+      expect(waterPanel).toHaveAttribute(
+        'data-primary-metric-supported',
+        'true'
+      )
       expect(
         within(waterPanel).getByTestId('building-info-unavailable-value-icon')
       ).toBeInTheDocument()
@@ -1775,68 +1722,6 @@ describe('BuildingInfoPanel', () => {
     ).toHaveAttribute('aria-pressed', 'true')
   })
 
-  it('shows unsupported Cost through the exact unavailable-value path without a partial number', async () => {
-    const unsupportedCostControls: EnergymapBuildingInfoConsumptionControls = {
-      ...consumptionControls,
-      primaryMetrics: consumptionControls.primaryMetrics.map((metric) =>
-        metric.id === 'cost'
-          ? {
-              ...metric,
-              supported: false,
-              value: {
-                text: translation(
-                  'sidebar.building_info.panels.energy.unsupported.apartment_pellet_cost'
-                ),
-                status: 'placeholder',
-              },
-              unavailableNote: {
-                id: 'costUnavailable',
-                text: translation(
-                  'sidebar.building_info.panels.energy.unsupported.apartment_pellet_cost'
-                ),
-                status: 'placeholder',
-              },
-            }
-          : metric
-      ),
-    }
-    renderBuildingInfoTabs({
-      panels: getPanelsWithConsumptionControls(unsupportedCostControls),
-    })
-
-    await screen.findByTestId('building-info-tab-page-basic')
-    const energyPanel = screen.getByTestId(
-      'building-info-panel-energyConsumption'
-    )
-    fireEvent.click(
-      within(energyPanel).getByRole('button', {
-        name: 'sidebar.building_info.panels.energy.primary.cost',
-      })
-    )
-
-    const costPanel = within(energyPanel).getByTestId(
-      'building-info-primary-metric-value'
-    )
-    expect(costPanel).toHaveAttribute('data-primary-metric-supported', 'false')
-    expect(
-      costPanel.querySelector('[data-metric-value-id="annualTotal"]')
-    ).toHaveTextContent(
-      'sidebar.building_info.panels.energy.metric.annual_total'
-    )
-    expect(costPanel).toHaveTextContent(
-      'sidebar.building_info.panels.energy.unsupported.apartment_pellet_cost'
-    )
-    expect(costPanel).not.toHaveTextContent('19,613')
-    expect(
-      within(costPanel).getByTestId('building-info-unavailable-value-icon')
-    ).toBeInTheDocument()
-    expect(
-      within(costPanel).getByTestId('building-info-unavailable-value-reason')
-    ).toHaveTextContent(
-      'sidebar.building_info.panels.energy.unsupported.apartment_pellet_cost'
-    )
-  })
-
   it('discards a Water resident override when the keyed building panel changes', async () => {
     const view = renderBuildingInfoTabs({ panelKey: 'building-a' })
 
@@ -1862,7 +1747,9 @@ describe('BuildingInfoPanel', () => {
     )
     await waitFor(() => {
       expect(
-        within(getEnergyPanel()).getByTestId('building-info-primary-metric-value')
+        within(getEnergyPanel()).getByTestId(
+          'building-info-primary-metric-value'
+        )
       ).toHaveTextContent('525,6')
     })
 
@@ -1877,7 +1764,9 @@ describe('BuildingInfoPanel', () => {
       )
     ).not.toBeInTheDocument()
     expect(
-      within(getEnergyPanel()).getByTestId('building-info-water-resident-default')
+      within(getEnergyPanel()).getByTestId(
+        'building-info-water-resident-default'
+      )
     ).toHaveTextContent('11')
     expect(
       within(getEnergyPanel()).getByTestId('building-info-primary-metric-value')
@@ -1895,16 +1784,20 @@ describe('BuildingInfoPanel', () => {
       name: 'sidebar.building_info.panels.energy.primary.co2',
     })
 
-    expect(within(co2Button).getByTestId('building-info-icon-co2')).toHaveStyle({
-      fontSize: '1.25rem',
-    })
+    expect(within(co2Button).getByTestId('building-info-icon-co2')).toHaveStyle(
+      {
+        fontSize: '1.25rem',
+      }
+    )
 
     fireEvent.click(co2Button)
 
     const activeCo2Button = within(energyPanel).getByRole('button', {
       name: 'sidebar.building_info.panels.energy.primary.co2',
     })
-    expect(within(activeCo2Button).getByTestId('building-info-icon-co2')).toHaveStyle({
+    expect(
+      within(activeCo2Button).getByTestId('building-info-icon-co2')
+    ).toHaveStyle({
       fontSize: '1.4rem',
     })
   })
@@ -1924,7 +1817,9 @@ describe('BuildingInfoPanel', () => {
     )
 
     expect(
-      within(energyPanel).getByTestId('building-info-energy-consumption-section')
+      within(energyPanel).getByTestId(
+        'building-info-energy-consumption-section'
+      )
     ).toBeInTheDocument()
     expect(
       within(energyPanel).getByRole('button', {
@@ -2137,65 +2032,9 @@ describe('BuildingInfoPanel', () => {
     ).toHaveAttribute('data-figma-height', '138.003')
     expect(
       document.querySelector(
-        'img[src="/files/img/energiakartta/sidebar/building-info-warning-base.svg"]'
+        'img[src="/files/img/energiakartta/sidebar/building-info-unavailable-value.svg"]'
       )
-    ).toBeInTheDocument()
-  })
-
-  it('shows unavailable values with the exact Figma asset and accessible reason tooltips', async () => {
-    renderBuildingInfoTabs()
-
-    await screen.findByTestId('building-info-tab-page-basic')
-    const missingValue = document.querySelector(
-      '[data-row-id="missingRow"] [data-status="missing"]'
-    )
-    const placeholderValue = document.querySelector(
-      '[data-row-id="placeholderRow"] [data-status="placeholder"]'
-    )
-
-    expect(missingValue).toBeInTheDocument()
-    expect(missingValue).toHaveAttribute('data-source-properties', 'main_purpose')
-    expect(placeholderValue).toBeInTheDocument()
-    expect(placeholderValue).toHaveAttribute(
-      'data-source-properties',
-      'planned_measure'
-    )
-    const missingValueIcon = within(missingValue as HTMLElement).getByTestId(
-      'building-info-unavailable-value-icon'
-    )
-
-    expect(missingValueIcon).toBeInTheDocument()
-    expect(missingValueIcon).toHaveAttribute('data-figma-width', '12')
-    expect(missingValueIcon).toHaveAttribute('data-figma-height', '12')
-    expect(missingValueIcon).toHaveStyle({ width: '12px', height: '12px' })
-    const missingValueImage = missingValueIcon.querySelector('img')
-    expect(missingValueImage).toHaveAttribute(
-      'src',
-      '/files/img/energiakartta/sidebar/building-info-unavailable-value.svg'
-    )
-    expect(missingValueImage).toHaveAttribute('width', '13')
-    expect(missingValueImage).toHaveAttribute('height', '13')
-    expect(missingValueImage).toHaveAttribute('aria-hidden', 'true')
-    expect(missingValueIcon.querySelector('svg')).not.toBeInTheDocument()
-    expect(
-      within(placeholderValue as HTMLElement).getByTestId(
-        'building-info-unavailable-value-icon'
-      )
-    ).toBeInTheDocument()
-    expect(
-      within(missingValue as HTMLElement).getByTestId(
-        'building-info-unavailable-value-reason'
-      )
-    ).toHaveStyle({ position: 'absolute', width: '1px' })
-
-    const tooltipTrigger = missingValue?.querySelector('[tabindex="0"]')
-
-    expect(tooltipTrigger).toBeInTheDocument()
-    fireEvent.focus(tooltipTrigger as Element)
-
-    expect(await screen.findByRole('tooltip')).toHaveTextContent(
-      'value.missing'
-    )
+    ).not.toBeInTheDocument()
   })
 
   it('renders modeled energy-class help beneath the class with accessible pointer and keyboard behavior', async () => {
@@ -2220,7 +2059,9 @@ describe('BuildingInfoPanel', () => {
     })
 
     expect(energyClassRow).toBeInTheDocument()
-    expect(document.querySelectorAll('[data-section-row-id="energyClass"]')).toHaveLength(1)
+    expect(
+      document.querySelectorAll('[data-section-row-id="energyClass"]')
+    ).toHaveLength(1)
     expect(stack).toHaveStyle({
       display: 'inline-flex',
       flexDirection: 'column',
@@ -2302,8 +2143,7 @@ describe('BuildingInfoPanel', () => {
       document.querySelector('[data-row-id="address"]')
     ).not.toBeInTheDocument()
     expect(
-      within(addressSubheader as HTMLElement)
-        .getByText(/row.address.label/)
+      within(addressSubheader as HTMLElement).getByText(/row.address.label/)
         .parentElement
     ).toHaveStyle({ fontWeight: '400' })
     expect(
@@ -2320,12 +2160,478 @@ describe('BuildingInfoPanel', () => {
     expect(screen.getByText('scenario.aahp.label').parentElement).toHaveStyle({
       fontWeight: '400',
     })
-    expect(screen.getByText('panel.renovation.title').parentElement).toHaveStyle({
+    expect(
+      screen.getByText('panel.renovation.title').parentElement
+    ).toHaveStyle({
       fontWeight: '400',
     })
     expect(screen.getByText('12000').closest('[data-status]')).toHaveStyle({
       fontWeight: '700',
     })
+  })
+
+  it('renders a lone basic panel without a tab rail, companion cell, or legacy minimum height', async () => {
+    const buildingPanel = panels.find(
+      (panel) => panel.id === 'buildingDetails'
+    ) as EnergymapBuildingInfoPanel
+
+    renderBuildingInfoTabs({ panels: [buildingPanel] })
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
+    expect(screen.getByTestId('building-info-grid')).toHaveAttribute(
+      'data-building-info-content-width',
+      '380'
+    )
+    expect(screen.getByTestId('building-info-grid-row-basic')).toHaveAttribute(
+      'data-grid-region-count',
+      '1'
+    )
+    expect(screen.getByTestId('building-info-grid-row-basic')).not.toHaveStyle({
+      minHeight: '1256px',
+    })
+    expect(
+      screen.queryByTestId('building-info-grid-section-basic-energy')
+    ).not.toBeInTheDocument()
+  })
+
+  it('keeps two present-but-sparse basic panels content-height driven', async () => {
+    const energyPanel = panels.find(
+      (panel) => panel.id === 'energyConsumption'
+    ) as EnergymapBuildingInfoPanel
+    const buildingPanel = panels.find(
+      (panel) => panel.id === 'buildingDetails'
+    ) as EnergymapBuildingInfoPanel
+
+    renderBuildingInfoTabs({
+      panels: [
+        {
+          ...energyPanel,
+          sections: energyPanel.sections.filter(
+            (section) => section.id === 'energyRows'
+          ),
+        },
+        {
+          ...buildingPanel,
+          sections: buildingPanel.sections.filter(
+            (section) => section.id === 'buildingSubheader'
+          ),
+        },
+      ],
+    })
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    expect(screen.getByTestId('building-info-grid-row-basic')).toHaveAttribute(
+      'data-grid-region-count',
+      '2'
+    )
+    expect(screen.getByTestId('building-info-grid')).not.toHaveStyle({
+      minHeight: '1256px',
+    })
+    expect(screen.getByTestId('building-info-grid-row-basic')).not.toHaveStyle({
+      minHeight: '1256px',
+    })
+    expect(
+      screen.queryByText('section.energy.estimated.title')
+    ).not.toBeInTheDocument()
+    expect(
+      document.querySelector('[data-section-row-id="energyClass"]')
+    ).not.toBeInTheDocument()
+  })
+
+  it('keeps three present-but-sparse renovation panels content-height driven', async () => {
+    const energyPanel = panels.find(
+      (panel) => panel.id === 'energyConsumption'
+    ) as EnergymapBuildingInfoPanel
+    const renovationPanel = panels.find(
+      (panel) => panel.id === 'renovationRecommendations'
+    ) as EnergymapBuildingInfoPanel
+    const buildingPanel = panels.find(
+      (panel) => panel.id === 'buildingDetails'
+    ) as EnergymapBuildingInfoPanel
+
+    renderBuildingInfoTabs({
+      activeTabId: 'renovation',
+      panels: [
+        {
+          ...energyPanel,
+          sections: energyPanel.sections.filter(
+            (section) => section.id === 'energyRows'
+          ),
+        },
+        renovationPanel,
+        {
+          ...buildingPanel,
+          sections: buildingPanel.sections.filter(
+            (section) => section.id === 'buildingSubheader'
+          ),
+        },
+      ],
+    })
+
+    await screen.findByTestId('building-info-tab-page-renovation')
+    expect(
+      screen.getByTestId('building-info-grid-row-renovationTop')
+    ).toHaveAttribute('data-grid-region-count', '3')
+    expect(
+      screen.getByTestId('building-info-grid-row-renovationTop')
+    ).not.toHaveStyle({ minHeight: '1300px' })
+    expect(
+      screen.getByTestId('building-info-grid-row-renovationComparison')
+    ).not.toHaveStyle({ minHeight: '1065px' })
+    expect(screen.getByTestId('building-info-grid')).not.toHaveStyle({
+      minHeight: '2365px',
+    })
+    expect(
+      screen.queryByText('section.energy.estimated.title')
+    ).not.toBeInTheDocument()
+    expect(
+      document.querySelector('[data-section-row-id="energyClass"]')
+    ).not.toBeInTheDocument()
+  })
+
+  it('rehomes an invalid basic request to a renovation-only topology', async () => {
+    const onActiveTabChange = jest.fn()
+    const renovationPanel = panels.find(
+      (panel) => panel.id === 'renovationRecommendations'
+    ) as EnergymapBuildingInfoPanel
+    const renovationWithoutComparison = {
+      ...renovationPanel,
+      sections: renovationPanel.sections.filter(
+        (section) => section.id !== 'scenarioComparison'
+      ),
+    }
+
+    renderBuildingInfoTabs({
+      activeTabId: 'basic',
+      onActiveTabChange,
+      panels: [renovationWithoutComparison],
+    })
+
+    await screen.findByTestId('building-info-tab-page-renovation')
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
+    expect(
+      screen.queryByTestId('building-info-grid-row-renovationComparison')
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByTestId('building-info-grid-section-bottom-right')
+    ).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(onActiveTabChange).toHaveBeenCalledWith('renovation')
+    })
+    expect(onActiveTabChange).not.toHaveBeenCalledWith('basic')
+  })
+
+  it('renders a comparison-only renovation topology without an empty top row', async () => {
+    const renovationPanel = panels.find(
+      (panel) => panel.id === 'renovationRecommendations'
+    ) as EnergymapBuildingInfoPanel
+
+    renderBuildingInfoTabs({
+      activeTabId: 'renovation',
+      panels: [
+        {
+          ...renovationPanel,
+          sections: renovationPanel.sections.filter(
+            (section) => section.id === 'scenarioComparison'
+          ),
+        },
+      ],
+    })
+
+    await screen.findByTestId('building-info-tab-page-renovation')
+    expect(
+      screen.queryByTestId('building-info-grid-row-renovationTop')
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByTestId('building-info-grid-row-renovationComparison')
+    ).not.toHaveStyle({ minHeight: '1065px' })
+    expect(
+      screen.getByTestId('building-info-renovation-effectiveness-content')
+    ).toBeInTheDocument()
+  })
+
+  it.each([
+    {
+      label: 'one',
+      panelIds: ['renovationRecommendations'] as const,
+      slots: ['top-renovation'],
+    },
+    {
+      label: 'two',
+      panelIds: [
+        'energyConsumption',
+        'renovationRecommendations',
+      ] as const,
+      slots: ['top-energy', 'top-renovation'],
+    },
+  ])(
+    'fills the comparison width with $label retained top region(s)',
+    async ({ panelIds, slots }) => {
+      const sparsePanels = getPanelsByIds(panelIds)
+
+      renderBuildingInfoTabs({
+        activeTabId: 'renovation',
+        panels: sparsePanels,
+      })
+
+      await screen.findByTestId('building-info-tab-page-renovation')
+      const topRow = screen.getByTestId(
+        'building-info-grid-row-renovationTop'
+      )
+
+      expect(topRow).toHaveAttribute(
+        'data-grid-region-count',
+        String(panelIds.length)
+      )
+      expect(topRow).toHaveAttribute('data-grid-content-width', '1440')
+      expect(topRow).toHaveStyle({ width: 'min(1440px, 100%)' })
+      expect(
+        Array.from(topRow.children).map((child) =>
+          child.getAttribute('data-grid-slot')
+        )
+      ).toEqual(slots)
+      expect(
+        screen.getByTestId('building-info-grid-row-renovationComparison')
+      ).toBeInTheDocument()
+    }
+  )
+
+  it.each([
+    {
+      label: 'one',
+      panelIds: ['renovationRecommendations'] as const,
+    },
+    {
+      label: 'two',
+      panelIds: [
+        'energyConsumption',
+        'renovationRecommendations',
+      ] as const,
+    },
+  ])(
+    'uses the same comparison-plus-$label-top-region topology in forced mobile layout',
+    async ({ panelIds }) => {
+      const sparsePanels = getPanelsByIds(panelIds)
+
+      renderBuildingInfoTabs({
+        activeTabId: 'renovation',
+        forceMobileLayout: true,
+        panels: sparsePanels,
+      })
+
+      await screen.findByTestId('building-info-tab-page-renovation')
+      expect(screen.queryByTestId('building-info-grid')).not.toBeInTheDocument()
+      expect(
+        screen
+          .getAllByTestId(/building-info-panel-/)
+          .map((panel) => panel.dataset.panelId)
+      ).toEqual(panelIds)
+      expect(screen.getByText('scenario.aahp.label')).toBeInTheDocument()
+
+      if (panelIds.includes('energyConsumption')) {
+        expect(
+          screen.getByTestId('building-info-calculation-context')
+        ).toBeInTheDocument()
+      }
+    }
+  )
+
+  it('renders every section retained by the normalized panel model', async () => {
+    const energyPanel = panels.find(
+      (panel) => panel.id === 'energyConsumption'
+    ) as EnergymapBuildingInfoPanel
+    const authoritativeEnergyPanel: EnergymapBuildingInfoPanel = {
+      ...energyPanel,
+      sections: [
+        {
+          id: 'calculationContext',
+          rows: [
+            {
+              id: 'retainedCalculationRow',
+              label: plain('Retained calculation label'),
+              text: plain('Retained calculation value'),
+              status: 'real',
+            },
+          ],
+        },
+        {
+          id: 'futureCertificateSection',
+          variant: 'energyCertificate',
+          rows: [
+            {
+              id: 'futureCertificateRow',
+              label: plain('Future certificate label'),
+              text: plain('Future certificate value'),
+              status: 'real',
+            },
+          ],
+        },
+      ],
+    }
+
+    renderBuildingInfoTabs({ panels: [authoritativeEnergyPanel] })
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    expect(screen.getByText('Retained calculation value')).toBeInTheDocument()
+    expect(screen.getByText('Future certificate value')).toBeInTheDocument()
+    expect(
+      screen.queryByTestId('building-info-calculation-context')
+    ).not.toBeInTheDocument()
+  })
+
+  it('omits the shell for a defensively supplied panel with no sections', () => {
+    const energyPanel = panels.find(
+      (panel) => panel.id === 'energyConsumption'
+    ) as EnergymapBuildingInfoPanel
+
+    renderBuildingInfoTabs({
+      panels: [{ ...energyPanel, sections: [] }],
+    })
+
+    expect(
+      screen.queryByTestId('building-info-tab-page-basic')
+    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
+    expect(
+      document.querySelector('.sidebar-panel-extension-page-container-controls')
+    ).not.toBeInTheDocument()
+  })
+
+  it('replaces complete, sparse, and empty topologies without stale pages or cells', async () => {
+    const onActiveTabChange = jest.fn()
+    const buildingPanel = panels.find(
+      (panel) => panel.id === 'buildingDetails'
+    ) as EnergymapBuildingInfoPanel
+    const view = renderBuildingInfoTabs({
+      activeTabId: 'renovation',
+      onActiveTabChange,
+    })
+
+    await screen.findByTestId('building-info-tab-page-renovation')
+    view.rerenderBuildingInfoTabs({
+      activeTabId: 'renovation',
+      panels: [buildingPanel],
+    })
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    expect(
+      screen.queryByTestId('building-info-tab-page-renovation')
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByTestId('building-info-grid-section-top-renovation')
+    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(onActiveTabChange).toHaveBeenCalledWith('basic')
+    })
+
+    view.rerenderBuildingInfoTabs({ panels: [] })
+    expect(
+      screen.queryByTestId('building-info-tab-page-basic')
+    ).not.toBeInTheDocument()
+    expect(
+      document.querySelector('.sidebar-panel-extension-page-container-controls')
+    ).not.toBeInTheDocument()
+  })
+
+  it('replaces a changed sparse control and tab with complete building defaults', async () => {
+    const energyPanel = panels.find(
+      (panel) => panel.id === 'energyConsumption'
+    ) as EnergymapBuildingInfoPanel
+    const renovationPanel = panels.find(
+      (panel) => panel.id === 'renovationRecommendations'
+    ) as EnergymapBuildingInfoPanel
+    const sparsePanels = [
+      {
+        ...energyPanel,
+        sections: energyPanel.sections.filter(
+          (section) => section.id === 'estimatedConsumption'
+        ),
+      },
+      {
+        ...renovationPanel,
+        sections: renovationPanel.sections.filter(
+          (section) => section.id === 'publishedRecommendations'
+        ),
+      },
+    ]
+    const view = renderBuildingInfoTabs({
+      panelKey: 'sparse-building',
+      panels: sparsePanels,
+    })
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    const sparseEnergyPanel = screen.getByTestId(
+      'building-info-panel-energyConsumption'
+    )
+    fireEvent.click(
+      within(sparseEnergyPanel).getByRole('button', {
+        name: 'sidebar.building_info.panels.energy.primary.water',
+      })
+    )
+    fireEvent.click(
+      within(sparseEnergyPanel).getByRole('switch', {
+        name: 'sidebar.building_info.panels.energy.water.change_resident_count',
+      })
+    )
+    expect(
+      within(sparseEnergyPanel).getByRole('textbox', {
+        name: 'sidebar.building_info.panels.energy.water.resident_count',
+      })
+    ).toBeInTheDocument()
+
+    fireEvent.click(
+      screen.getByRole('tab', {
+        name: 'Open renovation recommendations',
+      })
+    )
+    await screen.findByTestId('building-info-tab-page-renovation')
+
+    view.rerenderBuildingInfoTabs({
+      activeTabId: 'basic',
+      panelKey: 'complete-building',
+      panels,
+    })
+
+    await screen.findByTestId('building-info-tab-page-basic')
+    expect(
+      screen.queryByTestId('building-info-tab-page-renovation')
+    ).not.toBeInTheDocument()
+    expect(screen.getByTestId('building-info-grid')).toHaveAttribute(
+      'data-building-info-content-width',
+      '760'
+    )
+    expect(screen.getByTestId('building-info-grid-row-basic')).toHaveAttribute(
+      'data-grid-region-count',
+      '2'
+    )
+    expect(
+      screen.getByTestId('building-info-panel-buildingDetails')
+    ).toBeInTheDocument()
+    const completeEnergyPanel = screen.getByTestId(
+      'building-info-panel-energyConsumption'
+    )
+    expect(
+      within(completeEnergyPanel).getByRole('button', {
+        name: 'sidebar.building_info.panels.energy.primary.energy',
+      })
+    ).toHaveAttribute('aria-pressed', 'true')
+    expect(
+      within(completeEnergyPanel).getByRole('button', {
+        name: 'sidebar.building_info.panels.energy.primary.water',
+      })
+    ).toHaveAttribute('aria-pressed', 'false')
+    expect(
+      within(completeEnergyPanel).queryByRole('textbox', {
+        name: 'sidebar.building_info.panels.energy.water.resident_count',
+      })
+    ).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('tab', {
+        name: 'Open energy and building information',
+      })
+    ).toHaveAttribute('aria-selected', 'true')
   })
 
   it('keeps both collapsed reopen buttons available without owning expanded tab switching', () => {
@@ -2334,6 +2640,7 @@ describe('BuildingInfoPanel', () => {
     renderWithTheme(
       <BuildingInfoActionRail
         activeMode="twoPanel"
+        availableModes={['twoPanel', 'threePanel']}
         isCollapsed={true}
         ariaLabels={ariaLabels}
         onModeChange={onModeChange}
@@ -2359,25 +2666,64 @@ describe('BuildingInfoPanel', () => {
     expect(onModeChange).toHaveBeenCalledWith('threePanel')
   })
 
+  it('renders only available collapsed actions and no rail at zero actions', () => {
+    const onModeChange = jest.fn()
+    const view = renderWithTheme(
+      <BuildingInfoActionRail
+        activeMode="twoPanel"
+        availableModes={['twoPanel']}
+        isCollapsed
+        ariaLabels={ariaLabels}
+        onModeChange={onModeChange}
+      />
+    )
+
+    expect(
+      screen.getByRole('button', {
+        name: 'Open energy and building information',
+      })
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', {
+        name: 'Open renovation recommendations',
+      })
+    ).not.toBeInTheDocument()
+
+    view.rerender(
+      <AppThemeProvider disableCssBaseline>
+        <BuildingInfoActionRail
+          activeMode="twoPanel"
+          availableModes={[]}
+          isCollapsed
+          ariaLabels={ariaLabels}
+          onModeChange={onModeChange}
+        />
+      </AppThemeProvider>
+    )
+    expect(
+      screen.queryByTestId('building-info-action-rail')
+    ).not.toBeInTheDocument()
+  })
+
   it('keeps expanded building info runtime on the main panel only', () => {
     const desktopOptions = getEnergymapBuildingInfoPanelRuntimeOptions({
       hasBuildingInfo: true,
       isBuildingInfoCollapsed: false,
       isMobileLayout: false,
-      activeMode: 'twoPanel',
+      desktopContentWidthPx: 760,
     })
     const mobileOptions = getEnergymapBuildingInfoPanelRuntimeOptions({
       hasBuildingInfo: true,
       isBuildingInfoCollapsed: false,
       isMobileLayout: true,
-      activeMode: 'threePanel',
+      desktopContentWidthPx: 1440,
     })
     const renovationDesktopOptions =
       getEnergymapBuildingInfoPanelRuntimeOptions({
         hasBuildingInfo: true,
         isBuildingInfoCollapsed: false,
         isMobileLayout: false,
-        activeMode: 'threePanel',
+        desktopContentWidthPx: 1440,
       })
 
     expect(desktopOptions).toMatchObject({
@@ -2431,14 +2777,14 @@ describe('BuildingInfoPanel', () => {
         isBuildingInfoCollapsed: false,
         isMobileLayout: false,
         isDesktopFullscreenFallback: true,
-        activeMode: 'threePanel',
+        desktopContentWidthPx: 1440,
       })
     const mobileOptions = getEnergymapBuildingInfoPanelRuntimeOptions({
       hasBuildingInfo: true,
       isBuildingInfoCollapsed: false,
       isMobileLayout: true,
       isDesktopFullscreenFallback: true,
-      activeMode: 'threePanel',
+      desktopContentWidthPx: 1440,
     })
 
     expect(fullscreenFallbackOptions).toMatchObject({
@@ -2464,19 +2810,19 @@ describe('BuildingInfoPanel', () => {
       hasBuildingInfo: true,
       isBuildingInfoCollapsed: true,
       isMobileLayout: false,
-      activeMode: 'threePanel',
+      desktopContentWidthPx: 1440,
     })
     const mobileOptions = getEnergymapBuildingInfoPanelRuntimeOptions({
       hasBuildingInfo: true,
       isBuildingInfoCollapsed: true,
       isMobileLayout: true,
-      activeMode: 'threePanel',
+      desktopContentWidthPx: 1440,
     })
     const emptyOptions = getEnergymapBuildingInfoPanelRuntimeOptions({
       hasBuildingInfo: false,
       isBuildingInfoCollapsed: false,
       isMobileLayout: false,
-      activeMode: 'twoPanel',
+      desktopContentWidthPx: 760,
     })
 
     expect(desktopOptions).toMatchObject({
@@ -2502,10 +2848,10 @@ describe('BuildingInfoPanel', () => {
   })
 
   it('exports building-info desktop minimum widths for page fit checks', () => {
-    expect(getEnergymapBuildingInfoDesktopMinWidthPx('twoPanel')).toBe(
+    expect(getEnergymapBuildingInfoDesktopMinWidthPx(760, true)).toBe(
       ENERGYMAP_BUILDING_INFO_BASIC_DESKTOP_MIN_WIDTH_PX
     )
-    expect(getEnergymapBuildingInfoDesktopMinWidthPx('threePanel')).toBe(
+    expect(getEnergymapBuildingInfoDesktopMinWidthPx(1440, true)).toBe(
       ENERGYMAP_BUILDING_INFO_RENOVATION_DESKTOP_MIN_WIDTH_PX
     )
   })

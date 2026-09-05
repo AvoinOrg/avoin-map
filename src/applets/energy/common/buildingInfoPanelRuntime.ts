@@ -5,7 +5,7 @@ type GetEnergymapBuildingInfoPanelRuntimeOptionsInput = {
   isBuildingInfoCollapsed: boolean
   isMobileLayout: boolean
   isDesktopFullscreenFallback?: boolean
-  activeMode: 'twoPanel' | 'threePanel'
+  desktopContentWidthPx?: number
 }
 
 export const ENERGYMAP_BUILDING_INFO_RENOVATION_DESKTOP_GROUP_WIDTH_PX = 1440
@@ -26,21 +26,20 @@ export const ENERGYMAP_BUILDING_INFO_BASIC_DESKTOP_MIN_WIDTH_PX =
   ENERGYMAP_BUILDING_INFO_DESKTOP_MAP_CONTROLS_RESERVE_PX +
   ENERGYMAP_BUILDING_INFO_DESKTOP_COMFORT_GAP_PX
 
-const BUILDING_INFO_RENOVATION_DESKTOP_PANEL_WIDTH = `${ENERGYMAP_BUILDING_INFO_RENOVATION_DESKTOP_PANEL_WIDTH_PX}px`
-const BUILDING_INFO_BASIC_DESKTOP_PANEL_WIDTH = `${ENERGYMAP_BUILDING_INFO_BASIC_DESKTOP_PANEL_WIDTH_PX}px`
-
 export const getEnergymapBuildingInfoDesktopMinWidthPx = (
-  activeMode: GetEnergymapBuildingInfoPanelRuntimeOptionsInput['activeMode']
+  desktopContentWidthPx: number,
+  hasTabRail = true
 ) =>
-  activeMode === 'threePanel'
-    ? ENERGYMAP_BUILDING_INFO_RENOVATION_DESKTOP_MIN_WIDTH_PX
-    : ENERGYMAP_BUILDING_INFO_BASIC_DESKTOP_MIN_WIDTH_PX
+  desktopContentWidthPx +
+  (hasTabRail ? ENERGYMAP_BUILDING_INFO_DESKTOP_TAB_RAIL_RESERVE_PX : 0) +
+  ENERGYMAP_BUILDING_INFO_DESKTOP_MAP_CONTROLS_RESERVE_PX +
+  ENERGYMAP_BUILDING_INFO_DESKTOP_COMFORT_GAP_PX
 
 export const getEnergymapBuildingInfoPanelRuntimeOptions = (
   input: GetEnergymapBuildingInfoPanelRuntimeOptionsInput
 ): SidebarPanelExtensionRuntimeOptions => {
   const {
-    activeMode,
+    desktopContentWidthPx,
     hasBuildingInfo,
     isBuildingInfoCollapsed,
     isDesktopFullscreenFallback = false,
@@ -51,11 +50,11 @@ export const getEnergymapBuildingInfoPanelRuntimeOptions = (
   const useDesktopFullscreenFallback =
     isDesktopExpanded && isDesktopFullscreenFallback
   const desktopMainPanelWidth =
-    !isDesktopExpanded || useDesktopFullscreenFallback
+    !isDesktopExpanded ||
+    useDesktopFullscreenFallback ||
+    desktopContentWidthPx == null
       ? undefined
-      : activeMode === 'threePanel'
-        ? BUILDING_INFO_RENOVATION_DESKTOP_PANEL_WIDTH
-        : BUILDING_INFO_BASIC_DESKTOP_PANEL_WIDTH
+      : `${desktopContentWidthPx}px`
 
   return {
     width: isBuildingInfoExpanded ? 'wide' : 'compact',

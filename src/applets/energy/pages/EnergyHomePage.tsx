@@ -11,9 +11,7 @@ import {
   LayerToggleRow,
   LayerToggleRowAccordion,
 } from '#/components/common/LayerToggleRow'
-import AppTooltip, {
-  type AppTooltipSide,
-} from '#/components/common/AppTooltip'
+import AppTooltip, { type AppTooltipSide } from '#/components/common/AppTooltip'
 import SquishedSwitchWithLabel from '#/components/common/SquishedSwitchWithLabel'
 import TText from '#/components/common/TText'
 import { IntoSlot } from '#/components/context/slotsContext'
@@ -31,14 +29,16 @@ import EnergyClassesAccordionContent from '../components/EnergyClassesAccordionC
 import {
   BuildingInfoActionRail,
   BuildingInfoTabPages,
-  getBuildingInfoModeForTabId,
-  getBuildingInfoTabIdForMode,
 } from '../components/BuildingInfoPanel'
+import { createEnergymapBuildingInfoPanels } from '../common/buildingInfo'
+import {
+  deriveEnergymapBuildingInfoPanelTopology,
+  resolveEnergymapBuildingInfoTab,
+} from '../common/buildingInfoPanelTopology'
 import type {
   BuildingInfoDesktopMode,
   BuildingInfoTabId,
-} from '../components/BuildingInfoPanel'
-import { createEnergymapBuildingInfoPanels } from '../common/buildingInfo'
+} from '../common/buildingInfoPanelTopology'
 import {
   getEnergymapBuildingInfoDesktopMinWidthPx,
   getEnergymapBuildingInfoPanelRuntimeOptions,
@@ -212,12 +212,20 @@ const PageTooltip = ({
 const SidebarFooterAction = ({
   tooltip,
   label,
-  reserveActionRow,
+  mobileActionCount = 0,
 }: {
   tooltip: string
   label: string
-  reserveActionRow?: boolean
+  mobileActionCount?: number
 }) => {
+  const mobileRightPaddingPx =
+    mobileActionCount === 0
+      ? undefined
+      : 90 +
+        mobileActionCount * 45 +
+        Math.max(0, mobileActionCount - 1) * 10 +
+        8
+
   return (
     <PageTooltip title={tooltip} side="top">
       {({ className, ...tooltipTriggerProps }) => (
@@ -231,12 +239,16 @@ const SidebarFooterAction = ({
           tabIndex={0}
           aria-disabled="true"
           aria-label={label}
+          data-mobile-building-info-action-count={mobileActionCount}
           sx={{
             width: '100%',
             height: '5rem',
             pl: { mobile: '1.625rem', desktop: '1.625rem' },
             pr: {
-              mobile: reserveActionRow ? '12rem' : '1.625rem',
+              mobile:
+                mobileRightPaddingPx == null
+                  ? '1.625rem'
+                  : `${mobileRightPaddingPx}px`,
               desktop: '1.625rem',
             },
             display: 'flex',
@@ -364,6 +376,18 @@ type EnergyHomePageProps = {
   locale?: string
 }
 
+type BuildingInfoShellState = {
+  buildingKey: string | null
+  requestedTabId: BuildingInfoTabId
+  isCollapsed: boolean
+}
+
+const INITIAL_BUILDING_INFO_SHELL_STATE: BuildingInfoShellState = {
+  buildingKey: null,
+  requestedTabId: 'basic',
+  isCollapsed: false,
+}
+
 const EnergyHomePage = ({ locale: localeProp }: EnergyHomePageProps) => {
   const { t } = useTranslate('energiakartta')
   const params = useAppParams<{ locale?: string | string[] }>()
@@ -413,16 +437,8 @@ const EnergyHomePage = ({ locale: localeProp }: EnergyHomePageProps) => {
   )
   const [activeThematicMode, setActiveThematicMode] =
     React.useState<EnergymapMainThematicMode | null>(null)
-  const [activeBuildingInfoMode, setActiveBuildingInfoMode] =
-    React.useState<BuildingInfoDesktopMode>('twoPanel')
-  const buildingInfoDesktopMinWidthPx =
-    getEnergymapBuildingInfoDesktopMinWidthPx(activeBuildingInfoMode)
-  const buildingInfoDesktopMinWidthMatches = useBreakpointMatch(
-    `(min-width:${buildingInfoDesktopMinWidthPx}px)`
-  )
-  const [isBuildingInfoCollapsed, setIsBuildingInfoCollapsed] =
-    React.useState(false)
-  const previousSelectedBuildingKeyRef = React.useRef<string | null>(null)
+  const [buildingInfoShellState, setBuildingInfoShellState] =
+    React.useState<BuildingInfoShellState>(INITIAL_BUILDING_INFO_SHELL_STATE)
   const energyCertificateFillColorExpression = React.useMemo(
     () =>
       getEnergyCertificateFillColorExpression(activeEnergyCertificateClasses),
@@ -468,13 +484,38 @@ const EnergyHomePage = ({ locale: localeProp }: EnergyHomePageProps) => {
   const buildingInfoPanels = React.useMemo(
     () =>
       createEnergymapBuildingInfoPanels({
-        selectedBuilding,
+        selectedBuilding: selectedEnergymapBuilding,
         locale,
       }),
-    [locale, selectedBuilding]
+    [locale, selectedEnergymapBuilding]
   )
-  const selectedBuildingKey = selectedBuilding?.buildingKey ?? null
-  const hasBuildingInfo = buildingInfoPanels != null
+  const buildingInfoTopology = React.useMemo(
+    () => deriveEnergymapBuildingInfoPanelTopology(buildingInfoPanels),
+    [buildingInfoPanels]
+  )
+  const selectedBuildingKey = selectedEnergymapBuilding?.buildingKey ?? null
+  const isBuildingInfoShellStateCurrent =
+    buildingInfoShellState.buildingKey === selectedBuildingKey
+  const activeBuildingInfoTab = resolveEnergymapBuildingInfoTab({
+    topology: buildingInfoTopology,
+    requestedTabId: isBuildingInfoShellStateCurrent
+      ? buildingInfoShellState.requestedTabId
+      : 'basic',
+  })
+  const activeBuildingInfoMode = activeBuildingInfoTab?.mode ?? 'twoPanel'
+  const hasBuildingInfo = buildingInfoTopology.availableTabs.length > 0
+  const isBuildingInfoCollapsed =
+    hasBuildingInfo &&
+    isBuildingInfoShellStateCurrent &&
+    buildingInfoShellState.isCollapsed
+  const buildingInfoDesktopMinWidthPx =
+    getEnergymapBuildingInfoDesktopMinWidthPx(
+      activeBuildingInfoTab?.desktopContentWidthPx ?? 0,
+      buildingInfoTopology.hasTabRail
+    )
+  const buildingInfoDesktopMinWidthMatches = useBreakpointMatch(
+    `(min-width:${buildingInfoDesktopMinWidthPx}px)`
+  )
   const isBuildingInfoExpanded = hasBuildingInfo && !isBuildingInfoCollapsed
   const useBuildingInfoMobileLayout = isMobile
   const useBuildingInfoDesktopFullscreenFallback =
@@ -520,11 +561,7 @@ const EnergyHomePage = ({ locale: localeProp }: EnergyHomePageProps) => {
 
       setActiveThematicMode(nextMode)
     },
-    [
-      activeThematicMode,
-      enableLayerGroup,
-      isSharedBuildingLayerGroupVisible,
-    ]
+    [activeThematicMode, enableLayerGroup, isSharedBuildingLayerGroupVisible]
   )
   const handleHeatingSwitchChange =
     (id: HeatingSwitchKey): React.ChangeEventHandler<HTMLInputElement> =>
@@ -536,29 +573,68 @@ const EnergyHomePage = ({ locale: localeProp }: EnergyHomePageProps) => {
     }
   const handleBuildingInfoModeChange = React.useCallback(
     (mode: BuildingInfoDesktopMode) => {
-      setActiveBuildingInfoMode(mode)
-      setIsBuildingInfoCollapsed(false)
+      const nextTab = buildingInfoTopology.availableTabs.find(
+        (tab) => tab.mode === mode
+      )
+
+      if (nextTab == null || selectedBuildingKey == null) {
+        return
+      }
+
+      setBuildingInfoShellState({
+        buildingKey: selectedBuildingKey,
+        requestedTabId: nextTab.id,
+        isCollapsed: false,
+      })
       setIsSidebarOpen(true)
     },
-    [setIsSidebarOpen]
+    [
+      buildingInfoTopology.availableTabs,
+      selectedBuildingKey,
+      setIsSidebarOpen,
+    ]
   )
   const handleBuildingInfoActiveTabChange = React.useCallback(
     (tabId: BuildingInfoTabId) => {
-      const nextMode = getBuildingInfoModeForTabId(tabId)
+      if (
+        selectedBuildingKey == null ||
+        !buildingInfoTopology.availableTabs.some((tab) => tab.id === tabId)
+      ) {
+        return
+      }
 
-      setActiveBuildingInfoMode((currentMode) =>
-        currentMode === nextMode ? currentMode : nextMode
-      )
+      setBuildingInfoShellState((currentState) => ({
+        buildingKey: selectedBuildingKey,
+        requestedTabId: tabId,
+        isCollapsed:
+          currentState.buildingKey === selectedBuildingKey
+            ? currentState.isCollapsed
+            : false,
+      }))
     },
-    []
+    [buildingInfoTopology.availableTabs, selectedBuildingKey]
   )
   const handleCollapseBuildingInfo = React.useCallback(
     (tabId: BuildingInfoTabId) => {
-      setActiveBuildingInfoMode(getBuildingInfoModeForTabId(tabId))
-      setIsBuildingInfoCollapsed(true)
+      if (
+        selectedBuildingKey == null ||
+        !buildingInfoTopology.availableTabs.some((tab) => tab.id === tabId)
+      ) {
+        return
+      }
+
+      setBuildingInfoShellState({
+        buildingKey: selectedBuildingKey,
+        requestedTabId: tabId,
+        isCollapsed: true,
+      })
       setIsSidebarOpen(true)
     },
-    [setIsSidebarOpen]
+    [
+      buildingInfoTopology.availableTabs,
+      selectedBuildingKey,
+      setIsSidebarOpen,
+    ]
   )
   const handleCloseBuildingInfo = React.useCallback(() => {
     setIsSidebarOpen(true)
@@ -566,20 +642,38 @@ const EnergyHomePage = ({ locale: localeProp }: EnergyHomePageProps) => {
   }, [setIsSidebarOpen, setSelectedFeatures])
 
   React.useEffect(() => {
-    if (selectedBuildingKey == null) {
-      previousSelectedBuildingKeyRef.current = null
-      setActiveBuildingInfoMode('twoPanel')
-      setIsBuildingInfoCollapsed(false)
-      return
+    const resolvedTabId =
+      resolveEnergymapBuildingInfoTab({
+        topology: buildingInfoTopology,
+        requestedTabId: isBuildingInfoShellStateCurrent
+          ? buildingInfoShellState.requestedTabId
+          : 'basic',
+      })?.id ?? 'basic'
+    const nextState: BuildingInfoShellState = {
+      buildingKey: selectedBuildingKey,
+      requestedTabId: resolvedTabId,
+      isCollapsed: isBuildingInfoCollapsed,
     }
 
-    if (previousSelectedBuildingKeyRef.current !== selectedBuildingKey) {
-      previousSelectedBuildingKeyRef.current = selectedBuildingKey
-      setActiveBuildingInfoMode('twoPanel')
-      setIsBuildingInfoCollapsed(false)
+    if (
+      buildingInfoShellState.buildingKey !== nextState.buildingKey ||
+      buildingInfoShellState.requestedTabId !== nextState.requestedTabId ||
+      buildingInfoShellState.isCollapsed !== nextState.isCollapsed
+    ) {
+      setBuildingInfoShellState(nextState)
+    }
+
+    if (selectedBuildingKey != null && !isBuildingInfoShellStateCurrent) {
       setIsSidebarOpen(true)
     }
-  }, [selectedBuildingKey, setIsSidebarOpen])
+  }, [
+    buildingInfoShellState,
+    buildingInfoTopology,
+    isBuildingInfoCollapsed,
+    isBuildingInfoShellStateCurrent,
+    selectedBuildingKey,
+    setIsSidebarOpen,
+  ])
 
   React.useEffect(() => {
     if (
@@ -626,11 +720,7 @@ const EnergyHomePage = ({ locale: localeProp }: EnergyHomePageProps) => {
         setFilter(layerId, buildingFilter)
       )
     )
-  }, [
-    buildingFilter,
-    isSharedBuildingLayerGroupRegistered,
-    setFilter,
-  ])
+  }, [buildingFilter, isSharedBuildingLayerGroupRegistered, setFilter])
 
   React.useEffect(() => {
     if (!isSharedBuildingLayerGroupRegistered) {
@@ -735,6 +825,9 @@ const EnergyHomePage = ({ locale: localeProp }: EnergyHomePageProps) => {
     hasBuildingInfo && isBuildingInfoCollapsed ? (
       <BuildingInfoActionRail
         activeMode={activeBuildingInfoMode}
+        availableModes={buildingInfoTopology.availableTabs.map(
+          (tab) => tab.mode
+        )}
         isCollapsed={isBuildingInfoCollapsed}
         orientation={useBuildingInfoMobileLayout ? 'row' : 'column'}
         ariaLabels={buildingInfoAriaLabels}
@@ -747,12 +840,11 @@ const EnergyHomePage = ({ locale: localeProp }: EnergyHomePageProps) => {
         hasBuildingInfo,
         isBuildingInfoCollapsed,
         isMobileLayout: useBuildingInfoMobileLayout,
-        isDesktopFullscreenFallback:
-          useBuildingInfoDesktopFullscreenFallback,
-        activeMode: activeBuildingInfoMode,
+        isDesktopFullscreenFallback: useBuildingInfoDesktopFullscreenFallback,
+        desktopContentWidthPx: activeBuildingInfoTab?.desktopContentWidthPx,
       }),
     [
-      activeBuildingInfoMode,
+      activeBuildingInfoTab?.desktopContentWidthPx,
       hasBuildingInfo,
       isBuildingInfoCollapsed,
       useBuildingInfoDesktopFullscreenFallback,
@@ -769,7 +861,10 @@ const EnergyHomePage = ({ locale: localeProp }: EnergyHomePageProps) => {
       <IntoSidebarHeaderSlot>
         <SidebarHeader
           title={
-            <TText keyName="sidebar.front_page.header.title" ns="energiakartta" />
+            <TText
+              keyName="sidebar.front_page.header.title"
+              ns="energiakartta"
+            />
           }
           backgroundImage="/files/img/energiakartta/sidebar/main-hero-header-crop.jpg"
         />
@@ -778,20 +873,22 @@ const EnergyHomePage = ({ locale: localeProp }: EnergyHomePageProps) => {
         <SidebarFooterAction
           tooltip={upcomingTooltip}
           label={footerLabel}
-          reserveActionRow={
+          mobileActionCount={
             hasBuildingInfo &&
             isBuildingInfoCollapsed &&
             useBuildingInfoMobileLayout
+              ? buildingInfoTopology.availableTabs.length
+              : 0
           }
         />
       </IntoSidebarFooterSlot>
       {isBuildingInfoExpanded && buildingInfoPanels != null && (
         <IntoSidebarPanelExtensionPanelSlot panelId="main">
           <BuildingInfoTabPages
-            key={selectedBuildingKey}
-            panels={buildingInfoPanels}
+            key={`${selectedBuildingKey}:${buildingInfoTopology.signature}`}
+            topology={buildingInfoTopology}
             ariaLabels={buildingInfoAriaLabels}
-            activeTabId={getBuildingInfoTabIdForMode(activeBuildingInfoMode)}
+            activeTabId={activeBuildingInfoTab?.id}
             forceMobileLayout={useBuildingInfoMobileLayout}
             isDesktopFullscreenLayout={
               buildingInfoPanelRuntimeOptions.layoutMode === 'fullscreen' &&
@@ -912,10 +1009,7 @@ const EnergyHomePage = ({ locale: localeProp }: EnergyHomePageProps) => {
               />
             </LayerToggleRowAccordion>
             {LOWER_DISABLED_LAYER_ROWS.map(({ keyName, ariaKeyName }) => (
-              <PageTooltip
-                key={keyName}
-                title={upcomingTooltip}
-              >
+              <PageTooltip key={keyName} title={upcomingTooltip}>
                 {(tooltipTriggerProps) => (
                   <Box
                     {...tooltipTriggerProps}

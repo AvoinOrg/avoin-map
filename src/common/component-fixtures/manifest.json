@@ -611,10 +611,12 @@
     "sourceGlobs": [
       "src/applets/energy/common/buildingInfo.ts",
       "src/applets/energy/common/buildingInfo.test.ts",
+      "src/applets/energy/common/buildingInfoPanelRuntime.ts",
+      "src/applets/energy/common/buildingInfoPanelTopology.ts",
+      "src/applets/energy/common/buildingInfoPanelTopology.test.ts",
       "src/applets/energy/components/BuildingInfoPanel.tsx",
       "src/applets/energy/components/BuildingInfoPanel.test.tsx",
-      "src/common/component-fixtures/fixtures/EnergymapBuildingInfoPanelFixture.tsx",
-      "src/public/img/energiakartta/sidebar/building-info-unavailable-value.svg"
+      "src/common/component-fixtures/fixtures/EnergymapBuildingInfoPanelFixture.tsx"
     ],
     "states": [
       {
@@ -628,6 +630,54 @@
         "label": "Desktop renovation",
         "description": "Renovation tab with comparison and effectiveness content.",
         "waitFor": "[data-testid=\"building-info-tab-page-renovation\"]"
+      },
+      {
+        "id": "desktop-sparse-basic",
+        "label": "Desktop sparse basic",
+        "description": "One available energy panel with no empty companion cell.",
+        "waitFor": "[data-testid=\"building-info-grid-row-basic\"][data-grid-region-count=\"1\"]"
+      },
+      {
+        "id": "desktop-building-only",
+        "label": "Desktop building only",
+        "description": "Building-only basic tab with the energy region omitted.",
+        "waitFor": "[data-testid=\"building-info-panel-buildingDetails\"]"
+      },
+      {
+        "id": "desktop-renovation-no-comparison",
+        "label": "Renovation without comparison",
+        "description": "Recommendation content without comparison or effectiveness regions.",
+        "waitFor": "[data-testid=\"building-info-grid-row-renovationTop\"]"
+      },
+      {
+        "id": "desktop-renovation-comparison-only",
+        "label": "Renovation comparison only",
+        "description": "Comparison and effectiveness row without an empty top row.",
+        "waitFor": "[data-testid=\"building-info-grid-row-renovationComparison\"]"
+      },
+      {
+        "id": "desktop-renovation-comparison-one-top",
+        "label": "Renovation comparison with one top region",
+        "description": "One retained recommendation region fills the comparison-row width without absent sibling bands.",
+        "waitFor": "[data-testid=\"building-info-grid-row-renovationTop\"][data-grid-region-count=\"1\"][data-grid-content-width=\"1440\"]"
+      },
+      {
+        "id": "desktop-renovation-comparison-two-top",
+        "label": "Renovation comparison with two top regions",
+        "description": "Two retained top regions proportionally fill the comparison-row width without a building-details band.",
+        "waitFor": "[data-testid=\"building-info-grid-row-renovationTop\"][data-grid-region-count=\"2\"][data-grid-content-width=\"1440\"]"
+      },
+      {
+        "id": "forced-mobile-renovation-comparison-one-top",
+        "label": "Forced mobile comparison with one top region",
+        "description": "The same comparison-plus-recommendation topology rendered as one stacked mobile panel.",
+        "waitFor": "[data-testid=\"building-info-tab-page-renovation\"]"
+      },
+      {
+        "id": "forced-mobile-renovation-comparison-two-top",
+        "label": "Forced mobile comparison with two top regions",
+        "description": "The same comparison-plus-energy-and-recommendation topology rendered as two stacked mobile panels.",
+        "waitFor": "[data-testid=\"building-info-calculation-context\"]"
       },
       {
         "id": "desktop-recommendation-expanded",
@@ -684,10 +734,52 @@
         "waitFor": "[data-testid=\"building-info-tab-page-basic\"]"
       },
       {
-        "id": "metric-unsupported",
-        "label": "Unsupported metric",
-        "description": "Unsupported primary metric selected by default.",
+        "id": "nested-partial-controls",
+        "label": "Nested partial controls",
+        "description": "A single retained Water control without energy submetric wrappers.",
+        "waitFor": "[data-testid=\"building-info-water-resident-control\"]"
+      },
+      {
+        "id": "building-switch-complete-to-sparse",
+        "label": "Complete to sparse building switch",
+        "description": "Interacts with a complete building before switching to a keyed sparse topology.",
+        "waitFor": "[data-testid=\"building-info-fixture-interaction-ready\"]"
+      },
+      {
+        "id": "building-switch-sparse-to-complete",
+        "label": "Sparse to complete building switch",
+        "description": "Changes sparse Water and tab state before switching to a keyed complete topology with defaults restored.",
+        "waitFor": "[data-testid=\"building-info-fixture-interaction-ready\"]"
+      },
+      {
+        "id": "forced-mobile-sparse",
+        "label": "Forced mobile sparse",
+        "description": "Forced stacked layout with one retained basic panel.",
         "waitFor": "[data-testid=\"building-info-tab-page-basic\"]"
+      },
+      {
+        "id": "responsive-sparse",
+        "label": "Responsive sparse",
+        "description": "Natural responsive layout with one retained basic panel.",
+        "waitFor": "[data-testid=\"building-info-tab-page-basic\"]"
+      },
+      {
+        "id": "empty-panel",
+        "label": "Structurally empty panel",
+        "description": "A supplied panel without retained sections leaves the entire extension shell absent.",
+        "waitFor": "[data-testid=\"building-info-fixture-empty-ready\"]"
+      },
+      {
+        "id": "empty-content",
+        "label": "Empty content",
+        "description": "Neutral shell with no extension, page controls, tab, or reserved panel region.",
+        "waitFor": "[data-testid=\"building-info-fixture-empty-ready\"]"
+      },
+      {
+        "id": "action-rail-single",
+        "label": "Single collapsed action",
+        "description": "Collapsed row action rail with only the available basic reopen action.",
+        "waitFor": "[data-testid=\"building-info-action-rail\"]"
       },
       {
         "id": "action-rail-collapsed",

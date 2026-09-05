@@ -28,10 +28,17 @@ import type {
   EnergymapBuildingInfoValueStatus,
 } from 'applets/energy/common/buildingInfo'
 import {
+  deriveEnergymapBuildingInfoPanelTopology,
+  resolveEnergymapBuildingInfoTab,
+} from 'applets/energy/common/buildingInfoPanelTopology'
+import type {
+  BuildingInfoDesktopMode,
+  BuildingInfoTabId,
+} from 'applets/energy/common/buildingInfoPanelTopology'
+import {
   BuildingInfoActionRail,
   BuildingInfoTabPages,
 } from 'applets/energy/components/BuildingInfoPanel'
-import type { BuildingInfoTabId } from 'applets/energy/components/BuildingInfoPanel'
 
 const noop = () => {}
 
@@ -128,15 +135,8 @@ const heatingMetric = metric({
 const waterHeatingMetric = metric({
   id: 'waterHeating',
   label: 'Water heating',
-  annual: 'Unavailable',
-  square: 'Unavailable',
-})
-
-const emptyMetric = metric({
-  id: 'total',
-  label: 'No selected sources',
-  annual: 'Select at least one source',
-  square: 'Select at least one source',
+  annual: '10 MWh',
+  square: '12 kWh/m2',
 })
 
 const createAnnualPrimaryMetric = ({
@@ -144,43 +144,27 @@ const createAnnualPrimaryMetric = ({
   label,
   text,
   unitKey,
-  unsupported = false,
 }: {
   id: Extract<EnergymapBuildingInfoPrimaryMetricId, 'cost' | 'co2'>
   label: string
   text: string
   unitKey: string
-  unsupported?: boolean
 }): EnergymapBuildingInfoPrimaryMetric => ({
   id,
   label: plain(label),
   ariaLabelKey: `sidebar.building_info.panels.energy.primary.${id}`,
-  supported: !unsupported,
+  supported: true,
   value: {
-    text: plain(unsupported ? `${label} reference data is unavailable.` : text),
-    status: unsupported ? 'placeholder' : 'estimate',
-    ...(unsupported ? {} : { unitKey }),
+    text: plain(text),
+    status: 'estimate',
+    unitKey,
   },
-  ...(unsupported
-    ? {
-        unavailableNote: {
-          id: `${id}-unavailable`,
-          text: plain(`${label} reference data is unavailable.`),
-          status: 'placeholder',
-        },
-      }
-    : {}),
 })
 
 const createControls = ({
   defaultPrimaryMetricId = 'energy',
-  unsupportedPrimaryMetricId,
 }: {
   defaultPrimaryMetricId?: EnergymapBuildingInfoPrimaryMetricId
-  unsupportedPrimaryMetricId?: Extract<
-    EnergymapBuildingInfoPrimaryMetricId,
-    'cost' | 'co2'
-  >
 } = {}): EnergymapBuildingInfoConsumptionControls => ({
   defaultPrimaryMetricId,
   primaryMetrics: [
@@ -210,9 +194,7 @@ const createControls = ({
         description: plain(
           'The number of residents is estimated from the building area. You can temporarily model another number. The Water estimate is not measured consumption or resident data.'
         ),
-        unavailableText: plain(
-          'Enter a whole number between 1 and 10,000.'
-        ),
+        unavailableText: plain('Enter a whole number between 1 and 10,000.'),
       },
     },
     createAnnualPrimaryMetric({
@@ -220,14 +202,12 @@ const createControls = ({
       label: 'Cost',
       text: '19,613',
       unitKey: 'sidebar.building_info.units.eur_per_year',
-      unsupported: unsupportedPrimaryMetricId === 'cost',
     }),
     createAnnualPrimaryMetric({
       id: 'co2',
       label: 'CO2',
       text: '18,436',
       unitKey: 'sidebar.building_info.units.kg_co2_per_year',
-      unsupported: unsupportedPrimaryMetricId === 'co2',
     }),
   ],
   defaultEnergySubmetricIds: ['electricity', 'heating'],
@@ -252,30 +232,19 @@ const createControls = ({
       id: 'waterHeating',
       label: plain('Water heating'),
       ariaLabelKey: 'panels.energy.series.water_heating',
-      supported: false,
+      supported: true,
       defaultSelected: false,
       metric: waterHeatingMetric,
-      unavailableNote: {
-        id: 'water-heating-unavailable',
-        text: plain('Water heating is estimated through the total value.'),
-        status: 'placeholder',
-      },
     },
   ],
   combinedEnergyMetric: totalMetric,
-  emptyEnergyMetric: emptyMetric,
 })
 
 const createPanels = ({
   defaultPrimaryMetricId = 'energy',
-  unsupportedPrimaryMetricId,
   recommendationSourceLanguage = 'fi',
 }: {
   defaultPrimaryMetricId?: EnergymapBuildingInfoPrimaryMetricId
-  unsupportedPrimaryMetricId?: Extract<
-    EnergymapBuildingInfoPrimaryMetricId,
-    'cost' | 'co2'
-  >
   recommendationSourceLanguage?: keyof typeof CERTIFICATE_RECOMMENDATIONS_BY_LANGUAGE
 } = {}): EnergymapBuildingInfoPanel[] => [
   {
@@ -288,12 +257,13 @@ const createPanels = ({
         title: plain('Energy estimate'),
         consumptionControls: createControls({
           defaultPrimaryMetricId,
-          unsupportedPrimaryMetricId,
         }),
         notes: [
           {
             id: 'estimate-note',
-            text: plain('Values combine registry data and estimated heating demand.'),
+            text: plain(
+              'Values combine registry data and estimated heating demand.'
+            ),
             status: 'estimate',
           },
         ],
@@ -320,12 +290,6 @@ const createPanels = ({
             status: 'estimate',
             sourceProperties: ['heating_energy_source'],
           },
-          {
-            id: 'waterHeatingSplit',
-            label: plain('Water-heating split'),
-            text: plain('The water-heating split has not been published.'),
-            status: 'placeholder',
-          },
         ],
       },
     ],
@@ -340,18 +304,6 @@ const createPanels = ({
       {
         id: 'publishedRecommendations',
         rows: [
-          {
-            id: 'renovationRecommendations',
-            label: plain('Renovation recommendations'),
-            text: plain('Source data unavailable'),
-            status: 'placeholder',
-          },
-          {
-            id: 'energyRecommendations',
-            label: plain('Energy recommendations'),
-            text: plain('Source data unavailable'),
-            status: 'placeholder',
-          },
           {
             id: 'energyCertificateRecommendations',
             label: plain('Energy-certificate recommendations'),
@@ -441,13 +393,6 @@ const createPanels = ({
             text: plain('Apartment building'),
             status: 'real',
           },
-          {
-            id: 'missingYear',
-            label: plain('Renovation year'),
-            text: plain('Source data unavailable'),
-            status: 'missing',
-            sourceProperties: ['renovation_year'],
-          },
         ],
       },
       {
@@ -508,8 +453,149 @@ const createPanels = ({
   },
 ]
 
+type FixtureTopology =
+  | 'complete'
+  | 'sparseBasic'
+  | 'sparseTwoTabs'
+  | 'buildingOnly'
+  | 'nestedControls'
+  | 'renovationOnly'
+  | 'renovationWithoutComparison'
+  | 'comparisonOnly'
+  | 'renovationComparisonTwoTop'
+  | 'emptyPanel'
+  | 'empty'
+
+const createFixturePanels = ({
+  topology = 'complete',
+  defaultPrimaryMetricId,
+  recommendationSourceLanguage,
+}: {
+  topology?: FixtureTopology
+  defaultPrimaryMetricId?: EnergymapBuildingInfoPrimaryMetricId
+  recommendationSourceLanguage?: keyof typeof CERTIFICATE_RECOMMENDATIONS_BY_LANGUAGE
+} = {}) => {
+  const completePanels = createPanels({
+    defaultPrimaryMetricId,
+    recommendationSourceLanguage,
+  })
+  const energyPanel = completePanels.find(
+    (panel) => panel.id === 'energyConsumption'
+  )
+  const renovationPanel = completePanels.find(
+    (panel) => panel.id === 'renovationRecommendations'
+  )
+  const buildingPanel = completePanels.find(
+    (panel) => panel.id === 'buildingDetails'
+  )
+
+  if (topology === 'empty') {
+    return []
+  }
+
+  if (topology === 'emptyPanel') {
+    return energyPanel == null ? [] : [{ ...energyPanel, sections: [] }]
+  }
+
+  if (topology === 'buildingOnly') {
+    return buildingPanel == null ? [] : [buildingPanel]
+  }
+
+  if (topology === 'renovationOnly') {
+    return renovationPanel == null ? [] : [renovationPanel]
+  }
+
+  if (topology === 'renovationWithoutComparison') {
+    return renovationPanel == null
+      ? []
+      : [
+          {
+            ...renovationPanel,
+            sections: renovationPanel.sections.filter(
+              (section) => section.id !== 'scenarioComparison'
+            ),
+          },
+        ]
+  }
+
+  if (topology === 'comparisonOnly') {
+    return renovationPanel == null
+      ? []
+      : [
+          {
+            ...renovationPanel,
+            sections: renovationPanel.sections.filter(
+              (section) => section.id === 'scenarioComparison'
+            ),
+          },
+      ]
+  }
+
+  if (topology === 'renovationComparisonTwoTop') {
+    return energyPanel == null || renovationPanel == null
+      ? []
+      : [energyPanel, renovationPanel]
+  }
+
+  if (energyPanel == null) {
+    return []
+  }
+
+  const sparseEnergyPanel = {
+    ...energyPanel,
+    sections: energyPanel.sections.filter(
+      (section) => section.id === 'estimatedConsumption'
+    ),
+  }
+
+  if (topology === 'sparseBasic') {
+    return [sparseEnergyPanel]
+  }
+
+  if (topology === 'sparseTwoTabs') {
+    return renovationPanel == null
+      ? [sparseEnergyPanel]
+      : [
+          sparseEnergyPanel,
+          {
+            ...renovationPanel,
+            sections: renovationPanel.sections.filter(
+              (section) => section.id !== 'scenarioComparison'
+            ),
+          },
+        ]
+  }
+
+  if (topology === 'nestedControls') {
+    return [
+      {
+        ...sparseEnergyPanel,
+        sections: sparseEnergyPanel.sections.map((section) => {
+          const controls = section.consumptionControls
+          const waterMetric = controls?.primaryMetrics.find(
+            (metric) => metric.id === 'water'
+          )
+
+          return waterMetric == null
+            ? section
+            : {
+                ...section,
+                consumptionControls: {
+                  defaultPrimaryMetricId: 'water' as const,
+                  primaryMetrics: [waterMetric],
+                },
+              }
+        }),
+      },
+    ]
+  }
+
+  return completePanels
+}
+
 const getFixtureExtensionOptions = (
-  forceMobileLayout: boolean
+  forceMobileLayout: boolean,
+  desktopContentWidthPx?: number
 ): SidebarPanelExtensionRuntimeOptions => ({
   visiblePanels: ['main'],
   activePanel: 'main',
@@ -517,6 +603,9 @@ const getFixtureExtensionOptions = (
   chrome: 'hidden',
   panelLayout: 'single',
   forceMobileLayout,
+  ...(desktopContentWidthPx == null
+    ? {}
+    : { desktopMainPanelWidth: `${desktopContentWidthPx}px` }),
 })
 
 const BuildingInfoPanelFixtureChrome = ({
@@ -567,28 +656,59 @@ const BuildingInfoPanelFixtureChrome = ({
 const BuildingInfoPanelFixtureState = ({
   activeTabId = 'basic',
   defaultPrimaryMetricId,
-  unsupportedPrimaryMetricId,
   forceMobileLayout = false,
   interaction,
   recommendationSourceLanguage = 'fi',
+  topologyVariant = 'complete',
 }: {
   activeTabId?: BuildingInfoTabId
   defaultPrimaryMetricId?: EnergymapBuildingInfoPrimaryMetricId
-  unsupportedPrimaryMetricId?: Extract<
-    EnergymapBuildingInfoPrimaryMetricId,
-    'cost' | 'co2'
-  >
   forceMobileLayout?: boolean
   recommendationSourceLanguage?: keyof typeof CERTIFICATE_RECOMMENDATIONS_BY_LANGUAGE
+  topologyVariant?: FixtureTopology
   interaction?:
     | 'building-details'
+    | 'building-switch-complete-to-sparse'
+    | 'building-switch-sparse-to-complete'
     | 'calculation-details-expanded'
     | 'recommendation-expanded'
     | 'water-override'
 }) => {
+  const [renderedTopologyVariant, setRenderedTopologyVariant] =
+    React.useState(topologyVariant)
+  const [buildingKey, setBuildingKey] = React.useState('fixture-building-a')
+  const [buildingSwitchPhase, setBuildingSwitchPhase] = React.useState<
+    'initial' | 'interacted' | 'override-enabled' | 'tab-selected' | 'switched'
+  >('initial')
+  const [requestedTabId, setRequestedTabId] = React.useState(activeTabId)
+  const panels = React.useMemo(
+    () =>
+      createFixturePanels({
+        topology: renderedTopologyVariant,
+        defaultPrimaryMetricId,
+        recommendationSourceLanguage,
+      }),
+    [
+      defaultPrimaryMetricId,
+      recommendationSourceLanguage,
+      renderedTopologyVariant,
+    ]
+  )
+  const panelTopology = React.useMemo(
+    () => deriveEnergymapBuildingInfoPanelTopology(panels),
+    [panels]
+  )
+  const resolvedTab = resolveEnergymapBuildingInfoTab({
+    topology: panelTopology,
+    requestedTabId,
+  })
   const extensionOptions = React.useMemo(
-    () => getFixtureExtensionOptions(forceMobileLayout),
-    [forceMobileLayout]
+    () =>
+      getFixtureExtensionOptions(
+        forceMobileLayout,
+        resolvedTab?.desktopContentWidthPx
+      ),
+    [forceMobileLayout, resolvedTab?.desktopContentWidthPx]
   )
   const rootRef = React.useRef<HTMLDivElement | null>(null)
   const [interactionReady, setInteractionReady] = React.useState(false)
@@ -612,6 +732,129 @@ const BuildingInfoPanelFixtureState = ({
     }
 
     const prepareInteraction = () => {
+      if (interaction === 'building-switch-complete-to-sparse') {
+        if (buildingSwitchPhase === 'initial') {
+          const waterButton = root.querySelector<HTMLButtonElement>(
+            '[data-primary-metric-id="water"]'
+          )
+
+          if (waterButton != null) {
+            waterButton.click()
+            setBuildingSwitchPhase('interacted')
+          }
+          return
+        }
+
+        if (buildingSwitchPhase === 'interacted') {
+          if (
+            root.querySelector(
+              '[data-testid="building-info-water-resident-control"]'
+            ) != null
+          ) {
+            setRenderedTopologyVariant('sparseBasic')
+            setBuildingKey('fixture-building-b')
+            setBuildingSwitchPhase('switched')
+          }
+          return
+        }
+
+        if (
+          root.querySelector(
+            '[data-testid="building-info-grid-row-basic"][data-grid-region-count="1"]'
+          ) != null &&
+          root.querySelector(
+            '[data-testid="building-info-panel-buildingDetails"]'
+          ) == null
+        ) {
+          markReady()
+        }
+        return
+      }
+
+      if (interaction === 'building-switch-sparse-to-complete') {
+        if (buildingSwitchPhase === 'initial') {
+          const waterButton = root.querySelector<HTMLButtonElement>(
+            '[data-primary-metric-id="water"]'
+          )
+
+          if (waterButton != null) {
+            waterButton.click()
+            setBuildingSwitchPhase('interacted')
+          }
+          return
+        }
+
+        if (buildingSwitchPhase === 'interacted') {
+          const overrideSwitch = root.querySelector<HTMLInputElement>(
+            '[data-testid="building-info-water-resident-control"] input[role="switch"]'
+          )
+
+          if (overrideSwitch != null) {
+            overrideSwitch.click()
+            setBuildingSwitchPhase('override-enabled')
+          }
+          return
+        }
+
+        if (buildingSwitchPhase === 'override-enabled') {
+          const renovationTab = root.querySelector<HTMLButtonElement>(
+            'button[role="tab"][aria-label="Open renovation recommendations"]'
+          )
+
+          if (
+            root.querySelector(
+              '[data-testid="building-info-water-resident-value-slot"] input'
+            ) != null &&
+            renovationTab != null
+          ) {
+            renovationTab.click()
+            setBuildingSwitchPhase('tab-selected')
+          }
+          return
+        }
+
+        if (buildingSwitchPhase === 'tab-selected') {
+          if (
+            root.querySelector(
+              '[data-testid="building-info-tab-page-renovation"]'
+            ) != null
+          ) {
+            setRequestedTabId('basic')
+            setRenderedTopologyVariant('complete')
+            setBuildingKey('fixture-building-b')
+            setBuildingSwitchPhase('switched')
+          }
+          return
+        }
+
+        const selectedBasicTab = root.querySelector<HTMLButtonElement>(
+          'button[role="tab"][aria-label="Open energy and building information"][aria-selected="true"]'
+        )
+        const primaryMetric = root.querySelector<HTMLElement>(
+          '[data-testid="building-info-primary-metric-value"]'
+        )
+        const completeBasicLayoutReady =
+          root.querySelector(
+            '[data-testid="building-info-grid-row-basic"][data-grid-region-count="2"]'
+          ) != null ||
+          root.querySelector('[data-testid="building-info-grid"]') == null
+
+        if (
+          completeBasicLayoutReady &&
+          root.querySelector(
+            '[data-testid="building-info-panel-energyConsumption"]'
+          ) != null &&
+          root.querySelector(
+            '[data-testid="building-info-panel-buildingDetails"]'
+          ) != null &&
+          primaryMetric?.dataset.primaryMetricId === 'energy' &&
+          selectedBasicTab != null
+        ) {
+          markReady()
+        }
+        return
+      }
+
       if (interaction === 'building-details') {
         const buildingDetails = root.querySelector<HTMLElement>(
           '[data-testid="building-info-panel-buildingDetails"]'
@@ -694,7 +937,7 @@ const BuildingInfoPanelFixtureState = ({
     prepareInteraction()
 
     return () => observer?.disconnect()
-  }, [interaction])
+  }, [buildingSwitchPhase, interaction])
 
   return (
     <SlotsProvider>
@@ -715,20 +958,22 @@ const BuildingInfoPanelFixtureState = ({
           >
             <IntoSidebarPanelExtensionPanelSlot panelId="main">
               <BuildingInfoTabPages
-                panels={createPanels({
-                  defaultPrimaryMetricId,
-                  unsupportedPrimaryMetricId,
-                  recommendationSourceLanguage,
-                })}
+                key={buildingKey}
+                topology={panelTopology}
                 ariaLabels={ariaLabels}
-                activeTabId={activeTabId}
+                activeTabId={resolvedTab?.id}
                 forceMobileLayout={forceMobileLayout}
-                onActiveTabChange={noop}
+                onActiveTabChange={setRequestedTabId}
                 onClose={noop}
                 onCollapse={noop}
               />
             </IntoSidebarPanelExtensionPanelSlot>
-            <BuildingInfoPanelFixtureChrome options={extensionOptions} />
+            {resolvedTab != null && (
+              <BuildingInfoPanelFixtureChrome options={extensionOptions} />
+            )}
+            {resolvedTab == null && (
+              <Box data-testid="building-info-fixture-empty-ready" />
+            )}
             {interactionReady && (
               <Box data-testid="building-info-fixture-interaction-ready" />
             )}
@@ -739,7 +984,11 @@ const BuildingInfoPanelFixtureState = ({
   )
 }
 
-const ActionRailFixtureState = () => (
+const ActionRailFixtureState = ({
+  availableModes,
+}: {
+  availableModes: readonly BuildingInfoDesktopMode[]
+}) => (
   <Box
     sx={{
       p: 2,
@@ -748,6 +997,7 @@ const ActionRailFixtureState = () => (
   >
     <BuildingInfoActionRail
       activeMode="twoPanel"
+      availableModes={availableModes}
       isCollapsed
       orientation="row"
       ariaLabels={ariaLabels}
@@ -764,10 +1014,12 @@ export const energymapBuildingInfoPanelFixture: ComponentFixture = {
   sourceGlobs: [
     'src/applets/energy/common/buildingInfo.ts',
     'src/applets/energy/common/buildingInfo.test.ts',
+    'src/applets/energy/common/buildingInfoPanelRuntime.ts',
+    'src/applets/energy/common/buildingInfoPanelTopology.ts',
+    'src/applets/energy/common/buildingInfoPanelTopology.test.ts',
     'src/applets/energy/components/BuildingInfoPanel.tsx',
     'src/applets/energy/components/BuildingInfoPanel.test.tsx',
     'src/common/component-fixtures/fixtures/EnergymapBuildingInfoPanelFixture.tsx',
-    'src/public/img/energiakartta/sidebar/building-info-unavailable-value.svg',
   ],
   canvasSx: {
     p: 0,
@@ -788,6 +1040,106 @@ export const energymapBuildingInfoPanelFixture: ComponentFixture = {
       description: 'Renovation tab with comparison and effectiveness content.',
       waitFor: '[data-testid="building-info-tab-page-renovation"]',
       render: () => <BuildingInfoPanelFixtureState activeTabId="renovation" />,
+    },
+    {
+      id: 'desktop-sparse-basic',
+      label: 'Desktop sparse basic',
+      description: 'One available energy panel with no empty companion cell.',
+      waitFor:
+        '[data-testid="building-info-grid-row-basic"][data-grid-region-count="1"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState topologyVariant="sparseBasic" />
+      ),
+    },
+    {
+      id: 'desktop-building-only',
+      label: 'Desktop building only',
+      description: 'Building-only basic tab with the energy region omitted.',
+      waitFor: '[data-testid="building-info-panel-buildingDetails"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState topologyVariant="buildingOnly" />
+      ),
+    },
+    {
+      id: 'desktop-renovation-no-comparison',
+      label: 'Renovation without comparison',
+      description:
+        'Recommendation content without comparison or effectiveness regions.',
+      waitFor: '[data-testid="building-info-grid-row-renovationTop"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          activeTabId="renovation"
+          topologyVariant="renovationWithoutComparison"
+        />
+      ),
+    },
+    {
+      id: 'desktop-renovation-comparison-only',
+      label: 'Renovation comparison only',
+      description: 'Comparison and effectiveness row without an empty top row.',
+      waitFor: '[data-testid="building-info-grid-row-renovationComparison"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          activeTabId="renovation"
+          topologyVariant="comparisonOnly"
+        />
+      ),
+    },
+    {
+      id: 'desktop-renovation-comparison-one-top',
+      label: 'Renovation comparison with one top region',
+      description:
+        'One retained recommendation region fills the comparison-row width without absent sibling bands.',
+      waitFor:
+        '[data-testid="building-info-grid-row-renovationTop"][data-grid-region-count="1"][data-grid-content-width="1440"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          activeTabId="renovation"
+          topologyVariant="renovationOnly"
+        />
+      ),
+    },
+    {
+      id: 'desktop-renovation-comparison-two-top',
+      label: 'Renovation comparison with two top regions',
+      description:
+        'Two retained top regions proportionally fill the comparison-row width without a building-details band.',
+      waitFor:
+        '[data-testid="building-info-grid-row-renovationTop"][data-grid-region-count="2"][data-grid-content-width="1440"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          activeTabId="renovation"
+          topologyVariant="renovationComparisonTwoTop"
+        />
+      ),
+    },
+    {
+      id: 'forced-mobile-renovation-comparison-one-top',
+      label: 'Forced mobile comparison with one top region',
+      description:
+        'The same comparison-plus-recommendation topology rendered as one stacked mobile panel.',
+      waitFor: '[data-testid="building-info-tab-page-renovation"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          activeTabId="renovation"
+          forceMobileLayout
+          topologyVariant="renovationOnly"
+        />
+      ),
+    },
+    {
+      id: 'forced-mobile-renovation-comparison-two-top',
+      label: 'Forced mobile comparison with two top regions',
+      description:
+        'The same comparison-plus-energy-and-recommendation topology rendered as two stacked mobile panels.',
+      waitFor: '[data-testid="building-info-calculation-context"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          activeTabId="renovation"
+          forceMobileLayout
+          topologyVariant="renovationComparisonTwoTop"
+        />
+      ),
     },
     {
       id: 'desktop-recommendation-expanded',
@@ -845,7 +1197,8 @@ export const energymapBuildingInfoPanelFixture: ComponentFixture = {
     {
       id: 'mobile-water-override',
       label: 'Mobile Water override',
-      description: 'Forced stacked Water layout with resident override enabled.',
+      description:
+        'Forced stacked Water layout with resident override enabled.',
       waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
       render: () => (
         <BuildingInfoPanelFixtureState
@@ -892,16 +1245,87 @@ export const energymapBuildingInfoPanelFixture: ComponentFixture = {
       ),
     },
     {
-      id: 'metric-unsupported',
-      label: 'Unsupported metric',
-      description: 'Unsupported primary metric selected by default.',
+      id: 'nested-partial-controls',
+      label: 'Nested partial controls',
+      description:
+        'A single retained Water control without energy submetric wrappers.',
+      waitFor: '[data-testid="building-info-water-resident-control"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState topologyVariant="nestedControls" />
+      ),
+    },
+    {
+      id: 'building-switch-complete-to-sparse',
+      label: 'Complete to sparse building switch',
+      description:
+        'Interacts with a complete building before switching to a keyed sparse topology.',
+      waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState interaction="building-switch-complete-to-sparse" />
+      ),
+    },
+    {
+      id: 'building-switch-sparse-to-complete',
+      label: 'Sparse to complete building switch',
+      description:
+        'Changes sparse Water and tab state before switching to a keyed complete topology with defaults restored.',
+      waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          interaction="building-switch-sparse-to-complete"
+          topologyVariant="sparseTwoTabs"
+        />
+      ),
+    },
+    {
+      id: 'forced-mobile-sparse',
+      label: 'Forced mobile sparse',
+      description: 'Forced stacked layout with one retained basic panel.',
       waitFor: '[data-testid="building-info-tab-page-basic"]',
       render: () => (
         <BuildingInfoPanelFixtureState
-          defaultPrimaryMetricId="cost"
-          unsupportedPrimaryMetricId="cost"
+          forceMobileLayout
+          topologyVariant="sparseBasic"
         />
       ),
+    },
+    {
+      id: 'responsive-sparse',
+      label: 'Responsive sparse',
+      description: 'Natural responsive layout with one retained basic panel.',
+      waitFor: '[data-testid="building-info-tab-page-basic"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState topologyVariant="sparseBasic" />
+      ),
+    },
+    {
+      id: 'empty-panel',
+      label: 'Structurally empty panel',
+      description:
+        'A supplied panel without retained sections leaves the entire extension shell absent.',
+      waitFor: '[data-testid="building-info-fixture-empty-ready"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState topologyVariant="emptyPanel" />
+      ),
+    },
+    {
+      id: 'empty-content',
+      label: 'Empty content',
+      description:
+        'Neutral shell with no extension, page controls, tab, or reserved panel region.',
+      waitFor: '[data-testid="building-info-fixture-empty-ready"]',
+      render: () => <BuildingInfoPanelFixtureState topologyVariant="empty" />,
+    },
+    {
+      id: 'action-rail-single',
+      label: 'Single collapsed action',
+      description:
+        'Collapsed row action rail with only the available basic reopen action.',
+      waitFor: '[data-testid="building-info-action-rail"]',
+      canvasSx: {
+        p: 3,
+      },
+      render: () => <ActionRailFixtureState availableModes={['twoPanel']} />,
     },
     {
       id: 'action-rail-collapsed',
@@ -911,7 +1335,9 @@ export const energymapBuildingInfoPanelFixture: ComponentFixture = {
       canvasSx: {
         p: 3,
       },
-      render: () => <ActionRailFixtureState />,
+      render: () => (
+        <ActionRailFixtureState availableModes={['twoPanel', 'threePanel']} />
+      ),
     },
   ],
 }

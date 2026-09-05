@@ -50,10 +50,30 @@ import {
   getSelectedEnergyConsumption,
   normalizeEnergySubmetricSelection,
 } from '../common/buildingInfo'
+import {
+  getBuildingInfoModeForTabId,
+  getBuildingInfoPanelIds,
+  getBuildingInfoTabIdForMode,
+  getBuildingInfoTabPanelIds,
+  isBuildingInfoTabId,
+  resolveEnergymapBuildingInfoTab,
+} from '../common/buildingInfoPanelTopology'
+import type {
+  BuildingInfoDesktopMode,
+  BuildingInfoTabId,
+  EnergymapBuildingInfoDesktopPanelRow,
+  EnergymapBuildingInfoPanelTopology,
+  EnergymapBuildingInfoTabTopology,
+} from '../common/buildingInfoPanelTopology'
 import { calculateCurrentReferenceAnnualWater } from '../common/currentReferenceCalculations'
 
-export type BuildingInfoDesktopMode = 'twoPanel' | 'threePanel'
-export type BuildingInfoTabId = 'basic' | 'renovation'
+export type { BuildingInfoDesktopMode, BuildingInfoTabId }
+export {
+  getBuildingInfoModeForTabId,
+  getBuildingInfoPanelIds,
+  getBuildingInfoTabIdForMode,
+  getBuildingInfoTabPanelIds,
+}
 
 type BuildingInfoActionLabels = {
   close: string
@@ -63,7 +83,7 @@ type BuildingInfoActionLabels = {
 }
 
 type BuildingInfoTabPagesProps = {
-  panels: EnergymapBuildingInfoPanel[]
+  topology: EnergymapBuildingInfoPanelTopology
   ariaLabels: BuildingInfoActionLabels
   activeTabId?: BuildingInfoTabId
   forceMobileLayout?: boolean
@@ -75,6 +95,7 @@ type BuildingInfoTabPagesProps = {
 
 type BuildingInfoActionRailProps = {
   activeMode: BuildingInfoDesktopMode
+  availableModes: readonly BuildingInfoDesktopMode[]
   isCollapsed: boolean
   orientation?: 'row' | 'column'
   ariaLabels: Pick<BuildingInfoActionLabels, 'overview' | 'renovation'>
@@ -90,36 +111,6 @@ type BuildingInfoInlineTooltipTriggerProps = Omit<
 
 type BuildingInfoTooltipClickEvent = React.MouseEvent<HTMLButtonElement> & {
   preventBaseUIHandler?: () => void
-}
-
-const PANEL_IDS_BY_MODE: Record<
-  BuildingInfoDesktopMode,
-  EnergymapBuildingInfoPanelId[]
-> = {
-  twoPanel: ['energyConsumption', 'buildingDetails'],
-  threePanel: [
-    'energyConsumption',
-    'renovationRecommendations',
-    'buildingDetails',
-  ],
-}
-
-const PANEL_IDS_BY_TAB_ID: Record<
-  BuildingInfoTabId,
-  EnergymapBuildingInfoPanelId[]
-> = {
-  basic: PANEL_IDS_BY_MODE.twoPanel,
-  renovation: PANEL_IDS_BY_MODE.threePanel,
-}
-
-const TAB_ID_BY_MODE: Record<BuildingInfoDesktopMode, BuildingInfoTabId> = {
-  twoPanel: 'basic',
-  threePanel: 'renovation',
-}
-
-const MODE_BY_TAB_ID: Record<BuildingInfoTabId, BuildingInfoDesktopMode> = {
-  basic: 'twoPanel',
-  renovation: 'threePanel',
 }
 
 const STATUS_SX = {
@@ -163,24 +154,6 @@ const PANEL_CONTENT_WIDTHS: Record<EnergymapBuildingInfoPanelId, string> = {
   buildingDetails: '17.625rem',
 }
 
-const DESKTOP_GRID_MAX_WIDTHS: Record<BuildingInfoTabId, string> = {
-  basic: '760px',
-  renovation: '1440px',
-}
-
-const DESKTOP_GRID_MIN_HEIGHTS: Record<BuildingInfoTabId, string> = {
-  basic: '1256px',
-  renovation: '2365px',
-}
-
-const DESKTOP_GRID_SECTION_MIN_HEIGHTS = {
-  basic: '1256px',
-  renovationTop: '1300px',
-  renovationBottom: '1065px',
-} as const
-
-const RENOVATION_DESKTOP_GRID_COLUMNS = '440fr 560fr 440fr'
-const BASIC_DESKTOP_GRID_COLUMNS = 'minmax(0, 1fr) minmax(0, 1fr)'
 const DESKTOP_HEADING_TOP = '7.375rem'
 const DESKTOP_SECTION_BOTTOM_PADDING = '6.5rem'
 const DESKTOP_HEADING_GRAPHIC_TOP = '-4.25rem'
@@ -217,9 +190,7 @@ const BUILDING_INFO_GRAPHIC_DIMENSIONS = {
 } as const
 
 type BuildingInfoGraphicDimensions =
-  (typeof BUILDING_INFO_GRAPHIC_DIMENSIONS)[
-    keyof typeof BUILDING_INFO_GRAPHIC_DIMENSIONS
-  ]
+  (typeof BUILDING_INFO_GRAPHIC_DIMENSIONS)[keyof typeof BUILDING_INFO_GRAPHIC_DIMENSIONS]
 
 const RENOVATION_SCENARIO_GRAPHICS: Partial<
   Record<
@@ -276,11 +247,7 @@ const ENERGY_ANNUAL_TOTAL_LABEL: EnergymapBuildingInfoText = {
   keyName: 'sidebar.building_info.panels.energy.metric.annual_total',
 }
 
-const actionButtonSx = ({
-  active,
-}: {
-  active: boolean
-}) => ({
+const actionButtonSx = ({ active }: { active: boolean }) => ({
   width: `${BUILDING_INFO_ACTION_BUTTON_SIZE_PX}px`,
   height: `${BUILDING_INFO_ACTION_BUTTON_SIZE_PX}px`,
   minWidth: `${BUILDING_INFO_ACTION_BUTTON_SIZE_PX}px`,
@@ -300,9 +267,8 @@ const getSourcePropertiesData = (sourceProperties?: string[]) =>
     ? undefined
     : sourceProperties.join(',')
 
-const isUnavailableValueStatus = (
-  status: EnergymapBuildingInfoValueStatus
-) => status === 'missing' || status === 'placeholder'
+const isUnavailableValueStatus = (status: EnergymapBuildingInfoValueStatus) =>
+  status === 'missing' || status === 'placeholder'
 
 const VISUALLY_HIDDEN_STYLE: React.CSSProperties = {
   position: 'absolute',
@@ -323,9 +289,7 @@ const BuildingInfoInlineTooltip = ({
 }: {
   title: React.ReactNode
   side?: BuildingInfoTooltipSide
-  children: (
-    props: BuildingInfoInlineTooltipTriggerProps
-  ) => React.ReactElement
+  children: (props: BuildingInfoInlineTooltipTriggerProps) => React.ReactElement
 }) => (
   <AppTooltip
     title={title}
@@ -755,11 +719,7 @@ export const BuildingInfoText = ({
 
   if (text.type === 'translation') {
     return (
-      <TText
-        keyName={text.keyName}
-        ns="energiakartta"
-        params={text.params}
-      />
+      <TText keyName={text.keyName} ns="energiakartta" params={text.params} />
     )
   }
 
@@ -900,15 +860,14 @@ const BuildingInfoValueText = ({
 const BuildingInfoNoteText = ({
   note,
 }: {
-  note: Pick<
-    EnergymapBuildingInfoNote,
-    'text' | 'status' | 'sourceProperties'
-  >
+  note: Pick<EnergymapBuildingInfoNote, 'text' | 'status' | 'sourceProperties'> &
+    Partial<Pick<EnergymapBuildingInfoNote, 'id'>>
 }) => {
   const showWarningIcon = note.status === 'placeholder'
 
   return (
     <Box
+      data-note-id={note.id}
       data-status={note.status}
       data-source-properties={getSourcePropertiesData(note.sourceProperties)}
       sx={{
@@ -1091,7 +1050,7 @@ const BuildingInfoCalculationContextAccordion = ({
   const rows = section.rows ?? []
   const panelId = React.useId()
 
-  if (section.title == null) {
+  if (section.title == null || rows.length === 0) {
     return null
   }
 
@@ -1237,8 +1196,7 @@ const BuildingInfoStackedValue = ({
         color: '#111111',
       }}
     >
-      <BuildingInfoText text={row.label} />
-      :
+      <BuildingInfoText text={row.label} />:
     </Box>
     <Box
       component="div"
@@ -1437,7 +1395,7 @@ const BuildingInfoBuildingSubheaderSection = ({
 }: {
   section: EnergymapBuildingInfoSection
 }) => {
-  const addressRow = section.rows?.[0]
+  const addressRow = section.rows?.find((row) => row.id === 'address')
 
   if (addressRow == null) {
     return null
@@ -1706,9 +1664,7 @@ const BuildingInfoPrimaryMetricButton = ({
         border: active ? '0.5px solid #075cff' : 0,
         backgroundColor: active ? '#075cff' : '#f0f0f0',
         color: active ? '#ffffff' : '#111111',
-        boxShadow: active
-          ? '0 1px 4px rgba(2, 2, 2, 0.25)'
-          : 'none',
+        boxShadow: active ? '0 1px 4px rgba(2, 2, 2, 0.25)' : 'none',
         transition:
           'width 160ms ease, background-color 160ms ease, color 160ms ease',
         '&:hover': {
@@ -1857,11 +1813,7 @@ const getValidManualResidentCount = ({
   maxValue: number
 }) => {
   const value = parseResidentCount(rawValue)
-  if (
-    value == null ||
-    value < minValue ||
-    value > maxValue
-  ) {
+  if (value == null || value < minValue || value > maxValue) {
     return null
   }
 
@@ -1926,9 +1878,7 @@ const BuildingInfoWaterResidentControl = ({
       data-primary-metric-supported="true"
       sx={{ mt: '1.5rem' }}
     >
-      <BuildingInfoMetricValueRow
-        value={getAnnualPrimaryMetricValue(value)}
-      />
+      <BuildingInfoMetricValueRow value={getAnnualPrimaryMetricValue(value)} />
       <Box
         data-testid="building-info-water-resident-control"
         sx={{
@@ -2208,57 +2158,63 @@ const BuildingInfoEnergyConsumptionSectionContent = ({
           <BuildingInfoText text={section.title} />
         </Box>
       )}
-      <Box
-        data-testid="building-info-primary-metric-row"
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '5px',
-          width: '284px',
-          maxWidth: '100%',
-          minHeight: '24px',
-        }}
-      >
-        {sortedPrimaryMetrics.map((metric) => (
-          <BuildingInfoPrimaryMetricButton
-            key={metric.id}
-            metric={metric}
-            active={metric.id === activePrimaryMetricId}
-            onClick={() => setRequestedPrimaryMetricId(metric.id)}
-          />
-        ))}
-      </Box>
+      {sortedPrimaryMetrics.length > 0 && (
+        <Box
+          data-testid="building-info-primary-metric-row"
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '5px',
+            width: '284px',
+            maxWidth: '100%',
+            minHeight: '24px',
+          }}
+        >
+          {sortedPrimaryMetrics.map((metric) => (
+            <BuildingInfoPrimaryMetricButton
+              key={metric.id}
+              metric={metric}
+              active={metric.id === activePrimaryMetricId}
+              onClick={() => setRequestedPrimaryMetricId(metric.id)}
+            />
+          ))}
+        </Box>
+      )}
       {activePrimaryMetric?.id === 'energy' ? (
         <>
-          <Box
-            data-testid="building-info-energy-submetric-row"
-            sx={{
-              mt: '1.5rem',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'flex-start',
-              gap: '1.25rem',
-            }}
-          >
-            {sortedEnergySubmetrics.map((submetric) => (
-              <BuildingInfoEnergySubmetricButton
-                key={submetric.id}
-                submetric={submetric}
-                selected={selectedSubmetricIds.has(submetric.id)}
-                onClick={() => toggleEnergySubmetric(submetric.id)}
-              />
-            ))}
-          </Box>
-          <Box
-            data-testid="building-info-energy-consumption-values"
-            sx={{
-              mt: '1.5rem',
-            }}
-          >
-            {selectedEnergyConsumption.values.map((value) => (
-              <BuildingInfoMetricValueRow key={value.id} value={value} />
-            ))}
-          </Box>
+          {sortedEnergySubmetrics.length > 0 && (
+            <Box
+              data-testid="building-info-energy-submetric-row"
+              sx={{
+                mt: '1.5rem',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                gap: '1.25rem',
+              }}
+            >
+              {sortedEnergySubmetrics.map((submetric) => (
+                <BuildingInfoEnergySubmetricButton
+                  key={submetric.id}
+                  submetric={submetric}
+                  selected={selectedSubmetricIds.has(submetric.id)}
+                  onClick={() => toggleEnergySubmetric(submetric.id)}
+                />
+              ))}
+            </Box>
+          )}
+          {selectedEnergyConsumption.values.length > 0 && (
+            <Box
+              data-testid="building-info-energy-consumption-values"
+              sx={{
+                mt: '1.5rem',
+              }}
+            >
+              {selectedEnergyConsumption.values.map((value) => (
+                <BuildingInfoMetricValueRow key={value.id} value={value} />
+              ))}
+            </Box>
+          )}
           {unavailableNotes.map((note) => (
             <BuildingInfoNoteText key={note.id} note={note} />
           ))}
@@ -2276,44 +2232,50 @@ const BuildingInfoMetricBlock = ({
 }: {
   metric: EnergymapBuildingInfoMetric
   accentColor: string
-}) => (
-  <Box
-    data-metric-id={metric.id}
-    sx={{
-      mt: '1.5rem',
-    }}
-  >
+}) => {
+  if (metric.values.length === 0) {
+    return null
+  }
+
+  return (
     <Box
+      data-metric-id={metric.id}
       sx={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        maxWidth: '100%',
-        minHeight: '1.5rem',
-        px: '0.75rem',
-        border: `0.5px solid ${accentColor}`,
-        borderRadius: '15px',
-        backgroundColor: metric.id === 'total' ? accentColor : 'transparent',
+        mt: '1.5rem',
       }}
     >
       <Box
         sx={{
-          fontSize: '0.5625rem',
-          fontWeight: 400,
-          lineHeight: '0.875rem',
-          letterSpacing: '0.18em',
-          color: metric.id === 'total' ? '#ffffff' : '#111111',
+          display: 'inline-flex',
+          alignItems: 'center',
+          maxWidth: '100%',
+          minHeight: '1.5rem',
+          px: '0.75rem',
+          border: `0.5px solid ${accentColor}`,
+          borderRadius: '15px',
+          backgroundColor: metric.id === 'total' ? accentColor : 'transparent',
         }}
       >
-        <BuildingInfoText text={metric.label} />
+        <Box
+          sx={{
+            fontSize: '0.5625rem',
+            fontWeight: 400,
+            lineHeight: '0.875rem',
+            letterSpacing: '0.18em',
+            color: metric.id === 'total' ? '#ffffff' : '#111111',
+          }}
+        >
+          <BuildingInfoText text={metric.label} />
+        </Box>
+      </Box>
+      <Box sx={{ mt: '0.75rem' }}>
+        {metric.values.map((value) => (
+          <BuildingInfoMetricValueRow key={value.id} value={value} />
+        ))}
       </Box>
     </Box>
-    <Box sx={{ mt: '0.75rem' }}>
-      {metric.values.map((value) => (
-        <BuildingInfoMetricValueRow key={value.id} value={value} />
-      ))}
-    </Box>
-  </Box>
-)
+  )
+}
 
 const BuildingInfoScenarioBlock = ({
   scenario,
@@ -2327,6 +2289,10 @@ const BuildingInfoScenarioBlock = ({
     (value) => value.id !== 'savingsPercent'
   )
   const graphic = RENOVATION_SCENARIO_GRAPHICS[scenario.id]
+
+  if (scenario.values.length === 0) {
+    return null
+  }
 
   return (
     <Box
@@ -2411,20 +2377,40 @@ const BuildingInfoSectionBlock = ({
   accentColor: string
 }) => {
   const showComparisonIcon = section.id === 'scenarioComparison'
+  const rows = section.rows ?? []
+  const hasOnlyRowContent =
+    rows.length > 0 &&
+    section.title == null &&
+    section.description == null &&
+    (section.metrics?.length ?? 0) === 0 &&
+    section.consumptionControls == null &&
+    (section.scenarios?.length ?? 0) === 0 &&
+    (section.notes?.length ?? 0) === 0
+  const hasOnlyKnownRowContent = (knownRowIds: readonly string[]) =>
+    hasOnlyRowContent && rows.every((row) => knownRowIds.includes(row.id))
 
-  if (section.variant === 'buildingSubheader') {
+  if (
+    section.variant === 'buildingSubheader' &&
+    hasOnlyKnownRowContent(['address'])
+  ) {
     return <BuildingInfoBuildingSubheaderSection section={section} />
   }
 
-  if (section.variant === 'energyCertificate') {
+  if (
+    section.variant === 'energyCertificate' &&
+    hasOnlyKnownRowContent(['energyClass', 'energyCertificateValidity'])
+  ) {
     return <BuildingInfoEnergyCertificateSection section={section} />
   }
 
-  if (section.variant === 'previousEnergyClass') {
+  if (
+    section.variant === 'previousEnergyClass' &&
+    hasOnlyKnownRowContent(['previousEnergyClass', 'energyClassMeasures'])
+  ) {
     return <BuildingInfoPreviousEnergyClassSection section={section} />
   }
 
-  if (section.variant === 'measureList') {
+  if (section.variant === 'measureList' && hasOnlyRowContent) {
     return <BuildingInfoMeasureListSection section={section} />
   }
 
@@ -2437,7 +2423,16 @@ const BuildingInfoSectionBlock = ({
     )
   }
 
-  if (section.id === 'calculationContext') {
+  if (
+    section.id === 'calculationContext' &&
+    section.title != null &&
+    rows.length > 0 &&
+    section.description == null &&
+    (section.metrics?.length ?? 0) === 0 &&
+    section.consumptionControls == null &&
+    (section.scenarios?.length ?? 0) === 0 &&
+    (section.notes?.length ?? 0) === 0
+  ) {
     return (
       <BuildingInfoCalculationContextAccordion
         section={section}
@@ -2486,7 +2481,7 @@ const BuildingInfoSectionBlock = ({
         </Box>
       )}
       {section.rows?.map((row) =>
-        row.presentation === 'expandableSourceText' && row.status === 'real' ? (
+        row.presentation === 'expandableSourceText' ? (
           <BuildingInfoExpandableSourceTextRow key={row.id} row={row} />
         ) : (
           <BuildingInfoRow key={row.id} row={row} />
@@ -2583,59 +2578,64 @@ const BuildingInfoPanelBody = ({
   showDescription?: boolean
   showHeroGraphic?: boolean
   sx?: AppSxProps
-}) => (
-  <Box
-    sx={[
-      {
-        boxSizing: 'border-box',
-        position: 'relative',
-      },
-      ...toSxArray(sx),
-    ]}
-  >
-    <BuildingInfoPanelHeadingGraphic panelId={panel.id} />
+}) => {
+  if (sections.length === 0) {
+    return null
+  }
+
+  return (
     <Box
-      id={titleId}
-      sx={{
-        fontSize: '0.75rem',
-        fontWeight: 400,
-        lineHeight: '1.125rem',
-        letterSpacing: '0.1em',
-        color: accentColor,
-        textTransform: 'uppercase',
-        whiteSpace: 'normal',
-      }}
+      sx={[
+        {
+          boxSizing: 'border-box',
+          position: 'relative',
+        },
+        ...toSxArray(sx),
+      ]}
     >
-      <BuildingInfoText text={panel.title} />
-    </Box>
-    <Box
-      sx={{
-        mt: 'var(--building-info-heading-divider-mt, 1.375rem)',
-        borderTop: '0.3px solid #cfcfcf',
-      }}
-    />
-    {showHeroGraphic && <BuildingInfoPanelHeroGraphic panelId={panel.id} />}
-    {showDescription && panel.description != null && (
+      <BuildingInfoPanelHeadingGraphic panelId={panel.id} />
       <Box
+        id={titleId}
         sx={{
-          ...textSx,
-          mt:
-            panel.id === 'renovationRecommendations' ? 0 : '1.875rem',
-          color: '#111111',
+          fontSize: '0.75rem',
+          fontWeight: 400,
+          lineHeight: '1.125rem',
+          letterSpacing: '0.1em',
+          color: accentColor,
+          textTransform: 'uppercase',
+          whiteSpace: 'normal',
         }}
       >
-        <BuildingInfoText text={panel.description} />
+        <BuildingInfoText text={panel.title} />
       </Box>
-    )}
-    {sections.map((section) => (
-      <BuildingInfoSectionBlock
-        key={section.id}
-        section={section}
-        accentColor={accentColor}
+      <Box
+        sx={{
+          mt: 'var(--building-info-heading-divider-mt, 1.375rem)',
+          borderTop: '0.3px solid #cfcfcf',
+        }}
       />
-    ))}
-  </Box>
-)
+      {showHeroGraphic && <BuildingInfoPanelHeroGraphic panelId={panel.id} />}
+      {showDescription && panel.description != null && (
+        <Box
+          sx={{
+            ...textSx,
+            mt: panel.id === 'renovationRecommendations' ? 0 : '1.875rem',
+            color: '#111111',
+          }}
+        >
+          <BuildingInfoText text={panel.description} />
+        </Box>
+      )}
+      {sections.map((section) => (
+        <BuildingInfoSectionBlock
+          key={section.id}
+          section={section}
+          accentColor={accentColor}
+        />
+      ))}
+    </Box>
+  )
+}
 
 const getTabPagePanelAccentColor = ({
   tabId,
@@ -2705,10 +2705,15 @@ const BuildingInfoPanelSection = ({
   sx?: AppSxProps
 }) => {
   const titleId = React.useId()
+  const presentedSections = sections ?? panel.sections
   const accentColor = getTabPagePanelAccentColor({
     tabId,
     panelId: panel.id,
   })
+
+  if (presentedSections.length === 0) {
+    return null
+  }
 
   return (
     <Box
@@ -2731,7 +2736,7 @@ const BuildingInfoPanelSection = ({
         panel={panel}
         titleId={titleId}
         accentColor={accentColor}
-        sections={sections}
+        sections={presentedSections}
         showDescription={showDescription}
         showHeroGraphic={showHeroGraphic}
         sx={bodySx}
@@ -2774,90 +2779,122 @@ const BuildingInfoStackedTabPageSection = ({
 }
 
 const BuildingInfoDesktopGrid = ({
-  tabId,
+  tab,
   children,
 }: {
-  tabId: BuildingInfoTabId
+  tab: EnergymapBuildingInfoTabTopology
   children: React.ReactNode
 }) => (
   <Box
     data-testid="building-info-grid"
-    data-building-info-grid-layout={tabId}
+    data-building-info-grid-layout={tab.id}
+    data-building-info-content-width={tab.desktopContentWidthPx}
     sx={{
-      display: 'grid',
-      width: `min(${DESKTOP_GRID_MAX_WIDTHS[tabId]}, 100vw)`,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      width: `min(${tab.desktopContentWidthPx}px, 100%)`,
       maxWidth: '100%',
       mx: 'auto',
-      minHeight: DESKTOP_GRID_MIN_HEIGHTS[tabId],
-      flexGrow: tabId === 'basic' ? 1 : undefined,
+      flexGrow: tab.id === 'basic' ? 1 : undefined,
       backgroundColor: '#f9f9f9',
-      ...(tabId === 'renovation'
-        ? {
-            gridTemplateColumns: RENOVATION_DESKTOP_GRID_COLUMNS,
-            gridTemplateRows: `${DESKTOP_GRID_SECTION_MIN_HEIGHTS.renovationTop} ${DESKTOP_GRID_SECTION_MIN_HEIGHTS.renovationBottom}`,
-            gridTemplateAreas: `
-              "energy renovation details"
-              "comparison comparison effectiveness"
-            `,
-          }
-        : {
-            gridTemplateColumns: BASIC_DESKTOP_GRID_COLUMNS,
-            gridTemplateRows: `minmax(${DESKTOP_GRID_SECTION_MIN_HEIGHTS.basic}, 1fr)`,
-            gridTemplateAreas: '"energy details"',
-          }),
     }}
   >
     {children}
   </Box>
 )
 
-const BuildingInfoDesktopGridSection = ({
-  slot,
-  gridArea,
+const getDesktopPanelRegionSlot = ({
+  row,
   panelId,
-  backgroundColor,
-  minHeight,
-  children,
 }: {
-  slot: string
-  gridArea: string
-  panelId?: EnergymapBuildingInfoPanelId
-  backgroundColor: string
-  minHeight: string
-  children?: React.ReactNode
+  row: EnergymapBuildingInfoDesktopPanelRow
+  panelId: EnergymapBuildingInfoPanelId
+}) => {
+  if (row.id === 'basic') {
+    return panelId === 'energyConsumption'
+      ? 'basic-energy'
+      : 'basic-building-details'
+  }
+
+  if (panelId === 'energyConsumption') {
+    return 'top-energy'
+  }
+
+  return panelId === 'renovationRecommendations'
+    ? 'top-renovation'
+    : 'top-building-details'
+}
+
+const BuildingInfoDesktopPanelRow = ({
+  tabId,
+  row,
+}: {
+  tabId: BuildingInfoTabId
+  row: EnergymapBuildingInfoDesktopPanelRow
 }) => (
   <Box
-    data-testid={`building-info-grid-section-${slot}`}
-    data-grid-area={gridArea}
-    data-grid-slot={slot}
-    data-panel-id={panelId}
+    data-testid={`building-info-grid-row-${row.id}`}
+    data-grid-row={row.id}
+    data-grid-region-count={row.regions.length}
+    data-grid-content-width={row.contentWidthPx}
     sx={{
-      gridArea,
-      minWidth: 0,
-      minHeight,
-      backgroundColor,
+      display: 'grid',
+      gridTemplateColumns: row.regions
+        .map(({ targetWidthPx }) => `minmax(0, ${targetWidthPx}fr)`)
+        .join(' '),
+      width: `min(${row.contentWidthPx}px, 100%)`,
+      maxWidth: '100%',
+      flexGrow: row.id === 'basic' ? 1 : undefined,
     }}
   >
-    {children}
+    {row.regions.map((region) => {
+      const slot = getDesktopPanelRegionSlot({
+        row,
+        panelId: region.panel.id,
+      })
+
+      return (
+        <Box
+          key={region.id}
+          data-testid={`building-info-grid-section-${slot}`}
+          data-grid-row={row.id}
+          data-grid-slot={slot}
+          data-panel-id={region.panel.id}
+          sx={{
+            minWidth: 0,
+            minHeight: '100%',
+            backgroundColor: PANEL_BACKGROUNDS[region.panel.id],
+          }}
+        >
+          <BuildingInfoPanelSection
+            panel={region.panel}
+            tabId={tabId}
+            sections={region.sections}
+            sx={{ minHeight: '100%', height: '100%' }}
+            bodySx={getDesktopGridPanelContentSx({
+              panelId: region.panel.id,
+            })}
+          />
+        </Box>
+      )
+    })}
   </Box>
 )
-
-const getRenovationComparisonSection = (
-  panel?: EnergymapBuildingInfoPanel
-) => panel?.sections.find((section) => section.id === 'scenarioComparison')
 
 const BuildingInfoRenovationComparisonWide = ({
   panel,
+  section,
 }: {
   panel: EnergymapBuildingInfoPanel
+  section: EnergymapBuildingInfoSection
 }) => {
   const titleId = React.useId()
-  const section = getRenovationComparisonSection(panel)
 
   return (
     <Box
       component="section"
-      aria-labelledby={titleId}
+      aria-labelledby={section.title == null ? undefined : titleId}
       data-testid="building-info-renovation-comparison-wide"
       data-panel-id={panel.id}
       sx={{
@@ -2877,7 +2914,7 @@ const BuildingInfoRenovationComparisonWide = ({
         }}
       >
         <RenovationIcon width="31px" height="25px" />
-        {section?.title != null && (
+        {section.title != null && (
           <Box
             id={titleId}
             sx={{
@@ -2899,7 +2936,7 @@ const BuildingInfoRenovationComparisonWide = ({
             borderTop: '0.3px solid #cfcfcf',
           }}
         />
-        {section?.description != null && (
+        {section.description != null && (
           <Box
             sx={{
               ...textSx,
@@ -2922,8 +2959,31 @@ const BuildingInfoRenovationComparisonWide = ({
           boxSizing: 'border-box',
         }}
       >
-        {section?.scenarios?.map((scenario) => (
+        {section.rows?.map((row) =>
+          row.presentation === 'expandableSourceText' ? (
+            <BuildingInfoExpandableSourceTextRow key={row.id} row={row} />
+          ) : (
+            <BuildingInfoRow key={row.id} row={row} />
+          )
+        )}
+        {section.metrics?.map((metric) => (
+          <BuildingInfoMetricBlock
+            key={metric.id}
+            metric={metric}
+            accentColor={PANEL_ACCENTS.renovationRecommendations}
+          />
+        ))}
+        {section.consumptionControls != null && (
+          <BuildingInfoEnergyConsumptionSection
+            section={section}
+            accentColor={PANEL_ACCENTS.renovationRecommendations}
+          />
+        )}
+        {section.scenarios?.map((scenario) => (
           <BuildingInfoScenarioBlock key={scenario.id} scenario={scenario} />
+        ))}
+        {section.notes?.map((note) => (
+          <BuildingInfoNoteText key={note.id} note={note} />
         ))}
       </Box>
     </Box>
@@ -3010,121 +3070,61 @@ const BuildingInfoRenovationEffectivenessContent = () => (
 )
 
 const BuildingInfoDesktopTabPageContent = ({
-  tabId,
-  panelsById,
+  tab,
 }: {
-  tabId: BuildingInfoTabId
-  panelsById: Map<EnergymapBuildingInfoPanelId, EnergymapBuildingInfoPanel>
-}) => {
-  const energyPanel = panelsById.get('energyConsumption')
-  const renovationPanel = panelsById.get('renovationRecommendations')
-  const buildingPanel = panelsById.get('buildingDetails')
-  const energyTopSections =
-    tabId === 'renovation'
-      ? energyPanel?.sections.filter(
-          (section) => section.id !== 'calculationContext'
-        )
-      : energyPanel?.sections
-  const renovationTopSections =
-    renovationPanel?.sections.filter(
-      (section) => section.id !== 'scenarioComparison'
-    ) ?? []
-
-  return (
-    <BuildingInfoDesktopGrid tabId={tabId}>
-      {energyPanel != null && (
-        <BuildingInfoDesktopGridSection
-          slot={tabId === 'renovation' ? 'top-energy' : 'basic-energy'}
-          gridArea="energy"
-          panelId={energyPanel.id}
-          backgroundColor={PANEL_BACKGROUNDS.energyConsumption}
-          minHeight={
-            tabId === 'renovation'
-              ? DESKTOP_GRID_SECTION_MIN_HEIGHTS.renovationTop
-              : DESKTOP_GRID_SECTION_MIN_HEIGHTS.basic
-          }
+  tab: EnergymapBuildingInfoTabTopology
+}) => (
+  <BuildingInfoDesktopGrid tab={tab}>
+    {tab.desktopRows.map((row) =>
+      row.kind === 'panels' ? (
+        <BuildingInfoDesktopPanelRow key={row.id} tabId={tab.id} row={row} />
+      ) : (
+        <Box
+          key={row.id}
+          data-testid="building-info-grid-row-renovationComparison"
+          data-grid-row={row.id}
+          data-grid-region-count="2"
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 1000fr) minmax(0, 440fr)',
+            width: `min(${row.contentWidthPx}px, 100%)`,
+            maxWidth: '100%',
+          }}
         >
-          <BuildingInfoPanelSection
-            panel={energyPanel}
-            tabId={tabId}
-            sections={energyTopSections}
-            sx={{ minHeight: '100%', height: '100%' }}
-            bodySx={getDesktopGridPanelContentSx({
-              panelId: energyPanel.id,
-            })}
-          />
-        </BuildingInfoDesktopGridSection>
-      )}
-      {tabId === 'renovation' && renovationPanel != null && (
-        <BuildingInfoDesktopGridSection
-          slot="top-renovation"
-          gridArea="renovation"
-          panelId={renovationPanel.id}
-          backgroundColor={PANEL_BACKGROUNDS.renovationRecommendations}
-          minHeight={DESKTOP_GRID_SECTION_MIN_HEIGHTS.renovationTop}
-        >
-          <BuildingInfoPanelSection
-            panel={renovationPanel}
-            tabId={tabId}
-            sections={renovationTopSections}
-            sx={{ minHeight: '100%', height: '100%' }}
-            bodySx={getDesktopGridPanelContentSx({
-              panelId: renovationPanel.id,
-            })}
-          />
-        </BuildingInfoDesktopGridSection>
-      )}
-      {buildingPanel != null && (
-        <BuildingInfoDesktopGridSection
-          slot={
-            tabId === 'renovation'
-              ? 'top-building-details'
-              : 'basic-building-details'
-          }
-          gridArea="details"
-          panelId={buildingPanel.id}
-          backgroundColor={PANEL_BACKGROUNDS.buildingDetails}
-          minHeight={
-            tabId === 'renovation'
-              ? DESKTOP_GRID_SECTION_MIN_HEIGHTS.renovationTop
-              : DESKTOP_GRID_SECTION_MIN_HEIGHTS.basic
-          }
-        >
-          <BuildingInfoPanelSection
-            panel={buildingPanel}
-            tabId={tabId}
-            sx={{ minHeight: '100%', height: '100%' }}
-            bodySx={getDesktopGridPanelContentSx({
-              panelId: buildingPanel.id,
-            })}
-          />
-        </BuildingInfoDesktopGridSection>
-      )}
-      {tabId === 'renovation' && renovationPanel != null && (
-        <>
-          <BuildingInfoDesktopGridSection
-            slot="bottom-wide"
-            gridArea="comparison"
-            panelId={renovationPanel.id}
-            backgroundColor={PANEL_BACKGROUNDS.energyConsumption}
-            minHeight={DESKTOP_GRID_SECTION_MIN_HEIGHTS.renovationBottom}
+          <Box
+            data-testid="building-info-grid-section-bottom-wide"
+            data-grid-row={row.id}
+            data-grid-slot="bottom-wide"
+            data-panel-id={row.panel.id}
+            sx={{
+              minWidth: 0,
+              minHeight: '100%',
+              backgroundColor: PANEL_BACKGROUNDS.energyConsumption,
+            }}
           >
-            <BuildingInfoRenovationComparisonWide panel={renovationPanel} />
-          </BuildingInfoDesktopGridSection>
-          <BuildingInfoDesktopGridSection
-            slot="bottom-right"
-            gridArea="effectiveness"
-            panelId={renovationPanel.id}
-            backgroundColor={RENOVATION_EFFECTIVENESS_BACKGROUND}
-            minHeight={DESKTOP_GRID_SECTION_MIN_HEIGHTS.renovationBottom}
+            <BuildingInfoRenovationComparisonWide
+              panel={row.panel}
+              section={row.section}
+            />
+          </Box>
+          <Box
+            data-testid="building-info-grid-section-bottom-right"
+            data-grid-row={row.id}
+            data-grid-slot="bottom-right"
+            data-panel-id={row.panel.id}
+            sx={{
+              minWidth: 0,
+              minHeight: '100%',
+              backgroundColor: RENOVATION_EFFECTIVENESS_BACKGROUND,
+            }}
           >
             <BuildingInfoRenovationEffectivenessContent />
-          </BuildingInfoDesktopGridSection>
-        </>
-      )}
-    </BuildingInfoDesktopGrid>
-  )
-}
+          </Box>
+        </Box>
+      )
+    )}
+  </BuildingInfoDesktopGrid>
+)
 
 const BuildingInfoStackedTabPageContent = ({
   tabId,
@@ -3147,36 +3147,20 @@ const BuildingInfoStackedTabPageContent = ({
 )
 
 const BuildingInfoTabPageContent = ({
-  tabId,
-  panels,
+  tab,
   forceMobileLayout = false,
 }: {
-  tabId: BuildingInfoTabId
-  panels: EnergymapBuildingInfoPanel[]
+  tab: EnergymapBuildingInfoTabTopology
   forceMobileLayout?: boolean
 }) => {
   const isMobile = useIsMobile()
   const useMobileLayout = isMobile || forceMobileLayout
-  const isDesktopBasicLayout = !useMobileLayout && tabId === 'basic'
-  const panelsById = React.useMemo(
-    () =>
-      new Map<EnergymapBuildingInfoPanelId, EnergymapBuildingInfoPanel>(
-        panels.map((panel) => [panel.id, panel])
-      ),
-    [panels]
-  )
-  const visiblePanels = React.useMemo(
-    () =>
-      PANEL_IDS_BY_TAB_ID[tabId]
-        .map((panelId) => panelsById.get(panelId))
-        .filter((panel): panel is EnergymapBuildingInfoPanel => panel != null),
-    [panelsById, tabId]
-  )
+  const isDesktopBasicLayout = !useMobileLayout && tab.id === 'basic'
 
   return (
     <Box
-      data-testid={`building-info-tab-page-${tabId}`}
-      data-building-info-tab-id={tabId}
+      data-testid={`building-info-tab-page-${tab.id}`}
+      data-building-info-tab-id={tab.id}
       sx={{
         display: 'flex',
         flexDirection: 'column',
@@ -3186,15 +3170,9 @@ const BuildingInfoTabPageContent = ({
       }}
     >
       {useMobileLayout ? (
-        <BuildingInfoStackedTabPageContent
-          tabId={tabId}
-          panels={visiblePanels}
-        />
+        <BuildingInfoStackedTabPageContent tabId={tab.id} panels={tab.panels} />
       ) : (
-        <BuildingInfoDesktopTabPageContent
-          tabId={tabId}
-          panelsById={panelsById}
-        />
+        <BuildingInfoDesktopTabPageContent tab={tab} />
       )}
     </Box>
   )
@@ -3202,9 +3180,11 @@ const BuildingInfoTabPageContent = ({
 
 const BuildingInfoActiveTabSync = ({
   activeTabId,
+  topology,
   onActiveTabChange,
 }: {
   activeTabId?: BuildingInfoTabId
+  topology: EnergymapBuildingInfoPanelTopology
   onActiveTabChange?: (tabId: BuildingInfoTabId) => void
 }) => {
   const tabsContext = useNullableSidebarPanelExtensionTabsContext()
@@ -3215,49 +3195,62 @@ const BuildingInfoActiveTabSync = ({
   const lastNotifiedActiveTabId = React.useRef<BuildingInfoTabId | undefined>(
     undefined
   )
-  const hasActiveTab =
-    activeTabId != null &&
-    tabsContext?.tabs.some((tab) => tab.tabId === activeTabId) === true
+  const requestedTabId =
+    activeTabId == null
+      ? undefined
+      : resolveEnergymapBuildingInfoTab({
+          topology,
+          requestedTabId: activeTabId,
+        })?.id
+  const hasRequestedTab =
+    requestedTabId != null &&
+    tabsContext?.tabs.some((tab) => tab.tabId === requestedTabId) === true
   const resolvedActiveTabId = tabsContext?.resolvedActiveTabId
 
   React.useEffect(() => {
+    lastAppliedActiveTabId.current = undefined
+    lastNotifiedActiveTabId.current = undefined
+  }, [topology.signature])
+
+  React.useEffect(() => {
     if (
-      activeTabId == null ||
-      !hasActiveTab ||
-      lastAppliedActiveTabId.current === activeTabId
+      requestedTabId == null ||
+      !hasRequestedTab ||
+      lastAppliedActiveTabId.current === requestedTabId
     ) {
       return
     }
 
     const timeoutId = window.setTimeout(() => {
-      setActiveTabId?.(activeTabId)
-      lastAppliedActiveTabId.current = activeTabId
+      setActiveTabId?.(requestedTabId)
+      lastAppliedActiveTabId.current = requestedTabId
     }, 0)
 
     return () => {
       window.clearTimeout(timeoutId)
     }
-  }, [activeTabId, hasActiveTab, setActiveTabId])
+  }, [hasRequestedTab, requestedTabId, setActiveTabId, topology.signature])
 
   React.useEffect(() => {
     if (
       !isBuildingInfoTabId(resolvedActiveTabId) ||
+      !topology.availableTabs.some((tab) => tab.id === resolvedActiveTabId) ||
       lastNotifiedActiveTabId.current === resolvedActiveTabId
     ) {
       return
     }
 
     if (
-      activeTabId != null &&
-      resolvedActiveTabId !== activeTabId &&
-      lastAppliedActiveTabId.current !== activeTabId
+      requestedTabId != null &&
+      resolvedActiveTabId !== requestedTabId &&
+      lastAppliedActiveTabId.current !== requestedTabId
     ) {
       return
     }
 
     lastNotifiedActiveTabId.current = resolvedActiveTabId
     onActiveTabChange?.(resolvedActiveTabId)
-  }, [activeTabId, onActiveTabChange, resolvedActiveTabId])
+  }, [onActiveTabChange, requestedTabId, resolvedActiveTabId, topology])
 
   return null
 }
@@ -3313,23 +3306,6 @@ const ThreePanelIcon = () => (
   </Box>
 )
 
-export const getBuildingInfoPanelIds = (
-  mode: BuildingInfoDesktopMode
-) => PANEL_IDS_BY_MODE[mode]
-
-export const getBuildingInfoTabPanelIds = (tabId: BuildingInfoTabId) =>
-  PANEL_IDS_BY_TAB_ID[tabId]
-
-export const getBuildingInfoTabIdForMode = (
-  mode: BuildingInfoDesktopMode
-) => TAB_ID_BY_MODE[mode]
-
-export const getBuildingInfoModeForTabId = (tabId: BuildingInfoTabId) =>
-  MODE_BY_TAB_ID[tabId]
-
-const isBuildingInfoTabId = (tabId?: string): tabId is BuildingInfoTabId =>
-  tabId === 'basic' || tabId === 'renovation'
-
 const getBuildingInfoPageControlsSx = ({
   forceMobileLayout = false,
   isDesktopFullscreenLayout = false,
@@ -3356,7 +3332,7 @@ const getBuildingInfoPageControlsSx = ({
 }
 
 export const BuildingInfoTabPages = ({
-  panels,
+  topology,
   ariaLabels,
   activeTabId,
   forceMobileLayout = false,
@@ -3364,69 +3340,60 @@ export const BuildingInfoTabPages = ({
   onActiveTabChange,
   onClose,
   onCollapse,
-}: BuildingInfoTabPagesProps) => (
-  <>
-    <BuildingInfoActiveTabSync
-      activeTabId={activeTabId}
-      onActiveTabChange={onActiveTabChange}
-    />
-    <SidebarPanelExtensionTabContainer
-      tabId="basic"
-      tabName={ariaLabels.overview}
-      tabAriaLabel={ariaLabels.overview}
-      tabIcon={<TwoPanelIcon />}
-    >
-      <SidebarPanelExtensionPageContainer
-        closeAriaLabel={ariaLabels.close}
-        collapseAriaLabel={ariaLabels.collapse}
-        onClose={onClose}
-        onCollapse={() => onCollapse('basic')}
-        contentSx={{
-          backgroundColor: '#f9f9f9',
-        }}
-        controlsSx={getBuildingInfoPageControlsSx({
-          forceMobileLayout,
-          isDesktopFullscreenLayout,
-        })}
-      >
-        <BuildingInfoTabPageContent
-          tabId="basic"
-          panels={panels}
-          forceMobileLayout={forceMobileLayout}
-        />
-      </SidebarPanelExtensionPageContainer>
-    </SidebarPanelExtensionTabContainer>
-    <SidebarPanelExtensionTabContainer
-      tabId="renovation"
-      tabName={ariaLabels.renovation}
-      tabAriaLabel={ariaLabels.renovation}
-      tabIcon={<ThreePanelIcon />}
-    >
-      <SidebarPanelExtensionPageContainer
-        closeAriaLabel={ariaLabels.close}
-        collapseAriaLabel={ariaLabels.collapse}
-        onClose={onClose}
-        onCollapse={() => onCollapse('renovation')}
-        contentSx={{
-          backgroundColor: '#f9f9f9',
-        }}
-        controlsSx={getBuildingInfoPageControlsSx({
-          forceMobileLayout,
-          isDesktopFullscreenLayout,
-        })}
-      >
-        <BuildingInfoTabPageContent
-          tabId="renovation"
-          panels={panels}
-          forceMobileLayout={forceMobileLayout}
-        />
-      </SidebarPanelExtensionPageContainer>
-    </SidebarPanelExtensionTabContainer>
-  </>
-)
+}: BuildingInfoTabPagesProps) => {
+  if (topology.availableTabs.length === 0) {
+    return null
+  }
+
+  return (
+    <>
+      <BuildingInfoActiveTabSync
+        activeTabId={activeTabId}
+        topology={topology}
+        onActiveTabChange={onActiveTabChange}
+      />
+      {topology.availableTabs.map((tab) => {
+        const isBasicTab = tab.id === 'basic'
+        const tabLabel = isBasicTab
+          ? ariaLabels.overview
+          : ariaLabels.renovation
+
+        return (
+          <SidebarPanelExtensionTabContainer
+            key={tab.id}
+            tabId={tab.id}
+            tabName={tabLabel}
+            tabAriaLabel={tabLabel}
+            tabIcon={isBasicTab ? <TwoPanelIcon /> : <ThreePanelIcon />}
+          >
+            <SidebarPanelExtensionPageContainer
+              closeAriaLabel={ariaLabels.close}
+              collapseAriaLabel={ariaLabels.collapse}
+              onClose={onClose}
+              onCollapse={() => onCollapse(tab.id)}
+              contentSx={{
+                backgroundColor: '#f9f9f9',
+              }}
+              controlsSx={getBuildingInfoPageControlsSx({
+                forceMobileLayout,
+                isDesktopFullscreenLayout,
+              })}
+            >
+              <BuildingInfoTabPageContent
+                tab={tab}
+                forceMobileLayout={forceMobileLayout}
+              />
+            </SidebarPanelExtensionPageContainer>
+          </SidebarPanelExtensionTabContainer>
+        )
+      })}
+    </>
+  )
+}
 
 export const BuildingInfoActionRail = ({
   activeMode,
+  availableModes,
   isCollapsed,
   orientation = 'column',
   ariaLabels,
@@ -3434,6 +3401,24 @@ export const BuildingInfoActionRail = ({
 }: BuildingInfoActionRailProps) => {
   const tooltipSide: BuildingInfoTooltipSide =
     orientation === 'row' ? 'top' : 'right'
+
+  if (availableModes.length === 0) {
+    return null
+  }
+
+  const actions: Record<
+    BuildingInfoDesktopMode,
+    { label: string; icon: React.ReactNode }
+  > = {
+    twoPanel: {
+      label: ariaLabels.overview,
+      icon: <TwoPanelIcon />,
+    },
+    threePanel: {
+      label: ariaLabels.renovation,
+      icon: <ThreePanelIcon />,
+    },
+  }
 
   return (
     <Box
@@ -3446,42 +3431,33 @@ export const BuildingInfoActionRail = ({
         pointerEvents: 'auto',
       }}
     >
-      <BuildingInfoTooltip title={ariaLabels.overview} side={tooltipSide}>
-        {(triggerProps) => (
-          <IconButton
-            {...triggerProps}
-            type="button"
-            aria-label={ariaLabels.overview}
-            aria-pressed={activeMode === 'twoPanel' && !isCollapsed}
-            data-building-info-mode="twoPanel"
-            onClick={() => onModeChange('twoPanel')}
-            size="small"
-            sx={actionButtonSx({
-              active: activeMode === 'twoPanel' && !isCollapsed,
-            })}
+      {availableModes.map((mode) => {
+        const action = actions[mode]
+        const active = activeMode === mode && !isCollapsed
+
+        return (
+          <BuildingInfoTooltip
+            key={mode}
+            title={action.label}
+            side={tooltipSide}
           >
-            <TwoPanelIcon />
-          </IconButton>
-        )}
-      </BuildingInfoTooltip>
-      <BuildingInfoTooltip title={ariaLabels.renovation} side={tooltipSide}>
-        {(triggerProps) => (
-          <IconButton
-            {...triggerProps}
-            type="button"
-            aria-label={ariaLabels.renovation}
-            aria-pressed={activeMode === 'threePanel' && !isCollapsed}
-            data-building-info-mode="threePanel"
-            onClick={() => onModeChange('threePanel')}
-            size="small"
-            sx={actionButtonSx({
-              active: activeMode === 'threePanel' && !isCollapsed,
-            })}
-          >
-            <ThreePanelIcon />
-          </IconButton>
-        )}
-      </BuildingInfoTooltip>
+            {(triggerProps) => (
+              <IconButton
+                {...triggerProps}
+                type="button"
+                aria-label={action.label}
+                aria-pressed={active}
+                data-building-info-mode={mode}
+                onClick={() => onModeChange(mode)}
+                size="small"
+                sx={actionButtonSx({ active })}
+              >
+                {action.icon}
+              </IconButton>
+            )}
+          </BuildingInfoTooltip>
+        )
+      })}
     </Box>
   )
 }
