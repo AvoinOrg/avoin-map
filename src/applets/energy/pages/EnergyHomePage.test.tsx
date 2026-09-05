@@ -18,6 +18,11 @@ import type {
   EnergymapBuildingInfoPanelId,
 } from '../common/buildingInfo'
 import {
+  ENERGYMAP_BUILDING_INFO_PROVENANCE_IDS,
+  ENERGYMAP_BUILDING_INFO_PROVENANCE_INPUT_IDS,
+  ENERGYMAP_MODELED_CLASS_REQUIRED_PROVENANCE_INPUT_IDS,
+} from '../common/buildingInfoProvenance'
+import {
   ENERGYMAP_BUILDING_POLYGONS_FILL_LAYER_ID,
   ENERGYMAP_BUILDING_POLYGONS_SOURCE_ID,
 } from '../layers/buildingPolygonsLayerConf'
@@ -30,8 +35,10 @@ const mockBuildingInfoPanelsByBuildingKey = new Map<
   EnergymapBuildingInfoPanel[]
 >()
 const mockBuildingInfoPanelFactoryKeys: Array<string | null> = []
+const mockBuildingInfoPanelFactoryLocales: string[] = []
 let mockIsMobile = false
 let mockDesktopWidthMatches = true
+let mockTranslationLocale: string | undefined
 
 const mockMapState = {
   setFilter: jest.fn(async () => undefined),
@@ -60,12 +67,15 @@ jest.mock('#/common/hooks/ui/useIsMobile', () => ({
 jest.mock('../common/buildingInfo', () => ({
   createEnergymapBuildingInfoPanels: ({
     selectedBuilding,
+    locale,
   }: {
     selectedBuilding: { buildingKey: string } | null
+    locale: string
   }) => {
     const buildingKey = selectedBuilding?.buildingKey ?? null
 
     mockBuildingInfoPanelFactoryKeys.push(buildingKey)
+    mockBuildingInfoPanelFactoryLocales.push(locale)
     return buildingKey == null
       ? null
       : (mockBuildingInfoPanelsByBuildingKey.get(buildingKey) ?? [])
@@ -80,10 +90,20 @@ jest.mock('@tolgee/react', () => {
   const ReactRuntime = jest.requireActual<typeof import('react')>('react')
 
   return {
-    T: ({ keyName }: { keyName: string }) =>
-      ReactRuntime.createElement('span', null, keyName),
+    T: ({ keyName, language }: { keyName: string; language?: string }) => {
+      const translationLocale = language ?? mockTranslationLocale
+
+      return ReactRuntime.createElement(
+        'span',
+        null,
+        translationLocale == null ? keyName : `${translationLocale}:${keyName}`
+      )
+    },
     useTranslate: () => ({
-      t: (keyName: string) => keyName,
+      t: (keyName: string) =>
+        mockTranslationLocale == null
+          ? keyName
+          : `${mockTranslationLocale}:${keyName}`,
     }),
   }
 })
@@ -105,12 +125,12 @@ const resetUIStore = () => {
   })
 }
 
-const createPageElement = () => (
+const createPageElement = (locale = 'fi') => (
   <AppThemeProvider disableCssBaseline>
     <SlotsProvider>
       <SidebarRoot>
         <SidebarBoundary id="energy-home-test" mode="floating">
-          <EnergyHomePage locale="fi" />
+          <EnergyHomePage locale={locale} />
         </SidebarBoundary>
       </SidebarRoot>
     </SlotsProvider>
@@ -176,6 +196,27 @@ const createEnergyClassPanel = ({
             origin === 'originUnknown'
               ? ['energy_class']
               : ['energy_class', 'is_energy_class_modeled'],
+          provenance:
+            origin === 'modeled'
+              ? {
+                  id: ENERGYMAP_BUILDING_INFO_PROVENANCE_IDS.ENERGY_CLASS_MODELED,
+                  inputIds:
+                    ENERGYMAP_MODELED_CLASS_REQUIRED_PROVENANCE_INPUT_IDS,
+                }
+              : origin === 'official'
+                ? {
+                    id: ENERGYMAP_BUILDING_INFO_PROVENANCE_IDS.ENERGY_CLASS_OFFICIAL,
+                    inputIds: [
+                      ENERGYMAP_BUILDING_INFO_PROVENANCE_INPUT_IDS.CERTIFICATE_CURRENT_CLASS,
+                      ENERGYMAP_BUILDING_INFO_PROVENANCE_INPUT_IDS.CLASS_ORIGIN_OFFICIAL,
+                    ],
+                  }
+                : {
+                    id: ENERGYMAP_BUILDING_INFO_PROVENANCE_IDS.ENERGY_CLASS_ORIGIN_UNAVAILABLE,
+                    inputIds: [
+                      ENERGYMAP_BUILDING_INFO_PROVENANCE_INPUT_IDS.SELECTED_BUILDING_CURRENT_CLASS,
+                    ],
+                  },
           ...(origin === 'modeled'
             ? {
                 modeledIndicator: {
@@ -192,6 +233,12 @@ const createEnergyClassPanel = ({
                   ariaLabelKey:
                     'sidebar.building_info.panels.building.energy_class_modeled.help_aria_label',
                   sourceProperties: ['is_energy_class_modeled'],
+                  provenance: {
+                    id: ENERGYMAP_BUILDING_INFO_PROVENANCE_IDS.ENERGY_CLASS_MODELED_INDICATOR,
+                    inputIds: [
+                      ENERGYMAP_BUILDING_INFO_PROVENANCE_INPUT_IDS.CLASS_ORIGIN_MODELED,
+                    ],
+                  },
                 },
               }
             : {}),
@@ -248,9 +295,11 @@ describe('EnergyHomePage', () => {
     resetUIStore()
     mockBuildingInfoPanelsByBuildingKey.clear()
     mockBuildingInfoPanelFactoryKeys.length = 0
+    mockBuildingInfoPanelFactoryLocales.length = 0
     mockMapState.selectedFeatures = []
     mockIsMobile = false
     mockDesktopWidthMatches = true
+    mockTranslationLocale = undefined
     useAppletStore.getState().resetBuildingFilters()
     useAppletStore.getState().resetEnergyCertificateClassFilters()
     useAppletStore.getState().clearSelectedBuilding()
@@ -505,6 +554,125 @@ describe('EnergyHomePage', () => {
         within(getEnergyClassCells().valueCell).getByText('A')
       ).toBeInTheDocument()
     })
+  })
+
+  it('resets an open provenance view and its relationships for a new or cleared building', async () => {
+    selectBuilding({
+      buildingKey: 'official-provenance',
+      panels: [createEnergyClassPanel({ classValue: 'B', origin: 'official' })],
+    })
+    const view = renderPage()
+
+    const initialTrigger = await screen.findByRole('button', {
+      name: 'sidebar.building_info.provenance.view.open',
+    })
+    const initialRegionId = initialTrigger.getAttribute('aria-controls')
+    fireEvent.click(initialTrigger)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('building-info-provenance-view')).toBeVisible()
+    })
+    expect(
+      screen.getByTestId('building-info-provenance-view')
+    ).toHaveTextContent(
+      'sidebar.building_info.provenance.fields.energy_class_official'
+    )
+
+    selectBuilding({
+      buildingKey: 'unknown-provenance',
+      panels: [
+        createEnergyClassPanel({
+          classValue: 'A',
+          origin: 'originUnknown',
+        }),
+      ],
+    })
+    view.rerender(createPageElement())
+
+    const nextTrigger = await screen.findByRole('button', {
+      name: 'sidebar.building_info.provenance.view.open',
+    })
+    expect(nextTrigger).toHaveAttribute('aria-expanded', 'false')
+    expect(nextTrigger.getAttribute('aria-controls')).not.toBe(initialRegionId)
+    expect(
+      screen.getByTestId('building-info-provenance-view')
+    ).not.toBeVisible()
+    expect(
+      screen.getByTestId('building-info-provenance-view')
+    ).toHaveTextContent(
+      'sidebar.building_info.provenance.fields.energy_class_origin_unavailable'
+    )
+    expect(
+      screen.getByTestId('building-info-provenance-view')
+    ).not.toHaveTextContent(
+      'sidebar.building_info.provenance.fields.energy_class_official'
+    )
+
+    fireEvent.click(nextTrigger)
+    await waitFor(() => {
+      expect(screen.getByTestId('building-info-provenance-view')).toBeVisible()
+    })
+
+    mockMapState.selectedFeatures = []
+    view.rerender(createPageElement())
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId('building-info-provenance-trigger')
+      ).not.toBeInTheDocument()
+      expect(
+        screen.queryByTestId('building-info-provenance-view')
+      ).not.toBeInTheDocument()
+    })
+  })
+
+  it('updates an open same-building provenance view atomically with locale', async () => {
+    mockTranslationLocale = 'fi'
+    selectBuilding({
+      buildingKey: 'locale-provenance',
+      panels: [createEnergyClassPanel({ classValue: 'B', origin: 'official' })],
+    })
+    const view = renderPage()
+    const trigger = await screen.findByRole('button', {
+      name: 'fi:sidebar.building_info.provenance.view.open',
+    })
+    const regionId = trigger.getAttribute('aria-controls')
+    fireEvent.click(trigger)
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('building-info-provenance-view')
+      ).toHaveAttribute('data-summary-locale', 'fi')
+    })
+    expect(
+      screen.getByTestId('building-info-provenance-heading')
+    ).toHaveTextContent('fi:sidebar.building_info.provenance.view.heading')
+
+    mockTranslationLocale = 'en'
+    view.rerender(createPageElement('en'))
+
+    const englishTrigger = await screen.findByRole('button', {
+      name: 'en:sidebar.building_info.provenance.view.open',
+    })
+    expect(englishTrigger).toHaveAttribute('aria-expanded', 'true')
+    expect(englishTrigger).toHaveAttribute('aria-controls', regionId)
+    expect(screen.getByTestId('building-info-provenance-view')).toHaveAttribute(
+      'id',
+      regionId
+    )
+    expect(screen.getByTestId('building-info-provenance-view')).toHaveAttribute(
+      'data-summary-locale',
+      'en'
+    )
+    expect(
+      screen.getByTestId('building-info-provenance-heading')
+    ).toHaveTextContent('en:sidebar.building_info.provenance.view.heading')
+    expect(
+      screen.getByTestId('building-info-provenance-heading')
+    ).not.toHaveTextContent('fi:sidebar.building_info.provenance.view.heading')
+    expect(mockBuildingInfoPanelFactoryLocales).toEqual(
+      expect.arrayContaining(['fi', 'en'])
+    )
   })
 
   it('replaces a sparse active tab with the complete building default topology', async () => {

@@ -1,6 +1,6 @@
 import React from 'react'
 import '@testing-library/jest-dom'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { PartialOptions } from 'overlayscrollbars'
 
 import { MAP_CONTROL_EDGE_GUTTER_PX } from '#/common/constants/map'
@@ -1131,6 +1131,39 @@ describe('SidebarPanelExtensionPageContainer', () => {
       width: '1rem',
       height: '1rem',
     })
+  })
+
+  it('renders one consumer control before collapse and close controls', () => {
+    render(
+      <AppThemeProvider disableCssBaseline>
+        <SidebarPanelExtensionPageContainer
+          additionalControls={<button type="button">Page information</button>}
+          onCollapse={jest.fn()}
+          onClose={jest.fn()}
+          collapseAriaLabel="Collapse current page"
+          closeAriaLabel="Close current page"
+          controlsSx={{ backgroundColor: 'rgb(1, 2, 3)' }}
+        />
+      </AppThemeProvider>
+    )
+
+    const controls = document.querySelector(
+      '.sidebar-panel-extension-page-container-controls'
+    ) as HTMLElement
+    const informationButton = screen.getByRole('button', {
+      name: 'Page information',
+    })
+
+    expect(controls).toContainElement(informationButton)
+    expect(within(controls).getAllByRole('button')).toEqual([
+      informationButton,
+      screen.getByRole('button', { name: 'Collapse current page' }),
+      screen.getByRole('button', { name: 'Close current page' }),
+    ])
+    expect(
+      screen.getAllByRole('button', { name: 'Page information' })
+    ).toHaveLength(1)
+    expect(controls).toHaveStyle({ backgroundColor: 'rgb(1, 2, 3)' })
   })
 
   it('keeps controlsSx as the last-applied positioning override', () => {

@@ -614,8 +614,13 @@
       "src/applets/energy/common/buildingInfoPanelRuntime.ts",
       "src/applets/energy/common/buildingInfoPanelTopology.ts",
       "src/applets/energy/common/buildingInfoPanelTopology.test.ts",
+      "src/applets/energy/common/buildingInfoProvenance.ts",
+      "src/applets/energy/common/buildingInfoProvenanceSummary.ts",
       "src/applets/energy/components/BuildingInfoPanel.tsx",
       "src/applets/energy/components/BuildingInfoPanel.test.tsx",
+      "src/applets/energy/components/BuildingInfoProvenanceView.tsx",
+      "src/applets/energy/components/BuildingInfoProvenanceView.test.tsx",
+      "src/components/Sidebar/SidebarPanelExtensionPageContainer.tsx",
       "src/common/component-fixtures/fixtures/EnergymapBuildingInfoPanelFixture.tsx"
     ],
     "states": [
@@ -714,6 +719,66 @@
         "label": "Water default",
         "description": "Supported Water estimate with the derived resident count.",
         "waitFor": "[data-testid=\"building-info-water-resident-control\"]"
+      },
+      {
+        "id": "provenance-official-open",
+        "label": "Official provenance open",
+        "description": "Complete desktop building with official-class provenance open.",
+        "waitFor": "[data-testid=\"building-info-fixture-interaction-ready\"]"
+      },
+      {
+        "id": "provenance-modeled-open",
+        "label": "Modeled provenance open",
+        "description": "Complete desktop building with modeled-class provenance open.",
+        "waitFor": "[data-testid=\"building-info-fixture-interaction-ready\"]"
+      },
+      {
+        "id": "provenance-origin-unknown-open",
+        "label": "Origin-unknown provenance open",
+        "description": "Complete desktop building with origin-unavailable class provenance open.",
+        "waitFor": "[data-testid=\"building-info-fixture-interaction-ready\"]"
+      },
+      {
+        "id": "provenance-building-change-reset",
+        "label": "Provenance building change reset",
+        "description": "An open official provenance view is replaced by a different selected building and resets closed with fresh relationships.",
+        "waitFor": "[data-testid=\"building-info-fixture-interaction-ready\"]"
+      },
+      {
+        "id": "provenance-locale-change-open",
+        "label": "Provenance locale change while open",
+        "description": "An open complete provenance view updates from Finnish to English without remounting.",
+        "waitFor": "[data-testid=\"building-info-fixture-interaction-ready\"]"
+      },
+      {
+        "id": "provenance-water-default-open",
+        "label": "Water-only default provenance open",
+        "description": "Sparse Water-only desktop building with floor-area-derived provenance open.",
+        "waitFor": "[data-testid=\"building-info-fixture-interaction-ready\"]"
+      },
+      {
+        "id": "provenance-water-valid-open",
+        "label": "Water override provenance open",
+        "description": "Sparse Water-only desktop building with a valid resident override and user-input provenance.",
+        "waitFor": "[data-testid=\"building-info-fixture-interaction-ready\"]"
+      },
+      {
+        "id": "provenance-water-disable-reset-open",
+        "label": "Water override disabled to default provenance",
+        "description": "A distinct resident override is opened, closed, disabled, and reopened with default floor-area-derived provenance.",
+        "waitFor": "[data-testid=\"building-info-fixture-interaction-ready\"]"
+      },
+      {
+        "id": "provenance-water-invalid-open",
+        "label": "Invalid Water provenance open",
+        "description": "Sparse Water-only desktop building with invalid active input and no Water output provenance.",
+        "waitFor": "[data-testid=\"building-info-fixture-interaction-ready\"]"
+      },
+      {
+        "id": "provenance-modeled-open-mobile",
+        "label": "Modeled provenance open mobile",
+        "description": "Complete modeled building provenance in the forced mobile layout.",
+        "waitFor": "[data-testid=\"building-info-fixture-interaction-ready\"]"
       },
       {
         "id": "water-override",

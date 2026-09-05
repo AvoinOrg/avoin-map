@@ -36,6 +36,7 @@ import {
   ENERGYMAP_USER_OVERRIDE_WATER_PROVENANCE_INPUT_IDS,
   ENERGYMAP_USER_OVERRIDE_WATER_RESIDENT_CONTROL_PROVENANCE_INPUT_IDS,
 } from '../common/buildingInfoProvenance'
+import { createEnergymapBuildingInfoPanels } from '../common/buildingInfo'
 import type {
   EnergymapBuildingInfoConsumptionControls,
   EnergymapBuildingInfoMetric,
@@ -43,6 +44,7 @@ import type {
   EnergymapBuildingInfoText,
   EnergymapBuildingInfoValue,
 } from '../common/buildingInfo'
+import type { EnergymapSelectedBuilding } from '../common/types'
 import type { BuildingInfoTabId } from './BuildingInfoPanel'
 
 jest.mock('#/common/store', () => ({
@@ -605,6 +607,7 @@ const getPanelsWithoutModeledEnergyClassIndicator = (
 
 type RenderBuildingInfoTabsOptions = {
   panelKey?: string
+  locale?: string
   activeTabId?: BuildingInfoTabId
   forceMobileLayout?: boolean
   isDesktopFullscreenLayout?: boolean
@@ -614,8 +617,36 @@ type RenderBuildingInfoTabsOptions = {
   panels?: EnergymapBuildingInfoPanel[]
 }
 
+const createCatalogValidPanels = ({
+  properties,
+  locale = 'en',
+}: {
+  properties: EnergymapSelectedBuilding['properties']
+  locale?: string
+}) => {
+  const buildingKey = String(properties.building_key)
+  const normalizedPanels = createEnergymapBuildingInfoPanels({
+    selectedBuilding: {
+      id: buildingKey,
+      buildingKey,
+      source: 'energymap_building_polygons',
+      sourceLayer: 'energymap_building_polygons',
+      layerId: 'energymap_building_polygons-fill',
+      properties,
+    },
+    locale,
+  })
+
+  if (normalizedPanels == null) {
+    throw new Error('Expected normalized building-info panels')
+  }
+
+  return normalizedPanels
+}
+
 const createBuildingInfoTabsElement = ({
   panelKey,
+  locale = 'en',
   activeTabId,
   forceMobileLayout = false,
   isDesktopFullscreenLayout = false,
@@ -639,6 +670,8 @@ const createBuildingInfoTabsElement = ({
           <IntoSidebarPanelExtensionPanelSlot panelId="main">
             <BuildingInfoTabPages
               key={panelKey}
+              panels={buildingInfoPanels}
+              locale={locale}
               topology={topology}
               ariaLabels={ariaLabels}
               activeTabId={activeTabId}
@@ -679,6 +712,466 @@ describe('BuildingInfoPanel', () => {
     mockIsMobile = false
     resetUIStore()
   })
+
+  it.each([
+    ['desktop', false],
+    ['forced mobile', true],
+  ])(
+    'opens and closes one accessible provenance region in %s layout',
+    async (_name, forceMobileLayout) => {
+      const provenancePanels = createCatalogValidPanels({
+        properties: {
+          building_key: `accessible-${forceMobileLayout ? 'mobile' : 'desktop'}`,
+          energy_class: 'B',
+          is_energy_class_modeled: false,
+        },
+      })
+      renderBuildingInfoTabs({ panels: provenancePanels, forceMobileLayout })
+
+      await screen.findByTestId('building-info-tab-page-basic')
+      const triggerName = 'sidebar.building_info.provenance.view.open'
+      const trigger = screen.getByRole('button', { name: triggerName })
+      const ordinaryPage = screen.getByTestId('building-info-tab-page-basic')
+      const region = screen.getByTestId('building-info-provenance-view')
+      const heading = screen.getByTestId('building-info-provenance-heading')
+      const regionId = trigger.getAttribute('aria-controls')
+
+      expect(screen.getAllByRole('button', { name: triggerName })).toHaveLength(
+        1
+      )
+      expect(trigger.tagName).toBe('BUTTON')
+      expect(trigger).toHaveAttribute('type', 'button')
+      expect(trigger).toHaveAttribute('aria-expanded', 'false')
+      expect(region).toHaveAttribute('id', regionId)
+      expect(region).toHaveAttribute('aria-labelledby', heading.id)
+      expect(region).not.toBeVisible()
+      expect(
+        screen.queryByRole('region', {
+          name: 'sidebar.building_info.provenance.view.heading',
+        })
+      ).not.toBeInTheDocument()
+      expect(ordinaryPage).toBeVisible()
+
+      fireEvent.mouseEnter(trigger)
+      expect(await screen.findByRole('tooltip')).toHaveTextContent(triggerName)
+      fireEvent.mouseLeave(trigger)
+      await waitFor(() => {
+        expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+      })
+
+      fireEvent.click(trigger)
+      await waitFor(() => {
+        expect(region).toBeVisible()
+        expect(heading).toHaveFocus()
+      })
+      expect(trigger).toHaveAttribute('aria-expanded', 'true')
+      expect(
+        screen.getByRole('region', {
+          name: 'sidebar.building_info.provenance.view.heading',
+        })
+      ).toBe(region)
+      expect(ordinaryPage).not.toBeVisible()
+      expect(ordinaryPage).toBeInTheDocument()
+
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: 'sidebar.building_info.provenance.view.close',
+        })
+      )
+      await waitFor(() => {
+        expect(region).not.toBeVisible()
+        expect(trigger).toHaveFocus()
+      })
+
+      fireEvent.keyDown(trigger, { key: 'Enter' })
+      fireEvent.click(trigger, { detail: 0 })
+      await waitFor(() => {
+        expect(heading).toHaveFocus()
+      })
+      fireEvent.keyDown(document, { key: 'Escape' })
+      await waitFor(() => {
+        expect(region).not.toBeVisible()
+        expect(trigger).toHaveFocus()
+      })
+    }
+  )
+
+  it('keeps Water output and provenance synchronized through override transitions', async () => {
+    const waterPanels = createCatalogValidPanels({
+      properties: {
+        building_key: 'water-provenance-transitions',
+        floor_area: 100,
+        distr_default_total: null,
+      },
+    })
+    const rendered = renderBuildingInfoTabs({
+      panelKey: 'water-provenance-building-a',
+      panels: waterPanels,
+    })
+
+    await screen.findByTestId('building-info-water-resident-control')
+    const trigger = screen.getByRole('button', {
+      name: 'sidebar.building_info.provenance.view.open',
+    })
+    const waterPanel = screen.getByTestId('building-info-primary-metric-value')
+    const overrideSwitch = screen.getByRole('switch', {
+      name: 'sidebar.building_info.panels.energy.water.change_resident_count',
+    })
+
+    expect(waterPanel).toHaveTextContent('87,6')
+    fireEvent.click(trigger)
+    await waitFor(() => {
+      expect(
+        screen.getAllByTestId('building-info-provenance-item')
+      ).toHaveLength(2)
+    })
+    expect(
+      screen.getByTestId('building-info-provenance-view')
+    ).toHaveTextContent(
+      'sidebar.building_info.provenance.inputs.occupancy_reference'
+    )
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'sidebar.building_info.provenance.view.close',
+      })
+    )
+
+    fireEvent.click(overrideSwitch)
+    const residentInput = screen.getByLabelText(
+      'sidebar.building_info.panels.energy.water.resident_count'
+    )
+    fireEvent.change(residentInput, { target: { value: '3' } })
+    await waitFor(() => {
+      expect(waterPanel).toHaveTextContent('131,4')
+    })
+
+    fireEvent.click(trigger)
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('building-info-provenance-view')
+      ).toHaveTextContent(
+        'sidebar.building_info.provenance.inputs.user_resident_count'
+      )
+      expect(
+        screen.getByTestId('building-info-provenance-view')
+      ).toHaveTextContent(
+        'sidebar.building_info.provenance.sources.user_resident_count'
+      )
+    })
+    expect(
+      screen.getByTestId('building-info-provenance-view')
+    ).not.toHaveTextContent(
+      'sidebar.building_info.provenance.inputs.occupancy_reference'
+    )
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'sidebar.building_info.provenance.view.close',
+      })
+    )
+    fireEvent.click(overrideSwitch)
+    await waitFor(() => {
+      expect(overrideSwitch).not.toBeChecked()
+      expect(waterPanel).toHaveTextContent('87,6')
+    })
+
+    fireEvent.click(overrideSwitch)
+    fireEvent.change(
+      screen.getByLabelText(
+        'sidebar.building_info.panels.energy.water.resident_count'
+      ),
+      { target: { value: '3' } }
+    )
+    await waitFor(() => {
+      expect(waterPanel).toHaveTextContent('131,4')
+    })
+    fireEvent.click(trigger)
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('building-info-provenance-view')
+      ).toHaveTextContent(
+        'sidebar.building_info.provenance.inputs.user_resident_count'
+      )
+    })
+    const previousRegionId = trigger.getAttribute('aria-controls')
+    const replacementPanels = createCatalogValidPanels({
+      properties: {
+        building_key: 'water-provenance-transitions-replacement',
+        floor_area: 100,
+        distr_default_total: null,
+      },
+    })
+
+    rendered.rerenderBuildingInfoTabs({
+      panelKey: 'water-provenance-building-b',
+      panels: replacementPanels,
+    })
+
+    const replacementTrigger = await screen.findByRole('button', {
+      name: 'sidebar.building_info.provenance.view.open',
+    })
+    const replacementWaterPanel = screen.getByTestId(
+      'building-info-primary-metric-value'
+    )
+    expect(replacementTrigger).toHaveAttribute('aria-expanded', 'false')
+    expect(replacementTrigger.getAttribute('aria-controls')).not.toBe(
+      previousRegionId
+    )
+    expect(replacementWaterPanel).toHaveTextContent('87,6')
+    expect(
+      screen.queryByLabelText(
+        'sidebar.building_info.panels.energy.water.resident_count'
+      )
+    ).not.toBeInTheDocument()
+
+    fireEvent.click(replacementTrigger)
+    await waitFor(() => {
+      const replacementView = screen.getByTestId(
+        'building-info-provenance-view'
+      )
+      expect(replacementView).toHaveTextContent(
+        'sidebar.building_info.provenance.inputs.occupancy_reference'
+      )
+      expect(replacementView).not.toHaveTextContent(
+        'sidebar.building_info.provenance.inputs.user_resident_count'
+      )
+    })
+  })
+
+  it('retains invalid Water provenance when touch activation blurs without a related target', async () => {
+    const waterPanels = createCatalogValidPanels({
+      properties: {
+        building_key: 'water-invalid-touch-transition',
+        floor_area: 100,
+        distr_default_total: null,
+      },
+    })
+    renderBuildingInfoTabs({ panels: waterPanels })
+
+    await screen.findByTestId('building-info-water-resident-control')
+    const trigger = screen.getByRole('button', {
+      name: 'sidebar.building_info.provenance.view.open',
+    })
+    const waterPanel = screen.getByTestId('building-info-primary-metric-value')
+    const overrideSwitch = screen.getByRole('switch', {
+      name: 'sidebar.building_info.panels.energy.water.change_resident_count',
+    })
+
+    fireEvent.click(overrideSwitch)
+    const residentInput = screen.getByLabelText(
+      'sidebar.building_info.panels.energy.water.resident_count'
+    )
+    fireEvent.change(residentInput, { target: { value: '' } })
+    expect(
+      within(waterPanel).getByTestId('building-info-unavailable-value-icon')
+    ).toBeInTheDocument()
+
+    fireEvent.pointerDown(trigger, { pointerType: 'touch' })
+    fireEvent.blur(residentInput, { relatedTarget: null })
+    fireEvent.click(trigger)
+
+    await waitFor(() => {
+      const items = screen.getAllByTestId('building-info-provenance-item')
+      expect(items).toHaveLength(1)
+      expect(items[0]).toHaveAttribute(
+        'data-provenance-item-id',
+        'energyConsumption/estimatedConsumption/primaryMetric/water/residentCountControl'
+      )
+    })
+    expect(residentInput).toHaveValue('')
+    expect(
+      screen.getByTestId('building-info-provenance-view')
+    ).toHaveTextContent(
+      'sidebar.building_info.provenance.inputs.user_resident_count'
+    )
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'sidebar.building_info.provenance.view.close',
+      })
+    )
+    await waitFor(() => {
+      expect(
+        within(waterPanel).getByTestId('building-info-unavailable-value-icon')
+      ).toBeInTheDocument()
+      expect(residentInput).toHaveValue('')
+    })
+
+    fireEvent.click(overrideSwitch)
+    await waitFor(() => {
+      expect(overrideSwitch).not.toBeChecked()
+      expect(waterPanel).toHaveTextContent('87,6')
+      expect(
+        screen.queryByLabelText(
+          'sidebar.building_info.panels.energy.water.resident_count'
+        )
+      ).not.toBeInTheDocument()
+    })
+
+    fireEvent.click(trigger)
+    await waitFor(() => {
+      expect(
+        screen.getAllByTestId('building-info-provenance-item')
+      ).toHaveLength(2)
+      expect(
+        screen.getByTestId('building-info-provenance-view')
+      ).toHaveTextContent(
+        'sidebar.building_info.provenance.inputs.occupancy_reference'
+      )
+      expect(
+        screen.getByTestId('building-info-provenance-view')
+      ).not.toHaveTextContent(
+        'sidebar.building_info.provenance.inputs.user_resident_count'
+      )
+    })
+  })
+
+  it('retains invalid Water provenance when assistive activation blurs the input from heading focus', async () => {
+    const waterPanels = createCatalogValidPanels({
+      properties: {
+        building_key: 'water-invalid-post-activation-blur',
+        floor_area: 100,
+        distr_default_total: null,
+      },
+    })
+    renderBuildingInfoTabs({ panels: waterPanels })
+
+    await screen.findByTestId('building-info-water-resident-control')
+    const trigger = screen.getByRole('button', {
+      name: 'sidebar.building_info.provenance.view.open',
+    })
+    const waterPanel = screen.getByTestId('building-info-primary-metric-value')
+    const overrideSwitch = screen.getByRole('switch', {
+      name: 'sidebar.building_info.panels.energy.water.change_resident_count',
+    })
+
+    fireEvent.click(overrideSwitch)
+    const residentInput = screen.getByLabelText(
+      'sidebar.building_info.panels.energy.water.resident_count'
+    )
+    residentInput.focus()
+    fireEvent.change(residentInput, { target: { value: '' } })
+    expect(residentInput).toHaveFocus()
+    expect(
+      within(waterPanel).getByTestId('building-info-unavailable-value-icon')
+    ).toBeInTheDocument()
+
+    fireEvent.click(trigger, { detail: 0 })
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId('building-info-provenance-heading')
+      ).toHaveFocus()
+    })
+    expect(residentInput).toHaveValue('')
+    expect(
+      within(waterPanel).getByTestId('building-info-unavailable-value-icon')
+    ).toBeInTheDocument()
+    const items = screen.getAllByTestId('building-info-provenance-item')
+    expect(items).toHaveLength(1)
+    expect(items[0]).toHaveAttribute(
+      'data-provenance-item-id',
+      'energyConsumption/estimatedConsumption/primaryMetric/water/residentCountControl'
+    )
+    expect(
+      screen.getByTestId('building-info-provenance-view')
+    ).toHaveTextContent(
+      'sidebar.building_info.provenance.inputs.user_resident_count'
+    )
+    expect(
+      screen.getByTestId('building-info-provenance-view')
+    ).not.toHaveTextContent(
+      'sidebar.building_info.provenance.inputs.occupancy_reference'
+    )
+  })
+
+  it.each([
+    {
+      interaction: 'a canceled touch pointer gesture',
+      moveFocus: ({
+        residentInput,
+        trigger,
+      }: {
+        residentInput: HTMLElement
+        trigger: HTMLElement
+      }) => {
+        fireEvent.pointerDown(trigger, { pointerType: 'touch' })
+        fireEvent.blur(residentInput, { relatedTarget: null })
+        fireEvent.pointerCancel(trigger, { pointerType: 'touch' })
+      },
+    },
+    {
+      interaction: 'focus without activation',
+      moveFocus: ({
+        residentInput,
+        trigger,
+      }: {
+        residentInput: HTMLElement
+        trigger: HTMLElement
+      }) => {
+        fireEvent.blur(residentInput, { relatedTarget: trigger })
+        fireEvent.focus(trigger)
+      },
+    },
+    {
+      interaction: 'pointer release without click',
+      moveFocus: ({
+        residentInput,
+        trigger,
+      }: {
+        residentInput: HTMLElement
+        trigger: HTMLElement
+      }) => {
+        fireEvent.pointerDown(trigger, { pointerType: 'touch' })
+        fireEvent.blur(residentInput, { relatedTarget: null })
+        fireEvent.pointerUp(trigger, { pointerType: 'touch' })
+      },
+    },
+  ])(
+    'normalizes invalid Water input after $interaction does not open provenance',
+    async ({ moveFocus }) => {
+      const waterPanels = createCatalogValidPanels({
+        properties: {
+          building_key: 'water-invalid-canceled-provenance-open',
+          floor_area: 100,
+          distr_default_total: null,
+        },
+      })
+      renderBuildingInfoTabs({ panels: waterPanels })
+
+      await screen.findByTestId('building-info-water-resident-control')
+      const trigger = screen.getByRole('button', {
+        name: 'sidebar.building_info.provenance.view.open',
+      })
+      const waterPanel = screen.getByTestId('building-info-primary-metric-value')
+      const overrideSwitch = screen.getByRole('switch', {
+        name: 'sidebar.building_info.panels.energy.water.change_resident_count',
+      })
+
+      fireEvent.click(overrideSwitch)
+      const residentInput = screen.getByLabelText(
+        'sidebar.building_info.panels.energy.water.resident_count'
+      )
+      fireEvent.focus(residentInput)
+      fireEvent.change(residentInput, { target: { value: '' } })
+      expect(
+        within(waterPanel).getByTestId('building-info-unavailable-value-icon')
+      ).toBeInTheDocument()
+
+      moveFocus({ residentInput, trigger })
+
+      await waitFor(() => {
+        expect(trigger).toHaveAttribute('aria-expanded', 'false')
+        expect(residentInput).toHaveValue('2')
+        expect(waterPanel).toHaveTextContent('87,6')
+        expect(
+          within(waterPanel).queryByTestId(
+            'building-info-unavailable-value-icon'
+          )
+        ).not.toBeInTheDocument()
+      })
+    }
+  )
 
   it('recursively renders sequence text and translation descriptors', () => {
     render(

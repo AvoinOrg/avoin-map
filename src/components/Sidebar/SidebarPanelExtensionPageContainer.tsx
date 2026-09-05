@@ -2,10 +2,7 @@ import React from 'react'
 import { OverlayScrollbarsComponent } from 'overlayscrollbars-react'
 import type { PartialOptions } from 'overlayscrollbars'
 
-import {
-  Box,
-  toSxArray,
-} from '#/common/style/theme/system'
+import { Box, toSxArray } from '#/common/style/theme/system'
 import type { AppSxProps } from '#/common/style/theme/system'
 import { IconButton } from '#/components/common/Button'
 
@@ -14,6 +11,7 @@ import { SidebarPanelExtensionTooltip } from './SidebarPanelExtensionTooltip'
 
 export type SidebarPanelExtensionPageContainerProps = {
   children?: React.ReactNode
+  additionalControls?: React.ReactNode
   sx?: AppSxProps
   contentSx?: AppSxProps
   controlsSx?: AppSxProps
@@ -30,7 +28,7 @@ export type SidebarPanelExtensionPageContainerProps = {
 const shouldShowAction = (showControl?: boolean, handler?: () => void) =>
   handler != null && showControl !== false
 
-const pageControlButtonSx = {
+export const sidebarPanelExtensionPageControlButtonSx = {
   width: '2.25rem',
   minWidth: '2.25rem',
   height: '2.25rem',
@@ -92,6 +90,7 @@ const CollapsePanelIcon = ({ sx }: { sx?: AppSxProps }) => (
 
 export const SidebarPanelExtensionPageContainer = ({
   children,
+  additionalControls,
   sx,
   contentSx,
   controlsSx,
@@ -106,7 +105,7 @@ export const SidebarPanelExtensionPageContainer = ({
 }: SidebarPanelExtensionPageContainerProps) => {
   const showCollapse = shouldShowAction(showCollapseControl, onCollapse)
   const showClose = shouldShowAction(showCloseControl, onClose)
-  const hasControls = showCollapse || showClose
+  const hasControls = additionalControls != null || showCollapse || showClose
   const resolvedScrollbarOptions: PartialOptions = {
     ...scrollbarOptions,
     overflow: {
@@ -162,12 +161,12 @@ export const SidebarPanelExtensionPageContainer = ({
                 'var(--sidebar-panel-extension-page-controls-background, #ffffff)',
               borderBottom:
                 'var(--sidebar-panel-extension-page-controls-border, 1px solid rgba(17, 17, 17, 0.08))',
-              zIndex:
-                'var(--sidebar-panel-extension-page-controls-z-index, 1)',
+              zIndex: 'var(--sidebar-panel-extension-page-controls-z-index, 1)',
             },
             ...toSxArray(controlsSx),
           ]}
         >
+          {additionalControls}
           {showCollapse && (
             <SidebarPanelExtensionTooltip title={collapseAriaLabel} side="top">
               {(tooltipTriggerProps) => {
@@ -193,7 +192,7 @@ export const SidebarPanelExtensionPageContainer = ({
                     }}
                     type="button"
                     size="small"
-                    sx={pageControlButtonSx}
+                    sx={sidebarPanelExtensionPageControlButtonSx}
                   >
                     <CollapsePanelIcon sx={{ fontSize: '1.85rem' }} />
                   </IconButton>
@@ -226,7 +225,7 @@ export const SidebarPanelExtensionPageContainer = ({
                     }}
                     type="button"
                     size="small"
-                    sx={pageControlButtonSx}
+                    sx={sidebarPanelExtensionPageControlButtonSx}
                   >
                     <Cross sx={{ width: '1rem', height: '1rem' }} />
                   </IconButton>

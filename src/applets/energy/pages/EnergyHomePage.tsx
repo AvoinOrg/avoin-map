@@ -886,6 +886,8 @@ const EnergyHomePage = ({ locale: localeProp }: EnergyHomePageProps) => {
         <IntoSidebarPanelExtensionPanelSlot panelId="main">
           <BuildingInfoTabPages
             key={`${selectedBuildingKey}:${buildingInfoTopology.signature}`}
+            panels={buildingInfoPanels}
+            locale={locale}
             topology={buildingInfoTopology}
             ariaLabels={buildingInfoAriaLabels}
             activeTabId={activeBuildingInfoTab?.id}

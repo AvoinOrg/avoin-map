@@ -18,8 +18,12 @@ import CustomAccordionSummary from '#/components/common/CustomAccordionSummary'
 import { NumberInputField } from '#/components/common/NumberInputField'
 import SquishedSwitchWithLabel from '#/components/common/SquishedSwitchWithLabel'
 import TText from '#/components/common/TText'
+import InfoCircle from '#/components/icons/InfoCircle'
 import QuestionCircleOutline from '#/components/icons/QuestionCircleOutline'
-import { SidebarPanelExtensionPageContainer } from '#/components/Sidebar/SidebarPanelExtensionPageContainer'
+import {
+  sidebarPanelExtensionPageControlButtonSx,
+  SidebarPanelExtensionPageContainer,
+} from '#/components/Sidebar/SidebarPanelExtensionPageContainer'
 import { SidebarPanelExtensionTabContainer } from '#/components/Sidebar/SidebarPanelExtensionTabContainer'
 import {
   SidebarPanelExtensionTooltip as BuildingInfoTooltip,
@@ -50,7 +54,11 @@ import {
   getSelectedEnergyConsumption,
   normalizeEnergySubmetricSelection,
 } from '../common/buildingInfo'
-import { getEnergymapEffectiveWaterProjection } from '../common/buildingInfoProvenance'
+import {
+  getEnergymapEffectiveWaterProjection,
+  type EnergymapEffectiveWaterProjection,
+} from '../common/buildingInfoProvenance'
+import { deriveEnergymapBuildingInfoProvenanceSummary } from '../common/buildingInfoProvenanceSummary'
 import {
   getBuildingInfoModeForTabId,
   getBuildingInfoPanelIds,
@@ -66,6 +74,7 @@ import type {
   EnergymapBuildingInfoPanelTopology,
   EnergymapBuildingInfoTabTopology,
 } from '../common/buildingInfoPanelTopology'
+import { BuildingInfoProvenanceView } from './BuildingInfoProvenanceView'
 
 export type { BuildingInfoDesktopMode, BuildingInfoTabId }
 export {
@@ -83,6 +92,8 @@ type BuildingInfoActionLabels = {
 }
 
 type BuildingInfoTabPagesProps = {
+  panels: readonly EnergymapBuildingInfoPanel[]
+  locale: string
   topology: EnergymapBuildingInfoPanelTopology
   ariaLabels: BuildingInfoActionLabels
   activeTabId?: BuildingInfoTabId
@@ -92,6 +103,25 @@ type BuildingInfoTabPagesProps = {
   onClose: () => void
   onCollapse: (tabId: BuildingInfoTabId) => void
 }
+
+type BuildingInfoEffectiveWaterProjectionChange = (
+  projection?: EnergymapEffectiveWaterProjection
+) => void
+
+type BuildingInfoProvenanceDisclosureState =
+  | 'closed'
+  | 'pointerPending'
+  | 'open'
+
+type BuildingInfoEffectiveWaterProjectionContextValue = {
+  onProjectionChange: BuildingInfoEffectiveWaterProjectionChange
+  provenanceDisclosureState: BuildingInfoProvenanceDisclosureState
+  getProvenanceDisclosureState: () => BuildingInfoProvenanceDisclosureState
+}
+
+const BuildingInfoEffectiveWaterProjectionContext = React.createContext<
+  BuildingInfoEffectiveWaterProjectionContextValue | undefined
+>(undefined)
 
 type BuildingInfoActionRailProps = {
   activeMode: BuildingInfoDesktopMode
@@ -1836,22 +1866,81 @@ const BuildingInfoWaterResidentControl = ({
   const [manualResidentCountRawValue, setManualResidentCountRawValue] =
     React.useState(String(control?.defaultValue ?? ''))
   const residentLabelId = React.useId()
+  const effectiveWaterProjectionContext = React.useContext(
+    BuildingInfoEffectiveWaterProjectionContext
+  )
+  const pendingInvalidCommitRawValueRef = React.useRef<string | null>(null)
+  const onEffectiveWaterProjectionChange =
+    effectiveWaterProjectionContext?.onProjectionChange
+  const provenanceDisclosureState =
+    effectiveWaterProjectionContext?.provenanceDisclosureState ?? 'closed'
+  const getProvenanceDisclosureState =
+    effectiveWaterProjectionContext?.getProvenanceDisclosureState
+  const manualResidentCount =
+    control == null
+      ? null
+      : getValidManualResidentCount({
+          rawValue: manualResidentCountRawValue,
+          minValue: control.minValue,
+          maxValue: control.maxValue,
+        })
+  const projection = React.useMemo(
+    () =>
+      control == null || metric.value == null
+        ? undefined
+        : getEnergymapEffectiveWaterProjection({
+            value: metric.value,
+            residentCountControl: control,
+            isOverrideEnabled,
+            manualResidentCount,
+          }),
+    [control, isOverrideEnabled, manualResidentCount, metric.value]
+  )
 
-  if (control == null || metric.value == null) {
+  React.useEffect(() => {
+    onEffectiveWaterProjectionChange?.(projection)
+  }, [onEffectiveWaterProjectionChange, projection])
+
+  React.useEffect(
+    () => () => {
+      onEffectiveWaterProjectionChange?.(undefined)
+    },
+    [onEffectiveWaterProjectionChange]
+  )
+
+  React.useEffect(() => {
+    const pendingRawValue = pendingInvalidCommitRawValueRef.current
+    if (pendingRawValue == null || projection == null) {
+      return
+    }
+
+    if (provenanceDisclosureState === 'open') {
+      pendingInvalidCommitRawValueRef.current = null
+      return
+    }
+
+    if (provenanceDisclosureState !== 'closed') {
+      return
+    }
+
+    const pendingControl = projection.residentCountControl
+    pendingInvalidCommitRawValueRef.current = null
+    setManualResidentCountRawValue(
+      String(
+        normalizeResidentCountOnCommit({
+          rawValue: pendingRawValue,
+          defaultValue: pendingControl.defaultValue,
+          minValue: pendingControl.minValue,
+          maxValue: pendingControl.maxValue,
+        })
+      )
+    )
+  }, [projection, provenanceDisclosureState])
+
+  if (control == null || projection == null) {
     return null
   }
 
-  const manualResidentCount = getValidManualResidentCount({
-    rawValue: manualResidentCountRawValue,
-    minValue: control.minValue,
-    maxValue: control.maxValue,
-  })
-  const projection = getEnergymapEffectiveWaterProjection({
-    value: metric.value,
-    residentCountControl: control,
-    isOverrideEnabled,
-    manualResidentCount,
-  })
   const effectiveControl = projection.residentCountControl
   const value =
     projection.calculationResult.status === 'complete'
@@ -1954,6 +2043,33 @@ const BuildingInfoWaterResidentControl = ({
                   setManualResidentCountRawValue(rawValue)
                 }}
                 onRawValueCommitted={(rawValue) => {
+                  const isInvalidActiveInput =
+                    getValidManualResidentCount({
+                      rawValue,
+                      minValue: effectiveControl.minValue,
+                      maxValue: effectiveControl.maxValue,
+                    }) == null
+
+                  const currentProvenanceDisclosureState =
+                    getProvenanceDisclosureState?.() ??
+                    provenanceDisclosureState
+
+                  if (
+                    isInvalidActiveInput &&
+                    currentProvenanceDisclosureState !== 'closed'
+                  ) {
+                    // Preserve invalid active input whether blur happens before
+                    // the activating click or when opening focus reaches the
+                    // heading. A canceled pointer gesture is normalized by the
+                    // disclosure-state effect above.
+                    pendingInvalidCommitRawValueRef.current =
+                      currentProvenanceDisclosureState === 'pointerPending'
+                        ? rawValue
+                        : null
+                    return
+                  }
+
+                  pendingInvalidCommitRawValueRef.current = null
                   setManualResidentCountRawValue(
                     String(
                       normalizeResidentCountOnCommit({
@@ -3339,7 +3455,89 @@ const getBuildingInfoPageControlsSx = ({
   }
 }
 
+const assignBuildingInfoRef = <T,>(
+  ref: React.Ref<T> | undefined,
+  value: T | null
+) => {
+  if (typeof ref === 'function') {
+    ref(value)
+    return
+  }
+
+  if (ref != null) {
+    ;(ref as React.MutableRefObject<T | null>).current = value
+  }
+}
+
+const BuildingInfoProvenanceTrigger = ({
+  label,
+  expanded,
+  regionId,
+  triggerRef,
+  onPointerActivationStart,
+  onPointerActivationRelease,
+  onPointerActivationCancel,
+  onOpen,
+}: {
+  label: string
+  expanded: boolean
+  regionId: string
+  triggerRef: React.MutableRefObject<HTMLButtonElement | null>
+  onPointerActivationStart: () => void
+  onPointerActivationRelease: () => void
+  onPointerActivationCancel: () => void
+  onOpen: () => void
+}) => (
+  <BuildingInfoTooltip title={label} side="top">
+    {(tooltipTriggerProps) => {
+      const {
+        onClick: onTooltipTriggerClick,
+        ref: tooltipTriggerRef,
+        ...buttonTooltipTriggerProps
+      } = tooltipTriggerProps
+
+      return (
+        <IconButton
+          {...buttonTooltipTriggerProps}
+          ref={(node) => {
+            triggerRef.current = node
+            assignBuildingInfoRef(tooltipTriggerRef, node)
+          }}
+          type="button"
+          aria-label={label}
+          aria-expanded={expanded}
+          aria-controls={regionId}
+          data-testid="building-info-provenance-trigger"
+          size="small"
+          onPointerDown={onPointerActivationStart}
+          onPointerUp={onPointerActivationRelease}
+          onPointerCancel={onPointerActivationCancel}
+          onPointerLeave={(event) => {
+            if (event.buttons !== 0) {
+              onPointerActivationCancel()
+            }
+          }}
+          onClick={(event) => {
+            onTooltipTriggerClick?.(
+              event as React.MouseEvent<HTMLButtonElement>
+            )
+
+            if (!event.defaultPrevented) {
+              onOpen()
+            }
+          }}
+          sx={sidebarPanelExtensionPageControlButtonSx}
+        >
+          <InfoCircle aria-hidden="true" sx={{ width: 18, height: 18 }} />
+        </IconButton>
+      )
+    }}
+  </BuildingInfoTooltip>
+)
+
 export const BuildingInfoTabPages = ({
+  panels,
+  locale,
   topology,
   ariaLabels,
   activeTabId,
@@ -3349,12 +3547,174 @@ export const BuildingInfoTabPages = ({
   onClose,
   onCollapse,
 }: BuildingInfoTabPagesProps) => {
+  const { t } = useTranslate('energiakartta')
+  const [provenanceDisclosureState, setProvenanceDisclosureState] =
+    React.useState<BuildingInfoProvenanceDisclosureState>('closed')
+  const provenanceDisclosureStateRef =
+    React.useRef<BuildingInfoProvenanceDisclosureState>('closed')
+  const isProvenanceOpen = provenanceDisclosureState === 'open'
+  const [effectiveWaterProjection, setEffectiveWaterProjection] =
+    React.useState<EnergymapEffectiveWaterProjection>()
+  const provenanceTriggerRef = React.useRef<HTMLButtonElement | null>(null)
+  const provenanceHeadingRef = React.useRef<HTMLHeadingElement | null>(null)
+  const returnFocusFrameRef = React.useRef<number | null>(null)
+  const pointerReleaseFrameRef = React.useRef<number | null>(null)
+  const generatedProvenanceId = React.useId().replace(/:/g, '')
+  const provenanceRegionId = `building-info-provenance-region-${generatedProvenanceId}`
+  const provenanceHeadingId = `building-info-provenance-heading-${generatedProvenanceId}`
+  const provenanceOpenLabel = t('sidebar.building_info.provenance.view.open')
+  const provenanceSummaryResult = React.useMemo(
+    () =>
+      deriveEnergymapBuildingInfoProvenanceSummary({
+        panels,
+        locale,
+        effectiveWaterProjection,
+      }),
+    [effectiveWaterProjection, locale, panels]
+  )
+  const handleEffectiveWaterProjectionChange = React.useCallback(
+    (projection?: EnergymapEffectiveWaterProjection) => {
+      setEffectiveWaterProjection(projection)
+    },
+    []
+  )
+  const updateProvenanceDisclosureState = React.useCallback(
+    (nextState: BuildingInfoProvenanceDisclosureState) => {
+      provenanceDisclosureStateRef.current = nextState
+      setProvenanceDisclosureState(nextState)
+    },
+    []
+  )
+  const getProvenanceDisclosureState = React.useCallback(
+    () => provenanceDisclosureStateRef.current,
+    []
+  )
+  const effectiveWaterProjectionContextValue = React.useMemo(
+    () => ({
+      onProjectionChange: handleEffectiveWaterProjectionChange,
+      provenanceDisclosureState,
+      getProvenanceDisclosureState,
+    }),
+    [
+      getProvenanceDisclosureState,
+      handleEffectiveWaterProjectionChange,
+      provenanceDisclosureState,
+    ]
+  )
+  const cancelPendingPointerRelease = React.useCallback(() => {
+    if (pointerReleaseFrameRef.current == null) {
+      return
+    }
+
+    window.cancelAnimationFrame(pointerReleaseFrameRef.current)
+    pointerReleaseFrameRef.current = null
+  }, [])
+  const handleProvenancePointerActivationStart = React.useCallback(() => {
+    if (provenanceDisclosureStateRef.current !== 'closed') {
+      return
+    }
+
+    cancelPendingPointerRelease()
+    updateProvenanceDisclosureState('pointerPending')
+  }, [cancelPendingPointerRelease, updateProvenanceDisclosureState])
+  const handleProvenancePointerActivationRelease = React.useCallback(() => {
+    if (provenanceDisclosureStateRef.current !== 'pointerPending') {
+      return
+    }
+
+    cancelPendingPointerRelease()
+    pointerReleaseFrameRef.current = window.requestAnimationFrame(() => {
+      pointerReleaseFrameRef.current = null
+      if (provenanceDisclosureStateRef.current === 'pointerPending') {
+        updateProvenanceDisclosureState('closed')
+      }
+    })
+  }, [cancelPendingPointerRelease, updateProvenanceDisclosureState])
+  const handleProvenancePointerActivationCancel = React.useCallback(() => {
+    if (provenanceDisclosureStateRef.current !== 'pointerPending') {
+      return
+    }
+
+    cancelPendingPointerRelease()
+    updateProvenanceDisclosureState('closed')
+  }, [cancelPendingPointerRelease, updateProvenanceDisclosureState])
+  const handleOpenProvenance = React.useCallback(() => {
+    cancelPendingPointerRelease()
+    if (returnFocusFrameRef.current != null) {
+      window.cancelAnimationFrame(returnFocusFrameRef.current)
+      returnFocusFrameRef.current = null
+    }
+    updateProvenanceDisclosureState('open')
+  }, [cancelPendingPointerRelease, updateProvenanceDisclosureState])
+  const handleCloseProvenance = React.useCallback(() => {
+    cancelPendingPointerRelease()
+    updateProvenanceDisclosureState('closed')
+
+    if (returnFocusFrameRef.current != null) {
+      window.cancelAnimationFrame(returnFocusFrameRef.current)
+    }
+    returnFocusFrameRef.current = window.requestAnimationFrame(() => {
+      returnFocusFrameRef.current = null
+      if (provenanceTriggerRef.current?.isConnected) {
+        provenanceTriggerRef.current.focus()
+      }
+    })
+  }, [cancelPendingPointerRelease, updateProvenanceDisclosureState])
+
+  React.useEffect(() => {
+    if (!isProvenanceOpen) {
+      return undefined
+    }
+
+    const frameId = window.requestAnimationFrame(() => {
+      provenanceHeadingRef.current?.focus()
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frameId)
+    }
+  }, [isProvenanceOpen])
+
+  React.useEffect(() => {
+    if (!isProvenanceOpen) {
+      return undefined
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') {
+        return
+      }
+
+      event.preventDefault()
+      handleCloseProvenance()
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [handleCloseProvenance, isProvenanceOpen])
+
+  React.useEffect(
+    () => () => {
+      if (returnFocusFrameRef.current != null) {
+        window.cancelAnimationFrame(returnFocusFrameRef.current)
+      }
+      if (pointerReleaseFrameRef.current != null) {
+        window.cancelAnimationFrame(pointerReleaseFrameRef.current)
+      }
+    },
+    []
+  )
+
   if (topology.availableTabs.length === 0) {
     return null
   }
 
   return (
-    <>
+    <BuildingInfoEffectiveWaterProjectionContext.Provider
+      value={effectiveWaterProjectionContextValue}
+    >
       <BuildingInfoActiveTabSync
         activeTabId={activeTabId}
         topology={topology}
@@ -3375,6 +3735,24 @@ export const BuildingInfoTabPages = ({
             tabIcon={isBasicTab ? <TwoPanelIcon /> : <ThreePanelIcon />}
           >
             <SidebarPanelExtensionPageContainer
+              additionalControls={
+                <BuildingInfoProvenanceTrigger
+                  label={provenanceOpenLabel}
+                  expanded={isProvenanceOpen}
+                  regionId={provenanceRegionId}
+                  triggerRef={provenanceTriggerRef}
+                  onPointerActivationStart={
+                    handleProvenancePointerActivationStart
+                  }
+                  onPointerActivationRelease={
+                    handleProvenancePointerActivationRelease
+                  }
+                  onPointerActivationCancel={
+                    handleProvenancePointerActivationCancel
+                  }
+                  onOpen={handleOpenProvenance}
+                />
+              }
               closeAriaLabel={ariaLabels.close}
               collapseAriaLabel={ariaLabels.collapse}
               onClose={onClose}
@@ -3387,15 +3765,33 @@ export const BuildingInfoTabPages = ({
                 isDesktopFullscreenLayout,
               })}
             >
-              <BuildingInfoTabPageContent
-                tab={tab}
-                forceMobileLayout={forceMobileLayout}
-              />
+              <Box
+                hidden={isProvenanceOpen}
+                sx={{ display: isProvenanceOpen ? 'none' : 'contents' }}
+              >
+                <BuildingInfoTabPageContent
+                  tab={tab}
+                  forceMobileLayout={forceMobileLayout}
+                />
+              </Box>
+              <Box
+                hidden={!isProvenanceOpen}
+                sx={{ display: isProvenanceOpen ? 'contents' : 'none' }}
+              >
+                <BuildingInfoProvenanceView
+                  result={provenanceSummaryResult}
+                  regionId={provenanceRegionId}
+                  headingId={provenanceHeadingId}
+                  headingRef={provenanceHeadingRef}
+                  forceMobileLayout={forceMobileLayout}
+                  onClose={handleCloseProvenance}
+                />
+              </Box>
             </SidebarPanelExtensionPageContainer>
           </SidebarPanelExtensionTabContainer>
         )
       })}
-    </>
+    </BuildingInfoEffectiveWaterProjectionContext.Provider>
   )
 }
 

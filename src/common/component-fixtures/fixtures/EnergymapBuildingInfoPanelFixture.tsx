@@ -27,6 +27,12 @@ import type {
   EnergymapBuildingInfoText,
   EnergymapBuildingInfoValueStatus,
 } from 'applets/energy/common/buildingInfo'
+import { createEnergymapBuildingInfoPanels } from 'applets/energy/common/buildingInfo'
+import {
+  ENERGYMAP_DERIVED_WATER_RESIDENT_CONTROL_PROVENANCE_INPUT_IDS,
+  ENERGYMAP_USER_OVERRIDE_WATER_RESIDENT_CONTROL_PROVENANCE_INPUT_IDS,
+} from 'applets/energy/common/buildingInfoProvenance'
+import type { EnergymapSelectedBuilding } from 'applets/energy/common/types'
 import {
   deriveEnergymapBuildingInfoPanelTopology,
   resolveEnergymapBuildingInfoTab,
@@ -66,6 +72,108 @@ const CERTIFICATE_RECOMMENDATIONS_BY_LANGUAGE = {
   fi: 'Tiivistä yläpohjan lämmöneristystä ja tarkista ilmanvaihdon säädöt. Suositus näytetään täsmälleen energiatodistuksen lähdetekstinä.\n\nToisessa kappaleessa tarkennetaan, että ikkunoiden ja ulko-ovien tiivisteet tulee tarkistaa seuraavan huollon yhteydessä.',
   sv: 'Förbättra vindsbjälklagets värmeisolering och kontrollera ventilationens inställningar. Rekommendationen visas exakt som källtexten i energicertifikatet.\n\nDet andra stycket preciserar att tätningarna kring fönster och ytterdörrar ska kontrolleras vid nästa service.',
 } as const
+
+type ProvenanceFixtureVariant =
+  | 'official'
+  | 'modeled'
+  | 'originUnknown'
+  | 'waterOnly'
+
+const provenanceCompleteProperties = {
+  building_key: 'fixture-provenance-complete',
+  permanent_building_identifier: '101614422K',
+  address_fin: 'Mikkolantie 34a',
+  postal_code: '00640',
+  postal_office_fin: 'HELSINKI',
+  main_purpose: '05',
+  completion_date: '1967-01-01',
+  heating_method: '01',
+  heating_energy_source: '01',
+  floor_area: 454,
+  total_area: 470,
+  gross_floor_area: 500,
+  number_of_storeys: 2,
+  energy_class: 'D',
+  is_energy_class_modeled: false,
+  energy_certificate_valid_until: '2031-12-31 00:00:00.0',
+  energy_certificate_previous_class: 'E',
+  energy_certificate_heated_net_area: 1355,
+  energy_certificate_ventilation_description_fi: 'Painovoimainen ilmanvaihto.',
+  energy_certificate_recommendations_fi: 'Tiivistä yläpohjan lämmöneristystä.',
+  distr_default_total: 367.7884615,
+  distr_default_heat: 343.6634615,
+  distr_default_elec: 24.125,
+  distr_aahp_total: 289.7019231,
+  distr_solar_total: 334.2980769,
+  distr_windows_total: 332.6442308,
+} satisfies EnergymapSelectedBuilding['properties']
+
+const createProvenanceFixturePanels = ({
+  variant,
+  locale,
+  buildingKey,
+}: {
+  variant: ProvenanceFixtureVariant
+  locale: string
+  buildingKey: string
+}) => {
+  const isReplacementBuilding = buildingKey === 'fixture-building-b'
+  const properties: EnergymapSelectedBuilding['properties'] =
+    variant === 'waterOnly'
+      ? {
+          building_key: buildingKey,
+          floor_area: 100,
+          distr_default_total: null,
+        }
+      : {
+          ...provenanceCompleteProperties,
+          building_key: buildingKey,
+          ...(isReplacementBuilding
+            ? {
+                permanent_building_identifier: '101614423L',
+                address_fin: 'Mikkolantie 35',
+                energy_class: 'E',
+              }
+            : {}),
+          ...(variant === 'modeled'
+            ? { is_energy_class_modeled: true }
+            : variant === 'originUnknown'
+              ? { is_energy_class_modeled: 'true' }
+              : { is_energy_class_modeled: false }),
+        }
+  const normalizedBuildingKey = String(properties.building_key)
+  const panels = createEnergymapBuildingInfoPanels({
+    selectedBuilding: {
+      id: normalizedBuildingKey,
+      buildingKey: normalizedBuildingKey,
+      source: 'energymap_building_polygons',
+      sourceLayer: 'energymap_building_polygons',
+      layerId: 'energymap_building_polygons-fill',
+      properties,
+    },
+    locale,
+  })
+
+  if (panels == null) {
+    throw new Error('Expected provenance fixture panels')
+  }
+
+  return panels
+}
+
+const setFixtureInputValue = (
+  input: HTMLInputElement,
+  nextValue: string
+) => {
+  const valueSetter = Object.getOwnPropertyDescriptor(
+    HTMLInputElement.prototype,
+    'value'
+  )?.set
+
+  valueSetter?.call(input, nextValue)
+  input.dispatchEvent(new Event('input', { bubbles: true }))
+  input.dispatchEvent(new Event('change', { bubbles: true }))
+}
 
 const value = ({
   id,
@@ -542,7 +650,7 @@ const createFixturePanels = ({
               (section) => section.id === 'scenarioComparison'
             ),
           },
-      ]
+        ]
   }
 
   if (topology === 'renovationComparisonTwoTop') {
@@ -673,6 +781,8 @@ const BuildingInfoPanelFixtureState = ({
   defaultPrimaryMetricId,
   forceMobileLayout = false,
   interaction,
+  locale = 'en',
+  provenanceVariant,
   recommendationSourceLanguage = 'fi',
   topologyVariant = 'complete',
 }: {
@@ -687,8 +797,16 @@ const BuildingInfoPanelFixtureState = ({
     | 'building-switch-complete-to-sparse'
     | 'building-switch-sparse-to-complete'
     | 'calculation-details-expanded'
+    | 'provenance-building-change'
+    | 'provenance-locale-change'
+    | 'provenance-open'
+    | 'provenance-water-disable-reset'
+    | 'provenance-water-invalid'
+    | 'provenance-water-valid'
     | 'recommendation-expanded'
     | 'water-override'
+  locale?: string
+  provenanceVariant?: ProvenanceFixtureVariant
 }) => {
   const [renderedTopologyVariant, setRenderedTopologyVariant] =
     React.useState(topologyVariant)
@@ -696,19 +814,42 @@ const BuildingInfoPanelFixtureState = ({
   const [buildingSwitchPhase, setBuildingSwitchPhase] = React.useState<
     'initial' | 'interacted' | 'override-enabled' | 'tab-selected' | 'switched'
   >('initial')
+  const [provenanceInteractionPhase, setProvenanceInteractionPhase] =
+    React.useState<
+      | 'initial'
+      | 'override-enabled'
+      | 'water-value-entered'
+      | 'open-requested'
+      | 'close-requested'
+      | 'disable-requested'
+      | 'default-open-requested'
+      | 'building-change-requested'
+      | 'locale-change-requested'
+    >('initial')
+  const [renderedLocale, setRenderedLocale] = React.useState(locale)
   const [requestedTabId, setRequestedTabId] = React.useState(activeTabId)
+  const previousProvenanceRegionIdRef = React.useRef<string | null>(null)
   const panels = React.useMemo(
     () =>
-      createFixturePanels({
-        topology: renderedTopologyVariant,
-        currentClassOrigin,
-        defaultPrimaryMetricId,
-        recommendationSourceLanguage,
-      }),
+      provenanceVariant == null
+        ? createFixturePanels({
+            topology: renderedTopologyVariant,
+            currentClassOrigin,
+            defaultPrimaryMetricId,
+            recommendationSourceLanguage,
+          })
+        : createProvenanceFixturePanels({
+            variant: provenanceVariant,
+            locale: renderedLocale,
+            buildingKey,
+          }),
     [
+      buildingKey,
       currentClassOrigin,
       defaultPrimaryMetricId,
+      provenanceVariant,
       recommendationSourceLanguage,
+      renderedLocale,
       renderedTopologyVariant,
     ]
   )
@@ -750,6 +891,231 @@ const BuildingInfoPanelFixtureState = ({
     }
 
     const prepareInteraction = () => {
+      if (
+        interaction === 'provenance-open' ||
+        interaction === 'provenance-building-change' ||
+        interaction === 'provenance-locale-change' ||
+        interaction === 'provenance-water-valid' ||
+        interaction === 'provenance-water-invalid' ||
+        interaction === 'provenance-water-disable-reset'
+      ) {
+        const isWaterInteraction = interaction.startsWith('provenance-water-')
+        const overrideSwitch = root.querySelector<HTMLInputElement>(
+          '[data-testid="building-info-water-resident-control"] input[role="switch"]'
+        )
+        const residentControl = root.querySelector<HTMLElement>(
+          '[data-testid="building-info-water-resident-control"]'
+        )
+        const residentInput = root.querySelector<HTMLInputElement>(
+          '[data-testid="building-info-water-resident-value-slot"] input'
+        )
+        const trigger = root.querySelector<HTMLButtonElement>(
+          '[data-testid="building-info-provenance-trigger"]'
+        )
+        const provenanceView = root.querySelector<HTMLElement>(
+          '[data-testid="building-info-provenance-view"][data-summary-status="resolved"]'
+        )
+        const provenanceItems = root.querySelectorAll(
+          '[data-testid="building-info-provenance-item"]'
+        )
+
+        if (
+          isWaterInteraction &&
+          provenanceInteractionPhase === 'initial' &&
+          overrideSwitch != null &&
+          !overrideSwitch.checked
+        ) {
+          overrideSwitch.click()
+          setProvenanceInteractionPhase('override-enabled')
+          return
+        }
+
+        if (
+          isWaterInteraction &&
+          provenanceInteractionPhase === 'override-enabled' &&
+          overrideSwitch?.checked &&
+          residentInput != null
+        ) {
+          setFixtureInputValue(
+            residentInput,
+            interaction === 'provenance-water-invalid' ? '' : '3'
+          )
+          setProvenanceInteractionPhase('water-value-entered')
+          return
+        }
+
+        if (
+          provenanceInteractionPhase === 'initial' &&
+          !isWaterInteraction &&
+          trigger != null &&
+          trigger.getAttribute('aria-expanded') !== 'true'
+        ) {
+          trigger.click()
+          setProvenanceInteractionPhase('open-requested')
+          return
+        }
+
+        if (
+          isWaterInteraction &&
+          provenanceInteractionPhase === 'water-value-entered'
+        ) {
+          if (
+            trigger == null ||
+            residentInput == null ||
+            residentInput.value !==
+              (interaction === 'provenance-water-invalid' ? '' : '3') ||
+            residentControl?.dataset.provenanceInputIds !==
+              ENERGYMAP_USER_OVERRIDE_WATER_RESIDENT_CONTROL_PROVENANCE_INPUT_IDS.join(
+                ' '
+              ) ||
+            (interaction === 'provenance-water-invalid' &&
+              root.querySelector(
+                '[data-testid="building-info-unavailable-value-icon"]'
+              ) == null)
+          ) {
+            return
+          }
+
+          if (interaction === 'provenance-water-invalid') {
+            residentInput.focus()
+            trigger.dispatchEvent(
+              new PointerEvent('pointerdown', {
+                bubbles: true,
+                pointerType: 'touch',
+              })
+            )
+            residentInput.blur()
+          }
+          trigger.click()
+          setProvenanceInteractionPhase('open-requested')
+          return
+        }
+
+        if (provenanceInteractionPhase === 'open-requested') {
+          if (
+            trigger?.getAttribute('aria-expanded') !== 'true' ||
+            provenanceView == null
+          ) {
+            return
+          }
+
+          if (interaction === 'provenance-building-change') {
+            previousProvenanceRegionIdRef.current =
+              trigger.getAttribute('aria-controls')
+            setBuildingKey('fixture-building-b')
+            setProvenanceInteractionPhase('building-change-requested')
+            return
+          }
+
+          if (interaction === 'provenance-locale-change') {
+            setRenderedLocale('en')
+            setProvenanceInteractionPhase('locale-change-requested')
+            return
+          }
+
+          const expectedItemCount =
+            interaction === 'provenance-water-invalid'
+              ? 1
+              : interaction === 'provenance-water-valid' ||
+                  interaction === 'provenance-water-disable-reset'
+                ? 2
+                : undefined
+
+          if (
+            expectedItemCount != null &&
+            provenanceItems.length !== expectedItemCount
+          ) {
+            return
+          }
+
+          if (interaction === 'provenance-water-disable-reset') {
+            const closeButton =
+              provenanceView.querySelector<HTMLButtonElement>('button')
+            if (closeButton == null) {
+              return
+            }
+
+            closeButton.click()
+            setProvenanceInteractionPhase('close-requested')
+            return
+          }
+
+          markReady()
+          return
+        }
+
+        if (provenanceInteractionPhase === 'close-requested') {
+          if (
+            trigger?.getAttribute('aria-expanded') !== 'false' ||
+            overrideSwitch == null ||
+            !overrideSwitch.checked
+          ) {
+            return
+          }
+
+          overrideSwitch.click()
+          setProvenanceInteractionPhase('disable-requested')
+          return
+        }
+
+        if (provenanceInteractionPhase === 'disable-requested') {
+          if (
+            trigger == null ||
+            overrideSwitch?.checked !== false ||
+            residentInput != null ||
+            residentControl?.dataset.provenanceInputIds !==
+              ENERGYMAP_DERIVED_WATER_RESIDENT_CONTROL_PROVENANCE_INPUT_IDS.join(
+                ' '
+              )
+          ) {
+            return
+          }
+
+          trigger.click()
+          setProvenanceInteractionPhase('default-open-requested')
+          return
+        }
+
+        if (provenanceInteractionPhase === 'default-open-requested') {
+          if (
+            trigger?.getAttribute('aria-expanded') === 'true' &&
+            provenanceView != null &&
+            provenanceItems.length === 2 &&
+            residentControl?.dataset.provenanceInputIds ===
+              ENERGYMAP_DERIVED_WATER_RESIDENT_CONTROL_PROVENANCE_INPUT_IDS.join(
+                ' '
+              )
+          ) {
+            markReady()
+          }
+          return
+        }
+
+        if (provenanceInteractionPhase === 'building-change-requested') {
+          if (
+            trigger?.getAttribute('aria-expanded') === 'false' &&
+            trigger.getAttribute('aria-controls') !==
+              previousProvenanceRegionIdRef.current &&
+            root
+              .querySelector('[data-testid="building-info-tab-page-basic"]')
+              ?.textContent?.includes('Mikkolantie 35')
+          ) {
+            markReady()
+          }
+          return
+        }
+
+        if (provenanceInteractionPhase === 'locale-change-requested') {
+          if (
+            trigger?.getAttribute('aria-expanded') === 'true' &&
+            provenanceView?.dataset.summaryLocale === 'en'
+          ) {
+            markReady()
+          }
+        }
+        return
+      }
+
       if (interaction === 'building-switch-complete-to-sparse') {
         if (buildingSwitchPhase === 'initial') {
           const waterButton = root.querySelector<HTMLButtonElement>(
@@ -955,7 +1321,7 @@ const BuildingInfoPanelFixtureState = ({
     prepareInteraction()
 
     return () => observer?.disconnect()
-  }, [buildingSwitchPhase, interaction])
+  }, [buildingSwitchPhase, interaction, provenanceInteractionPhase])
 
   return (
     <SlotsProvider>
@@ -965,6 +1331,11 @@ const BuildingInfoPanelFixtureState = ({
         >
           <Box
             ref={rootRef}
+            data-fixture-building-key={buildingKey}
+            data-fixture-locale={renderedLocale}
+            data-fixture-provenance-interaction-phase={
+              provenanceInteractionPhase
+            }
             sx={{
               position: 'relative',
               width: forceMobileLayout ? 390 : 960,
@@ -977,6 +1348,8 @@ const BuildingInfoPanelFixtureState = ({
             <IntoSidebarPanelExtensionPanelSlot panelId="main">
               <BuildingInfoTabPages
                 key={buildingKey}
+                panels={panels}
+                locale={renderedLocale}
                 topology={panelTopology}
                 ariaLabels={ariaLabels}
                 activeTabId={resolvedTab?.id}
@@ -1035,8 +1408,13 @@ export const energymapBuildingInfoPanelFixture: ComponentFixture = {
     'src/applets/energy/common/buildingInfoPanelRuntime.ts',
     'src/applets/energy/common/buildingInfoPanelTopology.ts',
     'src/applets/energy/common/buildingInfoPanelTopology.test.ts',
+    'src/applets/energy/common/buildingInfoProvenance.ts',
+    'src/applets/energy/common/buildingInfoProvenanceSummary.ts',
     'src/applets/energy/components/BuildingInfoPanel.tsx',
     'src/applets/energy/components/BuildingInfoPanel.test.tsx',
+    'src/applets/energy/components/BuildingInfoProvenanceView.tsx',
+    'src/applets/energy/components/BuildingInfoProvenanceView.test.tsx',
+    'src/components/Sidebar/SidebarPanelExtensionPageContainer.tsx',
     'src/common/component-fixtures/fixtures/EnergymapBuildingInfoPanelFixture.tsx',
   ],
   canvasSx: {
@@ -1224,6 +1602,138 @@ export const energymapBuildingInfoPanelFixture: ComponentFixture = {
       waitFor: '[data-testid="building-info-water-resident-control"]',
       render: () => (
         <BuildingInfoPanelFixtureState defaultPrimaryMetricId="water" />
+      ),
+    },
+    {
+      id: 'provenance-official-open',
+      label: 'Official provenance open',
+      description:
+        'Complete desktop building with official-class provenance open.',
+      waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          provenanceVariant="official"
+          interaction="provenance-open"
+        />
+      ),
+    },
+    {
+      id: 'provenance-modeled-open',
+      label: 'Modeled provenance open',
+      description:
+        'Complete desktop building with modeled-class provenance open.',
+      waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          provenanceVariant="modeled"
+          interaction="provenance-open"
+        />
+      ),
+    },
+    {
+      id: 'provenance-origin-unknown-open',
+      label: 'Origin-unknown provenance open',
+      description:
+        'Complete desktop building with origin-unavailable class provenance open.',
+      waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          provenanceVariant="originUnknown"
+          interaction="provenance-open"
+        />
+      ),
+    },
+    {
+      id: 'provenance-building-change-reset',
+      label: 'Provenance building change reset',
+      description:
+        'An open official provenance view is replaced by a different selected building and resets closed with fresh relationships.',
+      waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          provenanceVariant="official"
+          interaction="provenance-building-change"
+        />
+      ),
+    },
+    {
+      id: 'provenance-locale-change-open',
+      label: 'Provenance locale change while open',
+      description:
+        'An open complete provenance view updates from Finnish to English without remounting.',
+      waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          locale="fi"
+          provenanceVariant="official"
+          interaction="provenance-locale-change"
+        />
+      ),
+    },
+    {
+      id: 'provenance-water-default-open',
+      label: 'Water-only default provenance open',
+      description:
+        'Sparse Water-only desktop building with floor-area-derived provenance open.',
+      waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          provenanceVariant="waterOnly"
+          interaction="provenance-open"
+        />
+      ),
+    },
+    {
+      id: 'provenance-water-valid-open',
+      label: 'Water override provenance open',
+      description:
+        'Sparse Water-only desktop building with a valid resident override and user-input provenance.',
+      waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          provenanceVariant="waterOnly"
+          interaction="provenance-water-valid"
+        />
+      ),
+    },
+    {
+      id: 'provenance-water-disable-reset-open',
+      label: 'Water override disabled to default provenance',
+      description:
+        'A distinct resident override is opened, closed, disabled, and reopened with default floor-area-derived provenance.',
+      waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          provenanceVariant="waterOnly"
+          interaction="provenance-water-disable-reset"
+        />
+      ),
+    },
+    {
+      id: 'provenance-water-invalid-open',
+      label: 'Invalid Water provenance open',
+      description:
+        'Sparse Water-only desktop building with invalid active input and no Water output provenance.',
+      waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          provenanceVariant="waterOnly"
+          interaction="provenance-water-invalid"
+        />
+      ),
+    },
+    {
+      id: 'provenance-modeled-open-mobile',
+      label: 'Modeled provenance open mobile',
+      description:
+        'Complete modeled building provenance in the forced mobile layout.',
+      waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          provenanceVariant="modeled"
+          forceMobileLayout
+          interaction="provenance-open"
+        />
       ),
     },
     {
