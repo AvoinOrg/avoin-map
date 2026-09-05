@@ -1,6 +1,12 @@
 import React from 'react'
 import '@testing-library/jest-dom'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import type { MapGeoJSONFeature } from 'maplibre-gl'
 
 import { useUIStore } from '#/common/store/uiStore'
@@ -99,18 +105,19 @@ const resetUIStore = () => {
   })
 }
 
-const renderPage = () =>
-  render(
-    <AppThemeProvider disableCssBaseline>
-      <SlotsProvider>
-        <SidebarRoot>
-          <SidebarBoundary id="energy-home-test" mode="floating">
-            <EnergyHomePage locale="fi" />
-          </SidebarBoundary>
-        </SidebarRoot>
-      </SlotsProvider>
-    </AppThemeProvider>
-  )
+const createPageElement = () => (
+  <AppThemeProvider disableCssBaseline>
+    <SlotsProvider>
+      <SidebarRoot>
+        <SidebarBoundary id="energy-home-test" mode="floating">
+          <EnergyHomePage locale="fi" />
+        </SidebarBoundary>
+      </SidebarRoot>
+    </SlotsProvider>
+  </AppThemeProvider>
+)
+
+const renderPage = () => render(createPageElement())
 
 const createMapBuildingFeature = (buildingKey: string): MapGeoJSONFeature =>
   ({
@@ -140,6 +147,54 @@ const createPanel = (
           label: { type: 'plain', text: `${id} label` },
           text: { type: 'plain', text: `${id} value` },
           status: 'real',
+        },
+      ],
+    },
+  ],
+})
+
+const createEnergyClassPanel = ({
+  classValue,
+  origin,
+}: {
+  classValue: string
+  origin: 'modeled' | 'official' | 'originUnknown'
+}): EnergymapBuildingInfoPanel => ({
+  id: 'buildingDetails',
+  title: { type: 'plain', text: 'Building details' },
+  sections: [
+    {
+      id: 'energyCertificate',
+      variant: 'energyCertificate',
+      rows: [
+        {
+          id: 'energyClass',
+          label: { type: 'plain', text: 'Energy class' },
+          text: { type: 'plain', text: classValue },
+          status: 'real',
+          sourceProperties:
+            origin === 'originUnknown'
+              ? ['energy_class']
+              : ['energy_class', 'is_energy_class_modeled'],
+          ...(origin === 'modeled'
+            ? {
+                modeledIndicator: {
+                  label: {
+                    type: 'translation' as const,
+                    keyName:
+                      'sidebar.building_info.panels.building.energy_class_modeled.label',
+                  },
+                  tooltip: {
+                    type: 'translation' as const,
+                    keyName:
+                      'sidebar.building_info.panels.building.energy_class_modeled.tooltip',
+                  },
+                  ariaLabelKey:
+                    'sidebar.building_info.panels.building.energy_class_modeled.help_aria_label',
+                  sourceProperties: ['is_energy_class_modeled'],
+                },
+              }
+            : {}),
         },
       ],
     },
@@ -260,17 +315,7 @@ describe('EnergyHomePage', () => {
       buildingKey: 'sparse',
       panels: [createPanel('buildingDetails')],
     })
-    view.rerender(
-      <AppThemeProvider disableCssBaseline>
-        <SlotsProvider>
-          <SidebarRoot>
-            <SidebarBoundary id="energy-home-test" mode="floating">
-              <EnergyHomePage locale="fi" />
-            </SidebarBoundary>
-          </SidebarRoot>
-        </SlotsProvider>
-      </AppThemeProvider>
-    )
+    view.rerender(createPageElement())
 
     await waitFor(() => {
       expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
@@ -289,17 +334,7 @@ describe('EnergyHomePage', () => {
     })
 
     selectBuilding({ buildingKey: 'empty', panels: [] })
-    view.rerender(
-      <AppThemeProvider disableCssBaseline>
-        <SlotsProvider>
-          <SidebarRoot>
-            <SidebarBoundary id="energy-home-test" mode="floating">
-              <EnergyHomePage locale="fi" />
-            </SidebarBoundary>
-          </SidebarRoot>
-        </SlotsProvider>
-      </AppThemeProvider>
-    )
+    view.rerender(createPageElement())
 
     await waitFor(() => {
       expect(
@@ -361,7 +396,9 @@ describe('EnergyHomePage', () => {
     expect(
       screen.queryByTestId('building-info-action-rail')
     ).not.toBeInTheDocument()
-    expect(screen.getByTestId('building-info-tab-page-basic')).toBeInTheDocument()
+    expect(
+      screen.getByTestId('building-info-tab-page-basic')
+    ).toBeInTheDocument()
     expect(screen.queryByRole('tablist')).not.toBeInTheDocument()
     expect(screen.getByText('buildingDetails value')).toBeInTheDocument()
     expect(
@@ -390,6 +427,84 @@ describe('EnergyHomePage', () => {
     expect(
       screen.queryByTestId('building-info-action-rail')
     ).not.toBeInTheDocument()
+  })
+
+  it('does not retain modeled energy-class label help across official and origin-unknown selections', async () => {
+    const helpName =
+      'sidebar.building_info.panels.building.energy_class_modeled.help_aria_label'
+    const modeledLabel =
+      'sidebar.building_info.panels.building.energy_class_modeled.label'
+    const getEnergyClassCells = () => {
+      const row = document.querySelector(
+        '[data-section-row-id="energyClass"]'
+      ) as HTMLElement
+      const [labelCell, valueCell] = Array.from(row.children) as HTMLElement[]
+
+      return { labelCell, valueCell }
+    }
+
+    selectBuilding({
+      buildingKey: 'modeled',
+      panels: [createEnergyClassPanel({ classValue: 'C', origin: 'modeled' })],
+    })
+    const view = renderPage()
+
+    await screen.findByTestId('building-info-modeled-energy-class-indicator')
+    const { labelCell, valueCell } = getEnergyClassCells()
+
+    expect(labelCell).toHaveTextContent(`Energy class (${modeledLabel})`)
+    expect(
+      within(labelCell).getByRole('button', { name: helpName })
+    ).toBeInTheDocument()
+    expect(within(valueCell).getByText('C')).toBeInTheDocument()
+    expect(valueCell).not.toHaveTextContent(modeledLabel)
+
+    selectBuilding({
+      buildingKey: 'official',
+      panels: [createEnergyClassPanel({ classValue: 'B', origin: 'official' })],
+    })
+    view.rerender(createPageElement())
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId('building-info-modeled-energy-class-indicator')
+      ).not.toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', { name: helpName })
+      ).not.toBeInTheDocument()
+      expect(getEnergyClassCells().labelCell).toHaveTextContent(
+        /^Energy class$/
+      )
+      expect(
+        within(getEnergyClassCells().valueCell).getByText('B')
+      ).toBeInTheDocument()
+    })
+
+    selectBuilding({
+      buildingKey: 'origin-unknown',
+      panels: [
+        createEnergyClassPanel({
+          classValue: 'A',
+          origin: 'originUnknown',
+        }),
+      ],
+    })
+    view.rerender(createPageElement())
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId('building-info-modeled-energy-class-indicator')
+      ).not.toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', { name: helpName })
+      ).not.toBeInTheDocument()
+      expect(getEnergyClassCells().labelCell).toHaveTextContent(
+        /^Energy class$/
+      )
+      expect(
+        within(getEnergyClassCells().valueCell).getByText('A')
+      ).toBeInTheDocument()
+    })
   })
 
   it('replaces a sparse active tab with the complete building default topology', async () => {

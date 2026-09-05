@@ -576,6 +576,33 @@ const getPanelsWithConsumptionControls = (
       : panel
   )
 
+const getPanelsWithoutModeledEnergyClassIndicator = (
+  sourceProperties: string[]
+): EnergymapBuildingInfoPanel[] =>
+  panels.map((panel) =>
+    panel.id === 'buildingDetails'
+      ? {
+          ...panel,
+          sections: panel.sections.map((section) =>
+            section.id === 'energyCertificate'
+              ? {
+                  ...section,
+                  rows: section.rows?.map((row) =>
+                    row.id === 'energyClass'
+                      ? {
+                          ...row,
+                          sourceProperties,
+                          modeledIndicator: undefined,
+                        }
+                      : row
+                  ),
+                }
+              : section
+          ),
+        }
+      : panel
+  )
+
 type RenderBuildingInfoTabsOptions = {
   panelKey?: string
   activeTabId?: BuildingInfoTabId
@@ -2152,26 +2179,30 @@ describe('BuildingInfoPanel', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('renders modeled energy-class help beneath the class with accessible pointer and keyboard behavior', async () => {
+  it('renders modeled energy-class help in the label cell with accessible pointer and keyboard behavior', async () => {
     renderBuildingInfoTabs()
 
     await screen.findByTestId('building-info-tab-page-basic')
     const energyClassRow = document.querySelector(
       '[data-section-row-id="energyClass"]'
     ) as HTMLElement
-    const stack = within(energyClassRow).getByTestId(
+    const [labelCell, valueCell] = Array.from(
+      energyClassRow.children
+    ) as HTMLElement[]
+    const stack = within(valueCell).getByTestId(
       'building-info-energy-class-value-stack'
     )
-    const indicator = within(stack).getByTestId(
+    const indicator = within(labelCell).getByTestId(
       'building-info-modeled-energy-class-indicator'
     )
-    const classValue = within(stack).getByText('B')
-    const modeledLabel = within(stack).getByText(
+    const baseLabel = within(labelCell).getByText('row.energy_class.label')
+    const modeledLabel = within(labelCell).getByText(
       'sidebar.building_info.panels.building.energy_class_modeled.label'
     )
-    const trigger = within(stack).getByRole('button', {
+    const trigger = within(labelCell).getByRole('button', {
       name: 'sidebar.building_info.panels.building.energy_class_modeled.help_aria_label',
     })
+    const classValue = within(valueCell).getByText('B')
 
     expect(energyClassRow).toBeInTheDocument()
     expect(
@@ -2182,6 +2213,9 @@ describe('BuildingInfoPanel', () => {
       flexDirection: 'column',
       alignItems: 'flex-start',
     })
+    expect(labelCell).toHaveTextContent(
+      'row.energy_class.label (sidebar.building_info.panels.building.energy_class_modeled.label)'
+    )
     expect(indicator).toHaveAttribute(
       'data-source-properties',
       'is_energy_class_modeled'
@@ -2189,12 +2223,24 @@ describe('BuildingInfoPanel', () => {
     expect(indicator).toHaveStyle({
       display: 'inline-flex',
       whiteSpace: 'nowrap',
-      fontWeight: '400',
+      verticalAlign: 'middle',
     })
     expect(
-      classValue.compareDocumentPosition(modeledLabel) &
+      baseLabel.compareDocumentPosition(modeledLabel) &
         Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy()
+    expect(
+      modeledLabel.compareDocumentPosition(trigger) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy()
+    expect(labelCell).toContainElement(indicator)
+    expect(labelCell).toContainElement(trigger)
+    expect(valueCell).toContainElement(classValue)
+    expect(valueCell).not.toContainElement(indicator)
+    expect(within(valueCell).queryByRole('button')).not.toBeInTheDocument()
+    expect(valueCell).not.toHaveTextContent(
+      'sidebar.building_info.panels.building.energy_class_modeled.label'
+    )
     expect(trigger.tagName).toBe('BUTTON')
     expect(trigger).toHaveAttribute('type', 'button')
     expect(trigger.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
@@ -2212,6 +2258,7 @@ describe('BuildingInfoPanel', () => {
     await waitFor(() => {
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
     })
+    expect(trigger).not.toHaveAttribute('aria-describedby')
 
     fireEvent.focus(trigger)
     expect(await screen.findByRole('tooltip')).toHaveTextContent(
@@ -2221,6 +2268,7 @@ describe('BuildingInfoPanel', () => {
     await waitFor(() => {
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
     })
+    expect(trigger).not.toHaveAttribute('aria-describedby')
   })
 
   it('toggles modeled energy-class help on click for touch use', async () => {
@@ -2232,9 +2280,11 @@ describe('BuildingInfoPanel', () => {
     const trigger = screen.getByRole('button', { name: triggerName })
 
     fireEvent.click(trigger)
-    expect(await screen.findByRole('tooltip')).toHaveTextContent(
+    const tooltip = await screen.findByRole('tooltip')
+    expect(tooltip).toHaveTextContent(
       'sidebar.building_info.panels.building.energy_class_modeled.tooltip'
     )
+    expect(trigger).toHaveAttribute('aria-describedby', tooltip.id)
     fireEvent.click(
       screen.getByRole('button', {
         name: triggerName,
@@ -2243,7 +2293,46 @@ describe('BuildingInfoPanel', () => {
     await waitFor(() => {
       expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
     })
+    expect(trigger).not.toHaveAttribute('aria-describedby')
   })
+
+  it.each([
+    ['official', ['energy_class', 'is_energy_class_modeled']],
+    ['origin-unknown', ['energy_class']],
+  ])(
+    'renders the ordinary energy-class row without modeled help for %s provenance',
+    async (_origin, sourceProperties) => {
+      renderBuildingInfoTabs({
+        panels: getPanelsWithoutModeledEnergyClassIndicator(sourceProperties),
+      })
+
+      await screen.findByTestId('building-info-tab-page-basic')
+      const energyClassRow = document.querySelector(
+        '[data-section-row-id="energyClass"]'
+      ) as HTMLElement
+      const [labelCell, valueCell] = Array.from(
+        energyClassRow.children
+      ) as HTMLElement[]
+
+      expect(labelCell).toHaveTextContent(/^row\.energy_class\.label$/)
+      expect(within(valueCell).getByText('B')).toBeInTheDocument()
+      expect(
+        within(valueCell).getByText('B').closest('[data-source-properties]')
+      ).toHaveAttribute('data-source-properties', sourceProperties.join(','))
+      expect(
+        screen.queryByTestId('building-info-modeled-energy-class-indicator')
+      ).not.toBeInTheDocument()
+      expect(
+        screen.queryByRole('button', {
+          name: 'sidebar.building_info.panels.building.energy_class_modeled.help_aria_label',
+        })
+      ).not.toBeInTheDocument()
+      expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+      expect(energyClassRow).not.toHaveTextContent(
+        'sidebar.building_info.panels.building.energy_class_modeled.label'
+      )
+    }
+  )
 
   it('renders the building address as a stacked sub-header instead of a table row', async () => {
     renderBuildingInfoTabs()

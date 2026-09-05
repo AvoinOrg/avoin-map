@@ -1235,10 +1235,19 @@ const BuildingInfoSectionLine = ({
     <Box
       sx={{
         ...textSx,
+        minWidth: 0,
         color: '#111111',
       }}
     >
       <BuildingInfoText text={row.label} />
+      {row.modeledIndicator != null && (
+        <>
+          {' '}
+          <BuildingInfoModeledEnergyClassIndicator
+            indicator={row.modeledIndicator}
+          />
+        </>
+      )}
     </Box>
     <Box
       component="div"
@@ -1266,11 +1275,6 @@ const BuildingInfoSectionLine = ({
             align="left"
             variant={valueVariant}
           />
-          {row.modeledIndicator != null && (
-            <BuildingInfoModeledEnergyClassIndicator
-              indicator={row.modeledIndicator}
-            />
-          )}
         </Box>
       ) : (
         <BuildingInfoValueText value={row} variant={valueVariant} />
@@ -1297,21 +1301,16 @@ const BuildingInfoModeledEnergyClassIndicator = ({
         indicator.sourceProperties
       )}
       sx={{
-        mt: '0.1875rem',
         display: 'inline-flex',
         alignItems: 'center',
         gap: '0.1875rem',
         maxWidth: '100%',
-        color: '#5f5f5f',
-        fontSize: '0.5625rem',
-        fontWeight: 400,
-        lineHeight: '0.875rem',
-        letterSpacing: '0.04em',
+        verticalAlign: 'middle',
         whiteSpace: 'nowrap',
       }}
     >
       <Box component="span">
-        <BuildingInfoText text={indicator.label} />
+        (<BuildingInfoText text={indicator.label} />)
       </Box>
       <AppTooltip
         title={

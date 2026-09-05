@@ -27,7 +27,10 @@ import type {
   EnergymapBuildingInfoText,
   EnergymapBuildingInfoValue,
 } from './buildingInfo'
-import { ENERGYMAP_BUILDING_INFO_PROVENANCE_IDS } from './buildingInfoProvenance'
+import {
+  ENERGYMAP_BUILDING_INFO_PROVENANCE_IDS,
+  ENERGYMAP_BUILDING_INFO_PROVENANCE_INPUT_IDS,
+} from './buildingInfoProvenance'
 import type { EnergymapSelectedBuilding } from './types'
 
 const translationPrefix = 'sidebar.building_info'
@@ -503,33 +506,84 @@ describe('Energiakartta building info availability model', () => {
       'completion_date',
       'heating_energy_source',
     ])
-    expect(energyClass.modeledIndicator?.sourceProperties).toEqual([
+    const modeledIndicator = energyClass.modeledIndicator
+    expect(modeledIndicator).toBeDefined()
+    if (modeledIndicator == null) {
+      throw new Error('Expected modeled energy-class evidence')
+    }
+    expectTranslation(
+      modeledIndicator.label,
+      `${translationPrefix}.panels.building.energy_class_modeled.label`
+    )
+    expectTranslation(
+      modeledIndicator.tooltip,
+      `${translationPrefix}.panels.building.energy_class_modeled.tooltip`
+    )
+    expect(modeledIndicator.sourceProperties).toEqual([
       'is_energy_class_modeled',
       'main_purpose',
       'completion_date',
       'heating_energy_source',
     ])
-    expect(energyClass.modeledIndicator?.ariaLabelKey).toBe(
+    expect(modeledIndicator.ariaLabelKey).toBe(
       `${translationPrefix}.panels.building.energy_class_modeled.help_aria_label`
     )
+    expect(modeledIndicator.provenance).toEqual({
+      id: ENERGYMAP_BUILDING_INFO_PROVENANCE_IDS.ENERGY_CLASS_MODELED_INDICATOR,
+      inputIds: [
+        ENERGYMAP_BUILDING_INFO_PROVENANCE_INPUT_IDS.CLASS_ORIGIN_MODELED,
+        ENERGYMAP_BUILDING_INFO_PROVENANCE_INPUT_IDS.MODEL_CLASS_BUILDING_TYPE,
+        ENERGYMAP_BUILDING_INFO_PROVENANCE_INPUT_IDS.MODEL_CLASS_COMPLETION_DATE,
+        ENERGYMAP_BUILDING_INFO_PROVENANCE_INPUT_IDS.MODEL_CLASS_HEATING_SOURCE,
+      ],
+    })
   })
 
-  it.each([false, undefined, 'true', 1])(
-    'does not add modeled evidence for non-literal true value %p',
-    (modeled) => {
+  it.each([
+    {
+      state: 'literal false',
+      originProperties: { is_energy_class_modeled: false },
+      sourceProperties: ['energy_class', 'is_energy_class_modeled'],
+      provenanceId:
+        ENERGYMAP_BUILDING_INFO_PROVENANCE_IDS.ENERGY_CLASS_OFFICIAL,
+    },
+    {
+      state: 'absent',
+      originProperties: {},
+      sourceProperties: ['energy_class'],
+      provenanceId:
+        ENERGYMAP_BUILDING_INFO_PROVENANCE_IDS.ENERGY_CLASS_ORIGIN_UNAVAILABLE,
+    },
+    ...([undefined, null, 'true', 1, 0] as const).map((modeled) => ({
+      state: `present ${String(modeled)}`,
+      originProperties: { is_energy_class_modeled: modeled },
+      sourceProperties: ['energy_class', 'is_energy_class_modeled'],
+      provenanceId:
+        ENERGYMAP_BUILDING_INFO_PROVENANCE_IDS.ENERGY_CLASS_ORIGIN_UNAVAILABLE,
+    })),
+  ])(
+    'keeps the ordinary class label and omits modeled help when origin is $state',
+    ({ state, originProperties, sourceProperties, provenanceId }) => {
       const panels = createEnergymapBuildingInfoPanels({
         selectedBuilding: createSelectedBuilding({
-          building_key: `modeled-${String(modeled)}`,
+          building_key: `modeled-${state}`,
           energy_class: 'B',
-          is_energy_class_modeled: modeled,
+          ...originProperties,
         }),
         locale: 'en-US',
       }) as EnergymapBuildingInfoPanel[]
+      const energyClass = getRow(
+        getPanel(panels, 'buildingDetails'),
+        'energyClass'
+      )
 
-      expect(
-        getRow(getPanel(panels, 'buildingDetails'), 'energyClass')
-          .modeledIndicator
-      ).toBeUndefined()
+      expectTranslation(
+        energyClass.label,
+        `${translationPrefix}.panels.building.rows.energy_class`
+      )
+      expect(energyClass.modeledIndicator).toBeUndefined()
+      expect(energyClass.sourceProperties).toEqual(sourceProperties)
+      expect(energyClass.provenance?.id).toBe(provenanceId)
     }
   )
 
@@ -1716,6 +1770,12 @@ describe('Energiakartta building info availability model', () => {
         'Energialuokka on mallinnettu rakennuksen saatavilla olevien tietojen perusteella. Se on arvio eikä yhtä tarkka kuin virallinen energiatodistus.',
       help_aria_label: 'Lisätietoja mallinnetusta energialuokasta',
     })
+    expect(
+      `${enBuilding.rows.energy_class} (${enBuilding.energy_class_modeled.label})`
+    ).toBe('Energy class (modeled)')
+    expect(
+      `${fiBuilding.rows.energy_class} (${fiBuilding.energy_class_modeled.label})`
+    ).toBe('Energialuokka (mallinnettu)')
     expect(enTranslations.sidebar.building_info.units.square_meters).toBe('m²')
     expect(fiTranslations.sidebar.building_info.units.square_meters).toBe('m²')
   })

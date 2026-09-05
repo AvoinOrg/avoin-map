@@ -240,10 +240,14 @@ const createControls = ({
   combinedEnergyMetric: totalMetric,
 })
 
+type FixtureCurrentClassOrigin = 'modeled' | 'official' | 'originUnknown'
+
 const createPanels = ({
+  currentClassOrigin = 'modeled',
   defaultPrimaryMetricId = 'energy',
   recommendationSourceLanguage = 'fi',
 }: {
+  currentClassOrigin?: FixtureCurrentClassOrigin
   defaultPrimaryMetricId?: EnergymapBuildingInfoPrimaryMetricId
   recommendationSourceLanguage?: keyof typeof CERTIFICATE_RECOMMENDATIONS_BY_LANGUAGE
 } = {}): EnergymapBuildingInfoPanel[] => [
@@ -404,18 +408,25 @@ const createPanels = ({
             label: plain('Energy class'),
             text: plain('C'),
             status: 'real',
-            sourceProperties: ['energy_class'],
-            modeledIndicator: {
-              label: translation(
-                'sidebar.building_info.panels.building.energy_class_modeled.label'
-              ),
-              tooltip: translation(
-                'sidebar.building_info.panels.building.energy_class_modeled.tooltip'
-              ),
-              ariaLabelKey:
-                'sidebar.building_info.panels.building.energy_class_modeled.help_aria_label',
-              sourceProperties: ['is_energy_class_modeled'],
-            },
+            sourceProperties:
+              currentClassOrigin === 'originUnknown'
+                ? ['energy_class']
+                : ['energy_class', 'is_energy_class_modeled'],
+            ...(currentClassOrigin === 'modeled'
+              ? {
+                  modeledIndicator: {
+                    label: translation(
+                      'sidebar.building_info.panels.building.energy_class_modeled.label'
+                    ),
+                    tooltip: translation(
+                      'sidebar.building_info.panels.building.energy_class_modeled.tooltip'
+                    ),
+                    ariaLabelKey:
+                      'sidebar.building_info.panels.building.energy_class_modeled.help_aria_label',
+                    sourceProperties: ['is_energy_class_modeled'],
+                  },
+                }
+              : {}),
           },
           {
             id: 'energyCertificateValidity',
@@ -468,14 +479,17 @@ type FixtureTopology =
 
 const createFixturePanels = ({
   topology = 'complete',
+  currentClassOrigin,
   defaultPrimaryMetricId,
   recommendationSourceLanguage,
 }: {
   topology?: FixtureTopology
+  currentClassOrigin?: FixtureCurrentClassOrigin
   defaultPrimaryMetricId?: EnergymapBuildingInfoPrimaryMetricId
   recommendationSourceLanguage?: keyof typeof CERTIFICATE_RECOMMENDATIONS_BY_LANGUAGE
 } = {}) => {
   const completePanels = createPanels({
+    currentClassOrigin,
     defaultPrimaryMetricId,
     recommendationSourceLanguage,
   })
@@ -655,6 +669,7 @@ const BuildingInfoPanelFixtureChrome = ({
 
 const BuildingInfoPanelFixtureState = ({
   activeTabId = 'basic',
+  currentClassOrigin = 'modeled',
   defaultPrimaryMetricId,
   forceMobileLayout = false,
   interaction,
@@ -662,6 +677,7 @@ const BuildingInfoPanelFixtureState = ({
   topologyVariant = 'complete',
 }: {
   activeTabId?: BuildingInfoTabId
+  currentClassOrigin?: FixtureCurrentClassOrigin
   defaultPrimaryMetricId?: EnergymapBuildingInfoPrimaryMetricId
   forceMobileLayout?: boolean
   recommendationSourceLanguage?: keyof typeof CERTIFICATE_RECOMMENDATIONS_BY_LANGUAGE
@@ -685,10 +701,12 @@ const BuildingInfoPanelFixtureState = ({
     () =>
       createFixturePanels({
         topology: renderedTopologyVariant,
+        currentClassOrigin,
         defaultPrimaryMetricId,
         recommendationSourceLanguage,
       }),
     [
+      currentClassOrigin,
       defaultPrimaryMetricId,
       recommendationSourceLanguage,
       renderedTopologyVariant,
@@ -1156,12 +1174,38 @@ export const energymapBuildingInfoPanelFixture: ComponentFixture = {
     },
     {
       id: 'building-details',
-      label: 'Building details',
+      label: 'Building details with modeled class',
       description:
         'Modeled energy-class label and help control plus certificate details.',
       waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
       render: () => (
         <BuildingInfoPanelFixtureState interaction="building-details" />
+      ),
+    },
+    {
+      id: 'building-details-official',
+      label: 'Building details with official class',
+      description:
+        'Official energy class with no modeled qualifier or help control.',
+      waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          currentClassOrigin="official"
+          interaction="building-details"
+        />
+      ),
+    },
+    {
+      id: 'building-details-origin-unknown',
+      label: 'Building details with unknown class origin',
+      description:
+        'Energy class with unavailable origin and no modeled qualifier or help control.',
+      waitFor: '[data-testid="building-info-fixture-interaction-ready"]',
+      render: () => (
+        <BuildingInfoPanelFixtureState
+          currentClassOrigin="originUnknown"
+          interaction="building-details"
+        />
       ),
     },
     {

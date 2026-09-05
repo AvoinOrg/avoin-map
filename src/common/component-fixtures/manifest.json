@@ -687,8 +687,20 @@
       },
       {
         "id": "building-details",
-        "label": "Building details",
+        "label": "Building details with modeled class",
         "description": "Modeled energy-class label and help control plus certificate details.",
+        "waitFor": "[data-testid=\"building-info-fixture-interaction-ready\"]"
+      },
+      {
+        "id": "building-details-official",
+        "label": "Building details with official class",
+        "description": "Official energy class with no modeled qualifier or help control.",
+        "waitFor": "[data-testid=\"building-info-fixture-interaction-ready\"]"
+      },
+      {
+        "id": "building-details-origin-unknown",
+        "label": "Building details with unknown class origin",
+        "description": "Energy class with unavailable origin and no modeled qualifier or help control.",
         "waitFor": "[data-testid=\"building-info-fixture-interaction-ready\"]"
       },
       {
