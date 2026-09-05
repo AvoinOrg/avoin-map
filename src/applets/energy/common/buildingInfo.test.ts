@@ -27,6 +27,7 @@ import type {
   EnergymapBuildingInfoText,
   EnergymapBuildingInfoValue,
 } from './buildingInfo'
+import { ENERGYMAP_BUILDING_INFO_PROVENANCE_IDS } from './buildingInfoProvenance'
 import type { EnergymapSelectedBuilding } from './types'
 
 const translationPrefix = 'sidebar.building_info'
@@ -138,7 +139,9 @@ const getMetric = (
   panel: EnergymapBuildingInfoPanel,
   metricId: EnergymapBuildingInfoMetric['id']
 ) => {
-  const metric = getMetrics(panel).find((candidate) => candidate.id === metricId)
+  const metric = getMetrics(panel).find(
+    (candidate) => candidate.id === metricId
+  )
   if (metric == null) throw new Error(`Metric not found: ${metricId}`)
   return metric
 }
@@ -184,10 +187,8 @@ const getScenario = (
   return scenario
 }
 
-const expectPlainText = (
-  text: EnergymapBuildingInfoText,
-  expected: string
-) => expect(text).toEqual({ type: 'plain', text: expected })
+const expectPlainText = (text: EnergymapBuildingInfoText, expected: string) =>
+  expect(text).toEqual({ type: 'plain', text: expected })
 
 const expectTranslation = (
   text: EnergymapBuildingInfoText,
@@ -345,8 +346,10 @@ describe('Energiakartta building info availability model', () => {
   })
 
   it('uses one status-and-structured-text availability contract', () => {
-    const value = (status: EnergymapBuildingInfoValue['status'], text = plain('0')) =>
-      ({ status, text })
+    const value = (
+      status: EnergymapBuildingInfoValue['status'],
+      text = plain('0')
+    ) => ({ status, text })
 
     expect(isEnergymapBuildingInfoValueAvailable(value('real'))).toBe(true)
     expect(isEnergymapBuildingInfoValueAvailable(value('estimate'))).toBe(true)
@@ -358,9 +361,7 @@ describe('Energiakartta building info availability model', () => {
       isEnergymapBuildingInfoValueAvailable(value('real', plain(' \n\t ')))
     ).toBe(false)
     expect(
-      isEnergymapBuildingInfoValueAvailable(
-        value('real', translation('  '))
-      )
+      isEnergymapBuildingInfoValueAvailable(value('real', translation('  ')))
     ).toBe(false)
     expect(
       isEnergymapBuildingInfoValueAvailable({
@@ -495,9 +496,18 @@ describe('Energiakartta building info availability model', () => {
 
     const energyClass = getRow(building, 'energyClass')
     expectPlainText(energyClass.text, 'C')
-    expect(energyClass.sourceProperties).toEqual(['energy_class'])
+    expect(energyClass.sourceProperties).toEqual([
+      'energy_class',
+      'is_energy_class_modeled',
+      'main_purpose',
+      'completion_date',
+      'heating_energy_source',
+    ])
     expect(energyClass.modeledIndicator?.sourceProperties).toEqual([
       'is_energy_class_modeled',
+      'main_purpose',
+      'completion_date',
+      'heating_energy_source',
     ])
     expect(energyClass.modeledIndicator?.ariaLabelKey).toBe(
       `${translationPrefix}.panels.building.energy_class_modeled.help_aria_label`
@@ -600,10 +610,10 @@ describe('Energiakartta building info availability model', () => {
       'distr_default_total',
       'floor_area',
     ])
-    expectTranslation(
-      annual.note as EnergymapBuildingInfoText,
-      `${translationPrefix}.panels.energy.note.estimated`
-    )
+    expect(annual.note).toMatchObject({
+      type: 'translation',
+      keyName: `${translationPrefix}.panels.energy.note.estimated`,
+    })
     expectPlainText(intensity.text, '367.8')
     expect(intensity.sourceProperties).toEqual(['distr_default_total'])
     expect(intensity.unitKey).toBe(
@@ -693,16 +703,13 @@ describe('Energiakartta building info availability model', () => {
 
     const cost = getPrimaryMetric(controls, 'cost')
     expectPlainText(cost.value?.text as EnergymapBuildingInfoText, '19,613')
-    expect(cost.value?.unitKey).toBe(
-      `${translationPrefix}.units.eur_per_year`
-    )
+    expect(cost.value?.unitKey).toBe(`${translationPrefix}.units.eur_per_year`)
     expect(cost.value?.sourceProperties).toEqual([
       'main_purpose',
       'floor_area',
       'distr_default_elec',
       'distr_default_heat',
       'heating_energy_source',
-      'heating_method',
     ])
 
     const co2 = getPrimaryMetric(controls, 'co2')
@@ -710,9 +717,9 @@ describe('Energiakartta building info availability model', () => {
     expect(co2.value?.unitKey).toBe(
       `${translationPrefix}.units.kg_co2_per_year`
     )
-    expect(getSection(energy, 'calculationContext').rows?.map(({ id }) => id)).toEqual(
-      ['costMode', 'co2Mode']
-    )
+    expect(
+      getSection(energy, 'calculationContext').rows?.map(({ id }) => id)
+    ).toEqual(['costMode', 'co2Mode'])
   })
 
   it('retains only Water and makes it the default when it is the sole output', () => {
@@ -733,7 +740,10 @@ describe('Energiakartta building info availability model', () => {
     expect(controls.defaultEnergySubmetricIds).toBeUndefined()
     expect(controls.combinedEnergyMetric).toBeUndefined()
     expect(findSection(energy, 'calculationContext')).toBeUndefined()
-    expect(getPrimaryMetric(controls, 'water').residentCountControl).toBeDefined()
+    expect(getSection(energy, 'estimatedConsumption').notes).toBeUndefined()
+    expect(
+      getPrimaryMetric(controls, 'water').residentCountControl
+    ).toBeDefined()
     expectAvailableGraph(panels)
   })
 
@@ -814,12 +824,19 @@ describe('Energiakartta building info availability model', () => {
     const annualText = (
       ids: EnergymapBuildingInfoEnergySubmetricId[]
     ): EnergymapBuildingInfoText | undefined =>
-      getSelectedEnergyConsumption({ controls, selectedSubmetricIds: ids }).values.find(
-        ({ id }) => id === 'annualTotal'
-      )?.text
+      getSelectedEnergyConsumption({
+        controls,
+        selectedSubmetricIds: ids,
+      }).values.find(({ id }) => id === 'annualTotal')?.text
 
-    expectPlainText(annualText(['electricity']) as EnergymapBuildingInfoText, '10,953')
-    expectPlainText(annualText(['heating']) as EnergymapBuildingInfoText, '156,023')
+    expectPlainText(
+      annualText(['electricity']) as EnergymapBuildingInfoText,
+      '10,953'
+    )
+    expectPlainText(
+      annualText(['heating']) as EnergymapBuildingInfoText,
+      '156,023'
+    )
     expectPlainText(
       annualText(['heating', 'electricity']) as EnergymapBuildingInfoText,
       '166,976'
@@ -853,7 +870,9 @@ describe('Energiakartta building info availability model', () => {
     const electricity = controls.energySubmetrics?.find(
       ({ id }) => id === 'electricity'
     )
-    const heating = controls.energySubmetrics?.find(({ id }) => id === 'heating')
+    const heating = controls.energySubmetrics?.find(
+      ({ id }) => id === 'heating'
+    )
 
     expect(controls.combinedEnergyMetric).toBeUndefined()
     expect(controls.defaultEnergySubmetricIds).toEqual(['electricity'])
@@ -911,9 +930,9 @@ describe('Energiakartta building info availability model', () => {
     ])
     expect(findRow(energy, 'costMode')).toBeUndefined()
     expect(getRow(energy, 'co2Mode').status).toBe('estimate')
-    expect(getSection(energy, 'calculationContext').rows?.map(({ id }) => id)).toEqual(
-      ['co2Mode']
-    )
+    expect(
+      getSection(energy, 'calculationContext').rows?.map(({ id }) => id)
+    ).toEqual(['co2Mode'])
   })
 
   it.each([
@@ -924,25 +943,28 @@ describe('Energiakartta building info availability model', () => {
     ['invalid electricity type', { distr_default_elec: '24.125' }],
     ['non-finite area', { floor_area: Number.NaN }],
     ['infinite heating', { distr_default_heat: Number.POSITIVE_INFINITY }],
-  ])('removes unsupported current-reference outputs for %s', (_name, overrides) => {
-    const panels = createEnergymapBuildingInfoPanels({
-      selectedBuilding: createSelectedBuilding({
-        ...districtHeatingProperties,
-        ...overrides,
-        building_key: `invalid-${_name}`,
-      }),
-      locale: 'en-US',
-    }) as EnergymapBuildingInfoPanel[]
-    const energy = getPanel(panels, 'energyConsumption')
-    const controls = getControls(energy)
+  ])(
+    'removes unsupported current-reference outputs for %s',
+    (_name, overrides) => {
+      const panels = createEnergymapBuildingInfoPanels({
+        selectedBuilding: createSelectedBuilding({
+          ...districtHeatingProperties,
+          ...overrides,
+          building_key: `invalid-${_name}`,
+        }),
+        locale: 'en-US',
+      }) as EnergymapBuildingInfoPanel[]
+      const energy = getPanel(panels, 'energyConsumption')
+      const controls = getControls(energy)
 
-    expect(controls.primaryMetrics.map(({ id }) => id)).not.toContain('cost')
-    expect(controls.primaryMetrics.map(({ id }) => id)).not.toContain('co2')
-    expect(findRow(energy, 'costMode')).toBeUndefined()
-    expect(findRow(energy, 'co2Mode')).toBeUndefined()
-    expect(findSection(energy, 'calculationContext')).toBeUndefined()
-    expectAvailableGraph(panels)
-  })
+      expect(controls.primaryMetrics.map(({ id }) => id)).not.toContain('cost')
+      expect(controls.primaryMetrics.map(({ id }) => id)).not.toContain('co2')
+      expect(findRow(energy, 'costMode')).toBeUndefined()
+      expect(findRow(energy, 'co2Mode')).toBeUndefined()
+      expect(findSection(energy, 'calculationContext')).toBeUndefined()
+      expectAvailableGraph(panels)
+    }
+  )
 
   it('keeps partial metrics and scenarios while pruning unavailable siblings', () => {
     const panels = createEnergymapBuildingInfoPanels({
@@ -1001,9 +1023,7 @@ describe('Energiakartta building info availability model', () => {
 
     expect(panels.map(({ id }) => id)).toEqual(['buildingDetails'])
     const building = getPanel(panels, 'buildingDetails')
-    expect(building.sections.map(({ id }) => id)).toEqual([
-      'buildingSubheader',
-    ])
+    expect(building.sections.map(({ id }) => id)).toEqual(['buildingSubheader'])
     expect(building.sections[0].rows?.map(({ id }) => id)).toEqual(['address'])
     expectAvailableGraph(panels)
   })
@@ -1214,8 +1234,9 @@ describe('Energiakartta building info availability model', () => {
     const building = getPanel(panels, 'buildingDetails')
 
     expect(findRow(building, 'energyCertificateValidity')).toBeUndefined()
-    expect(getSection(building, 'energyCertificate').rows?.map(({ id }) => id))
-      .toEqual(['energyClass'])
+    expect(
+      getSection(building, 'energyCertificate').rows?.map(({ id }) => id)
+    ).toEqual(['energyClass'])
   })
 
   it('does not infer certificate validity from other certificate or building dates', () => {
@@ -1423,8 +1444,7 @@ describe('Energiakartta building info availability model', () => {
       caseName: 'descriptions are not strings',
       properties: {
         energy_certificate_ventilation_description_fi: 42,
-        energy_certificate_ventilation_description_sv:
-          Number.POSITIVE_INFINITY,
+        energy_certificate_ventilation_description_sv: Number.POSITIVE_INFINITY,
       },
       hiddenText: undefined,
     },
@@ -1579,7 +1599,10 @@ describe('Energiakartta building info availability model', () => {
 
     expect(findPanel(panels, 'renovationRecommendations')).toBeUndefined()
     expect(
-      findRow(getPanel(panels, 'buildingDetails'), 'energyCertificateRecommendations')
+      findRow(
+        getPanel(panels, 'buildingDetails'),
+        'energyCertificateRecommendations'
+      )
     ).toBeUndefined()
   })
 
@@ -1625,18 +1648,30 @@ describe('Energiakartta building info availability model', () => {
       }),
       locale: 'en-US',
     }) as EnergymapBuildingInfoPanel[]
-    const zeroHeatControls = getControls(
-      getPanel(zeroHeatPanels, 'energyConsumption')
-    )
+    const zeroHeatEnergy = getPanel(zeroHeatPanels, 'energyConsumption')
+    const zeroHeatControls = getControls(zeroHeatEnergy)
+    const zeroHeatCost = getPrimaryMetric(zeroHeatControls, 'cost')
 
     expect(zeroHeatControls.primaryMetrics.map(({ id }) => id)).toContain(
       'cost'
     )
     expectPlainText(
-      getPrimaryMetric(zeroHeatControls, 'cost').value
-        ?.text as EnergymapBuildingInfoText,
+      zeroHeatCost.value?.text as EnergymapBuildingInfoText,
       '263'
     )
+    expect(zeroHeatCost.value?.provenance?.id).toBe(
+      ENERGYMAP_BUILDING_INFO_PROVENANCE_IDS.COST_ANNUAL
+    )
+    expect(zeroHeatCost.value?.provenance?.inputIds).toContain(
+      'referenceFactor.cost.apartmentBuilding.electricity'
+    )
+    expect(zeroHeatCost.value?.provenance?.inputIds).not.toContain(
+      'referenceFactor.cost.apartmentBuilding.pellet'
+    )
+    expect(getRow(zeroHeatEnergy, 'costMode').provenance).toEqual({
+      id: ENERGYMAP_BUILDING_INFO_PROVENANCE_IDS.COST_MODE_CONTEXT,
+      inputIds: zeroHeatCost.value?.provenance?.inputIds,
+    })
   })
 
   it('keeps generated current-reference and building copy exact in both locales', () => {
@@ -1720,10 +1755,10 @@ describe('Energiakartta building info availability model', () => {
       'distr_aahp_total',
       'floor_area',
     ])
-    expectTranslation(
-      annualTotal.note as EnergymapBuildingInfoText,
-      `${translationPrefix}.panels.energy.note.estimated`
-    )
+    expect(annualTotal.note).toMatchObject({
+      type: 'translation',
+      keyName: `${translationPrefix}.panels.energy.note.estimated`,
+    })
     expectPlainText(perSquareMeter.text, '289.7')
     expect(perSquareMeter.unitKey).toBe(
       `${translationPrefix}.units.kwh_per_square_meter_year`

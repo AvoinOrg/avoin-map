@@ -50,6 +50,7 @@ import {
   getSelectedEnergyConsumption,
   normalizeEnergySubmetricSelection,
 } from '../common/buildingInfo'
+import { getEnergymapEffectiveWaterProjection } from '../common/buildingInfoProvenance'
 import {
   getBuildingInfoModeForTabId,
   getBuildingInfoPanelIds,
@@ -65,7 +66,6 @@ import type {
   EnergymapBuildingInfoPanelTopology,
   EnergymapBuildingInfoTabTopology,
 } from '../common/buildingInfoPanelTopology'
-import { calculateCurrentReferenceAnnualWater } from '../common/currentReferenceCalculations'
 
 export type { BuildingInfoDesktopMode, BuildingInfoTabId }
 export {
@@ -860,7 +860,10 @@ const BuildingInfoValueText = ({
 const BuildingInfoNoteText = ({
   note,
 }: {
-  note: Pick<EnergymapBuildingInfoNote, 'text' | 'status' | 'sourceProperties'> &
+  note: Pick<
+    EnergymapBuildingInfoNote,
+    'text' | 'status' | 'sourceProperties'
+  > &
     Partial<Pick<EnergymapBuildingInfoNote, 'id'>>
 }) => {
   const showWarningIcon = note.status === 'placeholder'
@@ -1578,6 +1581,9 @@ const BuildingInfoMetricValueRow = ({
 }) => (
   <Box
     data-metric-value-id={value.id}
+    data-provenance-id={value.provenance?.id}
+    data-provenance-input-ids={value.provenance?.inputIds?.join(' ')}
+    data-source-properties={value.sourceProperties?.join(' ')}
     sx={{
       display: 'grid',
       gridTemplateColumns: 'minmax(0, 1fr) minmax(0, auto)',
@@ -1841,30 +1847,28 @@ const BuildingInfoWaterResidentControl = ({
     minValue: control.minValue,
     maxValue: control.maxValue,
   })
-  const displayedResidentCount = isOverrideEnabled
-    ? manualResidentCount
-    : control.defaultValue
-  const waterResult = calculateCurrentReferenceAnnualWater(
-    displayedResidentCount
-  )
+  const projection = getEnergymapEffectiveWaterProjection({
+    value: metric.value,
+    residentCountControl: control,
+    isOverrideEnabled,
+    manualResidentCount,
+  })
+  const effectiveControl = projection.residentCountControl
   const value =
-    waterResult.status === 'complete'
+    projection.calculationResult.status === 'complete'
       ? {
-          ...metric.value,
+          ...projection.value,
           text: {
             type: 'plain' as const,
-            text: formatNumber(waterResult.cubicMetersPerYear, {
-              maximumFractionDigits: 1,
-            }),
+            text: formatNumber(
+              projection.calculationResult.cubicMetersPerYear,
+              {
+                maximumFractionDigits: 1,
+              }
+            ),
           },
         }
-      : {
-          text: control.unavailableText,
-          status: 'missing' as const,
-          ...(metric.value.sourceProperties == null
-            ? {}
-            : { sourceProperties: metric.value.sourceProperties }),
-        }
+      : projection.value
 
   const resetOverride = () => {
     setIsOverrideEnabled(false)
@@ -1881,6 +1885,11 @@ const BuildingInfoWaterResidentControl = ({
       <BuildingInfoMetricValueRow value={getAnnualPrimaryMetricValue(value)} />
       <Box
         data-testid="building-info-water-resident-control"
+        data-provenance-id={effectiveControl.provenance?.id}
+        data-provenance-input-ids={effectiveControl.provenance?.inputIds?.join(
+          ' '
+        )}
+        data-source-properties={effectiveControl.sourceProperties?.join(' ')}
         sx={{
           mt: '0.75rem',
           display: 'flex',
@@ -1894,7 +1903,7 @@ const BuildingInfoWaterResidentControl = ({
           data-status="estimate"
           sx={{ ...textSx, color: STATUS_SX.estimate.color }}
         >
-          <BuildingInfoText text={control.description} />
+          <BuildingInfoText text={effectiveControl.description} />
         </Box>
         <Box
           data-testid="building-info-water-resident-row"
@@ -1908,7 +1917,7 @@ const BuildingInfoWaterResidentControl = ({
           }}
         >
           <Box id={residentLabelId} sx={{ ...textSx, color: '#111111' }}>
-            <BuildingInfoText text={control.label} />
+            <BuildingInfoText text={effectiveControl.label} />
           </Box>
           <Box
             data-testid="building-info-water-resident-value-slot"
@@ -1925,9 +1934,9 @@ const BuildingInfoWaterResidentControl = ({
               <NumberInputField
                 applyNegativeMargins
                 size="small"
-                value={manualResidentCount ?? control.defaultValue}
-                minValue={control.minValue}
-                maxValue={control.maxValue}
+                value={manualResidentCount ?? effectiveControl.defaultValue}
+                minValue={effectiveControl.minValue}
+                maxValue={effectiveControl.maxValue}
                 incrementStepValue={1}
                 format={{ maximumFractionDigits: 0 }}
                 rawValue={manualResidentCountRawValue}
@@ -1950,9 +1959,9 @@ const BuildingInfoWaterResidentControl = ({
                     String(
                       normalizeResidentCountOnCommit({
                         rawValue,
-                        defaultValue: control.defaultValue,
-                        minValue: control.minValue,
-                        maxValue: control.maxValue,
+                        defaultValue: effectiveControl.defaultValue,
+                        minValue: effectiveControl.minValue,
+                        maxValue: effectiveControl.maxValue,
                       })
                     )
                   )
@@ -1973,7 +1982,7 @@ const BuildingInfoWaterResidentControl = ({
                   textAlign: 'right',
                 }}
               >
-                {formatNumber(control.defaultValue, {
+                {formatNumber(effectiveControl.defaultValue, {
                   maximumFractionDigits: 0,
                 })}
               </Box>
@@ -1998,7 +2007,7 @@ const BuildingInfoWaterResidentControl = ({
             setIsOverrideEnabled(true)
           }}
         >
-          <BuildingInfoText text={control.toggleLabel} />
+          <BuildingInfoText text={effectiveControl.toggleLabel} />
         </SquishedSwitchWithLabel>
       </Box>
     </Box>

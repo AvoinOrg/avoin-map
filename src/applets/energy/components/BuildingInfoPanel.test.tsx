@@ -29,6 +29,13 @@ import {
   getEnergymapBuildingInfoPanelRuntimeOptions,
 } from '../common/buildingInfoPanelRuntime'
 import { deriveEnergymapBuildingInfoPanelTopology } from '../common/buildingInfoPanelTopology'
+import {
+  ENERGYMAP_BUILDING_INFO_PROVENANCE_IDS,
+  ENERGYMAP_DERIVED_WATER_PROVENANCE_INPUT_IDS,
+  ENERGYMAP_DERIVED_WATER_RESIDENT_CONTROL_PROVENANCE_INPUT_IDS,
+  ENERGYMAP_USER_OVERRIDE_WATER_PROVENANCE_INPUT_IDS,
+  ENERGYMAP_USER_OVERRIDE_WATER_RESIDENT_CONTROL_PROVENANCE_INPUT_IDS,
+} from '../common/buildingInfoProvenance'
 import type {
   EnergymapBuildingInfoConsumptionControls,
   EnergymapBuildingInfoMetric,
@@ -249,6 +256,11 @@ const consumptionControls: EnergymapBuildingInfoConsumptionControls = {
         text: plain('481.8'),
         status: 'estimate',
         unitKey: 'sidebar.building_info.units.cubic_meters_per_year',
+        sourceProperties: ['floor_area'],
+        provenance: {
+          id: ENERGYMAP_BUILDING_INFO_PROVENANCE_IDS.WATER_ANNUAL,
+          inputIds: ENERGYMAP_DERIVED_WATER_PROVENANCE_INPUT_IDS,
+        },
       },
       residentCountControl: {
         defaultValue: 11,
@@ -266,6 +278,12 @@ const consumptionControls: EnergymapBuildingInfoConsumptionControls = {
         unavailableText: translation(
           'sidebar.building_info.panels.energy.water.invalid_resident_count'
         ),
+        sourceProperties: ['floor_area'],
+        provenance: {
+          id: ENERGYMAP_BUILDING_INFO_PROVENANCE_IDS.WATER_RESIDENT_COUNT_CONTROL,
+          inputIds:
+            ENERGYMAP_DERIVED_WATER_RESIDENT_CONTROL_PROVENANCE_INPUT_IDS,
+        },
       },
     },
     {
@@ -1493,6 +1511,70 @@ describe('BuildingInfoPanel', () => {
     const residentValueSlot = within(waterControl).getByTestId(
       'building-info-water-resident-value-slot'
     )
+    const expectDefaultWaterProvenance = () => {
+      expect(waterAnnualRow).toHaveAttribute(
+        'data-provenance-id',
+        ENERGYMAP_BUILDING_INFO_PROVENANCE_IDS.WATER_ANNUAL
+      )
+      expect(waterAnnualRow).toHaveAttribute(
+        'data-provenance-input-ids',
+        ENERGYMAP_DERIVED_WATER_PROVENANCE_INPUT_IDS.join(' ')
+      )
+      expect(waterAnnualRow).toHaveAttribute(
+        'data-source-properties',
+        'floor_area'
+      )
+      expect(waterControl).toHaveAttribute(
+        'data-provenance-id',
+        ENERGYMAP_BUILDING_INFO_PROVENANCE_IDS.WATER_RESIDENT_COUNT_CONTROL
+      )
+      expect(waterControl).toHaveAttribute(
+        'data-provenance-input-ids',
+        ENERGYMAP_DERIVED_WATER_RESIDENT_CONTROL_PROVENANCE_INPUT_IDS.join(' ')
+      )
+      expect(waterControl).toHaveAttribute(
+        'data-source-properties',
+        'floor_area'
+      )
+    }
+    const expectOverrideWaterProvenance = () => {
+      expect(waterAnnualRow).toHaveAttribute(
+        'data-provenance-id',
+        ENERGYMAP_BUILDING_INFO_PROVENANCE_IDS.WATER_ANNUAL
+      )
+      expect(waterAnnualRow).toHaveAttribute(
+        'data-provenance-input-ids',
+        ENERGYMAP_USER_OVERRIDE_WATER_PROVENANCE_INPUT_IDS.join(' ')
+      )
+      expect(waterAnnualRow).not.toHaveAttribute('data-source-properties')
+      expect(waterControl).toHaveAttribute(
+        'data-provenance-id',
+        ENERGYMAP_BUILDING_INFO_PROVENANCE_IDS.WATER_RESIDENT_COUNT_CONTROL
+      )
+      expect(waterControl).toHaveAttribute(
+        'data-provenance-input-ids',
+        ENERGYMAP_USER_OVERRIDE_WATER_RESIDENT_CONTROL_PROVENANCE_INPUT_IDS.join(
+          ' '
+        )
+      )
+      expect(waterControl).not.toHaveAttribute('data-source-properties')
+    }
+    const expectUnavailableWaterProvenance = () => {
+      expect(waterAnnualRow).not.toHaveAttribute('data-provenance-id')
+      expect(waterAnnualRow).not.toHaveAttribute('data-provenance-input-ids')
+      expect(waterAnnualRow).not.toHaveAttribute('data-source-properties')
+      expect(waterControl).toHaveAttribute(
+        'data-provenance-id',
+        ENERGYMAP_BUILDING_INFO_PROVENANCE_IDS.WATER_RESIDENT_COUNT_CONTROL
+      )
+      expect(waterControl).toHaveAttribute(
+        'data-provenance-input-ids',
+        ENERGYMAP_USER_OVERRIDE_WATER_RESIDENT_CONTROL_PROVENANCE_INPUT_IDS.join(
+          ' '
+        )
+      )
+      expect(waterControl).not.toHaveAttribute('data-source-properties')
+    }
     expect(waterPanel).toHaveAttribute('data-primary-metric-id', 'water')
     expect(waterPanel).toHaveAttribute('data-primary-metric-supported', 'true')
     expect(waterAnnualRow).toHaveTextContent(
@@ -1502,6 +1584,7 @@ describe('BuildingInfoPanel', () => {
     expect(waterPanel).toHaveTextContent(
       'sidebar.building_info.units.cubic_meters_per_year'
     )
+    expectDefaultWaterProvenance()
     expect(waterPanel.children[0]).toBe(waterAnnualRow)
     expect(waterPanel.children[1]).toBe(waterControl)
     expect(waterControl.children[0]).toBe(waterDescription)
@@ -1539,6 +1622,7 @@ describe('BuildingInfoPanel', () => {
       )
     ).toBe(residentValueSlot)
     expect(residentValueSlot).toHaveAttribute('data-override-enabled', 'true')
+    expectOverrideWaterProvenance()
     expect(
       residentInput.closest('[data-slot="number-input-root"]')
     ).toHaveAttribute('data-size', 'small')
@@ -1556,6 +1640,7 @@ describe('BuildingInfoPanel', () => {
     fireEvent.change(residentInput, { target: { value: '12' } })
     await waitFor(() => {
       expect(waterPanel).toHaveTextContent('525,6')
+      expectOverrideWaterProvenance()
     })
     fireEvent.change(residentInput, { target: { value: '' } })
     await waitFor(() => {
@@ -1570,11 +1655,13 @@ describe('BuildingInfoPanel', () => {
         'sidebar.building_info.units.cubic_meters_per_year'
       )
       expect(waterPanel).not.toHaveTextContent('525,6')
+      expectUnavailableWaterProvenance()
     })
     fireEvent.blur(residentInput)
     await waitFor(() => {
       expect(residentInput).toHaveValue('11')
       expect(waterPanel).toHaveTextContent('481,8')
+      expectOverrideWaterProvenance()
     })
 
     fireEvent.change(residentInput, { target: { value: '12,5' } })
@@ -1582,11 +1669,13 @@ describe('BuildingInfoPanel', () => {
       expect(
         within(waterPanel).getByTestId('building-info-unavailable-value-icon')
       ).toBeInTheDocument()
+      expectUnavailableWaterProvenance()
     })
     fireEvent.blur(residentInput)
     await waitFor(() => {
       expect(residentInput).toHaveValue('11')
       expect(waterPanel).toHaveTextContent('481,8')
+      expectOverrideWaterProvenance()
     })
 
     fireEvent.change(residentInput, { target: { value: '10001' } })
@@ -1595,11 +1684,13 @@ describe('BuildingInfoPanel', () => {
       expect(
         within(waterPanel).getByTestId('building-info-unavailable-value-icon')
       ).toBeInTheDocument()
+      expectUnavailableWaterProvenance()
     })
     fireEvent.blur(residentInput)
     await waitFor(() => {
       expect(residentInput).toHaveValue('10000')
       expect(waterPanel).toHaveTextContent('438 000')
+      expectOverrideWaterProvenance()
     })
     fireEvent.change(residentInput, { target: { value: '0' } })
     await waitFor(() => {
@@ -1607,11 +1698,13 @@ describe('BuildingInfoPanel', () => {
       expect(
         within(waterPanel).getByTestId('building-info-unavailable-value-icon')
       ).toBeInTheDocument()
+      expectUnavailableWaterProvenance()
     })
     fireEvent.blur(residentInput)
     await waitFor(() => {
       expect(residentInput).toHaveValue('1')
       expect(waterPanel).toHaveTextContent('43,8')
+      expectOverrideWaterProvenance()
     })
 
     fireEvent.change(residentInput, { target: { value: '-1' } })
@@ -1620,11 +1713,13 @@ describe('BuildingInfoPanel', () => {
       expect(
         within(waterPanel).getByTestId('building-info-unavailable-value-icon')
       ).toBeInTheDocument()
+      expectUnavailableWaterProvenance()
     })
     fireEvent.blur(residentInput)
     await waitFor(() => {
       expect(residentInput).toHaveValue('1')
       expect(waterPanel).toHaveTextContent('43,8')
+      expectOverrideWaterProvenance()
     })
 
     fireEvent.change(residentInput, { target: { value: 'abc' } })
@@ -1633,15 +1728,18 @@ describe('BuildingInfoPanel', () => {
       expect(
         within(waterPanel).getByTestId('building-info-unavailable-value-icon')
       ).toBeInTheDocument()
+      expectUnavailableWaterProvenance()
     })
     fireEvent.blur(residentInput)
     await waitFor(() => {
       expect(residentInput).toHaveValue('11')
       expect(waterPanel).toHaveTextContent('481,8')
+      expectOverrideWaterProvenance()
     })
 
     fireEvent.click(overrideSwitch)
     expect(overrideSwitch).not.toBeChecked()
+    expectDefaultWaterProvenance()
     expect(residentRow).toHaveStyle({ columnGap: '0.75rem' })
     expect(
       within(energyPanel).getByTestId('building-info-water-resident-default')
@@ -1771,6 +1869,23 @@ describe('BuildingInfoPanel', () => {
     expect(
       within(getEnergyPanel()).getByTestId('building-info-primary-metric-value')
     ).toHaveTextContent('481,8')
+    const resetWaterPanel = within(getEnergyPanel()).getByTestId(
+      'building-info-primary-metric-value'
+    )
+    expect(
+      resetWaterPanel.querySelector('[data-metric-value-id="annualTotal"]')
+    ).toHaveAttribute(
+      'data-provenance-input-ids',
+      ENERGYMAP_DERIVED_WATER_PROVENANCE_INPUT_IDS.join(' ')
+    )
+    expect(
+      within(resetWaterPanel).getByTestId(
+        'building-info-water-resident-control'
+      )
+    ).toHaveAttribute(
+      'data-provenance-input-ids',
+      ENERGYMAP_DERIVED_WATER_RESIDENT_CONTROL_PROVENANCE_INPUT_IDS.join(' ')
+    )
   })
 
   it('sizes CO2 primary metric icons to match the other metric symbols', async () => {
@@ -2359,10 +2474,7 @@ describe('BuildingInfoPanel', () => {
     },
     {
       label: 'two',
-      panelIds: [
-        'energyConsumption',
-        'renovationRecommendations',
-      ] as const,
+      panelIds: ['energyConsumption', 'renovationRecommendations'] as const,
       slots: ['top-energy', 'top-renovation'],
     },
   ])(
@@ -2376,9 +2488,7 @@ describe('BuildingInfoPanel', () => {
       })
 
       await screen.findByTestId('building-info-tab-page-renovation')
-      const topRow = screen.getByTestId(
-        'building-info-grid-row-renovationTop'
-      )
+      const topRow = screen.getByTestId('building-info-grid-row-renovationTop')
 
       expect(topRow).toHaveAttribute(
         'data-grid-region-count',
@@ -2404,10 +2514,7 @@ describe('BuildingInfoPanel', () => {
     },
     {
       label: 'two',
-      panelIds: [
-        'energyConsumption',
-        'renovationRecommendations',
-      ] as const,
+      panelIds: ['energyConsumption', 'renovationRecommendations'] as const,
     },
   ])(
     'uses the same comparison-plus-$label-top-region topology in forced mobile layout',
